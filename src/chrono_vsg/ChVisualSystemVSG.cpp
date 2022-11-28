@@ -54,7 +54,8 @@ class GuiComponent {
         */
         // 1. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
         if (_params->showGui) {
-            char label[_params->nstr];
+            char label[64];
+            int nstr = sizeof(label)-1;
             ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
             ImGui::Begin("App:");  // Create a window called "Hello, world!" and append into it.
 
@@ -78,25 +79,25 @@ class GuiComponent {
                 ImGui::TableNextColumn();
                 ImGui::Text("Vehicle Speed:");
                 ImGui::TableNextColumn();
-                snprintf(label, _params->nstr - 1, "%.3f m/s", _params->vehicleSpeed);
+                snprintf(label, nstr, "%.3f m/s", _params->vehicleSpeed);
                 ImGui::Text(label);
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text("Steering:");
                 ImGui::TableNextColumn();
-                snprintf(label, _params->nstr - 1, "%.3f", _params->steering);
+                snprintf(label, nstr, "%.3f", _params->steering);
                 ImGui::Text(label);
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text("Throttle:");
                 ImGui::TableNextColumn();
-                snprintf(label, _params->nstr - 1, "%.3f", _params->throttle);
+                snprintf(label, nstr, "%.3f", _params->throttle);
                 ImGui::Text(label);
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text("Braking:");
                 ImGui::TableNextColumn();
-                snprintf(label, _params->nstr - 1, "%.3f", _params->braking);
+                snprintf(label, nstr, "%.3f", _params->braking);
                 ImGui::Text(label);
                 ImGui::EndTable();
                 ImGui::Spacing();
@@ -105,33 +106,33 @@ class GuiComponent {
                 ImGui::TableNextColumn();
                 ImGui::Text("Engine Speed:");
                 ImGui::TableNextColumn();
-                snprintf(label, _params->nstr - 1, "%.1lf RPM", m_appPtr->GetEngineSpeedRPM());
+                snprintf(label, nstr, "%.1lf RPM", m_appPtr->GetEngineSpeedRPM());
                 ImGui::Text(label);
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text("Engine Torque:");
                 ImGui::TableNextColumn();
-                snprintf(label, _params->nstr - 1, "%.1lf Nm", m_appPtr->GetEngineTorque());
+                snprintf(label, nstr, "%.1lf Nm", m_appPtr->GetEngineTorque());
                 ImGui::Text(label);
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 switch (m_appPtr->GetDriveMode()) {
                     case 'F':
-                        snprintf(label, _params->nstr - 1, "[%c] Gear forward:", m_appPtr->GetTransmissionMode());
+                        snprintf(label, nstr, "[%c] Gear forward:", m_appPtr->GetTransmissionMode());
                         break;
                     case 'N':
-                        snprintf(label, _params->nstr - 1, "[%c] Gear neutral:", m_appPtr->GetTransmissionMode());
+                        snprintf(label, nstr, "[%c] Gear neutral:", m_appPtr->GetTransmissionMode());
                         break;
                     case 'R':
-                        snprintf(label, _params->nstr - 1, "[%c] Gear reverse:", m_appPtr->GetTransmissionMode());
+                        snprintf(label, nstr, "[%c] Gear reverse:", m_appPtr->GetTransmissionMode());
                         break;
                     default:
-                        snprintf(label, _params->nstr - 1, "[%c] Gear ?:", m_appPtr->GetTransmissionMode());
+                        snprintf(label, nstr, "[%c] Gear ?:", m_appPtr->GetTransmissionMode());
                         break;
                 }
                 ImGui::Text(label);
                 ImGui::TableNextColumn();
-                snprintf(label, _params->nstr - 1, "%d", m_appPtr->GetGearPosition());
+                snprintf(label, nstr, "%d", m_appPtr->GetGearPosition());
                 ImGui::Text(label);
                 ImGui::TableNextRow();
                 ImGui::EndTable();
@@ -142,25 +143,25 @@ class GuiComponent {
                     ImGui::TableNextColumn();
                     ImGui::Text("T.conv.slip:");
                     ImGui::TableNextColumn();
-                    snprintf(label, _params->nstr - 1, "%.2f", m_appPtr->GetTconvSlip());
+                    snprintf(label, nstr, "%.2f", m_appPtr->GetTconvSlip());
                     ImGui::Text(label);
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
                     ImGui::Text("T.conv.torque.in:");
                     ImGui::TableNextColumn();
-                    snprintf(label, _params->nstr - 1, "%.1f Nm", m_appPtr->GetTconvTorqueInput());
+                    snprintf(label, nstr, "%.1f Nm", m_appPtr->GetTconvTorqueInput());
                     ImGui::Text(label);
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
                     ImGui::Text("T.conv.torque.out:");
                     ImGui::TableNextColumn();
-                    snprintf(label, _params->nstr - 1, "%.1f Nm", m_appPtr->GetTconvTorqueOutput());
+                    snprintf(label, nstr, "%.1f Nm", m_appPtr->GetTconvTorqueOutput());
                     ImGui::Text(label);
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
                     ImGui::Text("T.conv.speed.out:");
                     ImGui::TableNextColumn();
-                    snprintf(label, _params->nstr - 1, "%.1f RPM", m_appPtr->GetTconvSpeedOutput());
+                    snprintf(label, nstr, "%.1f RPM", m_appPtr->GetTconvSpeedOutput());
                     ImGui::Text(label);
                     ImGui::TableNextRow();
                     ImGui::EndTable();
@@ -170,34 +171,34 @@ class GuiComponent {
                     ImGui::BeginTable("TireTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                                       ImVec2(0.0f, 0.0f));
                     ImGui::TableNextColumn();
-                    snprintf(label, _params->nstr - 1, "Torques wheel L: %+5.1f Nm", m_appPtr->GetTireTorque(0, 0));
+                    snprintf(label, nstr, "Torques wheel L: %+5.1f Nm", m_appPtr->GetTireTorque(0, 0));
                     ImGui::Text(label);
                     ImGui::TableNextColumn();
-                    snprintf(label, _params->nstr - 1, " R: %+5.1f Nm", m_appPtr->GetTireTorque(0, 1));
+                    snprintf(label, nstr, " R: %+5.1f Nm", m_appPtr->GetTireTorque(0, 1));
                     ImGui::Text(label);
                     ImGui::TableNextRow();
                     if (m_appPtr->GetNumDrivenAxles() >= 2) {
                         ImGui::TableNextColumn();
-                        snprintf(label, _params->nstr - 1, "Torques wheel L: %+5.1f Nm", m_appPtr->GetTireTorque(1, 0));
+                        snprintf(label, nstr, "Torques wheel L: %+5.1f Nm", m_appPtr->GetTireTorque(1, 0));
                         ImGui::Text(label);
                         ImGui::TableNextColumn();
-                        snprintf(label, _params->nstr - 1, " wheel R: %+5.1f Nm", m_appPtr->GetTireTorque(1, 1));
+                        snprintf(label, nstr, " R: %+5.1f Nm", m_appPtr->GetTireTorque(1, 1));
                         ImGui::Text(label);
                         ImGui::TableNextRow();
                     }
                     if (m_appPtr->GetNumDrivenAxles() >= 4) {
                         ImGui::TableNextColumn();
-                        snprintf(label, _params->nstr - 1, "Torques wheel L: %+5.1f Nm", m_appPtr->GetTireTorque(2, 0));
+                        snprintf(label, nstr, "Torques wheel L: %+5.1f Nm", m_appPtr->GetTireTorque(2, 0));
                         ImGui::Text(label);
                         ImGui::TableNextColumn();
-                        snprintf(label, _params->nstr - 1, " R: %+5.1f Nm", m_appPtr->GetTireTorque(2, 1));
+                        snprintf(label, nstr, " R: %+5.1f Nm", m_appPtr->GetTireTorque(2, 1));
                         ImGui::Text(label);
                         ImGui::TableNextRow();
                         ImGui::TableNextColumn();
-                        snprintf(label, _params->nstr - 1, "Torques wheel L: %+5.1f Nm", m_appPtr->GetTireTorque(3, 0));
+                        snprintf(label, nstr, "Torques wheel L: %+5.1f Nm", m_appPtr->GetTireTorque(3, 0));
                         ImGui::Text(label);
                         ImGui::TableNextColumn();
-                        snprintf(label, _params->nstr - 1, " R: %+5.1f Nm", m_appPtr->GetTireTorque(3, 1));
+                        snprintf(label, nstr, " R: %+5.1f Nm", m_appPtr->GetTireTorque(3, 1));
                         ImGui::Text(label);
                         ImGui::TableNextRow();
                     }
@@ -209,23 +210,23 @@ class GuiComponent {
                 ImGui::BeginTable("TrackDriveTable", 3, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                                   ImVec2(0.0f, 0.0f));
                 ImGui::TableNextColumn();
-                snprintf(label, _params->nstr - 1, "Sprocket Torque");
+                snprintf(label, nstr, "Sprocket Torque");
                 ImGui::Text(label);
                 ImGui::TableNextColumn();
-                snprintf(label, _params->nstr - 1, "L: %+5.1f Nm", m_appPtr->GetSprocketTorque(0));
+                snprintf(label, nstr, "L: %+5.1f Nm", m_appPtr->GetSprocketTorque(0));
                 ImGui::Text(label);
                 ImGui::TableNextColumn();
-                snprintf(label, _params->nstr - 1, " R: %+5.1f Nm", m_appPtr->GetSprocketTorque(1));
+                snprintf(label, nstr, " R: %+5.1f Nm", m_appPtr->GetSprocketTorque(1));
                 ImGui::Text(label);
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
-                snprintf(label, _params->nstr - 1, "Sprocket Speed");
+                snprintf(label, nstr, "Sprocket Speed");
                 ImGui::Text(label);
                 ImGui::TableNextColumn();
-                snprintf(label, _params->nstr - 1, "L: %+5.1f RPM", m_appPtr->GetSprocketSpeed(0));
+                snprintf(label, nstr, "L: %+5.1f RPM", m_appPtr->GetSprocketSpeed(0));
                 ImGui::Text(label);
                 ImGui::TableNextColumn();
-                snprintf(label, _params->nstr - 1, " R: %+5.1f RPM", m_appPtr->GetSprocketSpeed(1));
+                snprintf(label, nstr, " R: %+5.1f RPM", m_appPtr->GetSprocketSpeed(1));
                 ImGui::Text(label);
                 ImGui::TableNextRow();
                 ImGui::EndTable();
@@ -233,13 +234,13 @@ class GuiComponent {
             }
             ImGui::BeginTable("SimTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                               ImVec2(0.0f, 0.0f));
-            snprintf(label, _params->nstr - 1, "%.4f s", m_appPtr->GetModelTime());
+            snprintf(label, nstr, "%.4f s", m_appPtr->GetModelTime());
             ImGui::TableNextColumn();
             ImGui::Text("Model Time:");
             ImGui::TableNextColumn();
             ImGui::Text(label);
             ImGui::TableNextRow();
-            snprintf(label, _params->nstr - 1, "%.4f s", m_appPtr->GetWallclockTime());
+            snprintf(label, nstr, "%.4f s", m_appPtr->GetWallclockTime());
             ImGui::TableNextColumn();
             ImGui::Text("Wall Clock Time:");
             ImGui::TableNextColumn();
@@ -248,7 +249,7 @@ class GuiComponent {
             ImGui::TableNextColumn();
             ImGui::Text("Real Time Factor:");
             ImGui::TableNextColumn();
-            snprintf(label, _params->nstr - 1, "%.2f", m_appPtr->GetRealtimeFactor());
+            snprintf(label, nstr, "%.2f", m_appPtr->GetRealtimeFactor());
             ImGui::Text(label);
             ImGui::EndTable();
             ImGui::Spacing();
@@ -275,43 +276,43 @@ class GuiComponent {
                 float cv23 = 2.0 * cv13;
                 ImGui::Text("Color Code: %s", _params->cb_title.c_str());
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0, 0.0, cv, alpha));
-                snprintf(label, _params->nstr - 1, "%.3f", _params->cb_min);
+                snprintf(label, nstr, "%.3f", _params->cb_min);
                 ImGui::Button(label);
                 ImGui::PopStyleColor(1);
                 ImGui::SameLine();
                 double cb_stride = _params->cb_max - _params->cb_min;
                 double cb_val = _params->cb_min + cb_stride * 1.0 / 6.0;
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0, cv13, cv, alpha));
-                snprintf(label, _params->nstr - 1, "%.3f", cb_val);
+                snprintf(label, nstr, "%.3f", cb_val);
                 ImGui::Button(label);
                 ImGui::PopStyleColor(1);
                 ImGui::SameLine();
                 cb_val = _params->cb_min + cb_stride * 2.0 / 6.0;
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0, cv23, cv, alpha));
-                snprintf(label, _params->nstr - 1, "%.3f", cb_val);
+                snprintf(label, nstr, "%.3f", cb_val);
                 ImGui::Button(label);
                 ImGui::PopStyleColor(1);
                 ImGui::SameLine();
                 cb_val = _params->cb_min + 0.5 * cb_stride;
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0, cv, 0.0, alpha));
-                snprintf(label, _params->nstr - 1, "%.3f", cb_val);
+                snprintf(label, nstr, "%.3f", cb_val);
                 ImGui::Button(label);
                 ImGui::PopStyleColor(1);
                 ImGui::SameLine();
                 cb_val = _params->cb_min + cb_stride * 4.0 / 6.0;
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(cv, cv23, 0.0, alpha));
-                snprintf(label, _params->nstr - 1, "%.3f", cb_val);
+                snprintf(label, nstr - 1, "%.3f", cb_val);
                 ImGui::Button(label);
                 ImGui::PopStyleColor(1);
                 ImGui::SameLine();
                 cb_val = _params->cb_min + cb_stride * 5.0 / 6.0;
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(cv, cv13, 0.0, alpha));
-                snprintf(label, _params->nstr - 1, "%.3f", cb_val);
+                snprintf(label, nstr, "%.3f", cb_val);
                 ImGui::Button(label);
                 ImGui::PopStyleColor(1);
                 ImGui::SameLine();
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(cv, 0.0, 0.0, alpha));
-                snprintf(label, _params->nstr - 1, "%.3f", _params->cb_max);
+                snprintf(label, nstr, "%.3f", _params->cb_max);
                 ImGui::Button(label);
                 ImGui::PopStyleColor(1);
             }
