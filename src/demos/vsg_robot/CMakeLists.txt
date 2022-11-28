@@ -3,6 +3,7 @@
 
 SET(DEMOS
   demo_vsg_ROBOT_Curiosity_Rigid
+  demo_vsg_ROBOT_Curiosity_SCM
   demo_vsg_ROBOT_Turtlebot_Rigid
   demo_vsg_ROBOT_Viper_Rigid
   demo_vsg_ROBOT_Viper_SCM
