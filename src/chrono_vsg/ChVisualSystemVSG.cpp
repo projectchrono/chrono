@@ -331,6 +331,93 @@ class GuiComponent {
     ChVisualSystemVSG* m_appPtr;
 };
 
+class FindVertexData : public vsg::Visitor {
+  public:
+    void apply(vsg::Object& object) { object.traverse(*this); }
+
+    void apply(vsg::BindVertexBuffers& bvd) {
+        if (bvd.arrays.empty())
+            return;
+        bvd.arrays[0]->data->accept(*this);
+    }
+
+    void apply(vsg::vec3Array& vertices) {
+        if (verticesSet.count(&vertices) == 0) {
+            verticesSet.insert(&vertices);
+        }
+    }
+
+    std::vector<vsg::ref_ptr<vsg::vec3Array>> getVerticesList() {
+        std::vector<vsg::ref_ptr<vsg::vec3Array>> verticesList(verticesSet.size());
+        auto vertices_itr = verticesList.begin();
+        for (auto& vertices : verticesSet) {
+            (*vertices_itr++) = const_cast<vsg::vec3Array*>(vertices);
+        }
+
+        return verticesList;
+    }
+
+    std::set<vsg::vec3Array*> verticesSet;
+};
+
+class FindNormalData : public vsg::Visitor {
+  public:
+    void apply(vsg::Object& object) { object.traverse(*this); }
+
+    void apply(vsg::BindVertexBuffers& bvd) {
+        if (bvd.arrays.empty())
+            return;
+        bvd.arrays[1]->data->accept(*this);
+    }
+
+    void apply(vsg::vec3Array& normals) {
+        if (normalsSet.count(&normals) == 0) {
+            normalsSet.insert(&normals);
+        }
+    }
+
+    std::vector<vsg::ref_ptr<vsg::vec3Array>> getNormalsList() {
+        std::vector<vsg::ref_ptr<vsg::vec3Array>> normalsList(normalsSet.size());
+        auto normals_itr = normalsList.begin();
+        for (auto& normals : normalsSet) {
+            (*normals_itr++) = const_cast<vsg::vec3Array*>(normals);
+        }
+
+        return normalsList;
+    }
+
+    std::set<vsg::vec3Array*> normalsSet;
+};
+
+class FindColorData : public vsg::Visitor {
+  public:
+    void apply(vsg::Object& object) { object.traverse(*this); }
+
+    void apply(vsg::BindVertexBuffers& bvd) {
+        if (bvd.arrays.empty())
+            return;
+        bvd.arrays[3]->data->accept(*this);
+    }
+
+    void apply(vsg::vec4Array& colors) {
+        if (colorsSet.count(&colors) == 0) {
+            colorsSet.insert(&colors);
+        }
+    }
+
+    std::vector<vsg::ref_ptr<vsg::vec4Array>> getColorsList() {
+        std::vector<vsg::ref_ptr<vsg::vec4Array>> colorsList(colorsSet.size());
+        auto colors_itr = colorsList.begin();
+        for (auto& colors : colorsSet) {
+            (*colors_itr++) = const_cast<vsg::vec4Array*>(colors);
+        }
+
+        return colorsList;
+    }
+
+    std::set<vsg::vec4Array*> colorsSet;
+};
+
 class AppKeyboardHandler : public vsg::Inherit<vsg::Visitor, AppKeyboardHandler> {
   public:
     AppKeyboardHandler(vsg::Viewer* viewer) : m_viewer(viewer) {}
@@ -816,6 +903,52 @@ void ChVisualSystemVSG::Render() {
 
     m_viewer->update();
 
+    //=================================================================================
+    // Dynamic data transfer CPU -> GPU
+    if (m_allowVertexTransfer) {
+        for (auto& vertices : m_vsgVerticesList) {
+            size_t k = 0;
+            for (auto& v : *vertices) {
+                float x = m_mbsMesh->GetMesh()->getCoordsVertices().at(k).x();
+                float y = m_mbsMesh->GetMesh()->getCoordsVertices().at(k).y();
+                float z = m_mbsMesh->GetMesh()->getCoordsVertices().at(k).z();
+                v.set(x, y, z);
+                k++;
+            }
+            vertices->dirty();
+        }
+    }
+
+    if (m_allowNormalsTransfer) {
+        for (auto& normals : m_vsgNormalsList) {
+            size_t k = 0;
+            for (auto& n : *normals) {
+                float x = m_mbsMesh->GetMesh()->getCoordsNormals().at(k).x();
+                float y = m_mbsMesh->GetMesh()->getCoordsNormals().at(k).y();
+                float z = m_mbsMesh->GetMesh()->getCoordsNormals().at(k).z();
+                n.set(x, y, z);
+                k++;
+            }
+            normals->dirty();
+        }
+    }
+
+    if (m_allowColorsTransfer) {
+        for (auto& colors : m_vsgColorsList) {
+            size_t k = 0;
+            for (auto& c : *colors) {
+                float r = m_mbsMesh->GetMesh()->getCoordsColors().at(k).R;
+                float g = m_mbsMesh->GetMesh()->getCoordsColors().at(k).G;
+                float b = m_mbsMesh->GetMesh()->getCoordsColors().at(k).B;
+                float a = 1.0f;
+                c.set(r, g, b, a);
+                k++;
+            }
+            colors->dirty();
+        }
+    }
+    //=================================================================================
+
     m_viewer->recordAndSubmit();
 
     if (m_params->do_image_capture) {
@@ -1093,6 +1226,59 @@ void ChVisualSystemVSG::BindAll() {
                 m_particleScene->addChild(group);
                 // m_particleScene->addChild(
                 //     m_shapeBuilder->createParticleShape(material, transform, m_draw_as_wireframe));
+            }
+        } else if (auto loadcont = std::dynamic_pointer_cast<ChLoadContainer>(item)) {
+            auto visModel = loadcont->GetVisualModel();
+            if (!visModel)
+                continue;
+            const auto& shape_instance = visModel->GetShapes().at(0);
+            auto& shape = shape_instance.first;
+            auto trimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape);
+            if (!trimesh)
+                continue;
+            auto transform = vsg::MatrixTransform::create();
+            if (trimesh->GetNumMaterials() > 0) {
+                GetLog() << "SCM Trimesh with materials found, will not work as expected!\n";
+                m_deformableScene->addChild(
+                    m_shapeBuilder->createTrimeshMatShape(transform, trimesh->IsWireframe(), trimesh));
+            } else {
+                GetLog() << "SCM Trimesh with colors found!\n";
+                m_deformableScene->addChild(
+                    m_shapeBuilder->createTrimeshColShapeSCM(transform, trimesh->IsWireframe(), trimesh));
+            }
+            m_vsgVerticesList = vsg::visit<FindVertexData>(m_deformableScene->children.at(0)).getVerticesList();
+            for (auto& vertices : m_vsgVerticesList) {
+                vertices->properties.dataVariance = vsg::DYNAMIC_DATA;
+                m_num_vsgVertexList += vertices->size();
+            }
+            m_mbsMesh = trimesh;
+            GetLog() << "We have " << m_num_vsgVertexList << " vertices to transfer.\n";
+            if (m_num_vsgVertexList == trimesh->GetMesh()->getCoordsVertices().size()) {
+                m_allowVertexTransfer = true;
+            }
+            if (m_allowVertexTransfer && !trimesh->IsWireframe()) {
+                m_vsgNormalsList = vsg::visit<FindNormalData>(m_deformableScene->children.at(0)).getNormalsList();
+                size_t num_vsgNormalsList = 0;
+                for (auto& normals : m_vsgNormalsList) {
+                    normals->properties.dataVariance = vsg::DYNAMIC_DATA;
+                    num_vsgNormalsList += normals->size();
+                }
+                if (num_vsgNormalsList == m_num_vsgVertexList) {
+                    m_allowNormalsTransfer = true;
+                    GetLog() << "Normals Transfer allowed.\n";
+                }
+            }
+            if (m_allowVertexTransfer) {
+                m_vsgColorsList = vsg::visit<FindColorData>(m_deformableScene->children.at(0)).getColorsList();
+                size_t num_vsgColorsList = 0;
+                for (auto& colors : m_vsgColorsList) {
+                    colors->properties.dataVariance = vsg::DYNAMIC_DATA;
+                    num_vsgColorsList += colors->size();
+                }
+                if (num_vsgColorsList == m_num_vsgVertexList) {
+                    m_allowColorsTransfer = true;
+                    GetLog() << "Colors Transfer allowed.\n";
+                }
             }
         }
     }

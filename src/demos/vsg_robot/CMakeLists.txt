@@ -2,9 +2,10 @@
 # List of all OpenGL demos
 
 SET(DEMOS
-  demo_vsg_ROBOT_Viper_Rigid
-  demo_vsg_ROBOT_Turtlebot_Rigid
   demo_vsg_ROBOT_Curiosity_Rigid
+  demo_vsg_ROBOT_Turtlebot_Rigid
+  demo_vsg_ROBOT_Viper_Rigid
+  demo_vsg_ROBOT_Viper_SCM
 )
 
 set(CMAKE_CXX_STANDARD 17)

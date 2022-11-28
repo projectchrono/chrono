@@ -24,6 +24,7 @@
 
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono/assets/ChVisualModel.h"
+#include "chrono/physics/ChLoadContainer.h"
 
 #include <vsgImGui/RenderImGui.h>
 #include <vsgImGui/SendEventsToImGui.h>
@@ -189,6 +190,16 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::Options> m_options;
     //
     std::string m_imageFilename;
+    //============================================================
+    size_t m_num_vsgVertexList = 0;
+    bool m_allowVertexTransfer = false;
+    bool m_allowNormalsTransfer = false;
+    bool m_allowColorsTransfer = false;
+    std::vector<vsg::ref_ptr<vsg::vec3Array>> m_vsgVerticesList;
+    std::vector<vsg::ref_ptr<vsg::vec3Array>> m_vsgNormalsList;
+    std::vector<vsg::ref_ptr<vsg::vec4Array>> m_vsgColorsList;
+    std::shared_ptr<ChTriangleMeshShape> m_mbsMesh;
+    //============================================================
 
 private:
     std::map<std::size_t, vsg::ref_ptr<vsg::Node>> m_objCache;
