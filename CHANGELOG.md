@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [Closed-loop vehicle paths](#fixed-closed-loop-vehicle-path)
   - [Miscellaneous Chrono::Vehicle extensions](#added-miscellaneous-chronovehicle-extensions)
   - [Chrono:Fsi API changes](#changed-chronofsi-api-changes)
   - [User-defined SMC contact force calculation](#added-user-defined-smc-contact-force-calculation)
@@ -68,6 +69,12 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+#### [Fixed] Closed-loop vehicle paths
+
+The treatment of closed-loop Bezier curves (used for path-following vehicle lateral controllers) and the associated curve tracker was improved and fixed.  With this change, the flag indicating whether a path is open or closed is set in the constructor of `ChBezierCurve` and encapsulating objects (`ChBezierCurveTracker` and the different path-following vehicle driver models) query the underlying path.
+
+If a Bezier curve is declared as closed, it is internally modified to add a new point as needed (coincident with the first one). If no Bezier control points are specified, the Bezier curve corresponding to the equivalent piece-wise cubic spline is constructed using C1 continuity conditions at the closing point.
 
 ### [Added] Miscellaneous Chrono::Vehicle extensions
 
