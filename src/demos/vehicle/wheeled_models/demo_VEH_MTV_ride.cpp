@@ -27,8 +27,8 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RandomSurfaceTerrain.h"
 #ifdef USE_IRRLICHT
-#include "chrono_vehicle/driver/ChIrrGuiDriver.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
+    #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+    #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 #endif
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
@@ -239,7 +239,7 @@ int main(int argc, char* argv[]) {
     // create the driver
     auto path = ChBezierCurve::read(vehicle::GetDataFile(path_file));
     ChPathFollowerDriver driver(mtv.GetVehicle(), vehicle::GetDataFile(steering_controller_file),
-                                vehicle::GetDataFile(speed_controller_file), path, "my_path", target_speed, false);
+                                vehicle::GetDataFile(speed_controller_file), path, "my_path", target_speed);
     driver.Initialize();
 
     // -------------------------------------

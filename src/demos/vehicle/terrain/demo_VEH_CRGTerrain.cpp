@@ -102,18 +102,14 @@ DriverModelType DriverModelFromString(const std::string& str) {
 // Wrapper around a driver system of specified type
 class MyDriver {
   public:
-    MyDriver(DriverModelType type,
-             ChWheeledVehicle& vehicle,
-             std::shared_ptr<ChBezierCurve> path,
-             double road_width,
-             bool path_is_closed)
+    MyDriver(DriverModelType type, ChWheeledVehicle& vehicle, std::shared_ptr<ChBezierCurve> path, double road_width)
         : m_type(type), m_steering_controller(nullptr) {
         switch (type) {
             case DriverModelType::PID: {
                 m_driver_type = "PID";
 
-                auto driverPID = chrono_types::make_shared<ChPathFollowerDriver>(vehicle, path, "my_path", target_speed,
-                                                                                 path_is_closed);
+                auto driverPID =
+                    chrono_types::make_shared<ChPathFollowerDriver>(vehicle, path, "my_path", target_speed);
                 driverPID->GetSteeringController().SetLookAheadDistance(5);
                 driverPID->GetSteeringController().SetGains(0.5, 0, 0);
                 driverPID->GetSpeedController().SetGains(0.4, 0, 0);
@@ -125,8 +121,8 @@ class MyDriver {
             case DriverModelType::STANLEY: {
                 m_driver_type = "STANLEY";
 
-                auto driverStanley = chrono_types::make_shared<ChPathFollowerDriver>(vehicle, path, "my_path",
-                                                                                     target_speed, path_is_closed);
+                auto driverStanley =
+                    chrono_types::make_shared<ChPathFollowerDriver>(vehicle, path, "my_path", target_speed);
                 driverStanley->GetSteeringController().SetLookAheadDistance(5.0);
                 driverStanley->GetSteeringController().SetGains(0.5, 0.0, 0.0);
                 driverStanley->GetSpeedController().SetGains(0.4, 0, 0);
@@ -139,7 +135,7 @@ class MyDriver {
                 m_driver_type = "XT";
 
                 auto driverXT = chrono_types::make_shared<ChPathFollowerDriverXT>(
-                    vehicle, path, "my_path", target_speed, path_is_closed, vehicle.GetMaxSteeringAngle());
+                    vehicle, path, "my_path", target_speed, vehicle.GetMaxSteeringAngle());
                 driverXT->GetSteeringController().SetLookAheadDistance(5);
                 driverXT->GetSteeringController().SetGains(0.4, 1, 1, 1);
                 driverXT->GetSpeedController().SetGains(0.4, 0, 0);
@@ -152,7 +148,7 @@ class MyDriver {
                 m_driver_type = "SR";
 
                 auto driverSR = chrono_types::make_shared<ChPathFollowerDriverSR>(
-                    vehicle, path, "my_path", target_speed, path_is_closed, vehicle.GetMaxSteeringAngle(), 3.2);
+                    vehicle, path, "my_path", target_speed, vehicle.GetMaxSteeringAngle(), 3.2);
                 driverSR->GetSteeringController().SetGains(0.1, 5);
                 driverSR->GetSteeringController().SetPreviewTime(0.5);
                 driverSR->GetSpeedController().SetGains(0.4, 0, 0);
@@ -167,10 +163,10 @@ class MyDriver {
                 // Driver model read from JSON file
                 ////auto driverHUMAN = chrono_types::make_shared<ChHumanDriver>(
                 ////    vehicle::GetDataFile("hmmwv/driver/HumanController.json"), vehicle, path, "my_path",
-                ////    path_is_closed, road_width, vehicle.GetMaxSteeringAngle(), 3.2);
+                ////    road_width, vehicle.GetMaxSteeringAngle(), 3.2);
 
-                auto driverHUMAN = chrono_types::make_shared<ChHumanDriver>(
-                    vehicle, path, "my_path", path_is_closed, road_width, vehicle.GetMaxSteeringAngle(), 3.2);
+                auto driverHUMAN = chrono_types::make_shared<ChHumanDriver>(vehicle, path, "my_path", road_width,
+                                                                            vehicle.GetMaxSteeringAngle(), 3.2);
                 driverHUMAN->SetPreviewTime(0.5);
                 driverHUMAN->SetLateralGains(0.1, 2);
                 driverHUMAN->SetLongitudinalGains(0.1, 0.1, 0.2);
@@ -320,7 +316,7 @@ int main(int argc, char* argv[]) {
     // Create driver system
     // --------------------
 
-    MyDriver driver(driver_type, my_hmmwv.GetVehicle(), path, road_width, path_is_closed);
+    MyDriver driver(driver_type, my_hmmwv.GetVehicle(), path, road_width);
     driver.Initialize();
 
     std::cout << "Driver model: " << driver.GetDriverType() << std::endl << std::endl;
