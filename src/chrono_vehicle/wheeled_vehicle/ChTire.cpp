@@ -354,6 +354,8 @@ bool ChTire::DiscTerrainCollisionEnvelope(
     contact.pos = ptD;
     contact.rot = rot.Get_A_quaternion();
 
+    mu = terrain.GetCoefficientFriction(ptD);
+
     return true;
 }
 
