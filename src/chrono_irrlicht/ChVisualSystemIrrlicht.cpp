@@ -104,27 +104,35 @@ ChVisualSystemIrrlicht::~ChVisualSystemIrrlicht() {
 void ChVisualSystemIrrlicht::SetAntialias(bool val) {
     m_device_params.AntiAlias = val;
 }
+
 void ChVisualSystemIrrlicht::SetFullscreen(bool val) {
     m_device_params.Fullscreen = val;
 }
+
 void ChVisualSystemIrrlicht::SetShadows(bool val) {
     m_device_params.Stencilbuffer = val;
 }
+
 void ChVisualSystemIrrlicht::SetDriverType(irr::video::E_DRIVER_TYPE driver_type) {
     m_device_params.DriverType = driver_type;
 }
+
 void ChVisualSystemIrrlicht::SetWindowSize(unsigned int width, unsigned int height) {
     m_device_params.WindowSize = irr::core::dimension2d<irr::u32>((u32)width, (u32)height);
 }
+
 void ChVisualSystemIrrlicht::SetWindowTitle(const std::string& win_title) {
     m_win_title = win_title;
 }
+
 void ChVisualSystemIrrlicht::SetLogLevel(irr::ELOG_LEVEL log_level) {
     m_device_params.LoggingLevel = log_level;
 }
+
 void ChVisualSystemIrrlicht::SetCameraVertical(CameraVerticalDir vert) {
     m_yup = (vert == CameraVerticalDir::Y);
 }
+
 void ChVisualSystemIrrlicht::SetSymbolScale(double scale) {
     m_gui->symbolscale = scale;
     if (m_gui->initialized)

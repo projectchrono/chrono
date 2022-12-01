@@ -139,6 +139,9 @@ void ChVehicleVisualSystemIrrlicht::AttachVehicle(ChVehicle* vehicle) {
 void ChVehicleVisualSystemIrrlicht::Initialize() {
     ChVisualSystemIrrlicht::Initialize();
 
+    // Adjust HUD location based on window size
+    m_HUD_x = GetVideoDriver()->getScreenSize().Width - 380;
+
     // Create the event receiver for controlling the chase camera
     m_camera_control = new ChChaseCameraEventReceiver(this);
     AddUserEventReceiver(m_camera_control);
