@@ -52,8 +52,7 @@ class CH_VEHICLE_API ChClosedLoopDriver : public ChDriver {
     /// Construct using the specified Bezier curve.
     ChClosedLoopDriver(ChVehicle& vehicle,            ///< associated vehicle
                        const std::string& path_name,  ///< name of the path curve
-                       double target_speed,           ///< constant target speed
-                       bool isClosedPath = false      ///< Treat the path as a closed loop
+                       double target_speed            ///< constant target speed
     );
 
     /// Construct using JSON specification files.
@@ -62,8 +61,7 @@ class CH_VEHICLE_API ChClosedLoopDriver : public ChDriver {
     ChClosedLoopDriver(ChVehicle& vehicle,                 ///< associated vehicle
                        const std::string& speed_filename,  ///< JSON file with speed controller specification
                        const std::string& path_name,       ///< name of the path curve
-                       double target_speed,                ///< constant target speed
-                       bool isClosedPath = false           ///< Treat the path as a closed loop
+                       double target_speed                 ///< constant target speed
     );
 
     virtual ~ChClosedLoopDriver() {}
@@ -116,8 +114,7 @@ class CH_VEHICLE_API ChPathFollowerDriver : public ChClosedLoopDriver {
     ChPathFollowerDriver(ChVehicle& vehicle,                   ///< associated vehicle
                          std::shared_ptr<ChBezierCurve> path,  ///< Bezier curve with target path
                          const std::string& path_name,         ///< name of the path curve
-                         double target_speed,                  ///< constant target speed
-                         bool isClosedPath = false             ///< Treat the path as a closed loop
+                         double target_speed                   ///< constant target speed
     );
 
     /// Construct using JSON specification files.
@@ -128,8 +125,7 @@ class CH_VEHICLE_API ChPathFollowerDriver : public ChClosedLoopDriver {
                          const std::string& speed_filename,     ///< JSON file with speed controller specification
                          std::shared_ptr<ChBezierCurve> path,   ///< Bezier curve with target path
                          const std::string& path_name,          ///< name of the path curve
-                         double target_speed,                   ///< constant target speed
-                         bool isClosedPath = false              ///< Treat the path as a closed loop
+                         double target_speed                    ///< constant target speed
     );
 
     ~ChPathFollowerDriver() {}
@@ -157,7 +153,6 @@ class CH_VEHICLE_API ChPathFollowerDriverXT : public ChClosedLoopDriver {
         std::shared_ptr<ChBezierCurve> path,  ///< Bezier curve with target path
         const std::string& path_name,         ///< name of the path curve
         double target_speed,                  ///< constant target speed
-        bool isClosedPath = false,            ///< Treat the path as a closed loop
         double maxWheelTurnAngle = 0.0        ///< needed for wheeled vehicles, use default for tracked vehicles
     );
 
@@ -171,7 +166,6 @@ class CH_VEHICLE_API ChPathFollowerDriverXT : public ChClosedLoopDriver {
         std::shared_ptr<ChBezierCurve> path,   ///< Bezier curve with target path
         const std::string& path_name,          ///< name of the path curve
         double target_speed,                   ///< constant target speed
-        bool isClosedPath = false,             ///< Treat the path as a closed loop
         double maxWheelTurnAngle = 0.0         ///< needed for wheeled vehicles, use default for tracked vehicles
     );
 
@@ -195,7 +189,6 @@ class CH_VEHICLE_API ChPathFollowerDriverSR : public ChClosedLoopDriver {
         std::shared_ptr<ChBezierCurve> path,  ///< Bezier curve with target path
         const std::string& path_name,         ///< name of the path curve
         double target_speed,                  ///< constant target speed
-        bool isClosedPath = false,            ///< Treat the path as a closed loop
         double maxWheelTurnAngle = 0.0,       ///< needed for wheeled vehicles, use default for tracked vehicles
         double axle_space = 2.5               ///< needed for course prediction
     );
@@ -210,7 +203,6 @@ class CH_VEHICLE_API ChPathFollowerDriverSR : public ChClosedLoopDriver {
         std::shared_ptr<ChBezierCurve> path,   ///< Bezier curve with target path
         const std::string& path_name,          ///< name of the path curve
         double target_speed,                   ///< constant target speed
-        bool isClosedPath = false,             ///< Treat the path as a closed loop
         double maxWheelTurnAngle = 0.0,        ///< needed for wheeled vehicles, use default for tracked vehicles
         double axle_space = 2.5                ///< needed for course prediction
     );
@@ -233,7 +225,6 @@ class CH_VEHICLE_API ChPathFollowerDriverStanley : public ChClosedLoopDriver {
         std::shared_ptr<ChBezierCurve> path,  ///< Bezier curve with target path
         const std::string& path_name,         ///< name of the path curve
         double target_speed,                  ///< constant target speed
-        bool isClosedPath = false,            ///< Treat the path as a closed loop
         double maxWheelTurnAngle = 0.0        ///< needed for wheeled vehicles, use default for tracked vehicles
     );
 
@@ -247,7 +238,6 @@ class CH_VEHICLE_API ChPathFollowerDriverStanley : public ChClosedLoopDriver {
         std::shared_ptr<ChBezierCurve> path,   ///< Bezier curve with target path
         const std::string& path_name,          ///< name of the path curve
         double target_speed,                   ///< constant target speed
-        bool isClosedPath = false,             ///< Treat the path as a closed loop
         double maxWheelTurnAngle = 0.0         ///< needed for wheeled vehicles, use default for tracked vehicles
     );
 

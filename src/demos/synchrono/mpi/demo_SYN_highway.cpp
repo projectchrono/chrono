@@ -197,14 +197,12 @@ int main(int argc, char* argv[]) {
     double target_following_time = 1.2;
     double target_min_distance = 10;
     double current_distance = 100;
-    bool is_path_closed = false;
 
     std::shared_ptr<ChDriver> driver;
     if (node_id != 0) {
         // These vehicles just follow a single path
-        auto acc_driver = chrono_types::make_shared<ChPathFollowerACCDriver>(vehicle, path, "Highway", target_speed,
-                                                                             target_following_time, target_min_distance,
-                                                                             current_distance, is_path_closed);
+        auto acc_driver = chrono_types::make_shared<ChPathFollowerACCDriver>(
+            vehicle, path, "Highway", target_speed, target_following_time, target_min_distance, current_distance);
         acc_driver->GetSpeedController().SetGains(0.4, 0.0, 0.0);
         acc_driver->GetSteeringController().SetGains(0.4, 0.1, 0.2);
         acc_driver->GetSteeringController().SetLookAheadDistance(5);
@@ -215,13 +213,10 @@ int main(int argc, char* argv[]) {
         std::vector<ChVector<>> curve_pts2 = {ChVector<>({6.4, -70, 0.2}), ChVector<>(6.4, 70, 0.2)};
         auto path2 = chrono_types::make_shared<ChBezierCurve>(curve_pts2);
 
-        std::vector<std::pair<std::shared_ptr<ChBezierCurve>, bool>> path_pairs;
-        path_pairs.push_back({path, false});
-        path_pairs.push_back({path2, false});
-
         // Different driver (ChMultiPathFollowerACCDriver) needed in order to change lanes
+        std::vector<std::shared_ptr<ChBezierCurve>> paths = {path, path2};
         auto acc_driver = chrono_types::make_shared<ChMultiPathFollowerACCDriver>(
-            vehicle, path_pairs, "Highway", target_speed, target_following_time, target_min_distance, current_distance);
+            vehicle, paths, "Highway", target_speed, target_following_time, target_min_distance, current_distance);
 
         acc_driver->GetSpeedController().SetGains(0.4, 0.0, 0.0);
         acc_driver->GetSteeringController().SetGains(0.4, 0.1, 0.2);
