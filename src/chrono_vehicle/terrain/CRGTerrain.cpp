@@ -325,7 +325,7 @@ std::shared_ptr<ChBezierCurve> CRGTerrain::GetRoadCenterLine() {
         pathpoints.back() = pathpoints[0];
     }
 
-    return chrono_types::make_shared<ChBezierCurve>(pathpoints);
+    return chrono_types::make_shared<ChBezierCurve>(pathpoints, m_isClosed);
 }
 
 void CRGTerrain::GenerateCurves() {
