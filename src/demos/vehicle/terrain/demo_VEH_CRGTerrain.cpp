@@ -243,6 +243,15 @@ int main(int argc, char* argv[]) {
     crg_road_file = vehicle::GetDataFile(cli.GetAsType<std::string>("roadfile"));
     yup = cli.GetAsType<bool>("yup");
 
+    // ----------------
+    // Output directory
+    // ----------------
+
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+
     // ---------------
     // Set World Frame
     // ---------------
@@ -290,6 +299,8 @@ int main(int argc, char* argv[]) {
 
     terrain.GetGround()->AddVisualShape(chrono_types::make_shared<ChBoxShape>(geometry::ChBox(1, road_width, 1)),
                                         ChFrame<>(init_csys.pos - 0.5 * ChWorldFrame::Vertical(), init_csys.rot));
+
+    path->write(out_dir + "/path.txt");
 
     // ------------------
     // Create the vehicle
@@ -343,17 +354,6 @@ int main(int argc, char* argv[]) {
     irr::scene::IMeshSceneNode* ballT = vis->GetSceneManager()->addSphereSceneNode(0.1f);
     ballS->getMaterial(0).EmissiveColor = irr::video::SColor(0, 255, 0, 0);
     ballT->getMaterial(0).EmissiveColor = irr::video::SColor(0, 0, 255, 0);
-
-    // ----------------
-    // Output directory
-    // ----------------
-
-    if (output_images) {
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
-            std::cout << "Error creating directory " << out_dir << std::endl;
-            return 1;
-        }
-    }
 
     // ---------------
     // Simulation loop

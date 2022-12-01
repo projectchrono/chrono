@@ -53,7 +53,6 @@ class CH_VEHICLE_API ChHumanDriver : public ChDriver {
     ChHumanDriver(ChVehicle& vehicle,                   ///< associated vehicle
                   std::shared_ptr<ChBezierCurve> path,  ///< Bezier curve with target path
                   const std::string& path_name,         ///< name of the path curve
-                  bool isClosedPath = false,            ///< Treat the path as a closed loop
                   double road_width = 5.0,              ///< road width
                   double max_wheel_turn_angle = 0,      ///< maximum wheel turning angle
                   double axle_space = 2.5               ///< wheel track
@@ -63,7 +62,6 @@ class CH_VEHICLE_API ChHumanDriver : public ChDriver {
                   ChVehicle& vehicle,                   ///< associated vehicle
                   std::shared_ptr<ChBezierCurve> path,  ///< Bezier curve with target path
                   const std::string& path_name,         ///< name of the path curve
-                  bool isClosedPath = false,            ///< Treat the path as a closed loop
                   double road_width = 5.0,              ///< road width
                   double max_wheel_turn_angle = 0,      ///< maximum wheel turning angle
                   double axle_space = 2.5               ///< wheel track
@@ -112,7 +110,6 @@ class CH_VEHICLE_API ChHumanDriver : public ChDriver {
     size_t GetNextJ();
     std::shared_ptr<ChBezierCurve> m_path;
     std::string m_pathName;  ///< for path visualization
-    bool m_isClosedPath;
     double m_road_width;
     double m_Tp;  ///< preview time
     double m_Klat;
