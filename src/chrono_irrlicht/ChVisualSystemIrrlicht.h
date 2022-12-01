@@ -237,6 +237,9 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// End the scene draw at the end of each animation frame.
     virtual void EndScene();
 
+    /// Return a fixed-size font for rendering GUI.
+    irr::gui::IGUIFont* GetCourierFont() const { return m_courier_font; }
+
     /// Create a snapshot of the last rendered frame and save it to the provided file.
     /// The file extension determines the image format.
     virtual void WriteImageToFile(const std::string& filename) override;
@@ -274,6 +277,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     std::string m_win_title;                           ///< window title
     irr::SIrrlichtCreationParameters m_device_params;  ///< Irrlicht device parameters
     irr::IrrlichtDevice* m_device;                     ///< Irrlicht visualization device
+    irr::gui::IGUIFont* m_courier_font;                ///< Fixed-size font
     irr::scene::ISceneNode* m_container;               ///< Irrlicht scene container
     std::unique_ptr<ChIrrGUI> m_gui;                   ///< associated Irrlicht GUI and event receiver
     std::unique_ptr<EffectHandler> m_effect_handler;   ///< effect handler for shadow maps

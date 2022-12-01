@@ -243,6 +243,15 @@ int main(int argc, char* argv[]) {
     crg_road_file = vehicle::GetDataFile(cli.GetAsType<std::string>("roadfile"));
     yup = cli.GetAsType<bool>("yup");
 
+    // ----------------
+    // Output directory
+    // ----------------
+
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+
     // ---------------
     // Set World Frame
     // ---------------
@@ -279,12 +288,27 @@ int main(int argc, char* argv[]) {
     terrain.SetRoadDiffuseTextureFile("textures/concrete.jpg");
     terrain.Initialize(crg_road_file);
 
+    // Get the vehicle path (middle of the road)
+    auto path = terrain.GetRoadCenterLine();
+    bool path_is_closed = terrain.IsPathClosed();
+    double road_length = terrain.GetLength();
+    double road_width = terrain.GetWidth();
+    auto init_csys = terrain.GetStartPosition();
+
+    std::cout << "Road length = " << road_length << std::endl;
+    std::cout << "Road width  = " << road_width << std::endl;
+    std::cout << std::boolalpha << "Closed loop?  " << path_is_closed << std::endl << std::endl;
+
+    terrain.GetGround()->AddVisualShape(chrono_types::make_shared<ChBoxShape>(geometry::ChBox(1, road_width, 1)),
+                                        ChFrame<>(init_csys.pos - 0.5 * ChWorldFrame::Vertical(), init_csys.rot));
+
+    path->write(out_dir + "/path.txt");
+
     // ------------------
     // Create the vehicle
     // ------------------
 
     // Initial location and orientation from CRG terrain (create vehicle 0.5 m above road)
-    auto init_csys = terrain.GetStartPosition();
     init_csys.pos += 0.5 * ChWorldFrame::Vertical();
 
     // Create the HMMWV vehicle, set parameters, and initialize
@@ -303,16 +327,6 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     my_hmmwv.SetWheelVisualizationType(VisualizationType::NONE);
     my_hmmwv.SetTireVisualizationType(VisualizationType::PRIMITIVES);
-
-    // Get the vehicle path (middle of the road)
-    auto path = terrain.GetRoadCenterLine();
-    bool path_is_closed = terrain.IsPathClosed();
-    double road_length = terrain.GetLength();
-    double road_width = terrain.GetWidth();
-
-    std::cout << "Road length = " << road_length << std::endl;
-    std::cout << "Road width  = " << road_width << std::endl;
-    std::cout << std::boolalpha << "Closed loop?  " << path_is_closed << std::endl << std::endl;
 
     // --------------------
     // Create driver system
@@ -342,17 +356,6 @@ int main(int argc, char* argv[]) {
     irr::scene::IMeshSceneNode* ballT = vis->GetSceneManager()->addSphereSceneNode(0.1f);
     ballS->getMaterial(0).EmissiveColor = irr::video::SColor(0, 255, 0, 0);
     ballT->getMaterial(0).EmissiveColor = irr::video::SColor(0, 0, 255, 0);
-
-    // ----------------
-    // Output directory
-    // ----------------
-
-    if (output_images) {
-        if (!filesystem::create_directory(filesystem::path(out_dir))) {
-            std::cout << "Error creating directory " << out_dir << std::endl;
-            return 1;
-        }
-    }
 
     // ---------------
     // Simulation loop

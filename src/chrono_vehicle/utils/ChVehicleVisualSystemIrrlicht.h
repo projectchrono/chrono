@@ -119,11 +119,9 @@ class CH_VEHICLE_API ChVehicleVisualSystemIrrlicht : public ChVehicleVisualSyste
     void renderStats();
 
     ChChaseCameraEventReceiver* m_camera_control;  ///< event receiver for chase-cam control
-
-    bool m_renderStats;  ///< turn on/off rendering of stats
-
-    int m_HUD_x;  ///< x-coordinate of upper-left corner of HUD elements
-    int m_HUD_y;  ///< y-coordinate of upper-left corner of HUD elements
+    bool m_renderStats;                            ///< turn on/off rendering of stats
+    int m_HUD_x;                                   ///< x-coordinate of upper-left corner of HUD elements
+    int m_HUD_y;                                   ///< y-coordinate of upper-left corner of HUD elements
 
 #ifdef CHRONO_IRRKLANG
     irrklang::ISoundEngine* m_sound_engine;  ///< Sound player

@@ -92,7 +92,9 @@ ChBezierCurve::ChBezierCurve(const std::vector<ChVector<> >& points, bool closed
     if (m_closed) {
         assert(np > 2);
         auto d2 = (m_points.back() - m_points.front()).Length2();
+        ////std::cout << "Closed path last segment length: " << d2 << std::endl;
         if (d2 > m_sqrDistTol) {
+            ////std::cout << "Add new point for closed loop" << std::endl;
             m_points.push_back(m_points.front());
             np++;
         }
@@ -167,9 +169,9 @@ ChBezierCurve::ChBezierCurve(const std::vector<ChVector<> >& points, bool closed
         y = solver.solve(rhs_y);
         z = solver.solve(rhs_z);
 
-        std::cout << A * x - rhs_x << std::endl;
-        std::cout << A * y - rhs_y << std::endl;
-        std::cout << A * z - rhs_z << std::endl;
+        ////std::cout << (A * x - rhs_x).norm() << std::endl;
+        ////std::cout << (A * y - rhs_y).norm() << std::endl;
+        ////std::cout << (A * z - rhs_z).norm() << std::endl;
 
         // Set control points outCV and inCV.
         for (size_t i = 0; i < n; i++)
