@@ -456,7 +456,8 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
 
     /// Get the list of triangles.
     std::vector<std::shared_ptr<ChContactTriangleXYZ>>& GetTriangleList() { return vfaces; }
-    /// Get the list of triangles, for nodes with rotational dofs too.
+
+    /// Get the list of triangles for nodes with rotational dofs.
     std::vector<std::shared_ptr<ChContactTriangleXYZROT>>& GetTriangleListRot() { return vfaces_rot; }
 
     /// Get the number of triangles.

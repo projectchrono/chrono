@@ -43,8 +43,8 @@ namespace vehicle {
 /// A derived class must implement functions to:
 /// - specify the communication interface type (SupportsMeshInterface())
 /// - construct and initialize the concrete terrain object (OnInitialize())
-/// - accept new spindle body states (UpdateWheelProxy() and/or UpdateMeshProxies())
-/// - provide terrain forces acting on the spindle bodies (GetForceWheelProxy() and/or GetForcesMeshProxies())
+/// - accept new body states (UpdateRigidProxy() and/or UpdateMeshProxy())
+/// - provide terrain forces acting on bodies (GetForceRigidProxy() and/or GetForceMeshProxy())
 /// - advance the dynamic state of the terrain (OnAdvance())
 ///
 /// Optionally, a derived class may implement functions to:
@@ -103,8 +103,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
 
     /// Specify whether or not the terrain node supports the MESH communication interface.
     /// See ChVehicleCosimBaseNode::InterfaceType.
-    /// A terrain that also supports the MESH communication interface must override the functions UpdateMeshProxies()
-    /// and GetForcesMeshProxies().
+    /// A terrain that also supports the MESH communication interface must override the functions UpdateMeshProxy()
+    /// and GetForceMeshProxy().
     virtual bool SupportsMeshInterface() const = 0;
 
     /// Return the terrain initial height.
@@ -113,18 +113,16 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     virtual double GetInitHeight() const = 0;
 
     /// Perform any additional operations after the initial data exchange with the MBS node, including creating any
-    /// required proxies for the specified number of tires. A derived class has access to the following vectors (of size
-    /// equal to the number of tires):
-    /// - radius for each tire (through m_tire_radius)
-    /// - width for each tire (through m_tire_width)
-    /// - mesh information for each tire (through m_mesh_data)
-    /// - contact material for each tire (through m_mat_props)
-    /// - vertical load on each tire (through m_load_mass)
-    virtual void OnInitialize(unsigned int num_tires) = 0;
+    /// required proxies for the specified number of objects. A derived class has access to the following vectors,
+    /// each of size m_num_shapes:
+    /// - m_aabb: collision model bounding box
+    /// - m_load_mass: vertical load on each object
+    /// - m_geometry: collision geometry and contact material for each object
+    virtual void OnInitialize(unsigned int num_objects) = 0;
 
     /// Perform any additional operations after the data exchange and synchronization with the MBS node. A derived class
-    /// has access to the following vectors (of size equal to the number of tires):
-    /// - full dynamic state of the spindle bodies (through m_spindle_state) when using the BODY communication interface
+    /// has access to the following vectors (of size equal to the number of interacting objects):
+    /// - full dynamic state of the rigid bodies (through m_rigid_state) when using the BODY communication interface
     /// - state of the mesh vertices (through m_mesh_state) when using the MESH communication interface
     virtual void OnSynchronize(int step_number, double time) {}
 
@@ -142,18 +140,18 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     // ------------------------- Virtual methods for the MESH communication interface
     // A derived class must implement these methods if SupportsMeshInterface returns true.
 
-    /// Update the state of all proxy bodies for the i-th tire mesh.
+    /// Update the state of the i-th proxy mesh.
     /// Use information in the provided MeshState struct (vertex positions and velocities expressed in absolute frame).
-    virtual void UpdateMeshProxies(unsigned int i, MeshState& mesh_state) {
+    virtual void UpdateMeshProxy(unsigned int i, MeshState& mesh_state) {
         if (SupportsMeshInterface()) {
             throw ChException("Current terrain type does not support the MESH communication interface!");
         }
     }
 
-    /// Collect cumulative contact forces on all proxy bodies for the i-th tire mesh.
+    /// Collect cumulative contact forces on the i-th proxy mesh.
     /// Load indices of vertices in contact and the corresponding vertex forces (expressed in absolute frame)
     /// into the provided MeshContact struct.
-    virtual void GetForcesMeshProxies(unsigned int i, MeshContact& mesh_contact) {
+    virtual void GetForceMeshProxy(unsigned int i, MeshContact& mesh_contact) {
         if (SupportsMeshInterface()) {
             throw ChException("Current terrain type does not the MESH communication interface!");
         }
@@ -161,13 +159,13 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
 
     // ------------------------- Virtual methods for the BODY communication interface
 
-    /// Update the state of the wheel proxy body for the i-th tire.
+    /// Update the state of the i-th proxy rigid.
     /// Use information in the provided BodyState struct (pose and velocities expressed in absolute frame).
-    virtual void UpdateWheelProxy(unsigned int i, BodyState& spindle_state) = 0;
+    virtual void UpdateRigidProxy(unsigned int i, BodyState& rigid_state) = 0;
 
-    /// Collect cumulative contact force and torque on the wheel proxy body for the i-th tire.
+    /// Collect cumulative contact force and torque on the i-th proxy rigid.
     /// Load contact forces (expressed in absolute frame) into the provided TerrainForce struct.
-    virtual void GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) = 0;
+    virtual void GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) = 0;
 
   protected:
     bool m_render;         ///< if true, perform run-time rendering
@@ -178,26 +176,32 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
 
     // Communication data
 
-    InterfaceType m_interface_type;  ///< type of communication interface
+    bool m_wheeled;                  ///< comm node (true: TIRE nodes, false: tracked MBS node)
+    InterfaceType m_interface_type;  ///< communication interface (body or mesh)
+    int m_num_objects;               ///< number of interacting objects
 
-    std::vector<double> m_tire_radius;       ///< tire radius
-    std::vector<double> m_tire_width;        ///< tire width
-    std::vector<double> m_load_mass;         ///< vertical load on tire
-    std::vector<MaterialInfo> m_mat_props;   ///< tire contact material properties
-    std::vector<MeshData> m_mesh_data;       ///< tire mesh data
-    std::vector<MeshState> m_mesh_state;     ///< tire mesh state (used for MESH communication)
-    std::vector<BodyState> m_spindle_state;  ///< spindle state (used for BODY communication interface)
+    std::vector<ChVehicleGeometry::AABB> m_aabb;  ///< AABB of collision models for interacting objects
+    std::vector<ChVehicleGeometry> m_geometry;    ///< contact geometry and materials for interacting objects
+    std::vector<double> m_load_mass;              ///< vertical load on interacting objects
+    std::vector<int> m_obj_map;                   ///< mapping from interacting object to shape 
+
+    std::vector<MeshState> m_mesh_state;        ///< mesh state (used for MESH communication)
+    std::vector<BodyState> m_rigid_state;       ///< rigid state (used for BODY communication interface)
+    std::vector<MeshContact> m_mesh_contact;    ///< mesh contact forces (used for MESH communication interface)
+    std::vector<TerrainForce> m_rigid_contact;  ///< rigid contact force (used for BODY communication interface)
 
   private:
-    void SynchronizeBody(int step_number, double time);
-    void SynchronizeMesh(int step_number, double time);
+    void InitializeTireData();
+    void InitializeTrackData();
 
-    /// Print vertex and face connectivity data for the i-th tire, as received at synchronization.
-    /// Invoked only when using the MESH communicatin interface.
-    void PrintMeshUpdateData(unsigned int i);
+    void SynchronizeWheeledBody(int step_number, double time);
+    void SynchronizeTrackedBody(int step_number, double time);
+    void SynchronizeWheeledMesh(int step_number, double time);
+    void SynchronizeTrackedMesh(int step_number, double time);
 
-    std::vector<MeshContact> m_mesh_contact;    ///< tire mesh contact forces (used for MESH communication interface)
-    std::vector<TerrainForce> m_wheel_contact;  ///< spindle contact force (used for BODY communication interface)
+    /// Print vertex and face connectivity data for the i-th object, as received at synchronization.
+    /// Invoked only when using the MESH communication interface.
+    void PrintMeshUpdateData(int i);
 };
 
 /// @} vehicle_cosim

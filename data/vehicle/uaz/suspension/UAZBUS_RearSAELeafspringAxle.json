@@ -3,6 +3,9 @@
   "Type":                           "Suspension",
   "Template":                       "SAELeafspringAxle",
 
+ "Camber Angle (deg)":                   0,
+ "Toe Angle (deg)":                      0,
+
   "Spindle" :
   {
     "Mass":                         14.705,

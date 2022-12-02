@@ -14,7 +14,7 @@
 //
 // ANCF toroidal tire.
 // This is a customizable ANCF tire class which uses a toroidal tire mesh
-// composed of single-layer ANCF shell elements.
+// composed of single-layer 4-node ANCF shell elements.
 //
 // =============================================================================
 
@@ -39,17 +39,17 @@ class CH_VEHICLE_API ANCFToroidalTire : public ChANCFTire {
     virtual double GetDefaultPressure() const override { return m_default_pressure; }
     virtual std::vector<std::shared_ptr<fea::ChNodeFEAbase>> GetConnectedNodes() const override;
 
-    void SetRimRadius(double rimRadius_) { m_rim_radius = rimRadius_; }
-    void SetHeight(double height_) { m_height = height_; }
-    void SetThickness(double thickness_) { m_thickness = thickness_; }
+    void SetRimRadius(double rim_radius) { m_rim_radius = rim_radius; }
+    void SetHeight(double height) { m_height = height; }
+    void SetThickness(double thickness) { m_thickness = thickness; }
 
-    void SetDivCircumference(int divcirc_) { m_div_circumference = divcirc_; }
-    void SetDivWidth(int divwidth_) { m_div_width = divwidth_; }
+    void SetDivCircumference(int div_circumference) { m_div_circumference = div_circumference; }
+    void SetDivWidth(int div_width) { m_div_width = div_width; }
 
     void SetContactMaterial(std::shared_ptr<ChMaterialSurfaceSMC> mat) { m_mat = mat; }
 
-    void SetPressure(double pressure_) { m_default_pressure = pressure_; }
-    void SetAlpha(double alpha_) { m_alpha = alpha_; }
+    void SetPressure(double pressure) { m_default_pressure = pressure; }
+    void SetAlpha(double alpha) { m_alpha = alpha; }
     virtual void CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) override;
 
   private:

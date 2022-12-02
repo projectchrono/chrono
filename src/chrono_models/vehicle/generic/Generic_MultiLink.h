@@ -43,6 +43,9 @@ class CH_MODELS_API Generic_MultiLink : public ChMultiLink {
     Generic_MultiLink(const std::string& name);
     ~Generic_MultiLink();
 
+    virtual double getCamberAngle() const override { return 0; }
+    virtual double getToeAngle() const override { return 0; }
+
     virtual double getSpindleMass() const override { return m_spindleMass; }
     virtual double getUpperArmMass() const override { return m_upperArmMass; }
     virtual double getLateralMass() const override { return m_lateralMass; }

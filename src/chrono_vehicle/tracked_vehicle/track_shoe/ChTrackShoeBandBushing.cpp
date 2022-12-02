@@ -51,6 +51,7 @@ void ChTrackShoeBandBushing::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     ChVector<> xdir = rot.GetXaxis();
 
     // Create the required number of web segment bodies
+    auto web_mat = m_body_matinfo.CreateMaterial(chassis->GetSystem()->GetContactMethod());
     ChVector<> seg_loc = loc + (0.5 * GetToothBaseLength()) * xdir;
     for (int is = 0; is < GetNumWebSegments(); is++) {
         m_web_segments.push_back(std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody()));
@@ -63,7 +64,7 @@ void ChTrackShoeBandBushing::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         chassis->GetSystem()->AddBody(m_web_segments[is]);
 
         // Add contact geometry
-        AddWebContact(m_web_segments[is]);
+        AddWebContact(m_web_segments[is], web_mat);
     }
 }
 
@@ -109,13 +110,14 @@ void ChTrackShoeBandBushing::UpdateInertiaProperties() {
 }
 
 // -----------------------------------------------------------------------------
-void ChTrackShoeBandBushing::AddWebContact(std::shared_ptr<ChBody> segment) {
+void ChTrackShoeBandBushing::AddWebContact(std::shared_ptr<ChBody> segment,
+                                           std::shared_ptr<ChMaterialSurface> web_mat) {
     segment->GetCollisionModel()->ClearModel();
 
     segment->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
     segment->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::SHOES);
 
-    segment->GetCollisionModel()->AddBox(m_body_material, m_seg_length / 2, GetBeltWidth() / 2, GetWebThickness() / 2);
+    segment->GetCollisionModel()->AddBox(web_mat, m_seg_length / 2, GetBeltWidth() / 2, GetWebThickness() / 2);
 
     segment->GetCollisionModel()->BuildModel();
 }

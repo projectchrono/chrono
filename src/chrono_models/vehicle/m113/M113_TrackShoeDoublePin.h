@@ -70,10 +70,10 @@ class CH_MODELS_API M113_TrackShoeDoublePin : public ChTrackShoeDoublePin {
     /// Return the width of a connector body (visualization only).
     virtual double GetConnectorWidth() const override { return m_connector_width; }
 
-  private:
-    /// Create the contact materials.
-    void CreateContactMaterials(ChContactMethod contact_method) override;
+    /// Return contact geometry and material for interaction with terrain.
+    virtual ChVehicleGeometry GetGroundContactGeometry() const override { return m_ground_geometry; }
 
+  private:
     static const double m_shoe_mass;
     static const ChVector<> m_shoe_inertia;
     static const double m_shoe_length;
@@ -87,6 +87,8 @@ class CH_MODELS_API M113_TrackShoeDoublePin : public ChTrackShoeDoublePin {
     static const double m_connector_radius;
     static const double m_connector_length;
     static const double m_connector_width;
+
+    ChVehicleGeometry m_ground_geometry;
 };
 
 /// @} vehicle_models_m113

@@ -178,18 +178,22 @@ void ChSolidThreeLinkAxle::InitializeSide(VehicleSide side,
     // Recall that the suspension reference frame is aligned with the chassis.
     ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
 
+    // Spindle orientation (based on camber and toe angles)
+    double sign = (side == LEFT) ? -1 : +1;
+    auto spindleRot = chassisRot * Q_from_AngZ(sign * getToeAngle()) * Q_from_AngX(sign * getCamberAngle());
+
     // Create and initialize spindle body (same orientation as the chassis)
     m_spindle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
-    m_spindle[side]->SetRot(chassisRot);
+    m_spindle[side]->SetRot(spindleRot);
     m_spindle[side]->SetWvel_loc(ChVector<>(0, ang_vel, 0));
     m_spindle[side]->SetMass(getSpindleMass());
     m_spindle[side]->SetInertiaXX(getSpindleInertia());
     chassis->GetSystem()->AddBody(m_spindle[side]);
 
     // Create and initialize the revolute joint between axle tube and spindle.
-    ChCoordsys<> rev_csys(points[SPINDLE], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+    ChCoordsys<> rev_csys(points[SPINDLE], spindleRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(m_spindle[side], m_axleTube, rev_csys);
@@ -262,20 +266,18 @@ void ChSolidThreeLinkAxle::UpdateInertiaProperties() {
     m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
 
     // Calculate COM and inertia expressed in global frame
+    ChMatrix33<> inertiaSpindle(getSpindleInertia());
+    ChMatrix33<> inertiaLink(getLinkInertia());
+
     utils::CompositeInertia composite;
-    composite.AddComponent(m_spindle[LEFT]->GetFrame_COG_to_abs(), m_spindle[LEFT]->GetMass(),
-                           m_spindle[LEFT]->GetInertia());
-    composite.AddComponent(m_spindle[RIGHT]->GetFrame_COG_to_abs(), m_spindle[RIGHT]->GetMass(),
-                           m_spindle[RIGHT]->GetInertia());
+    composite.AddComponent(m_spindle[LEFT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_spindle[RIGHT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_linkBody[LEFT]->GetFrame_COG_to_abs(), getLinkMass(), inertiaLink);
+    composite.AddComponent(m_linkBody[RIGHT]->GetFrame_COG_to_abs(), getLinkMass(), inertiaLink);
 
-    composite.AddComponent(m_linkBody[LEFT]->GetFrame_COG_to_abs(), m_linkBody[LEFT]->GetMass(),
-                           m_linkBody[LEFT]->GetInertia());
-    composite.AddComponent(m_linkBody[RIGHT]->GetFrame_COG_to_abs(), m_linkBody[RIGHT]->GetMass(),
-                           m_linkBody[RIGHT]->GetInertia());
-
-    composite.AddComponent(m_axleTube->GetFrame_COG_to_abs(), m_axleTube->GetMass(), m_axleTube->GetInertia());
-    composite.AddComponent(m_triangleBody->GetFrame_COG_to_abs(), m_triangleBody->GetMass(),
-                           m_triangleBody->GetInertia());
+    composite.AddComponent(m_axleTube->GetFrame_COG_to_abs(), getAxleTubeMass(), ChMatrix33<>(getAxleTubeInertia()));
+    composite.AddComponent(m_triangleBody->GetFrame_COG_to_abs(), getTriangleMass(),
+                           ChMatrix33<>(getTriangleInertia()));
 
     // Express COM and inertia in subsystem reference frame
     m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());

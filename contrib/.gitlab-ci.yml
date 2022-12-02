@@ -236,10 +236,10 @@ linux:ubuntu2004:test:
     # this script overwrites the default ubuntu script to include conda preparations
     - uname -a
     - export DEBIAN_FRONTEND=noninteractive
-    - apt-get update; apt-get -y install wget python git
-        cmake ninja-build build-essential libboost-dev swig libeigen3-dev
-        libglfw3-dev libglm-dev libglew-dev freeglut3-dev libirrlicht-dev
-        libxxf86vm-dev python3 python3-dev libhdf5-dev
+    - apt-get update; apt-get -y install wget git
+        cmake ninja-build build-essential libboost-dev swig libglfw3-dev
+        libglm-dev libglew-dev freeglut3-dev libirrlicht-dev
+        libxxf86vm-dev libhdf5-dev
     - ldconfig
     - wget https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.8.tar.gz
     - tar -xf blaze-3.8.tar.gz
@@ -442,7 +442,6 @@ windows:vs2019:test:
     #Activate conda environment
     - conda activate build-env
     #Conda install dependencies
-    - conda install --yes anaconda-client
     - conda install conda-build
     - conda update conda --yes
     #- cd C:\Users\builder\miniconda3\pkgs\anaconda-client-1.10.0-py37*\Lib\site-packages\binstar_client\commands\
@@ -463,10 +462,10 @@ windows:vs2019:deploy-python3.6:
   script:
     # Building pyChrono for python v3.6
     - conda build .\contrib\packaging-python\conda -c conda-forge -c dlr-sc -c intel --python=3.6 --no-remove-work-dir
+    - conda install --yes anaconda-client
     - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN\envs\build-env\conda-bld\win-64\pychrono*.bz2" --force --label main
   after_script:
     # Get rid of the build environment
-    - conda deactivate build-env
     - Remove-Item $Env:CONDA_INSTALL_LOCN\envs\build-env -Recurse -Force
     # Get rid of the downloaded numpy package to prevent conflicts
     - Remove-Item $Env:CONDA_ISNTALL_LOCN\pkgs\numpy* -Recurse -Force
@@ -486,10 +485,10 @@ windows:vs2019:deploy-python3.8:
   script:
     # Building pyChrono for python v3.8
     - conda build .\contrib\packaging-python\conda -c conda-forge -c dlr-sc -c intel --python=3.8 --no-remove-work-dir
+    - conda install --yes anaconda-client
     - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN\envs\build-env\conda-bld\win-64\pychrono*.bz2" --force --label main
   after_script:
     # Get rid of the build environment
-    - conda deactivate build-env
     - Remove-Item $Env:CONDA_INSTALL_LOCN\envs\build-env -Recurse -Force
     # Get rid of the downloaded numpy package to prevent conflicts
     - Remove-Item $Env:CONDA_ISNTALL_LOCN\pkgs\numpy* -Recurse -Force
@@ -509,10 +508,10 @@ windows:vs2019:deploy-python3.9:
   script:
     # Building pyChrono for python v3.9
     - conda build .\contrib\packaging-python\conda -c conda-forge -c dlr-sc -c intel --python=3.9 --no-remove-work-dir
+    - conda install --yes anaconda-client
     - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN\envs\build-env\conda-bld\win-64\pychrono*.bz2" --force --label main
   after_script:
     # Get rid of the build environment
-    - conda deactivate build-env
     - Remove-Item $Env:CONDA_INSTALL_LOCN\envs\build-env -Recurse -Force
     # Get rid of the downloaded numpy package to prevent conflicts
     - Remove-Item $Env:CONDA_ISNTALL_LOCN\pkgs\numpy* -Recurse -Force
@@ -532,10 +531,10 @@ windows:vs2019:deploy-python3.10:
   script:
     # Building pyChrono for python v3.10
     - conda build .\contrib\packaging-python\conda -c conda-forge -c dlr-sc -c intel --python=3.10 --no-remove-work-dir
+    - conda install --yes anaconda-client
     - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN\envs\build-env\conda-bld\win-64\pychrono*.bz2" --force --label main
   after_script:
     # Get rid of the build environment
-    - conda deactivate build-env
     - Remove-Item $Env:CONDA_INSTALL_LOCN\envs\build-env -Recurse -Force
     # Get rid of the downloaded numpy package to prevent conflicts
     - Remove-Item $Env:CONDA_ISNTALL_LOCN\pkgs\numpy* -Recurse -Force
@@ -624,13 +623,10 @@ macos-apple:monterey:test:
   needs: ["macos-apple:monterey:build"]
   dependencies: ["macos-apple:monterey:build"]
 
-
 # macOS Conda Deployment
 
 .macos-deploy-base:
   extends: .macos
-  tags:
-    - intel
   before_script:
     - export CONDA_NPY=19
     - brew install wget
@@ -639,11 +635,11 @@ macos-apple:monterey:test:
     - rm -r $HOME/miniconda > /dev/null 2>&1 || FAILED=true
     - bash ~/miniconda.sh -b -p $HOME/miniconda
     - export PATH=$HOME/miniconda/bin:$PATH
-    - conda install --yes -c intel jinja2
+    - source activate $HOME/miniconda/
+    - conda install --yes jinja2
     - conda config --set show_channel_urls true
-    - conda install conda-build anaconda-client conda-verify --yes
+    - conda install --yes conda-build anaconda-client conda-verify
     - conda config --add channels conda-forge
-    - conda config --add channels intel
     - conda config --add channels dlr-sc
     #- conda install -c dlr-sc opencascade --yes
     #- conda install -c intel mkl-devel --yes
@@ -659,35 +655,104 @@ macos-apple:monterey:test:
     name: pychrono-macos
     url: https://anaconda.org/projectchrono/pychrono
 
-macos:macos-deploy-python3.8:
+.macos-intel-deploy-base:
+  extends: .macos-deploy-base
+  tags:
+    - intel
+  script:
+    - conda config --add channels intel
+  environment:
+    name: pychrono-macos
+    url: https://anaconda.org/projectchrono/pychrono
+
+.macos-apple-deploy-base:
+  extends: .macos-deploy-base
+  tags:
+    - apple
+  environment:
+    name: pychrono-macos
+    url: https://anaconda.org/projectchrono/pychrono
+
+macos-intel:macos-deploy-python3.8:
   stage: deploy
   needs: []
-  extends: .macos-deploy-base
+  extends: .macos-intel-deploy-base
   script:
     - echo "Build PyChrono 3.8 and deploy via Anaconda..."
     - conda build purge-all
     - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.8
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-64/pychrono*.bz2 -l main --force
   when: manual
-macos:macos-deploy-python3.9:
+  tags:
+    - macos
+    - monterey
+    - intel
+macos-intel:macos-deploy-python3.9:
   stage: deploy
   needs: []
-  extends: .macos-deploy-base
+  extends: .macos-intel-deploy-base
   script:
     - echo "Build PyChrono 3.9 and deploy via Anaconda..."
     - conda build purge-all
     - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.9
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-64/pychrono*.bz2 -l main --force
   when: manual
-macos:macos-deploy-python3.10:
+  tags:
+    - macos
+    - monterey
+    - intel
+macos-intel:macos-deploy-python3.10:
   stage: deploy
   needs: []
-  extends: .macos-deploy-base
+  extends: .macos-intel-deploy-base
   script:
     - echo "Build PyChrono 3.10 and deploy via Anaconda..."
     - conda build purge-all
     - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.10
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-64/pychrono*.bz2 -l main --force
+  when: manual
+  tags:
+    - macos
+    - monterey
+    - intel
+
+macos-apple:macos-deploy-python3.8:
+  stage: deploy
+  needs: []
+  extends: .macos-apple-deploy-base
+  script:
+    - echo "Build PyChrono 3.8 and deploy via Anaconda..."
+    - conda build purge-all
+    - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.8
+    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-arm64/pychrono*.bz2 -l main --force
+  when: manual
+  tags:
+    - macos
+    - monterey
+    - apple
+macos-apple:macos-deploy-python3.9:
+  stage: deploy
+  needs: []
+  extends: .macos-apple-deploy-base
+  script:
+    - echo "Build PyChrono 3.9 and deploy via Anaconda..."
+    - conda build purge-all
+    - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.9
+    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-arm64/pychrono*.bz2 -l main --force
+  when: manual
+  tags:
+    - macos
+    - monterey
+    - apple
+macos-apple:macos-deploy-python3.10:
+  stage: deploy
+  needs: []
+  extends: .macos-apple-deploy-base
+  script:
+    - echo "Build PyChrono 3.10 and deploy via Anaconda..."
+    - conda build purge-all
+    - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.10
+    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-arm64/pychrono*.bz2 -l main --force
   when: manual
   tags:
     - macos

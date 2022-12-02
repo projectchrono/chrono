@@ -48,12 +48,12 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
     /// Reset to no speed and acceleration.
     virtual void SetNoSpeedNoAcceleration() override;
 
-    /// Set the 'fixed' state of the node.
-    /// If true, its current field value is not changed by solver.
-    virtual void SetFixed(bool mev) override { variables.SetDisabled(mev); }
-    /// Get the 'fixed' state of the node.
-    /// If true, its current field value is not changed by solver.
-    virtual bool GetFixed() override { return variables.IsDisabled(); }
+    /// Fix/release this node.
+    /// If fixed, its state variables are not changed by the solver.
+    virtual void SetFixed(bool fixed) override;
+
+    /// Return true if the node is fixed (i.e., its state variables are not changed by the solver).
+    virtual bool IsFixed() const override;
 
     /// Get atomic mass of the node.
     double GetMass() { return variables.GetBodyMass(); }
@@ -85,19 +85,16 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
     ChFrameMoving<>& Frame() { return *this; }
 
     /// Get the number of degrees of freedom (7 because quaternion for rotation).
-    virtual int Get_ndof_x() const override { return 7; }
+    virtual int GetNdofX() const override { return 7; }
 
     /// Get the number of degrees of freedom, derivative (6 because angular velocity for rotation derivative).
-    virtual int Get_ndof_w() const override { return 6; }
+    virtual int GetNdofW() const override { return 6; }
 
-    //
     // INTERFACE to ChVariableTupleCarrier_1vars
-    //
+
     virtual ChVariables* GetVariables1() override { return &Variables(); }
 
-    //
     // Functions for interfacing to the state bookkeeping
-    //
 
     virtual void NodeIntStateGather(const unsigned int off_x,
                                     ChState& x,
@@ -131,9 +128,7 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
                                      const ChVectorDynamic<>& R) override;
     virtual void NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) override;
 
-    //
     // Functions for interfacing to the solver
-    //
 
     virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override;
     virtual void VariablesFbReset() override;
@@ -143,9 +138,7 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
     virtual void VariablesFbIncrementMq() override;
     virtual void VariablesQbIncrementPosition(double step) override;
 
-    //
     // INTERFACE to ChLoadableUVW
-    //
 
     /// Gets the number of DOFs affected by this element (position part)
     virtual int LoadableGet_ndof_x() override { return 7; }
@@ -174,7 +167,7 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
     virtual int GetSubBlocks() override { return 1; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return this->NodeGetOffset_w(); }
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return this->NodeGetOffsetW(); }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return 6; }
@@ -201,9 +194,7 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
     /// This is not needed because not used in quadrature.
     virtual double GetDensity() override { return 1; }
 
-    //
     // SERIALIZATION
-    //
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
     virtual void ArchiveIN(ChArchiveIn& marchive) override;

@@ -49,6 +49,9 @@ class CH_MODELS_API Generic_MacPhersonStrut : public ChMacPhersonStrut {
 
     virtual const ChVector<> getLocation(PointId which) override;
 
+    virtual double getCamberAngle() const override { return 0; }
+    virtual double getToeAngle() const override { return 0; }
+
     virtual double getSpindleMass() const override { return m_spindleMass; }
     virtual double getStrutMass() const override { return m_strutMass; }
     virtual double getLCAMass() const override { return m_LCAMass; }

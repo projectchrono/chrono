@@ -270,13 +270,13 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
     outf << "  Rd   = " << m_damping_R << endl;
 }
 
-// Create bodies with triangular contact geometry as proxies for the tire mesh faces.
-// Used for flexible tires.
+// Create bodies with triangular contact geometry as proxies for the mesh faces.
+// Used for flexible bodies.
 // Assign to each body an identifier equal to the index of its corresponding mesh face.
-// Maintain a list of all bodies associated with the tire.
+// Maintain a list of all bodies associated with the object.
 // Add all proxy bodies to the same collision family and disable collision between any
 // two members of this family.
-void ChVehicleCosimTerrainNodeSCM::CreateMeshProxies(unsigned int i) {
+void ChVehicleCosimTerrainNodeSCM::CreateMeshProxy(unsigned int i) {
     //// TODO
 
 #ifdef CHRONO_IRRLICHT
@@ -287,43 +287,34 @@ void ChVehicleCosimTerrainNodeSCM::CreateMeshProxies(unsigned int i) {
 #endif
 }
 
-void ChVehicleCosimTerrainNodeSCM::CreateWheelProxy(unsigned int i) {
-    auto material_tire = m_mat_props[i].CreateMaterial(m_method);
+void ChVehicleCosimTerrainNodeSCM::CreateRigidProxy(unsigned int i) {
+    // Get shape associated with the given object
+    int i_shape = m_obj_map[i];
 
     // Create wheel proxy body
     auto body = std::shared_ptr<ChBody>(m_system->NewBody());
     body->SetIdentifier(0);
-    body->SetMass(m_load_mass[i]);
+    body->SetMass(m_load_mass[i_shape]);
     ////body->SetInertiaXX();   //// TODO
     body->SetBodyFixed(false);  // Cannot fix the proxies with SCM
     body->SetCollide(true);
 
-    // Create collision mesh
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->getCoordsVertices() = m_mesh_data[i].verts;
-    trimesh->getCoordsNormals() = m_mesh_data[i].norms;
-    trimesh->getIndicesVertexes() = m_mesh_data[i].idx_verts;
-    trimesh->getIndicesNormals() = m_mesh_data[i].idx_norms;
+    // Create visualization asset (use collision shapes)
+    m_geometry[i_shape].CreateVisualizationAssets(body, VisualizationType::PRIMITIVES, true);
 
-    // Set collision shape
-    body->GetCollisionModel()->ClearModel();
-    body->GetCollisionModel()->AddTriangleMesh(material_tire, trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
-                                               m_radius_p);
+    // Create collision shapes
+    for (auto& mesh : m_geometry[i_shape].m_coll_meshes)
+        mesh.m_radius = m_radius_p;
+    m_geometry[i_shape].CreateCollisionShapes(body, 1, m_method);
     body->GetCollisionModel()->SetFamily(1);
     body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
-    body->GetCollisionModel()->BuildModel();
-
-    // Set visualization asset
-    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-    trimesh_shape->SetMesh(trimesh);
-    body->AddVisualShape(trimesh_shape, ChFrame<>());
 
     m_system->AddBody(body);
     m_proxies[i].push_back(ProxyBody(body, 0));
 
     // Add corresponding moving patch to SCM terrain
-    m_terrain->AddMovingPatch(body, ChVector<>(0, 0, 0),
-                              ChVector<>(2 * m_tire_radius[i], m_tire_width[i], 2 * m_tire_radius[i]));
+    //// RADU TODO: this may be overkill for tracked vehicles!
+    m_terrain->AddMovingPatch(body, m_aabb[i_shape].m_center, m_aabb[i_shape].m_dims);
 
 #ifdef CHRONO_IRRLICHT
     // Bind Irrlicht assets
@@ -333,32 +324,32 @@ void ChVehicleCosimTerrainNodeSCM::CreateWheelProxy(unsigned int i) {
 #endif
 }
 
-// Set position, orientation, and velocity of proxy bodies based on tire mesh faces.
-void ChVehicleCosimTerrainNodeSCM::UpdateMeshProxies(unsigned int i, MeshState& mesh_state) {
+// Set position, orientation, and velocity of proxy bodies based on mesh faces.
+void ChVehicleCosimTerrainNodeSCM::UpdateMeshProxy(unsigned int i, MeshState& mesh_state) {
     //// TODO
 }
 
-// Set state of wheel proxy body.
-void ChVehicleCosimTerrainNodeSCM::UpdateWheelProxy(unsigned int i, BodyState& spindle_state) {
-    auto& proxies = m_proxies[i];  // proxies for the i-th tire
+// Set state of proxy rigid body.
+void ChVehicleCosimTerrainNodeSCM::UpdateRigidProxy(unsigned int i, BodyState& rigid_state) {
+    auto& proxies = m_proxies[i];  // proxies for the i-th rigid
 
-    proxies[0].m_body->SetPos(spindle_state.pos);
-    proxies[0].m_body->SetPos_dt(spindle_state.lin_vel);
-    proxies[0].m_body->SetRot(spindle_state.rot);
-    proxies[0].m_body->SetWvel_par(spindle_state.ang_vel);
+    proxies[0].m_body->SetPos(rigid_state.pos);
+    proxies[0].m_body->SetPos_dt(rigid_state.lin_vel);
+    proxies[0].m_body->SetRot(rigid_state.rot);
+    proxies[0].m_body->SetWvel_par(rigid_state.ang_vel);
 }
 
 // Collect contact forces on the (face) proxy bodies that are in contact.
 // Load mesh vertex forces and corresponding indices.
-void ChVehicleCosimTerrainNodeSCM::GetForcesMeshProxies(unsigned int i, MeshContact& mesh_contact) {
+void ChVehicleCosimTerrainNodeSCM::GetForceMeshProxy(unsigned int i, MeshContact& mesh_contact) {
     //// TODO
 }
 
-// Collect resultant contact force and torque on wheel proxy body.
-void ChVehicleCosimTerrainNodeSCM::GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) {
-    const auto& proxies = m_proxies[i];  // proxies for the i-th tire
+// Collect resultant contact force and torque on rigid proxy body.
+void ChVehicleCosimTerrainNodeSCM::GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) {
+    const auto& proxies = m_proxies[i];  // proxies for the i-th rigid
 
-    wheel_contact = m_terrain->GetContactForce(proxies[0].m_body);
+    rigid_contact = m_terrain->GetContactForce(proxies[0].m_body);
 }
 
 // -----------------------------------------------------------------------------

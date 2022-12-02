@@ -500,6 +500,7 @@ set(ChronoEngine_fea_elements_HEADERS
     fea/ChElementBase.h
     fea/ChElementGeneric.h
     fea/ChElementCorotational.h
+    fea/ChElementANCF.h
     fea/ChElementSpring.h
     fea/ChElementBar.h
     fea/ChElementBeam.h
@@ -906,6 +907,7 @@ set(ChronoEngine_solver_SOURCES
     solver/ChSystemDescriptor.cpp
     solver/ChSolver.cpp
     solver/ChDirectSolverLS.cpp
+    solver/ChDirectSolverLScomplex.cpp
     solver/ChIterativeSolver.cpp
     solver/ChIterativeSolverLS.cpp
     solver/ChIterativeSolverVI.cpp
@@ -927,6 +929,7 @@ set(ChronoEngine_solver_HEADERS
     solver/ChSolverLS.h
     solver/ChSolverVI.h
     solver/ChDirectSolverLS.h
+    solver/ChDirectSolverLScomplex.h
     solver/ChIterativeSolver.h
     solver/ChIterativeSolverLS.h
     solver/ChIterativeSolverVI.h

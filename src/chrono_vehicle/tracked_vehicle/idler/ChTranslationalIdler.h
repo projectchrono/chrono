@@ -70,7 +70,7 @@ class CH_VEHICLE_API ChTranslationalIdler : public ChIdler {
     virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis
                             const ChVector<>& location,          ///< [in] location relative to the chassis frame
                             ChTrackAssembly* track               ///< [in] containing track assembly
-    );
+    ) override;
 
     /// Add visualization assets for the idler subsystem.
     /// This default implementation adds assets to the carrier body.
@@ -81,7 +81,7 @@ class CH_VEHICLE_API ChTranslationalIdler : public ChIdler {
     virtual void RemoveVisualizationAssets() override;
 
     /// Log current constraint violations.
-    void LogConstraintViolations();
+    virtual void LogConstraintViolations() override;
 
   protected:
     /// Identifiers for the various hardpoints.

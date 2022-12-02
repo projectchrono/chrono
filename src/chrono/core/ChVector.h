@@ -358,6 +358,24 @@ bool Vnotnull(const ChVector<RealA>& va) {
     return (va.x() != 0 || va.y() != 0 || va.z() != 0);
 }
 
+template <class RealA>
+ChVector<RealA> Vmin(const ChVector<RealA>& va, const ChVector<RealA>& vb) {
+    ChVector<RealA> result;
+    result.x() = std::min(va.x(), vb.x());
+    result.y() = std::min(va.y(), vb.y());
+    result.z() = std::min(va.z(), vb.z());
+    return result;
+}
+
+template <class RealA>
+ChVector<RealA> Vmax(const ChVector<RealA>& va, const ChVector<RealA>& vb) {
+    ChVector<RealA> result;
+    result.x() = std::max(va.x(), vb.x());
+    result.y() = std::max(va.y(), vb.y());
+    result.z() = std::max(va.z(), vb.z());
+    return result;
+}
+
 // Gets the zenith angle of a unit vector respect to YZ plane  ***OBSOLETE
 template <class RealA>
 double VangleYZplane(const ChVector<RealA>& va) {

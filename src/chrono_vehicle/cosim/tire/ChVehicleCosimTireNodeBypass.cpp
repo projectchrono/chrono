@@ -32,19 +32,8 @@ namespace vehicle {
 
 ChVehicleCosimTireNodeBypass::ChVehicleCosimTireNodeBypass(int index, double mass, double radius, double width)
     : ChVehicleCosimTireNode(index), m_mass(mass), m_radius(radius), m_width(width) {
-    // No mesh data
-    m_mesh_data.nv = 1;
-    m_mesh_data.nn = 1;
-    m_mesh_data.nt = 1;
-
-    // Set mesh data (vertex positions in local frame)
-    m_mesh_data.verts.resize(1);
-    m_mesh_data.norms.resize(1);
-    m_mesh_data.idx_verts.resize(1);
-    m_mesh_data.idx_norms.resize(1);
-
-    // No tire contact material
-    m_contact_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    // Empty geometry
+    m_geometry = ChVehicleGeometry();
 }
 
 }  // namespace vehicle

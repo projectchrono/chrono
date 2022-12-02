@@ -870,13 +870,13 @@ EXCLUDE                = ../src/chrono/collision/bullet \
                          ../src/chrono/collision/convexdecomposition \
                          ../src/chrono/collision/gimpact \
                          ../src/chrono/collision/edgetempest \
-                         ../src/chrono_thirdparty \
                          ../src/chrono_synchrono/flatbuffer/message/SynFlatBuffers_generated.h \
                          ../src/chrono_synchrono/README.md \
                          ../src/chrono_sensor/README.md \
                          ../src/chrono_fsi/README.md \
                          ../src/tests/README.md \
-                         ../src/chrono_swig/chrono_python/README.md
+                         ../src/chrono_swig/chrono_python/README.md \
+                         ../src/chrono_thirdparty/DEM-Engine/thirdparty
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded
@@ -893,10 +893,20 @@ EXCLUDE_SYMLINKS       = NO
 # exclude all test directories for example use the pattern */test/*
 
 EXCLUDE_PATTERNS       = */src/demos/* \
-                         */src/unit_tests/* \
                          */src/tests/* \
-                         */src/chrono_ogre/* \
-                         */src/chrono_thirdparty/*
+                         */src/chrono_thirdparty/cub \
+                         */src/chrono_thirdparty/Easy_BMP \
+                         */src/chrono_thirdparty/flatbuffers \
+                         */src/chrono_thirdparty/googlebenchmark \
+                         */src/chrono_thirdparty/googletest \
+                         */src/chrono_thirdparty/HACD \
+                         */src/chrono_thirdparty/HACDv2 \
+                         */src/chrono_thirdparty/rapidjson \
+                         */src/chrono_thirdparty/rapidxml \
+                         */src/chrono_thirdparty/stb \
+                         */src/chrono_thirdparty/tinyobjloader \
+                         */src/chrono_thirdparty/variant \
+                         */src/chrono_thirdparty/yafel
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
 # (namespaces, classes, functions, etc.) that should be excluded from the

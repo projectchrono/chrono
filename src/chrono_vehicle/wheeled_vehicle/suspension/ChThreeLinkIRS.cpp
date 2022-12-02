@@ -117,11 +117,15 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
     // Recall that the suspension reference frame is aligned with the chassis.
     ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
 
+    // Spindle orientation (based on camber and toe angles)
+    double sign = (side == LEFT) ? -1 : +1;
+    auto spindleRot = chassisRot * Q_from_AngZ(sign * getToeAngle()) * Q_from_AngX(sign * getCamberAngle());
+
     // Create and initialize spindle body (same orientation as the chassis)
     m_spindle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
-    m_spindle[side]->SetRot(chassisRot);
+    m_spindle[side]->SetRot(spindleRot);
     m_spindle[side]->SetWvel_loc(ChVector<>(0, ang_vel, 0));
     m_spindle[side]->SetMass(getSpindleMass());
     m_spindle[side]->SetInertiaXX(getSpindleInertia());
@@ -180,7 +184,7 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_lower[side]);
 
     // Create and initialize the revolute joint between arm and spindle.
-    ChCoordsys<> rev_csys(points[SPINDLE], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
+    ChCoordsys<> rev_csys(points[SPINDLE], spindleRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(m_spindle[side], m_arm[side], rev_csys);
@@ -263,19 +267,20 @@ void ChThreeLinkIRS::UpdateInertiaProperties() {
     m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
 
     // Calculate COM and inertia expressed in global frame
+    ChMatrix33<> inertiaSpindle(getSpindleInertia());
+    ChMatrix33<> inertiaArm(getArmInertia());
+    ChMatrix33<> inertiaLower(getLowerLinkInertia());
+    ChMatrix33<> inertiaUpper(getUpperLinkInertia());
+
     utils::CompositeInertia composite;
-    composite.AddComponent(m_spindle[LEFT]->GetFrame_COG_to_abs(), m_spindle[LEFT]->GetMass(),
-                           m_spindle[LEFT]->GetInertia());
-    composite.AddComponent(m_spindle[RIGHT]->GetFrame_COG_to_abs(), m_spindle[RIGHT]->GetMass(),
-                           m_spindle[RIGHT]->GetInertia());
-    composite.AddComponent(m_arm[LEFT]->GetFrame_COG_to_abs(), m_arm[LEFT]->GetMass(), m_arm[LEFT]->GetInertia());
-    composite.AddComponent(m_arm[RIGHT]->GetFrame_COG_to_abs(), m_arm[RIGHT]->GetMass(), m_arm[RIGHT]->GetInertia());
-    composite.AddComponent(m_lower[LEFT]->GetFrame_COG_to_abs(), m_lower[LEFT]->GetMass(), m_lower[LEFT]->GetInertia());
-    composite.AddComponent(m_lower[RIGHT]->GetFrame_COG_to_abs(), m_lower[RIGHT]->GetMass(),
-                           m_lower[RIGHT]->GetInertia());
-    composite.AddComponent(m_upper[LEFT]->GetFrame_COG_to_abs(), m_upper[LEFT]->GetMass(), m_upper[LEFT]->GetInertia());
-    composite.AddComponent(m_upper[RIGHT]->GetFrame_COG_to_abs(), m_upper[RIGHT]->GetMass(),
-                           m_upper[RIGHT]->GetInertia());
+    composite.AddComponent(m_spindle[LEFT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_spindle[RIGHT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_arm[LEFT]->GetFrame_COG_to_abs(), getArmMass(), inertiaArm);
+    composite.AddComponent(m_arm[RIGHT]->GetFrame_COG_to_abs(), getArmMass(), inertiaArm);
+    composite.AddComponent(m_lower[LEFT]->GetFrame_COG_to_abs(), getLowerLinkMass(), inertiaLower);
+    composite.AddComponent(m_lower[RIGHT]->GetFrame_COG_to_abs(), getLowerLinkMass(), inertiaLower);
+    composite.AddComponent(m_upper[LEFT]->GetFrame_COG_to_abs(), getUpperLinkMass(), inertiaUpper);
+    composite.AddComponent(m_upper[RIGHT]->GetFrame_COG_to_abs(), getUpperLinkMass(), inertiaUpper);
 
     // Express COM and inertia in subsystem reference frame
     m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());

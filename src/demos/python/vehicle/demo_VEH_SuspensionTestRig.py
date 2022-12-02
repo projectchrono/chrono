@@ -66,7 +66,7 @@ def main() :
     vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
     vis.SetChaseCamera(cam_loc, 4.0, 0.5)
     vis.AddSkyBox()
-    vis.AttachVehicle(rig)
+    vis.AttachVehicle(rig.GetVehicle())
 
     # Create and attach an STR driver
     driver = veh.ChDataDriverSTR(driver_file)

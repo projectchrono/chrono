@@ -41,7 +41,7 @@
 
   "Wheelbase": 7.184,
   "Minimum Turning Radius": 13.1,
-  "Maximum Steering Angle": 27.0,
+  "Maximum Steering Angle (deg)": 27.0,
 
   "Driveline": {
     "Input File": "citybus/driveline/CityBus_Driveline2WD.json",

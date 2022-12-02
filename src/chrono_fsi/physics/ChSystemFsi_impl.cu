@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Milad Rakhsha, Arman Pazouki
+// Author: Milad Rakhsha, Arman Pazouki, Radu Serban
 // =============================================================================
 //
 // Implementation of FSI system that includes all subclasses for proximity and
@@ -262,13 +262,10 @@ ChronoBodiesDataH::ChronoBodiesDataH(size_t s) {
     resize(s);
 }
 
-ChronoShellsDataH::ChronoShellsDataH(size_t s) {
-    resize(s);
-}
-
 ChronoMeshDataH::ChronoMeshDataH(size_t s) {
     resize(s);
 }
+
 zipIterChronoBodiesH ChronoBodiesDataH::iterator() {
     return thrust::make_zip_iterator(thrust::make_tuple(pos_ChSystemH.begin(), vel_ChSystemH.begin(),
                                                         acc_ChSystemH.begin(), quat_ChSystemH.begin(),
@@ -282,23 +279,6 @@ void ChronoBodiesDataH::resize(size_t s) {
     quat_ChSystemH.resize(s);
     omegaVelGRF_ChSystemH.resize(s);
     omegaAccGRF_ChSystemH.resize(s);
-}
-
-void ChronoShellsDataH::resize(size_t s) {
-    posFlex_ChSystemH_nA_H.resize(s);
-    posFlex_ChSystemH_nB_H.resize(s);
-    posFlex_ChSystemH_nC_H.resize(s);
-    posFlex_ChSystemH_nD_H.resize(s);
-
-    velFlex_ChSystemH_nA_H.resize(s);
-    velFlex_ChSystemH_nB_H.resize(s);
-    velFlex_ChSystemH_nC_H.resize(s);
-    velFlex_ChSystemH_nD_H.resize(s);
-
-    accFlex_ChSystemH_nA_H.resize(s);
-    accFlex_ChSystemH_nB_H.resize(s);
-    accFlex_ChSystemH_nC_H.resize(s);
-    accFlex_ChSystemH_nD_H.resize(s);
 }
 
 void ChronoMeshDataH::resize(size_t s) {

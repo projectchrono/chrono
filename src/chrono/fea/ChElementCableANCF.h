@@ -18,7 +18,9 @@
 #define CHELEMENTCABLEANCF_H
 
 #include "chrono/core/ChVector.h"
+
 #include "chrono/fea/ChBeamSectionCable.h"
+#include "chrono/fea/ChElementANCF.h"
 #include "chrono/fea/ChElementBeam.h"
 #include "chrono/fea/ChNodeFEAxyzD.h"
 
@@ -33,11 +35,8 @@ namespace fea {
 /// Torsional stiffness is impossible because of the formulation. \n
 /// Based on the formulation in \n
 /// "Analysis of Thin Beams and Cables Using the Absolute Nodal Co-ordinate Formulation",
-/// J. Gerstmayr, A. Shabana, Nonlinear Dynamics (2006) 45: 109-130, DOI: 10.1007/s11071-006-1856-1 \n
-/// and \n
-/// "On the Validation and Applications of a Parallel Flexible Multi-body Dynamics Implementation",
-/// D. Melanz
-class ChApi ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLoadableUVW {
+/// J. Gerstmayr, A. Shabana, Nonlinear Dynamics (2006) 45: 109-130, DOI: 10.1007/s11071-006-1856-1
+class ChApi ChElementCableANCF : public ChElementANCF, public ChElementBeam, public ChLoadableU, public ChLoadableUVW {
   public:
     using ShapeVector = ChMatrixNM<double, 1, 4>;
 
@@ -48,32 +47,40 @@ class ChApi ChElementCableANCF : public ChElementBeam, public ChLoadableU, publi
     ~ChElementCableANCF() {}
 
     virtual int GetNnodes() override { return 2; }
-    virtual int GetNdofs() override { return 2 * 6; }
-    virtual int GetNodeNdofs(int n) override { return 6; }
 
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return nodes[n]; }
+    /// Get the number of coordinates in the field used by the referenced nodes.
+    virtual int GetNdofs() override { return 2 * 6; }
+
+    /// Get the number of active coordinates in the field used by the referenced nodes.
+    virtual int GetNdofs_active() override { return m_element_dof; }
+
+    /// Get the number of coordinates from the n-th node used by this element.
+    virtual int GetNodeNdofs(int n) override { return m_nodes[n]->GetNdofX(); }
+
+    /// Get the number of coordinates from the n-th node used by this element.
+    virtual int GetNodeNdofs_active(int n) override { return m_nodes[n]->GetNdofX_active(); }
+
+    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return m_nodes[n]; }
 
     virtual void SetNodes(std::shared_ptr<ChNodeFEAxyzD> nodeA, std::shared_ptr<ChNodeFEAxyzD> nodeB);
 
-    //
     // FEM functions
-    //
 
     /// Set the section & material of beam element.
     /// It is a shared property, so it can be shared between other beams.
-    void SetSection(std::shared_ptr<ChBeamSectionCable> my_material) { section = my_material; }
+    void SetSection(std::shared_ptr<ChBeamSectionCable> section) { m_section = section; }
 
     /// Get the section & material of the element.
-    std::shared_ptr<ChBeamSectionCable> GetSection() { return section; }
+    std::shared_ptr<ChBeamSectionCable> GetSection() { return m_section; }
 
     /// Get the first node (beginning).
-    std::shared_ptr<ChNodeFEAxyzD> GetNodeA() { return nodes[0]; }
+    std::shared_ptr<ChNodeFEAxyzD> GetNodeA() { return m_nodes[0]; }
 
     /// Get the second node (ending).
-    std::shared_ptr<ChNodeFEAxyzD> GetNodeB() { return nodes[1]; }
+    std::shared_ptr<ChNodeFEAxyzD> GetNodeB() { return m_nodes[1]; }
 
     /// Get element length.
-    double GetCurrLength() { return (nodes[1]->GetPos() - nodes[0]->GetPos()).Length(); }
+    double GetCurrLength() { return (m_nodes[1]->GetPos() - m_nodes[0]->GetPos()).Length(); }
 
     /// Fills the N shape function matrix with the values of shape functions at abscissa 'xi'.
     /// Note, xi=0 at node1, xi=+1 at node2.
@@ -124,9 +131,7 @@ class ChApi ChElementCableANCF : public ChElementBeam, public ChLoadableU, publi
     /// Compute the generalized force vector due to gravity using the efficient ANCF specific method
     virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) override;
 
-    //
     // Beam-specific functions
-    //
 
     /// Gets the xyz displacement of a point on the beam line and the rotation RxRyRz of section plane, at abscissa
     /// 'eta'. Note, eta=-1 at node1, eta=+1 at node2. Note that 'displ' is the displ.state of 2 nodes, e.g. get it as
@@ -157,13 +162,10 @@ class ChApi ChElementCableANCF : public ChElementBeam, public ChLoadableU, publi
     /// Set structural damping.
     void SetAlphaDamp(double a);
 
-    //
     // Functions for interfacing to the solver
     //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
 
-    //
     // Functions for ChLoadable interface
-    //
 
     /// Gets the number of DOFs affected by this element (position part).
     virtual int LoadableGet_ndof_x() override { return 2 * 6; }
@@ -191,13 +193,13 @@ class ChApi ChElementCableANCF : public ChElementBeam, public ChLoadableU, publi
     virtual int GetSubBlocks() override { return 2; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return nodes[nblock]->NodeGetOffset_w(); }
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return m_nodes[nblock]->NodeGetOffsetW(); }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return 6; }
 
     /// Check if the specified sub-block of DOFs is active.
-    virtual bool IsSubBlockActive(int nblock) const override { return !nodes[nblock]->GetFixed(); }
+    virtual bool IsSubBlockActive(int nblock) const override { return !m_nodes[nblock]->IsFixed(); }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
@@ -227,7 +229,7 @@ class ChApi ChElementCableANCF : public ChElementBeam, public ChLoadableU, publi
                            ) override;
 
     /// Return the material density for this element.
-    virtual double GetDensity() override { return this->section->Area * this->section->density; }
+    virtual double GetDensity() override { return m_section->Area * m_section->density; }
 
   private:
     /// Initial setup: precompute mass and matrices that do not change during the simulation.
@@ -246,13 +248,12 @@ class ChApi ChElementCableANCF : public ChElementBeam, public ChLoadableU, publi
                                     const ChVector<>& dB_dt,
                                     ChVectorDynamic<>& Fi);
 
-    std::vector<std::shared_ptr<ChNodeFEAxyzD> > nodes;
-
-    std::shared_ptr<ChBeamSectionCable> section;
+    std::vector<std::shared_ptr<ChNodeFEAxyzD> > m_nodes;  ///< element nodes
+    std::shared_ptr<ChBeamSectionCable> m_section;
     ChVectorN<double, 12> m_GenForceVec0;
     ChMatrixNM<double, 12, 12> m_JacobianMatrix;  ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
     ChMatrixNM<double, 12, 12> m_MassMatrix;      ///< mass matrix
-    ChVectorN<double, 4> m_GravForceScale;  ///< Gravity scaling matrix used to get the generalized force due to gravity
+    ChVectorN<double, 4> m_GravForceScale;        ///< scaling matrix used to get the generalized force due to gravity
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

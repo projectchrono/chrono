@@ -46,7 +46,7 @@ void ChassisConnectorArticulated::Create(const rapidjson::Document& d) {
     ChPart::Create(d);
 
     // Read maximum steering angle (assumed to be given in degrees)
-    m_maxangle = d["Maximum Steering Angle"].GetDouble() * CH_C_DEG_TO_RAD;
+    m_maxangle = d["Maximum Steering Angle (deg)"].GetDouble() * CH_C_DEG_TO_RAD;
 }
 
 }  // end namespace vehicle

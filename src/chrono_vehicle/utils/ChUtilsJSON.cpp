@@ -129,8 +129,8 @@ ChColor ReadColorJSON(const Value& a) {
 
 // -----------------------------------------------------------------------------
 
-MaterialInfo ReadMaterialInfoJSON(const rapidjson::Value& mat) {
-    MaterialInfo minfo;
+ChContactMaterialData ReadMaterialInfoJSON(const rapidjson::Value& mat) {
+    ChContactMaterialData minfo;
 
     minfo.mu = mat["Coefficient of Friction"].GetFloat();
     minfo.cr = mat["Coefficient of Restitution"].GetFloat();

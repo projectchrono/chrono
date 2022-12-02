@@ -23,7 +23,7 @@
 #define CH_VEHCOSIM_CURIOSITY_NODE_H
 
 #include "chrono_models/robot/curiosity/Curiosity.h"
-#include "chrono_vehicle/cosim/ChVehicleCosimMBSNode.h"
+#include "chrono_vehicle/cosim/ChVehicleCosimWheeledMBSNode.h"
 
 namespace chrono {
 namespace vehicle {
@@ -33,7 +33,7 @@ namespace vehicle {
 
 /// Curiosity rover co-simulation node.
 /// The rover is co-simulated with tire nodes and a terrain node.
-class CH_VEHICLE_API ChVehicleCosimCuriosityNode : public ChVehicleCosimMBSNode {
+class CH_VEHICLE_API ChVehicleCosimCuriosityNode : public ChVehicleCosimWheeledMBSNode {
   public:
     /// Construct a Curiosity rover node.
     ChVehicleCosimCuriosityNode();

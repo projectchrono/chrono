@@ -80,6 +80,7 @@ using namespace chrono;
 %include "std_string.i"
 %include "std_vector.i"
 %include "typemaps.i"
+%include "cpointer.i"
 
 // This is to enable references to double,int,etc. types in function parameters
 %pointer_class(int,int_ptr);

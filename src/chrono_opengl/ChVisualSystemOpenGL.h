@@ -27,6 +27,7 @@ namespace chrono {
 class ChSystemMulticore;
 #endif
 
+/// Namespace with classes for the OpenGL module.
 namespace opengl {
 
 /// Interface of an object which can receive events.

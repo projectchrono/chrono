@@ -85,7 +85,7 @@ using namespace gui;
 %include "wchar.i"
 %include "python/cwstring.i"
 %include "cstring.i"
-
+%include "cpointer.i"
 
 // This is to enable references to double,int,etc. types in function parameters
 %pointer_class(int,int_ptr);

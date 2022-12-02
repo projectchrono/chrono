@@ -51,6 +51,7 @@ static std::shared_ptr<irr::video::SMaterial> default_material;
 ChVisualSystemIrrlicht::ChVisualSystemIrrlicht()
     : m_device_params(irr::SIrrlichtCreationParameters()),
       m_device(nullptr),
+      m_courier_font(nullptr),
       m_container(nullptr),
       m_win_title(""),
       m_yup(true),
@@ -103,27 +104,35 @@ ChVisualSystemIrrlicht::~ChVisualSystemIrrlicht() {
 void ChVisualSystemIrrlicht::SetAntialias(bool val) {
     m_device_params.AntiAlias = val;
 }
+
 void ChVisualSystemIrrlicht::SetFullscreen(bool val) {
     m_device_params.Fullscreen = val;
 }
+
 void ChVisualSystemIrrlicht::SetShadows(bool val) {
     m_device_params.Stencilbuffer = val;
 }
+
 void ChVisualSystemIrrlicht::SetDriverType(irr::video::E_DRIVER_TYPE driver_type) {
     m_device_params.DriverType = driver_type;
 }
+
 void ChVisualSystemIrrlicht::SetWindowSize(unsigned int width, unsigned int height) {
     m_device_params.WindowSize = irr::core::dimension2d<irr::u32>((u32)width, (u32)height);
 }
+
 void ChVisualSystemIrrlicht::SetWindowTitle(const std::string& win_title) {
     m_win_title = win_title;
 }
+
 void ChVisualSystemIrrlicht::SetLogLevel(irr::ELOG_LEVEL log_level) {
     m_device_params.LoggingLevel = log_level;
 }
+
 void ChVisualSystemIrrlicht::SetCameraVertical(CameraVerticalDir vert) {
     m_yup = (vert == CameraVerticalDir::Y);
 }
+
 void ChVisualSystemIrrlicht::SetSymbolScale(double scale) {
     m_gui->symbolscale = scale;
     if (m_gui->initialized)
@@ -178,6 +187,9 @@ void ChVisualSystemIrrlicht::Initialize() {
             new EffectHandler(m_device, GetVideoDriver()->getScreenSize(), true, false, true));
     m_effect_handler->setAmbientColor(irr::video::SColor(255, 122, 122, 122));
     m_use_effects = false;  // will be true as sson as a light with shadow is added
+
+    // Create a fixed-size font.
+    m_courier_font = GetGUIEnvironment()->getFont(GetChronoDataFile("fonts/courier6.png").c_str());
 
     // Create the container Irrlicht scene node
     m_container = GetSceneManager()->addEmptySceneNode();

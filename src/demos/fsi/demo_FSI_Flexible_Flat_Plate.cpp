@@ -18,10 +18,6 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 
-#ifdef CHRONO_PARDISO_MKL
-    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
-#endif
-
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
@@ -34,6 +30,10 @@
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChMeshExporter.h"
 #include "chrono/fea/ChBuilderBeam.h"
+
+#ifdef CHRONO_PARDISO_MKL
+    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+#endif
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
 
     // Create a physics system and an FSI system
     ChSystemSMC sysMBS;
-    ChSystemFsi sysFSI(sysMBS);
+    ChSystemFsi sysFSI(&sysMBS);
 
     // Use the default input file or you may enter your input parameters as a command line argument
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Flexible_Flat_Plate_Explicit.json");
@@ -113,8 +113,8 @@ int main(int argc, char* argv[]) {
     sysFSI.SetContainerDim(ChVector<>(bxDim, byDim, bzDim));
 
     auto initSpace0 = sysFSI.GetInitialSpacing();
-    ChVector<> cMin = ChVector<>(-5 * bxDim, -byDim / 2.0 - initSpace0 / 2.0, -5 * bzDim );
-    ChVector<> cMax = ChVector<>( 5 * bxDim,  byDim / 2.0 + initSpace0 / 2.0,  5 * bzDim );
+    ChVector<> cMin = ChVector<>(-5 * bxDim, -byDim / 2.0 - initSpace0 / 2.0, -5 * bzDim);
+    ChVector<> cMax = ChVector<>(5 * bxDim, byDim / 2.0 + initSpace0 / 2.0, 5 * bzDim);
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Set SPH discretization type, consistent or inconsistent
@@ -151,20 +151,20 @@ int main(int argc, char* argv[]) {
         fsi_vis.Initialize();
     }
 
-    // Set MBS solver
-    #ifdef CHRONO_PARDISO_MKL
-        auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
-        mkl_solver->LockSparsityPattern(true);
-        sysMBS.SetSolver(mkl_solver);
-    #else
-        auto solver = chrono_types::make_shared<ChSolverMINRES>();
-        sysMBS.SetSolver(solver);
-        solver->SetMaxIterations(2000);
-        solver->SetTolerance(1e-10);
-        solver->EnableDiagonalPreconditioner(true);
-        solver->SetVerbose(false);
-        sysMBS.SetSolverForceTolerance(1e-10);
-    #endif
+// Set MBS solver
+#ifdef CHRONO_PARDISO_MKL
+    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
+    mkl_solver->LockSparsityPattern(true);
+    sysMBS.SetSolver(mkl_solver);
+#else
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    sysMBS.SetSolver(solver);
+    solver->SetMaxIterations(2000);
+    solver->SetTolerance(1e-10);
+    solver->EnableDiagonalPreconditioner(true);
+    solver->SetVerbose(false);
+    sysMBS.SetSolverForceTolerance(1e-10);
+#endif
 
     // Simulation loop
     double dT = sysFSI.GetStepSize();
@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
             sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
             static int counter = 0;
             std::string filename = out_dir + "/vtk/flex_body." + std::to_string(counter++) + ".vtk";
-            fea::ChMeshExporter::writeFrame(my_mesh, (char*)filename.c_str(), MESH_CONNECTIVITY);
+            fea::ChMeshExporter::WriteFrame(my_mesh, MESH_CONNECTIVITY, filename);
         }
 
         // Render SPH particles
@@ -207,7 +207,7 @@ int main(int argc, char* argv[]) {
 }
 
 //--------------------------------------------------------------------
-// Create the objects of the MBD system. Rigid/flexible bodies, and if 
+// Create the objects of the MBD system. Rigid/flexible bodies, and if
 // fsi, their bce representation are created and added to the systems
 void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     sysMBS.Set_G_acc(ChVector<>(0, 0, 0));
@@ -254,31 +254,24 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     NodeNeighborElement_mesh.resize(TotalNumNodes);
 
     // Create and add the nodes
+    ChVector<> loc;
+    ChVector<> dir(1, 0, 0);
     for (int k = 0; k < N_z; k++) {
         for (int j = 0; j < N_y; j++) {
-            double loc_x = center_plate.x();
-            double loc_y = j * dy - plate_lenght_y / 2 + center_plate.y();
-            double loc_z = k * dz - plate_lenght_z / 2 + center_plate.z();
-            // Node direction
-            double dir_x = 1;
-            double dir_y = 0;
-            double dir_z = 0;
+            loc.x() = center_plate.x();
+            loc.y() = j * dy - plate_lenght_y / 2 + center_plate.y();
+            loc.z() = k * dz - plate_lenght_z / 2 + center_plate.z();
 
-            // Create the node
-            auto node = chrono_types::make_shared<ChNodeFEAxyzD>(
-                ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
-
+            auto node = chrono_types::make_shared<ChNodeFEAxyzD>(loc, dir);
             node->SetMass(0);
+
             // Fix nodes connected to the ground
             if (k == 0)
                 node->SetFixed(true);
 
-            // Add node to mesh
             my_mesh->AddNode(node);
         }
     }
-    // Get a handle to the tip node.
-    auto nodetip = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(TotalNumNodes - 1));
 
     // Create an isotropic material.
     // All layers for all elements share the same material.
@@ -308,9 +301,9 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
             // Create the element and set its nodes.
             auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
             element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node0)),
-                                std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node1)),
-                                std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node2)),
-                                std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node3)));
+                              std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node1)),
+                              std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node2)),
+                              std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node3)));
 
             // Set element dimensions
             element->SetDimensions(dy, dz);
@@ -325,8 +318,8 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
             my_mesh->AddElement(element);
             ChVector<> center = 0.25 * (element->GetNodeA()->GetPos() + element->GetNodeB()->GetPos() +
                                         element->GetNodeC()->GetPos() + element->GetNodeD()->GetPos());
-            std::cout << "Adding element" << num_elem << "  with center:  " << center.x() << " " << center.y()
-                        << " " << center.z() << std::endl;
+            std::cout << "Adding element" << num_elem << "  with center:  " << center.x() << " " << center.y() << " "
+                      << center.z() << std::endl;
             num_elem++;
         }
     }
@@ -336,13 +329,9 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     // fluid representation of flexible bodies
     bool multilayer = true;
     bool removeMiddleLayer = true;
-    std::vector<std::vector<int>> _1D_elementsNodes_mesh;
+    sysFSI.AddFEAmeshBCE(my_mesh, NodeNeighborElement_mesh, std::vector<std::vector<int>>(), _2D_elementsNodes_mesh,
+                         false, true, multilayer, removeMiddleLayer, 0, 0);
 
-    sysFSI.AddFEAmeshBCE(my_mesh, NodeNeighborElement_mesh, _1D_elementsNodes_mesh, 
-        _2D_elementsNodes_mesh, false, true, multilayer, removeMiddleLayer, 0, 0);
-
-    sysFSI.SetShellElementsNodes(_2D_elementsNodes_mesh);
-
-    sysFSI.SetFsiMesh(my_mesh);
-    fea::ChMeshExporter::writeMesh(my_mesh, MESH_CONNECTIVITY);
+    sysFSI.AddFsiMesh(my_mesh, std::vector<std::vector<int>>(), _2D_elementsNodes_mesh);
+    fea::ChMeshExporter::WriteMesh(my_mesh, MESH_CONNECTIVITY);
 }

@@ -128,5 +128,10 @@ double ChTrackDrivelineBDS::GetSprocketSpeed(VehicleSide side) const {
     return 0;
 }
 
+// -----------------------------------------------------------------------------
+void ChTrackDrivelineBDS::Disconnect() {
+    m_differential->SetDisabled(true);
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

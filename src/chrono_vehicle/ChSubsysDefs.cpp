@@ -16,144 +16,316 @@
 //
 // =============================================================================
 
-#include "chrono_vehicle/ChVehicleModelData.h"
+#include <limits>
+
 #include "chrono_vehicle/ChSubsysDefs.h"
-
-#include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/assets/ChObjFileShape.h"
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/utils/ChUtilsCreators.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 namespace chrono {
 namespace vehicle {
 
-ChVehicleGeometry::ChVehicleGeometry()
-    : m_has_primitives(false), m_has_obj(false), m_has_mesh(false), m_has_collision(false), m_has_colors(false) {}
+LinearSpringForce::LinearSpringForce(double k, double preload) : m_k(k), m_f(preload) {}
 
-void ChVehicleGeometry::AddVisualizationAssets(std::shared_ptr<ChBody> body, VisualizationType vis) {
-    if (vis == VisualizationType::NONE)
-        return;
+double LinearSpringForce::evaluate(double time, double rest_length, double length, double vel, const ChLinkTSDA& link) {
+    return m_f - m_k * (length - rest_length);
+}
 
-    if (!body->GetVisualModel()) {
-        auto model = chrono_types::make_shared<ChVisualModel>();
-        body->AddVisualModel(model);
-    }
+// -----------------------------------------------------------------------------
 
-    if (vis == VisualizationType::MESH && m_has_obj) {
-        auto obj_shape = chrono_types::make_shared<ChObjFileShape>();
-        obj_shape->SetFilename(vehicle::GetDataFile(m_vis_mesh_file));
-        body->AddVisualShape(obj_shape, ChFrame<>());
-        return;
-    }
+LinearDamperForce::LinearDamperForce(double c, double preload) : m_c(c) {}
 
-    if (vis == VisualizationType::MESH && m_has_mesh) {
-        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_vis_mesh_file),
-                                                                                  true, true);
-        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-        trimesh_shape->SetMesh(trimesh);
-        trimesh_shape->SetName(filesystem::path(m_vis_mesh_file).stem());
-        trimesh_shape->SetMutable(false);
-        body->AddVisualShape(trimesh_shape, ChFrame<>());
-        return;
-    }
+double LinearDamperForce::evaluate(double time, double rest_length, double length, double vel, const ChLinkTSDA& link) {
+    return -m_c * vel;
+}
 
-    if (vis == VisualizationType::PRIMITIVES && m_has_primitives) {
-        if (!m_has_colors) {
-            m_color_boxes = ChColor(0.5f, 0.5f, 0.5f);
-            m_color_spheres = ChColor(0.5f, 0.5f, 0.5f);
-            m_color_cylinders = ChColor(0.5f, 0.5f, 0.5f);
-        }
+// -----------------------------------------------------------------------------
 
-        auto box_mat = chrono_types::make_shared<ChVisualMaterial>();
-        auto sph_mat = chrono_types::make_shared<ChVisualMaterial>();
-        auto cyl_mat = chrono_types::make_shared<ChVisualMaterial>();
+LinearSpringDamperForce::LinearSpringDamperForce(double k, double c, double preload) : m_k(k), m_c(c), m_f(preload) {}
 
-        box_mat->SetDiffuseColor({m_color_boxes.R, m_color_boxes.G, m_color_boxes.B});
-        sph_mat->SetDiffuseColor({m_color_spheres.R, m_color_spheres.G, m_color_spheres.B});
-        cyl_mat->SetDiffuseColor({m_color_cylinders.R, m_color_cylinders.G, m_color_cylinders.B});
+double LinearSpringDamperForce::evaluate(double time,
+                                         double rest_length,
+                                         double length,
+                                         double vel,
+                                         const ChLinkTSDA& link) {
+    return m_f - m_k * (length - rest_length) - m_c * vel;
+}
 
-        for (auto& sphere : m_vis_spheres) {
-            auto sphere_shape = chrono_types::make_shared<ChSphereShape>();
-            sphere_shape->GetSphereGeometry().rad = sphere.m_radius;
-            sphere_shape->AddMaterial(sph_mat);
-            body->AddVisualShape(sphere_shape, ChFrame<>(sphere.m_pos));
-        }
+// -----------------------------------------------------------------------------
 
-        for (auto& box : m_vis_boxes) {
-            auto box_shape = chrono_types::make_shared<ChBoxShape>();
-            box_shape->GetBoxGeometry().SetLengths(box.m_dims);
-            box_shape->AddMaterial(box_mat);
-            body->AddVisualShape(box_shape, ChFrame<>(box.m_pos, box.m_rot));
-        }
+MapSpringForce::MapSpringForce(double preload) : m_f(preload) {}
 
-        for (auto& cyl : m_vis_cylinders) {
-            auto cyl_shape = chrono_types::make_shared<ChCylinderShape>();
-            cyl_shape->GetCylinderGeometry().rad = cyl.m_radius;
-            cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, cyl.m_length / 2, 0);
-            cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, -cyl.m_length / 2, 0);
-            cyl_shape->AddMaterial(cyl_mat);
-            body->AddVisualShape(cyl_shape, ChFrame<>(cyl.m_pos, cyl.m_rot));
-        }
-
-        for (auto& line : m_vis_lines) {
-            auto line_shape = chrono_types::make_shared<ChLineShape>();
-            line_shape->SetLineGeometry(line.m_line);
-            body->AddVisualShape(line_shape, ChFrame<>(line.m_pos, line.m_rot));
-        }
-
-        return;
+MapSpringForce::MapSpringForce(const std::vector<std::pair<double, double>>& data, double preload) : m_f(preload) {
+    for (unsigned int i = 0; i < data.size(); ++i) {
+        m_map.AddPoint(data[i].first, data[i].second);
     }
 }
 
-void ChVehicleGeometry::AddCollisionShapes(std::shared_ptr<ChBody> body, int collision_family) {
-    body->SetCollide(true);
+void MapSpringForce::add_point(double x, double y) {
+    m_map.AddPoint(x, y);
+}
 
-    body->GetCollisionModel()->ClearModel();
+double MapSpringForce::evaluate(double time, double rest_length, double length, double vel, const ChLinkTSDA& link) {
+    return m_f - m_map.Get_y(length - rest_length);
+}
 
-    body->GetCollisionModel()->SetFamily(collision_family);
+// -----------------------------------------------------------------------------
 
-    for (auto& sphere : m_coll_spheres) {
-        assert(m_materials[sphere.m_matID] &&
-               m_materials[sphere.m_matID]->GetContactMethod() == body->GetSystem()->GetContactMethod());
-        body->GetCollisionModel()->AddSphere(m_materials[sphere.m_matID], sphere.m_radius, sphere.m_pos);
+MapDamperForce::MapDamperForce() {}
+
+MapDamperForce::MapDamperForce(const std::vector<std::pair<double, double>>& data) {
+    for (unsigned int i = 0; i < data.size(); ++i) {
+        m_map.AddPoint(data[i].first, data[i].second);
     }
-    for (auto& box : m_coll_boxes) {
-        assert(m_materials[box.m_matID] &&
-               m_materials[box.m_matID]->GetContactMethod() == body->GetSystem()->GetContactMethod());
-        ChVector<> hdims = box.m_dims / 2;
-        body->GetCollisionModel()->AddBox(m_materials[box.m_matID], hdims.x(), hdims.y(), hdims.z(), box.m_pos,
-                                          box.m_rot);
+}
+
+void MapDamperForce::add_point(double x, double y) {
+    m_map.AddPoint(x, y);
+}
+
+double MapDamperForce::evaluate(double time, double rest_length, double length, double vel, const ChLinkTSDA& link) {
+    return -m_map.Get_y(vel);
+}
+
+// -----------------------------------------------------------------------------
+
+MapSpringDamperForce::MapSpringDamperForce(double preload) : m_f(preload) {}
+
+MapSpringDamperForce::MapSpringDamperForce(const std::vector<std::pair<double, double>>& dataK,
+                                           const std::vector<std::pair<double, double>>& dataC,
+                                           double preload)
+    : m_f(preload) {
+    for (unsigned int i = 0; i < dataK.size(); ++i) {
+        m_mapK.AddPoint(dataK[i].first, dataK[i].second);
     }
-    for (auto& cyl : m_coll_cylinders) {
-        assert(m_materials[cyl.m_matID] &&
-               m_materials[cyl.m_matID]->GetContactMethod() == body->GetSystem()->GetContactMethod());
-        body->GetCollisionModel()->AddCylinder(m_materials[cyl.m_matID], cyl.m_radius, cyl.m_radius, cyl.m_length / 2,
-                                               cyl.m_pos, cyl.m_rot);
+    for (unsigned int i = 0; i < dataC.size(); ++i) {
+        m_mapC.AddPoint(dataC[i].first, dataC[i].second);
     }
-    for (auto& hulls_group : m_coll_hulls) {
-        assert(m_materials[hulls_group.m_matID] &&
-               m_materials[hulls_group.m_matID]->GetContactMethod() == body->GetSystem()->GetContactMethod());
-        geometry::ChTriangleMeshConnected mesh;
-        std::vector<std::vector<ChVector<>>> hulls;
-        utils::LoadConvexHulls(vehicle::GetDataFile(hulls_group.m_filename), mesh, hulls);
-        for (int c = 0; c < hulls.size(); c++) {
-            body->GetCollisionModel()->AddConvexHull(m_materials[hulls_group.m_matID], hulls[c]);
-        }
+}
+
+void MapSpringDamperForce::add_pointK(double x, double y) {
+    m_mapK.AddPoint(x, y);
+}
+
+void MapSpringDamperForce::add_pointC(double x, double y) {
+    m_mapC.AddPoint(x, y);
+}
+
+double MapSpringDamperForce::evaluate(double time,
+                                      double rest_length,
+                                      double length,
+                                      double vel,
+                                      const ChLinkTSDA& link) {
+    return m_f - m_mapK.Get_y(length - rest_length) - m_mapC.Get_y(vel);
+}
+
+// -----------------------------------------------------------------------------
+
+MapSpringBistopForce::MapSpringBistopForce(double spring_min_length, double spring_max_length, double preload)
+    : m_min_length(spring_min_length), m_max_length(spring_max_length), m_f(preload) {
+    setup_stop_maps();
+}
+
+MapSpringBistopForce::MapSpringBistopForce(const std::vector<std::pair<double, double>>& data,
+                                           double spring_min_length,
+                                           double spring_max_length,
+                                           double preload)
+    : m_min_length(spring_min_length), m_max_length(spring_max_length), m_f(preload) {
+    setup_stop_maps();
+    for (unsigned int i = 0; i < data.size(); ++i) {
+        m_map.AddPoint(data[i].first, data[i].second);
     }
-    for (auto& mesh : m_coll_meshes) {
-        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(mesh.m_filename, true, false);
-        // Hack: explicitly offset vertices
-        for (auto& v : trimesh->m_vertices)
-            v += mesh.m_pos;
-        body->GetCollisionModel()->AddTriangleMesh(m_materials[mesh.m_matID], trimesh, false, false, ChVector<>(0),
-                                                   ChMatrix33<>(1), mesh.m_radius);
+}
+
+void MapSpringBistopForce::add_point(double x, double y) {
+    m_map.AddPoint(x, y);
+}
+
+double MapSpringBistopForce::evaluate(double time,
+                                      double rest_length,
+                                      double length,
+                                      double vel,
+                                      const ChLinkTSDA& link) {
+    double defl_bump = 0.0;
+    double defl_rebound = 0.0;
+
+    if (length < m_min_length) {
+        defl_bump = m_min_length - length;
     }
 
-    body->GetCollisionModel()->BuildModel();
+    if (length > m_max_length) {
+        defl_rebound = length - m_max_length;
+    }
+
+    return m_f - m_map.Get_y(length - rest_length) + m_bump.Get_y(defl_bump) - m_rebound.Get_y(defl_rebound);
+}
+
+void MapSpringBistopForce::setup_stop_maps() {
+    m_bump.AddPoint(0.0, 0.0);
+    m_bump.AddPoint(2.0e-3, 200.0);
+    m_bump.AddPoint(4.0e-3, 400.0);
+    m_bump.AddPoint(6.0e-3, 600.0);
+    m_bump.AddPoint(8.0e-3, 800.0);
+    m_bump.AddPoint(10.0e-3, 1000.0);
+    m_bump.AddPoint(20.0e-3, 2500.0);
+    m_bump.AddPoint(30.0e-3, 4500.0);
+    m_bump.AddPoint(40.0e-3, 7500.0);
+    m_bump.AddPoint(50.0e-3, 12500.0);
+    m_bump.AddPoint(60.0e-3, 125000.0);
+
+    m_rebound.AddPoint(0.0, 0.0);
+    m_rebound.AddPoint(2.0e-3, 200.0);
+    m_rebound.AddPoint(4.0e-3, 400.0);
+    m_rebound.AddPoint(6.0e-3, 600.0);
+    m_rebound.AddPoint(8.0e-3, 800.0);
+    m_rebound.AddPoint(10.0e-3, 1000.0);
+    m_rebound.AddPoint(20.0e-3, 2500.0);
+    m_rebound.AddPoint(30.0e-3, 4500.0);
+    m_rebound.AddPoint(40.0e-3, 7500.0);
+    m_rebound.AddPoint(50.0e-3, 12500.0);
+    m_rebound.AddPoint(60.0e-3, 125000.0);
+}
+
+// -----------------------------------------------------------------------------
+
+LinearSpringBistopForce::LinearSpringBistopForce(double k, double min_length, double max_length, double preload)
+    : m_k(k), m_min_length(min_length), m_max_length(max_length), m_f(preload) {
+    // From ADAMS/Car example
+    m_bump.AddPoint(0.0, 0.0);
+    m_bump.AddPoint(2.0e-3, 200.0);
+    m_bump.AddPoint(4.0e-3, 400.0);
+    m_bump.AddPoint(6.0e-3, 600.0);
+    m_bump.AddPoint(8.0e-3, 800.0);
+    m_bump.AddPoint(10.0e-3, 1000.0);
+    m_bump.AddPoint(20.0e-3, 2500.0);
+    m_bump.AddPoint(30.0e-3, 4500.0);
+    m_bump.AddPoint(40.0e-3, 7500.0);
+    m_bump.AddPoint(50.0e-3, 12500.0);
+    m_bump.AddPoint(60.0e-3, 125000.0);
+
+    m_rebound.AddPoint(0.0, 0.0);
+    m_rebound.AddPoint(2.0e-3, 200.0);
+    m_rebound.AddPoint(4.0e-3, 400.0);
+    m_rebound.AddPoint(6.0e-3, 600.0);
+    m_rebound.AddPoint(8.0e-3, 800.0);
+    m_rebound.AddPoint(10.0e-3, 1000.0);
+    m_rebound.AddPoint(20.0e-3, 2500.0);
+    m_rebound.AddPoint(30.0e-3, 4500.0);
+    m_rebound.AddPoint(40.0e-3, 7500.0);
+    m_rebound.AddPoint(50.0e-3, 12500.0);
+    m_rebound.AddPoint(60.0e-3, 125000.0);
+}
+
+double LinearSpringBistopForce::evaluate(double time,
+                                         double rest_length,
+                                         double length,
+                                         double vel,
+                                         const ChLinkTSDA& link) {
+    double defl_bump = 0.0;
+    double defl_rebound = 0.0;
+
+    if (length < m_min_length) {
+        defl_bump = m_min_length - length;
+    }
+
+    if (length > m_max_length) {
+        defl_rebound = length - m_max_length;
+    }
+
+    return m_f - m_k * (length - rest_length) + m_bump.Get_y(defl_bump) - m_rebound.Get_y(defl_rebound);
+}
+
+// -----------------------------------------------------------------------------
+
+DegressiveDamperForce::DegressiveDamperForce(double c_compression)
+    : m_c_compression(c_compression), m_c_expansion(c_compression), m_degr_compression(0), m_degr_expansion(0) {}
+
+DegressiveDamperForce::DegressiveDamperForce(double c_compression, double c_expansion)
+    : m_c_compression(c_compression), m_c_expansion(c_expansion), m_degr_compression(0), m_degr_expansion(0) {}
+
+DegressiveDamperForce::DegressiveDamperForce(double c_compression, double degr_compression, double degr_expansion)
+    : m_c_compression(c_compression),
+      m_c_expansion(c_compression),
+      m_degr_compression(degr_compression),
+      m_degr_expansion(degr_expansion) {}
+
+DegressiveDamperForce::DegressiveDamperForce(double c_compression,
+                                             double degr_compression,
+                                             double c_expansion,
+                                             double degr_expansion)
+    : m_c_compression(c_compression),
+      m_c_expansion(c_expansion),
+      m_degr_compression(degr_compression),
+      m_degr_expansion(degr_expansion) {}
+
+double DegressiveDamperForce::evaluate(double time,
+                                       double rest_length,
+                                       double length,
+                                       double vel,
+                                       const ChLinkTSDA& link) {
+    if (vel >= 0) {
+        return -m_c_expansion * vel / (1.0 + m_degr_expansion * vel);
+    } else {
+        return -m_c_compression * vel / (1.0 - m_degr_compression * vel);
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+LinearSpringTorque::LinearSpringTorque(double k, double rest_angle, double preload)
+    : m_k(k), m_rest_angle(rest_angle), m_t(preload) {}
+
+double LinearSpringTorque::evaluate(double time, double angle, double vel, const ChLinkRSDA& link) {
+    return m_t - m_k * (angle - m_rest_angle);
+}
+
+// -----------------------------------------------------------------------------
+
+LinearDamperTorque::LinearDamperTorque(double c) : m_c(c) {}
+
+double LinearDamperTorque::evaluate(double time, double angle, double vel, const ChLinkRSDA& link) {
+    return -m_c * vel;
+}
+
+// -----------------------------------------------------------------------------
+
+LinearSpringDamperTorque::LinearSpringDamperTorque(double k, double c, double rest_angle, double preload)
+    : m_k(k), m_c(c), m_rest_angle(rest_angle), m_t(preload) {}
+
+double LinearSpringDamperTorque::evaluate(double time, double angle, double vel, const ChLinkRSDA& link) {
+    return m_t - m_k * (angle - m_rest_angle) - m_c * vel;
+}
+
+// -----------------------------------------------------------------------------
+
+MapSpringTorque::MapSpringTorque(double rest_angle, double preload) : m_rest_angle(rest_angle), m_t(preload) {}
+
+MapSpringTorque::MapSpringTorque(const std::vector<std::pair<double, double>>& data, double rest_angle, double preload)
+    : m_rest_angle(rest_angle), m_t(preload) {
+    for (unsigned int i = 0; i < data.size(); ++i) {
+        m_map.AddPoint(data[i].first, data[i].second);
+    }
+}
+
+void MapSpringTorque::add_point(double x, double y) {
+    m_map.AddPoint(x, y);
+}
+
+double MapSpringTorque::evaluate(double time, double angle, double vel, const ChLinkRSDA& link) {
+    return m_t - m_map.Get_y(angle - m_rest_angle);
+}
+
+// -----------------------------------------------------------------------------
+
+MapDamperTorque::MapDamperTorque() {}
+MapDamperTorque::MapDamperTorque(const std::vector<std::pair<double, double>>& data) {
+    for (unsigned int i = 0; i < data.size(); ++i) {
+        m_map.AddPoint(data[i].first, data[i].second);
+    }
+}
+void MapDamperTorque::add_point(double x, double y) {
+    m_map.AddPoint(x, y);
+}
+double MapDamperTorque::evaluate(double time, double angle, double vel, const ChLinkRSDA& link) {
+    return -m_map.Get_y(vel);
 }
 
 }  // end namespace vehicle

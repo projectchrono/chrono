@@ -73,8 +73,7 @@ void print_red(std::string text) {
     std::cout << "\033[1;31m" << text << "\033[0m";
 }
 
-bool load_validation_data(const std::string& filename,
-                          Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>& data) {
+bool load_validation_data(const std::string& filename, ChMatrixDynamic<>& data) {
     std::ifstream file(ref_dir + filename);
     if (!file.is_open()) {
         print_red("ERROR!  Cannot open file: " + ref_dir + filename + "\n");

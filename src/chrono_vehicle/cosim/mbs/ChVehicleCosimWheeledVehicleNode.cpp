@@ -30,7 +30,7 @@
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 
-#include "chrono_vehicle/cosim/mbs/ChVehicleCosimVehicleNode.h"
+#include "chrono_vehicle/cosim/mbs/ChVehicleCosimWheeledVehicleNode.h"
 
 using std::cout;
 using std::endl;
@@ -43,9 +43,7 @@ namespace vehicle {
 class WheeledVehicleDBPDriver : public ChDriver {
   public:
     WheeledVehicleDBPDriver(std::shared_ptr<ChWheeledVehicle> vehicle, std::shared_ptr<ChFunction> dbp_mot_func)
-        : ChDriver(*vehicle),
-          m_wheeled_vehicle(vehicle),
-          m_func(dbp_mot_func) {}
+        : ChDriver(*vehicle), m_wheeled_vehicle(vehicle), m_func(dbp_mot_func) {}
 
     virtual void Synchronize(double time) override {
         m_steering = 0;
@@ -65,17 +63,17 @@ class WheeledVehicleDBPDriver : public ChDriver {
 
 // -----------------------------------------------------------------------------
 
-ChVehicleCosimVehicleNode::ChVehicleCosimVehicleNode(const std::string& vehicle_json,
-                                                     const std::string& powertrain_json)
-    : ChVehicleCosimMBSNode(), m_num_spindles(0), m_init_yaw(0) {
+ChVehicleCosimWheeledVehicleNode::ChVehicleCosimWheeledVehicleNode(const std::string& vehicle_json,
+                                                                   const std::string& powertrain_json)
+    : ChVehicleCosimWheeledMBSNode(), m_num_spindles(0), m_init_yaw(0), m_chassis_fixed(false) {
     m_vehicle = chrono_types::make_shared<WheeledVehicle>(m_system, vehicle_json);
     m_powertrain = ReadPowertrainJSON(powertrain_json);
     m_terrain = chrono_types::make_shared<ChTerrain>();
 }
 
-ChVehicleCosimVehicleNode::ChVehicleCosimVehicleNode(std::shared_ptr<ChWheeledVehicle> vehicle,
-                                                     std::shared_ptr<ChPowertrain> powertrain)
-    : ChVehicleCosimMBSNode(), m_num_spindles(0), m_init_yaw(0) {
+ChVehicleCosimWheeledVehicleNode::ChVehicleCosimWheeledVehicleNode(std::shared_ptr<ChWheeledVehicle> vehicle,
+                                                                   std::shared_ptr<ChPowertrain> powertrain)
+    : ChVehicleCosimWheeledMBSNode(), m_num_spindles(0), m_init_yaw(0), m_chassis_fixed(false) {
     // Ensure the vehicle system has a null ChSystem
     if (vehicle->GetSystem())
         return;
@@ -88,17 +86,18 @@ ChVehicleCosimVehicleNode::ChVehicleCosimVehicleNode(std::shared_ptr<ChWheeledVe
     m_vehicle->SetSystem(m_system);
 }
 
-ChVehicleCosimVehicleNode::~ChVehicleCosimVehicleNode() {}
+ChVehicleCosimWheeledVehicleNode::~ChVehicleCosimWheeledVehicleNode() {}
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimVehicleNode::InitializeMBS(const std::vector<ChVector<>>& tire_info,
-                                              const ChVector2<>& terrain_size,
-                                              double terrain_height) {
+void ChVehicleCosimWheeledVehicleNode::InitializeMBS(const std::vector<ChVector<>>& tire_info,
+                                                     const ChVector2<>& terrain_size,
+                                                     double terrain_height) {
     // Initialize vehicle
     ChCoordsys<> init_pos(m_init_loc + ChVector<>(0, 0, terrain_height), Q_from_AngZ(m_init_yaw));
 
     m_vehicle->Initialize(init_pos);
+    m_vehicle->GetChassis()->SetFixed(m_chassis_fixed);    
     m_vehicle->SetChassisVisualizationType(VisualizationType::MESH);
     m_vehicle->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     m_vehicle->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
@@ -133,20 +132,20 @@ void ChVehicleCosimVehicleNode::InitializeMBS(const std::vector<ChVector<>>& tir
 }
 
 // -----------------------------------------------------------------------------
-int ChVehicleCosimVehicleNode::GetNumSpindles() const {
+int ChVehicleCosimWheeledVehicleNode::GetNumSpindles() const {
     return m_num_spindles;
 }
 
-std::shared_ptr<ChBody> ChVehicleCosimVehicleNode::GetSpindleBody(unsigned int i) const {
+std::shared_ptr<ChBody> ChVehicleCosimWheeledVehicleNode::GetSpindleBody(unsigned int i) const {
     VehicleSide side = (i % 2 == 0) ? VehicleSide::LEFT : VehicleSide::RIGHT;
     return m_vehicle->GetWheel(i / 2, side)->GetSpindle();
 }
 
-double ChVehicleCosimVehicleNode::GetSpindleLoad(unsigned int i) const {
+double ChVehicleCosimWheeledVehicleNode::GetSpindleLoad(unsigned int i) const {
     return m_spindle_loads[i];
 }
 
-BodyState ChVehicleCosimVehicleNode::GetSpindleState(unsigned int i) const {
+BodyState ChVehicleCosimWheeledVehicleNode::GetSpindleState(unsigned int i) const {
     VehicleSide side = (i % 2 == 0) ? VehicleSide::LEFT : VehicleSide::RIGHT;
     auto spindle_body = m_vehicle->GetWheel(i / 2, side)->GetSpindle();
     BodyState state;
@@ -155,15 +154,15 @@ BodyState ChVehicleCosimVehicleNode::GetSpindleState(unsigned int i) const {
     state.rot = spindle_body->GetRot();
     state.lin_vel = spindle_body->GetPos_dt();
     state.ang_vel = spindle_body->GetWvel_par();
-    
+
     return state;
 }
 
-std::shared_ptr<ChBody> ChVehicleCosimVehicleNode::GetChassisBody() const {
+std::shared_ptr<ChBody> ChVehicleCosimWheeledVehicleNode::GetChassisBody() const {
     return m_vehicle->GetChassisBody();
 }
 
-void ChVehicleCosimVehicleNode::OnInitializeDBPRig(std::shared_ptr<ChFunction> func) {
+void ChVehicleCosimWheeledVehicleNode::OnInitializeDBPRig(std::shared_ptr<ChFunction> func) {
     // Disconnect the driveline
     m_vehicle->DisconnectDriveline();
     // Overwrite any driver attached to the vehicle with a custom driver which imposes zero steering and braking and
@@ -173,7 +172,7 @@ void ChVehicleCosimVehicleNode::OnInitializeDBPRig(std::shared_ptr<ChFunction> f
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimVehicleNode::PreAdvance() {
+void ChVehicleCosimWheeledVehicleNode::PreAdvance() {
     // Synchronize vehicle systems
     double time = m_vehicle->GetChTime();
     DriverInputs driver_inputs;
@@ -188,7 +187,7 @@ void ChVehicleCosimVehicleNode::PreAdvance() {
     m_vehicle->Synchronize(time, driver_inputs, *m_terrain);
 }
 
-void ChVehicleCosimVehicleNode::ApplySpindleForce(unsigned int i, const TerrainForce& spindle_force) {
+void ChVehicleCosimWheeledVehicleNode::ApplySpindleForce(unsigned int i, const TerrainForce& spindle_force) {
     // Cache the spindle force on the corresponding dummy tire. This force will be applied to the associated ChWheel on
     // synchronization of the vehicle system (in PreAdvance)
     m_tires[i]->m_force = spindle_force;
@@ -196,7 +195,7 @@ void ChVehicleCosimVehicleNode::ApplySpindleForce(unsigned int i, const TerrainF
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimVehicleNode::OnOutputData(int frame) {
+void ChVehicleCosimWheeledVehicleNode::OnOutputData(int frame) {
     // Append to results output file
     if (m_outf.is_open()) {
         std::string del("  ");
@@ -228,7 +227,7 @@ void ChVehicleCosimVehicleNode::OnOutputData(int frame) {
         cout << "[Vehicle node] write output file ==> " << filename << endl;
 }
 
-void ChVehicleCosimVehicleNode::WriteBodyInformation(utils::CSV_writer& csv) {
+void ChVehicleCosimWheeledVehicleNode::WriteBodyInformation(utils::CSV_writer& csv) {
     // Write number of bodies
     csv << 1 + m_num_spindles << endl;
 

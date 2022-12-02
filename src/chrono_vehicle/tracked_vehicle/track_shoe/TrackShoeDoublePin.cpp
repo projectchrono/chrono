@@ -28,8 +28,6 @@ using namespace rapidjson;
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 TrackShoeDoublePin::TrackShoeDoublePin(const std::string& filename)
     : ChTrackShoeDoublePin("", DoublePinTrackShoeType::TWO_CONNECTORS) {
     Document d;
@@ -79,7 +77,7 @@ void TrackShoeDoublePin::Create(const rapidjson::Document& d) {
     m_connector_mass = d["Connector"]["Mass"].GetDouble();
     m_connector_inertia = ReadVectorJSON(d["Connector"]["Inertia"]);
 
-    // Read contact geometry data
+    // Read contact data
     assert(d.HasMember("Contact"));
     assert(d["Contact"].HasMember("Connector Material"));
     assert(d["Contact"].HasMember("Shoe Materials"));
@@ -87,19 +85,20 @@ void TrackShoeDoublePin::Create(const rapidjson::Document& d) {
     assert(d["Contact"]["Shoe Materials"].IsArray());
     assert(d["Contact"]["Shoe Shapes"].IsArray());
 
-    // Read contact material information (defer creating the materials until CreateContactMaterials)
-
-    m_cyl_mat_info = ReadMaterialInfoJSON(d["Contact"]["Connector Material"]);
+    // Read contact material information
+    m_shoe_sprk_minfo = ReadMaterialInfoJSON(d["Contact"]["Connector Material"]);
 
     int num_mats = d["Contact"]["Shoe Materials"].Size();
     for (int i = 0; i < num_mats; i++) {
-        MaterialInfo minfo = ReadMaterialInfoJSON(d["Contact"]["Shoe Materials"][i]);
-        m_shoe_mat_info.push_back(minfo);
+        ChContactMaterialData minfo = ReadMaterialInfoJSON(d["Contact"]["Shoe Materials"][i]);
+        m_geometry.m_materials.push_back(minfo);
     }
+    m_ground_geometry.m_materials = m_geometry.m_materials;
+    m_ground_geometry.m_has_collision = false;
 
     // Read geometric collison data
-
     int num_shapes = d["Contact"]["Shoe Shapes"].Size();
+    assert(num_shapes > 0);
 
     for (int i = 0; i < num_shapes; i++) {
         const Value& shape = d["Contact"]["Shoe Shapes"][i];
@@ -108,36 +107,54 @@ void TrackShoeDoublePin::Create(const rapidjson::Document& d) {
         int matID = shape["Material Index"].GetInt();
         assert(matID >= 0 && matID < num_mats);
 
+        bool ground_geometry = shape.HasMember("Ground Contact") && shape["Ground Contact"].GetBool();
+        if (ground_geometry)
+            m_ground_geometry.m_has_collision = true;
+
         if (type.compare("SPHERE") == 0) {
             ChVector<> pos = ReadVectorJSON(shape["Location"]);
             double radius = shape["Radius"].GetDouble();
-            m_geometry.m_coll_spheres.push_back(ChVehicleGeometry::SphereShape(pos, radius, matID));
+            ChVehicleGeometry::SphereShape sphere(pos, radius, matID);
+            m_geometry.m_coll_spheres.push_back(sphere);
+            if (ground_geometry)
+                m_ground_geometry.m_coll_spheres.push_back(sphere);
         } else if (type.compare("BOX") == 0) {
             ChVector<> pos = ReadVectorJSON(shape["Location"]);
             ChQuaternion<> rot = ReadQuaternionJSON(shape["Orientation"]);
             ChVector<> dims = ReadVectorJSON(shape["Dimensions"]);
-            m_geometry.m_coll_boxes.push_back(ChVehicleGeometry::BoxShape(pos, rot, dims, matID));
+            ChVehicleGeometry::BoxShape box(pos, rot, dims, matID);
+            m_geometry.m_coll_boxes.push_back(box);
+            if (ground_geometry)
+                m_ground_geometry.m_coll_boxes.push_back(box);
         } else if (type.compare("CYLINDER") == 0) {
             ChVector<> pos = ReadVectorJSON(shape["Location"]);
             ChQuaternion<> rot = ReadQuaternionJSON(shape["Orientation"]);
             double radius = shape["Radius"].GetDouble();
             double length = shape["Length"].GetDouble();
-            m_geometry.m_coll_cylinders.push_back(ChVehicleGeometry::CylinderShape(pos, rot, radius, length, matID));
+            ChVehicleGeometry::CylinderShape cylinder(pos, rot, radius, length, matID);
+            m_geometry.m_coll_cylinders.push_back(cylinder);
+            if (ground_geometry)
+                m_ground_geometry.m_coll_cylinders.push_back(cylinder);
         } else if (type.compare("HULL") == 0) {
             std::string filename = shape["Filename"].GetString();
-            m_geometry.m_coll_hulls.push_back(ChVehicleGeometry::ConvexHullsShape(filename, matID));
+            ChVehicleGeometry::ConvexHullsShape hull(filename, matID);
+            m_geometry.m_coll_hulls.push_back(hull);
+            if (ground_geometry)
+                m_ground_geometry.m_coll_hulls.push_back(hull);
         } else if (type.compare("MESH") == 0) {
             std::string filename = shape["Filename"].GetString();
             ChVector<> pos = ReadVectorJSON(shape["Location"]);
             double radius = shape["Contact Radius"].GetDouble();
-            m_geometry.m_coll_meshes.push_back(ChVehicleGeometry::TrimeshShape(pos, filename, radius, matID));
+            ChVehicleGeometry::TrimeshShape mesh(pos, filename, radius, matID);
+            m_geometry.m_coll_meshes.push_back(mesh);
+            if (ground_geometry)
+                m_ground_geometry.m_coll_meshes.push_back(mesh);
         }
     }
 
     m_geometry.m_has_collision = true;
 
     // Read visualization data
-
     if (d.HasMember("Visualization")) {
         if (d["Visualization"].HasMember("Mesh")) {
             m_geometry.m_vis_mesh_file = d["Visualization"]["Mesh"].GetString();
@@ -178,14 +195,6 @@ void TrackShoeDoublePin::Create(const rapidjson::Document& d) {
             m_geometry.m_vis_cylinders.push_back(cyl);
         }
         m_geometry.m_has_primitives = true;
-    }
-}
-
-void TrackShoeDoublePin::CreateContactMaterials(ChContactMethod contact_method) {
-    m_shoe_sprk_material = m_cyl_mat_info.CreateMaterial(contact_method);
-
-    for (auto minfo : m_shoe_mat_info) {
-        m_geometry.m_materials.push_back(minfo.CreateMaterial(contact_method));
     }
 }
 

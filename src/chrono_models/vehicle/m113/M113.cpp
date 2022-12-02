@@ -45,6 +45,10 @@ M113::M113()
       m_brake_type(BrakeType::SIMPLE),
       m_shoe_type(TrackShoeType::SINGLE_PIN),
       m_shoe_topology(DoublePinTrackShoeType::TWO_CONNECTORS),
+      m_ancf_element_type(ChTrackShoeBandANCF::ElementType::ANCF_4),
+      m_ancf_num_elements_length(3),
+      m_ancf_num_elements_width(4),
+      m_ancf_constrain_curvature(false),
       m_driveline_type(DrivelineTypeTV::SIMPLE),
       m_powertrain_type(PowertrainModelType::SIMPLE_CVT),
       m_use_track_bushings(false),
@@ -52,6 +56,7 @@ M113::M113()
       m_use_track_RSDA(false),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_gyration_mode(false),
       m_apply_drag(false) {}
 
 M113::M113(ChSystem* system)
@@ -67,6 +72,10 @@ M113::M113(ChSystem* system)
       m_brake_type(BrakeType::SIMPLE),
       m_shoe_type(TrackShoeType::SINGLE_PIN),
       m_shoe_topology(DoublePinTrackShoeType::TWO_CONNECTORS),
+      m_ancf_element_type(ChTrackShoeBandANCF::ElementType::ANCF_4),
+      m_ancf_num_elements_length(3),
+      m_ancf_num_elements_width(4),
+      m_ancf_constrain_curvature(false),
       m_driveline_type(DrivelineTypeTV::SIMPLE),
       m_powertrain_type(PowertrainModelType::SIMPLE_CVT),
       m_use_track_bushings(false),
@@ -74,6 +83,7 @@ M113::M113(ChSystem* system)
       m_use_track_RSDA(false),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_gyration_mode(false),
       m_apply_drag(false) {}
 
 M113::~M113() {
@@ -81,6 +91,7 @@ M113::~M113() {
 }
 
 // -----------------------------------------------------------------------------
+
 void M113::SetAerodynamicDrag(double Cd, double area, double air_density) {
     m_Cd = Cd;
     m_area = area;
@@ -90,16 +101,19 @@ void M113::SetAerodynamicDrag(double Cd, double area, double air_density) {
 }
 
 // -----------------------------------------------------------------------------
+
 void M113::Initialize() {
     // Create and initialize the M113 vehicle
     if (m_system) {
-        m_vehicle = new M113_Vehicle(m_fixed, m_shoe_type, m_shoe_topology, m_driveline_type, m_brake_type,
-                                     m_use_track_bushings, m_use_suspension_bushings, m_use_track_RSDA, m_system,
-                                     m_chassisCollisionType);
+        m_vehicle = new M113_Vehicle(m_fixed, m_shoe_type, m_shoe_topology, m_ancf_element_type,
+                                     m_ancf_constrain_curvature, m_ancf_num_elements_length, m_ancf_num_elements_width,
+                                     m_driveline_type, m_brake_type, m_use_track_bushings, m_use_suspension_bushings,
+                                     m_use_track_RSDA, m_system, m_chassisCollisionType);
     } else {
-        m_vehicle = new M113_Vehicle(m_fixed, m_shoe_type, m_shoe_topology, m_driveline_type, m_brake_type,
-                                     m_use_track_bushings, m_use_suspension_bushings, m_use_track_RSDA, m_contactMethod,
-                                     m_chassisCollisionType);
+        m_vehicle = new M113_Vehicle(m_fixed, m_shoe_type, m_shoe_topology, m_ancf_element_type,
+                                     m_ancf_constrain_curvature, m_ancf_num_elements_length, m_ancf_num_elements_width,
+                                     m_driveline_type, m_brake_type, m_use_track_bushings, m_use_suspension_bushings,
+                                     m_use_track_RSDA, m_contactMethod, m_chassisCollisionType);
         m_vehicle->SetCollisionSystemType(m_collsysType);
     }
     m_vehicle->CreateTrack(m_create_track);
@@ -111,6 +125,8 @@ void M113::Initialize() {
     if (m_apply_drag) {
         m_vehicle->GetChassis()->SetAerodynamicDrag(m_Cd, m_area, m_air_density);
     }
+
+    m_vehicle->GetDriveline()->SetGyrationMode(m_gyration_mode);
 
     // Create and initialize the powertrain system
     switch (m_powertrain_type) {
@@ -137,7 +153,6 @@ void M113::Initialize() {
     m_vehicle->InitializeInertiaProperties();
 }
 
-// -----------------------------------------------------------------------------
 void M113::Synchronize(double time,
                        const DriverInputs& driver_inputs,
                        const TerrainForces& shoe_forces_left,
@@ -145,7 +160,6 @@ void M113::Synchronize(double time,
     m_vehicle->Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
 }
 
-// -----------------------------------------------------------------------------
 void M113::Advance(double step) {
     m_vehicle->Advance(step);
 }

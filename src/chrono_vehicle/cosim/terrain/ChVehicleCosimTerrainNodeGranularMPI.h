@@ -106,7 +106,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularMPI : public ChVehicleCosi
     double CalculatePackingDensity(double& depth);
 
   private:
-    /// Additional data for tire proxy bodies
+    /// Additional data for object proxy bodies
     struct TireData {
         std::vector<uint> m_gids;              ///< global indices of proxy bodies
         std::unordered_map<uint, uint> m_map;  ///< map from global ID to triangle index
@@ -125,7 +125,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularMPI : public ChVehicleCosi
 
     double m_hthick;                    ///< container wall half-thickness
     double m_radius_p;                  ///< radius for a proxy body
-    std::vector<TireData> m_tire_data;  ///< data for the vehicle tire proxies
+    std::vector<TireData> m_tire_data;  ///< data for the object (tires or track shoes) proxies
 
     utils::SamplingType m_sampling_type;  ///< sampling method for generation of particles
     double m_init_depth;                  ///< height of granular maerial initialization volume
@@ -143,13 +143,13 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularMPI : public ChVehicleCosi
     /// Return current total number of contacts.
     virtual int GetNumContacts() const override { return m_system->GetNcontacts(); }
 
-    virtual void CreateMeshProxies(unsigned int i) override;
-    virtual void UpdateMeshProxies(unsigned int i, MeshState& mesh_state) override;
-    virtual void GetForcesMeshProxies(unsigned int i, MeshContact& mesh_contact) override;
+    virtual void CreateMeshProxy(unsigned int i) override;
+    virtual void UpdateMeshProxy(unsigned int i, MeshState& mesh_state) override;
+    virtual void GetForceMeshProxy(unsigned int i, MeshContact& mesh_contact) override;
 
-    virtual void CreateWheelProxy(unsigned int i) override;
-    virtual void UpdateWheelProxy(unsigned int i, BodyState& spindle_state) override;
-    virtual void GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) override;
+    virtual void CreateRigidProxy(unsigned int i) override;
+    virtual void UpdateRigidProxy(unsigned int i, BodyState& rigid_state) override;
+    virtual void GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) override;
 
     virtual void OnAdvance(double step_size) override;
     virtual void OnOutputData(int frame) override;
