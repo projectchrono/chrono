@@ -58,7 +58,7 @@ enum class DriverModelType {
     HUMAN     // simple realistic human driver
 };
 
-// Type of tire model (LUGRE, FIALA, PACEJKA, or TMEASY)
+// Type of tire model (FIALA, PAC89, PAC02, or TMEASY)
 TireModelType tire_model = TireModelType::TMEASY;
 
 // Road visualization (mesh or boundary lines)

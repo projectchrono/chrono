@@ -150,21 +150,6 @@ void mrole::Initialize() {
             break;
         }
         /*
-        case TireModelType::LUGRE: {
-            auto tire_FL = chrono_types::make_shared<mrole_LugreTire>("FL");
-            auto tire_FR = chrono_types::make_shared<mrole_LugreTire>("FR");
-            auto tire_RL = chrono_types::make_shared<mrole_LugreTire>("RL");
-            auto tire_RR = chrono_types::make_shared<mrole_LugreTire>("RR");
-
-            m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
-
-            m_tire_mass = tire_FL->GetMass();
-
-            break;
-        }
         case TireModelType::FIALA: {
             auto tire_FL = chrono_types::make_shared<mrole_FialaTire>("FL");
             auto tire_FR = chrono_types::make_shared<mrole_FialaTire>("FR");

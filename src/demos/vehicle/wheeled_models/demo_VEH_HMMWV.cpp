@@ -79,7 +79,7 @@ BrakeType brake_type = BrakeType::SHAFTS;
 // Model tierods as bodies (true) or as distance constraints (false)
 bool use_tierod_bodies = true;
 
-// Type of tire model (RIGID, RIGID_MESH, TMEASY, PACEJKA, LUGRE, FIALA, PAC89, PAC02)
+// Type of tire model (RIGID, RIGID_MESH, TMEASY, PACEJKA, FIALA, PAC89, PAC02)
 TireModelType tire_model = TireModelType::TMEASY;
 
 // Rigid terrain

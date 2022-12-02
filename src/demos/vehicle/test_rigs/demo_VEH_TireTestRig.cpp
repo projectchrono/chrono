@@ -25,7 +25,6 @@
 
 #include "chrono_models/vehicle/hmmwv/HMMWV_ANCFTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_FialaTire.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_LugreTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_ReissnerTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_RigidTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_TMeasyTire.h"
@@ -44,7 +43,7 @@ using namespace chrono;
 using namespace chrono::vehicle;
 using namespace chrono::irrlicht;
 
-enum class TireType { RIGID, TMEASY, FIALA, PAC89, PAC02, LUGRE, ANCF4, ANCF8, ANCF_TOROIDAL, REISSNER };
+enum class TireType { RIGID, TMEASY, FIALA, PAC89, PAC02, ANCF4, ANCF8, ANCF_TOROIDAL, REISSNER };
 TireType tire_type = TireType::TMEASY;
 
 bool use_JSON = true;
@@ -83,9 +82,6 @@ int main() {
             case TireType::PAC02:
                 tire_file = "hmmwv/tire/HMMWV_Pac02Tire.json";
                 break;
-            case TireType::LUGRE:
-                tire_file = "hmmwv/tire/HMMWV_LugreTire.json";
-                break;
             case TireType::ANCF4:
                 tire_file = "hmmwv/tire/HMMWV_ANCF4Tire_Lumped.json";
                 break;
@@ -113,9 +109,6 @@ int main() {
                 break;
             case TireType::PAC02:
                 tire = chrono_types::make_shared<hmmwv::HMMWV_Pac02Tire>("Pac02 tire");
-                break;
-            case TireType::LUGRE:
-                tire = chrono_types::make_shared<hmmwv::HMMWV_LugreTire>("Lugre tire");
                 break;
             case TireType::ANCF4:
                 tire = chrono_types::make_shared<hmmwv::HMMWV_ANCFTire>("ANCF tire",
