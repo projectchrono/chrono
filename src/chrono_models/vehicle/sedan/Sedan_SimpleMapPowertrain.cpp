@@ -19,6 +19,9 @@
 // - simple gear-shifting model (in automatic mode)
 //
 // Torque RPM map to match 2018 Audi A4
+// Reference material:
+// https://www.automobile-catalog.com/curve/2018/2601275/audi_a4_2_0_tfsi_252_quattro.html#gsc.tab=0
+// https://www.automobile-catalog.com/auta_perf1.php#gsc.tab=0
 //
 // =============================================================================
 
