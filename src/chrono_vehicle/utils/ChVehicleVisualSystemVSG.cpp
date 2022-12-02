@@ -262,6 +262,11 @@ ChVehicleVisualSystemVSG::~ChVehicleVisualSystemVSG() {}
 
 void ChVehicleVisualSystemVSG::Initialize() {
     ChVisualSystemVSG::Initialize();
+    // do we have a vehicle?
+    if(!m_vehicle) {
+        GetLog() << "A wheeled vehicle must be attached before Initialization!\n";
+        exit(99);
+    }
     // add keyboard handler
     auto veh_kbHandler = VehAppKeyboardHandler::create(m_viewer);
     veh_kbHandler->SetParams(m_params, this);
@@ -279,6 +284,10 @@ void ChVehicleVisualSystemVSG::Initialize() {
 
 void ChVehicleVisualSystemVSG::AttachVehicle(vehicle::ChVehicle* vehicle) {
     ChVehicleVisualSystem::AttachVehicle(vehicle);
+    if(!vehicle) {
+        GetLog() << "Attempt to attach a invalid vehicle!\n";
+        exit(99);
+    }
 }
 
 void ChVehicleVisualSystemVSG::AttachGuiDriver(ChVSGGuiDriver* driver) {
