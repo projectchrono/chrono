@@ -30,7 +30,7 @@ namespace sedan {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double Sedan_Chassis::m_body_mass = 1250;
+const double Sedan_Chassis::m_body_mass = 1515;
 const ChVector<> Sedan_Chassis::m_body_inertiaXX(222.8, 944.1, 1053.5);
 const ChVector<> Sedan_Chassis::m_body_inertiaXY(0, 0, 0);
 const ChVector<> Sedan_Chassis::m_body_COM_loc(0, 0, 0.2);
