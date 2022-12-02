@@ -68,6 +68,7 @@ void SprocketBand::Create(const rapidjson::Document& d) {
     m_gear_tooth_depth = d["Profile"]["Tooth Depth"].GetDouble();
     m_gear_arc_radius = d["Profile"]["Arc Radius"].GetDouble();
     m_gear_RA = d["Profile"]["Assembly Radius"].GetDouble();
+    m_gear_RT = d["Profile"]["Addenum Radius"].GetDouble();
 
     // Read contact material data
     assert(d.HasMember("Contact Material"));

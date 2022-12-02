@@ -145,6 +145,10 @@ int main(int argc, char* argv[]) {
     } else {
         VehicleSide side = LEFT;
         TrackShoeType type = TrackShoeType::BAND_BUSHING;
+        ChTrackShoeBandANCF::ElementType element_type = ChTrackShoeBandANCF::ElementType::ANCF_4;
+        bool constrain_curvature = false;
+        int num_elements_length = 1;
+        int num_elements_width = 1;
         BrakeType brake_type = BrakeType::SIMPLE;
         std::shared_ptr<ChTrackAssembly> track_assembly;
         switch (type) {
@@ -154,7 +158,9 @@ int main(int argc, char* argv[]) {
                 break;
             }
             case TrackShoeType::BAND_ANCF: {
-                auto assembly = chrono_types::make_shared<M113_TrackAssemblyBandANCF>(side, brake_type, false);
+                auto assembly = chrono_types::make_shared<M113_TrackAssemblyBandANCF>(
+                    side, brake_type, element_type, constrain_curvature, num_elements_length, num_elements_width,
+                    false);
                 assembly->SetContactSurfaceType(ChTrackAssemblyBandANCF::ContactSurfaceType::NONE);
                 track_assembly = assembly;
                 break;
@@ -216,7 +222,8 @@ int main(int argc, char* argv[]) {
     // Visualization settings
     rig->SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
     rig->SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
-    rig->SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
+    rig->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    rig->SetIdlerWheelVisualizationType(VisualizationType::PRIMITIVES);
     rig->SetRoadWheelVisualizationType(VisualizationType::PRIMITIVES);
     rig->SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 
@@ -228,7 +235,7 @@ int main(int argc, char* argv[]) {
     rig->Initialize();
 
     vis->Initialize();
-    vis->AddTypicalLights();
+    vis->AddLightDirectional();
     vis->AddSkyBox();
     vis->AddLogo();
     vis->AttachVehicle(rig);

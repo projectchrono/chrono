@@ -12,7 +12,7 @@ IF(NOT ENABLE_MODULE_MODAL)
 	RETURN()
 ENDIF()
 
-MESSAGE(STATUS "==== Chrono Modal module ====")
+MESSAGE(STATUS "\n==== Chrono Modal module ====\n")
 
 MARK_AS_ADVANCED(CLEAR SPECTRA_INCLUDE_DIR)
 
@@ -23,6 +23,7 @@ SET(ChronoEngine_MODAL_SOURCES
     ChModalAssembly.cpp
     ChModalDamping.cpp
     ChEigenvalueSolver.cpp
+    ChKrylovSchurEig.cpp
 )
 
 SET(ChronoEngine_MODAL_HEADERS
@@ -30,6 +31,7 @@ SET(ChronoEngine_MODAL_HEADERS
     ChModalAssembly.h
     ChModalDamping.h
     ChEigenvalueSolver.h
+    ChKrylovSchurEig.h
 )
 
 SOURCE_GROUP("" FILES 

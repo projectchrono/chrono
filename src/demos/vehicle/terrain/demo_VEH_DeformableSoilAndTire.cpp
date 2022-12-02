@@ -138,7 +138,7 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddCamera(ChVector<>(1.0, 1.4, -1.2), ChVector<>(0, tire_rad, 0));
-    vis->AddTypicalLights();
+    vis->AddLightDirectional();
     vis->AddLightWithShadow(ChVector<>(1.5, 5.5, -2.5), ChVector<>(0, 0, 0), 3, 2.2, 7.2, 40, 512,
                             ChColor(0.8f, 0.8f, 1.0f));
     vis->EnableShadows();

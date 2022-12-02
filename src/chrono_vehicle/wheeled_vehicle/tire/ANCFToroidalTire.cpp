@@ -14,7 +14,7 @@
 //
 // ANCF toroidal tire.
 // This is a concrete ANCF tire class which uses a semi-toroidal tire mesh
-// composed of single-layer ANCF shell elements.
+// composed of single-layer 4-node ANCF shell elements.
 //
 // =============================================================================
 
@@ -67,10 +67,8 @@ void ANCFToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSid
         }
     }
 
-    // Element dimensions
+    // Element thickness
     double dz = m_thickness;
-    double dx = CH_C_2PI * (m_rim_radius + m_height) / (2 * m_div_circumference);
-    double dy = CH_C_PI * m_height / m_div_width;
 
     // Create the ANCF shell elements
     for (int i = 0; i < m_div_circumference; i++) {
@@ -95,6 +93,12 @@ void ANCFToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSid
             // Create the element and set its nodes.
             auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
             element->SetNodes(node0, node1, node2, node3);
+
+            // Element dimensions
+            double dx =
+                0.5 * ((node1->GetPos() - node0->GetPos()).Length() + (node3->GetPos() - node2->GetPos()).Length());
+            double dy = 
+                0.5 * ((node2->GetPos() - node1->GetPos()).Length() + (node3->GetPos() - node0->GetPos()).Length());
 
             // Set element dimensions
             element->SetDimensions(dx, dy);

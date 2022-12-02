@@ -1,0 +1,32 @@
+{
+  "Name":                           "Marder Double IdlerWheel Right",
+  "Type":                           "TrackWheel",
+  "Template":                       "DoubleTrackWheel",
+
+  "Wheel":
+  {
+      "Radius":                     0.334,
+      "Width":                      0.181,
+      "Gap":                        0.051,
+      "Mass":                       25.76,
+      "Inertia":                    [0.618, 1.12, 0.618]
+  },
+
+  "Contact Material":
+  {
+      "Coefficient of Friction":    0.4,
+      "Coefficient of Restitution": 0.75,
+
+      "Properties": {
+          "Young Modulus":          1e7,
+          "Poisson Ratio":          0.3
+      },
+
+      "Coefficients": {
+          "Normal Stiffness":       2e5,
+          "Normal Damping":         40.0,
+          "Tangential Stiffness":   2e5,
+          "Tangential Damping":     20.0
+      }
+  }
+}

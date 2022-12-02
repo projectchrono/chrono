@@ -41,6 +41,9 @@ using namespace gui;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
+    // Cache current path to Chrono data files
+    auto data_path = GetChronoDataPath();
+
     // Create a Chrono::Engine physical system
     ChSystemNSC sys;
 
@@ -80,6 +83,9 @@ int main(int argc, char* argv[]) {
     // Log out all the names of the items inserted in the system:
     GetLog() << "SYSTEM ITEMS: \n";
     sys.ShowHierarchy(GetLog());
+
+    // Restore path to Chrono data files (modified by the Python importer)
+    SetChronoDataPath(data_path);
 
     for (auto body : sys.Get_bodylist()) {
         GetLog() << "item:" << typeid(body).name() << "\n";
@@ -140,12 +146,11 @@ int main(int argc, char* argv[]) {
     // POVray, or you can open an Irrlicht 3D realtime view and show
     // it, as in the following example code:
 
-
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
     vis->AttachSystem(&sys);
     vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("Collision visualization demo");
+    vis->SetWindowTitle("Solidworks import demo");
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();

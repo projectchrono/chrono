@@ -79,7 +79,7 @@ M113_Suspension::M113_Suspension(const std::string& name,
                                  int index,
                                  bool use_bushings,
                                  bool has_shock)
-    : ChLinearDamperRWAssembly(name, has_shock), m_side(side) {
+    : ChTranslationalDamperSuspension(name, has_shock), m_side(side) {
     // Instantiate the force callback for the shock (damper).
     m_shock_forceCB = chrono_types::make_shared<M113_ShockForce>(m_shock_c);
 

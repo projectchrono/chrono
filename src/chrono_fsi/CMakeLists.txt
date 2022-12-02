@@ -11,7 +11,7 @@ IF(NOT ENABLE_MODULE_FSI)
   return()
 ENDIF()
 
-message(STATUS "==== Chrono FSI module ====")
+message(STATUS "\n==== Chrono FSI module ====\n")
 
 # Return now if Eigen version < 3.3.6
 if(EIGEN3_VERSION VERSION_LESS "3.3.6")
@@ -155,14 +155,12 @@ set(ChronoEngine_FSI_MATH_FILES
 source_group(math FILES ${ChronoEngine_FSI_MATH_FILES})
 
 set(ChronoEngine_FSI_UTILS_FILES
-    utils/ChUtilsGeneratorBce.h
     utils/ChUtilsGeneratorFluid.h
     utils/ChUtilsPrintStruct.h
     utils/ChUtilsPrintSph.cuh
     utils/ChUtilsDevice.cuh
     utils/ChUtilsTypeConvert.h
 
-    utils/ChUtilsGeneratorBce.cpp
     utils/ChUtilsGeneratorFluid.cpp
     utils/ChUtilsPrintSph.cu
     utils/ChUtilsDevice.cu

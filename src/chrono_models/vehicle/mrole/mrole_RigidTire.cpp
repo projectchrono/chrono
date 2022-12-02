@@ -49,7 +49,7 @@ mrole_RigidTire::mrole_RigidTire(const std::string& name, bool use_mesh) : ChRig
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void mrole_RigidTire::CreateContactMaterial(ChContactMethod contact_method) {
-    MaterialInfo minfo;
+    ChContactMaterialData minfo;
     minfo.mu = 0.9f;
     minfo.cr = 0.1f;
     minfo.Y = 2e7f;

@@ -38,13 +38,12 @@ class ChApi ChNodeFEAbase : public virtual ChNodeBase {
     /// Reset to no speed and acceleration.
     virtual void SetNoSpeedNoAcceleration() = 0;
 
-    /// Set the 'fixed' state of the node.
-    /// If true, its current field value is not changed by solver.
+    /// Fix/release this node.
+    /// If fixed, its state variables are not changed by the solver.
     virtual void SetFixed(bool mev) = 0;
 
-    /// Get the 'fixed' state of the node.
-    /// If true, its current field value is not changed by solver.
-    virtual bool GetFixed() = 0;
+    /// Return true if the node is fixed (i.e., its state variables are not changed by the solver).
+    virtual bool IsFixed() const = 0;
 
     /// Sets the global index of the node
     virtual void SetIndex(unsigned int mindex) { g_index = mindex; }
@@ -55,11 +54,13 @@ class ChApi ChNodeFEAbase : public virtual ChNodeBase {
     double m_TotalMass;  ///< Nodal mass obtained from element masss matrix
 
   protected:
-    //
-    // DATA
-    //
-
     unsigned int g_index;  ///< global node index
+
+  private:
+    /// Initial setup.
+    virtual void SetupInitial(ChSystem* system) {}
+
+    friend class ChMesh;
 };
 
 /// @} fea_nodes

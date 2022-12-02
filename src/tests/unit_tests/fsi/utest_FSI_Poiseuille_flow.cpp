@@ -85,25 +85,24 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Size and position of the bottom and top walls
     auto initSpace0 = sysFSI.GetInitialSpacing();
-    ChVector<> sizeWall(bxDim / 2, byDim / 2, 2 * initSpace0);
-    ChVector<> posBottom(0, 0, -3 * initSpace0);
-    ChVector<> posTop(0, 0, bzDim + 1 * initSpace0);
+    ChVector<> size_XY(bxDim / 2, byDim / 2, 2 * initSpace0);
+    ChVector<> pos_zn(0, 0, -3 * initSpace0);
+    ChVector<> pos_zp(0, 0, bzDim + 1 * initSpace0);
 
     // Add a geometry to the body and set the collision model
-    chrono::utils::AddBoxGeometry(body.get(), mysurfmaterial, sizeWall, posBottom, QUNIT, true);
+    chrono::utils::AddBoxGeometry(body.get(), mysurfmaterial, size_XY, pos_zn, QUNIT, true);
     body->GetCollisionModel()->BuildModel();
     sysMBS.AddBody(body);
 
     // Add BCE particles to the bottom and top wall boundary
-    sysFSI.AddBoxBCE(body, posTop, QUNIT, sizeWall, 12);
-    sysFSI.AddBoxBCE(body, posBottom, QUNIT, sizeWall, 12);
+    sysFSI.AddContainerBCE(body, ChFrame<>(), ChVector<>(bxDim, byDim, bzDim), ChVector<int>(0, 0, 2));
 }
 
 // ===============================
 int main(int argc, char* argv[]) {
     // Create a physical system and a corresponding FSI system
     ChSystemSMC sysMBS;
-    ChSystemFsi sysFSI(sysMBS);
+    ChSystemFsi sysFSI(&sysMBS);
 
     // Initialize the parameters using an input JSON file
     std::string myJson = GetChronoDataFile("fsi/input_json/demo_FSI_Poiseuille_flow_Explicit.json");
@@ -140,14 +139,14 @@ int main(int argc, char* argv[]) {
         time += dT;
 
         // Copy data from device to host
-        auto posRad = sysFSI.GetParticlePosOrProperties();
-        auto vel = sysFSI.GetParticleVel();
+        auto pos = sysFSI.GetParticlePositions();
+        auto vel = sysFSI.GetParticleVelocities();
 
         // Calculate the relative error of the solution
         double error = 0.0;
         double abs_val = 0.0;
         for (int i = 0; i < numPart; i++) {
-            double pos_Z = posRad[i].z();
+            double pos_Z = pos[i].z();
             double vel_X = vel[i].x();
             double vel_X_ana = PoiseuilleAnalytical(pos_Z, bzDim, time + 0.5, sysFSI);
             error = error + pow(vel_X - vel_X_ana, 2);

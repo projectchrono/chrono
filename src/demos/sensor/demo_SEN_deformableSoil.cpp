@@ -199,8 +199,8 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
     wheel_body->AddVisualShape(trimesh_shape,ChFrame<>());
 
     auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
-    vis_mat->SetDiffuseColor({.3, .3, .3});
-    vis_mat->SetSpecularColor({.1f, .1f, .1f});
+    vis_mat->SetDiffuseColor({0.3f, 0.3f, 0.3f});
+    vis_mat->SetSpecularColor({0.1f, 0.1f, 0.1f});
     trimesh_shape->AddMaterial(vis_mat);
 }
 

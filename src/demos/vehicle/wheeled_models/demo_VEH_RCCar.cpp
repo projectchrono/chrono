@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
     // Create the terrain
     RigidTerrain terrain(my_rccar.GetSystem());
 
-    MaterialInfo minfo;
+    ChContactMaterialData minfo;
     minfo.mu = 0.9f;
     minfo.cr = 0.01f;
     minfo.Y = 2e7f;
@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
     vis->SetWindowTitle("RCCar Demo");
     vis->SetChaseCamera(trackPoint, 1.5, 0.05);
     vis->Initialize();
-    vis->AddTypicalLights();
+    vis->AddLightDirectional();
     vis->AddSkyBox();
     vis->AddLogo();
     vis->AttachVehicle(&my_rccar.GetVehicle());

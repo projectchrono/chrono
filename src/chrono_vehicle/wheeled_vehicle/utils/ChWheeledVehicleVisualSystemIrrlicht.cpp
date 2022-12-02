@@ -50,24 +50,24 @@ void ChWheeledVehicleVisualSystemIrrlicht::renderOtherStats(int left, int top) {
         int axle = driveline2->GetDrivenAxleIndexes()[0];
 
         torque = driveline2->GetSpindleTorque(axle, LEFT);
-        sprintf(msg, "Torque wheel L: %+.2f", torque);
-        renderLinGauge(std::string(msg), torque / 5000, false, left, top, 120, 15);
+        sprintf(msg, "T.axle 0 L: %+.2f", torque);
+        renderLinGauge(std::string(msg), torque / 5000, false, left, top, 170, 15);
 
         torque = driveline2->GetSpindleTorque(axle, RIGHT);
-        sprintf(msg, "Torque wheel R: %+.2f", torque);
-        renderLinGauge(std::string(msg), torque / 5000, false, left, top + 20, 120, 15);
+        sprintf(msg, "T.axle 0 R: %+.2f", torque);
+        renderLinGauge(std::string(msg), torque / 5000, false, left, top + 20, 170, 15);
     } else if (auto driveline4 = std::dynamic_pointer_cast<ChShaftsDriveline4WD>(m_wvehicle->GetDriveline())) {
         double torque;
         std::vector<int> axles = driveline4->GetDrivenAxleIndexes();
 
         for (int i = 0; i < 2; i++) {
             torque = driveline4->GetSpindleTorque(axles[i], LEFT);
-            sprintf(msg, "T. axle %1d wheel L: %+.2f", i, torque);
-            renderLinGauge(std::string(msg), torque / 5000, false, left, top + 20 * i, 120, 15);
+            sprintf(msg, "T.axle %1d L: %+.2f", i, torque);
+            renderLinGauge(std::string(msg), torque / 5000, false, left, top + 20 * i, 170, 15);
 
             torque = driveline4->GetSpindleTorque(axles[i], RIGHT);
-            sprintf(msg, "T. axle %1d wheel R: %+.2f", i, torque);
-            renderLinGauge(std::string(msg), torque / 5000, false, left + 125, top + 20 * i, 120, 15);
+            sprintf(msg, "T.axle %1d R: %+.2f", i, torque);
+            renderLinGauge(std::string(msg), torque / 5000, false, left + 190, top + 20 * i, 170, 15);
         }
     } else if (auto driveline8 = std::dynamic_pointer_cast<ChShaftsDriveline8WD>(m_wvehicle->GetDriveline())) {
         double torque;
@@ -75,12 +75,12 @@ void ChWheeledVehicleVisualSystemIrrlicht::renderOtherStats(int left, int top) {
 
         for (int i = 0; i < 4; i++) {
             torque = driveline8->GetSpindleTorque(axles[i], LEFT);
-            sprintf(msg, "T. axle %1d wheel L: %+.2f", i, torque);
-            renderLinGauge(std::string(msg), torque / 5000, false, left, top + 20 * i, 120, 15);
+            sprintf(msg, "T.axle %1d L: %+.2f", i, torque);
+            renderLinGauge(std::string(msg), torque / 5000, false, left, top + 20 * i, 170, 15);
 
             torque = driveline8->GetSpindleTorque(axles[i], RIGHT);
-            sprintf(msg, "T. axle %1d wheel R: %+.2f", i, torque);
-            renderLinGauge(std::string(msg), torque / 5000, false, left + 125, top + 20 * i, 120, 15);
+            sprintf(msg, "T.axle %1d R: %+.2f", i, torque);
+            renderLinGauge(std::string(msg), torque / 5000, false, left + 190, top + 20 * i, 170, 15);
         }
     }
 }

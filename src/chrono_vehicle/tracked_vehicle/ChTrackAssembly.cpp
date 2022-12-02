@@ -13,8 +13,8 @@
 // =============================================================================
 //
 // Base class for a track assembly which consists of one sprocket, one idler,
-// a collection of road wheel assemblies (suspensions), a collection of rollers,
-// and a collection of track shoes.
+// a collection of track suspensions, a collection of rollers, and a collection
+// of track shoes.
 //
 // The reference frame for a vehicle follows the ISO standard: Z-axis up, X-axis
 // pointing forward, and Y-axis towards the left of the vehicle.
@@ -65,15 +65,12 @@ void ChTrackAssembly::GetTrackShoeStates(BodyStates& states) const {
 // -----------------------------------------------------------------------------
 // Initialize this track assembly subsystem.
 // -----------------------------------------------------------------------------
-void ChTrackAssembly::Initialize(std::shared_ptr<ChChassis> chassis,
-                                 const ChVector<>& location,
-                                 bool create_shoes) {
+void ChTrackAssembly::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector<>& location, bool create_shoes) {
     m_parent = chassis;
     m_rel_loc = location;
 
     // Initialize the sprocket, idler, and brake
     GetSprocket()->Initialize(chassis, location + GetSprocketLocation(), this);
-    m_idler->Initialize(chassis, location + GetIdlerLocation(), this);
     m_brake->Initialize(chassis, GetSprocket());
 
     // Initialize the suspension subsystems
@@ -81,9 +78,12 @@ void ChTrackAssembly::Initialize(std::shared_ptr<ChChassis> chassis,
         m_suspensions[i]->Initialize(chassis, location + GetRoadWhelAssemblyLocation(static_cast<int>(i)), this);
     }
 
-    // Initialize the roller subsystems
+    // Initialize the idler subsystem (after supspension, for idler templates that attach to a suspension arm)
+    m_idler->Initialize(chassis, location + GetIdlerLocation(), this);
+
+    // Initialize the roller subsystems (always attached to chassis body)
     for (size_t i = 0; i < m_rollers.size(); ++i) {
-        m_rollers[i]->Initialize(chassis, location + GetRollerLocation(static_cast<int>(i)), this);
+        m_rollers[i]->Initialize(chassis, chassis->GetBody(), location + GetRollerLocation(static_cast<int>(i)), this);
     }
 
     if (!create_shoes) {
@@ -91,12 +91,11 @@ void ChTrackAssembly::Initialize(std::shared_ptr<ChChassis> chassis,
         return;
     }
 
-    // Assemble the track. This positions all track shoes around the sprocket,
-    // road wheels, and idler. (Implemented by derived classes)
+    // Assemble the track. This positions all track shoes around the sprocket, road wheels, and idler
+    // (implemented by derived classes)
     bool ccw = Assemble(chassis->GetBody());
 
-    // Loop over all track shoes and allow them to connect themselves to their
-    // neighbor.
+    // Loop over all track shoes and allow them to connect themselves to their neighbor
     size_t num_shoes = GetNumTrackShoes();
     std::shared_ptr<ChTrackShoe> next;
     for (size_t i = 0; i < num_shoes; ++i) {
@@ -151,7 +150,7 @@ void ChTrackAssembly::UpdateInertiaProperties() {
 }
 
 // -----------------------------------------------------------------------------
-ChRoadWheelAssembly::ForceTorque ChTrackAssembly::ReportSuspensionForce(size_t id) const {
+ChTrackSuspension::ForceTorque ChTrackAssembly::ReportSuspensionForce(size_t id) const {
     return m_suspensions[id]->ReportSuspensionForce();
 }
 
@@ -170,7 +169,11 @@ void ChTrackAssembly::SetIdlerVisualizationType(VisualizationType vis) {
     GetIdler()->SetVisualizationType(vis);
 }
 
-void ChTrackAssembly::SetRoadWheelAssemblyVisualizationType(VisualizationType vis) {
+void ChTrackAssembly::SetIdlerWheelVisualizationType(VisualizationType vis) {
+    GetIdler()->GetIdlerWheel()->SetVisualizationType(vis);
+}
+
+void ChTrackAssembly::SetSuspensionVisualizationType(VisualizationType vis) {
     for (size_t i = 0; i < m_suspensions.size(); ++i) {
         m_suspensions[i]->SetVisualizationType(vis);
     }

@@ -24,6 +24,11 @@
 //
 // =============================================================================
 
+
+//// RADU TODO
+//// Fix scattering of data across all terrain nodes!!!
+
+
 #include <algorithm>
 #include <cmath>
 #include <set>
@@ -539,15 +544,15 @@ void ChVehicleCosimTerrainNodeGranularMPI::ScatterInitData(unsigned int i) {
     auto root = m_system->GetMasterRank();
     auto comm = m_system->GetCommunicator();
 
-    double tire_info[2];
+    double shape_dims[3];
     if (m_rank == TERRAIN_NODE_RANK) {
-        tire_info[0] = m_tire_radius[i];
-        tire_info[1] = m_tire_width[i];
+        shape_dims[0] = m_shape_dims[i].x();
+        shape_dims[1] = m_shape_dims[i].y();
+        shape_dims[2] = m_shape_dims[i].z();
     }
-    MPI_Bcast(tire_info, 2, MPI_DOUBLE, root, comm);
+    MPI_Bcast(shape_dims, 2, MPI_DOUBLE, root, comm);
     if (m_rank != TERRAIN_NODE_RANK) {
-        m_tire_radius[i] = tire_info[0];
-        m_tire_width[i] = tire_info[1];
+        m_shape_dims[i] = ChVector<>(shape_dims[0], shape_dims[1], shape_dims[2]);
     }
 
     unsigned int surf_props[3];
@@ -643,17 +648,17 @@ void ChVehicleCosimTerrainNodeGranularMPI::ScatterInitData(unsigned int i) {
 }
 
 // Body position must be known when adding the body to a Chrono::Distributed system, so that the body is assigned to the
-// appropriate rank.  However, in the co-simulation framework, the wheel/spindle position is not known until the first
+// appropriate rank.  However, in the co-simulation framework, the body position is not known until the first
 // synchronization.  We defer proxy body creation until the first synchronization time.
 
-void ChVehicleCosimTerrainNodeGranularMPI::CreateMeshProxies(unsigned int i) {
+void ChVehicleCosimTerrainNodeGranularMPI::CreateMeshProxy(unsigned int i) {
     ScatterInitData(i);
 
     m_tire_data[i].m_gids.resize(m_mesh_data[i].nt);
     m_tire_data[i].m_start_tri = (i == 0) ? 0 : m_tire_data[i - 1].m_start_tri + m_mesh_data[i].nt;
 }
 
-void ChVehicleCosimTerrainNodeGranularMPI::CreateWheelProxy(unsigned int i) {
+void ChVehicleCosimTerrainNodeGranularMPI::CreateRigidProxy(unsigned int i) {
     ScatterInitData(i);
 
     m_tire_data[i].m_gids.resize(m_mesh_data[i].nt);
@@ -672,7 +677,7 @@ void ChVehicleCosimTerrainNodeGranularMPI::CreateMeshProxiesInternal(unsigned in
     //// RADU TODO:  better approximation of mass / inertia?
     double mass_p = m_load_mass[i] / m_mesh_data[i].nt;
     ChVector<> inertia_p = 1e-3 * mass_p * ChVector<>(0.1, 0.1, 0.1);
-    auto material_tire = m_mat_props[i].CreateMaterial(m_method);
+    auto material = m_mat_props[i].CreateMaterial(m_method);
 
     for (unsigned int it = 0; it < m_mesh_data[i].nt; it++) {
         unsigned int body_id = m_tire_data[i].m_start_tri + it;
@@ -695,7 +700,7 @@ void ChVehicleCosimTerrainNodeGranularMPI::CreateMeshProxiesInternal(unsigned in
         // Create contact shape.
         std::string name = "tri_" + std::to_string(body_id);
         body->GetCollisionModel()->ClearModel();
-        utils::AddTriangleGeometry(body.get(), material_tire, pA - pos, pB - pos, pC - pos, name);
+        utils::AddTriangleGeometry(body.get(), material, pA - pos, pB - pos, pC - pos, name);
         body->GetCollisionModel()->SetFamily(1);
         body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
         body->GetCollisionModel()->BuildModel();
@@ -713,7 +718,7 @@ void ChVehicleCosimTerrainNodeGranularMPI::CreateWheelProxyInternal(unsigned int
     //// RADU TODO:  better approximation of mass / inertia?
     double mass_p = m_load_mass[i] / m_mesh_data[i].nt;
     ChVector<> inertia_p = 1e-3 * mass_p * ChVector<>(0.1, 0.1, 0.1);
-    auto material_tire = m_mat_props[i].CreateMaterial(m_method);
+    auto material = m_mat_props[i].CreateMaterial(m_method);
 
     for (unsigned int it = 0; it < m_mesh_data[i].nt; it++) {
         unsigned int body_id = m_tire_data[i].m_start_tri + it;
@@ -725,19 +730,19 @@ void ChVehicleCosimTerrainNodeGranularMPI::CreateWheelProxyInternal(unsigned int
         body->SetBodyFixed(m_fixed_proxies);
 
         // Determine initial position.
-        // Use current information in m_spindle_state.
+        // Use current information in m_rigid_state.
         const auto& tri = m_mesh_data[i].idx_verts[it];
         const auto& pA = m_mesh_data[i].verts[tri[0]];
         const auto& pB = m_mesh_data[i].verts[tri[1]];
         const auto& pC = m_mesh_data[i].verts[tri[2]];
         ChVector<> pos = (pA + pB + pC) / 3;
 
-        body->SetPos(m_spindle_state[i].pos + pos);
+        body->SetPos(m_rigid_state[i].pos + pos);
 
         // Create contact shape.
         std::string name = "tri_" + std::to_string(body_id);
         body->GetCollisionModel()->ClearModel();
-        utils::AddTriangleGeometry(body.get(), material_tire, pA - pos, pB - pos, pC - pos, name);
+        utils::AddTriangleGeometry(body.get(), material, pA - pos, pB - pos, pC - pos, name);
         body->GetCollisionModel()->SetFamily(1);
         body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
         body->GetCollisionModel()->BuildModel();
@@ -753,14 +758,14 @@ void ChVehicleCosimTerrainNodeGranularMPI::CreateWheelProxyInternal(unsigned int
 
 // -----------------------------------------------------------------------------
 
-// Set position, orientation, and velocity of proxy bodies based on tire mesh faces.
+// Set position, orientation, and velocity of proxy bodies based on mesh faces.
 // The proxy body is effectively reconstructed at each synchronization time:
 //    - position at the center of mass of the three vertices
 //    - orientation: identity
 //    - linear and angular velocity: consistent with vertex velocities
 //    - contact shape: redefined to match vertex locations
-void ChVehicleCosimTerrainNodeGranularMPI::UpdateMeshProxies(unsigned int i, MeshState& mesh_state) {
-    auto& mesh_data = m_mesh_data[i];  // mesh data for the i-th tire
+void ChVehicleCosimTerrainNodeGranularMPI::UpdateMeshProxy(unsigned int i, MeshState& mesh_state) {
+    auto& mesh_data = m_mesh_data[i];  // mesh data for the i-th mesh
     auto& tire_data = m_tire_data[i];  // additional data for the i-th tire
 
     // 1. Scatter current tire mesh state from the main terrain node to intra-communicator.
@@ -841,8 +846,8 @@ void ChVehicleCosimTerrainNodeGranularMPI::UpdateMeshProxies(unsigned int i, Mes
     m_system->SetTriangleShapes(tire_data.m_gids, shape_idx, shapes);
 }
 
-// Set state of wheel proxy body.
-void ChVehicleCosimTerrainNodeGranularMPI::UpdateWheelProxy(unsigned int i, BodyState& spindle_state) {
+// Set state of proxy rigid body.
+void ChVehicleCosimTerrainNodeGranularMPI::UpdateRigidProxy(unsigned int i, BodyState& rigid_state) {
     auto& mesh_data = m_mesh_data[i];  // mesh data for the i-th tire
     auto& tire_data = m_tire_data[i];  // additional data for the i-th tire
 
@@ -850,26 +855,26 @@ void ChVehicleCosimTerrainNodeGranularMPI::UpdateWheelProxy(unsigned int i, Body
 
     double state_data[13];
     if (m_rank == TERRAIN_NODE_RANK) {
-        state_data[0] = spindle_state.pos.x();
-        state_data[1] = spindle_state.pos.y();
-        state_data[2] = spindle_state.pos.z();
-        state_data[3] = spindle_state.rot.e0();
-        state_data[4] = spindle_state.rot.e1();
-        state_data[5] = spindle_state.rot.e2();
-        state_data[6] = spindle_state.rot.e3();
-        state_data[7] = spindle_state.lin_vel.x();
-        state_data[8] = spindle_state.lin_vel.y();
-        state_data[9] = spindle_state.lin_vel.z();
-        state_data[10] = spindle_state.ang_vel.x();
-        state_data[11] = spindle_state.ang_vel.y();
-        state_data[12] = spindle_state.ang_vel.z();
+        state_data[0] = rigid_state.pos.x();
+        state_data[1] = rigid_state.pos.y();
+        state_data[2] = rigid_state.pos.z();
+        state_data[3] = rigid_state.rot.e0();
+        state_data[4] = rigid_state.rot.e1();
+        state_data[5] = rigid_state.rot.e2();
+        state_data[6] = rigid_state.rot.e3();
+        state_data[7] = rigid_state.lin_vel.x();
+        state_data[8] = rigid_state.lin_vel.y();
+        state_data[9] = rigid_state.lin_vel.z();
+        state_data[10] = rigid_state.ang_vel.x();
+        state_data[11] = rigid_state.ang_vel.y();
+        state_data[12] = rigid_state.ang_vel.z();
     }
     MPI_Bcast(state_data, 13, MPI_DOUBLE, m_system->GetMasterRank(), m_system->GetCommunicator());
     if (m_rank != TERRAIN_NODE_RANK) {
-        spindle_state.pos = ChVector<>(state_data[0], state_data[1], state_data[2]);
-        spindle_state.rot = ChQuaternion<>(state_data[3], state_data[4], state_data[5], state_data[6]);
-        spindle_state.lin_vel = ChVector<>(state_data[7], state_data[8], state_data[9]);
-        spindle_state.ang_vel = ChVector<>(state_data[10], state_data[11], state_data[12]);
+        rigid_state.pos = ChVector<>(state_data[0], state_data[1], state_data[2]);
+        rigid_state.rot = ChQuaternion<>(state_data[3], state_data[4], state_data[5], state_data[6]);
+        rigid_state.lin_vel = ChVector<>(state_data[7], state_data[8], state_data[9]);
+        rigid_state.ang_vel = ChVector<>(state_data[10], state_data[11], state_data[12]);
     }
 
     // 2. Create proxies
@@ -879,10 +884,10 @@ void ChVehicleCosimTerrainNodeGranularMPI::UpdateWheelProxy(unsigned int i, Body
         m_proxies_constructed = true;
     }
 
-    // 2. Use information in spindle_state to update proxy states (apply rigid body motion).
+    // 2. Use information in rigid_state to update proxy states (apply rigid body motion).
 
     std::vector<ChSystemDistributed::BodyState> states(mesh_data.nt);
-    ChMatrix33<> spindle_rot(spindle_state.rot);
+    ChMatrix33<> rigid_rot(rigid_state.rot);
 
     for (unsigned int it = 0; it < mesh_data.nt; it++) {
         // Associated mesh triangle
@@ -893,9 +898,9 @@ void ChVehicleCosimTerrainNodeGranularMPI::UpdateWheelProxy(unsigned int i, Body
         const auto& pC = mesh_data.verts[tri[2]];
         ChVector<> pos = (pA + pB + pC) / 3;
 
-        states[it].pos = spindle_state.pos + spindle_rot * pos;
-        states[it].rot = spindle_state.rot;
-        states[it].pos_dt = spindle_state.lin_vel + Vcross(spindle_state.ang_vel, pos);
+        states[it].pos = rigid_state.pos + rigid_rot * pos;
+        states[it].rot = rigid_state.rot;
+        states[it].pos_dt = rigid_state.lin_vel + Vcross(rigid_state.ang_vel, pos);
         states[it].rot_dt = QNULL;  //// TODO: angular velocity
     }
 
@@ -933,8 +938,8 @@ ChVector<> ChVehicleCosimTerrainNodeGranularMPI::CalcBarycentricCoords(const ChV
 // Collect contact forces on the (face) proxy bodies that are in contact.
 // Load mesh vertex forces and corresponding indices.
 // Note: Only the main terrain node needs to load output.
-void ChVehicleCosimTerrainNodeGranularMPI::GetForcesMeshProxies(unsigned int i, MeshContact& mesh_contact) {
-    auto& mesh_data = m_mesh_data[i];  // mesh data for the i-th tire
+void ChVehicleCosimTerrainNodeGranularMPI::GetForceMeshProxy(unsigned int i, MeshContact& mesh_contact) {
+    auto& mesh_data = m_mesh_data[i];  // mesh data for the i-th mesh
     auto& tire_data = m_tire_data[i];  // additional data for the i-th tire
 
     // Gather contact forces on proxy bodies on the terrain master rank.
@@ -989,10 +994,10 @@ void ChVehicleCosimTerrainNodeGranularMPI::GetForcesMeshProxies(unsigned int i, 
     }
 }
 
-// Collect resultant contact force and torque on wheel proxy body.
+// Collect resultant contact force and torque on rigid proxy body.
 // Note: Only the main terrain node needs to load output.
-void ChVehicleCosimTerrainNodeGranularMPI::GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) {
-    auto& mesh_data = m_mesh_data[i];  // mesh data for the i-th tire
+void ChVehicleCosimTerrainNodeGranularMPI::GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) {
+    auto& mesh_data = m_mesh_data[i];  // mesh data for the i-th rigid
     auto& tire_data = m_tire_data[i];  // additional data for the i-th tire
 
     // Gather contact forces on proxy bodies on the terrain master rank.
@@ -1001,13 +1006,13 @@ void ChVehicleCosimTerrainNodeGranularMPI::GetForceWheelProxy(unsigned int i, Te
     if (m_rank != TERRAIN_NODE_RANK)
         return;
 
-    // Current spindle body position
-    const auto& spindle_pos = m_spindle_state[i].pos;
+    // Current body position
+    const auto& rigid_pos = m_rigid_state[i].pos;
 
-    // Loop over all triangles that experienced contact and accumulate forces on spindle.
-    wheel_contact.point = ChVector<>(0, 0, 0);
-    wheel_contact.force = ChVector<>(0, 0, 0);
-    wheel_contact.moment = ChVector<>(0, 0, 0);
+    // Loop over all triangles that experienced contact and accumulate forces on body.
+    rigid_contact.point = ChVector<>(0, 0, 0);
+    rigid_contact.force = ChVector<>(0, 0, 0);
+    rigid_contact.moment = ChVector<>(0, 0, 0);
 
     for (const auto& force_pair : force_pairs) {
         auto gid = force_pair.first;                // global ID of the proxy body
@@ -1018,10 +1023,10 @@ void ChVehicleCosimTerrainNodeGranularMPI::GetForceWheelProxy(unsigned int i, Te
         const auto& pA = mesh_data.verts[tri[0]];
         const auto& pB = mesh_data.verts[tri[1]];
         const auto& pC = mesh_data.verts[tri[2]];
-        ChVector<> pos = (pA + pB + pC) / 3;  // local position of triangle on spindle body
+        ChVector<> pos = (pA + pB + pC) / 3;  // local position of triangle on body
 
-        wheel_contact.force += force;
-        wheel_contact.moment += Vcross(Vsub(pos, spindle_pos), force);
+        rigid_contact.force += force;
+        rigid_contact.moment += Vcross(Vsub(pos, rigid_pos), force);
     }
 }
 

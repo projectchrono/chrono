@@ -46,30 +46,29 @@ const double M113_SprocketBand::m_gear_tip_width = 0.0128 * 1.04;
 const double M113_SprocketBand::m_gear_tooth_depth = 0.0387 * 1.04;
 const double M113_SprocketBand::m_gear_arc_radius = 0.0542 * 1.04;
 const double M113_SprocketBand::m_gear_RA = 0.2307 * 1.04;
+const double M113_SprocketBand::m_gear_RT = 0.22;
 
 const double M113_SprocketBand::m_lateral_backlash = 0.02;
 
-const std::string M113_SprocketBandLeft::m_meshFile = "M113/meshes/Sprocket2_L.obj";
-const std::string M113_SprocketBandRight::m_meshFile = "M113/meshes/Sprocket2_R.obj";
+const std::string M113_SprocketBandLeft::m_meshFile = "M113/meshes/SprocketBand_L.obj";
+const std::string M113_SprocketBandRight::m_meshFile = "M113/meshes/SprocketBand_R.obj";
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 M113_SprocketBand::M113_SprocketBand(const std::string& name) : ChSprocketBand(name) {}
 
 void M113_SprocketBand::CreateContactMaterial(ChContactMethod contact_method) {
-    MaterialInfo minfo;
+    ChContactMaterialData minfo;
     minfo.mu = 0.4f;
     minfo.cr = 0.75f;
     minfo.Y = 1e9f;
     m_material = minfo.CreateMaterial(contact_method);
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void M113_SprocketBand::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        ////auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetMeshFile(), false, false);
-        auto trimesh = CreateVisualizationMesh(0.15, 0.03, 0.02);
+        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetMeshFile(), false, false);
+        ////auto trimesh = CreateVisualizationMesh(0.15, 0.03, 0.02);
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(GetMeshFile()).stem());

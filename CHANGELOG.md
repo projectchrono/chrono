@@ -5,6 +5,8 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [Closed-loop vehicle paths](#fixed-closed-loop-vehicle-path)
+  - [Miscellaneous Chrono::Vehicle extensions](#added-miscellaneous-chronovehicle-extensions)
   - [Chrono:Fsi API changes](#changed-chronofsi-api-changes)
   - [User-defined SMC contact force calculation](#added-user-defined-smc-contact-force-calculation)
   - [Redesigned run-time visualization system](#changed-redesigned-run-time-visualization-system)
@@ -68,6 +70,42 @@ Change Log
 
 ## Unreleased (development branch)
 
+#### [Fixed] Closed-loop vehicle paths
+
+The treatment of closed-loop Bezier curves (used for path-following vehicle lateral controllers) and the associated curve tracker was improved and fixed.  With this change, the flag indicating whether a path is open or closed is set in the constructor of `ChBezierCurve` and encapsulating objects (`ChBezierCurveTracker` and the different path-following vehicle driver models) query the underlying path.
+
+If a Bezier curve is declared as closed, it is internally modified to add a new point as needed (coincident with the first one). If no Bezier control points are specified, the Bezier curve corresponding to the equivalent piece-wise cubic spline is constructed using C1 continuity conditions at the closing point.
+
+### [Added] Miscellaneous Chrono::Vehicle extensions
+
+**Wheeled vehicles**
+
+- Added option to specify camber and toe angles during suspension subsystem construction. 
+
+  A derived suspension class can override the functions `getCamberAngle` and `getToeAngle` to provide these angles expressed in radians). For a suspension subsystem specified through a JSON file, set the 'Camber Angle (deg)' and 'Toe Angle (deg)' values expressed in degrees. Note that all current Chrono::Vehicle models use default values of zero camber and toe angles.
+
+ - Modified the JSON schema for various vehicle subsystem specification so that all angles that are expected to be provided in radians include the string "(deg)" in the corresponding JSON key name. 
+
+   **Note**: this change requires users to update their JSON specification files! 
+
+- Added option to specify preloads for tracked vehicle suspensions, as well as for the tensioner in `ChTranslationalIdler`.
+
+**Tracked vehicles**
+
+- Renamed the base class for a track vehicle suspension `ChTrackSuspension`. Two different suspension templates are provided: `ChTranslationalDamperSuspension` uses a translational damper, while `ChRotationalDamperSuspension` uses a rotational damper.
+
+- Use a single set of classes to define all tracked vehicle wheels (road-wheels, idler wheels, and rollers). Two types of track wheels are derived from the base class `ChTrackWheel`: the first one, `ChDoubleTrackWheel` assumes that track shoes have a central guiding pin, while the second one `ChSingleTrackWheel` works in conjunction with track shoes with lateral guiding pins. Track wheels are used as members of the `ChTrackSuspension` and `ChIdler` base classes. 
+
+  The `ChRoller` class was obsoleted since a roller can be modeled with one of the available track wheels.
+
+- Added a new type of idler mechanism, `ChDistanceIdler` which is modeled with a connector arm pinned to the chassis. The idler wheel is attached to the connector arm with a revolute joint. A translational actuator dictates the relative position of the connector arm relative to the chassis, specified by the length of the actuator. 
+
+  The previous type of idler template is now named `ChTranslationalIdler`.
+
+- Added option to specify preloads for tracked vehicle suspensions, as well as for the tensioner in `ChTranslationalIdler`.
+
+- Add alternative model for a double-pin track shoe which uses a single body to model the connectors between shoes. For track assemblies that use kinematic joints, this model provides the same track kinematics and dynamics with fewer bodies and joints and without additional complications due to redundant constraints. The previous model, using two distinct connector bodies between two consecutive shoes, is appropriate for the case where kinematic joints are replaced with bushings. The double-pin track shoe topology is specified during construction, using the enum `DoublePinTrackShoeType ` which can be either `TWO_CONNECTORS` or `ONE_CONNECTOR`.
+
 ### [Changed] Chrono::FSI API changes
 
 The public API of Chrono::FSI was further refined to better encapsulate and hide the underlying CUDA implementation from the user.  
@@ -116,7 +154,7 @@ The entire mechanism for defining visualization models, shapes, and materials, a
 - A visualization model (`ChVisualModel`) is an aggregate of (pointers to) shapes and a transform which specifies the shape position relative to the model reference frame. Visualization shapes in a model are maintained in a vector of `ShapeInstance` (which is simply a typedef for a pair containing a shared pointer to a `ChVisualShape` and a `ChFrame`). Note that, currently a visualization model instance cannot be placed inside another visualization model, but that may be added in the future.
 - A visualization model instance (`ChVisualModelInstance`) is a reference to a visualization model with an associated physics item.  A physics item may have an associated visualization model instance.  
 
-`ChVisualSystem` defines a base class for possible concrete run-time visualization systems and imposes minimal common functionality. A visual system is attached to a ChSystem using `ChSystem::SetVisualSystem`. The Chrono physics system will then trigger automatic updates to the visualization system as needed, depending on the particular type of analysis being conducted.
+`ChVisualSystem` defines a base class for possible concrete run-time visualization systems and imposes minimal common functionality. A ChSystem is attached to a visual system using `ChVisualSystem::AttachSystem`. The Chrono physics system will then trigger automatic updates to the visualization system as needed, depending on the particular type of analysis being conducted. The visualization system is set up in such a way that derived classes may allow simultaneous rendering of multiple Chrono systems; currently only ChVisualSystemOpenGL supports this feature.
 
 **Defining visualization models**
 
@@ -151,19 +189,19 @@ For convenience, several shortcuts are provided:
 **Defining a visualization system**
 
 While specification of visualization assets (materials, shapes, and models) must now be done as described above for any Chrono run-time visualization system, the Chrono API does not impose how a particular rendering engine should interpret, parse, and render the visual representation of a Chrono system.  
-The suggested mechanism is to define a concrete visualization system (derived from `ChVisualSystem`) and attach it to the Chrono system. Currently, only an Irrlicht-based visualization system is provided through `ChVisualSystemIrrlicht`. This object replaces the now obsolete ChIrrApp. 
+The suggested mechanism is to define a concrete visualization system (derived from `ChVisualSystem`) and attach it to the Chrono system. Currently, an Irrlicht-based and an OpenGL-based visualization systems are provided through `ChVisualSystemIrrlicht` and `ChVisualSystemOpenGL`, respectively. These object replace the now obsolete ChIrrApp and ChOpenGLWindow. 
 
 A typical sequence for creating and attaching an Irrlicht-based visualization system to a Chrono simulation is illustrated below:
 ```cpp
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    sys.SetVisualSystem(vis);
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("Chrono::Irrlicht visualization");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(1, 2, 3));
-    vis->AddTypicalLights();
+    ChVisualSystemIrrlicht vis;
+    vis.SetWindowSize(800, 600);
+    vis.SetWindowTitle("Chrono::Irrlicht visualization");
+    vis.Initialize();
+    vis.AddLogo();
+    vis.AddSkyBox();
+    vis.AddCamera(ChVector<>(1, 2, 3));
+    vis.AddTypicalLights();
+    vis.AttachSystem(&sys);
 ```
 
 Notes:
@@ -176,22 +214,33 @@ Additional rendering options can be enabled with calls to `Enable***` methods wh
 
 A typical simulation loop with Irrlicht-based run-time visualization has the form:
 ```cpp
-    while (vis->Run()) {
-        vis->BeginScene();
-        vis->DrawAll();
+    while (vis.Run()) {
+        vis.BeginScene();
+        vis.Render();
         // make additional Irrlicht-based rendering calls, for example to display a grid:
-        irrlicht::tools::drawGrid(vis->GetVideoDriver(), 0.5, 0.5, 12, 12,
+        irrlicht::tools::drawGrid(vis, 0.5, 0.5, 12, 12,
                                   ChCoordsys<>(ChVector<>(0, -0.5, 0), Q_from_AngX(CH_C_PI_2)),
-                                  irr::video::SColor(50, 80, 110, 110), true);
-        vis->EndScene();
+                                  ChColor(80, 110, 110), true);
+        vis.EndScene();
         sys.DoStepDynamics(step_size);
     }
 ```
 
-
 The Irrlicht visualization system also provides a GUI (displayed using the `i` key during simulation) which allows changing rendering options at run-time.
 
-See the various Chrono demos (in `src/demos/irrlicht/`) for different ways of using the new visualization system mechanism in Chrono.  Note that the Chrono::Vehicle Irrlicht-based visualization systems (`ChWheeledVehicleVisualSystemIrrlicht` and `ChTrackedVehicleVisualSystemIrrlicht`) use a correspondingly similar mechanism for their definition and usage in a vehicle  simulation loop. See demos under `src/demos/vehicle/`. 
+See the various Chrono demos (in `src/demos/irrlicht/`) for different ways of using the new visualization system mechanism in Chrono.
+
+The OpenGL-based visualization system can be used effectively in the same way as ChVisualSystemIrrlicht.
+
+Finally, note that all functions in the public API were changed to use only Chrono data types. In other words, user code need not use types from the Irrlicht or OpenGL namespaces.
+
+**Vehicle-specific visualization system**
+
+While a Chrono::Vehicle simulation can be rendered like any other Chrono system simulation (using either `ChVisualSystemIrrlicht` or `ChVisualSystemOpenGL`), customized derived classes are provided for Irrlicht-based rendering.  These classes provide additional rendering options specific to vehicle systems, including vehicle state information overlay text.  Use `ChWheeledVehicleVisualSystemIrrlicht` for wheeld vehicles and `ChTrackedVehicleVisualSystemIrrlicht` for tracked vehicles.
+
+To enable the vehicle-specific features, attach the vehicle system to the visualization system, using `ChVehicleVisualSystem::AttachVehicle`.
+
+See demos under `src/demos/vehicle/`. 
 
 ### [Changed] Vehicle inertia properties
 
@@ -1027,7 +1076,7 @@ The necessary data includes the SCM tangential force parameters, Mohr cohesion (
 
 The Marder ("marten" in German) is a tracked infantry fighting vehicle used by the German Bundeswehr since 1969. It has a running gear with 12 road wheels, sprocket, idler and 3 support rollers. The first two and the last two road wheels on every side are damped by telescopic dampers. It is driven by a 444 kW Diesel engine, torque converter with lockup and 4 gear automatic gearbox. It carries up to nine soldiers (commander, gunner, driver and six infantrymen).
 
-The Chrono::Vehicle model is based only on public data available online and information found in literature. Although the original vehicle emplys double-pin tracks, the current Chrono model only implements a single-pin track.
+The Chrono::Vehicle model is based only on public data available online and information found in literature. Although the original vehicle employs double-pin tracks, the current Chrono model only implements a single-pin track.
 
 ### [Changed] Support for Z up camera in Chrono::Irrlicht
 

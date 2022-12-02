@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
     // local frame coordinate.
     ChVector<> mvect1(2, 3, 4);
 
-    // Define a vector representing the TRASLATION of the frame
+    // Define a vector representing the TRANSLATION of the frame
     // respect to absolute (world) coordinates.
     ChVector<> vtraslA(5, 6, 7);
 
@@ -69,17 +69,17 @@ int main(int argc, char* argv[]) {
     // the coordinates of mvect1 in absolute coordinates.
     // This can be achieved in many ways. Let's see them.
 
-    // TRASFORM USING ROTATION MATRIX AND LINEAR ALGEBRA
+    // TRANSFORM USING ROTATION MATRIX AND LINEAR ALGEBRA
     //
     mvect2 = vtraslA + mrotA * mvect1;  // like:  v2 = t + [A]*v1
     GetLog() << mvect2 << " ..using linear algebra, \n";
 
-    // TRASFORM USING QUATERNION ROTATION
+    // TRANSFORM USING QUATERNION ROTATION
 
     mvect2 = vtraslA + qrotA.Rotate(mvect1);
     GetLog() << mvect2 << " ..using quaternion rotation, \n";
 
-    // TRASFORM USING THE ChTransform STATIC METHODS
+    // TRANSFORM USING THE ChTransform STATIC METHODS
 
     mvect2 = ChTransform<>::TransformLocalToParent(mvect1, vtraslA, mrotA);
     GetLog() << mvect2 << " ..using the ChTransform- vect and rot.matrix, \n";
@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
     mvect2 = ChTransform<>::TransformLocalToParent(mvect1, vtraslA, qrotA);
     GetLog() << mvect2 << " ..using the ChTransform- vect and quat, \n";
 
-    // TRASFORM USING A ChCoordys OBJECT
+    // TRANSFORM USING A ChCoordys OBJECT
 
     mvect2 = csysA.TransformLocalToParent(mvect1);
     GetLog() << mvect2 << " ..using a ChChCoordsys<> object, \n";
@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
     mvect2 = csysA * mvect1;
     GetLog() << mvect2 << " ..using a ChChCoordsys<> '*' operator, \n";
 
-    // TRASFORM USING A ChFrame OBJECT
+    // TRANSFORM USING A ChFrame OBJECT
 
     ChFrame<> mframeA(vtraslA, qrotA);  // or ChFrame<> mframeA(csysA);
 
@@ -179,19 +179,19 @@ int main(int argc, char* argv[]) {
     // ways to accomplish this.
     //
 
-    // TRASFORM USING ROTATION MATRIX AND LINEAR ALGEBRA
+    // TRANSFORM USING ROTATION MATRIX AND LINEAR ALGEBRA
     //
 
     GetLog() << mvect1 << " ..mvect1 \n";
     mvect1 = mrotA.transpose() * (mvect2 - vtraslA);  // like:  v1 = [A]'*(v2-t)
     GetLog() << mvect1 << " ..inv, using linear algebra, \n";
 
-    // TRASFORM USING QUATERNION ROTATION
+    // TRANSFORM USING QUATERNION ROTATION
 
     mvect1 = qrotA.RotateBack(mvect2 - vtraslA);
     GetLog() << mvect1 << " ..inv, using quaternion rotation, \n";
 
-    // TRASFORM USING THE ChTransform STATIC METHODS
+    // TRANSFORM USING THE ChTransform STATIC METHODS
 
     mvect1 = ChTransform<>::TransformParentToLocal(mvect2, vtraslA, mrotA);
     GetLog() << mvect1 << " ..inv, using the ChTransform- vect and rot.matrix, \n";
@@ -199,12 +199,12 @@ int main(int argc, char* argv[]) {
     mvect1 = ChTransform<>::TransformParentToLocal(mvect2, vtraslA, qrotA);
     GetLog() << mvect1 << " ..inv, using the ChTransform- vect and quat, \n";
 
-    // TRASFORM USING A ChCoordys OBJECT
+    // TRANSFORM USING A ChCoordys OBJECT
 
     mvect1 = csysA.TransformParentToLocal(mvect2);
     GetLog() << mvect1 << " ..inv, using a ChChCoordsys<> object, \n";
 
-    // TRASFORM USING A ChFrame OBJECT
+    // TRANSFORM USING A ChFrame OBJECT
 
     mvect1 = mframeA.TransformParentToLocal(mvect2);
     GetLog() << mvect1 << " ..inv, using a ChFrame object function, \n";

@@ -114,10 +114,10 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// Light direction is defined by:
     /// - elevation (deg) between 0 (at the horizon) and 90 (above)
     /// - azimuth (deg) between 0 and 360, with 0 = South (-X), 90 = East (-Y), 180 = North (+X), 270 = West (+Y)
-    irr::scene::ILightSceneNode* AddLightDirectional(double elevation = 90,                         ///< light elevation
-                                                     double azimuth = 0,                            ///< light azimuth
-                                                     ChColor ambient = ChColor(0.3f, 0.3f, 0.3f),   ///< ambient color
-                                                     ChColor specular = ChColor(0.8f, 0.8f, 0.8f),  ///< specular color
+    irr::scene::ILightSceneNode* AddLightDirectional(double elevation = 60,                         ///< light elevation
+                                                     double azimuth = 60,                            ///< light azimuth
+                                                     ChColor ambient = ChColor(0.5f, 0.5f, 0.5f),   ///< ambient color
+                                                     ChColor specular = ChColor(0.2f, 0.2f, 0.2f),  ///< specular color
                                                      ChColor diffuse = ChColor(1.0f, 1.0f, 1.0f)    ///< diffuse color
     );
 
@@ -237,6 +237,9 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// End the scene draw at the end of each animation frame.
     virtual void EndScene();
 
+    /// Return a fixed-size font for rendering GUI.
+    irr::gui::IGUIFont* GetCourierFont() const { return m_courier_font; }
+
     /// Create a snapshot of the last rendered frame and save it to the provided file.
     /// The file extension determines the image format.
     virtual void WriteImageToFile(const std::string& filename) override;
@@ -274,6 +277,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     std::string m_win_title;                           ///< window title
     irr::SIrrlichtCreationParameters m_device_params;  ///< Irrlicht device parameters
     irr::IrrlichtDevice* m_device;                     ///< Irrlicht visualization device
+    irr::gui::IGUIFont* m_courier_font;                ///< Fixed-size font
     irr::scene::ISceneNode* m_container;               ///< Irrlicht scene container
     std::unique_ptr<ChIrrGUI> m_gui;                   ///< associated Irrlicht GUI and event receiver
     std::unique_ptr<EffectHandler> m_effect_handler;   ///< effect handler for shadow maps

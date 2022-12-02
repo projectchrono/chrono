@@ -36,7 +36,7 @@ namespace vehicle {
  *
  * This module defines concrete terrain nodes using Chrono physics:
  * - ChVehicleCosimTerrainNodeChrono is a base class (itself derived from ChVehicleCosimTerrainNode).
- * - ChVehicleCosimTerrainNodeRigid wraps a rigid terrain rectangular patch which interacts with tires through friction
+ * - ChVehicleCosimTerrainNodeRigid wraps a rigid terrain rectangular patch which interacts with objects through friction
  * and contact.
  * - ChVehicleCosimTerrainNodeSCM wraps an SCM deformable terrain rectangular patch.
  * - ChVehicleCosimTerrainNodeGranularOMP wraps a deformable terrain rectangular patch modeled with granular material
@@ -74,7 +74,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
         ChQuaternion<> m_init_rot;    ///< initial orientation of obstacle
         ChVector<> m_oobb_center;     ///< center of bounding box
         ChVector<> m_oobb_dims;       ///< dimensions of bounding box
-        MaterialInfo m_contact_mat;   ///< contact material parameters
+        ChContactMaterialData m_contact_mat;   ///< contact material parameters
     };
 
     virtual ~ChVehicleCosimTerrainNodeChrono() {}
@@ -116,7 +116,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
 
     /// Initialize this Chrono terrain node.
     /// Construct the terrain system and the proxy bodies.
-    virtual void OnInitialize(unsigned int num_tires) override;
+    virtual void OnInitialize(unsigned int num_objects) override;
 
     /// Advance simulation.
     /// This function is called after a synchronization to allow the node to advance
@@ -130,13 +130,13 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
     /// Construct the terrain (independent of the vehicle system).
     virtual void Construct() = 0;
 
-    /// Create proxy body for the i-th tire.
-    /// Use information in the m_mesh_data struct (vertex positions expressed in local frame).
-    virtual void CreateWheelProxy(unsigned int i) = 0;
+    /// Create the i-th proxy rigid.
+    /// Use information in the m_geometry struct (collision geometry expressed in local frame).
+    virtual void CreateRigidProxy(unsigned int i) = 0;
 
-    /// Create proxy bodies for the i-th tire mesh.
-    /// Use information in the m_mesh_data struct (vertex positions expressed in local frame).
-    virtual void CreateMeshProxies(unsigned int i) {
+    /// Create the i-th proxy mesh.
+    /// Use information in the m_geometry struct (collision geometry expressed in local frame).
+    virtual void CreateMeshProxy(unsigned int i) {
         if (SupportsMeshInterface()) {
             throw ChException("Current terrain type does not support the MESH communication interface!");
         }
@@ -160,7 +160,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
 
     double m_init_height;  ///< terrain initial height
 
-    std::vector<Proxies> m_proxies;  ///< proxy bodies for each tire
+    std::vector<Proxies> m_proxies;  ///< proxy bodies for each object
     bool m_fixed_proxies;            ///< are proxy bodies fixed to ground?
 
     std::vector<RigidObstacle> m_obstacles;  ///< list of rigid obstacles

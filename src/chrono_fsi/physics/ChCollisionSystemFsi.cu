@@ -28,15 +28,13 @@ namespace fsi {
 // 2. From x, y, z position, determine which bin it is in.
 // 3. Calculate hash from bin index.
 // 4. Store hash and particle index associated with it.
-__global__ void calcHashD(
-    uint* gridMarkerHashD,   // gridMarkerHash Store particle hash here
-    uint* gridMarkerIndexD,  // gridMarkerIndex Store particle index here
-    Real4* posRad,           // posRad Vector containing the positions of all particles (SPH and BCE)
-    const size_t numAllMarkers,  // Total number of particles (fluid + boundary)
-    volatile bool* isErrorD) {
-    /* Calculate the index of where the particle is stored in posRad. */
+__global__ void calcHashD(uint* gridMarkerHashD,   // gridMarkerHash Store particle hash here
+                          uint* gridMarkerIndexD,  // gridMarkerIndex Store particle index here
+                          Real4* posRad,           // posRad Vector containing the positions of all particles (SPH and BCE)
+                          volatile bool* isErrorD) {
+    // Calculate the index of where the particle is stored in posRad.
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numAllMarkers)
+    if (index >= numObjectsD.numAllMarkers)
         return;
 
     Real3 p = mR3(posRad[index]);
@@ -49,7 +47,7 @@ __global__ void calcHashD(
         return;
     }
 
-    /* Check particle is inside the domain. */
+    // Check particle is inside the domain.
     Real3 boxCorner = paramsD.worldOrigin - mR3(40 * paramsD.HSML);
     if (p.x < boxCorner.x || p.y < boxCorner.y || p.z < boxCorner.z) {
         printf(
@@ -69,21 +67,16 @@ __global__ void calcHashD(
         return;
     }
 
-    /* Get x,y,z bin index in grid */
+    // Get x,y,z bin index in grid
     int3 gridPos = calcGridPos(p);
-    /* Calculate a hash from the bin index */
+    // Calculate a hash from the bin index
     uint hash = calcGridHash(gridPos);
-
-    /* Store grid hash */
+    // Store grid hash
     gridMarkerHashD[index] = hash;
-    /* Store particle index associated to the hash we stored in gridMarkerHashD */
+    // Store particle index associated to the hash we stored in gridMarkerHashD
     gridMarkerIndexD[index] = index;
 }
-
-/**
- * @brief reorderDataAndFindCellStartD
- * @details See ChCollisionSystemFsi.cuh for more info
- */
+// ------------------------------------------------------------------------------
 __global__ void reorderDataAndFindCellStartD(uint* cellStartD,          // output: cell start index
                                              uint* cellEndD,            // output: cell end index
                                              Real4* sortedPosRadD,      // output: sorted positions
@@ -97,48 +90,43 @@ __global__ void reorderDataAndFindCellStartD(uint* cellStartD,          // outpu
                                              uint* gridMarkerIndexD,    // input: sorted particle indices
                                              Real4* posRadD,            // input: original position array
                                              Real3* velMasD,            // input: original velocity array
-                                             Real4* rhoPresMuD,         // input: original density pressure
-                                             const size_t numAllMarkers) {
+                                             Real4* rhoPresMuD          // input: original density pressure
+                                            ) {
     extern __shared__ uint sharedHash[];  // blockSize + 1 elements
-    /* Get the particle index the current thread is supposed to be looking at. */
+    
+    // Get the particle index the current thread is supposed to be looking at.
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     uint hash;
-    /* handle case when no. of particles not multiple of block size */
-    if (index < numAllMarkers) {
+    
+    // handle case when no. of particles not multiple of block size
+    if (index < numObjectsD.numAllMarkers) {
         hash = gridMarkerHashD[index];
-        /* Load hash data into shared memory so that we can look at neighboring
-         * particle's hash
-         * value without loading two hash values per thread
-         */
+        // Load hash data into shared memory so that we can look at neighboring
+        // particle's hash value without loading two hash values per thread
         sharedHash[threadIdx.x + 1] = hash;
 
-        if (index > 0 && threadIdx.x == 0) {
-            /* first thread in block must load neighbor particle hash */
+        // first thread in block must load neighbor particle hash
+        if (index > 0 && threadIdx.x == 0)
             sharedHash[0] = gridMarkerHashD[index - 1];
-        }
     }
 
     __syncthreads();
 
-    if (index < numAllMarkers) {
-        /* If this particle has a different cell index to the previous particle then
-         * it must be
-         * the first particle in the cell, so store the index of this particle in
-         * the cell. As it
-         * isn't the first particle, it must also be the cell end of the previous
-         * particle's cell
-         */
+    if (index < numObjectsD.numAllMarkers) {
+        // If this particle has a different cell index to the previous particle then
+        // it must be the first particle in the cell, so store the index of this particle in
+        // the cell. As it isn't the first particle, it must also be the cell end of the previous
+        // particle's cell.
         if (index == 0 || hash != sharedHash[threadIdx.x]) {
             cellStartD[hash] = index;
             if (index > 0)
                 cellEndD[sharedHash[threadIdx.x]] = index;
         }
 
-        if (index == numAllMarkers - 1) {
+        if (index == numObjectsD.numAllMarkers - 1)
             cellEndD[hash] = index + 1;
-        }
 
-        /* Now use the sorted index to reorder the pos and vel data */
+        // Now use the sorted index to reorder the pos and vel data
         uint originalIndex = gridMarkerIndexD[index];  // map sorted to original
         Real3 posRad = mR3(posRadD[originalIndex]);  // macro does either global read or
                                                      // texture fetch
@@ -155,7 +143,8 @@ __global__ void reorderDataAndFindCellStartD(uint* cellStartD,          // outpu
                 "Error! particle velocity is NAN: thrown from "
                 "ChCollisionSystemFsi.cu, reorderDataAndFindCellStartD !\n");
         }
-        if (!(isfinite(rhoPreMu.x) && isfinite(rhoPreMu.y) && isfinite(rhoPreMu.z) && isfinite(rhoPreMu.w))) {
+        if (!(isfinite(rhoPreMu.x) && isfinite(rhoPreMu.y) && 
+            isfinite(rhoPreMu.z) && isfinite(rhoPreMu.w))) {
             printf(
                 "Error! particle rhoPreMu is NAN: thrown from "
                 "ChCollisionSystemFsi.cu, reorderDataAndFindCellStartD !\n");
@@ -184,53 +173,47 @@ __global__ void reorderDataAndFindCellStartD(uint* cellStartD,          // outpu
         }
     }
 }
-
+// ------------------------------------------------------------------------------
 __global__ void findCellStartEndD(uint* cellStartD,         // output: cell start index
                                   uint* cellEndD,           // output: cell end index
                                   uint* gridMarkerHashD,    // input: sorted grid hashes
-                                  uint* gridMarkerIndexD,   // input: sorted particle indices
-                                  const size_t numAllMarkers) {
+                                  uint* gridMarkerIndexD    // input: sorted particle indices
+                                  ) {
     extern __shared__ uint sharedHash[];  // blockSize + 1 elements
-    /* Get the particle index the current thread is supposed to be looking at. */
+    // Get the particle index the current thread is supposed to be looking at.
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     uint hash;
-    /* handle case when no. of particles not multiple of block size */
-    if (index < numAllMarkers) {
+    // handle case when no. of particles not multiple of block size
+    if (index < numObjectsD.numAllMarkers) {
         hash = gridMarkerHashD[index];
-        /* Load hash data into shared memory so that we can look at neighboring
-         * particle's hash
-         * value without loading two hash values per thread
-         */
+        // Load hash data into shared memory so that we can look at neighboring
+        // particle's hash value without loading two hash values per thread
         sharedHash[threadIdx.x + 1] = hash;
 
-        if (index > 0 && threadIdx.x == 0) {
-            /* first thread in block must load neighbor particle hash */
+        // first thread in block must load neighbor particle hash
+        if (index > 0 && threadIdx.x == 0) 
             sharedHash[0] = gridMarkerHashD[index - 1];
-        }
     }
 
     __syncthreads();
 
-    if (index < numAllMarkers) {
-        /* If this particle has a different cell index to the previous particle then
-         * it must be
-         * the first particle in the cell, so store the index of this particle in
-         * the cell. As it
-         * isn't the first particle, it must also be the cell end of the previous
-         * particle's cell
-         */
+    if (index < numObjectsD.numAllMarkers) {
+        // If this particle has a different cell index to the previous 
+        // particle then it must be the first particle in the cell, 
+        // so store the index of this particle in the cell. As it
+        // isn't the first particle, it must also be the cell end of 
+        // the previous particle's cell.
         if (index == 0 || hash != sharedHash[threadIdx.x]) {
             cellStartD[hash] = index;
             if (index > 0)
                 cellEndD[sharedHash[threadIdx.x]] = index;
         }
 
-        if (index == numAllMarkers - 1) {
+        if (index == numObjectsD.numAllMarkers - 1)
             cellEndD[hash] = index + 1;
-        }
     }
 }
-
+// ------------------------------------------------------------------------------
 __global__ void reorderDataD(uint* gridMarkerIndexD,     // input: sorted particle indices
                              uint* extendedActivityIdD,  // input: particles in an extended active sub-domain
                              uint* mapOriginalToSorted,  // input: original index to sorted index
@@ -243,10 +226,10 @@ __global__ void reorderDataD(uint* gridMarkerIndexD,     // input: sorted partic
                              Real3* velMasD,             // input: original velocity array
                              Real4* rhoPresMuD,          // input: original density pressure
                              Real3* tauXxYyZzD,          // input: original total stress xxyyzz
-                             Real3* tauXyXzYzD,          // input: original total stress xyzxyz
-                             const size_t numAllMarkers) {
+                             Real3* tauXyXzYzD           // input: original total stress xyzxyz
+                             ) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numAllMarkers)
+    if (id >= numObjectsD.numAllMarkers)
         return;
 
     // Now use the sorted index to reorder the pos and vel data
@@ -274,7 +257,8 @@ __global__ void reorderDataD(uint* gridMarkerIndexD,     // input: sorted partic
             "Error! particle velocity is NAN: thrown from "
             "ChCollisionSystemFsi.cu, reorderDataAndFindCellStartD !\n");
     }
-    if (!(isfinite(rhoPreMu.x) && isfinite(rhoPreMu.y) && isfinite(rhoPreMu.z) && isfinite(rhoPreMu.w))) {
+    if (!(isfinite(rhoPreMu.x) && isfinite(rhoPreMu.y) && 
+        isfinite(rhoPreMu.z) && isfinite(rhoPreMu.w))) {
         printf(
             "Error! particle rhoPreMu is NAN: thrown from "
             "ChCollisionSystemFsi.cu, reorderDataAndFindCellStartD !\n");
@@ -302,20 +286,18 @@ __global__ void reorderDataD(uint* gridMarkerIndexD,     // input: sorted partic
         sortedTauXyXzYzD[index] = tauXyXzYz; 
     }
 }
-
+// ------------------------------------------------------------------------------
 __global__ void OriginalToSortedD(uint* mapOriginalToSorted,
-                                  uint* gridMarkerIndex,
-                                  const size_t numAllMarkers) {
+                                  uint* gridMarkerIndex) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numAllMarkers)
+    if (id >= numObjectsD.numAllMarkers)
         return;
 
     uint index = gridMarkerIndex[id];
 
     mapOriginalToSorted[index] = id;
 }
-
-//--------------------------------------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 ChCollisionSystemFsi::ChCollisionSystemFsi(std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
                                            std::shared_ptr<ProximityDataD> otherMarkersProximityD,
                                            std::shared_ptr<FsiGeneralData> otherFsiGeneralData,
@@ -329,21 +311,20 @@ ChCollisionSystemFsi::ChCollisionSystemFsi(std::shared_ptr<SphMarkerDataD> other
     sphMarkersD = NULL;
 }
 ChCollisionSystemFsi::~ChCollisionSystemFsi() {}
-
-//--------------------------------------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 void ChCollisionSystemFsi::Initialize() {
     cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
     cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(ChCounters));
 }
-
-//--------------------------------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 void ChCollisionSystemFsi::calcHash() {
     if (!(markersProximityD->gridMarkerHashD.size() == numObjectsH->numAllMarkers &&
           markersProximityD->gridMarkerIndexD.size() == numObjectsH->numAllMarkers)) {
         printf(
             "mError! calcHash!, gridMarkerHashD.size() %zu "
             "gridMarkerIndexD.size() %zu numObjectsH->numAllMarkers %zu \n",
-            markersProximityD->gridMarkerHashD.size(), markersProximityD->gridMarkerIndexD.size(),
+            markersProximityD->gridMarkerHashD.size(), 
+            markersProximityD->gridMarkerIndexD.size(),
             numObjectsH->numAllMarkers);
         throw std::runtime_error("Error! size error, calcHash!");
     }
@@ -353,53 +334,52 @@ void ChCollisionSystemFsi::calcHash() {
     cudaMalloc((void**)&isErrorD, sizeof(bool));
     *isErrorH = false;
     cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
-    //------------------------------------------------------------------------
-    /* Is there a need to optimize the number of threads used at once? */
+
+    // Is there a need to optimize the number of threads used at once?
     uint numThreads, numBlocks;
     computeGridSize((int)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
 
-    /* Execute Kernel */
+    // Execute Kernel
     calcHashD<<<numBlocks, numThreads>>>(U1CAST(markersProximityD->gridMarkerHashD),
-                                         U1CAST(markersProximityD->gridMarkerIndexD), 
-                                         mR4CAST(sphMarkersD->posRadD),
-                                         numObjectsH->numAllMarkers, isErrorD);
+        U1CAST(markersProximityD->gridMarkerIndexD), mR4CAST(sphMarkersD->posRadD), isErrorD);
 
-    /* Check for errors in kernel execution */
+    // Check for errors in kernel execution
     cudaDeviceSynchronize();
     cudaCheckError();
-    //------------------------------------------------------------------------
     cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
-    if (*isErrorH == true) {
+    if (*isErrorH == true)
         throw std::runtime_error("Error! program crashed in  calcHashD!\n");
-    }
     cudaFree(isErrorD);
     free(isErrorH);
 }
-
+// ------------------------------------------------------------------------------
 void ChCollisionSystemFsi::ResetCellSize(int s) {
     markersProximityD->cellStartD.resize(s);
     markersProximityD->cellEndD.resize(s);
 }
-
+// ------------------------------------------------------------------------------
 void ChCollisionSystemFsi::reorderDataAndFindCellStart() {
     int3 cellsDim = paramsH->gridSize;
     int numCells = cellsDim.x * cellsDim.y * cellsDim.z;
-    if (!(markersProximityD->cellStartD.size() == numCells && markersProximityD->cellEndD.size() == numCells)) {
-        throw std::runtime_error("Error! size error, reorderDataAndFindCellStart!\n");
+    if (!(markersProximityD->cellStartD.size() == numCells && 
+        markersProximityD->cellEndD.size() == numCells)) {
+        throw std::runtime_error(
+            "Error! size error, reorderDataAndFindCellStart!\n");
     }
 
-    thrust::fill(markersProximityD->cellStartD.begin(), markersProximityD->cellStartD.end(), 0);
-    thrust::fill(markersProximityD->cellEndD.begin(), markersProximityD->cellEndD.end(), 0);
+    thrust::fill(markersProximityD->cellStartD.begin(), 
+        markersProximityD->cellStartD.end(), 0);
+    thrust::fill(markersProximityD->cellEndD.begin(), 
+        markersProximityD->cellEndD.end(), 0);
 
     uint numThreads, numBlocks;
-    computeGridSize((uint)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);  // 256 is blockSize
+    computeGridSize((uint)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
 
     uint smemSize = sizeof(uint) * (numThreads + 1);
     // Find the start index and the end index of the sorted array in each cell
     findCellStartEndD<<<numBlocks, numThreads, smemSize>>>(
         U1CAST(markersProximityD->cellStartD), U1CAST(markersProximityD->cellEndD),          
-        U1CAST(markersProximityD->gridMarkerHashD), U1CAST(markersProximityD->gridMarkerIndexD),
-        numObjectsH->numAllMarkers);
+        U1CAST(markersProximityD->gridMarkerHashD), U1CAST(markersProximityD->gridMarkerIndexD));
     cudaDeviceSynchronize();
     cudaCheckError();
 
@@ -407,7 +387,7 @@ void ChCollisionSystemFsi::reorderDataAndFindCellStart() {
     // This is faster than using thrust::sort_by_key()
     OriginalToSortedD<<<numBlocks, numThreads>>>(
         U1CAST(markersProximityD->mapOriginalToSorted),
-        U1CAST(markersProximityD->gridMarkerIndexD), numObjectsH->numAllMarkers);
+        U1CAST(markersProximityD->gridMarkerIndexD));
 
     // Reorder the arrays according to the sorted index of all particles
     reorderDataD<<<numBlocks, numThreads>>>(
@@ -418,20 +398,20 @@ void ChCollisionSystemFsi::reorderDataAndFindCellStart() {
         mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->tauXxYyZzD), 
         mR3CAST(sortedSphMarkersD->tauXyXzYzD), mR4CAST(sphMarkersD->posRadD), 
         mR3CAST(sphMarkersD->velMasD), mR4CAST(sphMarkersD->rhoPresMuD), 
-        mR3CAST(sphMarkersD->tauXxYyZzD), mR3CAST(sphMarkersD->tauXyXzYzD), 
-        numObjectsH->numAllMarkers);
+        mR3CAST(sphMarkersD->tauXxYyZzD), mR3CAST(sphMarkersD->tauXyXzYzD));
     cudaDeviceSynchronize();
     cudaCheckError();
 }
-
+// ------------------------------------------------------------------------------
 void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> otherSphMarkersD) {
     sphMarkersD = otherSphMarkersD;
     int3 cellsDim = paramsH->gridSize;
     int numCells = cellsDim.x * cellsDim.y * cellsDim.z;
     ResetCellSize(numCells);
     calcHash();
-    thrust::sort_by_key(markersProximityD->gridMarkerHashD.begin(), markersProximityD->gridMarkerHashD.end(),
-                        markersProximityD->gridMarkerIndexD.begin());
+    thrust::sort_by_key(markersProximityD->gridMarkerHashD.begin(), 
+        markersProximityD->gridMarkerHashD.end(),
+        markersProximityD->gridMarkerIndexD.begin());
     reorderDataAndFindCellStart();
 }
 

@@ -149,9 +149,15 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     const std::vector<std::shared_ptr<Patch>>& GetPatches() const { return m_patches; }
 
     /// Get the terrain height below the specified location.
+    /// If a user-provided functor object of type ChTerrain::HeightFunctor is provided, that will take precedence over
+    /// the internal mechanism for calculating terrain height based on the specified geometry.  It is the user's
+    /// responsibility to ensure consistency.
     virtual double GetHeight(const ChVector<>& loc) const override;
 
     /// Get the terrain normal at the point below the specified location.
+    /// If a user-provided functor object of type ChTerrain::NormalFunctor is provided, that will take precedence over
+    /// the internal mechanism for calculating terrain normal based on the specified geometry.  It is the user's
+    /// responsibility to ensure consistency.
     virtual ChVector<> GetNormal(const ChVector<>& loc) const override;
 
     /// Enable use of location-dependent coefficient of friction in terrain-solid contacts.
@@ -172,6 +178,11 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     /// other objects (including tire models that do not explicitly use it).
     /// See UseLocationDependentFriction.
     virtual float GetCoefficientFriction(const ChVector<>& loc) const override;
+
+    /// Get all terrain characteristics at the point below the specified location.
+    /// This is more efficient than calling GetHeight, GetNormal, and GetCoefficientFriction separately as it performs a
+    /// single ray-casting operation (if needed at all).
+    virtual void GetProperties(const ChVector<>& loc, double& height, ChVector<>& normal, float& friction) const;
 
     /// Export all patch meshes as macros in PovRay include files.
     void ExportMeshPovray(const std::string& out_dir, bool smoothed = false);

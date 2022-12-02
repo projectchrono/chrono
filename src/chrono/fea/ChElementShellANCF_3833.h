@@ -37,7 +37,7 @@
 #include <vector>
 
 #include "chrono/fea/ChMaterialShellANCF.h"
-#include "chrono/core/ChQuadrature.h"
+#include "chrono/fea/ChElementANCF.h"
 #include "chrono/fea/ChElementShell.h"
 #include "chrono/fea/ChNodeFEAxyzDD.h"
 
@@ -62,7 +62,10 @@ namespace fea {
 /// A o-----E-----o B
 /// </pre>
 
-class ChApi ChElementShellANCF_3833 : public ChElementShell, public ChLoadableUV, public ChLoadableUVW {
+class ChApi ChElementShellANCF_3833 : public ChElementANCF,
+                                      public ChElementShell,
+                                      public ChLoadableUV,
+                                      public ChLoadableUVW {
   public:
     // Using fewer than 3 Gauss quadrature points for each midsurface direction (NP) and 2 Gauss quadrature points
     // through the thickness (NT) will likely result in numerical issues with the element.
@@ -71,16 +74,12 @@ class ChApi ChElementShellANCF_3833 : public ChElementShell, public ChLoadableUV
     static const int NIP = NP * NP * NT;  ///< number of Gauss quadrature points
     static const int NSF = 24;            ///< number of shape functions
 
-    // Short-cut for defining a column-major Eigen matrix instead of the typically used row-major format
-    template <typename T, int M, int N>
-    using ChMatrixNMc = Eigen::Matrix<T, M, N, Eigen::ColMajor>;
-
     using VectorN = ChVectorN<double, NSF>;
     using Vector3N = ChVectorN<double, 3 * NSF>;
     using VectorNIP = ChVectorN<double, NIP>;
     using Matrix3xN = ChMatrixNM<double, 3, NSF>;
     using MatrixNx3 = ChMatrixNM<double, NSF, 3>;
-    using MatrixNx3c = ChMatrixNMc<double, NSF, 3>;
+    using MatrixNx3c = ChMatrixNM_col<double, NSF, 3>;
     using MatrixNx6 = ChMatrixNM<double, NSF, 6>;
     using MatrixNxN = ChMatrixNM<double, NSF, NSF>;
 
@@ -128,8 +127,14 @@ class ChApi ChElementShellANCF_3833 : public ChElementShell, public ChLoadableUV
     /// Get the number of coordinates in the field used by the referenced nodes.
     virtual int GetNdofs() override { return 8 * 9; }
 
+    /// Get the number of active coordinates in the field used by the referenced nodes.
+    virtual int GetNdofs_active() override { return m_element_dof; }
+
     /// Get the number of coordinates from the n-th node used by this element.
-    virtual int GetNodeNdofs(int n) override { return 9; }
+    virtual int GetNodeNdofs(int n) override { return m_nodes[n]->GetNdofX(); }
+
+    /// Get the number of active coordinates from the n-th node used by this element.
+    virtual int GetNodeNdofs_active(int n) override { return m_nodes[n]->GetNdofX_active(); }
 
     /// Specify the nodes of this element.
     void SetNodes(std::shared_ptr<ChNodeFEAxyzDD> nodeA,
@@ -321,13 +326,13 @@ class ChApi ChElementShellANCF_3833 : public ChElementShell, public ChLoadableUV
     virtual int GetSubBlocks() override { return 8; }
 
     /// Get the offset of the i-th sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return m_nodes[nblock]->NodeGetOffset_w(); }
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return m_nodes[nblock]->NodeGetOffsetW(); }
 
     /// Get the size of the i-th sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return 9; }
 
     /// Check if the specified sub-block of DOFs is active.
-    virtual bool IsSubBlockActive(int nblock) const override { return !m_nodes[nblock]->GetFixed(); }
+    virtual bool IsSubBlockActive(int nblock) const override { return !m_nodes[nblock]->IsFixed(); }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
@@ -493,8 +498,9 @@ class ChApi ChElementShellANCF_3833 : public ChElementShell, public ChLoadableUV
     /// Access a statically-allocated set of tables, from 0 to a 10th order, with precomputed tables.
     static ChQuadratureTables* GetStaticGQTables();
 
-    IntFrcMethod m_method;  ///< Generalized internal force and Jacobian calculation method
-    std::vector<std::shared_ptr<ChNodeFEAxyzDD>> m_nodes;          ///< element nodes
+    IntFrcMethod m_method;                                 ///< internal force and Jacobian calculation method
+    std::vector<std::shared_ptr<ChNodeFEAxyzDD>> m_nodes;  ///< element nodes
+
     std::vector<Layer, Eigen::aligned_allocator<Layer>> m_layers;  ///< element layers
     std::vector<double, Eigen::aligned_allocator<double>>
         m_layer_zoffsets;      ///< Offsets of Bottom of Layers to the Bottom of the Element
@@ -507,26 +513,22 @@ class ChApi ChElementShellANCF_3833 : public ChElementShell, public ChLoadableUV
     bool m_damping_enabled;    ///< Flag to run internal force damping calculations
     VectorN m_GravForceScale;  ///< Gravity scaling matrix used to get the generalized force due to gravity
     Matrix3xN m_ebar0;         ///< Element Position Coordinate Vector for the Reference Configuration
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
-        m_SD;  ///< Precomputed corrected normalized shape function derivative matrices ordered by columns instead of by
-               ///< Gauss quadrature points used for the "Continuous Integration" style method
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>
-        m_kGQ;  ///< Precomputed Gauss-Quadrature Weight & Element Jacobian scale factors used for the "Continuous
-                ///< Integration" style method
     ChVectorN<double, (NSF * (NSF + 1)) / 2>
         m_MassMatrix;  /// Mass Matrix in extra compact form (Upper Triangular Part only)
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>
-        m_O1;  ///< Precomputed Matrix combined with the nodal coordinates used for the "Pre-Integration" style method
-               ///< internal force calculation
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>
-        m_O2;  ///< Precomputed Matrix combined with the nodal coordinates used for the "Pre-Integration" style method
-               ///< Jacobian calculation
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>
-        m_K3Compact;  ///< Precomputed Matrix combined with the nodal coordinates used for the "Pre-Integration" style
-                      ///< method internal force calculation
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>
-        m_K13Compact;  ///< Saved results from the generalized internal force calculation that are reused for the
-                       ///< Jacobian calculations for the "Pre-Integration" style method
+    ChMatrixDynamic<>
+        m_SD;  ///< Precomputed corrected normalized shape function derivative matrices ordered by columns instead of by
+               ///< Gauss quadrature points used for the "Continuous Integration" style method
+    ChMatrixDynamic_col<> m_kGQ;  ///< Precomputed Gauss-Quadrature Weight & Element Jacobian scale factors used for the
+                                  ///< "Continuous Integration" style method
+    ChMatrixDynamic_col<> m_O1;   ///< Precomputed Matrix combined with the nodal coordinates used for the
+                                  ///< "Pre-Integration" style method internal force calculation
+    ChMatrixDynamic_col<> m_O2;   ///< Precomputed Matrix combined with the nodal coordinates used for the
+                                  ///< "Pre-Integration" style method Jacobian calculation
+    ChMatrixDynamic_col<> m_K3Compact;  ///< Precomputed Matrix combined with the nodal coordinates used for the
+                                        ///< "Pre-Integration" style method internal force calculation
+    ChMatrixDynamic_col<>
+        m_K13Compact;  ///< Saved results from the generalized internal force calculation that are reused
+                       ///< for the Jacobian calculations for the "Pre-Integration" style method
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

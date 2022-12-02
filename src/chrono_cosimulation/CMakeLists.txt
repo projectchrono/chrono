@@ -11,7 +11,7 @@ if(NOT ENABLE_MODULE_COSIMULATION)
   return()
 endif()
 
-MESSAGE(STATUS "==== Chrono Cosimulation module ====")
+MESSAGE(STATUS "\n==== Chrono Cosimulation module ====\n")
 
 set(ChronoEngine_COSIMULATION_SOURCES
     ChCosimulation.cpp

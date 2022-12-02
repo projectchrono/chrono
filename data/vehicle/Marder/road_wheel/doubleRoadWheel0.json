@@ -1,0 +1,32 @@
+{
+  "Name":                           "Marder Double RoadWheel Left",
+  "Type":                           "TrackWheel",
+  "Template":                       "DoubleTrackWheel",
+
+  "Wheel":
+  {
+      "Radius":                     0.350,
+      "Width":                      0.220,
+      "Gap":                        0.051,
+      "Mass":                       35.56,
+      "Inertia":                    [1.14, 2.16, 1.14]
+  },
+
+  "Contact Material":
+  {
+      "Coefficient of Friction":    0.4,
+      "Coefficient of Restitution": 0.75,
+
+      "Properties": {
+          "Young Modulus":          1e7,
+          "Poisson Ratio":          0.3
+      },
+
+      "Coefficients": {
+          "Normal Stiffness":       2e5,
+          "Normal Damping":         40.0,
+          "Tangential Stiffness":   2e5,
+          "Tangential Damping":     20.0
+      }
+  }
+}

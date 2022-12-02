@@ -16,8 +16,10 @@ endif()
 set(CV_COSIM_FILES
     ChVehicleCosimBaseNode.h
     ChVehicleCosimBaseNode.cpp
-    ChVehicleCosimMBSNode.h
-    ChVehicleCosimMBSNode.cpp
+    ChVehicleCosimWheeledMBSNode.h
+    ChVehicleCosimWheeledMBSNode.cpp
+    ChVehicleCosimTrackedMBSNode.h
+    ChVehicleCosimTrackedMBSNode.cpp
     ChVehicleCosimTireNode.h
     ChVehicleCosimTireNode.cpp
     ChVehicleCosimTerrainNode.h
@@ -30,8 +32,10 @@ set(CV_COSIM_FILES
 set(CV_COSIM_MBS_FILES
     mbs/ChVehicleCosimRigNode.h
     mbs/ChVehicleCosimRigNode.cpp
-    mbs/ChVehicleCosimVehicleNode.h
-    mbs/ChVehicleCosimVehicleNode.cpp
+    mbs/ChVehicleCosimWheeledVehicleNode.h
+    mbs/ChVehicleCosimWheeledVehicleNode.cpp
+    mbs/ChVehicleCosimTrackedVehicleNode.h
+    mbs/ChVehicleCosimTrackedVehicleNode.cpp
     mbs/ChVehicleCosimViperNode.h
     mbs/ChVehicleCosimViperNode.cpp
     mbs/ChVehicleCosimCuriosityNode.h
@@ -95,15 +99,15 @@ if(ENABLE_MODULE_GPU)
   list(APPEND LIBRARIES ChronoEngine_gpu)
 endif()
 
-if(ENABLE_MODULE_DISTRIBUTED)
-  set(CV_COSIM_TERRAIN_FILES ${CV_COSIM_TERRAIN_FILES}
-      terrain/ChVehicleCosimTerrainNodeGranularMPI.h
-      terrain/ChVehicleCosimTerrainNodeGranularMPI.cpp)
-  set(INCLUDES "${INCLUDES};${CH_DISTRIBUTED_INCLUDES}")
-  list(APPEND LIBRARIES ChronoEngine_distributed)
-  set(CXX_FLAGS "${CXX_FLAGS} ${CH_DISTRIBUTED_CXX_FLAGS}")
-  set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_DISTRIBUTED_LINK_FLAGS}")
-endif()
+#if(ENABLE_MODULE_DISTRIBUTED)
+#  set(CV_COSIM_TERRAIN_FILES ${CV_COSIM_TERRAIN_FILES}
+#      terrain/ChVehicleCosimTerrainNodeGranularMPI.h
+#      terrain/ChVehicleCosimTerrainNodeGranularMPI.cpp)
+#  set(INCLUDES "${INCLUDES};${CH_DISTRIBUTED_INCLUDES}")
+#  list(APPEND LIBRARIES ChronoEngine_distributed)
+#  set(CXX_FLAGS "${CXX_FLAGS} ${CH_DISTRIBUTED_CXX_FLAGS}")
+#  set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_DISTRIBUTED_LINK_FLAGS}")
+#endif()
 
 if(ENABLE_MODULE_PARDISO_MKL)
   set(INCLUDES "${INCLUDES};${CH_MKL_INCLUDES}")

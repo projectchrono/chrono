@@ -50,8 +50,8 @@ endif()
 foreach(PROGRAM ${DEMOS})
     message(STATUS "...add ${PROGRAM}")
 
-    add_executable(${PROGRAM} ${PROGRAM}.cpp)
-    source_group("" FILES ${PROGRAM}.cpp)
+    add_executable(${PROGRAM} ${PROGRAM}.cpp ../SetChronoSolver.h)
+    source_group("" FILES ${PROGRAM}.cpp ../SetChronoSolver.h)
 
     set_target_properties(${PROGRAM} PROPERTIES
                           COMPILE_FLAGS "${COMPILER_FLAGS}"

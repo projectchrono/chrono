@@ -46,6 +46,10 @@ class CH_MODELS_API M113_SprocketBand : public ChSprocketBand {
     /// This quantity is used during the automatic track assembly.
     virtual double GetAssemblyRadius() const override { return m_gear_RA; }
 
+    /// Get the addendum radius.
+    /// This quantity is an average radius for sprocket-track engagement used to estimate longitudinal slip.
+    virtual double GetAddendumRadius() const override { return m_gear_RT; }
+
     /// Return the mass of the gear body.
     virtual double GetGearMass() const override { return m_gear_mass; }
     /// Return the moments of inertia of the gear body.
@@ -97,6 +101,7 @@ class CH_MODELS_API M113_SprocketBand : public ChSprocketBand {
     static const double m_gear_tooth_depth;
     static const double m_gear_arc_radius;
     static const double m_gear_RA;
+    static const double m_gear_RT;
 
     static const double m_lateral_backlash;
 };

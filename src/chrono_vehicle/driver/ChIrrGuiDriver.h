@@ -60,7 +60,7 @@ struct CH_VEHICLE_API ChIrrJoystickAxis {
     double GetValue(const irr::SEvent::SJoystickEvent& joystickEvent);
 
     /// Read axis configuration from JSON file.
-    void Read(rapidjson::Document& d, char* elementName, bool dbg_print);
+    void Read(rapidjson::Document& d, const std::string& elementName, bool dbg_print);
 
     int id;                         ///< controller ID
     Axis axis;                      ///< controller axis
@@ -78,7 +78,7 @@ struct CH_VEHICLE_API ChIrrJoystickButton {
     bool IsPressed(const irr::SEvent::SJoystickEvent& joystickEvent, bool continuous = false);
 
     /// Read button configuration from JSON file.
-    void Read(rapidjson::Document& d, char* elementName, bool dbg_print);
+    void Read(rapidjson::Document& d, const std::string& elementName, bool dbg_print);
 
     int id;                  ///< controller ID
     int button;              ///< controller button

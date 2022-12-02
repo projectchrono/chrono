@@ -86,7 +86,7 @@ GranularTerrain::GranularTerrain(ChSystem* system)
     system->AddBody(m_ground);
 
     // Set default parameters for contact material
-    MaterialInfo minfo;
+    ChContactMaterialData minfo;
     minfo.mu = 0.9f;
     minfo.cr = 0.0f;
     minfo.Y = 2e5f;
@@ -505,7 +505,7 @@ double GranularTerrain::GetHeight(const ChVector<>& loc) const {
     return highest + m_radius;
 }
 
-    ChVector<> GranularTerrain::GetNormal(const ChVector<>& loc) const {
+ChVector<> GranularTerrain::GetNormal(const ChVector<>& loc) const {
     return ChWorldFrame::Vertical();
 }
 

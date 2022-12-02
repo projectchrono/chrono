@@ -12,7 +12,6 @@
 // Authors: Dario Mangoni, Radu Serban
 // =============================================================================
 
-#include <mpi.h>
 #include <bitset>
 
 #include "chrono_mumps/ChMumpsEngine.h"
@@ -20,10 +19,6 @@
 namespace chrono {
 
 ChMumpsEngine::ChMumpsEngine() {
-    int myrank;
-    MPI_Init(nullptr, nullptr);
-    MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
-
     /* Initialize a MUMPS instance. Use MPI_COMM_WORLD */
     mumps_id.job = INIT;
     mumps_id.par = 1;
@@ -46,7 +41,6 @@ ChMumpsEngine::ChMumpsEngine() {
 ChMumpsEngine::~ChMumpsEngine() {
     mumps_id.job = END;
     dmumps_c(&mumps_id);  // Terminate instance
-    MPI_Finalize();
 }
 
 void ChMumpsEngine::SetProblem(const ChSparseMatrix& Z, ChVectorRef rhs) {

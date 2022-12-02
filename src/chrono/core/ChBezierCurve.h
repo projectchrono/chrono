@@ -67,12 +67,13 @@ class ChApi ChBezierCurve {
     /// Constructor from specified nodes and control points.
     ChBezierCurve(const std::vector<ChVector<> >& points,
                   const std::vector<ChVector<> >& inCV,
-                  const std::vector<ChVector<> >& outCV);
+                  const std::vector<ChVector<> >& outCV,
+                  bool closed = false);
 
     /// Constructor from specified nodes.
     /// In this case, we evaluate the control polygon vertices inCV and outCV
     /// so that we obtain a piecewise cubic spline interpolant of the given knots.
-    ChBezierCurve(const std::vector<ChVector<> >& points);
+    ChBezierCurve(const std::vector<ChVector<> >& points, bool closed = false);
 
     /// Default constructor (required by serialization)
     ChBezierCurve() {}
@@ -87,6 +88,12 @@ class ChApi ChBezierCurve {
 
     /// Return the number of knot points.
     size_t getNumPoints() const { return m_points.size(); }
+
+    /// Return the number of intervals (segments).
+    size_t getNumSegments() const { return getNumPoints() - 1; }
+
+    /// Return true if path is closed and false otherwise.
+    bool IsClosed() const { return m_closed; }
 
     /// Return the knot point with specified index.
     const ChVector<>& getPoint(size_t i) const { return m_points[i]; }
@@ -132,21 +139,15 @@ class ChApi ChBezierCurve {
     void write(const std::string& filename);
 
     /// Create a ChBezierCurve using data in the specified file.
-    /// The input file is assumed to contain on the first line the number of data
-    /// points and the number of data columns.  The latter can be one of 3 or 9.
-    /// In the first case, subsequent lines should contain the coordinates of the
-    /// curve knots (one point per line). The returned Bezier curve is a piecewise
-    /// cubic spline through the specified points.
-    /// In the second case, subsequent lines should contain the coordinates of the
-    /// curve knot, the coordinates of the "incoming" control point, and the
-    /// coordinates of the "outgoing" control point (i.e. 9 values per line). The
-    /// returned curve is a general Bezier curve using the specified knots and
-    /// control polygons.
-    static std::shared_ptr<ChBezierCurve> read(const std::string& filename);
+    /// The input file is assumed to contain on the first line the number of data points and the number of data columns.
+    /// The latter can be one of 3 or 9. In the first case, subsequent lines should contain the coordinates of the curve
+    /// knots (one point per line). The returned Bezier curve is a piecewise cubic spline through the specified points.
+    /// In the second case, subsequent lines should contain the coordinates of the curve knot, the coordinates of the
+    /// "incoming" control point, and the coordinates of the "outgoing" control point (i.e. 9 values per line). The
+    /// returned curve is a general Bezier curve using the specified knots and control polygons.
+    static std::shared_ptr<ChBezierCurve> read(const std::string& filename, bool closed = false);
 
-    //
     // SERIALIZATION
-    //
 
     /// Method to allow serialization of transient data to archives.
     void ArchiveOUT(ChArchiveOut& marchive);
@@ -164,6 +165,8 @@ class ChApi ChBezierCurve {
     std::vector<ChVector<> > m_points;  ///< set of knot points
     std::vector<ChVector<> > m_inCV;    ///< set on "incident" control points
     std::vector<ChVector<> > m_outCV;   ///< set of "outgoing" control points
+
+    bool m_closed;  ///< treat the path as a closed loop curve
 
     static const size_t m_maxNumIters;  ///< maximum number of Newton iterations
     static const double m_sqrDistTol;   ///< tolerance on squared distance
@@ -183,8 +186,7 @@ class ChApi ChBezierCurve {
 class ChApi ChBezierCurveTracker {
   public:
     /// Create a tracker associated with the specified Bezier curve.
-      ChBezierCurveTracker(std::shared_ptr<ChBezierCurve> path, bool isClosedPath = false)
-          : m_path(path), m_curInterval(0), m_curParam(0), m_isClosedPath(isClosedPath) {}
+    ChBezierCurveTracker(std::shared_ptr<ChBezierCurve> path);
 
     /// Destructor for ChBezierCurveTracker.
     ~ChBezierCurveTracker() {}
@@ -213,14 +215,10 @@ class ChApi ChBezierCurveTracker {
     /// In such cases, we return an orthonormal frame with X axis along the tangent.
     int calcClosestPoint(const ChVector<>& loc, ChFrame<>& tnb, double& curvature);
 
-    /// Set if the path is treated as an open loop or a closed loop for tracking
-    void setIsClosedPath(bool isClosedPath);
-
   private:
     std::shared_ptr<ChBezierCurve> m_path;  ///< associated Bezier curve
     size_t m_curInterval;                   ///< current search interval
     double m_curParam;                      ///< parameter for current closest point
-    bool m_isClosedPath;                    ///< treat the path as a closed loop curve
 };
 
 CH_CLASS_VERSION(ChBezierCurve,0)

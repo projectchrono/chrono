@@ -316,9 +316,13 @@ message(STATUS "Searching for CUDA...")
 find_package(CUDA QUIET)
 
 if(CUDA_FOUND)
+  set(CUDA_BINARY_DIR "${CUDA_TOOLKIT_ROOT_DIR}/bin")
+
   message(STATUS "  CUDA version:          ${CUDA_VERSION_STRING}")
   message(STATUS "  CUDA toolkit root dir: ${CUDA_TOOLKIT_ROOT_DIR}")
+  message(STATUS "  CUDA binary dir:       ${CUDA_BINARY_DIR}")
   mark_as_advanced(FORCE CUDA_TOOLKIT_ROOT_DIR)
+
 else()
   message(STATUS "  CUDA not found (consider manually setting CUDA_TOOLKIT_ROOT_DIR)")
   mark_as_advanced(CLEAR CUDA_TOOLKIT_ROOT_DIR)
@@ -439,6 +443,10 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     endif()
 endif()
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    set(CH_LINKERFLAG_EXE "${CH_LINKERFLAG_EXE} -Wl,-no_compact_unwind")
+    set(CH_LINKERFLAG_SHARED "${CH_LINKERFLAG_SHARED} -Wl,-no_compact_unwind")
+endif()
 
 # Compiler warning level and disbaled warnings
 
@@ -471,7 +479,7 @@ elseif(MSVC)
     add_compile_options(/wd26812)  # use of unscoped enums
 else()
     message(STATUS "Warning level set to -Wall")
-    add_compile_options(-Wall)
+    add_compile_options(-Wint-in-bool-context)
     add_compile_options(-Wno-sign-compare)
     add_compile_options(-Wno-reorder)
     add_compile_options(-Wno-unused-function)
@@ -566,10 +574,6 @@ include_directories(${THRUST_INCLUDE_DIR})
 #------------------------------------------------------------
 # Build submodules
 #------------------------------------------------------------
-
-message(STATUS "")
-message(STATUS "==== Chrono Modules ====")
-message(STATUS "")
 
 if(BUILD_TESTING)
   message(STATUS "Build Google test framework")

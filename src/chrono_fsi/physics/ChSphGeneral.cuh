@@ -295,11 +295,9 @@ inline __device__ Real Herschel_Bulkley_mu_eff(Real Strain_rate, Real k, Real n,
 inline __device__ void BCE_Vel_Acc(int i_idx,
                                    Real3& myAcc,
                                    Real3& V_prescribed,
-
                                    Real4* sortedPosRad,
                                    int4 updatePortion,
                                    uint* gridMarkerIndexD,
-
                                    Real4* qD,
                                    Real3* rigidSPH_MeshPos_LRF_D,
                                    Real3* posRigid_fsiBodies_D,
@@ -308,14 +306,13 @@ inline __device__ void BCE_Vel_Acc(int i_idx,
                                    Real3* accRigid_fsiBodies_D,
                                    Real3* omegaAccLRF_fsiBodies_D,
                                    uint* rigidIdentifierD,
-
                                    Real3* pos_fsi_fea_D,
                                    Real3* vel_fsi_fea_D,
                                    Real3* acc_fsi_fea_D,
                                    uint* FlexIdentifierD,
                                    const int numFlex1D,
-                                   uint2* CableElementsNodes,
-                                   uint4* ShellelementsNodes) {
+                                   uint2* CableElementsNodesD,
+                                   uint4* ShellElementsNodesD) {
     int Original_idx = gridMarkerIndexD[i_idx];
 
     // See if this belongs to a fixed boundary
@@ -355,8 +352,8 @@ inline __device__ void BCE_Vel_Acc(int i_idx,
         int FlexIndex = FlexIdentifierD[Original_idx - updatePortion.z];
 
         if (FlexIndex < numFlex1D) {
-            int nA = CableElementsNodes[FlexIndex].x;
-            int nB = CableElementsNodes[FlexIndex].y;
+            int nA = CableElementsNodesD[FlexIndex].x;
+            int nB = CableElementsNodesD[FlexIndex].y;
 
             Real3 pos_fsi_fea_D_nA = pos_fsi_fea_D[nA];
             Real3 pos_fsi_fea_D_nB = pos_fsi_fea_D[nB];
@@ -373,19 +370,21 @@ inline __device__ void BCE_Vel_Acc(int i_idx,
             x_dir = x_dir / length(x_dir);
             Real dx = dot(dist3, x_dir);
 
-            Real2 N_cable = Cables_ShapeFunctions(dx / Cable_x);
-            Real NA = N_cable.x;
-            Real NB = N_cable.y;
+            // Real2 N_cable = Cables_ShapeFunctions(dx / Cable_x);
+            // Real NA = N_cable.x;
+            // Real NB = N_cable.y;
+            Real NA = 1 - dx / Cable_x;
+            Real NB = dx / Cable_x;
 
             V_prescribed = NA * vel_fsi_fea_D_nA + NB * vel_fsi_fea_D_nB;
             myAcc = NA * acc_fsi_fea_D_nA + NB * acc_fsi_fea_D_nB;
 
         }
         if (FlexIndex >= numFlex1D) {
-            int nA = ShellelementsNodes[FlexIndex - numFlex1D].x;
-            int nB = ShellelementsNodes[FlexIndex - numFlex1D].y;
-            int nC = ShellelementsNodes[FlexIndex - numFlex1D].z;
-            int nD = ShellelementsNodes[FlexIndex - numFlex1D].w;
+            int nA = ShellElementsNodesD[FlexIndex - numFlex1D].x;
+            int nB = ShellElementsNodesD[FlexIndex - numFlex1D].y;
+            int nC = ShellElementsNodesD[FlexIndex - numFlex1D].z;
+            int nD = ShellElementsNodesD[FlexIndex - numFlex1D].w;
 
             Real3 pos_fsi_fea_D_nA = pos_fsi_fea_D[nA];
             Real3 pos_fsi_fea_D_nB = pos_fsi_fea_D[nB];

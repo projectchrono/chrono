@@ -271,7 +271,7 @@ int main(int argc, char* argv[]) {
     vis->SetWindowTitle("Vehicle demo - JSON specification");
     vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), vehicle_model.CameraDistance(), 0.5);
     vis->Initialize();
-    vis->AddTypicalLights();
+    vis->AddLightDirectional();
     vis->AddSkyBox();
     vis->AddLogo();
     vis->AttachVehicle(&vehicle);

@@ -57,7 +57,7 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_driveline->GetDriveshaft(); }
 
     /// Get the number of suspensions in the specified track assembly.
-    size_t GetNumRoadWheelAssemblies(VehicleSide side) const { return m_tracks[side]->GetNumRoadWheelAssemblies(); }
+    size_t GetNumTrackSuspensions(VehicleSide side) const { return m_tracks[side]->GetNumTrackSuspensions(); }
 
     /// Get the number of shoes in the specified track assembly.
     size_t GetNumTrackShoes(VehicleSide side) const { return m_tracks[side]->GetNumTrackShoes(); }
@@ -87,7 +87,10 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     void SetIdlerVisualizationType(VisualizationType vis);
 
     /// Set visualization type for the suspension subsystems.
-    void SetRoadWheelAssemblyVisualizationType(VisualizationType vis);
+    void SetSuspensionVisualizationType(VisualizationType vis);
+
+    /// Set visualization type for the idler wheel subsystem.
+    void SetIdlerWheelVisualizationType(VisualizationType vis);
 
     /// Set visualization type for the road-wheel subsystems.
     void SetRoadWheelVisualizationType(VisualizationType vis);
@@ -193,6 +196,10 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// In addition to advancing the state of the multibody system (if the vehicle owns the underlying system), this
     /// function also advances the state of the associated powertrain.
     virtual void Advance(double step) override final;
+
+    /// Disconnect driveline.
+    /// This function has no effect if called before vehicle initialization.
+    void DisconnectDriveline();
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;

@@ -1,6 +1,4 @@
-message(STATUS)
-message(STATUS "==== Unit Test programs ====")
-message(STATUS)
+message(STATUS "\n==== Unit Test programs ====\n")
 
 #--------------------------------------------------------------
 # Always use full RPATH (differentiating between the build and install trees)

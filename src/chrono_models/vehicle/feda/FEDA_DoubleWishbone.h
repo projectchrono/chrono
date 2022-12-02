@@ -44,6 +44,9 @@ class CH_MODELS_API FEDA_DoubleWishboneFront : public ChDoubleWishbone {
     FEDA_DoubleWishboneFront(const std::string& name, int rideHeightMode = 2, int damperMode = 1);
     ~FEDA_DoubleWishboneFront();
 
+    virtual double getCamberAngle() const override { return 0; }
+    virtual double getToeAngle() const override { return 0; }
+
     virtual double getSpindleMass() const override { return m_spindleMass; }
     virtual double getUCAMass() const override { return m_UCAMass; }
     virtual double getLCAMass() const override { return m_LCAMass; }
@@ -128,6 +131,9 @@ class CH_MODELS_API FEDA_DoubleWishboneRear : public ChDoubleWishbone {
   public:
     FEDA_DoubleWishboneRear(const std::string& name, int rideHeightMode = 2, int damperMode = 2);
     ~FEDA_DoubleWishboneRear();
+
+    virtual double getCamberAngle() const override { return 0; }
+    virtual double getToeAngle() const override { return 0; }
 
     virtual double getSpindleMass() const override { return m_spindleMass; }
     virtual double getUCAMass() const override { return m_UCAMass; }

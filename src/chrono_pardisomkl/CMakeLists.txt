@@ -13,7 +13,7 @@ if(NOT ENABLE_MODULE_PARDISO_MKL)
     return()
 endif()
 
-message(STATUS "==== Chrono PardisoMKL module ====")
+message(STATUS "\n==== Chrono PardisoMKL module ====\n")
 
 mark_as_advanced(CLEAR MKL_ROOT)
 mark_as_advanced(CLEAR MATH_LIBRARY)

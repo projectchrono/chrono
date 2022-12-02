@@ -65,9 +65,7 @@ def main():
         patch_mat.SetFriction(0.9)
         patch_mat.SetRestitution(0.01)
         patch_mat.SetYoungModulus(2e7)
-    patch = terrain.AddPatch(patch_mat,
-                             chrono.ChVectorD(0, 0, 0), chrono.ChVectorD(0, 0, 1),
-                             terrainLength, terrainWidth)
+    patch = terrain.AddPatch(patch_mat, chrono.CSYSNORM, terrainLength, terrainWidth)
     patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
     patch.SetColor(chrono.ChColor(0.8, 0.8, 0.5))
     terrain.Initialize()
@@ -79,7 +77,7 @@ def main():
     vis.SetChaseCamera(trackPoint, 6.0, 0.5)
     vis.Initialize()
     vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-    vis.AddTypicalLights()
+    vis.AddLightDirectional()
     vis.AddSkyBox()
     vis.AttachVehicle(my_hmmwv.GetVehicle())
 

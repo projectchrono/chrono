@@ -112,8 +112,7 @@ gator.SetSteeringVisualizationType(steering_vis_type)
 gator.SetWheelVisualizationType(wheel_vis_type)
 gator.SetTireVisualizationType(tire_vis_type)
 
-print("Vehicle mass:               " + str(gator.GetVehicle().GetVehicleMass()))
-print("Vehicle mass (with tires):  " + str(gator.GetTotalMass()))
+print("Vehicle mass:   " + str(gator.GetVehicle().GetMass()))
 print("Driveline type: " + gator.GetVehicle().GetDriveline().GetTemplateName())
 print("Brake type:     " + gator.GetVehicle().GetBrake(1, veh.LEFT).GetTemplateName())
 print("Tire type:      " + gator.GetVehicle().GetTire(1, veh.LEFT).GetTemplateName())
@@ -127,11 +126,9 @@ terrain = veh.RigidTerrain(gator.GetSystem())
 patch_mat = chrono.ChMaterialSurfaceNSC()
 patch_mat.SetFriction(0.9)
 patch_mat.SetRestitution(0.01)
-patch = terrain.AddPatch(patch_mat, 
-                         chrono.ChVectorD(0, 0, 0), chrono.ChVectorD(0, 0, 1), 
-                         600, 600)
+patch = terrain.AddPatch(patch_mat, chrono.CSYSNORM, 600, 600)
 patch.SetColor(chrono.ChColor(0.8, 0.8, 1.0))
-patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 1200, 1200)
+patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 600, 600)
 terrain.Initialize()
 
 # -------------------------------------
@@ -145,7 +142,7 @@ vis.SetWindowSize(1280, 1024)
 vis.SetChaseCamera(trackPoint, 6.0, 0.5)
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-vis.AddTypicalLights()
+vis.AddLightDirectional()
 vis.AddSkyBox()
 vis.AttachVehicle(gator.GetVehicle())
 

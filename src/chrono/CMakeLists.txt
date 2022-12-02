@@ -4,7 +4,7 @@
 #
 #=============================================================================
 
-message(STATUS "==== Chrono Engine core module ====")
+message(STATUS "\n==== Chrono Engine core module ====\n")
 
 #-----------------------------------------------------------------------------
 # Double precision support for Bullet
@@ -25,6 +25,7 @@ set(CH_INCLUDES ${CH_INCLUDES} "${CMAKE_CURRENT_SOURCE_DIR}/../chrono_thirdparty
 # Make CH_INCLUDES visible in parent scope
 set(CH_INCLUDES "${CH_INCLUDES}" PARENT_SCOPE)
 
+message(STATUS "Chrono includes: ${CH_INCLUDES}")
 include_directories(${CH_INCLUDES})
 
 #-----------------------------------------------------------------------------
@@ -135,6 +136,7 @@ set(ChronoEngine_physics_SOURCES
     physics/ChProximityContainer.cpp
     physics/ChProximityContainerSPH.cpp
     physics/ChConveyor.cpp
+    physics/ChFeeder.cpp
     physics/ChAssembly.cpp
     )
 
@@ -145,6 +147,7 @@ set(ChronoEngine_physics_HEADERS
     physics/ChBodyEasy.h
     physics/ChController.h
     physics/ChConveyor.h
+    physics/ChFeeder.h
     physics/ChForce.h
     physics/ChIndexedNodes.h
     physics/ChIndexedParticles.h
@@ -497,6 +500,7 @@ set(ChronoEngine_fea_elements_HEADERS
     fea/ChElementBase.h
     fea/ChElementGeneric.h
     fea/ChElementCorotational.h
+    fea/ChElementANCF.h
     fea/ChElementSpring.h
     fea/ChElementBar.h
     fea/ChElementBeam.h
@@ -681,7 +685,6 @@ if (THRUST_FOUND)
         multicore_math/utility.h
         multicore_math/vec3.cpp
         )
-
     source_group(multicore_math FILES ${ChronoEngine_MulticoreMath_SOURCES})
 elseif()
     set(ChronoEngine_MulticoreMath_SOURCES "")
@@ -727,6 +730,8 @@ if (THRUST_FOUND)
        collision/ChCollisionModelChrono.h
        collision/ChCollisionSystemChrono.h
        )
+
+   message(STATUS "Adding internal multicore collision detection library.")       
 endif()
 
 source_group(collision FILES
@@ -902,6 +907,7 @@ set(ChronoEngine_solver_SOURCES
     solver/ChSystemDescriptor.cpp
     solver/ChSolver.cpp
     solver/ChDirectSolverLS.cpp
+    solver/ChDirectSolverLScomplex.cpp
     solver/ChIterativeSolver.cpp
     solver/ChIterativeSolverLS.cpp
     solver/ChIterativeSolverVI.cpp
@@ -923,6 +929,7 @@ set(ChronoEngine_solver_HEADERS
     solver/ChSolverLS.h
     solver/ChSolverVI.h
     solver/ChDirectSolverLS.h
+    solver/ChDirectSolverLScomplex.h
     solver/ChIterativeSolver.h
     solver/ChIterativeSolverLS.h
     solver/ChIterativeSolverVI.h
@@ -1284,6 +1291,7 @@ set(ChronoEngine_utils_HEADERS
 
 if(BUILD_BENCHMARKING)
     set(ChronoEngine_utils_HEADERS ${ChronoEngine_utils_HEADERS} utils/ChBenchmark.h)
+    message("Adding Chrono utilities for benchmarking.")
 endif()
 
 source_group(utils FILES

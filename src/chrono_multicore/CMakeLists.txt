@@ -21,7 +21,7 @@ if(NOT ENABLE_MODULE_MULTICORE)
   return()
 endif()
 
-message(STATUS "==== Chrono Multicore module ====")
+message(STATUS "\n==== Chrono Multicore module ====\n")
 
 # Return now if Thrust not available
 if (NOT THRUST_FOUND)

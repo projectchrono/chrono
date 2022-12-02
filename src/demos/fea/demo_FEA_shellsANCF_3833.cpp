@@ -9,14 +9,11 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Antonio Recuero
+// Authors: Mike Taylor
 // =============================================================================
 //
-// Demo on using 8-node ANCF shell elements. These demo reproduces the example
-// 3.3 of the paper: 'Analysis of higher-order quadrilateral plate elements based
-// on the absolute nodal coordinate formulation for three-dimensional elasticity'
-// H.C.J. Ebel, M.K.Matikainen, V.V.T. Hurskainen, A.M.Mikkola, Advances in
-// Mechanical Engineering, 2017
+// Demo comparing two different ways to setup a cantilever beam with the
+// ANCF 3833 shell element
 //
 // =============================================================================
 
@@ -27,7 +24,7 @@
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
-#include "chrono/solver/ChIterativeSolverLS.h"
+#include "chrono/solver/ChDirectSolverLS.h"
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 using namespace chrono;
@@ -42,201 +39,227 @@ int main(int argc, char* argv[]) {
     double time_step = 1e-3;
 
     ChSystemSMC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, 0.0));
+    sys.Set_G_acc(ChVector<>(0, 0, -9.80665));
 
     GetLog() << "-----------------------------------------------------------------\n";
+    GetLog() << " Higher order ANCF Shell Element demo with different constraints \n";
     GetLog() << "-----------------------------------------------------------------\n";
-    GetLog() << "  Higher order ANCF Shell Element demo with implicit integration \n";
-    GetLog() << "-----------------------------------------------------------------\n";
 
-    // Create a mesh, that is a container for groups of elements and their referenced nodes.
-    auto my_mesh = chrono_types::make_shared<ChMesh>();
-    // Geometry of the plate
-    double plate_lenght_x = 1.0;
-    double plate_lenght_y = 2.0;
-    double plate_lenght_z = 0.01;
-    // Specification of the mesh
-    int numDiv_x = 4;
-    int numDiv_y = 1;
-    int numDiv_z = 1;
-    int N_x = numDiv_x + 1;
-    // Number of elements in the z direction is considered as 1
-    int TotalNumElements = numDiv_x * numDiv_y;
-    // For uniform mesh
-    double dx = plate_lenght_x / numDiv_x;
-    double dy = plate_lenght_y / numDiv_y;
-    double dz = plate_lenght_z / numDiv_z;
+    // Mesh properties
+    double length = 1.0;       // m
+    double width = 0.1;        // m
+    double thickness = 0.001;  // m
+    double rho = 7810;         // kg/m^3
+    double E = 2.1e11;         // Pa
+    double nu = 0.3;           // Poisson's Ratio
+    int num_elements = 4;      // Number of elements along each cantilever beam
 
-    // Nodes at the edge of the plated beam
-    for (int i = 0; i < (2 * numDiv_x + 1) * (numDiv_y + 1); i++) {
-        // Node location
-        double loc_x = (i % ((numDiv_x)*2 + 1)) * dx / 2;
-        double loc_y = (i / ((numDiv_x)*2 + 1)) % (numDiv_y + 1) * dy;
-        double loc_z = 0.0;
+    double dx = length / (num_elements);
 
-        // Node direction
-        double dir_x = 0;
-        double dir_y = 0;
-        double dir_z = 1;
-        double curvz_x = 0.0;
-        double curvz_y = 0.0;
-        double curvz_z = 0.0;
-        // Create the node
-        auto node = chrono_types::make_shared<ChNodeFEAxyzDD>(
-            ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z), ChVector<>(curvz_x, curvz_y, curvz_z));
-        node->SetMass(0);
+    auto material = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu);
 
-        // Fix all nodes along the axis X=0
-        if (i % ((numDiv_x)*2 + 1) == 0)
-            node->SetFixed(true);
+    // Create mesh container
+    auto mesh = chrono_types::make_shared<ChMesh>();
+    sys.Add(mesh);
 
-        // Add node to mesh
-        my_mesh->AddNode(node);
-    }
-    // Nodes at the center of plated beam
-    for (int i = 0; i < (numDiv_x + 1) * (numDiv_y); i++) {
-        // Node location
-        double loc_x = (i % ((numDiv_x) + 1)) * dx;
-        double loc_y = (i / ((numDiv_x) + 1)) % (numDiv_y + 1) * dy + dy / 2;
-        double loc_z = 0.0;
+    // Setup shell normals to initially align with the global z direction with no curvature
+    ChVector<> dir1(0, 0, 1);
+    ChVector<> Curv1(0, 0, 0);
 
-        // Node direction
-        double dir_x = 0;
-        double dir_y = 0;
-        double dir_z = 1;
-        double curvz_x = 0.0;
-        double curvz_y = 0.0;
-        double curvz_z = 0.0;
-        // Create the node
-        auto node = chrono_types::make_shared<ChNodeFEAxyzDD>(
-            ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z), ChVector<>(curvz_x, curvz_y, curvz_z));
-        node->SetMass(0);
-        // Fix all nodes along the axis X=0
-        if (i % (numDiv_x + 1) == 0)
-            node->SetFixed(true);
+    //   y
+    //   ^
+    //   |
+    //   D---G---C
+    //   |   |   |
+    //   H---+---F
+    //   |   |   |
+    //   A---E---B----> x
 
-        // Add node to mesh
-        my_mesh->AddNode(node);
-    }
+    std::shared_ptr<ChNodeFEAxyzDD> nodeA;
+    std::shared_ptr<ChNodeFEAxyzDD> nodeB;
+    std::shared_ptr<ChNodeFEAxyzDD> nodeC;
+    std::shared_ptr<ChNodeFEAxyzDD> nodeD;
+    std::shared_ptr<ChNodeFEAxyzDD> nodeE;
+    std::shared_ptr<ChNodeFEAxyzDD> nodeF;
+    std::shared_ptr<ChNodeFEAxyzDD> nodeG;
+    std::shared_ptr<ChNodeFEAxyzDD> nodeH;
 
-    // Get a handle to the tip node.
-    auto nodetip1 =
-        std::dynamic_pointer_cast<ChNodeFEAxyzDD>(my_mesh->GetNode((2 * numDiv_x + 1) * (numDiv_y + 1) - 1));
-    auto nodetip2 = std::dynamic_pointer_cast<ChNodeFEAxyzDD>(my_mesh->GetNode((2 * numDiv_x + 1) * (numDiv_y)-1));
-    auto nodetip3 = std::dynamic_pointer_cast<ChNodeFEAxyzDD>(
-        my_mesh->GetNode((2 * numDiv_x + 1) * (numDiv_y + 1) + ((TotalNumElements - 1) / numDiv_x) * (numDiv_x + 1) +
-                         ((TotalNumElements - 1) % numDiv_x) + 1));
+    // -------------------------------------
+    // Create the first beam, fixing its nodal coordinates on one end
+    // -------------------------------------
 
-    // Create an orthotropic material.
-    // All layers for all elements share the same material.
-    double rho = 500;
-    ChVector<> E(2.1e11, 2.1e11, 2.1e11);
-    ChVector<> nu(0.0, 0.0, 0.0);
-    ChVector<> G(E.x() / (2 * (1 + nu.x())), E.x() / (2 * (1 + nu.x())), E.x() / (2 * (1 + nu.x())));
-    auto mat = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
+    // Create the first nodes and fix them completely to ground (Cantilever constraint)
+    nodeA = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(0, 0, 0.0), dir1, Curv1);
+    nodeA->SetFixed(true);
+    mesh->AddNode(nodeA);
 
-    // Create the elements
-    for (int i = 0; i < TotalNumElements; i++) {
-        // Adjacent nodes
-        int node0 = (i / (numDiv_x)) * (2 * N_x - 1) + 2 * (i % numDiv_x);
-        int node1 = (i / (numDiv_x)) * (2 * N_x - 1) + 2 * (i % numDiv_x) + 2;
-        int node2 = (i / (numDiv_x)) * (2 * N_x - 1) + 2 * (i % numDiv_x) + 2 * N_x + 1;
-        int node3 = (i / (numDiv_x)) * (2 * N_x - 1) + 2 * (i % numDiv_x) + 2 * N_x - 1;
+    nodeD = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(0, width, 0), dir1, Curv1);
+    nodeD->SetFixed(true);
+    mesh->AddNode(nodeD);
 
-        int node4 = (i / (numDiv_x)) * (2 * N_x - 1) + 2 * (i % numDiv_x) + 1;
-        int node5 = (2 * numDiv_x + 1) * (numDiv_y + 1) + (i / numDiv_x) * (numDiv_x + 1) + (i % numDiv_x) + 1;
-        int node6 = (i / (numDiv_x)) * (2 * N_x - 1) + 2 * (i % numDiv_x) + 2 * N_x;
-        int node7 = (2 * numDiv_x + 1) * (numDiv_y + 1) + (i / numDiv_x) * (numDiv_x + 1) + (i % numDiv_x);
+    nodeH = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(0, 0.5 * width, 0), dir1, Curv1);
+    nodeH->SetFixed(true);
+    mesh->AddNode(nodeH);
 
-        GetLog() << "Node 0: " << node0 << "\n";
-        GetLog() << "Node 1: " << node1 << "\n";
-        GetLog() << "Node 2: " << node2 << "\n";
-        GetLog() << "Node 3: " << node3 << "\n";
-        GetLog() << "Node 4: " << node4 << "\n";
-        GetLog() << "Node 5: " << node5 << "\n";
-        GetLog() << "Node 6: " << node6 << "\n";
-        GetLog() << "Node 7: " << node7 << "\n";
-        GetLog() << "Node 1 End: " << (2 * numDiv_x + 1) * (numDiv_y + 1) - 1 << "\n";
-        GetLog() << "Node 2 End: " << (2 * numDiv_x + 1) * (numDiv_y)-1 << "\n";
-        GetLog() << "Node 3 End: "
-                 << (2 * numDiv_x + 1) * (numDiv_y + 1) + ((TotalNumElements - 1) / numDiv_x) * (numDiv_x + 1) +
-                        ((TotalNumElements - 1) % numDiv_x) + 1
-                 << "\n";
-        GetLog() << "Node 1 Location: " << nodetip1->GetPos().x() << " " << nodetip1->GetPos().y() << "  "
-                 << nodetip1->GetPos().z() << "\n";
-        GetLog() << "Node 2 Location: " << nodetip2->GetPos().x() << " " << nodetip2->GetPos().y() << "  "
-                 << nodetip2->GetPos().z() << "\n";
-        GetLog() << "Node 3 Location: " << nodetip3->GetPos().x() << " " << nodetip3->GetPos().y() << "  "
-                 << nodetip3->GetPos().z() << "\n";
+    // Generate the rest of the nodes as well as all of the elements
+    for (int i = 1; i <= num_elements; i++) {
+        nodeB = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(i * dx, 0, 0), dir1, Curv1);
+        mesh->AddNode(nodeB);
+        nodeC = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(i * dx, width, 0), dir1, Curv1);
+        mesh->AddNode(nodeC);
+        nodeE = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(i * dx - 0.5 * dx, 0, 0.0), dir1, Curv1);
+        mesh->AddNode(nodeE);
+        nodeF = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(i * dx, 0.5 * width, 0), dir1, Curv1);
+        mesh->AddNode(nodeF);
+        nodeG = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(i * dx - 0.5 * dx, width, 0), dir1, Curv1);
+        mesh->AddNode(nodeG);
 
-        // Create the element and set its nodes.
         auto element = chrono_types::make_shared<ChElementShellANCF_3833>();
-        element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzDD>(my_mesh->GetNode(node0)),
-                          std::dynamic_pointer_cast<ChNodeFEAxyzDD>(my_mesh->GetNode(node1)),
-                          std::dynamic_pointer_cast<ChNodeFEAxyzDD>(my_mesh->GetNode(node2)),
-                          std::dynamic_pointer_cast<ChNodeFEAxyzDD>(my_mesh->GetNode(node3)),
-                          std::dynamic_pointer_cast<ChNodeFEAxyzDD>(my_mesh->GetNode(node4)),
-                          std::dynamic_pointer_cast<ChNodeFEAxyzDD>(my_mesh->GetNode(node5)),
-                          std::dynamic_pointer_cast<ChNodeFEAxyzDD>(my_mesh->GetNode(node6)),
-                          std::dynamic_pointer_cast<ChNodeFEAxyzDD>(my_mesh->GetNode(node7)));
-
-        // Set element dimensions
-        element->SetDimensions(dx, dy);
+        element->SetNodes(nodeA, nodeB, nodeC, nodeD, nodeE, nodeF, nodeG, nodeH);
+        element->SetDimensions(dx, width);
+        element->SetAlphaDamp(0.001);
 
         // Add a single layers with a fiber angle of 0 degrees.
-        element->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, mat);
+        element->AddLayer(thickness, 0 * CH_C_DEG_TO_RAD, material);
 
-        // Set structural damping for this element
-        element->SetAlphaDamp(0.005);
+        mesh->AddElement(element);
 
-        // Add element to mesh
-        my_mesh->AddElement(element);
+        nodeA = nodeB;
+        nodeD = nodeC;
+        nodeH = nodeF;
     }
+    auto nodetipB_beam1 = nodeB;
+    auto nodetipC_beam1 = nodeC;
+    auto nodetipF_beam1 = nodeF;
 
-    // Add the mesh to the system
-    sys.Add(my_mesh);
+    // Apply a step load at the end of the beam that generates a twist
+    nodetipB_beam1->SetForce(ChVector<>(0, 0, -3));
+    nodetipC_beam1->SetForce(ChVector<>(0, 0, -2));
+    nodetipF_beam1->SetForce(ChVector<>(0, 0, -1));
+
+    // -------------------------------------
+    // Create the second beam, fixing its nodal coordinates with constraints
+    // Note that these constraints will create different boundary conditions than when completely fixing the nodes
+    // -------------------------------------
+
+    // Lateral offset for the second cantilever beam
+    double offset = 2.0 * width;
+
+    // Create the ground body to connect the cantilever beam to
+    auto ground = chrono_types::make_shared<ChBody>();
+    ground->SetBodyFixed(true);
+    sys.Add(ground);
+
+    // Create the first nodes
+    nodeA = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(0, offset, 0.0), dir1, Curv1);
+    mesh->AddNode(nodeA);
+
+    nodeD = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(0, width + offset, 0), dir1, Curv1);
+    mesh->AddNode(nodeD);
+
+    nodeH = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(0, 0.5 * width + offset, 0), dir1, Curv1);
+    mesh->AddNode(nodeH);
+
+    // Fix the position of the starting nodes to the ground body
+    auto constraintxyz = chrono_types::make_shared<ChLinkPointFrame>();
+    constraintxyz->Initialize(nodeA, ground);
+    sys.Add(constraintxyz);
+
+    constraintxyz = chrono_types::make_shared<ChLinkPointFrame>();
+    constraintxyz->Initialize(nodeD, ground);
+    sys.Add(constraintxyz);
+
+    constraintxyz = chrono_types::make_shared<ChLinkPointFrame>();
+    constraintxyz->Initialize(nodeH, ground);
+    sys.Add(constraintxyz);
+
+    // Fix the position vector gradient coordinate set normal to the surface of the shell to remain parallel to the
+    // original axis on the ground body (in this case the z axis)
+    auto constraintD = chrono_types::make_shared<ChLinkDirFrame>();
+    constraintD->Initialize(nodeA, ground);
+    sys.Add(constraintD);
+
+    constraintD = chrono_types::make_shared<ChLinkDirFrame>();
+    constraintD->Initialize(nodeD, ground);
+    sys.Add(constraintD);
+
+    constraintD = chrono_types::make_shared<ChLinkDirFrame>();
+    constraintD->Initialize(nodeH, ground);
+    sys.Add(constraintD);
+
+    // Constrain curvature at the base nodes (keep at initial value)
+    nodeA->SetFixedDD(true);
+    nodeD->SetFixedDD(true);
+    nodeH->SetFixedDD(true);
+
+    // Store the starting nodes so that their coordinates can be inspected
+    auto nodebaseA_beam2 = nodeA;
+    auto nodebaseD_beam2 = nodeD;
+    auto nodebaseH_beam2 = nodeH;
+
+    // Generate the rest of the nodes as well as all of the elements
+    for (int i = 1; i <= num_elements; i++) {
+        nodeB = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(i * dx, 0 + offset, 0), dir1, Curv1);
+        mesh->AddNode(nodeB);
+        nodeC = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(i * dx, width + offset, 0), dir1, Curv1);
+        mesh->AddNode(nodeC);
+        nodeE = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(i * dx - 0.5 * dx, 0 + offset, 0.0), dir1, Curv1);
+        mesh->AddNode(nodeE);
+        nodeF = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(i * dx, 0.5 * width + offset, 0), dir1, Curv1);
+        mesh->AddNode(nodeF);
+        nodeG =
+            chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(i * dx - 0.5 * dx, width + offset, 0), dir1, Curv1);
+        mesh->AddNode(nodeG);
+
+        auto element = chrono_types::make_shared<ChElementShellANCF_3833>();
+        element->SetNodes(nodeA, nodeB, nodeC, nodeD, nodeE, nodeF, nodeG, nodeH);
+        element->SetDimensions(dx, width);
+        element->SetAlphaDamp(0.001);
+
+        // Add a single layers with a fiber angle of 0 degrees.
+        element->AddLayer(thickness, 0 * CH_C_DEG_TO_RAD, material);
+
+        mesh->AddElement(element);
+
+        nodeA = nodeB;
+        nodeD = nodeC;
+        nodeH = nodeF;
+    }
+    auto nodetipB_beam2 = nodeB;
+    auto nodetipC_beam2 = nodeC;
+    auto nodetipF_beam2 = nodeF;
+
+    // Apply a step load at the end of the beam that generates a twist
+    nodetipB_beam2->SetForce(ChVector<>(0, 0, -3));
+    nodetipC_beam2->SetForce(ChVector<>(0, 0, -2));
+    nodetipF_beam2->SetForce(ChVector<>(0, 0, -1));
 
     // -------------------------------------
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
-    mvisualizemesh->SetShrinkElements(true, 0.85);
-    mvisualizemesh->SetSmoothFaces(true);
-    my_mesh->AddVisualShapeFEA(mvisualizemesh);
+    auto vismesh = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    vismesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_DISP_Z);
+    vismesh->SetColorscaleMinMax(-0.2, 0.2);
+    vismesh->SetSmoothFaces(true);
+    mesh->AddVisualShapeFEA(vismesh);
 
-    auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
-    mvisualizemeshref->SetWireframe(true);
-    mvisualizemeshref->SetDrawInUndeformedReference(true);
-    my_mesh->AddVisualShapeFEA(mvisualizemeshref);
-
-    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
-    mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
-    mvisualizemeshC->SetSymbolsThickness(0.004);
-    my_mesh->AddVisualShapeFEA(mvisualizemeshC);
-
-    auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    // mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_VECT_SPEED);
-    mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
-    mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
-    mvisualizemeshD->SetSymbolsScale(1);
-    mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
-    mvisualizemeshD->SetZbufferHide(false);
-    my_mesh->AddVisualShapeFEA(mvisualizemeshD);
+    auto visnodes = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    visnodes->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+    visnodes->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    visnodes->SetSymbolsThickness(0.004);
+    mesh->AddVisualShapeFEA(visnodes);
 
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
     vis->SetWindowSize(800, 600);
     vis->SetWindowTitle("ANCF Shells");
+    vis->SetCameraVertical(CameraVerticalDir::Z);
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
+    vis->AddCamera(ChVector<>(0.5, -0.5, 0.5), ChVector<>(0.5, 0.25, 0.0));
     vis->AttachSystem(&sys);
 
     // ----------------------------------
@@ -244,35 +267,36 @@ int main(int argc, char* argv[]) {
     // ----------------------------------
 
     // Set up solver
-    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    auto solver = chrono_types::make_shared<ChSolverSparseLU>();
+    solver->UseSparsityPatternLearner(false);
+    solver->LockSparsityPattern(true);
+    solver->SetVerbose(false);
     sys.SetSolver(solver);
-    solver->SetMaxIterations(300);
-    solver->SetTolerance(1e-14);
-    solver->EnableDiagonalPreconditioner(true);
-    solver->SetVerbose(true);
 
     // Set up integrator
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
-    mystepper->SetMaxiters(10000);
-    mystepper->SetAbsTolerances(1e-05);
-    mystepper->SetMode(ChTimestepperHHT::POSITION);
-    mystepper->SetScaling(true);
+    mystepper->SetMaxiters(50);
+    mystepper->SetAbsTolerances(1e-4, 1e2);
+    mystepper->SetMode(ChTimestepperHHT::ACCELERATION);
+    mystepper->SetStepControl(false);
+    mystepper->SetModifiedNewton(true);
+    mystepper->SetScaling(false);
 
     while (vis->Run()) {
         std::cout << "Time: " << sys.GetChTime() << "s. \n";
-        if (sys.GetChTime() < 0.1) {
-            nodetip1->SetForce(ChVector<>(0, 0, -20.0 / 3 * sys.GetChTime()));
-            nodetip2->SetForce(ChVector<>(0, 0, -20.0 / 3 * sys.GetChTime()));
-            nodetip3->SetForce(ChVector<>(0, 0, -20.0 / 3 * sys.GetChTime()));
-        } else {
-            nodetip1->SetForce(ChVector<>(0, 0, -2 / 3.0));
-            nodetip2->SetForce(ChVector<>(0, 0, -2 / 3.0));
-            nodetip3->SetForce(ChVector<>(0, 0, -2 / 3.0));
-        }
 
-        GetLog() << "Node tip vertical position: " << nodetip1->GetPos().z() << "\n";
+        GetLog() << "  Beam1 Tip Node B vertical position:    " << nodetipB_beam1->GetPos().z() << "\n";
+        GetLog() << "  Beam2 Tip Node B vertical position:    " << nodetipB_beam2->GetPos().z() << "\n";
+        GetLog() << "  Delta vertical position (Beam1-Beam2): "
+                 << nodetipB_beam1->GetPos().z() - nodetipB_beam2->GetPos().z() << "\n";
+        GetLog() << "  Beam2 Base Node A Coordinates (xyz):   " << nodebaseA_beam2->GetPos().x() << " "
+                 << nodebaseA_beam2->GetPos().y() << " " << nodebaseA_beam2->GetPos().z() << "\n";
+        GetLog() << "  Beam2 Base Node A Coordinates (D):     " << nodebaseA_beam2->GetD().x() << " "
+                 << nodebaseA_beam2->GetD().y() << " " << nodebaseA_beam2->GetD().z() << "\n";
+        GetLog() << "  Beam2 Base Node A Coordinates (DD):    " << nodebaseA_beam2->GetDD().x() << " "
+                 << nodebaseA_beam2->GetDD().y() << " " << nodebaseA_beam2->GetDD().z() << "\n";
 
         vis->BeginScene();
         vis->Render();

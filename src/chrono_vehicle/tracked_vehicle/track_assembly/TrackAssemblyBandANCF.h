@@ -62,7 +62,7 @@ class CH_VEHICLE_API TrackAssemblyBandANCF : public ChTrackAssemblyBandANCF {
     std::vector<ChVector<>> m_susp_locs;
     std::vector<ChVector<>> m_roller_locs;
 
-    MaterialInfo m_mat_info;
+    ChContactMaterialData m_mat_info;
 };
 
 /// @} vehicle_tracked

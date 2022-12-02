@@ -192,8 +192,6 @@ int main(int argc, char* argv[]) {
 
     sys.GetSettings()->collision.collision_envelope = kernel_radius * .05;
     sys.GetSettings()->collision.bins_per_axis = vec3(2, 2, 2);
-    sys.SetLoggingLevel(LoggingLevel::LOG_TRACE, true);
-    sys.SetLoggingLevel(LoggingLevel::LOG_INFO, true);
 
     // Create the fixed body
     AddBody(&sys);
@@ -202,7 +200,6 @@ int main(int argc, char* argv[]) {
     sys.Initialize();
 
     // Perform the simulation
-
 #ifdef CHRONO_OPENGL
     opengl::ChVisualSystemOpenGL vis;
     vis.AttachSystem(&sys);

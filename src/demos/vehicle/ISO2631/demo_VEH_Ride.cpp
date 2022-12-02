@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
     RandomSurfaceTerrain terrain(vehicle.GetSystem(), xend);
 
     if (iTire == 6) {
-        MaterialInfo minfo;
+        ChContactMaterialData minfo;
         minfo.mu = 0.9f;
         minfo.cr = 0.01f;
         minfo.Y = 2e7f;
@@ -261,7 +261,7 @@ int main(int argc, char* argv[]) {
     // Create the driver
     auto path = ChBezierCurve::read(vehicle::GetDataFile(path_file));
     ChPathFollowerDriver driver(vehicle, vehicle::GetDataFile(steering_controller_file),
-                                vehicle::GetDataFile(speed_controller_file), path, "my_path", target_speed, false);
+                                vehicle::GetDataFile(speed_controller_file), path, "my_path", target_speed);
     driver.Initialize();
 
 #ifdef USE_IRRLICHT

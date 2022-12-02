@@ -45,8 +45,7 @@ namespace vehicle {
 
 // =============================================================================
 
-ChVehicleCosimRigNode::ChVehicleCosimRigNode()
-    : ChVehicleCosimMBSNode(), m_toe_angle(0), m_total_mass(0) {}
+ChVehicleCosimRigNode::ChVehicleCosimRigNode() : ChVehicleCosimWheeledMBSNode(), m_toe_angle(0), m_total_mass(0) {}
 
 ChVehicleCosimRigNode::~ChVehicleCosimRigNode() {}
 
@@ -77,8 +76,8 @@ void ChVehicleCosimRigNode::InitializeMBS(const std::vector<ChVector<>>& tire_in
 
     if (m_verbose) {
         cout << "[Rig node    ] total mass = " << m_total_mass << endl;
-        cout << "[Rig node    ] tire mass  = " << tire_mass << endl;
-        cout << "[Rig node    ] body mass  = " << body_mass << endl;
+        cout << "[Rig node    ] tire mass = " << tire_mass << endl;
+        cout << "[Rig node    ] body mass = " << body_mass << endl;
     }
 
     // Construct the mechanical system

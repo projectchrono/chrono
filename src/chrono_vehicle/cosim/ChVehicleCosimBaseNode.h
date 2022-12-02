@@ -29,13 +29,15 @@
 #include "chrono/core/ChTimer.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChQuaternion.h"
+
 #include "chrono_vehicle/ChApiVehicle.h"
+#include "chrono_vehicle/ChVehicleGeometry.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
 #define MBS_NODE_RANK 0
 #define TERRAIN_NODE_RANK 1
-#define TIRE_NODE_RANK(i) (i+2)
+#define TIRE_NODE_RANK(i) (i + 2)
 
 namespace chrono {
 namespace vehicle {
@@ -43,23 +45,27 @@ namespace vehicle {
 /** @addtogroup vehicle_cosim
  *
  * The vehicle co-simulation module provides an MPI_based framework for co-simulating a multibody system representing a
- * wheeled mechanism with various terrain models and optionally various tire models. It implements a 3-way explicit
- * force-displacement co-simulation approach.  The three different types of nodes present in a co-simulation are as
- * follows:
- * - MBS node, a single MPI rank which simulates the multibody system up to the wheel spindles.
+ * wheeled or tracked mechanism with various terrain models and optionally various tire models.
+ * It implements a 3-way explicit force-displacement co-simulation approach.
+ * The three different types of nodes present in a co-simulation are as follows:
+ * - MBS node, a single MPI rank which simulates the multibody system.
  * - Tire nodes, a number of MPI ranks (equal to the number of wheels), each simulating one of the tires.
- * - Terrain node(s), one or more MPI ranks which simulate the deformable terrain
+ * - Terrain node(s), one or more MPI ranks which simulate the deformable terrain.
  *
- * The inter-node communication at each synchronization time is as follows:
+ * For a wheeled system, the inter-node communication at each synchronization time is as follows:
  * - MBS node sends spindle body state to corresponding Tire nodes
  * - Tire nodes send spindle forces to MBS node
  * - Tire nodes send tire state (rigid body state or deformable mesh state) to Terrain node
  * - Terrain node sends tire forces (single resultant force or distributed vertex forces) to corresponding Tire node
  *
- * The communication interface between Tire and Terrain nodes can be of one of two types:
- * - ChVehicleCosimBaseNode::InterfaceType::BODY, in which data (force-displacement) for a single rigid body is
- * exchanged
- * - ChVehicleCosimBaseNode::InterfaceType::MESH, in which data (force-displacement) for a deformable mesh is exchanged
+ * For a tracked system, the inter-node communication at each synchronization time is at follows:
+ * - MBS node sends track shoe states to the Terrain node
+ * - Terrain node sends forces acting on track shoes to the MBS node
+ *
+ * The communication interface between Tire and Terrain nodes or between tracked MBS and Terrain nodes can be of one of
+ * two types:
+ * - ChVehicleCosimBaseNode::InterfaceType::BODY, in which force-displacement data for a single rigid body is exchanged
+ * - ChVehicleCosimBaseNode::InterfaceType::MESH, in which force-displacement data for a deformable mesh is exchanged
  */
 
 /// @addtogroup vehicle_cosim
@@ -92,22 +98,23 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
   public:
     /// Type of node participating in co-simulation
     enum class NodeType {
-        MBS,      ///< node performing multibody dynamics (vehicle)
-        TERRAIN,  ///< node performing terrain simulation
-        TIRE      ///< node performing tire simulation (if outside MBS)
+        MBS_WHEELED,  ///< node performing multibody dynamics (wheeled vehicle)
+        MBS_TRACKED,  ///< node performing multibody dynamics (tracked vehicle)
+        TERRAIN,      ///< node performing terrain simulation
+        TIRE          ///< node performing tire simulation
     };
 
     /// Type of the tire-terrain communication interface.
-    /// - A BODY interface assumes communication is done at the wheel spindle level.  At a synchronization time, the
-    /// terrain node receives the full state of the spindle body and must send forces acting on the spindle, for each
-    /// tire present in the simulation.  This type of interface should be used for a rigid tire or when the terrain node
-    /// also performs the dynamics of a flexible tire.
+    /// - A BODY interface assumes communication is done at the wheel spindle or track shoe level.  At a synchronization
+    /// time, the terrain node receives the full state of the spindle or track shoe body and must send forces acting on
+    /// that body, for each tire or track shoe present in the simulation.  This type of interface should be used for
+    /// track shoes, rigid tires, or when the terrain node also performs the dynamics of a flexible tire.
     /// - A MESH interface assumes communication is done at the tire mesh level. At a synchronization time, the terrain
     /// node receives the tire mesh vertex states (positions and velocities) are must send forces acting on vertices of
-    /// the mesh, for each tire. This tire interface is typically used when flexible tires are simulated outside the
-    /// terrain node (either on the multibody node or else on separate tire nodes).
+    /// the mesh, for each object. This interface is typically used when flexible tires are simulated outside the
+    /// terrain node (on separate tire nodes).
     enum class InterfaceType {
-        BODY,  ///< exchange state and force for a single body (wheel spindle)
+        BODY,  ///< exchange state and force for a single body (wheel spindle or track shoe)
         MESH   ///< exchange state and force for a mesh (flexible tire mesh)
     };
 
@@ -146,7 +153,7 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
 
     /// Get the cumulative simulation execution time on this node.
     double GetTotalExecutionTime() const { return m_cum_sim_time; }
-     
+
     /// Initialize this node.
     /// This function allows the node to initialize itself and, optionally, perform an initial data exchange with any
     /// other node. A derived class implementation should first call this base class function.
@@ -183,24 +190,13 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
                                       int frame_digits);
 
   protected:
-    /// Mesh data
-    struct MeshData {
-        unsigned int nv;                       ///< number of vertices
-        unsigned int nn;                       ///< number of normals
-        unsigned int nt;                       ///< number of triangles
-        std::vector<ChVector<>> verts;         ///< vertex positions (in local frame)
-        std::vector<ChVector<>> norms;         ///< vertex normals (in local frame)
-        std::vector<ChVector<int>> idx_verts;  ///< mesh vertex indices (connectivity)
-        std::vector<ChVector<int>> idx_norms;  ///< mesh normal indices
-    };
-
-    /// Mesh state
+    /// Mesh state information (sent to terrain node)
     struct MeshState {
         std::vector<ChVector<>> vpos;  ///< vertex positions (in absolute frame)
         std::vector<ChVector<>> vvel;  ///< vertex velocities (in absolute frame)
     };
 
-    /// Mesh contact information
+    /// Mesh contact information (received from terrain node)
     struct MeshContact {
         int nv;                          ///< number of vertices in contact
         std::vector<int> vidx;           ///< indices of vertices experiencing contact forces
@@ -209,6 +205,9 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
 
   protected:
     ChVehicleCosimBaseNode(const std::string& name);
+
+    void SendGeometry(const ChVehicleGeometry& geom, int dest) const;
+    void RecvGeometry(ChVehicleGeometry& geom, int source) const;
 
     int m_rank;  ///< MPI rank of this node (in MPI_COMM_WORLD)
 
@@ -219,7 +218,8 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     std::string m_node_out_dir;  ///< node-specific output directory
     std::ofstream m_outf;        ///< output file stream
 
-    unsigned int m_num_mbs_nodes;
+    unsigned int m_num_wheeled_mbs_nodes;
+    unsigned int m_num_tracked_mbs_nodes;
     unsigned int m_num_terrain_nodes;
     unsigned int m_num_tire_nodes;
 

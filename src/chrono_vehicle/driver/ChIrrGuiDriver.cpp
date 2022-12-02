@@ -112,6 +112,9 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event) {
                     m_time_shift = m_vsys.m_vehicle->GetSystem()->GetChTime();
                 }
                 return true;
+
+            default:
+                break;
         }
     }
 
@@ -252,7 +255,7 @@ bool ChIrrGuiDriver::ProcessKeyboardEvents(const SEvent& event) {
                     m_braking_target = ChClamp(m_braking_target + m_braking_delta, 0.0, +1.0);
                 return true;
             default:
-                return false;
+                break;
         }
     } else {
         switch (event.KeyInput.Key) {
@@ -540,15 +543,16 @@ double ChIrrJoystickAxis::GetValue(const irr::SEvent::SJoystickEvent& joystickEv
     return value;
 }
 
-void ChIrrJoystickAxis::Read(rapidjson::Document& d, char* elementName, bool dbg_print) {
-    if (d.HasMember(elementName) && d[elementName].IsObject()) {
-        id = 0;  // default to first attached controller
-        name = d[elementName]["name"].GetString();
-        axis = (Axis)d[elementName]["axis"].GetInt();
-        min = d[elementName]["min"].GetDouble();
-        max = d[elementName]["max"].GetDouble();
-        scaled_min = d[elementName]["scaled_min"].GetDouble();
-        scaled_max = d[elementName]["scaled_max"].GetDouble();
+void ChIrrJoystickAxis::Read(rapidjson::Document& d, const std::string& elementName, bool dbg_print) {
+    auto element = elementName.c_str();
+    if (d.HasMember(element) && d[element].IsObject()) {
+        name = d[element]["name"].GetString();
+        id = 0; // default to first attached controller
+        axis = (Axis)d[element]["axis"].GetInt();
+        min = d[element]["min"].GetDouble();
+        max = d[element]["max"].GetDouble();
+        scaled_min = d[element]["scaled_min"].GetDouble();
+        scaled_max = d[element]["scaled_max"].GetDouble();
         value = min;
     } else if (dbg_print) {
         GetLog() << "Expected a joystick axis definition for " << elementName << " but did not find one.\n";
@@ -570,11 +574,12 @@ bool ChIrrJoystickButton::IsPressed(const irr::SEvent::SJoystickEvent& joystickE
     return continuous ? buttonPressedCount > 0 : buttonPressedCount == 1;
 }
 
-void ChIrrJoystickButton::Read(rapidjson::Document& d, char* elementName, bool dbg_print) {
-    if (d.HasMember(elementName) && d[elementName].IsObject()) {
-        id = 0;  // default to first attached controller
-        name = d[elementName]["name"].GetString();
-        button = d[elementName]["button"].GetInt();
+void ChIrrJoystickButton::Read(rapidjson::Document& d, const std::string& elementName, bool dbg_print) {
+    auto element = elementName.c_str();
+    if (d.HasMember(element) && d[element].IsObject()) {
+        id = 0; // default to first attached controller
+        name = d[element]["name"].GetString();
+        button = d[element]["button"].GetInt();
     } else if (dbg_print) {
         GetLog() << "Expected a joystick button definition for " << elementName << " but did not find one.\n";
     }

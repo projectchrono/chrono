@@ -54,20 +54,51 @@ class CH_VEHICLE_API ChTerrain {
     /// with other objects (including tire models that do not explicitly use it).
     virtual float GetCoefficientFriction(const ChVector<>& loc) const;
 
+    /// Get all terrain characteristics at the point below the specified location.
+    virtual void GetProperties(const ChVector<>& loc, double& height, ChVector<>& normal, float& friction) const;
+
+    /// Class to be used as a functor interface for location-dependent terrain height.
+    class CH_VEHICLE_API HeightFunctor {
+      public:
+        virtual ~HeightFunctor() {}
+
+        /// Return the terrain height below the given location.
+        virtual double operator()(const ChVector<>& loc) = 0;
+    };
+
+    /// Class to be used as a functor interface for location-dependent terrain normal.
+    class CH_VEHICLE_API NormalFunctor {
+      public:
+        virtual ~NormalFunctor() {}
+
+        /// Return the terrain normal below the given location.
+        virtual ChVector<> operator()(const ChVector<>& loc) = 0;
+    };
+
     /// Class to be used as a functor interface for location-dependent coefficient of friction.
     class CH_VEHICLE_API FrictionFunctor {
       public:
         virtual ~FrictionFunctor() {}
 
-        /// Return the coefficient of friction below a given location.
+        /// Return the coefficient of friction below the given location.
         virtual float operator()(const ChVector<>& loc) = 0;
     };
 
-    /// Specify the functor object to provide the coefficient of friction at given (x,y) locations.
-    void RegisterFrictionFunctor(FrictionFunctor* functor) { m_friction_fun = functor; }
+    /// Specify the functor object to provide the terrain height at given locations.
+    /// This is provided as a potential optimization mechanism (certain derived classes may choose to ignore it).
+    void RegisterHeightFunctor(std::shared_ptr<HeightFunctor> functor) { m_height_fun = functor; }
+
+    /// Specify the functor object to provide the terrain normal at given locations.
+    /// This is provided as a potential optimization mechanism (certain derived classes may choose to ignore it).
+    void RegisterNormalFunctor(std::shared_ptr<NormalFunctor> functor) { m_normal_fun = functor; }
+
+    /// Specify the functor object to provide the coefficient of friction at given locations.
+    void RegisterFrictionFunctor(std::shared_ptr<FrictionFunctor> functor) { m_friction_fun = functor; }
 
   protected:
-    FrictionFunctor* m_friction_fun;  ///< functor for location-dependent coefficient of friction
+    std::shared_ptr<HeightFunctor> m_height_fun;      ///< functor for location-dependent terrain height
+    std::shared_ptr<NormalFunctor> m_normal_fun;      ///< functor for location-dependent terrain normal
+    std::shared_ptr<FrictionFunctor> m_friction_fun;  ///< functor for location-dependent coefficient of friction
 };
 
 /// @} vehicle_terrain

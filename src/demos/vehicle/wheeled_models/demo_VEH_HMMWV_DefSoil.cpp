@@ -264,7 +264,7 @@ int main(int argc, char* argv[]) {
     vis->SetWindowTitle("HMMWV Deformable Soil Demo");
     vis->SetChaseCamera(trackPoint, 6.0, 0.5);
     vis->Initialize();
-    vis->AddTypicalLights();
+    vis->AddLightDirectional();
     vis->AddSkyBox();
     vis->AddLogo();
     vis->AttachVehicle(&my_hmmwv.GetVehicle());
@@ -318,7 +318,7 @@ int main(int argc, char* argv[]) {
         // Render scene
         vis->BeginScene();
         vis->Render();
-        tools::drawColorbar(vis.get(), 0, 0.1, "Sinkage", 30);
+        tools::drawColorbar(vis.get(), 0, 0.1, "Sinkage", 30, 200);
         vis->EndScene();
 
         if (img_output && step_number % render_steps == 0) {

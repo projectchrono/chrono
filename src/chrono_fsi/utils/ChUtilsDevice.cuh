@@ -9,19 +9,22 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Arman Pazouki, Milad Rakhsha, Wei Hu
+// Author: Arman Pazouki, Milad Rakhsha, Wei Hu, Radu Serban
 // =============================================================================
 //
-// Base class for changing device arrays in non-cuda files
+// Utilities for changing device arrays in non-cuda files
 // =============================================================================
 
-#ifndef CH_DEVICEUTILS_H_
-#define CH_DEVICEUTILS_H_
-#include <cuda_runtime.h>  // for __host__ __device__ flags
+#ifndef CH_UTILS_DEVICE_H
+#define CH_UTILS_DEVICE_H
+
+#include <cuda_runtime.h>
+
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 
 #include "chrono/core/ChTypes.h"
+
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/math/custom_math.h"
 
@@ -72,14 +75,14 @@ typedef unsigned int uint;
 // editor stuff
 // ----------------------------------------------------------------------------
 #ifdef __CDT_PARSER__
-#define __host__
-#define __device__
-#define __global__
-#define __constant__
-#define __shared__
-#define CUDA_KERNEL_DIM(...) ()
+    #define __host__
+    #define __device__
+    #define __global__
+    #define __constant__
+    #define __shared__
+    #define CUDA_KERNEL_DIM(...) ()
 #else
-#define CUDA_KERNEL_DIM(...) << <__VA_ARGS__>>>
+    #define CUDA_KERNEL_DIM(...) << <__VA_ARGS__>>>
 #endif
 
 // ----------------------------------------------------------------------------
@@ -94,12 +97,6 @@ typedef unsigned int uint;
 #define RESOLUTION_LENGTH_MULT 2.0
 //#define RESOLUTION_LENGTH_MULT 3.0
 
-// ----------------------------------------------------------------------------
-// cutilSafeCall
-// CUT_CHECK_ERROR
-//
-// Legacy CUTIL macros. Currently default to no-ops (TODO)
-// ----------------------------------------------------------------------------
 #define cudaCheckError()                                                                     \
     {                                                                                        \
         cudaError_t e = cudaGetLastError();                                                  \
@@ -109,34 +106,21 @@ typedef unsigned int uint;
         }                                                                                    \
     }
 
-
-/// A template time recorder for cuda events.
+/// Time recorder for cuda events.
 /// This utility class encapsulates a simple timer for recording the time between a start and stop event.
 class GpuTimer {
   public:
-    GpuTimer(cudaStream_t stream = 0) : m_stream(stream) {
-        cudaEventCreate(&m_start);
-        cudaEventCreate(&m_stop);
-    }
+    GpuTimer(cudaStream_t stream = 0);
+    ~GpuTimer();
 
-    ~GpuTimer() {
-        cudaEventDestroy(m_start);
-        cudaEventDestroy(m_stop);
-    }
+    /// Record the start time.
+    void Start();
 
-    /// Record the start time
-    void Start() { cudaEventRecord(m_start, m_stream); }
+    /// Record the stop time.
+    void Stop();
 
-    /// Record the stop time
-    void Stop() { cudaEventRecord(m_stop, m_stream); }
-
-    /// Return the elapsed time
-    float Elapsed() {
-        float elapsed;
-        cudaEventSynchronize(m_stop);
-        cudaEventElapsedTime(&elapsed, m_start, m_stop);
-        return elapsed;
-    }
+    /// Return the elapsed time.
+    float Elapsed();
 
   private:
     cudaStream_t m_stream;
@@ -144,62 +128,17 @@ class GpuTimer {
     cudaEvent_t m_stop;
 };
 
-
-/// This utility class encapsulates a operators on device vectors which might be needed in host files
+/// Utilities for thrust device vectors.
 class CH_FSI_API ChUtilsDevice {
   public:
-    /// Resizes a thrust vector of Real3 on the device to a specific size
-    static void ResizeMyThrust3(thrust::device_vector<Real3>& mThrustVec, int mSize);
+    /// Fills out a thrust vector of Real3 on the device with a specific Real3 value.
+    static void FillVector(thrust::device_vector<Real3>& vector, const Real3& value);
 
-    /// Resizes a thrust vector of Real4 on the device to a specific size
-    static void ResizeMyThrust4(thrust::device_vector<Real4>& mThrustVec, int mSize);
+    /// Fills out a thrust vector of Real4 on the device with a specific Real4 value.
+    static void FillVector(thrust::device_vector<Real4>& vector, const Real4& value);
 
-    /// Fills out a thrust vector of Real3 on the device with a specific Real3
-    static void FillMyThrust3(thrust::device_vector<Real3>& mThrustVec, Real3 v);  //
-
-    /// Fills out a thrust vector of Real4 on the device with a specific Real4
-    static void FillMyThrust4(thrust::device_vector<Real4>& mThrustVec, Real4 v);
-
-    /// Clears a thrust vector of Real3 from the device
-    static void ClearMyThrustR3(thrust::device_vector<Real3>& mThrustVec);
-
-    /// Clears a thrust vector of Real4 from the device
-    static void ClearMyThrustR4(thrust::device_vector<Real4>& mThrustVec);
-
-    /// Clears a thrust vector of unsigned int from the device
-    static void ClearMyThrustU1(thrust::device_vector<uint>& mThrustVec);
-
-    /// Appends a Real3 data to a thrust vector of Real3 on the device
-    static void PushBackR3(thrust::device_vector<Real3>& mThrustVec, Real3 a3);
-
-    /// Appends a Real4 data to a thrust vector of Real4 on the device
-    static void PushBackR4(thrust::device_vector<Real4>& mThrustVec, Real4 a4);
-
-    /// Resizes a thrust vector of Real4 on the device to a specific size
-    static void ResizeR3(thrust::device_vector<Real3>& mThrustVec, int size);
-
-    /// Resizes a thrust vector of Real3 on the device to a specific size
-    static void ResizeR4(thrust::device_vector<Real4>& mThrustVec, int size);
-
-    /// Resizes a thrust vector of uint on the device to a specific size
-    static void ResizeU1(thrust::device_vector<uint>& mThrustVec, int size);
-    
-    /// Error check
+    /// Error check.
     static void Sync_CheckError(bool* isErrorH, bool* isErrorD, std::string carshReport);
-
-    /// Fetch Element
-    static Real3 FetchElement(const thrust::device_vector<Real3>& DevVec, size_t i);
-
-    /// Copy data with Real4 type from device to host.
-    static void CopyD2H(thrust::device_vector<Real4>& DevVec, thrust::host_vector<Real4>& HostVec);
-
-    /// Copy data with Real3 type from device to host.
-    static void CopyD2H(thrust::device_vector<Real3>& DevVec, thrust::host_vector<Real3>& HostVec);
-
-    /// Copy data with Real type from device to host.
-    static void CopyD2H(thrust::device_vector<Real>& DevVec, thrust::host_vector<Real>& HostVec);
-
-  private:
 };
 
 /// @} fsi_physics

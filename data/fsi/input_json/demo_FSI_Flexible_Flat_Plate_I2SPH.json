@@ -1,0 +1,47 @@
+{
+
+  "Physical Properties of Fluid":
+  {
+    "Density":                1000,
+    "Viscosity":              0.001,
+    "Gravity":                [0.0, 0.0, -9.81]
+  },
+
+  "SPH Parameters":
+  {
+    "Method":                         "I2SPH",
+    "Kernel h":                       0.02,
+    "Initial Spacing":                0.02,
+    "Epsilon":                        0.01,
+    "Maximum Velocity":               10.0,
+    "XSPH Coefficient":               0.5,
+    "Shifting Coefficient":           0.0,
+    "Density Reinitialization":       200,
+    "Conservative Discretization":    true
+  },
+
+  "Time Stepping":
+  {
+    "Adaptive Time stepping":        false,
+    "CFL number":                    0.2,
+    "Fluid time step":               2e-4,
+    "Solid time step":               2e-4,
+    "Maximum time step":             2e-4
+  },
+
+  "Pressure Equation":
+  {
+    "Boundary Conditions":     "Generalized Wall BC",
+    "Linear solver":           "Jacobi",
+    "Poisson source term":     "Density-Based",
+    "Projection method":       "Non-Incremental",
+    "Under-relaxation":         0.5,
+    "Clamp Pressure":           true,
+    "Absolute residual":        1e-8,
+    "Relative residual":        1e-8,
+    "Maximum Iterations":       500,
+    "Verbose monitoring":       false,
+    "Constraint Pressure":      false,
+    "Average Pressure":         0.0
+  }
+}

@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
 
     RigidTerrain terrain(gator.GetSystem());
 
-    MaterialInfo minfo;
+    ChContactMaterialData minfo;
     minfo.mu = 0.9f;
     minfo.cr = 0.01f;
     minfo.Y = 2e7f;
@@ -147,7 +147,6 @@ int main(int argc, char* argv[]) {
     vis->SetChaseCamera(ChVector<>(0.0, 0.0, 2.0), 5.0, 0.05);
     vis->Initialize();
     vis->AddLightDirectional(70, 20);
-    ////vis->AddTypicalLights();
     vis->AddSkyBox();
     vis->AddLogo();
     vis->AttachVehicle(&gator.GetVehicle());

@@ -9,11 +9,10 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Arman Pazouki
+// Author: Arman Pazouki, Radu Serban
 // =============================================================================
 //
-// Utility class for Conversions between Real and ChSystem types such as
-// (ChVector, ChQuaternion)
+// Utility class for Conversions between Real and ChVector & ChQuaternion.
 // =============================================================================
 
 #include "chrono_fsi/utils/ChUtilsTypeConvert.h"
@@ -21,32 +20,36 @@
 
 namespace chrono {
 namespace fsi {
+namespace utils {
 
-chrono::ChVector<> ChUtilsTypeConvert::Real3ToChVector(Real3 p3) {
-    return chrono::ChVector<>(p3.x, p3.y, p3.z);
-}
-chrono::ChVector<> ChUtilsTypeConvert::Real2ToChVector(Real2 p2) {
-    return chrono::ChVector<>(p2.x, p2.y, 0.0);
-}
-chrono::ChVector<> ChUtilsTypeConvert::Real4ToChVector(Real4 p4) {
-    return Real3ToChVector(mR3(p4));
+ChVector<> ToChVector(const Real3& p3) {
+    return ChVector<>(p3.x, p3.y, p3.z);
 }
 
-chrono::ChQuaternion<> ChUtilsTypeConvert::Real4ToChQuaternion(Real4 q4) {
-    return chrono::ChQuaternion<>(q4.x, q4.y, q4.z, q4.w);
+ChVector<> ToChVector(const Real2& p2) {
+    return ChVector<>(p2.x, p2.y, 0.0);
 }
 
-Real3 ChUtilsTypeConvert::ChVectorToReal3(chrono::ChVector<> v3) {
+ChVector<> ToChVector(const Real4& p4) {
+    return ChVector<>(p4.x, p4.y, p4.z);
+}
+
+ChQuaternion<> ToChQuaternion(const Real4& q4) {
+    return ChQuaternion<>(q4.x, q4.y, q4.z, q4.w);
+}
+
+Real3 ToReal3(const ChVector<>& v3) {
     return mR3(v3.x(), v3.y(), v3.z());
 }
 
-Real4 ChUtilsTypeConvert::ChVectorToReal4(chrono::ChVector<> v3, Real m) {
+Real4 ToReal4(const ChVector<>& v3, Real m) {
     return mR4(v3.x(), v3.y(), v3.z(), m);
 }
 
-Real4 ChUtilsTypeConvert::ChQuaternionToReal4(chrono::ChQuaternion<> q4) {
+Real4 ToReal4(const ChQuaternion<>& q4) {
     return mR4(q4.e0(), q4.e1(), q4.e2(), q4.e3());
 }
 
+}  // namespace utils
 }  // end namespace fsi
 }  // end namespace chrono

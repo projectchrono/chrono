@@ -37,6 +37,9 @@ class CH_VEHICLE_API SolidAxle : public ChSolidAxle {
     SolidAxle(const rapidjson::Document& d);
     ~SolidAxle();
 
+    virtual double getCamberAngle() const override { return m_camber_angle; }
+    virtual double getToeAngle() const override { return m_toe_angle; }
+
     virtual double getAxleTubeMass() const override { return m_axleTubeMass; }
     virtual double getSpindleMass() const override { return m_spindleMass; }
     virtual double getULMass() const override { return m_ULMass; }
@@ -82,6 +85,9 @@ class CH_VEHICLE_API SolidAxle : public ChSolidAxle {
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
 
     ChVector<> m_points[NUM_POINTS];
+
+    double m_camber_angle;
+    double m_toe_angle;
 
     double m_axleTubeMass;
     double m_spindleMass;

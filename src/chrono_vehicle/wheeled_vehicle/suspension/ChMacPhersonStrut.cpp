@@ -122,11 +122,15 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     ChVector<> w;
     ChMatrix33<> rot;
 
+    // Spindle orientation (based on camber and toe angles)
+    double sign = (side == LEFT) ? -1 : +1;
+    auto spindleRot = chassisRot * Q_from_AngZ(sign * getToeAngle()) * Q_from_AngX(sign * getCamberAngle());
+
     // Create and initialize spindle body (same orientation as the chassis)
     m_spindle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
-    m_spindle[side]->SetRot(chassisRot);
+    m_spindle[side]->SetRot(spindleRot);
     m_spindle[side]->SetWvel_loc(ChVector<>(0, ang_vel, 0));
     m_spindle[side]->SetMass(getSpindleMass());
     m_spindle[side]->SetInertiaXX(getSpindleInertia());
@@ -169,7 +173,7 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     chassis->GetSystem()->AddBody(m_LCA[side]);
 
     // Create and initialize the revolute joint between upright and spindle.
-    ChCoordsys<> rev_csys(points[SPINDLE], chassisRot * Q_from_AngAxis(-CH_C_PI / 2.0, VECT_X));
+    ChCoordsys<> rev_csys(points[SPINDLE], spindleRot * Q_from_AngAxis(-CH_C_PI / 2.0, VECT_X));
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(m_spindle[side], m_upright[side], rev_csys);
@@ -296,26 +300,35 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
 
 void ChMacPhersonStrut::InitializeInertiaProperties() {
     m_mass = 2 * (getSpindleMass() + getStrutMass() + getLCAMass() + getUprightMass());
+    if (UseTierodBodies()) {
+        m_mass += 2 * getTierodMass();
+    }
 }
 
 void ChMacPhersonStrut::UpdateInertiaProperties() {
     m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
 
     // Calculate COM and inertia expressed in global frame
+    ChMatrix33<> inertiaSpindle(getSpindleInertia());
+    ChMatrix33<> inertiaStruct(getStrutInertia());
+    ChMatrix33<> inertiaLCA(getLCAInertia());
+    ChMatrix33<> inertiaUpright(getUprightInertia());
+
     utils::CompositeInertia composite;
-    composite.AddComponent(m_spindle[LEFT]->GetFrame_COG_to_abs(), m_spindle[LEFT]->GetMass(),
-                           m_spindle[LEFT]->GetInertia());
-    composite.AddComponent(m_spindle[RIGHT]->GetFrame_COG_to_abs(), m_spindle[RIGHT]->GetMass(),
-                           m_spindle[RIGHT]->GetInertia());
-    composite.AddComponent(m_strut[LEFT]->GetFrame_COG_to_abs(), m_strut[LEFT]->GetMass(), m_strut[LEFT]->GetInertia());
-    composite.AddComponent(m_strut[RIGHT]->GetFrame_COG_to_abs(), m_strut[RIGHT]->GetMass(),
-                           m_strut[RIGHT]->GetInertia());
-    composite.AddComponent(m_LCA[LEFT]->GetFrame_COG_to_abs(), m_LCA[LEFT]->GetMass(), m_LCA[LEFT]->GetInertia());
-    composite.AddComponent(m_LCA[RIGHT]->GetFrame_COG_to_abs(), m_LCA[RIGHT]->GetMass(), m_LCA[RIGHT]->GetInertia());
-    composite.AddComponent(m_upright[LEFT]->GetFrame_COG_to_abs(), m_upright[LEFT]->GetMass(),
-                           m_upright[LEFT]->GetInertia());
-    composite.AddComponent(m_upright[RIGHT]->GetFrame_COG_to_abs(), m_upright[RIGHT]->GetMass(),
-                           m_upright[RIGHT]->GetInertia());
+    composite.AddComponent(m_spindle[LEFT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_spindle[RIGHT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_strut[LEFT]->GetFrame_COG_to_abs(), getStrutMass(), inertiaStruct);
+    composite.AddComponent(m_strut[RIGHT]->GetFrame_COG_to_abs(), getStrutMass(), inertiaStruct);
+    composite.AddComponent(m_LCA[LEFT]->GetFrame_COG_to_abs(), getLCAMass(), inertiaLCA);
+    composite.AddComponent(m_LCA[RIGHT]->GetFrame_COG_to_abs(), getLCAMass(), inertiaLCA);
+    composite.AddComponent(m_upright[LEFT]->GetFrame_COG_to_abs(), getUprightMass(), inertiaUpright);
+    composite.AddComponent(m_upright[RIGHT]->GetFrame_COG_to_abs(), getUprightMass(), inertiaUpright);
+
+    if (UseTierodBodies()) {
+        ChMatrix33<> inertiaTierod(getTierodInertia());
+        composite.AddComponent(m_tierod[LEFT]->GetFrame_COG_to_abs(), getTierodMass(), inertiaTierod);
+        composite.AddComponent(m_tierod[RIGHT]->GetFrame_COG_to_abs(), getTierodMass(), inertiaTierod);
+    }
 
     // Express COM and inertia in subsystem reference frame
     m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());

@@ -104,8 +104,8 @@
 
 #include "chrono_vehicle/tracked_vehicle/ChSprocket.h"
 #include "chrono_vehicle/tracked_vehicle/ChIdler.h"
-#include "chrono_vehicle/tracked_vehicle/ChRoadWheel.h"
-#include "chrono_vehicle/tracked_vehicle/ChRoadWheelAssembly.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackWheel.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackSuspension.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackShoe.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChTrackBrake.h"
@@ -155,6 +155,7 @@ using namespace chrono::vehicle::m113;
 %include "std_vector.i"
 %include "typemaps.i"
 %include "cstring.i"
+%include "cpointer.i"
 
 #ifdef SWIGPYTHON
 %include "std_wstring.i"
@@ -231,8 +232,8 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 
 %shared_ptr(chrono::vehicle::ChSprocket)
 %shared_ptr(chrono::vehicle::ChIdler)
-%shared_ptr(chrono::vehicle::ChRoadWheel)
-%shared_ptr(chrono::vehicle::ChRoadWheelAssembly)
+%shared_ptr(chrono::vehicle::ChTrackWheel)
+%shared_ptr(chrono::vehicle::ChTrackSuspension)
 %shared_ptr(chrono::vehicle::ChTrackShoe)
 %shared_ptr(chrono::vehicle::ChTrackAssembly)
 %shared_ptr(chrono::vehicle::ChTrackBrake)
@@ -250,17 +251,17 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %shared_ptr(chrono::vehicle::LinearSpringForce)
 %shared_ptr(chrono::vehicle::LinearDamperForce)
 %shared_ptr(chrono::vehicle::LinearSpringDamperForce)
-%shared_ptr(chrono::vehicle::LinearSpringDamperActuatorForce)
+%shared_ptr(chrono::vehicle::LinearSpringDamperForce)
 %shared_ptr(chrono::vehicle::MapSpringForce)
 %shared_ptr(chrono::vehicle::MapSpringBistopForce)
 %shared_ptr(chrono::vehicle::LinearSpringBistopForce)
 %shared_ptr(chrono::vehicle::DegressiveDamperForce)
 %shared_ptr(chrono::vehicle::MapDamperForce)
-%shared_ptr(chrono::vehicle::MapSpringDamperActuatorForce)
+%shared_ptr(chrono::vehicle::MapSpringDamperForce)
 %shared_ptr(chrono::vehicle::LinearSpringTorque)
 %shared_ptr(chrono::vehicle::LinearDamperTorque)
 %shared_ptr(chrono::vehicle::LinearSpringDamperTorque)
-%shared_ptr(chrono::vehicle::LinearSpringDamperActuatorTorque)
+%shared_ptr(chrono::vehicle::LinearSpringDamperTorque)
 %shared_ptr(chrono::vehicle::MapSpringTorque)
 %shared_ptr(chrono::vehicle::MapDamperTorque)
 
@@ -420,8 +421,8 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 
 %include "../../../chrono_vehicle/tracked_vehicle/ChSprocket.h"
 %include "../../../chrono_vehicle/tracked_vehicle/ChIdler.h"
-%include "../../../chrono_vehicle/tracked_vehicle/ChRoadWheel.h"
-%include "../../../chrono_vehicle/tracked_vehicle/ChRoadWheelAssembly.h"
+%include "../../../chrono_vehicle/tracked_vehicle/ChTrackWheel.h"
+%include "../../../chrono_vehicle/tracked_vehicle/ChTrackSuspension.h"
 %include "../../../chrono_vehicle/tracked_vehicle/ChTrackShoe.h"
 
 %include "../../../chrono_vehicle/tracked_vehicle/ChTrackBrake.h"

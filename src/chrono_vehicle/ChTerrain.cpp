@@ -17,20 +17,29 @@
 // =============================================================================
 
 #include "chrono_vehicle/ChTerrain.h"
+#include "chrono_vehicle/ChWorldFrame.h"
 
 namespace chrono {
 namespace vehicle {
 
-ChTerrain::ChTerrain() : m_friction_fun(nullptr) {}
+ChTerrain::ChTerrain() {}
 
 double ChTerrain::GetHeight(const ChVector<>& loc) const {
     return 0;
 }
+
 ChVector<> ChTerrain::GetNormal(const ChVector<>& loc) const {
-    return ChVector<>(0, 0, 1);
+    return ChWorldFrame::Vertical();
 }
+
 float ChTerrain::GetCoefficientFriction(const ChVector<>& loc) const {
     return 0.8f;
+}
+
+void ChTerrain::GetProperties(const ChVector<>& loc, double& height, ChVector<>& normal, float& friction) const {
+    height = GetHeight(loc);
+    normal = GetNormal(loc);
+    friction = GetCoefficientFriction(loc);
 }
 
 }  // end namespace vehicle

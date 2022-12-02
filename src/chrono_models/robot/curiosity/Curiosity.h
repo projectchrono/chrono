@@ -27,17 +27,10 @@
 #include <vector>
 
 #include "chrono/assets/ChColor.h"
-#include "chrono/physics/ChLinkMotorRotationSpeed.h"
-#include "chrono/physics/ChLinkDistance.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/physics/ChShaft.h"
-#include "chrono/physics/ChShaftsGear.h"
-#include "chrono/physics/ChShaftsBody.h"
+#include "chrono/physics/ChLinkMotorRotation.h"
 
 #include "chrono_models/ChApiModels.h"
-
-#include "chrono/physics/ChInertiaUtils.h"
 
 namespace chrono {
 
@@ -278,7 +271,10 @@ class CH_MODELS_API Curiosity {
     std::shared_ptr<CuriosityChassis> GetChassis() const { return m_chassis; }
 
     /// Get the specified rover wheel.
-    std::shared_ptr<CuriosityWheel> GetWheel(CuriosityWheelID id) const;
+    std::shared_ptr<CuriosityWheel> GetWheel(CuriosityWheelID id) const { return m_wheels[id]; }
+
+    /// Get all rover wheels.
+    std::array<std::shared_ptr<CuriosityWheel>, 6> GetWheels() const { return m_wheels; }
 
     /// Get the specified rover driveshaft.
     std::shared_ptr<ChShaft> GetDriveshaft(CuriosityWheelID id) const { return m_drive_shafts[id]; }

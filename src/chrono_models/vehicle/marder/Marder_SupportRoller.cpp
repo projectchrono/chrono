@@ -43,10 +43,10 @@ const std::string Marder_SupportRollerRight::m_meshFile = "Marder/SupportRoller_
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Marder_SupportRoller::Marder_SupportRoller(const std::string& name) : ChDoubleRoller(name) {}
+Marder_SupportRoller::Marder_SupportRoller(const std::string& name) : ChDoubleTrackWheel(name) {}
 
 void Marder_SupportRoller::CreateContactMaterial(ChContactMethod contact_method) {
-    MaterialInfo minfo;
+    ChContactMaterialData minfo;
     minfo.mu = 0.4f;
     minfo.cr = 0.75f;
     minfo.Y = 1e7f;
@@ -64,7 +64,7 @@ void Marder_SupportRoller::AddVisualizationAssets(VisualizationType vis) {
         trimesh_shape->SetMutable(false);
         m_wheel->AddVisualShape(trimesh_shape);
     } else {
-        ChDoubleRoller::AddVisualizationAssets(vis);
+        ChDoubleTrackWheel::AddVisualizationAssets(vis);
     }
 }
 

@@ -61,10 +61,9 @@ const double M113_TrackShoeBandBushing::m_tread_thickness = 0.0157 * 1.04;
 const ChVector<> M113_TrackShoeBandBushing::m_guide_box_dims(0.0529, 0.0114, 0.075);
 const double M113_TrackShoeBandBushing::m_guide_box_offset_x = 0;
 
-const std::string M113_TrackShoeBandBushing::m_meshFile = "M113/meshes/TrackShoeBandBushing.obj";
+const std::string M113_TrackShoeBandBushing::m_meshFile = "M113/meshes/TrackShoeBand.obj";
 const std::string M113_TrackShoeBandBushing::m_tread_meshName = "M113_Tread";
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 M113_TrackShoeBandBushing::M113_TrackShoeBandBushing(const std::string& name) : ChTrackShoeBandBushing(name) {
     m_bushingData = chrono_types::make_shared<ChVehicleBushingData>();
@@ -76,48 +75,35 @@ M113_TrackShoeBandBushing::M113_TrackShoeBandBushing(const std::string& name) : 
     m_bushingData->D_lin_dof = 0;
     m_bushingData->K_rot_dof = 500;
     m_bushingData->D_rot_dof = 0.05 * 500;
-}
 
-void M113_TrackShoeBandBushing::CreateContactMaterials(ChContactMethod contact_method) {
     // Pad material (ground contact)
-    {
-        MaterialInfo minfo;
-        minfo.mu = 0.8f;
-        minfo.cr = 0.75f;
-        minfo.Y = 1e7f;
-        m_pad_material = minfo.CreateMaterial(contact_method);
-    }
+    m_pad_matinfo.mu = 0.8f;
+    m_pad_matinfo.cr = 0.75f;
+    m_pad_matinfo.Y = 1e7f;
 
     // Body material (wheel contact)
-    {
-        MaterialInfo minfo;
-        minfo.mu = 0.8f;
-        minfo.cr = 0.75f;
-        minfo.Y = 1e7f;
-        m_body_material = minfo.CreateMaterial(contact_method);
-    }
+    m_body_matinfo.mu = 0.8f;
+    m_body_matinfo.cr = 0.75f;
+    m_body_matinfo.Y = 1e7f;
 
     // Guide material (wheel contact)
-    m_guide_material = m_body_material;
+    m_guide_matinfo = m_body_matinfo;
 
     // Tooth material (sprocket contact)
-    {
-        MaterialInfo minfo;
-        minfo.mu = 0.8f;
-        minfo.cr = 0.75f;
-        minfo.Y = 1e9f;
-        m_tooth_material = minfo.CreateMaterial(contact_method);
-    }
+    m_tooth_matinfo.mu = 0.8f;
+    m_tooth_matinfo.cr = 0.75f;
+    m_tooth_matinfo.Y = 1e9f;
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void M113_TrackShoeBandBushing::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        //// TODO:
-        //// Set up meshes for tread body and web links.
-        //// For now, default to PRIMITIVE visualization
-        ChTrackShoeBandBushing::AddVisualizationAssets(vis);
+        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(m_meshFile, false, false);
+        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        trimesh_shape->SetMesh(trimesh);
+        trimesh_shape->SetName(filesystem::path(m_meshFile).stem());
+        trimesh_shape->SetMutable(false);
+        m_shoe->AddVisualShape(trimesh_shape);
     } else {
         ChTrackShoeBandBushing::AddVisualizationAssets(vis);
     }

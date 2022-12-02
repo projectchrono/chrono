@@ -53,7 +53,7 @@ void RackPinion::Create(const rapidjson::Document& d) {
 
     // Pinion radius
     m_pinionRadius = d["Pinion"]["Radius"].GetDouble();
-    m_maxAngle = d["Pinion"]["Maximum Angle"].GetDouble();
+    m_maxAngle = d["Pinion"]["Maximum Angle (deg)"].GetDouble() * CH_C_DEG_TO_RAD;
 }
 
 }  // end namespace vehicle

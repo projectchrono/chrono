@@ -17,6 +17,7 @@
 
 #include "chrono_pardisomkl/ChApiPardisoMKL.h"
 #include "chrono/solver/ChDirectSolverLS.h"
+#include "chrono/solver/ChDirectSolverLScomplex.h"
 
 #include <Eigen/PardisoSupport>
 
@@ -79,6 +80,33 @@ class ChApiPardisoMKL ChSolverPardisoMKL : public ChDirectSolverLS {
 
     Eigen::PardisoLU<ChSparseMatrix> m_engine;  ///< underlying Eigen Pardiso interface
 };
+
+
+
+/// Sparse complex Pardiso direct solver.\n
+class ChApiPardisoMKL ChSolverComplexPardisoMKL : public ChDirectSolverLScomplex {
+  public:
+      ChSolverComplexPardisoMKL(int num_threads = 0);
+    ~ChSolverComplexPardisoMKL() {}
+
+    /// Get a handle to the underlying MKL engine.
+    Eigen::PardisoLU<Eigen::SparseMatrix<std::complex<double>, Eigen::ColMajor>>& GetMklEngine() { return m_engine; }
+
+  private:
+    /// Factorize the current sparse matrix and return true if successful.
+    virtual bool FactorizeMatrix() override;
+
+    /// Solve the linear system using the current factorization and right-hand side vector.
+    /// Load the solution vector (already of appropriate size) and return true if succesful.
+    virtual bool SolveSystem(const ChVectorDynamic<std::complex<double>>& b) override;
+
+    /// Display an error message corresponding to the last failure.
+    /// This function is only called if Factorize or Solve returned false.
+    virtual void PrintErrorMessage() override;
+
+    Eigen::PardisoLU<Eigen::SparseMatrix<std::complex<double>, Eigen::ColMajor>> m_engine;  ///< underlying Eigen Pardiso interface
+};
+
 
 /// @} mkl_module
 

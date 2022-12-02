@@ -12,7 +12,7 @@ if(NOT ENABLE_MODULE_GPU)
   return()
 endif()
 
-message(STATUS "==== Chrono GPU module ====")
+message(STATUS "\n==== Chrono GPU module ====\n")
 
 # Return now if Eigen version < 3.3.6
 if(EIGEN3_VERSION VERSION_LESS "3.3.6")

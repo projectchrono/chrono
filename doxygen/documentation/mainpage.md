@@ -36,6 +36,10 @@ Instructions on how to set up a project that uses Chrono.
 
   Distributed agent simulation with the SynChrono module
 
+- [DEM-Engine](@ref manual_deme)
+ 
+  External GPU solver for DEM simulations
+
 - [Chrono::SolidWorks](@ref introduction_chrono_solidworks)
 
   SolidWorks plugin for exporting CAD data to Chrono
@@ -49,9 +53,3 @@ Instructions on how to set up a project that uses Chrono.
 @subpage tutorial_root
 
 Basic example code for various features in Chrono. Good place to get started with using Chrono.
-
----
-
-@subpage tutorial_slides_300
-
-Training material (PowerPoint slides and PDF) used in various week-long Chrono tutorials offered in the past.

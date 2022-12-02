@@ -117,6 +117,11 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
     /// Set the contact spinning friction coefficient
     virtual void SetSpinningFriction(float mf) { Rx.SetSpinningFrictionCoefficient(mf); }
 
+    /// Access the constraints
+    ChConstraint* GetConstraintRu() { return &Ru; }
+    ChConstraint* GetConstraintRv() { return &Rv; }
+    ChConstraint* GetConstraintRx() { return &Rx; }
+
     // UPDATING FUNCTIONS
 
     virtual void ContIntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override {

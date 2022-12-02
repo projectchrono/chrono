@@ -23,7 +23,7 @@
 
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/tracked_vehicle/roller/ChDoubleRoller.h"
+#include "chrono_vehicle/tracked_vehicle/track_wheel/ChDoubleTrackWheel.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -35,14 +35,14 @@ namespace marder {
 /// @{
 
 /// Support roller model for the Marder vehicle (base class).
-class CH_MODELS_API Marder_SupportRoller : public ChDoubleRoller {
+class CH_MODELS_API Marder_SupportRoller : public ChDoubleTrackWheel {
   public:
     virtual ~Marder_SupportRoller() {}
 
     /// Return the mass of the idler wheel body.
-    virtual double GetRollerMass() const override { return m_wheel_mass; }
+    virtual double GetMass() const override { return m_wheel_mass; }
     /// Return the moments of inertia of the idler wheel body.
-    virtual const ChVector<>& GetRollerInertia() const override { return m_wheel_inertia; }
+    virtual const ChVector<>& GetInertia() override { return m_wheel_inertia; }
     /// Return the radius of the idler wheel.
     virtual double GetRadius() const override { return m_wheel_radius; }
     /// Return the total width of the idler wheel.

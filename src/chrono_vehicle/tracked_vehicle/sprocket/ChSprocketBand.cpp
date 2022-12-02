@@ -153,7 +153,7 @@ class SprocketBandContactCB : public ChSystem::CustomCollisionCallback {
 
         // Create contact material for sprocket - guiding pin contacts (to prevent detracking)
         // Note: zero friction
-        MaterialInfo minfo;
+        ChContactMaterialData minfo;
         minfo.mu = 0;
         minfo.cr = 0.1f;
         minfo.Y = 1e7f;

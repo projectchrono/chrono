@@ -53,7 +53,7 @@ my_hmmwv.SetWheelVisualizationType(veh.VisualizationType_NONE)
 my_hmmwv.SetTireVisualizationType(veh.VisualizationType_PRIMITIVES)
 
 # Create the terrain
-minfo = veh.MaterialInfo()
+minfo = chrono.ChContactMaterialData()
 minfo.mu = 0.8
 minfo.cr = 0.01
 minfo.Y = 2e7
@@ -75,7 +75,7 @@ path_asset.SetNumRenderPoints(max(2 * npoints, 400))
 patch.GetGroundBody().AddVisualShape(path_asset)
 
 # Create the PID lateral controller
-steeringPID = veh.ChPathSteeringController(path, False)
+steeringPID = veh.ChPathSteeringController(path)
 steeringPID.SetLookAheadDistance(5)
 steeringPID.SetGains(0.8, 0, 0)
 steeringPID.Reset(my_hmmwv.GetVehicle())
@@ -87,7 +87,7 @@ vis.SetWindowSize(1280, 1024)
 vis.SetHUDLocation(500, 20)
 vis.Initialize()
 vis.AddLogo()
-vis.AddTypicalLights()
+vis.AddLightDirectional()
 vis.SetChaseCamera(chrono.ChVectorD(0.0, 0.0, 1.75), 6.0, 0.5)
 vis.AddSkyBox()
 vis.AttachVehicle(my_hmmwv.GetVehicle())

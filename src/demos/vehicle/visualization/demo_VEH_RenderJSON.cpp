@@ -98,7 +98,8 @@ ChVehicle* CreateVehicle(ChSystem* sys, bool is_wheeled) {
         vehicle->SetChassisVisualizationType(VisualizationType::MESH);
         vehicle->SetSprocketVisualizationType(VisualizationType::MESH);
         vehicle->SetIdlerVisualizationType(VisualizationType::MESH);
-        vehicle->SetRoadWheelAssemblyVisualizationType(VisualizationType::MESH);
+        vehicle->SetSuspensionVisualizationType(VisualizationType::MESH);
+        vehicle->SetIdlerWheelVisualizationType(VisualizationType::MESH);
         vehicle->SetRoadWheelVisualizationType(VisualizationType::MESH);
         vehicle->SetTrackShoeVisualizationType(VisualizationType::MESH);
 
@@ -192,7 +193,7 @@ int main(int argc, char* argv[]) {
     // Create the terrain
     RigidTerrain terrain(&sys);
     if (enable_gravity) {
-        MaterialInfo minfo;
+        ChContactMaterialData minfo;
         minfo.mu = 0.9f;
         minfo.cr = 0.01f;
         minfo.Y = 2e7f;
@@ -220,7 +221,7 @@ int main(int argc, char* argv[]) {
     // Attach custom stats overlay
     auto my_stats = chrono_types::make_shared<JSONStats>();
     my_stats->json_file = setup.VehicleJSON();
-    vis.SetStatsRenderer(my_stats);
+    vis.AttachStatsRenderer(my_stats);
     vis.EnableStats(true);
 
     // Simulation loop

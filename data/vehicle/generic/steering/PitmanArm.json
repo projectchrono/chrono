@@ -25,7 +25,7 @@
   {
     "Location":                 [0, 0.249, 0],
     "Direction":                [0, 0, 1],
-    "Maximum Angle":            50
+    "Maximum Angle (deg)":      50
   },
 
   "Universal Joint":

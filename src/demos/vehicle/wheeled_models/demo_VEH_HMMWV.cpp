@@ -73,6 +73,9 @@ DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
 // Steering type (PITMAN_ARM or PITMAN_ARM_SHAFTS)
 SteeringTypeWV steering_type = SteeringTypeWV::PITMAN_ARM;
 
+// Brake type (SIMPLE or SHAFTS)
+BrakeType brake_type = BrakeType::SHAFTS;
+
 // Model tierods as bodies (true) or as distance constraints (false)
 bool use_tierod_bodies = true;
 
@@ -132,6 +135,7 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetDriveType(drive_type);
     my_hmmwv.UseTierodBodies(use_tierod_bodies);
     my_hmmwv.SetSteeringType(steering_type);
+    my_hmmwv.SetBrakeType(brake_type);
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.SetTireStepSize(tire_step_size);
     my_hmmwv.Initialize();
@@ -148,7 +152,7 @@ int main(int argc, char* argv[]) {
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());
 
-    MaterialInfo minfo;
+    ChContactMaterialData minfo;
     minfo.mu = 0.9f;
     minfo.cr = 0.01f;
     minfo.Y = 2e7f;
@@ -158,7 +162,7 @@ int main(int argc, char* argv[]) {
     switch (terrain_model) {
         case RigidTerrain::PatchType::BOX:
             patch = terrain.AddPatch(patch_mat, CSYSNORM, terrainLength, terrainWidth);
-            patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
+            patch->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"), 200, 200);
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:
             patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"),
@@ -191,7 +195,7 @@ int main(int argc, char* argv[]) {
     vis->SetWindowTitle("HMMWV Demo");
     vis->SetChaseCamera(trackPoint, 6.0, 0.5);
     vis->Initialize();
-    vis->AddTypicalLights();
+    vis->AddLightDirectional();
     vis->AddSkyBox();
     vis->AddLogo();
     vis->AttachVehicle(&my_hmmwv.GetVehicle());

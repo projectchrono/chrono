@@ -94,7 +94,7 @@ def main():
     vis.SetChaseCameraState(veh.ChChaseCamera.Track)
     vis.SetChaseCameraPosition(chrono.ChVectorD(-10, 0, 2.0))
     vis.Initialize()
-    vis.AddTypicalLights()
+    vis.AddLightDirectional()
     vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
     vis.AddSkyBox()
     vis.AttachVehicle(hmmwv_1.GetVehicle())

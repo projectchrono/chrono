@@ -221,7 +221,7 @@ void ChPovRay::ExportScript(const std::string& filename) {
     {
         ChStreamOutAsciiFile assets_file((base_path + assets_filename).c_str());
         assets_file << "// File containing meshes and objects for rendering POV scenes.\n";
-        assets_file << "// This file is automatically included by " << out_script_filename.c_str() << ".pov , \n";
+        assets_file << "// This file is automatically included by " << out_script_filename << ".pov , \n";
         assets_file << "// and you should not modify it.\n\n";
     }
 
@@ -253,6 +253,9 @@ void ChPovRay::ExportScript(const std::string& filename) {
 
     // Rough way to load the template head file in the string buffer
     if (template_filename != "") {
+
+        std::cout << "USE TEMPLATE FILE: " << template_filename << std::endl;
+
         ChStreamInAsciiFile templatefile(template_filename.c_str());
         std::string buffer_template;
         while (!templatefile.End_of_stream()) {
@@ -739,7 +742,7 @@ void ChPovRay::ExportObjData(ChStreamOutAsciiFile& pov_file,
 void ChPovRay::ExportData() {
     char fullname[200];
     sprintf(fullname, "%s%05d", out_data_filename.c_str(), framenumber);
-    ExportData((out_path + "/" + std::string(fullname)));
+    ExportData(out_path + "/" + std::string(fullname));
 }
 
 void ChPovRay::ExportData(const std::string& filename) {

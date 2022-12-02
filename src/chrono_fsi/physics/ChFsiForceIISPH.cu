@@ -492,8 +492,8 @@ __device__ void Calc_BC_aij_Bi(const uint i_idx,
                                Real3* acc_fsi_fea_D,
                                uint* FlexIdentifierD,
                                const int numFlex1D,
-                               uint2* CableElementsNodes,
-                               uint4* ShellelementsNodes,
+                               uint2* CableElementsNodesD,
+                               uint4* ShellElementsNodesD,
 
                                int4 updatePortion,
                                uint* gridMarkerIndexD,
@@ -523,7 +523,7 @@ __device__ void Calc_BC_aij_Bi(const uint i_idx,
     BCE_Vel_Acc(i_idx, myAcc, V_prescribed, sortedPosRad, updatePortion, gridMarkerIndexD, qD, rigidSPH_MeshPos_LRF_D,
                 posRigid_fsiBodies_D, velMassRigid_fsiBodies_D, omegaVelLRF_fsiBodies_D, accRigid_fsiBodies_D,
                 omegaAccLRF_fsiBodies_D, rigidIdentifierD, pos_fsi_fea_D, vel_fsi_fea_D, acc_fsi_fea_D, FlexIdentifierD,
-                numFlex1D, CableElementsNodes, ShellelementsNodes);
+                numFlex1D, CableElementsNodesD, ShellElementsNodesD);
 
     for (int c = csrStartIdx; c < csrEndIdx; c++) {
         csrValA[c] = 0;
@@ -841,8 +841,8 @@ __global__ void FormAXB(Real* csrValA,
                         Real3* acc_fsi_fea_D,
                         uint* FlexIdentifierD,
                         const int numFlex1D,
-                        uint2* CableElementsNodes,
-                        uint4* ShellelementsNodes,
+                        uint2* CableElementsNodesD,
+                        uint4* ShellElementsNodesD,
 
                         int4 updatePortion,
                         uint* gridMarkerIndexD,
@@ -883,8 +883,8 @@ __global__ void FormAXB(Real* csrValA,
                        qD, rigidSPH_MeshPos_LRF_D, posRigid_fsiBodies_D, velMassRigid_fsiBodies_D,
                        omegaVelLRF_fsiBodies_D, accRigid_fsiBodies_D, omegaAccLRF_fsiBodies_D, rigidIdentifierD,
 
-                       pos_fsi_fea_D, vel_fsi_fea_D, acc_fsi_fea_D, FlexIdentifierD, numFlex1D, CableElementsNodes,
-                       ShellelementsNodes,
+                       pos_fsi_fea_D, vel_fsi_fea_D, acc_fsi_fea_D, FlexIdentifierD, numFlex1D, CableElementsNodesD,
+                       ShellElementsNodesD,
 
                        updatePortion, gridMarkerIndexD, cellStart, cellEnd, numAllMarkers, true);
 }
@@ -962,8 +962,8 @@ __global__ void Calc_Pressure(Real* a_ii,     // Read
                               Real3* acc_fsi_fea_D,
                               uint* FlexIdentifierD,
                               const int numFlex1D,
-                              uint2* CableElementsNodes,
-                              uint4* ShellelementsNodes,
+                              uint2* CableElementsNodesD,
+                              uint4* ShellElementsNodesD,
 
                               int4 updatePortion,
                               uint* gridMarkerIndexD,
@@ -1064,7 +1064,7 @@ __global__ void Calc_Pressure(Real* a_ii,     // Read
         BCE_Vel_Acc(i_idx, myAcc, V_prescribed, sortedPosRad, updatePortion, gridMarkerIndexD, qD,
                     rigidSPH_MeshPos_LRF_D, posRigid_fsiBodies_D, velMassRigid_fsiBodies_D, omegaVelLRF_fsiBodies_D,
                     accRigid_fsiBodies_D, omegaAccLRF_fsiBodies_D, rigidIdentifierD, pos_fsi_fea_D, vel_fsi_fea_D,
-                    acc_fsi_fea_D, FlexIdentifierD, numFlex1D, CableElementsNodes, ShellelementsNodes);
+                    acc_fsi_fea_D, FlexIdentifierD, numFlex1D, CableElementsNodesD, ShellElementsNodesD);
 
         Real3 numeratorv = mR3(0);
         Real denumenator = 0;
@@ -1494,7 +1494,7 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodiesDataD> otherFsi
 
             mR3CAST(pos_fsi_fea_D), mR3CAST(vel_fsi_fea_D), mR3CAST(acc_fsi_fea_D),
             U1CAST(fsiGeneralData->FlexIdentifierD), (int)numObjectsH->numFlexBodies1D,
-            U2CAST(fsiGeneralData->CableElementsNodes), U4CAST(fsiGeneralData->ShellElementsNodes),
+            U2CAST(fsiGeneralData->CableElementsNodesD), U4CAST(fsiGeneralData->ShellElementsNodesD),
 
             updatePortion, U1CAST(markersProximityD->gridMarkerIndexD), U1CAST(markersProximityD->cellStartD),
             U1CAST(markersProximityD->cellEndD), paramsH->dT, numAllMarkers, SPARSE_FLAG, isErrorD);
@@ -1585,7 +1585,7 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodiesDataD> otherFsi
 
                     mR3CAST(pos_fsi_fea_D), mR3CAST(vel_fsi_fea_D), mR3CAST(acc_fsi_fea_D),
                     U1CAST(fsiGeneralData->FlexIdentifierD), (int)numObjectsH->numFlexBodies1D,
-                    U2CAST(fsiGeneralData->CableElementsNodes), U4CAST(fsiGeneralData->ShellElementsNodes),
+                    U2CAST(fsiGeneralData->CableElementsNodesD), U4CAST(fsiGeneralData->ShellElementsNodesD),
                     updatePortion, U1CAST(markersProximityD->gridMarkerIndexD), R1CAST(p_old), mR3CAST(V_new),
                     U1CAST(markersProximityD->cellStartD), U1CAST(markersProximityD->cellEndD), paramsH->dT,
                     numAllMarkers, isErrorD);

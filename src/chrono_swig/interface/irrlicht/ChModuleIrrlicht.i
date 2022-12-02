@@ -85,7 +85,7 @@ using namespace gui;
 %include "wchar.i"
 %include "python/cwstring.i"
 %include "cstring.i"
-
+%include "cpointer.i"
 
 // This is to enable references to double,int,etc. types in function parameters
 %pointer_class(int,int_ptr);
@@ -166,6 +166,7 @@ using namespace gui;
 %template(dimension2du) irr::core::dimension2d<irr::u32>;
 
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChVisualSystem.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChColor.i"
 
 %ignore chrono::irrlicht::ScreenQuadCB;
 %include "../../../chrono_irrlicht/ChIrrEffects.h"

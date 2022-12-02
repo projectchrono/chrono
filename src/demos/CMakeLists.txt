@@ -33,14 +33,20 @@ endif()
 
 #--------------------------------------------------------------
 
-message(STATUS)
-message(STATUS "==== Demo programs ====")
-message(STATUS)
+message(STATUS "\n==== Demo programs ====\n")
 
 option(BUILD_DEMOS_BASE "Build demo programs for base Chrono module" TRUE)
 mark_as_advanced(FORCE BUILD_DEMOS_BASE)
 if(BUILD_DEMOS_BASE)
 	add_subdirectory(core)
+endif()
+
+if(ENABLE_MODULE_IRRLICHT OR ENABLE_MODULE_VSG)
+	option(BUILD_DEMOS_MBS "Build demo programs for MBS module" TRUE)
+	mark_as_advanced(FORCE BUILD_DEMOS_MBS)
+	if(BUILD_DEMOS_MBS)
+	  add_subdirectory(mbs)
+	endif()
 endif()
 
 option(BUILD_DEMOS_FEA "Build demo programs for FEA" TRUE)

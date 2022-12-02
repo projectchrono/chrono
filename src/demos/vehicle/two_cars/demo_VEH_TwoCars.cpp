@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddSkyBox();
     vis->AddLogo();
-    vis->AddTypicalLights();
+    vis->AddLightDirectional();
     vis->AttachVehicle(&hmmwv_1.GetVehicle());
 
     // ---------------
