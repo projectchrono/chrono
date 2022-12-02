@@ -59,27 +59,16 @@ void ChTire::Initialize(std::shared_ptr<ChWheel> wheel) {
 // Calculate kinematics quantities (slip angle, longitudinal slip, camber angle,
 // and toe-in angle) using the given state of the associated wheel.
 // -----------------------------------------------------------------------------
-void ChTire::CalculateKinematics(double time, const WheelState& state, const ChTerrain& terrain) {
+void ChTire::CalculateKinematics(const WheelState& wheel_state, 
+                                 const ChCoordsys<>& tire_frame) {
     // Wheel normal (expressed in global frame)
-    ChVector<> wheel_normal = state.rot.GetYaxis();
-
-    // Terrain normal at wheel location (expressed in global frame)
-    ChVector<> Z_dir = terrain.GetNormal(state.pos);
-
-    // Longitudinal (heading) and lateral directions, in the terrain plane
-    ChVector<> X_dir = Vcross(wheel_normal, Z_dir);
-    X_dir.Normalize();
-    ChVector<> Y_dir = Vcross(Z_dir, X_dir);
-
-    // Tire reference coordinate system
-    ChMatrix33<> rot;
-    rot.Set_A_axis(X_dir, Y_dir, Z_dir);
-    ChCoordsys<> tire_csys(state.pos, rot.Get_A_quaternion());
+    ChVector<> wheel_normal = wheel_state.rot.GetYaxis();
 
     // Express wheel linear velocity in tire frame
-    ChVector<> V = tire_csys.TransformDirectionParentToLocal(state.lin_vel);
+    ChVector<> V = tire_frame.TransformDirectionParentToLocal(wheel_state.lin_vel);
+
     // Express wheel normal in tire frame
-    ChVector<> n = tire_csys.TransformDirectionParentToLocal(wheel_normal);
+    ChVector<> n = tire_frame.TransformDirectionParentToLocal(wheel_normal);
 
     // Slip angle (positive sign = left turn, negative sign = right turn)
     double abs_Vx = std::abs(V.x());
@@ -87,7 +76,7 @@ void ChTire::CalculateKinematics(double time, const WheelState& state, const ChT
     m_slip_angle = (abs_Vx > zero_Vx) ? std::atan(V.y() / abs_Vx) : 0;
 
     // Longitudinal slip (positive sign = driving, negative sign = breaking)
-    m_longitudinal_slip = (abs_Vx > zero_Vx) ? -(V.x() - state.omega * GetRadius()) / abs_Vx : 0;
+    m_longitudinal_slip = (abs_Vx > zero_Vx) ? -(V.x() - wheel_state.omega * GetRadius()) / abs_Vx : 0;
 
     // Camber angle (positive sign = upper side tipping to the left, negative sign = upper side tipping to the right)
     m_camber_angle = std::atan2(n.z(), n.y());

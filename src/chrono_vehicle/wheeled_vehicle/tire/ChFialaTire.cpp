@@ -67,10 +67,8 @@ void ChFialaTire::Initialize(std::shared_ptr<ChWheel> wheel) {
 
 void ChFialaTire::Synchronize(double time,
                               const ChTerrain& terrain) {
-    WheelState wheel_state = m_wheel->GetState();
-    CalculateKinematics(time, wheel_state, terrain);
-
     m_time = time;
+    WheelState wheel_state = m_wheel->GetState();
 
     // Extract the wheel normal (expressed in global frame)
     ChMatrix33<> A(wheel_state.rot);
@@ -95,6 +93,9 @@ void ChFialaTire::Synchronize(double time,
     }
     ChClampValue(mu, 0.1f, 1.0f);
     m_mu = mu;
+
+    // Calculate tire kinematics
+    CalculateKinematics(wheel_state, m_data.frame);
 
     if (m_data.in_contact) {
         // Wheel velocity in the ISO-C Frame
