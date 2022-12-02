@@ -60,7 +60,7 @@ void ChRackPinion::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Create and initialize the steering link body
     ChVector<> link_pos = steering_to_abs.TransformPointLocalToParent(ChVector<>(0, GetSteeringLinkCOM(), 0));
-    ChQuaternion<> link_rot = steering_to_abs.GetRot();
+    ChQuaternion<> link_rot = steering_to_abs.GetRot().GetNormalized();
 
     m_link = std::shared_ptr<ChBody>(sys->NewBody());
     m_link->SetNameString(m_name + "_link");
@@ -80,7 +80,7 @@ void ChRackPinion::Initialize(std::shared_ptr<ChChassis> chassis,
     // The offset value here must be larger than any possible displacement of the steering link body (the rack) so that
     // we do not reach the singular configuration of the ChLinkLinActuator (when the distance between the two markers
     // becomes zero).
-    double offset = 10;
+    double offset = 2;
     ChVector<> pt1 = link_pos;
     ChVector<> pt2 = link_pos - offset * link_rot.GetYaxis();
 
