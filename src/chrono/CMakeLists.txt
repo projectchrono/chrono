@@ -1362,6 +1362,25 @@ set(ChronoEngine_FILES
     ${ChronoEngine_tiny_obj_FILES}
     )
 
+# Add the 'socket' library to the linking, depending on platform.
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	IF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
+		SET (CH_SOCKET_LIB "Ws2_32.lib")
+	ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
+		SET (CH_SOCKET_LIB "Ws2_32.lib") # btw not Ws2_64.lib that does not exist
+	ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC")
+		SET (CH_SOCKET_LIB "")  # not needed?
+	ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC_X64")
+		SET (CH_SOCKET_LIB "")  # not needed?
+	ENDIF()
+ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+	SET (CH_SOCKET_LIB "")		  # not needed?
+ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	SET (CH_SOCKET_LIB "")		  # not needed?
+ENDIF()
+			
+SET(CH_SOCKET_LIB ${CH_SOCKET_LIB} PARENT_SCOPE)
+
 # Disable all warnings from external code
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set_source_files_properties(${ChronoEngine_collision_bullet_SOURCES} PROPERTIES COMPILE_OPTIONS "-Wno-everything")
