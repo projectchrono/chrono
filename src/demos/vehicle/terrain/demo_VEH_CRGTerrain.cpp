@@ -58,7 +58,7 @@ enum class DriverModelType {
     HUMAN     // simple realistic human driver
 };
 
-// Type of tire model (LUGRE, FIALA, PACEJKA, or TMEASY)
+// Type of tire model (FIALA, PAC89, PAC02, or TMEASY)
 TireModelType tire_model = TireModelType::TMEASY;
 
 // Road visualization (mesh or boundary lines)
@@ -297,8 +297,8 @@ int main(int argc, char* argv[]) {
     std::cout << "Road width  = " << road_width << std::endl;
     std::cout << std::boolalpha << "Closed loop?  " << path_is_closed << std::endl << std::endl;
 
-    terrain.GetGround()->AddVisualShape(chrono_types::make_shared<ChBoxShape>(geometry::ChBox(1, road_width, 1)),
-                                        ChFrame<>(init_csys.pos - 0.5 * ChWorldFrame::Vertical(), init_csys.rot));
+    terrain.GetGround()->AddVisualShape(chrono_types::make_shared<ChBoxShape>(geometry::ChBox(1, road_width, 0.1)),
+                                        ChFrame<>(init_csys.pos - 0.05 * ChWorldFrame::Vertical(), init_csys.rot));
 
     path->write(out_dir + "/path.txt");
 

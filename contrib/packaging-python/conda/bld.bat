@@ -44,9 +44,9 @@ cmake -G "Visual Studio 17 2022" -T "v142" ^
  -DENABLE_MODULE_POSTPROCESS=ON ^
  -DENABLE_MODULE_VEHICLE=ON ^
  -DENABLE_MODULE_PYTHON=ON ^
- -DENABLE_MODULE_SENSOR=ON ^
+ -DENABLE_MODULE_SENSOR=OFF ^
  -DNUMPY_INCLUDE_DIR="C:/Users/builder/miniconda3/envs/build-env/pkgs/numpy-base/Lib/site-packages/numpy/core/include/" ^
- -DOptiX_INSTALL_DIR="C:/Program Files/NVIDIA Corporation/OptiX SDK 7.2.0" ^
+ -DOptiX_INSTALL_DIR="C:/Program Files/NVIDIA Corporation/OptiX SDK 7.5.0" ^
  -DCUDA_TOOLKIT_ROOT_DIR="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.7" ^
  -DGLFW_DLL="C:/Users/builder/Documents/glfw-3.3.5/lib-vc2019/glfw3.dll" ^
  -DGLFW_INCLUDE_DIR="C:/Users/builder/Documents/glfw-3.3.5/include" ^

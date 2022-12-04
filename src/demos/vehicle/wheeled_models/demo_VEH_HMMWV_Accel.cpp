@@ -55,7 +55,7 @@ PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 // Drive type (FWD, RWD, or AWD)
 DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
 
-// Type of tire model (RIGID, RIGID_MESH, PACEJKA, LUGRE, FIALA, PAC89, PAC02, TMEASY)
+// Type of tire model (RIGID, RIGID_MESH, PACEJKA, FIALA, PAC89, PAC02, TMEASY)
 TireModelType tire_model = TireModelType::TMEASY;
 
 enum class TerrainType {FLAT, RIGID};

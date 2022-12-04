@@ -15,8 +15,13 @@ endif()
 # ------------------------------------------------------------------------------
 # Additional include paths and libraries
 # ------------------------------------------------------------------------------
-
 include_directories(${CH_IRRLICHTINC})
+set(LIBRARIES 
+    ChronoEngine
+    ChronoEngine_vehicle
+    ChronoModels_robot
+    ChronoEngine_irrlicht
+)
 
 # ------------------------------------------------------------------------------
 
@@ -24,6 +29,14 @@ set(DEMOS
     demo_ROBOT_Curiosity_Rigid
     demo_ROBOT_Curiosity_SCM
 )
+
+if(ENABLE_MODULE_SENSOR)
+  set(DEMOS ${DEMOS}
+      demo_ROBOT_Curiosity_SCM_Sensor
+  )
+  include_directories(${CH_SENSOR_INCLUDES})
+  list(APPEND LIBRARIES ChronoEngine_sensor)
+endif()
 
 # ------------------------------------------------------------------------------
 # Add all executables
@@ -42,13 +55,6 @@ foreach(PROGRAM ${DEMOS})
       set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
     endif()
     set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
-
-    target_link_libraries(${PROGRAM}
-                          ChronoEngine
-                          ChronoEngine_vehicle
-                          ChronoModels_robot
-                          ChronoEngine_irrlicht
-                        )
-
+    target_link_libraries(${PROGRAM} ${LIBRARIES})
     install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 endforeach()

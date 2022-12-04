@@ -31,6 +31,14 @@ set(DEMOS
     demo_ROBOT_Viper_SCM
 )
 
+if(ENABLE_MODULE_SENSOR)
+  set(DEMOS ${DEMOS}
+      demo_ROBOT_Viper_SCM_Sensor
+  )
+  include_directories(${CH_SENSOR_INCLUDES})
+  list(APPEND LIBRARIES ChronoEngine_sensor)
+endif()
+
 if(ENABLE_MODULE_FSI)
   set(DEMOS ${DEMOS}
       demo_ROBOT_Viper_SPH

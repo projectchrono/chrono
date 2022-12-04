@@ -60,8 +60,8 @@
   {
     "Location Chassis":         [0.104, 0.560, 0.197],
     "Location Arm":             [0.097, 0.593, -0.047],
-    "Minimum Length":       0.15,
-    "Maximum Length":      0.3,
+    "Minimum Length":       0.12,
+    "Maximum Length":      0.2,
     "Curve Data": [[-0.2,  -322095.536],
                    [-0.18, -240521.166],
                    [-0.16, -174535.686],
@@ -90,7 +90,7 @@
   {
     "Location Chassis":         [0.104, 0.548, 0.323],
     "Location Arm":             [0.097, 0.593, -0.047],
-    "Damping Coefficient":      19015.5692
+    "Damping Coefficient":      15000
   },
 
   "Axle":

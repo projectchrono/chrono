@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
     auto checkerboard = chrono_types::make_shared<ChVisualMaterial>();
     checkerboard->SetKdTexture(GetChronoDataFile("sensor/textures/checkerboard.png"));
     checkerboard->SetRoughness(0.8);
-    box_body->GetVisualModel()->GetShape(0)->SetMaterial(0,checkerboard);
+    box_body->GetVisualModel()->GetShape(0)->SetMaterial(0, checkerboard);
 
     // -----------------------
     // Create a sensor manager
@@ -129,26 +129,25 @@ int main(int argc, char* argv[]) {
                                                          alias_factor,  // supersample factor for antialiasing
                                                          lens_model,    // FOV
                                                          false);        // use global illumination or not
-    cam->SetRadialLensParameters({-.369,.1257,-.0194});
+    cam->SetRadialLensParameters({-.369, .1257, -.0194});
     if (vis)
         cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(image_width, image_height, ""));
     if (save)
         cam->PushFilter(chrono_types::make_shared<ChFilterSave>(out_dir + "camera_rad/"));
     manager->AddSensor(cam);
 
-
     // -------------------------------------------------------
     // Create a camera and add it to the sensor manager
     // -------------------------------------------------------
     auto cam_fov = chrono_types::make_shared<ChCameraSensor>(floor,         // body camera is attached to
-                                                         update_rate,   // update rate in Hz
-                                                         offset_pose2,  // offset pose
-                                                         image_width,   // image width
-                                                         image_height,  // image height
-                                                         fov,           // camera's horizontal field of view
-                                                         alias_factor,  // supersample factor for antialiasing
-                                                         CameraLensModelType::FOV_LENS,    // FOV
-                                                         false);        // use global illumination or not
+                                                             update_rate,   // update rate in Hz
+                                                             offset_pose2,  // offset pose
+                                                             image_width,   // image width
+                                                             image_height,  // image height
+                                                             fov,           // camera's horizontal field of view
+                                                             alias_factor,  // supersample factor for antialiasing
+                                                             CameraLensModelType::FOV_LENS,  // FOV
+                                                             false);  // use global illumination or not
     if (vis)
         cam_fov->PushFilter(chrono_types::make_shared<ChFilterVisualize>(image_width, image_height, ""));
     if (save)
@@ -183,8 +182,9 @@ int main(int argc, char* argv[]) {
         // Set object pose randomly to generate calibration images
         box_body->SetPos({x_min + ChRandom() * (x_max - x_min), y_min + ChRandom() * (y_max - y_min),
                           z_min + ChRandom() * (z_max - z_min)});
-        box_body->SetRot(Q_from_Euler123({ax_min + ChRandom() * (ax_max - ax_min), ay_min + ChRandom() * (ay_max - ay_min),
-                               az_min + ChRandom() * (az_max - az_min)}));
+        box_body->SetRot(
+            Q_from_Euler123({ax_min + ChRandom() * (ax_max - ax_min), ay_min + ChRandom() * (ay_max - ay_min),
+                             az_min + ChRandom() * (az_max - az_min)}));
 
         manager->Update();
 

@@ -1,0 +1,29 @@
+{
+  "Name": "SUV",
+  "Type": "Vehicle",
+  "Template": "WheeledVehicle",
+
+  "Vehicle": {
+    "Input File": "vehicle/Nissan_Patrol/json/suv_Vehicle.json",
+    "Chassis Visualization Type": "Mesh",
+    "Suspension Visualization Type": "Primitives",
+    "Steering Visualization Type": "Primitives",
+    "Wheel Visualization Type": "Mesh"
+  },
+
+  "Powertrain": {
+    "Input File": "vehicle/Nissan_Patrol/json/suv_SimplePowertrain.json"
+  },
+
+  "Tire": {
+    "Input File": "vehicle/Nissan_Patrol/json/suv_TMeasy_converted.json",
+    "Visualization Type": "Mesh"
+  },
+
+  "Zombie": {
+    "Chassis Visualization File": "Nissan_Patrol/suv_chassis.obj",
+    "Wheel Visualization File": "Nissan_Patrol/suv_rim.obj",
+    "Tire Visualization File": "Nissan_Patrol/suv_tire.obj",
+    "Number of Wheels": 4
+  }
+}
