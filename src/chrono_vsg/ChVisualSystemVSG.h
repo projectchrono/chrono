@@ -63,6 +63,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void SetWireFrameMode(bool mode = true) { m_draw_as_wireframe = mode; }
     void SetCameraVertical(chrono::vsg3d::CameraVerticalDir upDir);
     void AddCamera(const ChVector<>& pos, ChVector<> targ = VNULL);
+    void UpdateCamera(const ChVector<>& pos, ChVector<> targ = VNULL);
     void SetLightIntensity(double intensity) { m_lightIntensity = ChClamp(intensity, 0.0, 1.0); }
     void SetLightDirection(double acimut, double elevation);
     void SetCameraAngleDeg(double angleDeg) { m_cameraAngleDeg = angleDeg; }
