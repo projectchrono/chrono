@@ -87,7 +87,7 @@ set(ChronoEngine_core_HEADERS
     core/ChGlobal.h
     core/ChFx.h
     core/ChTypes.h
-	core/ChTensors.h
+    core/ChTensors.h
     )
 
 source_group(core FILES
@@ -237,7 +237,7 @@ set(ChronoEngine_physics_links_SOURCES
     physics/ChLinkMotorLinearSpeed.cpp
     physics/ChLinkMotorLinearForce.cpp
     physics/ChLinkMotorLinearDriveline.cpp
-	physics/ChLinkMotionImposed.cpp
+    physics/ChLinkMotionImposed.cpp
 )
 
 set(ChronoEngine_physics_links_HEADERS
@@ -278,7 +278,7 @@ set(ChronoEngine_physics_links_HEADERS
     physics/ChLinkMotorLinearSpeed.h
     physics/ChLinkMotorLinearForce.h
     physics/ChLinkMotorLinearDriveline.h
-	physics/ChLinkMotionImposed.h
+    physics/ChLinkMotionImposed.h
 )
 
 source_group(physics\\links FILES

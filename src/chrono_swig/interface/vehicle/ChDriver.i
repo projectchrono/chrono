@@ -21,9 +21,6 @@
 
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 
-//to import/wrap
-//#include "chrono_irrlicht/ChIrrApp.h"
-
 #ifdef CHRONO_IRRLICHT
 #include "chrono_vehicle/utils/ChVehicleVisualSystemIrrlicht.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
