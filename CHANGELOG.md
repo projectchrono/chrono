@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [Chrono::Sensor features and updates](#Chron::Sensor-features-and-updates)
   - [Closed-loop vehicle paths](#fixed-closed-loop-vehicle-path)
   - [Miscellaneous Chrono::Vehicle extensions](#added-miscellaneous-chronovehicle-extensions)
   - [Chrono:Fsi API changes](#changed-chronofsi-api-changes)
@@ -70,7 +71,27 @@ Change Log
 
 ## Unreleased (development branch)
 
-#### [Fixed] Closed-loop vehicle paths
+### [Added] Chrono::Sensor features and updates
+
+**Updates and Bug Fixes**
+
+ - Upgraded to OptiX 7.5, requiring NVIDIA drive 515.X or newer
+ - Fixed motion blur for cameras
+ - Improve consistency of FOV model for camera and segmentation camera
+ - Fix undefined behavior associated with zero-time transforms on ampere GPUs
+ - Changed the intensity-dependent noise model to be parameterized by variance variance rather than standard deviation to allow negative correlation
+
+**New Features**
+
+ - Added fog to camera. This uses an exponential blending function with scattering coefficient. Can be enabled on a per-camera basis in the camera constructed. Parameters for fog scattering, color, and max visible distance are set in `ChScene`: `SetFogScattering(float coefficient)`, `SetFogColor(ChVector<float> color)` and `SetFogScatteringFromDistance(float distance)`.
+ - Added radial distortion model (standard model in matlab). The input parameters are the correction parameters that can be calibrated from distorted images. The FOV lens model and radial model use the effective FOV parameter. Instead, they use the calibrated parameter as would be obtained by calibrating the focal distance.
+  - Radial model set as: `CameraLensModelType::RADIAL` in the camera
+  - Parameters configured as `ChCameraSensor::SetRadialLensParameters(ChVector<float> params)`
+ - Allow Chrono::Sensor to be built when GLFW library and headers are not found
+
+
+
+### [Fixed] Closed-loop vehicle paths
 
 The treatment of closed-loop Bezier curves (used for path-following vehicle lateral controllers) and the associated curve tracker was improved and fixed.  With this change, the flag indicating whether a path is open or closed is set in the constructor of `ChBezierCurve` and encapsulating objects (`ChBezierCurveTracker` and the different path-following vehicle driver models) query the underlying path.
 
