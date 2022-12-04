@@ -31,7 +31,8 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 ToeBarLeafspringAxle::ToeBarLeafspringAxle(const std::string& filename)
     : ChToeBarLeafspringAxle(""), m_springForceCB(NULL), m_shockForceCB(NULL), m_use_left_knuckle(true) {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -45,8 +46,6 @@ ToeBarLeafspringAxle::ToeBarLeafspringAxle(const rapidjson::Document& d)
     Create(d);
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ToeBarLeafspringAxle::~ToeBarLeafspringAxle() {}
 
 // -----------------------------------------------------------------------------
@@ -56,6 +55,16 @@ ToeBarLeafspringAxle::~ToeBarLeafspringAxle() {}
 void ToeBarLeafspringAxle::Create(const rapidjson::Document& d) {
     // Invoke base class method.
     ChPart::Create(d);
+
+    if (d.HasMember("Camber Angle (deg)"))
+        m_camber_angle = d["Camber Angle (deg)"].GetDouble() * CH_C_DEG_TO_RAD;
+    else
+        m_camber_angle = 0;
+
+    if (d.HasMember("Toe Angle (deg)"))
+        m_toe_angle = d["Toe Angle (deg)"].GetDouble() * CH_C_DEG_TO_RAD;
+    else
+        m_toe_angle = 0;
 
     // Read Spindle data
     assert(d.HasMember("Spindle"));
@@ -117,16 +126,19 @@ void ToeBarLeafspringAxle::Create(const rapidjson::Document& d) {
     m_points[SPRING_C] = ReadVectorJSON(d["Spring"]["Location Chassis"]);
     m_points[SPRING_A] = ReadVectorJSON(d["Spring"]["Location Axle"]);
     m_springRestLength = d["Spring"]["Free Length"].GetDouble();
+    double preload = 0;
+    if (d["Spring"].HasMember("Preload"))
+        preload = d["Spring"]["Preload"].GetDouble();
 
     if (d["Spring"].HasMember("Minimum Length") && d["Spring"].HasMember("Maximum Length")) {
         if (d["Spring"].HasMember("Spring Coefficient")) {
             m_springForceCB = chrono_types::make_shared<LinearSpringBistopForce>(
                 d["Spring"]["Spring Coefficient"].GetDouble(), d["Spring"]["Minimum Length"].GetDouble(),
-                d["Spring"]["Maximum Length"].GetDouble());
+                d["Spring"]["Maximum Length"].GetDouble(), preload);
         } else if (d["Spring"].HasMember("Curve Data")) {
             int num_points = d["Spring"]["Curve Data"].Size();
             auto springForceCB = chrono_types::make_shared<MapSpringBistopForce>(
-                d["Spring"]["Minimum Length"].GetDouble(), d["Spring"]["Maximum Length"].GetDouble());
+                d["Spring"]["Minimum Length"].GetDouble(), d["Spring"]["Maximum Length"].GetDouble(), preload);
             for (int i = 0; i < num_points; i++) {
                 springForceCB->add_point(d["Spring"]["Curve Data"][i][0u].GetDouble(),
                                          d["Spring"]["Curve Data"][i][1u].GetDouble());
@@ -136,10 +148,10 @@ void ToeBarLeafspringAxle::Create(const rapidjson::Document& d) {
     } else {
         if (d["Spring"].HasMember("Spring Coefficient")) {
             m_springForceCB =
-                chrono_types::make_shared<LinearSpringForce>(d["Spring"]["Spring Coefficient"].GetDouble());
+                chrono_types::make_shared<LinearSpringForce>(d["Spring"]["Spring Coefficient"].GetDouble(), preload);
         } else if (d["Spring"].HasMember("Curve Data")) {
             int num_points = d["Spring"]["Curve Data"].Size();
-            auto springForceCB = chrono_types::make_shared<MapSpringForce>();
+            auto springForceCB = chrono_types::make_shared<MapSpringForce>(preload);
             for (int i = 0; i < num_points; i++) {
                 springForceCB->add_point(d["Spring"]["Curve Data"][i][0u].GetDouble(),
                                          d["Spring"]["Curve Data"][i][1u].GetDouble());
@@ -179,7 +191,7 @@ void ToeBarLeafspringAxle::Create(const rapidjson::Document& d) {
     assert(d["Axle"].IsObject());
 
     m_axleInertia = d["Axle"]["Inertia"].GetDouble();
-    }
+}
 
 }  // end namespace vehicle
 }  // end namespace chrono

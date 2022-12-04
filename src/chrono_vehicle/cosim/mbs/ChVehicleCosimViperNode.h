@@ -23,7 +23,7 @@
 #define CH_VEHCOSIM_VIPER_NODE_H
 
 #include "chrono_models/robot/viper/Viper.h"
-#include "chrono_vehicle/cosim/ChVehicleCosimMBSNode.h"
+#include "chrono_vehicle/cosim/ChVehicleCosimWheeledMBSNode.h"
 
 namespace chrono {
 namespace vehicle {
@@ -33,7 +33,7 @@ namespace vehicle {
 
 /// Viper rover co-simulation node.
 /// The rover is co-simulated with tire nodes and a terrain node.
-class CH_VEHICLE_API ChVehicleCosimViperNode : public ChVehicleCosimMBSNode {
+class CH_VEHICLE_API ChVehicleCosimViperNode : public ChVehicleCosimWheeledMBSNode {
   public:
     /// Construct a Viper rover node.
     ChVehicleCosimViperNode();

@@ -47,6 +47,9 @@ class CH_MODELS_API RCCar_DoubleWishboneFront : public chrono::vehicle::ChDouble
     RCCar_DoubleWishboneFront(const std::string& name);
     ~RCCar_DoubleWishboneFront();
 
+    virtual double getCamberAngle() const override { return 0; }
+    virtual double getToeAngle() const override { return 0; }
+
     virtual double getSpindleMass() const override { return m_spindleMass; }
     virtual double getUCAMass() const override { return m_UCAMass; }
     virtual double getLCAMass() const override { return m_LCAMass; }
@@ -112,6 +115,9 @@ class CH_MODELS_API RCCar_DoubleWishboneRear : public chrono::vehicle::ChDoubleW
   public:
     RCCar_DoubleWishboneRear(const std::string& name);
     ~RCCar_DoubleWishboneRear();
+
+    virtual double getCamberAngle() const override { return 0; }
+    virtual double getToeAngle() const override { return 0; }
 
     virtual double getSpindleMass() const override { return m_spindleMass; }
     virtual double getUCAMass() const override { return m_UCAMass; }

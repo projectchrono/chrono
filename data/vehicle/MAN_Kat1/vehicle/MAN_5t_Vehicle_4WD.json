@@ -38,7 +38,7 @@
 
   "Wheelbase": 4.5,
   "Minimum Turning Radius": 11.5,
-  "Maximum Steering Angle": 39.0,
+  "Maximum Steering Angle (deg)": 39.0,
 
   "Driveline": {
     "Input File": "MAN_Kat1/driveline/MAN_5t_DrivelineSimple.json",

@@ -16,11 +16,11 @@
 #ifndef CH_ELEMENT_HEXA_ANCF_3813_H
 #define CH_ELEMENT_HEXA_ANCF_3813_H
 
+#include "chrono/fea/ChElementANCF.h"
 #include "chrono/fea/ChElementHexahedron.h"
 #include "chrono/fea/ChElementGeneric.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/fea/ChContinuumMaterial.h"
-#include "chrono/core/ChQuadrature.h"
 #include "chrono/physics/ChLoadable.h"
 
 namespace chrono {
@@ -32,7 +32,10 @@ namespace fea {
 /// Hexahedronal solid element with 8 nodes (with EAS).
 /// While technically not an ANCF element, the name is justified because the implementation can use the same ANCF
 /// machinery.
-class ChApi ChElementHexaANCF_3813 : public ChElementHexahedron, public ChElementGeneric, public ChLoadableUVW {
+class ChApi ChElementHexaANCF_3813 : public ChElementANCF,
+                                     public ChElementHexahedron,
+                                     public ChElementGeneric,
+                                     public ChLoadableUVW {
   public:
     using ShapeVector = ChMatrixNM<double, 1, 8>;
 
@@ -42,11 +45,17 @@ class ChApi ChElementHexaANCF_3813 : public ChElementHexahedron, public ChElemen
     /// Get number of nodes of this element
     virtual int GetNnodes() override { return 8; }
 
-    /// Get number of degrees of freedom of this element
+    /// Get the number of coordinates in the field used by the referenced nodes.
     virtual int GetNdofs() override { return 8 * 3; }
 
+    /// Get the number of active coordinates in the field used by the referenced nodes.
+    virtual int GetNdofs_active() override { return m_element_dof; }
+
     /// Get the number of coordinates from the n-th node used by this element.
-    virtual int GetNodeNdofs(int n) override { return 3; }
+    virtual int GetNodeNdofs(int n) override { return m_nodes[n]->GetNdofX(); }
+
+    /// Get the number of active coordinates from the n-th node used by this element.
+    virtual int GetNodeNdofs_active(int n) override { return m_nodes[n]->GetNdofX_active(); }
 
     /// Access the n-th node of this element.
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return m_nodes[n]; }
@@ -134,13 +143,13 @@ class ChApi ChElementHexaANCF_3813 : public ChElementHexahedron, public ChElemen
     virtual int GetSubBlocks() override { return 8; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return m_nodes[nblock]->NodeGetOffset_w(); }
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return m_nodes[nblock]->NodeGetOffsetW(); }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return 3; }
 
     /// Check if the specified sub-block of DOFs is active.
-    virtual bool IsSubBlockActive(int nblock) const override { return !m_nodes[nblock]->GetFixed(); }
+    virtual bool IsSubBlockActive(int nblock) const override { return !m_nodes[nblock]->IsFixed(); }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;

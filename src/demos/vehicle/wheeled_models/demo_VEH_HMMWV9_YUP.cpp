@@ -45,7 +45,6 @@ using namespace chrono::vehicle::hmmwv;
 // Initial vehicle location and orientation
 ChVector<> initLoc(0, 1, 10);
 double initYaw = 0;
-////double initYaw = CH_C_PI / 4;  // 45 deg towards vehicle's left
 
 // Type of tire model (RIGID, RIGID_MESH, TMEASY, PACEJKA, PAC89, FIALA)
 TireModelType tire_model = TireModelType::TMEASY;
@@ -84,7 +83,7 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetPowertrainType(PowertrainModelType::SIMPLE);
     my_hmmwv.SetDriveType(DrivelineTypeWV::RWD);
     my_hmmwv.SetTireType(tire_model);
-    my_hmmwv.SetTireCollisionType(ChTire::CollisionType::ENVELOPE);
+    ////my_hmmwv.SetTireCollisionType(ChTire::CollisionType::ENVELOPE);
     my_hmmwv.SetTireStepSize(tire_step_size);
     my_hmmwv.Initialize();
 
@@ -125,11 +124,18 @@ int main(int argc, char* argv[]) {
 
     terrain.Initialize();
 
-
 #ifdef USE_PATH_FOLLOWER
     // Path follower driver
     ////auto path = DoubleLaneChangePath(initLoc, 13.5, 4.0, 11.0, 20.0, true);
-    auto path = CirclePath(initLoc, 20, 50, true, 5);
+    ////auto path = CirclePath(initLoc, 20, 50, true, 5);
+
+    std::vector<ChVector<>> points = {
+        initLoc + ChVector<>(0, 0.2, 0),    //
+        initLoc + ChVector<>(20, 0.2, 0),   //
+        initLoc + ChVector<>(20, 0.2, 20),  //
+        initLoc + ChVector<>(0, 0.2, 20)    //
+    };
+    auto path = chrono_types::make_shared<ChBezierCurve>(points, true);
 
     ChPathFollowerDriver driver(my_hmmwv.GetVehicle(), path, "my_path", 10);
     driver.GetSteeringController().SetLookAheadDistance(5);

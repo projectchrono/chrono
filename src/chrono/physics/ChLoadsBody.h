@@ -232,15 +232,17 @@ class ChApi ChLoadBodyInertia : public ChLoadCustom {
                                  ) override;
 
     /// Just for efficiency, override the default LoadIntLoadResidual_Mv, because we can do this in a simplified way.
-    virtual void LoadIntLoadResidual_Mv(ChVectorDynamic<>& R,           ///< result: the R residual, R += c*M*w
-                                        const ChVectorDynamic<>& w,     ///< the w vector
-                                        const double c) override;       ///< a scaling factor
-  private:
-    ChVector<> c_m;       ///< offset of center of mass
-    double  mass;         ///< added mass
-    ChMatrix33<> I;       ///< added inertia tensor, in body coordinates
+    virtual void LoadIntLoadResidual_Mv(ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*w
+                                        const ChVectorDynamic<>& w,  ///< the w vector
+                                        const double c               ///< scaling factor
+                                        ) override;
 
-    virtual bool IsStiff() override { return true; } // this to force the use of the inertial M, R and K matrices
+  private:
+    ChVector<> c_m;  ///< offset of center of mass
+    double mass;     ///< added mass
+    ChMatrix33<> I;  ///< added inertia tensor, in body coordinates
+
+    virtual bool IsStiff() override { return true; }  // this to force the use of the inertial M, R and K matrices
 
     static bool use_inertial_damping_matrix_R;  // default true. Can be disabled globally, for testing or optimization
     static bool use_inertial_stiffness_matrix_K;// default true. Can be disabled globally, for testing or optimization

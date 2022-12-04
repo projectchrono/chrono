@@ -193,7 +193,7 @@ HMMWV_Driver::HMMWV_Driver(chrono::vehicle::ChVehicle& vehicle,
                            std::shared_ptr<chrono::ChBezierCurve> path,
                            double time_start,
                            double time_max)
-    : chrono::vehicle::ChDriver(vehicle), m_steeringPID(path, false), m_start(time_start), m_end(time_max) {
+    : chrono::vehicle::ChDriver(vehicle), m_steeringPID(path), m_start(time_start), m_end(time_max) {
     m_steeringPID.Reset(m_vehicle);
 
     auto road = std::shared_ptr<chrono::ChBody>(m_vehicle.GetSystem()->NewBody());

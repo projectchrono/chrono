@@ -160,6 +160,8 @@ set(CV_BASE_FILES
     ChTerrain.cpp
     ChVehicle.h
     ChVehicle.cpp
+    ChVehicleGeometry.h
+    ChVehicleGeometry.cpp
     ChVehicleModelData.h
     ChVehicleModelData.cpp
     ChVehicleVisualSystem.h
@@ -204,8 +206,8 @@ set(CV_DRIVER_FILES
     driver/ChPathFollowerDriver.cpp
     driver/ChPathFollowerACCDriver.h
     driver/ChPathFollowerACCDriver.cpp
-		driver/ChExternalDriver.h
-		driver/ChExternalDriver.cpp
+    driver/ChExternalDriver.h
+    driver/ChExternalDriver.cpp
 
     driver/AIDriver.h
     driver/AIDriver.cpp
@@ -511,8 +513,6 @@ set(CV_WV_TIRE_FILES
     wheeled_vehicle/tire/ChPac02Tire.cpp
     wheeled_vehicle/tire/ChPac89Tire.h
     wheeled_vehicle/tire/ChPac89Tire.cpp
-    wheeled_vehicle/tire/ChLugreTire.h
-    wheeled_vehicle/tire/ChLugreTire.cpp
     wheeled_vehicle/tire/ChFialaTire.h
     wheeled_vehicle/tire/ChFialaTire.cpp
     wheeled_vehicle/tire/ChTMeasyTire.h
@@ -534,8 +534,6 @@ set(CV_WV_TIRE_FILES
     wheeled_vehicle/tire/Pac02Tire.cpp
     wheeled_vehicle/tire/Pac89Tire.h
     wheeled_vehicle/tire/Pac89Tire.cpp
-    wheeled_vehicle/tire/LugreTire.h
-    wheeled_vehicle/tire/LugreTire.cpp
     wheeled_vehicle/tire/FialaTire.h
     wheeled_vehicle/tire/FialaTire.cpp
     wheeled_vehicle/tire/TMeasyTire.h

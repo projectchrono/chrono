@@ -31,21 +31,15 @@
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
-#include "converters/ChVehicle_DataGeneratorFunctor.h"
-#include "converters/ChSystem_DataGeneratorFunctor.h"
-#include "converters/ChDriverInputs_DataParserFunctor.h"
-
 #ifdef CHRONO_SENSOR
     #include "chrono_sensor/ChSensorManager.h"
     #include "chrono_sensor/sensors/ChCameraSensor.h"
     #include "chrono_sensor/filters/ChFilterAccess.h"
     #include "chrono_sensor/filters/ChFilterVisualize.h"
     #include "chrono_sensor/filters/ChFilterSave.h"
-
-    #include "converters/ChCameraSensor_DataGeneratorFunctor.h"
 #endif
-#include "chrono_thirdparty/stb/stb_image_write.h"
 
+#include "chrono_thirdparty/stb/stb_image_write.h"
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 #include "chrono_thirdparty/rapidjson/prettywriter.h"
@@ -124,6 +118,90 @@ bool povray_output = false;
 // Vehicle state output (forced to true if povray output enabled)
 bool state_output = false;
 int filter_window_size = 20;
+
+// =============================================================================
+
+class ChVehicle_DataGeneratorFunctor : public ChExternalDriver::DataGeneratorFunctor {
+  public:
+    ChVehicle_DataGeneratorFunctor(const std::string& id, ChVehicle& vehicle)
+        : DataGeneratorFunctor("ChVehicle", id), m_vehicle(vehicle) {}
+
+    virtual void Serialize(ChJSONWriter& writer) override {
+        auto body = m_vehicle.GetChassisBody();
+
+        writer.Key("pos") << body->GetPos();
+        writer.Key("rot") << body->GetRot();
+        writer.Key("lin_vel") << body->GetPos_dt();
+        writer.Key("ang_vel") << body->GetWvel_loc();
+        writer.Key("lin_acc") << body->GetPos_dtdt();
+        writer.Key("ang_acc") << body->GetWacc_loc();
+    }
+
+  private:
+    ChVehicle& m_vehicle;
+};
+
+class ChSystem_DataGeneratorFunctor : public ChExternalDriver::DataGeneratorFunctor {
+  public:
+    ChSystem_DataGeneratorFunctor(const std::string& id, ChSystem* system)
+        : DataGeneratorFunctor("ChSystem", id), m_system(system) {}
+
+    virtual void Serialize(ChJSONWriter& writer) override { writer.Key("time") << m_system->GetChTime(); }
+
+  private:
+    ChSystem* m_system;
+};
+
+class ChDriverInputs_DataParserFunctor : public ChExternalDriver::DataParserFunctor {
+  public:
+    ChDriverInputs_DataParserFunctor(ChDriver& driver) : DataParserFunctor("ChDriverInputs"), m_driver(driver) {}
+
+    virtual void Deserialize(ChJSONReader& reader) override {
+        double steering, throttle, braking;
+        reader >> steering >> throttle >> braking;
+
+        m_driver.SetThrottle(throttle);
+        m_driver.SetSteering(steering);
+        m_driver.SetBraking(braking);
+    }
+
+  private:
+    ChDriver& m_driver;
+};
+
+#ifdef CHRONO_SENSOR
+
+// Create a data generator to add to the external driver
+// This will send the camera image the external control stack
+class ChCameraSensor_DataGeneratorFunctor : public ChExternalDriver::DataGeneratorFunctor {
+  public:
+    ChCameraSensor_DataGeneratorFunctor(const std::string& id, std::shared_ptr<ChCameraSensor> camera)
+        : DataGeneratorFunctor("ChCameraSensor", id), m_camera(camera) {}
+
+    virtual void Serialize(ChJSONWriter& writer) override {
+        auto rgba8_ptr = m_camera->GetMostRecentBuffer<UserRGBA8BufferPtr>();
+        if (rgba8_ptr->Buffer) {
+            std::string image(reinterpret_cast<char*>(rgba8_ptr->Buffer.get()),
+                              rgba8_ptr->Width * rgba8_ptr->Height * sizeof(PixelRGBA8));
+
+            writer.Key("width") << rgba8_ptr->Width;
+            writer.Key("height") << rgba8_ptr->Height;
+            writer.Key("size") << sizeof(PixelRGBA8);
+            writer.Key("encoding") << "rgba8";
+            writer.Key("image") << image;
+        }
+    }
+
+    virtual bool HasData() override {
+        auto rgba8_ptr = m_camera->GetMostRecentBuffer<UserRGBA8BufferPtr>();
+        return rgba8_ptr->Buffer != nullptr;
+    }
+
+  private:
+    std::shared_ptr<ChCameraSensor> m_camera;
+};
+
+#endif
 
 // =============================================================================
 
@@ -245,7 +323,7 @@ int main(int argc, char* argv[]) {
     // Create the terrain
     RigidTerrain terrain(hmmwv.GetSystem());
 
-    MaterialInfo minfo;
+    ChContactMaterialData minfo;
     minfo.mu = 0.9f;
     minfo.cr = 0.01f;
     minfo.Y = 2e7f;

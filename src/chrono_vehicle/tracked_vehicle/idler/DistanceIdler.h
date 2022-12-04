@@ -42,7 +42,7 @@ class CH_VEHICLE_API DistanceIdler : public ChDistanceIdler {
     virtual double GetCarrierVisRadius() const override { return m_carrier_vis_radius; }
 
     virtual double GetTensionerExtensionTime() const override { return m_tensioner_time; }
-    virtual double GetTensionerDistance() const { return m_tensioner_dist; }
+    virtual double GetTensionerDistance() const override { return m_tensioner_dist; }
 
   private:
     virtual const ChVector<> GetLocation(PointId which) override { return m_points[which]; }

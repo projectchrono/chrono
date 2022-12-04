@@ -21,8 +21,9 @@ auto Camera = chrono_types::make_shared<ChCameraSensor>(
                     alias_factor,               // supersample factor for antialiasing
                     lens_model,                 // lens model for optional distortion
                     use_global_illumination,    // optional for enabling global illumination on camera
-                    gamma                       // optionally set the gamma correction exponent (defaults to 2.2)
-                    ); 
+                    gamma,                      // optionally set the gamma correction exponent (defaults to 2.2)
+                    use_fog                     // optionally enable fog for this camera
+                    );
 
 Camera->SetName("Camera Sensor");
 Camera->SetLag(lag);

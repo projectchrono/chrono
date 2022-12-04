@@ -146,13 +146,11 @@ class CH_VEHICLE_API ChPathSteeringController : public ChSteeringController {
     /// Construct a steering controller to track the specified path.
     /// This version uses default controller parameters (zero gains).
     /// The user is responsible for calling SetGains and SetLookAheadDistance.
-    ChPathSteeringController(std::shared_ptr<ChBezierCurve> path, bool isClosedPath = false);
+    ChPathSteeringController(std::shared_ptr<ChBezierCurve> path);
 
     /// Construct a steering controller to track the specified path. This version reads controller gains and lookahead
     /// distance from the specified JSON file.
-    ChPathSteeringController(const std::string& filename,
-                             std::shared_ptr<ChBezierCurve> path,
-                             bool isClosedPath = false);
+    ChPathSteeringController(const std::string& filename, std::shared_ptr<ChBezierCurve> path);
 
     ~ChPathSteeringController() {}
 
@@ -195,15 +193,12 @@ class CH_VEHICLE_API ChPathSteeringControllerXT : public ChSteeringController {
     /// Construct a steering controller to track the specified path.
     /// This version uses default controller parameters (zero gains).
     /// The user is responsible for calling SetGains and SetLookAheadDistance.
-    ChPathSteeringControllerXT(std::shared_ptr<ChBezierCurve> path,
-                               bool isClosedPath = false,
-                               double max_wheel_turn_angle = 0.0);
+    ChPathSteeringControllerXT(std::shared_ptr<ChBezierCurve> path, double max_wheel_turn_angle = 0.0);
 
     /// Construct a steering controller to track the specified path.
     /// This version reads controller gains and lookahead distance from the specified JSON file.
     ChPathSteeringControllerXT(const std::string& filename,
                                std::shared_ptr<ChBezierCurve> path,
-                               bool isClosedPath = false,
                                double max_wheel_turn_angle = 0.0);
 
     ~ChPathSteeringControllerXT() {}
@@ -338,15 +333,12 @@ class CH_VEHICLE_API ChPathSteeringControllerStanley : public ChSteeringControll
     /// Construct a steering controller to track the specified path.
     /// This version uses default controller parameters (zero gains).
     /// The user is responsible for calling SetGains and SetLookAheadDistance.
-    ChPathSteeringControllerStanley(std::shared_ptr<ChBezierCurve> path,
-                                    bool isClosedPath = false,
-                                    double max_wheel_turn_angle = 0.0);
+    ChPathSteeringControllerStanley(std::shared_ptr<ChBezierCurve> path, double max_wheel_turn_angle = 0.0);
 
     /// Construct a steering controller to track the specified path.
     /// This version reads controller gains and lookahead distance from the specified JSON file.
     ChPathSteeringControllerStanley(const std::string& filename,
                                     std::shared_ptr<ChBezierCurve> path,
-                                    bool isClosedPath = false,
                                     double max_wheel_turn_angle = 0.0);
 
     ~ChPathSteeringControllerStanley() {}
@@ -376,8 +368,6 @@ class CH_VEHICLE_API ChPathSteeringControllerStanley : public ChSteeringControll
 
     double m_pcurvature;    ///< local curvature
     ChVector<> m_ptangent;  ///< local path tangent
-
-    bool m_isClosedPath;  ///< needed for point extraction
 
     double m_Kp;  ///< Proportional gain
     double m_Ki;  ///< Integral gain

@@ -41,6 +41,10 @@ const ChCoordsys<> HMMWV_Chassis::m_driverCsys(ChVector<>(0.87, 0.27, 1.05), ChQ
 // -----------------------------------------------------------------------------
 HMMWV_Chassis::HMMWV_Chassis(const std::string& name, bool fixed, CollisionType chassis_collision_type)
     : ChRigidChassis(name, fixed) {
+    // In this model, we use a single material with default properties.
+    ChContactMaterialData minfo;
+    m_geometry.m_materials.push_back(minfo);
+
     m_body_inertia(0, 0) = m_body_inertiaXX.x();
     m_body_inertia(1, 1) = m_body_inertiaXX.y();
     m_body_inertia(2, 2) = m_body_inertiaXX.z();
@@ -78,13 +82,6 @@ HMMWV_Chassis::HMMWV_Chassis(const std::string& name, bool fixed, CollisionType 
         default:
             break;
     }
-}
-
-void HMMWV_Chassis::CreateContactMaterials(ChContactMethod contact_method) {
-    // Create the contact materials.
-    // In this model, we use a single material with default properties.
-    MaterialInfo minfo;
-    m_geometry.m_materials.push_back(minfo.CreateMaterial(contact_method));
 }
 
 }  // end namespace hmmwv

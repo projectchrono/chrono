@@ -116,7 +116,7 @@ DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
 
 SteeringTypeWV steering_type = SteeringTypeWV::PITMAN_ARM;
 
-// Type of tire model (RIGID, RIGID_MESH, TMEASY, PACEJKA, LUGRE, FIALA, PAC89, PAC02)
+// Type of tire model (RIGID, RIGID_MESH, TMEASY, PACEJKA, FIALA, PAC89, PAC02)
 TireModelType tire_model = TireModelType::PAC02;
 
 // Rigid terrain
@@ -193,7 +193,7 @@ int main(int argc, char* argv[]) {
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());
 
-    MaterialInfo minfo;
+    ChContactMaterialData minfo;
     minfo.mu = 0.9f;
     minfo.cr = 0.01f;
     minfo.Y = 2e7f;

@@ -16,10 +16,7 @@
 
 namespace chrono {
 
-ChNodeBase::ChNodeBase() {
-    offset_x = 0;
-    offset_w = 0;
-}
+ChNodeBase::ChNodeBase() : offset_x(0), offset_w(0) {}
 
 ChNodeBase::ChNodeBase(const ChNodeBase& other) {
     offset_x = other.offset_x;
@@ -36,16 +33,35 @@ ChNodeBase& ChNodeBase::operator=(const ChNodeBase& other) {
     return *this;
 }
 
+void ChNodeBase::NodeIntStateIncrement(const unsigned int off_x,
+                                       ChState& x_new,
+                                       const ChState& x,
+                                       const unsigned int off_v,
+                                       const ChStateDelta& Dv) {
+    for (int i = 0; i < GetNdofX(); ++i) {
+        x_new(off_x + i) = x(off_x + i) + Dv(off_v + i);
+    }
+}
+
+void ChNodeBase::NodeIntStateGetIncrement(const unsigned int off_x,
+                                          const ChState& x_new,
+                                          const ChState& x,
+                                          const unsigned int off_v,
+                                          ChStateDelta& Dv) {
+    for (int i = 0; i < GetNdofX(); ++i) {
+        Dv(off_v + i) = x_new(off_x + i) - x(off_x + i);
+    }
+}
+
 void ChNodeBase::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChNodeBase>();
     // serialize all member data:
 }
 
-/// Method to allow de serialization of transient data from archives.
 void ChNodeBase::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChNodeBase>();
+    /*int version =*/marchive.VersionRead<ChNodeBase>();
     // deserialize all member data:
 }
 

@@ -300,7 +300,7 @@ bool ChTriangleMeshConnected::LoadWavefrontMesh(const std::string& filename, boo
 
 // Write the specified meshes in a Wavefront .obj file
 void ChTriangleMeshConnected::WriteWavefront(const std::string& filename,
-                                             std::vector<ChTriangleMeshConnected>& meshes) {
+                                             const std::vector<ChTriangleMeshConnected>& meshes) {
     std::ofstream mf(filename);
 
     //// TODO: include normal information if available

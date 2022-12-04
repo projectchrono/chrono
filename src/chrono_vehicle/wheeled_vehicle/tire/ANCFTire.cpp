@@ -26,10 +26,8 @@ using namespace rapidjson;
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
 // Constructors for ANCFTire
-// -----------------------------------------------------------------------------
-ANCFTire::ANCFTire(const std::string& filename) : ChANCFTire("") {
+ANCFTire::ANCFTire(const std::string& filename) : ChANCFTire(""), m_ANCF8(false) {
     Document d;
     ReadFileJSON(filename, d);
     if (d.IsNull())
@@ -44,9 +42,7 @@ ANCFTire::ANCFTire(const rapidjson::Document& d) : ChANCFTire("") {
     ProcessJSON(d);
 }
 
-// -----------------------------------------------------------------------------
 // Process the specified JSON document and load tire specification
-// -----------------------------------------------------------------------------
 void ANCFTire::ProcessJSON(const rapidjson::Document& d) {
     // Read top-level data
     assert(d.HasMember("Type"));
@@ -59,6 +55,9 @@ void ANCFTire::ProcessJSON(const rapidjson::Document& d) {
     m_tire_radius = d["Tire Radius"].GetDouble();
     m_rim_radius = d["Rim Radius"].GetDouble();
     m_rim_width = d["Rim Width"].GetDouble();
+
+    if (d.HasMember("8-Node Elements"))
+        m_ANCF8 = d["8-Node Elements"].GetBool();
 
     // Read contact material data
     assert(d.HasMember("Contact Material"));
@@ -90,53 +89,52 @@ void ANCFTire::ProcessJSON(const rapidjson::Document& d) {
     m_default_pressure = d["Default Pressure"].GetDouble();
 
     // Read layer information for the Bead Section
-    m_num_layers_bead = d["Bead Section"]["Layer Thickness"].Size();
-    assert(d["Bead Section"]["Ply Angle"].Size() == m_num_layers_bead);
-    assert(d["Bead Section"]["Material ID"].Size() == m_num_layers_bead);
-    for (unsigned int i = 0; i < m_num_layers_bead; i++) {
+    m_bead.num_divs = d["Bead Section"]["Number Elements"].GetInt();
+    m_bead.num_layers = d["Bead Section"]["Layer Thickness"].Size();
+    assert(d["Bead Section"]["Ply Angle"].Size() == m_bead.num_layers);
+    assert(d["Bead Section"]["Material ID"].Size() == m_bead.num_layers);
+    for (int i = 0; i < m_bead.num_layers; i++) {
         double thickness = d["Bead Section"]["Layer Thickness"][i].GetDouble();
         double angle = d["Bead Section"]["Ply Angle"][i].GetDouble();
         int id = d["Bead Section"]["Material ID"][i].GetInt();
         assert(id >= 0 && id < num_materials);
-        m_layer_thickness_bead.push_back(thickness);
-        m_ply_angle_bead.push_back(angle);
-        m_material_id_bead.push_back(id);
+        m_bead.thickness.push_back(thickness);
+        m_bead.angle.push_back(angle);
+        m_bead.mat.push_back(m_materials[id]);
     }
-    m_num_elements_bead = d["Bead Section"]["Number Elements"].GetInt();
 
     // Read layer information for the Sidewall Section
-    m_num_layers_sidewall = d["Sidewall Section"]["Layer Thickness"].Size();
-    assert(d["Sidewall Section"]["Ply Angle"].Size() == m_num_layers_sidewall);
-    assert(d["Sidewall Section"]["Material ID"].Size() == m_num_layers_sidewall);
-    for (unsigned int i = 0; i < m_num_layers_sidewall; i++) {
+    m_sidewall.num_divs = d["Sidewall Section"]["Number Elements"].GetInt();
+    m_sidewall.num_layers = d["Sidewall Section"]["Layer Thickness"].Size();
+    assert(d["Sidewall Section"]["Ply Angle"].Size() == m_sidewall.num_layers);
+    assert(d["Sidewall Section"]["Material ID"].Size() == m_sidewall.num_layers);
+    for (int i = 0; i < m_sidewall.num_layers; i++) {
         double thickness = d["Sidewall Section"]["Layer Thickness"][i].GetDouble();
         double angle = d["Sidewall Section"]["Ply Angle"][i].GetDouble();
         int id = d["Sidewall Section"]["Material ID"][i].GetInt();
         assert(id >= 0 && id < num_materials);
-        m_layer_thickness_sidewall.push_back(thickness);
-        m_ply_angle_sidewall.push_back(angle);
-        m_material_id_sidewall.push_back(id);
+        m_sidewall.thickness.push_back(thickness);
+        m_sidewall.angle.push_back(angle);
+        m_sidewall.mat.push_back(m_materials[id]);
     }
-    m_num_elements_sidewall = d["Sidewall Section"]["Number Elements"].GetInt();
 
     // Read layer information for the Tread Section
-    m_num_layers_tread = d["Tread Section"]["Layer Thickness"].Size();
-    assert(d["Tread Section"]["Ply Angle"].Size() == m_num_layers_tread);
-    assert(d["Tread Section"]["Material ID"].Size() == m_num_layers_tread);
-    for (unsigned int i = 0; i < m_num_layers_tread; i++) {
+    m_tread.num_divs = d["Tread Section"]["Number Elements"].GetInt();
+    m_tread.num_layers = d["Tread Section"]["Layer Thickness"].Size();
+    assert(d["Tread Section"]["Ply Angle"].Size() == m_tread.num_layers);
+    assert(d["Tread Section"]["Material ID"].Size() == m_tread.num_layers);
+    for (int i = 0; i < m_tread.num_layers; i++) {
         double thickness = d["Tread Section"]["Layer Thickness"][i].GetDouble();
         double angle = d["Tread Section"]["Ply Angle"][i].GetDouble();
         int id = d["Tread Section"]["Material ID"][i].GetInt();
         assert(id >= 0 && id < num_materials);
-        m_layer_thickness_tread.push_back(thickness);
-        m_ply_angle_tread.push_back(angle);
-        m_material_id_tread.push_back(id);
+        m_tread.thickness.push_back(thickness);
+        m_tread.angle.push_back(angle);
+        m_tread.mat.push_back(m_materials[id]);
     }
-    m_num_elements_tread = d["Tread Section"]["Number Elements"].GetInt();
 
     // Number of elements in the two orthogonal directions
     m_div_circumference = d["Number Elements Circumference"].GetInt();
-    m_div_width = 2 * (m_num_elements_bead + m_num_elements_sidewall + m_num_elements_tread);
 
     // Read profile specification
     m_num_points = d["Profile"].Size();
@@ -150,132 +148,28 @@ void ANCFTire::ProcessJSON(const rapidjson::Document& d) {
     }
 }
 
-// -----------------------------------------------------------------------------
 // Create the FEA mesh
-// -----------------------------------------------------------------------------
 void ANCFTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) {
-    // Create piece-wise cubic spline approximation of the tire profile.
-    //   x - radial direction
-    //   y - transversal direction
-    ChCubicSpline splineX(m_profile_t, m_profile_x);
-    ChCubicSpline splineY(m_profile_t, m_profile_y);
-
-    // Create the mesh nodes.
-    // The nodes are first created in the wheel local frame, assuming Y as the tire axis,
-    // and are then transformed to the global frame.
-    for (int i = 0; i < m_div_circumference; i++) {
-        double phi = (CH_C_2PI * i) / m_div_circumference;
-        ChVector<> nrm(-std::sin(phi), 0, std::cos(phi));
-
-        for (int j = 0; j <= m_div_width; j++) {
-            double t_prf = double(j) / m_div_width;
-            double x_prf, xp_prf, xpp_prf;
-            double y_prf, yp_prf, ypp_prf;
-            splineX.Evaluate(t_prf, x_prf, xp_prf, xpp_prf);
-            splineY.Evaluate(t_prf, y_prf, yp_prf, ypp_prf);
-
-            // Node position with respect to rim center
-            double x = (m_rim_radius + x_prf) * std::cos(phi);
-            double y = y_prf;
-            double z = (m_rim_radius + x_prf) * std::sin(phi);
-            // Node position in global frame (actual coordinate values)
-            ChVector<> loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
-
-            // Node direction
-            ChVector<> tan_prf(std::cos(phi) * xp_prf, yp_prf, std::sin(phi) * xp_prf);
-            ChVector<> nrm_prf = Vcross(tan_prf, nrm).GetNormalized();
-            ChVector<> dir = wheel_frame.TransformDirectionLocalToParent(nrm_prf);
-
-            auto node = chrono_types::make_shared<ChNodeFEAxyzD>(loc, dir);
-
-            // Node velocity
-            ChVector<> vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
-            node->SetPos_dt(vel);
-            node->SetMass(0);
-            m_mesh->AddNode(node);
-        }
-    }
-
-    // Create the ANCF shell elements
-    for (int i = 0; i < m_div_circumference; i++) {
-        for (int j = 0; j < m_div_width; j++) {
-            // Adjacent nodes
-            int inode0, inode1, inode2, inode3;
-            inode1 = j + i * (m_div_width + 1);
-            inode2 = j + 1 + i * (m_div_width + 1);
-            if (i == m_div_circumference - 1) {
-                inode0 = j;
-                inode3 = j + 1;
-            } else {
-                inode0 = j + (i + 1) * (m_div_width + 1);
-                inode3 = j + 1 + (i + 1) * (m_div_width + 1);
-            }
-
-            auto node0 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_mesh->GetNode(inode0));
-            auto node1 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_mesh->GetNode(inode1));
-            auto node2 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_mesh->GetNode(inode2));
-            auto node3 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_mesh->GetNode(inode3));
-
-            // Create the element and set its nodes.
-            auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
-            element->SetNodes(node0, node1, node2, node3);
-
-            // Element dimensions
-            double len_circumference =
-                0.5 * ((node1->GetPos() - node0->GetPos()).Length() + (node3->GetPos() - node2->GetPos()).Length());
-            double len_width = 
-                0.5 * ((node2->GetPos() - node1->GetPos()).Length() + (node3->GetPos() - node0->GetPos()).Length());
-
-            element->SetDimensions(len_circumference, len_width);
-
-            // Figure out the section for this element
-            int b1 = m_num_elements_bead;
-            int b2 = m_div_width - m_num_elements_bead;
-            int s1 = b1 + m_num_elements_sidewall;
-            int s2 = b2 - m_num_elements_sidewall;
-            if (j < b1 || j >= b2) {
-                // Bead section
-                for (unsigned int im = 0; im < m_num_layers_bead; im++) {
-                    element->AddLayer(m_layer_thickness_bead[im], CH_C_DEG_TO_RAD * m_ply_angle_bead[im],
-                                      m_materials[m_material_id_bead[im]]);
-                }
-            } else if (j < s1 || j >= s2) {
-                // Sidewall section
-                for (unsigned int im = 0; im < m_num_layers_sidewall; im++) {
-                    element->AddLayer(m_layer_thickness_sidewall[im], CH_C_DEG_TO_RAD * m_ply_angle_sidewall[im],
-                                      m_materials[m_material_id_sidewall[im]]);
-                }
-            } else {
-                // Tread section
-                for (unsigned int im = 0; im < m_num_layers_tread; im++) {
-                    element->AddLayer(m_layer_thickness_tread[im], CH_C_DEG_TO_RAD * m_ply_angle_tread[im],
-                                      m_materials[m_material_id_tread[im]]);
-                }
-            }
-
-            // Set other element properties
-            element->SetAlphaDamp(m_alpha);
-
-            // Add element to mesh
-            m_mesh->AddElement(element);
-        }
-    }
-}
-
-std::vector<std::shared_ptr<fea::ChNodeFEAbase>> ANCFTire::GetConnectedNodes() const {
-    std::vector<std::shared_ptr<fea::ChNodeFEAbase>> nodes;
-
-    for (int i = 0; i < m_div_circumference; i++) {
-        for (int j = 0; j <= m_div_width; j++) {
-            int index = j + i * (m_div_width + 1);
-            if (index % (m_div_width + 1) == 0) {
-                nodes.push_back(std::dynamic_pointer_cast<ChNodeFEAbase>(m_mesh->GetNode(index)));
-                nodes.push_back(std::dynamic_pointer_cast<ChNodeFEAbase>(m_mesh->GetNode(index + m_div_width)));
-            }
-        }
-    }
-
-    return nodes;
+    if (m_ANCF8)
+        m_rim_nodes = CreateMeshANCF8(                //
+            {m_profile_t, m_profile_x, m_profile_y},  //
+            m_bead, m_sidewall, m_tread,              //
+            m_div_circumference,                      //
+            m_rim_radius,                             //
+            m_alpha,                                  //
+            m_mesh,                                   //
+            wheel_frame                               //
+        );
+    else
+        m_rim_nodes = CreateMeshANCF4(                //
+            {m_profile_t, m_profile_x, m_profile_y},  //
+            m_bead, m_sidewall, m_tread,              //
+            m_div_circumference,                      //
+            m_rim_radius,                             //
+            m_alpha,                                  //
+            m_mesh,                                   //
+            wheel_frame                               //
+        );
 }
 
 void ANCFTire::CreateContactMaterial() {

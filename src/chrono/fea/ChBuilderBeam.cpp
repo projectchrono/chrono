@@ -288,13 +288,13 @@ void ChBuilderCableANCF::BuildBeam(std::shared_ptr<ChMesh> mesh,              //
     }
 }
 
-void ChBuilderCableANCF::BuildBeam_FSI(std::shared_ptr<ChMesh> mesh,  // mesh to store the resulting elements
-                                       std::shared_ptr<ChBeamSectionCable> sect,  // section material for beam elements
-                                       const int N,                               // number of elements in the segment
-                                       const ChVector<> A,                        // starting point
-                                       const ChVector<> B,                        // ending point
-                                       std::vector<std::vector<int>>& nodes,      // node indices for all elements
-                                       std::vector<std::vector<int>>& node_nbrs  // neighbor node indices (connectivity)
+void ChBuilderCableANCF::BuildBeam(std::shared_ptr<ChMesh> mesh,              // mesh to store the resulting elements
+                                   std::shared_ptr<ChBeamSectionCable> sect,  // section material for beam elements
+                                   const int N,                               // number of elements in the segment
+                                   const ChVector<> A,                        // starting point
+                                   const ChVector<> B,                        // ending point
+                                   std::vector<std::vector<int>>& nodes,      // node indices for all elements
+                                   std::vector<std::vector<int>>& node_nbrs   // neighbor node indices (connectivity)
 ) {
     beam_elems.clear();
     beam_nodes.clear();
@@ -306,9 +306,7 @@ void ChBuilderCableANCF::BuildBeam_FSI(std::shared_ptr<ChMesh> mesh,  // mesh to
     ChVector<> bdir = (B - A);
     bdir.Normalize();
 
-    // printf("Section GetArea=%f, GetI=%f, GetDensity=%f, GetYoungModulus=%f, GetBeamRaleyghDamping=%f,bdir=%f\n",
-    //       sect->GetArea(), sect->GetI(), sect->GetDensity(), sect->GetYoungModulus(), sect->GetBeamRaleyghDamping(),
-    //       bdir.x(), bdir.y(), bdir.z());
+    double restlength = ((B - A) / N).Length();
 
     auto nodeA = chrono_types::make_shared<ChNodeFEAxyzD>(A, bdir);
     mesh->AddNode(nodeA);
@@ -323,23 +321,22 @@ void ChBuilderCableANCF::BuildBeam_FSI(std::shared_ptr<ChMesh> mesh,  // mesh to
         beam_nodes.push_back(nodeB);
 
         auto element = chrono_types::make_shared<ChElementCableANCF>();
-        mesh->AddElement(element);
+
         beam_elems.push_back(element);
 
         element->SetNodes(beam_nodes[i], beam_nodes[i + 1]);
 
         element->SetSection(sect);
 
+        element->SetRestLength(restlength);
+        
+        mesh->AddElement(element);
+
         nodes[n_nodes + i].push_back(beam_nodes[i]->GetIndex() - 1);
         nodes[n_nodes + i].push_back(beam_nodes[i]->GetIndex());
 
         node_nbrs[beam_nodes[i]->GetIndex() - 1].push_back((int)n_nodes + i);
         node_nbrs[beam_nodes[i]->GetIndex()].push_back((int)n_nodes + i);
-
-        // printf("Adding nodes %d,%d to the cable element %i\n ", n_nodes + i, n_nodes + i + 1, n_nodes + i);
-        // printf("Adding element %d to the nodes %d,%d\n ", n_nodes + i, n_nodes + i, n_nodes + i + 1);
-        // printf("Added cable element %d with nBp=(%f,%f,%f) from ChBuilderBeamd\n", i, pos.x, pos.y, pos.z);
-        // printf("Added cable element %d with nBp=(%f,%f,%f) from ChBuilderBeamd\n", i, pos.x, pos.y, pos.z);
     }
 }
 

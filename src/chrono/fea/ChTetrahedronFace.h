@@ -103,13 +103,13 @@ class ChApi ChTetrahedronFace : public ChLoadableUV {
     virtual int GetSubBlocks() override { return 3; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return GetNodeN(nblock)->NodeGetOffset_w(); }
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return GetNodeN(nblock)->NodeGetOffsetW(); }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return 3; }
 
     /// Check if the specified sub-block of DOFs is active.
-    virtual bool IsSubBlockActive(int nblock) const override { return !GetNodeN(nblock)->GetFixed(); }
+    virtual bool IsSubBlockActive(int nblock) const override { return !GetNodeN(nblock)->IsFixed(); }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override {

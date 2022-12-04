@@ -643,10 +643,6 @@ double Curiosity::GetWheelTracTorque(CuriosityWheelID id) const {
     return m_drive_motors[id]->GetMotorTorque();
 }
 
-std::shared_ptr<CuriosityWheel> Curiosity::GetWheel(CuriosityWheelID id) const {
-    return m_wheels[id];
-}
-
 double Curiosity::GetRoverMass() const {
     double tot_mass = m_chassis->GetBody()->GetMass() + m_diff_bar->GetBody()->GetMass();
     for (int i = 0; i < 2; i++) {

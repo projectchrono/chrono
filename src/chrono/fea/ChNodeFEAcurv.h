@@ -85,22 +85,20 @@ class ChApi ChNodeFEAcurv : public ChNodeFEAbase {
     /// Reset to no speed and acceleration.
     virtual void SetNoSpeedNoAcceleration() override;
 
-    /// Set the 'fixed' state of the node.
-    /// If true, its current curvature values are not changed by solver.
-    virtual void SetFixed(bool val) override { m_variables->SetDisabled(val); }
+    /// Fix/release this node.
+    /// If fixed, its state variables are not changed by the solver.
+    virtual void SetFixed(bool fixed) override;
 
-    /// Get the 'fixed' state of the node.
-    virtual bool GetFixed() override { return m_variables->IsDisabled(); }
+    /// Return true if the node is fixed (i.e., its state variables are not changed by the solver).
+    virtual bool IsFixed() const override;
 
     /// Get the number of degrees of freedom.
-    virtual int Get_ndof_x() const override { return 9; }
+    virtual int GetNdofX() const override { return 9; }
 
     /// Get the number of degrees of freedom, derivative.
-    virtual int Get_ndof_w() const override { return 9; }
+    virtual int GetNdofW() const override { return 9; }
 
-    //
     // Functions for interfacing to the state bookkeeping
-    //
 
     virtual void NodeIntStateGather(const unsigned int off_x,
                                     ChState& x,
@@ -134,9 +132,7 @@ class ChApi ChNodeFEAcurv : public ChNodeFEAbase {
                                      const ChVectorDynamic<>& R) override;
     virtual void NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) override;
 
-    //
     // Functions for interfacing to the solver
-    //
 
     virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override;
     virtual void VariablesFbReset() override;
@@ -146,9 +142,7 @@ class ChApi ChNodeFEAcurv : public ChNodeFEAbase {
     virtual void VariablesFbIncrementMq() override;
     virtual void VariablesQbIncrementPosition(double step) override;
 
-    //
     // SERIALIZATION
-    //
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;

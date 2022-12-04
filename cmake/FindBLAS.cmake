@@ -117,7 +117,7 @@ foreach(_library ${_list})
   endif()
 endforeach()
 
-MESSAGE(STATUS "LIBRARIES is ${${LIBRARIES}}")
+#MESSAGE(STATUS "LIBRARIES is ${${LIBRARIES}}")
 
 if(_libraries_work)
   # Test this combination of libraries.
@@ -641,7 +641,7 @@ if (BLA_VENDOR MATCHES "Intel" OR BLA_VENDOR STREQUAL "All")
     endif ()
   endif ()
   
-  MESSAGE(STATUS "BLAS_SEARCH_LIBS is ${BLAS_SEARCH_LIBS}")
+  #MESSAGE(STATUS "BLAS_SEARCH_LIBS is ${BLAS_SEARCH_LIBS}")
 
   foreach (IT ${BLAS_SEARCH_LIBS})
     string(REPLACE " " ";" SEARCH_LIBS ${IT})

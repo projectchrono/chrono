@@ -51,7 +51,7 @@ using namespace chrono::vehicle::hmmwv;
 // Contact method type
 ChContactMethod contact_method = ChContactMethod::SMC;
 
-// Type of tire model (RIGID, LUGRE, FIALA, PACEJKA, or TMEASY)
+// Type of tire model (RIGID, FIALA, PAC89, PAC02, or TMEASY)
 TireModelType tire_model = TireModelType::TMEASY;
 
 // Type of powertrain model (SHAFTS or SIMPLE)
@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());
 
-    MaterialInfo minfo;
+    ChContactMaterialData minfo;
     minfo.mu = 0.8f;
     minfo.cr = 0.01f;
     minfo.Y = 2e7f;

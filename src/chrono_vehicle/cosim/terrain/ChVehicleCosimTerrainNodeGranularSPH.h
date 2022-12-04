@@ -69,7 +69,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
 
     /// Initialize this Chrono terrain node.
     /// Construct the terrain system and the proxy bodies, then finalize the underlying FSI system.
-    virtual void OnInitialize(unsigned int num_tires) override;
+    virtual void OnInitialize(unsigned int num_objects) override;
 
     /// Output post-processing visualization data.
     virtual void OutputVisualizationData(int frame) override final;
@@ -87,13 +87,18 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
     double m_radius_g;  ///< radius of one particle of granular material
     double m_rho_g;     ///< particle material density
 
-    virtual bool SupportsMeshInterface() const override { return false; }
+    virtual bool SupportsMeshInterface() const override { return true; }
 
     virtual void Construct() override;
 
-    virtual void CreateWheelProxy(unsigned int i) override;
-    virtual void UpdateWheelProxy(unsigned int i, BodyState& spindle_state) override;
-    virtual void GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) override;
+    virtual void CreateMeshProxy(unsigned int i) override;
+    virtual void UpdateMeshProxy(unsigned int i, MeshState& mesh_state) override;
+    virtual void GetForceMeshProxy(unsigned int i, MeshContact& mesh_contact) override;
+    void PrintMeshProxiesUpdateData(unsigned int i, const MeshState& mesh_state);
+
+    virtual void CreateRigidProxy(unsigned int i) override;
+    virtual void UpdateRigidProxy(unsigned int i, BodyState& rigid_state) override;
+    virtual void GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) override;
 
     virtual void OnOutputData(int frame) override;
     virtual void Render(double time) override;

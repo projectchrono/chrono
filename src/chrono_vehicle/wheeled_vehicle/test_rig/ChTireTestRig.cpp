@@ -438,7 +438,7 @@ void ChTireTestRig::CreateTerrainRigid() {
 
     auto terrain = chrono_types::make_shared<vehicle::RigidTerrain>(m_system);
 
-    MaterialInfo minfo;
+    ChContactMaterialData minfo;
     minfo.mu = m_params_rigid.friction;
     minfo.cr = m_params_rigid.restitution;
     minfo.Y = m_params_rigid.Young_modulus;

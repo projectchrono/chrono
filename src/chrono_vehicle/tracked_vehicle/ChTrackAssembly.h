@@ -218,7 +218,7 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     ChVector<> m_rel_loc;                   ///< assembly location relative to chassis
     std::shared_ptr<ChIdler> m_idler;       ///< idler (and tensioner) subsystem
     std::shared_ptr<ChTrackBrake> m_brake;  ///< sprocket brake
-    ChTrackSuspensionList m_suspensions;  ///< road-wheel assemblies
+    ChTrackSuspensionList m_suspensions;    ///< road-wheel assemblies
     ChTrackWheelList m_rollers;             ///< roller subsystems
 
     bool m_roadwheel_as_cylinder;

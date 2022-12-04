@@ -37,6 +37,9 @@ class CH_VEHICLE_API ThreeLinkIRS : public ChThreeLinkIRS {
     ThreeLinkIRS(const rapidjson::Document& d);
     ~ThreeLinkIRS();
 
+    virtual double getCamberAngle() const override { return m_camber_angle; }
+    virtual double getToeAngle() const override { return m_toe_angle; }
+
     virtual double getSpindleMass() const override { return m_spindleMass; }
     virtual double getArmMass() const override { return m_armMass; }
     virtual double getUpperLinkMass() const override { return m_upperMass; }
@@ -70,6 +73,9 @@ class CH_VEHICLE_API ThreeLinkIRS : public ChThreeLinkIRS {
 
     ChVector<> m_points[NUM_POINTS];
     ChVector<> m_dirs[NUM_DIRS];
+
+    double m_camber_angle;
+    double m_toe_angle;
 
     double m_spindleMass;
     double m_armMass;

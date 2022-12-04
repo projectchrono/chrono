@@ -82,7 +82,8 @@ ChVehicleCosimBaseNode::ChVehicleCosimBaseNode(const std::string& name)
       m_step_size(1e-4),
       m_cum_sim_time(0),
       m_verbose(true),
-      m_num_mbs_nodes(0),
+      m_num_wheeled_mbs_nodes(0),
+      m_num_tracked_mbs_nodes(0),
       m_num_terrain_nodes(0),
       m_num_tire_nodes(0),
       m_rank(-1) {
@@ -96,14 +97,17 @@ void ChVehicleCosimBaseNode::Initialize() {
     // Gather node types from all ranks
     int type = -1;
     switch (GetNodeType()) {
-        case NodeType::MBS:
+        case NodeType::MBS_WHEELED:
             type = 0;
             break;
-        case NodeType::TERRAIN:
+        case NodeType::MBS_TRACKED:
             type = 1;
             break;
-        case NodeType::TIRE:
+        case NodeType::TERRAIN:
             type = 2;
+            break;
+        case NodeType::TIRE:
+            type = 3;
             break;
     }
     int* type_all = new int[size];
@@ -113,47 +117,57 @@ void ChVehicleCosimBaseNode::Initialize() {
     for (int i = 0; i < size; i++) {
         switch (type_all[i]) {
             case 0:
-                m_num_mbs_nodes++;
+                m_num_wheeled_mbs_nodes++;
                 break;
             case 1:
-                m_num_terrain_nodes++;
+                m_num_tracked_mbs_nodes++;
                 break;
             case 2:
+                m_num_terrain_nodes++;
+                break;
+            case 3:
                 m_num_tire_nodes++;
                 break;
         }
     }
 
     if (m_verbose && m_rank == 0) {
-        cout << "Num nodes: " << size                        //
-             << "  MBS nodes: " << m_num_mbs_nodes             //
-             << "  TERRAIN nodes: " << m_num_terrain_nodes     //
-             << "  TIRE nodes: " << m_num_tire_nodes << endl;  //
+        cout << "Num nodes: " << size                               //
+             << "  WHEELED MBS nodes: " << m_num_wheeled_mbs_nodes  //
+             << "  TRACKED MBS nodes: " << m_num_tracked_mbs_nodes  //
+             << "  TERRAIN nodes: " << m_num_terrain_nodes          //
+             << "  TIRE nodes: " << m_num_tire_nodes << endl;       //
     }
 
     // Error checks
     bool err = false;
 
-    if (m_num_mbs_nodes != 1) {
+    if (m_num_wheeled_mbs_nodes + m_num_tracked_mbs_nodes != 1) {
         if (m_rank == 0)
-            cerr << "ERROR: More than one MBS node." << endl;
+            cerr << "Error: Exactly one MBS node must be present." << endl;
         err = true;
     }
 
-    if (type_all[MBS_NODE_RANK] != 0) {
+    if (m_num_tracked_mbs_nodes == 1 && m_num_tire_nodes > 0) {
+        if (m_rank == 0)
+            cerr << "Error: Tire nodes cannot be present for a tracked MBS simulation." << endl;
+        err = true;
+    }
+
+    if (type_all[MBS_NODE_RANK] != 0 && type_all[MBS_NODE_RANK] != 1) {
         if (m_rank == 0)
             cerr << "Error: rank " << MBS_NODE_RANK << " is not running an MBS node." << endl;
         err = true;
     }
 
-    if (type_all[TERRAIN_NODE_RANK] != 1) {
+    if (type_all[TERRAIN_NODE_RANK] != 2) {
         if (m_rank == 0)
             cerr << "Error: rank " << TERRAIN_NODE_RANK << " is not running a TERRAIN node." << endl;
         err = true;
     }
 
     for (unsigned int i = 0; i < m_num_tire_nodes; i++) {
-        if (type_all[TIRE_NODE_RANK(i)] != 2) {
+        if (type_all[TIRE_NODE_RANK(i)] != 3) {
             if (m_rank == 0)
                 cerr << "Error: rank " << TIRE_NODE_RANK(i) << " is not running a TIRE node." << endl;
             err = true;
@@ -217,14 +231,240 @@ bool ChVehicleCosimBaseNode::IsCosimNode() const {
 
 std::string ChVehicleCosimBaseNode::GetNodeTypeString() const {
     switch (GetNodeType()) {
-        case NodeType::MBS:
-            return "MBS";
+        case NodeType::MBS_WHEELED:
+            return "MBS wheeled";
+        case NodeType::MBS_TRACKED:
+            return "MBS tracked";
         case NodeType::TIRE:
             return "Tire";
         case NodeType::TERRAIN:
             return "Terrain";
         default:
             return "Unknown";
+    }
+}
+
+void ChVehicleCosimBaseNode::SendGeometry(const ChVehicleGeometry& geom, int dest) const {
+    // Send information on number of contact materials and collision shapes of each type
+    int dims[] = {
+        static_cast<int>(geom.m_materials.size()),       //
+        static_cast<int>(geom.m_coll_boxes.size()),      //
+        static_cast<int>(geom.m_coll_spheres.size()),    //
+        static_cast<int>(geom.m_coll_cylinders.size()),  //
+        static_cast<int>(geom.m_coll_hulls.size()),      //
+        static_cast<int>(geom.m_coll_meshes.size())      //
+    };
+    MPI_Send(dims, 6, MPI_INT, dest, 0, MPI_COMM_WORLD);
+
+    // Send contact materials
+    for (const auto& mat : geom.m_materials) {
+        float props[] = {mat.mu, mat.cr, mat.Y, mat.nu, mat.kn, mat.gn, mat.kt, mat.gt};
+        MPI_Send(props, 8, MPI_FLOAT, dest, 0, MPI_COMM_WORLD);
+    }
+
+    // Send shape geometry
+    for (const auto& box : geom.m_coll_boxes) {
+        double data[] = {
+            box.m_pos.x(),                    //
+            box.m_pos.y(),                    //
+            box.m_pos.z(),                    //
+            box.m_rot.e0(),                   //
+            box.m_rot.e1(),                   //
+            box.m_rot.e2(),                   //
+            box.m_rot.e3(),                   //
+            box.m_dims.x(),                   //
+            box.m_dims.y(),                   //
+            box.m_dims.z(),                   //
+            static_cast<double>(box.m_matID)  //
+        };
+        MPI_Send(data, 11, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD);
+    }
+
+    for (const auto& sph : geom.m_coll_spheres) {
+        double data[] = {
+            sph.m_pos.x(),                    //
+            sph.m_pos.y(),                    //
+            sph.m_pos.z(),                    //
+            sph.m_radius,                     //
+            static_cast<double>(sph.m_matID)  //
+        };
+        MPI_Send(data, 5, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD);
+    }
+
+    for (const auto& cyl : geom.m_coll_cylinders) {
+        double data[] = {
+            cyl.m_pos.x(),                    //
+            cyl.m_pos.y(),                    //
+            cyl.m_pos.z(),                    //
+            cyl.m_rot.e0(),                   //
+            cyl.m_rot.e1(),                   //
+            cyl.m_rot.e2(),                   //
+            cyl.m_rot.e3(),                   //
+            cyl.m_radius,                     //
+            cyl.m_length,                     //
+            static_cast<double>(cyl.m_matID)  //
+        };
+        MPI_Send(data, 10, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD);
+    }
+
+    for (const auto& hull : geom.m_coll_hulls) {
+        //// RADU TODO
+    }
+
+    for (const auto& mesh : geom.m_coll_meshes) {
+        double data[] = {mesh.m_pos.x(), mesh.m_pos.y(), mesh.m_pos.z()};
+        MPI_Send(data, 3, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD);
+
+        const auto& trimesh = mesh.m_trimesh;
+        const auto& vertices = trimesh->getCoordsVertices();
+        const auto& normals = trimesh->getCoordsNormals();
+        const auto& idx_vertices = trimesh->getIndicesVertexes();
+        const auto& idx_normals = trimesh->getIndicesNormals();
+        int nv = trimesh->getNumVertices();
+        int nn = trimesh->getNumNormals();
+        int nt = trimesh->getNumTriangles();
+
+        int surf_props[] = {nv, nn, nt, mesh.m_matID};
+        MPI_Send(surf_props, 4, MPI_INT, dest, 0, MPI_COMM_WORLD);
+        if (m_verbose)
+            cout << "[" << GetNodeTypeString() << "] Send: vertices = " << surf_props[0]
+                 << "  triangles = " << surf_props[2] << endl;
+
+        double* vert_data = new double[3 * nv + 3 * nn];
+        int* tri_data = new int[3 * nt + 3 * nt];
+        for (unsigned int iv = 0; iv < nv; iv++) {
+            vert_data[3 * iv + 0] = vertices[iv].x();
+            vert_data[3 * iv + 1] = vertices[iv].y();
+            vert_data[3 * iv + 2] = vertices[iv].z();
+        }
+        for (unsigned int in = 0; in < nn; in++) {
+            vert_data[3 * nv + 3 * in + 0] = normals[in].x();
+            vert_data[3 * nv + 3 * in + 1] = normals[in].y();
+            vert_data[3 * nv + 3 * in + 2] = normals[in].z();
+        }
+        for (unsigned int it = 0; it < nt; it++) {
+            tri_data[6 * it + 0] = idx_vertices[it].x();
+            tri_data[6 * it + 1] = idx_vertices[it].y();
+            tri_data[6 * it + 2] = idx_vertices[it].z();
+            tri_data[6 * it + 3] = idx_normals[it].x();
+            tri_data[6 * it + 4] = idx_normals[it].y();
+            tri_data[6 * it + 5] = idx_normals[it].z();
+        }
+        MPI_Send(vert_data, 3 * nv + 3 * nn, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
+        MPI_Send(tri_data, 3 * nt + 3 * nt, MPI_INT, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
+    }
+}
+
+void ChVehicleCosimBaseNode::RecvGeometry(ChVehicleGeometry& geom, int source) const {
+    MPI_Status status;
+
+    // Receive information on number of contact materials and collision shapes of each type
+    int dims[6];
+    MPI_Recv(dims, 6, MPI_INT, source, 0, MPI_COMM_WORLD, &status);
+    int num_materials = dims[0];
+    int num_boxes = dims[1];
+    int num_spheres = dims[2];
+    int num_cylinders = dims[3];
+    int num_hulls = dims[4];
+    int num_meshes = dims[5];
+
+    // Receive contact materials
+    for (int i = 0; i < num_materials; i++) {
+        float props[8];
+        MPI_Recv(props, 8, MPI_FLOAT, source, 0, MPI_COMM_WORLD, &status);
+        geom.m_materials.push_back(
+            ChContactMaterialData(props[0], props[1], props[2], props[3], props[4], props[5], props[6], props[7]));
+    }
+
+    // Receive shape geometry
+    for (int i = 0; i < num_boxes; i++) {
+        double data[11];
+        MPI_Recv(data, 11, MPI_DOUBLE, source, 0, MPI_COMM_WORLD, &status);
+        geom.m_coll_boxes.push_back(                                                         //
+            ChVehicleGeometry::BoxShape(ChVector<>(data[0], data[1], data[2]),               //
+                                        ChQuaternion<>(data[3], data[4], data[5], data[6]),  //
+                                        ChVector<>(data[7], data[8], data[9]),               //
+                                        static_cast<int>(data[10]))                          //
+        );
+    }
+
+    for (int i = 0; i < num_spheres; i++) {
+        double data[5];
+        MPI_Recv(data, 5, MPI_DOUBLE, source, 0, MPI_COMM_WORLD, &status);
+        geom.m_coll_spheres.push_back(                                             //
+            ChVehicleGeometry::SphereShape(ChVector<>(data[0], data[1], data[2]),  //
+                                           data[3],                                //
+                                           static_cast<int>(data[4]))              //
+        );
+    }
+
+    for (int i = 0; i < num_cylinders; i++) {
+        double data[10];
+        MPI_Recv(data, 10, MPI_DOUBLE, source, 0, MPI_COMM_WORLD, &status);
+        geom.m_coll_cylinders.push_back(                                                          //
+            ChVehicleGeometry::CylinderShape(ChVector<>(data[0], data[1], data[2]),               //
+                                             ChQuaternion<>(data[3], data[4], data[5], data[6]),  //
+                                             data[7], data[8],                                    //
+                                             static_cast<int>(data[9]))                           //
+        );
+    }
+
+    for (int i = 0; i < num_hulls; i++) {
+        //// RADU TODO
+    }
+
+    for (int i = 0; i < num_meshes; i++) {
+        double data[3];
+        MPI_Recv(data, 3, MPI_DOUBLE, source, 0, MPI_COMM_WORLD, &status);
+        ChVector<> pos(data[0], data[1], data[2]);
+
+        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+        auto& vertices = trimesh->getCoordsVertices();
+        auto& normals = trimesh->getCoordsNormals();
+        auto& idx_vertices = trimesh->getIndicesVertexes();
+        auto& idx_normals = trimesh->getIndicesNormals();
+
+        int surf_props[4];
+        MPI_Recv(surf_props, 4, MPI_INT, source, 0, MPI_COMM_WORLD, &status);
+        int nv = surf_props[0];
+        int nn = surf_props[1];
+        int nt = surf_props[2];
+        int matID = surf_props[3];
+
+        trimesh->getCoordsVertices().resize(nv);
+        trimesh->getCoordsNormals().resize(nn);
+        trimesh->getIndicesVertexes().resize(nt);
+        trimesh->getIndicesNormals().resize(nt);
+
+        // Tire mesh vertices & normals and triangle indices
+        double* vert_data = new double[3 * nv + 3 * nn];
+        int* tri_data = new int[3 * nt + 3 * nt];
+        MPI_Recv(vert_data, 3 * nv + 3 * nn, MPI_DOUBLE, source, 0, MPI_COMM_WORLD, &status);
+        MPI_Recv(tri_data, 3 * nt + 3 * nt, MPI_INT, source, 0, MPI_COMM_WORLD, &status);
+
+        for (unsigned int iv = 0; iv < nv; iv++) {
+            vertices[iv].x() = vert_data[3 * iv + 0];
+            vertices[iv].y() = vert_data[3 * iv + 1];
+            vertices[iv].z() = vert_data[3 * iv + 2];
+        }
+        for (unsigned int in = 0; in < nn; in++) {
+            normals[in].x() = vert_data[3 * nv + 3 * in + 0];
+            normals[in].y() = vert_data[3 * nv + 3 * in + 1];
+            normals[in].z() = vert_data[3 * nv + 3 * in + 2];
+        }
+        for (unsigned int it = 0; it < nt; it++) {
+            idx_vertices[it].x() = tri_data[6 * it + 0];
+            idx_vertices[it].y() = tri_data[6 * it + 1];
+            idx_vertices[it].z() = tri_data[6 * it + 2];
+            idx_normals[it].x() = tri_data[6 * it + 3];
+            idx_normals[it].y() = tri_data[6 * it + 4];
+            idx_normals[it].z() = tri_data[6 * it + 5];
+        }
+
+        delete[] vert_data;
+        delete[] tri_data;
+
+        geom.m_coll_meshes.push_back(ChVehicleGeometry::TrimeshShape(pos, trimesh, 0.0, matID));
     }
 }
 

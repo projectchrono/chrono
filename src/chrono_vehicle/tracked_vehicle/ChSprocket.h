@@ -64,6 +64,10 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     /// instantiated.
     virtual double GetAssemblyRadius() const = 0;
 
+    /// Get the addendum radius.
+    /// This quantity is an average radius for sprocket-track engagement used to estimate longitudinal slip.
+    virtual double GetAddendumRadius() const = 0;
+
     /// Get a handle to the gear body.
     std::shared_ptr<ChBody> GetGearBody() const { return m_gear; }
 

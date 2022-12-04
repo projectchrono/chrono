@@ -71,7 +71,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     /// Set the material properties for terrain.
     /// The type of material must be consistent with the contact method (SMC or NSC)
     /// specified at construction. These parameters characterize the material for the container and
-    /// (if applicable) the granular material.  Tire contact material is received from the rig node.
+    /// (if applicable) the granular material.  Object contact material is received from the rig node.
     void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mat);
 
     /// Specify whether contact coefficients are based on material properties (default: true).
@@ -171,14 +171,14 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     /// Return current total number of contacts.
     virtual int GetNumContacts() const override { return m_system->GetNcontacts(); }
 
-    virtual void CreateMeshProxies(unsigned int i) override;
-    virtual void UpdateMeshProxies(unsigned int i, MeshState& mesh_state) override;
-    virtual void GetForcesMeshProxies(unsigned int i, MeshContact& mesh_contact) override;
+    virtual void CreateMeshProxy(unsigned int i) override;
+    virtual void UpdateMeshProxy(unsigned int i, MeshState& mesh_state) override;
+    virtual void GetForceMeshProxy(unsigned int i, MeshContact& mesh_contact) override;
     void PrintMeshProxiesUpdateData(unsigned int i, const MeshState& mesh_state);
 
-    virtual void CreateWheelProxy(unsigned int i) override;
-    virtual void UpdateWheelProxy(unsigned int i, BodyState& spindle_state) override;
-    virtual void GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) override;
+    virtual void CreateRigidProxy(unsigned int i) override;
+    virtual void UpdateRigidProxy(unsigned int i, BodyState& rigid_state) override;
+    virtual void GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) override;
 
     virtual void OnAdvance(double step_size) override;
     virtual void OnOutputData(int frame) override;

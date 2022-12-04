@@ -38,7 +38,7 @@
 
   "Wheelbase": 2.3,
   "Minimum Turning Radius": 5.8,
-  "Maximum Steering Angle": 27,
+  "Maximum Steering Angle (deg)": 27,
 
   "Driveline": {
     "Input File": "uaz/driveline/UAZBUS_Driveline2WD.json",

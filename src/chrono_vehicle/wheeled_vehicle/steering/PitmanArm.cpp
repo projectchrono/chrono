@@ -68,7 +68,7 @@ void PitmanArm::Create(const rapidjson::Document& d) {
     // Read data for the revolute joint (Pitman arm - chassis)
     m_points[REV] = ReadVectorJSON(d["Revolute Joint"]["Location"]);
     m_dirs[REV_AXIS] = ReadVectorJSON(d["Revolute Joint"]["Direction"]);
-    m_maxAngle = d["Revolute Joint"]["Maximum Angle"].GetDouble() * (CH_C_PI / 180);
+    m_maxAngle = d["Revolute Joint"]["Maximum Angle (deg)"].GetDouble() * CH_C_DEG_TO_RAD;
 
     // Read data for the universal joint (Pitman arm - steering link)
     m_points[UNIV] = ReadVectorJSON(d["Universal Joint"]["Location"]);

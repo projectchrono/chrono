@@ -12,6 +12,9 @@ set MKL_INTERFACE_LAYER = LP64
 set MKL_THREADING_LAYER = INTEL
 set CONFIGURATION=Release
 
+set CASCADE_ENABLE=ON
+if "%MY_PY_VER%"=="310" set CASCADE_ENABLE=OFF
+
 REM Renaming numpy conda package
 del *.tar.bz2
 powershell -ExecutionPolicy Bypass -File "%CI_PROJECT_DIR%\contrib\packaging-python\conda\script.ps1"
@@ -28,7 +31,10 @@ cmake -G "Visual Studio 17 2022" -T "v142" ^
  -DCMAKE_INSTALL_PREFIX="%LIBRARY_PREFIX%" ^
  -DCMAKE_PREFIX_PATH="%LIBRARY_PREFIX%" ^
  -DCMAKE_SYSTEM_PREFIX_PATH="%LIBRARY_PREFIX%" ^
+ -DCH_CONDA_INSTALL=ON ^
  -DCH_INSTALL_PYTHON_PACKAGE="%SP_DIR%" ^
+ -DCH_PYCHRONO_DATA_PATH="../../../Library/data" ^
+ -DCH_PYCHRONO_SHADER_PATH="../../../Library/lib/sensor_ptx" ^
  -DPYTHON_EXECUTABLE:FILEPATH="%PYTHON%" ^
  -DPYTHON_INCLUDE_DIR:PATH="%PREFIX%"/include ^
  -DPYTHON_LIBRARY:FILEPATH="%PREFIX%"/libs/python%MY_PY_VER%.lib ^
@@ -38,9 +44,9 @@ cmake -G "Visual Studio 17 2022" -T "v142" ^
  -DENABLE_MODULE_POSTPROCESS=ON ^
  -DENABLE_MODULE_VEHICLE=ON ^
  -DENABLE_MODULE_PYTHON=ON ^
- -DENABLE_MODULE_SENSOR=ON ^
+ -DENABLE_MODULE_SENSOR=OFF ^
  -DNUMPY_INCLUDE_DIR="C:/Users/builder/miniconda3/envs/build-env/pkgs/numpy-base/Lib/site-packages/numpy/core/include/" ^
- -DOptiX_INSTALL_DIR="C:/Program Files/NVIDIA Corporation/OptiX SDK 7.2.0" ^
+ -DOptiX_INSTALL_DIR="C:/Program Files/NVIDIA Corporation/OptiX SDK 7.5.0" ^
  -DCUDA_TOOLKIT_ROOT_DIR="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.7" ^
  -DGLFW_DLL="C:/Users/builder/Documents/glfw-3.3.5/lib-vc2019/glfw3.dll" ^
  -DGLFW_INCLUDE_DIR="C:/Users/builder/Documents/glfw-3.3.5/include" ^
@@ -51,21 +57,21 @@ cmake -G "Visual Studio 17 2022" -T "v142" ^
  -DBUILD_TESTING=OFF ^
  -DBUILD_GMOCK=OFF ^
  -DBUILD_BENCHMARKING=OFF ^
- -DENABLE_MODULE_CASCADE=ON ^
- -DCASCADE_INCLUDE_DIR="%PREFIX%"\Library\include\opencascade ^
- -DCASCADE_LIBDIR="%PREFIX%"\Library\lib ^
+ -DENABLE_MODULE_CASCADE="%CASCADE_ENABLE%" ^
+ -DCASCADE_INCLUDE_DIR="%PREFIX%"/Library/include/opencascade ^
+ -DCASCADE_LIBDIR="%PREFIX%"/Library/lib ^
  -DENABLE_MODULE_PARDISO_MKL=ON ^
- -DMKL_INCLUDE_DIR="%PREFIX%"\Library\include ^
- -DMKL_RT_LIBRARY="%PREFIX%"\Library\lib\mkl_rt.lib ^
+ -DMKL_INCLUDE_DIR="%PREFIX%"/Library/include ^
+ -DMKL_RT_LIBRARY="%PREFIX%"/Library/lib/mkl_rt.lib ^
  -DIOMP5_LIBRARY="C:/Program Files (x86)/Intel/oneAPI/compiler/latest/windows/compiler/lib/intel64_win/libiomp5md.lib" ^
  -DPYCHRONO_DATA_PATH="..\..\..\..\..\Library\data" ^
- .. >> "%LOG_DIR%"\cmakeconfiglog.txt 2>&1
+ ..
 if errorlevel 1 exit 1
 mkdir cmake_ended
 
 REM Build step 
 mkdir build_began
-cmake --build . --config Release >> "%LOG_DIR%"\cmakebuildlog.txt 2>&1
+cmake --build . --config Release
 if errorlevel 1 exit 1
 mkdir build_ended
 

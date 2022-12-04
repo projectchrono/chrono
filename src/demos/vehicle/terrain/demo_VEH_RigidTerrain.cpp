@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetInitPosition(ChCoordsys<>(ChVector<>(-10, 0, 1), ChQuaternion<>(1, 0, 0, 0)));
     my_hmmwv.SetPowertrainType(PowertrainModelType::SIMPLE);
     my_hmmwv.SetDriveType(DrivelineTypeWV::RWD);
-    my_hmmwv.SetTireType(TireModelType::TMEASY);
+    my_hmmwv.SetTireType(TireModelType::PAC02);
     my_hmmwv.SetTireStepSize(tire_step_size);
     my_hmmwv.Initialize();
 

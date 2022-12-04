@@ -169,6 +169,13 @@ class CH_VEHICLE_API ChThreeLinkIRS : public ChSuspension {
     /// The returned location must be expressed in the suspension reference frame.
     virtual const ChVector<> getLocation(PointId which) = 0;
 
+    /// Return the camber angle, in radians (default: 0).
+    virtual double getCamberAngle() const { return 0; }
+
+    /// Return the toe angle, in radians (default: 0).
+    /// A positive value indicates toe-in, a negative value indicates toe-out.
+    virtual double getToeAngle() const { return 0; }
+
     /// Return the vector of the specified direction.
     virtual const ChVector<> getDirection(DirectionId which) = 0;
 

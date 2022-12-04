@@ -56,7 +56,7 @@ Gator_RigidTire_Front::Gator_RigidTire_Front(const std::string& name, bool use_m
 }
 
 void Gator_RigidTire_Front::CreateContactMaterial(ChContactMethod contact_method) {
-    MaterialInfo minfo;
+    ChContactMaterialData minfo;
     minfo.mu = 0.9f;
     minfo.cr = 0.1f;
     minfo.Y = 2e7f;
@@ -86,7 +86,7 @@ Gator_RigidTire_Rear::Gator_RigidTire_Rear(const std::string& name, bool use_mes
 }
 
 void Gator_RigidTire_Rear::CreateContactMaterial(ChContactMethod contact_method) {
-    MaterialInfo minfo;
+    ChContactMaterialData minfo;
     minfo.mu = 0.9f;
     minfo.cr = 0.1f;
     minfo.Y = 2e7f;

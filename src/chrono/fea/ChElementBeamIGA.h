@@ -281,13 +281,13 @@ class ChApi ChElementBeamIGA : public ChElementBeam, public ChLoadableU, public 
     virtual int GetSubBlocks() override { return (int)nodes.size(); }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return nodes[nblock]->NodeGetOffset_w(); }
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return nodes[nblock]->NodeGetOffsetW(); }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return 6; }
 
     /// Check if the specified sub-block of DOFs is active.
-    virtual bool IsSubBlockActive(int nblock) const override { return !nodes[nblock]->GetFixed(); }
+    virtual bool IsSubBlockActive(int nblock) const override { return !nodes[nblock]->IsFixed(); }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override {

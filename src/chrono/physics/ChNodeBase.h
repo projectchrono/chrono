@@ -20,14 +20,10 @@
 
 namespace chrono {
 
-/// Class for a node, that has some degrees of freedom and that contain a proxy to the solver.
+/// Class for a node, that has some degrees of freedom.
 /// It is like a lightweight version of a ChPhysicsItem; often a ChPhysicsItem is used as a
 /// container for a cluster of these ChNodeBase.
 class ChApi ChNodeBase {
-  protected:
-    unsigned int offset_x;  ///< offset in vector of state (position part)
-    unsigned int offset_w;  ///< offset in vector of state (speed part)
-
   public:
     ChNodeBase();
     ChNodeBase(const ChNodeBase& other);
@@ -35,26 +31,37 @@ class ChApi ChNodeBase {
 
     ChNodeBase& operator=(const ChNodeBase& other);
 
-    //
     // Functions for interfacing to the state bookkeeping
-    //
 
-    /// Get the number of degrees of freedom
-    virtual int Get_ndof_x() const = 0;
+    /// Get the number of degrees of freedom.
+    virtual int GetNdofX() const = 0;
 
-    /// Get the number of degrees of freedom, derivative
-    /// This might be different from ndof if quaternions are used for rotations,
-    /// as derivative might be angular velocity.
-    virtual int Get_ndof_w() const { return Get_ndof_x(); }
+    /// Get the number of degrees of freedom, derivative.
+    /// This might be different from ndof_x if quaternions are used for rotations and derivative is angular velocity.
+    virtual int GetNdofW() const { return GetNdofX(); }
 
-    /// Get offset in the state vector (position part)
-    unsigned int NodeGetOffset_x() { return offset_x; }
-    /// Get offset in the state vector (speed part)
-    unsigned int NodeGetOffset_w() { return offset_w; }
+    /// Get the actual number of active degrees of freedom.
+    /// The default implementation returns the full number of DOFs for this node, but derived classes may allow fixing
+    /// some of the node variables.
+    virtual int GetNdofX_active() const { return GetNdofX(); }
 
-    /// Set offset in the state vector (position part)
+    /// Get the actual number of active degrees of freedom, derivative.
+    /// The default implementation returns the full number of DOFs for this node, but derived classes may allow fixing
+    /// some of the node variables.
+    virtual int GetNdofW_active() const { return GetNdofX_active(); }
+
+    /// Return true if all node DOFs are active (no node variable is fixed).
+    virtual bool UseFullDof() const { return true; }
+
+    /// Get offset in the state vector (position part).
+    unsigned int NodeGetOffsetX() { return offset_x; }
+
+    /// Get offset in the state vector (speed part).
+    unsigned int NodeGetOffsetW() { return offset_w; }
+
+    /// Set offset in the state vector (position part).
     void NodeSetOffset_x(const unsigned int moff) { offset_x = moff; }
-    /// Set offset in the state vector (speed part)
+    /// Set offset in the state vector (speed part).
     void NodeSetOffset_w(const unsigned int moff) { offset_w = moff; }
 
     virtual void NodeIntStateGather(const unsigned int off_x,
@@ -73,20 +80,12 @@ class ChApi ChNodeBase {
                                        ChState& x_new,
                                        const ChState& x,
                                        const unsigned int off_v,
-                                       const ChStateDelta& Dv) {
-        for (int i = 0; i < Get_ndof_x(); ++i) {
-            x_new(off_x + i) = x(off_x + i) + Dv(off_v + i);
-        }
-    }
+                                       const ChStateDelta& Dv);
     virtual void NodeIntStateGetIncrement(const unsigned int off_x,
-                                       const ChState& x_new,
-                                       const ChState& x,
-                                       const unsigned int off_v,
-                                       ChStateDelta& Dv) {
-        for (int i = 0; i < Get_ndof_x(); ++i) {
-            Dv(off_v + i) = x_new(off_x + i) - x(off_x + i);
-        }
-    }
+                                          const ChState& x_new,
+                                          const ChState& x,
+                                          const unsigned int off_v,
+                                          ChStateDelta& Dv);
     virtual void NodeIntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {}
     virtual void NodeIntLoadResidual_Mv(const unsigned int off,
                                         ChVectorDynamic<>& R,
@@ -95,31 +94,28 @@ class ChApi ChNodeBase {
     virtual void NodeIntToDescriptor(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) {}
     virtual void NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) {}
 
-    //
     // Functions for interfacing to the solver
-    //
 
     /// Tell to a system descriptor that there are variables of type
-    /// ChVariables in this object (for further passing it to a solver)
+    /// ChVariables in this object (for further passing it to a solver).
     virtual void InjectVariables(ChSystemDescriptor& mdescriptor) {}
 
-    /// Sets the 'fb' part (the known term) of the encapsulated ChVariables to zero.
+    /// Set the 'fb' part (the known term) of the encapsulated ChVariables to zero.
     virtual void VariablesFbReset() {}
 
-    /// Adds the current forces (applied to node) into the
-    /// encapsulated ChVariables, in the 'fb' part: qf+=forces*factor
+    /// Add the current forces (applied to node) into the encapsulated ChVariables.
+    /// Include in the 'fb' part: qf+=forces*factor
     virtual void VariablesFbLoadForces(double factor = 1) {}
 
-    /// Initialize the 'qb' part of the ChVariables with the
-    /// current value of speeds.
+    /// Initialize the 'qb' part of the ChVariables with the current value of speeds.
     virtual void VariablesQbLoadSpeed() {}
 
-    /// Adds M*q (masses multiplied current 'qb') to Fb, ex. if qb is initialized
+    /// Add M*q (masses multiplied current 'qb') to Fb, ex. if qb is initialized
     /// with v_old using VariablesQbLoadSpeed, this method can be used in
     /// timestepping schemes that do: M*v_new = M*v_old + forces*dt
     virtual void VariablesFbIncrementMq() {}
 
-    /// Fetches the item speed (ex. linear velocity, in xyz nodes) from the
+    /// Fetch the item speed (ex. linear velocity, in xyz nodes) from the
     /// 'qb' part of the ChVariables and sets it as the current item speed.
     /// If 'step' is not 0, also should compute the approximate acceleration of
     /// the item using backward differences, that is  accel=(new_speed-old_speed)/step.
@@ -138,6 +134,10 @@ class ChApi ChNodeBase {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive);
+
+  protected:
+    unsigned int offset_x;  ///< offset in vector of state (position part)
+    unsigned int offset_w;  ///< offset in vector of state (speed part)
 };
 
 CH_CLASS_VERSION(ChNodeBase, 0)

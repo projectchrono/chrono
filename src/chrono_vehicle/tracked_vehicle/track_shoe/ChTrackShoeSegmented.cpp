@@ -24,6 +24,12 @@ namespace vehicle {
 
 ChTrackShoeSegmented::ChTrackShoeSegmented(const std::string& name) : ChTrackShoe(name) {}
 
+void ChTrackShoeSegmented::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+                                      const ChVector<>& location,
+                                      const ChQuaternion<>& rotation) {
+    m_shoe_sprk_material = m_shoe_sprk_minfo.CreateMaterial(chassis->GetSystem()->GetContactMethod());
+}
+
 void ChTrackShoeSegmented::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
@@ -45,7 +51,7 @@ void ChTrackShoeSegmented::AddVisualizationAssets(VisualizationType vis) {
         m_geometry.m_has_colors = true;
     }
 
-    m_geometry.AddVisualizationAssets(m_shoe, vis);
+    m_geometry.CreateVisualizationAssets(m_shoe, vis);
 }
 
 void ChTrackShoeSegmented::RemoveVisualizationAssets() {

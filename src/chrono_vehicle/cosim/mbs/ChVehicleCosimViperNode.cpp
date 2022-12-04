@@ -81,7 +81,7 @@ class ViperDBPDriver : public ViperDriver {
 
 // -----------------------------------------------------------------------------
 
-ChVehicleCosimViperNode::ChVehicleCosimViperNode() : ChVehicleCosimMBSNode(), m_num_spindles(0) {
+ChVehicleCosimViperNode::ChVehicleCosimViperNode() : ChVehicleCosimWheeledMBSNode(), m_num_spindles(0) {
     m_viper = chrono_types::make_shared<Viper>(m_system);
 }
 

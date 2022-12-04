@@ -33,7 +33,12 @@ namespace hmmwv {
 /// Deformable tire model for the HMMWV vehicle (using ANCF shell FEA elements)
 class CH_MODELS_API HMMWV_ANCFTire : public ChANCFTire {
   public:
-    HMMWV_ANCFTire(const std::string& name);
+    enum class ElementType {
+        ANCF_4,  ///< 4-node ANCF shell element
+        ANCF_8   ///< 8-node ANCF shell element
+    };
+
+    HMMWV_ANCFTire(const std::string& name, ElementType element_type = ElementType::ANCF_4);
     ~HMMWV_ANCFTire() {}
 
     /// Get the tire radius.
@@ -46,7 +51,7 @@ class CH_MODELS_API HMMWV_ANCFTire : public ChANCFTire {
     virtual double GetDefaultPressure() const override { return m_default_pressure; }
 
     /// Return list of nodes connected to the rim.
-    virtual std::vector<std::shared_ptr<fea::ChNodeFEAbase>> GetConnectedNodes() const override;
+    virtual std::vector<std::shared_ptr<fea::ChNodeFEAbase>> GetConnectedNodes() const override { return m_rim_nodes; }
 
     /// Create the FEA nodes and elements.
     /// The wheel rotational axis is assumed to be the Y axis.
@@ -56,6 +61,8 @@ class CH_MODELS_API HMMWV_ANCFTire : public ChANCFTire {
 
   private:
     virtual void CreateContactMaterial() override;
+
+    ElementType m_element_type;
 
     static const double m_tire_radius;
     static const double m_rim_radius;
@@ -81,23 +88,23 @@ class CH_MODELS_API HMMWV_ANCFTire : public ChANCFTire {
     static const ChVector<> m_G_2;
     std::vector<std::shared_ptr<fea::ChMaterialShellANCF>> m_materials;
 
-    static const unsigned int m_num_elements_bead;
-    static const unsigned int m_num_layers_bead;
-    static const std::vector<double> m_layer_thickness_bead;
-    static const std::vector<double> m_ply_angle_bead;
-    static const std::vector<int> m_material_id_bead;
+    static const int m_num_elements_b;
+    static const int m_num_layers_b;
+    static const std::vector<double> m_layer_thickness_b;
+    static const std::vector<double> m_ply_angle_b;
+    static const std::vector<int> m_material_id_b;
 
-    static const unsigned int m_num_elements_sidewall;
-    static const unsigned int m_num_layers_sidewall;
-    static const std::vector<double> m_layer_thickness_sidewall;
-    static const std::vector<double> m_ply_angle_sidewall;
-    static const std::vector<int> m_material_id_sidewall;
+    static const int m_num_elements_s;
+    static const int m_num_layers_s;
+    static const std::vector<double> m_layer_thickness_s;
+    static const std::vector<double> m_ply_angle_s;
+    static const std::vector<int> m_material_id_s;
 
-    static const unsigned int m_num_elements_tread;
-    static const unsigned int m_num_layers_tread;
-    static const std::vector<double> m_layer_thickness_tread;
-    static const std::vector<double> m_ply_angle_tread;
-    static const std::vector<int> m_material_id_tread;
+    static const int m_num_elements_t;
+    static const int m_num_layers_t;
+    static const std::vector<double> m_layer_thickness_t;
+    static const std::vector<double> m_ply_angle_t;
+    static const std::vector<int> m_material_id_t;
 
     static const float m_friction;
     static const float m_restitution;
@@ -113,6 +120,8 @@ class CH_MODELS_API HMMWV_ANCFTire : public ChANCFTire {
     std::vector<double> m_profile_t;
     std::vector<double> m_profile_x;
     std::vector<double> m_profile_y;
+
+    std::vector<std::shared_ptr<fea::ChNodeFEAbase>> m_rim_nodes;
 };
 
 /// @} vehicle_models_hmmwv

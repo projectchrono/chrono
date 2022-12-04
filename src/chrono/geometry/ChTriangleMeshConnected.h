@@ -71,7 +71,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     bool LoadWavefrontMesh(const std::string& filename, bool load_normals = true, bool load_uv = false);
 
     /// Write the specified meshes in a Wavefront .obj file
-    static void WriteWavefront(const std::string& filename, std::vector<ChTriangleMeshConnected>& meshes);
+    static void WriteWavefront(const std::string& filename, const std::vector<ChTriangleMeshConnected>& meshes);
 
     /// Utility function for merging multiple meshes.
     static ChTriangleMeshConnected Merge(std::vector<ChTriangleMeshConnected>& meshes);
@@ -82,6 +82,12 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
 
     /// Add a triangle to this triangle mesh, by specifying a ChTriangle.
     virtual void addTriangle(const ChTriangle& atriangle) override;
+
+    /// Get the number of vertices in this mesh.
+    int getNumVertices() const { return (int)m_vertices.size(); }
+
+    /// Get the number of normals in this mesh.
+    int getNumNormals() const { return (int)m_normals.size(); }
 
     /// Get the number of triangles already added to this mesh.
     virtual int getNumTriangles() const override { return (int)m_face_v_indices.size(); }

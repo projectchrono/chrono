@@ -106,6 +106,7 @@ class ChFluidDynamics : public ChFsiGeneral {
     void UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD1,
                         std::shared_ptr<SphMarkerDataD> sphMarkersD2,
                         std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
+                        std::shared_ptr<FsiMeshDataD> fsiMeshD,
                         Real Time);
 
     /// Update SPH particles data.

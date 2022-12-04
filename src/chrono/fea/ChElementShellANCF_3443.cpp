@@ -199,7 +199,7 @@ ChMatrix33<> ChElementShellANCF_3443::GetGreenLagrangeStrain(const double xi, co
     CalcCoordMatrix(e_bar);
 
     // Calculate the Deformation Gradient at the current point
-    ChMatrixNMc<double, 3, 3> F = e_bar * Sxi_D;
+    ChMatrixNM_col<double, 3, 3> F = e_bar * Sxi_D;
 
     ChMatrix33<> I3x3;
     I3x3.setIdentity();
@@ -229,7 +229,7 @@ ChMatrix33<> ChElementShellANCF_3443::GetPK2Stress(const double layer,
     CalcCoordMatrix(e_bar);
 
     // Calculate the Deformation Gradient at the current point
-    ChMatrixNMc<double, 3, 3> F = e_bar * Sxi_D;
+    ChMatrixNM_col<double, 3, 3> F = e_bar * Sxi_D;
 
     // Calculate the Green-Lagrange strain tensor at the current point in Voigt notation
     ChVectorN<double, 6> epsilon_combined;
@@ -245,7 +245,7 @@ ChMatrix33<> ChElementShellANCF_3443::GetPK2Stress(const double layer,
         CalcCoordDerivMatrix(ebardot);
 
         // Calculate the time derivative of the Deformation Gradient at the current point
-        ChMatrixNMc<double, 3, 3> Fdot = ebardot * Sxi_D;
+        ChMatrixNM_col<double, 3, 3> Fdot = ebardot * Sxi_D;
 
         // Calculate the time derivative of the Green-Lagrange strain tensor in Voigt notation
         // and combine it with epsilon assuming a Linear Kelvin-Voigt Viscoelastic material model
@@ -303,7 +303,7 @@ double ChElementShellANCF_3443::GetVonMissesStress(const double layer,
     CalcCoordMatrix(e_bar);
 
     // Calculate the Deformation Gradient at the current point
-    ChMatrixNMc<double, 3, 3> F = e_bar * Sxi_D;
+    ChMatrixNM_col<double, 3, 3> F = e_bar * Sxi_D;
 
     // Calculate the Green-Lagrange strain tensor at the current point in Voigt notation
     ChVectorN<double, 6> epsilon_combined;
@@ -319,7 +319,7 @@ double ChElementShellANCF_3443::GetVonMissesStress(const double layer,
         CalcCoordDerivMatrix(ebardot);
 
         // Calculate the time derivative of the Deformation Gradient at the current point
-        ChMatrixNMc<double, 3, 3> Fdot = ebardot * Sxi_D;
+        ChMatrixNM_col<double, 3, 3> Fdot = ebardot * Sxi_D;
 
         // Calculate the time derivative of the Green-Lagrange strain tensor in Voigt notation
         // and combine it with epsilon assuming a Linear Kelvin-Voigt Viscoelastic material model
@@ -368,6 +368,22 @@ double ChElementShellANCF_3443::GetVonMissesStress(const double layer,
 // Initial element setup.
 
 void ChElementShellANCF_3443::SetupInitial(ChSystem* system) {
+    m_element_dof = 0;
+    for (int i = 0; i < 4; i++) {
+        m_element_dof += m_nodes[i]->GetNdofX();
+    }
+
+    m_full_dof = (m_element_dof == 4 * 12);
+
+    if (!m_full_dof) {
+        m_mapping_dof.resize(m_element_dof);
+        int dof = 0;
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < m_nodes[i]->GetNdofX(); j++)
+                m_mapping_dof(dof++) = i * 12 + j;
+        }
+    }
+
     // Store the initial nodal coordinates. These values define the reference configuration of the element.
     CalcCoordMatrix(m_ebar0);
 
@@ -444,7 +460,7 @@ void ChElementShellANCF_3443::ComputeNodalMass() {
 // Compute the generalized internal force vector for the current nodal coordinates and set the value in the Fi vector.
 
 void ChElementShellANCF_3443::ComputeInternalForces(ChVectorDynamic<>& Fi) {
-    assert(Fi.size() == 3 * NSF);
+    assert(Fi.size() == GetNdofs());
 
     if (m_method == IntFrcMethod::ContInt) {
         if (m_damping_enabled) {  // If linear Kelvin-Voigt viscoelastic material model is enabled
@@ -461,7 +477,7 @@ void ChElementShellANCF_3443::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 //   H = Mfactor * [M] + Kfactor * [K] + Rfactor * [R]
 
 void ChElementShellANCF_3443::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
-    assert((H.rows() == 3 * NSF) && (H.cols() == 3 * NSF));
+    assert((H.rows() == GetNdofs()) && (H.cols() == GetNdofs()));
 
     if (m_method == IntFrcMethod::ContInt) {
         if (m_damping_enabled) {  // If linear Kelvin-Voigt viscoelastic material model is enabled
@@ -493,7 +509,7 @@ void ChElementShellANCF_3443::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfa
 
 // Compute the generalized force vector due to gravity using the efficient ANCF specific method
 void ChElementShellANCF_3443::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
-    assert(Fg.size() == 3 * NSF);
+    assert(Fg.size() == GetNdofs());
 
     // Calculate and add the generalized force due to gravity to the generalized internal force vector for the element.
     // The generalized force due to gravity could be computed once prior to the start of the simulation if gravity was
@@ -1094,7 +1110,7 @@ void ChElementShellANCF_3443::ComputeInternalForcesContIntDamping(ChVectorDynami
         //      [F13  F23  F33  F13dot  F23dot  F33dot ]
         // =============================================================================
 
-        ChMatrixNMc<double, 3 * NIP, 6> FC = m_SD.block<NSF, 3 * NIP>(0, 3 * NIP * kl).transpose() * ebar_ebardot;
+        ChMatrixNM_col<double, 3 * NIP, 6> FC = m_SD.block<NSF, 3 * NIP>(0, 3 * NIP * kl).transpose() * ebar_ebardot;
 
         // =============================================================================
         // Calculate each individual value of the Green-Lagrange strain component by component across all the
@@ -1232,7 +1248,7 @@ void ChElementShellANCF_3443::ComputeInternalForcesContIntDamping(ChVectorDynami
         //           [kGQ*(P_transpose)_31  kGQ*(P_transpose)_32  kGQ*(P_transpose)_33 ]
         // =============================================================================
 
-        ChMatrixNMc<double, 3 * NIP, 3> P_Block;
+        ChMatrixNM_col<double, 3 * NIP, 3> P_Block;
 
         P_Block.template block<NIP, 1>(0, 0) = FC.template block<NIP, 1>(0, 0).cwiseProduct(SPK2_1_Block) +
                                                FC.template block<NIP, 1>(NIP, 0).cwiseProduct(SPK2_6_Block) +
@@ -1313,7 +1329,7 @@ void ChElementShellANCF_3443::ComputeInternalForcesContIntNoDamping(ChVectorDyna
         //      [F13  F23  F33 ]
         // =============================================================================
 
-        ChMatrixNMc<double, 3 * NIP, 3> FC = m_SD.block<NSF, 3 * NIP>(0, 3 * kl * NIP).transpose() * e_bar.transpose();
+        ChMatrixNM_col<double, 3 * NIP, 3> FC = m_SD.block<NSF, 3 * NIP>(0, 3 * kl * NIP).transpose() * e_bar.transpose();
 
         // =============================================================================
         // Calculate each individual value of the Green-Lagrange strain component by component across all the
@@ -1403,7 +1419,7 @@ void ChElementShellANCF_3443::ComputeInternalForcesContIntNoDamping(ChVectorDyna
         //           [kGQ*(P_transpose)_31  kGQ*(P_transpose)_32  kGQ*(P_transpose)_33 ]
         // =============================================================================
 
-        ChMatrixNMc<double, 3 * NIP, 3> P_Block;
+        ChMatrixNM_col<double, 3 * NIP, 3> P_Block;
 
         P_Block.template block<NIP, 1>(0, 0) = FC.template block<NIP, 1>(0, 0).cwiseProduct(SPK2_1_Block) +
                                                FC.template block<NIP, 1>(NIP, 0).cwiseProduct(SPK2_6_Block) +
@@ -1536,7 +1552,7 @@ void ChElementShellANCF_3443::ComputeInternalJacobianContIntDamping(ChMatrixRef&
         //      [F13  F23  F33  F13dot  F23dot  F33dot ]
         // =============================================================================
 
-        ChMatrixNMc<double, 3 * NIP, 6> FC = m_SD.block<NSF, 3 * NIP>(0, 3 * NIP * kl).transpose() * ebar_ebardot;
+        ChMatrixNM_col<double, 3 * NIP, 6> FC = m_SD.block<NSF, 3 * NIP>(0, 3 * NIP * kl).transpose() * ebar_ebardot;
 
         //==============================================================================
         //==============================================================================
@@ -1559,7 +1575,7 @@ void ChElementShellANCF_3443::ComputeInternalJacobianContIntDamping(ChMatrixRef&
         // The explanation of the calculation above is just too long to write it all on a single line.
         // =============================================================================
 
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> PE;
+        ChMatrixDynamic<> PE;
         PE.resize(3 * NSF, 6 * NIP);
 
         for (auto i = 0; i < NSF; i++) {
@@ -1633,7 +1649,7 @@ void ChElementShellANCF_3443::ComputeInternalJacobianContIntDamping(ChMatrixRef&
         //            [kGQ*(Kfactor+alpha*Rfactor)*F13+alpha*Rfactor*F13dot ... similar for F23 & F33 blocks]
         // =============================================================================
 
-        ChMatrixNMc<double, 3 * NIP, 3> FCscaled = (Kfactor + m_Alpha * Rfactor) * FC.template block<3 * NIP, 3>(0, 0) +
+        ChMatrixNM_col<double, 3 * NIP, 3> FCscaled = (Kfactor + m_Alpha * Rfactor) * FC.template block<3 * NIP, 3>(0, 0) +
                                                    (m_Alpha * Kfactor) * FC.template block<3 * NIP, 3>(0, 3);
 
         for (auto i = 0; i < 3; i++) {
@@ -1652,7 +1668,7 @@ void ChElementShellANCF_3443::ComputeInternalJacobianContIntDamping(ChMatrixRef&
         // calculating this matrix.
         // =============================================================================
 
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> Scaled_Combined_PE;
+        ChMatrixDynamic<> Scaled_Combined_PE;
         Scaled_Combined_PE.resize(3 * NSF, 6 * NIP);
 
         for (auto i = 0; i < NSF; i++) {
@@ -1746,7 +1762,7 @@ void ChElementShellANCF_3443::ComputeInternalJacobianContIntDamping(ChMatrixRef&
         // Gauss quadrature point
         // =============================================================================
 
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> DScaled_Combined_PE;
+        ChMatrixDynamic<> DScaled_Combined_PE;
         DScaled_Combined_PE.resize(3 * NSF, 6 * NIP);
 
         DScaled_Combined_PE.template block<3 * NSF, NIP>(0, 0) =
@@ -2002,7 +2018,7 @@ void ChElementShellANCF_3443::ComputeInternalJacobianContIntNoDamping(ChMatrixRe
         // FC = [F12  F22  F32 ]
         //      [F13  F23  F33 ]
         // =============================================================================
-        ChMatrixNMc<double, 3 * NIP, 3> FC = m_SD.block<NSF, 3 * NIP>(0, 3 * NIP * kl).transpose() * e_bar.transpose();
+        ChMatrixNM_col<double, 3 * NIP, 3> FC = m_SD.block<NSF, 3 * NIP>(0, 3 * NIP * kl).transpose() * e_bar.transpose();
 
         //==============================================================================
         //==============================================================================
@@ -2024,7 +2040,7 @@ void ChElementShellANCF_3443::ComputeInternalJacobianContIntNoDamping(ChMatrixRe
         // Note that each partial derivative block shown is placed to the left of the previous block.
         // The explanation of the calculation above is just too long to write it all on a single line.
         // =============================================================================
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> PE;
+        ChMatrixDynamic<> PE;
         PE.resize(3 * NSF, 6 * NIP);
 
         for (auto i = 0; i < NSF; i++) {
@@ -2089,7 +2105,7 @@ void ChElementShellANCF_3443::ComputeInternalJacobianContIntNoDamping(ChMatrixRe
         // Scale the block deformation gradient matrix by the Kfactor weighting factor for the Jacobian and multiply
         // each Gauss quadrature component by its Gauss quadrature weight times the element Jacobian (kGQ)
         // =============================================================================
-        ChMatrixNMc<double, 3 * NIP, 3> FCscaled = Kfactor * FC;
+        ChMatrixNM_col<double, 3 * NIP, 3> FCscaled = Kfactor * FC;
 
         for (auto i = 0; i < 3; i++) {
             FCscaled.template block<NIP, 1>(0, i).array() *= m_kGQ.block<NIP, 1>(kl * NIP, 0).array();
@@ -2104,7 +2120,7 @@ void ChElementShellANCF_3443::ComputeInternalJacobianContIntNoDamping(ChMatrixRe
         // row major memory layout to align with the access patterns for calculating this matrix.
         // =============================================================================
 
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> Scaled_Combined_PE;
+        ChMatrixDynamic<> Scaled_Combined_PE;
         Scaled_Combined_PE.resize(3 * NSF, 6 * NIP);
 
         for (auto i = 0; i < NSF; i++) {
@@ -2197,7 +2213,7 @@ void ChElementShellANCF_3443::ComputeInternalJacobianContIntNoDamping(ChMatrixRe
         // Multiply the scaled and combined partial derivative block matrix by the stiffness matrix for each individual
         // Gauss quadrature point
         // =============================================================================
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> DScaled_Combined_PE;
+        ChMatrixDynamic<> DScaled_Combined_PE;
         DScaled_Combined_PE.resize(3 * NSF, 6 * NIP);
 
         DScaled_Combined_PE.template block<3 * NSF, NIP>(0, 0) =
@@ -2395,7 +2411,7 @@ void ChElementShellANCF_3443::ComputeInternalJacobianPreInt(ChMatrixRef& H, doub
     ChMatrixNM<double, 1, NSF> tempRow0 = temp.template block<1, NSF>(0, 0);
     ChMatrixNM<double, 1, NSF> tempRow1 = temp.template block<1, NSF>(1, 0);
     ChMatrixNM<double, 1, NSF> tempRow2 = temp.template block<1, NSF>(2, 0);
-    ChMatrixNMc<double, 9, NSF * NSF> PI2;
+    ChMatrixNM_col<double, 9, NSF * NSF> PI2;
 
     for (unsigned int v = 0; v < NSF; v++) {
         PI2.template block<3, NSF>(0, NSF * v) = e_bar.template block<3, 1>(0, v) * tempRow0;
@@ -2405,7 +2421,7 @@ void ChElementShellANCF_3443::ComputeInternalJacobianPreInt(ChMatrixRef& H, doub
 
     // Calculate the matrix containing the dense part of the Jacobian matrix in a reordered form. This is then reordered
     // from its [9 x NSF^2] form into its required [3*NSF x 3*NSF] form
-    ChMatrixNMc<double, 9, NSF* NSF> K2 = -PI2 * m_O2;
+    ChMatrixNM_col<double, 9, NSF* NSF> K2 = -PI2 * m_O2;
 
     for (unsigned int k = 0; k < NSF; k++) {
         for (unsigned int f = 0; f < NSF; f++) {

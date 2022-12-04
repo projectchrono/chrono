@@ -28,7 +28,7 @@
 #include <functional>
 #include <array>
 
-// Take care of Microsoft idiocy
+// Take care of Microsoft global definition
 #ifdef _WIN32
     #ifdef GetObject
         #undef GetObject

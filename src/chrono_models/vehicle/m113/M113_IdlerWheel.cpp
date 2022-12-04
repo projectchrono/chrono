@@ -46,7 +46,7 @@ const std::string M113_IdlerWheelRight::m_meshFile = "M113/meshes/Idler_R.obj";
 M113_IdlerWheel::M113_IdlerWheel(const std::string& name) : ChDoubleTrackWheel(name) {}
 
 void M113_IdlerWheel::CreateContactMaterial(ChContactMethod contact_method) {
-    MaterialInfo minfo;
+    ChContactMaterialData minfo;
     minfo.mu = 0.4f;
     minfo.cr = 0.75f;
     minfo.Y = 1e7f;

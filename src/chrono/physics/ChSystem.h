@@ -98,25 +98,6 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Gets the current time step used for the integration (dynamical simulation).
     double GetStep() const { return step; }
 
-    /// Sets the lower limit for time step (only needed if using
-    /// integration methods which support time step adaption).
-    void SetStepMin(double m_step_min) {
-        if (m_step_min > 0.)
-            step_min = m_step_min;
-    }
-    /// Gets the lower limit for time step
-    double GetStepMin() const { return step_min; }
-
-    /// Sets the upper limit for time step (only needed if using
-    /// integration methods which support time step adaption).
-    void SetStepMax(double m_step_max) {
-        if (m_step_max > step_min)
-            step_max = m_step_max;
-    }
-
-    /// Gets the upper limit for time step
-    double GetStepMax() const { return step_max; }
-
     /// Set the method for time integration (time stepper type).
     ///   - Suggested for fast dynamics with hard (NSC) contacts: EULER_IMPLICIT_LINEARIZED
     ///   - Suggested for fast dynamics with hard (NSC) contacts and low inter-penetration: EULER_IMPLICIT_PROJECTED
@@ -935,10 +916,8 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     int ndoc_w_C;    ///< number of scalar constraints C, when using 3 rot. dof. per body (excluding unilaterals)
     int ndoc_w_D;    ///< number of scalar constraints D, when using 3 rot. dof. per body (only unilaterals)
 
-    double ch_time;   ///< simulation time of the system
-    double step;      ///< time step
-    double step_min;  ///< min time step
-    double step_max;  ///< max time step
+    double ch_time;  ///< simulation time of the system
+    double step;     ///< time step
 
     double tol_force;  ///< tolerance for forces (used to obtain a tolerance for impulses)
 

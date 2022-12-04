@@ -43,12 +43,12 @@ class ChApi ChNodeFEAxyzP : public ChNodeFEAbase {
     /// Reset to no speed and acceleration.
     virtual void SetNoSpeedNoAcceleration() override { P_dt = 0; }
 
-    /// Set the 'fixed' state of the node.
-    /// If true, its current field value is not changed by solver.
-    virtual void SetFixed(bool mev) override { variables.SetDisabled(mev); }
-    /// Get the 'fixed' state of the node.
-    /// If true, its current field value is not changed by solver.
-    virtual bool GetFixed() override { return variables.IsDisabled(); }
+    /// Fix/release this node.
+    /// If fixed, its state variables are not changed by the solver.
+    virtual void SetFixed(bool fixed) override;
+
+    /// Return true if the node is fixed (i.e., its state variables are not changed by the solver).
+    virtual bool IsFixed() const override;
 
     /// Position of the node - in absolute csys.
     const ChVector<>& GetPos() const { return pos; }
@@ -78,11 +78,9 @@ class ChApi ChNodeFEAxyzP : public ChNodeFEAbase {
     void SetMass(double mm) { variables.GetMass()(0) = mm; }
 
     /// Get the number of degrees of freedom
-    virtual int Get_ndof_x() const override { return 1; }
+    virtual int GetNdofX() const override { return 1; }
 
-    //
     // Functions for interfacing to the state bookkeeping
-    //
 
     virtual void NodeIntStateGather(const unsigned int off_x,
                                     ChState& x,
@@ -106,9 +104,7 @@ class ChApi ChNodeFEAxyzP : public ChNodeFEAbase {
                                      const ChVectorDynamic<>& R) override;
     virtual void NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) override;
 
-    //
     // Functions for interfacing to the solver
-    //
 
     virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override;
 
@@ -120,9 +116,7 @@ class ChApi ChNodeFEAxyzP : public ChNodeFEAbase {
     virtual void VariablesFbIncrementMq() override;
     virtual void VariablesQbIncrementPosition(double step) override;
 
-    //
     // SERIALIZATION
-    //
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
     virtual void ArchiveIN(ChArchiveIn& marchive) override;

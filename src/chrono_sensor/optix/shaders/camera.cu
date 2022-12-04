@@ -32,7 +32,7 @@ __device__ __inline__ float radial_function(const float& rd2, const LensParams& 
     double rd16 = rd8 * rd8;
     double rd18 = rd10 * rd8;
 
-    float ru = (float)(1 + params.a0 * rd2 + 
+    float ru = (float)(1.0 + params.a0 * rd2 + 
         params.a1 * rd4 +
         params.a2 * rd6 + 
         params.a3 * rd8 +
@@ -62,20 +62,15 @@ extern "C" __global__ void __raygen__camera() {
         float2 d_normalized = d / focal;
         float rd = sqrtf(d_normalized.x * d_normalized.x + d_normalized.y * d_normalized.y);
         float ru = tanf(rd * camera.hFOV) / (2 * tanf(camera.hFOV / 2.0));
-        float ru_max = tanf(camera.hFOV) / (2 * tanf(camera.hFOV / 2.0));
-        // d.x = d.x * (ru / ru_max) / rd;
-        // d.y = d.y * (ru / ru_max) / rd;
-        d.x = d.x * (ru / rd);
-        d.y = d.y * (ru / rd);
+        d = d_normalized * (ru / rd) * focal;
+
     } else if (camera.lens_model == RADIAL) {
         float focal = 1.f / tanf(camera.hFOV / 2.0);
         float recip_focal = tanf(camera.hFOV / 2.0);
         float2 d_normalized = d * recip_focal;
         float rd2 = d_normalized.x * d_normalized.x + d_normalized.y * d_normalized.y;
         float distortion_ratio = radial_function(rd2,camera.lens_parameters);
-        d_normalized.x = d_normalized.x * distortion_ratio;
-        d_normalized.y = d_normalized.y * distortion_ratio;
-        d = d_normalized * focal;
+        d = d_normalized * distortion_ratio * focal;
     }
 
     if (camera.super_sample_factor > 1) {
@@ -152,21 +147,19 @@ extern "C" __global__ void __raygen__segmentation() {
     d.y *= (float)(screen.y) / (float)(screen.x);  // correct for the aspect ratio
 
     if (camera.lens_model == FOV_LENS && ((d.x) > 1e-5 || abs(d.y) > 1e-5)) {
-        float rd = sqrtf(d.x * d.x + d.y * d.y);
-        float ru = tanf(rd * camera.hFOV / 2.0) / (2 * tanf(camera.hFOV / 4.0));
-        float ru_max = tanf(camera.hFOV / 2.0) / (2 * tanf(camera.hFOV / 4.0));
+        float focal = 1.f / tanf(camera.hFOV / 2.0);
+        float2 d_normalized = d / focal;
+        float rd = sqrtf(d_normalized.x * d_normalized.x + d_normalized.y * d_normalized.y);
+        float ru = tanf(rd * camera.hFOV) / (2 * tanf(camera.hFOV / 2.0));
+        d = d_normalized * (ru / rd) * focal;
 
-        d.x = d.x * (ru / ru_max) / rd;  //(r2 / r1) / scaled_extent;
-        d.y = d.y * (ru / ru_max) / rd;  //* (r2 / r1) / scaled_extent;
     } else if (camera.lens_model == RADIAL) {
         float focal = 1.f / tanf(camera.hFOV / 2.0);
         float recip_focal = tanf(camera.hFOV / 2.0);
         float2 d_normalized = d * recip_focal;
         float rd2 = d_normalized.x * d_normalized.x + d_normalized.y * d_normalized.y;
         float distortion_ratio = radial_function(rd2,camera.lens_parameters);
-        d_normalized.x = d_normalized.x * distortion_ratio;
-        d_normalized.y = d_normalized.y * distortion_ratio;
-        d = d_normalized * focal;
+        d = d_normalized * distortion_ratio * focal;
     }
 
     // const float t_frac = 0;  // 0-1 between start and end time of the camera (chosen here)
