@@ -258,7 +258,6 @@ void ChPacejkaTire::Synchronize(double time,
     }
 
     m_tireState = m_wheel->GetState();
-    CalculateKinematics(time, m_tireState, terrain);
 
     // Update the tire coordinate system.
     m_simTime = time;

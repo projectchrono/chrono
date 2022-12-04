@@ -347,7 +347,6 @@ enum class TireModelType {
     RIGID,       ///< rigid tire (cylindrical)
     RIGID_MESH,  ///< rigid tire (mesh)
     PACEJKA,     ///< Pacejka (magic formula) tire
-    LUGRE,       ///< Lugre frition model tire
     FIALA,       ///< Fiala tire
     ANCF,        ///< ANCF shell element-based tire
     REISSNER,    ///< Reissner 6-field shell element-based tire

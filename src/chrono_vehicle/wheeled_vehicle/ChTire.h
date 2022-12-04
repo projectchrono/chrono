@@ -105,15 +105,11 @@ class CH_VEHICLE_API ChTire : public ChPart {
     // allow extensions to Chrono::Vehicle in user code.
 
     /// Initialize this tire subsystem by associating it to an existing wheel subsystem.
-    /// The tire mass and inertia are used to increment those of the associated suspension spindle body.
     virtual void Initialize(std::shared_ptr<ChWheel> wheel);
 
     /// Update the state of this tire system at the current time.
-    virtual void Synchronize(double time,              ///< [in] current time
-                             const ChTerrain& terrain  ///< [in] reference to the terrain system
-    ) {
-        CalculateKinematics(time, m_wheel->GetState(), terrain);
-    }
+    /// A derived class should also set the current slip, longitudinal slip, and camber angle.
+    virtual void Synchronize(double time, const ChTerrain& terrain) {}
 
     /// Advance the state of this tire by the specified time step.
     virtual void Advance(double step) {}
@@ -123,9 +119,8 @@ class CH_VEHICLE_API ChTire : public ChPart {
     ChTire(const std::string& name);
 
     /// Calculate kinematics quantities based on the given state of the associated wheel body.
-    void CalculateKinematics(double time,                    ///< [in] current time
-                             const WheelState& wheel_state,  ///< [in] current state of associated wheel body
-                             const ChTerrain& terrain        ///< [in] reference to the terrain system
+    void CalculateKinematics(const WheelState& wheel_state,  ///< [in] current state of associated wheel body
+                             const ChCoordsys<>& tire_frame  ///< [in] tire contact frame
     );
 
     /// Get offset from spindle center.
