@@ -455,29 +455,6 @@ windows:vs2019:test:
     name: pychrono-win64
     url: https://anaconda.org/projectchrono/pychrono
 
-windows:vs2019:deploy-python3.6:
-  stage: deploy
-  needs: []
-  extends: .windows-vs2019-deploy-base
-  script:
-    # Building pyChrono for python v3.6
-    - conda build .\contrib\packaging-python\conda -c conda-forge -c dlr-sc -c intel --python=3.6 --no-remove-work-dir
-    - conda install --yes anaconda-client
-    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN\envs\build-env\conda-bld\win-64\pychrono*.bz2" --force --label main
-  after_script:
-    # Get rid of the build environment
-    - Remove-Item $Env:CONDA_INSTALL_LOCN\envs\build-env -Recurse -Force
-    # Get rid of the downloaded numpy package to prevent conflicts
-    - Remove-Item $Env:CONDA_ISNTALL_LOCN\pkgs\numpy* -Recurse -Force
-  environment:
-    name: pychrono-win64
-    url: https://anaconda.org/projectchrono/pychrono
-  when: manual
-  artifacts:
-    expire_in: 60m
-    paths:
-      - ./logs/
-
 windows:vs2019:deploy-python3.8:
   stage: deploy
   needs: []
