@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Jayne Henry 
+// Authors: Radu Serban, Jayne Henry
 // =============================================================================
 //
 // Simple powertrain model for the RCCar vehicle.
@@ -45,11 +45,8 @@ class CH_MODELS_API RCCar_SimpleMapPowertrain : public chrono::vehicle::ChSimple
     /// Specify maximum engine speed.
     virtual double GetMaxEngineSpeed() override;
 
-    void SetMaxMotorVoltageRatio(double maxVoltage);
-
-    /// specify stall torque
-    void SetStallTorque(double stall_torque);
-
+    /// Set coefficients for motor resistance.
+    virtual void SetMotorResistanceCoefficients(double& c0, double& c1) override;
 
     /// Set the engine speed-torque maps.
     /// A concrete class must add the speed-torque points to the provided maps,
@@ -69,11 +66,14 @@ class CH_MODELS_API RCCar_SimpleMapPowertrain : public chrono::vehicle::ChSimple
         ) override;
 
   private:
-    double max_voltage_ratio = 1.0f;
-    double Kv_rating = 1300;
-    double supply_voltage = 7.4;
-    double stallTorque = 0.7; // TODO, currently a guess
+    double m_voltage_ratio;
+    double m_Kv_rating;
+    double m_supply_voltage;
+    double m_stall_torque;
+    double m_motor_resistance_c0;
+    double m_motor_resistance_c1;
 
+    friend class RCCar;
 };
 
 /// @} vehicle_models_rccar

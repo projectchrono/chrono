@@ -104,8 +104,3 @@ INSTANTIATE_TEST_SUITE_P(ChronoSequential,
                                                               ChSystemSMC::ContactForceModel::Hertz,
                                                               ChSystemSMC::ContactForceModel::PlainCoulomb),
                                             ::testing::Values(0.0, 0.25, 0.5, 0.75, 1.0)));
-
-// INSTANTIATE_TEST_SUITE_P(ChronoMulticore,
-//                          CorNormalTest,
-//                          ::testing::Combine(::testing::Values(ChSystemSMC::ContactForceModel::Hertz),
-//                                             ::testing::Values(0.0)));

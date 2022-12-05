@@ -28,8 +28,6 @@
 using namespace chrono;
 using namespace chrono::collision;
 
-collision::ChCollisionSystemType collision_type = collision::ChCollisionSystemType::CHRONO;
-
 std::string ForceModel_name(ChSystemSMC::ContactForceModel f) {
     switch (f) {
         case ChSystemSMC::ContactForceModel::Hooke:
@@ -58,8 +56,7 @@ std::shared_ptr<ChBody> AddSphere(int id,
     ChVector<> init_w(0, 0, 0);
 
     // Create a spherical body. Set body parameters and sphere collision model
-    // auto body = std::shared_ptr<ChBody>(sys->NewBody(collision_type));
-    auto body = chrono_types::make_shared<ChBody>(collision_type);
+    auto body = std::shared_ptr<ChBody>(sys->NewBody());
     body->SetIdentifier(id);
     body->SetMass(mass);
     body->SetPos(pos);
@@ -128,7 +125,6 @@ void SetSimParameters(
     sys->SetContactForceModel(fmodel);
     sys->SetTangentialDisplacementModel(tmodel);
     sys->SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);
-    sys->SetCollisionSystemType(collision_type);
 }
 #endif
 

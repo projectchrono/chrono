@@ -80,7 +80,7 @@ double tire_step_size = step_size;
 double t_end = 1000;
 
 // Time interval between two render frames
-double render_step_size = 1.0 / 1;  // FPS = 50
+double render_step_size = 1.0 / 50;  // FPS = 50
 
 // Output directories
 const std::string out_dir = GetChronoOutputPath() + "RCCar";
@@ -230,7 +230,6 @@ int main(int argc, char* argv[]) {
     my_rccar.GetVehicle().EnableRealtime(true);
     while (vis->Run()) {
         double time = my_rccar.GetSystem()->GetChTime();
-        std::cout << time << ", " << my_rccar.GetVehicle().GetSpeed() << std::endl;
 
         // End simulation
         if (time >= t_end)

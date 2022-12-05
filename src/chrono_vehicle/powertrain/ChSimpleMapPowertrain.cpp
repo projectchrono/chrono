@@ -30,8 +30,15 @@ namespace vehicle {
 ChSimpleMapPowertrain::ChSimpleMapPowertrain(const std::string& name)
     : ChPowertrain(name), m_motor_speed(0), m_motor_torque(0), m_shaft_torque(0), m_motor_resistance_c0(0), m_motor_resistance_c1(0) {}
 
+double ChSimpleMapPowertrain::GetMotorResistance() const {
+    return m_motor_resistance_c0 + m_motor_resistance_c1 * m_motor_speed;
+}
+
 void ChSimpleMapPowertrain::Initialize(std::shared_ptr<ChChassis> chassis) {
     ChPowertrain::Initialize(chassis);
+
+    // Let the derived class specify motor resistance coefficients
+    SetMotorResistanceCoefficients(m_motor_resistance_c0, m_motor_resistance_c1);
 
     // Let the derived class specify the shift bands
     SetShiftPoints(m_shift_points);
@@ -69,8 +76,9 @@ void ChSimpleMapPowertrain::Synchronize(double time, const DriverInputs& driver_
     double zeroThrottleTorque = m_zero_throttle_map.Get_y(m_motor_speed);
     m_motor_torque = zeroThrottleTorque * (1 - throttle) + fullThrottleTorque * (throttle);
 
-    // apply resistance in motor, default is no resistance
-    m_motor_torque = m_motor_torque - m_motor_resistance_c1 * m_motor_speed - m_motor_resistance_c0;
+    // Apply motor reistance
+    m_motor_torque -= m_motor_resistance_c0 + m_motor_resistance_c1 * m_motor_speed;
+
     // The torque at motor shaft
     m_shaft_torque = m_motor_torque / m_current_gear_ratio;
 }

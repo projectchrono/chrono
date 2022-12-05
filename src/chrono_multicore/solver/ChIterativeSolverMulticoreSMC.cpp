@@ -284,8 +284,6 @@ void function_CalcContactForces(
                 kt = St;
                 gn = -2 * Sqrt(5.0 / 6) * beta * Sqrt(Sn * m_eff);
                 gt = -2 * Sqrt(5.0 / 6) * beta * Sqrt(St * m_eff);
-                std::cout << "delta, kn, kt, gn, gt, " << delta_n << ", " << kn << ", " << kt << ", " << gn << ", " << gt << std::endl; 
-
             } else {
                 real tmp = eff_radius[index] * Sqrt(delta_n);
                 kn = tmp * user_kn;

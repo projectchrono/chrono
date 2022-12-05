@@ -122,7 +122,6 @@ class ChDefaultContactForceSMC : public ChSystemSMC::ChContactForceSMC {
                     kt = St;
                     gn = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(Sn * eff_mass);
                     gt = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(St * eff_mass);
-                    // std::cout << "R, delta, kn, gn, " << eff_radius << ", " <<  delta << ", " << kn << ", " << gn << std::endl;
                 } else {
                     double tmp = eff_radius * std::sqrt(delta);
                     kn = tmp * mat.kn;
@@ -152,8 +151,8 @@ class ChDefaultContactForceSMC : public ChSystemSMC::ChContactForceSMC {
 
                 {
                     double forceN = kn * delta - gn * relvel_n_mag;
-                    // if (forceN < 0)
-                    //     forceN = 0;
+                    if (forceN < 0)
+                        forceN = 0;
                     double forceT = mat.mu_eff * std::tanh(5.0 * relvel_t_mag) * forceN;
                     switch (adhesion_model) {
                         case ChSystemSMC::AdhesionForceModel::Perko:
@@ -193,10 +192,10 @@ class ChDefaultContactForceSMC : public ChSystemSMC::ChContactForceSMC {
 
         // If the resulting normal contact force is negative, the two shapes are moving
         // away from each other so fast that no contact force is generated.
-        // if (forceN < 0) {
-        //     forceN = 0;
-        //     forceT = 0;
-        // }
+        if (forceN < 0) {
+            forceN = 0;
+            forceT = 0;
+        }
 
         // Include adhesion force
         switch (adhesion_model) {

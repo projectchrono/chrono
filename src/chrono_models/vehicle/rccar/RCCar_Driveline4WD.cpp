@@ -41,11 +41,6 @@ const double RCCar_Driveline4WD::m_rear_conicalgear_ratio = .5; //TODO
 const double RCCar_Driveline4WD::m_axle_differential_locking_limit = 1000; //no locking on axle diffs
 const double RCCar_Driveline4WD::m_central_differential_locking_limit = 1; //no central diff
 
-// parameters for hmmwv
-// const double RCCar_Driveline4WD::m_axle_differential_locking_limit = 100; //no locking on axle diffs
-// const double RCCar_Driveline4WD::m_central_differential_locking_limit = 100; //no central diff
-
-
 // -----------------------------------------------------------------------------
 // Constructor of the RCCar_Driveline4WD.
 // The direction of the motor block is along the X axis, while the directions of

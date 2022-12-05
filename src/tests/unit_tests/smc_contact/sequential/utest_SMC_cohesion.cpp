@@ -132,7 +132,7 @@ TEST_P(CohesionTest, detach) {
     ASSERT_GT(distance, 2 * srad);
 }
 
-INSTANTIATE_TEST_SUITE_P(ChronoMulticore,
+INSTANTIATE_TEST_SUITE_P(ChronoSequential,
                          CohesionTest,
                          ::testing::Values(ChSystemSMC::ContactForceModel::Hooke,
                                            ChSystemSMC::ContactForceModel::Hertz,

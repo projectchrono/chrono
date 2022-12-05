@@ -34,7 +34,6 @@
 #include "chrono_models/vehicle/rccar/RCCar_Chassis.h"
 #include "chrono_models/vehicle/rccar/RCCar_DoubleWishbone.h"
 #include "chrono_models/vehicle/rccar/RCCar_Driveline4WD.h"
-// #include "chrono_models/vehicle/rccar/RCCar_SimpleDriveline.h"
 #include "chrono_models/vehicle/rccar/RCCar_PitmanArm.h"
 #include "chrono_models/vehicle/rccar/RCCar_Wheel.h"
 
@@ -86,7 +85,6 @@ class CH_MODELS_API RCCar_Vehicle : public ChWheeledVehicle {
     void Create(bool fixed, CollisionType chassis_collision_type);
 
     std::vector<double> m_omega;
-    DrivelineTypeWV m_driveType;
 };
 
 /// @} vehicle_models_rccar

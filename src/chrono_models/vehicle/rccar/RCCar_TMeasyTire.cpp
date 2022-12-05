@@ -57,11 +57,6 @@ void RCCar_TMeasyTire::SetTMeasyParams() {
                     r,      // aspect ratio []
                     rimdia  // rim diameter [m]
     );
-
-}
-
-void RCCar_TMeasyTire::SetRollingFrictionCoefficient(double mu_r){
-    SetRollingResistanceCoefficients(mu_r, mu_r);
 }
 
 void RCCar_TMeasyTire::GenerateCharacteristicPlots(const std::string& dirname) {

@@ -137,7 +137,7 @@ TEST_P(SlidingGravityTest, sliding) {
     ASSERT_LT(d_err, 0.5);
 }
 
-INSTANTIATE_TEST_SUITE_P(ChronoMulticore,
+INSTANTIATE_TEST_SUITE_P(ChronoSequential,
                          SlidingGravityTest,
                          ::testing::Values(ChSystemSMC::ContactForceModel::Hooke,
                                            ChSystemSMC::ContactForceModel::Hertz,
