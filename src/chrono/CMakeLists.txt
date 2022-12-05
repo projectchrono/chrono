@@ -1291,7 +1291,7 @@ set(ChronoEngine_utils_HEADERS
 
 if(BUILD_BENCHMARKING)
     set(ChronoEngine_utils_HEADERS ${ChronoEngine_utils_HEADERS} utils/ChBenchmark.h)
-    message("Adding Chrono utilities for benchmarking.")
+    message(STATUS "Adding Chrono utilities for benchmarking.")
 endif()
 
 source_group(utils FILES
