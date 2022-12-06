@@ -135,7 +135,7 @@ bool ChTire::DiscTerrainCollision(
     wheel_forward.Normalize();
     ChVector<> wheel_bottom_location = disc_center + disc_radius * Vcross(disc_normal, wheel_forward);
 
-    // Find terrain height, normal, and friction at the this point on the wheel disc.
+    // Find terrain height, normal, and friction at this point on the wheel disc.
     double hc;
     ChVector<> normal;
     terrain.GetProperties(wheel_bottom_location, hc, normal, mu);
