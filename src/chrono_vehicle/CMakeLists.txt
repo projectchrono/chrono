@@ -532,6 +532,16 @@ else()
 endif()
 source_group("wheeled_vehicle\\test_rig" FILES ${CV_WV_TEST_RIG_FILES} ${CVIRR_WV_TEST_RIG_FILES})
 
+if(ENABLE_MODULE_VSG)
+    set(CVVSG_WV_TEST_RIG_FILES
+        wheeled_vehicle/test_rig/ChVSGGuiDriverSTR.h
+        wheeled_vehicle/test_rig/ChVSGGuiDriverSTR.cpp    
+    )
+else()
+    set(CVVSG_WV_TEST_RIG_FILES "")
+endif()
+source_group("wheeled_vehicle\\test_rig" FILES ${CV_WV_TEST_RIG_FILES} ${CVVSG_WV_TEST_RIG_FILES})
+
 set(CV_WV_TIRE_FILES
     wheeled_vehicle/tire/ChRigidTire.h
     wheeled_vehicle/tire/ChRigidTire.cpp
@@ -977,6 +987,7 @@ list(APPEND LIBRARIES ChronoEngine_vsg)
 add_library(ChronoEngine_vehicle_vsg SHARED
     ${CVVSG_DRIVER_FILES}
     ${CVVSG_UTILS_FILES}
+    ${CVVSG_WV_TEST_RIG_FILES}
     ${CVVSG_WV_UTILS_FILES}
     ${CVVSG_TV_UTILS_FILES}
 )

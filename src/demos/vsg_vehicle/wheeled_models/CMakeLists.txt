@@ -6,6 +6,7 @@ SET(DEMOS
   demo_vsg_VEH_HMMWV_DefSoil
   demo_vsg_VEH_HMMWV_Accel
   demo_vsg_VEH_HMMWV_dlc
+  demo_vsg_VEH_SuspensionTestRig
   demo_vsg_VEH_TireTestRig
   demo_vsg_VEH_TwoCars
   demo_vsg_VEH_RigidTerrain

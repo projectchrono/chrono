@@ -158,31 +158,29 @@ int main(int argc, char* argv[]) {
     body->AddVisualShape(mesh, ChFrame<>(ChVector<>(2, 1, 2), QUNIT));
 
     // ==Asset== Attach a 'Wavefront mesh' asset, referencing a .obj file and offset it.
+    // only the first call of a destinct filename loads from disc,
+    // following calls read from cash and only the ChFrame<> is changed
     auto objmesh0 = chrono_types::make_shared<ChObjFileShape>();
-    objmesh0->SetFilename(GetChronoDataFile("models/forklift/body.obj")); //since MacOS 12.5 extremely slow
-    body->AddVisualShape(objmesh0, ChFrame<>(ChVector<>(0, 0.0, 2), QUNIT));
+    objmesh0->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
+    body->AddVisualShape(objmesh0, ChFrame<>(ChVector<>(0, 0.0, 2), Q_from_AngX(-CH_C_PI_2)));
     // add a second instance of the wavefront mesh
     auto objmesh1 = chrono_types::make_shared<ChObjFileShape>();
-    objmesh1->SetFilename(GetChronoDataFile("models/forklift/body.obj")); //since MacOS 12.5 extremely slow
-    body->AddVisualShape(objmesh1, ChFrame<>(ChVector<>(3, 0.0, 2.5), QUNIT));
+    objmesh1->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
+    body->AddVisualShape(objmesh1, ChFrame<>(ChVector<>(3, 0.0, 2.5), Q_from_AngX(-CH_C_PI_2)));
     // add more ...
     auto objmesh2 = chrono_types::make_shared<ChObjFileShape>();
-    objmesh2->SetFilename(GetChronoDataFile("models/forklift/body.obj")); //since MacOS 12.5 extremely slow
-    body->AddVisualShape(objmesh2, ChFrame<>(ChVector<>(5, 0.0, 3), QUNIT));
+    objmesh2->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
+    body->AddVisualShape(objmesh2, ChFrame<>(ChVector<>(5, 0.0, 3), Q_from_AngX(-CH_C_PI_2)));
     // add more ...
     auto objmesh3 = chrono_types::make_shared<ChObjFileShape>();
-    objmesh3->SetFilename(GetChronoDataFile("models/forklift/body.obj")); //since MacOS 12.5 extremely slow
-    body->AddVisualShape(objmesh3, ChFrame<>(ChVector<>(4, 0.0, -3), Q_from_AngY(CH_C_PI_2)));
+    objmesh3->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
+    body->AddVisualShape(objmesh3, ChFrame<>(ChVector<>(4, 0.0, -3), Q_from_AngY(0.5*CH_C_PI)*Q_from_AngX(-CH_C_PI_2)));
     auto objmesh4 = chrono_types::make_shared<ChObjFileShape>();
-    objmesh4->SetFilename(GetChronoDataFile("models/forklift/body.obj")); //since MacOS 12.5 extremely slow
-    body->AddVisualShape(objmesh4, ChFrame<>(ChVector<>(0, 0.0, -5), Q_from_AngY(CH_C_PI)));
+    objmesh4->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
+    body->AddVisualShape(objmesh4, ChFrame<>(ChVector<>(0, 0.0, -5), Q_from_AngY(CH_C_PI)*Q_from_AngX(-CH_C_PI_2)));
     auto objmesh5 = chrono_types::make_shared<ChObjFileShape>();
-    objmesh5->SetFilename(GetChronoDataFile("models/forklift/body.obj")); //since MacOS 12.5 extremely slow
-    body->AddVisualShape(objmesh5, ChFrame<>(ChVector<>(-4, 0.0, -6), Q_from_AngY(-CH_C_PI_4)));
-
-    //objmesh->SetFilename(GetChronoDataFile("vsg/models/forklift/body.vsgb"));  // converted with vsgconv
-    // vsgconv changes orientation!
-    //body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(0, 0, 2), Q_from_AngAxis(-CH_C_PI_2, ChVector<>(1, 0, 0))));
+    objmesh5->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
+    body->AddVisualShape(objmesh5, ChFrame<>(ChVector<>(-4, 0.0, -6), Q_from_AngY(-CH_C_PI_4)*Q_from_AngX(-CH_C_PI_2)));
 
     // ==Asset== Attach an array of boxes, each rotated to make a spiral
     for (int j = 0; j < 20; j++) {
