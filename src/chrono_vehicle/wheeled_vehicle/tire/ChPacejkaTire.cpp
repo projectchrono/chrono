@@ -422,7 +422,6 @@ void ChPacejkaTire::update_W_frame(const ChTerrain& terrain) {
     ChCoordsys<> contact_frame;
 
     double depth;
-    double dum_cam;
     float mu;
     switch (m_collision_type) {
         case CollisionType::SINGLE_POINT:
@@ -431,7 +430,7 @@ void ChPacejkaTire::update_W_frame(const ChTerrain& terrain) {
             break;
         case CollisionType::FOUR_POINTS:
             m_in_contact = DiscTerrainCollision4pt(terrain, m_tireState.pos, m_tireState.rot.GetYaxis(), m_R0,
-                                                   m_params->dimension.width, contact_frame, depth, dum_cam, mu);
+                                                   m_params->dimension.width, contact_frame, depth, mu);
             break;
         case CollisionType::ENVELOPE:
             m_in_contact = DiscTerrainCollisionEnvelope(terrain, m_tireState.pos, m_tireState.rot.GetYaxis(), m_R0,

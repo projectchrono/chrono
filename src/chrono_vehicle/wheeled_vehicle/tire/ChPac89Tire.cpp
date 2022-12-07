@@ -70,7 +70,6 @@ void ChPac89Tire::Synchronize(double time,
     ChVector<> disc_normal = A.Get_A_Yaxis();
 
     // Assuming the tire is a disc, check contact with terrain
-    double dum_cam;
     float mu;
     switch (m_collision_type) {
         case ChTire::CollisionType::SINGLE_POINT:
@@ -79,7 +78,7 @@ void ChPac89Tire::Synchronize(double time,
             break;
         case ChTire::CollisionType::FOUR_POINTS:
             m_data.in_contact = DiscTerrainCollision4pt(terrain, wheel_state.pos, disc_normal, m_unloaded_radius,
-                                                        m_width, m_data.frame, m_data.depth, dum_cam, mu);
+                                                        m_width, m_data.frame, m_data.depth, mu);
             break;
         case ChTire::CollisionType::ENVELOPE:
             m_data.in_contact = DiscTerrainCollisionEnvelope(terrain, wheel_state.pos, disc_normal, m_unloaded_radius,

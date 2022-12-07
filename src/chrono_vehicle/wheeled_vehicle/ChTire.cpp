@@ -190,7 +190,6 @@ bool ChTire::DiscTerrainCollision4pt(
     double width,                   // [in] tire width
     ChCoordsys<>& contact,          // [out] contact coordinate system (relative to the global frame)
     double& depth,                  // [out] penetration depth (positive if contact occurred),
-    double& camber_angle,           // [out] camber angle
     float& mu                       // [out] coefficient of friction at contact
 ) {
     double dx = 0.1 * disc_radius;
@@ -264,9 +263,6 @@ bool ChTire::DiscTerrainCollision4pt(
 
     if (da >= disc_radius)
         return false;
-
-    // Calculate an improved value for the camber angle
-    camber_angle = std::asin(Vdot(disc_normal, terrain_normal));
 
     ChMatrix33<> rot;
     rot.Set_A_axis(longitudinal, lateral, terrain_normal);

@@ -130,16 +130,14 @@ void ChTMeasyTire::Synchronize(double time, const ChTerrain& terrain) {
         case CollisionType::SINGLE_POINT:
             m_data.in_contact = DiscTerrainCollision(terrain, wheel_state.pos, disc_normal, m_unloaded_radius,
                                                      m_data.frame, m_data.depth, mu);
-            m_gamma = GetCamberAngle();
             break;
         case CollisionType::FOUR_POINTS:
             m_data.in_contact = DiscTerrainCollision4pt(terrain, wheel_state.pos, disc_normal, m_unloaded_radius,
-                                                        m_width, m_data.frame, m_data.depth, m_gamma, mu);
+                                                        m_width, m_data.frame, m_data.depth, mu);
             break;
         case CollisionType::ENVELOPE:
             m_data.in_contact = DiscTerrainCollisionEnvelope(terrain, wheel_state.pos, disc_normal, m_unloaded_radius,
                                                              m_areaDep, m_data.frame, m_data.depth, mu);
-            m_gamma = GetCamberAngle();
             break;
     }
     ChClampValue(mu, 0.1f, 1.0f);
@@ -147,6 +145,7 @@ void ChTMeasyTire::Synchronize(double time, const ChTerrain& terrain) {
 
     // Calculate tire kinematics
     CalculateKinematics(wheel_state, m_data.frame);
+    m_gamma = GetCamberAngle();
 
     UpdateVerticalStiffness();
     

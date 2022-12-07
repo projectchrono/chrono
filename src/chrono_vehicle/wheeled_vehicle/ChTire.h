@@ -187,7 +187,6 @@ class CH_VEHICLE_API ChTire : public ChPart {
         double width,                   ///< [in] tire width
         ChCoordsys<>& contact,          ///< [out] contact coordinate system (relative to the global frame)
         double& depth,                  ///< [out] penetration depth (positive if contact occurred)
-        double& camber_angle,           ///< [out] tire camber angle
         float& mu                       ///< [out] coefficient of friction at contact
     );
 
