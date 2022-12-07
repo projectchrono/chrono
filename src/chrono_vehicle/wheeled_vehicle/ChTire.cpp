@@ -166,7 +166,7 @@ bool ChTire::DiscTerrainCollision(
         return false;
 
     // And we re-calculate the contact point.
-    wheel_bottom_location = disc_center + disc_radius * Vcross(disc_normal, wheel_forward_normal);
+    wheel_bottom_location = disc_center + (disc_radius - depth) * Vcross(disc_normal, wheel_forward_normal);
 
     // Approximate the terrain with a plane. Define the projection of the lowest
     // point onto this plane as the contact point on the terrain.
