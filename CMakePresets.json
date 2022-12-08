@@ -119,14 +119,14 @@
 				"ENABLE_MODULE_GPU": "ON",
 				"ENABLE_MODULE_FSI": "ON",
 				"ENABLE_MODULE_SENSOR": "ON",
-				"DNUMPY_INCLUDE_DIR": "C:/Users/builder/miniconda3/envs/build-env/",
+				"NUMPY_INCLUDE_DIR": "C:/Users/builder/miniconda3/envs/build-env/",
 				"OptiX_INSTALL_DIR": "C:/Program Files/NVIDIA Corporation/OptiX SDK 7.5.0",
 				"CUDA_TOOLKIT_ROOT_DIR": "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.7",
 				"THRUST_INCLUDE_DIR": "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.7/include",
-				"DUSE_CUDA_NVRTC": "OFF",
-				"DCUDA_ARCH_NAME":"Manual",
-				"DCUDA_ARCH_PTX":"52",
-				"DCUDA_ARCH_BIN":"5.2"
+				"USE_CUDA_NVRTC": "OFF",
+				"CUDA_ARCH_NAME":"Manual",
+				"CUDA_ARCH_PTX":"52",
+				"CUDA_ARCH_BIN":"5.2"
 			}
 		},
 		{
@@ -145,13 +145,14 @@
 				"ENABLE_MODULE_MULTICORE": "OFF",
 				"ENABLE_MODULE_FSI": "ON",
 				"ENABLE_MODULE_SENSOR": "ON",
+				"NUMPY_INCLUDE_DIR": "C:/Users/builder/miniconda3/envs/build-env/",
 				"OptiX_INSTALL_DIR": "C:/Program Files/NVIDIA Corporation/OptiX SDK 7.5.0",
 				"CUDA_TOOLKIT_ROOT_DIR": "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.7",
 				"THRUST_INCLUDE_DIR": "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.7/include",
-				"DUSE_CUDA_NVRTC": "OFF",
-				"DCUDA_ARCH_NAME":"Manual",
-				"DCUDA_ARCH_PTX":"52",
-				"DCUDA_ARCH_BIN":"5.2"
+				"USE_CUDA_NVRTC": "OFF",
+				"CUDA_ARCH_NAME":"Manual",
+				"CUDA_ARCH_PTX":"52",
+				"CUDA_ARCH_BIN":"5.2"
 			}
 		}
 	]
