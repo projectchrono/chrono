@@ -434,6 +434,10 @@ TerrainForce ChPac02Tire::ReportTireForce(ChTerrain* terrain) const {
 }
 
 TerrainForce ChPac02Tire::GetTireForce() const {
+    if (!m_data.in_contact) {
+        return TerrainForce();
+    }
+
     TerrainForce tireforce;
     tireforce.point = m_wheel->GetPos();
 

@@ -77,6 +77,7 @@ typedef std::vector<WheelState> WheelStates;
 
 /// Structure to communicate a set of generalized terrain contact forces (tire or track shoe).
 struct TerrainForce {
+    TerrainForce() : force(VNULL), point(VNULL), moment(VNULL) {}
     ChVector<> force;   ///< force vector, epxressed in the global frame
     ChVector<> point;   ///< global location of the force application point
     ChVector<> moment;  ///< moment vector, expressed in the global frame
