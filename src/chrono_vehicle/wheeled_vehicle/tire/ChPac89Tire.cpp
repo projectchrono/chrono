@@ -269,31 +269,6 @@ void ChPac89Tire::Advance(double step) {
 
 // -----------------------------------------------------------------------------
 
-TerrainForce ChPac89Tire::ReportTireForce(ChTerrain* terrain) const {
-    return GetTireForce();
-}
-
-TerrainForce ChPac89Tire::GetTireForce() const {
-    if (!m_data.in_contact) {
-        return TerrainForce();
-    }
-
-    TerrainForce tireforce;
-    tireforce.point = m_wheel->GetPos();
-
-    // Rotate into global coordinates
-    tireforce.force = m_data.frame.TransformDirectionLocalToParent(m_tireforce.force);
-    tireforce.moment = m_data.frame.TransformDirectionLocalToParent(m_tireforce.moment);
-
-    // Move the tire forces from the contact patch to the wheel center
-    tireforce.moment +=
-        Vcross((m_data.frame.pos + m_data.depth * m_data.frame.rot.GetZaxis()) - tireforce.point, tireforce.force);
-
-    return tireforce;
-}
-
-// -----------------------------------------------------------------------------
-
 void ChPac89Tire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;

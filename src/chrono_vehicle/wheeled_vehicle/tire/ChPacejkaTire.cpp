@@ -209,10 +209,6 @@ TerrainForce ChPacejkaTire::GetTireForce() const {
     return GetTireForce_combinedSlip(false);
 }
 
-TerrainForce ChPacejkaTire::ReportTireForce(ChTerrain* terrain) const {
-    return GetTireForce_combinedSlip(false);
-}
-
 TerrainForce ChPacejkaTire::GetTireForce_pureSlip(const bool local) const {
     if (local)
         return m_FM_pure;
