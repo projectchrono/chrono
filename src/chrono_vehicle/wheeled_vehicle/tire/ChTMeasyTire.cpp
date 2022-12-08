@@ -117,10 +117,8 @@ void ChTMeasyTire::Initialize(std::shared_ptr<ChWheel> wheel) {
 // -----------------------------------------------------------------------------
 
 void ChTMeasyTire::Synchronize(double time, const ChTerrain& terrain) {
-    WheelState wheel_state = m_wheel->GetState();
-    CalculateKinematics(time, wheel_state, terrain);
-
     m_time = time;
+    WheelState wheel_state = m_wheel->GetState();
 
     // Extract the wheel normal (expressed in global frame)
     ChMatrix33<> A(wheel_state.rot);
@@ -128,24 +126,14 @@ void ChTMeasyTire::Synchronize(double time, const ChTerrain& terrain) {
 
     // Assuming the tire is a disc, check contact with terrain
     float mu;
-    switch (m_collision_type) {
-        case CollisionType::SINGLE_POINT:
-            m_data.in_contact = DiscTerrainCollision(terrain, wheel_state.pos, disc_normal, m_unloaded_radius,
-                                                     m_data.frame, m_data.depth, mu);
-            m_gamma = GetCamberAngle();
-            break;
-        case CollisionType::FOUR_POINTS:
-            m_data.in_contact = DiscTerrainCollision4pt(terrain, wheel_state.pos, disc_normal, m_unloaded_radius,
-                                                        m_width, m_data.frame, m_data.depth, m_gamma, mu);
-            break;
-        case CollisionType::ENVELOPE:
-            m_data.in_contact = DiscTerrainCollisionEnvelope(terrain, wheel_state.pos, disc_normal, m_unloaded_radius,
-                                                             m_areaDep, m_data.frame, m_data.depth, mu);
-            m_gamma = GetCamberAngle();
-            break;
-    }
+    m_data.in_contact = DiscTerrainCollision(m_collision_type, terrain, wheel_state.pos, disc_normal, m_unloaded_radius,
+                                             m_width, m_areaDep, m_data.frame, m_data.depth, mu);
     ChClampValue(mu, 0.1f, 1.0f);
     m_mu = mu;
+
+    // Calculate tire kinematics
+    CalculateKinematics(wheel_state, m_data.frame);
+    m_gamma = GetCamberAngle();
 
     UpdateVerticalStiffness();
     
@@ -448,25 +436,6 @@ void ChTMeasyTire::Advance(double step) {
 }
 
 // -----------------------------------------------------------------------------
-
-TerrainForce ChTMeasyTire::ReportTireForce(ChTerrain* terrain) const {
-    return GetTireForce();
-}
-
-TerrainForce ChTMeasyTire::GetTireForce() const {
-    TerrainForce tireforce;
-    tireforce.point = m_wheel->GetPos();
-
-    // Rotate into global coordinates
-    tireforce.force = m_data.frame.TransformDirectionLocalToParent(m_tireforce.force);
-    tireforce.moment = m_data.frame.TransformDirectionLocalToParent(m_tireforce.moment);
-
-    // Move the tire forces from the contact patch to the wheel center
-    tireforce.moment +=
-        Vcross((m_data.frame.pos + m_data.depth * m_data.frame.rot.GetZaxis()) - tireforce.point, tireforce.force);
-
-    return tireforce;
-}
 
 double ChTMeasyTire::GetNormalStiffnessForce(double depth) const {
     return m_TMeasyCoeff.cz * depth;

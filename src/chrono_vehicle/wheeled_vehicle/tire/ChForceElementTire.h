@@ -32,7 +32,18 @@ class CH_VEHICLE_API ChForceElementTire : public ChTire {
   public:
     virtual ~ChForceElementTire() {}
 
+    /// Report the tire force and moment.
+    virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override;
+
   protected:
+    struct ContactData {
+        bool in_contact;      // true if disc in contact with terrain
+        ChCoordsys<> frame;   // contact frame (x: long, y: lat, z: normal)
+        ChVector<> vel;       // relative velocity expressed in contact frame
+        double normal_force;  // magnitude of normal contact force
+        double depth;         // penetration depth
+    };
+
     /// Construct a tire with the specified name.
     ChForceElementTire(const std::string& name);
 
@@ -47,6 +58,16 @@ class CH_VEHICLE_API ChForceElementTire : public ChTire {
 
     /// Return the vertical tire damping contribution to the normal force.
     virtual double GetNormalDampingForce(double depth, double velocity) const = 0;
+
+    /// Get the tire force and moment.
+    /// This represents the output from this tire system that is passed to the vehicle system.  Typically, the vehicle
+    /// subsystem will pass the tire force to the appropriate suspension subsystem which applies it as an external force
+    /// one the wheel body.
+    virtual TerrainForce GetTireForce() const override;
+
+    ContactData m_data;             ///< tire-terrain collision information
+    TerrainForce m_tireforce;       ///< tire forces (in tire contact frame)
+    ChFunction_Recorder m_areaDep;  // lookup table for estimation of penetration depth from intersection area
 
   private:
     virtual void InitializeInertiaProperties() override final;

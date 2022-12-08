@@ -51,7 +51,7 @@ static std::shared_ptr<irr::video::SMaterial> default_material;
 ChVisualSystemIrrlicht::ChVisualSystemIrrlicht()
     : m_device_params(irr::SIrrlichtCreationParameters()),
       m_device(nullptr),
-      m_courier_font(nullptr),
+      m_monospace_font(nullptr),
       m_container(nullptr),
       m_win_title(""),
       m_yup(true),
@@ -189,7 +189,7 @@ void ChVisualSystemIrrlicht::Initialize() {
     m_use_effects = false;  // will be true as sson as a light with shadow is added
 
     // Create a fixed-size font.
-    m_courier_font = GetGUIEnvironment()->getFont(GetChronoDataFile("fonts/courier6.png").c_str());
+    m_monospace_font = GetGUIEnvironment()->getFont(GetChronoDataFile("fonts/jetbrainmono6_bold.png").c_str());
 
     // Create the container Irrlicht scene node
     m_container = GetSceneManager()->addEmptySceneNode();

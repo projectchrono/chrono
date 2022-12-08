@@ -15,8 +15,7 @@
 //
 // By default, this class implements a terrain modeled as an infinite horizontal plane at a specified height with the
 // uneven terrain lane of specified length and width starting at the origin. This type of terrain can be used in
-// conjunction with tire models that perform their own collision detection (e.g. ChPacejkaTire, ChFiala, and
-// ChLugreTire).
+// conjunction with tire models that perform their own collision detection (e.g., ChTMeasy ChPac89, ChPac02, ChFiala).
 //
 // Alternatively, this terrain type can be represented as a collision mesh representing the uneven lane with an
 // optional flat starting lane.  This terrain type can be used with vehicles that require contact for the

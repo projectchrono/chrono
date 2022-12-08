@@ -31,7 +31,8 @@ ChVisualMaterial::ChVisualMaterial()
       metallic(0),
       use_specular_workflow(true),
       class_id(0),
-      instance_id(0) {}
+      instance_id(0)
+      {}
 
 void ChVisualMaterial::SetKdTexture(const std::string& filename, float scale_x, float scale_y) {
     kd_texture.SetFilename(filename);

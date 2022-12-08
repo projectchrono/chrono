@@ -53,9 +53,6 @@ class CH_VEHICLE_API ChFialaTire : public ChForceElementTire {
     /// For a Fiala tire, this is the unloaded tire radius.
     virtual double GetRadius() const override { return m_unloaded_radius; }
 
-    /// Report the tire force and moment.
-    virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override;
-
     /// Get the width of the tire.
     virtual double GetWidth() const override { return m_width; }
 
@@ -111,12 +108,6 @@ class CH_VEHICLE_API ChFialaTire : public ChForceElementTire {
     double m_time;        // actual system time
     double m_time_trans;  // end of start transient
 
-    /// Get the tire force and moment.
-    /// This represents the output from this tire system that is passed to the vehicle system.  Typically, the vehicle
-    /// subsystem will pass the tire force to the appropriate suspension subsystem which applies it as an external force
-    /// one the wheel body.
-    virtual TerrainForce GetTireForce() const override;
-
     /// Initialize this tire by associating it to the specified wheel.
     virtual void Initialize(std::shared_ptr<ChWheel> wheel) override;
 
@@ -127,14 +118,6 @@ class CH_VEHICLE_API ChFialaTire : public ChForceElementTire {
 
     /// Advance the state of this tire by the specified time step.
     virtual void Advance(double step) override;
-
-    struct ContactData {
-        bool in_contact;      // true if disc in contact with terrain
-        ChCoordsys<> frame;   // contact frame (x: long, y: lat, z: normal)
-        ChVector<> vel;       // relative velocity expressed in contact frame
-        double normal_force;  // magnitude of normal contact force
-        double depth;         // penetration depth
-    };
 
     struct TireStates {
         double kappa;   // Contact Path - Stationary Longitudinal Slip State (Kappa)
@@ -149,13 +132,7 @@ class CH_VEHICLE_API ChFialaTire : public ChForceElementTire {
         ChVector<> disc_normal;  // temporary for debug
     };
 
-    ChFunction_Recorder m_areaDep;  // lookup table for estimation of penetration depth from intersection area
-
-    ContactData m_data;
     TireStates m_states;
-
-    TerrainForce m_tireforce;
-
     std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
 };
 

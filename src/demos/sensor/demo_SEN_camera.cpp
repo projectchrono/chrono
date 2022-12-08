@@ -73,7 +73,7 @@ float lag = .05f;
 // Exposure (in seconds) of each image
 float exposure_time = 0.02f;
 
-int alias_factor = 1;
+int alias_factor = 2;
 
 bool use_gi = true;  // whether cameras should use global illumination
 
@@ -254,10 +254,10 @@ int main(int argc, char* argv[]) {
     // Add a noise model filter to the camera sensor
     switch (noise_model) {
         case CONST_NORMAL:
-            cam->PushFilter(chrono_types::make_shared<ChFilterCameraNoiseConstNormal>(0.f, .02f));
+            cam->PushFilter(chrono_types::make_shared<ChFilterCameraNoiseConstNormal>(0.f, .0004f));
             break;
         case PIXEL_DEPENDENT:
-            cam->PushFilter(chrono_types::make_shared<ChFilterCameraNoisePixDep>(0.f, .02f, .02f));
+            cam->PushFilter(chrono_types::make_shared<ChFilterCameraNoisePixDep>(.0004f, .0004f));
             break;
         case NONE:
             // Don't add any noise models
@@ -293,7 +293,7 @@ int main(int argc, char* argv[]) {
     cam->PushFilter(chrono_types::make_shared<ChFilterR8Access>());
 
     // add sensor to the manager
-    // manager->AddSensor(cam);
+    manager->AddSensor(cam);
 
     // -------------------------------------------------------
     // Create a second camera and add it to the sensor manager

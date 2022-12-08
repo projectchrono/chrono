@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Jayne Henry
+// Authors: Radu Serban, Jayne Henry, Luning Fang
 // =============================================================================
 //
 // Simple powertrain model for the RCCar vehicle.
@@ -31,28 +31,39 @@ namespace rccar {
 
 const double rpm2rads = CH_C_PI / 30;
 
-const double Kv_rating = 1300;
-const double supply_voltage = 8.0;
-const double max_rpm = Kv_rating * supply_voltage;
-const double stall_torque = 1.0; // TODO, currently a guess
-
-RCCar_SimpleMapPowertrain::RCCar_SimpleMapPowertrain(const std::string& name) : ChSimpleMapPowertrain(name) {}
+RCCar_SimpleMapPowertrain::RCCar_SimpleMapPowertrain(const std::string& name)
+    : ChSimpleMapPowertrain(name),
+      m_voltage_ratio(1.0f),
+      m_Kv_rating(1300),
+      m_supply_voltage(7.4),
+      m_stall_torque(0.7),  // TODO, currently a guess
+      m_motor_resistance_c0(0),
+      m_motor_resistance_c1(0) {}
 
 double RCCar_SimpleMapPowertrain::GetMaxEngineSpeed() {
-    return max_rpm * rpm2rads;
+    return m_Kv_rating * m_supply_voltage * m_voltage_ratio * rpm2rads;
+}
+
+void RCCar_SimpleMapPowertrain::SetMotorResistanceCoefficients(double& c0, double& c1) {
+    c0 = m_motor_resistance_c0;
+    c1 = m_motor_resistance_c1;
 }
 
 void RCCar_SimpleMapPowertrain::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) {
+    double max_rpm = m_Kv_rating * m_supply_voltage * m_voltage_ratio;
+
     // since this is a model of motor and ESC combination, we assume a linear relationship.
     // while brushless motors dont follow linear torque-speed relationship, most hobby electronic
     // speed controllers control the motor such that it approximately follows a linear relationship
-    mapF.AddPoint(0,stall_torque); //stall torque //TODO
+    mapF.AddPoint(0, m_stall_torque);      // stall torque //TODO
     mapF.AddPoint(max_rpm * rpm2rads, 0);  // no load speed
 
     // N-m and rad/s
     map0.AddPoint(0, 0);
-    map0.AddPoint(.1 * max_rpm * rpm2rads, 0);
-    map0.AddPoint(max_rpm * rpm2rads, -stall_torque);  // TODO, currently a guess
+    // map0.AddPoint(.1 * max_rpm * rpm2rads, 0);
+    // map0.AddPoint(max_rpm * rpm2rads, -stallTorque);  // TODO, currently a guess
+    // map0.AddPoint(.1 * max_rpm * rpm2rads, 0);
+    map0.AddPoint(max_rpm * rpm2rads, 0);  // TODO, currently a guess
 }
 
 void RCCar_SimpleMapPowertrain::SetGearRatios(std::vector<double>& fwd, double& rev) {
@@ -61,7 +72,9 @@ void RCCar_SimpleMapPowertrain::SetGearRatios(std::vector<double>& fwd, double& 
 }
 
 void RCCar_SimpleMapPowertrain::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {
-    shift_bands.push_back(std::pair<double, double>(0, 10 * max_rpm * rpm2rads)); //never shifts
+    double max_rpm = m_Kv_rating * m_supply_voltage;
+
+    shift_bands.push_back(std::pair<double, double>(0, 10 * max_rpm * rpm2rads));  // never shifts
 }
 
 }  // end namespace rccar

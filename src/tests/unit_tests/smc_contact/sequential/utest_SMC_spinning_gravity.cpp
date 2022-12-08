@@ -120,7 +120,7 @@ TEST_P(SpinningGravityTest, rolling) {
     ASSERT_LT(wvel, 1e-3);
 }
 
-INSTANTIATE_TEST_SUITE_P(ChronoMulticore,
+INSTANTIATE_TEST_SUITE_P(ChronoSequential,
                          SpinningGravityTest,
                          ::testing::Values(ChSystemSMC::ContactForceModel::Hooke,
                                            ChSystemSMC::ContactForceModel::Hertz,

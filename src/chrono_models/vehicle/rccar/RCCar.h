@@ -23,9 +23,7 @@
 #include <array>
 #include <string>
 
-#include "chrono_vehicle/wheeled_vehicle/tire/ChPacejkaTire.h"
-
-// #include "chrono_models/ChApiModels.h"
+#include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/rccar/RCCar_Vehicle.h"
 #include "chrono_models/vehicle/rccar/RCCar_SimpleMapPowertrain.h"
 #include "chrono_models/vehicle/rccar/RCCar_RigidTire.h"
@@ -84,6 +82,21 @@ class CH_MODELS_API RCCar {
     void SetWheelVisualizationType(VisualizationType vis) { m_vehicle->SetWheelVisualizationType(vis); }
     void SetTireVisualizationType(VisualizationType vis) { m_vehicle->SetTireVisualizationType(vis); }
 
+    /// Set parameters for tuning engine map.
+    void SetMaxMotorVoltageRatio(double voltage_ratio) { m_voltage_ratio = voltage_ratio; }
+
+    /// Set stall torque.
+    void SetStallTorque(double stall_torque) { m_stall_torque = stall_torque; }
+
+    /// Set tire rolling friction coefficient.
+    void SetTireRollingResistance(double rolling_resistance) { m_rolling_friction_coeff = rolling_resistance; }
+    
+    /// Set coefficients for motor resistance torque.
+    void SetMotorResistanceCoefficients(double c0, double c1) {
+        m_motor_resistance_c0 = c0;
+        m_motor_resistance_c1 = c1;
+    }
+
     void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain);
     void Advance(double step);
 
@@ -112,6 +125,12 @@ class CH_MODELS_API RCCar {
     RCCar_Vehicle* m_vehicle;
 
     double m_tire_mass;
+
+    double m_stall_torque;
+    double m_voltage_ratio;
+    double m_rolling_friction_coeff;
+    double m_motor_resistance_c0;
+    double m_motor_resistance_c1;
 };
 
 /// @} vehicle_models_rccar

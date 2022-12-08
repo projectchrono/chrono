@@ -43,11 +43,18 @@ extern "C" __global__ void __miss__shader() {
                 // gradient assumes z=up
                 float3 ray_dir = optixGetWorldRayDirection();
                 float mix = max(0.f, ray_dir.z);
-                prd->color = (mix * camera_miss.color_zenith + (1 - mix) * camera_miss.color_horizon) *
-                             prd->contrib_to_pixel;
+                prd->color =
+                    (mix * camera_miss.color_zenith + (1 - mix) * camera_miss.color_horizon) * prd->contrib_to_pixel;
             } else {  // default to solid color
                 prd->color = camera_miss.color_zenith * prd->contrib_to_pixel;
             }
+
+            // apply fog model
+            if (prd->use_fog && params.fog_scattering > 0.f) {
+                float blend_alpha = expf(-params.fog_scattering * optixGetRayTmax());
+                prd->color = blend_alpha * prd->color + (1 - blend_alpha) * params.fog_color*prd->contrib_to_pixel;
+            }
+
             break;
         }
         case LIDAR_RAY_TYPE: {

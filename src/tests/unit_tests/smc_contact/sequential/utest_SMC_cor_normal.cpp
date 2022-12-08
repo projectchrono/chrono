@@ -98,7 +98,7 @@ TEST_P(CorNormalTest, impact) {
     ASSERT_NEAR(cor_out, cor_in, 1e-3);
 }
 
-INSTANTIATE_TEST_SUITE_P(ChronoMulticore,
+INSTANTIATE_TEST_SUITE_P(ChronoSequential,
                          CorNormalTest,
                          ::testing::Combine(::testing::Values(ChSystemSMC::ContactForceModel::Hooke,
                                                               ChSystemSMC::ContactForceModel::Hertz,

@@ -106,43 +106,12 @@ __global__ void strong_reduce_kernel(float* bufIn, float* bufOut, int w, int h, 
                     strongest = local_range;
                 }
 
-                // raw_range[raw_id] = bufIn[2 * in_index];
-                // raw_intensity[raw_id] = bufIn[2 * in_index + 1];
-
-                // if (raw_id > d * d)
-                //     printf("OH NO!\n");
-                // raw_id++;
             }
         }
-        //        printf("%s %f %f\n", "stron", strongest, intensity_at_strongest);
         bufOut[2 * out_index] = strongest;
         bufOut[2 * out_index + 1] = intensity_at_strongest;
     }
 
-    // // essentially performing a linear blur to find range of max intensity
-    // for (int i = 0; i < d * d; i++) {
-    //     float norm_val = 1;
-    //     float local_intensity = raw_intensity[i];
-    //     for (int j = 0; j < d * d; j++) {
-    //         if (j != i && abs(raw_range[j] - raw_range[i]) < kernel_radius) {
-    //             float weight = (kernel_radius - abs(raw_range[j] - raw_range[i])) / kernel_radius;
-    //             local_intensity += weight * raw_intensity[j];
-    //             norm_val += weight;
-    //         }
-    //     }
-    //     local_intensity = local_intensity / (d * d);  // calculating portion of beam here
-    //     if (local_intensity > intensity_at_strongest) {
-    //         intensity_at_strongest = local_intensity;
-    //         strongest = raw_range[i];
-    //     }
-    // }
-    //
-    // // push strongest return
-    // bufOut[2 * out_index] = strongest;
-    // bufOut[2 * out_index + 1] = intensity_at_strongest;
-    // //
-    // delete[] raw_range;
-    // delete[] raw_intensity;
 }
 
 __global__ void first_reduce_kernel(float* bufIn, float* bufOut, int w, int h, int r) {
@@ -190,7 +159,6 @@ __global__ void first_reduce_kernel(float* bufIn, float* bufOut, int w, int h, i
                 }
             }
         }
-        //        printf("%s %f %f\n", "first", shortest, intensity_at_shortest);
         bufOut[2 * out_index] = shortest;
         bufOut[2 * out_index + 1] = intensity_at_shortest;
     }
@@ -247,8 +215,6 @@ __global__ void dual_reduce_kernel(float* bufIn, float* bufOut, int w, int h, in
                 }
             }
         }
-        //        printf("%s %f %f\n", "dualS", strongest, intensity_at_strongest);
-        //        printf("%s %f %f\n", "dualF", shortest, intensity_at_shortest);
         bufOut[4 * out_index] = strongest;
         bufOut[4 * out_index + 1] = intensity_at_strongest;
         bufOut[4 * out_index + 2] = shortest;

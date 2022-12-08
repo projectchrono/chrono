@@ -70,9 +70,8 @@ __global__ void const_normal_noise_kernel(unsigned char* bufPtr,
 __global__ void pix_dep_noise_kernel(unsigned char* bufPtr,
                                      int w,
                                      int h,
-                                     float gain,
-                                     float sigma_shot,
-                                     float sigma_adc,
+                                     float variance_slope,
+                                     float variance_intercept,
                                      curandState_t* rng_states) {
     int index = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -87,9 +86,9 @@ __global__ void pix_dep_noise_kernel(unsigned char* bufPtr,
         float b = ((float)(pix_b)) / 255.f;
 
         // curand_normal(&rng_states[index]);
-        float stdev_r = sqrtf((r * sigma_shot * sigma_shot) + (sigma_adc * sigma_adc));
-        float stdev_g = sqrtf((g * sigma_shot * sigma_shot) + (sigma_adc * sigma_adc));
-        float stdev_b = sqrtf((b * sigma_shot * sigma_shot) + (sigma_adc * sigma_adc));
+        float stdev_r = sqrtf(r * variance_slope + variance_intercept);
+        float stdev_g = sqrtf(g * variance_slope + variance_intercept);
+        float stdev_b = sqrtf(b * variance_slope + variance_intercept);
         float r_rand = curand_normal(&rng_states[index]) * stdev_r;
         float g_rand = curand_normal(&rng_states[index]) * stdev_g;
         float b_rand = curand_normal(&rng_states[index]) * stdev_b;
@@ -122,15 +121,14 @@ void cuda_camera_noise_const_normal(unsigned char* bufPtr,
 void cuda_camera_noise_pixel_dependent(unsigned char* bufPtr,
                                        int width,
                                        int height,
-                                       float gain,
-                                       float sigma_read,
-                                       float sigma_adc,
+                                       float variance_slope,
+                                       float variance_intercept,
                                        curandState_t* rng,
                                        CUstream& stream) {
     const int nThreads = 512;
     int nBlocks = (width * height + nThreads - 1) / nThreads;
 
-    pix_dep_noise_kernel<<<nBlocks, nThreads, 0, stream>>>(bufPtr, width, height, gain, sigma_read, sigma_adc, rng);
+    pix_dep_noise_kernel<<<nBlocks, nThreads, 0, stream>>>(bufPtr, width, height, variance_slope, variance_intercept, rng);
 }
 
 }  // namespace sensor

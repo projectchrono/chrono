@@ -128,7 +128,7 @@ linux:arch-llvm:test:
     - apt-get update; apt-get -y install wget python git
         cmake ninja-build build-essential libboost-dev swig libeigen3-dev
         libglfw3-dev libglm-dev libglew-dev freeglut3-dev libirrlicht-dev
-        libxxf86vm-dev libopenmpi-dev python3 python3-dev libhdf5-dev libnvidia-gl-510
+        libxxf86vm-dev libopenmpi-dev python3 python3-dev libhdf5-dev libnvidia-gl-515
     - ldconfig
     - wget https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.8.tar.gz
     - tar -xf blaze-3.8.tar.gz
@@ -212,7 +212,7 @@ linux:ubuntu2004:build:
         -DCMAKE_VERBOSE_MAKEFILE=TRUE
         -DENABLE_MODULE_SENSOR=TRUE
         -DBUILD_TESTING_SENSOR=TRUE
-        -DOptiX_INSTALL_DIR=/opt/optix/7.2.0
+        -DOptiX_INSTALL_DIR=/opt/optix/7.5.0
     - ninja -j 8
   artifacts:
     expire_in: 60m
@@ -454,29 +454,6 @@ windows:vs2019:test:
   environment:
     name: pychrono-win64
     url: https://anaconda.org/projectchrono/pychrono
-
-windows:vs2019:deploy-python3.6:
-  stage: deploy
-  needs: []
-  extends: .windows-vs2019-deploy-base
-  script:
-    # Building pyChrono for python v3.6
-    - conda build .\contrib\packaging-python\conda -c conda-forge -c dlr-sc -c intel --python=3.6 --no-remove-work-dir
-    - conda install --yes anaconda-client
-    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN\envs\build-env\conda-bld\win-64\pychrono*.bz2" --force --label main
-  after_script:
-    # Get rid of the build environment
-    - Remove-Item $Env:CONDA_INSTALL_LOCN\envs\build-env -Recurse -Force
-    # Get rid of the downloaded numpy package to prevent conflicts
-    - Remove-Item $Env:CONDA_ISNTALL_LOCN\pkgs\numpy* -Recurse -Force
-  environment:
-    name: pychrono-win64
-    url: https://anaconda.org/projectchrono/pychrono
-  when: manual
-  artifacts:
-    expire_in: 60m
-    paths:
-      - ./logs/
 
 windows:vs2019:deploy-python3.8:
   stage: deploy

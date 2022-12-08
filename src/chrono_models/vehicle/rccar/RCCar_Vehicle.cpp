@@ -31,10 +31,6 @@ namespace chrono {
 namespace vehicle {
 namespace rccar {
 
-static const double in2m = 0.0254;
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 RCCar_Vehicle::RCCar_Vehicle(const bool fixed,
                              ChContactMethod contact_method,
                              CollisionType chassis_collision_type)
@@ -81,8 +77,6 @@ void RCCar_Vehicle::Create(bool fixed, CollisionType chassis_collision_type) {
 
 RCCar_Vehicle::~RCCar_Vehicle() {}
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void RCCar_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
     // ORIGIN WILL BE LOCATED AT THE CENTER OF THE FRONT AXLE
 
@@ -102,15 +96,13 @@ void RCCar_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwd
                            m_omega[2], m_omega[3]);
 
     // Initialize the driveline subsystem (4WD)
-    std::vector<int> driven_susp_indexes = {0, 0};
+    std::vector<int> driven_susp_indexes = {0, 1};
     m_driveline->Initialize(m_chassis, m_axles, driven_susp_indexes);
 
     // Invoke base class method
     ChWheeledVehicle::Initialize(chassisPos, chassisFwdVel);
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 double RCCar_Vehicle::GetSpringForce(int axle, VehicleSide side) const {
     return std::static_pointer_cast<ChDoubleWishbone>(m_axles[axle]->m_suspension)->GetSpringForce(side);
 }
@@ -123,8 +115,6 @@ double RCCar_Vehicle::GetSpringDeformation(int axle, VehicleSide side) const {
     return std::static_pointer_cast<ChDoubleWishbone>(m_axles[axle]->m_suspension)->GetSpringDeformation(side);
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 double RCCar_Vehicle::GetShockForce(int axle, VehicleSide side) const {
     return std::static_pointer_cast<ChDoubleWishbone>(m_axles[axle]->m_suspension)->GetShockForce(side);
 }

@@ -128,7 +128,7 @@ steering_vis_type = veh.VisualizationType_PRIMITIVES
 wheel_vis_type = veh.VisualizationType_MESH
 tire_vis_type = veh.VisualizationType_MESH 
 
-# Type of tire model (RIGID, RIGID_MESH, PACEJKA, LUGRE, FIALA, PAC89)
+# Type of tire model (RIGID, RIGID_MESH, PACEJKA, FIALA, PAC89)
 tire_model = veh.TireModelType_TMEASY
 
 # Simulation step sizes

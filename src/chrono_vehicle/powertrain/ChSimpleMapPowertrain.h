@@ -53,8 +53,11 @@ class CH_VEHICLE_API ChSimpleMapPowertrain : public ChPowertrain {
     /// Return the current engine speed.
     virtual double GetMotorSpeed() const override { return m_motor_speed; }
 
-    /// Return the current engine torque.
+    /// Return the current total engine torque.
     virtual double GetMotorTorque() const override { return m_motor_torque; }
+
+    /// Return the current engine resistance torque.
+    double GetMotorResistance() const;
 
     /// Return the value of slippage in the torque converter.
     /// This simplified model does not have a torque converter.
@@ -82,18 +85,23 @@ class CH_VEHICLE_API ChSimpleMapPowertrain : public ChPowertrain {
     virtual double GetMaxEngineSpeed() = 0;
 
     /// Set the engine speed-torque maps.
-    /// A concrete class must add the speed-torque points to the provided maps,
-    /// using the ChFunction_Recorder::AddPoint() function.
+    /// A concrete class must add the speed-torque points to the provided maps, using the
+    /// ChFunction_Recorder::AddPoint() function.
     virtual void SetEngineTorqueMaps(ChFunction_Recorder& map0,  ///< [out] engine map at zero throttle
                                      ChFunction_Recorder& mapF   ///< [out] engine map at full throttle
                                      ) = 0;
 
     /// Set the ideal shift points for automatic gear shifting.
-    /// For each forward gear, specify a pair (min, max) with the minimum and
-    /// maximum engine speed for shifting (down and up, respectively).
+    /// For each forward gear, specify a pair (min, max) with the minimum and maximum engine speed for shifting (down
+    /// and up, respectively).
     virtual void SetShiftPoints(
         std::vector<std::pair<double, double>>& shift_bands  ///< [out] down-shift/up-shift points
         ) = 0;
+
+    /// Set coefficients for motor resistance.
+    /// The motor resistance is calculated as: resistance_torque = c0 + c1 * m_motor_speed.
+    /// This default implementation sets both coefficients to zero (no motor resistance).
+    virtual void SetMotorResistanceCoefficients(double& c0, double& c1) {}
 
   private:
     /// Initialize the powertrain system.
@@ -101,9 +109,9 @@ class CH_VEHICLE_API ChSimpleMapPowertrain : public ChPowertrain {
 
     /// Update the state of this powertrain system at the current time.
     /// The powertrain system is provided the current driver throttle input, a value in the range [0,1].
-    virtual void Synchronize(double time,                            ///< [in] current time
+    virtual void Synchronize(double time,                        ///< [in] current time
                              const DriverInputs& driver_inputs,  ///< [in] current driver inputs
-                             double shaft_speed                      ///< [in] driveshaft speed
+                             double shaft_speed                  ///< [in] driveshaft speed
                              ) override;
 
     /// Advance the state of this powertrain system by the specified time step.
@@ -118,6 +126,9 @@ class CH_VEHICLE_API ChSimpleMapPowertrain : public ChPowertrain {
 
     ChFunction_Recorder m_zero_throttle_map;  ///< engine map at zero throttle
     ChFunction_Recorder m_full_throttle_map;  ///< engine map at full throttle
+
+    double m_motor_resistance_c0;  ///< coefficient for motor resistance
+    double m_motor_resistance_c1;  ///< coefficient for motor resistance
 };
 
 /// @} vehicle_powertrain

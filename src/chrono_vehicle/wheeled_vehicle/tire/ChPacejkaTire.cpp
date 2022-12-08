@@ -209,10 +209,6 @@ TerrainForce ChPacejkaTire::GetTireForce() const {
     return GetTireForce_combinedSlip(false);
 }
 
-TerrainForce ChPacejkaTire::ReportTireForce(ChTerrain* terrain) const {
-    return GetTireForce_combinedSlip(false);
-}
-
 TerrainForce ChPacejkaTire::GetTireForce_pureSlip(const bool local) const {
     if (local)
         return m_FM_pure;
@@ -258,7 +254,6 @@ void ChPacejkaTire::Synchronize(double time,
     }
 
     m_tireState = m_wheel->GetState();
-    CalculateKinematics(time, m_tireState, terrain);
 
     // Update the tire coordinate system.
     m_simTime = time;
@@ -423,26 +418,9 @@ void ChPacejkaTire::update_W_frame(const ChTerrain& terrain) {
     ChCoordsys<> contact_frame;
 
     double depth;
-    double dum_cam;
     float mu;
-    switch (m_collision_type) {
-        case CollisionType::SINGLE_POINT:
-            m_in_contact =
-                DiscTerrainCollision(terrain, m_tireState.pos, m_tireState.rot.GetYaxis(), m_R0, contact_frame, depth, mu);
-            break;
-        case CollisionType::FOUR_POINTS:
-            m_in_contact = DiscTerrainCollision4pt(terrain, m_tireState.pos, m_tireState.rot.GetYaxis(), m_R0,
-                                                   m_params->dimension.width, contact_frame, depth, dum_cam, mu);
-            break;
-        case CollisionType::ENVELOPE:
-            m_in_contact = DiscTerrainCollisionEnvelope(terrain, m_tireState.pos, m_tireState.rot.GetYaxis(), m_R0,
-                                                        m_areaDep, contact_frame, depth, mu);
-            break;
-        default:
-            m_in_contact = false;
-            depth = 0;
-            break;
-    }
+    m_in_contact = DiscTerrainCollision(m_collision_type, terrain, m_tireState.pos, m_tireState.rot.GetYaxis(),
+                                        m_R0, m_params->dimension.width, m_areaDep, contact_frame, depth, mu);
     ChClampValue(mu, 0.1f, 1.0f);
     m_mu = mu;
 

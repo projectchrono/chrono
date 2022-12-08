@@ -554,7 +554,7 @@ OptixTraversableHandle ChOptixGeometry::CreateRootStructure() {
     // accel_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE | OPTIX_BUILD_FLAG_ALLOW_UPDATE;
     accel_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE;  // | OPTIX_BUILD_FLAG_ALLOW_UPDATE;
     accel_options.operation = OPTIX_BUILD_OPERATION_BUILD;
-    accel_options.motionOptions.numKeys = 2;               // default at start
+    accel_options.motionOptions.numKeys = 2;               // m_start_time default at start
     accel_options.motionOptions.timeBegin = m_start_time;  // default at start
     accel_options.motionOptions.timeEnd = m_end_time;      // default at start
     accel_options.motionOptions.flags = OPTIX_MOTION_FLAG_NONE;
@@ -575,8 +575,8 @@ OptixTraversableHandle ChOptixGeometry::CreateRootStructure() {
                              0.f, 1.f, 0.f, 0.f,  //
                              0.f, 0.f, 1.f, 0.f};
         m_instances[i].traversableHandle = m_motion_handles[i];
-        m_instances[i].flags = OPTIX_INSTANCE_FLAG_DISABLE_TRANSFORM |
-                               OPTIX_INSTANCE_FLAG_DISABLE_ANYHIT;  // | OPTIX_INSTANCE_FLAG_FLIP_TRIANGLE_FACING;
+        m_instances[i].flags = OPTIX_INSTANCE_FLAG_DISABLE_ANYHIT;  // | OPTIX_INSTANCE_FLAG_DISABLE_TRANSFORM |
+                                                                    // OPTIX_INSTANCE_FLAG_FLIP_TRIANGLE_FACING;
         // m_instances[i].flags = OPTIX_INSTANCE_FLAG_NONE;
         m_instances[i].instanceId = i;
         m_instances[i].sbtOffset = m_obj_mat_ids[i];
@@ -595,70 +595,45 @@ OptixTraversableHandle ChOptixGeometry::CreateRootStructure() {
                                       nullptr,  // emitted property list
                                       0         // num emitted properties
                                       ));
-                                      
+
     return m_root;
 }
 
 // rebuilding the structure without creating anything new
 void ChOptixGeometry::RebuildRootStructure() {
-    
-    m_end_time = m_end_time > (m_start_time+1e-2)
+    m_end_time = m_end_time > (m_start_time + 1e-2)
                      ? m_end_time
                      : m_end_time + 1e-2;  // need to ensure start time is at least slightly after end time
 
     for (int i = 0; i < m_motion_transforms.size(); i++) {
         // update the motion transforms
         const ChFrame<double> f_start = m_obj_body_frames_start[i] * m_obj_asset_frames[i];
-        const ChVector<double> pos_start = f_start.GetPos();
+        const ChVector<double> pos_start = f_start.GetPos() - m_origin_offset;
         const ChMatrix33<double> rot_mat_start = f_start.Amatrix;
 
         const ChFrame<double> f_end = m_obj_body_frames_end[i] * m_obj_asset_frames[i];
-        const ChVector<double> pos_end = f_end.GetPos();
+        const ChVector<double> pos_end = f_end.GetPos() - m_origin_offset;
         const ChMatrix33<double> rot_mat_end = f_end.Amatrix;
 
-        // m_motion_transforms[i].motionOptions.numKeys = 2;               // TODO: would we need more than this?
         m_motion_transforms[i].motionOptions.timeBegin = m_start_time;  // default at start, will be updated
         m_motion_transforms[i].motionOptions.timeEnd = m_end_time;      // default at start, will be updated
-        // m_motion_transforms[i].motionOptions.flags = OPTIX_MOTION_FLAG_NONE;
-
-        // ChVector<> old_pos = {m_motion_transforms[i].transform[0][3], m_motion_transforms[i].transform[0][7],
-        //                       m_motion_transforms[i].transform[0][11]};
-        // ChVector<> diff = old_pos - f_start.GetPos();
-        // max_pos_diff = std::max(max_pos_diff, diff.Length());
-
         GetT3x4FromSRT(m_obj_scales[i], rot_mat_start, pos_start, m_motion_transforms[i].transform[0]);
         GetT3x4FromSRT(m_obj_scales[i], rot_mat_end, pos_end, m_motion_transforms[i].transform[1]);
     }
 
-    // std::cout << "Motion transforms: " << m_motion_transforms.size() << std::endl;
-    // std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     CUDA_ERROR_CHECK(cudaMemcpy(reinterpret_cast<void*>(md_motion_transforms), m_motion_transforms.data(),
                                 m_motion_transforms.size() * sizeof(OptixMatrixMotionTransform),
                                 cudaMemcpyHostToDevice));
 
-    // std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-    // std::chrono::high_resolution_clock::time_point t3 = std::chrono::high_resolution_clock::now();
-
-    // std::cout << "Rebuilding root structure with " << m_instances.size() << " objects\n";
     OptixBuildInput instance_input = {};
     instance_input.type = OPTIX_BUILD_INPUT_TYPE_INSTANCES;
     instance_input.instanceArray.instances = md_instances;
     instance_input.instanceArray.numInstances = static_cast<unsigned int>(m_instances.size());
     OptixAccelBuildOptions accel_options = {};
-    // accel_options.buildFlags = OPTIX_BUILD_FLAG_NONE;
-    accel_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE;// | OPTIX_BUILD_FLAG_ALLOW_UPDATE;
-    // accel_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE;
-    // accel_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_BUILD;
-    // accel_options.buildFlags = OPTIX_BUILD_FLAG_ALLOW_UPDATE;
-    // if (max_pos_diff > pos_diff_threshold) {
+    accel_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE;  // | OPTIX_BUILD_FLAG_ALLOW_UPDATE;
     accel_options.operation = OPTIX_BUILD_OPERATION_BUILD;
-    // std::cout << "Building scene\n";
-    // } else {
-    //     accel_options.operation = OPTIX_BUILD_OPERATION_UPDATE;
-    //     std::cout << "Updating scene\n";
-    // }
 
-    accel_options.motionOptions.numKeys = 2;  // default at start TODO: should this always be 2?
+    accel_options.motionOptions.numKeys = 2;
     accel_options.motionOptions.timeBegin = m_start_time;
     accel_options.motionOptions.timeEnd = m_end_time;
     accel_options.motionOptions.flags = OPTIX_MOTION_FLAG_NONE;
@@ -679,19 +654,6 @@ void ChOptixGeometry::RebuildRootStructure() {
                                       ));
 
     cudaDeviceSynchronize();
-    // std::chrono::high_resolution_clock::time_point t4 = std::chrono::high_resolution_clock::now();
-
-    // std::cout << "Rebuilt root acceleration structure, addr = " << m_root << std::endl;
-    // std::chrono::duration<double> wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t1 - t0);
-    // std::cout << "Transform pack time on cpu: " << wall_time.count() << std::endl;
-    // wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-    // std::cout << "Transform cudamemcpy time: " << wall_time.count() << std::endl;
-    // wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t3 - t2);
-    // std::cout << "Instance cudamemcpy time: " << wall_time.count() << std::endl;
-    // wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t4 - t3);
-    // std::cout << "Optix rebuild time: " << wall_time.count() << std::endl;
-    // std::cout << "Scene rebuild complete" << std::endl;
-    // std::cout << "Rebuilt root acceleration structure, addr = " << m_root << std::endl;
 }
 
 void ChOptixGeometry::UpdateBodyTransformsStart(float t_start, float t_target_end) {
@@ -713,19 +675,18 @@ void ChOptixGeometry::UpdateBodyTransformsEnd(float t_end) {
         m_obj_body_frames_end[i] = m_bodies[i]->GetFrame_REF_to_abs();
     }
 
-    // std::cout << "Loaded the set of end transforms for time=" << t_end << std::endl;
+    // need a default start time that will trigger first transform to always be valid
+    if (m_obj_body_frames_start_tmps.size() > 0) {
+        m_start_time = std::get<0>(m_obj_body_frames_start_tmps[0]) + 1.f;
+    }
 
-    // std::cout << "Start keyframes to begin with: " << m_obj_body_frames_start_tmps.size() << std::endl;
-    // since and end has been packed, move the oldest start_tmp to start (first will always be the earliest)
     for (int i = 0; i < m_obj_body_frames_start_tmps.size(); i++) {
         float target_end = std::get<1>(m_obj_body_frames_start_tmps[i]);
-        if (target_end <= t_end) {
+        float target_start = std::get<0>(m_obj_body_frames_start_tmps[i]);
+
+        if (target_end < (t_end + 1e-8) && target_start < m_start_time) {
             m_start_time = std::get<0>(m_obj_body_frames_start_tmps[i]);
             m_obj_body_frames_start = std::move(std::get<2>(m_obj_body_frames_start_tmps[i]));
-            // std::cout << "Found the first start transforms with start time=" << m_start_time
-            //           << ", target end time=" << target_end << std::endl;
-            break;  // we can break since the first one that meets our criteria will be the one with the earliest
-                    // start time
         }
     }
 
@@ -733,23 +694,14 @@ void ChOptixGeometry::UpdateBodyTransformsEnd(float t_end) {
     int i = 0;
     while (i < m_obj_body_frames_start_tmps.size()) {
         float target_end = std::get<1>(m_obj_body_frames_start_tmps[i]);
-        if (target_end <= t_end) {
+        if (target_end < (t_end + 1e-8)) {
             m_obj_body_frames_start_tmps.erase(m_obj_body_frames_start_tmps.begin() + i);
             i--;
         }
         i++;
     }
 
-    // std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-
-    // // std::cout << "Created root acceleration structure, addr = " << m_root << std::endl;
-    // std::chrono::duration<double> wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-    // std::cout << "Updating End transforms on main thread: " << wall_time.count() << std::endl;
-
-    // std::cout << "Start keyframes left: " << m_obj_body_frames_start_tmps.size() << std::endl;
-
-    // std::cout << "Start frames. t=" << m_start_time << ", size=" << m_obj_body_frames_start.size() << std::endl;
-    // std::cout << "End frames. t=" << m_end_time << ", size=" << m_obj_body_frames_end.size() << std::endl;
+    m_start_time = ChClamp(m_start_time, 0.f, m_end_time);
 }
 
 void ChOptixGeometry::GetT3x4FromSRT(const ChVector<double>& s,

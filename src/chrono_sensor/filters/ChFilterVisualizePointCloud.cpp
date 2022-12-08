@@ -48,8 +48,13 @@ CH_SENSOR_API void ChFilterVisualizePointCloud::Initialize(std::shared_ptr<ChSen
     m_host_buffer->Buffer = std::move(b);
     m_host_buffer->Width = m_buffer_in->Width;
     m_host_buffer->Height = m_buffer_in->Height;
+
+#ifndef USE_SENSOR_GLFW
+    std::cerr << "WARNING: Chrono::SENSOR not built with GLFW support. Will proceed with no window.\n";
+#endif
 }
 CH_SENSOR_API void ChFilterVisualizePointCloud::Apply() {
+#ifdef USE_SENSOR_GLFW
     if (!m_window && !m_window_disabled) {
         CreateGlfwWindow(Name());
     }
@@ -61,6 +66,7 @@ CH_SENSOR_API void ChFilterVisualizePointCloud::Apply() {
         // lock the glfw mutex because from here on out, we don't want to be interrupted
         std::lock_guard<std::mutex> lck(s_glfwMutex);
         // visualize data
+
         glfwMakeContextCurrent(m_window.get());
 
         int window_w, window_h;
@@ -117,6 +123,7 @@ CH_SENSOR_API void ChFilterVisualizePointCloud::Apply() {
         glfwSwapBuffers(m_window.get());
         glfwPollEvents();
     }
+#endif
 }
 
 }  // namespace sensor

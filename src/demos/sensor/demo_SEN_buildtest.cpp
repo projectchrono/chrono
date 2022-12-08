@@ -326,7 +326,7 @@ int main(int argc, char* argv[]) {
     // cam->SetCollectionWindow(imu_collection_time);
 
     // cam->PushFilter(chrono_types::make_shared<ChFilterCameraNoiseConstNormal>(0.f, 0.01));
-    // cam->PushFilter(chrono_types::make_shared<ChFilterCameraNoisePixDep>(0.01f, 0.01f, 0.01f));
+    // cam->PushFilter(chrono_types::make_shared<ChFilterCameraNoisePixDep>(0.01f, 0.01f));
 
     // we want to save the RGBA buffer to png
     if (save_data)

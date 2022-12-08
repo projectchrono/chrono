@@ -77,7 +77,7 @@ DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
 
 SteeringTypeWV steering_type = SteeringTypeWV::PITMAN_ARM;
 
-// Type of tire model (RIGID, RIGID_MESH, TMEASY, PACEJKA, LUGRE, FIALA, PAC89, PAC02)
+// Type of tire model (RIGID, RIGID_MESH, TMEASY, PACEJKA, FIALA, PAC89, PAC02)
 TireModelType tire_model = TireModelType::PAC02;
 
 // Rigid terrain
@@ -303,6 +303,9 @@ int main(int argc, char* argv[]) {
     auto manager = chrono_types::make_shared<ChSensorManager>(my_hmmwv.GetSystem());
     manager->scene->AddPointLight({100, 100, 100}, {2, 2, 2}, 5000);
     manager->scene->SetAmbientLight({0, 0, 0});
+    manager->scene->SetFogScatteringFromDistance(200.0);
+
+    // manager->scene->SetFogColor({1.0,1.0,1.0});
 
     // Set environment map
     Background b;

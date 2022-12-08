@@ -33,7 +33,6 @@
 #include "chrono_vehicle/terrain/RandomSurfaceTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 
-#include "chrono_models/vehicle/hmmwv/HMMWV_PacejkaTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Pac89Tire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Pac02Tire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_RigidTire.h"
@@ -86,9 +85,9 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2018 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     int iTire = 1;
+    int iTerrain = 1;
 
     double rmsVal = 0.0;
-    int iTerrain = 1;
     double target_speed = 15.0;
 
     // JSON files for terrain
@@ -98,22 +97,13 @@ int main(int argc, char* argv[]) {
         default:
         case 1:
             GetLog() << "usage: demo_VEH_Ride [TerrainNumber [Speed [TireNumberOneToFive]]\n\n";
-            GetLog() << "Using standard values for simulation:\n"
-                     << "Terrain No. = " << iTerrain << "\n"
-                     << "Speed       = " << target_speed << " m/s\n"
-                     << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka, 4=Pacejka89, 5=Pacejka02, 6=Rigid) = " << iTire
-                     << "\n";
+            GetLog() << "Using standard values for simulation:\n";
             break;
         case 2:
             if (atoi(argv[1]) >= 1 && atoi(argv[1]) <= 8) {
                 iTerrain = atoi(argv[1]);
                 rigidterrain_file = "terrain/RigidRandom" + std::to_string(iTerrain) + ".json";
             }
-            GetLog() << "Using values for simulation:\n"
-                     << "Terrain No. = " << iTerrain << "\n"
-                     << "Speed       = " << target_speed << " m/s\n"
-                     << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka, 4=Pacejka89, 5=Pacejka02, 6=Rigid) = " << iTire
-                     << "\n";
             break;
         case 3:
             if (atoi(argv[1]) >= 1 && atoi(argv[1]) <= 8) {
@@ -121,11 +111,6 @@ int main(int argc, char* argv[]) {
                 rigidterrain_file = "terrain/RigidRandom" + std::to_string(iTerrain) + ".json";
             }
             target_speed = atof(argv[2]);
-            GetLog() << "Using values for simulation:\n"
-                     << "Terrain No. = " << iTerrain << "\n"
-                     << "Speed       = " << target_speed << " m/s\n"
-                     << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka, 4=Pacejka89, 5=Pacejka02, 6=Rigid) = " << iTire
-                     << "\n";
             break;
         case 4:
             if (atoi(argv[1]) >= 1 && atoi(argv[1]) <= 8) {
@@ -133,16 +118,14 @@ int main(int argc, char* argv[]) {
                 rigidterrain_file = "terrain/RigidRandom" + std::to_string(iTerrain) + ".json";
             }
             target_speed = atof(argv[2]);
-            if (atoi(argv[3]) >= 1 && atoi(argv[3]) <= 6) {
+            if (atoi(argv[3]) >= 1 && atoi(argv[3]) <= 5) {
                 iTire = atoi(argv[3]);
             }
-            GetLog() << "Using values for simulation:\n"
-                     << "Terrain No. = " << iTerrain << "\n"
-                     << "Speed       = " << target_speed << " m/s\n"
-                     << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka, 4=Pacejka89, 5=Pacejka02, 6=Rigid) = " << iTire
-                     << "\n";
             break;
     }
+    GetLog() << "Terrain No. = " << iTerrain << "\n"
+             << "Speed       = " << target_speed << " m/s\n"
+             << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka89, 4=Pacejka02, 5=Rigid) = " << iTire << "\n";
 
     // --------------------------
     // Create the various modules
@@ -161,7 +144,7 @@ int main(int argc, char* argv[]) {
     // Create the ground
     RandomSurfaceTerrain terrain(vehicle.GetSystem(), xend);
 
-    if (iTire == 6) {
+    if (iTire == 5) {
         ChContactMaterialData minfo;
         minfo.mu = 0.9f;
         minfo.cr = 0.01f;
@@ -223,29 +206,20 @@ int main(int argc, char* argv[]) {
                 break;
             }
             case 3: {
-                auto tireL =
-                    chrono_types::make_shared<hmmwv::HMMWV_PacejkaTire>(vehicle::GetDataFile(pacejka_tire_file));
-                auto tireR =
-                    chrono_types::make_shared<hmmwv::HMMWV_PacejkaTire>(vehicle::GetDataFile(pacejka_tire_file));
-                vehicle.InitializeTire(tireL, axle->m_wheels[0], VisualizationType::MESH, collision_type);
-                vehicle.InitializeTire(tireR, axle->m_wheels[1], VisualizationType::MESH, collision_type);
-                break;
-            }
-            case 4: {
                 auto tireL = chrono_types::make_shared<hmmwv::HMMWV_Pac89Tire>("HMMWV_Pac89_Tire");
                 auto tireR = chrono_types::make_shared<hmmwv::HMMWV_Pac89Tire>("HMMWV_Pac89_Tire");
                 vehicle.InitializeTire(tireL, axle->m_wheels[0], VisualizationType::MESH, collision_type);
                 vehicle.InitializeTire(tireR, axle->m_wheels[1], VisualizationType::MESH, collision_type);
                 break;
             }
-            case 5: {
+            case 4: {
                 auto tireL = chrono_types::make_shared<hmmwv::HMMWV_Pac02Tire>("HMMWV_Pac02_Tire");
                 auto tireR = chrono_types::make_shared<hmmwv::HMMWV_Pac02Tire>("HMMWV_Pac02_Tire");
                 vehicle.InitializeTire(tireL, axle->m_wheels[0], VisualizationType::MESH, collision_type);
                 vehicle.InitializeTire(tireR, axle->m_wheels[1], VisualizationType::MESH, collision_type);
                 break;
             }
-            case 6: {
+            case 5: {
                 auto tireL = chrono_types::make_shared<hmmwv::HMMWV_RigidTire>("HMMWV_Rigid_Tire");
                 auto tireR = chrono_types::make_shared<hmmwv::HMMWV_RigidTire>("HMMWV_Rigid_Tire");
                 vehicle.InitializeTire(tireL, axle->m_wheels[0], VisualizationType::MESH, collision_type);
@@ -277,15 +251,12 @@ int main(int argc, char* argv[]) {
             windowTitle.append("(Fiala Tire)");
             break;
         case 3:
-            windowTitle.append("(Pacejka Tire)");
-            break;
-        case 4:
             windowTitle.append("(Pacejka89 Tire)");
             break;
-        case 5:
+        case 4:
             windowTitle.append("(Pacejka02 Tire)");
             break;
-        case 6:
+        case 5:
             windowTitle.append("(Rigid Tire)");
             break;
     }

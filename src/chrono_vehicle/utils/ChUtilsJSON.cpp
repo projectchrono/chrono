@@ -60,8 +60,6 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/LugreTire.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/PacejkaTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ReissnerTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/TMeasyTire.h"
@@ -543,10 +541,6 @@ std::shared_ptr<ChTire> ReadTireJSON(const std::string& filename) {
         tire = chrono_types::make_shared<TMeasyTire>(d);
     } else if (subtype.compare("FialaTire") == 0) {
         tire = chrono_types::make_shared<FialaTire>(d);
-    } else if (subtype.compare("LugreTire") == 0) {
-        tire = chrono_types::make_shared<LugreTire>(d);
-    } else if (subtype.compare("PacejkaTire") == 0) {
-        tire = chrono_types::make_shared<PacejkaTire>(d);
     } else if (subtype.compare("Pac89Tire") == 0) {
         tire = chrono_types::make_shared<Pac89Tire>(d);
     } else if (subtype.compare("Pac02Tire") == 0) {

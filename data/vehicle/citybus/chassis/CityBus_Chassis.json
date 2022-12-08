@@ -23,36 +23,6 @@
     "Orientation":  [1, 0, 0, 0]
   },
 
-  "Contact": {
-    "Materials": [
-        {
-            "Coefficient of Friction": 0.7,
-            "Coefficient of Restitution": 0.1,
-
-            "Properties": {
-                "Young Modulus": 1e7,
-                "Poisson Ratio": 0.3
-            },
-
-            "Coefficients": {
-                "Normal Stiffness": 2e5,
-                "Normal Damping": 40.0,
-                "Tangential Stiffness": 2e5,
-                "Tangential Damping": 20.0
-            }
-        }
-    ],
-
-    "Shapes": [
-        {
-            "Type": "MESH",
-            "Filename": "citybus/CityBus_Col.obj",
-            "Location": [0, 0.0, 0.0],
-            "Contact Radius": 0.0,
-            "Material Index": 0
-        }
-    ]
-  },
 
   "Visualization":
   {

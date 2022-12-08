@@ -22,9 +22,9 @@
 #include "chrono/core/ChLog.h"
 
 #include "chrono_cosimulation/ChCosimulation.h"
-#include "chrono_cosimulation/ChExceptionSocket.h"
 
 using namespace chrono;
+using namespace chrono::utils;
 using namespace chrono::cosimul;
 
 int main(int argc, char* argv[]) {

@@ -29,9 +29,9 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   mark_as_advanced(CLEAR GLFW_DLL)
 endif()
 
-find_package(GLFW REQUIRED)
-find_package(OpenGL REQUIRED)
-find_package(GLEW REQUIRED)
+find_package(GLFW OPTIONAL_COMPONENTS)
+find_package(OpenGL OPTIONAL_COMPONENTS)
+find_package(GLEW OPTIONAL_COMPONENTS)
 
 message(STATUS "OpenGL libraries: ${OPENGL_LIBRARIES}")
 message(STATUS "GLEW libraries:   ${GLEW_LIBRARY}")
@@ -45,11 +45,19 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     SET(GLFW_DLL  "" CACHE FILEPATH "The GLFW DLL")
 ENDIF()
 
-SET(CH_SENSOR_INCLUDES
+
+if(${OPENGL_FOUND} AND ${GLEW_FOUND} AND ${GLFW_FOUND})
+  SET(CH_SENSOR_INCLUDES
     ${CH_SENSOR_INCLUDES}
     ${GLFW_INCLUDE_DIR}
     ${GLEW_INCLUDE_DIR}
-)
+  )
+  #add the necessary opengl, glfw, glew libraries to link list
+  list(APPEND LIBRARIES ${GLFW_LIBRARY})
+  list(APPEND LIBRARIES ${GLEW_LIBRARY})
+  list(APPEND LIBRARIES ${OPENGL_LIBRARIES})
+endif()
+
 
 # ------------------------------------------------------------------------------
 # Find and set everything needed for OptiX
@@ -72,11 +80,6 @@ SET(CH_SENSOR_INCLUDES
 list(APPEND LIBRARIES ${CUDA_nppc_LIBRARY})
 list(APPEND LIBRARIES ${CUDA_nppig_LIBRARY})
 list(APPEND LIBRARIES ${CUDA_nppidei_LIBRARY})
-
-#add the necessary opengl, glfw, glew libraries to link list
-list(APPEND LIBRARIES ${GLFW_LIBRARY})
-list(APPEND LIBRARIES ${GLEW_LIBRARY})
-list(APPEND LIBRARIES ${OPENGL_LIBRARIES})
 
 set(CH_SENSOR_INCLUDES ${CH_SENSOR_INCLUDES} "${CUDA_TOOLKIT_ROOT_DIR}/include")
 list(APPEND CUDA_NVCC_FLAGS "--use_fast_math")
@@ -127,8 +130,8 @@ if(USE_CUDA_NVRTC)
     set(USE_CUDA_NVRTC OFF)
   else()
     list(APPEND LIBRARIES ${CUDA_NVRTC_LIBRARY})
-    add_definitions( -DUSE_CUDA_NVRTC )
-    add_definitions( -DCMAKE_SHADER_OUTPUT_PATH="${CMAKE_CURRENT_SOURCE_DIR}/optix/shaders/" )
+    # add_definitions( -DUSE_CUDA_NVRTC )
+    # add_definitions( -DCMAKE_SHADER_OUTPUT_PATH="${CMAKE_CURRENT_SOURCE_DIR}/optix/shaders/" )
 
     #set(CUDA_NVRTC_FLAGS -arch compute_30 -use_fast_math -lineinfo -default-device -rdc true -D__x86_64 CACHE STRING "NVRTC flags as list." FORCE)
     set(CUDA_NVRTC_FLAGS -use_fast_math -std=c++11 -default-device -rdc true -D__x86_64 CACHE STRING "NVRTC flags as list." FORCE)
@@ -445,7 +448,7 @@ CUDA_WRAP_SRCS(ChronoEngine_sensor OBJ generated_obj_files ${ChronoEngine_sensor
 # Generate the PTX files only if NVRTC is disabled
 if(NOT USE_CUDA_NVRTC)
   set(CUDA_GENERATED_OUTPUT_DIR "${CMAKE_BINARY_DIR}/lib/sensor_ptx")
-  add_definitions(-DCMAKE_SHADER_OUTPUT_PATH="${CUDA_GENERATED_OUTPUT_DIR}/")
+  # add_definitions(-DCMAKE_SHADER_OUTPUT_PATH="${CUDA_GENERATED_OUTPUT_DIR}/")
   CUDA_WRAP_SRCS(ChronoEngine_sensor PTX generated_rt_files ${ChronoEngine_sensor_RT_SOURCES} )
   source_group("Generated Files" FILES ${generated_rt_files})
 endif()
@@ -488,6 +491,21 @@ cuda_add_library(ChronoEngine_sensor SHARED
     ${ALL_CH_SENSOR_FILES}
 )
 
+if(USE_CUDA_NVRTC)
+  target_compile_definitions(ChronoEngine_sensor PUBLIC -DUSE_CUDA_NVRTC )
+  target_compile_definitions(ChronoEngine_sensor PUBLIC -DCMAKE_SHADER_OUTPUT_PATH="${CMAKE_CURRENT_SOURCE_DIR}/optix/shaders/" )
+else()
+  target_compile_definitions(ChronoEngine_sensor PUBLIC -DCMAKE_SHADER_OUTPUT_PATH="${CMAKE_BINARY_DIR}/lib/sensor_ptx/")
+endif()
+
+if(${OPENGL_FOUND} AND ${GLEW_FOUND} AND ${GLFW_FOUND})
+  target_compile_definitions(ChronoEngine_sensor PUBLIC -DUSE_SENSOR_GLFW )
+  message(STATUS "GLEW, GLFW, and GL found. Enabling visualization in Chrono::SENSOR")
+else()
+	message(STATUS "GLEW, GLFW, or GL not found. Disabling visualization in Chrono::SENSOR")
+endif()
+
+
 # windows builds should disable warning 4661 and 4005
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4661 /wd4005")
@@ -496,10 +514,11 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     #SET(CH_IRRLICHT_DLL "${IRRLICHT_ROOT}/bin/Win32-VisualStudio/Irrlicht.dll")
 endif()
 
+target_compile_definitions(ChronoEngine_sensor PUBLIC CH_API_COMPILE_SENSOR)
+
 set_target_properties(ChronoEngine_sensor PROPERTIES
                     COMPILE_FLAGS "${CH_CXX_FLAGS}"
-                    LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
-				  	COMPILE_DEFINITIONS "CH_API_COMPILE_SENSOR")
+                    LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
 
 target_include_directories(ChronoEngine_sensor PUBLIC ${CH_SENSOR_INCLUDES})
 

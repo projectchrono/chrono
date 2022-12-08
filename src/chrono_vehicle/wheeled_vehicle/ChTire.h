@@ -105,15 +105,11 @@ class CH_VEHICLE_API ChTire : public ChPart {
     // allow extensions to Chrono::Vehicle in user code.
 
     /// Initialize this tire subsystem by associating it to an existing wheel subsystem.
-    /// The tire mass and inertia are used to increment those of the associated suspension spindle body.
     virtual void Initialize(std::shared_ptr<ChWheel> wheel);
 
     /// Update the state of this tire system at the current time.
-    virtual void Synchronize(double time,              ///< [in] current time
-                             const ChTerrain& terrain  ///< [in] reference to the terrain system
-    ) {
-        CalculateKinematics(time, m_wheel->GetState(), terrain);
-    }
+    /// A derived class should also set the current slip, longitudinal slip, and camber angle.
+    virtual void Synchronize(double time, const ChTerrain& terrain) {}
 
     /// Advance the state of this tire by the specified time step.
     virtual void Advance(double step) {}
@@ -123,9 +119,8 @@ class CH_VEHICLE_API ChTire : public ChPart {
     ChTire(const std::string& name);
 
     /// Calculate kinematics quantities based on the given state of the associated wheel body.
-    void CalculateKinematics(double time,                    ///< [in] current time
-                             const WheelState& wheel_state,  ///< [in] current state of associated wheel body
-                             const ChTerrain& terrain        ///< [in] reference to the terrain system
+    void CalculateKinematics(const WheelState& wheel_state,  ///< [in] current state of associated wheel body
+                             const ChCoordsys<>& tire_frame  ///< [in] tire contact frame
     );
 
     /// Get offset from spindle center.
@@ -159,6 +154,31 @@ class CH_VEHICLE_API ChTire : public ChPart {
     std::shared_ptr<ChTriangleMeshShape> AddVisualizationMesh(const std::string& mesh_file_left,
                                                               const std::string& mesh_file_right);
 
+    /// Perform disc-terrain collision detection, using the specified method.
+    static bool DiscTerrainCollision(
+        CollisionType method,                ///< [in] tire-terrain collision detection method
+        const ChTerrain& terrain,            ///< [in] reference to terrain system
+        const ChVector<>& disc_center,       ///< [in] global location of the disc center
+        const ChVector<>& disc_normal,       ///< [in] disc normal, expressed in the global frame
+        double disc_radius,                  ///< [in] disc radius
+        double width,                        ///< [in] tire width
+        const ChFunction_Recorder& areaDep,  ///< [in] lookup table to calculate depth from intersection area
+        ChCoordsys<>& contact,               ///< [out] contact coordinate system (relative to the global frame)
+        double& depth,                       ///< [out] penetration depth (positive if contact occurred)
+        float& mu                            ///< [out] coefficient of friction at contact
+    );
+
+    /// Utility function to construct a loopkup table for penetration depth as function of intersection area,
+    /// for a given tire radius.  The return map can be used in DiscTerrainCollisionEnvelope.
+    static void ConstructAreaDepthTable(double disc_radius, ChFunction_Recorder& areaDep);
+
+    std::shared_ptr<ChWheel> m_wheel;  ///< associated wheel subsystem
+    double m_stepsize;                 ///< tire integration step size (if applicable)
+    CollisionType m_collision_type;    ///< method used for tire-terrain collision
+
+    std::string m_vis_mesh_file;  ///< name of OBJ file for visualization of this tire (may be empty)
+
+  private:
     /// Perform disc-terrain collision detection.
     /// This utility function checks for contact between a disc of specified radius with given position and orientation
     /// (specified as the location of its center and a unit vector normal to the disc plane) and the terrain system
@@ -166,7 +186,7 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// occurs, it returns a coordinate system with the Z axis along the contact normal and the X axis along the
     /// "rolling" direction, as well as a positive penetration depth (i.e. the height below the terrain of the lowest
     /// point on the disc).
-    static bool DiscTerrainCollision(
+    static bool DiscTerrainCollision1pt(
         const ChTerrain& terrain,       ///< [in] reference to terrain system
         const ChVector<>& disc_center,  ///< [in] global location of the disc center
         const ChVector<>& disc_normal,  ///< [in] disc normal, expressed in the global frame
@@ -192,7 +212,6 @@ class CH_VEHICLE_API ChTire : public ChPart {
         double width,                   ///< [in] tire width
         ChCoordsys<>& contact,          ///< [out] contact coordinate system (relative to the global frame)
         double& depth,                  ///< [out] penetration depth (positive if contact occurred)
-        double& camber_angle,           ///< [out] tire camber angle
         float& mu                       ///< [out] coefficient of friction at contact
     );
 
@@ -203,23 +222,13 @@ class CH_VEHICLE_API ChTire : public ChPart {
         const ChVector<>& disc_center,       ///< [in] global location of the disc center
         const ChVector<>& disc_normal,       ///< [in] disc normal, expressed in the global frame
         double disc_radius,                  ///< [in] disc radius
+        double width,                        ///< [in] tire width
         const ChFunction_Recorder& areaDep,  ///< [in] lookup table to calculate depth from intersection area
         ChCoordsys<>& contact,               ///< [out] contact coordinate system (relative to the global frame)
         double& depth,                       ///< [out] penetration depth (positive if contact occurred)
         float& mu                            ///< [out] coefficient of friction at contact
     );
 
-    /// Utility function to construct a loopkup table for penetration depth as function of intersection area,
-    /// for a given tire radius.  The return map can be used in DiscTerrainCollisionEnvelope.
-    static void ConstructAreaDepthTable(double disc_radius, ChFunction_Recorder& areaDep);
-
-    std::shared_ptr<ChWheel> m_wheel;  ///< associated wheel subsystem
-    double m_stepsize;                 ///< tire integration step size (if applicable)
-    CollisionType m_collision_type;    ///< method used for tire-terrain collision
-
-    std::string m_vis_mesh_file;  ///< name of OBJ file for visualization of this tire (may be empty)
-
-  private:
     double m_slip_angle;
     double m_longitudinal_slip;
     double m_camber_angle;

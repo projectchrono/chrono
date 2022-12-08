@@ -109,6 +109,21 @@ class CH_SENSOR_API ChScene {
     /// Function for getting the background changed variable
     bool GetBackgroundChanged() { return background_changed; }
 
+    /// Function to set the fog color
+    void SetFogColor(ChVector<float> color);
+
+    /// Function to get the fog color
+    ChVector<float> GetFogColor() { return m_fog_color; }
+
+    /// Function to set the fog scattering coefficient
+    void SetFogScattering(float coefficient);
+
+    /// Function to set the fog scattering coefficient from max visible distance
+    void SetFogScatteringFromDistance(float distance);
+
+    /// Function to get the fog scattering coefficient
+    float GetFogScattering() { return m_fog_scattering; }
+
     /// Allows setting the scene epsilon used for traversal checks
     /// @param e the epsilon value
     void SetSceneEpsilon(float e);
@@ -116,6 +131,27 @@ class CH_SENSOR_API ChScene {
     /// Accessor to the scene epsilon value
     /// @return the scene epsilon
     float GetSceneEpsilon() { return m_scene_epsilon; }
+
+    /// Function to change the origin offset if necessary
+    /// @param sensor_pos the position of the sensor
+    /// @param force whether to force updating even if threshold is not met
+    void UpdateOriginOffset(ChVector<float> sensor_pos, bool force = false);
+
+    bool GetOriginChanged() { return m_origin_changed; }
+
+    void ResetOriginChanged() { m_origin_changed = false; }
+
+    /// Access function for the origin offset
+    /// @returns the origin offset
+    ChVector<float> GetOriginOffset() { return m_origin_offset; }
+
+    /// Set the threshold for moving the origin
+    /// @param threshold the threshold outside of which to move the scene origin
+    void SetOriginOffsetThreshold(float threshold) { m_dynamic_origin_threshold = threshold; }
+
+    /// Enable dynamic moving of the scene origin
+    /// @param enable whether to enable to the moving origin
+    void EnableDynamicOrigin(bool enable) { m_dynamic_origin_offset = enable; }
 
   private:
     std::vector<PointLight> m_pointlights;  //< list of point lights in the scene
@@ -125,7 +161,15 @@ class CH_SENSOR_API ChScene {
     bool lights_changed;      ///< for detecting if lights changed
     bool background_changed;  ///< for detecting if background changed
 
-    float m_scene_epsilon;  ///< smallest value used for checking traversal hits
+    float m_scene_epsilon;             ///< smallest value used for checking traversal hits
+    bool m_dynamic_origin_offset;      ///< whether to dynamically change the scene origin when sensors are outside of
+                                       ///< threshold
+    float m_dynamic_origin_threshold;  ///< threshold to prompt moving the origin
+    ChVector<float> m_origin_offset;   ///< scene origin offset from Chrono
+    bool m_origin_changed;             ///< whether the origin changed since last reset
+
+    float m_fog_scattering;       ///< scattering coefficient of fog in the scene
+    ChVector<float> m_fog_color;  ///< color of the fog in the scene
 };
 
 /// @} sensor_scene

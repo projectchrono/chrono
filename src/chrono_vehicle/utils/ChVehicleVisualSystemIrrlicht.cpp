@@ -276,8 +276,8 @@ void ChVehicleVisualSystemIrrlicht::renderLinGauge(const std::string& msg,
                                      irr::video::SColor(255, 250, 0, 0));
     }
 
-    GetCourierFont()->draw(msg.c_str(), irr::core::rect<s32>(xpos + 3, ypos + 3, xpos + length, ypos + height),
-                           irr::video::SColor(255, 20, 20, 20));
+    GetMonospaceFont()->draw(msg.c_str(), irr::core::rect<s32>(xpos + 3, ypos + 3, xpos + length, ypos + height),
+                             irr::video::SColor(255, 20, 20, 20));
 }
 
 // Render text in a box.
@@ -291,7 +291,8 @@ void ChVehicleVisualSystemIrrlicht::renderTextBox(const std::string& msg,
     GetVideoDriver()->draw2DRectangle(irr::video::SColor(90, 60, 60, 60),
                                       irr::core::rect<s32>(xpos, ypos, xpos + length, ypos + height), &mclip);
 
-    GetCourierFont()->draw(msg.c_str(), irr::core::rect<s32>(xpos + 3, ypos + 3, xpos + length, ypos + height), color);
+    GetMonospaceFont()->draw(msg.c_str(), irr::core::rect<s32>(xpos + 3, ypos + 3, xpos + length, ypos + height),
+                             color);
 }
 
 // Render stats for the vehicle and powertrain systems (render the HUD).

@@ -15,6 +15,7 @@
 #include "chrono_vehicle/driver/ChDataDriver.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/driver/ChPathFollowerACCDriver.h"
+#include "chrono_vehicle/driver/ChExternalDriver.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChDriverSTR.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChDataDriverSTR.h"
 
@@ -67,6 +68,11 @@
 %shared_ptr(chrono::vehicle::ChPathFollowerDriverSR)
 %shared_ptr(chrono::vehicle::ChPathFollowerDriverStanley)
 %shared_ptr(chrono::vehicle::ChPathFollowerACCDriver)
+%shared_ptr(chrono::vehicle::ChExternalDriver)
+%shared_ptr(chrono::vehicle::ChExternalDriver::DataGeneratorFunctor)
+%shared_ptr(chrono::vehicle::ChExternalDriver::DataParserFunctor)
+%shared_ptr(chrono::vehicle::ChJSONWriter)
+%shared_ptr(chrono::vehicle::ChJSONReader)
 %shared_ptr(chrono::vehicle::ChDriverSTR)
 %shared_ptr(chrono::vehicle::ChDataDriverSTR)
 
@@ -78,8 +84,15 @@
 #endif             // --------------------------------------------------------------------- PYTHON
 
 
+%rename(DriverInputs) chrono::vehicle::ChDriver::Inputs;
 %rename(DataDriverEntry) chrono::vehicle::ChDataDriver::Entry;
 %template(vector_Entry) std::vector< chrono::vehicle::ChDataDriver::Entry >;
+
+// Specific to ChExternalDriver
+%feature("director") DataParserFunctor;
+%feature("director") DataGeneratorFunctor;
+%rename(ChExternalDriver_DataParserFunctor) chrono::vehicle::ChExternalDriver::DataParserFunctor;
+%rename(ChExternalDriver_DataGeneratorFunctor) chrono::vehicle::ChExternalDriver::DataGeneratorFunctor;
 
 // Parse the header file to generate wrappers
 %include "../../../chrono/utils/ChUtilsChaseCamera.h"
@@ -87,6 +100,7 @@
 %include "../../../chrono_vehicle/driver/ChDataDriver.h"
 %include "../../../chrono_vehicle/driver/ChPathFollowerDriver.h"
 %include "../../../chrono_vehicle/driver/ChPathFollowerACCDriver.h"
+%include "../../../chrono_vehicle/driver/ChExternalDriver.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/test_rig/ChDriverSTR.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/test_rig/ChDataDriverSTR.h"
 %include "../../../chrono_vehicle/utils/ChSpeedController.h"

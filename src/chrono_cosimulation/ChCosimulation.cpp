@@ -15,15 +15,16 @@
 #include <vector>
 
 #include "chrono_cosimulation/ChCosimulation.h"
-#include "chrono_cosimulation/ChExceptionSocket.h"
+
+using namespace chrono::utils;
 
 namespace chrono {
 namespace cosimul {
 
-ChCosimulation::ChCosimulation(ChSocketFramework& mframework,
-                               int n_in_values,  /// number of scalar variables to receive each timestep
-                               int n_out_values  /// number of scalar variables to send each timestep
-                               ) {
+ChCosimulation::ChCosimulation(ChSocketFramework& mframework,  // socket framework
+                               int n_in_values,                // number of scalar variables to receive each timestep
+                               int n_out_values                // number of scalar variables to send each timestep
+) {
     this->myServer = 0;
     this->myClient = 0;
     this->in_n = n_in_values;
@@ -98,7 +99,7 @@ bool ChCosimulation::ReceiveData(double& mtime, ChVectorRef in_data) {
     ChStreamInBinaryVector stream_in(&rbuffer);  // wrap the buffer, for easy formatting
 
     // -----> RECEIVE!!!
-    /*int numBytes =*/ this->myClient->ReceiveBuffer(*stream_in.GetVector(), nbytes);
+    /*int numBytes =*/this->myClient->ReceiveBuffer(*stream_in.GetVector(), nbytes);
 
     // Deserialize datas (little endian)...
 

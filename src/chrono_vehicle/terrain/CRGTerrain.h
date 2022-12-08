@@ -52,7 +52,7 @@ namespace vehicle {
 
 /// Concrete class for a (rigid) road loaded from an OpenCRG file.
 /// This type of terrain can be used in conjunction with tire models that perform their own collision detection
-/// (e.g. ChPacejkaTire, ChFiala, and ChLugreTire).
+/// (e.g., ChTMeasy ChPac89, ChPac02, ChFiala).
 class CH_VEHICLE_API CRGTerrain : public ChTerrain {
   public:
     /// Construct a default CRGTerrain.

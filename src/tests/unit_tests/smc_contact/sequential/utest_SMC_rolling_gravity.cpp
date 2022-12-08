@@ -121,7 +121,7 @@ TEST_P(RollingGravityTest, rolling) {
     ASSERT_LT(wvel, 1e-3);
 }
 
-INSTANTIATE_TEST_SUITE_P(ChronoMulticore,
+INSTANTIATE_TEST_SUITE_P(ChronoSequential,
                          RollingGravityTest,
                          ::testing::Values(ChSystemSMC::ContactForceModel::Hooke,
                                            ChSystemSMC::ContactForceModel::Hertz,
