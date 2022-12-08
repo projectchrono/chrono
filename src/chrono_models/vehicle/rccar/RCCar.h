@@ -23,9 +23,7 @@
 #include <array>
 #include <string>
 
-#include "chrono_vehicle/wheeled_vehicle/tire/ChPacejkaTire.h"
-
-// #include "chrono_models/ChApiModels.h"
+#include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/rccar/RCCar_Vehicle.h"
 #include "chrono_models/vehicle/rccar/RCCar_SimpleMapPowertrain.h"
 #include "chrono_models/vehicle/rccar/RCCar_RigidTire.h"

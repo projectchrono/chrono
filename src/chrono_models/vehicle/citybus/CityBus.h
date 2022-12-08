@@ -23,8 +23,6 @@
 #include <array>
 #include <string>
 
-#include "chrono_vehicle/wheeled_vehicle/tire/ChPacejkaTire.h"
-
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/citybus/CityBus_Vehicle.h"
 #include "chrono_models/vehicle/citybus/CityBus_SimpleMapPowertrain.h"

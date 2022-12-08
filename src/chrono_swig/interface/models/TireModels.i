@@ -18,7 +18,6 @@
 //#include "chrono_models/vehicle/hmmwv/HMMWV_ReissnerTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Pac89Tire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Pac02Tire.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_PacejkaTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_FialaTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_TMeasyTire.h"
 
@@ -52,7 +51,6 @@
 //%shared_ptr(chrono::vehicle::hmmwv::HMMWV_ReissnerTire)
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_Pac89Tire)
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_Pac02Tire)
-%shared_ptr(chrono::vehicle::hmmwv::HMMWV_PacejkaTire)
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_FialaTire)
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_TMeasyTire)
 %shared_ptr(chrono::vehicle::sedan::Sedan_TMeasyTire)
@@ -82,7 +80,6 @@
 //%include "../../../chrono_models/vehicle/hmmwv/HMMWV_ReissnerTire.h"
 %include "../../../chrono_models/vehicle/hmmwv/HMMWV_Pac89Tire.h"
 %include "../../../chrono_models/vehicle/hmmwv/HMMWV_Pac02Tire.h"
-%include "../../../chrono_models/vehicle/hmmwv/HMMWV_PacejkaTire.h"
 %include "../../../chrono_models/vehicle/hmmwv/HMMWV_FialaTire.h"
 %include "../../../chrono_models/vehicle/hmmwv/HMMWV_TMeasyTire.h"
 

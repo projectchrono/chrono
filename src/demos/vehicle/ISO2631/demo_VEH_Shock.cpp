@@ -35,7 +35,6 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 
-#include "chrono_models/vehicle/hmmwv/HMMWV_PacejkaTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Pac89Tire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Pac02Tire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
@@ -62,7 +61,6 @@ std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
 // JSON files tire models
 std::string tmeasy_tire_file("hmmwv/tire/HMMWV_TMeasy_converted.json");
 std::string fiala_tire_file("hmmwv/tire/HMMWV_Fiala_converted.json");
-std::string pacejka_tire_file("hmmwv/tire/HMMWV_pacejka.json");
 
 // Tire collision type
 ChTire::CollisionType collision_type = ChTire::CollisionType::ENVELOPE;
@@ -94,20 +92,13 @@ int main(int argc, char* argv[]) {
         default:
         case 1:
             GetLog() << "usage: demo_VEH_Shock [ObstacleNumber [Speed [TireNumberOneToFive]]\n\n";
-            GetLog() << "Using standard values for simulation:\n"
-                     << "Terrain No. = " << iObstacle << " (" << heightVals[iObstacle] << " mm Obstacle Height)\n"
-                     << "Speed       = " << target_speed << " m/s\n"
-                     << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka, 4=Pacejka89, 5=Pacejka89) = " << iTire << "\n";
+            GetLog() << "Using standard values for simulation:\n";
             break;
         case 2:
             if (atoi(argv[1]) >= 1 && atoi(argv[1]) <= 5) {
                 iObstacle = atoi(argv[1]);
                 rigidterrain_file = "terrain/RigidObstacle" + std::to_string(iObstacle) + ".json";
             }
-            GetLog() << "Using values for simulation:\n"
-                     << "Terrain No. = " << iObstacle << " (" << heightVals[iObstacle] << " mm Obstacle Height)\n"
-                     << "Speed       = " << target_speed << " m/s\n"
-                     << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka, 4=Pacejka89, 5=Pacejka89) = " << iTire << "\n";
             break;
         case 3:
             if (atoi(argv[1]) >= 1 && atoi(argv[1]) <= 5) {
@@ -115,10 +106,6 @@ int main(int argc, char* argv[]) {
                 rigidterrain_file = "terrain/RigidObstacle" + std::to_string(iObstacle) + ".json";
             }
             target_speed = atof(argv[2]);
-            GetLog() << "Using values for simulation:\n"
-                     << "Terrain No. = " << iObstacle << " (" << heightVals[iObstacle] << " mm Obstacle Height)\n"
-                     << "Speed       = " << target_speed << " m/s\n"
-                     << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka, 4=Pacejka89, 5=Pacejka89) = " << iTire << "\n";
             break;
         case 4:
             if (atoi(argv[1]) >= 1 && atoi(argv[1]) <= 5) {
@@ -126,15 +113,15 @@ int main(int argc, char* argv[]) {
                 rigidterrain_file = "terrain/RigidObstacle" + std::to_string(iObstacle) + ".json";
             }
             target_speed = atof(argv[2]);
-            if (atoi(argv[3]) >= 1 && atoi(argv[3]) <= 5) {
+            if (atoi(argv[3]) >= 1 && atoi(argv[3]) <= 4) {
                 iTire = atoi(argv[3]);
             }
-            GetLog() << "Using values for simulation:\n"
-                     << "Terrain No. = " << iObstacle << " (" << heightVals[iObstacle] << " mm Obstacle Height)\n"
-                     << "Speed       = " << target_speed << " m/s\n"
-                     << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka, 4=Pacejka89, 5=Pacejka89) = " << iTire << "\n";
             break;
     }
+    GetLog() << "Terrain No. = " << iObstacle << " (" << heightVals[iObstacle] << " mm Obstacle Height)\n"
+             << "Speed       = " << target_speed << " m/s\n"
+             << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka89, 4=Pacejka89) = " << iTire << "\n";
+
     // --------------------------
     // Create the various modules
     // --------------------------
@@ -179,22 +166,13 @@ int main(int argc, char* argv[]) {
                 break;
             }
             case 3: {
-                auto tireL =
-                    chrono_types::make_shared<hmmwv::HMMWV_PacejkaTire>(vehicle::GetDataFile(pacejka_tire_file));
-                auto tireR =
-                    chrono_types::make_shared<hmmwv::HMMWV_PacejkaTire>(vehicle::GetDataFile(pacejka_tire_file));
-                vehicle.InitializeTire(tireL, axle->m_wheels[0], VisualizationType::MESH, collision_type);
-                vehicle.InitializeTire(tireR, axle->m_wheels[1], VisualizationType::MESH, collision_type);
-                break;
-            }
-            case 4: {
                 auto tireL = chrono_types::make_shared<hmmwv::HMMWV_Pac89Tire>("HMMWV_Pac89_Tire");
                 auto tireR = chrono_types::make_shared<hmmwv::HMMWV_Pac89Tire>("HMMWV_Pac89_Tire");
                 vehicle.InitializeTire(tireL, axle->m_wheels[0], VisualizationType::MESH, collision_type);
                 vehicle.InitializeTire(tireR, axle->m_wheels[1], VisualizationType::MESH, collision_type);
                 break;
             }
-            case 5: {
+            case 4: {
                 auto tireL = chrono_types::make_shared<hmmwv::HMMWV_Pac02Tire>("HMMWV_Pac02_Tire");
                 auto tireR = chrono_types::make_shared<hmmwv::HMMWV_Pac02Tire>("HMMWV_Pac02_Tire");
                 vehicle.InitializeTire(tireL, axle->m_wheels[0], VisualizationType::MESH, collision_type);
@@ -224,12 +202,9 @@ int main(int argc, char* argv[]) {
             windowTitle.append("(Fiala Tire) - " + std::to_string(heightVals[iObstacle]) + " mm Obstacle Height");
             break;
         case 3:
-            windowTitle.append("(Pacejka Tire) - " + std::to_string(heightVals[iObstacle]) + " mm Obstacle Height");
-            break;
-        case 4:
             windowTitle.append("(Pacejka89 Tire) - " + std::to_string(heightVals[iObstacle]) + " mm Obstacle Height");
             break;
-        case 5:
+        case 4:
             windowTitle.append("(Pacejka02 Tire) - " + std::to_string(heightVals[iObstacle]) + " mm Obstacle Height");
             break;
     }

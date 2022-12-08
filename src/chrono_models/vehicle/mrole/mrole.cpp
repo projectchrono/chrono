@@ -281,26 +281,6 @@ void mrole::Initialize() {
 
             break;
         }
-        case TireModelType::PACEJKA: {
-            auto tire_FL = chrono_types::make_shared<mrole_PacejkaTire>("FL");
-            auto tire_FR = chrono_types::make_shared<mrole_PacejkaTire>("FR");
-            auto tire_RL = chrono_types::make_shared<mrole_PacejkaTire>("RL");
-            auto tire_RR = chrono_types::make_shared<mrole_PacejkaTire>("RR");
-
-            tire_FL->SetDrivenWheel(false);
-            tire_FR->SetDrivenWheel(false);
-            tire_RL->SetDrivenWheel(true);
-            tire_RR->SetDrivenWheel(true);
-
-            m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
-
-            m_tire_mass = tire_FL->GetMass();
-
-            break;
-        }
         case TireModelType::ANCF: {
             auto tire_FL = chrono_types::make_shared<mrole_ANCFTire>("FL");
             auto tire_FR = chrono_types::make_shared<mrole_ANCFTire>("FR");

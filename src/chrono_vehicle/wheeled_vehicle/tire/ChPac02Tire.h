@@ -21,9 +21,6 @@
 // Actually implemented:
 // - steady state longitudinal, lateral force, alignment torque, overturning torque
 // - can run in combined (Pacejka or Friction Ellipsis Method) or uncombined mode
-//
-// Aim of this implementation is the replacement of ChPacejkaTire, which is more
-// complete but unreliable in practical usage.
 // =============================================================================
 
 #ifndef CH_PAC02TIRE_H
