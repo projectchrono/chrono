@@ -419,24 +419,8 @@ void ChPacejkaTire::update_W_frame(const ChTerrain& terrain) {
 
     double depth;
     float mu;
-    switch (m_collision_type) {
-        case CollisionType::SINGLE_POINT:
-            m_in_contact =
-                DiscTerrainCollision(terrain, m_tireState.pos, m_tireState.rot.GetYaxis(), m_R0, contact_frame, depth, mu);
-            break;
-        case CollisionType::FOUR_POINTS:
-            m_in_contact = DiscTerrainCollision4pt(terrain, m_tireState.pos, m_tireState.rot.GetYaxis(), m_R0,
-                                                   m_params->dimension.width, contact_frame, depth, mu);
-            break;
-        case CollisionType::ENVELOPE:
-            m_in_contact = DiscTerrainCollisionEnvelope(terrain, m_tireState.pos, m_tireState.rot.GetYaxis(), m_R0,
-                                                        m_areaDep, contact_frame, depth, mu);
-            break;
-        default:
-            m_in_contact = false;
-            depth = 0;
-            break;
-    }
+    m_in_contact = DiscTerrainCollision(m_collision_type, terrain, m_tireState.pos, m_tireState.rot.GetYaxis(),
+                                        m_R0, m_params->dimension.width, m_areaDep, contact_frame, depth, mu);
     ChClampValue(mu, 0.1f, 1.0f);
     m_mu = mu;
 

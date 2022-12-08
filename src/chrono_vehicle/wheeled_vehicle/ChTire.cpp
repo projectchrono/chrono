@@ -122,6 +122,30 @@ std::shared_ptr<ChTriangleMeshShape> ChTire::AddVisualizationMesh(const std::str
 // solution would require an iterative calculation of the contact point.
 // -----------------------------------------------------------------------------
 bool ChTire::DiscTerrainCollision(
+    CollisionType method,                // [in] tire-terrain collision detection method
+    const ChTerrain& terrain,            // [in] reference to terrain system
+    const ChVector<>& disc_center,       // [in] global location of the disc center
+    const ChVector<>& disc_normal,       // [in] disc normal, expressed in the global frame
+    double disc_radius,                  // [in] disc radius
+    double width,                        // [in] tire width
+    const ChFunction_Recorder& areaDep,  // [in] lookup table to calculate depth from intersection area
+    ChCoordsys<>& contact,               // [out] contact coordinate system (relative to the global frame)
+    double& depth,                       // [out] penetration depth (positive if contact occurred)
+    float& mu                            // [out] coefficient of friction at contact
+) {
+    switch (method) {
+        default:
+        case CollisionType::SINGLE_POINT:
+            return DiscTerrainCollision1pt(terrain, disc_center, disc_normal, disc_radius, contact, depth, mu);
+        case CollisionType::FOUR_POINTS:
+            return DiscTerrainCollision4pt(terrain, disc_center, disc_normal, disc_radius, width, contact, depth, mu);
+        case CollisionType::ENVELOPE:
+            return DiscTerrainCollisionEnvelope(terrain, disc_center, disc_normal, disc_radius, width, areaDep, contact,
+                                                depth, mu);
+    }
+}
+
+bool ChTire::DiscTerrainCollision1pt(
     const ChTerrain& terrain,       // [in] reference to terrain system
     const ChVector<>& disc_center,  // [in] global location of the disc center
     const ChVector<>& disc_normal,  // [in] disc normal, expressed in the global frame
@@ -293,6 +317,7 @@ bool ChTire::DiscTerrainCollisionEnvelope(
     const ChVector<>& disc_center,       // [in] global location of the disc center
     const ChVector<>& disc_normal,       // [in] disc normal, expressed in the global frame
     double disc_radius,                  // [in] disc radius
+    double width,                        // [in] tire width
     const ChFunction_Recorder& areaDep,  // [in] lookup table to calculate depth from intersection area
     ChCoordsys<>& contact,               // [out] contact coordinate system (relative to the global frame)
     double& depth,                       // [out] penetration depth (positive if contact occurred)

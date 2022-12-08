@@ -126,20 +126,8 @@ void ChTMeasyTire::Synchronize(double time, const ChTerrain& terrain) {
 
     // Assuming the tire is a disc, check contact with terrain
     float mu;
-    switch (m_collision_type) {
-        case CollisionType::SINGLE_POINT:
-            m_data.in_contact = DiscTerrainCollision(terrain, wheel_state.pos, disc_normal, m_unloaded_radius,
-                                                     m_data.frame, m_data.depth, mu);
-            break;
-        case CollisionType::FOUR_POINTS:
-            m_data.in_contact = DiscTerrainCollision4pt(terrain, wheel_state.pos, disc_normal, m_unloaded_radius,
-                                                        m_width, m_data.frame, m_data.depth, mu);
-            break;
-        case CollisionType::ENVELOPE:
-            m_data.in_contact = DiscTerrainCollisionEnvelope(terrain, wheel_state.pos, disc_normal, m_unloaded_radius,
-                                                             m_areaDep, m_data.frame, m_data.depth, mu);
-            break;
-    }
+    m_data.in_contact = DiscTerrainCollision(m_collision_type, terrain, wheel_state.pos, disc_normal, m_unloaded_radius,
+                                             m_width, m_areaDep, m_data.frame, m_data.depth, mu);
     ChClampValue(mu, 0.1f, 1.0f);
     m_mu = mu;
 
