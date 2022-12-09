@@ -1,0 +1,7 @@
+{
+    "Name": "ACV Steering",
+    "Type": "ChassisConnector",
+    "Template": "ChassisConnectorArticulated",
+
+    "Maximum Steering Angle (deg)": 30
+}

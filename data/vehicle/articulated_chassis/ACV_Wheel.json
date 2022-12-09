@@ -1,0 +1,13 @@
+{
+    "Name": "ACV Wheel",
+    "Type": "Wheel",
+    "Template": "Wheel",
+
+    "Mass": 18.0,
+    "Inertia": [ 0.1, 0.1, 0.1 ],
+
+    "Visualization": {
+        "Radius": 0.31,
+        "Width": 0.235
+    }
+}
