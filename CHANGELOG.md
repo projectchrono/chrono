@@ -5,8 +5,9 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
-  - [Chrono::Sensor features and updates](#Chron::Sensor-features-and-updates)
-  - [Closed-loop vehicle paths](#fixed-closed-loop-vehicle-path)
+- [Release 8.0.0](#release-800---2022-12-21)
+  - [Chrono::Sensor features and updates](#added-chronosensor-features-and-updates)
+  - [Closed-loop vehicle paths](#fixed-closed-loop-vehicle-paths)
   - [Miscellaneous Chrono::Vehicle extensions](#added-miscellaneous-chronovehicle-extensions)
   - [Chrono:Fsi API changes](#changed-chronofsi-api-changes)
   - [User-defined SMC contact force calculation](#added-user-defined-smc-contact-force-calculation)
@@ -70,6 +71,8 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+## Release 8.0.0 - 2022-12-21
 
 ### [Added] Chrono::Sensor features and updates
 
