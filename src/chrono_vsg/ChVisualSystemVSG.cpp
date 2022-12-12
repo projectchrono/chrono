@@ -567,6 +567,29 @@ ChVisualSystemVSG::ChVisualSystemVSG() {
 #endif
 }
 
+void ChVisualSystemVSG::SetOutputScreen(int screenNum) {
+    if (m_initialized) {
+        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        return;
+    }
+    int maxNum = vsg::Device::maxNumDevices();
+    GetLog() << "Screens found: " << maxNum << "\n";
+    if(screenNum >= 0 && screenNum < maxNum) {
+        m_screen_num = screenNum;
+    } else {
+        GetLog() << "Screen #" << screenNum << " cannot be used on this computer!\n";
+        exit(1);
+    }
+}
+
+void ChVisualSystemVSG::SetFullscreen(bool yesno) {
+    if (m_initialized) {
+        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
+        return;
+    }
+    m_use_fullscreen = yesno;
+}
+
 void ChVisualSystemVSG::AttachGui() {
     m_renderGui = vsgImGui::RenderImGui::create(m_window, GuiComponent(m_params, this));
     if (!m_renderGui) {
@@ -735,6 +758,8 @@ void ChVisualSystemVSG::Initialize() {
     windowTraits->swapchainPreferences.imageUsage =
         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
     windowTraits->depthImageUsage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+    windowTraits->fullscreen = m_use_fullscreen;
+    windowTraits->screenNum = m_screen_num;
 
     m_scene = vsg::Group::create();
 
@@ -822,6 +847,7 @@ void ChVisualSystemVSG::Initialize() {
              << VK_VERSION_MINOR(VK_HEADER_VERSION_COMPLETE) << "." << VK_API_VERSION_PATCH(VK_HEADER_VERSION_COMPLETE)
              << "\n";
     GetLog() << "* Vulkan Scene Graph Version: " << VSG_VERSION_STRING << "\n";
+    GetLog() << "* Graphic Output Possible on: " << vsg::Device::maxNumDevices() << " Screens.\n";
     GetLog() << "****************************************************\n";
     m_shapeBuilder->m_maxAnisotropy = limits.maxSamplerAnisotropy;
     m_window->clearColor() = VkClearColorValue{{m_clearColor.R, m_clearColor.G, m_clearColor.B, 1}};

@@ -58,6 +58,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void SetWindowPosition(int from_left, int from_top);
     void SetWindowTitle(std::string title);
     void SetClearColor(ChColor color);
+    void SetOutputScreen(int screenNum=0);
+    void SetFullscreen(bool yesno=false);
     void SetUseSkyBox(bool yesno);
     // Draw scene as wireframes
     void SetWireFrameMode(bool mode = true) { m_draw_as_wireframe = mode; }
@@ -150,6 +152,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
                               double& rotAngle,
                               ChVector<>& rotAxis);
     bool m_initialized = false;
+    int m_screen_num = -1;
+    bool m_use_fullscreen = false;
     vsg::ref_ptr<vsgImGui::RenderImGui> m_renderGui;
     vsg::ref_ptr<ChVisualSystemVSG::StateParams> m_params = StateParams::create();
     vsg::ref_ptr<vsg::Window> m_window;

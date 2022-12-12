@@ -129,7 +129,10 @@ int main(int argc, char* argv[]) {
     vis->SetWindowPosition(ChVector2<int>(100, 100));
     vis->SetWindowTitle("VSG Rolling Friction");
     vis->SetClearColor(ChColor(0.8,0.85,0.9));
+    vis->SetOutputScreen(0);
+    vis->SetFullscreen(true);
     vis->SetUseSkyBox(true); // use built-in path
+    vis->SetOutputScreen(0);
     vis->SetCameraVertical(chrono::vsg3d::CameraVerticalDir::Y);
     vis->AddCamera(ChVector<>(0, 14, -20));
     vis->SetCameraAngleDeg(40.0);
