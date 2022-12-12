@@ -853,7 +853,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Perform a generic static analysis. Low level API, where the user creates and configures a
     /// ChStaticAnalysis-inherited object by his own. For ready-to-use analysis, use 
     /// DoStaticLinear, DoStaticNonLinear, DoStaticNonlinearRheonomic etc. instead.
-    bool DoStaticAnalysis(std::shared_ptr<ChStaticAnalysis> analysis);
+    bool DoStaticAnalysis(ChStaticAnalysis& analysis);
 
     /// Solve the position of static equilibrium (and the reactions).
     /// This is a one-step only approach that solves the **linear** equilibrium.
@@ -870,7 +870,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// but differently from DoStaticNonlinear, it considers rheonomic constraints (ex. ChLinkMotorRotationSpeed) 
     /// that can impose steady-state speeds&accelerations to the mechanism, ex. to generate centrifugal forces in turbine blades.
     /// This version uses a nonlinear static analysis solver with default parameters.
-    bool DoStaticNonlinearRheonomic(int nsteps = 10, bool verbose = false, std::shared_ptr<ChStaticNonLinearRheonomicAnalysis::IterationCallback> mcallback = nullptr);
+    bool DoStaticNonlinearRheonomic(int nsteps = 10, bool verbose = false, std::shared_ptr<ChStaticNonLinearRheonomicAnalysis::IterationCallback> callback = nullptr);
 
     /// Finds the position of static equilibrium (and the reactions) starting from the current position.
     /// Since a truncated iterative method is used, you may need to call this method multiple times in case of large

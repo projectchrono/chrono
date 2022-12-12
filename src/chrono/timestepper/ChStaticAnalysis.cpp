@@ -16,14 +16,16 @@
 
 namespace chrono {
 
-ChStaticAnalysis::ChStaticAnalysis(ChIntegrableIIorder& integrable) {
-    m_integrable = &integrable;
+ChStaticAnalysis::ChStaticAnalysis() : m_integrable(nullptr){};
+
+void ChStaticAnalysis::SetIntegrable(ChIntegrableIIorder* integrable) {
+    m_integrable = integrable;
     X.setZero(1, m_integrable);
-};
+}
 
 // -----------------------------------------------------------------------------
 
-ChStaticLinearAnalysis::ChStaticLinearAnalysis(ChIntegrableIIorder& integrable) : ChStaticAnalysis(integrable) {}
+ChStaticLinearAnalysis::ChStaticLinearAnalysis() : ChStaticAnalysis() {}
 
 void ChStaticLinearAnalysis::StaticAnalysis() {
     ChIntegrableIIorder* integrable = static_cast<ChIntegrableIIorder*>(m_integrable);
@@ -75,8 +77,8 @@ void ChStaticLinearAnalysis::StaticAnalysis() {
 
 // -----------------------------------------------------------------------------
 
-ChStaticNonLinearAnalysis::ChStaticNonLinearAnalysis(ChIntegrableIIorder& integrable)
-    : ChStaticAnalysis(integrable),
+ChStaticNonLinearAnalysis::ChStaticNonLinearAnalysis()
+    : ChStaticAnalysis(),
       m_maxiters(20),
       m_incremental_steps(6),
       m_use_correction_test(true),
@@ -230,8 +232,8 @@ void ChStaticNonLinearAnalysis::SetIncrementalSteps(int incr_steps) {
 
 // -----------------------------------------------------------------------------
 
-ChStaticNonLinearRheonomicAnalysis::ChStaticNonLinearRheonomicAnalysis(ChIntegrableIIorder& integrable)
-    : ChStaticAnalysis(integrable),
+ChStaticNonLinearRheonomicAnalysis::ChStaticNonLinearRheonomicAnalysis()
+    : ChStaticAnalysis(),
       m_maxiters(20),
       m_incremental_steps(6),
       m_use_correction_test(true),
@@ -577,8 +579,8 @@ void ChStaticNonLinearRheonomicAnalysis::SetIncrementalSteps(int incr_steps) {
 
 // -----------------------------------------------------------------------------
 
-ChStaticNonLinearIncremental::ChStaticNonLinearIncremental(ChIntegrableIIorder& integrable)
-    : ChStaticAnalysis(integrable),
+ChStaticNonLinearIncremental::ChStaticNonLinearIncremental()
+    : ChStaticAnalysis(),
       max_newton_iters(5),
       m_incremental_steps(6),
       m_use_correction_test(true),
