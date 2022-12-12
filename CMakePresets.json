@@ -27,7 +27,7 @@
 				"ENABLE_MODULE_OPENGL": "ON",
 				"ENABLE_MODULE_SYNCHRONO": "ON",
 				"ENABLE_MODULE_CSHARP": "ON",
-				"ENABLE_MODULE_COSIMULATION": "OFF"
+				"ENABLE_MODULE_COSIMULATION": "ON"
 			}
 		},
 		{
@@ -142,7 +142,7 @@
 			],
 			"cacheVariables": {
 				"ENABLE_MODULE_GPU": "ON",
-				"ENABLE_MODULE_MULTICORE": "OFF",
+				"ENABLE_MODULE_MULTICORE": "ON",
 				"ENABLE_MODULE_FSI": "ON",
 				"ENABLE_MODULE_SENSOR": "ON",
 				"NUMPY_INCLUDE_DIR": "C:/Users/builder/miniconda3/pkgs/numpy-base/Lib/site-packages/numpy/core/include/",
