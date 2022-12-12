@@ -77,7 +77,7 @@ DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
 
 SteeringTypeWV steering_type = SteeringTypeWV::PITMAN_ARM;
 
-// Type of tire model (RIGID, RIGID_MESH, TMEASY, PACEJKA, FIALA, PAC89, PAC02)
+// Type of tire model (RIGID, RIGID_MESH, TMEASY, FIALA, PAC89, PAC02)
 TireModelType tire_model = TireModelType::PAC02;
 
 // Rigid terrain

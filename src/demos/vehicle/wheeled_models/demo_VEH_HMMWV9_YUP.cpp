@@ -46,7 +46,7 @@ using namespace chrono::vehicle::hmmwv;
 ChVector<> initLoc(0, 1, 10);
 double initYaw = 0;
 
-// Type of tire model (RIGID, RIGID_MESH, TMEASY, PACEJKA, PAC89, FIALA)
+// Type of tire model (RIGID, RIGID_MESH, TMEASY, PAC89, PAC02, FIALA)
 TireModelType tire_model = TireModelType::TMEASY;
 
 // Simulation step sizes

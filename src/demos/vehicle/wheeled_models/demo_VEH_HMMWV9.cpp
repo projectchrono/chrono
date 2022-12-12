@@ -55,7 +55,7 @@ PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 // Type of driveline model
 DrivelineTypeWV driveline_model = DrivelineTypeWV::AWD;
 
-// Type of tire model (RIGID, RIGID_MESH, TMEASY, PACEJKA, PAC89, FIALA)
+// Type of tire model (RIGID, RIGID_MESH, TMEASY, PAC89, FIALA)
 TireModelType tire_model = TireModelType::PAC89;
 
 // Rigid terrain dimensions

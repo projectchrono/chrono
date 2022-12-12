@@ -1584,10 +1584,10 @@ bool ChSystem::DoStaticLinear() {
     // Prepare lists of variables and constraints.
     DescriptorPrepareInject(*descriptor);
 
-    ChStaticLinearAnalysis manalysis(*this);
-
     // Perform analysis
-    manalysis.StaticAnalysis();
+    ChStaticLinearAnalysis analysis;
+    analysis.SetIntegrable(this);
+    analysis.StaticAnalysis();
 
     SetSolverMaxIterations(old_maxsteps);
 
@@ -1641,12 +1641,12 @@ bool ChSystem::DoStaticNonlinear(int nsteps, bool verbose) {
     // Prepare lists of variables and constraints.
     DescriptorPrepareInject(*descriptor);
 
-    ChStaticNonLinearAnalysis manalysis(*this);
-    manalysis.SetMaxIterations(nsteps);
-    manalysis.SetVerbose(verbose);
-
     // Perform analysis
-    manalysis.StaticAnalysis();
+    ChStaticNonLinearAnalysis analysis;
+    analysis.SetIntegrable(this);
+    analysis.SetMaxIterations(nsteps);
+    analysis.SetVerbose(verbose);
+    analysis.StaticAnalysis();
 
     SetSolverMaxIterations(old_maxsteps);
 
@@ -1657,7 +1657,7 @@ bool ChSystem::DoStaticNonlinear(int nsteps, bool verbose) {
     return true;
 }
 
-bool ChSystem::DoStaticAnalysis(std::shared_ptr<ChStaticAnalysis> analysis) {
+bool ChSystem::DoStaticAnalysis(ChStaticAnalysis& analysis) {
     if (!is_initialized)
         SetupInitial();
 
@@ -1670,8 +1670,8 @@ bool ChSystem::DoStaticAnalysis(std::shared_ptr<ChStaticAnalysis> analysis) {
     Update();
 
     DescriptorPrepareInject(*descriptor);
-
-    analysis->StaticAnalysis();
+    analysis.SetIntegrable(this);
+    analysis.StaticAnalysis();
 
     // Update any attached visualization system
     if (visual_system)
@@ -1680,7 +1680,7 @@ bool ChSystem::DoStaticAnalysis(std::shared_ptr<ChStaticAnalysis> analysis) {
     return true;
 }
 
-bool ChSystem::DoStaticNonlinearRheonomic(int nsteps, bool verbose, std::shared_ptr<ChStaticNonLinearRheonomicAnalysis::IterationCallback> mcallback) {
+bool ChSystem::DoStaticNonlinearRheonomic(int nsteps, bool verbose, std::shared_ptr<ChStaticNonLinearRheonomicAnalysis::IterationCallback> callback) {
     if (!is_initialized)
         SetupInitial();
 
@@ -1698,13 +1698,13 @@ bool ChSystem::DoStaticNonlinearRheonomic(int nsteps, bool verbose, std::shared_
     // Prepare lists of variables and constraints.
     DescriptorPrepareInject(*descriptor);
 
-    ChStaticNonLinearRheonomicAnalysis manalysis(*this);
-    manalysis.SetMaxIterations(nsteps);
-    manalysis.SetVerbose(verbose);
-    manalysis.SetCallbackIterationBegin(mcallback);
-
     // Perform analysis
-    manalysis.StaticAnalysis();
+    ChStaticNonLinearRheonomicAnalysis analysis;
+    analysis.SetIntegrable(this);
+    analysis.SetMaxIterations(nsteps);
+    analysis.SetVerbose(verbose);
+    analysis.SetCallbackIterationBegin(callback);
+    analysis.StaticAnalysis();
 
     SetSolverMaxIterations(old_maxsteps);
 
