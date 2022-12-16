@@ -51,7 +51,7 @@ bool use_JSON = true;
 int main() {
     // Create wheel and tire subsystems
     auto wheel = chrono_types::make_shared<hmmwv::HMMWV_Wheel>("Wheel");
-
+    
     std::shared_ptr<ChTire> tire;
     if (tire_type == TireType::ANCF_TOROIDAL) {
         auto ancf_tire = chrono_types::make_shared<ANCFToroidalTire>("ANCFtoroidal tire");
@@ -150,7 +150,7 @@ int main() {
 
     // Create and configure test rig
     ChTireTestRig rig(wheel, tire, sys);
-
+    
     ////rig.SetGravitationalAcceleration(0);
     rig.SetNormalLoad(8000);
 
@@ -200,8 +200,12 @@ int main() {
     //    auto camera = vis->GetActiveCamera();
     //    camera->setFOV(irr::core::PI / 4.5f);
 
+    std::ofstream plot("../../../rigdata.txt");
     // Perform the simulation
+    double tmax = 10.0;
     while (vis->Run()) {
+        double t = sys->GetChTime();
+        if(t > tmax) break;
         auto& loc = rig.GetPos();
         /*
         auto x = (irr::f32)loc.x();
@@ -219,7 +223,17 @@ int main() {
         // tools::drawAllContactPoints(vis.get(), 1.0, ContactsDrawMode::CONTACT_NORMALS);
         rig.Advance(step_size);
         vis->EndScene();
-
+        
+        plot << t << "\t";
+        auto long_slip = tire->GetLongitudinalSlip();
+        plot << long_slip << "\t";
+        auto slip_angle = tire->GetSlipAngle();
+        plot << slip_angle << "\t";
+        auto camber_angle = tire->GetCamberAngle();
+        plot << camber_angle << "\t";
+        auto tforce = rig.ReportTireForce();
+        auto frc = tforce.force;
+        plot << frc.x() << "\t" << frc.y() << "\t" << frc.z() << std::endl;
         ////std::cout << sys.GetChTime() << std::endl;
         ////auto long_slip = tire->GetLongitudinalSlip();
         ////auto slip_angle = tire->GetSlipAngle();
@@ -233,6 +247,6 @@ int main() {
         ////std::cout << "   " << pnt.x() << " " << pnt.y() << " " << pnt.z() << std::endl;
         ////std::cout << "   " << trq.x() << " " << trq.y() << " " << trq.z() << std::endl;
     }
-
+    plot.close();
     return 0;
 }
