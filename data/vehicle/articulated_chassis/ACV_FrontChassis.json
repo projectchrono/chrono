@@ -1,0 +1,43 @@
+{
+    "Name": "ACV Front Chassis",
+    "Type": "Chassis",
+    "Template": "RigidChassis",
+
+    "Components": [
+        {
+            "Centroidal Frame": {
+                "Location": [ 0, 0, 0.4 ],
+                "Orientation": [ 1, 0, 0, 0 ]
+            },
+            "Mass": 2000,
+            "Moments of Inertia": [ 100.0, 400.0, 500.0 ],
+            "Products of Inertia": [ 0, 0, 0 ],
+            "Void": false
+        }
+    ],
+
+    "Driver Position": {
+        "Location": [ 0, 0.5, 1.2 ],
+        "Orientation": [ 1, 0, 0, 0 ]
+    },
+
+    "Rear Connector Location": [ -1.0, 0, 0.1 ],
+
+    "Visualization": {
+        "Primitives": [
+            {
+                "Type": "BOX",
+                "Location": [ -0.25, 0.0, 0.1 ],
+                "Orientation": [ 1, 0, 0, 0 ],
+                "Dimensions": [ 1.5, 1.0, 0.2 ]
+            },
+            {
+                "Type": "CYLINDER",
+                "Location": [ 0.5, 0.0, 0.0 ],
+                "Orientation": [ 1, 0, 0, 0 ],
+                "Radius": 0.05,
+                "Length": 2.0
+            }
+        ]
+    }
+}

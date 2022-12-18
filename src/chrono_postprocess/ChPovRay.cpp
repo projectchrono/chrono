@@ -654,11 +654,10 @@ void ChPovRay::ExportMaterials(ChStreamOutAsciiFile& assets_file,
             auto ext = rel_path.extension();
             if (ext == "jpg")
                 ext = "jpeg";
-            auto abs_path_no_ext = abs_path.substr(0, abs_path.size() - ext.size()); // strip .jpg etc. as if in "jpeg" mode, .jpg files give issues in POV
 
             assets_file << "texture { uv_mapping pigment { image_map {";
             assets_file << ext.c_str() << " ";
-            assets_file << "\"" << abs_path_no_ext << "\"";
+            assets_file << "\"" << abs_path.c_str() << "\"";
             assets_file << " }}}\n";
         }
 

@@ -1,0 +1,48 @@
+{
+    "Name": "ACV Vehicle",
+    "Type": "Vehicle",
+    "Template": "WheeledVehicle",
+
+    "Chassis": {
+        "Input File": "articulated_chassis/ACV_FrontChassis.json"
+    },
+
+    "Rear Chassis": [
+        {
+            "Input File": "articulated_chassis/ACV_RearChassis.json",
+            "Connector Input File": "articulated_chassis/ACV_Connector.json",
+            "Chassis Index": -1 // attached to main chassis
+        }
+    ],
+
+    "Axles": [
+        {
+            "Chassis Index": -1, // attached to main chassis
+            "Suspension Input File": "articulated_chassis/ACV_RigidSuspension.json",
+            "Suspension Location": [ 0.5, 0, 0 ],
+            "Left Wheel Input File": "articulated_chassis/ACV_Wheel.json",
+            "Right Wheel Input File": "articulated_chassis/ACV_Wheel.json",
+            "Left Brake Input File": "articulated_chassis/ACV_BrakeSimple.json",
+            "Right Brake Input File": "articulated_chassis/ACV_BrakeSimple.json"
+        },
+
+        {
+            "Chassis Index": 0, // attached to 1st rear chassis
+            "Suspension Input File": "articulated_chassis/ACV_RigidSuspension.json",
+            "Suspension Location": [ -0.5, 0, 0 ],
+            "Left Wheel Input File": "articulated_chassis/ACV_Wheel.json",
+            "Right Wheel Input File": "articulated_chassis/ACV_Wheel.json",
+            "Left Brake Input File": "articulated_chassis/ACV_BrakeSimple.json",
+            "Right Brake Input File": "articulated_chassis/ACV_BrakeSimple.json"
+        }
+    ],
+
+    "Wheelbase": 1.0,
+    "Minimum Turning Radius": 5.0,
+    "Maximum Steering Angle (deg)": 0,
+
+    "Driveline": {
+        "Input File": "articulated_chassis/ACV_Driveline2WD.json",
+        "Suspension Indexes": [ 0 ]
+    }
+}

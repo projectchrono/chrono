@@ -762,14 +762,14 @@ void drawSpring(ChVisualSystemIrrlicht* vis,
 // -----------------------------------------------------------------------------
 // Draw a rotational spring in 3D space, with given color.
 // -----------------------------------------------------------------------------
-ChApiIrr void drawRotSpring(ChVisualSystemIrrlicht* vis,
-                            ChCoordsys<> pos,
-                            double radius,
-                            double start_angle,
-                            double end_angle,
-                            chrono::ChColor col,
-                            int resolution,
-                            bool use_Zbuffer) {
+void drawRotSpring(ChVisualSystemIrrlicht* vis,
+                   ChCoordsys<> pos,
+                   double radius,
+                   double start_angle,
+                   double end_angle,
+                   chrono::ChColor col,
+                   int resolution,
+                   bool use_Zbuffer) {
     vis->GetVideoDriver()->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
     irr::video::SMaterial mattransp;
     mattransp.ZBuffer = false;

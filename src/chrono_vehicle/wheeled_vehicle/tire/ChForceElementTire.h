@@ -47,12 +47,6 @@ class CH_VEHICLE_API ChForceElementTire : public ChTire {
     /// Construct a tire with the specified name.
     ChForceElementTire(const std::string& name);
 
-    /// Return the tire mass.
-    virtual double GetTireMass() const = 0;
-
-    /// Return the tire moments of inertia (in the tire centroidal frame).
-    virtual ChVector<> GetTireInertia() const = 0;
-
     /// Return the vertical tire stiffness contribution to the normal force.
     virtual double GetNormalStiffnessForce(double depth) const = 0;
 

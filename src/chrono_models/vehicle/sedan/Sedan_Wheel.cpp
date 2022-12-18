@@ -31,7 +31,7 @@ namespace sedan {
 // -----------------------------------------------------------------------------
 
 const double Sedan_Wheel::m_mass = 13.2;
-const ChVector<> Sedan_Wheel::m_inertia(0.100, 0.100, 0.100);
+const ChVector<> Sedan_Wheel::m_inertia(0.24, 0.42, 0.24);
 
 const double Sedan_Wheel::m_radius = 0.2286;
 const double Sedan_Wheel::m_width = 0.205;

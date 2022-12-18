@@ -137,6 +137,14 @@ void ChDeformableTire::UpdateInertiaProperties() {
     m_xform = ChFrame<>(spindle->TransformPointLocalToParent(ChVector<>(0, GetOffset(), 0)), spindle->GetRot());
 }
 
+double ChDeformableTire::GetTireMass() const {
+    return m_mass;
+}
+
+ChVector<> ChDeformableTire::GetTireInertia() const {
+    return m_inertia.diagonal();
+}
+
 // -----------------------------------------------------------------------------
 TerrainForce ChDeformableTire::GetTireForce() const {
     TerrainForce tire_force;

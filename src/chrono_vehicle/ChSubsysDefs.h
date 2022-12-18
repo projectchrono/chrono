@@ -347,14 +347,13 @@ enum class VisualizationType {
 enum class TireModelType {
     RIGID,       ///< rigid tire (cylindrical)
     RIGID_MESH,  ///< rigid tire (mesh)
-    PACEJKA,     ///< Pacejka (magic formula) tire
     FIALA,       ///< Fiala tire
     ANCF,        ///< ANCF shell element-based tire
     REISSNER,    ///< Reissner 6-field shell element-based tire
     FEA,         ///< FEA co-rotational tire
     PAC89,       ///< Pacejka 89 (magic formula) tire
     TMEASY,      ///< Tire Model Made Easy tire (G. Rill)
-    PAC02        ///< Pacejka 02 (magic formula) tire, redesign of PACEJKA
+    PAC02        ///< Pacejka 02 (magic formula) tire
 };
 
 /// Enum for available powertrain model templates.

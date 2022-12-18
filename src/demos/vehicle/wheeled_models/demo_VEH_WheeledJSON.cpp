@@ -39,12 +39,13 @@ using namespace chrono::vehicle;
 // =============================================================================
 // Specification of a vehicle model from JSON files
 // Available models:
-//    HMMWV
-//    Sedan
-//    UAZ
-//    CityBus
-//    MAN
-//    MTV
+//    HMMWV   - Hig Mobility Multipurpose Wheeled Vehicle
+//    Sedan   - Generic sedan vehicle
+//    UAZ     - UAZ minibus
+//    CityBus - passenger bus
+//    MAN     - MAN 10t truck
+//    MTV     - MTV truck 
+//    ACV     - articulated chassis vehicle (skid steer)
 
 class Vehicle_Model {
   public:
@@ -53,6 +54,7 @@ class Vehicle_Model {
     virtual std::string TireJSON() const = 0;
     virtual std::string PowertrainJSON() const = 0;
     virtual double CameraDistance() const = 0;
+    virtual ChContactMethod ContactMethod() const = 0;
 };
 
 class HMMWV_Model : public Vehicle_Model {
@@ -76,6 +78,7 @@ class HMMWV_Model : public Vehicle_Model {
         ////return "hmmwv/powertrain/HMMWV_SimplePowertrain.json";
     }
     virtual double CameraDistance() const override { return 6.0; }
+    virtual ChContactMethod ContactMethod() const { return ChContactMethod::SMC; }
 };
 
 class Sedan_Model : public Vehicle_Model {
@@ -89,6 +92,7 @@ class Sedan_Model : public Vehicle_Model {
     }
     virtual std::string PowertrainJSON() const override { return "sedan/powertrain/Sedan_SimpleMapPowertrain.json"; }
     virtual double CameraDistance() const override { return 6.0; }
+    virtual ChContactMethod ContactMethod() const { return ChContactMethod::SMC; }
 };
 
 class UAZ_Model : public Vehicle_Model {
@@ -105,6 +109,7 @@ class UAZ_Model : public Vehicle_Model {
     }
     virtual std::string PowertrainJSON() const override { return "uaz/powertrain/UAZBUS_SimpleMapPowertrain.json"; }
     virtual double CameraDistance() const override { return 6.0; }
+    virtual ChContactMethod ContactMethod() const { return ChContactMethod::SMC; }
 };
 
 class VW_Microbus_Model : public Vehicle_Model {
@@ -119,6 +124,7 @@ class VW_Microbus_Model : public Vehicle_Model {
     }
     virtual std::string PowertrainJSON() const override { return "VW_microbus/json/van_SimpleMapPowertrain.json"; }
     virtual double CameraDistance() const override { return 7.0; }
+    virtual ChContactMethod ContactMethod() const { return ChContactMethod::SMC; }
 };
 
 class CityBus_Model : public Vehicle_Model {
@@ -134,6 +140,7 @@ class CityBus_Model : public Vehicle_Model {
         return "citybus/powertrain/CityBus_SimpleMapPowertrain.json";
     }
     virtual double CameraDistance() const override { return 14.0; }
+    virtual ChContactMethod ContactMethod() const { return ChContactMethod::SMC; }
 };
 
 class MAN_Model : public Vehicle_Model {
@@ -150,6 +157,7 @@ class MAN_Model : public Vehicle_Model {
         return "MAN_Kat1/powertrain/MAN_7t_SimpleCVTPowertrain.json";
     }
     virtual double CameraDistance() const override { return 12.0; }
+    virtual ChContactMethod ContactMethod() const { return ChContactMethod::SMC; }
 };
 
 class MTV_Model : public Vehicle_Model {
@@ -159,6 +167,17 @@ class MTV_Model : public Vehicle_Model {
     virtual std::string TireJSON() const override { return "mtv/tire/FMTV_TMeasyTire.json"; }
     virtual std::string PowertrainJSON() const override { return "mtv/powertrain/FMTV_ShaftsPowertrain.json"; }
     virtual double CameraDistance() const override { return 10.0; }
+    virtual ChContactMethod ContactMethod() const { return ChContactMethod::SMC; }
+};
+
+class ACV_Model : public Vehicle_Model {
+  public:
+    virtual std::string ModelName() const override { return "ACV"; }
+    virtual std::string VehicleJSON() const override { return "articulated_chassis/ACV_Vehicle.json"; }
+    virtual std::string TireJSON() const override { return "articulated_chassis/ACV_RigidTire.json"; }
+    virtual std::string PowertrainJSON() const override { return "articulated_chassis/ACV_SimplePowertrain.json"; }
+    virtual double CameraDistance() const override { return 6.0; }
+    virtual ChContactMethod ContactMethod() const { return ChContactMethod::NSC; }
 };
 
 // =============================================================================
@@ -193,6 +212,7 @@ auto vehicle_model = HMMWV_Model();
 ////auto vehicle_model = CityBus_Model();
 ////auto vehicle_model = MAN_Model();
 ////auto vehicle_model = MTV_Model();
+////auto vehicle_model = ACV_Model();
 
 // Trailer model selection (use only with HMMWV, Sedan, or UAZ)
 bool add_trailer = false;
@@ -221,11 +241,11 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create the vehicle system
-    WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_model.VehicleJSON()), ChContactMethod::SMC);
+    WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_model.VehicleJSON()), vehicle_model.ContactMethod());
     vehicle.Initialize(ChCoordsys<>(initLoc, Q_from_AngZ(initYaw)));
     vehicle.GetChassis()->SetFixed(false);
-    vehicle.SetChassisVisualizationType(VisualizationType::NONE);
-    vehicle.SetChassisRearVisualizationType(VisualizationType::NONE);
+    vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetChassisRearVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetWheelVisualizationType(VisualizationType::MESH);

@@ -51,6 +51,12 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
 
     virtual ~ChDeformableTire();
 
+    /// Return the tire mass.
+    virtual double GetTireMass() const override final;
+
+    /// Return the tire moments of inertia (in the tire centroidal frame).
+    virtual ChVector<> GetTireInertia() const override final;
+
     /// Set the type of contact surface.
     void SetContactSurfaceType(ContactSurfaceType type) { m_contact_type = type; }
     ContactSurfaceType GetContactSurfaceType() const { return m_contact_type; }

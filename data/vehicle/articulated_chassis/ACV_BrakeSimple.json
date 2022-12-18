@@ -1,0 +1,7 @@
+{
+    "Name": "ACV Brake",
+    "Type": "Brake",
+    "Template": "BrakeSimple",
+
+    "Maximum Torque": 4000
+}

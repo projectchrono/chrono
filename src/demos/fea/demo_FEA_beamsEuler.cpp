@@ -63,11 +63,10 @@ int main(int argc, char* argv[]) {
     // msection->SetSectionRotation(45*CH_C_RAD_TO_DEG);
 
     // These are for the external loads (define here to help using ChStaticNonLinearIncremental later)
-    ChVector<> F_node_1(9,  2, 0);
+    ChVector<> F_node_1(9, 2, 0);
     ChVector<> F_node_2(0, -2, 0);
     std::shared_ptr<ChNodeFEAxyzrot> loaded_node_1;
     std::shared_ptr<ChNodeFEAxyzrot> loaded_node_2;
-
 
     //
     // Add some EULER-BERNOULLI BEAMS:
@@ -138,35 +137,29 @@ int main(int argc, char* argv[]) {
                       ChVector<>(0.2, 0, -0.1),  // the 'B' point in space (end of beam)
                       ChVector<>(0, 1, 0));      // the 'Y' up direction of the section for the beam
 
-    // After having used BuildBeam(), you can retrieve the nodes used for the beam,
+    // After having used BuildBeam(), you can retrieve the nodes used for the beam.
     // For example say you want to fix the A end and apply a force to the B end:
     builder.GetLastBeamNodes().back()->SetFixed(true);
     loaded_node_2 = builder.GetLastBeamNodes().front();
     loaded_node_2->SetForce(F_node_2);
 
-    // Again, use BuildBeam for creating another beam, this time
-    // it uses one node (the last node created by the last beam) and one point:
+    // Again, use BuildBeam for creating another beam, this time it uses one node (the last node created by the last
+    // beam) and one point:
     builder.BuildBeam(my_mesh, msection, 5,
                       builder.GetLastBeamNodes().front(),  // the 'A' node in space (beginning of beam)
                       ChVector<>(0.2, 0.1, -0.1),          // the 'B' point in space (end of beam)
                       ChVector<>(0, 1, 0));                // the 'Y' up direction of the section for the beam
 
-    //
-    // Final touches..
-    //
-
-    // We do not want gravity effect on FEA elements in this demo
+    // No gravity effect on FEA elements in this demo
     my_mesh->SetAutomaticGravity(false);
 
     // Remember to add the mesh to the system!
     sys.Add(my_mesh);
 
     // Visualization of the FEM mesh.
-    // This will automatically update a triangle mesh (a ChTriangleMeshShape
-    // asset that is internally managed) by setting  proper
-    // coordinates and vertex colors as in the FEM elements.
-    // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
-    // postprocessor that can handle a colored ChTriangleMeshShape).
+    // This will automatically update a triangle mesh (a ChTriangleMeshShape asset that is internally managed) by
+    // setting  proper coordinates and vertex colors as in the FEM elements. Such a triangle mesh can be rendered by
+    // Irrlicht or POVray or whatever postprocessor that can handle a colored ChTriangleMeshShape).
 
     /*
     auto mvisualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
@@ -193,7 +186,7 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
     vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("Beams (SPACE for dynamics, F10 / F11 statics)");
+    vis->SetWindowTitle("Euler Beams");
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
@@ -213,19 +206,20 @@ int main(int argc, char* argv[]) {
 
     sys.SetSolverForceTolerance(1e-13);
 
-    // Change type of integrator:
-    ////auto stepper = chrono_types::make_shared<ChTimestepperHHT>();
-    ////sys.SetTimestepper(stepper);
-    ////stepper->SetAlpha(-0.2);
-    ////stepper->SetMaxiters(6);
-    ////stepper->SetAbsTolerances(1e-12);
-    ////stepper->SetVerbose(true);
-    ////stepper->SetStepControl(false);
+    // Change type of integrator
+    /*
+    auto stepper = chrono_types::make_shared<ChTimestepperHHT>();
+    sys.SetTimestepper(stepper);
+    stepper->SetAlpha(-0.2);
+    stepper->SetMaxiters(6);
+    stepper->SetAbsTolerances(1e-12);
+    stepper->SetVerbose(true);
+    stepper->SetStepControl(false);
+    */
 
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 
     GetLog() << "\n\n\n===========STATICS======== \n\n\n";
-
 
     if (false) {
         GetLog() << "BEAM RESULTS (LINEAR STATIC ANALYSIS) \n\n";
@@ -238,20 +232,20 @@ int main(int argc, char* argv[]) {
     if (true) {
         GetLog() << "BEAM RESULTS (NON-LINEAR STATIC INCREMENTAL ANALYSIS) \n\n";
 
-        // Instead of using sys.DoStaticNonLinear(), which is quite basic, we will
-        // use ChStaticNonLinearIncremental. 
+        // Instead of using sys.DoStaticNonLinear(), which is quite basic, we will use ChStaticNonLinearIncremental.
         // This requires a custom callback for incrementing the external loads:
-        
+
         class MyCallback : public ChStaticNonLinearIncremental::LoadIncrementCallback {
-            public:
-            /// Perform updates on the model. This is called before each load scaling. 
-            /// Here we will update all "external" relevan loads. 
-            virtual void OnLoadScaling(const double load_scaling, ///< ranging from 0 to 1
-                const int iteration_n,  ///< actual number of load step
-                ChStaticNonLinearIncremental* analysis     ///< back-pointer to this analysis
+          public:
+            // Perform updates on the model. This is called before each load scaling.
+            // Here we will update all "external" relevan loads.
+            virtual void OnLoadScaling(const double load_scaling,              // ranging from 0 to 1
+                                       const int iteration_n,                  // actual number of load step
+                                       ChStaticNonLinearIncremental* analysis  // back-pointer to this analysis
             ) {
-                // Here scale the external loads!!! In our example, just two forces. Note: if gravity is used,
-                // maybe you can consider scaling also gravity effect, ex: sys.Set_G_acc(load_scaling * ChVector<>(0,-9.8,0)).
+                // Scale the external loads. In our example, just two forces. 
+                // Note: if gravity is used, consider scaling also gravity effect, e.g: 
+                //    sys.Set_G_acc(load_scaling * ChVector<>(0,-9.8,0))
                 cb_loaded_node_1->SetForce(load_scaling * cb_F_node_1);
                 cb_loaded_node_2->SetForce(load_scaling * cb_F_node_2);
             }
@@ -270,41 +264,22 @@ int main(int argc, char* argv[]) {
         my_load_callback->cb_F_node_2 = F_node_2;
 
         // Create the nonlinear static analysis for incremental external loads.
-        auto static_analysis  = chrono_types::make_shared<ChStaticNonLinearIncremental>(sys);
-        static_analysis->SetLoadIncrementCallback(my_load_callback);
-        static_analysis->SetVerbose(true);
-        static_analysis->SetIncrementalSteps(8);     // outer loop. More steps helps the inner Newton loop that will need less iterations, but maybe slower.
-        static_analysis->SetMaxIterationsNewton(20); // inner loop (Newton iterations). In good situations should converge with 5-20 iterations.
-        static_analysis->SetAdaptiveNewtonON(1, 1.0);// check Newton monotonicity after 1 step, reduce stepsize if not met.
-        static_analysis->SetNewtonDamping(0.75);     // slower than default 1.0, but avoids the risk of using too much the adaptive Newton stepsize 
-        static_analysis->SetResidualTolerance(1e-7);
+        ChStaticNonLinearIncremental static_analysis;
+        static_analysis.SetLoadIncrementCallback(my_load_callback);
+        static_analysis.SetVerbose(true);
+        // outer loop. More steps helps the inner Newton loop that will need less iterations, but maybe slower.
+        static_analysis.SetIncrementalSteps(8);
+        // inner loop (Newton iterations). In good situations should converge with 5-20 iterations.
+        static_analysis.SetMaxIterationsNewton(20);
+        // check Newton monotonicity after 1 step, reduce stepsize if not met.
+        static_analysis.SetAdaptiveNewtonON(1, 1.0);
+        // slower than default 1.0, but avoids the risk of using too much the adaptive Newton stepsize
+        static_analysis.SetNewtonDamping(0.75);
+        static_analysis.SetResidualTolerance(1e-7);
+
         // Do the nonlinear statics.
         sys.DoStaticAnalysis(static_analysis);
-
     }
-
-    /*
-    //***TEST***
-    sys.Setup();
-    sys.Update();
-    ChMatrixDynamic<> myHa(12, 12);
-    ChMatrixDynamic<> myHn(12, 12);
-    auto myel = builder.GetLastBeamElements()[1];  //.back();
-    myel->SetUseGeometricStiffness(true);
-    myel->ComputeKRMmatricesGlobal(myHa, 1, 0, 0);
-    GetLog() << "K analytical = \n" << myHa;
-    //***TEST***
-    sys.SetNumThreads(1);
-    for (auto i : builder.GetLastBeamElements())
-        i->use_numerical_diff_for_KR = true;
-    myel->ComputeKRMmatricesGlobal(myHn, 1, 0, 0);
-    GetLog() << "K numerical = \n" << myHn;
-    GetLog() << "K diff = \n"
-             << ChMatrixDynamic<>(((myHn - myHa).array().abs()).array().cwiseQuotient(myHa.array().abs().array()));
-    system("pause");
-    */
-
-    
 
     ChVector<> F, M;
     ChVectorDynamic<> displ;

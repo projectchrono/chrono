@@ -31,7 +31,7 @@ namespace mrole {
 // -----------------------------------------------------------------------------
 
 const double mrole_Wheel::m_mass = 115.0;
-const ChVector<> mrole_Wheel::m_inertia(6.76, 11.15, 6.76);
+const ChVector<> mrole_Wheel::m_inertia(0.46, 0.65, 0.46);
 
 const double mrole_Wheel::m_radius = 0.3429;
 const double mrole_Wheel::m_width = 0.3408;
