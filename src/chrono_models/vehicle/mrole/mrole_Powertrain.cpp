@@ -104,6 +104,13 @@ void mrole_Powertrain::SetEngineLossesMap(std::shared_ptr<ChFunction_Recorder>& 
 
 // Torque Converter Allison TC-521
 void mrole_Powertrain::SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunction_Recorder>& map) {
+    map->AddPoint(0.0, 15);
+    map->AddPoint(0.25, 15);
+    map->AddPoint(0.50, 15);
+    map->AddPoint(0.75, 16);
+    map->AddPoint(0.90, 18);
+    map->AddPoint(1.00, 35);
+    /*
     map->AddPoint(0.000000, 3.224532);
     map->AddPoint(0.100000, 3.231949);
     map->AddPoint(0.200000, 3.246434);
@@ -117,12 +124,20 @@ void mrole_Powertrain::SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFun
     map->AddPoint(0.900000, 4.297625);
     map->AddPoint(0.950000, 5.244312);
     map->AddPoint(1.000000, 13.488155);
+    */
 }
 
 void mrole_Powertrain::SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunction_Recorder>& map) {
+    map->AddPoint(0.0, 2.00);
+    map->AddPoint(0.25, 1.80);
+    map->AddPoint(0.50, 1.50);
+    map->AddPoint(0.75, 1.15);
+    map->AddPoint(1.00, 1.00);
+    /*
     map->AddPoint(0.0, 1.88);
     map->AddPoint(0.85, 1.00);
     map->AddPoint(1.00, 1.00);
+    */
 }
 
 }  // namespace mrole

@@ -32,7 +32,7 @@ namespace kraz {
 // -----------------------------------------------------------------------------
 
 const double Kraz_trailer_Wheel::m_mass = 30.0;
-const ChVector<> Kraz_trailer_Wheel::m_inertia(.6, .63, .6);
+const ChVector<> Kraz_trailer_Wheel::m_inertia(0.6, 0.63, 0.6);
 
 const double Kraz_trailer_Wheel::m_radius = 0.28575;
 const double Kraz_trailer_Wheel::m_width = 0.29845;

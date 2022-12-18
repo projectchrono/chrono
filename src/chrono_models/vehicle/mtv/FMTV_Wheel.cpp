@@ -29,7 +29,7 @@ namespace fmtv {
 // -----------------------------------------------------------------------------
 
 const double FMTV_Wheel::m_mass = 30.0;
-const ChVector<> FMTV_Wheel::m_inertia(.6, .63, .6);
+const ChVector<> FMTV_Wheel::m_inertia(0.6, 0.63, 0.6);
 
 const double FMTV_Wheel::m_radius = 0.254;
 const double FMTV_Wheel::m_width = 0.254;
