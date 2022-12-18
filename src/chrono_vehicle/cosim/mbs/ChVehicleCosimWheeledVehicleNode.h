@@ -118,7 +118,9 @@ class CH_VEHICLE_API ChVehicleCosimWheeledVehicleNode : public ChVehicleCosimWhe
         virtual std::string GetTemplateName() const override { return "dummy_tire"; }
         virtual double GetRadius() const override { return m_radius; }
         virtual double GetWidth() const override { return m_width; }
+        virtual double GetTireMass() const override { return m_mass; }
         virtual double GetAddedMass() const override { return m_mass; }
+        virtual ChVector<> GetTireInertia() const override { return ChVector<>(0.1, 0.1, 0.1); }
         virtual ChVector<> GetAddedInertia() const override { return ChVector<>(0.1, 0.1, 0.1); }
         virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override { return m_force; }
         virtual TerrainForce GetTireForce() const override { return m_force; }
