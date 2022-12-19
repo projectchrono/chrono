@@ -96,6 +96,9 @@ void ChFsiInterface::Copy_FsiNodes_ChSystem_to_FsiSystem(std::shared_ptr<FsiMesh
 }
 
 void ChFsiInterface::ResizeChronoCablesData(const std::vector<std::vector<int>>& CableElementsNodesSTDVector) {
+    if (CableElementsNodesSTDVector.empty())
+        return;
+
     size_t numCables = 0;
     for (size_t i = 0; i < m_fsi_mesh->GetNelements(); i++) {
         if (std::dynamic_pointer_cast<fea::ChElementCableANCF>(m_fsi_mesh->GetElement((unsigned int)i)))
@@ -125,6 +128,9 @@ void ChFsiInterface::ResizeChronoCablesData(const std::vector<std::vector<int>>&
 }
  
 void ChFsiInterface::ResizeChronoShellsData(const std::vector<std::vector<int>>& ShellElementsNodesSTDVector) {
+    if (ShellElementsNodesSTDVector.empty())
+        return;
+
     size_t numShells = 0;
     for (unsigned int i = 0; i < m_fsi_mesh->GetNelements(); i++) {
         if (std::dynamic_pointer_cast<fea::ChElementShellANCF_3423>(m_fsi_mesh->GetElement(i)))
