@@ -201,9 +201,6 @@ int main(int argc, char* argv[]) {
     /// [Example 3]
     /* End example */
 
-    // --Optional: attach additional custom POV commands to some of the rigid bodies.
-    pov_exporter.SetCustomCommands(floor, "pigment { checker rgb<0.9,0.9,0.9>, rgb<0.75,0.8,0.8> }");
-
     // Export all existing visual shapes to POV-Ray
     pov_exporter.AddAll();
 

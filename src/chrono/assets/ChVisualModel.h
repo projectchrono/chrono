@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Radu Serban
+// Authors: Radu Serban
 // =============================================================================
 
 #ifndef CH_VISUAL_MODEL_H
@@ -53,6 +53,9 @@ class ChApi ChVisualModel {
 
     /// Get the specified visual shape in the model.
     std::shared_ptr<ChVisualShape> GetShape(unsigned int i) const { return m_shapes[i].first; }
+
+    /// Get the number of visual shapes in the model.
+    int GetNumShapesFEA() const { return (int)m_shapesFEA.size(); }
 
     /// Get the FEA visualization shapes in the model.
     const std::vector<std::shared_ptr<ChVisualShapeFEA>>& GetShapesFEA() const { return m_shapesFEA; }

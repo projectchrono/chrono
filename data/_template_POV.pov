@@ -7,6 +7,7 @@
 // doing, because _template_POV.pov is used by default to build POV scenes by the postprocessing
 // unit of Chrono::Engine
 
+#version 3.7;
 
 #include "debug.inc"
 #include "colors.inc" 

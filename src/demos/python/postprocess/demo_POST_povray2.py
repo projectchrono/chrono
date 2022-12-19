@@ -97,8 +97,6 @@ my_system.Add(body_floor)
 
 
 # Create boxes that fall
-# This is just for fun.
-
 for ix in range(0,2):
     for iz in range(0,4):
         body_brick = chrono.ChBody()
@@ -136,7 +134,7 @@ pov_exporter.SetTemplateFile  (chrono.GetChronoDataFile("_template_POV.pov"))
 
 # Set the path where it will save all .pov, .ini, .asset and .dat files,
 # this directory will be created if not existing. For example:
-pov_exporter.SetBasePath("povray_pychrono_generated")
+pov_exporter.SetBasePath("povray2")
 
 
 # Some  settings for the POV rendering:

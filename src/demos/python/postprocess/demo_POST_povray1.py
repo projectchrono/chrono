@@ -54,7 +54,7 @@ pov_exporter.SetTemplateFile(chrono.GetChronoDataFile("_template_POV.pov"))
 
 # Set the path where it will save all .pov, .ini, .asset and .dat files,
 # this directory will be created if not existing. For example:
-pov_exporter.SetBasePath("povray_pychrono_generated")
+pov_exporter.SetBasePath("povray1")
 
 
 
