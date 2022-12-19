@@ -3,6 +3,7 @@
 # List of demos with no additional dependencies 
 set(POST_DEMOS
 	demo_POST_povray
+    demo_POST_povray2
 	demo_POST_gnuplot
 	demo_POST_timestepping
 	)
