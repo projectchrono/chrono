@@ -46,11 +46,11 @@ int main(int argc, char* argv[]) {
     ChPovRay pov_exporter = ChPovRay(&sys);
 
     // Important: set the path to the template:
-    pov_exporter.SetTemplateFile(GetChronoDataFile("_template_POV.pov"));
+    pov_exporter.SetTemplateFile(GetChronoDataFile("POVRay_chrono_template.pov"));
 
     // Set the path where it will save all .pov, .ini, .asset and .dat files, a directory will be created if not
     // existing
-    pov_exporter.SetBasePath(GetChronoOutputPath() + "DEMO_POVRAY");
+    pov_exporter.SetBasePath(GetChronoOutputPath() + "POVRAY_1");
 
     // Optional: change the default naming of the generated files:
     // pov_exporter.SetOutputScriptFile("rendering_frames.pov");

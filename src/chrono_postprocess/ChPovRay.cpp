@@ -38,7 +38,7 @@ ChPovRay::ChPovRay(ChSystem* system) : ChPostProcessBase(system) {
     pic_path = "anim";
     out_path = "output";
     pic_filename = "picture";
-    template_filename = GetChronoDataFile("_template_POV.pov");
+    template_filename = GetChronoDataFile("POVRay_chrono_template.pov");
     out_script_filename = "render_frames.pov";
     out_data_filename = "state";
     framenumber = 0;

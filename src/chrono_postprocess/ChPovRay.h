@@ -80,7 +80,7 @@ class ChApiPostProcess ChPovRay : public ChPostProcessBase {
     void SetBasePath(const std::string& mpath) { base_path = mpath; }
 
     /// Set the filename of the template for the script generation.
-    /// If not set, it defaults to "_template_POV.pov" in the default Chrono data directory.
+    /// If not set, it uses the default template in the Chrono data directory.
     void SetTemplateFile(const std::string& filename) { template_filename = filename; }
 
     /// Set the filename of the output POV-Ray script.

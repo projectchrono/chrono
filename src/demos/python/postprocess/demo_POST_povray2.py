@@ -130,7 +130,7 @@ pov_exporter = postprocess.ChPovRay(my_system)
 
 # Important: set where the template is (this path depends to where you execute this script,
 # ex.here we assume you run it from src/demo/python/postprocess/ )
-pov_exporter.SetTemplateFile  (chrono.GetChronoDataFile("_template_POV.pov"))
+pov_exporter.SetTemplateFile  (chrono.GetChronoDataFile("POVRay_chrono_template.pov"))
 
 # Set the path where it will save all .pov, .ini, .asset and .dat files,
 # this directory will be created if not existing. For example:

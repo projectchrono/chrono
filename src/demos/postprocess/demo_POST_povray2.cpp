@@ -100,8 +100,8 @@ int main(int argc, char* argv[]) {
 
     // Create an exporter to POVray
     ChPovRay pov_exporter = ChPovRay(&sys);
-    pov_exporter.SetTemplateFile(GetChronoDataFile("_template_POV.pov"));
-    pov_exporter.SetBasePath(GetChronoOutputPath() + "DEMO_POVRAY_2");
+    pov_exporter.SetTemplateFile(GetChronoDataFile("POVRay_chrono_template.pov"));
+    pov_exporter.SetBasePath(GetChronoOutputPath() + "POVRAY_2");
 
     pov_exporter.SetCamera(ChVector<>(0.2, 0.3, 0.5), ChVector<>(0, 0, 0), 35);
     pov_exporter.SetLight(ChVector<>(-2, 2, -1), ChColor(1.0f, 1.0f, 1.0f), true);
