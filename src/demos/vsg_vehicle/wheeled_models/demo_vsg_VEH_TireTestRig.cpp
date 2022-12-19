@@ -37,21 +37,26 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFToroidalTire.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChTireTestRig.h"
 
+#ifdef CHRONO_POSTPROCESS
+    #include "chrono_postprocess/ChGnuPlot.h"
+#endif
+
 #include "demos/vehicle/SetChronoSolver.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
 using namespace chrono::vsg3d;
 
-enum class TireType { RIGID, TMEASY, FIALA, PAC89, PAC02, LUGRE, ANCF4, ANCF8, ANCF_TOROIDAL, REISSNER };
+enum class TireType { RIGID, TMEASY, FIALA, PAC89, PAC02, ANCF4, ANCF8, ANCF_TOROIDAL, REISSNER };
 TireType tire_type = TireType::TMEASY;
 
 bool use_JSON = true;
 
 int main() {
+
     // Create wheel and tire subsystems
     auto wheel = chrono_types::make_shared<hmmwv::HMMWV_Wheel>("Wheel");
-    
+
     std::shared_ptr<ChTire> tire;
     if (tire_type == TireType::ANCF_TOROIDAL) {
         auto ancf_tire = chrono_types::make_shared<ANCFToroidalTire>("ANCFtoroidal tire");
@@ -80,9 +85,6 @@ int main() {
                 break;
             case TireType::PAC02:
                 tire_file = "hmmwv/tire/HMMWV_Pac02Tire.json";
-                break;
-            case TireType::LUGRE:
-                tire_file = "hmmwv/tire/HMMWV_LugreTire.json";
                 break;
             case TireType::ANCF4:
                 tire_file = "hmmwv/tire/HMMWV_ANCF4Tire_Lumped.json";
@@ -150,7 +152,7 @@ int main() {
 
     // Create and configure test rig
     ChTireTestRig rig(wheel, tire, sys);
-    
+
     ////rig.SetGravitationalAcceleration(0);
     rig.SetNormalLoad(8000);
 
@@ -180,60 +182,63 @@ int main() {
     ////rig.Initialize();
 
     // Scenario: prescribe all motion functions
-    ////rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunction_Const>(0.2));
-    ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunction_Const>(10.0));
-    ////rig.SetSlipAngleFunction(chrono_types::make_shared<ChFunction_Sine>(0, 0.6, 0.2));
-    ////rig.Initialize();
+    //   longitudinal speed: 0.2 m/s
+    //   angular speed: 20 RPM
+    //   slip angle: sinusoidal +- 5 deg with 5 s period
+    rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunction_Const>(0.2));
+    rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunction_Const>(20 * CH_C_RPM_TO_RPS));
+    rig.SetSlipAngleFunction(chrono_types::make_shared<ChFunction_Sine>(0, 0.2, 5 * CH_C_DEG_TO_RAD));
+    rig.Initialize();
 
     // Scenario: specified longitudinal slip
-    rig.Initialize(0.2, 1.0);
+    ////rig.Initialize(0.2, 0.1);
 
     // Create the Irrlicht visualization sys
     auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
     vis->AttachSystem(sys);
-    vis->SetCameraVertical(chrono::vsg3d::CameraVerticalDir::Z);
+    //vis->SetCameraVertical(CameraVerticalDir::Z);
     vis->SetWindowSize(800, 600);
     vis->SetWindowTitle("Tire Test Rig");
-    vis->AddCamera(ChVector<>(1.0, 2.5, 1.5),ChVector<>(0.0, 0.25, 0.0));
+    vis->AddCamera(ChVector<>(1.0f, 2.5f, 1.5f));
     vis->Initialize();
 
-    //    auto camera = vis->GetActiveCamera();
-    //    camera->setFOV(irr::core::PI / 4.5f);
-
-    std::ofstream plot("../../../rigdata.txt");
     // Perform the simulation
+    ChFunction_Recorder long_slip;
+    ChFunction_Recorder slip_angle;
+    ChFunction_Recorder camber_angle;
+    ChFunction_Recorder long_force;
+    ChFunction_Recorder side_force;
+    ChFunction_Recorder vert_force;
+
+    double time = 0;
     double tmax = 10.0;
+    size_t frame_num = 0;
     while (vis->Run()) {
-        double t = sys->GetChTime();
-        if(t > tmax) break;
-        auto& loc = rig.GetPos();
-        /*
-        auto x = (irr::f32)loc.x();
-        auto y = (irr::f32)loc.y();
-        auto z = (irr::f32)loc.z();
-        camera->setPosition(irr::core::vector3df(x + 1.0f, y + 2.5f, z + 1.5f));
-        camera->setTarget(irr::core::vector3df(x, y + 0.25f, z));
-        */
-        ChVector<> eye(loc.x() + 1.0, loc.y() + 2.5, loc.z() + 1.5);
-        ChVector<> target(loc.x(), loc.y() + 0.25, loc.z());
-        vis->UpdateCamera(eye, target);
+        time = sys->GetChTime();
+        if(time > tmax) break;
+        if (time > 0.5) {
+            long_slip.AddPoint(time, tire->GetLongitudinalSlip());
+            slip_angle.AddPoint(time, tire->GetSlipAngle() * CH_C_RAD_TO_DEG);
+            camber_angle.AddPoint(time, tire->GetCamberAngle() * CH_C_RAD_TO_DEG);
+            auto tforce = rig.ReportTireForce();
+            long_force.AddPoint(time, tforce.force.x());
+            side_force.AddPoint(time, tforce.force.y());
+            vert_force.AddPoint(time, tforce.force.z());
+        }
+
+        auto x = rig.GetPos().x();
+        auto y = rig.GetPos().y();
+        auto z = rig.GetPos().z();
+        auto eye = ChVector<>(x + 1.0f, y + 2.5f, z + 1.5f);
+        auto center = ChVector<>(x, y + 0.25f, z);
+        vis->UpdateCamera(eye,center);
 
         vis->BeginScene();
-        vis->Render();
-        // tools::drawAllContactPoints(vis.get(), 1.0, ContactsDrawMode::CONTACT_NORMALS);
+        if(frame_num % 2 == 0) vis->Render();
+        //tools::drawAllContactPoints(vis.get(), 1.0, ContactsDrawMode::CONTACT_NORMALS);
         rig.Advance(step_size);
         vis->EndScene();
-        
-        plot << t << "\t";
-        auto long_slip = tire->GetLongitudinalSlip();
-        plot << long_slip << "\t";
-        auto slip_angle = tire->GetSlipAngle();
-        plot << slip_angle << "\t";
-        auto camber_angle = tire->GetCamberAngle();
-        plot << camber_angle << "\t";
-        auto tforce = rig.ReportTireForce();
-        auto frc = tforce.force;
-        plot << frc.x() << "\t" << frc.y() << "\t" << frc.z() << std::endl;
+
         ////std::cout << sys.GetChTime() << std::endl;
         ////auto long_slip = tire->GetLongitudinalSlip();
         ////auto slip_angle = tire->GetSlipAngle();
@@ -246,7 +251,47 @@ int main() {
         ////std::cout << "   " << frc.x() << " " << frc.y() << " " << frc.z() << std::endl;
         ////std::cout << "   " << pnt.x() << " " << pnt.y() << " " << pnt.z() << std::endl;
         ////std::cout << "   " << trq.x() << " " << trq.y() << " " << trq.z() << std::endl;
+        frame_num++;
     }
-    plot.close();
+
+#ifdef CHRONO_POSTPROCESS
+    postprocess::ChGnuPlot gplot_long_slip("tmp1.gpl");
+    gplot_long_slip.SetGrid();
+    gplot_long_slip.SetLabelX("time (s)");
+    gplot_long_slip.SetLabelY("Long. slip ()");
+    gplot_long_slip.Plot(long_slip, "", " with lines lt -1 lc rgb'#00AAEE' ");
+
+    postprocess::ChGnuPlot gplot_slip_angle("tmp2.gpl");
+    gplot_slip_angle.SetGrid();
+    gplot_slip_angle.SetLabelX("time (s)");
+    gplot_slip_angle.SetLabelY("Slip angle (deg)");
+    gplot_slip_angle.Plot(slip_angle, "", " with lines lt -1 lc rgb'#00AAEE' ");
+
+    postprocess::ChGnuPlot gplot_camber_angle("tmp3.gpl");
+    gplot_camber_angle.SetGrid();
+    gplot_camber_angle.SetLabelX("time (s)");
+    gplot_camber_angle.SetLabelY("Camber angle (deg)");
+    gplot_camber_angle.Plot(camber_angle, "", " with lines lt -1 lc rgb'#00AAEE' ");
+
+    postprocess::ChGnuPlot gplot_long_force("tmp4.gpl");
+    gplot_long_force.SetGrid();
+    gplot_long_force.SetLabelX("time (s)");
+    gplot_long_force.SetLabelY("Longitudinal force (N)");
+    gplot_long_force.Plot(long_force, "", " with lines lt -1 lc rgb'#00AAEE' ");
+
+    postprocess::ChGnuPlot gplot_side_force("tmp5.gpl");
+    gplot_side_force.SetGrid();
+    gplot_side_force.SetLabelX("time (s)");
+    gplot_side_force.SetLabelY("Side force (N)");
+    gplot_side_force.Plot(side_force, "", " with lines lt -1 lc rgb'#00AAEE' ");
+
+    postprocess::ChGnuPlot gplot_vert_force("tmp6.gpl");
+    gplot_vert_force.SetGrid();
+    gplot_vert_force.SetLabelX("time (s)");
+    gplot_vert_force.SetLabelY("Vertical force (N)");
+    gplot_vert_force.Plot(vert_force, "", " with lines lt -1 lc rgb'#00AAEE' ");
+#endif
+
     return 0;
 }
+
