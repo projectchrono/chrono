@@ -99,8 +99,6 @@ set(CH_GPU_INCLUDES "${CH_GPU_INCLUDES}" PARENT_SCOPE)
 set(ChronoEngine_GPU_BASE
     ChApiGpu.h
     ChGpuDefines.h
-    ChGpuData.h
-    ChGpuData.cpp
     )
 
 source_group("" FILES ${ChronoEngine_GPU_BASE})

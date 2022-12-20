@@ -32,6 +32,6 @@
     "psi_T": 32,
     "psi_L": 16,
 
-    "output_dir": "mixer_output",
+    "output_dir": "mixer",
     "write_mode": "csv"
 }

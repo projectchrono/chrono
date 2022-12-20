@@ -23,7 +23,6 @@
 #include "unit_testing.h"
 
 #include "chrono/core/ChGlobal.h"
-#include "chrono_gpu/ChGpuData.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
 
 using namespace chrono;

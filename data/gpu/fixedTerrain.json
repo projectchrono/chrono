@@ -42,6 +42,6 @@
 
     "psi_T": 32,
     "psi_L": 16,
-    "output_dir": "terrain",
+    "output_dir": "fixedTerrain",
     "write_mode": "csv"
 }

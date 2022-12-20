@@ -26,6 +26,6 @@
 	"psi_T": 32,
 	"psi_L": 16,
 
-	"output_dir": "moving_boundary",
+	"output_dir": "movingBoundary",
 	"write_mode": "csv"
 }

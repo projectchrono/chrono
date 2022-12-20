@@ -23,7 +23,6 @@
 #include "chrono/core/ChGlobal.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 
-#include "chrono_gpu/ChGpuData.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
 
@@ -32,36 +31,21 @@
 using namespace chrono;
 using namespace chrono::gpu;
 
-// expected number of args for param sweep
-constexpr int num_args_full = 6;
-
-// -----------------------------------------------------------------------------
-// Show command line usage
-// -----------------------------------------------------------------------------
-void ShowUsage(std::string name) {
-    std::cout << "usage: " + name + " <json_file> [<radius> <run_mode> <box_width> <output_dir>]" << std::endl;
-    std::cout << "must have either 1 or " << num_args_full - 1 << " arguments" << std::endl;
-}
-
 enum run_mode { FRICTIONLESS = 0, ONE_STEP = 1, MULTI_STEP = 2 };
 
 int main(int argc, char* argv[]) {
-    ChGpuSimulationParameters params;
-
-    // Some of the default values are overwritten by user via command line
-    if (argc < 2 || (argc > 2 && argc != num_args_full) || ParseJSON(gpu::GetDataFile(argv[1]), params) == false) {
-        ShowUsage(argv[0]);
+    std::string inputJson = GetChronoDataFile("gpu/soilBin.json");
+    if (argc == 2) {
+        inputJson = std::string(argv[1]);
+    } else if (argc > 2) {
+        std::cout << "Usage:\n./demo_GPU_soilBin <json_file>" << std::endl;
         return 1;
     }
 
-    if (argc == num_args_full) {
-        params.sphere_radius = std::stof(argv[2]);
-        params.run_mode = std::atoi(argv[3]);
-        params.box_Y = std::stof(argv[4]);
-        params.box_X = params.box_Y;
-        params.output_dir = std::string(argv[5]);
-        printf("new parameters: r is %f, run_mode is %d, width is %f, %s\n", params.sphere_radius, params.run_mode,
-               params.box_Y, params.output_dir.c_str());
+    ChGpuSimulationParameters params;
+    if (!ParseJSON(inputJson, params)) {
+        std ::cout << "ERROR: reading input file " << inputJson << std::endl;
+        return 1;
     }
 
     // Setup simulation

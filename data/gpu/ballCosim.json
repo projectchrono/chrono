@@ -41,6 +41,6 @@
     "psi_T": 32,
     "psi_L": 16,
     
-    "output_dir": "ballcosim",
+    "output_dir": "ballCosim",
     "write_mode": "csv"
 }

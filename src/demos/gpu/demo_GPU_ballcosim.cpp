@@ -31,7 +31,6 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/assets/ChSphereShape.h"
 
-#include "chrono_gpu/ChGpuData.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
 #include "chrono_gpu/utils/ChGpuVisualization.h"
@@ -143,11 +142,11 @@ void runBallDrop(ChSystemGpuMesh& gpu_sys, ChGpuSimulationParameters& params) {
 }
 
 int main(int argc, char* argv[]) {
-    std::string inputJson = GetChronoDataFile("gpu/demo_GPU_ballcosim.json");
+    std::string inputJson = GetChronoDataFile("gpu/ballCosim.json");
     if (argc == 2) {
         inputJson = std::string(argv[1]);
     } else if (argc > 2) {
-        std::cout << "Usage:\n./demo_GPU_ballcosim <json_file>" << std::endl;
+        std::cout << "Usage:\n./demo_GPU_ballCosim <json_file>" << std::endl;
         return 1;
     }
 
