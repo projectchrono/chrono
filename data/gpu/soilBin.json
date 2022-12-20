@@ -35,5 +35,5 @@
 
     "output_dir": "soilBin",
     "write_mode": "csv",
-    "run_mode": 1
+    "run_mode": "one_step"
 }

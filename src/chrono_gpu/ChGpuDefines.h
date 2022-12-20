@@ -47,6 +47,10 @@ enum class CHGPU_FRICTION_MODE { FRICTIONLESS, SINGLE_STEP, MULTI_STEP };
 /// Rolling resistance models -- ELASTIC_PLASTIC not implemented yet.
 enum class CHGPU_ROLLING_MODE { NO_RESISTANCE, SCHWARTZ, ELASTIC_PLASTIC };
 
+/// Simulation mode.
+enum CHGPU_RUN_MODE { FRICTIONLESS = 0, ONE_STEP = 1, MULTI_STEP = 2 };
+
+/// Output flags.
 enum CHGPU_OUTPUT_FLAGS { ABSV = 1, VEL_COMPONENTS = 2, FIXITY = 4, ANG_VEL_COMPONENTS = 8, FORCE_COMPONENTS = 16 };
 
 #define GET_OUTPUT_SETTING(setting) (this->output_flags & setting)

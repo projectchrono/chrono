@@ -31,8 +31,6 @@
 using namespace chrono;
 using namespace chrono::gpu;
 
-enum run_mode { FRICTIONLESS = 0, ONE_STEP = 1, MULTI_STEP = 2 };
-
 int main(int argc, char* argv[]) {
     std::string inputJson = GetChronoDataFile("gpu/soilBin.json");
     if (argc == 2) {
@@ -92,21 +90,21 @@ int main(int argc, char* argv[]) {
     std::cout << "Added " << body_points.size() << std::endl;
 
     switch (params.run_mode) {
-        case run_mode::MULTI_STEP:
+        case CHGPU_RUN_MODE::MULTI_STEP:
             gpu_sys.SetFrictionMode(CHGPU_FRICTION_MODE::MULTI_STEP);
             gpu_sys.SetKt_SPH2SPH(params.tangentStiffS2S);
             gpu_sys.SetKt_SPH2WALL(params.tangentStiffS2W);
             gpu_sys.SetGt_SPH2SPH(params.tangentDampS2S);
             gpu_sys.SetGt_SPH2WALL(params.tangentDampS2W);
             break;
-        case run_mode::ONE_STEP:
+        case CHGPU_RUN_MODE::ONE_STEP:
             gpu_sys.SetFrictionMode(CHGPU_FRICTION_MODE::SINGLE_STEP);
             gpu_sys.SetKt_SPH2SPH(params.tangentStiffS2S);
             gpu_sys.SetKt_SPH2WALL(params.tangentStiffS2W);
             gpu_sys.SetGt_SPH2SPH(params.tangentDampS2S);
             gpu_sys.SetGt_SPH2WALL(params.tangentDampS2W);
             break;
-        case run_mode::FRICTIONLESS:
+        case CHGPU_RUN_MODE::FRICTIONLESS:
             gpu_sys.SetFrictionMode(CHGPU_FRICTION_MODE::FRICTIONLESS);
             break;
         default:
