@@ -27,7 +27,6 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "chrono_gpu/ChGpuData.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
 #include "chrono_gpu/utils/ChGpuSphereDecomp.h"
@@ -36,11 +35,11 @@ using namespace chrono;
 using namespace chrono::gpu;
 
 int main(int argc, char* argv[]) {
-    std::string inputJson = GetChronoDataFile("gpu/demo_GPU_fixedterrain.json");
+    std::string inputJson = GetChronoDataFile("gpu/fixedTerrain.json");
     if (argc == 2) {
         inputJson = std::string(argv[1]);
     } else if (argc > 2) {
-        std::cout << "Usage:\n./demo_GPU_fixedterrain <json_file>" << std::endl;
+        std::cout << "Usage:\n./demo_GPU_fixedTerrain <json_file>" << std::endl;
         return 1;
     }
 

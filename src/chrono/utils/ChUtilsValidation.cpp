@@ -317,14 +317,10 @@ bool Validate(const std::string& sim_filename,
 // function returns true if the norms of all column differences are below the
 // given tolerance and false otherwise.
 // -----------------------------------------------------------------------------
-ChApi bool Validate(const Data& sim_data,
-                    const Data& ref_data,
-                    ChNormType norm_type,
-                    double tolerance,
-                    DataVector& norms) {
-    ChValidation validator;
+bool Validate(const Data& sim_data, const Data& ref_data, ChNormType norm_type, double tolerance, DataVector& norms) {
+  ChValidation validator;
 
-    if (!validator.Process(sim_data, ref_data))
+  if (!validator.Process(sim_data, ref_data))
         return false;
 
     size_t num_cols = validator.GetNumColumns() - 1;
@@ -390,7 +386,7 @@ bool Validate(const std::string& sim_filename,
 // function returns true if the norms of all columns, excluding the first one,
 // are below the given tolerance and false otherwise.
 // -----------------------------------------------------------------------------
-ChApi bool Validate(const Data& sim_data, ChNormType norm_type, double tolerance, DataVector& norms) {
+bool Validate(const Data& sim_data, ChNormType norm_type, double tolerance, DataVector& norms) {
     ChValidation validator;
 
     if (!validator.Process(sim_data))

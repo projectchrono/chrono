@@ -23,7 +23,7 @@ using namespace chrono::vehicle;
 
 // Static variables
 const double ACV_Wheel::m_mass = 18.0;
-const ChVector<> ACV_Wheel::m_inertia(0.100, 0.100, 0.100);
+const ChVector<> ACV_Wheel::m_inertia(0.24, 0.42, 0.24);
 const double ACV_Wheel::m_radius = 0.3099;
 const double ACV_Wheel::m_width = 0.235;
 

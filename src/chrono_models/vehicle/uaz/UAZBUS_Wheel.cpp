@@ -31,7 +31,7 @@ namespace uaz {
 // -----------------------------------------------------------------------------
 
 const double UAZBUS_Wheel::m_mass = 12.0;
-const ChVector<> UAZBUS_Wheel::m_inertia(0.240642, 0.410903, 0.240642);
+const ChVector<> UAZBUS_Wheel::m_inertia(0.24, 0.42, 0.24);
 
 const double UAZBUS_Wheel::m_radius = 0.2032;
 const double UAZBUS_Wheel::m_width = 0.1524;

@@ -18,20 +18,19 @@
 #include "chrono/core/ChMatrix33.h"
 
 namespace chrono {
+const ChQuaternion<double> QNULL(0., 0., 0., 0.);
+const ChQuaternion<double> QUNIT(1., 0., 0., 0.);
 
-ChApi const ChQuaternion<double> QNULL(0., 0., 0., 0.);
-ChApi const ChQuaternion<double> QUNIT(1., 0., 0., 0.);
+const ChQuaternion<double> Q_ROTATE_Y_TO_X(CH_C_SQRT_1_2,				0,				0, -CH_C_SQRT_1_2 );
+const ChQuaternion<double> Q_ROTATE_Y_TO_Z(CH_C_SQRT_1_2, CH_C_SQRT_1_2,				0,				0 );
+const ChQuaternion<double> Q_ROTATE_X_TO_Y(CH_C_SQRT_1_2,				0,				0,	CH_C_SQRT_1_2 );
+const ChQuaternion<double> Q_ROTATE_X_TO_Z(CH_C_SQRT_1_2,				0, -CH_C_SQRT_1_2,				0 );
+const ChQuaternion<double> Q_ROTATE_Z_TO_Y(CH_C_SQRT_1_2,-CH_C_SQRT_1_2,				0,				0 );
+const ChQuaternion<double> Q_ROTATE_Z_TO_X(CH_C_SQRT_1_2,				0,  CH_C_SQRT_1_2,				0 );
 
-ChApi const ChQuaternion<double> Q_ROTATE_Y_TO_X(CH_C_SQRT_1_2,				0,				0, -CH_C_SQRT_1_2 );
-ChApi const ChQuaternion<double> Q_ROTATE_Y_TO_Z(CH_C_SQRT_1_2, CH_C_SQRT_1_2,				0,				0 );
-ChApi const ChQuaternion<double> Q_ROTATE_X_TO_Y(CH_C_SQRT_1_2,				0,				0,	CH_C_SQRT_1_2 );
-ChApi const ChQuaternion<double> Q_ROTATE_X_TO_Z(CH_C_SQRT_1_2,				0, -CH_C_SQRT_1_2,				0 );
-ChApi const ChQuaternion<double> Q_ROTATE_Z_TO_Y(CH_C_SQRT_1_2,-CH_C_SQRT_1_2,				0,				0 );
-ChApi const ChQuaternion<double> Q_ROTATE_Z_TO_X(CH_C_SQRT_1_2,				0,  CH_C_SQRT_1_2,				0 );
-
-ChApi const ChQuaternion<double> Q_FLIP_AROUND_X(0., 1., 0., 0.);
-ChApi const ChQuaternion<double> Q_FLIP_AROUND_Y(0., 0., 1., 0.);
-ChApi const ChQuaternion<double> Q_FLIP_AROUND_Z(0., 0., 0., 1.);
+const ChQuaternion<double> Q_FLIP_AROUND_X(0., 1., 0., 0.);
+const ChQuaternion<double> Q_FLIP_AROUND_Y(0., 0., 1., 0.);
+const ChQuaternion<double> Q_FLIP_AROUND_Z(0., 0., 0., 1.);
 
 // -----------------------------------------------------------------------------
 // QUATERNION OPERATIONS

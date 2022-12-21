@@ -30,6 +30,8 @@
 namespace chrono {
 namespace vehicle {
 
+// -----------------------------------------------------------------------------
+
 ChTireTestRig::ChTireTestRig(std::shared_ptr<ChWheel> wheel, std::shared_ptr<ChTire> tire, ChSystem* system)
     : m_system(system),
       m_grav(9.8),
@@ -235,8 +237,12 @@ void ChTireTestRig::Advance(double step) {
 void ChTireTestRig::CreateMechanism() {
     m_system->Set_G_acc(ChVector<>(0, 0, -m_grav));
 
-    // Create bodies
+    // Create bodies.
+    // Rig bodies are constructed with mass and inertia commensurate with thopse of the wheel-tire system.
+    // The spindle body is constructed with zero mass and inertia (these will be increased by at least the wheel mass and inertia).
     const double dim = 0.1;
+    const double mass = m_wheel->GetWheelMass() + m_tire->GetTireMass();
+    const ChVector<> inertia = m_wheel->GetWheelInertia() + m_tire->GetTireInertia();
 
     m_ground_body = std::shared_ptr<ChBody>(m_system->NewBody());
     m_system->AddBody(m_ground_body);
@@ -254,8 +260,8 @@ void ChTireTestRig::CreateMechanism() {
     m_carrier_body->SetName("rig_carrier");
     m_carrier_body->SetIdentifier(1);
     m_carrier_body->SetPos(ChVector<>(0, 0, 0));
-    m_carrier_body->SetMass(m_wheel->GetWheelMass());
-    m_carrier_body->SetInertiaXX(m_wheel->GetWheelInertia());
+    m_carrier_body->SetMass(mass);
+    m_carrier_body->SetInertiaXX(inertia);
     {
         auto mat = chrono_types::make_shared<ChVisualMaterial>();
         mat->SetDiffuseColor({0.8f, 0.2f, 0.2f});
@@ -278,8 +284,8 @@ void ChTireTestRig::CreateMechanism() {
     m_chassis_body->SetName("rig_chassis");
     m_chassis_body->SetIdentifier(2);
     m_chassis_body->SetPos(ChVector<>(0, 0, 0));
-    m_chassis_body->SetMass(m_wheel->GetWheelMass());
-    m_chassis_body->SetInertiaXX(m_wheel->GetWheelInertia());
+    m_chassis_body->SetMass(mass);
+    m_chassis_body->SetInertiaXX(inertia);
     {
         auto mat = chrono_types::make_shared<ChVisualMaterial>();
         mat->SetDiffuseColor({0.2f, 0.8f, 0.2f});
@@ -302,8 +308,8 @@ void ChTireTestRig::CreateMechanism() {
     m_slip_body->SetName("rig_slip");
     m_slip_body->SetIdentifier(3);
     m_slip_body->SetPos(ChVector<>(0, 0, -4 * dim));
-    m_slip_body->SetMass(m_wheel->GetWheelMass());
-    m_slip_body->SetInertiaXX(m_wheel->GetWheelInertia());
+    m_slip_body->SetMass(mass);
+    m_slip_body->SetInertiaXX(inertia);
     {
         auto mat = chrono_types::make_shared<ChVisualMaterial>();
         mat->SetDiffuseColor({0.2f, 0.8f, 0.2f});
@@ -320,8 +326,8 @@ void ChTireTestRig::CreateMechanism() {
     m_system->AddBody(m_spindle_body);
     m_spindle_body->SetName("rig_spindle");
     m_spindle_body->SetIdentifier(4);
-    m_spindle_body->SetMass(1);
-    m_spindle_body->SetInertiaXX(ChVector<>(0.01, 0.01, 0.01));
+    m_spindle_body->SetMass(0);
+    m_spindle_body->SetInertiaXX(ChVector<>(0, 0, 0));
     m_spindle_body->SetPos(ChVector<>(0, 3 * dim, -4 * dim));
     m_spindle_body->SetRot(qc);
     {

@@ -42,7 +42,7 @@ namespace vehicle {
 /// Definition of a single-tire test rig.
 class CH_VEHICLE_API ChTireTestRig {
   public:
-    //// Construct a tire test rig within the specified system.
+    /// Construct a tire test rig within the specified system.
     ChTireTestRig(std::shared_ptr<ChWheel> wheel,  ///< wheel subsystem
                   std::shared_ptr<ChTire> tire,    ///< tire subsystem
                   ChSystem* system                 ///< containing mechanical system

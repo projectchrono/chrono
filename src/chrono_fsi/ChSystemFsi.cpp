@@ -794,8 +794,8 @@ void ChSystemFsi::Initialize() {
     m_fsi_interface->ResizeChronoShellsData(m_fea_shell_nodes);
 
     // This also sets the referenceArray and counts numbers of various objects
-    m_sysFSI->ResizeData(m_fsi_interface->m_fsi_bodies.size(), m_num_cable_elements, m_num_shell_elements,
-                         (size_t)m_fsi_interface->m_fsi_mesh->GetNnodes());
+    size_t n_flexnodes = m_fsi_interface->m_fsi_mesh ? (size_t)m_fsi_interface->m_fsi_mesh->GetNnodes() : 0;
+    m_sysFSI->ResizeData(m_fsi_interface->m_fsi_bodies.size(), m_num_cable_elements, m_num_shell_elements, n_flexnodes);
 
     if (m_verbose) {
         cout << "Counters" << endl;

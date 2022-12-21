@@ -37,6 +37,10 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFToroidalTire.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChTireTestRig.h"
 
+#ifdef CHRONO_POSTPROCESS
+    #include "chrono_postprocess/ChGnuPlot.h"
+#endif
+
 #include "demos/vehicle/SetChronoSolver.h"
 
 using namespace chrono;
@@ -178,13 +182,16 @@ int main() {
     ////rig.Initialize();
 
     // Scenario: prescribe all motion functions
-    ////rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunction_Const>(0.2));
-    ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunction_Const>(10.0));
-    ////rig.SetSlipAngleFunction(chrono_types::make_shared<ChFunction_Sine>(0, 0.6, 0.2));
-    ////rig.Initialize();
+    //   longitudinal speed: 0.2 m/s
+    //   angular speed: 20 RPM
+    //   slip angle: sinusoidal +- 5 deg with 5 s period
+    rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunction_Const>(0.2));
+    rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunction_Const>(20 * CH_C_RPM_TO_RPS));
+    rig.SetSlipAngleFunction(chrono_types::make_shared<ChFunction_Sine>(0, 0.2, 5 * CH_C_DEG_TO_RAD));
+    rig.Initialize();
 
     // Scenario: specified longitudinal slip
-    rig.Initialize(0.2, 1.0);
+    ////rig.Initialize(0.2, 0.1);
 
     // Create the Irrlicht visualization sys
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
@@ -202,7 +209,19 @@ int main() {
     camera->setFOV(irr::core::PI / 4.5f);
 
     // Perform the simulation
+    ChFunction_Recorder long_slip;
+    ChFunction_Recorder slip_angle;
+    ChFunction_Recorder camber_angle;
+
     while (vis->Run()) {
+        double time = sys->GetChTime();
+
+        if (time > 0.5) {
+            long_slip.AddPoint(time, tire->GetLongitudinalSlip());
+            slip_angle.AddPoint(time, tire->GetSlipAngle() * CH_C_RAD_TO_DEG);
+            camber_angle.AddPoint(time, tire->GetCamberAngle() * CH_C_RAD_TO_DEG);
+        }
+
         auto& loc = rig.GetPos();
         auto x = (irr::f32)loc.x();
         auto y = (irr::f32)loc.y();
@@ -229,6 +248,26 @@ int main() {
         ////std::cout << "   " << pnt.x() << " " << pnt.y() << " " << pnt.z() << std::endl;
         ////std::cout << "   " << trq.x() << " " << trq.y() << " " << trq.z() << std::endl;
     }
+
+#ifdef CHRONO_POSTPROCESS
+    postprocess::ChGnuPlot gplot_long_slip("tmp1.gpl");
+    gplot_long_slip.SetGrid();
+    gplot_long_slip.SetLabelX("time (s)");
+    gplot_long_slip.SetLabelY("Long. slip");
+    gplot_long_slip.Plot(long_slip, "", " with lines lt -1 lc rgb'#00AAEE' ");
+
+    postprocess::ChGnuPlot gplot_slip_angle("tmp2.gpl");
+    gplot_slip_angle.SetGrid();
+    gplot_slip_angle.SetLabelX("time (s)");
+    gplot_slip_angle.SetLabelY("Slip angle");
+    gplot_slip_angle.Plot(slip_angle, "", " with lines lt -1 lc rgb'#00AAEE' ");
+
+    postprocess::ChGnuPlot gplot_camber_angle("tmp3.gpl");
+    gplot_camber_angle.SetGrid();
+    gplot_camber_angle.SetLabelX("time (s)");
+    gplot_camber_angle.SetLabelY("Camber angle");
+    gplot_camber_angle.Plot(camber_angle, "", " with lines lt -1 lc rgb'#00AAEE' ");
+#endif
 
     return 0;
 }

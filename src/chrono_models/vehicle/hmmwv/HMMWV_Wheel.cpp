@@ -31,7 +31,7 @@ namespace hmmwv {
 // -----------------------------------------------------------------------------
 
 const double HMMWV_Wheel::m_mass = 18.8;
-const ChVector<> HMMWV_Wheel::m_inertia(0.113, 0.113, 0.113);
+const ChVector<> HMMWV_Wheel::m_inertia(0.4634, 0.6243, 0.4634);
 
 const double HMMWV_Wheel::m_radius = 0.268;
 const double HMMWV_Wheel::m_width = 0.22;

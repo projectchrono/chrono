@@ -33,7 +33,7 @@
     "psi_T": 32,
     "psi_L": 16,
 
-    "output_dir": "terrain_box",
-    "write_mode": "none",
-    "run_mode": 1
+    "output_dir": "soilBin",
+    "write_mode": "csv",
+    "run_mode": "one_step"
 }

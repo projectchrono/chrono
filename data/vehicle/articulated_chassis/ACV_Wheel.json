@@ -4,7 +4,7 @@
     "Template": "Wheel",
 
     "Mass": 18.0,
-    "Inertia": [ 0.1, 0.1, 0.1 ],
+    "Inertia": [ 0.24, 0.42, 0.24 ],
 
     "Visualization": {
         "Radius": 0.31,

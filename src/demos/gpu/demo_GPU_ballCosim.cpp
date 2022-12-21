@@ -31,7 +31,6 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/assets/ChSphereShape.h"
 
-#include "chrono_gpu/ChGpuData.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
 #include "chrono_gpu/utils/ChGpuVisualization.h"
@@ -143,11 +142,11 @@ void runBallDrop(ChSystemGpuMesh& gpu_sys, ChGpuSimulationParameters& params) {
 }
 
 int main(int argc, char* argv[]) {
-    std::string inputJson = GetChronoDataFile("gpu/demo_GPU_ballcosim.json");
+    std::string inputJson = GetChronoDataFile("gpu/ballCosim.json");
     if (argc == 2) {
         inputJson = std::string(argv[1]);
     } else if (argc > 2) {
-        std::cout << "Usage:\n./demo_GPU_ballcosim <json_file>" << std::endl;
+        std::cout << "Usage:\n./demo_GPU_ballCosim <json_file>" << std::endl;
         return 1;
     }
 
@@ -157,7 +156,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    if (params.run_mode > 1) {
+    if (params.run_mode != CHGPU_RUN_MODE::FRICTIONLESS && params.run_mode != CHGPU_RUN_MODE::ONE_STEP) {
         std::cout << "ERROR: unknown run_mode specified" << std::endl;
         return 1;
     }
@@ -170,8 +169,8 @@ int main(int argc, char* argv[]) {
 
     std::string checkpoint_file = out_dir + "/checkpoint.dat";
 
-    if (params.run_mode == 1) {
-        // run_mode = 1, this is a restarted run
+    if (params.run_mode == CHGPU_RUN_MODE::ONE_STEP) {
+        // This is a restarted run
 
         // Load checkpoint file.
         // Note that with current version, user defined meshes and boundaries are not stored in the checkpoint file,
@@ -185,16 +184,16 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    // run_mode = 0, this is a newly started run. We have to set all simulation params.
+    // run_mode = CHGPU_RUN_MODE::FRICTIONLESS, this is a newly started run. We have to set all simulation params.
     ChSystemGpuMesh gpu_sys(params.sphere_radius, params.sphere_density,
                             ChVector<float>(params.box_X, params.box_Y, params.box_Z));
 
     printf(
-        "Now run_mode == 0, this run is particle settling phase.\n"
+        "Now run_mode == FRICTIONLESS, this run is particle settling phase.\n"
         "After it is done, you will have a settled bed of granular material.\n"
         "A checkpoint file will be generated in the output directory to store this state.\n"
-        "You can then open the JSON file, change \"run_mode\" from 0 to 1, then run this demo again,\n"
-        "to proceed with the ball drop part of this demo.\n\n");
+        "Next, edit the JSON file, change 'run_mode' from 0 (FRICTIONLESS) to 1 (ONE_STEP),\n"
+        "then run this demo again to proceed with the ball drop part of this demo.\n\n");
 
     float iteration_step = params.step_size;
     double fill_bottom = -params.box_Z / 2.0;

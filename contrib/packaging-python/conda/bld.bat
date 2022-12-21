@@ -56,16 +56,12 @@ cmake -G "Visual Studio 17 2022" -T "v142" ^
  -DIRRLICHT_ROOT="%PREFIX%"/Library/include/irrlicht ^
  -DIRRLICHT_LIBRARY="%PREFIX%"/Library/lib/Irrlicht.lib ^
  -DBUILD_TESTING=OFF ^
- -DBUILD_GMOCK=OFF ^
  -DBUILD_BENCHMARKING=OFF ^
  -DENABLE_MODULE_CASCADE="%CASCADE_ENABLE%" ^
- -DCASCADE_INCLUDE_DIR="%PREFIX%"/Library/include/opencascade ^
- -DCASCADE_LIBDIR="%PREFIX%"/Library/lib ^
  -DENABLE_MODULE_PARDISO_MKL=ON ^
  -DMKL_INCLUDE_DIR="%PREFIX%"/Library/include ^
  -DMKL_RT_LIBRARY="%PREFIX%"/Library/lib/mkl_rt.lib ^
  -DIOMP5_LIBRARY="C:/Program Files (x86)/Intel/oneAPI/compiler/latest/windows/compiler/lib/intel64_win/libiomp5md.lib" ^
- -DPYCHRONO_DATA_PATH="..\..\..\..\..\Library\data" ^
  ..
 if errorlevel 1 exit 1
 mkdir cmake_ended

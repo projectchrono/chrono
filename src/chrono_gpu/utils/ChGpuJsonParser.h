@@ -23,12 +23,6 @@
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 #include "chrono_thirdparty/rapidjson/document.h"
 
-using std::string;
-using std::cout;
-using std::endl;
-
-using namespace rapidjson;
-
 namespace chrono {
 namespace gpu {
 
@@ -72,63 +66,63 @@ struct ChGpuSimulationParameters {
     float adhesion_ratio_s2w;
     float adhesion_ratio_s2m;
     CHGPU_VERBOSITY verbose;
-    int run_mode;
+    CHGPU_RUN_MODE run_mode;
     unsigned int psi_T;
     unsigned int psi_L;
     float psi_R;
-    string output_dir;
-    string checkpoint_file;
+    std::string output_dir;
+    std::string checkpoint_file;
     CHGPU_OUTPUT_MODE write_mode;
 };
 
 /// Print scheme for JSON file with simulation settings.
 void ShowJSONUsage() {
-    cout << "JSON fields:" << endl;
-    cout << "sphere_radius" << endl;
-    cout << "sphere_density" << endl;
-    cout << "box_X" << endl;
-    cout << "box_Y" << endl;
-    cout << "box_Z" << endl;
-    cout << "time_integrator (forward_euler|chung|centered_difference|extended_taylor)" << endl;
-    cout << "step_size" << endl;
-    cout << "time_end" << endl;
-    cout << "grav_X" << endl;
-    cout << "grav_Y" << endl;
-    cout << "grav_Z" << endl;
-    cout << "normalStiffS2S" << endl;
-    cout << "normalStiffS2W" << endl;
-    cout << "normalStiffS2M" << endl;
-    cout << "normalDampS2S" << endl;
-    cout << "normalDampS2W" << endl;
-    cout << "normalDampS2M" << endl;
-    cout << "tangentStiffS2S" << endl;
-    cout << "tangentStiffS2W" << endl;
-    cout << "tangentStiffS2M" << endl;
-    cout << "tangentDampS2S" << endl;
-    cout << "tangentDampS2W" << endl;
-    cout << "tangentDampS2M" << endl;
-    cout << "friction_mode (frictionless|single_step|multi_step)" << endl;
-    cout << "static_friction_coeffS2S" << endl;
-    cout << "static_friction_coeffS2W" << endl;
-    cout << "static_friction_coeffS2M" << endl;
-    cout << "rolling_mode (no_resistance|schwartz)" << endl;
-    cout << "rolling_friction_coeffS2S" << endl;
-    cout << "rolling_friction_coeffS2W" << endl;
-    cout << "rolling_friction_coeffS2M" << endl;
-    cout << "cohesion_ratio" << endl;
-    cout << "adhesion_ratio_s2w" << endl;
-    cout << "adhesion_ratio_s2m" << endl;
-    cout << "verbose" << endl;
-    cout << "psi_T" << endl;
-    cout << "psi_L" << endl;
-    cout << "output_dir" << endl;
-    cout << "checkpoint_file" << endl;
-    cout << "write_mode (csv|binary|hdf5|none)" << endl;
+    std::cout << "JSON fields:" << std::endl;
+    std::cout << "sphere_radius" << std::endl;
+    std::cout << "sphere_density" << std::endl;
+    std::cout << "box_X" << std::endl;
+    std::cout << "box_Y" << std::endl;
+    std::cout << "box_Z" << std::endl;
+    std::cout << "time_integrator (forward_euler|chung|centered_difference|extended_taylor)" << std::endl;
+    std::cout << "step_size" << std::endl;
+    std::cout << "time_end" << std::endl;
+    std::cout << "grav_X" << std::endl;
+    std::cout << "grav_Y" << std::endl;
+    std::cout << "grav_Z" << std::endl;
+    std::cout << "normalStiffS2S" << std::endl;
+    std::cout << "normalStiffS2W" << std::endl;
+    std::cout << "normalStiffS2M" << std::endl;
+    std::cout << "normalDampS2S" << std::endl;
+    std::cout << "normalDampS2W" << std::endl;
+    std::cout << "normalDampS2M" << std::endl;
+    std::cout << "tangentStiffS2S" << std::endl;
+    std::cout << "tangentStiffS2W" << std::endl;
+    std::cout << "tangentStiffS2M" << std::endl;
+    std::cout << "tangentDampS2S" << std::endl;
+    std::cout << "tangentDampS2W" << std::endl;
+    std::cout << "tangentDampS2M" << std::endl;
+    std::cout << "friction_mode (frictionless|single_step|multi_step)" << std::endl;
+    std::cout << "static_friction_coeffS2S" << std::endl;
+    std::cout << "static_friction_coeffS2W" << std::endl;
+    std::cout << "static_friction_coeffS2M" << std::endl;
+    std::cout << "rolling_mode (no_resistance|schwartz)" << std::endl;
+    std::cout << "rolling_friction_coeffS2S" << std::endl;
+    std::cout << "rolling_friction_coeffS2W" << std::endl;
+    std::cout << "rolling_friction_coeffS2M" << std::endl;
+    std::cout << "cohesion_ratio" << std::endl;
+    std::cout << "adhesion_ratio_s2w" << std::endl;
+    std::cout << "adhesion_ratio_s2m" << std::endl;
+    std::cout << "verbose" << std::endl;
+    std::cout << "psi_T" << std::endl;
+    std::cout << "psi_L" << std::endl;
+    std::cout << "output_dir" << std::endl;
+    std::cout << "checkpoint_file" << std::endl;
+    std::cout << "write_mode (csv|binary|hdf5|none)" << std::endl;
 }
 
 /// Flag an invalid simulation parameter.
-void InvalidArg(string arg) {
-    cout << "Invalid arg: " << arg << endl;
+void InvalidArg(const std::string& arg) {
+    std::cout << "Invalid arg: " << arg << std::endl;
     ShowJSONUsage();
 }
 
@@ -138,19 +132,19 @@ bool ParseJSON(const std::string& json_file, ChGpuSimulationParameters& params, 
     CONDITIONAL_PRINTF(verbose, "Reading parameters: %s\n", json_file.c_str());
     FILE* fp = fopen(json_file.c_str(), "r");
     if (!fp) {
-        cout << "Invalid JSON file" << endl;
+        std::cout << "Invalid JSON file" << std::endl;
         ShowJSONUsage();
         return false;
     }
 
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+    char readBuffer[16000];
+    rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
     fclose(fp);
 
-    Document doc;
-    doc.ParseStream<ParseFlag::kParseCommentsFlag>(is);
+    rapidjson::Document doc;
+    doc.ParseStream<rapidjson::ParseFlag::kParseCommentsFlag>(is);
     if (!doc.IsObject()) {
-        cout << "Invalid JSON file" << endl;
+        std::cout << "Invalid JSON file" << std::endl;
         return false;
     }
 
@@ -176,22 +170,20 @@ bool ParseJSON(const std::string& json_file, ChGpuSimulationParameters& params, 
         CONDITIONAL_PRINTF(verbose, "params.box_Z %f\n", params.box_Z);
     }
     if (doc.HasMember("time_integrator") && doc["time_integrator"].IsString()) {
-        if (doc["time_integrator"].GetString() == string("forward_euler")) {
+        std::string time_integrator = doc["time_integrator"].GetString();
+        if (time_integrator == std::string("forward_euler"))
             params.time_integrator = CHGPU_TIME_INTEGRATOR::FORWARD_EULER;
-            CONDITIONAL_PRINTF(verbose, "params.time_integrator forward_euler\n");
-        } else if (doc["time_integrator"].GetString() == string("chung")) {
+        else if (time_integrator == std::string("chung"))
             params.time_integrator = CHGPU_TIME_INTEGRATOR::CHUNG;
-            CONDITIONAL_PRINTF(verbose, "params.time_integrator chung\n");
-        } else if (doc["time_integrator"].GetString() == string("centered_difference")) {
+        else if (time_integrator == std::string("centered_difference"))
             params.time_integrator = CHGPU_TIME_INTEGRATOR::CENTERED_DIFFERENCE;
-            CONDITIONAL_PRINTF(verbose, "params.time_integrator centered_difference\n");
-        } else if (doc["time_integrator"].GetString() == string("extended_taylor")) {
+        else if (time_integrator == std::string("extended_taylor"))
             params.time_integrator = CHGPU_TIME_INTEGRATOR::EXTENDED_TAYLOR;
-            CONDITIONAL_PRINTF(verbose, "params.time_integrator extended_taylor\n");
-        } else {
+        else {
             InvalidArg("time_integrator");
             return false;
         }
+        CONDITIONAL_PRINTF(verbose, "params.time_integrator %s\n", time_integrator.c_str());
     }
     if (doc.HasMember("time_end") && doc["time_end"].IsNumber()) {
         params.time_end = doc["time_end"].GetFloat();
@@ -258,19 +250,18 @@ bool ParseJSON(const std::string& json_file, ChGpuSimulationParameters& params, 
         CONDITIONAL_PRINTF(verbose, "params.tangentDampS2M %f\n", params.tangentDampS2M);
     }
     if (doc.HasMember("friction_mode") && doc["friction_mode"].IsString()) {
-        if (doc["friction_mode"].GetString() == string("frictionless")) {
+        std::string friction_mode = doc["friction_mode"].GetString();
+        if (friction_mode == std::string("frictionless"))
             params.friction_mode = CHGPU_FRICTION_MODE::FRICTIONLESS;
-            CONDITIONAL_PRINTF(verbose, "params.friction_mode frictionless\n");
-        } else if (doc["friction_mode"].GetString() == string("single_step")) {
+        else if (friction_mode == std::string("single_step"))
             params.friction_mode = CHGPU_FRICTION_MODE::SINGLE_STEP;
-            CONDITIONAL_PRINTF(verbose, "params.friction_mode single_step\n");
-        } else if (doc["friction_mode"].GetString() == string("multi_step")) {
+        else if (friction_mode == std::string("multi_step"))
             params.friction_mode = CHGPU_FRICTION_MODE::MULTI_STEP;
-            CONDITIONAL_PRINTF(verbose, "params.friction_mode multi_step\n");
-        } else {
+        else {
             InvalidArg("friction_mode");
             return false;
         }
+        CONDITIONAL_PRINTF(verbose, "params.friction_mode %s\n", friction_mode.c_str());
     }
     if (doc.HasMember("static_friction_coeffS2S") && doc["static_friction_coeffS2S"].IsNumber()) {
         params.static_friction_coeffS2S = doc["static_friction_coeffS2S"].GetFloat();
@@ -285,16 +276,16 @@ bool ParseJSON(const std::string& json_file, ChGpuSimulationParameters& params, 
         CONDITIONAL_PRINTF(verbose, "params.static_friction_coeffS2M %f\n", params.static_friction_coeffS2M);
     }
     if (doc.HasMember("rolling_mode") && doc["rolling_mode"].IsString()) {
-        if (doc["rolling_mode"].GetString() == string("no_resistance")) {
+        std::string rolling_mode = doc["rolling_mode"].GetString();
+        if (rolling_mode == std::string("no_resistance"))
             params.rolling_mode = CHGPU_ROLLING_MODE::NO_RESISTANCE;
-            CONDITIONAL_PRINTF(verbose, "params.rolling_mode no_resistance\n");
-        } else if (doc["rolling_mode"].GetString() == string("schwartz")) {
+        else if (rolling_mode == std::string("schwartz"))
             params.rolling_mode = CHGPU_ROLLING_MODE::SCHWARTZ;
-            CONDITIONAL_PRINTF(verbose, "params.rolling_mode schwartz\n");
-        } else {
+        else {
             InvalidArg("rolling_mode");
             return false;
         }
+        CONDITIONAL_PRINTF(verbose, "params.rolling_mode %s\n", rolling_mode.c_str());
     }
     if (doc.HasMember("rolling_friction_coeffS2S") && doc["rolling_friction_coeffS2S"].IsNumber()) {
         params.rolling_friction_coeffS2S = doc["rolling_friction_coeffS2S"].GetFloat();
@@ -336,9 +327,19 @@ bool ParseJSON(const std::string& json_file, ChGpuSimulationParameters& params, 
         params.psi_R = doc["psi_R"].GetFloat();
         CONDITIONAL_PRINTF(verbose, "params.psi_R %f\n", params.psi_R);
     }
-    if (doc.HasMember("run_mode") && doc["run_mode"].IsInt()) {
-        params.run_mode = doc["run_mode"].GetInt();
-        CONDITIONAL_PRINTF(verbose, "params.run_mode %d\n", params.run_mode);
+    if (doc.HasMember("run_mode") && doc["run_mode"].IsString()) {
+        std::string run_mode = doc["run_mode"].GetString();
+        if (run_mode == std::string("frictionless"))
+            params.run_mode = CHGPU_RUN_MODE::FRICTIONLESS;
+        else if (run_mode == std::string("one_step"))
+            params.run_mode = CHGPU_RUN_MODE::ONE_STEP;
+        else if (run_mode == std::string("multi_step"))
+            params.run_mode = CHGPU_RUN_MODE::MULTI_STEP;
+        else {
+            InvalidArg("write_mode");
+            return false;
+        }
+        CONDITIONAL_PRINTF(verbose, "params.run_mode %s\n", run_mode.c_str());
     }
     if (doc.HasMember("output_dir") && doc["output_dir"].IsString()) {
         params.output_dir = doc["output_dir"].GetString();
@@ -349,25 +350,22 @@ bool ParseJSON(const std::string& json_file, ChGpuSimulationParameters& params, 
         CONDITIONAL_PRINTF(verbose, "params.checkpoint_file %s\n", params.checkpoint_file.c_str());
     }
     if (doc.HasMember("write_mode") && doc["write_mode"].IsString()) {
-        if (doc["write_mode"].GetString() == string("binary")) {
+        std::string write_mode = doc["write_mode"].GetString();
+        if (write_mode == std::string("binary"))
             params.write_mode = CHGPU_OUTPUT_MODE::BINARY;
-            CONDITIONAL_PRINTF(verbose, "params.write_mode binary\n");
-        } else if (doc["write_mode"].GetString() == string("csv")) {
+        else if (write_mode == std::string("csv"))
             params.write_mode = CHGPU_OUTPUT_MODE::CSV;
-            CONDITIONAL_PRINTF(verbose, "params.write_mode csv\n");
-        } else if (doc["write_mode"].GetString() == string("hdf5")) {
+        else if (write_mode == std::string("hdf5"))
             params.write_mode = CHGPU_OUTPUT_MODE::HDF5;
-            CONDITIONAL_PRINTF(verbose, "params.write_mode hdf5\n")
-        } else if (doc["write_mode"].GetString() == string("chpf")) {
+        else if (write_mode == std::string("chpf"))
             params.write_mode = CHGPU_OUTPUT_MODE::CHPF;
-            CONDITIONAL_PRINTF(verbose, "params.write_mode chpf\n");
-        } else if (doc["write_mode"].GetString() == string("none")) {
+        else if (write_mode == std::string("none"))
             params.write_mode = CHGPU_OUTPUT_MODE::NONE;
-            CONDITIONAL_PRINTF(verbose, "params.write_mode none\n");
-        } else {
+        else {
             InvalidArg("write_mode");
             return false;
         }
+        CONDITIONAL_PRINTF(verbose, "params.write_mode %s\n", write_mode.c_str());
     }
     if (doc.HasMember("step_size") && doc["step_size"].IsNumber()) {
         params.step_size = doc["step_size"].GetFloat();

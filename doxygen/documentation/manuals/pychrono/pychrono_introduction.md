@@ -127,7 +127,7 @@ print ('quat. product=',     my_qconjugate % my_quat)
 my_vec = chrono.ChVectorD(1,2,3)
 my_vec_rot = my_quat.Rotate(my_vec)
 ~~~~~~~~~~~~~
-PyChrono linear algebra (ChMatrixDynamicD and ChVectorDynamicD) are interfaced with Python lists, this allows to use any third-party packege to perform linear algevra operation. In the following example we use NumPy:
+PyChrono linear algebra (ChMatrixDynamicD and ChVectorDynamicD) are interfaced with Python lists, this allows to use any third-party package to perform linear algebra operation. In the following example we use NumPy:
 ~~~~~~~~~~~~~{.py}
 mlist = [[1,2,3,4], [5,6,7,8], [9,10,11,12], [13,14,15,16]]
 ma = chrono.ChMatrixDynamicD() 
@@ -148,7 +148,7 @@ mb.SetMatr(v.tolist())
 <div class="ce-info">
 Most classes behave like their C++ counterparts, so you are 
 invited to look at the [C++ API documentation](http://api.chrono.projectchrono.org) to understand their features. 
-Currently there is no SPhynx automated generation of Python API docs, so you should look at the C++ API docs.
+Currently there is no Sphinx automated generation of Python API docs, so you should look at the C++ API docs.
 </div>
 
 
@@ -158,8 +158,3 @@ Further reading
 - Go to the [tutorials](@ref tutorial_table_of_content_pychrono) for examples.
 
 - You can find more information on how PyChrono differs from the C++ Chrono in the [reference](@ref pychrono_reference) page.
-
-
-
-
-

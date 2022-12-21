@@ -73,7 +73,7 @@ DrivelineTypeWV drive_type = DrivelineTypeWV::AWD6;
 // Type of tire model (TMEASY, RIGID)
 TireModelType tire_model = TireModelType::TMEASY;
 
-//
+// Type of brake model (SHAFTS, SIMPLE)
 BrakeType brake_type = BrakeType::SHAFTS;
 
 // Rigid terrain
@@ -178,7 +178,7 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht interface
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
     vis->SetWindowTitle("mrole Demo");
-    vis->SetChaseCamera(trackPoint, 6.0, 0.5);
+    vis->SetChaseCamera(trackPoint, 10.0, 0.5);
     vis->Initialize();
     vis->AddLightDirectional();
     vis->AddSkyBox();

@@ -4,7 +4,7 @@
   "Template":                   "Wheel",
 
   "Mass":                       18.8,
-  "Inertia":                    [0.113, 0.113, 0.113],
+  "Inertia":                    [0.46, 0.62, 0.46],
 
     "Visualization": {
         "Mesh Filename": "Nissan_Patrol/suv_rim.obj",

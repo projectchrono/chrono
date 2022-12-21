@@ -31,7 +31,7 @@ namespace gator {
 // -----------------------------------------------------------------------------
 
 const double Gator_Wheel::m_mass = 11.0;
-const ChVector<> Gator_Wheel::m_inertia(0.100, 0.100, 0.100);
+const ChVector<> Gator_Wheel::m_inertia(0.24, 0.42, 0.24);
 
 const double Gator_Wheel::m_radius = 0.3365;
 const double Gator_Wheel::m_width = 0.205;

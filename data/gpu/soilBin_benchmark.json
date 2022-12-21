@@ -24,6 +24,6 @@
 
 	"psi_T": 32,
 	"psi_L": 16,
-	"output_dir": "terrain_box",
+	"output_dir": "soilBin",
 	"write_mode": "binary"
 }

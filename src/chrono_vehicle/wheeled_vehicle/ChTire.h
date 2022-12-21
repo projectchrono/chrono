@@ -65,6 +65,12 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// Get the tire width.
     virtual double GetWidth() const = 0;
 
+    /// Return the tire mass.
+    virtual double GetTireMass() const = 0;
+
+    /// Return the tire moments of inertia (in the tire centroidal frame).
+    virtual ChVector<> GetTireInertia() const = 0;
+
     /// Report the tire force and moment.
     /// This function can be used for reporting purposes or else to calculate tire forces in a co-simulation framework.
     /// The return application point, force, and moment are assumed to be expressed in the global reference frame.
