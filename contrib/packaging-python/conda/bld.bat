@@ -52,6 +52,9 @@ cmake -G "Visual Studio 17 2022" -T "v142" ^
  -DGLFW_INCLUDE_DIR="C:/Users/builder/Documents/glfw-3.3.5/include" ^
  -DGLFW_LIBRARY="C:/Users/builder/Documents/glfw-3.3.5/lib-vc2019/glfw3dll.lib" ^
  -DUSE_CUDA_NVRTC=OFF ^
+ -DCUDA_ARCH_NAME=Manual ^
+ -DCUDA_ARCH_PTX=52 ^
+ -DCUDA_ARCH_BIN=5.2 ^
  -DBUILD_DEMOS=OFF ^
  -DIRRLICHT_ROOT="%PREFIX%"/Library/include/irrlicht ^
  -DIRRLICHT_LIBRARY="%PREFIX%"/Library/lib/Irrlicht.lib ^
