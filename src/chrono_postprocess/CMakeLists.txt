@@ -18,6 +18,7 @@ MESSAGE(STATUS "\n==== Chrono Postprocess module ====\n")
 
 SET(ChronoEngine_POSTPROCESS_SOURCES 
     ChPovRay.cpp
+    ChBlender.cpp
 )
 
 SET(ChronoEngine_POSTPROCESS_HEADERS
@@ -25,6 +26,7 @@ SET(ChronoEngine_POSTPROCESS_HEADERS
     ChPostProcessBase.h
     ChGnuPlot.h
     ChPovRay.h
+    ChBlender.h
 )
 
 SOURCE_GROUP("" FILES 
