@@ -169,12 +169,12 @@ ChJSONWriter& ChJSONWriter::operator<<(const char* v) {
 }
 
 ChJSONWriter& ChJSONWriter::operator<<(std::string& v) {
-    m_writer.String(v.c_str(), v.size());
+    m_writer.String(v.c_str(), (rapidjson::SizeType)v.size());
     return *this;
 }
 
 ChJSONWriter& ChJSONWriter::operator<<(const std::string& v) {
-    m_writer.String(v.c_str(), v.size());
+    m_writer.String(v.c_str(), (rapidjson::SizeType)v.size());
     return *this;
 }
 
@@ -208,13 +208,13 @@ ChJSONWriter& ChJSONWriter::operator<<(ChQuaternion<> v) {
 }
 
 ChJSONWriter& ChJSONWriter::Key(const std::string& v) {
-    m_writer.Key(v.c_str(), v.size());
+    m_writer.Key(v.c_str(), (rapidjson::SizeType)v.size());
     return *this;
 }
 
-ChJSONWriter& ChJSONWriter::PointerAsString(unsigned long v, int len) {
+ChJSONWriter& ChJSONWriter::PointerAsString(size_t v, unsigned int len) {
     std::string buffer(reinterpret_cast<char*>(v), len);
-    m_writer.String(buffer.c_str(), len);
+    m_writer.String(buffer.c_str(), (rapidjson::SizeType)len);
     return *this;
 }
 

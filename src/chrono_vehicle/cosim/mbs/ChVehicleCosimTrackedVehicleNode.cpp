@@ -126,11 +126,11 @@ int ChVehicleCosimTrackedVehicleNode::GetNumTracks() const {
     return 2;
 }
 
-int ChVehicleCosimTrackedVehicleNode::GetNumTrackShoes(int track_id) const {
+size_t ChVehicleCosimTrackedVehicleNode::GetNumTrackShoes(int track_id) const {
     return m_vehicle->GetNumTrackShoes(track_id == 0 ? VehicleSide::LEFT : VehicleSide::RIGHT);
 }
 
-int ChVehicleCosimTrackedVehicleNode::GetNumTrackShoes() const {
+size_t ChVehicleCosimTrackedVehicleNode::GetNumTrackShoes() const {
     return GetNumTrackShoes(VehicleSide::LEFT) + GetNumTrackShoes(VehicleSide::RIGHT);
 }
 

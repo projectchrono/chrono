@@ -97,10 +97,10 @@ class CH_VEHICLE_API ChVehicleCosimTrackedVehicleNode : public ChVehicleCosimTra
     virtual int GetNumTracks() const override;
 
     /// Return the number of track shoes in the specified track subsystem.
-    virtual int GetNumTrackShoes(int track_id) const override;
+    virtual size_t GetNumTrackShoes(int track_id) const override;
 
     /// Return the total number of track shoes (in all track subsystems).
-    virtual int GetNumTrackShoes() const override;
+    virtual size_t GetNumTrackShoes() const override;
 
     /// Return the specified track shoe.
     virtual std::shared_ptr<ChBody> GetTrackShoeBody(int track_id, int shoe_id) const override;

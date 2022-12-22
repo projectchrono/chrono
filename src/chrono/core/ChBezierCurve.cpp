@@ -86,7 +86,7 @@ ChBezierCurve::ChBezierCurve(const std::vector<ChVector<> >& points,
 }
 
 ChBezierCurve::ChBezierCurve(const std::vector<ChVector<> >& points, bool closed) : m_points(points), m_closed(closed) {
-    size_t np = m_points.size();  // number of points
+    int np = (int)m_points.size();  // number of points
     assert(np > 1);
 
     if (m_closed) {
@@ -100,7 +100,7 @@ ChBezierCurve::ChBezierCurve(const std::vector<ChVector<> >& points, bool closed
         }
     }
 
-    size_t n = np - 1;  // number of intervals
+    int n = np - 1;  // number of intervals
 
     m_inCV.resize(np);
     m_outCV.resize(np);

@@ -96,7 +96,7 @@ void ChMultiPathFollowerACCDriver::ExportPathPovray(const std::string& out_dir) 
 // -----------------------------------------------------------------------------
 ChMultiplePathSteeringController::ChMultiplePathSteeringController(std::vector<std::shared_ptr<ChBezierCurve>> paths,
                                                                    int lane)
-    : ChSteeringController(nullptr), m_Kp(0), m_Ki(0), m_Kd(0), m_lane(lane), m_path(paths) {
+    : ChSteeringController(nullptr), m_lane(lane), m_Kp(0), m_Ki(0), m_Kd(0), m_path(paths) {
     for (const auto& path : m_path) {
         auto tracker_element = chrono_types::make_shared<ChBezierCurveTracker>(path);
         m_tracker.push_back(tracker_element);

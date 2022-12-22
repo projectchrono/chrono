@@ -329,22 +329,22 @@ class CH_GPU_API ChSystemGpu {
     size_t EstimateMemUsage() const;
 
     /// Get rolling friction torque between body i and j, return 0 if not in contact
-    ChVector<float> getRollingFrictionTorque(int i, int j);
+    ChVector<float> getRollingFrictionTorque(unsigned int i, unsigned int j);
 
     /// Get tangential friction force between body i and j, return 0 if not in contact
-    ChVector<float> getSlidingFrictionForce(int i, int j);
+    ChVector<float> getSlidingFrictionForce(unsigned int i, unsigned int j);
 
     /// Get normal friction force between body i and j, return 0 if not in contact
-    ChVector<float> getNormalForce(int i, int j);
+    ChVector<float> getNormalForce(unsigned int i, unsigned int j);
 
     /// Get v_rot for rolling friction
-    ChVector<float> getRollingVrot(int i, int j);
+    ChVector<float> getRollingVrot(unsigned int i, unsigned int j);
 
     /// get contact char time
-    float getRollingCharContactTime(int i, int j);
+    float getRollingCharContactTime(unsigned int i, unsigned int j);
 
     /// get index list of neighbors
-    void getNeighbors(int ID, std::vector<int>& neighborList);
+    void getNeighbors(unsigned int ID, std::vector<unsigned int>& neighborList);
 
   protected:
     /// Protected default constructor.  Derived class must create m_sys.

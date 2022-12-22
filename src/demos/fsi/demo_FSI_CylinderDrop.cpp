@@ -64,7 +64,7 @@ void WriteCylinderVTK(const std::string& filename,
                       double radius,
                       double length,
                       const ChFrame<>& frame,
-                      unsigned int res) {
+                      int res) {
     std::ofstream outf;
     outf.open(filename, std::ios::app);
     outf << "# vtk DataFile Version 1.0\nUnstructured Grid Example\nASCII\n\n" << std::endl;

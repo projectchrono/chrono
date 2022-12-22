@@ -1027,10 +1027,10 @@ static __global__ void computeSphereContactForces_matBased(ChSystemGpu_impl::Gra
                                             gran_params->sphere_mass_SU / 2.f,
                                             sphere_data->contact_duration[body_A_offset + contact_id], t_collision);
 
-                float torque_unit = gran_params->MASS_UNIT * gran_params->LENGTH_UNIT * gran_params->LENGTH_UNIT /
-                                    (gran_params->TIME_UNIT * gran_params->TIME_UNIT);
+                ////float torque_unit = gran_params->MASS_UNIT * gran_params->LENGTH_UNIT * gran_params->LENGTH_UNIT /
+                ////                    (gran_params->TIME_UNIT * gran_params->TIME_UNIT);
 
-                float contact_time = sphere_data->contact_duration[body_A_offset + contact_id] * gran_params->TIME_UNIT;
+                ////float contact_time = sphere_data->contact_duration[body_A_offset + contact_id] * gran_params->TIME_UNIT;
                 float3 omega_rel = make_float3(0.0, 0.0, 0.0);
                 float3 v_rot = make_float3(0.0, 0.0, 0.0);
                 if (calc_rolling_fr == true) {
@@ -1371,7 +1371,7 @@ static __global__ void integrateSpheres(const float stepsize_SU,
         float old_vel_Y = sphere_data->pos_Y_dt[mySphereID];
         float old_vel_Z = sphere_data->pos_Z_dt[mySphereID];
 
-        float unit_velo = gran_params->LENGTH_UNIT / gran_params->TIME_UNIT;
+        ////float unit_velo = gran_params->LENGTH_UNIT / gran_params->TIME_UNIT;
 
         if (old_vel_X >= gran_params->max_safe_vel || old_vel_X == NAN || old_vel_Y >= gran_params->max_safe_vel ||
             old_vel_Y == NAN || old_vel_Z >= gran_params->max_safe_vel || old_vel_Z == NAN) {
@@ -1393,7 +1393,7 @@ static __global__ void integrateSpheres(const float stepsize_SU,
                 v_update_Y = integrateForwardEuler(stepsize_SU, curr_acc_Y);
                 v_update_Z = integrateForwardEuler(stepsize_SU, curr_acc_Z);
 
-                float unit_acc = gran_params->LENGTH_UNIT / (gran_params->TIME_UNIT * gran_params->TIME_UNIT);
+                ////float unit_acc = gran_params->LENGTH_UNIT / (gran_params->TIME_UNIT * gran_params->TIME_UNIT);
                 break;
             }
             case CHGPU_TIME_INTEGRATOR::CHUNG: {

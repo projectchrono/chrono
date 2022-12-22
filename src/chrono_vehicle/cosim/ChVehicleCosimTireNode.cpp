@@ -359,7 +359,7 @@ void ChVehicleCosimTireNode::SynchronizeMesh(int step_number, double time) {
     // Send mesh state (vertex locations and velocities) to TERRAIN node
     MeshState mesh_state;
     LoadMeshState(mesh_state);
-    unsigned int nvs = 3 * mesh_state.vpos.size();
+    unsigned int nvs = 3 * (unsigned int)mesh_state.vpos.size();
     double* vert_data = new double[2 * 3 * nvs];
     for (unsigned int iv = 0; iv < nvs; iv++) {
         vert_data[3 * iv + 0] = mesh_state.vpos[iv].x();

@@ -483,7 +483,7 @@ void ChSystemGpu_impl::WriteH5Particles(H5::H5File& ptFile) const {
 #endif
 
 /// Get rolling friction torque between body i and j, return 0 if not in contact
-float3 ChSystemGpu_impl::getRollingFrictionTorque(int i, int j) {
+float3 ChSystemGpu_impl::getRollingFrictionTorque(unsigned int i, unsigned int j) {
     if (gran_params->recording_contactInfo == false) {
         printf("ERROR: recording_contactInfo set to false!\n");
         exit(1);
@@ -508,7 +508,7 @@ float3 ChSystemGpu_impl::getRollingFrictionTorque(int i, int j) {
     return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-void ChSystemGpu_impl::getNeighbors(int ID, std::vector<int>& neighborList) {
+void ChSystemGpu_impl::getNeighbors(unsigned int ID, std::vector<unsigned int>& neighborList) {
     unsigned int bodyAoffset = ID * MAX_SPHERES_TOUCHED_BY_SPHERE;
     // go through all possible neighbors
     for (unsigned int neighborID = 0; neighborID < MAX_SPHERES_TOUCHED_BY_SPHERE; neighborID++) {
@@ -521,8 +521,8 @@ void ChSystemGpu_impl::getNeighbors(int ID, std::vector<int>& neighborList) {
     }
 }
 
-/// get rolling friction v_rot
-float3 ChSystemGpu_impl::getRollingVrot(int i, int j) {
+// get rolling friction v_rot
+float3 ChSystemGpu_impl::getRollingVrot(unsigned int i, unsigned int j) {
     if (gran_params->recording_contactInfo == false) {
         printf("ERROR: recording_contactInfo set to false!\n");
         exit(1);
@@ -548,7 +548,7 @@ float3 ChSystemGpu_impl::getRollingVrot(int i, int j) {
 }
 
 /// get rolling characterisitc contact time
-float ChSystemGpu_impl::getRollingCharContactTime(int i, int j) {
+float ChSystemGpu_impl::getRollingCharContactTime(unsigned int i, unsigned int j) {
     if (gran_params->recording_contactInfo == false) {
         printf("ERROR: recording_contactInfo set to false!\n");
         exit(1);
@@ -572,7 +572,7 @@ float ChSystemGpu_impl::getRollingCharContactTime(int i, int j) {
 }
 
 /// Get tangential friction force between body i and j, return 0 if not in contact
-float3 ChSystemGpu_impl::getSlidingFrictionForce(int i, int j) {
+float3 ChSystemGpu_impl::getSlidingFrictionForce(unsigned int i, unsigned int j) {
     if (gran_params->recording_contactInfo == false) {
         printf("ERROR: recording_contactInfo set to false!\n");
         exit(1);
@@ -603,7 +603,7 @@ float3 ChSystemGpu_impl::getSlidingFrictionForce(int i, int j) {
 /// for sphere-sphere contact, index sequence does not matter
 /// for sphere-wall contact, force only stored in one spot, associated with sphere, so i has to be smaller than j, where
 /// j is the BC index, i is sphere ID
-float3 ChSystemGpu_impl::getNormalForce(int i, int j) {
+float3 ChSystemGpu_impl::getNormalForce(unsigned int i, unsigned int j) {
     if (gran_params->recording_contactInfo == false) {
         printf("ERROR: recording_contactInfo set to false!\n");
         exit(1);

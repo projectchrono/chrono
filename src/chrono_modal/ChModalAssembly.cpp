@@ -118,12 +118,14 @@ void util_sparse_assembly_2x2symm(Eigen::SparseMatrix<double, Eigen::ColMajor, i
     // corrupt in Release mode, not in Debug mode. However, when doing a loop like the one below,
     // it repairs it. 
     // ***TODO*** avoid this bad hack and find the cause of the release/debug difference.
+    /*
     for (int k = 0; k < HCQ.rows(); ++k) {
         for (int j = 0; j < HCQ.cols(); ++j) {
             auto foo = HCQ.coeffRef(k, j);
             //GetLog() << HCQ.coeffRef(k,j) << " ";
         }
     }
+    */
 }
 
 

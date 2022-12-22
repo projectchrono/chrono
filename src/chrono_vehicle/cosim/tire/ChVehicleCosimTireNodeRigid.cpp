@@ -144,7 +144,7 @@ void ChVehicleCosimTireNodeRigid::WriteTireMeshInformation(utils::CSV_writer& cs
     csv << num_triangles << endl;
 
     const std::vector<ChVector<int>>& triangles = m_tire->GetContactMesh()->getIndicesVertexes();
-    for (unsigned int ie = 0; ie < num_triangles; ie++) {
+    for (int ie = 0; ie < num_triangles; ie++) {
         csv << triangles[ie] << endl;
     }
 }

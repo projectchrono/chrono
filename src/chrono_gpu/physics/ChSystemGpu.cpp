@@ -1645,35 +1645,35 @@ void ChSystemGpuMesh::WriteMesh(const std::string& outfilename, unsigned int i) 
 }
 
 /// get index list of neighbors
-void ChSystemGpu::getNeighbors(int ID, std::vector<int>& neighborList) {
+void ChSystemGpu::getNeighbors(unsigned int ID, std::vector<unsigned int>& neighborList) {
     m_sys->getNeighbors(ID, neighborList);
 }
 
 /// Get rolling friction torque between body i and j, return 0 if not in contact
-ChVector<float> ChSystemGpu::getRollingFrictionTorque(int i, int j) {
+ChVector<float> ChSystemGpu::getRollingFrictionTorque(unsigned int i, unsigned int j) {
     float3 m_roll = m_sys->getRollingFrictionTorque(i, j);
     return ChVector<float>(m_roll.x, m_roll.y, m_roll.z);
 }
 
 /// Get v_rot for rolling friction
-ChVector<float> ChSystemGpu::getRollingVrot(int i, int j) {
+ChVector<float> ChSystemGpu::getRollingVrot(unsigned int i, unsigned int j) {
     float3 vrot = m_sys->getRollingVrot(i, j);
     return ChVector<float>(vrot.x, vrot.y, vrot.z);
 }
 
 /// get contact char time
-float ChSystemGpu::getRollingCharContactTime(int i, int j) {
+float ChSystemGpu::getRollingCharContactTime(unsigned int i, unsigned int j) {
     return m_sys->getRollingCharContactTime(i, j);
 }
 
 /// Get tangential friction force between body i and j, return 0 if not in contact
-ChVector<float> ChSystemGpu::getSlidingFrictionForce(int i, int j) {
+ChVector<float> ChSystemGpu::getSlidingFrictionForce(unsigned int i, unsigned int j) {
     float3 fr = m_sys->getSlidingFrictionForce(i, j);
     return ChVector<float>(fr.x, fr.y, fr.z);
 }
 
 /// Get normal friction force between body i and j, return 0 if not in contact
-ChVector<float> ChSystemGpu::getNormalForce(int i, int j) {
+ChVector<float> ChSystemGpu::getNormalForce(unsigned int i, unsigned int j) {
     float3 N = m_sys->getNormalForce(i, j);
     return ChVector<float>(N.x, N.y, N.z);
 }
