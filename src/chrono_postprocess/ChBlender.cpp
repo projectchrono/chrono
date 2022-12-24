@@ -334,7 +334,8 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& mfile, bool single_asset_file
                 << "new_object = bpy.context.object \n"
                 << "new_object.name = '" << shapename << "' \n"
                 << "new_object.data.polygons.foreach_set('use_smooth', [True] * len(new_object.data.polygons)) \n"
-                << collection << ".objects.link(new_object) \n\n";
+                << collection << ".objects.link(new_object) \n"
+                << "bpy.context.scene.collection.objects.unlink(new_object)\n\n";
             // radius will be set later in ExportObjData to avoid having n meshes per each radius 
             m_blender_shapes.insert({(size_t)shape.get(), shape});
         }
@@ -345,7 +346,8 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& mfile, bool single_asset_file
                 << "new_object = bpy.context.object \n"
                 << "new_object.name = '" << shapename << "' \n"
                 << "new_object.data.polygons.foreach_set('use_smooth', [True] * len(new_object.data.polygons)) \n"
-                << collection <<".objects.link(new_object) \n\n";
+                << collection << ".objects.link(new_object) \n"
+                << "bpy.context.scene.collection.objects.unlink(new_object)\n\n";
             // radii will be set later in ExportObjData to avoid having n meshes per each radius 
             m_blender_shapes.insert({(size_t)shape.get(), shape});
         }
@@ -356,6 +358,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& mfile, bool single_asset_file
                 << "new_object = bpy.context.object \n"
                 << "new_object.name = '" << shapename << "' \n"
                 << collection << ".objects.link(new_object) \n"
+                << "bpy.context.scene.collection.objects.unlink(new_object)\n"
                 << "with bpy.context.temp_override(selected_editable_objects=[new_object]):\n"
                 << "    bpy.ops.object.shade_smooth(use_auto_smooth=True) \n\n";
             // radius, p1 and p2 will be set later in ExportObjData to avoid having n meshes per each radius 
@@ -368,6 +371,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& mfile, bool single_asset_file
                 << "new_object = bpy.context.object \n"
                 << "new_object.name = '" << shapename << "' \n"
                 << collection << ".objects.link(new_object) \n"
+                << "bpy.context.scene.collection.objects.unlink(new_object)\n"
                 << "with bpy.context.temp_override(selected_editable_objects=[new_object]):\n"
                 << "    bpy.ops.object.shade_smooth(use_auto_smooth=True) \n\n";
             // radius etc will be set later in ExportObjData to avoid having n meshes per each radius 
@@ -379,7 +383,8 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& mfile, bool single_asset_file
                 << "bpy.ops.mesh.primitive_cube_add(size=1,calc_uvs=True) \n"
                 << "new_object = bpy.context.object \n"
                 << "new_object.name = '" << shapename << "' \n"
-                << collection << ".objects.link(new_object) \n\n";
+                << collection << ".objects.link(new_object) \n"
+                << "bpy.context.scene.collection.objects.unlink(new_object)\n\n";
             // xyz sizes will be set later in ExportObjData to avoid having n meshes
             m_blender_shapes.insert({(size_t)shape.get(), shape});
         }
