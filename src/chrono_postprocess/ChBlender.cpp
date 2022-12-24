@@ -472,6 +472,18 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& mfile, bool single_asset_file
             m_blender_shapes.insert({(size_t)shape.get(), shape});
         }
 
+        if (auto camera_shape = std::dynamic_pointer_cast<ChCamera>(shape)) {
+            mfile
+                << "bpy.ops.object.camera_add(enter_editmode=False, location=(0, 0, 0), scale=(1, 1, 1)) \n"
+                << "new_object = bpy.context.object \n"
+                << "new_object.name= '" << shapename << "' \n"
+                << "new_object.data.lens_unit='FOV' \n"
+                << "new_object.data.angle=" << camera_shape->GetAngle() * chrono::CH_C_DEG_TO_RAD << "\n"
+                << "chrono_collection_assets.objects.link(new_object) \n"
+                << "bpy.context.scene.collection.objects.unlink(new_object) \n";
+            // if it fails to load (ex.: missing file, bad obj, etc) it prints error to console
+            m_blender_shapes.insert({(size_t)shape.get(), shape});
+        }
         
     }
 
@@ -583,6 +595,7 @@ void ChBlender::ExportObjData(ChStreamOutAsciiFile& state_file,
                     aux_scale = ChVector<>(mbox->GetBoxGeometry().GetLengths().x(), mbox->GetBoxGeometry().GetLengths().y(), mbox->GetBoxGeometry().GetLengths().z());
                 if (auto mcone = std::dynamic_pointer_cast<ChConeShape>(shape)) {
                     aux_scale = ChVector<>(mcone->GetConeGeometry().rad.x(), mcone->GetConeGeometry().rad.y(), mcone->GetConeGeometry().rad.z());
+                }
                 if (auto mcyl = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
                     aux_scale = ChVector<>(mcyl->GetCylinderGeometry().rad, mcyl->GetCylinderGeometry().rad, (mcyl->GetCylinderGeometry().p2-mcyl->GetCylinderGeometry().p1).Length());
                 }
