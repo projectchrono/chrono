@@ -390,10 +390,12 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& mfile, bool single_asset_file
         }
 
         if (auto obj_shape = std::dynamic_pointer_cast<ChObjFileShape>(shape)) {
+            std::string abspath_obj = filesystem::path(obj_shape->GetFilename()).make_absolute().str();
+            std::replace(abspath_obj.begin(), abspath_obj.end(), '\\', '/');
             mfile
                 << "try: \n"
                 << "    bpy.context.view_layer.active_layer_collection = bpy.context.view_layer.layer_collection \n"
-                << "    file_loc = '" << filesystem::path(obj_shape->GetFilename()).make_absolute().filename().c_str() << "'\n"
+                << "    file_loc = '" << abspath_obj.c_str() << "'\n"
                 << "    imported_object = bpy.ops.import_scene.obj(filepath=file_loc) \n"
                 << "    new_object = bpy.context.selected_objects[-1] \n"
                 << "    new_object.name= '" << shapename << "' \n"
