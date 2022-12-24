@@ -494,13 +494,39 @@ void ChBlender::ExportMaterials(ChStreamOutAsciiFile& mfile, bool single_asset_f
         std::string matname("material_" + std::to_string((size_t)mat.get()));
 
         mfile << "make_bsdf_material('" << matname << "',";
+
         if (mat->GetKdTexture().empty())
             mfile << "(" << mat->GetDiffuseColor().R << "," << mat->GetDiffuseColor().G << "," << mat->GetDiffuseColor().B << ", 1" << "),";
-        else
-            mfile << "'" << filesystem::path(mat->GetKdTexture()).make_absolute().filename().c_str() << "',";
-        mfile << "metallic=" << mat->GetMetallic() << ",";
+        else {
+            std::string abspath_texture = filesystem::path(mat->GetKdTexture()).make_absolute().str();
+            std::replace(abspath_texture.begin(), abspath_texture.end(), '\\', '/');
+            mfile << "'" << abspath_texture.c_str() << "',";
+        }
+
+        if (mat->GetMetallicTexture().empty())
+            mfile << "metallic=" << mat->GetMetallic() << ",";
+        else {
+            std::string abspath_texture = filesystem::path(mat->GetMetallicTexture()).make_absolute().str();
+            std::replace(abspath_texture.begin(), abspath_texture.end(), '\\', '/');
+            mfile << "metallic='" << abspath_texture.c_str() << "',";
+        }
+
         mfile << "transmission=" << 1.0-mat->GetOpacity() << ",";
-        mfile << "roughness=" << mat->GetRoughness() << ",";
+
+        if (mat->GetRoughnessTexture().empty())
+            mfile << "roughness=" << mat->GetRoughness() << ",";
+        else {
+            std::string abspath_texture = filesystem::path(mat->GetRoughnessTexture()).make_absolute().str();
+            std::replace(abspath_texture.begin(), abspath_texture.end(), '\\', '/');
+            mfile << "roughness='" << abspath_texture.c_str() << "',";
+        }
+
+        if (!mat->GetNormalMapTexture().empty()) {
+            std::string abspath_texture = filesystem::path(mat->GetNormalMapTexture()).make_absolute().str();
+            std::replace(abspath_texture.begin(), abspath_texture.end(), '\\', '/');
+            mfile << "bump_map='" << abspath_texture.c_str() << "',";
+        }
+
         mfile << "emissionRGB=(" << mat->GetEmissiveColor().R << "," << mat->GetEmissiveColor().G << "," << mat->GetEmissiveColor().B <<  ", 1" << ")";
         mfile << ") \n\n";
     }
