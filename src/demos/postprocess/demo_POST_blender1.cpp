@@ -54,9 +54,7 @@ int main(int argc, char* argv[]) {
     // blender_exporter.SetOutputDataFilebase("state");
     // blender_exporter.SetPictureFilebase("picture");
 
-    // --Optional: add further POV commands, for example in this case:
-    //     create an area light for soft shadows
-    //     create a Grid object; Grid() parameters: step, linewidth, linecolor, planecolor
+    // --Optional: add further commands
     //   Remember to use \ at the end of each line for a multiple-line string. Pay attention to tabs in Python.
     blender_exporter.SetCustomBlenderCommandsScript(
 "\
