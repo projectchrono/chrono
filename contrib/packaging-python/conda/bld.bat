@@ -12,9 +12,6 @@ set MKL_INTERFACE_LAYER = LP64
 set MKL_THREADING_LAYER = INTEL
 set CONFIGURATION=Release
 
-set CASCADE_ENABLE=ON
-if "%MY_PY_VER%"=="310" set CASCADE_ENABLE=OFF
-
 REM Renaming numpy conda package
 del *.tar.bz2
 powershell -ExecutionPolicy Bypass -File "%CI_PROJECT_DIR%\contrib\packaging-python\conda\script.ps1"
@@ -60,7 +57,9 @@ cmake -G "Visual Studio 17 2022" -T "v142" ^
  -DIRRLICHT_LIBRARY="%PREFIX%"/Library/lib/Irrlicht.lib ^
  -DBUILD_TESTING=OFF ^
  -DBUILD_BENCHMARKING=OFF ^
- -DENABLE_MODULE_CASCADE="%CASCADE_ENABLE%" ^
+ -DENABLE_MODULE_CASCADE=ON ^
+ -DCASCADE_INCLUDE_DIR="%PREFIX%"/Library/include/opencascade ^
+ -DCASCADE_LIBDIR="%PREFIX%"/Library/lib ^
  -DENABLE_MODULE_PARDISO_MKL=ON ^
  -DMKL_INCLUDE_DIR="%PREFIX%"/Library/include ^
  -DMKL_RT_LIBRARY="%PREFIX%"/Library/lib/mkl_rt.lib ^

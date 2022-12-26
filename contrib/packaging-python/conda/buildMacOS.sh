@@ -28,7 +28,7 @@ if [ `uname -m` == x86_64 ]; then
     PARDISO_MKL_ENABLE="ON"
     #Setting MKL directory values
     MKL_INCLUDE_DIR=`cd $HOME/miniconda/pkgs/mkl-include-*/; pwd`
-    MKL_LIB_DIR=`cd $HOME/miniconda/pkgs/mkl-2023*/; pwd`
+    MKL_LIB_DIR=`cd $HOME/miniconda/pkgs/mkl-2020*/; pwd`
 fi
 
 # Configure step
