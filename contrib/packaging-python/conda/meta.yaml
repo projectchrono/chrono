@@ -45,4 +45,4 @@ about:
   home: https://github.com/projectchrono/chrono
   license: BSD 3-Clause
   license_family: BSD
-  summary: A physics engine for constrained multi-flexible-body dynamics
+  summary: High performance library for multiphysics and multibody dynamics simulations

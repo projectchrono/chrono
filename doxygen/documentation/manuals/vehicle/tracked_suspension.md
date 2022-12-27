@@ -8,7 +8,7 @@ Different suspension configurations are available, including torsion spring with
 Similar to the case of wheeled vehicle, a tracked vehicle suspension template allows complete freedom in specifying spring and damper forces which can be linear or non-linear, defined through table lookup or implemented in user-provided C++ functions. 
 
 
-## Track suspension models {#tracked_suspension}
+## Track suspension models {#suspension_models}
 
 
 ### Translational damper suspension {#tracked_suspension_translational_damper}
@@ -22,7 +22,7 @@ See [ChRotationalDamperSuspension](@ref chrono::vehicle::ChRotationalDamperSuspe
 
 
 
-## Road-wheel models {#tracked_suspension_roadwheel}
+## Road-wheel models {#roadwheel_models}
 
 ### Central-pin road wheel {#tracked_susepension_roadwheel_central}
 
