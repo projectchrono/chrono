@@ -500,7 +500,7 @@ void SCMDeformableSoil::Initialize(const std::string& mesh_file, double delta) {
     auto minY = minmaxY.first->y() + delta;
     auto maxY = minmaxY.second->y() - delta;
     auto minZ = minmaxZ.first->z();
-    auto maxZ = minmaxZ.second->z();
+    ////auto maxZ = minmaxZ.second->z();
 
     auto sizeX = (maxX - minX);
     auto sizeY = (maxY - minY);

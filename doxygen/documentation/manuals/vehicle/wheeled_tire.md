@@ -65,7 +65,7 @@ Finally, the third class of tire models offered are full finite element represen
 See [ChANCFTire](@ref chrono::vehicle::ChANCFTire) and [ANCFTire](@ref chrono::vehicle::ANCFTire).
 
 The following JSON file contains the specification of an ANCFTire:
-\include "../../data/vehicle/hmmwv/tire/HMMWV_ANCFTire.json"
+\include "../../data/vehicle/hmmwv/tire/HMMWV_ANCF4Tire.json"
 
 ### Reissner shell deformable tire {#vehicle_tire_reissner}
 

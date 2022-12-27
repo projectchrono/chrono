@@ -68,7 +68,7 @@ void ChFunctionRotation_spline::SetupData(
     if (mrotations.size() < morder + 1)
         throw ChException("ChFunctionRotation_spline::SetupData requires at least order+1 control points.");
 
-    if (mknots && mknots->size() != (mrotations.size() + morder + 1))
+    if (mknots && (size_t)mknots->size() != (mrotations.size() + morder + 1))
         throw ChException("ChFunctionRotation_spline::SetupData: knots must have size=n_points+order+1");
 
     this->p = morder;

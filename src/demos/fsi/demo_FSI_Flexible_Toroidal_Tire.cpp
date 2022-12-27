@@ -83,7 +83,6 @@ ChVector<> wheel_IniVel(0.0, 0.0, 0.0);
 
 // Simulation time and stepsize
 double t_end = 10.0;
-double dT = 2.5e-4;
 
 // Output frequency
 bool output = true;

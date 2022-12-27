@@ -63,7 +63,7 @@ namespace chrono {
 		if (mrotations.size() < 2)
 			throw ChException("ChFunctionRotation_SQUAD::SetupData requires at least 2control points.");
 
-		if (mknots && mknots->size() != mrotations.size())
+		if (mknots && (size_t)mknots->size() != mrotations.size())
 			throw ChException("ChFunctionRotation_SQUAD::SetupData: knots must be as many as control points");
 
 		this->rotations = mrotations;

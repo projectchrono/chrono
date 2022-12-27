@@ -120,10 +120,10 @@ class CH_VEHICLE_API ChVehicleCosimTrackedMBSNode : public ChVehicleCosimBaseNod
     virtual int GetNumTracks() const = 0;
 
     /// Return the number of track shoes in the specified track subsystem.
-    virtual int GetNumTrackShoes(int track_id) const = 0;
+    virtual size_t GetNumTrackShoes(int track_id) const = 0;
 
     /// Return the total number of track shoes (in all track subsystems).
-    virtual int GetNumTrackShoes() const = 0;
+    virtual size_t GetNumTrackShoes() const = 0;
 
     /// Return the specified track shoe.
     virtual std::shared_ptr<ChBody> GetTrackShoeBody(int track_id, int shoe_id) const = 0;

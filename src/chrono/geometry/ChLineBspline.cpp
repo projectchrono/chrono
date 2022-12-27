@@ -95,7 +95,7 @@ void ChLineBspline::SetupData(
     if (mpoints.size() < morder + 1)
         throw ChException("ChLineBspline::SetupData requires at least order+1 control points.");
 
-    if (mknots && mknots->size() != (mpoints.size() + morder + 1))
+    if (mknots && (size_t)mknots->size() != (mpoints.size() + morder + 1))
         throw ChException("ChLineBspline::SetupData: knots must have size=n_points+order+1");
 
     this->p = morder;

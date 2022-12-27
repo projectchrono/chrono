@@ -75,11 +75,12 @@ std::shared_ptr<ChBezierCurve> SynGPSTools::CurveFromGPS(const std::string& file
     size_t num_waypoints;
     size_t num_cols;
 
-    std::getline(ifile, line);
-    std::istringstream iss(line);
-    iss >> num_waypoints >> num_cols;
-
-    iss.precision(9);
+    {
+        std::getline(ifile, line);
+        std::istringstream iss(line);
+        iss >> num_waypoints >> num_cols;
+        iss.precision(9);
+    }
 
     if (num_cols == 2) {
         // Read points as GPS waypoints
