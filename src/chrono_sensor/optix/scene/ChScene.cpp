@@ -52,7 +52,7 @@ CH_SENSOR_API unsigned int ChScene::AddPointLight(ChVector<float> pos, ChColor c
     return static_cast<unsigned int>(m_pointlights.size() - 1);
 }
 
-CH_SENSOR_API unsigned int ChScene::AddPointLight(PointLight p) {
+CH_SENSOR_API unsigned int ChScene::AddPointLight(const PointLight& p) {
     m_pointlights.push_back(p);
     lights_changed = true;
     return static_cast<unsigned int>(m_pointlights.size() - 1);

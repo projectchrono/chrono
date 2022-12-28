@@ -49,7 +49,7 @@ sys.Add(mbody2)
 
 mboxasset = chrono.ChBoxShape()
 mboxasset.GetBoxGeometry().Size = chrono.ChVectorD(0.2,0.5,0.1)
-mboxAsset.SetTexture('../../../data/textures/concrete.jpg')
+mboxasset.SetTexture('../../../data/textures/concrete.jpg')
 mbody2.AddVisualShape(mboxasset)
 
 
