@@ -80,6 +80,15 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     ///          ....
     void SetBasePath(const std::string& mpath) { base_path = mpath; }
 
+    /// Set transformation from Chrono frame to Blender 
+    void SetBlenderFrame(const ChFrame<> mframe) {
+        this->blender_frame = mframe;
+    }
+    /// Set transformation from Chrono frame to Blender as a rotation from Y up to Z up (default)
+    void SetBlenderFrameYupToZup() {
+        this->blender_frame = ChFrame<>(VNULL, Q_ROTATE_Y_TO_Z);
+    }
+
     /// Set the filename of the template for the script generation.
     /// If not set, it uses the default template in the Chrono data directory.
     void SetTemplateFile(const std::string& filename) { template_filename = filename; }
@@ -211,6 +220,8 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     std::string out_data_filename;
 
     unsigned int framenumber;
+
+    ChFrame<> blender_frame;
 
     ChVector<> camera_location;
     ChVector<> camera_aim;

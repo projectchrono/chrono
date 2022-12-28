@@ -75,6 +75,9 @@ ChBlender::ChBlender(ChSystem* system) : ChPostProcessBase(system) {
     contacts_do_colormap = true;
     wireframe_thickness = 0.001;
     single_asset_file = true;
+    
+    SetBlenderFrameYupToZup();
+
 }
 
 void ChBlender::Add(std::shared_ptr<ChPhysicsItem> item) {
@@ -717,10 +720,9 @@ void ChBlender::ExportData(const std::string& filename) {
             if (const auto& body = std::dynamic_pointer_cast<ChBody>(item)) {
                 // Get the current coordinate frame of the i-th object
                 const ChFrame<>& bodyframe = body->GetFrame_REF_to_abs();
-                ChCoordsys<> assetcsys = bodyframe.GetCoord();
 
                 // Dump the POV macro that generates the contained asset(s) tree
-                ExportObjData(state_file, body, bodyframe);
+                ExportObjData(state_file, body, bodyframe >> blender_frame);
 
                 /*
                 // Show body COG?
@@ -745,7 +747,7 @@ void ChBlender::ExportData(const std::string& filename) {
 
             // saving a cluster of particles?
             if (const auto& clones = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
-                ExportObjData(state_file, clones, ChFrame<>());
+                ExportObjData(state_file, clones, blender_frame);
             }
 
             // saving a ChLinkMateGeneric constraint?
