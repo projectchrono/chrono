@@ -224,7 +224,7 @@ vis.AddSkyBox()
 vis.AddCamera(chrono.ChVectorD(0, 0.6, -1))
 vis.AddTypicalLights()
 
-vis.EnableContactDrawing(chronoirr.IrrContactsDrawMode_CONTACT_DISTANCES)
+vis.EnableContactDrawing(chronoirr.ContactsDrawMode_CONTACT_DISTANCES)
 
 # SIMULATION LOOP
 
