@@ -481,14 +481,27 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& mfile, bool single_asset_file
                 << "new_object = bpy.context.object \n"
                 << "new_object.name= '" << shapename << "' \n"
                 << "new_object.data.lens_unit='FOV' \n"
-                << "new_object.data.angle=" << camera_shape->GetAngle() * chrono::CH_C_DEG_TO_RAD << "\n"
+                << "new_object.data.angle=" << camera_shape->GetAngle() * chrono::CH_C_DEG_TO_RAD << "\n"                
                 << "chrono_collection_assets.objects.link(new_object) \n"
                 << "bpy.context.scene.collection.objects.unlink(new_object) \n";
-            // if it fails to load (ex.: missing file, bad obj, etc) it prints error to console
             m_blender_shapes.insert({(size_t)shape.get(), shape});
         }
         
     }
+    /*
+    for (const auto& camera_instance : item->GetCameras()) {
+        std::string shapename("object_" + std::to_string((size_t)camera_instance.get()));
+        mfile
+            << "bpy.ops.object.camera_add(enter_editmode=False, location=(0, 0, 0), scale=(1, 1, 1)) \n"
+            << "new_object = bpy.context.object \n"
+            << "new_object.name= '" << shapename << "' \n"
+            << "new_object.data.lens_unit='FOV' \n"
+            << "new_object.data.angle=" << camera_instance->GetAngle() * chrono::CH_C_DEG_TO_RAD << "\n"                
+            << "chrono_collection_assets.objects.link(new_object) \n"
+            << "bpy.context.scene.collection.objects.unlink(new_object) \n";
+        //m_blender_shapes.insert({(size_t)camera_instance.get(), camera_instance});
+    }
+    */
 
     // Check if there are custom commands set for this physics item
     auto commands = m_custom_commands.find((size_t)item.get());
@@ -569,7 +582,8 @@ void ChBlender::ExportObjData(ChStreamOutAsciiFile& state_file,
         if (auto particleclones = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
             state_file
                 << "make_chrono_object_clones('" << item->GetName() << "',"
-                << "(" << 0 << "," << 0 << "," << 0 << "),(1,0,0,0), \n";
+                << "(" << parentframe.GetPos().x() << "," << parentframe.GetPos().y() << "," << parentframe.GetPos().z() << "),"
+                << "(" << parentframe.GetRot().e0() << "," << parentframe.GetRot().e1() << "," << parentframe.GetRot().e2() << "," << parentframe.GetRot().e3() << "), \n";
         }
         if (auto body = std::dynamic_pointer_cast<ChBody>(item)) {
             state_file
@@ -582,7 +596,7 @@ void ChBlender::ExportObjData(ChStreamOutAsciiFile& state_file,
         state_file << "[\n";
         for (const auto& shape_instance : vis_model->GetShapes()) {
             const auto& shape = shape_instance.first;
-            const auto& shape_frame = shape_instance.second;
+            auto shape_frame = shape_instance.second;
             std::string shapename("object_" + std::to_string((size_t)shape.get()));
 
             // Process only "known" shapes (i.e., shapes that were included in the assets file)
@@ -600,7 +614,12 @@ void ChBlender::ExportObjData(ChStreamOutAsciiFile& state_file,
                     aux_scale = ChVector<>(mcone->GetConeGeometry().rad.x(), mcone->GetConeGeometry().rad.y(), mcone->GetConeGeometry().rad.z());
                 }
                 if (auto mcyl = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
-                    aux_scale = ChVector<>(mcyl->GetCylinderGeometry().rad, mcyl->GetCylinderGeometry().rad, (mcyl->GetCylinderGeometry().p2-mcyl->GetCylinderGeometry().p1).Length());
+                    aux_scale = ChVector<>(mcyl->GetCylinderGeometry().rad, mcyl->GetCylinderGeometry().rad, (mcyl->GetCylinderGeometry().p2 - mcyl->GetCylinderGeometry().p1).Length());
+                    ChVector<> mdir = mcyl->GetCylinderGeometry().p2 - mcyl->GetCylinderGeometry().p1;
+                    ChMatrix33<> mmatr; mmatr.Set_A_Xdir(mdir);
+                    ChMatrix33<> mmatr2(Q_ROTATE_X_TO_Z);
+                    ChFrame<> shape_frame_pre(0.5 * (mcyl->GetCylinderGeometry().p2 + mcyl->GetCylinderGeometry().p1), mmatr * mmatr2);
+                    shape_frame *= shape_frame_pre;
                 }
 
                 state_file << " [";
