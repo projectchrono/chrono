@@ -22,6 +22,7 @@ import os
 
 chrono_collection_objects = None
 chrono_collection_assets = None
+chrono_collection_cameras = None
 empty_mesh = None
 chrono_filename = None
 
@@ -189,7 +190,7 @@ def make_chrono_object_clones(mname,mpos,mrot, masset_list, list_clones_posrot):
     chobject.show_instancer_for_viewport = False
     
 def update_camera_coordinates(mname,mpos,mrot):
-    cameraasset = chrono_collection_assets.objects.get(mname)
+    cameraasset = chrono_collection_cameras.objects.get(mname)
     cameraasset.rotation_mode = 'QUATERNION'
     cameraasset.rotation_quaternion = mrot
     cameraasset.location = mpos
@@ -211,11 +212,13 @@ def callback_post(self):
     
     global chrono_collection_objects
     global chrono_collection_assets
+    global chrono_collection_cameras
     global empty_mesh
     global chrono_filename
     
     chrono_collection_assets = bpy.data.collections.get('chrono_assets')
     chrono_collection_objects = bpy.data.collections.get('chrono_objects')
+    chrono_collection_cameras = bpy.data.collections.get('chrono_cameras')
     
     if (chrono_collection_assets and chrono_collection_objects):
         chrono_filename = chrono_collection_assets['chrono_filename'] 
@@ -247,9 +250,17 @@ def read_chrono_simulation(context, filepath, setting_materials):
     # PREPARE SCENE
     global chrono_collection_objects
     global chrono_collection_assets
+    global chrono_collection_cameras
     global empty_mesh
     global chrono_filename
     
+    chrono_collection_cameras = bpy.data.collections.get('chrono_cameras')
+    if not chrono_collection_cameras:
+        chrono_collection_cameras = bpy.data.collections.new('chrono_cameras')
+        bpy.context.scene.collection.children.link(chrono_collection_cameras)
+    for obj in chrono_collection_cameras.objects:
+            bpy.data.objects.remove(obj, do_unlink=True)
+            
     chrono_collection_assets = bpy.data.collections.get('chrono_assets')
     if not chrono_collection_assets:
         chrono_collection_assets = bpy.data.collections.new('chrono_assets')

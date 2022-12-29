@@ -209,6 +209,7 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
 
     std::unordered_map<size_t, std::shared_ptr<ChVisualShape>> m_blender_shapes;        ///< cache of visual shapes
     std::unordered_map<size_t, std::shared_ptr<ChVisualMaterial>> m_blender_materials;  ///< cache of visual materials
+    std::unordered_map<size_t, std::shared_ptr<ChCamera>> m_blender_cameras;            ///< cache of cmeras
 
     std::string base_path;
     std::string pic_path;

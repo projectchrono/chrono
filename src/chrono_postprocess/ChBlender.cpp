@@ -188,6 +188,7 @@ void ChBlender::ExportScript(const std::string& filename) {
 
     m_blender_shapes.clear();
     m_blender_materials.clear();
+    m_blender_cameras.clear();
 
     // Create directories
     if (base_path != "") {
@@ -474,34 +475,29 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& mfile, bool single_asset_file
 
             m_blender_shapes.insert({(size_t)shape.get(), shape});
         }
-
-        if (auto camera_shape = std::dynamic_pointer_cast<ChCamera>(shape)) {
-            mfile
-                << "bpy.ops.object.camera_add(enter_editmode=False, location=(0, 0, 0), scale=(1, 1, 1)) \n"
-                << "new_object = bpy.context.object \n"
-                << "new_object.name= '" << shapename << "' \n"
-                << "new_object.data.lens_unit='FOV' \n"
-                << "new_object.data.angle=" << camera_shape->GetAngle() * chrono::CH_C_DEG_TO_RAD << "\n"                
-                << "chrono_collection_assets.objects.link(new_object) \n"
-                << "bpy.context.scene.collection.objects.unlink(new_object) \n";
-            m_blender_shapes.insert({(size_t)shape.get(), shape});
-        }
-        
     }
-    /*
+    
     for (const auto& camera_instance : item->GetCameras()) {
-        std::string shapename("object_" + std::to_string((size_t)camera_instance.get()));
+        std::string cameraname("camera_" + std::to_string((size_t)camera_instance.get()));
         mfile
             << "bpy.ops.object.camera_add(enter_editmode=False, location=(0, 0, 0), scale=(1, 1, 1)) \n"
             << "new_object = bpy.context.object \n"
-            << "new_object.name= '" << shapename << "' \n"
-            << "new_object.data.lens_unit='FOV' \n"
-            << "new_object.data.angle=" << camera_instance->GetAngle() * chrono::CH_C_DEG_TO_RAD << "\n"                
-            << "chrono_collection_assets.objects.link(new_object) \n"
+            << "new_object.name= '" << cameraname << "' \n"
+            << "new_object.data.lens_unit='FOV' \n";
+        if (camera_instance->IsOrthographic()) {
+            mfile << "new_object.data.type='ORTHO'\n";
+            mfile << "new_object.data.ortho_scale=" << double((camera_instance->GetPosition()-camera_instance->GetAimPoint()).Length() * tan(0.5*camera_instance->GetAngle() * chrono::CH_C_DEG_TO_RAD)) << "\n";
+        }
+        else {
+            mfile << "new_object.data.type='PERSP'\n";
+            mfile << "new_object.data.angle=" << camera_instance->GetAngle() * chrono::CH_C_DEG_TO_RAD << "\n";
+        }
+        mfile
+            << "chrono_collection_cameras.objects.link(new_object) \n"
             << "bpy.context.scene.collection.objects.unlink(new_object) \n";
-        //m_blender_shapes.insert({(size_t)camera_instance.get(), camera_instance});
+        m_blender_cameras.insert({(size_t)camera_instance.get(), camera_instance});
     }
-    */
+    
 
     // Check if there are custom commands set for this physics item
     auto commands = m_custom_commands.find((size_t)item.get());
@@ -569,10 +565,17 @@ void ChBlender::ExportObjData(ChStreamOutAsciiFile& state_file,
     auto vis_model = item->GetVisualModel();
     
     bool has_stored_assets = false;
+    bool has_stored_cameras = false;
     for (const auto& shape_instance : vis_model->GetShapes()) {
         const auto& shape = shape_instance.first;
         if (m_blender_shapes.find((size_t)shape.get()) != m_blender_shapes.end()) {
             has_stored_assets = true;
+            break;
+        }
+    }
+    for (const auto& camera_instance : item->GetCameras()) {
+        if (m_blender_cameras.find((size_t)camera_instance.get()) != m_blender_cameras.end()) {
+            has_stored_cameras = true;
             break;
         }
     }
@@ -592,7 +595,8 @@ void ChBlender::ExportObjData(ChStreamOutAsciiFile& state_file,
                 << "(" << parentframe.GetRot().e0() << "," << parentframe.GetRot().e1() << "," << parentframe.GetRot().e2() << "," << parentframe.GetRot().e3() << "), \n";
         }
         
-        // Scan visual shapes in the visual model
+        // List visual shapes to use as children of the Blender object (parent)
+
         state_file << "[\n";
         for (const auto& shape_instance : vis_model->GetShapes()) {
             const auto& shape = shape_instance.first;
@@ -640,6 +644,8 @@ void ChBlender::ExportObjData(ChStreamOutAsciiFile& state_file,
         }
         state_file << "],\n";
 
+        // in case of particle clones, add array of positions&rotations of particles
+
         if (auto particleclones = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
             state_file << " [";
             for (unsigned int m = 0; m < particleclones->GetNparticles(); ++m) {
@@ -655,26 +661,27 @@ void ChBlender::ExportObjData(ChStreamOutAsciiFile& state_file,
     }// end if has_stored_assets
 
 
-    // Scan FEA visual shapes in the visual model
-    //// RADU TODO
-    /*
-    for (const auto& shapeFEA : vis_model->GetShapesFEA()) {
+    if (has_stored_cameras) {
+        // cameras
+        for (const auto& camera_instance : item->GetCameras()) {
+            std::string cameraname("camera_" + std::to_string((size_t)camera_instance.get()));
+            auto cpos = camera_instance->GetPosition();
+            ChVector<> cdirzm = camera_instance->GetAimPoint() - camera_instance->GetPosition();
+            ChVector<> cdirx = Vcross(cdirzm, camera_instance->GetUpVector());
+            ChVector<> cdiry = Vcross(cdirx, cdirzm);
+            ChMatrix33<> cmrot; 
+            cmrot.Set_A_axis(cdirx.GetNormalized(),cdiry.GetNormalized(),-cdirzm.GetNormalized());
+            ChFrame<> cframeloc(cpos, cmrot);
+            ChFrame<> cframeabs = cframeloc >> parentframe;
+            state_file << "update_camera_coordinates(";
+            state_file << "'" << cameraname << "',";
+            state_file << "(" << cframeabs.GetPos().x() << "," << cframeabs.GetPos().y() << "," << cframeabs.GetPos().z() << "),";
+            state_file << "(" << cframeabs.GetRot().e0() << "," << cframeabs.GetRot().e1() << "," << cframeabs.GetRot().e2() << "," << cframeabs.GetRot().e3() << ")";
+            state_file << ")\n";
+        }
     }
-    */
 
     /*
-    // Check for any cameras attached to the physics item
-    //// RADU TODO: allow using more than one camera at a time?
-    for (const auto& camera : item->GetCameras()) {
-        camera_found_in_assets = true;
-
-        camera_location = camera->GetPosition() >> parentframe;
-        camera_aim = camera->GetAimPoint() >> parentframe;
-        camera_up = camera->GetUpVector() >> parentframe;
-        camera_angle = camera->GetAngle();
-        camera_orthographic = camera->IsOrthographic();       
-    }
-
     // Invoke the custom commands string (if any)
     if (num_commands > 0) {
         state_file << "cm_" << (size_t)item.get() << "()\n";
@@ -719,6 +726,8 @@ void ChBlender::ExportData(const std::string& filename) {
         // If embedding assets in the nnnnn.py file:
         if (!single_asset_file) {
             m_blender_shapes.clear();
+            m_blender_materials.clear();
+            m_blender_cameras.clear();
             ExportAssets(state_file, false);
         }
 
@@ -843,29 +852,7 @@ void ChBlender::ExportData(const std::string& filename) {
         }
         */
 
-        /*
-        // If a camera have been found in assets, create it and override the default one
-        if (camera_found_in_assets) {
-            state_file << "camera { \n";
-            if (camera_orthographic) {
-                state_file << " orthographic \n";
-                state_file << " right x * " << (camera_location - camera_aim).Length() << " * tan ((( " << camera_angle
-                         << " *0.5)/180)*3.14) \n";
-                state_file << " up y * image_height/image_width * " << (camera_location - camera_aim).Length()
-                         << " * tan (((" << camera_angle << "*0.5)/180)*3.14) \n";
-                ChVector<> mdir = (camera_aim - camera_location) * 0.00001;
-                state_file << " direction <" << mdir.x() << "," << mdir.y() << "," << mdir.z() << "> \n";
-            } else {
-                state_file << " right -x*image_width/image_height \n";
-                state_file << " angle " << camera_angle << " \n";
-            }
-            state_file << " location <" << camera_location.x() << "," << camera_location.y() << "," << camera_location.z()
-                     << "> \n"
-                     << " look_at <" << camera_aim.x() << "," << camera_aim.y() << "," << camera_aim.z() << "> \n"
-                     << " sky <" << camera_up.x() << "," << camera_up.y() << "," << camera_up.z() << "> \n";
-            state_file << "}\n\n\n";
-        }
-        */
+        
 
     } catch (const ChException&) {
         char error[400];
