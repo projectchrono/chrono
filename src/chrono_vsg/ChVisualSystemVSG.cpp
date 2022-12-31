@@ -683,7 +683,21 @@ void ChVisualSystemVSG::AddCamera(const ChVector<>& pos, ChVector<> targ) {
         GetLog() << "  target = { " << targ.x() << " ; " << targ.y() << " ; " << targ.z() << " }\n";
         exit(42);
     }
-    m_vsg_cameraEye = vsg::dvec3(pos.x(), pos.y(), pos.z());
+    if(m_yup) {
+        if(pos.x() == 0.0 && pos.z() == 0.0) {
+            GetLog() << "Function '" << __func__ << "' Line of sight is parallel to upvector! -> Corrected!!\n";
+            m_vsg_cameraEye = vsg::dvec3(pos.x()+1.0, pos.y(), pos.z()+1.0);
+        } else {
+            m_vsg_cameraEye = vsg::dvec3(pos.x(), pos.y(), pos.z());
+        }
+    } else {
+        if(pos.x() == 0.0 && pos.y() == 0.0) {
+            GetLog() << "Function '" << __func__ << "' Line of sight is parallel to upvector! -> Corrected!!\n";
+            m_vsg_cameraEye = vsg::dvec3(pos.x()+1.0, pos.y()+1.0, pos.z());
+        } else {
+            m_vsg_cameraEye = vsg::dvec3(pos.x(), pos.y(), pos.z());
+        }
+    }
     m_vsg_cameraTarget = vsg::dvec3(targ.x(), targ.y(), targ.z());
 }
 
