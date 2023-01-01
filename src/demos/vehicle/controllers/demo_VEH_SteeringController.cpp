@@ -77,9 +77,8 @@ VisualizationType tire_vis_type = VisualizationType::MESH;
 ////std::string path_file("paths/NATO_double_lane_change.txt");
 std::string path_file("paths/ISO_double_lane_change.txt");
 
-// Initial vehicle location and orientation
-ChVector<> initLoc(-125, -125, 0.5);
-ChQuaternion<> initRot(1, 0, 0, 0);
+// Set to true for a closed-loop path and false for an open-loop
+bool closed_loop = false;
 
 // Desired vehicle speed (m/s)
 double target_speed = 12;
@@ -122,6 +121,35 @@ int filter_window_size = 20;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
+    // ----------------------
+    // Create the Bezier path
+    // ----------------------
+
+    // From data file
+    auto path = ChBezierCurve::read(vehicle::GetDataFile(path_file), closed_loop);
+
+    // Parameterized ISO double lane change (to left)
+    ////auto path = DoubleLaneChangePath(ChVector<>(-125, -125, 0.1), 13.5, 4.0, 11.0, 50.0, true);
+
+    // Parameterized NATO double lane change (to right)
+    ////auto path = DoubleLaneChangePath(ChVector<>(-125, -125, 0.1), 28.93, 3.6105, 25.0, 50.0, false);
+
+    ////path->write("my_path.txt");
+
+    // --------------------------------------------
+    // Set initial vehicle location and orientation
+    // --------------------------------------------
+
+    auto point0 = path->getPoint(0);
+    auto point1 = path->getPoint(1);
+
+    ChVector<> initLoc = point0;
+    initLoc.z() = 0.5;
+    ChQuaternion<> initRot = Q_from_AngZ(std::atan2(point1.y() - point0.y(), point1.x() - point0.x()));
+
+    ////std::cout << " initial location:    " << initLoc << std::endl;
+    ////std::cout << " initial orientation: " << initRot << std::endl;
+
     // ------------------------------
     // Create the vehicle and terrain
     // ------------------------------
@@ -158,21 +186,6 @@ int main(int argc, char* argv[]) {
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
 
     terrain.Initialize();
-
-    // ----------------------
-    // Create the Bezier path
-    // ----------------------
-
-    // From data file
-    auto path = ChBezierCurve::read(vehicle::GetDataFile(path_file));
-
-    // Parameterized ISO double lane change (to left)
-    ////auto path = DoubleLaneChangePath(ChVector<>(-125, -125, 0.1), 13.5, 4.0, 11.0, 50.0, true);
-
-    // Parameterized NATO double lane change (to right)
-    ////auto path = DoubleLaneChangePath(ChVector<>(-125, -125, 0.1), 28.93, 3.6105, 25.0, 50.0, false);
-
-    ////path->write("my_path.txt");
 
     // ------------------------
     // Create the driver system
@@ -213,8 +226,8 @@ int main(int argc, char* argv[]) {
     // ---------------------------------------
 
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+    vis->SetLogLevel(irr::ELL_NONE);
     vis->AttachVehicle(&my_hmmwv.GetVehicle());
-
 #ifdef USE_PID
     vis->SetWindowTitle("Steering PID Controller Demo");
 #endif
