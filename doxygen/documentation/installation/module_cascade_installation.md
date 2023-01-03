@@ -67,9 +67,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 ````
 </div>
 
-On **MacOS** you have to build your own OpenCascade folder. Homebrew has a cascade module, but it isn't compatible with chrono_cascade. So remove it, if you had installed it before. At configuration with CMake, be sure to apply the correct value for OpenCASCADE_DIR, so Cmake can find it. You also have to add the correct path in the DYLD_LIBRARY_PATH environment variable:<br>
-<tt>export DYLD_LIBRARY_PATH=/opt/OCCT/lib:$DYLD_LIBRARY_PATH</tt><br>
-In this example OpenCascade has been installed into <tt>/opt/OCCT</tt>. If you want to install it into somewhere else, adjust your settings. DYLD_LIBRARY_PATH is set in <tt>${HOME}/.zprofle</tt>.
+On **MacOS** you have to build your own OpenCascade folder. Homebrew has a cascade module, but it isn't compatible with chrono_cascade. So remove it, if you had installed it before. At configuration with CMake, be sure to apply the correct value for <tt>INSTALL_NAME_DIR:PATH=/opt/OCCT/lib</tt>, this sets the dylib search paths to fixed values. In this example OpenCascade has been installed into the install prefix <tt>/opt/OCCT</tt>. If you want to install it into somewhere else, adjust your settings. With fixed dylib paths no cascade related entries in DYLD_LIBRARY_PATH are necessary.
 
 ## How to use it
 

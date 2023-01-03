@@ -37,6 +37,7 @@ This module consists of *two* main sets of build targets:
 - To **build** this module:
     - you must have [Python](http://www.python.org) installed,
     - you must have the [SWIG](http://www.swig.org/) wrapper generator installed. On the Mac type <tt>brew install swig</tt>.
+    - if you want to use cascade, you also need to have OpenCascade-7.4.0 and pythonocc-core-7.4.1 (no typo!) built and installed before configuring and building Chrono.
 
 <div class="ce-warning">
 Building PyChrono requires SWIG version **4.0.0* or newer.
