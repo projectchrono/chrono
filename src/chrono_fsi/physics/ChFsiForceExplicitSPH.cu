@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include <thrust/extrema.h>
+#include <thrust/remove.h>
 #include <thrust/sort.h>
 
 #include "chrono_fsi/physics/ChFsiForceExplicitSPH.cuh"

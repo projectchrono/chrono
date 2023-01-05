@@ -1,7 +1,7 @@
 # PyChrono conda package.
 # The following imports add the binaries to the modules.
-# Since SWIG 4 import style (from . import _<modulename>) pyd/so files
-# in the PYTHONPATH dir cannot be found and have to be added to the package.
+# Because of the SWIG 4 import style (from . import _<modulename>), pyd/so files in the 
+# PYTHONPATH dir cannot be found and have to be added to the package.
 
 import os
 import pathlib

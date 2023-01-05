@@ -1,9 +1,22 @@
 # PyChrono local build.
 # The following imports add the binaries to the modules.
-# Since SWIG 4 import style (from . import _<modulename>) pyd/so files
-# in the PYTHONPATH dir cannot be found and have to be added to the package.
+# Because of the SWIG 4 import style (from . import _<modulename>), pyd/so files in the 
+# PYTHONPATH dir cannot be found and have to be added to the package.
 
 import os
+import sys
+import pathlib
+
+# Hack for Python > 3.8 on Windows
+if sys.platform == 'win32' and sys.version_info >= (3,8):
+    path_env = os.environ['PATH']
+    for item in path_env.split(os.pathsep):
+        item_posix = pathlib.PureWindowsPath(item).as_posix()
+        #print(item, '  --->  ', item_posix)
+        try:
+            os.add_dll_directory(item_posix)
+        except:
+            pass
 
 try:
     import _core

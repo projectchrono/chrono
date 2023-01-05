@@ -55,11 +55,11 @@ MaxLayNum = 1
 
 COORDFlex = chrono.ChMatrixDynamicD(TotalNumNodes, 3)
 VELCYFlex = chrono.ChMatrixDynamicD(TotalNumNodes, 3)
-NumNodes = np.empty([TotalNumElements, 8], dtype=np.int)
-LayNum = np.empty([TotalNumElements, 1], dtype=np.uint)
-NDR = np.empty([TotalNumNodes, 3], dtype=np.int)
+NumNodes = np.empty([TotalNumElements, 8], dtype=int)
+LayNum = np.empty([TotalNumElements, 1], dtype=int)
+NDR = np.empty([TotalNumNodes, 3], dtype=int)
 ElemLengthXY = chrono.ChMatrixDynamicD(TotalNumElements, 3)
-MPROP = np.empty([10, 12], dtype=np.double)
+MPROP = np.empty([10, 12], dtype=float)
 
 #!------------------------------------------------!
 #!------------ Read Material Data-----------------!
