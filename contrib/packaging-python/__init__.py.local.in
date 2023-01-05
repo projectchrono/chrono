@@ -5,7 +5,7 @@
 
 import os
 import sys
-import pathlib 
+import pathlib
 
 # Hack for Python > 3.8 on Windows
 if sys.platform == 'win32' and sys.version_info >= (3,8):
@@ -13,8 +13,10 @@ if sys.platform == 'win32' and sys.version_info >= (3,8):
     for item in path_env.split(os.pathsep):
         item_posix = pathlib.PureWindowsPath(item).as_posix()
         #print(item, '  --->  ', item_posix)
-        if (os.path.exists(item_posix)):
+        try:
             os.add_dll_directory(item_posix)
+        except:
+            pass
 
 try:
     import _core
