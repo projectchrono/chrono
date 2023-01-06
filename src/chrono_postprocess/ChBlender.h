@@ -183,7 +183,7 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     /// The user should call this function in the while() loop of the simulation, once per frame.
     void ExportData();
 
-    /// As ExportData(), but overrides the automatically generated filename.
+    /// As ExportData(), but overrides the automatically generated filename. Prefer using ExportData() so naming is automatic.
     virtual void ExportData(const std::string& filename) override;
 
     /// Set if the assets for the entre scenes at all timesteps must be appended into one
@@ -194,10 +194,10 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
 
   private:
     void UpdateRenderList();
-    void ExportAssets(ChStreamOutAsciiFile& file, bool single_asset_file = true);
-    void ExportShapes(ChStreamOutAsciiFile& file, bool single_asset_file, std::shared_ptr<ChPhysicsItem> item);
-    void ExportMaterials(ChStreamOutAsciiFile& file, bool single_asset_file, const std::vector<std::shared_ptr<ChVisualMaterial>>& materials);
-    void ExportObjData(ChStreamOutAsciiFile& blender_file,
+    void ExportAssets(ChStreamOutAsciiFile& assets_file, ChStreamOutAsciiFile& state_file);
+    void ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAsciiFile& state_file, std::shared_ptr<ChPhysicsItem> item);
+    void ExportMaterials(ChStreamOutAsciiFile& mfile,std::unordered_map<size_t, std::shared_ptr<ChVisualMaterial>>& m_materials, const std::vector<std::shared_ptr<ChVisualMaterial>>& materials);
+    void ExportItemState(ChStreamOutAsciiFile& state_file,
                        std::shared_ptr<ChPhysicsItem> item,
                        const ChFrame<>& parentframe);
 
@@ -209,7 +209,11 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
 
     std::unordered_map<size_t, std::shared_ptr<ChVisualShape>> m_blender_shapes;        ///< cache of visual shapes
     std::unordered_map<size_t, std::shared_ptr<ChVisualMaterial>> m_blender_materials;  ///< cache of visual materials
-    std::unordered_map<size_t, std::shared_ptr<ChCamera>> m_blender_cameras;            ///< cache of cmeras
+    std::unordered_map<size_t, std::shared_ptr<ChCamera>> m_blender_cameras;            ///< cache of cameras
+
+    std::unordered_map<size_t, std::shared_ptr<ChVisualShape>> m_blender_frame_shapes;        ///< cache of visual shapes, mutable (reset each frame)
+    std::unordered_map<size_t, std::shared_ptr<ChVisualMaterial>> m_blender_frame_materials;  ///< cache of visual materials, mutable (reset each frame)
+
 
     std::string base_path;
     std::string pic_path;
