@@ -64,9 +64,18 @@ import os
 
 chrono_collection_objects = None
 chrono_collection_assets = None
+chrono_collection_frame_assets = None
 chrono_collection_cameras = None
 empty_mesh = None
+chrono_csys = None
 chrono_filename = None
+chrono_view_asset_csys = True
+chrono_view_asset_csys_size = 0.15
+chrono_view_item_csys = True
+chrono_view_item_csys_size = 0.25
+chrono_view_link_csys = True
+chrono_view_link_csys_size = 0.25
+chrono_view_materials = True
 
 #
 # utility functions to be used in assets.py
@@ -153,6 +162,19 @@ def make_bsdf_material(nameID, colorRGB, metallic=0, specular=0, specular_tint=0
 # utility functions to be used in output/statexxxyy.py files
 #
 
+def make_chrono_csys(mpos,mrot, mparent, symbol_scale=0.1):
+    csys = bpy.data.objects['chrono_csys']
+    csys_obj = csys.copy() # instanced, no full copy, data is shared
+    csys_obj.rotation_mode = 'QUATERNION'
+    csys_obj.rotation_quaternion = mrot
+    csys_obj.location = mpos
+    csys_obj.scale = (symbol_scale,symbol_scale,symbol_scale)
+    if mparent:
+        csys_obj.parent = mparent
+    csys_obj.select_set(False)
+    return csys_obj
+
+
 def make_chrono_object_assetlist(mname,mpos,mrot, masset_list):
 
     chobject = bpy.data.objects.new(mname, empty_mesh)  
@@ -161,6 +183,10 @@ def make_chrono_object_assetlist(mname,mpos,mrot, masset_list):
     chobject.location = mpos
     chrono_collection_objects.objects.link(chobject)
     
+    if chrono_view_item_csys:
+        mcsys = make_chrono_csys((0,0,0),(1,0,0,0), chobject, chrono_view_item_csys_size)
+        chrono_collection_objects.objects.link(mcsys)
+        
     for m in range(len(masset_list)):
         masset = chrono_collection_assets.objects.get(masset_list[m][0])
         if masset:
@@ -175,6 +201,9 @@ def make_chrono_object_assetlist(mname,mpos,mrot, masset_list):
             if masset_list[m][3]:
                 chasset.material_slots[-1].link = 'OBJECT'
                 chasset.material_slots[-1].material = bpy.data.materials[masset_list[m][3]] 
+            if chrono_view_asset_csys:
+                mcsys = make_chrono_csys(chasset.location,chasset.rotation_quaternion, chobject, chrono_view_asset_csys_size)
+                chrono_collection_objects.objects.link(mcsys) 
         else:
             print("not found asset: ",masset_list[m][0])
     
@@ -193,6 +222,10 @@ def make_chrono_object_clones(mname,mpos,mrot, masset_list, list_clones_posrot):
     chassets_group.hide_set(True)
     chassets_group.hide_render = True
     
+    if chrono_view_item_csys:
+        mcsys = make_chrono_csys((0,0,0),(1,0,0,0), chassets_group, chrono_view_item_csys_size)
+        chrono_collection_objects.objects.link(mcsys)
+    
     for m in range(len(masset_list)):
         masset = chrono_collection_assets.objects.get(masset_list[m][0])
         if masset:
@@ -207,7 +240,10 @@ def make_chrono_object_clones(mname,mpos,mrot, masset_list, list_clones_posrot):
             if masset_list[m][3]:
                 chasset.material_slots[-1].link = 'OBJECT'
                 chasset.material_slots[-1].material = bpy.data.materials[masset_list[m][3]]
-            chasset.hide_set(True)
+            if chrono_view_asset_csys:
+                mcsys = make_chrono_csys(chasset.location,chasset.rotation_quaternion, chassets_group, chrono_view_asset_csys_size)
+                chrono_collection_objects.objects.link(mcsys)
+            chasset.hide_set(True)    
         else:
             print("not found asset: ",masset_list[m][0])
         
@@ -254,9 +290,18 @@ def callback_post(self):
     
     global chrono_collection_objects
     global chrono_collection_assets
+    global chrono_collection_frame_assets
     global chrono_collection_cameras
+    global chrono_csys
     global empty_mesh
     global chrono_filename
+    global chrono_view_asset_csys
+    global chrono_view_asset_csys_size
+    global chrono_view_item_csys
+    global chrono_view_item_csys_size
+    global chrono_view_link_csys
+    global chrono_view_link_csys_size
+    global chrono_view_materials
     
     chrono_collection_assets = bpy.data.collections.get('chrono_assets')
     chrono_collection_objects = bpy.data.collections.get('chrono_objects')
@@ -292,9 +337,18 @@ def read_chrono_simulation(context, filepath, setting_materials):
     # PREPARE SCENE
     global chrono_collection_objects
     global chrono_collection_assets
+    global chrono_collection_frame_assets
     global chrono_collection_cameras
+    global chrono_csys
     global empty_mesh
     global chrono_filename
+    global chrono_view_asset_csys
+    global chrono_view_asset_csys_size
+    global chrono_view_item_csys
+    global chrono_view_item_csys_size
+    global chrono_view_link_csys
+    global chrono_view_link_csys_size
+    global chrono_view_materials
     
     chrono_collection_cameras = bpy.data.collections.get('chrono_cameras')
     if not chrono_collection_cameras:
@@ -336,6 +390,39 @@ def read_chrono_simulation(context, filepath, setting_materials):
     # if some sub collection is selected, select the root one, so loading assets.py will work fine  
     bpy.context.view_layer.active_layer_collection = bpy.context.view_layer.layer_collection
        
+    # create template for all chrono coordinate systems
+    chrono_csys = bpy.data.objects.get('chrono_csys')
+    if not chrono_csys:
+        bpy.ops.mesh.primitive_cylinder_add(vertices=10, radius=0.02, depth=1.0, calc_uvs=False, rotation=(0,0,0),location=(0,0,0.5))
+        cyZ = bpy.context.object
+        matZ = make_bsdf_material('axis_z',(0,0,1,1)) #for render
+        matZ.diffuse_color = (0,0,1,1) #for viewport  
+        cyZ.data.materials.append(matZ) 
+        bpy.ops.mesh.primitive_cylinder_add(vertices=10, radius=0.02, depth=1.0, calc_uvs=False, rotation=(math.pi/2.0,0,0),location=(0,0.5,0))
+        cyY = bpy.context.object
+        matY = make_bsdf_material('axis_y',(0,1,0,1)) #for render
+        matY.diffuse_color = (0,1,0,1) #for viewport
+        cyY.data.materials.append(matY)
+        bpy.ops.mesh.primitive_cylinder_add(vertices=10, radius=0.02, depth=1.0, calc_uvs=False, rotation=(0,math.pi/2.0,0),location=(0.5,0,0))
+        cyX = bpy.context.object
+        matX = make_bsdf_material('axis_x',(1,0,0,1)) #for render
+        matX.diffuse_color = (1,0,0,1) #for viewport
+        cyX.data.materials.append(matX)
+        bpy.ops.mesh.primitive_cube_add(size=0.1,calc_uvs=False)
+        cyO = bpy.context.object
+        matO = make_bsdf_material('axis_origin',(1,1,1,1)) #for render
+        matO.diffuse_color = (1,1,1,1) #for viewport
+        cyO.data.materials.append(matO)
+        with bpy.context.temp_override(selected_editable_objects=[cyZ,cyY,cyX,cyO]):
+            bpy.ops.object.join()
+        chrono_csys = bpy.context.object
+        with bpy.context.temp_override(selected_editable_objects=[chrono_csys]):
+            bpy.ops.object.shade_smooth(use_auto_smooth=True,auto_smooth_angle=1.1)
+        chrono_csys.visible_shadow = False
+        chrono_csys.name ='chrono_csys'
+        chrono_csys.select_set(False)
+        bpy.context.scene.collection.objects.unlink(chrono_csys)
+    
 
     empty_mesh = bpy.data.meshes.new('empty_mesh')
     empty_mesh.from_pydata([], [], []) 
