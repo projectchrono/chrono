@@ -47,7 +47,7 @@ bl_info = {
     "location": "File > Import-Export",
     "description": "Import ProjectChrono simulations",
     "author": "Alessandro Tasora",
-    "version": (0, 0, 1),
+    "version": (0, 0, 2),
     "wiki_url": "http://projectchrono.org",
     "doc_url": "http://projectchrono.org",
 }
@@ -57,6 +57,10 @@ import bmesh
 import numpy as np
 import mathutils
 import os
+import math
+from bpy.types import Operator
+from bpy.types import Panel
+
 
 #
 # Globals, to keep things simple with callbacks
@@ -466,10 +470,76 @@ def read_chrono_simulation(context, filepath, setting_materials):
 
 
 
+# Sidebar GUI ----------------------------------------------
+
+
+
+def UpdatedFunction(self, context):
+    global chrono_view_asset_csys
+    global chrono_view_asset_csys_size
+    global chrono_view_item_csys
+    global chrono_view_item_csys_size
+    global chrono_view_link_csys
+    global chrono_view_link_csys_size
+    global chrono_view_materials
+    #print("In update func...")
+    #print(self.chrono_show_assets_coordsys)
+    chrono_view_asset_csys = self.chrono_show_assets_coordsys
+    chrono_view_asset_csys_size = self.chrono_assets_coordsys_size
+    chrono_view_item_csys = self.chrono_show_item_coordsys
+    chrono_view_item_csys_size = self.chrono_item_coordsys_size
+    chrono_view_links_csys = self.chrono_show_links_coordsys
+    chrono_view_links_csys_size = self.chrono_links_coordsys_size
+    callback_post(self) # force reload 
+    
+class Chrono_operator(Operator):
+    """ example operator """
+    bl_idname = "demo.operator"
+    bl_label = "I'm a Skeleton Operator"
+    bl_options = {"REGISTER", "UNDO"}
+
+    @classmethod
+    def poll(cls, context):
+        return context.mode == "OBJECT"
+
+    def execute(self, context):
+
+        self.report({'INFO'},
+            f"execute()")
+
+        return {'FINISHED'}
+
+
+class Chrono_sidebar(Panel):
+    """Chrono settings for 3D view"""
+    bl_label = "Chrono view"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Chrono"
+
+    def draw(self, context):
+        col = self.layout.column(align=True)
+        #prop = col.operator(TLA_OT_operator.bl_idname, text="Test")
+        
+        col.prop(context.scene, "chrono_show_item_coordsys")
+        col.prop(context.scene, "chrono_item_coordsys_size")
+        col.prop(context.scene, "chrono_show_assets_coordsys")
+        col.prop(context.scene, "chrono_assets_coordsys_size")
+        col.prop(context.scene, "chrono_show_links_coordsys")
+        col.prop(context.scene, "chrono_links_coordsys_size")
+        col.prop(context.scene, "chrono_show_materials")
+ 
+sidebar_classes = [
+    Chrono_operator,
+    Chrono_sidebar,
+]
 
 
 
 
+
+
+# Menu in File/Import/.. GUI ----------------------------------------------
 
 
 # ImportHelper is a helper class, defines filename and
@@ -533,11 +603,64 @@ def register():
     #run the function on each frame
     bpy.app.handlers.frame_change_post.append(callback_post)
 
+    # sidebar UI:
+    for c in sidebar_classes:
+        bpy.utils.register_class(c)
+        
+    bpy.types.Scene.chrono_show_item_coordsys = bpy.props.BoolProperty(
+        name='Show items coordsys',
+        default=False,
+        update=UpdatedFunction
+    )
+    bpy.types.Scene.chrono_item_coordsys_size = bpy.props.FloatProperty(
+        name='Item coordsys size',
+        default=0.15,
+        update=UpdatedFunction
+    )
+    bpy.types.Scene.chrono_show_assets_coordsys = bpy.props.BoolProperty(
+        name='Show assets coordsys',
+        default=False,
+        update=UpdatedFunction
+    )
+    bpy.types.Scene.chrono_assets_coordsys_size = bpy.props.FloatProperty(
+        name='Assets coordsys size',
+        default=0.10,
+        update=UpdatedFunction
+    )
+    bpy.types.Scene.chrono_show_link_coordsys = bpy.props.BoolProperty(
+        name='Show links coordsys',
+        default=True,
+        update=UpdatedFunction
+    )
+    bpy.types.Scene.chrono_link_coordsys_size = bpy.props.FloatProperty(
+        name='Links coordsys size',
+        default=0.20,
+        update=UpdatedFunction
+    )
+    bpy.types.Scene.chrono_show_materials = bpy.props.BoolProperty(
+        name='Use Chrono materials',
+        default=True,
+        update=UpdatedFunction
+    )
+    
 
 def unregister():
+    
+    del bpy.types.Scene.chrono_show_item_coordsys
+    del bpy.types.Scene.chrono_item_coordsys_size
+    del bpy.types.Scene.chrono_show_assets_coordsys
+    del bpy.types.Scene.chrono_assets_coordsys_size
+    for c in sidebar_classes:
+        bpy.utils.unregister_class(c)
+        
+        
     bpy.utils.unregister_class(ImportChrono)
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
     bpy.app.handlers.frame_change_post.remove(callback_post)
+
+    # sidebar UI:
+    
+
 
 
 if __name__ == "__main__":
