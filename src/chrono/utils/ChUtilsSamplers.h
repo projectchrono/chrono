@@ -144,10 +144,10 @@ class Sampler {
     }
 
     /// Get the current value of the minimum separation.
-    virtual double GetSeparation() const { return m_separation; }
+    virtual T GetSeparation() const { return m_separation; }
 
     /// Change the minimum separation for subsequent calls to Sample.
-    virtual void SetSeparation(double separation) { m_separation = separation; }
+    virtual void SetSeparation(T separation) { m_separation = separation; }
 
   protected:
     enum VolumeType { BOX, SPHERE, CYLINDER_X, CYLINDER_Y, CYLINDER_Z };
@@ -170,11 +170,14 @@ class Sampler {
             case SPHERE:
                 return (vec.Length2() <= m_size.x() * m_size.x());
             case CYLINDER_X:
-                return (vec.y() * vec.y() + vec.z() * vec.z() <= m_size.y() * m_size.y()) && (std::abs(vec.x()) <= m_size.x() + fuzz);
+                return (vec.y() * vec.y() + vec.z() * vec.z() <= m_size.y() * m_size.y()) &&
+                       (std::abs(vec.x()) <= m_size.x() + fuzz);
             case CYLINDER_Y:
-                return (vec.z() * vec.z() + vec.x() * vec.x() <= m_size.z() * m_size.z()) && (std::abs(vec.y()) <= m_size.y() + fuzz);
+                return (vec.z() * vec.z() + vec.x() * vec.x() <= m_size.z() * m_size.z()) &&
+                       (std::abs(vec.y()) <= m_size.y() + fuzz);
             case CYLINDER_Z:
-                return (vec.x() * vec.x() + vec.y() * vec.y() <= m_size.x() * m_size.x()) && (std::abs(vec.z()) <= m_size.z() + fuzz);
+                return (vec.x() * vec.x() + vec.y() * vec.y() <= m_size.x() * m_size.x()) &&
+                       (std::abs(vec.z()) <= m_size.z() + fuzz);
             default:
                 return false;
         }
@@ -479,9 +482,7 @@ class GridSampler : public Sampler<T> {
     GridSampler(const ChVector<T>& separation) : Sampler<T>(separation.x()), m_sep3D(separation) {}
 
     /// Change the minimum separation for subsequent calls to Sample.
-    virtual void SetSeparation(double separation) override {
-        m_sep3D = ChVector<T>(separation, separation, separation);
-    }
+    virtual void SetSeparation(T separation) override { m_sep3D = ChVector<T>(separation, separation, separation); }
 
   private:
     /// Worker function for sampling the given domain.

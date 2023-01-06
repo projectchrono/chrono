@@ -71,7 +71,7 @@ for item in exported_items:
 pov_exporter = postprocess.ChPovRay(sys)
 
  # Sets some file names for in-out processes.
-pov_exporter.SetTemplateFile(chrono.GetChronoDataFile('_template_POV.pov'))
+pov_exporter.SetTemplateFile(chrono.GetChronoDataFile('POVRay_chrono_template.pov'))
 pov_exporter.SetOutputScriptFile("rendering_frames.pov")
 
 try:

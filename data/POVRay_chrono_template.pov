@@ -3,10 +3,10 @@
 // Most often, in POV-Ray, you run the .INI file, that calls this file multiple times to render
 // the many frames of a complete animation.
 //
-// Plase do not modify the _template_POV.pov , unless you know exactly what you are
-// doing, because _template_POV.pov is used by default to build POV scenes by the postprocessing
-// unit of Chrono::Engine
+// Do not modify this file , unless you know exactly what you are doing, because this is the default
+// script used to build POV scenes by the Chrono::Postprocess module.
 
+#version 3.7;
 
 #include "debug.inc"
 #include "colors.inc" 

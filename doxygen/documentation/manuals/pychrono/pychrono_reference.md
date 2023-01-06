@@ -59,7 +59,7 @@ handles pointing to it.
 
 Currently there is no support for templated clases in Python. On the
 other side, there are some templated classes in the C++ API of
-Chrono::Engine, expecially for vectors, matrices, etc., because in C++
+Chrono::Engine, especially for vectors, matrices, etc., because in C++
 you might want to create vectors of floats, or doubles, or integers,
 etc. by using the <> syntax, as:
 
@@ -152,7 +152,6 @@ This is the equivalent syntax **in Python** :
 my_link_BC = chrono.ChLinkLockRevolute()
 ~~~~~~~~~~~~~~~
 
-
 <div class="ce-info">
 When you create a shared pointer object in PyChrono::Engine, also 
 the referenced object is created. For instance, in the last example, 
@@ -160,7 +159,6 @@ a revolute joint is created at the same line.
 If you need other shared pointers to the same object, simply type 
 ```my_link_other = my_link_BC``` etc. 
 </div>
-
 
 
 Downcasting and upcasting
@@ -203,7 +201,9 @@ class ContactReporter : public ChContactContainer::ReportContactCallback { ... e
 //enum classes:
 vehicle.SetChassisVisualizationType(chrono::vehicle::VisualizationType::MESH);
 ~~~~~~~~~~~~~~~
-In Python he have:
+
+In Python we have:
+
 ~~~~~~~~~~~~~~~py
 # class inheriting ReportContactCallback in Python
 class ContactReporter(chrono.ReportContactCallback): ...etc...
@@ -237,7 +237,7 @@ my_system.GetSystemDescriptor()
 
 <div class="ce-info">
 As the development of PyChrono::Engine proceeds, the latter case will
-happen less an less frequently. Tell us if you encounter this type of
+happen less and less frequently. Tell us if you encounter this type of
 problem in some function, so we can fix it.
 </div>
 

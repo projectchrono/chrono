@@ -53,10 +53,10 @@ int main(int argc, char* argv[]) {
     ChPovRay pov_exporter = ChPovRay(&sys);
 
     // Important: set the path to the template:
-    pov_exporter.SetTemplateFile(GetChronoDataFile("_template_POV.pov"));
+    pov_exporter.SetTemplateFile(GetChronoDataFile("POVRay_chrono_template.pov"));
 
     // Set the path where it will save all .pov, .ini, .asset and .dat files
-    pov_exporter.SetBasePath(GetChronoOutputPath() + "DEMO_EMITTER");
+    pov_exporter.SetBasePath(GetChronoOutputPath() + "EMITTER_ASSET");
 
     pov_exporter.SetLight(VNULL, ChColor(0, 0, 0), false);
     pov_exporter.SetCustomPOVcommandsScript(

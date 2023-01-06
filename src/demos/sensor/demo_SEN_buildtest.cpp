@@ -104,9 +104,9 @@ int main(int argc, char* argv[]) {
     {
         auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
         vis_mat->SetDiffuseColor({1, 1, 1});
-        vis_mat->SetSpecularColor({1.f, 1.f, 1.f});
+        vis_mat->SetSpecularColor({1, 1, 1});
         vis_mat->SetRoughness(0);
-        vis_mat->SetMetallic(.9);
+        vis_mat->SetMetallic(0.9f);
         top_mirror->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
     }
 
@@ -120,9 +120,9 @@ int main(int argc, char* argv[]) {
     {
         auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
         vis_mat->SetDiffuseColor({1, 1, 1});
-        vis_mat->SetSpecularColor({1.f, 1.f, 1.f});
+        vis_mat->SetSpecularColor({1, 1, 1});
         vis_mat->SetRoughness(0);
-        vis_mat->SetMetallic(.9);
+        vis_mat->SetMetallic(0.9f);
         bottom_mirror->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
     }
 

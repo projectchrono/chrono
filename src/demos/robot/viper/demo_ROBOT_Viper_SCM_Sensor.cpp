@@ -357,7 +357,7 @@ int main(int argc, char* argv[]) {
 
     // Create a sensor manager
     auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
-    manager->scene->AddPointLight({100, 100, 100}, {0.4, 0.4, 0.4}, 500);
+    manager->scene->AddPointLight({100, 100, 100}, {0.4f, 0.4f, 0.4f}, 500);
     manager->SetVerbose(false);
 
     // Create a lidar and add it to the sensor manager
@@ -374,7 +374,7 @@ int main(int argc, char* argv[]) {
     );
     lidar->SetName("Lidar Sensor 1");
     lidar->SetLag(0.f);
-    lidar->SetCollectionWindow(0.02);
+    lidar->SetCollectionWindow(0.02f);
 
     // Create a filter graph for post-processing the data from the lidar
     // Provides the host access to the Depth,Intensity data
@@ -396,7 +396,7 @@ int main(int argc, char* argv[]) {
                                                           (float)(CH_C_PI / 1.5), float(CH_C_PI / 5), 100.f);
     radar->SetName("Radar Sensor");
     radar->SetLag(0.f);
-    radar->SetCollectionWindow(0.02);
+    radar->SetCollectionWindow(0.02f);
 
     radar->PushFilter(chrono_types::make_shared<ChFilterRadarXYZReturn>("Front Radar"));
     radar->PushFilter(chrono_types::make_shared<ChFilterRadarXYZVisualize>(960, 480, 0.2, "Front Radar"));

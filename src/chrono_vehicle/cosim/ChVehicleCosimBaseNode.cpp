@@ -307,9 +307,11 @@ void ChVehicleCosimBaseNode::SendGeometry(const ChVehicleGeometry& geom, int des
         MPI_Send(data, 10, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD);
     }
 
+    /*
     for (const auto& hull : geom.m_coll_hulls) {
         //// RADU TODO
     }
+    */
 
     for (const auto& mesh : geom.m_coll_meshes) {
         double data[] = {mesh.m_pos.x(), mesh.m_pos.y(), mesh.m_pos.z()};
@@ -332,17 +334,17 @@ void ChVehicleCosimBaseNode::SendGeometry(const ChVehicleGeometry& geom, int des
 
         double* vert_data = new double[3 * nv + 3 * nn];
         int* tri_data = new int[3 * nt + 3 * nt];
-        for (unsigned int iv = 0; iv < nv; iv++) {
+        for (int iv = 0; iv < nv; iv++) {
             vert_data[3 * iv + 0] = vertices[iv].x();
             vert_data[3 * iv + 1] = vertices[iv].y();
             vert_data[3 * iv + 2] = vertices[iv].z();
         }
-        for (unsigned int in = 0; in < nn; in++) {
+        for (int in = 0; in < nn; in++) {
             vert_data[3 * nv + 3 * in + 0] = normals[in].x();
             vert_data[3 * nv + 3 * in + 1] = normals[in].y();
             vert_data[3 * nv + 3 * in + 2] = normals[in].z();
         }
-        for (unsigned int it = 0; it < nt; it++) {
+        for (int it = 0; it < nt; it++) {
             tri_data[6 * it + 0] = idx_vertices[it].x();
             tri_data[6 * it + 1] = idx_vertices[it].y();
             tri_data[6 * it + 2] = idx_vertices[it].z();
@@ -442,17 +444,17 @@ void ChVehicleCosimBaseNode::RecvGeometry(ChVehicleGeometry& geom, int source) c
         MPI_Recv(vert_data, 3 * nv + 3 * nn, MPI_DOUBLE, source, 0, MPI_COMM_WORLD, &status);
         MPI_Recv(tri_data, 3 * nt + 3 * nt, MPI_INT, source, 0, MPI_COMM_WORLD, &status);
 
-        for (unsigned int iv = 0; iv < nv; iv++) {
+        for (int iv = 0; iv < nv; iv++) {
             vertices[iv].x() = vert_data[3 * iv + 0];
             vertices[iv].y() = vert_data[3 * iv + 1];
             vertices[iv].z() = vert_data[3 * iv + 2];
         }
-        for (unsigned int in = 0; in < nn; in++) {
+        for (int in = 0; in < nn; in++) {
             normals[in].x() = vert_data[3 * nv + 3 * in + 0];
             normals[in].y() = vert_data[3 * nv + 3 * in + 1];
             normals[in].z() = vert_data[3 * nv + 3 * in + 2];
         }
-        for (unsigned int it = 0; it < nt; it++) {
+        for (int it = 0; it < nt; it++) {
             idx_vertices[it].x() = tri_data[6 * it + 0];
             idx_vertices[it].y() = tri_data[6 * it + 1];
             idx_vertices[it].z() = tri_data[6 * it + 2];

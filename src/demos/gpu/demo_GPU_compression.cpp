@@ -26,7 +26,6 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "chrono_gpu/ChGpuData.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
 
@@ -39,7 +38,7 @@ float KE_CGS_TO_SI = 1e-7f;
 float L_CGS_TO_SI = 1e-2f;
 
 int main(int argc, char* argv[]) {
-    std::string inputJson = GetChronoDataFile("gpu/demo_GPU_compression.json");
+    std::string inputJson = GetChronoDataFile("gpu/compression.json");
     if (argc == 2) {
         inputJson = std::string(argv[1]);
     } else if (argc > 2) {

@@ -42,8 +42,8 @@ public:
 // Ready-to-use callbacks for the most relevant cases: sparse matrices, generalized, shift&invert:
 //
 
-/// The callback to be used for "A*x"  where for shift&invert is: A = (As - sigma Bs)\Bs , 
-/// so A*x = (As - sigma Bs)\(Bs*x), just like a linear system with coefficient matrix (As - sigma Bs) and known rhs  Bs*x
+/// The callback to be used for "A*x"  where for shift&invert is: A = (As - sigma Bs)/Bs , 
+/// so A*x = (As - sigma Bs)/(Bs*x), just like a linear system with coefficient matrix (As - sigma Bs) and known rhs  Bs*x
 /// 
 class ChApiModal callback_Ax_sparse_shiftinvert : public callback_Ax {
     public:
@@ -67,8 +67,8 @@ class ChApiModal callback_Ax_sparse_shiftinvert : public callback_Ax {
     double sigma;
 };
 
-/// The callback to be used for "A*x"  where for shift&invert is: A = (As - sigma Bs)\Bs , with COMPLEX sigma shift,
-/// so A*x = (As - sigma Bs)\(Bs*x), just like a linear system with coefficient matrix (As - sigma Bs) and known rhs  Bs*x
+/// The callback to be used for "A*x"  where for shift&invert is: A = (As - sigma Bs)/Bs , with COMPLEX sigma shift,
+/// so A*x = (As - sigma Bs)/(Bs*x), just like a linear system with coefficient matrix (As - sigma Bs) and known rhs  Bs*x
 /// 
 class ChApiModal callback_Ax_sparse_complexshiftinvert : public callback_Ax {
     public:

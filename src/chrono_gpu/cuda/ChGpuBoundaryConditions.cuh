@@ -807,7 +807,6 @@ inline __device__ bool addBCForces_Zcyl(unsigned int sphID,
 
     // if we had normal forces, and friction is on, compute tangential forces
     if (contact) {
-        float penetration = sphereRadius_SU - dist;
         float projection = Dot(sphVel, contact_normal);
         float3 rel_vel = sphVel - contact_normal * projection + Cross(sphOmega, -1. * dist * contact_normal);
 

@@ -166,7 +166,7 @@ class CH_VEHICLE_API ChJSONWriter {
 
     ChJSONWriter& Key(const std::string& v);
 
-    ChJSONWriter& PointerAsString(unsigned long v, int len);
+    ChJSONWriter& PointerAsString(size_t v, unsigned int len);
 
     ChJSONWriter& StartObject(const std::string& type, const std::string& id);
     ChJSONWriter& EndObject();

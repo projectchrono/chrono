@@ -43,7 +43,5 @@
 	"psi_L": 16,
 
 	"output_dir": "repose",
-	// "output_dir": "repose_with_cohesion",
-	// "output_dir": "repose_with_rolling_friction",
     "write_mode": "csv"
 }

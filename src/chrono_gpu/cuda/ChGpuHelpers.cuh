@@ -239,21 +239,20 @@ inline __device__ float3 computeRollingAngAcc(ChSystemGpu_impl::GranSphereDataPt
                 // v_rot = l_p (w_p x n) - l_n (w_n x n)
                 const float3 v_rot = Cross(omega_rel, r_contact);
                 float v_rot_su = Length(v_rot);
-                float velo_su2uu = (float)(gran_params->LENGTH_UNIT/gran_params->TIME_UNIT);
+                // float velo_su2uu = (float)(gran_params->LENGTH_UNIT/gran_params->TIME_UNIT);
                 // float acc_su2uu = (float)(gran_params->LENGTH_UNIT/(gran_params->TIME_UNIT*gran_params->TIME_UNIT));
                 // float force_su2uu = (float)(gran_params->MASS_UNIT * acc_su2uu);
                 // float torque_su2uu = force_su2uu * gran_params->LENGTH_UNIT;
                 // convert v_rot to user unit for threshold comparison
                 // float v_rot_uu = v_rot_su * velo_su2uu;
 
-                    if (v_rot_su < 1e-4f * gran_params->TIME_UNIT / gran_params->LENGTH_UNIT) {
-                        return make_float3(0.f, 0.f, 0.f);
-                    }
-    
-                    const float normal_force_mag = Length(normal_force);
-                    float3 torque = (rolling_coeff * normal_force_mag / Length(v_rot)) * Cross(r_contact, v_rot);
-                    delta_Ang_Acc = 1.f / (gran_params->sphereInertia_by_r * gran_params->sphereRadius_SU) * torque;
-    
+                if (v_rot_su < 1e-4f * gran_params->TIME_UNIT / gran_params->LENGTH_UNIT) {
+                    return make_float3(0.f, 0.f, 0.f);
+                }
+
+                const float normal_force_mag = Length(normal_force);
+                float3 torque = (rolling_coeff * normal_force_mag / Length(v_rot)) * Cross(r_contact, v_rot);
+                delta_Ang_Acc = 1.f / (gran_params->sphereInertia_by_r * gran_params->sphereRadius_SU) * torque;
 
                 break;
             }

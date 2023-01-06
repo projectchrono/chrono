@@ -20,7 +20,6 @@
 #include "chrono/core/ChGlobal.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 
-#include "chrono_gpu/ChGpuData.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
 #include "chrono_gpu/utils/ChGpuVisualization.h"
@@ -34,7 +33,7 @@ using namespace chrono::gpu;
 bool render = true;
 
 int main(int argc, char* argv[]) {
-    std::string inputJson = GetChronoDataFile("gpu/demo_GPU_repose.json");
+    std::string inputJson = GetChronoDataFile("gpu/repose.json");
     if (argc == 2) {
         inputJson = std::string(argv[1]);
     } else if (argc > 2) {

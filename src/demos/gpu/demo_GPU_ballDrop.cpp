@@ -12,8 +12,8 @@
 // Authors: Luning Fang
 // =============================================================================
 // Impact test: Granular material settling in a cylindrical container
-// to generate the bed for balldrop test. Once particles are settled, 
-// a projectile modeled as boundary condition is dropped 
+// to generate the bed for balldrop test. Once particles are settled,
+// a projectile modeled as boundary condition is dropped
 // with impact velocity 1m/s
 // =============================================================================
 
@@ -25,17 +25,15 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "chrono_gpu/ChGpuData.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
-
 
 using namespace chrono;
 using namespace chrono::gpu;
 
-void setMatreialProperty(ChSystemGpu& gran_sys){
-    double cor_p = 0.5; // use cor_p = 0.9 for sand or glass beads
+void setMatreialProperty(ChSystemGpu& gran_sys) {
+    double cor_p = 0.5;  // use cor_p = 0.9 for sand or glass beads
     double cor_w = 0.5;
-    double youngs_modulus = 1e8; 
+    double youngs_modulus = 1e8;
     double mu_s2s = 0.16;
     double mu_s2w = 0.45;
     double mu_roll = 0.09;
@@ -54,7 +52,6 @@ void setMatreialProperty(ChSystemGpu& gran_sys){
     gran_sys.SetFrictionMode(CHGPU_FRICTION_MODE::MULTI_STEP);
     gran_sys.SetStaticFrictionCoeff_SPH2SPH(mu_s2s);
     gran_sys.SetStaticFrictionCoeff_SPH2WALL(mu_s2w);
-
 }
 
 int main(int argc, char* argv[]) {
@@ -69,7 +66,7 @@ int main(int argc, char* argv[]) {
     double grav_Y = 0.0f;
     double grav_Z = -980.0f;
 
-    float step_size = 1e-5;
+    float step_size = 1e-5f;
     float time_settle = 1.5f;
     float time_impact = 0.5f;
     float time_end = time_settle + time_impact;
@@ -87,7 +84,7 @@ int main(int argc, char* argv[]) {
     utils::PDSampler<float> sampler(2.001 * sphere_radius);
     ChVector<float> sampler_center(0.0f, 0.0f, 0.0f);
     body_points = sampler.SampleCylinderZ(sampler_center, cyl_rad - 4 * sphere_radius, box_Z / 2 - 4 * sphere_radius);
-    int numSpheres = body_points.size();
+    auto numSpheres = body_points.size();
     std::cout << "Numbers of particles created: " << numSpheres << std::endl;
     gran_sys.SetParticles(body_points);
 
@@ -97,10 +94,9 @@ int main(int argc, char* argv[]) {
     // set up projectile radius, mass and impact velocity
     float projectile_radius = 5.0f;
     float projectile_mass = 1000;
-    ChVector<float> projectile_pos(0, 0, box_Z/2.0f - projectile_radius);
+    ChVector<float> projectile_pos(0, 0, box_Z / 2.0f - projectile_radius);
     ChVector<float> projectile_impact_velo(0.0, 0.0, -100.0f);
     size_t projectile_id = gran_sys.CreateBCSphere(projectile_pos, projectile_radius, true, true, projectile_mass);
-
 
     gran_sys.SetGravitationalAcceleration(ChVector<float>(grav_X, grav_Y, grav_Z));
     gran_sys.SetPsiFactors(32.0f, 16.0f);
@@ -109,7 +105,7 @@ int main(int argc, char* argv[]) {
 
     std::string out_dir = GetChronoOutputPath() + "GPU/";
     filesystem::create_directory(filesystem::path(out_dir));
-    out_dir = out_dir + "/balldrop/";
+    out_dir = out_dir + "/ballDrop/";
     filesystem::create_directory(filesystem::path(out_dir));
 
     gran_sys.SetParticleOutputFlags(ABSV);
@@ -129,13 +125,13 @@ int main(int argc, char* argv[]) {
     // settling phase
     while (t < time_settle) {
         gran_sys.AdvanceSimulation(frame_step_settle);
-        
+
         // write particle output
         sprintf(filename, "%s/settling%06d.csv", out_dir.c_str(), curr_step_settle);
         gran_sys.WriteParticleFile(std::string(filename));
-        
+
         curr_step_settle++;
-        t+=frame_step_settle;
+        t += frame_step_settle;
     }
 
     double max_particle_z = gran_sys.GetMaxParticleZ();
@@ -153,8 +149,8 @@ int main(int argc, char* argv[]) {
     // impact phase
     while (t < time_end) {
         gran_sys.AdvanceSimulation(frame_step_impact);
-        
-        t+=frame_step_impact;
+
+        t += frame_step_impact;
 
         bc_pos = gran_sys.GetBCSpherePosition(projectile_id);
         bc_velo = gran_sys.GetBCSphereVelocity(projectile_id);
@@ -162,7 +158,6 @@ int main(int argc, char* argv[]) {
 
         // output projectile position, velocity and acceleration in z direction
         printf("%e, %e, %e, %e\n", t, bc_pos.z(), bc_velo.z(), bc_force.z() / projectile_mass + grav_Z);
-
     }
 
     return 0;

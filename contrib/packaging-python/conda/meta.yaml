@@ -1,7 +1,7 @@
 # change the version number in case of a release build
 package:
   name: pychrono
-  version: 7.0.0
+  version: 8.0.0
 
 source:
   path: ../../..
@@ -9,52 +9,40 @@ source:
 build:
   rpaths:
     - lib/
-  script_env:
-    - CC
-    - CXX
-    - CI_PROJECT_DIR
 
   number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
   binary_relocation: true
-  #features:
-  #  - vc9              # [win and py27]
-  #  - vc14             # [win and py35]
-  #  - vc14             # [win and py36]
-
+  
 requirements:
   build:
     - python
-    - cmake          # [not win]
+    - cmake   # [not win]
     - ninja   # [linux or osx]
-    - pip     # [linux]
     - jinja2  # [linux]
     - libglvnd-glx-cos7-x86_64 # [linux]
-    - swig
-    - mkl # [not arm64]
-    - mkl-devel # [not arm64]
     - freeglut # [linux]
     - libxxf86vm-devel-cos7-x86_64 # [linux]
+    - swig
+    - mkl-devel ==2020.0.0 # [not arm64]
     - irrlicht
-    - opencascade # [not osx]
-    - numpy >=1.22.0 # [not osx]
+    - occt ==7.4.0 # [not arm64]
+    - numpy >=1.24.0
     - glew
     - glfw
-    - eigen
+    - eigen ==3.4.0
 
   run:
     - python
-    - mkl # [not arm64]
-    - numpy >=1.22.0 # [not osx]
+    - pythonocc-core ==7.4.0 # [py<=39 and not arm64]
+    - mkl ==2020.0.0 # [not arm64]
+    - numpy >=1.24.0
+    - irrlicht
     - glew
     - glfw
-
-test:
-  requires:
-    - wxpython          [py27]
-    - pyside            [py27]
+    - eigen ==3.4.0
 
 about:
   home: https://github.com/projectchrono/chrono
   license: BSD 3-Clause
   license_family: BSD
-  summary: A physics engine for constrained multi-flexible-body dynamics
+  summary: High performance library for multiphysics and multibody dynamics simulations

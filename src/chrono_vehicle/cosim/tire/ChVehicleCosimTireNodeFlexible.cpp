@@ -68,7 +68,7 @@ void ChVehicleCosimTireNodeFlexible::InitializeTire(std::shared_ptr<ChWheel> whe
     //// TODO: vertex normals?
     auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     auto& verts = trimesh->getCoordsVertices();
-    auto& norms = trimesh->getCoordsNormals();
+    ////auto& norms = trimesh->getCoordsNormals();
     auto& idx_verts = trimesh->getIndicesVertexes();
     auto& idx_norms = trimesh->getIndicesNormals();
 

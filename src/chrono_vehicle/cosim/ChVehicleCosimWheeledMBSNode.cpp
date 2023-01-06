@@ -135,7 +135,7 @@ void ChVehicleCosimWheeledMBSNode::Initialize() {
     auto num_spindles = GetNumSpindles();
 
     // There must be a number of TIRE nodes equal to the number of spindles.
-    if (m_num_tire_nodes != num_spindles) {
+    if (m_num_tire_nodes != (unsigned int)num_spindles) {
         std::cerr << "Error: number of TIRE nodes (" << m_num_tire_nodes << ") different from number of spindles ("
                   << num_spindles << ")." << std::endl;
         MPI_Abort(MPI_COMM_WORLD, 1);

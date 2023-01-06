@@ -36,11 +36,11 @@
     "adhesion_ratio_s2m": 0,
 
     "verbose": 0,
-    "run_mode": 0,
+    "run_mode": "frictionless",
 
     "psi_T": 32,
     "psi_L": 16,
     
-    "output_dir": "ballcosim",
+    "output_dir": "ballCosim",
     "write_mode": "csv"
 }

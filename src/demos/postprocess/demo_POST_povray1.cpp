@@ -46,11 +46,11 @@ int main(int argc, char* argv[]) {
     ChPovRay pov_exporter = ChPovRay(&sys);
 
     // Important: set the path to the template:
-    pov_exporter.SetTemplateFile(GetChronoDataFile("_template_POV.pov"));
+    pov_exporter.SetTemplateFile(GetChronoDataFile("POVRay_chrono_template.pov"));
 
     // Set the path where it will save all .pov, .ini, .asset and .dat files, a directory will be created if not
     // existing
-    pov_exporter.SetBasePath(GetChronoOutputPath() + "DEMO_POVRAY");
+    pov_exporter.SetBasePath(GetChronoOutputPath() + "POVRAY_1");
 
     // Optional: change the default naming of the generated files:
     // pov_exporter.SetOutputScriptFile("rendering_frames.pov");
@@ -200,9 +200,6 @@ int main(int argc, char* argv[]) {
 
     /// [Example 3]
     /* End example */
-
-    // --Optional: attach additional custom POV commands to some of the rigid bodies.
-    pov_exporter.SetCustomCommands(floor, "pigment { checker rgb<0.9,0.9,0.9>, rgb<0.75,0.8,0.8> }");
 
     // Export all existing visual shapes to POV-Ray
     pov_exporter.AddAll();

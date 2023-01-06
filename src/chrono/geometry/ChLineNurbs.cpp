@@ -84,10 +84,10 @@ void ChLineNurbs::SetupData(
     if (mpoints.size() < morder + 1)
         throw ChException("ChLineNurbs::SetupData requires at least order+1 control points.");
 
-    if (mknots && mknots->size() != (mpoints.size() + morder + 1))
+    if (mknots && (size_t)mknots->size() != (mpoints.size() + morder + 1))
         throw ChException("ChLineNurbs::SetupData: knots must have size=n_points+order+1");
 
-    if (weights && weights->size() != mpoints.size())
+    if (weights && (size_t)weights->size() != mpoints.size())
         throw ChException("ChLineNurbs::SetupData: weights must have size=n_points");
 
     this->p = morder;

@@ -277,10 +277,13 @@ void ChOptixEngine::StopAllThreads() {
         m_sceneThread.done = false;
     }
     m_sceneThread.cv.notify_all();
+
     // wait for it to finish the terminate proces
-    std::unique_lock<std::mutex> lck(m_sceneThread.mutex);
-    while (!m_sceneThread.done) {
-        m_sceneThread.cv.wait(lck);
+    {
+        std::unique_lock<std::mutex> lck(m_sceneThread.mutex);
+        while (!m_sceneThread.done) {
+            m_sceneThread.cv.wait(lck);
+        }
     }
 
     if (m_sceneThread.thread.joinable()) {
@@ -557,7 +560,7 @@ void ChOptixEngine::ConstructScene() {
                 } else if (std::shared_ptr<ChEllipsoidShape> ellipsoid_shape =
                                std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
                 } else if (std::shared_ptr<ChConeShape> cone_shape = std::dynamic_pointer_cast<ChConeShape>(shape)) {
-                } else if (std::shared_ptr<ChRoundedBoxShape> shape =
+                } else if (std::shared_ptr<ChRoundedBoxShape> rbox_shape =
                                std::dynamic_pointer_cast<ChRoundedBoxShape>(shape)) {
                 } else if (std::shared_ptr<ChCapsuleShape> capsule_shape =
                                std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {
@@ -604,7 +607,7 @@ void ChOptixEngine::ConstructScene() {
                 } else if (std::shared_ptr<ChEllipsoidShape> ellipsoid_shape =
                                std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
                 } else if (std::shared_ptr<ChConeShape> cone_shape = std::dynamic_pointer_cast<ChConeShape>(shape)) {
-                } else if (std::shared_ptr<ChRoundedBoxShape> shape =
+                } else if (std::shared_ptr<ChRoundedBoxShape> rbox_shape =
                                std::dynamic_pointer_cast<ChRoundedBoxShape>(shape)) {
                 } else if (std::shared_ptr<ChCapsuleShape> capsule_shape =
                                std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {

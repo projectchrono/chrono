@@ -493,22 +493,22 @@ class ChSystemGpu_impl {
     void WriteContactInfoFile(const std::string& outfilename) const;
 
     /// Get rolling friction torque between body i and j, return 0 if not in contact
-    float3 getRollingFrictionTorque(int i, int j);
+    float3 getRollingFrictionTorque(unsigned int i, unsigned int j);
 
     /// get rolling friction v_rot
-    float3 getRollingVrot(int i, int j);
+    float3 getRollingVrot(unsigned int i, unsigned int j);
 
     /// get rolling characterisitc contact time
-    float getRollingCharContactTime(int i, int j);
+    float getRollingCharContactTime(unsigned int i, unsigned int j);
 
     /// Get tangential friction force between body i and j, return 0 if not in contact
-    float3 getSlidingFrictionForce(int i, int j);
+    float3 getSlidingFrictionForce(unsigned int i, unsigned int j);
 
     /// Get normal friction force between body i and j, return 0 if not in contact
-    float3 getNormalForce(int i, int j);
+    float3 getNormalForce(unsigned int i, unsigned int j);
 
     /// get list of neighbors in contact with particle ID
-    void getNeighbors(int ID, std::vector<int>& neighborList);
+    void getNeighbors(unsigned int ID, std::vector<unsigned int>& neighborList);
 
     /// Rough estimate of the total amount of memory used by the system.
     size_t EstimateMemUsage() const;
