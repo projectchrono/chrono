@@ -1,3 +1,45 @@
+# 
+# CHRONO IMPORT ADD-ON FOR BLENDER
+#
+# This is an add-on for Blender3D that allows loading simulations performed with 
+# Chrono (http://www.projectchrono.org) and saved with the Chrono POSTPROCESS module.
+# 
+# To install it: 
+# - open Blender
+# - menu "Edit/Preferences..", go to tab "Add-ons", press "Install" button and select 
+#   this .py file
+# - check that the Chorno Import add-on is now available in the list, and it is enabled
+#
+# To use it: 
+# - check that you built the c++ Chrono with the POSTPROCESS module enabled (if you use
+#   PyChrono, the postprocess module is always available in the AnaConda installation)
+# - write a Chrono app that uses instructions like my_blender_exporter.AddAll(); 
+#   my_blender_exporter.ExportScript(); and my_blender_exporter.ExportData(); (the latter
+#   in the while() simulation loop). See demo_POST_blender1.cpp for an example.
+# - run the chrono app,  this will generate files on disk: a single
+#   xxx.assets.py file and many state00001.py, state00002.py, ..., in an output/ dir.
+# - Open Blender, use menu "File/Import/Chrono import" to load the xxx.assets.py file.
+#
+# Tips:
+# - When scrubbing the timeline, the animation should happen. This may be a bit slower than 
+#   expected because the Chrono add-on loads and unloads from disk the content of each time
+#   step, for optimizing memory requirements.
+# - use the "Chrono" sidebar at the right border of the 3D view to enable/disable the
+#   showing of coordinate systems of Chrono bodies and assets, and other view settings.
+# - when possible, the Chrono Blender postprocessor and this add-on tend to optimize memory
+#   by sharing identical assets. More in detail, assets for whom myasset->IsMutable() is false
+#   in Chrono, ex. spheres, boxes, not deformable meshes, etc., will be put in the "chrono_assets"
+#   collection in the Blender outliner interface. Click on the eye icon to show-hide them in the viewport. 
+#   This allows you to edit and improve those assets by hand in Blender, it is enough that you 
+#   do not change their name. 
+# - if no material is added to a visual shape in Chrono, you can add by hand in Blender to 
+#   the asset object available in "chrono_assets" collection. (link to data, not to object);
+#   if a material is added to a visual shape in Chrono, it overrides the material you add to
+#   the asset object available in "chrono_assets" collection (unless you disable "Chrono materials" in
+#   the Chrono sidebar panel).
+
+
+
 bl_info = {
     "name": "Chrono import",
     "blender": (2, 80, 0),
