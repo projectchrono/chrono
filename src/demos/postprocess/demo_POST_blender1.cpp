@@ -117,9 +117,9 @@ int main(int argc, char* argv[]) {
 
     // ==Asset== Attach also a 'cylinder' shape
     auto cyl = chrono_types::make_shared<ChCylinderShape>();
-    cyl->GetCylinderGeometry().p1 = ChVector<>(2, -0.2, 0);
-    cyl->GetCylinderGeometry().p2 = ChVector<>(2.2, 0.5, 0);
-    cyl->GetCylinderGeometry().rad = 0.3;
+    cyl->GetCylinderGeometry().p1 = ChVector<>(3, 1, 0);
+    cyl->GetCylinderGeometry().p2 = ChVector<>(4, 2, 0);
+    cyl->GetCylinderGeometry().rad = 0.2;
     body->AddVisualShape(cyl);
 
     // ==Asset== Attach a 'Wavefront mesh' asset, referencing a .obj file:
