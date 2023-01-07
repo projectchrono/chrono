@@ -20,7 +20,10 @@ ChNodeXYZ::ChNodeXYZ() : pos(VNULL), pos_dt(VNULL), pos_dtdt(VNULL) {}
 
 ChNodeXYZ::ChNodeXYZ(const ChVector<>& initial_pos) : pos(initial_pos), pos_dt(VNULL), pos_dtdt(VNULL) {}
 
-ChNodeXYZ::ChNodeXYZ(const ChNodeXYZ& other) : ChNodeBase(other) {
+ChNodeXYZ::ChNodeXYZ(const ChNodeXYZ& other) {
+    offset_x = other.offset_x;
+    offset_w = other.offset_w;
+
     pos = other.pos;
     pos_dt = other.pos_dt;
     pos_dtdt = other.pos_dtdt;

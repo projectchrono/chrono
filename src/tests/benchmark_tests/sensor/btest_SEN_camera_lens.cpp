@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
 
     auto checkerboard = chrono_types::make_shared<ChVisualMaterial>();
     checkerboard->SetKdTexture(GetChronoDataFile("sensor/textures/checkerboard.png"));
-    checkerboard->SetRoughness(0.8);
+    checkerboard->SetRoughness(0.8f);
     box_body->GetVisualModel()->GetShape(0)->SetMaterial(0, checkerboard);
 
     // -----------------------
@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
                                                          alias_factor,  // supersample factor for antialiasing
                                                          lens_model,    // FOV
                                                          false);        // use global illumination or not
-    cam->SetRadialLensParameters({-.369, .1257, -.0194});
+    cam->SetRadialLensParameters({-0.369f, 0.1257f, -0.0194f});
     if (vis)
         cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(image_width, image_height, ""));
     if (save)
@@ -161,19 +161,19 @@ int main(int argc, char* argv[]) {
 
     std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 
-    float x_min = 1.5;
-    float x_max = 2.5;
-    float y_min = -.5;
-    float y_max = .5;
-    float z_min = -.4;
-    float z_max = .4;
+    double x_min = 1.5;
+    double x_max = 2.5;
+    double y_min = -0.5;
+    double y_max = 0.5;
+    double z_min = -0.4;
+    double z_max = 0.4;
 
-    float ax_min = -CH_C_PI / 6.0;
-    float ax_max = CH_C_PI / 6.0;
-    float ay_min = -CH_C_PI / 6.0;
-    float ay_max = CH_C_PI / 6.0;
-    float az_min = -CH_C_PI / 6.0;
-    float az_max = CH_C_PI / 6.0;
+    double ax_min = -CH_C_PI / 6;
+    double ax_max = CH_C_PI / 6;
+    double ay_min = -CH_C_PI / 6;
+    double ay_max = CH_C_PI / 6;
+    double az_min = -CH_C_PI / 6;
+    double az_max = CH_C_PI / 6;
 
     while (ch_time < end_time) {
         // Update sensor manager

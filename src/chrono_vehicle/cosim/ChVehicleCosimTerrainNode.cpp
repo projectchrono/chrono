@@ -356,8 +356,8 @@ void ChVehicleCosimTerrainNode::SynchronizeWheeledMesh(int step_number, double t
             MPI_Recv(vert_data, 2 * 3 * nv, MPI_DOUBLE, TIRE_NODE_RANK(i), step_number, MPI_COMM_WORLD,
                      &status);
 
-            for (unsigned int iv = 0; iv < nv; iv++) {
-                unsigned int offset = 3 * iv;
+            for (int iv = 0; iv < nv; iv++) {
+                int offset = 3 * iv;
                 m_mesh_state[i].vpos[iv] =
                     ChVector<>(vert_data[offset + 0], vert_data[offset + 1], vert_data[offset + 2]);
                 offset += 3 * nv;

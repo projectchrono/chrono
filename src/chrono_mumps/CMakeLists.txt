@@ -93,8 +93,9 @@ find_package(BLAS)
 set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH_BKP}) # restore original CMAKE_LIBRARY_PATH
 
 if (NOT BLAS_FOUND)
-	message("  BLAS not found. Set BLAS_LIBRARIES manually")
+	message("  BLAS not found. Disabling the Chrono::Mumps module.")
 	set(BLAS_LIBRARIES "" CACHE PATH "Locate BLAS library directory")
+	set(ENABLE_MODULE_MUMPS OFF CACHE BOOL "Enable the Chrono MUMPS module" FORCE)
 	return()
 else()
     message(STATUS "  BLAS_LIBRARIES: ${BLAS_LIBRARIES}")	

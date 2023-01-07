@@ -258,7 +258,6 @@ linux:ubuntu2004:test:
     - conda update conda --yes
     - conda config --add channels https://conda.anaconda.org/conda-forge
     - conda config --add channels https://conda.anaconda.org/intel
-    - conda config --add channels https://conda.anaconda.org/dlr-sc
   environment:
     name: pychrono-ubuntu2004
     url: https://anaconda.org/projectchrono/pychrono
@@ -367,11 +366,11 @@ windows:vs2022:build:
   stage: build
   extends: .windows
   script:
-  - cd $CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers
-  - cmake ../ -G "Visual Studio 17 2022" -DCMAKE_BUILD_TYPE=Release .
-  - MSBuild.exe FlatBuffers.sln -maxcpucount:8 -property:Configuration=Release
+  #- cd $CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers
+  #- cmake ../ -G "Visual Studio 17 2022" -DCMAKE_BUILD_TYPE=Release .
+  #- MSBuild.exe FlatBuffers.sln -maxcpucount:8 -property:Configuration=Release
   - cd $CI_PROJECT_DIR/build
-  - cmake --preset=windowsci-vs2022 .. -DBUILD_TESTING_GPU=FALSE
+  - cmake -DMPIEXEC_EXECUTABLE="C:/Program Files/Microsoft MPI/Bin/mpiexec.exe" --preset=windowsci-vs2022 ..
   - cmake --build . -t ALL_BUILD -j 8 --config Release
   artifacts:
     expire_in: 60m
@@ -392,12 +391,12 @@ windows:vs2019:build:
   extends: .windows
   script:
   # Build flatbuffers
-  - cd $CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers
-  - cmake -G "Visual Studio 17 2022" -T v142 -DCMAKE_BUILD_TYPE=Release .
-  - MSBuild.exe FlatBuffers.sln -maxcpucount:8 -property:Configuration=Release
+  #- cd $CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers
+  #- cmake -G "Visual Studio 17 2022" -T v142 -DCMAKE_BUILD_TYPE=Release .
+  #- MSBuild.exe FlatBuffers.sln -maxcpucount:8 -property:Configuration=Release
   # Main build
   - cd $CI_PROJECT_DIR/build
-  - cmake --preset=windowsci-vs2019 .. -DBUILD_TESTING_GPU=FALSE
+  - cmake --preset=windowsci-vs2019 ..
   - cmake --build . -t ALL_BUILD -j 8 --config Release
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
   #- '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'

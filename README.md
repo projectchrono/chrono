@@ -36,8 +36,8 @@ Implemented almost entirely in C++, Chrono also provides Python and C# APIs. The
 
 - C++ API reference
   - [Main development branch](http://api.projectchrono.org/)
+  - [Release 8.0.0](http://api.projectchrono.org/8.0.0/)
   - [Release 7.0.0](http://api.projectchrono.org/7.0.0/)
-  - [Release 6.0.0](http://api.projectchrono.org/6.0.0/)
 - Python interface
   - [PyChrono](https://api.projectchrono.org/pychrono_introduction.html)
 - Reference manuals

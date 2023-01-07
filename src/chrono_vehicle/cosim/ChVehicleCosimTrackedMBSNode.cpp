@@ -240,7 +240,7 @@ void ChVehicleCosimTrackedMBSNode::InitializeSystem() {
 // - receive and apply vertex contact forces
 // -----------------------------------------------------------------------------
 void ChVehicleCosimTrackedMBSNode::Synchronize(int step_number, double time) {
-    int num_shoes = GetNumTrackShoes();
+    int num_shoes = (int)GetNumTrackShoes();
     std::vector<double> all_states(13 * num_shoes);
     std::vector<double> all_forces(6 * num_shoes);
     int start_idx;

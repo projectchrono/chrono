@@ -94,32 +94,32 @@ class ChApi ChCollisionData {
           //
           collision_envelope(0),
           //
-          num_rigid_contacts(0),
-          num_rigid_fluid_contacts(0),
-          num_fluid_contacts(0),
-          num_rigid_shapes(0),
+          p_collision_envelope(0),
+          p_kernel_radius(real(0.04)),
+          p_collision_family(short2(1, 0x7FFF)),
           //
           bins_per_axis(vec3(10, 10, 10)),
           //
+          bin_size(real3(0)),
           min_bounding_point(real3(0)),
           max_bounding_point(real3(0)),
           global_origin(real3(0)),
-          bin_size(real3(0)),
           num_bins(0),
-          num_active_bins(0),
           num_bin_aabb_intersections(0),
+          num_active_bins(0),
           num_possible_collisions(0),
           //
           rigid_min_bounding_point(real3(0)),
           rigid_max_bounding_point(real3(0)),
           //
-          p_kernel_radius(real(0.04)),
-          p_collision_envelope(0),
-          p_collision_family(short2(1, 0x7FFF)),
-          //
           ff_min_bounding_point(real3(0)),
           ff_max_bounding_point(real3(0)),
-          ff_bins_per_axis(vec3(0)) {
+          ff_bins_per_axis(vec3(0)),
+          //
+          num_rigid_shapes(0),
+          num_rigid_contacts(0),
+          num_rigid_fluid_contacts(0),
+          num_fluid_contacts(0) {
         if (owns_data) {
             state_data.pos_rigid = new std::vector<real3>;
             state_data.rot_rigid = new std::vector<quaternion>;
@@ -201,9 +201,9 @@ class ChApi ChCollisionData {
     real3 rigid_min_bounding_point;  ///< LBR (left-bottom-rear) corner of union of rigid AABBs
     real3 rigid_max_bounding_point;  ///< RTF (right-top-front) corner of union of rigid AABBs
 
-    vec3 ff_bins_per_axis;        ///< grid resolution for fluid particles
     real3 ff_min_bounding_point;  ///< LBR (left-bottom-rear) corner of union of fluid AABBs
     real3 ff_max_bounding_point;  ///< RTF (right-top-front) corner of union of fluid AABBs
+    vec3 ff_bins_per_axis;        ///< grid resolution for fluid particles
 
     std::vector<uint> bin_intersections;    ///< [num_rigid_shapes+1] number of bin intersections for each shape AABB
     std::vector<uint> bin_number;           ///< [num_bin_aabb_intersections] bin index for bin-shape AABB intersections

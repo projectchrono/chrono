@@ -705,8 +705,8 @@ void ChBce::Initialize(std::shared_ptr<SphMarkerDataD> sphMarkersD,
             printf("Boundary condition for fixed wall is: ORIGINAL\n");
     }
 
-    int numAllBce = numObjectsH->numBoundaryMarkers + numObjectsH->numRigidMarkers + numObjectsH->numFlexMarkers;
-    if (numAllBce != numFlexRigidBoundaryMarkers) {
+    auto numAllBce = numObjectsH->numBoundaryMarkers + numObjectsH->numRigidMarkers + numObjectsH->numFlexMarkers;
+    if ((int)numAllBce != numFlexRigidBoundaryMarkers) {
         throw std::runtime_error(
             "Error! number of flex and rigid and "
             "boundary markers are saved incorrectly!\n");
@@ -848,7 +848,7 @@ void ChBce::CalcRigidBceAcceleration(thrust::device_vector<Real3>& bceAcc,
                                      const thrust::device_vector<uint>& rigidIdentifierD) {
     // thread per particle
     uint numThreads, numBlocks;
-    computeGridSize(numObjectsH->numRigidMarkers, 256, numBlocks, numThreads);
+    computeGridSize((uint)numObjectsH->numRigidMarkers, 256, numBlocks, numThreads);
 
     CalcRigidBceAccelerationD<<<numBlocks, numThreads>>>(
         mR3CAST(bceAcc), mR4CAST(q_fsiBodies_D), mR3CAST(accRigid_fsiBodies_D), mR3CAST(omegaVelLRF_fsiBodies_D),
@@ -867,7 +867,7 @@ void ChBce::CalcFlexBceAcceleration(thrust::device_vector<Real3>& bceAcc,
                                     const thrust::device_vector<uint>& FlexIdentifierD) {
     // thread per particle
     uint numThreads, numBlocks;
-    computeGridSize(numObjectsH->numFlexMarkers, 256, numBlocks, numThreads);
+    computeGridSize((uint)numObjectsH->numFlexMarkers, 256, numBlocks, numThreads);
 
     CalcFlexBceAccelerationD<<<numBlocks, numThreads>>>(mR3CAST(bceAcc), mR3CAST(acc_fsi_fea_D),
                                                         mR3CAST(FlexSPH_MeshPos_LRF_D), U2CAST(CableElementsNodesD),
@@ -881,10 +881,10 @@ void ChBce::CalcFlexBceAcceleration(thrust::device_vector<Real3>& bceAcc,
 void ChBce::ModifyBceVelocityPressureStress(std::shared_ptr<SphMarkerDataD> sphMarkersD,
                                             std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
                                             std::shared_ptr<FsiMeshDataD> fsiMeshD) {
-    int size_ref = fsiGeneralData->referenceArray.size();
-    int numBceMarkers = fsiGeneralData->referenceArray[size_ref - 1].y - fsiGeneralData->referenceArray[0].y;
-    int N_all = numObjectsH->numBoundaryMarkers + numObjectsH->numRigidMarkers + numObjectsH->numFlexMarkers;
-    if (N_all != numBceMarkers) {
+    auto size_ref = fsiGeneralData->referenceArray.size();
+    auto numBceMarkers = fsiGeneralData->referenceArray[size_ref - 1].y - fsiGeneralData->referenceArray[0].y;
+    auto N_all = numObjectsH->numBoundaryMarkers + numObjectsH->numRigidMarkers + numObjectsH->numFlexMarkers;
+    if ((int)N_all != numBceMarkers) {
         throw std::runtime_error(
             "Error! Number of rigid, flexible and boundary markers are "
             "saved incorrectly. Thrown from ModifyBceVelocityPressureStress!\n");

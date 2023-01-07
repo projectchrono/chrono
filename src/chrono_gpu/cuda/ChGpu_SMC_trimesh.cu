@@ -381,10 +381,10 @@ __global__ void interactionGranMat_TriangleSoup_matBased(ChSystemGpuMesh_impl::T
                         mesh_params->static_friction_coeff_s2m, mesh_params->E_eff_s2m_SU, mesh_params->G_eff_s2m_SU,
                         sqrt_Rd, beta, force_accum, vrel_t, normal, m_eff);
 
-                    float force_unit = gran_params->MASS_UNIT * gran_params->LENGTH_UNIT /
-                                       (gran_params->TIME_UNIT * gran_params->TIME_UNIT);
+                    ////float force_unit = gran_params->MASS_UNIT * gran_params->LENGTH_UNIT /
+                    ////                   (gran_params->TIME_UNIT * gran_params->TIME_UNIT);
 
-                    float velocity_unit = gran_params->LENGTH_UNIT / gran_params->TIME_UNIT;
+                    ////float velocity_unit = gran_params->LENGTH_UNIT / gran_params->TIME_UNIT;
 
                     force_accum = force_accum + tangent_force;
                     sphere_AngAcc =
@@ -649,10 +649,10 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemGpuMesh_impl::TriangleSo
                         mesh_params->static_friction_coeff_s2m, mesh_params->K_t_s2m_SU, mesh_params->Gamma_t_s2m_SU,
                         hertz_force_factor, m_eff, force_accum, v_rel, normal);
 
-                    float force_unit = gran_params->MASS_UNIT * gran_params->LENGTH_UNIT /
-                                       (gran_params->TIME_UNIT * gran_params->TIME_UNIT);
+                    ////float force_unit = gran_params->MASS_UNIT * gran_params->LENGTH_UNIT /
+                    ////                   (gran_params->TIME_UNIT * gran_params->TIME_UNIT);
 
-                    float velocity_unit = gran_params->LENGTH_UNIT / gran_params->TIME_UNIT;
+                    ////float velocity_unit = gran_params->LENGTH_UNIT / gran_params->TIME_UNIT;
 
                     force_accum = force_accum + tangent_force;
                     sphere_AngAcc =

@@ -70,7 +70,7 @@ class CH_SENSOR_API ChScene {
     /// Add a point light that emits light in all directions.
     /// @param p A point light the will be added directly
     /// @return the index of the light that has been added
-    unsigned int AddPointLight(PointLight p);
+    unsigned int AddPointLight(const PointLight& p);
 
     /// Function for gaining access to the vector of point lights and can be used to modify lighting dynamically.
     /// @return m_pointlights A vector of point lights in the scene currently

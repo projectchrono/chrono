@@ -288,8 +288,8 @@ int main(int argc, char* argv[]) {
     UserMagnetBufferPtr bufferMag;
     UserGPSBufferPtr bufferGPS;
 
-    int imu_last_launch = 0;
-    int gps_last_launch = 0;
+    unsigned int imu_last_launch = 0;
+    unsigned int gps_last_launch = 0;
 
     double rot_rate = 1;
     double ang;

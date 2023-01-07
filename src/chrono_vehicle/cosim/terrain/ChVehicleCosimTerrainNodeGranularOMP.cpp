@@ -791,7 +791,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateMeshProxy(unsigned int i) {
     double mass_p = m_load_mass[i_shape] / nt;
     ChVector<> inertia_p = 1e-3 * mass_p * ChVector<>(0.1, 0.1, 0.1);
 
-    for (unsigned int it = 0; it < nt; it++) {
+    for (int it = 0; it < nt; it++) {
         auto body = std::shared_ptr<ChBody>(m_system->NewBody());
         body->SetIdentifier(it);
         body->SetMass(mass_p);
@@ -861,7 +861,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::UpdateMeshProxy(unsigned int i, MeshS
     // shape_data contains all triangle vertex locations, in groups of three real3, one group for each triangle.
     auto& shape_data = m_system->data_manager->cd_data->shape_data.triangle_rigid;
 
-    for (unsigned int it = 0; it < nt; it++) {
+    for (int it = 0; it < nt; it++) {
         // Vertex locations (expressed in global frame)
         const ChVector<>& pA = mesh_state.vpos[idx_verts[it].x()];
         const ChVector<>& pB = mesh_state.vpos[idx_verts[it].y()];
@@ -950,7 +950,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::GetForceMeshProxy(unsigned int i, Mes
     // Maintain an unordered map of vertex indices and associated contact forces.
     std::unordered_map<int, ChVector<>> my_map;
 
-    for (unsigned int it = 0; it < nt; it++) {
+    for (int it = 0; it < nt; it++) {
         // Get cumulative contact force at triangle centroid.
         // Do nothing if zero force.
         real3 rforce = m_system->GetBodyContactForce(proxies[it].m_body);

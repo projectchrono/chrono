@@ -18,7 +18,7 @@ Create a @ref chrono::ChBody, and attach some 'assets' that define 3D shapes.
 These shapes can be shown by Irrlicht, OpenGL, or POV postprocessing.
 Note: these assets are independent from collision shapes.
 
-\snippet demo_POST_povray.cpp Example 1
+\snippet demo_POST_povray1.cpp Example 1
 
 
 # Example 2
@@ -26,7 +26,7 @@ Note: these assets are independent from collision shapes.
 Textures, colors, asset levels with transformations.
 This section shows how to add more advanced types of assets.
 
-\snippet demo_POST_povray.cpp Example 2
+\snippet demo_POST_povray1.cpp Example 2
 
 
 # Example 3
@@ -34,7 +34,7 @@ This section shows how to add more advanced types of assets.
 Create a @ref chrono::ChParticleCloud cluster, and attach 'assets' that define a 
 single "sample" 3D shape. This will be shown N times in POV or Irrlicht.
 	
-\snippet demo_POST_povray.cpp Example 3
+\snippet demo_POST_povray1.cpp Example 3
 
 
 # The POV exporter
@@ -44,7 +44,7 @@ this demo different from the demo_IRR_assets, that used Irrlicht.
 We need to create a postprocessor of type @ref chrono::postprocess::ChPovRay and tell him that 
 we are going to export our visualization assets:
 
-\snippet demo_POST_povray.cpp POV exporter
+\snippet demo_POST_povray1.cpp POV exporter
 
 # The simulation loop
 
@@ -53,13 +53,13 @@ Note that before running the loop you need to use  pov_exporter.ExportScript(); 
 and for each timestep you must use pov_exporter.ExportData(); 
 actually this is the instruction that creates the many .dat and .pov files in the output directory.
 
-\snippet demo_POST_povray.cpp POV simulation
+\snippet demo_POST_povray1.cpp POV simulation
 
 # Executing and rendering with POVray
 
 Once you created your program, compile it, then:
 
-- execute the `demo_POST_povray.exe`
+- execute the `demo_POST_povray1.exe`
 - on the console you will see a time counter showing that the system is load and it is being simulated
 - when the program ends, you must open POVray and open the `rendering_frames.pov.ini` 
   file, using the Open menu or button, or drag&drop (you can find this .ini file and 
@@ -90,5 +90,5 @@ we suggest to use the VirtualDub tool:
 
 In the following we report the entire source code for reference.
 
-\include demo_POST_povray.cpp
+\include demo_POST_povray1.cpp
 
