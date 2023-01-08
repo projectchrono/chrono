@@ -161,7 +161,114 @@ def make_bsdf_material(nameID, colorRGB, metallic=0, specular=0, specular_tint=0
     return new_mat
     
 
-        
+# helper to add scalar attributes as arrays of floats to: faces (mdomain='FACE') or vertexes (mdomain='POINT') of meshes
+def add_mesh_data_floats(mesh_object, attribute_scalars, attribute_name='myval', mdomain='FACE'):
+    myattr = mesh_object.data.attributes.new(name=attribute_name, type='FLOAT', domain=mdomain)
+    iv =0
+    for mval in attribute_scalars:
+        myattr.data[iv].value = mval
+        iv +=1
+
+# helper to add vector attributes as arrays of (x,y,z) to: faces (mdomain='FACE') or vertexes (mdomain='POINT') of meshes
+def add_mesh_data_vectors(mesh_object, attribute_vectors, attribute_name='chrono_color', mdomain='FACE'):
+    myattr = mesh_object.data.attributes.new(name=attribute_name, type='FLOAT_VECTOR', domain=mdomain)
+    iv =0
+    for mval in attribute_vectors:
+        myattr.data[iv].vector = mval
+        iv +=1
+
+# helper function to generate a material that, once assigned to a mesh with a vector attribute, 
+# renders it as color (per face or per vertex, depending on the attribute's mesh data domain)
+def make_material_mesh_color_attribute(nameID, colname):
+
+    new_mat = bpy.data.materials.new(name=nameID)
+    new_mat.use_nodes = True
+    if new_mat.node_tree:
+        new_mat.node_tree.links.clear()
+        new_mat.node_tree.nodes.clear() 
+    nodes = new_mat.node_tree.nodes
+    links = new_mat.node_tree.links
+    output = nodes.new(type='ShaderNodeOutputMaterial')
+    shader = nodes.new(type='ShaderNodeBsdfPrincipled')
+    links.new(shader.outputs[0], output.inputs[0])
+    colattribute = nodes.new(type='ShaderNodeAttribute')
+    colattribute.attribute_name = colname
+    links.new(colattribute.outputs[0], shader.inputs[0])
+    return new_mat
+    
+# some colormaps used by  make_material_mesh_falsecolor_attribute
+colormap_jet = [
+ [0,     (0,0,0.56, 1)],
+ [0.125, (0,0,1 ,1)   ],
+ [0.375, (0,1,1, 1)   ],
+ [0.625, (1,1,0, 1 )  ],
+ [0.875, (1,0,0, 1 )  ],
+ [1,     (0.5,0,0, 1) ]
+]
+colormap_cooltowarm = [
+ [0,         	(0.229999504,	0.298998934,	0.754000139, 1) ],
+ [0.142857143,	(0.406839976,	0.537716815,	0.934353077, 1) ],
+ [0.285714286,	(0.602704657,	0.731255644,    0.999993038, 1) ],
+ [0.428571429,  (0.78841419,	0.845877766,	0.939423093, 1) ],
+ [0.571428571,	(0.930635713,	0.820337799,	0.761004578, 1) ], 
+ [0.714285714,	(0.967788492,	0.657029313,	0.537326447, 1) ],
+ [0.857142857,	(0.88710666,	0.413948424,	0.324564482, 1) ],
+ [1	,           (0.706000136,   0.015991824,	0.150000072, 1) ],
+]
+colormap_viridis = [
+ [0,           (0.267003985,    0.004872566,    0.329415069, 1) ],
+ [0.142857143, (0.274741032,	0.196973267,	0.497250443, 1) ],
+ [0.285714286, (0.212671237,	0.359101377, 	0.551635047, 1) ],
+ [0.428571429, (0.152958099,	0.498051451,	0.557685327, 1) ],
+ [0.571428571, (0.122053592,	0.632105543,	0.530848866, 1) ],
+ [0.714285714, (0.290013937,	0.758845119,	0.427827161, 1) ],
+ [0.857142857, (0.622182341,	0.853814293,	0.226247911, 1) ],
+ [1,           (0.993248149,	0.906154763,	0.143935944, 1) ]
+]
+colormap_cool = [
+ [0,     (0,1,1, 1)],
+ [1,     (1,0,1, 1)]
+]
+colormap_hot = [
+ [0,     (0.039,0,0, 1)],
+ [0.375, (1,0,0, 1)    ],
+ [0.75,  (1,1,0, 1)    ],
+ [1,     (1,1,1, 1)    ]
+]
+colormap_winter = [
+ [0,     (0,0,1, 1)  ],
+ [1,     (0,1,0.5, 1)]
+]
+
+# helper function to generate a material that, once assigned to a mesh with a float attribute, 
+# renders it as falsecolor (per face or per vertex, depending on the attribute's mesh data domain)
+def make_material_mesh_falsecolor_attribute(nameID, attrname, attr_min=0.0, attr_max=1.0, colormap='colormap_cooltowarm1'):
+    
+    new_mat = bpy.data.materials.new(name=nameID)
+    new_mat.use_nodes = True
+    if new_mat.node_tree:
+        new_mat.node_tree.links.clear()
+        new_mat.node_tree.nodes.clear()  
+    nodes = new_mat.node_tree.nodes
+    links = new_mat.node_tree.links
+    output = nodes.new(type='ShaderNodeOutputMaterial')
+    shader = nodes.new(type='ShaderNodeBsdfPrincipled')
+    links.new(shader.outputs[0], output.inputs[0])
+    ramp = nodes.new(type='ShaderNodeValToRGB')
+    ramp.color_ramp.color_mode = 'HSV'
+    for i in range(1,len(colormap)-1):
+        ramp.color_ramp.elements.new(colormap[i][0])
+    for i in range(0,len(colormap)):
+        ramp.color_ramp.elements[i].color = (colormap[i][1]) 
+    links.new(ramp.outputs[0], shader.inputs[0])
+    maprange = nodes.new(type='ShaderNodeMapRange')
+    maprange.inputs[1].default_value = attr_min
+    maprange.inputs[2].default_value = attr_max
+    links.new(maprange.outputs[0], ramp.inputs[0])
+    colattribute = nodes.new(type='ShaderNodeAttribute')
+    colattribute.attribute_name = attrname
+    links.new(colattribute.outputs[2], maprange.inputs[0])
+    return new_mat
 
 
 #
