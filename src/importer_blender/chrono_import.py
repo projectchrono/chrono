@@ -73,9 +73,9 @@ chrono_collection_cameras = None
 empty_mesh = None
 chrono_csys = None
 chrono_filename = None
-chrono_view_asset_csys = True
+chrono_view_asset_csys = False
 chrono_view_asset_csys_size = 0.15
-chrono_view_item_csys = True
+chrono_view_item_csys = False
 chrono_view_item_csys_size = 0.25
 chrono_view_link_csys = True
 chrono_view_link_csys_size = 0.25
@@ -206,7 +206,7 @@ def make_chrono_object_assetlist(mname,mpos,mrot, masset_list):
                 chasset.scale = masset_list[m][4]
             chrono_collection_objects.objects.link(chasset)
             chasset.parent = chobject
-            if masset_list[m][3]:
+            if masset_list[m][3] and chrono_view_materials:
                 chasset.material_slots[-1].link = 'OBJECT'
                 chasset.material_slots[-1].material = bpy.data.materials[masset_list[m][3]]
             if chrono_view_asset_csys:
@@ -247,7 +247,7 @@ def make_chrono_object_clones(mname,mpos,mrot, masset_list, list_clones_posrot):
                 chasset.scale = masset_list[m][4]
             chrono_collection_objects.objects.link(chasset)
             chasset.parent = chassets_group
-            if masset_list[m][3]:
+            if masset_list[m][3] and chrono_view_materials:
                 chasset.material_slots[-1].link = 'OBJECT'
                 chasset.material_slots[-1].material = bpy.data.materials[masset_list[m][3]]
             if chrono_view_asset_csys:
@@ -529,6 +529,7 @@ def UpdatedFunction(self, context):
     chrono_view_item_csys_size = self.chrono_item_coordsys_size
     chrono_view_links_csys = self.chrono_show_links_coordsys
     chrono_view_links_csys_size = self.chrono_links_coordsys_size
+    chrono_view_materials = self.chrono_show_materials
     callback_post(self) # force reload 
     
 class Chrono_operator(Operator):
@@ -669,12 +670,12 @@ def register():
         default=0.10,
         update=UpdatedFunction
     )
-    bpy.types.Scene.chrono_show_link_coordsys = bpy.props.BoolProperty(
+    bpy.types.Scene.chrono_show_links_coordsys = bpy.props.BoolProperty(
         name='Show links coordsys',
         default=True,
         update=UpdatedFunction
     )
-    bpy.types.Scene.chrono_link_coordsys_size = bpy.props.FloatProperty(
+    bpy.types.Scene.chrono_links_coordsys_size = bpy.props.FloatProperty(
         name='Links coordsys size',
         default=0.20,
         update=UpdatedFunction
@@ -692,6 +693,9 @@ def unregister():
     del bpy.types.Scene.chrono_item_coordsys_size
     del bpy.types.Scene.chrono_show_assets_coordsys
     del bpy.types.Scene.chrono_assets_coordsys_size
+    del bpy.types.Scene.chrono_show_links_coordsys
+    del bpy.types.Scene.chrono_links_coordsys_size
+    del bpy.types.Scene.chrono_show_materials
     for c in sidebar_classes:
         bpy.utils.unregister_class(c)
         
