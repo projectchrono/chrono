@@ -3,20 +3,8 @@
 
 SET(DEMOS
   demo_vsg_VEH_HMMWV_DefSoil
-  demo_vsg_VEH_HMMWV_Accel
   demo_vsg_VEH_HMMWV_dlc
-  demo_vsg_VEH_SuspensionTestRig
-  demo_vsg_VEH_TireTestRig
-  demo_vsg_VEH_TwoCars
-  demo_vsg_VEH_RigidTerrain
-  demo_vsg_VEH_WheeledJSON
 )
-
-if(HAVE_OPENCRG)
-    set(DEMOS ${DEMOS}
-        demo_vsg_VEH_CRGTerrain
-    )
-endif()
 
 set(CMAKE_CXX_STANDARD 17)
 
