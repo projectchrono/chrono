@@ -1,9 +1,28 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2022 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Rainer Gericke, Radu Serban
+// =============================================================================
+//
+// VSG-based GUI driver for the a vehicle. This class implements the
+// functionality required by its base ChDriver class using keyboard or joystick
+// inputs.
+// =============================================================================
+
 #include "ChVSGGuiDriver.h"
 
 namespace chrono {
 namespace vehicle {
-ChVSGGuiDriver::ChVSGGuiDriver(ChVehicle* vehicle)
-    : ChDriver(*vehicle),
+ChVSGGuiDriver::ChVSGGuiDriver(ChVehicleVisualSystemVSG& vsys)
+    : ChDriver(*vsys.m_vehicle),
       m_mode(InputMode::KEYBOARD),
       m_steering_target(0),
       m_throttle_target(0),
@@ -14,12 +33,13 @@ ChVSGGuiDriver::ChVSGGuiDriver(ChVehicle* vehicle)
       m_braking_delta(1.0 / 50),
       m_steering_gain(4.0),
       m_throttle_gain(4.0),
-      m_braking_gain(4.0) {}
+      m_braking_gain(4.0) {
+    vsys.AttachGuiDriver(this);
+}
 
 ChVSGGuiDriver::~ChVSGGuiDriver() {}
 
-void ChVSGGuiDriver::Initialize() {
-}
+void ChVSGGuiDriver::Initialize() {}
 
 void ChVSGGuiDriver::Synchronize(double time) {
     // Do nothing if no embedded DataDriver.
@@ -109,7 +129,7 @@ void ChVSGGuiDriver::SetGains(double steering_gain, double throttle_gain, double
     m_braking_gain = braking_gain;
 }
 
-void ChVSGGuiDriver::SetInputDataFile(const std::string &filename) {
+void ChVSGGuiDriver::SetInputDataFile(const std::string& filename) {
     // Embed a DataDriver.
     m_data_driver = chrono_types::make_shared<ChDataDriver>(m_vehicle, filename, false);
 }

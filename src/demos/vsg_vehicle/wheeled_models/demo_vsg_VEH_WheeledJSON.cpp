@@ -263,18 +263,10 @@ int main(int argc, char* argv[]) {
     RigidTerrain terrain(system, vehicle::GetDataFile(rigidterrain_file));
     terrain.Initialize();
 
-    // Create the interactive driver
-    ChVSGGuiDriver driver((ChVehicle*)&vehicle);
-    driver.SetSteeringDelta(0.02);
-    driver.SetThrottleDelta(0.02);
-    driver.SetBrakingDelta(0.06);
-    driver.Initialize();
-
     // Create Irrilicht visualization
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
     vis->SetWindowTitle("Vehicle demo - JSON specification");
     vis->AttachVehicle(&vehicle);
-    vis->AttachGuiDriver(&driver);
     vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), vehicle_model.CameraDistance(), 0.5);
     vis->SetWindowSize(ChVector2<int>(800, 600));
     vis->SetWindowPosition(ChVector2<int>(100, 300));
@@ -283,6 +275,13 @@ int main(int argc, char* argv[]) {
     vis->SetLightIntensity(1.0);
     vis->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
     vis->Initialize();
+
+    // Create the interactive driver
+    ChVSGGuiDriver driver(*vis);
+    driver.SetSteeringDelta(0.02);
+    driver.SetThrottleDelta(0.02);
+    driver.SetBrakingDelta(0.06);
+    driver.Initialize();
 
     // Initialize output directories
     std::string veh_dir = out_dir + "/" + vehicle_model.ModelName();

@@ -532,6 +532,17 @@ int main(int argc, char* argv[]) {
     ////AddFixedObstacles(m113.GetSystem());
     ////AddFallingObjects(m113.GetSystem());
 
+    // ---------------------------------------
+    // Create the vehicle Irrlicht application
+    // ---------------------------------------
+
+    auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
+    vis->SetWindowTitle("M113 Vehicle Demo");
+    vis->SetChaseCamera(ChVector<>(0, 0, 0), 7.0, 0.5);
+    vis->AttachVehicle(&m113.GetVehicle());
+    // vis->ShowAllCoGs(0.3);
+    vis->Initialize();
+
     // ------------------------
     // Create the driver system
     // ------------------------
@@ -539,7 +550,7 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<ChDriver> driver;
     switch (driver_mode) {
         case DriverMode::KEYBOARD: {
-            auto irr_driver = chrono_types::make_shared<ChVSGGuiDriver>((ChVehicle*)&m113.GetVehicle());
+            auto irr_driver = chrono_types::make_shared<ChVSGGuiDriver>(*vis);
             double steering_time = 0.5;  // time to go from 0 to +1 (or from 0 to -1)
             double throttle_time = 1.0;  // time to go from 0 to +1
             double braking_time = 0.3;   // time to go from 0 to +1
@@ -649,20 +660,6 @@ int main(int argc, char* argv[]) {
     // Initialize simulation frame counter
     int step_number = 0;
     int render_frame = 0;
-
-    // ---------------------------------------
-    // Create the vehicle Irrlicht application
-    // ---------------------------------------
-
-    auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
-    vis->SetWindowTitle("M113 Vehicle Demo");
-    vis->SetChaseCamera(ChVector<>(0, 0, 0), 7.0, 0.5);
-    vis->AttachVehicle(&m113.GetVehicle());
-    if (driver_mode == DriverMode::KEYBOARD) {
-        vis->AttachGuiDriver((ChVSGGuiDriver*)driver.get());
-    }
-    //vis->ShowAllCoGs(0.3);
-    vis->Initialize();
 
     while (vis->Run()) {
         // Debugging output

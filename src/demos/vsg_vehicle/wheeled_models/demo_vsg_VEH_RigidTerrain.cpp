@@ -107,17 +107,16 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 #endif
 
-    // Create the interactive driver system
-    ChVSGGuiDriver driver((ChVehicle*)&my_hmmwv.GetVehicle());
-    driver.Initialize();
-
     // Create the vehicle Irrlicht interface
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
     vis->SetWindowTitle("Rigid Terrain Demo");
     vis->SetChaseCamera(ChVector<>(0.0, 0.0, .75), 6.0, 0.5);
     vis->AttachVehicle(&my_hmmwv.GetVehicle());
-    vis->AttachGuiDriver(&driver);
     vis->Initialize();
+
+    // Create the interactive driver system
+    ChVSGGuiDriver driver(*vis);
+    driver.Initialize();
 
     // Set the time response for steering and throttle keyboard inputs.
     double render_step_size = 1.0 / 50;  // FPS = 50

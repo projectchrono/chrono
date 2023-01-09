@@ -1,4 +1,24 @@
-#include "ChVehicleVisualSystemVSG.h"
+// Copyright (c) 2022 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Rainer Gericke
+// =============================================================================
+//
+// VSG-based visualization wrapper for vehicles.  This class is a derived
+// from ChVisualSystemVSG and provides the following functionality:
+//   - rendering of the entire Irrlicht scene
+//   - custom chase-camera (which can be controlled with keyboard)
+//   - optional rendering of links, springs, stats, etc.
+//
+// =============================================================================
+
+#include "chrono_vehicle/utils/ChVehicleVisualSystemVSG.h"
+#include "chrono_vehicle/driver/ChVSGGuiDriver.h"
 
 namespace chrono {
 namespace vehicle {
@@ -262,11 +282,7 @@ ChVehicleVisualSystemVSG::~ChVehicleVisualSystemVSG() {}
 
 void ChVehicleVisualSystemVSG::Initialize() {
     ChVisualSystemVSG::Initialize();
-    // do we have a vehicle?
-    if(!m_vehicle) {
-        GetLog() << "A wheeled vehicle must be attached before Initialization!\n";
-        exit(99);
-    }
+
     // add keyboard handler
     auto veh_kbHandler = VehAppKeyboardHandler::create(m_viewer);
     veh_kbHandler->SetParams(m_params, this);
@@ -284,10 +300,6 @@ void ChVehicleVisualSystemVSG::Initialize() {
 
 void ChVehicleVisualSystemVSG::AttachVehicle(vehicle::ChVehicle* vehicle) {
     ChVehicleVisualSystem::AttachVehicle(vehicle);
-    if(!vehicle) {
-        GetLog() << "Attempt to attach a invalid vehicle!\n";
-        exit(99);
-    }
 }
 
 void ChVehicleVisualSystemVSG::AttachGuiDriver(ChVSGGuiDriver* driver) {
@@ -340,6 +352,7 @@ char ChVehicleVisualSystemVSG::GetTransmissionMode() {
     if (!m_vehicle->GetPowertrain())
         return '?';
     switch (m_vehicle->GetPowertrain()->GetTransmissionMode()) {
+        default:
         case ChPowertrain::TransmissionMode::AUTOMATIC:
             return 'A';
         case ChPowertrain::TransmissionMode::MANUAL:
@@ -353,6 +366,7 @@ char ChVehicleVisualSystemVSG::GetDriveMode() {
     if (!m_vehicle->GetPowertrain())
         return '?';
     switch (m_vehicle->GetPowertrain()->GetDriveMode()) {
+        default:
         case ChPowertrain::DriveMode::FORWARD:
             return 'F';
         case ChPowertrain::DriveMode::NEUTRAL:

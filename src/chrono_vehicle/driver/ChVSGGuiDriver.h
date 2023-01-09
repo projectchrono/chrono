@@ -1,3 +1,22 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2022 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Rainer Gericke, Radu Serban
+// =============================================================================
+//
+// VSG-based GUI driver for the a vehicle. This class implements the
+// functionality required by its base ChDriver class using keyboard or joystick
+// inputs.
+// =============================================================================
+
 #ifndef CH_VSGGUIDRIVER_H
 #define CH_VSGGUIDRIVER_H
 
@@ -7,13 +26,14 @@
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/ChVehicle.h"
+
 #include "chrono_vehicle/driver/ChDataDriver.h"
+#include "chrono_vehicle/utils/ChVehicleVisualSystemVSG.h"
 
 namespace chrono {
 namespace vehicle {
-class CH_VEHICLE_API ChVSGGuiDriver : public ChDriver {
-    friend class ChVehicleVisualSystemVSG;
 
+class CH_VEHICLE_API ChVSGGuiDriver : public ChDriver {
   public:
     /// Functioning modes for a ChIrrGuiDriver.
     enum class InputMode {
@@ -21,8 +41,10 @@ class CH_VEHICLE_API ChVSGGuiDriver : public ChDriver {
         KEYBOARD,  ///< driver inputs from keyboard
         DATAFILE   ///< driver inputs from data file
     };
-    ChVSGGuiDriver(ChVehicle* vehicle);
+
+    ChVSGGuiDriver(ChVehicleVisualSystemVSG& vsys);
     ~ChVSGGuiDriver();
+
     /// Initialize this driver system.
     virtual void Initialize() override;
 
@@ -75,7 +97,7 @@ class CH_VEHICLE_API ChVSGGuiDriver : public ChDriver {
     /// Release Pedals
     void ReleasePedals();
 
-protected:
+  private:
     InputMode m_mode;  ///< current mode of the driver
 
     // Variables for mode=KEYBOARD
@@ -96,7 +118,10 @@ protected:
     // Variables for mode=DATAFILE
     double m_time_shift;                          ///< time at which mode was switched to DATAFILE
     std::shared_ptr<ChDataDriver> m_data_driver;  ///< embedded data driver (for playback)
+
+    friend class ChVehicleVisualSystemVSG;
 };
+
 }  // namespace vehicle
 }  // namespace chrono
 #endif

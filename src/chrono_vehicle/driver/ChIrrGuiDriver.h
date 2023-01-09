@@ -154,7 +154,7 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
     /// Feed button number and callback function to implement a custom callback.
     void SetButtonCallback(int button, void (*cbfun)());
 
-  protected:
+  private:
     bool ProcessJoystickEvents(const irr::SEvent& event);
     bool ProcessKeyboardEvents(const irr::SEvent& event);
 
