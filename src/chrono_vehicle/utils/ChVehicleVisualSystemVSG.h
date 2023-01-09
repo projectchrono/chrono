@@ -60,7 +60,7 @@ class CH_VEHICLE_API ChVehicleVisualSystemVSG : public ChVehicleVisualSystem, pu
     /// Advance the dynamics of the chase camera.
     /// The integration of the underlying ODEs is performed using as many steps as needed to advance
     /// by the specified duration.
-    void Advance(double step);
+    virtual void Advance(double step) override;
 
     /// Update information related to driver inputs.
     virtual void Synchronize(const std::string& msg, const DriverInputs& driver_inputs) override;

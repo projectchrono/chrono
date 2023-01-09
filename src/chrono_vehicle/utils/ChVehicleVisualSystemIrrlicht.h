@@ -92,7 +92,7 @@ class CH_VEHICLE_API ChVehicleVisualSystemIrrlicht : public ChVehicleVisualSyste
     /// Advance the dynamics of the chase camera.
     /// The integration of the underlying ODEs is performed using as many steps as needed to advance
     /// by the specified duration.
-    void Advance(double step);
+    virtual void Advance(double step) override;
 
   protected:
     /// Render additional graphics

@@ -57,6 +57,9 @@ class CH_VEHICLE_API ChVehicleVisualSystem : virtual public ChVisualSystem {
     /// Update information related to driver inputs.
     virtual void Synchronize(const std::string& msg, const DriverInputs& driver_inputs);
 
+    /// Advance (optional) dynamics of the visualization system.
+    virtual void Advance(double step) {}
+
   protected:
     ChVehicle* m_vehicle;  ///< pointer to the associated vehicle system
 
