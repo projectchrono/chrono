@@ -24,10 +24,10 @@
 
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChVSGGuiDriverSTR.h"
 
-using namespace irr;
-
 namespace chrono {
 namespace vehicle {
+
+/*
 
 ChIrrGuiDriverSTR::ChIrrGuiDriverSTR(irrlicht::ChVisualSystemIrrlicht& vsys)
     : m_current_post(0), m_msg("Active post: 0"), m_vsys(vsys), m_displDelta(1.0 / 50), m_steeringDelta(1.0 / 250) {
@@ -79,6 +79,8 @@ bool ChIrrGuiDriverSTR::OnEvent(const SEvent& event) {
 
     return false;
 }
+
+*/
 
 }  // end namespace vehicle
 }  // end namespace chrono

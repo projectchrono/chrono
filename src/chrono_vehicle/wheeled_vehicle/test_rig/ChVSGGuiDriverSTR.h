@@ -26,7 +26,7 @@
 #include <string>
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/utils/ChVehicleVisualSystemIrrlicht.h"
+#include "chrono_vehicle/utils/ChVehicleVisualSystemVSG.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChDriverSTR.h"
 
 namespace chrono {
@@ -34,6 +34,8 @@ namespace vehicle {
 
 /// @addtogroup vehicle_wheeled_test_rig
 /// @{
+
+/*
 
 /// Irrlicht-based GUI driver for the a suspension test rig.  This class implements
 /// the functionality required by its base ChDriverSTR class using keyboard inputs.
@@ -69,6 +71,8 @@ class CH_VEHICLE_API ChIrrGuiDriverSTR : public ChDriverSTR, public irr::IEventR
     int m_current_post;
     std::string m_msg;
 };
+
+*/
 
 /// @} vehicle_wheeled_test_rig
 
