@@ -238,7 +238,7 @@ int main(int argc, char* argv[]) {
     vis->SetWindowPosition(ChVector2<int>(100, 100));
     vis->SetClearColor(ChColor(0.8,0.85,0.9));
     vis->SetUseSkyBox(true); // use built-in path
-    vis->SetCameraVertical(chrono::vsg3d::CameraVerticalDir::Y);
+    vis->SetCameraVertical(CameraVerticalDir::Y);
     vis->SetCameraAngleDeg(40.0);
     vis->SetLightIntensity(1.0);
     vis->SetLightDirection(1.5*CH_C_PI_2, CH_C_PI_4);

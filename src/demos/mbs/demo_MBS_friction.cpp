@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetOutputScreen(0);
             vis_vsg->SetUseSkyBox(true);  // use built-in path
             vis_vsg->SetOutputScreen(0);
-            vis_vsg->SetCameraVertical(chrono::vsg3d::CameraVerticalDir::Y);
+            vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
             vis_vsg->AddCamera(ChVector<>(0, 14, -20));
             vis_vsg->SetCameraAngleDeg(40.0);
             vis_vsg->SetLightIntensity(1.0);

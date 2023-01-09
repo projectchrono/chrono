@@ -259,7 +259,7 @@ int main(int argc, char* argv[]) {
 
     auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
     vis->AttachSystem(&sys);
-    vis->SetCameraVertical(vsg3d::CameraVerticalDir::Y);
+    vis->SetCameraVertical(CameraVerticalDir::Y);
     vis->SetWindowSize(ChVector2<int>(800, 600));
     vis->SetWindowPosition(ChVector2<int>(100, 300));
     vis->SetWindowTitle("Chrono VSG Assets");

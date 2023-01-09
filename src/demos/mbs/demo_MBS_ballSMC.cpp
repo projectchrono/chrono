@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowPosition(ChVector2<int>(100, 100));
             vis_vsg->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
             vis_vsg->SetUseSkyBox(true);
-            vis_vsg->SetCameraVertical(chrono::vsg3d::CameraVerticalDir::Y);
+            vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
             vis_vsg->SetCameraAngleDeg(40.0);
             vis_vsg->SetLightIntensity(1.0);
             vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);

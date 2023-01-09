@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
     vis->SetWindowPosition(ChVector2<int>(100, 100));
     vis->SetWindowTitle("Model loaded from OpenSim file");
     vis->SetUseSkyBox(true); // use built-in path
-    vis->SetCameraVertical(chrono::vsg3d::CameraVerticalDir::Y);
+    vis->SetCameraVertical(CameraVerticalDir::Y);
     vis->AddCamera(ChVector<>(0, 0, 4));
     vis->SetCameraAngleDeg(40.0);
     vis->SetLightIntensity(1.0);

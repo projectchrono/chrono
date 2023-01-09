@@ -193,7 +193,7 @@ int main(int argc, char* argv[]) {
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(&sys);
             vis_vsg->SetWindowTitle("ChBodyAuxRef demo");
-            vis_vsg->SetCameraVertical(vsg3d::CameraVerticalDir::Y);
+            vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
             vis_vsg->SetWindowSize(ChVector2<int>(800, 600));
             vis_vsg->SetWindowPosition(ChVector2<int>(100, 300));
             vis_vsg->SetUseSkyBox(true);

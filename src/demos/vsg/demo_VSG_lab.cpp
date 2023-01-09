@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
     vis->SetWindowTitle("VSG Test Lab");
     vis->SetClearColor(ChColor(0.8,0.85,0.9));
     vis->SetUseSkyBox(true); // use built-in path
-    vis->SetCameraVertical(chrono::vsg3d::CameraVerticalDir::Z);
+    vis->SetCameraVertical(CameraVerticalDir::Z);
     vis->AddCamera(ChVector<>(-2, 3, -4));
     vis->Initialize();
 

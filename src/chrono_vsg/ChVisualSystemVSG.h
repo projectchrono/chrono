@@ -37,9 +37,6 @@
 namespace chrono {
 namespace vsg3d {
 
-/// Vertical direction
-enum class CameraVerticalDir { Y, Z };
-
 class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
   public:
     ChVisualSystemVSG();

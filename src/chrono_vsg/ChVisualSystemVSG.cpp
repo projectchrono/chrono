@@ -255,10 +255,10 @@ class GuiComponent {
             ImGui::Spacing();
 
             if (_params->show_color_bar) {
-                float alpha = 1.0;
-                float cv = 0.9;
-                float cv13 = cv / 3.0;
-                float cv23 = 2.0 * cv13;
+                float alpha = 1.0f;
+                float cv = 0.9f;
+                float cv13 = cv / 3;
+                float cv23 = 2 * cv13;
                 ImGui::Text("Color Code: %s", _params->cb_title.c_str());
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0, 0.0, cv, alpha));
                 snprintf(label, nstr, "%.3f", _params->cb_min);
@@ -1321,8 +1321,8 @@ void ChVisualSystemVSG::BindAll() {
                     std::shared_ptr<ChVisualMaterial> material;
                     if (segshape->GetMaterials().empty()) {
                         material = chrono_types::make_shared<ChVisualMaterial>();
-                        material->SetDiffuseColor(ChColor(1.0, 1.0, 1.0));
-                        material->SetAmbientColor(ChColor(0.1, 0.1, 0.1));
+                        material->SetDiffuseColor(ChColor(1.0f, 1.0f, 1.0f));
+                        material->SetAmbientColor(ChColor(0.1f, 0.1f, 0.1f));
                     } else {
                         material = segshape->GetMaterial(0);
                     }

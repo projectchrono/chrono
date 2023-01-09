@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht visualization sys
     auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
     vis->AttachSystem(&sys);
-    vis->SetCameraVertical(chrono::vsg3d::CameraVerticalDir::Y);
+    vis->SetCameraVertical(CameraVerticalDir::Y);
     vis->SetWindowSize(800, 600);
     vis->SetWindowTitle("Curiosity Obstacle Crossing on SCM");
     vis->AddCamera(ChVector<>(-1.0, 1.0, 3.0), ChVector<>(-5.0, 0.0, 0.0));
