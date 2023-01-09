@@ -23,15 +23,21 @@
 #include "chrono/solver/ChSolverPSOR.h"
 #include "chrono/assets/ChTexture.h"
 
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
-
-// Use the namespaces of Chrono
-using namespace chrono;
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
+#endif
 
-// Create a bunch of ChronoENGINE rigid bodies that
-// represent bricks in a large wall.
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+using namespace chrono::vsg3d;
+#endif
 
+using namespace chrono;
+
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+
+// Create a bunch of rigid bodies that represent bricks in a large wall.
 void create_wall_bodies(ChSystemNSC& sys) {
     // Create a material that will be shared among all collision shapes
     auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
@@ -57,9 +63,7 @@ void create_wall_bodies(ChSystemNSC& sys) {
         }
     }
 
-    // Create the floor using
-    // fixed rigid body of 'box' type:
-
+    // Create the floor using fixed rigid body of 'box' type:
     auto mrigidFloor = chrono_types::make_shared<ChBodyEasyBox>(250, 4, 250,  // x,y,z size
                                                                 1000,         // density
                                                                 true,         // visulization?
@@ -83,9 +87,7 @@ void create_wall_bodies(ChSystemNSC& sys) {
     sys.Add(mrigidBall);
 }
 
-// Create a bunch of ChronoENGINE rigid bodies that
-// represent bricks in a Jenga tower
-
+// Create a bunch of ChronoENGINE rigid bodies that represent bricks in a Jenga tower
 void create_jengatower_bodies(ChSystemNSC& sys) {
     // Create a material that will be shared among all collision shapes
     auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
@@ -129,8 +131,7 @@ void create_jengatower_bodies(ChSystemNSC& sys) {
         sys.Add(mrigidBody4);
     }
 
-    // Create the floor using
-    // fixed rigid body of 'box' type:
+    // Create the floor using fixed rigid body of 'box' type:
     auto mrigidFloor = chrono_types::make_shared<ChBodyEasyBox>(250, 4, 250,  // x,y,z size
                                                                 1000,         // density
                                                                 true,         // visualization?
@@ -156,27 +157,51 @@ void create_jengatower_bodies(ChSystemNSC& sys) {
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // Create a ChronoENGINE physical system
+    // Create the physical system
     ChSystemNSC sys;
 
     // Create all the rigid bodies.
     create_wall_bodies(sys);
-    // create_jengatower_bodies (sys);
+    ////create_jengatower_bodies (sys);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->AttachSystem(&sys);
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("Bricks test");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddLight(ChVector<>(70, 120, -90), 290, ChColor(0.7f, 0.7f, 0.7f));
-    vis->AddLight(ChVector<>(30, 80, 60), 190, ChColor(0.7f, 0.8f, 0.8f));
-    vis->AddCamera(ChVector<>(-15, 14, -30), ChVector<>(0, 5, 0));
+    // Create the run-time visualization system
+    std::shared_ptr<ChVisualSystem> vis;
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+            auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+            vis_irr->AttachSystem(&sys);
+            vis_irr->SetWindowSize(800, 600);
+            vis_irr->SetWindowTitle("Bricks test");
+            vis_irr->Initialize();
+            vis_irr->AddLogo();
+            vis_irr->AddSkyBox();
+            vis_irr->AddLight(ChVector<>(70, 120, -90), 290, ChColor(0.7f, 0.7f, 0.7f));
+            vis_irr->AddLight(ChVector<>(30, 80, 60), 190, ChColor(0.7f, 0.8f, 0.8f));
+            vis_irr->AddCamera(ChVector<>(-15, 14, -30), ChVector<>(0, 5, 0));
+
+            vis = vis_irr;
+            break;
+        }
+        case ChVisualSystem::Type::VSG: {
+            auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
+            vis_vsg->AttachSystem(&sys);
+            vis_vsg->SetWindowSize(ChVector2<int>(800, 600));
+            vis_vsg->SetWindowPosition(ChVector2<int>(100, 100));
+            vis_vsg->SetWindowTitle("VSG Bricks Demo");
+            vis_vsg->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
+            vis_vsg->SetUseSkyBox(true);  // use built-in path
+            vis_vsg->SetCameraVertical(chrono::vsg3d::CameraVerticalDir::Y);
+            vis_vsg->AddCamera(ChVector<>(-30, 28, -60), ChVector<>(0, 5, 0));
+            vis_vsg->SetCameraAngleDeg(40);
+            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->Initialize();
+
+            vis = vis_vsg;
+            break;
+        }
+    }
 
     // Prepare the physical system for the simulation
-
     auto solver = chrono_types::make_shared<ChSolverPSOR>();
     solver->SetMaxIterations(40);
     solver->EnableWarmStart(true);
@@ -188,9 +213,6 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     while (vis->Run()) {
         vis->BeginScene();
-        tools::drawGrid(vis.get(), 5, 5, 20, 20,
-                        ChCoordsys<>(ChVector<>(0, 0.04, 0), Q_from_AngAxis(CH_C_PI / 2, VECT_X)),
-                        ChColor(0.35f, 0.35f, 0.59f), true);
         vis->Render();
         vis->EndScene();
 

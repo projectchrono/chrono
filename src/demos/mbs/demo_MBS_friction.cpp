@@ -24,11 +24,19 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/core/ChRealtimeStep.h"
 
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
-
-// Use the namespaces of Chrono
-using namespace chrono;
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
+#endif
+
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+using namespace chrono::vsg3d;
+#endif
+
+using namespace chrono;
+
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
@@ -129,17 +137,46 @@ int main(int argc, char* argv[]) {
 
     sys.Add(bin);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->AttachSystem(&sys);
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("Rolling and spinning friction");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(0, 14, -20));
-    vis->AddLight(ChVector<>(30.f, 100.f, 30.f), 290, ChColor(0.7f, 0.7f, 0.7f));
-    vis->AddLight(ChVector<>(-30.f, 100.f, -30.f), 190, ChColor(0.7f, 0.8f, 0.8f));
+    // Create the run-time visualization system
+    std::shared_ptr<ChVisualSystem> vis;
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+            auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+            vis_irr->AttachSystem(&sys);
+            vis_irr->SetWindowSize(800, 600);
+            vis_irr->SetWindowTitle("Rolling and spinning friction");
+            vis_irr->Initialize();
+            vis_irr->AddLogo();
+            vis_irr->AddSkyBox();
+            vis_irr->AddCamera(ChVector<>(0, 14, -20));
+            vis_irr->AddLight(ChVector<>(30.f, 100.f, 30.f), 290, ChColor(0.7f, 0.7f, 0.7f));
+            vis_irr->AddLight(ChVector<>(-30.f, 100.f, -30.f), 190, ChColor(0.7f, 0.8f, 0.8f));
+
+            vis = vis_irr;
+            break;
+        }
+        case ChVisualSystem::Type::VSG: {
+            auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
+            vis_vsg->AttachSystem(&sys);
+            vis_vsg->SetWindowSize(ChVector2<int>(800, 600));
+            vis_vsg->SetWindowPosition(ChVector2<int>(100, 100));
+            vis_vsg->SetWindowTitle("VSG Rolling Friction");
+            vis_vsg->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
+            vis_vsg->SetOutputScreen(0);
+            vis_vsg->SetUseSkyBox(true);  // use built-in path
+            vis_vsg->SetOutputScreen(0);
+            vis_vsg->SetCameraVertical(chrono::vsg3d::CameraVerticalDir::Y);
+            vis_vsg->AddCamera(ChVector<>(0, 14, -20));
+            vis_vsg->SetCameraAngleDeg(40.0);
+            vis_vsg->SetLightIntensity(1.0);
+            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetWireFrameMode(false);
+            vis_vsg->Initialize();
+
+            vis = vis_vsg;
+            break;
+        }
+    }
 
     // Modify some setting of the physical system for the simulation
     sys.SetSolverType(ChSolver::Type::APGD);

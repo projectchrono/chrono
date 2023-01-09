@@ -19,11 +19,19 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChContactContainerSMC.h"
 
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
-
-// Use the namespaces of Chrono
-using namespace chrono;
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
+#endif
+
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+using namespace chrono::vsg3d;
+#endif
+
+using namespace chrono;
+
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
@@ -126,16 +134,45 @@ int main(int argc, char* argv[]) {
 
     sys.AddBody(bin);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("SMC demonstration");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(0, 3, -6));
-    vis->AttachSystem(&sys);
+    // Create the run-time visualization system
+    std::shared_ptr<ChVisualSystem> vis;
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+            auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+            vis_irr->SetWindowSize(800, 600);
+            vis_irr->SetWindowTitle("SMC demonstration");
+            vis_irr->Initialize();
+            vis_irr->AddLogo();
+            vis_irr->AddSkyBox();
+            vis_irr->AddTypicalLights();
+            vis_irr->AddCamera(ChVector<>(0, 3, -6));
+            vis_irr->AttachSystem(&sys);
+
+            vis = vis_irr;
+            break;
+        }
+        case ChVisualSystem::Type::VSG: {
+            auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
+            vis_vsg->AttachSystem(&sys);
+            vis_vsg->SetWindowTitle("SMC demonstration");
+            vis_vsg->AddCamera(ChVector<>(0, 3, -6));
+            vis_vsg->SetWindowSize(ChVector2<int>(800, 600));
+            vis_vsg->SetWindowPosition(ChVector2<int>(100, 100));
+            vis_vsg->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
+            vis_vsg->SetUseSkyBox(true);
+            vis_vsg->SetCameraVertical(chrono::vsg3d::CameraVerticalDir::Y);
+            vis_vsg->SetCameraAngleDeg(40.0);
+            vis_vsg->SetLightIntensity(1.0);
+            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetWireFrameMode(false);
+            vis_vsg->SetDecoGrid(0.2, 0.2, 20, 20, ChCoordsys<>(ChVector<>(0, 0.11, 0), Q_from_AngX(CH_C_PI_2)),
+                                 ChColor(0.11f, 0.11f, 0.11f));
+            vis_vsg->Initialize();
+
+            vis = vis_vsg;
+            break;
+        }
+    }
 
     // The soft-real-time cycle
     double time = 0.0;
@@ -144,8 +181,6 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
-        tools::drawGrid(vis.get(), 0.2, 0.2, 20, 20, ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)),
-                        ChColor(0.31f, 0.39f, 0.39f), true);
         vis->EndScene();
 
         while (time < out_time) {
