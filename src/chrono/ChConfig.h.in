@@ -34,6 +34,9 @@
 // If module IRRLICHT was enabled, define CHRONO_IRRLICHT
 @CHRONO_IRRLICHT@
 
+// If module VSG was enabled, define CHRONO_VSG
+@CHRONO_VSG@
+
 // If module MATLAB was enabled, define CHRONO_MATLAB
 @CHRONO_MATLAB@
 
