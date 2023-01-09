@@ -303,8 +303,6 @@ bool ChVisualSystemOpenGL::Run() {
 
 // -----------------------------------------------------------------------------
 
-void ChVisualSystemOpenGL::BeginScene(bool backBuffer, bool zBuffer, ChColor color) {}
-
 void ChVisualSystemOpenGL::Render() {
     glEnable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
@@ -318,8 +316,6 @@ void ChVisualSystemOpenGL::Render() {
     glfwSwapBuffers(window);
     glfwPollEvents();
 }
-
-void ChVisualSystemOpenGL::EndScene() {}
 
 // -----------------------------------------------------------------------------
 

@@ -46,11 +46,18 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     ~ChVisualSystemVSG();
 
     virtual void Initialize();
-    virtual void Render();
-    bool Run();
+
+    virtual void BindAll() override;
+
+    virtual bool Run() override;
+    virtual void BeginScene() override {}
+    virtual void EndScene() override {}
+    virtual void Render() override;
+
+    void WriteImageToFile(const std::string& filename) override;
+
     // terminate
     void Quit();
-    void WriteImageToFile(const std::string& filename) override;
     void SetWindowSize(ChVector2<int> size);
     void SetWindowSize(int width, int height);
     void SetWindowPosition(ChVector2<int> pos);
@@ -62,7 +69,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void SetUseSkyBox(bool yesno);
     // Draw scene as wireframes
     void SetWireFrameMode(bool mode = true) { m_draw_as_wireframe = mode; }
-    void SetCameraVertical(chrono::vsg3d::CameraVerticalDir upDir);
+    void SetCameraVertical(CameraVerticalDir upDir);
     void AddCamera(const ChVector<>& pos, ChVector<> targ = VNULL);
     void UpdateCamera(const ChVector<>& pos, ChVector<> targ = VNULL);
     void SetLightIntensity(double intensity) { m_lightIntensity = ChClamp(intensity, 0.0, 1.0); }
@@ -75,12 +82,11 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void SetSystemSymbol(double size);
     void SetSystemSymbolPosition(ChVector<> pos);
     void SetColorBar(std::string title, double min_val, double max_val);
-    void BeginScene() {};
-    void EndScene() {};
     double GetModelTime();
     size_t GetFrameNumber();
     double GetWallclockTime();
     double GetRealtimeFactor();
+
     virtual int GetGearPosition() { return 0; }
     virtual double GetEngineSpeedRPM() { return 0.0; }
     virtual double GetEngineTorque() { return 0.0; }
@@ -123,7 +129,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     };
 
   protected:
-    virtual void BindAll() override;
     virtual void UpdateFromMBS();
     // collect some often used calulations (not for Cylinders!)
     void Point2PointHelperAbs(ChVector<>& P1,

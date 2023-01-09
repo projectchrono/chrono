@@ -222,20 +222,23 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
 
     /// Run the Irrlicht device.
     /// Returns `false` if the device wants to be deleted.
-    bool Run();
+    virtual bool Run() override;
 
-    /// Clean the canvas at the beginning of each animation frame.
-    virtual void BeginScene(bool backBuffer = true, bool zBuffer = true, ChColor color = ChColor(0, 0, 0));
+    /// Perform any necessary operations at the beginning of each rendering frame.
+    virtual void BeginScene() override;
+
+    /// Clean the canvas at the beginning of each rendering frame.
+    virtual void BeginScene(bool backBuffer, bool zBuffer, ChColor color);
 
     /// Draw all 3D shapes and GUI elements at the current frame.
     /// This function is typically called inside a loop such as
     /// <pre>
     ///    while(vis->Run()) {...}
     /// </pre>
-    virtual void Render();
+    virtual void Render() override;
 
     /// End the scene draw at the end of each animation frame.
-    virtual void EndScene();
+    virtual void EndScene() override;
 
     /// Return a fixed-size font for rendering GUI.
     irr::gui::IGUIFont* GetMonospaceFont() const { return m_monospace_font; }

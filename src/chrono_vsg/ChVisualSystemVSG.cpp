@@ -885,7 +885,6 @@ void ChVisualSystemVSG::Initialize() {
     ImGui::CreateContext();
     auto foundFontFile = vsg::findFile("vsg/fonts/Ubuntu_Mono/UbuntuMono-Regular.ttf", m_options);
     if (foundFontFile) {
-        GetLog() << "Font file found = " << foundFontFile.string() << "\n";
         // convert native filename to UTF8 string that is compatible with ImuGUi.
         std::string c_fontFile = foundFontFile.string();
 
@@ -1014,13 +1013,10 @@ void ChVisualSystemVSG::WriteImageToFile(const string& filename) {
 }
 
 void ChVisualSystemVSG::BindAll() {
-    cout << "BindAll() called!" << endl;
     if (m_systems.empty()) {
-        cout << "No system attached, nothing to bind!" << endl;
         return;
     }
     if (m_systems[0]->Get_bodylist().size() < 1) {
-        cout << "Attached system must have at least 1 rigid body, nothing to bind!" << endl;
         return;
     }
     // generate CoG symbols if needed
@@ -1038,9 +1034,7 @@ void ChVisualSystemVSG::BindAll() {
     }
     for (auto& body : m_systems[0]->GetAssembly().Get_bodylist()) {
         // CreateIrrNode(body);
-        GetLog() << "Body# " << body->GetId() << "\n";
         if (!body->GetVisualModel()) {
-            GetLog() << "   ... has no visual representation\n";
             continue;
         }
         // Get the visual model reference frame
@@ -1083,20 +1077,17 @@ void ChVisualSystemVSG::BindAll() {
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(scale.x(), scale.y(), scale.z());
                 if (isDice) {
-                    GetLog() << "... has a dice shape\n";
                     auto tmpGroup =
                         m_shapeBuilder->createShape(ShapeBuilder::DICE_SHAPE, material, transform, m_draw_as_wireframe);
                     ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
                     m_bodyScene->addChild(tmpGroup);
                 } else {
-                    GetLog() << "... has a box shape\n";
                     auto tmpGroup =
                         m_shapeBuilder->createShape(ShapeBuilder::BOX_SHAPE, material, transform, m_draw_as_wireframe);
                     ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
                     m_bodyScene->addChild(tmpGroup);
                 }
             } else if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
-                GetLog() << "... has a sphere shape\n";
                 ChVector<> scale = sphere->GetSphereGeometry().rad;
                 auto transform = vsg::MatrixTransform::create();
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
@@ -1107,7 +1098,6 @@ void ChVisualSystemVSG::BindAll() {
                 ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
                 m_bodyScene->addChild(tmpGroup);
             } else if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
-                GetLog() << "... has a ellipsoid shape\n";
                 ChVector<> scale = ellipsoid->GetEllipsoidGeometry().rad;
                 auto transform = vsg::MatrixTransform::create();
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
@@ -1118,7 +1108,6 @@ void ChVisualSystemVSG::BindAll() {
                 ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
                 m_bodyScene->addChild(tmpGroup);
             } else if (auto capsule = std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {
-                GetLog() << "... has a capsule shape\n";
                 double rad = capsule->GetCapsuleGeometry().rad;
                 double height = capsule->GetCapsuleGeometry().hlen;
                 auto transform = vsg::MatrixTransform::create();
@@ -1131,9 +1120,8 @@ void ChVisualSystemVSG::BindAll() {
                 ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
                 m_bodyScene->addChild(tmpGroup);
             } else if (auto barrel = std::dynamic_pointer_cast<ChBarrelShape>(shape)) {
-                GetLog() << "... has a barrel shape (to do)\n";
+                //// TODO
             } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(shape)) {
-                GetLog() << "... has a cone shape\n";
                 Vector rad = cone->GetConeGeometry().rad;
                 auto transform = vsg::MatrixTransform::create();
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
@@ -1144,25 +1132,21 @@ void ChVisualSystemVSG::BindAll() {
                 ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
                 m_bodyScene->addChild(tmpGroup);
             } else if (auto trimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape)) {
-                // GetLog() << "... has a triangle mesh shape\n";
                 ChVector<> scale = trimesh->GetScale();
                 auto transform = vsg::MatrixTransform::create();
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(scale.x(), scale.y(), scale.z());
                 if (trimesh->GetNumMaterials() > 0) {
-                    GetLog() << "... has a triangle mesh shape with material(s)\n";
                     auto tmpGroup = m_shapeBuilder->createTrimeshMatShape(transform, m_draw_as_wireframe, trimesh);
                     ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
                     m_bodyScene->addChild(tmpGroup);
                 } else {
-                    GetLog() << "... has a triangle mesh shape with color(s)\n";
                     auto tmpGroup = m_shapeBuilder->createTrimeshColShape(transform, m_draw_as_wireframe, trimesh);
                     ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
                     m_bodyScene->addChild(tmpGroup);
                 }
             } else if (auto surface = std::dynamic_pointer_cast<ChSurfaceShape>(shape)) {
-                GetLog() << "... has a surface mesh shape\n";
                 auto transform = vsg::MatrixTransform::create();
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
@@ -1172,10 +1156,8 @@ void ChVisualSystemVSG::BindAll() {
                 ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
                 m_bodyScene->addChild(tmpGroup);
             } else if (auto obj = std::dynamic_pointer_cast<ChObjFileShape>(shape)) {
-                GetLog() << "... has a obj file shape\n";
                 string objFilename = obj->GetFilename();
                 size_t objHashValue = m_stringHash(objFilename);
-                GetLog() << "Hash: " << objHashValue << " | " << objFilename << "\n";
                 auto grp = vsg::Group::create();
                 auto transform = vsg::MatrixTransform::create();
                 grp->setValue("ItemPtr", body);
@@ -1190,7 +1172,6 @@ void ChVisualSystemVSG::BindAll() {
                 map<size_t, vsg::ref_ptr<vsg::Node>>::iterator objIt;
                 objIt = m_objCache.find(objHashValue);
                 if (objIt == m_objCache.end()) {
-                    // GetLog() << "Cache empty or value not contained.\n";
                     auto node = vsg::read_cast<vsg::Node>(objFilename, m_options);
                     if (node) {
                         transform->addChild(node);
@@ -1198,26 +1179,22 @@ void ChVisualSystemVSG::BindAll() {
                         m_objCache[objHashValue] = node;
                     }
                 } else {
-                    // GetLog() << "value found in cache.\n";
                     transform->addChild(m_objCache[objHashValue]);
                     m_bodyScene->addChild(grp);
                 }
             } else if (auto line = std::dynamic_pointer_cast<ChLineShape>(shape)) {
-                GetLog() << "... has a line shape\n";
                 auto transform = vsg::MatrixTransform::create();
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(1.0, 1.0, 1.0);
                 m_bodyScene->addChild(m_shapeBuilder->createLineShape(body, shape_instance, material, transform, line));
             } else if (auto path = std::dynamic_pointer_cast<ChPathShape>(shape)) {
-                GetLog() << "... has a path shape\n";
                 auto transform = vsg::MatrixTransform::create();
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(1.0, 1.0, 1.0);
                 m_bodyScene->addChild(m_shapeBuilder->createPathShape(body, shape_instance, material, transform, path));
             } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
-                GetLog() << "... has a cylinder shape\n";
                 double rad = cylinder->GetCylinderGeometry().rad;
                 const auto& P1 = cylinder->GetCylinderGeometry().p1;
                 const auto& P2 = cylinder->GetCylinderGeometry().p2;
@@ -1253,7 +1230,6 @@ void ChVisualSystemVSG::BindAll() {
         if (auto pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
             if (!pcloud->GetVisualModel())
                 continue;
-            GetLog() << "Generating Particle Cloud....\n";
             if (!m_particlePattern) {
                 std::shared_ptr<ChVisualMaterial> material;
                 material = chrono_types::make_shared<ChVisualMaterial>();
@@ -1286,11 +1262,9 @@ void ChVisualSystemVSG::BindAll() {
                 continue;
             auto transform = vsg::MatrixTransform::create();
             if (trimesh->GetNumMaterials() > 0) {
-                GetLog() << "SCM Trimesh with materials found, will not work as expected!\n";
                 m_deformableScene->addChild(
                     m_shapeBuilder->createTrimeshMatShape(transform, trimesh->IsWireframe(), trimesh));
             } else {
-                GetLog() << "SCM Trimesh with colors found!\n";
                 m_deformableScene->addChild(
                     m_shapeBuilder->createTrimeshColShapeSCM(transform, trimesh->IsWireframe(), trimesh));
             }
@@ -1300,7 +1274,6 @@ void ChVisualSystemVSG::BindAll() {
                 m_num_vsgVertexList += vertices->size();
             }
             m_mbsMesh = trimesh;
-            GetLog() << "We have " << m_num_vsgVertexList << " vertices to transfer.\n";
             if (m_num_vsgVertexList == trimesh->GetMesh()->getCoordsVertices().size()) {
                 m_allowVertexTransfer = true;
             }
@@ -1313,7 +1286,6 @@ void ChVisualSystemVSG::BindAll() {
                 }
                 if (num_vsgNormalsList == m_num_vsgVertexList) {
                     m_allowNormalsTransfer = true;
-                    GetLog() << "Normals Transfer allowed.\n";
                 }
             }
             if (m_allowVertexTransfer) {
@@ -1325,7 +1297,6 @@ void ChVisualSystemVSG::BindAll() {
                 }
                 if (num_vsgColorsList == m_num_vsgVertexList) {
                     m_allowColorsTransfer = true;
-                    GetLog() << "Colors Transfer allowed.\n";
                 }
             }
         }
@@ -1342,7 +1313,6 @@ void ChVisualSystemVSG::BindAll() {
             for (auto& shape_instance : link->GetVisualModel()->GetShapes()) {
                 auto& shape = shape_instance.first;
                 if (auto segshape = std::dynamic_pointer_cast<ChSegmentShape>(shape)) {
-                    GetLog() << "Found line segment\n";
                     ChVector<> P1 = link->GetPoint1Abs();
                     ChVector<> P2 = link->GetPoint2Abs();
                     double rotAngle, height;
@@ -1364,7 +1334,6 @@ void ChVisualSystemVSG::BindAll() {
                     m_linkScene->addChild(
                         m_shapeBuilder->createUnitSegment(ilink, shape_instance, material, transform));
                 } else if (auto sprshape = std::dynamic_pointer_cast<ChSpringShape>(shape)) {
-                    GetLog() << "Found spring shape\n";
                     double rad = sprshape->GetRadius();
                     ChVector<> P1 = link->GetPoint1Abs();
                     ChVector<> P2 = link->GetPoint2Abs();
@@ -1398,7 +1367,6 @@ void ChVisualSystemVSG::BindAll() {
             for (auto& shape_instance : link->GetVisualModel()->GetShapes()) {
                 auto& shape = shape_instance.first;
                 if (auto segshape = std::dynamic_pointer_cast<ChSegmentShape>(shape)) {
-                    GetLog() << "ChLinkDistance() Found line segment\n";
                     ChVector<> P1 = link->GetEndPoint1Abs();
                     ChVector<> P2 = link->GetEndPoint2Abs();
                     double rotAngle, height;
@@ -1508,7 +1476,6 @@ void ChVisualSystemVSG::UpdateFromMBS() {
             transform->matrix =
                 vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(scale.x(), scale.y(), scale.z());
         } else if (auto obj = std::dynamic_pointer_cast<ChObjFileShape>(shape)) {
-            GetLog() << "... has a obj file shape\n";
             string objFilename = obj->GetFilename();
             transform->matrix = vsg::translate(pos) * vsg::rotate(angle, rotax);
         } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
@@ -1645,10 +1612,7 @@ void ChVisualSystemVSG::SetDecoObject(std::string objFileName, ChCoordsys<> csys
     auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(objFileName, true, true);
     if (trimesh == nullptr) {
         GetLog() << "Couldn't read file " << objFileName << "\n";
-        ;
         return;
-    } else {
-        GetLog() << "Read file " << objFileName << "\n";
     }
     ChVector<> pos = csys.pos;
     ChQuaternion<> quat = csys.rot;
@@ -1662,7 +1626,6 @@ void ChVisualSystemVSG::SetDecoObject(std::string objFileName, ChCoordsys<> csys
     auto tms = chrono_types::make_shared<ChTriangleMeshShape>();
     tms->SetMesh(trimesh, true);
     if (tms->GetNumMaterials() > 0) {
-        GetLog() << "... with mat\n";
         for (int i = 0; i < tms->GetNumMaterials(); i++) {
             tms->GetMaterial(i)->SetDiffuseColor(col);
             tms->GetMaterial(i)->SetAmbientColor(ChColor(0.2, 0.2, 0.2));
@@ -1671,7 +1634,6 @@ void ChVisualSystemVSG::SetDecoObject(std::string objFileName, ChCoordsys<> csys
         m_decoScene->addChild(tmpGroup);
     } else {
         auto tmpGroup = m_shapeBuilder->createTrimeshColShape(transform, m_draw_as_wireframe, tms);
-        GetLog() << "... with col\n";
         m_decoScene->addChild(tmpGroup);
     }
 }

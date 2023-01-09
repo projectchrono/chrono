@@ -29,6 +29,14 @@ enum class CameraVerticalDir { Y, Z };
 /// Base class for a Chrono run-time visualization system.
 class ChApi ChVisualSystem {
   public:
+    /// Supported run-time visualization systems.
+    enum class Type {
+        IRRLICHT,  // Irrlicht
+        VSG,       // Vulkan Scene Graph
+        OpenGL,    // OpenGL
+        OptiX      // OptiX
+    };
+
     virtual ~ChVisualSystem() {
         for (auto s : m_systems)
             s->visual_system = nullptr;
@@ -49,6 +57,27 @@ class ChApi ChVisualSystem {
     /// This function must be called if a new physics item is added to the system or if changes to its visual model
     /// occur after the visualization system was attached to the Chrono system.
     virtual void BindItem(std::shared_ptr<ChPhysicsItem> item) {}
+
+    /// Run the visualization system.
+    /// Returns `false` if the system must shut down.
+    virtual bool Run() = 0;
+
+    /// Perform any necessary operations at the beginning of each rendering frame.
+    virtual void BeginScene() = 0;
+
+    /// Draw all 3D shapes and GUI elements at the current frame.
+    /// This function is typically called inside a loop such as
+    /// <pre>
+    ///    while(vis->Run()) {
+    ///       ...
+    ///       vis->Render();
+    ///       ...
+    ///    }
+    /// </pre>
+    virtual void Render() = 0;
+
+    /// Perform any necessary operations ar the end of each rendering frame.
+    virtual void EndScene() = 0;
 
     /// Create a snapshot of the last rendered frame and save it to the provided file.
     /// The file extension determines the image format.

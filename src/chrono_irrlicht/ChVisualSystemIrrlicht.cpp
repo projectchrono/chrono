@@ -498,6 +498,11 @@ void ChVisualSystemIrrlicht::ShowExplorer(bool val) {
 // -----------------------------------------------------------------------------
 
 // Clean canvas at beginning of scene.
+
+void ChVisualSystemIrrlicht::BeginScene() {
+    BeginScene(true, true, ChColor(0, 0, 0));
+}
+
 void ChVisualSystemIrrlicht::BeginScene(bool backBuffer, bool zBuffer, ChColor color) {
     assert(!m_systems.empty());
 
