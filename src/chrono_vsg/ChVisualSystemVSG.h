@@ -29,7 +29,6 @@
 #include <vsgImGui/RenderImGui.h>
 #include <vsgImGui/SendEventsToImGui.h>
 #include <vsgImGui/imgui.h>
-#include <vsgImGui/implot.h>
 
 #include "tools/createSkybox.h"
 #include "tools/exportScreenshot.h"
@@ -75,12 +74,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void SetDecoObject(std::string objFileName, ChCoordsys<> pos, ChVector<> size={1,1,1}, ChColor col={1,1,1});
     void SetSystemSymbol(double size);
     void SetSystemSymbolPosition(ChVector<> pos);
-    void ShowGuiChart1(bool showChart1);
-    void SetChart1Labels(std::string title, std::string xlabel, std::string ylabel);
-    void UpdateChart1(std::shared_ptr<ChFunction_Repeat> fRep);
-    void ShowGuiChart2(bool showChart2);
-    void SetChart2Labels(std::string title, std::string xlabel, std::string ylabel);
-    void UpdateChart2(std::shared_ptr<ChFunction_Repeat> fRep);
     void SetColorBar(std::string title, double min_val, double max_val);
     void BeginScene() {};
     void EndScene() {};
@@ -123,18 +116,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
         char transmission_mode = '?';
         char drive_mode = '?';
         bool show_converter_data = false;
-        bool show_data_chart1 = false;
-        std::vector<float> x1_data;
-        std::vector<float> y1_data;
-        std::string c1_title;
-        std::string x1_label;
-        std::string y1_label;
-        bool show_data_chart2 = false;
-        std::vector<float> x2_data;
-        std::vector<float> y2_data;
-        std::string c2_title;
-        std::string x2_label;
-        std::string y2_label;
         bool show_color_bar = false;
         std::string cb_title;
         double cb_min = 0.0;

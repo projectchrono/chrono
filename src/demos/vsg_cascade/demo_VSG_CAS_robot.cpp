@@ -393,10 +393,6 @@ int main(int argc, char* argv[]) {
     vis->AddCamera(ChVector<>(2.2, 1.6, 2.5), ChVector<>(0, 1, 0));
     vis->Initialize();
 
-    vis->ShowGuiChart1(true);
-    vis->SetChart1Labels("Move Z", "time(s)", "Z(m)");
-    vis->ShowGuiChart2(true);
-    vis->SetChart2Labels("Move Y", "time(s)", "Y(m)");
     // Modify the settings of the solver.
     // By default, the solver might not have sufficient precision to keep the
     // robot joints 'mounted'. Expecially, the SOR, SSOR and other fixed point methods
@@ -434,8 +430,6 @@ int main(int argc, char* argv[]) {
             vis->WriteImageToFile("ImPlot_Example.png");
         }
         sys.DoStepDynamics(time_step);
-        vis->UpdateChart1(motlaw_z);
-        vis->UpdateChart2(motlaw_y);
         realtime_timer.Spin(time_step);
         frame_number++;
     }
