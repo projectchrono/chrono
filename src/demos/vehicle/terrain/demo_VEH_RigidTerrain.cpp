@@ -44,7 +44,7 @@ using namespace chrono;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
 
-//#define USE_JSON
+// #define USE_JSON
 
 // Run-time visualization system (IRRLICHT or VSG)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetTireVisualizationType(VisualizationType::PRIMITIVES);
 
 #ifdef USE_JSON
-    // Create the terrain from JSON specification file 
+    // Create the terrain from JSON specification file
     RigidTerrain terrain(my_hmmwv.GetSystem(), vehicle::GetDataFile("terrain/RigidPatches.json"), true);
 #else
     // Create the terrain patches programatically
@@ -112,9 +112,8 @@ int main(int argc, char* argv[]) {
     auto patch4_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     patch4_mat->SetFriction(0.9f);
     patch4_mat->SetRestitution(0.01f);
-    auto patch4 =
-        terrain.AddPatch(patch4_mat, ChCoordsys<>(ChVector<>(0, 42, 0), QUNIT),
-                         vehicle::GetDataFile("terrain/height_maps/bump64.bmp"), 64.0, 64.0, 0.0, 3.0);
+    auto patch4 = terrain.AddPatch(patch4_mat, ChCoordsys<>(ChVector<>(0, 42, 0), QUNIT),
+                                   vehicle::GetDataFile("terrain/height_maps/bump64.bmp"), 64.0, 64.0, 0.0, 3.0);
     patch4->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 6.0f, 6.0f);
 
     terrain.Initialize();
@@ -132,6 +131,7 @@ int main(int argc, char* argv[]) {
 
     switch (vis_type) {
         case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
             // Create the vehicle Irrlicht interface
             auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
             vis_irr->SetWindowTitle("Rigid Terrain Demo");
@@ -150,10 +150,12 @@ int main(int argc, char* argv[]) {
 
             vis = vis_irr;
             driver = driver_irr;
+#endif
             break;
         }
 
         case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
             // Create the vehicle VSG interface
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("Rigid Terrain Demo");
@@ -169,6 +171,7 @@ int main(int argc, char* argv[]) {
 
             vis = vis_vsg;
             driver = driver_vsg;
+#endif
             break;
         }
     }

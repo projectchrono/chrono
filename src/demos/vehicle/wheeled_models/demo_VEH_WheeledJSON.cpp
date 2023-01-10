@@ -54,7 +54,7 @@ using namespace chrono::vehicle;
 //    UAZ     - UAZ minibus
 //    CityBus - passenger bus
 //    MAN     - MAN 10t truck
-//    MTV     - MTV truck 
+//    MTV     - MTV truck
 //    ACV     - articulated chassis vehicle (skid steer)
 
 class Vehicle_Model {
@@ -125,9 +125,7 @@ class UAZ_Model : public Vehicle_Model {
 class VW_Microbus_Model : public Vehicle_Model {
   public:
     virtual std::string ModelName() const override { return "VW_Microbus"; }
-    virtual std::string VehicleJSON() const override {
-        return "VW_microbus/json/van_Vehicle.json";
-    }
+    virtual std::string VehicleJSON() const override { return "VW_microbus/json/van_Vehicle.json"; }
     virtual std::string TireJSON() const override {
         ////return "VW_microbus/json/van_Pac02Tire.json";
         return "VW_microbus/json/van_TMeasyTire.json";
@@ -281,8 +279,7 @@ int main(int argc, char* argv[]) {
     // Create the trailer system (build into same ChSystem)
     std::shared_ptr<WheeledTrailer> trailer;
     if (add_trailer) {
-        trailer = chrono_types::make_shared<WheeledTrailer>(system,
-                                                            vehicle::GetDataFile(trailer_model.TrailerJSON()));
+        trailer = chrono_types::make_shared<WheeledTrailer>(system, vehicle::GetDataFile(trailer_model.TrailerJSON()));
         trailer->Initialize(vehicle.GetChassis());
         trailer->SetChassisVisualizationType(VisualizationType::PRIMITIVES);
         trailer->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
@@ -304,6 +301,7 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<ChDriver> driver;
     switch (vis_type) {
         case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
             // Create the vehicle Irrlicht interface
             auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
             vis_irr->SetWindowTitle("Vehicle demo - JSON specification");
@@ -323,9 +321,11 @@ int main(int argc, char* argv[]) {
 
             vis = vis_irr;
             driver = driver_irr;
+#endif
             break;
         }
         case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
             // Create the vehicle VSG interface
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("Vehicle demo - JSON specification");
@@ -348,6 +348,7 @@ int main(int argc, char* argv[]) {
 
             vis = vis_vsg;
             driver = driver_vsg;
+#endif
             break;
         }
     }

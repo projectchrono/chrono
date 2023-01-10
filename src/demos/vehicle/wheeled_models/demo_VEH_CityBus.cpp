@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
     patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
 
     terrain.Initialize();
-    
+
     // -----------------
     // Initialize output
     // -----------------
@@ -180,7 +180,8 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<ChDriver> driver;
 
     switch (vis_type) {
-        case ChVisualSystem::Type::IRRLICHT : {
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
             // Create the vehicle Irrlicht interface
             auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
             vis_irr->SetWindowTitle("City Bus Demo");
@@ -218,9 +219,11 @@ int main(int argc, char* argv[]) {
 
             vis = vis_irr;
             driver = driver_irr;
+#endif
             break;
         }
         case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
             // Create the vehicle VSG interface
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("VSG: City Bus Demo");
@@ -250,6 +253,7 @@ int main(int argc, char* argv[]) {
 
             vis = vis_vsg;
             driver = driver_vsg;
+#endif
             break;
         }
     }

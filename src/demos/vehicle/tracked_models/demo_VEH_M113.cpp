@@ -284,7 +284,8 @@ int main(int argc, char* argv[]) {
 
     // Change (SMC) contact force model
     ////if (contact_method == ChContactMethod::SMC) {
-    ////    static_cast<ChSystemSMC*>(m113.GetSystem())->SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
+    ////
+    ///static_cast<ChSystemSMC*>(m113.GetSystem())->SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
     ////}
 
     // --------------------------------------------------
@@ -435,6 +436,7 @@ int main(int argc, char* argv[]) {
 
     switch (vis_type) {
         case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
             // Create the vehicle Irrlicht interface
             auto vis_irr = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
             vis_irr->SetWindowTitle("M113 Vehicle Demo");
@@ -460,9 +462,11 @@ int main(int argc, char* argv[]) {
                 driver = irr_driver;
             }
 
+#endif
             break;
         }
         case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
             // Create the vehicle VSG interface
             auto vis_vsg = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("M113 Vehicle Demo");
@@ -485,6 +489,7 @@ int main(int argc, char* argv[]) {
                 driver = vsg_driver;
             }
 
+#endif
             break;
         }
     }

@@ -65,7 +65,6 @@ TireType tire_type = TireType::TMEASY;
 bool use_JSON = true;
 
 int main() {
-
     // Create wheel and tire subsystems
     auto wheel = chrono_types::make_shared<hmmwv::HMMWV_Wheel>("Wheel");
 
@@ -210,6 +209,7 @@ int main() {
 
     switch (vis_type) {
         case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
             auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
             vis_irr->AttachSystem(sys);
             vis_irr->SetCameraVertical(CameraVerticalDir::Z);
@@ -222,9 +222,11 @@ int main() {
             vis_irr->AddLightDirectional();
 
             vis = vis_irr;
+#endif
             break;
         }
         case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(sys);
             ////vis_vsg->SetCameraVertical(CameraVerticalDir::Z);
@@ -234,6 +236,7 @@ int main() {
             vis_vsg->Initialize();
 
             vis = vis_vsg;
+#endif
             break;
         }
     }

@@ -141,6 +141,7 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<ChVisualSystem> vis;
     switch (vis_type) {
         case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
             auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
             vis_irr->AttachSystem(&sys);
             vis_irr->SetWindowSize(800, 600);
@@ -153,9 +154,11 @@ int main(int argc, char* argv[]) {
             vis_irr->AddLight(ChVector<>(-30.f, 100.f, -30.f), 190, ChColor(0.7f, 0.8f, 0.8f));
 
             vis = vis_irr;
+#endif
             break;
         }
         case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(&sys);
             vis_vsg->SetWindowSize(ChVector2<int>(800, 600));
@@ -174,6 +177,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->Initialize();
 
             vis = vis_vsg;
+#endif
             break;
         }
     }

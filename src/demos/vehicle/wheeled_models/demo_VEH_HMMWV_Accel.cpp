@@ -177,6 +177,7 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<ChVehicleVisualSystem> vis;
     switch (vis_type) {
         case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
             auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
             vis_irr->SetWindowTitle("HMMWV acceleration test");
             vis_irr->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
@@ -187,9 +188,11 @@ int main(int argc, char* argv[]) {
             vis_irr->AttachVehicle(&my_hmmwv.GetVehicle());
 
             vis = vis_irr;
+#endif
             break;
         }
         case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("HMMWV acceleration test");
             vis_vsg->SetWindowSize(ChVector2<int>(800, 600));
@@ -203,6 +206,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->Initialize();
 
             vis = vis_vsg;
+#endif
             break;
         }
     }
