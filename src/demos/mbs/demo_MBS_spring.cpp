@@ -35,8 +35,6 @@
 using namespace chrono;
 using namespace chrono::irrlicht;
 
-using namespace irr;
-
 // =============================================================================
 
 double rest_length = 1.5;

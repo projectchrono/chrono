@@ -40,8 +40,6 @@ using namespace chrono;
 using namespace chrono::fea;
 using namespace chrono::irrlicht;
 
-using namespace irr;
-
 // A helper function that creates a'lobed gear', almost a macro user in main()
 // to quickly create one or two rotating obstacles for the extruding beam
 

@@ -34,8 +34,6 @@ using namespace chrono::irrlicht;
 using namespace chrono::geometry;
 using namespace chrono::viper;
 
-using namespace irr;
-
 bool output = false;
 const std::string out_dir = GetChronoOutputPath() + "SCM_DEF_SOIL";
 
@@ -231,7 +229,7 @@ int main(int argc, char* argv[]) {
 
     while (vis->Run()) {
         vis->BeginScene();
-        vis->GetActiveCamera()->setTarget(core::vector3dfCH(Body_1->GetPos()));
+        vis->GetActiveCamera()->setTarget(irr::core::vector3dfCH(Body_1->GetPos()));
         vis->Render();
         tools::drawColorbar(vis.get(), 0, 20000, "Pressure yield [Pa]", 1180);
         vis->EndScene();

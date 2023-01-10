@@ -38,8 +38,6 @@ using namespace chrono;
 using namespace chrono::fea;
 using namespace chrono::irrlicht;
 
-using namespace irr;
-
 // This function simulates the effect of an external program that
 // gets a triangle mesh and outputs the forces acting on the nodes.
 // In a real cosimulation scenario, this procedure could even reside

@@ -45,7 +45,6 @@
 using namespace chrono;
 using namespace chrono::fea;
 using namespace chrono::irrlicht;
-using namespace irr;
 
 void AxialDynamics();
 void BendingQuasiStatic();

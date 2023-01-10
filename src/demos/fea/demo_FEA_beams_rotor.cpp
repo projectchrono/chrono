@@ -38,7 +38,6 @@ using namespace chrono;
 using namespace chrono::fea;
 using namespace chrono::irrlicht;
 using namespace chrono::postprocess;
-using namespace irr;
 
 // Output directory
 const std::string out_dir = GetChronoOutputPath() + "BEAM_ROTOR";

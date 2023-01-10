@@ -32,8 +32,6 @@ using namespace chrono;
 using namespace chrono::utils;
 using namespace chrono::irrlicht;
 
-using namespace irr;
-
 int main(int argc, char* argv[]) {
     // Get ADAMS input file (relative to the 'data' directory)
     std::string filename;
