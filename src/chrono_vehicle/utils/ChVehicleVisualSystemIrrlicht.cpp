@@ -235,23 +235,6 @@ void ChVehicleVisualSystemIrrlicht::Render() {
     renderOtherGraphics();
 }
 
-// Render a horizontal grid
-void ChVehicleVisualSystemIrrlicht::RenderGrid(const ChVector<>& loc, int num_divs, double delta) {
-    irrlicht::tools::drawGrid(this, delta, delta, num_divs, num_divs, ChCoordsys<>(loc, ChWorldFrame::Quaternion()),
-                              ChColor(1.00f, 0.78f, 0.00f), true);
-}
-
-// Render the specified reference frame
-void ChVehicleVisualSystemIrrlicht::RenderFrame(const ChFrame<>& frame, double axis_length) {
-    const auto& loc = frame.GetPos();
-    const auto& u = frame.GetA().Get_A_Xaxis();
-    const auto& v = frame.GetA().Get_A_Yaxis();
-    const auto& w = frame.GetA().Get_A_Zaxis();
-    irrlicht::tools::drawSegment(this, loc, loc + u * axis_length, ChColor(1, 0, 0));
-    irrlicht::tools::drawSegment(this, loc, loc + v * axis_length, ChColor(0, 1, 0));
-    irrlicht::tools::drawSegment(this, loc, loc + w * axis_length, ChColor(0, 0, 1));
-}
-
 // Render a linear gauge in the HUD.
 void ChVehicleVisualSystemIrrlicht::renderLinGauge(const std::string& msg,
                                                    double factor,

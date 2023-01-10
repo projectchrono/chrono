@@ -260,10 +260,12 @@ int main(int argc, char* argv[]) {
     vis->AttachVehicle(&mtv.GetVehicle());
 
     // Visualization of controller points (sentinel & target)
-    irr::scene::IMeshSceneNode* ballS = vis->GetSceneManager()->addSphereSceneNode(0.1f);
-    irr::scene::IMeshSceneNode* ballT = vis->GetSceneManager()->addSphereSceneNode(0.1f);
-    ballS->getMaterial(0).EmissiveColor = irr::video::SColor(0, 255, 0, 0);
-    ballT->getMaterial(0).EmissiveColor = irr::video::SColor(0, 0, 255, 0);
+    auto ballS = chrono_types::make_shared<ChSphereShape>(0.1);
+    auto ballT = chrono_types::make_shared<ChSphereShape>(0.1);
+    ballS->SetColor(ChColor(1, 0, 0));
+    ballT->SetColor(ChColor(0, 1, 0));
+    int iballS = vis->AddVisualModel(ballS, ChFrame<>());
+    int iballT = vis->AddVisualModel(ballT, ChFrame<>());
 #endif
 
     // -------------
@@ -371,10 +373,8 @@ int main(int argc, char* argv[]) {
 
 #ifdef USE_IRRLICHT
         // path visualization
-        const ChVector<>& pS = driver.GetSteeringController().GetSentinelLocation();
-        const ChVector<>& pT = driver.GetSteeringController().GetTargetLocation();
-        ballS->setPosition(irr::core::vector3df((irr::f32)pS.x(), (irr::f32)pS.y(), (irr::f32)pS.z()));
-        ballT->setPosition(irr::core::vector3df((irr::f32)pT.x(), (irr::f32)pT.y(), (irr::f32)pT.z()));
+        vis->UpdateVisualModel(iballS, ChFrame<>(driver.GetSteeringController().GetSentinelLocation()));
+        vis->UpdateVisualModel(iballT, ChFrame<>(driver.GetSteeringController().GetTargetLocation()));
 
         // std::cout<<"Target:\t"<<(irr::f32)pT.x()<<",\t "<<(irr::f32)pT.y()<<",\t "<<(irr::f32)pT.z()<<std::endl;
         // std::cout<<"Vehicle:\t"<<mtv.GetVehicle().GetChassisBody()->GetPos().x()

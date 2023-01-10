@@ -83,12 +83,6 @@ class CH_VEHICLE_API ChVehicleVisualSystemIrrlicht : public ChVehicleVisualSyste
     /// Render the Irrlicht scene and additional visual elements.
     virtual void Render() override;
 
-    /// Render a horizontal grid at the specified location.
-    void RenderGrid(const ChVector<>& loc, int num_divs, double delta);
-
-    /// Render the specified reference frame.
-    void RenderFrame(const ChFrame<>& frame, double axis_length = 1);
-
     /// Advance the dynamics of the chase camera.
     /// The integration of the underlying ODEs is performed using as many steps as needed to advance
     /// by the specified duration.

@@ -16,5 +16,14 @@
 
 namespace chrono {
 
-}  // namespace chrono
+ChVisualSystem ::~ChVisualSystem() {
+    for (auto s : m_systems)
+        s->visual_system = nullptr;
+}
 
+void ChVisualSystem::AttachSystem(ChSystem* sys) {
+    m_systems.push_back(sys);
+    sys->visual_system = this;
+}
+
+}  // namespace chrono

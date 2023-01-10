@@ -37,16 +37,10 @@ class ChApi ChVisualSystem {
         OptiX      // OptiX
     };
 
-    virtual ~ChVisualSystem() {
-        for (auto s : m_systems)
-            s->visual_system = nullptr;
-    }
+    virtual ~ChVisualSystem();
 
     /// Attach a Chrono system to this visualization system.
-    virtual void AttachSystem(ChSystem* sys) {
-        m_systems.push_back(sys);
-        sys->visual_system = this;
-    }
+    virtual void AttachSystem(ChSystem* sys);
 
     /// Process all visual assets in the associated ChSystem.
     /// This function is called by default when a Chrono system is attached to this visualization system (see
@@ -57,6 +51,18 @@ class ChApi ChVisualSystem {
     /// This function must be called if a new physics item is added to the system or if changes to its visual model
     /// occur after the visualization system was attached to the Chrono system.
     virtual void BindItem(std::shared_ptr<ChPhysicsItem> item) {}
+
+    /// Add a visual model not associated with a physical item.
+    /// Return an ID which can be used later to modify the position of this visual model.
+    virtual int AddVisualModel(std::shared_ptr<ChVisualModel> model, const ChFrame<>& frame) { return -1; }
+
+    /// Add a visual model not associated with a physical item.
+    /// This version constructs a visual model consisting of the single specified shape
+    /// Return an ID which can be used later to modify the position of this visual model.
+    virtual int AddVisualModel(std::shared_ptr<ChVisualShape> shape, const ChFrame<>& frame) { return -1; }
+
+    /// Update the position of the specified visualization-only model.
+    virtual void UpdateVisualModel(int id, const ChFrame<>& frame) {}
 
     /// Run the visualization system.
     /// Returns `false` if the system must shut down.
@@ -75,6 +81,12 @@ class ChApi ChVisualSystem {
     ///    }
     /// </pre>
     virtual void Render() = 0;
+
+    /// Render a grid with specified parameters in the x-y plane of the given frame.
+    virtual void RenderGrid(const ChFrame<>& frame, int num_div, double delta) {}
+
+    /// Render the specified reference frame.
+    virtual void RenderFrame(const ChFrame<>& frame, double axis_length = 1) {}
 
     /// Perform any necessary operations ar the end of each rendering frame.
     virtual void EndScene() = 0;

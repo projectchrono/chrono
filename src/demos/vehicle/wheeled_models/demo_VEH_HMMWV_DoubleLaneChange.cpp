@@ -208,13 +208,11 @@ class ISO3888_Helper {
         return true;
     }
 
-    size_t GetConePositions() { return m_leftCones.size(); }
-    ChVector<>& GetConePosition(size_t idx, bool left) {
-        if (left)
-            return m_leftCones[idx];
-        else
-            return m_rightCones[idx];
-    }
+    size_t GetNumConePositions() const { return m_leftCones.size(); }
+    const std::vector<ChVector<>>& GetLeftConePositions() const { return m_leftCones; }
+    const std::vector<ChVector<>>& GetRightConePositions() const { return m_rightCones; }
+    const ChVector<>& GetLeftConePosition(size_t id) const { return m_leftCones[id]; }
+    const ChVector<>& GetRightConePosition(size_t id) const { return m_rightCones[id]; }
 
     ~ISO3888_Helper() {}
 
@@ -245,11 +243,11 @@ class ISO3888_Helper {
 // =============================================================================
 
 // Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
-VisualizationType chassis_vis_type = VisualizationType::PRIMITIVES;
+VisualizationType chassis_vis_type = VisualizationType::NONE;
 VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType wheel_vis_type = VisualizationType::NONE;
-VisualizationType tire_vis_type = VisualizationType::PRIMITIVES;
+VisualizationType tire_vis_type = VisualizationType::MESH;
 
 // Type of powertrain model (SHAFTS, SIMPLE, SIMPLE_CVT)
 PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
@@ -441,23 +439,15 @@ int main(int argc, char* argv[]) {
     driver.Initialize();
 
     // now we can add the road cones
-    double coneBaseWidth = 0.415;
-    for (size_t i = 0; i < helper.GetConePositions(); i++) {
-        ChVector<> pL = helper.GetConePosition(i, true) + ChVector<>(0, coneBaseWidth / 2, 0.05);
-        irr::scene::IAnimatedMesh* mesh_coneL =
-            vis->GetSceneManager()->getMesh(GetChronoDataFile("models/traffic_cone/trafficCone750mm.obj").c_str());
-        irr::scene::IAnimatedMeshSceneNode* node_coneL = vis->GetSceneManager()->addAnimatedMeshSceneNode(mesh_coneL);
-        node_coneL->getMaterial(0).EmissiveColor = irr::video::SColor(0, 100, 0, 0);
-        node_coneL->setPosition(irr::core::vector3dfCH(pL));
+    ChVector<> cone_offset(0, 0.21, 0);
 
-        ChVector<> pR = helper.GetConePosition(i, false) + ChVector<>(0, -coneBaseWidth / 2, 0.05);
-        irr::scene::IAnimatedMesh* mesh_coneR =
-            vis->GetSceneManager()->getMesh(GetChronoDataFile("models/traffic_cone/trafficCone750mm.obj").c_str());
-        irr::scene::IAnimatedMeshSceneNode* node_coneR = vis->GetSceneManager()->addAnimatedMeshSceneNode(mesh_coneR);
-        node_coneR->getMaterial(0).EmissiveColor = irr::video::SColor(0, 0, 100, 0);
-        node_coneR->setPosition(irr::core::vector3dfCH(pR));
-    }
-
+    auto cone = chrono_types::make_shared<ChObjFileShape>();
+    cone->SetFilename(GetChronoDataFile("models/traffic_cone/trafficCone750mm.obj"));
+    cone->SetColor(ChColor(0.8f, 0.8f, 0.8f));
+    for (const auto& pos : helper.GetLeftConePositions())
+        vis->AddVisualModel(cone, ChFrame<>(pos + cone_offset));
+    for (const auto& pos : helper.GetRightConePositions())
+        vis->AddVisualModel(cone, ChFrame<>(pos - cone_offset));
 
     // ---------------
     // Simulation loop

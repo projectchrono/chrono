@@ -220,6 +220,18 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// occur after the call to Initialize().
     virtual void BindItem(std::shared_ptr<ChPhysicsItem> item) override;
 
+    /// Add a visual model not associated with a physical item.
+    /// Return a model ID which can be used later to modify the position of this visual model.
+    virtual int AddVisualModel(std::shared_ptr<ChVisualModel> model, const ChFrame<>& frame) override;
+
+    /// Add a visual model not associated with a physical item.
+    /// This version constructs a visual model consisting of the single specified shape.
+    /// Return an ID which can be used later to modify the position of this visual model.
+    virtual int AddVisualModel(std::shared_ptr<ChVisualShape> shape, const ChFrame<>& frame) override;
+
+    /// Update the position of the specified visualization-only model.
+    virtual void UpdateVisualModel(int id, const ChFrame<>& frame) override;
+
     /// Run the Irrlicht device.
     /// Returns `false` if the device wants to be deleted.
     virtual bool Run() override;
@@ -237,6 +249,12 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// </pre>
     virtual void Render() override;
 
+    /// Render a horizontal grid at the specified location.
+    virtual void RenderGrid(const ChFrame<>& frame, int num_divs, double delta) override;
+
+    /// Render the specified reference frame.
+    virtual void RenderFrame(const ChFrame<>& frame, double axis_length = 1) override;
+
     /// End the scene draw at the end of each animation frame.
     virtual void EndScene() override;
 
@@ -248,6 +266,16 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     virtual void WriteImageToFile(const std::string& filename) override;
 
   private:
+    /// /// Irrlicht scene node for a visual model not associated with a physics item.
+    class ChIrrNodeVisual : public irr::scene::ISceneNode {
+      public:
+        ChIrrNodeVisual(irr::scene::ISceneNode* parent, irr::scene::ISceneManager* mgr)
+            : irr::scene::ISceneNode(parent, mgr, 0) {}
+        virtual void render() override {}
+        virtual const irr::core::aabbox3d<irr::f32>& getBoundingBox() const override { return m_box; }
+        irr::core::aabbox3d<irr::f32> m_box;
+    };
+
     /// Create the ChIrrNodes for all visual model instances in the specified assembly.
     void CreateIrrNodes(const ChAssembly* assembly, std::unordered_set<const ChAssembly*>& trace);
 
@@ -274,7 +302,8 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// Remove all visualization objects from this visualization system.
     virtual void OnClear(ChSystem* sys) override;
 
-    std::unordered_map<ChPhysicsItem*, std::shared_ptr<ChIrrNodeModel>> m_nodes;
+    std::unordered_map<ChPhysicsItem*, std::shared_ptr<ChIrrNodeModel>> m_nodes;  ///< scene nodes for physics items
+    std::vector<std::shared_ptr<ChIrrNodeVisual>> m_vis_nodes;                    ///< scene nodes for vis-only models
 
     bool m_yup;                                        ///< use Y-up if true, Z-up if false
     std::string m_win_title;                           ///< window title

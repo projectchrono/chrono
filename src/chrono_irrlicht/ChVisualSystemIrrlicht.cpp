@@ -569,6 +569,21 @@ void ChVisualSystemIrrlicht::Render() {
     m_gui->Render();
 }
 
+void ChVisualSystemIrrlicht::RenderGrid(const ChFrame<>& frame, int num_divs, double delta) {
+    irrlicht::tools::drawGrid(this, delta, delta, num_divs, num_divs, ChCoordsys<>(frame.GetPos(), frame.GetRot()),
+                              ChColor(1.00f, 0.78f, 0.00f), true);
+}
+
+void ChVisualSystemIrrlicht::RenderFrame(const ChFrame<>& frame, double axis_length) {
+    const auto& loc = frame.GetPos();
+    const auto& u = frame.GetA().Get_A_Xaxis();
+    const auto& v = frame.GetA().Get_A_Yaxis();
+    const auto& w = frame.GetA().Get_A_Zaxis();
+    irrlicht::tools::drawSegment(this, loc, loc + u * axis_length, ChColor(1, 0, 0));
+    irrlicht::tools::drawSegment(this, loc, loc + v * axis_length, ChColor(0, 1, 0));
+    irrlicht::tools::drawSegment(this, loc, loc + w * axis_length, ChColor(0, 0, 1));
+}
+
 void ChVisualSystemIrrlicht::WriteImageToFile(const std::string& filename) {
     video::IImage* image = GetVideoDriver()->createScreenShot();
     if (image) {
@@ -594,6 +609,37 @@ void ChVisualSystemIrrlicht::BindAll() {
 
     std::unordered_set<const ChAssembly*> trace;
     CreateIrrNodes(&m_systems[0]->GetAssembly(), trace);
+}
+
+int ChVisualSystemIrrlicht::AddVisualModel(std::shared_ptr<ChVisualModel> model, const ChFrame<>& frame) {
+    if (!m_device)
+        return -1;
+
+    // Create an Irrlicht scene node for a visualization-only model and populate it
+    auto node = chrono_types::make_shared<ChIrrNodeVisual>(m_container, GetSceneManager());
+    PopulateIrrNode(node.get(), model, frame);
+
+    irr::core::matrix4CH irrMat(frame);
+    node->setPosition(irrMat.getTranslation());
+    node->setRotation(irrMat.getRotationDegrees());
+
+    // Cache the new node and return its ID
+    m_vis_nodes.push_back(node);
+    return (int)m_vis_nodes.size() - 1;
+}
+
+int ChVisualSystemIrrlicht::AddVisualModel(std::shared_ptr<ChVisualShape> shape, const ChFrame<>& frame) {
+    auto model = chrono_types::make_shared<ChVisualModel>();
+    model->AddShape(shape);
+    return AddVisualModel(model, frame);
+}
+
+void ChVisualSystemIrrlicht::UpdateVisualModel(int id, const ChFrame<>& frame) {
+    assert(id >= 0 && id < m_vis_nodes.size());
+
+    irr::core::matrix4CH irrMat(frame);
+    m_vis_nodes[id]->setPosition(irrMat.getTranslation());
+    m_vis_nodes[id]->setRotation(irrMat.getRotationDegrees());
 }
 
 void ChVisualSystemIrrlicht::CreateIrrNodes(const ChAssembly* assembly, std::unordered_set<const ChAssembly*>& trace) {
@@ -694,7 +740,7 @@ static void SetVisualMaterial(ISceneNode* node, std::shared_ptr<ChVisualShape> s
         // Use default material
         node->getMaterial(0) = *default_material;
     } else {
-        assert(shape->GetNumMaterials() == node->getMaterialCount());
+        assert((irr::u32)shape->GetNumMaterials() == node->getMaterialCount());
         for (int i = 0; i < shape->GetNumMaterials(); i++)
             node->getMaterial(i) =
                 tools::ToIrrlichtMaterial(shape->GetMaterial(i), node->getSceneManager()->getVideoDriver());
