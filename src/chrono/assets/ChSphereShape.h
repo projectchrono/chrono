@@ -24,6 +24,7 @@ namespace chrono {
 class ChApi ChSphereShape : public ChVisualShape {
   public:
     ChSphereShape();
+    ChSphereShape(double radius);
     ChSphereShape(const geometry::ChSphere& sphere);
 
     ~ChSphereShape() {}

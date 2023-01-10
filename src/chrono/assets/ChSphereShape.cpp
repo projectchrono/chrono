@@ -23,6 +23,10 @@ ChSphereShape::ChSphereShape() {
     SetMutable(false);
 }
 
+ChSphereShape::ChSphereShape(double radius) {
+    gsphere.rad = radius;
+}
+
 ChSphereShape::ChSphereShape(const geometry::ChSphere& sphere) : gsphere(sphere) {
     SetMutable(false);
 }

@@ -24,6 +24,7 @@ namespace chrono {
 class ChApi ChCapsuleShape : public ChVisualShape {
   public:
     ChCapsuleShape();
+    ChCapsuleShape(double radius, double length);
     ChCapsuleShape(const geometry::ChCapsule& cap);
 
     ~ChCapsuleShape() {}

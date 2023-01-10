@@ -24,6 +24,12 @@ ChCylinderShape::ChCylinderShape() {
     SetMutable(false);
 }
 
+ChCylinderShape::ChCylinderShape(double radius, double length) {
+    gcylinder.rad = radius;
+    gcylinder.p1 = ChVector<>(0, -length / 2, 0);
+    gcylinder.p1 = ChVector<>(0, +length / 2, 0);
+}
+
 ChCylinderShape::ChCylinderShape(const geometry::ChCylinder& cyl) : gcylinder(cyl) {
     SetMutable(false);
 }
