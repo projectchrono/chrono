@@ -388,7 +388,7 @@ int main(int argc, char* argv[]) {
     auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
     vis->AttachSystem(&sys);
     vis->SetWindowSize(1000, 800);
-    vis->SetCameraVertical(chrono::vsg3d::CameraVerticalDir::Y);
+    vis->SetCameraVertical(CameraVerticalDir::Y);
     vis->SetWindowTitle("Load a robot model from STEP file");
     vis->AddCamera(ChVector<>(2.2, 1.6, 2.5), ChVector<>(0, 1, 0));
     vis->Initialize();

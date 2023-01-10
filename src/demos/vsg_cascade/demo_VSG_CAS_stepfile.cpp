@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
     vis->AttachSystem(&sys);
-    vis->SetCameraVertical(chrono::vsg3d::CameraVerticalDir::Y);
+    vis->SetCameraVertical(CameraVerticalDir::Y);
     vis->SetWindowSize(800, 600);
     vis->SetWindowTitle("Load a STEP model from file");
     vis->AddCamera(ChVector<>(0.2, 0.2, -0.3));
