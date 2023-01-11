@@ -53,12 +53,8 @@ ChBlender::ChBlender(ChSystem* system) : ChPostProcessBase(system) {
     def_light_color = ChColor(1, 1, 1);
     def_light_cast_shadows = true;
     background = ChColor(1, 1, 1);
-    antialias = false;
-    antialias_depth = 2;
-    antialias_treshold = 0.1;
-    picture_height = 600;
-    picture_width = 800;
-    ambient_light = ChColor(2, 2, 2);
+    picture_height = 768;
+    picture_width = 1024;
     COGs_show = false;
     COGs_size = 0.04;
     frames_show = false;
@@ -222,6 +218,22 @@ void ChBlender::ExportScript(const std::string& filename) {
             assets_file << "\n\n";
         }
 
+        // write global settings for symbols
+        assets_file
+            << "chrono_view_asset_csys =  " << (this->frames_asset_show ? "True" : "False") << "\n"
+            << "chrono_view_asset_csys_size = " << this->frames_asset_size << "\n"
+            << "chrono_view_item_csys =  " << (this->frames_item_show ? "True" : "False") << "\n"
+            << "chrono_view_item_csys_size = " << this->frames_item_size << "\n"
+            << "chrono_view_link_csys =  " << (this->frames_links_show ? "True" : "False") << "\n"
+            << "chrono_view_link_csys_size = " << this->frames_links_size << "\n"
+            << "\n";
+        std::string abspath_pic_output = filesystem::path(base_path + pic_path + "/" + pic_filename + "_######").make_absolute().str();
+        std::replace(abspath_pic_output.begin(), abspath_pic_output.end(), '\\', '/');
+        assets_file
+            << "bpy.context.scene.render.filepath = '" << abspath_pic_output << "'\n"
+            << "bpy.context.scene.render.resolution_x = " << this->picture_width << "\n"
+            << "bpy.context.scene.render.resolution_y = " << this->picture_height << "\n"
+            << "\n\n";
 
         // write default camera, if defined
         if (camera_add_default) {
