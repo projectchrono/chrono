@@ -76,7 +76,7 @@ ChBlender::ChBlender(ChSystem* system) : ChPostProcessBase(system) {
     wireframe_thickness = 0.001;
     single_asset_file = true;
     
-    SetBlenderFrameYupToZup();
+    SetBlenderUp_is_ChronoY();
 
 }
 
