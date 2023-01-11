@@ -884,20 +884,35 @@ void ChVisualSystemVSG::Initialize() {
 
     // initialize ImGui
     ImGui::CreateContext();
-    auto foundFontFile = vsg::findFile("vsg/fonts/Ubuntu_Mono/UbuntuMono-Regular.ttf", m_options);
-    if (foundFontFile) {
-        // convert native filename to UTF8 string that is compatible with ImuGUi.
-        std::string c_fontFile = foundFontFile.string();
+#ifdef __APPLE__
+    // application runs on retina display by default (window 800*600 generates a viewport 1600*1200)
+    // there can be reasons to switch to standard resolution
+    // 1) there is no retina display
+    // 2) standard resolution is demanded by MacOS (in our Irrlicht/VSG examples), set in the app bundle
+    // in this case the desired font size is too big. We take the standard font instead.
+    if(m_window->traits()->width != m_window->extent2D().width) {
+#endif
+        auto foundFontFile = vsg::findFile("vsg/fonts/Ubuntu_Mono/UbuntuMono-Regular.ttf", m_options);
+        if (foundFontFile) {
+            // convert native filename to UTF8 string that is compatible with ImuGUi.
+            std::string c_fontFile = foundFontFile.string();
 
-        // read the font via ImGui, which will then be current when vsgImGui::RenderImGui initializes the rest of
-        // ImGui/Vulkan below
-        ImGuiIO& io = ImGui::GetIO();
-        auto imguiFont = io.Fonts->AddFontFromFileTTF(c_fontFile.c_str(), m_guiFontSize);
-        if (!imguiFont) {
-            std::cout << "Failed to load font: " << c_fontFile << std::endl;
-            return;
+            // read the font via ImGui, which will then be current when vsgImGui::RenderImGui initializes the rest of
+            // ImGui/Vulkan below
+            ImGuiIO& io = ImGui::GetIO();
+            auto imguiFont = io.Fonts->AddFontFromFileTTF(c_fontFile.c_str(), m_guiFontSize);
+            if (!imguiFont) {
+                std::cout << "Failed to load font: " << c_fontFile << std::endl;
+                return;
+            }
         }
+#ifdef __APPLE__
+    } else {
+        // ignore loadable ttf font
+        GetLog() << "App runs with standard resolution on the Mac. Font size setting ignored.\n";
     }
+#endif
+
     // Create the ImGui node and add it to the renderGraph
     AttachGui();
     if (m_renderGui) {
