@@ -247,7 +247,7 @@ TEST(ChronoMulticore, jacobians) {
         vis.SetWindowSize(1280, 720);
         vis.SetRenderMode(opengl::WIREFRAME);
         vis.Initialize();
-        vis.SetCameraPosition(ChVector<>(6, -6, 1), ChVector<>(0, 0, 0));
+        vis.AddCamera(ChVector<>(6, -6, 1), ChVector<>(0, 0, 0));
         vis.SetCameraVertical(CameraVerticalDir::Z);
 
         // Loop until reaching the end time...
