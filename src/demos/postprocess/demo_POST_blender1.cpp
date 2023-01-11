@@ -146,6 +146,10 @@ int main(int argc, char* argv[]) {
     camera->SetAimPoint(ChVector<>(0, 1, 0));
     body->AddCamera(camera);
 
+    // Otherwise a simple (not attached to object) static camera can be optionally added via
+    // blender_exporter.SetCamera(ChVector<>(3, 4, -5), ChVector<>(0, 0.5, 0), 50); , see later.
+    
+
     /// [Example 2]
     /* End example */
 
@@ -194,7 +198,12 @@ int main(int argc, char* argv[]) {
     //	blender_exporter.Add(body);
     //	blender_exporter.Add(particles);
 
+    // Set a default camera (this is an easier but less  powerful method than 
+    // attaching a ChCamera to a ChBody via my_body->AddCamera(..) , see above.
+    blender_exporter.SetCamera(ChVector<>(3, 4, -5), ChVector<>(0, 0.5, 0), 50); // pos, aim, angle
 
+    // Turn on 3d XYZ axis for each body reference frame, and set xyz symbol size
+    blender_exporter.SetShowItemsFrames(true, 0.3);
 
     //
     // RUN THE SIMULATION AND SAVE THE POVray FILES AT EACH FRAME

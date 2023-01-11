@@ -39,10 +39,10 @@ ChBlender::ChBlender(ChSystem* system) : ChPostProcessBase(system) {
     pic_path = "anim";
     out_path = "output";
     pic_filename = "picture";
-    template_filename = GetChronoDataFile("Blender_chrono_template.py");
     out_script_filename = "exported";
     out_data_filename = "state";
     framenumber = 0;
+    camera_add_default = false;
     camera_location = ChVector<>(0, 1.5, -2);
     camera_aim = ChVector<>(0, 0, 0);
     camera_up = ChVector<>(0, 1, 0);
@@ -151,6 +151,7 @@ std::string bl_replaceAll(std::string result, const std::string& replaceWhat, co
 }
 
 void ChBlender::SetCamera(ChVector<> location, ChVector<> aim, double angle, bool ortho) {
+    camera_add_default = true;
     camera_location = location;
     camera_aim = aim;
     camera_angle = angle;
@@ -219,6 +220,41 @@ void ChBlender::ExportScript(const std::string& filename) {
             assets_file << "# Custom user-added script: \n\n";
             assets_file << custom_script;
             assets_file << "\n\n";
+        }
+
+
+        // write default camera, if defined
+        if (camera_add_default) {
+            std::string cameraname("default_camera");
+            assets_file
+                << "bpy.ops.object.camera_add(enter_editmode=False, location=(0, 0, 0), scale=(1, 1, 1)) \n"
+                << "new_object = bpy.context.object \n"
+                << "new_object.name= '" << cameraname << "' \n"
+                << "new_object.data.lens_unit='FOV' \n";
+            if (this->camera_orthographic) {
+                assets_file << "new_object.data.type='ORTHO'\n";
+                assets_file << "new_object.data.ortho_scale=" << double((camera_location - camera_aim).Length() * tan(0.5 * camera_angle * chrono::CH_C_DEG_TO_RAD)) << "\n";
+            }
+            else {
+                assets_file << "new_object.data.type='PERSP'\n";
+                assets_file << "new_object.data.angle=" << camera_angle * chrono::CH_C_DEG_TO_RAD << "\n";
+            }
+            assets_file
+                << "chrono_cameras.objects.link(new_object) \n"
+                << "bpy.context.scene.collection.objects.unlink(new_object) \n\n";
+            ChVector<> cdirzm = camera_aim - camera_location;
+            ChVector<> cdirx = Vcross(cdirzm, VECT_Y);
+            ChVector<> cdiry = Vcross(cdirx, cdirzm);
+            ChMatrix33<> cmrot;
+            cmrot.Set_A_axis(cdirx.GetNormalized(), cdiry.GetNormalized(), -cdirzm.GetNormalized());
+            ChFrame<> cframeloc(camera_location, cmrot);
+            ChFrame<> cframeabs = cframeloc >> blender_frame;
+            assets_file << "update_camera_coordinates(";
+            assets_file << "'" << cameraname << "',";
+            assets_file << "(" << cframeabs.GetPos().x() << "," << cframeabs.GetPos().y() << "," << cframeabs.GetPos().z() << "),";
+            assets_file << "(" << cframeabs.GetRot().e0() << "," << cframeabs.GetRot().e1() << "," << cframeabs.GetRot().e2() << "," << cframeabs.GetRot().e3() << ")";
+            assets_file << ")\n";
+            assets_file << "bpy.context.scene.camera = new_object\n\n";
         }
 
     }

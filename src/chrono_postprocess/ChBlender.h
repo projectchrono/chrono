@@ -228,6 +228,7 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
 
     ChFrame<> blender_frame;
 
+    bool camera_add_default;
     ChVector<> camera_location;
     ChVector<> camera_aim;
     ChVector<> camera_up;
