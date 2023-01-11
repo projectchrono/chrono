@@ -23,17 +23,38 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 
-#include "chrono_vsg/ChVisualSystemVSG.h"
+#ifdef CHRONO_POSTPROCESS
+    #include "chrono_postprocess/ChGnuPlot.h"
+#endif
+
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+using namespace chrono::irrlicht;
+#endif
+
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+using namespace chrono::vsg3d;
+#endif
 
 using namespace chrono;
-using namespace chrono::vsg3d;
 using namespace chrono::viper;
+
+// -----------------------------------------------------------------------------
+
+// Run-time visualization system (IRRLICHT or VSG)
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
 
 // Use custom material for the Viper Wheel
 bool use_custom_mat = false;
 
 // Define Viper rover wheel type
 ViperWheelType wheel_type = ViperWheelType::RealWheel;
+
+// Simulation time step
+double time_step = 1e-3;
+
+// -----------------------------------------------------------------------------
 
 std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_method) {
     float mu = 0.4f;   // coefficient of friction
@@ -68,9 +89,6 @@ std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_m
             return std::shared_ptr<ChMaterialSurface>();
     }
 }
-
-// Simulation time step
-double time_step = 1e-3;
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
@@ -114,12 +132,41 @@ int main(int argc, char* argv[]) {
     std::cout << "  wheel:          " << viper.GetWheel(ViperWheelID::V_LF)->GetBody()->GetMass() << std::endl;
     std::cout << std::endl;
 
-    // Create the Irrlicht visualization sys
-    auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
-    vis->AttachSystem(&sys);
-    vis->AddCamera(ChVector<>(3, 3, 1));
-    vis->SetWindowTitle("Viper Rover on Rigid Terrain");
-    vis->Initialize();
+    // Create the run-time visualization interface
+    std::shared_ptr<ChVisualSystem> vis;
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
+            auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+            vis_irr->AttachSystem(&sys);
+            vis_irr->SetCameraVertical(CameraVerticalDir::Z);
+            vis_irr->SetWindowSize(800, 600);
+            vis_irr->SetWindowTitle("Viper Rover on Rigid Terrain");
+            vis_irr->Initialize();
+            vis_irr->AddLogo();
+            vis_irr->AddSkyBox();
+            vis_irr->AddCamera(ChVector<>(3, 3, 1));
+            vis_irr->AddTypicalLights();
+            vis_irr->EnableContactDrawing(ContactsDrawMode::CONTACT_DISTANCES);
+            vis_irr->EnableShadows();
+
+            vis = vis_irr;
+#endif
+            break;
+        }
+        case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+            auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
+            vis_vsg->AttachSystem(&sys);
+            vis_vsg->AddCamera(ChVector<>(3, 3, 1));
+            vis_vsg->SetWindowTitle("Viper Rover on Rigid Terrain");
+            vis_vsg->Initialize();
+
+            vis = vis_vsg;
+#endif
+            break;
+        }
+    }
 
     // Simulation loop
     while (vis->Run()) {

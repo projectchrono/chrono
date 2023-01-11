@@ -22,19 +22,33 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono_vsg/ChVisualSystemVSG.h"
-
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-using namespace chrono;
+#ifdef CHRONO_POSTPROCESS
+    #include "chrono_postprocess/ChGnuPlot.h"
+#endif
+
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+using namespace chrono::irrlicht;
+#endif
+
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
 using namespace chrono::vsg3d;
+#endif
+
+using namespace chrono;
 using namespace chrono::geometry;
 using namespace chrono::viper;
 
-using namespace vsg3d;
+// -----------------------------------------------------------------------------
+
+// Run-time visualization system (IRRLICHT or VSG)
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
 
 bool output = false;
 const std::string out_dir = GetChronoOutputPath() + "SCM_DEF_SOIL";
@@ -54,19 +68,21 @@ bool var_params = true;
 // Define Viper rover wheel type
 ViperWheelType wheel_type = ViperWheelType::RealWheel;
 
+// -----------------------------------------------------------------------------
+
 // Custom callback for setting location-dependent soil properties.
 // Note that the location is given in the SCM reference frame.
 class MySoilParams : public vehicle::SCMDeformableTerrain::SoilParametersCallback {
-public:
+  public:
     virtual void Set(const ChVector<>& loc,
-            double& Bekker_Kphi,
-            double& Bekker_Kc,
-            double& Bekker_n,
-            double& Mohr_cohesion,
-            double& Mohr_friction,
-            double& Janosi_shear,
-            double& elastic_K,
-            double& damping_R) override {
+                     double& Bekker_Kphi,
+                     double& Bekker_Kc,
+                     double& Bekker_n,
+                     double& Mohr_cohesion,
+                     double& Mohr_friction,
+                     double& Janosi_shear,
+                     double& elastic_K,
+                     double& damping_R) override {
         Bekker_Kphi = 0.82e6;
         Bekker_Kc = 0.14e4;
         Bekker_n = 1.0;
@@ -80,6 +96,8 @@ public:
 
 // Use custom material for the Viper Wheel
 bool use_custom_mat = false;
+
+// -----------------------------------------------------------------------------
 
 // Return customized wheel material parameters
 std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_method) {
@@ -115,6 +133,8 @@ std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_m
             return std::shared_ptr<ChMaterialSurface>();
     }
 }
+
+// -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
@@ -180,13 +200,13 @@ int main(int argc, char* argv[]) {
     } else {
         // If var_params is set to be false, these parameters will be used
         terrain.SetSoilParameters(0.2e6,  // Bekker Kphi
-                0,      // Bekker Kc
-                1.1,    // Bekker n exponent
-                0,      // Mohr cohesive limit (Pa)
-                30,     // Mohr friction limit (degrees)
-                0.01,   // Janosi shear coefficient (m)
-                4e7,    // Elastic stiffness (Pa/m), before plastic yield, must be > Kphi
-                3e4     // Damping (Pa s/m), proportional to negative vertical speed (optional)
+                                  0,      // Bekker Kc
+                                  1.1,    // Bekker n exponent
+                                  0,      // Mohr cohesive limit (Pa)
+                                  30,     // Mohr friction limit (degrees)
+                                  0.01,   // Janosi shear coefficient (m)
+                                  4e7,    // Elastic stiffness (Pa/m), before plastic yield, must be > Kphi
+                                  3e4     // Damping (Pa s/m), proportional to negative vertical speed (optional)
         );
     }
 
@@ -194,10 +214,10 @@ int main(int argc, char* argv[]) {
     if (enable_bulldozing) {
         terrain.EnableBulldozing(true);  // inflate soil at the border of the rut
         terrain.SetBulldozingParameters(
-                55,  // angle of friction for erosion of displaced material at the border of the rut
-                1,   // displaced material vs downward pressed material.
-                5,   // number of erosion refinements per timestep
-                6);  // number of concentric vertex selections subject to erosion
+            55,  // angle of friction for erosion of displaced material at the border of the rut
+            1,   // displaced material vs downward pressed material.
+            5,   // number of erosion refinements per timestep
+            6);  // number of concentric vertex selections subject to erosion
     }
 
     // We need to add a moving patch under every wheel
@@ -214,19 +234,49 @@ int main(int argc, char* argv[]) {
 
     terrain.SetMeshWireframe(true);
 
-    // Create the Irrlicht visualization sys
-    auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
-    vis->AttachSystem(&sys);
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("Viper Rover on SCM");
-    vis->AddCamera(ChVector<>(2.0, 0.0, 1.4), ChVector<>(0, 0, wheel_range));
-    vis->Initialize();
+    // Create the run-time visualization interface
+    std::shared_ptr<ChVisualSystem> vis;
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
+            auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+            vis_irr->AttachSystem(&sys);
+            vis_irr->SetCameraVertical(CameraVerticalDir::Z);
+            vis_irr->SetWindowSize(800, 600);
+            vis_irr->SetWindowTitle("Viper Rover on SCM");
+            vis_irr->Initialize();
+            vis_irr->AddLogo();
+            vis_irr->AddSkyBox();
+            vis_irr->AddCamera(ChVector<>(2.0, 0.0, 1.4), ChVector<>(0, 0, wheel_range));
+            vis_irr->AddTypicalLights();
+            vis_irr->AddLightWithShadow(ChVector<>(-5.0, -0.5, 8.0), ChVector<>(-1, 0, 0), 100, 1, 35, 85, 512,
+                                    ChColor(0.8f, 0.8f, 0.8f));
+            vis_irr->EnableShadows();
+
+            vis = vis_irr;
+#endif
+            break;
+        }
+        case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+            auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
+            vis_vsg->AttachSystem(&sys);
+            vis_vsg->SetWindowSize(800, 600);
+            vis_vsg->SetWindowTitle("Viper Rover on SCM");
+            vis_vsg->AddCamera(ChVector<>(2.0, 0.0, 1.4), ChVector<>(0, 0, wheel_range));
+            vis_vsg->Initialize();
+
+            vis = vis_vsg;
+#endif
+            break;
+        }
+    }
 
     while (vis->Run()) {
         vis->BeginScene();
-        //vis->GetActiveCamera()->setTarget(core::vector3dfCH(Body_1->GetPos()));
+        ////vis->GetActiveCamera()->setTarget(irr::core::vector3dfCH(Body_1->GetPos()));
         vis->Render();
-        //tools::drawColorbar(vis.get(), 0, 20000, "Pressure yield [Pa]", 1180);
+        ////tools::drawColorbar(vis.get(), 0, 20000, "Pressure yield [Pa]", 1180);
         vis->EndScene();
 
         if (output) {
@@ -247,4 +297,3 @@ int main(int argc, char* argv[]) {
 
     return 0;
 }
-

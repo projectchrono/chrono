@@ -27,11 +27,27 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/assets/ChBoxShape.h"
 
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+#ifdef CHRONO_POSTPROCESS
+    #include "chrono_postprocess/ChGnuPlot.h"
+#endif
+
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+using namespace chrono::irrlicht;
+#endif
+
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+using namespace chrono::vsg3d;
+#endif
 
 using namespace chrono;
-using namespace chrono::irrlicht;
 using namespace chrono::curiosity;
+
+// -----------------------------------------------------------------------------
+
+// Run-time visualization system (IRRLICHT or VSG)
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
 
 // Specify rover chassis type
 // The options are Scarecrow and FullRover
@@ -81,21 +97,44 @@ int main(int argc, char* argv[]) {
     std::cout << "  wheel:              " << rover.GetWheel(CuriosityWheelID::C_LF)->GetBody()->GetMass() << std::endl;
     std::cout << std::endl;
 
-    // Create the Irrlicht visualization sys
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->AttachSystem(&sys);
-    vis->SetCameraVertical(CameraVerticalDir::Z);
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("Curiosity Rover on Rigid Terrain");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(3, 3, 1));
-    vis->AddTypicalLights();
-    vis->AddLightWithShadow(ChVector<>(2.5, 7.0, 0.0), ChVector<>(0, 0, 0), 50, 4, 25, 130, 512,
-                            ChColor(0.8f, 0.8f, 0.8f));
-    vis->EnableContactDrawing(ContactsDrawMode::CONTACT_DISTANCES);
-    vis->EnableShadows();
+    // Create the run-time visualization interface
+    std::shared_ptr<ChVisualSystem> vis;
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
+            auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+            vis_irr->AttachSystem(&sys);
+            vis_irr->SetCameraVertical(CameraVerticalDir::Z);
+            vis_irr->SetWindowSize(800, 600);
+            vis_irr->SetWindowTitle("Curiosity Rover on Rigid Terrain");
+            vis_irr->Initialize();
+            vis_irr->AddLogo();
+            vis_irr->AddSkyBox();
+            vis_irr->AddCamera(ChVector<>(3, 3, 1));
+            vis_irr->AddTypicalLights();
+            vis_irr->AddLightWithShadow(ChVector<>(2.5, 7.0, 0.0), ChVector<>(0, 0, 0), 50, 4, 25, 130, 512,
+                                        ChColor(0.8f, 0.8f, 0.8f));
+            vis_irr->EnableContactDrawing(ContactsDrawMode::CONTACT_DISTANCES);
+            vis_irr->EnableShadows();
+
+            vis = vis_irr;
+#endif
+            break;
+        }
+        case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+            auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
+            vis_vsg->AttachSystem(&sys);
+            vis_vsg->SetWindowSize(800, 600);
+            vis_vsg->SetWindowTitle("Curiosity Rover on Rigid Terrain");
+            vis_vsg->AddCamera(ChVector<>(5, 5, 1));
+            vis_vsg->Initialize();
+
+            vis = vis_vsg;
+#endif
+            break;
+        }
+    }
 
     // Simulation loop
     while (vis->Run()) {
