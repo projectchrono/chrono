@@ -53,8 +53,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     void WriteImageToFile(const std::string& filename) override;
 
-    // terminate
+    // Terminate the VSG visualization.
     void Quit();
+
     void SetWindowSize(ChVector2<int> size);
     void SetWindowSize(int width, int height);
     void SetWindowPosition(ChVector2<int> pos);
@@ -64,11 +65,28 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void SetOutputScreen(int screenNum=0);
     void SetFullscreen(bool yesno=false);
     void SetUseSkyBox(bool yesno);
-    // Draw scene as wireframes
+    
+    /// Draw the scene objects as wireframes.
     void SetWireFrameMode(bool mode = true) { m_draw_as_wireframe = mode; }
+
     void SetCameraVertical(CameraVerticalDir upDir);
-    void AddCamera(const ChVector<>& pos, ChVector<> targ = VNULL);
-    void UpdateCamera(const ChVector<>& pos, ChVector<> targ = VNULL);
+
+    /// Add a camera to the VSG scene.
+    /// Note that currently only one camera is supported.
+    virtual int AddCamera(const ChVector<>& pos, ChVector<> targ = VNULL) override;
+
+    /// Set the location of the specified camera.
+    virtual void SetCameraPosition(int id, const ChVector<>& pos) override;
+
+    /// Set the target (look-at) point of the specified camera.
+    virtual void SetCameraTarget(int id, const ChVector<>& target) override;
+
+    /// Set the location of the current (active) camera.
+    virtual void SetCameraPosition(const ChVector<>& pos) override;
+
+    /// Set the target (look-at) point of the current (active) camera.
+    virtual void SetCameraTarget(const ChVector<>& target) override;
+
     void SetLightIntensity(double intensity) { m_lightIntensity = ChClamp(intensity, 0.0, 1.0); }
     void SetLightDirection(double acimut, double elevation);
     void SetCameraAngleDeg(double angleDeg) { m_cameraAngleDeg = angleDeg; }

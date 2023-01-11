@@ -26,4 +26,14 @@ void ChVisualSystem::AttachSystem(ChSystem* sys) {
     sys->visual_system = this;
 }
 
+void ChVisualSystem::UpdateCamera(int id, const ChVector<>& pos, ChVector<> target) {
+    SetCameraPosition(id, pos);
+    SetCameraTarget(id, target);
+}
+
+void ChVisualSystem::UpdateCamera(const ChVector<>& pos, ChVector<> target) {
+    SetCameraPosition(pos);
+    SetCameraTarget(target);
+}
+
 }  // namespace chrono

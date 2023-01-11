@@ -305,7 +305,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
         m_vsys->SetWindowSize(1280, 720);
         m_vsys->SetRenderMode(opengl::SOLID);
         m_vsys->Initialize();
-        m_vsys->SetCameraPosition(ChVector<>(0, -2, 1), ChVector<>(0, 0, 0));
+        m_vsys->AddCamera(ChVector<>(0, -2, 1), ChVector<>(0, 0, 0));
         m_vsys->SetCameraProperties(0.05f);
         m_vsys->SetCameraVertical(CameraVerticalDir::Z);
     }

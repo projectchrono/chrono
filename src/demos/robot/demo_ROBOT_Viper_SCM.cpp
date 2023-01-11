@@ -247,7 +247,7 @@ int main(int argc, char* argv[]) {
             vis_irr->Initialize();
             vis_irr->AddLogo();
             vis_irr->AddSkyBox();
-            vis_irr->AddCamera(ChVector<>(2.0, 0.0, 1.4), ChVector<>(0, 0, wheel_range));
+            vis_irr->AddCamera(ChVector<>(1.0, 2.0, 1.4), ChVector<>(0, 0, wheel_range));
             vis_irr->AddTypicalLights();
             vis_irr->AddLightWithShadow(ChVector<>(-5.0, -0.5, 8.0), ChVector<>(-1, 0, 0), 100, 1, 35, 85, 512,
                                     ChColor(0.8f, 0.8f, 0.8f));
@@ -263,7 +263,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->AttachSystem(&sys);
             vis_vsg->SetWindowSize(800, 600);
             vis_vsg->SetWindowTitle("Viper Rover on SCM");
-            vis_vsg->AddCamera(ChVector<>(2.0, 0.0, 1.4), ChVector<>(0, 0, wheel_range));
+            vis_vsg->AddCamera(ChVector<>(1.0, 2.0, 1.4), ChVector<>(0, 0, wheel_range));
             vis_vsg->Initialize();
 
             vis = vis_vsg;
@@ -274,7 +274,7 @@ int main(int argc, char* argv[]) {
 
     while (vis->Run()) {
         vis->BeginScene();
-        ////vis->GetActiveCamera()->setTarget(irr::core::vector3dfCH(Body_1->GetPos()));
+        vis->SetCameraTarget(Body_1->GetPos());
         vis->Render();
         ////tools::drawColorbar(vis.get(), 0, 20000, "Pressure yield [Pa]", 1180);
         vis->EndScene();

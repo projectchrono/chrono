@@ -421,7 +421,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
         m_vsys->SetWindowSize(1280, 720);
         m_vsys->SetRenderMode(opengl::WIREFRAME);
         m_vsys->Initialize();
-        m_vsys->SetCameraPosition(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0));
+        m_vsys->AddCamera(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0));
         m_vsys->SetCameraProperties(0.05f);
         m_vsys->SetCameraVertical(CameraVerticalDir::Z);
     }
@@ -745,7 +745,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Render(double time) {
             if (!proxies.empty()) {
                 ChVector<> cam_point = proxies[0].m_body->GetPos();
                 ChVector<> cam_loc = cam_point + ChVector<>(0, -3, 0.6);
-                m_vsys->SetCameraPosition(cam_loc, cam_point);
+                m_vsys->UpdateCamera(cam_loc, cam_point);
             }
         }
         m_vsys->Render();

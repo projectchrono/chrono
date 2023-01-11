@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
     ChGpuVisualization gpu_vis(&gpu_sys);
     if (render) {
         gpu_vis.SetTitle("Chrono::Gpu repose demo");
-        gpu_vis.SetCameraPosition(ChVector<>(0, -30, -10), ChVector<>(0, 0, -20));
+        gpu_vis.UpdateCamera(ChVector<>(0, -30, -10), ChVector<>(0, 0, -20));
         gpu_vis.SetCameraMoveScale(1.0f);
         gpu_vis.Initialize();
     }

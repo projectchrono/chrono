@@ -209,7 +209,7 @@ int main(int argc, char* argv[]) {
     vis.SetWindowTitle("JSON visualization");
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::SOLID);
-    vis.SetCameraPosition(factor * ChVector<>(-1, -1, 0.75), ChVector<>(0, 0, 0.5));
+    vis.AddCamera(factor * ChVector<>(-1, -1, 0.75), ChVector<>(0, 0, 0.5));
     vis.SetCameraVertical(CameraVerticalDir::Z);
     vis.Initialize();
     vis.AttachSystem(&sys);

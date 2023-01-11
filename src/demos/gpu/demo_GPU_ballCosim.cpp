@@ -83,7 +83,7 @@ void runBallDrop(ChSystemGpuMesh& gpu_sys, ChGpuSimulationParameters& params) {
     ChGpuVisualization gpu_vis(&gpu_sys);
     if (render) {
         gpu_vis.SetTitle("Chrono::Gpu ball cosim demo");
-        gpu_vis.SetCameraPosition(ChVector<>(0, -200, 100), ChVector<>(0, 0, 0));
+        gpu_vis.UpdateCamera(ChVector<>(0, -200, 100), ChVector<>(0, 0, 0));
         gpu_vis.SetCameraMoveScale(1.0f);
         gpu_vis.Initialize();
     }

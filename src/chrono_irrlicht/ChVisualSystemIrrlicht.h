@@ -37,6 +37,7 @@
 
 #include "chrono_irrlicht/ChApiIrr.h"
 #include "chrono_irrlicht/ChIrrNodeModel.h"
+#include "chrono_irrlicht/ChIrrCamera.h"
 #include "chrono_irrlicht/ChIrrEffects.h"
 #include "chrono_irrlicht/ChIrrGUI.h"
 
@@ -101,7 +102,19 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// rmb+lmb+mouse, the position can be changed also with keyboard up/down/left/right arrows, the height can be
     /// changed with keyboard 'PgUp' and 'PgDn' keys. Optional parameters are position and target.
     /// Has no effect, unles called after Initialize().
-    void AddCamera(const ChVector<>& pos, ChVector<> targ = VNULL);
+    virtual int AddCamera(const ChVector<>& pos, ChVector<> targ = VNULL) override;
+
+    /// Set the location of the specified camera.
+    virtual void SetCameraPosition(int id, const ChVector<>& pos) override;
+
+    /// Set the target (look-at) point of the specified camera.
+    virtual void SetCameraTarget(int id, const ChVector<>& target) override;
+
+    /// Set the location of the current (active) camera.
+    virtual void SetCameraPosition(const ChVector<>& pos) override;
+
+    /// Set the target (look-at) point of the current (active) camera.
+    virtual void SetCameraTarget(const ChVector<>& target) override;
 
     /// Add a sky box in a 3D scene.
     /// Note: it is assumed that the specified "texture_dir" directory contains the following three texture images:
@@ -301,6 +314,8 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
 
     /// Remove all visualization objects from this visualization system.
     virtual void OnClear(ChSystem* sys) override;
+
+    std::vector<std::shared_ptr<RTSCamera>> m_cameras;  ///< list of cameras defined for the scene
 
     std::unordered_map<ChPhysicsItem*, std::shared_ptr<ChIrrNodeModel>> m_nodes;  ///< scene nodes for physics items
     std::vector<std::shared_ptr<ChIrrNodeVisual>> m_vis_nodes;                    ///< scene nodes for vis-only models

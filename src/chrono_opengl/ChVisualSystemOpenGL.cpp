@@ -55,13 +55,38 @@ void ChVisualSystemOpenGL::SetWindowTitle(const std::string& win_title) {
     m_win_title = win_title;
 }
 
-void ChVisualSystemOpenGL::SetCameraPosition(const ChVector<>& pos, ChVector<> targ) {
+int ChVisualSystemOpenGL::AddCamera(const ChVector<>& pos, ChVector<> target) {
     m_camera_pos = pos;
-    m_camera_targ = targ;
+    m_camera_targ = target;
     if (viewer) {
         viewer->render_camera.camera_position = glm::vec3(m_camera_pos.x(), m_camera_pos.y(), m_camera_pos.z());
         viewer->render_camera.camera_look_at = glm::vec3(m_camera_targ.x(), m_camera_targ.y(), m_camera_targ.z());
     }
+    return 0;
+}
+
+void ChVisualSystemOpenGL::SetCameraPosition(int id, const ChVector<>& pos) {
+    m_camera_pos = pos;
+    if (viewer)
+        viewer->render_camera.camera_position = glm::vec3(m_camera_pos.x(), m_camera_pos.y(), m_camera_pos.z());
+}
+
+void ChVisualSystemOpenGL::SetCameraTarget(int id, const ChVector<>& target) {
+    m_camera_targ = target;
+    if (viewer)
+        viewer->render_camera.camera_look_at = glm::vec3(m_camera_targ.x(), m_camera_targ.y(), m_camera_targ.z());
+}
+
+void ChVisualSystemOpenGL::SetCameraPosition(const ChVector<>& pos) {
+    m_camera_pos = pos;
+    if (viewer)
+        viewer->render_camera.camera_position = glm::vec3(m_camera_pos.x(), m_camera_pos.y(), m_camera_pos.z());
+}
+
+void ChVisualSystemOpenGL::SetCameraTarget(const ChVector<>& target) {
+    m_camera_targ = target;
+    if (viewer)
+        viewer->render_camera.camera_look_at = glm::vec3(m_camera_targ.x(), m_camera_targ.y(), m_camera_targ.z());
 }
 
 void ChVisualSystemOpenGL::SetCameraVertical(CameraVerticalDir vert) {

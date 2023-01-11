@@ -270,7 +270,7 @@ int main(int argc, char* argv[]) {
         fsi_vis.SetTitle("Chrono::FSI cylinder drop");
         fsi_vis.AttachSystem(&sysMBS);
         auto origin = sysMBS.Get_bodylist()[1]->GetPos();
-        fsi_vis.SetCameraPosition(origin - ChVector<>(0, 3 * byDim, 0), origin);
+        fsi_vis.UpdateCamera(origin - ChVector<>(0, 3 * byDim, 0), origin);
         fsi_vis.SetCameraMoveScale(1.0f);
         fsi_vis.EnableBoundaryMarkers(false);
         fsi_vis.Initialize();

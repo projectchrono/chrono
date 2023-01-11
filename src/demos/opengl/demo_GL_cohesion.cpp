@@ -195,7 +195,7 @@ int main(int argc, char* argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::SOLID);
     vis.Initialize();
-    vis.SetCameraPosition(ChVector<>(0, 0, -10), ChVector<>(0, 0, 0));
+    vis.AddCamera(ChVector<>(0, 0, -10), ChVector<>(0, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Y);
 
     std::function<void()> step_iter = [&]() {

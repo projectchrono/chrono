@@ -138,7 +138,7 @@ int main(int argc, char* argv[]) {
     ChVisualizationFsi fsi_vis(&sysFSI);
     if (render) {
         fsi_vis.SetTitle("Chrono::FSI dam break");
-        fsi_vis.SetCameraPosition(ChVector<>(0, -3 * byDim, bzDim), ChVector<>(0, 0, 0));
+        fsi_vis.UpdateCamera(ChVector<>(0, -3 * byDim, bzDim), ChVector<>(0, 0, 0));
         fsi_vis.SetCameraMoveScale(1.0f);
         fsi_vis.EnableBoundaryMarkers(false);
         fsi_vis.Initialize();

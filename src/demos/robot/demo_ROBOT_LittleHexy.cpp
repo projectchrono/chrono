@@ -163,10 +163,7 @@ int main(int argc, char* argv[]) {
 
     while (vis->Run()) {
         ChVector<float> pos = myhexy.GetChassis()->GetPos();
-        core::vector3df ipos(pos.x(), pos.y(), pos.z());
-        core::vector3df offset(1, -1, 1);
-        vis->GetActiveCamera()->setPosition(ipos + offset);
-        vis->GetActiveCamera()->setTarget(ipos);
+        vis->UpdateCamera(pos + ChVector<>(1,-1,1), pos);
 
         vis->BeginScene();
         vis->Render();

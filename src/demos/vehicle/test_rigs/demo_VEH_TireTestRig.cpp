@@ -221,6 +221,8 @@ int main() {
             vis_irr->AddCamera(ChVector<>(1.0, 2.5, 1.5));
             vis_irr->AddLightDirectional();
 
+            vis_irr->GetActiveCamera()->setFOV(irr::core::PI / 4.5f);
+
             vis = vis_irr;
 #endif
             break;
@@ -241,8 +243,6 @@ int main() {
         }
     }
 
-    ////auto camera = vis->GetActiveCamera();
-    ////camera->setFOV(irr::core::PI / 4.5f);
 
     // Perform the simulation
     ChFunction_Recorder long_slip;
@@ -258,12 +258,8 @@ int main() {
             camber_angle.AddPoint(time, tire->GetCamberAngle() * CH_C_RAD_TO_DEG);
         }
 
-        ////auto& loc = rig.GetPos();
-        ////auto x = (irr::f32)loc.x();
-        ////auto y = (irr::f32)loc.y();
-        ////auto z = (irr::f32)loc.z();
-        ////camera->setPosition(irr::core::vector3df(x + 1.0f, y + 2.5f, z + 1.5f));
-        ////camera->setTarget(irr::core::vector3df(x, y + 0.25f, z));
+        auto& loc = rig.GetPos();
+        vis->UpdateCamera(loc + ChVector<>(1.0, 2.5, 1.5), loc + ChVector<>(0, 0.25, 0));
 
         vis->BeginScene();
         vis->Render();

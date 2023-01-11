@@ -656,11 +656,12 @@ void ChVisualSystemVSG::SetUseSkyBox(bool yesno) {
     m_useSkybox = yesno;
 }
 
-void ChVisualSystemVSG::AddCamera(const ChVector<>& pos, ChVector<> targ) {
+int ChVisualSystemVSG::AddCamera(const ChVector<>& pos, ChVector<> targ) {
     if (m_initialized) {
         GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
-        exit(42);
+        return -1;
     }
+
     ChVector<> test = pos - targ;
     if(test.Length() == 0.0) {
         GetLog() << "Function '" << __func__ << "' Camera Pos and Target cannot be identical!\n";
@@ -684,22 +685,24 @@ void ChVisualSystemVSG::AddCamera(const ChVector<>& pos, ChVector<> targ) {
         }
     }
     m_vsg_cameraTarget = vsg::dvec3(targ.x(), targ.y(), targ.z());
+
+    return 0;
 }
 
-void ChVisualSystemVSG::UpdateCamera(const ChVector<>& pos, ChVector<> targ) {
-    if (!m_initialized) {
-        GetLog() << "Function '" << __func__ << "' must be used after initialization!\n";
-        exit(42);
-    }
-    ChVector<> test = pos - targ;
-    if(test.Length() == 0.0) {
-        GetLog() << "Function '" << __func__ << "' Camera Pos and Target cannot be identical!\n";
-        GetLog() << "  pos    = { " << pos.x() << " ; " << pos.y() << " ; " << pos.z() << " }\n";
-        GetLog() << "  target = { " << targ.x() << " ; " << targ.y() << " ; " << targ.z() << " }\n";
-        exit(42);
-    }
+void ChVisualSystemVSG::SetCameraPosition(int id, const ChVector<>& pos) {
     m_lookAt->eye = vsg::dvec3(pos.x(), pos.y(), pos.z());
-    m_lookAt->center = vsg::dvec3(targ.x(), targ.y(), targ.z());
+}
+
+void ChVisualSystemVSG::SetCameraTarget(int id, const ChVector<>& target) {
+    m_lookAt->center = vsg::dvec3(target.x(), target.y(), target.z());
+}
+
+void ChVisualSystemVSG::SetCameraPosition(const ChVector<>& pos) {
+    m_lookAt->eye = vsg::dvec3(pos.x(), pos.y(), pos.z());
+}
+
+void ChVisualSystemVSG::SetCameraTarget(const ChVector<>& target) {
+    m_lookAt->center = vsg::dvec3(target.x(), target.y(), target.z());
 }
 
 void ChVisualSystemVSG::ShowAllCoGs(double size) {

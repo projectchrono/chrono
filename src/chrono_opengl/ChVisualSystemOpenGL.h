@@ -105,11 +105,20 @@ class CH_OPENGL_API ChVisualSystemOpenGL : virtual public ChVisualSystem {
     /// This creates the Irrlicht device using the current values for the optional device parameters.
     virtual void Initialize();
 
-    /// Set camera position and look-at point.
-    /// The camera rotation/pan is controlled by mouse left and right buttons, the zoom is controlled by mouse wheel or
-    /// rmb+lmb+mouse, the position can be changed also with keyboard up/down/left/right arrows, the height can be
-    /// changed with keyboard 'PgUp' and 'PgDn' keys. Optional parameters are position and target.
-    void SetCameraPosition(const ChVector<>& pos, ChVector<> targ = VNULL);
+    /// Add a camera to the 3d scene.
+    virtual int AddCamera(const ChVector<>& pos, ChVector<> targ = VNULL) override;
+
+    /// Set the location of the specified camera.
+    virtual void SetCameraPosition(int id, const ChVector<>& pos) override;
+
+    /// Set the target (look-at) point of the specified camera.
+    virtual void SetCameraTarget(int id, const ChVector<>& target) override;
+
+    /// Set the location of the current (active) camera.
+    virtual void SetCameraPosition(const ChVector<>& pos) override;
+
+    /// Set the target (look-at) point of the current (active) camera.
+    virtual void SetCameraTarget(const ChVector<>& target) override;
 
     /// Attach a custom event receiver to the application.
     void AddUserEventReceiver(ChOpenGLEventCB* receiver) { user_receivers.push_back(receiver); }

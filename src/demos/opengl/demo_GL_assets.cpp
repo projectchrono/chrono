@@ -229,7 +229,7 @@ int main(int argc, char* argv[]) {
     vis.SetRenderMode(opengl::SOLID);
     vis.SetParticleRenderMode(0.05f, opengl::POINTS);
     vis.Initialize();
-    vis.SetCameraPosition(ChVector<>(-2.0, 3.0, -4.0), ChVector<>(0, 0, 0));
+    vis.AddCamera(ChVector<>(-2.0, 3.0, -4.0), ChVector<>(0, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Y);
     vis.SetCameraProperties(0.5f, 0.1f, 500.0f);
 
