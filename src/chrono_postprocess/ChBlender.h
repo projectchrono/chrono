@@ -120,13 +120,17 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     /// If setting true, you can also set the size of the symbol, in meters.
     void SetShowCOGs(bool show, double msize = 0.04);
 
-    /// Turn on/off the display of the reference coordsystems of rigid bodies.
+    /// Turn on/off the display of the reference coordsystems of rigid bodies, particle in particle clouds, etc..
     /// If setting true, you can also set the size of the symbol, in meters.
-    void SetShowFrames(bool show, double msize = 0.05);
+    void SetShowItemsFrames(bool show, double msize = 0.05);
+
+    /// Turn on/off the display of the reference coordsystems of each asset shape instance.
+    /// If setting true, you can also set the size of the symbol, in meters.
+    void SetShowAssetsFrames(bool show, double msize = 0.03);
 
     /// Turn on/off the display of the reference coordsystems for ChLinkMate constraints.
     /// If setting true, you can also set the size of the symbol, in meters.
-    void SetShowLinks(bool show, double msize = 0.04);
+    void SetShowLinksFrames(bool show, double msize = 0.04);
 
     /*
     /// Turn on/off the display of contacts, using spheres or arrows (see eChContactSymbol modes).
@@ -187,7 +191,7 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     virtual void ExportData(const std::string& filename) override;
 
     /// Set if the assets for the entre scenes at all timesteps must be appended into one
-    /// single large file "rendering_frames.assets.py". If not, assets will be written inside
+    /// single large file "exported.assets.py". If not, assets will be written inside
     /// each state00001.dat, state00002.dat, etc files; this would waste more disk space but 
     /// would allow assets whose settings change during time (ex time-changing colors)
     void SetUseSingleAssetFile(bool use) { single_asset_file = use; }
@@ -196,7 +200,7 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     void UpdateRenderList();
     void ExportAssets(ChStreamOutAsciiFile& assets_file, ChStreamOutAsciiFile& state_file);
     void ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAsciiFile& state_file, std::shared_ptr<ChPhysicsItem> item);
-    void ExportMaterials(ChStreamOutAsciiFile& mfile,std::unordered_map<size_t, std::shared_ptr<ChVisualMaterial>>& m_materials, const std::vector<std::shared_ptr<ChVisualMaterial>>& materials);
+    void ExportMaterials(ChStreamOutAsciiFile& mfile,std::unordered_map<size_t, std::shared_ptr<ChVisualMaterial>>& m_materials, const std::vector<std::shared_ptr<ChVisualMaterial>>& materials, bool per_frame);
     void ExportItemState(ChStreamOutAsciiFile& state_file,
                        std::shared_ptr<ChPhysicsItem> item,
                        const ChFrame<>& parentframe);
@@ -218,7 +222,6 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     std::string base_path;
     std::string pic_path;
     std::string out_path;
-    std::string template_filename;
     std::string pic_filename;
 
     std::string out_script_filename;
@@ -242,10 +245,12 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
 
     bool COGs_show;
     double COGs_size;
-    bool frames_show;
-    double frames_size;
-    bool links_show;
-    double links_size;
+    bool frames_item_show;
+    double frames_item_size;
+    bool frames_asset_show;
+    double frames_asset_size;
+    bool frames_links_show;
+    double frames_links_size;
     bool contacts_show;
     double contacts_maxsize;
     double contacts_scale;
@@ -256,11 +261,6 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     bool contacts_do_colormap;
     double wireframe_thickness;
     ChColor background;
-    ChColor ambient_light;
-
-    bool antialias;
-    int antialias_depth;
-    double antialias_treshold;
 
     unsigned int picture_width;
     unsigned int picture_height;

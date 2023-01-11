@@ -57,10 +57,12 @@ ChBlender::ChBlender(ChSystem* system) : ChPostProcessBase(system) {
     picture_width = 1024;
     COGs_show = false;
     COGs_size = 0.04;
-    frames_show = false;
-    frames_size = 0.05;
-    links_show = false;
-    links_size = 0.04;
+    frames_item_show = false;
+    frames_item_size = 0.05;
+    frames_asset_show = false;
+    frames_asset_size = 0.03;
+    frames_links_show = false;
+    frames_links_size = 0.04;
     contacts_show = false;
     contacts_maxsize = 0.1;
     contacts_scale = 0.01;
@@ -165,15 +167,20 @@ void ChBlender::SetShowCOGs(bool show, double msize) {
     if (show)
         COGs_size = msize;
 }
-void ChBlender::SetShowFrames(bool show, double msize) {
-    frames_show = show;
+void ChBlender::SetShowItemsFrames(bool show, double msize) {
+    frames_item_show = show;
     if (show)
-        frames_size = msize;
+        frames_item_size = msize;
 }
-void ChBlender::SetShowLinks(bool show, double msize) {
-    links_show = show;
+void ChBlender::SetShowAssetsFrames(bool show, double msize) {
+    frames_asset_show = show;
     if (show)
-        links_size = msize;
+        frames_asset_show = msize;
+}
+void ChBlender::SetShowLinksFrames(bool show, double msize) {
+    frames_links_show = show;
+    if (show)
+        frames_links_size = msize;
 }
 
 
@@ -291,28 +298,6 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
     if (!item->GetVisualModel())
         return;
 
-    /*
-    // In a first pass, export materials from all visual shapes
-    for (const auto& shape_instance : item->GetVisualModel()->GetShapes()) {
-        const auto& shape = shape_instance.first; 
-
-        ChStreamOutAsciiFile* mfile;
-        std::unordered_map<size_t, std::shared_ptr<ChVisualShape>>* m_shapes;
-        std::unordered_map<size_t, std::shared_ptr<ChVisualMaterial>>* m_materials;
-
-        if (shape->IsMutable() || !this->single_asset_file) {
-            mfile = &state_file;
-            m_materials = &this->m_blender_frame_materials;
-        } 
-        else {
-            mfile = &assets_file;
-            m_materials = &this->m_blender_materials;
-        }
-
-        ExportMaterials(*mfile, *m_materials, shape->GetMaterials());
-    }
-    */
-
     // In a second pass, export shape geometry
     for (const auto& shape_instance : item->GetVisualModel()->GetShapes()) {
         const auto& shape = shape_instance.first;
@@ -321,24 +306,27 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
         std::unordered_map<size_t, std::shared_ptr<ChVisualShape>>* m_shapes;
         std::unordered_map<size_t, std::shared_ptr<ChVisualMaterial>>* m_materials;
         std::string collection;
+        bool per_frame;
 
         if (shape->IsMutable() || !this->single_asset_file) {
             mfile = &state_file;
             m_shapes = &this->m_blender_frame_shapes;
             m_materials = &this->m_blender_frame_materials;
-            collection = "chrono_collection_frame_assets";
+            collection = "chrono_frame_assets";
+            per_frame = true;
         }
         else {
             mfile = &assets_file;
             m_shapes = &this->m_blender_shapes;
             m_materials = &this->m_blender_materials;
-            collection = "chrono_collection_assets";
+            collection = "chrono_assets";
+            per_frame = false;
         }
 
         //const auto& shape_frame = shape_instance.second; // not needed, shape frame will be set later via  make_chrono_object_assetlist in py files
 
         // Export shape materials
-        ExportMaterials(*mfile, *m_materials, shape->GetMaterials());
+        ExportMaterials(*mfile, *m_materials, shape->GetMaterials(), per_frame);
 
 
         std::string shapename("shape_" + std::to_string((size_t)shape.get()));
@@ -355,6 +343,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
                 << "new_object = bpy.context.object \n"
                 << "new_object.name = '" << shapename << "' \n"
                 << "new_object.data.polygons.foreach_set('use_smooth', [True] * len(new_object.data.polygons)) \n"
+                << "new_object.data.materials.append(None) \n"
                 << collection << ".objects.link(new_object) \n"
                 << "bpy.context.scene.collection.objects.unlink(new_object)\n\n";
             // radius will be set later in ExportItemState to avoid having n meshes per each radius 
@@ -367,6 +356,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
                 << "new_object = bpy.context.object \n"
                 << "new_object.name = '" << shapename << "' \n"
                 << "new_object.data.polygons.foreach_set('use_smooth', [True] * len(new_object.data.polygons)) \n"
+                << "new_object.data.materials.append(None) \n"
                 << collection << ".objects.link(new_object) \n"
                 << "bpy.context.scene.collection.objects.unlink(new_object)\n\n";
             // radii will be set later in ExportItemState to avoid having n meshes per each radius 
@@ -378,6 +368,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
                 << "bpy.ops.mesh.primitive_cylinder_add(vertices=32, radius=1.0, depth=1.0, calc_uvs=True) \n"
                 << "new_object = bpy.context.object \n"
                 << "new_object.name = '" << shapename << "' \n"
+                << "new_object.data.materials.append(None) \n"
                 << collection << ".objects.link(new_object) \n"
                 << "bpy.context.scene.collection.objects.unlink(new_object)\n"
                 << "with bpy.context.temp_override(selected_editable_objects=[new_object]):\n"
@@ -391,6 +382,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
                 << "bpy.ops.mesh.primitive_cone_add(vertices=32, radius1=1.0, radius2=0, depth=1.0, calc_uvs=True) \n"
                 << "new_object = bpy.context.object \n"
                 << "new_object.name = '" << shapename << "' \n"
+                << "new_object.data.materials.append(None) \n"
                 << collection << ".objects.link(new_object) \n"
                 << "bpy.context.scene.collection.objects.unlink(new_object)\n"
                 << "with bpy.context.temp_override(selected_editable_objects=[new_object]):\n"
@@ -404,6 +396,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
                 << "bpy.ops.mesh.primitive_cube_add(size=1,calc_uvs=True) \n"
                 << "new_object = bpy.context.object \n"
                 << "new_object.name = '" << shapename << "' \n"
+                << "new_object.data.materials.append(None) \n"
                 << collection << ".objects.link(new_object) \n"
                 << "bpy.context.scene.collection.objects.unlink(new_object)\n\n";
             // xyz sizes will be set later in ExportItemState to avoid having n meshes
@@ -420,6 +413,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
                 << "    imported_object = bpy.ops.import_scene.obj(filepath=file_loc) \n"
                 << "    new_object = bpy.context.selected_objects[-1] \n"
                 << "    new_object.name= '" << shapename << "' \n"
+                << "    new_object.data.materials.append(None) \n"
                 << "    " << collection << ".objects.link(new_object) \n"
                 << "    bpy.context.scene.collection.objects.unlink(new_object) \n"
                 << "except: \n"
@@ -450,27 +444,27 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
             *mfile << "new_mesh.from_pydata(verts, edges, faces) \n";
 
             if (mesh->m_face_uv_indices.size() == mesh->m_face_v_indices.size()) {
-                // shared UVs via m_face_uv_indices
+                // UV per each triangle (corner):
                 *mfile << "uvs = [ \n";
                 for (unsigned int it = 0; it < mesh->m_face_uv_indices.size(); it++) {
                     *mfile 
-                        << mesh->m_UV[mesh->m_face_uv_indices[it].x()].x() << "," << mesh->m_UV[mesh->m_face_v_indices[it].x()].y() << ","
-                        << mesh->m_UV[mesh->m_face_uv_indices[it].y()].x() << "," << mesh->m_UV[mesh->m_face_v_indices[it].y()].y() << ","
-                        << mesh->m_UV[mesh->m_face_uv_indices[it].z()].x() << "," << mesh->m_UV[mesh->m_face_v_indices[it].z()].y() << ","
+                        << mesh->m_UV[mesh->m_face_uv_indices[it].x()].x() << "," << mesh->m_UV[mesh->m_face_uv_indices[it].x()].y() << ","
+                        << mesh->m_UV[mesh->m_face_uv_indices[it].y()].x() << "," << mesh->m_UV[mesh->m_face_uv_indices[it].y()].y() << ","
+                        << mesh->m_UV[mesh->m_face_uv_indices[it].z()].x() << "," << mesh->m_UV[mesh->m_face_uv_indices[it].z()].y() << ","
                         << "\n";
                 }
                 *mfile << "] \n";
                 *mfile << "uv_layer = new_mesh.uv_layers.new(name = 'UVMap') \n";
                 *mfile << "uv_layer.data.foreach_set('uv', uvs) \n";
             } 
-            else if (mesh->m_UV.size() == 3*mesh->m_face_v_indices.size()) {
-                // no m_face_uv_indices, but assume one UV per face index
+            else if (mesh->m_face_uv_indices.size() == 0 && mesh->m_UV.size() == mesh->m_vertices.size()) {
+                // UV per each vertex (no m_face_uv_indices, assume indexing in m_face_v_indices used per vertex coordinates )
                 *mfile << "uvs = [ \n";
                 for (unsigned int it = 0; it < mesh->m_UV.size(); it+=3) {
                     *mfile  
-                        << mesh->m_UV[it  ].x() << "," << mesh->m_UV[it  ].y() << ","
-                        << mesh->m_UV[it+1].x() << "," << mesh->m_UV[it+1].y() << ","
-                        << mesh->m_UV[it+2].x() << "," << mesh->m_UV[it+2].y() << ","
+                        << mesh->m_UV[mesh->m_face_v_indices[it].x()].x() << "," << mesh->m_UV[mesh->m_face_v_indices[it].x()].y() << ","
+                        << mesh->m_UV[mesh->m_face_v_indices[it].y()].x()<< "," << mesh->m_UV[mesh->m_face_v_indices[it].y()].y() << ","
+                        << mesh->m_UV[mesh->m_face_v_indices[it].z()].x() << "," << mesh->m_UV[mesh->m_face_v_indices[it].z()].y() << ","
                         << "\n";
                 }
                 *mfile << "] \n";
@@ -482,6 +476,8 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
                 << "new_mesh.update() \n"
                 << "new_object = bpy.data.objects.new('mesh_object', new_mesh) \n"
                 << "new_object.data.polygons.foreach_set('use_smooth', [True] * len(new_object.data.polygons)) \n"
+                << "new_object.name= '" << shapename << "' \n"
+                << "new_object.data.materials.append(None) \n"   
                 << "modifier = new_object.modifiers.new(name='edgesplit', type='EDGE_SPLIT') \n"
                 << "#modifier.split_angle = 1.0 \n";
             if (wireframe) {
@@ -489,6 +485,21 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
                 *mfile << "modifier.thickness = " << wireframe_thickness << "\n";
             }
             *mfile << collection << ".objects.link(new_object) \n\n";
+
+            if (mesh->m_colors.size() == mesh->m_vertices.size()) {
+                *mfile << "colors = [ \n";
+                for (unsigned int iv = 0; iv < mesh->m_colors.size(); iv++) {
+                    *mfile << "(" << mesh->m_colors[iv].R << "," << mesh->m_colors[iv].G << "," << mesh->m_colors[iv].B << "),\n";
+                }
+                *mfile << "] \n";
+                *mfile << "add_mesh_data_vectors(new_object, colors, 'chrono_color', mdomain='POINT') \n";
+                *mfile << "new_mat = make_material_mesh_color_attribute('per_vertex_color_mesh', 'chrono_color') \n";
+                *mfile << "new_object.data.materials[-1]=new_mat \n";
+                if (per_frame)
+                    *mfile << "chrono_frame_materials.append(new_mat) \n\n";
+                else 
+                    *mfile << "chrono_materials.append(new_mat) \n\n";
+            }
 
             m_shapes->insert({(size_t)shape.get(), shape});
         }
@@ -522,7 +533,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
             *mfile << "new_object.data.angle=" << camera_instance->GetAngle() * chrono::CH_C_DEG_TO_RAD << "\n";
         }
         *mfile
-            << "chrono_collection_cameras.objects.link(new_object) \n"
+            << "chrono_cameras.objects.link(new_object) \n"
             << "bpy.context.scene.collection.objects.unlink(new_object) \n\n";
 
         m_blender_cameras.insert({(size_t)camera_instance.get(), camera_instance});
@@ -531,7 +542,8 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
 
 }
 
-void ChBlender::ExportMaterials(ChStreamOutAsciiFile& mfile, std::unordered_map<size_t, std::shared_ptr<ChVisualMaterial>>& m_materials, const std::vector<std::shared_ptr<ChVisualMaterial>>& materials) {
+void ChBlender::ExportMaterials(ChStreamOutAsciiFile& mfile, std::unordered_map<size_t, std::shared_ptr<ChVisualMaterial>>& m_materials, 
+    const std::vector<std::shared_ptr<ChVisualMaterial>>& materials, bool per_frame) {
     for (const auto& mat : materials) {
 
         // Do nothing if the material was already processed (because it is shared)
@@ -542,7 +554,7 @@ void ChBlender::ExportMaterials(ChStreamOutAsciiFile& mfile, std::unordered_map<
         
         std::string matname("material_" + std::to_string((size_t)mat.get()));
 
-        mfile << "make_bsdf_material('" << matname << "',";
+        mfile << "new_mat = make_bsdf_material('" << matname << "',";
 
         if (mat->GetKdTexture().empty())
             mfile << "(" << mat->GetDiffuseColor().R << "," << mat->GetDiffuseColor().G << "," << mat->GetDiffuseColor().B << ", 1" << "),";
@@ -577,7 +589,12 @@ void ChBlender::ExportMaterials(ChStreamOutAsciiFile& mfile, std::unordered_map<
         }
 
         mfile << "emissionRGB=(" << mat->GetEmissiveColor().R << "," << mat->GetEmissiveColor().G << "," << mat->GetEmissiveColor().B <<  ", 1" << ")";
-        mfile << ") \n\n";
+        mfile << ") \n";
+
+        if (per_frame)
+            mfile << "chrono_frame_materials.append(new_mat) \n\n";
+        else 
+            mfile << "chrono_materials.append(new_mat) \n\n";
     }
 }
 
@@ -615,7 +632,7 @@ void ChBlender::ExportItemState(ChStreamOutAsciiFile& state_file,
                 << "(" << parentframe.GetPos().x() << "," << parentframe.GetPos().y() << "," << parentframe.GetPos().z() << "),"
                 << "(" << parentframe.GetRot().e0() << "," << parentframe.GetRot().e1() << "," << parentframe.GetRot().e2() << "," << parentframe.GetRot().e3() << "), \n";
         }
-        if (auto body = std::dynamic_pointer_cast<ChBody>(item)) {
+        else {
             state_file
                 << "make_chrono_object_assetlist('" << item->GetName() << "',"
                 << "(" << parentframe.GetPos().x() << "," << parentframe.GetPos().y() << "," << parentframe.GetPos().z() << "),"
@@ -743,12 +760,8 @@ void ChBlender::ExportData(const std::string& filename) {
 
     // Generate the nnnnn.dat and nnnnn.py files:
     try {
-        char pathdat[200];
-        sprintf(pathdat, "%s.dat", filename.c_str());
         ChStreamOutAsciiFile data_file((base_path + filename + ".dat").c_str());
         ChStreamOutAsciiFile state_file((base_path + filename + ".py").c_str());
-
-        camera_found_in_assets = false;
 
         // reset the maps of mutable (per-frame) assets, so that these will be saved at ExportAssets()
         m_blender_frame_shapes.clear();
@@ -799,9 +812,14 @@ void ChBlender::ExportData(const std::string& filename) {
                 ExportItemState(state_file, clones, blender_frame);
             }
 
+            // saving an FEA mesh?
+            if (auto fea_mesh = std::dynamic_pointer_cast<fea::ChMesh>(item)) {
+                ExportItemState(state_file, fea_mesh, blender_frame);
+            }
+
             // saving a ChLinkMateGeneric constraint?
             if (auto linkmate = std::dynamic_pointer_cast<ChLinkMateGeneric>(item)) {
-                if (linkmate->GetBody1() && linkmate->GetBody2() && links_show) {
+                if (linkmate->GetBody1() && linkmate->GetBody2() && frames_links_show) {
                     ChFrame<> frAabs = linkmate->GetFrame1() >> *linkmate->GetBody1() >> blender_frame;
                     ChFrame<> frBabs = linkmate->GetFrame2() >> *linkmate->GetBody2() >> blender_frame;
                     state_file << "if chrono_view_links_csys:\n";
@@ -810,20 +828,16 @@ void ChBlender::ExportData(const std::string& filename) {
                     state_file << "(" << frAabs.GetRot().e0() << "," << frAabs.GetRot().e1() << "," << frAabs.GetRot().e2()<< "," << frAabs.GetRot().e3() << "),";
                     state_file << "None, chrono_view_links_csys_size) \n";
                     state_file << "\tmcsysA.name = '" << linkmate->GetName() << "_frame_A" << "'\n";
-                    state_file << "\tchrono_collection_objects.objects.link(mcsysA)\n";
+                    state_file << "\tchrono_frame_objects.objects.link(mcsysA)\n";
                     state_file << "\tmcsysB = make_chrono_csys(";
                     state_file << "(" << frBabs.GetPos().x() << ", " << frBabs.GetPos().y() << ", " << frBabs.GetPos().z() << "),";
                     state_file << "(" << frBabs.GetRot().e0() << "," << frBabs.GetRot().e1() << "," << frBabs.GetRot().e2()<< "," << frBabs.GetRot().e3() << "),";
                     state_file << "None, chrono_view_links_csys_size) \n";
                     state_file << "\tmcsysB.name = '" << linkmate->GetName() << "_frame_B" << "'\n";
-                    state_file << "\tchrono_collection_objects.objects.link(mcsysB)\n";
+                    state_file << "\tchrono_frame_objects.objects.link(mcsysB)\n";
                 }
             }
 
-            // saving an FEA mesh?
-            if (auto fea_mesh = std::dynamic_pointer_cast<fea::ChMesh>(item)) {
-                ExportItemState(state_file, fea_mesh, blender_frame);
-            }
 
         }  // end loop on objects
 

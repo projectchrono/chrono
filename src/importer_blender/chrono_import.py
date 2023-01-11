@@ -66,10 +66,14 @@ from bpy.types import Panel
 # Globals, to keep things simple with callbacks
 #
 
-chrono_collection_objects = None
-chrono_collection_assets = None
-chrono_collection_frame_assets = None
-chrono_collection_cameras = None
+chrono_frame_objects = None
+chrono_assets = None
+chrono_frame_assets = None
+chrono_materials = []
+chrono_frame_materials = []
+chrono_images = []
+chrono_frame_images = []
+chrono_cameras = None
 empty_mesh = None
 chrono_csys = None
 chrono_filename = None
@@ -294,16 +298,16 @@ def make_chrono_object_assetlist(mname,mpos,mrot, masset_list):
     chobject.rotation_mode = 'QUATERNION'
     chobject.rotation_quaternion = mrot
     chobject.location = mpos
-    chrono_collection_objects.objects.link(chobject)
+    chrono_frame_objects.objects.link(chobject)
     
     if chrono_view_item_csys:
         mcsys = make_chrono_csys((0,0,0),(1,0,0,0), chobject, chrono_view_item_csys_size)
-        chrono_collection_objects.objects.link(mcsys)
+        chrono_frame_objects.objects.link(mcsys)
         
     for m in range(len(masset_list)):
-        masset = chrono_collection_assets.objects.get(masset_list[m][0])
+        masset = chrono_assets.objects.get(masset_list[m][0])
         if not masset:
-            masset = chrono_collection_frame_assets.objects.get(masset_list[m][0])
+            masset = chrono_frame_assets.objects.get(masset_list[m][0])
         if masset:
             chasset = masset.copy() # instanced, no full copy, masset.data is shared
             chasset.rotation_mode = 'QUATERNION'
@@ -311,14 +315,14 @@ def make_chrono_object_assetlist(mname,mpos,mrot, masset_list):
             chasset.location = masset_list[m][1]
             if len(masset_list[m])>4:
                 chasset.scale = masset_list[m][4]
-            chrono_collection_objects.objects.link(chasset)
+            chrono_frame_objects.objects.link(chasset)
             chasset.parent = chobject
             if masset_list[m][3] and chrono_view_materials:
                 chasset.material_slots[-1].link = 'OBJECT'
                 chasset.material_slots[-1].material = bpy.data.materials[masset_list[m][3]]
             if chrono_view_asset_csys:
                 mcsys = make_chrono_csys(chasset.location,chasset.rotation_quaternion, chobject, chrono_view_asset_csys_size)
-                chrono_collection_objects.objects.link(mcsys) 
+                chrono_frame_objects.objects.link(mcsys) 
         else:
             print("not found asset: ",masset_list[m][0])
     
@@ -329,22 +333,22 @@ def make_chrono_object_clones(mname,mpos,mrot, masset_list, list_clones_posrot):
     chobject.rotation_mode = 'QUATERNION'
     chobject.rotation_quaternion = mrot
     chobject.location = mpos
-    chrono_collection_objects.objects.link(chobject)
+    chrono_frame_objects.objects.link(chobject)
     
     chassets_group = bpy.data.objects.new("assets_group", empty_mesh)  
-    chrono_collection_objects.objects.link(chassets_group)
+    chrono_frame_objects.objects.link(chassets_group)
     chassets_group.parent = chobject
     chassets_group.hide_set(True)
     chassets_group.hide_render = True
     
     if chrono_view_item_csys:
         mcsys = make_chrono_csys((0,0,0),(1,0,0,0), chassets_group, chrono_view_item_csys_size)
-        chrono_collection_objects.objects.link(mcsys)
+        chrono_frame_objects.objects.link(mcsys)
     
     for m in range(len(masset_list)):
-        masset = chrono_collection_assets.objects.get(masset_list[m][0])
+        masset = chrono_assets.objects.get(masset_list[m][0])
         if not masset:
-            masset = chrono_collection_frame_assets.objects.get(masset_list[m][0])
+            masset = chrono_frame_assets.objects.get(masset_list[m][0])
         if masset:
             chasset = masset.copy() # instanced, no full copy, masset.data is shared
             chasset.rotation_mode = 'QUATERNION'
@@ -352,14 +356,14 @@ def make_chrono_object_clones(mname,mpos,mrot, masset_list, list_clones_posrot):
             chasset.location = masset_list[m][1]
             if len(masset_list[m])>4:
                 chasset.scale = masset_list[m][4]
-            chrono_collection_objects.objects.link(chasset)
+            chrono_frame_objects.objects.link(chasset)
             chasset.parent = chassets_group
             if masset_list[m][3] and chrono_view_materials:
                 chasset.material_slots[-1].link = 'OBJECT'
                 chasset.material_slots[-1].material = bpy.data.materials[masset_list[m][3]]
             if chrono_view_asset_csys:
                 mcsys = make_chrono_csys(chasset.location,chasset.rotation_quaternion, chassets_group, chrono_view_asset_csys_size)
-                chrono_collection_objects.objects.link(mcsys)
+                chrono_frame_objects.objects.link(mcsys)
             chasset.hide_set(True)    
         else:
             print("not found asset: ",masset_list[m][0])
@@ -385,7 +389,7 @@ def make_chrono_object_clones(mname,mpos,mrot, masset_list, list_clones_posrot):
     chobject.show_instancer_for_viewport = False
     
 def update_camera_coordinates(mname,mpos,mrot):
-    cameraasset = chrono_collection_cameras.objects.get(mname)
+    cameraasset = chrono_cameras.objects.get(mname)
     cameraasset.rotation_mode = 'QUATERNION'
     cameraasset.rotation_quaternion = mrot
     cameraasset.location = mpos
@@ -405,10 +409,14 @@ def callback_post(self):
     cFrame = scene.frame_current
     sFrame = scene.frame_start
     
-    global chrono_collection_objects
-    global chrono_collection_assets
-    global chrono_collection_frame_assets
-    global chrono_collection_cameras
+    global chrono_frame_objects
+    global chrono_assets
+    global chrono_frame_assets
+    global chrono_materials
+    global chrono_frame_materials
+    global chrono_images
+    global chrono_frame_images
+    global chrono_cameras
     global chrono_csys
     global empty_mesh
     global chrono_filename
@@ -420,24 +428,46 @@ def callback_post(self):
     global chrono_view_link_csys_size
     global chrono_view_materials
     
-    chrono_collection_assets = bpy.data.collections.get('chrono_assets')
-    chrono_collection_frame_assets = bpy.data.collections.get('chrono_frame_assets')
-    chrono_collection_objects = bpy.data.collections.get('chrono_frame_objects')
-    chrono_collection_cameras = bpy.data.collections.get('chrono_cameras')
+    chrono_assets = bpy.data.collections.get('chrono_assets')
+    chrono_frame_assets = bpy.data.collections.get('chrono_frame_assets')
+    chrono_frame_objects = bpy.data.collections.get('chrono_frame_objects')
+    chrono_cameras = bpy.data.collections.get('chrono_cameras')
     
-    if (chrono_collection_assets and chrono_collection_objects and chrono_collection_frame_assets):
+    if (chrono_assets and chrono_frame_objects and chrono_frame_assets):
         
         # retrieve filename of last import, in case this was a saved Blender project
-        chrono_filename = chrono_collection_assets['chrono_filename'] 
+        chrono_filename = chrono_assets['chrono_filename'] 
         
         # delete all things in chrono_frame_objects collection
-        for obj in chrono_collection_objects.objects:
+        for obj in chrono_frame_objects.objects:
             bpy.data.objects.remove(obj, do_unlink=True)
             
         # delete all things in chrono_frame_assets collection
-        for obj in chrono_collection_frame_assets.objects:
+        for obj in chrono_frame_assets.objects:
             bpy.data.objects.remove(obj, do_unlink=True)
           
+        # delete unused materials, meshes, etc.
+        orphan_mesh = [m for m in bpy.data.meshes if not m.users]
+        while orphan_mesh:
+            bpy.data.meshes.remove(orphan_mesh.pop())
+            
+        orphan_particles = [m for m in bpy.data.particles if not m.users]
+        while orphan_particles:
+            bpy.data.particles.remove(orphan_particles.pop())
+        
+        # remove just materials added as per-frame materials    
+        for mmat in chrono_frame_materials:
+            bpy.data.materials.remove(mmat)
+        chrono_frame_materials = [] # empty list 
+            
+        #orphan_materials = [m for m in bpy.data.materials if not m.users]
+        #while orphan_materials:
+        #    bpy.data.materials.remove(orphan_materials.pop())
+            
+        orphan_image = [m for m in bpy.data.images if not m.users]
+        while orphan_image:
+            bpy.data.images.remove(orphan_image.pop())
+        
         # load state file, that will fill the chrono_frame_objects and (if necessary) 
         # the chrono_frame_assets collections
         
@@ -450,11 +480,9 @@ def callback_post(self):
             f.close()
             
         # in case something was added to chrono_frame_assets, make it invisible 
-        for masset in chrono_collection_frame_assets.objects:
-            if not masset.type == 'CAMERA':
-                masset.hide_set(True) # not masset.hide_viewport = True otherwise also instances are invisible
-                #masset.hide_render = True
-                masset.data.materials.append(None) # force a free slot if per-instance material will be assigned
+        for masset in chrono_frame_assets.objects:
+            masset.hide_set(True) # not masset.hide_viewport = True otherwise also instances are invisible
+
      
 #
 # On file selected: 
@@ -470,10 +498,14 @@ def read_chrono_simulation(context, filepath, setting_materials):
     print("Loading Chrono simulation...")
     
     # PREPARE SCENE
-    global chrono_collection_objects
-    global chrono_collection_assets
-    global chrono_collection_frame_assets
-    global chrono_collection_cameras
+    global chrono_frame_objects
+    global chrono_assets
+    global chrono_frame_assets
+    global chrono_materials
+    global chrono_frame_materials
+    global chrono_images
+    global chrono_frame_images
+    global chrono_cameras
     global chrono_csys
     global empty_mesh
     global chrono_filename
@@ -484,39 +516,39 @@ def read_chrono_simulation(context, filepath, setting_materials):
     global chrono_view_link_csys
     global chrono_view_link_csys_size
     global chrono_view_materials
+
+    chrono_cameras = bpy.data.collections.get('chrono_cameras')
+    if not chrono_cameras:
+        chrono_cameras = bpy.data.collections.new('chrono_cameras')
+        bpy.context.scene.collection.children.link(chrono_cameras)
+    for obj in chrono_cameras.objects:
+            bpy.data.objects.remove(obj, do_unlink=True)
+            
+    chrono_assets = bpy.data.collections.get('chrono_assets')
+    if not chrono_assets:
+        chrono_assets = bpy.data.collections.new('chrono_assets')
+        bpy.context.scene.collection.children.link(chrono_assets)
+    for obj in chrono_assets.objects:
+            bpy.data.objects.remove(obj, do_unlink=True)
+            
+    chrono_assets.hide_render = True
+    #chrono_assets.hide_viewport = True
     
-    chrono_collection_cameras = bpy.data.collections.get('chrono_cameras')
-    if not chrono_collection_cameras:
-        chrono_collection_cameras = bpy.data.collections.new('chrono_cameras')
-        bpy.context.scene.collection.children.link(chrono_collection_cameras)
-    for obj in chrono_collection_cameras.objects:
+    chrono_frame_assets = bpy.data.collections.get('chrono_frame_assets')
+    if not chrono_frame_assets:
+        chrono_frame_assets = bpy.data.collections.new('chrono_frame_assets')
+        bpy.context.scene.collection.children.link(chrono_frame_assets)
+    for obj in chrono_frame_assets.objects:
             bpy.data.objects.remove(obj, do_unlink=True)
             
-    chrono_collection_assets = bpy.data.collections.get('chrono_assets')
-    if not chrono_collection_assets:
-        chrono_collection_assets = bpy.data.collections.new('chrono_assets')
-        bpy.context.scene.collection.children.link(chrono_collection_assets)
-    for obj in chrono_collection_assets.objects:
-            bpy.data.objects.remove(obj, do_unlink=True)
+    chrono_frame_assets.hide_render = True
+    #chrono_frame_assets.hide_viewport = True
             
-    chrono_collection_assets.hide_render = True
-    #chrono_collection_assets.hide_viewport = True
-    
-    chrono_collection_frame_assets = bpy.data.collections.get('chrono_frame_assets')
-    if not chrono_collection_frame_assets:
-        chrono_collection_frame_assets = bpy.data.collections.new('chrono_frame_assets')
-        bpy.context.scene.collection.children.link(chrono_collection_frame_assets)
-    for obj in chrono_collection_frame_assets.objects:
-            bpy.data.objects.remove(obj, do_unlink=True)
-            
-    chrono_collection_frame_assets.hide_render = True
-    #chrono_collection_frame_assets.hide_viewport = True
-            
-    chrono_collection_objects = bpy.data.collections.get('chrono_frame_objects')
-    if not chrono_collection_objects:
-        chrono_collection_objects = bpy.data.collections.new('chrono_frame_objects')
-        bpy.context.scene.collection.children.link(chrono_collection_objects)
-    for obj in chrono_collection_objects.objects:
+    chrono_frame_objects = bpy.data.collections.get('chrono_frame_objects')
+    if not chrono_frame_objects:
+        chrono_frame_objects = bpy.data.collections.new('chrono_frame_objects')
+        bpy.context.scene.collection.children.link(chrono_frame_objects)
+    for obj in chrono_frame_objects.objects:
             bpy.data.objects.remove(obj, do_unlink=True)
             
     orphan_mesh = [m for m in bpy.data.meshes if not m.users]
@@ -526,11 +558,19 @@ def read_chrono_simulation(context, filepath, setting_materials):
     orphan_particles = [m for m in bpy.data.particles if not m.users]
     while orphan_particles:
         bpy.data.particles.remove(orphan_particles.pop())
-        
-    orphan_materials = [m for m in bpy.data.materials if not m.users]
-    while orphan_materials:
-        bpy.data.materials.remove(orphan_materials.pop())
-        
+
+    # remove materials added as per-frame materials    
+    for mmat in chrono_frame_materials:
+        bpy.data.materials.remove(mmat)
+    chrono_frame_materials = [] # empty list
+    # remove materials added as immutable materials    
+    for mmat in chrono_materials:
+        bpy.data.materials.remove(mmat)
+    chrono_materials = [] # empty list
+               
+    orphan_image = [m for m in bpy.data.images if not m.users]
+    while orphan_image:
+        bpy.data.images.remove(orphan_image.pop())
            
     # if some sub collection is selected, select the root one, so loading assets.py will work fine  
     bpy.context.view_layer.active_layer_collection = bpy.context.view_layer.layer_collection
@@ -560,7 +600,7 @@ def read_chrono_simulation(context, filepath, setting_materials):
         matX = make_bsdf_material('axis_x',(1,0,0,1)) #for render
         matX.diffuse_color = (1,0,0,1) #for viewport
         cyX.data.materials.append(matX)
-        bpy.ops.mesh.primitive_cube_add(size=0.1,calc_uvs=False)
+        bpy.ops.mesh.primitive_cube_add(size=0.1,calc_uvs=False, location=(0,0,0))
         cyO = bpy.context.object
         matO = make_bsdf_material('axis_origin',(1,1,1,1)) #for render
         matO.diffuse_color = (1,1,1,1) #for viewport
@@ -581,7 +621,7 @@ def read_chrono_simulation(context, filepath, setting_materials):
     
     # store filename as custom properties of collection, so that one can save the Blender project,
     # reopen, and scrub the timeline without the need of doing File/Import/Chrono Import
-    chrono_collection_assets['chrono_filename'] = chrono_filename
+    chrono_assets['chrono_filename'] = chrono_filename
     
     # Load the xxx.assets.py file to create the non-mutable assets 
     # that will fill the chrono_assets collection.
@@ -590,17 +630,22 @@ def read_chrono_simulation(context, filepath, setting_materials):
     exec(compile(f.read(), chrono_filename, 'exec'))
     f.close()
     
+    print('chrono_view_item_csys=',chrono_view_item_csys)
+    
     # in case something was added to chrono_assets, make it invisible
-    for masset in chrono_collection_assets.objects:
-        if not masset.type == 'CAMERA':
-            masset.hide_set(True) # not masset.hide_viewport = True otherwise also instances are invisible
-            #masset.hide_render = True
-            masset.data.materials.append(None) # force a free slot if per-instance material will be assigned
-
+    for masset in chrono_assets.objects:
+        masset.hide_set(True) # not masset.hide_viewport = True otherwise also instances are invisible
 
     degp = bpy.context.evaluated_depsgraph_get()
 
-      
+    bpy.context.scene.chrono_show_assets_coordsys = chrono_view_asset_csys
+    bpy.context.scene.chrono_assets_coordsys_size = chrono_view_asset_csys_size
+    bpy.context.scene.chrono_show_item_coordsys = chrono_view_item_csys
+    bpy.context.scene.chrono_item_coordsys_size = chrono_view_item_csys_size
+    bpy.context.scene.chrono_show_links_coordsys = chrono_view_link_csys
+    bpy.context.scene.chrono_links_coordsys_size = chrono_view_link_csys_size
+    bpy.context.scene.chrono_show_materials = chrono_view_materials
+    
     #clear the post frame handler
     bpy.app.handlers.frame_change_post.clear()
 
@@ -628,16 +673,16 @@ def UpdatedFunction(self, context):
     global chrono_view_link_csys
     global chrono_view_link_csys_size
     global chrono_view_materials
-    #print("In update func...")
-    #print(self.chrono_show_assets_coordsys)
-    chrono_view_asset_csys = self.chrono_show_assets_coordsys
-    chrono_view_asset_csys_size = self.chrono_assets_coordsys_size
-    chrono_view_item_csys = self.chrono_show_item_coordsys
-    chrono_view_item_csys_size = self.chrono_item_coordsys_size
-    chrono_view_links_csys = self.chrono_show_links_coordsys
-    chrono_view_links_csys_size = self.chrono_links_coordsys_size
-    chrono_view_materials = self.chrono_show_materials
-    callback_post(self) # force reload 
+    print("In update func...")
+    if True:
+        chrono_view_asset_csys = self.chrono_show_assets_coordsys
+        chrono_view_asset_csys_size = self.chrono_assets_coordsys_size
+        chrono_view_item_csys = self.chrono_show_item_coordsys
+        chrono_view_item_csys_size = self.chrono_item_coordsys_size
+        chrono_view_links_csys = self.chrono_show_links_coordsys
+        chrono_view_links_csys_size = self.chrono_links_coordsys_size
+        chrono_view_materials = self.chrono_show_materials
+        callback_post(self) # force reload 
     
 class Chrono_operator(Operator):
     """ example operator """
@@ -744,6 +789,10 @@ def menu_func_import(self, context):
 
 
 def register():
+    
+    # this is needed to avoid crashes when pressing F12 for rendering  
+    bpy.context.scene.render.use_lock_interface = True
+    
     bpy.utils.register_class(ImportChrono)
     bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
     
