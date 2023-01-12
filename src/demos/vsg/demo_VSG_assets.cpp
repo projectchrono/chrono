@@ -270,12 +270,27 @@ int main(int argc, char* argv[]) {
     vis->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
     vis->SetDecoGrid(0.5, 0.5, 12, 12, ChCoordsys<>(ChVector<>(0, -0.49, 0), Q_from_AngX(CH_C_PI_2)),
                      ChColor(0.31f, 0.43f, 0.43f));
+    // add a pure scenery object, not bound to a body
+    auto sceneMesh1 = chrono_types::make_shared<ChObjFileShape>();
+    sceneMesh1->SetFilename(GetChronoDataFile("models/red_teapot.obj"));
+    int teapotId1 = vis->AddVisualModel(sceneMesh1,ChFrame<>(ChVector<>(0, 3.5, 3), Q_from_AngX(CH_C_PI)));
+    if(teapotId1 == -1) GetLog() << "Could not get teapot!\n";
+    auto sceneMesh2 = chrono_types::make_shared<ChObjFileShape>();
+    sceneMesh2->SetFilename(GetChronoDataFile("models/red_teapot.obj"));
+    int teapotId2 = vis->AddVisualModel(sceneMesh2,ChFrame<>(ChVector<>(-5, 3.5, 3), Q_from_AngX(CH_C_PI)));
+    if(teapotId2 == -1) GetLog() << "Could not get teapot!\n";
+    auto sceneMesh3 = chrono_types::make_shared<ChObjFileShape>();
+    sceneMesh3->SetFilename(GetChronoDataFile("models/bunny.glb"));
+    int bunndyId = vis->AddVisualModel(sceneMesh3,ChFrame<>(ChVector<>(-5, 0, 5), Q_from_AngX(-CH_C_PI_2)));
+    if(bunndyId == -1) GetLog() << "Could not get bunny!\n";
     vis->Initialize();
 
     while (vis->Run()) {
         if (vis->GetFrameNumber() == 42) {
             vis->WriteImageToFile("newshot.png");  // does not work with frame == 0!
         }
+        vis->UpdateVisualModel(teapotId1, ChFrame(ChVector<>(0,3.5+0.5*sin(CH_C_PI*sys.GetChTime()),3),Q_from_AngX(CH_C_PI)));
+        vis->UpdateVisualModel(teapotId2, ChFrame(ChVector<>(-5,3.5,3),Q_from_AngX(CH_C_PI)*Q_from_AngY(sys.GetChTime())));
         vis->Render();
         sys.DoStepDynamics(0.01);
     }

@@ -94,6 +94,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void SetGuiFontSize(float theSize);
     void SetDecoGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col);
     void SetDecoObject(std::string objFileName, ChCoordsys<> pos, ChVector<> size={1,1,1}, ChColor col={1,1,1});
+    int AddVisualModel(std::shared_ptr<ChVisualModel> model, const ChFrame<>& frame) override;
+    int AddVisualModel(std::shared_ptr<ChVisualShape> model, const ChFrame<>& frame) override;
+    void UpdateVisualModel(int id, const ChFrame<>& frame) override;
     void SetSystemSymbol(double size);
     void SetSystemSymbolPosition(ChVector<> pos);
     void SetColorBar(std::string title, double min_val, double max_val);
@@ -205,7 +208,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     std::vector<vsg::ref_ptr<vsg::vec4Array>> m_vsgColorsList;
     std::shared_ptr<ChTriangleMeshShape> m_mbsMesh;
     //============================================================
-
+    // scenery object helper
+    std::vector<vsg::ref_ptr<vsg::Group>> m_sceneryPtr;
+    //============================================================
 private:
     std::map<std::size_t, vsg::ref_ptr<vsg::Node>> m_objCache;
     std::hash<std::string> m_stringHash;

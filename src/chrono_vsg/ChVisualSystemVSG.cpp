@@ -1707,5 +1707,71 @@ void ChVisualSystemVSG::SetColorBar(std::string title, double min_val, double ma
     m_params->show_color_bar = true;
 }
 
+int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualModel> model, const ChFrame<> &frame) {
+    return -1;
+}
+
+int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualShape> model, const ChFrame<> &frame) {
+    if (auto obj = std::dynamic_pointer_cast<ChObjFileShape>(model)) {
+        GetLog() << "Good Shape!\n";
+        string objFilename = obj->GetFilename();
+        GetLog() << "Filename = " << objFilename << "\n";
+        size_t objHashValue = m_stringHash(objFilename);
+        auto grp = vsg::Group::create();
+        auto transform = vsg::MatrixTransform::create();
+        grp->addChild(transform);
+        grp->setValue("TransformPtr", transform);
+        auto pos = frame.GetPos();
+        auto quat = frame.GetRot();
+        double rotAngle;
+        ChVector<> rotAxis;
+        quat.Q_to_AngAxis(rotAngle, rotAxis);
+        transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
+                            vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z());
+        map<size_t, vsg::ref_ptr<vsg::Node>>::iterator objIt;
+        objIt = m_objCache.find(objHashValue);
+        if (objIt == m_objCache.end()) {
+            auto node = vsg::read_cast<vsg::Node>(objFilename, m_options);
+            if (node) {
+                transform->addChild(node);
+                m_decoScene->addChild(grp);
+                m_objCache[objHashValue] = node;
+                GetLog() << "Object cached.\n";
+            } else {
+                GetLog() << "Demanded object could not be read!\n";
+                return -1;
+            }
+        } else {
+            transform->addChild(m_objCache[objHashValue]);
+            m_decoScene->addChild(grp);
+        }
+        m_sceneryPtr.push_back(grp);
+        int newIdx = m_sceneryPtr.size()-1;
+        return newIdx;
+    }
+    return -1;
+}
+
+void ChVisualSystemVSG::UpdateVisualModel(int id, const ChFrame<> &frame) {
+    if(id == -1 || id >= m_sceneryPtr.size()) {
+        GetLog() << "No update due to invalid object index!\n";
+        return;
+    }
+    auto ptr = m_sceneryPtr.at(id);
+    vsg::ref_ptr<vsg::MatrixTransform> transform;
+    bool ok = ptr->getValue("TransformPtr", transform);
+    if(!ok) {
+        GetLog() << "No update due to malconfiguration!\n";
+        return;
+    }
+    auto pos = frame.GetPos();
+    auto quat = frame.GetRot();
+    double rotAngle;
+    ChVector<> rotAxis;
+    quat.Q_to_AngAxis(rotAngle, rotAxis);
+    transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
+                        vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z());
+}
+
 }  // namespace vsg3d
 }  // namespace chrono
