@@ -1082,11 +1082,11 @@ void ChVisualSystemVSG::BindAll() {
                 // we have boxes and dices. Dices take cubetextures, boxes take 6 identical textures
                 // dirty trick: if a kd map is set and its name contains "cubetexture" we use dice,
                 // if not, we use box
-                bool isDice = false;
+                bool isDie = false;
                 if (!material->GetKdTexture().empty()) {
                     size_t found = material->GetKdTexture().find("cubetexture");
                     if (found != string::npos) {
-                        isDice = true;
+                        isDie = true;
                     }
                 }
 
@@ -1095,9 +1095,9 @@ void ChVisualSystemVSG::BindAll() {
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(scale.x(), scale.y(), scale.z());
-                if (isDice) {
+                if (isDie) {
                     auto tmpGroup =
-                        m_shapeBuilder->createShape(ShapeBuilder::DICE_SHAPE, material, transform, m_draw_as_wireframe);
+                        m_shapeBuilder->createShape(ShapeBuilder::DIE_SHAPE, material, transform, m_draw_as_wireframe);
                     ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
                     m_bodyScene->addChild(tmpGroup);
                 } else {
@@ -1627,36 +1627,6 @@ void ChVisualSystemVSG::SetDecoGrid(double ustep, double vstep, int nu, int nv, 
     m_decoScene->addChild(m_shapeBuilder->createDecoGrid(ustep, vstep, nu, nv, pos, col));
 }
 
-void ChVisualSystemVSG::SetDecoObject(std::string objFileName, ChCoordsys<> csys, ChVector<> scale, ChColor col) {
-    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(objFileName, true, true);
-    if (trimesh == nullptr) {
-        GetLog() << "Couldn't read file " << objFileName << "\n";
-        return;
-    }
-    ChVector<> pos = csys.pos;
-    ChQuaternion<> quat = csys.rot;
-    ChVector<> rotAxis;
-    double rotAngle;
-    quat.Q_to_AngAxis(rotAngle, rotAxis);
-    auto transform = vsg::MatrixTransform::create();
-    transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                        vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                        vsg::scale(scale.x(), scale.y(), scale.z());
-    auto tms = chrono_types::make_shared<ChTriangleMeshShape>();
-    tms->SetMesh(trimesh, true);
-    if (tms->GetNumMaterials() > 0) {
-        for (int i = 0; i < tms->GetNumMaterials(); i++) {
-            tms->GetMaterial(i)->SetDiffuseColor(col);
-            tms->GetMaterial(i)->SetAmbientColor(ChColor(0.2, 0.2, 0.2));
-        }
-        auto tmpGroup = m_shapeBuilder->createTrimeshMatShape(transform, m_draw_as_wireframe, tms);
-        m_decoScene->addChild(tmpGroup);
-    } else {
-        auto tmpGroup = m_shapeBuilder->createTrimeshColShape(transform, m_draw_as_wireframe, tms);
-        m_decoScene->addChild(tmpGroup);
-    }
-}
-
 void ChVisualSystemVSG::SetSystemSymbol(double size) {
     m_system_symbol_size = vsg::dvec3(size, size, size);
 
@@ -1712,8 +1682,14 @@ int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualModel> model, cons
 }
 
 int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualShape> model, const ChFrame<> &frame) {
+    auto pos = frame.GetPos();
+    auto quat = frame.GetRot();
+    double rotAngle;
+    ChVector<> rotAxis;
+    quat.Q_to_AngAxis(rotAngle, rotAxis);
     if (auto obj = std::dynamic_pointer_cast<ChObjFileShape>(model)) {
-        GetLog() << "Good Shape!\n";
+        // all material/color info is set in the file, we don't care
+        GetLog() << "Obj/Foreign Shape!\n";
         string objFilename = obj->GetFilename();
         GetLog() << "Filename = " << objFilename << "\n";
         size_t objHashValue = m_stringHash(objFilename);
@@ -1721,11 +1697,6 @@ int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualShape> model, cons
         auto transform = vsg::MatrixTransform::create();
         grp->addChild(transform);
         grp->setValue("TransformPtr", transform);
-        auto pos = frame.GetPos();
-        auto quat = frame.GetRot();
-        double rotAngle;
-        ChVector<> rotAxis;
-        quat.Q_to_AngAxis(rotAngle, rotAxis);
         transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                             vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z());
         map<size_t, vsg::ref_ptr<vsg::Node>>::iterator objIt;
@@ -1748,6 +1719,67 @@ int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualShape> model, cons
         m_sceneryPtr.push_back(grp);
         int newIdx = m_sceneryPtr.size()-1;
         return newIdx;
+    } else if (auto box = std::dynamic_pointer_cast<ChBoxShape>(model)) {
+        std::shared_ptr<ChVisualMaterial> material;
+        if(model->GetMaterials().empty()) {
+            material = chrono_types::make_shared<ChVisualMaterial>();
+            material->SetDiffuseColor(ChColor(1.0, 1.0, 1.0));
+            material->SetAmbientColor(ChColor(1.0, 1.0, 1.0));
+        } else {
+            material = model->GetMaterial(0);
+        }
+        bool isDie = false;
+        if (!material->GetKdTexture().empty()) {
+            size_t found = material->GetKdTexture().find("cubetexture");
+            if (found != string::npos) {
+                isDie = true;
+            }
+        }
+
+        ChVector<> scale = box->GetBoxGeometry().Size;
+        auto transform = vsg::MatrixTransform::create();
+        transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
+                            vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                            vsg::scale(scale.x(), scale.y(), scale.z());
+        vsg::ref_ptr<vsg::Group> grp;
+        if (isDie) {
+            grp =
+                m_shapeBuilder->createShape(ShapeBuilder::DIE_SHAPE, material, transform, m_draw_as_wireframe);
+            grp->setValue("TransformPtr", transform);
+            grp->setValue("Scale", scale);
+            m_decoScene->addChild(grp);
+        } else {
+            grp =
+                m_shapeBuilder->createShape(ShapeBuilder::BOX_SHAPE, material, transform, m_draw_as_wireframe);
+            grp->setValue("TransformPtr", transform);
+            grp->setValue("Scale", scale);
+            m_decoScene->addChild(grp);
+        }
+        m_sceneryPtr.push_back(grp);
+        int newIdx = m_sceneryPtr.size()-1;
+        return newIdx;
+    } else if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(model)) {
+        std::shared_ptr<ChVisualMaterial> material;
+        if(model->GetMaterials().empty()) {
+            material = chrono_types::make_shared<ChVisualMaterial>();
+            material->SetDiffuseColor(ChColor(1.0, 1.0, 1.0));
+            material->SetAmbientColor(ChColor(1.0, 1.0, 1.0));
+        } else {
+            material = model->GetMaterial(0);
+        }
+        ChVector<> scale = sphere->GetSphereGeometry().rad;
+        auto transform = vsg::MatrixTransform::create();
+        transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
+                            vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                            vsg::scale(scale.x(), scale.y(), scale.z());
+        auto grp =
+            m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, material, transform, m_draw_as_wireframe);
+        grp->setValue("TransformPtr", transform);
+        grp->setValue("Scale", scale);
+        m_decoScene->addChild(grp);
+        m_sceneryPtr.push_back(grp);
+        int newIdx = m_sceneryPtr.size()-1;
+        return newIdx;
     }
     return -1;
 }
@@ -1764,13 +1796,19 @@ void ChVisualSystemVSG::UpdateVisualModel(int id, const ChFrame<> &frame) {
         GetLog() << "No update due to malconfiguration!\n";
         return;
     }
+    ChVector<> scale;
+    bool mustScale = ptr->getValue("Scale", scale);
+    if(!mustScale) {
+        scale = ChVector<>(1,1,1);
+    }
     auto pos = frame.GetPos();
     auto quat = frame.GetRot();
     double rotAngle;
     ChVector<> rotAxis;
     quat.Q_to_AngAxis(rotAngle, rotAxis);
     transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                        vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z());
+                        vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                        vsg::scale(scale.x(),scale.y(),scale.z());
 }
 
 }  // namespace vsg3d

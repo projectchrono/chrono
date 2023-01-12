@@ -37,7 +37,7 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
   public:
     typedef enum {
         BOX_SHAPE,
-        DICE_SHAPE,
+        DIE_SHAPE,
         SPHERE_SHAPE,
         CYLINDER_SHAPE,
         CAPSULE_SHAPE,

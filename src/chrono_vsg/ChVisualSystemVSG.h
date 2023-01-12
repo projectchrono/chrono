@@ -93,7 +93,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void ShowAllCoGs(double size);
     void SetGuiFontSize(float theSize);
     void SetDecoGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col);
-    void SetDecoObject(std::string objFileName, ChCoordsys<> pos, ChVector<> size={1,1,1}, ChColor col={1,1,1});
     int AddVisualModel(std::shared_ptr<ChVisualModel> model, const ChFrame<>& frame) override;
     int AddVisualModel(std::shared_ptr<ChVisualShape> model, const ChFrame<>& frame) override;
     void UpdateVisualModel(int id, const ChFrame<>& frame) override;

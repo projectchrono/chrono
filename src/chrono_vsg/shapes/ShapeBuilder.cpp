@@ -147,7 +147,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
         case BOX_SHAPE:
             GetBoxShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
             break;
-        case DICE_SHAPE:
+        case DIE_SHAPE:
             GetDiceShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
             break;
         case SPHERE_SHAPE:
