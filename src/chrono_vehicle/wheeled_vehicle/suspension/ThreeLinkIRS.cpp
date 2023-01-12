@@ -31,7 +31,14 @@ namespace vehicle {
 // file.
 // -----------------------------------------------------------------------------
 ThreeLinkIRS::ThreeLinkIRS(const std::string& filename)
-    : ChThreeLinkIRS(""), m_springForceCB(nullptr), m_shockForceCB(nullptr) {
+    : ChThreeLinkIRS(""),
+      m_springForceCB(nullptr),
+      m_shockForceCB(nullptr),
+      m_armChassisBushingData(nullptr),
+      m_armUpperBushingData(nullptr),
+      m_armLowerBushingData(nullptr),
+      m_chassisUpperBushingData(nullptr),
+      m_chassisLowerBushingData(nullptr) {
     Document d;
     ReadFileJSON(filename, d);
     if (d.IsNull())
@@ -43,7 +50,14 @@ ThreeLinkIRS::ThreeLinkIRS(const std::string& filename)
 }
 
 ThreeLinkIRS::ThreeLinkIRS(const rapidjson::Document& d)
-    : ChThreeLinkIRS(""), m_springForceCB(nullptr), m_shockForceCB(nullptr) {
+    : ChThreeLinkIRS(""),
+      m_springForceCB(nullptr),
+      m_shockForceCB(nullptr),
+      m_armChassisBushingData(nullptr),
+      m_armUpperBushingData(nullptr),
+      m_armLowerBushingData(nullptr),
+      m_chassisUpperBushingData(nullptr),
+      m_chassisLowerBushingData(nullptr) {
     Create(d);
 }
 
@@ -87,6 +101,8 @@ void ThreeLinkIRS::Create(const rapidjson::Document& d) {
     m_armRadius = d["Trailing Arm"]["Radius"].GetDouble();
     m_points[TA_C] = ReadVectorJSON(d["Trailing Arm"]["Location Chassis"]);
     m_points[TA_S] = ReadVectorJSON(d["Trailing Arm"]["Location Spindle"]);
+    if (d["Trailing Arm"].HasMember("Bushing Data Chassis"))
+        m_armChassisBushingData = ReadBushingDataJSON(d["Trailing Arm"]["Bushing Data Chassis"]);
 
     // Read upper link data
     assert(d.HasMember("Upper Link"));
@@ -99,6 +115,10 @@ void ThreeLinkIRS::Create(const rapidjson::Document& d) {
     m_points[UL_C] = ReadVectorJSON(d["Upper Link"]["Location Chassis"]);
     m_points[UL_A] = ReadVectorJSON(d["Upper Link"]["Location Arm"]);
     m_dirs[UNIV_AXIS_UPPER] = ReadVectorJSON(d["Upper Link"]["Universal Joint Axis"]);
+    if (d["Upper Link"].HasMember("Bushing Data Arm"))
+        m_armUpperBushingData = ReadBushingDataJSON(d["Upper Link"]["Bushing Data Arm"]);
+    if (d["Upper Link"].HasMember("Bushing Data Chassis"))
+        m_chassisUpperBushingData = ReadBushingDataJSON(d["Upper Link"]["Bushing Data Chassis"]);
 
     // Read lower link data
     assert(d.HasMember("Lower Link"));
@@ -111,6 +131,10 @@ void ThreeLinkIRS::Create(const rapidjson::Document& d) {
     m_points[LL_C] = ReadVectorJSON(d["Lower Link"]["Location Chassis"]);
     m_points[LL_A] = ReadVectorJSON(d["Lower Link"]["Location Arm"]);
     m_dirs[UNIV_AXIS_LOWER] = ReadVectorJSON(d["Lower Link"]["Universal Joint Axis"]);
+    if (d["Lower Link"].HasMember("Bushing Data Arm"))
+        m_armLowerBushingData = ReadBushingDataJSON(d["Lower Link"]["Bushing Data Arm"]);
+    if (d["Lower Link"].HasMember("Bushing Data Chassis"))
+        m_chassisLowerBushingData = ReadBushingDataJSON(d["Lower Link"]["Bushing Data Chassis"]);
 
     // Read spring data and create force callback
     assert(d.HasMember("Spring"));

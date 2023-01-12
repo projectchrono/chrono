@@ -35,7 +35,8 @@ DoubleWishbone::DoubleWishbone(const std::string& filename)
       m_springForceCB(nullptr),
       m_shockForceCB(nullptr),
       m_UCABushingData(nullptr),
-      m_LCABushingData(nullptr) {
+      m_LCABushingData(nullptr),
+      m_tierodBushingData(nullptr) {
     Document d;
     ReadFileJSON(filename, d);
     if (d.IsNull())
@@ -51,7 +52,8 @@ DoubleWishbone::DoubleWishbone(const rapidjson::Document& d)
       m_springForceCB(nullptr),
       m_shockForceCB(nullptr),
       m_UCABushingData(nullptr),
-      m_LCABushingData(nullptr) {
+      m_LCABushingData(nullptr),
+      m_tierodBushingData(nullptr) {
     Create(d);
 }
 
