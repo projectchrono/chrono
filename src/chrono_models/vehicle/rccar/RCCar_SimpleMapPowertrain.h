@@ -45,9 +45,6 @@ class CH_MODELS_API RCCar_SimpleMapPowertrain : public chrono::vehicle::ChSimple
     /// Specify maximum engine speed.
     virtual double GetMaxEngineSpeed() override;
 
-    /// Set coefficients for motor resistance.
-    virtual void SetMotorResistanceCoefficients(double& c0, double& c1) override;
-
     /// Set the engine speed-torque maps.
     /// A concrete class must add the speed-torque points to the provided maps,
     /// using the ChFunction_Recorder::AddPoint() function.
@@ -70,8 +67,6 @@ class CH_MODELS_API RCCar_SimpleMapPowertrain : public chrono::vehicle::ChSimple
     double m_Kv_rating;
     double m_supply_voltage;
     double m_stall_torque;
-    double m_motor_resistance_c0;
-    double m_motor_resistance_c1;
 
     friend class RCCar;
 };

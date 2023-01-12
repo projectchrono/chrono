@@ -90,12 +90,6 @@ class CH_MODELS_API RCCar {
 
     /// Set tire rolling friction coefficient.
     void SetTireRollingResistance(double rolling_resistance) { m_rolling_friction_coeff = rolling_resistance; }
-    
-    /// Set coefficients for motor resistance torque.
-    void SetMotorResistanceCoefficients(double c0, double c1) {
-        m_motor_resistance_c0 = c0;
-        m_motor_resistance_c1 = c1;
-    }
 
     void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain);
     void Advance(double step);
@@ -129,8 +123,6 @@ class CH_MODELS_API RCCar {
     double m_stall_torque;
     double m_voltage_ratio;
     double m_rolling_friction_coeff;
-    double m_motor_resistance_c0;
-    double m_motor_resistance_c1;
 };
 
 /// @} vehicle_models_rccar

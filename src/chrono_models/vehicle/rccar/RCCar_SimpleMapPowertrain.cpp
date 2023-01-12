@@ -36,17 +36,11 @@ RCCar_SimpleMapPowertrain::RCCar_SimpleMapPowertrain(const std::string& name)
       m_voltage_ratio(1.0f),
       m_Kv_rating(1300),
       m_supply_voltage(7.4),
-      m_stall_torque(0.7),  // TODO, currently a guess
-      m_motor_resistance_c0(0),
-      m_motor_resistance_c1(0) {}
+      m_stall_torque(0.7)  // TODO, currently a guess
+{}
 
 double RCCar_SimpleMapPowertrain::GetMaxEngineSpeed() {
     return m_Kv_rating * m_supply_voltage * m_voltage_ratio * rpm2rads;
-}
-
-void RCCar_SimpleMapPowertrain::SetMotorResistanceCoefficients(double& c0, double& c1) {
-    c0 = m_motor_resistance_c0;
-    c1 = m_motor_resistance_c1;
 }
 
 void RCCar_SimpleMapPowertrain::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) {
