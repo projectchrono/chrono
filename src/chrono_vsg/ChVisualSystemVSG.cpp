@@ -1681,13 +1681,22 @@ int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualModel> model, cons
     return -1;
 }
 
-int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualShape> model, const ChFrame<> &frame) {
+int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualShape> shape, const ChFrame<> &frame) {
+    std::shared_ptr<ChVisualMaterial> material;
+    if(shape->GetMaterials().empty()) {
+        material = chrono_types::make_shared<ChVisualMaterial>();
+        material->SetDiffuseColor(ChColor(1.0, 1.0, 1.0));
+        material->SetAmbientColor(ChColor(1.0, 1.0, 1.0));
+    } else {
+        material = shape->GetMaterial(0);
+    }
+    
     auto pos = frame.GetPos();
     auto quat = frame.GetRot();
     double rotAngle;
     ChVector<> rotAxis;
     quat.Q_to_AngAxis(rotAngle, rotAxis);
-    if (auto obj = std::dynamic_pointer_cast<ChObjFileShape>(model)) {
+    if (auto obj = std::dynamic_pointer_cast<ChObjFileShape>(shape)) {
         // all material/color info is set in the file, we don't care
         GetLog() << "Obj/Foreign Shape!\n";
         string objFilename = obj->GetFilename();
@@ -1719,15 +1728,7 @@ int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualShape> model, cons
         m_sceneryPtr.push_back(grp);
         int newIdx = m_sceneryPtr.size()-1;
         return newIdx;
-    } else if (auto box = std::dynamic_pointer_cast<ChBoxShape>(model)) {
-        std::shared_ptr<ChVisualMaterial> material;
-        if(model->GetMaterials().empty()) {
-            material = chrono_types::make_shared<ChVisualMaterial>();
-            material->SetDiffuseColor(ChColor(1.0, 1.0, 1.0));
-            material->SetAmbientColor(ChColor(1.0, 1.0, 1.0));
-        } else {
-            material = model->GetMaterial(0);
-        }
+    } else if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
         bool isDie = false;
         if (!material->GetKdTexture().empty()) {
             size_t found = material->GetKdTexture().find("cubetexture");
@@ -1758,15 +1759,7 @@ int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualShape> model, cons
         m_sceneryPtr.push_back(grp);
         int newIdx = m_sceneryPtr.size()-1;
         return newIdx;
-    } else if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(model)) {
-        std::shared_ptr<ChVisualMaterial> material;
-        if(model->GetMaterials().empty()) {
-            material = chrono_types::make_shared<ChVisualMaterial>();
-            material->SetDiffuseColor(ChColor(1.0, 1.0, 1.0));
-            material->SetAmbientColor(ChColor(1.0, 1.0, 1.0));
-        } else {
-            material = model->GetMaterial(0);
-        }
+    } else if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
         ChVector<> scale = sphere->GetSphereGeometry().rad;
         auto transform = vsg::MatrixTransform::create();
         transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
@@ -1774,6 +1767,50 @@ int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualShape> model, cons
                             vsg::scale(scale.x(), scale.y(), scale.z());
         auto grp =
             m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, material, transform, m_draw_as_wireframe);
+        grp->setValue("TransformPtr", transform);
+        grp->setValue("Scale", scale);
+        m_decoScene->addChild(grp);
+        m_sceneryPtr.push_back(grp);
+        int newIdx = m_sceneryPtr.size()-1;
+        return newIdx;
+    } else if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
+        ChVector<> scale = ellipsoid->GetEllipsoidGeometry().rad;
+        auto transform = vsg::MatrixTransform::create();
+        transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
+        vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+        vsg::scale(scale.x(), scale.y(), scale.z());
+        auto grp =
+        m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, material, transform, m_draw_as_wireframe);
+        grp->setValue("TransformPtr", transform);
+        grp->setValue("Scale", scale);
+        m_decoScene->addChild(grp);
+        m_sceneryPtr.push_back(grp);
+        int newIdx = m_sceneryPtr.size()-1;
+        return newIdx;
+    } else if (auto capsule = std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {
+        double rad = capsule->GetCapsuleGeometry().rad;
+        double height = capsule->GetCapsuleGeometry().hlen;
+        auto transform = vsg::MatrixTransform::create();
+        ChVector<> scale(rad, height, rad);
+        transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
+                            vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                            vsg::scale(scale.x(), scale.y(), scale.z());
+        auto grp =
+            m_shapeBuilder->createShape(ShapeBuilder::CAPSULE_SHAPE, material, transform, m_draw_as_wireframe);
+        grp->setValue("TransformPtr", transform);
+        grp->setValue("Scale", scale);
+        m_decoScene->addChild(grp);
+        m_sceneryPtr.push_back(grp);
+        int newIdx = m_sceneryPtr.size()-1;
+        return newIdx;
+    } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(shape)) {
+        ChVector<> scale = cone->GetConeGeometry().rad;
+        auto transform = vsg::MatrixTransform::create();
+        transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
+        vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+        vsg::scale(scale.x(), scale.y(), scale.z());
+        auto grp =
+        m_shapeBuilder->createShape(ShapeBuilder::CONE_SHAPE, material, transform, m_draw_as_wireframe);
         grp->setValue("TransformPtr", transform);
         grp->setValue("Scale", scale);
         m_decoScene->addChild(grp);
