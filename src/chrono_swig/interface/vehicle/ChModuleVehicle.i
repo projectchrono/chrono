@@ -260,9 +260,8 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %shared_ptr(chrono::vehicle::LinearSpringTorque)
 %shared_ptr(chrono::vehicle::LinearDamperTorque)
 %shared_ptr(chrono::vehicle::LinearSpringDamperTorque)
-%shared_ptr(chrono::vehicle::LinearSpringDamperTorque)
-%shared_ptr(chrono::vehicle::MapSpringTorque)
-%shared_ptr(chrono::vehicle::MapDamperTorque)
+%shared_ptr(chrono::vehicle::NonlinearSpringTorque)
+%shared_ptr(chrono::vehicle::NonlinearDamperTorque)
 
 //
 // B- INCLUDE HEADERS

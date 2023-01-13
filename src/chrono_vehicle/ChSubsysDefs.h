@@ -123,6 +123,7 @@ class CH_VEHICLE_API LinearSpringForce : public SpringForce {
                             double length,
                             double vel,
                             const ChLinkTSDA& link) override;
+
   private:
     double m_k;
 };
@@ -193,8 +194,8 @@ class CH_VEHICLE_API NonlinearSpringDamperForce : public SpringForce {
   public:
     NonlinearSpringDamperForce(double preload = 0);
     NonlinearSpringDamperForce(const std::vector<std::pair<double, double>>& dataK,
-                         const std::vector<std::pair<double, double>>& dataC,
-                         double preload = 0);
+                               const std::vector<std::pair<double, double>>& dataC,
+                               double preload = 0);
     void add_pointK(double x, double y);
     void add_pointC(double x, double y);
     virtual double evaluate(double time,
@@ -207,19 +208,6 @@ class CH_VEHICLE_API NonlinearSpringDamperForce : public SpringForce {
     ChFunction_Recorder m_mapK;
     ChFunction_Recorder m_mapC;
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /// Utility class for specifying a degressive translational damper force.
 class CH_VEHICLE_API DegressiveDamperForce : public ChLinkTSDA::ForceFunctor {
@@ -265,6 +253,22 @@ class CH_VEHICLE_API LinearSpringTorque : public ChLinkRSDA::TorqueFunctor {
     double m_rest_angle;
 };
 
+/// Utility class for specifying a nonlinear rotational spring torque.
+class CH_VEHICLE_API NonlinearSpringTorque : public ChLinkRSDA::TorqueFunctor {
+  public:
+    NonlinearSpringTorque(double rest_angle = 0, double preload = 0);
+    NonlinearSpringTorque(const std::vector<std::pair<double, double>>& data,
+                          double rest_angle = 0,
+                          double preload = 0);
+    void add_point(double x, double y);
+    virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override;
+
+  private:
+    ChFunction_Recorder m_mapK;
+    double m_rest_angle;
+    double m_t;
+};
+
 /// Utility class for specifying a linear rotational damper torque.
 class CH_VEHICLE_API LinearDamperTorque : public ChLinkRSDA::TorqueFunctor {
   public:
@@ -273,6 +277,18 @@ class CH_VEHICLE_API LinearDamperTorque : public ChLinkRSDA::TorqueFunctor {
 
   private:
     double m_c;
+};
+
+/// Utility class for specifying a nonlinear rotational damper torque.
+class CH_VEHICLE_API NonlinearDamperTorque : public ChLinkRSDA::TorqueFunctor {
+  public:
+    NonlinearDamperTorque();
+    NonlinearDamperTorque(const std::vector<std::pair<double, double>>& data);
+    void add_point(double x, double y);
+    virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override;
+
+  private:
+    ChFunction_Recorder m_mapC;
 };
 
 /// Utility class for specifying a linear rotational spring-damper torque.
@@ -286,32 +302,6 @@ class CH_VEHICLE_API LinearSpringDamperTorque : public ChLinkRSDA::TorqueFunctor
     double m_c;
     double m_t;
     double m_rest_angle;
-};
-
-/// Utility class for specifying a map rotational spring torque.
-class CH_VEHICLE_API MapSpringTorque : public ChLinkRSDA::TorqueFunctor {
-  public:
-    MapSpringTorque(double rest_angle = 0, double preload = 0);
-    MapSpringTorque(const std::vector<std::pair<double, double>>& data, double rest_angle = 0, double preload = 0);
-    void add_point(double x, double y);
-    virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override;
-
-  private:
-    ChFunction_Recorder m_map;
-    double m_rest_angle;
-    double m_t;
-};
-
-/// Utility class for specifying a map rotational damper torque.
-class CH_VEHICLE_API MapDamperTorque : public ChLinkRSDA::TorqueFunctor {
-  public:
-    MapDamperTorque();
-    MapDamperTorque(const std::vector<std::pair<double, double>>& data);
-    void add_point(double x, double y);
-    virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override;
-
-  private:
-    ChFunction_Recorder m_map;
 };
 
 // -----------------------------------------------------------------------------

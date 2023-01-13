@@ -208,12 +208,45 @@ double LinearSpringTorque::evaluate(double time, double angle, double vel, const
     return m_t - m_k * (angle - m_rest_angle);
 }
 
+NonlinearSpringTorque::NonlinearSpringTorque(double rest_angle, double preload)
+    : m_rest_angle(rest_angle), m_t(preload) {}
+
+NonlinearSpringTorque::NonlinearSpringTorque(const std::vector<std::pair<double, double>>& data,
+                                             double rest_angle,
+                                             double preload)
+    : m_rest_angle(rest_angle), m_t(preload) {
+    for (unsigned int i = 0; i < data.size(); ++i) {
+        m_mapK.AddPoint(data[i].first, data[i].second);
+    }
+}
+
+void NonlinearSpringTorque::add_point(double x, double y) {
+    m_mapK.AddPoint(x, y);
+}
+
+double NonlinearSpringTorque::evaluate(double time, double angle, double vel, const ChLinkRSDA& link) {
+    return m_t - m_mapK.Get_y(angle - m_rest_angle);
+}
+
 // -----------------------------------------------------------------------------
 
 LinearDamperTorque::LinearDamperTorque(double c) : m_c(c) {}
 
 double LinearDamperTorque::evaluate(double time, double angle, double vel, const ChLinkRSDA& link) {
     return -m_c * vel;
+}
+
+NonlinearDamperTorque::NonlinearDamperTorque() {}
+NonlinearDamperTorque::NonlinearDamperTorque(const std::vector<std::pair<double, double>>& data) {
+    for (unsigned int i = 0; i < data.size(); ++i) {
+        m_mapC.AddPoint(data[i].first, data[i].second);
+    }
+}
+void NonlinearDamperTorque::add_point(double x, double y) {
+    m_mapC.AddPoint(x, y);
+}
+double NonlinearDamperTorque::evaluate(double time, double angle, double vel, const ChLinkRSDA& link) {
+    return -m_mapC.Get_y(vel);
 }
 
 // -----------------------------------------------------------------------------
@@ -223,40 +256,6 @@ LinearSpringDamperTorque::LinearSpringDamperTorque(double k, double c, double re
 
 double LinearSpringDamperTorque::evaluate(double time, double angle, double vel, const ChLinkRSDA& link) {
     return m_t - m_k * (angle - m_rest_angle) - m_c * vel;
-}
-
-// -----------------------------------------------------------------------------
-
-MapSpringTorque::MapSpringTorque(double rest_angle, double preload) : m_rest_angle(rest_angle), m_t(preload) {}
-
-MapSpringTorque::MapSpringTorque(const std::vector<std::pair<double, double>>& data, double rest_angle, double preload)
-    : m_rest_angle(rest_angle), m_t(preload) {
-    for (unsigned int i = 0; i < data.size(); ++i) {
-        m_map.AddPoint(data[i].first, data[i].second);
-    }
-}
-
-void MapSpringTorque::add_point(double x, double y) {
-    m_map.AddPoint(x, y);
-}
-
-double MapSpringTorque::evaluate(double time, double angle, double vel, const ChLinkRSDA& link) {
-    return m_t - m_map.Get_y(angle - m_rest_angle);
-}
-
-// -----------------------------------------------------------------------------
-
-MapDamperTorque::MapDamperTorque() {}
-MapDamperTorque::MapDamperTorque(const std::vector<std::pair<double, double>>& data) {
-    for (unsigned int i = 0; i < data.size(); ++i) {
-        m_map.AddPoint(data[i].first, data[i].second);
-    }
-}
-void MapDamperTorque::add_point(double x, double y) {
-    m_map.AddPoint(x, y);
-}
-double MapDamperTorque::evaluate(double time, double angle, double vel, const ChLinkRSDA& link) {
-    return -m_map.Get_y(vel);
 }
 
 }  // end namespace vehicle
