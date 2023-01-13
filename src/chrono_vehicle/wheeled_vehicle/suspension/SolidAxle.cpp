@@ -157,36 +157,26 @@ void SolidAxle::Create(const rapidjson::Document& d) {
     if (d["Spring"].HasMember("Preload"))
         preload = d["Spring"]["Preload"].GetDouble();
 
-    if (d["Spring"].HasMember("Minimum Length") && d["Spring"].HasMember("Maximum Length")) {
-        // Use bump stops
-        if (d["Spring"].HasMember("Spring Coefficient")) {
-            m_springForceCB = chrono_types::make_shared<LinearSpringBistopForce>(
-                d["Spring"]["Spring Coefficient"].GetDouble(), d["Spring"]["Minimum Length"].GetDouble(),
-                d["Spring"]["Maximum Length"].GetDouble(), preload);
-        } else if (d["Spring"].HasMember("Curve Data")) {
-            int num_points = d["Spring"]["Curve Data"].Size();
-            auto springForceCB = chrono_types::make_shared<MapSpringBistopForce>(
-                d["Spring"]["Minimum Length"].GetDouble(), d["Spring"]["Maximum Length"].GetDouble(), preload);
-            for (int i = 0; i < num_points; i++) {
-                springForceCB->add_point(d["Spring"]["Curve Data"][i][0u].GetDouble(),
-                                         d["Spring"]["Curve Data"][i][1u].GetDouble());
-            }
-            m_springForceCB = springForceCB;
+    if (d["Spring"].HasMember("Spring Coefficient")) {
+        auto springForceCB =
+            chrono_types::make_shared<LinearSpringForce>(d["Spring"]["Spring Coefficient"].GetDouble(), preload);
+        if (d["Spring"].HasMember("Minimum Length") && d["Spring"].HasMember("Maximum Length")) {
+            springForceCB->enable_stops(d["Spring"]["Minimum Length"].GetDouble(),
+                                        d["Spring"]["Maximum Length"].GetDouble());
         }
-    } else {
-        // No bump stops
-        if (d["Spring"].HasMember("Spring Coefficient")) {
-            m_springForceCB =
-                chrono_types::make_shared<LinearSpringForce>(d["Spring"]["Spring Coefficient"].GetDouble(), preload);
-        } else if (d["Spring"].HasMember("Curve Data")) {
-            int num_points = d["Spring"]["Curve Data"].Size();
-            auto springForceCB = chrono_types::make_shared<MapSpringForce>(preload);
-            for (int i = 0; i < num_points; i++) {
-                springForceCB->add_point(d["Spring"]["Curve Data"][i][0u].GetDouble(),
-                                         d["Spring"]["Curve Data"][i][1u].GetDouble());
-            }
-            m_springForceCB = springForceCB;
+        m_springForceCB = springForceCB;
+    } else if (d["Spring"].HasMember("Curve Data")) {
+        int num_points = d["Spring"]["Curve Data"].Size();
+        auto springForceCB = chrono_types::make_shared<NonlinearSpringForce>(preload);
+        for (int i = 0; i < num_points; i++) {
+            springForceCB->add_pointK(d["Spring"]["Curve Data"][i][0u].GetDouble(),
+                                      d["Spring"]["Curve Data"][i][1u].GetDouble());
         }
+        if (d["Spring"].HasMember("Minimum Length") && d["Spring"].HasMember("Maximum Length")) {
+            springForceCB->enable_stops(d["Spring"]["Minimum Length"].GetDouble(),
+                                        d["Spring"]["Maximum Length"].GetDouble());
+        }
+        m_springForceCB = springForceCB;
     }
 
     // Read shock data and create force callback
@@ -200,10 +190,10 @@ void SolidAxle::Create(const rapidjson::Document& d) {
         m_shockForceCB = chrono_types::make_shared<LinearDamperForce>(d["Shock"]["Damping Coefficient"].GetDouble());
     } else if (d["Shock"].HasMember("Curve Data")) {
         int num_points = d["Shock"]["Curve Data"].Size();
-        auto shockForceCB = chrono_types::make_shared<MapDamperForce>();
+        auto shockForceCB = chrono_types::make_shared<NonlinearDamperForce>();
         for (int i = 0; i < num_points; i++) {
-            shockForceCB->add_point(d["Shock"]["Curve Data"][i][0u].GetDouble(),
-                                    d["Shock"]["Curve Data"][i][1u].GetDouble());
+            shockForceCB->add_pointC(d["Shock"]["Curve Data"][i][0u].GetDouble(),
+                                     d["Shock"]["Curve Data"][i][1u].GetDouble());
         }
         m_shockForceCB = shockForceCB;
     }

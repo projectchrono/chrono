@@ -137,10 +137,10 @@ void SingleWishbone::Create(const rapidjson::Document& d) {
         m_shockForceCB = chrono_types::make_shared<LinearDamperForce>(d["Shock"]["Damping Coefficient"].GetDouble());
     } else if (d["Shock"].HasMember("Curve Data")) {
         int num_points = d["Shock"]["Curve Data"].Size();
-        auto shockForceCB = chrono_types::make_shared<MapDamperForce>();
+        auto shockForceCB = chrono_types::make_shared<NonlinearDamperForce>();
         for (int i = 0; i < num_points; i++) {
-            shockForceCB->add_point(d["Shock"]["Curve Data"][i][0u].GetDouble(),
-                                    d["Shock"]["Curve Data"][i][1u].GetDouble());
+            shockForceCB->add_pointC(d["Shock"]["Curve Data"][i][0u].GetDouble(),
+                                     d["Shock"]["Curve Data"][i][1u].GetDouble());
         }
         m_shockForceCB = shockForceCB;
     }

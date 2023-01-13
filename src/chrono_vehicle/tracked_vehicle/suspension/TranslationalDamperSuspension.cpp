@@ -99,10 +99,10 @@ void TranslationalDamperSuspension::Create(const rapidjson::Document& d) {
         m_shock_forceCB = chrono_types::make_shared<LinearDamperForce>(shock_c);
     } else {
         int num_points = d["Damper"]["Curve Data"].Size();
-        auto shockForceCB = chrono_types::make_shared<MapDamperForce>();
+        auto shockForceCB = chrono_types::make_shared<NonlinearDamperForce>();
         for (int i = 0; i < num_points; i++) {
-            shockForceCB->add_point(d["Damper"]["Curve Data"][i][0u].GetDouble(),
-                                    d["Damper"]["Curve Data"][i][1u].GetDouble());
+            shockForceCB->add_pointC(d["Damper"]["Curve Data"][i][0u].GetDouble(),
+                                     d["Damper"]["Curve Data"][i][1u].GetDouble());
         }
         m_shock_forceCB = shockForceCB;
     }

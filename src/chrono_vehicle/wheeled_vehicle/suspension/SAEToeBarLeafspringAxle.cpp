@@ -142,36 +142,26 @@ void SAEToeBarLeafspringAxle::Create(const rapidjson::Document& d) {
     if (d["Auxiliary Spring"].HasMember("Preload"))
         preload_aux = d["Auxiliary Spring"]["Preload"].GetDouble();
 
-    if (d["Auxiliary Spring"].HasMember("Minimum Length") && d["Auxiliary Spring"].HasMember("Maximum Length")) {
-        if (d["Auxiliary Spring"].HasMember("Spring Coefficient")) {
-            m_springForceCB = chrono_types::make_shared<LinearSpringBistopForce>(
-                d["Auxiliary Spring"]["Spring Coefficient"].GetDouble(),
-                d["Auxiliary Spring"]["Minimum Length"].GetDouble(),
-                d["Auxiliary Spring"]["Maximum Length"].GetDouble(), preload_aux);
-        } else if (d["Auxiliary Spring"].HasMember("Curve Data")) {
-            int num_points = d["Auxiliary Spring"]["Curve Data"].Size();
-            auto springForceCB = chrono_types::make_shared<MapSpringBistopForce>(
-                d["Auxiliary Spring"]["Minimum Length"].GetDouble(),
-                d["Auxiliary Spring"]["Maximum Length"].GetDouble(), preload_aux);
-            for (int i = 0; i < num_points; i++) {
-                springForceCB->add_point(d["Auxiliary Spring"]["Curve Data"][i][0u].GetDouble(),
-                                         d["Auxiliary Spring"]["Curve Data"][i][1u].GetDouble());
-            }
-            m_springForceCB = springForceCB;
+    if (d["Auxiliary Spring"].HasMember("Spring Coefficient")) {
+        auto springForceCB = chrono_types::make_shared<LinearSpringForce>(
+            d["Auxiliary Spring"]["Spring Coefficient"].GetDouble(), preload_aux);
+        if (d["Auxiliary Spring"].HasMember("Minimum Length") && d["Auxiliary Spring"].HasMember("Maximum Length")) {
+            springForceCB->enable_stops(d["Auxiliary Spring"]["Minimum Length"].GetDouble(),
+                                        d["Auxiliary Spring"]["Maximum Length"].GetDouble());
         }
-    } else {
-        if (d["Auxiliary Spring"].HasMember("Spring Coefficient")) {
-            m_springForceCB = chrono_types::make_shared<LinearSpringForce>(
-                d["Auxiliary Spring"]["Spring Coefficient"].GetDouble(), preload_aux);
-        } else if (d["Auxiliary Spring"].HasMember("Curve Data")) {
-            int num_points = d["Auxiliary Spring"]["Curve Data"].Size();
-            auto springForceCB = chrono_types::make_shared<MapSpringForce>(preload_aux);
-            for (int i = 0; i < num_points; i++) {
-                springForceCB->add_point(d["Auxiliary Spring"]["Curve Data"][i][0u].GetDouble(),
-                                         d["Auxiliary Spring"]["Curve Data"][i][1u].GetDouble());
-            }
-            m_springForceCB = springForceCB;
+        m_springForceCB = springForceCB;
+    } else if (d["Auxiliary Spring"].HasMember("Curve Data")) {
+        int num_points = d["Auxiliary Spring"]["Curve Data"].Size();
+        auto springForceCB = chrono_types::make_shared<NonlinearSpringForce>(preload_aux);
+        for (int i = 0; i < num_points; i++) {
+            springForceCB->add_pointK(d["Auxiliary Spring"]["Curve Data"][i][0u].GetDouble(),
+                                      d["Auxiliary Spring"]["Curve Data"][i][1u].GetDouble());
         }
+        if (d["Auxiliary Spring"].HasMember("Minimum Length") && d["Auxiliary Spring"].HasMember("Maximum Length")) {
+            springForceCB->enable_stops(d["Auxiliary Spring"]["Minimum Length"].GetDouble(),
+                                        d["Auxiliary Spring"]["Maximum Length"].GetDouble());
+        }
+        m_springForceCB = springForceCB;
     }
 
     // Read shock data and create force callback
@@ -192,10 +182,10 @@ void SAEToeBarLeafspringAxle::Create(const rapidjson::Document& d) {
         }
     } else if (d["Shock"].HasMember("Curve Data")) {
         int num_points = d["Shock"]["Curve Data"].Size();
-        auto shockForceCB = chrono_types::make_shared<MapDamperForce>();
+        auto shockForceCB = chrono_types::make_shared<NonlinearDamperForce>();
         for (int i = 0; i < num_points; i++) {
-            shockForceCB->add_point(d["Shock"]["Curve Data"][i][0u].GetDouble(),
-                                    d["Shock"]["Curve Data"][i][1u].GetDouble());
+            shockForceCB->add_pointC(d["Shock"]["Curve Data"][i][0u].GetDouble(),
+                                     d["Shock"]["Curve Data"][i][1u].GetDouble());
         }
         m_shockForceCB = shockForceCB;
     }

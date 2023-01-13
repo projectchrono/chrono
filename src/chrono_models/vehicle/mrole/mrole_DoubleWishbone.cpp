@@ -107,22 +107,19 @@ const double mrole_DoubleWishboneRear::m_damperDegresCompression = 4.0;
 // -----------------------------------------------------------------------------
 // Constructors
 // -----------------------------------------------------------------------------
+
 mrole_DoubleWishboneFront::mrole_DoubleWishboneFront(const std::string& name) : ChDoubleWishbone(name) {
-    m_springForceCB =
-        chrono_types::make_shared<LinearSpringBistopForce>(m_springCoefficient,  // coefficient for linear spring,
-                                                           m_springMinLength,    // min. spring length
-                                                           m_springMaxLength     // max. spring length
-        );
+    auto springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient);
+    springForceCB->enable_stops(m_springMinLength, m_springMaxLength);
+    m_springForceCB = springForceCB;
     m_shockForceCB = chrono_types::make_shared<DegressiveDamperForce>(
         m_damperCoefCompression, m_damperDegresCompression, m_damperCoefExpansion, m_damperDegresExpansion);
 }
 
 mrole_DoubleWishboneRear::mrole_DoubleWishboneRear(const std::string& name) : ChDoubleWishbone(name) {
-    m_springForceCB =
-        chrono_types::make_shared<LinearSpringBistopForce>(m_springCoefficient,  // coefficient for linear spring,
-                                                           m_springMinLength,    // min. spring length
-                                                           m_springMaxLength     // max. spring length
-        );
+    auto springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient);
+    springForceCB->enable_stops(m_springMinLength, m_springMaxLength);
+    m_springForceCB = springForceCB;
     m_shockForceCB = chrono_types::make_shared<DegressiveDamperForce>(
         m_damperCoefCompression, m_damperDegresCompression, m_damperCoefExpansion, m_damperDegresExpansion);
 }
@@ -130,6 +127,7 @@ mrole_DoubleWishboneRear::mrole_DoubleWishboneRear(const std::string& name) : Ch
 // -----------------------------------------------------------------------------
 // Destructors
 // -----------------------------------------------------------------------------
+
 mrole_DoubleWishboneFront::~mrole_DoubleWishboneFront() {}
 
 mrole_DoubleWishboneRear::~mrole_DoubleWishboneRear() {}

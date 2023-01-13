@@ -23,171 +23,15 @@
 namespace chrono {
 namespace vehicle {
 
-LinearSpringForce::LinearSpringForce(double k, double preload) : m_k(k), m_f(preload) {}
-
-double LinearSpringForce::evaluate(double time, double rest_length, double length, double vel, const ChLinkTSDA& link) {
-    return m_f - m_k * (length - rest_length);
-}
-
 // -----------------------------------------------------------------------------
 
-LinearDamperForce::LinearDamperForce(double c, double preload) : m_c(c) {}
+SpringForce::SpringForce(double preload) : m_f(preload), m_stops(false), m_min_length(0), m_max_length(0) {}
 
-double LinearDamperForce::evaluate(double time, double rest_length, double length, double vel, const ChLinkTSDA& link) {
-    return -m_c * vel;
-}
+void SpringForce::enable_stops(double min_length, double max_length) {
+    m_stops = true;
+    m_min_length = min_length;
+    m_max_length = max_length;
 
-// -----------------------------------------------------------------------------
-
-LinearSpringDamperForce::LinearSpringDamperForce(double k, double c, double preload) : m_k(k), m_c(c), m_f(preload) {}
-
-double LinearSpringDamperForce::evaluate(double time,
-                                         double rest_length,
-                                         double length,
-                                         double vel,
-                                         const ChLinkTSDA& link) {
-    return m_f - m_k * (length - rest_length) - m_c * vel;
-}
-
-// -----------------------------------------------------------------------------
-
-MapSpringForce::MapSpringForce(double preload) : m_f(preload) {}
-
-MapSpringForce::MapSpringForce(const std::vector<std::pair<double, double>>& data, double preload) : m_f(preload) {
-    for (unsigned int i = 0; i < data.size(); ++i) {
-        m_map.AddPoint(data[i].first, data[i].second);
-    }
-}
-
-void MapSpringForce::add_point(double x, double y) {
-    m_map.AddPoint(x, y);
-}
-
-double MapSpringForce::evaluate(double time, double rest_length, double length, double vel, const ChLinkTSDA& link) {
-    return m_f - m_map.Get_y(length - rest_length);
-}
-
-// -----------------------------------------------------------------------------
-
-MapDamperForce::MapDamperForce() {}
-
-MapDamperForce::MapDamperForce(const std::vector<std::pair<double, double>>& data) {
-    for (unsigned int i = 0; i < data.size(); ++i) {
-        m_map.AddPoint(data[i].first, data[i].second);
-    }
-}
-
-void MapDamperForce::add_point(double x, double y) {
-    m_map.AddPoint(x, y);
-}
-
-double MapDamperForce::evaluate(double time, double rest_length, double length, double vel, const ChLinkTSDA& link) {
-    return -m_map.Get_y(vel);
-}
-
-// -----------------------------------------------------------------------------
-
-MapSpringDamperForce::MapSpringDamperForce(double preload) : m_f(preload) {}
-
-MapSpringDamperForce::MapSpringDamperForce(const std::vector<std::pair<double, double>>& dataK,
-                                           const std::vector<std::pair<double, double>>& dataC,
-                                           double preload)
-    : m_f(preload) {
-    for (unsigned int i = 0; i < dataK.size(); ++i) {
-        m_mapK.AddPoint(dataK[i].first, dataK[i].second);
-    }
-    for (unsigned int i = 0; i < dataC.size(); ++i) {
-        m_mapC.AddPoint(dataC[i].first, dataC[i].second);
-    }
-}
-
-void MapSpringDamperForce::add_pointK(double x, double y) {
-    m_mapK.AddPoint(x, y);
-}
-
-void MapSpringDamperForce::add_pointC(double x, double y) {
-    m_mapC.AddPoint(x, y);
-}
-
-double MapSpringDamperForce::evaluate(double time,
-                                      double rest_length,
-                                      double length,
-                                      double vel,
-                                      const ChLinkTSDA& link) {
-    return m_f - m_mapK.Get_y(length - rest_length) - m_mapC.Get_y(vel);
-}
-
-// -----------------------------------------------------------------------------
-
-MapSpringBistopForce::MapSpringBistopForce(double spring_min_length, double spring_max_length, double preload)
-    : m_min_length(spring_min_length), m_max_length(spring_max_length), m_f(preload) {
-    setup_stop_maps();
-}
-
-MapSpringBistopForce::MapSpringBistopForce(const std::vector<std::pair<double, double>>& data,
-                                           double spring_min_length,
-                                           double spring_max_length,
-                                           double preload)
-    : m_min_length(spring_min_length), m_max_length(spring_max_length), m_f(preload) {
-    setup_stop_maps();
-    for (unsigned int i = 0; i < data.size(); ++i) {
-        m_map.AddPoint(data[i].first, data[i].second);
-    }
-}
-
-void MapSpringBistopForce::add_point(double x, double y) {
-    m_map.AddPoint(x, y);
-}
-
-double MapSpringBistopForce::evaluate(double time,
-                                      double rest_length,
-                                      double length,
-                                      double vel,
-                                      const ChLinkTSDA& link) {
-    double defl_bump = 0.0;
-    double defl_rebound = 0.0;
-
-    if (length < m_min_length) {
-        defl_bump = m_min_length - length;
-    }
-
-    if (length > m_max_length) {
-        defl_rebound = length - m_max_length;
-    }
-
-    return m_f - m_map.Get_y(length - rest_length) + m_bump.Get_y(defl_bump) - m_rebound.Get_y(defl_rebound);
-}
-
-void MapSpringBistopForce::setup_stop_maps() {
-    m_bump.AddPoint(0.0, 0.0);
-    m_bump.AddPoint(2.0e-3, 200.0);
-    m_bump.AddPoint(4.0e-3, 400.0);
-    m_bump.AddPoint(6.0e-3, 600.0);
-    m_bump.AddPoint(8.0e-3, 800.0);
-    m_bump.AddPoint(10.0e-3, 1000.0);
-    m_bump.AddPoint(20.0e-3, 2500.0);
-    m_bump.AddPoint(30.0e-3, 4500.0);
-    m_bump.AddPoint(40.0e-3, 7500.0);
-    m_bump.AddPoint(50.0e-3, 12500.0);
-    m_bump.AddPoint(60.0e-3, 125000.0);
-
-    m_rebound.AddPoint(0.0, 0.0);
-    m_rebound.AddPoint(2.0e-3, 200.0);
-    m_rebound.AddPoint(4.0e-3, 400.0);
-    m_rebound.AddPoint(6.0e-3, 600.0);
-    m_rebound.AddPoint(8.0e-3, 800.0);
-    m_rebound.AddPoint(10.0e-3, 1000.0);
-    m_rebound.AddPoint(20.0e-3, 2500.0);
-    m_rebound.AddPoint(30.0e-3, 4500.0);
-    m_rebound.AddPoint(40.0e-3, 7500.0);
-    m_rebound.AddPoint(50.0e-3, 12500.0);
-    m_rebound.AddPoint(60.0e-3, 125000.0);
-}
-
-// -----------------------------------------------------------------------------
-
-LinearSpringBistopForce::LinearSpringBistopForce(double k, double min_length, double max_length, double preload)
-    : m_k(k), m_min_length(min_length), m_max_length(max_length), m_f(preload) {
     // From ADAMS/Car example
     m_bump.AddPoint(0.0, 0.0);
     m_bump.AddPoint(2.0e-3, 200.0);
@@ -200,7 +44,7 @@ LinearSpringBistopForce::LinearSpringBistopForce(double k, double min_length, do
     m_bump.AddPoint(40.0e-3, 7500.0);
     m_bump.AddPoint(50.0e-3, 12500.0);
     m_bump.AddPoint(60.0e-3, 125000.0);
-
+    //
     m_rebound.AddPoint(0.0, 0.0);
     m_rebound.AddPoint(2.0e-3, 200.0);
     m_rebound.AddPoint(4.0e-3, 400.0);
@@ -214,23 +58,110 @@ LinearSpringBistopForce::LinearSpringBistopForce(double k, double min_length, do
     m_rebound.AddPoint(60.0e-3, 125000.0);
 }
 
-double LinearSpringBistopForce::evaluate(double time,
+double SpringForce::evaluate_stops(double length) {
+    double f = 0;
+    if (m_stops) {
+        if (length < m_min_length)
+            f += m_bump.Get_y(m_min_length - length);
+        if (length > m_max_length)
+            f -= m_rebound.Get_y(length - m_max_length);
+    }
+    return f;
+}
+
+LinearSpringForce::LinearSpringForce(double k, double preload) : SpringForce(preload), m_k(k) {}
+
+double LinearSpringForce::evaluate(double time, double rest_length, double length, double vel, const ChLinkTSDA& link) {
+    return m_f - m_k * (length - rest_length) + evaluate_stops(length);
+}
+
+NonlinearSpringForce::NonlinearSpringForce(double preload) : SpringForce(preload) {}
+
+NonlinearSpringForce::NonlinearSpringForce(const std::vector<std::pair<double, double>>& data, double preload)
+    : SpringForce(preload) {
+    for (unsigned int i = 0; i < data.size(); ++i)
+        m_mapK.AddPoint(data[i].first, data[i].second);
+}
+
+void NonlinearSpringForce::add_pointK(double x, double y) {
+    m_mapK.AddPoint(x, y);
+}
+
+double NonlinearSpringForce::evaluate(double time,
+                                      double rest_length,
+                                      double length,
+                                      double vel,
+                                      const ChLinkTSDA& link) {
+    return m_f - m_mapK.Get_y(length - rest_length) + evaluate_stops(length);
+}
+
+// -----------------------------------------------------------------------------
+
+LinearDamperForce::LinearDamperForce(double c, double preload) : m_c(c) {}
+
+double LinearDamperForce::evaluate(double time, double rest_length, double length, double vel, const ChLinkTSDA& link) {
+    return -m_c * vel;
+}
+
+NonlinearDamperForce::NonlinearDamperForce() {}
+
+NonlinearDamperForce::NonlinearDamperForce(const std::vector<std::pair<double, double>>& data) {
+    for (unsigned int i = 0; i < data.size(); ++i) {
+        m_mapC.AddPoint(data[i].first, data[i].second);
+    }
+}
+
+void NonlinearDamperForce::add_pointC(double x, double y) {
+    m_mapC.AddPoint(x, y);
+}
+
+double NonlinearDamperForce::evaluate(double time,
+                                      double rest_length,
+                                      double length,
+                                      double vel,
+                                      const ChLinkTSDA& link) {
+    return -m_mapC.Get_y(vel);
+}
+
+// -----------------------------------------------------------------------------
+
+LinearSpringDamperForce::LinearSpringDamperForce(double k, double c, double preload)
+    : SpringForce(preload), m_k(k), m_c(c) {}
+
+double LinearSpringDamperForce::evaluate(double time,
                                          double rest_length,
                                          double length,
                                          double vel,
                                          const ChLinkTSDA& link) {
-    double defl_bump = 0.0;
-    double defl_rebound = 0.0;
+    return m_f - m_k * (length - rest_length) - m_c * vel + evaluate_stops(length);
+}
 
-    if (length < m_min_length) {
-        defl_bump = m_min_length - length;
-    }
+NonlinearSpringDamperForce::NonlinearSpringDamperForce(double preload) : SpringForce(preload) {}
 
-    if (length > m_max_length) {
-        defl_rebound = length - m_max_length;
-    }
+NonlinearSpringDamperForce::NonlinearSpringDamperForce(const std::vector<std::pair<double, double>>& dataK,
+                                                       const std::vector<std::pair<double, double>>& dataC,
+                                                       double preload)
+    : SpringForce(preload) {
+    for (unsigned int i = 0; i < dataK.size(); ++i)
+        m_mapK.AddPoint(dataK[i].first, dataK[i].second);
+    for (unsigned int i = 0; i < dataC.size(); ++i)
+        m_mapC.AddPoint(dataC[i].first, dataC[i].second);
+}
 
-    return m_f - m_k * (length - rest_length) + m_bump.Get_y(defl_bump) - m_rebound.Get_y(defl_rebound);
+void NonlinearSpringDamperForce::add_pointK(double x, double y) {
+    m_mapK.AddPoint(x, y);
+}
+
+void NonlinearSpringDamperForce::add_pointC(double x, double y) {
+    m_mapC.AddPoint(x, y);
+}
+
+double NonlinearSpringDamperForce::evaluate(double time,
+                                            double rest_length,
+                                            double length,
+                                            double vel,
+                                            const ChLinkTSDA& link) {
+    return m_f - m_mapK.Get_y(length - rest_length) - m_mapC.Get_y(vel) + evaluate_stops(length);
 }
 
 // -----------------------------------------------------------------------------
