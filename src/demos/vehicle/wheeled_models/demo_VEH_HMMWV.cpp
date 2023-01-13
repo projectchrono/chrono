@@ -30,11 +30,21 @@
 #include "chrono_vehicle/driver/ChDataDriver.h"
 #include "chrono_vehicle/output/ChVehicleOutputASCII.h"
 
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
-
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
+
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+    #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
+using namespace chrono::irrlicht;
+#endif
+
+#ifdef CHRONO_VSG
+    #include "chrono_vehicle/driver/ChVSGGuiDriver.h"
+    #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemVSG.h"
+using namespace chrono::vsg3d;
+#endif
 
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -42,6 +52,9 @@ using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
 
 // =============================================================================
+
+// Run-time visualization system (IRRLICHT or VSG)
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Initial vehicle location and orientation
 ChVector<> initLoc(0, 0, 1.6);
@@ -165,8 +178,8 @@ int main(int argc, char* argv[]) {
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"), 200, 200);
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:
-            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"),
-                                     128, 128, 0, 4);
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"), 128,
+                                     128, 0, 4);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
             break;
         case RigidTerrain::PatchType::MESH:
@@ -189,16 +202,6 @@ int main(int argc, char* argv[]) {
         trimesh_shape->SetMutable(false);
         patch->GetGroundBody()->GetVisualModel()->AddShape(trimesh_shape, ChFrame<>(VNULL, Q_from_AngZ(CH_C_PI_2)));
     }
-
-    // Create the vehicle Irrlicht interface
-    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
-    vis->SetWindowTitle("HMMWV Demo");
-    vis->SetChaseCamera(trackPoint, 6.0, 0.5);
-    vis->Initialize();
-    vis->AddLightDirectional();
-    vis->AddSkyBox();
-    vis->AddLogo();
-    vis->AttachVehicle(&my_hmmwv.GetVehicle());
 
     // -----------------
     // Initialize output
@@ -229,29 +232,78 @@ int main(int argc, char* argv[]) {
     // Generate JSON information with available output channels
     my_hmmwv.GetVehicle().ExportComponentList(out_dir + "/component_list.json");
 
-    // ------------------------
-    // Create the driver system
-    // ------------------------
-
-    // Create the interactive driver system
-    ChIrrGuiDriver driver(*vis);
+    // ------------------------------------------------------------------------------
+    // Create the vehicle run-time visualization interface and the interactive driver
+    // ------------------------------------------------------------------------------
 
     // Set the time response for steering and throttle keyboard inputs.
     double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
     double throttle_time = 1.0;  // time to go from 0 to +1
     double braking_time = 0.3;   // time to go from 0 to +1
-    driver.SetSteeringDelta(render_step_size / steering_time);
-    driver.SetThrottleDelta(render_step_size / throttle_time);
-    driver.SetBrakingDelta(render_step_size / braking_time);
 
-    // If in playback mode, attach the data file to the driver system and
-    // force it to playback the driver inputs.
-    if (driver_mode == DriverMode::PLAYBACK) {
-        driver.SetInputDataFile(driver_file);
-        driver.SetInputMode(ChIrrGuiDriver::InputMode::DATAFILE);
+    std::shared_ptr<ChVehicleVisualSystem> vis;
+    std::shared_ptr<ChDriver> driver;
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
+            // Create the vehicle Irrlicht interface
+            auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+            vis_irr->SetWindowTitle("HMMWV Demo");
+            vis_irr->SetChaseCamera(trackPoint, 6.0, 0.5);
+            vis_irr->Initialize();
+            vis_irr->AddLightDirectional();
+            vis_irr->AddSkyBox();
+            vis_irr->AddLogo();
+            vis_irr->AttachVehicle(&my_hmmwv.GetVehicle());
+
+            // Create the interactive Irrlicht driver system
+            auto driver_irr = chrono_types::make_shared<ChIrrGuiDriver>(*vis_irr);
+            driver_irr->SetSteeringDelta(render_step_size / steering_time);
+            driver_irr->SetThrottleDelta(render_step_size / throttle_time);
+            driver_irr->SetBrakingDelta(render_step_size / braking_time);
+            driver_irr->Initialize();
+            if (driver_mode == DriverMode::PLAYBACK) {
+                driver_irr->SetInputDataFile(driver_file);
+                driver_irr->SetInputMode(ChIrrGuiDriver::InputMode::DATAFILE);
+            }
+
+            vis = vis_irr;
+            driver = driver_irr;
+#endif
+            break;
+        }
+        case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+            // Create the vehicle VSG interface
+            auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
+            vis_vsg->SetWindowTitle("HMMWV Demo");
+            vis_vsg->AttachVehicle(&my_hmmwv.GetVehicle());
+            vis_vsg->SetChaseCamera(trackPoint, 6.0, 0.5);
+            vis_vsg->SetWindowSize(ChVector2<int>(800, 600));
+            vis_vsg->SetWindowPosition(ChVector2<int>(100, 300));
+            vis_vsg->SetUseSkyBox(true);
+            vis_vsg->SetCameraAngleDeg(40);
+            vis_vsg->SetLightIntensity(1.0);
+            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->Initialize();
+
+            // Create the interactive VSG driver system
+            auto driver_vsg = chrono_types::make_shared<ChVSGGuiDriver>(*vis_vsg);
+            driver_vsg->SetSteeringDelta(render_step_size / steering_time);
+            driver_vsg->SetThrottleDelta(render_step_size / throttle_time);
+            driver_vsg->SetBrakingDelta(render_step_size / braking_time);
+            if (driver_mode == DriverMode::PLAYBACK) {
+                driver_vsg->SetInputDataFile(driver_file);
+                driver_vsg->SetInputMode(ChVSGGuiDriver::InputMode::DATAFILE);
+            }
+            driver_vsg->Initialize();
+
+            vis = vis_vsg;
+            driver = driver_vsg;
+#endif
+            break;
+        }
     }
-
-    driver.Initialize();
 
     // ---------------
     // Simulation loop
@@ -272,14 +324,13 @@ int main(int argc, char* argv[]) {
     int step_number = 0;
     int render_frame = 0;
 
-    if (contact_vis) {
-        vis->SetSymbolScale(1e-4);
-        vis->EnableContactDrawing(ContactsDrawMode::CONTACT_FORCES);
-    }
+    ////if (contact_vis) {
+    ////    vis->SetSymbolScale(1e-4);
+    ////    vis->EnableContactDrawing(ContactsDrawMode::CONTACT_FORCES);
+    ////}
 
-    my_hmmwv.GetVehicle().EnableRealtime(true);
-    utils::ChRunningAverage RTF_filter(50);
- 
+    ////my_hmmwv.GetVehicle().EnableRealtime(true);
+
     while (vis->Run()) {
         double time = my_hmmwv.GetSystem()->GetChTime();
 
@@ -318,7 +369,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Driver inputs
-        DriverInputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver->GetInputs();
 
         // Driver output
         if (driver_mode == DriverMode::RECORD) {
@@ -327,13 +378,13 @@ int main(int argc, char* argv[]) {
         }
 
         // Update modules (process inputs from other modules)
-        driver.Synchronize(time);
+        driver->Synchronize(time);
         terrain.Synchronize(time);
         my_hmmwv.Synchronize(time, driver_inputs, terrain);
-        vis->Synchronize(driver.GetInputModeAsString(), driver_inputs);
+        vis->Synchronize("", driver_inputs);
 
         // Advance simulation for one timestep for all modules
-        driver.Advance(step_size);
+        driver->Advance(step_size);
         terrain.Advance(step_size);
         my_hmmwv.Advance(step_size);
         vis->Advance(step_size);

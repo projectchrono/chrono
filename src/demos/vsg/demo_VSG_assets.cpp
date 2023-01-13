@@ -160,27 +160,19 @@ int main(int argc, char* argv[]) {
     // ==Asset== Attach a 'Wavefront mesh' asset, referencing a .obj file and offset it.
     // only the first call of a destinct filename loads from disc,
     // following calls read from cash and only the ChFrame<> is changed
-    auto objmesh0 = chrono_types::make_shared<ChObjFileShape>();
-    objmesh0->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
-    body->AddVisualShape(objmesh0, ChFrame<>(ChVector<>(0, 0.0, 2), Q_from_AngX(-CH_C_PI_2)));
-    // add a second instance of the wavefront mesh
-    auto objmesh1 = chrono_types::make_shared<ChObjFileShape>();
-    objmesh1->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
-    body->AddVisualShape(objmesh1, ChFrame<>(ChVector<>(3, 0.0, 2.5), Q_from_AngX(-CH_C_PI_2)));
-    // add more ...
-    auto objmesh2 = chrono_types::make_shared<ChObjFileShape>();
-    objmesh2->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
-    body->AddVisualShape(objmesh2, ChFrame<>(ChVector<>(5, 0.0, 3), Q_from_AngX(-CH_C_PI_2)));
-    // add more ...
-    auto objmesh3 = chrono_types::make_shared<ChObjFileShape>();
-    objmesh3->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
-    body->AddVisualShape(objmesh3, ChFrame<>(ChVector<>(4, 0.0, -3), Q_from_AngY(0.5*CH_C_PI)*Q_from_AngX(-CH_C_PI_2)));
-    auto objmesh4 = chrono_types::make_shared<ChObjFileShape>();
-    objmesh4->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
-    body->AddVisualShape(objmesh4, ChFrame<>(ChVector<>(0, 0.0, -5), Q_from_AngY(CH_C_PI)*Q_from_AngX(-CH_C_PI_2)));
-    auto objmesh5 = chrono_types::make_shared<ChObjFileShape>();
-    objmesh5->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
-    body->AddVisualShape(objmesh5, ChFrame<>(ChVector<>(-4, 0.0, -6), Q_from_AngY(-CH_C_PI_4)*Q_from_AngX(-CH_C_PI_2)));
+    // Only the first call of a distinct filename loads from disc,
+    // following calls read from cache and only the ChFrame<> is changed
+    auto objmesh = chrono_types::make_shared<ChObjFileShape>();
+    objmesh->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
+
+    body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(0, 0.0, 2), Q_from_AngX(-CH_C_PI_2)));
+    body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(3, 0.0, 2.5), Q_from_AngX(-CH_C_PI_2)));
+    body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(5, 0.0, 3), Q_from_AngX(-CH_C_PI_2)));
+    body->AddVisualShape(objmesh,
+                         ChFrame<>(ChVector<>(4, 0.0, -3), Q_from_AngY(0.5 * CH_C_PI) * Q_from_AngX(-CH_C_PI_2)));
+    body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(0, 0.0, -5), Q_from_AngY(CH_C_PI) * Q_from_AngX(-CH_C_PI_2)));
+    body->AddVisualShape(objmesh,
+                         ChFrame<>(ChVector<>(-4, 0.0, -6), Q_from_AngY(-CH_C_PI_4) * Q_from_AngX(-CH_C_PI_2)));
 
     // ==Asset== Attach an array of boxes, each rotated to make a spiral
     for (int j = 0; j < 20; j++) {
@@ -276,13 +268,12 @@ int main(int argc, char* argv[]) {
     sceneMesh1->SetFilename(GetChronoDataFile("models/red_teapot.obj"));
     int teapotId1 = vis->AddVisualModel(sceneMesh1,ChFrame<>(ChVector<>(0, 3.5, 3), Q_from_AngX(CH_C_PI)));
     if(teapotId1 == -1) GetLog() << "Could not get teapot!\n";
-    auto sceneMesh2 = chrono_types::make_shared<ChObjFileShape>();
-    sceneMesh2->SetFilename(GetChronoDataFile("models/red_teapot.obj"));
-    int teapotId2 = vis->AddVisualModel(sceneMesh2,ChFrame<>(ChVector<>(-5, 3.5, 3), Q_from_AngX(CH_C_PI)));
+    int teapotId2 = vis->AddVisualModel(sceneMesh1,ChFrame<>(ChVector<>(-5, 3.5, 3), Q_from_AngX(CH_C_PI)));
     if(teapotId2 == -1) GetLog() << "Could not get teapot!\n";
-    auto sceneMesh3 = chrono_types::make_shared<ChObjFileShape>();
-    sceneMesh3->SetFilename(GetChronoDataFile("models/bunny.glb"));
-    int bunndyId = vis->AddVisualModel(sceneMesh3,ChFrame<>(ChVector<>(-5, 0, 5), Q_from_AngX(-CH_C_PI_2)));
+
+    auto sceneMesh2 = chrono_types::make_shared<ChObjFileShape>();
+    sceneMesh2->SetFilename(GetChronoDataFile("models/bunny.glb"));
+    int bunndyId = vis->AddVisualModel(sceneMesh2,ChFrame<>(ChVector<>(-5, 0, 5), Q_from_AngX(-CH_C_PI_2)));
     if(bunndyId == -1) GetLog() << "Could not get bunny!\n";
     
     auto boxShape = chrono_types::make_shared<ChBoxShape>();
