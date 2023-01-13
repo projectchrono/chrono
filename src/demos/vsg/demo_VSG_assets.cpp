@@ -24,6 +24,9 @@
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChPathShape.h"
 #include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChEllipsoidShape.h"
+#include "chrono/assets/ChConeShape.h"
+#include "chrono/assets/ChCapsuleShape.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChSurfaceShape.h"
 #include "chrono/assets/ChObjFileShape.h"
@@ -289,6 +292,32 @@ int main(int argc, char* argv[]) {
     sphereShape->GetSphereGeometry().rad = 0.75;
     sphereShape->SetMaterial(0, sphere_mat);
     int sphereId = vis->AddVisualModel(sphereShape, ChFrame(ChVector<>(-6,0,-6),QUNIT));
+
+    auto ell_mat = chrono_types::make_shared<ChVisualMaterial>();
+    ell_mat->SetKdTexture(GetChronoDataFile("textures/concrete.jpg"));
+    auto ellShape = chrono_types::make_shared<ChEllipsoidShape>();
+    ellShape->GetEllipsoidGeometry().rad = ChVector<>(0.1,0.1,0.3);
+    ellShape->SetMaterial(0, ell_mat);
+    ChVector<> ellPos(-1,1,-1);
+    int ellId = vis->AddVisualModel(ellShape, ChFrame(ellPos,QUNIT));
+
+    auto caps_mat = chrono_types::make_shared<ChVisualMaterial>();
+    caps_mat->SetDiffuseColor(ChColor(0.8f, 0.5f, 0.2f));
+    auto capsShape = chrono_types::make_shared<ChCapsuleShape>();
+    capsShape->GetCapsuleGeometry().rad = 0.4;
+    capsShape->GetCapsuleGeometry().hlen = 0.4;
+    capsShape->SetMaterial(0, caps_mat);
+    ChVector<> capsPos(-3,1.5,-1);
+    int capsId = vis->AddVisualModel(capsShape, ChFrame(capsPos,QUNIT));
+
+    auto cone_mat = chrono_types::make_shared<ChVisualMaterial>();
+    cone_mat->SetKdTexture(GetChronoDataFile("textures/pinkwhite.png"));
+    auto coneShape = chrono_types::make_shared<ChConeShape>();
+    coneShape->GetConeGeometry().rad = ChVector<>(0.3,1.0,0.3);
+    coneShape->SetMaterial(0, cone_mat);
+    ChVector<> conePos(-4,1.5,-1);
+    int coneId = vis->AddVisualModel(coneShape, ChFrame(conePos,QUNIT));
+
     vis->Initialize();
 
     while (vis->Run()) {
@@ -301,7 +330,7 @@ int main(int argc, char* argv[]) {
         
         vis->UpdateVisualModel(teapotId2, ChFrame(ChVector<>(-5,3.5,3),Q_from_AngX(CH_C_PI)*Q_from_AngY(time)));
         
-        vis->UpdateVisualModel(boxId,ChFrame(ChVector<>(0,0.01*sys.GetChTime(),0),QUNIT));
+        vis->UpdateVisualModel(boxId,ChFrame(ChVector<>(0,0.01*time,0),QUNIT));
         
         if(time < 10.0)
             vis->UpdateVisualModel(sphereId, ChFrame(ChVector<>(6,0,6),QUNIT));
@@ -311,6 +340,8 @@ int main(int argc, char* argv[]) {
             vis->UpdateVisualModel(sphereId, ChFrame(ChVector<>(-6,0,-6),QUNIT));
         else if(time >= 30.0)
             vis->UpdateVisualModel(sphereId, ChFrame(ChVector<>(6,0,-6),QUNIT));
+
+        vis->UpdateVisualModel(ellId, ChFrame(ellPos,Q_from_AngX(CH_C_PI)*Q_from_AngY(0.2*time)*Q_from_AngZ(0.1*time)));
 
         vis->Render();
         sys.DoStepDynamics(0.01);
