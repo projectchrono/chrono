@@ -188,7 +188,7 @@ void DoubleWishbone::Create(const rapidjson::Document& d) {
         }
         if (d["Spring"].HasMember("Minimum Length") && d["Spring"].HasMember("Maximum Length")) {
             springForceCB->enable_stops(d["Spring"]["Minimum Length"].GetDouble(),
-                                        d["Spring"]["Maximum Length"].GetDouble());       
+                                        d["Spring"]["Maximum Length"].GetDouble());
         }
         m_springForceCB = springForceCB;
     }
@@ -199,16 +199,45 @@ void DoubleWishbone::Create(const rapidjson::Document& d) {
 
     m_points[SHOCK_C] = ReadVectorJSON(d["Shock"]["Location Chassis"]);
     m_points[SHOCK_A] = ReadVectorJSON(d["Shock"]["Location Arm"]);
+    if (d["Shock"].HasMember("Free Length"))
+        m_shockRestLength = d["Shock"]["Free Length"].GetDouble();
+    else
+        m_shockRestLength = 0;
 
     if (d["Shock"].HasMember("Damping Coefficient")) {
-        m_shockForceCB = chrono_types::make_shared<LinearDamperForce>(d["Shock"]["Damping Coefficient"].GetDouble());
+        double c = d["Shock"]["Damping Coefficient"].GetDouble();
+        m_shockForceCB = chrono_types::make_shared<LinearDamperForce>(c);
     } else if (d["Shock"].HasMember("Curve Data")) {
-        int num_points = d["Shock"]["Curve Data"].Size();
+        assert(d["Curve Data"].IsArray() && d["Curve Data"][0u].Size() == 2);
+        int num_speeds = d["Shock"]["Curve Data"].Size();
         auto shockForceCB = chrono_types::make_shared<NonlinearDamperForce>();
-        for (int i = 0; i < num_points; i++) {
-            shockForceCB->add_pointC(d["Shock"]["Curve Data"][i][0u].GetDouble(),
-                                     d["Shock"]["Curve Data"][i][1u].GetDouble());
+        for (int i = 0; i < num_speeds; i++) {
+            double vel = d["Shock"]["Curve Data"][i][0u].GetDouble();
+            double force = d["Shock"]["Curve Data"][i][1u].GetDouble();
+            shockForceCB->add_pointC(vel, force);
         }
+        m_shockForceCB = shockForceCB;
+    } else if (d["Shock"].HasMember("Map Data")) {
+        assert(d["Shock"].HasMember("Free Length"));
+        assert(d["Shock"].HasMember("Deformation"));
+        assert(d["Shock"]["Deformation"].IsArray());
+        assert(d["Shock"]["Map Data"].IsArray() &&
+               d["Shock"]["Map Data"][0u].Size() == d["Shock"]["Deformation"].Size() + 1);
+        int num_defs = d["Shock"]["Deformation"].Size();
+        int num_speeds = d["Shock"]["Map Data"].Size();
+        auto shockForceCB = chrono_types::make_shared<MapSpringDamperForce>();
+        std::vector<double> defs(num_defs);
+        for (int j = 0; j < num_defs; j++)
+            defs[j] = d["Shock"]["Deformation"][j].GetDouble();
+        shockForceCB->set_deformations(defs);
+        for (int i = 0; i < num_speeds; i++) {
+            double vel = d["Shock"]["Map Data"][i][0u].GetDouble();
+            std::vector<double> force(num_defs);
+            for (int j = 0; j < num_defs; j++)
+                force[j] = d["Shock"]["Map Data"][i][j + 1].GetDouble();
+            shockForceCB->add_pointC(vel, force);
+        }
+        ////shockForceCB->print_data();
         m_shockForceCB = shockForceCB;
     }
 

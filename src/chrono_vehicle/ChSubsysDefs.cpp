@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include <limits>
+#include <iterator>
 
 #include "chrono_vehicle/ChSubsysDefs.h"
 
@@ -25,7 +26,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 
-SpringForce::SpringForce(double preload) : m_f(preload), m_stops(false), m_min_length(0), m_max_length(0) {}
+SpringForce::SpringForce(double preload) : m_P(preload), m_stops(false), m_min_length(0), m_max_length(0) {}
 
 void SpringForce::enable_stops(double min_length, double max_length) {
     m_stops = true;
@@ -72,7 +73,7 @@ double SpringForce::evaluate_stops(double length) {
 LinearSpringForce::LinearSpringForce(double k, double preload) : SpringForce(preload), m_k(k) {}
 
 double LinearSpringForce::evaluate(double time, double rest_length, double length, double vel, const ChLinkTSDA& link) {
-    return m_f - m_k * (length - rest_length) + evaluate_stops(length);
+    return m_P - m_k * (length - rest_length) + evaluate_stops(length);
 }
 
 NonlinearSpringForce::NonlinearSpringForce(double preload) : SpringForce(preload) {}
@@ -92,7 +93,7 @@ double NonlinearSpringForce::evaluate(double time,
                                       double length,
                                       double vel,
                                       const ChLinkTSDA& link) {
-    return m_f - m_mapK.Get_y(length - rest_length) + evaluate_stops(length);
+    return m_P - m_mapK.Get_y(length - rest_length) + evaluate_stops(length);
 }
 
 // -----------------------------------------------------------------------------
@@ -122,49 +123,6 @@ double NonlinearDamperForce::evaluate(double time,
                                       const ChLinkTSDA& link) {
     return -m_mapC.Get_y(vel);
 }
-
-// -----------------------------------------------------------------------------
-
-LinearSpringDamperForce::LinearSpringDamperForce(double k, double c, double preload)
-    : SpringForce(preload), m_k(k), m_c(c) {}
-
-double LinearSpringDamperForce::evaluate(double time,
-                                         double rest_length,
-                                         double length,
-                                         double vel,
-                                         const ChLinkTSDA& link) {
-    return m_f - m_k * (length - rest_length) - m_c * vel + evaluate_stops(length);
-}
-
-NonlinearSpringDamperForce::NonlinearSpringDamperForce(double preload) : SpringForce(preload) {}
-
-NonlinearSpringDamperForce::NonlinearSpringDamperForce(const std::vector<std::pair<double, double>>& dataK,
-                                                       const std::vector<std::pair<double, double>>& dataC,
-                                                       double preload)
-    : SpringForce(preload) {
-    for (unsigned int i = 0; i < dataK.size(); ++i)
-        m_mapK.AddPoint(dataK[i].first, dataK[i].second);
-    for (unsigned int i = 0; i < dataC.size(); ++i)
-        m_mapC.AddPoint(dataC[i].first, dataC[i].second);
-}
-
-void NonlinearSpringDamperForce::add_pointK(double x, double y) {
-    m_mapK.AddPoint(x, y);
-}
-
-void NonlinearSpringDamperForce::add_pointC(double x, double y) {
-    m_mapC.AddPoint(x, y);
-}
-
-double NonlinearSpringDamperForce::evaluate(double time,
-                                            double rest_length,
-                                            double length,
-                                            double vel,
-                                            const ChLinkTSDA& link) {
-    return m_f - m_mapK.Get_y(length - rest_length) - m_mapC.Get_y(vel) + evaluate_stops(length);
-}
-
-// -----------------------------------------------------------------------------
 
 DegressiveDamperForce::DegressiveDamperForce(double c_compression)
     : m_c_compression(c_compression), m_c_expansion(c_compression), m_degr_compression(0), m_degr_expansion(0) {}
@@ -197,6 +155,137 @@ double DegressiveDamperForce::evaluate(double time,
     } else {
         return -m_c_compression * vel / (1.0 - m_degr_compression * vel);
     }
+}
+
+// -----------------------------------------------------------------------------
+
+LinearSpringDamperForce::LinearSpringDamperForce(double k, double c, double preload)
+    : SpringForce(preload), m_k(k), m_c(c) {}
+
+double LinearSpringDamperForce::evaluate(double time,
+                                         double rest_length,
+                                         double length,
+                                         double vel,
+                                         const ChLinkTSDA& link) {
+    return m_P - m_k * (length - rest_length) - m_c * vel + evaluate_stops(length);
+}
+
+NonlinearSpringDamperForce::NonlinearSpringDamperForce(double preload) : SpringForce(preload) {}
+
+NonlinearSpringDamperForce::NonlinearSpringDamperForce(const std::vector<std::pair<double, double>>& dataK,
+                                                       const std::vector<std::pair<double, double>>& dataC,
+                                                       double preload)
+    : SpringForce(preload) {
+    for (unsigned int i = 0; i < dataK.size(); ++i)
+        m_mapK.AddPoint(dataK[i].first, dataK[i].second);
+    for (unsigned int i = 0; i < dataC.size(); ++i)
+        m_mapC.AddPoint(dataC[i].first, dataC[i].second);
+}
+
+void NonlinearSpringDamperForce::add_pointK(double x, double y) {
+    m_mapK.AddPoint(x, y);
+}
+
+void NonlinearSpringDamperForce::add_pointC(double x, double y) {
+    m_mapC.AddPoint(x, y);
+}
+
+double NonlinearSpringDamperForce::evaluate(double time,
+                                            double rest_length,
+                                            double length,
+                                            double vel,
+                                            const ChLinkTSDA& link) {
+    return m_P - m_mapK.Get_y(length - rest_length) - m_mapC.Get_y(vel) + evaluate_stops(length);
+}
+
+MapSpringDamperForce::MapSpringDamperForce(double preload) : SpringForce(preload), m_last({0, 0}) {}
+
+MapSpringDamperForce::MapSpringDamperForce(const std::vector<double>& defs,
+                                           const std::vector<double>& vels,
+                                           ChMatrixConstRef data,
+                                           double preload)
+    : SpringForce(preload), m_defs(defs), m_vels(vels), m_data(data), m_last({0, 0}) {}
+
+void MapSpringDamperForce::set_deformations(const std::vector<double> defs) {
+    assert(m_data.rows() == 0 || (size_t)m_data.cols() == defs.size());
+    m_defs = defs;
+}
+
+void MapSpringDamperForce::add_pointC(double x, const std::vector<double>& y) {
+    assert(m_defs.size() == 0 || m_defs.size() == y.size());
+    auto nrow = m_data.rows();
+
+    if (nrow == 0) {
+        // First insertion
+        assert(m_data.cols() == 0);
+        assert(m_vels.size() == 0);
+        m_data.resize(1, y.size());
+    } else {
+        // Subsequent insertions
+        assert((size_t)m_data.cols() == y.size());
+        m_data.conservativeResize(nrow + 1, Eigen::NoChange);
+    }
+
+    m_vels.push_back(x);
+    for (auto i = 0; i < y.size(); i++)
+        m_data(nrow, i) = y[i];
+}
+
+void MapSpringDamperForce::print_data() {
+    std::copy(m_defs.begin(), m_defs.end(), std::ostream_iterator<double>(std::cout, " "));
+    std::cout << "\n------" << std::endl;
+    std::copy(m_vels.begin(), m_vels.end(), std::ostream_iterator<double>(std::cout, " "));
+    std::cout << "\n------" << std::endl;
+    for (int iv = 0; iv < m_vels.size(); iv++)
+        std::cout << m_data.row(iv) << std::endl;
+    std::cout << "------" << std::endl;
+}
+
+double MapSpringDamperForce::evaluate(double time,
+                                      double rest_length,
+                                      double length,
+                                      double vel,
+                                      const ChLinkTSDA& link) {
+    assert(m_data.rows() > 0 && m_data.cols() > 0);
+
+    double def = length - rest_length;
+
+    // Find lower bounds in defs and vels vectors
+    auto lb_def = std::lower_bound(m_defs.begin(), m_defs.end(), def);
+    auto lb_vel = std::lower_bound(m_vels.begin(), m_vels.end(), vel);
+
+    // Extrapolate outside ranges
+    if (lb_def == m_defs.end())
+        lb_def = std::prev(m_defs.end());
+    int d2 = (int)std::distance(m_defs.begin(), lb_def);
+    if (d2 == 0)
+        d2 = 1;
+    int d1 = d2 - 1;
+
+    if (lb_vel == m_vels.end())
+        lb_vel = std::prev(m_vels.end());
+    int v2 = (int)std::distance(m_vels.begin(), lb_vel);
+    if (v2 == 0)
+        v2 = 1;
+    int v1 = v2 - 1;
+
+    // Calculate weights
+    double dd = m_defs[d2] - m_defs[d1];
+    double dv = m_vels[v2] - m_vels[v1];
+    
+    double wd1 = (m_defs[d2] - def) / dd;
+    double wd2 = (def - m_defs[d1]) / dd;
+
+    double wv1 = (m_vels[v2] - vel) / dv;
+    double wv2 = (vel - m_vels[v1]) / dv;
+    
+    // Calculate force (bi-linear interpolation)
+    auto F1 = wv1 * m_data(v1, d1) + wv2 * m_data(v2, d1);
+    auto F2 = wv1 * m_data(v1, d2) + wv2 * m_data(v2, d2);
+
+    auto F = wd1 * F1 + wd2 * F2;
+
+    return m_P - F;
 }
 
 // -----------------------------------------------------------------------------

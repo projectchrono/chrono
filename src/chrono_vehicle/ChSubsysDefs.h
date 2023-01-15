@@ -105,7 +105,7 @@ class CH_VEHICLE_API SpringForce : public ChLinkTSDA::ForceFunctor {
     double evaluate_stops(double length);
 
   protected:
-    double m_f;
+    double m_P;  ///< pre-tension
 
     bool m_stops;
     double m_min_length;
@@ -114,7 +114,8 @@ class CH_VEHICLE_API SpringForce : public ChLinkTSDA::ForceFunctor {
     ChFunction_Recorder m_rebound;
 };
 
-/// Utility class for specifying a linear translational spring force.
+/// Utility class for specifying a linear translational spring force with pre-tension.
+/// F = P - K * (length - rest_length)
 class CH_VEHICLE_API LinearSpringForce : public SpringForce {
   public:
     LinearSpringForce(double k, double preload = 0);
@@ -128,7 +129,8 @@ class CH_VEHICLE_API LinearSpringForce : public SpringForce {
     double m_k;
 };
 
-/// Utility class for specifying a nonlinear translational spring force.
+/// Utility class for specifying a nonlinear translational spring force with pre-tension.
+/// F = P - mapK(length - rest_length)
 class CH_VEHICLE_API NonlinearSpringForce : public SpringForce {
   public:
     NonlinearSpringForce(double preload = 0);
@@ -145,6 +147,7 @@ class CH_VEHICLE_API NonlinearSpringForce : public SpringForce {
 };
 
 /// Utility class for specifying a linear translational damper force.
+/// F = -C * vel
 class CH_VEHICLE_API LinearDamperForce : public ChLinkTSDA::ForceFunctor {
   public:
     LinearDamperForce(double c, double preload = 0);
@@ -159,6 +162,7 @@ class CH_VEHICLE_API LinearDamperForce : public ChLinkTSDA::ForceFunctor {
 };
 
 /// Utility class for specifying a nonlinear translational damper force.
+/// F = -mapC(vel)
 class CH_VEHICLE_API NonlinearDamperForce : public ChLinkTSDA::ForceFunctor {
   public:
     NonlinearDamperForce();
@@ -171,41 +175,6 @@ class CH_VEHICLE_API NonlinearDamperForce : public ChLinkTSDA::ForceFunctor {
                             const ChLinkTSDA& link) override;
 
   private:
-    ChFunction_Recorder m_mapC;
-};
-
-/// Utility class for specifying a linear translational spring-damper force.
-class CH_VEHICLE_API LinearSpringDamperForce : public SpringForce {
-  public:
-    LinearSpringDamperForce(double k, double c, double preload = 0);
-    virtual double evaluate(double time,
-                            double rest_length,
-                            double length,
-                            double vel,
-                            const ChLinkTSDA& link) override;
-
-  private:
-    double m_k;
-    double m_c;
-};
-
-/// Utility class for specifying a nonlinear translational spring-damper force with pre-tension.
-class CH_VEHICLE_API NonlinearSpringDamperForce : public SpringForce {
-  public:
-    NonlinearSpringDamperForce(double preload = 0);
-    NonlinearSpringDamperForce(const std::vector<std::pair<double, double>>& dataK,
-                               const std::vector<std::pair<double, double>>& dataC,
-                               double preload = 0);
-    void add_pointK(double x, double y);
-    void add_pointC(double x, double y);
-    virtual double evaluate(double time,
-                            double rest_length,
-                            double length,
-                            double vel,
-                            const ChLinkTSDA& link) override;
-
-  private:
-    ChFunction_Recorder m_mapK;
     ChFunction_Recorder m_mapC;
 };
 
@@ -235,6 +204,68 @@ class CH_VEHICLE_API DegressiveDamperForce : public ChLinkTSDA::ForceFunctor {
     double m_c_expansion;
     double m_degr_compression;
     double m_degr_expansion;
+};
+
+/// Utility class for specifying a linear translational spring-damper force with pre-tension.
+/// F = P - K * (length - rest_length) - C * vel
+class CH_VEHICLE_API LinearSpringDamperForce : public SpringForce {
+  public:
+    LinearSpringDamperForce(double k, double c, double preload = 0);
+    virtual double evaluate(double time,
+                            double rest_length,
+                            double length,
+                            double vel,
+                            const ChLinkTSDA& link) override;
+
+  private:
+    double m_k;
+    double m_c;
+};
+
+/// Utility class for specifying a nonlinear translational spring-damper force with pre-tension.
+/// F = P - mapK(length - rest_length) - mapC(vel)
+class CH_VEHICLE_API NonlinearSpringDamperForce : public SpringForce {
+  public:
+    NonlinearSpringDamperForce(double preload = 0);
+    NonlinearSpringDamperForce(const std::vector<std::pair<double, double>>& dataK,
+                               const std::vector<std::pair<double, double>>& dataC,
+                               double preload = 0);
+    void add_pointK(double x, double y);
+    void add_pointC(double x, double y);
+    virtual double evaluate(double time,
+                            double rest_length,
+                            double length,
+                            double vel,
+                            const ChLinkTSDA& link) override;
+
+  private:
+    ChFunction_Recorder m_mapK;
+    ChFunction_Recorder m_mapC;
+};
+
+/// Utility class for specifying a general nonlinear translational spring-damper force with pre-tension.
+/// F = P - map(length - rest_length, vel)
+class CH_VEHICLE_API MapSpringDamperForce : public SpringForce {
+  public:
+    MapSpringDamperForce(double preload = 0);
+    MapSpringDamperForce(const std::vector<double>& defs,
+                         const std::vector<double>& vels,
+                         ChMatrixConstRef data,
+                         double preload = 0);
+    void set_deformations(const std::vector<double> defs);
+    void add_pointC(double x, const std::vector<double>& y);
+    virtual double evaluate(double time,
+                            double rest_length,
+                            double length,
+                            double vel,
+                            const ChLinkTSDA& link) override;
+    void print_data();
+  private:
+    std::vector<double> m_defs;
+    std::vector<double> m_vels;
+    ChMatrixDynamic<double> m_data;
+
+    std::pair<int, int> m_last;
 };
 
 // -----------------------------------------------------------------------------
