@@ -69,6 +69,13 @@ CH_VEHICLE_API std::shared_ptr<ChVehicleBushingData> ReadBushingDataJSON(const r
 
 // -----------------------------------------------------------------------------
 
+CH_VEHICLE_API std::shared_ptr<ChLinkTSDA::ForceFunctor> ReadTSDAFunctorJSON(const rapidjson::Value& td,
+                                                                             double& free_length);
+CH_VEHICLE_API std::shared_ptr<ChLinkRSDA::TorqueFunctor> ReadRSDAFunctorJSON(const rapidjson::Value& td,
+                                                                              double& free_angle);
+
+// -----------------------------------------------------------------------------
+
 /// Load and return a chassis subsystem from the specified JSON file.
 CH_VEHICLE_API std::shared_ptr<ChChassis> ReadChassisJSON(const std::string& filename);
 
