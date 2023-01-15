@@ -208,7 +208,7 @@ void DoubleWishbone::Create(const rapidjson::Document& d) {
         double c = d["Shock"]["Damping Coefficient"].GetDouble();
         m_shockForceCB = chrono_types::make_shared<LinearDamperForce>(c);
     } else if (d["Shock"].HasMember("Curve Data")) {
-        assert(d["Curve Data"].IsArray() && d["Curve Data"][0u].Size() == 2);
+        assert(d["Shock"]["Curve Data"].IsArray() && d["Shock"]["Curve Data"][0u].Size() == 2);
         int num_speeds = d["Shock"]["Curve Data"].Size();
         auto shockForceCB = chrono_types::make_shared<NonlinearDamperForce>();
         for (int i = 0; i < num_speeds; i++) {

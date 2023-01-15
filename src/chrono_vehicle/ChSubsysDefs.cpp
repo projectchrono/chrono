@@ -78,10 +78,10 @@ double LinearSpringForce::evaluate(double time, double rest_length, double lengt
 
 NonlinearSpringForce::NonlinearSpringForce(double preload) : SpringForce(preload) {}
 
-NonlinearSpringForce::NonlinearSpringForce(const std::vector<std::pair<double, double>>& data, double preload)
+NonlinearSpringForce::NonlinearSpringForce(const std::vector<std::pair<double, double>>& dataK, double preload)
     : SpringForce(preload) {
-    for (unsigned int i = 0; i < data.size(); ++i)
-        m_mapK.AddPoint(data[i].first, data[i].second);
+    for (unsigned int i = 0; i < dataK.size(); ++i)
+        m_mapK.AddPoint(dataK[i].first, dataK[i].second);
 }
 
 void NonlinearSpringForce::add_pointK(double x, double y) {
@@ -106,9 +106,9 @@ double LinearDamperForce::evaluate(double time, double rest_length, double lengt
 
 NonlinearDamperForce::NonlinearDamperForce() {}
 
-NonlinearDamperForce::NonlinearDamperForce(const std::vector<std::pair<double, double>>& data) {
-    for (unsigned int i = 0; i < data.size(); ++i) {
-        m_mapC.AddPoint(data[i].first, data[i].second);
+NonlinearDamperForce::NonlinearDamperForce(const std::vector<std::pair<double, double>>& dataC) {
+    for (unsigned int i = 0; i < dataC.size(); ++i) {
+        m_mapC.AddPoint(dataC[i].first, dataC[i].second);
     }
 }
 
@@ -272,13 +272,13 @@ double MapSpringDamperForce::evaluate(double time,
     // Calculate weights
     double dd = m_defs[d2] - m_defs[d1];
     double dv = m_vels[v2] - m_vels[v1];
-    
+
     double wd1 = (m_defs[d2] - def) / dd;
     double wd2 = (def - m_defs[d1]) / dd;
 
     double wv1 = (m_vels[v2] - vel) / dv;
     double wv2 = (vel - m_vels[v1]) / dv;
-    
+
     // Calculate force (bi-linear interpolation)
     auto F1 = wv1 * m_data(v1, d1) + wv2 * m_data(v2, d1);
     auto F2 = wv1 * m_data(v1, d2) + wv2 * m_data(v2, d2);
@@ -291,30 +291,30 @@ double MapSpringDamperForce::evaluate(double time,
 // -----------------------------------------------------------------------------
 
 LinearSpringTorque::LinearSpringTorque(double k, double rest_angle, double preload)
-    : m_k(k), m_rest_angle(rest_angle), m_t(preload) {}
+    : m_k(k), m_rest_angle(rest_angle), m_P(preload) {}
 
 double LinearSpringTorque::evaluate(double time, double angle, double vel, const ChLinkRSDA& link) {
-    return m_t - m_k * (angle - m_rest_angle);
+    return m_P - m_k * (angle - m_rest_angle);
 }
 
 NonlinearSpringTorque::NonlinearSpringTorque(double rest_angle, double preload)
-    : m_rest_angle(rest_angle), m_t(preload) {}
+    : m_rest_angle(rest_angle), m_P(preload) {}
 
-NonlinearSpringTorque::NonlinearSpringTorque(const std::vector<std::pair<double, double>>& data,
+NonlinearSpringTorque::NonlinearSpringTorque(const std::vector<std::pair<double, double>>& dataK,
                                              double rest_angle,
                                              double preload)
-    : m_rest_angle(rest_angle), m_t(preload) {
-    for (unsigned int i = 0; i < data.size(); ++i) {
-        m_mapK.AddPoint(data[i].first, data[i].second);
+    : m_rest_angle(rest_angle), m_P(preload) {
+    for (unsigned int i = 0; i < dataK.size(); ++i) {
+        m_mapK.AddPoint(dataK[i].first, dataK[i].second);
     }
 }
 
-void NonlinearSpringTorque::add_point(double x, double y) {
+void NonlinearSpringTorque::add_pointK(double x, double y) {
     m_mapK.AddPoint(x, y);
 }
 
 double NonlinearSpringTorque::evaluate(double time, double angle, double vel, const ChLinkRSDA& link) {
-    return m_t - m_mapK.Get_y(angle - m_rest_angle);
+    return m_P - m_mapK.Get_y(angle - m_rest_angle);
 }
 
 // -----------------------------------------------------------------------------
@@ -326,12 +326,13 @@ double LinearDamperTorque::evaluate(double time, double angle, double vel, const
 }
 
 NonlinearDamperTorque::NonlinearDamperTorque() {}
-NonlinearDamperTorque::NonlinearDamperTorque(const std::vector<std::pair<double, double>>& data) {
-    for (unsigned int i = 0; i < data.size(); ++i) {
-        m_mapC.AddPoint(data[i].first, data[i].second);
+
+NonlinearDamperTorque::NonlinearDamperTorque(const std::vector<std::pair<double, double>>& dataC) {
+    for (unsigned int i = 0; i < dataC.size(); ++i) {
+        m_mapC.AddPoint(dataC[i].first, dataC[i].second);
     }
 }
-void NonlinearDamperTorque::add_point(double x, double y) {
+void NonlinearDamperTorque::add_pointC(double x, double y) {
     m_mapC.AddPoint(x, y);
 }
 double NonlinearDamperTorque::evaluate(double time, double angle, double vel, const ChLinkRSDA& link) {
@@ -341,10 +342,38 @@ double NonlinearDamperTorque::evaluate(double time, double angle, double vel, co
 // -----------------------------------------------------------------------------
 
 LinearSpringDamperTorque::LinearSpringDamperTorque(double k, double c, double rest_angle, double preload)
-    : m_k(k), m_c(c), m_rest_angle(rest_angle), m_t(preload) {}
+    : m_k(k), m_c(c), m_rest_angle(rest_angle), m_P(preload) {}
 
 double LinearSpringDamperTorque::evaluate(double time, double angle, double vel, const ChLinkRSDA& link) {
-    return m_t - m_k * (angle - m_rest_angle) - m_c * vel;
+    return m_P - m_k * (angle - m_rest_angle) - m_c * vel;
+}
+
+NonlinearSpringDamperTorque::NonlinearSpringDamperTorque(double rest_angle, double preload)
+    : m_rest_angle(rest_angle), m_P(preload) {}
+
+NonlinearSpringDamperTorque::NonlinearSpringDamperTorque(const std::vector<std::pair<double, double>>& dataK,
+                                                         const std::vector<std::pair<double, double>>& dataC,
+                                                         double rest_angle,
+                                                         double preload)
+    : m_rest_angle(rest_angle), m_P(preload) {
+    for (unsigned int i = 0; i < dataK.size(); ++i) {
+        m_mapK.AddPoint(dataK[i].first, dataK[i].second);
+    }
+    for (unsigned int i = 0; i < dataC.size(); ++i) {
+        m_mapC.AddPoint(dataC[i].first, dataC[i].second);
+    }
+}
+
+void NonlinearSpringDamperTorque::add_pointK(double x, double y) {
+    m_mapK.AddPoint(x, y);
+}
+
+void NonlinearSpringDamperTorque::add_pointC(double x, double y) {
+    m_mapC.AddPoint(x, y);
+}
+
+double NonlinearSpringDamperTorque::evaluate(double time, double angle, double vel, const ChLinkRSDA& link) {
+    return m_P - m_mapK.Get_y(angle - m_rest_angle) - m_mapC.Get_y(vel);
 }
 
 }  // end namespace vehicle

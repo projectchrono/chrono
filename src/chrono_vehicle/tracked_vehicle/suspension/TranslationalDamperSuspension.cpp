@@ -79,8 +79,8 @@ void TranslationalDamperSuspension::Create(const rapidjson::Document& d) {
         int num_points = d["Torsional Spring"]["Curve Data"].Size();
         auto springTorqueCB = chrono_types::make_shared<NonlinearSpringTorque>(m_spring_rest_angle, preload);
         for (int i = 0; i < num_points; i++) {
-            springTorqueCB->add_point(d["Torsional Spring"]["Curve Data"][i][0u].GetDouble(),
-                                      d["Torsional Spring"]["Curve Data"][i][1u].GetDouble());
+            springTorqueCB->add_pointK(d["Torsional Spring"]["Curve Data"][i][0u].GetDouble(),
+                                       d["Torsional Spring"]["Curve Data"][i][1u].GetDouble());
         }
         m_spring_torqueCB = springTorqueCB;
     }
