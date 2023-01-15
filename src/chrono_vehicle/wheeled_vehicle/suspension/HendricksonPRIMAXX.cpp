@@ -148,36 +148,19 @@ void HendricksonPRIMAXX::Create(const rapidjson::Document& d) {
     ////        add support for bump stops
     assert(d.HasMember("Shock Axle Housing"));
     assert(d["Shock Axle Housing"].IsObject());
-
     m_points[SHOCKAH_C] = ReadVectorJSON(d["Shock Axle Housing"]["Location Chassis"]);
     m_points[SHOCKAH_AH] = ReadVectorJSON(d["Shock Axle Housing"]["Location Axle Housing"]);
-    m_shockAH_restLength = d["Shock Axle Housing"]["Free Length"].GetDouble();
-    double preloadAH = 0;
-    if (d["Shock Axle Housing"].HasMember("Preload"))
-        preloadAH = d["Shock Axle Housing"]["Preload"].GetDouble();
-
-    m_shockAHForceCB = chrono_types::make_shared<LinearSpringDamperForce>(
-        d["Shock Axle Housing"]["Spring Coefficient"].GetDouble(),
-        d["Shock Axle Housing"]["Damping Coefficient"].GetDouble(), preloadAH);
+    m_shockAHForceCB = ReadTSDAFunctorJSON(d["Shock Axle Housing"], m_shockAH_restLength);
 
     assert(d.HasMember("Shock Lower Beam"));
     assert(d["Shock Lower Beam"].IsObject());
-
     m_points[SHOCKLB_C] = ReadVectorJSON(d["Shock Lower Beam"]["Location Chassis"]);
     m_points[SHOCKLB_LB] = ReadVectorJSON(d["Shock Lower Beam"]["Location Lower Beam"]);
-    m_shockLB_restLength = d["Shock Lower Beam"]["Free Length"].GetDouble();
-    double preloadLB = 0;
-    if (d["Shock Lower Beam"].HasMember("Preload"))
-        preloadLB = d["Shock Lower Beam"]["Preload"].GetDouble();
-
-    m_shockLBForceCB = chrono_types::make_shared<LinearSpringDamperForce>(
-        d["Shock Lower Beam"]["Spring Coefficient"].GetDouble(),
-        d["Shock Lower Beam"]["Damping Coefficient"].GetDouble(), preloadLB);
+    m_shockLBForceCB = ReadTSDAFunctorJSON(d["Shock Lower Beam"], m_shockLB_restLength);
 
     // Read axle inertia
     assert(d.HasMember("Axle"));
     assert(d["Axle"].IsObject());
-
     m_axleInertia = d["Axle"]["Inertia"].GetDouble();
 
     //// TODO

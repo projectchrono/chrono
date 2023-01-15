@@ -163,88 +163,20 @@ void DoubleWishbone::Create(const rapidjson::Document& d) {
     // Read spring data and create force callback
     assert(d.HasMember("Spring"));
     assert(d["Spring"].IsObject());
-
     m_points[SPRING_C] = ReadVectorJSON(d["Spring"]["Location Chassis"]);
     m_points[SPRING_A] = ReadVectorJSON(d["Spring"]["Location Arm"]);
-    m_springRestLength = d["Spring"]["Free Length"].GetDouble();
-    double preload = 0;
-    if (d["Spring"].HasMember("Preload"))
-        preload = d["Spring"]["Preload"].GetDouble();
-
-    if (d["Spring"].HasMember("Spring Coefficient")) {
-        auto springForceCB =
-            chrono_types::make_shared<LinearSpringForce>(d["Spring"]["Spring Coefficient"].GetDouble(), preload);
-        if (d["Spring"].HasMember("Minimum Length") && d["Spring"].HasMember("Maximum Length")) {
-            springForceCB->enable_stops(d["Spring"]["Minimum Length"].GetDouble(),
-                                        d["Spring"]["Maximum Length"].GetDouble());
-        }
-        m_springForceCB = springForceCB;
-    } else if (d["Spring"].HasMember("Curve Data")) {
-        int num_points = d["Spring"]["Curve Data"].Size();
-        auto springForceCB = chrono_types::make_shared<NonlinearSpringForce>(preload);
-        for (int i = 0; i < num_points; i++) {
-            springForceCB->add_pointK(d["Spring"]["Curve Data"][i][0u].GetDouble(),
-                                      d["Spring"]["Curve Data"][i][1u].GetDouble());
-        }
-        if (d["Spring"].HasMember("Minimum Length") && d["Spring"].HasMember("Maximum Length")) {
-            springForceCB->enable_stops(d["Spring"]["Minimum Length"].GetDouble(),
-                                        d["Spring"]["Maximum Length"].GetDouble());
-        }
-        m_springForceCB = springForceCB;
-    }
+    m_springForceCB = ReadTSDAFunctorJSON(d["Spring"], m_springRestLength);
 
     // Read shock data and create force callback
     assert(d.HasMember("Shock"));
     assert(d["Shock"].IsObject());
-
     m_points[SHOCK_C] = ReadVectorJSON(d["Shock"]["Location Chassis"]);
     m_points[SHOCK_A] = ReadVectorJSON(d["Shock"]["Location Arm"]);
-    if (d["Shock"].HasMember("Free Length"))
-        m_shockRestLength = d["Shock"]["Free Length"].GetDouble();
-    else
-        m_shockRestLength = 0;
-
-    if (d["Shock"].HasMember("Damping Coefficient")) {
-        double c = d["Shock"]["Damping Coefficient"].GetDouble();
-        m_shockForceCB = chrono_types::make_shared<LinearDamperForce>(c);
-    } else if (d["Shock"].HasMember("Curve Data")) {
-        assert(d["Shock"]["Curve Data"].IsArray() && d["Shock"]["Curve Data"][0u].Size() == 2);
-        int num_speeds = d["Shock"]["Curve Data"].Size();
-        auto shockForceCB = chrono_types::make_shared<NonlinearDamperForce>();
-        for (int i = 0; i < num_speeds; i++) {
-            double vel = d["Shock"]["Curve Data"][i][0u].GetDouble();
-            double force = d["Shock"]["Curve Data"][i][1u].GetDouble();
-            shockForceCB->add_pointC(vel, force);
-        }
-        m_shockForceCB = shockForceCB;
-    } else if (d["Shock"].HasMember("Map Data")) {
-        assert(d["Shock"].HasMember("Free Length"));
-        assert(d["Shock"].HasMember("Deformation"));
-        assert(d["Shock"]["Deformation"].IsArray());
-        assert(d["Shock"]["Map Data"].IsArray() &&
-               d["Shock"]["Map Data"][0u].Size() == d["Shock"]["Deformation"].Size() + 1);
-        int num_defs = d["Shock"]["Deformation"].Size();
-        int num_speeds = d["Shock"]["Map Data"].Size();
-        auto shockForceCB = chrono_types::make_shared<MapSpringDamperForce>();
-        std::vector<double> defs(num_defs);
-        for (int j = 0; j < num_defs; j++)
-            defs[j] = d["Shock"]["Deformation"][j].GetDouble();
-        shockForceCB->set_deformations(defs);
-        for (int i = 0; i < num_speeds; i++) {
-            double vel = d["Shock"]["Map Data"][i][0u].GetDouble();
-            std::vector<double> force(num_defs);
-            for (int j = 0; j < num_defs; j++)
-                force[j] = d["Shock"]["Map Data"][i][j + 1].GetDouble();
-            shockForceCB->add_pointC(vel, force);
-        }
-        ////shockForceCB->print_data();
-        m_shockForceCB = shockForceCB;
-    }
+    m_shockForceCB = ReadTSDAFunctorJSON(d["Shock"], m_shockRestLength);
 
     // Read axle inertia
     assert(d.HasMember("Axle"));
     assert(d["Axle"].IsObject());
-
     m_axleInertia = d["Axle"]["Inertia"].GetDouble();
 }
 

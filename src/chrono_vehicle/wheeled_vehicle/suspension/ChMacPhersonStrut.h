@@ -209,6 +209,8 @@ class CH_VEHICLE_API ChMacPhersonStrut : public ChSuspension {
 
     /// Return the free (rest) length of the spring element.
     virtual double getSpringRestLength() const = 0;
+    /// Return the free (rest) length of the shock element.
+    virtual double getShockRestLength() const { return 0; }
     /// Return the functor object for spring force.
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getSpringForceFunctor() const = 0;
     /// Return the functor object for shock force.
