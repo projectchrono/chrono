@@ -172,6 +172,7 @@ std::shared_ptr<ChLinkTSDA::ForceFunctor> ReadTSDAFunctorJSON(const rapidjson::V
         NonlinearSpring,
         LinearDamper,
         NonlinearDamper,
+        DegressiveDamper,
         LinearSpringDamper,
         NonlinearSpringDamper,
         MapSpringDamper,
@@ -189,7 +190,10 @@ std::shared_ptr<ChLinkTSDA::ForceFunctor> ReadTSDAFunctorJSON(const rapidjson::V
         else
             type = FunctorType::LinearSpring;
     else if (tsda.HasMember("Damping Coefficient"))
-        type = FunctorType::LinearDamper;
+        if (tsda.HasMember("Degressivity Compression") && tsda.HasMember("Degressivity Expansion"))
+            type = FunctorType::DegressiveDamper;
+        else
+            type = FunctorType::LinearDamper;
 
     if (tsda.HasMember("Spring Curve Data"))
         if (tsda.HasMember("Damping Curve Data"))
@@ -246,6 +250,14 @@ std::shared_ptr<ChLinkTSDA::ForceFunctor> ReadTSDAFunctorJSON(const rapidjson::V
             double c = tsda["Damping Coefficient"].GetDouble();
 
             return chrono_types::make_shared<LinearDamperForce>(c);
+        }
+
+        case FunctorType::DegressiveDamper: {
+            double c = tsda["Damping Coefficient"].GetDouble();
+            double dc = tsda["Degressivity Compression"].GetDouble();
+            double de = tsda["Degressivity Expansion"].GetDouble();
+
+            return chrono_types::make_shared<DegressiveDamperForce>(c, dc, de);
         }
 
         case FunctorType::NonlinearDamper: {
