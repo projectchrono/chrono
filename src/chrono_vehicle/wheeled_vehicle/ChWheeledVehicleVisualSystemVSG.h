@@ -20,13 +20,13 @@
 #ifndef CH_WHEELED_VEHICLE_VISUAL_SYSTEM_VSG_H
 #define CH_WHEELED_VEHICLE_VISUAL_SYSTEM_VSG_H
 
-#include "chrono_vehicle/utils/ChVehicleVisualSystemVSG.h"
+#include "chrono_vehicle/ChVehicleVisualSystemVSG.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
 namespace chrono {
 namespace vehicle {
 
-/// @addtogroup vehicle_wheeled_utils
+/// @addtogroup vehicle_wheeled
 /// @{
 
 /// Customized Chrono Irrlicht visualization system for wheeled vehicle simulation.
@@ -48,7 +48,7 @@ class CH_VEHICLE_API ChWheeledVehicleVisualSystemVSG : public ChVehicleVisualSys
     int m_drivenAxles = 0;
 };
 
-/// @} vehicle_wheeled_utils
+/// @} vehicle_wheeled
 
 }  // end namespace vehicle
 }  // end namespace chrono

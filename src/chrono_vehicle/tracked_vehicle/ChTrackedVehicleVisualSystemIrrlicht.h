@@ -20,13 +20,13 @@
 #ifndef CH_TRACKED_VEHICLE_VISUAL_SYSTEM_IRRLICHT_H
 #define CH_TRACKED_VEHICLE_VISUAL_SYSTEM_IRRLICHT_H
 
-#include "chrono_vehicle/utils/ChVehicleVisualSystemIrrlicht.h"
+#include "chrono_vehicle/ChVehicleVisualSystemIrrlicht.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
 
 namespace chrono {
 namespace vehicle {
 
-/// @addtogroup vehicle_tracked_utils
+/// @addtogroup vehicle_tracked
 /// @{
 
 /// Customized Chrono Irrlicht visualization system for tracked vehicle simulation.
@@ -68,7 +68,7 @@ class CH_VEHICLE_API ChTrackedVehicleVisualSystemIrrlicht : public ChVehicleVisu
     double m_axis_idlers[2];
 };
 
-/// @} vehicle_tracked_utils
+/// @} vehicle_tracked
 
 }  // end namespace vehicle
 }  // end namespace chrono

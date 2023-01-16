@@ -22,7 +22,7 @@
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChDataDriverTTR.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChRoadDriverTTR.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRig.h"
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRigVisualSystemIrrlicht.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/m113/M113_TrackAssemblyDoublePin.h"
 #include "chrono_models/vehicle/m113/M113_TrackAssemblySinglePin.h"

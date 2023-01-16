@@ -17,7 +17,7 @@
 // inputs.
 // =============================================================================
 
-#include "ChVSGGuiDriver.h"
+#include "chrono_vehicle/driver/ChVSGGuiDriver.h"
 
 namespace chrono {
 namespace vehicle {

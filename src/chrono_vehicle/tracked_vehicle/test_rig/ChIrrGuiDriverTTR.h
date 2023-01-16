@@ -21,7 +21,7 @@
 #define CH_IRRGUIDRIVER_TTR_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/utils/ChVehicleVisualSystemIrrlicht.h"
+#include "chrono_vehicle/ChVehicleVisualSystemIrrlicht.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChDriverTTR.h"
 
 namespace chrono {

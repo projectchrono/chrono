@@ -36,13 +36,13 @@
 
 #ifdef CHRONO_IRRLICHT
     #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
-    #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleVisualSystemIrrlicht.h"
+    #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
 #endif
 
 #ifdef CHRONO_VSG
     #include "chrono_vehicle/driver/ChVSGGuiDriver.h"
-    #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleVisualSystemVSG.h"
+    #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h"
 using namespace chrono::vsg3d;
 #endif
 

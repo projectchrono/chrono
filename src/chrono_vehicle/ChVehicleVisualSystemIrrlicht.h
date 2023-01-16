@@ -43,7 +43,7 @@
 namespace chrono {
 namespace vehicle {
 
-/// @addtogroup vehicle_utils
+/// @addtogroup vehicle
 /// @{
 
 // Forward declaration
@@ -127,7 +127,7 @@ class CH_VEHICLE_API ChVehicleVisualSystemIrrlicht : public ChVehicleVisualSyste
     friend class ChIrrGuiDriverSTR;
 };
 
-// @} vehicle_utils
+// @} vehicle
 
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -22,7 +22,7 @@
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChDataDriverTTR.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChIrrGuiDriverTTR.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRig.h"
-#include "chrono_vehicle/utils/ChVehicleVisualSystemIrrlicht.h"
+#include "chrono_vehicle/ChVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/m113/M113_TrackAssemblyBandANCF.h"
 #include "chrono_models/vehicle/m113/M113_TrackAssemblyBandBushing.h"

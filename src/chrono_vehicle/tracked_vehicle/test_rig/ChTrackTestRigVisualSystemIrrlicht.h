@@ -20,13 +20,13 @@
 #ifndef CH_TRACK_TESTRIG_VISUAL_SYSTEM_IRRLICHT_H
 #define CH_TRACK_TESTRIG_VISUAL_SYSTEM_IRRLICHT_H
 
-#include "chrono_vehicle/utils/ChVehicleVisualSystemIrrlicht.h"
+#include "chrono_vehicle/ChVehicleVisualSystemIrrlicht.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRig.h"
 
 namespace chrono {
 namespace vehicle {
 
-/// @addtogroup vehicle_tracked_utils
+/// @addtogroup vehicle_tracked
 /// @{
 
 /// Customized Chrono Irrlicht application for track test rig visualization.
@@ -67,7 +67,7 @@ class CH_VEHICLE_API ChTrackTestRigVisualSystemIrrlicht : public ChVehicleVisual
     double m_axis_idler;
 };
 
-/// @} vehicle_tracked_utils
+/// @} vehicle_tracked
 
 }  // end namespace vehicle
 }  // end namespace chrono

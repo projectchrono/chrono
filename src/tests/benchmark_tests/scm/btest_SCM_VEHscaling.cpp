@@ -40,7 +40,7 @@ using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
 #endif
 

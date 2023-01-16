@@ -26,7 +26,7 @@
 #include <string>
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/utils/ChVehicleVisualSystemVSG.h"
+#include "chrono_vehicle/ChVehicleVisualSystemVSG.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChDriverSTR.h"
 
 namespace chrono {

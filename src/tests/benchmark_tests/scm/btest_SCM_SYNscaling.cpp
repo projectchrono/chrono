@@ -44,7 +44,7 @@
 #include "chrono_synchrono/utils/SynLog.h"
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 #endif
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"

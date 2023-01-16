@@ -23,7 +23,7 @@
 #include <algorithm>
 
 #include "chrono_vehicle/ChWorldFrame.h"
-#include "chrono_vehicle/utils/ChVehicleVisualSystemIrrlicht.h"
+#include "chrono_vehicle/ChVehicleVisualSystemIrrlicht.h"
 
 using namespace irr;
 

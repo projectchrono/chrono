@@ -17,38 +17,36 @@
 //
 // =============================================================================
 
-#ifndef CH_TRACKED_VEHICLE_VISUAL_SYSTEM_VSG_H
-#define CH_TRACKED_VEHICLE_VISUAL_SYSTEM_VSG_H
+#ifndef CH_WHEELED_VEHICLE_VISUAL_SYSTEM_IRRLICHT_H
+#define CH_WHEELED_VEHICLE_VISUAL_SYSTEM_IRRLICHT_H
 
-#include "chrono_vehicle/utils/ChVehicleVisualSystemVSG.h"
-#include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
+#include "chrono_vehicle/ChVehicleVisualSystemIrrlicht.h"
+#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
 namespace chrono {
 namespace vehicle {
 
-/// @addtogroup vehicle_tracked_utils
+/// @addtogroup vehicle_wheeled
 /// @{
 
 /// Customized Chrono Irrlicht visualization system for wheeled vehicle simulation.
-class CH_VEHICLE_API ChTrackedVehicleVisualSystemVSG : public ChVehicleVisualSystemVSG {
+class CH_VEHICLE_API ChWheeledVehicleVisualSystemIrrlicht : public ChVehicleVisualSystemIrrlicht {
   public:
     /// Construct a wheeled vehicle Irrlicht visualization.
-    ChTrackedVehicleVisualSystemVSG();
+    ChWheeledVehicleVisualSystemIrrlicht();
 
-    ~ChTrackedVehicleVisualSystemVSG() {}
+    ~ChWheeledVehicleVisualSystemIrrlicht() {}
 
-    /// Attach a vehicle to this VSG wheeled vehicle visualization system.
+    /// Attach a vehicle to this Irrlicht wheeled vehicle visualization system.
     virtual void AttachVehicle(vehicle::ChVehicle* vehicle) override;
 
-    virtual double GetSprocketTorque(int side) override;
-    virtual double GetSprocketSpeed(int side) override;
+  private:
+    virtual void renderOtherStats(int left, int top) override;
 
-private:
-    ChTrackedVehicle* m_tvehicle;
-    int m_drivenAxles = 0;
+    ChWheeledVehicle* m_wvehicle;
 };
 
-/// @} vehicle_tracked_utils
+/// @} vehicle_wheeled
 
 }  // end namespace vehicle
 }  // end namespace chrono

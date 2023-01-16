@@ -39,7 +39,7 @@
 
 #ifdef CHRONO_IRRLICHT
     #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
-    #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleIrrApp.h"
 #endif
 
 using namespace chrono;

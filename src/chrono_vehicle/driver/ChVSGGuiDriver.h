@@ -28,10 +28,13 @@
 #include "chrono_vehicle/ChVehicle.h"
 
 #include "chrono_vehicle/driver/ChDataDriver.h"
-#include "chrono_vehicle/utils/ChVehicleVisualSystemVSG.h"
+#include "chrono_vehicle/ChVehicleVisualSystemVSG.h"
 
 namespace chrono {
 namespace vehicle {
+
+/// @addtogroup vehicle_driver
+/// @{
 
 class CH_VEHICLE_API ChVSGGuiDriver : public ChDriver {
   public:
@@ -121,6 +124,8 @@ class CH_VEHICLE_API ChVSGGuiDriver : public ChDriver {
 
     friend class ChVehicleVisualSystemVSG;
 };
+
+/// @} vehicle_driver
 
 }  // namespace vehicle
 }  // namespace chrono

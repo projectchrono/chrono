@@ -28,7 +28,7 @@
 #include "chrono_vehicle/terrain/RandomSurfaceTerrain.h"
 #ifdef USE_IRRLICHT
     #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
-    #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 #endif
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono/utils/ChUtilsInputOutput.h"

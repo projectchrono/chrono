@@ -32,7 +32,7 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
 
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleIrrApp.h"
 
 #include "chrono_models/vehicle/m113/M113.h"
 

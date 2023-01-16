@@ -17,13 +17,11 @@
 //
 // =============================================================================
 
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
+#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline2WD.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline4WD.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline8WD.h"
-
-using namespace irr;
 
 namespace chrono {
 namespace vehicle {

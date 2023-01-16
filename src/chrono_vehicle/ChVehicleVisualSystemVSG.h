@@ -43,6 +43,9 @@ namespace vehicle {
 
 class ChVSGGuiDriver;
 
+/// @addtogroup vehicle
+/// @{
+
 class CH_VEHICLE_API ChVehicleVisualSystemVSG : public ChVehicleVisualSystem, public vsg3d::ChVisualSystemVSG {
   public:
     /// Construct a vehicle VSG visualization system
@@ -106,6 +109,8 @@ class CH_VEHICLE_API ChVehicleVisualSystemVSG : public ChVehicleVisualSystem, pu
 
     friend class ChVSGGuiDriver;
 };
+
+// @} vehicle
 
 }  // namespace vehicle
 }  // namespace chrono

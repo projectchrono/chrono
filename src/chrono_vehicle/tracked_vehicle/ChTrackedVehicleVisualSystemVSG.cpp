@@ -17,7 +17,7 @@
 //
 // =============================================================================
 
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleVisualSystemVSG.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h"
 
 namespace chrono {
 namespace vehicle {

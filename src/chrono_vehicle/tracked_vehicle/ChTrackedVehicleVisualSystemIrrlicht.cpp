@@ -19,9 +19,7 @@
 
 #include "chrono/core/ChMathematics.h"
 
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleVisualSystemIrrlicht.h"
-
-using namespace irr;
+#include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
 
 namespace chrono {
 namespace vehicle {

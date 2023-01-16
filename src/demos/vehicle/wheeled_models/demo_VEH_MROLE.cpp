@@ -30,7 +30,7 @@
 #include "chrono_vehicle/driver/ChDataDriver.h"
 #include "chrono_vehicle/output/ChVehicleOutputASCII.h"
 
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
+#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/mrole/mrole.h"
 

@@ -31,7 +31,7 @@
 #include "chrono_models/vehicle/m113/M113.h"
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleVisualSystemIrrlicht.h"
+    #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
     #define USE_IRRLICHT
 #endif
 

@@ -29,6 +29,9 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle
+/// @{
+
 class CH_VEHICLE_API ChVehicleVisualSystem : virtual public ChVisualSystem {
   public:
     ChVehicleVisualSystem();
@@ -81,6 +84,8 @@ class CH_VEHICLE_API ChVehicleVisualSystem : virtual public ChVisualSystem {
 
     friend class ChVehicle;
 };
+
+/// @} vehicle
 
 }  // namespace vehicle
 }  // namespace chrono

@@ -22,11 +22,11 @@
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 
 #ifdef CHRONO_IRRLICHT
-#include "chrono_vehicle/utils/ChVehicleVisualSystemIrrlicht.h"
+#include "chrono_vehicle/ChVehicleVisualSystemIrrlicht.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChIrrGuiDriverSTR.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleVisualSystemIrrlicht.h"
+#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
 
 //using namespace chrono::irrlicht;
 //using namespace irr;
@@ -110,11 +110,11 @@
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 
 #ifdef CHRONO_IRRLICHT
-%include "../../../chrono_vehicle/utils/ChVehicleVisualSystemIrrlicht.h"
+%include "../../../chrono_vehicle/ChVehicleVisualSystemIrrlicht.h"
 %include "../../../chrono_vehicle/driver/ChIrrGuiDriver.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/test_rig/ChIrrGuiDriverSTR.h"
-%include "../../../chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
-%include "../../../chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleVisualSystemIrrlicht.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
+%include "../../../chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
 %include "irrTypes.h"
 %include "vector2d.h"
 %include "dimension2d.h"
