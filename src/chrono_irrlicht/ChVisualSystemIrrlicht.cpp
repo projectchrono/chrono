@@ -603,6 +603,10 @@ void ChVisualSystemIrrlicht::RenderFrame(const ChFrame<>& frame, double axis_len
     irrlicht::tools::drawSegment(this, loc, loc + w * axis_length, ChColor(0, 0, 1));
 }
 
+void ChVisualSystemIrrlicht::RenderCOGFrames(double axis_length) {
+    irrlicht::tools::drawAllCOGs(this, axis_length);
+}
+
 void ChVisualSystemIrrlicht::WriteImageToFile(const std::string& filename) {
     video::IImage* image = GetVideoDriver()->createScreenShot();
     if (image) {

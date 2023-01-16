@@ -111,6 +111,9 @@ class ChApi ChVisualSystem {
     /// Render the specified reference frame.
     virtual void RenderFrame(const ChFrame<>& frame, double axis_length = 1) {}
 
+    /// Render COG frames for all bodies in the system.
+    virtual void RenderCOGFrames(double axis_length = 1) {}
+
     /// Perform any necessary operations ar the end of each rendering frame.
     virtual void EndScene() = 0;
 

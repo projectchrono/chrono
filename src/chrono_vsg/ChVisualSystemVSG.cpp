@@ -969,7 +969,6 @@ void ChVisualSystemVSG::Render() {
 
     m_viewer->update();
 
-    //=================================================================================
     // Dynamic data transfer CPU -> GPU
     if (m_allowVertexTransfer) {
         for (auto& vertices : m_vsgVerticesList) {
@@ -1013,7 +1012,6 @@ void ChVisualSystemVSG::Render() {
             colors->dirty();
         }
     }
-    //=================================================================================
 
     m_viewer->recordAndSubmit();
 
@@ -1024,6 +1022,10 @@ void ChVisualSystemVSG::Render() {
 
     m_viewer->present();
     m_params->frame_number++;
+}
+
+void ChVisualSystemVSG::RenderCOGFrames(double axis_length = 1) {
+    //// TODO
 }
 
 void ChVisualSystemVSG::WriteImageToFile(const string& filename) {

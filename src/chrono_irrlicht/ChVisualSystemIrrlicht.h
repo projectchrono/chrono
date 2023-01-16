@@ -268,6 +268,9 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// Render the specified reference frame.
     virtual void RenderFrame(const ChFrame<>& frame, double axis_length = 1) override;
 
+    /// Render COG frames for all bodies in the system.
+    virtual void RenderCOGFrames(double axis_length = 1) override;
+
     /// End the scene draw at the end of each animation frame.
     virtual void EndScene() override;
 

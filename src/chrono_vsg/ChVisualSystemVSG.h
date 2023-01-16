@@ -50,6 +50,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     virtual void BeginScene() override {}
     virtual void EndScene() override {}
     virtual void Render() override;
+    virtual void RenderCOGFrames(double axis_length = 1) override;
 
     void WriteImageToFile(const std::string& filename) override;
 
