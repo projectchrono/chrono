@@ -2,14 +2,8 @@
 # List of all VSG demos
 
 SET(DEMOS
-  demo_VSG_adams_parser
   demo_VSG_assets
-  demo_VSG_callbackNSC
-  demo_VSG_callbackSMC
-  demo_VSG_earthquake
   demo_VSG_paths
-  demo_VSG_opensim_parser
-  demo_VSG_spring
 )
 
 set(CMAKE_CXX_STANDARD 17)

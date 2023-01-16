@@ -1024,7 +1024,7 @@ void ChVisualSystemVSG::Render() {
     m_params->frame_number++;
 }
 
-void ChVisualSystemVSG::RenderCOGFrames(double axis_length = 1) {
+void ChVisualSystemVSG::RenderCOGFrames(double axis_length) {
     //// TODO
 }
 
