@@ -17,7 +17,7 @@
 
 #include <iostream>
 #include <string>
-#include "chrono_vsg/core/ChApiVSG.h"
+#include "chrono_vsg/ChApiVSG.h"
 
 #include <vsg/all.h>
 #include <vsgXchange/all.h>
@@ -36,6 +36,9 @@
 
 namespace chrono {
 namespace vsg3d {
+
+/// @addtogroup vsg_module
+/// @{
 
 class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
   public:
@@ -63,10 +66,10 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void SetWindowPosition(int from_left, int from_top);
     void SetWindowTitle(std::string title);
     void SetClearColor(ChColor color);
-    void SetOutputScreen(int screenNum=0);
-    void SetFullscreen(bool yesno=false);
+    void SetOutputScreen(int screenNum = 0);
+    void SetFullscreen(bool yesno = false);
     void SetUseSkyBox(bool yesno);
-    
+
     /// Draw the scene objects as wireframes.
     void SetWireFrameMode(bool mode = true) { m_draw_as_wireframe = mode; }
 
@@ -166,8 +169,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::dvec3 m_vsg_cameraTarget = vsg::dvec3(0.0, 0.0, 0.0);
     vsg::ref_ptr<vsg::LookAt> m_lookAt;
     vsg::ref_ptr<vsg::Camera> m_vsg_camera;
-    vsg::dvec3 m_system_symbol_position = vsg::dvec3(0.0,0.0,0.0);
-    vsg::dvec3 m_system_symbol_size = vsg::dvec3(1.0,1.0,1.0);
+    vsg::dvec3 m_system_symbol_position = vsg::dvec3(0.0, 0.0, 0.0);
+    vsg::dvec3 m_system_symbol_size = vsg::dvec3(1.0, 1.0, 1.0);
     //
     //  m_scene +- skybox, lights +- m_bodyScene
     //                            |
@@ -211,7 +214,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     // scenery object helper
     std::vector<vsg::ref_ptr<vsg::Group>> m_sceneryPtr;
     //============================================================
-private:
+  private:
     std::map<std::size_t, vsg::ref_ptr<vsg::Node>> m_objCache;
     std::hash<std::string> m_stringHash;
     int m_windowWidth = 800;
@@ -239,6 +242,9 @@ private:
     // bool m_do_image_export = false;
     float m_guiFontSize = 20.0f;
 };
+
+/// @} vsg_module
+
 }  // namespace vsg3d
 }  // namespace chrono
 #endif

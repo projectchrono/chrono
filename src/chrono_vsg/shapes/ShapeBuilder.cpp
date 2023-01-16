@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Radu Serban, Rainer Gericke
+// Rainer Gericke
 // =============================================================================
 
 #include "ShapeBuilder.h"
@@ -27,6 +27,7 @@
 
 namespace chrono {
 namespace vsg3d {
+
 void ShapeBuilder::assignCompileTraversal(vsg::ref_ptr<vsg::CompileTraversal> ct) {
     compileTraversal = ct;
 }

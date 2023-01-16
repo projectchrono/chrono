@@ -1,8 +1,22 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2022 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Rainer Gericke
+// =============================================================================
 
 #include "chrono_vsg/shapes/GetSurfaceShapeData.h"
 
 namespace chrono {
 namespace vsg3d {
+
 void GetSurfaceShapeData(std::shared_ptr<ChSurfaceShape> surface,
                          vsg::ref_ptr<vsg::vec3Array>& vertices,
                          vsg::ref_ptr<vsg::vec3Array>& normals,
@@ -12,7 +26,7 @@ void GetSurfaceShapeData(std::shared_ptr<ChSurfaceShape> surface,
     auto sections_u = surface->GetResolutionU() * 4;  //***TEST*** (from irrlicht surface)
     auto sections_v = surface->GetResolutionV() * 4;  //***TEST***
     auto nvertices = (sections_u + 1) * (sections_v + 1);
-    auto ntriangles = (sections_u) * (sections_v) * 2;
+    auto ntriangles = (sections_u) * (sections_v)*2;
     auto nindices = ntriangles * 3;
 
     vertices = vsg::vec3Array::create(nvertices);
@@ -57,5 +71,6 @@ void GetSurfaceShapeData(std::shared_ptr<ChSurfaceShape> surface,
     // bounding sphere radius > sqrt(a^2+a^2+a^2)
     boundingSphereRadius = 1.1f * surface->GetSurfaceGeometry()->GetBoundingSphereRadius();
 }
+
 }  // namespace vsg3d
 }  // namespace chrono

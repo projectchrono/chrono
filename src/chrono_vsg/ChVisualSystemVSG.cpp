@@ -559,7 +559,7 @@ void ChVisualSystemVSG::SetOutputScreen(int screenNum) {
     }
     int maxNum = vsg::Device::maxNumDevices();
     GetLog() << "Screens found: " << maxNum << "\n";
-    if(screenNum >= 0 && screenNum < maxNum) {
+    if (screenNum >= 0 && screenNum < maxNum) {
         m_screen_num = screenNum;
     } else {
         GetLog() << "Screen #" << screenNum << " cannot be used on this computer!\n";
@@ -663,23 +663,23 @@ int ChVisualSystemVSG::AddCamera(const ChVector<>& pos, ChVector<> targ) {
     }
 
     ChVector<> test = pos - targ;
-    if(test.Length() == 0.0) {
+    if (test.Length() == 0.0) {
         GetLog() << "Function '" << __func__ << "' Camera Pos and Target cannot be identical!\n";
         GetLog() << "  pos    = { " << pos.x() << " ; " << pos.y() << " ; " << pos.z() << " }\n";
         GetLog() << "  target = { " << targ.x() << " ; " << targ.y() << " ; " << targ.z() << " }\n";
         exit(42);
     }
-    if(m_yup) {
-        if(pos.x() == 0.0 && pos.z() == 0.0) {
+    if (m_yup) {
+        if (pos.x() == 0.0 && pos.z() == 0.0) {
             GetLog() << "Function '" << __func__ << "' Line of sight is parallel to upvector! -> Corrected!!\n";
-            m_vsg_cameraEye = vsg::dvec3(pos.x()+1.0, pos.y(), pos.z()+1.0);
+            m_vsg_cameraEye = vsg::dvec3(pos.x() + 1.0, pos.y(), pos.z() + 1.0);
         } else {
             m_vsg_cameraEye = vsg::dvec3(pos.x(), pos.y(), pos.z());
         }
     } else {
-        if(pos.x() == 0.0 && pos.y() == 0.0) {
+        if (pos.x() == 0.0 && pos.y() == 0.0) {
             GetLog() << "Function '" << __func__ << "' Line of sight is parallel to upvector! -> Corrected!!\n";
-            m_vsg_cameraEye = vsg::dvec3(pos.x()+1.0, pos.y()+1.0, pos.z());
+            m_vsg_cameraEye = vsg::dvec3(pos.x() + 1.0, pos.y() + 1.0, pos.z());
         } else {
             m_vsg_cameraEye = vsg::dvec3(pos.x(), pos.y(), pos.z());
         }
@@ -893,7 +893,7 @@ void ChVisualSystemVSG::Initialize() {
     // 1) there is no retina display
     // 2) standard resolution is demanded by MacOS (in our Irrlicht/VSG examples), set in the app bundle
     // in this case the desired font size is too big. We take the standard font instead.
-    if(m_window->traits()->width != m_window->extent2D().width) {
+    if (m_window->traits()->width != m_window->extent2D().width) {
 #endif
         auto foundFontFile = vsg::findFile("vsg/fonts/Ubuntu_Mono/UbuntuMono-Regular.ttf", m_options);
         if (foundFontFile) {
@@ -1679,20 +1679,20 @@ void ChVisualSystemVSG::SetColorBar(std::string title, double min_val, double ma
     m_params->show_color_bar = true;
 }
 
-int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualModel> model, const ChFrame<> &frame) {
+int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualModel> model, const ChFrame<>& frame) {
     return -1;
 }
 
-int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualShape> shape, const ChFrame<> &frame) {
+int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualShape> shape, const ChFrame<>& frame) {
     std::shared_ptr<ChVisualMaterial> material;
-    if(shape->GetMaterials().empty()) {
+    if (shape->GetMaterials().empty()) {
         material = chrono_types::make_shared<ChVisualMaterial>();
         material->SetDiffuseColor(ChColor(1.0, 1.0, 1.0));
         material->SetAmbientColor(ChColor(1.0, 1.0, 1.0));
     } else {
         material = shape->GetMaterial(0);
     }
-    
+
     auto pos = frame.GetPos();
     auto quat = frame.GetRot();
     double rotAngle;
@@ -1708,8 +1708,8 @@ int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualShape> shape, cons
         auto transform = vsg::MatrixTransform::create();
         grp->addChild(transform);
         grp->setValue("TransformPtr", transform);
-        transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                            vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z());
+        transform->matrix =
+            vsg::translate(pos.x(), pos.y(), pos.z()) * vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z());
         map<size_t, vsg::ref_ptr<vsg::Node>>::iterator objIt;
         objIt = m_objCache.find(objHashValue);
         if (objIt == m_objCache.end()) {
@@ -1728,7 +1728,7 @@ int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualShape> shape, cons
             m_decoScene->addChild(grp);
         }
         m_sceneryPtr.push_back(grp);
-        int newIdx = m_sceneryPtr.size()-1;
+        int newIdx = m_sceneryPtr.size() - 1;
         return newIdx;
     } else if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
         bool isDie = false;
@@ -1746,20 +1746,18 @@ int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualShape> shape, cons
                             vsg::scale(scale.x(), scale.y(), scale.z());
         vsg::ref_ptr<vsg::Group> grp;
         if (isDie) {
-            grp =
-                m_shapeBuilder->createShape(ShapeBuilder::DIE_SHAPE, material, transform, m_draw_as_wireframe);
+            grp = m_shapeBuilder->createShape(ShapeBuilder::DIE_SHAPE, material, transform, m_draw_as_wireframe);
             grp->setValue("TransformPtr", transform);
             grp->setValue("Scale", scale);
             m_decoScene->addChild(grp);
         } else {
-            grp =
-                m_shapeBuilder->createShape(ShapeBuilder::BOX_SHAPE, material, transform, m_draw_as_wireframe);
+            grp = m_shapeBuilder->createShape(ShapeBuilder::BOX_SHAPE, material, transform, m_draw_as_wireframe);
             grp->setValue("TransformPtr", transform);
             grp->setValue("Scale", scale);
             m_decoScene->addChild(grp);
         }
         m_sceneryPtr.push_back(grp);
-        int newIdx = m_sceneryPtr.size()-1;
+        int newIdx = m_sceneryPtr.size() - 1;
         return newIdx;
     } else if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
         ChVector<> scale = sphere->GetSphereGeometry().rad;
@@ -1767,27 +1765,25 @@ int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualShape> shape, cons
         transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                             vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                             vsg::scale(scale.x(), scale.y(), scale.z());
-        auto grp =
-            m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, material, transform, m_draw_as_wireframe);
+        auto grp = m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, material, transform, m_draw_as_wireframe);
         grp->setValue("TransformPtr", transform);
         grp->setValue("Scale", scale);
         m_decoScene->addChild(grp);
         m_sceneryPtr.push_back(grp);
-        int newIdx = m_sceneryPtr.size()-1;
+        int newIdx = m_sceneryPtr.size() - 1;
         return newIdx;
     } else if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
         ChVector<> scale = ellipsoid->GetEllipsoidGeometry().rad;
         auto transform = vsg::MatrixTransform::create();
         transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-        vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-        vsg::scale(scale.x(), scale.y(), scale.z());
-        auto grp =
-        m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, material, transform, m_draw_as_wireframe);
+                            vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                            vsg::scale(scale.x(), scale.y(), scale.z());
+        auto grp = m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, material, transform, m_draw_as_wireframe);
         grp->setValue("TransformPtr", transform);
         grp->setValue("Scale", scale);
         m_decoScene->addChild(grp);
         m_sceneryPtr.push_back(grp);
-        int newIdx = m_sceneryPtr.size()-1;
+        int newIdx = m_sceneryPtr.size() - 1;
         return newIdx;
     } else if (auto capsule = std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {
         double rad = capsule->GetCapsuleGeometry().rad;
@@ -1797,48 +1793,46 @@ int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualShape> shape, cons
         transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                             vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                             vsg::scale(scale.x(), scale.y(), scale.z());
-        auto grp =
-            m_shapeBuilder->createShape(ShapeBuilder::CAPSULE_SHAPE, material, transform, m_draw_as_wireframe);
+        auto grp = m_shapeBuilder->createShape(ShapeBuilder::CAPSULE_SHAPE, material, transform, m_draw_as_wireframe);
         grp->setValue("TransformPtr", transform);
         grp->setValue("Scale", scale);
         m_decoScene->addChild(grp);
         m_sceneryPtr.push_back(grp);
-        int newIdx = m_sceneryPtr.size()-1;
+        int newIdx = m_sceneryPtr.size() - 1;
         return newIdx;
     } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(shape)) {
         ChVector<> scale = cone->GetConeGeometry().rad;
         auto transform = vsg::MatrixTransform::create();
         transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-        vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-        vsg::scale(scale.x(), scale.y(), scale.z());
-        auto grp =
-        m_shapeBuilder->createShape(ShapeBuilder::CONE_SHAPE, material, transform, m_draw_as_wireframe);
+                            vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
+                            vsg::scale(scale.x(), scale.y(), scale.z());
+        auto grp = m_shapeBuilder->createShape(ShapeBuilder::CONE_SHAPE, material, transform, m_draw_as_wireframe);
         grp->setValue("TransformPtr", transform);
         grp->setValue("Scale", scale);
         m_decoScene->addChild(grp);
         m_sceneryPtr.push_back(grp);
-        int newIdx = m_sceneryPtr.size()-1;
+        int newIdx = m_sceneryPtr.size() - 1;
         return newIdx;
     }
     return -1;
 }
 
-void ChVisualSystemVSG::UpdateVisualModel(int id, const ChFrame<> &frame) {
-    if(id == -1 || id >= m_sceneryPtr.size()) {
+void ChVisualSystemVSG::UpdateVisualModel(int id, const ChFrame<>& frame) {
+    if (id == -1 || id >= m_sceneryPtr.size()) {
         GetLog() << "No update due to invalid object index!\n";
         return;
     }
     auto ptr = m_sceneryPtr.at(id);
     vsg::ref_ptr<vsg::MatrixTransform> transform;
     bool ok = ptr->getValue("TransformPtr", transform);
-    if(!ok) {
+    if (!ok) {
         GetLog() << "No update due to malconfiguration!\n";
         return;
     }
     ChVector<> scale;
     bool mustScale = ptr->getValue("Scale", scale);
-    if(!mustScale) {
-        scale = ChVector<>(1,1,1);
+    if (!mustScale) {
+        scale = ChVector<>(1, 1, 1);
     }
     auto pos = frame.GetPos();
     auto quat = frame.GetRot();
@@ -1847,7 +1841,7 @@ void ChVisualSystemVSG::UpdateVisualModel(int id, const ChFrame<> &frame) {
     quat.Q_to_AngAxis(rotAngle, rotAxis);
     transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                         vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                        vsg::scale(scale.x(),scale.y(),scale.z());
+                        vsg::scale(scale.x(), scale.y(), scale.z());
 }
 
 }  // namespace vsg3d

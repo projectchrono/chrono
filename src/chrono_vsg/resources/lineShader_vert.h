@@ -1,4 +1,5 @@
 #include <vsg/io/VSG.h>
+
 static auto lineShader_vert = []() {std::istringstream str(
 R"(#vsga 0.5.1
 Root id=1 vsg::ShaderStage

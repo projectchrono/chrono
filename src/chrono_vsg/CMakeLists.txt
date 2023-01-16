@@ -21,12 +21,9 @@ MARK_AS_ADVANCED(CLEAR VSG_ROOT)
 #-------------------------------------------------------------------------------
 # List all the files in the ChronoEngine_vsg lib
 SET(CE_VSG_BASE_FILES
+  ChApiVSG.h
   ChVisualSystemVSG.cpp
   ChVisualSystemVSG.h
-)
-
-SET(CE_VSG_CORE_FILES
-    core/ChApiVSG.h
 )
 
 SET(CE_VSG_SHAPES_FILES
@@ -68,7 +65,6 @@ SET(CE_VSG_TOOLS_FILES
 )
 
 SOURCE_GROUP("" FILES ${CE_VSG_BASE_FILES})
-SOURCE_GROUP("core" FILES ${CE_VSG_CORE_FILES})
 SOURCE_GROUP("shapes" FILES ${CE_VSG_SHAPES_FILES})
 SOURCE_GROUP("resources" FILES ${CE_VSG_RESOURCES_FILES})
 SOURCE_GROUP("tools" FILES ${CE_VSG_TOOLS_FILES})
@@ -94,7 +90,6 @@ set(CMAKE_CXX_STANDARD 17)
 
 ADD_LIBRARY(ChronoEngine_vsg SHARED
   ${CE_VSG_BASE_FILES}
-  ${CE_VSG_CORE_FILES}
   ${CE_VSG_SHAPES_FILES}
   ${CE_VSG_RESOURCES_FILES}
   ${CE_VSG_TOOLS_FILES}

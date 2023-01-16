@@ -20,12 +20,6 @@
 #include "chrono/ChVersion.h"
 #include "chrono/core/ChPlatform.h"
 
-/**
-    @defgroup vsg_module VSG module
-    @brief Runtime visualization with VSG
-
-*/
-
 // When compiling this library, remember to define CH_API_COMPILE_VSG so
 // that the symbols with 'CH_VSG_API' in front of them will be marked as
 // exported. When using this library, CH_API_COMPILE_VSG should be left
@@ -36,5 +30,26 @@
 #else
 #define CH_VSG_API ChApiIMPORT
 #endif
+
+/**
+    @defgroup vsg_module VSG module
+    @brief Runtime visualization with VSG
+
+    This module can be used to provide 3D realtime rendering in Chrono::Engine.
+
+    For additional information, see:
+    - the [installation guide](@ref module_vsg_installation)
+    - the [tutorials](@ref tutorial_root)
+*/
+
+namespace chrono {
+
+/// @addtogroup vsg_module
+/// @{
+
+/// Namespace with classes for the VSG module.
+namespace vsg3d {}
+
+}
 
 #endif

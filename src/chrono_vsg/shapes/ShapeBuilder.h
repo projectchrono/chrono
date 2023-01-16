@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Radu Serban, Rainer Gericke
+// Rainer Gericke
 // =============================================================================
 
 #ifndef CH_SHAPE_BUILDER_H
@@ -17,7 +17,7 @@
 
 #include <iostream>
 #include <string>
-#include "chrono_vsg/core/ChApiVSG.h"
+#include "chrono_vsg/ChApiVSG.h"
 
 #include <vsg/all.h>
 #include <vsgXchange/all.h>
@@ -33,6 +33,7 @@
 
 namespace chrono {
 namespace vsg3d {
+
 class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
   public:
     typedef enum {
@@ -56,14 +57,14 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
     // variant for general use, mesh can have unknown structure and noncontiguous faces
     // face normals will be converted to vertex normals, it will be bloated by additional vertices
     vsg::ref_ptr<vsg::Group> createTrimeshColShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
-            bool drawMode,
-            std::shared_ptr<ChTriangleMeshShape> tms = nullptr);
+                                                   bool drawMode,
+                                                   std::shared_ptr<ChTriangleMeshShape> tms = nullptr);
 
     // variant for SCMDeformableTerrain, regular mesh needed, no face normals allowed
     // no face colors allowed
     vsg::ref_ptr<vsg::Group> createTrimeshColShapeSCM(vsg::ref_ptr<vsg::MatrixTransform> transform,
-            bool drawMode,
-            std::shared_ptr<ChTriangleMeshShape> tms = nullptr);
+                                                      bool drawMode,
+                                                      std::shared_ptr<ChTriangleMeshShape> tms = nullptr);
 
     vsg::ref_ptr<vsg::Group> createTrimeshMatShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                    bool drawMode,
@@ -116,6 +117,7 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
 
     vsg::ref_ptr<vsg::CompileTraversal> compileTraversal;
 };
+
 }  // namespace vsg3d
 }  // namespace chrono
 #endif

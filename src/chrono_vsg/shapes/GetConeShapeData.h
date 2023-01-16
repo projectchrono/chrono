@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Radu Serban, Rainer Gericke
+// Rainer Gericke
 // =============================================================================
 
 #ifndef CH_CONE_SHAPE_DATA_H
@@ -17,7 +17,7 @@
 
 #include <iostream>
 #include <string>
-#include "chrono_vsg/core/ChApiVSG.h"
+#include "chrono_vsg/ChApiVSG.h"
 
 #include <vsg/all.h>
 #include <vsgXchange/all.h>
@@ -27,12 +27,14 @@
 
 namespace chrono {
 namespace vsg3d {
+
 void GetConeShapeData(vsg::ref_ptr<vsg::vec3Array>& vertices,
-                     vsg::ref_ptr<vsg::vec3Array>& normals,
-                     vsg::ref_ptr<vsg::vec2Array>& texcoords,
-                     vsg::ref_ptr<vsg::ushortArray>& indices,
-                     float& boundingSphereRadius);
-}
+                      vsg::ref_ptr<vsg::vec3Array>& normals,
+                      vsg::ref_ptr<vsg::vec2Array>& texcoords,
+                      vsg::ref_ptr<vsg::ushortArray>& indices,
+                      float& boundingSphereRadius);
+
+}  // namespace vsg3d
 }  // namespace chrono
 
 #endif

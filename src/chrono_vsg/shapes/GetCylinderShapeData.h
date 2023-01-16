@@ -17,7 +17,7 @@
 
 #include <iostream>
 #include <string>
-#include "chrono_vsg/core/ChApiVSG.h"
+#include "chrono_vsg/ChApiVSG.h"
 
 #include <vsg/all.h>
 #include <vsgXchange/all.h>
@@ -26,13 +26,15 @@
 #include "chrono/assets/ChVisualModel.h"
 
 namespace chrono {
-    namespace vsg3d {
-        void GetCylinderShapeData(vsg::ref_ptr<vsg::vec3Array>& vertices,
-                vsg::ref_ptr<vsg::vec3Array>& normals,
-                vsg::ref_ptr<vsg::vec2Array>& texcoords,
-                vsg::ref_ptr<vsg::ushortArray>& indices,
-                float& boundingSphereRadius);
-    }
+namespace vsg3d {
+
+void GetCylinderShapeData(vsg::ref_ptr<vsg::vec3Array>& vertices,
+                          vsg::ref_ptr<vsg::vec3Array>& normals,
+                          vsg::ref_ptr<vsg::vec2Array>& texcoords,
+                          vsg::ref_ptr<vsg::ushortArray>& indices,
+                          float& boundingSphereRadius);
+
+}  // namespace vsg3d
 }  // namespace chrono
 
 #endif

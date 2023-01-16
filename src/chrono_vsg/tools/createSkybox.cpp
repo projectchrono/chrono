@@ -18,6 +18,7 @@
 
 namespace chrono {
 namespace vsg3d {
+
 vsg::ref_ptr<vsg::Node> createSkybox(const vsg::Path& filename, vsg::ref_ptr<vsg::Options> options, bool yup) {
     auto data = vsg::read_cast<vsg::Data>(filename, options);
     if (!data) {
@@ -31,19 +32,20 @@ vsg::ref_ptr<vsg::Node> createSkybox(const vsg::Path& filename, vsg::ref_ptr<vsg
 
     // set up graphics pipeline
     vsg::DescriptorSetLayoutBindings descriptorBindings{
-            {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr}};
+        {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr}};
 
     auto descriptorSetLayout = vsg::DescriptorSetLayout::create(descriptorBindings);
 
     vsg::PushConstantRanges pushConstantRanges{
-            {VK_SHADER_STAGE_VERTEX_BIT, 0, 128} // projection view, and model matrices, actual push constant calls automatically provided by the VSG's DispatchTraversal
+        {VK_SHADER_STAGE_VERTEX_BIT, 0, 128}  // projection view, and model matrices, actual push constant calls
+                                              // automatically provided by the VSG's DispatchTraversal
     };
 
     vsg::VertexInputState::Bindings vertexBindingsDescriptions{
-            VkVertexInputBindingDescription{0, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX}};
+        VkVertexInputBindingDescription{0, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX}};
 
     vsg::VertexInputState::Attributes vertexAttributeDescriptions{
-            VkVertexInputAttributeDescription{0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0}};
+        VkVertexInputAttributeDescription{0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0}};
 
     auto rasterState = vsg::RasterizationState::create();
     rasterState->cullMode = VK_CULL_MODE_FRONT_BIT;
@@ -53,14 +55,15 @@ vsg::ref_ptr<vsg::Node> createSkybox(const vsg::Path& filename, vsg::ref_ptr<vsg
     depthState->depthWriteEnable = VK_FALSE;
 
     vsg::GraphicsPipelineStates pipelineStates{
-            vsg::VertexInputState::create(vertexBindingsDescriptions, vertexAttributeDescriptions),
-            vsg::InputAssemblyState::create(),
-            rasterState,
-            vsg::MultisampleState::create(),
-            vsg::ColorBlendState::create(),
-            depthState};
+        vsg::VertexInputState::create(vertexBindingsDescriptions, vertexAttributeDescriptions),
+        vsg::InputAssemblyState::create(),
+        rasterState,
+        vsg::MultisampleState::create(),
+        vsg::ColorBlendState::create(),
+        depthState};
 
-    auto pipelineLayout = vsg::PipelineLayout::create(vsg::DescriptorSetLayouts{descriptorSetLayout}, pushConstantRanges);
+    auto pipelineLayout =
+        vsg::PipelineLayout::create(vsg::DescriptorSetLayouts{descriptorSetLayout}, pushConstantRanges);
     auto pipeline = vsg::GraphicsPipeline::create(pipelineLayout, shaders, pipelineStates);
     auto bindGraphicsPipeline = vsg::BindGraphicsPipeline::create(pipeline);
 
@@ -72,7 +75,8 @@ vsg::ref_ptr<vsg::Node> createSkybox(const vsg::Path& filename, vsg::ref_ptr<vsg
     auto texture = vsg::DescriptorImage::create(sampler, data, 0, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
 
     auto descriptorSet = vsg::DescriptorSet::create(descriptorSetLayout, vsg::Descriptors{texture});
-    auto bindDescriptorSet = vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, descriptorSet);
+    auto bindDescriptorSet =
+        vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, descriptorSet);
 
     auto root = vsg::StateGroup::create();
     root->add(bindGraphicsPipeline);
@@ -136,8 +140,8 @@ vsg::ref_ptr<vsg::Node> createSkybox(const vsg::Path& filename, vsg::ref_ptr<vsg
     root->addChild(vsg::BindIndexBuffer::create(indices));
     root->addChild(vsg::DrawIndexed::create(indices->size(), 1, 0, 0, 0));
     auto xform = vsg::MatrixTransform::create();
-    //auto xform = vsg::MatrixTransform::create(vsg::rotate(vsg::PI * 0.5, 1.0, 0.0, 0.0));
-    if(yup) {
+    // auto xform = vsg::MatrixTransform::create(vsg::rotate(vsg::PI * 0.5, 1.0, 0.0, 0.0));
+    if (yup) {
         xform->matrix = vsg::rotate(-vsg::PI * 0.5, 0.0, 1.0, 0.0);
     } else {
         xform->matrix = vsg::rotate(vsg::PI * 0.5, 1.0, 0.0, 0.0);
@@ -146,5 +150,6 @@ vsg::ref_ptr<vsg::Node> createSkybox(const vsg::Path& filename, vsg::ref_ptr<vsg
 
     return xform;
 }
+
 }  // namespace vsg3d
 }  // namespace chrono

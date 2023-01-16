@@ -31,6 +31,9 @@ namespace irrlicht {
 class ChIrrEventReceiver;
 class ChVisualSystemIrrlicht;
 
+/// @addtogroup irrlicht_module
+/// @{
+
 /// Irrlicht GUI attached to a ChVisualSystemIrrlicht.
 class ChApiIrr ChIrrGUI {
   public:
@@ -147,6 +150,8 @@ class ChApiIrr ChIrrGUI {
     friend class ChIrrEventReceiver;
     friend class ChVisualSystemIrrlicht;
 };
+
+/// @} irrlicht_module
 
 }  // namespace irrlicht
 }  // namespace chrono

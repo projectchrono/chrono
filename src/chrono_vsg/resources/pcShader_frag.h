@@ -16,6 +16,7 @@
 #define PC_SHADER_FRAG_H
 
 #include <vsg/io/VSG.h>
+
 static auto pcShader_frag = []() {std::istringstream str(
 R"(#vsga 0.5.1
 Root id=1 vsg::ShaderStage

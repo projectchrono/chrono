@@ -44,6 +44,9 @@
 namespace chrono {
 namespace irrlicht {
 
+/// @addtogroup irrlicht_module
+/// @{
+
 /// Irrlicht-based Chrono run-time visualization system.
 class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
   public:
@@ -340,6 +343,8 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     irr::scene::IMesh* cylinderMesh;
     irr::scene::IMesh* capsuleMesh;
 };
+
+/// @} irrlicht_module
 
 }  // namespace irrlicht
 }  // namespace chrono
