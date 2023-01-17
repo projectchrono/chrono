@@ -458,7 +458,7 @@ void ChSystem::SetTimestepperType(ChTimestepper::Type type) {
         return;
 
     // Do nothing, if no change from current typestepper.
-    if (type == GetTimestepperType())
+    if (timestepper && type == timestepper->GetType())
         return;
 
     // Plug in the new required timestepper
