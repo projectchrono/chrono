@@ -46,6 +46,7 @@ class ChVSGGuiDriver;
 /// @addtogroup vehicle
 /// @{
 
+/// VSG-based Chrono run-time visualization system.
 class CH_VEHICLE_API ChVehicleVisualSystemVSG : public ChVehicleVisualSystem, public vsg3d::ChVisualSystemVSG {
   public:
     /// Construct a vehicle VSG visualization system
@@ -65,9 +66,6 @@ class CH_VEHICLE_API ChVehicleVisualSystemVSG : public ChVehicleVisualSystem, pu
     /// by the specified duration.
     virtual void Advance(double step) override;
 
-    /// Update information related to driver inputs.
-    virtual void Synchronize(const std::string& msg, const DriverInputs& driver_inputs) override;
-
     void SetTargetSymbol(double size, ChColor col);
     void SetTargetSymbolPosition(ChVector<> pos);
     void SetSentinelSymbol(double size, ChColor col);
@@ -83,22 +81,16 @@ class CH_VEHICLE_API ChVehicleVisualSystemVSG : public ChVehicleVisualSystem, pu
     void CameraZoom(int how);
     void CameraTurn(int how);
     void CameraRaise(int how);
-    void CameraState(utils::ChChaseCamera::State state);
 
     void LogContraintViolations();
 
-    virtual int GetGearPosition() override;
-    virtual double GetEngineSpeedRPM() override;
-    virtual double GetEngineTorque() override;
+    //// RADU TODO
+    ////  eliminate all!
     virtual char GetTransmissionMode() override;
     virtual char GetDriveMode() override;
-    virtual double GetTconvSlip() override;
-    virtual double GetTconvTorqueInput() override;
-    virtual double GetTconvTorqueOutput() override;
-    virtual double GetTconvSpeedOutput() override;
 
   protected:
-    void AttachGuiDriver(ChVSGGuiDriver* driver);
+    virtual void AppendGUIStats() {}
 
     ChVSGGuiDriver* m_guiDriver;
 

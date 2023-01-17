@@ -63,6 +63,13 @@ class CH_VEHICLE_API ChVehicleVisualSystem : virtual public ChVisualSystem {
     /// Advance (optional) dynamics of the visualization system.
     virtual void Advance(double step) {}
 
+    const ChVehicle& GetVehicle() const { return *m_vehicle; }
+    const utils::ChChaseCamera& GetChaseCamera() const { return *m_camera; }
+    double GetSteering() const { return m_steering; }
+    double GetThrottle() const { return m_throttle; }
+    double GetBraking() const { return m_braking; }
+    const std::string& GetDriverMsg() const { return m_driver_msg; }
+
   protected:
     ChVehicle* m_vehicle;  ///< pointer to the associated vehicle system
 

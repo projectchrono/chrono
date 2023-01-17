@@ -17,7 +17,7 @@
 //
 // =============================================================================
 
-#include "chrono_vehicle/ChVehicleVisualSystemVSG.h"
+#include "chrono_vsg/ChGuiComponentVSG.h"
 #include "chrono_vehicle/driver/ChVSGGuiDriver.h"
 
 namespace chrono {
@@ -110,92 +110,90 @@ class FindColorData : public vsg::Visitor {
     std::set<vsg::vec4Array*> colorsSet;
 };
 
+// -----------------------------------------------------------------------------
+
 class VehAppKeyboardHandler : public vsg::Inherit<vsg::Visitor, VehAppKeyboardHandler> {
   public:
-    VehAppKeyboardHandler(vsg::Viewer* viewer) : m_viewer(viewer) {}
+    VehAppKeyboardHandler(ChVehicleVisualSystemVSG* app) : m_app(app) {}
 
-    void SetParams(vsg::ref_ptr<ChVehicleVisualSystemVSG::StateParams> params, ChVehicleVisualSystemVSG* appPtr) {
-        _params = params;
-        m_appPtr = appPtr;
-    }
 #ifdef WIN32
     void apply(vsg::KeyPressEvent& keyPress) override {
         // keyboard events for camara steering
         switch (keyPress.keyModified) {
             case vsg::KEY_Down:
-                m_appPtr->CameraZoom(1);
+                m_app->CameraZoom(1);
                 return;
             case vsg::KEY_Up:
-                m_appPtr->CameraZoom(-1);
+                m_app->CameraZoom(-1);
                 return;
             case vsg::KEY_Left:
-                m_appPtr->CameraTurn(-1);
+                m_app->CameraTurn(-1);
                 return;
             case vsg::KEY_Right:  // not recognized on the Mac
             case 94:              // Mac hack
-                m_appPtr->CameraTurn(1);
+                m_app->CameraTurn(1);
                 return;
             case vsg::KEY_Next:
-                m_appPtr->CameraRaise(-1);
+                m_app->CameraRaise(-1);
                 return;
             case vsg::KEY_Prior:
-                m_appPtr->CameraRaise(1);
+                m_app->CameraRaise(1);
                 return;
             case vsg::KEY_a:
-                m_appPtr->SteeringLeft();
+                m_app->SteeringLeft();
                 return;
             case vsg::KEY_d:
-                m_appPtr->SteeringRight();
+                m_app->SteeringRight();
                 return;
             case vsg::KEY_c:
-                m_appPtr->SteeringCenter();
+                m_app->SteeringCenter();
                 return;
             case vsg::KEY_w:
-                m_appPtr->IncreaseVehicleSpeed();
+                m_app->IncreaseVehicleSpeed();
                 return;
             case vsg::KEY_s:
-                m_appPtr->DecreaseVehicleSpeed();
+                m_app->DecreaseVehicleSpeed();
                 return;
             case vsg::KEY_r:
-                m_appPtr->ReleasePedals();
+                m_app->ReleasePedals();
                 return;
             case vsg::KEY_1:
-                m_appPtr->CameraState(utils::ChChaseCamera::Chase);
+                m_app->SetChaseCameraState(utils::ChChaseCamera::Chase);
                 return;
             case vsg::KEY_2:
-                m_appPtr->CameraState(utils::ChChaseCamera::Follow);
+                m_app->SetChaseCameraState(utils::ChChaseCamera::Follow);
                 return;
             case vsg::KEY_3:
-                m_appPtr->CameraState(utils::ChChaseCamera::Track);
+                m_app->SetChaseCameraState(utils::ChChaseCamera::Track);
                 return;
             case vsg::KEY_4:
-                m_appPtr->CameraState(utils::ChChaseCamera::Inside);
+                m_app->SetChaseCameraState(utils::ChChaseCamera::Inside);
                 return;
             case vsg::KEY_5:
-                m_appPtr->CameraState(utils::ChChaseCamera::Free);
+                m_app->SetChaseCameraState(utils::ChChaseCamera::Free);
                 return;
             case vsg::KEY_V:
-                m_appPtr->LogContraintViolations();
+                m_app->LogContraintViolations();
                 return;
         }
         switch (keyPress.keyBase) {
             case vsg::KEY_a:
-                m_appPtr->SteeringLeft();
+                m_app->SteeringLeft();
                 return;
             case vsg::KEY_d:
-                m_appPtr->SteeringRight();
+                m_app->SteeringRight();
                 return;
             case vsg::KEY_c:
-                m_appPtr->SteeringCenter();
+                m_app->SteeringCenter();
                 return;
             case vsg::KEY_w:
-                m_appPtr->IncreaseVehicleSpeed();
+                m_app->IncreaseVehicleSpeed();
                 return;
             case vsg::KEY_s:
-                m_appPtr->DecreaseVehicleSpeed();
+                m_app->DecreaseVehicleSpeed();
                 return;
             case vsg::KEY_r:
-                m_appPtr->ReleasePedals();
+                m_app->ReleasePedals();
                 return;
         }
 #else
@@ -203,76 +201,238 @@ class VehAppKeyboardHandler : public vsg::Inherit<vsg::Visitor, VehAppKeyboardHa
         // keyboard events for camara steering
         switch (keyPress.keyBase) {
             case vsg::KEY_Down:
-                m_appPtr->CameraZoom(1);
+                m_app->CameraZoom(1);
                 return;
             case vsg::KEY_Up:
-                m_appPtr->CameraZoom(-1);
+                m_app->CameraZoom(-1);
                 return;
             case vsg::KEY_Left:
-                m_appPtr->CameraTurn(-1);
+                m_app->CameraTurn(-1);
                 return;
             case vsg::KEY_Right:  // not recognized on the Mac
     #ifdef __APPLE__
             case 94:              // Mac hack
     #endif
-                m_appPtr->CameraTurn(1);
+                m_app->CameraTurn(1);
                 return;
             case vsg::KEY_Next:
-                m_appPtr->CameraRaise(-1);
+                m_app->CameraRaise(-1);
                 return;
             case vsg::KEY_Prior:
-                m_appPtr->CameraRaise(1);
+                m_app->CameraRaise(1);
                 return;
             case vsg::KEY_a:
-                m_appPtr->SteeringLeft();
+                m_app->SteeringLeft();
                 return;
             case vsg::KEY_d:
-                m_appPtr->SteeringRight();
+                m_app->SteeringRight();
                 return;
             case vsg::KEY_c:
-                m_appPtr->SteeringCenter();
+                m_app->SteeringCenter();
                 return;
             case vsg::KEY_w:
-                m_appPtr->IncreaseVehicleSpeed();
+                m_app->IncreaseVehicleSpeed();
                 return;
             case vsg::KEY_s:
-                m_appPtr->DecreaseVehicleSpeed();
+                m_app->DecreaseVehicleSpeed();
                 return;
             case vsg::KEY_r:
-                m_appPtr->ReleasePedals();
+                m_app->ReleasePedals();
                 return;
             case vsg::KEY_1:
-                m_appPtr->CameraState(utils::ChChaseCamera::Chase);
-                _params->camera_mode = "Chase";
+                m_app->SetChaseCameraState(utils::ChChaseCamera::Chase);
                 return;
             case vsg::KEY_2:
-                m_appPtr->CameraState(utils::ChChaseCamera::Follow);
-                _params->camera_mode = "Follow";
+                m_app->SetChaseCameraState(utils::ChChaseCamera::Follow);
                 return;
             case vsg::KEY_3:
-                m_appPtr->CameraState(utils::ChChaseCamera::Track);
-                _params->camera_mode = "Track";
+                m_app->SetChaseCameraState(utils::ChChaseCamera::Track);
                 return;
             case vsg::KEY_4:
-                m_appPtr->CameraState(utils::ChChaseCamera::Inside);
-                _params->camera_mode = "Inside";
+                m_app->SetChaseCameraState(utils::ChChaseCamera::Inside);
                 return;
             case vsg::KEY_5:
-                m_appPtr->CameraState(utils::ChChaseCamera::Free);
-                _params->camera_mode = "Free";
+                m_app->SetChaseCameraState(utils::ChChaseCamera::Free);
                 return;
             case vsg::KEY_V:
-                m_appPtr->LogContraintViolations();
+                m_app->LogContraintViolations();
                 return;
         }
 #endif
     }
 
   private:
-    vsg::observer_ptr<vsg::Viewer> m_viewer;
-    vsg::ref_ptr<ChVehicleVisualSystemVSG::StateParams> _params;
-    ChVehicleVisualSystemVSG* m_appPtr;
+    ChVehicleVisualSystemVSG* m_app;
 };
+
+// -----------------------------------------------------------------------------
+
+class VehicleGuiComponent : public vsg3d::ChGuiComponentVSG {
+  public:
+    VehicleGuiComponent(ChVehicleVisualSystemVSG* app) : m_app(app) {}
+
+    virtual void render() override {
+        char label[64];
+        int nstr = sizeof(label) - 1;
+        ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
+        ImGui::Begin("App");
+
+        ImGui::BeginTable("SimTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                          ImVec2(0.0f, 0.0f));
+        snprintf(label, nstr, "%.4f s", m_app->GetModelTime());
+        ImGui::TableNextColumn();
+        ImGui::Text("Model Time:");
+        ImGui::TableNextColumn();
+        ImGui::Text(label);
+        ImGui::TableNextRow();
+        snprintf(label, nstr, "%.4f s", m_app->GetWallclockTime());
+        ImGui::TableNextColumn();
+        ImGui::Text("Wall Clock Time:");
+        ImGui::TableNextColumn();
+        ImGui::Text(label);
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Real Time Factor:");
+        ImGui::TableNextColumn();
+        snprintf(label, nstr, "%.2f", m_app->GetRealtimeFactor());
+        ImGui::Text(label);
+        ImGui::EndTable();
+        ImGui::Spacing();
+
+        if (ImGui::Button("Quit"))
+            m_app->Quit();
+
+        ImGui::End();
+    }
+
+  private:
+    ChVehicleVisualSystemVSG* m_app;
+};
+
+/*
+void VehicleGuiComponent::render() {
+    auto powertrain = m_app->GetVehicle().GetPowertrain();
+
+    char label[64];
+    int nstr = sizeof(label) - 1;
+
+    ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
+    ImGui::Begin("Vehicle");
+
+    ImGui::BeginTable("CamTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit, ImVec2(0.0f, 0.0f));
+    ImGui::TableNextColumn();
+    ImGui::Text("Camera State:");
+    ImGui::TableNextColumn();
+    ImGui::Text(m_app->GetChaseCamera().GetStateName().c_str());
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    ImGui::Text("Input Node:");
+    ImGui::TableNextColumn();
+    ImGui::Text(m_app->GetDriverMsg().c_str());
+    ImGui::EndTable();
+    ImGui::Spacing();
+    ImGui::BeginTable("VehTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit, ImVec2(0.0f, 0.0f));
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    ImGui::Text("Vehicle Speed:");
+    ImGui::TableNextColumn();
+    snprintf(label, nstr, "%.3f m/s", m_app->GetVehicle().GetSpeed());
+    ImGui::Text(label);
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    ImGui::Text("Steering:");
+    ImGui::TableNextColumn();
+    snprintf(label, nstr, "%.3f", m_app->GetSteering());
+    ImGui::Text(label);
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    ImGui::Text("Throttle:");
+    ImGui::TableNextColumn();
+    snprintf(label, nstr, "%.3f", m_app->GetThrottle());
+    ImGui::Text(label);
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    ImGui::Text("Braking:");
+    ImGui::TableNextColumn();
+    snprintf(label, nstr, "%.3f", m_app->GetBraking());
+    ImGui::Text(label);
+    ImGui::EndTable();
+
+    ImGui::Spacing();
+    
+    ImGui::BeginTable("PowerTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                      ImVec2(0.0f, 0.0f));
+    ImGui::TableNextColumn();
+    ImGui::Text("Engine Speed:");
+    ImGui::TableNextColumn();
+    snprintf(label, nstr, "%.1lf RPM", powertrain ? powertrain->GetMotorSpeed() * 30 / CH_C_PI : 0);
+    ImGui::Text(label);
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    ImGui::Text("Engine Torque:");
+    ImGui::TableNextColumn();
+    snprintf(label, nstr, "%.1lf Nm", powertrain ? powertrain->GetMotorTorque() : 0);
+    ImGui::Text(label);
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    switch (m_app->GetDriveMode()) {
+        case 'F':
+            snprintf(label, nstr, "[%c] Gear forward:", m_app->GetTransmissionMode());
+            break;
+        case 'N':
+            snprintf(label, nstr, "[%c] Gear neutral:", m_app->GetTransmissionMode());
+            break;
+        case 'R':
+            snprintf(label, nstr, "[%c] Gear reverse:", m_app->GetTransmissionMode());
+            break;
+        default:
+            snprintf(label, nstr, "[%c] Gear ?:", m_app->GetTransmissionMode());
+            break;
+    }
+    ImGui::Text(label);
+    ImGui::TableNextColumn();
+    snprintf(label, nstr, "%d", powertrain ? powertrain->GetCurrentTransmissionGear() : 0);
+    ImGui::Text(label);
+    ImGui::TableNextRow();
+    ImGui::EndTable();
+
+    ImGui::Spacing();
+
+    ImGui::BeginTable("ConvTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                      ImVec2(0.0f, 0.0f));
+    ImGui::TableNextColumn();
+    ImGui::Text("T.conv.slip:");
+    ImGui::TableNextColumn();
+    snprintf(label, nstr, "%.2f", powertrain ? powertrain->GetTorqueConverterSlippage() : 0);
+    ImGui::Text(label);
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    ImGui::Text("T.conv.torque.in:");
+    ImGui::TableNextColumn();
+    snprintf(label, nstr, "%.1f Nm", powertrain ? powertrain->GetTorqueConverterInputTorque() : 0);
+    ImGui::Text(label);
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    ImGui::Text("T.conv.torque.out:");
+    ImGui::TableNextColumn();
+    snprintf(label, nstr, "%.1f Nm", powertrain ? powertrain->GetTorqueConverterOutputTorque() : 0);
+    ImGui::Text(label);
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    ImGui::Text("T.conv.speed.out:");
+    ImGui::TableNextColumn();
+    snprintf(label, nstr, "%.1f RPM", powertrain ? powertrain->GetTorqueConverterOutputSpeed() * 0 / CH_C_PI : 0);
+    ImGui::Text(label);
+    ImGui::TableNextRow();
+    ImGui::EndTable();
+
+    ImGui::Spacing();
+
+    ImGui::End();
+}
+*/
+
+// -----------------------------------------------------------------------------
 
 ChVehicleVisualSystemVSG::ChVehicleVisualSystemVSG() : ChVisualSystemVSG(), m_guiDriver(nullptr) {
     m_params->showVehicleState = true;
@@ -281,13 +441,19 @@ ChVehicleVisualSystemVSG::ChVehicleVisualSystemVSG() : ChVisualSystemVSG(), m_gu
 ChVehicleVisualSystemVSG::~ChVehicleVisualSystemVSG() {}
 
 void ChVehicleVisualSystemVSG::Initialize() {
+    // Create vehicle-specific GUI and let derived classes append to it
+    //AttachGui(chrono_types::make_shared<VehicleGuiComponent>(this));
+    //m_gui.push_back(chrono_types::make_shared<VehicleGuiComponent>(this));
+
+    //AppendGUIStats();
+
+    // Invoke the base method
     ChVisualSystemVSG::Initialize();
 
-    // add keyboard handler
-    auto veh_kbHandler = VehAppKeyboardHandler::create(m_viewer);
-    veh_kbHandler->SetParams(m_params, this);
+    // Add keyboard handler
+    auto veh_kbHandler = VehAppKeyboardHandler::create(this);
     m_viewer->addEventHandler(veh_kbHandler);
-    CameraState(utils::ChChaseCamera::State::Chase);
+    SetChaseCameraState(utils::ChChaseCamera::State::Chase);
     if (!m_vehicle)
         return;
     if (!m_vehicle->GetPowertrain())
@@ -300,50 +466,9 @@ void ChVehicleVisualSystemVSG::Initialize() {
 
 void ChVehicleVisualSystemVSG::AttachVehicle(vehicle::ChVehicle* vehicle) {
     ChVehicleVisualSystem::AttachVehicle(vehicle);
-}
 
-void ChVehicleVisualSystemVSG::AttachGuiDriver(ChVSGGuiDriver* driver) {
-    m_guiDriver = driver;
-}
-
-void ChVehicleVisualSystemVSG::Synchronize(const std::string& msg, const DriverInputs& driver_inputs) {
-    if (m_vehicle) {
-        m_params->vehicleSpeed = m_vehicle->GetSpeed();
-        m_params->steering = driver_inputs.m_steering;
-        m_params->throttle = driver_inputs.m_throttle;
-        m_params->braking = driver_inputs.m_braking;
-        m_params->input_mode = msg;
-    } else {
-        m_params->vehicleSpeed = 0.0;
-        m_params->steering = 0.0;
-        m_params->throttle = 0.0;
-        m_params->braking = 0.0;
-        m_params->input_mode = "n. a.";
-    }
-}
-
-int ChVehicleVisualSystemVSG::GetGearPosition() {
-    if (!m_vehicle)
-        return 0;
-    if (!m_vehicle->GetPowertrain())
-        return 0;
-    return m_vehicle->GetPowertrain()->GetCurrentTransmissionGear();
-}
-
-double ChVehicleVisualSystemVSG::GetEngineSpeedRPM() {
-    if (!m_vehicle)
-        return 0.0;
-    if (!m_vehicle->GetPowertrain())
-        return 0.0;
-    return m_vehicle->GetPowertrain()->GetMotorSpeed() * 30.0 / CH_C_PI;
-}
-
-double ChVehicleVisualSystemVSG::GetEngineTorque() {
-    if (!m_vehicle)
-        return 0.0;
-    if (!m_vehicle->GetPowertrain())
-        return 0.0;
-    return m_vehicle->GetPowertrain()->GetMotorTorque();
+    //// RADU TODO 
+    ////   Anything else here? If not, eliminate!
 }
 
 char ChVehicleVisualSystemVSG::GetTransmissionMode() {
@@ -452,75 +577,6 @@ void ChVehicleVisualSystemVSG::CameraTurn(int how) {
 void ChVehicleVisualSystemVSG::CameraRaise(int how) {
     if (m_vehicle) {
         m_camera->Raise(how);
-    }
-}
-
-double ChVehicleVisualSystemVSG::GetTconvSlip() {
-    if (!m_vehicle)
-        return 0.0;
-    if (!m_vehicle->GetPowertrain())
-        return 0.0;
-    if (m_params->show_converter_data) {
-        return m_vehicle->GetPowertrain()->GetTorqueConverterSlippage();
-    } else {
-        return 0.0;
-    }
-}
-
-double ChVehicleVisualSystemVSG::GetTconvTorqueInput() {
-    if (!m_vehicle)
-        return 0.0;
-    if (!m_vehicle->GetPowertrain())
-        return 0.0;
-    if (m_params->show_converter_data) {
-        return m_vehicle->GetPowertrain()->GetTorqueConverterInputTorque();
-    } else {
-        return 0.0;
-    }
-}
-
-double ChVehicleVisualSystemVSG::GetTconvTorqueOutput() {
-    if (!m_vehicle)
-        return 0.0;
-    if (!m_vehicle->GetPowertrain())
-        return 0.0;
-    if (m_params->show_converter_data) {
-        return m_vehicle->GetPowertrain()->GetTorqueConverterOutputTorque();
-    } else {
-        return 0.0;
-    }
-}
-
-double ChVehicleVisualSystemVSG::GetTconvSpeedOutput() {
-    if (!m_vehicle)
-        return 0.0;
-    if (!m_vehicle->GetPowertrain())
-        return 0.0;
-    if (m_params->show_converter_data) {
-        return m_vehicle->GetPowertrain()->GetTorqueConverterOutputSpeed() * 30.0 / CH_C_PI;
-    } else {
-        return 0.0;
-    }
-}
-
-void ChVehicleVisualSystemVSG::CameraState(utils::ChChaseCamera::State state) {
-    m_camera->SetState(state);
-    switch (state) {
-        case utils::ChChaseCamera::State::Chase:
-            m_params->camera_mode = "Chase";
-            break;
-        case utils::ChChaseCamera::State::Follow:
-            m_params->camera_mode = "Follow";
-            break;
-        case utils::ChChaseCamera::State::Track:
-            m_params->camera_mode = "Track";
-            break;
-        case utils::ChChaseCamera::State::Inside:
-            m_params->camera_mode = "Inside";
-            break;
-        case utils::ChChaseCamera::State::Free:
-            m_params->camera_mode = "Free";
-            break;
     }
 }
 

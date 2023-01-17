@@ -24,6 +24,7 @@ SET(CE_VSG_BASE_FILES
   ChApiVSG.h
   ChVisualSystemVSG.cpp
   ChVisualSystemVSG.h
+  ChGuiComponentVSG.h
 )
 
 SET(CE_VSG_SHAPES_FILES

@@ -14,8 +14,11 @@
 // Radu Serban, Rainer Gericke
 // =============================================================================
 
-#include "chrono_vsg/tools/createSkybox.h"
-#include "chrono_vsg/tools/createQuad.h"
+#include <algorithm>
+#include <string>
+#include <cstddef>
+#include <cctype>
+
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChEllipsoidShape.h"
@@ -29,293 +32,77 @@
 #include "chrono/assets/ChLineShape.h"
 #include "chrono/assets/ChPathShape.h"
 #include "chrono/physics/ChParticleCloud.h"
-#include "ChVisualSystemVSG.h"
-#include <algorithm>
-#include <string>
-#include <cstddef>
-#include <cctype>
+
+#include "chrono_vsg/ChVisualSystemVSG.h"
+#include "chrono_vsg/tools/createSkybox.h"
+#include "chrono_vsg/tools/createQuad.h"
 
 namespace chrono {
 namespace vsg3d {
 
 using namespace std;
 
-class GuiComponent {
+class GuiComponentWrapper {
   public:
-    GuiComponent(vsg::ref_ptr<ChVisualSystemVSG::StateParams> params, ChVisualSystemVSG* appPtr)
-        : _params(params), m_appPtr(appPtr) {}
+    GuiComponentWrapper(std::shared_ptr<ChGuiComponentVSG> component, ChVisualSystemVSG* app)
+        : m_component(component), m_app(app) {}
 
-    // Example here taken from the Dear imgui comments (mostly)
     bool operator()() {
-        bool visibleComponents = false;
-        /*
-        ImGuiIO& io = ImGui::GetIO();
-        io.FontGlobalScale = _params->guiFontScale;
-        */
-        // 1. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
-        if (_params->showGui) {
-            char label[64];
-            int nstr = sizeof(label) - 1;
-            ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
-            ImGui::Begin("App:");  // Create a window called "Hello, world!" and append into it.
-
-            if (_params->showVehicleState) {
-                ImGui::BeginTable("CamTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
-                                  ImVec2(0.0f, 0.0f));
-                ImGui::TableNextColumn();
-                ImGui::Text("Camera State:");
-                ImGui::TableNextColumn();
-                ImGui::Text(_params->camera_mode.c_str());
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::Text("Input Node:");
-                ImGui::TableNextColumn();
-                ImGui::Text(_params->input_mode.c_str());
-                ImGui::EndTable();
-                ImGui::Spacing();
-                ImGui::BeginTable("VehTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
-                                  ImVec2(0.0f, 0.0f));
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::Text("Vehicle Speed:");
-                ImGui::TableNextColumn();
-                snprintf(label, nstr, "%.3f m/s", _params->vehicleSpeed);
-                ImGui::Text(label);
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::Text("Steering:");
-                ImGui::TableNextColumn();
-                snprintf(label, nstr, "%.3f", _params->steering);
-                ImGui::Text(label);
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::Text("Throttle:");
-                ImGui::TableNextColumn();
-                snprintf(label, nstr, "%.3f", _params->throttle);
-                ImGui::Text(label);
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::Text("Braking:");
-                ImGui::TableNextColumn();
-                snprintf(label, nstr, "%.3f", _params->braking);
-                ImGui::Text(label);
-                ImGui::EndTable();
-                ImGui::Spacing();
-                ImGui::BeginTable("PowerTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
-                                  ImVec2(0.0f, 0.0f));
-                ImGui::TableNextColumn();
-                ImGui::Text("Engine Speed:");
-                ImGui::TableNextColumn();
-                snprintf(label, nstr, "%.1lf RPM", m_appPtr->GetEngineSpeedRPM());
-                ImGui::Text(label);
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::Text("Engine Torque:");
-                ImGui::TableNextColumn();
-                snprintf(label, nstr, "%.1lf Nm", m_appPtr->GetEngineTorque());
-                ImGui::Text(label);
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                switch (m_appPtr->GetDriveMode()) {
-                    case 'F':
-                        snprintf(label, nstr, "[%c] Gear forward:", m_appPtr->GetTransmissionMode());
-                        break;
-                    case 'N':
-                        snprintf(label, nstr, "[%c] Gear neutral:", m_appPtr->GetTransmissionMode());
-                        break;
-                    case 'R':
-                        snprintf(label, nstr, "[%c] Gear reverse:", m_appPtr->GetTransmissionMode());
-                        break;
-                    default:
-                        snprintf(label, nstr, "[%c] Gear ?:", m_appPtr->GetTransmissionMode());
-                        break;
-                }
-                ImGui::Text(label);
-                ImGui::TableNextColumn();
-                snprintf(label, nstr, "%d", m_appPtr->GetGearPosition());
-                ImGui::Text(label);
-                ImGui::TableNextRow();
-                ImGui::EndTable();
-                ImGui::Spacing();
-                if (_params->show_converter_data) {
-                    ImGui::BeginTable("ConvTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
-                                      ImVec2(0.0f, 0.0f));
-                    ImGui::TableNextColumn();
-                    ImGui::Text("T.conv.slip:");
-                    ImGui::TableNextColumn();
-                    snprintf(label, nstr, "%.2f", m_appPtr->GetTconvSlip());
-                    ImGui::Text(label);
-                    ImGui::TableNextRow();
-                    ImGui::TableNextColumn();
-                    ImGui::Text("T.conv.torque.in:");
-                    ImGui::TableNextColumn();
-                    snprintf(label, nstr, "%.1f Nm", m_appPtr->GetTconvTorqueInput());
-                    ImGui::Text(label);
-                    ImGui::TableNextRow();
-                    ImGui::TableNextColumn();
-                    ImGui::Text("T.conv.torque.out:");
-                    ImGui::TableNextColumn();
-                    snprintf(label, nstr, "%.1f Nm", m_appPtr->GetTconvTorqueOutput());
-                    ImGui::Text(label);
-                    ImGui::TableNextRow();
-                    ImGui::TableNextColumn();
-                    ImGui::Text("T.conv.speed.out:");
-                    ImGui::TableNextColumn();
-                    snprintf(label, nstr, "%.1f RPM", m_appPtr->GetTconvSpeedOutput());
-                    ImGui::Text(label);
-                    ImGui::TableNextRow();
-                    ImGui::EndTable();
-                    ImGui::Spacing();
-                }
-                if (m_appPtr->GetNumDrivenAxles() > 0) {
-                    ImGui::BeginTable("TireTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
-                                      ImVec2(0.0f, 0.0f));
-                    ImGui::TableNextColumn();
-                    snprintf(label, nstr, "Torques wheel L: %+5.1f Nm", m_appPtr->GetTireTorque(0, 0));
-                    ImGui::Text(label);
-                    ImGui::TableNextColumn();
-                    snprintf(label, nstr, " R: %+5.1f Nm", m_appPtr->GetTireTorque(0, 1));
-                    ImGui::Text(label);
-                    ImGui::TableNextRow();
-                    if (m_appPtr->GetNumDrivenAxles() >= 2) {
-                        ImGui::TableNextColumn();
-                        snprintf(label, nstr, "Torques wheel L: %+5.1f Nm", m_appPtr->GetTireTorque(1, 0));
-                        ImGui::Text(label);
-                        ImGui::TableNextColumn();
-                        snprintf(label, nstr, " R: %+5.1f Nm", m_appPtr->GetTireTorque(1, 1));
-                        ImGui::Text(label);
-                        ImGui::TableNextRow();
-                    }
-                    if (m_appPtr->GetNumDrivenAxles() >= 4) {
-                        ImGui::TableNextColumn();
-                        snprintf(label, nstr, "Torques wheel L: %+5.1f Nm", m_appPtr->GetTireTorque(2, 0));
-                        ImGui::Text(label);
-                        ImGui::TableNextColumn();
-                        snprintf(label, nstr, " R: %+5.1f Nm", m_appPtr->GetTireTorque(2, 1));
-                        ImGui::Text(label);
-                        ImGui::TableNextRow();
-                        ImGui::TableNextColumn();
-                        snprintf(label, nstr, "Torques wheel L: %+5.1f Nm", m_appPtr->GetTireTorque(3, 0));
-                        ImGui::Text(label);
-                        ImGui::TableNextColumn();
-                        snprintf(label, nstr, " R: %+5.1f Nm", m_appPtr->GetTireTorque(3, 1));
-                        ImGui::Text(label);
-                        ImGui::TableNextRow();
-                    }
-                    ImGui::EndTable();
-                    ImGui::Spacing();
-                }
-            }
-            if (_params->showTrackedVehicleState) {
-                ImGui::BeginTable("TrackDriveTable", 3, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
-                                  ImVec2(0.0f, 0.0f));
-                ImGui::TableNextColumn();
-                snprintf(label, nstr, "Sprocket Torque");
-                ImGui::Text(label);
-                ImGui::TableNextColumn();
-                snprintf(label, nstr, "L: %+5.1f Nm", m_appPtr->GetSprocketTorque(0));
-                ImGui::Text(label);
-                ImGui::TableNextColumn();
-                snprintf(label, nstr, " R: %+5.1f Nm", m_appPtr->GetSprocketTorque(1));
-                ImGui::Text(label);
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                snprintf(label, nstr, "Sprocket Speed");
-                ImGui::Text(label);
-                ImGui::TableNextColumn();
-                snprintf(label, nstr, "L: %+5.1f RPM", m_appPtr->GetSprocketSpeed(0));
-                ImGui::Text(label);
-                ImGui::TableNextColumn();
-                snprintf(label, nstr, " R: %+5.1f RPM", m_appPtr->GetSprocketSpeed(1));
-                ImGui::Text(label);
-                ImGui::TableNextRow();
-                ImGui::EndTable();
-                ImGui::Spacing();
-            }
-            ImGui::BeginTable("SimTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
-                              ImVec2(0.0f, 0.0f));
-            snprintf(label, nstr, "%.4f s", m_appPtr->GetModelTime());
-            ImGui::TableNextColumn();
-            ImGui::Text("Model Time:");
-            ImGui::TableNextColumn();
-            ImGui::Text(label);
-            ImGui::TableNextRow();
-            snprintf(label, nstr, "%.4f s", m_appPtr->GetWallclockTime());
-            ImGui::TableNextColumn();
-            ImGui::Text("Wall Clock Time:");
-            ImGui::TableNextColumn();
-            ImGui::Text(label);
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::Text("Real Time Factor:");
-            ImGui::TableNextColumn();
-            snprintf(label, nstr, "%.2f", m_appPtr->GetRealtimeFactor());
-            ImGui::Text(label);
-            ImGui::EndTable();
-            ImGui::Spacing();
-
-            if (_params->show_color_bar) {
-                float alpha = 1.0f;
-                float cv = 0.9f;
-                float cv13 = cv / 3;
-                float cv23 = 2 * cv13;
-                ImGui::Text("Color Code: %s", _params->cb_title.c_str());
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0, 0.0, cv, alpha));
-                snprintf(label, nstr, "%.3f", _params->cb_min);
-                ImGui::Button(label);
-                ImGui::PopStyleColor(1);
-                ImGui::SameLine();
-                double cb_stride = _params->cb_max - _params->cb_min;
-                double cb_val = _params->cb_min + cb_stride * 1.0 / 6.0;
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0, cv13, cv, alpha));
-                snprintf(label, nstr, "%.3f", cb_val);
-                ImGui::Button(label);
-                ImGui::PopStyleColor(1);
-                ImGui::SameLine();
-                cb_val = _params->cb_min + cb_stride * 2.0 / 6.0;
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0, cv23, cv, alpha));
-                snprintf(label, nstr, "%.3f", cb_val);
-                ImGui::Button(label);
-                ImGui::PopStyleColor(1);
-                ImGui::SameLine();
-                cb_val = _params->cb_min + 0.5 * cb_stride;
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0, cv, 0.0, alpha));
-                snprintf(label, nstr, "%.3f", cb_val);
-                ImGui::Button(label);
-                ImGui::PopStyleColor(1);
-                ImGui::SameLine();
-                cb_val = _params->cb_min + cb_stride * 4.0 / 6.0;
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(cv, cv23, 0.0, alpha));
-                snprintf(label, nstr - 1, "%.3f", cb_val);
-                ImGui::Button(label);
-                ImGui::PopStyleColor(1);
-                ImGui::SameLine();
-                cb_val = _params->cb_min + cb_stride * 5.0 / 6.0;
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(cv, cv13, 0.0, alpha));
-                snprintf(label, nstr, "%.3f", cb_val);
-                ImGui::Button(label);
-                ImGui::PopStyleColor(1);
-                ImGui::SameLine();
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(cv, 0.0, 0.0, alpha));
-                snprintf(label, nstr, "%.3f", _params->cb_max);
-                ImGui::Button(label);
-                ImGui::PopStyleColor(1);
-            }
-            if (ImGui::Button(
-                    "Quit"))  // Buttons return true when clicked (most widgets return true whenedited/activated)
-                m_appPtr->Quit();
-
-            ImGui::End();
-            visibleComponents = true;
+        if (m_app->IsGuiVisible()) {
+            m_component->render();
+            return true;
         }
-
-        return visibleComponents;
+        return false;
     }
 
   private:
-    vsg::ref_ptr<ChVisualSystemVSG::StateParams> _params;
-    ChVisualSystemVSG* m_appPtr;
+    std::shared_ptr<ChGuiComponentVSG> m_component;
+    ChVisualSystemVSG* m_app;
 };
+
+class BaseGuiComponent : public ChGuiComponentVSG {
+  public:
+    BaseGuiComponent(ChVisualSystemVSG* app) : m_app(app) {}
+
+    // Example here taken from the Dear imgui comments (mostly)
+    virtual void render() override {
+        char label[64];
+        int nstr = sizeof(label) - 1;
+        ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
+        ImGui::Begin("App");
+
+        ImGui::BeginTable("SimTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                          ImVec2(0.0f, 0.0f));
+        snprintf(label, nstr, "%.4f s", m_app->GetModelTime());
+        ImGui::TableNextColumn();
+        ImGui::Text("Model Time:");
+        ImGui::TableNextColumn();
+        ImGui::Text(label);
+        ImGui::TableNextRow();
+        snprintf(label, nstr, "%.4f s", m_app->GetWallclockTime());
+        ImGui::TableNextColumn();
+        ImGui::Text("Wall Clock Time:");
+        ImGui::TableNextColumn();
+        ImGui::Text(label);
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Real Time Factor:");
+        ImGui::TableNextColumn();
+        snprintf(label, nstr, "%.2f", m_app->GetRealtimeFactor());
+        ImGui::Text(label);
+        ImGui::EndTable();
+        ImGui::Spacing();
+
+        if (ImGui::Button("Quit"))
+            m_app->Quit();
+
+        ImGui::End();
+    }
+
+    ChVisualSystemVSG* m_app;
+};
+
+// -----------------------------------------------------------------------------
 
 class FindVertexData : public vsg::Visitor {
   public:
@@ -406,32 +193,22 @@ class FindColorData : public vsg::Visitor {
 
 class AppKeyboardHandler : public vsg::Inherit<vsg::Visitor, AppKeyboardHandler> {
   public:
-    AppKeyboardHandler(vsg::Viewer* viewer) : m_viewer(viewer) {}
-
-    void SetParams(vsg::ref_ptr<ChVisualSystemVSG::StateParams> params, ChVisualSystemVSG* appPtr) {
-        _params = params;
-        m_appPtr = appPtr;
-    }
+    AppKeyboardHandler(ChVisualSystemVSG* app) : m_app(app) {}
 
     void apply(vsg::KeyPressEvent& keyPress) override {
         if (keyPress.keyBase == 'm' || keyPress.keyModified == 'm') {
-            // toggle graphical menu
-            _params->showGui = !_params->showGui;
+            m_app->ToggleGuiVisibility();
         }
         if (keyPress.keyBase == 't' || keyPress.keyModified == 't') {
-            // terminate process
-            m_appPtr->Quit();
+            m_app->Quit();
         }
         if (keyPress.keyBase == vsg::KEY_Escape || keyPress.keyModified == 65307) {
-            // terminate process
-            m_appPtr->Quit();
+            m_app->Quit();
         }
     }
 
   private:
-    vsg::observer_ptr<vsg::Viewer> m_viewer;
-    vsg::ref_ptr<ChVisualSystemVSG::StateParams> _params;
-    ChVisualSystemVSG* m_appPtr;
+    ChVisualSystemVSG* m_app;
 };
 
 struct Merge : public vsg::Inherit<vsg::Operation, Merge> {
@@ -486,36 +263,14 @@ struct LoadOperation : public vsg::Inherit<vsg::Operation, LoadOperation> {
     }
 };
 
-double ChVisualSystemVSG::GetModelTime() {
-    if (m_systems[0]) {
-        return m_systems[0]->GetChTime();
-    } else {
-        return 0.0;
-    }
-}
+// -----------------------------------------------------------------------------
 
-double ChVisualSystemVSG::GetWallclockTime() {
-    if (GetModelTime() > 0.0)
-        return double(clock()) / double(CLOCKS_PER_SEC) - m_params->time_begin;
-    else
-        return 0.0;
-}
-
-double ChVisualSystemVSG::GetRealtimeFactor() {
-    if (GetModelTime() > 0.0) {
-        return GetWallclockTime() / GetModelTime();
-    } else {
-        return 0.0;
-    }
-}
-
-ChVisualSystemVSG::ChVisualSystemVSG() {
+ChVisualSystemVSG::ChVisualSystemVSG() : m_yup(false), m_useSkybox(false), m_capture_image(false), m_showGui(true) {
     m_windowTitle = string("Window Title");
-    m_clearColor = ChColor(0.0, 0.0, 0.0);
+    m_clearColor = ChColor(0, 0, 0);
     m_skyboxPath = string("vsg/textures/chrono_skybox.ktx2");
-    m_useSkybox = false;
     m_cameraUpVector = vsg::dvec3(0, 0, 1);
-    m_yup = false;
+
     // creation here allows to set entries before initialize
     m_bodyScene = vsg::Group::create();
     m_cogScene = vsg::Group::create();
@@ -524,10 +279,12 @@ ChVisualSystemVSG::ChVisualSystemVSG() {
     m_decoScene = vsg::Group::create();
     m_symbolScene = vsg::Group::create();
     m_deformableScene = vsg::Group::create();
+    
     // set up defaults and read command line arguments to override them
     m_options = vsg::Options::create();
     m_options->paths = vsg::getEnvPaths("VSG_FILE_PATH");
     m_options->paths.push_back(GetChronoDataPath());
+    
     // add vsgXchange's support for reading and writing 3rd party file formats, mandatory for chrono_vsg!
     m_options->add(vsgXchange::all::create());
     m_options->sharedObjects = vsg::SharedObjects::create();
@@ -536,7 +293,7 @@ ChVisualSystemVSG::ChVisualSystemVSG() {
     m_shapeBuilder->m_sharedObjects = m_options->sharedObjects;
     m_vsgBuilder = vsg::Builder::create();
     m_vsgBuilder->options = m_options;
-    m_renderGui = nullptr;
+    
     // make some default settings
     SetWindowTitle("VSG: Vehicle Demo");
     SetWindowSize(ChVector2<int>(800, 600));
@@ -551,6 +308,8 @@ ChVisualSystemVSG::ChVisualSystemVSG() {
     SetGuiFontSize(10.0);
 #endif
 }
+
+ChVisualSystemVSG::~ChVisualSystemVSG() {}
 
 void ChVisualSystemVSG::SetOutputScreen(int screenNum) {
     if (m_initialized) {
@@ -575,14 +334,9 @@ void ChVisualSystemVSG::SetFullscreen(bool yesno) {
     m_use_fullscreen = yesno;
 }
 
-void ChVisualSystemVSG::AttachGui() {
-    m_renderGui = vsgImGui::RenderImGui::create(m_window, GuiComponent(m_params, this));
-    if (!m_renderGui) {
-        GetLog() << "Could not create GUI!\n";
-    }
+void ChVisualSystemVSG::AttachGui(std::shared_ptr<ChGuiComponentVSG> gc) {
+   m_gui.push_back(gc);
 }
-
-ChVisualSystemVSG::~ChVisualSystemVSG() {}
 
 void ChVisualSystemVSG::Quit() {
     m_viewer->close();
@@ -739,6 +493,29 @@ void ChVisualSystemVSG::SetLightDirection(double acimut, double elevation) {
     m_elevation = ChClamp(elevation, 0.0, CH_C_PI_2);
 }
 
+double ChVisualSystemVSG::GetModelTime() {
+    if (m_systems[0]) {
+        return m_systems[0]->GetChTime();
+    } else {
+        return 0.0;
+    }
+}
+
+double ChVisualSystemVSG::GetWallclockTime() {
+    if (GetModelTime() > 0.0)
+        return double(clock()) / double(CLOCKS_PER_SEC) - m_params->time_begin;
+    else
+        return 0.0;
+}
+
+double ChVisualSystemVSG::GetRealtimeFactor() {
+    if (GetModelTime() > 0.0) {
+        return GetWallclockTime() / GetModelTime();
+    } else {
+        return 0.0;
+    }
+}
+
 size_t ChVisualSystemVSG::GetFrameNumber() {
     return m_params->frame_number;
 }
@@ -868,8 +645,7 @@ void ChVisualSystemVSG::Initialize() {
     m_vsg_camera = vsg::Camera::create(perspective, m_lookAt, vsg::ViewportState::create(m_window->extent2D()));
 
     // add keyboard handler
-    auto kbHandler = AppKeyboardHandler::create(m_viewer);
-    kbHandler->SetParams(m_params, this);
+    auto kbHandler = AppKeyboardHandler::create(this);
     m_viewer->addEventHandler(kbHandler);
 
     m_viewer->addEventHandler(vsg::CloseHandler::create(m_viewer));
@@ -916,10 +692,15 @@ void ChVisualSystemVSG::Initialize() {
     }
 #endif
 
-    // Create the ImGui node and add it to the renderGraph
-    AttachGui();
-    if (m_renderGui) {
-        renderGraph->addChild(m_renderGui);
+    // Include the base GUI component
+    m_gui.push_back(chrono_types::make_shared<BaseGuiComponent>(this));
+
+    // Loop through all specified GUI components, wrap them, create the ImGui nodes, and add them to the renderGraph
+    for (const auto& c : m_gui) {
+        GuiComponentWrapper cw(c, this);
+        auto rg = vsgImGui::RenderImGui::create(m_window, cw);
+        m_renderGui.push_back(rg);
+        renderGraph->addChild(rg);
     }
 
     // Add the ImGui event handler first to handle events early
@@ -1015,9 +796,9 @@ void ChVisualSystemVSG::Render() {
 
     m_viewer->recordAndSubmit();
 
-    if (m_params->do_image_capture) {
+    if (m_capture_image) {
         exportScreenshot(m_window, m_options, m_imageFilename);
-        m_params->do_image_capture = false;
+        m_capture_image = false;
     }
 
     m_viewer->present();
@@ -1030,7 +811,7 @@ void ChVisualSystemVSG::RenderCOGFrames(double axis_length) {
 
 void ChVisualSystemVSG::WriteImageToFile(const string& filename) {
     m_imageFilename = filename;
-    m_params->do_image_capture = true;
+    m_capture_image = true;
 }
 
 void ChVisualSystemVSG::BindAll() {

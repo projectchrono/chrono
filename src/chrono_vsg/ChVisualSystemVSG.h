@@ -17,7 +17,6 @@
 
 #include <iostream>
 #include <string>
-#include "chrono_vsg/ChApiVSG.h"
 
 #include <vsg/all.h>
 #include <vsgXchange/all.h>
@@ -30,9 +29,11 @@
 #include <vsgImGui/SendEventsToImGui.h>
 #include <vsgImGui/imgui.h>
 
-#include "tools/createSkybox.h"
-#include "tools/exportScreenshot.h"
-#include "shapes/ShapeBuilder.h"
+#include "chrono_vsg/ChApiVSG.h"
+#include "chrono_vsg/ChGuiComponentVSG.h"
+#include "chrono_vsg/tools/createSkybox.h"
+#include "chrono_vsg/tools/exportScreenshot.h"
+#include "chrono_vsg/shapes/ShapeBuilder.h"
 
 namespace chrono {
 namespace vsg3d {
@@ -121,11 +122,21 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     virtual double GetTireTorque(int axle, int side) { return 0.0; }
     virtual double GetSprocketTorque(int side) { return 0.0; }
     virtual double GetSprocketSpeed(int side) { return 0.0; }
-    virtual void AttachGui();
 
+    /// Add a GUI component.
+    /// This function must be called before Initialize().
+    void AttachGui(std::shared_ptr<ChGuiComponentVSG> gc);
+
+    /// Toggle GUI visibility for all GUI components.
+    void ToggleGuiVisibility() { m_showGui = !m_showGui; }
+
+    /// Return bollean indicating whether or not GUI are visible.
+    bool IsGuiVisible() { return m_showGui; }
+
+    //// RADU TODO 
+    ////   eliminate!
     struct StateParams : public vsg::Inherit<vsg::Object, StateParams> {
         bool showGui = true;            // (don't) show the imgui menu, actually unused
-        bool do_image_capture = false;  // mark image capturing as needed
         double cogSymbolSize = 0.0;
         size_t frame_number = 0;  // updated in Run() loop
         double time_begin = 0.0;  // wallclock time at begin of Run() loop
@@ -158,13 +169,20 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
                               ChVector<>& pos,
                               double& rotAngle,
                               ChVector<>& rotAxis);
+
     bool m_initialized = false;
     int m_screen_num = -1;
     bool m_use_fullscreen = false;
-    vsg::ref_ptr<vsgImGui::RenderImGui> m_renderGui;
     vsg::ref_ptr<ChVisualSystemVSG::StateParams> m_params = StateParams::create();
+
     vsg::ref_ptr<vsg::Window> m_window;
     vsg::ref_ptr<vsg::Viewer> m_viewer;
+    vsg::ref_ptr<vsg::RenderGraph> m_renderGraph;
+
+    bool m_showGui;                                                ///< flag to toggle global GUI visibility
+    std::vector<std::shared_ptr<ChGuiComponentVSG>> m_gui;         ///< list of all GUI components
+    std::vector<vsg::ref_ptr<vsgImGui::RenderImGui>> m_renderGui;  ///< list of all imGUI objects
+
     vsg::dvec3 m_vsg_cameraEye = vsg::dvec3(-10.0, 0.0, 0.0);
     vsg::dvec3 m_vsg_cameraTarget = vsg::dvec3(0.0, 0.0, 0.0);
     vsg::ref_ptr<vsg::LookAt> m_lookAt;
@@ -200,8 +218,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     bool m_draw_as_wireframe = false;
     vsg::ref_ptr<vsg::Options> m_options;
     //
+    bool m_capture_image;
     std::string m_imageFilename;
-    //============================================================
+
     size_t m_num_vsgVertexList = 0;
     bool m_allowVertexTransfer = false;
     bool m_allowNormalsTransfer = false;
@@ -210,10 +229,10 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     std::vector<vsg::ref_ptr<vsg::vec3Array>> m_vsgNormalsList;
     std::vector<vsg::ref_ptr<vsg::vec4Array>> m_vsgColorsList;
     std::shared_ptr<ChTriangleMeshShape> m_mbsMesh;
-    //============================================================
+
     // scenery object helper
     std::vector<vsg::ref_ptr<vsg::Group>> m_sceneryPtr;
-    //============================================================
+
   private:
     std::map<std::size_t, vsg::ref_ptr<vsg::Node>> m_objCache;
     std::hash<std::string> m_stringHash;
@@ -247,4 +266,5 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
 }  // namespace vsg3d
 }  // namespace chrono
+
 #endif

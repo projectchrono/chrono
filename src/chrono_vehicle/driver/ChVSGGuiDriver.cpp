@@ -34,7 +34,7 @@ ChVSGGuiDriver::ChVSGGuiDriver(ChVehicleVisualSystemVSG& vsys)
       m_steering_gain(4.0),
       m_throttle_gain(4.0),
       m_braking_gain(4.0) {
-    vsys.AttachGuiDriver(this);
+    vsys.m_guiDriver = this;
 }
 
 ChVSGGuiDriver::~ChVSGGuiDriver() {}
