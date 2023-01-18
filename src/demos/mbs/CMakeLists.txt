@@ -1,58 +1,65 @@
 #--------------------------------------------------------------
 # List of all MBS demos
 
+# Add demos that can work with either Irrlicht or VSG
 set(DEMOS
-  demo_MBS_bricks
-  demo_MBS_cohesion
-  demo_MBS_conveyor
-  demo_MBS_feeder
-  demo_MBS_crank
-  demo_MBS_forklift
-  demo_MBS_fourbar
-  demo_MBS_friction
-  demo_MBS_gears
-  demo_MBS_mecanum
-  demo_MBS_pendulum
-  demo_MBS_sph
-  demo_MBS_suspension
-  demo_MBS_tire
-  demo_MBS_tracks
-  demo_MBS_convergence
-  demo_MBS_soilbin
-  demo_MBS_ballSMC
-  demo_MBS_collisionNSC
-  demo_MBS_collisionSMC
-  demo_MBS_collision_trimesh
-  demo_MBS_collision_2d
-  demo_MBS_emitter
-  demo_MBS_emit_cluster
-  demo_MBS_emit_processor
   demo_MBS_aux_ref
-  demo_MBS_rev_sph
-  demo_MBS_rev_trans
-  demo_MBS_rev_limits
-  demo_MBS_rot_spring
-  demo_MBS_spring
-  demo_MBS_ujoint
-  demo_MBS_earthquake
-  demo_MBS_plane_plane
-  demo_MBS_link_bushing
-  demo_MBS_prismatic_limits
-  demo_MBS_prismatic_force
+  demo_MBS_ballSMC
+  demo_MBS_bricks
   demo_MBS_callbackNSC
   demo_MBS_callbackSMC
-  demo_MBS_motors
-  demo_MBS_OpenSim_parser
-  demo_MBS_report_collisions
-  demo_MBS_Adams_parser
-  demo_MBS_imposed_motion
-  demo_MBS_custom_contact
+  demo_MBS_collisionNSC
+  demo_MBS_collisionSMC
+  demo_MBS_earthquake
+  demo_MBS_friction
+  demo_MBS_spring
 )
 
-if(THRUST_FOUND)
-  set(DEMOS ${DEMOS}
-    demo_MBS_collision_object
-  )
+# Add demos that can only work with Irrlicht
+if(ENABLE_MODULE_IRRLICHT)
+    set(DEMOS ${DEMOS}
+      demo_MBS_cohesion
+      demo_MBS_conveyor
+      demo_MBS_feeder
+      demo_MBS_crank
+      demo_MBS_forklift
+      demo_MBS_fourbar
+      demo_MBS_gears
+      demo_MBS_mecanum
+      demo_MBS_pendulum
+      demo_MBS_sph
+      demo_MBS_suspension
+      demo_MBS_tire
+      demo_MBS_tracks
+      demo_MBS_convergence
+      demo_MBS_soilbin
+      demo_MBS_collision_trimesh
+      demo_MBS_collision_2d
+      demo_MBS_emitter
+      demo_MBS_emit_cluster
+      demo_MBS_emit_processor
+      demo_MBS_rev_sph
+      demo_MBS_rev_trans
+      demo_MBS_rev_limits
+      demo_MBS_rot_spring
+      demo_MBS_ujoint
+      demo_MBS_plane_plane
+      demo_MBS_link_bushing
+      demo_MBS_prismatic_limits
+      demo_MBS_prismatic_force
+      demo_MBS_motors
+      demo_MBS_OpenSim_parser
+      demo_MBS_report_collisions
+      demo_MBS_Adams_parser
+      demo_MBS_imposed_motion
+      demo_MBS_custom_contact
+    )
+
+    if(THRUST_FOUND)
+      set(DEMOS ${DEMOS}
+        demo_MBS_collision_object
+      )
+    endif()
 endif()
 
 #--------------------------------------------------------------
