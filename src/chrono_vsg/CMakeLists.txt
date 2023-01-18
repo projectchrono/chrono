@@ -65,11 +65,19 @@ SET(CE_VSG_TOOLS_FILES
         tools/exportScreenshot.h
 )
 
+set(CE_VSG_STB_FILES
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb.h
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image.h
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image.cpp
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.h
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.cpp
+)
+
 SOURCE_GROUP("" FILES ${CE_VSG_BASE_FILES})
 SOURCE_GROUP("shapes" FILES ${CE_VSG_SHAPES_FILES})
 SOURCE_GROUP("resources" FILES ${CE_VSG_RESOURCES_FILES})
 SOURCE_GROUP("tools" FILES ${CE_VSG_TOOLS_FILES})
-
+SOURCE_GROUP("utils" FILES ${CE_VSG_STB_FILES})
 
 #-------------------------------------------------------------------------------
 # Find the VSG library
@@ -94,8 +102,8 @@ ADD_LIBRARY(ChronoEngine_vsg SHARED
   ${CE_VSG_SHAPES_FILES}
   ${CE_VSG_RESOURCES_FILES}
   ${CE_VSG_TOOLS_FILES}
+  ${CE_VSG_STB_FILES}
 )
-
 
 target_compile_definitions(ChronoEngine_vsg PRIVATE "CH_API_COMPILE_VSG")
 
