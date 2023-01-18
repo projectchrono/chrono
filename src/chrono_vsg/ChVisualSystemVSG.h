@@ -20,14 +20,27 @@
 
 #include <vsg/all.h>
 #include <vsgXchange/all.h>
+#include <vsgImGui/RenderImGui.h>
+#include <vsgImGui/SendEventsToImGui.h>
+#include <vsgImGui/imgui.h>
 
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono/assets/ChVisualModel.h"
 #include "chrono/physics/ChLoadContainer.h"
 
-#include <vsgImGui/RenderImGui.h>
-#include <vsgImGui/SendEventsToImGui.h>
-#include <vsgImGui/imgui.h>
+#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChEllipsoidShape.h"
+#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChCapsuleShape.h"
+#include "chrono/assets/ChBarrelShape.h"
+#include "chrono/assets/ChConeShape.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChSurfaceShape.h"
+#include "chrono/assets/ChObjFileShape.h"
+#include "chrono/assets/ChLineShape.h"
+#include "chrono/assets/ChPathShape.h"
+#include "chrono/physics/ChParticleCloud.h"
 
 #include "chrono_vsg/ChApiVSG.h"
 #include "chrono_vsg/ChGuiComponentVSG.h"

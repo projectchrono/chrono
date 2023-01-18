@@ -19,20 +19,6 @@
 #include <cstddef>
 #include <cctype>
 
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChEllipsoidShape.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChCapsuleShape.h"
-#include "chrono/assets/ChBarrelShape.h"
-#include "chrono/assets/ChConeShape.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/assets/ChSurfaceShape.h"
-#include "chrono/assets/ChObjFileShape.h"
-#include "chrono/assets/ChLineShape.h"
-#include "chrono/assets/ChPathShape.h"
-#include "chrono/physics/ChParticleCloud.h"
-
 #include "chrono_vsg/ChVisualSystemVSG.h"
 #include "chrono_vsg/tools/createSkybox.h"
 #include "chrono_vsg/tools/createQuad.h"
