@@ -947,13 +947,7 @@ if(ENABLE_MODULE_VSG)
     target_compile_definitions(ChronoEngine_vehicle_vsg PRIVATE "CH_API_COMPILE_VEHICLE")
     target_compile_definitions(ChronoEngine_vehicle_vsg PRIVATE "CH_IGNORE_DEPRECATED")
     
-    target_link_libraries(ChronoEngine_vehicle_vsg 
-        ChronoEngine_vsg
-        ${LIBRARIES}
-        vsg::vsg
-        vsgImGui::vsgImGui
-        vsgXchange::vsgXchange  
-        )
+    target_link_libraries(ChronoEngine_vehicle_vsg ${LIBRARIES})
     
     install(TARGETS ChronoEngine_vehicle_vsg
             RUNTIME DESTINATION bin

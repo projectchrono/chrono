@@ -7,11 +7,11 @@
 option(ENABLE_MODULE_VSG "Enable the Chrono VSG module" OFF)
 
 # Return now if this module is not enabled
-IF(NOT ENABLE_MODULE_VSG)
-  MARK_AS_ADVANCED(FORCE VSG_LIBRARY)
-  MARK_AS_ADVANCED(FORCE VSG_ROOT)
-  RETURN()
-ENDIF()
+if(NOT ENABLE_MODULE_VSG)
+   MARK_AS_ADVANCED(FORCE VSG_LIBRARY)
+   MARK_AS_ADVANCED(FORCE VSG_ROOT)
+   RETURN()
+endif()
 
 MESSAGE(STATUS "==== Chrono VSG module ====")
 
@@ -20,11 +20,12 @@ MARK_AS_ADVANCED(CLEAR VSG_ROOT)
 
 #-------------------------------------------------------------------------------
 # List all the files in the ChronoEngine_vsg lib
+
 SET(CE_VSG_BASE_FILES
-  ChApiVSG.h
-  ChVisualSystemVSG.cpp
-  ChVisualSystemVSG.h
-  ChGuiComponentVSG.h
+    ChApiVSG.h
+    ChVisualSystemVSG.cpp
+    ChVisualSystemVSG.h
+    ChGuiComponentVSG.h
 )
 
 SET(CE_VSG_SHAPES_FILES
@@ -57,12 +58,12 @@ SET(CE_VSG_RESOURCES_FILES
 )
 
 SET(CE_VSG_TOOLS_FILES
-        tools/createQuad.cpp
-        tools/createQuad.h
-        tools/createSkybox.cpp
-        tools/createSkybox.h
-        tools/exportScreenshot.cpp
-        tools/exportScreenshot.h
+    tools/createQuad.cpp
+    tools/createQuad.h
+    tools/createSkybox.cpp
+    tools/createSkybox.h
+    tools/exportScreenshot.cpp
+    tools/exportScreenshot.h
 )
 
 set(CE_VSG_STB_FILES
@@ -81,7 +82,8 @@ SOURCE_GROUP("utils" FILES ${CE_VSG_STB_FILES})
 
 #-------------------------------------------------------------------------------
 # Find the VSG library
-if (VULKAN_SDK)
+
+if(VULKAN_SDK)
     set(ENV{VULKAN_SDK} ${VULKAN_SDK})
 endif()
 
@@ -97,33 +99,27 @@ set(CMAKE_CXX_STANDARD 17)
 #-------------------------------------------------------------------------------
 # Create the ChronoEngine_vsg library
 
-ADD_LIBRARY(ChronoEngine_vsg SHARED
-  ${CE_VSG_BASE_FILES}
-  ${CE_VSG_SHAPES_FILES}
-  ${CE_VSG_RESOURCES_FILES}
-  ${CE_VSG_TOOLS_FILES}
-  ${CE_VSG_STB_FILES}
-)
+add_library(ChronoEngine_vsg SHARED
+            ${CE_VSG_BASE_FILES}
+            ${CE_VSG_SHAPES_FILES}
+            ${CE_VSG_RESOURCES_FILES}
+            ${CE_VSG_TOOLS_FILES}
+            ${CE_VSG_STB_FILES})
 
 target_compile_definitions(ChronoEngine_vsg PRIVATE "CH_API_COMPILE_VSG")
 
-TARGET_LINK_LIBRARIES(ChronoEngine_vsg
-  ChronoEngine
-  vsg::vsg
-  vsgImGui::vsgImGui
-  vsgXchange::vsgXchange
-)
-
-ADD_DEPENDENCIES (ChronoEngine_vsg ChronoEngine vsgImGui::vsgImGui vsg::vsg vsgXchange::vsgXchange)
-
+target_link_libraries(ChronoEngine_vsg
+                      ChronoEngine
+                      vsg::vsg
+                      vsgImGui::vsgImGui
+                      vsgXchange::vsgXchange)
 
 #-------------------------------------------------------------------------------
 # Install the ChronoEngine_vsg library
 
-INSTALL(TARGETS ChronoEngine_vsg
-  RUNTIME DESTINATION bin
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-)
+install(TARGETS ChronoEngine_vsg
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
 
-INSTALL(FILES ${ChronoEngine_VSG_HEADERS} DESTINATION include/chrono_vsg)
+install(FILES ${ChronoEngine_VSG_HEADERS} DESTINATION include/chrono_vsg)
