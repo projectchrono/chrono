@@ -117,26 +117,20 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void UpdateVisualModel(int id, const ChFrame<>& frame) override;
     void SetSystemSymbol(double size);
     void SetSystemSymbolPosition(ChVector<> pos);
-    void SetColorBar(std::string title, double min_val, double max_val);
 
-    /// Add a GUI component.
+    /// Add a user-defined GUI component.
     /// This function must be called before Initialize().
-    void AttachGui(std::shared_ptr<ChGuiComponentVSG> gc);
+    void AddGuiComponent(std::shared_ptr<ChGuiComponentVSG> gc);
+
+    /// Add a colorbar as a GUI element.
+    /// This function must be called before Initialize().
+    void AddGuiColorbar(const std::string& title, double min_val, double max_val);
 
     /// Toggle GUI visibility for all GUI components.
     void ToggleGuiVisibility() { m_showGui = !m_showGui; }
 
     /// Return bollean indicating whether or not GUI are visible.
     bool IsGuiVisible() { return m_showGui; }
-
-    //// RADU TODO 
-    ////   eliminate!
-    struct StateParams : public vsg::Inherit<vsg::Object, StateParams> {
-        bool show_color_bar = false;
-        std::string cb_title;
-        double cb_min = 0.0;
-        double cb_max = 1.0;
-    };
 
   protected:
     virtual void UpdateFromMBS();
@@ -151,7 +145,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     bool m_initialized = false;
     int m_screen_num = -1;
     bool m_use_fullscreen = false;
-    vsg::ref_ptr<ChVisualSystemVSG::StateParams> m_params = StateParams::create();
 
     vsg::ref_ptr<vsg::Window> m_window;
     vsg::ref_ptr<vsg::Viewer> m_viewer;

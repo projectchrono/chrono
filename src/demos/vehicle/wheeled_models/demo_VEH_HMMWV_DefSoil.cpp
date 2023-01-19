@@ -63,7 +63,7 @@ using std::endl;
 // =============================================================================
 
 // Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // -----------------------------------------------------------------------------
 // Terrain parameters
@@ -304,7 +304,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetChaseCamera(trackPoint, 10.0, 0.5);
             vis_vsg->AttachVehicle(&my_hmmwv.GetVehicle());
             ////vis_vsg->SetSystemSymbol(1.0);
-            vis_vsg->SetColorBar("Sinkage (m)", 0.0, 0.1);
+            vis_vsg->AddGuiColorbar("Sinkage (m)", 0.0, 0.1);
             vis_vsg->Initialize();
 
             vis = vis_vsg;

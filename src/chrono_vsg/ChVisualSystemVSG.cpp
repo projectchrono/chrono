@@ -89,6 +89,76 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
     ChVisualSystemVSG* m_app;
 };
 
+class ChColorbarGuiComponentVSG : public ChGuiComponentVSG {
+  public:
+    ChColorbarGuiComponentVSG(const std::string& title, double min_val, double max_val)
+        : m_title(title), m_min_val(min_val), m_max_val(max_val) {}
+
+    //// RADU TODO
+    ////   replace with a proper texture.
+    ////   see https://github.com/libigl/libigl/issues/1388
+
+    virtual void render() override {
+        char label[64];
+        int nstr = sizeof(label) - 1;
+
+        ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
+        ImGui::Begin(m_title.c_str());
+
+        float alpha = 1.0f;
+        float cv = 0.9f;
+        float cv13 = cv / 3;
+        float cv23 = 2 * cv13;
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0, 0.0, cv, alpha));
+        snprintf(label, nstr, "%.3f", m_min_val);
+        ImGui::Button(label);
+        ImGui::PopStyleColor(1);
+        ImGui::SameLine();
+        double stride = m_max_val - m_min_val;
+        double val = m_min_val + stride * 1.0 / 6.0;
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0, cv13, cv, alpha));
+        snprintf(label, nstr, "%.3f", val);
+        ImGui::Button(label);
+        ImGui::PopStyleColor(1);
+        ImGui::SameLine();
+        val = m_min_val + stride * 2.0 / 6.0;
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0, cv23, cv, alpha));
+        snprintf(label, nstr, "%.3f", val);
+        ImGui::Button(label);
+        ImGui::PopStyleColor(1);
+        ImGui::SameLine();
+        val = m_min_val + 0.5 * stride;
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0, cv, 0.0, alpha));
+        snprintf(label, nstr, "%.3f", val);
+        ImGui::Button(label);
+        ImGui::PopStyleColor(1);
+        ImGui::SameLine();
+        val = m_min_val + stride * 4.0 / 6.0;
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(cv, cv23, 0.0, alpha));
+        snprintf(label, nstr - 1, "%.3f", val);
+        ImGui::Button(label);
+        ImGui::PopStyleColor(1);
+        ImGui::SameLine();
+        val = m_min_val + stride * 5.0 / 6.0;
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(cv, cv13, 0.0, alpha));
+        snprintf(label, nstr, "%.3f", val);
+        ImGui::Button(label);
+        ImGui::PopStyleColor(1);
+        ImGui::SameLine();
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(cv, 0.0, 0.0, alpha));
+        snprintf(label, nstr, "%.3f", m_max_val);
+        ImGui::Button(label);
+        ImGui::PopStyleColor(1);
+
+        ImGui::End();
+    }
+
+  private:
+    std::string m_title;
+    double m_min_val;
+    double m_max_val;
+};
+
 // -----------------------------------------------------------------------------
 
 class FindVertexData : public vsg::Visitor {
@@ -274,12 +344,12 @@ ChVisualSystemVSG::ChVisualSystemVSG()
     m_decoScene = vsg::Group::create();
     m_symbolScene = vsg::Group::create();
     m_deformableScene = vsg::Group::create();
-    
+
     // set up defaults and read command line arguments to override them
     m_options = vsg::Options::create();
     m_options->paths = vsg::getEnvPaths("VSG_FILE_PATH");
     m_options->paths.push_back(GetChronoDataPath());
-    
+
     // add vsgXchange's support for reading and writing 3rd party file formats, mandatory for chrono_vsg!
     m_options->add(vsgXchange::all::create());
     m_options->sharedObjects = vsg::SharedObjects::create();
@@ -288,7 +358,7 @@ ChVisualSystemVSG::ChVisualSystemVSG()
     m_shapeBuilder->m_sharedObjects = m_options->sharedObjects;
     m_vsgBuilder = vsg::Builder::create();
     m_vsgBuilder->options = m_options;
-    
+
     // make some default settings
     SetWindowTitle("VSG: Vehicle Demo");
     SetWindowSize(ChVector2<int>(800, 600));
@@ -329,8 +399,12 @@ void ChVisualSystemVSG::SetFullscreen(bool yesno) {
     m_use_fullscreen = yesno;
 }
 
-void ChVisualSystemVSG::AttachGui(std::shared_ptr<ChGuiComponentVSG> gc) {
-   m_gui.push_back(gc);
+void ChVisualSystemVSG::AddGuiComponent(std::shared_ptr<ChGuiComponentVSG> gc) {
+    m_gui.push_back(gc);
+}
+
+void ChVisualSystemVSG::AddGuiColorbar(const std::string& title, double min_val, double max_val) {
+    m_gui.push_back(chrono_types::make_shared<ChColorbarGuiComponentVSG>(title, min_val, max_val));
 }
 
 void ChVisualSystemVSG::Quit() {
@@ -1425,13 +1499,6 @@ void ChVisualSystemVSG::SetSystemSymbolPosition(ChVector<> pos) {
             continue;
         transform->matrix = vsg::translate(m_system_symbol_position) * vsg::scale(m_system_symbol_size);
     }
-}
-
-void ChVisualSystemVSG::SetColorBar(std::string title, double min_val, double max_val) {
-    m_params->cb_title = title;
-    m_params->cb_min = min_val;
-    m_params->cb_max = max_val;
-    m_params->show_color_bar = true;
 }
 
 int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualModel> model, const ChFrame<>& frame) {
