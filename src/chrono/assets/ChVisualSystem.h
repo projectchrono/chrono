@@ -117,6 +117,14 @@ class ChApi ChVisualSystem {
     /// Perform any necessary operations ar the end of each rendering frame.
     virtual void EndScene() = 0;
 
+    /// Return the simulation real-time factor (simlation time / simulated time).
+    /// The default value returned by this base class is the RTF value from the first associated system (if any).
+    virtual double GetSimulationRTF() const;
+
+    /// Return the current simulated time.
+    /// The default value returned by this base class is the time from the first associated system (if any).
+    virtual double GetSimulationTime() const;
+
     /// Create a snapshot of the last rendered frame and save it to the provided file.
     /// The file extension determines the image format.
     virtual void WriteImageToFile(const std::string& filename) {}

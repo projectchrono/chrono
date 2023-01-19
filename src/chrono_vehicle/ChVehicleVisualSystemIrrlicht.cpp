@@ -376,7 +376,7 @@ void ChVehicleVisualSystemIrrlicht::renderStats() {
 
     // Display estimated RTF
     if (m_vehicle->GetRTF() > 0) {
-        sprintf(msg, "RTF %3.2f", m_vehicle->GetRTF());
+        sprintf(msg, "RTF %3.2f", GetSimulationRTF());
         renderTextBox(msg, m_HUD_x + 190, m_HUD_y + 170, 170, 15, irr::video::SColor(255, 250, 0, 0));
     }
 

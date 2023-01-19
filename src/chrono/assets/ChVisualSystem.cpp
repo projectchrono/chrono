@@ -36,4 +36,16 @@ void ChVisualSystem::UpdateCamera(const ChVector<>& pos, ChVector<> target) {
     SetCameraTarget(target);
 }
 
+double ChVisualSystem::GetSimulationRTF() const {
+    if (m_systems.empty())
+        return 0;
+    return m_systems[0]->GetRTF();
+}
+
+double ChVisualSystem::GetSimulationTime() const {
+    if (m_systems.empty())
+        return 0;
+    return m_systems[0]->GetChTime();
+}
+
 }  // namespace chrono

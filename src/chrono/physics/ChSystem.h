@@ -452,6 +452,9 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Return the time (in seconds) for narrowphase collision detection, within the time step.
     double GetTimerCollisionNarrow() const { return collision_system->GetTimerCollisionNarrow(); }
 
+    /// Get current estimated RTF (real time factor).
+    double GetRTF() const { return m_RTF; }
+
     /// Resets the timers.
     void ResetTimers() {
         timer_step.reset();
@@ -962,6 +965,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     ChTimer<double> timer_collision;  ///< timer for collision detection
     ChTimer<double> timer_setup;      ///< timer for system setup
     ChTimer<double> timer_update;     ///< timer for system update
+    double m_RTF;                     ///< real-time factor (simulation time / simulated time)
 
     std::shared_ptr<ChTimestepper> timestepper;  ///< time-stepper object
 

@@ -46,9 +46,9 @@ class GuiComponentWrapper {
     ChVisualSystemVSG* m_app;
 };
 
-class BaseGuiComponent : public ChGuiComponentVSG {
+class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
   public:
-    BaseGuiComponent(ChVisualSystemVSG* app) : m_app(app) {}
+    ChBaseGuiComponentVSG(ChVisualSystemVSG* app) : m_app(app) {}
 
     // Example here taken from the Dear imgui comments (mostly)
     virtual void render() override {
@@ -59,13 +59,14 @@ class BaseGuiComponent : public ChGuiComponentVSG {
 
         ImGui::BeginTable("SimTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                           ImVec2(0.0f, 0.0f));
-        snprintf(label, nstr, "%.4f s", m_app->GetModelTime());
+        snprintf(label, nstr, "%8.3f s", m_app->GetSimulationTime());
         ImGui::TableNextColumn();
         ImGui::Text("Model Time:");
         ImGui::TableNextColumn();
         ImGui::Text(label);
         ImGui::TableNextRow();
-        snprintf(label, nstr, "%.4f s", m_app->GetWallclockTime());
+        double current_time = double(clock()) / double(CLOCKS_PER_SEC);
+        snprintf(label, nstr, "%8.3f s", current_time - m_app->m_start_time);
         ImGui::TableNextColumn();
         ImGui::Text("Wall Clock Time:");
         ImGui::TableNextColumn();
@@ -74,7 +75,7 @@ class BaseGuiComponent : public ChGuiComponentVSG {
         ImGui::TableNextColumn();
         ImGui::Text("Real Time Factor:");
         ImGui::TableNextColumn();
-        snprintf(label, nstr, "%.2f", m_app->GetRealtimeFactor());
+        snprintf(label, nstr, "%8.3f", m_app->GetSimulationRTF());
         ImGui::Text(label);
         ImGui::EndTable();
         ImGui::Spacing();
@@ -252,7 +253,14 @@ struct LoadOperation : public vsg::Inherit<vsg::Operation, LoadOperation> {
 // -----------------------------------------------------------------------------
 
 ChVisualSystemVSG::ChVisualSystemVSG()
-    : m_yup(false), m_useSkybox(false), m_capture_image(false), m_showGui(true), m_camera_trackball(true), m_cog_scale(0) {
+    : m_yup(false),
+      m_useSkybox(false),
+      m_capture_image(false),
+      m_showGui(true),
+      m_camera_trackball(true),
+      m_cog_scale(0),
+      m_frame_number(0),
+      m_start_time(0) {
     m_windowTitle = string("Window Title");
     m_clearColor = ChColor(0, 0, 0);
     m_skyboxPath = string("vsg/textures/chrono_skybox.ktx2");
@@ -480,33 +488,6 @@ void ChVisualSystemVSG::SetLightDirection(double acimut, double elevation) {
     m_elevation = ChClamp(elevation, 0.0, CH_C_PI_2);
 }
 
-double ChVisualSystemVSG::GetModelTime() {
-    if (m_systems[0]) {
-        return m_systems[0]->GetChTime();
-    } else {
-        return 0.0;
-    }
-}
-
-double ChVisualSystemVSG::GetWallclockTime() {
-    if (GetModelTime() > 0.0)
-        return double(clock()) / double(CLOCKS_PER_SEC) - m_params->time_begin;
-    else
-        return 0.0;
-}
-
-double ChVisualSystemVSG::GetRealtimeFactor() {
-    if (GetModelTime() > 0.0) {
-        return GetWallclockTime() / GetModelTime();
-    } else {
-        return 0.0;
-    }
-}
-
-size_t ChVisualSystemVSG::GetFrameNumber() {
-    return m_params->frame_number;
-}
-
 void ChVisualSystemVSG::Initialize() {
     auto builder = vsg::Builder::create();
     builder->options = m_options;
@@ -681,7 +662,7 @@ void ChVisualSystemVSG::Initialize() {
 #endif
 
     // Include the base GUI component
-    auto base_gui = chrono_types::make_shared<BaseGuiComponent>(this);
+    auto base_gui = chrono_types::make_shared<ChBaseGuiComponentVSG>(this);
     GuiComponentWrapper base_gui_wrapper(base_gui, this);
     auto rg = vsgImGui::RenderImGui::create(m_window, base_gui_wrapper);
 
@@ -726,8 +707,8 @@ bool ChVisualSystemVSG::Run() {
 }
 
 void ChVisualSystemVSG::Render() {
-    if (m_params->frame_number == 0)
-        m_params->time_begin = double(clock()) / double(CLOCKS_PER_SEC);
+    if (m_frame_number == 0)
+        m_start_time = double(clock()) / double(CLOCKS_PER_SEC);
 
     UpdateFromMBS();
 
@@ -792,7 +773,7 @@ void ChVisualSystemVSG::Render() {
     }
 
     m_viewer->present();
-    m_params->frame_number++;
+    m_frame_number++;
 }
 
 void ChVisualSystemVSG::RenderCOGFrames(double axis_length) {

@@ -118,10 +118,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void SetSystemSymbol(double size);
     void SetSystemSymbolPosition(ChVector<> pos);
     void SetColorBar(std::string title, double min_val, double max_val);
-    double GetModelTime();
-    size_t GetFrameNumber();
-    double GetWallclockTime();
-    double GetRealtimeFactor();
 
     /// Add a GUI component.
     /// This function must be called before Initialize().
@@ -136,8 +132,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     //// RADU TODO 
     ////   eliminate!
     struct StateParams : public vsg::Inherit<vsg::Object, StateParams> {
-        size_t frame_number = 0;  // updated in Run() loop
-        double time_begin = 0.0;  // wallclock time at begin of Run() loop
         bool show_color_bar = false;
         std::string cb_title;
         double cb_min = 0.0;
@@ -246,6 +240,11 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     // bool m_do_image_export = false;
     float m_guiFontSize = 20.0f;
     double m_cog_scale;
+
+    unsigned int m_frame_number = 0;  ///< current number of rendered frames
+    double m_start_time = 0.0;        ///< wallclock time at first render
+
+  friend class ChBaseGuiComponentVSG;
 };
 
 /// @} vsg_module

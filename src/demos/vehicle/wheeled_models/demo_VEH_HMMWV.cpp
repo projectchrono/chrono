@@ -329,7 +329,7 @@ int main(int argc, char* argv[]) {
     ////    vis->EnableContactDrawing(ContactsDrawMode::CONTACT_FORCES);
     ////}
 
-    ////my_hmmwv.GetVehicle().EnableRealtime(true);
+    my_hmmwv.GetVehicle().EnableRealtime(true);
 
     while (vis->Run()) {
         double time = my_hmmwv.GetSystem()->GetChTime();

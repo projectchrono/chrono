@@ -320,9 +320,11 @@ int main(int argc, char* argv[]) {
 
     vis->Initialize();
 
+    unsigned int frame_number = 0;
+
     while (vis->Run()) {
         double time = sys.GetChTime();
-        if (vis->GetFrameNumber() == 42) {
+        if (frame_number == 42) {
             vis->WriteImageToFile("newshot.png");  // does not work with frame == 0!
         }
         
@@ -345,6 +347,8 @@ int main(int argc, char* argv[]) {
 
         vis->Render();
         sys.DoStepDynamics(0.01);
+
+        frame_number++;
     }
     return 0;
 }

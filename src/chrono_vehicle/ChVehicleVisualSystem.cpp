@@ -59,6 +59,12 @@ void ChVehicleVisualSystem::AttachVehicle(ChVehicle* vehicle) {
     m_camera->SetMultLimits(m_camera_minMult, m_camera_maxMult);
 }
 
+double ChVehicleVisualSystem::GetSimulationRTF() const {
+    if (!m_vehicle)
+        return 0;
+    return m_vehicle->GetRTF();
+}
+
 void ChVehicleVisualSystem::Synchronize(const std::string& msg, const DriverInputs& driver_inputs) {
     m_driver_msg = msg;
     m_steering = driver_inputs.m_steering;

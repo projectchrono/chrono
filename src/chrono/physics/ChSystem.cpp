@@ -54,6 +54,7 @@ ChSystem::ChSystem()
       ndoc_w_C(0),
       ndoc_w_D(0),
       ch_time(0),
+      m_RTF(0),
       step(0.04),
       tol_force(-1),
       maxiter(6),
@@ -118,6 +119,8 @@ ChSystem::ChSystem(const ChSystem& other) {
     collision_system_type = other.collision_system_type;
 
     visual_system = nullptr;
+
+    m_RTF = 0;
 
     min_bounce_speed = other.min_bounce_speed;
     max_penetration_recovery_speed = other.max_penetration_recovery_speed;
@@ -1425,7 +1428,11 @@ int ChSystem::DoStepDynamics(double step_size) {
 
     applied_forces_current = false;
     step = step_size;
-    return Integrate_Y();
+    bool ret = Integrate_Y();
+  
+    m_RTF = timer_step() / step;
+
+    return ret;
 }
 
 // -----------------------------------------------------------------------------
