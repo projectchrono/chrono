@@ -17,8 +17,6 @@
 #ifndef CHGUI_COMPONENT_VSG_H
 #define CHGUI_COMPONENT_VSG_H
 
-#include <vsgImGui/RenderImGui.h>
-
 #include "chrono_vsg/ChApiVSG.h"
 
 namespace chrono {

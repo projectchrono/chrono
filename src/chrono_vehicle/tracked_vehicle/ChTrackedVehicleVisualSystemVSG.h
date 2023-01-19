@@ -12,8 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Irrlicht-based visualization for wheeled vehicles.
-// This class extends ChVehicleVisualSystemIrrlicht.
+// VSG-based visualization for tracked vehicles.
 //
 // =============================================================================
 
@@ -29,7 +28,7 @@ namespace vehicle {
 /// @addtogroup vehicle_tracked
 /// @{
 
-/// Customized Chrono Irrlicht visualization system for wheeled vehicle simulation.
+/// Customized Chrono::VSG visualization system for tracked vehicle simulation.
 class CH_VEHICLE_API ChTrackedVehicleVisualSystemVSG : public ChVehicleVisualSystemVSG {
   public:
     /// Construct a wheeled vehicle Irrlicht visualization.
@@ -40,12 +39,10 @@ class CH_VEHICLE_API ChTrackedVehicleVisualSystemVSG : public ChVehicleVisualSys
     /// Attach a vehicle to this VSG wheeled vehicle visualization system.
     virtual void AttachVehicle(vehicle::ChVehicle* vehicle) override;
 
-    virtual double GetSprocketTorque(int side) override;
-    virtual double GetSprocketSpeed(int side) override;
+    virtual void AppendGUIStats() override;
 
-private:
+  private:
     ChTrackedVehicle* m_tvehicle;
-    int m_drivenAxles = 0;
 };
 
 /// @} vehicle_tracked

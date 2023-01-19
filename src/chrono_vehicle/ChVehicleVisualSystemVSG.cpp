@@ -267,50 +267,15 @@ class VehAppKeyboardHandler : public vsg::Inherit<vsg::Visitor, VehAppKeyboardHa
 
 // -----------------------------------------------------------------------------
 
-class VehicleGuiComponent : public vsg3d::ChGuiComponentVSG {
+class ChVehicleGuiComponentVSG : public vsg3d::ChGuiComponentVSG {
   public:
-    VehicleGuiComponent(ChVehicleVisualSystemVSG* app) : m_app(app) {}
-
-    virtual void render() override {
-        char label[64];
-        int nstr = sizeof(label) - 1;
-        ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
-        ImGui::Begin("App");
-
-        ImGui::BeginTable("SimTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
-                          ImVec2(0.0f, 0.0f));
-        snprintf(label, nstr, "%.4f s", m_app->GetModelTime());
-        ImGui::TableNextColumn();
-        ImGui::Text("Model Time:");
-        ImGui::TableNextColumn();
-        ImGui::Text(label);
-        ImGui::TableNextRow();
-        snprintf(label, nstr, "%.4f s", m_app->GetWallclockTime());
-        ImGui::TableNextColumn();
-        ImGui::Text("Wall Clock Time:");
-        ImGui::TableNextColumn();
-        ImGui::Text(label);
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::Text("Real Time Factor:");
-        ImGui::TableNextColumn();
-        snprintf(label, nstr, "%.2f", m_app->GetRealtimeFactor());
-        ImGui::Text(label);
-        ImGui::EndTable();
-        ImGui::Spacing();
-
-        if (ImGui::Button("Quit"))
-            m_app->Quit();
-
-        ImGui::End();
-    }
-
+    ChVehicleGuiComponentVSG(ChVehicleVisualSystemVSG* app) : m_app(app) {}
+    virtual void render() override;
   private:
     ChVehicleVisualSystemVSG* m_app;
 };
 
-/*
-void VehicleGuiComponent::render() {
+void ChVehicleGuiComponentVSG::render() {
     auto powertrain = m_app->GetVehicle().GetPowertrain();
 
     char label[64];
@@ -398,6 +363,8 @@ void VehicleGuiComponent::render() {
 
     ImGui::Spacing();
 
+    //// RADU TODO 
+    ////  show only if TC exists
     ImGui::BeginTable("ConvTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                       ImVec2(0.0f, 0.0f));
     ImGui::TableNextColumn();
@@ -426,34 +393,35 @@ void VehicleGuiComponent::render() {
     ImGui::TableNextRow();
     ImGui::EndTable();
 
-    ImGui::Spacing();
+    m_app->AppendGUIStats();
 
     ImGui::End();
 }
-*/
 
 // -----------------------------------------------------------------------------
 
-ChVehicleVisualSystemVSG::ChVehicleVisualSystemVSG() : ChVisualSystemVSG(), m_guiDriver(nullptr) {
-    m_params->showVehicleState = true;
-}
+ChVehicleVisualSystemVSG::ChVehicleVisualSystemVSG() : ChVisualSystemVSG(), m_guiDriver(nullptr) {}
 
 ChVehicleVisualSystemVSG::~ChVehicleVisualSystemVSG() {}
 
 void ChVehicleVisualSystemVSG::Initialize() {
     // Create vehicle-specific GUI and let derived classes append to it
-    //AttachGui(chrono_types::make_shared<VehicleGuiComponent>(this));
-    //m_gui.push_back(chrono_types::make_shared<VehicleGuiComponent>(this));
-
+    m_gui.push_back(chrono_types::make_shared<ChVehicleGuiComponentVSG>(this));
     //AppendGUIStats();
 
-    // Invoke the base method
+    // Do not create a VSG camera trackball controller
+    m_camera_trackball = false;
+
+    // Invoke the base Initialize method
     ChVisualSystemVSG::Initialize();
 
     // Add keyboard handler
     auto veh_kbHandler = VehAppKeyboardHandler::create(this);
     m_viewer->addEventHandler(veh_kbHandler);
+    
+    // Initialize chase-cam mode
     SetChaseCameraState(utils::ChChaseCamera::State::Chase);
+
     if (!m_vehicle)
         return;
     if (!m_vehicle->GetPowertrain())
@@ -682,6 +650,9 @@ void ChVehicleVisualSystemVSG::SetSentinelSymbolPosition(ChVector<> pos) {
 
 void ChVehicleVisualSystemVSG::UpdateFromMBS() {
     ChVisualSystemVSG::UpdateFromMBS();
+
+    //// RADU TODO
+    ////   Anything else here? If not, eliminate!
 }
 
 }  // namespace vehicle

@@ -87,6 +87,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Draw the scene objects as wireframes.
     void SetWireFrameMode(bool mode = true) { m_draw_as_wireframe = mode; }
 
+    /// Set the camera up vector (default: Z).
     void SetCameraVertical(CameraVerticalDir upDir);
 
     /// Add a camera to the VSG scene.
@@ -122,20 +123,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     double GetWallclockTime();
     double GetRealtimeFactor();
 
-    virtual int GetGearPosition() { return 0; }
-    virtual double GetEngineSpeedRPM() { return 0.0; }
-    virtual double GetEngineTorque() { return 0.0; }
-    virtual char GetTransmissionMode() { return '?'; }
-    virtual char GetDriveMode() { return '?'; }
-    virtual double GetTconvSlip() { return 0.0; }
-    virtual double GetTconvTorqueInput() { return 0.0; }
-    virtual double GetTconvTorqueOutput() { return 0.0; }
-    virtual double GetTconvSpeedOutput() { return 0.0; }
-    virtual int GetNumDrivenAxles() { return 0; }
-    virtual double GetTireTorque(int axle, int side) { return 0.0; }
-    virtual double GetSprocketTorque(int side) { return 0.0; }
-    virtual double GetSprocketSpeed(int side) { return 0.0; }
-
     /// Add a GUI component.
     /// This function must be called before Initialize().
     void AttachGui(std::shared_ptr<ChGuiComponentVSG> gc);
@@ -149,23 +136,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     //// RADU TODO 
     ////   eliminate!
     struct StateParams : public vsg::Inherit<vsg::Object, StateParams> {
-        bool showGui = true;            // (don't) show the imgui menu, actually unused
-        double cogSymbolSize = 0.0;
         size_t frame_number = 0;  // updated in Run() loop
         double time_begin = 0.0;  // wallclock time at begin of Run() loop
-        bool showVehicleState = false;
-        bool showTrackedVehicleState = false;
-        double vehicleSpeed = 0;
-        double steering = 0;
-        double throttle = 0;
-        double braking = 0;
-        std::string camera_mode = "VSG";
-        std::string input_mode = "";
-        int gear_position = 0;
-        double engine_rpm = 0.0;
-        double engine_torque = 0.0;
-        char transmission_mode = '?';
-        char drive_mode = '?';
         bool show_converter_data = false;
         bool show_color_bar = false;
         std::string cb_title;
@@ -192,14 +164,15 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::Viewer> m_viewer;
     vsg::ref_ptr<vsg::RenderGraph> m_renderGraph;
 
-    bool m_showGui;                                                ///< flag to toggle global GUI visibility
-    std::vector<std::shared_ptr<ChGuiComponentVSG>> m_gui;         ///< list of all GUI components
-    std::vector<vsg::ref_ptr<vsgImGui::RenderImGui>> m_renderGui;  ///< list of all imGUI objects
+    bool m_showGui;                                         ///< flag to toggle global GUI visibility
+    std::vector<std::shared_ptr<ChGuiComponentVSG>> m_gui;  ///< list of all additional GUI components
 
     vsg::dvec3 m_vsg_cameraEye = vsg::dvec3(-10.0, 0.0, 0.0);
     vsg::dvec3 m_vsg_cameraTarget = vsg::dvec3(0.0, 0.0, 0.0);
     vsg::ref_ptr<vsg::LookAt> m_lookAt;
     vsg::ref_ptr<vsg::Camera> m_vsg_camera;
+    bool m_camera_trackball;  ///< create a camera trackball control?
+
     vsg::dvec3 m_system_symbol_position = vsg::dvec3(0.0, 0.0, 0.0);
     vsg::dvec3 m_system_symbol_size = vsg::dvec3(1.0, 1.0, 1.0);
     //
@@ -273,6 +246,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     double m_acimut = 0;
     // bool m_do_image_export = false;
     float m_guiFontSize = 20.0f;
+    double m_cog_scale;
 };
 
 /// @} vsg_module

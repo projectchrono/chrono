@@ -12,8 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Irrlicht-based visualization for wheeled vehicles.
-// This class extends ChVehicleVisualSystemIrrlicht.
+// VSG-based visualization for tracked vehicles.
 //
 // =============================================================================
 
@@ -22,11 +21,7 @@
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-ChTrackedVehicleVisualSystemVSG::ChTrackedVehicleVisualSystemVSG() : ChVehicleVisualSystemVSG(), m_tvehicle(nullptr) {
-    m_params->showTrackedVehicleState = true;
-}
+ChTrackedVehicleVisualSystemVSG::ChTrackedVehicleVisualSystemVSG() : ChVehicleVisualSystemVSG(), m_tvehicle(nullptr) {}
 
 void ChTrackedVehicleVisualSystemVSG::AttachVehicle(ChVehicle* vehicle) {
     ChVehicleVisualSystemVSG::AttachVehicle(vehicle);
@@ -34,20 +29,40 @@ void ChTrackedVehicleVisualSystemVSG::AttachVehicle(ChVehicle* vehicle) {
     assert(m_tvehicle);
 }
 
-double ChTrackedVehicleVisualSystemVSG::GetSprocketTorque(int side) {
-    if (side == 0)
-        return m_tvehicle->GetDriveline()->GetSprocketTorque(LEFT);
-    else
-        return m_tvehicle->GetDriveline()->GetSprocketTorque(RIGHT);
-}
+void ChTrackedVehicleVisualSystemVSG::AppendGUIStats() {
+    auto sprk_torque_L = m_tvehicle->GetDriveline()->GetSprocketTorque(LEFT);
+    auto sprk_torque_R = m_tvehicle->GetDriveline()->GetSprocketTorque(RIGHT);
+  
+    auto sprk_speed_L = m_tvehicle->GetDriveline()->GetSprocketSpeed(LEFT) * 30.0 / CH_C_PI;
+    auto sprk_speed_R = m_tvehicle->GetDriveline()->GetSprocketSpeed(RIGHT) * 30.0 / CH_C_PI;
 
-double ChTrackedVehicleVisualSystemVSG::GetSprocketSpeed(int side) {
-    if(side == 0) {
-        return m_tvehicle->GetDriveline()->GetSprocketSpeed(LEFT)*30.0/CH_C_PI;
-    }
-    else {
-        return m_tvehicle->GetDriveline()->GetSprocketSpeed(RIGHT)*30.0/CH_C_PI;
-    }
+  char label[64];
+    int nstr = sizeof(label) - 1;
+
+    ImGui::Spacing();
+    ImGui::BeginTable("TrackDriveTable", 3, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                      ImVec2(0.0f, 0.0f));
+    ImGui::TableNextColumn();
+    snprintf(label, nstr, "Sprocket Torque");
+    ImGui::Text(label);
+    ImGui::TableNextColumn();
+    snprintf(label, nstr, "L: %+5.1f Nm", sprk_torque_L);
+    ImGui::Text(label);
+    ImGui::TableNextColumn();
+    snprintf(label, nstr, " R: %+5.1f Nm", sprk_torque_R);
+    ImGui::Text(label);
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    snprintf(label, nstr, "Sprocket Speed");
+    ImGui::Text(label);
+    ImGui::TableNextColumn();
+    snprintf(label, nstr, "L: %+5.1f RPM", sprk_speed_L);
+    ImGui::Text(label);
+    ImGui::TableNextColumn();
+    snprintf(label, nstr, " R: %+5.1f RPM", sprk_speed_R);
+    ImGui::Text(label);
+    ImGui::TableNextRow();
+    ImGui::EndTable();
 }
 
 }  // end namespace vehicle

@@ -55,7 +55,7 @@ class BaseGuiComponent : public ChGuiComponentVSG {
         char label[64];
         int nstr = sizeof(label) - 1;
         ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
-        ImGui::Begin("App");
+        ImGui::Begin("Simulation");
 
         ImGui::BeginTable("SimTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                           ImVec2(0.0f, 0.0f));
@@ -251,7 +251,8 @@ struct LoadOperation : public vsg::Inherit<vsg::Operation, LoadOperation> {
 
 // -----------------------------------------------------------------------------
 
-ChVisualSystemVSG::ChVisualSystemVSG() : m_yup(false), m_useSkybox(false), m_capture_image(false), m_showGui(true) {
+ChVisualSystemVSG::ChVisualSystemVSG()
+    : m_yup(false), m_useSkybox(false), m_capture_image(false), m_showGui(true), m_camera_trackball(true), m_cog_scale(0) {
     m_windowTitle = string("Window Title");
     m_clearColor = ChColor(0, 0, 0);
     m_skyboxPath = string("vsg/textures/chrono_skybox.ktx2");
@@ -450,7 +451,7 @@ void ChVisualSystemVSG::ShowAllCoGs(double size) {
         GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
         return;
     }
-    m_params->cogSymbolSize = size;
+    m_cog_scale = size;
 }
 
 void ChVisualSystemVSG::SetCameraVertical(CameraVerticalDir upDir) {
@@ -636,7 +637,7 @@ void ChVisualSystemVSG::Initialize() {
 
     m_viewer->addEventHandler(vsg::CloseHandler::create(m_viewer));
 
-    if (!m_params->showVehicleState)
+    if (m_camera_trackball)
         m_viewer->addEventHandler(vsg::Trackball::create(m_vsg_camera));
 
     // default sets automatic directional light
@@ -657,6 +658,7 @@ void ChVisualSystemVSG::Initialize() {
     // in this case the desired font size is too big. We take the standard font instead.
     if (m_window->traits()->width != m_window->extent2D().width) {
 #endif
+
         auto foundFontFile = vsg::findFile("vsg/fonts/Ubuntu_Mono/UbuntuMono-Regular.ttf", m_options);
         if (foundFontFile) {
             // convert native filename to UTF8 string that is compatible with ImuGUi.
@@ -679,15 +681,17 @@ void ChVisualSystemVSG::Initialize() {
 #endif
 
     // Include the base GUI component
-    m_gui.push_back(chrono_types::make_shared<BaseGuiComponent>(this));
+    auto base_gui = chrono_types::make_shared<BaseGuiComponent>(this);
+    GuiComponentWrapper base_gui_wrapper(base_gui, this);
+    auto rg = vsgImGui::RenderImGui::create(m_window, base_gui_wrapper);
 
-    // Loop through all specified GUI components, wrap them, create the ImGui nodes, and add them to the renderGraph
-    for (const auto& c : m_gui) {
-        GuiComponentWrapper cw(c, this);
-        auto rg = vsgImGui::RenderImGui::create(m_window, cw);
-        m_renderGui.push_back(rg);
-        renderGraph->addChild(rg);
+    // Loop through all specified GUI components, wrap them and add them to the renderGraph
+    for (const auto& gui : m_gui) {
+        GuiComponentWrapper gui_wrapper(gui, this);
+        rg->add(gui_wrapper);
     }
+
+    renderGraph->addChild(rg);
 
     // Add the ImGui event handler first to handle events early
     m_viewer->addEventHandler(vsgImGui::SendEventsToImGui::create());
@@ -808,12 +812,12 @@ void ChVisualSystemVSG::BindAll() {
         return;
     }
     // generate CoG symbols if needed
-    if (m_params->cogSymbolSize > 0.0f) {
+    if (m_cog_scale > 0) {
         for (auto& body : m_systems[0]->GetAssembly().Get_bodylist()) {
             auto pos = body->GetPos();
             auto rotAngle = body->GetRotAngle();
             auto rotAxis = body->GetRotAxis();
-            vsg::dvec3 scale(m_params->cogSymbolSize, m_params->cogSymbolSize, m_params->cogSymbolSize);
+            vsg::dvec3 scale(m_cog_scale, m_cog_scale, m_cog_scale);
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                 vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) * vsg::scale(scale);
@@ -1183,7 +1187,7 @@ void ChVisualSystemVSG::BindAll() {
 
 void ChVisualSystemVSG::UpdateFromMBS() {
     // generate CoG symbols if needed
-    if (m_params->cogSymbolSize > 0.0f) {
+    if (m_cog_scale > 0) {
         for (auto child : m_cogScene->children) {
             std::shared_ptr<ChBody> body;
             vsg::ref_ptr<vsg::MatrixTransform> transform;
@@ -1194,11 +1198,12 @@ void ChVisualSystemVSG::UpdateFromMBS() {
             auto pos = body->GetPos();
             auto rotAngle = body->GetRotAngle();
             auto rotAxis = body->GetRotAxis();
-            vsg::dvec3 scale(m_params->cogSymbolSize, m_params->cogSymbolSize, m_params->cogSymbolSize);
+            vsg::dvec3 scale(m_cog_scale, m_cog_scale, m_cog_scale);
             transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                 vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) * vsg::scale(scale);
         }
     }
+
     // update body visualization related graphic nodes
     for (auto child : m_bodyScene->children) {
         std::shared_ptr<ChPhysicsItem> item;
@@ -1294,6 +1299,7 @@ void ChVisualSystemVSG::UpdateFromMBS() {
                                 vsg::scale(rad, height, rad);
         }
     }
+
     // Update particles
     for (auto& item : m_systems[0]->Get_otherphysicslist()) {
         if (auto pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
@@ -1317,6 +1323,7 @@ void ChVisualSystemVSG::UpdateFromMBS() {
             }
         }
     }
+
     // Update link shapes
     for (auto child : m_linkScene->children) {
         std::shared_ptr<ChLinkBase> item;

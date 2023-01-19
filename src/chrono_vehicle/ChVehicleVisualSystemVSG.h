@@ -86,8 +86,8 @@ class CH_VEHICLE_API ChVehicleVisualSystemVSG : public ChVehicleVisualSystem, pu
 
     //// RADU TODO
     ////  eliminate all!
-    virtual char GetTransmissionMode() override;
-    virtual char GetDriveMode() override;
+    char GetTransmissionMode();
+    char GetDriveMode();
 
   protected:
     virtual void AppendGUIStats() {}
@@ -100,6 +100,7 @@ class CH_VEHICLE_API ChVehicleVisualSystemVSG : public ChVehicleVisualSystem, pu
     vsg::dvec3 m_sentinel_symbol_size = vsg::dvec3(1.0, 1.0, 1.0);
 
     friend class ChVSGGuiDriver;
+    friend class ChVehicleGuiComponentVSG;
 };
 
 // @} vehicle
