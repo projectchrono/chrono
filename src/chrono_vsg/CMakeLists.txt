@@ -8,27 +8,53 @@ option(ENABLE_MODULE_VSG "Enable the Chrono VSG module" OFF)
 
 # Return now if this module is not enabled
 if(NOT ENABLE_MODULE_VSG)
-   MARK_AS_ADVANCED(FORCE VSG_LIBRARY)
-   MARK_AS_ADVANCED(FORCE VSG_ROOT)
-   RETURN()
+   mark_as_advanced(FORCE VSG_LIBRARY)
+   mark_as_advanced(FORCE VSG_ROOT)
+   return()
 endif()
 
-MESSAGE(STATUS "==== Chrono VSG module ====")
+message(STATUS "==== Chrono VSG module ====")
 
-MARK_AS_ADVANCED(CLEAR VSG_LIBRARY)
-MARK_AS_ADVANCED(CLEAR VSG_ROOT)
+mark_as_advanced(CLEAR VSG_LIBRARY)
+mark_as_advanced(CLEAR VSG_ROOT)
+
+#-------------------------------------------------------------------------------
+# Find the VSG library
+
+if(VULKAN_SDK)
+    set(ENV{VULKAN_SDK} ${VULKAN_SDK})
+endif()
+
+find_package(vsg REQUIRED)
+find_package(vsgImGui REQUIRED)
+find_package(vsgXchange REQUIRED)
+
+# Check if vsgXchange is a static library. 
+# If yes, we assume it includes STB and we do not add those files in the the Chrono library
+# (else we'd get multiple dfeined symbols at link time).
+get_target_property(vsg_type vsgXchange::vsgXchange TYPE)
+if (vsg_type STREQUAL STATIC_LIBRARY)
+    set(INCLUDE_STB OFF)
+    message(STATUS "vsgXchange library: static")
+else()
+    set(INCLUDE_STB ON)
+    message(STATUS "vsgXchange library: dynamic")
+endif()
+
+# Force C++17, required by VSG
+set(CMAKE_CXX_STANDARD 17)
 
 #-------------------------------------------------------------------------------
 # List all the files in the ChronoEngine_vsg lib
 
-SET(CE_VSG_BASE_FILES
+set(CE_VSG_BASE_FILES
     ChApiVSG.h
     ChVisualSystemVSG.cpp
     ChVisualSystemVSG.h
     ChGuiComponentVSG.h
 )
 
-SET(CE_VSG_SHAPES_FILES
+set(CE_VSG_SHAPES_FILES
     shapes/GetBoxShapeData.cpp
     shapes/GetBoxShapeData.h
     shapes/GetCapsuleShapeData.cpp
@@ -49,7 +75,7 @@ SET(CE_VSG_SHAPES_FILES
     shapes/ShapeBuilder.h
 )
 
-SET(CE_VSG_RESOURCES_FILES
+set(CE_VSG_RESOURCES_FILES
     resources/lineShader_frag.h
     resources/lineShader_vert.h
     resources/cubemapShaders.h
@@ -57,7 +83,7 @@ SET(CE_VSG_RESOURCES_FILES
     resources/pcShader_vert.h
 )
 
-SET(CE_VSG_TOOLS_FILES
+set(CE_VSG_TOOLS_FILES
     tools/createQuad.cpp
     tools/createQuad.h
     tools/createSkybox.cpp
@@ -66,34 +92,26 @@ SET(CE_VSG_TOOLS_FILES
     tools/exportScreenshot.h
 )
 
-set(CE_VSG_STB_FILES
-    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb.h
-    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image.h
-    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image.cpp
-    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.h
-    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.cpp
-)
+source_group("" FILES ${CE_VSG_BASE_FILES})
+source_group("shapes" FILES ${CE_VSG_SHAPES_FILES})
+source_group("resources" FILES ${CE_VSG_RESOURCES_FILES})
+source_group("tools" FILES ${CE_VSG_TOOLS_FILES})
 
-SOURCE_GROUP("" FILES ${CE_VSG_BASE_FILES})
-SOURCE_GROUP("shapes" FILES ${CE_VSG_SHAPES_FILES})
-SOURCE_GROUP("resources" FILES ${CE_VSG_RESOURCES_FILES})
-SOURCE_GROUP("tools" FILES ${CE_VSG_TOOLS_FILES})
-SOURCE_GROUP("utils" FILES ${CE_VSG_STB_FILES})
-
-#-------------------------------------------------------------------------------
-# Find the VSG library
-
-if(VULKAN_SDK)
-    set(ENV{VULKAN_SDK} ${VULKAN_SDK})
+if(INCLUDE_STB)
+    set(CE_VSG_STB_FILES
+        ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb.h
+        ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image.h
+        ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image.cpp
+        ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.h
+        ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.cpp
+    )
+    
+    source_group("utils" FILES ${CE_VSG_STB_FILES})
+else()
+    set(CE_VSG_STB_FILES "")
 endif()
 
-find_package(vsg REQUIRED)
-find_package(vsgImGui REQUIRED)
-find_package(vsgXchange REQUIRED)
-
-# set the use of C++17 here as VSG requires it
-set(CMAKE_CXX_STANDARD 17)
-
+#-------------------------------------------------------------------------------
 # Let some variables be visible also from outside this directory
 
 #-------------------------------------------------------------------------------
