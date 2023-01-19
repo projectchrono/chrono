@@ -68,8 +68,10 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     virtual void EndScene() override {}
     virtual void Render() override;
     virtual void RenderCOGFrames(double axis_length = 1) override;
+    void SetCOGFrameScale(double axis_length);
+    void ToggleCOGFrameVisibility();
 
-    void WriteImageToFile(const std::string& filename) override;
+    virtual void WriteImageToFile(const std::string& filename) override;
 
     // Terminate the VSG visualization.
     void Quit();
@@ -85,7 +87,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void SetUseSkyBox(bool yesno);
 
     /// Draw the scene objects as wireframes.
-    void SetWireFrameMode(bool mode = true) { m_draw_as_wireframe = mode; }
+    void SetWireFrameMode(bool mode = true) { m_wireframe = mode; }
 
     /// Set the camera up vector (default: Z).
     void SetCameraVertical(CameraVerticalDir upDir);
@@ -109,7 +111,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void SetLightIntensity(double intensity) { m_lightIntensity = ChClamp(intensity, 0.0, 1.0); }
     void SetLightDirection(double acimut, double elevation);
     void SetCameraAngleDeg(double angleDeg) { m_cameraAngleDeg = angleDeg; }
-    void ShowAllCoGs(double size);
     void SetGuiFontSize(float theSize);
     void SetDecoGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col);
     int AddVisualModel(std::shared_ptr<ChVisualModel> model, const ChFrame<>& frame) override;
@@ -127,10 +128,10 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void AddGuiColorbar(const std::string& title, double min_val, double max_val);
 
     /// Toggle GUI visibility for all GUI components.
-    void ToggleGuiVisibility() { m_showGui = !m_showGui; }
+    void ToggleGuiVisibility() { m_show_gui = !m_show_gui; }
 
     /// Return bollean indicating whether or not GUI are visible.
-    bool IsGuiVisible() { return m_showGui; }
+    bool IsGuiVisible() const { return m_show_gui; }
 
   protected:
     virtual void UpdateFromMBS();
@@ -150,7 +151,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::Viewer> m_viewer;
     vsg::ref_ptr<vsg::RenderGraph> m_renderGraph;
 
-    bool m_showGui;                                         ///< flag to toggle global GUI visibility
+    bool m_show_gui;                                        ///< flag to toggle global GUI visibility
     std::vector<std::shared_ptr<ChGuiComponentVSG>> m_gui;  ///< list of all additional GUI components
 
     vsg::dvec3 m_vsg_cameraEye = vsg::dvec3(-10.0, 0.0, 0.0);
@@ -177,21 +178,23 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     //                            +- m_deformableScene
     vsg::ref_ptr<vsg::Group> m_scene;
     vsg::ref_ptr<vsg::Group> m_bodyScene;
-    vsg::ref_ptr<vsg::Group> m_cogScene;
     vsg::ref_ptr<vsg::Group> m_linkScene;
     vsg::ref_ptr<vsg::Group> m_particleScene;
     vsg::ref_ptr<vsg::Group> m_decoScene;
     vsg::ref_ptr<vsg::Group> m_symbolScene;
     vsg::ref_ptr<vsg::Group> m_deformableScene;
-    //
+
+    vsg::ref_ptr<vsg::Switch> m_cogScene;
+
     vsg::ref_ptr<ShapeBuilder> m_shapeBuilder;
     vsg::ref_ptr<vsg::Builder> m_vsgBuilder;
-    //
-    bool m_draw_as_wireframe = false;
-    vsg::ref_ptr<vsg::Options> m_options;
-    //
-    bool m_capture_image;
-    std::string m_imageFilename;
+
+    vsg::ref_ptr<vsg::Options> m_options;  ///< I/O related options for vsg::read/write calls
+
+    bool m_wireframe;  ///< draw as wireframes
+
+    bool m_capture_image;         ///< export current frame to image file
+    std::string m_imageFilename;  ///< name of file to export current frame
 
     size_t m_num_vsgVertexList = 0;
     bool m_allowVertexTransfer = false;
@@ -202,8 +205,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     std::vector<vsg::ref_ptr<vsg::vec4Array>> m_vsgColorsList;
     std::shared_ptr<ChTriangleMeshShape> m_mbsMesh;
 
-    // scenery object helper
-    std::vector<vsg::ref_ptr<vsg::Group>> m_sceneryPtr;
+    std::vector<vsg::ref_ptr<vsg::Group>> m_sceneryPtr;  ///< scenery object helper
 
   private:
     std::map<std::size_t, vsg::ref_ptr<vsg::Node>> m_objCache;
@@ -214,30 +216,32 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     int m_windowY = 0;
     std::string m_windowTitle;
     ChColor m_clearColor;
-    //
+
     int m_numThreads = 16;
     vsg::ref_ptr<vsg::OperationThreads> m_loadThreads;
-    // cache for particle shape
-    vsg::ref_ptr<vsg::Group> m_particlePattern;
-    //
-    std::string m_skyboxPath;
+
+    vsg::ref_ptr<vsg::Group> m_particlePattern;  ///< cache for particle shape
+
     bool m_useSkybox;
-    //
+    std::string m_skyboxPath;
+
     vsg::dvec3 m_cameraUpVector;
     bool m_yup;
     double m_cameraAngleDeg = 30.0;
-    //
+
     double m_lightIntensity = 1.0;
     double m_elevation = 0;
     double m_acimut = 0;
     // bool m_do_image_export = false;
     float m_guiFontSize = 20.0f;
-    double m_cog_scale;
 
-    unsigned int m_frame_number = 0;  ///< current number of rendered frames
-    double m_start_time = 0.0;        ///< wallclock time at first render
+    bool m_show_cog;     ///< flag to toggle COG vidibility
+    double m_cog_scale;  ///< current COG frame scale
 
-  friend class ChBaseGuiComponentVSG;
+    unsigned int m_frame_number;  ///< current number of rendered frames
+    double m_start_time;          ///< wallclock time at first render
+
+    friend class ChBaseGuiComponentVSG;
 };
 
 /// @} vsg_module

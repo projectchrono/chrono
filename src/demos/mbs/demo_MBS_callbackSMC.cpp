@@ -272,7 +272,6 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetLightIntensity(1.0);
             vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
             vis_vsg->SetWireFrameMode(false);
-            vis_vsg->ShowAllCoGs(1.0);
             vis_vsg->SetDecoGrid(0.5, 0.5, 12, 12, ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)),
                                  ChColor(1, 0, 0));
             vis_vsg->Initialize();

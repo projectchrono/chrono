@@ -78,8 +78,22 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
         snprintf(label, nstr, "%8.3f", m_app->GetSimulationRTF());
         ImGui::Text(label);
         ImGui::EndTable();
-        ImGui::Spacing();
 
+        ImGui::Spacing();
+        ImGui::BeginTable("Frames", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                          ImVec2(0.0f, 0.0f));
+        ImGui::Text("COG frames:");
+        ImGui::TableNextColumn();
+        static bool bES_active = false;
+        if (ImGui::Checkbox("COG", &bES_active))
+            m_app->ToggleCOGFrameVisibility();
+        ImGui::SameLine();
+        float foo = m_app->m_cog_scale;
+        ImGui::SliderFloat("scale", &foo, 0.1f, 10.0f);
+        m_app->m_cog_scale = foo;
+        ImGui::EndTable();
+
+        ImGui::Spacing();
         if (ImGui::Button("Quit"))
             m_app->Quit();
 
@@ -326,9 +340,11 @@ ChVisualSystemVSG::ChVisualSystemVSG()
     : m_yup(false),
       m_useSkybox(false),
       m_capture_image(false),
-      m_showGui(true),
+      m_wireframe(false),
+      m_show_gui(true),
       m_camera_trackball(true),
-      m_cog_scale(0),
+      m_cog_scale(1),
+      m_show_cog(false),
       m_frame_number(0),
       m_start_time(0) {
     m_windowTitle = string("Window Title");
@@ -338,7 +354,7 @@ ChVisualSystemVSG::ChVisualSystemVSG()
 
     // creation here allows to set entries before initialize
     m_bodyScene = vsg::Group::create();
-    m_cogScene = vsg::Group::create();
+    m_cogScene = vsg::Switch::create();
     m_linkScene = vsg::Group::create();
     m_particleScene = vsg::Group::create();
     m_decoScene = vsg::Group::create();
@@ -526,14 +542,6 @@ void ChVisualSystemVSG::SetCameraPosition(const ChVector<>& pos) {
 
 void ChVisualSystemVSG::SetCameraTarget(const ChVector<>& target) {
     m_lookAt->center = vsg::dvec3(target.x(), target.y(), target.z());
-}
-
-void ChVisualSystemVSG::ShowAllCoGs(double size) {
-    if (m_initialized) {
-        GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
-        return;
-    }
-    m_cog_scale = size;
 }
 
 void ChVisualSystemVSG::SetCameraVertical(CameraVerticalDir upDir) {
@@ -851,7 +859,26 @@ void ChVisualSystemVSG::Render() {
 }
 
 void ChVisualSystemVSG::RenderCOGFrames(double axis_length) {
-    //// TODO
+    m_cog_scale = axis_length;
+    m_show_cog = true;
+
+    if (m_initialized) {
+        for (auto& child : m_cogScene->children)
+            child.mask = m_show_cog;
+    }
+}
+
+void ChVisualSystemVSG::SetCOGFrameScale(double axis_length) {
+    m_cog_scale = axis_length;
+}
+
+void ChVisualSystemVSG::ToggleCOGFrameVisibility() {
+    m_show_cog = !m_show_cog;
+
+    if (m_initialized) {
+        for (auto& child : m_cogScene->children)
+            child.mask = m_show_cog;
+    }
 }
 
 void ChVisualSystemVSG::WriteImageToFile(const string& filename) {
@@ -866,18 +893,17 @@ void ChVisualSystemVSG::BindAll() {
     if (m_systems[0]->Get_bodylist().size() < 1) {
         return;
     }
-    // generate CoG symbols if needed
-    if (m_cog_scale > 0) {
-        for (auto& body : m_systems[0]->GetAssembly().Get_bodylist()) {
-            auto pos = body->GetPos();
-            auto rotAngle = body->GetRotAngle();
-            auto rotAxis = body->GetRotAxis();
-            vsg::dvec3 scale(m_cog_scale, m_cog_scale, m_cog_scale);
-            auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                                vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) * vsg::scale(scale);
-            m_cogScene->addChild(m_shapeBuilder->createCoGSymbol(body, transform));
-        }
+    // generate CoG symbols
+    for (auto& body : m_systems[0]->GetAssembly().Get_bodylist()) {
+        auto pos = body->GetPos();
+        auto rotAngle = body->GetRotAngle();
+        auto rotAxis = body->GetRotAxis();
+        vsg::dvec3 scale(m_cog_scale, m_cog_scale, m_cog_scale);
+        auto transform = vsg::MatrixTransform::create();
+        transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
+                            vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) * vsg::scale(scale);
+        vsg::Mask mask = m_show_cog;
+        m_cogScene->addChild(mask, m_shapeBuilder->createCoGSymbol(body, transform));
     }
     for (auto& body : m_systems[0]->GetAssembly().Get_bodylist()) {
         // CreateIrrNode(body);
@@ -925,12 +951,12 @@ void ChVisualSystemVSG::BindAll() {
                                     vsg::scale(scale.x(), scale.y(), scale.z());
                 if (isDie) {
                     auto tmpGroup =
-                        m_shapeBuilder->createShape(ShapeBuilder::DIE_SHAPE, material, transform, m_draw_as_wireframe);
+                        m_shapeBuilder->createShape(ShapeBuilder::DIE_SHAPE, material, transform, m_wireframe);
                     ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
                     m_bodyScene->addChild(tmpGroup);
                 } else {
                     auto tmpGroup =
-                        m_shapeBuilder->createShape(ShapeBuilder::BOX_SHAPE, material, transform, m_draw_as_wireframe);
+                        m_shapeBuilder->createShape(ShapeBuilder::BOX_SHAPE, material, transform, m_wireframe);
                     ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
                     m_bodyScene->addChild(tmpGroup);
                 }
@@ -941,7 +967,7 @@ void ChVisualSystemVSG::BindAll() {
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(scale.x(), scale.y(), scale.z());
                 auto tmpGroup =
-                    m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, material, transform, m_draw_as_wireframe);
+                    m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, material, transform, m_wireframe);
                 ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
                 m_bodyScene->addChild(tmpGroup);
             } else if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
@@ -951,7 +977,7 @@ void ChVisualSystemVSG::BindAll() {
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(scale.x(), scale.y(), scale.z());
                 auto tmpGroup =
-                    m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, material, transform, m_draw_as_wireframe);
+                    m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, material, transform, m_wireframe);
                 ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
                 m_bodyScene->addChild(tmpGroup);
             } else if (auto capsule = std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {
@@ -963,7 +989,7 @@ void ChVisualSystemVSG::BindAll() {
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(scale.x(), scale.y(), scale.z());
                 auto tmpGroup =
-                    m_shapeBuilder->createShape(ShapeBuilder::CAPSULE_SHAPE, material, transform, m_draw_as_wireframe);
+                    m_shapeBuilder->createShape(ShapeBuilder::CAPSULE_SHAPE, material, transform, m_wireframe);
                 ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
                 m_bodyScene->addChild(tmpGroup);
             } else if (auto barrel = std::dynamic_pointer_cast<ChBarrelShape>(shape)) {
@@ -974,8 +1000,7 @@ void ChVisualSystemVSG::BindAll() {
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(rad.x(), rad.y(), rad.z());
-                auto tmpGroup =
-                    m_shapeBuilder->createShape(ShapeBuilder::CONE_SHAPE, material, transform, m_draw_as_wireframe);
+                auto tmpGroup = m_shapeBuilder->createShape(ShapeBuilder::CONE_SHAPE, material, transform, m_wireframe);
                 ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
                 m_bodyScene->addChild(tmpGroup);
             } else if (auto trimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape)) {
@@ -985,11 +1010,11 @@ void ChVisualSystemVSG::BindAll() {
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(scale.x(), scale.y(), scale.z());
                 if (trimesh->GetNumMaterials() > 0) {
-                    auto tmpGroup = m_shapeBuilder->createTrimeshMatShape(transform, m_draw_as_wireframe, trimesh);
+                    auto tmpGroup = m_shapeBuilder->createTrimeshMatShape(transform, m_wireframe, trimesh);
                     ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
                     m_bodyScene->addChild(tmpGroup);
                 } else {
-                    auto tmpGroup = m_shapeBuilder->createTrimeshColShape(transform, m_draw_as_wireframe, trimesh);
+                    auto tmpGroup = m_shapeBuilder->createTrimeshColShape(transform, m_wireframe, trimesh);
                     ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
                     m_bodyScene->addChild(tmpGroup);
                 }
@@ -998,8 +1023,8 @@ void ChVisualSystemVSG::BindAll() {
                 transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(1.0, 1.0, 1.0);
-                auto tmpGroup = m_shapeBuilder->createShape(ShapeBuilder::SURFACE_SHAPE, material, transform,
-                                                            m_draw_as_wireframe, surface);
+                auto tmpGroup =
+                    m_shapeBuilder->createShape(ShapeBuilder::SURFACE_SHAPE, material, transform, m_wireframe, surface);
                 ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
                 m_bodyScene->addChild(tmpGroup);
             } else if (auto obj = std::dynamic_pointer_cast<ChObjFileShape>(shape)) {
@@ -1067,7 +1092,7 @@ void ChVisualSystemVSG::BindAll() {
                                     vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                                     vsg::scale(rad, height, rad);
                 auto tmpGroup =
-                    m_shapeBuilder->createShape(ShapeBuilder::CYLINDER_SHAPE, material, transform, m_draw_as_wireframe);
+                    m_shapeBuilder->createShape(ShapeBuilder::CYLINDER_SHAPE, material, transform, m_wireframe);
                 ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
                 m_bodyScene->addChild(tmpGroup);
             }
@@ -1082,7 +1107,7 @@ void ChVisualSystemVSG::BindAll() {
                 material = chrono_types::make_shared<ChVisualMaterial>();
                 material->SetDiffuseColor(ChColor(1.0, 1.0, 1.0));
                 material->SetAmbientColor(ChColor(0.1, 0.1, 0.1));
-                m_particlePattern = m_shapeBuilder->createParticlePattern(material, m_draw_as_wireframe);
+                m_particlePattern = m_shapeBuilder->createParticlePattern(material, m_wireframe);
             }
             auto numParticles = pcloud->GetNparticles();
             std::vector<double> size = pcloud->GetCollisionModel()->GetShapeDimensions(0);
@@ -1096,7 +1121,7 @@ void ChVisualSystemVSG::BindAll() {
                 group->addChild(transform);
                 m_particleScene->addChild(group);
                 // m_particleScene->addChild(
-                //     m_shapeBuilder->createParticleShape(material, transform, m_draw_as_wireframe));
+                //     m_shapeBuilder->createParticleShape(material, transform, m_wireframe));
             }
         } else if (auto loadcont = std::dynamic_pointer_cast<ChLoadContainer>(item)) {
             auto visModel = loadcont->GetVisualModel();
@@ -1241,14 +1266,14 @@ void ChVisualSystemVSG::BindAll() {
 }
 
 void ChVisualSystemVSG::UpdateFromMBS() {
-    // generate CoG symbols if needed
-    if (m_cog_scale > 0) {
-        for (auto child : m_cogScene->children) {
+    // Update CoG symbols
+    if (m_show_cog) {
+        for (auto& child : m_cogScene->children) {
             std::shared_ptr<ChBody> body;
             vsg::ref_ptr<vsg::MatrixTransform> transform;
-            if (!child->getValue("BodyPtr", body))
+            if (!child.node->getValue("BodyPtr", body))
                 continue;
-            if (!child->getValue("TransformPtr", transform))
+            if (!child.node->getValue("TransformPtr", transform))
                 continue;
             auto pos = body->GetPos();
             auto rotAngle = body->GetRotAngle();
@@ -1260,7 +1285,7 @@ void ChVisualSystemVSG::UpdateFromMBS() {
     }
 
     // update body visualization related graphic nodes
-    for (auto child : m_bodyScene->children) {
+    for (const auto& child : m_bodyScene->children) {
         std::shared_ptr<ChPhysicsItem> item;
         ChVisualModel::ShapeInstance shapeInstance;
         vsg::ref_ptr<vsg::MatrixTransform> transform;
@@ -1380,7 +1405,7 @@ void ChVisualSystemVSG::UpdateFromMBS() {
     }
 
     // Update link shapes
-    for (auto child : m_linkScene->children) {
+    for (const auto& child : m_linkScene->children) {
         std::shared_ptr<ChLinkBase> item;
         ChVisualModel::ShapeInstance shapeInstance;
         vsg::ref_ptr<vsg::MatrixTransform> transform;
@@ -1568,12 +1593,12 @@ int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualShape> shape, cons
                             vsg::scale(scale.x(), scale.y(), scale.z());
         vsg::ref_ptr<vsg::Group> grp;
         if (isDie) {
-            grp = m_shapeBuilder->createShape(ShapeBuilder::DIE_SHAPE, material, transform, m_draw_as_wireframe);
+            grp = m_shapeBuilder->createShape(ShapeBuilder::DIE_SHAPE, material, transform, m_wireframe);
             grp->setValue("TransformPtr", transform);
             grp->setValue("Scale", scale);
             m_decoScene->addChild(grp);
         } else {
-            grp = m_shapeBuilder->createShape(ShapeBuilder::BOX_SHAPE, material, transform, m_draw_as_wireframe);
+            grp = m_shapeBuilder->createShape(ShapeBuilder::BOX_SHAPE, material, transform, m_wireframe);
             grp->setValue("TransformPtr", transform);
             grp->setValue("Scale", scale);
             m_decoScene->addChild(grp);
@@ -1587,7 +1612,7 @@ int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualShape> shape, cons
         transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                             vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                             vsg::scale(scale.x(), scale.y(), scale.z());
-        auto grp = m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, material, transform, m_draw_as_wireframe);
+        auto grp = m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, material, transform, m_wireframe);
         grp->setValue("TransformPtr", transform);
         grp->setValue("Scale", scale);
         m_decoScene->addChild(grp);
@@ -1600,7 +1625,7 @@ int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualShape> shape, cons
         transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                             vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                             vsg::scale(scale.x(), scale.y(), scale.z());
-        auto grp = m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, material, transform, m_draw_as_wireframe);
+        auto grp = m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, material, transform, m_wireframe);
         grp->setValue("TransformPtr", transform);
         grp->setValue("Scale", scale);
         m_decoScene->addChild(grp);
@@ -1615,7 +1640,7 @@ int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualShape> shape, cons
         transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                             vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                             vsg::scale(scale.x(), scale.y(), scale.z());
-        auto grp = m_shapeBuilder->createShape(ShapeBuilder::CAPSULE_SHAPE, material, transform, m_draw_as_wireframe);
+        auto grp = m_shapeBuilder->createShape(ShapeBuilder::CAPSULE_SHAPE, material, transform, m_wireframe);
         grp->setValue("TransformPtr", transform);
         grp->setValue("Scale", scale);
         m_decoScene->addChild(grp);
@@ -1628,7 +1653,7 @@ int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualShape> shape, cons
         transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
                             vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
                             vsg::scale(scale.x(), scale.y(), scale.z());
-        auto grp = m_shapeBuilder->createShape(ShapeBuilder::CONE_SHAPE, material, transform, m_draw_as_wireframe);
+        auto grp = m_shapeBuilder->createShape(ShapeBuilder::CONE_SHAPE, material, transform, m_wireframe);
         grp->setValue("TransformPtr", transform);
         grp->setValue("Scale", scale);
         m_decoScene->addChild(grp);

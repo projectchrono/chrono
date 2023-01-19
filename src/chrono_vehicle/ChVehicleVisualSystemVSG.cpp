@@ -297,7 +297,7 @@ void ChVehicleGuiComponentVSG::render() {
         snprintf(label, nstr, "%.1lf Nm", powertrain->GetMotorTorque());
         ImGui::Text(label);
         ImGui::TableNextRow();
-        
+
         ImGui::TableNextColumn();
         char tranny_mode = powertrain->GetTransmissionMode() == ChPowertrain::TransmissionMode::AUTOMATIC ? 'A' : 'M';
         switch (powertrain->GetDriveMode()) {
@@ -343,8 +343,7 @@ void ChVehicleGuiComponentVSG::render() {
             ImGui::TableNextColumn();
             ImGui::Text("T.conv.speed.out:");
             ImGui::TableNextColumn();
-            snprintf(label, nstr, "%.1f RPM",
-                     powertrain->GetTorqueConverterOutputSpeed() * 0 / CH_C_PI);
+            snprintf(label, nstr, "%.1f RPM", powertrain->GetTorqueConverterOutputSpeed() * 0 / CH_C_PI);
             ImGui::Text(label);
             ImGui::TableNextRow();
             ImGui::EndTable();
@@ -432,8 +431,7 @@ void ChVehicleVisualSystemVSG::SetTargetSymbol(double size, ChColor col) {
 
     auto material = chrono_types::make_shared<ChVisualMaterial>();
     material->SetEmissiveColor(col);
-    auto tmpGroup =
-        m_shapeBuilder->createShape(vsg3d::ShapeBuilder::SPHERE_SHAPE, material, transform, m_draw_as_wireframe);
+    auto tmpGroup = m_shapeBuilder->createShape(vsg3d::ShapeBuilder::SPHERE_SHAPE, material, transform, m_wireframe);
     tmpGroup->setValue("SymbolType", 'T');
     m_symbolScene->addChild(tmpGroup);
 }
@@ -480,8 +478,7 @@ void ChVehicleVisualSystemVSG::SetSentinelSymbol(double size, ChColor col) {
 
     auto material = chrono_types::make_shared<ChVisualMaterial>();
     material->SetEmissiveColor(col);
-    auto tmpGroup =
-        m_shapeBuilder->createShape(vsg3d::ShapeBuilder::SPHERE_SHAPE, material, transform, m_draw_as_wireframe);
+    auto tmpGroup = m_shapeBuilder->createShape(vsg3d::ShapeBuilder::SPHERE_SHAPE, material, transform, m_wireframe);
     tmpGroup->setValue("SymbolType", 'S');
     m_symbolScene->addChild(tmpGroup);
 }
