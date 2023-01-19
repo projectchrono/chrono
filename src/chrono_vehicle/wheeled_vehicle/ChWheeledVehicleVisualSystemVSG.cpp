@@ -25,108 +25,45 @@
 namespace chrono {
 namespace vehicle {
 
-ChWheeledVehicleVisualSystemVSG::ChWheeledVehicleVisualSystemVSG()
-    : ChVehicleVisualSystemVSG(), m_wvehicle(nullptr), m_drivenAxles(0) {}
+ChWheeledVehicleVisualSystemVSG::ChWheeledVehicleVisualSystemVSG() : ChVehicleVisualSystemVSG(), m_wvehicle(nullptr) {}
 
 void ChWheeledVehicleVisualSystemVSG::AttachVehicle(ChVehicle* vehicle) {
     ChVehicleVisualSystemVSG::AttachVehicle(vehicle);
-
     m_wvehicle = dynamic_cast<ChWheeledVehicle*>(m_vehicle);
-    if (!m_wvehicle)
-        return;
-
-    //// RADU TODO
-    ////   eliminate.  Num. driven axles already available through ChWheeledVehicle!
-
-    if (auto driveline2 = std::dynamic_pointer_cast<ChShaftsDriveline2WD>(m_wvehicle->GetDriveline())) {
-        m_drivenAxles = 1;
-    } else if (auto driveline4 = std::dynamic_pointer_cast<ChShaftsDriveline4WD>(m_wvehicle->GetDriveline())) {
-        m_drivenAxles = 2;
-    } else if (auto driveline8 = std::dynamic_pointer_cast<ChShaftsDriveline8WD>(m_wvehicle->GetDriveline())) {
-        m_drivenAxles = 4;
-    }
-}
-
-double ChWheeledVehicleVisualSystemVSG::GetTireTorque(int draxle, int side) {
-    if (!m_wvehicle)
-        return 0.0;
-
-    if (auto driveline2 = std::dynamic_pointer_cast<ChShaftsDriveline2WD>(m_wvehicle->GetDriveline())) {
-        double torque;
-        int axle = driveline2->GetDrivenAxleIndexes()[0];
-        if (side == 0)
-            torque = driveline2->GetSpindleTorque(axle, LEFT);
-        else
-            torque = driveline2->GetSpindleTorque(axle, RIGHT);
-        return torque;
-    } else if (auto driveline4 = std::dynamic_pointer_cast<ChShaftsDriveline4WD>(m_wvehicle->GetDriveline())) {
-        double torque;
-        int axle = driveline4->GetDrivenAxleIndexes()[draxle];
-        if (side == 0)
-            torque = driveline4->GetSpindleTorque(axle, LEFT);
-        else
-            torque = driveline4->GetSpindleTorque(axle, RIGHT);
-        return torque;
-    }
-    if (auto driveline8 = std::dynamic_pointer_cast<ChShaftsDriveline8WD>(m_wvehicle->GetDriveline())) {
-        double torque;
-        int axle = driveline8->GetDrivenAxleIndexes()[draxle];
-        if (side == 0)
-            torque = driveline8->GetSpindleTorque(axle, LEFT);
-        else
-            torque = driveline8->GetSpindleTorque(axle, RIGHT);
-        return torque;
-    } else {
-        return 0.0;
-    }
+    assert(m_wvehicle);
 }
 
 void ChWheeledVehicleVisualSystemVSG::AppendGUIStats() {
+    const auto& driveline = m_wvehicle->GetDriveline();
+    const auto& num_driven_axles = driveline->GetNumDrivenAxles();
+    const auto& driven_axles = driveline->GetDrivenAxleIndexes();
+
+    if (num_driven_axles < 1)
+        return;
+
     char label[64];
     int nstr = sizeof(label) - 1;
 
-    //// RADU TODO
-    ////  simplify: loop over driven axles and eliminate GetTireTorque()
-
-    if (m_drivenAxles > 0) {
-        ImGui::Spacing();
-
-        ImGui::BeginTable("TireTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
-                          ImVec2(0.0f, 0.0f));
+    ImGui::Spacing();
+    ImGui::BeginTable("TireTable", 3, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                      ImVec2(0.0f, 0.0f));
+    for (int i = 0; i < num_driven_axles; i++) {
+        int axle = driven_axles[i];
         ImGui::TableNextColumn();
-        snprintf(label, nstr, "Torques wheel L: %+5.1f Nm", GetTireTorque(0, 0));
+        snprintf(label, nstr, "Axle %1d torques", driven_axles[i]);
         ImGui::Text(label);
+
         ImGui::TableNextColumn();
-        snprintf(label, nstr, " R: %+5.1f Nm", GetTireTorque(0, 1));
+        snprintf(label, nstr, " L: %+5.1f Nm", driveline->GetSpindleTorque(axle, VehicleSide::LEFT));
         ImGui::Text(label);
+
+        ImGui::TableNextColumn();
+        snprintf(label, nstr, " R: %+5.1f Nm", driveline->GetSpindleTorque(axle, VehicleSide::RIGHT));
+        ImGui::Text(label);
+
         ImGui::TableNextRow();
-        if (m_drivenAxles >= 2) {
-            ImGui::TableNextColumn();
-            snprintf(label, nstr, "Torques wheel L: %+5.1f Nm", GetTireTorque(1, 0));
-            ImGui::Text(label);
-            ImGui::TableNextColumn();
-            snprintf(label, nstr, " R: %+5.1f Nm", GetTireTorque(1, 1));
-            ImGui::Text(label);
-            ImGui::TableNextRow();
-        }
-        if (m_drivenAxles >= 4) {
-            ImGui::TableNextColumn();
-            snprintf(label, nstr, "Torques wheel L: %+5.1f Nm", GetTireTorque(2, 0));
-            ImGui::Text(label);
-            ImGui::TableNextColumn();
-            snprintf(label, nstr, " R: %+5.1f Nm", GetTireTorque(2, 1));
-            ImGui::Text(label);
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            snprintf(label, nstr, "Torques wheel L: %+5.1f Nm", GetTireTorque(3, 0));
-            ImGui::Text(label);
-            ImGui::TableNextColumn();
-            snprintf(label, nstr, " R: %+5.1f Nm", GetTireTorque(3, 1));
-            ImGui::Text(label);
-            ImGui::TableNextRow();
-        }
-        ImGui::EndTable();
     }
+    ImGui::EndTable();
 }
 
 }  // end namespace vehicle

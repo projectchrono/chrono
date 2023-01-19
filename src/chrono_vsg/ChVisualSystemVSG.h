@@ -138,7 +138,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     struct StateParams : public vsg::Inherit<vsg::Object, StateParams> {
         size_t frame_number = 0;  // updated in Run() loop
         double time_begin = 0.0;  // wallclock time at begin of Run() loop
-        bool show_converter_data = false;
         bool show_color_bar = false;
         std::string cb_title;
         double cb_min = 0.0;

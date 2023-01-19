@@ -37,7 +37,7 @@
 #include "chrono_vehicle/ChConfigVehicle.h"
 
 #ifdef CHRONO_IRRKLANG
-#include <irrKlang.h>
+    #include <irrKlang.h>
 #endif
 
 namespace chrono {
@@ -55,7 +55,8 @@ class ChChaseCameraEventReceiver;  ///< custom event receiver for chase-cam cont
 ///   - rendering of the entire Irrlicht scene
 ///   - custom chase-camera (which can be controlled with keyboard)
 ///   - optional rendering of links, springs, stats, etc.
-class CH_VEHICLE_API ChVehicleVisualSystemIrrlicht : public ChVehicleVisualSystem, public irrlicht::ChVisualSystemIrrlicht {
+class CH_VEHICLE_API ChVehicleVisualSystemIrrlicht : public ChVehicleVisualSystem,
+                                                     public irrlicht::ChVisualSystemIrrlicht {
   public:
     /// Construct a vehicle Irrlicht visualization system
     ChVehicleVisualSystemIrrlicht();
@@ -78,6 +79,7 @@ class CH_VEHICLE_API ChVehicleVisualSystemIrrlicht : public ChVehicleVisualSyste
     /// Note that this has an effect only if Irrklang support was enabled at configuration.
     void EnableSound(bool sound);
 
+    /// Initialize the visualization system.
     virtual void Initialize() override;
 
     /// Render the Irrlicht scene and additional visual elements.

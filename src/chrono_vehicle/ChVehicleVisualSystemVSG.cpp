@@ -6,7 +6,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Rainer Gericke
+// Authors: Rainer Gericke, Radu Serban
 // =============================================================================
 //
 // VSG-based visualization wrapper for vehicles.  This class is a derived
@@ -17,7 +17,10 @@
 //
 // =============================================================================
 
+#include "chrono_vehicle/powertrain/ChShaftsPowertrain.h"
+
 #include "chrono_vsg/ChGuiComponentVSG.h"
+#include "chrono_vehicle/ChVehicleVisualSystemVSG.h"
 #include "chrono_vehicle/driver/ChVSGGuiDriver.h"
 
 namespace chrono {
@@ -112,50 +115,58 @@ class FindColorData : public vsg::Visitor {
 
 // -----------------------------------------------------------------------------
 
-class VehAppKeyboardHandler : public vsg::Inherit<vsg::Visitor, VehAppKeyboardHandler> {
+class ChVehicleKeyboardHandlerVSG : public vsg::Inherit<vsg::Visitor, ChVehicleKeyboardHandlerVSG> {
   public:
-    VehAppKeyboardHandler(ChVehicleVisualSystemVSG* app) : m_app(app) {}
+    ChVehicleKeyboardHandlerVSG(ChVehicleVisualSystemVSG* app) : m_app(app) {}
 
-#ifdef WIN32
     void apply(vsg::KeyPressEvent& keyPress) override {
-        // keyboard events for camara steering
+        if (!m_app->m_vehicle)
+            return;
+
+        // keyboard events for camera steering
         switch (keyPress.keyModified) {
             case vsg::KEY_Down:
-                m_app->CameraZoom(1);
+                m_app->m_camera->Zoom(1);
                 return;
             case vsg::KEY_Up:
-                m_app->CameraZoom(-1);
+                m_app->m_camera->Zoom(-1);
                 return;
             case vsg::KEY_Left:
-                m_app->CameraTurn(-1);
+                m_app->m_camera->Turn(-1);
                 return;
             case vsg::KEY_Right:  // not recognized on the Mac
             case 94:              // Mac hack
-                m_app->CameraTurn(1);
+                m_app->m_camera->Turn(1);
                 return;
             case vsg::KEY_Next:
-                m_app->CameraRaise(-1);
+                m_app->m_camera->Raise(-1);
                 return;
             case vsg::KEY_Prior:
-                m_app->CameraRaise(1);
+                m_app->m_camera->Raise(1);
                 return;
             case vsg::KEY_a:
-                m_app->SteeringLeft();
+                if (m_app->m_guiDriver)
+                    m_app->m_guiDriver->SteeringLeft();
                 return;
             case vsg::KEY_d:
-                m_app->SteeringRight();
+                if (m_app->m_guiDriver)
+                    m_app->m_guiDriver->SteeringRight();
                 return;
             case vsg::KEY_c:
-                m_app->SteeringCenter();
+                if (m_app->m_guiDriver)
+                    m_app->m_guiDriver->SteeringCenter();
                 return;
             case vsg::KEY_w:
-                m_app->IncreaseVehicleSpeed();
+                if (m_app->m_guiDriver)
+                    m_app->m_guiDriver->IncreaseThrottle();
                 return;
             case vsg::KEY_s:
-                m_app->DecreaseVehicleSpeed();
+                if (m_app->m_guiDriver)
+                    m_app->m_guiDriver->DecreaseThrottle();
                 return;
             case vsg::KEY_r:
-                m_app->ReleasePedals();
+                if (m_app->m_guiDriver)
+                    m_app->m_guiDriver->ReleasePedals();
                 return;
             case vsg::KEY_1:
                 m_app->SetChaseCameraState(utils::ChChaseCamera::Chase);
@@ -173,92 +184,35 @@ class VehAppKeyboardHandler : public vsg::Inherit<vsg::Visitor, VehAppKeyboardHa
                 m_app->SetChaseCameraState(utils::ChChaseCamera::Free);
                 return;
             case vsg::KEY_V:
-                m_app->LogContraintViolations();
+                m_app->m_vehicle->LogConstraintViolations();
                 return;
         }
         switch (keyPress.keyBase) {
             case vsg::KEY_a:
-                m_app->SteeringLeft();
+                if (m_app->m_guiDriver)
+                    m_app->m_guiDriver->SteeringLeft();
                 return;
             case vsg::KEY_d:
-                m_app->SteeringRight();
+                if (m_app->m_guiDriver)
+                    m_app->m_guiDriver->SteeringRight();
                 return;
             case vsg::KEY_c:
-                m_app->SteeringCenter();
+                if (m_app->m_guiDriver)
+                    m_app->m_guiDriver->SteeringCenter();
                 return;
             case vsg::KEY_w:
-                m_app->IncreaseVehicleSpeed();
+                if (m_app->m_guiDriver)
+                    m_app->m_guiDriver->IncreaseThrottle();
                 return;
             case vsg::KEY_s:
-                m_app->DecreaseVehicleSpeed();
+                if (m_app->m_guiDriver)
+                    m_app->m_guiDriver->DecreaseThrottle();
                 return;
             case vsg::KEY_r:
-                m_app->ReleasePedals();
+                if (m_app->m_guiDriver)
+                    m_app->m_guiDriver->ReleasePedals();
                 return;
         }
-#else
-    void apply(vsg::KeyPressEvent& keyPress) override {
-        // keyboard events for camara steering
-        switch (keyPress.keyBase) {
-            case vsg::KEY_Down:
-                m_app->CameraZoom(1);
-                return;
-            case vsg::KEY_Up:
-                m_app->CameraZoom(-1);
-                return;
-            case vsg::KEY_Left:
-                m_app->CameraTurn(-1);
-                return;
-            case vsg::KEY_Right:  // not recognized on the Mac
-    #ifdef __APPLE__
-            case 94:              // Mac hack
-    #endif
-                m_app->CameraTurn(1);
-                return;
-            case vsg::KEY_Next:
-                m_app->CameraRaise(-1);
-                return;
-            case vsg::KEY_Prior:
-                m_app->CameraRaise(1);
-                return;
-            case vsg::KEY_a:
-                m_app->SteeringLeft();
-                return;
-            case vsg::KEY_d:
-                m_app->SteeringRight();
-                return;
-            case vsg::KEY_c:
-                m_app->SteeringCenter();
-                return;
-            case vsg::KEY_w:
-                m_app->IncreaseVehicleSpeed();
-                return;
-            case vsg::KEY_s:
-                m_app->DecreaseVehicleSpeed();
-                return;
-            case vsg::KEY_r:
-                m_app->ReleasePedals();
-                return;
-            case vsg::KEY_1:
-                m_app->SetChaseCameraState(utils::ChChaseCamera::Chase);
-                return;
-            case vsg::KEY_2:
-                m_app->SetChaseCameraState(utils::ChChaseCamera::Follow);
-                return;
-            case vsg::KEY_3:
-                m_app->SetChaseCameraState(utils::ChChaseCamera::Track);
-                return;
-            case vsg::KEY_4:
-                m_app->SetChaseCameraState(utils::ChChaseCamera::Inside);
-                return;
-            case vsg::KEY_5:
-                m_app->SetChaseCameraState(utils::ChChaseCamera::Free);
-                return;
-            case vsg::KEY_V:
-                m_app->LogContraintViolations();
-                return;
-        }
-#endif
     }
 
   private:
@@ -271,6 +225,7 @@ class ChVehicleGuiComponentVSG : public vsg3d::ChGuiComponentVSG {
   public:
     ChVehicleGuiComponentVSG(ChVehicleVisualSystemVSG* app) : m_app(app) {}
     virtual void render() override;
+
   private:
     ChVehicleVisualSystemVSG* m_app;
 };
@@ -323,75 +278,78 @@ void ChVehicleGuiComponentVSG::render() {
     ImGui::Text(label);
     ImGui::EndTable();
 
-    ImGui::Spacing();
-    
-    ImGui::BeginTable("PowerTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
-                      ImVec2(0.0f, 0.0f));
-    ImGui::TableNextColumn();
-    ImGui::Text("Engine Speed:");
-    ImGui::TableNextColumn();
-    snprintf(label, nstr, "%.1lf RPM", powertrain ? powertrain->GetMotorSpeed() * 30 / CH_C_PI : 0);
-    ImGui::Text(label);
-    ImGui::TableNextRow();
-    ImGui::TableNextColumn();
-    ImGui::Text("Engine Torque:");
-    ImGui::TableNextColumn();
-    snprintf(label, nstr, "%.1lf Nm", powertrain ? powertrain->GetMotorTorque() : 0);
-    ImGui::Text(label);
-    ImGui::TableNextRow();
-    ImGui::TableNextColumn();
-    switch (m_app->GetDriveMode()) {
-        case 'F':
-            snprintf(label, nstr, "[%c] Gear forward:", m_app->GetTransmissionMode());
-            break;
-        case 'N':
-            snprintf(label, nstr, "[%c] Gear neutral:", m_app->GetTransmissionMode());
-            break;
-        case 'R':
-            snprintf(label, nstr, "[%c] Gear reverse:", m_app->GetTransmissionMode());
-            break;
-        default:
-            snprintf(label, nstr, "[%c] Gear ?:", m_app->GetTransmissionMode());
-            break;
+    if (powertrain) {
+        ImGui::Spacing();
+
+        ImGui::BeginTable("PowerTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                          ImVec2(0.0f, 0.0f));
+
+        ImGui::TableNextColumn();
+        ImGui::Text("Engine Speed:");
+        ImGui::TableNextColumn();
+        snprintf(label, nstr, "%.1lf RPM", powertrain->GetMotorSpeed() * 30 / CH_C_PI);
+        ImGui::Text(label);
+        ImGui::TableNextRow();
+
+        ImGui::TableNextColumn();
+        ImGui::Text("Engine Torque:");
+        ImGui::TableNextColumn();
+        snprintf(label, nstr, "%.1lf Nm", powertrain->GetMotorTorque());
+        ImGui::Text(label);
+        ImGui::TableNextRow();
+        
+        ImGui::TableNextColumn();
+        char tranny_mode = powertrain->GetTransmissionMode() == ChPowertrain::TransmissionMode::AUTOMATIC ? 'A' : 'M';
+        switch (powertrain->GetDriveMode()) {
+            case ChPowertrain::DriveMode::FORWARD:
+                snprintf(label, nstr, "[%c] Gear forward:", tranny_mode);
+                break;
+            case ChPowertrain::DriveMode::NEUTRAL:
+                snprintf(label, nstr, "[%c] Gear neutral:", tranny_mode);
+                break;
+            case ChPowertrain::DriveMode::REVERSE:
+                snprintf(label, nstr, "[%c] Gear reverse:", tranny_mode);
+                break;
+        }
+        ImGui::Text(label);
+        ImGui::TableNextColumn();
+        snprintf(label, nstr, "%d", powertrain->GetCurrentTransmissionGear());
+        ImGui::Text(label);
+        ImGui::TableNextRow();
+        ImGui::EndTable();
+
+        if (m_app->m_has_TC) {
+            ImGui::Spacing();
+            ImGui::BeginTable("ConvTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                              ImVec2(0.0f, 0.0f));
+            ImGui::TableNextColumn();
+            ImGui::Text("T.conv.slip:");
+            ImGui::TableNextColumn();
+            snprintf(label, nstr, "%.2f", powertrain->GetTorqueConverterSlippage());
+            ImGui::Text(label);
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Text("T.conv.torque.in:");
+            ImGui::TableNextColumn();
+            snprintf(label, nstr, "%.1f Nm", powertrain->GetTorqueConverterInputTorque());
+            ImGui::Text(label);
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Text("T.conv.torque.out:");
+            ImGui::TableNextColumn();
+            snprintf(label, nstr, "%.1f Nm", powertrain->GetTorqueConverterOutputTorque());
+            ImGui::Text(label);
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Text("T.conv.speed.out:");
+            ImGui::TableNextColumn();
+            snprintf(label, nstr, "%.1f RPM",
+                     powertrain->GetTorqueConverterOutputSpeed() * 0 / CH_C_PI);
+            ImGui::Text(label);
+            ImGui::TableNextRow();
+            ImGui::EndTable();
+        }
     }
-    ImGui::Text(label);
-    ImGui::TableNextColumn();
-    snprintf(label, nstr, "%d", powertrain ? powertrain->GetCurrentTransmissionGear() : 0);
-    ImGui::Text(label);
-    ImGui::TableNextRow();
-    ImGui::EndTable();
-
-    ImGui::Spacing();
-
-    //// RADU TODO 
-    ////  show only if TC exists
-    ImGui::BeginTable("ConvTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
-                      ImVec2(0.0f, 0.0f));
-    ImGui::TableNextColumn();
-    ImGui::Text("T.conv.slip:");
-    ImGui::TableNextColumn();
-    snprintf(label, nstr, "%.2f", powertrain ? powertrain->GetTorqueConverterSlippage() : 0);
-    ImGui::Text(label);
-    ImGui::TableNextRow();
-    ImGui::TableNextColumn();
-    ImGui::Text("T.conv.torque.in:");
-    ImGui::TableNextColumn();
-    snprintf(label, nstr, "%.1f Nm", powertrain ? powertrain->GetTorqueConverterInputTorque() : 0);
-    ImGui::Text(label);
-    ImGui::TableNextRow();
-    ImGui::TableNextColumn();
-    ImGui::Text("T.conv.torque.out:");
-    ImGui::TableNextColumn();
-    snprintf(label, nstr, "%.1f Nm", powertrain ? powertrain->GetTorqueConverterOutputTorque() : 0);
-    ImGui::Text(label);
-    ImGui::TableNextRow();
-    ImGui::TableNextColumn();
-    ImGui::Text("T.conv.speed.out:");
-    ImGui::TableNextColumn();
-    snprintf(label, nstr, "%.1f RPM", powertrain ? powertrain->GetTorqueConverterOutputSpeed() * 0 / CH_C_PI : 0);
-    ImGui::Text(label);
-    ImGui::TableNextRow();
-    ImGui::EndTable();
 
     m_app->AppendGUIStats();
 
@@ -400,14 +358,13 @@ void ChVehicleGuiComponentVSG::render() {
 
 // -----------------------------------------------------------------------------
 
-ChVehicleVisualSystemVSG::ChVehicleVisualSystemVSG() : ChVisualSystemVSG(), m_guiDriver(nullptr) {}
+ChVehicleVisualSystemVSG::ChVehicleVisualSystemVSG() : ChVisualSystemVSG(), m_guiDriver(nullptr), m_has_TC(false) {}
 
 ChVehicleVisualSystemVSG::~ChVehicleVisualSystemVSG() {}
 
 void ChVehicleVisualSystemVSG::Initialize() {
     // Create vehicle-specific GUI and let derived classes append to it
     m_gui.push_back(chrono_types::make_shared<ChVehicleGuiComponentVSG>(this));
-    //AppendGUIStats();
 
     // Do not create a VSG camera trackball controller
     m_camera_trackball = false;
@@ -416,57 +373,17 @@ void ChVehicleVisualSystemVSG::Initialize() {
     ChVisualSystemVSG::Initialize();
 
     // Add keyboard handler
-    auto veh_kbHandler = VehAppKeyboardHandler::create(this);
+    auto veh_kbHandler = ChVehicleKeyboardHandlerVSG::create(this);
     m_viewer->addEventHandler(veh_kbHandler);
-    
+
     // Initialize chase-cam mode
     SetChaseCameraState(utils::ChChaseCamera::State::Chase);
 
-    if (!m_vehicle)
+    if (!m_vehicle || !m_vehicle->GetPowertrain())
         return;
-    if (!m_vehicle->GetPowertrain())
-        return;
-    auto spt = std::dynamic_pointer_cast<ChShaftsPowertrain>(m_vehicle->GetPowertrain());
-    if (spt) {
-        m_params->show_converter_data = true;
-    }
-}
 
-void ChVehicleVisualSystemVSG::AttachVehicle(vehicle::ChVehicle* vehicle) {
-    ChVehicleVisualSystem::AttachVehicle(vehicle);
-
-    //// RADU TODO 
-    ////   Anything else here? If not, eliminate!
-}
-
-char ChVehicleVisualSystemVSG::GetTransmissionMode() {
-    if (!m_vehicle)
-        return '?';
-    if (!m_vehicle->GetPowertrain())
-        return '?';
-    switch (m_vehicle->GetPowertrain()->GetTransmissionMode()) {
-        default:
-        case ChPowertrain::TransmissionMode::AUTOMATIC:
-            return 'A';
-        case ChPowertrain::TransmissionMode::MANUAL:
-            return 'M';
-    }
-}
-
-char ChVehicleVisualSystemVSG::GetDriveMode() {
-    if (!m_vehicle)
-        return '?';
-    if (!m_vehicle->GetPowertrain())
-        return '?';
-    switch (m_vehicle->GetPowertrain()->GetDriveMode()) {
-        default:
-        case ChPowertrain::DriveMode::FORWARD:
-            return 'F';
-        case ChPowertrain::DriveMode::NEUTRAL:
-            return 'N';
-        case ChPowertrain::DriveMode::REVERSE:
-            return 'R';
-    }
+    if (std::dynamic_pointer_cast<ChShaftsPowertrain>(m_vehicle->GetPowertrain()))
+        m_has_TC = true;
 }
 
 void ChVehicleVisualSystemVSG::Advance(double step) {
@@ -486,70 +403,6 @@ void ChVehicleVisualSystemVSG::Advance(double step) {
     m_vsg_cameraTarget.set(cam_target.x(), cam_target.y(), cam_target.z());
     m_lookAt->eye.set(cam_pos.x(), cam_pos.y(), cam_pos.z());
     m_lookAt->center.set(cam_target.x(), cam_target.y(), cam_target.z());
-}
-
-void ChVehicleVisualSystemVSG::IncreaseVehicleSpeed() {
-    // GetLog() << "Speed+\n";
-    if (m_guiDriver) {
-        m_guiDriver->IncreaseThrottle();
-    }
-}
-
-void ChVehicleVisualSystemVSG::DecreaseVehicleSpeed() {
-    // GetLog() << "Speed-\n";
-    if (m_guiDriver) {
-        m_guiDriver->DecreaseThrottle();
-    }
-}
-
-void ChVehicleVisualSystemVSG::SteeringLeft() {
-    // GetLog() << "Left\n";
-    if (m_guiDriver) {
-        m_guiDriver->SteeringLeft();
-    }
-}
-
-void ChVehicleVisualSystemVSG::SteeringRight() {
-    // GetLog() << "Right\n";
-    if (m_guiDriver) {
-        m_guiDriver->SteeringRight();
-    }
-}
-
-void ChVehicleVisualSystemVSG::SteeringCenter() {
-    // GetLog() << "Center\n";
-    if (m_guiDriver) {
-        m_guiDriver->SteeringCenter();
-    }
-}
-
-void ChVehicleVisualSystemVSG::ReleasePedals() {
-    // GetLog() << "Release\n";
-    if (m_guiDriver) {
-        m_guiDriver->ReleasePedals();
-    }
-}
-
-void ChVehicleVisualSystemVSG::CameraZoom(int how) {
-    if (m_vehicle) {
-        m_camera->Zoom(how);
-    }
-}
-
-void ChVehicleVisualSystemVSG::CameraTurn(int how) {
-    if (m_vehicle) {
-        m_camera->Turn(how);
-    }
-}
-
-void ChVehicleVisualSystemVSG::CameraRaise(int how) {
-    if (m_vehicle) {
-        m_camera->Raise(how);
-    }
-}
-
-void ChVehicleVisualSystemVSG::LogContraintViolations() {
-    m_vehicle->LogConstraintViolations();
 }
 
 void ChVehicleVisualSystemVSG::SetTargetSymbol(double size, ChColor col) {
@@ -646,13 +499,6 @@ void ChVehicleVisualSystemVSG::SetSentinelSymbolPosition(ChVector<> pos) {
             continue;
         transform->matrix = vsg::translate(m_sentinel_symbol_position) * vsg::scale(m_sentinel_symbol_size);
     }
-}
-
-void ChVehicleVisualSystemVSG::UpdateFromMBS() {
-    ChVisualSystemVSG::UpdateFromMBS();
-
-    //// RADU TODO
-    ////   Anything else here? If not, eliminate!
 }
 
 }  // namespace vehicle

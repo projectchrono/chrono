@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Rainer Gericke
+// Authors: Rainer Gericke, Radu Serban
 // =============================================================================
 //
 // VSG-based visualization wrapper for vehicles.  This class is a derived
@@ -35,7 +35,6 @@
 #include "chrono_vehicle/ChVehicleVisualSystem.h"
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/ChConfigVehicle.h"
-#include "chrono_vehicle/powertrain/ChShaftsPowertrain.h"
 #include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
 
 namespace chrono {
@@ -54,12 +53,8 @@ class CH_VEHICLE_API ChVehicleVisualSystemVSG : public ChVehicleVisualSystem, pu
 
     virtual ~ChVehicleVisualSystemVSG();
 
+    /// Initialize the visualization system.
     virtual void Initialize() override;
-
-    virtual void UpdateFromMBS() override;
-
-    /// Attach a vehicle to this VSG vehicle visualization system.
-    virtual void AttachVehicle(vehicle::ChVehicle* vehicle) override;
 
     /// Advance the dynamics of the chase camera.
     /// The integration of the underlying ODEs is performed using as many steps as needed to advance
@@ -71,28 +66,11 @@ class CH_VEHICLE_API ChVehicleVisualSystemVSG : public ChVehicleVisualSystem, pu
     void SetSentinelSymbol(double size, ChColor col);
     void SetSentinelSymbolPosition(ChVector<> pos);
 
-    void IncreaseVehicleSpeed();
-    void DecreaseVehicleSpeed();
-    void SteeringLeft();
-    void SteeringRight();
-    void SteeringCenter();
-    void ReleasePedals();
-
-    void CameraZoom(int how);
-    void CameraTurn(int how);
-    void CameraRaise(int how);
-
-    void LogContraintViolations();
-
-    //// RADU TODO
-    ////  eliminate all!
-    char GetTransmissionMode();
-    char GetDriveMode();
-
   protected:
     virtual void AppendGUIStats() {}
 
     ChVSGGuiDriver* m_guiDriver;
+    bool m_has_TC;
 
     vsg::dvec3 m_target_symbol_position = vsg::dvec3(0.0, 0.0, 0.0);
     vsg::dvec3 m_target_symbol_size = vsg::dvec3(1.0, 1.0, 1.0);
@@ -101,6 +79,7 @@ class CH_VEHICLE_API ChVehicleVisualSystemVSG : public ChVehicleVisualSystem, pu
 
     friend class ChVSGGuiDriver;
     friend class ChVehicleGuiComponentVSG;
+    friend class ChVehicleKeyboardHandlerVSG;
 };
 
 // @} vehicle

@@ -39,13 +39,10 @@ class CH_VEHICLE_API ChWheeledVehicleVisualSystemVSG : public ChVehicleVisualSys
     /// Attach a vehicle to this VSG wheeled vehicle visualization system.
     virtual void AttachVehicle(vehicle::ChVehicle* vehicle) override;
 
-    double GetTireTorque(int axle, int side);
-
     virtual void AppendGUIStats() override;
 
   private:
     ChWheeledVehicle* m_wvehicle;
-    int m_drivenAxles;
 };
 
 /// @} vehicle_wheeled
