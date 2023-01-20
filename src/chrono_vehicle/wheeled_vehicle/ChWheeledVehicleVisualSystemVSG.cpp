@@ -54,11 +54,11 @@ void ChWheeledVehicleVisualSystemVSG::AppendGUIStats() {
         ImGui::Text(label);
 
         ImGui::TableNextColumn();
-        snprintf(label, nstr, " L: %+5.1f Nm", driveline->GetSpindleTorque(axle, VehicleSide::LEFT));
+        snprintf(label, nstr, " L: %5.1f Nm", driveline->GetSpindleTorque(axle, VehicleSide::LEFT));
         ImGui::Text(label);
 
         ImGui::TableNextColumn();
-        snprintf(label, nstr, " R: %+5.1f Nm", driveline->GetSpindleTorque(axle, VehicleSide::RIGHT));
+        snprintf(label, nstr, " R: %5.1f Nm", driveline->GetSpindleTorque(axle, VehicleSide::RIGHT));
         ImGui::Text(label);
 
         ImGui::TableNextRow();

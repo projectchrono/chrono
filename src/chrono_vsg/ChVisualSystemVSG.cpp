@@ -55,6 +55,7 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
         char label[64];
         int nstr = sizeof(label) - 1;
         ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
+        ImGui::SetNextWindowPos(ImVec2(5.0f, 5.0f));
         ImGui::Begin("Simulation");
 
         ImGui::BeginTable("SimTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
