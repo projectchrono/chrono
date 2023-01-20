@@ -713,12 +713,12 @@ source_group("tracked_vehicle\\track_assembly" FILES ${CV_TV_TRACKASSEMBLY_FILES
 set(CV_TV_TEST_RIG_FILES
     tracked_vehicle/test_rig/ChTrackTestRig.h
     tracked_vehicle/test_rig/ChTrackTestRig.cpp
-    tracked_vehicle/test_rig/ChDriverTTR.h
-    tracked_vehicle/test_rig/ChDriverTTR.cpp
-    tracked_vehicle/test_rig/ChDataDriverTTR.h
-    tracked_vehicle/test_rig/ChDataDriverTTR.cpp
-    tracked_vehicle/test_rig/ChRoadDriverTTR.h
-    tracked_vehicle/test_rig/ChRoadDriverTTR.cpp
+    tracked_vehicle/test_rig/ChTrackTestRigDriver.h
+    tracked_vehicle/test_rig/ChTrackTestRigDriver.cpp
+    tracked_vehicle/test_rig/ChTrackTestRigDataDriver.h
+    tracked_vehicle/test_rig/ChTrackTestRigDataDriver.cpp
+    tracked_vehicle/test_rig/ChTrackTestRigRoadDriver.h
+    tracked_vehicle/test_rig/ChTrackTestRigRoadDriver.cpp
 )
 source_group("tracked_vehicle\\test_rig" FILES ${CV_TV_TEST_RIG_FILES})
 
@@ -751,8 +751,8 @@ if(ENABLE_MODULE_IRRLICHT)
         tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.cpp
         tracked_vehicle/test_rig/ChTrackTestRigVisualSystemIrrlicht.h
         tracked_vehicle/test_rig/ChTrackTestRigVisualSystemIrrlicht.cpp
-        tracked_vehicle/test_rig/ChIrrGuiDriverTTR.h
-        tracked_vehicle/test_rig/ChIrrGuiDriverTTR.cpp
+        tracked_vehicle/test_rig/ChTrackTestRigInteractiveDriverIRR.h
+        tracked_vehicle/test_rig/ChTrackTestRigInteractiveDriverIRR.cpp
     )
 else()
     set(CVIRR_FILES "")

@@ -23,14 +23,14 @@
 //
 // =============================================================================
 
-#ifndef CH_DATADRIVER_TTR_H
-#define CH_DATADRIVER_TTR_H
+#ifndef CH_TTR_DATA_DRIVER_H
+#define CH_TTR_DATA_DRIVER_H
 
 #include <string>
 #include <vector>
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/tracked_vehicle/test_rig/ChDriverTTR.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigDriver.h"
 
 #include "chrono/core/ChCubicSpline.h"
 
@@ -50,12 +50,12 @@ namespace vehicle {
 /// If the time values are not sorted, this must be specified at construction.
 /// Inputs for post displacements and throttle are assumed to be in [-1, 1].
 /// Driver inputs at intermediate times are obtained through linear interpolation.
-class CH_VEHICLE_API ChDataDriverTTR : public ChDriverTTR {
+class CH_VEHICLE_API ChTrackTestRigDataDriver : public ChTrackTestRigDriver {
   public:
     /// Construct using data from the specified file.
-    ChDataDriverTTR(const std::string& filename);
+    ChTrackTestRigDataDriver(const std::string& filename);
 
-    ~ChDataDriverTTR();
+    ~ChTrackTestRigDataDriver();
 
     /// Return true when driver stopped producing inputs (end of data).
     virtual bool Ended() const override;

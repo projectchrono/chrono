@@ -19,7 +19,7 @@
 //
 // =============================================================================
 
-#include "chrono_vehicle/tracked_vehicle/test_rig/ChRoadDriverTTR.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigRoadDriver.h"
 
 #include <algorithm>
 #include <fstream>
@@ -29,15 +29,15 @@
 namespace chrono {
 namespace vehicle {
 
-ChRoadDriverTTR::ChRoadDriverTTR(const std::string& filename, double speed)
+ChTrackTestRigRoadDriver::ChTrackTestRigRoadDriver(const std::string& filename, double speed)
     : m_filename(filename), m_speed(speed), m_ended(false), m_curve_road(nullptr) {}
 
-ChRoadDriverTTR::~ChRoadDriverTTR() {
+ChTrackTestRigRoadDriver::~ChTrackTestRigRoadDriver() {
     delete m_curve_road;
 }
 
-void ChRoadDriverTTR::Initialize(size_t num_posts, const std::vector<double>& locations) {
-    ChDriverTTR::Initialize(num_posts, locations);
+void ChTrackTestRigRoadDriver::Initialize(size_t num_posts, const std::vector<double>& locations) {
+    ChTrackTestRigDriver::Initialize(num_posts, locations);
 
     std::vector<double> vx;  // road profile x
     std::vector<double> vz;  // road profile z
@@ -70,8 +70,8 @@ static void Zero(std::vector<double>& vec) {
     }
 }
 
-void ChRoadDriverTTR::Synchronize(double time) {
-    ChDriverTTR::Synchronize(time);
+void ChTrackTestRigRoadDriver::Synchronize(double time) {
+    ChTrackTestRigDriver::Synchronize(time);
 
     Zero(m_displ);
     m_throttle = 0;
@@ -96,7 +96,7 @@ void ChRoadDriverTTR::Synchronize(double time) {
     }
 }
 
-bool ChRoadDriverTTR::Ended() const {
+bool ChTrackTestRigRoadDriver::Ended() const {
     return m_ended;
 }
 

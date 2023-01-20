@@ -258,7 +258,7 @@ void ChTrackTestRig::Initialize() {
 
 // -----------------------------------------------------------------------------
 
-void ChTrackTestRig::SetDriver(std::shared_ptr<ChDriverTTR> driver) {
+void ChTrackTestRig::SetDriver(std::shared_ptr<ChTrackTestRigDriver> driver) {
     m_driver = std::move(driver);
 }
 

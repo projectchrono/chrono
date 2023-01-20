@@ -17,8 +17,8 @@
 //
 // =============================================================================
 
-#ifndef CH_DRIVER_TTR_H
-#define CH_DRIVER_TTR_H
+#ifndef CH_TTR_DRIVER_H
+#define CH_TTR_DRIVER_H
 
 #include <string>
 #include <vector>
@@ -33,11 +33,11 @@ namespace vehicle {
 
 /// Base class for a track test rig driver system.
 /// A driver system must be able to report the current values of the inputs (throttle and post displacements).
-class CH_VEHICLE_API ChDriverTTR {
+class CH_VEHICLE_API ChTrackTestRigDriver {
   public:
-    ChDriverTTR();
+    ChTrackTestRigDriver();
 
-    virtual ~ChDriverTTR() {}
+    virtual ~ChTrackTestRigDriver() {}
 
     /// Get the specified post vertical displacement (in the range [-1,+1])
     double GetDisplacement(int index) const { return m_displ[index]; }

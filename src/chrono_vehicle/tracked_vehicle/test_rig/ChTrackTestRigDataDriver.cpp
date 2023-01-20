@@ -30,7 +30,7 @@
 #include <cstring>
 
 #include "chrono/core/ChMathematics.h"
-#include "chrono_vehicle/tracked_vehicle/test_rig/ChDataDriverTTR.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigDataDriver.h"
 
 namespace chrono {
 namespace vehicle {
@@ -53,15 +53,15 @@ static bool compare(const DataEntryTTR& a, const DataEntryTTR& b) {
 
 // -----------------------------------------------------------------------------
 
-ChDataDriverTTR::ChDataDriverTTR(const std::string& filename)
+ChTrackTestRigDataDriver::ChTrackTestRigDataDriver(const std::string& filename)
     : m_filename(filename), m_ended(false), m_curve_throttle(nullptr) {}
 
-ChDataDriverTTR::~ChDataDriverTTR() {
+ChTrackTestRigDataDriver::~ChTrackTestRigDataDriver() {
     delete m_curve_throttle;
 }
 
-void ChDataDriverTTR::Initialize(size_t num_posts, const std::vector<double>& locations) {
-    ChDriverTTR::Initialize(num_posts, locations);
+void ChTrackTestRigDataDriver::Initialize(size_t num_posts, const std::vector<double>& locations) {
+    ChTrackTestRigDriver::Initialize(num_posts, locations);
     m_curve_displ.resize(num_posts, nullptr);
 
     std::vector<DataEntryTTR> data;  // data table (for sorting)
@@ -124,8 +124,8 @@ static void Zero(std::vector<double>& vec) {
     }
 }
 
-void ChDataDriverTTR::Synchronize(double time) {
-    ChDriverTTR::Synchronize(time);
+void ChTrackTestRigDataDriver::Synchronize(double time) {
+    ChTrackTestRigDriver::Synchronize(time);
 
     if (time < m_delay) {
         Zero(m_displ);
@@ -152,7 +152,7 @@ void ChDataDriverTTR::Synchronize(double time) {
     ChClampValue(m_throttle, 0.0, 1.0);
 }
 
-bool ChDataDriverTTR::Ended() const {
+bool ChTrackTestRigDataDriver::Ended() const {
     return m_ended;
 }
 

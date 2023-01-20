@@ -18,7 +18,7 @@
 
 #include <algorithm>
 
-#include "chrono_vehicle/tracked_vehicle/test_rig/ChIrrGuiDriverTTR.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigInteractiveDriverIRR.h"
 
 using namespace irr;
 
@@ -27,14 +27,14 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChIrrGuiDriverTTR::ChIrrGuiDriverTTR(irrlicht::ChVisualSystemIrrlicht& vsys)
+ChTrackTestRigInteractiveDriverIRR::ChTrackTestRigInteractiveDriverIRR(irrlicht::ChVisualSystemIrrlicht& vsys)
     : m_current_post(0), m_msg("Active post: 0"), m_displDelta(1.0 / 250), m_throttleDelta(1.0 / 50) {
     vsys.AddUserEventReceiver(this);
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-bool ChIrrGuiDriverTTR::OnEvent(const SEvent& event) {
+bool ChTrackTestRigInteractiveDriverIRR::OnEvent(const SEvent& event) {
     // Only interpret keyboard inputs.
     if (event.EventType != EET_KEY_INPUT_EVENT)
         return false;

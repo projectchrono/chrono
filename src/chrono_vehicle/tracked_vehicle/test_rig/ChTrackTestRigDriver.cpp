@@ -17,7 +17,7 @@
 //
 // =============================================================================
 
-#include "chrono_vehicle/tracked_vehicle/test_rig/ChDriverTTR.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigDriver.h"
 
 #include <fstream>
 #include <iostream>
@@ -31,26 +31,26 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChDriverTTR::ChDriverTTR() : m_throttle(0), m_delay(0), m_log_filename("") {}
+ChTrackTestRigDriver::ChTrackTestRigDriver() : m_throttle(0), m_delay(0), m_log_filename("") {}
 
-void ChDriverTTR::Initialize(size_t num_posts, const std::vector<double>& locations) {
+void ChTrackTestRigDriver::Initialize(size_t num_posts, const std::vector<double>& locations) {
     m_displ.resize(num_posts, 0.0);
     m_displSpeed.resize(num_posts, 0.0);
     m_locations = locations;
 }
 
-void ChDriverTTR::Synchronize(double time) {
+void ChTrackTestRigDriver::Synchronize(double time) {
     m_time = time;
 }
 
-bool ChDriverTTR::Started() const {
+bool ChTrackTestRigDriver::Started() const {
     return m_time > m_delay;
 }
 
 // -----------------------------------------------------------------------------
 // Initialize output file for recording deriver inputs.
 // -----------------------------------------------------------------------------
-bool ChDriverTTR::LogInit(const std::string& filename) {
+bool ChTrackTestRigDriver::LogInit(const std::string& filename) {
     m_log_filename = filename;
 
     std::ofstream ofile(filename.c_str(), std::ios::out);
@@ -69,7 +69,7 @@ bool ChDriverTTR::LogInit(const std::string& filename) {
 // -----------------------------------------------------------------------------
 // Record the current driver inputs to the log file.
 // -----------------------------------------------------------------------------
-bool ChDriverTTR::Log(double time) {
+bool ChTrackTestRigDriver::Log(double time) {
     if (m_log_filename.empty())
         return false;
 
@@ -89,11 +89,11 @@ bool ChDriverTTR::Log(double time) {
 // -----------------------------------------------------------------------------
 // Clamp a specified input value to appropriate interval.
 // -----------------------------------------------------------------------------
-void ChDriverTTR::SetDisplacement(int index, double val, double min_val, double max_val) {
+void ChTrackTestRigDriver::SetDisplacement(int index, double val, double min_val, double max_val) {
     m_displ[index] = ChClamp(val, min_val, max_val);
 }
 
-void ChDriverTTR::SetThrottle(double val, double min_val, double max_val) {
+void ChTrackTestRigDriver::SetThrottle(double val, double min_val, double max_val) {
     m_throttle = ChClamp(val, min_val, max_val);
 }
 

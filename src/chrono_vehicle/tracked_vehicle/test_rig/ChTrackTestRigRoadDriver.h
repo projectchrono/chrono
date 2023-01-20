@@ -19,15 +19,15 @@
 //
 // =============================================================================
 
-#ifndef CH_ROADDRIVER_TTR_H
-#define CH_ROADDRIVER_TTR_H
+#ifndef CH_TTR_ROAD_DRIVER_H
+#define CH_TTR_ROAD_DRIVER_H
 
 #include <string>
 #include <vector>
 #include <utility>
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/tracked_vehicle/test_rig/ChDriverTTR.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigDriver.h"
 
 #include "chrono/core/ChCubicSpline.h"
 
@@ -41,14 +41,14 @@ namespace vehicle {
 /// A driver model based on a user-specified road profile.  Post displacements are computed based on current road height
 /// at each post location and a given translation speed of the road profile. The road profile input data is assumed to
 /// contain (x,z) pairs, with x locations in increasing order.
-class CH_VEHICLE_API ChRoadDriverTTR : public ChDriverTTR {
+class CH_VEHICLE_API ChTrackTestRigRoadDriver : public ChTrackTestRigDriver {
   public:
     /// Construct using data from the specified file.
-    ChRoadDriverTTR(const std::string& filename,  ///< name of data file
+    ChTrackTestRigRoadDriver(const std::string& filename,  ///< name of data file
                     double speed                  ///< translation speed
     );
 
-    ~ChRoadDriverTTR();
+    ~ChTrackTestRigRoadDriver();
     
     /// Return true when driver stopped producing inputs (end of data).
     virtual bool Ended() const override;

@@ -16,12 +16,12 @@
 //
 // =============================================================================
 
-#ifndef CH_IRRGUIDRIVER_TTR_H
-#define CH_IRRGUIDRIVER_TTR_H
+#ifndef CH_TTR_INTERACTIVE_DRIVER_IRR_H
+#define CH_TTR_INTERACTIVE_DRIVER_IRR_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChVehicleVisualSystemIrrlicht.h"
-#include "chrono_vehicle/tracked_vehicle/test_rig/ChDriverTTR.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigDriver.h"
 
 namespace chrono {
 namespace vehicle {
@@ -30,14 +30,14 @@ namespace vehicle {
 /// @{
 
 /// Irrlicht-based GUI driver for the a track test rig.This class implements
-/// the functionality required by its base ChDriverSTR class using keyboard inputs.
+/// the functionality required by its base class using keyboard inputs.
 /// As an Irrlicht event receiver, its OnEvent() callback is used to keep track
 /// and update the current driver inputs.
-class CH_VEHICLE_API ChIrrGuiDriverTTR : public ChDriverTTR, public irr::IEventReceiver {
+class CH_VEHICLE_API ChTrackTestRigInteractiveDriverIRR : public ChTrackTestRigDriver, public irr::IEventReceiver {
   public:
-    ChIrrGuiDriverTTR(irrlicht::ChVisualSystemIrrlicht& vsys);
+    ChTrackTestRigInteractiveDriverIRR(irrlicht::ChVisualSystemIrrlicht& vsys);
 
-    ~ChIrrGuiDriverTTR() {}
+    ~ChTrackTestRigInteractiveDriverIRR() {}
 
     void SetThrottleDelta(double delta) { m_throttleDelta = delta; }
     void SetDisplacementDelta(double delta) { m_displDelta = delta; }
