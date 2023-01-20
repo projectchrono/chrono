@@ -626,6 +626,35 @@ def make_chrono_glyphs_vectors(mname,mpos,mrot,
          list_attributes,
          attr_name, attr_min, attr_max, colormap
          )
+        
+def make_chrono_glyphs_points(mname,mpos,mrot, 
+                          list_clones_pos, 
+                          list_attributes=[], 
+                          attr_name='', 
+                          attr_min=0, attr_max=1, 
+                          colormap=colormap_cooltowarm, 
+                          point_geometry = 'chrono_sphere',
+                          thickness = 0.1,
+                          factor = 1.0): 
+    ncl = len(list_clones_pos)
+    list_clones_posrotscale = np.empty((ncl, 3,3)).tolist()
+    for i in range(ncl):
+        list_clones_posrotscale[i][0] = list_clones_pos[i]
+        list_clones_posrotscale[i][1] = (0,0,0)
+        list_clones_posrotscale[i][2] = (thickness,thickness,thickness)
+    make_chrono_glyphs_objects(mname,mpos,mrot,
+     [
+      [bpy.data.objects[point_geometry], (0,0,0), (1,0,0,0), ""]
+     ],
+     list_clones_posrotscale,
+     list_attributes,
+     attr_name, attr_min, attr_max, colormap
+     )
+    
+    
+    
+    
+    
 def update_camera_coordinates(mname,mpos,mrot):
     cameraasset = chrono_cameras.objects.get(mname)
     cameraasset.rotation_mode = 'QUATERNION'
