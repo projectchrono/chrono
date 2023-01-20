@@ -271,9 +271,40 @@ def make_material_mesh_falsecolor_attribute(nameID, attrname, attr_min=0.0, attr
     links.new(maprange.outputs[0], ramp.inputs[0])
     colattribute = nodes.new(type='ShaderNodeAttribute')
     colattribute.attribute_name = attrname
+    colattribute.attribute_type = 'GEOMETRY'
     links.new(colattribute.outputs[2], maprange.inputs[0])
     return new_mat
 
+# helper function to generate a material that, once assigned to an object that is used to
+# make instances on a mesh via geometry nodes, it renders it as falsecolor dependant on mesh attribute)
+def make_material_instance_falsecolor(nameID, attrname, attr_min=0.0, attr_max=1.0, colormap=colormap_cooltowarm):
+    
+    new_mat = bpy.data.materials.new(name=nameID)
+    new_mat.use_nodes = True
+    if new_mat.node_tree:
+        new_mat.node_tree.links.clear()
+        new_mat.node_tree.nodes.clear()  
+    nodes = new_mat.node_tree.nodes
+    links = new_mat.node_tree.links
+    output = nodes.new(type='ShaderNodeOutputMaterial')
+    shader = nodes.new(type='ShaderNodeBsdfPrincipled')
+    links.new(shader.outputs[0], output.inputs[0])
+    ramp = nodes.new(type='ShaderNodeValToRGB')
+    ramp.color_ramp.color_mode = 'HSV'
+    for i in range(1,len(colormap)-1):
+        ramp.color_ramp.elements.new(colormap[i][0])
+    for i in range(0,len(colormap)):
+        ramp.color_ramp.elements[i].color = (colormap[i][1]) 
+    links.new(ramp.outputs[0], shader.inputs[0])
+    maprange = nodes.new(type='ShaderNodeMapRange')
+    maprange.inputs[1].default_value = attr_min
+    maprange.inputs[2].default_value = attr_max
+    links.new(maprange.outputs[0], ramp.inputs[0])
+    colattribute = nodes.new(type='ShaderNodeAttribute')
+    colattribute.attribute_name = attrname
+    colattribute.attribute_type = 'INSTANCER'
+    links.new(colattribute.outputs[2], maprange.inputs[0])
+    return new_mat
 
 #
 # utility functions to be used in output/statexxxyy.py files
