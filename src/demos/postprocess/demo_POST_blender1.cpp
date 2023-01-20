@@ -105,11 +105,6 @@ int main(int argc, char* argv[]) {
     body->SetBodyFixed(true);
     sys.Add(body);
 
-    // ==Asset== Attach a 'sphere' shape
-    auto sphere = chrono_types::make_shared<ChSphereShape>();
-    sphere->GetSphereGeometry().rad = 0.5;
-    body->AddVisualShape(sphere, ChFrame<>(ChVector<>(-1, 0, 0)));
-
     // ==Asset== Attach also a 'box' shape
     auto mbox = chrono_types::make_shared<ChBoxShape>();
     mbox->GetBoxGeometry().Size = ChVector<>(0.2, 0.5, 0.1);
@@ -121,6 +116,19 @@ int main(int argc, char* argv[]) {
     cyl->GetCylinderGeometry().p2 = ChVector<>(4, 2, 0);
     cyl->GetCylinderGeometry().rad = 0.2;
     body->AddVisualShape(cyl);
+    // ...here is an example on how to change the color:
+    cyl->SetColor(ChColor(1, 0.8, 0));
+
+    // ==Asset== Attach a 'sphere' shape
+    auto sphere = chrono_types::make_shared<ChSphereShape>();
+    sphere->GetSphereGeometry().rad = 0.5;
+    body->AddVisualShape(sphere, ChFrame<>(ChVector<>(-1, 0, 0)));
+
+    // ...here is an example on how to setup a material:
+    auto visual_material = chrono_types::make_shared<ChVisualMaterial>();
+    visual_material->SetMetallic(0.5);
+    visual_material->SetRoughness(0.1);
+    sphere->AddMaterial(visual_material);
 
     // ==Asset== Attach a 'Wavefront mesh' asset, referencing a .obj file:
     auto objmesh = chrono_types::make_shared<ChObjFileShape>();
@@ -204,6 +212,12 @@ int main(int argc, char* argv[]) {
 
     // Turn on 3d XYZ axis for each body reference frame, and set xyz symbol size
     blender_exporter.SetShowItemsFrames(true, 0.3);
+
+    // Turn on exporting contacts
+    blender_exporter.SetShowContacts(true, 
+                        0.02,   // scaling factor for lenght of the vector arrow
+                        0.02,   // thickness of the vector arrow
+                        true, 0, 10); // true=use colormap, and min and max values for colormap  
 
     //
     // RUN THE SIMULATION AND SAVE THE POVray FILES AT EACH FRAME
