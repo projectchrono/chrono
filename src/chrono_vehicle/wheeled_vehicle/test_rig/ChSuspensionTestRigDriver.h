@@ -17,8 +17,8 @@
 //
 // =============================================================================
 
-#ifndef CH_DRIVER_STR_H
-#define CH_DRIVER_STR_H
+#ifndef CH_STR_DRIVER_H
+#define CH_STR_DRIVER_H
 
 #include <string>
 #include <vector>
@@ -35,9 +35,9 @@ namespace vehicle {
 /// A driver system must be able to report the current values of the inputs (left posts, right posts, steering).
 /// A concrete driver class must set the member variables m_displacementLeft, m_displacementRight, m_steering,
 /// and - if possible - the rates of change for the displacements (otherwise left at their default value of 0).
-class CH_VEHICLE_API ChDriverSTR {
+class CH_VEHICLE_API ChSuspensionTestRigDriver {
   public:
-    virtual ~ChDriverSTR() {}
+    virtual ~ChSuspensionTestRigDriver() {}
 
     /// Get the driver steering input (in the range [-1,+1]).
     double GetSteering() const { return m_steering; }
@@ -68,7 +68,7 @@ class CH_VEHICLE_API ChDriverSTR {
     bool Log(double time);
 
   protected:
-    ChDriverSTR();
+    ChSuspensionTestRigDriver();
 
     /// Initialize this driver system.
     virtual void Initialize(int naxles);

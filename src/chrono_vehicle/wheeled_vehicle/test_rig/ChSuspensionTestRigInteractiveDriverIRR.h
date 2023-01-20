@@ -13,21 +13,19 @@
 // =============================================================================
 //
 // Irrlicht-based GUI driver for the a suspension test rig.
-// This class implements the functionality required by its base ChDriverSTR
-// class using keyboard inputs.
+// This class implements the functionality required by its base class using
+// keyboard inputs.
 // As an Irrlicht event receiver, its OnEvent() callback is used to keep track
 // and update the current inputs.
 //
 // =============================================================================
 
-#ifndef CH_VSGGUIDRIVER_STR_H
-#define CH_VSGGUIDRIVER_STR_H
-
-#include <string>
+#ifndef CH_STR_INTERACTIVE_DRIVER_IRR_H
+#define CH_STR_INTERACTIVE_DRIVER_IRR_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChVehicleVisualSystemVSG.h"
-#include "chrono_vehicle/wheeled_vehicle/test_rig/ChDriverSTR.h"
+#include "chrono_vehicle/ChVehicleVisualSystemIrrlicht.h"
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigDriver.h"
 
 namespace chrono {
 namespace vehicle {
@@ -35,17 +33,16 @@ namespace vehicle {
 /// @addtogroup vehicle_wheeled_test_rig
 /// @{
 
-/*
-
 /// Irrlicht-based GUI driver for the a suspension test rig.  This class implements
-/// the functionality required by its base ChDriverSTR class using keyboard inputs.
+/// the functionality required by its base ChSuspensionTestRigDriver class using keyboard inputs.
 /// As an Irrlicht event receiver, its OnEvent() callback is used to keep track
 /// and update the current inputs.
-class CH_VEHICLE_API ChIrrGuiDriverSTR : public ChDriverSTR, public irr::IEventReceiver {
+class CH_VEHICLE_API ChSuspensionTestRigInteractiveDriverIRR : public ChSuspensionTestRigDriver,
+                                                               public irr::IEventReceiver {
   public:
-    ChIrrGuiDriverSTR(irrlicht::ChVisualSystemIrrlicht& vsys);
+    ChSuspensionTestRigInteractiveDriverIRR(irrlicht::ChVisualSystemIrrlicht& vsys);
 
-    ~ChIrrGuiDriverSTR() {}
+    ~ChSuspensionTestRigInteractiveDriverIRR() {}
 
     /// Set the time response for steering control.
     /// The provided value represents the time (in seconds) for increasing the
@@ -71,8 +68,6 @@ class CH_VEHICLE_API ChIrrGuiDriverSTR : public ChDriverSTR, public irr::IEventR
     int m_current_post;
     std::string m_msg;
 };
-
-*/
 
 /// @} vehicle_wheeled_test_rig
 

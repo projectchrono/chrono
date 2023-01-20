@@ -23,13 +23,13 @@
 //
 // =============================================================================
 
-#ifndef CH_DATADRIVER_STR_H
-#define CH_DATADRIVER_STR_H
+#ifndef CH_STR_DATA_DRIVER_H
+#define CH_STR_DATA_DRIVER_H
 
 #include <memory>
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/wheeled_vehicle/test_rig/ChDriverSTR.h"
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigDriver.h"
 
 #include "chrono/core/ChCubicSpline.h"
 
@@ -48,12 +48,12 @@ namespace vehicle {
 /// It is assumed that the time values are unique.
 /// Inputs for post_left, post_right, and steering are assumed to be normalized in the range [-1,1].
 /// Driver inputs at intermediate times are obtained through cubic spline interpolation.
-class CH_VEHICLE_API ChDataDriverSTR : public ChDriverSTR {
+class CH_VEHICLE_API ChSuspensionTestRigDataDriver : public ChSuspensionTestRigDriver {
   public:
     /// Construct using data from the specified file.
-    ChDataDriverSTR(const std::string& filename);
+    ChSuspensionTestRigDataDriver(const std::string& filename);
 
-    ~ChDataDriverSTR() {}
+    ~ChSuspensionTestRigDataDriver() {}
 
     /// Return true when driver stopped producing inputs (end of data).
     virtual bool Ended() const override;

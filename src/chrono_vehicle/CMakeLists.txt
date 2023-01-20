@@ -484,10 +484,10 @@ source_group("wheeled_vehicle\\suspension" FILES ${CV_WV_SUSPENSION_FILES})
 set(CV_WV_TEST_RIG_FILES
     wheeled_vehicle/test_rig/ChSuspensionTestRig.h
     wheeled_vehicle/test_rig/ChSuspensionTestRig.cpp
-    wheeled_vehicle/test_rig/ChDriverSTR.h
-    wheeled_vehicle/test_rig/ChDriverSTR.cpp
-    wheeled_vehicle/test_rig/ChDataDriverSTR.h
-    wheeled_vehicle/test_rig/ChDataDriverSTR.cpp
+    wheeled_vehicle/test_rig/ChSuspensionTestRigDriver.h
+    wheeled_vehicle/test_rig/ChSuspensionTestRigDriver.cpp
+    wheeled_vehicle/test_rig/ChSuspensionTestRigDataDriver.h
+    wheeled_vehicle/test_rig/ChSuspensionTestRigDataDriver.cpp
     wheeled_vehicle/test_rig/ChTireTestRig.h
     wheeled_vehicle/test_rig/ChTireTestRig.cpp
 )
@@ -743,8 +743,8 @@ if(ENABLE_MODULE_IRRLICHT)
     set(CVIRR_WV_FILES
         wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h
         wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.cpp
-        wheeled_vehicle/test_rig/ChIrrGuiDriverSTR.h
-        wheeled_vehicle/test_rig/ChIrrGuiDriverSTR.cpp    
+        wheeled_vehicle/test_rig/ChSuspensionTestRigInteractiveDriverIRR.h
+        wheeled_vehicle/test_rig/ChSuspensionTestRigInteractiveDriverIRR.cpp    
     )
     set(CVIRR_TV_FILES
         tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h
@@ -776,8 +776,8 @@ if(ENABLE_MODULE_VSG)
     set(CVVSG_WV_FILES
         wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h
         wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.cpp
-        wheeled_vehicle/test_rig/ChVSGGuiDriverSTR.h
-        wheeled_vehicle/test_rig/ChVSGGuiDriverSTR.cpp    
+        wheeled_vehicle/test_rig/ChSuspensionTestRigInteractiveDriverVSG.h
+        wheeled_vehicle/test_rig/ChSuspensionTestRigInteractiveDriverVSG.cpp    
     )
     set(CVVSG_TV_FILES
         tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h

@@ -13,28 +13,26 @@
 // =============================================================================
 //
 // Irrlicht-based GUI driver for the a suspension test rig.
-// This class implements the functionality required by its base ChDriverSTR
+// This class implements the functionality required by its base ChSuspensionTestRigDriver
 // class using keyboard inputs.
 // As an Irrlicht event receiver, its OnEvent() callback is used to keep track
 // and update the current inputs.
 //
 // =============================================================================
 
-#include <algorithm>
-
-#include "chrono_vehicle/wheeled_vehicle/test_rig/ChIrrGuiDriverSTR.h"
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigInteractiveDriverIRR.h"
 
 using namespace irr;
 
 namespace chrono {
 namespace vehicle {
 
-ChIrrGuiDriverSTR::ChIrrGuiDriverSTR(irrlicht::ChVisualSystemIrrlicht& vsys)
+ChSuspensionTestRigInteractiveDriverIRR::ChSuspensionTestRigInteractiveDriverIRR(irrlicht::ChVisualSystemIrrlicht& vsys)
     : m_current_post(0), m_msg("Active post: 0"), m_vsys(vsys), m_displDelta(1.0 / 50), m_steeringDelta(1.0 / 250) {
     vsys.AddUserEventReceiver(this);
 }
 
-bool ChIrrGuiDriverSTR::OnEvent(const SEvent& event) {
+bool ChSuspensionTestRigInteractiveDriverIRR::OnEvent(const SEvent& event) {
     if (m_vsys.GetSystem(0).GetChTime() < m_delay)
         return false;
 

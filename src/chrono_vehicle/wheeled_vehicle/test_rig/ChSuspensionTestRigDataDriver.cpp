@@ -29,7 +29,7 @@
 #include <sstream>
 #include <vector>
 
-#include "chrono_vehicle/wheeled_vehicle/test_rig/ChDataDriverSTR.h"
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigDataDriver.h"
 #include "chrono/core/ChTypes.h"
 
 namespace chrono {
@@ -61,11 +61,11 @@ static bool compare(const DataEntrySTR& a, const DataEntrySTR& b) {
 }
 
 // -----------------------------------------------------------------------------
-ChDataDriverSTR::ChDataDriverSTR(const std::string& filename) : m_filename(filename), m_ended(false) {}
+ChSuspensionTestRigDataDriver::ChSuspensionTestRigDataDriver(const std::string& filename) : m_filename(filename), m_ended(false) {}
 
-void ChDataDriverSTR::Initialize(int naxles) {
+void ChSuspensionTestRigDataDriver::Initialize(int naxles) {
     // Invoke base method
-    ChDriverSTR::Initialize(naxles);
+    ChSuspensionTestRigDriver::Initialize(naxles);
 
     // Read data from file
     std::vector<DataEntrySTR> data;  // data table (for sorting)
@@ -130,8 +130,8 @@ void ChDataDriverSTR::Initialize(int naxles) {
 
 // -----------------------------------------------------------------------------
 
-void ChDataDriverSTR::Synchronize(double time) {
-    ChDriverSTR::Synchronize(time);
+void ChSuspensionTestRigDataDriver::Synchronize(double time) {
+    ChSuspensionTestRigDriver::Synchronize(time);
 
     if (time < m_delay) {
         m_steering = 0;
@@ -163,7 +163,7 @@ void ChDataDriverSTR::Synchronize(double time) {
 }
 
 // -----------------------------------------------------------------------------
-bool ChDataDriverSTR::Ended() const {
+bool ChSuspensionTestRigDataDriver::Ended() const {
     return m_ended;
 }
 

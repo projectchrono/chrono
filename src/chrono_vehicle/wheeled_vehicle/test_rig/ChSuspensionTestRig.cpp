@@ -297,7 +297,7 @@ void ChSuspensionTestRig::Initialize() {
 
 // -----------------------------------------------------------------------------
 
-void ChSuspensionTestRig::SetDriver(std::shared_ptr<ChDriverSTR> driver) {
+void ChSuspensionTestRig::SetDriver(std::shared_ptr<ChSuspensionTestRigDriver> driver) {
     m_driver = driver;
 }
 

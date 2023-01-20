@@ -24,22 +24,22 @@
 #include <fstream>
 
 #include "chrono/core/ChMathematics.h"
-#include "chrono_vehicle/wheeled_vehicle/test_rig/ChDriverSTR.h"
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigDriver.h"
 
 namespace chrono {
 namespace vehicle {
 
-ChDriverSTR::ChDriverSTR() : m_time(0), m_steering(0), m_delay(0), m_log_filename("") {}
+ChSuspensionTestRigDriver::ChSuspensionTestRigDriver() : m_time(0), m_steering(0), m_delay(0), m_log_filename("") {}
 
-void ChDriverSTR::Synchronize(double time) {
+void ChSuspensionTestRigDriver::Synchronize(double time) {
     m_time = time;
 }
 
-bool ChDriverSTR::Started() const {
+bool ChSuspensionTestRigDriver::Started() const {
     return m_time > m_delay;
 }
 
-void ChDriverSTR::Initialize(int naxles) {
+void ChSuspensionTestRigDriver::Initialize(int naxles) {
     m_naxles = naxles;
     m_displLeft.resize(naxles, 0.0);
     m_displRight.resize(naxles, 0.0);
@@ -48,7 +48,7 @@ void ChDriverSTR::Initialize(int naxles) {
 }
 
 // Initialize output file for recording driver inputs.
-bool ChDriverSTR::LogInit(const std::string& filename) {
+bool ChSuspensionTestRigDriver::LogInit(const std::string& filename) {
     m_log_filename = filename;
 
     std::ofstream ofile(filename.c_str(), std::ios::out);
@@ -61,7 +61,7 @@ bool ChDriverSTR::LogInit(const std::string& filename) {
 }
 
 // Record the current driver inputs to the log file.
-bool ChDriverSTR::Log(double time) {
+bool ChSuspensionTestRigDriver::Log(double time) {
     if (m_log_filename.empty())
         return false;
 
@@ -80,15 +80,15 @@ bool ChDriverSTR::Log(double time) {
 }
 
 // Clamp a specified input value to appropriate interval.
-void ChDriverSTR::SetDisplacementLeft(int axle, double val, double min_val, double max_val) {
+void ChSuspensionTestRigDriver::SetDisplacementLeft(int axle, double val, double min_val, double max_val) {
     m_displLeft[axle] = ChClamp(val, min_val, max_val);
 }
 
-void ChDriverSTR::SetDisplacementRight(int axle, double val, double min_val, double max_val) {
+void ChSuspensionTestRigDriver::SetDisplacementRight(int axle, double val, double min_val, double max_val) {
     m_displRight[axle] = ChClamp(val, min_val, max_val);
 }
 
-void ChDriverSTR::SetSteering(double val, double min_val, double max_val) {
+void ChSuspensionTestRigDriver::SetSteering(double val, double min_val, double max_val) {
     m_steering = ChClamp(val, min_val, max_val);
 }
 
