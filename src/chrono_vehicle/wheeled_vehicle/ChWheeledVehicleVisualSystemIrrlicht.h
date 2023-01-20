@@ -26,7 +26,7 @@
 namespace chrono {
 namespace vehicle {
 
-/// @addtogroup vehicle_wheeled
+/// @addtogroup vehicle_vis
 /// @{
 
 /// Customized Chrono Irrlicht visualization system for wheeled vehicle simulation.
@@ -46,7 +46,7 @@ class CH_VEHICLE_API ChWheeledVehicleVisualSystemIrrlicht : public ChVehicleVisu
     ChWheeledVehicle* m_wvehicle;
 };
 
-/// @} vehicle_wheeled
+/// @} vehicle_vis
 
 }  // end namespace vehicle
 }  // end namespace chrono

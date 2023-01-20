@@ -25,7 +25,7 @@
 namespace chrono {
 namespace vehicle {
 
-/// @addtogroup vehicle_tracked
+/// @addtogroup vehicle_vis
 /// @{
 
 /// Customized Chrono::VSG visualization system for tracked vehicle simulation.
@@ -45,7 +45,7 @@ class CH_VEHICLE_API ChTrackedVehicleVisualSystemVSG : public ChVehicleVisualSys
     ChTrackedVehicle* m_tvehicle;
 };
 
-/// @} vehicle_tracked
+/// @} vehicle_vis
 
 }  // end namespace vehicle
 }  // end namespace chrono

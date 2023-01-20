@@ -87,12 +87,9 @@ struct CH_VEHICLE_API ChIrrJoystickButton {
     bool buttonPressed;      ///< current output value
 };
 
-/// Interactive driver model using keyboard inputs.
-/// Irrlicht-based GUI driver for the a vehicle. This class implements the functionality required by its base ChDriver
-/// class using keyboard or joystick inputs. As an Irrlicht event receiver, its OnEvent() callback is used to keep track
-/// and update the current driver inputs.
-///
-/// @sa ChDataDriver
+/// Irrlicht-based interactive driver for the a vehicle.
+/// This class implements the functionality required by the base ChDriver class using keyboard or joystick inputs.
+/// As an Irrlicht event receiver, its OnEvent() callback is used to keep track and update the current driver inputs.
 class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceiver {
   public:
     /// Functioning modes for a ChIrrGuiDriver.

@@ -25,7 +25,7 @@
 namespace chrono {
 namespace vehicle {
 
-/// @addtogroup vehicle_wheeled
+/// @addtogroup vehicle_vis
 /// @{
 
 /// Customized Chrono::VSG visualization system for wheeled vehicle simulation.
@@ -45,7 +45,7 @@ class CH_VEHICLE_API ChWheeledVehicleVisualSystemVSG : public ChVehicleVisualSys
     ChWheeledVehicle* m_wvehicle;
 };
 
-/// @} vehicle_wheeled
+/// @} vehicle_vis
 
 }  // end namespace vehicle
 }  // end namespace chrono

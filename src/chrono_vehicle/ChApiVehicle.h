@@ -44,7 +44,8 @@
         @defgroup vehicle_powertrain Powertrain system
         @defgroup vehicle_terrain Terrain system
         @defgroup vehicle_utils Utility classes
-        
+        @defgroup vehicle_vis Run-time visualization
+
         @defgroup vehicle_wheeled Wheeled vehicles
         @brief Wheeled vehicle subsystems
         @{

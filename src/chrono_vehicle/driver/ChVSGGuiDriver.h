@@ -36,6 +36,8 @@ namespace vehicle {
 /// @addtogroup vehicle_driver
 /// @{
 
+/// VSG-based interactive driver for the a vehicle.
+/// This class implements the functionality required by the base ChDriver class using keyboard inputs.
 class CH_VEHICLE_API ChVSGGuiDriver : public ChDriver {
   public:
     /// Functioning modes for a ChIrrGuiDriver.

@@ -26,7 +26,7 @@
 namespace chrono {
 namespace vehicle {
 
-/// @addtogroup vehicle_tracked
+/// @addtogroup vehicle_vis
 /// @{
 
 /// Customized Chrono Irrlicht visualization system for tracked vehicle simulation.
@@ -68,7 +68,7 @@ class CH_VEHICLE_API ChTrackedVehicleVisualSystemIrrlicht : public ChVehicleVisu
     double m_axis_idlers[2];
 };
 
-/// @} vehicle_tracked
+/// @} vehicle_vis
 
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -42,7 +42,7 @@ namespace vehicle {
 
 class ChVSGGuiDriver;
 
-/// @addtogroup vehicle
+/// @addtogroup vehicle_vis
 /// @{
 
 /// VSG-based Chrono run-time visualization system.
@@ -82,7 +82,7 @@ class CH_VEHICLE_API ChVehicleVisualSystemVSG : public ChVehicleVisualSystem, pu
     friend class ChVehicleKeyboardHandlerVSG;
 };
 
-// @} vehicle
+// @} vehicle_vis
 
 }  // namespace vehicle
 }  // namespace chrono

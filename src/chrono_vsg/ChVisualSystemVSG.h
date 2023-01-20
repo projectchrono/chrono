@@ -54,23 +54,45 @@ namespace vsg3d {
 /// @addtogroup vsg_module
 /// @{
 
+/// VSG-based Chrono run-time visualization system.
 class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
   public:
     ChVisualSystemVSG();
     ~ChVisualSystemVSG();
 
+    /// Initialize the visualization system.
     virtual void Initialize();
 
+    /// Process all visual assets in the associated ChSystem.
+    /// This function is called by default by Initialize(), but can also be called later if further modifications to
+    /// visualization assets occur.
     virtual void BindAll() override;
 
+    /// Check if rendering is running.
+    /// Returns `false` if the viewer was closed.
     virtual bool Run() override;
+
+    /// Perform any necessary operations at the beginning of each rendering frame.
     virtual void BeginScene() override {}
-    virtual void EndScene() override {}
+ 
+    /// Draw all 3D shapes and GUI elements at the current frame.
+    /// This function is typically called inside a loop such as
+    /// <pre>
+    ///    while(vis->Run()) {...}
+    /// </pre>    
     virtual void Render() override;
+ 
+    /// Render COG frames for all bodies in the system.
     virtual void RenderCOGFrames(double axis_length = 1) override;
+
     void SetCOGFrameScale(double axis_length);
     void ToggleCOGFrameVisibility();
 
+    /// End the scene draw at the end of each animation frame.
+    virtual void EndScene() override {}
+
+    /// Create a snapshot of theframe to be rendered and save it to the provided file.
+    /// The file extension determines the image format.
     virtual void WriteImageToFile(const std::string& filename) override;
 
     // Terminate the VSG visualization.
@@ -135,7 +157,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
   protected:
     virtual void UpdateFromMBS();
-    // collect some often used calulations (not for Cylinders!)
+
+    /// Utility function for calculating a point-point frame.
     void Point2PointHelperAbs(ChVector<>& P1,
                               ChVector<>& P2,
                               double& height,
@@ -148,7 +171,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     bool m_use_fullscreen = false;
 
     vsg::ref_ptr<vsg::Window> m_window;
-    vsg::ref_ptr<vsg::Viewer> m_viewer;
+    vsg::ref_ptr<vsg::Viewer> m_viewer;  ///< high-level VSG rendering manager
     vsg::ref_ptr<vsg::RenderGraph> m_renderGraph;
 
     bool m_show_gui;                                        ///< flag to toggle global GUI visibility
