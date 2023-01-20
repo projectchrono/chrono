@@ -882,6 +882,48 @@ def read_chrono_simulation(context, filepath, setting_materials):
         chrono_csys.select_set(False)
         bpy.context.scene.collection.objects.unlink(chrono_csys)
     
+    # create template for primitives (for glyphs etc)
+    chrono_cube = bpy.data.objects.get('chrono_cube')
+    if not chrono_cube:
+        bpy.ops.mesh.primitive_cube_add(size=1,calc_uvs=True)
+        chrono_cube = bpy.context.object
+        chrono_cube.name = 'chrono_cube'
+        bpy.context.scene.collection.objects.unlink(chrono_cube)
+
+    chrono_cylinder = bpy.data.objects.get('chrono_cylinder')
+    if not chrono_cylinder:
+        bpy.ops.mesh.primitive_cylinder_add(vertices=20, radius=0.5, depth=1.0, calc_uvs=True, rotation=(0,0,0))
+        chrono_cylinder = bpy.context.object
+        chrono_cylinder.name = 'chrono_cylinder'
+        chrono_cylinder.data.transform(mathutils.Matrix.Translation((0,0,0.5)))
+        chrono_cylinder.data.use_auto_smooth = 1
+        chrono_cylinder.data.auto_smooth_angle = 0.8
+        for f in chrono_cylinder.data.polygons:
+            f.use_smooth = True
+        bpy.context.scene.collection.objects.unlink(chrono_cylinder)
+
+    chrono_cone = bpy.data.objects.get('chrono_cone')
+    if not chrono_cone:
+        bpy.ops.mesh.primitive_cone_add(vertices=20, radius1=0.5, radius2=0.0, depth=1.0, calc_uvs=True, rotation=(0,0,0))
+        chrono_cone = bpy.context.object
+        chrono_cone.name = 'chrono_cone'
+        chrono_cone.data.transform(mathutils.Matrix.Translation((0,0,0.5)))
+        chrono_cone.data.use_auto_smooth = 1
+        chrono_cone.data.auto_smooth_angle = 0.8
+        for f in chrono_cone.data.polygons:
+            f.use_smooth = True
+        bpy.context.scene.collection.objects.unlink(chrono_cone)
+        
+    chrono_sphere = bpy.data.objects.get('chrono_sphere')
+    if not chrono_sphere:
+        bpy.ops.mesh.primitive_uv_sphere_add(segments=10, ring_count=10, radius=0.5, calc_uvs=True)
+        chrono_sphere = bpy.context.object
+        chrono_sphere.name = 'chrono_sphere'
+        chrono_sphere.data.use_auto_smooth = 1
+        chrono_sphere.data.auto_smooth_angle = 0.8
+        for f in chrono_sphere.data.polygons:
+            f.use_smooth = True
+        bpy.context.scene.collection.objects.unlink(chrono_sphere)
 
     
     chrono_filename = filepath
