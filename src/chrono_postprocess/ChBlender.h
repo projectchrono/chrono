@@ -132,22 +132,18 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     /// If setting true, you can also set the size of the symbol, in meters.
     void SetShowLinksFrames(bool show, double msize = 0.04);
 
-    /*
     /// Turn on/off the display of contacts, using spheres or arrows (see eChContactSymbol modes).
     /// The size of the arrow or of the sphere depends on force strength multiplied by 'scale'.
-    /// Use 'max_size' to limit size of arrows if too long, or spheres if too large (they will be signaled by white
-    /// color)
     /// Use 'width' for the radius of the arrow. If in 'SYMBOL_VECTOR_SCALERADIUS' mode, the length of the vector is
     /// always max_size.
     void SetShowContacts(bool show,
-                         ContactSymbol mode,
+                         //ContactSymbol mode,
                          double scale,
                          double width,
-                         double max_size,
+                         //double max_size,
                          bool do_colormap,
                          double colormap_start,
                          double colormap_end);
-    */
 
     /// Set thickness for wireframe mode of meshes.
     /// If a ChTriangleMeshShape asset was set as SetWireframe(true), it will be rendered in Blender as a cage of thin

@@ -182,7 +182,25 @@ void ChBlender::SetShowLinksFrames(bool show, double msize) {
     if (show)
         frames_links_size = msize;
 }
-
+void ChBlender::SetShowContacts(bool show,
+                               //ContactSymbol mode,
+                               double scale,
+                               double width,
+                               //double max_size,
+                               bool do_colormap,
+                               double colormap_start,
+                               double colormap_end) {
+    contacts_show = show;
+    if (show) {
+        //contacts_scale_mode = mode;
+        contacts_scale = scale;
+        contacts_width = width;
+        //contacts_maxsize = max_size;
+        contacts_do_colormap = do_colormap;
+        contacts_colormap_startscale = colormap_start;
+        contacts_colormap_endscale = colormap_end;
+    }
+}
 
 void ChBlender::ExportScript(const std::string& filename) {
     // Regenerate the list of objects that need Blender rendering
@@ -472,6 +490,16 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
                 *mfile << "uv_layer.data.foreach_set('uv', uvs) \n";
             }
 
+            if (mesh->m_face_mat_indices.size() == mesh->getNumTriangles()) {
+                *mfile << "mat_indices = [ \n";
+                for (unsigned int ip = 0; ip < mesh->m_face_mat_indices.size(); ip++) {
+                    *mfile << mesh->m_face_mat_indices[ip] << ",\n";
+                }
+                *mfile << "] \n";
+                *mfile << "for i, myface in enumerate(new_mesh.polygons): \n";
+                *mfile << "     myface.material_index = mat_indices[i] \n";
+            }
+
             *mfile
                 << "new_mesh.update() \n"
                 << "new_object = bpy.data.objects.new('mesh_object', new_mesh) \n"
@@ -676,13 +704,17 @@ void ChBlender::ExportItemState(ChStreamOutAsciiFile& state_file,
                 state_file << " [";
                 state_file << "'" << shapename << "',(" << shape_frame.GetPos().x() << "," << shape_frame.GetPos().y() << "," << shape_frame.GetPos().z() << "),";
                 state_file << "(" << shape_frame.GetRot().e0() << "," << shape_frame.GetRot().e1() << "," << shape_frame.GetRot().e2() << "," << shape_frame.GetRot().e3() << "),";
-                state_file << "'";
+                state_file << "[";
                 if (shape->GetNumMaterials()) {
-                    auto mat = shape->GetMaterial(0); // use only 1st of materials for a single shape
-                    std::string matname("material_" + std::to_string((size_t)mat.get()));
-                    state_file <<  matname;
+                    for (int im = 0; im < shape->GetNumMaterials(); ++im) {
+                        state_file << "'";
+                        auto mat = shape->GetMaterial(im); 
+                        std::string matname("material_" + std::to_string((size_t)mat.get()));
+                        state_file << matname;
+                        state_file << "',";
+                    }
                 }
-                state_file << "',";
+                state_file << "],";
                 if (aux_scale != VNULL) {
                     state_file << "(" << aux_scale.x() << "," << aux_scale.y() << "," << aux_scale.z() << ")";
                 }
@@ -842,10 +874,9 @@ void ChBlender::ExportData(const std::string& filename) {
         }  // end loop on objects
 
         // #) saving contacts ?
-        /*
         if (contacts_show) {
-            ChStreamOutAsciiFile data_contacts((base_path + filename + ".contacts").c_str());
-
+            //ChStreamOutAsciiFile data_contacts((base_path + filename + ".contacts").c_str());
+             
             class _reporter_class : public ChContactContainer::ReportContactCallback {
               public:
                 virtual bool OnReportContact(
@@ -864,15 +895,15 @@ void ChBlender::ExportData(const std::string& filename) {
                         ChMatrix33<> localmatr(plane_coord);
                         ChVector<> n1 = localmatr.Get_A_Xaxis();
                         ChVector<> absreac = localmatr * react_forces;
+                        (*mfile) << "[(";
                         (*mfile) << pA.x() << ", ";
                         (*mfile) << pA.y() << ", ";
-                        (*mfile) << pA.z() << ", ";
-                        (*mfile) << n1.x() << ", ";
-                        (*mfile) << n1.y() << ", ";
-                        (*mfile) << n1.z() << ", ";
+                        (*mfile) << pA.z();
+                        (*mfile) << "),(";
                         (*mfile) << absreac.x() << ", ";
                         (*mfile) << absreac.y() << ", ";
-                        (*mfile) << absreac.z() << ", \n";
+                        (*mfile) << absreac.z();
+                        (*mfile) << ")],\n";
                     }
                     return true;  // to continue scanning contacts
                 }
@@ -880,13 +911,34 @@ void ChBlender::ExportData(const std::string& filename) {
                 ChStreamOutAsciiFile* mfile;
             };
 
+            state_file
+                << "if chrono_view_contacts:\n"
+                << "\tmake_chrono_glyphs_vectors('contacts',"
+                << "(" << blender_frame.GetPos().x() << "," << blender_frame.GetPos().y() << "," << blender_frame.GetPos().z() << "),"
+                << "(" << blender_frame.GetRot().e0() << "," << blender_frame.GetRot().e1() << "," << blender_frame.GetRot().e2() << "," << blender_frame.GetRot().e3() << "), \n"
+                << "[\n";
+
             auto my_contact_reporter = chrono_types::make_shared<_reporter_class>();
-            my_contact_reporter->mfile = &data_contacts;
+            my_contact_reporter->mfile = &state_file;
 
             // scan all contacts
             mSystem->GetContactContainer()->ReportAllContacts(my_contact_reporter);
+
+            state_file
+                << "], \n"
+                << "list_attributes=[], \n"
+                << "thickness=" << this->contacts_width << ", \n"
+                << "factor=" << this->contacts_scale << ", \n"
+                << "attr_name='length', \n" // 'length' is not in list_attributes, but make_chrono_glyphs_vectors() will compute it and add it to list
+                << "attr_min=" << this->contacts_colormap_startscale << ", \n"
+                << "attr_max=" << this->contacts_colormap_endscale << ", \n";
+            if (this->contacts_do_colormap)
+                state_file << "colormap = colormap_cooltowarm \n";
+            else
+                state_file << "colormap = [[0,(1,1,1,1)]] \n";
+            state_file << ") \n\n";
+
         }
-        */
 
         
 
