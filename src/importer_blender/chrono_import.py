@@ -425,6 +425,157 @@ def make_chrono_object_clones(mname,mpos,mrot, masset_list, list_clones_posrot):
     chobject.show_instancer_for_render = False
     chobject.show_instancer_for_viewport = False
     
+    
+def make_chrono_glyphs_objects(mname,mpos,mrot, masset_list, list_clones_posrot, list_attributes, attr_name, attr_min, attr_max, def_colormap=colormap_cooltowarm):
+    
+    if len(list_clones_posrot) == 0:
+        return None
+    
+    chcollection = None
+    chasset = None
+    
+    if len(masset_list) == 1:
+        # simplified if just one object
+        mfalsecolor = make_material_instance_falsecolor(mname+'_falsecolor', attr_name, attr_min, attr_max, def_colormap)
+        
+        masset = None
+        if type(masset_list[0][0]) == str:
+            masset = chrono_assets.objects.get(masset_list[0][0])
+            if not masset:
+                masset = chrono_frame_assets.objects.get(masset_list[0][0])
+        else:
+            masset = masset_list[0][0]
+             
+        chasset = masset.copy() 
+        chasset.data = masset.data.copy() # full copy?
+        
+        chrono_frame_objects.objects.link(chasset)
+        
+        while len(chasset.data.materials) < 1:
+            chasset.data.materials.append(None)
+        chasset.material_slots[0].link = 'OBJECT'
+        chasset.material_slots[0].material = mfalsecolor
+        chasset.hide_set(True)
+                
+    else:        # for multiple assets, geometry nodes must use a collection instance, so wrap them
+        chcollection = bpy.data.collections.new(mname+'_glyph_instance')
+        chrono_frame_objects.children.link(chcollection)
+        
+        chassets_group = bpy.data.objects.new("glyph_assets_group", empty_mesh)  
+        chcollection.objects.link(chassets_group)
+        chassets_group.hide_set(True)
+        chassets_group.hide_render = True
+        chassets_group.hide_viewport = True
+
+        mfalsecolor = make_material_instance_falsecolor(mname+'_falsecolor', attr_name, attr_min, attr_max, def_colormap)
+        
+        for m in range(len(masset_list)):
+            masset = chrono_assets.objects.get(masset_list[m][0])
+            if not masset:
+                masset = chrono_frame_assets.objects.get(masset_list[m][0])
+            if masset:
+                chasset = masset.copy() 
+                chasset.data = masset.data.copy() # full copy?
+                chasset.rotation_mode = 'QUATERNION'
+                chasset.rotation_quaternion = masset_list[m][2]
+                chasset.location = masset_list[m][1]
+                if len(masset_list[m])>4:
+                    chasset.scale = masset_list[m][4]
+                chcollection.objects.link(chasset)
+                chasset.parent = chassets_group                
+                #if chrono_view_materials:
+                #    while len(chasset.data.materials) < len(masset_list[m][3]):
+                #        chasset.data.materials.append(None)
+                #    for i, matname in enumerate(masset_list[m][3]):
+                #        chasset.material_slots[i].link = 'OBJECT'
+                #        chasset.material_slots[i].material = bpy.data.materials[matname]
+                #if chrono_view_asset_csys:
+                #    mcsys = make_chrono_csys(chasset.location,chasset.rotation_quaternion, chassets_group, chrono_view_asset_csys_size)
+                #    chrono_frame_objects.objects.link(mcsys)
+                while len(chasset.data.materials) < 1:
+                    chasset.data.materials.append(None)
+                chasset.material_slots[0].link = 'OBJECT'
+                chasset.material_slots[0].material = mfalsecolor
+                chasset.hide_set(True)    
+            else:
+                print("not found asset: ",masset_list[m][0])
+        
+    ncl = len(list_clones_posrot)
+    verts = [(0,0,0)] * (ncl)
+    faces = [] 
+    edges = []
+    for ic in range(ncl):
+        verts[ic] = list_clones_posrot[ic][0]
+    new_mesh = bpy.data.meshes.new('mesh_position_glyphs')
+    new_mesh.from_pydata(verts, edges, faces)
+    new_mesh.update()
+
+    chobject = bpy.data.objects.new(mname, new_mesh)  
+    chobject.rotation_mode = 'QUATERNION'
+    chobject.rotation_quaternion = mrot
+    chobject.location = mpos
+    chrono_frame_objects.objects.link(chobject)
+    
+    chobject.modifiers.new(name="Chrono clones", type='NODES')
+    node_group = bpy.data.node_groups.new('GeometryNodes', 'GeometryNodeTree')
+    inNode = node_group.nodes.new('NodeGroupInput')
+    node_group.outputs.new('NodeSocketGeometry', 'Geometry')
+    outNode = node_group.nodes.new('NodeGroupOutput')
+    node_group.inputs.new('NodeSocketGeometry', 'Geometry')
+
+    if len(masset_list) == 1:
+        node_objinfo = node_group.nodes.new('GeometryNodeObjectInfo') 
+        node_objinfo.inputs[0].default_value = chasset
+        node_objinfo.inputs[1].default_value = True
+    else:
+        node_objinfo = node_group.nodes.new('GeometryNodeCollectionInfo') 
+        node_objinfo.inputs[0].default_value = chcollection 
+
+    node_onpoints = node_group.nodes.new('GeometryNodeInstanceOnPoints')
+
+    node_group.links.new(inNode.outputs['Geometry'], node_onpoints.inputs['Points'])
+    node_group.links.new(node_onpoints.outputs['Instances'], outNode.inputs['Geometry'])
+    node_group.links.new(node_objinfo.outputs['Geometry'], node_onpoints.inputs['Instance'])
+
+    # optional rotation 
+    if (len(list_clones_posrot[0])>1 and len(list_clones_posrot[0][1])==3) :
+        rot_attr = [(0,0,0)] * (ncl)
+        for ic in range(ncl):
+            rot_attr[ic] = list_clones_posrot[ic][1]
+        add_mesh_data_vectors(chobject, rot_attr, 'ch_rot', mdomain='POINT')
+        node_namattr = node_group.nodes.new('GeometryNodeInputNamedAttribute')
+        node_namattr.inputs['Name'].default_value = 'ch_rot'
+        node_namattr.data_type = 'FLOAT_VECTOR'
+        node_group.links.new(node_namattr.outputs['Attribute'], node_onpoints.inputs['Rotation'])
+        
+    # optional scale 
+    if (len(list_clones_posrot[0])>2 and len(list_clones_posrot[0][2])==3) :
+        scale_attr = [(1,1,1)] * (ncl)
+        for ic in range(ncl):
+            scale_attr[ic] = list_clones_posrot[ic][2]
+        add_mesh_data_vectors(chobject, scale_attr, 'ch_scale', mdomain='POINT')
+        node_namattr = node_group.nodes.new('GeometryNodeInputNamedAttribute')
+        node_namattr.inputs['Name'].default_value = 'ch_scale'
+        node_namattr.data_type = 'FLOAT_VECTOR'
+        node_group.links.new(node_namattr.outputs['Attribute'], node_onpoints.inputs['Scale'])
+    
+    # optional scalar or vector per-point properties for falsecolor 
+    for ia in range(len(list_attributes)):
+        if type(list_attributes[ia][1][0]) == tuple:
+            my_attr = [(0,0,0)] * (ncl)
+            for ic in range(ncl):
+                my_attr[ic] = list_attributes[ia][1][ic]
+            add_mesh_data_vectors(chobject, my_attr, list_attributes[ia][0], mdomain='POINT')
+        else:
+            my_attr = [0] * (ncl)
+            for ic in range(ncl):
+                #print('ic=', ic, ' ia=', ia, ' ncl=', ncl)
+                my_attr[ic] = list_attributes[ia][1][ic]
+            add_mesh_data_floats(chobject, my_attr, list_attributes[ia][0], mdomain='POINT')
+
+    chobject.modifiers[-1].node_group = node_group
+    return chobject
+ 
 def update_camera_coordinates(mname,mpos,mrot):
     cameraasset = chrono_cameras.objects.get(mname)
     cameraasset.rotation_mode = 'QUATERNION'
