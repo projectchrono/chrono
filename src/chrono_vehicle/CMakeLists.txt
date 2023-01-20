@@ -782,6 +782,8 @@ if(ENABLE_MODULE_VSG)
     set(CVVSG_TV_FILES
         tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h
         tracked_vehicle/ChTrackedVehicleVisualSystemVSG.cpp
+        tracked_vehicle/test_rig/ChTrackTestRigInteractiveDriverVSG.h
+        tracked_vehicle/test_rig/ChTrackTestRigInteractiveDriverVSG.cpp
     )
 else()
     set(CVVSG_FILES "")

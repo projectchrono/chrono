@@ -34,8 +34,7 @@ namespace vehicle {
 /// @{
 
 /// VSG-based GUI driver for the a suspension test rig.
-/// This class implements the functionality required by its base class using
-/// keyboard inputs.
+/// This class implements the functionality required by its base class using keyboard inputs.
 class CH_VEHICLE_API ChSuspensionTestRigInteractiveDriverVSG : public ChSuspensionTestRigDriver {
   public:
     ChSuspensionTestRigInteractiveDriverVSG(vsg3d::ChVisualSystemVSG& vsys);
