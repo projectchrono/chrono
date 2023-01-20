@@ -576,6 +576,56 @@ def make_chrono_glyphs_objects(mname,mpos,mrot, masset_list, list_clones_posrot,
     chobject.modifiers[-1].node_group = node_group
     return chobject
  
+    
+    
+def make_chrono_glyphs_vectors(mname,mpos,mrot, 
+                          list_clones_posdir, 
+                          list_attributes=[], 
+                          attr_name='', 
+                          attr_min=0, attr_max=1, 
+                          colormap=colormap_cooltowarm, 
+                          do_arrow_tip = True,
+                          thickness = 0.1,
+                          factor = 1.0): 
+    ncl = len(list_clones_posdir)
+    # hardwired cases of attributes for vectors
+    if attr_name == 'length':
+        list_lengths = np.empty((ncl, 1)).tolist()
+        for i in range(ncl):
+            list_lengths[i] = mathutils.Vector(list_clones_posdir[i][1]).length
+        print('list_attributes =  ' , len(list_attributes))
+        print('list_lengths=  ' , len(list_lengths))
+        list_attributes.append(['length',list_lengths])
+        print('list_attributes=  ' , len(list_attributes), '\n\n')
+    list_clones_posrotscale = np.empty((ncl, 3,3)).tolist()
+    for i in range(ncl):
+        list_clones_posrotscale[i][0] = list_clones_posdir[i][0]
+        direction = mathutils.Vector(list_clones_posdir[i][1])
+        list_clones_posrotscale[i][1] = direction.to_track_quat('Z', 'Y').to_euler()
+        list_clones_posrotscale[i][2] = (thickness,thickness,factor*direction.length)
+    make_chrono_glyphs_objects(mname,mpos,mrot,
+     [
+      [bpy.data.objects['chrono_cylinder'], (0,0,0), (1,0,0,0), ""]
+     ],
+     list_clones_posrotscale,
+     list_attributes,
+     attr_name, attr_min, attr_max, colormap
+     )
+    if do_arrow_tip:
+        list_clones_posrotscale = np.empty((ncl, 3,3)).tolist()
+        for i in range(ncl):
+            direction = mathutils.Vector(list_clones_posdir[i][1])
+            list_clones_posrotscale[i][0] = mathutils.Vector(list_clones_posdir[i][0])+(direction*factor)
+            list_clones_posrotscale[i][1] = direction.to_track_quat('Z', 'Y').to_euler()
+            list_clones_posrotscale[i][2] = (thickness*1.4,thickness*1.4,thickness*2)
+        make_chrono_glyphs_objects(mname+'_tip',mpos,mrot,
+         [
+          [bpy.data.objects['chrono_cone'], (0,0,0), (1,0,0,0), ""]
+         ],
+         list_clones_posrotscale,
+         list_attributes,
+         attr_name, attr_min, attr_max, colormap
+         )
 def update_camera_coordinates(mname,mpos,mrot):
     cameraasset = chrono_cameras.objects.get(mname)
     cameraasset.rotation_mode = 'QUATERNION'
