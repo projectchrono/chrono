@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen, Conlain Kelly, Marcel Offermans
+// Authors: Radu Serban, Marcel Offermans
 // =============================================================================
 //
 // Irrlicht-based GUI driver for the a vehicle. This class implements the
@@ -29,7 +29,7 @@
 #include <climits>
 #include <bitset>
 
-#include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+#include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -49,20 +49,9 @@ const int JoystickOutputFrequency = 32;
 
 // -----------------------------------------------------------------------------
 
-ChIrrGuiDriver::ChIrrGuiDriver(ChVehicleVisualSystemIrrlicht& vsys)
-    : ChDriver(*vsys.m_vehicle),
+ChInteractiveDriverIRR::ChInteractiveDriverIRR(ChVehicleVisualSystemIrrlicht& vsys)
+    : ChInteractiveDriver(*vsys.m_vehicle),
       m_vsys(vsys),
-      m_mode(InputMode::KEYBOARD),
-      m_steering_target(0),
-      m_throttle_target(0),
-      m_braking_target(0),
-      m_stepsize(1e-3),
-      m_steering_delta(1.0 / 50),
-      m_throttle_delta(1.0 / 50),
-      m_braking_delta(1.0 / 50),
-      m_steering_gain(4.0),
-      m_throttle_gain(4.0),
-      m_braking_gain(4.0),
       m_joystick_debug(false),
       m_joystick_debug_frame(0),
       m_joystick_proccess_frame(0),
@@ -82,7 +71,7 @@ ChIrrGuiDriver::ChIrrGuiDriver(ChVehicleVisualSystemIrrlicht& vsys)
 
 // -----------------------------------------------------------------------------
 
-bool ChIrrGuiDriver::OnEvent(const SEvent& event) {
+bool ChInteractiveDriverIRR::OnEvent(const SEvent& event) {
     if (event.EventType == EET_KEY_INPUT_EVENT && !event.KeyInput.PressedDown) {
         switch (event.KeyInput.Key) {
             case KEY_KEY_L:
@@ -129,7 +118,7 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event) {
     return false;
 }
 
-bool ChIrrGuiDriver::ProcessJoystickEvents(const SEvent& event) {
+bool ChInteractiveDriverIRR::ProcessJoystickEvents(const SEvent& event) {
     // Driver only handles input every 16 ticks (~60 Hz)
     if (m_joystick_proccess_frame < JoystickProcessFrequency) {
         m_joystick_proccess_frame++;
@@ -156,7 +145,7 @@ bool ChIrrGuiDriver::ProcessJoystickEvents(const SEvent& event) {
     }
 
     // H-shifter code...
-    if (clutchAxis.axis != ChIrrJoystickAxis::NONE) {
+    if (clutchAxis.axis != ChJoystickAxisIRR::NONE) {
         // double rawClutchPosition = (double)event.JoystickEvent.Axis[clutchAxis.axis];
         double clutchPosition = clutchAxis.GetValue(event.JoystickEvent);
         // Check if that clutch is pressed...
@@ -235,7 +224,7 @@ bool ChIrrGuiDriver::ProcessJoystickEvents(const SEvent& event) {
     return true;
 }
 
-bool ChIrrGuiDriver::ProcessKeyboardEvents(const SEvent& event) {
+bool ChInteractiveDriverIRR::ProcessKeyboardEvents(const SEvent& event) {
     if (event.KeyInput.PressedDown) {
         switch (event.KeyInput.Key) {
             case KEY_KEY_A:
@@ -305,76 +294,12 @@ bool ChIrrGuiDriver::ProcessKeyboardEvents(const SEvent& event) {
 
 // -----------------------------------------------------------------------------
 
-void ChIrrGuiDriver::SetInputMode(InputMode mode) {
-    switch (mode) {
-        case InputMode::KEYBOARD:
-            m_throttle_target = 0;
-            m_steering_target = 0;
-            m_braking_target = 0;
-            m_mode = mode;
-            break;
-        case InputMode::DATAFILE:
-            if (m_data_driver) {
-                m_time_shift = m_vsys.m_vehicle->GetSystem()->GetChTime();
-                m_mode = mode;
-            }
-            break;
-        case InputMode::JOYSTICK:
-            if (m_joystick_info.size() > 0)
-                m_mode = mode;
-            else
-                std::cerr << "No joysticks available. Input mode unchanged" << std::endl;
-            break;
-        case InputMode::LOCK:
-            m_mode = mode;
-        default:
-            break;
-    }
-}
-
-std::string ChIrrGuiDriver::GetInputModeAsString() const {
-    switch (m_mode) {
-        case InputMode::LOCK:
-            return std::string("Input mode: LOCK");
-        case InputMode::KEYBOARD:
-            return std::string("Input mode: KEY");
-        case InputMode::DATAFILE:
-            return std::string("Input mode: FILE");
-        case InputMode::JOYSTICK:
-            return std::string("Input mode: JOYSTICK");
-    }
-    return std::string("");
-}
-
-void ChIrrGuiDriver::SetThrottleDelta(double delta) {
-    m_throttle_delta = delta;
-}
-
-void ChIrrGuiDriver::SetSteeringDelta(double delta) {
-    m_steering_delta = delta;
-}
-
-void ChIrrGuiDriver::SetBrakingDelta(double delta) {
-    m_braking_delta = delta;
-}
-
-void ChIrrGuiDriver::SetGains(double steering_gain, double throttle_gain, double braking_gain) {
-    m_steering_gain = steering_gain;
-    m_throttle_gain = throttle_gain;
-    m_braking_gain = braking_gain;
-}
-
-void ChIrrGuiDriver::SetInputDataFile(const std::string& filename) {
-    // Embed a DataDriver.
-    m_data_driver = chrono_types::make_shared<ChDataDriver>(m_vehicle, filename, false);
-}
-
-void ChIrrGuiDriver::SetButtonCallback(int button, void (*cbfun)()) {
+void ChInteractiveDriverIRR::SetButtonCallback(int button, void (*cbfun)()) {
     m_callback_function = cbfun;
     m_callback_button = button;
 }
 
-void ChIrrGuiDriver::SetJoystickConfigFile(const std::string& filename) {
+void ChInteractiveDriverIRR::SetJoystickConfigFile(const std::string& filename) {
     if (!filesystem::path(filename).exists()) {
         std::cerr << "Error: the specified joystick configuration file " << filename << " does not exist.\n"
                   << "Using default configuration." << std::endl;
@@ -385,7 +310,7 @@ void ChIrrGuiDriver::SetJoystickConfigFile(const std::string& filename) {
 
 // -----------------------------------------------------------------------------
 
-void ChIrrGuiDriver::Initialize() {
+void ChInteractiveDriverIRR::Initialize() {
     if (m_joystick_info.size() > 0) {
         rapidjson::Document d;
         ReadFileJSON(m_joystick_file, d);
@@ -494,48 +419,12 @@ void ChIrrGuiDriver::Initialize() {
     }
 }
 
-void ChIrrGuiDriver::Synchronize(double time) {
-    // Do nothing if no embedded DataDriver.
-    if (m_mode != InputMode::DATAFILE || !m_data_driver)
-        return;
-
-    // Call the update function of the embedded DataDriver, with shifted time.
-    m_data_driver->Synchronize(time - m_time_shift);
-
-    // Use inputs from embedded DataDriver
-    m_throttle = m_data_driver->GetThrottle();
-    m_steering = m_data_driver->GetSteering();
-    m_braking = m_data_driver->GetBraking();
-}
-
-void ChIrrGuiDriver::Advance(double step) {
-    // Do nothing if not in KEYBOARD mode.
-    if (m_mode != InputMode::KEYBOARD)
-        return;
-
-    // Integrate dynamics, taking as many steps as required to reach the value 'step'
-    double t = 0;
-    while (t < step) {
-        double h = std::min<>(m_stepsize, step - t);
-
-        double throttle_deriv = m_throttle_gain * (m_throttle_target - m_throttle);
-        double steering_deriv = m_steering_gain * (m_steering_target - m_steering);
-        double braking_deriv = m_braking_gain * (m_braking_target - m_braking);
-
-        SetThrottle(m_throttle + h * throttle_deriv);
-        SetSteering(m_steering + h * steering_deriv);
-        SetBraking(m_braking + h * braking_deriv);
-
-        t += h;
-    }
-}
-
 // -----------------------------------------------------------------------------
 
-ChIrrJoystickAxis::ChIrrJoystickAxis()
+ChJoystickAxisIRR::ChJoystickAxisIRR()
     : id(-1), name("Unknown"), axis(Axis::NONE), min(0), max(1), scaled_min(0), scaled_max(1), value(0) {}
 
-double ChIrrJoystickAxis::GetValue(const irr::SEvent::SJoystickEvent& joystickEvent) {
+double ChJoystickAxisIRR::GetValue(const irr::SEvent::SJoystickEvent& joystickEvent) {
     if (joystickEvent.Joystick == id) {
         // Scale raw_value fromm [scaled_min, scaled_max] to [min, max] range
         value = (joystickEvent.Axis[axis] - max) * (scaled_max - scaled_min) / (max - min) + scaled_max;
@@ -543,11 +432,11 @@ double ChIrrJoystickAxis::GetValue(const irr::SEvent::SJoystickEvent& joystickEv
     return value;
 }
 
-void ChIrrJoystickAxis::Read(rapidjson::Document& d, const std::string& elementName, bool dbg_print) {
+void ChJoystickAxisIRR::Read(rapidjson::Document& d, const std::string& elementName, bool dbg_print) {
     auto element = elementName.c_str();
     if (d.HasMember(element) && d[element].IsObject()) {
         name = d[element]["name"].GetString();
-        id = 0; // default to first attached controller
+        id = 0;  // default to first attached controller
         axis = (Axis)d[element]["axis"].GetInt();
         min = d[element]["min"].GetDouble();
         max = d[element]["max"].GetDouble();
@@ -559,10 +448,10 @@ void ChIrrJoystickAxis::Read(rapidjson::Document& d, const std::string& elementN
     }
 }
 
-ChIrrJoystickButton::ChIrrJoystickButton()
+ChJoystickButtonIRR::ChJoystickButtonIRR()
     : id(-1), name("Unknown"), button(-1), buttonPressed(false), buttonPressedCount(0) {}
 
-bool ChIrrJoystickButton::IsPressed(const irr::SEvent::SJoystickEvent& joystickEvent, bool continuous) {
+bool ChJoystickButtonIRR::IsPressed(const irr::SEvent::SJoystickEvent& joystickEvent, bool continuous) {
     if (joystickEvent.Joystick == id) {
         buttonPressed = joystickEvent.IsButtonPressed(button);
     }
@@ -574,10 +463,10 @@ bool ChIrrJoystickButton::IsPressed(const irr::SEvent::SJoystickEvent& joystickE
     return continuous ? buttonPressedCount > 0 : buttonPressedCount == 1;
 }
 
-void ChIrrJoystickButton::Read(rapidjson::Document& d, const std::string& elementName, bool dbg_print) {
+void ChJoystickButtonIRR::Read(rapidjson::Document& d, const std::string& elementName, bool dbg_print) {
     auto element = elementName.c_str();
     if (d.HasMember(element) && d[element].IsObject()) {
-        id = 0; // default to first attached controller
+        id = 0;  // default to first attached controller
         name = d[element]["name"].GetString();
         button = d[element]["button"].GetInt();
     } else if (dbg_print) {

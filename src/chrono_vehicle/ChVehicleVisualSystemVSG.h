@@ -40,7 +40,7 @@
 namespace chrono {
 namespace vehicle {
 
-class ChVSGGuiDriver;
+class ChInteractiveDriverVSG;
 
 /// @addtogroup vehicle_vis
 /// @{
@@ -69,7 +69,7 @@ class CH_VEHICLE_API ChVehicleVisualSystemVSG : public ChVehicleVisualSystem, pu
   protected:
     virtual void AppendGUIStats() {}
 
-    ChVSGGuiDriver* m_guiDriver;
+    ChInteractiveDriverVSG* m_driver;
     bool m_has_TC;
 
     vsg::dvec3 m_target_symbol_position = vsg::dvec3(0.0, 0.0, 0.0);
@@ -77,7 +77,7 @@ class CH_VEHICLE_API ChVehicleVisualSystemVSG : public ChVehicleVisualSystem, pu
     vsg::dvec3 m_sentinel_symbol_position = vsg::dvec3(0.0, 0.0, 0.0);
     vsg::dvec3 m_sentinel_symbol_size = vsg::dvec3(1.0, 1.0, 1.0);
 
-    friend class ChVSGGuiDriver;
+    friend class ChInteractiveDriverVSG;
     friend class ChVehicleGuiComponentVSG;
     friend class ChVehicleKeyboardHandlerVSG;
 };

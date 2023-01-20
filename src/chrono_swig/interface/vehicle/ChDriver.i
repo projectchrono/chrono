@@ -23,7 +23,7 @@
 
 #ifdef CHRONO_IRRLICHT
 #include "chrono_vehicle/ChVehicleVisualSystemIrrlicht.h"
-#include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+#include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChIrrGuiDriverSTR.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
@@ -78,7 +78,7 @@
 
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 #ifdef CHRONO_IRRLICHT
-%shared_ptr(chrono::vehicle::ChIrrGuiDriver)
+%shared_ptr(chrono::vehicle::ChInteractiveDriverIRR)
 %shared_ptr(chrono::vehicle::ChIrrGuiDriverSTR)
 #endif
 #endif             // --------------------------------------------------------------------- PYTHON
@@ -111,7 +111,7 @@
 
 #ifdef CHRONO_IRRLICHT
 %include "../../../chrono_vehicle/ChVehicleVisualSystemIrrlicht.h"
-%include "../../../chrono_vehicle/driver/ChIrrGuiDriver.h"
+%include "../../../chrono_vehicle/driver/ChInteractiveDriverIRR.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/test_rig/ChIrrGuiDriverSTR.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 %include "../../../chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"

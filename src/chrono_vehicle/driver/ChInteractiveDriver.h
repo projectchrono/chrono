@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2022 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,26 +9,25 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Rainer Gericke, Radu Serban
+// Authors: Radu Serban
 // =============================================================================
 //
-// VSG-based GUI driver for the a vehicle. This class implements the
-// functionality required by its base ChDriver class using keyboard or joystick
-// inputs.
+// Base class and utilities for interactive vehicle drivers. This class
+// implements the common functionality for a driver that accepts user inputs
+// from keyboard or a joystick.
+//
 // =============================================================================
 
-#ifndef CH_VSGGUIDRIVER_H
-#define CH_VSGGUIDRIVER_H
+#ifndef CH_INTERACTIVE_DRIVER_H
+#define CH_INTERACTIVE_DRIVER_H
 
 #include <string>
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/ChVehicle.h"
 
 #include "chrono_vehicle/driver/ChDataDriver.h"
-#include "chrono_vehicle/ChVehicleVisualSystemVSG.h"
 
 namespace chrono {
 namespace vehicle {
@@ -36,22 +35,26 @@ namespace vehicle {
 /// @addtogroup vehicle_driver
 /// @{
 
-/// VSG-based interactive driver for the a vehicle.
-/// This class implements the functionality required by the base ChDriver class using keyboard inputs.
-class CH_VEHICLE_API ChVSGGuiDriver : public ChDriver {
+/// Irrlicht-based interactive driver for the a vehicle.
+/// This class implements the functionality required by the base ChDriver class using keyboard or joystick inputs.
+/// As an Irrlicht event receiver, its OnEvent() callback is used to keep track and update the current driver inputs.
+class CH_VEHICLE_API ChInteractiveDriver : public ChDriver {
   public:
-    /// Functioning modes for a ChIrrGuiDriver.
+    /// Functioning modes for a ChInteractiveDriver.
     enum class InputMode {
         LOCK,      ///< driver inputs locked at current values
         KEYBOARD,  ///< driver inputs from keyboard
-        DATAFILE   ///< driver inputs from data file
+        DATAFILE,  ///< driver inputs from data file
+        JOYSTICK   ///< driver inputs from joystick
     };
 
-    ChVSGGuiDriver(ChVehicleVisualSystemVSG& vsys);
-    ~ChVSGGuiDriver();
+    /// Construct an Irrlicht GUI driver.
+    ChInteractiveDriver(ChVehicle& vehicle);
 
-    /// Initialize this driver system.
-    virtual void Initialize() override;
+    virtual ~ChInteractiveDriver() {}
+
+    /// Check if joystick is supported.
+    virtual bool HasJoystick() const { return false; }
 
     /// Update the state of this driver system at the specified time.
     virtual void Synchronize(double time) override;
@@ -84,25 +87,7 @@ class CH_VEHICLE_API ChVSGGuiDriver : public ChDriver {
     /// Set the input file for the underlying data driver.
     void SetInputDataFile(const std::string& filename);
 
-    /// Increase Throttle
-    void IncreaseThrottle();
-
-    /// Decrease Throttle
-    void DecreaseThrottle();
-
-    /// Steering Left
-    void SteeringLeft();
-
-    /// Steering Right
-    void SteeringRight();
-
-    /// Center Steering
-    void SteeringCenter();
-
-    /// Release Pedals
-    void ReleasePedals();
-
-  private:
+  protected:
     InputMode m_mode;  ///< current mode of the driver
 
     // Variables for mode=KEYBOARD
@@ -123,12 +108,11 @@ class CH_VEHICLE_API ChVSGGuiDriver : public ChDriver {
     // Variables for mode=DATAFILE
     double m_time_shift;                          ///< time at which mode was switched to DATAFILE
     std::shared_ptr<ChDataDriver> m_data_driver;  ///< embedded data driver (for playback)
-
-    friend class ChVehicleVisualSystemVSG;
 };
 
 /// @} vehicle_driver
 
-}  // namespace vehicle
-}  // namespace chrono
+}  // end namespace vehicle
+}  // end namespace chrono
+
 #endif

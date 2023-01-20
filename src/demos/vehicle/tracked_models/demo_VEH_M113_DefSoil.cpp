@@ -20,7 +20,7 @@
 #include "chrono/solver/ChSolverBB.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+#include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
 #include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
 
@@ -174,7 +174,7 @@ int main(int argc, char* argv[]) {
     // Create the driver system
     // ------------------------
 
-    ChIrrGuiDriver driver(*vis);
+    ChInteractiveDriverIRR driver(*vis);
 
     // Set the time response for keyboard inputs.
     double steering_time = 0.5;  // time to go from 0 to +1 (or from 0 to -1)
@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
 
     // Set file with driver input time series
     driver.SetInputDataFile(vehicle::GetDataFile("M113/driver/Acceleration.txt"));
-    driver.SetInputMode(ChIrrGuiDriver::InputMode::DATAFILE);
+    driver.SetInputMode(ChInteractiveDriverIRR::InputMode::DATAFILE);
 
     driver.Initialize();
 

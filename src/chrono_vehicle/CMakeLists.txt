@@ -222,6 +222,8 @@ set(CV_DRIVER_FILES
     driver/ChPathFollowerACCDriver.cpp
     driver/ChExternalDriver.h
     driver/ChExternalDriver.cpp
+    driver/ChInteractiveDriver.h
+    driver/ChInteractiveDriver.cpp
 
     driver/AIDriver.h
     driver/AIDriver.cpp
@@ -735,8 +737,8 @@ if(ENABLE_MODULE_IRRLICHT)
     set(CVIRR_FILES
         ChVehicleVisualSystemIrrlicht.h
         ChVehicleVisualSystemIrrlicht.cpp
-        driver/ChIrrGuiDriver.h
-        driver/ChIrrGuiDriver.cpp
+        driver/ChInteractiveDriverIRR.h
+        driver/ChInteractiveDriverIRR.cpp
     )
     set(CVIRR_WV_FILES
         wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h
@@ -768,8 +770,8 @@ if(ENABLE_MODULE_VSG)
     set(CVVSG_FILES
         ChVehicleVisualSystemVSG.h
         ChVehicleVisualSystemVSG.cpp
-        driver/ChVSGGuiDriver.h
-        driver/ChVSGGuiDriver.cpp
+        driver/ChInteractiveDriverVSG.h
+        driver/ChInteractiveDriverVSG.cpp
     )
     set(CVVSG_WV_FILES
         wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h

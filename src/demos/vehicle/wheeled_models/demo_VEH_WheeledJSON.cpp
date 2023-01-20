@@ -32,13 +32,13 @@
 #include "chrono_thirdparty/filesystem/path.h"
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+    #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
 #endif
 
 #ifdef CHRONO_VSG
-    #include "chrono_vehicle/driver/ChVSGGuiDriver.h"
+    #include "chrono_vehicle/driver/ChInteractiveDriverVSG.h"
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 using namespace chrono::vsg3d;
 #endif
@@ -313,7 +313,7 @@ int main(int argc, char* argv[]) {
             vis_irr->AttachVehicle(&vehicle);
 
             // Create the interactive Irrlicht driver system
-            auto driver_irr = chrono_types::make_shared<ChIrrGuiDriver>(*vis_irr);
+            auto driver_irr = chrono_types::make_shared<ChInteractiveDriverIRR>(*vis_irr);
             driver_irr->SetSteeringDelta(0.02);
             driver_irr->SetThrottleDelta(0.02);
             driver_irr->SetBrakingDelta(0.06);
@@ -340,7 +340,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->Initialize();
 
             // Create the interactive VSG driver system
-            auto driver_vsg = chrono_types::make_shared<ChVSGGuiDriver>(*vis_vsg);
+            auto driver_vsg = chrono_types::make_shared<ChInteractiveDriverVSG>(*vis_vsg);
             driver_vsg->SetSteeringDelta(0.02);
             driver_vsg->SetThrottleDelta(0.02);
             driver_vsg->SetBrakingDelta(0.06);

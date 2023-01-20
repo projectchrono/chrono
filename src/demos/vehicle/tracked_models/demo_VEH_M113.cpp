@@ -35,13 +35,13 @@
 #include "demos/vehicle/SetChronoSolver.h"
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+    #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
     #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
 #endif
 
 #ifdef CHRONO_VSG
-    #include "chrono_vehicle/driver/ChVSGGuiDriver.h"
+    #include "chrono_vehicle/driver/ChInteractiveDriverVSG.h"
     #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h"
 using namespace chrono::vsg3d;
 #endif
@@ -451,7 +451,7 @@ int main(int argc, char* argv[]) {
             vis = vis_irr;
 
             if (driver_mode == DriverMode::KEYBOARD) {
-                auto irr_driver = chrono_types::make_shared<ChIrrGuiDriver>(*vis_irr);
+                auto irr_driver = chrono_types::make_shared<ChInteractiveDriverIRR>(*vis_irr);
                 double steering_time = 0.5;  // time to go from 0 to +1 (or from 0 to -1)
                 double throttle_time = 1.0;  // time to go from 0 to +1
                 double braking_time = 0.3;   // time to go from 0 to +1
@@ -478,7 +478,7 @@ int main(int argc, char* argv[]) {
             vis = vis_vsg;
 
             if (driver_mode == DriverMode::KEYBOARD) {
-                auto vsg_driver = chrono_types::make_shared<ChVSGGuiDriver>(*vis_vsg);
+                auto vsg_driver = chrono_types::make_shared<ChInteractiveDriverVSG>(*vis_vsg);
                 double steering_time = 0.5;  // time to go from 0 to +1 (or from 0 to -1)
                 double throttle_time = 1.0;  // time to go from 0 to +1
                 double braking_time = 0.3;   // time to go from 0 to +1

@@ -38,7 +38,7 @@
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+    #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleIrrApp.h"
 #endif
 
@@ -160,9 +160,9 @@ class DriverWrapper : public ChDriver {
             irr_driver->Advance(step);
     }
 
-    void Set(std::shared_ptr<ChIrrGuiDriver> irr_driver) { this->irr_driver = irr_driver; }
+    void Set(std::shared_ptr<ChInteractiveDriverIRR> irr_driver) { this->irr_driver = irr_driver; }
 
-    std::shared_ptr<ChIrrGuiDriver> irr_driver;
+    std::shared_ptr<ChInteractiveDriverIRR> irr_driver;
 };
 #endif
 // =============================================================================
@@ -291,7 +291,7 @@ int main(int argc, char* argv[]) {
         temp_app->AssetUpdateAll();
 
         // Create the interactive driver system
-        auto irr_driver = chrono_types::make_shared<ChIrrGuiDriver>(*temp_app);
+        auto irr_driver = chrono_types::make_shared<ChInteractiveDriverIRR>(*temp_app);
 
         // Set the time response for steering and throttle keyboard inputs.
         double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)

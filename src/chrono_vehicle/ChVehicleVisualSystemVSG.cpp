@@ -19,9 +19,9 @@
 
 #include "chrono_vehicle/powertrain/ChShaftsPowertrain.h"
 
-#include "chrono_vsg/ChGuiComponentVSG.h"
 #include "chrono_vehicle/ChVehicleVisualSystemVSG.h"
-#include "chrono_vehicle/driver/ChVSGGuiDriver.h"
+#include "chrono_vsg/ChGuiComponentVSG.h"
+#include "chrono_vehicle/driver/ChInteractiveDriverVSG.h"
 
 namespace chrono {
 namespace vehicle {
@@ -145,28 +145,28 @@ class ChVehicleKeyboardHandlerVSG : public vsg::Inherit<vsg::Visitor, ChVehicleK
                 m_app->m_camera->Raise(1);
                 return;
             case vsg::KEY_a:
-                if (m_app->m_guiDriver)
-                    m_app->m_guiDriver->SteeringLeft();
+                if (m_app->m_driver)
+                    m_app->m_driver->SteeringLeft();
                 return;
             case vsg::KEY_d:
-                if (m_app->m_guiDriver)
-                    m_app->m_guiDriver->SteeringRight();
+                if (m_app->m_driver)
+                    m_app->m_driver->SteeringRight();
                 return;
             case vsg::KEY_c:
-                if (m_app->m_guiDriver)
-                    m_app->m_guiDriver->SteeringCenter();
+                if (m_app->m_driver)
+                    m_app->m_driver->SteeringCenter();
                 return;
             case vsg::KEY_w:
-                if (m_app->m_guiDriver)
-                    m_app->m_guiDriver->IncreaseThrottle();
+                if (m_app->m_driver)
+                    m_app->m_driver->IncreaseThrottle();
                 return;
             case vsg::KEY_s:
-                if (m_app->m_guiDriver)
-                    m_app->m_guiDriver->DecreaseThrottle();
+                if (m_app->m_driver)
+                    m_app->m_driver->DecreaseThrottle();
                 return;
             case vsg::KEY_r:
-                if (m_app->m_guiDriver)
-                    m_app->m_guiDriver->ReleasePedals();
+                if (m_app->m_driver)
+                    m_app->m_driver->ReleasePedals();
                 return;
             case vsg::KEY_1:
                 m_app->SetChaseCameraState(utils::ChChaseCamera::Chase);
@@ -189,28 +189,28 @@ class ChVehicleKeyboardHandlerVSG : public vsg::Inherit<vsg::Visitor, ChVehicleK
         }
         switch (keyPress.keyBase) {
             case vsg::KEY_a:
-                if (m_app->m_guiDriver)
-                    m_app->m_guiDriver->SteeringLeft();
+                if (m_app->m_driver)
+                    m_app->m_driver->SteeringLeft();
                 return;
             case vsg::KEY_d:
-                if (m_app->m_guiDriver)
-                    m_app->m_guiDriver->SteeringRight();
+                if (m_app->m_driver)
+                    m_app->m_driver->SteeringRight();
                 return;
             case vsg::KEY_c:
-                if (m_app->m_guiDriver)
-                    m_app->m_guiDriver->SteeringCenter();
+                if (m_app->m_driver)
+                    m_app->m_driver->SteeringCenter();
                 return;
             case vsg::KEY_w:
-                if (m_app->m_guiDriver)
-                    m_app->m_guiDriver->IncreaseThrottle();
+                if (m_app->m_driver)
+                    m_app->m_driver->IncreaseThrottle();
                 return;
             case vsg::KEY_s:
-                if (m_app->m_guiDriver)
-                    m_app->m_guiDriver->DecreaseThrottle();
+                if (m_app->m_driver)
+                    m_app->m_driver->DecreaseThrottle();
                 return;
             case vsg::KEY_r:
-                if (m_app->m_guiDriver)
-                    m_app->m_guiDriver->ReleasePedals();
+                if (m_app->m_driver)
+                    m_app->m_driver->ReleasePedals();
                 return;
         }
     }
@@ -358,7 +358,7 @@ void ChVehicleGuiComponentVSG::render() {
 
 // -----------------------------------------------------------------------------
 
-ChVehicleVisualSystemVSG::ChVehicleVisualSystemVSG() : ChVisualSystemVSG(), m_guiDriver(nullptr), m_has_TC(false) {}
+ChVehicleVisualSystemVSG::ChVehicleVisualSystemVSG() : ChVisualSystemVSG(), m_driver(nullptr), m_has_TC(false) {}
 
 ChVehicleVisualSystemVSG::~ChVehicleVisualSystemVSG() {}
 

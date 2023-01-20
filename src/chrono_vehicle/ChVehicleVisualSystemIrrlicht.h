@@ -125,7 +125,7 @@ class CH_VEHICLE_API ChVehicleVisualSystemIrrlicht : public ChVehicleVisualSyste
 #endif
 
     friend class ChChaseCameraEventReceiver;
-    friend class ChIrrGuiDriver;
+    friend class ChInteractiveDriverIRR;
     friend class ChIrrGuiDriverSTR;
 };
 

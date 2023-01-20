@@ -26,7 +26,7 @@
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+#include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
 #include "chrono_vehicle/output/ChVehicleOutputASCII.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
@@ -128,7 +128,7 @@ int main(int argc, char* argv[]) {
     vis->AttachVehicle(&my_hmmwv.GetVehicle());
 
     // Create the interactive driver system
-    ChIrrGuiDriver driver(*vis);
+    ChInteractiveDriverIRR driver(*vis);
     driver.Initialize();
 
     // Set the time response for steering and throttle keyboard inputs.

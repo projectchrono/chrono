@@ -73,7 +73,7 @@ def main():
     vis.AttachVehicle(my_hmmwv.GetVehicle())
 
     # Create the interactive driver system
-    driver = veh.ChIrrGuiDriver(vis)
+    driver = veh.ChInteractiveDriverIRR(vis)
     driver.SetSteeringDelta(0.06)
     driver.SetThrottleDelta(0.02)
     driver.SetBrakingDelta(0.06)

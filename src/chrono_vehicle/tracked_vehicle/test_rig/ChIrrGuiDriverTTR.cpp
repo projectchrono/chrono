@@ -12,8 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Irrlicht-based GUI driver for the a track test rig. This class extends
-// the ChIrrGuiDriver for a vehicle with controls for the shaker post.
+// Irrlicht-based GUI driver for the a track test rig.
 //
 // =============================================================================
 

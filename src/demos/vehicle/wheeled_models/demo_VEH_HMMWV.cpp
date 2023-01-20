@@ -26,7 +26,7 @@
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+#include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
 #include "chrono_vehicle/output/ChVehicleOutputASCII.h"
 
@@ -35,13 +35,13 @@
 #include "chrono_thirdparty/filesystem/path.h"
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+    #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
 #endif
 
 #ifdef CHRONO_VSG
-    #include "chrono_vehicle/driver/ChVSGGuiDriver.h"
+    #include "chrono_vehicle/driver/ChInteractiveDriverVSG.h"
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 using namespace chrono::vsg3d;
 #endif
@@ -257,14 +257,14 @@ int main(int argc, char* argv[]) {
             vis_irr->AttachVehicle(&my_hmmwv.GetVehicle());
 
             // Create the interactive Irrlicht driver system
-            auto driver_irr = chrono_types::make_shared<ChIrrGuiDriver>(*vis_irr);
+            auto driver_irr = chrono_types::make_shared<ChInteractiveDriverIRR>(*vis_irr);
             driver_irr->SetSteeringDelta(render_step_size / steering_time);
             driver_irr->SetThrottleDelta(render_step_size / throttle_time);
             driver_irr->SetBrakingDelta(render_step_size / braking_time);
             driver_irr->Initialize();
             if (driver_mode == DriverMode::PLAYBACK) {
                 driver_irr->SetInputDataFile(driver_file);
-                driver_irr->SetInputMode(ChIrrGuiDriver::InputMode::DATAFILE);
+                driver_irr->SetInputMode(ChInteractiveDriverIRR::InputMode::DATAFILE);
             }
 
             vis = vis_irr;
@@ -288,13 +288,13 @@ int main(int argc, char* argv[]) {
             vis_vsg->Initialize();
 
             // Create the interactive VSG driver system
-            auto driver_vsg = chrono_types::make_shared<ChVSGGuiDriver>(*vis_vsg);
+            auto driver_vsg = chrono_types::make_shared<ChInteractiveDriverVSG>(*vis_vsg);
             driver_vsg->SetSteeringDelta(render_step_size / steering_time);
             driver_vsg->SetThrottleDelta(render_step_size / throttle_time);
             driver_vsg->SetBrakingDelta(render_step_size / braking_time);
             if (driver_mode == DriverMode::PLAYBACK) {
                 driver_vsg->SetInputDataFile(driver_file);
-                driver_vsg->SetInputMode(ChVSGGuiDriver::InputMode::DATAFILE);
+                driver_vsg->SetInputMode(ChInteractiveDriverVSG::InputMode::DATAFILE);
             }
             driver_vsg->Initialize();
 

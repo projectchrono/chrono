@@ -32,13 +32,13 @@
 #include "chrono_thirdparty/filesystem/path.h"
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+    #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
 #endif
 
 #ifdef CHRONO_VSG
-    #include "chrono_vehicle/driver/ChVSGGuiDriver.h"
+    #include "chrono_vehicle/driver/ChInteractiveDriverVSG.h"
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 using namespace chrono::vsg3d;
 #endif
@@ -198,7 +198,7 @@ int main(int argc, char* argv[]) {
             }
 
             // Create the interactive Irrlicht driver system
-            auto driver_irr = chrono_types::make_shared<ChIrrGuiDriver>(*vis_irr);
+            auto driver_irr = chrono_types::make_shared<ChInteractiveDriverIRR>(*vis_irr);
 
             // Set the time response for steering and throttle keyboard inputs.
             double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
@@ -212,7 +212,7 @@ int main(int argc, char* argv[]) {
             // force it to playback the driver inputs.
             if (driver_mode == PLAYBACK) {
                 driver_irr->SetInputDataFile(driver_file);
-                driver_irr->SetInputMode(ChIrrGuiDriver::InputMode::DATAFILE);
+                driver_irr->SetInputMode(ChInteractiveDriverIRR::InputMode::DATAFILE);
             }
 
             driver_irr->Initialize();
@@ -232,7 +232,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->Initialize();
 
             // Create the interactive VSG driver system
-            auto driver_vsg = chrono_types::make_shared<ChVSGGuiDriver>(*vis_vsg);
+            auto driver_vsg = chrono_types::make_shared<ChInteractiveDriverVSG>(*vis_vsg);
 
             // Set the time response for steering and throttle keyboard inputs.
             double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
@@ -246,7 +246,7 @@ int main(int argc, char* argv[]) {
             // force it to playback the driver inputs.
             if (driver_mode == PLAYBACK) {
                 driver_vsg->SetInputDataFile(driver_file);
-                driver_vsg->SetInputMode(ChVSGGuiDriver::InputMode::DATAFILE);
+                driver_vsg->SetInputMode(ChInteractiveDriverVSG::InputMode::DATAFILE);
             }
 
             driver_vsg->Initialize();

@@ -23,7 +23,7 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+#include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
 
@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
     int iballT = vis->AddVisualModel(ballT, ChFrame<>());
 #elif
     // Interactive driver
-    ChIrrGuiDriver driver(*vis);
+    ChInteractiveDriverIRR driver(*vis);
     driver.SetSteeringDelta(0.06);
     driver.SetThrottleDelta(0.02);
     driver.SetBrakingDelta(0.06);

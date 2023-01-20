@@ -99,7 +99,7 @@ def main():
     my_hmmwv.GetVehicle().ExportComponentList(out_dir + "/component_list.json");
 
     # Create the interactive driver system
-    driver = veh.ChIrrGuiDriver(vis)
+    driver = veh.ChInteractiveDriverIRR(vis)
 
     # Set the time response for steering and throttle keyboard inputs.
     steering_time = 1.0  # time to go from 0 to +1 (or from 0 to -1)
