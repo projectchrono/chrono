@@ -317,9 +317,12 @@ def make_chrono_object_assetlist(mname,mpos,mrot, masset_list):
                 chasset.scale = masset_list[m][4]
             chrono_frame_objects.objects.link(chasset)
             chasset.parent = chobject
-            if masset_list[m][3] and chrono_view_materials:
-                chasset.material_slots[-1].link = 'OBJECT'
-                chasset.material_slots[-1].material = bpy.data.materials[masset_list[m][3]]
+            if chrono_view_materials:
+                while len(chasset.data.materials) < len(masset_list[m][3]):
+                    chasset.data.materials.append(None)
+                for i, matname in enumerate(masset_list[m][3]):
+                    chasset.material_slots[i].link = 'OBJECT'
+                    chasset.material_slots[i].material = bpy.data.materials[matname]
             if chrono_view_asset_csys:
                 mcsys = make_chrono_csys(chasset.location,chasset.rotation_quaternion, chobject, chrono_view_asset_csys_size)
                 chrono_frame_objects.objects.link(mcsys) 
@@ -358,9 +361,12 @@ def make_chrono_object_clones(mname,mpos,mrot, masset_list, list_clones_posrot):
                 chasset.scale = masset_list[m][4]
             chrono_frame_objects.objects.link(chasset)
             chasset.parent = chassets_group
-            if masset_list[m][3] and chrono_view_materials:
-                chasset.material_slots[-1].link = 'OBJECT'
-                chasset.material_slots[-1].material = bpy.data.materials[masset_list[m][3]]
+            if chrono_view_materials:
+                while len(chasset.data.materials) < len(masset_list[m][3]):
+                    chasset.data.materials.append(None)
+                for i, matname in enumerate(masset_list[m][3]):
+                    chasset.material_slots[i].link = 'OBJECT'
+                    chasset.material_slots[i].material = bpy.data.materials[matname]
             if chrono_view_asset_csys:
                 mcsys = make_chrono_csys(chasset.location,chasset.rotation_quaternion, chassets_group, chrono_view_asset_csys_size)
                 chrono_frame_objects.objects.link(mcsys)
