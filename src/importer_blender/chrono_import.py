@@ -84,6 +84,8 @@ chrono_view_item_csys_size = 0.25
 chrono_view_link_csys = True
 chrono_view_link_csys_size = 0.25
 chrono_view_materials = True
+chrono_view_contacts = False
+chrono_gui_doupdate = True
 
 #
 # utility functions to be used in assets.py
@@ -246,7 +248,7 @@ colormap_winter = [
 
 # helper function to generate a material that, once assigned to a mesh with a float attribute, 
 # renders it as falsecolor (per face or per vertex, depending on the attribute's mesh data domain)
-def make_material_mesh_falsecolor_attribute(nameID, attrname, attr_min=0.0, attr_max=1.0, colormap='colormap_cooltowarm1'):
+def make_material_mesh_falsecolor_attribute(nameID, attrname, attr_min=0.0, attr_max=1.0, colormap=colormap_cooltowarm):
     
     new_mat = bpy.data.materials.new(name=nameID)
     new_mat.use_nodes = True
@@ -694,6 +696,7 @@ def callback_post(self):
     global chrono_view_link_csys
     global chrono_view_link_csys_size
     global chrono_view_materials
+    global chrono_view_contacts
     
     chrono_assets = bpy.data.collections.get('chrono_assets')
     chrono_frame_assets = bpy.data.collections.get('chrono_frame_assets')
@@ -783,6 +786,8 @@ def read_chrono_simulation(context, filepath, setting_materials):
     global chrono_view_link_csys
     global chrono_view_link_csys_size
     global chrono_view_materials
+    global chrono_view_contacts
+    global chrono_gui_doupdate
 
     chrono_cameras = bpy.data.collections.get('chrono_cameras')
     if not chrono_cameras:
@@ -939,14 +944,13 @@ def read_chrono_simulation(context, filepath, setting_materials):
     exec(compile(f.read(), chrono_filename, 'exec'))
     f.close()
     
-    print('chrono_view_item_csys=',chrono_view_item_csys)
-    
     # in case something was added to chrono_assets, make it invisible
     for masset in chrono_assets.objects:
         masset.hide_set(True) # not masset.hide_viewport = True otherwise also instances are invisible
 
     degp = bpy.context.evaluated_depsgraph_get()
 
+    chrono_gui_doupdate = False
     bpy.context.scene.chrono_show_assets_coordsys = chrono_view_asset_csys
     bpy.context.scene.chrono_assets_coordsys_size = chrono_view_asset_csys_size
     bpy.context.scene.chrono_show_item_coordsys = chrono_view_item_csys
@@ -954,6 +958,8 @@ def read_chrono_simulation(context, filepath, setting_materials):
     bpy.context.scene.chrono_show_links_coordsys = chrono_view_link_csys
     bpy.context.scene.chrono_links_coordsys_size = chrono_view_link_csys_size
     bpy.context.scene.chrono_show_materials = chrono_view_materials
+    bpy.context.scene.chrono_show_contacts = chrono_view_contacts
+    chrono_gui_doupdate = True
     
     #clear the post frame handler
     bpy.app.handlers.frame_change_post.clear()
@@ -982,8 +988,10 @@ def UpdatedFunction(self, context):
     global chrono_view_link_csys
     global chrono_view_link_csys_size
     global chrono_view_materials
-    print("In update func...")
-    if True:
+    global chrono_view_contacts
+    global chrono_gui_doupdate
+    #print("In update func...")
+    if chrono_gui_doupdate:
         chrono_view_asset_csys = self.chrono_show_assets_coordsys
         chrono_view_asset_csys_size = self.chrono_assets_coordsys_size
         chrono_view_item_csys = self.chrono_show_item_coordsys
@@ -991,6 +999,7 @@ def UpdatedFunction(self, context):
         chrono_view_links_csys = self.chrono_show_links_coordsys
         chrono_view_links_csys_size = self.chrono_links_coordsys_size
         chrono_view_materials = self.chrono_show_materials
+        chrono_view_contacts = self.chrono_show_contacts
         callback_post(self) # force reload 
     
 class Chrono_operator(Operator):
@@ -1029,6 +1038,7 @@ class Chrono_sidebar(Panel):
         col.prop(context.scene, "chrono_show_links_coordsys")
         col.prop(context.scene, "chrono_links_coordsys_size")
         col.prop(context.scene, "chrono_show_materials")
+        col.prop(context.scene, "chrono_show_contacts")
  
 sidebar_classes = [
     Chrono_operator,
@@ -1150,7 +1160,11 @@ def register():
         default=True,
         update=UpdatedFunction
     )
-    
+    bpy.types.Scene.chrono_show_contacts = bpy.props.BoolProperty(
+        name='Show contacts',
+        default=True,
+        update=UpdatedFunction
+    )
 
 def unregister():
     
@@ -1161,6 +1175,7 @@ def unregister():
     del bpy.types.Scene.chrono_show_links_coordsys
     del bpy.types.Scene.chrono_links_coordsys_size
     del bpy.types.Scene.chrono_show_materials
+    del bpy.types.Scene.chrono_show_contacts
     for c in sidebar_classes:
         bpy.utils.unregister_class(c)
         
