@@ -44,9 +44,8 @@
 
 #include "chrono_vsg/ChApiVSG.h"
 #include "chrono_vsg/ChGuiComponentVSG.h"
-#include "chrono_vsg/tools/createSkybox.h"
-#include "chrono_vsg/tools/exportScreenshot.h"
 #include "chrono_vsg/shapes/ShapeBuilder.h"
+#include "chrono_vsg/utils/ChUtilsVSG.h"
 
 namespace chrono {
 namespace vsg3d {

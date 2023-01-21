@@ -15,13 +15,10 @@
 // =============================================================================
 
 #include <algorithm>
-#include <string>
 #include <cstddef>
 #include <cctype>
 
 #include "chrono_vsg/ChVisualSystemVSG.h"
-#include "chrono_vsg/tools/createSkybox.h"
-#include "chrono_vsg/tools/createQuad.h"
 
 namespace chrono {
 namespace vsg3d {
@@ -1309,25 +1306,22 @@ void ChVisualSystemVSG::UpdateFromMBS() {
         Vector axis;
         rot.Q_to_AngAxis(angle, axis);
         vsg::dvec3 rotax(axis.x(), axis.y(), axis.z());
+
         if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
             vsg::dvec3 size(box->GetBoxGeometry().GetSize().x(), box->GetBoxGeometry().GetSize().y(),
                             box->GetBoxGeometry().GetSize().z());
             transform->matrix = vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(size);
         } else if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
             double radius = sphere->GetSphereGeometry().rad;
-            // ChVector<> size(radius, radius, radius);
             vsg::dvec3 size(radius, radius, radius);
             transform->matrix = vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(size);
         } else if (auto line = std::dynamic_pointer_cast<ChLineShape>(shape)) {
-            // ChVector<> size(radius, radius, radius);
             vsg::dvec3 size(1.0, 1.0, 1.0);
             transform->matrix = vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(size);
         } else if (auto path = std::dynamic_pointer_cast<ChPathShape>(shape)) {
-            // ChVector<> size(radius, radius, radius);
             vsg::dvec3 size(1.0, 1.0, 1.0);
             transform->matrix = vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(size);
         } else if (auto surface = std::dynamic_pointer_cast<ChSurfaceShape>(shape)) {
-            // ChVector<> size(radius, radius, radius);
             vsg::dvec3 size(1.0, 1.0, 1.0);
             transform->matrix = vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(size);
         } else if (auto trimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape)) {
@@ -1335,12 +1329,10 @@ void ChVisualSystemVSG::UpdateFromMBS() {
             transform->matrix = vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(size);
         } else if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
             ChVector<> radius = ellipsoid->GetEllipsoidGeometry().rad;
-            // ChVector<> size(radius, radius, radius);
             vsg::dvec3 size(radius.x(), radius.y(), radius.z());
             transform->matrix = vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(size);
         } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(shape)) {
             ChVector<> radius = cone->GetConeGeometry().rad;
-            // ChVector<> size(radius, radius, radius);
             vsg::dvec3 size(radius.x(), radius.y(), radius.z());
             transform->matrix = vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(size);
         } else if (auto capsule = std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {

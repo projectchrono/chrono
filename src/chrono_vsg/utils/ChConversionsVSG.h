@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2022 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,29 +9,31 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Rainer Gericke
+// Radu Serban
 // =============================================================================
 
-#ifndef CH_EXPORT_SCREENSHOT_H
-#define CH_EXPORT_SCREENSHOT_H
+#ifndef CH_CONVERSIONS_VSG_H
+#define CH_CONVERSIONS_VSG_H
 
-#include <vsg/all.h>
+#include <vsg/maths/mat4.h>
+#include <vsg/maths/vec3.h>
 
-#include <vsgXchange/all.h>
-
-#include <algorithm>
-#include <chrono>
-#include <iostream>
-#include <thread>
-#include <string>
+#include "chrono/core/ChFrame.h"
 
 #include "chrono_vsg/ChApiVSG.h"
 
-namespace chrono {
-namespace vsg3d {
-CH_VSG_API void exportScreenshot(vsg::ref_ptr<vsg::Window> window,
-                                 vsg::ref_ptr<vsg::Options> options,
-                                 std::string& imageFilename);
-}
-}  // namespace chrono
+namespace vsg {
+class CH_VSG_API dvec3CH : public dvec3 {
+  public:
+    dvec3CH(const chrono::ChVector<>& vec);
+};
+
+class CH_VSG_API dmat4CH : public dmat4 {
+  public:
+    dmat4CH(const chrono::ChFrame<>& frame, const chrono::ChVector<>& scale);
+    dmat4CH(const chrono::ChFrame<>& frame, double scale);
+};
+
+}  // namespace vsg
+
 #endif

@@ -83,19 +83,16 @@ set(CE_VSG_RESOURCES_FILES
     resources/pcShader_vert.h
 )
 
-set(CE_VSG_TOOLS_FILES
-    tools/createQuad.cpp
-    tools/createQuad.h
-    tools/createSkybox.cpp
-    tools/createSkybox.h
-    tools/exportScreenshot.cpp
-    tools/exportScreenshot.h
-)
+set(CE_VSG_UTILS_FILES
+    utils/ChUtilsVSG.cpp
+    utils/ChUtilsVSG.h
+    utils/ChConversionsVSG.cpp
+    utils/ChConversionsVSG.h)
 
 source_group("" FILES ${CE_VSG_BASE_FILES})
 source_group("shapes" FILES ${CE_VSG_SHAPES_FILES})
 source_group("resources" FILES ${CE_VSG_RESOURCES_FILES})
-source_group("tools" FILES ${CE_VSG_TOOLS_FILES})
+source_group("utils" FILES ${CE_VSG_UTILS_FILES})
 
 if(INCLUDE_STB)
     set(CE_VSG_STB_FILES
@@ -121,7 +118,7 @@ add_library(ChronoEngine_vsg SHARED
             ${CE_VSG_BASE_FILES}
             ${CE_VSG_SHAPES_FILES}
             ${CE_VSG_RESOURCES_FILES}
-            ${CE_VSG_TOOLS_FILES}
+            ${CE_VSG_UTILS_FILES}
             ${CE_VSG_STB_FILES})
 
 target_compile_definitions(ChronoEngine_vsg PRIVATE "CH_API_COMPILE_VSG")
