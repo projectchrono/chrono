@@ -236,118 +236,127 @@ void ChVehicleGuiComponentVSG::render() {
     char label[64];
     int nstr = sizeof(label) - 1;
 
-    ImGui::SetNextWindowSize(ImVec2(340.0f, 340.0f));
+    ImGui::SetNextWindowSize(ImVec2(280.0f, 0.0f));
     ImGui::SetNextWindowPos(ImVec2(5.0f, 150.0f));
     ImGui::Begin("Vehicle");
 
-    ImGui::BeginTable("CamTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit, ImVec2(0.0f, 0.0f));
-    ImGui::TableNextColumn();
-    ImGui::Text("Camera State:");
-    ImGui::TableNextColumn();
-    ImGui::Text(m_app->GetChaseCamera().GetStateName().c_str());
-    ImGui::TableNextRow();
-    ImGui::TableNextColumn();
-    ImGui::Text("Input Mode:");
-    ImGui::TableNextColumn();
-    ImGui::Text(m_app->GetDriverMsg().c_str());
-    ImGui::EndTable();
+    if (ImGui::BeginTable("CamTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                          ImVec2(0.0f, 0.0f))) {
+        ImGui::TableNextColumn();
+        ImGui::Text("Camera State:");
+        ImGui::TableNextColumn();
+        ImGui::Text(m_app->GetChaseCamera().GetStateName().c_str());
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Input Mode:");
+        ImGui::TableNextColumn();
+        ImGui::Text(m_app->GetDriverMsg().c_str());
+        ImGui::EndTable();
+    }
+
     ImGui::Spacing();
-    ImGui::BeginTable("VehTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit, ImVec2(0.0f, 0.0f));
-    ImGui::TableNextRow();
-    ImGui::TableNextColumn();
-    ImGui::Text("Vehicle Speed:");
-    ImGui::TableNextColumn();
-    snprintf(label, nstr, "%8.3f m/s", m_app->GetVehicle().GetSpeed());
-    ImGui::Text(label);
-    ImGui::TableNextRow();
-    ImGui::TableNextColumn();
-    ImGui::Text("Steering:");
-    ImGui::TableNextColumn();
-    snprintf(label, nstr, "%8.3f", m_app->GetSteering());
-    ImGui::Text(label);
-    ImGui::TableNextRow();
-    ImGui::TableNextColumn();
-    ImGui::Text("Throttle:");
-    ImGui::TableNextColumn();
-    snprintf(label, nstr, "%8.3f", m_app->GetThrottle());
-    ImGui::Text(label);
-    ImGui::TableNextRow();
-    ImGui::TableNextColumn();
-    ImGui::Text("Braking:");
-    ImGui::TableNextColumn();
-    snprintf(label, nstr, "%8.3f", m_app->GetBraking());
-    ImGui::Text(label);
-    ImGui::EndTable();
+    
+    if (ImGui::BeginTable("VehTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                          ImVec2(0.0f, 0.0f))) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Vehicle Speed:");
+        ImGui::TableNextColumn();
+        snprintf(label, nstr, "%8.3f m/s", m_app->GetVehicle().GetSpeed());
+        ImGui::Text(label);
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Steering:");
+        ImGui::TableNextColumn();
+        snprintf(label, nstr, "%8.3f", m_app->GetSteering());
+        ImGui::Text(label);
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Throttle:");
+        ImGui::TableNextColumn();
+        snprintf(label, nstr, "%8.3f", m_app->GetThrottle());
+        ImGui::Text(label);
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Braking:");
+        ImGui::TableNextColumn();
+        snprintf(label, nstr, "%8.3f", m_app->GetBraking());
+        ImGui::Text(label);
+        ImGui::EndTable();
+    }
 
     if (powertrain) {
         ImGui::Spacing();
 
-        ImGui::BeginTable("PowerTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
-                          ImVec2(0.0f, 0.0f));
-
-        ImGui::TableNextColumn();
-        ImGui::Text("Engine Speed:");
-        ImGui::TableNextColumn();
-        snprintf(label, nstr, "%8.1lf RPM", powertrain->GetMotorSpeed() * 30 / CH_C_PI);
-        ImGui::Text(label);
-        ImGui::TableNextRow();
-
-        ImGui::TableNextColumn();
-        ImGui::Text("Engine Torque:");
-        ImGui::TableNextColumn();
-        snprintf(label, nstr, "%8.1lf Nm", powertrain->GetMotorTorque());
-        ImGui::Text(label);
-        ImGui::TableNextRow();
-
-        ImGui::TableNextColumn();
-        char tranny_mode = powertrain->GetTransmissionMode() == ChPowertrain::TransmissionMode::AUTOMATIC ? 'A' : 'M';
-        switch (powertrain->GetDriveMode()) {
-            case ChPowertrain::DriveMode::FORWARD:
-                snprintf(label, nstr, "[%c] Gear forward:", tranny_mode);
-                break;
-            case ChPowertrain::DriveMode::NEUTRAL:
-                snprintf(label, nstr, "[%c] Gear neutral:", tranny_mode);
-                break;
-            case ChPowertrain::DriveMode::REVERSE:
-                snprintf(label, nstr, "[%c] Gear reverse:", tranny_mode);
-                break;
-        }
-        ImGui::Text(label);
-        ImGui::TableNextColumn();
-        snprintf(label, nstr, "%d", powertrain->GetCurrentTransmissionGear());
-        ImGui::Text(label);
-        ImGui::TableNextRow();
-        ImGui::EndTable();
-
-        if (m_app->m_has_TC) {
-            ImGui::Spacing();
-            ImGui::BeginTable("ConvTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
-                              ImVec2(0.0f, 0.0f));
+        if (ImGui::BeginTable("PowerTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                              ImVec2(0.0f, 0.0f))) {
             ImGui::TableNextColumn();
-            ImGui::Text("T.conv.slip:");
+            ImGui::Text("Engine Speed:");
             ImGui::TableNextColumn();
-            snprintf(label, nstr, "%8.1f", powertrain->GetTorqueConverterSlippage());
+            snprintf(label, nstr, "%8.1lf RPM", powertrain->GetMotorSpeed() * 30 / CH_C_PI);
             ImGui::Text(label);
             ImGui::TableNextRow();
+
             ImGui::TableNextColumn();
-            ImGui::Text("T.conv.torque.in:");
+            ImGui::Text("Engine Torque:");
             ImGui::TableNextColumn();
-            snprintf(label, nstr, "%8.1f Nm", powertrain->GetTorqueConverterInputTorque());
+            snprintf(label, nstr, "%8.1lf Nm", powertrain->GetMotorTorque());
             ImGui::Text(label);
             ImGui::TableNextRow();
+
             ImGui::TableNextColumn();
-            ImGui::Text("T.conv.torque.out:");
-            ImGui::TableNextColumn();
-            snprintf(label, nstr, "%8.1f Nm", powertrain->GetTorqueConverterOutputTorque());
+            char tranny_mode =
+                powertrain->GetTransmissionMode() == ChPowertrain::TransmissionMode::AUTOMATIC ? 'A' : 'M';
+            switch (powertrain->GetDriveMode()) {
+                case ChPowertrain::DriveMode::FORWARD:
+                    snprintf(label, nstr, "[%c] Gear forward:", tranny_mode);
+                    break;
+                case ChPowertrain::DriveMode::NEUTRAL:
+                    snprintf(label, nstr, "[%c] Gear neutral:", tranny_mode);
+                    break;
+                case ChPowertrain::DriveMode::REVERSE:
+                    snprintf(label, nstr, "[%c] Gear reverse:", tranny_mode);
+                    break;
+            }
             ImGui::Text(label);
-            ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            ImGui::Text("T.conv.speed.out:");
-            ImGui::TableNextColumn();
-            snprintf(label, nstr, "%8.1f RPM", powertrain->GetTorqueConverterOutputSpeed() * 30 / CH_C_PI);
+            snprintf(label, nstr, "%d", powertrain->GetCurrentTransmissionGear());
             ImGui::Text(label);
             ImGui::TableNextRow();
             ImGui::EndTable();
+        }
+
+        if (m_app->m_has_TC) {
+            ImGui::Spacing();
+
+            if (ImGui::BeginTable("ConvTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                                  ImVec2(0.0f, 0.0f))) {
+                ImGui::TableNextColumn();
+                ImGui::Text("T.conv.slip:");
+                ImGui::TableNextColumn();
+                snprintf(label, nstr, "%8.1f", powertrain->GetTorqueConverterSlippage());
+                ImGui::Text(label);
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("T.conv.torque.in:");
+                ImGui::TableNextColumn();
+                snprintf(label, nstr, "%8.1f Nm", powertrain->GetTorqueConverterInputTorque());
+                ImGui::Text(label);
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("T.conv.torque.out:");
+                ImGui::TableNextColumn();
+                snprintf(label, nstr, "%8.1f Nm", powertrain->GetTorqueConverterOutputTorque());
+                ImGui::Text(label);
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("T.conv.speed.out:");
+                ImGui::TableNextColumn();
+                snprintf(label, nstr, "%8.1f RPM", powertrain->GetTorqueConverterOutputSpeed() * 30 / CH_C_PI);
+                ImGui::Text(label);
+                ImGui::TableNextRow();
+                ImGui::EndTable();
+            }
         }
     }
 

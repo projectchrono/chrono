@@ -57,43 +57,47 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
         ImGui::SetNextWindowPos(ImVec2(5.0f, 5.0f));
         ImGui::Begin("Simulation");
 
-        ImGui::BeginTable("SimTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
-                          ImVec2(0.0f, 0.0f));
-        snprintf(label, nstr, "%8.3f s", m_app->GetSimulationTime());
-        ImGui::TableNextColumn();
-        ImGui::Text("Model Time:");
-        ImGui::TableNextColumn();
-        ImGui::Text(label);
-        ImGui::TableNextRow();
-        double current_time = double(clock()) / double(CLOCKS_PER_SEC);
-        snprintf(label, nstr, "%8.3f s", current_time - m_app->m_start_time);
-        ImGui::TableNextColumn();
-        ImGui::Text("Wall Clock Time:");
-        ImGui::TableNextColumn();
-        ImGui::Text(label);
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::Text("Real Time Factor:");
-        ImGui::TableNextColumn();
-        snprintf(label, nstr, "%8.3f", m_app->GetSimulationRTF());
-        ImGui::Text(label);
-        ImGui::EndTable();
+        if (ImGui::BeginTable("SimTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                              ImVec2(0.0f, 0.0f))) {
+            snprintf(label, nstr, "%8.3f s", m_app->GetSimulationTime());
+            ImGui::TableNextColumn();
+            ImGui::Text("Model Time:");
+            ImGui::TableNextColumn();
+            ImGui::Text(label);
+            ImGui::TableNextRow();
+            double current_time = double(clock()) / double(CLOCKS_PER_SEC);
+            snprintf(label, nstr, "%8.3f s", current_time - m_app->m_start_time);
+            ImGui::TableNextColumn();
+            ImGui::Text("Wall Clock Time:");
+            ImGui::TableNextColumn();
+            ImGui::Text(label);
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Text("Real Time Factor:");
+            ImGui::TableNextColumn();
+            snprintf(label, nstr, "%8.3f", m_app->GetSimulationRTF());
+            ImGui::Text(label);
+            ImGui::EndTable();
+        }
 
         ImGui::Spacing();
-        ImGui::BeginTable("Frames", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
-                          ImVec2(0.0f, 0.0f));
-        ImGui::Text("COG frames:");
-        ImGui::TableNextColumn();
-        static bool bES_active = false;
-        if (ImGui::Checkbox("COG", &bES_active))
-            m_app->ToggleCOGFrameVisibility();
-        ImGui::SameLine();
-        float foo = m_app->m_cog_scale;
-        ImGui::SliderFloat("scale", &foo, 0.1f, 10.0f);
-        m_app->m_cog_scale = foo;
-        ImGui::EndTable();
+        
+        if (ImGui::BeginTable("Frames", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                              ImVec2(0.0f, 0.0f))) {
+            ImGui::Text("COG frames:");
+            ImGui::TableNextColumn();
+            static bool bES_active = false;
+            if (ImGui::Checkbox("COG", &bES_active))
+                m_app->ToggleCOGFrameVisibility();
+            ImGui::SameLine();
+            float foo = m_app->m_cog_scale;
+            ImGui::SliderFloat("scale", &foo, 0.1f, 10.0f);
+            m_app->m_cog_scale = foo;
+            ImGui::EndTable();
+        }
 
         ImGui::Spacing();
+
         if (ImGui::Button("Quit"))
             m_app->Quit();
 
