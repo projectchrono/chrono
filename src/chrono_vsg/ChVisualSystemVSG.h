@@ -45,7 +45,6 @@
 #include "chrono_vsg/ChApiVSG.h"
 #include "chrono_vsg/ChGuiComponentVSG.h"
 #include "chrono_vsg/shapes/ShapeBuilder.h"
-#include "chrono_vsg/utils/ChUtilsVSG.h"
 
 namespace chrono {
 namespace vsg3d {
@@ -73,14 +72,14 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     /// Perform any necessary operations at the beginning of each rendering frame.
     virtual void BeginScene() override {}
- 
+
     /// Draw all 3D shapes and GUI elements at the current frame.
     /// This function is typically called inside a loop such as
     /// <pre>
     ///    while(vis->Run()) {...}
-    /// </pre>    
+    /// </pre>
     virtual void Render() override;
- 
+
     /// Render COG frames for all bodies in the system.
     virtual void RenderCOGFrames(double axis_length = 1) override;
 
@@ -156,14 +155,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
   protected:
     virtual void UpdateFromMBS();
-
-    /// Utility function for calculating a point-point frame.
-    void Point2PointHelperAbs(ChVector<>& P1,
-                              ChVector<>& P2,
-                              double& height,
-                              ChVector<>& pos,
-                              double& rotAngle,
-                              ChVector<>& rotAxis);
 
     bool m_initialized = false;
     int m_screen_num = -1;

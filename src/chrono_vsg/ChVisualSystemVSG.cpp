@@ -19,6 +19,8 @@
 #include <cctype>
 
 #include "chrono_vsg/ChVisualSystemVSG.h"
+#include "chrono_vsg/utils/ChConversionsVSG.h"
+#include "chrono_vsg/utils/ChUtilsVSG.h"
 
 namespace chrono {
 namespace vsg3d {
@@ -884,41 +886,50 @@ void ChVisualSystemVSG::WriteImageToFile(const string& filename) {
     m_capture_image = true;
 }
 
+ChFrame<> PointPointFrame(const ChVector<>& P1, const ChVector<>& P2, double& dist) {
+    ChVector<> dir = P2 - P1;
+    dist = dir.Length();
+    dir.Normalize();
+    ChVector<> mx, my, mz;
+    dir.DirToDxDyDz(my, mz, mx);
+    ChMatrix33<> R_CS;
+    R_CS.Set_A_axis(mx, my, mz);
+
+    return ChFrame<>(0.5 * (P2 + P1), R_CS);
+}
+
 void ChVisualSystemVSG::BindAll() {
-    if (m_systems.empty()) {
+    //// RADU TODO
+    ////   - what would prevent this working with *more* than one ChSystem?!?
+    ////   - consider creating a single group per physics item / visual model (not one per visual shape!)
+
+    if (m_systems.empty())
         return;
-    }
-    if (m_systems[0]->Get_bodylist().size() < 1) {
-        return;
-    }
+
     // generate CoG symbols
     for (auto& body : m_systems[0]->GetAssembly().Get_bodylist()) {
-        auto pos = body->GetPos();
-        auto rotAngle = body->GetRotAngle();
-        auto rotAxis = body->GetRotAxis();
-        vsg::dvec3 scale(m_cog_scale, m_cog_scale, m_cog_scale);
         auto transform = vsg::MatrixTransform::create();
-        transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                            vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) * vsg::scale(scale);
+        transform->matrix = vsg::dmat4CH(body->GetFrame_COG_to_abs(), m_cog_scale);
+
         vsg::Mask mask = m_show_cog;
         m_cogScene->addChild(mask, m_shapeBuilder->createCoGSymbol(body, transform));
     }
+
+    // bind visual models associated with bodies in the system
     for (auto& body : m_systems[0]->GetAssembly().Get_bodylist()) {
-        // CreateIrrNode(body);
-        if (!body->GetVisualModel()) {
+        if (!body->GetVisualModel())
             continue;
-        }
-        // Get the visual model reference frame
-        const ChFrame<>& X_AM = body->GetVisualModelFrame();
+
+        const ChFrame<>& X_AM = body->GetVisualModelFrame();  // visual model to absolute frame
+
         for (const auto& shape_instance : body->GetVisualModel()->GetShapes()) {
             auto& shape = shape_instance.first;
-            auto& X_SM = shape_instance.second;
-            ChFrame<> X_SA = X_AM * X_SM;
-            auto pos = X_SA.GetPos();
-            auto rot = X_SA.GetRot();
-            double rotAngle;
-            ChVector<> rotAxis;
-            rot.Q_to_AngAxis(rotAngle, rotAxis);
+            if (!shape->IsVisible())
+                continue;
+
+            const auto& X_SM = shape_instance.second;  // shape frame to model frame
+            ChFrame<> X_SA = X_AM * X_SM;              // shape frame to absolute frame
+
             std::shared_ptr<ChVisualMaterial> material;
             if (shape->GetMaterials().empty()) {
                 material = chrono_types::make_shared<ChVisualMaterial>();
@@ -927,104 +938,63 @@ void ChVisualSystemVSG::BindAll() {
             } else {
                 material = shape->GetMaterial(0);
             }
-            if (!shape->IsVisible()) {
-                continue;
-            }
-            if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
-                // we have boxes and dices. Dices take cubetextures, boxes take 6 identical textures
-                // dirty trick: if a kd map is set and its name contains "cubetexture" we use dice,
-                // if not, we use box
-                bool isDie = false;
-                if (!material->GetKdTexture().empty()) {
-                    size_t found = material->GetKdTexture().find("cubetexture");
-                    if (found != string::npos) {
-                        isDie = true;
-                    }
-                }
 
+            if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
                 ChVector<> scale = box->GetBoxGeometry().Size;
                 auto transform = vsg::MatrixTransform::create();
-                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                                    vsg::scale(scale.x(), scale.y(), scale.z());
-                if (isDie) {
-                    auto tmpGroup =
-                        m_shapeBuilder->createShape(ShapeBuilder::DIE_SHAPE, material, transform, m_wireframe);
-                    ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
-                    m_bodyScene->addChild(tmpGroup);
-                } else {
-                    auto tmpGroup =
-                        m_shapeBuilder->createShape(ShapeBuilder::BOX_SHAPE, material, transform, m_wireframe);
-                    ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
-                    m_bodyScene->addChild(tmpGroup);
-                }
+                transform->matrix = vsg::dmat4CH(X_SA, box->GetBoxGeometry().Size);
+
+                // We have boxes and dice. Dice take cubetextures, boxes take 6 identical textures.
+                // Use a die if a kd map exists and its name contains "cubetexture". Otherwise, use a box.
+                auto grp =
+                    !material->GetKdTexture().empty() && material->GetKdTexture().find("cubetexture") != string::npos
+                        ? m_shapeBuilder->createShape(ShapeBuilder::DIE_SHAPE, material, transform, m_wireframe)
+                        : m_shapeBuilder->createShape(ShapeBuilder::BOX_SHAPE, material, transform, m_wireframe);
+                ShapeBuilder::SetMBSInfo(grp, body, shape_instance);
+                m_bodyScene->addChild(grp);
             } else if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
-                ChVector<> scale = sphere->GetSphereGeometry().rad;
                 auto transform = vsg::MatrixTransform::create();
-                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                                    vsg::scale(scale.x(), scale.y(), scale.z());
-                auto tmpGroup =
-                    m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, material, transform, m_wireframe);
-                ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
-                m_bodyScene->addChild(tmpGroup);
+                transform->matrix = vsg::dmat4CH(X_SA, sphere->GetSphereGeometry().rad);
+                auto grp = m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, material, transform, m_wireframe);
+                ShapeBuilder::SetMBSInfo(grp, body, shape_instance);
+                m_bodyScene->addChild(grp);
             } else if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
-                ChVector<> scale = ellipsoid->GetEllipsoidGeometry().rad;
                 auto transform = vsg::MatrixTransform::create();
-                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                                    vsg::scale(scale.x(), scale.y(), scale.z());
-                auto tmpGroup =
-                    m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, material, transform, m_wireframe);
-                ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
-                m_bodyScene->addChild(tmpGroup);
+                transform->matrix = vsg::dmat4CH(X_SA, ellipsoid->GetEllipsoidGeometry().rad);
+                auto grp = m_shapeBuilder->createShape(ShapeBuilder::SPHERE_SHAPE, material, transform, m_wireframe);
+                ShapeBuilder::SetMBSInfo(grp, body, shape_instance);
+                m_bodyScene->addChild(grp);
             } else if (auto capsule = std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {
                 double rad = capsule->GetCapsuleGeometry().rad;
                 double height = capsule->GetCapsuleGeometry().hlen;
                 auto transform = vsg::MatrixTransform::create();
-                ChVector<> scale(rad, height, rad);
-                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                                    vsg::scale(scale.x(), scale.y(), scale.z());
-                auto tmpGroup =
-                    m_shapeBuilder->createShape(ShapeBuilder::CAPSULE_SHAPE, material, transform, m_wireframe);
-                ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
-                m_bodyScene->addChild(tmpGroup);
+                transform->matrix = vsg::dmat4CH(X_SA, ChVector<>(rad, height, rad));
+                auto grp = m_shapeBuilder->createShape(ShapeBuilder::CAPSULE_SHAPE, material, transform, m_wireframe);
+                ShapeBuilder::SetMBSInfo(grp, body, shape_instance);
+                m_bodyScene->addChild(grp);
             } else if (auto barrel = std::dynamic_pointer_cast<ChBarrelShape>(shape)) {
                 //// TODO
             } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(shape)) {
-                Vector rad = cone->GetConeGeometry().rad;
                 auto transform = vsg::MatrixTransform::create();
-                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                                    vsg::scale(rad.x(), rad.y(), rad.z());
-                auto tmpGroup = m_shapeBuilder->createShape(ShapeBuilder::CONE_SHAPE, material, transform, m_wireframe);
-                ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
-                m_bodyScene->addChild(tmpGroup);
+                transform->matrix = vsg::dmat4CH(X_SA, cone->GetConeGeometry().rad);
+                auto grp = m_shapeBuilder->createShape(ShapeBuilder::CONE_SHAPE, material, transform, m_wireframe);
+                ShapeBuilder::SetMBSInfo(grp, body, shape_instance);
+                m_bodyScene->addChild(grp);
             } else if (auto trimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape)) {
-                ChVector<> scale = trimesh->GetScale();
                 auto transform = vsg::MatrixTransform::create();
-                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                                    vsg::scale(scale.x(), scale.y(), scale.z());
-                if (trimesh->GetNumMaterials() > 0) {
-                    auto tmpGroup = m_shapeBuilder->createTrimeshMatShape(transform, m_wireframe, trimesh);
-                    ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
-                    m_bodyScene->addChild(tmpGroup);
-                } else {
-                    auto tmpGroup = m_shapeBuilder->createTrimeshColShape(transform, m_wireframe, trimesh);
-                    ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
-                    m_bodyScene->addChild(tmpGroup);
-                }
+                transform->matrix = vsg::dmat4CH(X_SA, trimesh->GetScale());
+                auto grp = trimesh->GetNumMaterials() > 0
+                               ? m_shapeBuilder->createTrimeshMatShape(transform, m_wireframe, trimesh)
+                               : m_shapeBuilder->createTrimeshColShape(transform, m_wireframe, trimesh);
+                ShapeBuilder::SetMBSInfo(grp, body, shape_instance);
+                m_bodyScene->addChild(grp);
             } else if (auto surface = std::dynamic_pointer_cast<ChSurfaceShape>(shape)) {
                 auto transform = vsg::MatrixTransform::create();
-                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                                    vsg::scale(1.0, 1.0, 1.0);
-                auto tmpGroup =
+                transform->matrix = vsg::dmat4CH(X_SA, 1.0);
+                auto grp =
                     m_shapeBuilder->createShape(ShapeBuilder::SURFACE_SHAPE, material, transform, m_wireframe, surface);
-                ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
-                m_bodyScene->addChild(tmpGroup);
+                ShapeBuilder::SetMBSInfo(grp, body, shape_instance);
+                m_bodyScene->addChild(grp);
             } else if (auto obj = std::dynamic_pointer_cast<ChObjFileShape>(shape)) {
                 string objFilename = obj->GetFilename();
                 size_t objHashValue = m_stringHash(objFilename);
@@ -1033,8 +1003,7 @@ void ChVisualSystemVSG::BindAll() {
                 grp->setValue("ItemPtr", body);
                 grp->setValue("ShapeInstancePtr", shape_instance);
                 grp->setValue("TransformPtr", transform);
-                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z());
+                transform->matrix = vsg::dmat4CH(X_SA, 1.0);
                 grp->addChild(transform);
                 // needed, when BindAll() is called after Initialization
                 // vsg::observer_ptr<vsg::Viewer> observer_viewer(m_viewer);
@@ -1054,15 +1023,11 @@ void ChVisualSystemVSG::BindAll() {
                 }
             } else if (auto line = std::dynamic_pointer_cast<ChLineShape>(shape)) {
                 auto transform = vsg::MatrixTransform::create();
-                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                                    vsg::scale(1.0, 1.0, 1.0);
+                transform->matrix = vsg::dmat4CH(X_SA, 1.0);
                 m_bodyScene->addChild(m_shapeBuilder->createLineShape(body, shape_instance, material, transform, line));
             } else if (auto path = std::dynamic_pointer_cast<ChPathShape>(shape)) {
                 auto transform = vsg::MatrixTransform::create();
-                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                                    vsg::scale(1.0, 1.0, 1.0);
+                transform->matrix = vsg::dmat4CH(X_SA, 1.0);
                 m_bodyScene->addChild(m_shapeBuilder->createPathShape(body, shape_instance, material, transform, path));
             } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
                 double rad = cylinder->GetCylinderGeometry().rad;
@@ -1076,26 +1041,19 @@ void ChVisualSystemVSG::BindAll() {
                 dir.DirToDxDyDz(my, mz, mx);  // y is axis, in cylinder.obj frame
                 ChMatrix33<> R_CS;
                 R_CS.Set_A_axis(mx, my, mz);
-
-                auto t_CS = 0.5 * (P2 + P1);
-                ChFrame<> X_CS(t_CS, R_CS);
+                ChFrame<> X_CS(0.5 * (P2 + P1), R_CS);
                 ChFrame<> X_CA = X_SA * X_CS;
 
-                pos = X_CA.GetPos();
-                rot = X_CA.GetRot();
-                rot.Q_to_AngAxis(rotAngle, rotAxis);
-
                 auto transform = vsg::MatrixTransform::create();
-                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                                    vsg::scale(rad, height, rad);
-                auto tmpGroup =
-                    m_shapeBuilder->createShape(ShapeBuilder::CYLINDER_SHAPE, material, transform, m_wireframe);
-                ShapeBuilder::SetMBSInfo(tmpGroup, body, shape_instance);
-                m_bodyScene->addChild(tmpGroup);
+                transform->matrix = vsg::dmat4CH(X_CA, ChVector<>(rad, height, rad));
+                auto grp = m_shapeBuilder->createShape(ShapeBuilder::CYLINDER_SHAPE, material, transform, m_wireframe);
+                ShapeBuilder::SetMBSInfo(grp, body, shape_instance);
+                m_bodyScene->addChild(grp);
             }
         }
     }
+
+    // bind visual models associated with other physics items in the system
     for (auto& item : m_systems[0]->Get_otherphysicslist()) {
         if (auto pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
             if (!pcloud->GetVisualModel())
@@ -1110,11 +1068,10 @@ void ChVisualSystemVSG::BindAll() {
             auto numParticles = pcloud->GetNparticles();
             std::vector<double> size = pcloud->GetCollisionModel()->GetShapeDimensions(0);
             for (int i = 0; i < pcloud->GetNparticles(); i++) {
-                auto group = vsg::Group::create();
-                const auto& pos = pcloud->GetVisualModelFrame(i).GetPos();
                 auto transform = vsg::MatrixTransform::create();
-                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) * vsg::scale(size[0], size[0], size[0]);
+                transform->matrix = vsg::dmat4CH(ChFrame<>(pcloud->GetVisualModelFrame(i).GetPos()), size[0]);
                 transform->addChild(m_particlePattern);
+                auto group = vsg::Group::create();
                 group->setValue("TransformPtr", transform);
                 group->addChild(transform);
                 m_particleScene->addChild(group);
@@ -1171,7 +1128,8 @@ void ChVisualSystemVSG::BindAll() {
             }
         }
     }
-    // loop through links in the system
+
+    // bind visual models associated with links in the system
     for (auto ilink : m_systems[0]->Get_linklist()) {
         if (auto link = std::dynamic_pointer_cast<ChLinkTSDA>(ilink)) {
             auto lnkVisModel = link->GetVisualModel();
@@ -1183,11 +1141,8 @@ void ChVisualSystemVSG::BindAll() {
             for (auto& shape_instance : link->GetVisualModel()->GetShapes()) {
                 auto& shape = shape_instance.first;
                 if (auto segshape = std::dynamic_pointer_cast<ChSegmentShape>(shape)) {
-                    ChVector<> P1 = link->GetPoint1Abs();
-                    ChVector<> P2 = link->GetPoint2Abs();
-                    double rotAngle, height;
-                    ChVector<> rotAxis, pos;
-                    Point2PointHelperAbs(P1, P2, height, pos, rotAngle, rotAxis);
+                    double length;
+                    auto X = PointPointFrame(link->GetPoint1Abs(), link->GetPoint2Abs(), length);
                     std::shared_ptr<ChVisualMaterial> material;
                     if (segshape->GetMaterials().empty()) {
                         material = chrono_types::make_shared<ChVisualMaterial>();
@@ -1198,18 +1153,13 @@ void ChVisualSystemVSG::BindAll() {
                     }
 
                     auto transform = vsg::MatrixTransform::create();
-                    transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                                        vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                                        vsg::scale(0.0, height, 0.0);
+                    transform->matrix = vsg::dmat4CH(X, ChVector<>(0, length, 0));
                     m_linkScene->addChild(
                         m_shapeBuilder->createUnitSegment(ilink, shape_instance, material, transform));
                 } else if (auto sprshape = std::dynamic_pointer_cast<ChSpringShape>(shape)) {
                     double rad = sprshape->GetRadius();
-                    ChVector<> P1 = link->GetPoint1Abs();
-                    ChVector<> P2 = link->GetPoint2Abs();
-                    double rotAngle, height;
-                    ChVector<> rotAxis, pos;
-                    Point2PointHelperAbs(P1, P2, height, pos, rotAngle, rotAxis);
+                    double length;
+                    auto X = PointPointFrame(link->GetPoint1Abs(), link->GetPoint2Abs(), length);
                     std::shared_ptr<ChVisualMaterial> material;
                     if (sprshape->GetMaterials().empty()) {
                         material = chrono_types::make_shared<ChVisualMaterial>();
@@ -1220,9 +1170,7 @@ void ChVisualSystemVSG::BindAll() {
                     }
 
                     auto transform = vsg::MatrixTransform::create();
-                    transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                                        vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                                        vsg::scale(rad, height, rad);
+                    transform->matrix = vsg::dmat4CH(X, ChVector<>(rad, length, rad));
                     m_linkScene->addChild(
                         m_shapeBuilder->createSpringShape(ilink, shape_instance, material, transform, sprshape));
                 }
@@ -1237,11 +1185,8 @@ void ChVisualSystemVSG::BindAll() {
             for (auto& shape_instance : link->GetVisualModel()->GetShapes()) {
                 auto& shape = shape_instance.first;
                 if (auto segshape = std::dynamic_pointer_cast<ChSegmentShape>(shape)) {
-                    ChVector<> P1 = link->GetEndPoint1Abs();
-                    ChVector<> P2 = link->GetEndPoint2Abs();
-                    double rotAngle, height;
-                    ChVector<> rotAxis, pos;
-                    Point2PointHelperAbs(P1, P2, height, pos, rotAngle, rotAxis);
+                    double length;
+                    auto X = PointPointFrame(link->GetEndPoint1Abs(), link->GetEndPoint2Abs(), length);
                     std::shared_ptr<ChVisualMaterial> material;
                     if (segshape->GetMaterials().empty()) {
                         material = chrono_types::make_shared<ChVisualMaterial>();
@@ -1252,9 +1197,7 @@ void ChVisualSystemVSG::BindAll() {
                     }
 
                     auto transform = vsg::MatrixTransform::create();
-                    transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                                        vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                                        vsg::scale(0.0, height, 0.0);
+                    transform->matrix = vsg::dmat4CH(X, ChVector<>(0, length, 0));
                     m_linkScene->addChild(
                         m_shapeBuilder->createUnitSegment(ilink, shape_instance, material, transform));
                 }
@@ -1264,6 +1207,11 @@ void ChVisualSystemVSG::BindAll() {
 }
 
 void ChVisualSystemVSG::UpdateFromMBS() {
+    //// RADU TODO
+    ////   This seems a very inefficient way to update.
+    ////   Update should be done at the physics item level (setting the transform for the visual model and *not* for
+    ///    each individual shape)!!
+
     // Update CoG symbols
     if (m_show_cog) {
         for (auto& child : m_cogScene->children) {
@@ -1273,12 +1221,7 @@ void ChVisualSystemVSG::UpdateFromMBS() {
                 continue;
             if (!child.node->getValue("TransformPtr", transform))
                 continue;
-            auto pos = body->GetPos();
-            auto rotAngle = body->GetRotAngle();
-            auto rotAxis = body->GetRotAxis();
-            vsg::dvec3 scale(m_cog_scale, m_cog_scale, m_cog_scale);
-            transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                                vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) * vsg::scale(scale);
+            transform->matrix = vsg::dmat4CH(body->GetFrame_COG_to_abs(), m_cog_scale);
         }
     }
 
@@ -1293,57 +1236,34 @@ void ChVisualSystemVSG::UpdateFromMBS() {
             continue;
         if (!child->getValue("TransformPtr", transform))
             continue;
-        // begin matrix update
-        // Get the visual model reference frame
-        const ChFrame<>& X_AM = item->GetVisualModelFrame();
-        auto shape = shapeInstance.first;
-        const auto& X_SM = shapeInstance.second;
 
-        ChFrame<> X_SA = X_AM * X_SM;
-        vsg::dvec3 pos(X_SA.GetPos().x(), X_SA.GetPos().y(), X_SA.GetPos().z());
-        auto rot = X_SA.GetRot();
-        double angle;
-        Vector axis;
-        rot.Q_to_AngAxis(angle, axis);
-        vsg::dvec3 rotax(axis.x(), axis.y(), axis.z());
+        auto shape = shapeInstance.first;
+        const auto& X_SM = shapeInstance.second;         // shape frame to model frame
+        const auto& X_AM = item->GetVisualModelFrame();  // model frame to absolute frame
+        ChFrame<> X_SA = X_AM * X_SM;                    // shape frame to absolute frame
 
         if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
-            vsg::dvec3 size(box->GetBoxGeometry().GetSize().x(), box->GetBoxGeometry().GetSize().y(),
-                            box->GetBoxGeometry().GetSize().z());
-            transform->matrix = vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(size);
+            transform->matrix = vsg::dmat4CH(X_SA, box->GetBoxGeometry().GetSize());
         } else if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
-            double radius = sphere->GetSphereGeometry().rad;
-            vsg::dvec3 size(radius, radius, radius);
-            transform->matrix = vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(size);
+            transform->matrix = vsg::dmat4CH(X_SA, sphere->GetSphereGeometry().rad);
         } else if (auto line = std::dynamic_pointer_cast<ChLineShape>(shape)) {
-            vsg::dvec3 size(1.0, 1.0, 1.0);
-            transform->matrix = vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(size);
+            transform->matrix = vsg::dmat4CH(X_SA, 1.0);
         } else if (auto path = std::dynamic_pointer_cast<ChPathShape>(shape)) {
-            vsg::dvec3 size(1.0, 1.0, 1.0);
-            transform->matrix = vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(size);
+            transform->matrix = vsg::dmat4CH(X_SA, 1.0);
         } else if (auto surface = std::dynamic_pointer_cast<ChSurfaceShape>(shape)) {
-            vsg::dvec3 size(1.0, 1.0, 1.0);
-            transform->matrix = vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(size);
+            transform->matrix = vsg::dmat4CH(X_SA, 1.0);
         } else if (auto trimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape)) {
-            vsg::dvec3 size(trimesh->GetScale().x(), trimesh->GetScale().y(), trimesh->GetScale().z());
-            transform->matrix = vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(size);
+            transform->matrix = vsg::dmat4CH(X_SA, trimesh->GetScale());
         } else if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
-            ChVector<> radius = ellipsoid->GetEllipsoidGeometry().rad;
-            vsg::dvec3 size(radius.x(), radius.y(), radius.z());
-            transform->matrix = vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(size);
+            transform->matrix = vsg::dmat4CH(X_SA, ellipsoid->GetEllipsoidGeometry().rad);
         } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(shape)) {
-            ChVector<> radius = cone->GetConeGeometry().rad;
-            vsg::dvec3 size(radius.x(), radius.y(), radius.z());
-            transform->matrix = vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(size);
+            transform->matrix = vsg::dmat4CH(X_SA, cone->GetConeGeometry().rad);
         } else if (auto capsule = std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {
             double rad = capsule->GetCapsuleGeometry().rad;
             double height = capsule->GetCapsuleGeometry().hlen;
-            ChVector<> scale(rad, height, rad);
-            transform->matrix =
-                vsg::translate(pos) * vsg::rotate(angle, rotax) * vsg::scale(scale.x(), scale.y(), scale.z());
+            transform->matrix = vsg::dmat4CH(X_SA, ChVector<>(rad, height, rad));
         } else if (auto obj = std::dynamic_pointer_cast<ChObjFileShape>(shape)) {
-            string objFilename = obj->GetFilename();
-            transform->matrix = vsg::translate(pos) * vsg::rotate(angle, rotax);
+            transform->matrix = vsg::dmat4CH(X_SA, 1.0);
         } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
             double rad = cylinder->GetCylinderGeometry().rad;
             const auto& P1 = cylinder->GetCylinderGeometry().p1;
@@ -1357,19 +1277,10 @@ void ChVisualSystemVSG::UpdateFromMBS() {
             ChMatrix33<> R_CS;
             R_CS.Set_A_axis(mx, my, mz);
 
-            auto t_CS = 0.5 * (P2 + P1);
-            ChFrame<> X_CS(t_CS, R_CS);
+            ChFrame<> X_CS(0.5 * (P2 + P1), R_CS);
             ChFrame<> X_CA = X_SA * X_CS;
 
-            auto pos = X_CA.GetPos();
-            rot = X_CA.GetRot();
-            double rotAngle;
-            ChVector<> rotAxis;
-            rot.Q_to_AngAxis(rotAngle, rotAxis);
-
-            transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                                vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                                vsg::scale(rad, height, rad);
+            transform->matrix = vsg::dmat4CH(X_CA, ChVector<>(rad, height, rad));
         }
     }
 
@@ -1378,8 +1289,7 @@ void ChVisualSystemVSG::UpdateFromMBS() {
         if (auto pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
             auto numParticles = pcloud->GetNparticles();
             std::vector<double> size = pcloud->GetCollisionModel()->GetShapeDimensions(0);
-            bool childTest = numParticles == m_particleScene->children.size();
-            if (!childTest) {
+            if (numParticles != m_particleScene->children.size()) {
                 GetLog() << "Caution: Ill Shaped Particle Scenegraph! Not Updated.\n";
                 GetLog() << "Found Particles = " << numParticles << "\n";
                 GetLog() << "Found Children  = " << m_particleScene->children.size() << "\n";
@@ -1390,8 +1300,7 @@ void ChVisualSystemVSG::UpdateFromMBS() {
                 vsg::ref_ptr<vsg::MatrixTransform> transform;
                 if (!child->getValue("TransformPtr", transform))
                     continue;
-                const auto& pos = pcloud->GetVisualModelFrame(idx).GetPos();
-                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) * vsg::scale(size[0], size[0], size[0]);
+                transform->matrix = vsg::dmat4CH(ChFrame<>(pcloud->GetVisualModelFrame(idx).GetPos()), size[0]);
                 idx++;
             }
         }
@@ -1408,68 +1317,32 @@ void ChVisualSystemVSG::UpdateFromMBS() {
             continue;
         if (!child->getValue("TransformPtr", transform))
             continue;
+
         if (auto link = std::dynamic_pointer_cast<ChLinkTSDA>(item)) {
             if (!link->GetVisualModel())
                 continue;
             auto& shape = shapeInstance.first;
             if (auto segshape = std::dynamic_pointer_cast<ChSegmentShape>(shape)) {
-                ChVector<> P1 = link->GetPoint1Abs();
-                ChVector<> P2 = link->GetPoint2Abs();
-                double rotAngle, height;
-                ChVector<> rotAxis, pos;
-                Point2PointHelperAbs(P1, P2, height, pos, rotAngle, rotAxis);
-                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                                    vsg::scale(0.0, height, 0.0);
+                double length;
+                auto X = PointPointFrame(link->GetPoint1Abs(), link->GetPoint2Abs(), length);
+                transform->matrix = vsg::dmat4CH(X, ChVector<>(0, length, 0));
             } else if (auto sprshape = std::dynamic_pointer_cast<ChSpringShape>(shape)) {
                 double rad = sprshape->GetRadius();
-                ChVector<> P1 = link->GetPoint1Abs();
-                ChVector<> P2 = link->GetPoint2Abs();
-                double rotAngle, height;
-                ChVector<> rotAxis, pos;
-                Point2PointHelperAbs(P1, P2, height, pos, rotAngle, rotAxis);
-                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                                    vsg::scale(rad, height, rad);
+                double length;
+                auto X = PointPointFrame(link->GetPoint1Abs(), link->GetPoint2Abs(), length);
+                transform->matrix = vsg::dmat4CH(X, ChVector<>(rad, length, rad));
             }
         } else if (auto link = std::dynamic_pointer_cast<ChLinkDistance>(item)) {
             if (!link->GetVisualModel())
                 continue;
             auto& shape = shapeInstance.first;
             if (auto segshape = std::dynamic_pointer_cast<ChSegmentShape>(shape)) {
-                ChVector<> P1 = link->GetEndPoint1Abs();
-                ChVector<> P2 = link->GetEndPoint2Abs();
-                double rotAngle, height;
-                ChVector<> rotAxis, pos;
-                Point2PointHelperAbs(P1, P2, height, pos, rotAngle, rotAxis);
-                transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                                    vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                                    vsg::scale(0.0, height, 0.0);
+                double length;
+                auto X = PointPointFrame(link->GetEndPoint1Abs(), link->GetEndPoint2Abs(), length);
+                transform->matrix = vsg::dmat4CH(X, ChVector<>(0, length, 0));
             }
         }
     }
-}
-
-void ChVisualSystemVSG::Point2PointHelperAbs(ChVector<>& P1,
-                                             ChVector<>& P2,
-                                             double& height,
-                                             ChVector<>& pos,
-                                             double& rotAngle,
-                                             ChVector<>& rotAxis) {
-    ChVector<> dir = P2 - P1;
-    height = dir.Length();
-    dir.Normalize();
-    ChVector<> mx, my, mz;
-    dir.DirToDxDyDz(my, mz, mx);  // y is axis, in cylinder.obj frame
-    ChMatrix33<> R_CS;
-    R_CS.Set_A_axis(mx, my, mz);
-
-    auto t_CS = 0.5 * (P2 + P1);
-    ChFrame<> X_CS(t_CS, R_CS);
-
-    pos = X_CS.GetPos();
-    auto rot = X_CS.GetRot();
-    rot.Q_to_AngAxis(rotAngle, rotAxis);
 }
 
 void ChVisualSystemVSG::SetDecoGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col) {
@@ -1524,6 +1397,9 @@ int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualModel> model, cons
 }
 
 int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualShape> shape, const ChFrame<>& frame) {
+    //// RADU TODO
+    ////   replace with common functionality ion BindAll()
+
     std::shared_ptr<ChVisualMaterial> material;
     if (shape->GetMaterials().empty()) {
         material = chrono_types::make_shared<ChVisualMaterial>();
@@ -1669,19 +1545,9 @@ void ChVisualSystemVSG::UpdateVisualModel(int id, const ChFrame<>& frame) {
         GetLog() << "No update due to malconfiguration!\n";
         return;
     }
-    ChVector<> scale;
+    ChVector<> scale(1);
     bool mustScale = ptr->getValue("Scale", scale);
-    if (!mustScale) {
-        scale = ChVector<>(1, 1, 1);
-    }
-    auto pos = frame.GetPos();
-    auto quat = frame.GetRot();
-    double rotAngle;
-    ChVector<> rotAxis;
-    quat.Q_to_AngAxis(rotAngle, rotAxis);
-    transform->matrix = vsg::translate(pos.x(), pos.y(), pos.z()) *
-                        vsg::rotate(rotAngle, rotAxis.x(), rotAxis.y(), rotAxis.z()) *
-                        vsg::scale(scale.x(), scale.y(), scale.z());
+    transform->matrix = vsg::dmat4CH(frame, scale);
 }
 
 }  // namespace vsg3d

@@ -4,6 +4,7 @@
 SET(DEMOS
   demo_VSG_assets
   demo_VSG_paths
+  demo_VSG_shapes
 )
 
 set(CMAKE_CXX_STANDARD 17)

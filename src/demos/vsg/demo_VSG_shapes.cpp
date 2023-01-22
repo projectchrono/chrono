@@ -34,13 +34,6 @@ int main(int argc, char* argv[]) {
     auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     auto bin = chrono_types::make_shared<ChBody>();
 
-    utils::AddSphereGeometry(bin.get(), mat, 1, ChVector<>(0, 0, 0));
-    utils::AddEllipsoidGeometry(bin.get(), mat, ChVector<>(.5, 1, 1), ChVector<>(3, 0, 0));
-    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(1, 1, 1), ChVector<>(6, 0, 0));
-    utils::AddCylinderGeometry(bin.get(), mat, 1, 1, ChVector<>(9, 0, 0));
-    utils::AddConeGeometry(bin.get(), mat, 1, 3, ChVector<>(12, 0, 0));
-    utils::AddCapsuleGeometry(bin.get(), mat, 1, 1, ChVector<>(15, 0, 0));
-
     sys.AddBody(bin);
 
     double a = 0.5;
@@ -79,8 +72,9 @@ int main(int argc, char* argv[]) {
     utils::AddCapsuleGeometry(bin.get(), mat, c, 0.5, zdir * 6, rot);
 
     auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
-    sys.SetVisualSystem(vis);
-    vis->SetCameraVertical(vsg3d::CameraVerticalDir::Z);
+    vis->AttachSystem(&sys);
+    vis->AddCamera(ChVector<>(10, -10, 10), ChVector<>(2, 2, 0));
+    vis->SetCameraVertical(CameraVerticalDir::Z);
     vis->SetWindowSize(ChVector2<int>(800, 600));
     vis->SetWindowPosition(ChVector2<int>(100, 300));
     vis->SetWindowTitle("Chrono VSG Shapes");
