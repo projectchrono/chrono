@@ -230,6 +230,14 @@ class ChVehicleGuiComponentVSG : public vsg3d::ChGuiComponentVSG {
     ChVehicleVisualSystemVSG* m_app;
 };
 
+void DrawGauge(float val, float v_min, float v_max) {
+    ImGui::PushItemWidth(150.0f);
+    ImGui::PushStyleColor(ImGuiCol_SliderGrab, (ImVec4)ImColor(200, 100, 20));
+    ImGui::SliderFloat("", &val, v_min, v_max, "%.2f");
+    ImGui::PopStyleColor();
+    ImGui::PopItemWidth();
+}
+
 void ChVehicleGuiComponentVSG::render() {
     auto powertrain = m_app->GetVehicle().GetPowertrain();
 
@@ -268,20 +276,21 @@ void ChVehicleGuiComponentVSG::render() {
         ImGui::TableNextColumn();
         ImGui::Text("Steering:");
         ImGui::TableNextColumn();
-        snprintf(label, nstr, "%8.3f", m_app->GetSteering());
-        ImGui::Text(label);
+        ImGui::PushItemWidth(150.0f);
+        ImGui::PushStyleColor(ImGuiCol_SliderGrab, (ImVec4)ImColor(200, 100, 20));
+        DrawGauge(-m_app->GetSteering(), -1, 1);
+        ImGui::PopStyleColor();
+        ImGui::PopItemWidth();
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::Text("Throttle:");
         ImGui::TableNextColumn();
-        snprintf(label, nstr, "%8.3f", m_app->GetThrottle());
-        ImGui::Text(label);
+        DrawGauge(m_app->GetThrottle(), 0, 1);
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::Text("Braking:");
         ImGui::TableNextColumn();
-        snprintf(label, nstr, "%8.3f", m_app->GetBraking());
-        ImGui::Text(label);
+        DrawGauge(m_app->GetBraking(), 0, 1);
         ImGui::EndTable();
     }
 
