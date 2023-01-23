@@ -104,11 +104,6 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
 
     vsg::ref_ptr<vsg::Group> createDecoGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col);
 
-    // set mbs->vsg mapping info to the root group node
-    static void SetMBSInfo(vsg::ref_ptr<vsg::Group> group,
-                           std::shared_ptr<ChPhysicsItem> physItem,
-                           ChVisualModel::ShapeInstance shapeInstance);
-
     /// create a ShaderSet for Phong shaded rendering with tiled textures
     vsg::ref_ptr<vsg::ShaderSet> createTilingPhongShaderSet(vsg::ref_ptr<const vsg::Options> options = {});
 

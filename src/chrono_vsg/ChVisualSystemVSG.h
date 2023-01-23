@@ -89,7 +89,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// End the scene draw at the end of each animation frame.
     virtual void EndScene() override {}
 
-    /// Create a snapshot of theframe to be rendered and save it to the provided file.
+    /// Create a snapshot of the frame to be rendered and save it to the provided file.
     /// The file extension determines the image format.
     virtual void WriteImageToFile(const std::string& filename) override;
 
@@ -221,6 +221,12 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     std::vector<vsg::ref_ptr<vsg::Group>> m_sceneryPtr;  ///< scenery object helper
 
   private:
+    /// Utility function to populate a VSG group with shape groups (from the given visual model).
+    /// The visual model may or may not be associated with a Chrono physics item.
+    void PopulateGroup(vsg::ref_ptr<vsg::Group> group,
+                       std::shared_ptr<ChVisualModel> model,
+                       std::shared_ptr<ChPhysicsItem> phitem);
+
     std::map<std::size_t, vsg::ref_ptr<vsg::Node>> m_objCache;
     std::hash<std::string> m_stringHash;
     int m_windowWidth = 800;

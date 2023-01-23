@@ -1904,12 +1904,5 @@ vsg::ref_ptr<vsg::ShaderSet> ShapeBuilder::createTilingPhongShaderSet(vsg::ref_p
     return shaderSet;
 }
 
-void ShapeBuilder::SetMBSInfo(vsg::ref_ptr<vsg::Group> group,
-                              std::shared_ptr<ChPhysicsItem> physItem,
-                              ChVisualModel::ShapeInstance shapeInstance) {
-    group->setValue("ItemPtr", physItem);
-    group->setValue("ShapeInstancePtr", shapeInstance);
-}
-
 }  // namespace vsg3d
 }  // namespace chrono
