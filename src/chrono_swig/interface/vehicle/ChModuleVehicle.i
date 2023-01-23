@@ -248,22 +248,22 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %shared_ptr(chrono::vehicle::ChTrackCollisionManager)
 %shared_ptr(chrono::vehicle::ChTrackCustomContact)
 
+%shared_ptr(chrono::vehicle::SpringForce)
 %shared_ptr(chrono::vehicle::LinearSpringForce)
 %shared_ptr(chrono::vehicle::LinearDamperForce)
 %shared_ptr(chrono::vehicle::LinearSpringDamperForce)
-%shared_ptr(chrono::vehicle::LinearSpringDamperForce)
-%shared_ptr(chrono::vehicle::MapSpringForce)
-%shared_ptr(chrono::vehicle::MapSpringBistopForce)
-%shared_ptr(chrono::vehicle::LinearSpringBistopForce)
-%shared_ptr(chrono::vehicle::DegressiveDamperForce)
-%shared_ptr(chrono::vehicle::MapDamperForce)
+%shared_ptr(chrono::vehicle::NonlinearSpringForce)
+%shared_ptr(chrono::vehicle::NonlinearDamperForce)
+%shared_ptr(chrono::vehicle::NonlinearSpringDamperForce)
 %shared_ptr(chrono::vehicle::MapSpringDamperForce)
+%shared_ptr(chrono::vehicle::DegressiveDamperForce)
+
 %shared_ptr(chrono::vehicle::LinearSpringTorque)
 %shared_ptr(chrono::vehicle::LinearDamperTorque)
 %shared_ptr(chrono::vehicle::LinearSpringDamperTorque)
-%shared_ptr(chrono::vehicle::LinearSpringDamperTorque)
-%shared_ptr(chrono::vehicle::MapSpringTorque)
-%shared_ptr(chrono::vehicle::MapDamperTorque)
+%shared_ptr(chrono::vehicle::NonlinearSpringTorque)
+%shared_ptr(chrono::vehicle::NonlinearDamperTorque)
+%shared_ptr(chrono::vehicle::NonlinearSpringDamperTorque)
 
 //
 // B- INCLUDE HEADERS

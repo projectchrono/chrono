@@ -1,100 +1,94 @@
 {
-  "Name":                       "suv DoubleWishbone Front",
-  "Type":                       "Suspension",
-  "Template":                   "DoubleWishbone",
+    "Name": "suv DoubleWishbone Front",
+    "Type": "Suspension",
+    "Template": "DoubleWishbone",
 
-  "Vehicle-Frame Inertia":      false,
+    "Vehicle-Frame Inertia": false,
 
- "Camber Angle (deg)":               0,
- "Toe Angle (deg)":                  0,
+    "Camber Angle (deg)": 0,
+    "Toe Angle (deg)": 0,
 
-  "Spindle" :
-  {
-    "Mass":                     14.705,
-    "COM":                      [-0.040, 0.960, -0.026],
-    "Inertia":                  [0.04117, 0.07352, 0.04117],
-    "Radius":                   0.15,
-    "Width":                    0.06
-  },
+    "Spindle": {
+        "Mass": 14.705,
+        "COM": [ -0.040, 0.960, -0.026 ],
+        "Inertia": [ 0.04117, 0.07352, 0.04117 ],
+        "Radius": 0.15,
+        "Width": 0.06
+    },
 
-  "Upright":
-  {
-    "Mass":                     19.450,
-    "COM":                      [-0.040, 0.801, -0.026],
-    "Moments of Inertia":       [0.1656, 0.1934, 0.04367],
-    "Products of Inertia":      [0, 0, 0],
-    "Radius":                   0.025
-  },
+    "Upright": {
+        "Mass": 19.450,
+        "COM": [ -0.040, 0.801, -0.026 ],
+        "Moments of Inertia": [ 0.1656, 0.1934, 0.04367 ],
+        "Products of Inertia": [ 0, 0, 0 ],
+        "Radius": 0.025
+    },
 
-  "Upper Control Arm":
-  {
-    "Mass":                     5.813,
-    "COM":                      [-0.106, 0.639, 0.218],
-    "Moments of Inertia":       [0.03, 0.03, 0.06276],
-    "Products of Inertia":      [0, 0, 0],
-    "Radius":                   0.02,
-    "Location Chassis Front":   [-0.048, 0.496, 0.245],
-    "Location Chassis Back":    [-0.268, 0.528, 0.196],
-    "Location Upright":         [-0.053, 0.766, 0.215]
-  },
+    "Upper Control Arm": {
+        "Mass": 5.813,
+        "COM": [ -0.106, 0.639, 0.218 ],
+        "Moments of Inertia": [ 0.03, 0.03, 0.06276 ],
+        "Products of Inertia": [ 0, 0, 0 ],
+        "Radius": 0.02,
+        "Location Chassis Front": [ -0.048, 0.496, 0.245 ],
+        "Location Chassis Back": [ -0.268, 0.528, 0.196 ],
+        "Location Upright": [ -0.053, 0.766, 0.215 ]
+    },
 
-  "Lower Control Arm":
-  {
-    "Mass":                     23.965,
-    "COM":                      [0.000, 0.597, -0.059],
-    "Moments of Inertia":       [0.4, 0.4, 0.8938],
-    "Products of Inertia":      [0, 0, 0],
-    "Radius":                   0.03,
-    "Location Chassis Front":   [0.223, 0.357, 0.000],
-    "Location Chassis Back":    [-0.223, 0.357, 0.000],
-    "Location Upright":         [-0.036, 0.837, -0.118]
-  },
+    "Lower Control Arm": {
+        "Mass": 23.965,
+        "COM": [ 0.000, 0.597, -0.059 ],
+        "Moments of Inertia": [ 0.4, 0.4, 0.8938 ],
+        "Products of Inertia": [ 0, 0, 0 ],
+        "Radius": 0.03,
+        "Location Chassis Front": [ 0.223, 0.357, 0.000 ],
+        "Location Chassis Back": [ -0.223, 0.357, 0.000 ],
+        "Location Upright": [ -0.036, 0.837, -0.118 ]
+    },
 
-  "Tierod":
-  {
-    "Location Chassis":         [-0.250, 0.498, 0.054],
-    "Location Upright":         [-0.176, 0.871, -0.016]
-  },
+    "Tierod": {
+        "Location Chassis": [ -0.250, 0.498, 0.054 ],
+        "Location Upright": [ -0.176, 0.871, -0.016 ]
+    },
 
-  "Spring":
-  {
-    "Location Chassis":         [0.104, 0.560, 0.197],
-    "Location Arm":             [0.097, 0.593, -0.047],
-    "Minimum Length":       0.12,
-    "Maximum Length":      0.2,
-    "Curve Data": [[-0.2,  -322095.536],
-                   [-0.18, -240521.166],
-                   [-0.16, -174535.686],
-                   [-0.14, -122406.996],
-                   [-0.12,  -82402.997],
-                   [-0.1,   -52791.592],
-                   [-0.08,  -31840.681],
-                   [-0.06,  -17818.165],
-                   [-0.04,   -8991.945],
-                   [-0.02,   -3629.923],
-                   [0,           0],
-                   [0.02,     3629.923],
-                   [0.04,     8991.945],
-                   [0.06,    17818.165],
-                   [0.08,    31840.681],
-                   [0.1,     52791.592],
-                   [0.12,    82402.997],
-                   [0.14,   122406.996],
-                   [0.16,   174535.686],
-                   [0.18,   240521.166],
-                   [0.2,    322095.536]],
-    "Free Length" :             0.339
-  },
+    "Spring": {
+        "Location Chassis": [ 0.104, 0.560, 0.197 ],
+        "Location Arm": [ 0.097, 0.593, -0.047 ],
+        "Minimum Length": 0.12,
+        "Maximum Length": 0.2,
+        "Spring Curve Data": [
+            [ -0.2, -322095.536 ],
+            [ -0.18, -240521.166 ],
+            [ -0.16, -174535.686 ],
+            [ -0.14, -122406.996 ],
+            [ -0.12, -82402.997 ],
+            [ -0.1, -52791.592 ],
+            [ -0.08, -31840.681 ],
+            [ -0.06, -17818.165 ],
+            [ -0.04, -8991.945 ],
+            [ -0.02, -3629.923 ],
+            [ 0, 0 ],
+            [ 0.02, 3629.923 ],
+            [ 0.04, 8991.945 ],
+            [ 0.06, 17818.165 ],
+            [ 0.08, 31840.681 ],
+            [ 0.1, 52791.592 ],
+            [ 0.12, 82402.997 ],
+            [ 0.14, 122406.996 ],
+            [ 0.16, 174535.686 ],
+            [ 0.18, 240521.166 ],
+            [ 0.2, 322095.536 ]
+        ],
+        "Free Length": 0.339
+    },
 
-  "Shock":
-  {
-    "Location Chassis":         [0.104, 0.548, 0.323],
-    "Location Arm":             [0.097, 0.593, -0.047],
-    "Damping Coefficient":      15000
-  },
+    "Shock": {
+        "Location Chassis": [ 0.104, 0.548, 0.323 ],
+        "Location Arm": [ 0.097, 0.593, -0.047 ],
+        "Damping Coefficient": 15000
+    },
 
-  "Axle":
-  {
-    "Inertia":                  0.4
-  }
+    "Axle": {
+        "Inertia": 0.4
+    }
 }

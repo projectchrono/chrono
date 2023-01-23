@@ -166,6 +166,280 @@ std::shared_ptr<ChVehicleBushingData> ReadBushingDataJSON(const rapidjson::Value
 
 // -----------------------------------------------------------------------------
 
+std::shared_ptr<ChLinkTSDA::ForceFunctor> ReadTSDAFunctorJSON(const rapidjson::Value& tsda, double& free_length) {
+    enum class FunctorType {
+        LinearSpring,
+        NonlinearSpring,
+        LinearDamper,
+        NonlinearDamper,
+        DegressiveDamper,
+        LinearSpringDamper,
+        NonlinearSpringDamper,
+        MapSpringDamper,
+        Unknown
+    };
+
+    FunctorType type = FunctorType::Unknown;
+    free_length = 0;
+
+    assert(tsda.IsObject());
+
+    if (tsda.HasMember("Spring Coefficient"))
+        if (tsda.HasMember("Damping Coefficient"))
+            type = FunctorType::LinearSpringDamper;
+        else
+            type = FunctorType::LinearSpring;
+    else if (tsda.HasMember("Damping Coefficient"))
+        if (tsda.HasMember("Degressivity Compression") && tsda.HasMember("Degressivity Expansion"))
+            type = FunctorType::DegressiveDamper;
+        else
+            type = FunctorType::LinearDamper;
+
+    if (tsda.HasMember("Spring Curve Data"))
+        if (tsda.HasMember("Damping Curve Data"))
+            type = FunctorType::NonlinearSpringDamper;
+        else
+            type = FunctorType::NonlinearSpring;
+    else if (tsda.HasMember("Damping Curve Data"))
+        type = FunctorType::NonlinearDamper;
+
+    if (tsda.HasMember("Map Data"))
+        type = FunctorType::MapSpringDamper;
+
+    double preload = 0;
+    if (tsda.HasMember("Preload"))
+        preload = tsda["Preload"].GetDouble();
+
+    switch (type) {
+        default:
+        case FunctorType::Unknown: {
+            std::cout << "Unsupported TSDA element" << std::endl;
+            return nullptr;
+        }
+
+        case FunctorType::LinearSpring: {
+            assert(tsda.HasMember("Free Length"));
+            free_length = tsda["Free Length"].GetDouble();
+
+            double k = tsda["Spring Coefficient"].GetDouble();
+
+            return chrono_types::make_shared<LinearSpringForce>(k, preload);
+        }
+
+        case FunctorType::NonlinearSpring: {
+            assert(tsda.HasMember("Free Length"));
+            free_length = tsda["Free Length"].GetDouble();
+
+            auto forceCB = chrono_types::make_shared<NonlinearSpringForce>(preload);
+
+            assert(tsda["Spring Curve Data"].IsArray() && tsda["Spring Curve Data"][0u].Size() == 2);
+            int num_defs = tsda["Spring Curve Data"].Size();
+            for (int i = 0; i < num_defs; i++) {
+                double def = tsda["Spring Curve Data"][i][0u].GetDouble();
+                double force = tsda["Spring Curve Data"][i][1u].GetDouble();
+                forceCB->add_pointK(def, force);
+            }
+            if (tsda.HasMember("Minimum Length") && tsda.HasMember("Maximum Length")) {
+                forceCB->enable_stops(tsda["Minimum Length"].GetDouble(), tsda["Maximum Length"].GetDouble());
+            }
+
+            return forceCB;
+        }
+
+        case FunctorType::LinearDamper: {
+            double c = tsda["Damping Coefficient"].GetDouble();
+
+            return chrono_types::make_shared<LinearDamperForce>(c);
+        }
+
+        case FunctorType::DegressiveDamper: {
+            double c = tsda["Damping Coefficient"].GetDouble();
+            double dc = tsda["Degressivity Compression"].GetDouble();
+            double de = tsda["Degressivity Expansion"].GetDouble();
+
+            return chrono_types::make_shared<DegressiveDamperForce>(c, dc, de);
+        }
+
+        case FunctorType::NonlinearDamper: {
+            auto forceCB = chrono_types::make_shared<NonlinearDamperForce>();
+
+            assert(tsda["Damping Curve Data"].IsArray() && tsda["Damping Curve Data"][0u].Size() == 2);
+            int num_speeds = tsda["Dumping Curve Data"].Size();
+            for (int i = 0; i < num_speeds; i++) {
+                double vel = tsda["Damping Curve Data"][i][0u].GetDouble();
+                double force = tsda["Damping Curve Data"][i][1u].GetDouble();
+                forceCB->add_pointC(vel, force);
+            }
+
+            return forceCB;
+        }
+
+        case FunctorType::LinearSpringDamper: {
+            assert(tsda.HasMember("Free Length"));
+            free_length = tsda["Free Length"].GetDouble();
+
+            double k = tsda["Spring Coefficient"].GetDouble();
+            double c = tsda["Damping Coefficient"].GetDouble();
+
+            return chrono_types::make_shared<LinearSpringDamperForce>(k, c, preload);
+        }
+
+        case FunctorType::NonlinearSpringDamper: {
+            auto forceCB = chrono_types::make_shared<NonlinearSpringDamperForce>(preload);
+
+            assert(tsda["Spring Curve Data"].IsArray() && tsda["Spring Curve Data"][0u].Size() == 2);
+            int num_defs = tsda["Spring Curve Data"].Size();
+            for (int i = 0; i < num_defs; i++) {
+                double def = tsda["Spring Curve Data"][i][0u].GetDouble();
+                double force = tsda["Spring Curve Data"][i][1u].GetDouble();
+                forceCB->add_pointK(def, force);
+            }
+            int num_speeds = tsda["Dumping Curve Data"].Size();
+            for (int i = 0; i < num_speeds; i++) {
+                double vel = tsda["Damping Curve Data"][i][0u].GetDouble();
+                double force = tsda["Damping Curve Data"][i][1u].GetDouble();
+                forceCB->add_pointC(vel, force);
+            }
+            if (tsda.HasMember("Minimum Length") && tsda.HasMember("Maximum Length")) {
+                forceCB->enable_stops(tsda["Minimum Length"].GetDouble(), tsda["Maximum Length"].GetDouble());
+            }
+
+            return forceCB;
+        }
+
+        case FunctorType::MapSpringDamper: {
+            assert(tsda.HasMember("Free Length"));
+            free_length = tsda["Free Length"].GetDouble();
+
+            auto forceCB = chrono_types::make_shared<MapSpringDamperForce>(preload);
+
+            assert(tsda.HasMember("Deformation"));
+            assert(tsda["Deformation"].IsArray());
+            assert(tsda["Map Data"].IsArray() && tsda["Map Data"][0u].Size() == tsda["Deformation"].Size() + 1);
+            int num_defs = tsda["Deformation"].Size();
+            int num_speeds = tsda["Map Data"].Size();
+            std::vector<double> defs(num_defs);
+            for (int j = 0; j < num_defs; j++)
+                defs[j] = tsda["Deformation"][j].GetDouble();
+            forceCB->set_deformations(defs);
+            for (int i = 0; i < num_speeds; i++) {
+                double vel = tsda["Map Data"][i][0u].GetDouble();
+                std::vector<double> force(num_defs);
+                for (int j = 0; j < num_defs; j++)
+                    force[j] = tsda["Map Data"][i][j + 1].GetDouble();
+                forceCB->add_pointC(vel, force);
+            }
+            if (tsda.HasMember("Minimum Length") && tsda.HasMember("Maximum Length")) {
+                forceCB->enable_stops(tsda["Minimum Length"].GetDouble(), tsda["Maximum Length"].GetDouble());
+            }
+
+            return forceCB;     
+        }
+    }
+}
+
+std::shared_ptr<ChLinkRSDA::TorqueFunctor> ReadRSDAFunctorJSON(const rapidjson::Value& rsda, double& free_angle) {
+    enum class FunctorType {
+        LinearSpring,
+        NonlinearSpring,
+        LinearDamper,
+        NonlinearDamper,
+        LinearSpringDamper,
+        NonlinearSpringDamper,
+        Unknown
+    };
+
+    FunctorType type = FunctorType::Unknown;
+    free_angle = 0;
+
+    if (rsda.HasMember("Spring Coefficient"))
+        if (rsda.HasMember("Damping Coefficient"))
+            type = FunctorType::LinearSpringDamper;
+        else
+            type = FunctorType::LinearSpring;
+    else if (rsda.HasMember("Damping Coefficient"))
+        type = FunctorType::LinearDamper;
+
+    if (rsda.HasMember("Spring Curve Data"))
+        if (rsda.HasMember("Damping Curve Data"))
+            type = FunctorType::NonlinearSpringDamper;
+        else
+            type = FunctorType::NonlinearSpring;
+    else if (rsda.HasMember("Damping Curve Data"))
+        type = FunctorType::NonlinearDamper;
+
+    double preload = 0;
+    if (rsda.HasMember("Preload"))
+        preload = rsda["Preload"].GetDouble();
+
+    switch (type) {
+        default:
+        case FunctorType::Unknown: {
+            std::cout << "Unsupported RSDA element" << std::endl;
+            return nullptr;
+        }
+
+        case FunctorType::LinearSpring: {
+            assert(rsda.HasMember("Free Angle"));
+            free_angle = rsda["Free Angle"].GetDouble();
+
+            double k = rsda["Spring Coefficient"].GetDouble();
+
+            return chrono_types::make_shared<LinearSpringTorque>(k, preload);
+        }
+
+        case FunctorType::NonlinearSpring: {
+            assert(rsda.HasMember("Free Angle"));
+            free_angle = rsda["Free Angle"].GetDouble();
+
+            auto torqueCB = chrono_types::make_shared<NonlinearSpringTorque>(preload);
+
+            assert(rsda["Spring Curve Data"].IsArray() && rsda["Spring Curve Data"][0u].Size() == 2);
+            int num_defs = rsda["Spring Curve Data"].Size();
+            for (int i = 0; i < num_defs; i++) {
+                double def = rsda["Spring Curve Data"][i][0u].GetDouble();
+                double force = rsda["Spring Curve Data"][i][1u].GetDouble();
+                torqueCB->add_pointK(def, force);
+            }
+
+            return torqueCB;
+        }
+
+        case FunctorType::LinearDamper: {
+            double c = rsda["Damping Coefficient"].GetDouble();
+
+            return chrono_types::make_shared<LinearDamperTorque>(c);
+        }
+
+        case FunctorType::NonlinearDamper: {
+            auto torqueCB = chrono_types::make_shared<NonlinearDamperTorque>();
+
+            assert(rsda["Damping Curve Data"].IsArray() && rsda["Damping Curve Data"][0u].Size() == 2);
+            int num_speeds = rsda["Dumping Curve Data"].Size();
+            for (int i = 0; i < num_speeds; i++) {
+                double vel = rsda["Damping Curve Data"][i][0u].GetDouble();
+                double force = rsda["Damping Curve Data"][i][1u].GetDouble();
+                torqueCB->add_pointC(vel, force);
+            }
+
+            return torqueCB;
+        }
+
+        case FunctorType::LinearSpringDamper: {
+            assert(rsda.HasMember("Free Angle"));
+            free_angle = rsda["Free Angle"].GetDouble();
+
+            double k = rsda["Spring Coefficient"].GetDouble();
+            double c = rsda["Damping Coefficient"].GetDouble();
+
+            return chrono_types::make_shared<LinearSpringDamperTorque>(k, c, preload);
+        }
+
+    }
+}
+
+// -----------------------------------------------------------------------------
+
 std::shared_ptr<ChChassis> ReadChassisJSON(const std::string& filename) {
     std::shared_ptr<ChChassis> chassis;
 

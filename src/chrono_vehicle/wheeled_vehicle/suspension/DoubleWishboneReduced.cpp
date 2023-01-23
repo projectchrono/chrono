@@ -105,23 +105,15 @@ void DoubleWishboneReduced::Create(const rapidjson::Document& d) {
     // Read Tierod data
     assert(d.HasMember("Tierod"));
     assert(d["Tierod"].IsObject());
-
     m_points[TIEROD_C] = ReadVectorJSON(d["Tierod"]["Location Chassis"]);
     m_points[TIEROD_U] = ReadVectorJSON(d["Tierod"]["Location Upright"]);
 
     // Read spring-damper data and create force callback
     assert(d.HasMember("Shock"));
     assert(d["Shock"].IsObject());
-
     m_points[SHOCK_C] = ReadVectorJSON(d["Shock"]["Location Chassis"]);
     m_points[SHOCK_U] = ReadVectorJSON(d["Shock"]["Location Upright"]);
-    m_springRestLength = d["Shock"]["Free Length"].GetDouble();
-    double preload = 0;
-    if (d["Shock"].HasMember("Preload"))
-        preload = d["Shock"]["Preload"].GetDouble();
-
-    m_shockForceCB = chrono_types::make_shared<LinearSpringDamperForce>(
-        d["Shock"]["Spring Coefficient"].GetDouble(), d["Shock"]["Damping Coefficient"].GetDouble(), preload);
+    m_shockForceCB = ReadTSDAFunctorJSON(d["Shock"], m_springRestLength);
 
     // Read axle inertia
     assert(d.HasMember("Axle"));

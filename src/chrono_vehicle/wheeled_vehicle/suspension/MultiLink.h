@@ -67,6 +67,7 @@ class CH_VEHICLE_API MultiLink : public ChMultiLink {
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
     virtual double getSpringRestLength() const override { return m_springRestLength; }
+    virtual double getShockRestLength() const override { return m_shockRestLength; }
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getSpringForceFunctor() const override { return m_springForceCB; }
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
 
@@ -116,6 +117,7 @@ class CH_VEHICLE_API MultiLink : public ChMultiLink {
     std::shared_ptr<ChVehicleBushingData> m_tierodBushingData;
 
     double m_springRestLength;
+    double m_shockRestLength;
 };
 
 /// @} vehicle_wheeled_suspension

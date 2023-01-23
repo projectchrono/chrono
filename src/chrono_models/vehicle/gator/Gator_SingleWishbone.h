@@ -60,7 +60,7 @@ class CH_MODELS_API Gator_SingleWishbone : public ChSingleWishbone {
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
-    virtual double getSpringRestLength() const override { return m_springRestLength; }
+    virtual double getShockRestLength() const override { return m_shockRestLength; }
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
 
   private:
@@ -87,7 +87,7 @@ class CH_MODELS_API Gator_SingleWishbone : public ChSingleWishbone {
 
     static const double m_springCoefficient;
     static const double m_dampingCoefficient;
-    static const double m_springRestLength;
+    static const double m_shockRestLength;
 };
 
 /// @} vehicle_models_gator

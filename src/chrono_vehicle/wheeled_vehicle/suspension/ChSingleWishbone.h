@@ -187,8 +187,8 @@ class CH_VEHICLE_API ChSingleWishbone : public ChSuspension {
     /// Return the radius of the tierod body (visualization only).
     virtual double getTierodRadius() const { return 0; }
 
-    /// Return the free (rest) length of the spring element.
-    virtual double getSpringRestLength() const = 0;
+    /// Return the free (rest) length of the spring-damper element.
+    virtual double getShockRestLength() const = 0;
     /// Return the functor object for spring-damper force.
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const = 0;
 

@@ -75,6 +75,8 @@ class CH_VEHICLE_API SolidThreeLinkAxle : public ChSolidThreeLinkAxle {
 
     /// Return the free (rest) length of the spring element.
     virtual double getSpringRestLength() const override { return m_springRestLength; }
+    /// Return the free (rest) length of the shock element.
+    virtual double getShockRestLength() const override { return m_shockRestLength; }
 
     /// Return the functor object for spring force.
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getSpringForceFunctor() const override { return m_springForceCB; }
@@ -107,6 +109,7 @@ class CH_VEHICLE_API SolidThreeLinkAxle : public ChSolidThreeLinkAxle {
     double m_axleTubeRadius;
 
     double m_springRestLength;
+    double m_shockRestLength;
     double m_axleInertia;
 
     ChVector<> m_triangleInertia;

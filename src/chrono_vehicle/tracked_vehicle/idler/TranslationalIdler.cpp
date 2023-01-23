@@ -69,7 +69,7 @@ void TranslationalIdler::Create(const rapidjson::Document& d) {
         // Nonlinear (curves) spring-damper
         int num_pointsK = d["Tensioner"]["Spring Curve Data"].Size();
         int num_pointsC = d["Tensioner"]["Damper Curve Data"].Size();
-        auto tensionerForceCB = chrono_types::make_shared<MapSpringDamperForce>(tensioner_f);
+        auto tensionerForceCB = chrono_types::make_shared<NonlinearSpringDamperForce>(tensioner_f);
         for (int i = 0; i < num_pointsK; i++) {
             tensionerForceCB->add_pointK(d["Tensioner"]["Spring Curve Data"][i][0u].GetDouble(),
                                          d["Tensioner"]["Spring Curve Data"][i][1u].GetDouble());
