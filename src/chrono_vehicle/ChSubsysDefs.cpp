@@ -59,6 +59,23 @@ void SpringForce::enable_stops(double min_length, double max_length) {
     m_rebound.AddPoint(60.0e-3, 125000.0);
 }
 
+void SpringForce::set_stops(const std::vector<std::pair<double, double>>& data_bump,
+                            const std::vector<std::pair<double, double>>& data_rebound) {
+    m_bump.Reset();
+    m_rebound.Reset();
+    for (unsigned int i = 0; i < data_bump.size(); ++i)
+        m_bump.AddPoint(data_bump[i].first, data_bump[i].second);
+    for (unsigned int i = 0; i < data_rebound.size(); ++i)
+        m_rebound.AddPoint(data_rebound[i].first, data_rebound[i].second);
+}
+
+void SpringForce::set_stops(double bump_coefficient, double rebound_coefficient) {
+    for (auto& p : m_bump.GetPoints())
+        p.y = bump_coefficient * p.x;
+    for (auto& p : m_rebound.GetPoints())
+        p.y = rebound_coefficient * p.x;
+}
+
 double SpringForce::evaluate_stops(double length) {
     double f = 0;
     if (m_stops) {

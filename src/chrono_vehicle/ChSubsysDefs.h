@@ -102,6 +102,9 @@ class CH_VEHICLE_API SpringForce : public ChLinkTSDA::ForceFunctor {
   public:
     SpringForce(double preload);
     void enable_stops(double min_length, double max_length);
+    void set_stops(const std::vector<std::pair<double, double>>& data_bump,
+                   const std::vector<std::pair<double, double>>& data_rebound);
+    void set_stops(double bump_coefficient, double rebound_coefficient);
     double evaluate_stops(double length);
 
   protected:
