@@ -218,8 +218,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     std::vector<vsg::ref_ptr<vsg::vec4Array>> m_vsgColorsList;
     std::shared_ptr<ChTriangleMeshShape> m_mbsMesh;
 
-    std::vector<vsg::ref_ptr<vsg::Group>> m_sceneryPtr;  ///< scenery object helper
-
   private:
     /// Utility function to populate a VSG group with shape groups (from the given visual model).
     /// The visual model may or may not be associated with a Chrono physics item.

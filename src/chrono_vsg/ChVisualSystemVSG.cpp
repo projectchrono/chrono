@@ -1541,13 +1541,19 @@ void ChVisualSystemVSG::SetSystemSymbolPosition(ChVector<> pos) {
     }
 }
 
-/*
+
 int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualModel> model, const ChFrame<>& frame) {
+    // Important for update: keep the correct scenegraph hierarchy:
+    // modelGroup->modelTransform->shapesGroup
+    
+    // Create a group to hold the shapes with their subtransforms
+    auto shapesGroup = vsg::Group::create();
+    
     // Create a group to hold this visual model
-    auto group = vsg::Group::create();
+    auto modelGroup = vsg::Group::create();
 
     // Populate the group with shapes in the visual model
-    PopulateGroup(group, model, nullptr);
+    PopulateGroup(shapesGroup, model, nullptr);
 
     // Attach a transform to the group and initialize it with the provided frame
     auto transform = vsg::MatrixTransform::create();
@@ -1555,22 +1561,23 @@ int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualModel> model, cons
 
     transform->subgraphRequiresLocalFrustum = false;
     if (m_options->sharedObjects) {
-        m_options->sharedObjects->share(group);
+        m_options->sharedObjects->share(modelGroup);
     }
     if (m_options->sharedObjects) {
         m_options->sharedObjects->share(transform);
     }
 
-    group->addChild(transform);
+    transform->addChild(shapesGroup);
+    
+    modelGroup->addChild(transform);
 
     // Set group properties
-    group->setValue("Transform", transform);
+    modelGroup->setValue("Transform", transform);
 
     // Add the group to the global holder
-    m_decoScene->addChild(group);
-    m_sceneryPtr.push_back(group);  //// RADU TODO do we need this?!?
+    m_decoScene->addChild(modelGroup);
 
-    return (int)m_sceneryPtr.size() - 1;
+    return m_decoScene->children.size() - 1;
 }
 
 int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualShape> shape, const ChFrame<>& frame) {
@@ -1580,20 +1587,20 @@ int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualShape> shape, cons
 }
 
 void ChVisualSystemVSG::UpdateVisualModel(int id, const ChFrame<>& frame) {
-    if (id == -1 || id >= m_sceneryPtr.size()) {
+    if (id == -1 || id >= m_decoScene->children.size()) {
         return;
     }
 
-    auto model_group = m_sceneryPtr[id];
+    auto model_group = m_decoScene->children[id];
     vsg::ref_ptr<vsg::MatrixTransform> transform;
     if (!model_group->getValue("Transform", transform))
         return;
 
     transform->matrix = vsg::dmat4CH(frame, 1.0);
 }
-*/
 
 
+/*
 int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualModel> model, const ChFrame<>& frame) {
     return -1;
 }
@@ -1752,7 +1759,7 @@ void ChVisualSystemVSG::UpdateVisualModel(int id, const ChFrame<>& frame) {
     bool mustScale = ptr->getValue("Scale", scale);
     transform->matrix = vsg::dmat4CH(frame, scale);
 }
-
+*/
 
 }  // namespace vsg3d
 }  // namespace chrono
