@@ -124,28 +124,31 @@ class ChVehicleKeyboardHandlerVSG : public vsg::Inherit<vsg::Visitor, ChVehicleK
             return;
 
         // keyboard events for camera steering
+        
         switch (keyPress.keyModified) {
-            case vsg::KEY_Down:
-            case 63233: // Mac Hack
-                m_app->m_camera->Zoom(1);
+            case vsg::KEY_V:
+                m_app->m_vehicle->LogConstraintViolations();
                 return;
-            case vsg::KEY_Up:
-            case 63232: // Mac hack
-                m_app->m_camera->Zoom(-1);
-                return;
+        }
+        
+        switch (keyPress.keyBase) {
             case vsg::KEY_Left:
-            case 63234: // Mac hack
                 m_app->m_camera->Turn(-1);
-                return;
-            case vsg::KEY_Right:  // not recognized on the Mac
-            case 63235:           // Mac hack
+                break;
+            case vsg::KEY_Right:
                 m_app->m_camera->Turn(1);
+                break;
+            case vsg::KEY_Down:
+                m_app->m_camera->Zoom(-1);
+                break;
+            case vsg::KEY_Up:
+                m_app->m_camera->Zoom(1);
+                break;
+            case vsg::KEY_Prior:
+                m_app->m_camera->Raise(1);
                 return;
             case vsg::KEY_Next:
                 m_app->m_camera->Raise(-1);
-                return;
-            case vsg::KEY_Prior:
-                m_app->m_camera->Raise(1);
                 return;
             case vsg::KEY_a:
                 if (m_app->m_driver)
@@ -186,36 +189,7 @@ class ChVehicleKeyboardHandlerVSG : public vsg::Inherit<vsg::Visitor, ChVehicleK
             case vsg::KEY_5:
                 m_app->SetChaseCameraState(utils::ChChaseCamera::Free);
                 return;
-            case vsg::KEY_V:
-                m_app->m_vehicle->LogConstraintViolations();
-                return;
-        }
-        switch (keyPress.keyBase) {
-            case vsg::KEY_a:
-                if (m_app->m_driver)
-                    m_app->m_driver->SteeringLeft();
-                return;
-            case vsg::KEY_d:
-                if (m_app->m_driver)
-                    m_app->m_driver->SteeringRight();
-                return;
-            case vsg::KEY_c:
-                if (m_app->m_driver)
-                    m_app->m_driver->SteeringCenter();
-                return;
-            case vsg::KEY_w:
-                if (m_app->m_driver)
-                    m_app->m_driver->IncreaseThrottle();
-                return;
-            case vsg::KEY_s:
-                if (m_app->m_driver)
-                    m_app->m_driver->DecreaseThrottle();
-                return;
-            case vsg::KEY_r:
-                if (m_app->m_driver)
-                    m_app->m_driver->ReleasePedals();
-                return;
-        }
+       }
     }
 
   private:
