@@ -26,8 +26,6 @@
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
-#include "chrono_vehicle/driver/ChDataDriver.h"
 #include "chrono_vehicle/output/ChVehicleOutputASCII.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
@@ -47,7 +45,6 @@ using namespace chrono::vsg3d;
 #endif
 
 using namespace chrono;
-using namespace chrono::irrlicht;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
 

@@ -352,12 +352,12 @@ int main(int argc, char* argv[]) {
     vis->AttachVehicle(&my_hmmwv.GetVehicle());
 
     // Visualization of controller points (sentinel & target)
-    auto ballS = chrono_types::make_shared<ChSphereShape>(0.1);
-    auto ballT = chrono_types::make_shared<ChSphereShape>(0.1);
-    ballS->SetColor(ChColor(1, 0, 0));
-    ballT->SetColor(ChColor(0, 1, 0));
-    int iballS = vis->AddVisualModel(ballS, ChFrame<>());
-    int iballT = vis->AddVisualModel(ballT, ChFrame<>());
+    auto sentinel = chrono_types::make_shared<ChSphereShape>(0.1);
+    auto target = chrono_types::make_shared<ChSphereShape>(0.1);
+    sentinel->SetColor(ChColor(1, 0, 0));
+    target->SetColor(ChColor(0, 1, 0));
+    int sentinelID = vis->AddVisualModel(sentinel, ChFrame<>());
+    int targetID = vis->AddVisualModel(target, ChFrame<>());
 
     // ---------------
     // Simulation loop
@@ -378,8 +378,8 @@ int main(int argc, char* argv[]) {
         DriverInputs driver_inputs = driver.GetInputs();
 
         // Update sentinel and target location markers for the path-follower controller.
-        vis->UpdateVisualModel(iballS, ChFrame<>(driver.GetSentinelLocation()));
-        vis->UpdateVisualModel(iballT, ChFrame<>(driver.GetTargetLocation()));
+        vis->UpdateVisualModel(sentinelID, ChFrame<>(driver.GetSentinelLocation()));
+        vis->UpdateVisualModel(targetID, ChFrame<>(driver.GetTargetLocation()));
 
         // Render scene and output images
         vis->BeginScene();

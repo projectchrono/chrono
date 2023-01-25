@@ -112,7 +112,7 @@ class ISO3888_Wrapper {
 // =============================================================================
 
 // Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
 VisualizationType chassis_vis_type = VisualizationType::NONE;
@@ -138,6 +138,31 @@ double terrainWidth = 16.0;
 // Simulation step sizes
 double step_size = 1e-3;
 double tire_step_size = 1e-3;
+
+// =============================================================================
+
+void CreateSceneObjects(std::shared_ptr<ChVehicleVisualSystem> vis,
+                        const ISO3888_Wrapper& dlc,
+                        int& sentinelID,
+                        int& targetID) {
+    // Add visualization of controller points (sentinel & target)
+    auto ballS = chrono_types::make_shared<ChSphereShape>(0.1);
+    auto ballT = chrono_types::make_shared<ChSphereShape>(0.1);
+    ballS->SetColor(ChColor(1, 0, 0));
+    ballT->SetColor(ChColor(0, 1, 0));
+    sentinelID = vis->AddVisualModel(ballS, ChFrame<>());
+    targetID = vis->AddVisualModel(ballT, ChFrame<>());
+
+    // Add the road cones
+    ChVector<> cone_offset(0, 0.21, 0);
+    auto cone = chrono_types::make_shared<ChObjFileShape>();
+    cone->SetFilename(GetChronoDataFile("models/traffic_cone/trafficCone750mm.obj"));
+    cone->SetColor(ChColor(0.8f, 0.8f, 0.8f));
+    for (const auto& pos : dlc.GetLeftConePositions())
+        vis->AddVisualModel(cone, ChFrame<>(pos + cone_offset));
+    for (const auto& pos : dlc.GetRightConePositions())
+        vis->AddVisualModel(cone, ChFrame<>(pos - cone_offset));
+}
 
 // =============================================================================
 
@@ -233,6 +258,8 @@ int main(int argc, char* argv[]) {
     // -------------------------------------------
     // Create the run-time visualization interface
     // -------------------------------------------
+    int sentinelID = -1;
+    int targetID = -1;
     std::shared_ptr<ChVehicleVisualSystem> vis;
     switch (vis_type) {
         case ChVisualSystem::Type::IRRLICHT: {
@@ -245,6 +272,7 @@ int main(int argc, char* argv[]) {
             vis_irr->AddSkyBox();
             vis_irr->AddLogo();
             vis_irr->AttachVehicle(&my_hmmwv.GetVehicle());
+            CreateSceneObjects(vis_irr, dlc, sentinelID, targetID);
 
             vis = vis_irr;
 #endif
@@ -256,6 +284,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowTitle(title);
             vis_vsg->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
             vis_vsg->AttachVehicle(&my_hmmwv.GetVehicle());
+            CreateSceneObjects(vis_vsg, dlc, sentinelID, targetID);
             vis_vsg->Initialize();
 
             vis = vis_vsg;
@@ -263,16 +292,6 @@ int main(int argc, char* argv[]) {
             break;
         }
     }
-
-    // Add the road cones
-    ChVector<> cone_offset(0, 0.21, 0);
-    auto cone = chrono_types::make_shared<ChObjFileShape>();
-    cone->SetFilename(GetChronoDataFile("models/traffic_cone/trafficCone750mm.obj"));
-    cone->SetColor(ChColor(0.8f, 0.8f, 0.8f));
-    for (const auto& pos : dlc.GetLeftConePositions())
-        vis->AddVisualModel(cone, ChFrame<>(pos + cone_offset));
-    for (const auto& pos : dlc.GetRightConePositions())
-        vis->AddVisualModel(cone, ChFrame<>(pos - cone_offset));
 
     // ---------------
     // Simulation loop
@@ -341,9 +360,6 @@ int main(int argc, char* argv[]) {
             break;
         }
 
-        vis->BeginScene();
-        vis->Render();
-
         // Driver inputs
         DriverInputs driver_inputs = driver.GetInputs();
 
@@ -351,6 +367,14 @@ int main(int argc, char* argv[]) {
         steer_recorder.AddPoint(time, steer);
         double angspeed = ang_diff.Filter(steer);
         angspeed_recorder.AddPoint(time, angspeed);
+
+        // Update sentinel and target location markers for the path-follower controller.
+        vis->UpdateVisualModel(sentinelID, ChFrame<>(driver.GetSteeringController().GetSentinelLocation()));
+        vis->UpdateVisualModel(targetID, ChFrame<>(driver.GetSteeringController().GetTargetLocation()));
+
+        vis->BeginScene();
+        vis->Render();
+        vis->EndScene();
 
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
@@ -366,8 +390,6 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
-
-        vis->EndScene();
     }
 
 #ifdef CHRONO_POSTPROCESS

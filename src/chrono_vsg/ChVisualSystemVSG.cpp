@@ -362,7 +362,6 @@ ChVisualSystemVSG::ChVisualSystemVSG()
     m_linkScene = vsg::Group::create();
     m_particleScene = vsg::Group::create();
     m_decoScene = vsg::Group::create();
-    m_symbolScene = vsg::Group::create();
     m_deformableScene = vsg::Group::create();
 
     // set up defaults and read command line arguments to override them
@@ -641,7 +640,6 @@ void ChVisualSystemVSG::Initialize() {
     m_scene->addChild(m_linkScene);
     m_scene->addChild(m_particleScene);
     m_scene->addChild(m_decoScene);
-    m_scene->addChild(m_symbolScene);
     m_scene->addChild(m_deformableScene);
 
     BindAll();
@@ -1352,51 +1350,8 @@ void ChVisualSystemVSG::UpdateVisualModel(int id, const ChFrame<>& frame) {
 
 // -----------------------------------------------------------------------------
 
-void ChVisualSystemVSG::SetDecoGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col) {
+void ChVisualSystemVSG::AddGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col) {
     m_decoScene->addChild(m_shapeBuilder->createDecoGrid(ustep, vstep, nu, nv, pos, col));
-}
-
-void ChVisualSystemVSG::SetSystemSymbol(double size) {
-    m_system_symbol_size = vsg::dvec3(size, size, size);
-
-    // Is the symbol already present?
-    vsg::ref_ptr<vsg::MatrixTransform> transform;
-    bool found = false;
-    for (auto child : m_symbolScene->children) {
-        char sType = ' ';
-        if (!child->getValue("SymbolType", sType))
-            continue;
-        if (!child->getValue("TransformPtr", transform))
-            continue;
-        if (sType != 'G')
-            continue;
-        // we only set the size
-        transform->matrix = vsg::translate(m_system_symbol_position) * vsg::scale(m_system_symbol_size);
-        found = true;
-    }
-    if (found)
-        return;
-
-    // Symbol is not found, build it
-    transform = vsg::MatrixTransform::create();
-    transform->matrix = vsg::translate(m_system_symbol_position) * vsg::scale(m_system_symbol_size);
-
-    m_symbolScene->addChild(m_shapeBuilder->createMovingSystemSymbol(transform));
-}
-
-void ChVisualSystemVSG::SetSystemSymbolPosition(ChVector<> pos) {
-    m_system_symbol_position = vsg::dvec3(pos.x(), pos.y(), pos.z());
-    for (auto child : m_symbolScene->children) {
-        vsg::ref_ptr<vsg::MatrixTransform> transform;
-        char sType = ' ';
-        if (!child->getValue("SymbolType", sType))
-            continue;
-        if (!child->getValue("TransformPtr", transform))
-            continue;
-        if (sType != 'G')
-            continue;
-        transform->matrix = vsg::translate(m_system_symbol_position) * vsg::scale(m_system_symbol_size);
-    }
 }
 
 }  // namespace vsg3d

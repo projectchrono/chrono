@@ -132,12 +132,10 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void SetLightDirection(double azimuth, double elevation);
     void SetCameraAngleDeg(double angleDeg) { m_cameraAngleDeg = angleDeg; }
     void SetGuiFontSize(float theSize);
-    void SetDecoGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col);
+    void AddGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col);
     int AddVisualModel(std::shared_ptr<ChVisualModel> model, const ChFrame<>& frame) override;
     int AddVisualModel(std::shared_ptr<ChVisualShape> model, const ChFrame<>& frame) override;
     void UpdateVisualModel(int id, const ChFrame<>& frame) override;
-    void SetSystemSymbol(double size);
-    void SetSystemSymbolPosition(ChVector<> pos);
 
     /// Add a user-defined GUI component.
     /// This function must be called before Initialize().
@@ -173,9 +171,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::Camera> m_vsg_camera;
     bool m_camera_trackball;  ///< create a camera trackball control?
 
-    vsg::dvec3 m_system_symbol_position = vsg::dvec3(0.0, 0.0, 0.0);
-    vsg::dvec3 m_system_symbol_size = vsg::dvec3(1.0, 1.0, 1.0);
-    //
     //  m_scene +- skybox, lights +- m_bodyScene
     //                            |
     //                            +- m_cogScene
@@ -186,23 +181,19 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     //                            |
     //                            +- m_decoScene
     //                            |
-    //                            +- m_symbolScene
-    //                            |
     //                            +- m_deformableScene
     vsg::ref_ptr<vsg::Group> m_scene;
     vsg::ref_ptr<vsg::Group> m_bodyScene;
     vsg::ref_ptr<vsg::Group> m_linkScene;
     vsg::ref_ptr<vsg::Group> m_particleScene;
     vsg::ref_ptr<vsg::Group> m_decoScene;
-    vsg::ref_ptr<vsg::Group> m_symbolScene;
     vsg::ref_ptr<vsg::Group> m_deformableScene;
 
     vsg::ref_ptr<vsg::Switch> m_cogScene;
 
-    vsg::ref_ptr<ShapeBuilder> m_shapeBuilder;
-    vsg::ref_ptr<vsg::Builder> m_vsgBuilder;
-
     vsg::ref_ptr<vsg::Options> m_options;  ///< I/O related options for vsg::read/write calls
+    vsg::ref_ptr<vsg::Builder> m_vsgBuilder;
+    vsg::ref_ptr<ShapeBuilder> m_shapeBuilder;
 
     bool m_wireframe;  ///< draw as wireframes
 

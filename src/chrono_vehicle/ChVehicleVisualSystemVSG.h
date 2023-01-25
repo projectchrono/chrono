@@ -61,21 +61,11 @@ class CH_VEHICLE_API ChVehicleVisualSystemVSG : public ChVehicleVisualSystem, pu
     /// by the specified duration.
     virtual void Advance(double step) override;
 
-    void SetTargetSymbol(double size, ChColor col);
-    void SetTargetSymbolPosition(ChVector<> pos);
-    void SetSentinelSymbol(double size, ChColor col);
-    void SetSentinelSymbolPosition(ChVector<> pos);
-
   protected:
     virtual void AppendGUIStats() {}
 
     ChInteractiveDriverVSG* m_driver;
     bool m_has_TC;
-
-    vsg::dvec3 m_target_symbol_position = vsg::dvec3(0.0, 0.0, 0.0);
-    vsg::dvec3 m_target_symbol_size = vsg::dvec3(1.0, 1.0, 1.0);
-    vsg::dvec3 m_sentinel_symbol_position = vsg::dvec3(0.0, 0.0, 0.0);
-    vsg::dvec3 m_sentinel_symbol_size = vsg::dvec3(1.0, 1.0, 1.0);
 
     friend class ChInteractiveDriverVSG;
     friend class ChVehicleGuiComponentVSG;

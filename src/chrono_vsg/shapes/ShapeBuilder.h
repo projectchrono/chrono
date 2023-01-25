@@ -45,6 +45,7 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
         CONE_SHAPE,
         SURFACE_SHAPE
     } BasicShape;
+
     vsg::ref_ptr<vsg::Options> m_options;
     vsg::ref_ptr<vsg::SharedObjects> m_sharedObjects;
     float m_maxAnisotropy = 0.0f;
@@ -54,6 +55,7 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                          vsg::ref_ptr<vsg::MatrixTransform> transform,
                                          bool drawMode,
                                          std::shared_ptr<ChSurfaceShape> surface = nullptr);
+
     // variant for general use, mesh can have unknown structure and noncontiguous faces
     // face normals will be converted to vertex normals, it will be bloated by additional vertices
     vsg::ref_ptr<vsg::Group> createTrimeshColShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
