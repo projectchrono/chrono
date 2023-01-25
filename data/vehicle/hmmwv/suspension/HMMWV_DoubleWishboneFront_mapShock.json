@@ -48,7 +48,10 @@
 
   "Tierod": {
     "Location Chassis": [ -0.250, 0.448, 0.054 ],
-    "Location Upright": [ -0.176, 0.821, -0.016 ]
+    "Location Upright": [ -0.176, 0.821, -0.016 ],
+    "Mass": 6.0,
+    "Inertia": [ 0.05, 0.05, 0.5 ],
+    "Radius": 0.02 
   },
 
   "Spring": {
