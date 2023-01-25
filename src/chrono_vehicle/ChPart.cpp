@@ -100,6 +100,46 @@ ChMatrix33<> ChPart::TransformInertiaMatrix(
 // class implementation, followed by calls to the various static Export***List
 // functions, as appropriate.
 // -----------------------------------------------------------------------------
+
+rapidjson::Value Vec2Val(const ChVector<>& vec, rapidjson::Document::AllocatorType& allocator) {
+    rapidjson::Value array(rapidjson::kArrayType);
+    array.PushBack(vec.x(), allocator);
+    array.PushBack(vec.y(), allocator);
+    array.PushBack(vec.z(), allocator);
+    return array;
+}
+
+rapidjson::Value Quat2Val(const ChQuaternion<>& q, rapidjson::Document::AllocatorType& allocator) {
+    rapidjson::Value array(rapidjson::kArrayType);
+    array.PushBack(q.e0(), allocator);
+    array.PushBack(q.e1(), allocator);
+    array.PushBack(q.e2(), allocator);
+    array.PushBack(q.e3(), allocator);
+    return array;
+}
+
+rapidjson::Value Csys2Val(const ChCoordsys<>& csys, rapidjson::Document::AllocatorType& allocator) {
+    rapidjson::Value obj(rapidjson::kObjectType);
+    obj.AddMember("pos", Vec2Val(csys.pos, allocator), allocator);
+    obj.AddMember("rot", Quat2Val(csys.rot, allocator), allocator);
+    return obj;
+}
+
+rapidjson::Value Mat2Val(const ChMatrixNM<double, 6, 6>& mat, rapidjson::Document::AllocatorType& allocator) {
+    rapidjson::Value rows(rapidjson::kArrayType);
+    for (int i = 0; i < 6; i++) {
+        rapidjson::Value column(rapidjson::kArrayType);
+        column.PushBack(mat(i, 0), allocator);
+        column.PushBack(mat(i, 1), allocator);
+        column.PushBack(mat(i, 2), allocator);
+        column.PushBack(mat(i, 3), allocator);
+        column.PushBack(mat(i, 4), allocator);
+        column.PushBack(mat(i, 5), allocator);
+        rows.PushBack(column, allocator);
+    }
+    return rows;
+}
+
 void ChPart::ExportComponentList(rapidjson::Document& jsonDocument) const {
     std::string template_name = GetTemplateName();
     jsonDocument.AddMember("name", rapidjson::StringRef(m_name.c_str()), jsonDocument.GetAllocator());
@@ -117,6 +157,9 @@ void ChPart::ExportBodyList(rapidjson::Document& jsonDocument, std::vector<std::
         obj.SetObject();
         obj.AddMember("name", rapidjson::StringRef(body->GetName()), allocator);
         obj.AddMember("id", body->GetIdentifier(), allocator);
+        obj.AddMember("mass", body->GetMass(), allocator);
+        obj.AddMember("moments of inertia", Vec2Val(body->GetInertiaXX(), allocator), allocator);
+        obj.AddMember("products of inertia", Vec2Val(body->GetInertiaXY(), allocator), allocator);
         jsonArray.PushBack(obj, allocator);
     }
     jsonDocument.AddMember("bodies", jsonArray, allocator);
@@ -131,6 +174,7 @@ void ChPart::ExportShaftList(rapidjson::Document& jsonDocument, std::vector<std:
         obj.SetObject();
         obj.AddMember("name", rapidjson::StringRef(shaft->GetName()), allocator);
         obj.AddMember("id", shaft->GetIdentifier(), allocator);
+        obj.AddMember("inertia", shaft->GetInertia(), allocator);
         jsonArray.PushBack(obj, allocator);
     }
     jsonDocument.AddMember("shafts", jsonArray, allocator);
@@ -152,6 +196,7 @@ void ChPart::ExportJointList(rapidjson::Document& jsonDocument, std::vector<std:
         obj.AddMember("body2 name", rapidjson::StringRef(body2->GetName()), allocator);
         obj.AddMember("body1 id", body1->GetIdentifier(), allocator);
         obj.AddMember("body2 id", body2->GetIdentifier(), allocator);
+        obj.AddMember("relative link coordinates", Csys2Val(joint->GetLinkRelativeCoords(), allocator), allocator);
         jsonArray.PushBack(obj, allocator);
     }
     jsonDocument.AddMember("joints", jsonArray, allocator);
@@ -187,6 +232,7 @@ void ChPart::ExportMarkerList(rapidjson::Document& jsonDocument, std::vector<std
         obj.AddMember("id", marker->GetIdentifier(), allocator);
         obj.AddMember("body name", rapidjson::StringRef(marker->GetBody()->GetName()), allocator);
         obj.AddMember("body id", marker->GetBody()->GetIdentifier(), allocator);
+        obj.AddMember("relative coordinates", Csys2Val(marker->GetCoord(), allocator), allocator);
         jsonArray.PushBack(obj, allocator);
     }
     jsonDocument.AddMember("markers", jsonArray, allocator);
@@ -208,6 +254,13 @@ void ChPart::ExportLinSpringList(rapidjson::Document& jsonDocument, std::vector<
         obj.AddMember("body2 name", rapidjson::StringRef(body2->GetName()), allocator);
         obj.AddMember("body1 id", body1->GetIdentifier(), allocator);
         obj.AddMember("body2 id", body2->GetIdentifier(), allocator);
+        obj.AddMember("has functor", spring->GetForceFunctor() != nullptr, allocator);
+        if (!spring->GetForceFunctor()) {
+            obj.AddMember("spring coefficient", spring->GetSpringCoefficient(), allocator);
+            obj.AddMember("damping coefficient", spring->GetDampingCoefficient(), allocator);
+            obj.AddMember("pre-load", spring->GetActuatorForce(), allocator);
+        }
+        obj.AddMember("rest length", spring->GetRestLength(), allocator);
         jsonArray.PushBack(obj, allocator);
     }
     jsonDocument.AddMember("linear spring-dampers", jsonArray, allocator);
@@ -229,6 +282,13 @@ void ChPart::ExportRotSpringList(rapidjson::Document& jsonDocument, std::vector<
         obj.AddMember("body2 name", rapidjson::StringRef(body2->GetName()), allocator);
         obj.AddMember("body1 id", body1->GetIdentifier(), allocator);
         obj.AddMember("body2 id", body2->GetIdentifier(), allocator);
+        obj.AddMember("has functor", spring->GetTorqueFunctor() != nullptr, allocator);
+        if (!spring->GetTorqueFunctor()) {
+            obj.AddMember("spring coefficient", spring->GetSpringCoefficient(), allocator);
+            obj.AddMember("damping coefficient", spring->GetDampingCoefficient(), allocator);
+            obj.AddMember("pre-load", spring->GetActuatorTorque(), allocator);
+        }
+        obj.AddMember("rest length", spring->GetRestAngle(), allocator);
         jsonArray.PushBack(obj, allocator);
     }
     jsonDocument.AddMember("rotational spring-dampers", jsonArray, allocator);
@@ -247,9 +307,13 @@ void ChPart::ExportBodyLoadList(rapidjson::Document& jsonDocument, std::vector<s
         obj.AddMember("body2 name", rapidjson::StringRef(load->GetBodyB()->GetName()), allocator);
         obj.AddMember("body1 id", load->GetBodyA()->GetIdentifier(), allocator);
         obj.AddMember("body2 id", load->GetBodyB()->GetIdentifier(), allocator);
+        if (auto bushing = std::dynamic_pointer_cast<ChLoadBodyBodyBushingGeneric>(load)) {
+            obj.AddMember("stiffness matrix", Mat2Val(bushing->GetStiffnessMatrix(), allocator), allocator);
+            obj.AddMember("damping matrix", Mat2Val(bushing->GetDampingMatrix(), allocator), allocator);
+        }
         jsonArray.PushBack(obj, allocator);
     }
-    jsonDocument.AddMember("body-body loads", jsonArray, allocator);
+    jsonDocument.AddMember("bushings", jsonArray, allocator);
 }
 
 void ChPart::RemoveVisualizationAssets(std::shared_ptr<ChPhysicsItem> item) {
