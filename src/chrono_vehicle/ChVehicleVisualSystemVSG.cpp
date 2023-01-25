@@ -139,16 +139,16 @@ class ChVehicleKeyboardHandlerVSG : public vsg::Inherit<vsg::Visitor, ChVehicleK
                 m_app->m_camera->Turn(1);
                 break;
             case vsg::KEY_Down:
-                m_app->m_camera->Zoom(-1);
+                m_app->m_camera->Zoom(+1);
                 break;
             case vsg::KEY_Up:
-                m_app->m_camera->Zoom(1);
+                m_app->m_camera->Zoom(-1);
                 break;
             case vsg::KEY_Prior:
-                m_app->m_camera->Raise(1);
+                m_app->m_camera->Raise(-1);
                 return;
             case vsg::KEY_Next:
-                m_app->m_camera->Raise(-1);
+                m_app->m_camera->Raise(+1);
                 return;
             case vsg::KEY_a:
                 if (m_app->m_driver)
