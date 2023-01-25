@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->AttachVehicle(&hmmwv_1.GetVehicle());
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);
-            vis_vsg->SetLightIntensity(1.0);
+            vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
             vis_vsg->Initialize();
 

@@ -171,7 +171,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
             vis_vsg->AddCamera(ChVector<>(0, 14, -20));
             vis_vsg->SetCameraAngleDeg(40.0);
-            vis_vsg->SetLightIntensity(1.0);
+            vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
             vis_vsg->SetWireFrameMode(false);
             vis_vsg->Initialize();

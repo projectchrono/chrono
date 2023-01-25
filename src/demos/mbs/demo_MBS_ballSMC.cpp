@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
             vis_vsg->SetCameraAngleDeg(40.0);
-            vis_vsg->SetLightIntensity(1.0);
+            vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
             vis_vsg->SetWireFrameMode(false);
             vis_vsg->SetDecoGrid(0.2, 0.2, 20, 20, ChCoordsys<>(ChVector<>(0, 0.11, 0), Q_from_AngX(CH_C_PI_2)),

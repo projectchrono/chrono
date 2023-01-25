@@ -261,7 +261,7 @@ int main(int argc, char* argv[]) {
     vis->SetUseSkyBox(true);
     vis->AddCamera(ChVector<>(-8, 8, -16));
     vis->SetCameraAngleDeg(40);
-    vis->SetLightIntensity(1.0);
+    vis->SetLightIntensity(1.0f);
     vis->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
     vis->SetDecoGrid(0.5, 0.5, 12, 12, ChCoordsys<>(ChVector<>(0, -0.49, 0), Q_from_AngX(CH_C_PI_2)),
                      ChColor(0.31f, 0.43f, 0.43f));

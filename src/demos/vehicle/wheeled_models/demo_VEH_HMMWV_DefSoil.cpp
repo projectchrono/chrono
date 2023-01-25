@@ -300,7 +300,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowPosition(ChVector2<int>(100, 100));
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);
-            vis_vsg->SetLightIntensity(1.0);
+            vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetChaseCamera(trackPoint, 10.0, 0.5);
             vis_vsg->AttachVehicle(&my_hmmwv.GetVehicle());
             ////vis_vsg->SetSystemSymbol(1.0);

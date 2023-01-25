@@ -359,7 +359,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColShape(vsg::ref_ptr<vsg::M
 
     // set up pass of material
     auto phongMat = vsg::PhongMaterialValue::create();
-    phongMat->value().ambient = vsg::vec4(0.2, 0.2, 0.2, 1.0);
+    phongMat->value().ambient = vsg::vec4(0.2f, 0.2f, 0.2f, 1.0f);
     // set transparency, if needed
     vsg::ColorBlendState::ColorBlendAttachments colorBlendAttachments;
     VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
@@ -533,7 +533,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColShapeSCM(vsg::ref_ptr<vsg
 
     // set up pass of material
     auto phongMat = vsg::PhongMaterialValue::create();
-    phongMat->value().ambient = vsg::vec4(0.2, 0.2, 0.2, 1.0);
+    phongMat->value().ambient = vsg::vec4(0.2f, 0.2f, 0.2f, 1.0f);
     // set transparency, if needed
     vsg::ColorBlendState::ColorBlendAttachments colorBlendAttachments;
     VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
@@ -1460,8 +1460,8 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createCoGSymbol(std::shared_ptr<ChBody> b
                                                        vsg::ref_ptr<vsg::MatrixTransform> transform) {
     auto scenegraph = vsg::Group::create();
     // store some information for easier update
-    scenegraph->setValue("BodyPtr", body);
-    scenegraph->setValue("TransformPtr", transform);
+    scenegraph->setValue("Body", body);
+    scenegraph->setValue("Transform", transform);
 
     vsg::ref_ptr<vsg::ShaderStage> vertexShader = lineShader_vert();
     vsg::ref_ptr<vsg::ShaderStage> fragmentShader = lineShader_frag();

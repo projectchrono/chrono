@@ -128,8 +128,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Set the target (look-at) point of the current (active) camera.
     virtual void SetCameraTarget(const ChVector<>& target) override;
 
-    void SetLightIntensity(double intensity) { m_lightIntensity = ChClamp(intensity, 0.0, 1.0); }
-    void SetLightDirection(double acimut, double elevation);
+    void SetLightIntensity(float intensity);
+    void SetLightDirection(double azimuth, double elevation);
     void SetCameraAngleDeg(double angleDeg) { m_cameraAngleDeg = angleDeg; }
     void SetGuiFontSize(float theSize);
     void SetDecoGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col);
@@ -246,13 +246,12 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     bool m_yup;
     double m_cameraAngleDeg = 30.0;
 
-    double m_lightIntensity = 1.0;
+    double m_lightIntensity = 1.0f;
     double m_elevation = 0;
-    double m_acimut = 0;
-    // bool m_do_image_export = false;
+    double m_azimuth = 0;
     float m_guiFontSize = 20.0f;
 
-    bool m_show_cog;     ///< flag to toggle COG vidibility
+    bool m_show_cog;     ///< flag to toggle COG visibility
     double m_cog_scale;  ///< current COG frame scale
 
     unsigned int m_frame_number;  ///< current number of rendered frames
