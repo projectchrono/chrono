@@ -161,21 +161,16 @@ int main(int argc, char* argv[]) {
     body->AddVisualShape(mesh, ChFrame<>(ChVector<>(2, 1, 2), QUNIT));
 
     // ==Asset== Attach a 'Wavefront mesh' asset, referencing a .obj file and offset it.
-    // only the first call of a destinct filename loads from disc,
-    // following calls read from cash and only the ChFrame<> is changed
-    // Only the first call of a distinct filename loads from disc,
-    // following calls read from cache and only the ChFrame<> is changed
+    // Only the first call of a distinct filename loads from disc; subsequent uses of the same model file read from a cache.
     auto objmesh = chrono_types::make_shared<ChObjFileShape>();
     objmesh->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
 
-    body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(0, 0.0, 2), Q_from_AngX(-CH_C_PI_2)));
-    body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(3, 0.0, 2.5), Q_from_AngX(-CH_C_PI_2)));
-    body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(5, 0.0, 3), Q_from_AngX(-CH_C_PI_2)));
-    body->AddVisualShape(objmesh,
-                         ChFrame<>(ChVector<>(4, 0.0, -3), Q_from_AngY(0.5 * CH_C_PI) * Q_from_AngX(-CH_C_PI_2)));
-    body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(0, 0.0, -5), Q_from_AngY(CH_C_PI) * Q_from_AngX(-CH_C_PI_2)));
-    body->AddVisualShape(objmesh,
-                         ChFrame<>(ChVector<>(-4, 0.0, -6), Q_from_AngY(-CH_C_PI_4) * Q_from_AngX(-CH_C_PI_2)));
+    body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(0, 0.0, 2)));
+    body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(3, 0.0, 2.5)));
+    body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(5, 0.0, 3)));
+    body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(4, 0.0, -3), Q_from_AngY(0.5 * CH_C_PI)));
+    body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(0, 0.0, -5), Q_from_AngY(CH_C_PI)));
+    body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(-4, 0.0, -6), Q_from_AngY(-CH_C_PI_4)));
 
     // ==Asset== Attach an array of boxes, each rotated to make a spiral
     for (int j = 0; j < 20; j++) {
@@ -267,20 +262,20 @@ int main(int argc, char* argv[]) {
                  ChColor(0.31f, 0.43f, 0.43f));
 
     // add scenery objects, not bound to bodies
-    auto flipZ = Q_from_AngX(CH_C_PI);
+    auto Zup = Q_from_AngX(-CH_C_PI_2);
 
     auto sceneMesh1 = chrono_types::make_shared<ChObjFileShape>();
     sceneMesh1->SetFilename(GetChronoDataFile("models/red_teapot.obj"));
-    int teapotId1 = vis->AddVisualModel(sceneMesh1, ChFrame<>(ChVector<>(0, 3.5, 3), flipZ));
+    int teapotId1 = vis->AddVisualModel(sceneMesh1, ChFrame<>(ChVector<>(0, 3.5, 3), Zup));
     if (teapotId1 == -1)
         GetLog() << "Could not get teapot!\n";
-    int teapotId2 = vis->AddVisualModel(sceneMesh1, ChFrame<>(ChVector<>(-5, 3.5, 3), flipZ));
+    int teapotId2 = vis->AddVisualModel(sceneMesh1, ChFrame<>(ChVector<>(-5, 3.5, 3), Zup));
     if (teapotId2 == -1)
         GetLog() << "Could not get teapot!\n";
 
     auto sceneMesh2 = chrono_types::make_shared<ChObjFileShape>();
     sceneMesh2->SetFilename(GetChronoDataFile("models/bunny.glb"));
-    int bunndyId = vis->AddVisualModel(sceneMesh2, ChFrame<>(ChVector<>(-5, 0, 5), Q_from_AngX(-CH_C_PI_2)));
+    int bunndyId = vis->AddVisualModel(sceneMesh2, ChFrame<>(ChVector<>(-5, 0, 5)));
     if (bunndyId == -1)
         GetLog() << "Could not get bunny!\n";
 
@@ -332,10 +327,10 @@ int main(int argc, char* argv[]) {
             vis->WriteImageToFile("newshot.png");  // does not work with frame == 0!
         }
 
-        vis->UpdateVisualModel(teapotId1, ChFrame(ChVector<>(0, 3.5 + 0.5 * sin(CH_C_PI * time / 10), 3), flipZ));
-        vis->UpdateVisualModel(teapotId2, ChFrame(ChVector<>(-5, 3.5, 3), flipZ * Q_from_AngY(time / 20)));
+        vis->UpdateVisualModel(teapotId1, ChFrame(ChVector<>(0, 3.5 + 0.5 * sin(CH_C_PI * time / 10), 3), Zup));
+        vis->UpdateVisualModel(teapotId2, ChFrame(ChVector<>(-5, 3.5, 3), Zup * Q_from_AngY(time / 20)));
         vis->UpdateVisualModel(boxId, ChFrame(ChVector<>(0, 0.01 * time, 0), QUNIT));
-        vis->UpdateVisualModel(ellId, ChFrame(ellPos, flipZ * Q_from_AngY(0.2 * time) * Q_from_AngZ(0.1 * time)));
+        vis->UpdateVisualModel(ellId, ChFrame(ellPos, Zup * Q_from_AngY(0.2 * time) * Q_from_AngZ(0.1 * time)));
 
         if (time < 10.0)
             vis->UpdateVisualModel(sphereId, ChFrame(ChVector<>(6, 0, 6), QUNIT));

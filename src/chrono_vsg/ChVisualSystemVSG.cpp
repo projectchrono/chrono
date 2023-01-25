@@ -980,7 +980,7 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
             grp->setValue("ItemPtr", phitem);
             grp->setValue("ShapeInstancePtr", shape_instance);
             grp->setValue("TransformPtr", transform);
-            transform->matrix = vsg::dmat4CH(X_SM, 1.0);
+            transform->matrix = vsg::dmat4CH(ChFrame<>(X_SM.GetPos(), X_SM.GetRot() * Q_from_AngX(-CH_C_PI_2)), 1.0);
             grp->addChild(transform);
             // needed, when BindAll() is called after Initialization
             // vsg::observer_ptr<vsg::Viewer> observer_viewer(m_viewer);
