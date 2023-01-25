@@ -126,16 +126,19 @@ class ChVehicleKeyboardHandlerVSG : public vsg::Inherit<vsg::Visitor, ChVehicleK
         // keyboard events for camera steering
         switch (keyPress.keyModified) {
             case vsg::KEY_Down:
+            case 63233: // Mac Hack
                 m_app->m_camera->Zoom(1);
                 return;
             case vsg::KEY_Up:
+            case 63232: // Mac hack
                 m_app->m_camera->Zoom(-1);
                 return;
             case vsg::KEY_Left:
+            case 63234: // Mac hack
                 m_app->m_camera->Turn(-1);
                 return;
             case vsg::KEY_Right:  // not recognized on the Mac
-            case 94:              // Mac hack
+            case 63235:           // Mac hack
                 m_app->m_camera->Turn(1);
                 return;
             case vsg::KEY_Next:
