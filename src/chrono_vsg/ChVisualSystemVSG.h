@@ -152,7 +152,10 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     bool IsGuiVisible() const { return m_show_gui; }
 
   protected:
-    virtual void UpdateFromMBS();
+    /// Perform necessary setup operations at the beginning of a time step.
+    virtual void OnSetup(ChSystem* sys) override;
+
+    void UpdateFromMBS();
 
     bool m_initialized = false;
     int m_screen_num = -1;

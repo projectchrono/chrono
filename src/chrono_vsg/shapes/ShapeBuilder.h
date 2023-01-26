@@ -74,35 +74,27 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
 
     vsg::ref_ptr<vsg::Group> createParticlePattern(std::shared_ptr<ChVisualMaterial> material, bool drawMode);
 
-    vsg::ref_ptr<vsg::Group> createLineShape(std::shared_ptr<ChPhysicsItem> physItem,
-                                             ChVisualModel::ShapeInstance shapeInstance,
+    vsg::ref_ptr<vsg::Group> createCoGSymbol(vsg::ref_ptr<vsg::MatrixTransform> transform);
+
+    vsg::ref_ptr<vsg::Group> createLineShape(ChVisualModel::ShapeInstance shapeInstance,
                                              std::shared_ptr<ChVisualMaterial> material,
                                              vsg::ref_ptr<vsg::MatrixTransform> transform,
                                              std::shared_ptr<ChLineShape> ls);
+    vsg::ref_ptr<vsg::Group> createPathShape(ChVisualModel::ShapeInstance shapeInstance,
+                                             std::shared_ptr<ChVisualMaterial> material,
+                                             vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                             std::shared_ptr<ChPathShape> ps);
 
-    vsg::ref_ptr<vsg::Group> createSpringShape(std::shared_ptr<ChLinkBase> linkItem,
+    vsg::ref_ptr<vsg::Group> createSpringShape(std::shared_ptr<ChLinkBase> link,
                                                ChVisualModel::ShapeInstance shapeInstance,
                                                std::shared_ptr<ChVisualMaterial> material,
                                                vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                std::shared_ptr<ChSpringShape> ss);
 
-    vsg::ref_ptr<vsg::Group> createUnitSegment(std::shared_ptr<ChLinkBase> linkItem,
+    vsg::ref_ptr<vsg::Group> createUnitSegment(std::shared_ptr<ChLinkBase> link,
                                                ChVisualModel::ShapeInstance shapeInstance,
                                                std::shared_ptr<ChVisualMaterial> material,
                                                vsg::ref_ptr<vsg::MatrixTransform> transform);
-
-    vsg::ref_ptr<vsg::Group> createPathShape(std::shared_ptr<ChPhysicsItem> physItem,
-                                             ChVisualModel::ShapeInstance shapeInstance,
-                                             std::shared_ptr<ChVisualMaterial> material,
-                                             vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                             std::shared_ptr<ChPathShape> ps);
-
-    vsg::ref_ptr<vsg::Group> createCoGSymbol(std::shared_ptr<ChBody> body,
-                                             vsg::ref_ptr<vsg::MatrixTransform> transform);
-
-    vsg::ref_ptr<vsg::Group> createMovingSystemSymbol(vsg::ref_ptr<vsg::MatrixTransform> transform);
-
-    vsg::ref_ptr<vsg::Group> createMovingTargetSymbol(vsg::ref_ptr<vsg::MatrixTransform> transform);
 
     vsg::ref_ptr<vsg::Group> createDecoGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col);
 

@@ -977,9 +977,6 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
             size_t objHashValue = m_stringHash(objFilename);
             auto grp = vsg::Group::create();
             auto transform = vsg::MatrixTransform::create();
-            grp->setValue("ItemPtr", phitem);
-            grp->setValue("ShapeInstancePtr", shape_instance);
-            grp->setValue("TransformPtr", transform);
             transform->matrix = vsg::dmat4CH(ChFrame<>(X_SM.GetPos(), X_SM.GetRot() * Q_from_AngX(-CH_C_PI_2)), 1.0);
             grp->addChild(transform);
             // needed, when BindAll() is called after Initialization
@@ -1001,11 +998,11 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
         } else if (auto line = std::dynamic_pointer_cast<ChLineShape>(shape)) {
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, 1.0);
-            group->addChild(m_shapeBuilder->createLineShape(phitem, shape_instance, material, transform, line));
+            group->addChild(m_shapeBuilder->createLineShape(shape_instance, material, transform, line));
         } else if (auto path = std::dynamic_pointer_cast<ChPathShape>(shape)) {
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, 1.0);
-            group->addChild(m_shapeBuilder->createPathShape(phitem, shape_instance, material, transform, path));
+            group->addChild(m_shapeBuilder->createPathShape(shape_instance, material, transform, path));
         } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
             double rad = cylinder->GetCylinderGeometry().rad;
             const auto& P1 = cylinder->GetCylinderGeometry().p1;
@@ -1046,7 +1043,9 @@ void ChVisualSystemVSG::BindAll() {
         auto cog_transform = vsg::MatrixTransform::create();
         cog_transform->matrix = vsg::dmat4CH(body->GetFrame_COG_to_abs(), m_cog_scale);
         vsg::Mask mask = m_show_cog;
-        auto cog_node = m_shapeBuilder->createCoGSymbol(body, cog_transform);
+        auto cog_node = m_shapeBuilder->createCoGSymbol(cog_transform);
+        cog_node->setValue("Body", body);
+        cog_node->setValue("Transform", cog_transform);
         m_cogScene->addChild(mask, cog_node);
 
         const auto& vis_model = body->GetVisualModel();
@@ -1103,7 +1102,7 @@ void ChVisualSystemVSG::BindAll() {
                 transform->matrix = vsg::dmat4CH(ChFrame<>(pcloud->GetVisualModelFrame(i).GetPos()), size[0]);
                 transform->addChild(m_particlePattern);
                 auto group = vsg::Group::create();
-                group->setValue("TransformPtr", transform);
+                group->setValue("Transform", transform);
                 group->addChild(transform);
                 m_particleScene->addChild(group);
                 // m_particleScene->addChild(
@@ -1250,7 +1249,7 @@ void ChVisualSystemVSG::UpdateFromMBS() {
             unsigned int idx = 0;
             for (auto child : m_particleScene->children) {
                 vsg::ref_ptr<vsg::MatrixTransform> transform;
-                if (!child->getValue("TransformPtr", transform))
+                if (!child->getValue("Transform", transform))
                     continue;
                 transform->matrix = vsg::dmat4CH(ChFrame<>(pcloud->GetVisualModelFrame(idx).GetPos()), size[0]);
                 idx++;
@@ -1263,11 +1262,11 @@ void ChVisualSystemVSG::UpdateFromMBS() {
         std::shared_ptr<ChLinkBase> link;
         ChVisualModel::ShapeInstance shapeInstance;
         vsg::ref_ptr<vsg::MatrixTransform> transform;
-        if (!child->getValue("LinkPtr", link))
+        if (!child->getValue("Link", link))
             continue;
-        if (!child->getValue("ShapeInstancePtr", shapeInstance))
+        if (!child->getValue("ShapeInstance", shapeInstance))
             continue;
-        if (!child->getValue("TransformPtr", transform))
+        if (!child->getValue("Transform", transform))
             continue;
 
         if (!link->GetVisualModel())
@@ -1294,6 +1293,11 @@ void ChVisualSystemVSG::UpdateFromMBS() {
             }
         }
     }
+}
+
+void ChVisualSystemVSG::OnSetup(ChSystem* sys) {
+    //// RADU TODO
+    ////    delete VSG elements associated with physics items no longer present in the system
 }
 
 int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualModel> model, const ChFrame<>& frame) {
