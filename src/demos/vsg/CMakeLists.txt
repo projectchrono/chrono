@@ -5,6 +5,7 @@ set(DEMOS
     demo_VSG_assets
     demo_VSG_paths
     demo_VSG_shapes
+    demo_VSG_helmet
     demo_VSG_vehicles
 )
 

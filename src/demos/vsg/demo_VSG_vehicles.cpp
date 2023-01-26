@@ -18,7 +18,6 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/assets/ChObjFileShape.h"
 #include "chrono_vsg/ChVisualSystemVSG.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
