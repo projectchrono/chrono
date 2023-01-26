@@ -170,6 +170,14 @@ void ChVehicle::Advance(double step) {
     m_sim_timer.start();
 }
 
+double ChVehicle::GetRTF() const {
+    if (m_ownsSystem)
+        return m_RTF;
+    if (m_system)
+        return m_system->GetRTF();
+    return 0;
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChVehicle::SetChassisVisualizationType(VisualizationType vis) {

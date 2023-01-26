@@ -137,7 +137,7 @@ class CH_VEHICLE_API ChVehicle {
 
     /// Get current estimated RTF (real time factor).
     /// Note that the "true" RTF is returned, even if soft real-time is enforced.
-    double GetRTF() const { return m_RTF; }
+    double GetRTF() const;
 
     /// Change the default collision detection system.
     /// Note that this function should be called *before* initialization of the vehicle system in order to create

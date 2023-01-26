@@ -381,7 +381,7 @@ int main(int argc, char* argv[]) {
         vis->Synchronize("", driver_inputs);
 
         // Advance dynamics
-        system->DoStepDynamics(step_size);
+        my_hmmwv.Advance(step_size);
         vis->Advance(step_size);
 
         // Increment frame number
