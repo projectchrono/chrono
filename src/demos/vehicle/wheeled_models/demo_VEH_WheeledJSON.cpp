@@ -61,16 +61,17 @@ class HMMWV_Model : public Vehicle_Model {
   public:
     virtual std::string ModelName() const override { return "HMMWV"; }
     virtual std::string VehicleJSON() const override {
-        return "hmmwv/vehicle/HMMWV_Vehicle.json";
+        return "hmmwv/vehicle/HMMWV_Vehicle_mapShock.json";
+        ////return "hmmwv/vehicle/HMMWV_Vehicle.json";
         ////return "hmmwv/vehicle/HMMWV_Vehicle_bushings.json";
         ////return "hmmwv/vehicle/HMMWV_Vehicle_4WD.json";
     }
     virtual std::string TireJSON() const override {
         ////return "hmmwv/tire/HMMWV_RigidTire.json";
         ////return "hmmwv/tire/HMMWV_FialaTire.json";
-        ////return "hmmwv/tire/HMMWV_TMeasyTire.json";
+        return "hmmwv/tire/HMMWV_TMeasyTire.json";
         ////return "hmmwv/tire/HMMWV_Pac89Tire.json";
-        return "hmmwv/tire/HMMWV_Pac02Tire.json";
+        ////return "hmmwv/tire/HMMWV_Pac02Tire.json";
     }
     virtual std::string PowertrainJSON() const override {
         return "hmmwv/powertrain/HMMWV_ShaftsPowertrain.json";

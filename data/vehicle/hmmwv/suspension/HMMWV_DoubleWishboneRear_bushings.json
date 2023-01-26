@@ -9,27 +9,27 @@
     "Toe Angle (deg)": 0,
 
     "Spindle": {
-        "Mass": 15.91,
+        "Mass": 14.705,
         "COM": [ 0.036, 0.910, -0.026 ],
-        "Inertia": [ 2, 4, 2 ],
+        "Inertia": [ 0.04117, 0.07352, 0.04117 ],
         "Radius": 0.15,
         "Width": 0.06
     },
 
     "Upright": {
-        "Mass": 27.27,
+        "Mass": 19.450,
         "COM": [ 0.036, 0.751, -0.026 ],
-        "Moments of Inertia": [ 5, 5, 5 ],
+        "Moments of Inertia": [ 0.1656, 0.1934, 0.04367],
         "Products of Inertia": [ 0, 0, 0 ],
-        "Radius": 0.025
+        "Radius": 0.04
     },
 
     // If bushing data is defined, use bushings for connectino to chassis.
     // Otherwise, use revolute joints.
     "Upper Control Arm": {
-        "Mass": 5.45,
+        "Mass": 5.813,
         "COM": [ 0.124, 0.589, 0.221 ],
-        "Moments of Inertia": [ 2, 2, 2 ],
+        "Moments of Inertia": [ 0.03, 0.03, 0.06276 ],
         "Products of Inertia": [ 0, 0, 0 ],
         "Radius": 0.02,
         "Location Upright": [ 0.036, 0.716, 0.216 ],
@@ -52,9 +52,9 @@
     // If bushing data is defined, use bushings for connectino to chassis.
     // Otherwise, use revolute joints.
     "Lower Control Arm": {
-        "Mass": 16.36,
+        "Mass": 23.965,
         "COM": [ 0.000, 0.547, -0.059 ],
-        "Moments of Inertia": [ 3, 3, 3 ],
+        "Moments of Inertia": [ 0.4, 0.4, 0.8938 ],
         "Products of Inertia": [ 0, 0, 0 ],
         "Radius": 0.03,
         "Location Upright": [ 0.036, 0.787, -0.118 ],
