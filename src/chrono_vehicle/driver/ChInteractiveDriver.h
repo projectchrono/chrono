@@ -65,9 +65,6 @@ class CH_VEHICLE_API ChInteractiveDriver : public ChDriver {
     /// Set the current functioning mode.
     void SetInputMode(InputMode mode);
 
-    /// Return the current functioning mode as a string.
-    std::string GetInputModeAsString() const;
-
     /// Set the increment in throttle input for each recorded keypress (default 1/50).
     void SetThrottleDelta(double delta);
 

@@ -348,7 +348,7 @@ int main(int argc, char* argv[]) {
         rig->Advance(step_size);
 
         // Update visualization app
-        vis->Synchronize(rig->GetDriverMessage(), { 0, rig->GetThrottleInput(), 0 });
+        vis->Synchronize(rig->GetChTime(), { 0, rig->GetThrottleInput(), 0 });
         vis->Advance(step_size);
 
         // Parse all contacts in system

@@ -408,7 +408,7 @@ int main(int argc, char* argv[]) {
         if (add_trailer)
             trailer->Synchronize(time, driver_inputs, terrain);
         terrain.Synchronize(time);
-        vis->Synchronize(vehicle_model.ModelName(), driver_inputs);
+        vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver->Advance(step_size);

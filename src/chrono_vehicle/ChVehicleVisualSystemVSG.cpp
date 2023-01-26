@@ -231,11 +231,6 @@ void ChVehicleGuiComponentVSG::render() {
         ImGui::Text("Camera State:");
         ImGui::TableNextColumn();
         ImGui::Text(m_app->GetChaseCamera().GetStateName().c_str());
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::Text("Input Mode:");
-        ImGui::TableNextColumn();
-        ImGui::Text(m_app->GetDriverMsg().c_str());
         ImGui::EndTable();
     }
 

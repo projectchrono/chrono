@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
 
     terrain.Initialize();
 
-    ////auto truss_mesh = chrono_types::make_shared<ChObjFileShape>();
+    ////auto truss_mesh = chrono_types::make_shared<ChModelFileShape>();
     ////truss_mesh->SetFilename(GetChronoDataFile("vehicle/gator/gator_chassis.obj"));
     ////patch->GetGroundBody()->AddVisualShape(truss_mesh, ChFrame<>(ChVector<>(-10, -2, 3)));
 
@@ -272,7 +272,7 @@ int main(int argc, char* argv[]) {
         driver->Synchronize(time);
         terrain.Synchronize(time);
         gator.Synchronize(time, driver_inputs, terrain);
-        vis->Synchronize("", driver_inputs);
+        vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver->Advance(step_size);

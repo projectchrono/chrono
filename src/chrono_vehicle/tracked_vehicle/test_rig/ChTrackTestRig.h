@@ -147,7 +147,6 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
 
     double GetThrottleInput() const { return m_throttle_input; }
     double GetDisplacementInput(int index) { return m_displ_input[index]; }
-    std::string GetDriverMessage() const { return m_driver->GetInfoMessage(); }
 
     double GetActuatorDisp(int index);
     double GetActuatorForce(int index);

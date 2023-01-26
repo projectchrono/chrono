@@ -414,7 +414,7 @@ int main(int argc, char* argv[]) {
         terrain.Synchronize(time);
         vehicle.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
 #ifdef USE_IRRLICHT
-        vis->Synchronize("", driver_inputs);
+        vis->Synchronize(time, driver_inputs);
 #endif
 
         // Advance simulation for one timestep for all modules

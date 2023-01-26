@@ -155,7 +155,7 @@ void CreateSceneObjects(std::shared_ptr<ChVehicleVisualSystem> vis,
 
     // Add the road cones
     ChVector<> cone_offset(0, 0.21, 0);
-    auto cone = chrono_types::make_shared<ChObjFileShape>();
+    auto cone = chrono_types::make_shared<ChModelFileShape>();
     cone->SetFilename(GetChronoDataFile("models/traffic_cone/trafficCone750mm.obj"));
     cone->SetColor(ChColor(0.8f, 0.8f, 0.8f));
     for (const auto& pos : dlc.GetLeftConePositions())
@@ -380,7 +380,7 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         my_hmmwv.Synchronize(time, driver_inputs, terrain);
-        vis->Synchronize("Double lane change test", driver_inputs);
+        vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);

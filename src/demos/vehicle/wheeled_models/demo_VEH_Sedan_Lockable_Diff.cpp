@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
         // Synchronize subsystems
         terrain.Synchronize(time);
         my_sedan.Synchronize(time, driver_inputs, terrain);
-        vis->Synchronize("", driver_inputs);
+        vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for all subsystems
         terrain.Advance(step_size);

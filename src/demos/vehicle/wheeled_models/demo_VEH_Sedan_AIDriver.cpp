@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
         DriverInputs driver_inputs = driver.GetInputs();
         terrain.Synchronize(time);
         my_sedan.Synchronize(time, driver_inputs, terrain);
-        vis->Synchronize("", driver_inputs);
+        vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);

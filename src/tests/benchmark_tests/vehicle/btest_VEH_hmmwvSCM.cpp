@@ -216,7 +216,7 @@ void HmmwvScmTest<TIRE_TYPE, OBJECTS>::SimulateVis() {
         vis->BeginScene();
         vis->Render();
         ExecuteStep();
-        vis->Synchronize("SMC test", driver_inputs);
+        vis->Synchronize(m_hmmwv->GetSystem()->GetChTime(), driver_inputs);
         vis->Advance(m_step);
         vis->EndScene();
     }

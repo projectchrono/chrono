@@ -350,8 +350,6 @@ void ChVehicleVisualSystemIrrlicht::renderStats() {
     }
 
     // Display information from driver system.
-    renderTextBox(m_driver_msg, m_HUD_x + 190, m_HUD_y, 170, 15);
-
     sprintf(msg, "Steering: %+.2f", m_steering);
     renderLinGauge(std::string(msg), m_steering, true, m_HUD_x + 190, m_HUD_y + 30, 170, 15);
 

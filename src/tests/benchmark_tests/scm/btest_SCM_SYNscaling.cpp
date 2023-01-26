@@ -424,7 +424,7 @@ int main(int argc, char* argv[]) {
         hmmwv.Synchronize(time, driver_inputs, terrain);
 #ifdef CHRONO_IRRLICHT
         if (vis)
-            vis->Synchronize("", driver_inputs);
+            vis->Synchronize(time, driver_inputs);
 #endif
 
         driver.Advance(step_size);

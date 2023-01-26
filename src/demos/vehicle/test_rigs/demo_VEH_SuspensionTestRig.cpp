@@ -257,7 +257,7 @@ int main(int argc, char* argv[]) {
         rig->Advance(step_size);
 
         // Update visualization app
-        vis->Synchronize(rig->GetDriverMessage(), {rig->GetSteeringInput(), 0, 0});
+        vis->Synchronize(rig->GetVehicle().GetChTime(), {rig->GetSteeringInput(), 0, 0});
         vis->Advance(step_size);
 
         if (rig->DriverEnded())

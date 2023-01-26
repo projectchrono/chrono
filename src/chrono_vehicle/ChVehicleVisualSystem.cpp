@@ -65,8 +65,7 @@ double ChVehicleVisualSystem::GetSimulationRTF() const {
     return m_vehicle->GetRTF();
 }
 
-void ChVehicleVisualSystem::Synchronize(const std::string& msg, const DriverInputs& driver_inputs) {
-    m_driver_msg = msg;
+void ChVehicleVisualSystem::Synchronize(double time, const DriverInputs& driver_inputs) {
     m_steering = driver_inputs.m_steering;
     m_throttle = driver_inputs.m_throttle;
     m_braking = driver_inputs.m_braking;

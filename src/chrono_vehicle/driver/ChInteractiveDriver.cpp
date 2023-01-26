@@ -64,7 +64,7 @@ void ChInteractiveDriver::SetInputMode(InputMode mode) {
             }
             break;
         case InputMode::JOYSTICK:
-            if (HasJoystick() > 0)
+            if (HasJoystick())
                 m_mode = mode;
             else
                 std::cerr << "No joysticks available. Input mode unchanged" << std::endl;
@@ -73,20 +73,6 @@ void ChInteractiveDriver::SetInputMode(InputMode mode) {
             m_mode = mode;
             break;
     }
-}
-
-std::string ChInteractiveDriver::GetInputModeAsString() const {
-    switch (m_mode) {
-        case InputMode::LOCK:
-            return std::string("Input mode: LOCK");
-        case InputMode::KEYBOARD:
-            return std::string("Input mode: KEY");
-        case InputMode::DATAFILE:
-            return std::string("Input mode: FILE");
-        case InputMode::JOYSTICK:
-            return std::string("Input mode: JOYSTICK");
-    }
-    return std::string("");
 }
 
 void ChInteractiveDriver::SetThrottleDelta(double delta) {

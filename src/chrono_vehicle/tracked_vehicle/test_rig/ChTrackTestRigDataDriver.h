@@ -68,8 +68,6 @@ class CH_VEHICLE_API ChTrackTestRigDataDriver : public ChTrackTestRigDriver {
     /// The driver inputs are obtained through linear interpolation between the provided data points.
     virtual void Synchronize(double time) override;
 
-    virtual std::string GetInfoMessage() const override { return "Data driver inputs"; }
-
     std::string m_filename;                     ///< input file name
     std::vector<ChCubicSpline*> m_curve_displ;  ///< splines for post displacements
     ChCubicSpline* m_curve_throttle;            ///< spline for throttle

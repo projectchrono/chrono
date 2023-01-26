@@ -220,7 +220,7 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         uaz.Synchronize(time, driver_inputs, terrain);
-        vis->Synchronize(driver.GetInputModeAsString(), driver_inputs);
+        vis->Synchronize(time, driver_inputs);
 
         // Test for validity of kingpin angles (max. allowed by UAZ: 27 deg)
         auto suspF = std::static_pointer_cast<ChSAEToeBarLeafspringAxle>(uaz.GetVehicle().GetSuspension(0));

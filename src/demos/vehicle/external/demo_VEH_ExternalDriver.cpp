@@ -528,7 +528,7 @@ int main(int argc, char* argv[]) {
         terrain.Synchronize(time);
         hmmwv.Synchronize(time, driver_inputs, terrain);
 #ifdef USE_IRRLICHT
-        vis->Synchronize("External Driver", driver_inputs);
+        vis->Synchronize(time, driver_inputs);
 #endif
 
         // Advance simulation for one timestep for all modules

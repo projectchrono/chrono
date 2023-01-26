@@ -167,7 +167,7 @@ void M113AccTest<EnumClass, SHOE_TYPE>::SimulateVis() {
         vis->BeginScene();
         vis->Render();
         ExecuteStep();
-        vis->Synchronize("Acceleration test", driver_inputs);
+        vis->Synchronize(m_m113->GetVehicle().GetChTime(), driver_inputs);
         vis->Advance(m_step);
         vis->EndScene();
     }

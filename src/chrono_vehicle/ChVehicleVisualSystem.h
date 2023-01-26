@@ -57,8 +57,8 @@ class CH_VEHICLE_API ChVehicleVisualSystem : virtual public ChVisualSystem {
     /// Set camera zoom multipliers.
     void SetChaseCameraMultipliers(double minMult, double maxMult);
 
-    /// Update information related to driver inputs.
-    virtual void Synchronize(const std::string& msg, const DriverInputs& driver_inputs);
+    /// Update visual system at the current time.
+    virtual void Synchronize(double time, const DriverInputs& driver_inputs);
 
     /// Advance (optional) dynamics of the visualization system.
     virtual void Advance(double step) {}
@@ -71,7 +71,6 @@ class CH_VEHICLE_API ChVehicleVisualSystem : virtual public ChVisualSystem {
     double GetSteering() const { return m_steering; }
     double GetThrottle() const { return m_throttle; }
     double GetBraking() const { return m_braking; }
-    const std::string& GetDriverMsg() const { return m_driver_msg; }
 
   protected:
     ChVehicle* m_vehicle;  ///< pointer to the associated vehicle system
@@ -87,7 +86,6 @@ class CH_VEHICLE_API ChVehicleVisualSystem : virtual public ChVisualSystem {
     double m_camera_minMult;                         ///< initial camera minimum multiplier
     double m_camera_maxMult;                         ///< initial camera maximum multiplier
 
-    std::string m_driver_msg;  ///< HUD message from driver system
     double m_steering;         ///< driver steering input
     double m_throttle;         ///< driver throttle input
     double m_braking;          ///< driver braking input

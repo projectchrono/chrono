@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
         hmmwv_1.Synchronize(time, driver_inputs_1, terrain);
         hmmwv_2.Synchronize(time, driver_inputs_2, terrain);
         terrain.Synchronize(time);
-        vis->Synchronize("", driver_inputs_1);
+        vis->Synchronize(time, driver_inputs_1);
 
         // Advance simulation for one timestep for all modules.
         driver_1.Advance(step_size);

@@ -397,7 +397,7 @@ int main(int argc, char* argv[]) {
         lmtv.Synchronize(time, driver_inputs, terrain);
 
 #ifdef USE_IRRLICHT
-        vis->Synchronize("Follower driver", driver_inputs);
+        vis->Synchronize(time, driver_inputs);
 #endif
 
         // Advance simulation for one timestep for all modules

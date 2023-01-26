@@ -153,7 +153,7 @@ void HmmwvDlcTest<EnumClass, TIRE_MODEL>::SimulateVis() {
         vis->BeginScene();
         vis->Render();
         ExecuteStep();
-        vis->Synchronize("Acceleration test", driver_inputs);
+        vis->Synchronize(m_hmmwv->GetSystem()->GetChTime(), driver_inputs);
         vis->Advance(m_step_veh);
         vis->EndScene();
     }

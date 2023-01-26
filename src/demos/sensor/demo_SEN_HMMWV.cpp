@@ -464,7 +464,7 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         my_hmmwv.Synchronize(time, driver_inputs, terrain);
-        vis->Synchronize(driver.GetInputModeAsString(), driver_inputs);
+        vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         double step = step_size;
