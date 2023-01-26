@@ -12,7 +12,7 @@
     "Mass": 14.705,
     "COM": [ -0.040, 0.910, -0.026 ],
     "Inertia": [ 0.04117, 0.07352, 0.04117 ],
-    "Radius": 0.15,
+    "Radius": 0.10,
     "Width": 0.06
   },
 
@@ -21,7 +21,7 @@
     "COM": [ -0.040, 0.751, -0.026 ],
     "Moments of Inertia": [ 0.1656, 0.1934, 0.04367 ],
     "Products of Inertia": [ 0, 0, 0 ],
-    "Radius": 0.025
+    "Radius": 0.04
   },
 
   "Upper Control Arm": {

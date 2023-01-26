@@ -7,18 +7,18 @@
 
   "Steering Link":
   {
-    "Mass":                     9.072,
+    "Mass":                     3.681,
     "COM":                      [0.129, 0, 0],
-    "Moments of Inertia":       [1, 1, 1],
+    "Moments of Inertia":       [0.252, 0.00233, 0.254],
     "Products of Inertia":      [0, 0, 0],
     "Radius":                   0.03
   },
 
   "Pitman Arm":
   {
-    "Mass":                     2.259,
+    "Mass":                     1.605,
     "COM":                      [0.064, 0.249, 0],
-    "Moments of Inertia":       [1, 1, 1],
+    "Moments of Inertia":       [0.00638, 0.00756, 0.00150],
     "Products of Inertia":      [0, 0, 0],
     "Radius":                   0.02
   },
@@ -27,7 +27,7 @@
   {
     "Location":                 [0, 0.249, 0],
     "Direction":                [0, 0, 1],
-    "Maximum Angle (deg)":      50
+    "Maximum Angle (deg)":      30
   },
 
   "Universal Joint":

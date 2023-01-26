@@ -26,7 +26,7 @@ namespace hmmwv {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double HMMWV_PitmanArm::m_steeringLinkMass = 3.6814844109;
+const double HMMWV_PitmanArm::m_steeringLinkMass = 3.681;
 const double HMMWV_PitmanArm::m_pitmanArmMass = 1.605;
 
 const double HMMWV_PitmanArm::m_steeringLinkRadius = 0.03;
