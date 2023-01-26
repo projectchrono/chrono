@@ -37,7 +37,7 @@
 #include "chrono/assets/ChConeShape.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChSurfaceShape.h"
-#include "chrono/assets/ChObjFileShape.h"
+#include "chrono/assets/ChModelFileShape.h"
 #include "chrono/assets/ChLineShape.h"
 #include "chrono/assets/ChPathShape.h"
 #include "chrono/physics/ChParticleCloud.h"

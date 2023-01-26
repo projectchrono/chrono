@@ -12,33 +12,33 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#include "chrono/assets/ChObjFileShape.h"
+#include "chrono/assets/ChModelFileShape.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChObjFileShape)
+CH_FACTORY_REGISTER(ChModelFileShape)
 
-ChObjFileShape::ChObjFileShape() : filename("") {
+ChModelFileShape::ChModelFileShape() : filename("") {
     SetMutable(false);
 }
 
-ChObjFileShape::ChObjFileShape(const std::string& fname) : filename(fname) {
+ChModelFileShape::ChModelFileShape(const std::string& fname) : filename(fname) {
     SetMutable(false);
 }
 
-void ChObjFileShape::ArchiveOUT(ChArchiveOut& marchive) {
+void ChModelFileShape::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite<ChObjFileShape>();
+    marchive.VersionWrite<ChModelFileShape>();
     // serialize parent class
     ChVisualShape::ArchiveOUT(marchive);
     // serialize all member data:
     marchive << CHNVP(filename);
 }
 
-void ChObjFileShape::ArchiveIN(ChArchiveIn& marchive) {
+void ChModelFileShape::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChObjFileShape>();
+    /*int version =*/ marchive.VersionRead<ChModelFileShape>();
     // deserialize parent class
     ChVisualShape::ArchiveIN(marchive);
     // stream in all member data:

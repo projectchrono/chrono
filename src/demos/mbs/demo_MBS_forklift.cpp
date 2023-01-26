@@ -111,7 +111,7 @@ class MySimpleForklift {
         chassis->SetCollide(true);
 
         // visualization properties:
-        auto chassis_mesh = chrono_types::make_shared<ChObjFileShape>();
+        auto chassis_mesh = chrono_types::make_shared<ChModelFileShape>();
         chassis_mesh->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
         chassis->AddVisualShape(chassis_mesh, ChFrame<>(-COG_truss, QUNIT));
 
@@ -119,7 +119,7 @@ class MySimpleForklift {
         auto wheel_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
         // visualization shape, shared among all wheels
-        auto wheel_mesh = chrono_types::make_shared<ChObjFileShape>();
+        auto wheel_mesh = chrono_types::make_shared<ChModelFileShape>();
         wheel_mesh->SetFilename(GetChronoDataFile("models/forklift/wheel.obj"));
 
 
@@ -204,7 +204,7 @@ class MySimpleForklift {
         arm->SetMass(100);
         arm->SetInertiaXX(ChVector<>(30, 30, 30));
         // visualization properties:
-        auto arm_mesh = chrono_types::make_shared<ChObjFileShape>();
+        auto arm_mesh = chrono_types::make_shared<ChModelFileShape>();
         arm_mesh->SetFilename(GetChronoDataFile("models/forklift/arm.obj"));
         arm->AddVisualShape(arm_mesh, ChFrame<>(-COG_arm, QUNIT));
 
@@ -230,7 +230,7 @@ class MySimpleForklift {
         fork->GetCollisionModel()->BuildModel();
         fork->SetCollide(true);
         // visualization properties:
-        auto fork_mesh = chrono_types::make_shared<ChObjFileShape>();
+        auto fork_mesh = chrono_types::make_shared<ChModelFileShape>();
         fork_mesh->SetFilename(GetChronoDataFile("models/forklift/forks.obj"));
         fork->AddVisualShape(fork_mesh, ChFrame<>(-COG_fork, QUNIT));
 

@@ -29,7 +29,7 @@
 #include "chrono/assets/ChCapsuleShape.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChSurfaceShape.h"
-#include "chrono/assets/ChObjFileShape.h"
+#include "chrono/assets/ChModelFileShape.h"
 
 #include "chrono_vsg/ChVisualSystemVSG.h"
 
@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
 
     // ==Asset== Attach a 'Wavefront mesh' asset, referencing a .obj file and offset it.
     // Only the first call of a distinct filename loads from disc; subsequent uses of the same model file read from a cache.
-    auto objmesh = chrono_types::make_shared<ChObjFileShape>();
+    auto objmesh = chrono_types::make_shared<ChModelFileShape>();
     objmesh->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
 
     body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(0, 0.0, 2)));
@@ -264,7 +264,7 @@ int main(int argc, char* argv[]) {
     // add scenery objects, not bound to bodies
     auto Zup = Q_from_AngX(-CH_C_PI_2);
 
-    auto sceneMesh1 = chrono_types::make_shared<ChObjFileShape>();
+    auto sceneMesh1 = chrono_types::make_shared<ChModelFileShape>();
     sceneMesh1->SetFilename(GetChronoDataFile("models/red_teapot.obj"));
     int teapotId1 = vis->AddVisualModel(sceneMesh1, ChFrame<>(ChVector<>(0, 3.5, 3), Zup));
     if (teapotId1 == -1)
@@ -273,7 +273,7 @@ int main(int argc, char* argv[]) {
     if (teapotId2 == -1)
         GetLog() << "Could not get teapot!\n";
 
-    auto sceneMesh2 = chrono_types::make_shared<ChObjFileShape>();
+    auto sceneMesh2 = chrono_types::make_shared<ChModelFileShape>();
     sceneMesh2->SetFilename(GetChronoDataFile("models/bunny.glb"));
     int bunndyId = vis->AddVisualModel(sceneMesh2, ChFrame<>(ChVector<>(-5, 0, 5)));
     if (bunndyId == -1)

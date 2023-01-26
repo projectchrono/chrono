@@ -95,7 +95,7 @@ bodyC.SetMass(346.17080777653)
 bodyC.SetInertiaXX(chrono.ChVectorD(48583.2418823358,526927.118351673,490689.966726565))
 bodyC.SetInertiaXY(chrono.ChVectorD(1.70380722975012e-11,1.40840344485366e-11,-2.31869065456271e-12))
 bodyC.SetFrame_COG_to_REF(chrono.ChFrameD(chrono.ChVectorD(68.9923703887577,-60.1266363930238,70.1327223302498),chrono.ChQuaternionD(1,0,0,0)))
-myasset = chrono.ChObjFileShape()
+myasset = chrono.ChModelFileShape()
 myasset.SetFilename("shapes/test.obj")
 bodyC.AddVisualShape(myasset)
 

@@ -19,12 +19,12 @@ namespace chrono {
 
 /// Class for referencing a Wavefront OBJ file containing a shape that can be visualized in some way.
 /// The file is not loaded into this object; this is simply a reference to the resource on disk.
-class ChApi ChObjFileShape : public ChVisualShape {
+class ChApi ChModelFileShape : public ChVisualShape {
   public:
-    ChObjFileShape();
-    ChObjFileShape(const std::string& fname);
+    ChModelFileShape();
+    ChModelFileShape(const std::string& fname);
 
-    ~ChObjFileShape() {}
+    ~ChModelFileShape() {}
 
     std::string GetFilename() const { return filename; }
     void SetFilename(const std::string& fname) { filename = fname; }
@@ -39,7 +39,7 @@ class ChApi ChObjFileShape : public ChVisualShape {
     std::string filename;
 };
 
-CH_CLASS_VERSION(ChObjFileShape, 0)
+CH_CLASS_VERSION(ChModelFileShape, 0)
 
 }  // end namespace chrono
 

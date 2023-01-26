@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
     body->AddVisualShape(mesh, ChFrame<>(ChVector<>(2, 1, 2), QUNIT));
 
     // ==Asset== Attach a 'Wavefront mesh' asset, referencing a .obj file and offset it.
-    auto objmesh = chrono_types::make_shared<ChObjFileShape>();
+    auto objmesh = chrono_types::make_shared<ChModelFileShape>();
     objmesh->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
     body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(0, 0, 2), QUNIT));
 

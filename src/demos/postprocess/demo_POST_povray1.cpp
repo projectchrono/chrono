@@ -20,7 +20,7 @@
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCamera.h"
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChObjFileShape.h"
+#include "chrono/assets/ChModelFileShape.h"
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/physics/ChParticleCloud.h"
@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
     body->AddVisualShape(cyl);
 
     // ==Asset== Attach a 'Wavefront mesh' asset, referencing a .obj file:
-    auto objmesh = chrono_types::make_shared<ChObjFileShape>();
+    auto objmesh = chrono_types::make_shared<ChModelFileShape>();
     objmesh->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
     objmesh->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
     body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(0, 0, 2)));

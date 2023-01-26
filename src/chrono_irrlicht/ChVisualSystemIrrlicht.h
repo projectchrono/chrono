@@ -28,7 +28,7 @@
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChCapsuleShape.h"
-#include "chrono/assets/ChObjFileShape.h"
+#include "chrono/assets/ChModelFileShape.h"
 #include "chrono/assets/ChVisualShape.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChGlyphs.h"

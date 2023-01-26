@@ -972,7 +972,7 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
             auto grp =
                 m_shapeBuilder->createShape(ShapeBuilder::SURFACE_SHAPE, material, transform, m_wireframe, surface);
             group->addChild(grp);
-        } else if (auto obj = std::dynamic_pointer_cast<ChObjFileShape>(shape)) {
+        } else if (auto obj = std::dynamic_pointer_cast<ChModelFileShape>(shape)) {
             string objFilename = obj->GetFilename();
             size_t objHashValue = m_stringHash(objFilename);
             auto grp = vsg::Group::create();
