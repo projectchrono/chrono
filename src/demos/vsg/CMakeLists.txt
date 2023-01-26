@@ -1,10 +1,11 @@
 #--------------------------------------------------------------
 # List of all VSG demos
 
-SET(DEMOS
-  demo_VSG_assets
-  demo_VSG_paths
-  demo_VSG_shapes
+set(DEMOS
+    demo_VSG_assets
+    demo_VSG_paths
+    demo_VSG_shapes
+    demo_VSG_vehicles
 )
 
 set(CMAKE_CXX_STANDARD 17)
@@ -17,35 +18,36 @@ endif()
 #--------------------------------------------------------------
 # Additional include paths
 
-INCLUDE_DIRECTORIES(${CH_VSG_INCLUDES})
+include_directories(${CH_VSG_INCLUDES})
+set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
+set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
+list(APPEND LIBS "ChronoEngine")
+list(APPEND LIBS "ChronoEngine_vsg")
 
 #--------------------------------------------------------------
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  SET (CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
+  set(CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
 ENDIF()
 
 #--------------------------------------------------------------
 
 # Add executables
 
-MESSAGE(STATUS "Demo programs for VSG module...")
+message(STATUS "Demo programs for VSG module...")
 
-FOREACH(PROGRAM ${DEMOS})
-  MESSAGE(STATUS "...add ${PROGRAM}")
+foreach(PROGRAM ${DEMOS})
+    message(STATUS "...add ${PROGRAM}")
 
-  ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
-  SOURCE_GROUP(""  FILES  "${PROGRAM}.cpp")
+    add_executable(${PROGRAM} ${PROGRAM}.cpp)
+    source_group("" FILES ${PROGRAM}.cpp)
 
-  SET_TARGET_PROPERTIES(${PROGRAM}  PROPERTIES
-    FOLDER demos
-    COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
-    LINK_FLAGS "${CH_LINKERFLAG_EXE}")
-  SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
-  TARGET_LINK_LIBRARIES(${PROGRAM}
-    ChronoEngine
-    ChronoEngine_vsg)
-  ADD_DEPENDENCIES (${PROGRAM} ChronoEngine ChronoEngine_vsg)
+    set_target_properties(${PROGRAM} PROPERTIES COMPILE_FLAGS "${COMPILER_FLAGS}" LINK_FLAGS "${LINKER_FLAGS}")
+    if(APPLE)
+      set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
+    endif()
+    set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+    target_link_libraries(${PROGRAM} ${LIBS})
 
-  INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
-ENDFOREACH()
+    install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
+endforeach()

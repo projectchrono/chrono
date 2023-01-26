@@ -9,10 +9,10 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora, Radu Serban, Rainer Gericke (VSG)
+// Authors: Rainer Gericke
 // =============================================================================
 //
-// Demosntration of the Chrono::Irrlicht run-time visualization system
+// Demosntration of the Chrono::VSG run-time visualization system
 //
 // =============================================================================
 
