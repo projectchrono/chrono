@@ -17,12 +17,25 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChObjFileShape.h"
 #include "chrono_vsg/ChVisualSystemVSG.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 // Use the namespace of Chrono
 using namespace chrono;
 using namespace chrono::vsg3d;
+
+std::shared_ptr<ChTriangleMeshShape> CreateMeshShape(const std::string& filename) {
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(filename, true, true);
+    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+    trimesh_shape->SetMesh(trimesh);
+    trimesh_shape->SetName(filesystem::path(filename).stem());
+    trimesh_shape->SetMutable(false);
+
+    return trimesh_shape;
+}
 
 int main(int argc, char* argv[]) {
     ChSystemNSC sys;
@@ -43,14 +56,10 @@ int main(int argc, char* argv[]) {
         std::vector<ChVector<>> hmmwv_wpos = {ChVector<>(1.64, 0.910, -0.026), ChVector<>(1.64, -0.910, -0.026),
                                               ChVector<>(-1.64, 0.910, -0.026), ChVector<>(-1.64, -0.910, -0.026)};
         auto hmmwv = chrono_types::make_shared<ChVisualModel>();
-        auto hmmwv_chassis = chrono_types::make_shared<ChObjFileShape>();
-        auto hmmwv_wheel = chrono_types::make_shared<ChObjFileShape>();
-        auto hmmwv_tireL = chrono_types::make_shared<ChObjFileShape>();
-        auto hmmwv_tireR = chrono_types::make_shared<ChObjFileShape>();
-        hmmwv_chassis->SetFilename(GetChronoDataFile("vehicle/hmmwv/hmmwv_chassis.obj"));
-        hmmwv_wheel->SetFilename(GetChronoDataFile("vehicle/hmmwv/hmmwv_rim.obj"));
-        hmmwv_tireL->SetFilename(GetChronoDataFile("vehicle/hmmwv/hmmwv_tire_left.obj"));
-        hmmwv_tireR->SetFilename(GetChronoDataFile("vehicle/hmmwv/hmmwv_tire_right.obj"));
+        auto hmmwv_chassis = CreateMeshShape(GetChronoDataFile("vehicle/hmmwv/hmmwv_chassis.obj"));
+        auto hmmwv_wheel = CreateMeshShape(GetChronoDataFile("vehicle/hmmwv/hmmwv_rim.obj"));
+        auto hmmwv_tireL = CreateMeshShape(GetChronoDataFile("vehicle/hmmwv/hmmwv_tire_left.obj"));
+        auto hmmwv_tireR = CreateMeshShape(GetChronoDataFile("vehicle/hmmwv/hmmwv_tire_right.obj"));
         hmmwv->AddShape(hmmwv_chassis);
         for (int i = 0; i < 4; i++) {
             hmmwv->AddShape(hmmwv_wheel, ChFrame<>(hmmwv_wpos[i], Q_from_AngZ(CH_C_PI * i)));
@@ -66,12 +75,9 @@ int main(int argc, char* argv[]) {
         std::vector<ChVector<>> gator_wpos = {ChVector<>(0.97, 0.56, -0.02), ChVector<>(0.97, -0.56, -0.02),
                                               ChVector<>(-0.97, 0.62, 0), ChVector<>(-0.97, -0.62, 0)};
         auto gator = chrono_types::make_shared<ChVisualModel>();
-        auto gator_chassis = chrono_types::make_shared<ChObjFileShape>();
-        auto gator_wheelF = chrono_types::make_shared<ChObjFileShape>();
-        auto gator_wheelR = chrono_types::make_shared<ChObjFileShape>();
-        gator_chassis->SetFilename(GetChronoDataFile("vehicle/gator/gator_chassis.obj"));
-        gator_wheelF->SetFilename(GetChronoDataFile("vehicle/gator/gator_wheel_FL.obj"));
-        gator_wheelR->SetFilename(GetChronoDataFile("vehicle/gator/gator_wheel_RL.obj"));
+        auto gator_chassis = CreateMeshShape(GetChronoDataFile("vehicle/gator/gator_chassis.obj"));
+        auto gator_wheelF = CreateMeshShape(GetChronoDataFile("vehicle/gator/gator_wheel_FL.obj"));
+        auto gator_wheelR = CreateMeshShape(GetChronoDataFile("vehicle/gator/gator_wheel_RL.obj"));
         gator->AddShape(gator_chassis);
         gator->AddShape(gator_wheelF, ChFrame<>(gator_wpos[0], Q_from_AngZ(CH_C_PI * 0)));
         gator->AddShape(gator_wheelF, ChFrame<>(gator_wpos[1], Q_from_AngZ(CH_C_PI * 1)));
@@ -79,23 +85,21 @@ int main(int argc, char* argv[]) {
         gator->AddShape(gator_wheelR, ChFrame<>(gator_wpos[3], Q_from_AngZ(CH_C_PI * 3)));
         vis->AddVisualModel(gator, ChFrame<>(ChVector<>(0, -1.5, 0), QUNIT));
     }
-
+    /*
     {
-        auto audi_chassis = chrono_types::make_shared<ChObjFileShape>();
-        audi_chassis->SetFilename(GetChronoDataFile("vehicle/audi/audi_chassis.obj"));
-        // vis->AddVisualModel(audi_chassis, ChFrame<>(ChVector<>(0, -1.5, 0), QUNIT));
+        auto audi = chrono_types::make_shared<ChVisualModel>();
+        auto audi_chassis = CreateMeshShape(GetChronoDataFile("vehicle/audi/audi_chassis.obj"));
+        audi->AddShape(audi_chassis);
+        vis->AddVisualModel(audi, ChFrame<>(ChVector<>(0, -1.5, 0), QUNIT));
     }
-
+    */
     {
         std::vector<ChVector<>> uaz_wpos = {ChVector<>(0, 0.733, 0), ChVector<>(0, -0.733, 0),
                                             ChVector<>(-2.3, 0.733, 0), ChVector<>(-2.3, -0.733, 0)};
         auto uaz = chrono_types::make_shared<ChVisualModel>();
-        auto uaz_chassis = chrono_types::make_shared<ChObjFileShape>();
-        auto uaz_wheel = chrono_types::make_shared<ChObjFileShape>();
-        auto uaz_tire = chrono_types::make_shared<ChObjFileShape>();
-        uaz_chassis->SetFilename(GetChronoDataFile("vehicle/uaz/uazbus_chassis.obj"));
-        uaz_wheel->SetFilename(GetChronoDataFile("vehicle/uaz/uaz_rim.obj"));
-        uaz_tire->SetFilename(GetChronoDataFile("vehicle/uaz/uaz_tire.obj"));
+        auto uaz_chassis = CreateMeshShape(GetChronoDataFile("vehicle/uaz/uazbus_chassis.obj"));
+        auto uaz_wheel = CreateMeshShape(GetChronoDataFile("vehicle/uaz/uaz_rim.obj"));
+        auto uaz_tire = CreateMeshShape(GetChronoDataFile("vehicle/uaz/uaz_tire.obj"));
         uaz->AddShape(uaz_chassis);
         for (int i = 0; i < 4; i++) {
             uaz->AddShape(uaz_wheel, ChFrame<>(uaz_wpos[i], Q_from_AngZ(CH_C_PI * i)));
@@ -106,12 +110,9 @@ int main(int argc, char* argv[]) {
         std::vector<ChVector<>> suv_wpos = {ChVector<>(0, 0.960, 0.1), ChVector<>(0, -0.960, 0.1),
                                             ChVector<>(-3.336, 1.010, 0.05), ChVector<>(-3.336, -1.010, 0.05)};
         auto suv = chrono_types::make_shared<ChVisualModel>();
-        auto suv_chassis = chrono_types::make_shared<ChObjFileShape>();
-        auto suv_wheel = chrono_types::make_shared<ChObjFileShape>();
-        auto suv_tire = chrono_types::make_shared<ChObjFileShape>();
-        suv_chassis->SetFilename(GetChronoDataFile("vehicle/Nissan_Patrol/suv_chassis.obj"));
-        suv_wheel->SetFilename(GetChronoDataFile("vehicle/Nissan_Patrol/suv_rim.obj"));
-        suv_tire->SetFilename(GetChronoDataFile("vehicle/Nissan_Patrol/suv_tire.obj"));
+        auto suv_chassis = CreateMeshShape(GetChronoDataFile("vehicle/Nissan_Patrol/suv_chassis.obj"));
+        auto suv_wheel = CreateMeshShape(GetChronoDataFile("vehicle/Nissan_Patrol/suv_rim.obj"));
+        auto suv_tire = CreateMeshShape(GetChronoDataFile("vehicle/Nissan_Patrol/suv_tire.obj"));
         suv->AddShape(suv_chassis);
         for (int i = 0; i < 4; i++) {
             suv->AddShape(suv_wheel, ChFrame<>(suv_wpos[i], Q_from_AngZ(CH_C_PI * i)));
