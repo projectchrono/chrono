@@ -5,8 +5,8 @@
 
     "Vehicle-Frame Inertia": false,
 
-   "Camber Angle (deg)": 0,
-   "Toe Angle (deg)": 0,
+    "Camber Angle (deg)": 0,
+    "Toe Angle (deg)": 0,
 
     "Spindle": {
         "Mass": 15.91,
@@ -89,7 +89,7 @@
         "Location Arm": [ -0.097, 0.543, -0.047 ],
         "Minimum Length": 0.15,
         "Maximum Length": 0.35,
-        "Curve Data": [
+        "Spring Curve Data": [
             [ -0.2, -711719.272 ],
             [ -0.18, -531468.245 ],
             [ -0.16, -385663.250 ],

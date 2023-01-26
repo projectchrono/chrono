@@ -120,35 +120,16 @@ void SingleWishbone::Create(const rapidjson::Document& d) {
     m_points[TIEROD_C] = ReadVectorJSON(d["Tierod"]["Location Chassis"]);
     m_points[TIEROD_U] = ReadVectorJSON(d["Tierod"]["Location Upright"]);
 
-    // Read spring data and create force callback
-    assert(d.HasMember("Spring"));
-    assert(d["Spring"].IsObject());
-
-    m_springRestLength = d["Spring"]["Free Length"].GetDouble();
-
     // Read shock data and create force callback
     assert(d.HasMember("Shock"));
     assert(d["Shock"].IsObject());
-
     m_points[STRUT_C] = ReadVectorJSON(d["Shock"]["Location Chassis"]);
     m_points[STRUT_A] = ReadVectorJSON(d["Shock"]["Location Arm"]);
-
-    if (d["Shock"].HasMember("Damping Coefficient")) {
-        m_shockForceCB = chrono_types::make_shared<LinearDamperForce>(d["Shock"]["Damping Coefficient"].GetDouble());
-    } else if (d["Shock"].HasMember("Curve Data")) {
-        int num_points = d["Shock"]["Curve Data"].Size();
-        auto shockForceCB = chrono_types::make_shared<MapDamperForce>();
-        for (int i = 0; i < num_points; i++) {
-            shockForceCB->add_point(d["Shock"]["Curve Data"][i][0u].GetDouble(),
-                                    d["Shock"]["Curve Data"][i][1u].GetDouble());
-        }
-        m_shockForceCB = shockForceCB;
-    }
+    m_shockForceCB = ReadTSDAFunctorJSON(d["Shock"], m_shockRestLength);
 
     // Read axle inertia
     assert(d.HasMember("Axle"));
     assert(d["Axle"].IsObject());
-
     m_axleInertia = d["Axle"]["Inertia"].GetDouble();
 }
 

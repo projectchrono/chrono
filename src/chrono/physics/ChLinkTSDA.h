@@ -123,6 +123,9 @@ class ChApi ChLinkTSDA : public ChLink {
     /// Specify the functor object for calculating the force.
     void RegisterForceFunctor(std::shared_ptr<ForceFunctor> functor) { m_force_fun = functor; }
 
+    /// Return the functor object for calculating the force (may be empty).
+    std::shared_ptr<ForceFunctor> GetForceFunctor() const { return m_force_fun; }
+
     /// Class to be used as a callback interface for specifying the ODE, y' = f(t,y); y(0) = y0.
     class ChApi ODE {
       public:

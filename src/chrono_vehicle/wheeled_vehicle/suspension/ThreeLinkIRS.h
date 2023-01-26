@@ -59,8 +59,15 @@ class CH_VEHICLE_API ThreeLinkIRS : public ChThreeLinkIRS {
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
     virtual double getSpringRestLength() const override { return m_springRestLength; }
+    virtual double getShockRestLength() const override { return m_shockRestLength; }
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getSpringForceFunctor() const override { return m_springForceCB; }
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
+
+    virtual std::shared_ptr<ChVehicleBushingData> getArmChassisBushingData() const { return m_armChassisBushingData; }
+    virtual std::shared_ptr<ChVehicleBushingData> getArmUpperBushingData() const { return m_armUpperBushingData; }
+    virtual std::shared_ptr<ChVehicleBushingData> getArmLowerBushingData() const { return m_armLowerBushingData; }
+    virtual std::shared_ptr<ChVehicleBushingData> getChassisUpperBushingData() const { return m_chassisUpperBushingData; }
+    virtual std::shared_ptr<ChVehicleBushingData> getChassisLowerBushingData() const { return m_chassisLowerBushingData; }
 
   private:
     virtual const ChVector<> getLocation(PointId which) override { return m_points[which]; }
@@ -95,7 +102,14 @@ class CH_VEHICLE_API ThreeLinkIRS : public ChThreeLinkIRS {
 
     double m_axleInertia;
 
+    std::shared_ptr<ChVehicleBushingData> m_armChassisBushingData;
+    std::shared_ptr<ChVehicleBushingData> m_armUpperBushingData;
+    std::shared_ptr<ChVehicleBushingData> m_armLowerBushingData;
+    std::shared_ptr<ChVehicleBushingData> m_chassisUpperBushingData;
+    std::shared_ptr<ChVehicleBushingData> m_chassisLowerBushingData;
+
     double m_springRestLength;
+    double m_shockRestLength;
 };
 
 /// @} vehicle_wheeled_suspension

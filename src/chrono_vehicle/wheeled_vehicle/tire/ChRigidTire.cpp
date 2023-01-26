@@ -79,6 +79,20 @@ void ChRigidTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     wheel_body->GetCollisionModel()->BuildModel();
 }
 
+void ChRigidTire::Synchronize(double time, const ChTerrain& terrain) {
+    WheelState wheel_state = m_wheel->GetState();
+
+    // Calculate tire reference frame
+    ChCoordsys<> tire_frame;
+    double depth;
+    float mu;
+    bool contact = ChTire::DiscTerrainCollision1pt(terrain, wheel_state.pos, wheel_state.rot.GetYaxis(), GetRadius(),
+                                                   tire_frame, depth, mu);
+
+    // Calculate tire kinematics
+    CalculateKinematics(wheel_state, tire_frame);
+}
+
 void ChRigidTire::InitializeInertiaProperties() {
     m_mass = GetTireMass();
     m_inertia.setZero();

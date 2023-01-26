@@ -96,20 +96,17 @@ const double HMMWV_DoubleWishboneRear::m_springCoefficient = 369149.000;
 const double HMMWV_DoubleWishboneRear::m_springRestLength = 0.382;
 
 // -----------------------------------------------------------------------------
-// HMMWV shock functor class - implements a nonlinear damper
-// -----------------------------------------------------------------------------
+
+// HMMWV shock functor class - implements a nonlinear damper (with hydraulic bumps)
 class HMMWV_ShockForce : public ChLinkTSDA::ForceFunctor {
   public:
-    HMMWV_ShockForce(double midstroke_compression_slope,
-                     double midstroke_rebound_slope,
-                     double bumpstop_compression_slope,
-                     double bumpstop_rebound_slope,
-                     double metalmetal_slope,
-                     double min_bumpstop_compression_force,
-                     double midstroke_lower_bound,
-                     double midstroke_upper_bound,
-                     double metalmetal_lower_bound,
-                     double metalmetal_upper_bound);
+    HMMWV_ShockForce(double midstroke_compression,  // midstroke compression rate
+                     double midstroke_rebound,      // midstroke rebound rate
+                     double bumpstop_compression,   // bumpstop compression rate
+                     double bumpstop_rebound,       // bumpstop rebound rate
+                     double min_length,             // bumpstop engagement min length
+                     double max_length              // bumpstop engagement max length
+    );
 
     virtual double evaluate(double time,
                             double rest_length,
@@ -122,112 +119,74 @@ class HMMWV_ShockForce : public ChLinkTSDA::ForceFunctor {
     double m_ms_rebound;
     double m_bs_compr;
     double m_bs_rebound;
-    double m_metal_K;
-    ////double m_F0;
-    double m_ms_min_length;
-    double m_ms_max_length;
     double m_min_length;
     double m_max_length;
 };
 
-HMMWV_ShockForce::HMMWV_ShockForce(double midstroke_compression_slope,
-                                   double midstroke_rebound_slope,
-                                   double bumpstop_compression_slope,
-                                   double bumpstop_rebound_slope,
-                                   double metalmetal_slope,
-                                   double min_bumpstop_compression_force,
-                                   double midstroke_lower_bound,
-                                   double midstroke_upper_bound,
-                                   double metalmetal_lower_bound,
-                                   double metalmetal_upper_bound)
-    : m_ms_compr(midstroke_compression_slope),
-      m_ms_rebound(midstroke_rebound_slope),
-      m_bs_compr(bumpstop_compression_slope),
-      m_bs_rebound(bumpstop_rebound_slope),
-      m_metal_K(metalmetal_slope),
-      ////m_F0(min_bumpstop_compression_force),
-      m_ms_min_length(midstroke_lower_bound),
-      m_ms_max_length(midstroke_upper_bound),
-      m_min_length(metalmetal_lower_bound),
-      m_max_length(metalmetal_upper_bound) {}
+HMMWV_ShockForce::HMMWV_ShockForce(double midstroke_compression,
+                                   double midstroke_rebound,
+                                   double bumpstop_compression,
+                                   double bumpstop_rebound,
+                                   double min_length,
+                                   double max_length)
+    : m_ms_compr(midstroke_compression),
+      m_ms_rebound(midstroke_rebound),
+      m_bs_compr(bumpstop_compression),
+      m_bs_rebound(bumpstop_rebound),
+      m_min_length(min_length),
+      m_max_length(max_length) {}
 
 double HMMWV_ShockForce::evaluate(double time, double rest_length, double length, double vel, const ChLinkTSDA& link) {
-    /*
     // On midstroke curve
     if (length >= m_min_length && length <= m_max_length)
       return (vel >= 0) ? -m_ms_rebound * vel : -m_ms_compr * vel;
 
     // Hydraulic bump engaged
-    return (vel >= 0) ? -m_bs_rebound * vel : -m_bs_compr * vel + m_F0;
-    */
-
-    double force = 0;
-
-    // Calculate Damping Force
-    if (vel >= 0) {
-        force = (length >= m_ms_max_length) ? -m_bs_rebound * vel : -m_ms_rebound * vel;
-    } else {
-        force = (length <= m_ms_min_length) ? -m_bs_compr * vel : -m_ms_compr * vel;
-    }
-
-    // Add in Shock metal to metal contact force
-    if (length <= m_min_length) {
-        force = m_metal_K * (m_min_length - length);
-    } else if (length >= m_max_length) {
-        force = -m_metal_K * (length - m_max_length);
-    }
-
-    return force;
+    return (vel >= 0) ? -m_bs_rebound * vel : -m_bs_compr * vel;
 }
 
 // -----------------------------------------------------------------------------
-// Constructors
-// -----------------------------------------------------------------------------
+
 HMMWV_DoubleWishboneFront::HMMWV_DoubleWishboneFront(const std::string& name, bool use_tierod_bodies)
     : ChDoubleWishbone(name), m_use_tierod_bodies(use_tierod_bodies) {
-    m_springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient  // coefficient for linear spring
-    );
+    // Functor for a linear spring with bump stops
+    auto springCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient);
+    springCB->enable_stops(in2m * 12.76, in2m * 16.48);
+    m_springForceCB = springCB;
 
-    m_shockForceCB = chrono_types::make_shared<HMMWV_ShockForce>(lbfpin2Npm * 71.50,   // midstroke_compression_slope
-                                                                 lbfpin2Npm * 128.25,  // midstroke_rebound_slope
-                                                                 lbfpin2Npm * 33.67,   // bumpstop_compression_slope
-                                                                 lbfpin2Npm * 343.00,  // bumpstop_rebound_slope
-                                                                 lbfpin2Npm * 150000,  // metalmetal_slope
-                                                                 lbf2N * 3350,         // min_bumpstop_compression_force
-                                                                 in2m * 13.76,         // midstroke_lower_bound
-                                                                 in2m * 15.85,         // midstroke_upper_bound
-                                                                 in2m * 12.76,         // metalmetal_lower_bound
-                                                                 in2m * 16.48          // metalmetal_upper_boun
+    // Functor for a piece-wise linear damper (with hydraulic bump stops)
+    auto shockCB = chrono_types::make_shared<HMMWV_ShockForce>(lbfpin2Npm * 71.50,   // midstroke compression rate
+                                                               lbfpin2Npm * 128.25,  // midstroke rebound rate
+                                                               lbfpin2Npm * 33.67,   // bumpstop compression rate
+                                                               lbfpin2Npm * 343.00,  // bumpstop rebound rate
+                                                               in2m * 12.76,         // bumpstop engagement min length
+                                                               in2m * 16.48          // bumpstop engagement max length
     );
+    m_shockForceCB = shockCB;
 }
 
 HMMWV_DoubleWishboneRear::HMMWV_DoubleWishboneRear(const std::string& name, bool use_tierod_bodies)
     : ChDoubleWishbone(name), m_use_tierod_bodies(use_tierod_bodies) {
-    m_springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient  // coefficient for linear spring
-    );
+    // Functor for a linear spring with bump stops
+    auto springCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient);
+    springCB->enable_stops(in2m * 12.76, in2m * 16.48);
+    m_springForceCB = springCB;
 
-    m_shockForceCB = chrono_types::make_shared<HMMWV_ShockForce>(lbfpin2Npm * 83.00,   // midstroke_compression_slope
-                                                                 lbfpin2Npm * 200.00,  // midstroke_rebound_slope
-                                                                 lbfpin2Npm * 48.75,   // bumpstop_compression_slope
-                                                                 lbfpin2Npm * 365.00,  // bumpstop_rebound_slope
-                                                                 lbfpin2Npm * 150000,  // metalmetal_slope
-                                                                 lbf2N * 3350,         // min_bumpstop_compression_force
-                                                                 in2m * 13.76,         // midstroke_lower_bound
-                                                                 in2m * 15.85,         // midstroke_upper_bound
-                                                                 in2m * 12.76,         // metalmetal_lower_bound
-                                                                 in2m * 16.48          // metalmetal_upper_bound
+    // Functor for a piece-wise linear damper (with hydraulic bump stops)
+    auto shockCB = chrono_types::make_shared<HMMWV_ShockForce>(lbfpin2Npm * 83.00,   // midstroke compression rate
+                                                               lbfpin2Npm * 200.00,  // midstroke rebound rate
+                                                               lbfpin2Npm * 48.75,   // bumpstop compression rate
+                                                               lbfpin2Npm * 365.00,  // bumpstop rebound rate
+                                                               in2m * 12.76,         // bumpstop engagement min length
+                                                               in2m * 16.48          // bumpstop engagement max length
     );
+    m_shockForceCB = shockCB;
 }
 
-// -----------------------------------------------------------------------------
-// Destructors
-// -----------------------------------------------------------------------------
 HMMWV_DoubleWishboneFront::~HMMWV_DoubleWishboneFront() {}
 
 HMMWV_DoubleWishboneRear::~HMMWV_DoubleWishboneRear() {}
 
-// -----------------------------------------------------------------------------
-// Implementations of the getLocation() virtual methods.
 // -----------------------------------------------------------------------------
 
 const ChVector<> HMMWV_DoubleWishboneFront::getLocation(PointId which) {

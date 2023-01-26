@@ -58,7 +58,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChThreeLinkIRS : public ChSuspension {
   public:
     ChThreeLinkIRS(const std::string& name  ///< [in] name of the subsystem
-                   );
+    );
 
     virtual ~ChThreeLinkIRS();
 
@@ -217,20 +217,42 @@ class CH_VEHICLE_API ChThreeLinkIRS : public ChSuspension {
 
     /// Return the free (rest) length of the spring element.
     virtual double getSpringRestLength() const = 0;
+    /// Return the free (rest) length of the shock element.
+    virtual double getShockRestLength() const { return 0; }
     /// Return the functor object for spring force.
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getSpringForceFunctor() const = 0;
     /// Return the functor object for shock force.
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const = 0;
 
+    /// Return stiffness and damping data for the arm-chassis bushing.
+    /// Returning nullptr (default) results in using a kinematic spherical joint.
+    virtual std::shared_ptr<ChVehicleBushingData> getArmChassisBushingData() const { return nullptr; }
+
+    /// Return stiffness and damping data for the arm-upper link bushing.
+    /// Returning nullptr (default) results in using a kinematic spherical joint.
+    virtual std::shared_ptr<ChVehicleBushingData> getArmUpperBushingData() const { return nullptr; }
+
+    /// Return stiffness and damping data for the arm-lower link bushing.
+    /// Returning nullptr (default) results in using a kinematic spherical joint.
+    virtual std::shared_ptr<ChVehicleBushingData> getArmLowerBushingData() const { return nullptr; }
+
+    /// Return stiffness and damping data for the chassis-upper link bushing.
+    /// Returning nullptr (default) results in using a kinematic universal joint.
+    virtual std::shared_ptr<ChVehicleBushingData> getChassisUpperBushingData() const { return nullptr; }
+
+    /// Return stiffness and damping data for the arm-lower link bushing.
+    /// Returning nullptr (default) results in using a kinematic universal joint.
+    virtual std::shared_ptr<ChVehicleBushingData> getChassisLowerBushingData() const { return nullptr; }
+
     std::shared_ptr<ChBody> m_arm[2];    ///< handles to the trailing arm bodies (left/right)
     std::shared_ptr<ChBody> m_upper[2];  ///< handles to the upper links (left/right)
     std::shared_ptr<ChBody> m_lower[2];  ///< handles to the lower links (left/right)
 
-    std::shared_ptr<ChLinkLockSpherical> m_sphericalArm[2];    ///< chassis-arm spherical joints (left/right)
-    std::shared_ptr<ChLinkLockSpherical> m_sphericalUpper[2];  ///< upper-arm spherical joints (left/right)
-    std::shared_ptr<ChLinkLockSpherical> m_sphericalLower[2];  ///< lower-arm spherical joints (left/right)
-    std::shared_ptr<ChLinkUniversal> m_universalUpper[2];      ///< upper-chassis universal joints (left/right)
-    std::shared_ptr<ChLinkUniversal> m_universalLower[2];      ///< lower-chassis universal joints (left/right)
+    std::shared_ptr<ChVehicleJoint> m_sphericalArm[2];    ///< chassis-arm spherical joints (left/right)
+    std::shared_ptr<ChVehicleJoint> m_sphericalUpper[2];  ///< upper-arm spherical joints (left/right)
+    std::shared_ptr<ChVehicleJoint> m_sphericalLower[2];  ///< lower-arm spherical joints (left/right)
+    std::shared_ptr<ChVehicleJoint> m_universalUpper[2];  ///< upper-chassis universal joints (left/right)
+    std::shared_ptr<ChVehicleJoint> m_universalLower[2];  ///< lower-chassis universal joints (left/right)
 
     std::shared_ptr<ChLinkTSDA> m_shock[2];   ///< handles to the spring links (left/right)
     std::shared_ptr<ChLinkTSDA> m_spring[2];  ///< handles to the shock links (left/right)
@@ -243,7 +265,7 @@ class CH_VEHICLE_API ChThreeLinkIRS : public ChSuspension {
     std::vector<ChVector<>> m_dirsR;  ///< joint directions (right)
 
     void InitializeSide(VehicleSide side,
-                        std::shared_ptr<ChBodyAuxRef> chassis,
+                        std::shared_ptr<ChChassis> chassis,
                         const std::vector<ChVector<>>& points,
                         const std::vector<ChVector<>>& dirs,
                         double ang_vel);

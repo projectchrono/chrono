@@ -54,7 +54,7 @@ const double Gator_SingleWishbone::m_axleInertia = 0.4;
 
 const double Gator_SingleWishbone::m_springCoefficient = 300000.0;
 const double Gator_SingleWishbone::m_dampingCoefficient = 20000.0;
-const double Gator_SingleWishbone::m_springRestLength = 0.51;
+const double Gator_SingleWishbone::m_shockRestLength = 0.3717;
 
 // -----------------------------------------------------------------------------
 // Constructors

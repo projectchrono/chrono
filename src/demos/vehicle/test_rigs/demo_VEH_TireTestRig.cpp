@@ -146,7 +146,7 @@ int main() {
     double step_size;
 
     if (tire_type == TireType::ANCF4 || tire_type == TireType::ANCF8 || tire_type == TireType::ANCF_TOROIDAL ||
-        tire_type == TireType::REISSNER) {
+        tire_type == TireType::REISSNER || tire_type == TireType::RIGID) {
         sys = new ChSystemSMC;
         step_size = 4e-5;
         solver_type = ChSolver::Type::PARDISO_MKL;
