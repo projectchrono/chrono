@@ -128,7 +128,7 @@ while vis.Run() :
     # Update modules (process inputs from other modules)
     terrain.Synchronize(time)
     my_hmmwv.Synchronize(time, driver_inputs, terrain)
-    vis.Synchronize("", driver_inputs)
+    vis.Synchronize(time, driver_inputs)
     
     # Advance simulation for one timestep for all modules
     steeringPID_output = steeringPID.Advance(my_hmmwv.GetVehicle(), step_size)

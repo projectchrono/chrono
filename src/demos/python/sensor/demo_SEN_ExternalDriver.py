@@ -200,7 +200,7 @@ def main():
         terrain.Synchronize(time)
         my_hmmwv.Synchronize(time, driver_inputs, terrain)
         if USE_IRRLICHT:
-            app.Synchronize("", driver_inputs)
+            app.Synchronize(time, driver_inputs)
 
         # Advance simulation for one timestep for all modules
         driver.Advance(step_size)

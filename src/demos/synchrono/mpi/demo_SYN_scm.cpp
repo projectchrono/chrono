@@ -329,7 +329,7 @@ int main(int argc, char* argv[]) {
         hmmwv.Synchronize(time, driver_inputs, *terrain);
 #ifdef CHRONO_IRRLICHT
         if (app)
-            app->Synchronize("", driver_inputs);
+            app->Synchronize(time, driver_inputs);
 #endif
 
         // Advance simulation for one timestep for all modules

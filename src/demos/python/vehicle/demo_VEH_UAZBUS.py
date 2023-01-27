@@ -189,7 +189,7 @@ while vis.Run() :
     driver.Synchronize(time)
     terrain.Synchronize(time)
     uaz.Synchronize(time, driver_inputs, terrain)
-    vis.Synchronize(driver.GetInputModeAsString(), driver_inputs)
+    vis.Synchronize(time, driver_inputs)
 
     # Test for validity of kingpin angles (max.allowed by UAZ: 27deg)
     suspF = veh.CastToChToeBarLeafspringAxle(uaz.GetVehicle().GetSuspension(0))

@@ -174,7 +174,7 @@ while vis.Run() :
     driver.Synchronize(time)
     terrain.Synchronize(time)
     my_bus.Synchronize(time, driver_inputs, terrain)
-    vis.Synchronize(driver.GetInputModeAsString(), driver_inputs)
+    vis.Synchronize(time, driver_inputs)
 
     # Advance simulation for one timestep for all modules
     driver.Advance(step_size)

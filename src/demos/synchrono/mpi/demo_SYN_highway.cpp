@@ -321,7 +321,7 @@ int main(int argc, char* argv[]) {
         terrain.Synchronize(time);
         vehicle.Synchronize(time, driver_inputs, terrain);
         if (app)
-            app->Synchronize("", driver_inputs);
+            app->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver->Advance(step_size);

@@ -92,9 +92,9 @@ class IrrAppWrapper {
   public:
     IrrAppWrapper(std::shared_ptr<ChTrackedVehicleVisualSystemIrrlicht> app = nullptr) : m_app(app) {}
 
-    void Synchronize(const std::string& msg, const DriverInputs& driver_inputs) {
+    void Synchronize(double time, const DriverInputs& driver_inputs) {
         if (m_app)
-            m_app->Synchronize(msg, driver_inputs);
+            m_app->Synchronize(time, driver_inputs);
     }
 
     void Advance(double step) {
@@ -273,7 +273,7 @@ int main(int argc, char* argv[]) {
         driver.Synchronize(time);
         terrain.Synchronize(time);
         vehicle.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
-        app.Synchronize("", driver_inputs);
+        app.Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);

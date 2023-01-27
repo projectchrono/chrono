@@ -105,7 +105,7 @@ def main() :
         driver_inputs.m_steering = rig.GetSteeringInput()
         driver_inputs.m_throttle = 0.0
         driver_inputs.m_braking = 0.0
-        vis.Synchronize(rig.GetDriverMessage(), driver_inputs)
+        vis.Synchronize(time, driver_inputs)
         vis.Advance(step_size)
 
         if rig.DriverEnded():

@@ -336,7 +336,7 @@ int main(int argc, char* argv[]) {
         m113.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
 #ifdef CHRONO_IRRLICHT
         if (app)
-            app->Synchronize("", driver_inputs);
+            app->Synchronize(time, driver_inputs);
 #endif
 
         // Advance simulation for one timestep for all modules
