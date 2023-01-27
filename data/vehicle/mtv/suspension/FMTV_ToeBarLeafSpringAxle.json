@@ -15,12 +15,12 @@
   "Knuckle":
   {
     "Mass":                         68.0,
-    "COM":                          [0.0, 0.908341392, 0.0],
+    "COM":                          [0.0, 0.908, 0.0],
     "Inertia":                      [0.1, 0.1, 0.1],
     "Radius":                       0.06,
-    "Location Lower":               [0.0, 0.92597409, -0.1],
-    "Location Upper":               [0.0, 0.890708694, 0.1],
-    "Location Draglink":            [0.2, 0.708341392, 0.1] // y > 0 -> left knuckle connects to draglink
+    "Location Lower":               [0.0, 0.926, -0.1],
+    "Location Upper":               [0.0, 0.891, 0.1],
+    "Location Draglink":            [0.0, 0.708, 0.1] // y > 0 -> left knuckle connects to draglink
                                                             // y < 0 -> right knuckle connects to draglink
   },
     
@@ -36,7 +36,7 @@
   {
     "Mass":                         5.0,
     "Inertia":                      [1.0, 0.1, 1.0],
-    "Location Knuckle":             [-0.2, 0.862974035, 0.1],
+    "Location Knuckle":             [-0.2, 0.863, 0.1],
 	"Radius":                       0.02
   },
   
@@ -44,7 +44,7 @@
   {
     "Mass":                         5.0,
     "Inertia":                      [0.1, 1.0, 0.1],
-    "Location Chassis":             [1.0, 0.708341392, 0.1],
+    "Location Chassis":             [1.0, 0.708, 0.1],
 	"Radius":                       0.02
   },
 
@@ -52,8 +52,8 @@
   {
     "Location Chassis":             [0.0, 0.529, 0.26],
     "Location Axle":                [0.0, 0.529, 0.06],
-    "Spring Coefficient":           102643.885771329,
-    "Free Length":                  0.262122,
+    "Spring Coefficient":           420000.0,
+    "Free Length":                  0.262,
     "Minimum Length":               0.12,
     "Maximum Length":               0.28
   },
@@ -61,7 +61,7 @@
   "Shock":
   {
     "Location Chassis":             [0.0, 0.529, 0.46],
-    "Location Axle":                [-0.15, 0.7075, 0.01],
+    "Location Axle":                [-0.15, 0.708, 0.01],
     "Damping Coefficient":          48240.8,
     "Degressivity Compression":     3,
     "Degressivity Expansion":       1
