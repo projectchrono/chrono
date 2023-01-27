@@ -514,6 +514,12 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
             }
             *mfile << collection << ".objects.link(new_object) \n\n";
 
+            if (mesh->m_colors.size() == mesh->m_vertices.size() ||
+                        mesh->getPropertiesPerVertex().size() ||
+                        mesh->getPropertiesPerFace().size()) {
+                *mfile << "meshsetting = setup_meshsetting(new_object)\n";
+            }
+
             if (mesh->m_colors.size() == mesh->m_vertices.size()) {
                 *mfile << "colors = [ \n";
                 for (unsigned int iv = 0; iv < mesh->m_colors.size(); iv++) {
@@ -521,12 +527,62 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
                 }
                 *mfile << "] \n";
                 *mfile << "add_mesh_data_vectors(new_object, colors, 'chrono_color', mdomain='POINT') \n";
+                
                 *mfile << "new_mat = make_material_mesh_color_attribute('per_vertex_color_mesh', 'chrono_color') \n";
                 *mfile << "new_object.data.materials[-1]=new_mat \n";
                 if (per_frame)
                     *mfile << "chrono_frame_materials.append(new_mat) \n\n";
                 else 
                     *mfile << "chrono_materials.append(new_mat) \n\n";
+            }
+
+            for (auto mprop : mesh->getPropertiesPerVertex()) {
+                if (auto mprop_scalar = dynamic_cast<ChPropertyT<double>*>(mprop)) {
+                    *mfile << "scalars = [ \n";
+                    for (unsigned int iv = 0; iv < mprop_scalar->data.size(); iv++) {
+                        *mfile << mprop_scalar->data[iv] << ",\n";
+                    }
+                    *mfile << "] \n";
+                    *mfile << "add_mesh_data_floats(new_object, scalars, '" << mprop_scalar->name <<"', mdomain='POINT') \n";
+
+                    *mfile << "property = setup_meshsetting_property(meshsetting, '" << mprop_scalar->name.c_str() << "',min=" << 0.0 << ", max=" << 1.0 << ", matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_scalar->name.c_str() << "')\n";
+                    *mfile << "mat = setup_meshsetting_falsecolor_material(new_object,meshsetting, '" << mprop_scalar->name.c_str() << "')\n";
+                }
+                if (auto mprop_vectors = dynamic_cast<ChPropertyT<ChVector<>>*>(mprop)) {
+                    *mfile << "vectors = [ \n";
+                    for (unsigned int iv = 0; iv < mprop_vectors->data.size(); iv++) {
+                        *mfile << "(" << mprop_vectors->data[iv].x() << "," << mprop_vectors->data[iv].y() << "," << mprop_vectors->data[iv].z() << "),\n";
+                    }
+                    *mfile << "] \n";
+                    *mfile << "add_mesh_data_vectors(new_object, vectors, '" << mprop_vectors->name <<"', mdomain='POINT') \n";
+                    
+                    *mfile << "property = setup_meshsetting_property(meshsetting, '" << mprop_vectors->name.c_str() << "',min=" << 0.0 << ", max=" << 1.0 << ", matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_vectors->name.c_str() << "')\n";
+                    *mfile << "mat = setup_meshsetting_falsecolor_material(new_object,meshsetting, '" << mprop_vectors->name.c_str() << "')\n";
+                }
+            }
+            for (auto mprop : mesh->getPropertiesPerFace()) {
+                if (auto mprop_scalar = dynamic_cast<ChPropertyT<double>*>(mprop)) {
+                    *mfile << "scalars = [ \n";
+                    for (unsigned int iv = 0; iv < mprop_scalar->data.size(); iv++) {
+                        *mfile << mprop_scalar->data[iv] << ",\n";
+                    }
+                    *mfile << "] \n";
+                    *mfile << "add_mesh_data_floats(new_object, scalars, '" << mprop_scalar->name <<"', mdomain='FACE') \n";
+                    
+                    *mfile << "property = setup_meshsetting_property(meshsetting, '" << mprop_scalar->name.c_str() << "',min=" << 0.0 << ", max=" << 1.0 << ", matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_scalar->name.c_str() << "')\n";
+                    *mfile << "mat = setup_meshsetting_falsecolor_material(new_object,meshsetting, '" << mprop_scalar->name.c_str() << "')\n";
+                }
+                if (auto mprop_vectors = dynamic_cast<ChPropertyT<ChVector<>>*>(mprop)) {
+                    *mfile << "vectors = [ \n";
+                    for (unsigned int iv = 0; iv < mprop_vectors->data.size(); iv++) {
+                        *mfile << "(" << mprop_vectors->data[iv].x() << "," << mprop_vectors->data[iv].y() << "," << mprop_vectors->data[iv].z() << "),\n";
+                    }
+                    *mfile << "] \n";
+                    *mfile << "add_mesh_data_vectors(new_object, vectors, '" << mprop_vectors->name <<"', mdomain='FACE') \n";
+                    
+                    *mfile << "property = setup_meshsetting_property(meshsetting, '" << mprop_vectors->name.c_str() << "',min=" << 0.0 << ", max=" << 1.0 << ", matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_vectors->name.c_str() << "')\n";
+                    *mfile << "mat = setup_meshsetting_falsecolor_material(new_object,meshsetting, '" << mprop_vectors->name.c_str() << "')\n";
+                }
             }
 
             m_shapes->insert({(size_t)shape.get(), shape});
