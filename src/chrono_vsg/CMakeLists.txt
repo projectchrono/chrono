@@ -52,6 +52,7 @@ set(CE_VSG_BASE_FILES
     ChVisualSystemVSG.cpp
     ChVisualSystemVSG.h
     ChGuiComponentVSG.h
+    ChEventHandlerVSG.h
 )
 
 set(CE_VSG_SHAPES_FILES

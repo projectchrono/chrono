@@ -27,6 +27,8 @@ namespace vsg3d {
 
 using namespace std;
 
+// -----------------------------------------------------------------------------
+
 class GuiComponentWrapper {
   public:
     GuiComponentWrapper(std::shared_ptr<ChGuiComponentVSG> component, ChVisualSystemVSG* app)
@@ -179,6 +181,36 @@ class ChColorbarGuiComponentVSG : public ChGuiComponentVSG {
 
 // -----------------------------------------------------------------------------
 
+class EventHandlerWrapper : public vsg::Inherit<vsg::Visitor, EventHandlerWrapper> {
+  public:
+    EventHandlerWrapper(std::shared_ptr<ChEventHandlerVSG> component, ChVisualSystemVSG* app)
+        : m_component(component), m_app(app) {}
+
+    void apply(vsg::KeyPressEvent& keyPress) override { m_component->process(keyPress); }
+
+  private:
+    std::shared_ptr<ChEventHandlerVSG> m_component;
+    ChVisualSystemVSG* m_app;
+};
+
+class ChBaseEventHandlerVSG : public ChEventHandlerVSG {
+  public:
+    ChBaseEventHandlerVSG(ChVisualSystemVSG* app) : m_app(app) {}
+
+    virtual void process(vsg::KeyPressEvent& keyPress) override {
+        if (keyPress.keyBase == 'm' || keyPress.keyModified == 'm') {
+            m_app->ToggleGuiVisibility();
+        }
+        if (keyPress.keyBase == vsg::KEY_Escape || keyPress.keyModified == 65307) {
+            m_app->Quit();
+        }
+    }
+
+    ChVisualSystemVSG* m_app;
+};
+
+// -----------------------------------------------------------------------------
+
 class FindVertexData : public vsg::Visitor {
   public:
     void apply(vsg::Object& object) { object.traverse(*this); }
@@ -266,25 +298,7 @@ class FindColorData : public vsg::Visitor {
     std::set<vsg::vec4Array*> colorsSet;
 };
 
-class AppKeyboardHandler : public vsg::Inherit<vsg::Visitor, AppKeyboardHandler> {
-  public:
-    AppKeyboardHandler(ChVisualSystemVSG* app) : m_app(app) {}
-
-    void apply(vsg::KeyPressEvent& keyPress) override {
-        if (keyPress.keyBase == 'm' || keyPress.keyModified == 'm') {
-            m_app->ToggleGuiVisibility();
-        }
-        if (keyPress.keyBase == 't' || keyPress.keyModified == 't') {
-            m_app->Quit();
-        }
-        if (keyPress.keyBase == vsg::KEY_Escape || keyPress.keyModified == 65307) {
-            m_app->Quit();
-        }
-    }
-
-  private:
-    ChVisualSystemVSG* m_app;
-};
+// -----------------------------------------------------------------------------
 
 struct Merge : public vsg::Inherit<vsg::Operation, Merge> {
     Merge(const vsg::Path& in_path,
@@ -424,6 +438,10 @@ void ChVisualSystemVSG::AddGuiComponent(std::shared_ptr<ChGuiComponentVSG> gc) {
 
 void ChVisualSystemVSG::AddGuiColorbar(const std::string& title, double min_val, double max_val) {
     m_gui.push_back(chrono_types::make_shared<ChColorbarGuiComponentVSG>(title, min_val, max_val));
+}
+
+void ChVisualSystemVSG::AddEventHandler(std::shared_ptr<ChEventHandlerVSG> eh) {
+    m_evhandler.push_back(eh);
 }
 
 void ChVisualSystemVSG::Quit() {
@@ -701,12 +719,21 @@ void ChVisualSystemVSG::Initialize() {
 
     m_vsg_camera = vsg::Camera::create(perspective, m_lookAt, vsg::ViewportState::create(m_window->extent2D()));
 
-    // add keyboard handler
-    auto kbHandler = AppKeyboardHandler::create(this);
-    m_viewer->addEventHandler(kbHandler);
+    // Add the base keyboard event handler
+    auto base_kbhandler = chrono_types::make_shared<ChBaseEventHandlerVSG>(this);
+    auto base_kbhandler_wrapper = EventHandlerWrapper::create(base_kbhandler, this);
+    m_viewer->addEventHandler(base_kbhandler_wrapper);
 
+    // Add all user-specified event handlers
+    for (const auto& eh : m_evhandler) {
+        auto evhandler_wrapper = EventHandlerWrapper::create(eh, this);
+        m_viewer->addEventHandler(evhandler_wrapper);
+    }
+
+    // Add event handler for window close events
     m_viewer->addEventHandler(vsg::CloseHandler::create(m_viewer));
 
+    // Add event handler for mouse camera view manipulation
     if (m_camera_trackball)
         m_viewer->addEventHandler(vsg::Trackball::create(m_vsg_camera));
 

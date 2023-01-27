@@ -12,8 +12,10 @@
 // Radu Serban
 // =============================================================================
 
-#ifndef CH_GUI_COMPONENT_VSG_H
-#define CH_GUI_COMPONENT_VSG_H
+#ifndef CH_EVENT_HANDLER_VSG_H
+#define CH_EVENT_HANDLER_VSG_H
+
+#include <vsg/ui/KeyEvent.h>
 
 #include "chrono_vsg/ChApiVSG.h"
 
@@ -23,13 +25,18 @@ namespace vsg3d {
 /// @addtogroup vsg_module
 /// @{
 
-/// Base class for a GUI component for the VSG run-time visualization system.
-class CH_VSG_API ChGuiComponentVSG {
+/// Base class for a user-defined event handler for the VSG run-time visualization system.
+class CH_VSG_API ChEventHandlerVSG {
   public:
-    ChGuiComponentVSG() {}
-    virtual ~ChGuiComponentVSG() {}
+    ChEventHandlerVSG() {}
+    virtual ~ChEventHandlerVSG() {}
 
-    virtual void render() = 0;
+    virtual void process(vsg::KeyPressEvent& ev) {}
+    virtual void process(vsg::KeyReleaseEvent& ev) {}
+    virtual void process(vsg::ButtonPressEvent& ev) {}
+    virtual void process(vsg::ButtonReleaseEvent& ev) {}
+    virtual void process(vsg::MoveEvent& ev) {}
+    virtual void process(vsg::TouchEvent& ev) {}
 };
 
 /// @} vsg_module

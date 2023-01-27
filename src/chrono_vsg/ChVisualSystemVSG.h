@@ -44,6 +44,7 @@
 
 #include "chrono_vsg/ChApiVSG.h"
 #include "chrono_vsg/ChGuiComponentVSG.h"
+#include "chrono_vsg/ChEventHandlerVSG.h"
 #include "chrono_vsg/shapes/ShapeBuilder.h"
 
 namespace chrono {
@@ -151,6 +152,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Return bollean indicating whether or not GUI are visible.
     bool IsGuiVisible() const { return m_show_gui; }
 
+    /// Add a user-defined VSG event handler.
+    void AddEventHandler(std::shared_ptr<ChEventHandlerVSG> eh);
+
   protected:
     /// Perform necessary setup operations at the beginning of a time step.
     virtual void OnSetup(ChSystem* sys) override;
@@ -165,8 +169,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::Viewer> m_viewer;  ///< high-level VSG rendering manager
     vsg::ref_ptr<vsg::RenderGraph> m_renderGraph;
 
-    bool m_show_gui;                                        ///< flag to toggle global GUI visibility
-    std::vector<std::shared_ptr<ChGuiComponentVSG>> m_gui;  ///< list of all additional GUI components
+    bool m_show_gui;                                              ///< flag to toggle global GUI visibility
+    std::vector<std::shared_ptr<ChGuiComponentVSG>> m_gui;        ///< list of all additional GUI components
+    std::vector<std::shared_ptr<ChEventHandlerVSG>> m_evhandler;  ///< list of all additional event handlers
 
     vsg::dvec3 m_vsg_cameraEye = vsg::dvec3(-10.0, 0.0, 0.0);
     vsg::dvec3 m_vsg_cameraTarget = vsg::dvec3(0.0, 0.0, 0.0);

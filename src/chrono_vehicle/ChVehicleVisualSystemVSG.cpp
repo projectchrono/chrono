@@ -115,22 +115,21 @@ class FindColorData : public vsg::Visitor {
 
 // -----------------------------------------------------------------------------
 
-class ChVehicleKeyboardHandlerVSG : public vsg::Inherit<vsg::Visitor, ChVehicleKeyboardHandlerVSG> {
+class ChVehicleKeyboardHandlerVSG : public vsg3d::ChEventHandlerVSG {
   public:
     ChVehicleKeyboardHandlerVSG(ChVehicleVisualSystemVSG* app) : m_app(app) {}
 
-    void apply(vsg::KeyPressEvent& keyPress) override {
+    // Keyboard events for chase-cam and interactive driver control
+    void process(vsg::KeyPressEvent& keyPress) override {
         if (!m_app->m_vehicle)
             return;
 
-        // keyboard events for camera steering
-        
         switch (keyPress.keyModified) {
             case vsg::KEY_V:
                 m_app->m_vehicle->LogConstraintViolations();
                 return;
         }
-        
+
         switch (keyPress.keyBase) {
             case vsg::KEY_Left:
                 m_app->m_camera->Turn(-1);
@@ -356,15 +355,14 @@ void ChVehicleVisualSystemVSG::Initialize() {
     // Create vehicle-specific GUI and let derived classes append to it
     m_gui.push_back(chrono_types::make_shared<ChVehicleGuiComponentVSG>(this));
 
+    // Add keyboard handler
+    m_evhandler.push_back(chrono_types::make_shared<ChVehicleKeyboardHandlerVSG>(this));
+
     // Do not create a VSG camera trackball controller
     m_camera_trackball = false;
 
     // Invoke the base Initialize method
     ChVisualSystemVSG::Initialize();
-
-    // Add keyboard handler
-    auto veh_kbHandler = ChVehicleKeyboardHandlerVSG::create(this);
-    m_viewer->addEventHandler(veh_kbHandler);
 
     // Initialize chase-cam mode
     SetChaseCameraState(utils::ChChaseCamera::State::Chase);
