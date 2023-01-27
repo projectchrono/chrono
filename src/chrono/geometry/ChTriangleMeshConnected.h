@@ -26,7 +26,78 @@
 namespace chrono {
 namespace geometry {
 
+/// Base class for properties to attach to vertexes or particles etc.
+/// as an array of data.
+class ChApi ChProperty {
+public:
+    ChProperty() {};
+    virtual ~ChProperty() {};
+    
+    /// Cloning: 
+    virtual ChProperty* clone() = 0;
+
+    /// Get current size of data array.
+    virtual size_t GetSize() = 0;
+
+    /// Resize data array to some amount. All internal data will be reset.
+    virtual void SetSize(const size_t msize) = 0;
+
+    /// Name of this property.
+    std::string name;
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) { marchive << CHNVP(name); };
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) {  marchive >> CHNVP(name); };
+};
+
+/// Templated property: a generic array of items of type T.
+template <class T>
+class ChApi ChPropertyT: public ChProperty {
+public:
+    ChPropertyT() {};
+    ~ChPropertyT() {};
+    ChPropertyT(const ChPropertyT& other) { data = other.data; name = other.name;  }
+
+    /// Cloning: 
+    ChProperty* clone() override { return new ChPropertyT<T>(*this); };
+    
+    size_t GetSize() override {
+        return data.size();
+    };
+    void SetSize(const size_t msize) override {
+        return data.resize(msize);
+    };
+
+    /// The data array
+    std::vector<T> data;
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override { 
+        ChProperty::ArchiveOUT(marchive);
+        marchive << CHNVP(data);
+    };
+    virtual void ArchiveIN(ChArchiveIn& marchive) override {
+        ChProperty::ArchiveIN(marchive);
+        marchive >> CHNVP(data);
+    };
+};
+
+/// Data is an array of floats 
+class ChApi ChPropertyScalar : public ChPropertyT<double> {};
+
+/// Data is an array of vectors 
+class ChApi ChPropertyVector : public ChPropertyT<ChVector<>> {};
+
+/// Data is an array of colors 
+class ChApi ChPropertyColor : public ChPropertyT<ChColor> {};
+
+
 /// A triangle mesh with connectivity info: vertices can be shared between faces.
+/// To keep this simple, the class assumes that you will manage the size of vectors
+/// m_vertices, m_normals etc., so ve cautious about resizing etc.
+/// We assume that 
+/// - if no m_face_uv_indices but m_UV.size() == m_vertices.size(), then m_UV represents per-vertex UV, otherwise per-face-corner
+/// - if no m_face_col_indices but m_colors.size() == m_vertices.size(), then m_colors represents per-vertex colors, otherwise per-face-corner
 class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
   public:
     std::vector<ChVector<double>> m_vertices;
@@ -42,10 +113,13 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
 
     std::string m_filename;  ///< file string if loading an obj file
 
+    std::vector<ChProperty*> m_properties_per_vertex;
+    std::vector<ChProperty*> m_properties_per_face;
+
   public:
     ChTriangleMeshConnected() {}
     ChTriangleMeshConnected(const ChTriangleMeshConnected& source);
-    ~ChTriangleMeshConnected() {}
+    ~ChTriangleMeshConnected();
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChTriangleMeshConnected* Clone() const override { return new ChTriangleMeshConnected(*this); }
@@ -60,6 +134,17 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     std::vector<ChVector<int>>& getIndicesUV() { return m_face_uv_indices; }
     std::vector<ChVector<int>>& getIndicesColors() { return m_face_col_indices; }
     std::vector<int>& getIndicesMaterials() { return m_face_mat_indices; }
+
+    std::vector<ChProperty*> getPropertiesPerVertex() { return m_properties_per_vertex; }
+    std::vector<ChProperty*> getPropertiesPerFace() { return m_properties_per_face; };
+
+    /// Add a property as an array of data per-vertex. Deletion will be automatic at the end of mesh life.
+    /// Warning: mprop.data.size() must be equal to m_vertices.size().  Cost: allocation and a data copy. 
+    void AddPropertyPerVertex(ChProperty& mprop) { m_properties_per_vertex.push_back(mprop.clone());}
+    
+    /// Add a property as an array of data per-face. Deletion will be automatic at the end of mesh life.
+    /// Warning: mprop.data.size() must be equal to m_vertices.size().  Cost: allocation a data copy. 
+    void AddPropertyPerFace(ChProperty& mprop) { m_properties_per_face.push_back(mprop.clone());}
 
     /// Create and return a ChTriangleMeshConnected from a Wavefront OBJ file.
     /// If an error occurrs during loading, an empty shared pointer is returned.
