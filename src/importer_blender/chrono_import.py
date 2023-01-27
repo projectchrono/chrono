@@ -1159,6 +1159,29 @@ class Chrono_operator(Operator):
         return {'FINISHED'}
 
 
+class GUI_properties(UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        row = layout.row()
+        split = row.split(factor=0.5)
+        if item.type == 'SCALAR':
+            split.label(icon="PARTICLE_DATA", text=item.name)
+        if item.type == 'COLOR':
+            split.label(icon="COLOR", text=item.name)
+        if item.type == 'VECTOR':
+            split.label(icon="ORIENTATION_LOCAL", text=item.name)
+
+    def invoke(self, context, event):
+        pass  
+
+class GUI_meshsettins(UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        row = layout.row()
+        row.label(icon="OUTLINER_OB_MESH", text=item.name)
+
+    def invoke(self, context, event):
+        pass   
+    
+    
 class Chrono_sidebar(Panel):
     """Chrono settings for 3D view"""
     bl_label = "Chrono view"
