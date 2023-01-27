@@ -94,7 +94,6 @@ void Sedan_SimpleMapPowertrain::SetShiftPoints(std::vector<std::pair<double, dou
     shift_bands.push_back(std::pair<double, double>(1400 * rpm2rads, 4500 * rpm2rads));
     shift_bands.push_back(std::pair<double, double>(1600 * rpm2rads, 4500 * rpm2rads));
     shift_bands.push_back(std::pair<double, double>(1800 * rpm2rads, 4500 * rpm2rads));
-    shift_bands.push_back(std::pair<double, double>(1800 * rpm2rads, 4500 * rpm2rads));
     shift_bands.push_back(std::pair<double, double>(2000 * rpm2rads, 4500 * rpm2rads));
 }
 

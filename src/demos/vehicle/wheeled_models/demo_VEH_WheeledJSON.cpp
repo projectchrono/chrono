@@ -49,13 +49,15 @@ using namespace chrono::vehicle;
 // =============================================================================
 // Specification of a vehicle model from JSON files
 // Available models:
-//    HMMWV   - Hig Mobility Multipurpose Wheeled Vehicle
-//    Sedan   - Generic sedan vehicle
-//    UAZ     - UAZ minibus
-//    CityBus - passenger bus
-//    MAN     - MAN 10t truck
-//    MTV     - MTV truck
-//    ACV     - articulated chassis vehicle (skid steer)
+//    HMMWV       - Hig Mobility Multipurpose Wheeled Vehicle
+//    Sedan       - Generic sedan vehicle
+//    Audi        - Audia A4 
+//    VW microbus - VW T2 microbus
+//    UAZ         - UAZ minibus
+//    CityBus     - passenger bus
+//    MAN         - MAN 10t truck
+//    MTV         - MTV truck 
+//    ACV         - articulated chassis vehicle (skid steer)
 
 class Vehicle_Model {
   public:
@@ -71,16 +73,17 @@ class HMMWV_Model : public Vehicle_Model {
   public:
     virtual std::string ModelName() const override { return "HMMWV"; }
     virtual std::string VehicleJSON() const override {
-        return "hmmwv/vehicle/HMMWV_Vehicle.json";
+        return "hmmwv/vehicle/HMMWV_Vehicle_mapShock.json";
+        ////return "hmmwv/vehicle/HMMWV_Vehicle.json";
         ////return "hmmwv/vehicle/HMMWV_Vehicle_bushings.json";
         ////return "hmmwv/vehicle/HMMWV_Vehicle_4WD.json";
     }
     virtual std::string TireJSON() const override {
         ////return "hmmwv/tire/HMMWV_RigidTire.json";
         ////return "hmmwv/tire/HMMWV_FialaTire.json";
-        ////return "hmmwv/tire/HMMWV_TMeasyTire.json";
+        return "hmmwv/tire/HMMWV_TMeasyTire.json";
         ////return "hmmwv/tire/HMMWV_Pac89Tire.json";
-        return "hmmwv/tire/HMMWV_Pac02Tire.json";
+        ////return "hmmwv/tire/HMMWV_Pac02Tire.json";
     }
     virtual std::string PowertrainJSON() const override {
         return "hmmwv/powertrain/HMMWV_ShaftsPowertrain.json";
@@ -101,6 +104,20 @@ class Sedan_Model : public Vehicle_Model {
         ////return "sedan/tire/Sedan_Pac02Tire.json";
     }
     virtual std::string PowertrainJSON() const override { return "sedan/powertrain/Sedan_SimpleMapPowertrain.json"; }
+    virtual double CameraDistance() const override { return 6.0; }
+    virtual ChContactMethod ContactMethod() const { return ChContactMethod::SMC; }
+};
+
+class Audi_Model : public Vehicle_Model {
+  public:
+    virtual std::string ModelName() const override { return "Audi"; }
+    virtual std::string VehicleJSON() const override { return "audi/json/audi_Vehicle.json"; }
+    virtual std::string TireJSON() const override {
+        return "audi/json/audi_TMeasyTire.json";
+        ////return "audi/json/audi_RigidTire.json.json";
+        ////return "audi/json/audi_Pac02Tire.json";
+    }
+    virtual std::string PowertrainJSON() const override { return "audi/json/audi_SimpleMapPowertrain.json"; }
     virtual double CameraDistance() const override { return 6.0; }
     virtual ChContactMethod ContactMethod() const { return ChContactMethod::SMC; }
 };
@@ -218,6 +235,7 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
 // Current vehicle model selection
 auto vehicle_model = HMMWV_Model();
 ////auto vehicle_model = Sedan_Model();
+////auto vehicle_model = Audi_Model();
 ////auto vehicle_model = VW_Microbus_Model();
 ////auto vehicle_model = UAZ_Model();
 ////auto vehicle_model = CityBus_Model();
@@ -255,7 +273,7 @@ int main(int argc, char* argv[]) {
     WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_model.VehicleJSON()), vehicle_model.ContactMethod());
     vehicle.Initialize(ChCoordsys<>(initLoc, Q_from_AngZ(initYaw)));
     vehicle.GetChassis()->SetFixed(false);
-    vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetChassisVisualizationType(VisualizationType::NONE);
     vehicle.SetChassisRearVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
@@ -297,6 +315,7 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create the vehicle run-time visualization interface and the interactive driver
+    std::string title = "Vehicle demo - JSON specification - " + vehicle_model.ModelName();
     std::shared_ptr<ChVehicleVisualSystem> vis;
     std::shared_ptr<ChDriver> driver;
     switch (vis_type) {
@@ -304,7 +323,7 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_IRRLICHT
             // Create the vehicle Irrlicht interface
             auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
-            vis_irr->SetWindowTitle("Vehicle demo - JSON specification");
+            vis_irr->SetWindowTitle(title);
             vis_irr->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), vehicle_model.CameraDistance(), 0.5);
             vis_irr->Initialize();
             vis_irr->AddLightDirectional();
@@ -328,7 +347,7 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
             // Create the vehicle VSG interface
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
-            vis_vsg->SetWindowTitle("Vehicle demo - JSON specification");
+            vis_vsg->SetWindowTitle(title);
             vis_vsg->AttachVehicle(&vehicle);
             vis_vsg->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), vehicle_model.CameraDistance(), 0.5);
             vis_vsg->SetWindowSize(ChVector2<int>(800, 600));

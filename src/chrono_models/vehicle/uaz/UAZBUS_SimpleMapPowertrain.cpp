@@ -83,7 +83,6 @@ void UAZBUS_SimpleMapPowertrain::SetShiftPoints(std::vector<std::pair<double, do
     shift_bands.push_back(std::pair<double, double>(1000 * rpm2rads, 3700 * rpm2rads));
     shift_bands.push_back(std::pair<double, double>(1000 * rpm2rads, 3700 * rpm2rads));
     shift_bands.push_back(std::pair<double, double>(1000 * rpm2rads, 3700 * rpm2rads));
-    // shift_bands.push_back(std::pair<double, double>(1000 * rpm2rads, 4000 * rpm2rads));
 }
 
 }  // end namespace uaz

@@ -26,20 +26,17 @@
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RandomSurfaceTerrain.h"
+#include "chrono_vehicle/driver/ChPathFollowerDriver.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
+
 #ifdef USE_IRRLICHT
     #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 #endif
-#include "chrono_vehicle/driver/ChPathFollowerDriver.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_models/vehicle/mtv/MTV.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
-
-#include <chrono>
-#include <thread>
-#include <math.h>
 
 using namespace chrono;
 using namespace chrono::vehicle;

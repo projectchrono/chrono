@@ -264,7 +264,7 @@ std::shared_ptr<ChLinkTSDA::ForceFunctor> ReadTSDAFunctorJSON(const rapidjson::V
             auto forceCB = chrono_types::make_shared<NonlinearDamperForce>();
 
             assert(tsda["Damping Curve Data"].IsArray() && tsda["Damping Curve Data"][0u].Size() == 2);
-            int num_speeds = tsda["Dumping Curve Data"].Size();
+            int num_speeds = tsda["Damping Curve Data"].Size();
             for (int i = 0; i < num_speeds; i++) {
                 double vel = tsda["Damping Curve Data"][i][0u].GetDouble();
                 double force = tsda["Damping Curve Data"][i][1u].GetDouble();
