@@ -1634,10 +1634,10 @@ vsg::ref_ptr<vsg::ShaderSet> ShapeBuilder::createTilingPhongShaderSet(vsg::ref_p
             return itr->second;
     }
 
-    auto vertexShader = vsg::read_cast<vsg::ShaderStage>("vsg/shaders/vsg3d.vert", options);
+    auto vertexShader = vsg::read_cast<vsg::ShaderStage>("vsg/shaders/chrono.vert", options);
     // if (!vertexShader)
     //     vertexShader = assimp_vert();  // fallback to shaders/assimp_vert.cpp
-    auto fragmentShader = vsg::read_cast<vsg::ShaderStage>("vsg/shaders/vsg3d_phong.frag", options);
+    auto fragmentShader = vsg::read_cast<vsg::ShaderStage>("vsg/shaders/chrono_phong.frag", options);
     // if (!fragmentShader)
     //     fragmentShader = assimp_phong_frag();
 
