@@ -58,9 +58,18 @@ import numpy as np
 import mathutils
 import os
 import math
-from bpy.types import Operator
-from bpy.types import Panel
-
+from enum import Enum
+from bpy.types import (Operator,
+                       Panel,
+                       PropertyGroup,
+                       UIList)
+from bpy.props import (IntProperty,
+                       BoolProperty,
+                       StringProperty,
+                       FloatProperty,
+                       EnumProperty,
+                       PointerProperty,
+                       CollectionProperty)
 
 #
 # Globals, to keep things simple with callbacks
@@ -246,6 +255,16 @@ colormap_winter = [
  [1,     (0,1,0.5, 1)]
 ]
 
+colormaps = {
+"colormap_jet":colormap_jet,
+"colormap_cooltowarm":colormap_cooltowarm,
+"colormap_viridis":colormap_viridis,
+"colormap_hot":colormap_hot,
+"colormap_cool":colormap_cool,
+"colormap_winter":colormap_winter,
+}
+
+
 # helper function to generate a material that, once assigned to a mesh with a float attribute, 
 # renders it as falsecolor (per face or per vertex, depending on the attribute's mesh data domain)
 def make_material_mesh_falsecolor_attribute(nameID, attrname, attr_min=0.0, attr_max=1.0, colormap=colormap_cooltowarm):
@@ -271,10 +290,15 @@ def make_material_mesh_falsecolor_attribute(nameID, attrname, attr_min=0.0, attr
     maprange.inputs[1].default_value = attr_min
     maprange.inputs[2].default_value = attr_max
     links.new(maprange.outputs[0], ramp.inputs[0])
+    vectnorm = nodes.new(type="ShaderNodeVectorMath")
+    vectnorm.operation = 'LENGTH'
+    links.new(vectnorm.outputs[1], maprange.inputs[0])
+    separator = nodes.new(type="ShaderNodeSeparateXYZ")
+    #links.new(separator.outputs[0], maprange.inputs[0])
     colattribute = nodes.new(type='ShaderNodeAttribute')
     colattribute.attribute_name = attrname
     colattribute.attribute_type = 'GEOMETRY'
-    links.new(colattribute.outputs[2], maprange.inputs[0])
+    links.new(colattribute.outputs[1], vectnorm.inputs[0])
     return new_mat
 
 # helper function to generate a material that, once assigned to an object that is used to
@@ -307,6 +331,101 @@ def make_material_instance_falsecolor(nameID, attrname, attr_min=0.0, attr_max=1
     colattribute.attribute_type = 'INSTANCER'
     links.new(colattribute.outputs[2], maprange.inputs[0])
     return new_mat
+
+# Add an item to collection of settings about mesh visualization, but
+# if a mesh setting is already existing with the correspoiding name id, just reuse it (so
+# that one can have setting persistency through frames, even if the mesh is non-mutable and regenerated.
+def setup_meshsetting(new_object):
+    meshsetting = bpy.context.scene.ch_meshsetting.get(new_object.name)
+    if not meshsetting:
+        meshsetting = bpy.context.scene.ch_meshsetting.add()
+        meshsetting.name = new_object.name
+        meshsetting.property_index = 0
+    return meshsetting
+
+
+    
+# Add an item to collection of properties of a given mesh visualization,
+# but if a property is already existing with the corresponding name id, just reuse it
+def setup_meshsetting_property(meshsetting, propname, min=0, max=1, mcolormap='colormap_viridis', matname='a_falsecolor'):
+    property = meshsetting.property.get(propname)
+    if not property:
+        property = meshsetting.property.add()
+        property.name = propname
+        property.min = min
+        property.max = max
+        property.colorm = mcolormap
+        property.type = 'SCALAR'
+        property.mat = make_material_mesh_falsecolor_attribute(matname, propname, min, max, colormaps[mcolormap])
+    return property
+
+# Add an item to collection of properties of a given mesh visualization,
+# but if a property is already existing with the corresponding name id, just reuse it
+def setup_meshsetting_color(meshsetting, colname, matname='a_meshcolor'):
+    property = meshsetting.property.get(colname)
+    if not property:
+        property = meshsetting.property.add()
+        property.name = colname
+        property.type = 'COLOR'
+        property.mat = make_material_mesh_color_attribute(matname, colname)
+    return property
+
+# Add an item to collection of properties of a given mesh visualization,
+# but if a property is already existing with the corresponding name id, just reuse it
+def setup_meshsetting_vector(meshsetting, propname, min=0, max=1, mvectplot='NORM', mcolormap='colormap_viridis', matname='a_falsecolor'):
+    property = meshsetting.property.get(propname)
+    if not property:
+        property = meshsetting.property.add()
+        property.name = propname
+        property.min = min
+        property.max = max
+        property.colorm = mcolormap
+        property.type = 'VECTOR'
+        property.vect_plot = mvectplot
+        property.mat = make_material_mesh_falsecolor_attribute(matname, propname, min, max, colormaps[mcolormap])
+    return property
+
+
+# Attach a falsecolor material to the object, and set properties of falsecolor
+def setup_meshsetting_falsecolor_material(new_object, meshsetting, propname):
+    mat = None
+    if (meshsetting.property_index >=0): 
+        selected_prop = meshsetting.property[meshsetting.property_index]
+        if (selected_prop.name ==propname):
+            mat = selected_prop.mat
+            mat.node_tree.nodes['Map Range'].inputs[1].default_value = selected_prop.min
+            mat.node_tree.nodes['Map Range'].inputs[2].default_value = selected_prop.max
+            ramp = mat.node_tree.nodes['ColorRamp']
+            colormap = colormaps[selected_prop.colorm]
+            for i in range(0,len(ramp.color_ramp.elements)-2):
+                ramp.color_ramp.elements.remove(ramp.color_ramp.elements[1]) # leave start-end. Also, clear() doe not exist
+            for i in range(1,len(colormap)-1):
+                ramp.color_ramp.elements.new(colormap[i][0])
+            for i in range(0,len(colormap)):
+                ramp.color_ramp.elements[i].color = (colormap[i][1]) 
+            if selected_prop.type=='VECTOR':
+                links = mat.node_tree.links
+                if selected_prop.vect_plot =='X':
+                    links.new(mat.node_tree.nodes['Separate XYZ'].outputs[0], mat.node_tree.nodes['Map Range'].inputs[0])
+                if selected_prop.vect_plot =='Y':
+                    print (mat.node_tree.nodes['Separate XYZ'])
+                    links.new(mat.node_tree.nodes['Separate XYZ'].outputs[1], mat.node_tree.nodes['Map Range'].inputs[0])
+                if selected_prop.vect_plot =='Z':
+                    links.new(mat.node_tree.nodes['Separate XYZ'].outputs[2], mat.node_tree.nodes['Map Range'].inputs[0])
+            new_object.data.materials.clear()
+            new_object.data.materials.append(mat)
+    return mat
+
+# Attach a color material to the object, and set properties 
+def setup_meshsetting_color_material(new_object, meshsetting, propname):
+    mat = None
+    if (meshsetting.property_index >=0): 
+        selected_prop = meshsetting.property[meshsetting.property_index]
+        if (selected_prop.name ==propname):
+            mat = selected_prop.mat
+            new_object.data.materials.clear()
+            new_object.data.materials.append(mat)
+    return mat
 
 #
 # utility functions to be used in output/statexxxyy.py files
@@ -571,7 +690,6 @@ def make_chrono_glyphs_objects(mname,mpos,mrot, masset_list, list_clones_posrot,
         else:
             my_attr = [0] * (ncl)
             for ic in range(ncl):
-                #print('ic=', ic, ' ia=', ia, ' ncl=', ncl)
                 my_attr[ic] = list_attributes[ia][1][ic]
             add_mesh_data_floats(chobject, my_attr, list_attributes[ia][0], mdomain='POINT')
 
@@ -595,10 +713,7 @@ def make_chrono_glyphs_vectors(mname,mpos,mrot,
         list_lengths = np.empty((ncl, 1)).tolist()
         for i in range(ncl):
             list_lengths[i] = mathutils.Vector(list_clones_posdir[i][1]).length
-        print('list_attributes =  ' , len(list_attributes))
-        print('list_lengths=  ' , len(list_lengths))
         list_attributes.append(['length',list_lengths])
-        print('list_attributes=  ' , len(list_attributes), '\n\n')
     list_clones_posrotscale = np.empty((ncl, 3,3)).tolist()
     for i in range(ncl):
         list_clones_posrotscale[i][0] = list_clones_posdir[i][0]
@@ -697,11 +812,14 @@ def callback_post(self):
     global chrono_view_link_csys_size
     global chrono_view_materials
     global chrono_view_contacts
+    global chrono_gui_doupdate
     
     chrono_assets = bpy.data.collections.get('chrono_assets')
     chrono_frame_assets = bpy.data.collections.get('chrono_frame_assets')
     chrono_frame_objects = bpy.data.collections.get('chrono_frame_objects')
     chrono_cameras = bpy.data.collections.get('chrono_cameras')
+    
+    chrono_gui_doupdate = False
     
     if (chrono_assets and chrono_frame_objects and chrono_frame_assets):
         
@@ -753,6 +871,8 @@ def callback_post(self):
         for masset in chrono_frame_assets.objects:
             masset.hide_set(True) # not masset.hide_viewport = True otherwise also instances are invisible
 
+    chrono_gui_doupdate = True
+    
      
 #
 # On file selected: 
@@ -789,6 +909,9 @@ def read_chrono_simulation(context, filepath, setting_materials):
     global chrono_view_contacts
     global chrono_gui_doupdate
 
+    bpy.context.scene.ch_meshsetting_index = -1
+    bpy.context.scene.ch_meshsetting.clear()
+    
     chrono_cameras = bpy.data.collections.get('chrono_cameras')
     if not chrono_cameras:
         chrono_cameras = bpy.data.collections.new('chrono_cameras')
@@ -1002,6 +1125,22 @@ def UpdatedFunction(self, context):
         chrono_view_contacts = self.chrono_show_contacts
         callback_post(self) # force reload 
     
+    
+def UpdatedMeshsetting(self, context):
+    global chrono_view_asset_csys
+    global chrono_view_asset_csys_size
+    global chrono_view_item_csys
+    global chrono_view_item_csys_size
+    global chrono_view_link_csys
+    global chrono_view_link_csys_size
+    global chrono_view_materials
+    global chrono_view_contacts
+    global chrono_gui_doupdate
+    #print("In UpdatedMeshsetting func...")
+    if chrono_gui_doupdate:
+        callback_post(self) # force reload 
+        
+        
 class Chrono_operator(Operator):
     """ example operator """
     bl_idname = "demo.operator"
@@ -1029,7 +1168,7 @@ class Chrono_sidebar(Panel):
 
     def draw(self, context):
         col = self.layout.column(align=True)
-        #prop = col.operator(TLA_OT_operator.bl_idname, text="Test")
+        scn = bpy.context.scene
         
         col.prop(context.scene, "chrono_show_item_coordsys")
         col.prop(context.scene, "chrono_item_coordsys_size")
@@ -1039,10 +1178,74 @@ class Chrono_sidebar(Panel):
         col.prop(context.scene, "chrono_links_coordsys_size")
         col.prop(context.scene, "chrono_show_materials")
         col.prop(context.scene, "chrono_show_contacts")
+        
+        col.label(text="Objects for falsecolor rendering:")
+        
+        row = self.layout.row()
+        row.template_list("GUI_meshsettins", "", scn, "ch_meshsetting", scn, "ch_meshsetting_index", rows=5)
+
+        if scn.ch_meshsetting_index >= 0:
+            msetting = scn.ch_meshsetting[scn.ch_meshsetting_index]
+            row = self.layout.row()
+            split = row.split(factor=0.1)
+            col1 = split.column()
+            col2 = split.column()
+            col1.label(text="render")
+            col2.template_list("GUI_properties", "",  msetting, "property",  msetting, "property_index", rows=4)
+            if msetting.property_index >=0:
+                row = self.layout.row()
+                split = row.split(factor=0.1)
+                col1 = split.column()
+                col2 = split.column()
+                col1.label(text="")
+                if msetting.property[msetting.property_index].type == 'VECTOR':
+                    col2.prop(msetting.property[msetting.property_index], "vect_plot", text="Vect to falsecolor")
+                if msetting.property[msetting.property_index].type != 'COLOR':
+                    col2.prop(msetting.property[msetting.property_index], "min", emboss=False, text="Min")
+                    col2.prop(msetting.property[msetting.property_index], "max", emboss=False, text="Max")
+                    col2.prop(msetting.property[msetting.property_index], "colorm", text="Colormap")
+                                  
+  
+class CUSTOM_propertyCollection(PropertyGroup):
+    #name: StringProperty() -> Instantiated by default
+    min: FloatProperty(update=UpdatedMeshsetting)
+    max: FloatProperty(update=UpdatedMeshsetting)
+    colorm: EnumProperty(name = "Colormaps",
+        description = "The colormap for rendering the selected data",
+        items = [
+        ('colormap_jet', 'Jet', ""),
+        ('colormap_cooltowarm', 'Cool to warm', ""),
+        ('colormap_viridis', 'Viridis', ""),
+        ('colormap_hot', 'Hot', ""),
+        ('colormap_cool', 'Cool', ""),
+        ('colormap_winter', 'Winter', "")],
+        update=UpdatedMeshsetting)
+    mat: PointerProperty(name="material", type=bpy.types.Material)
+    type: EnumProperty(name = "type", items= [
+        ('COLOR','',''),
+        ('SCALAR','',''),
+        ('VECTOR','','')])
+    vect_plot: EnumProperty(name = "vect_plot", items= [
+        ('NORM','Norm',''),
+        ('X','x',''),
+        ('Y','y',''),
+        ('Z','z','')],
+        update=UpdatedMeshsetting)
+    
+class CUSTOM_meshsettingCollection(PropertyGroup):
+    #name: StringProperty() -> Instantiated by default
+    property_index: IntProperty(update=UpdatedMeshsetting)
+    property: CollectionProperty(type=CUSTOM_propertyCollection)
+    
+               
  
 sidebar_classes = [
     Chrono_operator,
     Chrono_sidebar,
+    GUI_meshsettins,
+    GUI_properties,
+    CUSTOM_propertyCollection,
+    CUSTOM_meshsettingCollection,
 ]
 
 
@@ -1165,6 +1368,16 @@ def register():
         default=True,
         update=UpdatedFunction
     )
+    
+    # Custom scene properties
+    bpy.types.Scene.ch_meshsetting = CollectionProperty(type=CUSTOM_meshsettingCollection, description = "Assets with data attached from Chrono, that can be rendered in falsecolor",)
+    bpy.types.Scene.ch_meshsetting_index = IntProperty()
+
+    bpy.context.scene.ch_meshsetting_index = -1
+    bpy.context.scene.ch_meshsetting.clear()
+    
+    
+    
 
 def unregister():
     
@@ -1176,9 +1389,12 @@ def unregister():
     del bpy.types.Scene.chrono_links_coordsys_size
     del bpy.types.Scene.chrono_show_materials
     del bpy.types.Scene.chrono_show_contacts
+    del bpy.types.Scene.ch_meshsetting
+    del bpy.types.Scene.ch_meshsetting_index 
     for c in sidebar_classes:
         bpy.utils.unregister_class(c)
         
+
         
     bpy.utils.unregister_class(ImportChrono)
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
