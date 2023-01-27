@@ -105,26 +105,26 @@ int main(int argc, char* argv[]) {
     body->SetBodyFixed(true);
     sys.Add(body);
 
-    // ==Asset== Attach also a 'box' shape
+    // ==Asset== Attach a 'box' shape
     auto mbox = chrono_types::make_shared<ChBoxShape>();
     mbox->GetBoxGeometry().Size = ChVector<>(0.2, 0.5, 0.1);
     body->AddVisualShape(mbox, ChFrame<>(ChVector<>(1, 0, 0)));
 
-    // ==Asset== Attach also a 'cylinder' shape
+    // ==Asset== Attach a 'cylinder' shape
     auto cyl = chrono_types::make_shared<ChCylinderShape>();
     cyl->GetCylinderGeometry().p1 = ChVector<>(3, 1, 0);
     cyl->GetCylinderGeometry().p2 = ChVector<>(4, 2, 0);
     cyl->GetCylinderGeometry().rad = 0.2;
     body->AddVisualShape(cyl);
     // ...here is an example on how to change the color:
-    cyl->SetColor(ChColor(1, 0.8, 0));
+    cyl->SetColor(ChColor(1.f, 0.8f, 0.f));
 
     // ==Asset== Attach a 'sphere' shape
     auto sphere = chrono_types::make_shared<ChSphereShape>();
     sphere->GetSphereGeometry().rad = 0.5;
     body->AddVisualShape(sphere, ChFrame<>(ChVector<>(-1, 0, 0)));
 
-    // ...here is an example on how to setup a material:
+    // ...btw here is an example on how to setup a material:
     auto visual_material = chrono_types::make_shared<ChVisualMaterial>();
     visual_material->SetMetallic(0.5);
     visual_material->SetRoughness(0.1);
@@ -145,6 +145,52 @@ int main(int argc, char* argv[]) {
         ChVector<> pos = rot * ChVector<>(0.4, 0, 0) + ChVector<>(0, j * 0.02, 0);
         body->AddVisualShape(smallbox, ChFrame<>(pos, rot));
     }
+
+    // ==Asset== Attach a 'triangle mesh, defined via vertexes & triangle faces. Here, 4 vertexes, 2 faces 
+    auto trimesh = chrono_types::make_shared<ChTriangleMeshShape>();
+      // ...four vertices
+    trimesh->GetMesh()->getCoordsVertices() = std::vector<chrono::ChVector<>>{
+        {2,1,0},
+        {3,1,0},
+        {3,2,0},
+        {2,2,0}
+    };
+      // ...two triangle faces, whose indexes point to the vertexes above. Counterclockwise.
+    trimesh->GetMesh()->getIndicesVertexes() = std::vector<chrono::ChVector<int>>{
+        {0,1,2},
+        {2,3,0},
+    };
+      // ... one normal, pointing toward Y (NOTE: normals would be unnecessary in Blender - here just for completeness)
+    trimesh->GetMesh()->getCoordsNormals() = std::vector<chrono::ChVector<>>{
+        {0,0,1},
+    };
+      // ... same normal for all vertexes of both triangles (NOTE: normals would be unnecessary in Blender, etc.)
+    trimesh->GetMesh()->getIndicesNormals() = std::vector<chrono::ChVector<int>>{
+        {0,0,0},
+        {0,0,0}
+    };
+      // ... per-vertex colors, RGB:
+    trimesh->GetMesh()->getCoordsColors() = std::vector<chrono::ChColor>{
+        {0.9,0.8,0.1},
+        {0.8,0.2,0.3},
+        {0.2,0.1,0.9},
+        {0.2,0.6,0.6}
+    };
+
+     // NOTE: optionally, you can add a scalar or vector property, per vertex or per face, that can
+     // be rendered via falsecolor in Blender:
+    geometry::ChPropertyScalar my_scalars;
+    my_scalars.name = "temperature";
+    my_scalars.data = std::vector<double>{ 0, 10, 100, 120 };
+    trimesh->GetMesh()->AddPropertyPerVertex(my_scalars);
+
+    geometry::ChPropertyVector my_vectors;
+    my_vectors.name = "velocity";
+    my_vectors.data = std::vector<ChVector<>>{ {0,1,2}, {3,0,0}, {0,0,2}, {0,0,0} };
+    trimesh->GetMesh()->AddPropertyPerVertex(my_vectors);
+
+    body->AddVisualShape(trimesh, ChFrame<>(ChVector<>(-4, 0, 0)));
+
 
     // ==Asset== Attach a video camera.
     // Note that a camera can also be attached to a moving object.
