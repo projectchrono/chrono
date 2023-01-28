@@ -26,10 +26,20 @@ namespace vsg3d {
 /// Base class for a GUI component for the VSG run-time visualization system.
 class CH_VSG_API ChGuiComponentVSG {
   public:
-    ChGuiComponentVSG() {}
+    ChGuiComponentVSG() : m_visible(true) {}
     virtual ~ChGuiComponentVSG() {}
 
+    /// Specify the ImGui elements to be rendered for this GUI component.
     virtual void render() = 0;
+
+    /// Toggle GUI visibility for this GUI component.
+    void ToggleVisibility() { m_visible = !m_visible; }
+
+    /// Return boolean indicating whether or not this GUI component visible.
+    bool IsVisible() const { return m_visible; }
+
+  protected:
+    bool m_visible;
 };
 
 /// @} vsg_module

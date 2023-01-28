@@ -69,6 +69,12 @@ class ChApi ChVisualSystem {
     /// Set the target (look-at) point of the current (active) camera.
     virtual void SetCameraTarget(const ChVector<>& target) {}
 
+    /// Get the location of the current (active) camera.
+    virtual ChVector<> GetCameraPosition() const { return VNULL; }
+
+    /// Get the target (look-at) point of the current (active) camera.
+    virtual ChVector<> GetCameraTarget() const { return VNULL; }
+
     /// Update the location and/or target points of the specified camera.
     void UpdateCamera(int id, const ChVector<>& pos, ChVector<> target);
 

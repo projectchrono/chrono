@@ -221,7 +221,7 @@ void ChVehicleGuiComponentVSG::render() {
     int nstr = sizeof(label) - 1;
 
     ImGui::SetNextWindowSize(ImVec2(280.0f, 0.0f));
-    ImGui::SetNextWindowPos(ImVec2(5.0f, 150.0f));
+    ////ImGui::SetNextWindowPos(ImVec2(5.0f, 150.0f));
     ImGui::Begin("Vehicle");
 
     if (ImGui::BeginTable("CamTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,

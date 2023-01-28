@@ -35,7 +35,7 @@ class GuiComponentWrapper {
         : m_component(component), m_app(app) {}
 
     bool operator()() {
-        if (m_app->IsGuiVisible()) {
+        if (m_app->IsGuiVisible() && m_component->IsVisible()) {
             m_component->render();
             return true;
         }
@@ -56,7 +56,7 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
         char label[64];
         int nstr = sizeof(label) - 1;
         ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
-        ImGui::SetNextWindowPos(ImVec2(5.0f, 5.0f));
+        ////ImGui::SetNextWindowPos(ImVec2(5.0f, 5.0f));
         ImGui::Begin("Simulation");
 
         if (ImGui::BeginTable("SimTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
@@ -104,6 +104,52 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
             m_app->Quit();
 
         ImGui::End();
+    }
+
+    ChVisualSystemVSG* m_app;
+};
+
+class ChCameraGuiComponentVSG : public ChGuiComponentVSG {
+  public:
+    ChCameraGuiComponentVSG(ChVisualSystemVSG* app) : m_app(app) { m_visible = false; }
+
+    virtual void render() override {
+        char label[64];
+        int nstr = sizeof(label) - 1;
+
+        auto p = m_app->GetCameraPosition();
+        auto t = m_app->GetCameraTarget();
+
+        ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
+        ////ImGui::SetNextWindowPos(ImVec2(5.0f, 5.0f));
+        ImGui::Begin("Camera");
+
+        if (ImGui::BeginTable("Location", 4, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                              ImVec2(0.0f, 0.0f))) {
+            ImGui::TableNextColumn();
+            snprintf(label, nstr, "Location");
+            ImGui::Text(label);
+            for (int i = 0; i < 3; i++) {
+                ImGui::TableNextColumn();
+                snprintf(label, nstr, " %5.1f", p[i]);
+                ImGui::Text(label);
+            }
+
+            ImGui::TableNextRow();
+
+            ImGui::TableNextColumn();
+            snprintf(label, nstr, "Look-at");
+            ImGui::Text(label);
+            for (int i = 0; i < 3; i++) {
+                ImGui::TableNextColumn();
+                snprintf(label, nstr, " %5.1f", t[i]);
+                ImGui::Text(label);
+            }
+
+            ImGui::EndTable();
+
+            ImGui::End();
+        }
     }
 
     ChVisualSystemVSG* m_app;
@@ -200,6 +246,9 @@ class ChBaseEventHandlerVSG : public ChEventHandlerVSG {
     virtual void process(vsg::KeyPressEvent& keyPress) override {
         if (keyPress.keyBase == 'm' || keyPress.keyModified == 'm') {
             m_app->ToggleGuiVisibility();
+        }
+        if (keyPress.keyBase == 'n' || keyPress.keyModified == 'n') {
+            m_app->GetGuiComponent(m_app->m_camera_gui)->ToggleVisibility();
         }
         if (keyPress.keyBase == vsg::KEY_Escape || keyPress.keyModified == 65307) {
             m_app->Quit();
@@ -432,12 +481,18 @@ void ChVisualSystemVSG::SetFullscreen(bool yesno) {
     m_use_fullscreen = yesno;
 }
 
-void ChVisualSystemVSG::AddGuiComponent(std::shared_ptr<ChGuiComponentVSG> gc) {
+size_t ChVisualSystemVSG::AddGuiComponent(std::shared_ptr<ChGuiComponentVSG> gc) {
     m_gui.push_back(gc);
+    return m_gui.size() - 1;
 }
 
-void ChVisualSystemVSG::AddGuiColorbar(const std::string& title, double min_val, double max_val) {
+size_t ChVisualSystemVSG::AddGuiColorbar(const std::string& title, double min_val, double max_val) {
     m_gui.push_back(chrono_types::make_shared<ChColorbarGuiComponentVSG>(title, min_val, max_val));
+    return m_gui.size() - 1;
+}
+
+std::shared_ptr<ChGuiComponentVSG> ChVisualSystemVSG::GetGuiComponent(size_t id) {
+    return m_gui.at(id);
 }
 
 void ChVisualSystemVSG::AddEventHandler(std::shared_ptr<ChEventHandlerVSG> eh) {
@@ -563,6 +618,16 @@ void ChVisualSystemVSG::SetCameraPosition(const ChVector<>& pos) {
 
 void ChVisualSystemVSG::SetCameraTarget(const ChVector<>& target) {
     m_lookAt->center = vsg::dvec3(target.x(), target.y(), target.z());
+}
+
+ChVector<> ChVisualSystemVSG::GetCameraPosition() const {
+    auto p = m_lookAt->eye;
+    return ChVector<>(p.x, p.y, p.z);
+}
+
+ChVector<> ChVisualSystemVSG::GetCameraTarget() const {
+    auto p = m_lookAt->center;
+    return ChVector<>(p.x, p.y, p.z);
 }
 
 void ChVisualSystemVSG::SetCameraVertical(CameraVerticalDir upDir) {
@@ -781,6 +846,9 @@ void ChVisualSystemVSG::Initialize() {
     auto base_gui = chrono_types::make_shared<ChBaseGuiComponentVSG>(this);
     GuiComponentWrapper base_gui_wrapper(base_gui, this);
     auto rg = vsgImGui::RenderImGui::create(m_window, base_gui_wrapper);
+
+    // Add the camera info GUI component (initially invisible)
+    m_camera_gui = AddGuiComponent(chrono_types::make_shared<ChCameraGuiComponentVSG>(this));
 
     // Loop through all specified GUI components, wrap them and add them to the renderGraph
     for (const auto& gui : m_gui) {

@@ -129,6 +129,12 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Set the target (look-at) point of the current (active) camera.
     virtual void SetCameraTarget(const ChVector<>& target) override;
 
+    /// Get the location of the current (active) camera.
+    virtual ChVector<> GetCameraPosition() const override;
+
+    /// Get the target (look-at) point of the current (active) camera.
+    virtual ChVector<> GetCameraTarget() const override;
+
     void SetLightIntensity(float intensity);
     void SetLightDirection(double azimuth, double elevation);
     void SetCameraAngleDeg(double angleDeg) { m_cameraAngleDeg = angleDeg; }
@@ -139,17 +145,21 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void UpdateVisualModel(int id, const ChFrame<>& frame) override;
 
     /// Add a user-defined GUI component.
-    /// This function must be called before Initialize().
-    void AddGuiComponent(std::shared_ptr<ChGuiComponentVSG> gc);
+    /// Returns the index of the new component. This function must be called before Initialize().
+    size_t AddGuiComponent(std::shared_ptr<ChGuiComponentVSG> gc);
 
-    /// Add a colorbar as a GUI element.
-    /// This function must be called before Initialize().
-    void AddGuiColorbar(const std::string& title, double min_val, double max_val);
+    /// Add a colorbar as a GUI component.
+    /// Returns the index of the new component. This function must be called before Initialize().
+    size_t AddGuiColorbar(const std::string& title, double min_val, double max_val);
+
+    /// Access the specified GUI component.
+    /// Identify the GUI component with the index returned by AddGuiComponent.
+    std::shared_ptr<ChGuiComponentVSG> GetGuiComponent(size_t id);
 
     /// Toggle GUI visibility for all GUI components.
     void ToggleGuiVisibility() { m_show_gui = !m_show_gui; }
 
-    /// Return bollean indicating whether or not GUI are visible.
+    /// Return boolean indicating whether or not GUI are visible.
     bool IsGuiVisible() const { return m_show_gui; }
 
     /// Add a user-defined VSG event handler.
@@ -170,6 +180,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::RenderGraph> m_renderGraph;
 
     bool m_show_gui;                                              ///< flag to toggle global GUI visibility
+    size_t m_camera_gui;                                          ///< identifier for the camera info GUI component
     std::vector<std::shared_ptr<ChGuiComponentVSG>> m_gui;        ///< list of all additional GUI components
     std::vector<std::shared_ptr<ChEventHandlerVSG>> m_evhandler;  ///< list of all additional event handlers
 
@@ -257,6 +268,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     double m_start_time;          ///< wallclock time at first render
 
     friend class ChBaseGuiComponentVSG;
+    friend class ChBaseEventHandlerVSG;
 };
 
 /// @} vsg_module
