@@ -1,0 +1,187 @@
+{
+  "Name": "Pac02 Tire from ADAMS/Car TIR file",
+  "Type": "Tire",
+  "Template": "Pac02Tire",
+  "Mass": 15.1,
+  "Inertia": [
+    0.64,
+    1.34,
+    0.64
+  ],
+  "Use Mode": 3,
+  "Coefficient of Friction": 0.8,
+  "Tire Side": "unknown",
+  "Dimension": {
+    "Unloaded Radius": 0.330229,
+    "Width": 0.2121,
+    "Aspect Ratio": 0.5,
+    "Rim Radius": 0.20955,
+    "Rim Width": 0.20933
+  },
+  "Vertical": {
+    "Vertical Stiffness": 326332.0,
+    "Vertical Damping": 3502.8,
+    "Nominal Wheel Load": 29912.0,
+    "Bottoming Curve Data": [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        0.09,
+        0.0
+      ],
+      [
+        0.1,
+        100000.0
+      ],
+      [
+        0.2,
+        200000.0
+      ],
+      [
+        0.3,
+        300000.0
+      ],
+      [
+        0.4,
+        400000.0
+      ],
+      [
+        0.5,
+        500000.0
+      ],
+      [
+        0.6,
+        600000.0
+      ],
+      [
+        6.0,
+        6000000.0
+      ]
+    ]
+  },
+  "Scaling Factors": {
+    "lfz0": 0.567911935,
+    "lcx": 1.0,
+    "lmux": 1.0,
+    "lex": 1.0,
+    "lkx": 1.0,
+    "lhx": 1.0,
+    "lvx": 1.0,
+    "lcy": 1.0,
+    "lmuy": 1.0,
+    "ley": 1.0,
+    "lky": 1.0,
+    "lhy": 1.0,
+    "lvy": 1.0,
+    "lgay": 1.0,
+    "ltr": 1.031930943,
+    "lres": 1.0,
+    "lgaz": 1.0,
+    "lxal": 1.0,
+    "lyka": 1.0,
+    "lvyka": 1.0,
+    "ls": 1.0,
+    "lsgkp": 1.0,
+    "lsgal": 1.0,
+    "lgyr": 1.0,
+    "lmx": 1.0,
+    "lmy": 1.0
+  },
+  "Longitudinal Coefficients": {
+    "pcx1": 1.4,
+    "pdx1": 0.84003,
+    "pdx2": -0.065962,
+    "pex1": -4.5309,
+    "pex2": -3.0987,
+    "pex3": 0.20647,
+    "pex4": 0.0,
+    "pkx1": 6.3425,
+    "pkx2": -0.000019878,
+    "pkx3": -0.16666,
+    "phx1": 0.0,
+    "phx2": 0.0,
+    "pvx1": -0.0,
+    "pvx2": 0.0,
+    "rbx1": 10.0,
+    "rbx2": 6.0,
+    "rcx1": 1.0,
+    "rhx1": 0.0
+  },
+  "Lateral Coefficients": {
+    "pcy1": 0.54764,
+    "pdy1": -1.1188,
+    "pdy2": 0.072812,
+    "pdy3": -1.7244,
+    "pey1": 0.056372,
+    "pey2": -0.065607,
+    "pey3": -0.28765,
+    "pey4": 63.843,
+    "pky1": -9.5432,
+    "pky2": 2.4559,
+    "pky3": 0.62823,
+    "phy1": 0.0035499,
+    "phy2": 0.0045166,
+    "phy3": -0.035468,
+    "pvy1": 0.0031041,
+    "pvy2": 0.009559,
+    "pvy3": -0.13882,
+    "pvy4": -0.25693,
+    "rby1": 0.0,
+    "rby2": 0.0,
+    "rby3": 0.0,
+    "rcy1": 0.0,
+    "rhy1": 0.0,
+    "rvy1": 0.0,
+    "rvy2": 0.0,
+    "rvy3": 0.0,
+    "rvy4": 0.0,
+    "rvy5": 0.0,
+    "rvy6": 0.0
+  },
+  "Aligning Coefficients": {
+    "qbz1": 8.5499,
+    "qbz2": -2.0123,
+    "qbz3": -9.7502,
+    "qbz4": 0.40886,
+    "qbz5": -0.75474,
+    "qbz9": 0.49999,
+    "qcz1": 1.4,
+    "qdz1": 0.080379,
+    "qdz2": -0.02931,
+    "qdz3": -0.032073,
+    "qdz4": 0.29184,
+    "qdz6": -0.0025776,
+    "qdz7": -0.0014791,
+    "qdz8": -0.020474,
+    "qdz9": 0.0044162,
+    "qez1": -0.017913,
+    "qez2": -0.73133,
+    "qez3": -4.7227,
+    "qez4": 0.32329,
+    "qez5": 2.5289,
+    "qhz1": -0.0011513,
+    "qhz2": -0.0057439,
+    "qhz3": 0.12163,
+    "qhz4": 0.10576,
+    "ssz1": 0.0,
+    "ssz2": 0.0,
+    "ssz3": 0.0,
+    "ssz4": 0.0
+  },
+  "Overturning Coefficients": {
+    "qsx1": 0.0,
+    "qsx2": 0.0,
+    "qsx3": 0.0
+  },
+  "Rolling Coefficients": {
+    "qsy1": 0.015,
+    "qsy2": 0.0
+  },
+  "Visualization": {
+    "Mesh Filename Left": "meshes/Polaris_tire.obj",
+    "Mesh Filename Right": "meshes/Polaris_tire.obj",
+    "Width": 0.2121
+  }
+}

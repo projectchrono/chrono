@@ -1,0 +1,28 @@
+{
+  "Name": "Polaris chassis",
+  "Type": "Chassis",
+  "Template": "RigidChassis",
+
+  "Components": [
+    {
+      "Centroidal Frame": {
+        "Location": [ -1.6399537, 0, 0.7667115704 ],
+        "Orientation": [ 1, 0, 0, 0 ]
+      },
+      "Mass": 1105.5,
+      "Moments of Inertia": [ 275.6945599, 853.4464526, 1200 ],
+      "Products of Inertia": [ 0, 0, 0 ],
+      "Void": false
+    }
+
+  ],
+
+  "Driver Position": {
+    "Location": [ -0.6, 0, 1 ],
+    "Orientation": [ 1, 0, 0, 0 ]
+  },
+
+  "Visualization": {
+    "Mesh": "meshes/Polaris_chassis.obj"
+  }
+}

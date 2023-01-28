@@ -1,0 +1,85 @@
+{
+  "Name": "Polaris DoubleWishbone",
+  "Type": "Suspension",
+  "Template": "DoubleWishbone",
+
+  "Spindle": {
+    "Mass": 0.1,
+    "COM": [ 0, 0.616, 0 ],
+    "Inertia": [ 0.004117, 0.007352, 0.004117 ],
+    "Radius": 0.05,
+    "Width": 0.06
+  },
+
+  "Upright": {
+    "Mass": 30.19178388,
+    "COM": [ 0, 0.572, 0 ],
+    "Moments of Inertia": [ 0.3256, 0.3834, 0.08367 ],
+    "Products of Inertia": [ 0, 0, 0 ],
+    "Radius": 0.025
+  },
+
+  "Upper Control Arm": {
+    "Mass": 3.6933,
+    "COM": [ 0.01493, 0.30141, 0.262 ],
+    "Moments of Inertia": [ 0.015, 0.015, 0.03276 ],
+    "Products of Inertia": [ 0, 0, 0 ],
+    "Radius": 0.02,
+    "Location Chassis Front": [ 0.161, 0.136, 0.271 ],
+    "Location Chassis Back": [ -0.087, 0.131, 0.227 ],
+    "Location Upright": [ -0.008, 0.571, 0.088 ]
+  },
+
+  "Lower Control Arm": {
+    "Mass": 4.6716,
+    "COM": [ -0.0728133, 0.28702, 0 ],
+    "Moments of Inertia": [ 0.1, 0.1, 0.2938 ],
+    "Products of Inertia": [ 0, 0, 0 ],
+    "Radius": 0.03,
+    "Location Chassis Front": [ 0.047, 0.112, 0.088 ],
+    "Location Chassis Back": [ -0.246, 0.108, 0.053 ],
+    "Location Upright": [ 0.016, 0.574, -0.082 ]
+  },
+
+  "Tierod": {
+    "Location Chassis": [ -0.137, 0.113, 0.055 ],
+    "Location Upright": [ -0.097, 0.533, -0.088 ]
+  },
+
+  "Spring": {
+    "Location Chassis": [ -0.053, 0.166, 0.574 ],
+    "Location Arm": [ -0.002, 0.432, 0.186 ],
+    "Free Length": 0.475653, //0.33655,
+    "Curve Data": [
+      [ -0.099233471, -14801.48006 ],
+      [ -0.091600127, -9620.962037 ],
+      [ -0.076333439, -8140.814031 ],
+      [ -0.061066751, -6660.666026 ],
+      [ -0.045800064, -5772.577222 ],
+      [ -0.030533376, -4810.481018 ],
+      [ -0.015266688, -4440.444017 ],
+      [ 0, -3848.384815 ],
+      [ 0.015266688, -3330.333013 ],
+      [ 0.030533376, -2886.288611 ],
+      [ 0.045800064, -2442.244209 ],
+      [ 0.053433408, 3700.370014 ]
+    ]
+  },
+  "Shock": {
+    "Location Chassis": [ -0.053, 0.166, 0.574 ],
+    "Location Arm": [ -0.002, 0.432, 0.186 ],
+    "Curve Data": [
+      [ -4, -12500 ],
+      [ -0.33, -262 ],
+      [ -0.13, -1625 ],
+      [ 0, 0 ],
+      [ 0.13, 2000 ],
+      [ 0.33, 2875 ],
+      [ 4, 15000 ]
+    ]
+  },
+
+  "Axle": {
+    "Inertia": 0.4
+  }
+}

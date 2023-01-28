@@ -1,0 +1,7 @@
+{
+  "Name": "Polaris Simple Brake",
+  "Type": "Brake",
+  "Template": "BrakeSimple",
+
+  "Maximum Torque": 820
+}

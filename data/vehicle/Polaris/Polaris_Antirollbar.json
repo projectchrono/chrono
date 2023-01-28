@@ -1,0 +1,22 @@
+{
+  "Name": "Polaris RSD Antirollbar",
+  "Type": "Antirollbar",
+  "Template": "AntirollBarRSD",
+
+  "Arm": {
+    "Mass": 4.140545088,
+    "Inertia": [ 0.08112905069, 0.09896404373, 0.01885090559 ],
+    "Length": 0.42799,
+    "Width": 0.0233172,
+    "Radius": 0.015875
+  },
+
+  "Droplink": {
+    "Height": -0.16684
+  },
+
+  "RSD": {
+    "Spring Coefficient": 135,
+    "Damping Coefficient": 13.5
+  }
+}

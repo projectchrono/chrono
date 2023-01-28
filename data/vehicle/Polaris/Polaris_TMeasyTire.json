@@ -1,0 +1,90 @@
+{
+  "Name": "Polaris TMeasy Tire",
+  "Type": "Tire",
+  "Template": "TMeasyTire",
+
+  // ------------------------------------------------
+  // Tire design (REQUIRED)
+
+  "Design": {
+    "Unloaded Radius [m]": 0.330229,
+    "Mass [kg]": 15.1,
+    "Inertia [kg.m2]": [ 0.64, 1.34, 0.64 ],
+    "Width [m]": 0.2121,
+    "Rim Radius [m]": 0.1778,
+    "Roundness of Cross Section": 0.1
+  },
+
+  "Coefficient of Friction": 0.75,
+
+  "Rolling Resistance Coefficients": [ 0.0308346, 0.0308346 ],
+  // ------------------------------------------------
+  // Vehicle type.
+  // Required only if tire specified with "load index" or "bearing capacity".
+  // Must be one of "Truck" or "Passenger"
+
+  "Vehicle Type": "Truck",
+
+  // ------------------------------------------------
+  // Load index specification.
+  // Takes priority over "bearing capacity" (used only if a full parameterization not provided)
+
+  "Load Index": 108,
+
+  // ------------------------------------------------
+  // Bearing capacity specification.
+  // Lowest priority (used only if no other specification provided)
+
+  "Maximum Bearing Capacity [N]": 17167.5,
+
+  // ------------------------------------------------
+  // Full parameter specification.
+  // Takes priority over both "Load Index" and "bearing capacity".
+
+  "Parameters": {
+    "Tire Load": {
+      "Nominal Vertical Force [N]": 1500,
+      "Maximum Vertical Force [N]": 5347.11
+    },
+    "Tire Stiffness": {
+      "Longitudinal [N/m]": 172246,
+      "Lateral [N/m]": 172246,
+      "Vertical [N/m]": [ 172246, 172246 ]
+
+    },
+    "Tire Damping": {
+      "Longitudinal [Ns/m]": 352.487,
+      "Lateral [Ns/m]": 352.487,
+      "Vertical [Ns/m]": 352.487
+    },
+    "Dynamic Radius Weighting Coefficients": [ 0.375, 0.75 ],
+    "Longitudinal": {
+      "Initial Slopes dFx/dsx [N]": [ 22222, 43580 ],
+      "Maximum Fx Load [N]": [ 2061.3, 3832.1 ],
+      "Sliding Fx Load [N]": [ 2042.0, 3737.0 ],
+      "Slip sx at Maximum Fx": [ 0.3373, 0.2472 ],
+      "Slip sx where sliding begins": [ 0.6, 0.8 ]
+    },
+    "Lateral": {
+      "Initial Slopes dFy/dsy [N]": [ 15669, 25079 ],
+      "Maximum Fy Load [N]": [ 1900.1, 3597.5 ],
+      "Sliding Fy Load [N]": [ 1643, 3066 ],
+      "Slip sy at Maximum Fy": [ 0.3493, 0.4114 ],
+      "Slip sy where sliding begins": [ 1.71, 2.34 ]
+    },
+    "Aligning": {
+      "Normalized Trail at Zero Slip sy": [ 0.178, 0.19 ],
+      "Slip sy where Trail Changes Sign": [ 0.40726, 0.40726 ],
+      "Slip sy where Trail Tends to Zero": [ 0.82534, 0.91309 ]
+    }
+  },
+
+  // ------------------------------------------------
+  // Visualization mesh (OPTIONAL)
+
+  "Visualization": {
+    "Mesh Filename Left": "meshes/Polaris_tire.obj",
+    "Mesh Filename Right": "meshes/Polaris_tire.obj"
+  }
+
+}
