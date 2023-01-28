@@ -48,6 +48,21 @@ There are two prerequisites for building the Chrono VSG module:
   7. Build and install the vsgFramework libraries (using whatever is appropriate for the generator you selected in CMake; make, ninja, VS, etc.)
   8. The VSG headers, libraries, and DLLs (if appropriate) installed in **[vsgFramework_install]** must be made available and accessible to CMake during configuration of Chrono below.  If needed (e.g., on Windows), add to the system `PATH` environment variable the directory **[vsgFramework_install]/bin**.
 
+  <div class="ce-warning">
+  The current version of vsgFramework has a bug where a vsgImGui header is not found.  
+  To fix this, after step #3 above, you will need to **manually** copy the `imconfig.h` header from 
+  `[vsgFramework_buid]/components/vsgimgui-src/src/imgui/` to 
+  `[vsgFramework_build]/components/vsgimgui-src/include/vsgImGui/` 
+  before you proceed with the vsgFramework build in step #7.
+  </div>
+
+  <div class="ce-warning">
+  The `assimp` component requires `zlib`. 
+  On some Linux systems, installing the default zlib package may not provide a library that is suitable for dynamic linking. 
+  You may need to rebuild zlib yourself, making sure you generate position-independent code. 
+  In particular, if using GCC, make sure to add the flag `-fPIC`.
+  </div>
+
 Once the necessary dependencies are installed, perform the following steps to configure and build the Chrono::VSG module:
 
 1. Repeat the instructions for the [full Chrono installation](@ref tutorial_install_chrono)
