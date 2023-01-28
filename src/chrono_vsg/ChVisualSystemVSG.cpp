@@ -812,6 +812,8 @@ void ChVisualSystemVSG::Initialize() {
 
     // initialize ImGui
     ImGui::CreateContext();
+    ImGui::GetIO().IniFilename = "../data/vsg/imgui.ini";
+
 #ifdef __APPLE__
     // application runs on retina display by default (window 800*600 generates a viewport 1600*1200)
     // there can be reasons to switch to standard resolution
