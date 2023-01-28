@@ -735,25 +735,6 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshMatShape(vsg::ref_ptr<vsg::M
             }
         }
 
-        // read texture image displacement
-        vsg::Path displacementTextureFile(chronoMat->GetRoughnessTexture());
-        if (displacementTextureFile) {
-            auto displacementTextureData = vsg::read_cast<vsg::Data>(displacementTextureFile, m_options);
-            if (!displacementTextureData) {
-                std::cout << "Could not read texture file : " << displacementTextureFile << std::endl;
-            } else {
-                // enable texturing with mipmaps
-                auto sampler = vsg::Sampler::create();
-                sampler->maxLod = static_cast<uint32_t>(std::floor(std::log2(
-                                      std::max(displacementTextureData->width(), displacementTextureData->height())))) +
-                                  1;
-                sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
-                sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-                sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-                graphicsPipelineConfig->assignTexture(descriptors, "displacementMap", displacementTextureData, sampler);
-            }
-        }
-
         // set transparency, if needed
         vsg::ColorBlendState::ColorBlendAttachments colorBlendAttachments;
         VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
