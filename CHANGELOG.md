@@ -5,6 +5,8 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [VSG-based run-time visualization module](#added-vsg-based-run-time-visualization-module)
+  - [Support for linear and nonlinear vehicle force elements](#changed-support-for-linear-and-nonlinear-vehicle-force-elements)
 - [Release 8.0.0](#release-800---2022-12-21)
   - [Chrono::Sensor features and updates](#added-chronosensor-features-and-updates)
   - [Closed-loop vehicle paths](#fixed-closed-loop-vehicle-paths)
@@ -71,6 +73,20 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Added] VSG-based run-time visualization module
+
+A new module (`Chrono::VSG`) was added to provide an alternative for run-time visualization. This module uses VulkanSceneGraph ([VSG](https://vsg-dev.github.io/VulkanSceneGraph/)), a new cross-platform, high-performance scene graph library built upon the Vulkan graphics/compute API. Chrono::VSG implements most of the functionality expected by the base Chrono visual system; currently, missing support includes FEA and modal analysis visualizations (work in progress). Except for this, the `ChVisualSystemVSG` is interchangeable with `ChVisualSystemIrrlicht` with minor changes to user code. See for example the various Chrono MBS and vehicle demos that have been modified to work with either run-time visualization system.  
+
+Unlike Irrlicht, VulkanSceneGraph provides a modern scene graph library which is under active development. Besides the many features provided by the core VSG library, the GUI system provided by the companion [vsgImGui](https://github.com/vsg-dev/vsgImGui) project offers the full set of capabilities of [ImGui](https://github.com/ocornut/imgui). The basic UI elements already exposed in `ChVisualSystemVSG` and `ChVehicleVisualSystemVSG` will be further expanded.
+
+Simultaneous with the introduction of Chrono::VSG, we have modified the `ChVisualSystem` API (and reflected these changes in both `ChVisualSystemIrrlicht` and `ChVisualSystemVSG`) to provided new capabilities, such as the definition and rendering of visual models that are not associated with a Chrono physics item.
+
+### [Changed] Support for linear and nonlinear vehicle force elements
+
+The various pre-defined functors for use with TSDA and RSDA elements in vehicle models have been refactored for consistency. These include linear and nonlinear springs, dampers, and spring-damper force elements with optional bump stops (see the definitions in `src/chrono_vehicle/ChSubsysDefs.h`).  In addition, a new TSDA functor, `MapSpringDamper` allows for the definition of a general non-linear spring-damper (depending on both deformation and velocity) specified through bilinear interpolation of tabular data.
+
+All the pre-defined TSDA and RSDA functors can be specified in JSON files; consult the various JSON files for wheeled vehicle suspension systems in the Chrono data directory.
 
 ## Release 8.0.0 - 2022-12-21
 
@@ -304,7 +320,7 @@ We took this opportunity to make a small set of minor API changes, most of them 
 ### [Added] Modal analysis module
 
 A new module `MODULE_MODAL` has been added. The module uses an external dependency (the [Spectra](https://spectralib.org/) library for eigenvalue computation). 
-Follow the [installation guide](@ref module_modal_installation) for instructions on how to enable it.
+Follow the Chrono::Modal installation guide for instructions on how to enable it.
 
 The new class `ChModalAssembly` offer three main functionalities:
 
