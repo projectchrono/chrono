@@ -42,14 +42,37 @@ int main(int argc, char* argv[]) {
     auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
     vis->AttachSystem(&sys);
     vis->SetCameraVertical(CameraVerticalDir::Z);
-    vis->SetWindowSize(ChVector2<int>(1200, 900));
+    vis->SetWindowSize(ChVector2<int>(1200, 800));
     vis->SetWindowPosition(ChVector2<int>(100, 300));
     vis->SetWindowTitle("Chrono VSG Assets");
     vis->SetUseSkyBox(false);
-    vis->AddCamera(ChVector<>(10, 10, 4));
+    vis->AddCamera(ChVector<>(13.0, 7.5, 3.4), ChVector<>(1.0, 0.1, 0.6));
     vis->SetCameraAngleDeg(40);
-    vis->SetLightIntensity(1.0f);
-    vis->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+    vis->SetLightIntensity(2.0f);
+    vis->SetLightDirection(CH_C_PI_2, CH_C_PI_4);
+
+    ChVector<> bus_pos(3, -4.5, 0);
+    ChVector<> polaris_pos(-3, -1.5, 0);
+    ChVector<> suv_pos(-3, +1.5, 0);
+    ChVector<> uaz_pos(-3, +4.5, 0);
+    ChVector<> hmmwv_pos(3, -1.5, 0);
+    ChVector<> audi_pos(3, +1.5, 0);
+    ChVector<> gator_pos(3, +4.5, 0);
+
+    {
+        std::vector<ChVector<>> bus_wpos = {ChVector<>(0, 1.128, 0.5), ChVector<>(0, -1.128, 0.5),
+                                            ChVector<>(-7.184, 0.96, 0.5), ChVector<>(-7.184, -0.96, 0.5)};
+        auto bus = chrono_types::make_shared<ChVisualModel>();
+        auto bus_chassis = CreateMeshShape(GetChronoDataFile("vehicle/citybus/CityBus_Vis.obj"));
+        auto bus_wheel = CreateMeshShape(GetChronoDataFile("vehicle/citybus/CityBusRim.obj"));
+        auto bus_tire = CreateMeshShape(GetChronoDataFile("vehicle/citybus/CityBusTire.obj"));
+        bus->AddShape(bus_chassis);
+        for (int i = 0; i < 4; i++) {
+            bus->AddShape(bus_wheel, ChFrame<>(bus_wpos[i], Q_from_AngZ(CH_C_PI * i)));
+            bus->AddShape(bus_tire, ChFrame<>(bus_wpos[i], Q_from_AngZ(CH_C_PI * i)));
+        }
+        vis->AddVisualModel(bus, ChFrame<>(bus_pos, QUNIT));
+    }
 
     {
         std::vector<ChVector<>> hmmwv_wpos = {ChVector<>(1.64, 0.910, -0.026), ChVector<>(1.64, -0.910, -0.026),
@@ -67,7 +90,7 @@ int main(int argc, char* argv[]) {
         hmmwv->AddShape(hmmwv_tireR, ChFrame<>(hmmwv_wpos[1], Q_from_AngZ(CH_C_PI * 1)));
         hmmwv->AddShape(hmmwv_tireL, ChFrame<>(hmmwv_wpos[2], Q_from_AngZ(CH_C_PI * 2)));
         hmmwv->AddShape(hmmwv_tireR, ChFrame<>(hmmwv_wpos[3], Q_from_AngZ(CH_C_PI * 3)));
-        vis->AddVisualModel(hmmwv, ChFrame<>(ChVector<>(0, -4.5, 0), QUNIT));
+        vis->AddVisualModel(hmmwv, ChFrame<>(hmmwv_pos, QUNIT));
     }
 
     {
@@ -82,16 +105,24 @@ int main(int argc, char* argv[]) {
         gator->AddShape(gator_wheelF, ChFrame<>(gator_wpos[1], Q_from_AngZ(CH_C_PI * 1)));
         gator->AddShape(gator_wheelR, ChFrame<>(gator_wpos[2], Q_from_AngZ(CH_C_PI * 2)));
         gator->AddShape(gator_wheelR, ChFrame<>(gator_wpos[3], Q_from_AngZ(CH_C_PI * 3)));
-        vis->AddVisualModel(gator, ChFrame<>(ChVector<>(0, -1.5, 0), QUNIT));
+        vis->AddVisualModel(gator, ChFrame<>(gator_pos, QUNIT));
     }
-    /*
+
     {
+        std::vector<ChVector<>> audi_wpos = {ChVector<>(1.44, 0.8, 0.12), ChVector<>(1.44, -0.8, 0.12),
+                                             ChVector<>(-1.48, 0.8, 0.12), ChVector<>(-1.48, -0.8, 0.12)};
         auto audi = chrono_types::make_shared<ChVisualModel>();
-        auto audi_chassis = CreateMeshShape(GetChronoDataFile("vehicle/audi/audi_chassis.obj"));
+        auto audi_chassis = CreateMeshShape(GetChronoDataFile("vehicle/audi/audi_chassis_white.obj"));
+        auto audi_wheel = CreateMeshShape(GetChronoDataFile("vehicle/audi/audi_rim.obj"));
+        auto audi_tire = CreateMeshShape(GetChronoDataFile("vehicle/audi/audi_tire.obj"));
         audi->AddShape(audi_chassis);
-        vis->AddVisualModel(audi, ChFrame<>(ChVector<>(0, -1.5, 0), QUNIT));
+        for (int i = 0; i < 4; i++) {
+            audi->AddShape(audi_wheel, ChFrame<>(audi_wpos[i], Q_from_AngZ(CH_C_PI * i)));
+            audi->AddShape(audi_tire, ChFrame<>(audi_wpos[i], Q_from_AngZ(CH_C_PI * i)));
+        }
+        vis->AddVisualModel(audi, ChFrame<>(audi_pos, QUNIT));
     }
-    */
+
     {
         std::vector<ChVector<>> uaz_wpos = {ChVector<>(0, 0.733, 0), ChVector<>(0, -0.733, 0),
                                             ChVector<>(-2.3, 0.733, 0), ChVector<>(-2.3, -0.733, 0)};
@@ -104,8 +135,10 @@ int main(int argc, char* argv[]) {
             uaz->AddShape(uaz_wheel, ChFrame<>(uaz_wpos[i], Q_from_AngZ(CH_C_PI * i)));
             uaz->AddShape(uaz_tire, ChFrame<>(uaz_wpos[i], Q_from_AngZ(CH_C_PI * i)));
         }
-        vis->AddVisualModel(uaz, ChFrame<>(ChVector<>(0, 1.5, 0), QUNIT));
+        vis->AddVisualModel(uaz, ChFrame<>(uaz_pos, QUNIT));
+    }
 
+    {
         std::vector<ChVector<>> suv_wpos = {ChVector<>(0, 0.960, 0.1), ChVector<>(0, -0.960, 0.1),
                                             ChVector<>(-3.336, 1.010, 0.05), ChVector<>(-3.336, -1.010, 0.05)};
         auto suv = chrono_types::make_shared<ChVisualModel>();
@@ -117,7 +150,22 @@ int main(int argc, char* argv[]) {
             suv->AddShape(suv_wheel, ChFrame<>(suv_wpos[i], Q_from_AngZ(CH_C_PI * i)));
             suv->AddShape(suv_tire, ChFrame<>(suv_wpos[i], Q_from_AngZ(CH_C_PI * i)));
         }
-        vis->AddVisualModel(suv, ChFrame<>(ChVector<>(0, 4.5, 0), QUNIT));
+        vis->AddVisualModel(suv, ChFrame<>(suv_pos, QUNIT));
+    }
+
+    {
+        std::vector<ChVector<>> polaris_wpos = {ChVector<>(0, 0.616, 0.397), ChVector<>(0, -0.616, 0.397),
+                                                ChVector<>(-2.715, 0.616, 0.405), ChVector<>(-2.715, -0.616, 0.405)};
+        auto polaris = chrono_types::make_shared<ChVisualModel>();
+        auto polaris_chassis = CreateMeshShape(GetChronoDataFile("vehicle/Polaris/meshes/Polaris_chassis.obj"));
+        auto polaris_wheel = CreateMeshShape(GetChronoDataFile("vehicle/Polaris/meshes/Polaris_wheel.obj"));
+        auto polaris_tire = CreateMeshShape(GetChronoDataFile("vehicle/Polaris/meshes/Polaris_tire.obj"));
+        polaris->AddShape(polaris_chassis);
+        for (int i = 0; i < 4; i++) {
+            polaris->AddShape(polaris_wheel, ChFrame<>(polaris_wpos[i], Q_from_AngZ(CH_C_PI * i)));
+            polaris->AddShape(polaris_tire, ChFrame<>(polaris_wpos[i], Q_from_AngZ(CH_C_PI * i)));
+        }
+        vis->AddVisualModel(polaris, ChFrame<>(polaris_pos, QUNIT));
     }
 
     vis->Initialize();
