@@ -62,7 +62,7 @@ vec3 getNormal()
     vec3 result;
 #ifdef VSG_NORMAL_MAP
     // Perturb normal, see http://www.thetenthplanet.de/archives/1180
-    vec3 tangentNormal = texture(normalMap, texCoord0).xyz * 2.0 - 1.0;
+    vec3 tangentNormal = texture(normalMap, vec2(texCoord0.s * texrepeat.uScale, texCoord0.t * texrepeat.vScale)).xyz * 2.0 - 1.0;
 
     //tangentNormal *= vec3(2,2,1);
 
@@ -113,17 +113,13 @@ void main()
     vec2 texCoord0 = gl_PointCoord.xy;
 #endif
 
-vec4 diffuseColor = vertexColor * material.diffuseColor;
-vec2 repTexCoord0 = texCoord0;
-repTexCoord0.s *= texrepeat.uScale;
-repTexCoord0.t *= texrepeat.vScale;
-
+    vec4 diffuseColor = vertexColor * material.diffuseColor;
 #ifdef VSG_DIFFUSE_MAP
     #ifdef VSG_GREYSACLE_DIFFUSE_MAP
-        float v = texture(diffuseMap, repTexCoord0.st).s;
+        float v = texture(diffuseMap, vec2(texCoord0.s * texrepeat.uScale, texCoord0.t * texrepeat.vScale).st).s;
         diffuseColor *= vec4(v, v, v, 1.0);
     #else
-        diffuseColor *= texture(diffuseMap, repTexCoord0.st);
+        diffuseColor *= texture(diffuseMap, vec2(texCoord0.s * texrepeat.uScale, texCoord0.t * texrepeat.vScale).st);
     #endif
 #endif
 
@@ -140,15 +136,15 @@ repTexCoord0.t *= texrepeat.vScale;
     }
 
 #ifdef VSG_EMISSIVE_MAP
-    emissiveColor *= texture(emissiveMap, repTexCoord0.st);
+    emissiveColor *= texture(emissiveMap, vec2(texCoord0.s * texrepeat.uScale, texCoord0.t * texrepeat.vScale).st);
 #endif
 
 #ifdef VSG_LIGHTMAP_MAP
-    ambientOcclusion *= texture(aoMap, repTexCoord0.st).r;
+    ambientOcclusion *= texture(aoMap, vec2(texCoord0.s * texrepeat.uScale, texCoord0.t * texrepeat.vScale).st).r;
 #endif
 
 #ifdef VSG_SPECULAR_MAP
-    specularColor *= texture(specularMap, repTtexCoord0.st);
+    specularColor *= texture(specularMap, vec2(texCoord0.s * texrepeat.uScale, texCoord0.t * texrepeat.vScale).st);
 #endif
 
     vec3 nd = getNormal();

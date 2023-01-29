@@ -516,6 +516,7 @@ void CRGTerrain::SetupMeshGraphics() {
         material->SetDiffuseColor(ChColor(1.0f, 1.0f, 1.0f));
         material->SetAmbientColor(ChColor(1.0f, 1.0f, 1.0f));
         material->SetEmissiveColor(ChColor(0.1f, 0.1f, 0.1f));
+        if(m_use_diffuseTexture)
             material->SetKdTexture(m_diffuse_texture_filename, 0.5 * GetLength() / GetWidth(), 1.0);
         if (m_use_normalTexture)
             material->SetNormalMapTexture(m_normal_texture_filename, 0.5 * GetLength() / GetWidth(), 1.0);
