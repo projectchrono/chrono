@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Schema file that defines state data for Soil Contact Model (SCM) deformable
-// terrain. For further details see chrono_vehicle/terrain/SCMDeformableTerrain
+// terrain. For further details see chrono_vehicle/terrain/SCMTerrain
 // To synchronize deformable terrain state, it is sufficient to communicate
 //  -- the (x, y) position of each deformed node on an integer grid
 //  -- the deformation (double) associated with each such node

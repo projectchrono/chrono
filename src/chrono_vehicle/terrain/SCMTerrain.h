@@ -17,8 +17,8 @@
 //
 // =============================================================================
 
-#ifndef SCM_DEFORMABLE_TERRAIN_H
-#define SCM_DEFORMABLE_TERRAIN_H
+#ifndef SCM_TERRAIN_H
+#define SCM_TERRAIN_H
 
 #include <string>
 #include <ostream>
@@ -39,7 +39,7 @@
 namespace chrono {
 namespace vehicle {
 
-class SCMDeformableSoil;
+class SCMLoader;
 
 /// @addtogroup vehicle_terrain
 /// @{
@@ -48,7 +48,7 @@ class SCMDeformableSoil;
 /// This class implements a deformable terrain based on the Soil Contact Model.
 /// Unlike RigidTerrain, the vertical coordinates of this terrain mesh can be deformed
 /// due to interaction with ground vehicles or other collision shapes.
-class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
+class CH_VEHICLE_API SCMTerrain : public ChTerrain {
   public:
     enum DataPlotType {
         PLOT_NONE,
@@ -82,11 +82,11 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
 
     /// Construct a default SCM deformable terrain.
     /// The user is responsible for calling various Set methods before Initialize.
-    SCMDeformableTerrain(ChSystem* system,               ///< [in] pointer to the containing multibody system
+    SCMTerrain(ChSystem* system,               ///< [in] pointer to the containing multibody system
                          bool visualization_mesh = true  ///< [in] enable/disable visualization asset
     );
 
-    ~SCMDeformableTerrain() {}
+    ~SCMTerrain() {}
 
     /// Set the plane reference.
     /// By default, the reference plane is horizontal with Z up (ISO vehicle reference frame).
@@ -197,7 +197,7 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
     /// This coefficient of friction value may be used by certain tire models to modify
     /// the tire characteristics, but it will have no effect on the interaction of the terrain
     /// with other objects (including tire models that do not explicitly use it).
-    /// For SCMDeformableTerrain, this function defers to the user-provided functor object
+    /// For SCMTerrain, this function defers to the user-provided functor object
     /// of type ChTerrain::FrictionFunctor, if one was specified.
     /// Otherwise, it returns the constant value of 0.8.
     virtual float GetCoefficientFriction(const ChVector<>& loc) const override;
@@ -290,10 +290,10 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
     /// Print timing and counter information for last step.
     void PrintStepStatistics(std::ostream& os) const;
 
-    std::shared_ptr<SCMDeformableSoil> GetGroundObject() const { return m_ground; }
+    std::shared_ptr<SCMLoader> GetSCMLoader() const { return m_loader; }
 
   private:
-    std::shared_ptr<SCMDeformableSoil> m_ground;  ///< underlying load container for contact force generation
+    std::shared_ptr<SCMLoader> m_loader;  ///< underlying load container for contact force generation
 };
 
 /// Parameters for soil-contactable interaction.
@@ -311,14 +311,14 @@ class CH_VEHICLE_API SCMContactableData {
     double Mohr_mu;        ///< coefficient of friction for shear failure [degree]
     double Janosi_shear;   ///< shear parameter in Janosi-Hanamoto formula [m]
 
-    friend class SCMDeformableSoil;
+    friend class SCMLoader;
 };
 
 /// Underlying implementation of the Soil Contact Model.
-class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
+class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
   public:
-    SCMDeformableSoil(ChSystem* system, bool visualization_mesh);
-    ~SCMDeformableSoil() {}
+    SCMLoader(ChSystem* system, bool visualization_mesh);
+    ~SCMLoader() {}
 
     /// Initialize the terrain system (flat).
     /// This version creates a flat array of points.
@@ -441,7 +441,7 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     bool CheckMeshBounds(const ChVector2<int>& loc) const;
 
     // Return information at node closest to specified location.
-    SCMDeformableTerrain::NodeInfo GetNodeInfo(const ChVector<>& loc) const;
+    SCMTerrain::NodeInfo GetNodeInfo(const ChVector<>& loc) const;
 
     // Complete setup before first simulation step.
     virtual void SetupInitial() override;
@@ -497,10 +497,10 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     /// Get the heights of all modified grid nodes.
     /// If 'all_nodes = true', return modified nodes from the start of simulation.  Otherwise, return only the nodes
     /// modified over the last step.
-    std::vector<SCMDeformableTerrain::NodeLevel> GetModifiedNodes(bool all_nodes = false) const;
+    std::vector<SCMTerrain::NodeLevel> GetModifiedNodes(bool all_nodes = false) const;
 
     // Modify the level of grid nodes from the given list.
-    void SetModifiedNodes(const std::vector<SCMDeformableTerrain::NodeLevel>& nodes);
+    void SetModifiedNodes(const std::vector<SCMTerrain::NodeLevel>& nodes);
 
     PatchType m_type;      // type of SCM patch
     ChCoordsys<> m_plane;  // SCM frame (deformation occurs along the z axis of this frame)
@@ -534,7 +534,7 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     double m_damping_R;      ///< vertical damping R per unit area [Pa.s/m] (proportional to vertical speed)
 
     // Callback object for position-dependent soil properties
-    std::shared_ptr<SCMDeformableTerrain::SoilParametersCallback> m_soil_fun;
+    std::shared_ptr<SCMTerrain::SoilParametersCallback> m_soil_fun;
 
     // Contact forces on contactable objects interacting with the SCM terrain
     std::unordered_map<ChContactable*, TerrainForce> m_contact_forces;
@@ -547,7 +547,7 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     int m_erosion_propagations;
 
     // Mesh coloring mode
-    SCMDeformableTerrain::DataPlotType m_plot_type;
+    SCMTerrain::DataPlotType m_plot_type;
     double m_plot_v_min;
     double m_plot_v_max;
 
@@ -570,7 +570,7 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     int m_num_contact_patches;
     int m_num_erosion_nodes;
 
-    friend class SCMDeformableTerrain;
+    friend class SCMTerrain;
 };
 
 /// @} vehicle_terrain

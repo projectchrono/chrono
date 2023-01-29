@@ -24,7 +24,7 @@
 #include "chrono/assets/ChTexture.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
+#include "chrono_vehicle/terrain/SCMTerrain.h"
 #include "chrono_vehicle/terrain/GranularTerrain.h"
 
 namespace chrono {
@@ -426,12 +426,12 @@ void ChTireTestRig::CreateTerrainSCM() {
     // Mesh divisions
     double delta = 0.125;  // initial SCM grid spacing
 
-    auto terrain = chrono_types::make_shared<vehicle::SCMDeformableTerrain>(m_system);
+    auto terrain = chrono_types::make_shared<vehicle::SCMTerrain>(m_system);
     terrain->SetPlane(ChCoordsys<>(location));
     terrain->SetSoilParameters(m_params_SCM.Bekker_Kphi, m_params_SCM.Bekker_Kc, m_params_SCM.Bekker_n,            //
                                m_params_SCM.Mohr_cohesion, m_params_SCM.Mohr_friction, m_params_SCM.Janosi_shear,  //
                                E_elastic, damping);
-    terrain->SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE, 0, 0.05);
+    terrain->SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.05);
     terrain->Initialize(m_params_SCM.length, m_params_SCM.width, delta);
     terrain->AddMovingPatch(m_chassis_body, ChVector<>(0, 0, 0),
                             ChVector<>(2 * m_tire->GetRadius(), 1.0, 2 * m_tire->GetRadius()));

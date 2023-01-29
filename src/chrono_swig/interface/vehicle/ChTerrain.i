@@ -14,7 +14,7 @@
 #include "chrono_vehicle/terrain/FlatTerrain.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
-#include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
+#include "chrono_vehicle/terrain/SCMTerrain.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 %}
@@ -45,9 +45,9 @@
 %shared_ptr(chrono::vehicle::FlatTerrain)
 %shared_ptr(chrono::vehicle::RigidTerrain::Patch)
 %shared_ptr(chrono::vehicle::RigidTerrain)
-%shared_ptr(chrono::vehicle::SCMDeformableSoil)
-%shared_ptr(chrono::vehicle::SCMDeformableTerrain)
-%shared_ptr(chrono::vehicle::SCMDeformableTerrain::SoilParametersCallback)
+%shared_ptr(chrono::vehicle::SCMLoader)
+%shared_ptr(chrono::vehicle::SCMTerrain)
+%shared_ptr(chrono::vehicle::SCMTerrain::SoilParametersCallback)
 
 %template(ChPatchList) std::vector<std::shared_ptr<chrono::vehicle::RigidTerrain::Patch>>;
 
@@ -61,6 +61,6 @@
 %include "cpointer.i"
 %pointer_functions(int, intp)
 %pointer_functions(double, doublep)
-%include "../../../chrono_vehicle/terrain/SCMDeformableTerrain.h"
+%include "../../../chrono_vehicle/terrain/SCMTerrain.h"
 
 //%include "../../../chrono_vehicle/terrain/CRGTerrain.h"

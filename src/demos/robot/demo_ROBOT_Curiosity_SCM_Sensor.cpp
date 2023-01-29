@@ -35,7 +35,7 @@
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
+#include "chrono_vehicle/terrain/SCMTerrain.h"
 
 #include "chrono_sensor/sensors/ChLidarSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
@@ -92,7 +92,7 @@ double time_step = 5e-4;
 // -----------------------------------------------------------------------------
 
 // Custom callback for setting location-dependent soil properties.
-class MySoilParams : public vehicle::SCMDeformableTerrain::SoilParametersCallback {
+class MySoilParams : public vehicle::SCMTerrain::SoilParametersCallback {
   public:
     virtual void Set(const ChVector<>& loc,
                      double& Bekker_Kphi,
@@ -324,10 +324,10 @@ int main(int argc, char* argv[]) {
     //
 
     // Create the 'deformable terrain' object
-    vehicle::SCMDeformableTerrain terrain(&sys);
+    vehicle::SCMTerrain terrain(&sys);
 
     // Displace/rotate the terrain reference plane.
-    // Note that SCMDeformableTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
+    // Note that SCMTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
     // a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
     // Note: Irrlicht uses a Y-up frame
     terrain.SetPlane(ChCoordsys<>(ChVector<>(0, -0.5, 0), Q_from_AngX(-CH_C_PI_2)));
@@ -393,7 +393,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
-    terrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_PRESSURE, 0, 20000);
+    terrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE, 0, 20000);
 
     terrain.GetMesh()->SetWireframe(true);
 

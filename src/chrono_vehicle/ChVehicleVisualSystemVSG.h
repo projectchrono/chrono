@@ -35,7 +35,7 @@
 #include "chrono_vehicle/ChVehicleVisualSystem.h"
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/ChConfigVehicle.h"
-#include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
+#include "chrono_vehicle/terrain/SCMTerrain.h"
 
 namespace chrono {
 namespace vehicle {

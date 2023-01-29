@@ -18,8 +18,8 @@
 //
 // =============================================================================
 
-#ifndef FEADEFORMABLE_TERRAIN_H
-#define FEADEFORMABLE_TERRAIN_H
+#ifndef FEA_TERRAIN_H
+#define FEA_TERRAIN_H
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/fea/ChMesh.h"
@@ -35,14 +35,14 @@ namespace vehicle {
 /// FEA Deformable terrain model.
 /// This class implements a terrain made up of isoparametric finite elements. It features
 /// Drucker-Prager plasticity and capped Drucker-Prager plasticity.
-class CH_VEHICLE_API FEADeformableTerrain : public ChTerrain {
+class CH_VEHICLE_API FEATerrain : public ChTerrain {
   public:
     /// Construct a default FEADeformableSoil.
     /// The user is responsible for calling various Set methods before Initialize.
-    FEADeformableTerrain(ChSystem* system  ///< [in/out] pointer to the containing system);
+    FEATerrain(ChSystem* system  ///< [in/out] pointer to the containing system);
                          );
 
-    ~FEADeformableTerrain() {}
+    ~FEATerrain() {}
 
     /// Get the terrain height below the specified location.
     virtual double GetHeight(const ChVector<>& loc) const override;
@@ -54,7 +54,7 @@ class CH_VEHICLE_API FEADeformableTerrain : public ChTerrain {
     /// This coefficient of friction value may be used by certain tire models to modify
     /// the tire characteristics, but it will have no effect on the interaction of the terrain
     /// with other objects (including tire models that do not explicitly use it).
-    /// For FEADeformableTerrain, this function defers to the user-provided functor object
+    /// For FEATerrain, this function defers to the user-provided functor object
     /// of type ChTerrain::FrictionFunctor, if one was specified.
     /// Otherwise, it returns the constant value of 0.8.
     virtual float GetCoefficientFriction(const ChVector<>& loc) const override;

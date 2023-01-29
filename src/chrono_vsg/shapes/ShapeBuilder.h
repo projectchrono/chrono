@@ -62,7 +62,7 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                                    bool drawMode,
                                                    std::shared_ptr<ChTriangleMeshShape> tms = nullptr);
 
-    // variant for SCMDeformableTerrain, regular mesh needed, no face normals allowed
+    // variant for SCMTerrain, regular mesh needed, no face normals allowed
     // no face colors allowed
     vsg::ref_ptr<vsg::Group> createTrimeshColShapeSCM(vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                       bool drawMode,

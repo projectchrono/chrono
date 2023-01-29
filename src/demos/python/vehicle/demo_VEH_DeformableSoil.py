@@ -127,9 +127,9 @@ sys.Add(motor)
 # Create SCM terrain patch
 # ------------------------
 
-# Note that SCMDeformableTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
+# Note that SCMTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
 # a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
-terrain = veh.SCMDeformableTerrain(sys)
+terrain = veh.SCMTerrain(sys)
 terrain.SetPlane(chrono.ChCoordsysD(chrono.ChVectorD(0,0.2,0), chrono.Q_from_AngX(-math.pi/2)))
 terrain.Initialize(2.0, 6.0, 0.04)
 
@@ -150,7 +150,7 @@ else :
     )
 
 # Set terrain visualization mode
-terrain.SetPlotType(veh.SCMDeformableTerrain.PLOT_PRESSURE, 0, 30000.2)
+terrain.SetPlotType(veh.SCMTerrain.PLOT_PRESSURE, 0, 30000.2)
 
 # ------------------------------------------
 # Create the Irrlicht run-time visualization

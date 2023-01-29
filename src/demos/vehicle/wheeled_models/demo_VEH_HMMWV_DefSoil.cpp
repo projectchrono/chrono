@@ -29,7 +29,7 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/ChDriver.h"
-#include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
+#include "chrono_vehicle/terrain/SCMTerrain.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
@@ -240,7 +240,7 @@ int main(int argc, char* argv[]) {
     ChSystem* system = my_hmmwv.GetSystem();
     system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()));
 
-    SCMDeformableTerrain terrain(system);
+    SCMTerrain terrain(system);
     terrain.SetSoilParameters(2e6,   // Bekker Kphi
                                 0,     // Bekker Kc
                                 1.1,   // Bekker n exponent
@@ -267,8 +267,8 @@ int main(int argc, char* argv[]) {
     ////}
 
     ////terrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 80, 16);
-    ////terrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
-    terrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE, 0, 0.1);
+    ////terrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
+    terrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.1);
 
     terrain.Initialize(terrainLength, terrainWidth, delta);
 

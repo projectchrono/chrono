@@ -23,7 +23,7 @@
 #define CH_VEHCOSIM_TERRAIN_NODE_SCM_H
 
 #include "chrono/physics/ChSystem.h"
-#include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
+#include "chrono_vehicle/terrain/SCMTerrain.h"
 
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeChrono.h"
 
@@ -86,7 +86,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrain
 
   private:
     ChSystem* m_system;               ///< containing system
-    SCMDeformableTerrain* m_terrain;  ///< SCM terrain
+    SCMTerrain* m_terrain;  ///< SCM terrain
 #ifdef CHRONO_IRRLICHT
     std::shared_ptr<irrlicht::ChVisualSystemIrrlicht> m_vsys;  ///< Irrlicht run-time visualization
 #endif

@@ -13,10 +13,10 @@
 // =============================================================================
 //
 // Class that wraps and synchronizes deformable terrain between Chrono Systems
-// See chrono_vehicle/terrain/SCMDeformableTerrain for the physics
+// See chrono_vehicle/terrain/SCMTerrain for the physics
 //
 // We have a square grid of points that get depressed as an object contacts
-// them. SCMDeformableTerrain computes what their deformation should be (and
+// them. SCMTerrain computes what their deformation should be (and
 // what forces get applied) at each time step. Every time step this class saves
 // the changes to each node, then at the SynChrono heartbeat sends those changes
 // (which span several physics timesteps) to all other ranks.
@@ -30,7 +30,7 @@
 #include "chrono_synchrono/agent/SynAgent.h"
 #include "chrono_synchrono/flatbuffer/message/SynSCMMessage.h"
 
-#include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
+#include "chrono_vehicle/terrain/SCMTerrain.h"
 
 namespace chrono {
 namespace synchrono {
@@ -46,7 +46,7 @@ class SYN_API SynSCMTerrainAgent : public SynAgent {
     ///@brief Construct a scm terrain agent with optionally a terrain
     ///
     ///@param terrain the terrain this agent is responsible for (will be null if agent's a zombie)
-    SynSCMTerrainAgent(std::shared_ptr<vehicle::SCMDeformableTerrain> terrain = nullptr);
+    SynSCMTerrainAgent(std::shared_ptr<vehicle::SCMTerrain> terrain = nullptr);
 
     ///@brief Destructor.
     virtual ~SynSCMTerrainAgent();
@@ -95,7 +95,7 @@ class SYN_API SynSCMTerrainAgent : public SynAgent {
 
     ///@brief Set the underlying terrain
     ///
-    void SetTerrain(std::shared_ptr<vehicle::SCMDeformableTerrain> terrain) { m_terrain = terrain; }
+    void SetTerrain(std::shared_ptr<vehicle::SCMTerrain> terrain) { m_terrain = terrain; }
 
     ///@brief Set the Agent ID
     ///
@@ -113,14 +113,14 @@ class SYN_API SynSCMTerrainAgent : public SynAgent {
 
     // ------------------------------------------------------------------------
 
-    std::shared_ptr<vehicle::SCMDeformableTerrain> m_terrain;  ///< Underlying terrain we manage
+    std::shared_ptr<vehicle::SCMTerrain> m_terrain;  ///< Underlying terrain we manage
 
     std::shared_ptr<SynSCMMessage> m_message;                                ///< The message passed between nodes
     std::unordered_map<ChVector2<int>, double, CoordHash> m_modified_nodes;  ///< Where we store changes to our terrain
 };
 
 /// Groups SCM parameters into a struct, defines some useful defaults
-/// See SCMDeformableTerrain::SetSoilParameters and SoilParametersCallback for more details on these
+/// See SCMTerrain::SetSoilParameters and SoilParametersCallback for more details on these
 struct SCMParameters {
     double m_Bekker_Kphi;    ///< Kphi, frictional modulus in Bekker model
     double m_Bekker_Kc;      ///< Kc, cohesive modulus in Bekker model

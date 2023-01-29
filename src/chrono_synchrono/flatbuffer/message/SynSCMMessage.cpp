@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Class that wraps data contained in a message about Soil Contact Model (SCM)
-// Deformable terrain. See chrono_vehicle/terrain/SCMDeformableTerrain.* for
+// Deformable terrain. See chrono_vehicle/terrain/SCMTerrain.* for
 // more details.
 //
 // =============================================================================

@@ -260,22 +260,20 @@ set(CV_TERRAIN_FILES
     terrain/RigidTerrain.cpp
     terrain/RandomSurfaceTerrain.h
     terrain/RandomSurfaceTerrain.cpp
-    terrain/SCMDeformableTerrain.h
-    terrain/SCMDeformableTerrain.cpp
+    terrain/SCMTerrain.h
+    terrain/SCMTerrain.cpp
     terrain/GranularTerrain.h
     terrain/GranularTerrain.cpp
-    terrain/FEADeformableTerrain.h
-    terrain/FEADeformableTerrain.cpp
+    terrain/FEATerrain.h
+    terrain/FEATerrain.cpp
 )
 if(HAVE_OPENCRG)
-    set(CV_OPENCRG_FILES
+    set(CV_TERRAIN_FILES ${CV_TERRAIN_FILES}
         terrain/CRGTerrain.h
         terrain/CRGTerrain.cpp
     )
-else()
-    set(CV_OPENCRG_FILES "")
 endif()
-source_group("terrain" FILES ${CV_TERRAIN_FILES} ${CV_OPENCRG_FILES})
+source_group("terrain" FILES ${CV_TERRAIN_FILES})
 
 set(CV_UTILS_FILES
     utils/ChSteeringController.h
@@ -835,7 +833,6 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_DRIVER_FILES}
     ${CV_POVERTRAIN_FILES}
     ${CV_TERRAIN_FILES}
-    ${CV_OPENCRG_FILES}
     ${CV_UTILS_FILES}
     ${CV_OUTPUT_FILES}
     ${CVHDF5_OUTPUT_FILES}

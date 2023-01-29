@@ -28,7 +28,7 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/ChWorldFrame.h"
-#include "chrono_vehicle/terrain/FEADeformableTerrain.h"
+#include "chrono_vehicle/terrain/FEATerrain.h"
 
 using namespace chrono::fea;
 
@@ -36,9 +36,9 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// Implementation of the FEADeformableTerrain wrapper class
+// Implementation of the FEATerrain wrapper class
 // -----------------------------------------------------------------------------
-FEADeformableTerrain::FEADeformableTerrain(ChSystem* system)
+FEATerrain::FEATerrain(ChSystem* system)
     : m_E(1.379e7),
       m_nu(0.3),
       m_rho(200.0),
@@ -51,24 +51,24 @@ FEADeformableTerrain::FEADeformableTerrain(ChSystem* system)
 }
 
 // Return the terrain height at the specified location
-double FEADeformableTerrain::GetHeight(const ChVector<>& loc) const {
+double FEATerrain::GetHeight(const ChVector<>& loc) const {
     //// TODO
     return 0;
 }
 
 // Return the terrain normal at the specified location
-ChVector<> FEADeformableTerrain::GetNormal(const ChVector<>& loc) const {
+ChVector<> FEATerrain::GetNormal(const ChVector<>& loc) const {
     //// TODO
     return ChWorldFrame::Vertical();
 }
 
 // Return the terrain coefficient of friction at the specified location
-float FEADeformableTerrain::GetCoefficientFriction(const ChVector<>& loc) const {
+float FEATerrain::GetCoefficientFriction(const ChVector<>& loc) const {
     return m_friction_fun ? (*m_friction_fun)(loc) : 0.8f;
 }
 
 // Set properties of the FEA soil model
-void FEADeformableTerrain::SetSoilParametersFEA(double rho,              ///< Soil density
+void FEATerrain::SetSoilParametersFEA(double rho,              ///< Soil density
                                                 double Emod,             ///< Soil modulus of elasticity
                                                 double nu,               ///< Soil Poisson ratio
                                                 double yield_stress,     ///< Soil yield stress, for plasticity
@@ -86,7 +86,7 @@ void FEADeformableTerrain::SetSoilParametersFEA(double rho,              ///< So
 }
 
 // Initialize the terrain as a box of 9-node brick elements of given dimensions.
-void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
+void FEATerrain::Initialize(const ChVector<>& start_point,
                                       const ChVector<>& terrain_dimension,
                                       const ChVector<int>& terrain_discretization) {
     // Specification of the mesh (40,20,6)

@@ -34,7 +34,7 @@
 #include "chrono/utils/ChConvexHull.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
+#include "chrono_vehicle/terrain/SCMTerrain.h"
 
 #include "chrono_thirdparty/stb/stb.h"
 
@@ -42,93 +42,93 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// Implementation of the SCMDeformableTerrain wrapper class
+// Implementation of the SCMTerrain wrapper class
 // -----------------------------------------------------------------------------
 
-SCMDeformableTerrain::SCMDeformableTerrain(ChSystem* system, bool visualization_mesh) {
-    m_ground = chrono_types::make_shared<SCMDeformableSoil>(system, visualization_mesh);
-    system->Add(m_ground);
+SCMTerrain::SCMTerrain(ChSystem* system, bool visualization_mesh) {
+    m_loader = chrono_types::make_shared<SCMLoader>(system, visualization_mesh);
+    system->Add(m_loader);
 }
 
 // Get the initial terrain height below the specified location.
-double SCMDeformableTerrain::GetInitHeight(const ChVector<>& loc) const {
-    return m_ground->GetInitHeight(loc);
+double SCMTerrain::GetInitHeight(const ChVector<>& loc) const {
+    return m_loader->GetInitHeight(loc);
 }
 
 // Get the initial terrain normal at the point below the specified location.
-ChVector<> SCMDeformableTerrain::GetInitNormal(const ChVector<>& loc) const {
-    return m_ground->GetInitNormal(loc);
+ChVector<> SCMTerrain::GetInitNormal(const ChVector<>& loc) const {
+    return m_loader->GetInitNormal(loc);
 }
 
 // Get the terrain height below the specified location.
-double SCMDeformableTerrain::GetHeight(const ChVector<>& loc) const {
-    return m_ground->GetHeight(loc);
+double SCMTerrain::GetHeight(const ChVector<>& loc) const {
+    return m_loader->GetHeight(loc);
 }
 
 // Get the terrain normal at the point below the specified location.
-ChVector<> SCMDeformableTerrain::GetNormal(const ChVector<>& loc) const {
-    return m_ground->GetNormal(loc);
+ChVector<> SCMTerrain::GetNormal(const ChVector<>& loc) const {
+    return m_loader->GetNormal(loc);
 }
 
 // Return the terrain coefficient of friction at the specified location.
-float SCMDeformableTerrain::GetCoefficientFriction(const ChVector<>& loc) const {
+float SCMTerrain::GetCoefficientFriction(const ChVector<>& loc) const {
     return m_friction_fun ? (*m_friction_fun)(loc) : 0.8f;
 }
 
 // Get SCM information at the node closest to the specified location.
-SCMDeformableTerrain::NodeInfo SCMDeformableTerrain::GetNodeInfo(const ChVector<>& loc) const {
-    return m_ground->GetNodeInfo(loc);
+SCMTerrain::NodeInfo SCMTerrain::GetNodeInfo(const ChVector<>& loc) const {
+    return m_loader->GetNodeInfo(loc);
 }
 
 // Set the color of the visualization assets.
-void SCMDeformableTerrain::SetColor(const ChColor& color) {
-    if (m_ground->GetVisualModel()) {
-        m_ground->GetVisualShape(0)->SetColor(color);
+void SCMTerrain::SetColor(const ChColor& color) {
+    if (m_loader->GetVisualModel()) {
+        m_loader->GetVisualShape(0)->SetColor(color);
     }
 }
 
 // Set the texture and texture scaling.
-void SCMDeformableTerrain::SetTexture(const std::string tex_file, float scale_x, float scale_y) {
-    if (m_ground->GetVisualModel()) {
-        m_ground->GetVisualShape(0)->SetTexture(tex_file, scale_x, scale_y);
+void SCMTerrain::SetTexture(const std::string tex_file, float scale_x, float scale_y) {
+    if (m_loader->GetVisualModel()) {
+        m_loader->GetVisualShape(0)->SetTexture(tex_file, scale_x, scale_y);
     }
 }
 
 // Set the SCM reference plane.
-void SCMDeformableTerrain::SetPlane(const ChCoordsys<>& plane) {
-    m_ground->m_plane = plane;
-    m_ground->m_Z = plane.rot.GetZaxis();
+void SCMTerrain::SetPlane(const ChCoordsys<>& plane) {
+    m_loader->m_plane = plane;
+    m_loader->m_Z = plane.rot.GetZaxis();
 }
 
 // Get the SCM reference plane.
-const ChCoordsys<>& SCMDeformableTerrain::GetPlane() const {
-    return m_ground->m_plane;
+const ChCoordsys<>& SCMTerrain::GetPlane() const {
+    return m_loader->m_plane;
 }
 
 // Set the visualization mesh as wireframe or as solid.
-void SCMDeformableTerrain::SetMeshWireframe(bool val) {
-    if (m_ground->m_trimesh_shape)
-        m_ground->m_trimesh_shape->SetWireframe(val);
+void SCMTerrain::SetMeshWireframe(bool val) {
+    if (m_loader->m_trimesh_shape)
+        m_loader->m_trimesh_shape->SetWireframe(val);
 }
 
 // Get the trimesh that defines the ground shape.
-std::shared_ptr<ChTriangleMeshShape> SCMDeformableTerrain::GetMesh() const {
-    return m_ground->m_trimesh_shape;
+std::shared_ptr<ChTriangleMeshShape> SCMTerrain::GetMesh() const {
+    return m_loader->m_trimesh_shape;
 }
 
 // Save the visualization mesh as a Wavefront OBJ file.
-void SCMDeformableTerrain::WriteMesh(const std::string& filename) const {
-    if (!m_ground->m_trimesh_shape) {
-        std::cout << "SCMDeformableTerrain::WriteMesh  -- visualization mesh not created.";
+void SCMTerrain::WriteMesh(const std::string& filename) const {
+    if (!m_loader->m_trimesh_shape) {
+        std::cout << "SCMTerrain::WriteMesh  -- visualization mesh not created.";
         return;
     }
-    auto trimesh = m_ground->m_trimesh_shape->GetMesh();
+    auto trimesh = m_loader->m_trimesh_shape->GetMesh();
     std::vector<geometry::ChTriangleMeshConnected> meshes = {*trimesh};
     trimesh->WriteWavefront(filename, meshes);
 }
 
 // Set properties of the SCM soil model.
-void SCMDeformableTerrain::SetSoilParameters(
+void SCMTerrain::SetSoilParameters(
     double Bekker_Kphi,    // Kphi, frictional modulus in Bekker model
     double Bekker_Kc,      // Kc, cohesive modulus in Bekker model
     double Bekker_n,       // n, exponent of sinkage in Bekker model (usually 0.6...1.8)
@@ -138,103 +138,103 @@ void SCMDeformableTerrain::SetSoilParameters(
     double elastic_K,      // elastic stiffness K per unit area, [Pa/m] (must be larger than Kphi)
     double damping_R       // vertical damping R per unit area [Pa.s/m] (proportional to vertical speed)
 ) {
-    m_ground->m_Bekker_Kphi = Bekker_Kphi;
-    m_ground->m_Bekker_Kc = Bekker_Kc;
-    m_ground->m_Bekker_n = Bekker_n;
-    m_ground->m_Mohr_cohesion = Mohr_cohesion;
-    m_ground->m_Mohr_mu = std::tan(Mohr_friction * CH_C_DEG_TO_RAD);
-    m_ground->m_Janosi_shear = Janosi_shear;
-    m_ground->m_elastic_K = ChMax(elastic_K, Bekker_Kphi);
-    m_ground->m_damping_R = damping_R;
+    m_loader->m_Bekker_Kphi = Bekker_Kphi;
+    m_loader->m_Bekker_Kc = Bekker_Kc;
+    m_loader->m_Bekker_n = Bekker_n;
+    m_loader->m_Mohr_cohesion = Mohr_cohesion;
+    m_loader->m_Mohr_mu = std::tan(Mohr_friction * CH_C_DEG_TO_RAD);
+    m_loader->m_Janosi_shear = Janosi_shear;
+    m_loader->m_elastic_K = ChMax(elastic_K, Bekker_Kphi);
+    m_loader->m_damping_R = damping_R;
 }
 
 // Enable/disable bulldozing effect.
-void SCMDeformableTerrain::EnableBulldozing(bool val) {
-    m_ground->m_bulldozing = val;
+void SCMTerrain::EnableBulldozing(bool val) {
+    m_loader->m_bulldozing = val;
 }
 
 // Set parameters controlling the creation of side ruts (bulldozing effects).
-void SCMDeformableTerrain::SetBulldozingParameters(
+void SCMTerrain::SetBulldozingParameters(
     double erosion_angle,     // angle of erosion of the displaced material [degrees]
     double flow_factor,       // growth of lateral volume relative to pressed volume
     int erosion_iterations,   // number of erosion refinements per timestep
     int erosion_propagations  // number of concentric vertex selections subject to erosion
 ) {
-    m_ground->m_flow_factor = flow_factor;
-    m_ground->m_erosion_slope = std::tan(erosion_angle * CH_C_DEG_TO_RAD);
-    m_ground->m_erosion_iterations = erosion_iterations;
-    m_ground->m_erosion_propagations = erosion_propagations;
+    m_loader->m_flow_factor = flow_factor;
+    m_loader->m_erosion_slope = std::tan(erosion_angle * CH_C_DEG_TO_RAD);
+    m_loader->m_erosion_iterations = erosion_iterations;
+    m_loader->m_erosion_propagations = erosion_propagations;
 }
 
-void SCMDeformableTerrain::SetTestHeight(double offset) {
-    m_ground->m_test_offset_up = offset;
+void SCMTerrain::SetTestHeight(double offset) {
+    m_loader->m_test_offset_up = offset;
 }
 
-double SCMDeformableTerrain::GetTestHeight() const {
-    return m_ground->m_test_offset_up;
+double SCMTerrain::GetTestHeight() const {
+    return m_loader->m_test_offset_up;
 }
 
 // Set the color plot type.
-void SCMDeformableTerrain::SetPlotType(DataPlotType plot_type, double min_val, double max_val) {
-    m_ground->m_plot_type = plot_type;
-    m_ground->m_plot_v_min = min_val;
-    m_ground->m_plot_v_max = max_val;
+void SCMTerrain::SetPlotType(DataPlotType plot_type, double min_val, double max_val) {
+    m_loader->m_plot_type = plot_type;
+    m_loader->m_plot_v_min = min_val;
+    m_loader->m_plot_v_max = max_val;
 }
 
 // Enable moving patch.
-void SCMDeformableTerrain::AddMovingPatch(std::shared_ptr<ChBody> body,
+void SCMTerrain::AddMovingPatch(std::shared_ptr<ChBody> body,
                                           const ChVector<>& OOBB_center,
                                           const ChVector<>& OOBB_dims) {
-    SCMDeformableSoil::MovingPatchInfo pinfo;
+    SCMLoader::MovingPatchInfo pinfo;
     pinfo.m_body = body;
     pinfo.m_center = OOBB_center;
     pinfo.m_hdims = OOBB_dims / 2;
 
-    m_ground->m_patches.push_back(pinfo);
+    m_loader->m_patches.push_back(pinfo);
 
     // Moving patch monitoring is now enabled
-    m_ground->m_moving_patch = true;
+    m_loader->m_moving_patch = true;
 }
 
 // Set user-supplied callback for evaluating location-dependent soil parameters.
-void SCMDeformableTerrain::RegisterSoilParametersCallback(std::shared_ptr<SoilParametersCallback> cb) {
-    m_ground->m_soil_fun = cb;
+void SCMTerrain::RegisterSoilParametersCallback(std::shared_ptr<SoilParametersCallback> cb) {
+    m_loader->m_soil_fun = cb;
 }
 
 // Initialize the terrain as a flat grid.
-void SCMDeformableTerrain::Initialize(double sizeX, double sizeY, double delta) {
-    m_ground->Initialize(sizeX, sizeY, delta);
+void SCMTerrain::Initialize(double sizeX, double sizeY, double delta) {
+    m_loader->Initialize(sizeX, sizeY, delta);
 }
 
 // Initialize the terrain from a specified height map.
-void SCMDeformableTerrain::Initialize(const std::string& heightmap_file,
+void SCMTerrain::Initialize(const std::string& heightmap_file,
                                       double sizeX,
                                       double sizeY,
                                       double hMin,
                                       double hMax,
                                       double delta) {
-    m_ground->Initialize(heightmap_file, sizeX, sizeY, hMin, hMax, delta);
+    m_loader->Initialize(heightmap_file, sizeX, sizeY, hMin, hMax, delta);
 }
 
 // Initialize the terrain from a specified OBJ mesh file.
-void SCMDeformableTerrain::Initialize(const std::string& mesh_file, double delta) {
-    m_ground->Initialize(mesh_file, delta);
+void SCMTerrain::Initialize(const std::string& mesh_file, double delta) {
+    m_loader->Initialize(mesh_file, delta);
 }
 
 // Get the heights of modified grid nodes.
-std::vector<SCMDeformableTerrain::NodeLevel> SCMDeformableTerrain::GetModifiedNodes(bool all_nodes) const {
-    return m_ground->GetModifiedNodes(all_nodes);
+std::vector<SCMTerrain::NodeLevel> SCMTerrain::GetModifiedNodes(bool all_nodes) const {
+    return m_loader->GetModifiedNodes(all_nodes);
 }
 
 // Modify the level of grid nodes from the given list.
-void SCMDeformableTerrain::SetModifiedNodes(const std::vector<NodeLevel>& nodes) {
-    m_ground->SetModifiedNodes(nodes);
+void SCMTerrain::SetModifiedNodes(const std::vector<NodeLevel>& nodes) {
+    m_loader->SetModifiedNodes(nodes);
 }
 
 // Return the current cumulative contact force on the specified body (due to interaction with the SCM terrain).
-TerrainForce SCMDeformableTerrain::GetContactForce(std::shared_ptr<ChBody> body) const {
-    auto itr = m_ground->m_contact_forces.find(body.get());
-    if (itr != m_ground->m_contact_forces.end())
+TerrainForce SCMTerrain::GetContactForce(std::shared_ptr<ChBody> body) const {
+    auto itr = m_loader->m_contact_forces.find(body.get());
+    if (itr != m_loader->m_contact_forces.end())
         return itr->second;
 
     TerrainForce frc;
@@ -245,67 +245,67 @@ TerrainForce SCMDeformableTerrain::GetContactForce(std::shared_ptr<ChBody> body)
 }
 
 // Return the number of rays cast at last step.
-int SCMDeformableTerrain::GetNumRayCasts() const {
-    return m_ground->m_num_ray_casts;
+int SCMTerrain::GetNumRayCasts() const {
+    return m_loader->m_num_ray_casts;
 }
 
 // Return the number of ray hits at last step.
-int SCMDeformableTerrain::GetNumRayHits() const {
-    return m_ground->m_num_ray_hits;
+int SCMTerrain::GetNumRayHits() const {
+    return m_loader->m_num_ray_hits;
 }
 
 // Return the number of contact patches at last step.
-int SCMDeformableTerrain::GetNumContactPatches() const {
-    return m_ground->m_num_contact_patches;
+int SCMTerrain::GetNumContactPatches() const {
+    return m_loader->m_num_contact_patches;
 }
 
 // Return the number of nodes in the erosion domain at last step (bulldosing effects).
-int SCMDeformableTerrain::GetNumErosionNodes() const {
-    return m_ground->m_num_erosion_nodes;
+int SCMTerrain::GetNumErosionNodes() const {
+    return m_loader->m_num_erosion_nodes;
 }
 
 // Timer information
-double SCMDeformableTerrain::GetTimerMovingPatches() const {
-    return 1e3 * m_ground->m_timer_moving_patches();
+double SCMTerrain::GetTimerMovingPatches() const {
+    return 1e3 * m_loader->m_timer_moving_patches();
 }
-double SCMDeformableTerrain::GetTimerRayTesting() const {
-    return 1e3 * m_ground->m_timer_ray_testing();
+double SCMTerrain::GetTimerRayTesting() const {
+    return 1e3 * m_loader->m_timer_ray_testing();
 }
-double SCMDeformableTerrain::GetTimerRayCasting() const {
-    return 1e3 * m_ground->m_timer_ray_casting();
+double SCMTerrain::GetTimerRayCasting() const {
+    return 1e3 * m_loader->m_timer_ray_casting();
 }
-double SCMDeformableTerrain::GetTimerContactPatches() const {
-    return 1e3 * m_ground->m_timer_contact_patches();
+double SCMTerrain::GetTimerContactPatches() const {
+    return 1e3 * m_loader->m_timer_contact_patches();
 }
-double SCMDeformableTerrain::GetTimerContactForces() const {
-    return 1e3 * m_ground->m_timer_contact_forces();
+double SCMTerrain::GetTimerContactForces() const {
+    return 1e3 * m_loader->m_timer_contact_forces();
 }
-double SCMDeformableTerrain::GetTimerBulldozing() const {
-    return 1e3 * m_ground->m_timer_bulldozing();
+double SCMTerrain::GetTimerBulldozing() const {
+    return 1e3 * m_loader->m_timer_bulldozing();
 }
-double SCMDeformableTerrain::GetTimerVisUpdate() const {
-    return 1e3 * m_ground->m_timer_visualization();
+double SCMTerrain::GetTimerVisUpdate() const {
+    return 1e3 * m_loader->m_timer_visualization();
 }
 
 // Print timing and counter information for last step.
-void SCMDeformableTerrain::PrintStepStatistics(std::ostream& os) const {
+void SCMTerrain::PrintStepStatistics(std::ostream& os) const {
     os << " Timers (ms):" << std::endl;
-    os << "   Moving patches:          " << 1e3 * m_ground->m_timer_moving_patches() << std::endl;
-    os << "   Ray testing:             " << 1e3 * m_ground->m_timer_ray_testing() << std::endl;
-    os << "   Ray casting:             " << 1e3 * m_ground->m_timer_ray_casting() << std::endl;
-    os << "   Contact patches:         " << 1e3 * m_ground->m_timer_contact_patches() << std::endl;
-    os << "   Contact forces:          " << 1e3 * m_ground->m_timer_contact_forces() << std::endl;
-    os << "   Bulldozing:              " << 1e3 * m_ground->m_timer_bulldozing() << std::endl;
-    os << "      Raise boundary:       " << 1e3 * m_ground->m_timer_bulldozing_boundary() << std::endl;
-    os << "      Compute domain:       " << 1e3 * m_ground->m_timer_bulldozing_domain() << std::endl;
-    os << "      Apply erosion:        " << 1e3 * m_ground->m_timer_bulldozing_erosion() << std::endl;
-    os << "   Visualization:           " << 1e3 * m_ground->m_timer_visualization() << std::endl;
+    os << "   Moving patches:          " << 1e3 * m_loader->m_timer_moving_patches() << std::endl;
+    os << "   Ray testing:             " << 1e3 * m_loader->m_timer_ray_testing() << std::endl;
+    os << "   Ray casting:             " << 1e3 * m_loader->m_timer_ray_casting() << std::endl;
+    os << "   Contact patches:         " << 1e3 * m_loader->m_timer_contact_patches() << std::endl;
+    os << "   Contact forces:          " << 1e3 * m_loader->m_timer_contact_forces() << std::endl;
+    os << "   Bulldozing:              " << 1e3 * m_loader->m_timer_bulldozing() << std::endl;
+    os << "      Raise boundary:       " << 1e3 * m_loader->m_timer_bulldozing_boundary() << std::endl;
+    os << "      Compute domain:       " << 1e3 * m_loader->m_timer_bulldozing_domain() << std::endl;
+    os << "      Apply erosion:        " << 1e3 * m_loader->m_timer_bulldozing_erosion() << std::endl;
+    os << "   Visualization:           " << 1e3 * m_loader->m_timer_visualization() << std::endl;
 
     os << " Counters:" << std::endl;
-    os << "   Number ray casts:        " << m_ground->m_num_ray_casts << std::endl;
-    os << "   Number ray hits:         " << m_ground->m_num_ray_hits << std::endl;
-    os << "   Number contact patches:  " << m_ground->m_num_contact_patches << std::endl;
-    os << "   Number erosion nodes:    " << m_ground->m_num_erosion_nodes << std::endl;
+    os << "   Number ray casts:        " << m_loader->m_num_ray_casts << std::endl;
+    os << "   Number ray hits:         " << m_loader->m_num_ray_hits << std::endl;
+    os << "   Number contact patches:  " << m_loader->m_num_contact_patches << std::endl;
+    os << "   Number erosion nodes:    " << m_loader->m_num_erosion_nodes << std::endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -322,11 +322,11 @@ SCMContactableData::SCMContactableData(double area_ratio,
       Janosi_shear(Janosi_shear) {}
 
 // -----------------------------------------------------------------------------
-// Implementation of SCMDeformableSoil
+// Implementation of SCMLoader
 // -----------------------------------------------------------------------------
 
 // Constructor.
-SCMDeformableSoil::SCMDeformableSoil(ChSystem* system, bool visualization_mesh) : m_soil_fun(nullptr) {
+SCMLoader::SCMLoader(ChSystem* system, bool visualization_mesh) : m_soil_fun(nullptr) {
     this->SetSystem(system);
 
     if (visualization_mesh) {
@@ -357,7 +357,7 @@ SCMDeformableSoil::SCMDeformableSoil(ChSystem* system, bool visualization_mesh) 
     m_elastic_K = 50000000;
     m_damping_R = 0;
 
-    m_plot_type = SCMDeformableTerrain::PLOT_NONE;
+    m_plot_type = SCMTerrain::PLOT_NONE;
     m_plot_v_min = 0;
     m_plot_v_max = 0.2;
 
@@ -368,7 +368,7 @@ SCMDeformableSoil::SCMDeformableSoil(ChSystem* system, bool visualization_mesh) 
 }
 
 // Initialize the terrain as a flat grid
-void SCMDeformableSoil::Initialize(double sizeX, double sizeY, double delta) {
+void SCMLoader::Initialize(double sizeX, double sizeY, double delta) {
     m_type = PatchType::FLAT;
 
     m_nx = static_cast<int>(std::ceil((sizeX / 2) / delta));  // half number of divisions in X direction
@@ -386,7 +386,7 @@ void SCMDeformableSoil::Initialize(double sizeX, double sizeY, double delta) {
 }
 
 // Initialize the terrain from a specified height map.
-void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
+void SCMLoader::Initialize(const std::string& heightmap_file,
                                    double sizeX,
                                    double sizeY,
                                    double hMin,
@@ -480,7 +480,7 @@ bool calcBarycentricCoordinates(const ChVector<>& v1,
     return (0 <= a1) && (a1 <= 1) && (0 <= a2) && (a2 <= 1) && (0 <= a3) && (a3 <= 1);
 }
 
-void SCMDeformableSoil::Initialize(const std::string& mesh_file, double delta) {
+void SCMLoader::Initialize(const std::string& mesh_file, double delta) {
     m_type = PatchType::TRI_MESH;
 
     // Load triangular mesh
@@ -556,7 +556,7 @@ void SCMDeformableSoil::Initialize(const std::string& mesh_file, double delta) {
     this->AddVisualShape(m_trimesh_shape);
 }
 
-void SCMDeformableSoil::CreateVisualizationMesh(double sizeX, double sizeY) {
+void SCMLoader::CreateVisualizationMesh(double sizeX, double sizeY) {
     int nvx = 2 * m_nx + 1;                     // number of grid vertices in X direction
     int nvy = 2 * m_ny + 1;                     // number of grid vertices in Y direction
     int n_verts = nvx * nvy;                    // total number of vertices for initial visualization trimesh
@@ -654,21 +654,21 @@ void SCMDeformableSoil::CreateVisualizationMesh(double sizeX, double sizeY) {
     }
 }
 
-void SCMDeformableSoil::SetupInitial() {
+void SCMLoader::SetupInitial() {
     // If no user-specified moving patches, create one that will encompass all collision shapes in the system
     if (!m_moving_patch) {
-        SCMDeformableSoil::MovingPatchInfo pinfo;
+        SCMLoader::MovingPatchInfo pinfo;
         pinfo.m_body = nullptr;
         m_patches.push_back(pinfo);
     }
 }
 
-bool SCMDeformableSoil::CheckMeshBounds(const ChVector2<int>& loc) const {
+bool SCMLoader::CheckMeshBounds(const ChVector2<int>& loc) const {
     return loc.x() >= -m_nx && loc.x() <= m_nx && loc.y() >= -m_ny && loc.y() <= m_ny;
 }
 
-SCMDeformableTerrain::NodeInfo SCMDeformableSoil::GetNodeInfo(const ChVector<>& loc) const {
-    SCMDeformableTerrain::NodeInfo ni;
+SCMTerrain::NodeInfo SCMLoader::GetNodeInfo(const ChVector<>& loc) const {
+    SCMTerrain::NodeInfo ni;
 
     // Express location in the SCM frame
     ChVector<> loc_loc = m_plane.TransformPointParentToLocal(loc);
@@ -703,7 +703,7 @@ SCMDeformableTerrain::NodeInfo SCMDeformableSoil::GetNodeInfo(const ChVector<>& 
 }
 
 // Get index of trimesh vertex corresponding to the specified grid vertex.
-int SCMDeformableSoil::GetMeshVertexIndex(const ChVector2<int>& loc) {
+int SCMLoader::GetMeshVertexIndex(const ChVector2<int>& loc) {
     assert(loc.x() >= -m_nx);
     assert(loc.x() <= +m_nx);
     assert(loc.y() >= -m_ny);
@@ -712,7 +712,7 @@ int SCMDeformableSoil::GetMeshVertexIndex(const ChVector2<int>& loc) {
 }
 
 // Get indices of trimesh faces incident to the specified grid vertex.
-std::vector<int> SCMDeformableSoil::GetMeshFaceIndices(const ChVector2<int>& loc) {
+std::vector<int> SCMLoader::GetMeshFaceIndices(const ChVector2<int>& loc) {
     int i = loc.x();
     int j = loc.y();
 
@@ -736,7 +736,7 @@ std::vector<int> SCMDeformableSoil::GetMeshFaceIndices(const ChVector2<int>& loc
 }
 
 // Get the initial undeformed terrain height (relative to the SCM plane) at the specified grid vertex.
-double SCMDeformableSoil::GetInitHeight(const ChVector2<int>& loc) const {
+double SCMLoader::GetInitHeight(const ChVector2<int>& loc) const {
     switch (m_type) {
         case PatchType::FLAT:
             return 0;
@@ -752,7 +752,7 @@ double SCMDeformableSoil::GetInitHeight(const ChVector2<int>& loc) const {
 }
 
 // Get the initial undeformed terrain normal (relative to the SCM plane) at the specified grid node.
-ChVector<> SCMDeformableSoil::GetInitNormal(const ChVector2<int>& loc) const {
+ChVector<> SCMLoader::GetInitNormal(const ChVector2<int>& loc) const {
     switch (m_type) {
         case PatchType::HEIGHT_MAP:
         case PatchType::TRI_MESH: {
@@ -770,7 +770,7 @@ ChVector<> SCMDeformableSoil::GetInitNormal(const ChVector2<int>& loc) const {
 }
 
 // Get the terrain height (relative to the SCM plane) at the specified grid vertex.
-double SCMDeformableSoil::GetHeight(const ChVector2<int>& loc) const {
+double SCMLoader::GetHeight(const ChVector2<int>& loc) const {
     // First query the hash-map
     auto p = m_grid_map.find(loc);
     if (p != m_grid_map.end())
@@ -781,7 +781,7 @@ double SCMDeformableSoil::GetHeight(const ChVector2<int>& loc) const {
 }
 
 // Get the terrain normal (relative to the SCM plane) at the specified grid vertex.
-ChVector<> SCMDeformableSoil::GetNormal(const ChVector2<>& loc) const {
+ChVector<> SCMLoader::GetNormal(const ChVector2<>& loc) const {
     switch (m_type) {
         case PatchType::HEIGHT_MAP:
         case PatchType::TRI_MESH: {
@@ -799,7 +799,7 @@ ChVector<> SCMDeformableSoil::GetNormal(const ChVector2<>& loc) const {
 }
 
 // Get the initial terrain height below the specified location.
-double SCMDeformableSoil::GetInitHeight(const ChVector<>& loc) const {
+double SCMLoader::GetInitHeight(const ChVector<>& loc) const {
     // Express location in the SCM frame
     ChVector<> loc_loc = m_plane.TransformPointParentToLocal(loc);
 
@@ -814,7 +814,7 @@ double SCMDeformableSoil::GetInitHeight(const ChVector<>& loc) const {
 }
 
 // Get the initial terrain normal at the point below the specified location.
-ChVector<> SCMDeformableSoil::GetInitNormal(const ChVector<>& loc) const {
+ChVector<> SCMLoader::GetInitNormal(const ChVector<>& loc) const {
     // Express location in the SCM frame
     ChVector<> loc_loc = m_plane.TransformPointParentToLocal(loc);
 
@@ -829,7 +829,7 @@ ChVector<> SCMDeformableSoil::GetInitNormal(const ChVector<>& loc) const {
 }
 
 // Get the terrain height below the specified location.
-double SCMDeformableSoil::GetHeight(const ChVector<>& loc) const {
+double SCMLoader::GetHeight(const ChVector<>& loc) const {
     // Express location in the SCM frame
     ChVector<> loc_loc = m_plane.TransformPointParentToLocal(loc);
 
@@ -844,7 +844,7 @@ double SCMDeformableSoil::GetHeight(const ChVector<>& loc) const {
 }
 
 // Get the terrain normal at the point below the specified location.
-ChVector<> SCMDeformableSoil::GetNormal(const ChVector<>& loc) const {
+ChVector<> SCMLoader::GetNormal(const ChVector<>& loc) const {
     // Express location in the SCM frame
     ChVector<> loc_loc = m_plane.TransformPointParentToLocal(loc);
 
@@ -859,7 +859,7 @@ ChVector<> SCMDeformableSoil::GetNormal(const ChVector<>& loc) const {
 }
 
 // Synchronize information for a moving patch
-void SCMDeformableSoil::UpdateMovingPatch(MovingPatchInfo& p, const ChVector<>& Z) {
+void SCMLoader::UpdateMovingPatch(MovingPatchInfo& p, const ChVector<>& Z) {
     ChVector2<> p_min(+std::numeric_limits<double>::max());
     ChVector2<> p_max(-std::numeric_limits<double>::max());
 
@@ -906,7 +906,7 @@ void SCMDeformableSoil::UpdateMovingPatch(MovingPatchInfo& p, const ChVector<>& 
 }
 
 // Synchronize information for fixed patch
-void SCMDeformableSoil::UpdateFixedPatch(MovingPatchInfo& p) {
+void SCMLoader::UpdateFixedPatch(MovingPatchInfo& p) {
     ChVector2<> p_min(+std::numeric_limits<double>::max());
     ChVector2<> p_max(-std::numeric_limits<double>::max());
 
@@ -950,7 +950,7 @@ void SCMDeformableSoil::UpdateFixedPatch(MovingPatchInfo& p) {
 }
 
 // Ray-OBB intersection test
-bool SCMDeformableSoil::RayOBBtest(const MovingPatchInfo& p, const ChVector<>& from, const ChVector<>& Z) {
+bool SCMLoader::RayOBBtest(const MovingPatchInfo& p, const ChVector<>& from, const ChVector<>& Z) {
     // Express ray origin in OBB frame
     ChVector<> orig = p.m_body->TransformPointParentToLocal(from) - p.m_center;
 
@@ -996,7 +996,7 @@ static const std::vector<ChVector2<int>> neighbors4{
 ////#define RAY_CASTING_WITH_CRITICAL_SECTION
 
 // Reset the list of forces, and fills it with forces from a soil contact model.
-void SCMDeformableSoil::ComputeInternalForces() {
+void SCMLoader::ComputeInternalForces() {
     // Initialize list of modified visualization mesh vertices (use any externally modified vertices)
     std::vector<int> modified_vertices = m_external_modified_vertices;
     m_external_modified_vertices.clear();
@@ -1601,7 +1601,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
     m_timer_visualization.stop();
 }
 
-void SCMDeformableSoil::AddMaterialToNode(double amount, NodeRecord& nr) {
+void SCMLoader::AddMaterialToNode(double amount, NodeRecord& nr) {
     if (amount > nr.hit_level - nr.level) {                      //   if not possible to assign all mass
         nr.massremainder += amount - (nr.hit_level - nr.level);  //     material to be further propagated
         amount = nr.hit_level - nr.level;                        //     clamp raise amount
@@ -1610,7 +1610,7 @@ void SCMDeformableSoil::AddMaterialToNode(double amount, NodeRecord& nr) {
     nr.level_initial += amount;                                  //   reset node initial level
 }
 
-void SCMDeformableSoil::RemoveMaterialFromNode(double amount, NodeRecord& nr) {
+void SCMLoader::RemoveMaterialFromNode(double amount, NodeRecord& nr) {
     if (nr.massremainder > amount) {                                 // if too much remainder material
         nr.massremainder -= amount;                                  //   decrease remainder material
         /*amount = 0;*/                                              //   ???
@@ -1623,7 +1623,7 @@ void SCMDeformableSoil::RemoveMaterialFromNode(double amount, NodeRecord& nr) {
 }
 
 // Update vertex position and color in visualization mesh
-void SCMDeformableSoil::UpdateMeshVertexCoordinates(const ChVector2<int> ij, int iv, const NodeRecord& nr) {
+void SCMLoader::UpdateMeshVertexCoordinates(const ChVector2<int> ij, int iv, const NodeRecord& nr) {
     auto& trimesh = *m_trimesh_shape->GetMesh();
     std::vector<ChVector<>>& vertices = trimesh.getCoordsVertices();
     std::vector<ChColor>& colors = trimesh.getCoordsColors();
@@ -1632,55 +1632,55 @@ void SCMDeformableSoil::UpdateMeshVertexCoordinates(const ChVector2<int> ij, int
     vertices[iv] = m_plane.TransformPointLocalToParent(ChVector<>(ij.x() * m_delta, ij.y() * m_delta, nr.level));
 
     // Update visualization mesh vertex color
-    if (m_plot_type != SCMDeformableTerrain::PLOT_NONE) {
+    if (m_plot_type != SCMTerrain::PLOT_NONE) {
         ChColor mcolor;
         switch (m_plot_type) {
-            case SCMDeformableTerrain::PLOT_LEVEL:
+            case SCMTerrain::PLOT_LEVEL:
                 mcolor = ChColor::ComputeFalseColor(nr.level, m_plot_v_min, m_plot_v_max);
                 break;
-            case SCMDeformableTerrain::PLOT_LEVEL_INITIAL:
+            case SCMTerrain::PLOT_LEVEL_INITIAL:
                 mcolor = ChColor::ComputeFalseColor(nr.level_initial, m_plot_v_min, m_plot_v_max);
                 break;
-            case SCMDeformableTerrain::PLOT_SINKAGE:
+            case SCMTerrain::PLOT_SINKAGE:
                 mcolor = ChColor::ComputeFalseColor(nr.sinkage, m_plot_v_min, m_plot_v_max);
                 break;
-            case SCMDeformableTerrain::PLOT_SINKAGE_ELASTIC:
+            case SCMTerrain::PLOT_SINKAGE_ELASTIC:
                 mcolor = ChColor::ComputeFalseColor(nr.sinkage_elastic, m_plot_v_min, m_plot_v_max);
                 break;
-            case SCMDeformableTerrain::PLOT_SINKAGE_PLASTIC:
+            case SCMTerrain::PLOT_SINKAGE_PLASTIC:
                 mcolor = ChColor::ComputeFalseColor(nr.sinkage_plastic, m_plot_v_min, m_plot_v_max);
                 break;
-            case SCMDeformableTerrain::PLOT_STEP_PLASTIC_FLOW:
+            case SCMTerrain::PLOT_STEP_PLASTIC_FLOW:
                 mcolor = ChColor::ComputeFalseColor(nr.step_plastic_flow, m_plot_v_min, m_plot_v_max);
                 break;
-            case SCMDeformableTerrain::PLOT_K_JANOSI:
+            case SCMTerrain::PLOT_K_JANOSI:
                 mcolor = ChColor::ComputeFalseColor(nr.kshear, m_plot_v_min, m_plot_v_max);
                 break;
-            case SCMDeformableTerrain::PLOT_PRESSURE:
+            case SCMTerrain::PLOT_PRESSURE:
                 mcolor = ChColor::ComputeFalseColor(nr.sigma, m_plot_v_min, m_plot_v_max);
                 break;
-            case SCMDeformableTerrain::PLOT_PRESSURE_YELD:
+            case SCMTerrain::PLOT_PRESSURE_YELD:
                 mcolor = ChColor::ComputeFalseColor(nr.sigma_yield, m_plot_v_min, m_plot_v_max);
                 break;
-            case SCMDeformableTerrain::PLOT_SHEAR:
+            case SCMTerrain::PLOT_SHEAR:
                 mcolor = ChColor::ComputeFalseColor(nr.tau, m_plot_v_min, m_plot_v_max);
                 break;
-            case SCMDeformableTerrain::PLOT_MASSREMAINDER:
+            case SCMTerrain::PLOT_MASSREMAINDER:
                 mcolor = ChColor::ComputeFalseColor(nr.massremainder, m_plot_v_min, m_plot_v_max);
                 break;
-            case SCMDeformableTerrain::PLOT_ISLAND_ID:
+            case SCMTerrain::PLOT_ISLAND_ID:
                 if (nr.erosion)
                     mcolor = ChColor(0, 0, 0);
                 if (nr.sigma > 0)
                     mcolor = ChColor(1, 0, 0);
                 break;
-            case SCMDeformableTerrain::PLOT_IS_TOUCHED:
+            case SCMTerrain::PLOT_IS_TOUCHED:
                 if (nr.sigma > 0)
                     mcolor = ChColor(1, 0, 0);
                 else
                     mcolor = ChColor(0, 0, 1);
                 break;
-            case SCMDeformableTerrain::PLOT_NONE:
+            case SCMTerrain::PLOT_NONE:
                 break;
         }
         colors[iv] = mcolor;
@@ -1688,7 +1688,7 @@ void SCMDeformableSoil::UpdateMeshVertexCoordinates(const ChVector2<int> ij, int
 }
 
 // Update vertex normal in visualization mesh.
-void SCMDeformableSoil::UpdateMeshVertexNormal(const ChVector2<int> ij, int iv) {
+void SCMLoader::UpdateMeshVertexNormal(const ChVector2<int> ij, int iv) {
     auto& trimesh = *m_trimesh_shape->GetMesh();
     std::vector<ChVector<>>& vertices = trimesh.getCoordsVertices();
     std::vector<ChVector<>>& normals = trimesh.getCoordsNormals();
@@ -1707,8 +1707,8 @@ void SCMDeformableSoil::UpdateMeshVertexNormal(const ChVector2<int> ij, int iv) 
 }
 
 // Get the heights of modified grid nodes.
-std::vector<SCMDeformableTerrain::NodeLevel> SCMDeformableSoil::GetModifiedNodes(bool all_nodes) const {
-    std::vector<SCMDeformableTerrain::NodeLevel> nodes;
+std::vector<SCMTerrain::NodeLevel> SCMLoader::GetModifiedNodes(bool all_nodes) const {
+    std::vector<SCMTerrain::NodeLevel> nodes;
     if (all_nodes) {
         for (const auto& nr : m_grid_map) {
             nodes.push_back(std::make_pair(nr.first, nr.second.level));
@@ -1726,10 +1726,10 @@ std::vector<SCMDeformableTerrain::NodeLevel> SCMDeformableSoil::GetModifiedNodes
 // Modify the level of grid nodes from the given list.
 // NOTE: We set only the level of the specified nodes and none of the other soil properties.
 //       As such, some plot types may be incorrect at these nodes.
-void SCMDeformableSoil::SetModifiedNodes(const std::vector<SCMDeformableTerrain::NodeLevel>& nodes) {
+void SCMLoader::SetModifiedNodes(const std::vector<SCMTerrain::NodeLevel>& nodes) {
     for (const auto& n : nodes) {
         // Modify existing entry in grid map or insert new one
-        m_grid_map[n.first] = SCMDeformableSoil::NodeRecord(n.second, n.second, GetInitNormal(n.first));
+        m_grid_map[n.first] = SCMLoader::NodeRecord(n.second, n.second, GetInitNormal(n.first));
     }
 
     // Update visualization
