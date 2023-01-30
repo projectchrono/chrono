@@ -528,12 +528,8 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
                 *mfile << "] \n";
                 *mfile << "add_mesh_data_vectors(new_object, colors, 'chrono_color', mdomain='POINT') \n";
                 
-                *mfile << "new_mat = make_material_mesh_color_attribute('per_vertex_color_mesh', 'chrono_color') \n";
-                *mfile << "new_object.data.materials[-1]=new_mat \n";
-                if (per_frame)
-                    *mfile << "chrono_frame_materials.append(new_mat) \n\n";
-                else 
-                    *mfile << "chrono_materials.append(new_mat) \n\n";
+                *mfile << "property = setup_meshsetting_vector(meshsetting, 'chrono_color', matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_col')\n";
+                *mfile << "mat = setup_meshsetting_falsecolor_material(new_object,meshsetting, 'chrono_color')\n";
             }
 
             for (auto mprop : mesh->getPropertiesPerVertex()) {
@@ -545,7 +541,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
                     *mfile << "] \n";
                     *mfile << "add_mesh_data_floats(new_object, scalars, '" << mprop_scalar->name <<"', mdomain='POINT') \n";
 
-                    *mfile << "property = setup_meshsetting_property(meshsetting, '" << mprop_scalar->name.c_str() << "',min=" << 0.0 << ", max=" << 1.0 << ", matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_scalar->name.c_str() << "')\n";
+                    *mfile << "property = setup_meshsetting_scalar(meshsetting, '" << mprop_scalar->name.c_str() << "',min=" << 0.0 << ", max=" << 1.0 << ", matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_scalar->name.c_str() << "')\n";
                     *mfile << "mat = setup_meshsetting_falsecolor_material(new_object,meshsetting, '" << mprop_scalar->name.c_str() << "')\n";
                 }
                 if (auto mprop_vectors = dynamic_cast<ChPropertyT<ChVector<>>*>(mprop)) {
@@ -556,7 +552,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
                     *mfile << "] \n";
                     *mfile << "add_mesh_data_vectors(new_object, vectors, '" << mprop_vectors->name <<"', mdomain='POINT') \n";
                     
-                    *mfile << "property = setup_meshsetting_property(meshsetting, '" << mprop_vectors->name.c_str() << "',min=" << 0.0 << ", max=" << 1.0 << ", matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_vectors->name.c_str() << "')\n";
+                    *mfile << "property = setup_meshsetting_vector(meshsetting, '" << mprop_vectors->name.c_str() << "',min=" << 0.0 << ", max=" << 1.0 << ", matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_vectors->name.c_str() << "')\n";
                     *mfile << "mat = setup_meshsetting_falsecolor_material(new_object,meshsetting, '" << mprop_vectors->name.c_str() << "')\n";
                 }
             }
@@ -569,7 +565,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
                     *mfile << "] \n";
                     *mfile << "add_mesh_data_floats(new_object, scalars, '" << mprop_scalar->name <<"', mdomain='FACE') \n";
                     
-                    *mfile << "property = setup_meshsetting_property(meshsetting, '" << mprop_scalar->name.c_str() << "',min=" << 0.0 << ", max=" << 1.0 << ", matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_scalar->name.c_str() << "')\n";
+                    *mfile << "property = setup_meshsetting_scalar(meshsetting, '" << mprop_scalar->name.c_str() << "',min=" << 0.0 << ", max=" << 1.0 << ", matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_scalar->name.c_str() << "')\n";
                     *mfile << "mat = setup_meshsetting_falsecolor_material(new_object,meshsetting, '" << mprop_scalar->name.c_str() << "')\n";
                 }
                 if (auto mprop_vectors = dynamic_cast<ChPropertyT<ChVector<>>*>(mprop)) {
@@ -580,7 +576,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
                     *mfile << "] \n";
                     *mfile << "add_mesh_data_vectors(new_object, vectors, '" << mprop_vectors->name <<"', mdomain='FACE') \n";
                     
-                    *mfile << "property = setup_meshsetting_property(meshsetting, '" << mprop_vectors->name.c_str() << "',min=" << 0.0 << ", max=" << 1.0 << ", matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_vectors->name.c_str() << "')\n";
+                    *mfile << "property = setup_meshsetting_vector(meshsetting, '" << mprop_vectors->name.c_str() << "',min=" << 0.0 << ", max=" << 1.0 << ", matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_vectors->name.c_str() << "')\n";
                     *mfile << "mat = setup_meshsetting_falsecolor_material(new_object,meshsetting, '" << mprop_vectors->name.c_str() << "')\n";
                 }
             }
@@ -984,14 +980,14 @@ void ChBlender::ExportData(const std::string& filename) {
                 << "], \n"
                 << "list_attributes=[], \n"
                 << "thickness=" << this->contacts_width << ", \n"
-                << "factor=" << this->contacts_scale << ", \n"
-                << "attr_name='length', \n" // 'length' is not in list_attributes, but make_chrono_glyphs_vectors() will compute it and add it to list
-                << "attr_min=" << this->contacts_colormap_startscale << ", \n"
-                << "attr_max=" << this->contacts_colormap_endscale << ", \n";
+                << "length_factor=" << this->contacts_scale << ", \n"
+                << "color='norm', \n" // 'norm' is not in list_attributes, but make_chrono_glyphs_vectors() will compute it and add it to list
+                << "color_min=" << this->contacts_colormap_startscale << ", \n"
+                << "color_max=" << this->contacts_colormap_endscale << ", \n";
             if (this->contacts_do_colormap)
                 state_file << "colormap = colormap_cooltowarm \n";
             else
-                state_file << "colormap = [[0,(1,1,1,1)]] \n";
+                state_file << "colormap = [[0,(1,1,1,1)],[0,(1,1,1,1)]] \n";
             state_file << ") \n\n";
 
         }
