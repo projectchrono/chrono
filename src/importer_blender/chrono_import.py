@@ -211,7 +211,7 @@ def make_material_mesh_color_attribute(nameID, colname):
     links.new(colattribute.outputs[0], shader.inputs[0])
     return new_mat
     
-# some colormaps used by  make_material_mesh_falsecolor_attribute
+# some colormaps used by  make_material_falsecolor
 colormap_jet = [
  [0,     (0,0,0.56, 1)],
  [0.125, (0,0,1 ,1)   ],
@@ -265,9 +265,12 @@ colormaps = {
 }
 
 
-# helper function to generate a material that, once assigned to a mesh with a float attribute, 
-# renders it as falsecolor (per face or per vertex, depending on the attribute's mesh data domain)
-def make_material_mesh_falsecolor_attribute(nameID, attrname, attr_min=0.0, attr_max=1.0, colormap=colormap_cooltowarm):
+# Helper function to generate a falsecolor material. Operates in two situations:
+# - to colorize mehes: once assigned to a mesh with a float or vector attribute, 
+# renders it as falsecolor (per face or per vertex, depending on the attribute's mesh data domain).
+# - to colorize n object instances made by geometry node: if so, the material must be applied
+# to the object used as sample for instances, and use per_instance=True. Instances must have the attribute.
+def make_material_falsecolor(nameID, attrname, attr_min=0.0, attr_max=1.0, colormap=colormap_cooltowarm, per_instance=False):
     
     new_mat = bpy.data.materials.new(name=nameID)
     new_mat.use_nodes = True
@@ -293,44 +296,21 @@ def make_material_mesh_falsecolor_attribute(nameID, attrname, attr_min=0.0, attr
     vectnorm = nodes.new(type="ShaderNodeVectorMath")
     vectnorm.operation = 'LENGTH'
     links.new(vectnorm.outputs[1], maprange.inputs[0])
-    separator = nodes.new(type="ShaderNodeSeparateXYZ")
-    #links.new(separator.outputs[0], maprange.inputs[0])
+    multiply = nodes.new(type="ShaderNodeVectorMath")
+    multiply.operation = 'MULTIPLY'
+    multiply.name = 'Multiply'
+    multiply.inputs[1].default_value = (1,1,1)
+    links.new(multiply.outputs[0], vectnorm.inputs[0])
     colattribute = nodes.new(type='ShaderNodeAttribute')
     colattribute.attribute_name = attrname
-    colattribute.attribute_type = 'GEOMETRY'
-    links.new(colattribute.outputs[1], vectnorm.inputs[0])
+    if not per_instance: 
+        colattribute.attribute_type = 'GEOMETRY'
+    else:
+        colattribute.attribute_type = 'INSTANCER'
+    links.new(colattribute.outputs[1], multiply.inputs[0])
     return new_mat
 
-# helper function to generate a material that, once assigned to an object that is used to
-# make instances on a mesh via geometry nodes, it renders it as falsecolor dependant on mesh attribute)
-def make_material_instance_falsecolor(nameID, attrname, attr_min=0.0, attr_max=1.0, colormap=colormap_cooltowarm):
-    
-    new_mat = bpy.data.materials.new(name=nameID)
-    new_mat.use_nodes = True
-    if new_mat.node_tree:
-        new_mat.node_tree.links.clear()
-        new_mat.node_tree.nodes.clear()  
-    nodes = new_mat.node_tree.nodes
-    links = new_mat.node_tree.links
-    output = nodes.new(type='ShaderNodeOutputMaterial')
-    shader = nodes.new(type='ShaderNodeBsdfPrincipled')
-    links.new(shader.outputs[0], output.inputs[0])
-    ramp = nodes.new(type='ShaderNodeValToRGB')
-    ramp.color_ramp.color_mode = 'HSV'
-    for i in range(1,len(colormap)-1):
-        ramp.color_ramp.elements.new(colormap[i][0])
-    for i in range(0,len(colormap)):
-        ramp.color_ramp.elements[i].color = (colormap[i][1]) 
-    links.new(ramp.outputs[0], shader.inputs[0])
-    maprange = nodes.new(type='ShaderNodeMapRange')
-    maprange.inputs[1].default_value = attr_min
-    maprange.inputs[2].default_value = attr_max
-    links.new(maprange.outputs[0], ramp.inputs[0])
-    colattribute = nodes.new(type='ShaderNodeAttribute')
-    colattribute.attribute_name = attrname
-    colattribute.attribute_type = 'INSTANCER'
-    links.new(colattribute.outputs[2], maprange.inputs[0])
-    return new_mat
+
 
 # Add an item to collection of settings about mesh visualization, but
 # if a mesh setting is already existing with the correspoiding name id, just reuse it (so
@@ -347,7 +327,7 @@ def setup_meshsetting(new_object):
     
 # Add an item to collection of properties of a given mesh visualization,
 # but if a property is already existing with the corresponding name id, just reuse it
-def setup_meshsetting_property(meshsetting, propname, min=0, max=1, mcolormap='colormap_viridis', matname='a_falsecolor'):
+def setup_meshsetting_scalar(meshsetting, propname, min=0, max=1, mcolormap='colormap_viridis', matname='a_falsecolor'):
     property = meshsetting.property.get(propname)
     if not property:
         property = meshsetting.property.add()
@@ -356,7 +336,7 @@ def setup_meshsetting_property(meshsetting, propname, min=0, max=1, mcolormap='c
         property.max = max
         property.colorm = mcolormap
         property.type = 'SCALAR'
-        property.mat = make_material_mesh_falsecolor_attribute(matname, propname, min, max, colormaps[mcolormap])
+        property.mat = make_material_falsecolor(matname, propname, min, max, colormaps[mcolormap])
     return property
 
 # Add an item to collection of properties of a given mesh visualization,
@@ -382,7 +362,7 @@ def setup_meshsetting_vector(meshsetting, propname, min=0, max=1, mvectplot='NOR
         property.colorm = mcolormap
         property.type = 'VECTOR'
         property.vect_plot = mvectplot
-        property.mat = make_material_mesh_falsecolor_attribute(matname, propname, min, max, colormaps[mcolormap])
+        property.mat = make_material_falsecolor(matname, propname, min, max, colormaps[mcolormap])
     return property
 
 
@@ -403,15 +383,16 @@ def setup_meshsetting_falsecolor_material(new_object, meshsetting, propname):
                 ramp.color_ramp.elements.new(colormap[i][0])
             for i in range(0,len(colormap)):
                 ramp.color_ramp.elements[i].color = (colormap[i][1]) 
-            if selected_prop.type=='VECTOR':
-                links = mat.node_tree.links
-                if selected_prop.vect_plot =='X':
-                    links.new(mat.node_tree.nodes['Separate XYZ'].outputs[0], mat.node_tree.nodes['Map Range'].inputs[0])
-                if selected_prop.vect_plot =='Y':
-                    print (mat.node_tree.nodes['Separate XYZ'])
-                    links.new(mat.node_tree.nodes['Separate XYZ'].outputs[1], mat.node_tree.nodes['Map Range'].inputs[0])
-                if selected_prop.vect_plot =='Z':
-                    links.new(mat.node_tree.nodes['Separate XYZ'].outputs[2], mat.node_tree.nodes['Map Range'].inputs[0])
+            if selected_prop.type=='VECTOR': #or selected_prop.type=='SCALAR':
+                mat.node_tree.nodes['Multiply'].inputs[1].default_value = (1,1,1)
+                if selected_prop.type=='VECTOR':
+                    links = mat.node_tree.links
+                    if selected_prop.vect_plot =='X':
+                        mat.node_tree.nodes['Multiply'].inputs[1].default_value = (1,0,0)
+                    if selected_prop.vect_plot =='Y':
+                        mat.node_tree.nodes['Multiply'].inputs[1].default_value = (0,1,0)
+                    if selected_prop.vect_plot =='Z':
+                        mat.node_tree.nodes['Multiply'].inputs[1].default_value = (0,0,1)
             new_object.data.materials.clear()
             new_object.data.materials.append(mat)
     return mat
@@ -557,7 +538,7 @@ def make_chrono_glyphs_objects(mname,mpos,mrot, masset_list, list_clones_posrot,
     
     if len(masset_list) == 1:
         # simplified if just one object
-        mfalsecolor = make_material_instance_falsecolor(mname+'_falsecolor', attr_name, attr_min, attr_max, def_colormap)
+        mfalsecolor = make_material_falsecolor(mname+'_falsecolor', attr_name, attr_min, attr_max, def_colormap, per_instance=True)
         
         masset = None
         if type(masset_list[0][0]) == str:
@@ -588,7 +569,7 @@ def make_chrono_glyphs_objects(mname,mpos,mrot, masset_list, list_clones_posrot,
         chassets_group.hide_render = True
         chassets_group.hide_viewport = True
 
-        mfalsecolor = make_material_instance_falsecolor(mname+'_falsecolor', attr_name, attr_min, attr_max, def_colormap)
+        mfalsecolor = make_material_falsecolor(mname+'_falsecolor', attr_name, attr_min, attr_max, def_colormap, per_instance=True)
         
         for m in range(len(masset_list)):
             masset = chrono_assets.objects.get(masset_list[m][0])
