@@ -11,8 +11,10 @@ endif()
 # List all demos
 
 set(DEMOS
-    demo_VEH_DeformableSoil
-    demo_VEH_RigidTerrain
+    demo_VEH_RigidTerrain_WheeledVehicle
+    demo_VEH_SCMTerrain_WheeledVehicle
+    demo_VEH_SCMTerrain_TrackedVehicle
+    demo_VEH_SCMTerrain_RigidTire
 )
 
 if(HAVE_OPENCRG AND ENABLE_MODULE_IRRLICHT)
@@ -29,14 +31,14 @@ endif()
 
 if(ENABLE_MODULE_MULTICORE AND ENABLE_MODULE_OPENGL)
     set(DEMOS ${DEMOS}
-        demo_VEH_GranularTerrain
-        demo_VEH_MovingPatch
+        demo_VEH_GranularTerrain_RigidTire
+        demo_VEH_GranularTerrain_MovingPatch
     )
 endif()
 
 if(ENABLE_MODULE_PARDISO_MKL)
     set(DEMOS ${DEMOS}
-        demo_VEH_DeformableSoilAndTire
+        demo_VEH_SCMTerrain_FEATire
     )
 endif()
 

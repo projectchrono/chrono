@@ -12,7 +12,6 @@ endif()
 
 set(DEMOS
     demo_VEH_M113
-    demo_VEH_M113_DefSoil
     demo_VEH_Marder
     demo_VEH_TrackedJSON
     demo_VEH_TrackedJSON_Band

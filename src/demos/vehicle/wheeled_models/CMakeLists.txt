@@ -17,8 +17,6 @@ set(DEMOS
     demo_VEH_Gator_Accel
     demo_VEH_HMMWV
     demo_VEH_HMMWV_Accel
-    demo_VEH_HMMWV_DoubleLaneChange
-    demo_VEH_HMMWV_DefSoil
     demo_VEH_HMMWV9
     demo_VEH_HMMWV9_YUP
     demo_VEH_Kraz_ClosedLoop
@@ -32,7 +30,6 @@ set(DEMOS
     demo_VEH_RCCar
     demo_VEH_Sedan
     demo_VEH_Sedan_Lockable_Diff
-    demo_VEH_Sedan_AIDriver
     demo_VEH_UAZBUS
     demo_VEH_UAZBUS_SAE
     demo_VEH_WheeledGeneric
