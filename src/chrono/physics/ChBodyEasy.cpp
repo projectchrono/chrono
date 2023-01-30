@@ -258,6 +258,7 @@ void ChBodyEasyConvexHull::SetupBody(std::vector<ChVector<>>& points,
                                      bool collide,
                                      std::shared_ptr<ChMaterialSurface> material) {
     auto vshape = chrono_types::make_shared<ChTriangleMeshShape>();
+    vshape->SetMutable(false);
     collision::bt_utils::ChConvexHullLibraryWrapper lh;
     lh.ComputeHull(points, *vshape->GetMesh());
     if (visualize) {
@@ -324,6 +325,7 @@ void ChBodyEasyConvexHullAuxRef::SetupBody(std::vector<ChVector<>>& points,
                                            bool collide,
                                            std::shared_ptr<ChMaterialSurface> material) {
     auto vshape = chrono_types::make_shared<ChTriangleMeshShape>();
+    vshape->SetMutable(false);
     collision::bt_utils::ChConvexHullLibraryWrapper lh;
     lh.ComputeHull(points, *vshape->GetMesh());
     if (visualize) {
@@ -426,6 +428,7 @@ void ChBodyEasyMesh::SetupBody(std::shared_ptr<geometry::ChTriangleMeshConnected
                                double sphere_swept) {
     if (visualize) {
         auto vshape = chrono_types::make_shared<ChTriangleMeshShape>();
+        vshape->SetMutable(false);
         vshape->SetMesh(trimesh);
         vshape->SetName(name);
         auto vmodel = chrono_types::make_shared<ChVisualModel>();
