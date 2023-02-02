@@ -122,6 +122,16 @@ class Audi_Model : public Vehicle_Model {
     virtual ChContactMethod ContactMethod() const { return ChContactMethod::SMC; }
 };
 
+class Polaris_Model : public Vehicle_Model {
+  public:
+    virtual std::string ModelName() const override { return "Polaris"; }
+    virtual std::string VehicleJSON() const override { return "Polaris/Polaris.json"; }
+    virtual std::string TireJSON() const override { return "Polaris/Polaris_TMeasyTire.json"; }
+    virtual std::string PowertrainJSON() const override { return "Polaris/Polaris_SimpleMapPowertrain.json"; }
+    virtual double CameraDistance() const override { return 6.0; }
+    virtual ChContactMethod ContactMethod() const { return ChContactMethod::SMC; }
+};
+
 class UAZ_Model : public Vehicle_Model {
   public:
     virtual std::string ModelName() const override { return "UAZ"; }
@@ -236,6 +246,7 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
 auto vehicle_model = HMMWV_Model();
 ////auto vehicle_model = Sedan_Model();
 ////auto vehicle_model = Audi_Model();
+////auto vehicle_model = Polaris_Model();
 ////auto vehicle_model = VW_Microbus_Model();
 ////auto vehicle_model = UAZ_Model();
 ////auto vehicle_model = CityBus_Model();
@@ -273,7 +284,7 @@ int main(int argc, char* argv[]) {
     WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_model.VehicleJSON()), vehicle_model.ContactMethod());
     vehicle.Initialize(ChCoordsys<>(initLoc, Q_from_AngZ(initYaw)));
     vehicle.GetChassis()->SetFixed(false);
-    vehicle.SetChassisVisualizationType(VisualizationType::NONE);
+    vehicle.SetChassisVisualizationType(VisualizationType::MESH);
     vehicle.SetChassisRearVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);

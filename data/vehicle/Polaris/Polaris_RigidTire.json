@@ -26,7 +26,7 @@
   },
 
   "Visualization": {
-    "Mesh Filename Left": "meshes/Polaris_tire.obj",
-    "Mesh Filename Right": "meshes/Polaris_tire.obj"
+    "Mesh Filename Left": "Polaris/meshes/Polaris_tire.obj",
+    "Mesh Filename Right": "Polaris/meshes/Polaris_tire.obj"
   }
 }

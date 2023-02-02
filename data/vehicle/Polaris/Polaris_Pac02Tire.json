@@ -180,8 +180,8 @@
     "qsy2": 0.0
   },
   "Visualization": {
-    "Mesh Filename Left": "meshes/Polaris_tire.obj",
-    "Mesh Filename Right": "meshes/Polaris_tire.obj",
+    "Mesh Filename Left": "Polaris/meshes/Polaris_tire.obj",
+    "Mesh Filename Right": "Polaris/meshes/Polaris_tire.obj",
     "Width": 0.2121
   }
 }
