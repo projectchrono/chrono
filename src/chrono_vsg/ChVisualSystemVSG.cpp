@@ -1059,8 +1059,13 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
         } else if (auto trimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape)) {
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, trimesh->GetScale());
+            /*
             auto grp = trimesh->GetNumMaterials() > 0
-                           ? m_shapeBuilder->createTrimeshMatShape(transform, m_wireframe, trimesh)
+                           ? m_shapeBuilder->createTrimeshPhongMatShape(transform, m_wireframe, trimesh)
+                           : m_shapeBuilder->createTrimeshColShape(transform, m_wireframe, trimesh);
+             */
+            auto grp = trimesh->GetNumMaterials() > 0
+                           ? m_shapeBuilder->createTrimeshPbrMatShape(transform, m_wireframe, trimesh)
                            : m_shapeBuilder->createTrimeshColShape(transform, m_wireframe, trimesh);
             group->addChild(grp);
         } else if (auto surface = std::dynamic_pointer_cast<ChSurfaceShape>(shape)) {
@@ -1216,9 +1221,13 @@ void ChVisualSystemVSG::BindAll() {
                 continue;
             auto transform = vsg::MatrixTransform::create();
             if (trimesh->GetNumMaterials() > 0) {
+                /*
                 m_deformableScene->addChild(
-                    m_shapeBuilder->createTrimeshMatShape(transform, trimesh->IsWireframe(), trimesh));
-            } else {
+                    m_shapeBuilder->createTrimeshPhongMatShape(transform, trimesh->IsWireframe(), trimesh));
+                 */
+                m_deformableScene->addChild(
+                    m_shapeBuilder->createTrimeshPbrMatShape(transform, trimesh->IsWireframe(), trimesh));
+        } else {
                 m_deformableScene->addChild(
                     m_shapeBuilder->createTrimeshColShapeSCM(transform, trimesh->IsWireframe(), trimesh));
             }

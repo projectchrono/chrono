@@ -68,7 +68,11 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                                       bool drawMode,
                                                       std::shared_ptr<ChTriangleMeshShape> tms = nullptr);
 
-    vsg::ref_ptr<vsg::Group> createTrimeshMatShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
+    vsg::ref_ptr<vsg::Group> createTrimeshPhongMatShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                                   bool drawMode,
+                                                   std::shared_ptr<ChTriangleMeshShape> tms = nullptr);
+
+    vsg::ref_ptr<vsg::Group> createTrimeshPbrMatShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                    bool drawMode,
                                                    std::shared_ptr<ChTriangleMeshShape> tms = nullptr);
 
@@ -100,6 +104,9 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
 
     /// create a ShaderSet for Phong shaded rendering with tiled textures
     vsg::ref_ptr<vsg::ShaderSet> createTilingPhongShaderSet(vsg::ref_ptr<const vsg::Options> options = {});
+
+    /// create a ShaderSet for PBR shaded rendering with tiled textures
+    vsg::ref_ptr<vsg::ShaderSet> createTilingPbrShaderSet(vsg::ref_ptr<const vsg::Options> options = {});
 
     /// assign compile traversal to enable compilation.
     void assignCompileTraversal(vsg::ref_ptr<vsg::CompileTraversal> ct);
