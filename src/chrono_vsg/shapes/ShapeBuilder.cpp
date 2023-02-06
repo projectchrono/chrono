@@ -977,8 +977,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshPbrMatShape(vsg::ref_ptr<vsg
         pbrMat->value().diffuseFactor.set(chronoMat->GetDiffuseColor().R, chronoMat->GetDiffuseColor().G,
                                           chronoMat->GetDiffuseColor().B, alpha);
         pbrMat->value().alphaMask = alpha;
-        pbrMat->value().alphaMask = 0.8f;
-        
+        pbrMat->value().alphaMaskCutoff = 0.3f;
         {
             // read texture image for diffuse light
             vsg::Path diffuseTextureFile(chronoMat->GetKdTexture());
@@ -1046,6 +1045,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshPbrMatShape(vsg::ref_ptr<vsg
                 }
             }
         }
+        
         bool mappedOpacity = false;
         {
             // read texture image for opacity
@@ -1064,8 +1064,6 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshPbrMatShape(vsg::ref_ptr<vsg
                     sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
                     sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
                     graphicsPipelineConfig->assignTexture(descriptors, "opacityMap", opacityTextureData, sampler);
-                    pbrMat->value().roughnessFactor = 1.0;
-                    pbrMat->value().metallicFactor = 1.0;
                     mappedOpacity = true;
                 }
             }

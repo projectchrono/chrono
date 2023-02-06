@@ -1,6 +1,6 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
-#pragma import_defines (VSG_DIFFUSE_MAP, VSG_GREYSACLE_DIFFUSE_MAP, VSG_EMISSIVE_MAP, VSG_LIGHTMAP_MAP, VSG_NORMAL_MAP, VSG_METALLROUGHNESS_MAP, VSG_SPECULAR_MAP, VSG_TWO_SIDED_LIGHTING, VSG_WORKFLOW_SPECGLOSS)
+#pragma import_defines (VSG_DIFFUSE_MAP, VSG_GREYSACLE_DIFFUSE_MAP, VSG_EMISSIVE_MAP, VSG_LIGHTMAP_MAP, VSG_NORMAL_MAP, VSG_METALLROUGHNESS_MAP, VSG_SPECULAR_MAP, VSG_OPACITY_MAP, VSG_TWO_SIDED_LIGHTING, VSG_WORKFLOW_SPECGLOSS)
 
 const float PI = 3.14159265359;
 const float RECIPROCAL_PI = 0.31830988618;
@@ -30,6 +30,10 @@ layout(binding = 4) uniform sampler2D emissiveMap;
 
 #ifdef VSG_SPECULAR_MAP
 layout(binding = 5) uniform sampler2D specularMap;
+#endif
+
+#ifdef VSG_OPACITY_MAP
+layout(binding = 7) uniform sampler2D opacityMap;
 #endif
 
 layout(set = 0, binding = 9) uniform TextureRepeat
@@ -469,6 +473,11 @@ void main()
             color.rgb += BRDF(lightColor.rgb * scale, v, n, l, h, perceptualRoughness, metallic, specularEnvironmentR0, specularEnvironmentR90, alphaRoughness, diffuseColor, specularColor, ambientOcclusion);
         }
     }
+
+#ifdef VSG_OPACITY_MAP
+    vec4 a_map = texture(opacityMap, vec2(texCoord0.s * texrepeat.uScale, texCoord0.t * texrepeat.vScale));
+    baseColor.a = (a_map.r + a_map.g + a_map.b)/3;
+#endif
 
     outColor = LINEARtoSRGB(vec4(color, baseColor.a));
 }
