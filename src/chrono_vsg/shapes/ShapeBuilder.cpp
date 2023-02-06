@@ -979,65 +979,95 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshPbrMatShape(vsg::ref_ptr<vsg
         pbrMat->value().alphaMask = alpha;
         pbrMat->value().alphaMask = 0.8f;
         
-        // read texture image for diffuse light
-        vsg::Path diffuseTextureFile(chronoMat->GetKdTexture());
-        if (diffuseTextureFile) {
-            auto diffuseTextureData = vsg::read_cast<vsg::Data>(diffuseTextureFile, m_options);
-            if (!diffuseTextureData) {
-                std::cout << "Could not read texture file : " << diffuseTextureFile << std::endl;
-            } else {
-                // enable texturing with mipmaps
-                auto sampler = vsg::Sampler::create();
-                sampler->maxLod = static_cast<uint32_t>(std::floor(
-                                      std::log2(std::max(diffuseTextureData->width(), diffuseTextureData->height())))) +
-                                  1;
-                sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
-                sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-                sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-                graphicsPipelineConfig->assignTexture(descriptors, "diffuseMap", diffuseTextureData, sampler);
-                // vsg combines material color and texture color, better use only one of it
-                pbrMat->value().diffuseFactor.set(1.0, 1.0, 1.0, alpha);
-                pbrMat->value().baseColorFactor.set(1.0, 1.0, 1.0, alpha);
+        {
+            // read texture image for diffuse light
+            vsg::Path diffuseTextureFile(chronoMat->GetKdTexture());
+            if (diffuseTextureFile) {
+                auto diffuseTextureData = vsg::read_cast<vsg::Data>(diffuseTextureFile, m_options);
+                if (!diffuseTextureData) {
+                    std::cout << "Could not read texture file : " << diffuseTextureFile << std::endl;
+                } else {
+                    // enable texturing with mipmaps
+                    auto sampler = vsg::Sampler::create();
+                    sampler->maxLod = static_cast<uint32_t>(std::floor(
+                                                                       std::log2(std::max(diffuseTextureData->width(), diffuseTextureData->height())))) +
+                    1;
+                    sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
+                    sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+                    sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+                    graphicsPipelineConfig->assignTexture(descriptors, "diffuseMap", diffuseTextureData, sampler);
+                    // vsg combines material color and texture color, better use only one of it
+                    pbrMat->value().diffuseFactor.set(1.0, 1.0, 1.0, alpha);
+                    pbrMat->value().baseColorFactor.set(1.0, 1.0, 1.0, alpha);
+                }
             }
         }
 
-        // read texture image for normal vectors
-        vsg::Path normalTextureFile(chronoMat->GetNormalMapTexture());
-        if (normalTextureFile) {
-            auto normalTextureData = vsg::read_cast<vsg::Data>(normalTextureFile, m_options);
-            if (!normalTextureData) {
-                std::cout << "Could not read texture file : " << normalTextureFile << std::endl;
-            } else {
-                // enable texturing with mipmaps
-                auto sampler = vsg::Sampler::create();
-                sampler->maxLod = static_cast<uint32_t>(std::floor(
-                                      std::log2(std::max(normalTextureData->width(), normalTextureData->height())))) +
-                                  1;
-                sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
-                sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-                sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-                graphicsPipelineConfig->assignTexture(descriptors, "normalMap", normalTextureData, sampler);
+        {
+            // read texture image for normal vectors
+            vsg::Path normalTextureFile(chronoMat->GetNormalMapTexture());
+            if (normalTextureFile) {
+                auto normalTextureData = vsg::read_cast<vsg::Data>(normalTextureFile, m_options);
+                if (!normalTextureData) {
+                    std::cout << "Could not read texture file : " << normalTextureFile << std::endl;
+                } else {
+                    // enable texturing with mipmaps
+                    auto sampler = vsg::Sampler::create();
+                    sampler->maxLod = static_cast<uint32_t>(std::floor(
+                                                                       std::log2(std::max(normalTextureData->width(), normalTextureData->height())))) +
+                    1;
+                    sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
+                    sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+                    sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+                    graphicsPipelineConfig->assignTexture(descriptors, "normalMap", normalTextureData, sampler);
+                }
             }
         }
-
-        // read texture image for metallic rougness
-        vsg::Path roughnessTextureFile(chronoMat->GetRoughnessTexture());
-        if (roughnessTextureFile) {
-            auto roughnessTextureData = vsg::read_cast<vsg::Data>(roughnessTextureFile, m_options);
-            if (!roughnessTextureFile) {
-                std::cout << "Could not read texture file : " << roughnessTextureFile << std::endl;
-            } else {
-                // enable texturing with mipmaps
-                auto sampler = vsg::Sampler::create();
-                sampler->maxLod = static_cast<uint32_t>(std::floor(
-                                      std::log2(std::max(roughnessTextureData->width(), roughnessTextureData->height())))) +
-                                  1;
-                sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
-                sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-                sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-                graphicsPipelineConfig->assignTexture(descriptors, "mrMap", roughnessTextureData, sampler);
-                pbrMat->value().roughnessFactor = 1.0;
-                pbrMat->value().metallicFactor = 1.0;
+        
+        {
+            // read texture image for metallic rougness
+            vsg::Path roughnessTextureFile(chronoMat->GetRoughnessTexture());
+            if (roughnessTextureFile) {
+                auto roughnessTextureData = vsg::read_cast<vsg::Data>(roughnessTextureFile, m_options);
+                if (!roughnessTextureData) {
+                    std::cout << "Could not read texture file : " << roughnessTextureFile << std::endl;
+                } else {
+                    // enable texturing with mipmaps
+                    auto sampler = vsg::Sampler::create();
+                    sampler->maxLod = static_cast<uint32_t>(std::floor(
+                                                                       std::log2(std::max(roughnessTextureData->width(), roughnessTextureData->height())))) +
+                    1;
+                    sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
+                    sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+                    sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+                    graphicsPipelineConfig->assignTexture(descriptors, "mrMap", roughnessTextureData, sampler);
+                    pbrMat->value().roughnessFactor = 1.0;
+                    pbrMat->value().metallicFactor = 1.0;
+                }
+            }
+        }
+        bool mappedOpacity = false;
+        {
+            // read texture image for opacity
+            vsg::Path opacityTextureFile(chronoMat->GetOpacityTexture());
+            if(opacityTextureFile) {
+                auto opacityTextureData = vsg::read_cast<vsg::Data>(opacityTextureFile, m_options);
+                if(!opacityTextureData) {
+                    std::cout << "Could not read texture file : " << opacityTextureFile << std::endl;
+                } else {
+                    // enable texturing with mipmaps
+                    auto sampler = vsg::Sampler::create();
+                    sampler->maxLod = static_cast<uint32_t>(std::floor(
+                                                                       std::log2(std::max(opacityTextureData->width(), opacityTextureData->height())))) +
+                    1;
+                    sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
+                    sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+                    sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+                    graphicsPipelineConfig->assignTexture(descriptors, "opacityMap", opacityTextureData, sampler);
+                    pbrMat->value().roughnessFactor = 1.0;
+                    pbrMat->value().metallicFactor = 1.0;
+                    mappedOpacity = true;
+                }
             }
         }
 
@@ -1047,7 +1077,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshPbrMatShape(vsg::ref_ptr<vsg
         colorBlendAttachment.blendEnable = VK_FALSE;  // default
         colorBlendAttachment.colorWriteMask =
             VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-        if (pbrMat->value().alphaMask < 1.0) {
+        if (pbrMat->value().alphaMask < 1.0 || mappedOpacity) {
             colorBlendAttachment.blendEnable = VK_TRUE;
             colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
             colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
@@ -2001,16 +2031,20 @@ vsg::ref_ptr<vsg::ShaderSet> ShapeBuilder::createTilingPbrShaderSet(vsg::ref_ptr
                                  VK_SHADER_STAGE_FRAGMENT_BIT, vsg::vec4Array2D::create(1, 1));
     shaderSet->addUniformBinding("mrMap", "VSG_METALLROUGHNESS_MAP", 0, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
                                  VK_SHADER_STAGE_FRAGMENT_BIT, vsg::vec4Array2D::create(1, 1));
-    shaderSet->addUniformBinding("nrmalMap", "VSG_NORMAL_MAP", 0, 2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
+    shaderSet->addUniformBinding("normalMap", "VSG_NORMAL_MAP", 0, 2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
                                  VK_SHADER_STAGE_FRAGMENT_BIT, vsg::vec3Array2D::create(1, 1));
     shaderSet->addUniformBinding("aoMap", "VSG_LIGHTMAP_MAP", 0, 3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
                                  VK_SHADER_STAGE_FRAGMENT_BIT, vsg::vec4Array2D::create(1, 1));
     shaderSet->addUniformBinding("emissiveMap", "VSG_EMISSIVE_MAP", 0, 4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
                                  VK_SHADER_STAGE_FRAGMENT_BIT, vsg::vec4Array2D::create(1, 1));
+    shaderSet->addUniformBinding("specularMap", "VSG_SPECULAR_MAP", 0, 5, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
+                                 VK_SHADER_STAGE_FRAGMENT_BIT, vsg::vec4Array2D::create(1, 1));
+    shaderSet->addUniformBinding("opacityMap", "VSG_OPACITY_MAP", 0, 7, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
+                                 VK_SHADER_STAGE_FRAGMENT_BIT, vsg::vec4Array2D::create(1, 1));
     shaderSet->addUniformBinding("texrepeat", "", 0, 9, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
                                  VK_SHADER_STAGE_FRAGMENT_BIT, vsg::vec3Value::create());
     shaderSet->addUniformBinding("PbrData", "", 0, 10, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
-                                 VK_SHADER_STAGE_FRAGMENT_BIT, vsg::PhongMaterialValue::create());
+                                 VK_SHADER_STAGE_FRAGMENT_BIT, vsg::PbrMaterialValue::create());
     shaderSet->addUniformBinding("LightData", "", 1, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
                                  VK_SHADER_STAGE_FRAGMENT_BIT, vsg::vec4Array::create(64));
 
