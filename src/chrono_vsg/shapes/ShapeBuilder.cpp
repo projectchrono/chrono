@@ -57,43 +57,45 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
     vsg::Descriptors descriptors;
 
     // set up pass of material
-    auto phongMat = vsg::PhongMaterialValue::create();
-    float alpha = material->GetOpacity();
-    phongMat->value().diffuse.set(material->GetDiffuseColor().R, material->GetDiffuseColor().G,
-                                  material->GetDiffuseColor().B, alpha);
-    /*
-        phongMat->value().ambient.set(material->GetAmbientColor().R, material->GetAmbientColor().G,
-                material->GetAmbientColor().B, alpha);
-    */
-    phongMat->value().ambient.set(1.0, 1.0, 1.0, alpha);  // ambient intensity set by ambient light source!
-    phongMat->value().specular.set(material->GetSpecularColor().R, material->GetSpecularColor().G,
-                                   material->GetSpecularColor().B, alpha);
-    phongMat->value().emissive.set(material->GetEmissiveColor().R, material->GetEmissiveColor().G,
-                                   material->GetEmissiveColor().B, alpha);
-    phongMat->value().alphaMask = alpha;
-    phongMat->value().alphaMaskCutoff = 0.3f;
+    auto phongMat = createPhongMaterialFromChronoMaterial(material);
 
-    // read texture image for diffuse light
-    vsg::Path diffuseTextureFile(material->GetKdTexture());
-    if (diffuseTextureFile) {
-        auto diffuseTextureData = vsg::read_cast<vsg::Data>(diffuseTextureFile, m_options);
-        if (!diffuseTextureData) {
-            std::cout << "Could not read texture file : " << diffuseTextureFile << std::endl;
-        } else {
-            // enable texturing with mipmaps
-            auto sampler = vsg::Sampler::create();
-            sampler->maxLod = static_cast<uint32_t>(std::floor(
-                                  std::log2(std::max(diffuseTextureData->width(), diffuseTextureData->height())))) +
-                              1;
-            sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
-            sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-            sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-            graphicsPipelineConfig->assignTexture(descriptors, "diffuseMap", diffuseTextureData, sampler);
-            // vsg combines material color and texture color, better use only one of it
-            phongMat->value().diffuse.set(1.0, 1.0, 1.0, alpha);
-        }
+    if(!material->GetKdTexture().empty())
+    {
+        vsg::Path diffusePath(material->GetKdTexture());
+        std::string uniName("diffuseMap");
+        bool ok = ApplyTexture(diffusePath, graphicsPipelineConfig, descriptors, uniName);
+        if(!ok) GetLog() << "Could not read texture file: " << diffusePath << "\n";
+        phongMat->value().diffuse.set(1.0, 1.0, 1.0, phongMat->value().alphaMask);
     }
-    // read texture image for diffuse light
+
+    if(!material->GetNormalMapTexture().empty()) {
+        vsg::Path normalPath(material->GetNormalMapTexture());
+        std::string uniName("normalMap");
+        bool ok = ApplyTexture(normalPath, graphicsPipelineConfig, descriptors, uniName);
+        if(!ok) GetLog() << "Could not read texture file: " << normalPath.string() << "\n";
+    }
+
+    if(!material->GetKsTexture().empty()) {
+        vsg::Path specularPath(material->GetKsTexture());
+        std::string uniName("specularMap");
+        bool ok = ApplyTexture(specularPath, graphicsPipelineConfig, descriptors, uniName);
+        if(!ok) GetLog() << "Could not read texture file: " << specularPath.string() << "\n";
+    }
+
+    {
+        // read ambient occlusion map not considered in Chrono!
+    }
+
+    {
+        // read emissive map not considered in Chrono!
+    }
+
+    {
+        // read displacement map not considered in Chrono
+    }
+
+    /*
+     // read texture image for diffuse light
     vsg::Path normalTextureFile(material->GetNormalMapTexture());
     if (normalTextureFile) {
         auto normalTextureData = vsg::read_cast<vsg::Data>(normalTextureFile, m_options);
@@ -113,7 +115,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
             // phongMat->value().diffuse.set(1.0, 1.0, 1.0, alpha);
         }
     }
-
+     */
     // set transparency, if needed
     vsg::ColorBlendState::ColorBlendAttachments colorBlendAttachments;
     VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
@@ -681,59 +683,31 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshPhongMatShape(vsg::ref_ptr<v
         // set up graphics pipeline
         vsg::Descriptors descriptors;
 
-        // set up pass of material
-        auto phongMat = vsg::PhongMaterialValue::create();
-        float alpha = chronoMat->GetOpacity();
-        phongMat->value().diffuse.set(chronoMat->GetDiffuseColor().R, chronoMat->GetDiffuseColor().G,
-                                      chronoMat->GetDiffuseColor().B, alpha);
-        phongMat->value().ambient.set(chronoMat->GetAmbientColor().R, chronoMat->GetAmbientColor().G,
-                                      chronoMat->GetAmbientColor().B, alpha);
-        phongMat->value().specular.set(chronoMat->GetSpecularColor().R, chronoMat->GetSpecularColor().G,
-                                       chronoMat->GetSpecularColor().B, alpha);
-        phongMat->value().emissive.set(chronoMat->GetEmissiveColor().R, chronoMat->GetEmissiveColor().G,
-                                       chronoMat->GetEmissiveColor().B, alpha);
-        phongMat->value().alphaMask = alpha;
-        phongMat->value().alphaMaskCutoff = 0.3f;
+        auto phongMat = createPhongMaterialFromChronoMaterial(chronoMat);
 
-        // read texture image for diffuse light
-        vsg::Path diffuseTextureFile(chronoMat->GetKdTexture());
-        if (diffuseTextureFile) {
-            auto diffuseTextureData = vsg::read_cast<vsg::Data>(diffuseTextureFile, m_options);
-            if (!diffuseTextureData) {
-                std::cout << "Could not read texture file : " << diffuseTextureFile << std::endl;
-            } else {
-                // enable texturing with mipmaps
-                auto sampler = vsg::Sampler::create();
-                sampler->maxLod = static_cast<uint32_t>(std::floor(
-                                      std::log2(std::max(diffuseTextureData->width(), diffuseTextureData->height())))) +
-                                  1;
-                sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
-                sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-                sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-                graphicsPipelineConfig->assignTexture(descriptors, "diffuseMap", diffuseTextureData, sampler);
-                // vsg combines material color and texture color, better use only one of it
-                phongMat->value().diffuse.set(1.0, 1.0, 1.0, alpha);
-            }
+        if(!chronoMat->GetKdTexture().empty())
+        {
+            vsg::Path diffusePath(chronoMat->GetKdTexture());
+            std::string uniName("diffuseMap");
+            bool ok = ApplyTexture(diffusePath, graphicsPipelineConfig, descriptors, uniName);
+            if(!ok) GetLog() << "Could not read texture file: " << diffusePath << "\n";
+            phongMat->value().diffuse.set(1.0, 1.0, 1.0, phongMat->value().alphaMask);
         }
 
-        // read texture image for normal vectors
-        vsg::Path normalTextureFile(chronoMat->GetNormalMapTexture());
-        if (normalTextureFile) {
-            auto normalTextureData = vsg::read_cast<vsg::Data>(normalTextureFile, m_options);
-            if (!normalTextureData) {
-                std::cout << "Could not read texture file : " << normalTextureFile << std::endl;
-            } else {
-                // enable texturing with mipmaps
-                auto sampler = vsg::Sampler::create();
-                sampler->maxLod = static_cast<uint32_t>(std::floor(
-                                      std::log2(std::max(normalTextureData->width(), normalTextureData->height())))) +
-                                  1;
-                sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
-                sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-                sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-                graphicsPipelineConfig->assignTexture(descriptors, "normalMap", normalTextureData, sampler);
-            }
+        if(!chronoMat->GetNormalMapTexture().empty()) {
+            vsg::Path normalPath(chronoMat->GetNormalMapTexture());
+            std::string uniName("normalMap");
+            bool ok = ApplyTexture(normalPath, graphicsPipelineConfig, descriptors, uniName);
+            if(!ok) GetLog() << "Could not read texture file: " << normalPath.string() << "\n";
         }
+
+        if(!chronoMat->GetKsTexture().empty()) {
+            vsg::Path specularPath(chronoMat->GetKsTexture());
+            std::string uniName("specularMap");
+            bool ok = ApplyTexture(specularPath, graphicsPipelineConfig, descriptors, uniName);
+            if(!ok) GetLog() << "Could not read texture file: " << specularPath.string() << "\n";
+        }
+
 
         // set transparency, if needed
         vsg::ColorBlendState::ColorBlendAttachments colorBlendAttachments;
@@ -952,123 +926,59 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshPbrMatShape(vsg::ref_ptr<vsg
         // set up graphics pipeline
         vsg::Descriptors descriptors;
 
-        /* set up pass of material
-        auto phongMat = vsg::PhongMaterialValue::create();
-        float alpha = chronoMat->GetOpacity();
-        phongMat->value().diffuse.set(chronoMat->GetDiffuseColor().R, chronoMat->GetDiffuseColor().G,
-                                      chronoMat->GetDiffuseColor().B, alpha);
-        phongMat->value().ambient.set(chronoMat->GetAmbientColor().R, chronoMat->GetAmbientColor().G,
-                                      chronoMat->GetAmbientColor().B, alpha);
-        phongMat->value().specular.set(chronoMat->GetSpecularColor().R, chronoMat->GetSpecularColor().G,
-                                       chronoMat->GetSpecularColor().B, alpha);
-        phongMat->value().emissive.set(chronoMat->GetEmissiveColor().R, chronoMat->GetEmissiveColor().G,
-                                       chronoMat->GetEmissiveColor().B, alpha);
-        phongMat->value().alphaMask = alpha;
-        phongMat->value().alphaMaskCutoff = 0.3f;
-         */
-        auto pbrMat = vsg::PbrMaterialValue::create();
-        float alpha = chronoMat->GetOpacity();
-        pbrMat->value().baseColorFactor.set(chronoMat->GetDiffuseColor().R, chronoMat->GetDiffuseColor().G,
-                                          chronoMat->GetDiffuseColor().B, alpha);
-        pbrMat->value().emissiveFactor.set(chronoMat->GetEmissiveColor().R,chronoMat->GetEmissiveColor().G,chronoMat->GetEmissiveColor().B,alpha);
-        pbrMat->value().specularFactor.set(chronoMat->GetSpecularColor().R, chronoMat->GetSpecularColor().G, chronoMat->GetSpecularColor().B, alpha);
-        pbrMat->value().roughnessFactor = chronoMat->GetRoughness();
-        pbrMat->value().metallicFactor = chronoMat->GetMetallic();
-        pbrMat->value().diffuseFactor.set(chronoMat->GetDiffuseColor().R, chronoMat->GetDiffuseColor().G,
-                                          chronoMat->GetDiffuseColor().B, alpha);
-        pbrMat->value().alphaMask = alpha;
-        pbrMat->value().alphaMaskCutoff = 0.3f;
+        auto pbrMat = createPbrMaterialFromChronoMaterial(chronoMat);
+
+        if(!chronoMat->GetKdTexture().empty())
         {
-            // read texture image for diffuse light
-            vsg::Path diffuseTextureFile(chronoMat->GetKdTexture());
-            if (diffuseTextureFile) {
-                auto diffuseTextureData = vsg::read_cast<vsg::Data>(diffuseTextureFile, m_options);
-                if (!diffuseTextureData) {
-                    std::cout << "Could not read texture file : " << diffuseTextureFile << std::endl;
-                } else {
-                    // enable texturing with mipmaps
-                    auto sampler = vsg::Sampler::create();
-                    sampler->maxLod = static_cast<uint32_t>(std::floor(
-                                                                       std::log2(std::max(diffuseTextureData->width(), diffuseTextureData->height())))) +
-                    1;
-                    sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
-                    sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-                    sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-                    graphicsPipelineConfig->assignTexture(descriptors, "diffuseMap", diffuseTextureData, sampler);
-                    // vsg combines material color and texture color, better use only one of it
-                    pbrMat->value().diffuseFactor.set(1.0, 1.0, 1.0, alpha);
-                    pbrMat->value().baseColorFactor.set(1.0, 1.0, 1.0, alpha);
-                }
-            }
+            vsg::Path diffusePath(chronoMat->GetKdTexture());
+            std::string uniName("diffuseMap");
+            bool ok = ApplyTexture(diffusePath, graphicsPipelineConfig, descriptors, uniName);
+            if(!ok) GetLog() << "Could not read texture file: " << diffusePath << "\n";
+            pbrMat->value().diffuseFactor.set(1.0, 1.0, 1.0, pbrMat->value().alphaMask);
+            pbrMat->value().baseColorFactor.set(1.0, 1.0, 1.0, pbrMat->value().alphaMask);
+        }
+
+        if(!chronoMat->GetNormalMapTexture().empty()) {
+            vsg::Path normalPath(chronoMat->GetNormalMapTexture());
+            std::string uniName("normalMap");
+            bool ok = ApplyTexture(normalPath, graphicsPipelineConfig, descriptors, uniName);
+            if(!ok) GetLog() << "Could not read texture file: " << normalPath.string() << "\n";
+        }
+
+        if(!chronoMat->GetRoughnessTexture().empty()) {
+            vsg::Path roughnessPath(chronoMat->GetRoughnessTexture());
+            std::string uniName("mrMap");
+            bool ok = ApplyTexture(roughnessPath, graphicsPipelineConfig, descriptors, uniName);
+            if(!ok) GetLog() << "Could not read texture file: " << roughnessPath.string() << "\n";
+        }
+        
+        if(!chronoMat->GetKsTexture().empty()) {
+            vsg::Path specularPath(chronoMat->GetKsTexture());
+            std::string uniName("specularMap");
+            bool ok = ApplyTexture(specularPath, graphicsPipelineConfig, descriptors, uniName);
+            if(!ok) GetLog() << "Could not read texture file: " << specularPath.string() << "\n";
         }
 
         {
-            // read texture image for normal vectors
-            vsg::Path normalTextureFile(chronoMat->GetNormalMapTexture());
-            if (normalTextureFile) {
-                auto normalTextureData = vsg::read_cast<vsg::Data>(normalTextureFile, m_options);
-                if (!normalTextureData) {
-                    std::cout << "Could not read texture file : " << normalTextureFile << std::endl;
-                } else {
-                    // enable texturing with mipmaps
-                    auto sampler = vsg::Sampler::create();
-                    sampler->maxLod = static_cast<uint32_t>(std::floor(
-                                                                       std::log2(std::max(normalTextureData->width(), normalTextureData->height())))) +
-                    1;
-                    sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
-                    sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-                    sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-                    graphicsPipelineConfig->assignTexture(descriptors, "normalMap", normalTextureData, sampler);
-                }
-            }
+            // read ambient occlusion map not considered in Chrono!
         }
-        
+
         {
-            // read texture image for metallic rougness
-            vsg::Path roughnessTextureFile(chronoMat->GetRoughnessTexture());
-            if (roughnessTextureFile) {
-                auto roughnessTextureData = vsg::read_cast<vsg::Data>(roughnessTextureFile, m_options);
-                if (!roughnessTextureData) {
-                    std::cout << "Could not read texture file : " << roughnessTextureFile << std::endl;
-                } else {
-                    // enable texturing with mipmaps
-                    auto sampler = vsg::Sampler::create();
-                    sampler->maxLod = static_cast<uint32_t>(std::floor(
-                                                                       std::log2(std::max(roughnessTextureData->width(), roughnessTextureData->height())))) +
-                    1;
-                    sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
-                    sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-                    sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-                    graphicsPipelineConfig->assignTexture(descriptors, "mrMap", roughnessTextureData, sampler);
-                    pbrMat->value().roughnessFactor = 1.0;
-                    pbrMat->value().metallicFactor = 1.0;
-                }
-            }
+            // read emissive map not considered in Chrono!
+        }
+
+        {
+            // read displacement map not considered in Chrono
         }
         
         bool mappedOpacity = false;
-        {
-            // read texture image for opacity
-            vsg::Path opacityTextureFile(chronoMat->GetOpacityTexture());
-            if(opacityTextureFile) {
-                auto opacityTextureData = vsg::read_cast<vsg::Data>(opacityTextureFile, m_options);
-                if(!opacityTextureData) {
-                    std::cout << "Could not read texture file : " << opacityTextureFile << std::endl;
-                } else {
-                    // enable texturing with mipmaps
-                    auto sampler = vsg::Sampler::create();
-                    sampler->maxLod = static_cast<uint32_t>(std::floor(
-                                                                       std::log2(std::max(opacityTextureData->width(), opacityTextureData->height())))) +
-                    1;
-                    sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
-                    sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-                    sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-                    graphicsPipelineConfig->assignTexture(descriptors, "opacityMap", opacityTextureData, sampler);
-                    mappedOpacity = true;
-                }
-            }
+        if(!chronoMat->GetOpacityTexture().empty()) {
+            vsg::Path opacityPath(chronoMat->GetOpacityTexture());
+            std::string uniName("opacityMap");
+            mappedOpacity = ApplyTexture(opacityPath, graphicsPipelineConfig, descriptors, uniName);
+            if(!mappedOpacity) GetLog() << "Could not read texture file: " << opacityPath.string() << "\n";
         }
-
+        
         // set transparency, if needed
         vsg::ColorBlendState::ColorBlendAttachments colorBlendAttachments;
         VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
@@ -2060,6 +1970,57 @@ vsg::ref_ptr<vsg::ShaderSet> ShapeBuilder::createTilingPbrShaderSet(vsg::ref_ptr
     return shaderSet;
 }
 
+bool ShapeBuilder::ApplyTexture(vsg::Path &path, vsg::ref_ptr<vsg::GraphicsPipelineConfigurator> pipeConfig, vsg::Descriptors &descriptors, std::string &uniformName) {
+    if(path) {
+        auto texData = vsg::read_cast<vsg::Data>(path, m_options);
+        if(!texData) {
+            GetLog() << "Could not read texture file: " << path << "\n";
+        } else {
+            // enable texturing with mipmaps
+            auto sampler = vsg::Sampler::create();
+            sampler->maxLod = static_cast<uint32_t>(std::floor(
+                                                               std::log2(std::max(texData->width(), texData->height())))) +
+            1;
+            sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
+            sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            pipeConfig->assignTexture(descriptors, uniformName, texData, sampler);
+            return true;
+        }
+    }
+    return false;
+}
+
+vsg::ref_ptr<vsg::PbrMaterialValue> ShapeBuilder::createPbrMaterialFromChronoMaterial(std::shared_ptr<chrono::ChVisualMaterial> chronoMat) {
+    auto pbrMat = vsg::PbrMaterialValue::create();
+    float alpha = chronoMat->GetOpacity();
+    pbrMat->value().baseColorFactor.set(chronoMat->GetDiffuseColor().R, chronoMat->GetDiffuseColor().G,
+                                      chronoMat->GetDiffuseColor().B, alpha);
+    pbrMat->value().emissiveFactor.set(chronoMat->GetEmissiveColor().R,chronoMat->GetEmissiveColor().G,chronoMat->GetEmissiveColor().B,alpha);
+    pbrMat->value().specularFactor.set(chronoMat->GetSpecularColor().R, chronoMat->GetSpecularColor().G, chronoMat->GetSpecularColor().B, alpha);
+    pbrMat->value().roughnessFactor = chronoMat->GetRoughness();
+    pbrMat->value().metallicFactor = chronoMat->GetMetallic();
+    pbrMat->value().diffuseFactor.set(chronoMat->GetDiffuseColor().R, chronoMat->GetDiffuseColor().G,
+                                      chronoMat->GetDiffuseColor().B, alpha);
+    pbrMat->value().alphaMask = alpha;
+    pbrMat->value().alphaMaskCutoff = 0.3f;
+    
+    return pbrMat;
+}
+
+vsg::ref_ptr<vsg::PhongMaterialValue> ShapeBuilder::createPhongMaterialFromChronoMaterial(std::shared_ptr<chrono::ChVisualMaterial> chronoMat) {
+    auto phongMat = vsg::PhongMaterialValue::create();
+    float alpha = chronoMat->GetOpacity();
+
+    phongMat->value().emissive.set(chronoMat->GetEmissiveColor().R,chronoMat->GetEmissiveColor().G,chronoMat->GetEmissiveColor().B,alpha);
+    phongMat->value().specular.set(chronoMat->GetSpecularColor().R, chronoMat->GetSpecularColor().G, chronoMat->GetSpecularColor().B, alpha);
+    phongMat->value().diffuse.set(chronoMat->GetDiffuseColor().R, chronoMat->GetDiffuseColor().G,
+                                      chronoMat->GetDiffuseColor().B, alpha);
+    phongMat->value().alphaMask = alpha;
+    phongMat->value().alphaMaskCutoff = 0.3f;
+    phongMat->value().ambient.set(chronoMat->GetAmbientColor().R, chronoMat->GetAmbientColor().G, chronoMat->GetAmbientColor().B, alpha);
+    return phongMat;
+    }
 
 }  // namespace vsg3d
 }  // namespace chrono

@@ -35,7 +35,7 @@ namespace chrono {
 namespace vsg3d {
 
 class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
-  public:
+public:
     typedef enum {
         BOX_SHAPE,
         DIE_SHAPE,
@@ -45,41 +45,41 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
         CONE_SHAPE,
         SURFACE_SHAPE
     } BasicShape;
-
+    
     vsg::ref_ptr<vsg::Options> m_options;
     vsg::ref_ptr<vsg::SharedObjects> m_sharedObjects;
     float m_maxAnisotropy = 0.0f;
-
+    
     vsg::ref_ptr<vsg::Group> createShape(BasicShape theShape,
                                          std::shared_ptr<ChVisualMaterial> material,
                                          vsg::ref_ptr<vsg::MatrixTransform> transform,
                                          bool drawMode,
                                          std::shared_ptr<ChSurfaceShape> surface = nullptr);
-
+    
     // variant for general use, mesh can have unknown structure and noncontiguous faces
     // face normals will be converted to vertex normals, it will be bloated by additional vertices
     vsg::ref_ptr<vsg::Group> createTrimeshColShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                    bool drawMode,
                                                    std::shared_ptr<ChTriangleMeshShape> tms = nullptr);
-
+    
     // variant for SCMDeformableTerrain, regular mesh needed, no face normals allowed
     // no face colors allowed
     vsg::ref_ptr<vsg::Group> createTrimeshColShapeSCM(vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                       bool drawMode,
                                                       std::shared_ptr<ChTriangleMeshShape> tms = nullptr);
-
+    
     vsg::ref_ptr<vsg::Group> createTrimeshPhongMatShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                                   bool drawMode,
-                                                   std::shared_ptr<ChTriangleMeshShape> tms = nullptr);
-
+                                                        bool drawMode,
+                                                        std::shared_ptr<ChTriangleMeshShape> tms = nullptr);
+    
     vsg::ref_ptr<vsg::Group> createTrimeshPbrMatShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                                   bool drawMode,
-                                                   std::shared_ptr<ChTriangleMeshShape> tms = nullptr);
-
+                                                      bool drawMode,
+                                                      std::shared_ptr<ChTriangleMeshShape> tms = nullptr);
+    
     vsg::ref_ptr<vsg::Group> createParticlePattern(std::shared_ptr<ChVisualMaterial> material, bool drawMode);
-
+    
     vsg::ref_ptr<vsg::Group> createCoGSymbol(vsg::ref_ptr<vsg::MatrixTransform> transform);
-
+    
     vsg::ref_ptr<vsg::Group> createLineShape(ChVisualModel::ShapeInstance shapeInstance,
                                              std::shared_ptr<ChVisualMaterial> material,
                                              vsg::ref_ptr<vsg::MatrixTransform> transform,
@@ -88,30 +88,37 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                              std::shared_ptr<ChVisualMaterial> material,
                                              vsg::ref_ptr<vsg::MatrixTransform> transform,
                                              std::shared_ptr<ChPathShape> ps);
-
+    
     vsg::ref_ptr<vsg::Group> createSpringShape(std::shared_ptr<ChLinkBase> link,
                                                ChVisualModel::ShapeInstance shapeInstance,
                                                std::shared_ptr<ChVisualMaterial> material,
                                                vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                std::shared_ptr<ChSpringShape> ss);
-
+    
     vsg::ref_ptr<vsg::Group> createUnitSegment(std::shared_ptr<ChLinkBase> link,
                                                ChVisualModel::ShapeInstance shapeInstance,
                                                std::shared_ptr<ChVisualMaterial> material,
                                                vsg::ref_ptr<vsg::MatrixTransform> transform);
-
+    
     vsg::ref_ptr<vsg::Group> createDecoGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col);
-
+    
     /// create a ShaderSet for Phong shaded rendering with tiled textures
     vsg::ref_ptr<vsg::ShaderSet> createTilingPhongShaderSet(vsg::ref_ptr<const vsg::Options> options = {});
-
+    
     /// create a ShaderSet for PBR shaded rendering with tiled textures
     vsg::ref_ptr<vsg::ShaderSet> createTilingPbrShaderSet(vsg::ref_ptr<const vsg::Options> options = {});
-
+    
     /// assign compile traversal to enable compilation.
     void assignCompileTraversal(vsg::ref_ptr<vsg::CompileTraversal> ct);
-
+    
     vsg::ref_ptr<vsg::CompileTraversal> compileTraversal;
+    
+private:
+    bool ApplyTexture(vsg::Path &path, vsg::ref_ptr<vsg::GraphicsPipelineConfigurator> pipeConfig, vsg::Descriptors &descriptors, std::string &uniformName);
+    
+    vsg::ref_ptr<vsg::PbrMaterialValue> createPbrMaterialFromChronoMaterial(std::shared_ptr<chrono::ChVisualMaterial> chronoMat);
+    
+    vsg::ref_ptr<vsg::PhongMaterialValue> createPhongMaterialFromChronoMaterial(std::shared_ptr<chrono::ChVisualMaterial> chronoMat);
 };
 
 }  // namespace vsg3d
