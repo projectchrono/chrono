@@ -36,13 +36,35 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     ChBlender(ChSystem* system);
     ~ChBlender() {}
 
-    /// Modes for displaying contacts.
-    enum class ContactSymbol {
-        VECTOR_SCALELENGTH = 0,
-        VECTOR_SCALERADIUS,
-        VECTOR_NOSCALE,
-        SPHERE_SCALERADIUS,
-        SPHERE_NOSCALE
+    /// Modes for type of vector arrow length 
+    enum class ContactSymbolType {
+        NONE = 0,
+        VECTOR,
+        SPHERE,
+    };
+
+    /// Modes for type of vector arrow length 
+    enum class ContactSymbolVectorLength {
+        CONSTANT = 0,
+        ATTR,
+    };
+
+    /// Modes for type of vector arrow width
+    enum class ContactSymbolVectorWidth {
+        CONSTANT = 0,
+        ATTR,
+    };
+
+    /// Modes for type of dot size
+    enum class ContactSymbolSphereSize {
+        CONSTANT = 0,
+        ATTR,
+    };
+
+    /// Modes for colorizing vector or dot 
+    enum class ContactSymbolColor {
+        CONSTANT = 0,
+        ATTR,
     };
 
     /// Add a ChPhysicsItem object to the list of objects to render.
@@ -132,18 +154,39 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     /// If setting true, you can also set the size of the symbol, in meters.
     void SetShowLinksFrames(bool show, double msize = 0.04);
 
-    /// Turn on/off the display of contacts, using spheres or arrows (see eChContactSymbol modes).
-    /// The size of the arrow or of the sphere depends on force strength multiplied by 'scale'.
-    /// Use 'width' for the radius of the arrow. If in 'SYMBOL_VECTOR_SCALERADIUS' mode, the length of the vector is
-    /// always max_size.
-    void SetShowContacts(bool show,
-                         //ContactSymbol mode,
-                         double scale,
-                         double width,
-                         //double max_size,
-                         bool do_colormap,
-                         double colormap_start,
-                         double colormap_end);
+    /// Turn off the display of contacts
+    void SetShowContactsOff();
+
+    /// Turn on the display of contacts, using arrows to show vectors. 
+    /// The lenght of the arrow can be: constant, or force strength multiplied by 'scale_length', or attribute multiplied by 'scale_length'.
+    /// The width of the arrow can be: constant, or force strength multiplied by 'scale_length', or attribute multiplied by 'scale_length'.
+    void SetShowContactsVectors(
+                        ContactSymbolVectorLength length_type,
+                        double scale_length,          // if ContactSymbolVectorLength::CONSTANT means abs.length, otherwise is scaling factor for attr
+                        const std::string scale_attr, // needed if ContactSymbolVectorLength::ATTR, options: 'norm'. Otherwise "" 
+                        ContactSymbolVectorWidth width_type,
+                        double scale_width,           // if ContactSymbolVectorWidth::CONSTANT means abs.width, otherwise is scaling factor for norm or attr
+                        const std::string width_attr, // needed if ContactSymbolVectorWidth::ATTR, options: "norm". Otherwise ""
+                        ContactSymbolColor color_type,
+                        ChColor const_color,          // if ContactSymbolColor::CONSTANT, otherwise not used
+                        const std::string color_attr, // needed if ContactSymbolColor::ATTR, options: "norm". Otherwise "" 
+                        double colormap_start, // falsecolor start value, if not  ContactSymbolColor::CONSTANT,
+                        double colormap_end, // falsecolor start value, if not  ContactSymbolColor::CONSTANT
+                        bool do_vector_tip = true
+                         );
+
+    /// Turn on the display of contacts, using spheres to show contact locations. 
+    /// The size of the arrow depends on force strength multiplied by 'scale_length'.
+    void SetShowContactsSpheres(
+                         ContactSymbolSphereSize size_type,
+                         double scale_size,    // if ContactSymbolSphereSize::CONSTANT means abs.size, otherwise is scaling factor for norm or attr
+                         ContactSymbolColor color_type,
+                         ChColor const_color,  // if ContactSymbolColor::CONSTANT, otherwise not used
+                         double colormap_start, // falsecolor start value, if not  ContactSymbolColor::CONSTANT,
+                         double colormap_end, // falsecolor start value, if not  ContactSymbolColor::CONSTANT
+                         const std::string size_attr = "", // needed if ContactSymbolSphereSize::ATTR
+                         const std::string color_attr = ""  // needed if ContactSymbolColor::ATTR
+                         );
 
     /// Set thickness for wireframe mode of meshes.
     /// If a ChTriangleMeshShape asset was set as SetWireframe(true), it will be rendered in Blender as a cage of thin
@@ -247,14 +290,25 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     double frames_asset_size;
     bool frames_links_show;
     double frames_links_size;
-    bool contacts_show;
+
+    ContactSymbolType contacts_show ;
     double contacts_maxsize;
-    double contacts_scale;
-    ContactSymbol contacts_scale_mode;
-    double contacts_width;
-    double contacts_colormap_startscale;
-    double contacts_colormap_endscale;
-    bool contacts_do_colormap;
+    ContactSymbolVectorLength contacts_vector_length_type;
+    std::string contacts_vector_length_attr;
+    double contacts_vector_scalelenght;
+    ContactSymbolVectorWidth  contacts_vector_width_type;
+    std::string contacts_vector_width_attr;
+    double contacts_vector_scalewidth;
+    ContactSymbolSphereSize  contacts_sphere_size_type;
+    std::string contacts_sphere_size_attr;
+    double contacts_sphere_scalesize;
+    ContactSymbolColor  contacts_color_type;
+    std::string contacts_color_attr;
+    ChColor contacts_color_constant;
+    double  contacts_colormap_startscale;
+    double  contacts_colormap_endscale;
+    bool contacts_vector_tip;
+
     double wireframe_thickness;
     ChColor background;
 

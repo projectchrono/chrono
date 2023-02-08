@@ -63,14 +63,23 @@ ChBlender::ChBlender(ChSystem* system) : ChPostProcessBase(system) {
     frames_asset_size = 0.03;
     frames_links_show = false;
     frames_links_size = 0.04;
-    contacts_show = false;
+    contacts_show = ContactSymbolType::VECTOR;
     contacts_maxsize = 0.1;
-    contacts_scale = 0.01;
-    contacts_scale_mode = ContactSymbol::VECTOR_SCALELENGTH;
-    contacts_width = 0.001;
+    contacts_vector_length_type = ContactSymbolVectorLength::ATTR;
+    contacts_vector_scalelenght = 0.1;
+    contacts_vector_length_attr = "norm";
+    contacts_vector_width_type = ContactSymbolVectorWidth::CONSTANT;
+    contacts_vector_scalewidth = 0.001;
+    contacts_vector_width_attr = "";
+    contacts_sphere_size_type = ContactSymbolSphereSize::CONSTANT;
+    contacts_sphere_scalesize = 0.01;
+    contacts_vector_width_attr = "";
+    contacts_color_type = ContactSymbolColor::CONSTANT;
+    contacts_color_constant = ChColor(1, 0, 0);
+    contacts_color_attr = "";
     contacts_colormap_startscale = 0;
     contacts_colormap_endscale = 10;
-    contacts_do_colormap = true;
+    contacts_vector_tip = true;
     wireframe_thickness = 0.001;
     single_asset_file = true;
     
@@ -182,25 +191,59 @@ void ChBlender::SetShowLinksFrames(bool show, double msize) {
     if (show)
         frames_links_size = msize;
 }
-void ChBlender::SetShowContacts(bool show,
-                               //ContactSymbol mode,
-                               double scale,
-                               double width,
-                               //double max_size,
-                               bool do_colormap,
-                               double colormap_start,
-                               double colormap_end) {
-    contacts_show = show;
-    if (show) {
-        //contacts_scale_mode = mode;
-        contacts_scale = scale;
-        contacts_width = width;
-        //contacts_maxsize = max_size;
-        contacts_do_colormap = do_colormap;
-        contacts_colormap_startscale = colormap_start;
-        contacts_colormap_endscale = colormap_end;
-    }
+void ChBlender::SetShowContactsOff() {
+    this->contacts_show = ContactSymbolType::NONE;
 }
+
+void ChBlender::SetShowContactsVectors(
+                        ContactSymbolVectorLength length_type,
+                        double scale_length,          // if ContactSymbolVectorLength::CONSTANT means abs.length, otherwise is scaling factor for attr
+                        const std::string scale_attr, // needed if ContactSymbolVectorLength::ATTR, options: 'norm'. Otherwise "" 
+                        ContactSymbolVectorWidth width_type,
+                        double scale_width,           // if ContactSymbolVectorWidth::CONSTANT means abs.width, otherwise is scaling factor for norm or attr
+                        const std::string width_attr, // needed if ContactSymbolVectorWidth::ATTR, options: "norm". Otherwise ""
+                        ContactSymbolColor color_type,
+                        ChColor const_color,          // if ContactSymbolColor::CONSTANT, otherwise not used
+                        const std::string color_attr, // needed if ContactSymbolColor::ATTR, options: "norm". Otherwise "" 
+                        double colormap_start, // falsecolor start value, if not  ContactSymbolColor::CONSTANT,
+                        double colormap_end,   // falsecolor start value, if not  ContactSymbolColor::CONSTANT
+                        bool do_vector_tip) {
+    contacts_show = ContactSymbolType::VECTOR;
+ 
+    this->contacts_vector_length_type = length_type;
+    this->contacts_vector_scalelenght = scale_length;
+    this->contacts_vector_length_attr = scale_attr;
+    this->contacts_vector_width_type = width_type;
+    this->contacts_vector_scalewidth = scale_width;
+    this->contacts_vector_width_attr = width_attr;
+    this->contacts_vector_tip = do_vector_tip;
+    this->contacts_color_type = color_type;
+    this->contacts_color_attr = color_attr;
+    this->contacts_color_constant = const_color;
+    this->contacts_colormap_startscale = colormap_start;
+    this->contacts_colormap_endscale = colormap_end;
+}
+
+void ChBlender::SetShowContactsSpheres(
+                         ContactSymbolSphereSize size_type,
+                         double scale_size,     // if ContactSymbolSphereSize::CONSTANT means abs.size, otherwise is scaling factor for norm or attr
+                         ContactSymbolColor color_type,
+                         ChColor const_color,   // if ContactSymbolColor::CONSTANT, otherwise not used
+                         double colormap_start, // falsecolor start value, if not  ContactSymbolColor::CONSTANT,
+                         double colormap_end,   // falsecolor start value, if not  ContactSymbolColor::CONSTANT
+                         const std::string size_attr, // needed if ContactSymbolSphereSize::ATTR
+                         const std::string color_attr // needed if ContactSymbolColor::ATTR) 
+                         ) {
+    contacts_show = ContactSymbolType::SPHERE;
+ 
+    this->contacts_sphere_size_type = size_type;
+    this->contacts_sphere_scalesize = scale_size;
+    this->contacts_color_type = color_type;
+    this->contacts_color_constant = const_color;
+    this->contacts_colormap_startscale = colormap_start;
+    this->contacts_colormap_endscale = colormap_end;
+}
+
 
 void ChBlender::ExportScript(const std::string& filename) {
     // Regenerate the list of objects that need Blender rendering
@@ -528,8 +571,8 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
                 *mfile << "] \n";
                 *mfile << "add_mesh_data_vectors(new_object, colors, 'chrono_color', mdomain='POINT') \n";
                 
-                *mfile << "property = setup_meshsetting_vector(meshsetting, 'chrono_color', matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_col')\n";
-                *mfile << "mat = setup_meshsetting_falsecolor_material(new_object,meshsetting, 'chrono_color')\n";
+                *mfile << "property = setup_property_vector(meshsetting, 'chrono_color', matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_col')\n";
+                *mfile << "mat = update_meshsetting_falsecolor_material(new_object,meshsetting, 'chrono_color')\n";
             }
 
             for (auto mprop : mesh->getPropertiesPerVertex()) {
@@ -541,8 +584,8 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
                     *mfile << "] \n";
                     *mfile << "add_mesh_data_floats(new_object, scalars, '" << mprop_scalar->name <<"', mdomain='POINT') \n";
 
-                    *mfile << "property = setup_meshsetting_scalar(meshsetting, '" << mprop_scalar->name.c_str() << "',min=" << 0.0 << ", max=" << 1.0 << ", matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_scalar->name.c_str() << "')\n";
-                    *mfile << "mat = setup_meshsetting_falsecolor_material(new_object,meshsetting, '" << mprop_scalar->name.c_str() << "')\n";
+                    *mfile << "property = setup_property_scalar(meshsetting, '" << mprop_scalar->name.c_str() << "',min=" << mprop_scalar->min << ", max=" << mprop_scalar->max << ", matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_scalar->name.c_str() << "')\n";
+                    *mfile << "mat = update_meshsetting_falsecolor_material(new_object,meshsetting, '" << mprop_scalar->name.c_str() << "')\n";
                 }
                 if (auto mprop_vectors = dynamic_cast<ChPropertyT<ChVector<>>*>(mprop)) {
                     *mfile << "vectors = [ \n";
@@ -552,8 +595,8 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
                     *mfile << "] \n";
                     *mfile << "add_mesh_data_vectors(new_object, vectors, '" << mprop_vectors->name <<"', mdomain='POINT') \n";
                     
-                    *mfile << "property = setup_meshsetting_vector(meshsetting, '" << mprop_vectors->name.c_str() << "',min=" << 0.0 << ", max=" << 1.0 << ", matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_vectors->name.c_str() << "')\n";
-                    *mfile << "mat = setup_meshsetting_falsecolor_material(new_object,meshsetting, '" << mprop_vectors->name.c_str() << "')\n";
+                    *mfile << "property = setup_property_vector(meshsetting, '" << mprop_vectors->name.c_str() << "',min=" << mprop_vectors->min << ", max=" << mprop_vectors->max << ", matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_vectors->name.c_str() << "')\n";
+                    *mfile << "mat = update_meshsetting_falsecolor_material(new_object,meshsetting, '" << mprop_vectors->name.c_str() << "')\n";
                 }
             }
             for (auto mprop : mesh->getPropertiesPerFace()) {
@@ -565,8 +608,8 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
                     *mfile << "] \n";
                     *mfile << "add_mesh_data_floats(new_object, scalars, '" << mprop_scalar->name <<"', mdomain='FACE') \n";
                     
-                    *mfile << "property = setup_meshsetting_scalar(meshsetting, '" << mprop_scalar->name.c_str() << "',min=" << 0.0 << ", max=" << 1.0 << ", matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_scalar->name.c_str() << "')\n";
-                    *mfile << "mat = setup_meshsetting_falsecolor_material(new_object,meshsetting, '" << mprop_scalar->name.c_str() << "')\n";
+                    *mfile << "property = setup_property_scalar(meshsetting, '" << mprop_scalar->name.c_str() << "',min=" << mprop_scalar->min << ", max=" << mprop_scalar->max << ", matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_scalar->name.c_str() << "')\n";
+                    *mfile << "mat = update_meshsetting_falsecolor_material(new_object,meshsetting, '" << mprop_scalar->name.c_str() << "')\n";
                 }
                 if (auto mprop_vectors = dynamic_cast<ChPropertyT<ChVector<>>*>(mprop)) {
                     *mfile << "vectors = [ \n";
@@ -576,8 +619,8 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
                     *mfile << "] \n";
                     *mfile << "add_mesh_data_vectors(new_object, vectors, '" << mprop_vectors->name <<"', mdomain='FACE') \n";
                     
-                    *mfile << "property = setup_meshsetting_vector(meshsetting, '" << mprop_vectors->name.c_str() << "',min=" << 0.0 << ", max=" << 1.0 << ", matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_vectors->name.c_str() << "')\n";
-                    *mfile << "mat = setup_meshsetting_falsecolor_material(new_object,meshsetting, '" << mprop_vectors->name.c_str() << "')\n";
+                    *mfile << "property = setup_property_vector(meshsetting, '" << mprop_vectors->name.c_str() << "',min=" << mprop_vectors->min << ", max=" << mprop_vectors->max << ", matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_vectors->name.c_str() << "')\n";
+                    *mfile << "mat = update_meshsetting_falsecolor_material(new_object,meshsetting, '" << mprop_vectors->name.c_str() << "')\n";
                 }
             }
 
@@ -926,7 +969,7 @@ void ChBlender::ExportData(const std::string& filename) {
         }  // end loop on objects
 
         // #) saving contacts ?
-        if (contacts_show) {
+        if (this->contacts_show == ContactSymbolType::VECTOR || this->contacts_show == ContactSymbolType::SPHERE) {
             //ChStreamOutAsciiFile data_contacts((base_path + filename + ".contacts").c_str());
              
             class _reporter_class : public ChContactContainer::ReportContactCallback {
@@ -944,18 +987,24 @@ void ChBlender::ExportData(const std::string& filename) {
                     ) override {
                     if (fabs(react_forces.x()) > 1e-8 || fabs(react_forces.y()) > 1e-8 ||
                         fabs(react_forces.z()) > 1e-8) {
-                        ChMatrix33<> localmatr(plane_coord);
-                        ChVector<> n1 = localmatr.Get_A_Xaxis();
-                        ChVector<> absreac = localmatr * react_forces;
-                        (*mfile) << "[(";
+                        //ChMatrix33<> localmatr(plane_coord);
+                        ChQuaternion<> q = plane_coord.Get_A_quaternion();
+                        //ChVector<> n1 = localmatr.Get_A_Xaxis();
+                        //ChVector<> absreac = localmatr * react_forces;
+                        (*mfile) << "\t\t[";
                         (*mfile) << pA.x() << ", ";
                         (*mfile) << pA.y() << ", ";
                         (*mfile) << pA.z();
-                        (*mfile) << "),(";
-                        (*mfile) << absreac.x() << ", ";
-                        (*mfile) << absreac.y() << ", ";
-                        (*mfile) << absreac.z();
-                        (*mfile) << ")],\n";
+                        (*mfile) << ",";
+                        (*mfile) << q.e0() << ", ";
+                        (*mfile) << q.e1() << ", ";
+                        (*mfile) << q.e2() << ", ";
+                        (*mfile) << q.e3();
+                        (*mfile) << ",";
+                        (*mfile) << react_forces.x() << ", ";
+                        (*mfile) << react_forces.y() << ", ";
+                        (*mfile) << react_forces.z();
+                        (*mfile) << "],\n";
                     }
                     return true;  // to continue scanning contacts
                 }
@@ -963,12 +1012,9 @@ void ChBlender::ExportData(const std::string& filename) {
                 ChStreamOutAsciiFile* mfile;
             };
 
-            state_file
-                << "if chrono_view_contacts:\n"
-                << "\tmake_chrono_glyphs_vectors('contacts',"
-                << "(" << blender_frame.GetPos().x() << "," << blender_frame.GetPos().y() << "," << blender_frame.GetPos().z() << "),"
-                << "(" << blender_frame.GetRot().e0() << "," << blender_frame.GetRot().e1() << "," << blender_frame.GetRot().e2() << "," << blender_frame.GetRot().e3() << "), \n"
-                << "[\n";
+            state_file << "if chrono_view_contacts:\n";
+            state_file << "\tcontacts= np.array([ \n";
+                
 
             auto my_contact_reporter = chrono_types::make_shared<_reporter_class>();
             my_contact_reporter->mfile = &state_file;
@@ -976,19 +1022,52 @@ void ChBlender::ExportData(const std::string& filename) {
             // scan all contacts
             mSystem->GetContactContainer()->ReportAllContacts(my_contact_reporter);
 
-            state_file
-                << "], \n"
-                << "list_attributes=[], \n"
-                << "thickness=" << this->contacts_width << ", \n"
-                << "length_factor=" << this->contacts_scale << ", \n"
-                << "color='norm', \n" // 'norm' is not in list_attributes, but make_chrono_glyphs_vectors() will compute it and add it to list
-                << "color_min=" << this->contacts_colormap_startscale << ", \n"
-                << "color_max=" << this->contacts_colormap_endscale << ", \n";
-            if (this->contacts_do_colormap)
-                state_file << "colormap = colormap_cooltowarm \n";
+            state_file << "\t])\n";
+
+            state_file << "\tglyphsetting = setup_glyphvectsetting('contacts',\n";
+            state_file << "\t\tdir_type='ATTR', property_index_dir=0, \n";  // will use 1st property, the 'F', for direction of force vector, in local frame of contact plane
+            state_file << "\t\tproperty_index_basis=1, \n"; // will use 2nd property, the 'loc_rot', for local rotation of contact plane
+            if (this->contacts_vector_length_type == ContactSymbolVectorLength::CONSTANT) {
+                state_file << "\t\tlength_type='CONST', length_scale=" << this->contacts_vector_scalelenght <<", \n"; // constant length
+            }
+            if (this->contacts_vector_length_type == ContactSymbolVectorLength::ATTR) {
+                state_file << "\t\tlength_type='ATTR', property_index_length=0, length_scale=" << this->contacts_vector_scalelenght << ",\n"; // will use 1st property, the 'F', for length
+            }
+            if (this->contacts_vector_width_type == ContactSymbolVectorWidth::CONSTANT) {
+                state_file << "\t\twidth_type='CONST', width_scale=" << this->contacts_vector_scalewidth <<", \n"; // constant width
+            }
+            if (this->contacts_vector_width_type == ContactSymbolVectorWidth::ATTR) {
+                state_file << "\t\twidth_type='ATTR', property_index_width=0, width_scale=" << this->contacts_vector_scalewidth << ",\n"; // will use 1st property, the 'F', for width
+            }
+            if (this->contacts_color_type == ContactSymbolColor::CONSTANT) {
+                state_file << "\t\tcolor_type='CONST', const_color=(" << contacts_color_constant.R << "," << contacts_color_constant.G << "," << contacts_color_constant.B << "), \n"; // constant color
+            }
+            if (this->contacts_color_type == ContactSymbolColor::ATTR) {
+                state_file << "\t\tcolor_type='ATTR', property_index_color=0, \n"; // will use 1st property, the 'F', for color falsecolor scale
+            }
+            if (this->contacts_vector_tip)
+                state_file << "\t\tdo_tip=True,\n";
             else
-                state_file << "colormap = [[0,(1,1,1,1)],[0,(1,1,1,1)]] \n";
-            state_file << ") \n\n";
+                state_file << "\t\tdo_tip=False,\n";
+            state_file << "\t)\n";
+
+            state_file << "\tproperty = setup_property_vector(glyphsetting, 'F', matname = 'contacts_color_F', ";
+            state_file << "mcolormap = 'colormap_cooltowarm', ";
+            state_file << "min=" << this->contacts_colormap_startscale << ", ";
+            state_file << "max=" << this->contacts_colormap_endscale << ", ";
+            state_file << "per_instance = True) \n";
+
+            state_file << "\tproperty = setup_property_vector(glyphsetting, 'loc_rot', matname='contacts_color_rot', per_instance=True)\n";
+
+            state_file << "\tnew_objects = update_make_glyphs_vectors(glyphsetting, 'contacts',";
+            state_file << "(" << blender_frame.GetPos().x() << "," << blender_frame.GetPos().y() << "," << blender_frame.GetPos().z() << "),";
+            state_file << "(" << blender_frame.GetRot().e0() << "," << blender_frame.GetRot().e1() << "," << blender_frame.GetRot().e2() << "," << blender_frame.GetRot().e3() << "), \n";
+            state_file << "\t  list(map(tuple,contacts[:,0:3])),\n";
+            state_file << "\t  list_attributes=[ \n";
+            state_file << "\t    ['F', list(map(tuple,contacts[:,7:10]))], \n"; 
+            state_file << "\t    ['loc_rot', list(map(tuple,contacts[:,3:7]))], \n"; 
+            state_file << "\t  ], \n";
+            state_file << "\t) \n";
 
         }
 
