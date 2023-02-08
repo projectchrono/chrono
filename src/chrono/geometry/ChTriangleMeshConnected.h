@@ -21,75 +21,11 @@
 
 #include "chrono/assets/ChColor.h"
 #include "chrono/core/ChVector2.h"
+#include "chrono/geometry/ChProperty.h"
 #include "chrono/geometry/ChTriangleMesh.h"
 
 namespace chrono {
 namespace geometry {
-
-/// Base class for properties to attach to vertexes or particles etc.
-/// as an array of data.
-class ChApi ChProperty {
-public:
-    ChProperty() {};
-    virtual ~ChProperty() {};
-    
-    /// Cloning: 
-    virtual ChProperty* clone() = 0;
-
-    /// Get current size of data array.
-    virtual size_t GetSize() = 0;
-
-    /// Resize data array to some amount. All internal data will be reset.
-    virtual void SetSize(const size_t msize) = 0;
-
-    /// Name of this property.
-    std::string name;
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) { marchive << CHNVP(name); };
-    /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) {  marchive >> CHNVP(name); };
-};
-
-/// Templated property: a generic array of items of type T.
-template <class T>
-class ChApi ChPropertyT: public ChProperty {
-public:
-    ChPropertyT() {};
-    ~ChPropertyT() {};
-    ChPropertyT(const ChPropertyT& other) { data = other.data; name = other.name;  }
-
-    /// Cloning: 
-    ChProperty* clone() override { return new ChPropertyT<T>(*this); };
-    
-    size_t GetSize() override {
-        return data.size();
-    };
-    void SetSize(const size_t msize) override {
-        return data.resize(msize);
-    };
-
-    /// The data array
-    std::vector<T> data;
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override { 
-        ChProperty::ArchiveOUT(marchive);
-        marchive << CHNVP(data);
-    };
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        ChProperty::ArchiveIN(marchive);
-        marchive >> CHNVP(data);
-    };
-};
-
-/// Data is an array of floats 
-class ChApi ChPropertyScalar : public ChPropertyT<double> {};
-
-/// Data is an array of vectors 
-class ChApi ChPropertyVector : public ChPropertyT<ChVector<>> {};
-
-/// Data is an array of colors 
-class ChApi ChPropertyColor : public ChPropertyT<ChColor> {};
 
 
 /// A triangle mesh with connectivity info: vertices can be shared between faces.
