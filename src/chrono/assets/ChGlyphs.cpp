@@ -25,6 +25,13 @@ ChGlyphs::ChGlyphs() {
     zbuffer_hide = true;
 }
 
+ChGlyphs::~ChGlyphs() {
+
+    for (geometry::ChProperty* id : this->m_properties)
+        delete(id);
+}
+
+
 void ChGlyphs::Reserve(unsigned int n_glyphs) {
     colors.resize(n_glyphs);
     points.resize(n_glyphs);
@@ -46,6 +53,9 @@ void ChGlyphs::Reserve(unsigned int n_glyphs) {
             vectors.resize(n_glyphs);
             rotations.resize(n_glyphs);
     }
+
+    for (geometry::ChProperty* id : this->m_properties)
+        id->SetSize(n_glyphs);
 }
 
 // Fast method to set a glyph for GLYPH_POINT draw mode:
@@ -100,6 +110,7 @@ void ChGlyphs::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(mmapper(draw_mode), "draw_mode");
     marchive << CHNVP(size);
     marchive << CHNVP(zbuffer_hide);
+    marchive << CHNVP(m_properties);
 }
 
 void ChGlyphs::ArchiveIN(ChArchiveIn& marchive) {
@@ -116,6 +127,7 @@ void ChGlyphs::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(mmapper(draw_mode), "draw_mode");
     marchive >> CHNVP(size);
     marchive >> CHNVP(zbuffer_hide);
+    marchive >> CHNVP(m_properties);
 }
 
 }  // end namespace chrono

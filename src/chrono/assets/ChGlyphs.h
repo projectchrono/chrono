@@ -16,6 +16,7 @@
 #include "chrono/assets/ChColor.h"
 #include "chrono/assets/ChVisualShape.h"
 #include "chrono/core/ChMatrix.h"
+#include "chrono/geometry/ChProperty.h"
 
 namespace chrono {
 
@@ -28,7 +29,7 @@ class ChApi ChGlyphs : public ChVisualShape {
     enum eCh_GlyphType { GLYPH_POINT = 0, GLYPH_VECTOR, GLYPH_COORDSYS };
 
     ChGlyphs();
-    ~ChGlyphs() {}
+    ~ChGlyphs();
 
     /// Get the way that glyphs must be rendered
     eCh_GlyphType GetDrawMode() const { return draw_mode; }
@@ -69,6 +70,13 @@ class ChApi ChGlyphs : public ChVisualShape {
     /// If the id is more than the reserved amount of glyphs (see Reserve() ) the csys are inflated.
     void SetGlyphCoordsys(unsigned int id, ChCoordsys<> mcoord);
 
+    /// Gets the current array of per-point properties, if any.
+    std::vector<geometry::ChProperty*> getProperties() { return m_properties; }
+
+    /// Add a property as an array of data per-point. Deletion will be automatic at the end of mesh life.
+    /// Warning: mprop.data.size() must be equal to points.size().  Cost: allocation and a data copy. 
+    void AddProperty(geometry::ChProperty& mprop) { m_properties.push_back(mprop.clone());}
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
@@ -85,6 +93,8 @@ class ChApi ChGlyphs : public ChVisualShape {
 
     std::vector<ChVector<double> > points;
     std::vector<ChColor> colors;
+
+    std::vector<geometry::ChProperty*> m_properties;
 
     // optional attrs
     std::vector<ChVector<double> > vectors;
