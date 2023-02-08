@@ -67,6 +67,7 @@ from bpy.props import (IntProperty,
                        BoolProperty,
                        StringProperty,
                        FloatProperty,
+                       FloatVectorProperty,
                        EnumProperty,
                        PointerProperty,
                        CollectionProperty)
@@ -97,7 +98,7 @@ chrono_view_contacts = False
 chrono_gui_doupdate = True
 
 #
-# utility functions to be used in assets.py
+# utility functions to be used in assets.py  or   output/statexxxyy.py files
 #
 
 
@@ -323,11 +324,53 @@ def setup_meshsetting(new_object):
         meshsetting.property_index = 0
     return meshsetting
 
+# Add an item to collection of settings about glyphs visualization, but
+# if a glyph setting is already existing with the correspoiding name id, just reuse it (so
+# that one can have setting persistency through frames, even if the mesh is non-mutable and regenerated.
+def setup_glyphvectsetting(obj_name,
+                           color_type = 'CONST',
+                           property_index_color = 0,
+                           const_color =(1,0,0),
+                           dir_type = 'ATTR',
+                           const_dir = (1,0,0),
+                           property_index_dir = 0,
+                           length_type = 'ATTR',
+                           property_index_length = 0,
+                           length_scale = 0.01, 
+                           width_type = 'CONST',
+                           property_index_width = 0,
+                           width_scale=0.01,                     
+                           property_index_basis = 0,
+                           do_tip = True
+                           ):
+    glyphvectsetting = bpy.context.scene.ch_glyphvectsetting.get(obj_name)
+    if not glyphvectsetting:
+        glyphvectsetting = bpy.context.scene.ch_glyphvectsetting.add()
+        glyphvectsetting.name = obj_name
+        glyphvectsetting.glyph_type = 'VECTOR' # deprecated
+        glyphvectsetting.property_index_dir = property_index_dir
+        glyphvectsetting.property_index_length = property_index_length
+        glyphvectsetting.property_index_width  = property_index_width
+        glyphvectsetting.property_index_color  = property_index_color
+        glyphvectsetting.property_index_basis  = property_index_basis
+        glyphvectsetting.dir_type = dir_type
+        glyphvectsetting.length_type = length_type
+        glyphvectsetting.width_type = width_type
+        glyphvectsetting.color_type = color_type
+        glyphvectsetting.length_scale = length_scale
+        glyphvectsetting.width_scale = width_scale
+        glyphvectsetting.const_color = const_color
+        glyphvectsetting.const_dir = const_dir
+        glyphvectsetting.use_x = True
+        glyphvectsetting.use_y = True
+        glyphvectsetting.use_z = True
+        glyphvectsetting.do_tip = do_tip
+    return glyphvectsetting
 
     
 # Add an item to collection of properties of a given mesh visualization,
 # but if a property is already existing with the corresponding name id, just reuse it
-def setup_meshsetting_scalar(meshsetting, propname, min=0, max=1, mcolormap='colormap_viridis', matname='a_falsecolor'):
+def setup_property_scalar(meshsetting, propname, min=0, max=1, mcolormap='colormap_viridis', matname='a_falsecolor', per_instance=False):
     property = meshsetting.property.get(propname)
     if not property:
         property = meshsetting.property.add()
@@ -336,23 +379,23 @@ def setup_meshsetting_scalar(meshsetting, propname, min=0, max=1, mcolormap='col
         property.max = max
         property.colorm = mcolormap
         property.type = 'SCALAR'
-        property.mat = make_material_falsecolor(matname, propname, min, max, colormaps[mcolormap])
+        property.mat = make_material_falsecolor(matname, propname, min, max, colormaps[mcolormap], per_instance=per_instance)
     return property
 
 # Add an item to collection of properties of a given mesh visualization,
 # but if a property is already existing with the corresponding name id, just reuse it
-def setup_meshsetting_color(meshsetting, colname, matname='a_meshcolor'):
+def setup_property_color(meshsetting, colname, matname='a_meshcolor', per_instance=False):
     property = meshsetting.property.get(colname)
     if not property:
         property = meshsetting.property.add()
         property.name = colname
         property.type = 'COLOR'
-        property.mat = make_material_mesh_color_attribute(matname, colname)
+        property.mat = make_material_mesh_color_attribute(matname, colname, per_instance=per_instance)
     return property
 
 # Add an item to collection of properties of a given mesh visualization,
 # but if a property is already existing with the corresponding name id, just reuse it
-def setup_meshsetting_vector(meshsetting, propname, min=0, max=1, mvectplot='NORM', mcolormap='colormap_viridis', matname='a_falsecolor'):
+def setup_property_vector(meshsetting, propname, min=0, max=1, mvectplot='NORM', mcolormap='colormap_viridis', matname='a_falsecolor', per_instance=False):
     property = meshsetting.property.get(propname)
     if not property:
         property = meshsetting.property.add()
@@ -362,12 +405,12 @@ def setup_meshsetting_vector(meshsetting, propname, min=0, max=1, mvectplot='NOR
         property.colorm = mcolormap
         property.type = 'VECTOR'
         property.vect_plot = mvectplot
-        property.mat = make_material_falsecolor(matname, propname, min, max, colormaps[mcolormap])
+        property.mat = make_material_falsecolor(matname, propname, min, max, colormaps[mcolormap], per_instance=per_instance)
     return property
 
 
 # Attach a falsecolor material to the object, and set properties of falsecolor
-def setup_meshsetting_falsecolor_material(new_object, meshsetting, propname):
+def update_meshsetting_falsecolor_material(new_object, meshsetting, propname):
     mat = None
     if (meshsetting.property_index >=0): 
         selected_prop = meshsetting.property[meshsetting.property_index]
@@ -398,7 +441,7 @@ def setup_meshsetting_falsecolor_material(new_object, meshsetting, propname):
     return mat
 
 # Attach a color material to the object, and set properties 
-def setup_meshsetting_color_material(new_object, meshsetting, propname):
+def update_meshsetting_color_material(new_object, meshsetting, propname):
     mat = None
     if (meshsetting.property_index >=0): 
         selected_prop = meshsetting.property[meshsetting.property_index]
@@ -408,9 +451,42 @@ def setup_meshsetting_color_material(new_object, meshsetting, propname):
             new_object.data.materials.append(mat)
     return mat
 
-#
-# utility functions to be used in output/statexxxyy.py files
-#
+# Attach a falsecolor material to the glyphs, and set properties 
+def update_glyphvectsetting_falsecolor_material(new_object, meshsetting, propname):
+    mat = None
+    if (meshsetting.property_index_color >=0): 
+        selected_prop = meshsetting.property[meshsetting.property_index_color]
+        if (selected_prop.name ==propname):
+            mat = selected_prop.mat
+            mat.node_tree.nodes['Map Range'].inputs[1].default_value = selected_prop.min
+            mat.node_tree.nodes['Map Range'].inputs[2].default_value = selected_prop.max
+            ramp = mat.node_tree.nodes['ColorRamp']
+            colormap=[]
+            if meshsetting.color_type == 'CONST':
+                colormap = [[0,(meshsetting.const_color.r,meshsetting.const_color.g,meshsetting.const_color.b,1)],[1,(meshsetting.const_color.r,meshsetting.const_color.g,meshsetting.const_color.b,1)]]
+            if meshsetting.color_type == 'ATTR':
+                colormap = colormaps[selected_prop.colorm]
+            for i in range(0,len(ramp.color_ramp.elements)-2):
+                ramp.color_ramp.elements.remove(ramp.color_ramp.elements[1]) # leave start-end. Also, clear() doe not exist
+            for i in range(1,len(colormap)-1):
+                ramp.color_ramp.elements.new(colormap[i][0])
+            for i in range(0,len(colormap)):
+                ramp.color_ramp.elements[i].color = (colormap[i][1]) 
+            if selected_prop.type=='VECTOR': #or selected_prop.type=='SCALAR':
+                mat.node_tree.nodes['Multiply'].inputs[1].default_value = (1,1,1)
+                if selected_prop.type=='VECTOR':
+                    links = mat.node_tree.links
+                    if selected_prop.vect_plot =='X':
+                        mat.node_tree.nodes['Multiply'].inputs[1].default_value = (1,0,0)
+                    if selected_prop.vect_plot =='Y':
+                        mat.node_tree.nodes['Multiply'].inputs[1].default_value = (0,1,0)
+                    if selected_prop.vect_plot =='Z':
+                        mat.node_tree.nodes['Multiply'].inputs[1].default_value = (0,0,1)
+            new_object.data.materials.clear()
+            new_object.data.materials.append(mat)
+    return mat
+
+
 
 def make_chrono_csys(mpos,mrot, mparent, symbol_scale=0.1):
     csys = bpy.data.objects['chrono_csys']
@@ -463,7 +539,9 @@ def make_chrono_object_assetlist(mname,mpos,mrot, masset_list):
             print("not found asset: ",masset_list[m][0])
     
     
-def make_chrono_object_clones(mname,mpos,mrot, masset_list, list_clones_posrot):
+def make_chrono_object_clones(mname,mpos,mrot, 
+                                masset_list, 
+                                list_clones_posrot):
     
     chobject = bpy.data.objects.new(mname, empty_mesh)  
     chobject.rotation_mode = 'QUATERNION'
@@ -528,17 +606,26 @@ def make_chrono_object_clones(mname,mpos,mrot, masset_list, list_clones_posrot):
     chobject.show_instancer_for_viewport = False
     
     
-def make_chrono_glyphs_objects(mname,mpos,mrot, masset_list, list_clones_posrot, list_attributes, attr_name, attr_min, attr_max, def_colormap=colormap_cooltowarm):
+def make_chrono_glyphs_objects(mname,mpos,mrot, 
+                        masset_list, 
+                        list_clones_posrot, 
+                        list_attributes, 
+                        color_attr_name="", 
+                        color_min=0, color_max=1, 
+                        def_colormap=colormap_cooltowarm):
     
     if len(list_clones_posrot) == 0:
         return None
     
     chcollection = None
     chasset = None
+    new_objects =[] # to return a pair of [sample instance, geometry node instancer]
     
     if len(masset_list) == 1:
         # simplified if just one object
-        mfalsecolor = make_material_falsecolor(mname+'_falsecolor', attr_name, attr_min, attr_max, def_colormap, per_instance=True)
+        mfalsecolor=None
+        if color_attr_name:
+            mfalsecolor = make_material_falsecolor(mname+'_falsecolor', color_attr_name, color_min, color_max, def_colormap, per_instance=True)
         
         masset = None
         if type(masset_list[0][0]) == str:
@@ -558,6 +645,8 @@ def make_chrono_glyphs_objects(mname,mpos,mrot, masset_list, list_clones_posrot,
         chasset.material_slots[0].link = 'OBJECT'
         chasset.material_slots[0].material = mfalsecolor
         chasset.hide_set(True)
+        
+        new_objects.append(chasset)
                 
     else:        # for multiple assets, geometry nodes must use a collection instance, so wrap them
         chcollection = bpy.data.collections.new(mname+'_glyph_instance')
@@ -569,7 +658,9 @@ def make_chrono_glyphs_objects(mname,mpos,mrot, masset_list, list_clones_posrot,
         chassets_group.hide_render = True
         chassets_group.hide_viewport = True
 
-        mfalsecolor = make_material_falsecolor(mname+'_falsecolor', attr_name, attr_min, attr_max, def_colormap, per_instance=True)
+        mfalsecolor=None
+        if color_attr_name:
+            mfalsecolor = make_material_falsecolor(mname+'_falsecolor', color_attr_name, color_min, color_max, def_colormap, per_instance=True)
         
         for m in range(len(masset_list)):
             masset = chrono_assets.objects.get(masset_list[m][0])
@@ -599,8 +690,10 @@ def make_chrono_glyphs_objects(mname,mpos,mrot, masset_list, list_clones_posrot,
                 chasset.material_slots[0].link = 'OBJECT'
                 chasset.material_slots[0].material = mfalsecolor
                 chasset.hide_set(True)    
+                new_objects.append(chasset)
             else:
                 print("not found asset: ",masset_list[m][0])
+            
         
     ncl = len(list_clones_posrot)
     verts = [(0,0,0)] * (ncl)
@@ -664,10 +757,11 @@ def make_chrono_glyphs_objects(mname,mpos,mrot, masset_list, list_clones_posrot,
     # optional scalar or vector per-point properties for falsecolor 
     for ia in range(len(list_attributes)):
         if type(list_attributes[ia][1][0]) == tuple:
-            my_attr = [(0,0,0)] * (ncl)
-            for ic in range(ncl):
-                my_attr[ic] = list_attributes[ia][1][ic]
-            add_mesh_data_vectors(chobject, my_attr, list_attributes[ia][0], mdomain='POINT')
+            if len(list_attributes[ia][1][0])==3:
+                my_attr = [(0,0,0)] * (ncl)
+                for ic in range(ncl):
+                    my_attr[ic] = list_attributes[ia][1][ic]
+                add_mesh_data_vectors(chobject, my_attr, list_attributes[ia][0], mdomain='POINT')
         else:
             my_attr = [0] * (ncl)
             for ic in range(ncl):
@@ -675,82 +769,238 @@ def make_chrono_glyphs_objects(mname,mpos,mrot, masset_list, list_clones_posrot,
             add_mesh_data_floats(chobject, my_attr, list_attributes[ia][0], mdomain='POINT')
 
     chobject.modifiers[-1].node_group = node_group
-    return chobject
+    
+    new_objects.append(chobject)
+    
+    return new_objects
  
     
-    
+# Macro to generate vector glyphs, placed at position in list 'list_clones_pos'.
+# One can pass a list of attributes each in ["my_attr_name", [value,value,value,...]] format, 
+# where value can be float, (x,y,z) vector tuple, quaternion tuple, etc.
+# Vectors are assumed with x y z from 'dir' property in same absolute space, 
+# but if a 'basis' parameter is passed with quaternion rotations of n frames, 
+# then each dir is assumed with x y z expressed in the basis of that local frames. 
 def make_chrono_glyphs_vectors(mname,mpos,mrot, 
-                          list_clones_posdir, 
-                          list_attributes=[], 
-                          attr_name='', 
-                          attr_min=0, attr_max=1, 
-                          colormap=colormap_cooltowarm, 
-                          do_arrow_tip = True,
-                          thickness = 0.1,
-                          factor = 1.0): 
-    ncl = len(list_clones_posdir)
-    # hardwired cases of attributes for vectors
-    if attr_name == 'length':
-        list_lengths = np.empty((ncl, 1)).tolist()
-        for i in range(ncl):
-            list_lengths[i] = mathutils.Vector(list_clones_posdir[i][1]).length
-        list_attributes.append(['length',list_lengths])
+                          list_clones_pos, 
+                          list_attributes=[],
+                          dir=mathutils.Vector((1,0,0)),  # mathutils.Vector, or name of some vector attribute with list of (x,y,z)
+                          basis=mathutils.Quaternion((1,0,0,0)), # mathutils.Quaternion const, or name of some quaternion property with list of (w,x,y,z)
+                          length=0.1,               # float const, or float prop., or vector prop. names, ex. if "V" then arrow length=|V|*length_factor, if "my_float" arrow lenght=my_float*length_factor
+                          length_factor = 1.0,      # length=|v|*length_factor
+                          color='',                 # (r,g,b)color, or float prop. ex. "my_float". In the second case, the falsecolor of colormap will be used.
+                          color_min=0, color_max=1, 
+                          colormap=colormap_cooltowarm,    
+                          thickness = 0.1,         # float const, or float prop. name, ex. if "my_float" then arrow width =my_float*length_factor
+                          thickness_factor = 0.01,  # if thickness not const, then thickness=|v|*thickness_factor
+                          do_arrow_tip = True,      # vector extends with a pointed cone
+                          components = (True,True,True) # to select only x,y,z components, or xy xz yz pairs. Default xyz. Affects both 'dir' and 'lenght' (if vector property)
+                          ): 
+    new_objects = []
+    vcomponents = mathutils.Vector(components)
+    ncl = len(list_clones_pos)
     list_clones_posrotscale = np.empty((ncl, 3,3)).tolist()
+    
+    # default fallbacks if inputs are wrong or missing
+    mdirection = mathutils.Vector((1,0,0))
+    mbasis     = mathutils.Quaternion((1,0,0,0))
+    mthickness = 0.002
+    mlength    = 0.01 
+    # cases where dir,len,thickness,rot are given via floats or vectors etc, not via "my_attr" ids
+    mdirection = dir if not type(dir)==str else mdirection
+    mbasis = basis if not type(basis)==str else mbasis
+    mthickness = thickness if not type(thickness)==str else mthickness
+    mlength = length if not type(length)==str else mlength 
+    # cases where dir,len,thickness,rot are given via "my_attr" ids
+    attr_dir = [i for i in list_attributes if i[0]==dir]
+    attr_dir_isscalar = True if (attr_dir and type(attr_dir[0][1][0]) in (int,float)) else False
+    attr_dir_isvect   = True if (attr_dir and len(attr_dir[0][1][0]) == 3) else False
+    attr_basis = [i for i in list_attributes if i[0]==basis]
+    attr_basis_isquat   = True if (attr_basis and len(attr_basis[0][1][0]) == 4) else False
+    attr_thickness = [i for i in list_attributes if i[0]==thickness]
+    attr_thickness_isscalar = True if (attr_thickness and type(attr_thickness[0][1][0]) in (int,float)) else False
+    attr_thickness_isvect   = True if (attr_thickness and len(attr_thickness[0][1][0]) == 3) else False
+    attr_length = [i for i in list_attributes if i[0]==length]
+    attr_length_isscalar = True if (attr_length and type(attr_length[0][1][0]) in (int,float)) else False
+    attr_length_isvect   = True if (attr_length and len(attr_length[0][1][0]) == 3) else False
+    
     for i in range(ncl):
-        list_clones_posrotscale[i][0] = list_clones_posdir[i][0]
-        direction = mathutils.Vector(list_clones_posdir[i][1])
-        list_clones_posrotscale[i][1] = direction.to_track_quat('Z', 'Y').to_euler()
-        list_clones_posrotscale[i][2] = (thickness,thickness,factor*direction.length)
-    make_chrono_glyphs_objects(mname,mpos,mrot,
+        if attr_dir_isvect:
+            mdirection = mathutils.Vector(attr_dir[0][1][i])* vcomponents
+        if attr_dir_isscalar:
+            mdirection = mathutils.Vector((attr_dir[0][1][i],0,0))
+
+        if attr_thickness_isvect:
+            mthickness =(mathutils.Vector(attr_thickness[0][1][i])* vcomponents).length*thickness_factor
+        if attr_thickness_isscalar:
+            mthickness = attr_thickness[0][1][i]*thickness_factor
+            
+        if attr_length_isvect:
+            mlength = (mathutils.Vector(attr_length[0][1][i])* vcomponents).length*length_factor
+        if attr_length_isscalar:
+            mlength = attr_length[0][1][i]*length_factor
+        
+        if attr_basis_isquat:
+            mbasis = mathutils.Quaternion(attr_basis[0][1][i])
+            
+        tot_rot =  mbasis @ mdirection.to_track_quat('Z', 'Y') 
+        
+        list_clones_posrotscale[i][0] = list_clones_pos[i]
+        list_clones_posrotscale[i][1] = tot_rot.to_euler()
+        list_clones_posrotscale[i][2] = (mthickness,mthickness, mlength)
+    my_o = make_chrono_glyphs_objects(mname,mpos,mrot,
      [
       [bpy.data.objects['chrono_cylinder'], (0,0,0), (1,0,0,0), ""]
      ],
      list_clones_posrotscale,
      list_attributes,
-     attr_name, attr_min, attr_max, colormap
+     color, color_min, color_max, colormap
      )
+    new_objects.append(my_o)
     if do_arrow_tip:
         list_clones_posrotscale = np.empty((ncl, 3,3)).tolist()
         for i in range(ncl):
-            direction = mathutils.Vector(list_clones_posdir[i][1])
-            list_clones_posrotscale[i][0] = mathutils.Vector(list_clones_posdir[i][0])+(direction*factor)
-            list_clones_posrotscale[i][1] = direction.to_track_quat('Z', 'Y').to_euler()
-            list_clones_posrotscale[i][2] = (thickness*1.4,thickness*1.4,thickness*2)
-        make_chrono_glyphs_objects(mname+'_tip',mpos,mrot,
+            if attr_dir_isvect:
+                mdirection = mathutils.Vector(attr_dir[0][1][i])* vcomponents
+            if attr_dir_isscalar:
+                mdirection = mathutils.Vector((attr_dir[0][1][i],0,0))
+
+            if attr_thickness_isvect:
+                mthickness = (mathutils.Vector(attr_thickness[0][1][i])* vcomponents).length*thickness_factor
+            if attr_thickness_isscalar:
+                mthickness = attr_thickness[0][1][i]*thickness_factor
+                
+            if attr_length_isvect:
+                mlength = (mathutils.Vector(attr_length[0][1][i])* vcomponents).length*length_factor
+            if attr_length_isscalar:
+                mlength = attr_length[0][1][i]*length_factor
+                
+            if attr_basis_isquat:
+                mbasis = mathutils.Quaternion(attr_basis[0][1][i])
+                
+            tot_rot = mbasis @ mdirection.to_track_quat('Z', 'Y')
+            
+            displ = mdirection.normalized()*mlength
+            displ.rotate(mbasis)
+            
+            list_clones_posrotscale[i][0] = mathutils.Vector(list_clones_pos[i])+displ
+            list_clones_posrotscale[i][1] = tot_rot.to_euler()
+            list_clones_posrotscale[i][2] = (mthickness*1.4,mthickness*1.4,mthickness*2)
+        my_o = make_chrono_glyphs_objects(mname+'_tip',mpos,mrot,
          [
           [bpy.data.objects['chrono_cone'], (0,0,0), (1,0,0,0), ""]
          ],
          list_clones_posrotscale,
          list_attributes,
-         attr_name, attr_min, attr_max, colormap
+         color, color_min, color_max, colormap
          )
+        new_objects.append(my_o)
+    return new_objects
         
+# Macro to generate point glyphs, placed at position in list 'list_clones_pos'.
+# One can pass a list of attributes each in ["my_attr_name", [value,value,value,...]] format, 
+# where item can be float, (x,y,z) vector tuple, etc.
 def make_chrono_glyphs_points(mname,mpos,mrot, 
                           list_clones_pos, 
                           list_attributes=[], 
-                          attr_name='', 
-                          attr_min=0, attr_max=1, 
+                          color='', 
+                          color_min=0, color_max=1, 
                           colormap=colormap_cooltowarm, 
                           point_geometry = 'chrono_sphere',
-                          thickness = 0.1,
-                          factor = 1.0): 
+                          thickness = 0.1, # float const, or if='my_attr' then dot thickness=my_attr*thickness_factor
+                          thickness_factor = 0.01,  # if thickness not const, then thickness=my_attr*thickness_factor
+                          ): 
+    new_objects = []
     ncl = len(list_clones_pos)
     list_clones_posrotscale = np.empty((ncl, 3,3)).tolist()
+    
+    # default fallbacks if inputs are wrong or missing
+    mthickness = 0.002
+    # cases where dir,len,thickness,rot are given via floats or vectors etc, not via "my_attr" ids
+    mthickness = thickness if not type(thickness)==str else mthickness
+    # cases where dir,len,thickness,rot are given via "my_attr" ids
+    attr_thickness = [i for i in list_attributes if i[0]==thickness]
+    attr_thickness_isscalar = True if (attr_thickness and type(attr_thickness[0][1][0]) in (int,float)) else False
+    attr_thickness_isvect   = True if (attr_thickness and len(attr_thickness[0][1][0]) == 3) else False
+
     for i in range(ncl):
+        if attr_thickness_isvect:
+            mthickness = mathutils.Vector(attr_thickness[0][1][i]).length*thickness_factor
+        if attr_thickness_isscalar:
+            mthickness = attr_thickness[0][1][i]*thickness_factor
+            
         list_clones_posrotscale[i][0] = list_clones_pos[i]
         list_clones_posrotscale[i][1] = (0,0,0)
-        list_clones_posrotscale[i][2] = (thickness,thickness,thickness)
-    make_chrono_glyphs_objects(mname,mpos,mrot,
+        list_clones_posrotscale[i][2] = (mthickness,mthickness,mthickness)
+    my_o = make_chrono_glyphs_objects(mname,mpos,mrot,
      [
       [bpy.data.objects[point_geometry], (0,0,0), (1,0,0,0), ""]
      ],
      list_clones_posrotscale,
      list_attributes,
-     attr_name, attr_min, attr_max, colormap
+     color, color_min, color_max, colormap
      )
+    new_objects.append(my_o)
+    return new_objects
+   
     
+# Same as make_chrono_glyphs_vectors and make_chrono_glyphs_points, but uses a 
+# glyphsetting object to store input parameters like thickness etc, this because glyphsetting
+# can be persistent through frames and hence adjustable through the GUI.
+# Before calling this, one must call: setup_glyphvectsetting(...) 
+# and setup_property_scalar(..), setup_setup_property_vector(..) per each property in list_attributes
+def update_make_glyphs_vectors(glyphsetting, mname, mpos, mrot, list_clones_pos, list_attributes):
+ 
+    mlength = glyphsetting.length_scale
+    mlength_factor = glyphsetting.length_scale
+    if glyphsetting.length_type == 'ATTR':
+        mlength = glyphsetting.property[glyphsetting.property_index_length].name
+        
+    mthickness = glyphsetting.width_scale
+    mthickness_factor = glyphsetting.width_scale
+    if glyphsetting.width_type == 'ATTR':
+        mthickness = glyphsetting.property[glyphsetting.property_index_width].name
+        
+    mdir = glyphsetting.const_dir
+    if glyphsetting.dir_type == 'ATTR':
+        mdir = glyphsetting.property[glyphsetting.property_index_dir].name
+        
+    mbasis = glyphsetting.property[glyphsetting.property_index_basis].name
     
+    new_objs = []
     
+    if glyphsetting.glyph_type == 'VECTOR':
+        new_objs = make_chrono_glyphs_vectors(mname,mpos,mrot, 
+                          list_clones_pos, 
+                          list_attributes,
+                          dir = mdir,
+                          basis = mbasis,
+                          length = mlength, 
+                          length_factor = mlength_factor,
+                          color='',            
+                          color_min=0, color_max=1, 
+                          colormap=colormap_cooltowarm,    
+                          thickness = mthickness,
+                          thickness_factor = mthickness_factor,
+                          do_arrow_tip = glyphsetting.do_tip,      # vector extends with a pointed cone
+                          components = (glyphsetting.use_x,glyphsetting.use_y,glyphsetting.use_z))
+
+    if glyphsetting.glyph_type == 'SPHERE':
+        new_objs = make_chrono_glyphs_points(mname,mpos,mrot, 
+                          list_clones_pos, 
+                          list_attributes, 
+                          color='',             
+                          color_min=0, color_max=1, 
+                          colormap=colormap_cooltowarm, 
+                          point_geometry = 'chrono_sphere', 
+                          thickness = mthickness,
+                          thickness_factor = mthickness_factor)
+                          
+    for mobj in new_objs:
+        for mprop in list_attributes:
+            mat = update_glyphvectsetting_falsecolor_material(mobj[0],glyphsetting, mprop[0])
+    
+    return new_objs
     
     
 def update_camera_coordinates(mname,mpos,mrot):
@@ -829,7 +1079,7 @@ def callback_post(self):
             bpy.data.materials.remove(mmat)
         chrono_frame_materials = [] # empty list 
             
-        #orphan_materials = [m for m in bpy.data.materials if not m.users]
+        # orphan_materials = [m for m in bpy.data.materials if not m.users]
         #while orphan_materials:
         #    bpy.data.materials.remove(orphan_materials.pop())
             
@@ -890,8 +1140,14 @@ def read_chrono_simulation(context, filepath, setting_materials):
     global chrono_view_contacts
     global chrono_gui_doupdate
 
+    # disable Chrono GUI update, for performance when changing properties calling Update(), will be re-enabled at the end of this 
+    chrono_gui_doupdate = False
+
     bpy.context.scene.ch_meshsetting_index = -1
     bpy.context.scene.ch_meshsetting.clear()
+    
+    bpy.context.scene.ch_glyphvectsetting_index = -1
+    bpy.context.scene.ch_glyphvectsetting.clear()
     
     chrono_cameras = bpy.data.collections.get('chrono_cameras')
     if not chrono_cameras:
@@ -943,7 +1199,12 @@ def read_chrono_simulation(context, filepath, setting_materials):
     for mmat in chrono_materials:
         bpy.data.materials.remove(mmat)
     chrono_materials = [] # empty list
-               
+    
+    # remove all orphan materials (maybe too aggressive ?)
+    #orphan_materials = [m for m in bpy.data.materials if not m.users]
+    #while orphan_materials:
+    #    bpy.data.materials.remove(orphan_materials.pop())
+        
     orphan_image = [m for m in bpy.data.images if not m.users]
     while orphan_image:
         bpy.data.images.remove(orphan_image.pop())
@@ -1054,15 +1315,7 @@ def read_chrono_simulation(context, filepath, setting_materials):
 
     degp = bpy.context.evaluated_depsgraph_get()
 
-    chrono_gui_doupdate = False
-    bpy.context.scene.chrono_show_assets_coordsys = chrono_view_asset_csys
-    bpy.context.scene.chrono_assets_coordsys_size = chrono_view_asset_csys_size
-    bpy.context.scene.chrono_show_item_coordsys = chrono_view_item_csys
-    bpy.context.scene.chrono_item_coordsys_size = chrono_view_item_csys_size
-    bpy.context.scene.chrono_show_links_coordsys = chrono_view_link_csys
-    bpy.context.scene.chrono_links_coordsys_size = chrono_view_link_csys_size
-    bpy.context.scene.chrono_show_materials = chrono_view_materials
-    bpy.context.scene.chrono_show_contacts = chrono_view_contacts
+    # restore Chrono GUI update, disabled a beginning for performance
     chrono_gui_doupdate = True
     
     #clear the post frame handler
@@ -1183,22 +1436,23 @@ class Chrono_sidebar(Panel):
         col.prop(context.scene, "chrono_show_materials")
         col.prop(context.scene, "chrono_show_contacts")
         
-        col.label(text="Objects for falsecolor rendering:")
+        row0 = self.layout.row()
+        row0.label(text="Objects for falsecolor rendering:")
         
-        row = self.layout.row()
-        row.template_list("GUI_meshsettins", "", scn, "ch_meshsetting", scn, "ch_meshsetting_index", rows=5)
+        row1 = self.layout.row()
+        row1.template_list("GUI_meshsettins", "", scn, "ch_meshsetting", scn, "ch_meshsetting_index", rows=5)
 
         if scn.ch_meshsetting_index >= 0:
             msetting = scn.ch_meshsetting[scn.ch_meshsetting_index]
             row = self.layout.row()
-            split = row.split(factor=0.1)
+            split = row.split(factor=0.2)
             col1 = split.column()
             col2 = split.column()
-            col1.label(text="render")
+            col1.label(text="color")
             col2.template_list("GUI_properties", "",  msetting, "property",  msetting, "property_index", rows=4)
             if msetting.property_index >=0:
                 row = self.layout.row()
-                split = row.split(factor=0.1)
+                split = row.split(factor=0.2)
                 col1 = split.column()
                 col2 = split.column()
                 col1.label(text="")
@@ -1208,6 +1462,90 @@ class Chrono_sidebar(Panel):
                     col2.prop(msetting.property[msetting.property_index], "min", emboss=False, text="Min")
                     col2.prop(msetting.property[msetting.property_index], "max", emboss=False, text="Max")
                     col2.prop(msetting.property[msetting.property_index], "colorm", text="Colormap")
+        
+        row2 = self.layout.row()
+        row2.label(text="Vector glyphs:")
+        
+        row3 = self.layout.row()
+        row3.template_list("GUI_meshsettins", "", scn, "ch_glyphvectsetting", scn, "ch_glyphvectsetting_index", rows=3)
+        
+        if scn.ch_glyphvectsetting_index >= 0:
+            msetting = scn.ch_glyphvectsetting[scn.ch_glyphvectsetting_index]
+            row = self.layout.row()
+            split = row.split(factor=0.2)
+            col1 = split.column()
+            col2 = split.column()
+            col1.label(text="type")
+            col2.prop(msetting, "glyph_type", text="")
+            
+            if msetting.glyph_type == 'VECTOR':
+                row = self.layout.row()
+                split = row.split(factor=0.2)
+                col1 = split.column()
+                col2 = split.column()
+                rowl = col2.row()
+                rowl.prop(msetting, "do_tip", text="pointed tip")
+                rowl.prop(msetting, "use_x", text="x")
+                rowl.prop(msetting, "use_y", text="y")
+                rowl.prop(msetting, "use_z", text="z")
+                
+                row = self.layout.row()
+                split = row.split(factor=0.2)
+                col1 = split.column()
+                col2 = split.column()
+                col1.label(text="dir")
+                col2.prop(msetting, "dir_type", text="")
+                if msetting.dir_type == 'CONST':
+                    col2.prop(msetting, "const_dir", text="direction")
+                else:
+                    col2.template_list("GUI_properties", "",  msetting, "property",  msetting, "property_index_dir", rows=3)
+                
+                row = self.layout.row()
+                split = row.split(factor=0.2)
+                col1 = split.column()
+                col2 = split.column()
+                col1.label(text="basis")
+                col2.template_list("GUI_properties", "",  msetting, "property",  msetting, "property_index_basis", rows=3)
+                    
+                row = self.layout.row()
+                split = row.split(factor=0.2)
+                col1 = split.column()
+                col2 = split.column()
+                col1.label(text="length")
+                col2.prop(msetting, "length_type", text="")
+                if msetting.length_type == 'CONST':
+                    col2.prop(msetting, "length_scale", text="length")
+                else:
+                    col2.template_list("GUI_properties", "",  msetting, "property",  msetting, "property_index_length", rows=3)
+                    col2.prop(msetting, "length_scale", text="scaling factor")
+                    
+            row = self.layout.row()
+            split = row.split(factor=0.2)
+            col1 = split.column()
+            col2 = split.column()
+            col1.label(text="width")
+            col2.prop(msetting, "width_type", text="")
+            if msetting.width_type == 'CONST':
+                col2.prop(msetting, "width_scale", text="width")
+            else:
+                col2.template_list("GUI_properties", "",  msetting, "property",  msetting, "property_index_width", rows=3)
+                col2.prop(msetting, "width_scale", text="scaling factor")
+            row = self.layout.row()
+            split = row.split(factor=0.2)
+            col1 = split.column()
+            col2 = split.column()
+            col1.label(text="color")
+            col2.prop(msetting, "color_type", text="")
+            if msetting.color_type == 'CONST':
+                col2.prop(msetting, "const_color", text="color")
+            else:
+                col2.template_list("GUI_properties", "",  msetting, "property",  msetting, "property_index_color", rows=3)
+                if msetting.property_index_width >=0:
+                    if msetting.property[msetting.property_index_width].type != 'COLOR':
+                        col2.prop(msetting.property[msetting.property_index_width], "min", emboss=False, text="Min")
+                        col2.prop(msetting.property[msetting.property_index_width], "max", emboss=False, text="Max")
+                        col2.prop(msetting.property[msetting.property_index_width], "colorm", text="Colormap")
+
                                   
   
 class CUSTOM_propertyCollection(PropertyGroup):
@@ -1241,7 +1579,42 @@ class CUSTOM_meshsettingCollection(PropertyGroup):
     property_index: IntProperty(update=UpdatedMeshsetting)
     property: CollectionProperty(type=CUSTOM_propertyCollection)
     
-               
+class CUSTOM_glyphvectsettingCollection(PropertyGroup):
+    #name: StringProperty() -> Instantiated by default
+    glyph_type: EnumProperty(name = "glyph_type", items= [
+        ('SPHERE','Sphere',''),
+        ('VECTOR','Vector',''),],
+        update=UpdatedMeshsetting)
+    property: CollectionProperty(type=CUSTOM_propertyCollection)
+    property_index_dir: IntProperty(update=UpdatedMeshsetting)
+    property_index_length: IntProperty(update=UpdatedMeshsetting)
+    property_index_width: IntProperty(update=UpdatedMeshsetting)
+    property_index_color: IntProperty(update=UpdatedMeshsetting)
+    property_index_basis: IntProperty(update=UpdatedMeshsetting)
+    dir_type: EnumProperty(name = "dir_type", items= [
+        ('CONST','Constant',''),
+        ('ATTR','Property','')],
+        update=UpdatedMeshsetting)
+    length_type: EnumProperty(name = "lenght_type", items= [
+        ('CONST','Constant',''),
+        ('ATTR','Property','')],
+        update=UpdatedMeshsetting)
+    width_type: EnumProperty(name = "width_type", items= [
+        ('CONST','Constant',''),
+        ('ATTR','Property','')],
+        update=UpdatedMeshsetting)
+    color_type: EnumProperty(name = "color_type", items= [
+        ('CONST','Constant',''),
+        ('ATTR','Property','')],
+        update=UpdatedMeshsetting)
+    const_dir:  FloatVectorProperty(subtype='XYZ',update=UpdatedMeshsetting)
+    length_scale: FloatProperty(min=0, precision=5, update=UpdatedMeshsetting)
+    width_scale:  FloatProperty(min=0, soft_max=0.5, step=1, precision=5, update=UpdatedMeshsetting)
+    const_color:  FloatVectorProperty(subtype='COLOR',update=UpdatedMeshsetting)
+    use_x:  BoolProperty(update=UpdatedMeshsetting)
+    use_y:  BoolProperty(update=UpdatedMeshsetting)
+    use_z:  BoolProperty(update=UpdatedMeshsetting)
+    do_tip:  BoolProperty(update=UpdatedMeshsetting)
  
 sidebar_classes = [
     Chrono_operator,
@@ -1250,6 +1623,7 @@ sidebar_classes = [
     GUI_properties,
     CUSTOM_propertyCollection,
     CUSTOM_meshsettingCollection,
+    CUSTOM_glyphvectsettingCollection,
 ]
 
 
@@ -1380,6 +1754,12 @@ def register():
     bpy.context.scene.ch_meshsetting_index = -1
     bpy.context.scene.ch_meshsetting.clear()
     
+    bpy.types.Scene.ch_glyphvectsetting = CollectionProperty(type=CUSTOM_glyphvectsettingCollection, description = "Assets with data attached from Chrono, that can be rendered in falsecolor",)
+    bpy.types.Scene.ch_glyphvectsetting_index = IntProperty()
+
+    bpy.context.scene.ch_glyphvectsetting_index = -1
+    bpy.context.scene.ch_glyphvectsetting.clear()
+    
     
     
 
@@ -1395,6 +1775,8 @@ def unregister():
     del bpy.types.Scene.chrono_show_contacts
     del bpy.types.Scene.ch_meshsetting
     del bpy.types.Scene.ch_meshsetting_index 
+    del bpy.types.Scene.ch_glyphvectsetting
+    del bpy.types.Scene.ch_glyphvectsetting_index 
     for c in sidebar_classes:
         bpy.utils.unregister_class(c)
         
