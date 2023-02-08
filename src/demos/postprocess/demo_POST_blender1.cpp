@@ -146,7 +146,10 @@ int main(int argc, char* argv[]) {
         body->AddVisualShape(smallbox, ChFrame<>(pos, rot));
     }
 
-    // ==Asset== Attach a 'triangle mesh, defined via vertexes & triangle faces. Here, 4 vertexes, 2 faces 
+    // ==Asset== Attach a 'triangle mesh', defined via vertexes & triangle faces. Here, 4 vertexes, 2 faces
+    // Note that triangle mesh can contain float or scalar properties, per-face or per-vertex: these will be
+    // rendered using falsecolor color scales in Blender, selecting the desired property via the Chrono add-on GUI.
+
     auto trimesh = chrono_types::make_shared<ChTriangleMeshShape>();
       // ...four vertices
     trimesh->GetMesh()->getCoordsVertices() = std::vector<chrono::ChVector<>>{
@@ -178,10 +181,12 @@ int main(int argc, char* argv[]) {
     };
 
      // NOTE: optionally, you can add a scalar or vector property, per vertex or per face, that can
-     // be rendered via falsecolor in Blender:
+     // be rendered via falsecolor in Blender. Note that optionally we can suggest a min-max range for falsecolor scale.
     geometry::ChPropertyScalar my_scalars;
     my_scalars.name = "temperature";
     my_scalars.data = std::vector<double>{ 0, 10, 100, 120 };
+    my_scalars.min = 0;
+    my_scalars.max = 150;
     trimesh->GetMesh()->AddPropertyPerVertex(my_scalars);
 
     geometry::ChPropertyVector my_vectors;
@@ -189,11 +194,13 @@ int main(int argc, char* argv[]) {
     my_vectors.data = std::vector<ChVector<>>{ {0,1,2}, {3,0,0}, {0,0,2}, {0,0,0} };
     trimesh->GetMesh()->AddPropertyPerVertex(my_vectors);
 
-    body->AddVisualShape(trimesh, ChFrame<>(ChVector<>(-4, 0, 0)));
+    body->AddVisualShape(trimesh, ChFrame<>(ChVector<>(4, 1, -1)));
+    
 
 
     // ==Asset== Attach a video camera.
     // Note that a camera can also be attached to a moving object.
+
     auto camera = chrono_types::make_shared<ChCamera>();
     camera->SetAngle(50);
     camera->SetPosition(ChVector<>(-3, 4, -5));
@@ -210,11 +217,11 @@ int main(int argc, char* argv[]) {
     /* Start example */
     /// [Example 3]
 
-    // Create a ChParticleClones cluster, and attach 'assets'
+    // Create a ChParticleCloud cluster, and attach 'assets'
     // that define a single "sample" 3D shape. This will be shown
     // N times in Irrlicht.
 
-    // Create the ChParticleClones, populate it with some random particles,
+    // Create the ChParticleCloud populate it with some random particles,
     // and add it to physical system:
     auto particles = chrono_types::make_shared<ChParticleCloud>();
 
@@ -232,7 +239,7 @@ int main(int argc, char* argv[]) {
 
     // Do not forget to add the particle cluster to the system:
     sys.Add(particles);
-
+    
     //  ==Asset== Attach a 'sphere' shape asset.. it will be used as a sample
     // shape to display all particles when rendering in 3D!
     auto sphereparticle = chrono_types::make_shared<ChSphereShape>();
@@ -260,16 +267,25 @@ int main(int argc, char* argv[]) {
     blender_exporter.SetShowItemsFrames(true, 0.3);
 
     // Turn on exporting contacts
-    blender_exporter.SetShowContacts(true, 
-                        0.02,   // scaling factor for lenght of the vector arrow
-                        0.02,   // thickness of the vector arrow
-                        true, 0, 10); // true=use colormap, and min and max values for colormap  
-
+    blender_exporter.SetShowContactsVectors(
+                ChBlender::ContactSymbolVectorLength::ATTR, // vector symbol lenght is given by |F|  property (contact force) 
+                0.005,                                      // absolute length of symbol if CONSTANT, or length scaling factor if ATTR
+                "F",                                        // name of the property to use for lenght if in ATTR mode (currently only option: "F") 
+                ChBlender::ContactSymbolVectorWidth::CONSTANT, // vector symbol lenght is a constant value 
+                0.01,                                       // absolute width of symbol if CONSTANT, or width scaling factor if ATTR
+                "",                                         // name of the property to use for width if in ATTR mode (currently only option: "F") 
+                ChBlender::ContactSymbolColor::ATTR,        // vector symbol color is a falsecolor depending on |F| property  (contact force) 
+                ChColor(),                                  // absolute constant color if CONSTANT, not used if ATTR
+                "F",                                        // name of the property to use for falsecolor scale if in ATTR mode (currently only option: "F") 
+                0, 1000,                                    // falsecolor scale min - max values. 
+                true                                        // show a pointed tip on the end of the arrow, otherwise leave a simple cylinder 
+    );
+                    
     //
-    // RUN THE SIMULATION AND SAVE THE POVray FILES AT EACH FRAME
+    // RUN THE SIMULATION AND SAVE THE BLENDER FILES AT EACH FRAME
     //
 
-    // 1) Create the two .pov and .ini files for POV-Ray (this must be done
+    // 1) Create the export.assets.py  file for Blender (this must be done
     //    only once at the beginning of the simulation).
 
     blender_exporter.ExportScript();
@@ -279,7 +295,7 @@ int main(int argc, char* argv[]) {
 
         GetLog() << "time= " << sys.GetChTime() << "\n";
 
-        // 2) Create the incremental nnnnn.dat and nnnnn.pov files in output/ dir, that will be load
+        // 2) Create the incremental nnnnn.py files in output/ dir, that will be load
         //    by the Blender chrono_import add-on.
         blender_exporter.ExportData();
     }
