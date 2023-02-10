@@ -469,9 +469,10 @@ void main()
 
 #ifdef VSG_OPACITY_MAP
     vec4 a_map = texture(opacityMap, texCoord0);
-    float at = (a_map.r + a_map.g + a_map.b)/3;
+    float a_old = baseColor.a;
+    float at = (a_map.r + a_map.g + a_map.b + a_old)/4;
     if (baseColor.a > pbr.alphaMaskCutoff)
-        baseColor.a = (a_map.r + a_map.g + a_map.b)/3;
+        baseColor.a = at;
 #endif
 
     outColor = LINEARtoSRGB(vec4(color, baseColor.a));

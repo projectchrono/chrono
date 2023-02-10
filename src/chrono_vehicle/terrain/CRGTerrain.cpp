@@ -524,7 +524,6 @@ void CRGTerrain::SetupMeshGraphics() {
         auto material = chrono_types::make_shared<ChVisualMaterial>();
         material->SetDiffuseColor(ChColor(1.0f, 1.0f, 1.0f));
         material->SetAmbientColor(ChColor(1.0f, 1.0f, 1.0f));
-        material->SetEmissiveColor(ChColor(0.1f, 0.1f, 0.1f));
         double scale_u = 0.5 * GetLength() / GetWidth();
         double scale_w = 1.0;
         if(m_use_diffuseTexture)

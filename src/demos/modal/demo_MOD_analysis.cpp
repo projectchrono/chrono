@@ -165,7 +165,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool b
     ChSolverComplexPardisoMKL factorization;
     factorization.GetMklEngine().pardisoParameterArray()[12] = 1;  // custom setting for Pardiso
 #else
-    ChSolverSparseComplexQR mfactorization;
+    ChSolverSparseComplexQR factorization;
 #endif
 
     assembly->ComputeModesDamped(ChModalSolveDamped(

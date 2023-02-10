@@ -698,7 +698,7 @@ void ChVisualSystemVSG::Initialize() {
     auto ambientLight = vsg::AmbientLight::create();
     ambientLight->name = "ambient";
     ambientLight->color.set(1.0f, 1.0f, 1.0f);
-    ambientLight->intensity = 0.1f;
+    ambientLight->intensity = 0.2f;
 
     auto directionalLight = vsg::DirectionalLight::create();
     directionalLight->name = "head light";
