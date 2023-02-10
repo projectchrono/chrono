@@ -28,7 +28,11 @@
 
 #include "chrono_modal/ChModalAssembly.h"
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
-#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+
+#include "chrono/solver/ChDirectSolverLS.h"
+#ifdef CHRONO_PARDISO_MKL
+    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+#endif
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -80,54 +84,54 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
     // The ChModalAssembly is the most important item when doing modal analysis.
     // You must add finite elements, bodies and constraints into this assembly in order
     // to compute the modal frequencies etc.; objects not added into this won't be counted.
-    auto my_assembly = chrono_types::make_shared<ChModalAssembly>();
-    sys.Add(my_assembly);
+    auto assembly = chrono_types::make_shared<ChModalAssembly>();
+    sys.Add(assembly);
 
     // Now populate the assembly to analyze.
     // In this demo, make a cantilever with fixed end
 
-    // MESH:  Create two FEM meshes: one for nodes that will be removed in modal reduction,
-    //        the other for the nodes that will remain after modal reduction.
+    // Create two FEM meshes: one for nodes that will be removed in modal reduction,
+    // the other for the nodes that will remain after modal reduction.
 
-    auto my_mesh_internal = chrono_types::make_shared<ChMesh>();
-    my_assembly->AddInternal(my_mesh_internal);  // NOTE: MESH FOR INTERNAL NODES: USE my_assembly->AddInternal()
+    auto mesh_internal = chrono_types::make_shared<ChMesh>();
+    assembly->AddInternal(mesh_internal);  // NOTE: MESH FOR INTERNAL NODES: USE assembly->AddInternal()
 
-    auto my_mesh_boundary = chrono_types::make_shared<ChMesh>();
-    my_assembly->Add(my_mesh_boundary);  // NOTE: MESH FOR BOUNDARY NODES: USE my_assembly->Add()
+    auto mesh_boundary = chrono_types::make_shared<ChMesh>();
+    assembly->Add(mesh_boundary);  // NOTE: MESH FOR BOUNDARY NODES: USE assembly->Add()
 
-    my_mesh_internal->SetAutomaticGravity(false);
-    my_mesh_boundary->SetAutomaticGravity(false);
+    mesh_internal->SetAutomaticGravity(false);
+    mesh_boundary->SetAutomaticGravity(false);
 
     // BEAMS:
 
     // Create a simplified section, i.e. thickness and material properties
     // for beams. This will be shared among some beams.
-    auto msection = chrono_types::make_shared<ChBeamSectionEulerAdvanced>();
+    auto section = chrono_types::make_shared<ChBeamSectionEulerAdvanced>();
 
-    msection->SetDensity(beam_density);
-    msection->SetYoungModulus(beam_Young);
-    msection->SetGwithPoissonRatio(0.31);
-    msection->SetBeamRaleyghDampingBeta(0.01);
-    msection->SetBeamRaleyghDampingAlpha(0.0001);
-    msection->SetAsRectangularSection(beam_wy, beam_wz);
+    section->SetDensity(beam_density);
+    section->SetYoungModulus(beam_Young);
+    section->SetGwithPoissonRatio(0.31);
+    section->SetBeamRaleyghDampingBeta(0.01);
+    section->SetBeamRaleyghDampingAlpha(0.0001);
+    section->SetAsRectangularSection(beam_wy, beam_wz);
 
     ChBuilderBeamEuler builder;
 
-    // The first node is a boundary node: add it to my_mesh_boundary
+    // The first node is a boundary node: add it to mesh_boundary
     auto my_node_A_boundary = chrono_types::make_shared<ChNodeFEAxyzrot>();
     my_node_A_boundary->SetMass(0);
     my_node_A_boundary->GetInertia().setZero();
-    my_mesh_boundary->AddNode(my_node_A_boundary);
+    mesh_boundary->AddNode(my_node_A_boundary);
 
-    // The last node is a boundary node: add it to my_mesh_boundary
+    // The last node is a boundary node: add it to mesh_boundary
     auto my_node_B_boundary = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L, 0, 0)));
     my_node_B_boundary->SetMass(0);
     my_node_B_boundary->GetInertia().setZero();
-    my_mesh_boundary->AddNode(my_node_B_boundary);
+    mesh_boundary->AddNode(my_node_B_boundary);
 
-    // The other nodes are internal nodes: let the builder.BuildBeam add them to my_mesh_internal
-    builder.BuildBeam(my_mesh_internal,    // the mesh where to put the created nodes and elements
-                      msection,            // the ChBeamSectionEuler to use for the ChElementBeamEuler elements
+    // The other nodes are internal nodes: let the builder.BuildBeam add them to mesh_internal
+    builder.BuildBeam(mesh_internal,       // the mesh where to put the created nodes and elements
+                      section,             // the ChBeamSectionEuler to use for the ChElementBeamEuler elements
                       n_elements,          // the number of ChElementBeamEuler to create
                       my_node_A_boundary,  // the 'A' point in space (beginning of beam)
                       my_node_B_boundary,  // ChVector<>(beam_L, 0, 0), // the 'B' point in space (end of beam)
@@ -139,13 +143,13 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(1, 2, 2, 200);
         my_body_A->SetBodyFixed(true);
         my_body_A->SetPos(ChVector<>(-0.5, 0, 0));
-        my_assembly->Add(my_body_A);
+        assembly->Add(my_body_A);
 
         // my_node_A_boundary->SetFixed(true); // NO - issues with bookeeping in modal_Hblock ***TO FIX***, for the
         // moment: Constraint the boundary node to truss
         auto my_root = chrono_types::make_shared<ChLinkMateGeneric>();
         my_root->Initialize(my_node_A_boundary, my_body_A, ChFrame<>(ChVector<>(0, 0, 1), QUNIT));
-        my_assembly->Add(my_root);
+        assembly->Add(my_root);
     } else {
         // BODY: the base:
         auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(1, 2, 2, 200);
@@ -163,24 +167,24 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         // BODY: in the middle, as internal
         auto my_body_B = chrono_types::make_shared<ChBodyEasyBox>(1.8, 1.8, 1.8, 200);
         my_body_B->SetPos(ChVector<>(beam_L * 0.5, 0, 0));
-        my_assembly->AddInternal(my_body_B);
+        assembly->AddInternal(my_body_B);
 
         auto my_mid_constr = chrono_types::make_shared<ChLinkMateGeneric>();
         my_mid_constr->Initialize(builder.GetLastBeamNodes()[n_elements / 2], my_body_B,
                                   ChFrame<>(ChVector<>(beam_L * 0.5, 0, 0), QUNIT));
-        my_assembly->AddInternal(my_mid_constr);
+        assembly->AddInternal(my_mid_constr);
     }
 
     if (add_boundary_body) {
         // BODY: in the end, as boundary
         auto my_body_C = chrono_types::make_shared<ChBodyEasyBox>(0.8, 0.8, 0.8, 200);
         my_body_C->SetPos(ChVector<>(beam_L, 0, 0));
-        my_assembly->Add(my_body_C);
+        assembly->Add(my_body_C);
 
         auto my_end_constr = chrono_types::make_shared<ChLinkMateGeneric>();
         my_end_constr->Initialize(builder.GetLastBeamNodes().back(), my_body_C,
                                   ChFrame<>(ChVector<>(beam_L, 0, 0), QUNIT));
-        my_assembly->Add(my_end_constr);
+        assembly->Add(my_end_constr);
     }
 
     if (add_other_assemblies) {
@@ -206,12 +210,12 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         sys.Add(my_end_constr2);
 
         // example if putting additional items in a second assembly (just a simple rotating blade)
-        auto my_assembly0 = chrono_types::make_shared<ChAssembly>();
-        sys.Add(my_assembly0);
+        auto assembly0 = chrono_types::make_shared<ChAssembly>();
+        sys.Add(assembly0);
 
         auto my_body_blade = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.6, 0.2, 150);
         my_body_blade->SetPos(ChVector<>(beam_L * 1.15, 0.3, 0));
-        my_assembly0->Add(my_body_blade);
+        assembly0->Add(my_body_blade);
 
         auto rotmotor1 = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
         rotmotor1->Initialize(
@@ -222,7 +226,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         auto mwspeed =
             chrono_types::make_shared<ChFunction_Const>(CH_C_2PI);  // constant angular speed, in [rad/s], 2PI/s =360°/s
         rotmotor1->SetSpeedFunction(mwspeed);
-        my_assembly0->Add(rotmotor1);
+        assembly0->Add(rotmotor1);
     }
 
     if (add_force) {
@@ -253,18 +257,18 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         };
         auto my_callback = chrono_types::make_shared<MyCallback>();
 
-        my_assembly->RegisterCallback_CustomForceFull(my_callback);
+        assembly->RegisterCallback_CustomForceFull(my_callback);
     }
 
     // Just for later reference, dump  M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
     sys.Setup();
     sys.Update();
-    my_assembly->DumpSubassemblyMatrices(true, true, true, true, (out_dir + "/dump").c_str());
+    assembly->DumpSubassemblyMatrices(true, true, true, true, (out_dir + "/dump").c_str());
 
     if (do_modal_reduction) {
         // HERE PERFORM THE MODAL REDUCTION!
 
-        my_assembly->SwitchModalReductionON(
+        assembly->SwitchModalReductionON(
             6,  // The number of modes to retain from modal reduction, or a ChModalSolveUndamped with more settings
             ChModalDampingRayleigh(0.001,
                                    0.005)  // The damping model - Optional parameter: default is ChModalDampingNone().
@@ -272,7 +276,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
 
         // Other types of damping that you can try, in SwitchModalReductionON:
         //    ChModalDampingNone()                    // no damping (also default)
-        //    ChModalDampingReductionR(*my_assembly)  // transforms the original damping matrix of the full subassembly
+        //    ChModalDampingReductionR(*assembly)  // transforms the original damping matrix of the full subassembly
         //    ChModalDampingReductionR(full_R_ext)    // transforms an externally-provided damping matrix of the full
         //    subassembly ChModalDampingCustom(reduced_R_ext)     // uses an externally-provided damping matrix of the
         //    reduced subassembly ChModalDampingRayleigh(0.01, 0.05)      // generates a damping matrix from reduced M
@@ -287,24 +291,24 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         // OPTIONAL
 
         // Just for later reference, dump reduced M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
-        my_assembly->DumpSubassemblyMatrices(true, true, true, true, (out_dir + "/dump_reduced").c_str());
+        assembly->DumpSubassemblyMatrices(true, true, true, true, (out_dir + "/dump_reduced").c_str());
 
         // Use this for high simulation performance (the internal nodes won't be updated for postprocessing)
-        // my_assembly->SetInternalNodesUpdate(false);
+        // assembly->SetInternalNodesUpdate(false);
 
         // Finally, log damped eigenvalue analysis to see the effect of the modal damping (0= search ALL damped modes)
-        my_assembly->ComputeModesDamped(0);
+        assembly->ComputeModesDamped(0);
 
-        for (int i = 0; i < my_assembly->Get_modes_frequencies().rows(); ++i)
-            GetLog() << " Damped mode n." << i << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i)
-                     << "   damping factor z: " << my_assembly->Get_modes_damping_ratios()(i) << "\n";
+        for (int i = 0; i < assembly->Get_modes_frequencies().rows(); ++i)
+            GetLog() << " Damped mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i)
+                     << "   damping factor z: " << assembly->Get_modes_damping_ratios()(i) << "\n";
 
         // Finally, check if we approximately have the same eigenmodes of the original not reduced assembly:
-        my_assembly->ComputeModes(12);
+        assembly->ComputeModes(12);
 
         // If you need to enter more detailed settings for the eigenvalue solver, do this :
         /*
-        my_assembly->ComputeModes(ChModalSolveUndamped(
+        assembly->ComputeModes(ChModalSolveUndamped(
             12,             // n. nodes to search
             1e-5,           // base freq.
             500,            // max iterations
@@ -314,16 +318,16 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         );
         */
 
-        for (int i = 0; i < my_assembly->Get_modes_frequencies().rows(); ++i)
-            GetLog() << " Mode n." << i << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i) << "\n";
+        for (int i = 0; i < assembly->Get_modes_frequencies().rows(); ++i)
+            GetLog() << " Mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i) << "\n";
 
     } else {
         // Otherwise we perform a conventional modal analysis on the full ChModalAssembly.
-        my_assembly->ComputeModes(12);
+        assembly->ComputeModes(12);
 
         // If you need to focus on modes in specific frequency regions, use {nmodes, about_freq} pairs as in :
         /*
-        my_assembly->ComputeModes(ChModalSolveUndamped(
+        assembly->ComputeModes(ChModalSolveUndamped(
             { { 8, 1e-3 },{2, 2.5} },   // 8 smallest freq.modes, plus 2 modes closest to 2.5 Hz
             500,                        // max iterations per each {modes,freq} pair
             1e-10,                      // tolerance
@@ -332,34 +336,34 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         );
         */
 
-        for (int i = 0; i < my_assembly->Get_modes_frequencies().rows(); ++i)
-            GetLog() << " Mode n." << i << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i) << "\n";
+        for (int i = 0; i < assembly->Get_modes_frequencies().rows(); ++i)
+            GetLog() << " Mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i) << "\n";
     }
 
     // VISUALIZATION ASSETS:
 
-    auto mvisualizeInternalA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh_internal);
-    mvisualizeInternalA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MY);
-    mvisualizeInternalA->SetColorscaleMinMax(-600, 600);
-    mvisualizeInternalA->SetSmoothFaces(true);
-    mvisualizeInternalA->SetWireframe(false);
-    my_mesh_internal->AddVisualShapeFEA(mvisualizeInternalA);
+    auto visualizeInternalA = chrono_types::make_shared<ChVisualShapeFEA>(mesh_internal);
+    visualizeInternalA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MY);
+    visualizeInternalA->SetColorscaleMinMax(-600, 600);
+    visualizeInternalA->SetSmoothFaces(true);
+    visualizeInternalA->SetWireframe(false);
+    mesh_internal->AddVisualShapeFEA(visualizeInternalA);
 
-    auto mvisualizeInternalB = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh_internal);
-    mvisualizeInternalB->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
-    mvisualizeInternalB->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
-    mvisualizeInternalB->SetSymbolsThickness(0.2);
-    mvisualizeInternalB->SetSymbolsScale(0.1);
-    mvisualizeInternalB->SetZbufferHide(false);
-    my_mesh_internal->AddVisualShapeFEA(mvisualizeInternalB);
+    auto visualizeInternalB = chrono_types::make_shared<ChVisualShapeFEA>(mesh_internal);
+    visualizeInternalB->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
+    visualizeInternalB->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    visualizeInternalB->SetSymbolsThickness(0.2);
+    visualizeInternalB->SetSymbolsScale(0.1);
+    visualizeInternalB->SetZbufferHide(false);
+    mesh_internal->AddVisualShapeFEA(visualizeInternalB);
 
-    auto mvisualizeBoundaryB = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh_boundary);
-    mvisualizeBoundaryB->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
-    mvisualizeBoundaryB->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
-    mvisualizeBoundaryB->SetSymbolsThickness(0.4);
-    mvisualizeBoundaryB->SetSymbolsScale(4);
-    mvisualizeBoundaryB->SetZbufferHide(false);
-    my_mesh_boundary->AddVisualShapeFEA(mvisualizeBoundaryB);
+    auto visualizeBoundaryB = chrono_types::make_shared<ChVisualShapeFEA>(mesh_boundary);
+    visualizeBoundaryB->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
+    visualizeBoundaryB->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    visualizeBoundaryB->SetSymbolsThickness(0.4);
+    visualizeBoundaryB->SetSymbolsScale(4);
+    visualizeBoundaryB->SetZbufferHide(false);
+    mesh_boundary->AddVisualShapeFEA(visualizeBoundaryB);
 
     // This is needed if you want to see things in Irrlicht
     vis.BindAll();
@@ -467,9 +471,14 @@ int main(int argc, char* argv[]) {
     auto my_gui_info =
         vis.GetGUIEnvironment()->addStaticText(L" ", irr::core::rect<irr::s32>(400, 80, 850, 200), false, true, 0);
 
-    // Change solver to PardisoMKL
+    // Set linear solver
+#ifdef CHRONO_PARDISO_MKL
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     sys.SetSolver(mkl_solver);
+#else
+    auto qr_solver = chrono_types::make_shared<ChSolverSparseQR>();
+    sys.SetSolver(qr_solver);
+#endif
 
     /*
     // Use HHT second order integrator (but slower)

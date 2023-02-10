@@ -7,7 +7,7 @@
   "Inertia": [ 0.113, 0.113, 0.113 ],
 
   "Visualization": {
-    "Mesh Filename": "meshes/Polaris_wheel.obj",
+    "Mesh Filename": "Polaris/meshes/Polaris_wheel.obj",
     "Radius": 0.268,
     "Width": 0.22
   }

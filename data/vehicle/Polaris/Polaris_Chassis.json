@@ -23,6 +23,6 @@
   },
 
   "Visualization": {
-    "Mesh": "meshes/Polaris_chassis.obj"
+    "Mesh": "Polaris/meshes/Polaris_chassis.obj"
   }
 }

@@ -30,6 +30,8 @@ const double M113_DrivelineBDS::m_differentialbox_inertia = 0.6;
 
 const double M113_DrivelineBDS::m_conicalgear_ratio = 0.5;
 
+const double M113_DrivelineBDS::m_differential_locking_limit = 100;
+
 // -----------------------------------------------------------------------------
 // Constructor of the M113_DrivelineBDS.
 // the direction of the motor block is along the X axis, while the directions of

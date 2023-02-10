@@ -127,6 +127,11 @@ void ChTrackedVehicle::Advance(double step) {
     m_contact_manager->Process(this);
 }
 
+void ChTrackedVehicle::LockDifferential(bool lock) {
+    if (m_driveline)
+        m_driveline->LockDifferential(lock);
+}
+
 // Disconnect driveline
 void ChTrackedVehicle::DisconnectDriveline() {
     if (m_driveline)

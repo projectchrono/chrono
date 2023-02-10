@@ -84,9 +84,19 @@ void ChTrackDrivelineBDS::Initialize(std::shared_ptr<ChChassis> chassis,
                                track_right->GetSprocket()->GetAxle());
     m_differential->SetTransmissionRatioOrdinary(-1.0);
     sys->Add(m_differential);
+
+    // Create the clutch for front differential locking. By default, unlocked.
+    m_clutch = chrono_types::make_shared<ChShaftsClutch>();
+    m_clutch->Initialize(track_left->GetSprocket()->GetAxle(), track_right->GetSprocket()->GetAxle());
+    m_clutch->SetTorqueLimit(GetDifferentialLockingLimit());
+    m_clutch->SetModulation(0);
+    sys->Add(m_clutch);
 }
 
-// -----------------------------------------------------------------------------
+void ChTrackDrivelineBDS::LockDifferential(bool lock) {
+    m_clutch->SetModulation(lock ? 1 : 0);
+}
+
 void ChTrackDrivelineBDS::CombineDriverInputs(const DriverInputs& driver_inputs,
                                               double& braking_left,
                                               double& braking_right) {

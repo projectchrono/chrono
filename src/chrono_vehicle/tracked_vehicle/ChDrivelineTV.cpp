@@ -32,6 +32,10 @@ void ChDrivelineTV::Synchronize(double time, const DriverInputs& driver_inputs, 
     m_driveshaft->SetAppliedTorque(torque);
 }
 
+void ChDrivelineTV::LockDifferential(bool lock) {
+    GetLog() << "WARNING: Differential locking not yet implemented for " << GetTemplateName() << "\n";
+}
+
 void ChDrivelineTV::CombineDriverInputs(const DriverInputs& driver_inputs,
                                         double& braking_left,
                                         double& braking_right) {
