@@ -43,6 +43,8 @@ class CH_VEHICLE_API TrackDrivelineBDS : public ChTrackDrivelineBDS {
 
     virtual double GetConicalGearRatio() const override { return m_conicalgear_ratio; }
 
+    virtual double GetDifferentialLockingLimit() const override { return m_differential_locking_limit; }
+
   private:
     virtual void Create(const rapidjson::Document& d) override;
 
@@ -52,6 +54,9 @@ class CH_VEHICLE_API TrackDrivelineBDS : public ChTrackDrivelineBDS {
 
     // Gear ratio
     double m_conicalgear_ratio;
+
+    // Differential locking torque limit.
+    double m_differential_locking_limit;
 };
 
 /// @} vehicle_tracked_driveline
