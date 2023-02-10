@@ -36,13 +36,6 @@ layout(binding = 5) uniform sampler2D specularMap;
 layout(binding = 7) uniform sampler2D opacityMap;
 #endif
 
-layout(set = 0, binding = 9) uniform TextureRepeat
-{
-    float uScale;
-    float vScale;
-    float wScale;
-} texrepeat;
-
 layout(binding = 10) uniform PbrData
 {
     vec4 baseColorFactor;
@@ -119,14 +112,14 @@ vec3 getNormal()
     vec3 result;
 #ifdef VSG_NORMAL_MAP
     // Perturb normal, see http://www.thetenthplanet.de/archives/1180
-    vec3 tangentNormal = texture(normalMap, vec2(texCoord0.s * texrepeat.uScale, texCoord0.t * texrepeat.vScale)).xyz * 2.0 - 1.0;
+    vec3 tangentNormal = texture(normalMap, texCoord0).xyz * 2.0 - 1.0;
 
     //tangentNormal *= vec3(2,2,1);
 
     vec3 q1 = dFdx(eyePos);
     vec3 q2 = dFdy(eyePos);
-    vec2 st1 = dFdx(vec2(texCoord0.s * texrepeat.uScale, texCoord0.t * texrepeat.vScale));
-    vec2 st2 = dFdy(vec2(texCoord0.s * texrepeat.uScale, texCoord0.t * texrepeat.vScale));
+    vec2 st1 = dFdx(texCoord0);
+    vec2 st2 = dFdy(texCoord0);
 
     vec3 N = normalize(normalDir);
     vec3 T = normalize(q1 * st2.t - q2 * st1.t);
@@ -285,7 +278,7 @@ vec3 BRDF(vec3 u_LightColor, vec3 v, vec3 n, vec3 l, vec3 h, float perceptualRou
     color *= ao;
 
 #ifdef VSG_EMISSIVE_MAP
-    vec3 emissive = SRGBtoLINEAR(texture(emissiveMap, vec2(texCoord0.s * texrepeat.uScale, texCoord0.t * texrepeat.vScale))).rgb * pbr.emissiveFactor.rgb;
+    vec3 emissive = SRGBtoLINEAR(texture(emissiveMap, texCoord0)).rgb * pbr.emissiveFactor.rgb;
 #else
     vec3 emissive = pbr.emissiveFactor.rgb;
 #endif
@@ -324,10 +317,10 @@ void main()
 
 #ifdef VSG_DIFFUSE_MAP
     #ifdef VSG_GREYSACLE_DIFFUSE_MAP
-        float v = texture(diffuseMap, vec2(texCoord0.s * texrepeat.uScale, texCoord0.t * texrepeat.vScale).st).s * pbr.baseColorFactor;
+        float v = texture(diffuseMap, texCoord0.st).s * pbr.baseColorFactor;
         baseColor = vertexColor * vec4(v, v, v, 1.0);
     #else
-        baseColor = vertexColor * SRGBtoLINEAR(texture(diffuseMap, vec2(texCoord0.s * texrepeat.uScale, texCoord0.t * texrepeat.vScale))) * pbr.baseColorFactor;
+        baseColor = vertexColor * SRGBtoLINEAR(texture(diffuseMap, texCoord0)) * pbr.baseColorFactor;
     #endif
 #else
     baseColor = vertexColor * pbr.baseColorFactor;
@@ -341,14 +334,14 @@ void main()
 
 #ifdef VSG_WORKFLOW_SPECGLOSS
     #ifdef VSG_DIFFUSE_MAP
-        vec4 diffuse = SRGBtoLINEAR(texture(diffuseMap, vec2(texCoord0.s * texrepeat.uScale, texCoord0.t * texrepeat.vScale)));
+        vec4 diffuse = SRGBtoLINEAR(texture(diffuseMap, texCoord0));
     #else
         vec4 diffuse = vec4(1.0);
     #endif
 
     #ifdef VSG_SPECULAR_MAP
-        vec3 specular = SRGBtoLINEAR(texture(specularMap, vec2(texCoord0.s * texrepeat.uScale, texCoord0.t * texrepeat.vScale))).rgb;
-        perceptualRoughness = 1.0 - texture(specularMap, vec2(texCoord0.s * texrepeat.uScale, texCoord0.t * texrepeat.vScale)).a;
+        vec3 specular = SRGBtoLINEAR(texture(specularMap, texCoord0)).rgb;
+        perceptualRoughness = 1.0 - texture(specularMap, texCoord0).a;
     #else
         vec3 specular = vec3(0.0);
         perceptualRoughness = 0.0;
@@ -368,14 +361,14 @@ void main()
         metallic = pbr.metallicFactor;
 
     #ifdef VSG_METALLROUGHNESS_MAP
-        vec4 mrSample = texture(mrMap, vec2(texCoord0.s * texrepeat.uScale, texCoord0.t * texrepeat.vScale));
+        vec4 mrSample = texture(mrMap, texCoord0);
         perceptualRoughness = mrSample.g * perceptualRoughness;
         metallic = mrSample.b * metallic;
     #endif
 #endif
 
 #ifdef VSG_LIGHTMAP_MAP
-    ambientOcclusion = texture(aoMap, vec2(texCoord0.s * texrepeat.uScale, texCoord0.t * texrepeat.vScale)).r;
+    ambientOcclusion = texture(aoMap, texCoord0).r;
 #endif
 
     diffuseColor = baseColor.rgb * (vec3(1.0) - f0);
@@ -475,8 +468,10 @@ void main()
     }
 
 #ifdef VSG_OPACITY_MAP
-    vec4 a_map = texture(opacityMap, vec2(texCoord0.s * texrepeat.uScale, texCoord0.t * texrepeat.vScale));
-    baseColor.a = (a_map.r + a_map.g + a_map.b)/3;
+    vec4 a_map = texture(opacityMap, texCoord0);
+    float at = (a_map.r + a_map.g + a_map.b)/3;
+    if (baseColor.a > pbr.alphaMaskCutoff)
+        baseColor.a = (a_map.r + a_map.g + a_map.b)/3;
 #endif
 
     outColor = LINEARtoSRGB(vec4(color, baseColor.a));
