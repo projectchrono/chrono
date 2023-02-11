@@ -50,13 +50,19 @@ public:
     vsg::ref_ptr<vsg::SharedObjects> m_sharedObjects;
     float m_maxAnisotropy = 0.0f;
     
-    vsg::ref_ptr<vsg::Group> createShape(BasicShape theShape,
+    vsg::ref_ptr<vsg::Group> createPhongShape(BasicShape theShape,
                                          std::shared_ptr<ChVisualMaterial> material,
                                          vsg::ref_ptr<vsg::MatrixTransform> transform,
                                          bool drawMode,
                                          std::shared_ptr<ChSurfaceShape> surface = nullptr);
     
-    // variant for general use, mesh can have unknown structure and noncontiguous faces
+    vsg::ref_ptr<vsg::Group> createPbrShape(BasicShape theShape,
+                                         std::shared_ptr<ChVisualMaterial> material,
+                                         vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                         bool drawMode,
+                                         std::shared_ptr<ChSurfaceShape> surface = nullptr);
+    
+   // variant for general use, mesh can have unknown structure and noncontiguous faces
     // face normals will be converted to vertex normals, it will be bloated by additional vertices
     vsg::ref_ptr<vsg::Group> createTrimeshColShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                    bool drawMode,

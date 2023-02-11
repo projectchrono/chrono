@@ -27,7 +27,7 @@ ChVisualMaterial::ChVisualMaterial()
       fresnel_max(1),
       fresnel_min(0.f),
       illum(0),
-      roughness(1),
+      roughness(0),
       metallic(0),
       use_specular_workflow(true),
       class_id(0),

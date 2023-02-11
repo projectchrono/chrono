@@ -32,7 +32,7 @@ void ShapeBuilder::assignCompileTraversal(vsg::ref_ptr<vsg::CompileTraversal> ct
     compileTraversal = ct;
 }
 
-vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
+vsg::ref_ptr<vsg::Group> ShapeBuilder::createPhongShape(BasicShape theShape,
                                                    std::shared_ptr<ChVisualMaterial> material,
                                                    vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                    bool drawMode,
@@ -94,29 +94,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
         // read displacement map not considered in Chrono
     }
 
-    /*
-     // read texture image for diffuse light
-    vsg::Path normalTextureFile(material->GetNormalMapTexture());
-    if (normalTextureFile) {
-        auto normalTextureData = vsg::read_cast<vsg::Data>(normalTextureFile, m_options);
-        if (!normalTextureData) {
-            std::cout << "Could not read texture file : " << normalTextureFile << std::endl;
-        } else {
-            // enable texturing with mipmaps
-            auto sampler = vsg::Sampler::create();
-            sampler->maxLod = static_cast<uint32_t>(std::floor(
-                                  std::log2(std::max(normalTextureData->width(), normalTextureData->height())))) +
-                              1;
-            sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
-            sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-            sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-            graphicsPipelineConfig->assignTexture(descriptors, "normalMap", normalTextureData, sampler);
-            // vsg combines material color and texture color, better use only one of it
-            // phongMat->value().diffuse.set(1.0, 1.0, 1.0, alpha);
-        }
-    }
-     */
-    // set transparency, if needed
+     // set transparency, if needed
     vsg::ColorBlendState::ColorBlendAttachments colorBlendAttachments;
     VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
     colorBlendAttachment.blendEnable = VK_FALSE;  // default
@@ -248,6 +226,202 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
 
     return scenegraph;
 }
+
+vsg::ref_ptr<vsg::Group> ShapeBuilder::createPbrShape(BasicShape theShape,
+                                                   std::shared_ptr<ChVisualMaterial> material,
+                                                   vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                                   bool drawMode,
+                                                   std::shared_ptr<ChSurfaceShape> surface) {
+    auto scenegraph = vsg::Group::create();
+
+    vsg::ref_ptr<vsg::ShaderSet> shaderSet;
+
+    auto repeatValues = vsg::vec3Value::create();
+    repeatValues->set(vsg::vec3(material->GetKdTextureScale().x(), material->GetKdTextureScale().y(), 1.0f));
+    shaderSet = createTilingPbrShaderSet(m_options);
+
+    auto rasterizationState = vsg::RasterizationState::create();
+    if (drawMode) {
+        rasterizationState->polygonMode = VK_POLYGON_MODE_LINE;
+    }
+    shaderSet->defaultGraphicsPipelineStates.push_back(rasterizationState);
+    auto graphicsPipelineConfig = vsg::GraphicsPipelineConfigurator::create(shaderSet);
+    auto& defines = graphicsPipelineConfig->shaderHints->defines;
+
+    // set up graphics pipeline
+    vsg::Descriptors descriptors;
+
+    // set up pass of material
+    auto pbrMat = createPbrMaterialFromChronoMaterial(material);
+
+    if(!material->GetKdTexture().empty())
+    {
+        vsg::Path diffusePath(material->GetKdTexture());
+        std::string uniName("diffuseMap");
+        bool ok = ApplyTexture(diffusePath, graphicsPipelineConfig, descriptors, uniName);
+        if(!ok) GetLog() << "Could not read texture file: " << diffusePath << "\n";
+        pbrMat->value().diffuseFactor.set(1.0, 1.0, 1.0, pbrMat->value().alphaMask);
+    }
+
+    if(!material->GetNormalMapTexture().empty()) {
+        vsg::Path normalPath(material->GetNormalMapTexture());
+        std::string uniName("normalMap");
+        bool ok = ApplyTexture(normalPath, graphicsPipelineConfig, descriptors, uniName);
+        if(!ok) GetLog() << "Could not read texture file: " << normalPath.string() << "\n";
+    }
+
+    if(!material->GetKsTexture().empty()) {
+        vsg::Path specularPath(material->GetKsTexture());
+        std::string uniName("specularMap");
+        bool ok = ApplyTexture(specularPath, graphicsPipelineConfig, descriptors, uniName);
+        if(!ok) GetLog() << "Could not read texture file: " << specularPath.string() << "\n";
+    }
+
+    {
+        // read ambient occlusion map not considered in Chrono!
+    }
+
+    {
+        // read emissive map not considered in Chrono!
+    }
+
+    {
+        // read displacement map not considered in Chrono
+    }
+
+     // set transparency, if needed
+    vsg::ColorBlendState::ColorBlendAttachments colorBlendAttachments;
+    VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
+    colorBlendAttachment.blendEnable = VK_FALSE;  // default
+    colorBlendAttachment.colorWriteMask =
+        VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+    if (pbrMat->value().alphaMask < 1.0) {
+        colorBlendAttachment.blendEnable = VK_TRUE;
+        colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+        colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+        colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+        colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+        colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+        colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+    }
+    colorBlendAttachments.push_back(colorBlendAttachment);
+    graphicsPipelineConfig->colorBlendState = vsg::ColorBlendState::create(colorBlendAttachments);
+    graphicsPipelineConfig->assignUniform(descriptors, "texrepeat", repeatValues);
+    graphicsPipelineConfig->assignUniform(descriptors, "PbrData", pbrMat);
+
+    if (m_options->sharedObjects)
+        m_options->sharedObjects->share(descriptors);
+
+    vsg::ref_ptr<vsg::vec3Array> vertices;
+    vsg::ref_ptr<vsg::vec3Array> normals;
+    vsg::ref_ptr<vsg::vec2Array> texcoords;
+    vsg::ref_ptr<vsg::ushortArray> indices;
+    float boundingSphereRadius;
+    switch (theShape) {
+        case BOX_SHAPE:
+            GetBoxShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
+            break;
+        case DIE_SHAPE:
+            GetDiceShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
+            break;
+        case SPHERE_SHAPE:
+            GetSphereShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
+            break;
+        case CYLINDER_SHAPE:
+            GetCylinderShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
+            break;
+        case CAPSULE_SHAPE:
+            GetCapsuleShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
+            break;
+        case CONE_SHAPE:
+            GetConeShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
+            break;
+        case SURFACE_SHAPE:
+            GetSurfaceShapeData(surface, vertices, normals, texcoords, indices, boundingSphereRadius);
+            break;
+    }
+    auto colors = vsg::vec4Value::create(vsg::vec4{1.0f, 1.0f, 1.0f, 1.0f});
+
+    vsg::DataList vertexArrays;
+
+    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Vertex", VK_VERTEX_INPUT_RATE_VERTEX, vertices);
+    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Normal", VK_VERTEX_INPUT_RATE_VERTEX, normals);
+    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_TexCoord0", VK_VERTEX_INPUT_RATE_VERTEX, texcoords);
+    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Color", VK_VERTEX_INPUT_RATE_INSTANCE, colors);
+
+    if (m_options->sharedObjects)
+        m_options->sharedObjects->share(vertexArrays);
+    if (m_options->sharedObjects)
+        m_options->sharedObjects->share(indices);
+
+    // setup geometry
+    auto drawCommands = vsg::Commands::create();
+    drawCommands->addChild(vsg::BindVertexBuffers::create(graphicsPipelineConfig->baseAttributeBinding, vertexArrays));
+    drawCommands->addChild(vsg::BindIndexBuffer::create(indices));
+    drawCommands->addChild(vsg::DrawIndexed::create(indices->size(), 1, 0, 0, 0));
+
+    if (m_options->sharedObjects) {
+        m_options->sharedObjects->share(drawCommands->children);
+        m_options->sharedObjects->share(drawCommands);
+    }
+
+    // register the ViewDescriptorSetLayout.
+    vsg::ref_ptr<vsg::ViewDescriptorSetLayout> vdsl;
+    if (m_options->sharedObjects)
+        vdsl = m_options->sharedObjects->shared_default<vsg::ViewDescriptorSetLayout>();
+    else
+        vdsl = vsg::ViewDescriptorSetLayout::create();
+    graphicsPipelineConfig->additionalDescriptorSetLayout = vdsl;
+
+    // share the pipeline config and initialize if it's unique
+    if (m_options->sharedObjects)
+        m_options->sharedObjects->share(graphicsPipelineConfig, [](auto gpc) { gpc->init(); });
+    else
+        graphicsPipelineConfig->init();
+
+    auto descriptorSet = vsg::DescriptorSet::create(graphicsPipelineConfig->descriptorSetLayout, descriptors);
+    if (m_options->sharedObjects)
+        m_options->sharedObjects->share(descriptorSet);
+
+    auto bindDescriptorSet = vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                                            graphicsPipelineConfig->layout, 0, descriptorSet);
+    if (m_options->sharedObjects)
+        m_options->sharedObjects->share(bindDescriptorSet);
+
+    auto bindViewDescriptorSets =
+        vsg::BindViewDescriptorSets::create(VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineConfig->layout, 1);
+    if (m_options->sharedObjects)
+        m_options->sharedObjects->share(bindViewDescriptorSets);
+
+    // create StateGroup as the root of the scene/command graph to hold the GraphicsProgram, and binding of Descriptors
+    // to decorate the whole graph
+    auto stateGroup = vsg::StateGroup::create();
+    stateGroup->add(graphicsPipelineConfig->bindGraphicsPipeline);
+    stateGroup->add(bindDescriptorSet);
+    stateGroup->add(bindViewDescriptorSets);
+
+    // set up model transformation node
+    transform->subgraphRequiresLocalFrustum = false;
+
+    // add drawCommands to StateGroup
+    stateGroup->addChild(drawCommands);
+    if (m_options->sharedObjects) {
+        m_options->sharedObjects->share(stateGroup);
+    }
+    transform->addChild(stateGroup);
+
+    if (m_options->sharedObjects) {
+        m_options->sharedObjects->share(transform);
+    }
+
+    scenegraph->addChild(transform);
+
+    if (compileTraversal)
+        compileTraversal->compile(scenegraph);
+
+    return scenegraph;
+}
+
 
 vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                              bool drawMode,
@@ -1994,8 +2168,9 @@ bool ShapeBuilder::ApplyTexture(vsg::Path &path, vsg::ref_ptr<vsg::GraphicsPipel
 vsg::ref_ptr<vsg::PbrMaterialValue> ShapeBuilder::createPbrMaterialFromChronoMaterial(std::shared_ptr<chrono::ChVisualMaterial> chronoMat) {
     auto pbrMat = vsg::PbrMaterialValue::create();
     float alpha = chronoMat->GetOpacity();
-    pbrMat->value().baseColorFactor.set(chronoMat->GetDiffuseColor().R, chronoMat->GetDiffuseColor().G,
-                                      chronoMat->GetDiffuseColor().B, alpha);
+    float dim = 0.5f;
+    pbrMat->value().baseColorFactor.set(dim*chronoMat->GetDiffuseColor().R, dim*chronoMat->GetDiffuseColor().G,
+                                        dim*chronoMat->GetDiffuseColor().B, alpha);
     pbrMat->value().emissiveFactor.set(chronoMat->GetEmissiveColor().R,chronoMat->GetEmissiveColor().G,chronoMat->GetEmissiveColor().B,alpha);
     pbrMat->value().specularFactor.set(chronoMat->GetSpecularColor().R, chronoMat->GetSpecularColor().G, chronoMat->GetSpecularColor().B, alpha);
     pbrMat->value().roughnessFactor = chronoMat->GetRoughness();
