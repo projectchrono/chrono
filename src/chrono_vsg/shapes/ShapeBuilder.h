@@ -82,8 +82,6 @@ public:
                                                       bool drawMode,
                                                       std::shared_ptr<ChTriangleMeshShape> tms = nullptr);
     
-    vsg::ref_ptr<vsg::Group> createParticlePattern(std::shared_ptr<ChVisualMaterial> material, bool drawMode);
-    
     vsg::ref_ptr<vsg::Group> createCoGSymbol(vsg::ref_ptr<vsg::MatrixTransform> transform);
     
     vsg::ref_ptr<vsg::Group> createLineShape(ChVisualModel::ShapeInstance shapeInstance,

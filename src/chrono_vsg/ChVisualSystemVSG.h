@@ -219,6 +219,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     bool m_capture_image;         ///< export current frame to image file
     std::string m_imageFilename;  ///< name of file to export current frame
 
+    // Infos for deformable soil
     size_t m_num_vsgVertexList = 0;
     bool m_allowVertexTransfer = false;
     bool m_allowNormalsTransfer = false;
@@ -228,6 +229,12 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     std::vector<vsg::ref_ptr<vsg::vec4Array>> m_vsgColorsList;
     std::shared_ptr<ChTriangleMeshShape> m_mbsMesh;
 
+    // Infos for updatable particle positions
+    size_t m_numParticles = 0;
+    bool m_allowPositionTransfer = 0;
+    std::vector<vsg::ref_ptr<vsg::vec3Array>> m_vsgPositionList;
+    std::shared_ptr<ChParticleCloud> m_particleCloud;
+    
   private:
     /// Utility function to populate a VSG group with shape groups (from the given visual model).
     /// The visual model may or may not be associated with a Chrono physics item.
@@ -246,8 +253,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     int m_numThreads = 16;
     vsg::ref_ptr<vsg::OperationThreads> m_loadThreads;
-
-    vsg::ref_ptr<vsg::Group> m_particlePattern;  ///< cache for particle shape
 
     bool m_useSkybox;
     std::string m_skyboxPath;
