@@ -76,6 +76,10 @@ ChSystemFsi::ChSystemFsi(ChSystem* sysMBS)
 
 ChSystemFsi::~ChSystemFsi() {}
 
+void ChSystemFsi::AttachSystem(ChSystem* sysMBS) {
+    m_sysMBS = sysMBS;
+}
+
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChSystemFsi::InitParams() {

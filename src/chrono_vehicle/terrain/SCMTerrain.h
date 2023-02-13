@@ -82,8 +82,8 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
 
     /// Construct a default SCM deformable terrain.
     /// The user is responsible for calling various Set methods before Initialize.
-    SCMTerrain(ChSystem* system,               ///< [in] pointer to the containing multibody system
-                         bool visualization_mesh = true  ///< [in] enable/disable visualization asset
+    SCMTerrain(ChSystem* system,               ///< [in] containing multibody system
+               bool visualization_mesh = true  ///< [in] enable/disable visualization asset
     );
 
     ~SCMTerrain() {}
@@ -377,7 +377,7 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
         double massremainder;      // for bulldozing
         double step_plastic_flow;  // for bulldozing
 
-        NodeRecord() : NodeRecord(0, 0, ChVector<>(0,0,1)) {}
+        NodeRecord() : NodeRecord(0, 0, ChVector<>(0, 0, 1)) {}
         ~NodeRecord() {}
 
         NodeRecord(double init_level, double level, const ChVector<>& n)

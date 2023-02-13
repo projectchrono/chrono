@@ -1,0 +1,235 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2023 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Author: Radu Serban
+// =============================================================================
+//
+// Demonstration of the granular SPH terrain sys in Chrono::Vehicle.
+//
+// =============================================================================
+
+#include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemSMC.h"
+#include "chrono/physics/ChLinkMotorRotationAngle.h"
+
+#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/terrain/SPHTerrain.h"
+
+#include "chrono_fsi/ChSystemFsi.h"
+#include "chrono_fsi/ChVisualizationFsi.h"
+
+#include "chrono_thirdparty/cxxopts/ChCLI.h"
+#include "chrono_thirdparty/filesystem/path.h"
+
+using namespace chrono;
+using namespace chrono::fsi;
+using namespace chrono::vehicle;
+
+using std::cout;
+using std::cin;
+using std::endl;
+
+const std::string out_dir = GetChronoOutputPath() + "SPH_TERRAIN_OBSTACLE";
+
+// -----------------------------------------------------------------------------
+
+bool GetProblemSpecs(int argc,
+                     char** argv,
+                     double& density,
+                     double& cohesion,
+                     double& friction,
+                     double& youngs_modulus,
+                     double& poisson_ratio,
+                     double& tend,
+                     double& step_size,
+                     double& active_box_dim,
+                     bool& verbose);
+
+// -----------------------------------------------------------------------------
+
+int main(int argc, char* argv[]) {
+    // Parse command line arguments
+    double density = 1700;
+    double cohesion = 1e3;
+    double friction = 0.8;
+    double youngs_modulus = 1e6;
+    double poisson_ratio = 0.3;
+
+    double tend = 30;
+    double step_size = 5e-4;
+    double active_box_dim = 0.5;
+
+    bool run_time_vis = true;              // run-time visualization?
+    double run_time_vis_fps = 0;           // render frequency (0: every simulation frame)
+    bool run_time_vis_terrain_sph = true;  // render terrain SPH particles?
+    bool run_time_vis_terrain_bce = true;  // render terrain BCE markers?
+    bool run_time_vis_bce = true;          // render moving BCE markers?
+
+    bool verbose = true;
+
+    if (!GetProblemSpecs(argc, argv,                                                  //
+                         density, cohesion, friction, youngs_modulus, poisson_ratio,  //
+                         tend, step_size, active_box_dim,                             //
+                         verbose)) {
+        return 1;
+    }
+
+    // Initialize output
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+
+    // Create the Chrono system
+    ChSystemNSC sys;
+
+    // Create the terrain system
+    SPHTerrain terrain(sys, 0.02);
+    ChSystemFsi& sysFSI = terrain.GetSystemFSI();
+
+    // Set SPH parameters and soil material properties
+    const ChVector<> gravity(0, 0, -9.81);
+    sysFSI.Set_G_acc(gravity);
+    sys.Set_G_acc(gravity);
+
+    ChSystemFsi::ElasticMaterialProperties mat_props;
+    mat_props.Young_modulus = youngs_modulus;
+    mat_props.Poisson_ratio = poisson_ratio;
+    mat_props.stress = 0;  // default
+    mat_props.viscosity_alpha = 0.5;
+    mat_props.viscosity_beta = 0.0;
+    mat_props.mu_I0 = 0.04;
+    mat_props.mu_fric_s = friction;
+    mat_props.mu_fric_2 = friction;
+    mat_props.average_diam = 0.005;
+    mat_props.friction_angle = CH_C_PI / 10;  // default
+    mat_props.dilation_angle = CH_C_PI / 10;  // default
+    mat_props.cohesion_coeff = 0;             // default
+    mat_props.kernel_threshold = 0.8;
+
+    sysFSI.SetElasticSPH(mat_props);
+    sysFSI.SetDensity(density);
+    sysFSI.SetCohesionForce(cohesion);
+
+    //sysFSI.SetActiveDomain(ChVector<>(active_box_dim, active_box_dim, 1));
+    sysFSI.SetDiscreType(false, false);
+    sysFSI.SetWallBC(BceVersion::ORIGINAL);
+    sysFSI.SetSPHMethod(FluidDynamics::WCSPH);
+    sysFSI.SetStepSize(step_size);
+    sysFSI.SetVerbose(verbose);
+
+    // Add obstacles
+    terrain.AddRigidObstacle(GetChronoDataFile("models/sphere.obj"), 0.25, 10000, ChContactMaterialData(),
+                             ChFrame<>(ChVector<>(0, 0, 0.35)));
+
+    terrain.Initialize(vehicle::GetDataFile("terrain/height_maps/bump64.bmp"),  // height map image file
+                       2, 1,                                                    // length (X) and width (Y)
+                       {0, 0.3},                                                // height range
+                       0.3,                                                     // depth
+                       3,                                                       // number of BCE layers
+                       ChVector<>(0, 0, 0),                                     // patch center
+                       0.0,                                                     // patch yaw rotation
+                       false                                                    // side walls?
+    );
+    terrain.SaveMarkers(out_dir);
+
+#ifdef CHRONO_OPENGL
+    // Create run-time visualization
+    opengl::ChVisualSystemOpenGL vis;
+    ChVisualizationFsi visFSI(&sysFSI, &vis);
+    std::shared_ptr<ChBody> sentinel;
+    if (run_time_vis) {
+        visFSI.SetTitle("Chrono::FSI single wheel demo");
+        visFSI.SetSize(1280, 720);
+        visFSI.UpdateCamera(ChVector<>(2, 1, 0.5), ChVector<>(0, 0, 0));
+        visFSI.SetCameraMoveScale(0.2f);
+        visFSI.EnableFluidMarkers(run_time_vis_terrain_sph);
+        visFSI.EnableBoundaryMarkers(run_time_vis_terrain_bce);
+        visFSI.EnableRigidBodyMarkers(run_time_vis_bce);
+        visFSI.SetRenderMode(ChVisualizationFsi::RenderMode::SOLID);
+        visFSI.SetParticleRenderMode(sysFSI.GetInitialSpacing() / 2, ChVisualizationFsi::RenderMode::SOLID);
+
+        vis.AttachSystem(&sys);
+        vis.Initialize();
+        visFSI.Initialize();
+    }
+#endif
+
+    // Simulation loop
+    int render_steps = (run_time_vis_fps > 0) ? (int)std::round((1.0 / run_time_vis_fps) / step_size) : 1;
+
+    double t = 0;
+    int frame = 0;
+
+    while (t < tend) {
+        std::cout << "Time: " << t << std::endl;
+#ifdef CHRONO_OPENGL
+        if (run_time_vis && frame % render_steps == 0) {
+            if (!visFSI.Render())
+                break;
+        }
+#endif
+
+        sysFSI.DoStepDynamics_FSI();
+
+        t += step_size;
+        frame++;
+    }
+
+    return 0;
+}
+
+// -----------------------------------------------------------------------------
+
+bool GetProblemSpecs(int argc,
+                     char** argv,
+                     double& density,
+                     double& cohesion,
+                     double& friction,
+                     double& youngs_modulus,
+                     double& poisson_ratio,
+                     double& tend,
+                     double& step_size,
+                     double& active_box_dim,
+                     bool& verbose) {
+    ChCLI cli(argv[0], "SPH terrain simulation");
+
+    cli.AddOption<double>("Problem setup", "density", "Material density [kg/m3]", std::to_string(density));
+    cli.AddOption<double>("Problem setup", "cohesion", "Cohesion [Pa]", std::to_string(cohesion));
+    cli.AddOption<double>("Problem setup", "friction", "Coefficient of friction", std::to_string(friction));
+    cli.AddOption<double>("Problem setup", "youngs_modulus", "Young's modulus [Pa]", std::to_string(youngs_modulus));
+    cli.AddOption<double>("Problem setup", "poisson_ratio", "Poission ratio", std::to_string(poisson_ratio));
+
+    cli.AddOption<double>("Simulation", "tend", "Simulation end time [s]", std::to_string(tend));
+    cli.AddOption<double>("Simulation", "step_size", "Integration step size [s]", std::to_string(step_size));
+    cli.AddOption<double>("Simulation", "active_box_dim", "Active box half-size [m]", std::to_string(active_box_dim));
+
+    cli.AddOption<bool>("", "quiet", "Disable all messages during simulation");
+
+    if (!cli.Parse(argc, argv)) {
+        cli.Help();
+        return false;
+    }
+
+    density = cli.GetAsType<double>("density");
+    cohesion = cli.GetAsType<double>("cohesion");
+    friction = cli.GetAsType<double>("friction");
+    youngs_modulus = cli.GetAsType<double>("youngs_modulus");
+    poisson_ratio = cli.GetAsType<double>("poisson_ratio");
+
+    tend = cli.GetAsType<double>("tend");
+    step_size = cli.GetAsType<double>("step_size");
+    active_box_dim = cli.GetAsType<double>("active_box_dim");
+
+    verbose = !cli.GetAsType<bool>("quiet");
+
+    return true;
+}

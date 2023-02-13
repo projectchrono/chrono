@@ -273,6 +273,12 @@ if(HAVE_OPENCRG)
         terrain/CRGTerrain.cpp
     )
 endif()
+if(ENABLE_MODULE_FSI)
+    set(CV_TERRAIN_FILES ${CV_TERRAIN_FILES}
+        terrain/SPHTerrain.h
+        terrain/SPHTerrain.cpp    
+    )
+endif()
 source_group("terrain" FILES ${CV_TERRAIN_FILES})
 
 set(CV_UTILS_FILES
@@ -824,6 +830,11 @@ endif()
 if(HAVE_OPENCRG)
     include_directories(${OPENCRG_INCLUDE_DIR})
     list(APPEND LIBRARIES ${OPENCRG_LIBRARY})
+endif()
+
+if(ENABLE_MODULE_FSI)
+  include_directories(${CH_FSI_INCLUDES})
+  list(APPEND LIBRARIES ChronoEngine_fsi)
 endif()
 
 add_library(ChronoEngine_vehicle SHARED

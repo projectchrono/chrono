@@ -36,6 +36,12 @@ if(ENABLE_MODULE_MULTICORE AND ENABLE_MODULE_OPENGL)
     )
 endif()
 
+if(ENABLE_MODULE_FSI AND ENABLE_MODULE_OPENGL)
+    set(DEMOS ${DEMOS}
+        demo_VEH_SPHTerrain_Obstacles
+    )
+endif()
+
 if(ENABLE_MODULE_PARDISO_MKL)
     set(DEMOS ${DEMOS}
         demo_VEH_SCMTerrain_FEATire
@@ -70,6 +76,11 @@ if(ENABLE_MODULE_MULTICORE)
     include_directories(${CH_MULTICORE_INCLUDES})
     set(COMPILER_FLAGS "${CH_CXX_FLAGS}  ${CH_MULTICORE_CXX_FLAGS}")
     list(APPEND LIBS "ChronoEngine_multicore")
+endif()
+
+if(ENABLE_MODULE_FSI)
+    include_directories(${CH_FSI_INCLUDES})
+    list(APPEND LIBS "ChronoEngine_fsi")
 endif()
 
 if(ENABLE_MODULE_PARDISO_MKL)

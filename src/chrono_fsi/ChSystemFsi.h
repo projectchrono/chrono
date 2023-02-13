@@ -92,6 +92,9 @@ class CH_FSI_API ChSystemFsi {
     /// Destructor for the FSI system.
     ~ChSystemFsi();
 
+    /// Attach Chrono MBS system.
+    void AttachSystem(ChSystem* sysMBS);
+
     /// Function to integrate the FSI system in time.
     /// It uses a Runge-Kutta 2nd order algorithm to update both the fluid and multibody system dynamics. The midpoint
     /// data of MBS is needed for fluid dynamics update.
