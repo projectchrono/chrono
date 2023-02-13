@@ -68,8 +68,6 @@ set(CE_VSG_SHAPES_FILES
     shapes/GetDiceShapeData.h
     shapes/GetSphereShapeData.cpp
     shapes/GetSphereShapeData.h
-    shapes/GetParticleShapeData.cpp
-    shapes/GetParticleShapeData.h
     shapes/GetSurfaceShapeData.cpp
     shapes/GetSurfaceShapeData.h
     shapes/ShapeBuilder.cpp

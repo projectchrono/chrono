@@ -129,6 +129,7 @@ class CH_VEHICLE_API CRGTerrain : public ChTerrain {
     /// Use a texture file, if mesh representation is desired (optional, should not be used with Irrlicht)
     void SetRoadDiffuseTextureFile(std::string diffTexFile);
     void SetRoadNormalTextureFile(std::string normTexFile);
+    void SetRoadRoughnessTextureFile(std::string roughTexFile);
 
     /// Export road mesh to Wavefront file.
     void ExportMeshWavefront(const std::string& out_dir);
@@ -153,6 +154,8 @@ class CH_VEHICLE_API CRGTerrain : public ChTerrain {
     bool m_use_diffuseTexture; // if set, use a textured mesh
     std::string m_normal_texture_filename;
     bool m_use_normalTexture; // if set, use a textured mesh
+    std::string m_rough_texture_filename;
+    bool m_use_roughTexture; // if set, use a textured mesh
 
     std::shared_ptr<ChBody> m_ground;  ///< ground body
     bool m_use_vis_mesh;               ///< mesh or boundary visual asset?

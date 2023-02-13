@@ -54,6 +54,11 @@ void TrackDrivelineBDS::Create(const rapidjson::Document& d) {
     m_differentialbox_inertia = d["Differential Box Inertia"].GetDouble();
 
     m_conicalgear_ratio = d["Conical Gear Ratio"].GetDouble();
+
+    m_differential_locking_limit = 100;
+    if (d.HasMember("Differential Locking Limit")) {
+        m_differential_locking_limit = d["Differential Locking Limit"].GetDouble();
+    }
 }
 
 }  // end namespace vehicle

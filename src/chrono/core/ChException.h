@@ -21,28 +21,26 @@ namespace chrono {
 
 /// Class for exceptions for throw() catch() mechanism.
 /// Each class can contain a message in form of text.
-
 class ChException : public std::exception {
-  protected:
-    std::string m_swhat;
-
   public:
-    /// Constructor for a basic exception: sets the exception
-    /// message as a string 'swhat'.
-    ChException(std::string swhat) : m_swhat(swhat){};
+    /// Constructor for a basic exception: sets the exception message to the specified string.
+    ChException(const std::string& swhat) : m_swhat(swhat) {}
 
-    /// Copy constructor
-    ChException(const ChException& right) : m_swhat(right.what()){};
+    /// Copy constructor.
+    ChException(const ChException& right) : m_swhat(right.what()) {}
 
-    /// Assignment = operator
+    /// Assignment operator.
     ChException& operator=(const ChException& right) {
         m_swhat = right.what();
         return *this;
     }
 
-    virtual ~ChException() throw(){};
+    virtual ~ChException() noexcept {}
 
     virtual const char* what() const throw() { return m_swhat.c_str(); }
+
+  protected:
+    std::string m_swhat;
 };
 
 }  // end namespace chrono

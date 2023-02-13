@@ -84,7 +84,8 @@ void ChVisualShape::SetTexture(const std::string& filename, float scale_x, float
     else if (material_list[0] == ChVisualMaterial::Default())
         material_list[0] = std::make_shared<ChVisualMaterial>(*ChVisualMaterial::Default());
 
-    material_list[0]->SetKdTexture(filename, scale_x, scale_y);
+    material_list[0]->SetKdTexture(filename);
+    material_list[0]->SetTextureScale(scale_x, scale_y);
 }
 
 std::string ChVisualShape::GetTexture() const {

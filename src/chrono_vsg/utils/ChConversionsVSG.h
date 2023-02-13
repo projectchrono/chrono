@@ -18,7 +18,7 @@
 #include <vsg/maths/mat4.h>
 #include <vsg/maths/vec3.h>
 
-#include "chrono/core/ChFrame.h"
+#include "chrono/physics/ChBody.h"
 
 #include "chrono_vsg/ChApiVSG.h"
 

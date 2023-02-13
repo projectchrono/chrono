@@ -12,6 +12,13 @@ layout(push_constant) uniform PushConstants {
 layout(binding = 6) uniform sampler2D displacementMap;
 #endif
 
+layout(binding = 9) uniform TextureRepeat
+{
+    float scale_s;
+    float scale_t;
+    float scale_disp;
+} texrepeat;
+
 layout(location = 0) in vec3 vsg_Vertex;
 layout(location = 1) in vec3 vsg_Normal;
 layout(location = 2) in vec2 vsg_TexCoord0;
@@ -57,26 +64,28 @@ void main()
     vec4 vertex = vec4(vsg_Vertex, 1.0);
     vec4 normal = vec4(vsg_Normal, 0.0);
 
+    vec2 vsg_TexCoord1 = vec2(vsg_TexCoord0.s * texrepeat.scale_s, vsg_TexCoord0.t * texrepeat.scale_t);
+
 #ifdef VSG_DISPLACEMENT_MAP
     // TODO need to pass as as uniform or per instance attributes
-    vec3 scale = vec3(1.0, 1.0, 1.0);
+    vec3 scale = vec3(texrepeat.scale_disp, texrepeat.scale_disp, texrepeat.scale_disp);
 
-    vertex.xyz = vertex.xyz + vsg_Normal * (texture(displacementMap, vsg_TexCoord0.st).s * scale.z);
+    vertex.xyz = vertex.xyz + vsg_Normal * (texture(displacementMap, vsg_TexCoord1.st).s * scale.z);
 
     float s_delta = 0.01;
     float width = 0.0;
 
-    float s_left = max(vsg_TexCoord0.s - s_delta, 0.0);
-    float s_right = min(vsg_TexCoord0.s + s_delta, 1.0);
-    float t_center = vsg_TexCoord0.t;
+    float s_left = max(vsg_TexCoord1.s - s_delta, 0.0);
+    float s_right = min(vsg_TexCoord1.s + s_delta, 1.0);
+    float t_center = vsg_TexCoord1.t;
     float delta_left_right = (s_right - s_left) * scale.x;
     float dz_left_right = (texture(displacementMap, vec2(s_right, t_center)).s - texture(displacementMap, vec2(s_left, t_center)).s) * scale.z;
 
     // TODO need to handle different origins of displacementMap vs diffuseMap etc,
     float t_delta = s_delta;
-    float t_bottom = max(vsg_TexCoord0.t - t_delta, 0.0);
-    float t_top = min(vsg_TexCoord0.t + t_delta, 1.0);
-    float s_center = vsg_TexCoord0.s;
+    float t_bottom = max(vsg_TexCoord1.t - t_delta, 0.0);
+    float t_top = min(vsg_TexCoord1.t + t_delta, 1.0);
+    float s_center = vsg_TexCoord1.s;
     float delta_bottom_top = (t_top - t_bottom) * scale.y;
     float dz_bottom_top = (texture(displacementMap, vec2(s_center, t_top)).s - texture(displacementMap, vec2(s_center, t_bottom)).s) * scale.z;
 
@@ -103,5 +112,5 @@ void main()
     normalDir = (mv * normal).xyz;
 
     vertexColor = vsg_Color;
-    texCoord0 = vsg_TexCoord0;
+    texCoord0 = vsg_TexCoord1;
 }

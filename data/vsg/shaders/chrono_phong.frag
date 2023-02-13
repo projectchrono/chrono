@@ -22,13 +22,6 @@ layout(set = 0, binding = 4) uniform sampler2D emissiveMap;
 layout(set = 0, binding = 5) uniform sampler2D specularMap;
 #endif
 
-layout(set = 0, binding = 9) uniform TextureRepeat
-{
-    float uScale;
-    float vScale;
-    float wScale;
-} texrepeat;
-
 layout(set = 0, binding = 10) uniform MaterialData
 {
     vec4 ambientColor;
@@ -62,7 +55,7 @@ vec3 getNormal()
     vec3 result;
 #ifdef VSG_NORMAL_MAP
     // Perturb normal, see http://www.thetenthplanet.de/archives/1180
-    vec3 tangentNormal = texture(normalMap, vec2(texCoord0.s * texrepeat.uScale, texCoord0.t * texrepeat.vScale)).xyz * 2.0 - 1.0;
+    vec3 tangentNormal = texture(normalMap, texCoord0).xyz * 2.0 - 1.0;
 
     //tangentNormal *= vec3(2,2,1);
 
@@ -116,10 +109,10 @@ void main()
     vec4 diffuseColor = vertexColor * material.diffuseColor;
 #ifdef VSG_DIFFUSE_MAP
     #ifdef VSG_GREYSACLE_DIFFUSE_MAP
-        float v = texture(diffuseMap, vec2(texCoord0.s * texrepeat.uScale, texCoord0.t * texrepeat.vScale).st).s;
+        float v = texture(diffuseMap, texCoord0.st).s;
         diffuseColor *= vec4(v, v, v, 1.0);
     #else
-        diffuseColor *= texture(diffuseMap, vec2(texCoord0.s * texrepeat.uScale, texCoord0.t * texrepeat.vScale).st);
+        diffuseColor *= texture(diffuseMap, texCoord0.st);
     #endif
 #endif
 
@@ -136,15 +129,15 @@ void main()
     }
 
 #ifdef VSG_EMISSIVE_MAP
-    emissiveColor *= texture(emissiveMap, vec2(texCoord0.s * texrepeat.uScale, texCoord0.t * texrepeat.vScale).st);
+    emissiveColor *= texture(emissiveMap, texCoord0.st);
 #endif
 
 #ifdef VSG_LIGHTMAP_MAP
-    ambientOcclusion *= texture(aoMap, vec2(texCoord0.s * texrepeat.uScale, texCoord0.t * texrepeat.vScale).st).r;
+    ambientOcclusion *= texture(aoMap, texCoord0.st).r;
 #endif
 
 #ifdef VSG_SPECULAR_MAP
-    specularColor *= texture(specularMap, vec2(texCoord0.s * texrepeat.uScale, texCoord0.t * texrepeat.vScale).st);
+    specularColor *= texture(specularMap, texCoord0.st);
 #endif
 
     vec3 nd = getNormal();

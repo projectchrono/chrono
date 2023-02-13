@@ -16,7 +16,6 @@
 #include "GetBoxShapeData.h"
 #include "GetDiceShapeData.h"
 #include "GetSphereShapeData.h"
-#include "GetParticleShapeData.h"
 #include "GetCylinderShapeData.h"
 #include "GetCapsuleShapeData.h"
 #include "GetConeShapeData.h"
@@ -32,7 +31,7 @@ void ShapeBuilder::assignCompileTraversal(vsg::ref_ptr<vsg::CompileTraversal> ct
     compileTraversal = ct;
 }
 
-vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
+vsg::ref_ptr<vsg::Group> ShapeBuilder::createPhongShape(BasicShape theShape,
                                                    std::shared_ptr<ChVisualMaterial> material,
                                                    vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                    bool drawMode,
@@ -42,7 +41,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
     vsg::ref_ptr<vsg::ShaderSet> shaderSet;
 
     auto repeatValues = vsg::vec3Value::create();
-    repeatValues->set(vsg::vec3(material->GetKdTextureScale().x(), material->GetKdTextureScale().y(), 1.0f));
+    repeatValues->set(vsg::vec3(material->GetTextureScale().x(), material->GetTextureScale().y(), 1.0f));
     shaderSet = createTilingPhongShaderSet(m_options);
 
     auto rasterizationState = vsg::RasterizationState::create();
@@ -57,64 +56,44 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
     vsg::Descriptors descriptors;
 
     // set up pass of material
-    auto phongMat = vsg::PhongMaterialValue::create();
-    float alpha = material->GetOpacity();
-    phongMat->value().diffuse.set(material->GetDiffuseColor().R, material->GetDiffuseColor().G,
-                                  material->GetDiffuseColor().B, alpha);
-    /*
-        phongMat->value().ambient.set(material->GetAmbientColor().R, material->GetAmbientColor().G,
-                material->GetAmbientColor().B, alpha);
-    */
-    phongMat->value().ambient.set(1.0, 1.0, 1.0, alpha);  // ambient intensity set by ambient light source!
-    phongMat->value().specular.set(material->GetSpecularColor().R, material->GetSpecularColor().G,
-                                   material->GetSpecularColor().B, alpha);
-    phongMat->value().emissive.set(material->GetEmissiveColor().R, material->GetEmissiveColor().G,
-                                   material->GetEmissiveColor().B, alpha);
-    phongMat->value().alphaMask = alpha;
-    phongMat->value().alphaMaskCutoff = 0.3f;
+    auto phongMat = createPhongMaterialFromChronoMaterial(material);
 
-    // read texture image for diffuse light
-    vsg::Path diffuseTextureFile(material->GetKdTexture());
-    if (diffuseTextureFile) {
-        auto diffuseTextureData = vsg::read_cast<vsg::Data>(diffuseTextureFile, m_options);
-        if (!diffuseTextureData) {
-            std::cout << "Could not read texture file : " << diffuseTextureFile << std::endl;
-        } else {
-            // enable texturing with mipmaps
-            auto sampler = vsg::Sampler::create();
-            sampler->maxLod = static_cast<uint32_t>(std::floor(
-                                  std::log2(std::max(diffuseTextureData->width(), diffuseTextureData->height())))) +
-                              1;
-            sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
-            sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-            sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-            graphicsPipelineConfig->assignTexture(descriptors, "diffuseMap", diffuseTextureData, sampler);
-            // vsg combines material color and texture color, better use only one of it
-            phongMat->value().diffuse.set(1.0, 1.0, 1.0, alpha);
-        }
-    }
-    // read texture image for diffuse light
-    vsg::Path normalTextureFile(material->GetNormalMapTexture());
-    if (normalTextureFile) {
-        auto normalTextureData = vsg::read_cast<vsg::Data>(normalTextureFile, m_options);
-        if (!normalTextureData) {
-            std::cout << "Could not read texture file : " << normalTextureFile << std::endl;
-        } else {
-            // enable texturing with mipmaps
-            auto sampler = vsg::Sampler::create();
-            sampler->maxLod = static_cast<uint32_t>(std::floor(
-                                  std::log2(std::max(normalTextureData->width(), normalTextureData->height())))) +
-                              1;
-            sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
-            sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-            sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-            graphicsPipelineConfig->assignTexture(descriptors, "normalMap", normalTextureData, sampler);
-            // vsg combines material color and texture color, better use only one of it
-            // phongMat->value().diffuse.set(1.0, 1.0, 1.0, alpha);
-        }
+    if(!material->GetKdTexture().empty())
+    {
+        vsg::Path diffusePath(material->GetKdTexture());
+        std::string uniName("diffuseMap");
+        bool ok = ApplyTexture(diffusePath, graphicsPipelineConfig, descriptors, uniName);
+        if(!ok) GetLog() << "Could not read texture file: " << diffusePath << "\n";
+        phongMat->value().diffuse.set(1.0, 1.0, 1.0, phongMat->value().alphaMask);
     }
 
-    // set transparency, if needed
+    if(!material->GetNormalMapTexture().empty()) {
+        vsg::Path normalPath(material->GetNormalMapTexture());
+        std::string uniName("normalMap");
+        bool ok = ApplyTexture(normalPath, graphicsPipelineConfig, descriptors, uniName);
+        if(!ok) GetLog() << "Could not read texture file: " << normalPath.string() << "\n";
+    }
+
+    if(!material->GetKsTexture().empty()) {
+        vsg::Path specularPath(material->GetKsTexture());
+        std::string uniName("specularMap");
+        bool ok = ApplyTexture(specularPath, graphicsPipelineConfig, descriptors, uniName);
+        if(!ok) GetLog() << "Could not read texture file: " << specularPath.string() << "\n";
+    }
+
+    {
+        // read ambient occlusion map not considered in Chrono!
+    }
+
+    {
+        // read emissive map not considered in Chrono!
+    }
+
+    {
+        // read displacement map not considered in Chrono
+    }
+
+     // set transparency, if needed
     vsg::ColorBlendState::ColorBlendAttachments colorBlendAttachments;
     VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
     colorBlendAttachment.blendEnable = VK_FALSE;  // default
@@ -246,6 +225,202 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createShape(BasicShape theShape,
 
     return scenegraph;
 }
+
+vsg::ref_ptr<vsg::Group> ShapeBuilder::createPbrShape(BasicShape theShape,
+                                                   std::shared_ptr<ChVisualMaterial> material,
+                                                   vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                                   bool drawMode,
+                                                   std::shared_ptr<ChSurfaceShape> surface) {
+    auto scenegraph = vsg::Group::create();
+
+    vsg::ref_ptr<vsg::ShaderSet> shaderSet;
+
+    auto repeatValues = vsg::vec3Value::create();
+    repeatValues->set(vsg::vec3(material->GetTextureScale().x(), material->GetTextureScale().y(), 1.0f));
+    shaderSet = createTilingPbrShaderSet(m_options);
+
+    auto rasterizationState = vsg::RasterizationState::create();
+    if (drawMode) {
+        rasterizationState->polygonMode = VK_POLYGON_MODE_LINE;
+    }
+    shaderSet->defaultGraphicsPipelineStates.push_back(rasterizationState);
+    auto graphicsPipelineConfig = vsg::GraphicsPipelineConfigurator::create(shaderSet);
+    auto& defines = graphicsPipelineConfig->shaderHints->defines;
+
+    // set up graphics pipeline
+    vsg::Descriptors descriptors;
+
+    // set up pass of material
+    auto pbrMat = createPbrMaterialFromChronoMaterial(material);
+
+    if(!material->GetKdTexture().empty())
+    {
+        vsg::Path diffusePath(material->GetKdTexture());
+        std::string uniName("diffuseMap");
+        bool ok = ApplyTexture(diffusePath, graphicsPipelineConfig, descriptors, uniName);
+        if(!ok) GetLog() << "Could not read texture file: " << diffusePath << "\n";
+        pbrMat->value().diffuseFactor.set(1.0, 1.0, 1.0, pbrMat->value().alphaMask);
+    }
+
+    if(!material->GetNormalMapTexture().empty()) {
+        vsg::Path normalPath(material->GetNormalMapTexture());
+        std::string uniName("normalMap");
+        bool ok = ApplyTexture(normalPath, graphicsPipelineConfig, descriptors, uniName);
+        if(!ok) GetLog() << "Could not read texture file: " << normalPath.string() << "\n";
+    }
+
+    if(!material->GetKsTexture().empty()) {
+        vsg::Path specularPath(material->GetKsTexture());
+        std::string uniName("specularMap");
+        bool ok = ApplyTexture(specularPath, graphicsPipelineConfig, descriptors, uniName);
+        if(!ok) GetLog() << "Could not read texture file: " << specularPath.string() << "\n";
+    }
+
+    {
+        // read ambient occlusion map not considered in Chrono!
+    }
+
+    {
+        // read emissive map not considered in Chrono!
+    }
+
+    {
+        // read displacement map not considered in Chrono
+    }
+
+     // set transparency, if needed
+    vsg::ColorBlendState::ColorBlendAttachments colorBlendAttachments;
+    VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
+    colorBlendAttachment.blendEnable = VK_FALSE;  // default
+    colorBlendAttachment.colorWriteMask =
+        VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+    if (pbrMat->value().alphaMask < 1.0) {
+        colorBlendAttachment.blendEnable = VK_TRUE;
+        colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+        colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+        colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+        colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+        colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+        colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+    }
+    colorBlendAttachments.push_back(colorBlendAttachment);
+    graphicsPipelineConfig->colorBlendState = vsg::ColorBlendState::create(colorBlendAttachments);
+    graphicsPipelineConfig->assignUniform(descriptors, "texrepeat", repeatValues);
+    graphicsPipelineConfig->assignUniform(descriptors, "PbrData", pbrMat);
+
+    if (m_options->sharedObjects)
+        m_options->sharedObjects->share(descriptors);
+
+    vsg::ref_ptr<vsg::vec3Array> vertices;
+    vsg::ref_ptr<vsg::vec3Array> normals;
+    vsg::ref_ptr<vsg::vec2Array> texcoords;
+    vsg::ref_ptr<vsg::ushortArray> indices;
+    float boundingSphereRadius;
+    switch (theShape) {
+        case BOX_SHAPE:
+            GetBoxShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
+            break;
+        case DIE_SHAPE:
+            GetDiceShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
+            break;
+        case SPHERE_SHAPE:
+            GetSphereShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
+            break;
+        case CYLINDER_SHAPE:
+            GetCylinderShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
+            break;
+        case CAPSULE_SHAPE:
+            GetCapsuleShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
+            break;
+        case CONE_SHAPE:
+            GetConeShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
+            break;
+        case SURFACE_SHAPE:
+            GetSurfaceShapeData(surface, vertices, normals, texcoords, indices, boundingSphereRadius);
+            break;
+    }
+    auto colors = vsg::vec4Value::create(vsg::vec4{1.0f, 1.0f, 1.0f, 1.0f});
+
+    vsg::DataList vertexArrays;
+
+    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Vertex", VK_VERTEX_INPUT_RATE_VERTEX, vertices);
+    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Normal", VK_VERTEX_INPUT_RATE_VERTEX, normals);
+    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_TexCoord0", VK_VERTEX_INPUT_RATE_VERTEX, texcoords);
+    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Color", VK_VERTEX_INPUT_RATE_INSTANCE, colors);
+
+    if (m_options->sharedObjects)
+        m_options->sharedObjects->share(vertexArrays);
+    if (m_options->sharedObjects)
+        m_options->sharedObjects->share(indices);
+
+    // setup geometry
+    auto drawCommands = vsg::Commands::create();
+    drawCommands->addChild(vsg::BindVertexBuffers::create(graphicsPipelineConfig->baseAttributeBinding, vertexArrays));
+    drawCommands->addChild(vsg::BindIndexBuffer::create(indices));
+    drawCommands->addChild(vsg::DrawIndexed::create(indices->size(), 1, 0, 0, 0));
+
+    if (m_options->sharedObjects) {
+        m_options->sharedObjects->share(drawCommands->children);
+        m_options->sharedObjects->share(drawCommands);
+    }
+
+    // register the ViewDescriptorSetLayout.
+    vsg::ref_ptr<vsg::ViewDescriptorSetLayout> vdsl;
+    if (m_options->sharedObjects)
+        vdsl = m_options->sharedObjects->shared_default<vsg::ViewDescriptorSetLayout>();
+    else
+        vdsl = vsg::ViewDescriptorSetLayout::create();
+    graphicsPipelineConfig->additionalDescriptorSetLayout = vdsl;
+
+    // share the pipeline config and initialize if it's unique
+    if (m_options->sharedObjects)
+        m_options->sharedObjects->share(graphicsPipelineConfig, [](auto gpc) { gpc->init(); });
+    else
+        graphicsPipelineConfig->init();
+
+    auto descriptorSet = vsg::DescriptorSet::create(graphicsPipelineConfig->descriptorSetLayout, descriptors);
+    if (m_options->sharedObjects)
+        m_options->sharedObjects->share(descriptorSet);
+
+    auto bindDescriptorSet = vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                                            graphicsPipelineConfig->layout, 0, descriptorSet);
+    if (m_options->sharedObjects)
+        m_options->sharedObjects->share(bindDescriptorSet);
+
+    auto bindViewDescriptorSets =
+        vsg::BindViewDescriptorSets::create(VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineConfig->layout, 1);
+    if (m_options->sharedObjects)
+        m_options->sharedObjects->share(bindViewDescriptorSets);
+
+    // create StateGroup as the root of the scene/command graph to hold the GraphicsProgram, and binding of Descriptors
+    // to decorate the whole graph
+    auto stateGroup = vsg::StateGroup::create();
+    stateGroup->add(graphicsPipelineConfig->bindGraphicsPipeline);
+    stateGroup->add(bindDescriptorSet);
+    stateGroup->add(bindViewDescriptorSets);
+
+    // set up model transformation node
+    transform->subgraphRequiresLocalFrustum = false;
+
+    // add drawCommands to StateGroup
+    stateGroup->addChild(drawCommands);
+    if (m_options->sharedObjects) {
+        m_options->sharedObjects->share(stateGroup);
+    }
+    transform->addChild(stateGroup);
+
+    if (m_options->sharedObjects) {
+        m_options->sharedObjects->share(transform);
+    }
+
+    scenegraph->addChild(transform);
+
+    if (compileTraversal)
+        compileTraversal->compile(scenegraph);
+
+    return scenegraph;
+}
+
 
 vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                              bool drawMode,
@@ -619,7 +794,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColShapeSCM(vsg::ref_ptr<vsg
     return scenegraph;
 }
 
-vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshMatShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
+vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshPhongMatShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                              bool drawMode,
                                                              std::shared_ptr<ChTriangleMeshShape> tms) {
     auto scenegraph = vsg::Group::create();
@@ -661,7 +836,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshMatShape(vsg::ref_ptr<vsg::M
         vsg::ref_ptr<vsg::ShaderSet> shaderSet;
 
         auto repeatValues = vsg::vec3Value::create();
-        repeatValues->set(vsg::vec3(chronoMat->GetKdTextureScale().x(), chronoMat->GetKdTextureScale().y(), 1.0f));
+        repeatValues->set(vsg::vec3(chronoMat->GetTextureScale().x(), chronoMat->GetTextureScale().y(), 1.0f));
         shaderSet = createTilingPhongShaderSet(m_options);
 
         auto rasterizationState = vsg::RasterizationState::create();
@@ -681,59 +856,31 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshMatShape(vsg::ref_ptr<vsg::M
         // set up graphics pipeline
         vsg::Descriptors descriptors;
 
-        // set up pass of material
-        auto phongMat = vsg::PhongMaterialValue::create();
-        float alpha = chronoMat->GetOpacity();
-        phongMat->value().diffuse.set(chronoMat->GetDiffuseColor().R, chronoMat->GetDiffuseColor().G,
-                                      chronoMat->GetDiffuseColor().B, alpha);
-        phongMat->value().ambient.set(chronoMat->GetAmbientColor().R, chronoMat->GetAmbientColor().G,
-                                      chronoMat->GetAmbientColor().B, alpha);
-        phongMat->value().specular.set(chronoMat->GetSpecularColor().R, chronoMat->GetSpecularColor().G,
-                                       chronoMat->GetSpecularColor().B, alpha);
-        phongMat->value().emissive.set(chronoMat->GetEmissiveColor().R, chronoMat->GetEmissiveColor().G,
-                                       chronoMat->GetEmissiveColor().B, alpha);
-        phongMat->value().alphaMask = alpha;
-        phongMat->value().alphaMaskCutoff = 0.3f;
+        auto phongMat = createPhongMaterialFromChronoMaterial(chronoMat);
 
-        // read texture image for diffuse light
-        vsg::Path diffuseTextureFile(chronoMat->GetKdTexture());
-        if (diffuseTextureFile) {
-            auto diffuseTextureData = vsg::read_cast<vsg::Data>(diffuseTextureFile, m_options);
-            if (!diffuseTextureData) {
-                std::cout << "Could not read texture file : " << diffuseTextureFile << std::endl;
-            } else {
-                // enable texturing with mipmaps
-                auto sampler = vsg::Sampler::create();
-                sampler->maxLod = static_cast<uint32_t>(std::floor(
-                                      std::log2(std::max(diffuseTextureData->width(), diffuseTextureData->height())))) +
-                                  1;
-                sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
-                sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-                sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-                graphicsPipelineConfig->assignTexture(descriptors, "diffuseMap", diffuseTextureData, sampler);
-                // vsg combines material color and texture color, better use only one of it
-                phongMat->value().diffuse.set(1.0, 1.0, 1.0, alpha);
-            }
+        if(!chronoMat->GetKdTexture().empty())
+        {
+            vsg::Path diffusePath(chronoMat->GetKdTexture());
+            std::string uniName("diffuseMap");
+            bool ok = ApplyTexture(diffusePath, graphicsPipelineConfig, descriptors, uniName);
+            if(!ok) GetLog() << "Could not read texture file: " << diffusePath << "\n";
+            phongMat->value().diffuse.set(1.0, 1.0, 1.0, phongMat->value().alphaMask);
         }
 
-        // read texture image for normal vectors
-        vsg::Path normalTextureFile(chronoMat->GetNormalMapTexture());
-        if (normalTextureFile) {
-            auto normalTextureData = vsg::read_cast<vsg::Data>(normalTextureFile, m_options);
-            if (!normalTextureData) {
-                std::cout << "Could not read texture file : " << normalTextureFile << std::endl;
-            } else {
-                // enable texturing with mipmaps
-                auto sampler = vsg::Sampler::create();
-                sampler->maxLod = static_cast<uint32_t>(std::floor(
-                                      std::log2(std::max(normalTextureData->width(), normalTextureData->height())))) +
-                                  1;
-                sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
-                sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-                sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-                graphicsPipelineConfig->assignTexture(descriptors, "normalMap", normalTextureData, sampler);
-            }
+        if(!chronoMat->GetNormalMapTexture().empty()) {
+            vsg::Path normalPath(chronoMat->GetNormalMapTexture());
+            std::string uniName("normalMap");
+            bool ok = ApplyTexture(normalPath, graphicsPipelineConfig, descriptors, uniName);
+            if(!ok) GetLog() << "Could not read texture file: " << normalPath.string() << "\n";
         }
+
+        if(!chronoMat->GetKsTexture().empty()) {
+            vsg::Path specularPath(chronoMat->GetKsTexture());
+            std::string uniName("specularMap");
+            bool ok = ApplyTexture(specularPath, graphicsPipelineConfig, descriptors, uniName);
+            if(!ok) GetLog() << "Could not read texture file: " << specularPath.string() << "\n";
+        }
+
 
         // set transparency, if needed
         vsg::ColorBlendState::ColorBlendAttachments colorBlendAttachments;
@@ -890,142 +1037,269 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshMatShape(vsg::ref_ptr<vsg::M
     return scenegraph;
 }
 
-vsg::ref_ptr<vsg::Group> ShapeBuilder::createParticlePattern(std::shared_ptr<ChVisualMaterial> material,
-                                                             bool drawMode) {
+vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshPbrMatShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                                             bool drawMode,
+                                                             std::shared_ptr<ChTriangleMeshShape> tms) {
     auto scenegraph = vsg::Group::create();
 
-    auto shaderSet = vsg::createPhongShaderSet(m_options);
-    auto rasterizationState = vsg::RasterizationState::create();
-    if (drawMode) {
-        rasterizationState->polygonMode = VK_POLYGON_MODE_LINE;
-    }
-    shaderSet->defaultGraphicsPipelineStates.push_back(rasterizationState);
-    auto graphicsPipelineConfig = vsg::GraphicsPipelineConfigurator::create(shaderSet);
-    auto& defines = graphicsPipelineConfig->shaderHints->defines;
+    // set up model transformation node
+    transform->subgraphRequiresLocalFrustum = false;
+    scenegraph->addChild(transform);
 
-    // set up graphics pipeline
-    vsg::Descriptors descriptors;
+    const auto& mesh = tms->GetMesh();
+    const auto& materials = tms->GetMaterials();
+    int nmaterials = (int)materials.size();
 
-    // set up pass of material
-    auto phongMat = vsg::PhongMaterialValue::create();
-    float alpha = material->GetOpacity();
-    phongMat->value().diffuse.set(material->GetDiffuseColor().R, material->GetDiffuseColor().G,
-                                  material->GetDiffuseColor().B, alpha);
-    phongMat->value().ambient.set(material->GetAmbientColor().R, material->GetAmbientColor().G,
-                                  material->GetAmbientColor().B, alpha);
-    phongMat->value().specular.set(material->GetSpecularColor().R, material->GetSpecularColor().G,
-                                   material->GetSpecularColor().B, alpha);
-    phongMat->value().emissive.set(material->GetEmissiveColor().R, material->GetEmissiveColor().G,
-                                   material->GetEmissiveColor().B, alpha);
-    phongMat->value().alphaMask = alpha;
-    phongMat->value().alphaMaskCutoff = 0.3f;
+    const auto& vertices = mesh->getCoordsVertices();
+    const auto& normals = mesh->getCoordsNormals();
+    const auto& uvs = mesh->getCoordsUV();
 
-    // read texture image
-    vsg::Path textureFile(material->GetKdTexture());
-    if (textureFile) {
-        auto textureData = vsg::read_cast<vsg::Data>(textureFile, m_options);
-        if (!textureData) {
-            std::cout << "Could not read texture file : " << textureFile << std::endl;
+    const auto& v_indices = mesh->getIndicesVertexes();
+    const auto& n_indices = mesh->getIndicesNormals();
+    const auto& uv_indices = mesh->getIndicesUV();
+    const auto& m_indices = mesh->getIndicesMaterials();
+
+    size_t ntriangles_all = (unsigned int)v_indices.size();
+
+    // Count number of faces assigned to each material (buffer)
+    std::vector<size_t> nfaces_per_buffer;
+    if (m_indices.empty()) {
+        assert(nmaterials == 1);
+        nfaces_per_buffer.push_back(ntriangles_all);
+    } else {
+        for (size_t imat = 0; imat < nmaterials; imat++) {
+            auto count = std::count(m_indices.begin(), m_indices.end(), imat);
+            nfaces_per_buffer.push_back(count);
         }
-        // enable texturing
-        graphicsPipelineConfig->assignTexture(descriptors, "diffuseMap", textureData);
     }
 
-    // set transparency, if needed
-    vsg::ColorBlendState::ColorBlendAttachments colorBlendAttachments;
-    VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
-    colorBlendAttachment.blendEnable = VK_FALSE;  // default
-    colorBlendAttachment.colorWriteMask =
-        VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-    if (phongMat->value().alphaMask < 1.0) {
-        colorBlendAttachment.blendEnable = VK_TRUE;
-        colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-        colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-        colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-        colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-        colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-        colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
-    }
-    colorBlendAttachments.push_back(colorBlendAttachment);
-    graphicsPipelineConfig->colorBlendState = vsg::ColorBlendState::create(colorBlendAttachments);
-    graphicsPipelineConfig->assignUniform(descriptors, "material", phongMat);
+    for (size_t imat = 0; imat < nmaterials; imat++) {
+        auto chronoMat = materials[imat];
+        // translate to vsgMat here
+        vsg::ref_ptr<vsg::ShaderSet> shaderSet;
 
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(descriptors);
+        auto repeatValues = vsg::vec3Value::create();
+        repeatValues->set(vsg::vec3(chronoMat->GetTextureScale().x(), chronoMat->GetTextureScale().y(), 1.0f));
+        shaderSet = createTilingPbrShaderSet(m_options);
 
-    vsg::ref_ptr<vsg::vec3Array> vertices;
-    vsg::ref_ptr<vsg::vec3Array> normals;
-    vsg::ref_ptr<vsg::vec2Array> texcoords;
-    vsg::ref_ptr<vsg::ushortArray> indices;
-    float boundingSphereRadius;
+        auto rasterizationState = vsg::RasterizationState::create();
+        if (drawMode) {
+            rasterizationState->polygonMode = VK_POLYGON_MODE_LINE;
+        }
+        shaderSet->defaultGraphicsPipelineStates.push_back(rasterizationState);
+        auto graphicsPipelineConfig = vsg::GraphicsPipelineConfigurator::create(shaderSet);
+        auto& defines = graphicsPipelineConfig->shaderHints->defines;
 
-    GetParticleShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
-    auto colors = vsg::vec4Value::create(vsg::vec4{1.0f, 1.0f, 1.0f, 1.0f});
+        // two-sided polygons? -> cannot be used together with transparency!
+        if (!tms->IsBackfaceCull() && chronoMat->GetOpacity() == 1.0) {
+            graphicsPipelineConfig->rasterizationState->cullMode = VK_CULL_MODE_NONE;
+            defines.insert("VSG_TWO_SIDED_LIGHTING");
+        }
 
-    vsg::DataList vertexArrays;
+        // set up graphics pipeline
+        vsg::Descriptors descriptors;
 
-    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Vertex", VK_VERTEX_INPUT_RATE_VERTEX, vertices);
-    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Normal", VK_VERTEX_INPUT_RATE_VERTEX, normals);
-    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_TexCoord0", VK_VERTEX_INPUT_RATE_VERTEX, texcoords);
-    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Color", VK_VERTEX_INPUT_RATE_INSTANCE, colors);
+        auto pbrMat = createPbrMaterialFromChronoMaterial(chronoMat);
 
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(vertexArrays);
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(indices);
+        if(!chronoMat->GetKdTexture().empty())
+        {
+            vsg::Path diffusePath(chronoMat->GetKdTexture());
+            std::string uniName("diffuseMap");
+            bool ok = ApplyTexture(diffusePath, graphicsPipelineConfig, descriptors, uniName);
+            if(!ok) GetLog() << "Could not read texture file: " << diffusePath << "\n";
+            pbrMat->value().diffuseFactor.set(1.0, 1.0, 1.0, pbrMat->value().alphaMask);
+            pbrMat->value().baseColorFactor.set(1.0, 1.0, 1.0, pbrMat->value().alphaMask);
+        }
 
-    // setup geometry
-    auto drawCommands = vsg::Commands::create();
-    drawCommands->addChild(vsg::BindVertexBuffers::create(graphicsPipelineConfig->baseAttributeBinding, vertexArrays));
-    drawCommands->addChild(vsg::BindIndexBuffer::create(indices));
-    drawCommands->addChild(vsg::DrawIndexed::create(indices->size(), 1, 0, 0, 0));
+        if(!chronoMat->GetNormalMapTexture().empty()) {
+            vsg::Path normalPath(chronoMat->GetNormalMapTexture());
+            std::string uniName("normalMap");
+            bool ok = ApplyTexture(normalPath, graphicsPipelineConfig, descriptors, uniName);
+            if(!ok) GetLog() << "Could not read texture file: " << normalPath.string() << "\n";
+        }
+
+        if(!chronoMat->GetRoughnessTexture().empty()) {
+            vsg::Path roughnessPath(chronoMat->GetRoughnessTexture());
+            std::string uniName("mrMap");
+            bool ok = ApplyTexture(roughnessPath, graphicsPipelineConfig, descriptors, uniName);
+            if(!ok) GetLog() << "Could not read texture file: " << roughnessPath.string() << "\n";
+        }
+        
+        if(!chronoMat->GetKsTexture().empty()) {
+            vsg::Path specularPath(chronoMat->GetKsTexture());
+            std::string uniName("specularMap");
+            bool ok = ApplyTexture(specularPath, graphicsPipelineConfig, descriptors, uniName);
+            if(!ok) GetLog() << "Could not read texture file: " << specularPath.string() << "\n";
+        }
+
+        {
+            // read ambient occlusion map not considered in Chrono!
+        }
+
+        {
+            // read emissive map not considered in Chrono!
+        }
+
+        {
+            // read displacement map not considered in Chrono
+        }
+        
+        bool mappedOpacity = false;
+        if(!chronoMat->GetOpacityTexture().empty()) {
+            vsg::Path opacityPath(chronoMat->GetOpacityTexture());
+            std::string uniName("opacityMap");
+            mappedOpacity = ApplyTexture(opacityPath, graphicsPipelineConfig, descriptors, uniName);
+            if(!mappedOpacity) GetLog() << "Could not read texture file: " << opacityPath.string() << "\n";
+        }
+        
+        // set transparency, if needed
+        vsg::ColorBlendState::ColorBlendAttachments colorBlendAttachments;
+        VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
+        colorBlendAttachment.blendEnable = VK_FALSE;  // default
+        colorBlendAttachment.colorWriteMask =
+            VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+        if (pbrMat->value().alphaMask < 1.0 || mappedOpacity) {
+            colorBlendAttachment.blendEnable = VK_TRUE;
+            colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+            colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+            colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+            colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+            colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+            colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+        }
+        colorBlendAttachments.push_back(colorBlendAttachment);
+        graphicsPipelineConfig->colorBlendState = vsg::ColorBlendState::create(colorBlendAttachments);
+        graphicsPipelineConfig->assignUniform(descriptors, "texrepeat", repeatValues);
+        graphicsPipelineConfig->assignUniform(descriptors, "PbrData", pbrMat);
+
+        if (m_options->sharedObjects)
+            m_options->sharedObjects->share(descriptors);
+
+        std::vector<ChVector<>> tmp_vertices;
+        std::vector<ChVector<>> tmp_normals;
+        std::vector<ChVector2<>> tmp_texcoords;
+        // Set the VSG vertex and index buffers for this material
+        ChVector<> t[3];    // positions of triangle vertices
+        ChVector<> n[3];    // normals at the triangle vertices
+        ChVector2<> uv[3];  // UV coordinates at the triangle vertices
+        size_t num_added_tri = 0;
+        for (size_t itri = 0; itri < ntriangles_all; itri++) {
+            if (!m_indices.empty() && m_indices[itri] != imat)
+                continue;
+
+            for (int iv = 0; iv < 3; iv++)
+                t[iv] = vertices[v_indices[itri][iv]];
+
+            if (n_indices.size() == ntriangles_all) {
+                for (int iv = 0; iv < 3; iv++)
+                    n[iv] = normals[n_indices[itri][iv]];
+            } else {
+                n[0] = Vcross(t[1] - t[0], t[2] - t[0]).GetNormalized();
+                n[1] = n[0];
+                n[2] = n[0];
+            }
+
+            if (uv_indices.size() == ntriangles_all) {
+                for (int iv = 0; iv < 3; iv++)
+                    uv[iv] = uvs[uv_indices[itri][iv]];
+            } else {
+                for (int iv = 0; iv < 3; iv++)
+                    uv[iv] = 0.0;
+            }
+            for (int j = 0; j < 3; j++) {
+                tmp_vertices.push_back(t[j]);
+                tmp_normals.push_back(n[j]);
+                tmp_texcoords.push_back(uv[j]);
+            }
+        }  // itri
+        // create and fill the vsg buffers
+        size_t nVert = tmp_vertices.size();
+        vsg::ref_ptr<vsg::vec3Array> vsg_vertices = vsg::vec3Array::create(nVert);
+        vsg::ref_ptr<vsg::vec3Array> vsg_normals = vsg::vec3Array::create(nVert);
+        vsg::ref_ptr<vsg::vec2Array> vsg_texcoords = vsg::vec2Array::create(nVert);
+        vsg::ref_ptr<vsg::uintArray> vsg_indices = vsg::uintArray::create(nVert);
+        for (size_t k = 0; k < nVert; k++) {
+            vsg_vertices->set(k, vsg::vec3(tmp_vertices[k].x(), tmp_vertices[k].y(), tmp_vertices[k].z()));
+            vsg_normals->set(k, vsg::vec3(tmp_normals[k].x(), tmp_normals[k].y(), tmp_normals[k].z()));
+            // seems to work with v-coordinate flipped on VSG
+            vsg_texcoords->set(k, vsg::vec2(tmp_texcoords[k].x(), 1.0f - tmp_texcoords[k].y()));
+            vsg_indices->set(k, k);
+        }
+        auto colors = vsg::vec4Value::create(vsg::vec4{1.0f, 1.0f, 1.0f, 1.0f});
+
+        vsg::DataList vertexArrays;
+
+        graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Vertex", VK_VERTEX_INPUT_RATE_VERTEX, vsg_vertices);
+        graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Normal", VK_VERTEX_INPUT_RATE_VERTEX, vsg_normals);
+        graphicsPipelineConfig->assignArray(vertexArrays, "vsg_TexCoord0", VK_VERTEX_INPUT_RATE_VERTEX, vsg_texcoords);
+        graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Color", VK_VERTEX_INPUT_RATE_INSTANCE, colors);
+
+        if (m_options->sharedObjects)
+            m_options->sharedObjects->share(vertexArrays);
+        if (m_options->sharedObjects)
+            m_options->sharedObjects->share(vsg_indices);
+
+        // setup geometry
+        auto drawCommands = vsg::Commands::create();
+        drawCommands->addChild(
+            vsg::BindVertexBuffers::create(graphicsPipelineConfig->baseAttributeBinding, vertexArrays));
+        drawCommands->addChild(vsg::BindIndexBuffer::create(vsg_indices));
+        drawCommands->addChild(vsg::DrawIndexed::create(vsg_indices->size(), 1, 0, 0, 0));
+
+        if (m_options->sharedObjects) {
+            m_options->sharedObjects->share(drawCommands->children);
+            m_options->sharedObjects->share(drawCommands);
+        }
+
+        // register the ViewDescriptorSetLayout.
+        vsg::ref_ptr<vsg::ViewDescriptorSetLayout> vdsl;
+        if (m_options->sharedObjects)
+            vdsl = m_options->sharedObjects->shared_default<vsg::ViewDescriptorSetLayout>();
+        else
+            vdsl = vsg::ViewDescriptorSetLayout::create();
+        graphicsPipelineConfig->additionalDescriptorSetLayout = vdsl;
+
+        // share the pipeline config and initialize if it's unique
+        if (m_options->sharedObjects)
+            m_options->sharedObjects->share(graphicsPipelineConfig, [](auto gpc) { gpc->init(); });
+        else
+            graphicsPipelineConfig->init();
+
+        auto descriptorSet = vsg::DescriptorSet::create(graphicsPipelineConfig->descriptorSetLayout, descriptors);
+        if (m_options->sharedObjects)
+            m_options->sharedObjects->share(descriptorSet);
+
+        auto bindDescriptorSet = vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                                                graphicsPipelineConfig->layout, 0, descriptorSet);
+        if (m_options->sharedObjects)
+            m_options->sharedObjects->share(bindDescriptorSet);
+
+        auto bindViewDescriptorSets =
+            vsg::BindViewDescriptorSets::create(VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineConfig->layout, 1);
+        if (m_options->sharedObjects)
+            m_options->sharedObjects->share(bindViewDescriptorSets);
+
+        // create StateGroup as the root of the scene/command graph to hold the GraphicsProgram, and binding of
+        // Descriptors to decorate the whole graph
+        auto stateGroup = vsg::StateGroup::create();
+        stateGroup->add(graphicsPipelineConfig->bindGraphicsPipeline);
+        stateGroup->add(bindDescriptorSet);
+        stateGroup->add(bindViewDescriptorSets);
+
+        // set up model transformation node
+        transform->subgraphRequiresLocalFrustum = false;
+
+        // add drawCommands to StateGroup
+        stateGroup->addChild(drawCommands);
+        if (m_options->sharedObjects) {
+            m_options->sharedObjects->share(stateGroup);
+        }
+        transform->addChild(stateGroup);
+    }  // imat
 
     if (m_options->sharedObjects) {
-        m_options->sharedObjects->share(drawCommands->children);
-        m_options->sharedObjects->share(drawCommands);
+        m_options->sharedObjects->share(transform);
     }
-
-    // register the ViewDescriptorSetLayout.
-    vsg::ref_ptr<vsg::ViewDescriptorSetLayout> vdsl;
-    if (m_options->sharedObjects)
-        vdsl = m_options->sharedObjects->shared_default<vsg::ViewDescriptorSetLayout>();
-    else
-        vdsl = vsg::ViewDescriptorSetLayout::create();
-    graphicsPipelineConfig->additionalDescriptorSetLayout = vdsl;
-
-    // share the pipeline config and initialize if it's unique
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(graphicsPipelineConfig, [](auto gpc) { gpc->init(); });
-    else
-        graphicsPipelineConfig->init();
-
-    auto descriptorSet = vsg::DescriptorSet::create(graphicsPipelineConfig->descriptorSetLayout, descriptors);
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(descriptorSet);
-
-    auto bindDescriptorSet = vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                                            graphicsPipelineConfig->layout, 0, descriptorSet);
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(bindDescriptorSet);
-
-    auto bindViewDescriptorSets =
-        vsg::BindViewDescriptorSets::create(VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineConfig->layout, 1);
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(bindViewDescriptorSets);
-
-    // create StateGroup as the root of the scene/command graph to hold the GraphicsProgram, and binding of Descriptors
-    // to decorate the whole graph
-    auto stateGroup = vsg::StateGroup::create();
-    stateGroup->add(graphicsPipelineConfig->bindGraphicsPipeline);
-    stateGroup->add(bindDescriptorSet);
-    stateGroup->add(bindViewDescriptorSets);
-
-    // add drawCommands to StateGroup
-    stateGroup->addChild(drawCommands);
-    if (m_options->sharedObjects) {
-        m_options->sharedObjects->share(stateGroup);
-    }
-    scenegraph->addChild(stateGroup);
 
     if (compileTraversal)
         compileTraversal->compile(scenegraph);
@@ -1643,7 +1917,7 @@ vsg::ref_ptr<vsg::ShaderSet> ShapeBuilder::createTilingPhongShaderSet(vsg::ref_p
     shaderSet->addUniformBinding("emissiveMap", "VSG_EMISSIVE_MAP", 0, 4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
                                  VK_SHADER_STAGE_FRAGMENT_BIT, vsg::vec4Array2D::create(1, 1));
     shaderSet->addUniformBinding("texrepeat", "", 0, 9, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
-                                 VK_SHADER_STAGE_FRAGMENT_BIT, vsg::vec3Value::create());
+                                 VK_SHADER_STAGE_VERTEX_BIT, vsg::vec3Value::create());
     shaderSet->addUniformBinding("material", "", 0, 10, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
                                  VK_SHADER_STAGE_FRAGMENT_BIT, vsg::PhongMaterialValue::create());
     shaderSet->addUniformBinding("lightData", "", 1, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
@@ -1662,6 +1936,122 @@ vsg::ref_ptr<vsg::ShaderSet> ShapeBuilder::createTilingPhongShaderSet(vsg::ref_p
 
     return shaderSet;
 }
+
+/// create a ShaderSet for PBR shaded rendering with tiled textures
+vsg::ref_ptr<vsg::ShaderSet> ShapeBuilder::createTilingPbrShaderSet(vsg::ref_ptr<const vsg::Options> options) {
+    if (options) {
+        // check if a ShaderSet has already been assigned to the options object, if so return it
+        if (auto itr = options->shaderSets.find("pbr"); itr != options->shaderSets.end())
+            return itr->second;
+    }
+
+    auto vertexShader = vsg::read_cast<vsg::ShaderStage>("vsg/shaders/chrono.vert", options);
+    // if (!vertexShader)
+    //     vertexShader = assimp_vert();  // fallback to shaders/assimp_vert.cpp
+    auto fragmentShader = vsg::read_cast<vsg::ShaderStage>("vsg/shaders/chrono_pbr.frag", options);
+    // if (!fragmentShader)
+    //     fragmentShader = assimp_pbr_frag();
+
+    auto shaderSet = vsg::ShaderSet::create(vsg::ShaderStages{vertexShader, fragmentShader});
+
+    shaderSet->addAttributeBinding("vsg_Vertex", "", 0, VK_FORMAT_R32G32B32_SFLOAT, vsg::vec3Array::create(1));
+    shaderSet->addAttributeBinding("vsg_Normal", "", 1, VK_FORMAT_R32G32B32_SFLOAT, vsg::vec3Array::create(1));
+    shaderSet->addAttributeBinding("vsg_TexCoord0", "", 2, VK_FORMAT_R32G32_SFLOAT, vsg::vec2Array::create(1));
+    shaderSet->addAttributeBinding("vsg_Color", "", 3, VK_FORMAT_R32G32B32A32_SFLOAT, vsg::vec4Array::create(1));
+    shaderSet->addAttributeBinding("vsg_position", "VSG_INSTANCE_POSITIONS", 4, VK_FORMAT_R32G32B32_SFLOAT,
+                                   vsg::vec3Array::create(1));
+
+    shaderSet->addUniformBinding("displacementMap", "VSG_DISPLACEMENT_MAP", 0, 6,
+                                 VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_VERTEX_BIT,
+                                 vsg::vec4Array2D::create(1, 1));
+    
+    shaderSet->addUniformBinding("diffuseMap", "VSG_DIFFUSE_MAP", 0, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
+                                 VK_SHADER_STAGE_FRAGMENT_BIT, vsg::vec4Array2D::create(1, 1));
+    shaderSet->addUniformBinding("mrMap", "VSG_METALLROUGHNESS_MAP", 0, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
+                                 VK_SHADER_STAGE_FRAGMENT_BIT, vsg::vec4Array2D::create(1, 1));
+    shaderSet->addUniformBinding("normalMap", "VSG_NORMAL_MAP", 0, 2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
+                                 VK_SHADER_STAGE_FRAGMENT_BIT, vsg::vec3Array2D::create(1, 1));
+    shaderSet->addUniformBinding("aoMap", "VSG_LIGHTMAP_MAP", 0, 3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
+                                 VK_SHADER_STAGE_FRAGMENT_BIT, vsg::vec4Array2D::create(1, 1));
+    shaderSet->addUniformBinding("emissiveMap", "VSG_EMISSIVE_MAP", 0, 4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
+                                 VK_SHADER_STAGE_FRAGMENT_BIT, vsg::vec4Array2D::create(1, 1));
+    shaderSet->addUniformBinding("specularMap", "VSG_SPECULAR_MAP", 0, 5, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
+                                 VK_SHADER_STAGE_FRAGMENT_BIT, vsg::vec4Array2D::create(1, 1));
+    shaderSet->addUniformBinding("opacityMap", "VSG_OPACITY_MAP", 0, 7, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
+                                 VK_SHADER_STAGE_FRAGMENT_BIT, vsg::vec4Array2D::create(1, 1));
+    shaderSet->addUniformBinding("texrepeat", "", 0, 9, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
+                                 VK_SHADER_STAGE_VERTEX_BIT, vsg::vec3Value::create());
+    shaderSet->addUniformBinding("PbrData", "", 0, 10, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
+                                 VK_SHADER_STAGE_FRAGMENT_BIT, vsg::PbrMaterialValue::create());
+    shaderSet->addUniformBinding("LightData", "", 1, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
+                                 VK_SHADER_STAGE_FRAGMENT_BIT, vsg::vec4Array::create(64));
+
+    shaderSet->addPushConstantRange("pc", "", VK_SHADER_STAGE_VERTEX_BIT, 0, 128);
+
+    shaderSet->optionalDefines = {"VSG_GREYSACLE_DIFFUSE_MAP", "VSG_TWO_SIDED_LIGHTING", "VSG_POINT_SPRITE"};
+
+    shaderSet->definesArrayStates.push_back(vsg::DefinesArrayState{
+        {"VSG_INSTANCE_POSITIONS", "VSG_DISPLACEMENT_MAP"}, vsg::PositionAndDisplacementMapArrayState::create()});
+    shaderSet->definesArrayStates.push_back(
+        vsg::DefinesArrayState{{"VSG_INSTANCE_POSITIONS"}, vsg::PositionArrayState::create()});
+    shaderSet->definesArrayStates.push_back(
+        vsg::DefinesArrayState{{"VSG_DISPLACEMENT_MAP"}, vsg::DisplacementMapArrayState::create()});
+
+    return shaderSet;
+}
+
+bool ShapeBuilder::ApplyTexture(vsg::Path &path, vsg::ref_ptr<vsg::GraphicsPipelineConfigurator> pipeConfig, vsg::Descriptors &descriptors, std::string &uniformName) {
+    if(path) {
+        auto texData = vsg::read_cast<vsg::Data>(path, m_options);
+        if(!texData) {
+            GetLog() << "Could not read texture file: " << path << "\n";
+        } else {
+            // enable texturing with mipmaps
+            auto sampler = vsg::Sampler::create();
+            sampler->maxLod = static_cast<uint32_t>(std::floor(
+                                                               std::log2(std::max(texData->width(), texData->height())))) +
+            1;
+            sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
+            sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            pipeConfig->assignTexture(descriptors, uniformName, texData, sampler);
+            return true;
+        }
+    }
+    return false;
+}
+
+vsg::ref_ptr<vsg::PbrMaterialValue> ShapeBuilder::createPbrMaterialFromChronoMaterial(std::shared_ptr<chrono::ChVisualMaterial> chronoMat) {
+    auto pbrMat = vsg::PbrMaterialValue::create();
+    float alpha = chronoMat->GetOpacity();
+    float dim = 0.5f;
+    pbrMat->value().baseColorFactor.set(dim*chronoMat->GetDiffuseColor().R, dim*chronoMat->GetDiffuseColor().G,
+                                        dim*chronoMat->GetDiffuseColor().B, alpha);
+    pbrMat->value().emissiveFactor.set(chronoMat->GetEmissiveColor().R,chronoMat->GetEmissiveColor().G,chronoMat->GetEmissiveColor().B,alpha);
+    pbrMat->value().specularFactor.set(chronoMat->GetSpecularColor().R, chronoMat->GetSpecularColor().G, chronoMat->GetSpecularColor().B, alpha);
+    pbrMat->value().roughnessFactor = chronoMat->GetRoughness();
+    pbrMat->value().metallicFactor = chronoMat->GetMetallic();
+    pbrMat->value().diffuseFactor.set(chronoMat->GetDiffuseColor().R, chronoMat->GetDiffuseColor().G,
+                                      chronoMat->GetDiffuseColor().B, alpha);
+    pbrMat->value().alphaMask = alpha;
+    pbrMat->value().alphaMaskCutoff = 0.3f;
+    
+    return pbrMat;
+}
+
+vsg::ref_ptr<vsg::PhongMaterialValue> ShapeBuilder::createPhongMaterialFromChronoMaterial(std::shared_ptr<chrono::ChVisualMaterial> chronoMat) {
+    auto phongMat = vsg::PhongMaterialValue::create();
+    float alpha = chronoMat->GetOpacity();
+
+    phongMat->value().emissive.set(chronoMat->GetEmissiveColor().R,chronoMat->GetEmissiveColor().G,chronoMat->GetEmissiveColor().B,alpha);
+    phongMat->value().specular.set(chronoMat->GetSpecularColor().R, chronoMat->GetSpecularColor().G, chronoMat->GetSpecularColor().B, alpha);
+    phongMat->value().diffuse.set(chronoMat->GetDiffuseColor().R, chronoMat->GetDiffuseColor().G,
+                                      chronoMat->GetDiffuseColor().B, alpha);
+    phongMat->value().alphaMask = alpha;
+    phongMat->value().alphaMaskCutoff = 0.3f;
+    phongMat->value().ambient.set(chronoMat->GetAmbientColor().R, chronoMat->GetAmbientColor().G, chronoMat->GetAmbientColor().B, alpha);
+    return phongMat;
+    }
 
 }  // namespace vsg3d
 }  // namespace chrono

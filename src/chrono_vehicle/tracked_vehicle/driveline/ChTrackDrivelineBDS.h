@@ -25,6 +25,7 @@
 #include "chrono/physics/ChShaftsGear.h"
 #include "chrono/physics/ChShaftsGearboxAngled.h"
 #include "chrono/physics/ChShaftsPlanetary.h"
+#include "chrono/physics/ChShaftsClutch.h"
 #include "chrono/physics/ChShaftsBody.h"
 #include "chrono/physics/ChShaftsMotor.h"
 #include "chrono/physics/ChShaftsTorque.h"
@@ -58,6 +59,9 @@ class CH_VEHICLE_API ChTrackDrivelineBDS : public ChDrivelineTV {
     /// system, this is typically [0, 1, 0]).
     void SetAxleDirection(const ChVector<>& dir) { m_dir_axle = dir; }
 
+    /// Lock/unlock the differential (if available).
+    virtual void LockDifferential(bool lock) override;
+
     /// Initialize the driveline subsystem.
     /// This function connects this driveline subsystem to the sprockets of the two track assembly subsystems.
     virtual void Initialize(std::shared_ptr<ChChassis> chassis,           ///< associated chassis subsystem
@@ -90,14 +94,18 @@ class CH_VEHICLE_API ChTrackDrivelineBDS : public ChDrivelineTV {
     /// Return the gear ratio for the conical gear.
     virtual double GetConicalGearRatio() const = 0;
 
+    /// Return the limit for the differential locking torque.
+    virtual double GetDifferentialLockingLimit() const = 0;
+
   private:
     virtual void CombineDriverInputs(const DriverInputs& driver_inputs,
                                      double& braking_left,
                                      double& braking_right) override;
 
-    std::shared_ptr<ChShaftsGearboxAngled> m_conicalgear;
-    std::shared_ptr<ChShaft> m_differentialbox;
-    std::shared_ptr<ChShaftsPlanetary> m_differential;
+    std::shared_ptr<ChShaftsGearboxAngled> m_conicalgear;  ///< conical gear
+    std::shared_ptr<ChShaft> m_differentialbox;            ///< differential casing
+    std::shared_ptr<ChShaftsPlanetary> m_differential;     ///< planetary differential
+    std::shared_ptr<ChShaftsClutch> m_clutch;              ///< clutch for locking differential
 
     ChVector<> m_dir_motor_block;
     ChVector<> m_dir_axle;

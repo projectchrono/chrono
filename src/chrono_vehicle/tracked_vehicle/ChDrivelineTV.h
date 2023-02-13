@@ -62,6 +62,9 @@ class CH_VEHICLE_API ChDrivelineTV : public ChDriveline {
                              double torque                           ///< [in] motor torque
     );
 
+    /// Lock/unlock the differential (if available).
+    virtual void LockDifferential(bool lock);
+
     /// Disconnect driveline from driven sprockets.
     virtual void Disconnect() = 0;
 

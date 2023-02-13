@@ -98,9 +98,10 @@ video::SMaterial ToIrrlichtMaterial(std::shared_ptr<ChVisualMaterial> mat, video
     float ns_val = mat->GetSpecularExponent();  // in [0, 1000]
     irr_mat.Shininess = ns_val * 0.128f;
 
+    auto scale = mat->GetTextureScale();
+
     auto kd_texture_name = mat->GetKdTexture();
     if (!kd_texture_name.empty()) {
-        auto scale = mat->GetKdTextureScale();
         auto kd_texture = driver->getTexture(kd_texture_name.c_str());
         irr_mat.setTexture(0, kd_texture);
         irr_mat.getTextureMatrix(0).setTextureScale(scale.x(), scale.y());
@@ -113,7 +114,6 @@ video::SMaterial ToIrrlichtMaterial(std::shared_ptr<ChVisualMaterial> mat, video
 
     auto normal_texture_name = mat->GetNormalMapTexture();
     if (!normal_texture_name.empty()) {
-        auto scale = mat->GetNormalMapTextureScale();
         auto normal_texture = driver->getTexture(normal_texture_name.c_str());
         irr_mat.setTexture(1, normal_texture);
         irr_mat.getTextureMatrix(1).setTextureScale(scale.x(), scale.y());
@@ -126,7 +126,6 @@ video::SMaterial ToIrrlichtMaterial(std::shared_ptr<ChVisualMaterial> mat, video
 
     auto opacity_texture_name = mat->GetOpacityTexture();
     if (!opacity_texture_name.empty()) {
-        auto scale = mat->GetOpacityTextureScale();
         auto opacity_texture = driver->getTexture(opacity_texture_name.c_str());
         irr_mat.setTexture(2, opacity_texture);
         irr_mat.getTextureMatrix(2).setTextureScale(scale.x(), scale.y());

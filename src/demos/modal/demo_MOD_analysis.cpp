@@ -28,7 +28,11 @@
 
 #include "chrono_modal/ChModalAssembly.h"
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
-#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+
+#include "chrono/solver/ChDirectSolverLScomplex.h"
+#ifdef CHRONO_PARDISO_MKL
+    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+#endif
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -58,8 +62,8 @@ void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool b
     // The ChModalAssembly is the most important item when doing modal analysis.
     // You must add finite elements, bodies and constraints into this assembly in order
     // to compute the modal frequencies etc.; objects not added into this won't be counted.
-    auto my_assembly = chrono_types::make_shared<ChModalAssembly>();
-    sys.Add(my_assembly);
+    auto assembly = chrono_types::make_shared<ChModalAssembly>();
+    sys.Add(assembly);
 
     // Now populate the assembly to analyze.
     // In this demo, make a cantilever constrained to a body (a large box
@@ -70,34 +74,32 @@ void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool b
     auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(1, 2, 2, 200);
     my_body_A->SetBodyFixed(base_fixed);
     my_body_A->SetPos(ChVector<>(-0.5, 0, 0));
-    my_assembly->Add(my_body_A);
+    assembly->Add(my_body_A);
 
-    // MESH:  Create a FEM mesh, that is a container for groups
-    //        of elements and their referenced nodes.
+    // Create a FEM mesh, that is a container for groups of elements and their referenced nodes.
+    auto mesh = chrono_types::make_shared<ChMesh>();
+    assembly->Add(mesh);
 
-    auto my_mesh = chrono_types::make_shared<ChMesh>();
-    my_assembly->Add(my_mesh);
-
-    my_mesh->SetAutomaticGravity(false);
+    mesh->SetAutomaticGravity(false);
 
     // BEAMS:
 
     // Create a simplified section, i.e. thickness and material properties
     // for beams. This will be shared among some beams.
-    auto msection = chrono_types::make_shared<ChBeamSectionEulerAdvanced>();
+    auto section = chrono_types::make_shared<ChBeamSectionEulerAdvanced>();
 
-    msection->SetDensity(beam_density);
-    msection->SetYoungModulus(beam_Young);
-    msection->SetGwithPoissonRatio(0.31);
-    msection->SetBeamRaleyghDampingBeta(0.00001);
-    msection->SetBeamRaleyghDampingAlpha(0.001);
-    msection->SetAsRectangularSection(beam_wy, beam_wz);
+    section->SetDensity(beam_density);
+    section->SetYoungModulus(beam_Young);
+    section->SetGwithPoissonRatio(0.31);
+    section->SetBeamRaleyghDampingBeta(0.00001);
+    section->SetBeamRaleyghDampingAlpha(0.001);
+    section->SetAsRectangularSection(beam_wy, beam_wz);
 
     // This helps creating sequences of nodes and ChElementBeamEuler elements:
     ChBuilderBeamEuler builder;
 
-    builder.BuildBeam(my_mesh,                   // the mesh where to put the created nodes and elements
-                      msection,                  // the ChBeamSectionEuler to use for the ChElementBeamEuler elements
+    builder.BuildBeam(mesh,                      // the mesh where to put the created nodes and elements
+                      section,                   // the ChBeamSectionEuler to use for the ChElementBeamEuler elements
                       6,                         // the number of ChElementBeamEuler to create
                       ChVector<>(0, 0, 0),       // the 'A' point in space (beginning of beam)
                       ChVector<>(beam_L, 0, 0),  // the 'B' point in space (end of beam)
@@ -108,27 +110,27 @@ void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool b
 
     auto my_root = chrono_types::make_shared<ChLinkMateGeneric>();
     my_root->Initialize(builder.GetLastBeamNodes().front(), my_body_A, ChFrame<>(ChVector<>(0, 0, 1), QUNIT));
-    my_assembly->Add(my_root);
+    assembly->Add(my_root);
 
     // VISUALIZATION ASSETS:
 
-    auto mvisualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_TX);
-    mvisualizebeamA->SetColorscaleMinMax(-0.001, 1200);
-    mvisualizebeamA->SetSmoothFaces(true);
-    mvisualizebeamA->SetWireframe(false);
-    my_mesh->AddVisualShapeFEA(mvisualizebeamA);
+    auto visualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    visualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_TX);
+    visualizebeamA->SetColorscaleMinMax(-0.001, 1200);
+    visualizebeamA->SetSmoothFaces(true);
+    visualizebeamA->SetWireframe(false);
+    mesh->AddVisualShapeFEA(visualizebeamA);
 
-    auto mvisualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizebeamC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
-    mvisualizebeamC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
-    mvisualizebeamC->SetSymbolsThickness(0.2);
-    mvisualizebeamC->SetSymbolsScale(0.1);
-    mvisualizebeamC->SetZbufferHide(false);
-    my_mesh->AddVisualShapeFEA(mvisualizebeamC);
+    auto visualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    visualizebeamC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
+    visualizebeamC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    visualizebeamC->SetSymbolsThickness(0.2);
+    visualizebeamC->SetSymbolsScale(0.1);
+    visualizebeamC->SetZbufferHide(false);
+    mesh->AddVisualShapeFEA(visualizebeamC);
 
     // Just for later reference, dump M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
-    my_assembly->DumpSubassemblyMatrices(true, true, true, true, (out_dir + "/dump").c_str());
+    assembly->DumpSubassemblyMatrices(true, true, true, true, (out_dir + "/dump").c_str());
 
     // Here we perform the modal analysis on the ChModalAssembly.
     // - We compute only the first n modes. This helps dealing with very large
@@ -137,44 +139,51 @@ void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool b
     //   i.e. there is no part that is fixed to ground) it will give six modes with 0 frequency,
     //   the so called rigid body modes.
     // - After computing the modes, you can access the eigenmodes, eigenvalues (also scaled as frequencies)
-    //   from the ChModalAssembly member data, ex. via my_assembly2->Get_modes_frequencies
+    //   from the ChModalAssembly member data, ex. via assembly2->Get_modes_frequencies
     // - For an interactive display of the modes, in Irrlicht view, use application.SetModalShow(true);
     //   this will pause the dynamic simulation and plot the modes of any ChModalAssembly present in the system
     //   as an oscillating animation. Use the GUI of Irrlicht 3D view to change the ID and amplitude of the plotted
     //   mode.
-    my_assembly->ComputeModes(14);
+    assembly->ComputeModes(14);
 
     // Just for logging the frequencies:
-    for (int i = 0; i < my_assembly->Get_modes_frequencies().rows(); ++i)
-        GetLog() << "Mode n." << i << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i)
-                 << "  damping ratio:" << my_assembly->Get_modes_damping_ratios()(i)
-                 << "    Re=" << my_assembly->Get_modes_eig()(i).real()
-                 << "  Im=" << my_assembly->Get_modes_eig()(i).imag() << "\n";
+    for (int i = 0; i < assembly->Get_modes_frequencies().rows(); ++i) {
+        GetLog() << "Mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i)
+                 << "  damping ratio:" << assembly->Get_modes_damping_ratios()(i)
+                 << "    Re=" << assembly->Get_modes_eig()(i).real() << "  Im=" << assembly->Get_modes_eig()(i).imag()
+                 << "\n";
+    }
 
     // Here we perform the complex-modal analysis (damped modes) on the ChModalAssembly.
     // Short way:
-    //   my_assembly->ComputeModesDamped(14);
+    ////assembly->ComputeModesDamped(14);
     // Or, if you need more control on the eigenvalue solver, do this:
-    //   my_assembly->ComputeModesDamped(ChModalSolveDamped( ...parameters...));
+    ////assembly->ComputeModesDamped(ChModalSolveDamped( ...parameters...));
 
-    ChSolverComplexPardisoMKL mfactorization;   // ex: use Pardiso instead than default Eigen::SparseQR for factorization
-    mfactorization.GetMklEngine().pardisoParameterArray()[12] = 1; // ex.: custom setting for Pardiso
-    my_assembly->ComputeModesDamped(ChModalSolveDamped(
-        14,          // n. of requested eigenmodes
-        1e-5,        // base frequency, or vector of frequency spans
-        500,         // the max. number of iterations
-        1e-10,       // the tolerance
-        true,        // verbose
-        ChQuadraticEigenvalueSolverKrylovSchur(&mfactorization) // the eigenpair solver algorithm
-     )
-    );
+    // Set linear solver
+#ifdef CHRONO_PARDISO_MKL
+    ChSolverComplexPardisoMKL factorization;
+    factorization.GetMklEngine().pardisoParameterArray()[12] = 1;  // custom setting for Pardiso
+#else
+    ChSolverSparseComplexQR factorization;
+#endif
+
+    assembly->ComputeModesDamped(ChModalSolveDamped(
+        14,                                                     // n. of requested eigenmodes
+        1e-5,                                                   // base frequency, or vector of frequency spans
+        500,                                                    // the max. number of iterations
+        1e-10,                                                  // the tolerance
+        true,                                                   // verbose
+        ChQuadraticEigenvalueSolverKrylovSchur(&factorization)  // the eigenpair solver algorithm
+        ));
 
     // Just for logging the frequencies:
-    for (int i = 0; i < my_assembly->Get_modes_frequencies().rows(); ++i)
-        GetLog() << "Damped mode n." << i << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i)
-                 << "  damping ratio:" << my_assembly->Get_modes_damping_ratios()(i)
-                 << "    Re=" << my_assembly->Get_modes_eig()(i).real()
-                 << "  Im=" << my_assembly->Get_modes_eig()(i).imag() << "\n";
+    for (int i = 0; i < assembly->Get_modes_frequencies().rows(); ++i) {
+        GetLog() << "Damped mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i)
+                 << "  damping ratio:" << assembly->Get_modes_damping_ratios()(i)
+                 << "    Re=" << assembly->Get_modes_eig()(i).real() << "  Im=" << assembly->Get_modes_eig()(i).imag()
+                 << "\n";
+    }
 
     // This is needed if you want to see things in Irrlicht
     vis.BindAll();
@@ -198,47 +207,45 @@ void MakeAndRunDemoLbeam(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool body1f
     // The ChModalAssembly is the most important item when doing modal analysis.
     // You must add finite elements, bodies and constraints into this assembly in order
     // to compute the modal frequencies etc.; objects not added into this won't be counted.
-    auto my_assembly = chrono_types::make_shared<ChModalAssembly>();
-    sys.Add(my_assembly);
+    auto assembly = chrono_types::make_shared<ChModalAssembly>();
+    sys.Add(assembly);
 
     // Now populate the assembly to analyze.
     // In this demo, make a L-shaped beam constrained to two bodies at the end
 
-    // MESH:  Create a FEM mesh, that is a container for groups
-    //        of elements and their referenced nodes.
+    // Create a FEM mesh, that is a container for groups of elements and their referenced nodes.
+    auto mesh = chrono_types::make_shared<ChMesh>();
+    assembly->Add(mesh);
 
-    auto my_mesh = chrono_types::make_shared<ChMesh>();
-    my_assembly->Add(my_mesh);
-
-    my_mesh->SetAutomaticGravity(false);
+    mesh->SetAutomaticGravity(false);
 
     // BEAMS:
 
     // Create a simplified section, i.e. thickness and material properties
     // for beams. This will be shared among some beams.
-    auto msection = chrono_types::make_shared<ChBeamSectionEulerAdvanced>();
+    auto section = chrono_types::make_shared<ChBeamSectionEulerAdvanced>();
 
-    msection->SetDensity(beam_density);
-    msection->SetYoungModulus(beam_Young);
-    msection->SetGwithPoissonRatio(0.31);
-    msection->SetBeamRaleyghDampingBeta(0.00001);
-    msection->SetBeamRaleyghDampingAlpha(0.001);
-    msection->SetAsRectangularSection(beam_wy, beam_wz);
+    section->SetDensity(beam_density);
+    section->SetYoungModulus(beam_Young);
+    section->SetGwithPoissonRatio(0.31);
+    section->SetBeamRaleyghDampingBeta(0.00001);
+    section->SetBeamRaleyghDampingAlpha(0.001);
+    section->SetAsRectangularSection(beam_wy, beam_wz);
 
     // This helps creating sequences of nodes and ChElementBeamEuler elements:
     ChBuilderBeamEuler builder;
 
-    builder.BuildBeam(my_mesh,                   // the mesh where to put the created nodes and elements
-                      msection,                  // the ChBeamSectionEuler to use for the ChElementBeamEuler elements
+    builder.BuildBeam(mesh,                      // the mesh where to put the created nodes and elements
+                      section,                   // the ChBeamSectionEuler to use for the ChElementBeamEuler elements
                       6,                         // the number of ChElementBeamEuler to create
                       ChVector<>(0, 0, 0),       // the 'A' point in space (beginning of beam)
                       ChVector<>(beam_L, 0, 0),  // the 'B' point in space (end of beam)
                       ChVector<>(0, 1, 0)        // the 'Y' up direction of the section for the beam
     );
     auto start_node = builder.GetLastBeamNodes().front();
-    builder.BuildBeam(my_mesh,   // the mesh where to put the created nodes and elements
-                      msection,  // the ChBeamSectionEuler to use for the ChElementBeamEuler elements
-                      6,         // the number of ChElementBeamEuler to create
+    builder.BuildBeam(mesh,     // the mesh where to put the created nodes and elements
+                      section,  // the ChBeamSectionEuler to use for the ChElementBeamEuler elements
+                      6,        // the number of ChElementBeamEuler to create
                       builder.GetLastBeamNodes().back(),    // the 'A' point in space (beginning of beam)
                       ChVector<>(beam_L, beam_L * 0.5, 0),  // the 'B' point in space (end of beam)
                       ChVector<>(1, 0, 0)                   // the 'Y' up direction of the section for the beam
@@ -250,44 +257,44 @@ void MakeAndRunDemoLbeam(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool body1f
     auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 200);
     my_body_A->SetBodyFixed(body1fixed);
     my_body_A->SetPos(ChVector<>(-0.25, 0, 0));
-    my_assembly->Add(my_body_A);
+    assembly->Add(my_body_A);
 
     // BODY: 2nd end
 
     auto my_body_B = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 200);
     my_body_B->SetBodyFixed(body2fixed);
     my_body_B->SetPos(ChVector<>(beam_L, beam_L * 0.5 + 0.25, 0));
-    my_assembly->Add(my_body_B);
+    assembly->Add(my_body_B);
 
     // CONSTRAINT: connect beam end to body
     auto my_root1 = chrono_types::make_shared<ChLinkMateGeneric>();
     my_root1->Initialize(start_node, my_body_A, ChFrame<>(ChVector<>(0, 0, 0), QUNIT));
-    my_assembly->Add(my_root1);
+    assembly->Add(my_root1);
 
     // CONSTRAINT: connect beam end to body
     auto my_root2 = chrono_types::make_shared<ChLinkMateGeneric>();
     my_root2->Initialize(end_node, my_body_B, ChFrame<>(ChVector<>(beam_L, beam_L * 0.5, 0), QUNIT));
-    my_assembly->Add(my_root2);
+    assembly->Add(my_root2);
 
     // VISUALIZATION ASSETS:
 
-    auto mvisualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_TX);
-    mvisualizebeamA->SetColorscaleMinMax(-0.001, 1200);
-    mvisualizebeamA->SetSmoothFaces(true);
-    mvisualizebeamA->SetWireframe(false);
-    my_mesh->AddVisualShapeFEA(mvisualizebeamA);
+    auto visualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    visualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_TX);
+    visualizebeamA->SetColorscaleMinMax(-0.001, 1200);
+    visualizebeamA->SetSmoothFaces(true);
+    visualizebeamA->SetWireframe(false);
+    mesh->AddVisualShapeFEA(visualizebeamA);
 
-    auto mvisualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizebeamC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
-    mvisualizebeamC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
-    mvisualizebeamC->SetSymbolsThickness(0.2);
-    mvisualizebeamC->SetSymbolsScale(0.1);
-    mvisualizebeamC->SetZbufferHide(false);
-    my_mesh->AddVisualShapeFEA(mvisualizebeamC);
+    auto visualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    visualizebeamC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
+    visualizebeamC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    visualizebeamC->SetSymbolsThickness(0.2);
+    visualizebeamC->SetSymbolsScale(0.1);
+    visualizebeamC->SetZbufferHide(false);
+    mesh->AddVisualShapeFEA(visualizebeamC);
 
     // Just for later reference, dump M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
-    my_assembly->DumpSubassemblyMatrices(true, true, true, true, (out_dir + "/dump").c_str());
+    assembly->DumpSubassemblyMatrices(true, true, true, true, (out_dir + "/dump").c_str());
 
     // Here we perform the modal analysis on the ChModalAssembly.
     // - We compute only the first n modes. This helps dealing with very large
@@ -296,16 +303,16 @@ void MakeAndRunDemoLbeam(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool body1f
     //   i.e. there is no part that is fixed to ground) it will give six modes with 0 frequency,
     //   the so called rigid body modes.
     // - After computing the modes, you can access the eigenmodes, eigenvalues (also scaled as frequencies)
-    //   from the ChModalAssembly member data, ex. via my_assembly2->Get_modes_frequencies
+    //   from the ChModalAssembly member data, ex. via assembly2->Get_modes_frequencies
     // - For an interactive display of the modes, in Irrlicht view, use application.SetModalShow(true);
     //   this will pause the dynamic simulation and plot the modes of any ChModalAssembly present in the system
     //   as an oscillating animation. Use the GUI of Irrlicht 3D view to change the ID and amplitude of the plotted
     //   mode.
-    my_assembly->ComputeModes(16);
+    assembly->ComputeModes(16);
 
     // If you need to enter more detailed settings for the eigenvalue solver, do this :
     /*
-    my_assembly->ComputeModes(ChModalSolveUndamped(
+    assembly->ComputeModes(ChModalSolveUndamped(
         12,             // n. lowest nodes to search, or modes clusters {{freq1,nnodes2},{freq2,nnodes2},{...,...}}
         1e-5,           // base freq.
         500,            // max iterations
@@ -316,8 +323,8 @@ void MakeAndRunDemoLbeam(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool body1f
     */
 
     // Just for logging the frequencies:
-    for (int i = 0; i < my_assembly->Get_modes_frequencies().rows(); ++i)
-        GetLog() << "Mode n." << i << "  frequency [Hz]: " << my_assembly->Get_modes_frequencies()(i) << "\n";
+    for (int i = 0; i < assembly->Get_modes_frequencies().rows(); ++i)
+        GetLog() << "Mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i) << "\n";
 
     // This is needed if you want to see things in Irrlicht 3D view.
     vis.BindAll();

@@ -423,7 +423,8 @@ void RigidTerrain::Patch::SetColor(const ChColor& color) {
 }
 
 void RigidTerrain::Patch::SetTexture(const std::string& filename, float scale_x, float scale_y) {
-    m_vis_mat->SetKdTexture(filename, scale_x, scale_y);
+    m_vis_mat->SetKdTexture(filename);
+    m_vis_mat->SetTextureScale(scale_x, scale_y);
 }
 
 // -----------------------------------------------------------------------------
