@@ -41,7 +41,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createPhongShape(BasicShape theShape,
     vsg::ref_ptr<vsg::ShaderSet> shaderSet;
 
     auto repeatValues = vsg::vec3Value::create();
-    repeatValues->set(vsg::vec3(material->GetKdTextureScale().x(), material->GetKdTextureScale().y(), 1.0f));
+    repeatValues->set(vsg::vec3(material->GetTextureScale().x(), material->GetTextureScale().y(), 1.0f));
     shaderSet = createTilingPhongShaderSet(m_options);
 
     auto rasterizationState = vsg::RasterizationState::create();
@@ -236,7 +236,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createPbrShape(BasicShape theShape,
     vsg::ref_ptr<vsg::ShaderSet> shaderSet;
 
     auto repeatValues = vsg::vec3Value::create();
-    repeatValues->set(vsg::vec3(material->GetKdTextureScale().x(), material->GetKdTextureScale().y(), 1.0f));
+    repeatValues->set(vsg::vec3(material->GetTextureScale().x(), material->GetTextureScale().y(), 1.0f));
     shaderSet = createTilingPbrShaderSet(m_options);
 
     auto rasterizationState = vsg::RasterizationState::create();
@@ -836,7 +836,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshPhongMatShape(vsg::ref_ptr<v
         vsg::ref_ptr<vsg::ShaderSet> shaderSet;
 
         auto repeatValues = vsg::vec3Value::create();
-        repeatValues->set(vsg::vec3(chronoMat->GetKdTextureScale().x(), chronoMat->GetKdTextureScale().y(), 1.0f));
+        repeatValues->set(vsg::vec3(chronoMat->GetTextureScale().x(), chronoMat->GetTextureScale().y(), 1.0f));
         shaderSet = createTilingPhongShaderSet(m_options);
 
         auto rasterizationState = vsg::RasterizationState::create();
@@ -1079,7 +1079,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshPbrMatShape(vsg::ref_ptr<vsg
         vsg::ref_ptr<vsg::ShaderSet> shaderSet;
 
         auto repeatValues = vsg::vec3Value::create();
-        repeatValues->set(vsg::vec3(chronoMat->GetKdTextureScale().x(), chronoMat->GetKdTextureScale().y(), 1.0f));
+        repeatValues->set(vsg::vec3(chronoMat->GetTextureScale().x(), chronoMat->GetTextureScale().y(), 1.0f));
         shaderSet = createTilingPbrShaderSet(m_options);
 
         auto rasterizationState = vsg::RasterizationState::create();

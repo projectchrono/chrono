@@ -526,11 +526,12 @@ void CRGTerrain::SetupMeshGraphics() {
         material->SetAmbientColor(ChColor(1.0f, 1.0f, 1.0f));
         double scale_u = 0.5 * GetLength() / GetWidth();
         double scale_w = 1.0;
-        if(m_use_diffuseTexture)
-            material->SetKdTexture(m_diffuse_texture_filename,scale_u,scale_w);
+        material->SetTextureScale(scale_u, scale_w);
+        if (m_use_diffuseTexture)
+            material->SetKdTexture(m_diffuse_texture_filename);
         if (m_use_normalTexture)
-            material->SetNormalMapTexture(m_normal_texture_filename, scale_u, scale_w);
-        if(m_use_roughTexture)
+            material->SetNormalMapTexture(m_normal_texture_filename);
+        if (m_use_roughTexture)
             material->SetRoughnessTexture(m_rough_texture_filename);
         vmesh->SetMaterial(0, material);
         m_ground->AddVisualShape(vmesh);

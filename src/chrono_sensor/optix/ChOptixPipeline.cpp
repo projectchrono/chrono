@@ -650,7 +650,7 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
         material.class_id = mat->GetClassID();
         material.instance_id = mat->GetInstanceID();
 
-        material.tex_scale = {mat->GetKdTextureScale().x(), mat->GetKdTextureScale().y()};
+        material.tex_scale = {mat->GetTextureScale().x(), mat->GetTextureScale().y()};
 
         // normal texture
         if (mat->GetNormalMapTexture() != "") {
