@@ -135,6 +135,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Get the target (look-at) point of the current (active) camera.
     virtual ChVector<> GetCameraTarget() const override;
 
+    /// Get estimated FPS.
+    double GetRenderingFPS() const { return m_fps; }
+
     void SetLightIntensity(float intensity);
     void SetLightDirection(double azimuth, double elevation);
     void SetCameraAngleDeg(double angleDeg) { m_cameraAngleDeg = angleDeg; }
@@ -248,7 +251,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     bool m_allowPositionTransfer = 0;
     std::vector<vsg::ref_ptr<vsg::vec3Array>> m_vsgPositionList;
     std::shared_ptr<ChParticleCloud> m_particleCloud;
-    
+
   private:
     /// Utility function to populate a VSG group with shape groups (from the given visual model).
     /// The visual model may or may not be associated with a Chrono physics item.
@@ -283,8 +286,11 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     bool m_show_cog;     ///< flag to toggle COG visibility
     double m_cog_scale;  ///< current COG frame scale
 
-    unsigned int m_frame_number;  ///< current number of rendered frames
-    double m_start_time;          ///< wallclock time at first render
+    unsigned int m_frame_number;                      ///< current number of rendered frames
+    double m_start_time;                              ///< wallclock time at first render
+    ChTimer<> m_timer_render;                         ///< timer for rendering speed
+    double m_old_time, m_current_time, m_time_total;  ///< render times
+    double m_fps;                                     ///< estimated FPS (moving average)
 
     friend class ChBaseGuiComponentVSG;
     friend class ChBaseEventHandlerVSG;

@@ -66,6 +66,7 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
             ImGui::Text("Model Time:");
             ImGui::TableNextColumn();
             ImGui::Text(label);
+
             ImGui::TableNextRow();
             double current_time = double(clock()) / double(CLOCKS_PER_SEC);
             snprintf(label, nstr, "%8.3f s", current_time - m_app->m_start_time);
@@ -73,12 +74,21 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
             ImGui::Text("Wall Clock Time:");
             ImGui::TableNextColumn();
             ImGui::Text(label);
+
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImGui::Text("Real Time Factor:");
             ImGui::TableNextColumn();
             snprintf(label, nstr, "%8.3f", m_app->GetSimulationRTF());
             ImGui::Text(label);
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Text("Rendering FPS:");
+            ImGui::TableNextColumn();
+            snprintf(label, nstr, "%8.3f", m_app->GetRenderingFPS());
+            ImGui::Text(label);
+
             ImGui::EndTable();
         }
 
@@ -289,7 +299,6 @@ class FindPositions : public vsg::Visitor {
     std::set<vsg::vec3Array*> positionsSet;
 };
 
-
 // -----------------------------------------------------------------------------
 
 class FindVertexData : public vsg::Visitor {
@@ -446,7 +455,11 @@ ChVisualSystemVSG::ChVisualSystemVSG()
       m_cog_scale(1),
       m_show_cog(false),
       m_frame_number(0),
-      m_start_time(0) {
+      m_start_time(0),
+      m_time_total(0),
+      m_old_time(0),
+      m_current_time(0),
+      m_fps(0) {
     m_windowTitle = string("Window Title");
     m_clearColor = ChColor(0, 0, 0);
     m_skyboxPath = string("vsg/textures/chrono_skybox.ktx2");
@@ -942,6 +955,9 @@ void ChVisualSystemVSG::Render() {
     if (m_frame_number == 0)
         m_start_time = double(clock()) / double(CLOCKS_PER_SEC);
 
+    m_timer_render.reset();
+    m_timer_render.start();
+
     UpdateFromMBS();
 
     if (!m_viewer->advanceToNextFrame()) {
@@ -954,20 +970,20 @@ void ChVisualSystemVSG::Render() {
     m_viewer->update();
 
     // Dynamic data transfer CPU -> GPU
-    if(m_allowPositionTransfer) {
-        for(auto &positions : m_vsgPositionList) {
+    if (m_allowPositionTransfer) {
+        for (auto& positions : m_vsgPositionList) {
             unsigned int k = 0;
-            for(auto& p : *positions) {
+            for (auto& p : *positions) {
                 float x = m_particleCloud->GetVisualModelFrame(k).GetPos().x();
                 float y = m_particleCloud->GetVisualModelFrame(k).GetPos().y();
                 float z = m_particleCloud->GetVisualModelFrame(k).GetPos().z();
-                p.set(x,y,z);
+                p.set(x, y, z);
                 k++;
             }
             positions->dirty();
         }
     }
-    
+
     if (m_allowVertexTransfer) {
         for (auto& vertices : m_vsgVerticesList) {
             size_t k = 0;
@@ -1020,6 +1036,13 @@ void ChVisualSystemVSG::Render() {
 
     m_viewer->present();
     m_frame_number++;
+
+    m_timer_render.stop();
+    m_time_total = .5 * m_timer_render() + .5 * m_time_total;
+    m_current_time = m_time_total;
+    m_current_time = m_current_time * 0.5 + m_old_time * 0.5;
+    m_old_time = m_current_time;
+    m_fps = 1.0 / m_current_time;
 }
 
 void ChVisualSystemVSG::RenderCOGFrames(double axis_length) {
@@ -1254,21 +1277,21 @@ void ChVisualSystemVSG::BindAll() {
             size_t numParticles = pcloud->GetNparticles();
             std::vector<double> size = pcloud->GetCollisionModel()->GetShapeDimensions(0);
             vsg::GeometryInfo geomInfo;
-            float d = 2.0f*size[0];
+            float d = 2.0f * size[0];
             geomInfo.dx.set(d, 0.0f, 0.0f);
             geomInfo.dy.set(0.0f, d, 0.0f);
             geomInfo.dz.set(0.0f, 0.0f, d);
-            
+
             vsg::StateInfo stateInfo;
             stateInfo.wireframe = m_wireframe;
             stateInfo.instance_positions_vec3 = true;
             auto positions = vsg::vec3Array::create(numParticles);
             geomInfo.positions = positions;
-            for(unsigned int k=0; k < positions->size(); k++) {
+            for (unsigned int k = 0; k < positions->size(); k++) {
                 float x = pcloud->GetVisualModelFrame(k).GetPos().x();
                 float y = pcloud->GetVisualModelFrame(k).GetPos().y();
                 float z = pcloud->GetVisualModelFrame(k).GetPos().z();
-                positions->set(k, vsg::vec3(x,y,z));
+                positions->set(k, vsg::vec3(x, y, z));
             }
             m_particleScene->addChild(m_vsgBuilder->createSphere(geomInfo, stateInfo));
             m_vsgPositionList = vsg::visit<FindPositions>(m_particleScene->children.at(0)).getPositionsList();
@@ -1276,7 +1299,7 @@ void ChVisualSystemVSG::BindAll() {
                 pos->properties.dataVariance = vsg::DYNAMIC_DATA;
                 m_numParticles += pos->size();
             }
-            if(positions->size() == m_numParticles) {
+            if (positions->size() == m_numParticles) {
                 // positions transfer possible
                 m_allowPositionTransfer = true;
                 m_particleCloud = pcloud;
@@ -1304,7 +1327,7 @@ void ChVisualSystemVSG::BindAll() {
                  */
                 m_deformableScene->addChild(
                     m_shapeBuilder->createTrimeshPbrMatShape(transform, trimesh->IsWireframe(), trimesh));
-        } else {
+            } else {
                 m_deformableScene->addChild(
                     m_shapeBuilder->createTrimeshColShapeSCM(transform, trimesh->IsWireframe(), trimesh));
             }
@@ -1425,7 +1448,7 @@ void ChVisualSystemVSG::UpdateFromMBS() {
         }
     }
     */
-    
+
     // Update VSG nodes for link visualization
     for (const auto& child : m_linkScene->children) {
         std::shared_ptr<ChLinkBase> link;
