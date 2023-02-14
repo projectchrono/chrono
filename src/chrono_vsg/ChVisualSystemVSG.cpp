@@ -441,6 +441,7 @@ ChVisualSystemVSG::ChVisualSystemVSG()
       m_capture_image(false),
       m_wireframe(false),
       m_show_gui(true),
+      m_show_base_gui(true),
       m_camera_trackball(true),
       m_cog_scale(1),
       m_show_cog(false),
@@ -525,6 +526,18 @@ size_t ChVisualSystemVSG::AddGuiColorbar(const std::string& title, double min_va
 
 std::shared_ptr<ChGuiComponentVSG> ChVisualSystemVSG::GetGuiComponent(size_t id) {
     return m_gui.at(id);
+}
+
+void ChVisualSystemVSG::SetBaseGuiVisibility(bool show_gui) {
+    m_show_base_gui = show_gui;
+    if (m_initialized)
+        m_base_gui->SetVisibility(m_show_base_gui);
+}
+
+void ChVisualSystemVSG::ToggleBaseGuiVisibility() {
+    m_show_base_gui = !m_show_base_gui;
+    if (m_initialized)
+        m_base_gui->SetVisibility(m_show_base_gui);
 }
 
 void ChVisualSystemVSG::AddEventHandler(std::shared_ptr<ChEventHandlerVSG> eh) {
@@ -877,8 +890,9 @@ void ChVisualSystemVSG::Initialize() {
 #endif
 
     // Include the base GUI component
-    auto base_gui = chrono_types::make_shared<ChBaseGuiComponentVSG>(this);
-    GuiComponentWrapper base_gui_wrapper(base_gui, this);
+    m_base_gui = chrono_types::make_shared<ChBaseGuiComponentVSG>(this);
+    m_base_gui->SetVisibility(m_show_base_gui);
+    GuiComponentWrapper base_gui_wrapper(m_base_gui, this);
     auto rg = vsgImGui::RenderImGui::create(m_window, base_gui_wrapper);
 
     // Add the camera info GUI component (initially invisible)

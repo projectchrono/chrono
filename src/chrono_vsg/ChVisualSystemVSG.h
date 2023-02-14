@@ -156,11 +156,23 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Identify the GUI component with the index returned by AddGuiComponent.
     std::shared_ptr<ChGuiComponentVSG> GetGuiComponent(size_t id);
 
+    /// Set visibility for all GUI components (default: true).
+    void SetGuiVisibility(bool show_gui) { m_show_gui = show_gui; }
+
     /// Toggle GUI visibility for all GUI components.
     void ToggleGuiVisibility() { m_show_gui = !m_show_gui; }
 
     /// Return boolean indicating whether or not GUI are visible.
     bool IsGuiVisible() const { return m_show_gui; }
+
+    /// Set visibility for the default (base) GUI component (default: true).
+    void SetBaseGuiVisibility(bool show_gui);
+
+    /// Toggle GUI visibility for the default (base) GUI component.
+    void ToggleBaseGuiVisibility();
+
+    /// Return boolean indicating whether or not the default (base) GUI is visible.
+    bool IsBaseGuiVisible() const { return m_show_base_gui; }
 
     /// Add a user-defined VSG event handler.
     void AddEventHandler(std::shared_ptr<ChEventHandlerVSG> eh);
@@ -180,7 +192,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::RenderGraph> m_renderGraph;
 
     bool m_show_gui;                                              ///< flag to toggle global GUI visibility
+    bool m_show_base_gui;                                         ///< flag to toggle base GUI visibility
     size_t m_camera_gui;                                          ///< identifier for the camera info GUI component
+    std::shared_ptr<ChGuiComponentVSG> m_base_gui;                ///< default (base) GUI component
     std::vector<std::shared_ptr<ChGuiComponentVSG>> m_gui;        ///< list of all additional GUI components
     std::vector<std::shared_ptr<ChEventHandlerVSG>> m_evhandler;  ///< list of all additional event handlers
 

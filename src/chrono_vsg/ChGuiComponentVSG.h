@@ -32,6 +32,9 @@ class CH_VSG_API ChGuiComponentVSG {
     /// Specify the ImGui elements to be rendered for this GUI component.
     virtual void render() = 0;
 
+    /// Set visibility for this GUI component.
+    void SetVisibility(bool visible) { m_visible = visible; }
+
     /// Toggle GUI visibility for this GUI component.
     void ToggleVisibility() { m_visible = !m_visible; }
 
