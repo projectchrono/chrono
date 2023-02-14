@@ -24,7 +24,7 @@
 #include "chrono/utils/ChUtilsGeometry.h"
 
 #include "chrono_fsi/ChSystemFsi.h"
-#include "chrono_fsi/ChVisualizationFsi.h"
+#include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
 
 #include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChMesh.h"
@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
     auto my_mesh = sysFSI.GetFsiMesh();
 
     // Create a run-tme visualizer
-    ChVisualizationFsi fsi_vis(&sysFSI);
+    ChFsiVisualizationGL fsi_vis(&sysFSI);
     if (render) {
         fsi_vis.SetTitle("Chrono::FSI Flexible Flat Plate Demo");
         fsi_vis.UpdateCamera(ChVector<>(bxDim / 8, -3, 0.25), ChVector<>(bxDim / 8, 0.0, 0.25));

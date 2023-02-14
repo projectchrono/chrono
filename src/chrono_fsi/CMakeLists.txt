@@ -79,6 +79,11 @@ if(ENABLE_MODULE_OPENGL)
   list(APPEND CH_FSI_LINKED_LIBRARIES ChronoEngine_opengl)
 endif()
 
+if(ENABLE_MODULE_VSG)
+  set(CMAKE_CXX_STANDARD 17)
+  list(APPEND CH_FSI_LINKED_LIBRARIES ChronoEngine_vsg)
+endif()
+
 # ------------------------------------------------------------------------------
 # Make some variables visible from parent directory
 # ------------------------------------------------------------------------------
@@ -105,9 +110,7 @@ set(ChronoEngine_FSI_FILES
     ChApiFsi.h
     ChSystemFsi.h
     ChDefinitionsFsi.h
-    ChVisualizationFsi.h
     ChSystemFsi.cpp
-    ChVisualizationFsi.cpp
 )
 
 source_group("" FILES ${ChronoEngine_FSI_FILES})
@@ -169,6 +172,27 @@ set(ChronoEngine_FSI_UTILS_FILES
 
 source_group(utils FILES ${ChronoEngine_FSI_UTILS_FILES})
 
+set(ChronoEngine_FSI_VIS_FILES
+    visualization/ChFsiVisualization.h
+    visualization/ChFsiVisualization.cpp
+)
+
+if(ENABLE_MODULE_OPENGL)
+    set(ChronoEngine_FSI_VIS_FILES ${ChronoEngine_FSI_VIS_FILES}
+        visualization/ChFsiVisualizationGL.h
+        visualization/ChFsiVisualizationGL.cpp
+    )
+endif()
+
+if(ENABLE_MODULE_VSG)
+    set(ChronoEngine_FSI_VIS_FILES ${ChronoEngine_FSI_VIS_FILES}
+        visualization/ChFsiVisualizationVSG.h
+        visualization/ChFsiVisualizationVSG.cpp
+    )
+endif()
+
+source_group(visualization FILES ${ChronoEngine_FSI_VIS_FILES})
+
 #-----------------------------------------------------------------------------
 # Create the ChronoEngine_fsi library
 #-----------------------------------------------------------------------------
@@ -180,6 +204,7 @@ cuda_add_library(ChronoEngine_fsi SHARED
     ${ChronoEngine_FSI_PHYSICS_FILES}
     ${ChronoEngine_FSI_MATH_FILES}
     ${ChronoEngine_FSI_UTILS_FILES}
+    ${ChronoEngine_FSI_VIS_FILES}
 )
 
 set_target_properties(ChronoEngine_fsi PROPERTIES

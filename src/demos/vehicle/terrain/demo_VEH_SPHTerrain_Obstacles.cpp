@@ -24,10 +24,17 @@
 #include "chrono_vehicle/terrain/SPHTerrain.h"
 
 #include "chrono_fsi/ChSystemFsi.h"
-#include "chrono_fsi/ChVisualizationFsi.h"
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 #include "chrono_thirdparty/filesystem/path.h"
+
+#ifdef CHRONO_OPENGL
+    #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
+#endif
+
+#ifdef CHRONO_VSG
+    #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
+#endif
 
 using namespace chrono;
 using namespace chrono::fsi;
@@ -36,6 +43,11 @@ using namespace chrono::vehicle;
 using std::cout;
 using std::cin;
 using std::endl;
+
+// -----------------------------------------------------------------------------
+
+// Run-time visualization system (OpenGL or VSG)
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 const std::string out_dir = GetChronoOutputPath() + "SPH_TERRAIN_OBSTACLE";
 
@@ -67,11 +79,11 @@ int main(int argc, char* argv[]) {
     double step_size = 5e-4;
     double active_box_dim = 0.5;
 
-    bool run_time_vis = true;              // run-time visualization?
-    double run_time_vis_fps = 0;           // render frequency (0: every simulation frame)
-    bool run_time_vis_terrain_sph = true;  // render terrain SPH particles?
-    bool run_time_vis_terrain_bce = true;  // render terrain BCE markers?
-    bool run_time_vis_bce = true;          // render moving BCE markers?
+    bool run_time_vis = true;               // run-time visualization?
+    double run_time_vis_fps = 0;            // render frequency (0: every simulation frame)
+    bool run_time_vis_terrain_sph = true;   // render terrain SPH particles?
+    bool run_time_vis_terrain_bce = false;  // render terrain BCE markers?
+    bool run_time_vis_bce = false;          // render moving BCE markers?
 
     bool verbose = true;
 
@@ -119,7 +131,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetDensity(density);
     sysFSI.SetCohesionForce(cohesion);
 
-    //sysFSI.SetActiveDomain(ChVector<>(active_box_dim, active_box_dim, 1));
+    // sysFSI.SetActiveDomain(ChVector<>(active_box_dim, active_box_dim, 1));
     sysFSI.SetDiscreType(false, false);
     sysFSI.SetWallBC(BceVersion::ORIGINAL);
     sysFSI.SetSPHMethod(FluidDynamics::WCSPH);
@@ -141,27 +153,36 @@ int main(int argc, char* argv[]) {
     );
     terrain.SaveMarkers(out_dir);
 
-#ifdef CHRONO_OPENGL
     // Create run-time visualization
-    opengl::ChVisualSystemOpenGL vis;
-    ChVisualizationFsi visFSI(&sysFSI, &vis);
-    std::shared_ptr<ChBody> sentinel;
+    std::shared_ptr<ChFsiVisualization> visFSI;
     if (run_time_vis) {
-        visFSI.SetTitle("Chrono::FSI single wheel demo");
-        visFSI.SetSize(1280, 720);
-        visFSI.UpdateCamera(ChVector<>(2, 1, 0.5), ChVector<>(0, 0, 0));
-        visFSI.SetCameraMoveScale(0.2f);
-        visFSI.EnableFluidMarkers(run_time_vis_terrain_sph);
-        visFSI.EnableBoundaryMarkers(run_time_vis_terrain_bce);
-        visFSI.EnableRigidBodyMarkers(run_time_vis_bce);
-        visFSI.SetRenderMode(ChVisualizationFsi::RenderMode::SOLID);
-        visFSI.SetParticleRenderMode(sysFSI.GetInitialSpacing() / 2, ChVisualizationFsi::RenderMode::SOLID);
-
-        vis.AttachSystem(&sys);
-        vis.Initialize();
-        visFSI.Initialize();
-    }
+        switch (vis_type) {
+            case ChVisualSystem::Type::OpenGL:
+#ifdef CHRONO_OPENGL
+                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
 #endif
+                break;
+            case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+#endif
+                break;
+            }
+        }
+
+        visFSI->SetTitle("Chrono::FSI single wheel demo");
+        visFSI->SetSize(1280, 720);
+        visFSI->AddCamera(ChVector<>(2, 1, 0.5), ChVector<>(0, 0, 0));
+        visFSI->SetCameraMoveScale(0.2f);
+        visFSI->EnableFluidMarkers(run_time_vis_terrain_sph);
+        visFSI->EnableBoundaryMarkers(run_time_vis_terrain_bce);
+        visFSI->EnableRigidBodyMarkers(run_time_vis_bce);
+        ////viI_gl->EnableInfoOverlay(false);
+        visFSI->SetRenderMode(ChFsiVisualizationGL::RenderMode::SOLID);
+        visFSI->SetParticleRenderMode(sysFSI.GetInitialSpacing() / 2, ChFsiVisualizationGL::RenderMode::SOLID);
+        visFSI->AttachSystem(&sys);
+        visFSI->Initialize();
+    }
 
     // Simulation loop
     int render_steps = (run_time_vis_fps > 0) ? (int)std::round((1.0 / run_time_vis_fps) / step_size) : 1;
@@ -170,10 +191,9 @@ int main(int argc, char* argv[]) {
     int frame = 0;
 
     while (t < tend) {
-        std::cout << "Time: " << t << std::endl;
 #ifdef CHRONO_OPENGL
         if (run_time_vis && frame % render_steps == 0) {
-            if (!visFSI.Render())
+            if (!visFSI->Render())
                 break;
         }
 #endif

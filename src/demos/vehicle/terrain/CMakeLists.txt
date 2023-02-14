@@ -3,19 +3,24 @@
 # These example programs require Irrlicht run-time visualization.
 #=============================================================================
 
-if(NOT ENABLE_MODULE_IRRLICHT AND NOT ENABLE_MODULE_VSG)
-    return()
-endif()
-
 #--------------------------------------------------------------
 # List all demos
 
-set(DEMOS
-    demo_VEH_RigidTerrain_WheeledVehicle
-    demo_VEH_SCMTerrain_WheeledVehicle
-    demo_VEH_SCMTerrain_TrackedVehicle
-    demo_VEH_SCMTerrain_RigidTire
-)
+set(DEMOS "")
+
+if(ENABLE_MODULE_IRRLICHT OR ENABLE_MODULE_VSG)
+    set(DEMOS ${DEMOS}
+        demo_VEH_RigidTerrain_WheeledVehicle
+        demo_VEH_SCMTerrain_WheeledVehicle
+    )
+endif()
+
+if(ENABLE_MODULE_IRRLICHT)
+    set(DEMOS ${DEMOS}  
+        demo_VEH_SCMTerrain_TrackedVehicle
+        demo_VEH_SCMTerrain_RigidTire
+    )
+endif()
 
 if(HAVE_OPENCRG AND ENABLE_MODULE_IRRLICHT)
     set(DEMOS ${DEMOS}
@@ -36,13 +41,13 @@ if(ENABLE_MODULE_MULTICORE AND ENABLE_MODULE_OPENGL)
     )
 endif()
 
-if(ENABLE_MODULE_FSI AND ENABLE_MODULE_OPENGL)
+if(ENABLE_MODULE_FSI AND (ENABLE_MODULE_OPENGL OR ENABLE_MODULE_VSG))
     set(DEMOS ${DEMOS}
         demo_VEH_SPHTerrain_Obstacles
     )
 endif()
 
-if(ENABLE_MODULE_PARDISO_MKL)
+if(ENABLE_MODULE_PARDISO_MKL AND ENABLE_MODULE_IRRLICHT)
     set(DEMOS ${DEMOS}
         demo_VEH_SCMTerrain_FEATire
     )

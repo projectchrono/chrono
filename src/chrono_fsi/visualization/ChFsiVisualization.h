@@ -19,13 +19,10 @@
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChParticleCloud.h"
+#include "chrono/assets/ChVisualSystem.h"
 
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/ChSystemFsi.h"
-
-#ifdef CHRONO_OPENGL
-    #include "chrono_opengl/ChVisualSystemOpenGL.h"
-#endif
 
 namespace chrono {
 namespace fsi {
@@ -34,50 +31,45 @@ namespace fsi {
 /// @{
 
 /// Run-time visualization support for Chrono::FSI systems.
-/// Requires the Chrono::OpenGL module; if not available, most ChVisualizationFsi functions are no-op.
-///
 /// Note that using run-time visualization for a Chrono::FSI system incurs the penalty of collecting positions of all
 /// particles every time the Render() function is invoked.
-class CH_FSI_API ChVisualizationFsi {
+class CH_FSI_API ChFsiVisualization {
   public:
     /// Rendering mode for particles and mesh objects.
     enum class RenderMode {POINTS, WIREFRAME, SOLID};
 
     /// Create a run-time FSI visualization object associated with a given Chrono::Fsi system.
-    ChVisualizationFsi(ChSystemFsi* sysFSI);
+    ChFsiVisualization(ChSystemFsi* sysFSI);
 
-#ifdef CHRONO_OPENGL
-    /// Create a run-time FSI visualization object associated with a given Chrono::Fsi system and using an existing
-    /// OpenGL visual system.
-    ChVisualizationFsi(ChSystemFsi* sysFSI, opengl::ChVisualSystemOpenGL* vis);
-#endif
-
-    ~ChVisualizationFsi();
+    virtual ~ChFsiVisualization();
 
     /// Set title of the visualization window (default: "").
-    void SetTitle(const std::string& title);
+    virtual void SetTitle(const std::string& title);
 
     /// Set window dimensions (default: 1280x720).
-    void SetSize(int width, int height);
+    virtual void SetSize(int width, int height);
+
+    /// Add a camera initially at the specified position and target (look at) point.
+    virtual void AddCamera(const ChVector<>& pos, const ChVector<>& target);
 
     /// Set camera position and target (look at) point.
-    void UpdateCamera(const ChVector<>& pos, const ChVector<>& target);
+    virtual void UpdateCamera(const ChVector<>& pos, const ChVector<>& target);
 
     /// Set camera up vector (default: Z).
-    void SetCameraUpVector(const ChVector<>& up);
+    virtual void SetCameraVertical(CameraVerticalDir up);
 
     /// Set scale for camera movement increments (default: 0.1).
-    void SetCameraMoveScale(float scale);
+    virtual void SetCameraMoveScale(float scale);
 
     /// Set visualization radius for SPH particles (default: half initial spacing).
     /// Must be called before Initialize().
-    void SetParticleRenderMode(double radius, RenderMode mode = RenderMode::POINTS);
+    virtual void SetParticleRenderMode(double radius, RenderMode mode = RenderMode::POINTS);
 
     /// Set rendering mode for mesh objects (default: WIREFRAME).
-    void SetRenderMode(RenderMode mode);
+    virtual void SetRenderMode(RenderMode mode);
 
-    /// Enable/disable information overlay (default: false).
-    void EnableInfoOverlay(bool val);
+    /// Enable/disable information overlay (default: true).
+    virtual void EnableInfoOverlay(bool val);
 
     /// Enable/disable rendering of fluid SPH particles (default: true).
     void EnableFluidMarkers(bool val) { m_sph_markers = val; }
@@ -103,29 +95,19 @@ class CH_FSI_API ChVisualizationFsi {
     void AddProxyBody(std::shared_ptr<ChBody> body);
 
     /// Initialize the run-time visualization system.
-    /// If the Chrono::OpenGL module is not available, this function is no-op.
-    void Initialize();
+    virtual void Initialize();
 
     /// Render the current state of the Chrono::Fsi system. This function, typically invoked from within the main
     /// simulation loop, can only be called after construction of the FSI system was completed (i.e., the system was
     /// initialized). This function querries the positions of all particles in the FSI system in order to update the
     /// positions of the proxy bodies.
     /// Returns false if the visualization window was closed.
-    /// If the Chrono::OpenGL module is not available, this function is no-op.
-    bool Render();
+    virtual bool Render() = 0;
 
-#ifdef CHRONO_OPENGL
-    opengl::ChVisualSystemOpenGL& GetVisualSystem() const { return *m_vsys; }
-#endif
-
-  private:
+  protected:
     ChSystemFsi* m_systemFSI;  ///< associated Chrono::FSI system
     ChSystem* m_system;        ///< internal Chrono system (holds proxy bodies)
     ChSystem* m_user_system;   ///< optional user-provided system
-    bool m_owns_vis;           ///< ownership flag for OpenGL visualization system
-#ifdef CHRONO_OPENGL
-    opengl::ChVisualSystemOpenGL* m_vsys;  ///< OpenGL visualization system
-#endif
 
     double m_radius;           ///< particle visualization radius
     bool m_sph_markers;        ///< render fluid SPH particles?
@@ -134,7 +116,6 @@ class CH_FSI_API ChVisualizationFsi {
     bool m_bndry_bce_markers;  ///< render boundary BCE markers?
 
     std::shared_ptr<ChParticleCloud> m_particles;  ///< particle cloud proxy for SPH markers
-    unsigned int m_bce_start_index;                ///< start index of BCE proxy bodies in m_system's body list
 };
 
 /// @} fsi_utils

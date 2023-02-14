@@ -27,7 +27,7 @@
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
 #include "chrono_fsi/ChSystemFsi.h"
-#include "chrono_fsi/ChVisualizationFsi.h"
+#include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -219,7 +219,7 @@ int main(int argc, char* argv[]) {
         ofile.open(out_dir + "./body_position.txt");
 
     // Create a run-tme visualizer
-    ChVisualizationFsi fsi_vis(&sysFSI);
+    ChFsiVisualizationGL fsi_vis(&sysFSI);
     if (render) {
         fsi_vis.SetTitle("Viper on SPH terrain");
         fsi_vis.UpdateCamera(ChVector<>(0, -3 * byDim, bzDim), ChVector<>(0, 0, 0));
