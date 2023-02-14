@@ -24,6 +24,9 @@
 #include "chrono_vsg/resources/lineShader_vert.h"
 #include "chrono_vsg/resources/lineShader_frag.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "chrono_thirdparty/stb/stb_image.h"
+
 namespace chrono {
 namespace vsg3d {
 
@@ -1118,12 +1121,13 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshPbrMatShape(vsg::ref_ptr<vsg
             if(!ok) GetLog() << "Could not read texture file: " << normalPath.string() << "\n";
         }
 
-        if(!chronoMat->GetRoughnessTexture().empty()) {
-            vsg::Path roughnessPath(chronoMat->GetRoughnessTexture());
-            std::string uniName("mrMap");
-            bool ok = ApplyTexture(roughnessPath, graphicsPipelineConfig, descriptors, uniName);
-            if(!ok) GetLog() << "Could not read texture file: " << roughnessPath.string() << "\n";
-        }
+        //  special case: metalness and roughness must be converted to a single texture
+        //  blue  = metalness
+        //  green = roughness
+        vsg::Path metalnessPath(chronoMat->GetMetallicTexture());
+        vsg::Path roughnessPath(chronoMat->GetRoughnessTexture());
+        std::string uniName("mrMap");
+        bool mrok = ApplyMetalRoughnessTexture(metalnessPath, roughnessPath, graphicsPipelineConfig, descriptors, uniName);
         
         if(!chronoMat->GetKsTexture().empty()) {
             vsg::Path specularPath(chronoMat->GetKsTexture());
@@ -2019,6 +2023,62 @@ bool ShapeBuilder::ApplyTexture(vsg::Path &path, vsg::ref_ptr<vsg::GraphicsPipel
         }
     }
     return false;
+}
+
+bool ShapeBuilder::ApplyMetalRoughnessTexture(vsg::Path &metalPath, vsg::Path &roughPath, vsg::ref_ptr<vsg::GraphicsPipelineConfigurator> pipeConfig, vsg::Descriptors &descriptors, std::string &uniformName) {
+    int wM, hM, nM;
+    unsigned char *metalData = stbi_load(metalPath.string().c_str(), &wM, &hM, &nM , 1);
+    int wR, hR, nR;
+    unsigned char *roughData = stbi_load(roughPath.string().c_str(), &wR, &hR, &nR, 1);
+    if(!metalData && !roughData) {
+        // nothing to do
+        return false;
+    }
+    if(metalData && roughData) {
+        if((wM != wR) || (hM != hR)) {
+            GetLog() << "Metalness and Roughness Texture must have the same size!\n";
+            return false;
+        }
+    }
+            
+    auto texData = vsg::vec3Array2D::create(wR, hR, vsg::Data::Layout{VK_FORMAT_R32G32B32_SFLOAT});
+    if(!texData) {
+        GetLog() << "Could not create texture data!\n";
+        return false;
+    }
+    /*
+     texData->set(0, 0, {0.0f, 0.0f, 1.0f});
+     texData->set(1, 1, {0.0f, 0.0f, 1.0f});
+     */
+    int k = 0;
+    for(int j=0; j<hR; j++) {
+        for(int i=0; i<wR; i++) {
+            vsg::vec3 color(0.0f, 0.0f, 0.0f);
+            float red = 0.0f;
+            float green = 0.0f;
+            float blue = 0.0f;
+            if(roughData) {
+                green = float(roughData[k])/255.0f;
+            }
+            if(metalData) {
+                blue = float(metalData[k])/255.0f;
+            }
+            texData->set(i, j, vsg::vec3(red, green, blue));
+            k++;
+        }
+    }
+    // enable texturing with mipmaps
+    auto sampler = vsg::Sampler::create();
+    sampler->maxLod = static_cast<uint32_t>(std::floor(
+                                                       std::log2(std::max(texData->width(), texData->height())))) +
+    1;
+    sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
+    sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    pipeConfig->assignTexture(descriptors, uniformName, texData, sampler);
+    if(roughData) STBI_FREE(roughData);
+    if(metalData) STBI_FREE(metalData);
+    return true;
 }
 
 vsg::ref_ptr<vsg::PbrMaterialValue> ShapeBuilder::createPbrMaterialFromChronoMaterial(std::shared_ptr<chrono::ChVisualMaterial> chronoMat) {

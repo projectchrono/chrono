@@ -120,6 +120,8 @@ public:
 private:
     bool ApplyTexture(vsg::Path &path, vsg::ref_ptr<vsg::GraphicsPipelineConfigurator> pipeConfig, vsg::Descriptors &descriptors, std::string &uniformName);
     
+    bool ApplyMetalRoughnessTexture(vsg::Path &metalPath, vsg::Path &roughPath,  vsg::ref_ptr<vsg::GraphicsPipelineConfigurator> pipeConfig, vsg::Descriptors &descriptors, std::string &uniformName);
+    
     vsg::ref_ptr<vsg::PbrMaterialValue> createPbrMaterialFromChronoMaterial(std::shared_ptr<chrono::ChVisualMaterial> chronoMat);
     
     vsg::ref_ptr<vsg::PhongMaterialValue> createPhongMaterialFromChronoMaterial(std::shared_ptr<chrono::ChVisualMaterial> chronoMat);
