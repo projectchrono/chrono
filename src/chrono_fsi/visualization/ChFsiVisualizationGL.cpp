@@ -12,29 +12,51 @@
 // Authors: Radu Serban
 // =============================================================================
 
-#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChBoxShape.h"
 
-#include "chrono_fsi/ChVisualizationFsi.h"
+#include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
 #include "chrono_fsi/physics/ChSystemFsi_impl.cuh"
 
 namespace chrono {
 namespace fsi {
 
-ChVisualizationFsi::ChVisualizationFsi(ChSystemFsi* sysFSI)
-    : m_systemFSI(sysFSI),
-      m_owns_vis(true),
-      m_user_system(nullptr),
-      m_sph_markers(true),
-      m_rigid_bce_markers(true),
-      m_flex_bce_markers(true),
-      m_bndry_bce_markers(false),
-      m_bce_start_index(0) {
-    m_radius = sysFSI->GetInitialSpacing() / 2;
-#ifdef CHRONO_OPENGL
-    m_system = new ChSystemSMC();
+// -----------------------------------------------------------------------------
 
+// Custom stats overlay
+class FSIStatsGL : public opengl::ChOpenGLStats {
+  public:
+    FSIStatsGL() : ChOpenGLStats() {}
+    virtual void GenerateStats(ChSystem& sys) override {
+        sprintf(buffer, "SPH particles:  %lu", num_sph);
+        text.Render(buffer, screen.LEFT, screen.TOP - 1 * screen.SPACING, screen.SX, screen.SY);
+
+        sprintf(buffer, "Boundary BCE:   %lu", num_bndry_bce);
+        text.Render(buffer, screen.LEFT, screen.TOP - 2 * screen.SPACING, screen.SX, screen.SY);
+
+        sprintf(buffer, "Rigid body BCE: %lu", num_rigid_bce);
+        text.Render(buffer, screen.LEFT, screen.TOP - 3 * screen.SPACING, screen.SX, screen.SY);
+
+        sprintf(buffer, "Flex body BCE:  %lu", num_flex_bce);
+        text.Render(buffer, screen.LEFT, screen.TOP - 4 * screen.SPACING, screen.SX, screen.SY);
+
+        sprintf(buffer, "TIME: %04f", sys.GetChTime());
+        text.Render(buffer, screen.LEFT, screen.TOP - 6 * screen.SPACING, screen.SX, screen.SY);
+
+        sprintf(buffer, "FPS:  %04d", int(fps));
+        text.Render(buffer, screen.LEFT, screen.TOP - 7 * screen.SPACING, screen.SX, screen.SY);
+    }
+    unsigned long num_sph;
+    unsigned long num_bndry_bce;
+    unsigned long num_rigid_bce;
+    unsigned long num_flex_bce;
+    char buffer[50];
+};
+
+
+// -----------------------------------------------------------------------------
+
+ChFsiVisualizationGL::ChFsiVisualizationGL(ChSystemFsi* sysFSI) : ChFsiVisualization(sysFSI), m_bce_start_index(0) {
     m_vsys = new opengl::ChVisualSystemOpenGL();
     m_vsys->AttachSystem(m_system);
     m_vsys->SetWindowTitle("");
@@ -44,86 +66,44 @@ ChVisualizationFsi::ChVisualizationFsi(ChSystemFsi* sysFSI)
     m_vsys->SetParticleRenderMode(sysFSI->GetInitialSpacing() / 2, opengl::POINTS);
     m_vsys->AddCamera(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0));
     m_vsys->SetCameraVertical(ChVector<>(0, 0, 1));
-    m_vsys->EnableStats(false);
-#else
-    m_system = nullptr;
-    std::cout << "\nWARNING! Chrono::OpenGL not available.  Visualization disabled!\n" << std::endl;
-#endif
 }
 
-#ifdef CHRONO_OPENGL
-ChVisualizationFsi::ChVisualizationFsi(ChSystemFsi* sysFSI, opengl::ChVisualSystemOpenGL* vis)
-    : m_systemFSI(sysFSI),
-      m_owns_vis(false),
-      m_user_system(nullptr),
-      m_sph_markers(true),
-      m_rigid_bce_markers(true),
-      m_flex_bce_markers(true),
-      m_bndry_bce_markers(false),
-      m_bce_start_index(0) {
-    m_radius = sysFSI->GetInitialSpacing() / 2;
-    m_system = new ChSystemSMC();
-
-    m_vsys = vis;
-    m_vsys->AttachSystem(m_system);
-    m_vsys->SetWindowTitle("");
-    m_vsys->SetWindowSize(1280, 720);
-    m_vsys->SetCameraProperties(0.1f);
-    m_vsys->SetRenderMode(opengl::WIREFRAME);
-    m_vsys->SetParticleRenderMode(sysFSI->GetInitialSpacing() / 2, opengl::POINTS);
-    m_vsys->AddCamera(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0));
-    m_vsys->SetCameraVertical(ChVector<>(0, 0, 1));
-    m_vsys->EnableStats(false);
-}
-#endif
-
-ChVisualizationFsi::~ChVisualizationFsi() {
-    delete m_system;
-#ifdef CHRONO_OPENGL
-    if (m_owns_vis)
-        delete m_vsys;
-#endif
+ChFsiVisualizationGL::~ChFsiVisualizationGL() {
+    delete m_vsys;
 }
 
-void ChVisualizationFsi::SetSize(int width, int height) {
-#ifdef CHRONO_OPENGL
+void ChFsiVisualizationGL::SetSize(int width, int height) {
     m_vsys->SetWindowSize(width, height);
-#endif
 }
 
-void ChVisualizationFsi::SetTitle(const std::string& title) {
-#ifdef CHRONO_OPENGL
+void ChFsiVisualizationGL::SetTitle(const std::string& title) {
     m_vsys->SetWindowTitle("");
-#endif
 }
 
-void ChVisualizationFsi::UpdateCamera(const ChVector<>& pos, const ChVector<>& target) {
-#ifdef CHRONO_OPENGL
+void ChFsiVisualizationGL::AddCamera(const ChVector<>& pos, const ChVector<>& target) {
     m_vsys->UpdateCamera(pos, target);
-#endif
 }
 
-void ChVisualizationFsi::SetCameraUpVector(const ChVector<>& up) {
-#ifdef CHRONO_OPENGL
-    m_vsys->SetCameraVertical(up);
-#endif
+void ChFsiVisualizationGL::UpdateCamera(const ChVector<>& pos, const ChVector<>& target) {
+    m_vsys->UpdateCamera(pos, target);
 }
 
-void ChVisualizationFsi::SetCameraMoveScale(float scale) {
-#ifdef CHRONO_OPENGL
+void ChFsiVisualizationGL::SetCameraVertical(CameraVerticalDir up) {
+    if (up == CameraVerticalDir::Z)
+        m_vsys->SetCameraVertical(ChVector<>(0, 0, 1));
+    m_vsys->SetCameraVertical(ChVector<>(0, 1, 0));
+}
+
+void ChFsiVisualizationGL::SetCameraMoveScale(float scale) {
     m_vsys->SetCameraProperties(scale);
-#endif
 }
 
-void ChVisualizationFsi::SetParticleRenderMode(double radius, RenderMode mode) {
-#ifdef CHRONO_OPENGL
+void ChFsiVisualizationGL::SetParticleRenderMode(double radius, RenderMode mode) {
     opengl::RenderMode gl_mode = (mode == RenderMode::SOLID) ? opengl::SOLID : opengl::POINTS;
     m_vsys->SetParticleRenderMode(radius, gl_mode);
-#endif
 }
 
-void ChVisualizationFsi::SetRenderMode(RenderMode mode) {
-#ifdef CHRONO_OPENGL
+void ChFsiVisualizationGL::SetRenderMode(RenderMode mode) {
     switch (mode) {
         case RenderMode::SOLID:
             m_vsys->SetRenderMode(opengl::SOLID);
@@ -135,24 +115,13 @@ void ChVisualizationFsi::SetRenderMode(RenderMode mode) {
             m_vsys->SetRenderMode(opengl::POINTS);
             break;
     }
-#endif
 }
 
-void ChVisualizationFsi::EnableInfoOverlay(bool val) {
-#ifdef CHRONO_OPENGL
+void ChFsiVisualizationGL::EnableInfoOverlay(bool val) {
     m_vsys->EnableStats(val);
-#endif
 }
 
-void ChVisualizationFsi::AddProxyBody(std::shared_ptr<ChBody> body) {
-    body->SetBodyFixed(true);
-#ifdef CHRONO_OPENGL
-    m_system->AddBody(body);
-#endif
-}
-
-void ChVisualizationFsi::Initialize() {
-#ifdef CHRONO_OPENGL
+void ChFsiVisualizationGL::Initialize() {
     // Cache current number of bodies (if any) in m_system
     m_bce_start_index = static_cast<unsigned int>(m_system->Get_bodylist().size());
 
@@ -189,7 +158,7 @@ void ChVisualizationFsi::Initialize() {
             sph->GetBoxGeometry().Size = ChVector<>(m_radius);
             body->AddVisualShape(sph);
             m_system->AddBody(body);
-        }   
+        }
     }
 
     if (m_bndry_bce_markers) {
@@ -204,16 +173,19 @@ void ChVisualizationFsi::Initialize() {
         }
     }
 
-    if (m_owns_vis) {
-        if (m_user_system)
-            m_vsys->AttachSystem(m_user_system);
-        m_vsys->Initialize();
-    }
-#endif
+    if (m_user_system)
+        m_vsys->AttachSystem(m_user_system);
+    m_vsys->Initialize();
+
+    auto fsi_stats = chrono_types::make_shared<FSIStatsGL>();
+    fsi_stats->num_sph = static_cast<unsigned long>(m_systemFSI->GetNumFluidMarkers());
+    fsi_stats->num_bndry_bce = static_cast<unsigned long>(m_systemFSI->GetNumBoundaryMarkers());
+    fsi_stats->num_rigid_bce = static_cast<unsigned long>(m_systemFSI->GetNumRigidBodyMarkers());
+    fsi_stats->num_flex_bce = static_cast<unsigned long>(m_systemFSI->GetNumFlexBodyMarkers());
+    m_vsys->AttachStatsRenderer(fsi_stats);
 }
 
-bool ChVisualizationFsi::Render() {
-#ifdef CHRONO_OPENGL
+bool ChFsiVisualizationGL::Render() {
     // Only for display in OpenGL window
     m_system->SetChTime(m_systemFSI->GetSimTime());
 
@@ -233,34 +205,32 @@ bool ChVisualizationFsi::Render() {
             }
         }
         p += m_systemFSI->GetNumFluidMarkers();
-        
+
         if (m_bndry_bce_markers) {
             for (size_t i = 0; i < m_systemFSI->GetNumBoundaryMarkers(); i++) {
                 blist[m_bce_start_index + b++]->SetPos(ChVector<>(posH[p + i].x, posH[p + i].y, posH[p + i].z));
             }
         }
         p += m_systemFSI->GetNumBoundaryMarkers();
-        
+
         if (m_rigid_bce_markers) {
             for (size_t i = 0; i < m_systemFSI->GetNumRigidBodyMarkers(); i++) {
                 blist[m_bce_start_index + b++]->SetPos(ChVector<>(posH[p + i].x, posH[p + i].y, posH[p + i].z));
             }
         }
         p += m_systemFSI->GetNumRigidBodyMarkers();
-        
+
         if (m_flex_bce_markers) {
             for (size_t i = 0; i < m_systemFSI->GetNumFlexBodyMarkers(); i++) {
                 blist[m_bce_start_index + b++]->SetPos(ChVector<>(posH[p + i].x, posH[p + i].y, posH[p + i].z));
-            }            
+            }
         }
 
         m_vsys->Render();
         return true;
     }
+
     return false;  // rendering stopped
-#else
-    return true;
-#endif
 }
 
 }  // namespace fsi
