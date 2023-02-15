@@ -26,16 +26,48 @@ namespace chrono {
 /// (POVray, Irrlicht,etc.) this asset might not be supported.
 class ChApi ChGlyphs : public ChVisualShape {
   public:
-    enum eCh_GlyphType { GLYPH_POINT = 0, GLYPH_VECTOR, GLYPH_COORDSYS };
+    enum eCh_GlyphType { 
+        GLYPH_POINT = 0, 
+        GLYPH_VECTOR,
+        GLYPH_COORDSYS };
+
+    /// Modes for type of glyph vector length 
+    enum class eCh_GlyphLength {
+        CONSTANT = 0,
+        PROPERTY,
+    };
+
+    /// Modes for type of glyph width or size
+    enum class eCh_GlyphWidth {
+        CONSTANT = 0,
+        PROPERTY,
+    };
+
+    /// Modes for type of glyph rotation (for coordsys mode)
+    enum class eCh_GlyphBasis {
+        CONSTANT = 0,
+        PROPERTY,
+    };
+
+    /// Modes for colorizing vector or dot 
+    enum class eCh_GlyphColor {
+        CONSTANT = 0,
+        PROPERTY,
+    };
 
     ChGlyphs();
     ~ChGlyphs();
 
+
     /// Get the way that glyphs must be rendered
     eCh_GlyphType GetDrawMode() const { return draw_mode; }
 
-    /// Set the way that glyphs must be rendered
-    void SetDrawMode(eCh_GlyphType mmode) { draw_mode = mmode; }
+    /// Set the way that glyphs must be rendered.
+    /// Also automatically add needed properties, if not yet done: 
+    /// "V", an array of ChVector<>, for the GLYPH_VECTOR mode
+    /// "rot", an array of ChQuaternion<>, for the GLYPH_COORDSYS mode
+    /// "color", an array of ChColor, for all modes 
+    void SetDrawMode(eCh_GlyphType mmode);
 
     /// Resize the vectors of data so that memory management is faster
     /// than calling SetGlyphPoint() etc. by starting with zero size vectors
@@ -47,11 +79,11 @@ class ChApi ChGlyphs : public ChVisualShape {
 
     /// Get the 'size' (thickness of symbol, depending on the rendering
     /// system) of the glyph symbols
-    double GetGlyphsSize() const { return size; }
+    double GetGlyphsSize() const { return glyph_scalewidth; }
 
     /// Set the 'size' (thickness of symbol, depending on the rendering
     /// system) of the glyph symbols
-    void SetGlyphsSize(double msize) { size = msize; }
+    void SetGlyphsSize(double msize) { glyph_scalewidth = msize; }
 
     // Set the Z buffer enable/disable (for those rendering systems that can do this)
     // If hide= false, symbols will appear even if hidden by other geometries. Default true.
@@ -92,13 +124,30 @@ class ChApi ChGlyphs : public ChVisualShape {
     /// @endcond
 
     std::vector<ChVector<double> > points;
-    std::vector<ChColor> colors;
 
+    eCh_GlyphLength glyph_length_type;
+    std::string glyph_length_prop; // selected property for length
+    double glyph_scalelenght;
+    eCh_GlyphWidth  glyph_width_type;
+    std::string glyph_width_prop; // selected property for width
+    double glyph_scalewidth;
+    eCh_GlyphBasis  glyph_basis_type;
+    std::string glyph_basis_prop; // selected property for basis
+    ChQuaternion<> glyph_basis_constant;
+    eCh_GlyphColor  glyph_color_type;
+    std::string glyph_color_prop; // selected property for color
+    ChColor glyph_color_constant;
+    double  glyph_colormap_startscale;
+    double  glyph_colormap_endscale;
+    bool vector_tip;
+
+    // list of per-glyph properties. Some properties ("color", "V", "rot") might be automatically added when needed.
     std::vector<geometry::ChProperty*> m_properties;
 
-    // optional attrs
-    std::vector<ChVector<double> > vectors;
-    std::vector<ChQuaternion<double> > rotations;
+    // shortcut pointers to data of properties in m_properties, for often needed data:
+    std::vector<ChColor>* colors;
+    std::vector<ChVector<double> >* vectors;
+    std::vector<ChQuaternion<double> >* rotations;
 
   private:
     eCh_GlyphType draw_mode;
