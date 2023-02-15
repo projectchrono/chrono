@@ -193,9 +193,31 @@ def add_mesh_data_vectors(mesh_object, attribute_vectors, attribute_name='chrono
         myattr.data[iv].vector = mval
         iv +=1
 
-# helper function to generate a material that, once assigned to a mesh with a vector attribute, 
-# renders it as color (per face or per vertex, depending on the attribute's mesh data domain)
-def make_material_mesh_color_attribute(nameID, colname):
+# Helper function to generate a simple const color material. Operates in two situations:
+# - to colorize meshes:
+# - to colorize n object instances made by geometry node: if so, the material must be applied
+# to the object used as sample for instances, and use per_instance=True. 
+def make_material_color_const(nameID, color_const=(1,0,0,0)):
+
+    new_mat = bpy.data.materials.new(name=nameID)
+    new_mat.use_nodes = True
+    if new_mat.node_tree:
+        new_mat.node_tree.links.clear()
+        new_mat.node_tree.nodes.clear() 
+    nodes = new_mat.node_tree.nodes
+    links = new_mat.node_tree.links
+    output = nodes.new(type='ShaderNodeOutputMaterial')
+    shader = nodes.new(type='ShaderNodeBsdfPrincipled')
+    shader.inputs[0].default_value = color_const
+    links.new(shader.outputs[0], output.inputs[0])
+    return new_mat
+
+# Helper function to generate a multi-color material. Operates in two situations:
+# - to colorize meshes: once assigned to a mesh with a float or vector attribute, 
+# renders it as color (per face or per vertex, depending on the attribute's mesh data domain).
+# - to colorize n object instances made by geometry node: if so, the material must be applied
+# to the object used as sample for instances, and use per_instance=True. Instances must have the attribute.
+def make_material_color_attribute(nameID, colname, per_instance=False):
 
     new_mat = bpy.data.materials.new(name=nameID)
     new_mat.use_nodes = True
@@ -209,6 +231,10 @@ def make_material_mesh_color_attribute(nameID, colname):
     links.new(shader.outputs[0], output.inputs[0])
     colattribute = nodes.new(type='ShaderNodeAttribute')
     colattribute.attribute_name = colname
+    if not per_instance: 
+        colattribute.attribute_type = 'GEOMETRY'
+    else:
+        colattribute.attribute_type = 'INSTANCER'
     links.new(colattribute.outputs[0], shader.inputs[0])
     return new_mat
     
@@ -327,14 +353,15 @@ def setup_meshsetting(new_object):
 # Add an item to collection of settings about glyphs visualization, but
 # if a glyph setting is already existing with the correspoiding name id, just reuse it (so
 # that one can have setting persistency through frames, even if the mesh is non-mutable and regenerated.
-def setup_glyphvectsetting(obj_name,
+def setup_glyph_setting(obj_name,
+                           glyph_type = 'VECTOR',
                            color_type = 'CONST',
                            property_index_color = 0,
                            const_color =(1,0,0),
-                           dir_type = 'ATTR',
+                           dir_type = 'PROPERTY',
                            const_dir = (1,0,0),
                            property_index_dir = 0,
-                           length_type = 'ATTR',
+                           length_type = 'PROPERTY',
                            property_index_length = 0,
                            length_scale = 0.01, 
                            width_type = 'CONST',
@@ -343,29 +370,30 @@ def setup_glyphvectsetting(obj_name,
                            property_index_basis = 0,
                            do_tip = True
                            ):
-    glyphvectsetting = bpy.context.scene.ch_glyphvectsetting.get(obj_name)
-    if not glyphvectsetting:
-        glyphvectsetting = bpy.context.scene.ch_glyphvectsetting.add()
-        glyphvectsetting.name = obj_name
-        glyphvectsetting.glyph_type = 'VECTOR' # deprecated
-        glyphvectsetting.property_index_dir = property_index_dir
-        glyphvectsetting.property_index_length = property_index_length
-        glyphvectsetting.property_index_width  = property_index_width
-        glyphvectsetting.property_index_color  = property_index_color
-        glyphvectsetting.property_index_basis  = property_index_basis
-        glyphvectsetting.dir_type = dir_type
-        glyphvectsetting.length_type = length_type
-        glyphvectsetting.width_type = width_type
-        glyphvectsetting.color_type = color_type
-        glyphvectsetting.length_scale = length_scale
-        glyphvectsetting.width_scale = width_scale
-        glyphvectsetting.const_color = const_color
-        glyphvectsetting.const_dir = const_dir
-        glyphvectsetting.use_x = True
-        glyphvectsetting.use_y = True
-        glyphvectsetting.use_z = True
-        glyphvectsetting.do_tip = do_tip
-    return glyphvectsetting
+    glyphsetting = bpy.context.scene.ch_glyph_setting.get(obj_name)
+    if not glyphsetting:
+        glyphsetting = bpy.context.scene.ch_glyph_setting.add()
+        glyphsetting.name = obj_name
+        glyphsetting.glyph_type = glyph_type
+        glyphsetting.property_index_dir = property_index_dir
+        glyphsetting.property_index_length = property_index_length
+        glyphsetting.property_index_width  = property_index_width
+        glyphsetting.property_index_color  = property_index_color
+        glyphsetting.property_index_basis  = property_index_basis
+        glyphsetting.dir_type = dir_type
+        glyphsetting.length_type = length_type
+        glyphsetting.width_type = width_type
+        glyphsetting.color_type = color_type
+        glyphsetting.length_scale = length_scale
+        glyphsetting.width_scale = width_scale
+        glyphsetting.const_color = const_color
+        glyphsetting.const_dir = const_dir
+        glyphsetting.use_x = True
+        glyphsetting.use_y = True
+        glyphsetting.use_z = True
+        glyphsetting.do_tip = do_tip
+        glyphsetting.material = make_material_color_const(obj_name+"_color")
+    return glyphsetting
 
     
 # Add an item to collection of properties of a given mesh visualization,
@@ -390,7 +418,7 @@ def setup_property_color(meshsetting, colname, matname='a_meshcolor', per_instan
         property = meshsetting.property.add()
         property.name = colname
         property.type = 'COLOR'
-        property.mat = make_material_mesh_color_attribute(matname, colname, per_instance=per_instance)
+        property.mat = make_material_color_attribute(matname, colname, per_instance=per_instance)
     return property
 
 # Add an item to collection of properties of a given mesh visualization,
@@ -452,36 +480,37 @@ def update_meshsetting_color_material(new_object, meshsetting, propname):
     return mat
 
 # Attach a falsecolor material to the glyphs, and set properties 
-def update_glyphvectsetting_falsecolor_material(new_object, meshsetting, propname):
+def update_glyphsetting_material(new_object, meshsetting, propname):
     mat = None
     if (meshsetting.property_index_color >=0): 
         selected_prop = meshsetting.property[meshsetting.property_index_color]
         if (selected_prop.name ==propname):
             mat = selected_prop.mat
-            mat.node_tree.nodes['Map Range'].inputs[1].default_value = selected_prop.min
-            mat.node_tree.nodes['Map Range'].inputs[2].default_value = selected_prop.max
-            ramp = mat.node_tree.nodes['ColorRamp']
-            colormap=[]
-            if meshsetting.color_type == 'CONST':
-                colormap = [[0,(meshsetting.const_color.r,meshsetting.const_color.g,meshsetting.const_color.b,1)],[1,(meshsetting.const_color.r,meshsetting.const_color.g,meshsetting.const_color.b,1)]]
-            if meshsetting.color_type == 'ATTR':
-                colormap = colormaps[selected_prop.colorm]
-            for i in range(0,len(ramp.color_ramp.elements)-2):
-                ramp.color_ramp.elements.remove(ramp.color_ramp.elements[1]) # leave start-end. Also, clear() doe not exist
-            for i in range(1,len(colormap)-1):
-                ramp.color_ramp.elements.new(colormap[i][0])
-            for i in range(0,len(colormap)):
-                ramp.color_ramp.elements[i].color = (colormap[i][1]) 
-            if selected_prop.type=='VECTOR': #or selected_prop.type=='SCALAR':
-                mat.node_tree.nodes['Multiply'].inputs[1].default_value = (1,1,1)
-                if selected_prop.type=='VECTOR':
-                    links = mat.node_tree.links
-                    if selected_prop.vect_plot =='X':
-                        mat.node_tree.nodes['Multiply'].inputs[1].default_value = (1,0,0)
-                    if selected_prop.vect_plot =='Y':
-                        mat.node_tree.nodes['Multiply'].inputs[1].default_value = (0,1,0)
-                    if selected_prop.vect_plot =='Z':
-                        mat.node_tree.nodes['Multiply'].inputs[1].default_value = (0,0,1)
+            if mat.node_tree.nodes.get('Map Range'):
+                mat.node_tree.nodes['Map Range'].inputs[1].default_value = selected_prop.min
+                mat.node_tree.nodes['Map Range'].inputs[2].default_value = selected_prop.max
+                ramp = mat.node_tree.nodes['ColorRamp']
+                colormap=[]
+                if meshsetting.color_type == 'CONST':
+                    colormap = [[0,(meshsetting.const_color.r,meshsetting.const_color.g,meshsetting.const_color.b,1)],[1,(meshsetting.const_color.r,meshsetting.const_color.g,meshsetting.const_color.b,1)]]
+                if meshsetting.color_type == 'PROPERTY':
+                    colormap = colormaps[selected_prop.colorm]
+                for i in range(0,len(ramp.color_ramp.elements)-2):
+                    ramp.color_ramp.elements.remove(ramp.color_ramp.elements[1]) # leave start-end. Also, clear() doe not exist
+                for i in range(1,len(colormap)-1):
+                    ramp.color_ramp.elements.new(colormap[i][0])
+                for i in range(0,len(colormap)):
+                    ramp.color_ramp.elements[i].color = (colormap[i][1]) 
+                if selected_prop.type=='VECTOR': #or selected_prop.type=='SCALAR':
+                    mat.node_tree.nodes['Multiply'].inputs[1].default_value = (1,1,1)
+                    if selected_prop.type=='VECTOR':
+                        links = mat.node_tree.links
+                        if selected_prop.vect_plot =='X':
+                            mat.node_tree.nodes['Multiply'].inputs[1].default_value = (1,0,0)
+                        if selected_prop.vect_plot =='Y':
+                            mat.node_tree.nodes['Multiply'].inputs[1].default_value = (0,1,0)
+                        if selected_prop.vect_plot =='Z':
+                            mat.node_tree.nodes['Multiply'].inputs[1].default_value = (0,0,1)
             new_object.data.materials.clear()
             new_object.data.materials.append(mat)
     return mat
@@ -692,7 +721,7 @@ def make_chrono_glyphs_objects(mname,mpos,mrot,
                 chasset.hide_set(True)    
                 new_objects.append(chasset)
             else:
-                print("not found asset: ",masset_list[m][0])
+                print("not found asset for glyphs: ",masset_list[m][0])
             
         
     ncl = len(list_clones_posrot)
@@ -756,6 +785,7 @@ def make_chrono_glyphs_objects(mname,mpos,mrot,
     
     # optional scalar or vector per-point properties for falsecolor 
     for ia in range(len(list_attributes)):
+        print (list_attributes[ia])
         if type(list_attributes[ia][1][0]) == tuple:
             if len(list_attributes[ia][1][0])==3:
                 my_attr = [(0,0,0)] * (ncl)
@@ -942,27 +972,82 @@ def make_chrono_glyphs_points(mname,mpos,mrot,
      )
     new_objects.append(my_o)
     return new_objects
+
+# Macro to generate coordsys glyphs, placed at position in list 'list_clones_pos'.
+# Coordsystems are assumed basis from 'basis' property passed with quaternion rotations.
+# One can pass a list of attributes each in ["my_attr_name", [value,value,value,...]] format, 
+# where item can be float, (x,y,z) vector tuple, etc.
+def make_chrono_glyphs_coordsys(mname,mpos,mrot, 
+                          list_clones_pos, 
+                          list_attributes=[], 
+                          basis=mathutils.Quaternion((1,0,0,0)), # mathutils.Quaternion const, or name of some quaternion property with list of (w,x,y,z)
+                          color='', 
+                          color_min=0, color_max=1, 
+                          colormap=colormap_cooltowarm, 
+                          point_geometry = 'chrono_sphere',
+                          thickness = 0.1, # float const, or if='my_attr' then coordsys thickness=my_attr*thickness_factor
+                          thickness_factor = 0.01,  # if thickness not const, then thickness=my_attr*thickness_factor
+                          ): 
+    new_objects = []
+    ncl = len(list_clones_pos)
+    list_clones_posrotscale = np.empty((ncl, 3,3)).tolist()
+    
+    # default fallbacks if inputs are wrong or missing
+    mthickness = 0.002
+    mbasis     = mathutils.Quaternion((1,0,0,0))
+    # cases where dir,len,thickness,rot are given via floats or vectors etc, not via "my_attr" ids
+    mthickness = thickness if not type(thickness)==str else mthickness
+    mbasis = basis if not type(basis)==str else mbasis
+    # cases where dir,len,thickness,rot are given via "my_attr" ids
+    attr_thickness = [i for i in list_attributes if i[0]==thickness]
+    attr_thickness_isscalar = True if (attr_thickness and type(attr_thickness[0][1][0]) in (int,float)) else False
+    attr_thickness_isvect   = True if (attr_thickness and len(attr_thickness[0][1][0]) == 3) else False
+    attr_basis = [i for i in list_attributes if i[0]==basis]
+    attr_basis_isquat   = True if (attr_basis and len(attr_basis[0][1][0]) == 4) else False
+    
+    for i in range(ncl):
+        if attr_thickness_isvect:
+            mthickness = mathutils.Vector(attr_thickness[0][1][i]).length*thickness_factor
+        if attr_thickness_isscalar:
+            mthickness = attr_thickness[0][1][i]*thickness_factor
+            
+        if attr_basis_isquat:
+            mbasis = mathutils.Quaternion(attr_basis[0][1][i])
+            
+        list_clones_posrotscale[i][0] = list_clones_pos[i]
+        list_clones_posrotscale[i][1] = (0,0,0)
+        list_clones_posrotscale[i][2] = (mthickness,mthickness,mthickness)
+    my_o = make_chrono_glyphs_objects(mname,mpos,mrot,
+     [
+      [bpy.data.objects[point_geometry], (0,0,0), (1,0,0,0), ""]
+     ],
+     list_clones_posrotscale,
+     list_attributes,
+     color, color_min, color_max, colormap
+     )
+    new_objects.append(my_o)
+    return new_objects
    
     
-# Same as make_chrono_glyphs_vectors and make_chrono_glyphs_points, but uses a 
+# Same as make_chrono_glyphs_points and make_chrono_glyphs_points, but uses a 
 # glyphsetting object to store input parameters like thickness etc, this because glyphsetting
 # can be persistent through frames and hence adjustable through the GUI.
-# Before calling this, one must call: setup_glyphvectsetting(...) 
+# Before calling this, one must call: setup_glyph_setting(...) 
 # and setup_property_scalar(..), setup_setup_property_vector(..) per each property in list_attributes
 def update_make_glyphs_vectors(glyphsetting, mname, mpos, mrot, list_clones_pos, list_attributes):
  
     mlength = glyphsetting.length_scale
     mlength_factor = glyphsetting.length_scale
-    if glyphsetting.length_type == 'ATTR':
+    if glyphsetting.length_type == 'PROPERTY':
         mlength = glyphsetting.property[glyphsetting.property_index_length].name
         
     mthickness = glyphsetting.width_scale
     mthickness_factor = glyphsetting.width_scale
-    if glyphsetting.width_type == 'ATTR':
+    if glyphsetting.width_type == 'PROPERTY':
         mthickness = glyphsetting.property[glyphsetting.property_index_width].name
         
     mdir = glyphsetting.const_dir
-    if glyphsetting.dir_type == 'ATTR':
+    if glyphsetting.dir_type == 'PROPERTY':
         mdir = glyphsetting.property[glyphsetting.property_index_dir].name
         
     mbasis = glyphsetting.property[glyphsetting.property_index_basis].name
@@ -998,7 +1083,12 @@ def update_make_glyphs_vectors(glyphsetting, mname, mpos, mrot, list_clones_pos,
                           
     for mobj in new_objs:
         for mprop in list_attributes:
-            mat = update_glyphvectsetting_falsecolor_material(mobj[0],glyphsetting, mprop[0])
+            mat = update_glyphsetting_material(mobj[0],glyphsetting, mprop[0])
+    
+        if glyphsetting.color_type == 'CONST':
+            glyphsetting.material.node_tree.nodes['Principled BSDF'].inputs[0].default_value = (glyphsetting.const_color.r,glyphsetting.const_color.g,glyphsetting.const_color.b,1)
+            mobj[0].data.materials.clear()
+            mobj[0].data.materials.append(glyphsetting.material)
     
     return new_objs
     
@@ -1146,8 +1236,8 @@ def read_chrono_simulation(context, filepath, setting_materials):
     bpy.context.scene.ch_meshsetting_index = -1
     bpy.context.scene.ch_meshsetting.clear()
     
-    bpy.context.scene.ch_glyphvectsetting_index = -1
-    bpy.context.scene.ch_glyphvectsetting.clear()
+    bpy.context.scene.ch_glyph_setting_index = -1
+    bpy.context.scene.ch_glyph_setting.clear()
     
     chrono_cameras = bpy.data.collections.get('chrono_cameras')
     if not chrono_cameras:
@@ -1467,10 +1557,10 @@ class Chrono_sidebar(Panel):
         row2.label(text="Vector glyphs:")
         
         row3 = self.layout.row()
-        row3.template_list("GUI_meshsettins", "", scn, "ch_glyphvectsetting", scn, "ch_glyphvectsetting_index", rows=3)
+        row3.template_list("GUI_meshsettins", "", scn, "ch_glyph_setting", scn, "ch_glyph_setting_index", rows=3)
         
-        if scn.ch_glyphvectsetting_index >= 0:
-            msetting = scn.ch_glyphvectsetting[scn.ch_glyphvectsetting_index]
+        if scn.ch_glyph_setting_index >= 0:
+            msetting = scn.ch_glyph_setting[scn.ch_glyph_setting_index]
             row = self.layout.row()
             split = row.split(factor=0.2)
             col1 = split.column()
@@ -1579,7 +1669,7 @@ class CUSTOM_meshsettingCollection(PropertyGroup):
     property_index: IntProperty(update=UpdatedMeshsetting)
     property: CollectionProperty(type=CUSTOM_propertyCollection)
     
-class CUSTOM_glyphvectsettingCollection(PropertyGroup):
+class CUSTOM_glyphsettingCollection(PropertyGroup):
     #name: StringProperty() -> Instantiated by default
     glyph_type: EnumProperty(name = "glyph_type", items= [
         ('SPHERE','Sphere',''),
@@ -1593,19 +1683,19 @@ class CUSTOM_glyphvectsettingCollection(PropertyGroup):
     property_index_basis: IntProperty(update=UpdatedMeshsetting)
     dir_type: EnumProperty(name = "dir_type", items= [
         ('CONST','Constant',''),
-        ('ATTR','Property','')],
+        ('PROPERTY','Property','')],
         update=UpdatedMeshsetting)
     length_type: EnumProperty(name = "lenght_type", items= [
         ('CONST','Constant',''),
-        ('ATTR','Property','')],
+        ('PROPERTY','Property','')],
         update=UpdatedMeshsetting)
     width_type: EnumProperty(name = "width_type", items= [
         ('CONST','Constant',''),
-        ('ATTR','Property','')],
+        ('PROPERTY','Property','')],
         update=UpdatedMeshsetting)
     color_type: EnumProperty(name = "color_type", items= [
         ('CONST','Constant',''),
-        ('ATTR','Property','')],
+        ('PROPERTY','Property','')],
         update=UpdatedMeshsetting)
     const_dir:  FloatVectorProperty(subtype='XYZ',update=UpdatedMeshsetting)
     length_scale: FloatProperty(min=0, precision=5, update=UpdatedMeshsetting)
@@ -1615,6 +1705,7 @@ class CUSTOM_glyphvectsettingCollection(PropertyGroup):
     use_y:  BoolProperty(update=UpdatedMeshsetting)
     use_z:  BoolProperty(update=UpdatedMeshsetting)
     do_tip:  BoolProperty(update=UpdatedMeshsetting)
+    material: PointerProperty(name="material", type=bpy.types.Material)
  
 sidebar_classes = [
     Chrono_operator,
@@ -1623,7 +1714,7 @@ sidebar_classes = [
     GUI_properties,
     CUSTOM_propertyCollection,
     CUSTOM_meshsettingCollection,
-    CUSTOM_glyphvectsettingCollection,
+    CUSTOM_glyphsettingCollection,
 ]
 
 
@@ -1754,11 +1845,11 @@ def register():
     bpy.context.scene.ch_meshsetting_index = -1
     bpy.context.scene.ch_meshsetting.clear()
     
-    bpy.types.Scene.ch_glyphvectsetting = CollectionProperty(type=CUSTOM_glyphvectsettingCollection, description = "Assets with data attached from Chrono, that can be rendered in falsecolor",)
-    bpy.types.Scene.ch_glyphvectsetting_index = IntProperty()
+    bpy.types.Scene.ch_glyph_setting = CollectionProperty(type=CUSTOM_glyphsettingCollection, description = "Assets with data attached from Chrono, that can be rendered in falsecolor",)
+    bpy.types.Scene.ch_glyph_setting_index = IntProperty()
 
-    bpy.context.scene.ch_glyphvectsetting_index = -1
-    bpy.context.scene.ch_glyphvectsetting.clear()
+    bpy.context.scene.ch_glyph_setting_index = -1
+    bpy.context.scene.ch_glyph_setting.clear()
     
     
     
@@ -1775,8 +1866,8 @@ def unregister():
     del bpy.types.Scene.chrono_show_contacts
     del bpy.types.Scene.ch_meshsetting
     del bpy.types.Scene.ch_meshsetting_index 
-    del bpy.types.Scene.ch_glyphvectsetting
-    del bpy.types.Scene.ch_glyphvectsetting_index 
+    del bpy.types.Scene.ch_glyph_setting
+    del bpy.types.Scene.ch_glyph_setting_index 
     for c in sidebar_classes:
         bpy.utils.unregister_class(c)
         
