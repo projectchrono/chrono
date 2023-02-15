@@ -46,25 +46,25 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     /// Modes for type of vector arrow length 
     enum class ContactSymbolVectorLength {
         CONSTANT = 0,
-        ATTR,
+        PROPERTY,
     };
 
     /// Modes for type of vector arrow width
     enum class ContactSymbolVectorWidth {
         CONSTANT = 0,
-        ATTR,
+        PROPERTY,
     };
 
     /// Modes for type of dot size
     enum class ContactSymbolSphereSize {
         CONSTANT = 0,
-        ATTR,
+        PROPERTY,
     };
 
     /// Modes for colorizing vector or dot 
     enum class ContactSymbolColor {
         CONSTANT = 0,
-        ATTR,
+        PROPERTY,
     };
 
     /// Add a ChPhysicsItem object to the list of objects to render.
@@ -158,18 +158,18 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     void SetShowContactsOff();
 
     /// Turn on the display of contacts, using arrows to show vectors. 
-    /// The lenght of the arrow can be: constant, or force strength multiplied by 'scale_length', or attribute multiplied by 'scale_length'.
-    /// The width of the arrow can be: constant, or force strength multiplied by 'scale_length', or attribute multiplied by 'scale_length'.
+    /// The lenght of the arrow can be: constant, or force strength multiplied by 'scale_length', or property multiplied by 'scale_length'.
+    /// The width of the arrow can be: constant, or force strength multiplied by 'scale_length', or property multiplied by 'scale_length'.
     void SetShowContactsVectors(
                         ContactSymbolVectorLength length_type,
                         double scale_length,          // if ContactSymbolVectorLength::CONSTANT means abs.length, otherwise is scaling factor for attr
-                        const std::string scale_attr, // needed if ContactSymbolVectorLength::ATTR, options: 'norm'. Otherwise "" 
+                        const std::string scale_attr, // needed if ContactSymbolVectorLength::PROPERTY, options: 'norm'. Otherwise "" 
                         ContactSymbolVectorWidth width_type,
                         double scale_width,           // if ContactSymbolVectorWidth::CONSTANT means abs.width, otherwise is scaling factor for norm or attr
-                        const std::string width_attr, // needed if ContactSymbolVectorWidth::ATTR, options: "norm". Otherwise ""
+                        const std::string width_attr, // needed if ContactSymbolVectorWidth::PROPERTY, options: "norm". Otherwise ""
                         ContactSymbolColor color_type,
                         ChColor const_color,          // if ContactSymbolColor::CONSTANT, otherwise not used
-                        const std::string color_attr, // needed if ContactSymbolColor::ATTR, options: "norm". Otherwise "" 
+                        const std::string color_attr, // needed if ContactSymbolColor::PROPERTY, options: "norm". Otherwise "" 
                         double colormap_start, // falsecolor start value, if not  ContactSymbolColor::CONSTANT,
                         double colormap_end, // falsecolor start value, if not  ContactSymbolColor::CONSTANT
                         bool do_vector_tip = true
@@ -184,8 +184,8 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
                          ChColor const_color,  // if ContactSymbolColor::CONSTANT, otherwise not used
                          double colormap_start, // falsecolor start value, if not  ContactSymbolColor::CONSTANT,
                          double colormap_end, // falsecolor start value, if not  ContactSymbolColor::CONSTANT
-                         const std::string size_attr = "", // needed if ContactSymbolSphereSize::ATTR
-                         const std::string color_attr = ""  // needed if ContactSymbolColor::ATTR
+                         const std::string size_attr = "", // needed if ContactSymbolSphereSize::PROPERTY
+                         const std::string color_attr = ""  // needed if ContactSymbolColor::PROPERTY
                          );
 
     /// Set thickness for wireframe mode of meshes.
@@ -294,16 +294,16 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     ContactSymbolType contacts_show ;
     double contacts_maxsize;
     ContactSymbolVectorLength contacts_vector_length_type;
-    std::string contacts_vector_length_attr;
+    std::string contacts_vector_length_prop;
     double contacts_vector_scalelenght;
     ContactSymbolVectorWidth  contacts_vector_width_type;
-    std::string contacts_vector_width_attr;
+    std::string contacts_vector_width_prop;
     double contacts_vector_scalewidth;
     ContactSymbolSphereSize  contacts_sphere_size_type;
-    std::string contacts_sphere_size_attr;
+    std::string contacts_sphere_size_prop;
     double contacts_sphere_scalesize;
     ContactSymbolColor  contacts_color_type;
-    std::string contacts_color_attr;
+    std::string contacts_color_prop;
     ChColor contacts_color_constant;
     double  contacts_colormap_startscale;
     double  contacts_colormap_endscale;

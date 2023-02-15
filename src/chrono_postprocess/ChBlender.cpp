@@ -20,6 +20,7 @@
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChEllipsoidShape.h"
 #include "chrono/assets/ChTexture.h"
+#include "chrono/assets/ChGlyphs.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChLinkMate.h"
@@ -65,18 +66,18 @@ ChBlender::ChBlender(ChSystem* system) : ChPostProcessBase(system) {
     frames_links_size = 0.04;
     contacts_show = ContactSymbolType::VECTOR;
     contacts_maxsize = 0.1;
-    contacts_vector_length_type = ContactSymbolVectorLength::ATTR;
+    contacts_vector_length_type = ContactSymbolVectorLength::PROPERTY;
     contacts_vector_scalelenght = 0.1;
-    contacts_vector_length_attr = "norm";
+    contacts_vector_length_prop = "norm";
     contacts_vector_width_type = ContactSymbolVectorWidth::CONSTANT;
     contacts_vector_scalewidth = 0.001;
-    contacts_vector_width_attr = "";
+    contacts_vector_width_prop = "";
     contacts_sphere_size_type = ContactSymbolSphereSize::CONSTANT;
     contacts_sphere_scalesize = 0.01;
-    contacts_vector_width_attr = "";
+    contacts_vector_width_prop = "";
     contacts_color_type = ContactSymbolColor::CONSTANT;
     contacts_color_constant = ChColor(1, 0, 0);
-    contacts_color_attr = "";
+    contacts_color_prop = "";
     contacts_colormap_startscale = 0;
     contacts_colormap_endscale = 10;
     contacts_vector_tip = true;
@@ -197,14 +198,14 @@ void ChBlender::SetShowContactsOff() {
 
 void ChBlender::SetShowContactsVectors(
                         ContactSymbolVectorLength length_type,
-                        double scale_length,          // if ContactSymbolVectorLength::CONSTANT means abs.length, otherwise is scaling factor for attr
-                        const std::string scale_attr, // needed if ContactSymbolVectorLength::ATTR, options: 'norm'. Otherwise "" 
+                        double scale_length,          // if ContactSymbolVectorLength::CONSTANT means abs.length, otherwise is scaling factor for property
+                        const std::string scale_prop, // needed if ContactSymbolVectorLength::PROPERTY, options: 'norm'. Otherwise "" 
                         ContactSymbolVectorWidth width_type,
-                        double scale_width,           // if ContactSymbolVectorWidth::CONSTANT means abs.width, otherwise is scaling factor for norm or attr
-                        const std::string width_attr, // needed if ContactSymbolVectorWidth::ATTR, options: "norm". Otherwise ""
+                        double scale_width,           // if ContactSymbolVectorWidth::CONSTANT means abs.width, otherwise is scaling factor for norm or property
+                        const std::string width_prop, // needed if ContactSymbolVectorWidth::PROPERTY, options: "norm". Otherwise ""
                         ContactSymbolColor color_type,
                         ChColor const_color,          // if ContactSymbolColor::CONSTANT, otherwise not used
-                        const std::string color_attr, // needed if ContactSymbolColor::ATTR, options: "norm". Otherwise "" 
+                        const std::string color_prop, // needed if ContactSymbolColor::PROPERTY, options: "norm". Otherwise "" 
                         double colormap_start, // falsecolor start value, if not  ContactSymbolColor::CONSTANT,
                         double colormap_end,   // falsecolor start value, if not  ContactSymbolColor::CONSTANT
                         bool do_vector_tip) {
@@ -212,13 +213,13 @@ void ChBlender::SetShowContactsVectors(
  
     this->contacts_vector_length_type = length_type;
     this->contacts_vector_scalelenght = scale_length;
-    this->contacts_vector_length_attr = scale_attr;
+    this->contacts_vector_length_prop = scale_prop;
     this->contacts_vector_width_type = width_type;
     this->contacts_vector_scalewidth = scale_width;
-    this->contacts_vector_width_attr = width_attr;
+    this->contacts_vector_width_prop = width_prop;
     this->contacts_vector_tip = do_vector_tip;
     this->contacts_color_type = color_type;
-    this->contacts_color_attr = color_attr;
+    this->contacts_color_prop = color_prop;
     this->contacts_color_constant = const_color;
     this->contacts_colormap_startscale = colormap_start;
     this->contacts_colormap_endscale = colormap_end;
@@ -226,13 +227,13 @@ void ChBlender::SetShowContactsVectors(
 
 void ChBlender::SetShowContactsSpheres(
                          ContactSymbolSphereSize size_type,
-                         double scale_size,     // if ContactSymbolSphereSize::CONSTANT means abs.size, otherwise is scaling factor for norm or attr
+                         double scale_size,     // if ContactSymbolSphereSize::CONSTANT means abs.size, otherwise is scaling factor for norm or property
                          ContactSymbolColor color_type,
                          ChColor const_color,   // if ContactSymbolColor::CONSTANT, otherwise not used
                          double colormap_start, // falsecolor start value, if not  ContactSymbolColor::CONSTANT,
                          double colormap_end,   // falsecolor start value, if not  ContactSymbolColor::CONSTANT
-                         const std::string size_attr, // needed if ContactSymbolSphereSize::ATTR
-                         const std::string color_attr // needed if ContactSymbolColor::ATTR) 
+                         const std::string size_prop, // needed if ContactSymbolSphereSize::PROPERTY
+                         const std::string color_prop // needed if ContactSymbolColor::PROPERTY) 
                          ) {
     contacts_show = ContactSymbolType::SPHERE;
  
@@ -571,18 +572,18 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
                 *mfile << "] \n";
                 *mfile << "add_mesh_data_vectors(new_object, colors, 'chrono_color', mdomain='POINT') \n";
                 
-                *mfile << "property = setup_property_vector(meshsetting, 'chrono_color', matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_col')\n";
-                *mfile << "mat = update_meshsetting_falsecolor_material(new_object,meshsetting, 'chrono_color')\n";
+                *mfile << "property = setup_property_color(meshsetting, 'chrono_color', matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_col')\n";
+                *mfile << "mat = update_meshsetting_color_material(new_object,meshsetting, 'chrono_color')\n";
             }
 
             for (auto mprop : mesh->getPropertiesPerVertex()) {
                 if (auto mprop_scalar = dynamic_cast<ChPropertyT<double>*>(mprop)) {
-                    *mfile << "scalars = [ \n";
+                    *mfile << "data_scalars = [ \n";
                     for (unsigned int iv = 0; iv < mprop_scalar->data.size(); iv++) {
                         *mfile << mprop_scalar->data[iv] << ",\n";
                     }
                     *mfile << "] \n";
-                    *mfile << "add_mesh_data_floats(new_object, scalars, '" << mprop_scalar->name <<"', mdomain='POINT') \n";
+                    *mfile << "add_mesh_data_floats(new_object, data_scalars, '" << mprop_scalar->name <<"', mdomain='POINT') \n";
 
                     *mfile << "property = setup_property_scalar(meshsetting, '" << mprop_scalar->name.c_str() << "',min=" << mprop_scalar->min << ", max=" << mprop_scalar->max << ", matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_scalar->name.c_str() << "')\n";
                     *mfile << "mat = update_meshsetting_falsecolor_material(new_object,meshsetting, '" << mprop_scalar->name.c_str() << "')\n";
@@ -601,12 +602,12 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
             }
             for (auto mprop : mesh->getPropertiesPerFace()) {
                 if (auto mprop_scalar = dynamic_cast<ChPropertyT<double>*>(mprop)) {
-                    *mfile << "scalars = [ \n";
+                    *mfile << "data_scalars = [ \n";
                     for (unsigned int iv = 0; iv < mprop_scalar->data.size(); iv++) {
                         *mfile << mprop_scalar->data[iv] << ",\n";
                     }
                     *mfile << "] \n";
-                    *mfile << "add_mesh_data_floats(new_object, scalars, '" << mprop_scalar->name <<"', mdomain='FACE') \n";
+                    *mfile << "add_mesh_data_floats(new_object, data_scalars, '" << mprop_scalar->name <<"', mdomain='POINT') \n";
                     
                     *mfile << "property = setup_property_scalar(meshsetting, '" << mprop_scalar->name.c_str() << "',min=" << mprop_scalar->min << ", max=" << mprop_scalar->max << ", matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_scalar->name.c_str() << "')\n";
                     *mfile << "mat = update_meshsetting_falsecolor_material(new_object,meshsetting, '" << mprop_scalar->name.c_str() << "')\n";
@@ -623,9 +624,119 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
                     *mfile << "mat = update_meshsetting_falsecolor_material(new_object,meshsetting, '" << mprop_vectors->name.c_str() << "')\n";
                 }
             }
+            *mfile << "\n";
 
             m_shapes->insert({(size_t)shape.get(), shape});
         }
+
+
+        if (auto glyph_shape = std::dynamic_pointer_cast<ChGlyphs>(shape)) {
+
+            *mfile << "points_" << shapename << " = [ \n";
+            for (unsigned int iv = 0; iv < glyph_shape->points.size(); iv++) {
+                *mfile << "(" << glyph_shape->points[iv].x() << "," << glyph_shape->points[iv].y() << "," <<glyph_shape->points[iv].z() << "),\n";
+            }
+            *mfile << "] \n";
+
+            state_file << "glyphsetting = setup_glyph_setting('"<< shapename << "',\n";
+            if (glyph_shape->glyph_width_type == ChGlyphs::eCh_GlyphWidth::CONSTANT) {
+                state_file << "\twidth_type='CONST', width_scale=" << glyph_shape->glyph_scalewidth << ", \n"; // constant width
+            }
+            if (glyph_shape->glyph_width_type == ChGlyphs::eCh_GlyphWidth::PROPERTY) {
+                auto mprop = std::find_if(std::begin(glyph_shape->m_properties), std::end(glyph_shape->m_properties), [&](auto const& p) { return p->name == glyph_shape->glyph_width_prop; });
+                int myprop_id = (mprop != glyph_shape->m_properties.end()) ? mprop - glyph_shape->m_properties.begin() : 0;
+                state_file << "\twidth_type='PROPERTY', property_index_width="<< myprop_id <<", width_scale=" << glyph_shape->glyph_scalewidth << ",\n"; // will use 1st property, the 'F', for width
+            }
+            if (glyph_shape->glyph_color_type == ChGlyphs::eCh_GlyphColor::CONSTANT) {
+                state_file << "\tcolor_type='CONST', const_color=(" << glyph_shape->glyph_color_constant.R << "," << glyph_shape->glyph_color_constant.G << "," << glyph_shape->glyph_color_constant.B << "), \n"; // constant color
+            }
+            if (glyph_shape->glyph_color_type == ChGlyphs::eCh_GlyphColor::PROPERTY) {
+                auto mprop = std::find_if(std::begin(glyph_shape->m_properties), std::end(glyph_shape->m_properties), [&](auto const& p) { return p->name == glyph_shape->glyph_color_prop; });
+                int myprop_id = (mprop != glyph_shape->m_properties.end()) ? mprop - glyph_shape->m_properties.begin() : 0;
+                state_file << "\tcolor_type='PROPERTY', property_index_color="<< myprop_id <<", \n";
+            }
+            if (glyph_shape->GetDrawMode() == ChGlyphs::GLYPH_POINT) {
+                state_file << "\tglyph_type = 'SPHERE', \n";
+            }
+            if (glyph_shape->GetDrawMode() == ChGlyphs::GLYPH_VECTOR) {
+                state_file << "\tglyph_type = 'VECTOR', \n";
+                state_file << "\tdir_type='PROPERTY', property_index_dir=0, \n";
+                state_file << "\tproperty_index_basis=0, \n";
+                if (glyph_shape->glyph_length_type == ChGlyphs::eCh_GlyphLength::CONSTANT) {
+                    state_file << "\tlength_type='CONST', length_scale=" << glyph_shape->glyph_scalelenght << ", \n"; // constant length
+                }
+                if (glyph_shape->glyph_length_type == ChGlyphs::eCh_GlyphLength::PROPERTY) {
+                    auto mprop = std::find_if(std::begin(glyph_shape->m_properties), std::end(glyph_shape->m_properties), [&](auto const& p) { return p->name == glyph_shape->glyph_length_prop; });
+                    int myprop_id = (mprop != glyph_shape->m_properties.end()) ? mprop - glyph_shape->m_properties.begin() : 0;
+                    state_file << "\tlength_type='PROPERTY', property_index_length="<< myprop_id << ", length_scale=" << glyph_shape->glyph_scalelenght << ",\n";
+                }
+                if (glyph_shape->vector_tip)
+                    state_file << "\tdo_tip=True,\n";
+                else
+                    state_file << "\tdo_tip=False,\n";
+            }
+            if (glyph_shape->GetDrawMode() == ChGlyphs::GLYPH_COORDSYS) {
+                state_file << "\tglyph_type = 'COORDSYS', \n";
+                if (glyph_shape->glyph_basis_type == ChGlyphs::eCh_GlyphBasis::CONSTANT) {
+                    state_file << "\tbasis_type='CONST', const_basis=(" << glyph_shape->glyph_basis_constant.e0() << "," << glyph_shape->glyph_basis_constant.e1() << "," << glyph_shape->glyph_basis_constant.e2() << "," << glyph_shape->glyph_basis_constant.e3() << "), \n"; // constant basis
+                }
+                if (glyph_shape->glyph_basis_type == ChGlyphs::eCh_GlyphBasis::PROPERTY) {
+                    auto mprop = std::find_if(std::begin(glyph_shape->m_properties), std::end(glyph_shape->m_properties), [&](auto const& p) { return p->name == glyph_shape->glyph_basis_prop; });
+                    int myprop_id = (mprop != glyph_shape->m_properties.end()) ? mprop - glyph_shape->m_properties.begin() : 0;
+                    state_file << "\tbasis_type='PROPERTY', property_index_basis="<< myprop_id <<", \n";
+                }
+            }
+            state_file << "\t)\n";
+
+
+            for (auto mprop : glyph_shape->getProperties()) {
+                if (auto mprop_scalar = dynamic_cast<ChPropertyT<double>*>(mprop)) {
+                    *mfile << "data_" << mprop_scalar->name.c_str() << " = [ \n";
+                    for (unsigned int iv = 0; iv < mprop_scalar->data.size(); iv++) {
+                        *mfile << mprop_scalar->data[iv] << ",\n";
+                    } 
+                    *mfile << "] \n";
+                    *mfile << "property = setup_property_scalar(glyphsetting, '" << mprop_scalar->name.c_str() << "',min=" << mprop_scalar->min << ", max=" << mprop_scalar->max << ", matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_scalar->name.c_str() << "', per_instance=True)\n";
+                }
+                if (auto mprop_vectors = dynamic_cast<ChPropertyT<ChVector<>>*>(mprop)) {
+                    *mfile << "data_" << mprop_vectors->name.c_str() << " = [ \n";
+                    for (unsigned int iv = 0; iv < mprop_vectors->data.size(); iv++) {
+                        *mfile << "(" << mprop_vectors->data[iv].x() << "," << mprop_vectors->data[iv].y() << "," << mprop_vectors->data[iv].z() << "),\n";
+                    }
+                    *mfile << "] \n";
+                    *mfile << "property = setup_property_vector(glyphsetting, '" << mprop_vectors->name.c_str() << "',min=" << mprop_vectors->min << ", max=" << mprop_vectors->max << ", matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_vectors->name.c_str() << "', per_instance=True)\n";
+                }
+                if (auto mprop_rots = dynamic_cast<ChPropertyT<ChQuaternion<>>*>(mprop)) {
+                    *mfile << "data_" << mprop_rots->name.c_str() << " = [ \n";
+                    for (unsigned int iv = 0; iv < mprop_rots->data.size(); iv++) {
+                        *mfile << "(" << mprop_rots->data[iv].e0() << "," << mprop_rots->data[iv].e1() << "," << mprop_rots->data[iv].e2() << "," << mprop_rots->data[iv].e3() << "),\n";
+                    }
+                    *mfile << "] \n";
+                    *mfile << "property = setup_property_quaternion(glyphsetting, '" << mprop_rots->name.c_str() << "',min=" << mprop_rots->min << ", max=" << mprop_rots->max << ", matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_rots->name.c_str() << "', per_instance=True)\n";
+                }
+                if (auto mprop_cols = dynamic_cast<ChPropertyT<ChColor>*>(mprop)) {
+                    *mfile << "data_" << mprop_cols->name.c_str() << " = [ \n";
+                    for (unsigned int iv = 0; iv < mprop_cols->data.size(); iv++) {
+                        *mfile << "(" << mprop_cols->data[iv].R << "," << mprop_cols->data[iv].G << "," << mprop_cols->data[iv].B << "),\n";
+                    }
+                    *mfile << "] \n";
+                    *mfile << "property = setup_property_color(glyphsetting, '" << mprop_cols->name.c_str() << "', matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_cols->name.c_str() << "', per_instance=True)\n";
+                }
+            }
+            state_file << "new_objects = update_make_glyphs_vectors(glyphsetting, '" << shapename << "',";
+            state_file << "(" << blender_frame.GetPos().x() << "," << blender_frame.GetPos().y() << "," << blender_frame.GetPos().z() << "),";
+            state_file << "(" << blender_frame.GetRot().e0() << "," << blender_frame.GetRot().e1() << "," << blender_frame.GetRot().e2() << "," << blender_frame.GetRot().e3() << "), \n";
+            state_file << "  points_" << shapename << ",\n";
+            state_file << "  list_attributes=[ \n";
+            for (auto mprop : glyph_shape->getProperties()) {
+                state_file << "   ['"<< mprop->name.c_str() << "', data_" << mprop->name.c_str() << "], \n";
+            }
+            state_file << "  ], \n";
+            state_file << ") \n";
+            
+            m_shapes->insert({(size_t)shape.get(), shape});
+        }
+
     }
     
     // Write cameras. Assume cameras properties (FOV etc.) are not mutable, 
@@ -1024,26 +1135,26 @@ void ChBlender::ExportData(const std::string& filename) {
 
             state_file << "\t])\n";
 
-            state_file << "\tglyphsetting = setup_glyphvectsetting('contacts',\n";
-            state_file << "\t\tdir_type='ATTR', property_index_dir=0, \n";  // will use 1st property, the 'F', for direction of force vector, in local frame of contact plane
+            state_file << "\tglyphsetting = setup_glyph_setting('contacts',\n";
+            state_file << "\t\tdir_type='PROPERTY', property_index_dir=0, \n";  // will use 1st property, the 'F', for direction of force vector, in local frame of contact plane
             state_file << "\t\tproperty_index_basis=1, \n"; // will use 2nd property, the 'loc_rot', for local rotation of contact plane
             if (this->contacts_vector_length_type == ContactSymbolVectorLength::CONSTANT) {
                 state_file << "\t\tlength_type='CONST', length_scale=" << this->contacts_vector_scalelenght <<", \n"; // constant length
             }
-            if (this->contacts_vector_length_type == ContactSymbolVectorLength::ATTR) {
-                state_file << "\t\tlength_type='ATTR', property_index_length=0, length_scale=" << this->contacts_vector_scalelenght << ",\n"; // will use 1st property, the 'F', for length
+            if (this->contacts_vector_length_type == ContactSymbolVectorLength::PROPERTY) {
+                state_file << "\t\tlength_type='PROPERTY', property_index_length=0, length_scale=" << this->contacts_vector_scalelenght << ",\n"; // will use 1st property, the 'F', for length
             }
             if (this->contacts_vector_width_type == ContactSymbolVectorWidth::CONSTANT) {
                 state_file << "\t\twidth_type='CONST', width_scale=" << this->contacts_vector_scalewidth <<", \n"; // constant width
             }
-            if (this->contacts_vector_width_type == ContactSymbolVectorWidth::ATTR) {
-                state_file << "\t\twidth_type='ATTR', property_index_width=0, width_scale=" << this->contacts_vector_scalewidth << ",\n"; // will use 1st property, the 'F', for width
+            if (this->contacts_vector_width_type == ContactSymbolVectorWidth::PROPERTY) {
+                state_file << "\t\twidth_type='PROPERTY', property_index_width=0, width_scale=" << this->contacts_vector_scalewidth << ",\n"; // will use 1st property, the 'F', for width
             }
             if (this->contacts_color_type == ContactSymbolColor::CONSTANT) {
                 state_file << "\t\tcolor_type='CONST', const_color=(" << contacts_color_constant.R << "," << contacts_color_constant.G << "," << contacts_color_constant.B << "), \n"; // constant color
             }
-            if (this->contacts_color_type == ContactSymbolColor::ATTR) {
-                state_file << "\t\tcolor_type='ATTR', property_index_color=0, \n"; // will use 1st property, the 'F', for color falsecolor scale
+            if (this->contacts_color_type == ContactSymbolColor::PROPERTY) {
+                state_file << "\t\tcolor_type='PROPERTY', property_index_color=0, \n"; // will use 1st property, the 'F', for color falsecolor scale
             }
             if (this->contacts_vector_tip)
                 state_file << "\t\tdo_tip=True,\n";
@@ -1057,7 +1168,7 @@ void ChBlender::ExportData(const std::string& filename) {
             state_file << "max=" << this->contacts_colormap_endscale << ", ";
             state_file << "per_instance = True) \n";
 
-            state_file << "\tproperty = setup_property_vector(glyphsetting, 'loc_rot', matname='contacts_color_rot', per_instance=True)\n";
+            state_file << "\tproperty = setup_property_quaternion(glyphsetting, 'loc_rot', matname='contacts_color_rot', per_instance=True)\n";
 
             state_file << "\tnew_objects = update_make_glyphs_vectors(glyphsetting, 'contacts',";
             state_file << "(" << blender_frame.GetPos().x() << "," << blender_frame.GetPos().y() << "," << blender_frame.GetPos().z() << "),";
