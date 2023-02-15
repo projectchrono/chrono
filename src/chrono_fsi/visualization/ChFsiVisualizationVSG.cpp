@@ -33,7 +33,7 @@ class FSIStatsVSG : public vsg3d::ChGuiComponentVSG {
         int nstr = sizeof(label) - 1;
 
         ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
-        ImGui::Begin("SPHTerrain");
+        ImGui::Begin("SPH");
 
         if (ImGui::BeginTable("SPH", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                               ImVec2(0.0f, 0.0f))) {
@@ -62,29 +62,6 @@ class FSIStatsVSG : public vsg3d::ChGuiComponentVSG {
             ImGui::Text("Flex body BCE:");
             ImGui::TableNextColumn();
             snprintf(label, nstr, "%lu", static_cast<unsigned long>(m_vsysFSI->m_systemFSI->GetNumFlexBodyMarkers()));
-            ImGui::Text(label);
-
-            ImGui::EndTable();
-        }
-
-        ImGui::Spacing();
-
-        if (ImGui::BeginTable("SPH", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
-                              ImVec2(0.0f, 0.0f))) {
-            //// TODO
-            int fps = 1;
-
-            ImGui::TableNextColumn();
-            ImGui::Text("Time:");
-            ImGui::TableNextColumn();
-            snprintf(label, nstr, "%8.3f", m_vsysFSI->m_system->GetChTime());
-            ImGui::Text(label);
-
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::Text("FPS:");
-            ImGui::TableNextColumn();
-            snprintf(label, nstr, "%04d", fps);
             ImGui::Text(label);
 
             ImGui::EndTable();
