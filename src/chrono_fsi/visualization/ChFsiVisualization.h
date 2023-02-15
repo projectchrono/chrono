@@ -61,9 +61,9 @@ class CH_FSI_API ChFsiVisualization {
     /// Set scale for camera movement increments (default: 0.1).
     virtual void SetCameraMoveScale(float scale);
 
-    /// Set visualization radius for SPH particles (default: half initial spacing).
+    /// Set rendering mode for SPH particles.
     /// Must be called before Initialize().
-    virtual void SetParticleRenderMode(double radius, RenderMode mode = RenderMode::POINTS);
+    virtual void SetParticleRenderMode(RenderMode mode);
 
     /// Set rendering mode for mesh objects (default: WIREFRAME).
     virtual void SetRenderMode(RenderMode mode);

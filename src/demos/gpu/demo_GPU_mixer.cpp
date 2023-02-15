@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
         gpu_vis.AddProxyBody(mixer);
 
         gpu_vis.SetTitle("Chrono::Gpu mixer demo");
-        gpu_vis.UpdateCamera(ChVector<>(0, -100, 75), ChVector<>(0, 0, 0));
+        gpu_vis.AddCamera(ChVector<>(0, -100, 75), ChVector<>(0, 0, 0));
         gpu_vis.SetCameraMoveScale(1.0f);
         gpu_vis.Initialize();
     }

@@ -119,14 +119,10 @@ void ChVisualSystemOpenGL::SetRenderMode(RenderMode mode) {
         viewer->render_mode = m_solid_mode;
 }
 
-void ChVisualSystemOpenGL::SetParticleRenderMode(float radius, RenderMode mode) {
+void ChVisualSystemOpenGL::SetParticleRenderMode(RenderMode mode) {
     m_particle_render_mode = mode;
-    m_particle_radius = radius;
-
-    if (viewer) {
-        viewer->particle_radius = m_particle_radius;
+    if (viewer)
         viewer->particle_render_mode = m_particle_render_mode;
-    }
 }
 
 void ChVisualSystemOpenGL::AttachStatsRenderer(std::shared_ptr<ChOpenGLStats> renderer) {
@@ -156,7 +152,6 @@ void ChVisualSystemOpenGL::Initialize() {
     viewer->render_camera.SetClipping(m_camera_near, m_camera_far);
 
     viewer->render_mode = m_solid_mode;
-    viewer->particle_radius = m_particle_radius;
     viewer->particle_render_mode = m_particle_render_mode;
 
     if (!glfwInit()) {

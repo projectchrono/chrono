@@ -68,6 +68,7 @@ class ChApi ChIndexedParticles : public ChPhysicsItem {
 
     /// Number of coordinates of the particle cluster, x7 because with quaternions for rotation
     virtual int GetDOF() override { return 7 * (int)GetNparticles(); }
+
     /// Number of coordinates of the particle cluster, x6 because derivatives es. angular vel.
     virtual int GetDOF_w() override { return 6 * (int)GetNparticles(); }
 

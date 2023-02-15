@@ -53,7 +53,6 @@ class FSIStatsGL : public opengl::ChOpenGLStats {
     char buffer[50];
 };
 
-
 // -----------------------------------------------------------------------------
 
 ChFsiVisualizationGL::ChFsiVisualizationGL(ChSystemFsi* sysFSI) : ChFsiVisualization(sysFSI), m_bce_start_index(0) {
@@ -63,10 +62,10 @@ ChFsiVisualizationGL::ChFsiVisualizationGL(ChSystemFsi* sysFSI) : ChFsiVisualiza
     m_vsys->SetWindowSize(1280, 720);
     m_vsys->SetCameraProperties(0.1f);
     m_vsys->SetRenderMode(opengl::WIREFRAME);
-    m_vsys->SetParticleRenderMode(sysFSI->GetInitialSpacing() / 2, opengl::POINTS);
+    m_vsys->SetParticleRenderMode(opengl::SOLID);
     m_vsys->AddCamera(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0));
     m_vsys->SetCameraVertical(ChVector<>(0, 0, 1));
-}
+} 
 
 ChFsiVisualizationGL::~ChFsiVisualizationGL() {
     delete m_vsys;
@@ -98,9 +97,9 @@ void ChFsiVisualizationGL::SetCameraMoveScale(float scale) {
     m_vsys->SetCameraProperties(scale);
 }
 
-void ChFsiVisualizationGL::SetParticleRenderMode(double radius, RenderMode mode) {
+void ChFsiVisualizationGL::SetParticleRenderMode(RenderMode mode) {
     opengl::RenderMode gl_mode = (mode == RenderMode::SOLID) ? opengl::SOLID : opengl::POINTS;
-    m_vsys->SetParticleRenderMode(radius, gl_mode);
+    m_vsys->SetParticleRenderMode(gl_mode);
 }
 
 void ChFsiVisualizationGL::SetRenderMode(RenderMode mode) {
@@ -129,11 +128,9 @@ void ChFsiVisualizationGL::Initialize() {
         m_particles = chrono_types::make_shared<ChParticleCloud>();
         m_particles->SetFixed(true);
         for (int i = 0; i < m_systemFSI->GetNumFluidMarkers(); i++) {
-            m_particles->AddParticle(ChCoordsys<>(ChVector<>(i * 0.01, 0, 0)));
+            m_particles->AddParticle(CSYSNULL);
         }
-        auto sph = chrono_types::make_shared<ChSphereShape>();
-        sph->GetSphereGeometry().rad = m_radius;
-        m_particles->AddVisualShape(sph);
+        m_particles->AddVisualization(ChParticleCloud::ShapeType::SPHERE, m_systemFSI->GetInitialSpacing(), ChColor());
         m_system->Add(m_particles);
     }
 

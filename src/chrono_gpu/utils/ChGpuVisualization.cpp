@@ -66,15 +66,23 @@ void ChGpuVisualization::SetTitle(const std::string& title) {
 #endif
 }
 
+void ChGpuVisualization::AddCamera(const ChVector<>& pos, const ChVector<>& target) {
+#ifdef CHRONO_OPENGL
+    m_vsys->UpdateCamera(pos, target);
+#endif
+}
+
 void ChGpuVisualization::UpdateCamera(const ChVector<>& pos, const ChVector<>& target) {
 #ifdef CHRONO_OPENGL
     m_vsys->UpdateCamera(pos, target);
 #endif
 }
 
-void ChGpuVisualization::SetCameraUpVector(const ChVector<>& up) {
+void ChGpuVisualization::SetCameraVertical(CameraVerticalDir up) {
 #ifdef CHRONO_OPENGL
-    m_vsys->SetCameraVertical(up);
+    if (up == CameraVerticalDir::Z)
+        m_vsys->SetCameraVertical(ChVector<>(0, 0, 1));
+    m_vsys->SetCameraVertical(ChVector<>(0, 1, 0));
 #endif
 }
 

@@ -944,10 +944,7 @@ void ChVisualSystemVSG::Render() {
         for(auto &positions : m_vsgPositionList) {
             unsigned int k = 0;
             for(auto& p : *positions) {
-                float x = m_particleCloud->GetVisualModelFrame(k).GetPos().x();
-                float y = m_particleCloud->GetVisualModelFrame(k).GetPos().y();
-                float z = m_particleCloud->GetVisualModelFrame(k).GetPos().z();
-                p.set(x,y,z);
+                p = vsg::vec3CH(m_particleCloud->GetParticle(k).GetPos());
                 k++;
             }
             positions->dirty();
@@ -958,10 +955,7 @@ void ChVisualSystemVSG::Render() {
         for (auto& vertices : m_vsgVerticesList) {
             size_t k = 0;
             for (auto& v : *vertices) {
-                float x = m_mbsMesh->GetMesh()->getCoordsVertices().at(k).x();
-                float y = m_mbsMesh->GetMesh()->getCoordsVertices().at(k).y();
-                float z = m_mbsMesh->GetMesh()->getCoordsVertices().at(k).z();
-                v.set(x, y, z);
+                v = vsg::vec3CH(m_mbsMesh->GetMesh()->getCoordsVertices()[k]);
                 k++;
             }
             vertices->dirty();
@@ -972,10 +966,7 @@ void ChVisualSystemVSG::Render() {
         for (auto& normals : m_vsgNormalsList) {
             size_t k = 0;
             for (auto& n : *normals) {
-                float x = m_mbsMesh->GetMesh()->getCoordsNormals().at(k).x();
-                float y = m_mbsMesh->GetMesh()->getCoordsNormals().at(k).y();
-                float z = m_mbsMesh->GetMesh()->getCoordsNormals().at(k).z();
-                n.set(x, y, z);
+                n = vsg::vec3CH(m_mbsMesh->GetMesh()->getCoordsNormals()[k]);
                 k++;
             }
             normals->dirty();
@@ -986,9 +977,9 @@ void ChVisualSystemVSG::Render() {
         for (auto& colors : m_vsgColorsList) {
             size_t k = 0;
             for (auto& c : *colors) {
-                float r = m_mbsMesh->GetMesh()->getCoordsColors().at(k).R;
-                float g = m_mbsMesh->GetMesh()->getCoordsColors().at(k).G;
-                float b = m_mbsMesh->GetMesh()->getCoordsColors().at(k).B;
+                float r = m_mbsMesh->GetMesh()->getCoordsColors()[k].R;
+                float g = m_mbsMesh->GetMesh()->getCoordsColors()[k].G;
+                float b = m_mbsMesh->GetMesh()->getCoordsColors()[k].B;
                 float a = 1.0f;
                 c.set(r, g, b, a);
                 k++;
@@ -1234,16 +1225,19 @@ void ChVisualSystemVSG::BindAll() {
     // Bind visual models associated with other physics items in the system
     for (auto& item : m_systems[0]->Get_otherphysicslist()) {
         if (auto pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
-            if (!pcloud->GetVisualModel())
+            if (pcloud->GetVisualShapeType() == ChParticleCloud::ShapeType::NONE)
                 continue;
-            // use vsgBuilder spheres with position vector
             size_t numParticles = pcloud->GetNparticles();
-            std::vector<double> size = pcloud->GetCollisionModel()->GetShapeDimensions(0);
+            const auto& size = pcloud->GetVisualSize();
+
+
+            // use vsgBuilder spheres with position vector
+
             vsg::GeometryInfo geomInfo;
-            float d = 2.0f*size[0];
-            geomInfo.dx.set(d, 0.0f, 0.0f);
-            geomInfo.dy.set(0.0f, d, 0.0f);
-            geomInfo.dz.set(0.0f, 0.0f, d);
+            float d = (float)size[0];
+            geomInfo.dx.set(d, 0, 0);
+            geomInfo.dy.set(0, d, 0);
+            geomInfo.dz.set(0, 0, d);
             
             vsg::StateInfo stateInfo;
             stateInfo.wireframe = m_wireframe;
@@ -1251,12 +1245,10 @@ void ChVisualSystemVSG::BindAll() {
             auto positions = vsg::vec3Array::create(numParticles);
             geomInfo.positions = positions;
             for(unsigned int k=0; k < positions->size(); k++) {
-                float x = pcloud->GetVisualModelFrame(k).GetPos().x();
-                float y = pcloud->GetVisualModelFrame(k).GetPos().y();
-                float z = pcloud->GetVisualModelFrame(k).GetPos().z();
-                positions->set(k, vsg::vec3(x,y,z));
+                positions->set(k, vsg::vec3CH(pcloud->GetParticle(k).GetPos()));
             }
             m_particleScene->addChild(m_vsgBuilder->createSphere(geomInfo, stateInfo));
+
             m_vsgPositionList = vsg::visit<FindPositions>(m_particleScene->children.at(0)).getPositionsList();
             for (auto& pos : m_vsgPositionList) {
                 pos->properties.dataVariance = vsg::DYNAMIC_DATA;
