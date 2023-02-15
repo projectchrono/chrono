@@ -27,6 +27,7 @@
 #include "chrono/assets/ChObjFileShape.h"
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChTexture.h"
+#include "chrono/assets/ChGlyphs.h"
 #include "chrono/physics/ChParticleCloud.h"
 #include "chrono/physics/ChSystemNSC.h"
 
@@ -183,19 +184,71 @@ int main(int argc, char* argv[]) {
      // NOTE: optionally, you can add a scalar or vector property, per vertex or per face, that can
      // be rendered via falsecolor in Blender. Note that optionally we can suggest a min-max range for falsecolor scale.
     geometry::ChPropertyScalar my_scalars;
-    my_scalars.name = "temperature";
+    my_scalars.name = "my_temperature";
     my_scalars.data = std::vector<double>{ 0, 10, 100, 120 };
     my_scalars.min = 0;
     my_scalars.max = 150;
     trimesh->GetMesh()->AddPropertyPerVertex(my_scalars);
 
     geometry::ChPropertyVector my_vectors;
-    my_vectors.name = "velocity";
+    my_vectors.name = "my_velocity";
     my_vectors.data = std::vector<ChVector<>>{ {0,1,2}, {3,0,0}, {0,0,2}, {0,0,0} };
     trimesh->GetMesh()->AddPropertyPerVertex(my_vectors);
 
-    body->AddVisualShape(trimesh, ChFrame<>(ChVector<>(4, 1, -1)));
+    body->AddVisualShape(trimesh, ChFrame<>(ChVector<>(1, 1, 0)));
     
+    // ==Asset== Attach a set of 'point glyphs', in this case: n dots rendered as small spheres.
+    
+    auto glyphs_points = chrono_types::make_shared<ChGlyphs>();
+    for (int i = 0; i < 6; ++i)
+        glyphs_points->SetGlyphPoint(i,      // i-th glyph
+            ChVector<>(1 + i * 0.2, 2, 0.2), // the position 
+            ChColor(0.3, i * 0.1, 0)         // the vector color 
+        );
+    body->AddVisualShape(glyphs_points);
+ 
+    glyphs_points->glyph_scalewidth = 0.08;  // set larger 3D item
+
+    // ==Asset== Attach a set of 'coordsys glyphs', in this case: n frames rendered with three orthogonal axes.
+    
+    auto glyphs_coords = chrono_types::make_shared<ChGlyphs>();
+    for (int i = 0; i < 6; ++i)
+        glyphs_coords->SetGlyphCoordsys(i,    // i-th glyph
+            ChCoordsys<>(ChVector<>(1 + i * 0.2, 2, 0.4), // the position 
+              Q_from_AngAxis(i*20*CH_C_DEG_TO_RAD, VECT_X)) // the rotation
+        );
+    body->AddVisualShape(glyphs_coords);
+
+    glyphs_coords->glyph_scalewidth = 0.16;  // set larger 3D item
+
+    // ==Asset== Attach a set of 'vector glyphs', in this case: n vectors rendered as arrows.
+    
+    auto glyphs_vectors = chrono_types::make_shared<ChGlyphs>();
+    for (int i = 0; i < 6; ++i)
+        glyphs_vectors->SetGlyphVector(i,    // i-th glyph
+            ChVector<>(1 + i * 0.2, 2, 0),   // the position 
+            ChVector<>(0, 0.1 + i * 0.2, 0), // the vector V
+            ChColor(0.5, 0, i * 0.1)         // the vector color 
+        );
+
+    // Note: glyphs can contain per-point float or scalar properties: these will be
+    // rendered using falsecolor color scales in Blender, selecting the desired property via the Chrono add-on GUI.
+    geometry::ChPropertyScalar my_temperature_for_glyps;
+    my_temperature_for_glyps.name = "my_temperature";
+    my_temperature_for_glyps.data = std::vector<double>{ 0, 10, 30, 40, 65, 68 }; // size of .data mut match the n.of glyps
+    my_temperature_for_glyps.min = 0;
+    my_temperature_for_glyps.max = 70;
+    glyphs_vectors->AddProperty(my_temperature_for_glyps);
+
+    body->AddVisualShape(glyphs_vectors);
+
+    // some settings that will be used by Blender for appearance of the glyps, to override default rendering properties
+    glyphs_vectors->glyph_width_type = ChGlyphs::eCh_GlyphWidth::CONSTANT;
+    glyphs_vectors->glyph_scalewidth = 0.08; // constant width
+    glyphs_vectors->glyph_length_type = ChGlyphs::eCh_GlyphLength::PROPERTY;
+    glyphs_vectors->glyph_length_prop = "V"; // selects the glyph vector as per-point length. 
+    glyphs_vectors->glyph_color_type = ChGlyphs::eCh_GlyphColor::PROPERTY;
+    glyphs_vectors->glyph_color_prop = "my_temperature"; // selects the "my_temperature" property as per-point color. 
 
 
     // ==Asset== Attach a video camera.
@@ -268,13 +321,13 @@ int main(int argc, char* argv[]) {
 
     // Turn on exporting contacts
     blender_exporter.SetShowContactsVectors(
-                ChBlender::ContactSymbolVectorLength::ATTR, // vector symbol lenght is given by |F|  property (contact force) 
+                ChBlender::ContactSymbolVectorLength::PROPERTY,// vector symbol lenght is given by |F|  property (contact force) 
                 0.005,                                      // absolute length of symbol if CONSTANT, or length scaling factor if ATTR
                 "F",                                        // name of the property to use for lenght if in ATTR mode (currently only option: "F") 
                 ChBlender::ContactSymbolVectorWidth::CONSTANT, // vector symbol lenght is a constant value 
                 0.01,                                       // absolute width of symbol if CONSTANT, or width scaling factor if ATTR
                 "",                                         // name of the property to use for width if in ATTR mode (currently only option: "F") 
-                ChBlender::ContactSymbolColor::ATTR,        // vector symbol color is a falsecolor depending on |F| property  (contact force) 
+                ChBlender::ContactSymbolColor::PROPERTY,    // vector symbol color is a falsecolor depending on |F| property  (contact force) 
                 ChColor(),                                  // absolute constant color if CONSTANT, not used if ATTR
                 "F",                                        // name of the property to use for falsecolor scale if in ATTR mode (currently only option: "F") 
                 0, 1000,                                    // falsecolor scale min - max values. 
