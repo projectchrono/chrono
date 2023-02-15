@@ -115,7 +115,6 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
     RenderMode render_mode;
 
     RenderMode particle_render_mode;
-    float particle_radius;
 
     ChTimer<> timer_render;
     ChTimer<> timer_text;

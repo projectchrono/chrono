@@ -146,7 +146,7 @@ void ChAparticle::ComputeJacobianForContactPart(
     ChMatrix33<> Jx1 = contact_plane.transpose();
     if (!second)
         Jx1 *= -1;
-    
+
     ChStarMatrix33<> Ps1(m_p1_loc);
     ChMatrix33<> Jr1 = contact_plane.transpose() * GetA() * Ps1;
     if (second)
@@ -201,7 +201,7 @@ void ChAparticle::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChAparticle::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChAparticle>();
+    /*int version =*/marchive.VersionRead<ChAparticle>();
 
     // deserialize parent class:
     ChParticleBase::ArchiveIN(marchive);
@@ -228,7 +228,9 @@ ChParticleCloud::ChParticleCloud()
       sleep_time(0.6f),
       sleep_starttime(0),
       sleep_minspeed(0.1f),
-      sleep_minwvel(0.04f) {
+      sleep_minwvel(0.04f),
+      m_vis_shape(ShapeType::NONE),
+      m_vis_size(VNULL) {
     SetMass(1.0);
     SetInertiaXX(ChVector<double>(1.0, 1.0, 1.0));
     SetInertiaXY(ChVector<double>(0, 0, 0));
@@ -319,13 +321,35 @@ void ChParticleCloud::AddParticle(ChCoordsys<double> initial_state) {
     newp->collision_model->BuildModel();  // will also add to system, if collision is on.
 }
 
+void ChParticleCloud::AddVisualModel(std::shared_ptr<ChVisualModel> model) {
+    std::cout << "AddVisualModel not available for ChParticleCloud. Use ChParticleCloud::AddVisualization()."
+              << std::endl;
+    throw ChException("Use ChParticleCloud::AddVisualization().");
+}
+void ChParticleCloud::AddVisualShape(std::shared_ptr<ChVisualShape> shape, const ChFrame<>& frame) {
+    std::cout << "AddVisualModel not available for ChParticleCloud. Use ChParticleCloud::AddVisualization()."
+              << std::endl;
+    throw ChException("Use ChParticleCloud::AddVisualization().");
+}
+void ChParticleCloud::AddVisualShapeFEA(std::shared_ptr<ChVisualShapeFEA> shapeFEA) {
+    std::cout << "AddVisualModel not available for ChParticleCloud. Use ChParticleCloud::AddVisualization()."
+              << std::endl;
+    throw ChException("Use ChParticleCloud::AddVisualization().");
+}
+
+void ChParticleCloud::AddVisualization(ShapeType shape_type, const ChVector<>& size, const ChColor& color) {
+    m_vis_shape = shape_type;
+    m_vis_size = size;
+    m_vis_color = color;
+}
+
 // STATE BOOKKEEPING FUNCTIONS
 
 void ChParticleCloud::IntStateGather(const unsigned int off_x,  // offset in x state vector
-                                       ChState& x,                // state vector, position part
-                                       const unsigned int off_v,  // offset in v state vector
-                                       ChStateDelta& v,           // state vector, speed part
-                                       double& T                  // time
+                                     ChState& x,                // state vector, position part
+                                     const unsigned int off_v,  // offset in v state vector
+                                     ChStateDelta& v,           // state vector, speed part
+                                     double& T                  // time
 ) {
     for (unsigned int j = 0; j < particles.size(); j++) {
         x.segment(off_x + 7 * j + 0, 3) = particles[j]->coord.pos.eigen();
@@ -339,11 +363,11 @@ void ChParticleCloud::IntStateGather(const unsigned int off_x,  // offset in x s
 }
 
 void ChParticleCloud::IntStateScatter(const unsigned int off_x,  // offset in x state vector
-                                        const ChState& x,          // state vector, position part
-                                        const unsigned int off_v,  // offset in v state vector
-                                        const ChStateDelta& v,     // state vector, speed part
-                                        const double T,            // time
-                                        bool full_update           // perform complete update
+                                      const ChState& x,          // state vector, position part
+                                      const unsigned int off_v,  // offset in v state vector
+                                      const ChStateDelta& v,     // state vector, speed part
+                                      const double T,            // time
+                                      bool full_update           // perform complete update
 ) {
     for (unsigned int j = 0; j < particles.size(); j++) {
         particles[j]->SetCoord(x.segment(off_x + 7 * j, 7));
@@ -369,11 +393,11 @@ void ChParticleCloud::IntStateScatterAcceleration(const unsigned int off_a, cons
 }
 
 void ChParticleCloud::IntStateIncrement(const unsigned int off_x,  // offset in x state vector
-                                          ChState& x_new,            // state vector, position part, incremented result
-                                          const ChState& x,          // state vector, initial position part
-                                          const unsigned int off_v,  // offset in v state vector
-                                          const ChStateDelta& Dv     // state vector, increment
-                                          ) {
+                                        ChState& x_new,            // state vector, position part, incremented result
+                                        const ChState& x,          // state vector, initial position part
+                                        const unsigned int off_v,  // offset in v state vector
+                                        const ChStateDelta& Dv     // state vector, increment
+) {
     for (unsigned int j = 0; j < particles.size(); j++) {
         // ADVANCE POSITION:
         x_new(off_x + 7 * j) = x(off_x + 7 * j) + Dv(off_v + 6 * j);
@@ -383,18 +407,19 @@ void ChParticleCloud::IntStateIncrement(const unsigned int off_x,  // offset in 
         // ADVANCE ROTATION: R_new = DR_a * R_old
         // (using quaternions, local or abs:  q_new = Dq_a * q_old =  q_old * Dq_l  )
         ChQuaternion<> q_old(x.segment(off_x + 7 * j + 3, 4));
-        ChQuaternion<> rel_q; rel_q.Q_from_Rotv(Dv.segment(off_v + 6 * j + 3, 3));
+        ChQuaternion<> rel_q;
+        rel_q.Q_from_Rotv(Dv.segment(off_v + 6 * j + 3, 3));
         ChQuaternion<> q_new = q_old * rel_q;
         x_new.segment(off_x + 7 * j + 3, 4) = q_new.eigen();
     }
 }
 
 void ChParticleCloud::IntStateGetIncrement(const unsigned int off_x,  // offset in x state vector
-                                          const ChState& x_new,            // state vector, position part, incremented result
-                                          const ChState& x,          // state vector, initial position part
-                                          const unsigned int off_v,  // offset in v state vector
-                                          ChStateDelta& Dv     // state vector, increment
-                                          ) {
+                                           const ChState& x_new,      // state vector, position part, incremented result
+                                           const ChState& x,          // state vector, initial position part
+                                           const unsigned int off_v,  // offset in v state vector
+                                           ChStateDelta& Dv           // state vector, increment
+) {
     for (unsigned int j = 0; j < particles.size(); j++) {
         // POSITION:
         Dv(off_v + 6 * j) = x_new(off_x + 7 * j) - x(off_x + 7 * j);
@@ -406,14 +431,14 @@ void ChParticleCloud::IntStateGetIncrement(const unsigned int off_x,  // offset 
         ChQuaternion<> q_old(x.segment(off_x + 7 * j + 3, 4));
         ChQuaternion<> q_new(x_new.segment(off_x + 7 * j + 3, 4));
         ChQuaternion<> rel_q = q_old.GetConjugate() % q_new;
-        Dv.segment(off_v + 6 *j + 3, 3) = rel_q.Q_to_Rotv().eigen();
+        Dv.segment(off_v + 6 * j + 3, 3) = rel_q.Q_to_Rotv().eigen();
     }
 }
 
 void ChParticleCloud::IntLoadResidual_F(const unsigned int off,  // offset in R residual
-                                          ChVectorDynamic<>& R,    // result: the R residual, R += c*F
-                                          const double c           // a scaling factor
-                                          ) {
+                                        ChVectorDynamic<>& R,    // result: the R residual, R += c*F
+                                        const double c           // a scaling factor
+) {
     ChVector<> Gforce;
     if (GetSystem())
         Gforce = GetSystem()->Get_G_acc() * particle_mass.GetBodyMass();
@@ -430,10 +455,10 @@ void ChParticleCloud::IntLoadResidual_F(const unsigned int off,  // offset in R 
 }
 
 void ChParticleCloud::IntLoadResidual_Mv(const unsigned int off,      // offset in R residual
-                                           ChVectorDynamic<>& R,        // result: the R residual, R += c*M*v
-                                           const ChVectorDynamic<>& w,  // the w vector
-                                           const double c               // a scaling factor
-                                           ) {
+                                         ChVectorDynamic<>& R,        // result: the R residual, R += c*M*v
+                                         const ChVectorDynamic<>& w,  // the w vector
+                                         const double c               // a scaling factor
+) {
     for (unsigned int j = 0; j < particles.size(); j++) {
         R(off + 6 * j + 0) += c * GetMass() * w(off + 6 * j + 0);
         R(off + 6 * j + 1) += c * GetMass() * w(off + 6 * j + 1);
@@ -444,11 +469,11 @@ void ChParticleCloud::IntLoadResidual_Mv(const unsigned int off,      // offset 
 }
 
 void ChParticleCloud::IntToDescriptor(const unsigned int off_v,  // offset in v, R
-                                        const ChStateDelta& v,
-                                        const ChVectorDynamic<>& R,
-                                        const unsigned int off_L,  // offset in L, Qc
-                                        const ChVectorDynamic<>& L,
-                                        const ChVectorDynamic<>& Qc) {
+                                      const ChStateDelta& v,
+                                      const ChVectorDynamic<>& R,
+                                      const unsigned int off_L,  // offset in L, Qc
+                                      const ChVectorDynamic<>& L,
+                                      const ChVectorDynamic<>& Qc) {
     for (unsigned int j = 0; j < particles.size(); j++) {
         particles[j]->variables.Get_qb() = v.segment(off_v + 6 * j, 6);
         particles[j]->variables.Get_fb() = R.segment(off_v + 6 * j, 6);
@@ -456,9 +481,9 @@ void ChParticleCloud::IntToDescriptor(const unsigned int off_v,  // offset in v,
 }
 
 void ChParticleCloud::IntFromDescriptor(const unsigned int off_v,  // offset in v
-                                          ChStateDelta& v,
-                                          const unsigned int off_L,  // offset in L
-                                          ChVectorDynamic<>& L) {
+                                        ChStateDelta& v,
+                                        const unsigned int off_L,  // offset in L
+                                        ChVectorDynamic<>& L) {
     for (unsigned int j = 0; j < particles.size(); j++) {
         v.segment(off_v + 6 * j, 6) = particles[j]->variables.Get_qb();
     }
@@ -527,8 +552,8 @@ void ChParticleCloud::VariablesQbSetSpeed(double step) {
 }
 
 void ChParticleCloud::VariablesQbIncrementPosition(double dt_step) {
-     if (!IsActive())
-    	return;
+    if (!IsActive())
+        return;
 
     for (unsigned int j = 0; j < particles.size(); j++) {
         // Updates position with incremental action of speed contained in the
@@ -703,7 +728,7 @@ void ChParticleCloud::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChParticleCloud::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChParticleCloud>();
+    /*int version =*/marchive.VersionRead<ChParticleCloud>();
 
     // deserialize parent class:
     ChIndexedParticles::ArchiveIN(marchive);

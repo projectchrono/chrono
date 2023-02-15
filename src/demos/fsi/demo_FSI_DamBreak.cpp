@@ -22,7 +22,7 @@
 #include "chrono/utils/ChUtilsGeometry.h"
 
 #include "chrono_fsi/ChSystemFsi.h"
-#include "chrono_fsi/ChVisualizationFsi.h"
+#include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -135,10 +135,10 @@ int main(int argc, char* argv[]) {
     sysFSI.Initialize();
 
     // Create a run-tme visualizer
-    ChVisualizationFsi fsi_vis(&sysFSI);
+    ChFsiVisualizationGL fsi_vis(&sysFSI);
     if (render) {
         fsi_vis.SetTitle("Chrono::FSI dam break");
-        fsi_vis.UpdateCamera(ChVector<>(0, -3 * byDim, bzDim), ChVector<>(0, 0, 0));
+        fsi_vis.AddCamera(ChVector<>(0, -3 * byDim, bzDim), ChVector<>(0, 0, 0));
         fsi_vis.SetCameraMoveScale(1.0f);
         fsi_vis.EnableBoundaryMarkers(false);
         fsi_vis.Initialize();

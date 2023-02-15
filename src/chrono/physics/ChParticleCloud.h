@@ -48,7 +48,7 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
 
     // INTERFACE TO ChContactable
 
-	virtual ChContactable::eChContactableType GetContactableType() const override { return CONTACTABLE_6; }
+    virtual ChContactable::eChContactableType GetContactableType() const override { return CONTACTABLE_6; }
 
     /// Access variables.
     virtual ChVariables* GetVariables1() override { return &Variables(); }
@@ -155,6 +155,8 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
 /// ChParticleCloud objects to the ChSystem. This would be more efficient anyway than creating all shapes as ChBody.
 class ChApi ChParticleCloud : public ChIndexedParticles {
   public:
+    enum class ShapeType { NONE, BOX, SPHERE, ELLIPSIOD, CAPSULE, CONE };
+
     ChParticleCloud();
     ChParticleCloud(const ChParticleCloud& other);
     ~ChParticleCloud();
@@ -212,6 +214,26 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     /// Set the material surface for contacts
     std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() { return matsurface; }
 
+    // Prohibit directly adding visual assets to a ChParticleCloud.
+    virtual void AddVisualModel(std::shared_ptr<ChVisualModel> model) override;
+    virtual void AddVisualShape(std::shared_ptr<ChVisualShape> shape, const ChFrame<>& frame = ChFrame<>()) override;
+    virtual void AddVisualShapeFEA(std::shared_ptr<ChVisualShapeFEA> shapeFEA) override;
+
+    /// Add visualization shapes for the particles in this cloud.
+    /// Note that different visualization systems may ignore any ot these settings (e.g., always using spheres to
+    /// visualize the particles in a cloud). However, all visualization systems must disable rendering of the particle
+    /// cloud if shape_type == ShapeType::NONE.
+    void AddVisualization(ShapeType shape_type, const ChVector<>& size, const ChColor& color);
+
+    /// Get the visualization shape type.
+    ShapeType GetVisualShapeType() const { return m_vis_shape; }
+
+    /// Get the visualization size.
+    const ChVector<>& GetVisualSize() const { return m_vis_size; }
+
+    /// Get the visualization color.
+    const ChColor& GetVisualColor() const { return m_vis_color; }
+
     // STATE FUNCTIONS
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
@@ -234,10 +256,10 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
                                    const unsigned int off_v,
                                    const ChStateDelta& Dv) override;
     virtual void IntStateGetIncrement(const unsigned int off_x,
-                                   const ChState& x_new,
-                                   const ChState& x,
-                                   const unsigned int off_v,
-                                   ChStateDelta& Dv) override;
+                                      const ChState& x_new,
+                                      const ChState& x,
+                                      const unsigned int off_v,
+                                      ChStateDelta& Dv) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void IntLoadResidual_Mv(const unsigned int off,
                                     ChVectorDynamic<>& R,
@@ -351,14 +373,15 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
   private:
-    std::vector<ChAparticle*> particles;  ///< the parricles
+    std::vector<ChAparticle*> particles;  ///< the particles
+    ChSharedMassBody particle_mass;       ///< shared mass of particles
 
-    ChSharedMassBody particle_mass;  ///< shared mass of particles
+    ShapeType m_vis_shape;  ///< type of visualization shape
+    ChVector<> m_vis_size;  ///< size of visualization shape
+    ChColor m_vis_color;    ///< color of visualization shape
 
     collision::ChCollisionModel* particle_collision_model;  ///< sample collision model
-
-    std::shared_ptr<ChMaterialSurface> matsurface;  ///< data for surface contact and impact
-
+    std::shared_ptr<ChMaterialSurface> matsurface;          ///< data for surface contact and impact
     bool fixed;
     bool do_collide;
     bool do_limit_speed;
@@ -372,7 +395,7 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     float sleep_starttime;
 };
 
-CH_CLASS_VERSION(ChParticleCloud,0)
+CH_CLASS_VERSION(ChParticleCloud, 0)
 
 }  // end namespace chrono
 

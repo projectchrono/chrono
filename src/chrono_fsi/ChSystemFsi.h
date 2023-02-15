@@ -544,7 +544,8 @@ class CH_FSI_API ChSystemFsi {
     bool m_integrate_SPH;   ///< set to true if needs to integrate the fsi solver
     double m_time;          ///< current real time of the simulation
 
-    friend class ChVisualizationFsi;
+    friend class ChFsiVisualizationGL;
+    friend class ChFsiVisualizationVSG;
 };
 
 /// @} fsi_physics
