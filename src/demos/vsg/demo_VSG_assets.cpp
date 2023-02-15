@@ -19,6 +19,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChParticleCloud.h"
 #include "chrono/physics/ChBodyEasy.h"
+#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/geometry/ChLineNurbs.h"
 #include "chrono/geometry/ChSurfaceNurbs.h"
 #include "chrono/assets/ChBoxShape.h"
@@ -193,10 +194,16 @@ int main(int argc, char* argv[]) {
     // and add it to physical system:
     auto particles = chrono_types::make_shared<ChParticleCloud>();
 
-    double particle_radius = 0.05;
+    double particle_radius = 0.3;
+    ChColor particle_color(0.7f, 0.3f, 0.3f);
 
     // Add visualization (shared by all particles in the cloud)
-    particles->AddVisualization(ChParticleCloud::ShapeType::SPHERE, 2 * particle_radius, ChColor());
+    particles->AddVisualization(ChParticleCloud::ShapeType::SPHERE, 2 * particle_radius, particle_color);
+    ////particles->AddVisualization(ChParticleCloud::ShapeType::ELLIPSOID, ChVector<>(0.3, 0.2, 0.1), particle_color);
+    ////particles->AddVisualization(ChParticleCloud::ShapeType::BOX, ChVector<>(0.3, 0.2, 0.1), particle_color);
+    ////particles->AddVisualization(ChParticleCloud::ShapeType::CAPSULE, ChVector<>(0.4, 0.4, 0.5), particle_color);
+    ////particles->AddVisualization(ChParticleCloud::ShapeType::CYLINDER, ChVector<>(0.4, 0.4, 0.5), particle_color);
+    ////particles->AddVisualization(ChParticleCloud::ShapeType::CONE, ChVector<>(0.4, 0.4, 0.6), particle_color);
 
     // Note: the collision shape, if needed, must be specified before creating particles.
     // This will be shared among all particles in the ChParticleCloud.
@@ -318,6 +325,8 @@ int main(int argc, char* argv[]) {
 
     vis->Initialize();
 
+    ChRealtimeStepTimer rt;
+    double step_size = 0.1;
     unsigned int frame_number = 0;
     while (vis->Run()) {
         double time = sys.GetChTime();
@@ -340,7 +349,9 @@ int main(int argc, char* argv[]) {
             vis->UpdateVisualModel(sphereId, ChFrame(ChVector<>(6, 0, -6), QUNIT));
 
         vis->Render();
-        sys.DoStepDynamics(0.01);
+        sys.DoStepDynamics(step_size);
+
+        rt.Spin(step_size);
 
         frame_number++;
     }

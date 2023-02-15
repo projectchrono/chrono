@@ -155,7 +155,15 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
 /// ChParticleCloud objects to the ChSystem. This would be more efficient anyway than creating all shapes as ChBody.
 class ChApi ChParticleCloud : public ChIndexedParticles {
   public:
-    enum class ShapeType { NONE, BOX, SPHERE, ELLIPSIOD, CAPSULE, CONE };
+    enum class ShapeType {
+        NONE,       ///< no visualization
+        BOX,        ///< size = [length, width, depth]
+        ELLIPSOID,  ///< size = [x_axis, y_axis, z_axis]
+        SPHERE,     ///< alias for ELLIPSOID; size = 2 * radius
+        CAPSULE,    ///< size = [2 * x_radius, 2 * y_radius, cyl_length]
+        CYLINDER,   ///< size = [2 * x_radius, 2 * y_radius, length]
+        CONE        ///< size = [2 * x_radius, 2 * y_radius, height]
+    };
 
     ChParticleCloud();
     ChParticleCloud(const ChParticleCloud& other);
@@ -220,7 +228,8 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     virtual void AddVisualShapeFEA(std::shared_ptr<ChVisualShapeFEA> shapeFEA) override;
 
     /// Add visualization shapes for the particles in this cloud.
-    /// Note that different visualization systems may ignore any ot these settings (e.g., always using spheres to
+    /// All particles in a cloud are rendered with the same shape with given dimensions (effectively the dimensions of the shape BB).
+    /// Note that different visualization systems may ignore any of these settings (e.g., always using spheres to
     /// visualize the particles in a cloud). However, all visualization systems must disable rendering of the particle
     /// cloud if shape_type == ShapeType::NONE.
     void AddVisualization(ShapeType shape_type, const ChVector<>& size, const ChColor& color);

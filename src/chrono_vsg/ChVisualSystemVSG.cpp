@@ -1265,33 +1265,55 @@ void ChVisualSystemVSG::BindAll() {
             if (pcloud->GetVisualShapeType() == ChParticleCloud::ShapeType::NONE)
                 continue;
             size_t numParticles = pcloud->GetNparticles();
+            auto shape = pcloud->GetVisualShapeType();
             const auto& size = pcloud->GetVisualSize();
+            const auto& color = pcloud->GetVisualColor();
 
-
-            // use vsgBuilder spheres with position vector
-
+            // use vsgBuilder with appropriate shape and with position vector
             vsg::GeometryInfo geomInfo;
-            float d = (float)size[0];
-            geomInfo.dx.set(d, 0, 0);
-            geomInfo.dy.set(0, d, 0);
-            geomInfo.dz.set(0, 0, d);
-            
+            geomInfo.dx.set((float)size.x(), 0, 0);
+            geomInfo.dy.set(0, (float)size.y(), 0);
+            geomInfo.dz.set(0, 0, (float)size.z());
+
+            geomInfo.color.set(color.R, color.G, color.B, 1.0);
+
+            auto positions = vsg::vec3Array::create(numParticles);
+            geomInfo.positions = positions;
+            for (unsigned int k = 0; k < positions->size(); k++) {
+                positions->set(k, vsg::vec3CH(pcloud->GetParticle(k).GetPos()));
+            }
+
+            ////auto colors = vsg::vec3Array::create(numParticles);
+
             vsg::StateInfo stateInfo;
             stateInfo.wireframe = m_wireframe;
             stateInfo.instance_positions_vec3 = true;
-            auto positions = vsg::vec3Array::create(numParticles);
-            geomInfo.positions = positions;
 
-            for(unsigned int k=0; k < positions->size(); k++) {
-                positions->set(k, vsg::vec3CH(pcloud->GetParticle(k).GetPos()));
+            switch (shape) {
+                case ChParticleCloud::ShapeType::SPHERE:
+                case ChParticleCloud::ShapeType::ELLIPSOID:
+                    m_particleScene->addChild(m_vsgBuilder->createSphere(geomInfo, stateInfo));
+                    break;
+                case ChParticleCloud::ShapeType::BOX:
+                    m_particleScene->addChild(m_vsgBuilder->createBox(geomInfo, stateInfo));
+                    break;
+                case ChParticleCloud::ShapeType::CAPSULE:
+                    m_particleScene->addChild(m_vsgBuilder->createCapsule(geomInfo, stateInfo));
+                    break;
+                case ChParticleCloud::ShapeType::CYLINDER:
+                    m_particleScene->addChild(m_vsgBuilder->createCylinder(geomInfo, stateInfo));
+                    break;
+                case ChParticleCloud::ShapeType::CONE:
+                    m_particleScene->addChild(m_vsgBuilder->createCone(geomInfo, stateInfo));
+                    break;
             }
-            m_particleScene->addChild(m_vsgBuilder->createSphere(geomInfo, stateInfo));
 
             m_vsgPositionList = vsg::visit<FindPositions>(m_particleScene->children.at(0)).getPositionsList();
             for (auto& pos : m_vsgPositionList) {
                 pos->properties.dataVariance = vsg::DYNAMIC_DATA;
                 m_numParticles += pos->size();
             }
+
             if (positions->size() == m_numParticles) {
                 // positions transfer possible
                 m_allowPositionTransfer = true;
