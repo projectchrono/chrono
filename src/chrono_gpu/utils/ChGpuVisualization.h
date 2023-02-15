@@ -102,7 +102,7 @@ class CH_GPU_API ChGpuVisualization {
     opengl::ChVisualSystemOpenGL* m_vsys;  ///< OpenGL visualization system
 #endif
 
-    unsigned int m_part_start_index;  ///< start index of particles in m_system's body list
+    std::shared_ptr<ChParticleCloud> m_particles;  ///< particle cloud proxy for particles
 };
 
 /// @} gpu_utils
