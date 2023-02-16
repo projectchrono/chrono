@@ -270,37 +270,6 @@ class ChBaseEventHandlerVSG : public ChEventHandlerVSG {
 
 // -----------------------------------------------------------------------------
 
-class FindPositions : public vsg::Visitor {
-  public:
-    void apply(vsg::Object& object) { object.traverse(*this); }
-
-    void apply(vsg::VertexIndexDraw& vid) {
-        if (vid.arrays.empty() || vid.arrays.size() < 5)
-            return;
-        vid.arrays[4]->data->accept(*this);
-    }
-
-    void apply(vsg::vec3Array& positions) {
-        if (positionsSet.count(&positions) == 0) {
-            positionsSet.insert(&positions);
-        }
-    }
-
-    std::vector<vsg::ref_ptr<vsg::vec3Array>> getPositionsList() {
-        std::vector<vsg::ref_ptr<vsg::vec3Array>> positionsList(positionsSet.size());
-        auto positions_itr = positionsList.begin();
-        for (auto& positions : positionsSet) {
-            (*positions_itr++) = const_cast<vsg::vec3Array*>(positions);
-        }
-
-        return positionsList;
-    }
-
-    std::set<vsg::vec3Array*> positionsSet;
-};
-
-// -----------------------------------------------------------------------------
-
 class FindVertexData : public vsg::Visitor {
   public:
     void apply(vsg::Object& object) { object.traverse(*this); }
@@ -971,10 +940,13 @@ void ChVisualSystemVSG::Render() {
 
     // Dynamic data transfer CPU -> GPU
     if (m_allowPositionTransfer) {
-        for (auto& positions : m_vsgPositionList) {
+        for (const auto& c : m_clouds) {
+            if (!c.dyn_pos)
+                continue;
+            auto& positions = m_cloud_positions[c.start_pos];
             unsigned int k = 0;
             for (auto& p : *positions) {
-                p = vsg::vec3CH(m_particleCloud->GetParticle(k).GetPos());
+                p = vsg::vec3CH(c.pcloud->GetParticle(k).GetPos());
                 k++;
             }
             positions->dirty();
@@ -1259,31 +1231,52 @@ void ChVisualSystemVSG::BindAll() {
             if (auto pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
                 if (pcloud->GetVisualShapeType() == ChParticleCloud::ShapeType::NONE)
                     continue;
-                size_t numParticles = pcloud->GetNparticles();
+
                 auto shape = pcloud->GetVisualShapeType();
                 const auto& size = pcloud->GetVisualSize();
                 const auto& color = pcloud->GetVisualColor();
 
-                // use vsgBuilder with appropriate shape and with position vector
+                // Create an new entry in the set of Chrono::VSG particle clouds
+                int start_pos = 0;
+                int start_col = 0;
+                if (!m_clouds.empty()) {
+                    if (pcloud->IsActive())
+                        start_pos = m_clouds.back().start_pos + 1;
+                    else
+                        start_pos = m_clouds.back().start_pos;
+                    //// TODO: colors
+                }
+
+                ParticleCloud cloud;
+                cloud.pcloud = pcloud;
+                cloud.num_particles = pcloud->GetNparticles();
+                cloud.dyn_pos = pcloud->IsActive();
+                //// TODO: colors
+                cloud.start_pos = start_pos;
+                cloud.start_col = start_col;
+
+                // Set up geometry and state info for vsgBuilder
                 vsg::GeometryInfo geomInfo;
                 geomInfo.dx.set((float)size.x(), 0, 0);
                 geomInfo.dy.set(0, (float)size.y(), 0);
                 geomInfo.dz.set(0, 0, (float)size.z());
-
                 geomInfo.color.set(color.R, color.G, color.B, 1.0);
 
-                auto positions = vsg::vec3Array::create(numParticles);
+                auto positions = vsg::vec3Array::create(cloud.num_particles);
                 geomInfo.positions = positions;
-                for (unsigned int k = 0; k < positions->size(); k++) {
+                for (size_t k = 0; k < cloud.num_particles; k++)
                     positions->set(k, vsg::vec3CH(pcloud->GetParticle(k).GetPos()));
+                if (cloud.dyn_pos) {
+                    positions->properties.dataVariance = vsg::DYNAMIC_DATA;
+                    m_cloud_positions.push_back(positions);
+                    m_allowPositionTransfer = true;
                 }
-
-                ////auto colors = vsg::vec3Array::create(numParticles);
 
                 vsg::StateInfo stateInfo;
                 stateInfo.wireframe = m_wireframe;
                 stateInfo.instance_positions_vec3 = true;
 
+                // Add child node for this cloud
                 switch (shape) {
                     case ChParticleCloud::ShapeType::SPHERE:
                     case ChParticleCloud::ShapeType::ELLIPSOID:
@@ -1303,23 +1296,8 @@ void ChVisualSystemVSG::BindAll() {
                         break;
                 }
 
-                m_vsgPositionList = vsg::visit<FindPositions>(m_particleScene->children.at(0)).getPositionsList();
-                for (auto& pos : m_vsgPositionList) {
-                    pos->properties.dataVariance = vsg::DYNAMIC_DATA;
-                    m_numParticles += pos->size();
-                }
+                m_clouds.push_back(cloud);
 
-                if (positions->size() == m_numParticles) {
-                    // positions transfer possible
-                    m_allowPositionTransfer = true;
-                    m_particleCloud = pcloud;
-                } else {
-                    // error!
-                    GetLog() << "Transfer of Partice Positions impossible:\n";
-                    GetLog() << "MBS Nparticles " << numParticles << "\n";
-                    GetLog() << "VSG Nparticles " << m_numParticles << "\n";
-                    GetLog() << "Mismatch between Multibody System and Graphic System!\n";
-                }
             } else if (auto loadcont = std::dynamic_pointer_cast<ChLoadContainer>(item)) {
                 auto visModel = loadcont->GetVisualModel();
                 if (!visModel)

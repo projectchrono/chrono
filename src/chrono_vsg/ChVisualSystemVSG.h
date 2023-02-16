@@ -246,11 +246,19 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     std::vector<vsg::ref_ptr<vsg::vec4Array>> m_vsgColorsList;
     std::shared_ptr<ChTriangleMeshShape> m_mbsMesh;
 
-    // Infos for updatable particle positions
-    size_t m_numParticles = 0;
-    bool m_allowPositionTransfer = 0;
-    std::vector<vsg::ref_ptr<vsg::vec3Array>> m_vsgPositionList;
-    std::shared_ptr<ChParticleCloud> m_particleCloud;
+    // Data for particle clouds
+    struct ParticleCloud {
+        std::shared_ptr<ChParticleCloud> pcloud;  ///< reference to the Chrono physics item
+        size_t num_particles;                     ///< number of particles in cloud
+        bool dyn_pos;                             ///< if false, no dynamic position update
+        bool dyn_col;                             ///< if false, no dynamic color update
+        int start_pos;                            ///< index in positions list array
+        int start_col;                            ///< index in colors list array
+    };
+
+    std::vector<ParticleCloud> m_clouds;
+    std::vector<vsg::ref_ptr<vsg::vec3Array>> m_cloud_positions;
+    bool m_allowPositionTransfer = false;
 
   private:
     /// Utility function to populate a VSG group with shape groups (from the given visual model).

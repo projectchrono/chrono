@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
     body->AddVisualShape(mesh, ChFrame<>(ChVector<>(2, 1, 2), QUNIT));
 
     // ==Asset== Attach a 'Wavefront mesh' asset, referencing a .obj file and offset it.
-    // Only the first call of a distinct filename loads from disc; subsequent uses of the same model file read from a cache.
+    // Only the first call of a distinct filename loads from disc; uses instancing.
     auto objmesh = chrono_types::make_shared<ChModelFileShape>();
     objmesh->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
 
@@ -187,43 +187,65 @@ int main(int argc, char* argv[]) {
     // EXAMPLE 3:
     //
 
-    // Create a ChParticleClones cluster, and attach 'assets' that define a single "sample" 3D shape.
-    // This will be shown N times in Irrlicht.
+    // Create ChParticleCloud clusters, and attach 'assets' that define a single "sample" 3D shape.
+    {
+        // 1st cloud - moving spheres with collision
+        auto particles = chrono_types::make_shared<ChParticleCloud>();
+        particles->SetMass(0.1);
+        particles->SetInertiaXX(ChVector<>(0.001, 0.001, 0.001));
+        particles->SetCollide(true);
 
-    // Create the ChParticleClones, populate it with some random particles,
-    // and add it to physical system:
-    auto particles = chrono_types::make_shared<ChParticleCloud>();
+        double particle_radius = 0.3;
+        particles->AddVisualization(ChParticleCloud::ShapeType::SPHERE, 2 * particle_radius, ChColor(0.7f, 0.3f, 0.3f));
+        auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        particle_mat->SetFriction(0.9f);
+        particles->GetCollisionModel()->ClearModel();
+        particles->GetCollisionModel()->AddSphere(particle_mat, particle_radius);
+        particles->GetCollisionModel()->BuildModel();
 
-    double particle_radius = 0.3;
-    ChColor particle_color(0.7f, 0.3f, 0.3f);
+        for (int np = 0; np < 60; ++np)
+            particles->AddParticle(ChCoordsys<>(ChVector<>(2 * ChRandom() - 2, 1.5, 2 * ChRandom() + 2)));
 
-    // Add visualization (shared by all particles in the cloud)
-    particles->AddVisualization(ChParticleCloud::ShapeType::SPHERE, 2 * particle_radius, particle_color);
-    ////particles->AddVisualization(ChParticleCloud::ShapeType::ELLIPSOID, ChVector<>(0.3, 0.2, 0.1), particle_color);
-    ////particles->AddVisualization(ChParticleCloud::ShapeType::BOX, ChVector<>(0.3, 0.2, 0.1), particle_color);
-    ////particles->AddVisualization(ChParticleCloud::ShapeType::CAPSULE, ChVector<>(0.4, 0.4, 0.5), particle_color);
-    ////particles->AddVisualization(ChParticleCloud::ShapeType::CYLINDER, ChVector<>(0.4, 0.4, 0.5), particle_color);
-    ////particles->AddVisualization(ChParticleCloud::ShapeType::CONE, ChVector<>(0.4, 0.4, 0.6), particle_color);
+        sys.Add(particles);
+    }
+    {
+        // 2nd cloud - moving boxes with collision
+        auto particles = chrono_types::make_shared<ChParticleCloud>();
+        particles->SetMass(0.1);
+        particles->SetInertiaXX(ChVector<>(0.001, 0.001, 0.001));
+        particles->SetCollide(true);
 
-    // Note: the collision shape, if needed, must be specified before creating particles.
-    // This will be shared among all particles in the ChParticleCloud.
-    auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-    particles->GetCollisionModel()->ClearModel();
-    particles->GetCollisionModel()->AddSphere(particle_mat, particle_radius);
-    particles->GetCollisionModel()->BuildModel();
-    particles->SetCollide(true);
+        double hx = 0.15;
+        double hy = 0.10;
+        double hz = 0.35;
+        ChVector<> particle_size(2 * hx, 2 * hy, 2 * hz);
+        particles->AddVisualization(ChParticleCloud::ShapeType::BOX, particle_size, ChColor(0.3f, 0.7f, 0.3f));
+        auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        particles->GetCollisionModel()->ClearModel();
+        particles->GetCollisionModel()->AddBox(particle_mat, hx, hy, hz);
+        particles->GetCollisionModel()->BuildModel();
 
-    // Create the random particles
-    for (int np = 0; np < 100; ++np)
-        particles->AddParticle(ChCoordsys<>(ChVector<>(ChRandom() - 2, 1.5, ChRandom() + 2)));
+        for (int np = 0; np < 30; ++np)
+            particles->AddParticle(ChCoordsys<>(ChVector<>(2 * ChRandom() + 4, 1.5, 2 * ChRandom() - 4)));
 
-    // Mass and inertia properties.
-    // This will be shared among all particles in the ChParticleCloud.
-    particles->SetMass(0.1);
-    particles->SetInertiaXX(ChVector<>(0.001, 0.001, 0.001));
+        sys.Add(particles);
+    }
+    {
+        // 3rd cloud - fixed capsules
+        auto particles = chrono_types::make_shared<ChParticleCloud>();
+        particles->SetMass(0.1);
+        particles->SetInertiaXX(ChVector<>(0.001, 0.001, 0.001));
+        particles->SetFixed(true);
+        particles->SetCollide(false);
 
-    // Do not forget to add the particle cluster to the system:
-    sys.Add(particles);
+        particles->AddVisualization(ChParticleCloud::ShapeType::CAPSULE, ChVector<>(0.4, 0.4, 0.5),
+                                    ChColor(0.3f, 0.3f, 0.7f));
+
+        for (int np = 0; np < 20; ++np)
+            particles->AddParticle(ChCoordsys<>(ChVector<>(4 * ChRandom() - 4, 1.5, 4 * ChRandom() - 4)));
+
+        sys.Add(particles);
+    }
 
     //
     // EXAMPLE 4:
