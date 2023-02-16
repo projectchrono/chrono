@@ -26,7 +26,6 @@ ChFsiVisualization::ChFsiVisualization(ChSystemFsi* sysFSI)
       m_flex_bce_markers(true),
       m_bndry_bce_markers(false) {
     m_system = new ChSystemSMC();
-    m_radius = sysFSI->GetInitialSpacing() / 2;
 }
 
 ChFsiVisualization::~ChFsiVisualization() {

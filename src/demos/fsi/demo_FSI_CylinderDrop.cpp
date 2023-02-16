@@ -303,9 +303,9 @@ int main(int argc, char* argv[]) {
         visFSI->SetTitle("Chrono::FSI cylinder drop");
         visFSI->SetSize(1280, 720);
         visFSI->AddCamera(origin - ChVector<>(2 * bxDim, 2 * byDim, 0), origin);
-        visFSI->SetCameraMoveScale(1.0f);
+        visFSI->SetCameraMoveScale(0.1f);
         visFSI->EnableBoundaryMarkers(false);
-        visFSI->EnableRigidBodyMarkers(false);
+        visFSI->EnableRigidBodyMarkers(true);
         visFSI->SetRenderMode(ChFsiVisualizationGL::RenderMode::SOLID);
         visFSI->SetParticleRenderMode(ChFsiVisualizationGL::RenderMode::SOLID);
         visFSI->AttachSystem(&sysMBS);

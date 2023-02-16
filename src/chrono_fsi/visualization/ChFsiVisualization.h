@@ -109,13 +109,15 @@ class CH_FSI_API ChFsiVisualization {
     ChSystem* m_system;        ///< internal Chrono system (holds proxy bodies)
     ChSystem* m_user_system;   ///< optional user-provided system
 
-    double m_radius;           ///< particle visualization radius
     bool m_sph_markers;        ///< render fluid SPH particles?
+    bool m_bndry_bce_markers;  ///< render boundary BCE markers?
     bool m_rigid_bce_markers;  ///< render rigid-body BCE markers?
     bool m_flex_bce_markers;   ///< render flex-body markers?
-    bool m_bndry_bce_markers;  ///< render boundary BCE markers?
 
-    std::shared_ptr<ChParticleCloud> m_particles;  ///< particle cloud proxy for SPH markers
+    std::shared_ptr<ChParticleCloud> m_sph_cloud;        ///< particle cloud proxy for SPH particles
+    std::shared_ptr<ChParticleCloud> m_bndry_bce_cloud;  ///< particle cloud proxy for boundary BCE markers
+    std::shared_ptr<ChParticleCloud> m_rigid_bce_cloud;  ///< particle cloud proxy for BCE markers on rigid bodies
+    std::shared_ptr<ChParticleCloud> m_flex_bce_cloud;   ///< particle cloud proxy for BCE markers on flex bodies
 };
 
 /// @} fsi_utils
