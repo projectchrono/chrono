@@ -176,13 +176,15 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     cylinder->SetMass(mass);
     cylinder->SetInertiaXX(mass * gyration);
 
-    // Set the collision type of the cylinder
+    // Set the collision and visualization geometry
     cylinder->SetCollide(true);
     cylinder->SetBodyFixed(false);
     cylinder->GetCollisionModel()->ClearModel();
     cylinder->GetCollisionModel()->SetSafeMargin(initSpace0);
-    chrono::utils::AddCylinderGeometry(cylinder.get(), cmaterial, cyl_radius, cyl_length, VNULL, QUNIT);
+    chrono::utils::AddCylinderGeometry(cylinder.get(), cmaterial, cyl_radius, cyl_length / 2, VNULL, QUNIT);
     cylinder->GetCollisionModel()->BuildModel();
+
+    cylinder->GetVisualShape(0)->SetColor(ChColor(0.65f, 0.20f, 0.10f));
 
     // Add this body to chrono system
     sysMBS.AddBody(cylinder);
@@ -300,10 +302,10 @@ int main(int argc, char* argv[]) {
 
         visFSI->SetTitle("Chrono::FSI cylinder drop");
         visFSI->SetSize(1280, 720);
-        visFSI->AddCamera(origin - ChVector<>(0, 3 * byDim, 0), origin);
+        visFSI->AddCamera(origin - ChVector<>(2 * bxDim, 2 * byDim, 0), origin);
         visFSI->SetCameraMoveScale(1.0f);
         visFSI->EnableBoundaryMarkers(false);
-        visFSI->EnableRigidBodyMarkers(true);
+        visFSI->EnableRigidBodyMarkers(false);
         visFSI->SetRenderMode(ChFsiVisualizationGL::RenderMode::SOLID);
         visFSI->SetParticleRenderMode(ChFsiVisualizationGL::RenderMode::SOLID);
         visFSI->AttachSystem(&sysMBS);

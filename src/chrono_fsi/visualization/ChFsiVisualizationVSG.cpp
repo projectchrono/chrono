@@ -137,7 +137,8 @@ void ChFsiVisualizationVSG::Initialize() {
         for (int i = 0; i < m_systemFSI->GetNumFluidMarkers(); i++) {
             m_particles->AddParticle(CSYSNULL);
         }
-        m_particles->AddVisualization(ChParticleCloud::ShapeType::SPHERE, m_systemFSI->GetInitialSpacing(), ChColor());
+        m_particles->AddVisualization(ChParticleCloud::ShapeType::SPHERE, m_systemFSI->GetInitialSpacing(),
+                                      ChColor(0.10f, 0.40f, 0.65f));
         m_system->Add(m_particles);
     }
 

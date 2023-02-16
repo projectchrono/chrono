@@ -973,7 +973,7 @@ void ChVisualSystemVSG::Render() {
     if (m_allowPositionTransfer) {
         for (auto& positions : m_vsgPositionList) {
             unsigned int k = 0;
-            for(auto& p : *positions) {
+            for (auto& p : *positions) {
                 p = vsg::vec3CH(m_particleCloud->GetParticle(k).GetPos());
                 k++;
             }
@@ -1204,231 +1204,230 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
 }
 
 void ChVisualSystemVSG::BindAll() {
-    //// RADU TODO
-    ////   - what would prevent this working with *more* than one ChSystem?!?
+    for (auto sys : m_systems) {
+        // Bind visual models associated with bodies in the system.
+        // Traverse all bodies in the system and:
+        //   - create a VSG node for the body COG frame
+        //   - create the VSG node corresponding to the visual model
+        for (const auto& body : sys->GetAssembly().Get_bodylist()) {
+            // Create the COG node
+            auto cog_transform = vsg::MatrixTransform::create();
+            cog_transform->matrix = vsg::dmat4CH(body->GetFrame_COG_to_abs(), m_cog_scale);
+            vsg::Mask mask = m_show_cog;
+            auto cog_node = m_shapeBuilder->createCoGSymbol(cog_transform);
+            cog_node->setValue("Body", body);
+            cog_node->setValue("Transform", cog_transform);
+            m_cogScene->addChild(mask, cog_node);
 
-    if (m_systems.empty())
-        return;
-
-    // Bind visual models associated with bodies in the system.
-    // Traverse all bodies in the system and:
-    //   - create a VSG node for the body COG frame
-    //   - create the VSG node corresponding to the visual model
-    for (const auto& body : m_systems[0]->GetAssembly().Get_bodylist()) {
-        // Create the COG node
-        auto cog_transform = vsg::MatrixTransform::create();
-        cog_transform->matrix = vsg::dmat4CH(body->GetFrame_COG_to_abs(), m_cog_scale);
-        vsg::Mask mask = m_show_cog;
-        auto cog_node = m_shapeBuilder->createCoGSymbol(cog_transform);
-        cog_node->setValue("Body", body);
-        cog_node->setValue("Transform", cog_transform);
-        m_cogScene->addChild(mask, cog_node);
-
-        const auto& vis_model = body->GetVisualModel();
-        if (!vis_model)
-            continue;
-
-        // Important for update: keep the correct scenegraph hierarchy
-        //     modelGroup->model_transform->shapes_group
-
-        // Create a group to hold this visual model
-        auto modelGroup = vsg::Group::create();
-
-        // Create a group to hold the shapes with their subtransforms
-        auto shapes_group = vsg::Group::create();
-
-        // Populate the group with shapes in the visual model
-        PopulateGroup(shapes_group, vis_model, body);
-
-        // Attach a transform to the group and initialize it with the body current position
-        auto model_transform = vsg::MatrixTransform::create();
-        model_transform->matrix = vsg::dmat4CH(body->GetVisualModelFrame(), 1.0);
-        model_transform->subgraphRequiresLocalFrustum = false;
-        if (m_options->sharedObjects) {
-            m_options->sharedObjects->share(modelGroup);
-            m_options->sharedObjects->share(model_transform);
-        }
-        model_transform->addChild(shapes_group);
-        modelGroup->addChild(model_transform);
-
-        // Set group properties
-        modelGroup->setValue("Body", body);
-        modelGroup->setValue("Transform", model_transform);
-
-        // Add the group to the global holder
-        m_bodyScene->addChild(modelGroup);
-    }
-
-    // Bind visual models associated with other physics items in the system
-    for (auto& item : m_systems[0]->Get_otherphysicslist()) {
-        if (auto pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
-            if (pcloud->GetVisualShapeType() == ChParticleCloud::ShapeType::NONE)
+            const auto& vis_model = body->GetVisualModel();
+            if (!vis_model)
                 continue;
-            size_t numParticles = pcloud->GetNparticles();
-            auto shape = pcloud->GetVisualShapeType();
-            const auto& size = pcloud->GetVisualSize();
-            const auto& color = pcloud->GetVisualColor();
 
-            // use vsgBuilder with appropriate shape and with position vector
-            vsg::GeometryInfo geomInfo;
-            geomInfo.dx.set((float)size.x(), 0, 0);
-            geomInfo.dy.set(0, (float)size.y(), 0);
-            geomInfo.dz.set(0, 0, (float)size.z());
+            // Important for update: keep the correct scenegraph hierarchy
+            //     modelGroup->model_transform->shapes_group
 
-            geomInfo.color.set(color.R, color.G, color.B, 1.0);
+            // Create a group to hold this visual model
+            auto modelGroup = vsg::Group::create();
 
-            auto positions = vsg::vec3Array::create(numParticles);
-            geomInfo.positions = positions;
-            for (unsigned int k = 0; k < positions->size(); k++) {
-                positions->set(k, vsg::vec3CH(pcloud->GetParticle(k).GetPos()));
+            // Create a group to hold the shapes with their subtransforms
+            auto shapes_group = vsg::Group::create();
+
+            // Populate the group with shapes in the visual model
+            PopulateGroup(shapes_group, vis_model, body);
+
+            // Attach a transform to the group and initialize it with the body current position
+            auto model_transform = vsg::MatrixTransform::create();
+            model_transform->matrix = vsg::dmat4CH(body->GetVisualModelFrame(), 1.0);
+            model_transform->subgraphRequiresLocalFrustum = false;
+            if (m_options->sharedObjects) {
+                m_options->sharedObjects->share(modelGroup);
+                m_options->sharedObjects->share(model_transform);
             }
+            model_transform->addChild(shapes_group);
+            modelGroup->addChild(model_transform);
 
-            ////auto colors = vsg::vec3Array::create(numParticles);
+            // Set group properties
+            modelGroup->setValue("Body", body);
+            modelGroup->setValue("Transform", model_transform);
 
-            vsg::StateInfo stateInfo;
-            stateInfo.wireframe = m_wireframe;
-            stateInfo.instance_positions_vec3 = true;
+            // Add the group to the global holder
+            m_bodyScene->addChild(modelGroup);
+        }  // end bodies
 
-            switch (shape) {
-                case ChParticleCloud::ShapeType::SPHERE:
-                case ChParticleCloud::ShapeType::ELLIPSOID:
-                    m_particleScene->addChild(m_vsgBuilder->createSphere(geomInfo, stateInfo));
-                    break;
-                case ChParticleCloud::ShapeType::BOX:
-                    m_particleScene->addChild(m_vsgBuilder->createBox(geomInfo, stateInfo));
-                    break;
-                case ChParticleCloud::ShapeType::CAPSULE:
-                    m_particleScene->addChild(m_vsgBuilder->createCapsule(geomInfo, stateInfo));
-                    break;
-                case ChParticleCloud::ShapeType::CYLINDER:
-                    m_particleScene->addChild(m_vsgBuilder->createCylinder(geomInfo, stateInfo));
-                    break;
-                case ChParticleCloud::ShapeType::CONE:
-                    m_particleScene->addChild(m_vsgBuilder->createCone(geomInfo, stateInfo));
-                    break;
-            }
+        // Bind visual models associated with other physics items in the system
+        for (auto& item : sys->Get_otherphysicslist()) {
+            if (auto pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
+                if (pcloud->GetVisualShapeType() == ChParticleCloud::ShapeType::NONE)
+                    continue;
+                size_t numParticles = pcloud->GetNparticles();
+                auto shape = pcloud->GetVisualShapeType();
+                const auto& size = pcloud->GetVisualSize();
+                const auto& color = pcloud->GetVisualColor();
 
-            m_vsgPositionList = vsg::visit<FindPositions>(m_particleScene->children.at(0)).getPositionsList();
-            for (auto& pos : m_vsgPositionList) {
-                pos->properties.dataVariance = vsg::DYNAMIC_DATA;
-                m_numParticles += pos->size();
-            }
+                // use vsgBuilder with appropriate shape and with position vector
+                vsg::GeometryInfo geomInfo;
+                geomInfo.dx.set((float)size.x(), 0, 0);
+                geomInfo.dy.set(0, (float)size.y(), 0);
+                geomInfo.dz.set(0, 0, (float)size.z());
 
-            if (positions->size() == m_numParticles) {
-                // positions transfer possible
-                m_allowPositionTransfer = true;
-                m_particleCloud = pcloud;
-            } else {
-                // error!
-                GetLog() << "Transfer of Partice Positions impossible:\n";
-                GetLog() << "MBS Nparticles " << numParticles << "\n";
-                GetLog() << "VSG Nparticles " << m_numParticles << "\n";
-                GetLog() << "Mismatch between Multibody System and Graphic System!\n";
-            }
-        } else if (auto loadcont = std::dynamic_pointer_cast<ChLoadContainer>(item)) {
-            auto visModel = loadcont->GetVisualModel();
-            if (!visModel)
-                continue;
-            const auto& shape_instance = visModel->GetShapes().at(0);
-            auto& shape = shape_instance.first;
-            auto trimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape);
-            if (!trimesh)
-                continue;
-            auto transform = vsg::MatrixTransform::create();
-            if (trimesh->GetNumMaterials() > 0) {
-                /*
-                m_deformableScene->addChild(
-                    m_shapeBuilder->createTrimeshPhongMatShape(transform, trimesh->IsWireframe(), trimesh));
-                 */
-                m_deformableScene->addChild(
-                    m_shapeBuilder->createTrimeshPbrMatShape(transform, trimesh->IsWireframe(), trimesh));
-            } else {
-                m_deformableScene->addChild(
-                    m_shapeBuilder->createTrimeshColShapeSCM(transform, trimesh->IsWireframe(), trimesh));
-            }
-            m_vsgVerticesList = vsg::visit<FindVertexData>(m_deformableScene->children.at(0)).getVerticesList();
-            for (auto& vertices : m_vsgVerticesList) {
-                vertices->properties.dataVariance = vsg::DYNAMIC_DATA;
-                m_num_vsgVertexList += vertices->size();
-            }
-            m_mbsMesh = trimesh;
-            if (m_num_vsgVertexList == trimesh->GetMesh()->getCoordsVertices().size()) {
-                m_allowVertexTransfer = true;
-            }
-            if (m_allowVertexTransfer && !trimesh->IsWireframe()) {
-                m_vsgNormalsList = vsg::visit<FindNormalData>(m_deformableScene->children.at(0)).getNormalsList();
-                size_t num_vsgNormalsList = 0;
-                for (auto& normals : m_vsgNormalsList) {
-                    normals->properties.dataVariance = vsg::DYNAMIC_DATA;
-                    num_vsgNormalsList += normals->size();
+                geomInfo.color.set(color.R, color.G, color.B, 1.0);
+
+                auto positions = vsg::vec3Array::create(numParticles);
+                geomInfo.positions = positions;
+                for (unsigned int k = 0; k < positions->size(); k++) {
+                    positions->set(k, vsg::vec3CH(pcloud->GetParticle(k).GetPos()));
                 }
-                if (num_vsgNormalsList == m_num_vsgVertexList) {
-                    m_allowNormalsTransfer = true;
-                }
-            }
-            if (m_allowVertexTransfer) {
-                m_vsgColorsList = vsg::visit<FindColorData>(m_deformableScene->children.at(0)).getColorsList();
-                size_t num_vsgColorsList = 0;
-                for (auto& colors : m_vsgColorsList) {
-                    colors->properties.dataVariance = vsg::DYNAMIC_DATA;
-                    num_vsgColorsList += colors->size();
-                }
-                if (num_vsgColorsList == m_num_vsgVertexList) {
-                    m_allowColorsTransfer = true;
-                }
-            }
-        }
-    }
 
-    // Bind visual models associated with links in the system
-    for (auto link : m_systems[0]->Get_linklist()) {
-        auto vis_model = link->GetVisualModel();
-        if (!vis_model)
-            continue;
-        if (vis_model->GetNumShapes() == 0)
-            continue;
+                ////auto colors = vsg::vec3Array::create(numParticles);
 
-        if (auto tsda = std::dynamic_pointer_cast<ChLinkTSDA>(link)) {
-            for (auto& shape_instance : tsda->GetVisualModel()->GetShapes()) {
+                vsg::StateInfo stateInfo;
+                stateInfo.wireframe = m_wireframe;
+                stateInfo.instance_positions_vec3 = true;
+
+                switch (shape) {
+                    case ChParticleCloud::ShapeType::SPHERE:
+                    case ChParticleCloud::ShapeType::ELLIPSOID:
+                        m_particleScene->addChild(m_vsgBuilder->createSphere(geomInfo, stateInfo));
+                        break;
+                    case ChParticleCloud::ShapeType::BOX:
+                        m_particleScene->addChild(m_vsgBuilder->createBox(geomInfo, stateInfo));
+                        break;
+                    case ChParticleCloud::ShapeType::CAPSULE:
+                        m_particleScene->addChild(m_vsgBuilder->createCapsule(geomInfo, stateInfo));
+                        break;
+                    case ChParticleCloud::ShapeType::CYLINDER:
+                        m_particleScene->addChild(m_vsgBuilder->createCylinder(geomInfo, stateInfo));
+                        break;
+                    case ChParticleCloud::ShapeType::CONE:
+                        m_particleScene->addChild(m_vsgBuilder->createCone(geomInfo, stateInfo));
+                        break;
+                }
+
+                m_vsgPositionList = vsg::visit<FindPositions>(m_particleScene->children.at(0)).getPositionsList();
+                for (auto& pos : m_vsgPositionList) {
+                    pos->properties.dataVariance = vsg::DYNAMIC_DATA;
+                    m_numParticles += pos->size();
+                }
+
+                if (positions->size() == m_numParticles) {
+                    // positions transfer possible
+                    m_allowPositionTransfer = true;
+                    m_particleCloud = pcloud;
+                } else {
+                    // error!
+                    GetLog() << "Transfer of Partice Positions impossible:\n";
+                    GetLog() << "MBS Nparticles " << numParticles << "\n";
+                    GetLog() << "VSG Nparticles " << m_numParticles << "\n";
+                    GetLog() << "Mismatch between Multibody System and Graphic System!\n";
+                }
+            } else if (auto loadcont = std::dynamic_pointer_cast<ChLoadContainer>(item)) {
+                auto visModel = loadcont->GetVisualModel();
+                if (!visModel)
+                    continue;
+                const auto& shape_instance = visModel->GetShapes().at(0);
                 auto& shape = shape_instance.first;
-                if (auto segshape = std::dynamic_pointer_cast<ChSegmentShape>(shape)) {
-                    double length;
-                    auto X = PointPointFrame(tsda->GetPoint1Abs(), tsda->GetPoint2Abs(), length);
-                    std::shared_ptr<ChVisualMaterial> material =
-                        shape->GetMaterials().empty() ? ChVisualMaterial::Default() : shape->GetMaterial(0);
-
-                    auto transform = vsg::MatrixTransform::create();
-                    transform->matrix = vsg::dmat4CH(X, ChVector<>(0, length, 0));
-                    m_linkScene->addChild(m_shapeBuilder->createUnitSegment(link, shape_instance, material, transform));
-                } else if (auto sprshape = std::dynamic_pointer_cast<ChSpringShape>(shape)) {
-                    double rad = sprshape->GetRadius();
-                    double length;
-                    auto X = PointPointFrame(tsda->GetPoint1Abs(), tsda->GetPoint2Abs(), length);
-                    std::shared_ptr<ChVisualMaterial> material =
-                        shape->GetMaterials().empty() ? ChVisualMaterial::Default() : shape->GetMaterial(0);
-
-                    auto transform = vsg::MatrixTransform::create();
-                    transform->matrix = vsg::dmat4CH(X, ChVector<>(rad, length, rad));
-                    m_linkScene->addChild(
-                        m_shapeBuilder->createSpringShape(link, shape_instance, material, transform, sprshape));
+                auto trimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape);
+                if (!trimesh)
+                    continue;
+                auto transform = vsg::MatrixTransform::create();
+                if (trimesh->GetNumMaterials() > 0) {
+                    /*
+                    m_deformableScene->addChild(
+                        m_shapeBuilder->createTrimeshPhongMatShape(transform, trimesh->IsWireframe(), trimesh));
+                     */
+                    m_deformableScene->addChild(
+                        m_shapeBuilder->createTrimeshPbrMatShape(transform, trimesh->IsWireframe(), trimesh));
+                } else {
+                    m_deformableScene->addChild(
+                        m_shapeBuilder->createTrimeshColShapeSCM(transform, trimesh->IsWireframe(), trimesh));
+                }
+                m_vsgVerticesList = vsg::visit<FindVertexData>(m_deformableScene->children.at(0)).getVerticesList();
+                for (auto& vertices : m_vsgVerticesList) {
+                    vertices->properties.dataVariance = vsg::DYNAMIC_DATA;
+                    m_num_vsgVertexList += vertices->size();
+                }
+                m_mbsMesh = trimesh;
+                if (m_num_vsgVertexList == trimesh->GetMesh()->getCoordsVertices().size()) {
+                    m_allowVertexTransfer = true;
+                }
+                if (m_allowVertexTransfer && !trimesh->IsWireframe()) {
+                    m_vsgNormalsList = vsg::visit<FindNormalData>(m_deformableScene->children.at(0)).getNormalsList();
+                    size_t num_vsgNormalsList = 0;
+                    for (auto& normals : m_vsgNormalsList) {
+                        normals->properties.dataVariance = vsg::DYNAMIC_DATA;
+                        num_vsgNormalsList += normals->size();
+                    }
+                    if (num_vsgNormalsList == m_num_vsgVertexList) {
+                        m_allowNormalsTransfer = true;
+                    }
+                }
+                if (m_allowVertexTransfer) {
+                    m_vsgColorsList = vsg::visit<FindColorData>(m_deformableScene->children.at(0)).getColorsList();
+                    size_t num_vsgColorsList = 0;
+                    for (auto& colors : m_vsgColorsList) {
+                        colors->properties.dataVariance = vsg::DYNAMIC_DATA;
+                        num_vsgColorsList += colors->size();
+                    }
+                    if (num_vsgColorsList == m_num_vsgVertexList) {
+                        m_allowColorsTransfer = true;
+                    }
                 }
             }
-        } else if (auto dist = std::dynamic_pointer_cast<ChLinkDistance>(link)) {
-            for (auto& shape_instance : dist->GetVisualModel()->GetShapes()) {
-                auto& shape = shape_instance.first;
-                if (auto segshape = std::dynamic_pointer_cast<ChSegmentShape>(shape)) {
-                    double length;
-                    auto X = PointPointFrame(dist->GetEndPoint1Abs(), dist->GetEndPoint2Abs(), length);
-                    std::shared_ptr<ChVisualMaterial> material =
-                        shape->GetMaterials().empty() ? ChVisualMaterial::Default() : shape->GetMaterial(0);
+        }  // end other_physics
 
-                    auto transform = vsg::MatrixTransform::create();
-                    transform->matrix = vsg::dmat4CH(X, ChVector<>(0, length, 0));
-                    m_linkScene->addChild(m_shapeBuilder->createUnitSegment(link, shape_instance, material, transform));
+        // Bind visual models associated with links in the system
+        for (auto link : sys->Get_linklist()) {
+            auto vis_model = link->GetVisualModel();
+            if (!vis_model)
+                continue;
+            if (vis_model->GetNumShapes() == 0)
+                continue;
+
+            if (auto tsda = std::dynamic_pointer_cast<ChLinkTSDA>(link)) {
+                for (auto& shape_instance : tsda->GetVisualModel()->GetShapes()) {
+                    auto& shape = shape_instance.first;
+                    if (auto segshape = std::dynamic_pointer_cast<ChSegmentShape>(shape)) {
+                        double length;
+                        auto X = PointPointFrame(tsda->GetPoint1Abs(), tsda->GetPoint2Abs(), length);
+                        std::shared_ptr<ChVisualMaterial> material =
+                            shape->GetMaterials().empty() ? ChVisualMaterial::Default() : shape->GetMaterial(0);
+
+                        auto transform = vsg::MatrixTransform::create();
+                        transform->matrix = vsg::dmat4CH(X, ChVector<>(0, length, 0));
+                        m_linkScene->addChild(
+                            m_shapeBuilder->createUnitSegment(link, shape_instance, material, transform));
+                    } else if (auto sprshape = std::dynamic_pointer_cast<ChSpringShape>(shape)) {
+                        double rad = sprshape->GetRadius();
+                        double length;
+                        auto X = PointPointFrame(tsda->GetPoint1Abs(), tsda->GetPoint2Abs(), length);
+                        std::shared_ptr<ChVisualMaterial> material =
+                            shape->GetMaterials().empty() ? ChVisualMaterial::Default() : shape->GetMaterial(0);
+
+                        auto transform = vsg::MatrixTransform::create();
+                        transform->matrix = vsg::dmat4CH(X, ChVector<>(rad, length, rad));
+                        m_linkScene->addChild(
+                            m_shapeBuilder->createSpringShape(link, shape_instance, material, transform, sprshape));
+                    }
+                }
+            } else if (auto dist = std::dynamic_pointer_cast<ChLinkDistance>(link)) {
+                for (auto& shape_instance : dist->GetVisualModel()->GetShapes()) {
+                    auto& shape = shape_instance.first;
+                    if (auto segshape = std::dynamic_pointer_cast<ChSegmentShape>(shape)) {
+                        double length;
+                        auto X = PointPointFrame(dist->GetEndPoint1Abs(), dist->GetEndPoint2Abs(), length);
+                        std::shared_ptr<ChVisualMaterial> material =
+                            shape->GetMaterials().empty() ? ChVisualMaterial::Default() : shape->GetMaterial(0);
+
+                        auto transform = vsg::MatrixTransform::create();
+                        transform->matrix = vsg::dmat4CH(X, ChVector<>(0, length, 0));
+                        m_linkScene->addChild(
+                            m_shapeBuilder->createUnitSegment(link, shape_instance, material, transform));
+                    }
                 }
             }
-        }
-    }
+        }  // end loop over links
+
+    }  // end loop over systems
 }
 
 void ChVisualSystemVSG::UpdateFromMBS() {
