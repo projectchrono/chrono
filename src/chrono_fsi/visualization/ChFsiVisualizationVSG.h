@@ -76,7 +76,6 @@ class CH_FSI_API ChFsiVisualizationVSG : public ChFsiVisualization {
 
   private:
     vsg3d::ChVisualSystemVSG* m_vsys;  ///< VSG visualization system
-    unsigned int m_bce_start_index;    ///< start index of BCE proxy bodies in m_system's body list
 
     friend class FSIStatsVSG;
 };

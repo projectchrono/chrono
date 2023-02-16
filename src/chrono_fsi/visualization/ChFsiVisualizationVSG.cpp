@@ -75,7 +75,7 @@ class FSIStatsVSG : public vsg3d::ChGuiComponentVSG {
 };
 // -----------------------------------------------------------------------------
 
-ChFsiVisualizationVSG::ChFsiVisualizationVSG(ChSystemFsi* sysFSI) : ChFsiVisualization(sysFSI), m_bce_start_index(0) {
+ChFsiVisualizationVSG::ChFsiVisualizationVSG(ChSystemFsi* sysFSI) : ChFsiVisualization(sysFSI) {
     m_vsys = new vsg3d::ChVisualSystemVSG();
     m_vsys->AttachSystem(m_system);
     m_vsys->SetWindowTitle("");
@@ -128,9 +128,6 @@ void ChFsiVisualizationVSG::EnableInfoOverlay(bool val) {
 }
 
 void ChFsiVisualizationVSG::Initialize() {
-    // Cache current number of bodies (if any) in m_system
-    m_bce_start_index = static_cast<unsigned int>(m_system->Get_bodylist().size());
-
     if (m_sph_markers) {
         m_sph_cloud = chrono_types::make_shared<ChParticleCloud>();
         m_sph_cloud->SetFixed(false);
@@ -139,6 +136,7 @@ void ChFsiVisualizationVSG::Initialize() {
         }
         m_sph_cloud->AddVisualization(ChParticleCloud::ShapeType::SPHERE, m_systemFSI->GetInitialSpacing(),
                                       ChColor(0.10f, 0.40f, 0.65f));
+        m_sph_cloud->RegisterColorCallback(m_color_fun);
         m_system->Add(m_sph_cloud);
     }
 

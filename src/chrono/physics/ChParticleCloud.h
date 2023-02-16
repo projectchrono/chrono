@@ -198,6 +198,9 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     /// Get all particles in the cluster.
     std::vector<ChAparticle*> GetParticles() const { return particles; }
 
+    /// Get particle position.
+    const ChVector<>& GetParticlePos(unsigned int n) const { return particles[n]->GetPos(); }
+
     /// Access the N-th particle.
     ChParticleBase& GetParticle(unsigned int n) override {
         assert(n < particles.size());
@@ -240,8 +243,26 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     /// Get the visualization size.
     const ChVector<>& GetVisualSize() const { return m_vis_size; }
 
-    /// Get the visualization color.
-    const ChColor& GetVisualColor() const { return m_vis_color; }
+    /// Get the visualization color for the specified particle.
+    /// Return the color given by a ColorCallback, if one was provided. Otherwise return the common particle color.
+    ChColor GetVisualColor(unsigned int n) const;
+
+    /// Return true if using dynamic coloring.
+    /// This is the case if a ColorCallback was specified.
+    bool UseDynamicColors() const;
+
+    /// Class to be used as a callback interface for dynamic coloring of particles in a cloud.
+    class ChApi ColorCallback {
+      public:
+        virtual ~ColorCallback() {}
+
+        /// Return the color for the given particle.
+        virtual ChColor get(unsigned int n, const ChParticleCloud& cloud) const = 0;
+    };
+
+    /// Set callback to dynamically set visualization color (default: none).
+    /// If enabled, a visualization system could use this for color-coding of the particles in a cloud.
+    void RegisterColorCallback(std::shared_ptr<ColorCallback> callback) { m_color_fun = callback; }
 
     // STATE FUNCTIONS
 
@@ -385,9 +406,10 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     std::vector<ChAparticle*> particles;  ///< the particles
     ChSharedMassBody particle_mass;       ///< shared mass of particles
 
-    ShapeType m_vis_shape;  ///< type of visualization shape
-    ChVector<> m_vis_size;  ///< size of visualization shape
-    ChColor m_vis_color;    ///< color of visualization shape
+    ShapeType m_vis_shape;                       ///< type of visualization shape
+    ChVector<> m_vis_size;                       ///< size of visualization shape
+    ChColor m_vis_color;                         ///< color of visualization shape
+    std::shared_ptr<ColorCallback> m_color_fun;  ///< callback for dynamic coloring
 
     collision::ChCollisionModel* particle_collision_model;  ///< sample collision model
     std::shared_ptr<ChMaterialSurface> matsurface;          ///< data for surface contact and impact
@@ -402,6 +424,24 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     float sleep_minspeed;
     float sleep_minwvel;
     float sleep_starttime;
+};
+
+/// Predefined particle cloud dynamic coloring based on particle height.
+class ChApi HeightColorCallback : public ChParticleCloud::ColorCallback {
+  public:
+    HeightColorCallback(const ChColor& base_color, double hmin, double hmax, const ChVector<>& up = ChVector<>(0, 0, 1))
+        : m_base_color(base_color), m_hmin(hmin), m_hmax(hmax), m_up(up) {}
+    virtual ChColor get(unsigned int n, const ChParticleCloud& cloud) const override {
+        double height = Vdot(cloud.GetParticlePos(n), m_up);            // particle height
+        float factor = (float)((height - m_hmin) / (m_hmax - m_hmin));  // color scaling factor (0,1)
+        return ChColor(factor * m_base_color.R, factor * m_base_color.G, factor * m_base_color.B);
+    }
+
+  private:
+    ChColor m_base_color;
+    double m_hmin;
+    double m_hmax;
+    ChVector<> m_up;
 };
 
 CH_CLASS_VERSION(ChParticleCloud, 0)

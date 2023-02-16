@@ -231,18 +231,34 @@ int main(int argc, char* argv[]) {
         sys.Add(particles);
     }
     {
-        // 3rd cloud - fixed capsules
+        // 3rd cloud - fixed capsules with color coding
+        class MyColorCallback : public ChParticleCloud::ColorCallback {
+          public:
+            MyColorCallback(double hmin, double hmax) : m_hmin(hmin), m_hmax(hmax) {}
+            virtual ChColor get(unsigned int n, const ChParticleCloud& cloud) const override {
+                double height = cloud.GetParticlePos(n).y();
+                double col = (height - m_hmin) / (m_hmax - m_hmin);
+                return ChColor((float)col, (float)col, 0);
+            }
+
+          private:
+            double m_hmin;
+            double m_hmax;
+        };
+
         auto particles = chrono_types::make_shared<ChParticleCloud>();
         particles->SetMass(0.1);
         particles->SetInertiaXX(ChVector<>(0.001, 0.001, 0.001));
         particles->SetFixed(true);
         particles->SetCollide(false);
 
-        particles->AddVisualization(ChParticleCloud::ShapeType::CAPSULE, ChVector<>(0.4, 0.4, 0.5),
+        particles->AddVisualization(ChParticleCloud::ShapeType::CAPSULE, ChVector<>(0.4, 0.4, 0.2),
                                     ChColor(0.3f, 0.3f, 0.7f));
 
-        for (int np = 0; np < 20; ++np)
-            particles->AddParticle(ChCoordsys<>(ChVector<>(4 * ChRandom() - 4, 1.5, 4 * ChRandom() - 4)));
+        for (int np = 0; np < 40; ++np)
+            particles->AddParticle(ChCoordsys<>(ChVector<>(4 * ChRandom() - 6, 3 * ChRandom() + 2, 4 * ChRandom() - 6)));
+
+        particles->RegisterColorCallback(chrono_types::make_shared<MyColorCallback>(2, 5));
 
         sys.Add(particles);
     }

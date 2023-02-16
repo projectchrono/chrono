@@ -343,6 +343,16 @@ void ChParticleCloud::AddVisualization(ShapeType shape_type, const ChVector<>& s
     m_vis_color = color;
 }
 
+ChColor ChParticleCloud::GetVisualColor(unsigned int n) const {
+    if (m_color_fun)
+        return m_color_fun->get(n, *this);
+    return m_vis_color;
+}
+
+bool ChParticleCloud::UseDynamicColors() const {
+    return m_color_fun != nullptr;
+}
+
 // STATE BOOKKEEPING FUNCTIONS
 
 void ChParticleCloud::IntStateGather(const unsigned int off_x,  // offset in x state vector

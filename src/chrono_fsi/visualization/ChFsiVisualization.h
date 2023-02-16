@@ -68,6 +68,10 @@ class CH_FSI_API ChFsiVisualization {
     /// Set rendering mode for mesh objects (default: WIREFRAME).
     virtual void SetRenderMode(RenderMode mode);
 
+    /// Set a callback for dynamic coloring of SPH particles.
+    /// If none provided, SPH particles are rendered with a default color.
+    void SetSPHColorCallback(std::shared_ptr<ChParticleCloud::ColorCallback> functor) { m_color_fun = functor; }
+
     /// Enable/disable information overlay (default: true).
     virtual void EnableInfoOverlay(bool val);
 
@@ -118,6 +122,8 @@ class CH_FSI_API ChFsiVisualization {
     std::shared_ptr<ChParticleCloud> m_bndry_bce_cloud;  ///< particle cloud proxy for boundary BCE markers
     std::shared_ptr<ChParticleCloud> m_rigid_bce_cloud;  ///< particle cloud proxy for BCE markers on rigid bodies
     std::shared_ptr<ChParticleCloud> m_flex_bce_cloud;   ///< particle cloud proxy for BCE markers on flex bodies
+
+    std::shared_ptr<ChParticleCloud::ColorCallback> m_color_fun;  ///< dynamic color functor for SPH particles
 };
 
 /// @} fsi_utils

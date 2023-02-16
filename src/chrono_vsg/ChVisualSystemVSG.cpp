@@ -939,14 +939,16 @@ void ChVisualSystemVSG::Render() {
     m_viewer->update();
 
     // Dynamic data transfer CPU -> GPU
+
     if (m_allowPositionTransfer) {
-        for (const auto& c : m_clouds) {
-            if (!c.dyn_pos)
+        // Point clouds
+        for (const auto& pc : m_clouds) {
+            if (!pc.dyn_pos)
                 continue;
-            auto& positions = m_cloud_positions[c.start_pos];
+            auto& positions = m_cloud_positions[pc.start_pos];
             unsigned int k = 0;
             for (auto& p : *positions) {
-                p = vsg::vec3CH(c.pcloud->GetParticle(k).GetPos());
+                p = vsg::vec3CH(pc.pcloud->GetParticle(k).GetPos());
                 k++;
             }
             positions->dirty();
@@ -976,6 +978,21 @@ void ChVisualSystemVSG::Render() {
     }
 
     if (m_allowColorsTransfer) {
+        // Point clouds
+        for (const auto& pc : m_clouds) {
+            if (!pc.dyn_col)
+                continue;
+            auto& colors = m_cloud_colors[pc.start_col];
+            unsigned int k = 0;
+            for (auto& c : *colors) {
+                ChColor color = pc.pcloud->GetVisualColor(k);
+                c.set(color.R, color.G, color.B, 1);
+                k++;
+            }
+            colors->dirty();
+        }
+
+        // Color meshes
         for (auto& colors : m_vsgColorsList) {
             size_t k = 0;
             for (auto& c : *colors) {
@@ -1234,24 +1251,31 @@ void ChVisualSystemVSG::BindAll() {
 
                 auto shape = pcloud->GetVisualShapeType();
                 const auto& size = pcloud->GetVisualSize();
-                const auto& color = pcloud->GetVisualColor();
 
                 // Create an new entry in the set of Chrono::VSG particle clouds
-                int start_pos = 0;
-                int start_col = 0;
+                int start_pos = -1;
+                int start_col = -1;
                 if (!m_clouds.empty()) {
                     if (pcloud->IsActive())
                         start_pos = m_clouds.back().start_pos + 1;
                     else
                         start_pos = m_clouds.back().start_pos;
-                    //// TODO: colors
+                    if (pcloud->UseDynamicColors())
+                        start_col = m_clouds.back().start_col + 1;
+                    else
+                        start_col = m_clouds.back().start_col;
+                } else {
+                    if (pcloud->IsActive())
+                        start_pos = 0;
+                    if (pcloud->UseDynamicColors())
+                        start_col = 0;
                 }
 
                 ParticleCloud cloud;
                 cloud.pcloud = pcloud;
                 cloud.num_particles = pcloud->GetNparticles();
                 cloud.dyn_pos = pcloud->IsActive();
-                //// TODO: colors
+                cloud.dyn_col = pcloud->UseDynamicColors();
                 cloud.start_pos = start_pos;
                 cloud.start_col = start_col;
 
@@ -1260,7 +1284,19 @@ void ChVisualSystemVSG::BindAll() {
                 geomInfo.dx.set((float)size.x(), 0, 0);
                 geomInfo.dy.set(0, (float)size.y(), 0);
                 geomInfo.dz.set(0, 0, (float)size.z());
-                geomInfo.color.set(color.R, color.G, color.B, 1.0);
+
+                if (cloud.dyn_col) {
+                    auto colors = vsg::vec4Array::create(cloud.num_particles);
+                    geomInfo.colors = colors;
+                    for (size_t k = 0; k < cloud.num_particles; k++)
+                        colors->set(k, vsg::vec4(0, 0, 0, 1));
+                    colors->properties.dataVariance = vsg::DYNAMIC_DATA;
+                    m_cloud_colors.push_back(colors);
+                    m_allowColorsTransfer = true;
+                } else {
+                    const auto& color = pcloud->GetVisualColor(0);
+                    geomInfo.color.set(color.R, color.G, color.B, 1.0);
+                }
 
                 auto positions = vsg::vec3Array::create(cloud.num_particles);
                 geomInfo.positions = positions;

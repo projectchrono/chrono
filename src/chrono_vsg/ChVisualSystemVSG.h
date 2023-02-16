@@ -258,6 +258,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     std::vector<ParticleCloud> m_clouds;
     std::vector<vsg::ref_ptr<vsg::vec3Array>> m_cloud_positions;
+    std::vector<vsg::ref_ptr<vsg::vec4Array>> m_cloud_colors;
     bool m_allowPositionTransfer = false;
 
   private:
