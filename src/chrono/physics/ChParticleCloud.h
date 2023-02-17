@@ -201,6 +201,9 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     /// Get particle position.
     const ChVector<>& GetParticlePos(unsigned int n) const { return particles[n]->GetPos(); }
 
+    /// Get particle linear velocity.
+    const ChVector<>& GetParticleVel(unsigned int n) const { return particles[n]->GetPos_dt(); }
+
     /// Access the N-th particle.
     ChParticleBase& GetParticle(unsigned int n) override {
         assert(n < particles.size());
@@ -231,10 +234,10 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     virtual void AddVisualShapeFEA(std::shared_ptr<ChVisualShapeFEA> shapeFEA) override;
 
     /// Add visualization shapes for the particles in this cloud.
-    /// All particles in a cloud are rendered with the same shape with given dimensions (effectively the dimensions of the shape BB).
-    /// Note that different visualization systems may ignore any of these settings (e.g., always using spheres to
-    /// visualize the particles in a cloud). However, all visualization systems must disable rendering of the particle
-    /// cloud if shape_type == ShapeType::NONE.
+    /// All particles in a cloud are rendered with the same shape with given dimensions (effectively the dimensions of
+    /// the shape BB). Note that different visualization systems may ignore any of these settings (e.g., always using
+    /// spheres to visualize the particles in a cloud). However, all visualization systems must disable rendering of the
+    /// particle cloud if shape_type == ShapeType::NONE.
     void AddVisualization(ShapeType shape_type, const ChVector<>& size, const ChColor& color);
 
     /// Get the visualization shape type.
@@ -429,18 +432,48 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
 /// Predefined particle cloud dynamic coloring based on particle height.
 class ChApi HeightColorCallback : public ChParticleCloud::ColorCallback {
   public:
+    HeightColorCallback(double hmin, double hmax, const ChVector<>& up = ChVector<>(0, 0, 1))
+        : m_monochrome(false), m_hmin(hmin), m_hmax(hmax), m_up(up) {}
     HeightColorCallback(const ChColor& base_color, double hmin, double hmax, const ChVector<>& up = ChVector<>(0, 0, 1))
-        : m_base_color(base_color), m_hmin(hmin), m_hmax(hmax), m_up(up) {}
+        : m_monochrome(true), m_base_color(base_color), m_hmin(hmin), m_hmax(hmax), m_up(up) {}
+
     virtual ChColor get(unsigned int n, const ChParticleCloud& cloud) const override {
-        double height = Vdot(cloud.GetParticlePos(n), m_up);            // particle height
-        float factor = (float)((height - m_hmin) / (m_hmax - m_hmin));  // color scaling factor (0,1)
-        return ChColor(factor * m_base_color.R, factor * m_base_color.G, factor * m_base_color.B);
+        double height = Vdot(cloud.GetParticlePos(n), m_up);  // particle height
+        if (m_monochrome) {
+            float factor = (float)((height - m_hmin) / (m_hmax - m_hmin));  // color scaling factor (0,1)
+            return ChColor(factor * m_base_color.R, factor * m_base_color.G, factor * m_base_color.B);
+        } else
+            return ChColor::ComputeFalseColor(height, m_hmin, m_hmax);
     }
 
   private:
+    bool m_monochrome;
     ChColor m_base_color;
     double m_hmin;
     double m_hmax;
+    ChVector<> m_up;
+};
+
+class ChApi VelocityColorCallback : public ChParticleCloud::ColorCallback {
+  public:
+    VelocityColorCallback(double vmin, double vmax) : m_monochrome(false), m_vmin(vmin), m_vmax(vmax) {}
+    VelocityColorCallback(const ChColor& base_color, double vmin, double vmax)
+        : m_monochrome(true), m_base_color(base_color), m_vmin(vmin), m_vmax(vmax) {}
+
+    virtual ChColor get(unsigned int n, const ChParticleCloud& cloud) const override {
+        double vel = cloud.GetParticleVel(n).Length();  // particle velocity
+        if (m_monochrome) {
+            float factor = (float)((vel - m_vmin) / (m_vmax - m_vmin));  // color scaling factor (0,1)
+            return ChColor(factor * m_base_color.R, factor * m_base_color.G, factor * m_base_color.B);
+        } else
+            return ChColor::ComputeFalseColor(vel, m_vmin, m_vmax);
+    }
+
+  private:
+    bool m_monochrome;
+    ChColor m_base_color;
+    double m_vmin;
+    double m_vmax;
     ChVector<> m_up;
 };
 

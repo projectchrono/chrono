@@ -308,8 +308,7 @@ int main(int argc, char* argv[]) {
         visFSI->EnableRigidBodyMarkers(true);
         visFSI->SetRenderMode(ChFsiVisualizationGL::RenderMode::SOLID);
         visFSI->SetParticleRenderMode(ChFsiVisualizationGL::RenderMode::SOLID);
-        visFSI->SetSPHColorCallback(
-            chrono_types::make_shared<HeightColorCallback>(ChColor(0.10f, 0.40f, 0.65f), 0, 1.2));
+        visFSI->SetSPHColorCallback(chrono_types::make_shared<HeightColorCallback>(0, 1.2));
         visFSI->AttachSystem(&sysMBS);
         visFSI->Initialize();
     }

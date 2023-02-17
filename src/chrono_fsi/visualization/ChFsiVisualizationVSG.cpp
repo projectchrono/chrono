@@ -112,11 +112,11 @@ void ChFsiVisualizationVSG::SetCameraVertical(CameraVerticalDir up) {
 }
 
 void ChFsiVisualizationVSG::SetCameraMoveScale(float scale) {
-//// TOOD
+    //// TOOD
 }
 
 void ChFsiVisualizationVSG::SetParticleRenderMode(RenderMode mode) {
-//// TODO
+    //// TODO
 }
 
 void ChFsiVisualizationVSG::SetRenderMode(RenderMode mode) {
@@ -135,7 +135,7 @@ void ChFsiVisualizationVSG::Initialize() {
             m_sph_cloud->AddParticle(CSYSNULL);
         }
         m_sph_cloud->AddVisualization(ChParticleCloud::ShapeType::SPHERE, m_systemFSI->GetInitialSpacing(),
-                                      ChColor(0.10f, 0.40f, 0.65f));
+                                      m_sph_color);
         m_sph_cloud->RegisterColorCallback(m_color_fun);
         m_system->Add(m_sph_cloud);
     }
@@ -147,7 +147,7 @@ void ChFsiVisualizationVSG::Initialize() {
             m_bndry_bce_cloud->AddParticle(CSYSNULL);
         }
         m_bndry_bce_cloud->AddVisualization(ChParticleCloud::ShapeType::SPHERE, m_systemFSI->GetInitialSpacing() / 2,
-                                            ChColor(0.65f, 0.30f, 0.03f));
+                                            m_bndry_bce_color);
         m_system->Add(m_bndry_bce_cloud);
     }
 
@@ -158,7 +158,7 @@ void ChFsiVisualizationVSG::Initialize() {
             m_rigid_bce_cloud->AddParticle(CSYSNULL);
         }
         m_rigid_bce_cloud->AddVisualization(ChParticleCloud::ShapeType::SPHERE, m_systemFSI->GetInitialSpacing() / 2,
-                                      ChColor(0.10f, 0.60f, 0.30f));
+                                            m_rigid_bce_color);
         m_system->Add(m_rigid_bce_cloud);
     }
 
@@ -169,7 +169,7 @@ void ChFsiVisualizationVSG::Initialize() {
             m_flex_bce_cloud->AddParticle(CSYSNULL);
         }
         m_flex_bce_cloud->AddVisualization(ChParticleCloud::ShapeType::SPHERE, m_systemFSI->GetInitialSpacing() / 2,
-                                            ChColor(0.40f, 0.10f, 0.65f));
+                                           m_flex_bce_color);
         m_system->Add(m_flex_bce_cloud);
     }
 

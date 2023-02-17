@@ -68,6 +68,18 @@ class CH_FSI_API ChFsiVisualization {
     /// Set rendering mode for mesh objects (default: WIREFRAME).
     virtual void SetRenderMode(RenderMode mode);
 
+    /// Set default color for fluid SPH particles (default: [0.10, 0.40, 0.65]).
+    void SetColorFluidMarkers(const ChColor& col) { m_sph_color = col; }
+
+    /// Set default color for boundary BCE markers (default: [0.65, 0.30, 0.03]).
+    void SetColorBoundaryMarkers(const ChColor& col) { m_bndry_bce_color = col; }
+
+    /// Set default color for rigid body BCE markers (default: [0.10, 0.60, 0.30]).
+    void SetColorRigidBodyMarkers(const ChColor& col) { m_rigid_bce_color = col; }
+
+    /// Set default color for flex body BCE markers (default: [0.40, 0.10, 0.65]).
+    void SetColorFlexBodyMarkers(const ChColor& col) { m_flex_bce_color = col; }
+
     /// Set a callback for dynamic coloring of SPH particles.
     /// If none provided, SPH particles are rendered with a default color.
     void SetSPHColorCallback(std::shared_ptr<ChParticleCloud::ColorCallback> functor) { m_color_fun = functor; }
@@ -122,6 +134,11 @@ class CH_FSI_API ChFsiVisualization {
     std::shared_ptr<ChParticleCloud> m_bndry_bce_cloud;  ///< particle cloud proxy for boundary BCE markers
     std::shared_ptr<ChParticleCloud> m_rigid_bce_cloud;  ///< particle cloud proxy for BCE markers on rigid bodies
     std::shared_ptr<ChParticleCloud> m_flex_bce_cloud;   ///< particle cloud proxy for BCE markers on flex bodies
+
+    ChColor m_sph_color;        ///< color for SPH particles
+    ChColor m_bndry_bce_color;  ///< color for boundary BCE markers
+    ChColor m_rigid_bce_color;  ///< color for BCE markers on rigid bodies
+    ChColor m_flex_bce_color;   ///< color for BCE markers on flex bodies
 
     std::shared_ptr<ChParticleCloud::ColorCallback> m_color_fun;  ///< dynamic color functor for SPH particles
 };
