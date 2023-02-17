@@ -114,10 +114,10 @@ void SPHTerrain::AddRigidObstacle(const std::string& obj_file,
     m_obstacles.push_back(o);
 }
 
-void SPHTerrain::Initialize(const std::string& sph_file,
-                            const std::string& bce_file,
-                            const ChVector<>& pos,
-                            double yaw_angle) {
+void SPHTerrain::Construct(const std::string& sph_file,
+                           const std::string& bce_file,
+                           const ChVector<>& pos,
+                           double yaw_angle) {
     std::string line;
     int x, y, z;
 
@@ -138,21 +138,18 @@ void SPHTerrain::Initialize(const std::string& sph_file,
     // Complete construction of SPH terrain and obstacles
     m_offset = pos;
     m_angle = yaw_angle;
-    Construct();
-
-    m_sysFSI.Initialize();
-    m_initialized = true;
+    CompleteConstruct();
 }
 
-void SPHTerrain::Initialize(const std::string& heightmap_file,
-                            double length,
-                            double width,
-                            const ChVector2<>& height_range,
-                            double depth,
-                            int bce_layers,
-                            const ChVector<>& pos,
-                            double yaw_angle,
-                            bool side_walls) {
+void SPHTerrain::Construct(const std::string& heightmap_file,
+                           double length,
+                           double width,
+                           const ChVector2<>& height_range,
+                           double depth,
+                           int bce_layers,
+                           const ChVector<>& pos,
+                           double yaw_angle,
+                           bool side_walls) {
     // Read the image file (request only 1 channel) and extract number of pixels
     STB hmap;
     if (!hmap.ReadFromFile(heightmap_file, 1)) {
@@ -241,7 +238,7 @@ void SPHTerrain::Initialize(const std::string& heightmap_file,
         }
     }
 
-    // Note that pixels in image start at top-left. 
+    // Note that pixels in image start at top-left.
     // Modify y coordinates so that particles start at bottom-left before inserting in cached sets.
     for (auto& p : sph) {
         p.y() = (Ny - 1) - p.y();
@@ -251,17 +248,14 @@ void SPHTerrain::Initialize(const std::string& heightmap_file,
         p.y() = (Ny - 1) - p.y();
         m_bce.insert(p);
     }
-     
+
     // Complete construction of SPH terrain and obstacles
     m_offset = pos - ChVector<>(length / 2, width / 2, 0);
     m_angle = yaw_angle;
-    Construct();
-
-    m_sysFSI.Initialize();
-    m_initialized = true;
+    CompleteConstruct();
 }
 
-void SPHTerrain::Construct() {
+void SPHTerrain::CompleteConstruct() {
     // Prune SPH particles at grid locations that overlap with obstacles
     for (auto& o : m_obstacles) {
         ProcessObstacleMesh(o);
@@ -272,22 +266,22 @@ void SPHTerrain::Construct() {
     std::vector<ChVector<>> sph_points;
     sph_points.reserve(m_sph.size());
     for (const auto& p : m_sph) {
-      ChVector<> point(m_spacing * p.x(), m_spacing * p.y(), m_spacing * p.z());
-      sph_points.push_back(point + m_offset);
+        ChVector<> point(m_spacing * p.x(), m_spacing * p.y(), m_spacing * p.z());
+        sph_points.push_back(point + m_offset);
     }
     std::vector<ChVector<>> bce_points;
     bce_points.reserve(m_bce.size());
     for (const auto& p : m_bce) {
-      ChVector<> point(m_spacing * p.x(), m_spacing * p.y(), m_spacing * p.z());
-      bce_points.push_back(point + m_offset);
+        ChVector<> point(m_spacing * p.x(), m_spacing * p.y(), m_spacing * p.z());
+        bce_points.push_back(point + m_offset);
     }
 
     // Create SPH particles and calculate AABB.
     ChVector<> tau(0);
     for (const auto& p : sph_points) {
-      m_sysFSI.AddSPHParticle(p, m_sysFSI.GetDensity(), 0.0, m_sysFSI.GetViscosity(), VNULL, tau, VNULL);
-      m_aabb_min = Vmin(m_aabb_min, p);
-      m_aabb_max = Vmax(m_aabb_max, p);
+        m_sysFSI.AddSPHParticle(p, m_sysFSI.GetDensity(), 0.0, m_sysFSI.GetViscosity(), VNULL, tau, VNULL);
+        m_aabb_min = Vmin(m_aabb_min, p);
+        m_aabb_max = Vmax(m_aabb_max, p);
     }
 
     // Set computational domain
@@ -308,6 +302,11 @@ void SPHTerrain::Construct() {
     }
 }
 
+void SPHTerrain::Initialize() {
+    m_sysFSI.Initialize();
+    m_initialized = true;
+}
+
 ChVector<int> Snap2Grid(const ChVector<> point, double spacing) {
     return ChVector<int>((int)std::round(point.x() / spacing),  //
                          (int)std::round(point.y() / spacing),  //
@@ -324,7 +323,7 @@ static const std::vector<ChVector<int>> nbr3D{
     ChVector<int>(0, 0, +1)   //
 };
 
-//// TODO: 
+//// TODO:
 ////  - Obsolete the 'bce' member of RigidObject (can be loaded directly in the tmp list).
 ////    For now, keep in order to save to file (debugging)
 ////  - Include yaw angle
@@ -471,7 +470,7 @@ void SPHTerrain::GetAABB(ChVector<>& aabb_min, ChVector<>& aabb_max) const {
 }
 
 void SPHTerrain::SaveMarkers(const std::string& out_dir) const {
-    // SPH particle grid locations   
+    // SPH particle grid locations
     std::ofstream sph_grid(out_dir + "/sph_grid.txt", std::ios_base::out);
     for (const auto& p : m_sph)
         sph_grid << p << std::endl;
@@ -487,7 +486,7 @@ void SPHTerrain::SaveMarkers(const std::string& out_dir) const {
         for (const auto& p : o.bce)
             obs_bce_grid << p << std::endl;
     }
-    
+
     // Obstacle BCE marker locations
     std::ofstream obs_bce(out_dir + "/obs_bce.txt", std::ios_base::out);
     for (const auto& o : m_obstacles) {

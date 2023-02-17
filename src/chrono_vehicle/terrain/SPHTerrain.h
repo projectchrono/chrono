@@ -60,17 +60,17 @@ class CH_VEHICLE_API SPHTerrain : public ChTerrain {
                           const ChVector<>& interior_point = ChVector<>(0)  ///< point inside obstacle volume
     );
 
-    /// Initialize a granular SPH terrain object using information from the specified files.
+    /// Construct a granular SPH terrain object using information from the specified files.
     /// The SPH particle and BCE marker locations are assumed to be provided on an integer grid.
-    /// Locations in real space are generated using the specified grid separation value and the 
+    /// Locations in real space are generated using the specified grid separation value and the
     /// terrain patch translated and rotated aboutn the vertical.
-    void Initialize(const std::string& sph_file,            ///< filename with SPH grid particle positions
-                    const std::string& bce_file,            ///< filename with BCE grid marker positions
-                    const ChVector<>& pos = ChVector<>(0),  ///< patch center
-                    double yaw_angle = 0                    ///< patch yaw rotation
+    void Construct(const std::string& sph_file,            ///< filename with SPH grid particle positions
+                   const std::string& bce_file,            ///< filename with BCE grid marker positions
+                   const ChVector<>& pos = ChVector<>(0),  ///< patch center
+                   double yaw_angle = 0                    ///< patch yaw rotation
     );
 
-    /// Initialize a granular SPH terrain object from a given heightmap.
+    /// Construct a granular SPH terrain object from a given heightmap.
     /// The image file is read with STB, using the number of channels defined in the input file and reading
     /// the image as 16-bit (8-bit images are automatically converted). Supported image formats: JPEG, PNG,
     /// BMP, GIF, PSD, PIC, PNM.
@@ -80,16 +80,20 @@ class CH_VEHICLE_API SPHTerrain : public ChTerrain {
     /// and pure white to the upper height range). SPH particle grid locations are generated to cover the specified
     /// depth under each grid point. BCE marker layers are created below the bottom-most layer of SPH particles
     /// and (optionally) on the sides of the terrain patch.
-    void Initialize(const std::string& heightmap_file,      ///< filename for the heightmap image
-                    double length,                          ///< patch length
-                    double width,                           ///< patch width
-                    const ChVector2<>& height_range,        ///< height range (black to white level)
-                    double depth,                           ///< soil depth
-                    int bce_layers = 3,                     ///< number of BCE layers
-                    const ChVector<>& pos = ChVector<>(0),  ///< patch center
-                    double yaw_angle = 0,                   ///< patch yaw rotation
-                    bool side_walls = true                  ///< create side boundaries
+    void Construct(const std::string& heightmap_file,      ///< filename for the heightmap image
+                   double length,                          ///< patch length
+                   double width,                           ///< patch width
+                   const ChVector2<>& height_range,        ///< height range (black to white level)
+                   double depth,                           ///< soil depth
+                   int bce_layers = 3,                     ///< number of BCE layers
+                   const ChVector<>& pos = ChVector<>(0),  ///< patch center
+                   double yaw_angle = 0,                   ///< patch yaw rotation
+                   bool side_walls = true                  ///< create side boundaries
     );
+
+    /// Initialize the terrain.
+    /// After this call, no additional solid bodies should be added to the FSI problem.
+    void Initialize();
 
     /// Get the ground body.
     std::shared_ptr<ChBody> GetGroundBody() const { return m_ground; }
@@ -139,7 +143,7 @@ class CH_VEHICLE_API SPHTerrain : public ChTerrain {
     /// - Create the SPH particles
     /// - Created the fixed BCE markers
     /// - Create the obstacle BCE markers
-    void Construct();
+    void CompleteConstruct();
 
     /// Prune SPH markers that are inside the obstacle volume.
     /// Voxelize the obstacle mesh (at the scaling resolution) and identify grid nodes inside the boundary

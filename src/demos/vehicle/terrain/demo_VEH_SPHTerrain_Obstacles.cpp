@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
     terrain.AddRigidObstacle(GetChronoDataFile("models/sphere.obj"), 0.25, 10000, ChContactMaterialData(),
                              ChFrame<>(ChVector<>(0, 0, 0.35)));
 
-    terrain.Initialize(vehicle::GetDataFile("terrain/height_maps/bump64.bmp"),  // height map image file
+    terrain.Construct(vehicle::GetDataFile("terrain/height_maps/bump64.bmp"),  // height map image file
                        2, 1,                                                    // length (X) and width (Y)
                        {0, 0.3},                                                // height range
                        0.3,                                                     // depth
@@ -152,6 +152,8 @@ int main(int argc, char* argv[]) {
                        false                                                    // side walls?
     );
     terrain.SaveMarkers(out_dir);
+
+    terrain.Initialize();
 
     // Create run-time visualization
 #ifndef CHRONO_OPENGL
@@ -200,12 +202,10 @@ int main(int argc, char* argv[]) {
     int frame = 0;
 
     while (t < tend) {
-#ifdef CHRONO_OPENGL
         if (run_time_vis && frame % render_steps == 0) {
             if (!visFSI->Render())
                 break;
         }
-#endif
 
         sysFSI.DoStepDynamics_FSI();
 
