@@ -46,29 +46,30 @@ class ChApi ChParticleBase : public ChFrameMoving<double> {
 /// Must be inherited by children classes.
 
 class ChApi ChIndexedParticles : public ChPhysicsItem {
-
   public:
     ChIndexedParticles() {}
     ChIndexedParticles(const ChIndexedParticles& other) : ChPhysicsItem(other) {}
     virtual ~ChIndexedParticles() {}
 
-    /// Get the number of particles
+    /// Get the number of particles.
     virtual size_t GetNparticles() const = 0;
 
-    /// Access the N-th particle
+    /// Access the N-th particle.
     virtual ChParticleBase& GetParticle(unsigned int n) = 0;
 
-    /// Resize the particle cluster. Also clear the state of
-    /// previously created particles, if any.
+    /// Resize the particle cluster. 
+    /// Also clear the state of previously created particles, if any.
     virtual void ResizeNparticles(int newsize) = 0;
 
-    /// Add a new particle to the particle cluster, passing a
-    /// coordinate system as initial state.
+    /// Add a new particle to the particle cluster, passing a coordinate system as initial state.
     virtual void AddParticle(ChCoordsys<double> initial_state = CSYSNORM) = 0;
 
-    /// Number of coordinates of the particle cluster, x7 because with quaternions for rotation
+    /// Number of coordinates of the particle cluster.
+    /// (x 7 because quaternions are used for rotation)
     virtual int GetDOF() override { return 7 * (int)GetNparticles(); }
-    /// Number of coordinates of the particle cluster, x6 because derivatives es. angular vel.
+
+    /// Number of coordinates of the particle cluster.
+    /// (x 6 because derivatives use angular velocity)
     virtual int GetDOF_w() override { return 6 * (int)GetNparticles(); }
 
     /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.

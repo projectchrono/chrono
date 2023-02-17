@@ -24,6 +24,8 @@
 #include "chrono_vsg/resources/lineShader_vert.h"
 #include "chrono_vsg/resources/lineShader_frag.h"
 
+#include "chrono_thirdparty/stb/stb_image.h"
+
 namespace chrono {
 namespace vsg3d {
 
@@ -32,10 +34,10 @@ void ShapeBuilder::assignCompileTraversal(vsg::ref_ptr<vsg::CompileTraversal> ct
 }
 
 vsg::ref_ptr<vsg::Group> ShapeBuilder::createPhongShape(BasicShape theShape,
-                                                   std::shared_ptr<ChVisualMaterial> material,
-                                                   vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                                   bool drawMode,
-                                                   std::shared_ptr<ChSurfaceShape> surface) {
+                                                        std::shared_ptr<ChVisualMaterial> material,
+                                                        vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                                        bool drawMode,
+                                                        std::shared_ptr<ChSurfaceShape> surface) {
     auto scenegraph = vsg::Group::create();
 
     vsg::ref_ptr<vsg::ShaderSet> shaderSet;
@@ -58,27 +60,29 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createPhongShape(BasicShape theShape,
     // set up pass of material
     auto phongMat = createPhongMaterialFromChronoMaterial(material);
 
-    if(!material->GetKdTexture().empty())
-    {
+    if (!material->GetKdTexture().empty()) {
         vsg::Path diffusePath(material->GetKdTexture());
         std::string uniName("diffuseMap");
         bool ok = ApplyTexture(diffusePath, graphicsPipelineConfig, descriptors, uniName);
-        if(!ok) GetLog() << "Could not read texture file: " << diffusePath << "\n";
+        if (!ok)
+            GetLog() << "Could not read texture file: " << diffusePath << "\n";
         phongMat->value().diffuse.set(1.0, 1.0, 1.0, phongMat->value().alphaMask);
     }
 
-    if(!material->GetNormalMapTexture().empty()) {
+    if (!material->GetNormalMapTexture().empty()) {
         vsg::Path normalPath(material->GetNormalMapTexture());
         std::string uniName("normalMap");
         bool ok = ApplyTexture(normalPath, graphicsPipelineConfig, descriptors, uniName);
-        if(!ok) GetLog() << "Could not read texture file: " << normalPath.string() << "\n";
+        if (!ok)
+            GetLog() << "Could not read texture file: " << normalPath.string() << "\n";
     }
 
-    if(!material->GetKsTexture().empty()) {
+    if (!material->GetKsTexture().empty()) {
         vsg::Path specularPath(material->GetKsTexture());
         std::string uniName("specularMap");
         bool ok = ApplyTexture(specularPath, graphicsPipelineConfig, descriptors, uniName);
-        if(!ok) GetLog() << "Could not read texture file: " << specularPath.string() << "\n";
+        if (!ok)
+            GetLog() << "Could not read texture file: " << specularPath.string() << "\n";
     }
 
     {
@@ -93,7 +97,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createPhongShape(BasicShape theShape,
         // read displacement map not considered in Chrono
     }
 
-     // set transparency, if needed
+    // set transparency, if needed
     vsg::ColorBlendState::ColorBlendAttachments colorBlendAttachments;
     VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
     colorBlendAttachment.blendEnable = VK_FALSE;  // default
@@ -227,10 +231,10 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createPhongShape(BasicShape theShape,
 }
 
 vsg::ref_ptr<vsg::Group> ShapeBuilder::createPbrShape(BasicShape theShape,
-                                                   std::shared_ptr<ChVisualMaterial> material,
-                                                   vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                                   bool drawMode,
-                                                   std::shared_ptr<ChSurfaceShape> surface) {
+                                                      std::shared_ptr<ChVisualMaterial> material,
+                                                      vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                                      bool drawMode,
+                                                      std::shared_ptr<ChSurfaceShape> surface) {
     auto scenegraph = vsg::Group::create();
 
     vsg::ref_ptr<vsg::ShaderSet> shaderSet;
@@ -253,42 +257,61 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createPbrShape(BasicShape theShape,
     // set up pass of material
     auto pbrMat = createPbrMaterialFromChronoMaterial(material);
 
-    if(!material->GetKdTexture().empty())
-    {
+    if (!material->GetKdTexture().empty()) {
         vsg::Path diffusePath(material->GetKdTexture());
         std::string uniName("diffuseMap");
         bool ok = ApplyTexture(diffusePath, graphicsPipelineConfig, descriptors, uniName);
-        if(!ok) GetLog() << "Could not read texture file: " << diffusePath << "\n";
+        if (!ok)
+            GetLog() << "Could not read texture file: " << diffusePath << "\n";
         pbrMat->value().diffuseFactor.set(1.0, 1.0, 1.0, pbrMat->value().alphaMask);
     }
 
-    if(!material->GetNormalMapTexture().empty()) {
+    if (!material->GetNormalMapTexture().empty()) {
         vsg::Path normalPath(material->GetNormalMapTexture());
         std::string uniName("normalMap");
         bool ok = ApplyTexture(normalPath, graphicsPipelineConfig, descriptors, uniName);
-        if(!ok) GetLog() << "Could not read texture file: " << normalPath.string() << "\n";
+        if (!ok)
+            GetLog() << "Could not read texture file: " << normalPath.string() << "\n";
     }
 
-    if(!material->GetKsTexture().empty()) {
+    if (!material->GetKsTexture().empty()) {
         vsg::Path specularPath(material->GetKsTexture());
         std::string uniName("specularMap");
         bool ok = ApplyTexture(specularPath, graphicsPipelineConfig, descriptors, uniName);
-        if(!ok) GetLog() << "Could not read texture file: " << specularPath.string() << "\n";
+        if (!ok)
+            GetLog() << "Could not read texture file: " << specularPath.string() << "\n";
     }
 
-    {
-        // read ambient occlusion map not considered in Chrono!
+    if(!material->GetKeTexture().empty()) {
+        vsg::Path emissivePath(material->GetKeTexture());
+        std::string uniName("emissiveMap");
+        bool ok = ApplyTexture(emissivePath, graphicsPipelineConfig, descriptors, uniName);
+        if(!ok) GetLog() << "Could not read texture file: " << emissivePath.string() << "\n";
     }
 
-    {
-        // read emissive map not considered in Chrono!
+    if(!material->GetDisplacementTexture().empty()) {
+        vsg::Path displacementPath(material->GetDisplacementTexture());
+        std::string uniName("displacementMap");
+        bool ok = ApplyTexture(displacementPath, graphicsPipelineConfig, descriptors, uniName);
+        if(!ok) GetLog() << "Could not read texture file: " << displacementPath.string() << "\n";
     }
 
-    {
-        // read displacement map not considered in Chrono
+    if(!material->GetAmbientOcclusionTexture().empty()) {
+        vsg::Path aoPath(material->GetAmbientOcclusionTexture());
+        std::string uniName("aoMap");
+        bool ok = ApplyTexture(aoPath, graphicsPipelineConfig, descriptors, uniName);
+        if(!ok) GetLog() << "Could not read texture file: " << aoPath.string() << "\n";
     }
 
-     // set transparency, if needed
+    //  special case: metallic and roughness must be converted to a single texture
+    //  blue  = metallic
+    //  green = roughness
+    vsg::Path metallicPath(material->GetMetallicTexture());
+    vsg::Path roughnessPath(material->GetRoughnessTexture());
+    std::string uniName("mrMap");
+    bool mrok = ApplyMetalRoughnessTexture(metallicPath, roughnessPath, graphicsPipelineConfig, descriptors, uniName);
+    
+    // set transparency, if needed
     vsg::ColorBlendState::ColorBlendAttachments colorBlendAttachments;
     VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
     colorBlendAttachment.blendEnable = VK_FALSE;  // default
@@ -420,7 +443,6 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createPbrShape(BasicShape theShape,
 
     return scenegraph;
 }
-
 
 vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                              bool drawMode,
@@ -795,8 +817,8 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColShapeSCM(vsg::ref_ptr<vsg
 }
 
 vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshPhongMatShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                                             bool drawMode,
-                                                             std::shared_ptr<ChTriangleMeshShape> tms) {
+                                                                  bool drawMode,
+                                                                  std::shared_ptr<ChTriangleMeshShape> tms) {
     auto scenegraph = vsg::Group::create();
 
     // set up model transformation node
@@ -858,29 +880,30 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshPhongMatShape(vsg::ref_ptr<v
 
         auto phongMat = createPhongMaterialFromChronoMaterial(chronoMat);
 
-        if(!chronoMat->GetKdTexture().empty())
-        {
+        if (!chronoMat->GetKdTexture().empty()) {
             vsg::Path diffusePath(chronoMat->GetKdTexture());
             std::string uniName("diffuseMap");
             bool ok = ApplyTexture(diffusePath, graphicsPipelineConfig, descriptors, uniName);
-            if(!ok) GetLog() << "Could not read texture file: " << diffusePath << "\n";
+            if (!ok)
+                GetLog() << "Could not read texture file: " << diffusePath << "\n";
             phongMat->value().diffuse.set(1.0, 1.0, 1.0, phongMat->value().alphaMask);
         }
 
-        if(!chronoMat->GetNormalMapTexture().empty()) {
+        if (!chronoMat->GetNormalMapTexture().empty()) {
             vsg::Path normalPath(chronoMat->GetNormalMapTexture());
             std::string uniName("normalMap");
             bool ok = ApplyTexture(normalPath, graphicsPipelineConfig, descriptors, uniName);
-            if(!ok) GetLog() << "Could not read texture file: " << normalPath.string() << "\n";
+            if (!ok)
+                GetLog() << "Could not read texture file: " << normalPath.string() << "\n";
         }
 
-        if(!chronoMat->GetKsTexture().empty()) {
+        if (!chronoMat->GetKsTexture().empty()) {
             vsg::Path specularPath(chronoMat->GetKsTexture());
             std::string uniName("specularMap");
             bool ok = ApplyTexture(specularPath, graphicsPipelineConfig, descriptors, uniName);
-            if(!ok) GetLog() << "Could not read texture file: " << specularPath.string() << "\n";
+            if (!ok)
+                GetLog() << "Could not read texture file: " << specularPath.string() << "\n";
         }
-
 
         // set transparency, if needed
         vsg::ColorBlendState::ColorBlendAttachments colorBlendAttachments;
@@ -1038,8 +1061,8 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshPhongMatShape(vsg::ref_ptr<v
 }
 
 vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshPbrMatShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                                             bool drawMode,
-                                                             std::shared_ptr<ChTriangleMeshShape> tms) {
+                                                                bool drawMode,
+                                                                std::shared_ptr<ChTriangleMeshShape> tms) {
     auto scenegraph = vsg::Group::create();
 
     // set up model transformation node
@@ -1101,57 +1124,71 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshPbrMatShape(vsg::ref_ptr<vsg
 
         auto pbrMat = createPbrMaterialFromChronoMaterial(chronoMat);
 
-        if(!chronoMat->GetKdTexture().empty())
-        {
+        if (!chronoMat->GetKdTexture().empty()) {
             vsg::Path diffusePath(chronoMat->GetKdTexture());
             std::string uniName("diffuseMap");
             bool ok = ApplyTexture(diffusePath, graphicsPipelineConfig, descriptors, uniName);
-            if(!ok) GetLog() << "Could not read texture file: " << diffusePath << "\n";
+            if (!ok)
+                GetLog() << "Could not read texture file: " << diffusePath << "\n";
             pbrMat->value().diffuseFactor.set(1.0, 1.0, 1.0, pbrMat->value().alphaMask);
             pbrMat->value().baseColorFactor.set(1.0, 1.0, 1.0, pbrMat->value().alphaMask);
         }
 
-        if(!chronoMat->GetNormalMapTexture().empty()) {
+        if (!chronoMat->GetNormalMapTexture().empty()) {
             vsg::Path normalPath(chronoMat->GetNormalMapTexture());
             std::string uniName("normalMap");
             bool ok = ApplyTexture(normalPath, graphicsPipelineConfig, descriptors, uniName);
-            if(!ok) GetLog() << "Could not read texture file: " << normalPath.string() << "\n";
+            if (!ok)
+                GetLog() << "Could not read texture file: " << normalPath.string() << "\n";
         }
 
-        if(!chronoMat->GetRoughnessTexture().empty()) {
-            vsg::Path roughnessPath(chronoMat->GetRoughnessTexture());
-            std::string uniName("mrMap");
-            bool ok = ApplyTexture(roughnessPath, graphicsPipelineConfig, descriptors, uniName);
-            if(!ok) GetLog() << "Could not read texture file: " << roughnessPath.string() << "\n";
-        }
-        
-        if(!chronoMat->GetKsTexture().empty()) {
+        //  special case: metalness and roughness must be converted to a single texture
+        //  blue  = metalness
+        //  green = roughness
+        vsg::Path metalnessPath(chronoMat->GetMetallicTexture());
+        vsg::Path roughnessPath(chronoMat->GetRoughnessTexture());
+        std::string uniName("mrMap");
+        bool mrok =
+            ApplyMetalRoughnessTexture(metalnessPath, roughnessPath, graphicsPipelineConfig, descriptors, uniName);
+
+        if (!chronoMat->GetKsTexture().empty()) {
             vsg::Path specularPath(chronoMat->GetKsTexture());
             std::string uniName("specularMap");
+            bool ok = ApplyTexture(specularPath, graphicsPipelineConfig, descriptors, uniName);
+            if (!ok)
+                GetLog() << "Could not read texture file: " << specularPath.string() << "\n";
+        }
+
+        if(!chronoMat->GetKeTexture().empty()) {
+            vsg::Path specularPath(chronoMat->GetKeTexture());
+            std::string uniName("emissiveMap");
             bool ok = ApplyTexture(specularPath, graphicsPipelineConfig, descriptors, uniName);
             if(!ok) GetLog() << "Could not read texture file: " << specularPath.string() << "\n";
         }
 
-        {
-            // read ambient occlusion map not considered in Chrono!
+        if(!chronoMat->GetDisplacementTexture().empty()) {
+            vsg::Path displacementPath(chronoMat->GetDisplacementTexture());
+            std::string uniName("displacementMap");
+            bool ok = ApplyTexture(displacementPath, graphicsPipelineConfig, descriptors, uniName);
+            if(!ok) GetLog() << "Could not read texture file: " << displacementPath.string() << "\n";
         }
 
-        {
-            // read emissive map not considered in Chrono!
+        if(!chronoMat->GetAmbientOcclusionTexture().empty()) {
+            vsg::Path aoPath(chronoMat->GetAmbientOcclusionTexture());
+            std::string uniName("aoMap");
+            bool ok = ApplyTexture(aoPath, graphicsPipelineConfig, descriptors, uniName);
+            if(!ok) GetLog() << "Could not read texture file: " << aoPath.string() << "\n";
         }
 
-        {
-            // read displacement map not considered in Chrono
-        }
-        
         bool mappedOpacity = false;
-        if(!chronoMat->GetOpacityTexture().empty()) {
+        if (!chronoMat->GetOpacityTexture().empty()) {
             vsg::Path opacityPath(chronoMat->GetOpacityTexture());
             std::string uniName("opacityMap");
             mappedOpacity = ApplyTexture(opacityPath, graphicsPipelineConfig, descriptors, uniName);
-            if(!mappedOpacity) GetLog() << "Could not read texture file: " << opacityPath.string() << "\n";
+            if (!mappedOpacity)
+                GetLog() << "Could not read texture file: " << opacityPath.string() << "\n";
         }
-        
+
         // set transparency, if needed
         vsg::ColorBlendState::ColorBlendAttachments colorBlendAttachments;
         VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
@@ -1964,7 +2001,7 @@ vsg::ref_ptr<vsg::ShaderSet> ShapeBuilder::createTilingPbrShaderSet(vsg::ref_ptr
     shaderSet->addUniformBinding("displacementMap", "VSG_DISPLACEMENT_MAP", 0, 6,
                                  VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_VERTEX_BIT,
                                  vsg::vec4Array2D::create(1, 1));
-    
+
     shaderSet->addUniformBinding("diffuseMap", "VSG_DIFFUSE_MAP", 0, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
                                  VK_SHADER_STAGE_FRAGMENT_BIT, vsg::vec4Array2D::create(1, 1));
     shaderSet->addUniformBinding("mrMap", "VSG_METALLROUGHNESS_MAP", 0, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
@@ -2000,17 +2037,19 @@ vsg::ref_ptr<vsg::ShaderSet> ShapeBuilder::createTilingPbrShaderSet(vsg::ref_ptr
     return shaderSet;
 }
 
-bool ShapeBuilder::ApplyTexture(vsg::Path &path, vsg::ref_ptr<vsg::GraphicsPipelineConfigurator> pipeConfig, vsg::Descriptors &descriptors, std::string &uniformName) {
-    if(path) {
+bool ShapeBuilder::ApplyTexture(vsg::Path& path,
+                                vsg::ref_ptr<vsg::GraphicsPipelineConfigurator> pipeConfig,
+                                vsg::Descriptors& descriptors,
+                                std::string& uniformName) {
+    if (path) {
         auto texData = vsg::read_cast<vsg::Data>(path, m_options);
-        if(!texData) {
+        if (!texData) {
             GetLog() << "Could not read texture file: " << path << "\n";
         } else {
             // enable texturing with mipmaps
             auto sampler = vsg::Sampler::create();
-            sampler->maxLod = static_cast<uint32_t>(std::floor(
-                                                               std::log2(std::max(texData->width(), texData->height())))) +
-            1;
+            sampler->maxLod =
+                static_cast<uint32_t>(std::floor(std::log2(std::max(texData->width(), texData->height())))) + 1;
             sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
             sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
             sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
@@ -2021,37 +2060,104 @@ bool ShapeBuilder::ApplyTexture(vsg::Path &path, vsg::ref_ptr<vsg::GraphicsPipel
     return false;
 }
 
-vsg::ref_ptr<vsg::PbrMaterialValue> ShapeBuilder::createPbrMaterialFromChronoMaterial(std::shared_ptr<chrono::ChVisualMaterial> chronoMat) {
+bool ShapeBuilder::ApplyMetalRoughnessTexture(vsg::Path& metalPath,
+                                              vsg::Path& roughPath,
+                                              vsg::ref_ptr<vsg::GraphicsPipelineConfigurator> pipeConfig,
+                                              vsg::Descriptors& descriptors,
+                                              std::string& uniformName) {
+    int wM, hM, nM;
+    unsigned char* metalData = stbi_load(metalPath.string().c_str(), &wM, &hM, &nM, 1);
+    int wR, hR, nR;
+    unsigned char* roughData = stbi_load(roughPath.string().c_str(), &wR, &hR, &nR, 1);
+    if (!metalData && !roughData) {
+        // nothing to do
+        return false;
+    }
+    if (metalData && roughData) {
+        if ((wM != wR) || (hM != hR)) {
+            GetLog() << "Metalness and Roughness Texture must have the same size!\n";
+            return false;
+        }
+    }
+
+    auto texData = vsg::vec3Array2D::create(wR, hR, vsg::Data::Layout{VK_FORMAT_R32G32B32_SFLOAT});
+    if (!texData) {
+        GetLog() << "Could not create texture data!\n";
+        return false;
+    }
+    /*
+     texData->set(0, 0, {0.0f, 0.0f, 1.0f});
+     texData->set(1, 1, {0.0f, 0.0f, 1.0f});
+     */
+    int k = 0;
+    for (int j = 0; j < hR; j++) {
+        for (int i = 0; i < wR; i++) {
+            vsg::vec3 color(0.0f, 0.0f, 0.0f);
+            float red = 0.0f;
+            float green = 0.0f;
+            float blue = 0.0f;
+            if (roughData) {
+                green = float(roughData[k]) / 255.0f;
+            }
+            if (metalData) {
+                blue = float(metalData[k]) / 255.0f;
+            }
+            texData->set(i, j, vsg::vec3(red, green, blue));
+            k++;
+        }
+    }
+    // enable texturing with mipmaps
+    auto sampler = vsg::Sampler::create();
+    sampler->maxLod = static_cast<uint32_t>(std::floor(std::log2(std::max(texData->width(), texData->height())))) + 1;
+    sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
+    sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    pipeConfig->assignTexture(descriptors, uniformName, texData, sampler);
+    if (roughData)
+        stbi_image_free(roughData);
+    if (metalData)
+        stbi_image_free(metalData);
+    return true;
+}
+
+vsg::ref_ptr<vsg::PbrMaterialValue> ShapeBuilder::createPbrMaterialFromChronoMaterial(
+    std::shared_ptr<chrono::ChVisualMaterial> chronoMat) {
     auto pbrMat = vsg::PbrMaterialValue::create();
     float alpha = chronoMat->GetOpacity();
     float dim = 0.5f;
-    pbrMat->value().baseColorFactor.set(dim*chronoMat->GetDiffuseColor().R, dim*chronoMat->GetDiffuseColor().G,
-                                        dim*chronoMat->GetDiffuseColor().B, alpha);
-    pbrMat->value().emissiveFactor.set(chronoMat->GetEmissiveColor().R,chronoMat->GetEmissiveColor().G,chronoMat->GetEmissiveColor().B,alpha);
-    pbrMat->value().specularFactor.set(chronoMat->GetSpecularColor().R, chronoMat->GetSpecularColor().G, chronoMat->GetSpecularColor().B, alpha);
+    pbrMat->value().baseColorFactor.set(dim * chronoMat->GetDiffuseColor().R, dim * chronoMat->GetDiffuseColor().G,
+                                        dim * chronoMat->GetDiffuseColor().B, alpha);
+    pbrMat->value().emissiveFactor.set(chronoMat->GetEmissiveColor().R, chronoMat->GetEmissiveColor().G,
+                                       chronoMat->GetEmissiveColor().B, alpha);
+    pbrMat->value().specularFactor.set(chronoMat->GetSpecularColor().R, chronoMat->GetSpecularColor().G,
+                                       chronoMat->GetSpecularColor().B, alpha);
     pbrMat->value().roughnessFactor = chronoMat->GetRoughness();
     pbrMat->value().metallicFactor = chronoMat->GetMetallic();
     pbrMat->value().diffuseFactor.set(chronoMat->GetDiffuseColor().R, chronoMat->GetDiffuseColor().G,
                                       chronoMat->GetDiffuseColor().B, alpha);
     pbrMat->value().alphaMask = alpha;
     pbrMat->value().alphaMaskCutoff = 0.3f;
-    
+
     return pbrMat;
 }
 
-vsg::ref_ptr<vsg::PhongMaterialValue> ShapeBuilder::createPhongMaterialFromChronoMaterial(std::shared_ptr<chrono::ChVisualMaterial> chronoMat) {
+vsg::ref_ptr<vsg::PhongMaterialValue> ShapeBuilder::createPhongMaterialFromChronoMaterial(
+    std::shared_ptr<chrono::ChVisualMaterial> chronoMat) {
     auto phongMat = vsg::PhongMaterialValue::create();
     float alpha = chronoMat->GetOpacity();
 
-    phongMat->value().emissive.set(chronoMat->GetEmissiveColor().R,chronoMat->GetEmissiveColor().G,chronoMat->GetEmissiveColor().B,alpha);
-    phongMat->value().specular.set(chronoMat->GetSpecularColor().R, chronoMat->GetSpecularColor().G, chronoMat->GetSpecularColor().B, alpha);
+    phongMat->value().emissive.set(chronoMat->GetEmissiveColor().R, chronoMat->GetEmissiveColor().G,
+                                   chronoMat->GetEmissiveColor().B, alpha);
+    phongMat->value().specular.set(chronoMat->GetSpecularColor().R, chronoMat->GetSpecularColor().G,
+                                   chronoMat->GetSpecularColor().B, alpha);
     phongMat->value().diffuse.set(chronoMat->GetDiffuseColor().R, chronoMat->GetDiffuseColor().G,
-                                      chronoMat->GetDiffuseColor().B, alpha);
+                                  chronoMat->GetDiffuseColor().B, alpha);
     phongMat->value().alphaMask = alpha;
     phongMat->value().alphaMaskCutoff = 0.3f;
-    phongMat->value().ambient.set(chronoMat->GetAmbientColor().R, chronoMat->GetAmbientColor().G, chronoMat->GetAmbientColor().B, alpha);
+    phongMat->value().ambient.set(chronoMat->GetAmbientColor().R, chronoMat->GetAmbientColor().G,
+                                  chronoMat->GetAmbientColor().B, alpha);
     return phongMat;
-    }
+}
 
 }  // namespace vsg3d
 }  // namespace chrono

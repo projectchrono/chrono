@@ -24,9 +24,12 @@ ChFsiVisualization::ChFsiVisualization(ChSystemFsi* sysFSI)
       m_sph_markers(true),
       m_rigid_bce_markers(true),
       m_flex_bce_markers(true),
-      m_bndry_bce_markers(false) {
+      m_bndry_bce_markers(false),
+      m_sph_color(ChColor(0.10f, 0.40f, 0.65f)),
+      m_bndry_bce_color(ChColor(0.65f, 0.30f, 0.03f)),
+      m_rigid_bce_color(ChColor(0.10f, 0.60f, 0.30f)),
+      m_flex_bce_color(ChColor(0.40f, 0.10f, 0.65f)) {
     m_system = new ChSystemSMC();
-    m_radius = sysFSI->GetInitialSpacing() / 2;
 }
 
 ChFsiVisualization::~ChFsiVisualization() {
@@ -45,7 +48,7 @@ void ChFsiVisualization::SetCameraVertical(CameraVerticalDir up) {}
 
 void ChFsiVisualization::SetCameraMoveScale(float scale) {}
 
-void ChFsiVisualization::SetParticleRenderMode(double radius, RenderMode mode) {}
+void ChFsiVisualization::SetParticleRenderMode(RenderMode mode) {}
 
 void ChFsiVisualization::SetRenderMode(RenderMode mode) {}
 

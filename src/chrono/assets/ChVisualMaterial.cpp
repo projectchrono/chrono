@@ -40,6 +40,9 @@ void ChVisualMaterial::SetKdTexture(const std::string& filename) {
 void ChVisualMaterial::SetKsTexture(const std::string& filename) {
     ks_texture.SetFilename(filename);
 }
+void ChVisualMaterial::SetKeTexture(const std::string& filename) {
+    ke_texture.SetFilename(filename);
+}
 void ChVisualMaterial::SetNormalMapTexture(const std::string& filename) {
     normal_texture.SetFilename(filename);
 }
@@ -55,15 +58,24 @@ void ChVisualMaterial::SetOpacityTexture(const std::string& filename) {
 void ChVisualMaterial::SetWeightTexture(const std::string& filename) {
     weight_texture.SetFilename(filename);
 }
+void ChVisualMaterial::SetDisplacementTexture(const std::string &filename) {
+    disp_texture.SetFilename(filename);
+}
+void ChVisualMaterial::SetAmbientOcclusionTexture(const std::string &filename) {
+    ao_texture.SetFilename(filename);
+}
 
 void ChVisualMaterial::SetTextureScale(float scale_x, float scale_y) {
     kd_texture.SetScale(scale_x, scale_y);
     ks_texture.SetScale(scale_x, scale_y);
+    ke_texture.SetScale(scale_x, scale_y);
     normal_texture.SetScale(scale_x, scale_y);
     metallic_texture.SetScale(scale_x, scale_y);
     roughness_texture.SetScale(scale_x, scale_y);
     opacity_texture.SetScale(scale_x, scale_y);
     weight_texture.SetScale(scale_x, scale_y);
+    disp_texture.SetScale(scale_x, scale_y);
+    ao_texture.SetScale(scale_x, scale_y);
 }
 
 const ChVector2<float>& ChVisualMaterial::GetTextureScale() const {

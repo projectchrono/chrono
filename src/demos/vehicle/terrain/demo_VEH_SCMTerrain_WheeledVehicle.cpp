@@ -280,7 +280,7 @@ int main(int argc, char* argv[]) {
         case ChVisualSystem::Type::IRRLICHT: {
 #ifdef CHRONO_IRRLICHT
             auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
-            vis_irr->SetWindowTitle("HMMWV Deformable Soil Demo");
+            vis_irr->SetWindowTitle("Wheeled vehicle on SCM deformable terrain");
             vis_irr->SetChaseCamera(trackPoint, 6.0, 0.5);
             vis_irr->Initialize();
             vis_irr->AddLightDirectional();

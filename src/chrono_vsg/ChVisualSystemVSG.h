@@ -135,6 +135,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Get the target (look-at) point of the current (active) camera.
     virtual ChVector<> GetCameraTarget() const override;
 
+    /// Get estimated FPS.
+    double GetRenderingFPS() const { return m_fps; }
+
     void SetLightIntensity(float intensity);
     void SetLightDirection(double azimuth, double elevation);
     void SetCameraAngleDeg(double angleDeg) { m_cameraAngleDeg = angleDeg; }
@@ -156,11 +159,23 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Identify the GUI component with the index returned by AddGuiComponent.
     std::shared_ptr<ChGuiComponentVSG> GetGuiComponent(size_t id);
 
+    /// Set visibility for all GUI components (default: true).
+    void SetGuiVisibility(bool show_gui) { m_show_gui = show_gui; }
+
     /// Toggle GUI visibility for all GUI components.
     void ToggleGuiVisibility() { m_show_gui = !m_show_gui; }
 
     /// Return boolean indicating whether or not GUI are visible.
     bool IsGuiVisible() const { return m_show_gui; }
+
+    /// Set visibility for the default (base) GUI component (default: true).
+    void SetBaseGuiVisibility(bool show_gui);
+
+    /// Toggle GUI visibility for the default (base) GUI component.
+    void ToggleBaseGuiVisibility();
+
+    /// Return boolean indicating whether or not the default (base) GUI is visible.
+    bool IsBaseGuiVisible() const { return m_show_base_gui; }
 
     /// Add a user-defined VSG event handler.
     void AddEventHandler(std::shared_ptr<ChEventHandlerVSG> eh);
@@ -180,7 +195,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::RenderGraph> m_renderGraph;
 
     bool m_show_gui;                                              ///< flag to toggle global GUI visibility
+    bool m_show_base_gui;                                         ///< flag to toggle base GUI visibility
     size_t m_camera_gui;                                          ///< identifier for the camera info GUI component
+    std::shared_ptr<ChGuiComponentVSG> m_base_gui;                ///< default (base) GUI component
     std::vector<std::shared_ptr<ChGuiComponentVSG>> m_gui;        ///< list of all additional GUI components
     std::vector<std::shared_ptr<ChEventHandlerVSG>> m_evhandler;  ///< list of all additional event handlers
 
@@ -229,12 +246,21 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     std::vector<vsg::ref_ptr<vsg::vec4Array>> m_vsgColorsList;
     std::shared_ptr<ChTriangleMeshShape> m_mbsMesh;
 
-    // Infos for updatable particle positions
-    size_t m_numParticles = 0;
-    bool m_allowPositionTransfer = 0;
-    std::vector<vsg::ref_ptr<vsg::vec3Array>> m_vsgPositionList;
-    std::shared_ptr<ChParticleCloud> m_particleCloud;
-    
+    // Data for particle clouds
+    struct ParticleCloud {
+        std::shared_ptr<ChParticleCloud> pcloud;  ///< reference to the Chrono physics item
+        size_t num_particles;                     ///< number of particles in cloud
+        bool dyn_pos;                             ///< if false, no dynamic position update
+        bool dyn_col;                             ///< if false, no dynamic color update
+        int start_pos;                            ///< index in positions list array
+        int start_col;                            ///< index in colors list array
+    };
+
+    std::vector<ParticleCloud> m_clouds;
+    std::vector<vsg::ref_ptr<vsg::vec3Array>> m_cloud_positions;
+    std::vector<vsg::ref_ptr<vsg::vec4Array>> m_cloud_colors;
+    bool m_allowPositionTransfer = false;
+
   private:
     /// Utility function to populate a VSG group with shape groups (from the given visual model).
     /// The visual model may or may not be associated with a Chrono physics item.
@@ -269,8 +295,11 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     bool m_show_cog;     ///< flag to toggle COG visibility
     double m_cog_scale;  ///< current COG frame scale
 
-    unsigned int m_frame_number;  ///< current number of rendered frames
-    double m_start_time;          ///< wallclock time at first render
+    unsigned int m_frame_number;                      ///< current number of rendered frames
+    double m_start_time;                              ///< wallclock time at first render
+    ChTimer<> m_timer_render;                         ///< timer for rendering speed
+    double m_old_time, m_current_time, m_time_total;  ///< render times
+    double m_fps;                                     ///< estimated FPS (moving average)
 
     friend class ChBaseGuiComponentVSG;
     friend class ChBaseEventHandlerVSG;

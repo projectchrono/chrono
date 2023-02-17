@@ -42,11 +42,8 @@ namespace gpu {
 /// Render() function is invoked.
 class CH_GPU_API ChGpuVisualization {
   public:
-    /// <summary>
     /// Create a run-time visualization object associated with a given Chrono::Gpu system.
     /// If a supplemental Chrono system is not provided (default), one will be created internally.
-    /// </summary>
-    /// <param name="sysGPU">Associated Chrono::Gpu system</param>
     ChGpuVisualization(ChSystemGpu* sysGPU);
 
     ~ChGpuVisualization();
@@ -57,11 +54,14 @@ class CH_GPU_API ChGpuVisualization {
     /// Set window dimensions (default: 1280x720).
     void SetSize(int width, int height);
 
+    /// Add a camera initially at the specified position and target (look at) point.
+    void AddCamera(const ChVector<>& pos, const ChVector<>& target);
+
     /// Set camera position and target (look at) point.
     void UpdateCamera(const ChVector<>& pos, const ChVector<>& target);
 
     /// Set camera up vector (default: Z).
-    void SetCameraUpVector(const ChVector<>& up);
+    virtual void SetCameraVertical(CameraVerticalDir up);
 
     /// Set scale for camera movement increments (default: 0.1).
     /// Must be called before Initialize().
@@ -102,7 +102,7 @@ class CH_GPU_API ChGpuVisualization {
     opengl::ChVisualSystemOpenGL* m_vsys;  ///< OpenGL visualization system
 #endif
 
-    unsigned int m_part_start_index;  ///< start index of particles in m_system's body list
+    std::shared_ptr<ChParticleCloud> m_particles;  ///< particle cloud proxy for particles
 };
 
 /// @} gpu_utils

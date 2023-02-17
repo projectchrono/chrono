@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
     // ---------------------------------
 
     auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
-    vis->SetWindowTitle("M113 SCM Demo");
+    vis->SetWindowTitle("Tracked vehicle on SCM deformable terrain");
     vis->SetChaseCamera(trackPoint, 4.0, 1.0);
     vis->SetChaseCameraPosition(ChVector<>(-3, 4, 1.5));
     vis->SetChaseCameraMultipliers(1e-4, 10);

@@ -53,7 +53,6 @@ class FSIStatsGL : public opengl::ChOpenGLStats {
     char buffer[50];
 };
 
-
 // -----------------------------------------------------------------------------
 
 ChFsiVisualizationGL::ChFsiVisualizationGL(ChSystemFsi* sysFSI) : ChFsiVisualization(sysFSI), m_bce_start_index(0) {
@@ -63,10 +62,10 @@ ChFsiVisualizationGL::ChFsiVisualizationGL(ChSystemFsi* sysFSI) : ChFsiVisualiza
     m_vsys->SetWindowSize(1280, 720);
     m_vsys->SetCameraProperties(0.1f);
     m_vsys->SetRenderMode(opengl::WIREFRAME);
-    m_vsys->SetParticleRenderMode(sysFSI->GetInitialSpacing() / 2, opengl::POINTS);
+    m_vsys->SetParticleRenderMode(opengl::SOLID);
     m_vsys->AddCamera(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0));
     m_vsys->SetCameraVertical(ChVector<>(0, 0, 1));
-}
+} 
 
 ChFsiVisualizationGL::~ChFsiVisualizationGL() {
     delete m_vsys;
@@ -98,9 +97,9 @@ void ChFsiVisualizationGL::SetCameraMoveScale(float scale) {
     m_vsys->SetCameraProperties(scale);
 }
 
-void ChFsiVisualizationGL::SetParticleRenderMode(double radius, RenderMode mode) {
+void ChFsiVisualizationGL::SetParticleRenderMode(RenderMode mode) {
     opengl::RenderMode gl_mode = (mode == RenderMode::SOLID) ? opengl::SOLID : opengl::POINTS;
-    m_vsys->SetParticleRenderMode(radius, gl_mode);
+    m_vsys->SetParticleRenderMode(gl_mode);
 }
 
 void ChFsiVisualizationGL::SetRenderMode(RenderMode mode) {
@@ -126,15 +125,25 @@ void ChFsiVisualizationGL::Initialize() {
     m_bce_start_index = static_cast<unsigned int>(m_system->Get_bodylist().size());
 
     if (m_sph_markers) {
-        m_particles = chrono_types::make_shared<ChParticleCloud>();
-        m_particles->SetFixed(true);
+        m_sph_cloud = chrono_types::make_shared<ChParticleCloud>();
+        m_sph_cloud->SetFixed(true);
         for (int i = 0; i < m_systemFSI->GetNumFluidMarkers(); i++) {
-            m_particles->AddParticle(ChCoordsys<>(ChVector<>(i * 0.01, 0, 0)));
+            m_sph_cloud->AddParticle(CSYSNULL);
         }
-        auto sph = chrono_types::make_shared<ChSphereShape>();
-        sph->GetSphereGeometry().rad = m_radius;
-        m_particles->AddVisualShape(sph);
-        m_system->Add(m_particles);
+        m_sph_cloud->AddVisualization(ChParticleCloud::ShapeType::SPHERE, m_systemFSI->GetInitialSpacing(), ChColor());
+        m_system->Add(m_sph_cloud);
+    }
+
+    if (m_bndry_bce_markers) {
+        for (int i = 0; i < m_systemFSI->GetNumBoundaryMarkers(); i++) {
+            auto body = std::shared_ptr<ChBody>(m_system->NewBody());
+            body->SetPos(ChVector<>(0, 0, 0));
+            body->SetBodyFixed(true);
+            auto sph = chrono_types::make_shared<ChBoxShape>();
+            sph->GetBoxGeometry().SetLengths(ChVector<>(m_systemFSI->GetInitialSpacing() / 2));
+            body->AddVisualShape(sph);
+            m_system->AddBody(body);
+        }
     }
 
     if (m_rigid_bce_markers) {
@@ -143,7 +152,7 @@ void ChFsiVisualizationGL::Initialize() {
             body->SetPos(ChVector<>(0, 0, 0));
             body->SetBodyFixed(true);
             auto sph = chrono_types::make_shared<ChBoxShape>();
-            sph->GetBoxGeometry().Size = ChVector<>(m_radius);
+            sph->GetBoxGeometry().SetLengths(ChVector<>(m_systemFSI->GetInitialSpacing() / 2));
             body->AddVisualShape(sph);
             m_system->AddBody(body);
         }
@@ -155,19 +164,7 @@ void ChFsiVisualizationGL::Initialize() {
             body->SetPos(ChVector<>(0, 0, 0));
             body->SetBodyFixed(true);
             auto sph = chrono_types::make_shared<ChBoxShape>();
-            sph->GetBoxGeometry().Size = ChVector<>(m_radius);
-            body->AddVisualShape(sph);
-            m_system->AddBody(body);
-        }
-    }
-
-    if (m_bndry_bce_markers) {
-        for (int i = 0; i < m_systemFSI->GetNumBoundaryMarkers(); i++) {
-            auto body = std::shared_ptr<ChBody>(m_system->NewBody());
-            body->SetPos(ChVector<>(0, 0, 0));
-            body->SetBodyFixed(true);
-            auto sph = chrono_types::make_shared<ChBoxShape>();
-            sph->GetBoxGeometry().Size = ChVector<>(m_radius);
+            sph->GetBoxGeometry().SetLengths(ChVector<>(m_systemFSI->GetInitialSpacing() / 2));
             body->AddVisualShape(sph);
             m_system->AddBody(body);
         }
@@ -201,7 +198,7 @@ bool ChFsiVisualizationGL::Render() {
 
         if (m_sph_markers) {
             for (unsigned int i = 0; i < m_systemFSI->GetNumFluidMarkers(); i++) {
-                m_particles->GetParticle(i).SetPos(ChVector<>(posH[p + i].x, posH[p + i].y, posH[p + i].z));
+                m_sph_cloud->GetParticle(i).SetPos(ChVector<>(posH[p + i].x, posH[p + i].y, posH[p + i].z));
             }
         }
         p += m_systemFSI->GetNumFluidMarkers();

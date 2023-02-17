@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
     double run_time_vis_fps = 0;            // render frequency (0: every simulation frame)
     bool run_time_vis_terrain_sph = true;   // render terrain SPH particles?
     bool run_time_vis_terrain_bce = false;  // render terrain BCE markers?
-    bool run_time_vis_bce = false;          // render moving BCE markers?
+    bool run_time_vis_bce = false;           // render moving BCE markers?
 
     bool verbose = true;
 
@@ -154,6 +154,15 @@ int main(int argc, char* argv[]) {
     terrain.SaveMarkers(out_dir);
 
     // Create run-time visualization
+#ifndef CHRONO_OPENGL
+    if (vis_type == ChVisualSystem::Type::OpenGL)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::OpenGL;
+#endif
+
     std::shared_ptr<ChFsiVisualization> visFSI;
     if (run_time_vis) {
         switch (vis_type) {
@@ -170,16 +179,16 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        visFSI->SetTitle("Chrono::FSI single wheel demo");
+        visFSI->SetTitle("SPH deformable terrain");
         visFSI->SetSize(1280, 720);
         visFSI->AddCamera(ChVector<>(2, 1, 0.5), ChVector<>(0, 0, 0));
         visFSI->SetCameraMoveScale(0.2f);
         visFSI->EnableFluidMarkers(run_time_vis_terrain_sph);
         visFSI->EnableBoundaryMarkers(run_time_vis_terrain_bce);
         visFSI->EnableRigidBodyMarkers(run_time_vis_bce);
-        ////viI_gl->EnableInfoOverlay(false);
         visFSI->SetRenderMode(ChFsiVisualizationGL::RenderMode::SOLID);
-        visFSI->SetParticleRenderMode(sysFSI.GetInitialSpacing() / 2, ChFsiVisualizationGL::RenderMode::SOLID);
+        visFSI->SetParticleRenderMode(ChFsiVisualizationGL::RenderMode::SOLID);
+        visFSI->SetSPHColorCallback(chrono_types::make_shared<HeightColorCallback>(-0.3, 0.3));
         visFSI->AttachSystem(&sys);
         visFSI->Initialize();
     }

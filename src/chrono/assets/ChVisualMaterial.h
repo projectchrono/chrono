@@ -47,11 +47,14 @@ class ChApi ChVisualMaterial {
 
     void SetKdTexture(const std::string& filename);
     void SetKsTexture(const std::string& filename);
+    void SetKeTexture(const std::string& filename);
     void SetNormalMapTexture(const std::string& filename);
     void SetMetallicTexture(const std::string& filename);
     void SetRoughnessTexture(const std::string& filename);
     void SetOpacityTexture(const std::string& filename);
     void SetWeightTexture(const std::string& filename);
+    void SetDisplacementTexture(const std::string& filename);
+    void SetAmbientOcclusionTexture(const std::string& filename);
 
     /// Apply the specified texture scaling to all textures in this material.
     void SetTextureScale(float scale_x, float scale_y);
@@ -78,11 +81,14 @@ class ChApi ChVisualMaterial {
 
     const std::string& GetKdTexture() const { return kd_texture.GetFilename(); }
     const std::string& GetKsTexture() const { return ks_texture.GetFilename(); }
+    const std::string& GetKeTexture() const { return ke_texture.GetFilename(); }
     const std::string& GetNormalMapTexture() const { return normal_texture.GetFilename(); }
     const std::string& GetMetallicTexture() const { return metallic_texture.GetFilename(); }
     const std::string& GetRoughnessTexture() const { return roughness_texture.GetFilename(); }
     const std::string& GetOpacityTexture() const { return opacity_texture.GetFilename(); }
     const std::string& GetWeightTexture() const { return weight_texture.GetFilename(); }
+    const std::string& GetDisplacementTexture() const { return disp_texture.GetFilename(); }
+    const std::string& GetAmbientOcclusionTexture() const { return ao_texture.GetFilename(); }
 
     const ChVector2<float>& GetTextureScale() const;
 
@@ -119,11 +125,14 @@ class ChApi ChVisualMaterial {
 
     ChTexture kd_texture;         ///< diffuse texture map
     ChTexture ks_texture;         ///< specular texture map
+    ChTexture ke_texture;         ///< emissive texture map
     ChTexture normal_texture;     ///< normal texture map
     ChTexture metallic_texture;   ///< metallic texture map
     ChTexture roughness_texture;  ///< roughness texture map
     ChTexture opacity_texture;    ///< opacity texture map
     ChTexture weight_texture;     ///< weight texture map
+    ChTexture disp_texture;       ///< displacement map
+    ChTexture ao_texture;         ///< ambient occlusion map
 
     unsigned short int class_id;
     unsigned short int instance_id;
