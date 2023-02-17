@@ -240,7 +240,7 @@ class UT_Model : public Trailer_Model {
 // =============================================================================
 
 // Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Current vehicle model selection
 auto vehicle_model = HMMWV_Model();
@@ -326,6 +326,15 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create the vehicle run-time visualization interface and the interactive driver
+#ifndef CHRONO_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::IRRLICHT)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
+
     std::string title = "Vehicle demo - JSON specification - " + vehicle_model.ModelName();
     std::shared_ptr<ChVehicleVisualSystem> vis;
     std::shared_ptr<ChDriver> driver;

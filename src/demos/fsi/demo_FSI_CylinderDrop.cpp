@@ -42,7 +42,7 @@ using namespace chrono::fsi;
 // -----------------------------------------------------------------
 
 // Run-time visualization system (OpenGL or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::OpenGL;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Output directories and settings
 const std::string out_dir = GetChronoOutputPath() + "FSI_Cylinder_Drop/";
