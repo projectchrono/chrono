@@ -128,7 +128,7 @@ void SPHTerrain::Construct(const std::string& sph_file,
         m_sph.insert(ChVector<int>(x, y, z));
     }
 
-    std::ifstream bce(sph_file, std::ios_base::in);
+    std::ifstream bce(bce_file, std::ios_base::in);
     while (std::getline(bce, line)) {
         std::istringstream iss(line, std::ios_base::in);
         iss >> x >> y >> z;
