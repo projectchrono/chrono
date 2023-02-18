@@ -253,10 +253,12 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     while (vis->Run()) {
+#if defined(CHRONO_IRRLICHT) || defined(CHRONO_VSG)
         vis->BeginScene();
         vis->Render();
         ////tools::drawColorbar(vis.get(), 0, 20000, "Pressure yield [Pa]", 1600);
         vis->EndScene();
+#endif
 
         if (output) {
             // write drive torques of all six wheels into file

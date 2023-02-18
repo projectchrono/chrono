@@ -31,7 +31,10 @@
 #include "chrono/core/ChTimer.h"
 
 #include "chrono_fsi/ChSystemFsi.h"
-#include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
+
+#ifdef CHRONO_OPENGL
+    #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
+#endif
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -360,6 +363,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Create a run-tme visualizer
+#ifdef CHRONO_OPENGL
     ChFsiVisualizationGL fsi_vis(&sysFSI);
     if (render) {
         fsi_vis.SetTitle("Chrono::FSI single wheel demo");
@@ -368,6 +372,7 @@ int main(int argc, char* argv[]) {
         fsi_vis.EnableBoundaryMarkers(true);
         fsi_vis.Initialize();
     }
+#endif
 
     // Start the simulation
     unsigned int output_steps = (unsigned int)round(1 / (out_fps * dT));
@@ -413,10 +418,12 @@ int main(int argc, char* argv[]) {
         }
 
         // Render SPH particles
+#ifdef CHRONO_OPENGL
         if (render && current_step % render_steps == 0) {
             if (!fsi_vis.Render())
                 break;
         }
+#endif
 
         // Call the FSI solver
         sysFSI.DoStepDynamics_FSI();

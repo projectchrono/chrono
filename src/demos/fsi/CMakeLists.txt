@@ -1,24 +1,15 @@
 # ------------------------------------------------------------------------------
-# List of demos according their depencies
+# List of demos
 # ------------------------------------------------------------------------------
 
-set(DEMOS "")
-
-if(ENABLE_MODULE_OPENGL)
-   set(DEMOS ${DEMOS}
-       demo_FSI_DamBreak
-       demo_FSI_Compressibility
-       demo_FSI_Poiseuille_flow
-       demo_FSI_SingleWheelTest
-       demo_FSI_BCE
-   )
-endif()
-
-if(ENABLE_MODULE_OPENGL OR ENABLE_MODULE_VSG)
-   set(DEMOS ${DEMOS}
-       demo_FSI_CylinderDrop
-   )
-endif()
+set(DEMOS ${DEMOS}
+   demo_FSI_DamBreak
+   demo_FSI_Compressibility
+   demo_FSI_Poiseuille_flow
+   demo_FSI_SingleWheelTest
+   demo_FSI_BCE
+   demo_FSI_CylinderDrop
+)
 
 if(ENABLE_MODULE_PARDISO_MKL)
    set(DEMOS ${DEMOS}
