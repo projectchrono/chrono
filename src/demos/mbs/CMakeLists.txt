@@ -1,7 +1,8 @@
 #--------------------------------------------------------------
 # List of all MBS demos
 
-# Add demos that can work with either Irrlicht or VSG
+# Add demos that can work with either Irrlicht or VSG,
+# or no run-time visualization
 set(DEMOS
   demo_MBS_aux_ref
   demo_MBS_ballSMC
