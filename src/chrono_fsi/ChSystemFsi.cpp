@@ -880,12 +880,14 @@ void ChSystemFsi::CopyDeviceDataToHalfStep() {
     }
 }
 
-
 void ChSystemFsi::DoStepDynamics_FSI() {
     if (!m_is_initialized) {
         cout << "ERROR: FSI system not initialized!\n" << endl;
         throw std::runtime_error("FSI system not initialized!\n");
     }
+
+    m_timer_step.reset();
+    m_timer_step.start();
 
     if (m_fluid_dynamics->GetIntegratorType() == TimeIntegrator::EXPLICITSPH) {
         // The following is used to execute the Explicit WCSPH
@@ -958,7 +960,10 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         m_bce_manager->UpdateFlexMarkersPositionVelocity(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMeshD);
     }
 
-    m_time += 1 * m_paramsH->dT;
+    m_time += m_paramsH->dT;
+
+    m_timer_step.stop();
+    m_RTF = m_timer_step() / m_paramsH->dT;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

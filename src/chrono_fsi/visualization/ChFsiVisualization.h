@@ -122,7 +122,7 @@ class CH_FSI_API ChFsiVisualization {
 
   protected:
     ChSystemFsi* m_systemFSI;  ///< associated Chrono::FSI system
-    ChSystem* m_system;        ///< internal Chrono system (holds proxy bodies)
+    ChSystem* m_system;        ///< internal Chrono system (holds proxies)
     ChSystem* m_user_system;   ///< optional user-provided system
 
     bool m_sph_markers;        ///< render fluid SPH particles?

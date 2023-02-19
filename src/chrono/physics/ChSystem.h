@@ -455,6 +455,9 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Get current estimated RTF (real time factor).
     double GetRTF() const { return m_RTF; }
 
+    /// Set (overwrite) the RTF value for this system (if calculated externally).
+    void SetRTF(double rtf) { m_RTF = rtf; }
+
     /// Resets the timers.
     void ResetTimers() {
         timer_step.reset();

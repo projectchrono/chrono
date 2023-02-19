@@ -183,8 +183,9 @@ void ChFsiVisualizationGL::Initialize() {
 }
 
 bool ChFsiVisualizationGL::Render() {
-    // Only for display in OpenGL window
+    // For display in OpenGL GUI
     m_system->SetChTime(m_systemFSI->GetSimTime());
+    m_system->SetRTF(m_systemFSI->GetRTF());
 
     if (m_vsys->Run()) {
         // Copy SPH particle positions from device to host

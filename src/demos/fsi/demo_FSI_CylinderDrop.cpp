@@ -64,7 +64,7 @@ double cyl_radius = 0.12;
 double t_end = 2.0;
 
 // Enable/disable run-time visualization
-bool render = true;
+bool render = false;
 float render_fps = 1000;
 
 //------------------------------------------------------------------
@@ -324,9 +324,6 @@ int main(int argc, char* argv[]) {
     ChTimer<> timer;
     timer.start();
     while (time < t_end) {
-        std::cout << "step: " << current_step << "  time: " << time
-                  << "  cyl z: " << sysMBS.Get_bodylist()[1]->GetPos().z() << std::endl;
-
         if (output && current_step % output_steps == 0) {
             std::cout << "-------- Output" << std::endl;
             sysFSI.PrintParticleToFile(out_dir + "/particles");
@@ -341,6 +338,9 @@ int main(int argc, char* argv[]) {
             if (!visFSI->Render())
                 break;
         }
+
+        std::cout << "step: " << current_step << "\ttime: " << time << "\tRTF: " << sysFSI.GetRTF()
+                  << "\tcyl z: " << sysMBS.Get_bodylist()[1]->GetPos().z() << std::endl;
 
         // Call the FSI solver
         sysFSI.DoStepDynamics_FSI();
