@@ -25,10 +25,10 @@
 
 #include "chrono_fsi/ChSystemFsi.h"
 
+#include "chrono/assets/ChVisualSystem.h"
 #ifdef CHRONO_OPENGL
     #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
 #endif
-
 #ifdef CHRONO_VSG
     #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
 #endif
