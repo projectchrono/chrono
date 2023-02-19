@@ -22,13 +22,12 @@
     #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
+#include "chrono/physics/ChBodyEasy.h"
+#include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
-
-#include "chrono_fsi/ChSystemFsi.h"
-#include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
 
 #include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChLinkDirFrame.h"
@@ -37,10 +36,12 @@
 #include "chrono/fea/ChMeshExporter.h"
 #include "chrono/fea/ChBuilderBeam.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-#include "chrono/physics/ChBodyEasy.h"
-#include "chrono/physics/ChLinkMotorRotationAngle.h"
-#include "chrono/utils/ChUtilsGeometry.h"
+#include "chrono_fsi/ChSystemFsi.h"
+
+#ifdef CHRONO_OPENGL
+    #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
+#endif
+
 #include "chrono_thirdparty/filesystem/path.h"
 
 // Chrono namespaces
@@ -171,6 +172,7 @@ int main(int argc, char* argv[]) {
     sysFSI.Initialize();
     auto my_mesh = sysFSI.GetFsiMesh();
 
+#ifdef CHRONO_OPENGL
     // Create a run-tme visualizer
     ChFsiVisualizationGL fsi_vis(&sysFSI);
     if (render) {
@@ -180,6 +182,7 @@ int main(int argc, char* argv[]) {
         fsi_vis.EnableBoundaryMarkers(false);
         fsi_vis.Initialize();
     }
+#endif
 
     // Set MBS solver
 #ifdef CHRONO_PARDISO_MKL
@@ -219,11 +222,13 @@ int main(int argc, char* argv[]) {
             fea::ChMeshExporter::WriteFrame(my_mesh, MESH_CONNECTIVITY, filename);
         }
 
+#ifdef CHRONO_OPENGL
         // Render SPH particles
         if (render && current_step % render_steps == 0) {
             if (!fsi_vis.Render())
                 break;
         }
+#endif
 
         sysFSI.DoStepDynamics_FSI();
 

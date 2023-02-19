@@ -21,23 +21,20 @@
 #include "chrono/utils/ChUtilsGeometry.h"
 #include "chrono/core/ChRealtimeStep.h"
 
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
-
 #include "chrono_models/robot/copters/Little_Hexy.h"
 
-// Use the namespaces of Chrono
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+
 using namespace chrono;
-using namespace chrono::irrlicht;
 using namespace chrono::copter;
 
-// Use the main namespaces of Irrlicht
+using namespace chrono::irrlicht;
 using namespace irr;
 using namespace irr::core;
 using namespace irr::video;
 using namespace irr::gui;
 
-/// Following class will be used to manage events from the user interface
-
+// Following class will be used to manage events from the user interface
 class MyEventReceiver : public IEventReceiver {
   public:
     MyEventReceiver(Little_Hexy* hexy) : copter(hexy) {}

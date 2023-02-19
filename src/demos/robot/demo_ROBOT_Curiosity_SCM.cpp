@@ -38,11 +38,11 @@
     #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
+#include "chrono/assets/ChVisualSystem.h"
 #ifdef CHRONO_IRRLICHT
     #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
 #endif
-
 #ifdef CHRONO_VSG
     #include "chrono_vsg/ChVisualSystemVSG.h"
 using namespace chrono::vsg3d;
@@ -253,10 +253,12 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     while (vis->Run()) {
+#if defined(CHRONO_IRRLICHT) || defined(CHRONO_VSG)
         vis->BeginScene();
         vis->Render();
         ////tools::drawColorbar(vis.get(), 0, 20000, "Pressure yield [Pa]", 1600);
         vis->EndScene();
+#endif
 
         if (output) {
             // write drive torques of all six wheels into file

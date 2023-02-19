@@ -25,11 +25,11 @@
     #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
+#include "chrono/assets/ChVisualSystem.h"
 #ifdef CHRONO_IRRLICHT
     #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
 #endif
-
 #ifdef CHRONO_VSG
     #include "chrono_vsg/ChVisualSystemVSG.h"
 using namespace chrono::vsg3d;
@@ -156,9 +156,11 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     float time = 0.0f;
     while (vis->Run()) {
+#if defined(CHRONO_IRRLICHT) || defined(CHRONO_VSG)
         vis->BeginScene();
         vis->Render();
         vis->EndScene();
+#endif
 
         // at time = 1 s, start left turn
         if (abs(time - 1.0f) < 1e-4) {
