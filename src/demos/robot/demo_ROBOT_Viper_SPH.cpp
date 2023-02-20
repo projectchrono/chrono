@@ -28,23 +28,29 @@
 
 #include "chrono_fsi/ChSystemFsi.h"
 
+#include "chrono/assets/ChVisualSystem.h"
 #ifdef CHRONO_OPENGL
     #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
+#endif
+#ifdef CHRONO_VSG
+    #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-// Chrono namespaces
 using namespace chrono;
 using namespace chrono::fsi;
 using namespace chrono::geometry;
 using namespace chrono::viper;
 
-// output directories and settings
+// Run-time visualization system (OpenGL or VSG)
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
+
+// Output directories and settings
 const std::string out_dir = GetChronoOutputPath() + "FSI_Viper/";
 
-// if true, save as Wavefront OBJ; if false, save as VTK
-bool save_obj = false;  
+// If true, save as Wavefront OBJ; if false, save as VTK
+bool save_obj = false;
 
 // Physical properties of terrain particles
 double iniSpacing = 0.01;
@@ -64,7 +70,7 @@ double total_time = 20.0;
 double dT = 2.5e-4;
 
 // Save data as csv files to see the results off-line using Paraview
-bool output = true;
+bool output = false;
 int out_fps = 20;
 
 // Enable/disable run-time visualization (if Chrono::OpenGL is available)
@@ -182,7 +188,7 @@ int main(int argc, char* argv[]) {
     // Set the periodic boundary condition
     double initSpace0 = sysFSI.GetInitialSpacing();
     ChVector<> cMin(-bxDim / 2 * 2, -byDim / 2 - 0.5 * iniSpacing, -bzDim * 10);
-    ChVector<> cMax(bxDim / 2 * 2, byDim / 2  + 0.5 * iniSpacing, bzDim * 20);
+    ChVector<> cMax(bxDim / 2 * 2, byDim / 2 + 0.5 * iniSpacing, bzDim * 20);
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Set simulation data output length
@@ -195,6 +201,7 @@ int main(int argc, char* argv[]) {
     std::vector<ChVector<>> points = sampler.SampleBox(boxCenter, boxHalfDim);
 
     // Add SPH particles from the sampler points to the FSI system
+    std::cout << "Generate SPH particles (" << points.size() << ")" << std::endl;
     auto gz = std::abs(gravity.z());
     int numPart = (int)points.size();
     for (int i = 0; i < numPart; i++) {
@@ -207,6 +214,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Create MBD and BCE particles for the solid domain
+    std::cout << "Generate BCE markers" << std::endl;
     CreateSolidPhase(sysMBS, sysFSI);
 
     // Complete construction of the FSI system
@@ -221,19 +229,44 @@ int main(int argc, char* argv[]) {
     if (output)
         ofile.open(out_dir + "./body_position.txt");
 
-#ifdef CHRONO_OPENGL
-    // Create a run-tme visualizer
-    ChFsiVisualizationGL fsi_vis(&sysFSI);
-    if (render) {
-        fsi_vis.SetTitle("Viper on SPH terrain");
-        fsi_vis.AddCamera(ChVector<>(0, -3 * byDim, bzDim), ChVector<>(0, 0, 0));
-        fsi_vis.SetCameraMoveScale(1.0f);
-        fsi_vis.EnableBoundaryMarkers(false);
-        fsi_vis.EnableRigidBodyMarkers(false);
-        fsi_vis.AttachSystem(&sysMBS);
-        fsi_vis.Initialize();
-    }
+        // Create run-time visualization
+#ifndef CHRONO_OPENGL
+    if (vis_type == ChVisualSystem::Type::OpenGL)
+        vis_type = ChVisualSystem::Type::VSG;
 #endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::OpenGL;
+#endif
+
+    std::shared_ptr<ChFsiVisualization> visFSI;
+    if (render) {
+        switch (vis_type) {
+            case ChVisualSystem::Type::OpenGL:
+#ifdef CHRONO_OPENGL
+                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
+#endif
+                break;
+            case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+#endif
+                break;
+            }
+        }
+
+        visFSI->SetTitle("Viper on SPH terrain");
+        visFSI->AddCamera(ChVector<>(0, -3 * byDim, bzDim), ChVector<>(0, 0, 0));
+        visFSI->SetCameraMoveScale(1.0f);
+        visFSI->EnableBoundaryMarkers(false);
+        visFSI->EnableRigidBodyMarkers(false);
+        visFSI->SetRenderMode(ChFsiVisualizationGL::RenderMode::SOLID);
+        visFSI->SetParticleRenderMode(ChFsiVisualizationGL::RenderMode::SOLID);
+        visFSI->SetSPHColorCallback(
+            chrono_types::make_shared<HeightColorCallback>(ChColor(0.10f, 0.40f, 0.65f), 0, bzDim));
+        visFSI->AttachSystem(&sysMBS);
+        visFSI->Initialize();
+    }
 
     // Start the simulation
     unsigned int output_steps = (unsigned int)round(1 / (out_fps * dT));
@@ -245,7 +278,7 @@ int main(int argc, char* argv[]) {
 
     ChTimer<> timer;
     while (time < total_time) {
-        std::cout << current_step << "  time: " << time << "  sim. time: " << timer() << std::endl; 
+        std::cout << current_step << "  time: " << time << "  sim. time: " << timer() << std::endl;
 
         rover->Update();
 
@@ -260,13 +293,11 @@ int main(int argc, char* argv[]) {
             }
         }
 
-#ifdef CHRONO_OPENGL
         // Render system
         if (render && current_step % render_steps == 0) {
-            if (!fsi_vis.Render())
+            if (!visFSI->Render())
                 break;
         }
-#endif
 
         timer.start();
         sysFSI.DoStepDynamics_FSI();

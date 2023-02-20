@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
     double run_time_vis_fps = 0;            // render frequency (0: every simulation frame)
     bool run_time_vis_terrain_sph = true;   // render terrain SPH particles?
     bool run_time_vis_terrain_bce = false;  // render terrain BCE markers?
-    bool run_time_vis_bce = false;           // render moving BCE markers?
+    bool run_time_vis_bce = false;          // render moving BCE markers?
 
     bool verbose = true;
 
@@ -139,17 +139,17 @@ int main(int argc, char* argv[]) {
     sysFSI.SetVerbose(verbose);
 
     // Add obstacles
-    terrain.AddRigidObstacle(GetChronoDataFile("models/sphere.obj"), 0.25, 10000, ChContactMaterialData(),
+    terrain.AddRigidObstacle(GetChronoDataFile("models/sphere.obj"), 0.25, 5000, ChContactMaterialData(),
                              ChFrame<>(ChVector<>(0, 0, 0.35)));
 
     terrain.Construct(vehicle::GetDataFile("terrain/height_maps/bump64.bmp"),  // height map image file
-                       2, 1,                                                    // length (X) and width (Y)
-                       {0, 0.3},                                                // height range
-                       0.3,                                                     // depth
-                       3,                                                       // number of BCE layers
-                       ChVector<>(0, 0, 0),                                     // patch center
-                       0.0,                                                     // patch yaw rotation
-                       false                                                    // side walls?
+                      2, 1,                                                    // length (X) and width (Y)
+                      {0, 0.3},                                                // height range
+                      0.3,                                                     // depth
+                      3,                                                       // number of BCE layers
+                      ChVector<>(0, 0, 0),                                     // patch center
+                      0.0,                                                     // patch yaw rotation
+                      false                                                    // side walls?
     );
     terrain.SaveMarkers(out_dir);
 

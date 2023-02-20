@@ -53,7 +53,7 @@ using std::endl;
 
 // ===================================================================================================================
 
-// Run-time visualization system (OpenGL, VSG, or NONE)
+// Run-time visualization system (OpenGL or VSG)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // ===================================================================================================================
@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
     double step_size = 5e-4;
     double active_box_dim = 0.5;
 
-    bool visualization = false;             // run-time visualization
+    bool visualization = true;             // run-time visualization
     double visualizationFPS = 0;           // frames rendered per second (0: every frame)
     bool visualization_sph = true;         // render SPH particles
     bool visualization_bndry_bce = false;  // render boundary BCE markers
@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetCohesionForce(cohesion);
 
     double init_spacing = 0.02;
-    double kernel_length = 0.03;
+    double kernel_length = 0.02;
     sysFSI.SetInitialSpacing(init_spacing);
     sysFSI.SetKernelLength(kernel_length);
 
