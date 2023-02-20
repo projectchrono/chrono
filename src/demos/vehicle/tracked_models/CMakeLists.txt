@@ -12,16 +12,21 @@ endif()
 
 set(DEMOS
     demo_VEH_M113
-    demo_VEH_M113_DefSoil
-    demo_VEH_Marder
-    demo_VEH_TrackedJSON
-    demo_VEH_TrackedJSON_Band
 )
 
-if(ENABLE_MODULE_PARDISO_MKL OR ENABLE_MODULE_MUMPS)
-    set(DEMOS ${DEMOS}
-        demo_VEH_M113_Band
-    )
+if(ENABLE_MODULE_IRRLICHT)
+   set(DEMOS ${DEMOS}
+       demo_VEH_M113_DefSoil
+       demo_VEH_Marder
+       demo_VEH_TrackedJSON
+       demo_VEH_TrackedJSON_Band   
+   )
+
+   if(ENABLE_MODULE_PARDISO_MKL OR ENABLE_MODULE_MUMPS)
+       set(DEMOS ${DEMOS}
+           demo_VEH_M113_Band
+       )
+   endif()
 endif()
 
 #--------------------------------------------------------------
