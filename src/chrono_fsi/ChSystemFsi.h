@@ -121,8 +121,15 @@ class CH_FSI_API ChSystemFsi {
     /// Set periodic boundary condition for fluid.
     void SetBoundaries(const ChVector<>& cMin, const ChVector<>& cMax);
 
-    /// Set size of active domain.
-    void SetActiveDomain(const ChVector<>& boxDim);
+    /// Set half-dimensions of the active domain.
+    /// This value activates only those SPH particles that are within an AABB of the specified size from an object
+    /// interacting with the "fluid" phase. Note that this setting should *not* be used for actual (CFD) simulations,
+    /// but rather oinly when Chrono::FSI is used for continuum representation of granular dynamics (in terramechanics).
+    void SetActiveDomain(const ChVector<>& boxHalfDim);
+
+    /// Disable use of the active domain for the given duration at the beginning of the simulation (default: 0).
+    /// This parameter is used for settling operations where all particles must be active through the settling process.
+    void SetActiveDomainDelay(double duration);
 
     /// Set number of boundary layers (default: 3).
     void SetNumBoundaryLayers(int num_layers);

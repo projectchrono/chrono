@@ -217,6 +217,11 @@ TerrainForce ChRigidTire::ReportTireForce(ChTerrain* terrain) const {
     return tire_force;
 }
 
+TerrainForce ChRigidTire::ReportTireForce(ChTerrain* terrain, ChCoordsys<>& tire_frame) const {
+    std::cerr << "ChRigidTire::ReportTireForce for local frame not implemented." << std::endl;
+    throw ChException("ChRigidTire::ReportTireForce for local frame not implemented.");
+}
+
 // -----------------------------------------------------------------------------
 std::shared_ptr<geometry::ChTriangleMeshConnected> ChRigidTire::GetContactMesh() const {
     assert(m_use_contact_mesh);

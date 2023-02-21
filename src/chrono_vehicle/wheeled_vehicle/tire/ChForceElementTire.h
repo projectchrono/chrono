@@ -35,6 +35,12 @@ class CH_VEHICLE_API ChForceElementTire : public ChTire {
     /// Report the tire force and moment.
     virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override;
 
+    /// Get the tire forces expressed in the tire frame.
+    /// The tire frame has its origin in the contact patch, the X axis in the tire heading direction and the Z axis in
+    /// the terrain normal at the contact point.
+    /// If the tire is not in contact, the tire frame is not set and the function returns zero force and moment.
+    virtual TerrainForce ReportTireForce(ChTerrain* terrain, ChCoordsys<>& tire_frame) const override;
+
   protected:
     struct ContactData {
         bool in_contact;      // true if disc in contact with terrain

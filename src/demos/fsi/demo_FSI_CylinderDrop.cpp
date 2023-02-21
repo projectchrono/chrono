@@ -306,8 +306,8 @@ int main(int argc, char* argv[]) {
         visFSI->SetCameraMoveScale(0.1f);
         visFSI->EnableBoundaryMarkers(false);
         visFSI->EnableRigidBodyMarkers(true);
-        visFSI->SetRenderMode(ChFsiVisualizationGL::RenderMode::SOLID);
-        visFSI->SetParticleRenderMode(ChFsiVisualizationGL::RenderMode::SOLID);
+        visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
+        visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetSPHColorCallback(chrono_types::make_shared<HeightColorCallback>(0, 1.2));
         visFSI->AttachSystem(&sysMBS);
         visFSI->Initialize();

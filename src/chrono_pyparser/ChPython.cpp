@@ -178,7 +178,7 @@ typedef struct {
 } SwigPyObject;
 */
 
-void ChPythonEngine::ImportSolidWorksSystem(const char* solidworks_py_file, ChSystemNSC& msystem) {
+void ChPythonEngine::ImportSolidWorksSystem(const char* solidworks_py_file, ChSystem& msystem) {
     std::ostringstream sstream;
 
     // sstream << "from " << std::string(solidworks_py_file) << " import exported_items\n";
