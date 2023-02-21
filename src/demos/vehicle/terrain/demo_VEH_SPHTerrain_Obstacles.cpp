@@ -28,10 +28,10 @@
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 #include "chrono_thirdparty/filesystem/path.h"
 
+#include "chrono/assets/ChVisualSystem.h"
 #ifdef CHRONO_OPENGL
     #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
 #endif
-
 #ifdef CHRONO_VSG
     #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
 #endif
@@ -188,8 +188,8 @@ int main(int argc, char* argv[]) {
         visFSI->EnableFluidMarkers(run_time_vis_terrain_sph);
         visFSI->EnableBoundaryMarkers(run_time_vis_terrain_bce);
         visFSI->EnableRigidBodyMarkers(run_time_vis_bce);
-        visFSI->SetRenderMode(ChFsiVisualizationGL::RenderMode::SOLID);
-        visFSI->SetParticleRenderMode(ChFsiVisualizationGL::RenderMode::SOLID);
+        visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
+        visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetSPHColorCallback(chrono_types::make_shared<HeightColorCallback>(-0.3, 0.3));
         visFSI->AttachSystem(&sys);
         visFSI->Initialize();

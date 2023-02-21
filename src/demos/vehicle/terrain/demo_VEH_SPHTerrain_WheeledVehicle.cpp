@@ -35,10 +35,10 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
+#include "chrono/assets/ChVisualSystem.h"
 #ifdef CHRONO_OPENGL
     #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
 #endif
-
 #ifdef CHRONO_VSG
     #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
 #endif
@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
     double target_speed = 7.0;
     double tend = 30;
     double step_size = 5e-4;
-    double active_box_dim = 0.5;
+    double active_box_hdim = 0.4;
 
     bool visualization = true;             // run-time visualization
     double visualizationFPS = 0;           // frames rendered per second (0: every frame)
@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetInitialSpacing(init_spacing);
     sysFSI.SetKernelLength(kernel_length);
 
-    sysFSI.SetActiveDomain(ChVector<>(active_box_dim, active_box_dim, 1));
+    sysFSI.SetActiveDomain(ChVector<>(active_box_hdim));
     sysFSI.SetDiscreType(false, false);
     sysFSI.SetWallBC(BceVersion::ORIGINAL);
     sysFSI.SetSPHMethod(FluidDynamics::WCSPH);
@@ -198,8 +198,8 @@ int main(int argc, char* argv[]) {
         visFSI->EnableFluidMarkers(visualization_sph);
         visFSI->EnableBoundaryMarkers(visualization_bndry_bce);
         visFSI->EnableRigidBodyMarkers(visualization_rigid_bce);
-        visFSI->SetRenderMode(ChFsiVisualizationGL::RenderMode::SOLID);
-        visFSI->SetParticleRenderMode(ChFsiVisualizationGL::RenderMode::SOLID);
+        visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
+        visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetSPHColorCallback(
             chrono_types::make_shared<HeightColorCallback>(ChColor(0.10f, 0.40f, 0.65f), aabb_min.z(), aabb_max.z()));
         visFSI->AttachSystem(&sys);
