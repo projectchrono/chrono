@@ -146,7 +146,7 @@ void ChSystemFsi::InitParams() {
 
     //
     m_paramsH->bodyActiveDomain = mR3(1e10, 1e10, 1e10);
-    m_paramsH->settlingTime = Real(1e10);
+    m_paramsH->settlingTime = Real(0);
 
     //
     m_paramsH->Max_Pressure = Real(1e20);
@@ -524,8 +524,12 @@ void ChSystemFsi::SetBoundaries(const ChVector<>& cMin, const ChVector<>& cMax) 
     m_paramsH->use_default_limits = false;
 }
 
-void ChSystemFsi::SetActiveDomain(const ChVector<>& boxDim) {
-    m_paramsH->bodyActiveDomain = utils::ToReal3(boxDim);
+void ChSystemFsi::SetActiveDomain(const ChVector<>& boxHalfDim) {
+    m_paramsH->bodyActiveDomain = utils::ToReal3(boxHalfDim);
+}
+
+void ChSystemFsi::SetActiveDomainDelay(double duration) {
+    m_paramsH->settlingTime = duration;
 }
 
 void ChSystemFsi::SetNumBoundaryLayers(int num_layers) {
