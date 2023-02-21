@@ -11,15 +11,19 @@ endif()
 # List all demos
 
 set(DEMOS
-    demo_VEH_SuspensionTestRig
     demo_VEH_TireTestRig
-    demo_VEH_TrackTestRig
 )
 
-if(ENABLE_MODULE_PARDISO_MKL OR ENABLE_MODULE_MUMPS)
-    set(DEMOS ${DEMOS}
-        demo_VEH_TrackTestRig_Band
-    )
+if(ENABLE_MODULE_IRRLICHT)
+   set(DEMOS ${DEMOS}
+       demo_VEH_SuspensionTestRig
+       demo_VEH_TrackTestRig
+   )
+   if(ENABLE_MODULE_PARDISO_MKL OR ENABLE_MODULE_MUMPS)
+      set(DEMOS ${DEMOS}
+          demo_VEH_TrackTestRig_Band
+      )
+   endif()
 endif()
 
 #--------------------------------------------------------------

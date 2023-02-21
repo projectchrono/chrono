@@ -12,29 +12,34 @@ endif()
 
 set(DEMOS
     demo_VEH_CityBus
-    demo_VEH_FEDA_Accel
     demo_VEH_Gator
-    demo_VEH_Gator_Accel
     demo_VEH_HMMWV
     demo_VEH_HMMWV_Accel
     demo_VEH_HMMWV9
-    demo_VEH_HMMWV9_YUP
-    demo_VEH_Kraz_ClosedLoop
-    demo_VEH_Kraz_OpenLoop
-    demo_VEH_LMTV_ride
-    demo_VEH_MTV_ride
-    demo_VEH_MAN_5t
-    demo_VEH_MAN_7t
-    demo_VEH_MAN_10t
-    demo_VEH_MROLE
-    demo_VEH_RCCar
-    demo_VEH_Sedan
-    demo_VEH_Sedan_Lockable_Diff
     demo_VEH_UAZBUS
-    demo_VEH_UAZBUS_SAE
     demo_VEH_WheeledGeneric
     demo_VEH_WheeledJSON
 )
+
+if(ENABLE_MODULE_IRRLICHT)
+   set(DEMOS ${DEMOS}
+       demo_VEH_FEDA_Accel
+       demo_VEH_Gator_Accel
+       demo_VEH_HMMWV9_YUP
+       demo_VEH_Kraz_ClosedLoop
+       demo_VEH_Kraz_OpenLoop
+       demo_VEH_LMTV_ride
+       demo_VEH_MAN_5t
+       demo_VEH_MAN_7t
+       demo_VEH_MAN_10t
+       demo_VEH_MROLE
+       demo_VEH_MTV_ride
+       demo_VEH_RCCar
+       demo_VEH_Sedan
+       demo_VEH_Sedan_Lockable_Diff
+       demo_VEH_UAZBUS_SAE
+   )
+endif()
 
 #--------------------------------------------------------------
 # Include directories, compiler flags, libraries
