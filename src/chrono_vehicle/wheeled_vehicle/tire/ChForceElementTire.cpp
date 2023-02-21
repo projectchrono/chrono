@@ -66,5 +66,15 @@ TerrainForce ChForceElementTire::GetTireForce() const {
     return tireforce;
 }
 
+TerrainForce ChForceElementTire::ReportTireForce(ChTerrain* terrain, ChCoordsys<>& tire_frame) const {
+    if (!m_data.in_contact) {
+        return TerrainForce();
+    }
+
+    tire_frame = m_data.frame;
+    return m_tireforce;
+}
+
+
 }  // namespace vehicle
 }  // namespace chrono

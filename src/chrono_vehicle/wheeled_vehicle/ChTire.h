@@ -76,6 +76,12 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// The return application point, force, and moment are assumed to be expressed in the global reference frame.
     virtual TerrainForce ReportTireForce(ChTerrain* terrain) const = 0;
 
+    /// Get the tire force and moment expressed in the tire frame.
+    /// The tire frame has its origin in the contact patch, the X axis in the tire heading direction and the Z axis in
+    /// the terrain normal at the contact point.
+    /// If the tire is not in contact, the tire frame is not set and the function returns zero force and moment.
+    virtual TerrainForce ReportTireForce(ChTerrain* terrain, ChCoordsys<>& tire_frame) const = 0;
+
     /// Return the tire slip angle calculated based on the current state of the associated wheel body.
     /// The return value is in radians (positive sign = left turn, negative sign = right turn).
     double GetSlipAngle() const { return m_slip_angle; }

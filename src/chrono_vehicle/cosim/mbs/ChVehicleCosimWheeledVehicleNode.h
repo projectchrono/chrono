@@ -123,6 +123,9 @@ class CH_VEHICLE_API ChVehicleCosimWheeledVehicleNode : public ChVehicleCosimWhe
         virtual ChVector<> GetTireInertia() const override { return ChVector<>(0.1, 0.1, 0.1); }
         virtual ChVector<> GetAddedInertia() const override { return ChVector<>(0.1, 0.1, 0.1); }
         virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override { return m_force; }
+        virtual TerrainForce ReportTireForce(ChTerrain* terrain, ChCoordsys<>& tire_frame) const override {
+            return m_force;
+        }
         virtual TerrainForce GetTireForce() const override { return m_force; }
         virtual void InitializeInertiaProperties() override {}
         virtual void UpdateInertiaProperties() override {}
