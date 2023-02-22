@@ -489,7 +489,7 @@ void ChIrrNodeShape::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
 
         for (unsigned int ig = 0; ig < glyphs->points.size(); ++ig) {
             ChVector<> t1 = glyphs->points[ig];
-            ChColor mcol = glyphs->colors[ig];
+            ChColor mcol = (*glyphs->colors)[ig];
             video::SColor clr(255, (u32)(mcol.R * 255), (u32)(mcol.G * 255), (u32)(mcol.B * 255));
 
             // create a small cube per each vertex
@@ -542,8 +542,8 @@ void ChIrrNodeShape::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
         int itri = 0;
         for (unsigned int ig = 0; ig < glyphs->points.size(); ++ig) {
             ChVector<> t1 = glyphs->points[ig];
-            ChVector<> t2 = glyphs->vectors[ig] + t1;
-            ChColor mcol = glyphs->colors[ig];
+            ChVector<> t2 = (*glyphs->vectors)[ig] + t1;
+            ChColor mcol = (*glyphs->colors)[ig];
             video::SColor clr(255, (u32)(mcol.R * 255), (u32)(mcol.G * 255), (u32)(mcol.B * 255));
 
             // create a  small line (a degenerate triangle) per each vector
@@ -572,7 +572,7 @@ void ChIrrNodeShape::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
             ChVector<> t2;
 
             // X axis - create a  small line (a degenerate triangle) per each vector
-            t2 = glyphs->rotations[ig].Rotate(ChVector<>(1, 0, 0) * glyphs->GetGlyphsSize()) + t1;
+            t2 = (*glyphs->rotations)[ig].Rotate(ChVector<>(1, 0, 0) * glyphs->GetGlyphsSize()) + t1;
 
             irrmesh->getVertexBuffer()[0 + ig * 9] =
                 video::S3DVertex((f32)t1.x(), (f32)t1.y(), (f32)t1.z(), 1, 0, 0, video::SColor(255, 255, 0, 0), 0, 0);
@@ -588,7 +588,7 @@ void ChIrrNodeShape::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
             ++itri;
 
             // Y axis
-            t2 = glyphs->rotations[ig].Rotate(ChVector<>(0, 1, 0) * glyphs->GetGlyphsSize()) + t1;
+            t2 = (*glyphs->rotations)[ig].Rotate(ChVector<>(0, 1, 0) * glyphs->GetGlyphsSize()) + t1;
 
             irrmesh->getVertexBuffer()[3 + ig * 9] =
                 video::S3DVertex((f32)t1.x(), (f32)t1.y(), (f32)t1.z(), 1, 0, 0, video::SColor(255, 0, 255, 0), 0, 0);
@@ -604,7 +604,7 @@ void ChIrrNodeShape::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
             ++itri;
 
             // Z axis
-            t2 = glyphs->rotations[ig].Rotate(ChVector<>(0, 0, 1) * glyphs->GetGlyphsSize()) + t1;
+            t2 = (*glyphs->rotations)[ig].Rotate(ChVector<>(0, 0, 1) * glyphs->GetGlyphsSize()) + t1;
 
             irrmesh->getVertexBuffer()[6 + ig * 9] =
                 video::S3DVertex((f32)t1.x(), (f32)t1.y(), (f32)t1.z(), 1, 0, 0, video::SColor(255, 0, 0, 255), 0, 0);
