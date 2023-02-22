@@ -28,6 +28,8 @@
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChGlyphs.h"
+#include "chrono/assets/ChLineShape.h"
+#include "chrono/geometry/ChLineArc.h"
 #include "chrono/physics/ChParticleCloud.h"
 #include "chrono/physics/ChSystemNSC.h"
 
@@ -214,7 +216,7 @@ int main(int argc, char* argv[]) {
     auto glyphs_coords = chrono_types::make_shared<ChGlyphs>();
     for (int i = 0; i < 6; ++i)
         glyphs_coords->SetGlyphCoordsys(i,    // i-th glyph
-            ChCoordsys<>(ChVector<>(1 + i * 0.2, 2, 0.4), // the position 
+            ChCoordsys<>(ChVector<>(1 + i * 0.2, 2, 0.5), // the position 
               Q_from_AngAxis(i*20*CH_C_DEG_TO_RAD, VECT_X)) // the rotation
         );
     body->AddVisualShape(glyphs_coords);
@@ -226,8 +228,8 @@ int main(int argc, char* argv[]) {
     auto glyphs_vectors = chrono_types::make_shared<ChGlyphs>();
     for (int i = 0; i < 6; ++i)
         glyphs_vectors->SetGlyphVector(i,    // i-th glyph
-            ChVector<>(1 + i * 0.2, 2, 0),   // the position 
-            ChVector<>(0, 0.1 + i * 0.2, 0), // the vector V
+            ChVector<>(1 + i * 0.2, 2, 0.8),   // the position 
+            ChVector<>(0, 0.1 + i * 0.2, 0.4), // the vector V
             ChColor(0.5, 0, i * 0.1)         // the vector color 
         );
 
@@ -250,6 +252,27 @@ int main(int argc, char* argv[]) {
     glyphs_vectors->glyph_color_type = ChGlyphs::eCh_GlyphColor::PROPERTY;
     glyphs_vectors->glyph_color_prop = "my_temperature"; // selects the "my_temperature" property as per-point color. 
 
+
+    // ==Asset== Attach a set of 'tensor glyphs', as n ellipsoids whose semi axes lengths are the specified eigenvalues.
+    auto glyphs_tensors = chrono_types::make_shared<ChGlyphs>();
+    for (int i = 0; i < 6; ++i)
+        glyphs_tensors->SetGlyphTensor(i,    // i-th glyph
+            ChVector<>(1 + i * 0.2, 2, 1.2),                // the position 
+            Q_from_AngAxis(i*20*CH_C_DEG_TO_RAD, VECT_Z),   // the rotation (local basis of the tensor)
+            ChVector<>(0.2, 0.05 + i * 0.05, 0.04)          // the eigenvalues, aka the ellipsoids lengths
+        );
+    glyphs_vectors->glyph_eigenvalues_type = ChGlyphs::eCh_GlyphEigenvalues::PROPERTY;
+    glyphs_vectors->glyph_eigenvalues_prop = "eigenvalues";
+    glyphs_tensors->glyph_scalewidth = 0.8; // scale for all ellipsoids
+    body->AddVisualShape(glyphs_tensors);
+
+    // ==Asset== Attach a line or a path (will be drawn as a line in 3D)
+    auto line = chrono_types::make_shared<ChLineShape>();
+    auto my_arc = chrono_types::make_shared<geometry::ChLineArc>(ChCoordsys<>(ChVector<>(1, 2, 1.6)), 0.5, 0, CH_C_PI, true); // origin, rad, angle start&end
+    line->SetLineGeometry(my_arc);
+    line->SetColor(ChColor(1, 0.3, 0));
+    line->SetThickness(10.0);
+    body->AddVisualShape(line);
 
     // ==Asset== Attach a video camera.
     // Note that a camera can also be attached to a moving object.
