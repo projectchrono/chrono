@@ -35,6 +35,7 @@ class ChApi ChVisualMaterial {
     ChVisualMaterial();
 
     // Setting functions
+
     void SetAmbientColor(const ChColor& rgb);
     void SetDiffuseColor(const ChColor& rgb);
     void SetSpecularColor(const ChColor& rgb);
@@ -44,13 +45,19 @@ class ChApi ChVisualMaterial {
     void SetOpacity(float o);
     void SetIllumination(int i);
 
-    void SetKdTexture(const std::string& filename, float scale_x = 1, float scale_y = 1);
-    void SetKsTexture(const std::string& filename, float scale_x = 1, float scale_y = 1);
-    void SetNormalMapTexture(const std::string& filename, float scale_x = 1, float scale_y = 1);
-    void SetMetallicTexture(const std::string& filename, float scale_x = 1, float scale_y = 1);
-    void SetRoughnessTexture(const std::string& filename, float scale_x = 1, float scale_y = 1);
-    void SetOpacityTexture(const std::string& filename, float scale_x = 1, float scale_y = 1);
-    void SetWeightTexture(std::string filename) { weight_texture = filename; };
+    void SetKdTexture(const std::string& filename);
+    void SetKsTexture(const std::string& filename);
+    void SetKeTexture(const std::string& filename);
+    void SetNormalMapTexture(const std::string& filename);
+    void SetMetallicTexture(const std::string& filename);
+    void SetRoughnessTexture(const std::string& filename);
+    void SetOpacityTexture(const std::string& filename);
+    void SetWeightTexture(const std::string& filename);
+    void SetDisplacementTexture(const std::string& filename);
+    void SetAmbientOcclusionTexture(const std::string& filename);
+
+    /// Apply the specified texture scaling to all textures in this material.
+    void SetTextureScale(float scale_x, float scale_y);
 
     void SetFresnelExp(float exp);
     void SetFresnelMax(float max);
@@ -62,7 +69,8 @@ class ChApi ChVisualMaterial {
     void SetClassID(unsigned short int id) { class_id = id; }
     void SetInstanceID(unsigned short int id) { instance_id = id; }
 
-    // accessor functions
+    // Accessor functions
+
     const ChColor& GetAmbientColor() const { return Ka; }
     const ChColor& GetDiffuseColor() const { return Kd; }
     const ChColor& GetSpecularColor() const { return Ks; }
@@ -73,18 +81,16 @@ class ChApi ChVisualMaterial {
 
     const std::string& GetKdTexture() const { return kd_texture.GetFilename(); }
     const std::string& GetKsTexture() const { return ks_texture.GetFilename(); }
+    const std::string& GetKeTexture() const { return ke_texture.GetFilename(); }
     const std::string& GetNormalMapTexture() const { return normal_texture.GetFilename(); }
     const std::string& GetMetallicTexture() const { return metallic_texture.GetFilename(); }
     const std::string& GetRoughnessTexture() const { return roughness_texture.GetFilename(); }
     const std::string& GetOpacityTexture() const { return opacity_texture.GetFilename(); }
-    const std::string& GetWeightTexture() { return weight_texture.GetFilename(); };
+    const std::string& GetWeightTexture() const { return weight_texture.GetFilename(); }
+    const std::string& GetDisplacementTexture() const { return disp_texture.GetFilename(); }
+    const std::string& GetAmbientOcclusionTexture() const { return ao_texture.GetFilename(); }
 
-    const ChVector2<float>& GetKdTextureScale() const { return kd_texture.GetScale(); }
-    const ChVector2<float>& GetKsTextureScale() const { return ks_texture.GetScale(); }
-    const ChVector2<float>& GetNormalMapTextureScale() const { return normal_texture.GetScale(); }
-    const ChVector2<float>& GetMetallicTextureScale() const { return metallic_texture.GetScale(); }
-    const ChVector2<float>& GetRoughnessTextureScale() const { return roughness_texture.GetScale(); }
-    const ChVector2<float>& GetOpacityTextureScale() const { return opacity_texture.GetScale(); }
+    const ChVector2<float>& GetTextureScale() const;
 
     float GetFresnelExp() const { return fresnel_exp; }
     float GetFresnelMax() const { return fresnel_max; }
@@ -95,6 +101,7 @@ class ChApi ChVisualMaterial {
     unsigned short int GetClassID() const { return class_id; }
     unsigned short int GetInstanceID() const { return instance_id; }
 
+    /// Create a default material.
     static std::shared_ptr<ChVisualMaterial> Default();
 
   private:
@@ -118,11 +125,14 @@ class ChApi ChVisualMaterial {
 
     ChTexture kd_texture;         ///< diffuse texture map
     ChTexture ks_texture;         ///< specular texture map
+    ChTexture ke_texture;         ///< emissive texture map
     ChTexture normal_texture;     ///< normal texture map
     ChTexture metallic_texture;   ///< metallic texture map
     ChTexture roughness_texture;  ///< roughness texture map
     ChTexture opacity_texture;    ///< opacity texture map
     ChTexture weight_texture;     ///< weight texture map
+    ChTexture disp_texture;       ///< displacement map
+    ChTexture ao_texture;         ///< ambient occlusion map
 
     unsigned short int class_id;
     unsigned short int instance_id;

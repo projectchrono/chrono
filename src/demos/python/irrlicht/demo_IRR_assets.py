@@ -160,7 +160,7 @@ body.AddVisualShape(mesh, chrono.ChFrameD(chrono.ChVectorD(2,1,2), chrono.QUNIT)
 
 
 # ==Asset== Attach a 'Wavefront mesh' asset, referencing a .obj file and offset it.
-objmesh = chrono.ChObjFileShape()
+objmesh = chrono.ChModelFileShape()
 objmesh.SetFilename(chrono.GetChronoDataFile('models/forklift/body.obj'))
 objmesh.SetTexture(chrono.GetChronoDataFile('textures/bluewhite.png'))
 body.AddVisualShape(objmesh, chrono.ChFrameD(chrono.ChVectorD(0,0,2), chrono.QUNIT))

@@ -142,7 +142,7 @@ int main() {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::SOLID);
     vis.Initialize();
-    vis.SetCameraPosition(ChVector<>(0, 3, 0), ChVector<>(0, 0, 0));
+    vis.AddCamera(ChVector<>(0, 3, 0), ChVector<>(0, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Z);
 
     // Perform the simulation
@@ -155,7 +155,7 @@ int main() {
         double buffer_dist = 0;
         ChVector<> cam_loc(body_x + buffer_dist, 3, -0.5);
         ChVector<> cam_point(body_x + buffer_dist, 0, -0.5);
-        vis.SetCameraPosition(cam_loc, cam_point);
+        vis.UpdateCamera(cam_loc, cam_point);
         vis.Render();
 
         ////sys.GetContactContainer()->ComputeContactForces();

@@ -171,7 +171,7 @@ TEST_P(ContactForceTest, simulate) {
         vis.SetWindowSize(1200, 800);
         vis.SetRenderMode(opengl::WIREFRAME);
         vis.Initialize();
-        vis.SetCameraPosition(ChVector<>(20, 0, 0), ChVector<>(0, 0, 0));
+        vis.AddCamera(ChVector<>(20, 0, 0), ChVector<>(0, 0, 0));
         vis.SetCameraVertical(CameraVerticalDir::Z);
 
         if (!vis.Run())

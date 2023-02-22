@@ -603,7 +603,7 @@ source_group(geometry FILES
 # Asset group
 
 set(ChronoEngine_assets_SOURCES
-    assets/ChObjFileShape.cpp
+    assets/ChModelFileShape.cpp
     assets/ChTriangleMeshShape.cpp
     assets/ChSphereShape.cpp
     assets/ChEllipsoidShape.cpp
@@ -627,10 +627,11 @@ set(ChronoEngine_assets_SOURCES
     assets/ChVisualShape.cpp
     assets/ChVisualShapeFEA.cpp
     assets/ChVisualModel.cpp
+    assets/ChVisualSystem.cpp
     )
 
 set(ChronoEngine_assets_HEADERS
-    assets/ChObjFileShape.h
+    assets/ChModelFileShape.h
     assets/ChTriangleMeshShape.h
     assets/ChSphereShape.h
     assets/ChEllipsoidShape.h
@@ -1433,6 +1434,13 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     if(MSVC AND MSVC_VERSION GREATER_EQUAL 1900)
         set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /bigobj")
     endif()
+endif()
+
+# Fix for hang-up in compilation with 32 bit on MSVC in Release configuration with EIGEN3.
+# Note: this flag may DECREASE the overall calculation performance by approx. 10%
+# For more information, see: https://gitlab.com/libeigen/eigen/-/issues/2379
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows" AND MSVC AND ("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32"))
+	target_compile_definitions(ChronoEngine PRIVATE "$<$<CONFIG:RELEASE>:EIGEN_STRONG_INLINE=inline>")
 endif()
 
 # Install the main ChronoEngine library

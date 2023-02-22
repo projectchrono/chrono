@@ -45,6 +45,7 @@ Additional Chrono functionality is provided through optional modules. Building o
 
 -   [VEHICLE module](@ref module_vehicle_installation)
 
+-   [VSG module](@ref module_vsg_installation)
 
 
 

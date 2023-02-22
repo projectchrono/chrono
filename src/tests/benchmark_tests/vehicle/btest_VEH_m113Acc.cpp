@@ -28,7 +28,7 @@
 #include "chrono_models/vehicle/m113/M113.h"
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleVisualSystemIrrlicht.h"
+    #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
 #endif
 
 using namespace chrono;
@@ -167,7 +167,7 @@ void M113AccTest<EnumClass, SHOE_TYPE>::SimulateVis() {
         vis->BeginScene();
         vis->Render();
         ExecuteStep();
-        vis->Synchronize("Acceleration test", driver_inputs);
+        vis->Synchronize(m_m113->GetVehicle().GetChTime(), driver_inputs);
         vis->Advance(m_step);
         vis->EndScene();
     }

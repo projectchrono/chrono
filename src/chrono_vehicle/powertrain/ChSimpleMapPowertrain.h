@@ -56,9 +56,6 @@ class CH_VEHICLE_API ChSimpleMapPowertrain : public ChPowertrain {
     /// Return the current total engine torque.
     virtual double GetMotorTorque() const override { return m_motor_torque; }
 
-    /// Return the current engine resistance torque.
-    double GetMotorResistance() const;
-
     /// Return the value of slippage in the torque converter.
     /// This simplified model does not have a torque converter.
     virtual double GetTorqueConverterSlippage() const override { return 0; }
@@ -98,11 +95,6 @@ class CH_VEHICLE_API ChSimpleMapPowertrain : public ChPowertrain {
         std::vector<std::pair<double, double>>& shift_bands  ///< [out] down-shift/up-shift points
         ) = 0;
 
-    /// Set coefficients for motor resistance.
-    /// The motor resistance is calculated as: resistance_torque = c0 + c1 * m_motor_speed.
-    /// This default implementation sets both coefficients to zero (no motor resistance).
-    virtual void SetMotorResistanceCoefficients(double& c0, double& c1) {}
-
   private:
     /// Initialize the powertrain system.
     virtual void Initialize(std::shared_ptr<ChChassis> chassis) override;
@@ -126,9 +118,6 @@ class CH_VEHICLE_API ChSimpleMapPowertrain : public ChPowertrain {
 
     ChFunction_Recorder m_zero_throttle_map;  ///< engine map at zero throttle
     ChFunction_Recorder m_full_throttle_map;  ///< engine map at full throttle
-
-    double m_motor_resistance_c0;  ///< coefficient for motor resistance
-    double m_motor_resistance_c1;  ///< coefficient for motor resistance
 };
 
 /// @} vehicle_powertrain

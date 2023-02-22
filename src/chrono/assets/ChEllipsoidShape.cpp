@@ -20,6 +20,11 @@ CH_FACTORY_REGISTER(ChEllipsoidShape)
 ChEllipsoidShape::ChEllipsoidShape() {
     SetMutable(false);
 }
+
+ChEllipsoidShape::ChEllipsoidShape(double x_length, double y_length, double z_length) {
+    gellipsoid.rad = ChVector<>(x_length / 2, y_length / 2, z_length / 2);
+}
+
 ChEllipsoidShape::ChEllipsoidShape(const geometry::ChEllipsoid& ellipsoid) : gellipsoid(ellipsoid) {
     SetMutable(false);
 }

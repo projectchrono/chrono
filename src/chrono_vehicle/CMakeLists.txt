@@ -134,6 +134,20 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigVehicle.h.in
 install(FILES "${PROJECT_BINARY_DIR}/chrono_vehicle/ChConfigVehicle.h"
         DESTINATION include/chrono_vehicle)
 
+if(ENABLE_MODULE_VSG)
+    # Find the VSG library
+    if (VULKAN_SDK)
+        set(ENV{VULKAN_SDK} ${VULKAN_SDK})
+    endif()
+    
+    find_package(vsg REQUIRED)
+    find_package(vsgImGui REQUIRED)
+    find_package(vsgXchange REQUIRED)
+    
+    # set the use of C++17 here as VSG requires it
+    set(CMAKE_CXX_STANDARD 17)
+endif()
+
 # ----------------------------------------------------------------------------
 # List the files in the ChronoEngine_vehicle library
 # ----------------------------------------------------------------------------
@@ -208,19 +222,13 @@ set(CV_DRIVER_FILES
     driver/ChPathFollowerACCDriver.cpp
     driver/ChExternalDriver.h
     driver/ChExternalDriver.cpp
+    driver/ChInteractiveDriver.h
+    driver/ChInteractiveDriver.cpp
 
     driver/AIDriver.h
     driver/AIDriver.cpp
 )
-if(ENABLE_MODULE_IRRLICHT)
-    set(CVIRR_DRIVER_FILES
-        driver/ChIrrGuiDriver.h
-        driver/ChIrrGuiDriver.cpp
-    )
-else()
-    set(CVIRR_DRIVER_FILES "")
-endif()
-source_group("driver" FILES ${CV_DRIVER_FILES} ${CVIRR_DRIVER_FILES})
+source_group("driver" FILES ${CV_DRIVER_FILES})
 
 set(CV_POVERTRAIN_FILES
     powertrain/ChSimplePowertrain.h
@@ -281,16 +289,7 @@ set(CV_UTILS_FILES
     utils/ChUtilsJSON.h
     utils/ChUtilsJSON.cpp
 )
-if(ENABLE_MODULE_IRRLICHT)
-    set(CVIRR_UTILS_FILES
-        utils/ChVehicleVisualSystemIrrlicht.h
-        utils/ChVehicleVisualSystemIrrlicht.cpp
-    )
-else()
-    set(CVIRR_UTILS_FILES "")
-endif()
-source_group("utils" FILES ${CV_UTILS_FILES} ${CVIRR_UTILS_FILES})
-
+source_group("utils" FILES ${CV_UTILS_FILES})
 
 set(CV_OUTPUT_FILES
     output/ChVehicleOutputASCII.h
@@ -485,22 +484,14 @@ source_group("wheeled_vehicle\\suspension" FILES ${CV_WV_SUSPENSION_FILES})
 set(CV_WV_TEST_RIG_FILES
     wheeled_vehicle/test_rig/ChSuspensionTestRig.h
     wheeled_vehicle/test_rig/ChSuspensionTestRig.cpp
-    wheeled_vehicle/test_rig/ChDriverSTR.h
-    wheeled_vehicle/test_rig/ChDriverSTR.cpp
-    wheeled_vehicle/test_rig/ChDataDriverSTR.h
-    wheeled_vehicle/test_rig/ChDataDriverSTR.cpp
+    wheeled_vehicle/test_rig/ChSuspensionTestRigDriver.h
+    wheeled_vehicle/test_rig/ChSuspensionTestRigDriver.cpp
+    wheeled_vehicle/test_rig/ChSuspensionTestRigDataDriver.h
+    wheeled_vehicle/test_rig/ChSuspensionTestRigDataDriver.cpp
     wheeled_vehicle/test_rig/ChTireTestRig.h
     wheeled_vehicle/test_rig/ChTireTestRig.cpp
 )
-if(ENABLE_MODULE_IRRLICHT)
-    set(CVIRR_WV_TEST_RIG_FILES
-        wheeled_vehicle/test_rig/ChIrrGuiDriverSTR.h
-        wheeled_vehicle/test_rig/ChIrrGuiDriverSTR.cpp    
-    )
-else()
-    set(CVIRR_WV_TEST_RIG_FILES "")
-endif()
-source_group("wheeled_vehicle\\test_rig" FILES ${CV_WV_TEST_RIG_FILES} ${CVIRR_WV_TEST_RIG_FILES})
+source_group("wheeled_vehicle\\test_rig" FILES ${CV_WV_TEST_RIG_FILES})
 
 set(CV_WV_TIRE_FILES
     wheeled_vehicle/tire/ChRigidTire.h
@@ -546,18 +537,6 @@ set(CV_WV_TIRE_FILES
     wheeled_vehicle/tire/ReissnerToroidalTire.cpp
 )
 source_group("wheeled_vehicle\\tire" FILES ${CV_WV_TIRE_FILES})
-
-set(CV_WV_UTILS_FILES
-)
-if(ENABLE_MODULE_IRRLICHT)
-    set(CVIRR_WV_UTILS_FILES
-        wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h
-        wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.cpp
-    )
-else()
-    set(CVIRR_WV_UTILS_FILES "")
-endif()
-source_group("wheeled_vehicle\\utils" FILES ${CV_WV_UTILS_FILES} ${CVIRR_WV_UTILS_FILES})
 
 set(CV_WV_VEHICLE_FILES
     wheeled_vehicle/vehicle/WheeledTrailer.h
@@ -734,42 +713,89 @@ source_group("tracked_vehicle\\track_assembly" FILES ${CV_TV_TRACKASSEMBLY_FILES
 set(CV_TV_TEST_RIG_FILES
     tracked_vehicle/test_rig/ChTrackTestRig.h
     tracked_vehicle/test_rig/ChTrackTestRig.cpp
-    tracked_vehicle/test_rig/ChDriverTTR.h
-    tracked_vehicle/test_rig/ChDriverTTR.cpp
-    tracked_vehicle/test_rig/ChDataDriverTTR.h
-    tracked_vehicle/test_rig/ChDataDriverTTR.cpp
-    tracked_vehicle/test_rig/ChRoadDriverTTR.h
-    tracked_vehicle/test_rig/ChRoadDriverTTR.cpp
+    tracked_vehicle/test_rig/ChTrackTestRigDriver.h
+    tracked_vehicle/test_rig/ChTrackTestRigDriver.cpp
+    tracked_vehicle/test_rig/ChTrackTestRigDataDriver.h
+    tracked_vehicle/test_rig/ChTrackTestRigDataDriver.cpp
+    tracked_vehicle/test_rig/ChTrackTestRigRoadDriver.h
+    tracked_vehicle/test_rig/ChTrackTestRigRoadDriver.cpp
 )
-if(ENABLE_MODULE_IRRLICHT)
-    set(CVIRR_TV_TEST_RIG_FILES
-        tracked_vehicle/test_rig/ChIrrGuiDriverTTR.h
-        tracked_vehicle/test_rig/ChIrrGuiDriverTTR.cpp
-    )
-else()
-    set(CVIRR_TV_TEST_RIG_FILES "")
-endif()
-source_group("tracked_vehicle\\test_rig" FILES ${CV_TV_TEST_RIG_FILES} ${CVIRR_TV_TEST_RIG_FILES})
+source_group("tracked_vehicle\\test_rig" FILES ${CV_TV_TEST_RIG_FILES})
 
 set(CV_TV_UTILS_FILES
 )
-if(ENABLE_MODULE_IRRLICHT)
-    set(CVIRR_TV_UTILS_FILES
-        tracked_vehicle/utils/ChTrackedVehicleVisualSystemIrrlicht.h
-        tracked_vehicle/utils/ChTrackedVehicleVisualSystemIrrlicht.cpp
-        tracked_vehicle/utils/ChTrackTestRigVisualSystemIrrlicht.h
-        tracked_vehicle/utils/ChTrackTestRigVisualSystemIrrlicht.cpp
-    )
-else()
-    set(CVIRR_TV_UTILS_FILES "")
-endif()
-source_group("tracked_vehicle\\utils" FILES ${CV_TV_UTILS_FILES} ${CVIRR_TV_UTILS_FILES})
 
 set(CV_TV_VEHICLE_FILES
     tracked_vehicle/vehicle/TrackedVehicle.h
     tracked_vehicle/vehicle/TrackedVehicle.cpp
 )
 source_group("tracked_vehicle\\vehicle" FILES ${CV_TV_VEHICLE_FILES})
+
+# --------------- VEHICLE IRRLICHT INTERFACE
+
+if(ENABLE_MODULE_IRRLICHT)
+    set(CVIRR_FILES
+        ChVehicleVisualSystemIrrlicht.h
+        ChVehicleVisualSystemIrrlicht.cpp
+        driver/ChInteractiveDriverIRR.h
+        driver/ChInteractiveDriverIRR.cpp
+    )
+    set(CVIRR_WV_FILES
+        wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h
+        wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.cpp
+        wheeled_vehicle/test_rig/ChSuspensionTestRigInteractiveDriverIRR.h
+        wheeled_vehicle/test_rig/ChSuspensionTestRigInteractiveDriverIRR.cpp    
+    )
+    set(CVIRR_TV_FILES
+        tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h
+        tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.cpp
+        tracked_vehicle/test_rig/ChTrackTestRigVisualSystemIrrlicht.h
+        tracked_vehicle/test_rig/ChTrackTestRigVisualSystemIrrlicht.cpp
+        tracked_vehicle/test_rig/ChTrackTestRigInteractiveDriverIRR.h
+        tracked_vehicle/test_rig/ChTrackTestRigInteractiveDriverIRR.cpp
+    )
+else()
+    set(CVIRR_FILES "")
+    set(CVIRR_WV_FILES "")
+    set(CVIRR_TV_FILES "")
+endif()
+
+source_group("" FILES ${CVIRR_FILES})
+source_group("wheeled_vehicle" FILES ${CVIRR_WV_FILES})
+source_group("tracked_vehicle" FILES ${CVIRR_TV_FILES})
+
+# --------------- VEHICLE VSG INTERFACE
+
+if(ENABLE_MODULE_VSG)
+    set(CVVSG_FILES
+        ChVehicleVisualSystemVSG.h
+        ChVehicleVisualSystemVSG.cpp
+        driver/ChInteractiveDriverVSG.h
+        driver/ChInteractiveDriverVSG.cpp
+    )
+    set(CVVSG_WV_FILES
+        wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h
+        wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.cpp
+        wheeled_vehicle/test_rig/ChSuspensionTestRigInteractiveDriverVSG.h
+        wheeled_vehicle/test_rig/ChSuspensionTestRigInteractiveDriverVSG.cpp    
+    )
+    set(CVVSG_TV_FILES
+        tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h
+        tracked_vehicle/ChTrackedVehicleVisualSystemVSG.cpp
+        tracked_vehicle/test_rig/ChTrackTestRigInteractiveDriverVSG.h
+        tracked_vehicle/test_rig/ChTrackTestRigInteractiveDriverVSG.cpp
+    )
+else()
+    set(CVVSG_FILES "")
+    set(CVVSG_WV_FILES "")
+    set(CVVSG_TV_FILES "")
+endif()
+
+source_group("" FILES ${CVVSG_FILES})
+source_group("wheeled_vehicle" FILES ${CVVSG_WV_FILES})
+source_group("tracked_vehicle" FILES ${CVVSG_TV_FILES})
+
+
 
 # --------------- THIRD-PARTY FILES
 
@@ -823,7 +849,6 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_WV_SUSPENSION_FILES}
     ${CV_WV_TEST_RIG_FILES}
     ${CV_WV_TIRE_FILES}
-    ${CV_WV_UTILS_FILES}
     ${CV_WV_VEHICLE_FILES}
     ${CV_WV_WHEEL_FILES}
 #
@@ -869,40 +894,69 @@ install(TARGETS ChronoEngine_vehicle
 
 if(ENABLE_MODULE_IRRLICHT)
 
-set(CXX_FLAGS "${CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
-list(APPEND LIBRARIES ChronoEngine_vehicle)
-list(APPEND LIBRARIES ChronoEngine_irrlicht) 
-include_directories(${CH_IRRLICHTINC})
+    set(CXX_FLAGS "${CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
+    list(APPEND LIBRARIES ChronoEngine_vehicle)
+    list(APPEND LIBRARIES ChronoEngine_irrlicht) 
+    include_directories(${CH_IRRLICHTINC})
+    
+    add_library(ChronoEngine_vehicle_irrlicht SHARED
+        ${CVIRR_FILES}
+        ${CVIRR_WV_FILES}
+        ${CVIRR_TV_FILES}
+    )
+    
+    if(ENABLE_IRRKLANG)
+        target_include_directories(ChronoEngine_vehicle_irrlicht PUBLIC ${CH_IRRKLANGINC})
+        list(APPEND LIBRARIES ${CH_IRRKLANGLIB})
+        set(CH_IRRLICHTINC ${CH_IRRLICHTINC} ${CH_IRRKLANGINC} PARENT_SCOPE)
+        set(IRRLICHT_LIBRARY ${IRRLICHT_LIBRARY} ${CH_IRRKLANGLIB} PARENT_SCOPE)
+    endif()
+    
+    set_target_properties(ChronoEngine_vehicle_irrlicht PROPERTIES
+                          COMPILE_FLAGS "${CXX_FLAGS}"
+                          LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+    
+    target_compile_definitions(ChronoEngine_vehicle_irrlicht PRIVATE "CH_API_COMPILE_VEHICLE")
+    target_compile_definitions(ChronoEngine_vehicle_irrlicht PRIVATE "CH_IGNORE_DEPRECATED")
+    
+    target_link_libraries(ChronoEngine_vehicle_irrlicht ${LIBRARIES})
+    
+    install(TARGETS ChronoEngine_vehicle_irrlicht
+            RUNTIME DESTINATION bin
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib)
 
-add_library(ChronoEngine_vehicle_irrlicht SHARED
-    ${CVIRR_DRIVER_FILES}
-    ${CVIRR_UTILS_FILES}
-    ${CVIRR_WV_TEST_RIG_FILES}
-    ${CVIRR_WV_UTILS_FILES}
-    ${CVIRR_TV_TEST_RIG_FILES}
-    ${CVIRR_TV_UTILS_FILES}
-)
-
-if(ENABLE_IRRKLANG)
-    target_include_directories(ChronoEngine_vehicle_irrlicht PUBLIC ${CH_IRRKLANGINC})
-    list(APPEND LIBRARIES ${CH_IRRKLANGLIB})
-    set(CH_IRRLICHTINC ${CH_IRRLICHTINC} ${CH_IRRKLANGINC} PARENT_SCOPE)
-    set(IRRLICHT_LIBRARY ${IRRLICHT_LIBRARY} ${CH_IRRKLANGLIB} PARENT_SCOPE)
 endif()
 
-set_target_properties(ChronoEngine_vehicle_irrlicht PROPERTIES
-                      COMPILE_FLAGS "${CXX_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+#-------------------------------------------------------------------------------
+# Add the ChronoEngine_vehicle_vsg library
+#-------------------------------------------------------------------------------
 
-target_compile_definitions(ChronoEngine_vehicle_irrlicht PRIVATE "CH_API_COMPILE_VEHICLE")
-target_compile_definitions(ChronoEngine_vehicle_irrlicht PRIVATE "CH_IGNORE_DEPRECATED")
+if(ENABLE_MODULE_VSG)
 
-target_link_libraries(ChronoEngine_vehicle_irrlicht ${LIBRARIES})
-
-install(TARGETS ChronoEngine_vehicle_irrlicht
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
+    set(CXX_FLAGS "${CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
+    list(APPEND LIBRARIES ChronoEngine_vehicle)
+    list(APPEND LIBRARIES ChronoEngine_vsg) 
+    
+    add_library(ChronoEngine_vehicle_vsg SHARED
+        ${CVVSG_FILES}
+        ${CVVSG_WV_FILES}
+        ${CVVSG_TV_FILES}
+    )
+    
+    set_target_properties(ChronoEngine_vehicle_vsg PROPERTIES
+                          COMPILE_FLAGS "${CXX_FLAGS}"
+                          LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+    
+    target_compile_definitions(ChronoEngine_vehicle_vsg PRIVATE "CH_API_COMPILE_VEHICLE")
+    target_compile_definitions(ChronoEngine_vehicle_vsg PRIVATE "CH_IGNORE_DEPRECATED")
+    
+    target_link_libraries(ChronoEngine_vehicle_vsg ${LIBRARIES})
+    
+    install(TARGETS ChronoEngine_vehicle_vsg
+            RUNTIME DESTINATION bin
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib)
 
 endif()
 

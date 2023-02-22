@@ -97,6 +97,9 @@ class CH_FSI_API ChSystemFsi {
     /// data of MBS is needed for fluid dynamics update.
     void DoStepDynamics_FSI();
 
+    /// Get current estimated RTF (real time factor).
+    double GetRTF() const { return m_RTF; }
+
     /// Enable/disable m_verbose terminal output.
     void SetVerbose(bool m_verbose);
 
@@ -115,8 +118,15 @@ class CH_FSI_API ChSystemFsi {
     /// Set periodic boundary condition for fluid.
     void SetBoundaries(const ChVector<>& cMin, const ChVector<>& cMax);
 
-    /// Set size of active domain.
-    void SetActiveDomain(const ChVector<>& boxDim);
+    /// Set half-dimensions of the active domain.
+    /// This value activates only those SPH particles that are within an AABB of the specified size from an object
+    /// interacting with the "fluid" phase. Note that this setting should *not* be used for actual (CFD) simulations,
+    /// but rather oinly when Chrono::FSI is used for continuum representation of granular dynamics (in terramechanics).
+    void SetActiveDomain(const ChVector<>& boxHalfDim);
+
+    /// Disable use of the active domain for the given duration at the beginning of the simulation (default: 0).
+    /// This parameter is used for settling operations where all particles must be active through the settling process.
+    void SetActiveDomainDelay(double duration);
 
     /// Set number of boundary layers (default: 3).
     void SetNumBoundaryLayers(int num_layers);
@@ -542,9 +552,13 @@ class CH_FSI_API ChSystemFsi {
 
     bool m_is_initialized;  ///< set to true once the Initialize function is called
     bool m_integrate_SPH;   ///< set to true if needs to integrate the fsi solver
-    double m_time;          ///< current real time of the simulation
+    double m_time;          ///< current simulation time
 
-    friend class ChVisualizationFsi;
+    ChTimer<double> m_timer_step;  ///< timer for integration step
+    double m_RTF;                  ///< real-time factor (simulation time / simulated time)
+
+    friend class ChFsiVisualizationGL;
+    friend class ChFsiVisualizationVSG;
 };
 
 /// @} fsi_physics

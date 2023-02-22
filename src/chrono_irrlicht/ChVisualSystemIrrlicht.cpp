@@ -23,7 +23,7 @@
 
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChSurfaceShape.h"
-#include "chrono/assets/ChObjFileShape.h"
+#include "chrono/assets/ChModelFileShape.h"
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCylinderShape.h"
@@ -37,7 +37,6 @@
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 #include "chrono_irrlicht/ChIrrTools.h"
 #include "chrono_irrlicht/ChIrrMeshTools.h"
-#include "chrono_irrlicht/ChIrrCamera.h"
 #include "chrono_irrlicht/ChIrrSkyBoxSceneNode.h"
 
 namespace chrono {
@@ -46,7 +45,7 @@ namespace irrlicht {
 using namespace irr;
 using namespace irr::scene;
 
-static std::shared_ptr<irr::video::SMaterial> default_material;
+static std::shared_ptr<video::SMaterial> default_material;
 
 ChVisualSystemIrrlicht::ChVisualSystemIrrlicht()
     : m_device_params(irr::SIrrlichtCreationParameters()),
@@ -61,8 +60,8 @@ ChVisualSystemIrrlicht::ChVisualSystemIrrlicht()
     m_device_params.AntiAlias = true;
     m_device_params.Bits = 32;
     m_device_params.Fullscreen = false;
-    m_device_params.DriverType = irr::video::EDT_DIRECT3D9;
-    m_device_params.WindowSize = irr::core::dimension2d<irr::u32>(640, 480);
+    m_device_params.DriverType = video::EDT_DIRECT3D9;
+    m_device_params.WindowSize = core::dimension2d<irr::u32>(640, 480);
     m_device_params.Stencilbuffer = false;
     m_device_params.LoggingLevel = irr::ELL_INFORMATION;
 
@@ -113,12 +112,12 @@ void ChVisualSystemIrrlicht::SetShadows(bool val) {
     m_device_params.Stencilbuffer = val;
 }
 
-void ChVisualSystemIrrlicht::SetDriverType(irr::video::E_DRIVER_TYPE driver_type) {
+void ChVisualSystemIrrlicht::SetDriverType(video::E_DRIVER_TYPE driver_type) {
     m_device_params.DriverType = driver_type;
 }
 
 void ChVisualSystemIrrlicht::SetWindowSize(unsigned int width, unsigned int height) {
-    m_device_params.WindowSize = irr::core::dimension2d<irr::u32>((u32)width, (u32)height);
+    m_device_params.WindowSize = core::dimension2d<irr::u32>((u32)width, (u32)height);
 }
 
 void ChVisualSystemIrrlicht::SetWindowTitle(const std::string& win_title) {
@@ -168,7 +167,7 @@ void ChVisualSystemIrrlicht::Initialize() {
     m_device = irr::createDeviceEx(m_device_params);
     if (!m_device) {
         std::cerr << "Cannot use default video driver - fall back to OpenGL" << std::endl;
-        m_device_params.DriverType = irr::video::EDT_OPENGL;
+        m_device_params.DriverType = video::EDT_OPENGL;
         m_device = irr::createDeviceEx(m_device_params);
         if (!m_device) {
             std::cerr << "Failed to create the video driver - giving up" << std::endl;
@@ -188,7 +187,7 @@ void ChVisualSystemIrrlicht::Initialize() {
     else
         m_effect_handler = std::unique_ptr<EffectHandler>(
             new EffectHandler(m_device, GetVideoDriver()->getScreenSize(), true, false, true));
-    m_effect_handler->setAmbientColor(irr::video::SColor(255, 122, 122, 122));
+    m_effect_handler->setAmbientColor(video::SColor(255, 122, 122, 122));
     m_use_effects = false;  // will be true as sson as a light with shadow is added
 
     // Create a fixed-size font.
@@ -200,7 +199,7 @@ void ChVisualSystemIrrlicht::Initialize() {
     // Create default Irrlicht material
     if (!default_material) {
         auto irr_mat = tools::ToIrrlichtMaterial(ChVisualMaterial::Default(), GetVideoDriver());
-        default_material = std::make_shared<irr::video::SMaterial>(irr_mat);
+        default_material = std::make_shared<video::SMaterial>(irr_mat);
     }
 
     // If the visualization system is already attached to a ChSystem
@@ -260,30 +259,50 @@ void ChVisualSystemIrrlicht::PurgeIrrNodes() {
 
 // -----------------------------------------------------------------------------
 
+int ChVisualSystemIrrlicht::AddCamera(const ChVector<>& pos, ChVector<> targ) {
+    if (!m_device)
+        return -1;
+
+    // create and init camera
+    auto camera = chrono_types::make_shared<RTSCamera>(m_device, GetSceneManager()->getRootSceneNode(),
+                                                       GetSceneManager(), -1, -160.0f, 1.0f, 0.003f);
+    // camera->bindTargetAndRotation(true);
+    if (!m_yup)
+        camera->setZUp();
+    camera->setPosition(core::vector3dfCH(pos));
+    camera->setTarget(core::vector3dfCH(targ));
+
+    camera->setNearValue(0.1f);
+    camera->setMinZoom(0.6f);
+
+    m_cameras.push_back(camera);
+    return (int)m_cameras.size() - 1;
+}
+
+void ChVisualSystemIrrlicht::SetCameraPosition(int id, const ChVector<>& pos) {
+    m_cameras[id]->setPosition(core::vector3dfCH(pos));
+}
+
+void ChVisualSystemIrrlicht::SetCameraTarget(int id, const ChVector<>& target) {
+    m_cameras[id]->setTarget(core::vector3dfCH(target));
+}
+
+void ChVisualSystemIrrlicht::SetCameraPosition(const ChVector<>& pos) {
+    GetActiveCamera()->setPosition(core::vector3dfCH(pos));
+}
+
+void ChVisualSystemIrrlicht::SetCameraTarget(const ChVector<>& target) {
+    GetActiveCamera()->setTarget(core::vector3dfCH(target));
+}
+
+// -----------------------------------------------------------------------------
+
 void ChVisualSystemIrrlicht::AddLogo(const std::string& logo_filename) {
     if (!m_device)
         return;
 
     GetGUIEnvironment()->addImage(GetVideoDriver()->getTexture(logo_filename.c_str()),
-                                  irr::core::position2d<irr::s32>(10, 10));
-}
-
-void ChVisualSystemIrrlicht::AddCamera(const ChVector<>& pos, ChVector<> targ) {
-    if (!m_device)
-        return;
-
-    // create and init camera
-    RTSCamera* camera =
-        new RTSCamera(m_device, GetSceneManager()->getRootSceneNode(), GetSceneManager(), -1, -160.0f, 1.0f, 0.003f);
-
-    // camera->bindTargetAndRotation(true);
-    if (!m_yup)
-        camera->setZUp();
-    camera->setPosition(irr::core::vector3dfCH(pos));
-    camera->setTarget(irr::core::vector3dfCH(targ));
-
-    camera->setNearValue(0.1f);
-    camera->setMinZoom(0.6f);
+                                  core::position2d<irr::s32>(10, 10));
 }
 
 void ChVisualSystemIrrlicht::AddTypicalLights() {
@@ -308,24 +327,24 @@ void ChVisualSystemIrrlicht::AddSkyBox(const std::string& texture_dir) {
     std::string str_up = texture_dir + "sky_up.jpg";
     std::string str_dn = texture_dir + "sky_dn.jpg";
 
-    irr::video::ITexture* map_skybox_side = GetVideoDriver()->getTexture(str_lf.c_str());
+    video::ITexture* map_skybox_side = GetVideoDriver()->getTexture(str_lf.c_str());
 
     // Create a skybox scene node
-    auto skybox = new irr::scene::CSkyBoxSceneNode(GetVideoDriver()->getTexture(str_up.c_str()),
-                                                   GetVideoDriver()->getTexture(str_dn.c_str()), map_skybox_side,
-                                                   map_skybox_side, map_skybox_side, map_skybox_side,
-                                                   GetSceneManager()->getRootSceneNode(), GetSceneManager(), -1);
+    auto skybox =
+        new CSkyBoxSceneNode(GetVideoDriver()->getTexture(str_up.c_str()), GetVideoDriver()->getTexture(str_dn.c_str()),
+                             map_skybox_side, map_skybox_side, map_skybox_side, map_skybox_side,
+                             GetSceneManager()->getRootSceneNode(), GetSceneManager(), -1);
     skybox->drop();
 
     if (!m_yup)
-        skybox->setRotation(irr::core::vector3df(90, 0, 0));
+        skybox->setRotation(core::vector3df(90, 0, 0));
 }
 
-irr::scene::ILightSceneNode* ChVisualSystemIrrlicht::AddLightDirectional(double elevation,
-                                                                         double azimuth,
-                                                                         ChColor ambient,
-                                                                         ChColor specular,
-                                                                         ChColor diffuse) {
+ILightSceneNode* ChVisualSystemIrrlicht::AddLightDirectional(double elevation,
+                                                             double azimuth,
+                                                             ChColor ambient,
+                                                             ChColor specular,
+                                                             ChColor diffuse) {
     if (!m_device)
         return nullptr;
 
@@ -333,8 +352,8 @@ irr::scene::ILightSceneNode* ChVisualSystemIrrlicht::AddLightDirectional(double 
     light->setPosition(core::vector3df(0, 0, 0));
     light->setRotation(core::vector3df(0, 90 + ChClamp(elevation, 0.0, 90.0), ChClamp(azimuth, 0.0, 360.0)));
 
-    irr::video::SLight& l = light->getLightData();
-    l.Type = irr::video::ELT_DIRECTIONAL;
+    video::SLight& l = light->getLightData();
+    l.Type = video::ELT_DIRECTIONAL;
     l.Direction = core::vector3df(0, 0, 0);
     l.AmbientColor = tools::ToIrrlichtSColorf(ambient);
     l.SpecularColor = tools::ToIrrlichtSColorf(specular);
@@ -344,34 +363,34 @@ irr::scene::ILightSceneNode* ChVisualSystemIrrlicht::AddLightDirectional(double 
     return light;
 }
 
-irr::scene::ILightSceneNode* ChVisualSystemIrrlicht::AddLight(const ChVector<>& pos, double radius, ChColor color) {
+ILightSceneNode* ChVisualSystemIrrlicht::AddLight(const ChVector<>& pos, double radius, ChColor color) {
     if (!m_device)
         return nullptr;
 
-    irr::scene::ILightSceneNode* light = GetSceneManager()->addLightSceneNode(
-        0, irr::core::vector3dfCH(pos), tools::ToIrrlichtSColorf(color), (irr::f32)radius);
+    ILightSceneNode* light = GetSceneManager()->addLightSceneNode(0, core::vector3dfCH(pos),
+                                                                  tools::ToIrrlichtSColorf(color), (irr::f32)radius);
     return light;
 }
 
-irr::scene::ILightSceneNode* ChVisualSystemIrrlicht::AddLightWithShadow(const ChVector<>& pos,
-                                                                        const ChVector<>& aim,
-                                                                        double radius,
-                                                                        double near_value,
-                                                                        double far_value,
-                                                                        double angle,
-                                                                        unsigned int resolution,
-                                                                        ChColor color,
-                                                                        bool directional,
-                                                                        bool clipborder) {
+ILightSceneNode* ChVisualSystemIrrlicht::AddLightWithShadow(const ChVector<>& pos,
+                                                            const ChVector<>& aim,
+                                                            double radius,
+                                                            double near_value,
+                                                            double far_value,
+                                                            double angle,
+                                                            unsigned int resolution,
+                                                            ChColor color,
+                                                            bool directional,
+                                                            bool clipborder) {
     if (!m_device)
         return nullptr;
 
-    irr::scene::ILightSceneNode* light = GetSceneManager()->addLightSceneNode(
-        0, irr::core::vector3dfCH(pos), tools::ToIrrlichtSColorf(color), (irr::f32)radius);
+    ILightSceneNode* light = GetSceneManager()->addLightSceneNode(0, core::vector3dfCH(pos),
+                                                                  tools::ToIrrlichtSColorf(color), (irr::f32)radius);
 
-    m_effect_handler->addShadowLight(SShadowLight(
-        (irr::u32)resolution, irr::core::vector3dfCH(pos), irr::core::vector3dfCH(aim), tools::ToIrrlichtSColorf(color),
-        (irr::f32)near_value, (irr::f32)far_value, (irr::f32)angle * irr::core::DEGTORAD, directional));
+    m_effect_handler->addShadowLight(SShadowLight((irr::u32)resolution, core::vector3dfCH(pos), core::vector3dfCH(aim),
+                                                  tools::ToIrrlichtSColorf(color), (irr::f32)near_value,
+                                                  (irr::f32)far_value, (irr::f32)angle * core::DEGTORAD, directional));
 
     if (!clipborder)
         m_effect_handler->getShadowLight(m_effect_handler->getShadowLightCount() - 1).setClipBorder(false);
@@ -443,8 +462,8 @@ void ChVisualSystemIrrlicht::EnableShadows(std::shared_ptr<ChPhysicsItem> item) 
     }
 }
 
-void ChVisualSystemIrrlicht::AddShadowToIrrNode(scene::ISceneNode* node) {
-    scene::ISceneNodeList::ConstIterator it = node->getChildren().begin();
+void ChVisualSystemIrrlicht::AddShadowToIrrNode(ISceneNode* node) {
+    ISceneNodeList::ConstIterator it = node->getChildren().begin();
     for (; it != node->getChildren().end(); ++it) {
         AddShadowToIrrNode(*it);
     }
@@ -501,6 +520,11 @@ void ChVisualSystemIrrlicht::ShowExplorer(bool val) {
 // -----------------------------------------------------------------------------
 
 // Clean canvas at beginning of scene.
+
+void ChVisualSystemIrrlicht::BeginScene() {
+    BeginScene(true, true, ChColor(0, 0, 0));
+}
+
 void ChVisualSystemIrrlicht::BeginScene(bool backBuffer, bool zBuffer, ChColor color) {
     assert(!m_systems.empty());
 
@@ -567,6 +591,25 @@ void ChVisualSystemIrrlicht::Render() {
     m_gui->Render();
 }
 
+void ChVisualSystemIrrlicht::RenderGrid(const ChFrame<>& frame, int num_divs, double delta) {
+    irrlicht::tools::drawGrid(this, delta, delta, num_divs, num_divs, ChCoordsys<>(frame.GetPos(), frame.GetRot()),
+                              ChColor(1.00f, 0.78f, 0.00f), true);
+}
+
+void ChVisualSystemIrrlicht::RenderFrame(const ChFrame<>& frame, double axis_length) {
+    const auto& loc = frame.GetPos();
+    const auto& u = frame.GetA().Get_A_Xaxis();
+    const auto& v = frame.GetA().Get_A_Yaxis();
+    const auto& w = frame.GetA().Get_A_Zaxis();
+    irrlicht::tools::drawSegment(this, loc, loc + u * axis_length, ChColor(1, 0, 0));
+    irrlicht::tools::drawSegment(this, loc, loc + v * axis_length, ChColor(0, 1, 0));
+    irrlicht::tools::drawSegment(this, loc, loc + w * axis_length, ChColor(0, 0, 1));
+}
+
+void ChVisualSystemIrrlicht::RenderCOGFrames(double axis_length) {
+    irrlicht::tools::drawAllCOGs(this, axis_length);
+}
+
 void ChVisualSystemIrrlicht::WriteImageToFile(const std::string& filename) {
     video::IImage* image = GetVideoDriver()->createScreenShot();
     if (image) {
@@ -592,6 +635,37 @@ void ChVisualSystemIrrlicht::BindAll() {
 
     std::unordered_set<const ChAssembly*> trace;
     CreateIrrNodes(&m_systems[0]->GetAssembly(), trace);
+}
+
+int ChVisualSystemIrrlicht::AddVisualModel(std::shared_ptr<ChVisualModel> model, const ChFrame<>& frame) {
+    if (!m_device)
+        return -1;
+
+    // Create an Irrlicht scene node for a visualization-only model and populate it
+    auto node = chrono_types::make_shared<ChIrrNodeVisual>(m_container, GetSceneManager());
+    PopulateIrrNode(node.get(), model, frame);
+
+    core::matrix4CH irrMat(frame);
+    node->setPosition(irrMat.getTranslation());
+    node->setRotation(irrMat.getRotationDegrees());
+
+    // Cache the new node and return its ID
+    m_vis_nodes.push_back(node);
+    return (int)m_vis_nodes.size() - 1;
+}
+
+int ChVisualSystemIrrlicht::AddVisualModel(std::shared_ptr<ChVisualShape> shape, const ChFrame<>& frame) {
+    auto model = chrono_types::make_shared<ChVisualModel>();
+    model->AddShape(shape);
+    return AddVisualModel(model, frame);
+}
+
+void ChVisualSystemIrrlicht::UpdateVisualModel(int id, const ChFrame<>& frame) {
+    assert(id >= 0 && id < m_vis_nodes.size());
+
+    core::matrix4CH irrMat(frame);
+    m_vis_nodes[id]->setPosition(irrMat.getTranslation());
+    m_vis_nodes[id]->setRotation(irrMat.getRotationDegrees());
 }
 
 void ChVisualSystemIrrlicht::CreateIrrNodes(const ChAssembly* assembly, std::unordered_set<const ChAssembly*>& trace) {
@@ -660,7 +734,7 @@ void ChVisualSystemIrrlicht::CreateIrrNode(std::shared_ptr<ChPhysicsItem> item) 
     node->removeAll();
 
     // If the physics item uses clones of its visual model, create an intermediate Irrlicht scene node
-    irr::scene::ISceneNode* fillnode = node.get();
+    ISceneNode* fillnode = node.get();
     if (item->GetNumVisualModelClones() > 0) {
         fillnode = GetSceneManager()->addEmptySceneNode(node.get());
     }
@@ -692,28 +766,28 @@ static void SetVisualMaterial(ISceneNode* node, std::shared_ptr<ChVisualShape> s
         // Use default material
         node->getMaterial(0) = *default_material;
     } else {
-        assert(shape->GetNumMaterials() == node->getMaterialCount());
+        assert((irr::u32)shape->GetNumMaterials() == node->getMaterialCount());
         for (int i = 0; i < shape->GetNumMaterials(); i++)
             node->getMaterial(i) =
                 tools::ToIrrlichtMaterial(shape->GetMaterial(i), node->getSceneManager()->getVideoDriver());
     }
 
     // Do not use vertex coloring
-    node->getMaterial(0).ColorMaterial = irr::video::ECM_NONE;
+    node->getMaterial(0).ColorMaterial = video::ECM_NONE;
 }
 
-void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
+void ChVisualSystemIrrlicht::PopulateIrrNode(ISceneNode* node,
                                              std::shared_ptr<ChVisualModel> model,
                                              const ChFrame<>& parent_frame) {
     for (const auto& shape_instance : model->GetShapes()) {
         auto& shape = shape_instance.first;
         auto& shape_frame = shape_instance.second;
-        irr::core::matrix4CH shape_m4(shape_frame);
+        core::matrix4CH shape_m4(shape_frame);
 
         if (!shape->IsVisible())
             continue;
 
-        if (auto obj = std::dynamic_pointer_cast<ChObjFileShape>(shape)) {
+        if (auto obj = std::dynamic_pointer_cast<ChModelFileShape>(shape)) {
             bool irrmesh_already_loaded = false;
             if (GetSceneManager()->getMeshCache()->getMeshByName(obj->GetFilename().c_str()))
                 irrmesh_already_loaded = true;
@@ -742,7 +816,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
             int nbuffers = (int)trimesh->GetNumMaterials();
             nbuffers = std::max(nbuffers, 1);
             for (int ibuffer = 0; ibuffer < nbuffers; ibuffer++) {
-                CDynamicMeshBuffer* buffer = new CDynamicMeshBuffer(irr::video::EVT_STANDARD, irr::video::EIT_32BIT);
+                CDynamicMeshBuffer* buffer = new CDynamicMeshBuffer(video::EVT_STANDARD, video::EIT_32BIT);
                 smesh->addMeshBuffer(buffer);
                 buffer->drop();
             }
@@ -761,7 +835,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
             mchildnode->setMaterialFlag(video::EMF_WIREFRAME, trimesh->IsWireframe());
             mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, trimesh->IsBackfaceCull());
         } else if (auto surf = std::dynamic_pointer_cast<ChSurfaceShape>(shape)) {
-            CDynamicMeshBuffer* buffer = new CDynamicMeshBuffer(irr::video::EVT_STANDARD, irr::video::EIT_32BIT);
+            CDynamicMeshBuffer* buffer = new CDynamicMeshBuffer(video::EVT_STANDARD, video::EIT_32BIT);
             SMesh* newmesh = new SMesh;
             newmesh->addMeshBuffer(buffer);
             buffer->drop();
@@ -825,7 +899,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
 
                 // Calculate transform from node to geometry (concatenate node - asset and asset - geometry)
                 ChFrame<> frame = shape_frame * ChFrame<>(mpos, mrot);
-                irr::core::matrix4CH m4(frame);
+                core::matrix4CH m4(frame);
 
                 core::vector3df irrsize((f32)rad, (f32)(0.5 * height), (f32)rad);
                 mchildnode->setScale(irrsize);
@@ -879,7 +953,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
             SetVisualMaterial(mchildnode, barrel);
             mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
         } else if (auto glyphs = std::dynamic_pointer_cast<ChGlyphs>(shape)) {
-            CDynamicMeshBuffer* buffer = new CDynamicMeshBuffer(irr::video::EVT_STANDARD, irr::video::EIT_32BIT);
+            CDynamicMeshBuffer* buffer = new CDynamicMeshBuffer(video::EVT_STANDARD, video::EIT_32BIT);
             SMesh* newmesh = new SMesh;
             newmesh->addMeshBuffer(buffer);
             buffer->drop();
@@ -896,7 +970,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(irr::scene::ISceneNode* node,
             ////mchildnode->setMaterialFlag(video::EMF_WIREFRAME,  mytrimesh->IsWireframe() );
             ////mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull() );
         } else if (std::dynamic_pointer_cast<ChPathShape>(shape) || std::dynamic_pointer_cast<ChLineShape>(shape)) {
-            CDynamicMeshBuffer* buffer = new CDynamicMeshBuffer(irr::video::EVT_STANDARD, irr::video::EIT_32BIT);
+            CDynamicMeshBuffer* buffer = new CDynamicMeshBuffer(video::EVT_STANDARD, video::EIT_32BIT);
             SMesh* newmesh = new SMesh;
             newmesh->addMeshBuffer(buffer);
             buffer->drop();

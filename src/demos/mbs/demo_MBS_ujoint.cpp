@@ -31,8 +31,6 @@
 using namespace chrono;
 using namespace chrono::irrlicht;
 
-using namespace irr;
-
 // -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {

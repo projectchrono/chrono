@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::WIREFRAME);
     vis.Initialize();
-    vis.SetCameraPosition(ChVector<>(6, -10, 0), ChVector<>(6, 0, 0));
+    vis.AddCamera(ChVector<>(6, -10, 0), ChVector<>(6, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Z);
 
     std::function<void()> step_iter = [&]() { vis.Render(); };

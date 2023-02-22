@@ -28,7 +28,7 @@
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChCapsuleShape.h"
-#include "chrono/assets/ChObjFileShape.h"
+#include "chrono/assets/ChModelFileShape.h"
 #include "chrono/assets/ChVisualShape.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChGlyphs.h"
@@ -37,11 +37,15 @@
 
 #include "chrono_irrlicht/ChApiIrr.h"
 #include "chrono_irrlicht/ChIrrNodeModel.h"
+#include "chrono_irrlicht/ChIrrCamera.h"
 #include "chrono_irrlicht/ChIrrEffects.h"
 #include "chrono_irrlicht/ChIrrGUI.h"
 
 namespace chrono {
 namespace irrlicht {
+
+/// @addtogroup irrlicht_module
+/// @{
 
 /// Irrlicht-based Chrono run-time visualization system.
 class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
@@ -104,7 +108,19 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// rmb+lmb+mouse, the position can be changed also with keyboard up/down/left/right arrows, the height can be
     /// changed with keyboard 'PgUp' and 'PgDn' keys. Optional parameters are position and target.
     /// Has no effect, unles called after Initialize().
-    void AddCamera(const ChVector<>& pos, ChVector<> targ = VNULL);
+    virtual int AddCamera(const ChVector<>& pos, ChVector<> targ = VNULL) override;
+
+    /// Set the location of the specified camera.
+    virtual void SetCameraPosition(int id, const ChVector<>& pos) override;
+
+    /// Set the target (look-at) point of the specified camera.
+    virtual void SetCameraTarget(int id, const ChVector<>& target) override;
+
+    /// Set the location of the current (active) camera.
+    virtual void SetCameraPosition(const ChVector<>& pos) override;
+
+    /// Set the target (look-at) point of the current (active) camera.
+    virtual void SetCameraTarget(const ChVector<>& target) override;
 
     /// Add a sky box in a 3D scene.
     /// Note: it is assumed that the specified "texture_dir" directory contains the following three texture images:
@@ -223,22 +239,46 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// occur after the call to Initialize().
     virtual void BindItem(std::shared_ptr<ChPhysicsItem> item) override;
 
+    /// Add a visual model not associated with a physical item.
+    /// Return a model ID which can be used later to modify the position of this visual model.
+    virtual int AddVisualModel(std::shared_ptr<ChVisualModel> model, const ChFrame<>& frame) override;
+
+    /// Add a visual model not associated with a physical item.
+    /// This version constructs a visual model consisting of the single specified shape.
+    /// Return an ID which can be used later to modify the position of this visual model.
+    virtual int AddVisualModel(std::shared_ptr<ChVisualShape> shape, const ChFrame<>& frame) override;
+
+    /// Update the position of the specified visualization-only model.
+    virtual void UpdateVisualModel(int id, const ChFrame<>& frame) override;
+
     /// Run the Irrlicht device.
     /// Returns `false` if the device wants to be deleted.
-    bool Run();
+    virtual bool Run() override;
 
-    /// Clean the canvas at the beginning of each animation frame.
-    virtual void BeginScene(bool backBuffer = true, bool zBuffer = true, ChColor color = ChColor(0, 0, 0));
+    /// Perform any necessary operations at the beginning of each rendering frame.
+    virtual void BeginScene() override;
+
+    /// Clean the canvas at the beginning of each rendering frame.
+    virtual void BeginScene(bool backBuffer, bool zBuffer, ChColor color);
 
     /// Draw all 3D shapes and GUI elements at the current frame.
     /// This function is typically called inside a loop such as
     /// <pre>
     ///    while(vis->Run()) {...}
     /// </pre>
-    virtual void Render();
+    virtual void Render() override;
+
+    /// Render a horizontal grid at the specified location.
+    virtual void RenderGrid(const ChFrame<>& frame, int num_divs, double delta) override;
+
+    /// Render the specified reference frame.
+    virtual void RenderFrame(const ChFrame<>& frame, double axis_length = 1) override;
+
+    /// Render COG frames for all bodies in the system.
+    virtual void RenderCOGFrames(double axis_length = 1) override;
 
     /// End the scene draw at the end of each animation frame.
-    virtual void EndScene();
+    virtual void EndScene() override;
 
     /// Return a fixed-size font for rendering GUI.
     irr::gui::IGUIFont* GetMonospaceFont() const { return m_monospace_font; }
@@ -248,6 +288,16 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     virtual void WriteImageToFile(const std::string& filename) override;
 
   private:
+    /// /// Irrlicht scene node for a visual model not associated with a physics item.
+    class ChIrrNodeVisual : public irr::scene::ISceneNode {
+      public:
+        ChIrrNodeVisual(irr::scene::ISceneNode* parent, irr::scene::ISceneManager* mgr)
+            : irr::scene::ISceneNode(parent, mgr, 0) {}
+        virtual void render() override {}
+        virtual const irr::core::aabbox3d<irr::f32>& getBoundingBox() const override { return m_box; }
+        irr::core::aabbox3d<irr::f32> m_box;
+    };
+
     /// Create the ChIrrNodes for all visual model instances in the specified assembly.
     void CreateIrrNodes(const ChAssembly* assembly, std::unordered_set<const ChAssembly*>& trace);
 
@@ -274,7 +324,10 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// Remove all visualization objects from this visualization system.
     virtual void OnClear(ChSystem* sys) override;
 
-    std::unordered_map<ChPhysicsItem*, std::shared_ptr<ChIrrNodeModel>> m_nodes;
+    std::vector<std::shared_ptr<RTSCamera>> m_cameras;  ///< list of cameras defined for the scene
+
+    std::unordered_map<ChPhysicsItem*, std::shared_ptr<ChIrrNodeModel>> m_nodes;  ///< scene nodes for physics items
+    std::vector<std::shared_ptr<ChIrrNodeVisual>> m_vis_nodes;                    ///< scene nodes for vis-only models
 
     bool m_yup;                                        ///< use Y-up if true, Z-up if false
     std::string m_win_title;                           ///< window title
@@ -293,6 +346,8 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     irr::scene::IMesh* cylinderMesh;
     irr::scene::IMesh* capsuleMesh;
 };
+
+/// @} irrlicht_module
 
 }  // namespace irrlicht
 }  // namespace chrono

@@ -31,8 +31,6 @@
 using namespace chrono;
 using namespace chrono::irrlicht;
 
-using namespace irr;
-
 bool output = false;
 const std::string out_dir = GetChronoOutputPath() + "SCM_DEF_SOIL";
 
@@ -297,7 +295,7 @@ int main(int argc, char* argv[]) {
         ////std::cout << "Wheel rot: " << mrigidbody->GetRot() << std::endl;
 
         vis->BeginScene();
-        vis->GetActiveCamera()->setTarget(core::vector3dfCH(mrigidbody->GetPos()));
+        vis->SetCameraTarget(mrigidbody->GetPos());
         vis->Render();
         tools::drawColorbar(vis.get(), 0, 30000, "Pressure yield [Pa]", 1180);
         vis->EndScene();

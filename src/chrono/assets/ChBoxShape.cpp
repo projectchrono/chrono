@@ -24,6 +24,10 @@ ChBoxShape::ChBoxShape() {
     SetMutable(false);
 }
 
+ChBoxShape::ChBoxShape(double x_length, double y_length, double z_length) {
+    gbox.SetLengths(ChVector<>(x_length, y_length, z_length));
+}
+
 ChBoxShape::ChBoxShape(const geometry::ChBox& box) : gbox(box) {
     SetMutable(false);
 }

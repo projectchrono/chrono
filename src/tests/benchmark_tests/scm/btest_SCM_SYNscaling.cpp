@@ -44,7 +44,7 @@
 #include "chrono_synchrono/utils/SynLog.h"
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 #endif
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
@@ -424,7 +424,7 @@ int main(int argc, char* argv[]) {
         hmmwv.Synchronize(time, driver_inputs, terrain);
 #ifdef CHRONO_IRRLICHT
         if (vis)
-            vis->Synchronize("", driver_inputs);
+            vis->Synchronize(time, driver_inputs);
 #endif
 
         driver.Advance(step_size);

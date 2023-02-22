@@ -24,9 +24,9 @@
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
-#include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+#include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleIrrApp.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
@@ -475,7 +475,7 @@ int main(int argc, char* argv[]) {
         // Update modules (process inputs from other modules)
         terrain.Synchronize(ch_time);
         my_hmmwv.Synchronize(ch_time, driver_inputs, terrain);
-        app.Synchronize("RL Inference", driver_inputs);
+        app.Synchronize(ch_time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);

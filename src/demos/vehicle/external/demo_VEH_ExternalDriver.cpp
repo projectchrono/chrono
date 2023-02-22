@@ -26,7 +26,7 @@
 #include "chrono_vehicle/utils/ChVehiclePath.h"
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 #endif
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
@@ -528,7 +528,7 @@ int main(int argc, char* argv[]) {
         terrain.Synchronize(time);
         hmmwv.Synchronize(time, driver_inputs, terrain);
 #ifdef USE_IRRLICHT
-        vis->Synchronize("External Driver", driver_inputs);
+        vis->Synchronize(time, driver_inputs);
 #endif
 
         // Advance simulation for one timestep for all modules

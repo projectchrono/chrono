@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::WIREFRAME);
     vis.Initialize();
-    vis.SetCameraPosition(ChVector<>(0, -2, -1), ChVector<>(0, 0, -1));
+    vis.AddCamera(ChVector<>(0, -2, -1), ChVector<>(0, 0, -1));
     vis.SetCameraVertical(CameraVerticalDir::Z);
 
     // Uncomment the following two lines for the OpenGL manager to automatically

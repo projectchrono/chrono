@@ -24,14 +24,24 @@
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledTrailer.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
+
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
+using namespace chrono::irrlicht;
+#endif
+
+#ifdef CHRONO_VSG
+    #include "chrono_vehicle/driver/ChInteractiveDriverVSG.h"
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
+using namespace chrono::vsg3d;
+#endif
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -39,13 +49,15 @@ using namespace chrono::vehicle;
 // =============================================================================
 // Specification of a vehicle model from JSON files
 // Available models:
-//    HMMWV   - Hig Mobility Multipurpose Wheeled Vehicle
-//    Sedan   - Generic sedan vehicle
-//    UAZ     - UAZ minibus
-//    CityBus - passenger bus
-//    MAN     - MAN 10t truck
-//    MTV     - MTV truck 
-//    ACV     - articulated chassis vehicle (skid steer)
+//    HMMWV       - Hig Mobility Multipurpose Wheeled Vehicle
+//    Sedan       - Generic sedan vehicle
+//    Audi        - Audia A4 
+//    VW microbus - VW T2 microbus
+//    UAZ         - UAZ minibus
+//    CityBus     - passenger bus
+//    MAN         - MAN 10t truck
+//    MTV         - MTV truck 
+//    ACV         - articulated chassis vehicle (skid steer)
 
 class Vehicle_Model {
   public:
@@ -61,16 +73,17 @@ class HMMWV_Model : public Vehicle_Model {
   public:
     virtual std::string ModelName() const override { return "HMMWV"; }
     virtual std::string VehicleJSON() const override {
-        return "hmmwv/vehicle/HMMWV_Vehicle.json";
+        return "hmmwv/vehicle/HMMWV_Vehicle_mapShock.json";
+        ////return "hmmwv/vehicle/HMMWV_Vehicle.json";
         ////return "hmmwv/vehicle/HMMWV_Vehicle_bushings.json";
         ////return "hmmwv/vehicle/HMMWV_Vehicle_4WD.json";
     }
     virtual std::string TireJSON() const override {
         ////return "hmmwv/tire/HMMWV_RigidTire.json";
         ////return "hmmwv/tire/HMMWV_FialaTire.json";
-        ////return "hmmwv/tire/HMMWV_TMeasyTire.json";
+        return "hmmwv/tire/HMMWV_TMeasyTire.json";
         ////return "hmmwv/tire/HMMWV_Pac89Tire.json";
-        return "hmmwv/tire/HMMWV_Pac02Tire.json";
+        ////return "hmmwv/tire/HMMWV_Pac02Tire.json";
     }
     virtual std::string PowertrainJSON() const override {
         return "hmmwv/powertrain/HMMWV_ShaftsPowertrain.json";
@@ -95,6 +108,30 @@ class Sedan_Model : public Vehicle_Model {
     virtual ChContactMethod ContactMethod() const { return ChContactMethod::SMC; }
 };
 
+class Audi_Model : public Vehicle_Model {
+  public:
+    virtual std::string ModelName() const override { return "Audi"; }
+    virtual std::string VehicleJSON() const override { return "audi/json/audi_Vehicle.json"; }
+    virtual std::string TireJSON() const override {
+        return "audi/json/audi_TMeasyTire.json";
+        ////return "audi/json/audi_RigidTire.json.json";
+        ////return "audi/json/audi_Pac02Tire.json";
+    }
+    virtual std::string PowertrainJSON() const override { return "audi/json/audi_SimpleMapPowertrain.json"; }
+    virtual double CameraDistance() const override { return 6.0; }
+    virtual ChContactMethod ContactMethod() const { return ChContactMethod::SMC; }
+};
+
+class Polaris_Model : public Vehicle_Model {
+  public:
+    virtual std::string ModelName() const override { return "Polaris"; }
+    virtual std::string VehicleJSON() const override { return "Polaris/Polaris.json"; }
+    virtual std::string TireJSON() const override { return "Polaris/Polaris_TMeasyTire.json"; }
+    virtual std::string PowertrainJSON() const override { return "Polaris/Polaris_SimpleMapPowertrain.json"; }
+    virtual double CameraDistance() const override { return 6.0; }
+    virtual ChContactMethod ContactMethod() const { return ChContactMethod::SMC; }
+};
+
 class UAZ_Model : public Vehicle_Model {
   public:
     virtual std::string ModelName() const override { return "UAZ"; }
@@ -115,9 +152,7 @@ class UAZ_Model : public Vehicle_Model {
 class VW_Microbus_Model : public Vehicle_Model {
   public:
     virtual std::string ModelName() const override { return "VW_Microbus"; }
-    virtual std::string VehicleJSON() const override {
-        return "VW_microbus/json/van_Vehicle.json";
-    }
+    virtual std::string VehicleJSON() const override { return "VW_microbus/json/van_Vehicle.json"; }
     virtual std::string TireJSON() const override {
         ////return "VW_microbus/json/van_Pac02Tire.json";
         return "VW_microbus/json/van_TMeasyTire.json";
@@ -204,9 +239,14 @@ class UT_Model : public Trailer_Model {
 
 // =============================================================================
 
+// Run-time visualization system (IRRLICHT or VSG)
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
+
 // Current vehicle model selection
 auto vehicle_model = HMMWV_Model();
 ////auto vehicle_model = Sedan_Model();
+////auto vehicle_model = Audi_Model();
+////auto vehicle_model = Polaris_Model();
 ////auto vehicle_model = VW_Microbus_Model();
 ////auto vehicle_model = UAZ_Model();
 ////auto vehicle_model = CityBus_Model();
@@ -244,7 +284,7 @@ int main(int argc, char* argv[]) {
     WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_model.VehicleJSON()), vehicle_model.ContactMethod());
     vehicle.Initialize(ChCoordsys<>(initLoc, Q_from_AngZ(initYaw)));
     vehicle.GetChassis()->SetFixed(false);
-    vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetChassisVisualizationType(VisualizationType::MESH);
     vehicle.SetChassisRearVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
@@ -268,8 +308,7 @@ int main(int argc, char* argv[]) {
     // Create the trailer system (build into same ChSystem)
     std::shared_ptr<WheeledTrailer> trailer;
     if (add_trailer) {
-        trailer = chrono_types::make_shared<WheeledTrailer>(system,
-                                                            vehicle::GetDataFile(trailer_model.TrailerJSON()));
+        trailer = chrono_types::make_shared<WheeledTrailer>(system, vehicle::GetDataFile(trailer_model.TrailerJSON()));
         trailer->Initialize(vehicle.GetChassis());
         trailer->SetChassisVisualizationType(VisualizationType::PRIMITIVES);
         trailer->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
@@ -286,22 +325,72 @@ int main(int argc, char* argv[]) {
     RigidTerrain terrain(system, vehicle::GetDataFile(rigidterrain_file));
     terrain.Initialize();
 
-    // Create Irrilicht visualization
-    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
-    vis->SetWindowTitle("Vehicle demo - JSON specification");
-    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), vehicle_model.CameraDistance(), 0.5);
-    vis->Initialize();
-    vis->AddLightDirectional();
-    vis->AddSkyBox();
-    vis->AddLogo();
-    vis->AttachVehicle(&vehicle);
+    // Create the vehicle run-time visualization interface and the interactive driver
+#ifndef CHRONO_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::IRRLICHT)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
 
-    // Create the interactive driver
-    ChIrrGuiDriver driver(*vis);
-    driver.SetSteeringDelta(0.02);
-    driver.SetThrottleDelta(0.02);
-    driver.SetBrakingDelta(0.06);
-    driver.Initialize();
+    std::string title = "Vehicle demo - JSON specification - " + vehicle_model.ModelName();
+    std::shared_ptr<ChVehicleVisualSystem> vis;
+    std::shared_ptr<ChDriver> driver;
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
+            // Create the vehicle Irrlicht interface
+            auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+            vis_irr->SetWindowTitle(title);
+            vis_irr->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), vehicle_model.CameraDistance(), 0.5);
+            vis_irr->Initialize();
+            vis_irr->AddLightDirectional();
+            vis_irr->AddSkyBox();
+            vis_irr->AddLogo();
+            vis_irr->AttachVehicle(&vehicle);
+
+            // Create the interactive Irrlicht driver system
+            auto driver_irr = chrono_types::make_shared<ChInteractiveDriverIRR>(*vis_irr);
+            driver_irr->SetSteeringDelta(0.02);
+            driver_irr->SetThrottleDelta(0.02);
+            driver_irr->SetBrakingDelta(0.06);
+            driver_irr->Initialize();
+
+            vis = vis_irr;
+            driver = driver_irr;
+#endif
+            break;
+        }
+        case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+            // Create the vehicle VSG interface
+            auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
+            vis_vsg->SetWindowTitle(title);
+            vis_vsg->AttachVehicle(&vehicle);
+            vis_vsg->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), vehicle_model.CameraDistance(), 0.5);
+            vis_vsg->SetWindowSize(ChVector2<int>(800, 600));
+            vis_vsg->SetWindowPosition(ChVector2<int>(100, 300));
+            vis_vsg->SetUseSkyBox(true);
+            vis_vsg->SetCameraAngleDeg(40);
+            vis_vsg->SetLightIntensity(1.0f);
+            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->Initialize();
+
+            // Create the interactive VSG driver system
+            auto driver_vsg = chrono_types::make_shared<ChInteractiveDriverVSG>(*vis_vsg);
+            driver_vsg->SetSteeringDelta(0.02);
+            driver_vsg->SetThrottleDelta(0.02);
+            driver_vsg->SetBrakingDelta(0.06);
+            driver_vsg->Initialize();
+
+            vis = vis_vsg;
+            driver = driver_vsg;
+#endif
+            break;
+        }
+    }
 
     // Initialize output directories
     std::string veh_dir = out_dir + "/" + vehicle_model.ModelName();
@@ -349,19 +438,19 @@ int main(int argc, char* argv[]) {
         vis->EndScene();
 
         // Get driver inputs
-        DriverInputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver->GetInputs();
 
         // Update modules (process inputs from other modules)
         double time = vehicle.GetSystem()->GetChTime();
-        driver.Synchronize(time);
+        driver->Synchronize(time);
         vehicle.Synchronize(time, driver_inputs, terrain);
         if (add_trailer)
             trailer->Synchronize(time, driver_inputs, terrain);
         terrain.Synchronize(time);
-        vis->Synchronize(vehicle_model.ModelName(), driver_inputs);
+        vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
-        driver.Advance(step_size);
+        driver->Advance(step_size);
         vehicle.Advance(step_size);
         if (add_trailer)
             trailer->Advance(step_size);

@@ -33,8 +33,6 @@ using namespace chrono;
 using namespace chrono::irrlicht;
 using namespace chrono::vehicle;
 
-using namespace irr;
-
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
@@ -49,9 +47,7 @@ int main(int argc, char* argv[]) {
     mtruss->SetBodyFixed(true);
     sys.Add(mtruss);
 
-    //
     // CREATE A DEFORMABLE TIRE
-    //
 
     // The rim body:
     auto mrim = chrono_types::make_shared<ChBody>();
@@ -85,9 +81,7 @@ int main(int argc, char* argv[]) {
     motor->Initialize(mrim, mtruss, ChFrame<>(tire_center, Q_from_AngAxis(CH_C_PI_2, VECT_Y)));
     sys.Add(motor);
 
-    //
     // THE DEFORMABLE TERRAIN
-    //
 
     // Create the 'deformable terrain' object
     vehicle::SCMDeformableTerrain mterrain(&sys);
@@ -143,9 +137,7 @@ int main(int argc, char* argv[]) {
                             ChColor(0.8f, 0.8f, 1.0f));
     vis->EnableShadows();
 
-    //
     // THE SOFT-REAL-TIME CYCLE
-    //
 
     // change the solver to PardisoMKL:
     GetLog() << "Using PardisoMKL solver\n";

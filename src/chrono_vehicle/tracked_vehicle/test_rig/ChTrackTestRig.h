@@ -30,7 +30,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
-#include "chrono_vehicle/tracked_vehicle/test_rig/ChDriverTTR.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigDriver.h"
 
 namespace chrono {
 namespace vehicle {
@@ -62,7 +62,7 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     ~ChTrackTestRig();
 
     /// Set driver system.
-    void SetDriver(std::shared_ptr<ChDriverTTR> driver);
+    void SetDriver(std::shared_ptr<ChTrackTestRigDriver> driver);
 
     /// Set the initial ride height (relative to the sprocket reference frame).
     /// If not specified, the reference height is the track assembly design configuration.
@@ -147,7 +147,6 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
 
     double GetThrottleInput() const { return m_throttle_input; }
     double GetDisplacementInput(int index) { return m_displ_input[index]; }
-    std::string GetDriverMessage() const { return m_driver->GetInfoMessage(); }
 
     double GetActuatorDisp(int index);
     double GetActuatorForce(int index);
@@ -218,7 +217,7 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     std::vector<std::shared_ptr<ChBody>> m_post;                            ///< post bodies
     std::vector<std::shared_ptr<ChLinkMotorLinearPosition>> m_post_linact;  ///< post linear actuators
 
-    std::shared_ptr<ChDriverTTR> m_driver;  ///< driver system
+    std::shared_ptr<ChTrackTestRigDriver> m_driver;  ///< driver system
     double m_throttle_input;                ///< current driver throttle input
     std::vector<double> m_displ_input;      ///< current post displacement inputs
     std::string m_driver_logfile;           ///< name of optioinal driver log file

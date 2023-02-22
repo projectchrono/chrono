@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::WIREFRAME);
     vis.Initialize();
-    vis.SetCameraPosition(ChVector<>(4, 4, -5), ChVector<>(0, 0, 0));
+    vis.AddCamera(ChVector<>(4, 4, -5), ChVector<>(0, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Y);
 
     // Callback for contact reporting

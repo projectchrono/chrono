@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Asher Elmquist, Evan Hoerl
+// Authors: Radu Serban, Asher Elmquist, Evan Hoerl, Rainer Gericke
 // =============================================================================
 //
 // Main driver function for the City Bus full model.
@@ -25,24 +25,32 @@
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
-#include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/citybus/CityBus.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-using namespace chrono;
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
+#endif
+
+#ifdef CHRONO_VSG
+    #include "chrono_vehicle/driver/ChInteractiveDriverVSG.h"
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
+using namespace chrono::vsg3d;
+#endif
+
+using namespace chrono;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::citybus;
 
 // =============================================================================
 
-// Initial vehicle location and orientation
-ChVector<> initLoc(0, 0, 0.5);
-ChQuaternion<> initRot(1, 0, 0, 0);
+// Run-time visualization system (IRRLICHT or VSG)
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
 
 enum DriverMode { DEFAULT, RECORD, PLAYBACK };
 DriverMode driver_mode = DEFAULT;
@@ -108,7 +116,7 @@ int main(int argc, char* argv[]) {
     my_bus.SetContactMethod(contact_method);
     my_bus.SetChassisCollisionType(chassis_collision_type);
     my_bus.SetChassisFixed(false);
-    my_bus.SetInitPosition(ChCoordsys<>(initLoc, initRot));
+    my_bus.SetInitPosition(ChCoordsys<>(ChVector<>(0, 0, 0.5), QUNIT));
     my_bus.SetTireType(tire_model);
     my_bus.SetTireStepSize(tire_step_size);
     my_bus.Initialize();
@@ -135,8 +143,8 @@ int main(int argc, char* argv[]) {
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:
-            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"),
-                                     128, 128, 0, 4);
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"), 128,
+                                     128, 0, 4);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
             break;
         case RigidTerrain::PatchType::MESH:
@@ -145,18 +153,8 @@ int main(int argc, char* argv[]) {
             break;
     }
     patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
-    
-    terrain.Initialize();
 
-    // Create the vehicle Irrlicht interface
-    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
-    vis->SetWindowTitle("City Bus Demo");
-    vis->SetChaseCamera(trackPoint, 14.0, 0.5);
-    vis->Initialize();
-    vis->AddLightDirectional();
-    vis->AddSkyBox();
-    vis->AddLogo();
-    vis->AttachVehicle(&my_bus.GetVehicle());
+    terrain.Initialize();
 
     // -----------------
     // Initialize output
@@ -177,29 +175,88 @@ int main(int argc, char* argv[]) {
     std::string driver_file = out_dir + "/driver_inputs.txt";
     utils::CSV_writer driver_csv(" ");
 
-    // ------------------------
-    // Create the driver system
-    // ------------------------
+    // Create the vehicle run-time visualization interface and the interactive driver
+    std::shared_ptr<ChVehicleVisualSystem> vis;
+    std::shared_ptr<ChDriver> driver;
 
-    // Create the interactive driver system
-    ChIrrGuiDriver driver(*vis);
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
+            // Create the vehicle Irrlicht interface
+            auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+            vis_irr->SetWindowTitle("City Bus Demo");
+            vis_irr->SetChaseCamera(trackPoint, 14.0, 0.5);
+            vis_irr->Initialize();
+            vis_irr->AddLightDirectional();
+            vis_irr->AddSkyBox();
+            vis_irr->AddLogo();
+            vis_irr->AttachVehicle(&my_bus.GetVehicle());
 
-    // Set the time response for steering and throttle keyboard inputs.
-    double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
-    double throttle_time = 1.0;  // time to go from 0 to +1
-    double braking_time = 0.3;   // time to go from 0 to +1
-    driver.SetSteeringDelta(render_step_size / steering_time);
-    driver.SetThrottleDelta(render_step_size / throttle_time);
-    driver.SetBrakingDelta(render_step_size / braking_time);
+            if (contact_vis) {
+                vis_irr->SetSymbolScale(1e-4);
+                vis_irr->EnableContactDrawing(ContactsDrawMode::CONTACT_FORCES);
+            }
 
-    // If in playback mode, attach the data file to the driver system and
-    // force it to playback the driver inputs.
-    if (driver_mode == PLAYBACK) {
-        driver.SetInputDataFile(driver_file);
-        driver.SetInputMode(ChIrrGuiDriver::InputMode::DATAFILE);
+            // Create the interactive Irrlicht driver system
+            auto driver_irr = chrono_types::make_shared<ChInteractiveDriverIRR>(*vis_irr);
+
+            // Set the time response for steering and throttle keyboard inputs.
+            double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
+            double throttle_time = 1.0;  // time to go from 0 to +1
+            double braking_time = 0.3;   // time to go from 0 to +1
+            driver_irr->SetSteeringDelta(render_step_size / steering_time);
+            driver_irr->SetThrottleDelta(render_step_size / throttle_time);
+            driver_irr->SetBrakingDelta(render_step_size / braking_time);
+
+            // If in playback mode, attach the data file to the driver system and
+            // force it to playback the driver inputs.
+            if (driver_mode == PLAYBACK) {
+                driver_irr->SetInputDataFile(driver_file);
+                driver_irr->SetInputMode(ChInteractiveDriverIRR::InputMode::DATAFILE);
+            }
+
+            driver_irr->Initialize();
+
+            vis = vis_irr;
+            driver = driver_irr;
+#endif
+            break;
+        }
+        case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+            // Create the vehicle VSG interface
+            auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
+            vis_vsg->SetWindowTitle("VSG: City Bus Demo");
+            vis_vsg->SetChaseCamera(trackPoint, 14.0, 0.5);
+            vis_vsg->AttachVehicle(&my_bus.GetVehicle());
+            vis_vsg->Initialize();
+
+            // Create the interactive VSG driver system
+            auto driver_vsg = chrono_types::make_shared<ChInteractiveDriverVSG>(*vis_vsg);
+
+            // Set the time response for steering and throttle keyboard inputs.
+            double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
+            double throttle_time = 1.0;  // time to go from 0 to +1
+            double braking_time = 0.3;   // time to go from 0 to +1
+            driver_vsg->SetSteeringDelta(render_step_size / steering_time);
+            driver_vsg->SetThrottleDelta(render_step_size / throttle_time);
+            driver_vsg->SetBrakingDelta(render_step_size / braking_time);
+
+            // If in playback mode, attach the data file to the driver system and
+            // force it to playback the driver inputs.
+            if (driver_mode == PLAYBACK) {
+                driver_vsg->SetInputDataFile(driver_file);
+                driver_vsg->SetInputMode(ChInteractiveDriverVSG::InputMode::DATAFILE);
+            }
+
+            driver_vsg->Initialize();
+
+            vis = vis_vsg;
+            driver = driver_vsg;
+#endif
+            break;
+        }
     }
-
-    driver.Initialize();
 
     // ---------------
     // Simulation loop
@@ -220,11 +277,6 @@ int main(int argc, char* argv[]) {
     // Initialize simulation frame counters
     int step_number = 0;
     int render_frame = 0;
-
-    if (contact_vis) {
-        vis->SetSymbolScale(1e-4);
-        vis->EnableContactDrawing(ContactsDrawMode::CONTACT_FORCES);
-    }
 
     my_bus.GetVehicle().EnableRealtime(true);
     while (vis->Run()) {
@@ -257,7 +309,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Collect output data from modules (for inter-module communication)
-        DriverInputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver->GetInputs();
 
         // Driver output
         if (driver_mode == RECORD) {
@@ -266,13 +318,13 @@ int main(int argc, char* argv[]) {
         }
 
         // Update modules (process inputs from other modules)
-        driver.Synchronize(time);
+        driver->Synchronize(time);
         terrain.Synchronize(time);
         my_bus.Synchronize(time, driver_inputs, terrain);
-        vis->Synchronize(driver.GetInputModeAsString(), driver_inputs);
+        vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
-        driver.Advance(step_size);
+        driver->Advance(step_size);
         terrain.Advance(step_size);
         my_bus.Advance(step_size);
         vis->Advance(step_size);

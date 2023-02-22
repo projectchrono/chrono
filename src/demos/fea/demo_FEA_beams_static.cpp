@@ -34,7 +34,6 @@
 using namespace chrono;
 using namespace chrono::fea;
 using namespace chrono::irrlicht;
-using namespace irr;
 
 // Output directory
 const std::string out_dir = GetChronoOutputPath() + "BEAM_STATICS";

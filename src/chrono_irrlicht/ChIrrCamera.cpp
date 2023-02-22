@@ -317,7 +317,7 @@ void RTSCamera::animate() {
     tvectX = tvectX.crossProduct(UpVector);
     tvectX.normalize();
 
-    // Zoom
+    // CameraZoom
     if (isMouseKeyDown(MOUSE_BUTTON_RIGHT) && isMouseKeyDown(MOUSE_BUTTON_LEFT)) {
         if (!zooming) {
             zoomStartX = MousePos.X;
@@ -530,7 +530,7 @@ void RTSCamera::updateAnimationState() {
         rotY = -(f32)vec2d.getAngle();
     }
 
-    // Zoom
+    // CameraZoom
     currentZoom = (f32)Pos.getDistanceFrom(Target);
 }
 

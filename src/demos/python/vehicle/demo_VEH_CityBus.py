@@ -125,7 +125,7 @@ vis.AddSkyBox()
 vis.AttachVehicle(my_bus.GetVehicle())
 
 # Create the driver system
-driver = veh.ChIrrGuiDriver(vis)
+driver = veh.ChInteractiveDriverIRR(vis)
 
 # Set the time response for steering and throttle keyboard inputs.
 steering_time = 1.0  # time to go from 0 to +1 (or from 0 to -1)
@@ -174,7 +174,7 @@ while vis.Run() :
     driver.Synchronize(time)
     terrain.Synchronize(time)
     my_bus.Synchronize(time, driver_inputs, terrain)
-    vis.Synchronize(driver.GetInputModeAsString(), driver_inputs)
+    vis.Synchronize(time, driver_inputs)
 
     # Advance simulation for one timestep for all modules
     driver.Advance(step_size)

@@ -5,8 +5,8 @@
 
     "Vehicle-Frame Inertia": false,
 
-   "Camber Angle (deg)": 0,
-   "Toe Angle (deg)": 0,
+    "Camber Angle (deg)": 0,
+    "Toe Angle (deg)": 0,
 
     "Spindle": {
         "Mass": 14.705,
@@ -21,7 +21,7 @@
         "COM": [ -0.040, 0.751, -0.026 ],
         "Moments of Inertia": [ 0.1656, 0.1934, 0.04367 ],
         "Products of Inertia": [ 0, 0, 0 ],
-        "Radius": 0.025
+        "Radius": 0.04
     },
 
     // If bushing data is defined, use bushings for connectino to chassis.
@@ -89,7 +89,7 @@
         "Location Arm": [ 0.097, 0.543, -0.047 ],
         "Minimum Length": 0.15,
         "Maximum Length": 0.3,
-        "Curve Data": [
+        "Spring Curve Data": [
             [ -0.2, -322095.536 ],
             [ -0.18, -240521.166 ],
             [ -0.16, -174535.686 ],

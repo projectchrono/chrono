@@ -555,7 +555,7 @@ int main(int argc, char* argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::SOLID);
     vis.Initialize();
-    vis.SetCameraPosition(ChVector<>(1, 3, -7), ChVector<>(0, 0, 0));
+    vis.AddCamera(ChVector<>(1, 3, -7), ChVector<>(0, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Y);
 
     // Simulate system

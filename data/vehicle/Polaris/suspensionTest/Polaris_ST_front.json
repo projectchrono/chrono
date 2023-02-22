@@ -1,0 +1,23 @@
+{
+  "Name":     "MRZR new Front Suspension Test",
+  "Type":     "SuspensionTest",
+  "Template": "SuspensionTest",
+
+  "Suspension":
+  {
+    "Suspension Input File":   "mrzr/JSON_new/suspension/MRZR_Front_DoubleWishbone.json",
+    "Suspension Location":     [0, 0, 0],
+    "Left Wheel Input File":   "mrzr/JSON_new/wheel/MRZR_wheel.json",
+    "Right Wheel Input File":  "mrzr/JSON_new/wheel/MRZR_wheel.json"
+  },
+
+  "Displacement Limit":     0.15,
+
+  "Steering":
+  {
+    "Input File":           "mrzr/JSON_new/steering/MRZR_Steering.json",
+    "Location":             [-0.13716, 0, 0.50292],
+    "Orientation":          [1, 0, 0, 0],
+    "Suspension Index":     0
+  }
+}

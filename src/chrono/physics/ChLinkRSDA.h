@@ -55,6 +55,18 @@ class ChApi ChLinkRSDA : public ChLink {
     /// This number can be either positive or negative.
     void SetNumInitRevolutions(int n);
 
+    /// Get the value of the spring coefficient.
+    /// Meaningful only if no torque functor is provided.
+    double GetSpringCoefficient() const { return m_k; }
+
+    /// Get the value of the damping coefficient.
+    /// Meaningful only if no torque functor is provided.
+    double GetDampingCoefficient() const { return m_r; }
+
+    /// Get the constant acutation torque.
+    /// Meaningful only if no torque functor is provided.
+    double GetActuatorTorque() const { return m_t; }
+
     /// Class to be used as a callback interface for calculating the general spring-damper torque.
     /// A derived class must implement the virtual operator().
     class ChApi TorqueFunctor {
@@ -71,6 +83,9 @@ class ChApi ChLinkRSDA : public ChLink {
 
     /// Specify the callback object for calculating the torque.
     void RegisterTorqueFunctor(std::shared_ptr<TorqueFunctor> functor) { m_torque_fun = functor; }
+
+    /// Return the functor object for calculating the torque (may be empty).
+    std::shared_ptr<TorqueFunctor> GetTorqueFunctor() const { return m_torque_fun; }
 
     /// Get the spring rest (free) angle.
     double GetRestAngle() const;

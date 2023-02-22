@@ -291,8 +291,7 @@ int main(int argc, char* argv[]) {
     vis->AddCamera(ChVector<>(0, 0, -60));
     vis->AddTypicalLights();
 
-    auto camera = vis->GetActiveCamera();
-    camera->setFOV(irr::core::PI / 10.0f);
+    vis->GetActiveCamera()->setFOV(irr::core::PI / 10.0f);
 
     if (rotate_shapes) {
         for (auto& b : sys.Get_bodylist())

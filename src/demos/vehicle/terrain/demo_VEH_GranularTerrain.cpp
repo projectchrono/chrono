@@ -181,7 +181,7 @@ int main(int argc, char* argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::SOLID);
     vis.Initialize();
-    vis.SetCameraPosition(center - ChVector<>(0, 3, 0), center);
+    vis.AddCamera(center - ChVector<>(0, 3, 0), center);
     vis.SetCameraVertical(CameraVerticalDir::Z);
 
     // ---------------
@@ -216,13 +216,13 @@ int main(int argc, char* argv[]) {
                 case FRONT: {
                     ChVector<> cam_loc(terrain.GetPatchFront(), -3, 0);
                     ChVector<> cam_point(terrain.GetPatchFront(), 0, 0);
-                    vis.SetCameraPosition(cam_loc, cam_point);
+                    vis.UpdateCamera(cam_loc, cam_point);
                     break;
                 }
                 case TRACK: {
                     ChVector<> cam_point = body->GetPos();
                     ChVector<> cam_loc = cam_point + ChVector<>(-3 * tire_rad, -1, 0.6);
-                    vis.SetCameraPosition(cam_loc, cam_point);
+                    vis.UpdateCamera(cam_loc, cam_point);
                     break;
                 }
                 default:

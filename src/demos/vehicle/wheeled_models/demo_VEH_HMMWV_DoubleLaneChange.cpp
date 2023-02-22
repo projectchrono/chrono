@@ -17,6 +17,19 @@
 // The vehicle reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
 //
+// Call options:
+//    1) demo_VEH_HMMWV_DoubleLaneChange
+//        -> standard demo velkmh= 30km/h, ISO3888-1, left turn
+//
+//    2) demo_VEH_HMMWV_DoubleLaneChange VelKMH
+//        -> velkmh= VelKMH, ISO3888-1, left turn
+//
+//    3) demo_VEH_HMMWV_DoubleLaneChange VelKMH [1|2]
+//        -> velkmh= VelKMH, ISO variant set to 1 or 2, left turn
+//
+//    4) demo_VEH_HMMWV_DoubleLaneChange VelKMH [1|2] [L|R]
+//        -> velkmh= VelKMH, ISO variant set to 1 or 2, turn set to left or right
+//
 // =============================================================================
 
 #include <cmath>
@@ -32,7 +45,6 @@
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
@@ -40,192 +52,46 @@
     #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
-using namespace chrono;
-using namespace chrono::geometry;
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
+#endif
+
+#ifdef CHRONO_VSG
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
+using namespace chrono::vsg3d;
+#endif
+
+using namespace chrono;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
+
+using std::cout;
+using std::endl;
 
 typedef enum { ISO3888_1, ISO3888_2 } DLC_Variant;
 
 // =============================================================================
-// ISO 3888 helper class
-class ISO3888_Helper {
+// Wrapper class for an ISO 3888 double lane change maneuver
+class ISO3888_Wrapper {
   public:
-    ISO3888_Helper(double xmin, double acc_length, double vehicle_width, DLC_Variant variant, bool left_turn = true) {
-        switch (variant) {
-            default:
-            case ISO3888_1:
-                // gate A
-                m_lengthA = 15.0;
-                m_widthA = 1.1 * vehicle_width + 0.25;
-                // gate B
-                m_lengthAB = 30.0;
-                m_lengthB = 25.0;
-                m_widthB = 1.2 * vehicle_width + 0.25;
-                if (left_turn) {
-                    m_ofsB = m_widthB / 2.0 + 3.5;
-                } else {
-                    m_ofsB = -(m_widthB / 2.0 + 3.5);
-                }
-                // gate C
-                m_lengthBC = 25.0;
-                m_lengthC = 15.0;
-                m_widthC = 1.3 * vehicle_width + 0.25;
-                if (left_turn) {
-                    m_ofsC = (m_widthC - m_widthA) / 2;
-                } else {
-                    m_ofsC = (m_widthA - m_widthC) / 2;
-                }
-                break;
-            case ISO3888_2:
-                // gate A
-                m_lengthA = 12.0;
-                m_widthA = 1.1 * vehicle_width + 0.25;
-                // gate B
-                m_lengthAB = 13.5;
-                m_lengthB = 11.0;
-                m_widthB = vehicle_width + 1.0;
-                if (left_turn) {
-                    m_ofsB = m_widthB / 2.0 + m_widthA / 2.0 + 1.0;
-                } else {
-                    m_ofsB = -(m_widthB / 2.0 + m_widthA / 2.0 + 1.0);
-                }
-                // gate C
-                m_lengthBC = 12.5;
-                m_lengthC = 12.0;
-                m_widthC = 3.0;
-                if (left_turn) {
-                    m_ofsC = (m_widthC - m_widthA) / 2;
-                } else {
-                    m_ofsC = (m_widthA - m_widthC) / 2;
-                }
-                break;
-        }
-        //================== setup definition points ========================================
-        double zl = 0.1;
-        // P1
-        m_leftLine.push_back(ChVector<>(xmin + acc_length, m_widthA / 2.0, 0));
-        m_centerLine.push_back(ChVector<>(xmin, 0, 0));
-        m_rightLine.push_back(ChVector<>(xmin + acc_length, -m_widthA / 2.0, 0));
-        // P2
-        m_leftLine.push_back(ChVector<>(xmin + acc_length + m_lengthA, m_widthA / 2.0, 0));
-        m_centerLine.push_back(ChVector<>(xmin + acc_length + m_lengthA, 0, zl));
-        m_rightLine.push_back(ChVector<>(xmin + acc_length + m_lengthA, -m_widthA / 2.0, 0));
-        // P3
-        m_leftLine.push_back(ChVector<>(xmin + acc_length + m_lengthA + m_lengthAB, m_widthB / 2.0, 0));
-        m_centerLine.push_back(ChVector<>(xmin + acc_length + m_lengthA + m_lengthAB, 0, zl));
-        m_rightLine.push_back(ChVector<>(xmin + acc_length + m_lengthA + m_lengthAB, -m_widthB / 2.0, 0));
-        m_leftLine.back().y() += m_ofsB;
-        m_centerLine.back().y() += m_ofsB;
-        m_rightLine.back().y() += m_ofsB;
-        // P4
-        m_leftLine.push_back(ChVector<>(xmin + acc_length + m_lengthA + m_lengthAB + m_lengthB, m_widthB / 2.0, 0));
-        m_centerLine.push_back(ChVector<>(xmin + acc_length + m_lengthA + m_lengthAB + m_lengthB, 0, zl));
-        m_rightLine.push_back(ChVector<>(xmin + acc_length + m_lengthA + m_lengthAB + m_lengthB, -m_widthB / 2.0, 0));
-        m_leftLine.back().y() += m_ofsB;
-        m_centerLine.back().y() += m_ofsB;
-        m_rightLine.back().y() += m_ofsB;
-        // P5
-        m_leftLine.push_back(
-            ChVector<>(xmin + acc_length + m_lengthA + m_lengthAB + m_lengthB + m_lengthBC, m_widthC / 2.0, 0));
-        m_centerLine.push_back(ChVector<>(xmin + acc_length + m_lengthA + m_lengthAB + m_lengthB + m_lengthBC, 0, zl));
-        m_rightLine.push_back(
-            ChVector<>(xmin + acc_length + m_lengthA + m_lengthAB + m_lengthB + m_lengthBC, -m_widthC / 2.0, 0));
-        m_leftLine.back().y() += m_ofsC;
-        m_centerLine.back().y() += m_ofsC;
-        m_rightLine.back().y() += m_ofsC;
-        // P6
-        m_leftLine.push_back(ChVector<>(xmin + acc_length + m_lengthA + m_lengthAB + m_lengthB + m_lengthBC + m_lengthC,
-                                        m_widthC / 2.0, 0));
-        m_centerLine.push_back(
-            ChVector<>(xmin + acc_length + m_lengthA + m_lengthAB + m_lengthB + m_lengthBC + m_lengthC, 0, zl));
-        m_rightLine.push_back(ChVector<>(
-            xmin + acc_length + m_lengthA + m_lengthAB + m_lengthB + m_lengthBC + m_lengthC, -m_widthC / 2.0, 0));
-        m_leftLine.back().y() += m_ofsC;
-        m_centerLine.back().x() += 100.0;
-        m_centerLine.back().y() += m_ofsC;
-        m_rightLine.back().y() += m_ofsC;
-        // luxury: add some road cone positions like in the standard
-        m_leftCones.push_back(m_leftLine[0]);
-        m_leftCones.push_back((m_leftLine[0] + m_leftLine[1]) / 2);
-        m_leftCones.push_back(m_leftLine[1]);
-        m_leftCones.push_back(m_leftLine[2]);
-        m_leftCones.push_back((m_leftLine[2] + m_leftLine[3]) / 2);
-        m_leftCones.push_back(m_leftLine[3]);
-        m_leftCones.push_back(m_leftLine[4]);
-        m_leftCones.push_back((m_leftLine[4] + m_leftLine[5]) / 2);
-        m_leftCones.push_back(m_leftLine[5]);
+    ISO3888_Wrapper(double xmin, double acc_length, double vehicle_width, DLC_Variant variant, bool left_turn);
+    ~ISO3888_Wrapper() {}
 
-        m_rightCones.push_back(m_rightLine[0]);
-        m_rightCones.push_back((m_rightLine[0] + m_rightLine[1]) / 2);
-        m_rightCones.push_back(m_rightLine[1]);
-        m_rightCones.push_back(m_rightLine[2]);
-        m_rightCones.push_back((m_rightLine[2] + m_rightLine[3]) / 2);
-        m_rightCones.push_back(m_rightLine[3]);
-        m_rightCones.push_back(m_rightLine[4]);
-        m_rightCones.push_back((m_rightLine[4] + m_rightLine[5]) / 2);
-        m_rightCones.push_back(m_rightLine[5]);
+    bool GateTestLeft(ChVector<>& p);
+    bool GateTestRight(ChVector<>& p);
 
-        // prepare path spline definition
-        ChVector<> offset(m_lengthB / 3, 0, 0);
-        for (size_t i = 0; i < m_centerLine.size(); i++) {
-            m_inCV.push_back(m_centerLine[i] - offset);
-            m_outCV.push_back(m_centerLine[i] + offset);
-        }
-        m_path = chrono_types::make_shared<ChBezierCurve>(m_centerLine, m_inCV, m_outCV);
-    }
+    const std::vector<ChVector<>>& GetLeftConePositions() const { return m_leftCones; }
+    const std::vector<ChVector<>>& GetRightConePositions() const { return m_rightCones; }
 
-    bool GateTestLeft(ChVector<>& p) {
-        if (p.x() >= m_leftLine[0].x() && p.x() <= m_leftLine[1].x()) {
-            if (p.y() > m_leftLine[0].y())
-                return false;
-        }
-        if (p.x() >= m_leftLine[2].x() && p.x() <= m_leftLine[3].x()) {
-            if (p.y() > m_leftLine[2].y())
-                return false;
-        }
-        if (p.x() >= m_leftLine[4].x() && p.x() <= m_leftLine[5].x()) {
-            if (p.y() > m_leftLine[4].y())
-                return false;
-        }
-        return true;
-    }
-
-    bool GateTestRight(ChVector<>& p) {
-        if (p.x() >= m_leftLine[0].x() && p.x() <= m_leftLine[1].x()) {
-            if (p.y() < m_rightLine[0].y())
-                return false;
-        }
-        if (p.x() >= m_leftLine[2].x() && p.x() <= m_leftLine[3].x()) {
-            if (p.y() < m_rightLine[2].y())
-                return false;
-        }
-        if (p.x() >= m_leftLine[4].x() && p.x() <= m_leftLine[5].x()) {
-            if (p.y() < m_rightLine[4].y())
-                return false;
-        }
-        return true;
-    }
-
-    size_t GetConePositions() { return m_leftCones.size(); }
-    ChVector<>& GetConePosition(size_t idx, bool left) {
-        if (left)
-            return m_leftCones[idx];
-        else
-            return m_rightCones[idx];
-    }
-
-    ~ISO3888_Helper() {}
-
-    double GetManeuverLength() { return m_leftLine[5].x() - m_leftLine[0].x(); }
-    double GetXmax() { return m_leftLine[5].x(); }
+    double GetManeuverLength() { return m_lineL[5].x() - m_lineL[0].x(); }
+    double GetXmax() { return m_lineL[5].x(); }
     std::shared_ptr<ChBezierCurve> GetPath() { return m_path; }
 
   private:
-    std::vector<ChVector<>> m_leftLine;
-    std::vector<ChVector<>> m_centerLine;
-    std::vector<ChVector<>> m_rightLine;
+    std::vector<ChVector<>> m_lineL;
+    std::vector<ChVector<>> m_lineC;
+    std::vector<ChVector<>> m_lineR;
     std::vector<ChVector<>> m_leftCones;
     std::vector<ChVector<>> m_rightCones;
     double m_widthA;
@@ -242,14 +108,18 @@ class ISO3888_Helper {
     std::vector<ChVector<>> m_outCV;
     std::shared_ptr<ChBezierCurve> m_path;
 };
+
 // =============================================================================
 
+// Run-time visualization system (IRRLICHT or VSG)
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+
 // Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
-VisualizationType chassis_vis_type = VisualizationType::PRIMITIVES;
+VisualizationType chassis_vis_type = VisualizationType::NONE;
 VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType wheel_vis_type = VisualizationType::NONE;
-VisualizationType tire_vis_type = VisualizationType::PRIMITIVES;
+VisualizationType tire_vis_type = VisualizationType::MESH;
 
 // Type of powertrain model (SHAFTS, SIMPLE, SIMPLE_CVT)
 PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
@@ -270,108 +140,63 @@ double step_size = 1e-3;
 double tire_step_size = 1e-3;
 
 // =============================================================================
-// call variants:
-//                          1) demo_VEH_HMMWV_DoubleLaneChange
-//                              -> standard demo velkmh= 30km/h, ISO3888-1, left turn
-//
-//                          2) demo_VEH_HMMWV_DoubleLaneChange VelKMH
-//                              -> velkmh= VelKMH, ISO3888-1, left turn
-//
-//                          3) demo_VEH_HMMWV_DoubleLaneChange VelKMH [1|2]
-//                              -> velkmh= VelKMH, ISO variant set to 1 or 2, left turn
-//
-//                          4) demo_VEH_HMMWV_DoubleLaneChange VelKMH [1|2] [L|R]
-//                              -> velkmh= VelKMH, ISO variant set to 1 or 2, turn set to left or right
-//  on the Mac:
-//  instead of 'demo_VEH_HMMWV_DoubleLaneChange' use 'run_app.sh demo_VEH_HMMWV_DoubleLaneChange.app'
+
+void CreateSceneObjects(std::shared_ptr<ChVehicleVisualSystem> vis,
+                        const ISO3888_Wrapper& dlc,
+                        int& sentinelID,
+                        int& targetID) {
+    // Add visualization of controller points (sentinel & target)
+    auto ballS = chrono_types::make_shared<ChSphereShape>(0.1);
+    auto ballT = chrono_types::make_shared<ChSphereShape>(0.1);
+    ballS->SetColor(ChColor(1, 0, 0));
+    ballT->SetColor(ChColor(0, 1, 0));
+    sentinelID = vis->AddVisualModel(ballS, ChFrame<>());
+    targetID = vis->AddVisualModel(ballT, ChFrame<>());
+
+    // Add the road cones
+    ChVector<> cone_offset(0, 0.21, 0);
+    auto cone = chrono_types::make_shared<ChModelFileShape>();
+    cone->SetFilename(GetChronoDataFile("models/traffic_cone/trafficCone750mm.obj"));
+    cone->SetColor(ChColor(0.8f, 0.8f, 0.8f));
+    for (const auto& pos : dlc.GetLeftConePositions())
+        vis->AddVisualModel(cone, ChFrame<>(pos + cone_offset));
+    for (const auto& pos : dlc.GetRightConePositions())
+        vis->AddVisualModel(cone, ChFrame<>(pos - cone_offset));
+}
+
+// =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n" << endl;
 
-    std::string wtitle;
     DLC_Variant dlc_mode = ISO3888_1;
     int velkmh = 30;
     bool left_turn = true;
+
     switch (argc) {
         case 1:
         default:
-            // no parameters given
-            if (left_turn) {
-                wtitle = "ISO 3888-1 Double Lane Change Test v = " + std::to_string(velkmh) + " km/h - Left Turn";
-
-            } else {
-                wtitle = "ISO 3888-1 Double Lane Change Test v = " + std::to_string(velkmh) + " km/h - Right Turn";
-            }
             break;
         case 2:
-            // one parameter given (velkmh)
             velkmh = ChClamp(atoi(argv[1]), 10, 100);
-            if (left_turn) {
-                wtitle = "ISO 3888-1 Double Lane Change Test v = " + std::to_string(velkmh) + " km/h - Left Turn";
-
-            } else {
-                wtitle = "ISO 3888-1 Double Lane Change Test v = " + std::to_string(velkmh) + " km/h - Right Turn";
-            }
             break;
         case 3:
-            // two parameters given (velkmh,dlc_mode)
             velkmh = ChClamp(atoi(argv[1]), 10, 100);
-            switch (ChClamp(atoi(argv[2]), 1, 2)) {
-                default:
-                case 1:
-                    dlc_mode = ISO3888_1;
-                    break;
-                case 2:
-                    dlc_mode = ISO3888_2;
-                    break;
-            }
-            if (dlc_mode == ISO3888_1) {
-                wtitle = "ISO 3888-1 Double Lane Change Test v = " + std::to_string(velkmh) + " km/h - ";
-            } else {
-                wtitle = "ISO 3888-2 Moose Test v = " + std::to_string(velkmh) + " km/h - ";
-            }
-            if (left_turn) {
-                wtitle += " Left Turn";
-
-            } else {
-                wtitle += " Right Turn";
-            }
+            dlc_mode = atoi(argv[2]) == 1 ? ISO3888_1 : ISO3888_2;
             break;
         case 4:
-            // three parameters given (velkmh,dlc_mode,turn_mode)
             velkmh = ChClamp(atoi(argv[1]), 10, 100);
-            switch (ChClamp(atoi(argv[2]), 1, 2)) {
-                default:
-                case 1:
-                    dlc_mode = ISO3888_1;
-                    break;
-                case 2:
-                    dlc_mode = ISO3888_2;
-                    break;
-            }
-            switch (argv[3][0]) {
-                case '2':
-                case 'r':
-                case 'R':
-                    left_turn = false;
-                    break;
-                default:
-                    left_turn = true;
-            }
-            if (dlc_mode == ISO3888_1) {
-                wtitle = "ISO 3888-1 Double Lane Change Test v = " + std::to_string(velkmh) + " km/h - ";
-            } else {
-                wtitle = "ISO 3888-2 Moose Test v = " + std::to_string(velkmh) + " km/h - ";
-            }
-            if (left_turn) {
-                wtitle += " Left Turn";
-
-            } else {
-                wtitle += " Right Turn";
-            }
+            dlc_mode = atoi(argv[2]) == 1 ? ISO3888_1 : ISO3888_2;
+            left_turn = (argv[3][0] != '2') && (argv[3][0] != 'r') && (argv[3][0] != 'R');
             break;
     }
-    double target_speed = velkmh / 3.6;
+
+    std::string title = dlc_mode ? "ISO 3888-1 Double Lane Change Test" : "ISO 3888-2 Moose Test";
+    title += " - v = " + std::to_string(velkmh) + " km/h";
+    title += left_turn ? " - Left Turn" : " - Right Turn";
+
+    double target_speed = velkmh / 3.6;  // [m/s]
+
     // --------------
     // Create systems
     // --------------
@@ -404,8 +229,8 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetWheelVisualizationType(wheel_vis_type);
     my_hmmwv.SetTireVisualizationType(tire_vis_type);
 
-    ISO3888_Helper helper(-accelerationLength + 5.0, accelerationLength, vehicle_width, dlc_mode, left_turn);
-    ////GetLog() << "Maneuver Length = " << helper.GetManeuverLength() << " m\n";
+    ISO3888_Wrapper dlc(-accelerationLength + 5.0, accelerationLength, vehicle_width, dlc_mode, left_turn);
+    ////cout << "Maneuver Length = " << helper.GetManeuverLength() << " m" << endl;
 
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());
@@ -419,45 +244,54 @@ int main(int argc, char* argv[]) {
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), (float)terrainLength, (float)terrainWidth);
     terrain.Initialize();
 
-    // Create the vehicle Irrlicht interface
-    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
-    vis->SetWindowTitle(wtitle);
-    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
-    vis->Initialize();
-    vis->AddLightDirectional();
-    vis->AddSkyBox();
-    vis->AddLogo();
-    vis->AttachVehicle(&my_hmmwv.GetVehicle());
-
     // ---------------------------------------------------
     // Create the lane change path and the driver system
     // ---------------------------------------------------
 
-    auto path = helper.GetPath();
+    auto path = dlc.GetPath();
     ChPathFollowerDriver driver(my_hmmwv.GetVehicle(), path, "my_path", target_speed);
     driver.GetSteeringController().SetLookAheadDistance(5.0);
     driver.GetSteeringController().SetGains(0.5, 0, 0);
     driver.GetSpeedController().SetGains(0.4, 0, 0);
     driver.Initialize();
 
-    // now we can add the road cones
-    double coneBaseWidth = 0.415;
-    for (size_t i = 0; i < helper.GetConePositions(); i++) {
-        ChVector<> pL = helper.GetConePosition(i, true) + ChVector<>(0, coneBaseWidth / 2, 0.05);
-        irr::scene::IAnimatedMesh* mesh_coneL =
-            vis->GetSceneManager()->getMesh(GetChronoDataFile("models/traffic_cone/trafficCone750mm.obj").c_str());
-        irr::scene::IAnimatedMeshSceneNode* node_coneL = vis->GetSceneManager()->addAnimatedMeshSceneNode(mesh_coneL);
-        node_coneL->getMaterial(0).EmissiveColor = irr::video::SColor(0, 100, 0, 0);
-        node_coneL->setPosition(irr::core::vector3dfCH(pL));
+    // -------------------------------------------
+    // Create the run-time visualization interface
+    // -------------------------------------------
+    int sentinelID = -1;
+    int targetID = -1;
+    std::shared_ptr<ChVehicleVisualSystem> vis;
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
+            auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+            vis_irr->SetWindowTitle(title);
+            vis_irr->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+            vis_irr->Initialize();
+            vis_irr->AddLightDirectional();
+            vis_irr->AddSkyBox();
+            vis_irr->AddLogo();
+            vis_irr->AttachVehicle(&my_hmmwv.GetVehicle());
+            CreateSceneObjects(vis_irr, dlc, sentinelID, targetID);
 
-        ChVector<> pR = helper.GetConePosition(i, false) + ChVector<>(0, -coneBaseWidth / 2, 0.05);
-        irr::scene::IAnimatedMesh* mesh_coneR =
-            vis->GetSceneManager()->getMesh(GetChronoDataFile("models/traffic_cone/trafficCone750mm.obj").c_str());
-        irr::scene::IAnimatedMeshSceneNode* node_coneR = vis->GetSceneManager()->addAnimatedMeshSceneNode(mesh_coneR);
-        node_coneR->getMaterial(0).EmissiveColor = irr::video::SColor(0, 0, 100, 0);
-        node_coneR->setPosition(irr::core::vector3dfCH(pR));
+            vis = vis_irr;
+#endif
+            break;
+        }
+        case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+            auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
+            vis_vsg->SetWindowTitle(title);
+            vis_vsg->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+            vis_vsg->AttachVehicle(&my_hmmwv.GetVehicle());
+            CreateSceneObjects(vis_vsg, dlc, sentinelID, targetID);
+            vis_vsg->Initialize();
+
+            vis = vis_vsg;
+#endif
+            break;
+        }
     }
-
 
     // ---------------
     // Simulation loop
@@ -489,46 +323,42 @@ int main(int argc, char* argv[]) {
 
     // Initialize simulation frame counter and simulation time
     int step_number = 0;
-    double time = 0;
-    double xpos = 0;
-    double xend = helper.GetXmax();
+
     while (vis->Run()) {
-        time = my_hmmwv.GetSystem()->GetChTime();
+        double time = my_hmmwv.GetSystem()->GetChTime();
         double speed = speed_filter.Add(my_hmmwv.GetVehicle().GetSpeed());
-        double accel = accel_filter.Filter(
-            my_hmmwv.GetVehicle().GetPointAcceleration(ChVector<>(-wheel_base / 2, 0, 0)).y());
+        double accel =
+            accel_filter.Filter(my_hmmwv.GetVehicle().GetPointAcceleration(ChVector<>(-wheel_base / 2, 0, 0)).y());
 
         speed_recorder.AddPoint(time, speed);
         accel_recorder.AddPoint(time, accel);
-        xpos = my_hmmwv.GetVehicle().GetPos().x();
+
         ChVector<> pFrontLeft = my_hmmwv.GetVehicle().GetPointLocation(ChVector<>(0, vehicle_width / 2, 1));
         ChVector<> pRearLeft = my_hmmwv.GetVehicle().GetPointLocation(ChVector<>(-wheel_base, vehicle_width / 2, 1));
         ChVector<> pFrontRight = my_hmmwv.GetVehicle().GetPointLocation(ChVector<>(0, -vehicle_width / 2, 1));
         ChVector<> pRearRight = my_hmmwv.GetVehicle().GetPointLocation(ChVector<>(-wheel_base, -vehicle_width / 2, 1));
-        if (!helper.GateTestLeft(pFrontLeft)) {
-            GetLog() << "Test Failure: vehicle left the course with the front left wheel.\n";
+        if (!dlc.GateTestLeft(pFrontLeft)) {
+            cout << "Test Failure: vehicle left the course with the front left wheel." << endl;
             break;
         }
-        if (!helper.GateTestLeft(pRearLeft)) {
-            GetLog() << "Test Failure: vehicle left the course with the rear left wheel.\n";
+        if (!dlc.GateTestLeft(pRearLeft)) {
+            cout << "Test Failure: vehicle left the course with the rear left wheel." << endl;
             break;
         }
-        if (!helper.GateTestRight(pFrontRight)) {
-            GetLog() << "Test Failure: vehicle left the course with the front right wheel.\n";
+        if (!dlc.GateTestRight(pFrontRight)) {
+            cout << "Test Failure: vehicle left the course with the front right wheel." << endl;
+            cout << pFrontRight << endl;
             break;
         }
-        if (!helper.GateTestRight(pRearRight)) {
-            GetLog() << "Test Failure: vehicle left the course with the rear right wheel.\n";
-            break;
-        }
-        // End simulation
-        if (time >= 100 || xpos > xend) {
-            GetLog() << "Test Run: terminated normally.\n";
+        if (!dlc.GateTestRight(pRearRight)) {
+            cout << "Test Failure: vehicle left the course with the rear right wheel." << endl;
             break;
         }
 
-        vis->BeginScene();
-        vis->Render();
+        if (time >= 100 || my_hmmwv.GetVehicle().GetPos().x() > dlc.GetXmax()) {
+            cout << "Test Run: terminated normally." << endl;
+            break;
+        }
 
         // Driver inputs
         DriverInputs driver_inputs = driver.GetInputs();
@@ -538,11 +368,19 @@ int main(int argc, char* argv[]) {
         double angspeed = ang_diff.Filter(steer);
         angspeed_recorder.AddPoint(time, angspeed);
 
+        // Update sentinel and target location markers for the path-follower controller.
+        vis->UpdateVisualModel(sentinelID, ChFrame<>(driver.GetSteeringController().GetSentinelLocation()));
+        vis->UpdateVisualModel(targetID, ChFrame<>(driver.GetSteeringController().GetTargetLocation()));
+
+        vis->BeginScene();
+        vis->Render();
+        vis->EndScene();
+
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
         terrain.Synchronize(time);
         my_hmmwv.Synchronize(time, driver_inputs, terrain);
-        vis->Synchronize("Double lane change test", driver_inputs);
+        vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
@@ -552,25 +390,15 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
-
-        vis->EndScene();
     }
 
 #ifdef CHRONO_POSTPROCESS
+    std::string test_title = std::string(dlc_mode == ISO3888_1 ? "1" : "2") +
+                             std::string(left_turn ? " left turn test" : " right turn test");
 
     postprocess::ChGnuPlot gplot;
     gplot.SetGrid();
-    std::string speed_title = "Speed at ISO3888-";
-    if (dlc_mode == ISO3888_1) {
-        speed_title.append("1");
-    } else {
-        speed_title.append("2");
-    }
-    if (left_turn) {
-        speed_title.append(" left turn test");
-    } else {
-        speed_title.append(" right turn test");
-    }
+    std::string speed_title = "Speed at ISO3888-" + test_title;
     gplot.SetTitle(speed_title.c_str());
     gplot.SetLabelX("time (s)");
     gplot.SetLabelY("speed (m/s)");
@@ -578,17 +406,7 @@ int main(int argc, char* argv[]) {
 
     postprocess::ChGnuPlot gplot_acc("_tmp2_gnuplot.gpl");
     gplot_acc.SetGrid();
-    std::string accel_title = "Lateral Acceleration at ISO3888-";
-    if (dlc_mode == ISO3888_1) {
-        accel_title.append("1");
-    } else {
-        accel_title.append("2");
-    }
-    if (left_turn) {
-        accel_title.append(" left turn test");
-    } else {
-        accel_title.append(" right turn test");
-    }
+    std::string accel_title = "Lateral Acceleration at ISO3888-" + test_title;
     gplot_acc.SetTitle(accel_title.c_str());
     gplot_acc.SetLabelX("time (s)");
     gplot_acc.SetLabelY("lateral acceleration (m/s^2)");
@@ -596,17 +414,7 @@ int main(int argc, char* argv[]) {
 
     postprocess::ChGnuPlot gplot_steer("_tmp3_gnuplot.gpl");
     gplot_steer.SetGrid();
-    std::string steer_title = "Steering Wheel Angle at ISO3888-";
-    if (dlc_mode == ISO3888_1) {
-        steer_title.append("1");
-    } else {
-        steer_title.append("2");
-    }
-    if (left_turn) {
-        steer_title.append(" left turn test");
-    } else {
-        steer_title.append(" right turn test");
-    }
+    std::string steer_title = "Steering Wheel Angle at ISO3888-" + test_title;
     gplot_steer.SetTitle(steer_title.c_str());
     gplot_steer.SetLabelX("time (s)");
     gplot_steer.SetLabelY("steering wheel angle (degrees)");
@@ -614,17 +422,7 @@ int main(int argc, char* argv[]) {
 
     postprocess::ChGnuPlot gplot_angspeed("_tmp4_gnuplot.gpl");
     gplot_angspeed.SetGrid();
-    std::string angspeed_title = "Steering Wheel Angular Speed at ISO3888-";
-    if (dlc_mode == ISO3888_1) {
-        angspeed_title.append("1");
-    } else {
-        angspeed_title.append("2");
-    }
-    if (left_turn) {
-        angspeed_title.append(" left turn test");
-    } else {
-        angspeed_title.append(" right turn test");
-    }
+    std::string angspeed_title = "Steering Wheel Angular Speed at ISO3888-" + test_title;
     gplot_angspeed.SetTitle(angspeed_title.c_str());
     gplot_angspeed.SetLabelX("time (s)");
     gplot_angspeed.SetLabelY("steering wheel angle (degrees/s)");
@@ -632,4 +430,138 @@ int main(int argc, char* argv[]) {
 #endif
 
     return 0;
+}
+
+// =============================================================================
+// Implementation of ISO3888_Wrapper
+
+ISO3888_Wrapper::ISO3888_Wrapper(double xmin,
+                                 double acc_length,
+                                 double vehicle_width,
+                                 DLC_Variant variant,
+                                 bool left_turn) {
+    switch (variant) {
+        default:
+        case ISO3888_1:
+            // gate A
+            m_lengthA = 15.0;
+            m_widthA = 1.1 * vehicle_width + 0.25;
+            // gate B
+            m_lengthAB = 30.0;
+            m_lengthB = 25.0;
+            m_widthB = 1.2 * vehicle_width + 0.25;
+            m_ofsB = left_turn ? m_widthB / 2.0 + 3.5 : -(m_widthB / 2.0 + 3.5);
+            // gate C
+            m_lengthBC = 25.0;
+            m_lengthC = 15.0;
+            m_widthC = 1.3 * vehicle_width + 0.25;
+            m_ofsC = left_turn ? (m_widthC - m_widthA) / 2 : (m_widthA - m_widthC) / 2;
+            break;
+        case ISO3888_2:
+            // gate A
+            m_lengthA = 12.0;
+            m_widthA = 1.1 * vehicle_width + 0.25;
+            // gate B
+            m_lengthAB = 13.5;
+            m_lengthB = 11.0;
+            m_widthB = vehicle_width + 1.0;
+            m_ofsB = left_turn ? m_widthB / 2.0 + m_widthA / 2.0 + 1.0 : -(m_widthB / 2.0 + m_widthA / 2.0 + 1.0);
+            // gate C
+            m_lengthBC = 12.5;
+            m_lengthC = 12.0;
+            m_widthC = 3.0;
+            m_ofsC = left_turn ? (m_widthC - m_widthA) / 2 : (m_widthA - m_widthC) / 2;
+            break;
+    }
+
+    // Set up definition points
+    double zl = 0.1;
+    // P1
+    m_lineL.push_back({xmin + acc_length, m_widthA / 2.0, 0});
+    m_lineC.push_back({xmin, 0, 0});
+    m_lineR.push_back({xmin + acc_length, -m_widthA / 2.0, 0});
+    // P2
+    m_lineL.push_back({xmin + acc_length + m_lengthA, m_widthA / 2.0, 0});
+    m_lineC.push_back({xmin + acc_length + m_lengthA, 0, zl});
+    m_lineR.push_back({xmin + acc_length + m_lengthA, -m_widthA / 2.0, 0});
+    // P3
+    m_lineL.push_back({xmin + acc_length + m_lengthA + m_lengthAB, m_widthB / 2.0, 0});
+    m_lineC.push_back({xmin + acc_length + m_lengthA + m_lengthAB, 0, zl});
+    m_lineR.push_back({xmin + acc_length + m_lengthA + m_lengthAB, -m_widthB / 2.0, 0});
+    m_lineL.back().y() += m_ofsB;
+    m_lineC.back().y() += m_ofsB;
+    m_lineR.back().y() += m_ofsB;
+    // P4
+    m_lineL.push_back({xmin + acc_length + m_lengthA + m_lengthAB + m_lengthB, m_widthB / 2.0, 0});
+    m_lineC.push_back({xmin + acc_length + m_lengthA + m_lengthAB + m_lengthB, 0, zl});
+    m_lineR.push_back({xmin + acc_length + m_lengthA + m_lengthAB + m_lengthB, -m_widthB / 2.0, 0});
+    m_lineL.back().y() += m_ofsB;
+    m_lineC.back().y() += m_ofsB;
+    m_lineR.back().y() += m_ofsB;
+    // P5
+    m_lineL.push_back({xmin + acc_length + m_lengthA + m_lengthAB + m_lengthB + m_lengthBC, m_widthC / 2.0, 0});
+    m_lineC.push_back({xmin + acc_length + m_lengthA + m_lengthAB + m_lengthB + m_lengthBC, 0, zl});
+    m_lineR.push_back({xmin + acc_length + m_lengthA + m_lengthAB + m_lengthB + m_lengthBC, -m_widthC / 2.0, 0});
+    m_lineL.back().y() += m_ofsC;
+    m_lineC.back().y() += m_ofsC;
+    m_lineR.back().y() += m_ofsC;
+    // P6
+    m_lineL.push_back(
+        {xmin + acc_length + m_lengthA + m_lengthAB + m_lengthB + m_lengthBC + m_lengthC, m_widthC / 2.0, 0});
+    m_lineC.push_back({xmin + acc_length + m_lengthA + m_lengthAB + m_lengthB + m_lengthBC + m_lengthC, 0, zl});
+    m_lineR.push_back(
+        {xmin + acc_length + m_lengthA + m_lengthAB + m_lengthB + m_lengthBC + m_lengthC, -m_widthC / 2.0, 0});
+    m_lineL.back().y() += m_ofsC;
+    m_lineC.back().x() += 100.0;
+    m_lineC.back().y() += m_ofsC;
+    m_lineR.back().y() += m_ofsC;
+
+    // Add some road cone positions like in the standard
+    m_leftCones.push_back(m_lineL[0]);
+    m_leftCones.push_back((m_lineL[0] + m_lineL[1]) / 2);
+    m_leftCones.push_back(m_lineL[1]);
+    m_leftCones.push_back(m_lineL[2]);
+    m_leftCones.push_back((m_lineL[2] + m_lineL[3]) / 2);
+    m_leftCones.push_back(m_lineL[3]);
+    m_leftCones.push_back(m_lineL[4]);
+    m_leftCones.push_back((m_lineL[4] + m_lineL[5]) / 2);
+    m_leftCones.push_back(m_lineL[5]);
+
+    m_rightCones.push_back(m_lineR[0]);
+    m_rightCones.push_back((m_lineR[0] + m_lineR[1]) / 2);
+    m_rightCones.push_back(m_lineR[1]);
+    m_rightCones.push_back(m_lineR[2]);
+    m_rightCones.push_back((m_lineR[2] + m_lineR[3]) / 2);
+    m_rightCones.push_back(m_lineR[3]);
+    m_rightCones.push_back(m_lineR[4]);
+    m_rightCones.push_back((m_lineR[4] + m_lineR[5]) / 2);
+    m_rightCones.push_back(m_lineR[5]);
+
+    // Prepare path spline definition
+    ChVector<> offset(m_lengthB / 3, 0, 0);
+    for (size_t i = 0; i < m_lineC.size(); i++) {
+        m_inCV.push_back(m_lineC[i] - offset);
+        m_outCV.push_back(m_lineC[i] + offset);
+    }
+    m_path = chrono_types::make_shared<ChBezierCurve>(m_lineC, m_inCV, m_outCV);
+}
+
+bool ISO3888_Wrapper::GateTestLeft(ChVector<>& p) {
+    if (p.x() >= m_lineL[0].x() && p.x() <= m_lineL[1].x())
+        return p.y() <= m_lineL[0].y();
+    if (p.x() >= m_lineL[2].x() && p.x() <= m_lineL[3].x())
+        return p.y() <= m_lineL[2].y();
+    if (p.x() >= m_lineL[4].x() && p.x() <= m_lineL[5].x())
+        return p.y() <= m_lineL[4].y();
+    return true;
+}
+
+bool ISO3888_Wrapper::GateTestRight(ChVector<>& p) {
+    if (p.x() >= m_lineL[0].x() && p.x() <= m_lineL[1].x())
+        return p.y() >= m_lineR[0].y();
+    if (p.x() >= m_lineL[2].x() && p.x() <= m_lineL[3].x())
+        return p.y() >= m_lineR[2].y();
+    if (p.x() >= m_lineL[4].x() && p.x() <= m_lineL[5].x())
+        return p.y() >= m_lineR[4].y();
+    return true;
 }

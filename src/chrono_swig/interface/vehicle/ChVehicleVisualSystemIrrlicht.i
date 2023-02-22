@@ -1,8 +1,8 @@
 %{
 #include "chrono_vehicle/ChVehicleVisualSystem.h"
-#include "chrono_vehicle/utils/ChVehicleVisualSystemIrrlicht.h"
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleVisualSystemIrrlicht.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
+#include "chrono_vehicle/ChVehicleVisualSystemIrrlicht.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
+#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -17,9 +17,9 @@ using namespace chrono::vehicle;
 %import(module = "pychrono.irrlicht") "chrono_swig/interface/irrlicht/ChVisualSystemIrrlicht.i"
 
 %include "../../../chrono_vehicle/ChVehicleVisualSystem.h"
-%include "../../../chrono_vehicle/utils/ChVehicleVisualSystemIrrlicht.h"
-%include "../../../chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleVisualSystemIrrlicht.h"
-%include "../../../chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
+%include "../../../chrono_vehicle/ChVehicleVisualSystemIrrlicht.h"
+%include "../../../chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 //%DefSharedPtrDynamicDowncast2NS(chrono::irrlicht, chrono::vehicle, ChVisualSystemIrrlicht, ChVehicleVisualSystemIrrlicht)
 //%DefSharedPtrDynamicDowncast(chrono::vehicle, ChVehicleVisualSystem, ChVehicleVisualSystemIrrlicht)

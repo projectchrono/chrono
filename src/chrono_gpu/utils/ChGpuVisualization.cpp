@@ -25,10 +25,7 @@
 namespace chrono {
 namespace gpu {
 
-ChGpuVisualization::ChGpuVisualization(ChSystemGpu* sysGPU)
-    : m_systemGPU(sysGPU),
-      m_user_system(nullptr),
-      m_part_start_index(0) {
+ChGpuVisualization::ChGpuVisualization(ChSystemGpu* sysGPU) : m_systemGPU(sysGPU), m_user_system(nullptr) {
 #ifdef CHRONO_OPENGL
     m_system = new ChSystemSMC();
 
@@ -38,7 +35,7 @@ ChGpuVisualization::ChGpuVisualization(ChSystemGpu* sysGPU)
     m_vsys->SetWindowSize(1280, 720);
     m_vsys->SetCameraProperties(0.1f);
     m_vsys->SetRenderMode(opengl::WIREFRAME);
-    m_vsys->SetCameraPosition(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0));
+    m_vsys->AddCamera(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0));
     m_vsys->SetCameraVertical(ChVector<>(0, 0, 1));
     m_vsys->EnableStats(false);
 #else
@@ -66,15 +63,23 @@ void ChGpuVisualization::SetTitle(const std::string& title) {
 #endif
 }
 
-void ChGpuVisualization::SetCameraPosition(const ChVector<>& pos, const ChVector<>& target) {
+void ChGpuVisualization::AddCamera(const ChVector<>& pos, const ChVector<>& target) {
 #ifdef CHRONO_OPENGL
-    m_vsys->SetCameraPosition(pos, target);
+    m_vsys->UpdateCamera(pos, target);
 #endif
 }
 
-void ChGpuVisualization::SetCameraUpVector(const ChVector<>& up) {
+void ChGpuVisualization::UpdateCamera(const ChVector<>& pos, const ChVector<>& target) {
 #ifdef CHRONO_OPENGL
-    m_vsys->SetCameraVertical(up);
+    m_vsys->UpdateCamera(pos, target);
+#endif
+}
+
+void ChGpuVisualization::SetCameraVertical(CameraVerticalDir up) {
+#ifdef CHRONO_OPENGL
+    if (up == CameraVerticalDir::Z)
+        m_vsys->SetCameraVertical(ChVector<>(0, 0, 1));
+    m_vsys->SetCameraVertical(ChVector<>(0, 1, 0));
 #endif
 }
 
@@ -93,19 +98,13 @@ void ChGpuVisualization::AddProxyBody(std::shared_ptr<ChBody> body) {
 
 void ChGpuVisualization::Initialize() {
 #ifdef CHRONO_OPENGL
-    // Cache current number of bodies (if any) in m_system
-    m_part_start_index = static_cast<unsigned int>(m_system->Get_bodylist().size());
-
-    // Note: we cannot yet use ChSystemGpu::GetParticlePosition!
+    m_particles = chrono_types::make_shared<ChParticleCloud>();
+    m_particles->SetFixed(true);
     for (int i = 0; i < m_systemGPU->GetNumParticles(); i++) {
-        auto body = std::shared_ptr<ChBody>(m_system->NewBody());
-        body->SetPos(ChVector<>(0, 0, 0));
-        body->SetBodyFixed(true);
-        auto sph = chrono_types::make_shared<ChSphereShape>();
-        sph->GetSphereGeometry().rad = m_systemGPU->GetParticleRadius();
-        body->AddVisualShape(sph);
-        m_system->AddBody(body);
+        m_particles->AddParticle(CSYSNULL);
     }
+    m_particles->AddVisualization(ChParticleCloud::ShapeType::SPHERE, 2 * m_systemGPU->GetParticleRadius(), ChColor());
+    m_system->Add(m_particles);
 
     if (m_user_system)
         m_vsys->AttachSystem(m_user_system);
@@ -120,10 +119,8 @@ bool ChGpuVisualization::Render() {
     m_system->SetChTime(m_systemGPU->GetSimTime());
 
     if (m_vsys->Run()) {
-        const auto& blist = m_system->Get_bodylist();
         for (unsigned int i = 0; i < m_systemGPU->GetNumParticles(); i++) {
-            auto pos = m_systemGPU->GetParticlePosition(i);
-            blist[m_part_start_index + i]->SetPos(pos);
+            m_particles->GetParticle(i).SetPos(m_systemGPU->GetParticlePosition(i));
         }
         m_vsys->Render();
         return true;

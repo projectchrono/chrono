@@ -190,6 +190,7 @@ ChIrrGUI::ChIrrGUI()
     : m_vis(nullptr),
       m_device(nullptr),
       m_system(nullptr),
+      m_receiver(nullptr),
       initialized(false),
       show_explorer(false),
       show_infos(false),
@@ -209,6 +210,10 @@ ChIrrGUI::ChIrrGUI()
     blender_each = 1;
     blender_num = 0;
 #endif
+}
+
+ChIrrGUI::~ChIrrGUI() {
+    delete m_receiver;
 }
 
 void ChIrrGUI::Initialize(ChVisualSystemIrrlicht* vis) {
@@ -349,10 +354,6 @@ void ChIrrGUI::Initialize(ChVisualSystemIrrlicht* vis) {
         irr::core::rect<irr::s32>(2, 80, 300, GetVideoDriver()->getScreenSize().Height - 4), 0, 9919, true, true, true);
     auto child = g_treeview->getRoot()->addChildBack(L"System", 0);
     child->setExpanded(true);
-}
-
-ChIrrGUI::~ChIrrGUI() {
-    delete m_receiver;
 }
 
 void ChIrrGUI::AddUserEventReceiver(irr::IEventReceiver* receiver) {

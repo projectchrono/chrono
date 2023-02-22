@@ -79,7 +79,7 @@ class ChApiPYPARSER ChPythonEngine {
     /// in a C++ program, call this function: it will parse the .py textblock and add the created
     /// items to the ChSystem.
     /// If fails, it throws an exception, so it is wise to put it inside try..catch blocks.
-    void ImportSolidWorksSystem(const char* solidworks_py_file, ChSystemNSC& msystem);
+    void ImportSolidWorksSystem(const char* solidworks_py_file, ChSystem& msystem);
 };
 
 /// @} python_module

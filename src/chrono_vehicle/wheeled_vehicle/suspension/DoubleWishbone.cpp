@@ -35,7 +35,8 @@ DoubleWishbone::DoubleWishbone(const std::string& filename)
       m_springForceCB(nullptr),
       m_shockForceCB(nullptr),
       m_UCABushingData(nullptr),
-      m_LCABushingData(nullptr) {
+      m_LCABushingData(nullptr),
+      m_tierodBushingData(nullptr) {
     Document d;
     ReadFileJSON(filename, d);
     if (d.IsNull())
@@ -51,7 +52,8 @@ DoubleWishbone::DoubleWishbone(const rapidjson::Document& d)
       m_springForceCB(nullptr),
       m_shockForceCB(nullptr),
       m_UCABushingData(nullptr),
-      m_LCABushingData(nullptr) {
+      m_LCABushingData(nullptr),
+      m_tierodBushingData(nullptr) {
     Create(d);
 }
 
@@ -161,67 +163,20 @@ void DoubleWishbone::Create(const rapidjson::Document& d) {
     // Read spring data and create force callback
     assert(d.HasMember("Spring"));
     assert(d["Spring"].IsObject());
-
     m_points[SPRING_C] = ReadVectorJSON(d["Spring"]["Location Chassis"]);
     m_points[SPRING_A] = ReadVectorJSON(d["Spring"]["Location Arm"]);
-    m_springRestLength = d["Spring"]["Free Length"].GetDouble();
-    double preload = 0;
-    if (d["Spring"].HasMember("Preload"))
-        preload = d["Spring"]["Preload"].GetDouble();
-
-    if (d["Spring"].HasMember("Minimum Length") && d["Spring"].HasMember("Maximum Length")) {
-        if (d["Spring"].HasMember("Spring Coefficient")) {
-            m_springForceCB = chrono_types::make_shared<LinearSpringBistopForce>(
-                d["Spring"]["Spring Coefficient"].GetDouble(), d["Spring"]["Minimum Length"].GetDouble(),
-                d["Spring"]["Maximum Length"].GetDouble(), preload);
-        } else if (d["Spring"].HasMember("Curve Data")) {
-            int num_points = d["Spring"]["Curve Data"].Size();
-            auto springForceCB = chrono_types::make_shared<MapSpringBistopForce>(
-                d["Spring"]["Minimum Length"].GetDouble(), d["Spring"]["Maximum Length"].GetDouble(), preload);
-            for (int i = 0; i < num_points; i++) {
-                springForceCB->add_point(d["Spring"]["Curve Data"][i][0u].GetDouble(),
-                                         d["Spring"]["Curve Data"][i][1u].GetDouble());
-            }
-            m_springForceCB = springForceCB;
-        }
-    } else {
-        if (d["Spring"].HasMember("Spring Coefficient")) {
-            m_springForceCB =
-                chrono_types::make_shared<LinearSpringForce>(d["Spring"]["Spring Coefficient"].GetDouble(), preload);
-        } else if (d["Spring"].HasMember("Curve Data")) {
-            int num_points = d["Spring"]["Curve Data"].Size();
-            auto springForceCB = chrono_types::make_shared<MapSpringForce>(preload);
-            for (int i = 0; i < num_points; i++) {
-                springForceCB->add_point(d["Spring"]["Curve Data"][i][0u].GetDouble(),
-                                         d["Spring"]["Curve Data"][i][1u].GetDouble());
-            }
-            m_springForceCB = springForceCB;
-        }
-    }
+    m_springForceCB = ReadTSDAFunctorJSON(d["Spring"], m_springRestLength);
 
     // Read shock data and create force callback
     assert(d.HasMember("Shock"));
     assert(d["Shock"].IsObject());
-
     m_points[SHOCK_C] = ReadVectorJSON(d["Shock"]["Location Chassis"]);
     m_points[SHOCK_A] = ReadVectorJSON(d["Shock"]["Location Arm"]);
-
-    if (d["Shock"].HasMember("Damping Coefficient")) {
-        m_shockForceCB = chrono_types::make_shared<LinearDamperForce>(d["Shock"]["Damping Coefficient"].GetDouble());
-    } else if (d["Shock"].HasMember("Curve Data")) {
-        int num_points = d["Shock"]["Curve Data"].Size();
-        auto shockForceCB = chrono_types::make_shared<MapDamperForce>();
-        for (int i = 0; i < num_points; i++) {
-            shockForceCB->add_point(d["Shock"]["Curve Data"][i][0u].GetDouble(),
-                                    d["Shock"]["Curve Data"][i][1u].GetDouble());
-        }
-        m_shockForceCB = shockForceCB;
-    }
+    m_shockForceCB = ReadTSDAFunctorJSON(d["Shock"], m_shockRestLength);
 
     // Read axle inertia
     assert(d.HasMember("Axle"));
     assert(d["Axle"].IsObject());
-
     m_axleInertia = d["Axle"]["Inertia"].GetDouble();
 }
 

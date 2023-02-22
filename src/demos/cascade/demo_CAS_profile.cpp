@@ -24,15 +24,21 @@
 #include "chrono_cascade/ChCascadeDoc.h"
 #include "chrono_cascade/ChCascadeVisualShape.h"
 
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+using namespace chrono::irrlicht;
+#endif
 
-// Use the namespace of Chrono
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+using namespace chrono::vsg3d;
+#endif
+
 using namespace chrono;
 using namespace chrono::geometry;
-using namespace chrono::irrlicht;
+using namespace chrono::cascade;
 
-// Use the namespace with OpenCascade stuff
-using namespace cascade;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
 
 int main(int argc, char* argv[]) {
     // Create a ChronoENGINE physical system: all bodies and constraints
@@ -242,19 +248,42 @@ int main(int argc, char* argv[]) {
     mrevolute2->Initialize(mfollower, mfloor, ChCoordsys<>(ChVector<>(-1.4 * R, R * 0.3 + 0.05, Z_layer_2)));
     sys.Add(mrevolute2);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->AttachSystem(&sys);
-    vis->SetWindowSize(1024, 768);
-    vis->SetWindowTitle("Use 2D profiles with OpenCASCADE for mass, inertia, meshing");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(0.2, 0.2, -2.3));
-    vis->AddTypicalLights();
-    vis->AddLightWithShadow(ChVector<>(1.5, 5.5, -3.5), ChVector<>(0, 0, 0), 8.2, 2.2, 8.2, 40, 512,
-                            ChColor(0.8f, 0.8f, 0.8f));
-    vis->EnableShadows();
+    // Create the run-time visualization system
+    std::shared_ptr<ChVisualSystem> vis;
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
+            auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+            vis_irr->AttachSystem(&sys);
+            vis_irr->SetWindowSize(1024, 768);
+            vis_irr->SetWindowTitle("Use 2D profiles with OpenCASCADE for mass, inertia, meshing");
+            vis_irr->Initialize();
+            vis_irr->AddLogo();
+            vis_irr->AddSkyBox();
+            vis_irr->AddCamera(ChVector<>(0.2, 0.2, -2.3));
+            vis_irr->AddTypicalLights();
+            vis_irr->AddLightWithShadow(ChVector<>(1.5, 5.5, -3.5), ChVector<>(0, 0, 0), 8.2, 2.2, 8.2, 40, 512,
+                                    ChColor(0.8f, 0.8f, 0.8f));
+            vis_irr->EnableShadows();
+
+            vis = vis_irr;
+#endif
+            break;
+        }
+        case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+            auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
+            vis_vsg->AttachSystem(&sys);
+            vis_vsg->SetWindowSize(1024, 768);
+            vis_vsg->SetWindowTitle("Use 2D profiles with OpenCASCADE for mass, inertia, meshing");
+            vis_vsg->AddCamera(ChVector<>(0.2, 0.2, -4.3));
+            vis_vsg->Initialize();
+
+            vis = vis_vsg;
+#endif
+            break;
+        }
+    }
 
     // Simulation loop
     while (vis->Run()) {

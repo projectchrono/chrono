@@ -24,6 +24,7 @@ namespace chrono {
 class ChApi ChBoxShape : public ChVisualShape {
   public:
     ChBoxShape();
+    ChBoxShape(double x_length, double y_length, double z_length);
     ChBoxShape(const geometry::ChBox& box);
 
     ~ChBoxShape() {}

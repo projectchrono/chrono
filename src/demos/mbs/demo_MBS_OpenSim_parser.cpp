@@ -36,9 +36,6 @@ using namespace chrono;
 using namespace chrono::utils;
 using namespace chrono::irrlicht;
 
-using namespace irr;
-using namespace rapidxml;
-
 // =============================================================================
 
 int main(int argc, char* argv[]) {

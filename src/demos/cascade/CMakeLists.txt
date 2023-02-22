@@ -1,8 +1,35 @@
+#=============================================================================
+# CMake configuration file for various Chrono::Cascade demos.
+# These example programs require run-time visualization.
+#=============================================================================
+
+if(NOT ENABLE_MODULE_IRRLICHT AND NOT ENABLE_MODULE_VSG)
+    return()
+endif()
+
 #--------------------------------------------------------------
 # Additional paths and settings
 
 include_directories(${OpenCASCADE_INCLUDE_DIR})
-#link_directories(${OpenCASCADE_LIBRARY_DIR})
+set(COMPILER_FLAGS "${CH_CXX_FLAGS} ${OpenCASCADE_CXX_FLAGS}")
+set(LINKER_FLAGS "${CH_LINKERFLAG_EXE} ${OpenCASCADE_LINKER_FLAGS}")
+list(APPEND LIBS "ChronoEngine")
+list(APPEND LIBS "ChronoEngine_cascade")
+
+if(ENABLE_MODULE_IRRLICHT)
+    include_directories(${CH_IRRLICHTINC})
+    set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
+    list(APPEND LIBS "ChronoEngine_irrlicht")
+    list(APPEND LIBS "ChronoEngine_vehicle_irrlicht")
+endif()
+
+if(ENABLE_MODULE_VSG)
+    set(CMAKE_CXX_STANDARD 17)
+
+    include_directories(${CH_VSG_INCLUDES})
+    list(APPEND LIBS "ChronoEngine_vsg")
+    list(APPEND LIBS "ChronoEngine_vehicle_vsg")
+endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")	
     add_definitions( "/DWNT" )
@@ -14,7 +41,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 endif()
 
 #--------------------------------------------------------------
-# List of all Cascade demos which also require Irrlicht support
+# List of all Cascade demos
 
 set(DEMOS_CAS
 	demo_CAS_converter
@@ -26,29 +53,22 @@ set(DEMOS_CAS
 message(STATUS "Demo programs for OpenCASCADE module...")
 
 #--------------------------------------------------------------
-# Add demo executables that use Irrlicht
+# Add demo executables
 
-if(ENABLE_MODULE_IRRLICHT)
+foreach(PROGRAM ${DEMOS_CAS})
+    message(STATUS "...add ${PROGRAM}")
 
-   include_directories(${CH_IRRLICHTINC})
+    add_executable(${PROGRAM} "${PROGRAM}.cpp")
+    source_group(""  FILES "${PROGRAM}.cpp")
 
-   foreach(PROGRAM ${DEMOS_CAS})
-        message(STATUS "...add ${PROGRAM}")
+    set_target_properties(${PROGRAM} PROPERTIES COMPILE_FLAGS "${COMPILER_FLAGS}" LINK_FLAGS "${LINKER_FLAGS}")
+    if(APPLE)
+      set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
+    endif()    
+    set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+    target_link_libraries(${PROGRAM} ${LIBS})
 
-        add_executable(${PROGRAM} "${PROGRAM}.cpp")
-        source_group(""  FILES "${PROGRAM}.cpp")
+    install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO}) 
+endforeach()
 
-        set_target_properties(${PROGRAM} PROPERTIES 
-            FOLDER demos
-            COMPILE_FLAGS "${CH_CXX_FLAGS} ${OpenCASCADE_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
-            LINK_FLAGS "${CH_LINKERFLAG_EXE} ${OpenCASCADE_LINKER_FLAGS}")
-        set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
-        target_link_libraries(${PROGRAM}
-            ChronoEngine
-            ChronoEngine_cascade
-            ChronoEngine_irrlicht)
 
-        install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO}) 
-    endforeach()
-
-endif()

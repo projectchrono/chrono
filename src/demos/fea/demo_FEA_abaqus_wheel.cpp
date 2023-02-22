@@ -36,8 +36,6 @@ using namespace chrono;
 using namespace chrono::fea;
 using namespace chrono::irrlicht;
 
-using namespace irr;
-
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
@@ -170,7 +168,7 @@ int main(int argc, char* argv[]) {
     mwheel_rim->SetWvel_par(ChVector<>(tire_w0, 0, 0));
     sys.Add(mwheel_rim);
 
-    auto mobjmesh = chrono_types::make_shared<ChObjFileShape>();
+    auto mobjmesh = chrono_types::make_shared<ChModelFileShape>();
     mobjmesh->SetFilename(GetChronoDataFile("models/tractor_wheel/tractor_wheel_rim.obj"));
     mwheel_rim->AddVisualShape(mobjmesh);
 

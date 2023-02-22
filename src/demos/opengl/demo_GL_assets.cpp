@@ -27,7 +27,7 @@
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChPathShape.h"
-#include "chrono/assets/ChObjFileShape.h"
+#include "chrono/assets/ChModelFileShape.h"
 
 #include "chrono_opengl/ChVisualSystemOpenGL.h"
 
@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
     body->AddVisualShape(mesh, ChFrame<>(ChVector<>(2, 1, 2), QUNIT));
 
     // ==Asset== Attach a 'Wavefront mesh' asset, referencing a .obj file and offset it.
-    auto objmesh = chrono_types::make_shared<ChObjFileShape>();
+    auto objmesh = chrono_types::make_shared<ChModelFileShape>();
     objmesh->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
     objmesh->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
     body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(0, 0, 2), QUNIT));
@@ -181,14 +181,17 @@ int main(int argc, char* argv[]) {
     // Create the ChParticleClones, populate it with some random particles
     auto particles = chrono_types::make_shared<ChParticleCloud>();
 
-    ////particles->SetFixed(true);
+    double particle_radius = 0.05;
+
+    // Add visualization (shared by all particles in the cloud)
+    particles->AddVisualization(ChParticleCloud::ShapeType::SPHERE, 2 * particle_radius, ChColor());
 
     // Note: the collision shape, if needed, must be specified before creating particles.
     // This will be shared among all particles in the ChParticleCloud.
     auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
     particles->GetCollisionModel()->ClearModel();
-    particles->GetCollisionModel()->AddSphere(particle_mat, 0.05);
+    particles->GetCollisionModel()->AddSphere(particle_mat, particle_radius);
     particles->GetCollisionModel()->BuildModel();
     particles->SetCollide(true);
 
@@ -202,12 +205,6 @@ int main(int argc, char* argv[]) {
     particles->SetInertiaXX(ChVector<>(0.001, 0.001, 0.001));
 
     sys.Add(particles);
-
-    //  ==Asset== Attach a 'sphere' shape asset.. it will be used as a sample
-    // shape to display all particles when rendering in 3D!
-    auto sphereparticle = chrono_types::make_shared<ChSphereShape>();
-    sphereparticle->GetSphereGeometry().rad = 0.1;
-    particles->AddVisualShape(sphereparticle);
 
     ChVector<> displ(1, 0.0, 0);
     std::vector<ChVector<>> points;
@@ -227,9 +224,9 @@ int main(int argc, char* argv[]) {
     vis.SetWindowTitle("OpenGL assets");
     vis.SetWindowSize(1600, 900);
     vis.SetRenderMode(opengl::SOLID);
-    vis.SetParticleRenderMode(0.05f, opengl::POINTS);
+    vis.SetParticleRenderMode(opengl::SOLID);
     vis.Initialize();
-    vis.SetCameraPosition(ChVector<>(-2.0, 3.0, -4.0), ChVector<>(0, 0, 0));
+    vis.AddCamera(ChVector<>(-2.0, 3.0, -4.0), ChVector<>(0, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Y);
     vis.SetCameraProperties(0.5f, 0.1f, 500.0f);
 

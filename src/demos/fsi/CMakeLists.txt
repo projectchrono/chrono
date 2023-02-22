@@ -1,72 +1,66 @@
 # ------------------------------------------------------------------------------
-# List of demos according their depencies
+# List of demos
 # ------------------------------------------------------------------------------
 
-# List FSI demos that do not have other dependencies
-SET(FSI_DEMOS 
-    demo_FSI_DamBreak
-    demo_FSI_Compressibility
-    demo_FSI_Poiseuille_flow
-    demo_FSI_CylinderDrop
-    demo_FSI_SingleWheelTest
-    demo_FSI_BCE
+set(DEMOS ${DEMOS}
+   demo_FSI_DamBreak
+   demo_FSI_Compressibility
+   demo_FSI_Poiseuille_flow
+   demo_FSI_SingleWheelTest
+   demo_FSI_BCE
+   demo_FSI_CylinderDrop
 )
 
-set(FSI_MKL_DEMOS
-    demo_FSI_Flexible_Flat_Plate
-    demo_FSI_Flexible_Cable
-    demo_FSI_Flexible_Toroidal_Tire
-)
+if(ENABLE_MODULE_PARDISO_MKL)
+   set(DEMOS ${DEMOS}
+      demo_FSI_Flexible_Flat_Plate
+      demo_FSI_Flexible_Cable
+      demo_FSI_Flexible_Toroidal_Tire
+   )
+endif()
 
 #--------------------------------------------------------------
 
-INCLUDE_DIRECTORIES(${CH_FSI_INCLUDES})
+include_directories(${CH_FSI_INCLUDES})
+set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
+set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
+list(APPEND LIBS "ChronoEngine")
+list(APPEND LIBS "ChronoEngine_fsi")
+
+if(ENABLE_MODULE_VSG)
+    set(CMAKE_CXX_STANDARD 17)
+    include_directories(${CH_VSG_INCLUDES})
+    list(APPEND LIBS "ChronoEngine_vsg")
+endif()
+
+if(ENABLE_MODULE_OPENGL)
+    include_directories(${CH_OPENGL_INCLUDES})
+    list(APPEND LIBS "ChronoEngine_opengl")
+endif()
+
+if(ENABLE_MODULE_PARDISO_MKL)
+    include_directories(${CH_MKL_INCLUDES})
+    set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
+    set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
+    list(APPEND LIBS "ChronoEngine_pardisomkl")
+endif()
+
+#--------------------------------------------------------------
 
 MESSAGE(STATUS "Demo programs for FSI module...")
 	
-IF(ENABLE_MODULE_PARDISO_MKL)
+foreach(PROGRAM ${DEMOS})
+    message(STATUS "...add ${PROGRAM}")
 
-   INCLUDE_DIRECTORIES(${CH_MKL_INCLUDES})
-   
-    FOREACH(PROGRAM ${FSI_MKL_DEMOS})
-        MESSAGE(STATUS "...add ${PROGRAM}")
+    add_executable(${PROGRAM} ${PROGRAM}.cpp)
+    source_group("" FILES ${PROGRAM}.cpp)
 
-        CUDA_ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
-        SOURCE_GROUP(""  FILES  "${PROGRAM}.cpp")
+    set_target_properties(${PROGRAM} PROPERTIES COMPILE_FLAGS "${COMPILER_FLAGS}" LINK_FLAGS "${LINKER_FLAGS}")
+    if(APPLE)
+      set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
+    endif()
+    set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+    target_link_libraries(${PROGRAM} ${LIBS})
 
-        SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 
-            FOLDER demos
-            COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_MKL_CXX_FLAGS}"
-            LINK_FLAGS "${CH_LINKERFLAG_EXE} ${CH_MKL_LINK_FLAGS} ")
-        SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
-        TARGET_LINK_LIBRARIES(${PROGRAM}
-            ChronoEngine
-            ChronoEngine_pardisomkl
-            ChronoEngine_fsi)
-        TARGET_INCLUDE_DIRECTORIES(${PROGRAM} PUBLIC ${CH_MKL_INCLUDES})
-        ADD_DEPENDENCIES(${PROGRAM}
-            ChronoEngine
-            ChronoEngine_pardisomkl
-            ChronoEngine_fsi)
-
-        INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
-    ENDFOREACH()
-   
-ENDIF()
-
-
-FOREACH(PROGRAM ${FSI_DEMOS})
-    MESSAGE(STATUS "...add ${PROGRAM}")
-
-    CUDA_ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
-    SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
-
-    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
-        FOLDER demos
-        COMPILE_FLAGS "${CH_CXX_FLAGS}"
-        LINK_FLAGS "${CH_LINKERFLAG_EXE}")
-    SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
-    TARGET_LINK_LIBRARIES(${PROGRAM} ChronoEngine ChronoEngine_fsi)
-
-    INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
-ENDFOREACH()
+    install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
+endforeach()

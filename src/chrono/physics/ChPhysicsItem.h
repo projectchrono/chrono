@@ -52,7 +52,7 @@ class ChApi ChPhysicsItem : public ChObj {
     /// Add an (optional) visualization model.
     /// Not that an instance of the given visual model is associated with this physics ite, thus allowing sharing the
     /// same model among multiple items.
-    void AddVisualModel(std::shared_ptr<ChVisualModel> model);
+    virtual void AddVisualModel(std::shared_ptr<ChVisualModel> model);
 
     /// Access the visualization model (if any).
     /// Note that this model may be shared with other physics items that may instance it.
@@ -61,7 +61,7 @@ class ChApi ChPhysicsItem : public ChObj {
 
     /// Add the specified visual shape to the visualization model.
     /// If this item does not have a visual model, one is created.
-    void AddVisualShape(std::shared_ptr<ChVisualShape> shape, const ChFrame<>& frame = ChFrame<>());
+    virtual void AddVisualShape(std::shared_ptr<ChVisualShape> shape, const ChFrame<>& frame = ChFrame<>());
 
     /// Access the specified visualization shape in the visualization model (if any).
     /// Note that no range check is performed.
@@ -69,7 +69,7 @@ class ChApi ChPhysicsItem : public ChObj {
 
     /// Add the specified FEA visualization object to the visualization model.
     /// If this item does not have a visual model, one is created.
-    void AddVisualShapeFEA(std::shared_ptr<ChVisualShapeFEA> shapeFEA);
+    virtual void AddVisualShapeFEA(std::shared_ptr<ChVisualShapeFEA> shapeFEA);
 
     /// Access the specified FEA visualization object in the visualization model (if any).
     /// Note that no range check is performed.

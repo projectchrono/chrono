@@ -55,13 +55,38 @@ void ChVisualSystemOpenGL::SetWindowTitle(const std::string& win_title) {
     m_win_title = win_title;
 }
 
-void ChVisualSystemOpenGL::SetCameraPosition(const ChVector<>& pos, ChVector<> targ) {
+int ChVisualSystemOpenGL::AddCamera(const ChVector<>& pos, ChVector<> target) {
     m_camera_pos = pos;
-    m_camera_targ = targ;
+    m_camera_targ = target;
     if (viewer) {
         viewer->render_camera.camera_position = glm::vec3(m_camera_pos.x(), m_camera_pos.y(), m_camera_pos.z());
         viewer->render_camera.camera_look_at = glm::vec3(m_camera_targ.x(), m_camera_targ.y(), m_camera_targ.z());
     }
+    return 0;
+}
+
+void ChVisualSystemOpenGL::SetCameraPosition(int id, const ChVector<>& pos) {
+    m_camera_pos = pos;
+    if (viewer)
+        viewer->render_camera.camera_position = glm::vec3(m_camera_pos.x(), m_camera_pos.y(), m_camera_pos.z());
+}
+
+void ChVisualSystemOpenGL::SetCameraTarget(int id, const ChVector<>& target) {
+    m_camera_targ = target;
+    if (viewer)
+        viewer->render_camera.camera_look_at = glm::vec3(m_camera_targ.x(), m_camera_targ.y(), m_camera_targ.z());
+}
+
+void ChVisualSystemOpenGL::SetCameraPosition(const ChVector<>& pos) {
+    m_camera_pos = pos;
+    if (viewer)
+        viewer->render_camera.camera_position = glm::vec3(m_camera_pos.x(), m_camera_pos.y(), m_camera_pos.z());
+}
+
+void ChVisualSystemOpenGL::SetCameraTarget(const ChVector<>& target) {
+    m_camera_targ = target;
+    if (viewer)
+        viewer->render_camera.camera_look_at = glm::vec3(m_camera_targ.x(), m_camera_targ.y(), m_camera_targ.z());
 }
 
 void ChVisualSystemOpenGL::SetCameraVertical(CameraVerticalDir vert) {
@@ -94,14 +119,10 @@ void ChVisualSystemOpenGL::SetRenderMode(RenderMode mode) {
         viewer->render_mode = m_solid_mode;
 }
 
-void ChVisualSystemOpenGL::SetParticleRenderMode(float radius, RenderMode mode) {
+void ChVisualSystemOpenGL::SetParticleRenderMode(RenderMode mode) {
     m_particle_render_mode = mode;
-    m_particle_radius = radius;
-
-    if (viewer) {
-        viewer->particle_radius = m_particle_radius;
+    if (viewer)
         viewer->particle_render_mode = m_particle_render_mode;
-    }
 }
 
 void ChVisualSystemOpenGL::AttachStatsRenderer(std::shared_ptr<ChOpenGLStats> renderer) {
@@ -131,7 +152,6 @@ void ChVisualSystemOpenGL::Initialize() {
     viewer->render_camera.SetClipping(m_camera_near, m_camera_far);
 
     viewer->render_mode = m_solid_mode;
-    viewer->particle_radius = m_particle_radius;
     viewer->particle_render_mode = m_particle_render_mode;
 
     if (!glfwInit()) {
@@ -303,8 +323,6 @@ bool ChVisualSystemOpenGL::Run() {
 
 // -----------------------------------------------------------------------------
 
-void ChVisualSystemOpenGL::BeginScene(bool backBuffer, bool zBuffer, ChColor color) {}
-
 void ChVisualSystemOpenGL::Render() {
     glEnable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
@@ -318,8 +336,6 @@ void ChVisualSystemOpenGL::Render() {
     glfwSwapBuffers(window);
     glfwPollEvents();
 }
-
-void ChVisualSystemOpenGL::EndScene() {}
 
 // -----------------------------------------------------------------------------
 

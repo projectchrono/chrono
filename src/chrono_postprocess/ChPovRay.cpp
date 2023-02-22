@@ -15,7 +15,7 @@
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCamera.h"
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChObjFileShape.h"
+#include "chrono/assets/ChModelFileShape.h"
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChEllipsoidShape.h"
 #include "chrono/assets/ChTexture.h"
@@ -428,7 +428,7 @@ void ChPovRay::ExportShapes(ChStreamOutAsciiFile& assets_file, std::shared_ptr<C
             continue;
         m_pov_shapes.insert({(size_t)shape.get(), shape});
 
-        auto obj_shape = std::dynamic_pointer_cast<ChObjFileShape>(shape);
+        auto obj_shape = std::dynamic_pointer_cast<ChModelFileShape>(shape);
         auto mesh_shape = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape);
 
         if (obj_shape || mesh_shape) {
@@ -693,7 +693,7 @@ void ChPovRay::ExportObjData(ChStreamOutAsciiFile& pov_file,
         const auto& shape = shape_instance.first;
 
         // Process only "known" shapes (i.e., shapes that were included in the assets file)
-        if (std::dynamic_pointer_cast<ChObjFileShape>(shape) || std::dynamic_pointer_cast<ChTriangleMeshShape>(shape) ||
+        if (std::dynamic_pointer_cast<ChModelFileShape>(shape) || std::dynamic_pointer_cast<ChTriangleMeshShape>(shape) ||
             std::dynamic_pointer_cast<ChSphereShape>(shape) || std::dynamic_pointer_cast<ChEllipsoidShape>(shape) ||
             std::dynamic_pointer_cast<ChCylinderShape>(shape) || std::dynamic_pointer_cast<ChBoxShape>(shape)) {
             pov_file << "sh_" << (size_t)shape.get() << "()\n";

@@ -42,6 +42,8 @@ class CH_MODELS_API M113_DrivelineBDS : public ChTrackDrivelineBDS {
 
     virtual double GetConicalGearRatio() const override { return m_conicalgear_ratio; }
 
+    virtual double GetDifferentialLockingLimit() const override { return m_differential_locking_limit; }
+
   private:
     // Shaft inertias
     static const double m_driveshaft_inertia;
@@ -49,6 +51,9 @@ class CH_MODELS_API M113_DrivelineBDS : public ChTrackDrivelineBDS {
 
     // Gear ratio
     static const double m_conicalgear_ratio;
+
+    // Differential locking torque limit.
+    static const double m_differential_locking_limit;
 };
 
 /// @} vehicle_models_m113

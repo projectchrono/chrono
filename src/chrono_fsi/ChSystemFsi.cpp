@@ -146,7 +146,7 @@ void ChSystemFsi::InitParams() {
 
     //
     m_paramsH->bodyActiveDomain = mR3(1e10, 1e10, 1e10);
-    m_paramsH->settlingTime = Real(1e10);
+    m_paramsH->settlingTime = Real(0);
 
     //
     m_paramsH->Max_Pressure = Real(1e20);
@@ -524,8 +524,12 @@ void ChSystemFsi::SetBoundaries(const ChVector<>& cMin, const ChVector<>& cMax) 
     m_paramsH->use_default_limits = false;
 }
 
-void ChSystemFsi::SetActiveDomain(const ChVector<>& boxDim) {
-    m_paramsH->bodyActiveDomain = utils::ToReal3(boxDim);
+void ChSystemFsi::SetActiveDomain(const ChVector<>& boxHalfDim) {
+    m_paramsH->bodyActiveDomain = utils::ToReal3(boxHalfDim);
+}
+
+void ChSystemFsi::SetActiveDomainDelay(double duration) {
+    m_paramsH->settlingTime = duration;
 }
 
 void ChSystemFsi::SetNumBoundaryLayers(int num_layers) {
@@ -876,12 +880,14 @@ void ChSystemFsi::CopyDeviceDataToHalfStep() {
     }
 }
 
-
 void ChSystemFsi::DoStepDynamics_FSI() {
     if (!m_is_initialized) {
         cout << "ERROR: FSI system not initialized!\n" << endl;
         throw std::runtime_error("FSI system not initialized!\n");
     }
+
+    m_timer_step.reset();
+    m_timer_step.start();
 
     if (m_fluid_dynamics->GetIntegratorType() == TimeIntegrator::EXPLICITSPH) {
         // The following is used to execute the Explicit WCSPH
@@ -954,7 +960,10 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         m_bce_manager->UpdateFlexMarkersPositionVelocity(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMeshD);
     }
 
-    m_time += 1 * m_paramsH->dT;
+    m_time += m_paramsH->dT;
+
+    m_timer_step.stop();
+    m_RTF = m_timer_step() / m_paramsH->dT;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

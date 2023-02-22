@@ -23,6 +23,12 @@ CH_FACTORY_REGISTER(ChCapsuleShape)
 ChCapsuleShape::ChCapsuleShape() {
     SetMutable(false);
 }
+
+ChCapsuleShape::ChCapsuleShape(double radius, double length) {
+    gcapsule.rad = radius;
+    gcapsule.hlen = length / 2;
+}
+
 ChCapsuleShape::ChCapsuleShape(const geometry::ChCapsule& cap) : gcapsule(cap) {
     SetMutable(false);
 }

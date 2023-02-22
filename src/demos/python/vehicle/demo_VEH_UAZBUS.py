@@ -141,7 +141,7 @@ vis.AddSkyBox()
 vis.AttachVehicle(uaz.GetVehicle())
 
 # Create the interactive driver system
-driver = veh.ChIrrGuiDriver(vis)
+driver = veh.ChInteractiveDriverIRR(vis)
 
 # Set the time response for steering and throttle keyboard inputs.
 steering_time = 1.0  # time to go from 0 to +1 (or from 0 to -1)
@@ -189,7 +189,7 @@ while vis.Run() :
     driver.Synchronize(time)
     terrain.Synchronize(time)
     uaz.Synchronize(time, driver_inputs, terrain)
-    vis.Synchronize(driver.GetInputModeAsString(), driver_inputs)
+    vis.Synchronize(time, driver_inputs)
 
     # Test for validity of kingpin angles (max.allowed by UAZ: 27deg)
     suspF = veh.CastToChToeBarLeafspringAxle(uaz.GetVehicle().GetSuspension(0))

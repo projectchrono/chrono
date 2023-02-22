@@ -75,7 +75,7 @@ def main() :
     vis.AddSkyBox()
     vis.AttachVehicle(vehicle)
 
-    driver = veh.ChIrrGuiDriver(vis)
+    driver = veh.ChInteractiveDriverIRR(vis)
 
     # Set the time response for steering and throttle keyboard inputs.
     # NOTE: this is not exact, since we do not render quite at the specified FPS.
@@ -110,7 +110,7 @@ def main() :
         vehicle.Synchronize(time, driver_inputs, terrain)
         trailer.Synchronize(time, driver_inputs, terrain)
         terrain.Synchronize(time)
-        vis.Synchronize(driver.GetInputModeAsString(), driver_inputs)
+        vis.Synchronize(time, driver_inputs)
 
         # Advance simulation for one timestep for all modules
         driver.Advance(step_size)

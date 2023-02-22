@@ -17,8 +17,8 @@
 # Driver inputs for a suspension test rig include left/right post displacements
 # and steering input (the latter being ignored if the tested suspension is not
 # attached to a steering mechanism).  These driver inputs can be obtained from
-# an interactive driver system (of type ChIrrGuiDriverSTR) or from a data file
-# (using a driver system of type ChDataDriverSTR).
+# an interactive driver system (of type ChSuspensionTestRigInteractiveDriverIRR) or from a data file
+# (using a driver system of type ChSuspensionTestRigDataDriver).
 #
 # See the description of ChSuspensionTestRig::PlotOutput for details on data
 # collected (if output is enabled).
@@ -69,7 +69,7 @@ def main() :
     vis.AttachVehicle(rig.GetVehicle())
 
     # Create and attach an STR driver
-    driver = veh.ChDataDriverSTR(driver_file)
+    driver = veh.ChSuspensionTestRigDataDriver(driver_file)
     rig.SetDriver(driver)
 
     # Initialize suspension test rig
@@ -105,7 +105,7 @@ def main() :
         driver_inputs.m_steering = rig.GetSteeringInput()
         driver_inputs.m_throttle = 0.0
         driver_inputs.m_braking = 0.0
-        vis.Synchronize(rig.GetDriverMessage(), driver_inputs)
+        vis.Synchronize(time, driver_inputs)
         vis.Advance(step_size)
 
         if rig.DriverEnded():

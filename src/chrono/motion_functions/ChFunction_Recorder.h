@@ -77,7 +77,8 @@ class ChApi ChFunction_Recorder : public ChFunction {
         m_last = m_points.end();
     }
 
-    const std::list<ChRecPoint>& GetPoints() { return m_points; }
+    const std::list<ChRecPoint>& GetPoints() const { return m_points; }
+    std::list<ChRecPoint>& GetPoints() { return m_points; }
 
     virtual void Estimate_x_range(double& xmin, double& xmax) const override;
 

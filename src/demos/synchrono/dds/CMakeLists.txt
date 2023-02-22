@@ -7,7 +7,7 @@ set(DEMOS
 )
 
 if(ENABLE_MODULE_IRRLICHT)
-   set(DEMOS 
+   set(DEMOS ${DEMOS}
        demo_SYN_DDS_wheeled 
        demo_SYN_DDS_tracked
    )

@@ -19,10 +19,10 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/tracked_vehicle/test_rig/ChDataDriverTTR.h"
-#include "chrono_vehicle/tracked_vehicle/test_rig/ChIrrGuiDriverTTR.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigDataDriver.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigInteractiveDriverIRR.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRig.h"
-#include "chrono_vehicle/utils/ChVehicleVisualSystemIrrlicht.h"
+#include "chrono_vehicle/ChVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/m113/M113_TrackAssemblyBandANCF.h"
 #include "chrono_models/vehicle/m113/M113_TrackAssemblyBandBushing.h"
@@ -194,16 +194,16 @@ int main(int argc, char* argv[]) {
     // Create and attach the driver system
     // -----------------------------------
 
-    std::unique_ptr<ChDriverTTR> driver;
+    std::unique_ptr<ChTrackTestRigDriver> driver;
     if (use_data_driver) {
         // Driver with inputs from file
-        auto data_driver = new ChDataDriverTTR(vehicle::GetDataFile(driver_file));
-        driver = std::unique_ptr<ChDriverTTR>(data_driver);
+        auto data_driver = new ChTrackTestRigDataDriver(vehicle::GetDataFile(driver_file));
+        driver = std::unique_ptr<ChTrackTestRigDriver>(data_driver);
     } else {
-        auto irr_driver = new ChIrrGuiDriverTTR(*vis);
+        auto irr_driver = new ChTrackTestRigInteractiveDriverIRR(*vis);
         irr_driver->SetThrottleDelta(1.0 / 50);
         irr_driver->SetDisplacementDelta(1.0 / 250);
-        driver = std::unique_ptr<ChDriverTTR>(irr_driver);
+        driver = std::unique_ptr<ChTrackTestRigDriver>(irr_driver);
     }
 
     rig->SetDriver(std::move(driver));
@@ -348,7 +348,7 @@ int main(int argc, char* argv[]) {
         rig->Advance(step_size);
 
         // Update visualization app
-        vis->Synchronize(rig->GetDriverMessage(), { 0, rig->GetThrottleInput(), 0 });
+        vis->Synchronize(rig->GetChTime(), { 0, rig->GetThrottleInput(), 0 });
         vis->Advance(step_size);
 
         // Parse all contacts in system

@@ -88,7 +88,7 @@ class CH_OPENGL_API ChVisualSystemOpenGL : virtual public ChVisualSystem {
     void SetRenderMode(RenderMode mode);
 
     /// Set render mode for particle systems (default: POINTS)
-    void SetParticleRenderMode(float radius, RenderMode mode);
+    void SetParticleRenderMode(RenderMode mode);
 
     /// Attach a Chrono system to the run-time visualization system.
     /// ChVisualSystemOpenGL allows simultaneous rendering of multiple Chrono systems.
@@ -105,11 +105,20 @@ class CH_OPENGL_API ChVisualSystemOpenGL : virtual public ChVisualSystem {
     /// This creates the Irrlicht device using the current values for the optional device parameters.
     virtual void Initialize();
 
-    /// Set camera position and look-at point.
-    /// The camera rotation/pan is controlled by mouse left and right buttons, the zoom is controlled by mouse wheel or
-    /// rmb+lmb+mouse, the position can be changed also with keyboard up/down/left/right arrows, the height can be
-    /// changed with keyboard 'PgUp' and 'PgDn' keys. Optional parameters are position and target.
-    void SetCameraPosition(const ChVector<>& pos, ChVector<> targ = VNULL);
+    /// Add a camera to the 3d scene.
+    virtual int AddCamera(const ChVector<>& pos, ChVector<> targ = VNULL) override;
+
+    /// Set the location of the specified camera.
+    virtual void SetCameraPosition(int id, const ChVector<>& pos) override;
+
+    /// Set the target (look-at) point of the specified camera.
+    virtual void SetCameraTarget(int id, const ChVector<>& target) override;
+
+    /// Set the location of the current (active) camera.
+    virtual void SetCameraPosition(const ChVector<>& pos) override;
+
+    /// Set the target (look-at) point of the current (active) camera.
+    virtual void SetCameraTarget(const ChVector<>& target) override;
 
     /// Attach a custom event receiver to the application.
     void AddUserEventReceiver(ChOpenGLEventCB* receiver) { user_receivers.push_back(receiver); }
@@ -129,20 +138,20 @@ class CH_OPENGL_API ChVisualSystemOpenGL : virtual public ChVisualSystem {
 
     /// Run the Irrlicht device.
     /// Returns `false` if the device wants to be deleted.
-    bool Run();
+    virtual bool Run() override;
 
-    /// Clean the canvas at the beginning of each animation frame.
-    virtual void BeginScene(bool backBuffer = true, bool zBuffer = true, ChColor color = ChColor(0, 0, 0));
+    /// Perform any necessary operations at the beginning of each rendering frame.
+    virtual void BeginScene() override {}
 
     /// Draw all 3D shapes and GUI elements at the current frame.
     /// This function is typically called inside a loop such as
     /// <pre>
     ///    while(vis->Run()) {...}
     /// </pre>
-    virtual void Render();
+    virtual void Render() override;
 
     /// End the scene draw at the end of each animation frame.
-    virtual void EndScene();
+    virtual void EndScene() override {}
 
     /// Create a snapshot of the last rendered frame and save it to the provided file.
     /// The file extension determines the image format.

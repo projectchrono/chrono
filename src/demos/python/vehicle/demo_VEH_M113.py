@@ -88,7 +88,7 @@ def main():
     # Create the interactive driver system
     # ------------------------------------
 
-    driver = veh.ChIrrGuiDriver(vis)
+    driver = veh.ChInteractiveDriverIRR(vis)
 
     # Set the time response for steering and throttle keyboard inputs.
     steering_time = 0.5  # time to go from 0 to +1 (or from 0 to -1)
@@ -129,7 +129,7 @@ def main():
         driver.Synchronize(time)
         terrain.Synchronize(time)
         m113.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right)
-        vis.Synchronize("", driver_inputs)
+        vis.Synchronize(time, driver_inputs)
 
         # Advance simulation for one timestep for all modules
         driver.Advance(step_size)

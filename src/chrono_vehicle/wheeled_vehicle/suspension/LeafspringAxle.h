@@ -68,6 +68,9 @@ class CH_VEHICLE_API LeafspringAxle : public ChLeafspringAxle {
     /// Return the free (rest) length of the spring element.
     virtual double getSpringRestLength() const override { return m_springRestLength; }
 
+    /// Return the fre (rest) length of the shock element.
+    virtual double getShockRestLength() const override { return m_shockRestLength; }
+
     /// Return the functor object for spring force.
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getSpringForceFunctor() const override { return m_springForceCB; }
     /// Return the functor object for shock force.
@@ -97,6 +100,7 @@ class CH_VEHICLE_API LeafspringAxle : public ChLeafspringAxle {
     double m_axleTubeRadius;
 
     double m_springRestLength;
+    double m_shockRestLength;
     double m_axleInertia;
 
     ChVector<> m_spindleInertia;

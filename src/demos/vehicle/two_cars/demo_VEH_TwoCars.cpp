@@ -21,9 +21,18 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
+
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
+using namespace chrono::irrlicht;
+#endif
+
+#ifdef CHRONO_VSG
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
+using namespace chrono::vsg3d;
+#endif
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -31,9 +40,11 @@ using namespace chrono::vehicle::hmmwv;
 
 // =============================================================================
 
+// Run-time visualization system (IRRLICHT or VSG)
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+
 // Simulation step sizes
 double step_size = 0.005;
-
 
 // =============================================================================
 
@@ -97,25 +108,55 @@ int main(int argc, char* argv[]) {
     hmmwv_2.SetTireVisualizationType(VisualizationType::PRIMITIVES);
 
     std::vector<ChDataDriver::Entry> driver_data_2;
-    driver_data_2.push_back({ 0.0, 0, 0.0, 0 });
-    driver_data_2.push_back({ 0.5, 0, 0.0, 0 });
-    driver_data_2.push_back({ 0.7, -0.3, 0.7, 0 });
-    driver_data_2.push_back({ 1.0, -0.3, 0.7, 0 });
-    driver_data_2.push_back({ 3.0, -0.5, 0.1, 0 });
+    driver_data_2.push_back({0.0, 0, 0.0, 0});
+    driver_data_2.push_back({0.5, 0, 0.0, 0});
+    driver_data_2.push_back({0.7, -0.3, 0.7, 0});
+    driver_data_2.push_back({1.0, -0.3, 0.7, 0});
+    driver_data_2.push_back({3.0, -0.5, 0.1, 0});
     ChDataDriver driver_2(hmmwv_2.GetVehicle(), driver_data_2);
     driver_2.Initialize();
 
-    // Create the vehicle Irrlicht interface (associated with 1st vehicle)
-    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
-    vis->SetWindowTitle("Two cars demo");
-    vis->SetChaseCamera(ChVector<>(0.0, 0.0, .75), 6.0, 0.5);
-    vis->SetChaseCameraState(utils::ChChaseCamera::Track);
-    vis->SetChaseCameraPosition(ChVector<>(-15, 0, 2.0));
-    vis->Initialize();
-    vis->AddSkyBox();
-    vis->AddLogo();
-    vis->AddLightDirectional();
-    vis->AttachVehicle(&hmmwv_1.GetVehicle());
+    // Create the vehicle run-time visualization interface and the interactive driver
+    std::shared_ptr<ChVehicleVisualSystem> vis;
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
+            auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+            vis_irr->SetWindowTitle("Two cars demo");
+            vis_irr->SetChaseCamera(ChVector<>(0.0, 0.0, .75), 6.0, 0.5);
+            vis_irr->SetChaseCameraState(utils::ChChaseCamera::Track);
+            vis_irr->SetChaseCameraPosition(ChVector<>(-15, 0, 2.0));
+            vis_irr->Initialize();
+            vis_irr->AddSkyBox();
+            vis_irr->AddLogo();
+            vis_irr->AddLightDirectional();
+            vis_irr->AttachVehicle(&hmmwv_1.GetVehicle());
+
+            vis = vis_irr;
+#endif
+            break;
+        }
+        case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+            auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
+            vis_vsg->SetWindowTitle("Two cars demo");
+            vis_vsg->SetWindowSize(ChVector2<int>(800, 600));
+            vis_vsg->SetWindowPosition(ChVector2<int>(100, 300));
+            vis_vsg->SetChaseCamera(ChVector<>(0.0, 0.0, .75), 6.0, 0.5);
+            vis_vsg->SetChaseCameraState(utils::ChChaseCamera::Track);
+            vis_vsg->SetChaseCameraPosition(ChVector<>(-15, 0, 2.0));
+            vis_vsg->AttachVehicle(&hmmwv_1.GetVehicle());
+            vis_vsg->SetUseSkyBox(true);
+            vis_vsg->SetCameraAngleDeg(40);
+            vis_vsg->SetLightIntensity(1.0f);
+            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->Initialize();
+
+            vis = vis_vsg;
+#endif
+            break;
+        }
+    }
 
     // ---------------
     // Simulation loop
@@ -138,7 +179,7 @@ int main(int argc, char* argv[]) {
         hmmwv_1.Synchronize(time, driver_inputs_1, terrain);
         hmmwv_2.Synchronize(time, driver_inputs_2, terrain);
         terrain.Synchronize(time);
-        vis->Synchronize("", driver_inputs_1);
+        vis->Synchronize(time, driver_inputs_1);
 
         // Advance simulation for one timestep for all modules.
         driver_1.Advance(step_size);

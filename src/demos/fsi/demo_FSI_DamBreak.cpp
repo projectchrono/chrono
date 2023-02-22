@@ -22,7 +22,10 @@
 #include "chrono/utils/ChUtilsGeometry.h"
 
 #include "chrono_fsi/ChSystemFsi.h"
-#include "chrono_fsi/ChVisualizationFsi.h"
+
+#ifdef CHRONO_OPENGL
+    #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
+#endif
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -134,15 +137,17 @@ int main(int argc, char* argv[]) {
     // Complete construction of the FSI system
     sysFSI.Initialize();
 
+#ifdef CHRONO_OPENGL
     // Create a run-tme visualizer
-    ChVisualizationFsi fsi_vis(&sysFSI);
+    ChFsiVisualizationGL fsi_vis(&sysFSI);
     if (render) {
         fsi_vis.SetTitle("Chrono::FSI dam break");
-        fsi_vis.SetCameraPosition(ChVector<>(0, -3 * byDim, bzDim), ChVector<>(0, 0, 0));
+        fsi_vis.AddCamera(ChVector<>(0, -3 * byDim, bzDim), ChVector<>(0, 0, 0));
         fsi_vis.SetCameraMoveScale(1.0f);
         fsi_vis.EnableBoundaryMarkers(false);
         fsi_vis.Initialize();
     }
+#endif
 
     // Start the simulation
     double dT = sysFSI.GetStepSize();
@@ -163,11 +168,13 @@ int main(int argc, char* argv[]) {
             sysFSI.PrintParticleToFile(out_dir + "/particles");
         }
 
+#ifdef CHRONO_OPENGL
         // Render SPH particles
         if (render && current_step % render_steps == 0) {
             if (!fsi_vis.Render())
                 break;
         }
+#endif
 
         // Call the FSI solver
         sysFSI.DoStepDynamics_FSI();

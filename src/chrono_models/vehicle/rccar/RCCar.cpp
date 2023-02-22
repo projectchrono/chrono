@@ -93,8 +93,6 @@ void RCCar::Initialize() {
     auto powertrain = chrono_types::make_shared<RCCar_SimpleMapPowertrain>("Powertrain");
     powertrain->m_voltage_ratio = m_voltage_ratio;
     powertrain->m_stall_torque = m_stall_torque;
-    powertrain->m_motor_resistance_c0 = m_motor_resistance_c0;
-    powertrain->m_motor_resistance_c1 = m_motor_resistance_c1;
     m_vehicle->InitializePowertrain(powertrain);
 
     // Create the tires and set parameters depending on type.

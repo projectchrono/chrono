@@ -192,5 +192,10 @@ TerrainForce ChDeformableTire::ReportTireForce(ChTerrain* terrain) const {
     return tire_force;
 }
 
+TerrainForce ChDeformableTire::ReportTireForce(ChTerrain* terrain, ChCoordsys<>& tire_frame) const {
+    std::cerr << "ChDeformableTire::ReportTireForce for local frame not implemented." << std::endl;
+    throw ChException("ChDeformableTire::ReportTireForce for local frame not implemented.");
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

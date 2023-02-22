@@ -17,8 +17,8 @@
 // Driver inputs for a suspension test rig include left/right post displacements
 // and steering input (the latter being ignored if the tested suspension is not
 // attached to a steering mechanism).  These driver inputs can be obtained from
-// an interactive driver system (of type ChIrrGuiDriverSTR) or from a data file
-// (using a driver system of type ChDataDriverSTR).
+// an interactive driver system (of type ChSuspensionTestRigInteractiveDriverIRR) or from a data file
+// (using a driver system of type ChSuspensionTestRigDataDriver).
 //
 // See the description of ChSuspensionTestRig::PlotOutput for details on data
 // collected (if output is enabled).
@@ -27,11 +27,11 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
-#include "chrono_vehicle/utils/ChVehicleVisualSystemIrrlicht.h"
+#include "chrono_vehicle/ChVehicleVisualSystemIrrlicht.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRig.h"
-#include "chrono_vehicle/wheeled_vehicle/test_rig/ChIrrGuiDriverSTR.h"
-#include "chrono_vehicle/wheeled_vehicle/test_rig/ChDataDriverSTR.h"
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigInteractiveDriverIRR.h"
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigDataDriver.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -212,12 +212,12 @@ int main(int argc, char* argv[]) {
     // Create and attach the driver system.
     switch (driver_mode) {
         case DriverMode::DATA_FILE: {
-            auto driver = chrono_types::make_shared<ChDataDriverSTR>(vehicle::GetDataFile(setup.DataDriverFile()));
+            auto driver = chrono_types::make_shared<ChSuspensionTestRigDataDriver>(vehicle::GetDataFile(setup.DataDriverFile()));
             rig->SetDriver(driver);
             break;
         }
         case DriverMode::INTERACTIVE: {
-            auto driver = chrono_types::make_shared<ChIrrGuiDriverSTR>(*vis);
+            auto driver = chrono_types::make_shared<ChSuspensionTestRigInteractiveDriverIRR>(*vis);
             driver->SetSteeringDelta(1.0 / 50);
             driver->SetDisplacementDelta(1.0 / 250);
             rig->SetDriver(driver);
@@ -257,7 +257,7 @@ int main(int argc, char* argv[]) {
         rig->Advance(step_size);
 
         // Update visualization app
-        vis->Synchronize(rig->GetDriverMessage(), {rig->GetSteeringInput(), 0, 0});
+        vis->Synchronize(rig->GetVehicle().GetChTime(), {rig->GetSteeringInput(), 0, 0});
         vis->Advance(step_size);
 
         if (rig->DriverEnded())

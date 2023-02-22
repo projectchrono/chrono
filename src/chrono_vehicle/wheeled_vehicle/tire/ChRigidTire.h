@@ -63,6 +63,10 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     /// in global frame, as applied to the center of the associated wheel.
     virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override;
 
+    /// Get the tire force and moment expressed in the tire frame.
+    /// Currently *NOT IMPLEMENTED*.
+    virtual TerrainForce ReportTireForce(ChTerrain* terrain, ChCoordsys<>& tire_frame) const override;
+
     /// Get the tire contact material.
     /// Note that this is not set until after tire initialization.
     std::shared_ptr<ChMaterialSurface> GetContactMaterial() const { return m_material; }
@@ -108,6 +112,11 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
 
     /// Initialize this tire by associating it to the specified wheel.
     virtual void Initialize(std::shared_ptr<ChWheel> wheel) override;
+
+    /// Update the state of this tire system at the current time.
+    virtual void Synchronize(double time,              ///< [in] current time
+                             const ChTerrain& terrain  ///< [in] reference to the terrain system
+                             ) override;
 
     bool m_use_contact_mesh;         ///< flag indicating use of a contact mesh
     std::string m_contact_meshFile;  ///< name of the OBJ file for contact mesh

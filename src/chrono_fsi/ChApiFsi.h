@@ -56,7 +56,7 @@
         @brief Class for solving a linear linear system via iterative methods.
         Only works when I2SPH or IISPH is set to solve the fluid dynamics.
 
-        @defgroup fsi_utils Model construction, and I/O utilities
+        @defgroup fsi_utils Modeling utilities
         @brief Handles utilities including creating BCE particles, setting 
         parameters via a JSON file, and output data into files with specified format
 

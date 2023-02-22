@@ -22,6 +22,7 @@ namespace chrono {
 class ChApi ChEllipsoidShape : public ChVisualShape {
   public:
     ChEllipsoidShape();
+    ChEllipsoidShape(double x_length, double y_length, double z_length);
     ChEllipsoidShape(const geometry::ChEllipsoid& ellipsoid);
 
     ~ChEllipsoidShape(){};

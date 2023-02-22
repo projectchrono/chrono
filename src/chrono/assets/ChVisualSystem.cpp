@@ -16,5 +16,36 @@
 
 namespace chrono {
 
-}  // namespace chrono
+ChVisualSystem ::~ChVisualSystem() {
+    for (auto s : m_systems)
+        s->visual_system = nullptr;
+}
 
+void ChVisualSystem::AttachSystem(ChSystem* sys) {
+    m_systems.push_back(sys);
+    sys->visual_system = this;
+}
+
+void ChVisualSystem::UpdateCamera(int id, const ChVector<>& pos, ChVector<> target) {
+    SetCameraPosition(id, pos);
+    SetCameraTarget(id, target);
+}
+
+void ChVisualSystem::UpdateCamera(const ChVector<>& pos, ChVector<> target) {
+    SetCameraPosition(pos);
+    SetCameraTarget(target);
+}
+
+double ChVisualSystem::GetSimulationRTF() const {
+    if (m_systems.empty())
+        return 0;
+    return m_systems[0]->GetRTF();
+}
+
+double ChVisualSystem::GetSimulationTime() const {
+    if (m_systems.empty())
+        return 0;
+    return m_systems[0]->GetChTime();
+}
+
+}  // namespace chrono

@@ -21,8 +21,6 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
-
 #include "chrono_models/vehicle/hmmwv/HMMWV_ANCFTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_FialaTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_ReissnerTire.h"
@@ -43,17 +41,30 @@
 
 #include "demos/vehicle/SetChronoSolver.h"
 
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+using namespace chrono::irrlicht;
+#endif
+
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+using namespace chrono::vsg3d;
+#endif
+
 using namespace chrono;
 using namespace chrono::vehicle;
-using namespace chrono::irrlicht;
 
+// Run-time visualization system (IRRLICHT or VSG)
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+
+// Tire model
 enum class TireType { RIGID, TMEASY, FIALA, PAC89, PAC02, ANCF4, ANCF8, ANCF_TOROIDAL, REISSNER };
 TireType tire_type = TireType::TMEASY;
 
+// Read from JSON specification file?
 bool use_JSON = true;
 
 int main() {
-
     // Create wheel and tire subsystems
     auto wheel = chrono_types::make_shared<hmmwv::HMMWV_Wheel>("Wheel");
 
@@ -135,7 +146,7 @@ int main() {
     double step_size;
 
     if (tire_type == TireType::ANCF4 || tire_type == TireType::ANCF8 || tire_type == TireType::ANCF_TOROIDAL ||
-        tire_type == TireType::REISSNER) {
+        tire_type == TireType::REISSNER || tire_type == TireType::RIGID) {
         sys = new ChSystemSMC;
         step_size = 4e-5;
         solver_type = ChSolver::Type::PARDISO_MKL;
@@ -193,20 +204,45 @@ int main() {
     // Scenario: specified longitudinal slip
     ////rig.Initialize(0.2, 0.1);
 
-    // Create the Irrlicht visualization sys
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->AttachSystem(sys);
-    vis->SetCameraVertical(CameraVerticalDir::Z);
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("Tire Test Rig");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(0, 0, 6));
-    vis->AddLightDirectional();
+    // Create the vehicle run-time visualization interface and the interactive driver
+    std::shared_ptr<ChVisualSystem> vis;
 
-    auto camera = vis->GetActiveCamera();
-    camera->setFOV(irr::core::PI / 4.5f);
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
+            auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+            vis_irr->AttachSystem(sys);
+            vis_irr->SetCameraVertical(CameraVerticalDir::Z);
+            vis_irr->SetWindowSize(800, 600);
+            vis_irr->SetWindowTitle("Tire Test Rig");
+            vis_irr->Initialize();
+            vis_irr->AddLogo();
+            vis_irr->AddSkyBox();
+            vis_irr->AddCamera(ChVector<>(1.0, 2.5, 1.5));
+            vis_irr->AddLightDirectional();
+
+            vis_irr->GetActiveCamera()->setFOV(irr::core::PI / 4.5f);
+
+            vis = vis_irr;
+#endif
+            break;
+        }
+        case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+            auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
+            vis_vsg->AttachSystem(sys);
+            ////vis_vsg->SetCameraVertical(CameraVerticalDir::Z);
+            vis_vsg->SetWindowSize(800, 600);
+            vis_vsg->SetWindowTitle("Tire Test Rig");
+            vis_vsg->AddCamera(ChVector<>(1.0, 2.5, 1.5));
+            vis_vsg->Initialize();
+
+            vis = vis_vsg;
+#endif
+            break;
+        }
+    }
+
 
     // Perform the simulation
     ChFunction_Recorder long_slip;
@@ -223,15 +259,11 @@ int main() {
         }
 
         auto& loc = rig.GetPos();
-        auto x = (irr::f32)loc.x();
-        auto y = (irr::f32)loc.y();
-        auto z = (irr::f32)loc.z();
-        camera->setPosition(irr::core::vector3df(x + 1.0f, y + 2.5f, z + 1.5f));
-        camera->setTarget(irr::core::vector3df(x, y + 0.25f, z));
+        vis->UpdateCamera(loc + ChVector<>(1.0, 2.5, 1.5), loc + ChVector<>(0, 0.25, 0));
 
         vis->BeginScene();
         vis->Render();
-        tools::drawAllContactPoints(vis.get(), 1.0, ContactsDrawMode::CONTACT_NORMALS);
+        ////tools::drawAllContactPoints(vis.get(), 1.0, ContactsDrawMode::CONTACT_NORMALS);
         rig.Advance(step_size);
         vis->EndScene();
 

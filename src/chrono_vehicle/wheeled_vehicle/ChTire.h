@@ -76,6 +76,12 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// The return application point, force, and moment are assumed to be expressed in the global reference frame.
     virtual TerrainForce ReportTireForce(ChTerrain* terrain) const = 0;
 
+    /// Get the tire force and moment expressed in the tire frame.
+    /// The tire frame has its origin in the contact patch, the X axis in the tire heading direction and the Z axis in
+    /// the terrain normal at the contact point.
+    /// If the tire is not in contact, the tire frame is not set and the function returns zero force and moment.
+    virtual TerrainForce ReportTireForce(ChTerrain* terrain, ChCoordsys<>& tire_frame) const = 0;
+
     /// Return the tire slip angle calculated based on the current state of the associated wheel body.
     /// The return value is in radians (positive sign = left turn, negative sign = right turn).
     double GetSlipAngle() const { return m_slip_angle; }
@@ -178,13 +184,6 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// for a given tire radius.  The return map can be used in DiscTerrainCollisionEnvelope.
     static void ConstructAreaDepthTable(double disc_radius, ChFunction_Recorder& areaDep);
 
-    std::shared_ptr<ChWheel> m_wheel;  ///< associated wheel subsystem
-    double m_stepsize;                 ///< tire integration step size (if applicable)
-    CollisionType m_collision_type;    ///< method used for tire-terrain collision
-
-    std::string m_vis_mesh_file;  ///< name of OBJ file for visualization of this tire (may be empty)
-
-  private:
     /// Perform disc-terrain collision detection.
     /// This utility function checks for contact between a disc of specified radius with given position and orientation
     /// (specified as the location of its center and a unit vector normal to the disc plane) and the terrain system
@@ -234,6 +233,12 @@ class CH_VEHICLE_API ChTire : public ChPart {
         double& depth,                       ///< [out] penetration depth (positive if contact occurred)
         float& mu                            ///< [out] coefficient of friction at contact
     );
+
+    std::shared_ptr<ChWheel> m_wheel;  ///< associated wheel subsystem
+    double m_stepsize;                 ///< tire integration step size (if applicable)
+    CollisionType m_collision_type;    ///< method used for tire-terrain collision
+
+    std::string m_vis_mesh_file;  ///< name of OBJ file for visualization of this tire (may be empty)
 
     double m_slip_angle;
     double m_longitudinal_slip;

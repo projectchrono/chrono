@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
     body->AddVisualShape(mesh, ChFrame<>(ChVector<>(2, 1, 2), QUNIT));
 
     // ==Asset== Attach a 'Wavefront mesh' asset, referencing a .obj file and offset it.
-    auto objmesh = chrono_types::make_shared<ChObjFileShape>();
+    auto objmesh = chrono_types::make_shared<ChModelFileShape>();
     objmesh->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
     body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(0, 0, 2), QUNIT));
 
@@ -180,6 +180,11 @@ int main(int argc, char* argv[]) {
     // and add it to physical system:
     auto particles = chrono_types::make_shared<ChParticleCloud>();
 
+    double particle_radius = 0.05;
+
+    // Add visualization (shared by all particles in the cloud)
+    particles->AddVisualization(ChParticleCloud::ShapeType::SPHERE, 2 * particle_radius, ChColor());
+
     // Note: the collision shape, if needed, must be specified before creating particles.
     // This will be shared among all particles in the ChParticleCloud.
     auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
@@ -200,12 +205,6 @@ int main(int argc, char* argv[]) {
 
     // Do not forget to add the particle cluster to the system:
     sys.Add(particles);
-
-    //  ==Asset== Attach a 'sphere' shape asset.. it will be used as a sample
-    // shape to display all particles when rendering in 3D!
-    auto sphereparticle = chrono_types::make_shared<ChSphereShape>();
-    sphereparticle->GetSphereGeometry().rad = 0.05;
-    particles->AddVisualShape(sphereparticle);
 
     //
     // EXAMPLE 4:

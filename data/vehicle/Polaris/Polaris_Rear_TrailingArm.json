@@ -1,0 +1,59 @@
+{
+  "Name": "Polaris ThreeLinkIRS",
+  "Type": "Suspension",
+  "Template": "ThreeLinkIRS",
+  ////// This suspension has same hardpoints for spring and shock
+  "Spindle": {
+    "Mass": 1.102840393,
+    "COM": [ -2.71526, 0.616, 0.33504 ],
+    "Inertia": [ 0.005, 0.005, 0.005 ],
+    "Radius": 0.05,
+    "Width": 0.06
+  },
+
+  "Trailing Arm": {
+    "Mass": 17.41794701,
+    "COM": [ -2.264002, 0.542369656432, 0.1960714931 ],
+    "Inertia": [ 0.02, 0.6, 0.6 ],
+    "Radius": 0.02,
+    "Location Chassis": [ -1.81102, 0.41275, 0.33782 ],
+    "Location Spindle": [ -2.7305, 0.59182, 0.322072 ]
+  },
+
+  "Upper Link": {
+    "Mass": 1.077238454,
+    "COM": [ -2.770505, 0.366395, 0.44577 ],
+    "Inertia": [ 0.005, 0.05, 0.05 ],
+    "Radius": 0.01,
+    "Location Chassis": [ -2.78003, 0.12065, 0.48768 ],
+    "Location Arm": [ -2.76098, 0.61214, 0.40386 ],
+    "Universal Joint Axis": [ 1, 0, 0 ]
+  },
+
+  "Lower Link": {
+    "Mass": 1.221836688,
+    "COM": [ -2.7813, 0.33655, 0.30353 ],
+    "Inertia": [ 0.005, 0.05, 0.05 ],
+    "Radius": 0.01,
+    "Location Chassis": [ -2.7813, 0.05842, 0.3556 ],
+    "Location Arm": [ -2.7813, 0.61468, 0.25146 ],
+    "Universal Joint Axis": [ 1, 0, 0 ]
+  },
+
+  "Spring": {
+    "Location Chassis": [ -2.19456, 0.35306, 0.83058 ],
+    "Location Arm": [ -2.36728, 0.48641, 0.3683 ],
+    "Free Length": 0.561998, //0.511198, //0.4534662,
+    "Spring Coefficient": 150000.000
+  },
+
+  "Shock": {
+    "Location Chassis": [ -2.19456, 0.35306, 0.83058 ],
+    "Location Arm": [ -2.36728, 0.48641, 0.3683 ],
+    "Damping Coefficient": 10000.000
+  },
+
+  "Axle": {
+    "Inertia": 0.4
+  }
+}

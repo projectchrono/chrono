@@ -29,6 +29,9 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_vis
+/// @{
+
 class CH_VEHICLE_API ChVehicleVisualSystem : virtual public ChVisualSystem {
   public:
     ChVehicleVisualSystem();
@@ -54,8 +57,20 @@ class CH_VEHICLE_API ChVehicleVisualSystem : virtual public ChVisualSystem {
     /// Set camera zoom multipliers.
     void SetChaseCameraMultipliers(double minMult, double maxMult);
 
-    /// Update information related to driver inputs.
-    virtual void Synchronize(const std::string& msg, const DriverInputs& driver_inputs);
+    /// Update visual system at the current time.
+    virtual void Synchronize(double time, const DriverInputs& driver_inputs);
+
+    /// Advance (optional) dynamics of the visualization system.
+    virtual void Advance(double step) {}
+
+    /// Return the RTF calculated by the associated vehicle.
+    virtual double GetSimulationRTF() const override;
+
+    const ChVehicle& GetVehicle() const { return *m_vehicle; }
+    const utils::ChChaseCamera& GetChaseCamera() const { return *m_camera; }
+    double GetSteering() const { return m_steering; }
+    double GetThrottle() const { return m_throttle; }
+    double GetBraking() const { return m_braking; }
 
   protected:
     ChVehicle* m_vehicle;  ///< pointer to the associated vehicle system
@@ -71,13 +86,14 @@ class CH_VEHICLE_API ChVehicleVisualSystem : virtual public ChVisualSystem {
     double m_camera_minMult;                         ///< initial camera minimum multiplier
     double m_camera_maxMult;                         ///< initial camera maximum multiplier
 
-    std::string m_driver_msg;  ///< HUD message from driver system
     double m_steering;         ///< driver steering input
     double m_throttle;         ///< driver throttle input
     double m_braking;          ///< driver braking input
 
     friend class ChVehicle;
 };
+
+/// @} vehicle_vis
 
 }  // namespace vehicle
 }  // namespace chrono
