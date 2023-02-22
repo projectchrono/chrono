@@ -101,7 +101,38 @@ chrono_gui_doupdate = True
 # utility functions to be used in assets.py  or   output/statexxxyy.py files
 #
 
+def create_chrono_path( nameID,
+                        list_points, 
+                        RGBAcolor, 
+                        line_width,
+                        my_list_materials, my_collection):
+    
+    gpencil_data = bpy.data.grease_pencils.new(nameID)
+    gpencil = bpy.data.objects.new(nameID, gpencil_data)
+    my_collection.objects.link(gpencil)
 
+    gp_layer = gpencil_data.layers.new("chrono_lines")
+    gp_layer.use_lights = False # for Cycles
+    gp_frame = gp_layer.frames.new(bpy.context.scene.frame_current)
+
+    gp_stroke = gp_frame.strokes.new()
+    gp_stroke.line_width = line_width
+
+    gp_stroke.points.add(len(list_points))
+
+    for item, value in enumerate(list_points):
+        gp_stroke.points[item].co = value
+        
+    mat = bpy.data.materials.new(name="chrono_path_mat")
+    bpy.data.materials.create_gpencil_data(mat)
+    gpencil.data.materials.append(mat)
+    mat.grease_pencil.color = RGBAcolor
+    
+    my_list_materials.append(mat)
+    
+    return gpencil
+    
+    
 def make_bsdf_material(nameID, colorRGB, metallic=0, specular=0, specular_tint=0, roughness=0.5, index_refraction=1.450, transmission=0, emissionRGB=(0,0,0,1), emission_strength=1, bump_map=0, bump_height=1.0):
     new_mat = bpy.data.materials.new(name=nameID)
 

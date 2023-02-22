@@ -737,6 +737,48 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
             m_shapes->insert({(size_t)shape.get(), shape});
         }
 
+        if (auto line_shape = std::dynamic_pointer_cast<ChLineShape>(shape)) {
+            *mfile << "create_chrono_path('" << shapename << "',\n";
+            *mfile << "[ \n";
+            for (int i = 0; i < line_shape->GetNumRenderPoints(); ++i) {
+                ChVector<> pt;
+                line_shape->GetLineGeometry()->Evaluate(pt, (double)i/(double)(line_shape->GetNumRenderPoints()-1));
+                *mfile << "(" << pt.x() << ","<< pt.y() << "," << pt.z() << "),\n";
+            }
+            *mfile << "],\n";
+            *mfile << "(" << line_shape->GetColor().R << "," << line_shape->GetColor().G << "," << line_shape->GetColor().B << ",1),\n";
+            *mfile << line_shape->GetThickness() << ",\n"; 
+            if (per_frame)
+                *mfile << "chrono_frame_materials" << ",\n"; 
+            else
+                *mfile << "chrono_materials" << ",\n";
+            *mfile << collection << "\n";
+            *mfile << ")\n\n";
+
+            m_shapes->insert({(size_t)shape.get(), shape});
+        }
+        if (auto line_shape = std::dynamic_pointer_cast<ChPathShape>(shape)) {
+            *mfile << "create_chrono_path('" << shapename << "',\n";
+            *mfile << "[ \n";
+            for (int i = 0; i < line_shape->GetNumRenderPoints(); ++i) {
+                ChVector<> pt;
+                line_shape->GetPathGeometry()->Evaluate(pt, (double)i/(double)(line_shape->GetNumRenderPoints()-1));
+                *mfile << "(" << pt.x() << ","<< pt.y() << "," << pt.z() << "),\n";
+            }
+            *mfile << "],\n";
+            *mfile << "(" << line_shape->GetColor().R << "," << line_shape->GetColor().G << "," << line_shape->GetColor().B << ",1),\n";
+            *mfile << line_shape->GetThickness() << ",\n"; 
+            if (per_frame)
+                *mfile << "chrono_frame_materials" << ",\n"; 
+            else
+                *mfile << "chrono_materials" << ",\n";
+            *mfile << collection << "\n";
+            *mfile << ")\n\n";
+
+            m_shapes->insert({(size_t)shape.get(), shape});
+        }
+
+
     }
     
     // Write cameras. Assume cameras properties (FOV etc.) are not mutable, 
