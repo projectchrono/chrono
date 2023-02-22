@@ -16,7 +16,7 @@
 #include "chrono/assets/ChConeShape.h"
 #include "chrono/assets/ChCamera.h"
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChObjFileShape.h"
+#include "chrono/assets/ChModelFileShape.h"
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChEllipsoidShape.h"
 #include "chrono/assets/ChLineShape.h"
@@ -467,7 +467,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
             m_shapes->insert({(size_t)shape.get(), shape});
         }
 
-        if (auto obj_shape = std::dynamic_pointer_cast<ChObjFileShape>(shape)) {
+        if (auto obj_shape = std::dynamic_pointer_cast<ChModelFileShape>(shape)) {
             std::string abspath_obj = filesystem::path(obj_shape->GetFilename()).make_absolute().str();
             std::replace(abspath_obj.begin(), abspath_obj.end(), '\\', '/');
             *mfile

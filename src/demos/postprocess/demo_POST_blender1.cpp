@@ -24,7 +24,7 @@
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCamera.h"
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChObjFileShape.h"
+#include "chrono/assets/ChModelFileShape.h"
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChGlyphs.h"
@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
     sphere->AddMaterial(visual_material);
 
     // ==Asset== Attach a 'Wavefront mesh' asset, referencing a .obj file:
-    auto objmesh = chrono_types::make_shared<ChObjFileShape>();
+    auto objmesh = chrono_types::make_shared<ChModelFileShape>();
     objmesh->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
     objmesh->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
     body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(0, 0, 2)));
@@ -320,7 +320,7 @@ int main(int argc, char* argv[]) {
     // shape to display all particles when rendering in 3D!
     auto sphereparticle = chrono_types::make_shared<ChSphereShape>();
     sphereparticle->GetSphereGeometry().rad = 0.05;
-    particles->AddVisualShape(sphereparticle);
+    // particles->AddVisualShape(sphereparticle); ***TODO***
 
     /// [Example 3]
     /* End example */
