@@ -19,6 +19,8 @@
 #include "chrono/assets/ChObjFileShape.h"
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChEllipsoidShape.h"
+#include "chrono/assets/ChLineShape.h"
+#include "chrono/assets/ChPathShape.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChGlyphs.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
@@ -388,7 +390,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
         //const auto& shape_frame = shape_instance.second; // not needed, shape frame will be set later via  make_chrono_object_assetlist in py files
 
         // Export shape materials
-        ExportMaterials(*mfile, *m_materials, shape->GetMaterials(), per_frame);
+        ExportMaterials(*mfile, *m_materials, shape->GetMaterials(), per_frame, shape);
 
 
         std::string shapename("shape_" + std::to_string((size_t)shape.get()));
@@ -656,7 +658,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
                 state_file << "\tcolor_type='PROPERTY', property_index_color="<< myprop_id <<", \n";
             }
             if (glyph_shape->GetDrawMode() == ChGlyphs::GLYPH_POINT) {
-                state_file << "\tglyph_type = 'SPHERE', \n";
+                state_file << "\tglyph_type = 'POINT', \n";
             }
             if (glyph_shape->GetDrawMode() == ChGlyphs::GLYPH_VECTOR) {
                 state_file << "\tglyph_type = 'VECTOR', \n";
@@ -684,6 +686,25 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
                     auto mprop = std::find_if(std::begin(glyph_shape->m_properties), std::end(glyph_shape->m_properties), [&](auto const& p) { return p->name == glyph_shape->glyph_basis_prop; });
                     int myprop_id = (mprop != glyph_shape->m_properties.end()) ? mprop - glyph_shape->m_properties.begin() : 0;
                     state_file << "\tbasis_type='PROPERTY', property_index_basis="<< myprop_id <<", \n";
+                }
+            }
+            if (glyph_shape->GetDrawMode() == ChGlyphs::GLYPH_TENSOR) {
+                state_file << "\tglyph_type = 'TENSOR', \n";
+                if (glyph_shape->glyph_basis_type == ChGlyphs::eCh_GlyphBasis::CONSTANT) {
+                    state_file << "\tbasis_type='CONST', const_basis=(" << glyph_shape->glyph_basis_constant.e0() << "," << glyph_shape->glyph_basis_constant.e1() << "," << glyph_shape->glyph_basis_constant.e2() << "," << glyph_shape->glyph_basis_constant.e3() << "), \n"; // constant basis
+                }
+                if (glyph_shape->glyph_basis_type == ChGlyphs::eCh_GlyphBasis::PROPERTY) {
+                    auto mprop = std::find_if(std::begin(glyph_shape->m_properties), std::end(glyph_shape->m_properties), [&](auto const& p) { return p->name == glyph_shape->glyph_basis_prop; });
+                    int myprop_id = (mprop != glyph_shape->m_properties.end()) ? mprop - glyph_shape->m_properties.begin() : 0;
+                    state_file << "\tbasis_type='PROPERTY', property_index_basis="<< myprop_id <<", \n";
+                }
+                if (glyph_shape->glyph_eigenvalues_type == ChGlyphs::eCh_GlyphEigenvalues::CONSTANT) {
+                    state_file << "\teigenvalues_type='CONST', const_eigenvalues=(" << glyph_shape->glyph_eigenvalue_constant.x() << "," << glyph_shape->glyph_eigenvalue_constant.y() << "," << glyph_shape->glyph_eigenvalue_constant.z() << "), \n"; // constant basis
+                }
+                if (glyph_shape->glyph_eigenvalues_type == ChGlyphs::eCh_GlyphEigenvalues::PROPERTY) {
+                    auto mprop = std::find_if(std::begin(glyph_shape->m_properties), std::end(glyph_shape->m_properties), [&](auto const& p) { return p->name == glyph_shape->glyph_eigenvalues_prop; });
+                    int myprop_id = (mprop != glyph_shape->m_properties.end()) ? mprop - glyph_shape->m_properties.begin() : 0;
+                    state_file << "\teigenvalues_type='PROPERTY', property_index_eigenvalues="<< myprop_id << ",\n";
                 }
             }
             state_file << "\t)\n";
@@ -723,7 +744,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
                     *mfile << "property = setup_property_color(glyphsetting, '" << mprop_cols->name.c_str() << "', matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_cols->name.c_str() << "', per_instance=True)\n";
                 }
             }
-            state_file << "new_objects = update_make_glyphs_vectors(glyphsetting, '" << shapename << "',";
+            state_file << "new_objects = update_make_glyphs(glyphsetting, '" << shapename << "',";
             state_file << "(" << blender_frame.GetPos().x() << "," << blender_frame.GetPos().y() << "," << blender_frame.GetPos().z() << "),";
             state_file << "(" << blender_frame.GetRot().e0() << "," << blender_frame.GetRot().e1() << "," << blender_frame.GetRot().e2() << "," << blender_frame.GetRot().e3() << "), \n";
             state_file << "  points_" << shapename << ",\n";
@@ -819,7 +840,11 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAscii
 }
 
 void ChBlender::ExportMaterials(ChStreamOutAsciiFile& mfile, std::unordered_map<size_t, std::shared_ptr<ChVisualMaterial>>& m_materials, 
-    const std::vector<std::shared_ptr<ChVisualMaterial>>& materials, bool per_frame) {
+    const std::vector<std::shared_ptr<ChVisualMaterial>>& materials, bool per_frame, std::shared_ptr<ChVisualShape> mshape) {
+
+    if (std::dynamic_pointer_cast<ChPathShape>(mshape) || std::dynamic_pointer_cast<ChLineShape>(mshape))
+        return;
+
     for (const auto& mat : materials) {
 
         // Do nothing if the material was already processed (because it is shared)
@@ -953,7 +978,7 @@ void ChBlender::ExportItemState(ChStreamOutAsciiFile& state_file,
                 state_file << "'" << shapename << "',(" << shape_frame.GetPos().x() << "," << shape_frame.GetPos().y() << "," << shape_frame.GetPos().z() << "),";
                 state_file << "(" << shape_frame.GetRot().e0() << "," << shape_frame.GetRot().e1() << "," << shape_frame.GetRot().e2() << "," << shape_frame.GetRot().e3() << "),";
                 state_file << "[";
-                if (shape->GetNumMaterials()) {
+                if (shape->GetNumMaterials() && (!std::dynamic_pointer_cast<ChLineShape>(shape)) && (!std::dynamic_pointer_cast<ChPathShape>(shape)) ) {
                     for (int im = 0; im < shape->GetNumMaterials(); ++im) {
                         state_file << "'";
                         auto mat = shape->GetMaterial(im); 
@@ -1072,19 +1097,6 @@ void ChBlender::ExportData(const std::string& filename) {
 
                 // Dump the POV macro that generates the contained asset(s) tree
                 ExportItemState(state_file, body, bodyframe >> blender_frame);
-
-                /*
-                // Show body COG?
-                if (COGs_show) {
-                    const ChCoordsys<>& cogcsys = body->GetFrame_COG_to_abs().GetCoord();
-                    state_file << "sh_csysCOG(";
-                    state_file << cogcsys.pos.x() << "," << cogcsys.pos.y() << "," << cogcsys.pos.z() << ",";
-                    state_file << cogcsys.rot.e0() << "," << cogcsys.rot.e1() << "," << cogcsys.rot.e2() << ","
-                             << cogcsys.rot.e3() << ",";
-                    state_file << COGs_size << ")\n";
-                }
-
-                */
             }
 
             // saving a cluster of particles?
@@ -1122,7 +1134,9 @@ void ChBlender::ExportData(const std::string& filename) {
         }  // end loop on objects
 
         // #) saving contacts ?
-        if (this->contacts_show == ContactSymbolType::VECTOR || this->contacts_show == ContactSymbolType::SPHERE) {
+        if ( this->mSystem->GetNcontacts() &&
+            (this->contacts_show == ContactSymbolType::VECTOR || this->contacts_show == ContactSymbolType::SPHERE)) {
+            
             //ChStreamOutAsciiFile data_contacts((base_path + filename + ".contacts").c_str());
              
             class _reporter_class : public ChContactContainer::ReportContactCallback {
@@ -1177,50 +1191,51 @@ void ChBlender::ExportData(const std::string& filename) {
 
             state_file << "\t])\n";
 
-            state_file << "\tglyphsetting = setup_glyph_setting('contacts',\n";
-            state_file << "\t\tdir_type='PROPERTY', property_index_dir=0, \n";  // will use 1st property, the 'F', for direction of force vector, in local frame of contact plane
-            state_file << "\t\tproperty_index_basis=1, \n"; // will use 2nd property, the 'loc_rot', for local rotation of contact plane
+            state_file << "\tif len(contacts):\n";
+            state_file << "\t\tglyphsetting = setup_glyph_setting('contacts', glyph_type ='VECTOR LOCAL',\n";
+            state_file << "\t\t\tdir_type='PROPERTY', property_index_dir=0, \n";  // will use 1st property, the 'F', for direction of force vector, in local frame of contact plane
+            state_file << "\t\t\tproperty_index_basis=1, \n"; // will use 2nd property, the 'loc_rot', for local rotation of contact plane
             if (this->contacts_vector_length_type == ContactSymbolVectorLength::CONSTANT) {
-                state_file << "\t\tlength_type='CONST', length_scale=" << this->contacts_vector_scalelenght <<", \n"; // constant length
+                state_file << "\t\t\tlength_type='CONST', length_scale=" << this->contacts_vector_scalelenght <<", \n"; // constant length
             }
             if (this->contacts_vector_length_type == ContactSymbolVectorLength::PROPERTY) {
-                state_file << "\t\tlength_type='PROPERTY', property_index_length=0, length_scale=" << this->contacts_vector_scalelenght << ",\n"; // will use 1st property, the 'F', for length
+                state_file << "\t\t\tlength_type='PROPERTY', property_index_length=0, length_scale=" << this->contacts_vector_scalelenght << ",\n"; // will use 1st property, the 'F', for length
             }
             if (this->contacts_vector_width_type == ContactSymbolVectorWidth::CONSTANT) {
-                state_file << "\t\twidth_type='CONST', width_scale=" << this->contacts_vector_scalewidth <<", \n"; // constant width
+                state_file << "\t\t\twidth_type='CONST', width_scale=" << this->contacts_vector_scalewidth <<", \n"; // constant width
             }
             if (this->contacts_vector_width_type == ContactSymbolVectorWidth::PROPERTY) {
-                state_file << "\t\twidth_type='PROPERTY', property_index_width=0, width_scale=" << this->contacts_vector_scalewidth << ",\n"; // will use 1st property, the 'F', for width
+                state_file << "\t\t\twidth_type='PROPERTY', property_index_width=0, width_scale=" << this->contacts_vector_scalewidth << ",\n"; // will use 1st property, the 'F', for width
             }
             if (this->contacts_color_type == ContactSymbolColor::CONSTANT) {
-                state_file << "\t\tcolor_type='CONST', const_color=(" << contacts_color_constant.R << "," << contacts_color_constant.G << "," << contacts_color_constant.B << "), \n"; // constant color
+                state_file << "\t\t\tcolor_type='CONST', const_color=(" << contacts_color_constant.R << "," << contacts_color_constant.G << "," << contacts_color_constant.B << "), \n"; // constant color
             }
             if (this->contacts_color_type == ContactSymbolColor::PROPERTY) {
-                state_file << "\t\tcolor_type='PROPERTY', property_index_color=0, \n"; // will use 1st property, the 'F', for color falsecolor scale
+                state_file << "\t\t\tcolor_type='PROPERTY', property_index_color=0, \n"; // will use 1st property, the 'F', for color falsecolor scale
             }
             if (this->contacts_vector_tip)
-                state_file << "\t\tdo_tip=True,\n";
+                state_file << "\t\t\tdo_tip=True,\n";
             else
-                state_file << "\t\tdo_tip=False,\n";
-            state_file << "\t)\n";
+                state_file << "\t\t\tdo_tip=False,\n";
+            state_file << "\t\t)\n";
 
-            state_file << "\tproperty = setup_property_vector(glyphsetting, 'F', matname = 'contacts_color_F', ";
+            state_file << "\t\tproperty = setup_property_vector(glyphsetting, 'F', matname = 'contacts_color_F', ";
             state_file << "mcolormap = 'colormap_cooltowarm', ";
             state_file << "min=" << this->contacts_colormap_startscale << ", ";
             state_file << "max=" << this->contacts_colormap_endscale << ", ";
             state_file << "per_instance = True) \n";
 
-            state_file << "\tproperty = setup_property_quaternion(glyphsetting, 'loc_rot', matname='contacts_color_rot', per_instance=True)\n";
+            state_file << "\t\tproperty = setup_property_quaternion(glyphsetting, 'loc_rot', matname='contacts_color_rot', per_instance=True)\n";
 
-            state_file << "\tnew_objects = update_make_glyphs_vectors(glyphsetting, 'contacts',";
+            state_file << "\t\tnew_objects = update_make_glyphs(glyphsetting, 'contacts',";
             state_file << "(" << blender_frame.GetPos().x() << "," << blender_frame.GetPos().y() << "," << blender_frame.GetPos().z() << "),";
             state_file << "(" << blender_frame.GetRot().e0() << "," << blender_frame.GetRot().e1() << "," << blender_frame.GetRot().e2() << "," << blender_frame.GetRot().e3() << "), \n";
-            state_file << "\t  list(map(tuple,contacts[:,0:3])),\n";
-            state_file << "\t  list_attributes=[ \n";
-            state_file << "\t    ['F', list(map(tuple,contacts[:,7:10]))], \n"; 
-            state_file << "\t    ['loc_rot', list(map(tuple,contacts[:,3:7]))], \n"; 
-            state_file << "\t  ], \n";
-            state_file << "\t) \n";
+            state_file << "\t\t  list(map(tuple,contacts[:,0:3])),\n";
+            state_file << "\t\t  list_attributes=[ \n";
+            state_file << "\t\t    ['F', list(map(tuple,contacts[:,7:10]))], \n"; 
+            state_file << "\t\t    ['loc_rot', list(map(tuple,contacts[:,3:7]))], \n"; 
+            state_file << "\t\t  ], \n";
+            state_file << "\t\t) \n";
 
         }
 
