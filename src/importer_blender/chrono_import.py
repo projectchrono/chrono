@@ -385,20 +385,25 @@ def setup_meshsetting(new_object):
 # if a glyph setting is already existing with the correspoiding name id, just reuse it (so
 # that one can have setting persistency through frames, even if the mesh is non-mutable and regenerated.
 def setup_glyph_setting(obj_name,
-                           glyph_type = 'VECTOR',
+                           glyph_type = 'POINT',
                            color_type = 'CONST',
                            property_index_color = 0,
                            const_color =(1,0,0),
-                           dir_type = 'PROPERTY',
+                           dir_type = 'CONST',
                            const_dir = (1,0,0),
                            property_index_dir = 0,
-                           length_type = 'PROPERTY',
+                           length_type = 'CONST',
                            property_index_length = 0,
                            length_scale = 0.01, 
                            width_type = 'CONST',
                            property_index_width = 0,
-                           width_scale=0.01,                     
+                           width_scale=0.01,
+                           basis_type = 'CONST',               
                            property_index_basis = 0,
+                           const_basis=(1,0,0,0),
+                           eigenvalues_type = 'CONST',
+                           const_eigenvalues = (1,1,1),
+                           property_index_eigenvalues = 0,
                            do_tip = True
                            ):
     glyphsetting = bpy.context.scene.ch_glyph_setting.get(obj_name)
@@ -411,14 +416,19 @@ def setup_glyph_setting(obj_name,
         glyphsetting.property_index_width  = property_index_width
         glyphsetting.property_index_color  = property_index_color
         glyphsetting.property_index_basis  = property_index_basis
+        glyphsetting.property_index_eigenvalues  = property_index_eigenvalues
         glyphsetting.dir_type = dir_type
         glyphsetting.length_type = length_type
         glyphsetting.width_type = width_type
         glyphsetting.color_type = color_type
+        glyphsetting.basis_type = basis_type
+        glyphsetting.eigenvalues_type = eigenvalues_type
         glyphsetting.length_scale = length_scale
         glyphsetting.width_scale = width_scale
         glyphsetting.const_color = const_color
         glyphsetting.const_dir = const_dir
+        glyphsetting.const_basis = const_basis
+        glyphsetting.const_eigenvalues = const_eigenvalues
         glyphsetting.use_x = True
         glyphsetting.use_y = True
         glyphsetting.use_z = True
@@ -467,6 +477,19 @@ def setup_property_vector(meshsetting, propname, min=0, max=1, mvectplot='NORM',
         property.mat = make_material_falsecolor(matname, propname, min, max, colormaps[mcolormap], per_instance=per_instance)
     return property
 
+# Add an item to collection of properties of a given mesh visualization,
+# but if a property is already existing with the corresponding name id, just reuse it
+def setup_property_quaternion(meshsetting, propname, min=0, max=1, mvectplot='NORM', mcolormap='colormap_viridis', matname='a_falsecolor', per_instance=False):
+    property = meshsetting.property.get(propname)
+    if not property:
+        property = meshsetting.property.add()
+        property.name = propname
+        property.min = min
+        property.max = max
+        property.colorm = mcolormap
+        property.type = 'QUATERNION'
+        property.mat = make_material_falsecolor(matname, propname, min, max, colormaps[mcolormap], per_instance=per_instance)
+    return property
 
 # Attach a falsecolor material to the object, and set properties of falsecolor
 def update_meshsetting_falsecolor_material(new_object, meshsetting, propname):
@@ -666,6 +689,7 @@ def make_chrono_object_clones(mname,mpos,mrot,
     chobject.show_instancer_for_viewport = False
     
     
+   
 def make_chrono_glyphs_objects(mname,mpos,mrot, 
                         masset_list, 
                         list_clones_posrot, 
@@ -816,7 +840,6 @@ def make_chrono_glyphs_objects(mname,mpos,mrot,
     
     # optional scalar or vector per-point properties for falsecolor 
     for ia in range(len(list_attributes)):
-        print (list_attributes[ia])
         if type(list_attributes[ia][1][0]) == tuple:
             if len(list_attributes[ia][1][0])==3:
                 my_attr = [(0,0,0)] * (ncl)
@@ -860,6 +883,8 @@ def make_chrono_glyphs_vectors(mname,mpos,mrot,
     new_objects = []
     vcomponents = mathutils.Vector(components)
     ncl = len(list_clones_pos)
+    if ncl == 0:
+        return []
     list_clones_posrotscale = np.empty((ncl, 3,3)).tolist()
     
     # default fallbacks if inputs are wrong or missing
@@ -875,15 +900,15 @@ def make_chrono_glyphs_vectors(mname,mpos,mrot,
     # cases where dir,len,thickness,rot are given via "my_attr" ids
     attr_dir = [i for i in list_attributes if i[0]==dir]
     attr_dir_isscalar = True if (attr_dir and type(attr_dir[0][1][0]) in (int,float)) else False
-    attr_dir_isvect   = True if (attr_dir and len(attr_dir[0][1][0]) == 3) else False
+    attr_dir_isvect   = True if (attr_dir and not attr_dir_isscalar and len(attr_dir[0][1][0]) == 3) else False
     attr_basis = [i for i in list_attributes if i[0]==basis]
     attr_basis_isquat   = True if (attr_basis and len(attr_basis[0][1][0]) == 4) else False
     attr_thickness = [i for i in list_attributes if i[0]==thickness]
     attr_thickness_isscalar = True if (attr_thickness and type(attr_thickness[0][1][0]) in (int,float)) else False
-    attr_thickness_isvect   = True if (attr_thickness and len(attr_thickness[0][1][0]) == 3) else False
+    attr_thickness_isvect   = True if (attr_thickness and not attr_thickness_isscalar and len(attr_thickness[0][1][0]) == 3) else False
     attr_length = [i for i in list_attributes if i[0]==length]
     attr_length_isscalar = True if (attr_length and type(attr_length[0][1][0]) in (int,float)) else False
-    attr_length_isvect   = True if (attr_length and len(attr_length[0][1][0]) == 3) else False
+    attr_length_isvect   = True if (attr_length and not attr_length_isscalar and len(attr_length[0][1][0]) == 3) else False
     
     for i in range(ncl):
         if attr_dir_isvect:
@@ -973,6 +998,8 @@ def make_chrono_glyphs_points(mname,mpos,mrot,
                           ): 
     new_objects = []
     ncl = len(list_clones_pos)
+    if ncl == 0:
+        return []
     list_clones_posrotscale = np.empty((ncl, 3,3)).tolist()
     
     # default fallbacks if inputs are wrong or missing
@@ -982,7 +1009,7 @@ def make_chrono_glyphs_points(mname,mpos,mrot,
     # cases where dir,len,thickness,rot are given via "my_attr" ids
     attr_thickness = [i for i in list_attributes if i[0]==thickness]
     attr_thickness_isscalar = True if (attr_thickness and type(attr_thickness[0][1][0]) in (int,float)) else False
-    attr_thickness_isvect   = True if (attr_thickness and len(attr_thickness[0][1][0]) == 3) else False
+    attr_thickness_isvect   = True if (attr_thickness and not attr_thickness_isscalar and len(attr_thickness[0][1][0]) == 3) else False
 
     for i in range(ncl):
         if attr_thickness_isvect:
@@ -1012,27 +1039,35 @@ def make_chrono_glyphs_coordsys(mname,mpos,mrot,
                           list_clones_pos, 
                           list_attributes=[], 
                           basis=mathutils.Quaternion((1,0,0,0)), # mathutils.Quaternion const, or name of some quaternion property with list of (w,x,y,z)
+                          eigenvalues=mathutils.Vector((1,1,1)), 
                           color='', 
                           color_min=0, color_max=1, 
                           colormap=colormap_cooltowarm, 
-                          point_geometry = 'chrono_sphere',
+                          coordsys_geometry = 'chrono_csys',
                           thickness = 0.1, # float const, or if='my_attr' then coordsys thickness=my_attr*thickness_factor
                           thickness_factor = 0.01,  # if thickness not const, then thickness=my_attr*thickness_factor
                           ): 
     new_objects = []
     ncl = len(list_clones_pos)
+    if ncl == 0:
+        return []
     list_clones_posrotscale = np.empty((ncl, 3,3)).tolist()
     
     # default fallbacks if inputs are wrong or missing
     mthickness = 0.002
     mbasis     = mathutils.Quaternion((1,0,0,0))
+    meigs     = mathutils.Vector((1,1,1))
     # cases where dir,len,thickness,rot are given via floats or vectors etc, not via "my_attr" ids
     mthickness = thickness if not type(thickness)==str else mthickness
     mbasis = basis if not type(basis)==str else mbasis
+    meigs = eigenvalues if not type(eigenvalues)==str else meigs
     # cases where dir,len,thickness,rot are given via "my_attr" ids
     attr_thickness = [i for i in list_attributes if i[0]==thickness]
     attr_thickness_isscalar = True if (attr_thickness and type(attr_thickness[0][1][0]) in (int,float)) else False
-    attr_thickness_isvect   = True if (attr_thickness and len(attr_thickness[0][1][0]) == 3) else False
+    attr_thickness_isvect   = True if (attr_thickness and not attr_thickness_isscalar and len(attr_thickness[0][1][0]) == 3) else False
+    attr_eigenvalues = [i for i in list_attributes if i[0]==eigenvalues]
+    attr_eigenvalues_isscalar = True if (attr_eigenvalues and type(attr_eigenvalues[0][1][0]) in (int,float)) else False
+    attr_eigenvalues_isvect   = True if (attr_eigenvalues and not attr_eigenvalues_isscalar and len(attr_eigenvalues[0][1][0]) == 3) else False
     attr_basis = [i for i in list_attributes if i[0]==basis]
     attr_basis_isquat   = True if (attr_basis and len(attr_basis[0][1][0]) == 4) else False
     
@@ -1042,15 +1077,20 @@ def make_chrono_glyphs_coordsys(mname,mpos,mrot,
         if attr_thickness_isscalar:
             mthickness = attr_thickness[0][1][i]*thickness_factor
             
+        if attr_eigenvalues_isvect:
+            meigs = mathutils.Vector(attr_eigenvalues[0][1][i])
+        if attr_eigenvalues_isscalar:
+            meigs = mathutils.Vector((attr_eigenvalues[0][1][i],attr_eigenvalues[0][1][i],attr_eigenvalues[0][1][i]))
+            
         if attr_basis_isquat:
             mbasis = mathutils.Quaternion(attr_basis[0][1][i])
             
         list_clones_posrotscale[i][0] = list_clones_pos[i]
-        list_clones_posrotscale[i][1] = (0,0,0)
-        list_clones_posrotscale[i][2] = (mthickness,mthickness,mthickness)
+        list_clones_posrotscale[i][1] = mbasis.to_euler()
+        list_clones_posrotscale[i][2] = (abs(meigs[0]*mthickness),abs(meigs[1]*mthickness),abs(meigs[2]*mthickness))
     my_o = make_chrono_glyphs_objects(mname,mpos,mrot,
      [
-      [bpy.data.objects[point_geometry], (0,0,0), (1,0,0,0), ""]
+      [bpy.data.objects[coordsys_geometry], (0,0,0), (1,0,0,0), ""]
      ],
      list_clones_posrotscale,
      list_attributes,
@@ -1060,12 +1100,12 @@ def make_chrono_glyphs_coordsys(mname,mpos,mrot,
     return new_objects
    
     
-# Same as make_chrono_glyphs_points and make_chrono_glyphs_points, but uses a 
+# Same as make_chrono_glyphs_points and make_chrono_glyphs_vectors etc., but uses a 
 # glyphsetting object to store input parameters like thickness etc, this because glyphsetting
 # can be persistent through frames and hence adjustable through the GUI.
 # Before calling this, one must call: setup_glyph_setting(...) 
 # and setup_property_scalar(..), setup_setup_property_vector(..) per each property in list_attributes
-def update_make_glyphs_vectors(glyphsetting, mname, mpos, mrot, list_clones_pos, list_attributes):
+def update_make_glyphs(glyphsetting, mname, mpos, mrot, list_clones_pos, list_attributes):
  
     mlength = glyphsetting.length_scale
     mlength_factor = glyphsetting.length_scale
@@ -1081,11 +1121,33 @@ def update_make_glyphs_vectors(glyphsetting, mname, mpos, mrot, list_clones_pos,
     if glyphsetting.dir_type == 'PROPERTY':
         mdir = glyphsetting.property[glyphsetting.property_index_dir].name
         
-    mbasis = glyphsetting.property[glyphsetting.property_index_basis].name
+    meigenvalues = glyphsetting.const_eigenvalues
+    if glyphsetting.eigenvalues_type == 'PROPERTY':
+        meigenvalues = glyphsetting.property[glyphsetting.property_index_eigenvalues].name
+    
+    mbasis = mathutils.Quaternion((1,0,0,0))
+    if  len(glyphsetting.property): 
+        mbasis = glyphsetting.property[glyphsetting.property_index_basis].name
     
     new_objs = []
     
     if glyphsetting.glyph_type == 'VECTOR':
+        new_objs = make_chrono_glyphs_vectors(mname,mpos,mrot, 
+                          list_clones_pos, 
+                          list_attributes,
+                          dir = mdir,
+                          #basis = mbasis,
+                          length = mlength, 
+                          length_factor = mlength_factor,
+                          color='',            
+                          color_min=0, color_max=1, 
+                          colormap=colormap_cooltowarm,    
+                          thickness = mthickness,
+                          thickness_factor = mthickness_factor,
+                          do_arrow_tip = glyphsetting.do_tip,      # vector extends with a pointed cone
+                          components = (glyphsetting.use_x,glyphsetting.use_y,glyphsetting.use_z))
+                          
+    if glyphsetting.glyph_type == 'VECTOR LOCAL':
         new_objs = make_chrono_glyphs_vectors(mname,mpos,mrot, 
                           list_clones_pos, 
                           list_attributes,
@@ -1101,7 +1163,7 @@ def update_make_glyphs_vectors(glyphsetting, mname, mpos, mrot, list_clones_pos,
                           do_arrow_tip = glyphsetting.do_tip,      # vector extends with a pointed cone
                           components = (glyphsetting.use_x,glyphsetting.use_y,glyphsetting.use_z))
 
-    if glyphsetting.glyph_type == 'SPHERE':
+    if glyphsetting.glyph_type == 'POINT':
         new_objs = make_chrono_glyphs_points(mname,mpos,mrot, 
                           list_clones_pos, 
                           list_attributes, 
@@ -1109,6 +1171,31 @@ def update_make_glyphs_vectors(glyphsetting, mname, mpos, mrot, list_clones_pos,
                           color_min=0, color_max=1, 
                           colormap=colormap_cooltowarm, 
                           point_geometry = 'chrono_sphere', 
+                          thickness = mthickness,
+                          thickness_factor = mthickness_factor)
+                          
+    if glyphsetting.glyph_type == 'COORDSYS':
+        new_objs = make_chrono_glyphs_coordsys(mname,mpos,mrot, 
+                          list_clones_pos, 
+                          list_attributes, 
+                          basis = mbasis,
+                          color='',             
+                          color_min=0, color_max=1, 
+                          colormap=colormap_cooltowarm, 
+                          coordsys_geometry = 'chrono_csys', 
+                          thickness = mthickness,
+                          thickness_factor = mthickness_factor)
+                          
+    if glyphsetting.glyph_type == 'TENSOR':
+        new_objs = make_chrono_glyphs_coordsys(mname,mpos,mrot, 
+                          list_clones_pos, 
+                          list_attributes, 
+                          basis = mbasis,
+                          eigenvalues = meigenvalues,
+                          color='',             
+                          color_min=0, color_max=1, 
+                          colormap=colormap_cooltowarm, 
+                          coordsys_geometry = 'chrono_sphere', 
                           thickness = mthickness,
                           thickness_factor = mthickness_factor)
                           
@@ -1207,6 +1294,14 @@ def callback_post(self):
         orphan_image = [m for m in bpy.data.images if not m.users]
         while orphan_image:
             bpy.data.images.remove(orphan_image.pop())
+            
+        orphan_grease_pencils = [m for m in bpy.data.grease_pencils if not m.users]
+        while orphan_grease_pencils:
+            bpy.data.grease_pencils.remove(orphan_grease_pencils.pop())
+            
+        orphan_node_groups = [m for m in bpy.data.node_groups if not m.users]
+        while orphan_node_groups:
+            bpy.data.node_groups.remove(orphan_node_groups.pop())
         
         # load state file, that will fill the chrono_frame_objects and (if necessary) 
         # the chrono_frame_assets collections
@@ -1329,6 +1424,14 @@ def read_chrono_simulation(context, filepath, setting_materials):
     orphan_image = [m for m in bpy.data.images if not m.users]
     while orphan_image:
         bpy.data.images.remove(orphan_image.pop())
+        
+    orphan_grease_pencils = [m for m in bpy.data.grease_pencils if not m.users]
+    while orphan_grease_pencils:
+        bpy.data.grease_pencils.remove(orphan_grease_pencils.pop())
+        
+    orphan_node_groups = [m for m in bpy.data.node_groups if not m.users]
+    while orphan_node_groups:
+        bpy.data.node_groups.remove(orphan_node_groups.pop())
            
     # if some sub collection is selected, select the root one, so loading assets.py will work fine  
     bpy.context.view_layer.active_layer_collection = bpy.context.view_layer.layer_collection
@@ -1524,6 +1627,8 @@ class GUI_properties(UIList):
             split.label(icon="COLOR", text=item.name)
         if item.type == 'VECTOR':
             split.label(icon="ORIENTATION_LOCAL", text=item.name)
+        if item.type == 'QUATERNION':
+            split.label(icon="ORIENTATION_GIMBAL", text=item.name)
 
     def invoke(self, context, event):
         pass  
@@ -1585,7 +1690,7 @@ class Chrono_sidebar(Panel):
                     col2.prop(msetting.property[msetting.property_index], "colorm", text="Colormap")
         
         row2 = self.layout.row()
-        row2.label(text="Vector glyphs:")
+        row2.label(text="Glyphs:")
         
         row3 = self.layout.row()
         row3.template_list("GUI_meshsettins", "", scn, "ch_glyph_setting", scn, "ch_glyph_setting_index", rows=3)
@@ -1599,7 +1704,7 @@ class Chrono_sidebar(Panel):
             col1.label(text="type")
             col2.prop(msetting, "glyph_type", text="")
             
-            if msetting.glyph_type == 'VECTOR':
+            if msetting.glyph_type == 'VECTOR' or msetting.glyph_type == 'VECTOR LOCAL':
                 row = self.layout.row()
                 split = row.split(factor=0.2)
                 col1 = split.column()
@@ -1621,12 +1726,13 @@ class Chrono_sidebar(Panel):
                 else:
                     col2.template_list("GUI_properties", "",  msetting, "property",  msetting, "property_index_dir", rows=3)
                 
-                row = self.layout.row()
-                split = row.split(factor=0.2)
-                col1 = split.column()
-                col2 = split.column()
-                col1.label(text="basis")
-                col2.template_list("GUI_properties", "",  msetting, "property",  msetting, "property_index_basis", rows=3)
+                if msetting.glyph_type == 'VECTOR LOCAL':
+                    row = self.layout.row()
+                    split = row.split(factor=0.2)
+                    col1 = split.column()
+                    col2 = split.column()
+                    col1.label(text="basis")
+                    col2.template_list("GUI_properties", "",  msetting, "property",  msetting, "property_index_basis", rows=3)
                     
                 row = self.layout.row()
                 split = row.split(factor=0.2)
@@ -1639,6 +1745,34 @@ class Chrono_sidebar(Panel):
                 else:
                     col2.template_list("GUI_properties", "",  msetting, "property",  msetting, "property_index_length", rows=3)
                     col2.prop(msetting, "length_scale", text="scaling factor")
+                    
+            if msetting.glyph_type == 'COORDSYS':
+                row = self.layout.row()
+                split = row.split(factor=0.2)
+                col1 = split.column()
+                col2 = split.column()
+                col1.label(text="basis")
+                col2.template_list("GUI_properties", "",  msetting, "property",  msetting, "property_index_basis", rows=3)
+                
+            if msetting.glyph_type == 'TENSOR':
+                
+                row = self.layout.row()
+                split = row.split(factor=0.2)
+                col1 = split.column()
+                col2 = split.column()
+                col1.label(text="basis")
+                col2.template_list("GUI_properties", "",  msetting, "property",  msetting, "property_index_basis", rows=3)
+                
+                row = self.layout.row()
+                split = row.split(factor=0.2)
+                col1 = split.column()
+                col2 = split.column()
+                col1.label(text="eigenvals")
+                col2.prop(msetting, "eigenvalues_type", text="")
+                if msetting.eigenvalues_type == 'CONST':
+                    col2.prop(msetting, "const_eigenvalues", text="eigs")
+                else:
+                    col2.template_list("GUI_properties", "",  msetting, "property",  msetting, "property_index_eigenvalues", rows=3)
                     
             row = self.layout.row()
             split = row.split(factor=0.2)
@@ -1687,7 +1821,8 @@ class CUSTOM_propertyCollection(PropertyGroup):
     type: EnumProperty(name = "type", items= [
         ('COLOR','',''),
         ('SCALAR','',''),
-        ('VECTOR','','')])
+        ('VECTOR','',''),
+        ('QUATERNION','','')])
     vect_plot: EnumProperty(name = "vect_plot", items= [
         ('NORM','Norm',''),
         ('X','x',''),
@@ -1703,8 +1838,11 @@ class CUSTOM_meshsettingCollection(PropertyGroup):
 class CUSTOM_glyphsettingCollection(PropertyGroup):
     #name: StringProperty() -> Instantiated by default
     glyph_type: EnumProperty(name = "glyph_type", items= [
-        ('SPHERE','Sphere',''),
-        ('VECTOR','Vector',''),],
+        ('POINT','Point',''),
+        ('VECTOR','Vector',''),
+        ('VECTOR LOCAL','Vector local',''),
+        ('COORDSYS','Coordsys',''),
+        ('TENSOR','Tensor',''),],
         update=UpdatedMeshsetting)
     property: CollectionProperty(type=CUSTOM_propertyCollection)
     property_index_dir: IntProperty(update=UpdatedMeshsetting)
@@ -1712,6 +1850,7 @@ class CUSTOM_glyphsettingCollection(PropertyGroup):
     property_index_width: IntProperty(update=UpdatedMeshsetting)
     property_index_color: IntProperty(update=UpdatedMeshsetting)
     property_index_basis: IntProperty(update=UpdatedMeshsetting)
+    property_index_eigenvalues: IntProperty(update=UpdatedMeshsetting)
     dir_type: EnumProperty(name = "dir_type", items= [
         ('CONST','Constant',''),
         ('PROPERTY','Property','')],
@@ -1728,10 +1867,20 @@ class CUSTOM_glyphsettingCollection(PropertyGroup):
         ('CONST','Constant',''),
         ('PROPERTY','Property','')],
         update=UpdatedMeshsetting)
+    basis_type: EnumProperty(name = "color_type", items= [
+        ('CONST','Constant',''),
+        ('PROPERTY','Property','')],
+        update=UpdatedMeshsetting)
+    eigenvalues_type: EnumProperty(name = "eigenvalues_type", items= [
+        ('CONST','Constant',''),
+        ('PROPERTY','Property','')],
+        update=UpdatedMeshsetting)
     const_dir:  FloatVectorProperty(subtype='XYZ',update=UpdatedMeshsetting)
     length_scale: FloatProperty(min=0, precision=5, update=UpdatedMeshsetting)
     width_scale:  FloatProperty(min=0, soft_max=0.5, step=1, precision=5, update=UpdatedMeshsetting)
     const_color:  FloatVectorProperty(subtype='COLOR',update=UpdatedMeshsetting)
+    const_basis:  FloatVectorProperty(subtype='QUATERNION', size=4, update=UpdatedMeshsetting)
+    const_eigenvalues:  FloatVectorProperty(size=3, update=UpdatedMeshsetting)
     use_x:  BoolProperty(update=UpdatedMeshsetting)
     use_y:  BoolProperty(update=UpdatedMeshsetting)
     use_z:  BoolProperty(update=UpdatedMeshsetting)
