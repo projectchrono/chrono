@@ -34,6 +34,8 @@ ChVisualSystemOpenGL::ChVisualSystemOpenGL()
       m_camera_scale(0.5f),
       m_camera_near(0.1f),
       m_camera_far(1000.0f),
+      m_particle_render_mode(RenderMode::POINTS),
+      m_particle_radius(0.1f),
       particle_selector(nullptr),
       render_stats(true) {
     stats_renderer = chrono_types::make_shared<ChOpenGLStatsDefault>();
@@ -119,10 +121,13 @@ void ChVisualSystemOpenGL::SetRenderMode(RenderMode mode) {
         viewer->render_mode = m_solid_mode;
 }
 
-void ChVisualSystemOpenGL::SetParticleRenderMode(RenderMode mode) {
+void ChVisualSystemOpenGL::SetParticleRenderMode(RenderMode mode, float radius) {
     m_particle_render_mode = mode;
-    if (viewer)
+    m_particle_radius = radius;
+    if (viewer) {
         viewer->particle_render_mode = m_particle_render_mode;
+        viewer->particle_radius = m_particle_radius;
+    }
 }
 
 void ChVisualSystemOpenGL::AttachStatsRenderer(std::shared_ptr<ChOpenGLStats> renderer) {
@@ -153,6 +158,7 @@ void ChVisualSystemOpenGL::Initialize() {
 
     viewer->render_mode = m_solid_mode;
     viewer->particle_render_mode = m_particle_render_mode;
+    viewer->particle_radius = m_particle_radius;
 
     if (!glfwInit()) {
         std::cout << "could not initialize glfw- exiting" << std::endl;

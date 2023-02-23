@@ -64,7 +64,7 @@ double cyl_radius = 0.12;
 double t_end = 2.0;
 
 // Enable/disable run-time visualization
-bool render = false;
+bool render = true;
 float render_fps = 1000;
 
 //------------------------------------------------------------------

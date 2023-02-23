@@ -196,7 +196,11 @@ int main(int argc, char* argv[]) {
         particles->SetCollide(true);
 
         double particle_radius = 0.3;
-        particles->AddVisualization(ChParticleCloud::ShapeType::SPHERE, 2 * particle_radius, ChColor(0.7f, 0.3f, 0.3f));
+        auto particle_vis = chrono_types::make_shared<ChSphereShape>();
+        particle_vis->GetSphereGeometry().rad = particle_radius;
+        particle_vis->SetColor(ChColor(0.7f, 0.3f, 0.3f));
+        particles->AddVisualShape(particle_vis);
+
         auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
         particle_mat->SetFriction(0.9f);
         particles->GetCollisionModel()->ClearModel();
@@ -218,8 +222,11 @@ int main(int argc, char* argv[]) {
         double hx = 0.15;
         double hy = 0.10;
         double hz = 0.35;
-        ChVector<> particle_size(2 * hx, 2 * hy, 2 * hz);
-        particles->AddVisualization(ChParticleCloud::ShapeType::BOX, particle_size, ChColor(0.3f, 0.7f, 0.3f));
+        auto particle_vis = chrono_types::make_shared<ChBoxShape>();
+        particle_vis->GetBoxGeometry().Size = ChVector<>(hx, hy, hz);
+        particle_vis->SetColor(ChColor(0.3f, 0.7f, 0.3f));
+        particles->AddVisualShape(particle_vis);
+
         auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
         particles->GetCollisionModel()->ClearModel();
         particles->GetCollisionModel()->AddBox(particle_mat, hx, hy, hz);
@@ -252,11 +259,15 @@ int main(int argc, char* argv[]) {
         particles->SetFixed(true);
         particles->SetCollide(false);
 
-        particles->AddVisualization(ChParticleCloud::ShapeType::CAPSULE, ChVector<>(0.4, 0.4, 0.2),
-                                    ChColor(0.3f, 0.3f, 0.7f));
+        auto particle_vis = chrono_types::make_shared<ChCapsuleShape>();
+        particle_vis->GetCapsuleGeometry().rad = 0.2;
+        particle_vis->GetCapsuleGeometry().hlen = 0.1;
+        particle_vis->SetColor(ChColor(0.3f, 0.3f, 0.7f));
+        particles->AddVisualShape(particle_vis);
 
         for (int np = 0; np < 40; ++np)
-            particles->AddParticle(ChCoordsys<>(ChVector<>(4 * ChRandom() - 6, 3 * ChRandom() + 2, 4 * ChRandom() - 6)));
+            particles->AddParticle(
+                ChCoordsys<>(ChVector<>(4 * ChRandom() - 6, 3 * ChRandom() + 2, 4 * ChRandom() - 6)));
 
         particles->RegisterColorCallback(chrono_types::make_shared<MyColorCallback>(2, 5));
 
