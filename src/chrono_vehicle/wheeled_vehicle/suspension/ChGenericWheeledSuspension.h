@@ -1,0 +1,245 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2023 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Radu Serban
+// =============================================================================
+//
+// Base class for a generic wheeled vehicle suspension. Except for the spindle
+// bodies and the associated revolute joints, the topology of such a suspension
+// is completely arbitrary and left to derived classes.
+// Derived from ChSuspension, but still an abstract base class.
+//
+// The suspension subsystem is modeled with respect to a right-handed frame,
+// with X pointing towards the front, Y to the left, and Z up (ISO standard).
+// The suspension reference frame is assumed to be always aligned with that of
+// the vehicle.  When attached to a chassis, only an offset is provided.
+//
+// All point locations are assumed to be given for the left half of the
+// suspension and will be mirrored (reflecting the y coordinates) to construct
+// the right side.
+//
+// =============================================================================
+
+#ifndef CH_GENERIC_WHEELED_SUSPENSION_H
+#define CH_GENERIC_WHEELED_SUSPENSION_H
+
+#include <vector>
+#include <unordered_map>
+
+#include "chrono_vehicle/ChApiVehicle.h"
+#include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
+
+namespace chrono {
+namespace vehicle {
+
+/// @addtogroup vehicle_wheeled_suspension
+/// @{
+
+/// Base class for a generic wheeled vehicle suspension. Except for the spindle
+/// bodies and the associated revolute joints, the topology of such a suspension
+/// is completely arbitrary and left to derived classes.
+/// Derived from ChSuspension, but still an abstract base class.
+///
+/// The suspension subsystem is modeled with respect to a right-handed frame,
+/// with X pointing towards the front, Y to the left, and Z up (ISO standard).
+/// The suspension reference frame is assumed to be always aligned with that of
+/// the vehicle.  When attached to a chassis, only an offset is provided.
+///
+/// All point locations are assumed to be given for the left half of the
+/// suspension and will be mirrored (reflecting the y coordinates) to construct
+/// the right side.
+class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
+  public:
+    /// Identification of a body in the suspension subsystem.
+    struct BodyIdentifier {
+        BodyIdentifier(const std::string& part_name,
+                       bool is_chassis = false,
+                       bool is_subchassis = false,
+                       bool is_steering = false);
+        BodyIdentifier();
+        std::string name;  ///< name of part
+        bool chassis;      ///< true if this is a vehicle chassis body
+        bool subchassis;   ///< true if this is a vehicle subchassis body
+        bool steering;     ///< true if this is a vehicle steering link
+    };
+
+    /// Identification of the vehicle chassis body.
+    struct ChassisIdentifier : public BodyIdentifier {
+        ChassisIdentifier();
+    };
+
+    /// Identification of a vehicle subchassis body.
+    struct SubchassisIdentifier : public BodyIdentifier {
+        SubchassisIdentifier();
+    };
+
+    /// Identification of a vehicle steering link body.
+    struct SteeringIdentifier : public BodyIdentifier {
+        SteeringIdentifier();
+    };
+
+    virtual ~ChGenericWheeledSuspension();
+
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "GenericWheeledSuspension"; }
+
+    /// Add a body definition to the suspension subsystem.
+    void DefineBody(const std::string& name,            ///<
+                    bool mirrored,                      ///<
+                    const ChVector<>& pos,              ///<
+                    const ChQuaternion<>& rot,          ///<
+                    double mass,                        ///<
+                    const ChVector<>& inertia_moments,  ///<
+                    const ChVector<>& inertia_products  ///<
+    );
+
+    /// Add a joint definition to the suspension subsystem.
+    void DefineJoint(const std::string& name,                               ///<
+                     bool mirrored,                                         ///<
+                     ChVehicleJoint::Type type,                             ///<
+                     BodyIdentifier body1,                                  ///<
+                     BodyIdentifier body2,                                  ///<
+                     const ChCoordsys<>& csys,                              ///<
+                     std::shared_ptr<ChVehicleBushingData> bdata = nullptr  ///<
+    );
+
+    /// Add a TSDA to model a suspension spring or shock.
+    void DefineTSDA(const std::string& name,                         ///<
+                    bool mirrored,                                   ///<
+                    BodyIdentifier body1,                            ///<
+                    BodyIdentifier body2,                            ///<
+                    const ChVector<>& point1,                        ///<
+                    const ChVector<>& point2,                        ///<
+                    double rest_length,                              ///<
+                    std::shared_ptr<ChLinkTSDA::ForceFunctor> force  ///<
+    );
+
+    /// Initialize this suspension subsystem.
+    /// The suspension subsystem is initialized by attaching it to the specified chassis and (if provided) to the
+    /// specified subchassis, at the specified location (with respect to and expressed in the reference frame of the
+    /// chassis). It is assumed that the suspension reference frame is always aligned with the chassis reference frame.
+    virtual void Initialize(
+        std::shared_ptr<ChChassis> chassis,        ///< associated chassis subsystem
+        std::shared_ptr<ChSubchassis> subchassis,  ///< associated subchassis subsystem (may be null)
+        std::shared_ptr<ChSteering> steering,      ///< associated steering subsystem (may be null)
+        const ChVector<>& location,                ///< location relative to the chassis frame
+        double left_ang_vel = 0,                   ///< initial angular velocity of left wheel
+        double right_ang_vel = 0                   ///< initial angular velocity of right wheel
+        ) override;
+
+    /// Add visualization assets for the suspension subsystem.
+    /// This default implementation uses primitives.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+
+    /// Remove visualization assets for the suspension subsystem.
+    virtual void RemoveVisualizationAssets() override;
+
+    /// Get the wheel track for the suspension subsystem.
+    virtual double GetTrack() override;
+
+    /// Return current suspension forces (spring and shock) on the specified side.
+    virtual ChSuspension::Force ReportSuspensionForce(VehicleSide side) const override;
+
+    /// Log current constraint violations.
+    virtual void LogConstraintViolations(VehicleSide side) override;
+
+    /// Specify the suspension body on the specified side to attach a possible antirollbar subsystem.
+    /// Return the corresponding lower control arm.
+    virtual std::shared_ptr<ChBody> GetAntirollBody(VehicleSide side) const override;
+
+  protected:
+    /// Protected constructor.
+    ChGenericWheeledSuspension(const std::string& name);
+
+    /// Return the camber angle, in radians (default: 0).
+    virtual double getCamberAngle() const { return 0; }
+
+    /// Return the toe angle, in radians (default: 0).
+    /// A positive value indicates toe-in, a negative value indicates toe-out.
+    virtual double getToeAngle() const { return 0; }
+
+    /// Return the location of the spindle body.
+    virtual ChVector<> getSpindlePos() const = 0;
+    /// Return the mass of the spindle body.
+    virtual double getSpindleMass() const = 0;
+    /// Return the moments of inertia of the spindle body.
+    virtual const ChVector<>& getSpindleInertia() const = 0;
+    /// Specify the suspension body to which the spindle is attached.
+    virtual BodyIdentifier getSpindleAttachmentBody() const = 0;
+
+    /// Return the inertia of the axle shaft.
+    virtual double getAxleInertia() const = 0;
+
+    /// Specify the suspension body to which an antiroll bar subsystem can attach.
+    virtual BodyIdentifier getAntirollBody() const = 0;
+
+  private:
+    ChFrame<> m_X_SA;  ///< suspension to absolute transform
+
+    /// Internal specification of a suspension joint.
+    struct Joint {
+        std::shared_ptr<ChVehicleJoint> joint;        ///< underlying Chrono vehicle joint
+        ChVehicleJoint::Type type;                    ///< joint type
+        BodyIdentifier body1;                         ///< identifier of 1st body
+        BodyIdentifier body2;                         ///< identifier of 2nd body
+        ChVector<> pos;                               ///< joint position in subsystem frame
+        ChQuaternion<> rot;                           ///< joint orientation in subsystem frame
+        std::shared_ptr<ChVehicleBushingData> bdata;  ///< bushing data
+    };
+
+    /// Internal specification of a suspension TSDA.
+    struct TSDA {
+        std::shared_ptr<ChLinkTSDA> tsda;                 ///< underlying Chrono TSDA element
+        BodyIdentifier body1;                             ///< identifier of 1st body
+        BodyIdentifier body2;                             ///< identifier of 2nd body
+        ChVector<> point1;                                ///< point on body1 (in subsystem frame)
+        ChVector<> point2;                                ///< point on body2 (in subsystem frame)
+        double rest_length;                               ///< TSDA rest (free) length
+        std::shared_ptr<ChLinkTSDA::ForceFunctor> force;  ///< force functor
+    };
+
+    /// Key for a suspension part.
+    struct PartKey {
+        bool operator==(const PartKey& rhs) const;
+        std::string name;  ///< base name
+        int side;          ///< vehicle side for mirrored parts, -1 otherwise
+    };
+
+    /// Hash function for a part key.
+    struct PartKeyHash {
+        std::size_t operator()(const PartKey& id) const;
+    };
+
+    std::unordered_map<PartKey, std::shared_ptr<ChBody>, PartKeyHash> m_bodies;  ///< suspension bodies
+    std::unordered_map<PartKey, Joint, PartKeyHash> m_joints;                    ///< suspension joints
+    std::unordered_map<PartKey, TSDA, PartKeyHash> m_tsdas;                      ///< suspension force elements
+
+    /// Get the unique name of an item in this suspension subsystem.
+    std::string Name(const PartKey& id) const;
+
+    /// Express a point given in the suspension reference frame to the absolute coordinate frame.
+    ChVector<> Point(const ChVector<>& pos_loc, int side) const;
+
+    /// Find a body from the given identification.
+    std::shared_ptr<ChBody> FindBody(const std::string& name, int side) const;
+
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
+    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
+    virtual void Output(ChVehicleOutput& database) const override;
+};
+
+/// @} vehicle_wheeled_suspension
+
+}  // end namespace vehicle
+}  // end namespace chrono
+
+#endif

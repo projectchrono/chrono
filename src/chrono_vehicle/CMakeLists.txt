@@ -443,6 +443,8 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/ChToeBarLeafspringAxle.cpp
     wheeled_vehicle/suspension/ChSAEToeBarLeafspringAxle.h
     wheeled_vehicle/suspension/ChSAEToeBarLeafspringAxle.cpp
+    wheeled_vehicle/suspension/ChGenericWheeledSuspension.h
+    wheeled_vehicle/suspension/ChGenericWheeledSuspension.cpp
 
     wheeled_vehicle/suspension/DoubleWishbone.h
     wheeled_vehicle/suspension/DoubleWishbone.cpp
@@ -478,6 +480,8 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/ToeBarLeafspringAxle.cpp
     wheeled_vehicle/suspension/SAEToeBarLeafspringAxle.h
     wheeled_vehicle/suspension/SAEToeBarLeafspringAxle.cpp
+    wheeled_vehicle/suspension/GenericWheeledSuspension.h
+    wheeled_vehicle/suspension/GenericWheeledSuspension.cpp
 )
 source_group("wheeled_vehicle\\suspension" FILES ${CV_WV_SUSPENSION_FILES})
 
