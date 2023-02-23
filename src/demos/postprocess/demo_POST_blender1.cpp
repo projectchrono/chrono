@@ -320,7 +320,7 @@ int main(int argc, char* argv[]) {
     // shape to display all particles when rendering in 3D!
     auto sphereparticle = chrono_types::make_shared<ChSphereShape>();
     sphereparticle->GetSphereGeometry().rad = 0.05;
-    // particles->AddVisualShape(sphereparticle); ***TODO***
+    particles->AddVisualShape(sphereparticle);
 
     /// [Example 3]
     /* End example */
