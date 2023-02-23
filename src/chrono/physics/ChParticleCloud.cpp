@@ -228,9 +228,7 @@ ChParticleCloud::ChParticleCloud()
       sleep_time(0.6f),
       sleep_starttime(0),
       sleep_minspeed(0.1f),
-      sleep_minwvel(0.04f),
-      m_vis_shape(ShapeType::NONE),
-      m_vis_size(VNULL) {
+      sleep_minwvel(0.04f) {
     SetMass(1.0);
     SetInertiaXX(ChVector<double>(1.0, 1.0, 1.0));
     SetInertiaXY(ChVector<double>(0, 0, 0));
@@ -321,32 +319,10 @@ void ChParticleCloud::AddParticle(ChCoordsys<double> initial_state) {
     newp->collision_model->BuildModel();  // will also add to system, if collision is on.
 }
 
-void ChParticleCloud::AddVisualModel(std::shared_ptr<ChVisualModel> model) {
-    std::cout << "AddVisualModel not available for ChParticleCloud. Use ChParticleCloud::AddVisualization()."
-              << std::endl;
-    throw ChException("Use ChParticleCloud::AddVisualization().");
-}
-void ChParticleCloud::AddVisualShape(std::shared_ptr<ChVisualShape> shape, const ChFrame<>& frame) {
-    std::cout << "AddVisualModel not available for ChParticleCloud. Use ChParticleCloud::AddVisualization()."
-              << std::endl;
-    throw ChException("Use ChParticleCloud::AddVisualization().");
-}
-void ChParticleCloud::AddVisualShapeFEA(std::shared_ptr<ChVisualShapeFEA> shapeFEA) {
-    std::cout << "AddVisualModel not available for ChParticleCloud. Use ChParticleCloud::AddVisualization()."
-              << std::endl;
-    throw ChException("Use ChParticleCloud::AddVisualization().");
-}
-
-void ChParticleCloud::AddVisualization(ShapeType shape_type, const ChVector<>& size, const ChColor& color) {
-    m_vis_shape = shape_type;
-    m_vis_size = size;
-    m_vis_color = color;
-}
-
 ChColor ChParticleCloud::GetVisualColor(unsigned int n) const {
     if (m_color_fun)
         return m_color_fun->get(n, *this);
-    return m_vis_color;
+    return ChColor();
 }
 
 bool ChParticleCloud::UseDynamicColors() const {

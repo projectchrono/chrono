@@ -32,10 +32,11 @@ namespace geometry {
 /// Base class for geometric objects used for collisions and visualization.
 class ChApi ChGeometry {
   public:
-    /// Enumeration of geometric objects
+    /// Enumeration of geometric object types.
     enum GeometryType {
         NONE,
         SPHERE,
+        ELLIPSOID,
         BOX,
         CYLINDER,
         TRIANGLE,
