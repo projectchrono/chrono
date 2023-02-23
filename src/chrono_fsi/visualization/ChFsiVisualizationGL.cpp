@@ -62,7 +62,7 @@ ChFsiVisualizationGL::ChFsiVisualizationGL(ChSystemFsi* sysFSI) : ChFsiVisualiza
     m_vsys->SetWindowSize(1280, 720);
     m_vsys->SetCameraProperties(0.1f);
     m_vsys->SetRenderMode(opengl::WIREFRAME);
-    m_vsys->SetParticleRenderMode(opengl::SOLID);
+    m_vsys->SetParticleRenderMode(opengl::SOLID, (float)sysFSI->GetInitialSpacing() / 2);
     m_vsys->AddCamera(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0));
     m_vsys->SetCameraVertical(ChVector<>(0, 0, 1));
 } 
@@ -99,7 +99,7 @@ void ChFsiVisualizationGL::SetCameraMoveScale(float scale) {
 
 void ChFsiVisualizationGL::SetParticleRenderMode(RenderMode mode) {
     opengl::RenderMode gl_mode = (mode == RenderMode::SOLID) ? opengl::SOLID : opengl::POINTS;
-    m_vsys->SetParticleRenderMode(gl_mode);
+    m_vsys->SetParticleRenderMode(gl_mode, (float)m_systemFSI->GetInitialSpacing() / 2);
 }
 
 void ChFsiVisualizationGL::SetRenderMode(RenderMode mode) {
@@ -130,7 +130,9 @@ void ChFsiVisualizationGL::Initialize() {
         for (int i = 0; i < m_systemFSI->GetNumFluidMarkers(); i++) {
             m_sph_cloud->AddParticle(CSYSNULL);
         }
-        m_sph_cloud->AddVisualization(ChParticleCloud::ShapeType::SPHERE, m_systemFSI->GetInitialSpacing(), ChColor());
+        auto sph = chrono_types::make_shared<ChSphereShape>();
+        sph->GetSphereGeometry().rad = m_systemFSI->GetInitialSpacing() / 2;
+        m_sph_cloud->AddVisualShape(sph);
         m_system->Add(m_sph_cloud);
     }
 
