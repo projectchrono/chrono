@@ -40,7 +40,6 @@
 #include "chrono_vehicle/tracked_vehicle/ChDrivelineTV.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
-//#include "chrono_thirdparty/rapidjson/pointer.h"
 
 namespace chrono {
 namespace vehicle {
