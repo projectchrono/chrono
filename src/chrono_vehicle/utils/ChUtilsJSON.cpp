@@ -120,6 +120,13 @@ ChQuaternion<> ReadQuaternionJSON(const Value& a) {
     return ChQuaternion<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble(), a[3u].GetDouble());
 }
 
+ChCoordsys<> ReadCoordinateSystemJSON(const Value& a) {
+    assert(a.IsObject());
+    assert(a.HasMember("Position"));
+    assert(a.HasMember("Rotation"));
+    return ChCoordsys<>(ReadVectorJSON(a["Position"]), ReadQuaternionJSON(a["Rotation"]));
+}
+
 ChColor ReadColorJSON(const Value& a) {
     assert(a.IsArray());
     assert(a.Size() == 3);
@@ -163,6 +170,123 @@ std::shared_ptr<ChVehicleBushingData> ReadBushingDataJSON(const rapidjson::Value
     }
 
     return bushing_data;
+}
+
+ChVehicleJoint::Type ReadVehicleJointTypeJSON(const Value& a) {
+    assert(a.IsString());
+    std::string type = a.GetString();
+    if (type.compare("Lock") == 0) {
+        return ChVehicleJoint::Type::LOCK;
+    } else if (type.compare("Point Line") == 0) {
+        return ChVehicleJoint::Type::POINTLINE;
+    } else if (type.compare("Point Plane") == 0) {
+        return ChVehicleJoint::Type::POINTPLANE;
+    } else if (type.compare("Revolute") == 0) {
+        return ChVehicleJoint::Type::REVOLUTE;
+    } else if (type.compare("Spherical") == 0) {
+        return ChVehicleJoint::Type::SPHERICAL;
+    } else if (type.compare("Universal") == 0) {
+        return ChVehicleJoint::Type::UNIVERSAL;
+    } else {
+        // TODO Unknown type, what do we do here?
+        return ChVehicleJoint::Type::LOCK;
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+ChVehicleGeometry ReadVehicleGeometry(const rapidjson::Value& d) {
+    ChVehicleGeometry geometry;
+
+    // Read contact information
+    if (d.HasMember("Contact")) {
+        assert(d["Contact"].HasMember("Materials"));
+        assert(d["Contact"].HasMember("Shapes"));
+
+        // Read contact material information
+        assert(d["Contact"]["Materials"].IsArray());
+        int num_mats = d["Contact"]["Materials"].Size();
+
+        for (int i = 0; i < num_mats; i++) {
+            ChContactMaterialData minfo = ReadMaterialInfoJSON(d["Contact"]["Materials"][i]);
+            geometry.m_materials.push_back(minfo);
+        }
+
+        // Read contact shapes
+        assert(d["Contact"]["Shapes"].IsArray());
+        int num_shapes = d["Contact"]["Shapes"].Size();
+
+        for (int i = 0; i < num_shapes; i++) {
+            const Value& shape = d["Contact"]["Shapes"][i];
+
+            std::string type = shape["Type"].GetString();
+            int matID = shape["Material Index"].GetInt();
+            assert(matID >= 0 && matID < num_mats);
+
+            if (type.compare("SPHERE") == 0) {
+                ChVector<> pos = ReadVectorJSON(shape["Location"]);
+                double radius = shape["Radius"].GetDouble();
+                geometry.m_coll_spheres.push_back(ChVehicleGeometry::SphereShape(pos, radius, matID));
+            } else if (type.compare("BOX") == 0) {
+                ChVector<> pos = ReadVectorJSON(shape["Location"]);
+                ChQuaternion<> rot = ReadQuaternionJSON(shape["Orientation"]);
+                ChVector<> dims = ReadVectorJSON(shape["Dimensions"]);
+                geometry.m_coll_boxes.push_back(ChVehicleGeometry::BoxShape(pos, rot, dims, matID));
+            } else if (type.compare("CYLINDER") == 0) {
+                ChVector<> pos = ReadVectorJSON(shape["Location"]);
+                ChQuaternion<> rot = ReadQuaternionJSON(shape["Orientation"]);
+                double radius = shape["Radius"].GetDouble();
+                double length = shape["Length"].GetDouble();
+                geometry.m_coll_cylinders.push_back(
+                    ChVehicleGeometry::CylinderShape(pos, rot, radius, length, matID));
+            } else if (type.compare("HULL") == 0) {
+                std::string filename = shape["Filename"].GetString();
+                geometry.m_coll_hulls.push_back(ChVehicleGeometry::ConvexHullsShape(filename, matID));
+            } else if (type.compare("MESH") == 0) {
+                std::string filename = shape["Filename"].GetString();
+                ChVector<> pos = ReadVectorJSON(shape["Location"]);
+                double radius = shape["Contact Radius"].GetDouble();
+                geometry.m_coll_meshes.push_back(ChVehicleGeometry::TrimeshShape(pos, filename, radius, matID));
+            }
+        }
+
+        geometry.m_has_collision = true;
+    }
+
+    // Read visualization
+    if (d.HasMember("Visualization")) {
+        if (d["Visualization"].HasMember("Mesh")) {
+            geometry.m_vis_mesh_file = d["Visualization"]["Mesh"].GetString();
+            geometry.m_has_mesh = true;
+        }
+        if (d["Visualization"].HasMember("Primitives")) {
+            assert(d["Visualization"]["Primitives"].IsArray());
+            int num_shapes = d["Visualization"]["Primitives"].Size();
+            for (int i = 0; i < num_shapes; i++) {
+                const Value& shape = d["Visualization"]["Primitives"][i];
+                std::string type = shape["Type"].GetString();
+                if (type.compare("SPHERE") == 0) {
+                    ChVector<> pos = ReadVectorJSON(shape["Location"]);
+                    double radius = shape["Radius"].GetDouble();
+                    geometry.m_vis_spheres.push_back(ChVehicleGeometry::SphereShape(pos, radius));
+                } else if (type.compare("BOX") == 0) {
+                    ChVector<> pos = ReadVectorJSON(shape["Location"]);
+                    ChQuaternion<> rot = ReadQuaternionJSON(shape["Orientation"]);
+                    ChVector<> dims = ReadVectorJSON(shape["Dimensions"]);
+                    geometry.m_vis_boxes.push_back(ChVehicleGeometry::BoxShape(pos, rot, dims));
+                } else if (type.compare("CYLINDER") == 0) {
+                    ChVector<> pos = ReadVectorJSON(shape["Location"]);
+                    ChQuaternion<> rot = ReadQuaternionJSON(shape["Orientation"]);
+                    double radius = shape["Radius"].GetDouble();
+                    double length = shape["Length"].GetDouble();
+                    geometry.m_vis_cylinders.push_back(ChVehicleGeometry::CylinderShape(pos, rot, radius, length));
+                }
+            }
+            geometry.m_has_primitives = true;
+        }
+    }
+
+    return geometry;
 }
 
 // -----------------------------------------------------------------------------
@@ -309,9 +433,6 @@ std::shared_ptr<ChLinkTSDA::ForceFunctor> ReadTSDAFunctorJSON(const rapidjson::V
         }
 
         case FunctorType::MapSpringDamper: {
-            assert(tsda.HasMember("Free Length"));
-            free_length = tsda["Free Length"].GetDouble();
-
             auto forceCB = chrono_types::make_shared<MapSpringDamperForce>(preload);
 
             assert(tsda.HasMember("Deformation"));
@@ -1013,42 +1134,6 @@ std::shared_ptr<ChTrackWheel> ReadTrackWheelJSON(const std::string& filename) {
     }
 
     return wheel;
-}
-
-// -----------------------------------------------------------------------------
-
-ChVehicleJoint::Type ReadVehicleJointTypeJSON(const Value& a) {
-    assert(a.IsString());
-    std::string type = a.GetString();
-    if (type.compare("Lock")) {
-        return ChVehicleJoint::Type::LOCK;
-    }
-    else if (type.compare("Point Line")) {
-        return ChVehicleJoint::Type::POINTLINE;
-    }
-    else if (type.compare("Point Plane")) {
-        return ChVehicleJoint::Type::POINTPLANE;
-    }
-    else if (type.compare("Revolute")) {
-        return ChVehicleJoint::Type::REVOLUTE;
-    }
-    else if (type.compare("Spherical")) {
-        return ChVehicleJoint::Type::SPHERICAL;
-    }
-    else if (type.compare("Universal")) {
-        return ChVehicleJoint::Type::UNIVERSAL;
-    }
-    else {
-        // TODO Unknown type, what do we do here?
-        return ChVehicleJoint::Type::LOCK;
-    }
-}
-
-ChCoordsys<> ReadCoordinateSystemJSON(const Value& a) {
-    assert(a.IsObject());
-    assert(a.HasMember("Position"));
-    assert(a.HasMember("Rotation"));
-    return ChCoordsys<>(ReadVectorJSON(a["Position"]), ReadQuaternionJSON(a["Rotation"]));
 }
 
 }  // end namespace vehicle
