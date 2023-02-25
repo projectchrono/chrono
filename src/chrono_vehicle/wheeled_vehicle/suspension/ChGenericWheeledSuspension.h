@@ -92,13 +92,14 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
     virtual std::string GetTemplateName() const override { return "GenericWheeledSuspension"; }
 
     /// Add a body definition to the suspension subsystem.
-    void DefineBody(const std::string& name,            ///<
-                    bool mirrored,                      ///<
-                    const ChVector<>& pos,              ///<
-                    const ChQuaternion<>& rot,          ///<
-                    double mass,                        ///<
-                    const ChVector<>& inertia_moments,  ///<
-                    const ChVector<>& inertia_products  ///<
+    void DefineBody(const std::string& name,                               ///<
+                    bool mirrored,                                         ///<
+                    const ChVector<>& pos,                                 ///<
+                    const ChQuaternion<>& rot,                             ///<
+                    double mass,                                           ///<
+                    const ChVector<>& inertia_moments,                     ///<
+                    const ChVector<>& inertia_products,                    ///<
+                    std::shared_ptr<ChVehicleGeometry> geometry = nullptr  ///<
     );
 
     /// Add a joint definition to the suspension subsystem.
@@ -112,14 +113,15 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
     );
 
     /// Add a TSDA to model a suspension spring or shock.
-    void DefineTSDA(const std::string& name,                         ///<
-                    bool mirrored,                                   ///<
-                    BodyIdentifier body1,                            ///<
-                    BodyIdentifier body2,                            ///<
-                    const ChVector<>& point1,                        ///<
-                    const ChVector<>& point2,                        ///<
-                    double rest_length,                              ///<
-                    std::shared_ptr<ChLinkTSDA::ForceFunctor> force  ///<
+    void DefineTSDA(const std::string& name,                               ///<
+                    bool mirrored,                                         ///<
+                    BodyIdentifier body1,                                  ///<
+                    BodyIdentifier body2,                                  ///<
+                    const ChVector<>& point1,                              ///<
+                    const ChVector<>& point2,                              ///<
+                    double rest_length,                                    ///<
+                    std::shared_ptr<ChLinkTSDA::ForceFunctor> force,       ///<
+                    std::shared_ptr<ChPointPointShape> geometry = nullptr  ///<
     );
 
     /// Initialize this suspension subsystem.
@@ -184,6 +186,12 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
   private:
     ChFrame<> m_X_SA;  ///< suspension to absolute transform
 
+    /// Internal specification of a suspension body.
+    struct Body {
+        std::shared_ptr<ChBody> body;                 ///< underlying Chrono body
+        std::shared_ptr<ChVehicleGeometry> geometry;  ///< (optional) visualization and collision geometry
+    };
+
     /// Internal specification of a suspension joint.
     struct Joint {
         std::shared_ptr<ChVehicleJoint> joint;        ///< underlying Chrono vehicle joint
@@ -204,6 +212,7 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
         ChVector<> point2;                                ///< point on body2 (in subsystem frame)
         double rest_length;                               ///< TSDA rest (free) length
         std::shared_ptr<ChLinkTSDA::ForceFunctor> force;  ///< force functor
+        std::shared_ptr<ChPointPointShape> geometry;      ///< (optional) visualization geometry
     };
 
     /// Key for a suspension part.
@@ -218,9 +227,9 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
         std::size_t operator()(const PartKey& id) const;
     };
 
-    std::unordered_map<PartKey, std::shared_ptr<ChBody>, PartKeyHash> m_bodies;  ///< suspension bodies
-    std::unordered_map<PartKey, Joint, PartKeyHash> m_joints;                    ///< suspension joints
-    std::unordered_map<PartKey, TSDA, PartKeyHash> m_tsdas;                      ///< suspension force elements
+    std::unordered_map<PartKey, Body, PartKeyHash> m_bodies;   ///< suspension bodies
+    std::unordered_map<PartKey, Joint, PartKeyHash> m_joints;  ///< suspension joints
+    std::unordered_map<PartKey, TSDA, PartKeyHash> m_tsdas;    ///< suspension force elements
 
     /// Get the unique name of an item in this suspension subsystem.
     std::string Name(const PartKey& id) const;

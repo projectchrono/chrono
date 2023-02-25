@@ -45,7 +45,7 @@ ChGenericWheeledSuspension::~ChGenericWheeledSuspension() {
     auto sys = m_spindle[0]->GetSystem();
     if (sys) {
         for (auto& body : m_bodies)
-            sys->Remove(body.second);
+            sys->Remove(body.second.body);
         for (auto& joint : m_joints)
             ChChassis::RemoveJoint(joint.second.joint);
         for (auto& tsda : m_tsdas)
@@ -65,20 +65,23 @@ void ChGenericWheeledSuspension::DefineBody(const std::string& name,
                                             const ChQuaternion<>& rot,
                                             double mass,
                                             const ChVector<>& inertia_moments,
-                                            const ChVector<>& inertia_products) {
-    auto body = chrono_types::make_shared<ChBody>();
-    body->SetNameString("");
-    body->SetPos(pos);
-    body->SetRot(rot);
-    body->SetMass(mass);
-    body->SetInertiaXX(inertia_moments);
-    body->SetInertiaXY(inertia_products);
+                                            const ChVector<>& inertia_products,
+                                            std::shared_ptr<ChVehicleGeometry> geometry) {
+    Body b;
+    b.body = chrono_types::make_shared<ChBody>();
+    b.body->SetNameString("");
+    b.body->SetPos(pos);
+    b.body->SetRot(rot);
+    b.body->SetMass(mass);
+    b.body->SetInertiaXX(inertia_moments);
+    b.body->SetInertiaXY(inertia_products);
+    b.geometry = geometry;
 
     if (!mirrored) {
-        m_bodies.insert({{name, -1}, body});
+        m_bodies.insert({{name, -1}, b});
     } else {
-        m_bodies.insert({{name, 0}, body});
-        m_bodies.insert({{name, 1}, body});
+        m_bodies.insert({{name, 0}, b});
+        m_bodies.insert({{name, 1}, b});
     }
 }
 
@@ -112,7 +115,8 @@ void ChGenericWheeledSuspension::DefineTSDA(const std::string& name,
                                             const ChVector<>& point1,
                                             const ChVector<>& point2,
                                             double rest_length,
-                                            std::shared_ptr<ChLinkTSDA::ForceFunctor> force) {
+                                            std::shared_ptr<ChLinkTSDA::ForceFunctor> force,
+                                            std::shared_ptr<ChPointPointShape> geometry) {
     TSDA t;
     t.tsda = nullptr;
     t.body1 = body1;
@@ -121,6 +125,7 @@ void ChGenericWheeledSuspension::DefineTSDA(const std::string& name,
     t.point2 = point2;
     t.rest_length = rest_length;
     t.force = force;
+    t.geometry = geometry;
 
     if (!mirrored) {
         m_tsdas.insert({{name, -1}, t});
@@ -148,14 +153,14 @@ ChVector<> ChGenericWheeledSuspension::Point(const ChVector<>& pos_loc, int side
 
 std::shared_ptr<ChBody> ChGenericWheeledSuspension::FindBody(const std::string& name, int side) const {
     // Search for a non-mirrored body
-    auto foo = m_bodies.find({name, -1});
-    if (foo != m_bodies.end())
-        return foo->second;
+    auto b1 = m_bodies.find({name, -1});
+    if (b1 != m_bodies.end())
+        return b1->second.body;
 
     // Search for a mirrored body
-    auto bar = m_bodies.find({name, side});
-    assert(bar != m_bodies.end());
-    return bar->second;
+    auto b2 = m_bodies.find({name, side});
+    assert(b2 != m_bodies.end());
+    return b2->second.body;
 }
 
 void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
@@ -177,12 +182,12 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Initialize all bodies in the suspension subsystem
     for (auto& item : m_bodies) {
-        ChVector<> pos = Point(item.second->GetPos(), item.first.side);
-        ChQuaternion<> rot = chassisRot * item.second->GetRot();
-        item.second->SetPos(pos);
-        item.second->SetRot(rot);
-        item.second->SetNameString(Name(item.first));
-        chassis->GetSystem()->AddBody(item.second);
+        ChVector<> pos = Point(item.second.body->GetPos(), item.first.side);
+        ChQuaternion<> rot = chassisRot * item.second.body->GetRot();
+        item.second.body->SetPos(pos);
+        item.second.body->SetRot(rot);
+        item.second.body->SetNameString(Name(item.first));
+        chassis->GetSystem()->AddBody(item.second.body);
     }
 
     // Create and initialize joints in the suspension subsystem
@@ -304,7 +309,7 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
 void ChGenericWheeledSuspension::InitializeInertiaProperties() {
     m_mass = 2 * getSpindleMass();
     for (const auto& item : m_bodies)
-        m_mass += item.second->GetMass();
+        m_mass += item.second.body->GetMass();
 }
 
 void ChGenericWheeledSuspension::UpdateInertiaProperties() {
@@ -317,7 +322,8 @@ void ChGenericWheeledSuspension::UpdateInertiaProperties() {
     composite.AddComponent(m_spindle[LEFT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
     composite.AddComponent(m_spindle[RIGHT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
     for (const auto& item : m_bodies)
-        composite.AddComponent(item.second->GetFrame_COG_to_abs(), item.second->GetMass(), item.second->GetInertia());
+        composite.AddComponent(item.second.body->GetFrame_COG_to_abs(), item.second.body->GetMass(),
+                               item.second.body->GetInertia());
 
     // Express COM and inertia in subsystem reference frame
     m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
@@ -380,11 +386,19 @@ void ChGenericWheeledSuspension::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
-    //// TODO
+    for (const auto& item : m_bodies)
+        if (item.second.geometry)
+            item.second.geometry->CreateVisualizationAssets(item.second.body, vis);
+    for (const auto& item : m_tsdas)
+        if (item.second.geometry)
+            item.second.tsda->AddVisualShape(item.second.geometry);
 }
 
 void ChGenericWheeledSuspension::RemoveVisualizationAssets() {
-    //// TODO
+    for (const auto& item : m_bodies)
+        ChPart::RemoveVisualizationAssets(item.second.body);
+    for (const auto& item : m_tsdas)
+        ChPart::RemoveVisualizationAssets(item.second.tsda);
 
     ChSuspension::RemoveVisualizationAssets();
 }
@@ -398,7 +412,7 @@ void ChGenericWheeledSuspension::ExportComponentList(rapidjson::Document& jsonDo
     bodies.push_back(m_spindle[0]);
     bodies.push_back(m_spindle[1]);
     for (const auto& item : m_bodies)
-        bodies.push_back(item.second);
+        bodies.push_back(item.second.body);
     ChPart::ExportBodyList(jsonDocument, bodies);
 
     std::vector<std::shared_ptr<ChShaft>> shafts;
@@ -430,7 +444,7 @@ void ChGenericWheeledSuspension::Output(ChVehicleOutput& database) const {
     bodies.push_back(m_spindle[0]);
     bodies.push_back(m_spindle[1]);
     for (const auto& item : m_bodies)
-        bodies.push_back(item.second);
+        bodies.push_back(item.second.body);
     database.WriteBodies(bodies);
 
     std::vector<std::shared_ptr<ChShaft>> shafts;
