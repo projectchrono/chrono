@@ -40,6 +40,7 @@
 #include "chrono_vehicle/tracked_vehicle/ChDrivelineTV.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
+//#include "chrono_thirdparty/rapidjson/pointer.h"
 
 namespace chrono {
 namespace vehicle {
@@ -135,6 +136,12 @@ CH_VEHICLE_API std::shared_ptr<ChTrackSuspension> ReadTrackSuspensionJSON(const 
 
 /// Load and return a road-wheel from the specified JSON file.
 CH_VEHICLE_API std::shared_ptr<ChTrackWheel> ReadTrackWheelJSON(const std::string& filename);
+
+/// Load and return a vehicle joint type from the specific JSON value.
+CH_VEHICLE_API ChVehicleJoint::Type ReadVehicleJointTypeJSON(const rapidjson::Value& a);
+
+/// Load and return a coordinate system from the specific JSON value.
+CH_VEHICLE_API ChCoordsys<> ReadCoordinateSystemJSON(const rapidjson::Value& a);
 
 }  // end namespace vehicle
 }  // end namespace chrono

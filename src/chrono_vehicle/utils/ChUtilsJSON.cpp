@@ -56,6 +56,7 @@
 #include "chrono_vehicle/wheeled_vehicle/suspension/ThreeLinkIRS.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/ToeBarLeafspringAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/SAEToeBarLeafspringAxle.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/GenericWheeledSuspension.h"
 #include "chrono_vehicle/wheeled_vehicle/subchassis/Balancer.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
@@ -610,6 +611,8 @@ std::shared_ptr<ChSuspension> ReadSuspensionJSON(const std::string& filename) {
         suspension = chrono_types::make_shared<RigidPinnedAxle>(d);
     } else if (subtype.compare("HendricksonPRIMAXX") == 0) {
         suspension = chrono_types::make_shared<HendricksonPRIMAXX>(d);
+    } else if (subtype.compare("GenericWheeledSuspension") == 0) {
+        suspension = chrono_types::make_shared<GenericWheeledSuspension>(d);
     } else {
         throw ChException("Suspension type not supported in ReadSuspensionJSON.");
     }
@@ -1010,6 +1013,42 @@ std::shared_ptr<ChTrackWheel> ReadTrackWheelJSON(const std::string& filename) {
     }
 
     return wheel;
+}
+
+// -----------------------------------------------------------------------------
+
+ChVehicleJoint::Type ReadVehicleJointTypeJSON(const Value& a) {
+    assert(a.IsString());
+    std::string type = a.GetString();
+    if (type.compare("Lock")) {
+        return ChVehicleJoint::Type::LOCK;
+    }
+    else if (type.compare("Point Line")) {
+        return ChVehicleJoint::Type::POINTLINE;
+    }
+    else if (type.compare("Point Plane")) {
+        return ChVehicleJoint::Type::POINTPLANE;
+    }
+    else if (type.compare("Revolute")) {
+        return ChVehicleJoint::Type::REVOLUTE;
+    }
+    else if (type.compare("Spherical")) {
+        return ChVehicleJoint::Type::SPHERICAL;
+    }
+    else if (type.compare("Universal")) {
+        return ChVehicleJoint::Type::UNIVERSAL;
+    }
+    else {
+        // TODO Unknown type, what do we do here?
+        return ChVehicleJoint::Type::LOCK;
+    }
+}
+
+ChCoordsys<> ReadCoordinateSystemJSON(const Value& a) {
+    assert(a.IsObject());
+    assert(a.HasMember("Position"));
+    assert(a.HasMember("Rotation"));
+    return ChCoordsys<>(ReadVectorJSON(a["Position"]), ReadQuaternionJSON(a["Rotation"]));
 }
 
 }  // end namespace vehicle
