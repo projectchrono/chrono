@@ -31,7 +31,7 @@ sys      = chrono.ChSystemNSC()
 
 
 
-# Set the global collision margins. This is expecially important for very large or
+# Set the global collision margins. This is especially important for very large or
 # very small objects. Set this before creating shapes. Not before creating sys.
 chrono.ChCollisionModel.SetDefaultSuggestedEnvelope(0.001);
 chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.001);
