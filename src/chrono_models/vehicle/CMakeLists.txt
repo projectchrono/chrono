@@ -43,6 +43,8 @@ set(CVM_HMMWV_FILES
     hmmwv/HMMWV_Pac02Tire.h
     hmmwv/HMMWV_TMeasyTire.cpp
     hmmwv/HMMWV_TMeasyTire.h
+    hmmwv/HMMWV_TMsimpleTire.cpp
+    hmmwv/HMMWV_TMsimpleTire.h
     hmmwv/HMMWV_ANCFTire.cpp
     hmmwv/HMMWV_ANCFTire.h
     hmmwv/HMMWV_ReissnerTire.cpp

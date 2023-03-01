@@ -504,6 +504,8 @@ set(CV_WV_TIRE_FILES
     wheeled_vehicle/tire/ChPac89Tire.cpp
     wheeled_vehicle/tire/ChFialaTire.h
     wheeled_vehicle/tire/ChFialaTire.cpp
+    wheeled_vehicle/tire/ChTMsimpleTire.h
+    wheeled_vehicle/tire/ChTMsimpleTire.cpp
     wheeled_vehicle/tire/ChTMeasyTire.h
     wheeled_vehicle/tire/ChTMeasyTire.cpp
     wheeled_vehicle/tire/ChDeformableTire.h
