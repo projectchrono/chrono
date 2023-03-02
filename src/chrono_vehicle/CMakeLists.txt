@@ -527,6 +527,8 @@ set(CV_WV_TIRE_FILES
     wheeled_vehicle/tire/FialaTire.cpp
     wheeled_vehicle/tire/TMeasyTire.h
     wheeled_vehicle/tire/TMeasyTire.cpp
+    wheeled_vehicle/tire/TMsimpleTire.h
+    wheeled_vehicle/tire/TMsimpleTire.cpp
     wheeled_vehicle/tire/ReissnerTire.h
     wheeled_vehicle/tire/ReissnerTire.cpp
     wheeled_vehicle/tire/ANCFTire.h

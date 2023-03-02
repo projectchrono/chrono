@@ -12,10 +12,7 @@
 // Authors: Radu Serban, Michael Taylor
 // =============================================================================
 //
-// Template for a tire model based on the MSC ADAMS Transient TMsimple Tire Model
-//
-// Ref: Adams/Tire help - Adams 2014.
-// https://simcompanion.mscsoftware.com/infocenter/index?page=content&id=DOC10645&cat=2014_ADAMS_DOCS&actp=LIST
+// Template for a TMsimple Tire Model
 //
 // =============================================================================
 // Authors: Radu Serban, Mike Taylor, Rainer Gericke
@@ -40,8 +37,8 @@ ChTMsimpleTire::ChTMsimpleTire(const std::string& name)
     : ChForceElementTire(name),
       m_mu(0.8),
       m_mu_0(0.8),
-      m_vcoulomb(0.1),
-      m_Fx_max1(0.0),
+      m_vcoulomb(0.2),
+      m_Fx_max1(-1.0),
       m_Fx_inf1(0.0),
       m_dFx0_1(0.0),
       m_Fx_max2(0.0),
@@ -66,7 +63,17 @@ void ChTMsimpleTire::Initialize(std::shared_ptr<ChWheel> wheel) {
 
     SetTMsimpleParams();
 
+    GenerateWorkParameters();
+ }
+
+void ChTMsimpleTire::GenerateWorkParameters() {
     // convert input parameters into work parameters
+    
+    if(m_Fx_max1 < 0.0) {
+        GetLog() << "No Input Parameters loaded!, Tires will not works as expected\n";
+        return;
+    }
+    
     m_ax1 = 2.0*m_Fx_max1-0.5*m_Fx_max2;
     m_ax2 = 0.5*m_Fx_max2-m_Fx_max1;
 
@@ -84,7 +91,7 @@ void ChTMsimpleTire::Initialize(std::shared_ptr<ChWheel> wheel) {
 
     m_cy1 = 2.0*m_Fy_inf1-0.5*m_Fy_inf2;
     m_cy2 = 0.5*m_Fy_inf2-m_Fy_inf1;
-
+    
     // Build the lookup table for penetration depth as function of intersection area
     // (used only with the ChTire::ENVELOPE method for terrain-tire collision detection)
     ConstructAreaDepthTable(m_unloaded_radius, m_areaDep);

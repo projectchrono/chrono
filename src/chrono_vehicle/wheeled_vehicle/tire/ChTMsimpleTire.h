@@ -116,7 +116,6 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
                            double damping_ratio = 0.5  ///< scaling factor for normal damping coefficient
     );
 
-
     /// Generate basic tire plots.
     /// This function creates a Gnuplot script file with the specified name.
     void WritePlots(const std::string& plFileName, const std::string& plTireFormat);
@@ -124,6 +123,8 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
   protected:
     /// Set the parameters in the TMsimple model.
     virtual void SetTMsimpleParams() = 0;
+    
+    void GenerateWorkParameters();
 
     /// Calculate Patch Forces
     void TMsimplePatchForces(double& fx, double& fy, double kappa, double alpha, double fz);
