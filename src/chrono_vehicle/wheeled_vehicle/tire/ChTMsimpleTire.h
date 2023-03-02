@@ -137,6 +137,8 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
     double m_mu;    ///< Actual friction coefficient of the road
     double m_mu_0;  ///< Local friction coefficient of the road for given parameters
 
+    double m_vcoulomb; // full sliding velocity with coulomb friction
+
     double m_Fz_nom; // nominal tire load force (N)
     
     // TMsimple input parameters

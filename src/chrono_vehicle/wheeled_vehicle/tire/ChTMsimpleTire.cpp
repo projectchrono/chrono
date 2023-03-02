@@ -40,6 +40,7 @@ ChTMsimpleTire::ChTMsimpleTire(const std::string& name)
     : ChForceElementTire(name),
       m_mu(0.8),
       m_mu_0(0.8),
+      m_vcoulomb(0.1),
       m_Fx_max1(0.0),
       m_Fx_inf1(0.0),
       m_dFx0_1(0.0),
@@ -88,7 +89,8 @@ void ChTMsimpleTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     // (used only with the ChTire::ENVELOPE method for terrain-tire collision detection)
     ConstructAreaDepthTable(m_unloaded_radius, m_areaDep);
 
-    //WritePlots("plot.plt", "Testreifen");
+    //WritePlots("tmsimple_plot.plt", "37x12.5x16.5");
+    
     // Initialize contact patch state variables to 0
     m_states.kappa = 0;
     m_states.alpha = 0;
@@ -133,10 +135,10 @@ void ChTMsimpleTire::Synchronize(double time,
         }
 
         m_data.normal_force = Fn_mag;
-        m_states.abs_vx = std::abs(m_data.vel.x());
-        m_states.abs_vt = std::abs(wheel_state.omega * (m_unloaded_radius - m_data.depth));
-        m_states.vsy = m_data.vel.y();
         m_states.Reff = (2.0 * m_unloaded_radius + r_stat) / 3.0;
+        m_states.abs_vx = std::abs(m_data.vel.x());
+        m_states.abs_vt = std::abs(wheel_state.omega * m_states.Reff);
+        m_states.vsy = m_data.vel.y();
         m_states.vta = m_states.Reff * std::abs(wheel_state.omega) + 0.01;
         m_states.vsx = m_data.vel.x() - wheel_state.omega * m_states.Reff;
         m_states.omega = wheel_state.omega;
@@ -193,7 +195,6 @@ void ChTMsimpleTire::Advance(double step) {
     double Mz = 0;
     double Fx0 = 0;
     double Fy0 = 0;
-    double vcoulomb = 0.2; // full sliding velocity with coulomb friction
     
     /*
      longitudinal speed <= vblend1: coulomb friction assumed
@@ -202,8 +203,8 @@ void ChTMsimpleTire::Advance(double step) {
      blending is applied in the interval [vblend1:vblend2]
      */
     double Fz_star = m_data.normal_force*m_mu/m_mu_0;
-    Fx0 = Fx_low = tanh(-m_states.vsx/vcoulomb)*Fz_star;
-    Fy0 = Fy_low = tanh(-m_states.vsy/vcoulomb)*Fz_star;
+    Fx0 = Fx_low = tanh(-m_states.vsx/m_vcoulomb)*Fz_star;
+    Fy0 = Fy_low = tanh(-m_states.vsy/m_vcoulomb)*Fz_star;
     Fy_low = sqrt(1.0-pow(Fx_low/Fz_star,2.0))*Fy0;
     Fx_low = sqrt(1.0-pow(Fy_low/Fz_star,2.0))*Fx0;
 
@@ -283,11 +284,15 @@ void ChTMsimpleTire::TMsimplePatchForces(double& fx, double& fy, double sx, doub
     fx = Kx*sin(Bx*(1.0-exp(-fabs(sx)/Ax))*ChSignum(sx));
     fy = Ky*sin(By*(1.0-exp(-fabs(sy)/Ay))*ChSignum(sy));
 
-    double fx0 = fx;
-    double fy0 = fy;
-    // combine forces with friction circle
-    fx = sqrt(1.0-pow(m_mu_0*fy/(m_mu*fz),2.0))*fx0;
-    fy = sqrt(1.0-pow(m_mu_0*fx/(m_mu*fz),2.0))*fy0;
+    ChVector2<> F;
+    F.x() = fx;
+    F.y() = fy;
+    double m = F.Length();
+    if(m > fz) {
+        F *= fz*m_mu/(m*m_mu_0);
+    }
+    fx = F.x();
+    fy = F.y();
 }
 
 double ChTMsimpleTire::GetTireMaxLoad(unsigned int li) {
@@ -430,7 +435,7 @@ void ChTMsimpleTire::GuessPassCar70Par(double tireLoad,       // tire load force
 
 void ChTMsimpleTire::WritePlots(const std::string& plFileName, const std::string& plTireFormat) {
     std::ofstream plt(plFileName);
-    plt << "$dat << EOF" << std::endl;
+    plt << "$datx << EOF" << std::endl;
     for(int i=-100; i<= 100; i++) {
         double s = double(i)/100.0;
         double K1 = m_Fx_max1;
@@ -441,9 +446,31 @@ void ChTMsimpleTire::WritePlots(const std::string& plFileName, const std::string
         double B2 = CH_C_PI - asin(m_Fx_inf2/m_Fx_max2);
         double A2 = K2*B2/m_dFx0_2;
         double Y2 = K2*sin(B2*(1.0-exp(-fabs(s)/A2))*ChSignum(s));
-        plt << s << "\t" << Y1 << "\t" << Y2 << std::endl;
+        plt << s << "\t" << Y1 << "\t" << Y2 <<std::endl;
     }
     plt << "EOF" << std::endl;
+    plt << "$daty << EOF" << std::endl;
+    for(int i=-100; i<= 100; i++) {
+        double s = double(i)/100.0;
+        double K1 = m_Fy_max1;
+        double B1 = CH_C_PI - asin(m_Fy_inf1/m_Fy_max1);
+        double A1 = K1*B1/m_dFy0_1;
+        double Y1 = K1*sin(B1*(1.0-exp(-fabs(s)/A1))*ChSignum(s));
+        double K2 = m_Fy_max2;
+        double B2 = CH_C_PI - asin(m_Fy_inf2/m_Fy_max2);
+        double A2 = K2*B2/m_dFy0_2;
+        double Y2 = K2*sin(B2*(1.0-exp(-fabs(s)/A2))*ChSignum(s));
+        plt << s << "\t" << Y1 << "\t" << Y2 <<std::endl;
+    }
+    plt << "EOF" << std::endl;
+    plt << "set title 'TMsimpleTire :" << plTireFormat << "'" << std::endl;
+    plt << "set xlabel 'Slip ()'" << std::endl;
+    plt << "set ylabel 'Patch Force (N)'" << std::endl;
+    plt << "set xrange [-1:1]" << std::endl;
+    plt << "plot $datx with lines t 'fx(fznom)', \\" << std::endl;
+    plt << " $datx u 1:3 with lines t 'fx(2*fznom)', \\" << std::endl;
+    plt << " $daty with dots t 'fy(2*fznom)', \\" << std::endl;
+    plt << " $daty u 1:3 with dots t 'fy(2*fznom)'" << std::endl;
     plt.close();
 }
 

@@ -288,6 +288,8 @@ set(CVM_MAN_FILES
     man/MAN_5t_Solid3LinkAxle.h
     man/MAN_5t_TMeasyTire.cpp
     man/MAN_5t_TMeasyTire.h
+    man/MAN_5t_TMsimpleTire.cpp
+    man/MAN_5t_TMsimpleTire.h
     man/MAN_5t_Wheel.cpp
     man/MAN_5t_Wheel.h
     man/MAN_5t_Vehicle.cpp
@@ -388,6 +390,8 @@ set(CVM_SEDAN_FILES
     sedan/Sedan_RigidTire.h
     sedan/Sedan_TMeasyTire.cpp
     sedan/Sedan_TMeasyTire.h
+    sedan/Sedan_TMsimpleTire.cpp
+    sedan/Sedan_TMsimpleTire.h
     sedan/Sedan_Pac02Tire.cpp
     sedan/Sedan_Pac02Tire.h
     sedan/Sedan_RackPinion.cpp

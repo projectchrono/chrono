@@ -57,10 +57,6 @@ void HMMWV_TMsimpleTire::SetTMsimpleParams() {
 
     double load = 3850.0 * lbs2N;
 
-    m_unloaded_radius = r;
-    m_width = w;
-    m_rolling_resistance = 0.015;
-
     ChTMsimpleTire::GuessTruck80Par(load, w, r, rimdia);
     
     // load the vertical stiffness table
