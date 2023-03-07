@@ -9,14 +9,12 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Marcel Offermans
 // =============================================================================
 //
 // Generic wheeled vehicle suspension constructed with data from file.
 //
 // =============================================================================
-
-#include <cstdio>
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/GenericWheeledSuspension.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
@@ -30,12 +28,8 @@ namespace vehicle {
 // Construct a suspension using data from the specified JSON file.
 // -----------------------------------------------------------------------------
 GenericWheeledSuspension::GenericWheeledSuspension(const std::string& filename)
-    : ChDoubleWishbone(""),
-      m_springForceCB(nullptr),
-      m_shockForceCB(nullptr),
-      m_UCABushingData(nullptr),
-      m_LCABushingData(nullptr),
-      m_tierodBushingData(nullptr) {
+    : ChGenericWheeledSuspension("")
+    {
     Document d;
     ReadFileJSON(filename, d);
     if (d.IsNull())
@@ -47,16 +41,64 @@ GenericWheeledSuspension::GenericWheeledSuspension(const std::string& filename)
 }
 
 GenericWheeledSuspension::GenericWheeledSuspension(const rapidjson::Document& d)
-    : ChDoubleWishbone(""),
-      m_springForceCB(nullptr),
-      m_shockForceCB(nullptr),
-      m_UCABushingData(nullptr),
-      m_LCABushingData(nullptr),
-      m_tierodBushingData(nullptr) {
+    : ChGenericWheeledSuspension("")
+    {
     Create(d);
 }
 
 GenericWheeledSuspension::~GenericWheeledSuspension() {}
+
+// Although this is a utility function, I doubt it has much use outside of this suspension.
+// Also I had problems linking the code when I tried to move this to ChUtilsJSON.
+ChGenericWheeledSuspension::BodyIdentifier ReadBodyIdentifierJSON(const Value& a) {
+    assert(a.IsString());
+    std::string name = a.GetString();
+    if (name.compare("Chassis") == 0) {
+        return ChGenericWheeledSuspension::ChassisIdentifier();
+    }
+    else if (name.compare("Subchassis") == 0) {
+        return ChGenericWheeledSuspension::SubchassisIdentifier();
+    }
+    else if (name.compare("Steering") == 0) {
+        return ChGenericWheeledSuspension::SteeringIdentifier();
+    }
+    else {
+        return ChGenericWheeledSuspension::BodyIdentifier(name);
+    }
+}
+
+std::shared_ptr<ChPointPointShape> ReadTSDAGeometryJSON(const Value &a) {
+    if (a.HasMember("Visualization") && a["Visualization"].IsObject()) {
+        auto& vis = a["Visualization"];
+        assert(vis.IsObject());
+        std::string type = vis["Type"].GetString();
+        if (type == "Segment") {
+            auto segment = std::make_shared<ChSegmentShape>();
+            return segment;
+        }
+        else if (type == "Spring") {
+            // the default below are copied from the actual class, and since there
+            // are no setters I can't just take the default constructor and override
+            // the properties the user specifies (my only alternative would be to
+            // construct and read from a prototype instance)
+            double radius = 0.05;
+            double resolution = 65;
+            double turns = 5;
+            if (vis.HasMember("Radius") && vis["Radius"].IsDouble()) {
+                radius = vis["Radius"].GetDouble();
+            }
+            if (vis.HasMember("Resolution") && vis["Resolution"].IsDouble()) {
+                resolution = vis["Resolution"].GetDouble();
+            }
+            if (vis.HasMember("Turns") && vis["Turns"].IsDouble()) {
+                turns = vis["Turns"].GetDouble();
+            }
+            auto spring = std::make_shared<ChSpringShape>(radius, resolution, turns);
+            return spring;
+        }
+    }
+    return nullptr;
+}
 
 // -----------------------------------------------------------------------------
 // Worker function for creating a GenericWheeledSuspension suspension using data in the
@@ -66,112 +108,88 @@ void GenericWheeledSuspension::Create(const rapidjson::Document& d) {
     // Invoke base class method.
     ChPart::Create(d);
 
-    // Read flag indicating that inertia matrices are expressed in
-    // vehicle-aligned centroidal frame.
-    if (d.HasMember("Vehicle-Frame Inertia")) {
-        bool flag = d["Vehicle-Frame Inertia"].GetBool();
-        SetVehicleFrameInertiaFlag(flag);
-    }
-
-    if (d.HasMember("Camber Angle (deg)"))
+    // Read camber and toe data
+    if (d.HasMember("Camber Angle (deg)")) {
         m_camber_angle = d["Camber Angle (deg)"].GetDouble() * CH_C_DEG_TO_RAD;
-    else
+    }
+    else {
         m_camber_angle = 0;
-
-    if (d.HasMember("Toe Angle (deg)"))
+    }
+    if (d.HasMember("Toe Angle (deg)")) {
         m_toe_angle = d["Toe Angle (deg)"].GetDouble() * CH_C_DEG_TO_RAD;
-    else
+    }
+    else {
         m_toe_angle = 0;
+    }
 
     // Read Spindle data
     assert(d.HasMember("Spindle"));
     assert(d["Spindle"].IsObject());
-
     m_spindleMass = d["Spindle"]["Mass"].GetDouble();
-    m_points[SPINDLE] = ReadVectorJSON(d["Spindle"]["COM"]);
+    m_spindlePosition = ReadVectorJSON(d["Spindle"]["COM"]);
     m_spindleInertia = ReadVectorJSON(d["Spindle"]["Inertia"]);
     m_spindleRadius = d["Spindle"]["Radius"].GetDouble();
     m_spindleWidth = d["Spindle"]["Width"].GetDouble();
 
-    // Read Upright data
-    assert(d.HasMember("Upright"));
-    assert(d["Upright"].IsObject());
-
-    m_uprightMass = d["Upright"]["Mass"].GetDouble();
-    m_points[UPRIGHT] = ReadVectorJSON(d["Upright"]["COM"]);
-    m_uprightInertiaMoments = ReadVectorJSON(d["Upright"]["Moments of Inertia"]);
-    m_uprightInertiaProducts = ReadVectorJSON(d["Upright"]["Products of Inertia"]);
-    m_uprightRadius = d["Upright"]["Radius"].GetDouble();
-
-    // Read UCA data
-    assert(d.HasMember("Upper Control Arm"));
-    assert(d["Upper Control Arm"].IsObject());
-
-    m_UCAMass = d["Upper Control Arm"]["Mass"].GetDouble();
-    m_points[UCA_CM] = ReadVectorJSON(d["Upper Control Arm"]["COM"]);
-    m_UCAInertiaMoments = ReadVectorJSON(d["Upper Control Arm"]["Moments of Inertia"]);
-    m_UCAInertiaProducts = ReadVectorJSON(d["Upper Control Arm"]["Products of Inertia"]);
-    m_UCARadius = d["Upper Control Arm"]["Radius"].GetDouble();
-    m_points[UCA_F] = ReadVectorJSON(d["Upper Control Arm"]["Location Chassis Front"]);
-    m_points[UCA_B] = ReadVectorJSON(d["Upper Control Arm"]["Location Chassis Back"]);
-    m_points[UCA_U] = ReadVectorJSON(d["Upper Control Arm"]["Location Upright"]);
-    if (d["Upper Control Arm"].HasMember("Bushing Data")) {
-        m_UCABushingData = ReadBushingDataJSON(d["Upper Control Arm"]["Bushing Data"]);
+    if (d.HasMember("Spindle Attachment Body")) {
+        m_spindleAttachmentBody = ReadBodyIdentifierJSON(d["Spindle Attachment Body"]);
+    }
+    if (d.HasMember("Antiroll Body")) {
+        m_antirollBody = ReadBodyIdentifierJSON(d["Antiroll Body"]);
     }
 
-    // Read LCA data
-    assert(d.HasMember("Lower Control Arm"));
-    assert(d["Lower Control Arm"].IsObject());
-
-    m_LCAMass = d["Lower Control Arm"]["Mass"].GetDouble();
-    m_points[LCA_CM] = ReadVectorJSON(d["Lower Control Arm"]["COM"]);
-    m_LCAInertiaMoments = ReadVectorJSON(d["Lower Control Arm"]["Moments of Inertia"]);
-    m_LCAInertiaProducts = ReadVectorJSON(d["Lower Control Arm"]["Products of Inertia"]);
-    m_LCARadius = d["Lower Control Arm"]["Radius"].GetDouble();
-    m_points[LCA_F] = ReadVectorJSON(d["Lower Control Arm"]["Location Chassis Front"]);
-    m_points[LCA_B] = ReadVectorJSON(d["Lower Control Arm"]["Location Chassis Back"]);
-    m_points[LCA_U] = ReadVectorJSON(d["Lower Control Arm"]["Location Upright"]);
-    if (d["Lower Control Arm"].HasMember("Bushing Data")) {
-        m_LCABushingData = ReadBushingDataJSON(d["Lower Control Arm"]["Bushing Data"]);
-    }
-
-    // Read Tierod data
-    assert(d.HasMember("Tierod"));
-    assert(d["Tierod"].IsObject());
-
-    if (d["Tierod"].HasMember("Mass")) {
-        assert(d["Tierod"].HasMember("Inertia"));
-        assert(d["Tierod"].HasMember("Radius"));
-        m_tierodMass = d["Tierod"]["Mass"].GetDouble();
-        m_tierodRadius = d["Tierod"]["Radius"].GetDouble();
-        m_tierodInertia = ReadVectorJSON(d["Tierod"]["Inertia"]);
-        m_use_tierod_bodies = true;
-        if (d["Tierod"].HasMember("Bushing Data")) {
-            m_tierodBushingData = ReadBushingDataJSON(d["Tierod"]["Bushing Data"]);
+    // Read bodies
+    if (d.HasMember("Bodies")) {
+        auto bodies = d["Bodies"].GetArray();
+        for (auto& body : bodies) {
+            auto name = body["Name"].GetString();
+            auto mirrored = body["Mirrored"].GetBool();
+            auto pos = ReadVectorJSON(body["Position"]);
+            auto rot = ReadQuaternionJSON(body["Rotation"]);
+            auto mass = body["Mass"].GetDouble();
+            auto inertia_moments = ReadVectorJSON(body["Moments of Inertia"]);
+            auto inertia_products = ReadVectorJSON(body["Products of Inertia"]);
+            auto geometry = std::make_shared<ChVehicleGeometry>(ReadVehicleGeometry(body));
+            DefineBody(name, mirrored, pos, rot, mass, inertia_moments, inertia_products, geometry);
         }
-    } else {
-        m_tierodMass = 0;
-        m_tierodRadius = 0;
-        m_tierodInertia = ChVector<>(0);
-        m_use_tierod_bodies = false;
     }
 
-    m_points[TIEROD_C] = ReadVectorJSON(d["Tierod"]["Location Chassis"]);
-    m_points[TIEROD_U] = ReadVectorJSON(d["Tierod"]["Location Upright"]);
+    // Read joints
+    if (d.HasMember("Joints")) {
+        auto joints = d["Joints"].GetArray();
+        for (auto& joint : joints) {
+            auto name = joint["Name"].GetString();
+            auto mirrored = joint["Mirrored"].GetBool();
+            auto type = ReadVehicleJointTypeJSON(joint["Type"]);
+            auto body1 = ReadBodyIdentifierJSON(joint["Body1"]);
+            auto body2 = ReadBodyIdentifierJSON(joint["Body2"]);
+            auto csys = ReadCoordinateSystemJSON(joint["Coordinate System"]);
+            std::shared_ptr<ChVehicleBushingData> bushingData = nullptr;
+            if (joint.HasMember("Bushing Data") && joint["Bushing Data"].IsObject()) {
+                bushingData = ReadBushingDataJSON(joint["Bushing Data"]);
+            }
+            DefineJoint(name, mirrored, type, body1, body2, csys, bushingData);
+        }
+    }
 
-    // Read spring data and create force callback
-    assert(d.HasMember("Spring"));
-    assert(d["Spring"].IsObject());
-    m_points[SPRING_C] = ReadVectorJSON(d["Spring"]["Location Chassis"]);
-    m_points[SPRING_A] = ReadVectorJSON(d["Spring"]["Location Arm"]);
-    m_springForceCB = ReadTSDAFunctorJSON(d["Spring"], m_springRestLength);
-
-    // Read shock data and create force callback
-    assert(d.HasMember("Shock"));
-    assert(d["Shock"].IsObject());
-    m_points[SHOCK_C] = ReadVectorJSON(d["Shock"]["Location Chassis"]);
-    m_points[SHOCK_A] = ReadVectorJSON(d["Shock"]["Location Arm"]);
-    m_shockForceCB = ReadTSDAFunctorJSON(d["Shock"], m_shockRestLength);
+    // Read TSDAs
+    if (d.HasMember("TSDAs")) {
+        auto tsdas = d["TSDAs"].GetArray();
+        for (auto& tsda : tsdas) {
+            auto name = tsda["Name"].GetString();
+            auto mirrored = tsda["Mirrored"].GetBool();
+            auto body1 = ReadBodyIdentifierJSON(tsda["Body1"]);
+            auto body2 = ReadBodyIdentifierJSON(tsda["Body2"]);
+            auto point1 = ReadVectorJSON(tsda["Point1"]);
+            auto point2 = ReadVectorJSON(tsda["Point2"]);
+            double free_length;
+            auto force = ReadTSDAFunctorJSON(tsda["Force"], free_length);
+            auto geometry = ReadTSDAGeometryJSON(tsda);
+            // TODO confirm that 'free_length' is the 'rest_length' that the function below expects
+            DefineTSDA(name, mirrored, body1, body2, point1, point2, free_length, force, geometry);
+            std::cout << "DefineTSDA: " << name << " is mirrored? " << (mirrored ? "True" : "False") << std::endl;
+        }
+    }
 
     // Read axle inertia
     assert(d.HasMember("Axle"));
