@@ -36,8 +36,8 @@ class CH_VEHICLE_API GenericWheeledSuspension : public ChGenericWheeledSuspensio
     GenericWheeledSuspension(const rapidjson::Document& d);
     ~GenericWheeledSuspension();
 
-    virtual double getCamberAngle() const override { return m_camber_angle; }
-    virtual double getToeAngle() const override { return m_toe_angle; }
+    virtual double getCamberAngle() const override { return m_camberAngle; }
+    virtual double getToeAngle() const override { return m_toeAngle; }
 
     virtual double getSpindleMass() const override { return m_spindleMass; }
     virtual ChVector<> getSpindlePos() const override { return m_spindlePosition; }
@@ -47,22 +47,20 @@ class CH_VEHICLE_API GenericWheeledSuspension : public ChGenericWheeledSuspensio
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
-    /// TODO implement this properly
-    virtual bool IsSteerable() const final override { return false; }
+    virtual bool IsSteerable() const final override { return m_steerable; }
+    virtual bool IsIndependent() const final override { return m_independent; }
 
-    /// TODO implement this properly
-    virtual bool IsIndependent() const final override { return false; }
-
-
-  protected:
     virtual BodyIdentifier getSpindleAttachmentBody() const override { return m_spindleAttachmentBody; }
     virtual BodyIdentifier getAntirollBody() const override { return m_antirollBody; }
 
   private:
     virtual void Create(const rapidjson::Document& d) override;
 
-    double m_camber_angle;
-    double m_toe_angle;
+    bool m_steerable;
+    bool m_independent;
+
+    double m_camberAngle;
+    double m_toeAngle;
 
     double m_spindleMass;
     ChVector<> m_spindlePosition;

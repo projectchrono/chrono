@@ -27,9 +27,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Construct a suspension using data from the specified JSON file.
 // -----------------------------------------------------------------------------
-GenericWheeledSuspension::GenericWheeledSuspension(const std::string& filename)
-    : ChGenericWheeledSuspension("")
-    {
+GenericWheeledSuspension::GenericWheeledSuspension(const std::string& filename) : ChGenericWheeledSuspension("") {
     Document d;
     ReadFileJSON(filename, d);
     if (d.IsNull())
@@ -40,34 +38,27 @@ GenericWheeledSuspension::GenericWheeledSuspension(const std::string& filename)
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-GenericWheeledSuspension::GenericWheeledSuspension(const rapidjson::Document& d)
-    : ChGenericWheeledSuspension("")
-    {
+GenericWheeledSuspension::GenericWheeledSuspension(const rapidjson::Document& d) : ChGenericWheeledSuspension("") {
     Create(d);
 }
 
 GenericWheeledSuspension::~GenericWheeledSuspension() {}
 
-// Although this is a utility function, I doubt it has much use outside of this suspension.
-// Also I had problems linking the code when I tried to move this to ChUtilsJSON.
 ChGenericWheeledSuspension::BodyIdentifier ReadBodyIdentifierJSON(const Value& a) {
     assert(a.IsString());
     std::string name = a.GetString();
     if (name.compare("Chassis") == 0) {
         return ChGenericWheeledSuspension::ChassisIdentifier();
-    }
-    else if (name.compare("Subchassis") == 0) {
+    } else if (name.compare("Subchassis") == 0) {
         return ChGenericWheeledSuspension::SubchassisIdentifier();
-    }
-    else if (name.compare("Steering") == 0) {
+    } else if (name.compare("Steering") == 0) {
         return ChGenericWheeledSuspension::SteeringIdentifier();
-    }
-    else {
+    } else {
         return ChGenericWheeledSuspension::BodyIdentifier(name);
     }
 }
 
-std::shared_ptr<ChPointPointShape> ReadTSDAGeometryJSON(const Value &a) {
+std::shared_ptr<ChPointPointShape> ReadTSDAGeometryJSON(const Value& a) {
     if (a.HasMember("Visualization") && a["Visualization"].IsObject()) {
         auto& vis = a["Visualization"];
         assert(vis.IsObject());
@@ -75,8 +66,7 @@ std::shared_ptr<ChPointPointShape> ReadTSDAGeometryJSON(const Value &a) {
         if (type == "Segment") {
             auto segment = std::make_shared<ChSegmentShape>();
             return segment;
-        }
-        else if (type == "Spring") {
+        } else if (type == "Spring") {
             // the default below are copied from the actual class, and since there
             // are no setters I can't just take the default constructor and override
             // the properties the user specifies (my only alternative would be to
@@ -108,18 +98,22 @@ void GenericWheeledSuspension::Create(const rapidjson::Document& d) {
     // Invoke base class method.
     ChPart::Create(d);
 
+    // Read suspension characteristics
+    assert(d.HasMember("Steerable"));
+    assert(d.HasMember("Independent"));
+    m_steerable = d["Steerable"].GetBool();
+    m_independent = d["Independent"].GetBool();
+
     // Read camber and toe data
     if (d.HasMember("Camber Angle (deg)")) {
-        m_camber_angle = d["Camber Angle (deg)"].GetDouble() * CH_C_DEG_TO_RAD;
-    }
-    else {
-        m_camber_angle = 0;
+        m_camberAngle = d["Camber Angle (deg)"].GetDouble() * CH_C_DEG_TO_RAD;
+    } else {
+        m_camberAngle = 0;
     }
     if (d.HasMember("Toe Angle (deg)")) {
-        m_toe_angle = d["Toe Angle (deg)"].GetDouble() * CH_C_DEG_TO_RAD;
-    }
-    else {
-        m_toe_angle = 0;
+        m_toeAngle = d["Toe Angle (deg)"].GetDouble() * CH_C_DEG_TO_RAD;
+    } else {
+        m_toeAngle = 0;
     }
 
     // Read Spindle data
@@ -130,12 +124,15 @@ void GenericWheeledSuspension::Create(const rapidjson::Document& d) {
     m_spindleInertia = ReadVectorJSON(d["Spindle"]["Inertia"]);
     m_spindleRadius = d["Spindle"]["Radius"].GetDouble();
     m_spindleWidth = d["Spindle"]["Width"].GetDouble();
+    assert(d["Spindle"].HasMember("Attachment Body"));
+    m_spindleAttachmentBody = ReadBodyIdentifierJSON(d["Spindle"]["Attachment Body"]);
 
-    if (d.HasMember("Spindle Attachment Body")) {
-        m_spindleAttachmentBody = ReadBodyIdentifierJSON(d["Spindle Attachment Body"]);
-    }
-    if (d.HasMember("Antiroll Body")) {
+    // Read body for attaching an antiroll bar subsystem
+    if (m_independent) {
+        assert(d.HasMember("Antiroll Body"));
         m_antirollBody = ReadBodyIdentifierJSON(d["Antiroll Body"]);
+    } else {
+        m_antirollBody = BodyIdentifier("");
     }
 
     // Read bodies
@@ -185,7 +182,6 @@ void GenericWheeledSuspension::Create(const rapidjson::Document& d) {
             double free_length;
             auto force = ReadTSDAFunctorJSON(tsda["Force"], free_length);
             auto geometry = ReadTSDAGeometryJSON(tsda);
-            // TODO confirm that 'free_length' is the 'rest_length' that the function below expects
             DefineTSDA(name, mirrored, body1, body2, point1, point2, free_length, force, geometry);
             std::cout << "DefineTSDA: " << name << " is mirrored? " << (mirrored ? "True" : "False") << std::endl;
         }
