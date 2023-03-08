@@ -78,7 +78,7 @@ CH_VEHICLE_API ChVehicleJoint::Type ReadVehicleJointTypeJSON(const rapidjson::Va
 /// Load and return a vehicle geometry structure from the specified JSON values.
 /// Collision geometry and contact material information is set in the return ChVehicleGeometry object if the given JSON
 /// object has a member "Contact". Visualization geometry is loaded if the JSON object has a member "Visualization".
-CH_VEHICLE_API ChVehicleGeometry ReadVehicleGeometry(const rapidjson::Value& d);
+CH_VEHICLE_API ChVehicleGeometry ReadVehicleGeometryJSON(const rapidjson::Value& d);
 
 // -----------------------------------------------------------------------------
 

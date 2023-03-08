@@ -146,7 +146,7 @@ void GenericWheeledSuspension::Create(const rapidjson::Document& d) {
             auto mass = body["Mass"].GetDouble();
             auto inertia_moments = ReadVectorJSON(body["Moments of Inertia"]);
             auto inertia_products = ReadVectorJSON(body["Products of Inertia"]);
-            auto geometry = std::make_shared<ChVehicleGeometry>(ReadVehicleGeometry(body));
+            auto geometry = std::make_shared<ChVehicleGeometry>(ReadVehicleGeometryJSON(body));
             DefineBody(name, mirrored, pos, rot, mass, inertia_moments, inertia_products, geometry);
         }
     }

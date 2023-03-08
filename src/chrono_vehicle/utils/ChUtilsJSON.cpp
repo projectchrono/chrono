@@ -195,7 +195,7 @@ ChVehicleJoint::Type ReadVehicleJointTypeJSON(const Value& a) {
 
 // -----------------------------------------------------------------------------
 
-ChVehicleGeometry ReadVehicleGeometry(const rapidjson::Value& d) {
+ChVehicleGeometry ReadVehicleGeometryJSON(const rapidjson::Value& d) {
     ChVehicleGeometry geometry;
 
     // Read contact information

@@ -82,7 +82,7 @@ void RigidChassis::Create(const rapidjson::Document& d) {
     }
 
     // Read contach and visualization data.
-    m_geometry = ReadVehicleGeometry(d);
+    m_geometry = ReadVehicleGeometryJSON(d);
 }
 
 // -----------------------------------------------------------------------------
