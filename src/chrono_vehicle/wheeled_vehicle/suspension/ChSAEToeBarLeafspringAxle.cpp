@@ -772,12 +772,12 @@ void ChSAEToeBarLeafspringAxle::ExportComponentList(rapidjson::Document& jsonDoc
     bodies.push_back(m_draglink);
     bodies.push_back(m_knuckle[0]);
     bodies.push_back(m_knuckle[1]);
-    ChPart::ExportBodyList(jsonDocument, bodies);
+    ExportBodyList(jsonDocument, bodies);
 
     std::vector<std::shared_ptr<ChShaft>> shafts;
     shafts.push_back(m_axle[0]);
     shafts.push_back(m_axle[1]);
-    ChPart::ExportShaftList(jsonDocument, shafts);
+    ExportShaftList(jsonDocument, shafts);
 
     std::vector<std::shared_ptr<ChLink>> joints;
     std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
@@ -813,15 +813,15 @@ void ChSAEToeBarLeafspringAxle::ExportComponentList(rapidjson::Document& jsonDoc
     joints.push_back(m_universalTierod);
     joints.push_back(m_revoluteKingpin[0]);
     joints.push_back(m_revoluteKingpin[1]);
-    ChPart::ExportJointList(jsonDocument, joints);
-    ChPart::ExportBodyLoadList(jsonDocument, bushings);
+    ExportJointList(jsonDocument, joints);
+    ExportBodyLoadList(jsonDocument, bushings);
 
     std::vector<std::shared_ptr<ChLinkTSDA>> springs;
     springs.push_back(m_spring[0]);
     springs.push_back(m_spring[1]);
     springs.push_back(m_shock[0]);
     springs.push_back(m_shock[1]);
-    ChPart::ExportLinSpringList(jsonDocument, springs);
+    ExportLinSpringList(jsonDocument, springs);
 }
 
 void ChSAEToeBarLeafspringAxle::Output(ChVehicleOutput& database) const {

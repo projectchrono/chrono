@@ -391,20 +391,20 @@ void ChPitmanArmShafts::ExportComponentList(rapidjson::Document& jsonDocument) c
     std::vector<std::shared_ptr<ChBody>> bodies;
     bodies.push_back(m_link);
     bodies.push_back(m_arm);
-    ChPart::ExportBodyList(jsonDocument, bodies);
+    ExportBodyList(jsonDocument, bodies);
 
     std::vector<std::shared_ptr<ChShaft>> shafts;
     shafts.push_back(m_shaft_C);
     shafts.push_back(m_shaft_C1);
     shafts.push_back(m_shaft_A1);
     shafts.push_back(m_shaft_A);
-    ChPart::ExportShaftList(jsonDocument, shafts);
+    ExportShaftList(jsonDocument, shafts);
 
     std::vector<std::shared_ptr<ChLink>> joints;
     joints.push_back(m_revolute);
     joints.push_back(m_revsph);
     joints.push_back(m_universal);
-    ChPart::ExportJointList(jsonDocument, joints);
+    ExportJointList(jsonDocument, joints);
 
     std::vector<std::shared_ptr<ChShaftsCouple>> couples;
     couples.push_back(m_shaft_motor);
@@ -413,7 +413,7 @@ void ChPitmanArmShafts::ExportComponentList(rapidjson::Document& jsonDocument) c
         couples.push_back(m_rigid_connection);
     else
         couples.push_back(m_spring_connection);
-    ChPart::ExportCouplesList(jsonDocument, couples);
+    ExportCouplesList(jsonDocument, couples);
 }
 
 void ChPitmanArmShafts::Output(ChVehicleOutput& database) const {

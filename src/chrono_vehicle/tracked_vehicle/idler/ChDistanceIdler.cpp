@@ -223,12 +223,12 @@ void ChDistanceIdler::ExportComponentList(rapidjson::Document& jsonDocument) con
 
     std::vector<std::shared_ptr<ChBody>> bodies;
     bodies.push_back(m_carrier);
-    ChPart::ExportBodyList(jsonDocument, bodies);
+    ExportBodyList(jsonDocument, bodies);
 
     std::vector<std::shared_ptr<ChLink>> joints;
     joints.push_back(m_revolute);
     joints.push_back(m_tensioner);
-    ChPart::ExportJointList(jsonDocument, joints);
+    ExportJointList(jsonDocument, joints);
 }
 
 void ChDistanceIdler::Output(ChVehicleOutput& database) const {

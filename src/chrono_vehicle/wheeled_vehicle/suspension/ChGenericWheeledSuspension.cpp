@@ -413,12 +413,12 @@ void ChGenericWheeledSuspension::ExportComponentList(rapidjson::Document& jsonDo
     bodies.push_back(m_spindle[1]);
     for (const auto& item : m_bodies)
         bodies.push_back(item.second.body);
-    ChPart::ExportBodyList(jsonDocument, bodies);
+    ExportBodyList(jsonDocument, bodies);
 
     std::vector<std::shared_ptr<ChShaft>> shafts;
     shafts.push_back(m_axle[0]);
     shafts.push_back(m_axle[1]);
-    ChPart::ExportShaftList(jsonDocument, shafts);
+    ExportShaftList(jsonDocument, shafts);
 
     std::vector<std::shared_ptr<ChLink>> joints;
     std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
@@ -427,13 +427,13 @@ void ChGenericWheeledSuspension::ExportComponentList(rapidjson::Document& jsonDo
     for (const auto& item : m_joints)
         item.second.joint->IsKinematic() ? joints.push_back(item.second.joint->GetAsLink())
                                          : bushings.push_back(item.second.joint->GetAsBushing());
-    ChPart::ExportJointList(jsonDocument, joints);
-    ChPart::ExportBodyLoadList(jsonDocument, bushings);
+    ExportJointList(jsonDocument, joints);
+    ExportBodyLoadList(jsonDocument, bushings);
 
     std::vector<std::shared_ptr<ChLinkTSDA>> springs;
     for (const auto& item : m_tsdas)
         springs.push_back(item.second.tsda);
-    ChPart::ExportLinSpringList(jsonDocument, springs);
+    ExportLinSpringList(jsonDocument, springs);
 }
 
 void ChGenericWheeledSuspension::Output(ChVehicleOutput& database) const {

@@ -361,12 +361,12 @@ void ChDoubleWishboneReduced::ExportComponentList(rapidjson::Document& jsonDocum
     bodies.push_back(m_spindle[1]);
     bodies.push_back(m_upright[0]);
     bodies.push_back(m_upright[1]);
-    ChPart::ExportBodyList(jsonDocument, bodies);
+    ExportBodyList(jsonDocument, bodies);
 
     std::vector<std::shared_ptr<ChShaft>> shafts;
     shafts.push_back(m_axle[0]);
     shafts.push_back(m_axle[1]);
-    ChPart::ExportShaftList(jsonDocument, shafts);
+    ExportShaftList(jsonDocument, shafts);
 
     std::vector<std::shared_ptr<ChLink>> joints;
     joints.push_back(m_revolute[0]);
@@ -381,12 +381,12 @@ void ChDoubleWishboneReduced::ExportComponentList(rapidjson::Document& jsonDocum
     joints.push_back(m_distLCA_B[1]);
     joints.push_back(m_distTierod[0]);
     joints.push_back(m_distTierod[1]);
-    ChPart::ExportJointList(jsonDocument, joints);
+    ExportJointList(jsonDocument, joints);
 
     std::vector<std::shared_ptr<ChLinkTSDA>> springs;
     springs.push_back(m_shock[0]);
     springs.push_back(m_shock[1]);
-    ChPart::ExportLinSpringList(jsonDocument, springs);
+    ExportLinSpringList(jsonDocument, springs);
 }
 
 void ChDoubleWishboneReduced::Output(ChVehicleOutput& database) const {

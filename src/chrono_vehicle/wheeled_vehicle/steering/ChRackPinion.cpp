@@ -158,12 +158,12 @@ void ChRackPinion::ExportComponentList(rapidjson::Document& jsonDocument) const 
 
     std::vector<std::shared_ptr<ChBody>> bodies;
     bodies.push_back(m_link);
-    ChPart::ExportBodyList(jsonDocument, bodies);
+    ExportBodyList(jsonDocument, bodies);
 
     std::vector<std::shared_ptr<ChLink>> joints;
     joints.push_back(m_prismatic);
     joints.push_back(m_actuator);
-    ChPart::ExportJointList(jsonDocument, joints);
+    ExportJointList(jsonDocument, joints);
 }
 
 void ChRackPinion::Output(ChVehicleOutput& database) const {

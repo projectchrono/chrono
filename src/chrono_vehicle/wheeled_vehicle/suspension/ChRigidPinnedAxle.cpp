@@ -240,18 +240,18 @@ void ChRigidPinnedAxle::ExportComponentList(rapidjson::Document& jsonDocument) c
     bodies.push_back(m_spindle[0]);
     bodies.push_back(m_spindle[1]);
     bodies.push_back(m_axleTube);
-    ChPart::ExportBodyList(jsonDocument, bodies);
+    ExportBodyList(jsonDocument, bodies);
 
     std::vector<std::shared_ptr<ChShaft>> shafts;
     shafts.push_back(m_axle[0]);
     shafts.push_back(m_axle[1]);
-    ChPart::ExportShaftList(jsonDocument, shafts);
+    ExportShaftList(jsonDocument, shafts);
 
     std::vector<std::shared_ptr<ChLink>> joints;
     joints.push_back(m_revolute[0]);
     joints.push_back(m_revolute[1]);
     joints.push_back(m_axlePin);
-    ChPart::ExportJointList(jsonDocument, joints);
+    ExportJointList(jsonDocument, joints);
 }
 
 void ChRigidPinnedAxle::Output(ChVehicleOutput& database) const {
