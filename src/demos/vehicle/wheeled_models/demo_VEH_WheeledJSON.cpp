@@ -51,12 +51,12 @@ using namespace chrono::vehicle;
 // Available models:
 //    HMMWV       - Hig Mobility Multipurpose Wheeled Vehicle
 //    Sedan       - Generic sedan vehicle
-//    Audi        - Audia A4 
+//    Audi        - Audia A4
 //    VW microbus - VW T2 microbus
 //    UAZ         - UAZ minibus
 //    CityBus     - passenger bus
 //    MAN         - MAN 10t truck
-//    MTV         - MTV truck 
+//    MTV         - MTV truck
 //    ACV         - articulated chassis vehicle (skid steer)
 
 class Vehicle_Model {
@@ -73,8 +73,9 @@ class HMMWV_Model : public Vehicle_Model {
   public:
     virtual std::string ModelName() const override { return "HMMWV"; }
     virtual std::string VehicleJSON() const override {
-        return "hmmwv/vehicle/HMMWV_Vehicle_mapShock.json";
-        ////return "hmmwv/vehicle/HMMWV_Vehicle.json";
+        return "hmmwv/vehicle/HMMWV_Vehicle.json";
+        ////return "hmmwv/vehicle/HMMWV_Vehicle_replica.json";
+        ////return "hmmwv/vehicle/HMMWV_Vehicle_mapShock.json";
         ////return "hmmwv/vehicle/HMMWV_Vehicle_bushings.json";
         ////return "hmmwv/vehicle/HMMWV_Vehicle_4WD.json";
     }

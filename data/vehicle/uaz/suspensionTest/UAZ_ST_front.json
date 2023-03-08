@@ -1,0 +1,10 @@
+{
+    "Name": "UAZ Front Suspension Test",
+    "Type": "SuspensionTestRig",
+
+    "Vehicle Input File": "uaz//vehicle/UAZBUS_SAEVehicle.json",
+    "Test Axle Indices": [ 0 ],
+    "Test Steering Indices": [ 0 ],
+    "Initial Ride Height": 0.35,
+    "Displacement Limit": 0.15
+}
