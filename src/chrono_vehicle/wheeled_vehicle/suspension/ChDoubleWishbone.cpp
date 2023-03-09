@@ -225,9 +225,9 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
     chassis->AddJoint(m_revoluteUCA[side]);
 
     // Create and initialize the spherical joint between upright and UCA.
-    m_sphericalUCA[side] =
-        chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalUCA" + suffix,
-                                                  m_UCA[side], m_upright[side], ChCoordsys<>(points[UCA_U], QUNIT));
+    m_sphericalUCA[side] = chrono_types::make_shared<ChVehicleJoint>(
+        ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalUCA" + suffix, m_UCA[side], m_upright[side],
+        ChCoordsys<>(points[UCA_U], chassisRot));
     chassis->AddJoint(m_sphericalUCA[side]);
 
     // Create and initialize the revolute joint between chassis and LCA.
@@ -247,9 +247,9 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
     chassis->AddJoint(m_revoluteLCA[side]);
 
     // Create and initialize the spherical joint between upright and LCA.
-    m_sphericalLCA[side] =
-        chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalLCA" + suffix,
-                                                  m_LCA[side], m_upright[side], ChCoordsys<>(points[LCA_U], QUNIT));
+    m_sphericalLCA[side] = chrono_types::make_shared<ChVehicleJoint>(
+        ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalLCA" + suffix, m_LCA[side], m_upright[side],
+        ChCoordsys<>(points[LCA_U], chassisRot));
     chassis->AddJoint(m_sphericalLCA[side]);
 
     if (UseTierodBodies()) {
@@ -272,7 +272,7 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
         // Connect tierod body to upright (spherical) and chassis (universal)
         m_sphericalTierod[side] = chrono_types::make_shared<ChVehicleJoint>(
             ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalTierod" + suffix, m_upright[side], m_tierod[side],
-            ChCoordsys<>(points[TIEROD_U], QUNIT), getTierodBushingData());
+            ChCoordsys<>(points[TIEROD_U], chassisRot), getTierodBushingData());
         chassis->AddJoint(m_sphericalTierod[side]);
         m_universalTierod[side] = chrono_types::make_shared<ChVehicleJoint>(
             ChVehicleJoint::Type::UNIVERSAL, m_name + "_universalTierod" + suffix, tierod_body, m_tierod[side],

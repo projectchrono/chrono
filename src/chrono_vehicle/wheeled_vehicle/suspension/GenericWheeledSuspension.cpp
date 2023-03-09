@@ -169,6 +169,20 @@ void GenericWheeledSuspension::Create(const rapidjson::Document& d) {
         }
     }
 
+    // Read distance constraints
+    if (d.HasMember("Distance Constraints")) {
+        auto dists = d["Distance Constraints"].GetArray();
+        for (auto& dist : dists) {
+            auto name = dist["Name"].GetString();
+            auto mirrored = dist["Mirrored"].GetBool();
+            auto body1 = ReadBodyIdentifierJSON(dist["Body1"]);
+            auto body2 = ReadBodyIdentifierJSON(dist["Body2"]);
+            auto point1 = ReadVectorJSON(dist["Point1"]);
+            auto point2 = ReadVectorJSON(dist["Point2"]);
+            DefineDistanceConstraint(name, mirrored, body1, body2, point1, point2);
+        }
+    }
+
     // Read TSDAs
     if (d.HasMember("TSDAs")) {
         auto tsdas = d["TSDAs"].GetArray();
@@ -180,10 +194,9 @@ void GenericWheeledSuspension::Create(const rapidjson::Document& d) {
             auto point1 = ReadVectorJSON(tsda["Point1"]);
             auto point2 = ReadVectorJSON(tsda["Point2"]);
             double free_length;
-            auto force = ReadTSDAFunctorJSON(tsda["Force"], free_length);
+            auto force = ReadTSDAFunctorJSON(tsda, free_length);
             auto geometry = ReadTSDAGeometryJSON(tsda);
             DefineTSDA(name, mirrored, body1, body2, point1, point2, free_length, force, geometry);
-            std::cout << "DefineTSDA: " << name << " is mirrored? " << (mirrored ? "True" : "False") << std::endl;
         }
     }
 

@@ -48,11 +48,14 @@ ChGenericWheeledSuspension::~ChGenericWheeledSuspension() {
             sys->Remove(body.second.body);
         for (auto& joint : m_joints)
             ChChassis::RemoveJoint(joint.second.joint);
+        for (auto& dist : m_dists)
+            sys->Remove(dist.second.dist);
         for (auto& tsda : m_tsdas)
             sys->Remove(tsda.second.tsda);
 
         m_bodies.clear();
         m_joints.clear();
+        m_dists.clear();
         m_tsdas.clear();
     }
 }
@@ -68,13 +71,12 @@ void ChGenericWheeledSuspension::DefineBody(const std::string& name,
                                             const ChVector<>& inertia_products,
                                             std::shared_ptr<ChVehicleGeometry> geometry) {
     Body b;
-    b.body = chrono_types::make_shared<ChBody>();
-    b.body->SetNameString("");
-    b.body->SetPos(pos);
-    b.body->SetRot(rot);
-    b.body->SetMass(mass);
-    b.body->SetInertiaXX(inertia_moments);
-    b.body->SetInertiaXY(inertia_products);
+    b.body = nullptr;
+    b.pos = pos;
+    b.rot = rot;
+    b.mass = mass;
+    b.inertia_moments = inertia_moments;
+    b.inertia_products = inertia_products;
     b.geometry = geometry;
 
     if (!mirrored) {
@@ -94,6 +96,7 @@ void ChGenericWheeledSuspension::DefineJoint(const std::string& name,
                                              std::shared_ptr<ChVehicleBushingData> bdata) {
     Joint j;
     j.joint = nullptr;
+    j.type = type;
     j.body1 = body1;
     j.body2 = body2;
     j.pos = csys.pos;
@@ -105,6 +108,27 @@ void ChGenericWheeledSuspension::DefineJoint(const std::string& name,
     } else {
         m_joints.insert({{name, 0}, j});
         m_joints.insert({{name, 1}, j});
+    }
+}
+
+void ChGenericWheeledSuspension::DefineDistanceConstraint(const std::string& name,
+                                                          bool mirrored,
+                                                          BodyIdentifier body1,
+                                                          BodyIdentifier body2,
+                                                          const ChVector<>& point1,
+                                                          const ChVector<>& point2) {
+    DistanceConstraint d;
+    d.dist = nullptr;
+    d.body1 = body1;
+    d.body2 = body2;
+    d.point1 = point1;
+    d.point2 = point2;
+
+    if (!mirrored) {
+        m_dists.insert({{name, -1}, d});
+    } else {
+        m_dists.insert({{name, 0}, d});
+        m_dists.insert({{name, 1}, d});
     }
 }
 
@@ -144,11 +168,22 @@ std::string ChGenericWheeledSuspension::Name(const PartKey& id) const {
     return m_name + "_" + id.name + (id.side == VehicleSide::LEFT ? "_L" : "_R");
 }
 
-ChVector<> ChGenericWheeledSuspension::Point(const ChVector<>& pos_loc, int side) const {
+ChVector<> ChGenericWheeledSuspension::TransformPosition(const ChVector<>& pos_loc, int side) const {
     ChVector<> pos = pos_loc;
     if (side == VehicleSide::RIGHT)
         pos.y() = -pos.y();
     return m_X_SA.TransformLocalToParent(pos);
+}
+
+ChQuaternion<> ChGenericWheeledSuspension::TransformRotation(const ChQuaternion<>& rot_local, int side) const {
+    ChQuaternion<> rot = rot_local;
+    if (side == VehicleSide::RIGHT) {
+      // Mirror coordinate frame:
+      //   R_mirror = diag(1,-1,1) * R * diag(1,1,-1)
+      // Working directly on q = [w, x, y, z], the mirrored quaternion is q_miror = [x w -z -y]
+        rot = ChQuaternion(rot.e1(), rot.e0(), -rot.e3(), -rot.e2());
+    }
+    return m_X_SA.GetRot() * rot;
 }
 
 std::shared_ptr<ChBody> ChGenericWheeledSuspension::FindBody(const std::string& name, int side) const {
@@ -182,8 +217,12 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Initialize all bodies in the suspension subsystem
     for (auto& item : m_bodies) {
-        ChVector<> pos = Point(item.second.body->GetPos(), item.first.side);
-        ChQuaternion<> rot = chassisRot * item.second.body->GetRot();
+        ChVector<> pos = TransformPosition(item.second.pos, item.first.side);
+        ChQuaternion<> rot = TransformRotation(item.second.rot, item.first.side);
+        item.second.body = chrono_types::make_shared<ChBody>();
+        item.second.body->SetMass(item.second.mass);
+        item.second.body->SetInertiaXX(item.second.inertia_moments);
+        item.second.body->SetInertiaXY(item.second.inertia_products);
         item.second.body->SetPos(pos);
         item.second.body->SetRot(rot);
         item.second.body->SetNameString(Name(item.first));
@@ -214,8 +253,8 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
             body2 = FindBody(item.second.body2.name, item.first.side);
 
         // Create joint
-        ChVector<> pos = Point(item.second.pos, item.first.side);
-        ChQuaternion<> rot = chassisRot * item.second.rot;
+        ChVector<> pos = TransformPosition(item.second.pos, item.first.side);
+        ChQuaternion<> rot = TransformRotation(item.second.rot, item.first.side);
         item.second.joint = chrono_types::make_shared<ChVehicleJoint>(item.second.type,        //
                                                                       Name(item.first),        //
                                                                       body1,                   //
@@ -225,12 +264,44 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
         chassis->AddJoint(item.second.joint);
     }
 
+    // Create and initialize distance constraints in the suspension subsystem
+    for (auto& item : m_dists) {
+        // Extract the two bodies connected by this constraint
+        std::shared_ptr<ChBody> body1;
+        if (item.second.body1.chassis)
+            body1 = chassis->GetBody();
+        else if (item.second.body1.subchassis && subchassis != nullptr)
+            body1 = subchassis->GetBeam(item.first.side == 0 ? LEFT : RIGHT);
+        else if (item.second.body1.steering && steering != nullptr)
+            body1 = steering->GetSteeringLink();
+        else
+            body1 = FindBody(item.second.body1.name, item.first.side);
+
+        std::shared_ptr<ChBody> body2;
+        if (item.second.body2.chassis)
+            body2 = chassis->GetBody();
+        else if (item.second.body2.subchassis && subchassis != nullptr)
+            body2 = subchassis->GetBeam(item.first.side == 0 ? LEFT : RIGHT);
+        else if (item.second.body2.steering && steering != nullptr)
+            body2 = steering->GetSteeringLink();
+        else
+            body2 = FindBody(item.second.body2.name, item.first.side);
+
+        // Create distance constraint
+        ChVector<> point1 = TransformPosition(item.second.point1, item.first.side);
+        ChVector<> point2 = TransformPosition(item.second.point2, item.first.side);
+        item.second.dist = chrono_types::make_shared<ChLinkDistance>();
+        item.second.dist->SetNameString(Name(item.first));
+        item.second.dist->Initialize(body1, body2, false, point1, point2);
+        chassis->GetSystem()->AddLink(item.second.dist);
+    }
+
     // Create and initialize the spindle bodies, the spindle revolute joints, and the suspension axles
     for (int side = 0; side < 2; side++) {
         double ang_vel = (side == LEFT) ? left_ang_vel : right_ang_vel;
         double sign = (side == LEFT) ? -1 : +1;
 
-        auto spindlePos = Point(getSpindlePos(), side);
+        auto spindlePos = TransformPosition(getSpindlePos(), side);
         auto spindleRot = chassisRot * Q_from_AngZ(sign * getToeAngle()) * Q_from_AngX(sign * getCamberAngle());
 
         // Spindle body
@@ -271,7 +342,7 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
         chassis->GetSystem()->Add(m_axle_to_spindle[side]);
     }
 
-    // Create and initialize joints in the suspension subsystem
+    // Create and initialize TSDAs in the suspension subsystem
     for (auto& item : m_tsdas) {
         // Extract the two bodies connected by this joint
         std::shared_ptr<ChBody> body1;
@@ -295,8 +366,8 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
             body2 = FindBody(item.second.body2.name, item.first.side);
 
         // Create TSDA
-        ChVector<> point1 = Point(item.second.point1, item.first.side);
-        ChVector<> point2 = Point(item.second.point2, item.first.side);
+        ChVector<> point1 = TransformPosition(item.second.point1, item.first.side);
+        ChVector<> point2 = TransformPosition(item.second.point2, item.first.side);
         item.second.tsda = chrono_types::make_shared<ChLinkTSDA>();
         item.second.tsda->SetNameString(Name(item.first));
         item.second.tsda->Initialize(body1, body2, false, point1, point2);
@@ -392,6 +463,8 @@ void ChGenericWheeledSuspension::AddVisualizationAssets(VisualizationType vis) {
     for (const auto& item : m_tsdas)
         if (item.second.geometry)
             item.second.tsda->AddVisualShape(item.second.geometry);
+    for (const auto& item : m_dists)
+        item.second.dist->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
 }
 
 void ChGenericWheeledSuspension::RemoveVisualizationAssets() {
@@ -399,6 +472,8 @@ void ChGenericWheeledSuspension::RemoveVisualizationAssets() {
         ChPart::RemoveVisualizationAssets(item.second.body);
     for (const auto& item : m_tsdas)
         ChPart::RemoveVisualizationAssets(item.second.tsda);
+    for (const auto& item : m_dists)
+        ChPart::RemoveVisualizationAssets(item.second.dist);
 
     ChSuspension::RemoveVisualizationAssets();
 }
@@ -427,6 +502,8 @@ void ChGenericWheeledSuspension::ExportComponentList(rapidjson::Document& jsonDo
     for (const auto& item : m_joints)
         item.second.joint->IsKinematic() ? joints.push_back(item.second.joint->GetAsLink())
                                          : bushings.push_back(item.second.joint->GetAsBushing());
+    for (const auto& item : m_dists)
+        joints.push_back(item.second.dist);
     ExportJointList(jsonDocument, joints);
     ExportBodyLoadList(jsonDocument, bushings);
 
@@ -459,6 +536,8 @@ void ChGenericWheeledSuspension::Output(ChVehicleOutput& database) const {
     for (const auto& item : m_joints)
         item.second.joint->IsKinematic() ? joints.push_back(item.second.joint->GetAsLink())
                                          : bushings.push_back(item.second.joint->GetAsBushing());
+    for (const auto& item : m_dists)
+        joints.push_back(item.second.dist);
     database.WriteJoints(joints);
     database.WriteBodyLoads(bushings);
 

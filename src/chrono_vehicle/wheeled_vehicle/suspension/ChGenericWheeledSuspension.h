@@ -112,6 +112,15 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
                      std::shared_ptr<ChVehicleBushingData> bdata = nullptr  ///<
     );
 
+    /// Add a distance constraint definition to the suspension subsystem.
+    void DefineDistanceConstraint(const std::string& name,   ///<
+                                  bool mirrored,             ///<
+                                  BodyIdentifier body1,      ///<
+                                  BodyIdentifier body2,      ///<
+                                  const ChVector<>& point1,  ///<
+                                  const ChVector<>& point2   ///<
+    );
+
     /// Add a TSDA to model a suspension spring or shock.
     void DefineTSDA(const std::string& name,                               ///<
                     bool mirrored,                                         ///<
@@ -189,6 +198,11 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
     /// Internal specification of a suspension body.
     struct Body {
         std::shared_ptr<ChBody> body;                 ///< underlying Chrono body
+        ChVector<> pos;                               ///< body position (in subsystem frame)
+        ChQuaternion<> rot;                           ///< body rotation (in subsystem frame)
+        double mass;                                  ///< body mass
+        ChVector<> inertia_moments;                   ///< moments of inertia
+        ChVector<> inertia_products;                  ///< products of inertia
         std::shared_ptr<ChVehicleGeometry> geometry;  ///< (optional) visualization and collision geometry
     };
 
@@ -201,6 +215,15 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
         ChVector<> pos;                               ///< joint position in subsystem frame
         ChQuaternion<> rot;                           ///< joint orientation in subsystem frame
         std::shared_ptr<ChVehicleBushingData> bdata;  ///< bushing data
+    };
+
+    /// Internal specification of a distance constraint.
+    struct DistanceConstraint {
+        std::shared_ptr<ChLinkDistance> dist;  ///< underlying Chrono distance constraint
+        BodyIdentifier body1;                  ///< identifier of 1st body
+        BodyIdentifier body2;                  ///< identifier of 2nd body
+        ChVector<> point1;                     ///< point on body1 (in subsystem frame)
+        ChVector<> point2;                     ///< point on body2 (in subsystem frame)
     };
 
     /// Internal specification of a suspension TSDA.
@@ -227,15 +250,19 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
         std::size_t operator()(const PartKey& id) const;
     };
 
-    std::unordered_map<PartKey, Body, PartKeyHash> m_bodies;   ///< suspension bodies
-    std::unordered_map<PartKey, Joint, PartKeyHash> m_joints;  ///< suspension joints
-    std::unordered_map<PartKey, TSDA, PartKeyHash> m_tsdas;    ///< suspension force elements
+    std::unordered_map<PartKey, Body, PartKeyHash> m_bodies;               ///< suspension bodies
+    std::unordered_map<PartKey, Joint, PartKeyHash> m_joints;              ///< suspension joints
+    std::unordered_map<PartKey, TSDA, PartKeyHash> m_tsdas;                ///< suspension force elements
+    std::unordered_map<PartKey, DistanceConstraint, PartKeyHash> m_dists;  ///< suspension distance constraints
 
     /// Get the unique name of an item in this suspension subsystem.
     std::string Name(const PartKey& id) const;
 
     /// Express a point given in the suspension reference frame to the absolute coordinate frame.
-    ChVector<> Point(const ChVector<>& pos_loc, int side) const;
+    ChVector<> TransformPosition(const ChVector<>& pos_loc, int side) const;
+
+    /// Express a quaternion given in the suspension reference frame to the absolute coordinate frame.
+    ChQuaternion<> TransformRotation(const ChQuaternion<>& rot_local, int side) const;
 
     /// Find a body from the given identification.
     std::shared_ptr<ChBody> FindBody(const std::string& name, int side) const;
