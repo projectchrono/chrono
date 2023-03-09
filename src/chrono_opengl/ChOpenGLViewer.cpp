@@ -80,6 +80,7 @@ ChOpenGLViewer::ChOpenGLViewer(ChVisualSystemOpenGL* vis) : m_vis(vis) {
     use_vsync = false;
     render_mode = SOLID;
     particle_render_mode = POINTS;
+    particle_radius = 0.1f;
     time_total = old_time = current_time = 0;
     time_text = time_geometry = 0;
     fps = 0;
@@ -614,16 +615,12 @@ void ChOpenGLViewer::RenderFluid() {
 }
 
 void ChOpenGLViewer::RenderParticles() {
-    // All particles are rendered with the same size, no matter how many ChParticleCloud objects are found!
-    double particle_radius;
-
     size_t num_particles = 0;
     for (auto s : m_vis->GetSystems()) {
         for (auto& item : s->Get_otherphysicslist()) {
             if (auto pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
-                if (pcloud->GetVisualShapeType() == ChParticleCloud::ShapeType::NONE)
+                if (!pcloud->GetVisualModel())
                     continue;
-                particle_radius = pcloud->GetVisualSize().x() / 2;
                 num_particles += pcloud->GetNparticles();
             }
         }
@@ -643,7 +640,7 @@ void ChOpenGLViewer::RenderParticles() {
     for (auto s : m_vis->GetSystems()) {
         for (auto& item : s->Get_otherphysicslist()) {
             if (auto pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
-                if (pcloud->GetVisualShapeType() == ChParticleCloud::ShapeType::NONE)
+                if (!pcloud->GetVisualModel())
                     continue;
 
                 size_t n = 0;

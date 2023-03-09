@@ -40,6 +40,9 @@ class ChApi ChLineShape : public ChVisualShape {
     unsigned int GetNumRenderPoints() const { return npoints; }
     void SetNumRenderPoints(unsigned int n) { npoints = n; }
 
+    double GetThickness() const { return thickness; }
+    void SetThickness(double mt) { thickness = mt; }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
@@ -50,6 +53,7 @@ class ChApi ChLineShape : public ChVisualShape {
     std::shared_ptr<geometry::ChLine> gline;  ///< underlying line geometry
     std::string name;                         ///< asset name
     unsigned int npoints;                     ///< number of points evaluated when rendering
+    double thickness;                         ///< thickness of line when rendering (for rendering engines that support it)
 };
 
 CH_CLASS_VERSION(ChLineShape, 0)

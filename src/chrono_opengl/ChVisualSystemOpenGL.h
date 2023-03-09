@@ -87,8 +87,8 @@ class CH_OPENGL_API ChVisualSystemOpenGL : virtual public ChVisualSystem {
     /// Set render mode for solid objects (default: SOLID)
     void SetRenderMode(RenderMode mode);
 
-    /// Set render mode for particle systems (default: POINTS)
-    void SetParticleRenderMode(RenderMode mode);
+    /// Set render mode for particle systems (default: POINTS) and size.
+    void SetParticleRenderMode(RenderMode mode, float radius);
 
     /// Attach a Chrono system to the run-time visualization system.
     /// ChVisualSystemOpenGL allows simultaneous rendering of multiple Chrono systems.

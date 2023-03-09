@@ -561,6 +561,7 @@ set(ChronoEngine_geometry_SOURCES
     geometry/ChSurface.cpp
     geometry/ChSurfaceNurbs.cpp
     geometry/ChVolume.cpp
+    geometry/ChProperty.cpp
     )
 
 set(ChronoEngine_geometry_HEADERS
@@ -592,6 +593,7 @@ set(ChronoEngine_geometry_HEADERS
     geometry/ChVolume.h
     geometry/ChBasisToolsBspline.h
     geometry/ChBasisToolsNurbs.h
+    geometry/ChProperty.h
     )
 
 source_group(geometry FILES

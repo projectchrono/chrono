@@ -44,8 +44,8 @@ const double Generic_MacPhersonStrut::m_strutRadius = 0.02;
 const double Generic_MacPhersonStrut::m_LCARadius = 0.02;
 
 const ChVector<> Generic_MacPhersonStrut::m_spindleInertia(0.000478, 0.000479, 0.000496);
-const ChVector<> Generic_MacPhersonStrut::m_uprightInertia(0.000405, 0.000602, 0.000405);
-const ChVector<> Generic_MacPhersonStrut::m_strutInertia(0.001, 0.001, 0.001);
+const ChVector<> Generic_MacPhersonStrut::m_uprightInertia(0.0138, 0.0146, 0.00283);
+const ChVector<> Generic_MacPhersonStrut::m_strutInertia(0.01, 0.01, 0.005);
 const ChVector<> Generic_MacPhersonStrut::m_LCAInertia(0.0269, 0.06058, 0.03377);
 
 const double Generic_MacPhersonStrut::m_axleInertia = 0.4;

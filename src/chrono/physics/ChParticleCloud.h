@@ -155,16 +155,6 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
 /// ChParticleCloud objects to the ChSystem. This would be more efficient anyway than creating all shapes as ChBody.
 class ChApi ChParticleCloud : public ChIndexedParticles {
   public:
-    enum class ShapeType {
-        NONE,       ///< no visualization
-        BOX,        ///< size = [length, width, depth]
-        ELLIPSOID,  ///< size = [x_axis, y_axis, z_axis]
-        SPHERE,     ///< alias for ELLIPSOID; size = 2 * radius
-        CAPSULE,    ///< size = [2 * x_radius, 2 * y_radius, cyl_length]
-        CYLINDER,   ///< size = [2 * x_radius, 2 * y_radius, length]
-        CONE        ///< size = [2 * x_radius, 2 * y_radius, height]
-    };
-
     ChParticleCloud();
     ChParticleCloud(const ChParticleCloud& other);
     ~ChParticleCloud();
@@ -228,32 +218,6 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     /// Set the material surface for contacts
     std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() { return matsurface; }
 
-    // Prohibit directly adding visual assets to a ChParticleCloud.
-    virtual void AddVisualModel(std::shared_ptr<ChVisualModel> model) override;
-    virtual void AddVisualShape(std::shared_ptr<ChVisualShape> shape, const ChFrame<>& frame = ChFrame<>()) override;
-    virtual void AddVisualShapeFEA(std::shared_ptr<ChVisualShapeFEA> shapeFEA) override;
-
-    /// Add visualization shapes for the particles in this cloud.
-    /// All particles in a cloud are rendered with the same shape with given dimensions (effectively the dimensions of
-    /// the shape BB). Note that different visualization systems may ignore any of these settings (e.g., always using
-    /// spheres to visualize the particles in a cloud). However, all visualization systems must disable rendering of the
-    /// particle cloud if shape_type == ShapeType::NONE.
-    void AddVisualization(ShapeType shape_type, const ChVector<>& size, const ChColor& color);
-
-    /// Get the visualization shape type.
-    ShapeType GetVisualShapeType() const { return m_vis_shape; }
-
-    /// Get the visualization size.
-    const ChVector<>& GetVisualSize() const { return m_vis_size; }
-
-    /// Get the visualization color for the specified particle.
-    /// Return the color given by a ColorCallback, if one was provided. Otherwise return the common particle color.
-    ChColor GetVisualColor(unsigned int n) const;
-
-    /// Return true if using dynamic coloring.
-    /// This is the case if a ColorCallback was specified.
-    bool UseDynamicColors() const;
-
     /// Class to be used as a callback interface for dynamic coloring of particles in a cloud.
     class ChApi ColorCallback {
       public:
@@ -266,6 +230,14 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     /// Set callback to dynamically set visualization color (default: none).
     /// If enabled, a visualization system could use this for color-coding of the particles in a cloud.
     void RegisterColorCallback(std::shared_ptr<ColorCallback> callback) { m_color_fun = callback; }
+
+    /// Return true if using dynamic coloring.
+    /// This is the case if a ColorCallback was specified.
+    bool UseDynamicColors() const;
+
+    /// Get the visualization color for the specified particle.
+    /// Return the color given by a ColorCallback, if one was provided. Otherwise return a default color.
+    ChColor GetVisualColor(unsigned int n) const;
 
     // STATE FUNCTIONS
 
@@ -409,9 +381,6 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     std::vector<ChAparticle*> particles;  ///< the particles
     ChSharedMassBody particle_mass;       ///< shared mass of particles
 
-    ShapeType m_vis_shape;                       ///< type of visualization shape
-    ChVector<> m_vis_size;                       ///< size of visualization shape
-    ChColor m_vis_color;                         ///< color of visualization shape
     std::shared_ptr<ColorCallback> m_color_fun;  ///< callback for dynamic coloring
 
     collision::ChCollisionModel* particle_collision_model;  ///< sample collision model

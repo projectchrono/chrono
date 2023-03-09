@@ -156,7 +156,8 @@ class VW_Microbus_Model : public Vehicle_Model {
     virtual std::string VehicleJSON() const override { return "VW_microbus/json/van_Vehicle.json"; }
     virtual std::string TireJSON() const override {
         ////return "VW_microbus/json/van_Pac02Tire.json";
-        return "VW_microbus/json/van_TMeasyTire.json";
+        ////return "VW_microbus/json/van_TMeasyTire.json";
+        return "VW_microbus/json/van_TMsimpleTireFull.json";
     }
     virtual std::string PowertrainJSON() const override { return "VW_microbus/json/van_SimpleMapPowertrain.json"; }
     virtual double CameraDistance() const override { return 7.0; }
@@ -244,11 +245,11 @@ class UT_Model : public Trailer_Model {
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Current vehicle model selection
-auto vehicle_model = HMMWV_Model();
+////auto vehicle_model = HMMWV_Model();
 ////auto vehicle_model = Sedan_Model();
 ////auto vehicle_model = Audi_Model();
 ////auto vehicle_model = Polaris_Model();
-////auto vehicle_model = VW_Microbus_Model();
+auto vehicle_model = VW_Microbus_Model();
 ////auto vehicle_model = UAZ_Model();
 ////auto vehicle_model = CityBus_Model();
 ////auto vehicle_model = MAN_Model();

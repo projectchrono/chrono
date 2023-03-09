@@ -85,6 +85,9 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// Must be called before Initialize().
     void SetCameraVertical(CameraVerticalDir vert);
 
+    /// Tells if the current camera vertical mode is Y or Z
+    CameraVerticalDir GetCameraVertical();
+
     /// Set the Irrlicht logging level (default irr::ELL_INFORMATION).
     /// Must be called before Initialize().
     void SetLogLevel(irr::ELOG_LEVEL log_level);

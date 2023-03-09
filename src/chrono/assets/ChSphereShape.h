@@ -29,7 +29,7 @@ class ChApi ChSphereShape : public ChVisualShape {
 
     ~ChSphereShape() {}
 
-    // Access the sphere geometry.
+    /// Access the sphere geometry.
     geometry::ChSphere& GetSphereGeometry() { return gsphere; }
 
     /// Method to allow serialization of transient data to archives.

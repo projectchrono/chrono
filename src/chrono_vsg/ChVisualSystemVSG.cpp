@@ -1246,11 +1246,47 @@ void ChVisualSystemVSG::BindAll() {
         // Bind visual models associated with other physics items in the system
         for (auto& item : sys->Get_otherphysicslist()) {
             if (auto pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
-                if (pcloud->GetVisualShapeType() == ChParticleCloud::ShapeType::NONE)
+                if (!pcloud->GetVisualModel())
                     continue;
 
-                auto shape = pcloud->GetVisualShapeType();
-                const auto& size = pcloud->GetVisualSize();
+                // Search for an appropriate rendering shape
+                typedef geometry::ChGeometry::GeometryType ShapeType;
+                auto shape = pcloud->GetVisualModel()->GetShape(0);
+                ShapeType shape_type = ShapeType::NONE;
+                ChVector<> shape_size(0);
+                if (auto sph = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
+                    shape_type = ShapeType::SPHERE;
+                    shape_size = ChVector<>(2 * sph->GetSphereGeometry().rad);
+                } else if (auto ell = std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
+                    shape_type = ShapeType::ELLIPSOID;
+                    shape_size = ell->GetEllipsoidGeometry().rad * 2;
+                } else if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
+                    shape_type = ShapeType::BOX;
+                    shape_size = box->GetBoxGeometry().Size * 2;
+                } else if (auto cap = std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {
+                    double rad = cap->GetCapsuleGeometry().rad;
+                    double hlen = cap->GetCapsuleGeometry().hlen;
+                    shape_type = ShapeType::CAPSULE;
+                    shape_size = ChVector<>(rad, rad, hlen) * 2;
+                } else if (auto cyl = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
+                    double rad = cyl->GetCylinderGeometry().rad;
+                    double hlen = (cyl->GetCylinderGeometry().p1 - cyl->GetCylinderGeometry().p2).Length() / 2;
+                    shape_type = ShapeType::CYLINDER;
+                    shape_size = ChVector<>(rad, rad, hlen) * 2;
+                } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(shape)) {
+                    shape_type = ShapeType::CONE;
+                    shape_size = cone->GetConeGeometry().rad * 2;
+                }
+
+                if (shape_type == ShapeType::NONE)
+                    continue;
+
+                // Search for the base color
+                ChColor shape_color;
+                if (shape->GetNumMaterials() > 0)
+                    shape_color = shape->GetMaterial(0)->GetDiffuseColor();
+                else
+                    shape_color = ChVisualMaterial::Default()->GetDiffuseColor();
 
                 // Create an new entry in the set of Chrono::VSG particle clouds
                 int start_pos = -1;
@@ -1281,9 +1317,9 @@ void ChVisualSystemVSG::BindAll() {
 
                 // Set up geometry and state info for vsgBuilder
                 vsg::GeometryInfo geomInfo;
-                geomInfo.dx.set((float)size.x(), 0, 0);
-                geomInfo.dy.set(0, (float)size.y(), 0);
-                geomInfo.dz.set(0, 0, (float)size.z());
+                geomInfo.dx.set((float)shape_size.x(), 0, 0);
+                geomInfo.dy.set(0, (float)shape_size.y(), 0);
+                geomInfo.dz.set(0, 0, (float)shape_size.z());
 
                 if (cloud.dyn_col) {
                     auto colors = vsg::vec4Array::create(cloud.num_particles);
@@ -1294,8 +1330,7 @@ void ChVisualSystemVSG::BindAll() {
                     m_cloud_colors.push_back(colors);
                     m_allowColorsTransfer = true;
                 } else {
-                    const auto& color = pcloud->GetVisualColor(0);
-                    geomInfo.color.set(color.R, color.G, color.B, 1.0);
+                    geomInfo.color.set(shape_color.R, shape_color.G, shape_color.B, 1.0);
                 }
 
                 auto positions = vsg::vec3Array::create(cloud.num_particles);
@@ -1313,21 +1348,21 @@ void ChVisualSystemVSG::BindAll() {
                 stateInfo.instance_positions_vec3 = true;
 
                 // Add child node for this cloud
-                switch (shape) {
-                    case ChParticleCloud::ShapeType::SPHERE:
-                    case ChParticleCloud::ShapeType::ELLIPSOID:
+                switch (shape_type) {
+                    case ShapeType::SPHERE:
+                    case ShapeType::ELLIPSOID:
                         m_particleScene->addChild(m_vsgBuilder->createSphere(geomInfo, stateInfo));
                         break;
-                    case ChParticleCloud::ShapeType::BOX:
+                    case ShapeType::BOX:
                         m_particleScene->addChild(m_vsgBuilder->createBox(geomInfo, stateInfo));
                         break;
-                    case ChParticleCloud::ShapeType::CAPSULE:
+                    case ShapeType::CAPSULE:
                         m_particleScene->addChild(m_vsgBuilder->createCapsule(geomInfo, stateInfo));
                         break;
-                    case ChParticleCloud::ShapeType::CYLINDER:
+                    case ShapeType::CYLINDER:
                         m_particleScene->addChild(m_vsgBuilder->createCylinder(geomInfo, stateInfo));
                         break;
-                    case ChParticleCloud::ShapeType::CONE:
+                    case ShapeType::CONE:
                         m_particleScene->addChild(m_vsgBuilder->createCone(geomInfo, stateInfo));
                         break;
                 }

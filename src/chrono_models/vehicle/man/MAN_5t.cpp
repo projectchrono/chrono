@@ -158,6 +158,22 @@ void MAN_5t::Initialize() {
 
             break;
         }
+            
+        case TireModelType::TMSIMPLE: {
+            auto tire_FL = chrono_types::make_shared<MAN_5t_TMsimpleTire>("FL");
+            auto tire_FR = chrono_types::make_shared<MAN_5t_TMsimpleTire>("FR");
+            auto tire_RL = chrono_types::make_shared<MAN_5t_TMsimpleTire>("RL");
+            auto tire_RR = chrono_types::make_shared<MAN_5t_TMsimpleTire>("RR");
+
+            m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
+
+            m_tire_mass = tire_FL->GetMass();
+
+            break;
+        }
             /*
                     case TireModelType::PAC02: {
                         auto tire_FL = chrono_types::make_shared<MAN_5t_Pac02Tire>("FL");
