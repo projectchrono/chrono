@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2022 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,7 +12,7 @@
 // Author: Radu Serban
 // =============================================================================
 //
-// Polaris wheeled vehicle on SPH terrain
+// Polaris wheeled vehicle on SPH terrain (initialized from particle data files)
 //
 // =============================================================================
 
@@ -119,11 +119,6 @@ int main(int argc, char* argv[]) {
     sysFSI.SetDensity(density);
     sysFSI.SetCohesionForce(cohesion);
 
-    double init_spacing = 0.02;
-    double kernel_length = 0.02;
-    sysFSI.SetInitialSpacing(init_spacing);
-    sysFSI.SetKernelLength(kernel_length);
-
     sysFSI.SetActiveDomain(ChVector<>(active_box_hdim));
     sysFSI.SetDiscreType(false, false);
     sysFSI.SetWallBC(BceVersion::ORIGINAL);
@@ -191,7 +186,7 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        visFSI->SetTitle("SPH deformable terrain");
+        visFSI->SetTitle("Wheeled vehicle SPH deformable terrain");
         visFSI->SetSize(1280, 720);
         visFSI->AddCamera(ChVector<>(0, 8, 0.5), ChVector<>(0, -1, 0));
         visFSI->SetCameraMoveScale(0.2f);

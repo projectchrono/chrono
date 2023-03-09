@@ -45,6 +45,7 @@ if(ENABLE_MODULE_FSI AND (ENABLE_MODULE_OPENGL OR ENABLE_MODULE_VSG))
     set(DEMOS ${DEMOS}
         demo_VEH_SPHTerrain_Obstacles
         demo_VEH_SPHTerrain_WheeledVehicle
+        demo_VEH_SPHTerrain_Viper
     )
 endif()
 
@@ -62,6 +63,7 @@ set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
 list(APPEND LIBS "ChronoEngine")
 list(APPEND LIBS "ChronoEngine_vehicle")
 list(APPEND LIBS "ChronoModels_vehicle")
+list(APPEND LIBS "ChronoModels_robot")
 
 if(ENABLE_MODULE_IRRLICHT)
     include_directories(${CH_IRRLICHTINC})
