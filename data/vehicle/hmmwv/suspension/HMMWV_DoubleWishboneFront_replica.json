@@ -35,7 +35,7 @@
     },
 
     {
-      "Name": "Upper Control Arm",
+      "Name": "UCA",
       "Mirrored": true,
       "Position": [ -0.106, 0.589, 0.218 ],
       "Rotation": [ 0.990546, -0.044692, -0.105231, -0.075701 ],
@@ -48,7 +48,7 @@
     },
 
     {
-      "Name": "Lower Control Arm",
+      "Name": "LCA",
       "Mirrored": true,
       "Position": [ 0, 0.547, -0.059 ],
       "Rotation": [ 0.992745, -0.120235, 0, 0 ],
@@ -63,11 +63,11 @@
 
   "Joints": [
     {
-      "Name": "Revolute UCA",
+      "Name": "RevoluteUCA",
       "Type": "Revolute",
       "Mirrored": true,
       "Body1": "Chassis",
-      "Body2": "Upper Control Arm",
+      "Body2": "UCA",
       "Coordinate System": {
         "Position": [ -0.158, 0.462, 0.2205 ],
         "Rotation": [ 0.608089, 0.458166, 0.427157, 0.487697 ]
@@ -75,10 +75,10 @@
     },
 
     {
-      "Name": "Spherical UCA",
+      "Name": "SphericalUCA",
       "Type": "Spherical",
       "Mirrored": true,
-      "Body1": "Upper Control Arm",
+      "Body1": "UCA",
       "Body2": "Upright",
       "Coordinate System": {
         "Position": [ -0.053, 0.716, 0.215 ],
@@ -87,11 +87,11 @@
     },
 
     {
-      "Name": "Revolute LCA",
+      "Name": "RevoluteLCA",
       "Type": "Revolute",
       "Mirrored": true,
       "Body1": "Chassis",
-      "Body2": "Lower Control Arm",
+      "Body2": "LCA",
       "Coordinate System": {
         "Position": [ 0.0, 0.307, 0.0 ],
         "Rotation": [ 0.556490, 0.436255, 0.556490, 0.436255 ]
@@ -99,10 +99,10 @@
     },
 
     {
-      "Name": "Spherical LCA",
+      "Name": "SphericalLCA",
       "Type": "Spherical",
       "Mirrored": true,
-      "Body1": "Lower Control Arm",
+      "Body1": "LCA",
       "Body2": "Upright",
       "Coordinate System": {
         "Position": [ -0.036, 0.787, -0.118 ],
@@ -127,7 +127,7 @@
       "Name": "Spring",
       "Mirrored": true,
       "Body1": "Chassis",
-      "Body2": "Lower Control Arm",
+      "Body2": "LCA",
       "Point1": [ 0.104, 0.510, 0.197 ],
       "Point2": [ 0.097, 0.543, -0.047 ],
       "Free Length": 0.339,
@@ -168,7 +168,7 @@
       "Name": "Shock",
       "Mirrored": true,
       "Body1": "Chassis",
-      "Body2": "Lower Control Arm",
+      "Body2": "LCA",
       "Point1": [ 0.104, 0.498, 0.323 ],
       "Point2": [ 0.097, 0.543, -0.047 ],
       "Damping Coefficient": 19015.5692,
@@ -178,7 +178,7 @@
     }
   ],
 
-  "Antiroll Body": "Lower Control Arm",
+  "Antiroll Body": "LCA",
 
   "Axle": {
     "Inertia": 0.4

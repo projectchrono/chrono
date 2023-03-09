@@ -178,10 +178,13 @@ ChVector<> ChGenericWheeledSuspension::TransformPosition(const ChVector<>& pos_l
 ChQuaternion<> ChGenericWheeledSuspension::TransformRotation(const ChQuaternion<>& rot_local, int side) const {
     ChQuaternion<> rot = rot_local;
     if (side == VehicleSide::RIGHT) {
-      // Mirror coordinate frame:
-      //   R_mirror = diag(1,-1,1) * R * diag(1,1,-1)
-      // Working directly on q = [w, x, y, z], the mirrored quaternion is q_miror = [x w -z -y]
-        rot = ChQuaternion(rot.e1(), rot.e0(), -rot.e3(), -rot.e2());
+        ChVector<> u = rot.GetXaxis();
+        ChVector<> w = rot.GetZaxis();
+        u.y() *= -1;
+        w.y() *= -1;
+        ChVector<> v = Vcross(w, u);
+        ChMatrix33<> R(u, v, w);
+        rot = R.Get_A_quaternion();
     }
     return m_X_SA.GetRot() * rot;
 }

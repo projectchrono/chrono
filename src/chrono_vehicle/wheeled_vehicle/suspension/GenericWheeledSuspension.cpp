@@ -74,13 +74,13 @@ std::shared_ptr<ChPointPointShape> ReadTSDAGeometryJSON(const Value& a) {
             double radius = 0.05;
             double resolution = 65;
             double turns = 5;
-            if (vis.HasMember("Radius") && vis["Radius"].IsDouble()) {
+            if (vis.HasMember("Radius") && vis["Radius"].IsNumber()) {
                 radius = vis["Radius"].GetDouble();
             }
-            if (vis.HasMember("Resolution") && vis["Resolution"].IsDouble()) {
+            if (vis.HasMember("Resolution") && vis["Resolution"].IsNumber()) {
                 resolution = vis["Resolution"].GetDouble();
             }
-            if (vis.HasMember("Turns") && vis["Turns"].IsDouble()) {
+            if (vis.HasMember("Turns") && vis["Turns"].IsNumber()) {
                 turns = vis["Turns"].GetDouble();
             }
             auto spring = std::make_shared<ChSpringShape>(radius, resolution, turns);
