@@ -118,11 +118,18 @@ rapidjson::Value Quat2Val(const ChQuaternion<>& q, rapidjson::Document::Allocato
     return array;
 }
 
-rapidjson::Value Csys2Val(const ChCoordsys<>& csys, rapidjson::Document::AllocatorType& allocator) {
+rapidjson::Value Frame2Val(const ChFrame<>& frame, rapidjson::Document::AllocatorType& allocator) {
     rapidjson::Value obj(rapidjson::kObjectType);
-    obj.AddMember("pos", Vec2Val(csys.pos, allocator), allocator);
-    obj.AddMember("rot", Quat2Val(csys.rot, allocator), allocator);
+    obj.AddMember("pos", Vec2Val(frame.GetPos(), allocator), allocator);
+    obj.AddMember("rot quat", Quat2Val(frame.GetRot(), allocator), allocator);
+    obj.AddMember("rot u", Vec2Val(frame.GetA().Get_A_Xaxis(), allocator), allocator);
+    obj.AddMember("rot v", Vec2Val(frame.GetA().Get_A_Yaxis(), allocator), allocator);
+    obj.AddMember("rot w", Vec2Val(frame.GetA().Get_A_Zaxis(), allocator), allocator);
     return obj;
+}
+
+rapidjson::Value Csys2Val(const ChCoordsys<>& csys, rapidjson::Document::AllocatorType& allocator) {
+    return Frame2Val(ChFrame<>(csys), allocator);
 }
 
 rapidjson::Value Mat2Val(const ChMatrixNM<double, 6, 6>& mat, rapidjson::Document::AllocatorType& allocator) {
@@ -165,8 +172,7 @@ void ChPart::ExportBodyList(rapidjson::Document& jsonDocument, std::vector<std::
         obj.AddMember("name", rapidjson::StringRef(body->GetName()), allocator);
         obj.AddMember("id", body->GetIdentifier(), allocator);
         obj.AddMember("mass", body->GetMass(), allocator);
-        obj.AddMember("position", Vec2Val(P_X_B.GetPos(), allocator), allocator);
-        obj.AddMember("rotation", Quat2Val(P_X_B.GetRot(), allocator), allocator);
+        obj.AddMember("coordinates w.r.t. subsystem", Frame2Val(P_X_B, allocator), allocator);
         obj.AddMember("moments of inertia", Vec2Val(body->GetInertiaXX(), allocator), allocator);
         obj.AddMember("products of inertia", Vec2Val(body->GetInertiaXY(), allocator), allocator);
         jsonArray.PushBack(obj, allocator);
@@ -192,8 +198,12 @@ void ChPart::ExportShaftList(rapidjson::Document& jsonDocument, std::vector<std:
 void ChPart::ExportJointList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChLink>> joints) const {
     rapidjson::Document::AllocatorType& allocator = jsonDocument.GetAllocator();
 
+    auto P_X_A = GetTransform().GetInverse();  // transform from absolute to parent
+
     rapidjson::Value jsonArray(rapidjson::kArrayType);
     for (auto joint : joints) {
+        ChFrame<> A_X_J = ChFrame<>(joint->GetLinkAbsoluteCoords());  // transform from joint to absolute
+        ChFrame<> P_X_J = P_X_A * A_X_J;                              // transform from joint to parent
         rapidjson::Value obj(rapidjson::kObjectType);
         obj.SetObject();
         obj.AddMember("name", rapidjson::StringRef(joint->GetName()), allocator);
@@ -205,6 +215,7 @@ void ChPart::ExportJointList(rapidjson::Document& jsonDocument, std::vector<std:
         obj.AddMember("body2 name", rapidjson::StringRef(body2->GetName()), allocator);
         obj.AddMember("body1 id", body1->GetIdentifier(), allocator);
         obj.AddMember("body2 id", body2->GetIdentifier(), allocator);
+        obj.AddMember("coordinates w.r.t. subsystem", Frame2Val(P_X_J, allocator), allocator);
         obj.AddMember("relative link coordinates", Csys2Val(joint->GetLinkRelativeCoords(), allocator), allocator);
         jsonArray.PushBack(obj, allocator);
     }
@@ -251,6 +262,8 @@ void ChPart::ExportLinSpringList(rapidjson::Document& jsonDocument,
                                  std::vector<std::shared_ptr<ChLinkTSDA>> springs) const {
     rapidjson::Document::AllocatorType& allocator = jsonDocument.GetAllocator();
 
+    auto A_X_P = GetTransform();  // transform from parent to absolute
+
     rapidjson::Value jsonArray(rapidjson::kArrayType);
     for (auto spring : springs) {
         rapidjson::Value obj(rapidjson::kObjectType);
@@ -264,6 +277,10 @@ void ChPart::ExportLinSpringList(rapidjson::Document& jsonDocument,
         obj.AddMember("body2 name", rapidjson::StringRef(body2->GetName()), allocator);
         obj.AddMember("body1 id", body1->GetIdentifier(), allocator);
         obj.AddMember("body2 id", body2->GetIdentifier(), allocator);
+        obj.AddMember("point1", Vec2Val(A_X_P.TransformPointParentToLocal(spring->GetPoint1Abs()), allocator),
+                      allocator);
+        obj.AddMember("point2", Vec2Val(A_X_P.TransformPointParentToLocal(spring->GetPoint2Abs()), allocator),
+                      allocator);
         obj.AddMember("has functor", spring->GetForceFunctor() != nullptr, allocator);
         if (!spring->GetForceFunctor()) {
             obj.AddMember("spring coefficient", spring->GetSpringCoefficient(), allocator);
