@@ -420,38 +420,22 @@ std::shared_ptr<ChBody> ChGenericWheeledSuspension::GetAntirollBody(VehicleSide 
 
 // -----------------------------------------------------------------------------
 
-ChSuspension::Force ChGenericWheeledSuspension::ReportSuspensionForce(VehicleSide side) const {
-    ////for (const auto& item : m_tsdas) {
-    ////    if (item.first.side != side)
-    ////        continue;
-    ////    auto tsda = item.second.tsda;
-    ////    std::cout << "TSDA " << item.first.name << std::endl;
-    ////    std::cout << "  force:    " << tsda->GetForce() << std::endl;
-    ////    std::cout << "  length:   " << tsda->GetLength() << std::endl;
-    ////    std::cout << "  velocity: " << tsda->GetVelocity() << std::endl;
-    ////}
+std::vector<ChSuspension::ForceTSDA> ChGenericWheeledSuspension::ReportSuspensionForce(VehicleSide side) const {
+    std::vector<ChSuspension::ForceTSDA> forces;
 
-    //// TODO
+    for (const auto& item : m_tsdas) {
+        if (item.first.side != side)
+            continue;
+        auto tsda = item.second.tsda;
+        ////std::cout << "TSDA " << item.first.name << std::endl;
+        ////std::cout << "  force:    " << tsda->GetForce() << std::endl;
+        ////std::cout << "  length:   " << tsda->GetLength() << std::endl;
+        ////std::cout << "  velocity: " << tsda->GetVelocity() << std::endl;
+        forces.push_back(
+            ChSuspension::ForceTSDA(item.first.name, tsda->GetForce(), tsda->GetLength(), tsda->GetVelocity()));
+    }
 
-    ChSuspension::Force force;
-    force.spring_force = 0;
-    force.spring_length = 0;
-    force.spring_velocity = 0;
-    force.shock_force = 0;
-    force.shock_length = 0;
-    force.shock_velocity = 0;
-
-    /*
-    force.spring_force = m_spring[side]->GetForce();
-    force.spring_length = m_spring[side]->GetLength();
-    force.spring_velocity = m_spring[side]->GetVelocity();
-
-    force.shock_force = m_shock[side]->GetForce();
-    force.shock_length = m_shock[side]->GetLength();
-    force.shock_velocity = m_shock[side]->GetVelocity();
-    */
-
-    return force;
+    return forces;
 }
 
 void ChGenericWheeledSuspension::LogConstraintViolations(VehicleSide side) {

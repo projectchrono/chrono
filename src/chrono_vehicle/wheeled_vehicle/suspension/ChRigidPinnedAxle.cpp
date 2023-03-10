@@ -170,9 +170,9 @@ double ChRigidPinnedAxle::GetTrack() {
 // -----------------------------------------------------------------------------
 // Return current suspension forces
 // -----------------------------------------------------------------------------
-ChSuspension::Force ChRigidPinnedAxle::ReportSuspensionForce(VehicleSide side) const {
-    ChSuspension::Force force{0, 0, 0, 0, 0, 0};
-    return force;
+std::vector<ChSuspension::ForceTSDA> ChRigidPinnedAxle::ReportSuspensionForce(VehicleSide side) const {
+    std::vector<ChSuspension::ForceTSDA> forces;
+    return forces;
 }
 
 // -----------------------------------------------------------------------------

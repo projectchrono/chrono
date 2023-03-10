@@ -205,18 +205,13 @@ double ChDoubleWishboneReduced::GetTrack() {
 // -----------------------------------------------------------------------------
 // Return current suspension forces
 // -----------------------------------------------------------------------------
-ChSuspension::Force ChDoubleWishboneReduced::ReportSuspensionForce(VehicleSide side) const {
-    ChSuspension::Force force;
+std::vector<ChSuspension::ForceTSDA> ChDoubleWishboneReduced::ReportSuspensionForce(VehicleSide side) const {
+    std::vector<ChSuspension::ForceTSDA> forces(1);
 
-    force.spring_force = m_shock[side]->GetForce();
-    force.spring_length = m_shock[side]->GetLength();
-    force.spring_velocity = m_shock[side]->GetVelocity();
+    forces[0] = ChSuspension::ForceTSDA("Shock", m_shock[side]->GetForce(), m_shock[side]->GetLength(),
+                                        m_shock[side]->GetVelocity());
 
-    force.shock_force = force.spring_force;
-    force.shock_length = force.spring_length;
-    force.shock_velocity = force.spring_velocity;
-
-    return force;
+    return forces;
 }
 
 // -----------------------------------------------------------------------------

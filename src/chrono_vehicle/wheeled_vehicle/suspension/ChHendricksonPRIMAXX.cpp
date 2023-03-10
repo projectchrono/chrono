@@ -397,18 +397,15 @@ double ChHendricksonPRIMAXX::GetTrack() {
 // -----------------------------------------------------------------------------
 // Return current suspension forces
 // -----------------------------------------------------------------------------
-ChSuspension::Force ChHendricksonPRIMAXX::ReportSuspensionForce(VehicleSide side) const {
-    ChSuspension::Force force;
+std::vector<ChSuspension::ForceTSDA> ChHendricksonPRIMAXX::ReportSuspensionForce(VehicleSide side) const {
+    std::vector<ChSuspension::ForceTSDA> forces(2);
 
-    force.spring_force = m_shockLB[side]->GetForce();
-    force.spring_length = m_shockLB[side]->GetLength();
-    force.spring_velocity = m_shockLB[side]->GetVelocity();
+    forces[0] = ChSuspension::ForceTSDA("ShockLB", m_shockLB[side]->GetForce(), m_shockLB[side]->GetLength(),
+                                        m_shockLB[side]->GetVelocity());
+    forces[1] = ChSuspension::ForceTSDA("ShockAH", m_shockAH[side]->GetForce(), m_shockAH[side]->GetLength(),
+                                        m_shockAH[side]->GetVelocity());
 
-    force.shock_force = m_shockAH[side]->GetForce();
-    force.shock_length = m_shockAH[side]->GetLength();
-    force.shock_velocity = m_shockAH[side]->GetVelocity();
-
-    return force;
+    return forces;
 }
 
 // -----------------------------------------------------------------------------

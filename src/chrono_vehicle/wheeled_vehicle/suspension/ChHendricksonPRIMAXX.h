@@ -89,10 +89,8 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     /// Get the wheel track for the suspension subsystem.
     virtual double GetTrack() override;
 
-    /// Return current suspension forces (spring and shock) on the specified side.
-    /// For this particular suspension, the return struct contains information about the LB force element in its
-    /// "spring" members and information about the AH force element in its "shock" members.
-    virtual ChSuspension::Force ReportSuspensionForce(VehicleSide side) const override;
+    /// Return current suspension TSDA force information on the specified side.
+    virtual std::vector<ForceTSDA> ReportSuspensionForce(VehicleSide side) const override;
 
     /// There could be a spring (coil or air) and damper element between chassis and lower beam
     /// and a second spring and damper element between chassis and housing

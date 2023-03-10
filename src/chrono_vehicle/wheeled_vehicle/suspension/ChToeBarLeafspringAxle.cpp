@@ -368,18 +368,15 @@ double ChToeBarLeafspringAxle::GetTrack() {
 // -----------------------------------------------------------------------------
 // Return current suspension forces
 // -----------------------------------------------------------------------------
-ChSuspension::Force ChToeBarLeafspringAxle::ReportSuspensionForce(VehicleSide side) const {
-    ChSuspension::Force force;
+std::vector<ChSuspension::ForceTSDA> ChToeBarLeafspringAxle::ReportSuspensionForce(VehicleSide side) const {
+    std::vector<ChSuspension::ForceTSDA> forces(2);
 
-    force.spring_force = m_spring[side]->GetForce();
-    force.spring_length = m_spring[side]->GetLength();
-    force.spring_velocity = m_spring[side]->GetVelocity();
+    forces[0] = ChSuspension::ForceTSDA("Spring", m_spring[side]->GetForce(), m_spring[side]->GetLength(),
+                                        m_spring[side]->GetVelocity());
+    forces[1] = ChSuspension::ForceTSDA("Shock", m_shock[side]->GetForce(), m_shock[side]->GetLength(),
+                                        m_shock[side]->GetVelocity());
 
-    force.shock_force = m_shock[side]->GetForce();
-    force.shock_length = m_shock[side]->GetLength();
-    force.shock_velocity = m_shock[side]->GetVelocity();
-
-    return force;
+    return forces;
 }
 
 // -----------------------------------------------------------------------------
