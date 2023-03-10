@@ -73,7 +73,7 @@ void ChGenericWheeledSuspension::DefineBody(const std::string& name,
     Body b;
     b.body = nullptr;
     b.pos = pos;
-    b.rot = rot;
+    b.rot = rot.GetNormalized();
     b.mass = mass;
     b.inertia_moments = inertia_moments;
     b.inertia_products = inertia_products;
@@ -92,15 +92,16 @@ void ChGenericWheeledSuspension::DefineJoint(const std::string& name,
                                              ChVehicleJoint::Type type,
                                              BodyIdentifier body1,
                                              BodyIdentifier body2,
-                                             const ChCoordsys<>& csys,
+                                             const ChVector<>& pos,
+                                             const ChQuaternion<>& rot,
                                              std::shared_ptr<ChVehicleBushingData> bdata) {
     Joint j;
     j.joint = nullptr;
     j.type = type;
     j.body1 = body1;
     j.body2 = body2;
-    j.pos = csys.pos;
-    j.rot = csys.rot;
+    j.pos = pos;
+    j.rot = rot.GetNormalized();
     j.bdata = bdata;
 
     if (!mirrored) {
@@ -176,7 +177,7 @@ ChVector<> ChGenericWheeledSuspension::TransformPosition(const ChVector<>& pos_l
 }
 
 ChQuaternion<> ChGenericWheeledSuspension::TransformRotation(const ChQuaternion<>& rot_local, int side) const {
-    ChQuaternion<> rot = rot_local;
+    ChQuaternion<> rot = rot_local.GetNormalized();
     if (side == VehicleSide::RIGHT) {
         ChVector<> u = rot.GetXaxis();
         ChVector<> w = rot.GetZaxis();
@@ -420,9 +421,25 @@ std::shared_ptr<ChBody> ChGenericWheeledSuspension::GetAntirollBody(VehicleSide 
 // -----------------------------------------------------------------------------
 
 ChSuspension::Force ChGenericWheeledSuspension::ReportSuspensionForce(VehicleSide side) const {
-    ChSuspension::Force force;
+    ////for (const auto& item : m_tsdas) {
+    ////    if (item.first.side != side)
+    ////        continue;
+    ////    auto tsda = item.second.tsda;
+    ////    std::cout << "TSDA " << item.first.name << std::endl;
+    ////    std::cout << "  force:    " << tsda->GetForce() << std::endl;
+    ////    std::cout << "  length:   " << tsda->GetLength() << std::endl;
+    ////    std::cout << "  velocity: " << tsda->GetVelocity() << std::endl;
+    ////}
 
     //// TODO
+
+    ChSuspension::Force force;
+    force.spring_force = 0;
+    force.spring_length = 0;
+    force.spring_velocity = 0;
+    force.shock_force = 0;
+    force.shock_length = 0;
+    force.shock_velocity = 0;
 
     /*
     force.spring_force = m_spring[side]->GetForce();
@@ -438,17 +455,36 @@ ChSuspension::Force ChGenericWheeledSuspension::ReportSuspensionForce(VehicleSid
 }
 
 void ChGenericWheeledSuspension::LogConstraintViolations(VehicleSide side) {
-    //// TODO
-
-    // Revolute joints
+    // Spindle revolute joint
     {
         const auto& C = m_revolute[side]->GetConstraintViolation();
-        GetLog() << "Spindle revolute      ";
-        GetLog() << "  " << C(0) << "  ";
-        GetLog() << "  " << C(1) << "  ";
-        GetLog() << "  " << C(2) << "  ";
-        GetLog() << "  " << C(3) << "  ";
-        GetLog() << "  " << C(4) << "\n";
+        std::cout << "Spindle revolute " << std::endl;
+        std::cout << "   " << C.transpose() << std::endl;
+    }
+
+    // Suspension joints
+    for (const auto& item : m_joints) {
+        if (item.first.side != side)
+            continue;
+        auto joint = item.second.joint;
+        if (!joint->IsKinematic())
+            continue;
+        auto link = joint->GetAsLink();
+        const auto& C = link->GetConstraintViolation();
+        assert(C.size() == link->GetDOC_c());
+        std::cout << "Joint " << item.first.name << " type: " << ChVehicleJoint::GetTypeString(item.second.type)
+                  << std::endl;
+        std::cout << "   " << C.transpose() << std::endl;
+    }
+
+    // Distance constraints
+    for (const auto& item : m_dists) {
+        if (item.first.side != side)
+            continue;
+        auto dist = item.second.dist;
+        const auto& C = dist->GetConstraintViolation();
+        std::cout << "Distance constraint " << item.first.name << std::endl;
+        std::cout << "   " << C.transpose() << std::endl;
     }
 }
 
@@ -571,11 +607,11 @@ bool ChGenericWheeledSuspension::PartKey::operator==(const PartKey& rhs) const {
 
 std::size_t ChGenericWheeledSuspension::PartKeyHash::operator()(const PartKey& id) const {
     /*
-   std::string ext_name = id.name;
-   if (id.side != -1)
-       ext_name += (id.side == VehicleSide::LEFT ? "_L" : "_R");
-   return std::hash<std::string>{}(ext_name);
-   */
+    std::string ext_name = id.name;
+    if (id.side != -1)
+        ext_name += (id.side == VehicleSide::LEFT ? "_L" : "_R");
+    return std::hash<std::string>{}(ext_name);
+    */
     std::size_t h1 = std::hash<std::string>{}(id.name);
     if (id.side == -1)
         return h1;

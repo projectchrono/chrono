@@ -108,7 +108,8 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
                      ChVehicleJoint::Type type,                             ///<
                      BodyIdentifier body1,                                  ///<
                      BodyIdentifier body2,                                  ///<
-                     const ChCoordsys<>& csys,                              ///<
+                     const ChVector<>& pos,                                 ///<
+                     const ChQuaternion<>& rot,                             ///<
                      std::shared_ptr<ChVehicleBushingData> bdata = nullptr  ///<
     );
 

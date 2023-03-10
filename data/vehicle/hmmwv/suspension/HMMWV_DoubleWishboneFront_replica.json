@@ -52,7 +52,7 @@
       "Mirrored": true,
       "Position": [ 0, 0.547, -0.059 ],
       "Rotation": [ 0.992745, -0.120235, 0, 0 ],
-      "Mass": 0,
+      "Mass": 23.965,
       "Moments of Inertia": [ 0.4, 0.4, 0.8938 ],
       "Products of Inertia": [ 0, 0, 0 ],
       "Visualization": {
@@ -68,10 +68,8 @@
       "Mirrored": true,
       "Body1": "Chassis",
       "Body2": "UCA",
-      "Coordinate System": {
-        "Position": [ -0.158, 0.462, 0.2205 ],
-        "Rotation": [ 0.608089, 0.458166, 0.427157, 0.487697 ]
-      }
+      "Position": [ -0.158, 0.462, 0.2205 ],
+      "Rotation": [ 0.608089, 0.458166, 0.427157, 0.487697 ]
     },
 
     {
@@ -80,10 +78,8 @@
       "Mirrored": true,
       "Body1": "UCA",
       "Body2": "Upright",
-      "Coordinate System": {
-        "Position": [ -0.053, 0.716, 0.215 ],
-        "Rotation": [ 1, 0, 0, 0 ]
-      }
+      "Position": [ -0.053, 0.716, 0.215 ],
+      "Rotation": [ 1, 0, 0, 0 ]
     },
 
     {
@@ -92,10 +88,8 @@
       "Mirrored": true,
       "Body1": "Chassis",
       "Body2": "LCA",
-      "Coordinate System": {
-        "Position": [ 0.0, 0.307, 0.0 ],
-        "Rotation": [ 0.556490, 0.436255, 0.556490, 0.436255 ]
-      }
+      "Position": [ 0.0, 0.307, 0.0 ],
+      "Rotation": [ 0.556490, 0.436255, 0.556490, 0.436255 ]
     },
 
     {
@@ -104,10 +98,8 @@
       "Mirrored": true,
       "Body1": "LCA",
       "Body2": "Upright",
-      "Coordinate System": {
-        "Position": [ -0.036, 0.787, -0.118 ],
-        "Rotation": [ 1, 0, 0, 0 ]
-      }
+      "Position": [ -0.036, 0.787, -0.118 ],
+      "Rotation": [ 1, 0, 0, 0 ]
     }
   ],
 

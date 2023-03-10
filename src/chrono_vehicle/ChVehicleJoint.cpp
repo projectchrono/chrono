@@ -160,5 +160,24 @@ void ChVehicleJoint::CreateBushing(Type type,
     m_joint = chrono_types::make_shared<ChLoadBodyBodyBushingGeneric>(body1, body2, ChFrame<>(pos), K_matrix, D_matrix);
 }
 
+std::string ChVehicleJoint::GetTypeString(Type type) {
+    switch (type) {
+        case Type::LOCK:
+            return "lock";
+        case Type::SPHERICAL:
+            return "spherical";
+        case Type::REVOLUTE:
+            return "revolute";
+        case Type::UNIVERSAL:
+            return "universal";
+        case Type::POINTLINE:
+            return "point-line";
+        case Type::POINTPLANE:
+            return "point-plane";
+        default:
+            return "unknown";
+    }
+}
+
 }  // namespace vehicle
 }  // namespace chrono
