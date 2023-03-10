@@ -100,6 +100,20 @@ bool ChIrrEventReceiver::OnEvent(const irr::SEvent& event) {
             case irr::KEY_ESCAPE:
                 m_gui->GetDevice()->closeDevice();
                 return true;
+            case irr::KEY_F12:
+#ifdef CHRONO_POSTPROCESS
+                if (m_gui->blender_save == false) {
+                    GetLog() << "Start saving Blender postprocessing scripts...\n";
+                    m_gui->SetBlenderSave(true);
+                } else {
+                    m_gui->SetBlenderSave(false);
+                    GetLog() << "Stop saving Blender postprocessing scripts.\n";
+                }
+#else
+                GetLog() << "Saving Blender3D files not supported. Rebuild the solution with ENABLE_MODULE_POSTPROCESSING "
+                            "in CMake. \n";
+#endif
+                return true;
             default:
                 break;
         }
@@ -190,7 +204,13 @@ ChIrrGUI::ChIrrGUI()
       modal_current_freq(0),
       modal_current_dampingfactor(0),
       symbolscale(1),
-      camera_auto_rotate_speed(0) {}
+      camera_auto_rotate_speed(0) {
+#ifdef CHRONO_POSTPROCESS
+    blender_save = false;
+    blender_each = 1;
+    blender_num = 0;
+#endif
+}
 
 ChIrrGUI::~ChIrrGUI() {
     delete m_receiver;
@@ -559,7 +579,59 @@ void ChIrrGUI::BeginScene() {
 void ChIrrGUI::EndScene() {
     if (show_profiler)
         tools::drawProfiler(m_vis);
+
+#ifdef CHRONO_POSTPROCESS
+    if (blender_save && blender_exporter) {
+        if (blender_num % blender_each == 0) {
+            blender_exporter->ExportData();
+        }
+        blender_num++;
+    }
+#endif
+
 }
+
+
+
+
+
+#ifdef CHRONO_POSTPROCESS
+
+/// If set to true, each frame of the animation will be saved on the disk
+/// as a sequence of scripts to be rendered via POVray. Only if solution build with ENABLE_MODULE_POSTPROCESS.
+void ChIrrGUI::SetBlenderSave(bool val) {
+    blender_save = val;
+
+    if (!blender_save) {
+        return;
+    }
+
+    if (blender_save && !blender_exporter) {
+        blender_exporter = std::unique_ptr<postprocess::ChBlender>(new postprocess::ChBlender(m_system));
+        
+        // Set the path where it will save all .pov, .ini, .asset and .dat files,
+        // a directory will be created if not existing
+        blender_exporter->SetBasePath("blender_project");
+
+        // Add all items (already in scene) to the Blender exporter
+        blender_exporter->AddAll();
+        
+        if (m_vis->GetCameraVertical() == CameraVerticalDir::Z)
+            blender_exporter->SetBlenderUp_is_ChronoZ();
+        if (m_vis->GetCameraVertical() == CameraVerticalDir::Y)
+            blender_exporter->SetBlenderUp_is_ChronoY();
+
+        // Static default camera in Blender matches the one in Irrlicht at the moment of starting saving
+        //blender_exporter->SetCamera(ChVectorIrr(GetActiveCamera()->getAbsolutePosition()), ChVectorIrr(GetActiveCamera()->getTarget()),
+        //    GetActiveCamera()->getFOV() * GetActiveCamera()->getAspectRatio() * chrono::CH_C_RAD_TO_DEG);
+        
+        blender_exporter->ExportScript();
+
+        blender_num = 0;
+    }
+}
+#endif
+
 
 }  // end namespace irrlicht
 }  // end namespace chrono

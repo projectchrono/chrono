@@ -33,6 +33,7 @@
 #include "chrono_models/vehicle/hmmwv/HMMWV_SimplePowertrain.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_SimpleCVTPowertrain.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_TMeasyTire.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_TMsimpleTire.h"
 
 namespace chrono {
 namespace vehicle {
@@ -169,6 +170,21 @@ void HMMWV::Initialize() {
             auto tire_FR = chrono_types::make_shared<HMMWV_TMeasyTire>("FR");
             auto tire_RL = chrono_types::make_shared<HMMWV_TMeasyTire>("RL");
             auto tire_RR = chrono_types::make_shared<HMMWV_TMeasyTire>("RR");
+
+            m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
+
+            m_tire_mass = tire_FL->GetMass();
+
+            break;
+        }
+        case TireModelType::TMSIMPLE: {
+            auto tire_FL = chrono_types::make_shared<HMMWV_TMsimpleTire>("FL");
+            auto tire_FR = chrono_types::make_shared<HMMWV_TMsimpleTire>("FR");
+            auto tire_RL = chrono_types::make_shared<HMMWV_TMsimpleTire>("RL");
+            auto tire_RR = chrono_types::make_shared<HMMWV_TMsimpleTire>("RR");
 
             m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);

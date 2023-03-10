@@ -4,6 +4,7 @@
 set(POST_DEMOS
 	demo_POST_povray1
     demo_POST_povray2
+    demo_POST_blender1
 	demo_POST_gnuplot
 	demo_POST_timestepping
 	)

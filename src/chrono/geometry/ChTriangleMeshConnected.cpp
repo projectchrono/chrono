@@ -48,9 +48,26 @@ ChTriangleMeshConnected::ChTriangleMeshConnected(const ChTriangleMeshConnected& 
     m_face_uv_indices = source.m_face_uv_indices;
     m_face_col_indices = source.m_face_col_indices;
     m_face_mat_indices = source.m_face_mat_indices;
+    
+    // deep copies of properties
+    this->m_properties_per_vertex.resize(source.m_properties_per_vertex.size());
+    for (size_t i = 0; i < source.m_properties_per_vertex.size(); ++i)
+        this->m_properties_per_vertex[i]=source.m_properties_per_vertex[i]->clone();
+    // deep copies of properties
+    this->m_properties_per_face.resize(source.m_properties_per_face.size());
+    for (size_t i = 0; i < source.m_properties_per_face.size(); ++i)
+        this->m_properties_per_face[i]=source.m_properties_per_face[i]->clone();
 
     m_filename = source.m_filename;
 }
+
+ChTriangleMeshConnected::~ChTriangleMeshConnected() {
+    for (ChProperty* id : this->m_properties_per_vertex)
+        delete(id);
+    for (ChProperty* id : this->m_properties_per_face)
+        delete(id);
+}
+
 
 void ChTriangleMeshConnected::addTriangle(const ChVector<>& vertex0,
                                           const ChVector<>& vertex1,
@@ -80,6 +97,14 @@ void ChTriangleMeshConnected::Clear() {
     m_face_uv_indices.clear();
     m_face_col_indices.clear();
     m_face_mat_indices.clear();
+
+    for (ChProperty* id : this->m_properties_per_vertex)
+        delete(id);
+    m_properties_per_vertex.clear();
+
+    for (ChProperty* id : this->m_properties_per_face)
+        delete(id);
+    m_properties_per_vertex.clear();
 }
 
 void ChTriangleMeshConnected::GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const {
@@ -254,12 +279,7 @@ bool ChTriangleMeshConnected::LoadWavefrontMesh(const std::string& filename, boo
         return false;
     }
 
-    m_vertices.clear();
-    m_normals.clear();
-    m_UV.clear();
-    m_face_v_indices.clear();
-    m_face_n_indices.clear();
-    m_face_uv_indices.clear();
+    this->Clear();
 
     m_filename = filename;
 
@@ -1069,6 +1089,8 @@ void ChTriangleMeshConnected::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(m_face_col_indices);
     marchive << CHNVP(m_face_mat_indices);
     marchive << CHNVP(m_filename);
+    marchive << CHNVP(m_properties_per_vertex);
+    marchive << CHNVP(m_properties_per_face);
 }
 
 void ChTriangleMeshConnected::ArchiveIN(ChArchiveIn& marchive) {
@@ -1087,6 +1109,8 @@ void ChTriangleMeshConnected::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(m_face_col_indices);
     marchive >> CHNVP(m_face_mat_indices);
     marchive >> CHNVP(m_filename);
+    marchive >> CHNVP(m_properties_per_vertex);
+    marchive >> CHNVP(m_properties_per_face);
 }
 
 }  // end namespace geometry

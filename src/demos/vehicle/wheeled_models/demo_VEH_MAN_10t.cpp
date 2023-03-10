@@ -60,8 +60,8 @@ CollisionType chassis_collision_type = CollisionType::NONE;
 // Type of powertrain (SIMPLE or SIMPLE_CVT)
 PowertrainModelType powertrain_type = PowertrainModelType::SIMPLE_CVT;
 
-// Type of tire model (TMEASY)
-TireModelType tire_model = TireModelType::TMEASY;
+// Type of tire model (TMEASY, TMSIMPLE)
+TireModelType tire_model = TireModelType::TMSIMPLE;
 
 // Rigid terrain
 RigidTerrain::PatchType terrain_model = RigidTerrain::PatchType::BOX;

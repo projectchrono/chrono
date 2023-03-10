@@ -131,6 +131,9 @@ void ChVisualSystemIrrlicht::SetLogLevel(irr::ELOG_LEVEL log_level) {
 void ChVisualSystemIrrlicht::SetCameraVertical(CameraVerticalDir vert) {
     m_yup = (vert == CameraVerticalDir::Y);
 }
+CameraVerticalDir ChVisualSystemIrrlicht::GetCameraVertical() {
+    return (m_yup == true? CameraVerticalDir::Y :  CameraVerticalDir::Z);
+}
 
 void ChVisualSystemIrrlicht::SetSymbolScale(double scale) {
     m_gui->symbolscale = scale;
