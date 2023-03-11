@@ -62,6 +62,44 @@ ChGenericWheeledSuspension::~ChGenericWheeledSuspension() {
 
 // -----------------------------------------------------------------------------
 
+ChVehicleGeometry TransformVehicleGeometry(const ChVehicleGeometry& geom, int side) {
+    static const ChColor colorL(0.38f, 0.74f, 0.36f);
+    static const ChColor colorR(0.74f, 0.38f, 0.36f);
+
+    ChVehicleGeometry g = geom;
+    g.m_has_colors = true;
+    if (side == VehicleSide::LEFT) {
+        g.m_color_boxes = colorL;
+        g.m_color_spheres = colorL;
+        g.m_color_cylinders = colorL;
+    } else {
+        g.m_color_boxes = colorR;
+        g.m_color_spheres = colorR;
+        g.m_color_cylinders = colorR;
+
+        for (auto& s : g.m_vis_spheres) {
+            s.m_pos.y() *= -1;
+        }
+        for (auto& c : g.m_vis_cylinders) {
+            c.m_pos.y() *= -1;
+            c.m_axis.y() *= -1;
+        }
+        for (auto& b : g.m_vis_boxes) {
+            b.m_pos.y() *= -1;
+            auto rot = b.m_rot;
+            ChVector<> u = rot.GetXaxis();
+            ChVector<> w = rot.GetZaxis();
+            u.y() *= -1;
+            w.y() *= -1;
+            ChVector<> v = Vcross(w, u);
+            ChMatrix33<> R(u, v, w);
+            b.m_rot = R.Get_A_quaternion();
+        }
+    }
+
+    return g;
+}
+
 void ChGenericWheeledSuspension::DefineBody(const std::string& name,
                                             bool mirrored,
                                             const ChVector<>& pos,
@@ -77,12 +115,15 @@ void ChGenericWheeledSuspension::DefineBody(const std::string& name,
     b.mass = mass;
     b.inertia_moments = inertia_moments;
     b.inertia_products = inertia_products;
-    b.geometry = geometry;
 
     if (!mirrored) {
         m_bodies.insert({{name, -1}, b});
     } else {
+        if (geometry)
+            b.geometry = TransformVehicleGeometry(*geometry, 0);
         m_bodies.insert({{name, 0}, b});
+        if (geometry)
+            b.geometry = TransformVehicleGeometry(*geometry, 1);
         m_bodies.insert({{name, 1}, b});
     }
 }
@@ -141,7 +182,7 @@ void ChGenericWheeledSuspension::DefineTSDA(const std::string& name,
                                             const ChVector<>& point2,
                                             double rest_length,
                                             std::shared_ptr<ChLinkTSDA::ForceFunctor> force,
-                                            std::shared_ptr<ChPointPointShape> geometry) {
+                                            std::shared_ptr<ChPointPointShape> vis) {
     TSDA t;
     t.tsda = nullptr;
     t.body1 = body1;
@@ -150,7 +191,7 @@ void ChGenericWheeledSuspension::DefineTSDA(const std::string& name,
     t.point2 = point2;
     t.rest_length = rest_length;
     t.force = force;
-    t.geometry = geometry;
+    t.vis = vis;
 
     if (!mirrored) {
         m_tsdas.insert({{name, -1}, t});
@@ -450,7 +491,7 @@ void ChGenericWheeledSuspension::LogConstraintViolations(VehicleSide side) {
     for (const auto& item : m_joints) {
         if (item.first.side != side)
             continue;
-        auto joint = item.second.joint;
+        const auto& joint = item.second.joint;
         if (!joint->IsKinematic())
             continue;
         auto link = joint->GetAsLink();
@@ -465,7 +506,7 @@ void ChGenericWheeledSuspension::LogConstraintViolations(VehicleSide side) {
     for (const auto& item : m_dists) {
         if (item.first.side != side)
             continue;
-        auto dist = item.second.dist;
+        const auto& dist = item.second.dist;
         const auto& C = dist->GetConstraintViolation();
         std::cout << "Distance constraint " << item.first.name << std::endl;
         std::cout << "   " << C.transpose() << std::endl;
@@ -480,12 +521,11 @@ void ChGenericWheeledSuspension::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
-    for (const auto& item : m_bodies)
-        if (item.second.geometry)
-            item.second.geometry->CreateVisualizationAssets(item.second.body, vis);
+    for (auto& item : m_bodies)
+        item.second.geometry.CreateVisualizationAssets(item.second.body, vis);
     for (const auto& item : m_tsdas)
-        if (item.second.geometry)
-            item.second.tsda->AddVisualShape(item.second.geometry);
+        if (item.second.vis)
+            item.second.tsda->AddVisualShape(item.second.vis);
     for (const auto& item : m_dists)
         item.second.dist->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
 }

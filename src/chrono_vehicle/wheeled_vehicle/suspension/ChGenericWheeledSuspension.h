@@ -123,15 +123,15 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
     );
 
     /// Add a TSDA to model a suspension spring or shock.
-    void DefineTSDA(const std::string& name,                               ///<
-                    bool mirrored,                                         ///<
-                    BodyIdentifier body1,                                  ///<
-                    BodyIdentifier body2,                                  ///<
-                    const ChVector<>& point1,                              ///<
-                    const ChVector<>& point2,                              ///<
-                    double rest_length,                                    ///<
-                    std::shared_ptr<ChLinkTSDA::ForceFunctor> force,       ///<
-                    std::shared_ptr<ChPointPointShape> geometry = nullptr  ///<
+    void DefineTSDA(const std::string& name,                          ///<
+                    bool mirrored,                                    ///<
+                    BodyIdentifier body1,                             ///<
+                    BodyIdentifier body2,                             ///<
+                    const ChVector<>& point1,                         ///<
+                    const ChVector<>& point2,                         ///<
+                    double rest_length,                               ///<
+                    std::shared_ptr<ChLinkTSDA::ForceFunctor> force,  ///<
+                    std::shared_ptr<ChPointPointShape> vis = nullptr  ///<
     );
 
     /// Initialize this suspension subsystem.
@@ -198,13 +198,13 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
 
     /// Internal specification of a suspension body.
     struct Body {
-        std::shared_ptr<ChBody> body;                 ///< underlying Chrono body
-        ChVector<> pos;                               ///< body position (in subsystem frame)
-        ChQuaternion<> rot;                           ///< body rotation (in subsystem frame)
-        double mass;                                  ///< body mass
-        ChVector<> inertia_moments;                   ///< moments of inertia
-        ChVector<> inertia_products;                  ///< products of inertia
-        std::shared_ptr<ChVehicleGeometry> geometry;  ///< (optional) visualization and collision geometry
+        std::shared_ptr<ChBody> body;  ///< underlying Chrono body
+        ChVector<> pos;                ///< body position (in subsystem frame)
+        ChQuaternion<> rot;            ///< body rotation (in subsystem frame)
+        double mass;                   ///< body mass
+        ChVector<> inertia_moments;    ///< moments of inertia
+        ChVector<> inertia_products;   ///< products of inertia
+        ChVehicleGeometry geometry;    ///< (optional) visualization and collision geometry
     };
 
     /// Internal specification of a suspension joint.
@@ -236,7 +236,7 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
         ChVector<> point2;                                ///< point on body2 (in subsystem frame)
         double rest_length;                               ///< TSDA rest (free) length
         std::shared_ptr<ChLinkTSDA::ForceFunctor> force;  ///< force functor
-        std::shared_ptr<ChPointPointShape> geometry;      ///< (optional) visualization geometry
+        std::shared_ptr<ChPointPointShape> vis;           ///< (optional) visualization shape
     };
 
     /// Key for a suspension part.

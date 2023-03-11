@@ -30,7 +30,15 @@
       "Moments of Inertia": [ 0.1656, 0.1934, 0.04367 ],
       "Products of Inertia": [ 0, 0, 0 ],
       "Visualization": {
-        // TODO
+        "Primitives": [
+          {
+            "Type": "CYLINDER",
+            "Location": [0, 0.07, 0],
+            "Axis": [ 0, 1, 0 ],
+            "Radius": 0.03,
+            "Length": 0.16
+          }
+        ]
       }
     },
 
@@ -43,7 +51,22 @@
       "Moments of Inertia": [ 0.03, 0.03, 0.06276 ],
       "Products of Inertia": [ 0, 0, 0 ],
       "Visualization": {
-        // TODO
+        "Primitives": [
+          {
+            "Type": "CYLINDER",
+            "Location": [ 0.0573, 0.0001, -0.0003 ],
+            "Axis": [ -0.181232, 0.983440, 0 ],
+            "Radius": 0.02,
+            "Length": 0.2717
+          },
+          {
+            "Type": "CYLINDER",
+            "Location": [ -0.0565, 0.0001, -0.0003 ],
+            "Axis": [ 0.555282, 0.831662, 0 ],
+            "Radius": 0.02,
+            "Length": 0.3213
+          }
+        ]
       }
     },
 
@@ -56,7 +79,22 @@
       "Moments of Inertia": [ 0.4, 0.4, 0.8938 ],
       "Products of Inertia": [ 0, 0, 0 ],
       "Visualization": {
-        // TODO
+        "Primitives": [
+          {
+            "Type": "CYLINDER",
+            "Location": [ 0.0935, 0, 0 ],
+            "Axis": [ -0.464127, 0.885768, 0 ],
+            "Radius": 0.03,
+            "Length": 0.5580
+          },
+          {
+            "Type": "CYLINDER",
+            "Location": [ -0.1295, 0, 0 ],
+            "Axis": [ 0.353844, 0.935305, 0.0 ],
+            "Radius": 0.03,
+            "Length": 0.5285
+          }
+        ]
       }
     }
   ],
