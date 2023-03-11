@@ -16,6 +16,12 @@
 //
 // =============================================================================
 
+#include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChModelFileShape.h"
+
 #include "chrono_vehicle/ChPart.h"
 
 #include "chrono_thirdparty/rapidjson/stringbuffer.h"
@@ -158,6 +164,55 @@ void ChPart::ExportComponentList(rapidjson::Document& jsonDocument) const {
     jsonDocument.AddMember("rotation", Quat2Val(frame.GetRot(), allocator), allocator);
 }
 
+rapidjson::Value VisualModel2Val(std::shared_ptr<ChVisualModel> model, rapidjson::Document::AllocatorType& allocator) {
+    rapidjson::Value jsonArray(rapidjson::kArrayType);
+
+    for (const auto& item : model->GetShapes()) {
+        const auto& shape = item.first;   // visual shape
+        const auto& frame = item.second;  // shape position in model
+
+        rapidjson::Value obj(rapidjson::kObjectType);
+        if (auto trimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape)) {
+            const auto& name = trimesh->GetName();
+            obj.AddMember("type", "TRIMESH", allocator);
+            obj.AddMember("name", rapidjson::StringRef(name.c_str()), allocator);
+            obj.AddMember("center", Vec2Val(frame.GetPos(), allocator), allocator);
+            obj.AddMember("orientation", Quat2Val(frame.GetRot(), allocator), allocator);
+        } else if (auto mfile = std::dynamic_pointer_cast<ChModelFileShape>(shape)) {
+            const auto& file = mfile->GetFilename();
+            obj.AddMember("type", "MODELFILE", allocator);
+            obj.AddMember("filename", rapidjson::StringRef(file.c_str()), allocator);
+            obj.AddMember("center", Vec2Val(frame.GetPos(), allocator), allocator);
+            obj.AddMember("orientation", Quat2Val(frame.GetRot(), allocator), allocator);
+        } else if (auto sph = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
+            auto rad = sph->GetSphereGeometry().rad;
+            obj.AddMember("type", "SPHERE", allocator);
+            obj.AddMember("center", Vec2Val(frame.GetPos(), allocator), allocator);
+            obj.AddMember("radius", rad, allocator);
+        } else if (auto cyl = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
+            const auto& p1 = cyl->GetCylinderGeometry().p1;
+            const auto& p2 = cyl->GetCylinderGeometry().p2;
+            auto rad = cyl->GetCylinderGeometry().rad;
+            auto loc = (p2 + p1) / 2;
+            auto len = (p2 - p1).Length();
+            auto axis = (p2 - p1) / len;
+            obj.AddMember("type", "CYLINDER", allocator);
+            obj.AddMember("center", Vec2Val(loc, allocator), allocator);
+            obj.AddMember("axis", Vec2Val(axis, allocator), allocator);
+            obj.AddMember("radius", rad, allocator);
+            obj.AddMember("length", len, allocator);
+        } else if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
+            const auto& len = box->GetBoxGeometry().GetLengths();
+            obj.AddMember("type", "BOX", allocator);
+            obj.AddMember("center", Vec2Val(frame.GetPos(), allocator), allocator);
+            obj.AddMember("orientation", Quat2Val(frame.GetRot(), allocator), allocator);
+            obj.AddMember("lengths", Vec2Val(len, allocator), allocator);
+        }
+        jsonArray.PushBack(obj, allocator);
+    }
+    return jsonArray;
+}
+
 void ChPart::ExportBodyList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChBody>> bodies) const {
     rapidjson::Document::AllocatorType& allocator = jsonDocument.GetAllocator();
 
@@ -175,6 +230,8 @@ void ChPart::ExportBodyList(rapidjson::Document& jsonDocument, std::vector<std::
         obj.AddMember("coordinates w.r.t. subsystem", Frame2Val(P_X_B, allocator), allocator);
         obj.AddMember("moments of inertia", Vec2Val(body->GetInertiaXX(), allocator), allocator);
         obj.AddMember("products of inertia", Vec2Val(body->GetInertiaXY(), allocator), allocator);
+        if (body->GetVisualModel())
+            obj.AddMember("visualization", VisualModel2Val(body->GetVisualModel(), allocator), allocator);
         jsonArray.PushBack(obj, allocator);
     }
     jsonDocument.AddMember("bodies", jsonArray, allocator);
