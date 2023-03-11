@@ -235,11 +235,11 @@ ChVehicleGeometry ReadVehicleGeometryJSON(const rapidjson::Value& d) {
                 geometry.m_coll_boxes.push_back(ChVehicleGeometry::BoxShape(pos, rot, dims, matID));
             } else if (type.compare("CYLINDER") == 0) {
                 ChVector<> pos = ReadVectorJSON(shape["Location"]);
-                ChQuaternion<> rot = ReadQuaternionJSON(shape["Orientation"]);
+                ChVector<> axis = ReadVectorJSON(shape["Axis"]);
                 double radius = shape["Radius"].GetDouble();
                 double length = shape["Length"].GetDouble();
                 geometry.m_coll_cylinders.push_back(
-                    ChVehicleGeometry::CylinderShape(pos, rot, radius, length, matID));
+                    ChVehicleGeometry::CylinderShape(pos, axis, radius, length, matID));
             } else if (type.compare("HULL") == 0) {
                 std::string filename = shape["Filename"].GetString();
                 geometry.m_coll_hulls.push_back(ChVehicleGeometry::ConvexHullsShape(filename, matID));
@@ -277,10 +277,10 @@ ChVehicleGeometry ReadVehicleGeometryJSON(const rapidjson::Value& d) {
                     geometry.m_vis_boxes.push_back(ChVehicleGeometry::BoxShape(pos, rot, dims));
                 } else if (type.compare("CYLINDER") == 0) {
                     ChVector<> pos = ReadVectorJSON(shape["Location"]);
-                    ChQuaternion<> rot = ReadQuaternionJSON(shape["Orientation"]);
+                    ChVector<> axis = ReadVectorJSON(shape["Axis"]);
                     double radius = shape["Radius"].GetDouble();
                     double length = shape["Length"].GetDouble();
-                    geometry.m_vis_cylinders.push_back(ChVehicleGeometry::CylinderShape(pos, rot, radius, length));
+                    geometry.m_vis_cylinders.push_back(ChVehicleGeometry::CylinderShape(pos, axis, radius, length));
                 }
             }
             geometry.m_has_primitives = true;

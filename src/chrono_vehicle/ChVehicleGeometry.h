@@ -45,7 +45,7 @@ class CH_VEHICLE_API ChVehicleGeometry {
     /// Box shape for visualization and/or collision.
     struct CH_VEHICLE_API BoxShape {
         BoxShape(const ChVector<>& pos, const ChQuaternion<>& rot, const ChVector<>& dims, int matID = -1);
-        ChVector<> m_pos;      ///< position relative to body
+        ChVector<> m_pos;      ///< center position relative to body
         ChQuaternion<> m_rot;  ///< orientation relative to body
         ChVector<> m_dims;     ///< box dimensions
         int m_matID;           ///< index in contact material list
@@ -54,15 +54,16 @@ class CH_VEHICLE_API ChVehicleGeometry {
     /// Sphere shape for visualization and/or collision.
     struct CH_VEHICLE_API SphereShape {
         SphereShape(const ChVector<>& pos, double radius, int matID = -1);
-        ChVector<> m_pos;  ///< position relative to body
+        ChVector<> m_pos;  ///< center position relative to body
         double m_radius;   ///< sphere radius
         int m_matID;       ///< index in contact material list
     };
 
     /// Cylinder shape for visualization and/or collision.
     struct CH_VEHICLE_API CylinderShape {
-        CylinderShape(const ChVector<>& pos, const ChQuaternion<>& rot, double radius, double length, int matID = -1);
-        ChVector<> m_pos;      ///< position relative to body
+        CylinderShape(const ChVector<>& pos, const ChVector<>& axis, double radius, double length, int matID = -1);
+        ChVector<> m_pos;      ///< center position relative to body
+        ChVector<> m_axis;     ///< cylinder axis relative to body
         ChQuaternion<> m_rot;  ///< orientation relative to body
         double m_radius;       ///< cylinder radius
         double m_length;       ///< cylinder length

@@ -164,7 +164,7 @@ double target_speed = 2;                                   // used for mode=PATH
 DriverMode driver_mode = DriverMode::DATAFILE;
 
 // Contact formulation (NSC or SMC)
-ChContactMethod contact_method = ChContactMethod::SMC;
+ChContactMethod contact_method = ChContactMethod::NSC;
 
 // Simulation step size
 double step_size_NSC = 1e-3;
