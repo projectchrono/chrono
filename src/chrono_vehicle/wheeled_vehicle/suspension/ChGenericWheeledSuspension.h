@@ -92,46 +92,48 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
     virtual std::string GetTemplateName() const override { return "GenericWheeledSuspension"; }
 
     /// Add a body definition to the suspension subsystem.
-    void DefineBody(const std::string& name,                               ///<
-                    bool mirrored,                                         ///<
-                    const ChVector<>& pos,                                 ///<
-                    const ChQuaternion<>& rot,                             ///<
-                    double mass,                                           ///<
-                    const ChVector<>& inertia_moments,                     ///<
-                    const ChVector<>& inertia_products,                    ///<
-                    std::shared_ptr<ChVehicleGeometry> geometry = nullptr  ///<
+    void DefineBody(
+        const std::string& name,             ///< body name
+        bool mirrored,                       ///< true if mirrored on right side
+        const ChVector<>& pos,               ///< body COM position (in subsystem reference frame)
+        const ChQuaternion<>& rot,           ///< body frame orientation (in subsystem reference frame)
+        double mass,                         ///< body mass
+        const ChVector<>& inertia_moments,   ///< body moments of inertia (relative to COG frame)
+        const ChVector<>& inertia_products,  ///< body products of inertia (relative to COG frame)
+        std::shared_ptr<ChVehicleGeometry> geometry = nullptr  ///< optional collision and visualization geometry
     );
 
     /// Add a joint definition to the suspension subsystem.
-    void DefineJoint(const std::string& name,                               ///<
-                     bool mirrored,                                         ///<
-                     ChVehicleJoint::Type type,                             ///<
-                     BodyIdentifier body1,                                  ///<
-                     BodyIdentifier body2,                                  ///<
-                     const ChVector<>& pos,                                 ///<
-                     const ChQuaternion<>& rot,                             ///<
-                     std::shared_ptr<ChVehicleBushingData> bdata = nullptr  ///<
+    /// If bushing data is provided, creates a bushing. Otherwise, creates a kinematic joint.
+    void DefineJoint(const std::string& name,    ///< joint name
+                     bool mirrored,              ///< true if mirrored on right side
+                     ChVehicleJoint::Type type,  ///< joint type
+                     BodyIdentifier body1,       ///< first connected body
+                     BodyIdentifier body2,       ///< second connected body
+                     const ChVector<>& pos,      ///< joint position (in subsystem reference frame)
+                     const ChQuaternion<>& rot,  ///< joint frame orientation (in subsystem reference frame)
+                     std::shared_ptr<ChVehicleBushingData> bdata = nullptr  ///< optional bushing data
     );
 
     /// Add a distance constraint definition to the suspension subsystem.
-    void DefineDistanceConstraint(const std::string& name,   ///<
-                                  bool mirrored,             ///<
-                                  BodyIdentifier body1,      ///<
-                                  BodyIdentifier body2,      ///<
-                                  const ChVector<>& point1,  ///<
-                                  const ChVector<>& point2   ///<
+    void DefineDistanceConstraint(const std::string& name,   ///< constraint name
+                                  bool mirrored,             ///< true if mirrored on right side
+                                  BodyIdentifier body1,      ///< first connected body
+                                  BodyIdentifier body2,      ///< second connected body
+                                  const ChVector<>& point1,  ///< point on body1 (in subsystem reference frame)
+                                  const ChVector<>& point2   ///< point on body2 (in subsystem reference frame)
     );
 
     /// Add a TSDA to model a suspension spring or shock.
     void DefineTSDA(const std::string& name,                          ///<
-                    bool mirrored,                                    ///<
-                    BodyIdentifier body1,                             ///<
-                    BodyIdentifier body2,                             ///<
-                    const ChVector<>& point1,                         ///<
-                    const ChVector<>& point2,                         ///<
-                    double rest_length,                               ///<
-                    std::shared_ptr<ChLinkTSDA::ForceFunctor> force,  ///<
-                    std::shared_ptr<ChPointPointShape> vis = nullptr  ///<
+                    bool mirrored,                                    ///< true if mirrored on right side
+                    BodyIdentifier body1,                             ///< first connected body
+                    BodyIdentifier body2,                             ///< second connected body
+                    const ChVector<>& point1,                         ///< point on body1 (in subsystem reference frame)
+                    const ChVector<>& point2,                         ///< point on body2 (in subsystem reference frame)
+                    double rest_length,                               ///< rest (free) length
+                    std::shared_ptr<ChLinkTSDA::ForceFunctor> force,  ///< functor for TSDA force evaluation
+                    std::shared_ptr<ChTSDAGeometry> geometry = nullptr  ///< optional visualization geometry
     );
 
     /// Initialize this suspension subsystem.
@@ -236,7 +238,7 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
         ChVector<> point2;                                ///< point on body2 (in subsystem frame)
         double rest_length;                               ///< TSDA rest (free) length
         std::shared_ptr<ChLinkTSDA::ForceFunctor> force;  ///< force functor
-        std::shared_ptr<ChPointPointShape> vis;           ///< (optional) visualization shape
+        ChTSDAGeometry geometry;                          ///< (optional) visualization geometry
     };
 
     /// Key for a suspension part.

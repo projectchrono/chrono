@@ -290,6 +290,39 @@ ChVehicleGeometry ReadVehicleGeometryJSON(const rapidjson::Value& d) {
     return geometry;
 }
 
+CH_VEHICLE_API ChTSDAGeometry ReadTSDAGeometryJSON(const rapidjson::Value& d) {
+    ChTSDAGeometry geometry;
+
+    if (d.HasMember("Visualization") && d["Visualization"].IsObject()) {
+        auto& vis = d["Visualization"];
+        assert(vis.IsObject());
+        std::string type = vis["Type"].GetString();
+        if (type == "SEGMENT") {
+            geometry.m_vis_segment = chrono_types::make_shared<ChTSDAGeometry::SegmentShape>();
+        } else if (type == "SPRING") {
+            // the default below are copied from the actual class, and since there
+            // are no setters I can't just take the default constructor and override
+            // the properties the user specifies (my only alternative would be to
+            // construct and read from a prototype instance)
+            double radius = 0.05;
+            int resolution = 65;
+            double turns = 5;
+            if (vis.HasMember("Radius") && vis["Radius"].IsNumber()) {
+                radius = vis["Radius"].GetDouble();
+            }
+            if (vis.HasMember("Resolution") && vis["Resolution"].IsInt()) {
+                resolution = vis["Resolution"].GetInt();
+            }
+            if (vis.HasMember("Turns") && vis["Turns"].IsNumber()) {
+                turns = vis["Turns"].GetDouble();
+            }
+            geometry.m_vis_spring = chrono_types::make_shared<ChTSDAGeometry::SpringShape>(radius, resolution, turns);
+        }
+    }
+
+    return geometry;
+}
+
 // -----------------------------------------------------------------------------
 
 std::shared_ptr<ChLinkTSDA::ForceFunctor> ReadTSDAFunctorJSON(const rapidjson::Value& tsda, double& free_length) {

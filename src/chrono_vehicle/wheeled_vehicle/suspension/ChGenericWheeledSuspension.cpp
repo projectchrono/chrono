@@ -100,6 +100,21 @@ ChVehicleGeometry TransformVehicleGeometry(const ChVehicleGeometry& geom, int si
     return g;
 }
 
+ChTSDAGeometry TransformTSDAGeometry(const ChTSDAGeometry& geom, int side) {
+    static const ChColor colorL(0.3f, 0.74f, 0.20f);
+    static const ChColor colorR(0.74f, 0.3f, 0.20f);
+
+    ChTSDAGeometry g = geom;
+    g.m_has_color = true;
+    if (side == VehicleSide::LEFT) {
+        g.m_color = colorL;
+    } else {
+        g.m_color = colorR;
+    }
+
+    return g;
+}
+
 void ChGenericWheeledSuspension::DefineBody(const std::string& name,
                                             bool mirrored,
                                             const ChVector<>& pos,
@@ -117,6 +132,8 @@ void ChGenericWheeledSuspension::DefineBody(const std::string& name,
     b.inertia_products = inertia_products;
 
     if (!mirrored) {
+        if (geometry)
+            b.geometry = *geometry;
         m_bodies.insert({{name, -1}, b});
     } else {
         if (geometry)
@@ -182,7 +199,7 @@ void ChGenericWheeledSuspension::DefineTSDA(const std::string& name,
                                             const ChVector<>& point2,
                                             double rest_length,
                                             std::shared_ptr<ChLinkTSDA::ForceFunctor> force,
-                                            std::shared_ptr<ChPointPointShape> vis) {
+                                            std::shared_ptr<ChTSDAGeometry> geometry) {
     TSDA t;
     t.tsda = nullptr;
     t.body1 = body1;
@@ -191,12 +208,17 @@ void ChGenericWheeledSuspension::DefineTSDA(const std::string& name,
     t.point2 = point2;
     t.rest_length = rest_length;
     t.force = force;
-    t.vis = vis;
 
     if (!mirrored) {
+        if (geometry)
+            t.geometry = *geometry;
         m_tsdas.insert({{name, -1}, t});
     } else {
+        if (geometry)
+            t.geometry = TransformTSDAGeometry(*geometry, 0);
         m_tsdas.insert({{name, 0}, t});
+        if (geometry)
+            t.geometry = TransformTSDAGeometry(*geometry, 1);
         m_tsdas.insert({{name, 1}, t});
     }
 }
@@ -523,10 +545,9 @@ void ChGenericWheeledSuspension::AddVisualizationAssets(VisualizationType vis) {
 
     for (auto& item : m_bodies)
         item.second.geometry.CreateVisualizationAssets(item.second.body, vis);
-    for (const auto& item : m_tsdas)
-        if (item.second.vis)
-            item.second.tsda->AddVisualShape(item.second.vis);
-    for (const auto& item : m_dists)
+    for (auto& item : m_tsdas)
+        item.second.geometry.CreateVisualizationAssets(item.second.tsda, vis);
+    for (auto& item : m_dists)
         item.second.dist->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
 }
 

@@ -63,6 +63,7 @@ class STR_Setup {
 class HMMWV_STR_Setup : public STR_Setup {
   public:
     virtual std::string SuspensionRigJSON() const override { return "hmmwv/suspensionTest/HMMWV_ST_front.json"; }
+    ////virtual std::string SuspensionRigJSON() const override { return "hmmwv/suspensionTest/HMMWV_ST_front_replica.json"; }
     virtual std::string VehicleJSON() const override { return "hmmwv/vehicle/HMMWV_Vehicle.json"; }
     ////virtual std::string VehicleJSON() const override { return "hmmwv/vehicle/HMMWV_Vehicle_replica.json"; }
     virtual std::string TireJSON() const override { return "hmmwv/tire/HMMWV_TMeasyTire.json"; }

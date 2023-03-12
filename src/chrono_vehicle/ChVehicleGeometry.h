@@ -140,6 +140,34 @@ class CH_VEHICLE_API ChVehicleGeometry {
     AABB CalculateAABB();
 };
 
+/// Utility class defining visualization geometry for a vehicle TSDA.
+/// Holds vectors of segment and spring visualization shapes.
+class CH_VEHICLE_API ChTSDAGeometry {
+  public:
+    ChTSDAGeometry();
+
+    /// Segment shape for TSDA visualization.
+    struct CH_VEHICLE_API SegmentShape {
+        SegmentShape() {}
+    };
+
+    /// Spring shape for TSDA visualization.
+    struct CH_VEHICLE_API SpringShape {
+        SpringShape(double radius, int resolution, double turns);
+        double m_radius;
+        double m_turns;
+        int m_resolution;
+    };
+
+    std::shared_ptr<SegmentShape> m_vis_segment;  ///< visualization segment
+    std::shared_ptr<SpringShape> m_vis_spring;    ///< visualization spring
+    bool m_has_color;                             ///< true if visualization color was provided
+    ChColor m_color;                              ///< visualization color
+
+    /// Create visualization assets for the specified TSDA.
+    void CreateVisualizationAssets(std::shared_ptr<ChLinkTSDA> tsda, VisualizationType vis);
+};
+
 /// @} vehicle
 
 }  // end namespace vehicle

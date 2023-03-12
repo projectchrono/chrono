@@ -58,41 +58,9 @@ ChGenericWheeledSuspension::BodyIdentifier ReadBodyIdentifierJSON(const Value& a
     }
 }
 
-std::shared_ptr<ChPointPointShape> ReadTSDAGeometryJSON(const Value& a) {
-    if (a.HasMember("Visualization") && a["Visualization"].IsObject()) {
-        auto& vis = a["Visualization"];
-        assert(vis.IsObject());
-        std::string type = vis["Type"].GetString();
-        if (type == "Segment") {
-            auto segment = std::make_shared<ChSegmentShape>();
-            return segment;
-        } else if (type == "Spring") {
-            // the default below are copied from the actual class, and since there
-            // are no setters I can't just take the default constructor and override
-            // the properties the user specifies (my only alternative would be to
-            // construct and read from a prototype instance)
-            double radius = 0.05;
-            double resolution = 65;
-            double turns = 5;
-            if (vis.HasMember("Radius") && vis["Radius"].IsNumber()) {
-                radius = vis["Radius"].GetDouble();
-            }
-            if (vis.HasMember("Resolution") && vis["Resolution"].IsNumber()) {
-                resolution = vis["Resolution"].GetDouble();
-            }
-            if (vis.HasMember("Turns") && vis["Turns"].IsNumber()) {
-                turns = vis["Turns"].GetDouble();
-            }
-            auto spring = std::make_shared<ChSpringShape>(radius, resolution, turns);
-            return spring;
-        }
-    }
-    return nullptr;
-}
-
 // -----------------------------------------------------------------------------
-// Worker function for creating a GenericWheeledSuspension suspension using data in the
-// specified RapidJSON document.
+// Worker function for creating a GenericWheeledSuspension suspension using data
+// in the specified RapidJSON document.
 // -----------------------------------------------------------------------------
 void GenericWheeledSuspension::Create(const rapidjson::Document& d) {
     // Invoke base class method.
@@ -196,7 +164,7 @@ void GenericWheeledSuspension::Create(const rapidjson::Document& d) {
             auto point2 = ReadVectorJSON(tsda["Point2"]);
             double free_length;
             auto force = ReadTSDAFunctorJSON(tsda, free_length);
-            auto geometry = ReadTSDAGeometryJSON(tsda);
+            auto geometry = std::make_shared<ChTSDAGeometry>(ReadTSDAGeometryJSON(tsda));
             DefineTSDA(name, mirrored, body1, body2, point1, point2, free_length, force, geometry);
         }
     }

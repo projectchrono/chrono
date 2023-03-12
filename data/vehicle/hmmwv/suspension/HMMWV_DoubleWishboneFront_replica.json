@@ -187,7 +187,7 @@
         [ 0.2, 322095.536 ]
       ],
       "Visualization": {
-        "Type": "Spring",
+        "Type": "SPRING",
         "Radius": 0.06,
         "Turns": 15,
         "Resolution": 150
@@ -203,7 +203,7 @@
       "Point2": [ 0.097, 0.543, -0.047 ],
       "Damping Coefficient": 19015.5692,
       "Visualization": {
-        "Type": "Segment"
+        "Type": "SEGMENT"
       }
     }
   ],

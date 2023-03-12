@@ -283,5 +283,41 @@ ChVehicleGeometry::AABB ChVehicleGeometry::CalculateAABB() {
     return AABB((amin + amax) / 2, amax - amin);
 }
 
+// -----------------------------------------------------------------------------
+
+ChTSDAGeometry::ChTSDAGeometry() : m_has_color(false), m_vis_segment(nullptr), m_vis_spring(nullptr) {}
+
+ChTSDAGeometry::SpringShape::SpringShape(double radius, int resolution, double turns)
+    : m_radius(radius), m_turns(turns), m_resolution(resolution) {}
+
+void ChTSDAGeometry::CreateVisualizationAssets(std::shared_ptr<ChLinkTSDA> tsda, VisualizationType vis) {
+    if (vis == VisualizationType::NONE)
+        return;
+
+    if (!tsda->GetVisualModel()) {
+        auto model = chrono_types::make_shared<ChVisualModel>();
+        tsda->AddVisualModel(model);
+    }
+
+    if (!m_has_color) {
+        m_color = ChColor(1.0f, 1.0f, 1.0f);
+    }
+    auto mat = chrono_types::make_shared<ChVisualMaterial>();
+    mat->SetDiffuseColor(m_color);
+
+    if (m_vis_spring) {
+        auto spring_shape = chrono_types::make_shared<ChSpringShape>(m_vis_spring->m_radius, m_vis_spring->m_resolution,
+                                                                     m_vis_spring->m_turns);
+        spring_shape->AddMaterial(mat);
+        tsda->AddVisualShape(spring_shape);
+    }
+
+    if (m_vis_segment) {
+        auto segment_shape = chrono_types::make_shared<ChSegmentShape>();
+        segment_shape->AddMaterial(mat);
+        tsda->AddVisualShape(segment_shape);
+    }
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono
