@@ -364,6 +364,8 @@ void ChPovRay::ExportScript(const std::string& filename) {
                 mfile << "#declare draw_contacts_asspheres =1;\n";
                 mfile << "#declare draw_contacts_ascylinders =0;\n";
                 break;
+            case ContactSymbol::SPHERE_NOSCALE:
+                break;
         }
         mfile << "\n";
 
