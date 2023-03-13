@@ -509,7 +509,10 @@ int main(int argc, char* argv[]) {
             path_driver->GetSteeringController().SetGains(0.5, 0, 0);
             path_driver->GetSpeedController().SetGains(0.6, 0.3, 0);
             driver = path_driver;
+            break;
         }
+        default:
+            break;
     }
     driver->Initialize();
 

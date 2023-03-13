@@ -343,24 +343,26 @@ std::shared_ptr<ChLinkTSDA::ForceFunctor> ReadTSDAFunctorJSON(const rapidjson::V
 
     assert(tsda.IsObject());
 
-    if (tsda.HasMember("Spring Coefficient"))
+    if (tsda.HasMember("Spring Coefficient")) {
         if (tsda.HasMember("Damping Coefficient"))
             type = FunctorType::LinearSpringDamper;
         else
             type = FunctorType::LinearSpring;
-    else if (tsda.HasMember("Damping Coefficient"))
+    } else if (tsda.HasMember("Damping Coefficient")) {
         if (tsda.HasMember("Degressivity Compression") && tsda.HasMember("Degressivity Expansion"))
             type = FunctorType::DegressiveDamper;
         else
             type = FunctorType::LinearDamper;
+    }
 
-    if (tsda.HasMember("Spring Curve Data"))
+    if (tsda.HasMember("Spring Curve Data")) {
         if (tsda.HasMember("Damping Curve Data"))
             type = FunctorType::NonlinearSpringDamper;
         else
             type = FunctorType::NonlinearSpring;
-    else if (tsda.HasMember("Damping Curve Data"))
+    } else if (tsda.HasMember("Damping Curve Data")) {
         type = FunctorType::NonlinearDamper;
+    }
 
     if (tsda.HasMember("Map Data"))
         type = FunctorType::MapSpringDamper;
