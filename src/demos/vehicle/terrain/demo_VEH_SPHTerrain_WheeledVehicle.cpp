@@ -93,6 +93,7 @@ int main(int argc, char* argv[]) {
 
     // Create the SPH terrain system
     SPHTerrain terrain(sys, 0.02);
+    terrain.SetVerbose(verbose);
     ChSystemFsi& sysFSI = terrain.GetSystemFSI();
 
     // Set SPH parameters and soil material properties
@@ -124,7 +125,6 @@ int main(int argc, char* argv[]) {
     sysFSI.SetWallBC(BceVersion::ORIGINAL);
     sysFSI.SetSPHMethod(FluidDynamics::WCSPH);
     sysFSI.SetStepSize(step_size);
-    sysFSI.SetVerbose(verbose);
 
     sysFSI.SetOutputLength(0);
 
@@ -175,12 +175,12 @@ int main(int argc, char* argv[]) {
         switch (vis_type) {
             case ChVisualSystem::Type::OpenGL:
 #ifdef CHRONO_OPENGL
-                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
+                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI, verbose);
 #endif
                 break;
             case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI, verbose);
 #endif
                 break;
             }

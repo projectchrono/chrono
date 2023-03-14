@@ -103,8 +103,8 @@ class CH_FSI_API ChSystemFsi {
     /// Get current estimated RTF (real time factor).
     double GetRTF() const { return m_RTF; }
 
-    /// Enable/disable m_verbose terminal output.
-    void SetVerbose(bool m_verbose);
+    /// Enable/disable verbose terminal output.
+    void SetVerbose(bool verbose);
 
     /// Read Chrono::FSI parameters from the specified JSON file.
     void ReadParametersFromFile(const std::string& json_file);

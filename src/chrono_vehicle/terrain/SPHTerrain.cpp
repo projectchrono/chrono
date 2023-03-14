@@ -29,6 +29,9 @@
 #include "chrono_thirdparty/stb/stb.h"
 #include "chrono_thirdparty/filesystem/path.h"
 
+using std::cout;
+using std::endl;
+
 namespace chrono {
 namespace vehicle {
 
@@ -39,16 +42,23 @@ SPHTerrain::SPHTerrain(ChSystem& sys, double spacing)
       m_offset(VNULL),
       m_angle(0.0),
       m_aabb_min(std::numeric_limits<double>::max()),
-      m_aabb_max(-std::numeric_limits<double>::max()) {
+      m_aabb_max(-std::numeric_limits<double>::max()),
+      m_verbose(false) {
     // Create ground body
     m_ground = std::shared_ptr<ChBody>(sys.NewBody());
     m_ground->SetBodyFixed(true);
     sys.AddBody(m_ground);
 
     // Associate MBS system with underlying FSI system
+    m_sysFSI.SetVerbose(m_verbose);
     m_sysFSI.AttachSystem(&sys);
     m_sysFSI.SetInitialSpacing(spacing);
     m_sysFSI.SetKernelLength(spacing);
+}
+
+void SPHTerrain::SetVerbose(bool verbose) {
+    m_sysFSI.SetVerbose(verbose);
+    m_verbose = verbose;
 }
 
 void SPHTerrain::AddRigidObstacle(const std::string& obj_file,
@@ -61,6 +71,12 @@ void SPHTerrain::AddRigidObstacle(const std::string& obj_file,
 
     if (m_initialized)
         throw ChException("SPHTerrain: obstacles cannot be added after initialization");
+
+    if (m_verbose) {
+        cout << "Add obstacle" << endl;
+        cout << "  Mesh filename: " << obj_file << endl;
+        cout << "  Scale: " << scale << endl;
+    }
 
     RigidObstacle o;
     o.density = density;
@@ -82,9 +98,11 @@ void SPHTerrain::AddRigidObstacle(const std::string& obj_file,
     ChMatrix33<> inertia;
     o.trimesh->ComputeMassProperties(true, mass, baricenter, inertia);
 
+    auto o_name = filesystem::path(obj_file).stem();
+
     // Create the obstacle body
     o.body = std::shared_ptr<ChBody>(m_sys.NewBody());
-    o.body->SetNameString("obstacle");
+    o.body->SetNameString("obstacle_" + o_name);
     o.body->SetPos(pos.GetPos());
     o.body->SetRot(pos.GetRot());
     o.body->SetMass(mass * density);
@@ -95,7 +113,7 @@ void SPHTerrain::AddRigidObstacle(const std::string& obj_file,
     // Create obstacle visualization geometry
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(o.trimesh);
-    trimesh_shape->SetName(filesystem::path(obj_file).stem());
+    trimesh_shape->SetName(o_name);
     o.body->AddVisualShape(trimesh_shape, ChFrame<>());
 
     // Create obstacle collision geometry
@@ -112,12 +130,20 @@ void SPHTerrain::AddRigidObstacle(const std::string& obj_file,
     m_sys.AddBody(o.body);
 
     m_obstacles.push_back(o);
+    
+    if (m_verbose) {
+        cout << "  Num. BCE markers: " << o.point_cloud.size() << endl;
+    }
 }
 
 void SPHTerrain::Construct(const std::string& sph_file,
                            const std::string& bce_file,
                            const ChVector<>& pos,
                            double yaw_angle) {
+    if (m_verbose) {
+        cout << "Construct SPHTerrain from data files" << endl;
+    }
+
     std::string line;
     int x, y, z;
 
@@ -133,6 +159,11 @@ void SPHTerrain::Construct(const std::string& sph_file,
         std::istringstream iss(line, std::ios_base::in);
         iss >> x >> y >> z;
         m_bce.insert(ChVector<int>(x, y, z));
+    }
+
+    if (m_verbose) {
+        cout << "  SPH particles filename: " << sph_file << "  [" << m_sph.size() << "]" << endl;
+        cout << "  BCE markers filename: " << bce_file << "  [" << m_bce.size() << "]" << endl;
     }
 
     // Complete construction of SPH terrain and obstacles
@@ -155,6 +186,11 @@ void SPHTerrain::Construct(const std::string& heightmap_file,
     if (!hmap.ReadFromFile(heightmap_file, 1)) {
         throw ChException("Cannot open height map image file");
     }
+
+    if (m_verbose) {
+        cout << "Construct SPHTerrain from heightmap file" << endl;
+    }
+
     int nx = hmap.GetWidth();   // number of pixels in x direction
     int ny = hmap.GetHeight();  // number of pixels in y direction
     double dx = length / (nx - 1);
@@ -249,6 +285,12 @@ void SPHTerrain::Construct(const std::string& heightmap_file,
         m_bce.insert(p);
     }
 
+    if (m_verbose) {
+        cout << "  Heightmap filename: " << heightmap_file << endl;
+        cout << "  Num. SPH particles: " << m_sph.size() << endl;
+        cout << "  Num. BCE markers: " << m_bce.size() << endl;
+    }
+
     // Complete construction of SPH terrain and obstacles
     m_offset = pos - ChVector<>(length / 2, width / 2, 0);
     m_angle = yaw_angle;
@@ -257,8 +299,15 @@ void SPHTerrain::Construct(const std::string& heightmap_file,
 
 void SPHTerrain::CompleteConstruct() {
     // Prune SPH particles at grid locations that overlap with obstacles
-    for (auto& o : m_obstacles) {
-        ProcessObstacleMesh(o);
+    if (!m_obstacles.empty()) {
+        if (m_verbose)
+            cout << "Remove SPH particles inside obstacle volumes" << endl;
+
+        for (auto& o : m_obstacles)
+            ProcessObstacleMesh(o);
+        
+        if (m_verbose)            
+            cout << "Num. SPH particles: " << m_sph.size() << endl;
     }
 
     // Convert SPH and BCE grid points to real coordinates and apply patch transformation.
@@ -282,6 +331,12 @@ void SPHTerrain::CompleteConstruct() {
         m_sysFSI.AddSPHParticle(p, m_sysFSI.GetDensity(), 0.0, m_sysFSI.GetViscosity(), VNULL, tau, VNULL);
         m_aabb_min = Vmin(m_aabb_min, p);
         m_aabb_max = Vmax(m_aabb_max, p);
+    }
+
+    if (m_verbose) {
+        cout << "AABB of SPH particles" << endl;
+        cout << "  min: " << m_aabb_min << endl;
+        cout << "  max: " << m_aabb_max << endl;
     }
 
     // Set computational domain
@@ -324,69 +379,7 @@ static const std::vector<ChVector<int>> nbr3D{
 };
 
 //// TODO:
-////  - Obsolete the 'bce' member of RigidObject (can be loaded directly in the tmp list).
-////    For now, keep in order to save to file (debugging)
 ////  - Include yaw angle
-
-/*
-void SPHTerrain::ProcessObstacleMesh(RigidObstacle& o) {
-    // Express the points in the obstacle BCE point cloud in SPHTerrain grid coordinates.
-    o.bce.reserve(o.point_cloud.size());
-    for (const auto& p : o.point_cloud) {
-        auto p_abs = o.body->TransformPointLocalToParent(p);  // point in absolute frame
-        auto p_sph = p_abs - m_offset;                        // point in SPHTerrain frame
-        o.bce.insert(Snap2Grid(p_sph, m_spacing));         // point in SPHTerrain grid coordinates
-    }
-
-    // Express the provided interior point in SPHTerrain grid coordinates
-    auto c_abs = o.body->TransformPointLocalToParent(o.point);  // point in absolute frame
-    auto c_sph = c_abs - m_offset;                              // point in SPHTerrain frame
-    auto c = Snap2Grid(c_sph, m_spacing);                       // point in SPHTerrain grid coordinates
-
-    // Calculate the (integer) obstacle AABB
-    ChVector<int> aabb_min(+std::numeric_limits<int>::max());
-    ChVector<int> aabb_max(-std::numeric_limits<int>::max());
-    for (const auto& p : o.bce) {
-        aabb_min = Vmin(aabb_min, p);
-        aabb_max = Vmax(aabb_max, p);
-    }
-
-    // Collect all grid points contained in the BCE volume in a list (initialized with the obstacle BCEs)
-    Points list;
-    for (const auto& p : o.bce)
-        list.insert(p);
-
-    // Use a queue-based flood-filling algorithm to find all points interior to the obstacle volume
-    std::queue<ChVector<int>> todo;
-
-    // Add the provided interior point to the work queue then iterate until the queue is empty
-    todo.push({c.x(), c.y(), c.z()});
-    while (!todo.empty()) {
-        // Get first element in queue, add it to the list, then remove from queue
-        auto crt = todo.front();
-        list.insert(crt);
-        todo.pop();
-
-        // Safeguard -- stop as soon as we spill out of the obstacle AABB
-        if (!(crt > aabb_min && crt < aabb_max)) {
-            std::cout << "Obstacle BCE set is NOT watertight!" << std::endl;
-            break;
-        }
-
-        // Loop through all 6 neighbors of the current node and add them to the end of the work queue
-        // if not already in the list
-        for (int k = 0; k < 6; k++) {
-            auto nbr = crt + nbr3D[k];
-            if (list.find(nbr) == list.end())
-                todo.push(nbr);
-        }
-    }
-
-    ////
-    std::cout << o.bce.size() << std::endl;
-    std::cout << list.size() << std::endl;
-}
-*/
 
 void SPHTerrain::ProcessObstacleMesh(RigidObstacle& o) {
     // Create BCE markers for the *transformed* obstacle mesh
@@ -459,9 +452,12 @@ void SPHTerrain::ProcessObstacleMesh(RigidObstacle& o) {
         }
     }
 
-    std::cout << o.bce.size() << std::endl;
-    std::cout << list.size() << std::endl;
-    std::cout << num_removed << std::endl;
+    if (m_verbose) {
+        cout << "Obstacle mesh name: " << o.trimesh->GetFileName() << endl;
+        cout << "  Num. BCE markers: " << o.bce.size() << endl;
+        cout << "  Num. grid points in obstacle volume: " << list.size() << endl;
+        cout << "  Num. SPH particles removed: " << num_removed << endl;
+    }
 }
 
 void SPHTerrain::GetAABB(ChVector<>& aabb_min, ChVector<>& aabb_max) const {

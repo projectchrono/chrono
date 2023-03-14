@@ -428,7 +428,8 @@ ChVisualSystemVSG::ChVisualSystemVSG()
       m_time_total(0),
       m_old_time(0),
       m_current_time(0),
-      m_fps(0) {
+      m_fps(0),
+      m_verbose(true) {
     m_windowTitle = string("Window Title");
     m_clearColor = ChColor(0, 0, 0);
     m_skyboxPath = string("vsg/textures/chrono_skybox.ktx2");
@@ -764,38 +765,37 @@ void ChVisualSystemVSG::Initialize() {
     }
     auto& limits = m_window->getOrCreatePhysicalDevice()->getProperties().limits;  // VkPhysicalDeviceLimits
     auto prop = m_window->getPhysicalDevice()->getProperties();
-    GetLog() << "****************************************************\n";
-    GetLog() << "* Chrono::VSG Vulkan Scene Graph 3D-Visualization\n";
-    GetLog() << "* GPU Name: " << prop.deviceName << "\n";
-    switch (prop.deviceType) {
-        default:
-        case VK_PHYSICAL_DEVICE_TYPE_OTHER:
-            GetLog() << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_OTHER"
-                     << "\n";
-            break;
-        case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
-            GetLog() << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU"
-                     << "\n";
-            break;
-        case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
-            GetLog() << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU"
-                     << "\n";
-            break;
-        case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
-            GetLog() << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU"
-                     << "\n";
-            break;
-        case VK_PHYSICAL_DEVICE_TYPE_CPU:
-            GetLog() << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_CPU"
-                     << "\n";
-            break;
+
+    if (m_verbose) {
+        GetLog() << "****************************************************\n";
+        GetLog() << "* Chrono::VSG Vulkan Scene Graph 3D-Visualization\n";
+        GetLog() << "* GPU Name: " << prop.deviceName << "\n";
+        switch (prop.deviceType) {
+            default:
+            case VK_PHYSICAL_DEVICE_TYPE_OTHER:
+                GetLog() << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_OTHER\n";
+                break;
+            case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
+                GetLog() << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU\n";
+                break;
+            case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
+                GetLog() << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU\n";
+                break;
+            case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
+                GetLog() << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU\n";
+                break;
+            case VK_PHYSICAL_DEVICE_TYPE_CPU:
+                GetLog() << "* GPU Type: VK_PHYSICAL_DEVICE_TYPE_CPU\n";
+                break;
+        }
+        GetLog() << "* Vulkan Version: " << VK_VERSION_MAJOR(VK_HEADER_VERSION_COMPLETE) << "."
+                 << VK_VERSION_MINOR(VK_HEADER_VERSION_COMPLETE) << "."
+                 << VK_API_VERSION_PATCH(VK_HEADER_VERSION_COMPLETE) << "\n";
+        GetLog() << "* Vulkan Scene Graph Version: " << VSG_VERSION_STRING << "\n";
+        GetLog() << "* Graphic Output Possible on: " << vsg::Device::maxNumDevices() << " Screens.\n";
+        GetLog() << "****************************************************\n";
     }
-    GetLog() << "* Vulkan Version: " << VK_VERSION_MAJOR(VK_HEADER_VERSION_COMPLETE) << "."
-             << VK_VERSION_MINOR(VK_HEADER_VERSION_COMPLETE) << "." << VK_API_VERSION_PATCH(VK_HEADER_VERSION_COMPLETE)
-             << "\n";
-    GetLog() << "* Vulkan Scene Graph Version: " << VSG_VERSION_STRING << "\n";
-    GetLog() << "* Graphic Output Possible on: " << vsg::Device::maxNumDevices() << " Screens.\n";
-    GetLog() << "****************************************************\n";
+
     m_shapeBuilder->m_maxAnisotropy = limits.maxSamplerAnisotropy;
     m_window->clearColor() = VkClearColorValue{{m_clearColor.R, m_clearColor.G, m_clearColor.B, 1}};
     m_viewer->addWindow(m_window);

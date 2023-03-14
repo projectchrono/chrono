@@ -55,8 +55,9 @@ class FSIStatsGL : public opengl::ChOpenGLStats {
 
 // -----------------------------------------------------------------------------
 
-ChFsiVisualizationGL::ChFsiVisualizationGL(ChSystemFsi* sysFSI) : ChFsiVisualization(sysFSI), m_bce_start_index(0) {
+ChFsiVisualizationGL::ChFsiVisualizationGL(ChSystemFsi* sysFSI, bool verbose) : ChFsiVisualization(sysFSI), m_bce_start_index(0) {
     m_vsys = new opengl::ChVisualSystemOpenGL();
+    m_vsys->SetVerbose(verbose);
     m_vsys->AttachSystem(m_system);
     m_vsys->SetWindowTitle("");
     m_vsys->SetWindowSize(1280, 720);

@@ -45,8 +45,6 @@ void ChOpenGLOBJLoader::LoadObject(const char* mesh_file,
 
     LoadObj(&att, &shapes, &materials, &warn, &err, &ifs);
 
-    std::cout << " # of shapes : " << shapes.size() << std::endl;
-
     vertices.resize(shapes.size());
     normals.resize(shapes.size());
     texcoords.resize(shapes.size());
@@ -102,9 +100,6 @@ void ChOpenGLOBJLoader::LoadObject(const char* mesh_file,
                 indices[i].push_back(mapped_ids[hashed_id]);
             }
         }
-
-        std::cout << vertices[i].size() << " " << normals[i].size() << " " << texcoords[i].size() << " "
-                  << indices[i].size() << std::endl;
     }
 }
 }  // namespace opengl

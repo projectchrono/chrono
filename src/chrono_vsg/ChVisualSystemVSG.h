@@ -138,6 +138,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Get estimated FPS.
     double GetRenderingFPS() const { return m_fps; }
 
+    /// Enable/disable VSG information terminal output during initialization (default: true).
+    void SetVerbose(bool verbose) { m_verbose = verbose; }
+
     void SetLightIntensity(float intensity);
     void SetLightDirection(double azimuth, double elevation);
     void SetCameraAngleDeg(double angleDeg) { m_cameraAngleDeg = angleDeg; }
@@ -231,8 +234,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::Builder> m_vsgBuilder;
     vsg::ref_ptr<ShapeBuilder> m_shapeBuilder;
 
-    bool m_wireframe;  ///< draw as wireframes
-
+    bool m_verbose;               ///< VSG terminal initialization output
+    bool m_wireframe;             ///< draw as wireframes
     bool m_capture_image;         ///< export current frame to image file
     std::string m_imageFilename;  ///< name of file to export current frame
 

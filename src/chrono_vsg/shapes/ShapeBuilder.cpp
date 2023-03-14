@@ -518,7 +518,6 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColShape(vsg::ref_ptr<vsg::M
     }
     // create and fill the vsg buffers
     size_t nVert = tmp_vertices.size();
-    GetLog() << ">>>> nVertInput = " << vertices.size() << "  >>>>> nVertOutput = " << nVert << "\n";
     vsg::ref_ptr<vsg::vec3Array> vsg_vertices = vsg::vec3Array::create(nVert);
     vsg::ref_ptr<vsg::vec3Array> vsg_normals = vsg::vec3Array::create(nVert);
     vsg::ref_ptr<vsg::vec2Array> vsg_texcoords = vsg::vec2Array::create(nVert);

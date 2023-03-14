@@ -44,6 +44,9 @@ class CH_VEHICLE_API SPHTerrain : public ChTerrain {
     /// No SPH parameters are set.
     SPHTerrain(ChSystem& sys, double spacing);
 
+    /// Enable verbose output during construction of SPHTerrain (default: false).
+    void SetVerbose(bool verbose);
+
     /// Access the underlying FSI system.
     fsi::ChSystemFsi& GetSystemFSI() { return m_sysFSI; }
 
@@ -162,6 +165,7 @@ class CH_VEHICLE_API SPHTerrain : public ChTerrain {
     ChVector<> m_aabb_min;                   ///< particle AABB corner
     ChVector<> m_aabb_max;                   ///< particle AABB corner
     std::vector<RigidObstacle> m_obstacles;  ///< list of rigid obstacles
+    bool m_verbose;                          ///< if true, write information to standard output
 };
 
 /// @} vehicle_terrain

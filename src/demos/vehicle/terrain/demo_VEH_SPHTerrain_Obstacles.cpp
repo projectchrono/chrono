@@ -53,20 +53,6 @@ const std::string out_dir = GetChronoOutputPath() + "SPH_TERRAIN_OBSTACLE";
 
 // -----------------------------------------------------------------------------
 
-bool GetProblemSpecs(int argc,
-                     char** argv,
-                     double& density,
-                     double& cohesion,
-                     double& friction,
-                     double& youngs_modulus,
-                     double& poisson_ratio,
-                     double& tend,
-                     double& step_size,
-                     double& active_box_dim,
-                     bool& verbose);
-
-// -----------------------------------------------------------------------------
-
 int main(int argc, char* argv[]) {
     // Parse command line arguments
     double density = 1700;
@@ -87,13 +73,6 @@ int main(int argc, char* argv[]) {
 
     bool verbose = true;
 
-    if (!GetProblemSpecs(argc, argv,                                                  //
-                         density, cohesion, friction, youngs_modulus, poisson_ratio,  //
-                         tend, step_size, active_box_dim,                             //
-                         verbose)) {
-        return 1;
-    }
-
     // Initialize output
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
@@ -105,6 +84,7 @@ int main(int argc, char* argv[]) {
 
     // Create the terrain system
     SPHTerrain terrain(sys, 0.02);
+    terrain.SetVerbose(verbose);
     ChSystemFsi& sysFSI = terrain.GetSystemFSI();
 
     // Set SPH parameters and soil material properties
@@ -136,7 +116,6 @@ int main(int argc, char* argv[]) {
     sysFSI.SetWallBC(BceVersion::ORIGINAL);
     sysFSI.SetSPHMethod(FluidDynamics::WCSPH);
     sysFSI.SetStepSize(step_size);
-    sysFSI.SetVerbose(verbose);
 
     // Add obstacles
     terrain.AddRigidObstacle(GetChronoDataFile("models/sphere.obj"), 0.25, 5000, ChContactMaterialData(),
@@ -170,12 +149,12 @@ int main(int argc, char* argv[]) {
         switch (vis_type) {
             case ChVisualSystem::Type::OpenGL:
 #ifdef CHRONO_OPENGL
-                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
+                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI, verbose);
 #endif
                 break;
             case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI, verbose);
 #endif
                 break;
             }
@@ -214,51 +193,4 @@ int main(int argc, char* argv[]) {
     }
 
     return 0;
-}
-
-// -----------------------------------------------------------------------------
-
-bool GetProblemSpecs(int argc,
-                     char** argv,
-                     double& density,
-                     double& cohesion,
-                     double& friction,
-                     double& youngs_modulus,
-                     double& poisson_ratio,
-                     double& tend,
-                     double& step_size,
-                     double& active_box_dim,
-                     bool& verbose) {
-    ChCLI cli(argv[0], "SPH terrain simulation");
-
-    cli.AddOption<double>("Problem setup", "density", "Material density [kg/m3]", std::to_string(density));
-    cli.AddOption<double>("Problem setup", "cohesion", "Cohesion [Pa]", std::to_string(cohesion));
-    cli.AddOption<double>("Problem setup", "friction", "Coefficient of friction", std::to_string(friction));
-    cli.AddOption<double>("Problem setup", "youngs_modulus", "Young's modulus [Pa]", std::to_string(youngs_modulus));
-    cli.AddOption<double>("Problem setup", "poisson_ratio", "Poission ratio", std::to_string(poisson_ratio));
-
-    cli.AddOption<double>("Simulation", "tend", "Simulation end time [s]", std::to_string(tend));
-    cli.AddOption<double>("Simulation", "step_size", "Integration step size [s]", std::to_string(step_size));
-    cli.AddOption<double>("Simulation", "active_box_dim", "Active box half-size [m]", std::to_string(active_box_dim));
-
-    cli.AddOption<bool>("", "quiet", "Disable all messages during simulation");
-
-    if (!cli.Parse(argc, argv)) {
-        cli.Help();
-        return false;
-    }
-
-    density = cli.GetAsType<double>("density");
-    cohesion = cli.GetAsType<double>("cohesion");
-    friction = cli.GetAsType<double>("friction");
-    youngs_modulus = cli.GetAsType<double>("youngs_modulus");
-    poisson_ratio = cli.GetAsType<double>("poisson_ratio");
-
-    tend = cli.GetAsType<double>("tend");
-    step_size = cli.GetAsType<double>("step_size");
-    active_box_dim = cli.GetAsType<double>("active_box_dim");
-
-    verbose = !cli.GetAsType<bool>("quiet");
-
-    return true;
 }
