@@ -819,6 +819,17 @@ void ChSAEToeBarLeafspringAxle::ExportComponentList(rapidjson::Document& jsonDoc
     springs.push_back(m_shock[0]);
     springs.push_back(m_shock[1]);
     ExportLinSpringList(jsonDocument, springs);
+
+    std::vector<std::shared_ptr<ChLinkRSDA>> rot_springs;
+    rot_springs.push_back(m_latRotSpringA[0]);
+    rot_springs.push_back(m_latRotSpringA[1]);
+    rot_springs.push_back(m_latRotSpringB[0]);
+    rot_springs.push_back(m_latRotSpringB[1]);
+    rot_springs.push_back(m_vertRotSpringA[0]);
+    rot_springs.push_back(m_vertRotSpringA[1]);
+    rot_springs.push_back(m_vertRotSpringB[0]);
+    rot_springs.push_back(m_vertRotSpringB[1]);
+    ExportRotSpringList(jsonDocument, rot_springs);
 }
 
 void ChSAEToeBarLeafspringAxle::Output(ChVehicleOutput& database) const {
@@ -883,6 +894,17 @@ void ChSAEToeBarLeafspringAxle::Output(ChVehicleOutput& database) const {
     springs.push_back(m_shock[0]);
     springs.push_back(m_shock[1]);
     database.WriteLinSprings(springs);
+
+    std::vector<std::shared_ptr<ChLinkRSDA>> rot_springs;
+    rot_springs.push_back(m_latRotSpringA[0]);
+    rot_springs.push_back(m_latRotSpringA[1]);
+    rot_springs.push_back(m_latRotSpringB[0]);
+    rot_springs.push_back(m_latRotSpringB[1]);
+    rot_springs.push_back(m_vertRotSpringA[0]);
+    rot_springs.push_back(m_vertRotSpringA[1]);
+    rot_springs.push_back(m_vertRotSpringB[0]);
+    rot_springs.push_back(m_vertRotSpringB[1]);
+    database.WriteRotSprings(rot_springs);
 }
 
 }  // end namespace vehicle
