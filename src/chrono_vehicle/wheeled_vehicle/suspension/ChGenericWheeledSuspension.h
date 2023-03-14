@@ -127,7 +127,7 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
     );
 
     /// Add a TSDA to model a suspension spring or shock.
-    void DefineTSDA(const std::string& name,                          ///<
+    void DefineTSDA(const std::string& name,                          ///< TSDA name
                     bool mirrored,                                    ///< true if mirrored on right side
                     BodyIdentifier body1,                             ///< first connected body
                     BodyIdentifier body2,                             ///< second connected body
@@ -136,6 +136,17 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
                     double rest_length,                               ///< rest (free) length
                     std::shared_ptr<ChLinkTSDA::ForceFunctor> force,  ///< functor for TSDA force evaluation
                     std::shared_ptr<ChTSDAGeometry> geometry = nullptr  ///< optional visualization geometry
+    );
+
+    /// Add an RSDA to model a suspension spring or shock.
+    void DefineRSDA(const std::string& name,                           ///< RSDA name
+                    bool mirrored,                                     ///< true if mirrored on right side
+                    BodyIdentifier body1,                              ///< first connected body
+                    BodyIdentifier body2,                              ///< second connected body
+                    const ChVector<>& pos,                             ///< RSDA position (in subsystem reference frame)
+                    const ChVector<>& axis,                            ///< axis of action for the RSDA
+                    double rest_angle,                                 ///< rest (free) angle
+                    std::shared_ptr<ChLinkRSDA::TorqueFunctor> torque  ///< functor for RSDA torque evaluation
     );
 
     /// Initialize this suspension subsystem.
@@ -243,6 +254,17 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
         ChTSDAGeometry geometry;                          ///< (optional) visualization geometry
     };
 
+    /// Internal specification of a suspension RSDA.
+    struct RSDA {
+        std::shared_ptr<ChLinkRSDA> rsda;                   ///< underlying Chrono RSDA element
+        BodyIdentifier body1;                               ///< identifier of 1st body
+        BodyIdentifier body2;                               ///< identifier of 2nd body
+        ChVector<> pos;                                     ///< RSDA position (in subsystem frame)
+        ChVector<> axis;                                    ///< axis of action for the RSDA (in subsystem frame)
+        double rest_angle;                                  ///< RSDA rest (free) angle
+        std::shared_ptr<ChLinkRSDA::TorqueFunctor> torque;  ///< torque functor
+    };
+
     /// Key for a suspension part.
     struct PartKey {
         bool operator==(const PartKey& rhs) const;
@@ -257,7 +279,8 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
 
     std::unordered_map<PartKey, Body, PartKeyHash> m_bodies;               ///< suspension bodies
     std::unordered_map<PartKey, Joint, PartKeyHash> m_joints;              ///< suspension joints
-    std::unordered_map<PartKey, TSDA, PartKeyHash> m_tsdas;                ///< suspension force elements
+    std::unordered_map<PartKey, TSDA, PartKeyHash> m_tsdas;                ///< suspension TSDA force elements
+    std::unordered_map<PartKey, RSDA, PartKeyHash> m_rsdas;                ///< suspension RSDA force elements
     std::unordered_map<PartKey, DistanceConstraint, PartKeyHash> m_dists;  ///< suspension distance constraints
 
     /// Get the unique name of an item in this suspension subsystem.

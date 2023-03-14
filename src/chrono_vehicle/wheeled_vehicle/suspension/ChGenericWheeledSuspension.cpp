@@ -44,19 +44,22 @@ ChGenericWheeledSuspension::ChGenericWheeledSuspension(const std::string& name) 
 ChGenericWheeledSuspension::~ChGenericWheeledSuspension() {
     auto sys = m_spindle[0]->GetSystem();
     if (sys) {
-        for (auto& body : m_bodies)
-            sys->Remove(body.second.body);
-        for (auto& joint : m_joints)
-            ChChassis::RemoveJoint(joint.second.joint);
-        for (auto& dist : m_dists)
-            sys->Remove(dist.second.dist);
-        for (auto& tsda : m_tsdas)
-            sys->Remove(tsda.second.tsda);
+        for (auto& item : m_bodies)
+            sys->Remove(item.second.body);
+        for (auto& item : m_joints)
+            ChChassis::RemoveJoint(item.second.joint);
+        for (auto& item : m_dists)
+            sys->Remove(item.second.dist);
+        for (auto& item : m_tsdas)
+            sys->Remove(item.second.tsda);
+        for (auto& item : m_rsdas)
+            sys->Remove(item.second.rsda);
 
         m_bodies.clear();
         m_joints.clear();
         m_dists.clear();
         m_tsdas.clear();
+        m_rsdas.clear();
     }
 }
 
@@ -223,6 +226,31 @@ void ChGenericWheeledSuspension::DefineTSDA(const std::string& name,
     }
 }
 
+void ChGenericWheeledSuspension::DefineRSDA(const std::string& name,
+                                            bool mirrored,
+                                            BodyIdentifier body1,
+                                            BodyIdentifier body2,
+                                            const ChVector<>& pos,
+                                            const ChVector<>& axis,
+                                            double rest_angle,
+                                            std::shared_ptr<ChLinkRSDA::TorqueFunctor> torque) {
+    RSDA r;
+    r.rsda = nullptr;
+    r.body1 = body1;
+    r.body2 = body2;
+    r.pos = pos;
+    r.axis = axis.GetNormalized();
+    r.rest_angle = rest_angle;
+    r.torque = torque;
+
+    if (!mirrored) {
+        m_rsdas.insert({{name, -1}, r});
+    } else {
+        m_rsdas.insert({{name, 0}, r});
+        m_rsdas.insert({{name, 1}, r});
+    }
+}
+
 // -----------------------------------------------------------------------------
 
 std::string ChGenericWheeledSuspension::Name(const PartKey& id) const {
@@ -270,8 +298,7 @@ std::shared_ptr<ChBody> ChGenericWheeledSuspension::FindBody(BodyIdentifier body
         auto b2 = m_bodies.find({body.name, side});
         assert(b2 != m_bodies.end());
         return b2->second.body;
-    }
-    else {
+    } else {
         auto b1 = m_bodies.find({body.name, body.side});
         assert(b1 != m_bodies.end());
         return b1->second.body;
@@ -424,7 +451,7 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Create and initialize TSDAs in the suspension subsystem
     for (auto& item : m_tsdas) {
-        // Extract the two bodies connected by this joint
+        // Extract the two bodies connected by this element
         std::shared_ptr<ChBody> body1;
         if (item.second.body1.chassis)
             body1 = chassis->GetBody();
@@ -454,6 +481,43 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
         item.second.tsda->SetRestLength(item.second.rest_length);
         item.second.tsda->RegisterForceFunctor(item.second.force);
         chassis->GetSystem()->AddLink(item.second.tsda);
+    }
+
+    // Create and initialize RSDAs in the suspension subsystem
+    for (auto& item : m_rsdas) {
+        // Extract the two bodies connected by this element
+        std::shared_ptr<ChBody> body1;
+        if (item.second.body1.chassis)
+            body1 = chassis->GetBody();
+        else if (item.second.body1.subchassis && subchassis != nullptr)
+            body1 = subchassis->GetBeam(item.first.side == 0 ? LEFT : RIGHT);
+        else if (item.second.body1.steering && steering != nullptr)
+            body1 = steering->GetSteeringLink();
+        else
+            body1 = FindBody(item.second.body1, item.first.side);
+
+        std::shared_ptr<ChBody> body2;
+        if (item.second.body2.chassis)
+            body2 = chassis->GetBody();
+        else if (item.second.body2.subchassis && subchassis != nullptr)
+            body2 = subchassis->GetBeam(item.first.side == 0 ? LEFT : RIGHT);
+        else if (item.second.body2.steering && steering != nullptr)
+            body2 = steering->GetSteeringLink();
+        else
+            body2 = FindBody(item.second.body2, item.first.side);
+
+        // Create RSDA
+        ChVector<> pos = TransformPosition(item.second.pos, item.first.side);
+        ChVector<> axis = TransformPosition(item.second.pos, item.first.side);
+        ChMatrix33<> rot;
+        rot.Set_A_Xdir(axis);
+        ChQuaternion<> quat = rot.Get_A_quaternion() * Q_from_AngY(CH_C_PI_2);
+        item.second.rsda = chrono_types::make_shared<ChLinkRSDA>();
+        item.second.rsda->SetNameString(Name(item.first));
+        item.second.rsda->Initialize(body1, body2, ChCoordsys<>(pos, quat));
+        item.second.rsda->SetRestAngle(item.second.rest_angle);
+        item.second.rsda->RegisterTorqueFunctor(item.second.torque);
+        chassis->GetSystem()->AddLink(item.second.rsda);
     }
 }
 
@@ -608,6 +672,11 @@ void ChGenericWheeledSuspension::ExportComponentList(rapidjson::Document& jsonDo
     for (const auto& item : m_tsdas)
         springs.push_back(item.second.tsda);
     ExportLinSpringList(jsonDocument, springs);
+
+    std::vector<std::shared_ptr<ChLinkRSDA>> rot_springs;
+    for (const auto& item : m_rsdas)
+        rot_springs.push_back(item.second.rsda);
+    ExportRotSpringList(jsonDocument, rot_springs);
 }
 
 void ChGenericWheeledSuspension::Output(ChVehicleOutput& database) const {
@@ -642,6 +711,11 @@ void ChGenericWheeledSuspension::Output(ChVehicleOutput& database) const {
     for (const auto& item : m_tsdas)
         springs.push_back(item.second.tsda);
     database.WriteLinSprings(springs);
+
+    std::vector<std::shared_ptr<ChLinkRSDA>> rot_springs;
+    for (const auto& item : m_rsdas)
+        rot_springs.push_back(item.second.rsda);
+    database.WriteRotSprings(rot_springs);
 }
 
 // -----------------------------------------------------------------------------

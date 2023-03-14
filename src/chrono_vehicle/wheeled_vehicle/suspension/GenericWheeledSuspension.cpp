@@ -184,6 +184,22 @@ void GenericWheeledSuspension::Create(const rapidjson::Document& d) {
         }
     }
 
+    // Read TSDAs
+    if (d.HasMember("RSDAs")) {
+        auto rsdas = d["RSDAs"].GetArray();
+        for (auto& rsda : rsdas) {
+            auto name = rsda["Name"].GetString();
+            auto mirrored = rsda["Mirrored"].GetBool();
+            auto body1 = ReadBodyIdentifierJSON(rsda["Body1"]);
+            auto body2 = ReadBodyIdentifierJSON(rsda["Body2"]);
+            auto pos = ReadVectorJSON(rsda["Position"]);
+            auto axis = ReadVectorJSON(rsda["Axis"]);
+            double free_angle;
+            auto torque = ReadRSDAFunctorJSON(rsda, free_angle);
+            DefineRSDA(name, mirrored, body1, body2, pos, axis, free_angle, torque);
+        }
+    }
+
     // Read axle inertia
     assert(d.HasMember("Axle"));
     assert(d["Axle"].IsObject());
