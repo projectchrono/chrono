@@ -253,16 +253,29 @@ ChQuaternion<> ChGenericWheeledSuspension::TransformRotation(const ChQuaternion<
     return m_X_SA.GetRot() * rot;
 }
 
-std::shared_ptr<ChBody> ChGenericWheeledSuspension::FindBody(const std::string& name, int side) const {
-    // Search for a non-mirrored body
-    auto b1 = m_bodies.find({name, -1});
-    if (b1 != m_bodies.end())
+std::shared_ptr<ChBody> ChGenericWheeledSuspension::FindBody(BodyIdentifier body, int side) const {
+    // When looking for a body, there are a couple of scenarios to consider:
+    // 1) The body identifier only holds a name and no side (-1) which means we will look for a body
+    //    with this name as either:
+    //    a) an unmirrored body (side is -1) or
+    //    b) as one on the specified side of the suspension (LEFT, RIGHT).
+    // 2) The body identifier holds a name and a side (LEFT, RIGHT) which means we will look for a
+    //    body with that name on that side, regardless of what side of the suspension (if any) we
+    //    are on.
+    if (body.side == -1) {
+        auto b1 = m_bodies.find({body.name, -1});
+        if (b1 != m_bodies.end()) {
+            return b1->second.body;
+        }
+        auto b2 = m_bodies.find({body.name, side});
+        assert(b2 != m_bodies.end());
+        return b2->second.body;
+    }
+    else {
+        auto b1 = m_bodies.find({body.name, body.side});
+        assert(b1 != m_bodies.end());
         return b1->second.body;
-
-    // Search for a mirrored body
-    auto b2 = m_bodies.find({name, side});
-    assert(b2 != m_bodies.end());
-    return b2->second.body;
+    }
 }
 
 void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
@@ -307,7 +320,7 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
         else if (item.second.body1.steering && steering != nullptr)
             body1 = steering->GetSteeringLink();
         else
-            body1 = FindBody(item.second.body1.name, item.first.side);
+            body1 = FindBody(item.second.body1, item.first.side);
 
         std::shared_ptr<ChBody> body2;
         if (item.second.body2.chassis)
@@ -317,7 +330,7 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
         else if (item.second.body2.steering && steering != nullptr)
             body2 = steering->GetSteeringLink();
         else
-            body2 = FindBody(item.second.body2.name, item.first.side);
+            body2 = FindBody(item.second.body2, item.first.side);
 
         // Create joint
         ChVector<> pos = TransformPosition(item.second.pos, item.first.side);
@@ -342,7 +355,7 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
         else if (item.second.body1.steering && steering != nullptr)
             body1 = steering->GetSteeringLink();
         else
-            body1 = FindBody(item.second.body1.name, item.first.side);
+            body1 = FindBody(item.second.body1, item.first.side);
 
         std::shared_ptr<ChBody> body2;
         if (item.second.body2.chassis)
@@ -352,7 +365,7 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
         else if (item.second.body2.steering && steering != nullptr)
             body2 = steering->GetSteeringLink();
         else
-            body2 = FindBody(item.second.body2.name, item.first.side);
+            body2 = FindBody(item.second.body2, item.first.side);
 
         // Create distance constraint
         ChVector<> point1 = TransformPosition(item.second.point1, item.first.side);
@@ -387,7 +400,7 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
         if (abody_id.chassis)
             abody = chassis->GetBody();
         else
-            abody = FindBody(abody_id.name, side);
+            abody = FindBody(abody_id, side);
 
         ChCoordsys<> rev_csys(spindlePos, spindleRot * Q_from_AngX(CH_C_PI_2));
         m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
@@ -420,7 +433,7 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
         else if (item.second.body1.steering && steering != nullptr)
             body1 = steering->GetSteeringLink();
         else
-            body1 = FindBody(item.second.body1.name, item.first.side);
+            body1 = FindBody(item.second.body1, item.first.side);
 
         std::shared_ptr<ChBody> body2;
         if (item.second.body2.chassis)
@@ -430,7 +443,7 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
         else if (item.second.body2.steering && steering != nullptr)
             body2 = steering->GetSteeringLink();
         else
-            body2 = FindBody(item.second.body2.name, item.first.side);
+            body2 = FindBody(item.second.body2, item.first.side);
 
         // Create TSDA
         ChVector<> point1 = TransformPosition(item.second.point1, item.first.side);
@@ -478,7 +491,7 @@ double ChGenericWheeledSuspension::GetTrack() {
 
 std::shared_ptr<ChBody> ChGenericWheeledSuspension::GetAntirollBody(VehicleSide side) const {
     auto abody_id = getAntirollBody();
-    return FindBody(abody_id.name, side);
+    return FindBody(abody_id, side);
 }
 
 // -----------------------------------------------------------------------------
@@ -634,17 +647,18 @@ void ChGenericWheeledSuspension::Output(ChVehicleOutput& database) const {
 // -----------------------------------------------------------------------------
 
 ChGenericWheeledSuspension::BodyIdentifier::BodyIdentifier(const std::string& part_name,
+                                                           int vehicle_side,
                                                            bool is_chassis,
                                                            bool is_subchassis,
                                                            bool is_steering)
-    : name(part_name), chassis(is_chassis), subchassis(is_subchassis), steering(is_steering) {}
+    : name(part_name), side(vehicle_side), chassis(is_chassis), subchassis(is_subchassis), steering(is_steering) {}
 
 ChGenericWheeledSuspension::BodyIdentifier::BodyIdentifier()
-    : name(""), chassis(false), subchassis(false), steering(false) {}
+    : name(""), side(-1), chassis(false), subchassis(false), steering(false) {}
 
-ChGenericWheeledSuspension::ChassisIdentifier::ChassisIdentifier() : BodyIdentifier("", true, false, false) {}
-ChGenericWheeledSuspension::SubchassisIdentifier::SubchassisIdentifier() : BodyIdentifier("", false, true, false) {}
-ChGenericWheeledSuspension::SteeringIdentifier::SteeringIdentifier() : BodyIdentifier("", false, false, true) {}
+ChGenericWheeledSuspension::ChassisIdentifier::ChassisIdentifier() : BodyIdentifier("", -1, true, false, false) {}
+ChGenericWheeledSuspension::SubchassisIdentifier::SubchassisIdentifier() : BodyIdentifier("", -1, false, true, false) {}
+ChGenericWheeledSuspension::SteeringIdentifier::SteeringIdentifier() : BodyIdentifier("", -1, false, false, true) {}
 
 bool ChGenericWheeledSuspension::PartKey::operator==(const PartKey& rhs) const {
     return name == rhs.name && side == rhs.side;

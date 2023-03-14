@@ -61,11 +61,13 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
     /// Identification of a body in the suspension subsystem.
     struct BodyIdentifier {
         BodyIdentifier(const std::string& part_name,
+                       int side = -1,
                        bool is_chassis = false,
                        bool is_subchassis = false,
                        bool is_steering = false);
         BodyIdentifier();
         std::string name;  ///< name of part
+        int side;          ///< side of part (if not the same)
         bool chassis;      ///< true if this is a vehicle chassis body
         bool subchassis;   ///< true if this is a vehicle subchassis body
         bool steering;     ///< true if this is a vehicle steering link
@@ -268,7 +270,7 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
     ChQuaternion<> TransformRotation(const ChQuaternion<>& rot_local, int side) const;
 
     /// Find a body from the given identification.
-    std::shared_ptr<ChBody> FindBody(const std::string& name, int side) const;
+    std::shared_ptr<ChBody> FindBody(BodyIdentifier body, int side) const;
 
     virtual void InitializeInertiaProperties() override;
     virtual void UpdateInertiaProperties() override;
