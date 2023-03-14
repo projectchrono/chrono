@@ -283,7 +283,7 @@ ChVehicleGeometry ReadVehicleGeometryJSON(const rapidjson::Value& d) {
                     geometry.m_vis_cylinders.push_back(ChVehicleGeometry::CylinderShape(pos, axis, radius, length));
                 }
             }
-            geometry.m_has_primitives = true;
+            geometry.m_has_primitives = (num_shapes > 0);
         }
     }
 

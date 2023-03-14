@@ -45,8 +45,23 @@ GenericWheeledSuspension::GenericWheeledSuspension(const rapidjson::Document& d)
 GenericWheeledSuspension::~GenericWheeledSuspension() {}
 
 ChGenericWheeledSuspension::BodyIdentifier ReadBodyIdentifierJSON(const Value& a) {
-    assert(a.IsString());
-    std::string name = a.GetString();
+    assert(a.IsString() || a.IsArray());
+    std::string name;
+    std::string side;
+    int vehicleSide = -1;
+    if (a.IsArray() && a.GetArray().Size() == 2) {
+        name = a[0].GetString();
+        side = a[1].GetString();
+        if (side == "Left") {
+            vehicleSide = VehicleSide::LEFT;
+        }
+        else if (side == "Right") {
+            vehicleSide = VehicleSide::RIGHT;
+        }
+    }
+    else if (a.IsString()) {
+        name = a.GetString();
+    }
     if (name.compare("Chassis") == 0) {
         return ChGenericWheeledSuspension::ChassisIdentifier();
     } else if (name.compare("Subchassis") == 0) {
@@ -54,7 +69,7 @@ ChGenericWheeledSuspension::BodyIdentifier ReadBodyIdentifierJSON(const Value& a
     } else if (name.compare("Steering") == 0) {
         return ChGenericWheeledSuspension::SteeringIdentifier();
     } else {
-        return ChGenericWheeledSuspension::BodyIdentifier(name);
+        return ChGenericWheeledSuspension::BodyIdentifier(name, vehicleSide);
     }
 }
 
