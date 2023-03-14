@@ -665,17 +665,11 @@ bool ChGenericWheeledSuspension::PartKey::operator==(const PartKey& rhs) const {
 }
 
 std::size_t ChGenericWheeledSuspension::PartKeyHash::operator()(const PartKey& id) const {
-    /*
-    std::string ext_name = id.name;
-    if (id.side != -1)
-        ext_name += (id.side == VehicleSide::LEFT ? "_L" : "_R");
-    return std::hash<std::string>{}(ext_name);
-    */
     std::size_t h1 = std::hash<std::string>{}(id.name);
     if (id.side == -1)
         return h1;
     std::string ext = (id.side == VehicleSide::LEFT ? "_L" : "_R");
-    std::size_t h2 = std::hash<std::string>{}(id.name);
+    std::size_t h2 = std::hash<std::string>{}(ext);
     return h1 ^ (h2 << 1);
 }
 
