@@ -51,12 +51,12 @@ set(SYN_LIBRARIES
 option(USE_FAST_DDS "Enable the FastDDS interface for the SynChrono Module" OFF)
 
 if (USE_FAST_DDS)
-	set(fastrtps_ROOT "" CACHE PATH "Path to FastDDS install dir")
+	set(fastrtps_INSTALL_DIR "" CACHE PATH "Path to FastDDS install dir")
 
-	if (fastrtps_ROOT STREQUAL "")
+	if (fastrtps_INSTALL_DIR STREQUAL "")
 	  set(FASTDDS_FOUND FALSE)
 	else()
-	  find_package(fastrtps REQUIRED PATHS "${fastrtps_ROOT}/cmake" "${fastrtps}/share/fastrtps/cmake")
+	  find_package(fastrtps REQUIRED PATHS "${fastrtps_INSTALL_DIR}/cmake" "${fastrtps}/share/fastrtps/cmake")
 	  
 	  message(STATUS "FastCDR found?        ${fastcdr_FOUND}")
 	  message(STATUS "FastCDR include dir:  ${fastcdr_INCLUDE_DIR}")
@@ -229,7 +229,7 @@ if (ENABLE_MODULE_IRRLICHT)
   list(APPEND SYN_LIB_NAMES ChronoEngine_irrlicht)
   list(APPEND SYN_LIB_NAMES ChronoEngine_vehicle_irrlicht)
 
-  set(SYN_INCLUDES  ${SYN_INCLUDES} ${CH_IRRLICHTINC})
+  set(SYN_INCLUDES  ${SYN_INCLUDES} ${CH_IRRLICHT_INCLUDES})
   set(SYN_CXX_FLAGS "${SYN_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
 endif()
 

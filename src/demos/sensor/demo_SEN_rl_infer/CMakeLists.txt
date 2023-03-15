@@ -1,12 +1,7 @@
 
 IF(USE_TENSOR_RT AND ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_VEHICLE)
 
-  #--------------------------------------------------------------
-  # Additional include paths
-
-  # INCLUDE_DIRECTORIES( ${CH_IRRLICHTINC} )
-
-  #--------------------------------------------------------------
+#--------------------------------------------------------------
   IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     SET (CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
   ENDIF()
@@ -17,7 +12,7 @@ IF(USE_TENSOR_RT AND ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_VEHICLE)
 
   MESSAGE(STATUS "RL inference demo...")
 
-  INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
+  INCLUDE_DIRECTORIES(${CH_IRRLICHT_INCLUDES})
 
   ADD_EXECUTABLE(demo_SEN_rl_infer
     demo_SEN_rl_infer.cpp

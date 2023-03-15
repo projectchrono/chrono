@@ -10,8 +10,8 @@ option(ENABLE_MODULE_VEHICLE "Enable the Chrono Vehicle module" OFF)
 if(NOT ENABLE_MODULE_VEHICLE)
    mark_as_advanced(ENABLE_OPENCRG)
    mark_as_advanced(FORCE ENABLE_IRRKLANG)
-   mark_as_advanced(FORCE CH_IRRKLANG_SDKDIR)
-   mark_as_advanced(FORCE CH_IRRKLANGLIB)
+   mark_as_advanced(FORCE IRRKLANG_INSTALL_DIR)
+   mark_as_advanced(FORCE IRRKLANG_LIBRARY)
    return()
 endif()
 
@@ -19,8 +19,8 @@ message(STATUS "\n==== Chrono Vehicle module ====\n")
 
 mark_as_advanced(CLEAR ENABLE_OPENCRG)
 mark_as_advanced(CLEAR ENABLE_IRRKLANG)
-mark_as_advanced(CLEAR CH_IRRKLANG_SDKDIR)
-mark_as_advanced(CLEAR CH_IRRKLANGLIB)
+mark_as_advanced(CLEAR IRRKLANG_INSTALL_DIR)
+mark_as_advanced(CLEAR IRRKLANG_LIBRARY)
 
 # Provide option to add OpenCRG support.
 option(ENABLE_OPENCRG "Enable OpenCRG terrain library support" OFF)
@@ -35,35 +35,38 @@ cmake_dependent_option(ENABLE_IRRKLANG "Enable Irrklang library for sound" OFF
 if (ENABLE_OPENCRG)
    
    if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-      set(OPENCRG_INCLUDE_DIR ""  CACHE PATH   "The directory where crgBaseLib.h resides")
-      set(OPENCRG_LIBRARY   "" CACHE FILEPATH "The OpenCRG library")
-      set(OPENCRG_DLL  "" CACHE FILEPATH "The OpenCRG DLL")
+      set(OpenRG_INCLUDE_DIR ""  CACHE PATH   "The directory where crgBaseLib.h resides")
+      set(OpenCRG_LIBRARY   "" CACHE FILEPATH "The OpenCRG library")
+      set(OpenCRG_DLL  "" CACHE FILEPATH "The OpenCRG DLL")
    elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-      find_path(OPENCRG_INCLUDE_DIR NAMES crgBaseLib.h PATHS "/usr/local/include")
-      find_library(OPENCRG_LIBRARY NAMES OpenCRG PATHS "/usr/local/lib")
+      find_path(OpenCRG_INCLUDE_DIR NAMES crgBaseLib.h PATHS "/usr/local/include")
+      find_library(OpenCRG_LIBRARY NAMES OpenCRG PATHS "/usr/local/lib")
    elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-      find_path(OPENCRG_INCLUDE_DIR NAMES crgBaseLib.h PATHS "/usr/local/include")
-      find_library(OPENCRG_LIBRARY NAMES OpenCRG PATHS "/usr/local/lib")
+      find_path(OpenCRG_INCLUDE_DIR NAMES crgBaseLib.h PATHS "/usr/local/include")
+      find_library(OpenCRG_LIBRARY NAMES OpenCRG PATHS "/usr/local/lib")
    endif()
 
-   mark_as_advanced(CLEAR OPENCRG_INCLUDE_DIR)
-   mark_as_advanced(CLEAR OPENCRG_LIBRARY)
+   mark_as_advanced(CLEAR OpenRG_INCLUDE_DIR)
+   mark_as_advanced(CLEAR OpenCRG_LIBRARY)
    if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-     mark_as_advanced(CLEAR OPENCRG_DLL)
+     mark_as_advanced(CLEAR OpenCRG_DLL)
    endif()
 
-   if(EXISTS "${OPENCRG_INCLUDE_DIR}/crgBaseLib.h" AND EXISTS "${OPENCRG_LIBRARY}")
+   if(EXISTS "${OpenCRG_INCLUDE_DIR}/crgBaseLib.h" AND EXISTS "${OpenCRG_LIBRARY}")
      set(HAVE_OPENCRG ON)
    else()
      set(HAVE_OPENCRG OFF)
    endif()
 
+   message(STATUS "OpenCRG include dir: ${OpenCRG_INCLUDE_DIR}")
+   message(STATUS "OpenCRG library:     ${OpenCRG_LIBRARY}")
+
 else()
 
-   mark_as_advanced(FORCE OPENCRG_INCLUDE_DIR)
-   mark_as_advanced(FORCE OPENCRG_LIBRARY)
+   mark_as_advanced(FORCE OpenCRG_INCLUDE_DIR)
+   mark_as_advanced(FORCE OpenCRG_LIBRARY)
    if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-     mark_as_advanced(FORCE OPENCRG_DLL)
+     mark_as_advanced(FORCE OpenCRG_DLL)
    endif()
 
    set(HAVE_OPENCRG OFF)
@@ -78,34 +81,37 @@ SET(HAVE_OPENCRG "${HAVE_OPENCRG}" PARENT_SCOPE)
 if(ENABLE_IRRKLANG)
 
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-      set(CH_IRRKLANG_SDKDIR ""  CACHE PATH   "Where is your IrrKlang SDK installed?")
-      set(CH_IRRKLANGLIB   "" CACHE FILEPATH "Where is your Irrklang library?")
+      set(IRRKLANG_INSTALL_DIR ""  CACHE PATH   "Where is your IrrKlang SDK installed?")
+      set(IRRKLANG_LIBRARY   "" CACHE FILEPATH "Where is your Irrklang library?")
   elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-      FIND_PATH(CH_IRRKLANG_SDKDIR NAMES irrlicht.h PATHS "/usr/include/irrklang" "/usr/local/include/irrklang")
-      FIND_LIBRARY(CH_IRRKLANGLIB NAMES Irrklang PATHS "/usr/local/lib" ${CH_IRRKLANG_SDKDIR}/lib/Linux)
+      FIND_PATH(IRRKLANG_INSTALL_DIR NAMES irrKlang.h PATHS "/usr/include/irrklang" "/usr/local/include/irrklang")
+      FIND_LIBRARY(IRRKLANG_LIBRARY NAMES Irrklang PATHS "/usr/local/lib" ${IRRKLANG_INSTALL_DIR}/lib/Linux)
   endif()
 
-  if(EXISTS "${CH_IRRKLANG_SDKDIR}/include")
-      set(CH_IRRKLANGINC "${CH_IRRKLANG_SDKDIR}/include")
+  if(EXISTS "${IRRKLANG_INSTALL_DIR}/include")
+      set(CH_IRRKLANG_INCLUDES "${IRRKLANG_INSTALL_DIR}/include")
   else()
-      set(CH_IRRKLANGINC "${CH_IRRKLANG_SDKDIR}")
+      set(CH_IRRKLANG_INCLUDES "${IRRKLANG_INSTALL_DIR}")
   endif()
 
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     if("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
-        set(CH_IRRKLANG_DLL "${CH_IRRKLANG_SDKDIR}/bin/Win32-VisualStudio/irrKlang.dll")
+        set(CH_IRRKLANG_DLL "${IRRKLANG_INSTALL_DIR}/bin/Win32-VisualStudio/irrKlang.dll")
     elseif("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
-        set(CH_IRRKLANG_DLL "${CH_IRRKLANG_SDKDIR}/bin/Winx64-VisualStudio/irrKlang.dll")
+        set(CH_IRRKLANG_DLL "${IRRKLANG_INSTALL_DIR}/bin/Winx64-VisualStudio/irrKlang.dll")
     endif()
   endif()
 
-  mark_as_advanced(CLEAR CH_IRRKLANG_SDKDIR)
-  mark_as_advanced(CLEAR CH_IRRKLANGLIB)
+  mark_as_advanced(CLEAR IRRKLANG_INSTALL_DIR)
+  mark_as_advanced(CLEAR IRRKLANG_LIBRARY)
+
+  message(STATUS "IrrKlang include dir: ${IRRKLANG_INSTALL_DIR}")
+  message(STATUS "IrrKlang library:     ${IRRKLANG_LIBRARY}")
 
 else()
 
-  mark_as_advanced(FORCE CH_IRRKLANG_SDKDIR)
-  mark_as_advanced(FORCE CH_IRRKLANGLIB)
+  mark_as_advanced(FORCE IRRKLANG_INSTALL_DIR)
+  mark_as_advanced(FORCE IRRKLANG_LIBRARY)
 
 endif()
 
@@ -762,6 +768,8 @@ if(ENABLE_MODULE_IRRLICHT)
         tracked_vehicle/test_rig/ChTrackTestRigInteractiveDriverIRR.h
         tracked_vehicle/test_rig/ChTrackTestRigInteractiveDriverIRR.cpp
     )
+
+    message(STATUS "Enable Irrlicht support")
 else()
     set(CVIRR_FILES "")
     set(CVIRR_WV_FILES "")
@@ -793,6 +801,8 @@ if(ENABLE_MODULE_VSG)
         tracked_vehicle/test_rig/ChTrackTestRigInteractiveDriverVSG.h
         tracked_vehicle/test_rig/ChTrackTestRigInteractiveDriverVSG.cpp
     )
+
+    message(STATUS "Enable VSG support")    
 else()
     set(CVVSG_FILES "")
     set(CVVSG_WV_FILES "")
@@ -832,8 +842,8 @@ if(HDF5_FOUND)
 endif()
 
 if(HAVE_OPENCRG)
-    include_directories(${OPENCRG_INCLUDE_DIR})
-    list(APPEND LIBRARIES ${OPENCRG_LIBRARY})
+    include_directories(${OpenCRG_INCLUDE_DIR})
+    list(APPEND LIBRARIES ${OpenCRG_LIBRARY})
 endif()
 
 if(ENABLE_MODULE_FSI)
@@ -906,11 +916,11 @@ install(TARGETS ChronoEngine_vehicle
 
 if(ENABLE_MODULE_IRRLICHT)
 
+    include_directories(${CH_IRRLICHT_INCLUDES})
     set(CXX_FLAGS "${CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
     list(APPEND LIBRARIES ChronoEngine_vehicle)
     list(APPEND LIBRARIES ChronoEngine_irrlicht) 
-    include_directories(${CH_IRRLICHTINC})
-    
+
     add_library(ChronoEngine_vehicle_irrlicht SHARED
         ${CVIRR_FILES}
         ${CVIRR_WV_FILES}
@@ -918,10 +928,9 @@ if(ENABLE_MODULE_IRRLICHT)
     )
     
     if(ENABLE_IRRKLANG)
-        target_include_directories(ChronoEngine_vehicle_irrlicht PUBLIC ${CH_IRRKLANGINC})
-        list(APPEND LIBRARIES ${CH_IRRKLANGLIB})
-        set(CH_IRRLICHTINC ${CH_IRRLICHTINC} ${CH_IRRKLANGINC} PARENT_SCOPE)
-        set(IRRLICHT_LIBRARY ${IRRLICHT_LIBRARY} ${CH_IRRKLANGLIB} PARENT_SCOPE)
+        target_include_directories(ChronoEngine_vehicle_irrlicht PUBLIC ${CH_IRRKLANG_INCLUDES})
+        list(APPEND LIBRARIES ${IRRKLANG_LIBRARY})
+        set(CH_IRRLICHT_INCLUDES ${CH_IRRLICHT_INCLUDES} ${CH_IRRKLANG_INCLUDES} PARENT_SCOPE)
     endif()
     
     set_target_properties(ChronoEngine_vehicle_irrlicht PROPERTIES
@@ -1007,12 +1016,12 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
             "${PROJECT_BINARY_DIR}/bin/$<CONFIGURATION>")
     endif()
 
-    if(EXISTS "${OPENCRG_DLL}")
+    if(EXISTS "${OpenCRG_DLL}")
         add_custom_command(TARGET ChronoEngine_vehicle POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${OPENCRG_DLL}"
+            "${OpenRG_DLL}"
             "${PROJECT_BINARY_DIR}/bin/$<CONFIGURATION>")
-      install(FILES "${OPENCRG_DLL}" DESTINATION bin)
+      install(FILES "${OpenCRG_DLL}" DESTINATION bin)
     endif()
 
 endif()

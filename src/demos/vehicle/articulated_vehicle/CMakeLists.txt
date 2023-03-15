@@ -41,7 +41,7 @@ SET(PROGRAM
 # Additional include directories
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_LIST_DIR})
-INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
+INCLUDE_DIRECTORIES(${CH_IRRLICHT_INCLUDES})
 
 #--------------------------------------------------------------
 # Create the executable

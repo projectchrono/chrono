@@ -3,6 +3,7 @@
 ## ProjectChrono Default CI Config ##
 #####################################
 
+
 #TODO: Move all clean-up operations to after_script sections
 # This will ensure that the clean-up happens even if the build/deployment fails
 
@@ -28,39 +29,38 @@ stages:
   tags:
   - linux
   image:
-    name: archlinux:base-devel
+    name: uwsbel/archlinux_packages_image:latest
     entrypoint: ["/usr/bin/bash", "-c"]
   before_script:
   - uname -a
-  - pacman -Sy --noconfirm cuda git eigen cmake glfw glm glew glut irrlicht ninja wget python python-pip openmpi openssh swig hdf5
-# Clean up the package cache to make more space for the build
+  - export LIB_DIR="lib"
+  - export IOMP5_DIR=""
+  - pacman -Sy --noconfirm cuda git eigen cmake glfw glm glew glut irrlicht ninja wget python python-pip openmpi openssh swig hdf5 intel-oneapi-mkl doxygen fontconfig libxmu
+  # Clean up the package cache to make more space for the build
   - pacman -Scc --noconfirm
   - ldconfig
-  - wget https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.8.tar.gz
-  - tar -xf blaze-3.8.tar.gz
-  - cp blaze-3.8/blaze -r /usr/local/include
+  # Building and installing opencascade
+  - cd ~/Packages/opencascade-7.4.0/build
+  - cmake -DBUILD_MODULE_Draw:BOOL=FALSE ..
+  - make -j 8
+  - make install -j 8
+  # Initializing git repository
+  - cd $CI_PROJECT_DIR
   - git submodule init
   - git submodule update
   - mkdir -p build
-
-# Make flatbuffers
-#  - cd src/chrono_thirdparty/flatbuffers
-#  - cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release .
-#  - ninja -j 8
-#  - cd $CI_PROJECT_DIR
 
 linux:arch-gcc:build:
   stage: build
   extends: .archlinux
   script:
-  - cd build
-  - echo $CI_PROJECT_DIR
-  - cmake ../ --preset=linuxci
-    -DCMAKE_C_COMPILER=/usr/bin/gcc
-    -DCMAKE_CXX_COMPILER=/usr/bin/g++
-    -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
-    -DBUILD_TESTING_GPU=FALSE
-    -DBUILD_TESTING_SENSOR=FALSE
+  # Defining custom flag to store compiler type
+  - GCC_COMPILER=1
+  - cd contrib/build-scripts
+  - chmod +x buildChrono.sh
+  - ./buildChrono.sh
+  # Making chrono
+  - cd $CI_PROJECT_DIR/build
   - ninja -j 8
   artifacts:
     expire_in: 60m
@@ -75,30 +75,27 @@ linux:arch-gcc:test:
   - cd build
   - export OMP_NUM_THREADS=8
   - export CTEST_OUTPUT_ON_FAILURE=1
-  - ninja test
+  - ninja -j 8 test
   dependencies: ["linux:arch-gcc:build"]
 
 linux:arch-llvm:build:
   stage: build
   extends: .archlinux
   script:
+  # Custom flag to store compiler type
+  - GCC_COMPILER=0
   - pacman -S --noconfirm llvm clang openmp
-  - cd build
-  - cmake ../ --preset=linuxci
-    -DCMAKE_C_COMPILER=/usr/bin/clang
-    -DCMAKE_CXX_COMPILER=/usr/bin/clang++
-    -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
-    -DCUDA_HOST_COMPILER=/usr/bin/gcc
-    -DBUILD_TESTING_GPU=FALSE
-    -DBUILD_TESTING_SENSOR=FALSE
-    -DCMAKE_CXX_FLAGS=-fcolor-diagnostics
-  - export CLANG_FORCE_COLOR_DIAGNOSTICS=1
+  # Configuring chrono
+  - cd contrib/build-scripts
+  - chmod +x buildChrono.sh
+  - ./buildChrono.sh
+  # Making chrono
+  - cd $CI_PROJECT_DIR/build
   - ninja -j 8
   artifacts:
     expire_in: 60m
     paths:
     - build/
-
 
 linux:arch-llvm:test:
   stage: test
@@ -109,7 +106,7 @@ linux:arch-llvm:test:
   - cd build
   - export OMP_NUM_THREADS=8
   - export CTEST_OUTPUT_ON_FAILURE=1
-  - ninja test
+  - ninja -j 8 test
   dependencies: ["linux:arch-llvm:build"]
 
 
@@ -121,26 +118,35 @@ linux:arch-llvm:test:
   tags:
     - linux
   image:
-    name: nvidia/cuda:11.6.0-devel-ubuntu20.04
+      name: uwsbel/ubuntu_packages_image:latest
   before_script:
-    - uname -a
-    - export DEBIAN_FRONTEND=noninteractive
-    - apt-get update; apt-get -y install wget python git
-        cmake ninja-build build-essential libboost-dev swig libeigen3-dev
-        libglfw3-dev libglm-dev libglew-dev freeglut3-dev libirrlicht-dev
-        libxxf86vm-dev libopenmpi-dev python3 python3-dev libhdf5-dev libnvidia-gl-515
+    # Defining configuration variables
+    - export LIB_DIR="lib"
+    - export GCC_COMPILER=1
+    - export IOMP5_DIR=""
+    # Obtain dependencies
+    - apt-get update; apt-get -y install unzip wget python3 python3-pip
+      git cmake ninja-build doxygen libvulkan-dev pkg-config libirrlicht-dev 
+      freeglut3-dev mpich libasio-dev libboost-dev libglfw3-dev libglm-dev 
+      libglew-dev libtinyxml2-dev swig python3-dev libhdf5-dev libnvidia-gl-515
     - ldconfig
-    - wget https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.8.tar.gz
-    - tar -xf blaze-3.8.tar.gz
-    - cp -r blaze-3.8/blaze /usr/local/include
+    - wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | 
+      gpg --dearmor | tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
+    - echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] 
+      https://apt.repos.intel.com/oneapi all main" | tee /etc/apt/sources.list.d/oneAPI.list
+    - apt update
+    - apt -y install intel-basekit libxcb-randr0-dev libxcb-xtest0-dev libxcb-xinerama0-dev
+      libxcb-shape0-dev libxcb-xkb-dev xorg-dev
+    # Build opencascade
+    - cd ~/Packages/opencascade-7.4.0/build
+    - cmake -DBUILD_MODULE_Draw:BOOL=FALSE ..
+    - make -j 8
+    - make install -j 8
+    # Initialize git repository
+    - cd $CI_PROJECT_DIR
     - git submodule init
     - git submodule update
     - mkdir -p build
-    # Make flatbuffers
-    - cd src/chrono_thirdparty/flatbuffers
-    - cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release .
-    - ninja -j 8
-    - cd $CI_PROJECT_DIR
 
 linux:doxygen:deploy:
   tags:
@@ -189,49 +195,39 @@ linux:doxygen:deploy:
     - if: '$CI_COMMIT_REF_NAME == "main"'
       when: always
 
-# Ubuntu 20.04 doesn't have a sufficiently new CMake for presets, so we rely on manual configuration
-linux:ubuntu2004:build:
-  stage: build
+# Build uses custom ubuntu image committed from nvidia/cuda:11.8.0-devel-ubuntu22.04 with dependencies pre-downloaded
+linux:ubuntu22.04:build:
   extends: .ubuntu
+  stage: build
   script:
-    - cd build
-    - cmake ../ -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=TRUE
-        -DBUILD_BENCHMARKING=TRUE -DENABLE_MODULE_POSTPROCESS=TRUE
-        -DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE
-        -DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE
-        -DENABLE_MODULE_MULTICORE=TRUE -DENABLE_MODULE_OPENGL=TRUE
-        -DENABLE_MODULE_FSI=TRUE -DENABLE_MODULE_SYNCHRONO=TRUE
-        -DENABLE_MODULE_CSHARP=TRUE -DENABLE_MODULE_GPU=TRUE 
-        -DENABLE_MODULE_DISTRIBUTED=TRUE
-        -DENABLE_HDF5=TRUE
-        -DCMAKE_C_COMPILER=/usr/bin/gcc
-        -DCMAKE_CXX_COMPILER=/usr/bin/g++
-        -DCUDA_HOST_COMPILER=/usr/bin/gcc
-        -DPYTHON_EXECUTABLE=/usr/bin/python3
-        -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
-        -DCMAKE_VERBOSE_MAKEFILE=TRUE
-        -DENABLE_MODULE_SENSOR=TRUE
-        -DBUILD_TESTING_SENSOR=TRUE
-        -DOptiX_INSTALL_DIR=/opt/optix/7.5.0
+    - export GCC_COMPILER=1
+    # Build chrono
+    - cd contrib/build-scripts/
+    - chmod +x buildChrono.sh
+    - ./buildChrono.sh 
+    - cd $CI_PROJECT_DIR/build
     - ninja -j 8
   artifacts:
     expire_in: 60m
     paths:
       - build/
 
-linux:ubuntu2004:test:
+linux:ubuntu22.04:test:
   stage: test
-  needs: ["linux:ubuntu2004:build"]
+  needs: ["linux:ubuntu22.04:build"]
   extends: .ubuntu
   script:
     - cd build
     - export OMP_NUM_THREADS=8
     - export CTEST_OUTPUT_ON_FAILURE=1
-    - ninja test
-  dependencies: ["linux:ubuntu2004:build"]
+    - ninja -j 8 test
+  dependencies: ["linux:ubuntu22.04:build"]
 
 .ubuntu-deploy-base:
-  extends: .ubuntu
+  tags:
+    - linux
+  image:
+      name: uwsbel/ubuntu_packages_image:latest
   before_script:
     # this script overwrites the default ubuntu script to include conda preparations
     - uname -a
@@ -301,14 +297,21 @@ linux:ubuntu2004:deploy-python3.10:
   tags:
     - linux
   image:
-    name: almalinux
+    name: uwsbel/almalinux_packages_image
   before_script:
+    # Defining configuration variables
+    - export GCC_COMPILER=1
+    - export LIB_DIR="lib64"
+    - export IOMP5_DIR="/opt/intel/oneapi/compiler/latest/linux/compiler/lib/intel64_lin/libiomp5.so"
+    # Resuming build configuration
     - uname -a
     - printf "[oneAPI]\nname=Intel® oneAPI repository\nbaseurl=https://yum.repos.intel.com/oneapi\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB\n" > /etc/yum.repos.d/oneAPI.repo
     - dnf groupinstall -y 'Development Tools'
     - dnf config-manager --set-enabled powertools
     - dnf install -y epel-release
-    - dnf install -y cmake irrlicht irrlicht-devel glew-devel eigen3 glfw-devel ninja-build glm-devel freeglut-devel swig platform-python-devel intel-oneapi-mkl-devel
+    - yum config-manager --add-repo http://developer.download.nvidia.com/compute/cuda/repos/rhel8/x86_64/cuda-rhel8.repo
+    - dnf install -y vulkan-devel libXmu-devel libXi-devel fontconfig-devel
+    - dnf install -y doxygen cmake irrlicht-devel glm-devel glfw-devel glew-devel libXrandr ninja-build freeglut-devel swig python3-devel platform-python-devel intel-oneapi-mkl-devel cuda
     - git submodule init
     - git submodule update
     - mkdir -p build
@@ -317,19 +320,11 @@ linux:almalinux:build:
   stage: build
   extends: .almalinux
   script:
-    - cd build
-    - cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Release
-        -DBUILD_DEMOS=ON -DBUILD_BENCHMARK=ON -DBUILD_TESTING=ON
-        -DIOMP5_LIBRARY="/opt/intel/oneapi/compiler/latest/linux/compiler/lib/intel64_lin/libiomp5.so"
-        -DPYTHON_EXECUTABLE=usr/bin/python3
-        -DENABLE_MODULE_IRRLICHT=ON
-        -DENABLE_MODULE_PARDISO_MKL=ON
-        -DENABLE_MODULE_PYTHON=ON
-        -DENABLE_MODULE_COSIMULATION=ON
-        -DENABLE_MODULE_POSTPROCESS=ON
-        -DENABLE_MODULE_OPENGL=ON
-        -DENABLE_MODULE_VEHICLE=ON
-        -DENABLE_HDF5=ON
+    # Build chrono
+    - cd contrib/build-scripts/
+    - chmod +x buildChrono.sh
+    - ./buildChrono.sh 
+    - cd $CI_PROJECT_DIR/build
     - ninja -j 8
   artifacts:
     expire_in: 60m
@@ -344,7 +339,7 @@ linux:almalinux:test:
     - cd build
     - export OMP_NUM_THREADS=8
     - export CTEST_OUTPUT_ON_FAILURE=1
-    - ninja test
+    - ninja -j 8 test 
   dependencies: ["linux:almalinux:build"]
 
 #------------------#
@@ -360,7 +355,9 @@ linux:almalinux:test:
   - echo $CI_PROJECT_DIR
   - git submodule init
   - git submodule update
-  - mkdir -Force build
+  - mkdir -Force -p Build/chrono
+  - mkdir -Force -p Install/chrono
+  #- mkdir -Force build
 
 windows:vs2022:build:
   stage: build
@@ -369,9 +366,11 @@ windows:vs2022:build:
   #- cd $CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers
   #- cmake ../ -G "Visual Studio 17 2022" -DCMAKE_BUILD_TYPE=Release .
   #- MSBuild.exe FlatBuffers.sln -maxcpucount:8 -property:Configuration=Release
-  - cd $CI_PROJECT_DIR/build
-  - cmake -DMPIEXEC_EXECUTABLE="C:/Program Files/Microsoft MPI/Bin/mpiexec.exe" --preset=windowsci-vs2022 ..
-  - cmake --build . -t ALL_BUILD -j 8 --config Release
+  #- cd $CI_PROJECT_DIR/build
+  #- cmake -DMPIEXEC_EXECUTABLE="C:/Program Files/Microsoft MPI/Bin/mpiexec.exe" --preset=windowsci-vs2022 ..
+  - '& "$CI_PROJECT_DIR\contrib\build-scripts\buildChrono.bat"'
+  - cd Build/chrono
+  - cmake --build . -j 8 --config Release
   artifacts:
     expire_in: 60m
     paths:
@@ -382,7 +381,7 @@ windows:vs2022:test:
   needs: ["windows:vs2022:build"]
   extends: .windows
   script:
-  - cd build
+  - cd Build/chrono
   - ctest --extra-verbose --output-on-failure
   dependencies: ["windows:vs2022:build"]
 
@@ -395,9 +394,11 @@ windows:vs2019:build:
   #- cmake -G "Visual Studio 17 2022" -T v142 -DCMAKE_BUILD_TYPE=Release .
   #- MSBuild.exe FlatBuffers.sln -maxcpucount:8 -property:Configuration=Release
   # Main build
-  - cd $CI_PROJECT_DIR/build
-  - cmake --preset=windowsci-vs2019 ..
-  - cmake --build . -t ALL_BUILD -j 8 --config Release
+  #- cd $CI_PROJECT_DIR/build
+  #- cmake --preset=windowsci-vs2019 ..
+  - '& "$CI_PROJECT_DIR\contrib\build-scripts\buildChrono.bat"'
+  - cd Build/chrono
+  - cmake --build . -j 8 --config Release
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
   #- '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
   #- ninja -j 1
@@ -411,7 +412,7 @@ windows:vs2019:test:
   needs: ["windows:vs2019:build"]
   extends: .windows
   script:
-  - cd build
+  - cd Build/chrono
   - ctest --extra-verbose --output-on-failure
   dependencies: ["windows:vs2019:build"]
 
@@ -547,13 +548,11 @@ windows:vs2019:deploy-python3.10:
   stage: build
   extends: .macos-monterey
   script:
-  - cd build
-  - cmake ../ --preset=macosci
-    -DCMAKE_C_COMPILER=$(which clang)
-    -DCMAKE_CXX_COMPILER=$(which clang++)
-    -DCMAKE_VERBOSE_MAKEFILE=TRUE
+  - chmod +x contrib/build-scripts/buildChronoMac.sh
+  - ./contrib/build-scripts/buildChronoMac.sh
   - export CLANG_FORCE_COLOR_DIAGNOSTICS=1
-  - ninja -j 7
+  - cd build
+  - cmake --build . --config Release -j 7
   artifacts:
     expire_in: 60m
     paths:
@@ -564,6 +563,9 @@ windows:vs2019:deploy-python3.10:
   extends: .macos-monterey
   script:
   - cd build
+  # Copying files to correct directory for CI because of Ninja Multi-Config
+  - cp -r bin/Release/* bin/
+  - cp -r bin/data .
   - export CTEST_OUTPUT_ON_FAILURE=1
   - ninja test
 

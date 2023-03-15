@@ -33,6 +33,12 @@ if(POLICY CMP0086)
 endif()
 
 #-----------------------------------------------------------------------------
+# Enable debugging CMake output
+#-----------------------------------------------------------------------------
+
+set(DBG_SCRIPT false)
+
+#-----------------------------------------------------------------------------
 # Find SWIG
 #-----------------------------------------------------------------------------
 
@@ -52,8 +58,10 @@ set(CMAKE_SWIG_OUTDIR "${PROJECT_BINARY_DIR}/chrono_csharp")
 # Set SWIG flags.  Disable selected SWIG warnings 
 set(CMAKE_SWIG_FLAGS "-c++;-w401,503,833")
 
-message(STATUS "SWIG_USE_FILE:      ${SWIG_USE_FILE}")
-message(STATUS "CMAKE_SWIG_OUTDIR:  ${CMAKE_SWIG_OUTDIR}")
+if(DBG_SCRIPT)
+  message(STATUS "SWIG_USE_FILE:      ${SWIG_USE_FILE}")
+  message(STATUS "CMAKE_SWIG_OUTDIR:  ${CMAKE_SWIG_OUTDIR}")
+endif()
 
 # Disable additional warnings for generated C++ code
 if(MSVC)
@@ -115,8 +123,10 @@ else()
             LIBRARY DESTINATION lib)
 endif()
 
-message(STATUS "Module name:     ${MODULE_CORE}")
-message(STATUS "SWIG_REAL_NAME:  ${SWIG_MODULE_${MODULE_CORE}_REAL_NAME}")
+if(DBG_SCRIPT)
+  message(STATUS "Module name:     ${MODULE_CORE}")
+  message(STATUS "SWIG_REAL_NAME:  ${SWIG_MODULE_${MODULE_CORE}_REAL_NAME}")
+endif()
 
 #-----------------------------------------------------------------------------
 # Wrapper for VEHICLE Chrono module
@@ -163,8 +173,10 @@ if(ENABLE_MODULE_VEHICLE)
               LIBRARY DESTINATION lib)
   endif()
   
-  message(STATUS "Module name:     ${MODULE_VEHICLE}")
-  message(STATUS "SWIG_REAL_NAME:  ${SWIG_MODULE_${MODULE_VEHICLE}_REAL_NAME}")
+  if (DBG_SCRIPT)
+    message(STATUS "Module name:     ${MODULE_VEHICLE}")
+    message(STATUS "SWIG_REAL_NAME:  ${SWIG_MODULE_${MODULE_VEHICLE}_REAL_NAME}")
+  endif()
 
 endif()
 

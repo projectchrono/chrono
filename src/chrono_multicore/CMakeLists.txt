@@ -14,7 +14,7 @@ option(ENABLE_MODULE_MULTICORE "Enable the Chrono::Multicore module" OFF)
 # Return now if this module is not enabled
 
 if(NOT ENABLE_MODULE_MULTICORE)
-  mark_as_advanced(FORCE BLAZE_DIR)
+  mark_as_advanced(FORCE BLAZE_INSTALL_DIR)
   mark_as_advanced(FORCE USE_MULTICORE_DOUBLE)
   mark_as_advanced(FORCE USE_MULTICORE_SIMD)
   mark_as_advanced(FORCE USE_MULTICORE_CUDA)
@@ -30,7 +30,7 @@ if (NOT THRUST_FOUND)
   return()
 endif()
 
-mark_as_advanced(CLEAR BLAZE_DIR)
+mark_as_advanced(CLEAR BLAZE_INSTALL_DIR)
 mark_as_advanced(CLEAR USE_MULTICORE_DOUBLE)
 mark_as_advanced(CLEAR USE_MULTICORE_SIMD)
 mark_as_advanced(CLEAR USE_MULTICORE_CUDA)
@@ -67,17 +67,17 @@ ENDIF()
 # ----- Blaze library -----
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  SET(BLAZE_DIR ""  CACHE PATH   "Where is Blaze located?")
+  SET(BLAZE_INSTALL_DIR ""  CACHE PATH   "Where is Blaze located?")
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  FIND_PATH(BLAZE_DIR NAMES blaze/Blaze.h PATHS "/usr/include" "/usr/local/include")
+  FIND_PATH(BLAZE_INSTALL_DIR NAMES blaze/Blaze.h PATHS "/usr/include" "/usr/local/include")
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  FIND_PATH(BLAZE_DIR NAMES blaze/Blaze.h PATHS "/usr/include" "/usr/local/include")
+  FIND_PATH(BLAZE_INSTALL_DIR NAMES blaze/Blaze.h PATHS "/usr/include" "/usr/local/include")
 else()
-  find_path(BLAZE_DIR NAMES blaze/Blaze.h PATHS "/usr/include" "/usr/local/include")
+  find_path(BLAZE_INSTALL_DIR NAMES blaze/Blaze.h PATHS "/usr/include" "/usr/local/include")
 ENDIF()
 
 # Extract Blaze version
-find_file(BLAZE_VERSION_FILENAME "Version.h" PATHS "${BLAZE_DIR}/blaze/system")
+find_file(BLAZE_VERSION_FILENAME "Version.h" PATHS "${BLAZE_INSTALL_DIR}/blaze/system")
 mark_as_advanced(FORCE BLAZE_VERSION_FILENAME)
 if(BLAZE_VERSION_FILENAME)
   file(READ ${BLAZE_VERSION_FILENAME} BLAZE_VERSION_FILE)
@@ -89,7 +89,7 @@ if(BLAZE_VERSION_FILENAME)
   set(BLAZE_VERSION "${BLAZE_MAJOR_VERSION}.${BLAZE_MINOR_VERSION}")
   message(STATUS "Blaze version: ${BLAZE_VERSION}")
 else()
-  message(FATAL_ERROR "Cannot find blaze/system/Version.h.  Set BLAZE_DIR.")
+  message(FATAL_ERROR "Cannot find blaze/system/Version.h.  Set BLAZE_INSTALL_DIR.")
 endif()
 
 # ----- Configure Blaze and Thrust -----
@@ -149,7 +149,7 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_multicore/ChConfigMulticore.h"
 # ------------------------------------------------------------------------------
 
 set(CH_MULTICORE_INCLUDES
-    ${BLAZE_DIR}
+    ${BLAZE_INSTALL_DIR}
     ${THRUST_INCLUDE_DIR}
 )
 

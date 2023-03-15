@@ -38,7 +38,7 @@ endforeach()
 
 if(ENABLE_MODULE_IRRLICHT)
 
-    include_directories(${CH_IRRLICHTINC})
+    include_directories(${CH_IRRLICHT_INCLUDES})
 
     foreach(PROGRAM ${POST_DEMOS_IRR})
         message(STATUS "...add ${PROGRAM}")

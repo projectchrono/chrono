@@ -17,7 +17,7 @@ endif()
 #--------------------------------------------------------------
 # Additional include paths
 
-include_directories( ${CH_IRRLICHTINC} )
+include_directories( ${CH_IRRLICHT_INCLUDES} )
 
 #--------------------------------------------------------------
 

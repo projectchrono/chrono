@@ -66,7 +66,7 @@ list(APPEND LIBS "ChronoModels_vehicle")
 list(APPEND LIBS "ChronoModels_robot")
 
 if(ENABLE_MODULE_IRRLICHT)
-    include_directories(${CH_IRRLICHTINC})
+    include_directories(${CH_IRRLICHT_INCLUDES})
     set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
     list(APPEND LIBS "ChronoEngine_irrlicht")
     list(APPEND LIBS "ChronoEngine_vehicle_irrlicht")

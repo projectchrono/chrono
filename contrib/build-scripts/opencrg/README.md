@@ -2,7 +2,11 @@
 
 Chrono::Vehicle has the ability of using road geometry specified through a `crg` file. The data format is very compact. Roads of arbitrary length can be handled. If you want to use it you have to build the OpenCRG support library before building Chrono. 
 
-Get the distribution here: http://www.opencrg.org. The most current version is 1.1.2. For Mac and Linux you can use the provided makefiles. 
+Get the distribution here: http://www.opencrg.org. The most current version is 1.1.2. 
+
+Mac and Linux users can build the OpenCRG library using the provided makefiles. 
+
+For Windows users, we provide the script `buildOpenCRG.bat`. To use it, you need the Visual Studio `cl` compiler. First, edit the script to specify the location of the OpenCRG distribution and the installation directory. Note that you must run this script from a VS developer command prompt or PowerShell. 
 
 Alternatively, you can use the `CMakeLists.txt` file in this directory, which should also work for Windows. The `CMakeLists.txt` has been modified to build the Release and the Debug variants with different names, so that they can be installed to the same directories. You have to use different runs of cmake for Release and for Debug. Instead of 'make' 'ninja' should be used, it works well on Linux, Mac and Windows.
 

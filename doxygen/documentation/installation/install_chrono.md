@@ -55,7 +55,7 @@ Irrlicht 1.8.4 requires the June 2010 DirectX SDK.
 </div>
 
 <div class="ce-info">
-Release v.1.8.4 should work perfectly. The best way to install irrlicht on the Mac is: <tt>brew install irrlicht</tt> (release v.1.8.5). On MacOS 12 (Monterey) you have to set IRRLICHT_ROOT to <tt>/opt/homebrew</tt>.<br>
+Release v.1.8.4 should work perfectly. The best way to install irrlicht on the Mac is: <tt>brew install irrlicht</tt> (release v.1.8.5). On MacOS 12 (Monterey) you have to set IRRLICHT_INSTALL_DIR to <tt>/opt/homebrew</tt>.<br>
 
 If you encounter any problem with version 1.8.4 please try to roll back to [release 1.8.2](http://downloads.sourceforge.net/irrlicht/irrlicht-1.8.2.zip).<br>
 Release v.1.8.3 does not contain the precompiled 64bit DLL.<br>
@@ -124,7 +124,7 @@ Start CMake to configure the build. We assume that you are using the graphical i
    - Enable the recommended optional modules: at least tick `ENABLE_MODULE_IRRLICHT` and `ENABLE_MODULE_POSTPROCESS`.<br>
      Other modules might require additional settings and dependencies.
    - Press **Configure**.
-   - Set the `IRRLICHT_ROOT` variable: it must contain the path to the directory where you unzipped Irrlicht.<br>
+   - Set the `IRRLICHT_INSTALL_DIR` variable: it must contain the path to the directory where you unzipped Irrlicht.<br>
      In our example, browse to <tt>C:/workspace/libraries/irrlicht-1.8.4</tt>
    - Press **Configure** again.
    - The `IRRLICHT_LIBRARY` variable should be filled automatically.

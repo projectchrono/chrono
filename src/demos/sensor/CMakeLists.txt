@@ -47,7 +47,7 @@ ENDIF()
 #--------------------------------------------------------------
 # Additional include paths
 
-# INCLUDE_DIRECTORIES( ${CH_IRRLICHTINC} )
+# INCLUDE_DIRECTORIES( ${CH_IRRLICHT_INCLUDES} )
 
 #--------------------------------------------------------------
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -62,7 +62,7 @@ MESSAGE(STATUS "Demo programs for Sensor module...")
 
 #FOR OPTIONAL VEHICLE WITH IRRLICHT DEMO
 IF(ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_VEHICLE)
-    INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
+    INCLUDE_DIRECTORIES(${CH_IRRLICHT_INCLUDES})
 ENDIF()
 
 FOREACH(PROGRAM ${DEMOS})

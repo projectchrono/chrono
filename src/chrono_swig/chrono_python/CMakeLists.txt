@@ -438,7 +438,7 @@ if(ENABLE_MODULE_IRRLICHT)
       ../interface/irrlicht/ChModuleIrrlicht.i
       )
 
-  include_directories(${CH_IRRLICHTINC})
+  include_directories(${CH_IRRLICHT_INCLUDES})
 
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_source_files_properties(${CHPY_IRRLICHT_MODULE_FILE} PROPERTIES COMPILE_FLAGS "-D_WIN32")

@@ -7,7 +7,7 @@ SET(LIBRARIES ChronoEngine ChronoEngine_sensor ${SENSOR_LIBRARIES})
 INCLUDE_DIRECTORIES( ${CH_INCLUDES} ${CH_SENSOR_INCLUDES} )
 
 
-# message(STATUS "\n\nbenchmark include directories: ${CH_IRRLICHTINC}\n\n")
+# message(STATUS "\n\nbenchmark include directories: ${CH_IRRLICHT_INCLUDES}\n\n")
 # ------------------------------------------------------------------------------
 
 set(TESTS

@@ -15,7 +15,7 @@ SET(DEMOS
 # Additional include directories
 
 IF(ENABLE_MODULE_IRRLICHT)
-    INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
+    INCLUDE_DIRECTORIES(${CH_IRRLICHT_INCLUDES})
 ENDIF()
 
 #--------------------------------------------------------------
