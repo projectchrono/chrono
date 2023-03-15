@@ -319,7 +319,7 @@ void ChPart::ExportLinSpringList(rapidjson::Document& jsonDocument,
                                  std::vector<std::shared_ptr<ChLinkTSDA>> springs) const {
     rapidjson::Document::AllocatorType& allocator = jsonDocument.GetAllocator();
 
-    auto A_X_P = GetTransform();  // transform from parent to absolute
+    const auto& A_X_P = GetTransform();  // transform from parent to absolute
 
     rapidjson::Value jsonArray(rapidjson::kArrayType);
     for (auto spring : springs) {
@@ -343,6 +343,8 @@ void ChPart::ExportLinSpringList(rapidjson::Document& jsonDocument,
             obj.AddMember("spring coefficient", spring->GetSpringCoefficient(), allocator);
             obj.AddMember("damping coefficient", spring->GetDampingCoefficient(), allocator);
             obj.AddMember("pre-load", spring->GetActuatorForce(), allocator);
+        } else {
+            obj.AddMember("force functor", spring->GetForceFunctor()->exportJSON(allocator), allocator);
         }
         obj.AddMember("rest length", spring->GetRestLength(), allocator);
         jsonArray.PushBack(obj, allocator);
@@ -354,8 +356,12 @@ void ChPart::ExportRotSpringList(rapidjson::Document& jsonDocument,
                                  std::vector<std::shared_ptr<ChLinkRSDA>> springs) const {
     rapidjson::Document::AllocatorType& allocator = jsonDocument.GetAllocator();
 
+    const auto& A_X_P = GetTransform();  // transform from parent to absolute
+
     rapidjson::Value jsonArray(rapidjson::kArrayType);
     for (auto spring : springs) {
+        auto pos = spring->GetVisualModelFrame().GetPos();               // position in absolute frame
+        auto axis = spring->GetVisualModelFrame().GetA().Get_A_Zaxis();  // axis in absolute frame
         rapidjson::Value obj(rapidjson::kObjectType);
         obj.SetObject();
         obj.AddMember("name", rapidjson::StringRef(spring->GetName()), allocator);
@@ -367,13 +373,17 @@ void ChPart::ExportRotSpringList(rapidjson::Document& jsonDocument,
         obj.AddMember("body2 name", rapidjson::StringRef(body2->GetName()), allocator);
         obj.AddMember("body1 id", body1->GetIdentifier(), allocator);
         obj.AddMember("body2 id", body2->GetIdentifier(), allocator);
+        obj.AddMember("pos", Vec2Val(A_X_P.TransformPointParentToLocal(pos), allocator), allocator);
+        obj.AddMember("axis", Vec2Val(A_X_P.TransformDirectionParentToLocal(axis), allocator), allocator);
         obj.AddMember("has functor", spring->GetTorqueFunctor() != nullptr, allocator);
         if (!spring->GetTorqueFunctor()) {
             obj.AddMember("spring coefficient", spring->GetSpringCoefficient(), allocator);
             obj.AddMember("damping coefficient", spring->GetDampingCoefficient(), allocator);
             obj.AddMember("pre-load", spring->GetActuatorTorque(), allocator);
+        } else {
+            obj.AddMember("torque functor", spring->GetTorqueFunctor()->exportJSON(allocator), allocator);
         }
-        obj.AddMember("rest length", spring->GetRestAngle(), allocator);
+        obj.AddMember("rest angle", spring->GetRestAngle(), allocator);
         jsonArray.PushBack(obj, allocator);
     }
     jsonDocument.AddMember("rotational spring-dampers", jsonArray, allocator);

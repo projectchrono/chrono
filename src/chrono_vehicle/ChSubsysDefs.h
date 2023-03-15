@@ -106,6 +106,7 @@ class CH_VEHICLE_API SpringForce : public ChLinkTSDA::ForceFunctor {
                    const std::vector<std::pair<double, double>>& data_rebound);
     void set_stops(double bump_coefficient, double rebound_coefficient);
     double evaluate_stops(double length);
+    virtual rapidjson::Value exportJSON(rapidjson::Document::AllocatorType& allocator) override;
 
   protected:
     double m_P;  ///< pre-tension
@@ -127,6 +128,7 @@ class CH_VEHICLE_API LinearSpringForce : public SpringForce {
                             double length,
                             double vel,
                             const ChLinkTSDA& link) override;
+    virtual rapidjson::Value exportJSON(rapidjson::Document::AllocatorType& allocator) override;
 
   private:
     double m_k;
@@ -144,6 +146,7 @@ class CH_VEHICLE_API NonlinearSpringForce : public SpringForce {
                             double length,
                             double vel,
                             const ChLinkTSDA& link) override;
+    virtual rapidjson::Value exportJSON(rapidjson::Document::AllocatorType& allocator) override;
 
   private:
     ChFunction_Recorder m_mapK;
@@ -159,6 +162,7 @@ class CH_VEHICLE_API LinearDamperForce : public ChLinkTSDA::ForceFunctor {
                             double length,
                             double vel,
                             const ChLinkTSDA& link) override;
+    virtual rapidjson::Value exportJSON(rapidjson::Document::AllocatorType& allocator) override;
 
   private:
     double m_c;
@@ -176,6 +180,7 @@ class CH_VEHICLE_API NonlinearDamperForce : public ChLinkTSDA::ForceFunctor {
                             double length,
                             double vel,
                             const ChLinkTSDA& link) override;
+    virtual rapidjson::Value exportJSON(rapidjson::Document::AllocatorType& allocator) override;
 
   private:
     ChFunction_Recorder m_mapC;
@@ -201,6 +206,7 @@ class CH_VEHICLE_API DegressiveDamperForce : public ChLinkTSDA::ForceFunctor {
                             double length,
                             double vel,
                             const ChLinkTSDA& link) override;
+    virtual rapidjson::Value exportJSON(rapidjson::Document::AllocatorType& allocator) override;
 
   private:
     double m_c_compression;
@@ -219,6 +225,7 @@ class CH_VEHICLE_API LinearSpringDamperForce : public SpringForce {
                             double length,
                             double vel,
                             const ChLinkTSDA& link) override;
+    virtual rapidjson::Value exportJSON(rapidjson::Document::AllocatorType& allocator) override;
 
   private:
     double m_k;
@@ -240,6 +247,7 @@ class CH_VEHICLE_API NonlinearSpringDamperForce : public SpringForce {
                             double length,
                             double vel,
                             const ChLinkTSDA& link) override;
+    virtual rapidjson::Value exportJSON(rapidjson::Document::AllocatorType& allocator) override;
 
   private:
     ChFunction_Recorder m_mapK;
@@ -262,6 +270,8 @@ class CH_VEHICLE_API MapSpringDamperForce : public SpringForce {
                             double length,
                             double vel,
                             const ChLinkTSDA& link) override;
+    virtual rapidjson::Value exportJSON(rapidjson::Document::AllocatorType& allocator) override;
+
     void print_data();
 
   private:
@@ -281,6 +291,7 @@ class CH_VEHICLE_API LinearSpringTorque : public ChLinkRSDA::TorqueFunctor {
   public:
     LinearSpringTorque(double k, double rest_angle = 0, double preload = 0);
     virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override;
+    virtual rapidjson::Value exportJSON(rapidjson::Document::AllocatorType& allocator) override;
 
   private:
     double m_k;
@@ -297,6 +308,7 @@ class CH_VEHICLE_API NonlinearSpringTorque : public ChLinkRSDA::TorqueFunctor {
                           double preload = 0);
     void add_pointK(double x, double y);
     virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override;
+    virtual rapidjson::Value exportJSON(rapidjson::Document::AllocatorType& allocator) override;
 
   private:
     ChFunction_Recorder m_mapK;
@@ -309,6 +321,7 @@ class CH_VEHICLE_API LinearDamperTorque : public ChLinkRSDA::TorqueFunctor {
   public:
     LinearDamperTorque(double c);
     virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override;
+    virtual rapidjson::Value exportJSON(rapidjson::Document::AllocatorType& allocator) override;
 
   private:
     double m_c;
@@ -321,6 +334,7 @@ class CH_VEHICLE_API NonlinearDamperTorque : public ChLinkRSDA::TorqueFunctor {
     NonlinearDamperTorque(const std::vector<std::pair<double, double>>& dataC);
     void add_pointC(double x, double y);
     virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override;
+    virtual rapidjson::Value exportJSON(rapidjson::Document::AllocatorType& allocator) override;
 
   private:
     ChFunction_Recorder m_mapC;
@@ -331,6 +345,7 @@ class CH_VEHICLE_API LinearSpringDamperTorque : public ChLinkRSDA::TorqueFunctor
   public:
     LinearSpringDamperTorque(double k, double c, double rest_angle = 0, double preload = 0);
     virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override;
+    virtual rapidjson::Value exportJSON(rapidjson::Document::AllocatorType& allocator) override;
 
   private:
     double m_k;
@@ -350,6 +365,7 @@ class CH_VEHICLE_API NonlinearSpringDamperTorque : public ChLinkRSDA::TorqueFunc
     void add_pointK(double x, double y);
     void add_pointC(double x, double y);
     virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override;
+    virtual rapidjson::Value exportJSON(rapidjson::Document::AllocatorType& allocator) override;
 
   private:
     ChFunction_Recorder m_mapK;

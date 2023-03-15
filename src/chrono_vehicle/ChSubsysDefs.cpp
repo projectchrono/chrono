@@ -87,11 +87,55 @@ double SpringForce::evaluate_stops(double length) {
     return f;
 }
 
+rapidjson::Value SpringForce::exportJSON(rapidjson::Document::AllocatorType& allocator) {
+    rapidjson::Value obj(rapidjson::kObjectType);
+
+    obj.AddMember("min length", m_min_length, allocator);
+    obj.AddMember("max length", m_max_length, allocator);
+
+    rapidjson::Value dataB(rapidjson::kArrayType);
+    for (const auto& p : m_bump.GetPoints()) {
+        rapidjson::Value xy(rapidjson::kArrayType);
+        xy.PushBack(p.x, allocator);
+        xy.PushBack(p.y, allocator);
+        dataB.PushBack(xy, allocator);
+    }
+
+    rapidjson::Value dataR(rapidjson::kArrayType);
+    for (const auto& p : m_rebound.GetPoints()) {
+        rapidjson::Value xy(rapidjson::kArrayType);
+        xy.PushBack(p.x, allocator);
+        xy.PushBack(p.y, allocator);
+        dataR.PushBack(xy, allocator);
+    }
+
+    obj.AddMember("bump curve data", dataB, allocator);
+    obj.AddMember("rebound curve data", dataR, allocator);
+
+    return obj;
+}
+
+// -----------------------------------------------------------------------------
+
 LinearSpringForce::LinearSpringForce(double k, double preload) : SpringForce(preload), m_k(k) {}
 
 double LinearSpringForce::evaluate(double time, double rest_length, double length, double vel, const ChLinkTSDA& link) {
     return m_P - m_k * (length - rest_length) + evaluate_stops(length);
 }
+
+rapidjson::Value LinearSpringForce::exportJSON(rapidjson::Document::AllocatorType& allocator) {
+    rapidjson::Value obj(rapidjson::kObjectType);
+
+    obj.AddMember("type", "LinearSpringForce", allocator);
+    obj.AddMember("spring coefficient", m_k, allocator);
+    obj.AddMember("preload", m_P, allocator);
+    if (m_stops)
+        obj.AddMember("Stops", SpringForce::exportJSON(allocator), allocator);
+
+    return obj;
+}
+
+// -----------------------------------------------------------------------------
 
 NonlinearSpringForce::NonlinearSpringForce(double preload) : SpringForce(preload) {}
 
@@ -113,6 +157,27 @@ double NonlinearSpringForce::evaluate(double time,
     return m_P - m_mapK.Get_y(length - rest_length) + evaluate_stops(length);
 }
 
+rapidjson::Value NonlinearSpringForce::exportJSON(rapidjson::Document::AllocatorType& allocator) {
+    rapidjson::Value obj(rapidjson::kObjectType);
+
+    obj.AddMember("type", "NonlinearSpringForce", allocator);
+
+    rapidjson::Value dataK(rapidjson::kArrayType);
+    for (const auto& p : m_mapK.GetPoints()) {
+        rapidjson::Value xy(rapidjson::kArrayType);
+        xy.PushBack(p.x, allocator);
+        xy.PushBack(p.y, allocator);
+        dataK.PushBack(xy, allocator);
+    }
+
+    obj.AddMember("spring curve data", dataK, allocator);
+    obj.AddMember("preload", m_P, allocator);
+    if (m_stops)
+        obj.AddMember("Stops", SpringForce::exportJSON(allocator), allocator);
+
+    return obj;
+}
+
 // -----------------------------------------------------------------------------
 
 LinearDamperForce::LinearDamperForce(double c, double preload) : m_c(c) {}
@@ -120,6 +185,17 @@ LinearDamperForce::LinearDamperForce(double c, double preload) : m_c(c) {}
 double LinearDamperForce::evaluate(double time, double rest_length, double length, double vel, const ChLinkTSDA& link) {
     return -m_c * vel;
 }
+
+rapidjson::Value LinearDamperForce::exportJSON(rapidjson::Document::AllocatorType& allocator) {
+    rapidjson::Value obj(rapidjson::kObjectType);
+
+    obj.AddMember("type", "LinearDamperForce", allocator);
+    obj.AddMember("damping coefficient", m_c, allocator);
+
+    return obj;
+}
+
+// -----------------------------------------------------------------------------
 
 NonlinearDamperForce::NonlinearDamperForce() {}
 
@@ -140,6 +216,26 @@ double NonlinearDamperForce::evaluate(double time,
                                       const ChLinkTSDA& link) {
     return -m_mapC.Get_y(vel);
 }
+
+rapidjson::Value NonlinearDamperForce::exportJSON(rapidjson::Document::AllocatorType& allocator) {
+    rapidjson::Value obj(rapidjson::kObjectType);
+
+    obj.AddMember("type", "NonlinearDamperForce", allocator);
+
+    rapidjson::Value dataC(rapidjson::kArrayType);
+    for (const auto& p : m_mapC.GetPoints()) {
+        rapidjson::Value xy(rapidjson::kArrayType);
+        xy.PushBack(p.x, allocator);
+        xy.PushBack(p.y, allocator);
+        dataC.PushBack(xy, allocator);
+    }
+
+    obj.AddMember("damping curve data", dataC, allocator);
+
+    return obj;
+}
+
+// -----------------------------------------------------------------------------
 
 DegressiveDamperForce::DegressiveDamperForce(double c_compression)
     : m_c_compression(c_compression), m_c_expansion(c_compression), m_degr_compression(0), m_degr_expansion(0) {}
@@ -174,6 +270,18 @@ double DegressiveDamperForce::evaluate(double time,
     }
 }
 
+rapidjson::Value DegressiveDamperForce::exportJSON(rapidjson::Document::AllocatorType& allocator) {
+    rapidjson::Value obj(rapidjson::kObjectType);
+
+    obj.AddMember("type", "DegressiveDamperForce", allocator);
+    obj.AddMember("damping coefficient compression", m_c_compression, allocator);
+    obj.AddMember("damping coefficient expansion", m_c_expansion, allocator);
+    obj.AddMember("degression coefficient compression", m_degr_compression, allocator);
+    obj.AddMember("degression coefficient expansion", m_degr_expansion, allocator);
+
+    return obj;
+}
+
 // -----------------------------------------------------------------------------
 
 LinearSpringDamperForce::LinearSpringDamperForce(double k, double c, double preload)
@@ -186,6 +294,21 @@ double LinearSpringDamperForce::evaluate(double time,
                                          const ChLinkTSDA& link) {
     return m_P - m_k * (length - rest_length) - m_c * vel + evaluate_stops(length);
 }
+
+rapidjson::Value LinearSpringDamperForce::exportJSON(rapidjson::Document::AllocatorType& allocator) {
+    rapidjson::Value obj(rapidjson::kObjectType);
+
+    obj.AddMember("type", "LinearSpringDamperForce", allocator);
+    obj.AddMember("spring coefficient", m_k, allocator);
+    obj.AddMember("damping coefficient", m_c, allocator);
+    obj.AddMember("preload", m_P, allocator);
+    if (m_stops)
+        obj.AddMember("Stops", SpringForce::exportJSON(allocator), allocator);
+
+    return obj;
+}
+
+// -----------------------------------------------------------------------------
 
 NonlinearSpringDamperForce::NonlinearSpringDamperForce(double preload) : SpringForce(preload) {}
 
@@ -214,6 +337,38 @@ double NonlinearSpringDamperForce::evaluate(double time,
                                             const ChLinkTSDA& link) {
     return m_P - m_mapK.Get_y(length - rest_length) - m_mapC.Get_y(vel) + evaluate_stops(length);
 }
+
+rapidjson::Value NonlinearSpringDamperForce::exportJSON(rapidjson::Document::AllocatorType& allocator) {
+    rapidjson::Value obj(rapidjson::kObjectType);
+
+    obj.AddMember("type", "NonlinearSpringDamperForce", allocator);
+
+    rapidjson::Value dataK(rapidjson::kArrayType);
+    for (const auto& p : m_mapK.GetPoints()) {
+        rapidjson::Value xy(rapidjson::kArrayType);
+        xy.PushBack(p.x, allocator);
+        xy.PushBack(p.y, allocator);
+        dataK.PushBack(xy, allocator);
+    }
+
+    rapidjson::Value dataC(rapidjson::kArrayType);
+    for (const auto& p : m_mapC.GetPoints()) {
+        rapidjson::Value xy(rapidjson::kArrayType);
+        xy.PushBack(p.x, allocator);
+        xy.PushBack(p.y, allocator);
+        dataC.PushBack(xy, allocator);
+    }
+
+    obj.AddMember("spring curve data", dataK, allocator);
+    obj.AddMember("damping curve data", dataC, allocator);
+    obj.AddMember("preload", m_P, allocator);
+    if (m_stops)
+        obj.AddMember("Stops", SpringForce::exportJSON(allocator), allocator);
+
+    return obj;
+}
+
+// -----------------------------------------------------------------------------
 
 MapSpringDamperForce::MapSpringDamperForce(double preload) : SpringForce(preload), m_last({0, 0}) {}
 
@@ -305,6 +460,20 @@ double MapSpringDamperForce::evaluate(double time,
     return m_P - F;
 }
 
+rapidjson::Value MapSpringDamperForce::exportJSON(rapidjson::Document::AllocatorType& allocator) {
+    rapidjson::Value obj(rapidjson::kObjectType);
+
+    obj.AddMember("type", "MapSpringDamperForce", allocator);
+
+    //// TODO: m_defs, m_vels, m_data
+
+    obj.AddMember("preload", m_P, allocator);
+    if (m_stops)
+        obj.AddMember("Stops", SpringForce::exportJSON(allocator), allocator);
+
+    return obj;
+}
+
 // -----------------------------------------------------------------------------
 
 LinearSpringTorque::LinearSpringTorque(double k, double rest_angle, double preload)
@@ -313,6 +482,19 @@ LinearSpringTorque::LinearSpringTorque(double k, double rest_angle, double prelo
 double LinearSpringTorque::evaluate(double time, double angle, double vel, const ChLinkRSDA& link) {
     return m_P - m_k * (angle - m_rest_angle);
 }
+
+rapidjson::Value LinearSpringTorque::exportJSON(rapidjson::Document::AllocatorType& allocator) {
+    rapidjson::Value obj(rapidjson::kObjectType);
+
+    obj.AddMember("type", "LinearSpringTorque", allocator);
+    obj.AddMember("spring coefficient", m_k, allocator);
+    obj.AddMember("preload", m_P, allocator);
+    obj.AddMember("rest angle", m_rest_angle, allocator);
+
+    return obj;
+}
+
+// -----------------------------------------------------------------------------
 
 NonlinearSpringTorque::NonlinearSpringTorque(double rest_angle, double preload)
     : m_rest_angle(rest_angle), m_P(preload) {}
@@ -334,6 +516,26 @@ double NonlinearSpringTorque::evaluate(double time, double angle, double vel, co
     return m_P - m_mapK.Get_y(angle - m_rest_angle);
 }
 
+rapidjson::Value NonlinearSpringTorque::exportJSON(rapidjson::Document::AllocatorType& allocator) {
+    rapidjson::Value obj(rapidjson::kObjectType);
+
+    obj.AddMember("type", "NonlinearSpringTorque", allocator);
+
+    rapidjson::Value dataK(rapidjson::kArrayType);
+    for (const auto& p : m_mapK.GetPoints()) {
+        rapidjson::Value xy(rapidjson::kArrayType);
+        xy.PushBack(p.x, allocator);
+        xy.PushBack(p.y, allocator);
+        dataK.PushBack(xy, allocator);
+    }
+
+    obj.AddMember("spring curve data", dataK, allocator);
+    obj.AddMember("preload", m_P, allocator);
+    obj.AddMember("rest angle", m_rest_angle, allocator);
+
+    return obj;
+}
+
 // -----------------------------------------------------------------------------
 
 LinearDamperTorque::LinearDamperTorque(double c) : m_c(c) {}
@@ -341,6 +543,17 @@ LinearDamperTorque::LinearDamperTorque(double c) : m_c(c) {}
 double LinearDamperTorque::evaluate(double time, double angle, double vel, const ChLinkRSDA& link) {
     return -m_c * vel;
 }
+
+rapidjson::Value LinearDamperTorque::exportJSON(rapidjson::Document::AllocatorType& allocator) {
+    rapidjson::Value obj(rapidjson::kObjectType);
+
+    obj.AddMember("type", "LinearDamperTorque", allocator);
+    obj.AddMember("damping coefficient", m_c, allocator);
+
+    return obj;
+}
+
+// -----------------------------------------------------------------------------
 
 NonlinearDamperTorque::NonlinearDamperTorque() {}
 
@@ -356,6 +569,24 @@ double NonlinearDamperTorque::evaluate(double time, double angle, double vel, co
     return -m_mapC.Get_y(vel);
 }
 
+rapidjson::Value NonlinearDamperTorque::exportJSON(rapidjson::Document::AllocatorType& allocator) {
+    rapidjson::Value obj(rapidjson::kObjectType);
+
+    obj.AddMember("type", "NonlinearDamperTorque", allocator);
+
+    rapidjson::Value dataC(rapidjson::kArrayType);
+    for (const auto& p : m_mapC.GetPoints()) {
+        rapidjson::Value xy(rapidjson::kArrayType);
+        xy.PushBack(p.x, allocator);
+        xy.PushBack(p.y, allocator);
+        dataC.PushBack(xy, allocator);
+    }
+
+    obj.AddMember("damping curve data", dataC, allocator);
+
+    return obj;
+}
+
 // -----------------------------------------------------------------------------
 
 LinearSpringDamperTorque::LinearSpringDamperTorque(double k, double c, double rest_angle, double preload)
@@ -364,6 +595,20 @@ LinearSpringDamperTorque::LinearSpringDamperTorque(double k, double c, double re
 double LinearSpringDamperTorque::evaluate(double time, double angle, double vel, const ChLinkRSDA& link) {
     return m_P - m_k * (angle - m_rest_angle) - m_c * vel;
 }
+
+rapidjson::Value LinearSpringDamperTorque::exportJSON(rapidjson::Document::AllocatorType& allocator) {
+    rapidjson::Value obj(rapidjson::kObjectType);
+
+    obj.AddMember("type", "LinearSpringDamperTorque", allocator);
+    obj.AddMember("spring coefficient", m_k, allocator);
+    obj.AddMember("damping coefficient", m_c, allocator);
+    obj.AddMember("preload", m_P, allocator);
+    obj.AddMember("rest angle", m_rest_angle, allocator);
+
+    return obj;
+}
+
+// -----------------------------------------------------------------------------
 
 NonlinearSpringDamperTorque::NonlinearSpringDamperTorque(double rest_angle, double preload)
     : m_rest_angle(rest_angle), m_P(preload) {}
@@ -391,6 +636,35 @@ void NonlinearSpringDamperTorque::add_pointC(double x, double y) {
 
 double NonlinearSpringDamperTorque::evaluate(double time, double angle, double vel, const ChLinkRSDA& link) {
     return m_P - m_mapK.Get_y(angle - m_rest_angle) - m_mapC.Get_y(vel);
+}
+
+rapidjson::Value NonlinearSpringDamperTorque::exportJSON(rapidjson::Document::AllocatorType& allocator) {
+    rapidjson::Value obj(rapidjson::kObjectType);
+
+    obj.AddMember("type", "NonlinearSpringDamperTorque", allocator);
+
+    rapidjson::Value dataK(rapidjson::kArrayType);
+    for (const auto& p : m_mapK.GetPoints()) {
+        rapidjson::Value xy(rapidjson::kArrayType);
+        xy.PushBack(p.x, allocator);
+        xy.PushBack(p.y, allocator);
+        dataK.PushBack(xy, allocator);
+    }
+
+    rapidjson::Value dataC(rapidjson::kArrayType);
+    for (const auto& p : m_mapC.GetPoints()) {
+        rapidjson::Value xy(rapidjson::kArrayType);
+        xy.PushBack(p.x, allocator);
+        xy.PushBack(p.y, allocator);
+        dataC.PushBack(xy, allocator);
+    }
+
+    obj.AddMember("spring curve data", dataK, allocator);
+    obj.AddMember("damping curve data", dataC, allocator);
+    obj.AddMember("preload", m_P, allocator);
+    obj.AddMember("rest angle", m_rest_angle, allocator);
+
+    return obj;
 }
 
 }  // end namespace vehicle

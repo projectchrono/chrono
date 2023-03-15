@@ -19,6 +19,8 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/assets/ChPointPointShape.h"
 
+#include "chrono_thirdparty/rapidjson/document.h"
+
 namespace chrono {
 
 /// Class for rotational spring-damper-actuator (RSDA) with the torque specified through a functor object.
@@ -79,6 +81,11 @@ class ChApi ChLinkRSDA : public ChLink {
                                 double vel,             ///< relative angular speed
                                 const ChLinkRSDA& link  ///< associated RSDA link
                                 ) = 0;
+
+        /// Optional reporting function to generate a JSON value with functor information.
+        virtual rapidjson::Value exportJSON(rapidjson::Document::AllocatorType& allocator) {
+            return rapidjson::Value();
+        }
     };
 
     /// Specify the callback object for calculating the torque.
