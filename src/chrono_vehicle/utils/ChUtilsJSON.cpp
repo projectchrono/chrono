@@ -446,6 +446,9 @@ std::shared_ptr<ChLinkTSDA::ForceFunctor> ReadTSDAFunctorJSON(const rapidjson::V
         }
 
         case FunctorType::NonlinearSpringDamper: {
+            assert(tsda.HasMember("Free Length"));
+            free_length = tsda["Free Length"].GetDouble();
+
             auto forceCB = chrono_types::make_shared<NonlinearSpringDamperForce>(preload);
 
             assert(tsda["Spring Curve Data"].IsArray() && tsda["Spring Curve Data"][0u].Size() == 2);
@@ -593,6 +596,28 @@ std::shared_ptr<ChLinkRSDA::TorqueFunctor> ReadRSDAFunctorJSON(const rapidjson::
             return chrono_types::make_shared<LinearSpringDamperTorque>(k, c, preload);
         }
 
+        case FunctorType::NonlinearSpringDamper: {
+            assert(rsda.HasMember("Free Angle"));
+            free_angle = rsda["Free Angle"].GetDouble();
+
+            auto torqueCB = chrono_types::make_shared<NonlinearSpringDamperTorque>(preload);
+
+            assert(rsda["Spring Curve Data"].IsArray() && rsda["Spring Curve Data"][0u].Size() == 2);
+            int num_defs = rsda["Spring Curve Data"].Size();
+            for (int i = 0; i < num_defs; i++) {
+                double def = rsda["Spring Curve Data"][i][0u].GetDouble();
+                double force = rsda["Spring Curve Data"][i][1u].GetDouble();
+                torqueCB->add_pointK(def, force);
+            }
+            int num_speeds = rsda["Dumping Curve Data"].Size();
+            for (int i = 0; i < num_speeds; i++) {
+                double vel = rsda["Damping Curve Data"][i][0u].GetDouble();
+                double force = rsda["Damping Curve Data"][i][1u].GetDouble();
+                torqueCB->add_pointC(vel, force);
+            }
+
+            return torqueCB;
+        }
     }
 }
 

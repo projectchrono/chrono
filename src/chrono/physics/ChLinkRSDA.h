@@ -77,15 +77,18 @@ class ChApi ChLinkRSDA : public ChLink {
 
         /// Calculate and return the general spring-damper torque at the specified configuration.
         virtual double evaluate(double time,            ///< current time
+                                double rest_angle,      ///< undeformed angle
                                 double angle,           ///< relative angle of rotation
                                 double vel,             ///< relative angular speed
                                 const ChLinkRSDA& link  ///< associated RSDA link
                                 ) = 0;
 
+#ifndef SWIG
         /// Optional reporting function to generate a JSON value with functor information.
         virtual rapidjson::Value exportJSON(rapidjson::Document::AllocatorType& allocator) {
             return rapidjson::Value();
         }
+#endif
     };
 
     /// Specify the callback object for calculating the torque.

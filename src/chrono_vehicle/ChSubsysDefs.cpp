@@ -476,11 +476,10 @@ rapidjson::Value MapSpringDamperForce::exportJSON(rapidjson::Document::Allocator
 
 // -----------------------------------------------------------------------------
 
-LinearSpringTorque::LinearSpringTorque(double k, double rest_angle, double preload)
-    : m_k(k), m_rest_angle(rest_angle), m_P(preload) {}
+LinearSpringTorque::LinearSpringTorque(double k, double preload) : m_k(k), m_P(preload) {}
 
-double LinearSpringTorque::evaluate(double time, double angle, double vel, const ChLinkRSDA& link) {
-    return m_P - m_k * (angle - m_rest_angle);
+double LinearSpringTorque::evaluate(double time, double rest_angle, double angle, double vel, const ChLinkRSDA& link) {
+    return m_P - m_k * (angle - rest_angle);
 }
 
 rapidjson::Value LinearSpringTorque::exportJSON(rapidjson::Document::AllocatorType& allocator) {
@@ -489,20 +488,16 @@ rapidjson::Value LinearSpringTorque::exportJSON(rapidjson::Document::AllocatorTy
     obj.AddMember("type", "LinearSpringTorque", allocator);
     obj.AddMember("spring coefficient", m_k, allocator);
     obj.AddMember("preload", m_P, allocator);
-    obj.AddMember("rest angle", m_rest_angle, allocator);
 
     return obj;
 }
 
 // -----------------------------------------------------------------------------
 
-NonlinearSpringTorque::NonlinearSpringTorque(double rest_angle, double preload)
-    : m_rest_angle(rest_angle), m_P(preload) {}
+NonlinearSpringTorque::NonlinearSpringTorque(double preload) : m_P(preload) {}
 
-NonlinearSpringTorque::NonlinearSpringTorque(const std::vector<std::pair<double, double>>& dataK,
-                                             double rest_angle,
-                                             double preload)
-    : m_rest_angle(rest_angle), m_P(preload) {
+NonlinearSpringTorque::NonlinearSpringTorque(const std::vector<std::pair<double, double>>& dataK, double preload)
+    : m_P(preload) {
     for (unsigned int i = 0; i < dataK.size(); ++i) {
         m_mapK.AddPoint(dataK[i].first, dataK[i].second);
     }
@@ -512,8 +507,12 @@ void NonlinearSpringTorque::add_pointK(double x, double y) {
     m_mapK.AddPoint(x, y);
 }
 
-double NonlinearSpringTorque::evaluate(double time, double angle, double vel, const ChLinkRSDA& link) {
-    return m_P - m_mapK.Get_y(angle - m_rest_angle);
+double NonlinearSpringTorque::evaluate(double time,
+                                       double rest_angle,
+                                       double angle,
+                                       double vel,
+                                       const ChLinkRSDA& link) {
+    return m_P - m_mapK.Get_y(angle - rest_angle);
 }
 
 rapidjson::Value NonlinearSpringTorque::exportJSON(rapidjson::Document::AllocatorType& allocator) {
@@ -531,7 +530,6 @@ rapidjson::Value NonlinearSpringTorque::exportJSON(rapidjson::Document::Allocato
 
     obj.AddMember("spring curve data", dataK, allocator);
     obj.AddMember("preload", m_P, allocator);
-    obj.AddMember("rest angle", m_rest_angle, allocator);
 
     return obj;
 }
@@ -540,7 +538,7 @@ rapidjson::Value NonlinearSpringTorque::exportJSON(rapidjson::Document::Allocato
 
 LinearDamperTorque::LinearDamperTorque(double c) : m_c(c) {}
 
-double LinearDamperTorque::evaluate(double time, double angle, double vel, const ChLinkRSDA& link) {
+double LinearDamperTorque::evaluate(double time, double rest_angle, double angle, double vel, const ChLinkRSDA& link) {
     return -m_c * vel;
 }
 
@@ -565,7 +563,11 @@ NonlinearDamperTorque::NonlinearDamperTorque(const std::vector<std::pair<double,
 void NonlinearDamperTorque::add_pointC(double x, double y) {
     m_mapC.AddPoint(x, y);
 }
-double NonlinearDamperTorque::evaluate(double time, double angle, double vel, const ChLinkRSDA& link) {
+double NonlinearDamperTorque::evaluate(double time,
+                                       double rest_angle,
+                                       double angle,
+                                       double vel,
+                                       const ChLinkRSDA& link) {
     return -m_mapC.Get_y(vel);
 }
 
@@ -589,11 +591,14 @@ rapidjson::Value NonlinearDamperTorque::exportJSON(rapidjson::Document::Allocato
 
 // -----------------------------------------------------------------------------
 
-LinearSpringDamperTorque::LinearSpringDamperTorque(double k, double c, double rest_angle, double preload)
-    : m_k(k), m_c(c), m_rest_angle(rest_angle), m_P(preload) {}
+LinearSpringDamperTorque::LinearSpringDamperTorque(double k, double c, double preload) : m_k(k), m_c(c), m_P(preload) {}
 
-double LinearSpringDamperTorque::evaluate(double time, double angle, double vel, const ChLinkRSDA& link) {
-    return m_P - m_k * (angle - m_rest_angle) - m_c * vel;
+double LinearSpringDamperTorque::evaluate(double time,
+                                          double rest_angle,
+                                          double angle,
+                                          double vel,
+                                          const ChLinkRSDA& link) {
+    return m_P - m_k * (angle - rest_angle) - m_c * vel;
 }
 
 rapidjson::Value LinearSpringDamperTorque::exportJSON(rapidjson::Document::AllocatorType& allocator) {
@@ -603,21 +608,18 @@ rapidjson::Value LinearSpringDamperTorque::exportJSON(rapidjson::Document::Alloc
     obj.AddMember("spring coefficient", m_k, allocator);
     obj.AddMember("damping coefficient", m_c, allocator);
     obj.AddMember("preload", m_P, allocator);
-    obj.AddMember("rest angle", m_rest_angle, allocator);
 
     return obj;
 }
 
 // -----------------------------------------------------------------------------
 
-NonlinearSpringDamperTorque::NonlinearSpringDamperTorque(double rest_angle, double preload)
-    : m_rest_angle(rest_angle), m_P(preload) {}
+NonlinearSpringDamperTorque::NonlinearSpringDamperTorque(double preload) : m_P(preload) {}
 
 NonlinearSpringDamperTorque::NonlinearSpringDamperTorque(const std::vector<std::pair<double, double>>& dataK,
                                                          const std::vector<std::pair<double, double>>& dataC,
-                                                         double rest_angle,
                                                          double preload)
-    : m_rest_angle(rest_angle), m_P(preload) {
+    : m_P(preload) {
     for (unsigned int i = 0; i < dataK.size(); ++i) {
         m_mapK.AddPoint(dataK[i].first, dataK[i].second);
     }
@@ -634,8 +636,12 @@ void NonlinearSpringDamperTorque::add_pointC(double x, double y) {
     m_mapC.AddPoint(x, y);
 }
 
-double NonlinearSpringDamperTorque::evaluate(double time, double angle, double vel, const ChLinkRSDA& link) {
-    return m_P - m_mapK.Get_y(angle - m_rest_angle) - m_mapC.Get_y(vel);
+double NonlinearSpringDamperTorque::evaluate(double time,
+                                             double rest_angle,
+                                             double angle,
+                                             double vel,
+                                             const ChLinkRSDA& link) {
+    return m_P - m_mapK.Get_y(angle - rest_angle) - m_mapC.Get_y(vel);
 }
 
 rapidjson::Value NonlinearSpringDamperTorque::exportJSON(rapidjson::Document::AllocatorType& allocator) {
@@ -662,7 +668,6 @@ rapidjson::Value NonlinearSpringDamperTorque::exportJSON(rapidjson::Document::Al
     obj.AddMember("spring curve data", dataK, allocator);
     obj.AddMember("damping curve data", dataC, allocator);
     obj.AddMember("preload", m_P, allocator);
-    obj.AddMember("rest angle", m_rest_angle, allocator);
 
     return obj;
 }

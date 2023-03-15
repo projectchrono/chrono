@@ -39,6 +39,7 @@ void ChTrackAssemblySegmented::EnableTrackBendingStiffness(bool val) {
 }
 
 double ChTrackAssemblySegmented::TrackBendingFunctor::evaluate(double time,
+                                                               double rest_angle,
                                                                double angle,
                                                                double vel,
                                                                const ChLinkRSDA& link) {

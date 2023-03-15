@@ -121,10 +121,12 @@ class ChApi ChLinkTSDA : public ChLink {
                                 const ChLinkTSDA& link  ///< associated TSDA link
                                 ) = 0;
 
+#ifndef SWIG
         /// Optional reporting function to generate a JSON value with functor information.
         virtual rapidjson::Value exportJSON(rapidjson::Document::AllocatorType& allocator) {
             return rapidjson::Value();
         }
+#endif
     };
 
     /// Specify the functor object for calculating the force.
