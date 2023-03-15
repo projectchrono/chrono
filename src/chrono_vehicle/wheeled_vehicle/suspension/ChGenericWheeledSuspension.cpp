@@ -264,7 +264,14 @@ ChVector<> ChGenericWheeledSuspension::TransformPosition(const ChVector<>& pos_l
     ChVector<> pos = pos_loc;
     if (side == VehicleSide::RIGHT)
         pos.y() = -pos.y();
-    return m_X_SA.TransformLocalToParent(pos);
+    return m_X_SA.TransformPointLocalToParent(pos);
+}
+
+ChVector<> ChGenericWheeledSuspension::TransformDirection(const ChVector<>& dir_loc, int side) const {
+    ChVector<> dir = dir_loc;
+    if (side == VehicleSide::RIGHT)
+        dir.y() = -dir.y();
+    return m_X_SA.TransformDirectionLocalToParent(dir);
 }
 
 ChQuaternion<> ChGenericWheeledSuspension::TransformRotation(const ChQuaternion<>& rot_local, int side) const {
@@ -508,7 +515,7 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
 
         // Create RSDA
         ChVector<> pos = TransformPosition(item.second.pos, item.first.side);
-        ChVector<> axis = TransformPosition(item.second.pos, item.first.side);
+        ChVector<> axis = TransformDirection(item.second.axis, item.first.side);
         ChMatrix33<> rot;
         rot.Set_A_Xdir(axis);
         ChQuaternion<> quat = rot.Get_A_quaternion() * Q_from_AngY(CH_C_PI_2);

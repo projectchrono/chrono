@@ -42,6 +42,7 @@ using namespace chrono::vehicle;
 // Specification of a vehicle suspension test rig
 // Available models:
 //    HMMWV   : demonstrates STR for a steered axle
+//    UAZ     : demonstrates STR for an SAE leaf-spring suspension
 //    MTV     : demonstrates STR for a walking-beam suspension
 //    Generic : demonstrates STR for an axle with antiroll bar
 //               (requires smaller step size)
@@ -79,6 +80,7 @@ class HMMWV_STR_Setup : public STR_Setup {
 class UAZ_STR_Setup : public STR_Setup {
   public:
     virtual std::string SuspensionRigJSON() const override { return "uaz/suspensionTest/UAZ_ST_front.json"; }
+    ////virtual std::string SuspensionRigJSON() const override { return "uaz/suspensionTest/UAZ_ST_front_replica.json"; }
     virtual std::string VehicleJSON() const override { return "uaz/vehicle/UAZBUS_SAEVehicle.json"; }
     ////virtual std::string VehicleJSON() const override { return "uaz/vehicle/UAZBUS_SAEVehicle_replica.json"; }
     virtual std::string TireJSON() const override { return "uaz/tire/UAZBUS_TMeasyTireFront.json"; }

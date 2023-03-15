@@ -289,6 +289,9 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
     /// Express a point given in the suspension reference frame to the absolute coordinate frame.
     ChVector<> TransformPosition(const ChVector<>& pos_loc, int side) const;
 
+    /// Express a direction vector given in the suspension reference frame to the absolute coordinate frame.
+    ChVector<> TransformDirection(const ChVector<>& dir_loc, int side) const;
+
     /// Express a quaternion given in the suspension reference frame to the absolute coordinate frame.
     ChQuaternion<> TransformRotation(const ChQuaternion<>& rot_local, int side) const;
 
