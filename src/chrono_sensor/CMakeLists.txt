@@ -574,14 +574,14 @@ endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     if(EXISTS "${GLEW_DLL}")
-      ADD_CUSTOM_COMMAND(TARGET ChronoEngine_opengl POST_BUILD
+      ADD_CUSTOM_COMMAND(TARGET ChronoEngine_sensor POST_BUILD
                          COMMAND ${CMAKE_COMMAND} -E copy_if_different
                                  "${GLEW_DLL}"
                                  "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>")
       install(FILES "${GLEW_DLL}" DESTINATION bin)
     endif()
     if(EXISTS "${GLFW_DLL}")
-      ADD_CUSTOM_COMMAND(TARGET ChronoEngine_opengl POST_BUILD
+      ADD_CUSTOM_COMMAND(TARGET ChronoEngine_sensor POST_BUILD
                          COMMAND ${CMAKE_COMMAND} -E copy_if_different
                          "${GLFW_DLL}"
                          "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>")
