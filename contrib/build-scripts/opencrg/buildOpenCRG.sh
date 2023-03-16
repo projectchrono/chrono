@@ -9,11 +9,15 @@
 # - As provided, this script generates both Release and Debug libraries.
 # ------------------------------------------------------------------------
 
-CRG_SOURCE_DIR="$HOME/Repositories/OpenCRG-1.1.2"
-CRG_INSTALL_DIR="$HOME/Packages/OpenCRG"
-REV=1.1.2
-
 DOWNLOAD=ON
+
+CRG_INSTALL_DIR="$HOME/Packages/openCRG"
+
+if [ ${DOWNLOAD} = OFF ]
+then    
+    CRG_SOURCE_DIR="$HOME/Sources/OpenCRG-1.1.2"
+    REV=1.1.2
+fi
 
 # ------------------------------------------------------------------------
 
@@ -72,4 +76,3 @@ ${AR} ${VERBOSE} -r ${CRG_INSTALL_DIR}/lib/libOpenCRG.${REV}_d.a *.o
 cp -r ${CRG_SOURCE_DIR}/inc/* ${CRG_INSTALL_DIR}/include/
 
 cd ..
-

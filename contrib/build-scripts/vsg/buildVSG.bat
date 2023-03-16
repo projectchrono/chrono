@@ -12,22 +12,16 @@
 @rem
 @rem Notes:
 @rem - This was tested with the following versions of VSG libraries:
-@rem      VulkanSceneGraph (github.com/vsg-dev/VulkanSceneGraph.git): Commit #aa28d62
-@rem      vsgXchange (github.com/vsg-dev/vsgXchange.git):             Commit #b37861b
+@rem      VulkanSceneGraph (github.com/vsg-dev/VulkanSceneGraph.git): Tag VulkanSceneGraph-1.0.3
+@rem      vsgXchange (github.com/vsg-dev/vsgXchange.git):             Tag vsgXchange-11.0.3
 @rem      vsgImGui (github.com/vsg-dev/vsgImGui.git):                 Commit #0ec0cd4
-@rem      vsgExamples (github.com/vsg-dev/vsgExamples.git):           Commit #c789753
-@rem      assimp (github.com/assimp/assimp):                          Commit #8c6b3fe
+@rem      vsgExamples (github.com/vsg-dev/vsgExamples.git):           Tag vsgExamples-1.0.2
+@rem      assimp (github.com/assimp/assimp):                          Tag v5.2.5
 @rem ---------------------------------------------------------------------------------------------------------
-
-set VSG_SOURCE_DIR="E:/Repositories/VulkanSceneGraph"
-set VSGXCHANGE_SOURCE_DIR="E:/Repositories/vsgXchange"
-set VSGIMGUI_SOURCE_DIR="E:/Repositories/vsgImGui"
-set VSGEXAMPLES_SOURCE_DIR="E:/Repositories/vsgExamples"
-set ASSIMP_SOURCE_DIR="E:/Repositories/assimp"
 
 set DOWNLOAD=ON
 
-set VSG_INSTALL_DIR="E:/Packages/vsg"
+set VSG_INSTALL_DIR="C:/Packages/vsg"
 
 set DOXYGEN_EXE="doxygen.exe"
 set DOT_EXE="dot.exe"
@@ -35,6 +29,14 @@ set DOT_EXE="dot.exe"
 set BUILDSHARED=ON
 set BUILDDOCS=OFF
 set BUILDDEBUG=ON
+
+@if %DOWNLOAD% EQU OFF (
+    set VSG_SOURCE_DIR="C:/Sources/VulkanSceneGraph"
+    set VSGXCHANGE_SOURCE_DIR="C:/Sources/vsgXchange"
+    set VSGIMGUI_SOURCE_DIR="C:/Sources/vsgImGui"
+    set VSGEXAMPLES_SOURCE_DIR="C:/Sources/vsgExamples"
+    set ASSIMP_SOURCE_DIR="C:/Sources/assimp"  
+)
 
 @rem ------------------------------------------------------------------------
 
@@ -45,39 +47,24 @@ set BUILDDEBUG=ON
     mkdir download_vsg
 
     echo "  ... VulkanSceneGraph"
-    powershell -Command "Invoke-WebRequest -UserAgent 'Wget' -Uri https://github.com/vsg-dev/VulkanSceneGraph/archive/refs/heads/master.zip -OutFile download_vsg/vsg.zip"
-    powershell -Command "Expand-Archive -Force download_vsg/vsg.zip download_vsg"
-    set VSG_SOURCE_DIR="download_vsg/VulkanSceneGraph-master"
+    git clone -c advice.detachedHead=false --depth 1 --branch VulkanSceneGraph-1.0.3 "https://github.com/vsg-dev/VulkanSceneGraph" "download_vsg/vsg"
+    set VSG_SOURCE_DIR="download_vsg/vsg"
 
     echo "  ... vsgXchange"    
-    powershell -Command "Invoke-WebRequest -UserAgent 'Wget' -Uri https://github.com/vsg-dev/vsgXchange/archive/refs/heads/master.zip -OutFile download_vsg/vsgXchange.zip"
-    powershell -Command "Expand-Archive -Force download_vsg/vsgXchange.zip download_vsg"
-    set VSGXCHANGE_SOURCE_DIR="download_vsg/vsgXchange-master"
+    git clone -c advice.detachedHead=false --depth 1 --branch vsgXchange-1.0.2 "https://github.com/vsg-dev/vsgXchange" "download_vsg/vsgXchange"
+    set VSGXCHANGE_SOURCE_DIR="download_vsg/vsgXchange"
 
     echo "  ... vsgImGui"
-    powershell -Command "Invoke-WebRequest -UserAgent 'Wget' -Uri https://github.com/vsg-dev/vsgImGui/archive/refs/heads/master.zip -OutFile download_vsg/vsgImGui.zip"
-    powershell -Command "Expand-Archive -Force download_vsg/vsgImGui.zip download_vsg"
-    set VSGIMGUI_SOURCE_DIR="download_vsg/vsgImGui-master"
-
-    echo "  ... ImGui"
-    powershell -Command "Invoke-WebRequest -UserAgent 'Wget' -Uri https://github.com/ocornut/imgui/archive/refs/heads/master.zip -OutFile download_vsg/imgui.zip"
-    powershell -Command "Expand-Archive -Force download_vsg/imgui.zip download_vsg"
-    xcopy /S/E/Y download_vsg\imgui-master\* download_vsg\vsgImGui-master\src\imgui\
-
-    echo "  ... ImPlot"
-    powershell -Command "Invoke-WebRequest -UserAgent 'Wget' -Uri https://github.com/epezent/implot/archive/refs/heads/master.zip -OutFile download_vsg/implot.zip"
-    powershell -Command "Expand-Archive -Force download_vsg/implot.zip download_vsg"
-    xcopy /S/E/Y download_vsg\implot-master\* download_vsg\vsgImGui-master\src\implot\
+    git clone "https://github.com/vsg-dev/vsgImGui" "download_vsg/vsgImGui"
+    set VSGIMGUI_SOURCE_DIR="download_vsg/vsgImGui"
 
     echo "  ... vsgExamples"
-    powershell -Command "Invoke-WebRequest -UserAgent 'Wget' -Uri https://github.com/vsg-dev/vsgExamples/archive/refs/heads/master.zip -OutFile download_vsg/vsgExamples.zip"
-    powershell -Command "Expand-Archive -Force download_vsg/vsgExamples.zip download_vsg"
-    set VSGEXAMPLES_SOURCE_DIR="download_vsg/vsgExamples-master"
+    git clone -c advice.detachedHead=false --depth 1 --branch vsgExamples-1.0.2 "https://github.com/vsg-dev/vsgExamples" "download_vsg/vsgExamples"
+    set VSGEXAMPLES_SOURCE_DIR="download_vsg/vsgExamples"
 
     echo "  ... assimp"
-    powershell -Command "Invoke-WebRequest -UserAgent 'Wget' -Uri https://github.com/assimp/assimp/archive/refs/heads/master.zip -OutFile download_vsg/assimp.zip"
-    powershell -Command "Expand-Archive -Force download_vsg/assimp.zip download_vsg"
-    set ASSIMP_SOURCE_DIR="download_vsg/assimp-master"
+    git clone -c advice.detachedHead=false --depth 1 --branch v5.2.5 "https://github.com/assimp/assimp" "download_vsg/assimp"
+    set ASSIMP_SOURCE_DIR="download_vsg/assimp"
 ) else (
     echo "Using provided source directories"
 )

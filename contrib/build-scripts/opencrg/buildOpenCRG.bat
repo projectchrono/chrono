@@ -9,11 +9,14 @@
 @rem   Release, Debug, RelWithDebInfo, and MinSizeRel configurations.
 @rem ---------------------------------------------------------------------------------------------------------
 
-set CRG_SOURCE_DIR="E:\Repositories\OpenCRG-1.1.2"
-set CRG_INSTALL_DIR="E:\Packages\OpenCRG"
-set REV=1.1.2
-
 set DOWNLOAD=ON
+
+set CRG_INSTALL_DIR="C:\Packages\openCRG"
+
+@if %DOWNLOAD% EQU OFF (
+    set CRG_SOURCE_DIR="C:\Sources\OpenCRG-1.1.2"
+    set REV=1.1.2
+)
 
 @rem ------------------------------------------------------------------------
 
@@ -77,4 +80,4 @@ rem install the files
 copy %CRG_SOURCE_DIR%\\inc\*.h %CRG_INSTALL_DIR%\include
 copy *.lib %CRG_INSTALL_DIR%\lib
 
-cd ..obj
+cd ..

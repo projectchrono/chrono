@@ -24,12 +24,6 @@
 #   (otherwise, you will need to explicitly set the CMAKE_BUILD_TYPE variable)
 # -------------------------------------------------------------------------------------------------------
 
-VSG_SOURCE_DIR="$HOME/Repositories/VulkanSceneGraph"
-VSGXCHANGE_SOURCE_DIR="$HOME/Repositories/vsgXchange"
-VSGIMGUI_SOURCE_DIR="$HOME/Repositories/vsgImGui"
-VSGEXAMPLES_SOURCE_DIR="$HOME/Repositories/vsgExamples"
-ASSIMP_SOURCE_DIR="$HOME/Repositories/assimp"
-
 DOWNLOAD=ON
 
 VSG_INSTALL_DIR="$HOME/Packages/vsg"
@@ -42,6 +36,15 @@ BUILDDOCS=OFF
 BUILDDEBUG=ON
 BUILDSYSTEM="Ninja Multi-Config"
 
+if [ ${DOWNLOAD} = OFF ]
+then    
+    VSG_SOURCE_DIR="$HOME/Sources/VulkanSceneGraph"
+    VSGXCHANGE_SOURCE_DIR="$HOME/Sources/vsgXchange"
+    VSGIMGUI_SOURCE_DIR="$HOME/Sources/vsgImGui"
+    VSGEXAMPLES_SOURCE_DIR="$HOME/Sources/vsgExamples"
+    ASSIMP_SOURCE_DIR="$HOME/Sources/assimp"
+fi
+
 # ------------------------------------------------------------------------
 
 if [ ${DOWNLOAD} = ON ]
@@ -52,39 +55,24 @@ then
     mkdir download_vsg
 
     echo "  ... VulkanSceneGraph"
-    wget https://github.com/vsg-dev/VulkanSceneGraph/archive/refs/heads/master.zip -O download_vsg/vsg.zip
-    unzip -q download_vsg/vsg.zip -d download_vsg
-    VSG_SOURCE_DIR="download_vsg/VulkanSceneGraph-master"
+    git clone -c advice.detachedHead=false --depth 1 --branch VulkanSceneGraph-1.0.3 "https://github.com/vsg-dev/VulkanSceneGraph" "download_vsg/vsg"
+    VSG_SOURCE_DIR="download_vsg/vsg"
 
     echo "  ... vsgXchange"    
-    wget https://github.com/vsg-dev/vsgXchange/archive/refs/heads/master.zip -OutFile download_vsg/vsgXchange.zip -O download_vsg/vsgXchange.zip
-    unzip -q download_vsg/vsgXchange.zip -d download_vsg
-    VSGXCHANGE_SOURCE_DIR="download_vsg/vsgXchange-master"
+    git clone -c advice.detachedHead=false --depth 1 --branch vsgXchange-1.0.2 "https://github.com/vsg-dev/vsgXchange" "download_vsg/vsgXchange"
+    VSGXCHANGE_SOURCE_DIR="download_vsg/vsgXchange"
 
     echo "  ... vsgImGui"
-    wget https://github.com/vsg-dev/vsgImGui/archive/refs/heads/master.zip -O download_vsg/vsgImGui.zip
-    unzip -q download_vsg/vsgImGui.zip -d download_vsg
-    VSGIMGUI_SOURCE_DIR="download_vsg/vsgImGui-master"
-
-    echo "  ... ImGui"
-    wget https://github.com/ocornut/imgui/archive/refs/heads/master.zip -O download_vsg/imgui.zip
-    unzip -q download_vsg/imgui.zip -d download_vsg
-    cp -r download_vsg/imgui-master/* download_vsg/vsgImGui-master/src/imgui/
-
-    echo "  ... ImPlot"
-    wget https://github.com/epezent/implot/archive/refs/heads/master.zip -O download_vsg/implot.zip
-    unzip -q download_vsg/implot.zip -d download_vsg
-    cp -r download_vsg/implot-master/* download_vsg/vsgImGui-master/src/implot/
+    git clone "https://github.com/vsg-dev/vsgImGui" "download_vsg/vsgImGui"
+    VSGIMGUI_SOURCE_DIR="download_vsg/vsgImGui"
     
     echo "  ... vsgExamples"
-    wget https://github.com/vsg-dev/vsgExamples/archive/refs/heads/master.zip -OutFile download_vsg/vsgExamples.zip -O download_vsg/vsgExamples.zip
-    unzip -q download_vsg/vsgExamples.zip -d download_vsg
-    VSGEXAMPLES_SOURCE_DIR="download_vsg/vsgExamples-master"
+    git clone -c advice.detachedHead=false --depth 1 --branch vsgExamples-1.0.2 "https://github.com/vsg-dev/vsgExamples" "download_vsg/vsgExamples"
+    VSGEXAMPLES_SOURCE_DIR="download_vsg/vsgExamples"
 
     echo "  ... assimp"
-    wget https://github.com/assimp/assimp/archive/refs/heads/master.zip -O download_vsg/assimp.zip
-    unzip -q download_vsg/assimp.zip -d download_vsg
-    ASSIMP_SOURCE_DIR="download_vsg/assimp-master"
+    git clone -c advice.detachedHead=false --depth 1 --branch v5.2.5 "https://github.com/assimp/assimp" "download_vsg/assimp"
+    ASSIMP_SOURCE_DIR="download_vsg/assimp"
 else
     echo "Using provided source directories"
 fi

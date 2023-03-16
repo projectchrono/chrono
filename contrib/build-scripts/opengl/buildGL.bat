@@ -17,16 +17,18 @@
 @rem      GLM (github.com/g-truc/glm.git):  Commit (#efec5db0)                  
 @rem ---------------------------------------------------------------------------------------------------------
 
-set GLM_SOURCE_DIR="E:/Repositories/glm"
-set GLEW_SOURCE_DIR="E:/Repositories/glew"
-set GLFW_SOURCE_DIR="E:/Repositories/glfw"
+set DOWNLOAD=ON
 
-set DOWNLOAD=OFF
-
-set GL_INSTALL_DIR="E:/Packages/gl"
+set GL_INSTALL_DIR="C:/Packages/gl"
 
 set BUILDSHARED=ON
 set BUILDDEBUG=ON
+
+@if %DOWNLOAD% EQU OFF (
+    set GLM_SOURCE_DIR="C:/Sources/glm"
+    set GLEW_SOURCE_DIR="C:/Sources/glew"
+    set GLFW_SOURCE_DIR="C:/Sources/glfw"
+)    
 
 @rem ------------------------------------------------------------------------
 

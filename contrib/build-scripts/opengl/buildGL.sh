@@ -21,10 +21,6 @@
 #   (otherwise, you will need to explicitly set the CMAKE_BUILD_TYPE variable)
 # ---------------------------------------------------------------------------------------------------------
 
-GLM_SOURCE_DIR="$HOME/Repositories/glm"
-GLEW_SOURCE_DIR="$HOME/Repositories/glew"
-GLFW_SOURCE_DIR="$HOME/Repositories/glfw"
-
 DOWNLOAD=ON
 
 GL_INSTALL_DIR="$HOME/Packages/gl"
@@ -32,6 +28,13 @@ GL_INSTALL_DIR="$HOME/Packages/gl"
 BUILDSHARED=ON
 BUILDDEBUG=ON
 BUILDSYSTEM="Ninja Multi-Config"
+
+if [ ${DOWNLOAD} = OFF ]
+then    
+    GLM_SOURCE_DIR="$HOME/Sources/glm"
+    GLEW_SOURCE_DIR="$HOME/Sources/glew"
+    GLFW_SOURCE_DIR="$HOME/Sources/glfw"
+fi
 
 # ------------------------------------------------------------------------
 
@@ -115,4 +118,3 @@ then
 else
     echo "No Debug build"
 fi
-
