@@ -468,6 +468,8 @@ void ChIrrNodeShape::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
             ntriangles = 3 * glyphs->GetNumberOfGlyphs();
             nvertexes = 9 * glyphs->GetNumberOfGlyphs();
             break;
+        case ChGlyphs::GLYPH_TENSOR:
+            break;
     }
 
     // smart inflating of allocated buffers, only if necessary, and once in a while shrinking

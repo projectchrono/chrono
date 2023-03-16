@@ -44,7 +44,7 @@ class Marder_SpringTorque : public ChLinkRSDA::TorqueFunctor {
   public:
     Marder_SpringTorque(double k, double c, double t) : m_k(k), m_c(c), m_t(t) {}
 
-    virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override {
+    virtual double evaluate(double time, double rest_angle, double angle, double vel, const ChLinkRSDA& link) override {
         return m_t - m_k * angle - m_c * vel;
     }
 

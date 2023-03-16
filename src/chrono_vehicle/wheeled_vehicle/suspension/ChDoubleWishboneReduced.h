@@ -95,10 +95,8 @@ class CH_VEHICLE_API ChDoubleWishboneReduced : public ChSuspension {
     /// Get a handle to the specified shock (spring-damper) element.
     std::shared_ptr<ChLinkTSDA> GetShock(VehicleSide side) const { return m_shock[side]; }
 
-    /// Return current suspension forces (spring and shock) on the specified side.
-    /// Since this suspension type has a combined spring-damper element, the same information is duplicated in the
-    /// "spring" and "shock" members of the return struct.
-    virtual ChSuspension::Force ReportSuspensionForce(VehicleSide side) const override;
+    /// Return current suspension TSDA force information on the specified side.
+    virtual std::vector<ForceTSDA> ReportSuspensionForce(VehicleSide side) const override;
 
     /// Specify the suspension body on the specified side to attach a possible antirollbar subsystem.
     /// Return the corresponding upright body.

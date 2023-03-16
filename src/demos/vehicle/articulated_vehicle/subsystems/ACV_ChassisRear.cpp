@@ -45,8 +45,8 @@ ACV_ChassisRear::ACV_ChassisRear(const std::string& name) : ChRigidChassisRear(n
     m_body_inertia(2, 1) = m_body_inertiaXY.z();
 
     ChVehicleGeometry::BoxShape box(ChVector<>(0.1, 0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector<>(1.2, 1.0, 0.2));
-    ChVehicleGeometry::CylinderShape cyl_axle(ChVector<>(-0.5, 0, 0), QUNIT, 0.05, 2);
-    ChVehicleGeometry::CylinderShape cyl_articulation(m_connector_loc, Q_from_AngX(CH_C_PI_2), 0.1, 0.22);
+    ChVehicleGeometry::CylinderShape cyl_axle(ChVector<>(-0.5, 0, 0), ChVector<>(0, 1, 0), 0.05, 2);
+    ChVehicleGeometry::CylinderShape cyl_articulation(m_connector_loc, ChVector<>(0, 0, 1), 0.1, 0.22);
 
     m_geometry.m_has_primitives = true;
     m_geometry.m_vis_boxes.push_back(box);

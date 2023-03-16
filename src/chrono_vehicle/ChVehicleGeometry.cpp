@@ -46,11 +46,15 @@ ChVehicleGeometry::SphereShape::SphereShape(const ChVector<>& pos, double radius
     : m_pos(pos), m_radius(radius), m_matID(matID) {}
 
 ChVehicleGeometry::CylinderShape::CylinderShape(const ChVector<>& pos,
-                                                const ChQuaternion<>& rot,
+                                                const ChVector<>& axis,
                                                 double radius,
                                                 double length,
                                                 int matID)
-    : m_pos(pos), m_rot(rot), m_radius(radius), m_length(length), m_matID(matID) {}
+    : m_pos(pos), m_axis(axis), m_radius(radius), m_length(length), m_matID(matID) {
+    ChMatrix33<> rot;
+    rot.Set_A_Xdir(m_axis);
+    m_rot = rot.Get_A_quaternion();
+}
 
 ChVehicleGeometry::LineShape::LineShape(const ChVector<>& pos,
                                         const ChQuaternion<>& rot,
@@ -100,10 +104,11 @@ void ChVehicleGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body, 
 
         for (auto& cyl : m_coll_cylinders) {
             auto cyl_shape = chrono_types::make_shared<ChCylinderShape>();
+            auto axis = cyl.m_axis.GetNormalized();
             cyl_shape->GetCylinderGeometry().rad = cyl.m_radius;
-            cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, cyl.m_length / 2, 0);
-            cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, -cyl.m_length / 2, 0);
-            body->AddVisualShape(cyl_shape, ChFrame<>(cyl.m_pos, cyl.m_rot));
+            cyl_shape->GetCylinderGeometry().p1 = cyl.m_pos - axis * (cyl.m_length / 2);
+            cyl_shape->GetCylinderGeometry().p2 = cyl.m_pos + axis * (cyl.m_length / 2);
+            body->AddVisualShape(cyl_shape);
         }
 
         for (auto& mesh : m_coll_meshes) {
@@ -164,11 +169,12 @@ void ChVehicleGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body, 
 
         for (auto& cyl : m_vis_cylinders) {
             auto cyl_shape = chrono_types::make_shared<ChCylinderShape>();
+            auto axis = cyl.m_axis.GetNormalized();
             cyl_shape->GetCylinderGeometry().rad = cyl.m_radius;
-            cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, cyl.m_length / 2, 0);
-            cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, -cyl.m_length / 2, 0);
+            cyl_shape->GetCylinderGeometry().p1 = cyl.m_pos - axis * (cyl.m_length / 2);
+            cyl_shape->GetCylinderGeometry().p2 = cyl.m_pos + axis * (cyl.m_length / 2);
             cyl_shape->AddMaterial(cyl_mat);
-            body->AddVisualShape(cyl_shape, ChFrame<>(cyl.m_pos, cyl.m_rot));
+            body->AddVisualShape(cyl_shape);
         }
 
         for (auto& line : m_vis_lines) {
@@ -275,6 +281,42 @@ ChVehicleGeometry::AABB ChVehicleGeometry::CalculateAABB() {
     }
 
     return AABB((amin + amax) / 2, amax - amin);
+}
+
+// -----------------------------------------------------------------------------
+
+ChTSDAGeometry::ChTSDAGeometry() : m_has_color(false), m_vis_segment(nullptr), m_vis_spring(nullptr) {}
+
+ChTSDAGeometry::SpringShape::SpringShape(double radius, int resolution, double turns)
+    : m_radius(radius), m_turns(turns), m_resolution(resolution) {}
+
+void ChTSDAGeometry::CreateVisualizationAssets(std::shared_ptr<ChLinkTSDA> tsda, VisualizationType vis) {
+    if (vis == VisualizationType::NONE)
+        return;
+
+    if (!tsda->GetVisualModel()) {
+        auto model = chrono_types::make_shared<ChVisualModel>();
+        tsda->AddVisualModel(model);
+    }
+
+    if (!m_has_color) {
+        m_color = ChColor(1.0f, 1.0f, 1.0f);
+    }
+    auto mat = chrono_types::make_shared<ChVisualMaterial>();
+    mat->SetDiffuseColor(m_color);
+
+    if (m_vis_spring) {
+        auto spring_shape = chrono_types::make_shared<ChSpringShape>(m_vis_spring->m_radius, m_vis_spring->m_resolution,
+                                                                     m_vis_spring->m_turns);
+        spring_shape->AddMaterial(mat);
+        tsda->AddVisualShape(spring_shape);
+    }
+
+    if (m_vis_segment) {
+        auto segment_shape = chrono_types::make_shared<ChSegmentShape>();
+        segment_shape->AddMaterial(mat);
+        tsda->AddVisualShape(segment_shape);
+    }
 }
 
 }  // end namespace vehicle

@@ -70,7 +70,7 @@ LMTV_ChassisRear::LMTV_ChassisRear(const std::string& name, CollisionType chassi
     ChVector<> rearBoxPos((-4.9 + joint_pos_x) / 2, 0, joint_pos_z);
     ChVehicleGeometry::BoxShape box(rearBoxPos, ChQuaternion<>(1, 0, 0, 0),
                                     ChVector<>(joint_pos_x + 4.7, widthFrame, heightFrame));
-    ChVehicleGeometry::CylinderShape cyl_torsion(m_connector_loc, Q_from_AngZ(CH_C_PI_2), 0.1, 0.2);
+    ChVehicleGeometry::CylinderShape cyl_torsion(m_connector_loc, ChVector<>(1, 0, 0), 0.1, 0.2);
 
     m_geometry.m_has_primitives = true;
     m_geometry.m_vis_boxes.push_back(box);

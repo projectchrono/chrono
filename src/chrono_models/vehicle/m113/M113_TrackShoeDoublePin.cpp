@@ -113,9 +113,9 @@ M113_TrackShoeDoublePin::M113_TrackShoeDoublePin(const std::string& name, Double
 
     // Visualization cylinder: pin revolute joints
     m_geometry.m_vis_cylinders.push_back(
-        ChVehicleGeometry::CylinderShape(ChVector<>(+0.0492, 0, 0), QUNIT, 0.01, 0.3, -1));
+        ChVehicleGeometry::CylinderShape(ChVector<>(+0.0492, 0, 0), ChVector<>(0, 1, 0), 0.01, 0.3, -1));
     m_geometry.m_vis_cylinders.push_back(
-        ChVehicleGeometry::CylinderShape(ChVector<>(-0.0492, 0, 0), QUNIT, 0.01, 0.3, -1));
+        ChVehicleGeometry::CylinderShape(ChVector<>(-0.0492, 0, 0), ChVector<>(0, 1, 0), 0.01, 0.3, -1));
 
     m_geometry.m_has_mesh = false;
     m_geometry.m_vis_mesh_file = "M113/meshes/TrackShoeDoublePin.obj";

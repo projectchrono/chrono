@@ -37,13 +37,13 @@ namespace vehicle {
 /// Base class for a suspension subsystem.
 class CH_VEHICLE_API ChSuspension : public ChPart {
   public:
-    struct Force {
-        double spring_force;
-        double shock_force;
-        double spring_length;
-        double spring_velocity;
-        double shock_length;
-        double shock_velocity;
+    struct ForceTSDA {
+        std::string name;
+        double force;
+        double length;
+        double velocity;
+        ForceTSDA() : name(""), force(0), length(0), velocity(0) {}
+        ForceTSDA(const std::string& n, double f, double l, double v) : name(n), force(f), length(l), velocity(v) {}
     };
 
     virtual ~ChSuspension();
@@ -139,9 +139,8 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// Get the wheel track for the suspension subsystem.
     virtual double GetTrack() = 0;
 
-    /// Return current suspension forces (spring and shock) on the specified side.
-    /// Different derived types (suspension templates) may load different quantities in the output struct.
-    virtual Force ReportSuspensionForce(VehicleSide side) const = 0;
+    /// Return current suspension TSDA force information on the specified side.
+    virtual std::vector<ForceTSDA> ReportSuspensionForce(VehicleSide side) const = 0;
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) {}

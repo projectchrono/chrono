@@ -33,14 +33,14 @@
             {
                 "Type": "CYLINDER",
                 "Location": [ -2.006, 0, 0.406 ],
-                "Orientation": [ 1, 0, 0, 0 ],
+                "Axis": [ 0, 1, 0 ],
                 "Radius": 0.02,
                 "Length": 0.6
             },
             {
                 "Type": "CYLINDER",
                 "Location": [ -2.006, 0, 0.406 ],
-                "Orientation": [ 0.7071, 0, 0, 0.7071 ],
+                "Axis": [ 1, 0, 0 ],
                 "Radius": 0.02,
                 "Length": 0.6
             }

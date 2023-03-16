@@ -1,0 +1,421 @@
+{
+  "Name":                           "UAZBUS Front SAE Leafspring Axle Replica",
+  "Type":                           "Suspension",
+  "Template":                       "GenericWheeledSuspension",
+
+  "Vehicle-Frame Inertia":          false,
+  "Independent":                    true,
+  "Steerable":                      true,
+  "Antiroll Body":                  "",
+  "Camber Angle (deg)":             0,
+  "Toe Angle (deg)":                0,
+
+  "Spindle":
+  {
+    "Attachment Body":              "Knuckle",
+    "Mass":                         14.705,
+    "COM":                          [0, 0.7325, 0],
+    "Inertia":                      [0.04117, 0.07352, 0.04117],
+    "Radius":                       0.10,
+    "Width":                        0.06
+  },
+
+  "Bodies": [
+    {
+      "Name":                         "Knuckle",
+      "Mirrored":                     true,
+      "Mass":                         10.0,
+      "Position":                     [0.0, 0.6625, 0.0],
+      "Rotation":                     [1, 0, 0, 0],
+      "Moments of Inertia":           [0.1, 0.1, 0.1],
+      "Products of Inertia":          [0, 0, 0],
+      "Visualization": {
+        "Primitives": [
+          {
+            "Type": "CYLINDER",
+            "Location": [0.0, 0.005, -0.05],
+            "Axis": [0.0, -0.0976, 0.9952],
+            "Radius": 0.05,
+            "Length": 0.1005
+          },
+          {
+            "Type": "CYLINDER",
+            "Location": [0.0, -0.005, 0.05],
+            "Axis": [0.0, 0.0976, -0.9952],
+            "Radius": 0.05,
+            "Length": 0.1005
+          },
+          {
+            "Type": "CYLINDER",
+            "Location": [-0.0952844, -0.030346, 0.05],
+            "Axis": [0.85225, 0.271423, -0.447214],
+            "Radius": 0.05,
+            "Length": 0.224
+          }
+        ]
+      }
+    },
+    {
+      "Name":                         "Axle Tube",
+      "Mirrored":                     false,
+      "Mass":                         124.0,
+      "Position":                     [0, 0, 0],
+      "Rotation":                     [1, 0, 0, 0],
+      "Moments of Inertia":           [22.21, 0.0775, 22.21],
+      "Products of Inertia":          [0, 0, 0],
+      "Visualization": {
+        "Primitives": [
+          {
+            "Type": "CYLINDER",
+            "Location": [0, 0, 0],
+            "Axis": [0, -1, 0],
+            "Radius": 0.0476,
+            "Length": 1.325
+          }
+        ]
+      }
+    },
+    {
+      "Name":                         "Tierod",
+      "Mirrored":                     false,
+      "Mass":                         5.0,
+      "Position":                     [-0.1906, 0.0, 0.1],
+      "Rotation":                     [1, 0, 0, 0],
+      "Moments of Inertia":           [1.0, 0.1, 1.0],
+      "Products of Inertia":          [0, 0, 0],
+      "Visualization": {
+        "Primitives": [
+          {
+            "Type": "CYLINDER",
+            "Location": [0, 0, 0],
+            "Axis": [0, -1, 0],
+            "Radius": 0.02,
+            "Length": 1.2036
+          }
+        ]
+      }
+    },
+    {
+      "Name":                         "Draglink",
+      "Mirrored":                     false,
+      "Mass":                         5.0,
+      "Position":                     [0.3, 0.5325, 0.2],
+      "Rotation":                     [0.6701, -0.2259, 0.6701, -0.2259],
+      "Moments of Inertia":           [0.1, 1.0, 0.1],
+      "Products of Inertia":          [0, 0, 0],
+      "Visualization": {
+        "Primitives": [
+          {
+            "Type": "CYLINDER",
+            "Location": [0, 0, 0],
+            "Axis": [0, 0, -1],
+            "Radius": 0.02,
+            "Length": 0.6
+          }
+        ]
+      }
+    },
+    {
+      "Name":                         "Frontleaf",
+      "Mirrored":                     true,
+      "Mass":                         3.88575,
+      "Position":                     [0.26939, 0.3824, 0.11424],
+      "Rotation":                     [1, 0, 0, 0],
+      "Moments of Inertia":           [0.00266206, 0.0809923, 0.083576],
+      "Products of Inertia":          [0, 0, 0],
+      "Visualization": {
+        "Primitives": [
+          {
+            "Type": "CYLINDER",
+            "Location": [0, 0, 0],
+            "Axis": [-0.998630, 0, -0.052336],
+            "Radius": 0.00476,
+            "Length": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "Name":                         "Rearleaf",
+      "Mirrored":                     true,
+      "Mass":                         3.88575,
+      "Position":                     [-0.27986, 0.3824, 0.0854706],
+      "Rotation":                     [1, 0, 0, 0],
+      "Moments of Inertia":           [0.00266206, 0.0809923, 0.083576],
+      "Products of Inertia":          [0, 0, 0],
+      "Visualization": {
+        "Primitives": [
+          {
+            "Type": "CYLINDER",
+            "Location": [0, 0, 0],
+            "Axis": [0.998630, 0, 0.052336],
+            "Radius": 0.00476,
+            "Length": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "Name":                         "Half Clamp A",
+      "Mirrored":                     true,
+      "Mass":                         0.77715,
+      "Position":                     [0.019732, 0.3824, 0.10117],
+      "Rotation":                     [1, 0, 0, 0],
+      "Moments of Inertia":           [0.000532413, 0.000655461, 0.0011722],
+      "Products of Inertia":          [0, 0, 0],
+      "Visualization": {
+        "Primitives": [
+          {
+            "Type": "CYLINDER",
+            "Location": [0, 0, 0],
+            "Axis": [-0.99863, 0.0, -0.052336],
+            "Radius": 0.00476,
+            "Length": 0.05
+          }
+        ]
+      }
+    },
+    {
+      "Name":                         "Half Clamp B",
+      "Mirrored":                     true,
+      "Mass":                         0.77715,
+      "Position":                     [-0.030199, 0.3824, 0.098555],
+      "Rotation":                     [1, 0, 0, 0],
+      "Moments of Inertia":           [0.000532413, 0.000655461, 0.0011722],
+      "Products of Inertia":          [0, 0, 0],
+      "Visualization": {
+        "Primitives": [
+          {
+            "Type": "CYLINDER",
+            "Location": [0, 0, 0],
+            "Axis": [0.99863, 0.0, 0.052336],
+            "Radius": 0.00476,
+            "Length": 0.05
+          }
+        ]
+      }
+    },
+    {
+      "Name":                         "Shackle",
+      "Mirrored":                     true,
+      "Mass":                         0.77715,
+      "Position":                     [-0.47504, 0.3824, 0.1316],
+      "Rotation":                     [1, 0, 0, 0],
+      "Moments of Inertia":           [0.000532413, 0.000655461, 0.0011722],
+      "Products of Inertia":          [0, 0, 0],
+      "Visualization": {
+        "Primitives": [
+          {
+            "Type": "CYLINDER",
+            "Location": [0, 0, 0],
+            "Axis": [0.454, 0.0, 0.8910],
+            "Radius": 0.00476,
+            "Length": 0.13
+          }
+        ]
+      }
+    }
+  ],
+
+  "Joints": [
+    {
+      "Name": "Front Leaf Spherical",
+      "Type": "Spherical",
+      "Mirrored": true,
+      "Body1": "Frontleaf",
+      "Body2": "Chassis",
+      "Position": [0.49408, 0.3824, 0.126],
+      "Rotation": [0.98481, 0.0, 0.0, -0.17365]
+    },
+    {
+      "Name": "Rear Leaf Spherical",
+      "Type": "Spherical",
+      "Mirrored": true,
+      "Body1": "Rearleaf",
+      "Body2": "Shackle",
+      "Position": [-0.50455, 0.3824, 0.073695],
+      "Rotation": [0.98481, 0.0, 0.0, -0.17365]
+    },
+    {
+      "Name": "Shackle Revolute",
+      "Type": "Revolute",
+      "Mirrored": true,
+      "Body1": "Shackle",
+      "Body2": "Chassis",
+      "Position": [-0.44553, 0.3824, 0.189526],
+      "Rotation": [0.70711, 0.70711, 0.0, 0.0]
+    },
+    {
+      "Name": "Half Clamp A Revolute",
+      "Type": "Revolute",
+      "Mirrored": true,
+      "Body1": "Half Clamp A",
+      "Body2": "Axle Tube",
+      "Position": [0.044698, 0.3824, 0.10248],
+      "Rotation": [1, 0, 0, 0]
+    },
+    {
+      "Name": "Half Clamp B Revolute",
+      "Type": "Revolute",
+      "Mirrored": true,
+      "Body1": "Half Clamp B",
+      "Body2": "Axle Tube",
+      "Position": [-0.055165, 0.3824, 0.097246],
+      "Rotation": [1, 0, 0, 0]
+    },
+    {
+      "Name": "Front Leaf Revolute",
+      "Type": "Revolute",
+      "Mirrored": true,
+      "Body1": "Half Clamp A",
+      "Body2": "Frontleaf",
+      "Position": [0.0446979, 0.3824, 0.10248],
+      "Rotation": [0.70711, 0.70711, 0.0, 0.0]
+    },
+    {
+      "Name": "Rear Leaf Revolute",
+      "Type": "Revolute",
+      "Mirrored": true,
+      "Body1": "Half Clamp B",
+      "Body2": "Rearleaf",
+      "Position": [-0.055165, 0.3824, 0.097246],
+      "Rotation": [0.70711, 0.70711, 0.0, 0.0]
+    },
+    {
+      "Name": "Tierod Spherical",
+      "Type": "Spherical",
+      "Mirrored": false,
+      "Body1": "Tierod",
+      "Body2": ["Knuckle", "Left"],
+      "Position": [-0.190569, 0.601808, 0.1],
+      "Rotation": [0.98481, 0.0, 0.0, -0.17365]
+    },
+    {
+      "Name": "Draglink Spherical",
+      "Type": "Spherical",
+      "Mirrored": false,
+      "Body1": "Draglink",
+      "Body2": "Steering",
+      "Position": [0.6, 0.5325, 0.2],
+      "Rotation": [0.98481, 0.0, 0.0, -0.17365]
+    },
+    {
+      "Name": "Draglink Universal",
+      "Type": "Universal",
+      "Mirrored": false,
+      "Body1": "Draglink",
+      "Body2": ["Knuckle", "Left"],
+      "Position": [0.0, 0.5325, 0.2],
+      "Rotation": [0.6701, -0.2259, 0.6701, -0.2259]
+    },
+    {
+      "Name": "Tierod Universal",
+      "Type": "Universal",
+      "Mirrored": false,
+      "Body1": "Tierod",
+      "Body2": ["Knuckle", "Right"],
+      "Position": [-0.1906, -0.60181, 0.1],
+      "Rotation": [0.70711, 0.70711, 0.0, 0.0]
+    },
+    {
+      "Name": "Kingpin Revolute",
+      "Type": "Revolute",
+      "Mirrored": true,
+      "Body1": "Axle Tube",
+      "Body2": "Knuckle",
+      "Position": [0.0, 0.6625, 0.0],
+      "Rotation": [-0.04885, 0.99881, 0.0, 0.0]
+    }
+  ],
+
+  "Distance Constraints": [],
+
+  "TSDAs": [
+    {
+      "Name": "Spring",
+      "Mirrored": true,
+      "Body1": "Chassis",
+      "Body2": "Axle Tube",
+      "Point1": [0.0, 0.3824, 0.2476],
+      "Point2": [0.0, 0.3824, 0.0476],
+      "Spring Coefficient": 102643.886,
+      "Free Length": 0.2,
+      "Minimum Length": 0.28,
+      "Maximum Length": 0.12,
+      "Visualization": {
+        "Type": "SPRING",
+        "Radius": 0.06,
+        "Turns": 15,
+        "Resolution": 150
+      }
+    },
+    {
+      "Name": "Shock",
+      "Mirrored": true,
+      "Body1": "Chassis",
+      "Body2": "Axle Tube",
+      "Point1": [-0.3648,  0.4193, 0.4298],
+      "Point2": [-0.125, 0.441, -0.0507],
+      "Damping Coefficient": 16336.282,
+      "Degressivity Compression": 3,
+      "Degressivity Expansion": 1,
+      "Visualization": {
+        "Type": "SEGMENT"
+      }
+    }
+  ],
+
+  "RSDAs": [
+    {
+      "Name": "Half Clamp A to Axle Tube RSDA",
+      "Mirrored": true,
+      "Body1": "Half Clamp A",
+      "Body2": "Axle Tube",
+      "Position": [0.0447, 0.3824, 0.1025],
+      "Axis": [0,0,1],
+      "Spring Coefficient": 95932,
+      "Damping Coefficient": 959.32,
+      "Free Angle": 0
+    },
+    {
+      "Name": "Half Clamp B to Axle Tube RSDA",
+      "Mirrored": true,
+      "Body1": "Half Clamp B",
+      "Body2": "Axle Tube",
+      "Position": [-0.0552, 0.3824, 0.09725],
+      "Axis": [0,0,1],
+      "Spring Coefficient": 95932,
+      "Damping Coefficient": 959.32,
+      "Free Angle": 0
+    },
+    {
+      "Name": "Half Clamp B to Rearleaf RSDA",
+      "Mirrored": true,
+      "Body1": "Half Clamp B",
+      "Body2": "Rearleaf",
+      "Position": [-0.0552, 0.3824, 0.09725],
+      "Axis": [0,-1,0],
+      "Spring Coefficient": 9593.2,
+      "Damping Coefficient": 95.932,
+      "Preload": 0.0468,
+      "Free Angle": 0
+    },
+    {
+      "Name": "Half Clamp A to Frontleaf RSDA",
+      "Mirrored": true,
+      "Body1": "Half Clamp A",
+      "Body2": "Frontleaf",
+      "Position": [0.0447, 0.3824, 0.1025],
+      "Axis": [0,-1,0],
+      "Spring Coefficient": 9593.2,
+      "Damping Coefficient": 95.932,
+      "Preload": -0.0468,
+      "Free Angle": 0
+    }
+  ],
+
+  "Axle":
+  {
+    "Inertia":                      0.4
+  }
+}

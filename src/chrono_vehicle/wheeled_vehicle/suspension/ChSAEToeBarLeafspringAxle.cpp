@@ -545,18 +545,15 @@ double ChSAEToeBarLeafspringAxle::GetTrack() {
 // -----------------------------------------------------------------------------
 // Return current suspension forces
 // -----------------------------------------------------------------------------
-ChSuspension::Force ChSAEToeBarLeafspringAxle::ReportSuspensionForce(VehicleSide side) const {
-    ChSuspension::Force force;
+std::vector<ChSuspension::ForceTSDA> ChSAEToeBarLeafspringAxle::ReportSuspensionForce(VehicleSide side) const {
+    std::vector<ChSuspension::ForceTSDA> forces(2);
 
-    force.spring_force = m_spring[side]->GetForce();
-    force.spring_length = m_spring[side]->GetLength();
-    force.spring_velocity = m_spring[side]->GetVelocity();
+    forces[0] = ChSuspension::ForceTSDA("Spring", m_spring[side]->GetForce(), m_spring[side]->GetLength(),
+                                        m_spring[side]->GetVelocity());
+    forces[1] = ChSuspension::ForceTSDA("Shock", m_shock[side]->GetForce(), m_shock[side]->GetLength(),
+                                        m_shock[side]->GetVelocity());
 
-    force.shock_force = m_shock[side]->GetForce();
-    force.shock_length = m_shock[side]->GetLength();
-    force.shock_velocity = m_shock[side]->GetVelocity();
-
-    return force;
+    return forces;
 }
 
 // -----------------------------------------------------------------------------
@@ -772,12 +769,12 @@ void ChSAEToeBarLeafspringAxle::ExportComponentList(rapidjson::Document& jsonDoc
     bodies.push_back(m_draglink);
     bodies.push_back(m_knuckle[0]);
     bodies.push_back(m_knuckle[1]);
-    ChPart::ExportBodyList(jsonDocument, bodies);
+    ExportBodyList(jsonDocument, bodies);
 
     std::vector<std::shared_ptr<ChShaft>> shafts;
     shafts.push_back(m_axle[0]);
     shafts.push_back(m_axle[1]);
-    ChPart::ExportShaftList(jsonDocument, shafts);
+    ExportShaftList(jsonDocument, shafts);
 
     std::vector<std::shared_ptr<ChLink>> joints;
     std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
@@ -813,15 +810,26 @@ void ChSAEToeBarLeafspringAxle::ExportComponentList(rapidjson::Document& jsonDoc
     joints.push_back(m_universalTierod);
     joints.push_back(m_revoluteKingpin[0]);
     joints.push_back(m_revoluteKingpin[1]);
-    ChPart::ExportJointList(jsonDocument, joints);
-    ChPart::ExportBodyLoadList(jsonDocument, bushings);
+    ExportJointList(jsonDocument, joints);
+    ExportBodyLoadList(jsonDocument, bushings);
 
     std::vector<std::shared_ptr<ChLinkTSDA>> springs;
     springs.push_back(m_spring[0]);
     springs.push_back(m_spring[1]);
     springs.push_back(m_shock[0]);
     springs.push_back(m_shock[1]);
-    ChPart::ExportLinSpringList(jsonDocument, springs);
+    ExportLinSpringList(jsonDocument, springs);
+
+    std::vector<std::shared_ptr<ChLinkRSDA>> rot_springs;
+    rot_springs.push_back(m_latRotSpringA[0]);
+    rot_springs.push_back(m_latRotSpringA[1]);
+    rot_springs.push_back(m_latRotSpringB[0]);
+    rot_springs.push_back(m_latRotSpringB[1]);
+    rot_springs.push_back(m_vertRotSpringA[0]);
+    rot_springs.push_back(m_vertRotSpringA[1]);
+    rot_springs.push_back(m_vertRotSpringB[0]);
+    rot_springs.push_back(m_vertRotSpringB[1]);
+    ExportRotSpringList(jsonDocument, rot_springs);
 }
 
 void ChSAEToeBarLeafspringAxle::Output(ChVehicleOutput& database) const {
@@ -886,6 +894,17 @@ void ChSAEToeBarLeafspringAxle::Output(ChVehicleOutput& database) const {
     springs.push_back(m_shock[0]);
     springs.push_back(m_shock[1]);
     database.WriteLinSprings(springs);
+
+    std::vector<std::shared_ptr<ChLinkRSDA>> rot_springs;
+    rot_springs.push_back(m_latRotSpringA[0]);
+    rot_springs.push_back(m_latRotSpringA[1]);
+    rot_springs.push_back(m_latRotSpringB[0]);
+    rot_springs.push_back(m_latRotSpringB[1]);
+    rot_springs.push_back(m_vertRotSpringA[0]);
+    rot_springs.push_back(m_vertRotSpringA[1]);
+    rot_springs.push_back(m_vertRotSpringB[0]);
+    rot_springs.push_back(m_vertRotSpringB[1]);
+    database.WriteRotSprings(rot_springs);
 }
 
 }  // end namespace vehicle

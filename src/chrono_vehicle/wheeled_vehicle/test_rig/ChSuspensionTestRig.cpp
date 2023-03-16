@@ -434,6 +434,7 @@ void ChSuspensionTestRig::SetPlotOutput(double output_step) {
     m_plot_output = true;
     m_plot_output_step = output_step;
     m_csv = new utils::CSV_writer(" ");
+    m_csv_lengths.resize(m_naxles);
 }
 
 void ChSuspensionTestRig::CollectPlotData(double time) {
@@ -454,10 +455,15 @@ void ChSuspensionTestRig::CollectPlotData(double time) {
         *m_csv << GetSpindlePos(ia, LEFT) << GetSpindlePos(ia, RIGHT);        // 3 4 5      6 7 8
         *m_csv << GetSpindleLinVel(ia, LEFT) << GetSpindleLinVel(ia, RIGHT);  // 9 10 11    12 13 14
         *m_csv << GetWheelTravel(ia, LEFT) << GetWheelTravel(ia, RIGHT);      // 15         16
-        *m_csv << frc_left.spring_force << frc_right.spring_force;            // 17         18
-        *m_csv << frc_left.shock_force << frc_right.shock_force;              // 19         20
-        *m_csv << gamma_left << gamma_right;                                  // 21         22
-        *m_csv << GetRideHeight(ia);                                          // 23
+        *m_csv << gamma_left << gamma_right;                                  // 17         18
+        *m_csv << GetRideHeight(ia);                                          // 19
+        *m_csv << frc_left.size() << frc_right.size();                        // 20         21
+        for (const auto& item : frc_left)
+            *m_csv << item.force;
+        for (const auto& item : frc_right)
+            *m_csv << item.force;
+
+        m_csv_lengths[ia] = 21 + (int)frc_left.size() + (int)frc_right.size();
     }
 
     *m_csv << std::endl;
@@ -474,36 +480,42 @@ void ChSuspensionTestRig::PlotOutput(const std::string& out_dir, const std::stri
     std::string gplfile = out_dir + "/tmp.gpl";
     postprocess::ChGnuPlot mplot(gplfile.c_str());
 
+    std::string title;
+    int offset = 1;
     for (int ia = 0; ia < m_naxles; ia++) {
-        std::string title = "Suspension test rig - Axle " + std::to_string(ia) + " - Spring forces ";
-        mplot.OutputWindow(3 * ia + 0);
-        mplot.SetTitle(title.c_str());
-        mplot.SetLabelX("wheel travel [m]");
-        mplot.SetLabelY("spring force [N]");
-        mplot.SetCommand("set format y '%4.1e'");
-        mplot.SetCommand("set terminal wxt size 800, 600");
-        mplot.Plot(out_file.c_str(), 1 + 23 * ia + 15, 1 + 23 * ia + 17, "left", " with lines lw 2");
-        mplot.Plot(out_file.c_str(), 1 + 23 * ia + 16, 1 + 23 * ia + 18, "right", " with lines lw 2");
-
-        title = "Suspension test rig - Axle " + std::to_string(ia) + " - Shock forces";
-        mplot.OutputWindow(3 * ia + 1);
-        mplot.SetTitle(title.c_str());
-        mplot.SetLabelX("wheel vertical speed [m/s]");
-        mplot.SetLabelY("shock force [N]");
-        mplot.SetCommand("set format y '%4.1e'");
-        mplot.SetCommand("set terminal wxt size 800, 600");
-        mplot.Plot(out_file.c_str(), 1 + 23 * ia + 11, 1 + 23 * ia + 19, "left", " with lines lw 2");
-        mplot.Plot(out_file.c_str(), 1 + 23 * ia + 14, 1 + 23 * ia + 20, "right", " with lines lw 2");
-
         title = "Suspension test rig - Axle " + std::to_string(ia) + " - Camber angle";
-        mplot.OutputWindow(3 * ia + 2);
+        mplot.OutputWindow(3 * ia + 0);
         mplot.SetTitle(title.c_str());
         mplot.SetLabelX("wheel travel [m]");
         mplot.SetLabelY("camber angle [deg]");
         mplot.SetCommand("set format y '%4.1f'");
         mplot.SetCommand("set terminal wxt size 800, 600");
-        mplot.Plot(out_file.c_str(), 1 + 23 * ia + 15, 1 + 23 * ia + 21, "left", " with lines lw 2");
-        mplot.Plot(out_file.c_str(), 1 + 23 * ia + 16, 1 + 23 * ia + 22, "right", " with lines lw 2");
+        mplot.Plot(out_file.c_str(), offset + 15, offset + 17, "left", " with lines lw 2");
+        mplot.Plot(out_file.c_str(), offset + 16, offset + 18, "right", " with lines lw 2");
+        
+        //// TODO
+        //// Currently hardcoded for certain types of suspensions!!!
+        title = "Suspension test rig - Axle " + std::to_string(ia) + " - TSDA forces ";
+        mplot.OutputWindow(3 * ia + 1);
+        mplot.SetTitle(title.c_str());
+        mplot.SetLabelX("wheel travel [m]");
+        mplot.SetLabelY("spring force [N]");
+        mplot.SetCommand("set format y '%4.1e'");
+        mplot.SetCommand("set terminal wxt size 800, 600");
+        mplot.Plot(out_file.c_str(), offset + 15, offset + 22, "left", " with lines lw 2");
+        mplot.Plot(out_file.c_str(), offset + 16, offset + 24, "right", " with lines lw 2");
+
+        title = "Suspension test rig - Axle " + std::to_string(ia) + " - Shock forces";
+        mplot.OutputWindow(3 * ia + 2);
+        mplot.SetTitle(title.c_str());
+        mplot.SetLabelX("wheel vertical speed [m/s]");
+        mplot.SetLabelY("shock force [N]");
+        mplot.SetCommand("set format y '%4.1e'");
+        mplot.SetCommand("set terminal wxt size 800, 600");
+        mplot.Plot(out_file.c_str(), offset + 11, offset + 23, "left", " with lines lw 2");
+        mplot.Plot(out_file.c_str(), offset + 14, offset + 25, "right", " with lines lw 2");
+
+        offset += m_csv_lengths[ia];
     }
 #endif
 }

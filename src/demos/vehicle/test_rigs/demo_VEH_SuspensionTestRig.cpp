@@ -42,6 +42,7 @@ using namespace chrono::vehicle;
 // Specification of a vehicle suspension test rig
 // Available models:
 //    HMMWV   : demonstrates STR for a steered axle
+//    UAZ     : demonstrates STR for an SAE leaf-spring suspension
 //    MTV     : demonstrates STR for a walking-beam suspension
 //    Generic : demonstrates STR for an axle with antiroll bar
 //               (requires smaller step size)
@@ -63,9 +64,27 @@ class STR_Setup {
 class HMMWV_STR_Setup : public STR_Setup {
   public:
     virtual std::string SuspensionRigJSON() const override { return "hmmwv/suspensionTest/HMMWV_ST_front.json"; }
+    ////virtual std::string SuspensionRigJSON() const override { return "hmmwv/suspensionTest/HMMWV_ST_front_replica.json"; }
     virtual std::string VehicleJSON() const override { return "hmmwv/vehicle/HMMWV_Vehicle.json"; }
+    ////virtual std::string VehicleJSON() const override { return "hmmwv/vehicle/HMMWV_Vehicle_replica.json"; }
     virtual std::string TireJSON() const override { return "hmmwv/tire/HMMWV_TMeasyTire.json"; }
     virtual std::string DataDriverFile() const override { return "hmmwv/suspensionTest/ST_inputs.dat"; }
+    virtual std::vector<int> TestAxles() const override { return {0}; }
+    virtual std::vector<int> TestSubchassis() const override { return {}; }
+    virtual std::vector<int> TestSteerings() const override { return {0}; }
+    virtual double InitRideHeight() const override { return 0.5; }
+    virtual double PostLimit() const override { return 0.15; }
+    virtual double CameraDistance() const override { return 2.0; }
+};
+
+class UAZ_STR_Setup : public STR_Setup {
+  public:
+    virtual std::string SuspensionRigJSON() const override { return "uaz/suspensionTest/UAZ_ST_front.json"; }
+    ////virtual std::string SuspensionRigJSON() const override { return "uaz/suspensionTest/UAZ_ST_front_replica.json"; }
+    virtual std::string VehicleJSON() const override { return "uaz/vehicle/UAZBUS_SAEVehicle.json"; }
+    ////virtual std::string VehicleJSON() const override { return "uaz/vehicle/UAZBUS_SAEVehicle_replica.json"; }
+    virtual std::string TireJSON() const override { return "uaz/tire/UAZBUS_TMeasyTireFront.json"; }
+    virtual std::string DataDriverFile() const override { return "uaz/suspensionTest/ST_inputs.dat"; }
     virtual std::vector<int> TestAxles() const override { return {0}; }
     virtual std::vector<int> TestSubchassis() const override { return {}; }
     virtual std::vector<int> TestSteerings() const override { return {0}; }
@@ -106,6 +125,7 @@ class Generic_STR_Setup : public STR_Setup {
 // USER SETTINGS
 
 HMMWV_STR_Setup setup;
+////UAZ_STR_Setup setup;
 ////MTV_STR_Setup setup;
 ////Generic_STR_Setup setup;
 
