@@ -278,3 +278,12 @@ The topology of this suspension template is:
 The hardpoints (defined for the left side only and mirrored to construct the right side) are:
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/wheeled/RigidPinnedAxle_points.png" width="600" />
+
+
+## Generic wheeled vehicle suspension template {#wheeled_suspension_ChGenericWheeledSuspension}
+
+This template allows specification of a user-defined, custom suspension subsystem with arbitrary topology.
+A concrete suspension is constructed by adding bodies, joints, distance constraints, and TSDAs. Each modeling component can be marked as "mirrored". The user is responsible for defining all non-mirrored components and the left-side mirrored components (the corresponding right-side components are generated automatically).
+
+
+See [ChGenericWheeledSuspension](@ref chrono::vehicle::ChGenericWheeledSuspension) and [GenericWheeledSuspension](@ref chrono::vehicle::GenericWheeledSuspension).

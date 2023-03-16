@@ -1,0 +1,49 @@
+// HMMWV test - uses a double wishbone suspension modeled through the GenericWheeledSuspension template
+//              to replicate the HMMWV_DoubleWishboneFront suspension
+{
+  "Name": "HMMWV 17 bodies",
+  "Type": "Vehicle",
+  "Template": "WheeledVehicle",
+
+  "Chassis": {
+    "Input File": "hmmwv/chassis/HMMWV_Chassis.json"
+  },
+
+  "Axles": [
+    {
+      "Suspension Input File": "hmmwv/suspension/HMMWV_DoubleWishboneFront_replica.json",
+      "Suspension Location": [ 1.688965, 0, 0 ],
+      "Steering Index": 0,
+      "Left Wheel Input File": "hmmwv/wheel/HMMWV_Wheel.json",
+      "Right Wheel Input File": "hmmwv/wheel/HMMWV_Wheel.json",
+      "Left Brake Input File": "hmmwv/brake/HMMWV_BrakeSimple_Front.json",
+      "Right Brake Input File": "hmmwv/brake/HMMWV_BrakeSimple_Front.json"
+    },
+
+    {
+      "Suspension Input File": "hmmwv/suspension/HMMWV_DoubleWishboneRear.json",
+      "Suspension Location": [ -1.688965, 0, 0 ],
+      "Left Wheel Input File": "hmmwv/wheel/HMMWV_Wheel.json",
+      "Right Wheel Input File": "hmmwv/wheel/HMMWV_Wheel.json",
+      "Left Brake Input File": "hmmwv/brake/HMMWV_BrakeSimple_Rear.json",
+      "Right Brake Input File": "hmmwv/brake/HMMWV_BrakeSimple_Rear.json"
+    }
+  ],
+
+  "Steering Subsystems": [
+    {
+      "Input File": "hmmwv/steering/HMMWV_PitmanArm.json",
+      "Location": [ 1.24498, 0, 0.101322 ],
+      "Orientation": [ 0.98699637, 0, 0.16074256, 0 ]
+    }
+  ],
+
+  "Wheelbase": 3.378,
+  "Minimum Turning Radius": 7.62,
+  "Maximum Steering Angle (deg)": 30.23,
+
+  "Driveline": {
+    "Input File": "hmmwv/driveline/HMMWV_Driveline2WD.json",
+    "Suspension Indexes": [ 1 ]
+  }
+}

@@ -207,9 +207,9 @@ void ChTrackShoeBandBushing::ExportComponentList(rapidjson::Document& jsonDocume
     std::vector<std::shared_ptr<ChBody>> bodies;
     bodies.push_back(m_shoe);
     bodies.insert(bodies.end(), m_web_segments.begin(), m_web_segments.end());
-    ChPart::ExportBodyList(jsonDocument, bodies);
+    ExportBodyList(jsonDocument, bodies);
 
-    ChPart::ExportBodyLoadList(jsonDocument, m_web_bushings);
+    ExportBodyLoadList(jsonDocument, m_web_bushings);
 }
 
 void ChTrackShoeBandBushing::Output(ChVehicleOutput& database) const {

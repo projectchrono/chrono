@@ -571,9 +571,9 @@ void ChTrackShoeDoublePin::ExportComponentList(rapidjson::Document& jsonDocument
             break;
     }
 
-    ChPart::ExportBodyList(jsonDocument, bodies);
-    ChPart::ExportJointList(jsonDocument, joints);
-    ChPart::ExportBodyLoadList(jsonDocument, bushings);
+    ExportBodyList(jsonDocument, bodies);
+    ExportJointList(jsonDocument, joints);
+    ExportBodyLoadList(jsonDocument, bushings);
 }
 
 void ChTrackShoeDoublePin::Output(ChVehicleOutput& database) const {

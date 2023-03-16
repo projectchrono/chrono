@@ -30,6 +30,12 @@
             }
         },
 
+        "Cylinder Shape": {
+            "Radius": 0.015,
+            "Front Offset": 0.0535,
+            "Rear Offset": -0.061
+        },
+
         "Shoe Materials": [
             {
                 // Material 0: pad bottom (ground contact)
@@ -78,12 +84,6 @@
                 }
             }
         ],
-
-        "Cylinder Shape": {
-            "Radius": 0.015,
-            "Front Offset": 0.0535,
-            "Rear Offset": -0.061
-        },
 
         "Shoe Shapes": [
             {
@@ -169,7 +169,7 @@
             {
                 "Type": "CYLINDER",
                 "Location": [ 0.077, 0, 0 ],
-                "Orientation": [ 1, 0, 0, 0 ],
+                "Axis": [ 0, 1, 0 ],
                 "Radius": 0.01,
                 "Length": 0.399
             },
@@ -177,28 +177,28 @@
             {
                 "Type": "CYLINDER",
                 "Location": [ 0.0535, -0.095, 0 ],
-                "Orientation": [ 1, 0, 0, 0 ],
+                "Axis": [ 0, 1, 0 ],
                 "Radius": 0.015,
                 "Length": 0.095
             },
             {
                 "Type": "CYLINDER",
                 "Location": [ 0.0535, 0.095, 0 ],
-                "Orientation": [ 1, 0, 0, 0 ],
+                "Axis": [ 0, 1, 0 ],
                 "Radius": 0.015,
                 "Length": 0.095
             },
             {
                 "Type": "CYLINDER",
                 "Location": [ -0.061, -0.095, 0 ],
-                "Orientation": [ 1, 0, 0, 0 ],
+                "Axis": [ 0, 1, 0 ],
                 "Radius": 0.015,
                 "Length": 0.095
             },
             {
                 "Type": "CYLINDER",
                 "Location": [ -0.061, 0.095, 0 ],
-                "Orientation": [ 1, 0, 0, 0 ],
+                "Axis": [ 0, 1, 0 ],
                 "Radius": 0.015,
                 "Length": 0.095
             }

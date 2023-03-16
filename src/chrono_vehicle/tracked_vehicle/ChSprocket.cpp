@@ -311,15 +311,15 @@ void ChSprocket::ExportComponentList(rapidjson::Document& jsonDocument) const {
 
     std::vector<std::shared_ptr<ChBody>> bodies;
     bodies.push_back(m_gear);
-    ChPart::ExportBodyList(jsonDocument, bodies);
+    ExportBodyList(jsonDocument, bodies);
 
     std::vector<std::shared_ptr<ChShaft>> shafts;
     shafts.push_back(m_axle);
-    ChPart::ExportShaftList(jsonDocument, shafts);
+    ExportShaftList(jsonDocument, shafts);
 
     std::vector<std::shared_ptr<ChLink>> joints;
     joints.push_back(m_revolute);
-    ChPart::ExportJointList(jsonDocument, joints);
+    ExportJointList(jsonDocument, joints);
 }
 
 void ChSprocket::Output(ChVehicleOutput& database) const {

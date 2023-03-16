@@ -57,7 +57,12 @@ class CH_VEHICLE_API ChTrackAssemblySegmented : public ChTrackAssembly {
     class CH_VEHICLE_API TrackBendingFunctor : public ChLinkRSDA::TorqueFunctor {
       public:
         TrackBendingFunctor(double k, double c, double t = 0) : m_k(k), m_c(c), m_t(t) {}
-        virtual double evaluate(double time, double angle, double vel, const ChLinkRSDA& link) override;
+        virtual double evaluate(double time,
+                                double rest_angle,
+                                double angle,
+                                double vel,
+                                const ChLinkRSDA& link) override;
+
       private:
         double m_k;
         double m_c;

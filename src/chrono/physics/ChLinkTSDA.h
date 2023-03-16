@@ -28,6 +28,8 @@
 #include "chrono/solver/ChVariablesGenericDiagonalMass.h"
 #include "chrono/solver/ChKblockGeneric.h"
 
+#include "chrono_thirdparty/rapidjson/document.h"
+
 namespace chrono {
 
 /// Class for translational spring-damper-actuator (TSDA) with the force optionally specified through a functor object.
@@ -118,6 +120,13 @@ class ChApi ChLinkTSDA : public ChLink {
                                 double vel,             ///< current velocity (positive when extending)
                                 const ChLinkTSDA& link  ///< associated TSDA link
                                 ) = 0;
+
+#ifndef SWIG
+        /// Optional reporting function to generate a JSON value with functor information.
+        virtual rapidjson::Value exportJSON(rapidjson::Document::AllocatorType& allocator) {
+            return rapidjson::Value();
+        }
+#endif
     };
 
     /// Specify the functor object for calculating the force.

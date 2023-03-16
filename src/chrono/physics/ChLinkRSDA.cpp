@@ -195,7 +195,7 @@ void ChLinkRSDA::Update(double time, bool update_assets) {
     // Calculate torque along RSDA axis
     double angle = CH_C_2PI * m_turns + m_angle;
     if (m_torque_fun) {
-        m_torque = m_torque_fun->evaluate(time, m_angle, m_angle_dt, *this);
+        m_torque = m_torque_fun->evaluate(time, m_rest_angle, m_angle, m_angle_dt, *this);
     } else {
         m_torque = m_t - m_k * (angle - m_rest_angle) - m_r * m_angle_dt;
     }

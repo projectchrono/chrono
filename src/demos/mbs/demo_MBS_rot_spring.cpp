@@ -31,22 +31,21 @@ using namespace chrono::irrlicht;
 
 // =============================================================================
 
-double spring_coef = 40;
-double damping_coef = 2;
-double rest_angle = CH_C_PI / 6;
-
-// =============================================================================
-
 // Functor class implementing the torque for a ChLinkRSDA link.
 class MySpringTorque : public ChLinkRSDA::TorqueFunctor {
+  public:
+    MySpringTorque(double k, double c) : m_k(k), m_c(c) {}
     virtual double evaluate(double time,            // current time
+                            double rest_angle,      // undeformed angle
                             double angle,           // relative angle of rotation
                             double vel,             // relative angular speed
                             const ChLinkRSDA& link  // associated link
                             ) override {
-        double torque = -spring_coef * (angle - rest_angle) - damping_coef * vel;
+        double torque = -m_c * (angle - rest_angle) - m_k * vel;
         return torque;
     }
+    double m_k;
+    double m_c;
 };
 
 // =============================================================================
@@ -118,11 +117,16 @@ int main(int argc, char* argv[]) {
     sys.AddLink(rev);
 
     // Create the rotational spring between body and ground
-    auto torque = chrono_types::make_shared<MySpringTorque>();
+    double spring_coef = 40;
+    double damping_coef = 2;
+    double rest_angle = CH_C_PI / 6;
+
+    auto torque_functor = chrono_types::make_shared<MySpringTorque>(spring_coef, damping_coef);
     auto spring = chrono_types::make_shared<ChLinkRSDA>();
+    spring->SetRestAngle(rest_angle);
     spring->Initialize(body, ground, ChCoordsys<>(rev_pos, rev_rot));
     spring->AddVisualShape(chrono_types::make_shared<ChRotSpringShape>(0.5, 100));
-    spring->RegisterTorqueFunctor(torque);
+    spring->RegisterTorqueFunctor(torque_functor);
     sys.AddLink(spring);
 
     // Create the Irrlicht visualization sys

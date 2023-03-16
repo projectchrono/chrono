@@ -1,0 +1,9 @@
+{
+    "Name": "UAZ Rear Suspension Test",
+    "Type": "SuspensionTestRig",
+
+    "Vehicle Input File": "uaz//vehicle/UAZBUS_SAEVehicle.json",
+    "Test Axle Indices": [ 1 ],
+    "Initial Ride Height": 0.35,
+    "Displacement Limit": 0.15
+}

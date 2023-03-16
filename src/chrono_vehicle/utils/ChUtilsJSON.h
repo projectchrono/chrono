@@ -58,6 +58,9 @@ CH_VEHICLE_API ChVector<> ReadVectorJSON(const rapidjson::Value& a);
 ///  Load and return a ChQuaternion from the specified JSON array
 CH_VEHICLE_API ChQuaternion<> ReadQuaternionJSON(const rapidjson::Value& a);
 
+/// Load and return a coordinate system from the specific JSON value.
+CH_VEHICLE_API ChCoordsys<> ReadCoordinateSystemJSON(const rapidjson::Value& a);
+
 ///  Load and return a ChColor from the specified JSON array
 CH_VEHICLE_API ChColor ReadColorJSON(const rapidjson::Value& a);
 
@@ -66,6 +69,19 @@ CH_VEHICLE_API ChColor ReadColorJSON(const rapidjson::Value& a);
 CH_VEHICLE_API ChContactMaterialData ReadMaterialInfoJSON(const rapidjson::Value& mat);
 
 CH_VEHICLE_API std::shared_ptr<ChVehicleBushingData> ReadBushingDataJSON(const rapidjson::Value& bd);
+
+/// Load and return a vehicle joint type from the specific JSON value.
+CH_VEHICLE_API ChVehicleJoint::Type ReadVehicleJointTypeJSON(const rapidjson::Value& a);
+
+// -----------------------------------------------------------------------------
+
+/// Load and return a vehicle geometry structure from the specified JSON value.
+/// Collision geometry and contact material information is set in the return ChVehicleGeometry object if the given JSON
+/// object has a member "Contact". Visualization geometry is loaded if the JSON object has a member "Visualization".
+CH_VEHICLE_API ChVehicleGeometry ReadVehicleGeometryJSON(const rapidjson::Value& d);
+
+/// Load and return a TSDA geometry structure from the specified JSON value.
+CH_VEHICLE_API ChTSDAGeometry ReadTSDAGeometryJSON(const rapidjson::Value& d);
 
 // -----------------------------------------------------------------------------
 

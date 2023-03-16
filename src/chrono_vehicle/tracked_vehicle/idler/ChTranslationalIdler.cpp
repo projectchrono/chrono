@@ -174,15 +174,15 @@ void ChTranslationalIdler::ExportComponentList(rapidjson::Document& jsonDocument
 
     std::vector<std::shared_ptr<ChBody>> bodies;
     bodies.push_back(m_carrier);
-    ChPart::ExportBodyList(jsonDocument, bodies);
+    ExportBodyList(jsonDocument, bodies);
 
     std::vector<std::shared_ptr<ChLink>> joints;
     joints.push_back(m_prismatic);
-    ChPart::ExportJointList(jsonDocument, joints);
+    ExportJointList(jsonDocument, joints);
 
     std::vector<std::shared_ptr<ChLinkTSDA>> springs;
     springs.push_back(m_tensioner);
-    ChPart::ExportLinSpringList(jsonDocument, springs);
+    ExportLinSpringList(jsonDocument, springs);
 }
 
 void ChTranslationalIdler::Output(ChVehicleOutput& database) const {

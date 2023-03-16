@@ -102,6 +102,9 @@ class CH_VEHICLE_API ChVehicleJoint {
     /// A null pointer is returned if the vehicle joint is in fact a kinematic joint.
     Bushing GetAsBushing() const;
 
+    /// Return a string describing the specified joint type.
+    static std::string GetTypeString(Type type);
+
   private:
     void CreateLink(Type type, std::shared_ptr<ChBody> body1, std::shared_ptr<ChBody> body2, ChCoordsys<> pos);
     void CreateBushing(Type type,

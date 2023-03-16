@@ -45,7 +45,7 @@ class CH_VEHICLE_API ChVehicleGeometry {
     /// Box shape for visualization and/or collision.
     struct CH_VEHICLE_API BoxShape {
         BoxShape(const ChVector<>& pos, const ChQuaternion<>& rot, const ChVector<>& dims, int matID = -1);
-        ChVector<> m_pos;      ///< position relative to body
+        ChVector<> m_pos;      ///< center position relative to body
         ChQuaternion<> m_rot;  ///< orientation relative to body
         ChVector<> m_dims;     ///< box dimensions
         int m_matID;           ///< index in contact material list
@@ -54,15 +54,16 @@ class CH_VEHICLE_API ChVehicleGeometry {
     /// Sphere shape for visualization and/or collision.
     struct CH_VEHICLE_API SphereShape {
         SphereShape(const ChVector<>& pos, double radius, int matID = -1);
-        ChVector<> m_pos;  ///< position relative to body
+        ChVector<> m_pos;  ///< center position relative to body
         double m_radius;   ///< sphere radius
         int m_matID;       ///< index in contact material list
     };
 
     /// Cylinder shape for visualization and/or collision.
     struct CH_VEHICLE_API CylinderShape {
-        CylinderShape(const ChVector<>& pos, const ChQuaternion<>& rot, double radius, double length, int matID = -1);
-        ChVector<> m_pos;      ///< position relative to body
+        CylinderShape(const ChVector<>& pos, const ChVector<>& axis, double radius, double length, int matID = -1);
+        ChVector<> m_pos;      ///< center position relative to body
+        ChVector<> m_axis;     ///< cylinder axis relative to body
         ChQuaternion<> m_rot;  ///< orientation relative to body
         double m_radius;       ///< cylinder radius
         double m_length;       ///< cylinder length
@@ -137,6 +138,34 @@ class CH_VEHICLE_API ChVehicleGeometry {
 
     /// Calculate axis-aligned bounding box of all collision shapes.
     AABB CalculateAABB();
+};
+
+/// Utility class defining visualization geometry for a vehicle TSDA.
+/// Holds vectors of segment and spring visualization shapes.
+class CH_VEHICLE_API ChTSDAGeometry {
+  public:
+    ChTSDAGeometry();
+
+    /// Segment shape for TSDA visualization.
+    struct CH_VEHICLE_API SegmentShape {
+        SegmentShape() {}
+    };
+
+    /// Spring shape for TSDA visualization.
+    struct CH_VEHICLE_API SpringShape {
+        SpringShape(double radius, int resolution, double turns);
+        double m_radius;
+        double m_turns;
+        int m_resolution;
+    };
+
+    std::shared_ptr<SegmentShape> m_vis_segment;  ///< visualization segment
+    std::shared_ptr<SpringShape> m_vis_spring;    ///< visualization spring
+    bool m_has_color;                             ///< true if visualization color was provided
+    ChColor m_color;                              ///< visualization color
+
+    /// Create visualization assets for the specified TSDA.
+    void CreateVisualizationAssets(std::shared_ptr<ChLinkTSDA> tsda, VisualizationType vis);
 };
 
 /// @} vehicle

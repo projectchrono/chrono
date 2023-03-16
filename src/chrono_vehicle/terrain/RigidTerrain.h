@@ -182,7 +182,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     /// Get all terrain characteristics at the point below the specified location.
     /// This is more efficient than calling GetHeight, GetNormal, and GetCoefficientFriction separately as it performs a
     /// single ray-casting operation (if needed at all).
-    virtual void GetProperties(const ChVector<>& loc, double& height, ChVector<>& normal, float& friction) const;
+    virtual void GetProperties(const ChVector<>& loc, double& height, ChVector<>& normal, float& friction) const override;
 
     /// Export all patch meshes as macros in PovRay include files.
     void ExportMeshPovray(const std::string& out_dir, bool smoothed = false);
