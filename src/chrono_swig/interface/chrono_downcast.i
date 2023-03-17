@@ -2,7 +2,7 @@
 // MACRO FOR AUTOMATIC DOWNCASTING of raw pointers
 //
 // A basic mechanism to provide downcasting of base pointers
-// to the specialized types, when polimorphic objects return
+// to the specialized types, when polymorphic objects return
 // from a function.
 // Parameters: base class, inherited, inherited, inherited, ...
 
