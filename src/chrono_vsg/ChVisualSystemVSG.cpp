@@ -811,24 +811,6 @@ void ChVisualSystemVSG::Initialize() {
 
     m_vsg_camera = vsg::Camera::create(perspective, m_lookAt, vsg::ViewportState::create(m_window->extent2D()));
 
-    // Add the base keyboard event handler
-    auto base_kbhandler = chrono_types::make_shared<ChBaseEventHandlerVSG>(this);
-    auto base_kbhandler_wrapper = EventHandlerWrapper::create(base_kbhandler, this);
-    m_viewer->addEventHandler(base_kbhandler_wrapper);
-
-    // Add all user-specified event handlers
-    for (const auto& eh : m_evhandler) {
-        auto evhandler_wrapper = EventHandlerWrapper::create(eh, this);
-        m_viewer->addEventHandler(evhandler_wrapper);
-    }
-
-    // Add event handler for window close events
-    m_viewer->addEventHandler(vsg::CloseHandler::create(m_viewer));
-
-    // Add event handler for mouse camera view manipulation
-    if (m_camera_trackball)
-        m_viewer->addEventHandler(vsg::Trackball::create(m_vsg_camera));
-
     // default sets automatic directional light
     // auto renderGraph = vsg::RenderGraph::create(m_window, m_view);
     // switches off automatic directional light setting
@@ -890,6 +872,24 @@ void ChVisualSystemVSG::Initialize() {
 
     // Add the ImGui event handler first to handle events early
     m_viewer->addEventHandler(vsgImGui::SendEventsToImGui::create());
+    
+    // Add the base keyboard event handler
+    auto base_kbhandler = chrono_types::make_shared<ChBaseEventHandlerVSG>(this);
+    auto base_kbhandler_wrapper = EventHandlerWrapper::create(base_kbhandler, this);
+    m_viewer->addEventHandler(base_kbhandler_wrapper);
+
+    // Add all user-specified event handlers
+    for (const auto& eh : m_evhandler) {
+        auto evhandler_wrapper = EventHandlerWrapper::create(eh, this);
+        m_viewer->addEventHandler(evhandler_wrapper);
+    }
+
+    // Add event handler for window close events
+    m_viewer->addEventHandler(vsg::CloseHandler::create(m_viewer));
+
+    // Add event handler for mouse camera view manipulation
+    if (m_camera_trackball)
+        m_viewer->addEventHandler(vsg::Trackball::create(m_vsg_camera));
 
     m_viewer->assignRecordAndSubmitTaskAndPresentation({commandGraph});
 
