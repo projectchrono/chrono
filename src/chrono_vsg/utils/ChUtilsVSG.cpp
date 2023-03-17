@@ -572,9 +572,6 @@ void exportScreenshot(vsg::ref_ptr<vsg::Window> window,
         cout << "No screen capture written due to unknown image format. Use png, tga, jpg or bmp!" << endl;
     }
 
-    int ans = stbi_write_png("Test.png", width, height, 3, pixels.str().c_str(), 0);
-    std::cout << "Screenshot saved to disk" << std::endl;
-
 #else
     if (vsg::write(imageData, imageFilename, options)) {
         std::cout << "Written color buffer to " << imageFilename << std::endl;
