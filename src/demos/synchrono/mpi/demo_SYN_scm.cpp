@@ -296,7 +296,7 @@ int main(int argc, char* argv[]) {
     int step_number = 0;
 
     ChRealtimeStepTimer realtime_timer;
-    ChTimer<> timer;
+    ChTimer timer;
     timer.start();
 
     while (true) {

@@ -233,7 +233,7 @@ int main(int argc, char* argv[]) {
     double time = 0;
     bool done = false;
 
-    ChTimer<> timer;
+    ChTimer timer;
     timer.start();
     while (vis->Run()) {
         time = my_hmmwv.GetSystem()->GetChTime();

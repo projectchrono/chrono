@@ -23,7 +23,7 @@ using namespace chrono;
 static volatile int first = 100000;
 
 int main() {
-    ChTimer<double> OSX, GNU, CHRONO;
+    ChTimer OSX, GNU, CHRONO;
 #if defined(__APPLE__) && !defined(__GNUC__)
     OSX.start();
     for (int j = 0; j < 100; j++) {

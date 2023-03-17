@@ -373,7 +373,7 @@ int main(int argc, char* argv[]) {
     int step_number = 0;
     int render_frame = 0;
 
-    ChTimer<> timer;
+    ChTimer timer;
 
     while (vis->Run()) {
         double time = system->GetChTime();

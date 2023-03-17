@@ -513,8 +513,8 @@ public:
 	virtual void serialize(cbtSerializer* serializer);
 
 	// ***CHRONO***
-    chrono::ChTimer<double> timer_collision_broad;
-    chrono::ChTimer<double> timer_collision_narrow;
+    chrono::ChTimer timer_collision_broad;
+    chrono::ChTimer timer_collision_narrow;
 };
 
 #endif  //BT_COLLISION_WORLD_H

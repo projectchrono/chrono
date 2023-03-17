@@ -22,7 +22,7 @@
 namespace chrono {
 
 /// Class for a timer which attempts to enforce soft real-time.
-class ChRealtimeStepTimer : public ChTimer<double> {
+class ChRealtimeStepTimer : public ChTimer {
   public:
     /// Create the timer (outside the simulation loop, preferably just before beginning the loop)
     ChRealtimeStepTimer() { start(); }

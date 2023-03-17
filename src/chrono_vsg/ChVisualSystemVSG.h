@@ -300,7 +300,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     unsigned int m_frame_number;                      ///< current number of rendered frames
     double m_start_time;                              ///< wallclock time at first render
-    ChTimer<> m_timer_render;                         ///< timer for rendering speed
+    ChTimer m_timer_render;                         ///< timer for rendering speed
     double m_old_time, m_current_time, m_time_total;  ///< render times
     double m_fps;                                     ///< estimated FPS (moving average)
 

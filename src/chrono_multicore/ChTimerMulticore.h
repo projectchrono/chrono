@@ -50,7 +50,7 @@ struct TimerData {
     }
     void stop() { timer.stop(); }
 
-    ChTimer<double> timer;
+    ChTimer timer;
     int runs;
 };
 

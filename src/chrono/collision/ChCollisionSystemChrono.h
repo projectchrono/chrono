@@ -172,8 +172,8 @@ class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
     real3 active_aabb_min;  ///< lower corner of active bounding box
     real3 active_aabb_max;  ///< upper corner of active bounding box
 
-    ChTimer<> m_timer_broad;
-    ChTimer<> m_timer_narrow;
+    ChTimer m_timer_broad;
+    ChTimer m_timer_narrow;
 };
 
 /// @} collision_mc

@@ -257,7 +257,7 @@ int main(int argc, char* argv[]) {
     double raytest = 0;
     double raycast = 0;
 
-    ChTimer<> timer;
+    ChTimer timer;
     timer.start();
 
     while (true) {

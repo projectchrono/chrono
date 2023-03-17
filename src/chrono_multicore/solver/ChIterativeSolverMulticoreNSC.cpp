@@ -154,7 +154,7 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
     //    /////
     //    double t1 = 0;
     //    {
-    //        ChTimer<> timer;
+    //        ChTimer timer;
     //        timer.start();
     //        rigid_rigid.Dx(data_manager->host_data.gamma, temp);
     //        rigid_rigid.D_Tx(temp, output);
@@ -163,7 +163,7 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
     //        timer.stop();
     //        t1 = timer();
     //    }
-    //    ChTimer<> timer;
+    //    ChTimer timer;
     //    timer.start();
     //    DynamicVector<real> compare =
     //        data_manager->host_data.D_T * data_manager->host_data.D * data_manager->host_data.gamma;

@@ -52,7 +52,7 @@ uint ChSolverMulticoreBB::Solve(ChShurProduct& ShurProduct,
     real& lastgoodres = data_manager->measures.solver.residual;
     real& objective_value = data_manager->measures.solver.objective_value;
 
-    // ChTimer<> t1, t2, t3, t4;
+    // ChTimer t1, t2, t3, t4;
     // t1.start();
 
     temp.resize(size);

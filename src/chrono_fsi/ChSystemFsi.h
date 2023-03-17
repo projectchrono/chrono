@@ -557,7 +557,7 @@ class CH_FSI_API ChSystemFsi {
     bool m_integrate_SPH;   ///< set to true if needs to integrate the fsi solver
     double m_time;          ///< current simulation time
 
-    ChTimer<double> m_timer_step;  ///< timer for integration step
+    ChTimer m_timer_step;  ///< timer for integration step
     double m_RTF;                  ///< real-time factor (simulation time / simulated time)
 
     friend class ChFsiVisualizationGL;

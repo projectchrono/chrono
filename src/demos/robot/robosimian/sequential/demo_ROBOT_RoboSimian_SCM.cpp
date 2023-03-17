@@ -103,7 +103,7 @@ class DBPcontroller : public robosimian::RS_Driver::PhaseChangeCallback {
     double m_avg_speed;   // average speed over last segment
 
     utils::CSV_writer* m_csv;
-    ChTimer<> m_timer;
+    ChTimer m_timer;
 };
 
 DBPcontroller::DBPcontroller(robosimian::RoboSimian* robot)

@@ -350,7 +350,7 @@ int main(int argc, char* argv[]) {
 
     double chrono_step = 0;
 
-    ChTimer<> timer;
+    ChTimer timer;
     timer.start();
 
     while (true) {

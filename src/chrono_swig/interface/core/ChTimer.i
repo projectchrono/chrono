@@ -11,6 +11,3 @@ using namespace chrono;
  %include "../../../chrono/core/ChTimer.h"    
 
 
-
-%template(ChTimerD) chrono::ChTimer<double>;  
-

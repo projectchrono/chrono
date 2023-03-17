@@ -555,16 +555,16 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     std::vector<int> m_external_modified_vertices;
 
     // Timers and counters
-    ChTimer<double> m_timer_moving_patches;
-    ChTimer<double> m_timer_ray_testing;
-    ChTimer<double> m_timer_ray_casting;
-    ChTimer<double> m_timer_contact_patches;
-    ChTimer<double> m_timer_contact_forces;
-    ChTimer<double> m_timer_bulldozing;
-    ChTimer<double> m_timer_bulldozing_boundary;
-    ChTimer<double> m_timer_bulldozing_domain;
-    ChTimer<double> m_timer_bulldozing_erosion;
-    ChTimer<double> m_timer_visualization;
+    ChTimer m_timer_moving_patches;
+    ChTimer m_timer_ray_testing;
+    ChTimer m_timer_ray_casting;
+    ChTimer m_timer_contact_patches;
+    ChTimer m_timer_contact_forces;
+    ChTimer m_timer_bulldozing;
+    ChTimer m_timer_bulldozing_boundary;
+    ChTimer m_timer_bulldozing_domain;
+    ChTimer m_timer_bulldozing_erosion;
+    ChTimer m_timer_visualization;
     int m_num_ray_casts;
     int m_num_ray_hits;
     int m_num_contact_patches;

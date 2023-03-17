@@ -250,7 +250,7 @@ class CH_VEHICLE_API ChVehicle {
     bool m_initialized;
     bool m_realtime_force;
     ChRealtimeStepTimer m_realtime_timer;
-    ChTimer<> m_sim_timer;
+    ChTimer m_sim_timer;
     double m_RTF;
 
     friend class ChVehicleCosimWheeledVehicleNode;

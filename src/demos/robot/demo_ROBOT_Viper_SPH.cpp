@@ -276,7 +276,7 @@ int main(int argc, char* argv[]) {
 
     auto body = sysMBS.Get_bodylist()[1];
 
-    ChTimer<> timer;
+    ChTimer timer;
     while (time < total_time) {
         std::cout << current_step << "  time: " << time << "  sim. time: " << timer() << std::endl;
 

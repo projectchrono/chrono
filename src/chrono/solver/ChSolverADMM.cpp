@@ -65,9 +65,9 @@ double ChSolverADMM::Solve(ChSystemDescriptor& sysd) {
 
 double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
 
-    ChTimer<> m_timer_convert;
-    ChTimer<> m_timer_factorize;
-    ChTimer<> m_timer_solve;
+    ChTimer m_timer_convert;
+    ChTimer m_timer_factorize;
+    ChTimer m_timer_solve;
 
     double rho_i = this->rho;
 
@@ -408,7 +408,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
 
             if ((rhofactor > this->stepadjust_threshold) || (rhofactor < 1.0 / this->stepadjust_threshold)) {
 
-                ChTimer<> m_timer_refactorize;
+                ChTimer m_timer_refactorize;
                 m_timer_refactorize.start();
 
                 // Avoid rebuilding all sparse matrix: 
@@ -475,9 +475,9 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
     double c_k = 1e10;
     double eta = 0.9999;
 
-    ChTimer<> m_timer_convert;
-    ChTimer<> m_timer_factorize;
-    ChTimer<> m_timer_solve;
+    ChTimer m_timer_convert;
+    ChTimer m_timer_factorize;
+    ChTimer m_timer_solve;
 
     double rho_i = this->rho;
 
@@ -832,7 +832,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
 
             if ((rhofactor > this->stepadjust_threshold) || (rhofactor < 1.0 / this->stepadjust_threshold)) {
 
-                ChTimer<> m_timer_refactorize;
+                ChTimer m_timer_refactorize;
                 m_timer_refactorize.start();
 
                 // Avoid rebuilding all sparse matrix: 
