@@ -375,7 +375,7 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
 
     ChRealtimeStepTimer rt;
-    double step_size = 0.1;
+    double step_size = 0.01;
     unsigned int frame_number = 0;
     while (vis->Run()) {
         double time = sys.GetChTime();
