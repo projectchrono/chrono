@@ -265,6 +265,21 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     bool m_allowPositionTransfer = false;
 
   private:
+    /// Bind the visual model associated with a body.
+    void BindBody(const std::shared_ptr<ChBody>& body);
+
+    /// Bind the visual model assoicated with a particle cloud
+    void BindParticleCloud(const std::shared_ptr<ChParticleCloud>& pcloud);
+
+    /// Bind the visual model associated with a load container.
+    void BindLoadContainer(const std::shared_ptr<ChLoadContainer>& loadcont);
+
+    /// Bind the visual model associated with a TSDA.
+    void BindTSDA(const std::shared_ptr<ChLinkTSDA>& tsda);
+
+    /// Bind the visual asset assoicated with a distance constraint.
+    void BindLinkDistance(const std::shared_ptr<ChLinkDistance>& dist);
+
     /// Utility function to populate a VSG group with shape groups (from the given visual model).
     /// The visual model may or may not be associated with a Chrono physics item.
     void PopulateGroup(vsg::ref_ptr<vsg::Group> group,
