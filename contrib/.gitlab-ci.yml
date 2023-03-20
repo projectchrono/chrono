@@ -366,9 +366,8 @@ windows:vs2022:build:
   #- cd $CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers
   #- cmake ../ -G "Visual Studio 17 2022" -DCMAKE_BUILD_TYPE=Release .
   #- MSBuild.exe FlatBuffers.sln -maxcpucount:8 -property:Configuration=Release
-  #- cd $CI_PROJECT_DIR/build
   #- cmake -DMPIEXEC_EXECUTABLE="C:/Program Files/Microsoft MPI/Bin/mpiexec.exe" --preset=windowsci-vs2022 ..
-  - '& "$CI_PROJECT_DIR\contrib\build-scripts\buildChrono.bat"'
+  - '& "C:\Users\builder\buildChrono.bat"'
   - cd Build/chrono
   - cmake --build . -j 8 --config Release
   artifacts:
@@ -393,10 +392,7 @@ windows:vs2019:build:
   #- cd $CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers
   #- cmake -G "Visual Studio 17 2022" -T v142 -DCMAKE_BUILD_TYPE=Release .
   #- MSBuild.exe FlatBuffers.sln -maxcpucount:8 -property:Configuration=Release
-  # Main build
-  #- cd $CI_PROJECT_DIR/build
-  #- cmake --preset=windowsci-vs2019 ..
-  - '& "$CI_PROJECT_DIR\contrib\build-scripts\buildChrono.bat"'
+  - '& "C:\Users\builder\buildChrono.bat"'
   - cd Build/chrono
   - cmake --build . -j 8 --config Release
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
@@ -538,6 +534,7 @@ windows:vs2019:deploy-python3.10:
   - mkdir -p build
   - export BREW_PY_MAJOR=$(python3 --version | awk '{print $2;}' | cut -d. -f1,2)
   - export BREW_PY_VER=$(find $HOMEBREW_PREFIX/Cellar/python@$BREW_PY_MAJOR -depth 1 | cut -d/ -f6)
+  - echo $CI_PROJECT_DIR
 
 .macos-monterey:
   extends: .macos
@@ -548,8 +545,7 @@ windows:vs2019:deploy-python3.10:
   stage: build
   extends: .macos-monterey
   script:
-  - chmod +x contrib/build-scripts/buildChronoMac.sh
-  - ./contrib/build-scripts/buildChronoMac.sh
+  - ~/buildChronoMac.sh
   - export CLANG_FORCE_COLOR_DIAGNOSTICS=1
   - cd build
   - cmake --build . --config Release -j 7
