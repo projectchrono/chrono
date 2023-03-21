@@ -1073,6 +1073,39 @@ void ChTriangleMeshConnected::RefineMeshEdges(
     marked_tris = new_marked_tris;
 }
 
+const std::vector<ChVector<>>& ChTriangleMeshConnected::CalculateAverageNormals() {
+    int n_verts = getNumVertices();
+    int n_faces = getNumTriangles();
+
+    m_avg_normals.resize(n_verts);
+
+    // Initialize the array of accumulators (number of adjacent faces to a vertex)
+    std::vector<int> accumulators(n_verts, 0);
+
+    // Calculate normals and then average the normals from all adjacent faces.
+    for (int it = 0; it < n_faces; it++) {
+        // Calculate the triangle normal as a normalized cross product.
+        ChVector<> nrm = Vcross(m_vertices[m_face_v_indices[it][1]] - m_vertices[m_face_v_indices[it][0]],
+                                m_vertices[m_face_v_indices[it][2]] - m_vertices[m_face_v_indices[it][0]]);
+        nrm.Normalize();
+        // Increment the normals of all incident vertices by the face normal
+        m_avg_normals[m_face_v_indices[it][0]] += nrm;
+        m_avg_normals[m_face_v_indices[it][1]] += nrm;
+        m_avg_normals[m_face_v_indices[it][2]] += nrm;
+        // Increment the count of all incident vertices by 1
+        accumulators[m_face_v_indices[it][0]] += 1;
+        accumulators[m_face_v_indices[it][1]] += 1;
+        accumulators[m_face_v_indices[it][2]] += 1;
+    }
+
+    // Set the normals to the average values.
+    for (int in = 0; in < n_verts; in++) {
+        m_avg_normals[in] /= (double)accumulators[in];
+    }
+
+    return m_avg_normals;
+}
+
 void ChTriangleMeshConnected::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChTriangleMeshConnected>();

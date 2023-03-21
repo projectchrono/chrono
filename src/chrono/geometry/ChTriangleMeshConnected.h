@@ -52,6 +52,8 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     std::vector<ChProperty*> m_properties_per_vertex;
     std::vector<ChProperty*> m_properties_per_face;
 
+    std::vector<ChVector<>> m_avg_normals;
+
   public:
     ChTriangleMeshConnected() {}
     ChTriangleMeshConnected(const ChTriangleMeshConnected& source);
@@ -218,6 +220,8 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
         std::vector<std::vector<bool>*>& aux_data_bool,       ///< auxiliary buffer
         std::vector<std::vector<ChVector<>>*>& aux_data_vect  ///< auxiliary buffer
     );
+
+    const std::vector<ChVector<>>& CalculateAverageNormals();
 
     virtual GeometryType GetClassType() const override { return TRIANGLEMESH_CONNECTED; }
 
