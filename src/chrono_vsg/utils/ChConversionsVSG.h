@@ -34,6 +34,12 @@ class CH_VSG_API dvec3CH : public dvec3 {
     dvec3CH(const chrono::ChVector<>& vec);
 };
 
+class CH_VSG_API vec4CH : public vec4 {
+  public:
+    vec4CH(const chrono::ChVector<>& vec, double w);
+    vec4CH(const chrono::ChColor& col, float a = 1);
+};
+
 class CH_VSG_API dmat4CH : public dmat4 {
   public:
     dmat4CH(const chrono::ChFrame<>& frame, const chrono::ChVector<>& scale);

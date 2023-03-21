@@ -270,91 +270,50 @@ class ChBaseEventHandlerVSG : public ChEventHandlerVSG {
 
 // -----------------------------------------------------------------------------
 
-class FindVertexData : public vsg::Visitor {
+// Utility visitor class for accessing the vec3 data in the N-th vertex buffer of an object.
+template <int N>
+class FindVec3BufferData : public vsg::Visitor {
   public:
-    void apply(vsg::Object& object) { object.traverse(*this); }
-
-    void apply(vsg::BindVertexBuffers& bvd) {
+    FindVec3BufferData() : m_buffer(nullptr) {}
+    void apply(vsg::Object& object) override { object.traverse(*this); }
+    void apply(vsg::BindVertexBuffers& bvd) override {
         if (bvd.arrays.empty())
             return;
-        bvd.arrays[0]->data->accept(*this);
+        bvd.arrays[N]->data->accept(*this);
     }
-
-    void apply(vsg::vec3Array& vertices) {
-        if (verticesSet.count(&vertices) == 0) {
-            verticesSet.insert(&vertices);
-        }
+    void apply(vsg::vec3Array& vertices) override {
+        if (!m_buffer)
+            m_buffer = &vertices;
     }
-
-    std::vector<vsg::ref_ptr<vsg::vec3Array>> getVerticesList() {
-        std::vector<vsg::ref_ptr<vsg::vec3Array>> verticesList(verticesSet.size());
-        auto vertices_itr = verticesList.begin();
-        for (auto& vertices : verticesSet) {
-            (*vertices_itr++) = const_cast<vsg::vec3Array*>(vertices);
-        }
-
-        return verticesList;
+    vsg::ref_ptr<vsg::vec3Array> getBufferData() {
+        vsg::ref_ptr<vsg::vec3Array> data;
+        data = const_cast<vsg::vec3Array*>(m_buffer);
+        return data;
     }
-
-    std::set<vsg::vec3Array*> verticesSet;
+    vsg::vec3Array* m_buffer;
 };
 
-class FindNormalData : public vsg::Visitor {
+// Utility visitor class for accessing the vec4 data in the N-th vertex buffer of an object.
+template <int N>
+class FindVec4BufferData : public vsg::Visitor {
   public:
-    void apply(vsg::Object& object) { object.traverse(*this); }
-
-    void apply(vsg::BindVertexBuffers& bvd) {
+    FindVec4BufferData() : m_buffer(nullptr) {}
+    void apply(vsg::Object& object) override { object.traverse(*this); }
+    void apply(vsg::BindVertexBuffers& bvd) override {
         if (bvd.arrays.empty())
             return;
-        bvd.arrays[1]->data->accept(*this);
+        bvd.arrays[N]->data->accept(*this);
     }
-
-    void apply(vsg::vec3Array& normals) {
-        if (normalsSet.count(&normals) == 0) {
-            normalsSet.insert(&normals);
-        }
+    void apply(vsg::vec4Array& vertices) override {
+        if (!m_buffer)
+            m_buffer = &vertices;
     }
-
-    std::vector<vsg::ref_ptr<vsg::vec3Array>> getNormalsList() {
-        std::vector<vsg::ref_ptr<vsg::vec3Array>> normalsList(normalsSet.size());
-        auto normals_itr = normalsList.begin();
-        for (auto& normals : normalsSet) {
-            (*normals_itr++) = const_cast<vsg::vec3Array*>(normals);
-        }
-
-        return normalsList;
+    vsg::ref_ptr<vsg::vec4Array> getBufferData() {
+        vsg::ref_ptr<vsg::vec4Array> data;
+        data = const_cast<vsg::vec4Array*>(m_buffer);
+        return data;
     }
-
-    std::set<vsg::vec3Array*> normalsSet;
-};
-
-class FindColorData : public vsg::Visitor {
-  public:
-    void apply(vsg::Object& object) { object.traverse(*this); }
-
-    void apply(vsg::BindVertexBuffers& bvd) {
-        if (bvd.arrays.empty())
-            return;
-        bvd.arrays[3]->data->accept(*this);
-    }
-
-    void apply(vsg::vec4Array& colors) {
-        if (colorsSet.count(&colors) == 0) {
-            colorsSet.insert(&colors);
-        }
-    }
-
-    std::vector<vsg::ref_ptr<vsg::vec4Array>> getColorsList() {
-        std::vector<vsg::ref_ptr<vsg::vec4Array>> colorsList(colorsSet.size());
-        auto colors_itr = colorsList.begin();
-        for (auto& colors : colorsSet) {
-            (*colors_itr++) = const_cast<vsg::vec4Array*>(colors);
-        }
-
-        return colorsList;
-    }
-
-    std::set<vsg::vec4Array*> colorsSet;
+    vsg::vec4Array* m_buffer;
 };
 
 // -----------------------------------------------------------------------------
@@ -933,13 +892,12 @@ void ChVisualSystemVSG::Render() {
         return;
     }
 
-    // pass any events into EventHandlers assigned to the Viewer
+    // Let the viewer handle any events
     m_viewer->handleEvents();
 
     m_viewer->update();
 
-    // Dynamic data transfer CPU -> GPU
-
+    // Dynamic data transfer CPU->GPU for point clouds
     if (m_allowPositionTransfer) {
         // Point clouds
         for (const auto& pc : m_clouds) {
@@ -954,29 +912,6 @@ void ChVisualSystemVSG::Render() {
             positions->dirty();
         }
     }
-
-    if (m_allowVertexTransfer) {
-        for (auto& vertices : m_vsgVerticesList) {
-            size_t k = 0;
-            for (auto& v : *vertices) {
-                v = vsg::vec3CH(m_mbsMesh->GetMesh()->getCoordsVertices()[k]);
-                k++;
-            }
-            vertices->dirty();
-        }
-    }
-
-    if (m_allowNormalsTransfer) {
-        for (auto& normals : m_vsgNormalsList) {
-            size_t k = 0;
-            for (auto& n : *normals) {
-                n = vsg::vec3CH(m_mbsMesh->GetMesh()->getCoordsNormals()[k]);
-                k++;
-            }
-            normals->dirty();
-        }
-    }
-
     if (m_allowColorsTransfer) {
         // Point clouds
         for (const auto& pc : m_clouds) {
@@ -991,19 +926,32 @@ void ChVisualSystemVSG::Render() {
             }
             colors->dirty();
         }
+    }
 
-        // Color meshes
-        for (auto& colors : m_vsgColorsList) {
+    // Dynamic data transfer CPU->GPU for deformable meshes
+    for (auto& def_mesh : m_def_meshes) {
+        if (def_mesh.transfer_vertices) {
+            const auto& new_vertices = def_mesh.trimesh->getCoordsVertices();
             size_t k = 0;
-            for (auto& c : *colors) {
-                float r = m_mbsMesh->GetMesh()->getCoordsColors()[k].R;
-                float g = m_mbsMesh->GetMesh()->getCoordsColors()[k].G;
-                float b = m_mbsMesh->GetMesh()->getCoordsColors()[k].B;
-                float a = 1.0f;
-                c.set(r, g, b, a);
-                k++;
-            }
-            colors->dirty();
+            for (auto& v : *def_mesh.vertices)
+                v = vsg::vec3CH(new_vertices[k++]);
+            def_mesh.vertices->dirty();
+        }
+
+        if (def_mesh.transfer_normals) {
+            const auto& new_normals = def_mesh.trimesh->getCoordsNormals();
+            size_t k = 0;
+            for (auto& n : *def_mesh.normals)
+                n = vsg::vec3CH(new_normals[k++]);
+            def_mesh.normals->dirty();
+        }
+
+        if (def_mesh.transfer_colors) {
+            const auto& new_colors = def_mesh.trimesh->getCoordsColors();
+            size_t k = 0;
+            for (auto& c : *def_mesh.colors)
+                c = vsg::vec4CH(new_colors[k++]);
+            def_mesh.colors->dirty();
         }
     }
 
@@ -1360,49 +1308,39 @@ void ChVisualSystemVSG::BindLoadContainer(const std::shared_ptr<ChLoadContainer>
     if (!trimesh)
         return;
 
+    DeformableMesh def_mesh;
+    def_mesh.trimesh = trimesh->GetMesh();
+
     auto transform = vsg::MatrixTransform::create();
-    if (trimesh->GetNumMaterials() > 0) {
-        /*
-        m_deformableScene->addChild(
-            m_shapeBuilder->createTrimeshPhongMatShape(transform, trimesh->IsWireframe(), trimesh));
-         */
-        m_deformableScene->addChild(
-            m_shapeBuilder->createTrimeshPbrMatShape(transform, trimesh->IsWireframe(), trimesh));
+    auto child = (trimesh->GetNumMaterials() > 0)
+                     ? m_shapeBuilder->createTrimeshPbrMatShape(transform, trimesh->IsWireframe(), trimesh)
+                     : m_shapeBuilder->createTrimeshColDefShape(transform, trimesh->IsWireframe(), trimesh);
+    m_deformableScene->addChild(child);
+
+    def_mesh.vertices = vsg::visit<FindVec3BufferData<0>>(child).getBufferData();
+    assert(def_mesh.vertices->size() == trimesh->GetMesh()->getCoordsVertices().size());
+    def_mesh.vertices->properties.dataVariance = vsg::DYNAMIC_DATA;
+    def_mesh.transfer_vertices = true;
+
+    if (!trimesh->IsWireframe()) {
+        def_mesh.normals = vsg::visit<FindVec3BufferData<1>>(child).getBufferData();
+        assert(def_mesh.normals->size() == trimesh->GetMesh()->getCoordsNormals().size());
+        def_mesh.normals->properties.dataVariance = vsg::DYNAMIC_DATA;
+        def_mesh.transfer_normals = true;
     } else {
-        m_deformableScene->addChild(
-            m_shapeBuilder->createTrimeshColShapeSCM(transform, trimesh->IsWireframe(), trimesh));
+        def_mesh.transfer_normals = false;
     }
-    m_vsgVerticesList = vsg::visit<FindVertexData>(m_deformableScene->children.at(0)).getVerticesList();
-    for (auto& vertices : m_vsgVerticesList) {
-        vertices->properties.dataVariance = vsg::DYNAMIC_DATA;
-        m_num_vsgVertexList += vertices->size();
+
+    if (trimesh->GetNumMaterials() == 0) {
+        def_mesh.colors = vsg::visit<FindVec4BufferData<3>>(child).getBufferData();
+        assert(def_mesh.colors->size() == trimesh->GetMesh()->getCoordsColors().size());
+        def_mesh.colors->properties.dataVariance = vsg::DYNAMIC_DATA;
+        def_mesh.transfer_colors = true;
+    } else {
+        def_mesh.transfer_colors = false;
     }
-    m_mbsMesh = trimesh;
-    if (m_num_vsgVertexList == trimesh->GetMesh()->getCoordsVertices().size()) {
-        m_allowVertexTransfer = true;
-    }
-    if (m_allowVertexTransfer && !trimesh->IsWireframe()) {
-        m_vsgNormalsList = vsg::visit<FindNormalData>(m_deformableScene->children.at(0)).getNormalsList();
-        size_t num_vsgNormalsList = 0;
-        for (auto& normals : m_vsgNormalsList) {
-            normals->properties.dataVariance = vsg::DYNAMIC_DATA;
-            num_vsgNormalsList += normals->size();
-        }
-        if (num_vsgNormalsList == m_num_vsgVertexList) {
-            m_allowNormalsTransfer = true;
-        }
-    }
-    if (m_allowVertexTransfer) {
-        m_vsgColorsList = vsg::visit<FindColorData>(m_deformableScene->children.at(0)).getColorsList();
-        size_t num_vsgColorsList = 0;
-        for (auto& colors : m_vsgColorsList) {
-            colors->properties.dataVariance = vsg::DYNAMIC_DATA;
-            num_vsgColorsList += colors->size();
-        }
-        if (num_vsgColorsList == m_num_vsgVertexList) {
-            m_allowColorsTransfer = true;
-        }
-    }
+
+    m_def_meshes.push_back(def_mesh);
 }
 
 void ChVisualSystemVSG::BindTSDA(const std::shared_ptr<ChLinkTSDA>& tsda) {
@@ -1524,14 +1462,6 @@ void ChVisualSystemVSG::UpdateFromMBS() {
             continue;
         transform->matrix = vsg::dmat4CH(body->GetVisualModelFrame(), 1.0);
     }
-
-    /*
-    for (auto& item : m_systems[0]->Get_otherphysicslist()) {
-        if (auto pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
-            // Update VSG node for particle visualization, now moved to Render()
-        }
-    }
-    */
 
     // Update VSG nodes for link visualization
     for (const auto& child : m_linkScene->children) {

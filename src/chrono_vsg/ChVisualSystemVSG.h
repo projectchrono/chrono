@@ -239,15 +239,17 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     bool m_capture_image;         ///< export current frame to image file
     std::string m_imageFilename;  ///< name of file to export current frame
 
-    // Infos for deformable soil
-    size_t m_num_vsgVertexList = 0;
-    bool m_allowVertexTransfer = false;
-    bool m_allowNormalsTransfer = false;
-    bool m_allowColorsTransfer = false;
-    std::vector<vsg::ref_ptr<vsg::vec3Array>> m_vsgVerticesList;
-    std::vector<vsg::ref_ptr<vsg::vec3Array>> m_vsgNormalsList;
-    std::vector<vsg::ref_ptr<vsg::vec4Array>> m_vsgColorsList;
-    std::shared_ptr<ChTriangleMeshShape> m_mbsMesh;
+    // Data related to deformable meshes (FEA and SCM)
+    struct DeformableMesh {
+        std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh;
+        vsg::ref_ptr<vsg::vec3Array> vertices;
+        vsg::ref_ptr<vsg::vec3Array> normals;
+        vsg::ref_ptr<vsg::vec4Array> colors;
+        bool transfer_vertices;
+        bool transfer_normals;
+        bool transfer_colors;
+    };
+    std::vector<DeformableMesh> m_def_meshes;
 
     // Data for particle clouds
     struct ParticleCloud {
@@ -263,6 +265,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     std::vector<vsg::ref_ptr<vsg::vec3Array>> m_cloud_positions;
     std::vector<vsg::ref_ptr<vsg::vec4Array>> m_cloud_colors;
     bool m_allowPositionTransfer = false;
+    bool m_allowColorsTransfer = false;
 
   private:
     /// Bind the visual model associated with a body.

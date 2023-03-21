@@ -28,6 +28,20 @@ dvec3CH::dvec3CH(const chrono::ChVector<>& vec) {
     z = vec.z();
 }
 
+vec4CH::vec4CH(const chrono::ChVector<>& vec, double w) {
+    x = static_cast<float>(vec.x());
+    y = static_cast<float>(vec.y());
+    z = static_cast<float>(vec.z());
+    w = static_cast<float>(w);
+}
+
+vec4CH::vec4CH(const chrono::ChColor& col, float a) {
+    x = col.R;
+    y = col.G;
+    z = col.B;
+    w = a;
+}
+
 dmat4CH::dmat4CH(const chrono::ChFrame<>& frame, const chrono::ChVector<>& scale) {
     const auto& v = frame.GetPos();
     const auto& A = frame.GetA();

@@ -282,25 +282,28 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createPbrShape(BasicShape theShape,
             GetLog() << "Could not read texture file: " << specularPath.string() << "\n";
     }
 
-    if(!material->GetKeTexture().empty()) {
+    if (!material->GetKeTexture().empty()) {
         vsg::Path emissivePath(material->GetKeTexture());
         std::string uniName("emissiveMap");
         bool ok = ApplyTexture(emissivePath, graphicsPipelineConfig, descriptors, uniName);
-        if(!ok) GetLog() << "Could not read texture file: " << emissivePath.string() << "\n";
+        if (!ok)
+            GetLog() << "Could not read texture file: " << emissivePath.string() << "\n";
     }
 
-    if(!material->GetDisplacementTexture().empty()) {
+    if (!material->GetDisplacementTexture().empty()) {
         vsg::Path displacementPath(material->GetDisplacementTexture());
         std::string uniName("displacementMap");
         bool ok = ApplyTexture(displacementPath, graphicsPipelineConfig, descriptors, uniName);
-        if(!ok) GetLog() << "Could not read texture file: " << displacementPath.string() << "\n";
+        if (!ok)
+            GetLog() << "Could not read texture file: " << displacementPath.string() << "\n";
     }
 
-    if(!material->GetAmbientOcclusionTexture().empty()) {
+    if (!material->GetAmbientOcclusionTexture().empty()) {
         vsg::Path aoPath(material->GetAmbientOcclusionTexture());
         std::string uniName("aoMap");
         bool ok = ApplyTexture(aoPath, graphicsPipelineConfig, descriptors, uniName);
-        if(!ok) GetLog() << "Could not read texture file: " << aoPath.string() << "\n";
+        if (!ok)
+            GetLog() << "Could not read texture file: " << aoPath.string() << "\n";
     }
 
     //  special case: metallic and roughness must be converted to a single texture
@@ -310,7 +313,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createPbrShape(BasicShape theShape,
     vsg::Path roughnessPath(material->GetRoughnessTexture());
     std::string uniName("mrMap");
     bool mrok = ApplyMetalRoughnessTexture(metallicPath, roughnessPath, graphicsPipelineConfig, descriptors, uniName);
-    
+
     // set transparency, if needed
     vsg::ColorBlendState::ColorBlendAttachments colorBlendAttachments;
     VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
@@ -643,7 +646,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColShape(vsg::ref_ptr<vsg::M
     return scenegraph;
 }
 
-vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColShapeSCM(vsg::ref_ptr<vsg::MatrixTransform> transform,
+vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColDefShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                                 bool drawMode,
                                                                 std::shared_ptr<ChTriangleMeshShape> tms) {
     auto scenegraph = vsg::Group::create();
@@ -1158,25 +1161,28 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshPbrMatShape(vsg::ref_ptr<vsg
                 GetLog() << "Could not read texture file: " << specularPath.string() << "\n";
         }
 
-        if(!chronoMat->GetKeTexture().empty()) {
+        if (!chronoMat->GetKeTexture().empty()) {
             vsg::Path specularPath(chronoMat->GetKeTexture());
             std::string uniName("emissiveMap");
             bool ok = ApplyTexture(specularPath, graphicsPipelineConfig, descriptors, uniName);
-            if(!ok) GetLog() << "Could not read texture file: " << specularPath.string() << "\n";
+            if (!ok)
+                GetLog() << "Could not read texture file: " << specularPath.string() << "\n";
         }
 
-        if(!chronoMat->GetDisplacementTexture().empty()) {
+        if (!chronoMat->GetDisplacementTexture().empty()) {
             vsg::Path displacementPath(chronoMat->GetDisplacementTexture());
             std::string uniName("displacementMap");
             bool ok = ApplyTexture(displacementPath, graphicsPipelineConfig, descriptors, uniName);
-            if(!ok) GetLog() << "Could not read texture file: " << displacementPath.string() << "\n";
+            if (!ok)
+                GetLog() << "Could not read texture file: " << displacementPath.string() << "\n";
         }
 
-        if(!chronoMat->GetAmbientOcclusionTexture().empty()) {
+        if (!chronoMat->GetAmbientOcclusionTexture().empty()) {
             vsg::Path aoPath(chronoMat->GetAmbientOcclusionTexture());
             std::string uniName("aoMap");
             bool ok = ApplyTexture(aoPath, graphicsPipelineConfig, descriptors, uniName);
-            if(!ok) GetLog() << "Could not read texture file: " << aoPath.string() << "\n";
+            if (!ok)
+                GetLog() << "Could not read texture file: " << aoPath.string() << "\n";
         }
 
         bool mappedOpacity = false;
