@@ -225,8 +225,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::Group> m_bodyScene;
     vsg::ref_ptr<vsg::Group> m_linkScene;
     vsg::ref_ptr<vsg::Group> m_particleScene;
-    vsg::ref_ptr<vsg::Group> m_decoScene;
     vsg::ref_ptr<vsg::Group> m_deformableScene;
+    vsg::ref_ptr<vsg::Group> m_decoScene;
 
     vsg::ref_ptr<vsg::Switch> m_cogScene;
 
@@ -241,31 +241,25 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     // Data related to deformable meshes (FEA and SCM)
     struct DeformableMesh {
-        std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh;
-        vsg::ref_ptr<vsg::vec3Array> vertices;
-        vsg::ref_ptr<vsg::vec3Array> normals;
-        vsg::ref_ptr<vsg::vec4Array> colors;
-        bool transfer_vertices;
-        bool transfer_normals;
-        bool transfer_colors;
+        std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh;  ///< reference to the Chrono triangle mesh
+        vsg::ref_ptr<vsg::vec3Array> vertices;                       ///< mesh vertices
+        vsg::ref_ptr<vsg::vec3Array> normals;                        ///< mesh normals
+        vsg::ref_ptr<vsg::vec4Array> colors;                         ///< mesh vertex colors
+        bool dynamic_vertices;                                       ///< mesh vertices change
+        bool dynamic_normals;                                        ///< mesh normals change
+        bool dynamic_colors;                                         ///< mesh vertex colors change
     };
     std::vector<DeformableMesh> m_def_meshes;
 
     // Data for particle clouds
     struct ParticleCloud {
         std::shared_ptr<ChParticleCloud> pcloud;  ///< reference to the Chrono physics item
-        size_t num_particles;                     ///< number of particles in cloud
-        bool dyn_pos;                             ///< if false, no dynamic position update
-        bool dyn_col;                             ///< if false, no dynamic color update
-        int start_pos;                            ///< index in positions list array
-        int start_col;                            ///< index in colors list array
+        vsg::ref_ptr<vsg::vec3Array> positions;   ///< particle positions
+        vsg::ref_ptr<vsg::vec4Array> colors;      ///< particle colors
+        bool dynamic_positions;                   ///< particle positions change
+        bool dynamic_colors;                      ///< particle colors change
     };
-
     std::vector<ParticleCloud> m_clouds;
-    std::vector<vsg::ref_ptr<vsg::vec3Array>> m_cloud_positions;
-    std::vector<vsg::ref_ptr<vsg::vec4Array>> m_cloud_colors;
-    bool m_allowPositionTransfer = false;
-    bool m_allowColorsTransfer = false;
 
   private:
     /// Bind the visual model associated with a body.
@@ -318,7 +312,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     unsigned int m_frame_number;                      ///< current number of rendered frames
     double m_start_time;                              ///< wallclock time at first render
-    ChTimer m_timer_render;                         ///< timer for rendering speed
+    ChTimer m_timer_render;                           ///< timer for rendering speed
     double m_old_time, m_current_time, m_time_total;  ///< render times
     double m_fps;                                     ///< estimated FPS (moving average)
 

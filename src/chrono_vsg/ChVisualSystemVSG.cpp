@@ -898,39 +898,24 @@ void ChVisualSystemVSG::Render() {
     m_viewer->update();
 
     // Dynamic data transfer CPU->GPU for point clouds
-    if (m_allowPositionTransfer) {
-        // Point clouds
-        for (const auto& pc : m_clouds) {
-            if (!pc.dyn_pos)
-                continue;
-            auto& positions = m_cloud_positions[pc.start_pos];
+    for (const auto& cloud : m_clouds) {
+        if (cloud.dynamic_positions) {
             unsigned int k = 0;
-            for (auto& p : *positions) {
-                p = vsg::vec3CH(pc.pcloud->GetParticle(k).GetPos());
-                k++;
-            }
-            positions->dirty();
+            for (auto& p : *cloud.positions)
+                p = vsg::vec3CH(cloud.pcloud->GetParticle(k++).GetPos());
+            cloud.positions->dirty();
         }
-    }
-    if (m_allowColorsTransfer) {
-        // Point clouds
-        for (const auto& pc : m_clouds) {
-            if (!pc.dyn_col)
-                continue;
-            auto& colors = m_cloud_colors[pc.start_col];
+        if (cloud.dynamic_colors) {
             unsigned int k = 0;
-            for (auto& c : *colors) {
-                ChColor color = pc.pcloud->GetVisualColor(k);
-                c.set(color.R, color.G, color.B, 1);
-                k++;
-            }
-            colors->dirty();
+            for (auto& c : *cloud.colors)
+                c = vsg::vec4CH(cloud.pcloud->GetVisualColor(k++));
+            cloud.colors->dirty();
         }
     }
 
     // Dynamic data transfer CPU->GPU for deformable meshes
     for (auto& def_mesh : m_def_meshes) {
-        if (def_mesh.transfer_vertices) {
+        if (def_mesh.dynamic_vertices) {
             const auto& new_vertices = def_mesh.trimesh->getCoordsVertices();
             size_t k = 0;
             for (auto& v : *def_mesh.vertices)
@@ -938,7 +923,7 @@ void ChVisualSystemVSG::Render() {
             def_mesh.vertices->dirty();
         }
 
-        if (def_mesh.transfer_normals) {
+        if (def_mesh.dynamic_normals) {
             const auto& new_normals = def_mesh.trimesh->getCoordsNormals();
             size_t k = 0;
             for (auto& n : *def_mesh.normals)
@@ -946,7 +931,7 @@ void ChVisualSystemVSG::Render() {
             def_mesh.normals->dirty();
         }
 
-        if (def_mesh.transfer_colors) {
+        if (def_mesh.dynamic_colors) {
             const auto& new_colors = def_mesh.trimesh->getCoordsColors();
             size_t k = 0;
             for (auto& c : *def_mesh.colors)
@@ -1218,31 +1203,10 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
         shape_color = ChVisualMaterial::Default()->GetDiffuseColor();
 
     // Create an new entry in the set of Chrono::VSG particle clouds
-    int start_pos = -1;
-    int start_col = -1;
-    if (!m_clouds.empty()) {
-        if (pcloud->IsActive())
-            start_pos = m_clouds.back().start_pos + 1;
-        else
-            start_pos = m_clouds.back().start_pos;
-        if (pcloud->UseDynamicColors())
-            start_col = m_clouds.back().start_col + 1;
-        else
-            start_col = m_clouds.back().start_col;
-    } else {
-        if (pcloud->IsActive())
-            start_pos = 0;
-        if (pcloud->UseDynamicColors())
-            start_col = 0;
-    }
-
     ParticleCloud cloud;
     cloud.pcloud = pcloud;
-    cloud.num_particles = pcloud->GetNparticles();
-    cloud.dyn_pos = pcloud->IsActive();
-    cloud.dyn_col = pcloud->UseDynamicColors();
-    cloud.start_pos = start_pos;
-    cloud.start_col = start_col;
+    cloud.dynamic_positions = pcloud->IsActive();
+    cloud.dynamic_colors = pcloud->UseDynamicColors();
 
     // Set up geometry and state info for vsgBuilder
     vsg::GeometryInfo geomInfo;
@@ -1250,26 +1214,22 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
     geomInfo.dy.set(0, (float)shape_size.y(), 0);
     geomInfo.dz.set(0, 0, (float)shape_size.z());
 
-    if (cloud.dyn_col) {
-        auto colors = vsg::vec4Array::create(cloud.num_particles);
-        geomInfo.colors = colors;
-        for (size_t k = 0; k < cloud.num_particles; k++)
-            colors->set(k, vsg::vec4(0, 0, 0, 1));
-        colors->properties.dataVariance = vsg::DYNAMIC_DATA;
-        m_cloud_colors.push_back(colors);
-        m_allowColorsTransfer = true;
+    if (cloud.dynamic_colors) {
+        cloud.colors = vsg::vec4Array::create(num_particles);
+        geomInfo.colors = cloud.colors;
+        for (size_t k = 0; k < num_particles; k++)
+            cloud.colors->set(k, vsg::vec4(0, 0, 0, 1));
+        cloud.colors->properties.dataVariance = vsg::DYNAMIC_DATA;
     } else {
         geomInfo.color.set(shape_color.R, shape_color.G, shape_color.B, 1.0);
     }
 
-    auto positions = vsg::vec3Array::create(cloud.num_particles);
-    geomInfo.positions = positions;
-    for (size_t k = 0; k < cloud.num_particles; k++)
-        positions->set(k, vsg::vec3CH(pcloud->GetParticle(k).GetPos()));
-    if (cloud.dyn_pos) {
-        positions->properties.dataVariance = vsg::DYNAMIC_DATA;
-        m_cloud_positions.push_back(positions);
-        m_allowPositionTransfer = true;
+    cloud.positions = vsg::vec3Array::create(num_particles);
+    geomInfo.positions = cloud.positions;
+    for (size_t k = 0; k < num_particles; k++)
+        cloud.positions->set(k, vsg::vec3CH(pcloud->GetParticle(k).GetPos()));
+    if (cloud.dynamic_positions) {
+        cloud.positions->properties.dataVariance = vsg::DYNAMIC_DATA;
     }
 
     vsg::StateInfo stateInfo;
@@ -1320,24 +1280,24 @@ void ChVisualSystemVSG::BindLoadContainer(const std::shared_ptr<ChLoadContainer>
     def_mesh.vertices = vsg::visit<FindVec3BufferData<0>>(child).getBufferData();
     assert(def_mesh.vertices->size() == trimesh->GetMesh()->getCoordsVertices().size());
     def_mesh.vertices->properties.dataVariance = vsg::DYNAMIC_DATA;
-    def_mesh.transfer_vertices = true;
+    def_mesh.dynamic_vertices = true;
 
     if (!trimesh->IsWireframe()) {
         def_mesh.normals = vsg::visit<FindVec3BufferData<1>>(child).getBufferData();
         assert(def_mesh.normals->size() == trimesh->GetMesh()->getCoordsNormals().size());
         def_mesh.normals->properties.dataVariance = vsg::DYNAMIC_DATA;
-        def_mesh.transfer_normals = true;
+        def_mesh.dynamic_normals = true;
     } else {
-        def_mesh.transfer_normals = false;
+        def_mesh.dynamic_normals = false;
     }
 
     if (trimesh->GetNumMaterials() == 0) {
         def_mesh.colors = vsg::visit<FindVec4BufferData<3>>(child).getBufferData();
         assert(def_mesh.colors->size() == trimesh->GetMesh()->getCoordsColors().size());
         def_mesh.colors->properties.dataVariance = vsg::DYNAMIC_DATA;
-        def_mesh.transfer_colors = true;
+        def_mesh.dynamic_colors = true;
     } else {
-        def_mesh.transfer_colors = false;
+        def_mesh.dynamic_colors = false;
     }
 
     m_def_meshes.push_back(def_mesh);
