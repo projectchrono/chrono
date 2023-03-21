@@ -265,6 +265,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Bind the visual model associated with a body.
     void BindBody(const std::shared_ptr<ChBody>& body);
 
+    /// Bind the visual model associated with an FEA mesh.
+    void BindMesh(const std::shared_ptr<fea::ChMesh>& mesh);
+
     /// Bind the visual model assoicated with a particle cloud
     void BindParticleCloud(const std::shared_ptr<ChParticleCloud>& pcloud);
 

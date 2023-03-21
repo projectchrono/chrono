@@ -12,14 +12,16 @@
 // Rainer Gericke
 // =============================================================================
 
-#include "ShapeBuilder.h"
-#include "GetBoxShapeData.h"
-#include "GetDiceShapeData.h"
-#include "GetSphereShapeData.h"
-#include "GetCylinderShapeData.h"
-#include "GetCapsuleShapeData.h"
-#include "GetConeShapeData.h"
-#include "GetSurfaceShapeData.h"
+#include "chrono_vsg/shapes/ShapeBuilder.h"
+#include "chrono_vsg/shapes/GetBoxShapeData.h"
+#include "chrono_vsg/shapes/GetDiceShapeData.h"
+#include "chrono_vsg/shapes/GetSphereShapeData.h"
+#include "chrono_vsg/shapes/GetCylinderShapeData.h"
+#include "chrono_vsg/shapes/GetCapsuleShapeData.h"
+#include "chrono_vsg/shapes/GetConeShapeData.h"
+#include "chrono_vsg/shapes/GetSurfaceShapeData.h"
+
+#include "chrono_vsg/utils/ChConversionsVSG.h"
 
 #include "chrono_vsg/resources/lineShader_vert.h"
 #include "chrono_vsg/resources/lineShader_frag.h"
@@ -527,11 +529,11 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColShape(vsg::ref_ptr<vsg::M
     vsg::ref_ptr<vsg::uintArray> vsg_indices = vsg::uintArray::create(nVert);
     vsg::ref_ptr<vsg::vec4Array> vsg_colors = vsg::vec4Array::create(nVert);
     for (size_t k = 0; k < nVert; k++) {
-        vsg_vertices->set(k, vsg::vec3(tmp_vertices[k].x(), tmp_vertices[k].y(), tmp_vertices[k].z()));
-        vsg_normals->set(k, vsg::vec3(tmp_normals[k].x(), tmp_normals[k].y(), tmp_normals[k].z()));
+        vsg_vertices->set(k, vsg::vec3CH(tmp_vertices[k]));
+        vsg_normals->set(k, vsg::vec3CH(tmp_normals[k]));
         // seems to work with v-coordinate flipped on VSG
-        vsg_texcoords->set(k, vsg::vec2(tmp_texcoords[k].x(), 1.0f - tmp_texcoords[k].y()));
-        vsg_colors->set(k, vsg::vec4(tmp_colors[k].R, tmp_colors[k].G, tmp_colors[k].B, 1.0f));
+        vsg_texcoords->set(k, vsg::vec2(tmp_texcoords[k].x(), 1 - tmp_texcoords[k].y()));
+        vsg_colors->set(k, vsg::vec4CH(tmp_colors[k]));
         vsg_indices->set(k, k);
     }
 
@@ -660,7 +662,9 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColDefShape(vsg::ref_ptr<vsg
 
     size_t nvertices = vertices.size();
     bool normals_ok = true;
+    std::vector<ChVector<>> avg_normals;
     if (nvertices != normals.size()) {
+        avg_normals = mesh->CalculateAverageNormals();
         normals_ok = false;
     }
     bool texcoords_ok = true;
@@ -683,23 +687,11 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColDefShape(vsg::ref_ptr<vsg
     vsg::ref_ptr<vsg::uintArray> vsg_indices = vsg::uintArray::create(v_indices.size() * 3);
     vsg::ref_ptr<vsg::vec4Array> vsg_colors = vsg::vec4Array::create(nvertices);
     for (size_t k = 0; k < nvertices; k++) {
-        vsg_vertices->set(k, vsg::vec3(vertices[k].x(), vertices[k].y(), vertices[k].z()));
-        if (normals_ok) {
-            vsg_normals->set(k, vsg::vec3(normals[k].x(), normals[k].y(), normals[k].z()));
-        } else {
-            vsg_normals->set(k, vsg::vec3(0.0, 0.0, 1.0));
-        }
-        // seems to work with v-coordinate flipped on VSG
-        if (texcoords_ok) {
-            vsg_texcoords->set(k, vsg::vec2(uvs[k].x(), uvs[k].y()));
-        } else {
-            vsg_texcoords->set(k, vsg::vec2(0.0, 0.0));
-        }
-        if (colors_ok) {
-            vsg_colors->set(k, vsg::vec4(colors[k].R, colors[k].G, colors[k].B, 1.0f));
-        } else {
-            vsg_colors->set(k, vsg::vec4(default_color.R, default_color.G, default_color.B, 1.0f));
-        }
+        vsg_vertices->set(k, vsg::vec3CH(vertices[k]));
+        vsg_normals->set(k, normals_ok ? vsg::vec3CH(normals[k]) : vsg::vec3CH(avg_normals[k]));
+        // seems to work with v-coordinate flipped on VSG (??)
+        vsg_texcoords->set(k, texcoords_ok ? vsg::vec2(uvs[k].x(), 1 - uvs[k].y()) : vsg::vec2CH({0, 0}));
+        vsg_colors->set(k, colors_ok ? vsg::vec4CH(colors[k]) : vsg::vec4CH(default_color));
     }
     size_t kk = 0;
     for (size_t k = 0; k < v_indices.size() * 3; k += 3) {
@@ -974,10 +966,9 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshPhongMatShape(vsg::ref_ptr<v
         vsg::ref_ptr<vsg::vec2Array> vsg_texcoords = vsg::vec2Array::create(nVert);
         vsg::ref_ptr<vsg::uintArray> vsg_indices = vsg::uintArray::create(nVert);
         for (size_t k = 0; k < nVert; k++) {
-            vsg_vertices->set(k, vsg::vec3(tmp_vertices[k].x(), tmp_vertices[k].y(), tmp_vertices[k].z()));
-            vsg_normals->set(k, vsg::vec3(tmp_normals[k].x(), tmp_normals[k].y(), tmp_normals[k].z()));
-            // seems to work with v-coordinate flipped on VSG
-            vsg_texcoords->set(k, vsg::vec2(tmp_texcoords[k].x(), 1.0f - tmp_texcoords[k].y()));
+            vsg_vertices->set(k, vsg::vec3CH(tmp_vertices[k]));
+            vsg_normals->set(k, vsg::vec3CH(tmp_normals[k]));
+            vsg_texcoords->set(k, vsg::vec2(tmp_texcoords[k].x(), 1 - tmp_texcoords[k].y()));
             vsg_indices->set(k, k);
         }
         auto colors = vsg::vec4Value::create(vsg::vec4{1.0f, 1.0f, 1.0f, 1.0f});
@@ -1253,7 +1244,8 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshPbrMatShape(vsg::ref_ptr<vsg
                 tmp_normals.push_back(n[j]);
                 tmp_texcoords.push_back(uv[j]);
             }
-        }  // itri
+        }
+
         // create and fill the vsg buffers
         size_t nVert = tmp_vertices.size();
         vsg::ref_ptr<vsg::vec3Array> vsg_vertices = vsg::vec3Array::create(nVert);
@@ -1261,10 +1253,9 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshPbrMatShape(vsg::ref_ptr<vsg
         vsg::ref_ptr<vsg::vec2Array> vsg_texcoords = vsg::vec2Array::create(nVert);
         vsg::ref_ptr<vsg::uintArray> vsg_indices = vsg::uintArray::create(nVert);
         for (size_t k = 0; k < nVert; k++) {
-            vsg_vertices->set(k, vsg::vec3(tmp_vertices[k].x(), tmp_vertices[k].y(), tmp_vertices[k].z()));
-            vsg_normals->set(k, vsg::vec3(tmp_normals[k].x(), tmp_normals[k].y(), tmp_normals[k].z()));
-            // seems to work with v-coordinate flipped on VSG
-            vsg_texcoords->set(k, vsg::vec2(tmp_texcoords[k].x(), 1.0f - tmp_texcoords[k].y()));
+            vsg_vertices->set(k, vsg::vec3CH(tmp_vertices[k]));
+            vsg_normals->set(k, vsg::vec3CH(tmp_normals[k]));
+            vsg_texcoords->set(k, vsg::vec2(tmp_texcoords[k].x(), 1 - tmp_texcoords[k].y()));
             vsg_indices->set(k, k);
         }
         auto colors = vsg::vec4Value::create(vsg::vec4{1.0f, 1.0f, 1.0f, 1.0f});
@@ -1512,7 +1503,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createLineShape(ChVisualModel::ShapeInsta
         double u = maxU * ((double)i / (double)(numPoints - 1));  // abscissa
         ChVector<> pos;
         ls->GetLineGeometry()->Evaluate(pos, u);
-        vertices->set(i, vsg::vec3(pos.x(), pos.y(), pos.z()));
+        vertices->set(i, vsg::vec3CH(pos));
         auto cv =
             vsg::vec3(material->GetDiffuseColor().R, material->GetDiffuseColor().G, material->GetDiffuseColor().B);
         colors->set(i, cv);
@@ -1603,7 +1594,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createPathShape(ChVisualModel::ShapeInsta
         double u = ustep * (double(i));
         ChVector<> pos;
         ps->GetPathGeometry()->Evaluate(pos, u);
-        vertices->set(i, vsg::vec3(pos.x(), pos.y(), pos.z()));
+        vertices->set(i, vsg::vec3CH(pos));
         auto cv =
             vsg::vec3(material->GetDiffuseColor().R, material->GetDiffuseColor().G, material->GetDiffuseColor().B);
         colors->set(i, cv);
@@ -1792,10 +1783,8 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createUnitSegment(std::shared_ptr<ChLinkB
     auto vertices = vsg::vec3Array::create(numPoints);
     auto colors = vsg::vec3Array::create(numPoints);
     double length = 1;
-    vsg::vec3 p1(0, length / 2, 0);
-    vsg::vec3 p2(0, -length / 2, 0);
-    vertices->set(0, p2);
-    vertices->set(1, p1);
+    vertices->set(0, vsg::vec3(0, -length / 2, 0));
+    vertices->set(1, vsg::vec3(0, +length / 2, 0));
     auto cv = vsg::vec3(material->GetDiffuseColor().R, material->GetDiffuseColor().G, material->GetDiffuseColor().B);
     colors->set(0, cv);
     colors->set(1, cv);
@@ -1907,7 +1896,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createDecoGrid(double ustep,
     auto cv = vsg::vec3(col.R, col.G, col.B);
     colors->set(0, cv);
     for (size_t i = 0; i < numPoints; i++) {
-        vertices->set(i, vsg::vec3(v[i].x(), v[i].y(), v[i].z()));
+        vertices->set(i, vsg::vec3CH(v[i]));
         colors->set(i, cv);
     }
     // setup geometry

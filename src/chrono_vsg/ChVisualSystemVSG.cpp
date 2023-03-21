@@ -917,6 +917,7 @@ void ChVisualSystemVSG::Render() {
     for (auto& def_mesh : m_def_meshes) {
         if (def_mesh.dynamic_vertices) {
             const auto& new_vertices = def_mesh.trimesh->getCoordsVertices();
+            assert(def_mesh.vertices->size() == new_vertices.size());
             size_t k = 0;
             for (auto& v : *def_mesh.vertices)
                 v = vsg::vec3CH(new_vertices[k++]);
@@ -924,7 +925,8 @@ void ChVisualSystemVSG::Render() {
         }
 
         if (def_mesh.dynamic_normals) {
-            const auto& new_normals = def_mesh.trimesh->getCoordsNormals();
+            const auto& new_normals = def_mesh.trimesh->CalculateAverageNormals();
+            assert(def_mesh.normals->size() == new_normals.size());
             size_t k = 0;
             for (auto& n : *def_mesh.normals)
                 n = vsg::vec3CH(new_normals[k++]);
@@ -933,6 +935,7 @@ void ChVisualSystemVSG::Render() {
 
         if (def_mesh.dynamic_colors) {
             const auto& new_colors = def_mesh.trimesh->getCoordsColors();
+            assert(def_mesh.colors->size() == new_colors.size());
             size_t k = 0;
             for (auto& c : *def_mesh.colors)
                 c = vsg::vec4CH(new_colors[k++]);
@@ -1160,8 +1163,65 @@ void ChVisualSystemVSG::BindBody(const std::shared_ptr<ChBody>& body) {
     m_bodyScene->addChild(modelGroup);
 }
 
+void ChVisualSystemVSG::BindMesh(const std::shared_ptr<fea::ChMesh>& mesh) {
+    const auto& vis_model = mesh->GetVisualModel();
+
+    // Update FEA visualization
+    for (auto& shapeFEA : vis_model->GetShapesFEA()) {
+        shapeFEA->Update(mesh.get(), ChFrame<>());
+    }
+
+    for (auto& shape_instance : vis_model->GetShapes()) {
+        auto& shape = shape_instance.first;
+
+        //// RADU TODO: process glyphs
+        ////            for now, only treat the trimeshes in the visual model
+        auto trimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape);
+        if (!trimesh)
+            continue;
+
+        if (trimesh->GetMesh()->getNumVertices() == 0)
+            continue;
+
+        DeformableMesh def_mesh;
+        def_mesh.trimesh = trimesh->GetMesh();
+
+        auto transform = vsg::MatrixTransform::create();
+        auto child = (trimesh->GetNumMaterials() > 0)
+                         ? m_shapeBuilder->createTrimeshPbrMatShape(transform, trimesh->IsWireframe(), trimesh)
+                         : m_shapeBuilder->createTrimeshColDefShape(transform, trimesh->IsWireframe(), trimesh);
+        m_deformableScene->addChild(child);
+
+        def_mesh.vertices = vsg::visit<FindVec3BufferData<0>>(child).getBufferData();
+        assert(def_mesh.vertices->size() == trimesh->GetMesh()->getCoordsVertices().size());
+        def_mesh.vertices->properties.dataVariance = vsg::DYNAMIC_DATA;
+        def_mesh.dynamic_vertices = true;
+
+        if (!trimesh->IsWireframe()) {
+            def_mesh.normals = vsg::visit<FindVec3BufferData<1>>(child).getBufferData();
+            assert(def_mesh.normals->size() == trimesh->GetMesh()->getCoordsVertices().size());
+            def_mesh.normals->properties.dataVariance = vsg::DYNAMIC_DATA;
+            def_mesh.dynamic_normals = true;
+        } else {
+            def_mesh.dynamic_normals = false;
+        }
+
+        if (trimesh->GetNumMaterials() == 0) {
+            def_mesh.colors = vsg::visit<FindVec4BufferData<3>>(child).getBufferData();
+            assert(def_mesh.colors->size() == trimesh->GetMesh()->getCoordsColors().size());
+            def_mesh.colors->properties.dataVariance = vsg::DYNAMIC_DATA;
+            def_mesh.dynamic_colors = true;
+        } else {
+            def_mesh.dynamic_colors = false;
+        }
+
+        m_def_meshes.push_back(def_mesh);
+    }
+}
+
 void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>& pcloud) {
     const auto& vis_model = pcloud->GetVisualModel();
+    auto num_particles = pcloud->GetNparticles();
 
     // Search for an appropriate rendering shape
     typedef geometry::ChGeometry::GeometryType ShapeType;
@@ -1367,6 +1427,14 @@ void ChVisualSystemVSG::BindAll() {
                 continue;
 
             BindBody(body);
+        }
+
+        // Bind visual models associated with FEA meshes
+        for (const auto& mesh : sys->GetAssembly().Get_meshlist()) {
+            if (!mesh->GetVisualModel())
+                continue;
+
+            BindMesh(mesh);
         }
 
         // Bind visual models associated with other physics items in the system

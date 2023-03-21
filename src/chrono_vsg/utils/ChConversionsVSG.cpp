@@ -16,6 +16,11 @@
 
 namespace vsg {
 
+vec2CH::vec2CH(const chrono::ChVector2<>& vec) {
+    x = static_cast<float>(vec.x());
+    y = static_cast<float>(vec.y());
+}
+
 vec3CH::vec3CH(const chrono::ChVector<>& vec) {
     x = static_cast<float>(vec.x());
     y = static_cast<float>(vec.y());

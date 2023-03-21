@@ -11,7 +11,6 @@ if(ENABLE_MODULE_IRRLICHT)
 set(FEA_DEMOS ${FEA_DEMOS}
     demo_FEA_thermal
     demo_FEA_electrostatics
-    demo_FEA_visualize
     demo_FEA_contacts_SMC
     demo_FEA_cables
     demo_FEA_shellsANCF_3423

@@ -24,6 +24,11 @@
 
 namespace vsg {
 
+class CH_VSG_API vec2CH : public vec2 {
+  public:
+    vec2CH(const chrono::ChVector2<>& vec);
+};
+
 class CH_VSG_API vec3CH : public vec3 {
   public:
     vec3CH(const chrono::ChVector<>& vec);
