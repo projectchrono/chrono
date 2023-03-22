@@ -14,7 +14,7 @@
 //
 // VSG-based visualization wrapper for vehicles.  This class is a derived
 // from ChVisualSystemVSG and provides the following functionality:
-//   - rendering of the entire Irrlicht scene
+//   - rendering of the entire VSG scene
 //   - custom chase-camera (which can be controlled with keyboard)
 //   - optional rendering of links, springs, stats, etc.
 //
@@ -23,19 +23,11 @@
 #ifndef CH_VEHICLE_VISUAL_SYSTEM_VSG_H
 #define CH_VEHICLE_VISUAL_SYSTEM_VSG_H
 
-#include <string>
-
-#include "chrono/physics/ChSystem.h"
-#include "chrono/utils/ChUtilsChaseCamera.h"
+#include "chrono_vehicle/ChApiVehicle.h"
+#include "chrono_vehicle/ChConfigVehicle.h"
+#include "chrono_vehicle/ChVehicleVisualSystem.h"
 
 #include "chrono_vsg/ChVisualSystemVSG.h"
-
-#include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChVehicle.h"
-#include "chrono_vehicle/ChVehicleVisualSystem.h"
-#include "chrono_vehicle/ChDriver.h"
-#include "chrono_vehicle/ChConfigVehicle.h"
-#include "chrono_vehicle/terrain/SCMTerrain.h"
 
 namespace chrono {
 namespace vehicle {

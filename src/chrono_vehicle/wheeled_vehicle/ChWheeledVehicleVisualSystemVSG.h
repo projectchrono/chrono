@@ -31,7 +31,7 @@ namespace vehicle {
 /// Customized Chrono::VSG visualization system for wheeled vehicle simulation.
 class CH_VEHICLE_API ChWheeledVehicleVisualSystemVSG : public ChVehicleVisualSystemVSG {
   public:
-    /// Construct a wheeled vehicle Irrlicht visualization.
+    /// Construct a wheeled vehicle VSG visualization.
     ChWheeledVehicleVisualSystemVSG();
 
     ~ChWheeledVehicleVisualSystemVSG() {}
