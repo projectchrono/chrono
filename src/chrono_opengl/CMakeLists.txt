@@ -50,16 +50,13 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(GLFW_DLL  "" CACHE FILEPATH "The GLFW DLL")
 endif()
 
-#message("OPENGL_FOUND: ${OPENGL_FOUND}")
-#message("GLM_FOUND: ${GLM_FOUND}")
-#message("GLEW_FOUND: ${GLEW_FOUND}")
-#message("GLFW3_FOUND: ${GLFW3_FOUND}")
-#message("GLM_INCLUDE_DIRS: ${GLM_INCLUDE_DIRS}")
-
 # If all dependencies are available, enable building OpenGL support.
 if(OPENGL_FOUND AND GLM_FOUND AND GLEW_FOUND AND GLFW3_FOUND)
     set(CHRONO_OPENGL "#define CHRONO_OPENGL")
     message(STATUS "OpenGL libraries: ${OPENGL_LIBRARIES}")
+    message(STATUS "GLM_INCLUDE_DIRS: ${GLM_INCLUDE_DIRS}")
+    message(STATUS "GLEW config dir:  ${GLEW_DIR}")
+    message(STATUS "GLFW3 config dir: ${GLFW3_DIR}")
 else()
     # Unable to find everything, turn off OpenGL
     message("Cannot build ChronoEngine_OpenGL (missing dependencies); disabling Chrono::OpenGL")

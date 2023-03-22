@@ -124,7 +124,7 @@ class CH_OPENGL_API ChVisualSystemOpenGL : virtual public ChVisualSystem {
     virtual void SetCameraTarget(const ChVector<>& target) override;
 
     /// Attach a custom event receiver to the application.
-    void AddUserEventReceiver(ChOpenGLEventCB* receiver) { user_receivers.push_back(receiver); }
+    void AddUserEventReceiver(std::shared_ptr<ChOpenGLEventCB> receiver) { user_receivers.push_back(receiver); }
 
     /// Attach a custom particle rendering selector.
     void AttachParticleSelector(std::shared_ptr<ChOpenGLParticleCB> selector) { particle_selector = selector; }
@@ -215,7 +215,7 @@ class CH_OPENGL_API ChVisualSystemOpenGL : virtual public ChVisualSystem {
 
     bool m_verbose;  ///< OpenGL terminal initialization output
     bool render_stats;
-    std::vector<ChOpenGLEventCB*> user_receivers;
+    std::vector<std::shared_ptr<ChOpenGLEventCB>> user_receivers;
     std::shared_ptr<ChOpenGLParticleCB> particle_selector;
 
 #ifdef CHRONO_MULTICORE

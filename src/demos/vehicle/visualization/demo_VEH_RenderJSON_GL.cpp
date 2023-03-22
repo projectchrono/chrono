@@ -215,8 +215,8 @@ int main(int argc, char* argv[]) {
     vis.AttachSystem(&sys);
 
     // Attache event receiver (use key 'U' to trigger a vehicle update)
-    EventCB my_receiver(vehicle, is_wheeled);
-    vis.AddUserEventReceiver(&my_receiver);
+    auto my_receiver = chrono_types::make_shared<EventCB>(vehicle, is_wheeled);
+    vis.AddUserEventReceiver(my_receiver);
 
     // Attach custom stats overlay
     auto my_stats = chrono_types::make_shared<JSONStats>();

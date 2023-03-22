@@ -817,7 +817,20 @@ source_group("" FILES ${CVVSG_FILES})
 source_group("wheeled_vehicle" FILES ${CVVSG_WV_FILES})
 source_group("tracked_vehicle" FILES ${CVVSG_TV_FILES})
 
+# --------------- VEHICLE VSG INTERFACE
 
+if(ENABLE_MODULE_OPENGL)
+    set(CVGL_FILES
+        ChVehicleVisualSystemOpenGL.h
+        ChVehicleVisualSystemOpenGL.cpp
+    )
+
+    message(STATUS "Enable OpenGL support")    
+else()
+    set(CVGL_FILES "")
+endif()
+
+source_group("" FILES ${CVGL_FILES})
 
 # --------------- THIRD-PARTY FILES
 
@@ -979,6 +992,36 @@ if(ENABLE_MODULE_VSG)
     target_link_libraries(ChronoEngine_vehicle_vsg ${LIBRARIES})
     
     install(TARGETS ChronoEngine_vehicle_vsg
+            RUNTIME DESTINATION bin
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib)
+
+endif()
+
+#-------------------------------------------------------------------------------
+# Add the ChronoEngine_vehicle_opengl library
+#-------------------------------------------------------------------------------
+
+if(ENABLE_MODULE_OPENGL)
+
+    include_directories(${CH_OPENGL_INCLUDES})
+    list(APPEND LIBRARIES ChronoEngine_vehicle)
+    list(APPEND LIBRARIES ChronoEngine_opengl) 
+    
+    add_library(ChronoEngine_vehicle_opengl SHARED
+        ${CVGL_FILES}
+    )
+    
+    set_target_properties(ChronoEngine_vehicle_opengl PROPERTIES
+                          COMPILE_FLAGS "${CXX_FLAGS}"
+                          LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+    
+    target_compile_definitions(ChronoEngine_vehicle_opengl PRIVATE "CH_API_COMPILE_VEHICLE")
+    target_compile_definitions(ChronoEngine_vehicle_opengl PRIVATE "CH_IGNORE_DEPRECATED")
+    
+    target_link_libraries(ChronoEngine_vehicle_opengl ${LIBRARIES})
+    
+    install(TARGETS ChronoEngine_vehicle_opengl
             RUNTIME DESTINATION bin
             LIBRARY DESTINATION lib
             ARCHIVE DESTINATION lib)

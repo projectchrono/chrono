@@ -49,6 +49,11 @@ ChOpenGLStats::ChOpenGLStats() : time_total(0), time_text(0), time_geometry(0), 
     screen.SCALE = 0.0007f;
 }
 
+ChOpenGLStats ::~ChOpenGLStats() {
+    TakeDown();
+    render_camera = nullptr;
+}
+
 bool ChOpenGLStats::Initialize(ChOpenGLCamera* camera) {
     if (this->GLReturnedError("ChOpenGLStatsDefault::Initialize - on entry"))
         return false;
@@ -112,6 +117,7 @@ void ChOpenGLStats::TakeDown() {
     font_shader.TakeDown();
     bar_shader.TakeDown();
     text.TakeDown();
+    bars.TakeDown();
 }
 
 void ChOpenGLStats::Render() {
@@ -123,6 +129,8 @@ void ChOpenGLStats::Render() {
 // --------------------------------------------------------------------------------------------------------------------
 
 ChOpenGLStatsDefault::ChOpenGLStatsDefault() : ChOpenGLStats() {}
+
+ChOpenGLStatsDefault::~ChOpenGLStatsDefault() {}
 
 bool ChOpenGLStatsDefault::Initialize(ChOpenGLCamera* camera) {
     return ChOpenGLStats::Initialize(camera);

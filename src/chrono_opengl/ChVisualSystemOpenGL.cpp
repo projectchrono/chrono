@@ -280,7 +280,7 @@ void ChVisualSystemOpenGL::CallbackKeyboard(GLFWwindow* window, int key, int sca
     }
 
     if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-        for (auto ue : vsGL->user_receivers) {
+        for (auto& ue : vsGL->user_receivers) {
             if (ue->CallbackKeyboard(window, key, scancode, action, mode))
                 return;
         }
@@ -292,7 +292,7 @@ void ChVisualSystemOpenGL::CallbackKeyboard(GLFWwindow* window, int key, int sca
 void ChVisualSystemOpenGL::CallbackMouseButton(GLFWwindow* window, int button, int state, int mods) {
     ChVisualSystemOpenGL* vsGL = (ChVisualSystemOpenGL*)glfwGetWindowUserPointer(window);
 
-    for (auto ue : vsGL->user_receivers) {
+    for (auto& ue : vsGL->user_receivers) {
         if (ue->CallbackMouseButton(window, button, state, mods))
             return;
     }
@@ -305,7 +305,7 @@ void ChVisualSystemOpenGL::CallbackMouseButton(GLFWwindow* window, int button, i
 void ChVisualSystemOpenGL::CallbackMousePos(GLFWwindow* window, double x, double y) {
     ChVisualSystemOpenGL* vsGL = (ChVisualSystemOpenGL*)glfwGetWindowUserPointer(window);
 
-    for (auto ue : vsGL->user_receivers) {
+    for (auto& ue : vsGL->user_receivers) {
         if (ue->CallbackMousePos(window, x, y))
             return;
     }
