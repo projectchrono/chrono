@@ -648,7 +648,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColShape(vsg::ref_ptr<vsg::M
     return scenegraph;
 }
 
-vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColDefShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
+vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColAvgShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                                 bool drawMode,
                                                                 std::shared_ptr<ChTriangleMeshShape> tms) {
     auto scenegraph = vsg::Group::create();
@@ -664,7 +664,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColDefShape(vsg::ref_ptr<vsg
     bool normals_ok = true;
     std::vector<ChVector<>> avg_normals;
     if (nvertices != normals.size()) {
-        avg_normals = mesh->CalculateAverageNormals();
+        avg_normals = mesh->getAverageNormals();
         normals_ok = false;
     }
     bool texcoords_ok = true;

@@ -239,19 +239,20 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     bool m_capture_image;         ///< export current frame to image file
     std::string m_imageFilename;  ///< name of file to export current frame
 
-    // Data related to deformable meshes (FEA and SCM)
+    /// Data related to deformable meshes (FEA and SCM).
     struct DeformableMesh {
         std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh;  ///< reference to the Chrono triangle mesh
         vsg::ref_ptr<vsg::vec3Array> vertices;                       ///< mesh vertices
         vsg::ref_ptr<vsg::vec3Array> normals;                        ///< mesh normals
         vsg::ref_ptr<vsg::vec4Array> colors;                         ///< mesh vertex colors
+        bool mesh_soup;                                              ///< true if using separate triangles
         bool dynamic_vertices;                                       ///< mesh vertices change
         bool dynamic_normals;                                        ///< mesh normals change
         bool dynamic_colors;                                         ///< mesh vertex colors change
     };
     std::vector<DeformableMesh> m_def_meshes;
 
-    // Data for particle clouds
+    /// Data for particle clouds.
     struct ParticleCloud {
         std::shared_ptr<ChParticleCloud> pcloud;  ///< reference to the Chrono physics item
         vsg::ref_ptr<vsg::vec3Array> positions;   ///< particle positions

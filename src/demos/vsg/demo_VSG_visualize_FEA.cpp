@@ -167,7 +167,8 @@ int main(int argc, char* argv[]) {
     vis.SetUseSkyBox(true);
     vis.SetLightIntensity(1.0f);
     vis.SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
-    vis.AddCamera(ChVector<>(0.0, 0.6, -1.0));
+    vis.SetCameraVertical(CameraVerticalDir::Y);
+    vis.AddCamera(ChVector<>(0.0, 0.6, -2.0), ChVector<>(0, 0.4, 0));
     vis.Initialize();
 
     // Solver settings

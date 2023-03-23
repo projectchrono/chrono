@@ -916,7 +916,8 @@ void ChVisualSystemVSG::Render() {
     // Dynamic data transfer CPU->GPU for deformable meshes
     for (auto& def_mesh : m_def_meshes) {
         if (def_mesh.dynamic_vertices) {
-            const auto& new_vertices = def_mesh.trimesh->getCoordsVertices();
+            const auto& new_vertices =
+                def_mesh.mesh_soup ? def_mesh.trimesh->getFaceVertices() : def_mesh.trimesh->getCoordsVertices();
             assert(def_mesh.vertices->size() == new_vertices.size());
             size_t k = 0;
             for (auto& v : *def_mesh.vertices)
@@ -925,7 +926,8 @@ void ChVisualSystemVSG::Render() {
         }
 
         if (def_mesh.dynamic_normals) {
-            const auto& new_normals = def_mesh.trimesh->CalculateAverageNormals();
+            const auto& new_normals =
+                def_mesh.mesh_soup ? def_mesh.trimesh->getFaceNormals() : def_mesh.trimesh->getAverageNormals();
             assert(def_mesh.normals->size() == new_normals.size());
             size_t k = 0;
             for (auto& n : *def_mesh.normals)
@@ -934,7 +936,8 @@ void ChVisualSystemVSG::Render() {
         }
 
         if (def_mesh.dynamic_colors) {
-            const auto& new_colors = def_mesh.trimesh->getCoordsColors();
+            const auto& new_colors =
+                def_mesh.mesh_soup ? def_mesh.trimesh->getFaceColors() : def_mesh.trimesh->getCoordsColors();
             assert(def_mesh.colors->size() == new_colors.size());
             size_t k = 0;
             for (auto& c : *def_mesh.colors)
@@ -1062,7 +1065,7 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
             auto grp = trimesh->GetNumMaterials() > 0
                            ? m_shapeBuilder->createTrimeshPhongMatShape(transform, m_wireframe, trimesh)
                            : m_shapeBuilder->createTrimeshColShape(transform, m_wireframe, trimesh);
-             */
+            */
             auto grp = trimesh->GetNumMaterials() > 0
                            ? m_shapeBuilder->createTrimeshPbrMatShape(transform, m_wireframe, trimesh)
                            : m_shapeBuilder->createTrimeshColShape(transform, m_wireframe, trimesh);
@@ -1189,17 +1192,20 @@ void ChVisualSystemVSG::BindMesh(const std::shared_ptr<fea::ChMesh>& mesh) {
         auto transform = vsg::MatrixTransform::create();
         auto child = (trimesh->GetNumMaterials() > 0)
                          ? m_shapeBuilder->createTrimeshPbrMatShape(transform, trimesh->IsWireframe(), trimesh)
-                         : m_shapeBuilder->createTrimeshColDefShape(transform, trimesh->IsWireframe(), trimesh);
+                         : m_shapeBuilder->createTrimeshColShape(transform, trimesh->IsWireframe(), trimesh);
         m_deformableScene->addChild(child);
 
+        def_mesh.mesh_soup = true;
+        auto n_vertices = 3 * trimesh->GetMesh()->getNumTriangles();  // expected
+
         def_mesh.vertices = vsg::visit<FindVec3BufferData<0>>(child).getBufferData();
-        assert(def_mesh.vertices->size() == trimesh->GetMesh()->getCoordsVertices().size());
+        assert(def_mesh.vertices->size() == n_vertices);
         def_mesh.vertices->properties.dataVariance = vsg::DYNAMIC_DATA;
         def_mesh.dynamic_vertices = true;
 
         if (!trimesh->IsWireframe()) {
             def_mesh.normals = vsg::visit<FindVec3BufferData<1>>(child).getBufferData();
-            assert(def_mesh.normals->size() == trimesh->GetMesh()->getCoordsVertices().size());
+            assert(def_mesh.normals->size() == def_mesh.vertices->size());
             def_mesh.normals->properties.dataVariance = vsg::DYNAMIC_DATA;
             def_mesh.dynamic_normals = true;
         } else {
@@ -1208,7 +1214,7 @@ void ChVisualSystemVSG::BindMesh(const std::shared_ptr<fea::ChMesh>& mesh) {
 
         if (trimesh->GetNumMaterials() == 0) {
             def_mesh.colors = vsg::visit<FindVec4BufferData<3>>(child).getBufferData();
-            assert(def_mesh.colors->size() == trimesh->GetMesh()->getCoordsColors().size());
+            assert(def_mesh.colors->size() == def_mesh.vertices->size());
             def_mesh.colors->properties.dataVariance = vsg::DYNAMIC_DATA;
             def_mesh.dynamic_colors = true;
         } else {
@@ -1334,17 +1340,20 @@ void ChVisualSystemVSG::BindLoadContainer(const std::shared_ptr<ChLoadContainer>
     auto transform = vsg::MatrixTransform::create();
     auto child = (trimesh->GetNumMaterials() > 0)
                      ? m_shapeBuilder->createTrimeshPbrMatShape(transform, trimesh->IsWireframe(), trimesh)
-                     : m_shapeBuilder->createTrimeshColDefShape(transform, trimesh->IsWireframe(), trimesh);
+                     : m_shapeBuilder->createTrimeshColAvgShape(transform, trimesh->IsWireframe(), trimesh);
     m_deformableScene->addChild(child);
 
+    def_mesh.mesh_soup = false;
+    auto num_vertices = trimesh->GetMesh()->getCoordsVertices().size();  // expected
+
     def_mesh.vertices = vsg::visit<FindVec3BufferData<0>>(child).getBufferData();
-    assert(def_mesh.vertices->size() == trimesh->GetMesh()->getCoordsVertices().size());
+    assert(def_mesh.vertices->size() == num_vertices);
     def_mesh.vertices->properties.dataVariance = vsg::DYNAMIC_DATA;
     def_mesh.dynamic_vertices = true;
 
     if (!trimesh->IsWireframe()) {
         def_mesh.normals = vsg::visit<FindVec3BufferData<1>>(child).getBufferData();
-        assert(def_mesh.normals->size() == trimesh->GetMesh()->getCoordsNormals().size());
+        assert(def_mesh.normals->size() == def_mesh.vertices->size());
         def_mesh.normals->properties.dataVariance = vsg::DYNAMIC_DATA;
         def_mesh.dynamic_normals = true;
     } else {
@@ -1353,7 +1362,7 @@ void ChVisualSystemVSG::BindLoadContainer(const std::shared_ptr<ChLoadContainer>
 
     if (trimesh->GetNumMaterials() == 0) {
         def_mesh.colors = vsg::visit<FindVec4BufferData<3>>(child).getBufferData();
-        assert(def_mesh.colors->size() == trimesh->GetMesh()->getCoordsColors().size());
+        assert(def_mesh.colors->size() == def_mesh.vertices->size());
         def_mesh.colors->properties.dataVariance = vsg::DYNAMIC_DATA;
         def_mesh.dynamic_colors = true;
     } else {

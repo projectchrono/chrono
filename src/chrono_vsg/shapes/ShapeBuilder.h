@@ -64,22 +64,23 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
 
     vsg::ref_ptr<vsg::Group> createTrimeshPhongMatShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                         bool drawMode,
-                                                        std::shared_ptr<ChTriangleMeshShape> tms = nullptr);
+                                                        std::shared_ptr<ChTriangleMeshShape> tms);
 
     vsg::ref_ptr<vsg::Group> createTrimeshPbrMatShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                       bool drawMode,
-                                                      std::shared_ptr<ChTriangleMeshShape> tms = nullptr);
+                                                      std::shared_ptr<ChTriangleMeshShape> tms);
 
-    // variant for general use, mesh can have unknown structure and noncontiguous faces
-    // face normals will be converted to vertex normals, it will be bloated by additional vertices
+    /// Convert the specified mesh into a triangle soup with vertex colors.
+    /// Vertex normals are calculated from each face normal, resulting in sharp edges.
     vsg::ref_ptr<vsg::Group> createTrimeshColShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                    bool drawMode,
-                                                   std::shared_ptr<ChTriangleMeshShape> tms = nullptr);
+                                                   std::shared_ptr<ChTriangleMeshShape> tms);
 
-    // variant for a deformable mesh (FEA or SCM), regular mesh needed, no face normals allowed, no face colors allowed
-    vsg::ref_ptr<vsg::Group> createTrimeshColDefShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
+    /// Convert the specified mesh into a triangle mesh with vertex colors.
+    /// Vertex normals are calculated by averaging the normals of incident faces, resulting in smoothed edges.
+    vsg::ref_ptr<vsg::Group> createTrimeshColAvgShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                       bool drawMode,
-                                                      std::shared_ptr<ChTriangleMeshShape> tms = nullptr);
+                                                      std::shared_ptr<ChTriangleMeshShape> tms);
 
     vsg::ref_ptr<vsg::Group> createCoGSymbol(vsg::ref_ptr<vsg::MatrixTransform> transform);
 

@@ -48,26 +48,25 @@ ChTriangleMeshConnected::ChTriangleMeshConnected(const ChTriangleMeshConnected& 
     m_face_uv_indices = source.m_face_uv_indices;
     m_face_col_indices = source.m_face_col_indices;
     m_face_mat_indices = source.m_face_mat_indices;
-    
+
     // deep copies of properties
     this->m_properties_per_vertex.resize(source.m_properties_per_vertex.size());
     for (size_t i = 0; i < source.m_properties_per_vertex.size(); ++i)
-        this->m_properties_per_vertex[i]=source.m_properties_per_vertex[i]->clone();
+        this->m_properties_per_vertex[i] = source.m_properties_per_vertex[i]->clone();
     // deep copies of properties
     this->m_properties_per_face.resize(source.m_properties_per_face.size());
     for (size_t i = 0; i < source.m_properties_per_face.size(); ++i)
-        this->m_properties_per_face[i]=source.m_properties_per_face[i]->clone();
+        this->m_properties_per_face[i] = source.m_properties_per_face[i]->clone();
 
     m_filename = source.m_filename;
 }
 
 ChTriangleMeshConnected::~ChTriangleMeshConnected() {
     for (ChProperty* id : this->m_properties_per_vertex)
-        delete(id);
+        delete (id);
     for (ChProperty* id : this->m_properties_per_face)
-        delete(id);
+        delete (id);
 }
-
 
 void ChTriangleMeshConnected::addTriangle(const ChVector<>& vertex0,
                                           const ChVector<>& vertex1,
@@ -99,11 +98,11 @@ void ChTriangleMeshConnected::Clear() {
     m_face_mat_indices.clear();
 
     for (ChProperty* id : this->m_properties_per_vertex)
-        delete(id);
+        delete (id);
     m_properties_per_vertex.clear();
 
     for (ChProperty* id : this->m_properties_per_face)
-        delete(id);
+        delete (id);
     m_properties_per_vertex.clear();
 }
 
@@ -123,7 +122,6 @@ void ChTriangleMeshConnected::GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax,
         cmax.z() = ChMax(cmax.z(), p.z());
     }
 }
-
 
 // Following function is a modified version of:
 //
@@ -1073,37 +1071,104 @@ void ChTriangleMeshConnected::RefineMeshEdges(
     marked_tris = new_marked_tris;
 }
 
-const std::vector<ChVector<>>& ChTriangleMeshConnected::CalculateAverageNormals() {
+const std::vector<ChVector<>>& ChTriangleMeshConnected::getFaceVertices() {
+    int n_faces = getNumTriangles();
+
+    m_tmp_vectors.resize(3 * n_faces);
+
+    // Collect vertices from all mesh faces
+    for (int it = 0; it < n_faces; it++) {
+        m_tmp_vectors[3 * it + 0] = m_vertices[m_face_v_indices[it][0]];
+        m_tmp_vectors[3 * it + 1] = m_vertices[m_face_v_indices[it][1]];
+        m_tmp_vectors[3 * it + 2] = m_vertices[m_face_v_indices[it][2]];
+    }
+
+    return m_tmp_vectors;
+}
+
+const std::vector<ChVector<>>& ChTriangleMeshConnected::getFaceNormals() {
+    int n_faces = getNumTriangles();
+
+    m_tmp_vectors.resize(3 * n_faces);
+
+    // Calculate face normals and assign to each face vertex
+    for (int it = 0; it < n_faces; it++) {
+        const auto& v0 = m_vertices[m_face_v_indices[it][0]];
+        const auto& v1 = m_vertices[m_face_v_indices[it][1]];
+        const auto& v2 = m_vertices[m_face_v_indices[it][2]];
+
+        auto nrm = Vcross(v1 - v0, v2 - v0).GetNormalized();
+        m_tmp_vectors[3 * it + 0] = nrm;
+        m_tmp_vectors[3 * it + 1] = nrm;
+        m_tmp_vectors[3 * it + 2] = nrm;
+    }
+
+    return m_tmp_vectors;
+}
+
+const std::vector<ChColor>& ChTriangleMeshConnected::getFaceColors() {
+    ChColor default_color(0.4f, 0.4f, 0.4f);
+    auto n_faces = m_face_v_indices.size();
+
+    m_tmp_colors.resize(3 * n_faces);
+
+    // Collect colors from all mesh faces
+    if (m_face_col_indices.size() == n_faces) {
+        for (int it = 0; it < n_faces; it++) {
+            m_tmp_colors[3 * it + 0] = m_colors[m_face_col_indices[it][0]];
+            m_tmp_colors[3 * it + 1] = m_colors[m_face_col_indices[it][1]];
+            m_tmp_colors[3 * it + 2] = m_colors[m_face_col_indices[it][2]];
+        }
+    } else if (m_face_col_indices.size() == 0 && m_colors.size() == m_vertices.size()) {
+        for (int it = 0; it < n_faces; it++) {
+            m_tmp_colors[3 * it + 0] = m_colors[m_face_v_indices[it][0]];
+            m_tmp_colors[3 * it + 1] = m_colors[m_face_v_indices[it][1]];
+            m_tmp_colors[3 * it + 2] = m_colors[m_face_v_indices[it][2]];
+        }
+    } else {
+        for (int it = 0; it < n_faces; it++) {
+            m_tmp_colors[3 * it + 0] = default_color;
+            m_tmp_colors[3 * it + 1] = default_color;
+            m_tmp_colors[3 * it + 2] = default_color;
+        }
+    }
+
+    return m_tmp_colors;
+}
+
+const std::vector<ChVector<>>& ChTriangleMeshConnected::getAverageNormals() {
     int n_verts = getNumVertices();
     int n_faces = getNumTriangles();
 
-    m_avg_normals.resize(n_verts);
+    m_tmp_vectors.resize(n_verts);
 
     // Initialize the array of accumulators (number of adjacent faces to a vertex)
     std::vector<int> accumulators(n_verts, 0);
 
-    // Calculate normals and then average the normals from all adjacent faces.
+    // Calculate normals and then average the normals from all adjacent faces
     for (int it = 0; it < n_faces; it++) {
         // Calculate the triangle normal as a normalized cross product.
         ChVector<> nrm = Vcross(m_vertices[m_face_v_indices[it][1]] - m_vertices[m_face_v_indices[it][0]],
                                 m_vertices[m_face_v_indices[it][2]] - m_vertices[m_face_v_indices[it][0]]);
         nrm.Normalize();
+
         // Increment the normals of all incident vertices by the face normal
-        m_avg_normals[m_face_v_indices[it][0]] += nrm;
-        m_avg_normals[m_face_v_indices[it][1]] += nrm;
-        m_avg_normals[m_face_v_indices[it][2]] += nrm;
+        m_tmp_vectors[m_face_v_indices[it][0]] += nrm;
+        m_tmp_vectors[m_face_v_indices[it][1]] += nrm;
+        m_tmp_vectors[m_face_v_indices[it][2]] += nrm;
+
         // Increment the count of all incident vertices by 1
         accumulators[m_face_v_indices[it][0]] += 1;
         accumulators[m_face_v_indices[it][1]] += 1;
         accumulators[m_face_v_indices[it][2]] += 1;
     }
 
-    // Set the normals to the average values.
+    // Set the normals to the average values
     for (int in = 0; in < n_verts; in++) {
-        m_avg_normals[in] /= (double)accumulators[in];
+        m_tmp_vectors[in] /= (double)accumulators[in];
     }
 
-    return m_avg_normals;
+    return m_tmp_vectors;
 }
 
 void ChTriangleMeshConnected::ArchiveOUT(ChArchiveOut& marchive) {
