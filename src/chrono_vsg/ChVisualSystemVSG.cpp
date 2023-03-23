@@ -1063,12 +1063,12 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
             transform->matrix = vsg::dmat4CH(X_SM, trimesh->GetScale());
             /*
             auto grp = trimesh->GetNumMaterials() > 0
-                           ? m_shapeBuilder->createTrimeshPhongMatShape(transform, m_wireframe, trimesh)
-                           : m_shapeBuilder->createTrimeshColShape(transform, m_wireframe, trimesh);
+                           ? m_shapeBuilder->createTrimeshPhongMatShape(trimesh, transform, m_wireframe)
+                           : m_shapeBuilder->createTrimeshColShape(trimesh, transform, m_wireframe);
             */
             auto grp = trimesh->GetNumMaterials() > 0
-                           ? m_shapeBuilder->createTrimeshPbrMatShape(transform, m_wireframe, trimesh)
-                           : m_shapeBuilder->createTrimeshColShape(transform, m_wireframe, trimesh);
+                           ? m_shapeBuilder->createTrimeshPbrMatShape(trimesh, transform, m_wireframe)
+                           : m_shapeBuilder->createTrimeshColShape(trimesh, transform, m_wireframe);
             group->addChild(grp);
         } else if (auto surface = std::dynamic_pointer_cast<ChSurfaceShape>(shape)) {
             auto transform = vsg::MatrixTransform::create();
@@ -1191,8 +1191,8 @@ void ChVisualSystemVSG::BindMesh(const std::shared_ptr<fea::ChMesh>& mesh) {
 
         auto transform = vsg::MatrixTransform::create();
         auto child = (trimesh->GetNumMaterials() > 0)
-                         ? m_shapeBuilder->createTrimeshPbrMatShape(transform, trimesh->IsWireframe(), trimesh)
-                         : m_shapeBuilder->createTrimeshColShape(transform, trimesh->IsWireframe(), trimesh);
+                         ? m_shapeBuilder->createTrimeshPbrMatShape(trimesh, transform, trimesh->IsWireframe())
+                         : m_shapeBuilder->createTrimeshColShape(trimesh, transform, trimesh->IsWireframe());
         m_deformableScene->addChild(child);
 
         def_mesh.mesh_soup = true;
@@ -1339,8 +1339,8 @@ void ChVisualSystemVSG::BindLoadContainer(const std::shared_ptr<ChLoadContainer>
 
     auto transform = vsg::MatrixTransform::create();
     auto child = (trimesh->GetNumMaterials() > 0)
-                     ? m_shapeBuilder->createTrimeshPbrMatShape(transform, trimesh->IsWireframe(), trimesh)
-                     : m_shapeBuilder->createTrimeshColAvgShape(transform, trimesh->IsWireframe(), trimesh);
+                     ? m_shapeBuilder->createTrimeshPbrMatShape(trimesh, transform, trimesh->IsWireframe())
+                     : m_shapeBuilder->createTrimeshColAvgShape(trimesh, transform, trimesh->IsWireframe());
     m_deformableScene->addChild(child);
 
     def_mesh.mesh_soup = false;

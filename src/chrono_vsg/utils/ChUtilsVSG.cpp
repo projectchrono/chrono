@@ -561,13 +561,13 @@ void exportScreenshot(vsg::ref_ptr<vsg::Window> window,
         data += subResourceLayout.rowPitch;
     }
     if ((format.compare("png") == 0)) {
-        int ans = stbi_write_png(imageFilename.c_str(), width, height, 3, pixels.str().c_str(), 0);
+        stbi_write_png(imageFilename.c_str(), width, height, 3, pixels.str().c_str(), 0);
     } else if ((format.compare("tga") == 0)) {
-        int ans = stbi_write_tga(imageFilename.c_str(), width, height, 3, pixels.str().c_str());
+        stbi_write_tga(imageFilename.c_str(), width, height, 3, pixels.str().c_str());
     } else if ((format.compare("jpg") == 0) || (format.compare("jpeg") == 0)) {
-        int ans = stbi_write_jpg(imageFilename.c_str(), width, height, 3, pixels.str().c_str(), 95);
+        stbi_write_jpg(imageFilename.c_str(), width, height, 3, pixels.str().c_str(), 95);
     } else if ((format.compare("bmp") == 0)) {
-        int ans = stbi_write_bmp(imageFilename.c_str(), width, height, 3, pixels.str().c_str());
+        stbi_write_bmp(imageFilename.c_str(), width, height, 3, pixels.str().c_str());
     } else {
         cout << "No screen capture written due to unknown image format. Use png, tga, jpg or bmp!" << endl;
     }

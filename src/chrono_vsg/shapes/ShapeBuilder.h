@@ -53,34 +53,34 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
     vsg::ref_ptr<vsg::Group> createPhongShape(BasicShape theShape,
                                               std::shared_ptr<ChVisualMaterial> material,
                                               vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                              bool drawMode,
+                                              bool wireframe,
                                               std::shared_ptr<ChSurfaceShape> surface = nullptr);
 
     vsg::ref_ptr<vsg::Group> createPbrShape(BasicShape theShape,
                                             std::shared_ptr<ChVisualMaterial> material,
                                             vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                            bool drawMode,
+                                            bool wireframe,
                                             std::shared_ptr<ChSurfaceShape> surface = nullptr);
 
-    vsg::ref_ptr<vsg::Group> createTrimeshPhongMatShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                                        bool drawMode,
-                                                        std::shared_ptr<ChTriangleMeshShape> tms);
+    vsg::ref_ptr<vsg::Group> createTrimeshPhongMatShape(std::shared_ptr<ChTriangleMeshShape> tms,
+                                                        vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                                        bool wireframe);
 
-    vsg::ref_ptr<vsg::Group> createTrimeshPbrMatShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                                      bool drawMode,
-                                                      std::shared_ptr<ChTriangleMeshShape> tms);
+    vsg::ref_ptr<vsg::Group> createTrimeshPbrMatShape(std::shared_ptr<ChTriangleMeshShape> tms,
+                                                      vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                                      bool wireframe);
 
     /// Convert the specified mesh into a triangle soup with vertex colors.
     /// Vertex normals are calculated from each face normal, resulting in sharp edges.
-    vsg::ref_ptr<vsg::Group> createTrimeshColShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                                   bool drawMode,
-                                                   std::shared_ptr<ChTriangleMeshShape> tms);
+    vsg::ref_ptr<vsg::Group> createTrimeshColShape(std::shared_ptr<ChTriangleMeshShape> tms,
+                                                   vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                                   bool wireframe);
 
     /// Convert the specified mesh into a triangle mesh with vertex colors.
     /// Vertex normals are calculated by averaging the normals of incident faces, resulting in smoothed edges.
-    vsg::ref_ptr<vsg::Group> createTrimeshColAvgShape(vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                                      bool drawMode,
-                                                      std::shared_ptr<ChTriangleMeshShape> tms);
+    vsg::ref_ptr<vsg::Group> createTrimeshColAvgShape(std::shared_ptr<ChTriangleMeshShape> tms,
+                                                      vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                                      bool wireframe);
 
     vsg::ref_ptr<vsg::Group> createCoGSymbol(vsg::ref_ptr<vsg::MatrixTransform> transform);
 
@@ -106,24 +106,24 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
 
     vsg::ref_ptr<vsg::Group> createDecoGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col);
 
-    /// create a ShaderSet for Phong shaded rendering with tiled textures
+    /// Create a ShaderSet for Phong shaded rendering with tiled textures.
     vsg::ref_ptr<vsg::ShaderSet> createTilingPhongShaderSet(vsg::ref_ptr<const vsg::Options> options = {});
 
-    /// create a ShaderSet for PBR shaded rendering with tiled textures
+    /// Create a ShaderSet for PBR shaded rendering with tiled textures.
     vsg::ref_ptr<vsg::ShaderSet> createTilingPbrShaderSet(vsg::ref_ptr<const vsg::Options> options = {});
 
-    /// assign compile traversal to enable compilation.
+    /// Assign compile traversal to enable compilation.
     void assignCompileTraversal(vsg::ref_ptr<vsg::CompileTraversal> ct);
 
     vsg::ref_ptr<vsg::CompileTraversal> compileTraversal;
 
   private:
-    bool ApplyTexture(vsg::Path& path,
+    bool applyTexture(vsg::Path& path,
                       vsg::ref_ptr<vsg::GraphicsPipelineConfigurator> pipeConfig,
                       vsg::Descriptors& descriptors,
                       std::string& uniformName);
 
-    bool ApplyMetalRoughnessTexture(vsg::Path& metalPath,
+    bool applyMetalRoughnessTexture(vsg::Path& metalPath,
                                     vsg::Path& roughPath,
                                     vsg::ref_ptr<vsg::GraphicsPipelineConfigurator> pipeConfig,
                                     vsg::Descriptors& descriptors,
