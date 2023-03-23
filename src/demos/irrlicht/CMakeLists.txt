@@ -6,6 +6,7 @@ set(DEMOS
   demo_IRR_assets
   demo_IRR_paths
   demo_IRR_visualize_collision
+  demo_IRR_visualize_FEA
 )
 
 if(THRUST_FOUND)

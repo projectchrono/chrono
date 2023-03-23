@@ -11,7 +11,7 @@
 //
 // VSG-based visualization wrapper for vehicles.  This class is a derived
 // from ChVisualSystemVSG and provides the following functionality:
-//   - rendering of the entire Irrlicht scene
+//   - rendering of the entire VSG scene
 //   - custom chase-camera (which can be controlled with keyboard)
 //   - optional rendering of links, springs, stats, etc.
 //
@@ -25,93 +25,6 @@
 
 namespace chrono {
 namespace vehicle {
-
-class FindVertexData : public vsg::Visitor {
-  public:
-    void apply(vsg::Object& object) { object.traverse(*this); }
-
-    void apply(vsg::BindVertexBuffers& bvd) {
-        if (bvd.arrays.empty())
-            return;
-        bvd.arrays[0]->data->accept(*this);
-    }
-
-    void apply(vsg::vec3Array& vertices) {
-        if (verticesSet.count(&vertices) == 0) {
-            verticesSet.insert(&vertices);
-        }
-    }
-
-    std::vector<vsg::ref_ptr<vsg::vec3Array>> getVerticesList() {
-        std::vector<vsg::ref_ptr<vsg::vec3Array>> verticesList(verticesSet.size());
-        auto vertices_itr = verticesList.begin();
-        for (auto& vertices : verticesSet) {
-            (*vertices_itr++) = const_cast<vsg::vec3Array*>(vertices);
-        }
-
-        return verticesList;
-    }
-
-    std::set<vsg::vec3Array*> verticesSet;
-};
-
-class FindNormalData : public vsg::Visitor {
-  public:
-    void apply(vsg::Object& object) { object.traverse(*this); }
-
-    void apply(vsg::BindVertexBuffers& bvd) {
-        if (bvd.arrays.empty())
-            return;
-        bvd.arrays[1]->data->accept(*this);
-    }
-
-    void apply(vsg::vec3Array& normals) {
-        if (normalsSet.count(&normals) == 0) {
-            normalsSet.insert(&normals);
-        }
-    }
-
-    std::vector<vsg::ref_ptr<vsg::vec3Array>> getNormalsList() {
-        std::vector<vsg::ref_ptr<vsg::vec3Array>> normalsList(normalsSet.size());
-        auto normals_itr = normalsList.begin();
-        for (auto& normals : normalsSet) {
-            (*normals_itr++) = const_cast<vsg::vec3Array*>(normals);
-        }
-
-        return normalsList;
-    }
-
-    std::set<vsg::vec3Array*> normalsSet;
-};
-
-class FindColorData : public vsg::Visitor {
-  public:
-    void apply(vsg::Object& object) { object.traverse(*this); }
-
-    void apply(vsg::BindVertexBuffers& bvd) {
-        if (bvd.arrays.empty())
-            return;
-        bvd.arrays[3]->data->accept(*this);
-    }
-
-    void apply(vsg::vec4Array& colors) {
-        if (colorsSet.count(&colors) == 0) {
-            colorsSet.insert(&colors);
-        }
-    }
-
-    std::vector<vsg::ref_ptr<vsg::vec4Array>> getColorsList() {
-        std::vector<vsg::ref_ptr<vsg::vec4Array>> colorsList(colorsSet.size());
-        auto colors_itr = colorsList.begin();
-        for (auto& colors : colorsSet) {
-            (*colors_itr++) = const_cast<vsg::vec4Array*>(colors);
-        }
-
-        return colorsList;
-    }
-
-    std::set<vsg::vec4Array*> colorsSet;
-};
 
 // -----------------------------------------------------------------------------
 
@@ -384,7 +297,7 @@ void ChVehicleVisualSystemVSG::Advance(double step) {
         t += h;
     }
 
-    // Update the Irrlicht camera
+    // Update the VSG camera
     ChVector<> cam_pos = m_camera->GetCameraPos();
     ChVector<> cam_target = m_camera->GetTargetPos();
     m_vsg_cameraEye.set(cam_pos.x(), cam_pos.y(), cam_pos.z());
