@@ -13,9 +13,9 @@
 @rem 4. Run the script from a VS development console.
 @rem -----------------------------------------------------------------------------------------
 
-set SOURCE_DIR="."
-set BUILD_DIR="Build/chrono"
-set INSTALL_DIR="Install/chrono"
+set SOURCE_DIR="%CI_PROJECT_DIR%"
+set BUILD_DIR="%CI_PROJECT_DIR%\build\chrono"
+set INSTALL_DIR="%CI_PROJECT_DIR%\install\chrono"
 
 set EIGEN3_INSTALL_DIR="C:/Users/builder/Documents/Eigen3"
 set BLAZE_INSTALL_DIR="C:/Users/builder/Documents/blaze-3.8.1"

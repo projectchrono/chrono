@@ -54,14 +54,14 @@ linux:arch-gcc:build:
   stage: build
   extends: .archlinux
   script:
-  # Defining custom flag to store compiler type
-  - GCC_COMPILER=1
-  - cd contrib/build-scripts
-  - chmod +x buildChrono.sh
-  - ./buildChrono.sh
-  # Making chrono
-  - cd $CI_PROJECT_DIR/build
-  - ninja -j 8
+    # Defining compiler variables
+    - export C_COMPILER="/usr/bin/gcc"
+    - export CXX_COMPILER="/usr/bin/g++"
+    # Building chrono
+    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR --preset=linuxci
+    # Making chrono
+    - cd $CI_PROJECT_DIR/build
+    - ninja -j 8
   artifacts:
     expire_in: 60m
     paths:
@@ -82,16 +82,15 @@ linux:arch-llvm:build:
   stage: build
   extends: .archlinux
   script:
-  # Custom flag to store compiler type
-  - GCC_COMPILER=0
-  - pacman -S --noconfirm llvm clang openmp
-  # Configuring chrono
-  - cd contrib/build-scripts
-  - chmod +x buildChrono.sh
-  - ./buildChrono.sh
-  # Making chrono
-  - cd $CI_PROJECT_DIR/build
-  - ninja -j 8
+    - pacman -S --noconfirm llvm clang openmp
+    # Defining compiler variables
+    - export C_COMPILER="/usr/bin/clang"
+    - export CXX_COMPILER="/usr/bin/clang++"
+    # Building chrono
+    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR --preset=linuxci -DCUDA_HOST_COMPILER=/usr/bin/gcc
+    # Making chrono
+    - cd $CI_PROJECT_DIR/build
+    - ninja -j 8
   artifacts:
     expire_in: 60m
     paths:
@@ -122,7 +121,6 @@ linux:arch-llvm:test:
   before_script:
     # Defining configuration variables
     - export LIB_DIR="lib"
-    - export GCC_COMPILER=1
     - export IOMP5_DIR=""
     # Obtain dependencies
     - apt-get update; apt-get -y install unzip wget python3 python3-pip
@@ -163,13 +161,13 @@ linux:doxygen:deploy:
     - tar -xf doxygen-1.8.16.linux.bin.tar.gz
     - mkdir -p ~/.ssh
     - chmod 0700 ~/.ssh
-# This private key is only useable from specific IPs, so it should be okay to
-# be included here.
+    # This private key is only useable from specific IPs, so it should be okay to
+    # be included here.
     - cp $API_PRIVATE_KEY ~/.ssh/id_ed25519
     - chmod 0600 ~/.ssh/id_ed25519
-# Remove any duplicate host key entries, if necessary
+    # Remove any duplicate host key entries, if necessary
     - if test -f ~/.ssh/known_hosts; then ssh-keygen -R $API_REINDEX_ENDPOINT; fi
-# Cache a verified host pubkey from file to avoid MITM attacks
+    # Cache a verified host pubkey from file to avoid MITM attacks
     - cat $API_ENDPOINT_PUBKEY >> ~/.ssh/known_hosts
   script:
     - export PATH="$PWD/doxygen-1.8.16/bin:$PATH"
@@ -200,11 +198,12 @@ linux:ubuntu22.04:build:
   extends: .ubuntu
   stage: build
   script:
-    - export GCC_COMPILER=1
-    # Build chrono
-    - cd contrib/build-scripts/
-    - chmod +x buildChrono.sh
-    - ./buildChrono.sh 
+    # Defining compiler variables
+    - export C_COMPILER="/usr/bin/gcc"
+    - export CXX_COMPILER="/usr/bin/g++"
+    # Building chrono
+    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR --preset=linuxci
+    # Making chrono
     - cd $CI_PROJECT_DIR/build
     - ninja -j 8
   artifacts:
@@ -300,7 +299,8 @@ linux:ubuntu2004:deploy-python3.10:
     name: uwsbel/almalinux_packages_image
   before_script:
     # Defining configuration variables
-    - export GCC_COMPILER=1
+    - export C_COMPILER="/usr/bin/gcc"
+    - export CXX_COMPILER="/usr/bin/g++"
     - export LIB_DIR="lib64"
     - export IOMP5_DIR="/opt/intel/oneapi/compiler/latest/linux/compiler/lib/intel64_lin/libiomp5.so"
     # Resuming build configuration
@@ -320,10 +320,9 @@ linux:almalinux:build:
   stage: build
   extends: .almalinux
   script:
-    # Build chrono
-    - cd contrib/build-scripts/
-    - chmod +x buildChrono.sh
-    - ./buildChrono.sh 
+    # Building chrono
+    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR --preset=linuxci
+    # Making chrono
     - cd $CI_PROJECT_DIR/build
     - ninja -j 8
   artifacts:
@@ -355,20 +354,18 @@ linux:almalinux:test:
   - echo $CI_PROJECT_DIR
   - git submodule init
   - git submodule update
-  - mkdir -Force -p Build/chrono
-  - mkdir -Force -p Install/chrono
+  - mkdir -Force -p build
+  - mkdir -Force -p install
   #- mkdir -Force build
 
 windows:vs2022:build:
   stage: build
   extends: .windows
   script:
-  #- cd $CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers
-  #- cmake ../ -G "Visual Studio 17 2022" -DCMAKE_BUILD_TYPE=Release .
-  #- MSBuild.exe FlatBuffers.sln -maxcpucount:8 -property:Configuration=Release
-  #- cmake -DMPIEXEC_EXECUTABLE="C:/Program Files/Microsoft MPI/Bin/mpiexec.exe" --preset=windowsci-vs2022 ..
-  - '& "C:\Users\builder\buildChrono.bat"'
-  - cd Build/chrono
+  # Configuring chrono
+  - cmake -B "$CI_PROJECT_DIR\build" -S "$CI_PROJECT_DIR" --preset=windowsci-vs2022
+  - cd build
+  # Building chrono
   - cmake --build . -j 8 --config Release
   artifacts:
     expire_in: 60m
@@ -380,7 +377,7 @@ windows:vs2022:test:
   needs: ["windows:vs2022:build"]
   extends: .windows
   script:
-  - cd Build/chrono
+  - cd build
   - ctest --extra-verbose --output-on-failure
   dependencies: ["windows:vs2022:build"]
 
@@ -388,16 +385,11 @@ windows:vs2019:build:
   stage: build
   extends: .windows
   script:
-  # Build flatbuffers
-  #- cd $CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers
-  #- cmake -G "Visual Studio 17 2022" -T v142 -DCMAKE_BUILD_TYPE=Release .
-  #- MSBuild.exe FlatBuffers.sln -maxcpucount:8 -property:Configuration=Release
-  - '& "C:\Users\builder\buildChrono.bat"'
-  - cd Build/chrono
+   # Configuring chrono
+  - cmake -B "$CI_PROJECT_DIR\build" -S "$CI_PROJECT_DIR" --preset=windowsci-vs2019
+  - cd build
+  # Building chrono
   - cmake --build . -j 8 --config Release
-  #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
-  #- '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
-  #- ninja -j 1
   artifacts:
     expire_in: 60m
     paths:
@@ -408,7 +400,7 @@ windows:vs2019:test:
   needs: ["windows:vs2019:build"]
   extends: .windows
   script:
-  - cd Build/chrono
+  - cd build
   - ctest --extra-verbose --output-on-failure
   dependencies: ["windows:vs2019:build"]
 
@@ -545,9 +537,11 @@ windows:vs2019:deploy-python3.10:
   stage: build
   extends: .macos-monterey
   script:
-  - ~/buildChronoMac.sh
+  # Configuring chrono
+  - cmake -G "Ninja Multi-Config" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR --preset=macosci
   - export CLANG_FORCE_COLOR_DIAGNOSTICS=1
   - cd build
+  # Building chrono
   - cmake --build . --config Release -j 7
   artifacts:
     expire_in: 60m
