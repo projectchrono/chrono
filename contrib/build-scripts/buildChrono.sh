@@ -9,25 +9,27 @@
 # project configuration scripts.
 # -----------------------------------------------------------------------------------------
 # 1. As needed, use the provided scripts to build and install various dependencies.
-# 2. Edit this script to specify the installation directories for the various dependencies.
-#    Dependencies for disabled Chrono modules should not be set (comment them out)
-# 3. As needed, modify the CMake generator (BUILDSYSTEM). We suggest using Ninja
+# 2. Copy this script in an arbitrary location, outside the Chrono source tree.
+# 3. Edit this script to specify the installation directories for the various dependencies.
+#    Dependencies for disabled Chrono modules are ignored.
+# 4. As needed, modify the CMake generator (BUILDSYSTEM). We suggest using Ninja
 #    (ninja-build.org/) and the "Ninja Multi-Config" CMake generator. Otherwise, you will
 #    need to explicitly set the CMAKE_BUILD_TYPE variable).
-# 3. Edit the CMake command to disable selected Chrono modules.
-# 4. Run the script (sh ./buildChrono.sh).
+# 5. Edit the CMake command to enable/disable Chrono modules.
+# 6. Run the script (sh ./buildChrono.sh).
 # -----------------------------------------------------------------------------------------
 
-SOURCE_DIR="$CI_PROJECT_DIR"
-BUILD_DIR="$CI_PROJECT_DIR/build/"
-INSTALL_DIR="$HOME/install/"
+SOURCE_DIR="$HOME/Source/chrono"
+BUILD_DIR="$HOME/Build/chrono"
+INSTALL_DIR="$HOME/Install/chrono"
 
 EIGEN3_INSTALL_DIR="$HOME/Packages/eigen-3.4.0"
 BLAZE_INSTALL_DIR="$HOME/Packages/blaze-3.8"
+THRUST_INSTALL_DIR="$HOME/Packages/thrust"
 CASCADE_INSTALL_DIR="$HOME/Packages/opencascade-7.4.0"
 SPECTRA_INSTALL_DIR="$HOME/Packages/spectra"
 
-CRG_INCLUDE_DIR="${HOME}/Packages/OpenCRG/include"
+CRG_INCLUDE_DIR="$HOME/Packages/OpenCRG/include"
 CRG_LIBRARY="$HOME/Packages/OpenCRG/lib/libOpenCRG.1.1.2.a"
 
 IRRLICHT_INSTALL_DIR="$HOME/Packages/irrlicht-1.8.5/include"
@@ -38,27 +40,15 @@ GL_INSTALL_DIR="$HOME/Packages/gl"
 OPTIX_INSTALL_DIR="$HOME/Packages/optix-7.5.0"
 FASTRTPS_INSTALL_DIR="$HOME/Packages/fastrtps-2.4.0"
 
-# Setting the compiler for arch builds with gcc (default), or clang compiler
-
-C_COMPILER="/usr/bin/gcc"
-CXX_COMPILER="/usr/bin/g++"
-
-if [ $GCC_COMPILER -eq 0 ]; then
-      C_COMPILER="/usr/bin/clang"
-      CXX_COMPILER="/usr/bin/clang++"
-fi
-
 SWIG_EXE="swig"
 
 # ------------------------------------------------------------------------
 
-BUILDSYSTEM="Ninja"
+BUILDSYSTEM="Ninja Multi-Config"
 
 # ------------------------------------------------------------------------
 
-cmake -G "${BUILDSYSTEM}" -B ${BUILD_DIR} -S ${SOURCE_DIR} \
-      -DCMAKE_C_COMPILER=${C_COMPILER} \
-      -DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
+cmake -G ${BUILDSYSTEM} -B ${BUILD_DIR} -S ${SOURCE_DIR} \
       -DCMAKE_INSTALL_PREFIX:PATH=%INSTALL_DIR% \
       -DENABLE_MODULE_IRRLICHT:BOOL=ON \
       -DENABLE_MODULE_VSG:BOOL=OFF \
@@ -82,8 +72,13 @@ cmake -G "${BUILDSYSTEM}" -B ${BUILD_DIR} -S ${SOURCE_DIR} \
       -DBUILD_BENCHMARKING:BOOL=ON \
       -DBUILD_TESTING:BOOL=ON \
       -DENABLE_OPENCRG:BOOL=ON \
+      -DUSE_CUDA_NVRTC:BOOL=OFF \
+      -DUSE_FAST_DDS:BOOL=ON \
       -DEIGEN3_INCLUDE_DIR:PATH=${EIGEN3_INSTALL_DIR} \
+      -DIRRLICHT_INSTALL_DIR:PATH=${IRRLICHT_INSTALL_DIR} \
+      -DIRRLICHT_LIBRARY:FILEPATH=${IRRLICHT_LIBRARY} \
       -DBLAZE_INSTALL_DIR:PATH=${BLAZE_INSTALL_DIR} \
+      -DTHRUST_INCLUDE_DIR:PATH=${THRUST_INSTALL_DIR} \
       -DOptiX_INSTALL_DIR:PATH=${OPTIX_INSTALL_DIR} \
       -Dfastrtps_INSTALL_DIR:PATH=${FASTRTPS_INSTALL_DIR} \
       -DGLEW_DIR=${GL_INSTALL_DIR}/${LIB_DIR}/cmake/glew \
@@ -98,15 +93,9 @@ cmake -G "${BUILDSYSTEM}" -B ${BUILD_DIR} -S ${SOURCE_DIR} \
       -DvsgImGui_DIR:PATH=${VSG_INSTALL_DIR}/${LIB_DIR}/cmake/vsgImGui \
       -DvsgXchange_DIR:PATH=${VSG_INSTALL_DIR}/${LIB_DIR}/cmake/vsgXchange \
       -DSWIG_EXECUTABLE:FILEPATH=${SWIG_EXE} \
-      -DUSE_CUDA_NVRTC:BOOL=OFF \
-      -DUSE_FAST_DDS:BOOL=ON \
       -DCMAKE_BUILD_TYPE="Release"
 
 # ------------------------------------------------------------------------
 
 # cmake --build ${BUILD_DIR} --config Release
 # cmake --build ${BUILD_DIR} --config Debug
-
-# cd ${BUILD_DIR}
-# ninja -j 4 -f build-Release.ninja
-# ninja -j 4 -f build-Debug.ninja

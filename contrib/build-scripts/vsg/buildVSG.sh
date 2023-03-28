@@ -117,12 +117,20 @@ fi
 
 echo -e "\n------------------------ Configure vsg\n"
 rm -rf build_vsg
+if [ ${BUILDDOCS} = ON ]
+then
+cmake  -G "${BUILDSYSTEM}" -B build_vsg -S ${VSG_SOURCE_DIR}  \
+      -DBUILD_SHARED_LIBS:BOOL=${BUILDSHARED} \
+      -DCMAKE_DEBUG_POSTFIX=_d \
+      -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd
+else    
 cmake  -G "${BUILDSYSTEM}" -B build_vsg -S ${VSG_SOURCE_DIR}  \
       -DBUILD_SHARED_LIBS:BOOL=${BUILDSHARED} \
       -DCMAKE_DEBUG_POSTFIX=_d \
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd \
       -DDOXYGEN_EXECUTABLE:FILEPATH=${DOXYGEN_EXE} \
       -DDOXYGEN_DOT_EXECUTABLE:FILEPATH=${DOT_EXE}
+fi      
 
 echo -e "\n------------------------ Build and install vsg\n"
 cmake --build build_vsg --config Release

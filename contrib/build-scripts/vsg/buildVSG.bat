@@ -97,12 +97,20 @@ if %BUILDDEBUG% EQU ON (
 rem --- vsg ----------------------------------------------------------------
 
 rmdir /S/Q build_vsg 2>null
+if %BUILDDOCS% EQU ON (
 cmake -B build_vsg -S %VSG_SOURCE_DIR%  ^
       -DBUILD_SHARED_LIBS:BOOL=%BUILDSHARED% ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd ^
       -DDOXYGEN_EXECUTABLE:FILEPATH=%DOXYGEN_EXE% ^
       -DDOXYGEN_DOT_EXECUTABLE:FILEPATH=%DOT_EXE%
+) else (
+cmake -B build_vsg -S %VSG_SOURCE_DIR%  ^
+      -DBUILD_SHARED_LIBS:BOOL=%BUILDSHARED% ^
+      -DCMAKE_DEBUG_POSTFIX=_d ^
+      -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd
+)    
+
 cmake --build build_vsg --config Release
 cmake --install build_vsg --config Release --prefix %VSG_INSTALL_DIR%
 if %BUILDDEBUG% EQU ON (

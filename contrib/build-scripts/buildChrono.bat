@@ -7,39 +7,42 @@
 @rem project configuration scripts.
 @rem -----------------------------------------------------------------------------------------
 @rem 1. As needed, use the provided scripts to build and install various dependencies.
-@rem 2. Edit this script to specify the installation directories for the various dependencies.
-@rem    Dependencies for disabled Chrono modules should not be set (comment them out).
-@rem 3. Edit the CMake command to disable selected Chrono modules.
-@rem 4. Run the script from a VS development console.
+@rem 2. Copy this script in an arbitrary location, outside the Chrono source tree.
+@rem 3. Edit the script to specify the installation directories for the various dependencies.
+@rem    Dependencies for disabled Chrono modules are ignored.
+@rem 4. As needed, modify the CMake generator (BUILDSYSTEM).
+@rem 5. Edit the CMake command to enable/disable Chrono modules.
+@rem 6. Run the script (./builChrono.bat).
 @rem -----------------------------------------------------------------------------------------
 
-set SOURCE_DIR="%CI_PROJECT_DIR%"
-set BUILD_DIR="%CI_PROJECT_DIR%\build\chrono"
-set INSTALL_DIR="%CI_PROJECT_DIR%\install\chrono"
+set SOURCE_DIR="C:/Source/chrono"
+set BUILD_DIR="C:/Build/chrono"
+set INSTALL_DIR="C:/Install/chrono"
 
-set EIGEN3_INSTALL_DIR="C:/Users/builder/Documents/Eigen3"
-set BLAZE_INSTALL_DIR="C:/Users/builder/Documents/blaze-3.8.1"
-set CASCADE_INSTALL_DIR="C:/OpenCASCADE-7.4.0-vc14-64/opencascade-7.4.0"
-set SPECTRA_INSTALL_DIR="C:/Users/builder/Documents/spectra"
+set EIGEN3_INSTALL_DIR="C:/Packages/eigen"
+set IRRLICHT_INSTALL_DIR="C:/Packages/irrlicht"
+set BLAZE_INSTALL_DIR="C:/Packages/blaze"
+set SPECTRA_INSTALL_DIR="C:/Packages/spectra"
+set CRG_INSTALL_DIR="C:/Packages/openCRG"
+set VSG_INSTALL_DIR="C:/Packages/vsg"
+set GL_INSTALL_DIR="C:/Packages/gl"
+set SWIG_INSTALL_DIR="C:/Packages/swigwin"
+set THRUST_INSTALL_DIR="C:/Users/udarn/Packages/thrust"
+
 set MATLAB_INSTALL_DIR="C:/Program Files/MATLAB/R2019a"
-set CRG_INSTALL_DIR="C:/Users/builder/Documents/OpenCRG"
-
-set IRRLICHT_INSTALL_DIR="C:/Users/builder/Documents/irrlicht-1.8.5"
-set VSG_INSTALL_DIR="C:/Users/builder/Documents/vsg_test"
-set GL_INSTALL_DIR="C:/Users/builder/Documents/gl"
-
+set CASCADE_INSTALL_DIR="C:/OpenCASCADE-7.4.0-vc14-64/opencascade-7.4.0"
 set OPTIX_INSTALL_DIR="C:/Program Files/NVIDIA Corporation/OptiX SDK 7.5.0"
 set FASTRTPS_INSTALL_DIR="C:/Program Files/eProsima/fastrtps 2.4.0"
+set PYTHON_EXECUTABLE_DIR="C:/Python39/python.exe"
 
-set PYTHON_EXECUTABLE_DIR="C:/Users/builder/miniconda3/python.exe"
-set SWIG_EXE="C:/Users/builder/Documents/swigwin-4.0.2/swig.exe"
+set BUILDSYSTEM="Visual Studio 17 2022"
 
 rem ------------------------------------------------------------------------
 
-cmake -B %BUILD_DIR% -S %SOURCE_DIR% ^
+cmake -G %BUILDSYSTEM% -B %BUILD_DIR% -S %SOURCE_DIR% ^
       -DCMAKE_INSTALL_PREFIX:PATH=%INSTALL_DIR% ^
       -DENABLE_MODULE_IRRLICHT:BOOL=ON ^
-      -DENABLE_MODULE_VSG:BOOL=OFF ^
+      -DENABLE_MODULE_VSG:BOOL=ON ^
       -DENABLE_MODULE_OPENGL:BOOL=ON ^
       -DENABLE_MODULE_VEHICLE:BOOL=ON ^
       -DENABLE_MODULE_POSTPROCESS:BOOL=ON ^
@@ -52,16 +55,19 @@ cmake -B %BUILD_DIR% -S %SOURCE_DIR% ^
       -DENABLE_MODULE_COSIMULATION:BOOL=ON ^
       -DENABLE_MODULE_SENSOR:BOOL=ON ^
       -DENABLE_MODULE_MODAL:BOOL=ON ^
-      -DENABLE_MODULE_MATLAB:BOOL=OFF ^
+      -DENABLE_MODULE_MATLAB:BOOL=ON ^
       -DENABLE_MODULE_CSHARP:BOOL=ON ^
       -DENABLE_MODULE_PYTHON:BOOL=ON ^
       -DENABLE_MODULE_SYNCHRONO:BOOL=ON ^
       -DBUILD_BENCHMARKING:BOOL=ON ^
       -DBUILD_TESTING:BOOL=ON ^
       -DENABLE_OPENCRG:BOOL=ON ^
+      -DUSE_CUDA_NVRTC:BOOL=OFF ^
+      -DUSE_FAST_DDS:BOOL=ON ^
       -DEIGEN3_INCLUDE_DIR:PATH=%EIGEN3_INSTALL_DIR% ^
       -DIRRLICHT_INSTALL_DIR:PATH=%IRRLICHT_INSTALL_DIR% ^
       -DBLAZE_INSTALL_DIR:PATH=%BLAZE_INSTALL_DIR% ^
+      -DTHRUST_INCLUDE_DIR:PATH=%THRUST_INSTALL_DIR% ^
       -DOptiX_INSTALL_DIR:PATH=%OPTIX_INSTALL_DIR% ^
       -Dfastrtps_INSTALL_DIR:PATH=%FASTRTPS_INSTALL_DIR% ^
       -DGLEW_DIR=%GL_INSTALL_DIR%/lib/cmake/glew ^
@@ -75,10 +81,7 @@ cmake -B %BUILD_DIR% -S %SOURCE_DIR% ^
       -Dvsg_DIR:PATH=%VSG_INSTALL_DIR%/lib/cmake/vsg ^
       -DvsgImGui_DIR:PATH=%VSG_INSTALL_DIR%/lib/cmake/vsgImGui ^
       -DvsgXchange_DIR:PATH=%VSG_INSTALL_DIR%%/lib/cmake/vsgXchange ^
-      -DSWIG_EXECUTABLE:FILEPATH=%SWIG_EXE% ^
-      -DUSE_CUDA_NVRTC:BOOL=OFF ^
-      -DUSE_FAST_DDS:BOOL=ON ^
-      -DCMAKE_PREFIX_PATH:PATH=%FASTRTPS_INSTALL_DIR%/cmake ^
+      -DSWIG_EXECUTABLE:FILEPATH=%SWIG_INSTALL_DIR%/swig.exe ^
       -DPYTHON_EXECUTABLE:PATH=%PYTHON_EXECUTABLE_DIR%
 
 rem ------------------------------------------------------------------------
