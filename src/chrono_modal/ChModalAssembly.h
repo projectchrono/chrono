@@ -484,6 +484,17 @@ public:
     virtual void ConstraintsFetch_react(double factor = 1) override;
     */
 
+
+    /// Get cumulative time for matrix assembly.
+    double GetTimeMatrixAssembly() const { return m_timer_matrix_assembly(); }
+
+    /// Get cumulative time for setup.
+    double GetTimeSetup() const { return m_timer_setup(); }
+
+    /// Get cumulative time for modal solver.
+    double GetTimeModalSolver() const { return m_timer_modal_solver_call(); }
+
+
     //
     // SERIALIZATION
     //
@@ -582,6 +593,11 @@ public:
     bool is_modal;
 
     bool internal_nodes_update;
+
+
+    mutable ChTimer m_timer_matrix_assembly;
+    mutable ChTimer m_timer_modal_solver_call;
+    mutable ChTimer m_timer_setup;
 
     friend class ChSystem;
     friend class ChSystemMulticore;
