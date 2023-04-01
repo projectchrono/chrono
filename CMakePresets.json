@@ -86,9 +86,10 @@
 				"vsgImGui_DIR": "$env{HOME}/Packages/vsg/$env{LIB_DIR}/cmake/vsgImGui",
 				"vsgXchange_DIR": "$env{HOME}/Packages/vsg/$env{LIB_DIR}/cmake/vsgXchange",
 				"SWIG_EXECUTABLE": "/usr/bin/swig",
-				"USE_CUDA_NVRTC": "OFF",
+				"USE_CUDA_NVRTC": "ON",
 				"USE_FAST_DDS": "ON",
-				"CMAKE_BUILD_TYPE": "Release"
+				"CMAKE_BUILD_TYPE": "Release",
+				"CUDA_ARCH_NAME": "All"
 			}
 		},
 		{
