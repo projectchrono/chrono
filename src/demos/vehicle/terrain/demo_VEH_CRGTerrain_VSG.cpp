@@ -330,7 +330,7 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     my_hmmwv.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     my_hmmwv.SetWheelVisualizationType(VisualizationType::NONE);
-    my_hmmwv.SetTireVisualizationType(VisualizationType::PRIMITIVES);
+    my_hmmwv.SetTireVisualizationType(VisualizationType::MESH);
 
     // --------------------
     // Create driver system

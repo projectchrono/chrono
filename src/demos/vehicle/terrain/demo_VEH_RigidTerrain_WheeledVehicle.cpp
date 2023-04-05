@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
     auto patch2_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     patch2_mat->SetFriction(0.9f);
     patch2_mat->SetRestitution(0.01f);
-    auto patch2 = terrain.AddPatch(patch1_mat, ChCoordsys<>(ChVector<>(16, 0, 0.15), QUNIT), 32, 30);
+    auto patch2 = terrain.AddPatch(patch1_mat, ChCoordsys<>(ChVector<>(16, 0, 0.08), QUNIT), 32, 30);
     patch2->SetColor(ChColor(1.0f, 0.5f, 0.5f));
     patch2->SetTexture(vehicle::GetDataFile("terrain/textures/concrete.jpg"), 20, 20);
 
