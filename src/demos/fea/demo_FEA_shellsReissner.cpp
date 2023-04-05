@@ -441,7 +441,7 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(0.0, 6.0, -10.0));
+    vis->AddCamera(ChVector<>(0.0, 6.0, -15.0));
     vis->AttachSystem(&sys);
 
     // Change solver to PardisoMKL

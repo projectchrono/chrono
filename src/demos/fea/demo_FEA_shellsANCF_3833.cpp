@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
     double time_step = 1e-3;
 
     ChSystemSMC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, -9.80665));
+    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
 
     GetLog() << "-----------------------------------------------------------------\n";
     GetLog() << " Higher order ANCF Shell Element demo with different constraints \n";

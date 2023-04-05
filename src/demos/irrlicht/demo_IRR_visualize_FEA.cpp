@@ -32,12 +32,6 @@
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
-//#include "chrono_matlab/ChMatlabEngine.h"
-//#include "chrono_matlab/ChSolverMatlab.h"
-
-// Remember to use the namespace 'chrono' because all classes
-// of Chrono::Engine belong to this namespace and its children...
-
 using namespace chrono;
 using namespace chrono::fea;
 using namespace chrono::irrlicht;
@@ -48,41 +42,30 @@ int main(int argc, char* argv[]) {
     // Create a Chrono::Engine physical system
     ChSystemSMC sys;
 
-    // Create a mesh, that is a container for groups
-    // of elements and their referenced nodes.
-    auto my_mesh = chrono_types::make_shared<ChMesh>();
+    // Create a mesh, that is a container for groups of elements and their referenced nodes.
+    auto mesh = chrono_types::make_shared<ChMesh>();
 
-    // Create a material, that must be assigned to each element,
-    // and set its parameters
-    auto mmaterial = chrono_types::make_shared<ChContinuumElastic>();
-    mmaterial->Set_E(0.01e9);  // rubber 0.01e9, steel 200e9
-    mmaterial->Set_v(0.3);
-    mmaterial->Set_RayleighDampingK(0.001);
-    mmaterial->Set_density(1000);
+    // Create a material, that must be assigned to each element and set its parameters
+    auto material = chrono_types::make_shared<ChContinuumElastic>();
+    material->Set_E(0.01e9);  // rubber 0.01e9, steel 200e9
+    material->Set_v(0.3);
+    material->Set_RayleighDampingK(0.001);
+    material->Set_density(1000);
 
-    //
-    // Add some TETAHEDRONS:
-    //
-
-    // Load a .node file and a .ele  file from disk, defining a complicate tetrahedron mesh.
-    // This is much easier than creating all nodes and elements via C++ programming.
-    // You can generate these files using the TetGen tool.
+    // Add some TETAHEDRONS from .nmode and .ele input files
     try {
-        ChMeshFileLoader::FromTetGenFile(my_mesh, GetChronoDataFile("fea/beam.node").c_str(),
-                                         GetChronoDataFile("fea/beam.ele").c_str(), mmaterial);
+        ChMeshFileLoader::FromTetGenFile(mesh, GetChronoDataFile("fea/beam.node").c_str(),
+                                         GetChronoDataFile("fea/beam.ele").c_str(), material);
     } catch (const ChException& myerr) {
         GetLog() << myerr.what();
         return 0;
     }
 
     // Apply a force to a node
-    auto mnodelast = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(my_mesh->GetNnodes() - 1));
-    mnodelast->SetForce(ChVector<>(50, 0, 50));
+    auto nodelast = std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(mesh->GetNnodes() - 1));
+    nodelast->SetForce(ChVector<>(50, 0, 50));
 
-    //
-    // Add some HEXAHEDRONS (isoparametric bricks):
-    //
-
+    // Add some HEXAHEDRONS (isoparametric bricks)
     ChVector<> hexpos(0, 0, 0);
     double sx = 0.1;
     double sz = 0.1;
@@ -103,18 +86,18 @@ int main(int argc, char* argv[]) {
             auto hnode2 = chrono_types::make_shared<ChNodeFEAxyz>(hexpos + hexrot * ChVector<>(0, hy, sz));
             auto hnode3 = chrono_types::make_shared<ChNodeFEAxyz>(hexpos + hexrot * ChVector<>(sx, hy, sz));
             auto hnode4 = chrono_types::make_shared<ChNodeFEAxyz>(hexpos + hexrot * ChVector<>(sx, hy, 0));
-            my_mesh->AddNode(hnode1);
-            my_mesh->AddNode(hnode2);
-            my_mesh->AddNode(hnode3);
-            my_mesh->AddNode(hnode4);
+            mesh->AddNode(hnode1);
+            mesh->AddNode(hnode2);
+            mesh->AddNode(hnode3);
+            mesh->AddNode(hnode4);
 
             if (ilayer > 0) {
                 auto helement1 = chrono_types::make_shared<ChElementHexaCorot_8>();
                 helement1->SetNodes(hnode1_lower, hnode2_lower, hnode3_lower, hnode4_lower, hnode1, hnode2, hnode3,
                                     hnode4);
-                helement1->SetMaterial(mmaterial);
+                helement1->SetMaterial(material);
 
-                my_mesh->AddElement(helement1);
+                mesh->AddElement(helement1);
             }
 
             hnode1_lower = hnode1;
@@ -130,79 +113,75 @@ int main(int argc, char* argv[]) {
         hnode4_lower->SetForce(hexrot * ChVector<>(500, 0, 0));
     }
 
-    //
-    // Final touches..
-    //
+    // Add the mesh to the system
+    sys.Add(mesh);
 
-    // Remember to add the mesh to the system!
-    sys.Add(my_mesh);
-
-    // Create also a truss
+    // Create a truss
     auto truss = chrono_types::make_shared<ChBody>();
     truss->SetBodyFixed(true);
     sys.Add(truss);
 
     // Create constraints between nodes and truss
-    // (for example, fix to ground all nodes which are near y=0
-    for (unsigned int inode = 0; inode < my_mesh->GetNnodes(); ++inode) {
-        if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(inode))) {
-            if (mnode->GetPos().y() < 0.01) {
+    // (for example, fix to ground all nodes which are near y=0)
+    for (unsigned int inode = 0; inode < mesh->GetNnodes(); ++inode) {
+        if (auto node = std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(inode))) {
+            if (node->GetPos().y() < 0.01) {
                 auto constraint = chrono_types::make_shared<ChLinkPointFrame>();
-                constraint->Initialize(mnode, truss);
+                constraint->Initialize(node, truss);
                 sys.Add(constraint);
 
-                // For example, attach small cube to show the constraint
-                auto mboxfloor = chrono_types::make_shared<ChBoxShape>();
-                mboxfloor->GetBoxGeometry().Size = ChVector<>(0.005);
-                constraint->AddVisualShape(mboxfloor);
+                // Attach small cube to show the constraint
+                auto box = chrono_types::make_shared<ChBoxShape>();
+                box->GetBoxGeometry().Size = ChVector<>(0.005);
+                constraint->AddVisualShape(box);
 
-                // Otherwise there is an easier method: just set the node as fixed (but
-                // in this way you do not get infos about reaction forces as with a constraint):
-                //
-                // mnode->SetFixed(true);
+                // Easier method: set the node as fixed (but this does not provide information about reaction forces)
+                ////node->SetFixed(true);
             }
         }
     }
 
     // Visualization of the FEM mesh.
-    // This will automatically update a triangle mesh (a ChTriangleMeshShape
-    // asset that is internally managed) by setting  proper
-    // coordinates and vertex colors as in the FEM elements.
-    // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
-    // postprocessor that can handle a colored ChTriangleMeshShape).
+    {
+        // Mesh visualization - speed
+        auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+        vis_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
+        vis_mesh->SetColorscaleMinMax(0.0, 5.50);
+        vis_mesh->SetShrinkElements(true, 0.85);
+        vis_mesh->SetSmoothFaces(true);
+        mesh->AddVisualShapeFEA(vis_mesh);
+    }
 
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
-    mvisualizemesh->SetShrinkElements(true, 0.85);
-    mvisualizemesh->SetSmoothFaces(true);
-    my_mesh->AddVisualShapeFEA(mvisualizemesh);
+    {
+        // Mesh visualization - reference configuration (wireframe)
+        auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+        vis_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
+        vis_mesh->SetWireframe(true);
+        vis_mesh->SetDrawInUndeformedReference(true);
+        mesh->AddVisualShapeFEA(vis_mesh);
+    }
 
-    auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
-    mvisualizemeshref->SetWireframe(true);
-    mvisualizemeshref->SetDrawInUndeformedReference(true);
-    my_mesh->AddVisualShapeFEA(mvisualizemeshref);
+    {
+        // Node visualization - positions
+        auto vis_nodes = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+        vis_nodes->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+        vis_nodes->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+        vis_nodes->SetSymbolsThickness(0.006);
+        mesh->AddVisualShapeFEA(vis_nodes);
+    }
 
-    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
-    mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
-    mvisualizemeshC->SetSymbolsThickness(0.006);
-    my_mesh->AddVisualShapeFEA(mvisualizemeshC);
+    // Create the visualization system
+    ChVisualSystemIrrlicht vis;
+    vis.SetWindowSize(800, 600);
+    vis.SetWindowTitle("Irrlicht FEM visualization");
+    vis.Initialize();
+    vis.AddLogo();
+    vis.AddSkyBox();
+    vis.AddTypicalLights();
+    vis.AddCamera(ChVector<>(0.0, 0.6, -1.0));
+    vis.AttachSystem(&sys);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("Irrlicht FEM visualization");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(0.0, 0.6, -1.0));
-    vis->AttachSystem(&sys);
-
-    // Simulation loop
-
+    // Solver settings
     sys.SetTimestepperType(chrono::ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
@@ -210,16 +189,15 @@ int main(int argc, char* argv[]) {
     solver->SetMaxIterations(40);
     solver->SetTolerance(1e-10);
     solver->EnableDiagonalPreconditioner(true);
-    solver->EnableWarmStart(true);  // IMPORTANT for convergence when using EULER_IMPLICIT_LINEARIZED
+    solver->EnableWarmStart(true);
     solver->SetVerbose(false);
 
-    while (vis->Run()) {
-        vis->BeginScene();
-        vis->Render();
-        vis->EndScene();
+    // Simulation loop
+    while (vis.Run()) {
+        vis.BeginScene();
+        vis.Render();
+        vis.EndScene();
         sys.DoStepDynamics(0.001);
-
-        //	GetLog() << " t =" << sys.GetChTime() << "  mnode3 pos.y()=" << mnode3->GetPos().y() << "  \n";
     }
 
     return 0;

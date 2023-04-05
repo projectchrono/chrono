@@ -43,27 +43,27 @@ int main(int argc, char* argv[]) {
     ChSystemSMC sys;
 
     // Create a mesh, a container for groups of elements and their referenced nodes
-    auto my_mesh = chrono_types::make_shared<ChMesh>();
+    auto mesh = chrono_types::make_shared<ChMesh>();
 
     // Create a material, assigned to each element, and set its parameters
-    auto mmaterial = chrono_types::make_shared<ChContinuumElastic>();
-    mmaterial->Set_E(0.01e9);
-    mmaterial->Set_v(0.3);
-    mmaterial->Set_RayleighDampingK(0.001);
-    mmaterial->Set_density(1000);
+    auto material = chrono_types::make_shared<ChContinuumElastic>();
+    material->Set_E(0.01e9);
+    material->Set_v(0.3);
+    material->Set_RayleighDampingK(0.001);
+    material->Set_density(1000);
 
     // Add some TETAHEDRONS from .nmode and .ele input files
     try {
-        ChMeshFileLoader::FromTetGenFile(my_mesh, GetChronoDataFile("fea/beam.node").c_str(),
-                                         GetChronoDataFile("fea/beam.ele").c_str(), mmaterial);
+        ChMeshFileLoader::FromTetGenFile(mesh, GetChronoDataFile("fea/beam.node").c_str(),
+                                         GetChronoDataFile("fea/beam.ele").c_str(), material);
     } catch (const ChException& myerr) {
         GetLog() << myerr.what();
         return 0;
     }
 
     // Apply a force to a node
-    auto mnodelast = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(my_mesh->GetNnodes() - 1));
-    mnodelast->SetForce(ChVector<>(50, 0, 50));
+    auto nodelast = std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(mesh->GetNnodes() - 1));
+    nodelast->SetForce(ChVector<>(50, 0, 50));
 
     // Add some HEXAHEDRONS (isoparametric bricks)
     ChVector<> hexpos(0, 0, 0);
@@ -86,18 +86,18 @@ int main(int argc, char* argv[]) {
             auto hnode2 = chrono_types::make_shared<ChNodeFEAxyz>(hexpos + hexrot * ChVector<>(0, hy, sz));
             auto hnode3 = chrono_types::make_shared<ChNodeFEAxyz>(hexpos + hexrot * ChVector<>(sx, hy, sz));
             auto hnode4 = chrono_types::make_shared<ChNodeFEAxyz>(hexpos + hexrot * ChVector<>(sx, hy, 0));
-            my_mesh->AddNode(hnode1);
-            my_mesh->AddNode(hnode2);
-            my_mesh->AddNode(hnode3);
-            my_mesh->AddNode(hnode4);
+            mesh->AddNode(hnode1);
+            mesh->AddNode(hnode2);
+            mesh->AddNode(hnode3);
+            mesh->AddNode(hnode4);
 
             if (ilayer > 0) {
                 auto helement1 = chrono_types::make_shared<ChElementHexaCorot_8>();
                 helement1->SetNodes(hnode1_lower, hnode2_lower, hnode3_lower, hnode4_lower, hnode1, hnode2, hnode3,
                                     hnode4);
-                helement1->SetMaterial(mmaterial);
+                helement1->SetMaterial(material);
 
-                my_mesh->AddElement(helement1);
+                mesh->AddElement(helement1);
             }
 
             hnode1_lower = hnode1;
@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Add the mesh to the system
-    sys.Add(my_mesh);
+    sys.Add(mesh);
 
     // Create a truss
     auto truss = chrono_types::make_shared<ChBody>();
@@ -122,52 +122,60 @@ int main(int argc, char* argv[]) {
     sys.Add(truss);
 
     // Create constraints between nodes and truss
-    // (for example, fix to ground all nodes which are near y=0
-    for (unsigned int inode = 0; inode < my_mesh->GetNnodes(); ++inode) {
-        if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(inode))) {
-            if (mnode->GetPos().y() < 0.01) {
+    // (for example, fix to ground all nodes which are near y=0)
+    for (unsigned int inode = 0; inode < mesh->GetNnodes(); ++inode) {
+        if (auto node = std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(inode))) {
+            if (node->GetPos().y() < 0.01) {
                 auto constraint = chrono_types::make_shared<ChLinkPointFrame>();
-                constraint->Initialize(mnode, truss);
+                constraint->Initialize(node, truss);
                 sys.Add(constraint);
 
-                // For example, attach small cube to show the constraint
-                auto mboxfloor = chrono_types::make_shared<ChBoxShape>();
-                mboxfloor->GetBoxGeometry().Size = ChVector<>(0.005);
-                constraint->AddVisualShape(mboxfloor);
+                // Attach small cube to show the constraint
+                auto box = chrono_types::make_shared<ChBoxShape>();
+                box->GetBoxGeometry().Size = ChVector<>(0.005);
+                constraint->AddVisualShape(box);
             }
         }
     }
 
     // Visualization of the FEM mesh.
-    // This will automatically update a triangle mesh (internally managed) by setting  proper coordinates and vertex colors
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
-    mvisualizemesh->SetShrinkElements(true, 0.85);
-    mvisualizemesh->SetSmoothFaces(true);
-    my_mesh->AddVisualShapeFEA(mvisualizemesh);
+    {
+        // Mesh visualization - speed
+        auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+        vis_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
+        vis_mesh->SetColorscaleMinMax(0.0, 5.50);
+        vis_mesh->SetShrinkElements(true, 0.85);
+        vis_mesh->SetSmoothFaces(true);
+        mesh->AddVisualShapeFEA(vis_mesh);
+    }
 
-    auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
-    mvisualizemeshref->SetWireframe(true);
-    mvisualizemeshref->SetDrawInUndeformedReference(true);
-    my_mesh->AddVisualShapeFEA(mvisualizemeshref);
+    {
+        // Mesh visualization - reference configuration (wireframe)
+        auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+        vis_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
+        vis_mesh->SetWireframe(true);
+        vis_mesh->SetDrawInUndeformedReference(true);
+        mesh->AddVisualShapeFEA(vis_mesh);
+    }
 
-    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
-    mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
-    mvisualizemeshC->SetSymbolsThickness(0.006);
-    my_mesh->AddVisualShapeFEA(mvisualizemeshC);
+    {
+        // Node visualization - positions
+        auto vis_nodes = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+        vis_nodes->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+        vis_nodes->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+        vis_nodes->SetSymbolsThickness(0.006);
+        mesh->AddVisualShapeFEA(vis_nodes);
+    }
 
     // Create the visualization system
     ChVisualSystemVSG vis;
+    vis.SetCameraVertical(CameraVerticalDir::Y);
     vis.AttachSystem(&sys);
     vis.SetWindowSize(800, 600);
     vis.SetWindowTitle("VSG FEA visualization");
     vis.SetUseSkyBox(true);
     vis.SetLightIntensity(1.0f);
     vis.SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
-    vis.SetCameraVertical(CameraVerticalDir::Y);
     vis.AddCamera(ChVector<>(0.0, 0.6, -2.0), ChVector<>(0, 0.4, 0));
     vis.Initialize();
 
