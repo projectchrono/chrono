@@ -639,8 +639,8 @@ bool RigidTerrain::FindPoint(const ChVector<> loc, double& height, ChVector<>& n
 
 bool RigidTerrain::BoxPatch::FindPoint(const ChVector<>& loc, double& height, ChVector<>& normal) const {
     // Ray definition (in global frame)
-    ChVector<> A = loc + (m_radius + 1000) * ChWorldFrame::Vertical();  // start point
-    ChVector<> v = -ChWorldFrame::Vertical();                           // direction (downward)
+    ChVector<> A = loc;                        // start point
+    ChVector<> v = -ChWorldFrame::Vertical();  // direction (downward)
 
     // Intersect ray with top plane
     double t = Vdot(m_location - A, m_normal) / Vdot(v, m_normal);
@@ -654,7 +654,7 @@ bool RigidTerrain::BoxPatch::FindPoint(const ChVector<>& loc, double& height, Ch
 }
 
 bool RigidTerrain::MeshPatch::FindPoint(const ChVector<>& loc, double& height, ChVector<>& normal) const {
-    ChVector<> from = loc + (m_radius + 1000) * ChWorldFrame::Vertical();
+    ChVector<> from = loc;
     ChVector<> to = loc - (m_radius + 1000) * ChWorldFrame::Vertical();
 
     collision::ChCollisionSystem::ChRayhitResult result;

@@ -47,7 +47,7 @@ using namespace chrono::vehicle::hmmwv;
 // #define USE_JSON
 
 // Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // =============================================================================
 
@@ -70,15 +70,16 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetInitPosition(ChCoordsys<>(ChVector<>(-10, 0, 1), ChQuaternion<>(1, 0, 0, 0)));
     my_hmmwv.SetPowertrainType(PowertrainModelType::SIMPLE);
     my_hmmwv.SetDriveType(DrivelineTypeWV::RWD);
+    my_hmmwv.SetBrakeType(BrakeType::SHAFTS);
     my_hmmwv.SetTireType(TireModelType::PAC02);
     my_hmmwv.SetTireStepSize(tire_step_size);
     my_hmmwv.Initialize();
 
-    my_hmmwv.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
+    my_hmmwv.SetChassisVisualizationType(VisualizationType::NONE);
     my_hmmwv.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     my_hmmwv.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
-    my_hmmwv.SetWheelVisualizationType(VisualizationType::NONE);
-    my_hmmwv.SetTireVisualizationType(VisualizationType::PRIMITIVES);
+    my_hmmwv.SetWheelVisualizationType(VisualizationType::MESH);
+    my_hmmwv.SetTireVisualizationType(VisualizationType::MESH);
 
 #ifdef USE_JSON
     // Create the terrain from JSON specification file
@@ -87,34 +88,44 @@ int main(int argc, char* argv[]) {
     // Create the terrain patches programatically
     RigidTerrain terrain(my_hmmwv.GetSystem());
 
-    auto patch1_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-    patch1_mat->SetFriction(0.9f);
-    patch1_mat->SetRestitution(0.01f);
-    auto patch1 = terrain.AddPatch(patch1_mat, ChCoordsys<>(ChVector<>(-16, 0, 0), QUNIT), 32, 20);
-    patch1->SetColor(ChColor(0.8f, 0.8f, 0.5f));
-    patch1->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 20, 20);
+    if (true) {
+        auto patch1_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        patch1_mat->SetFriction(0.9f);
+        patch1_mat->SetRestitution(0.01f);
+        auto patch1 = terrain.AddPatch(patch1_mat, ChCoordsys<>(ChVector<>(-16, 0, 0), QUNIT), 32, 20);
+        patch1->SetColor(ChColor(0.8f, 0.8f, 0.5f));
+        patch1->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 20, 20);
 
-    auto patch2_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-    patch2_mat->SetFriction(0.9f);
-    patch2_mat->SetRestitution(0.01f);
-    auto patch2 = terrain.AddPatch(patch1_mat, ChCoordsys<>(ChVector<>(16, 0, 0.08), QUNIT), 32, 30);
-    patch2->SetColor(ChColor(1.0f, 0.5f, 0.5f));
-    patch2->SetTexture(vehicle::GetDataFile("terrain/textures/concrete.jpg"), 20, 20);
+        auto patch2_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        patch2_mat->SetFriction(0.9f);
+        patch2_mat->SetRestitution(0.01f);
+        auto patch2 = terrain.AddPatch(patch1_mat, ChCoordsys<>(ChVector<>(16, 0, 0.08), QUNIT), 32, 20);
+        patch2->SetColor(ChColor(1.0f, 0.5f, 0.5f));
+        patch2->SetTexture(vehicle::GetDataFile("terrain/textures/concrete.jpg"), 20, 20);
 
-    auto patch3_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-    patch3_mat->SetFriction(0.9f);
-    patch3_mat->SetRestitution(0.01f);
-    auto patch3 = terrain.AddPatch(patch3_mat, ChCoordsys<>(ChVector<>(0, -42, 0), QUNIT),
-                                   vehicle::GetDataFile("terrain/meshes/bump.obj"));
-    patch3->SetColor(ChColor(0.5f, 0.5f, 0.8f));
-    patch3->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"), 6.0f, 6.0f);
+        auto patch3_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        patch3_mat->SetFriction(0.9f);
+        patch3_mat->SetRestitution(0.01f);
+        auto patch3 = terrain.AddPatch(patch3_mat, ChCoordsys<>(ChVector<>(0, -42, 0), QUNIT),
+                                       vehicle::GetDataFile("terrain/meshes/bump.obj"));
+        patch3->SetColor(ChColor(0.5f, 0.5f, 0.8f));
+        patch3->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"), 6.0f, 6.0f);
 
-    auto patch4_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-    patch4_mat->SetFriction(0.9f);
-    patch4_mat->SetRestitution(0.01f);
-    auto patch4 = terrain.AddPatch(patch4_mat, ChCoordsys<>(ChVector<>(0, 42, 0), QUNIT),
-                                   vehicle::GetDataFile("terrain/height_maps/bump64.bmp"), 64.0, 64.0, 0.0, 3.0);
-    patch4->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 6.0f, 6.0f);
+        auto patch4_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        patch4_mat->SetFriction(0.9f);
+        patch4_mat->SetRestitution(0.01f);
+        auto patch4 = terrain.AddPatch(patch4_mat, ChCoordsys<>(ChVector<>(0, 42, 0), QUNIT),
+                                       vehicle::GetDataFile("terrain/height_maps/bump64.bmp"), 64.0, 64.0, 0.0, 3.0);
+        patch4->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 6.0f, 6.0f);
+    }
+
+    if (false) {
+        auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        patch_mat->SetFriction(0.9f);
+        patch_mat->SetRestitution(0.01f);
+        auto patch = terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector<>(0, 0, 10), QUNIT),
+                                      vehicle::GetDataFile("terrain/multilayer/multilayer-terrain.obj"));
+    }
 
     terrain.Initialize();
 #endif
@@ -129,13 +140,22 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<ChVehicleVisualSystem> vis;
     std::shared_ptr<ChDriver> driver;
 
+#ifndef CHRONO_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::IRRLICHT)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
+
     switch (vis_type) {
         case ChVisualSystem::Type::IRRLICHT: {
 #ifdef CHRONO_IRRLICHT
             // Create the vehicle Irrlicht interface
             auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
             vis_irr->SetWindowTitle("Rigid Terrain Demo");
-            vis_irr->SetChaseCamera(ChVector<>(0.0, 0.0, .75), 6.0, 0.5);
+            vis_irr->SetChaseCamera(ChVector<>(0.0, 0.0, .75), 6.0, 0.75);
             vis_irr->Initialize();
             vis_irr->AddLightDirectional();
             vis_irr->AddSkyBox();
@@ -160,7 +180,8 @@ int main(int argc, char* argv[]) {
             // Create the vehicle VSG interface
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("Rigid Terrain Demo");
-            vis_vsg->SetChaseCamera(ChVector<>(0.0, 0.0, .75), 6.0, 0.5);
+            vis_vsg->SetWindowSize(ChVector2<int>(1200, 800));
+            vis_vsg->SetChaseCamera(ChVector<>(0.0, 0.0, .75), 8.0, 0.75);
             vis_vsg->AttachVehicle(&my_hmmwv.GetVehicle());
             vis_vsg->Initialize();
 
