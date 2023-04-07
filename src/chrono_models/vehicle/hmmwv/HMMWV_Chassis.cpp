@@ -41,8 +41,10 @@ const ChCoordsys<> HMMWV_Chassis::m_driverCsys(ChVector<>(0.87, 0.7, 1.05), ChQu
 // -----------------------------------------------------------------------------
 HMMWV_Chassis::HMMWV_Chassis(const std::string& name, bool fixed, CollisionType chassis_collision_type)
     : ChRigidChassis(name, fixed) {
-    // In this model, we use a single material with default properties.
+    // In this model, we use a single contact material.
     ChContactMaterialData minfo;
+    minfo.mu = 1.0f;
+    minfo.cr = 0.5f;
     m_geometry.m_materials.push_back(minfo);
 
     m_body_inertia(0, 0) = m_body_inertiaXX.x();
