@@ -54,7 +54,7 @@ void ChRigidTire::Initialize(std::shared_ptr<ChWheel> wheel) {
 
     wheel_body->GetCollisionModel()->ClearModel();
 
-    wheel_body->GetCollisionModel()->SetFamily(WheeledCollisionFamily::TIRES);
+    wheel_body->GetCollisionModel()->SetFamily(WheeledCollisionFamily::TIRE);
 
     if (m_use_contact_mesh) {
         // Mesh contact

@@ -58,16 +58,17 @@ class CH_VEHICLE_API ChRigidChassis : public ChChassis {
     /// An empty string is returned if no mesh was specified.
     const std::string& GetMeshFilename() const { return m_geometry.m_vis_mesh_file; }
 
-    /// Enable/disable contact for the chassis. This function controls contact of
-    /// the chassis with all other collision shapes in the simulation.
-    virtual void SetCollide(bool state) override { m_body->SetCollide(state); }
-
     /// Initialize the chassis at the specified global position and orientation.
     virtual void Initialize(ChSystem* system,                ///< [in] containing system
                             const ChCoordsys<>& chassisPos,  ///< [in] absolute chassis position
                             double chassisFwdVel,            ///< [in] initial chassis forward velocity
                             int collision_family = 0         ///< [in] chassis collision family
                             ) override;
+
+    /// Enable/disable contact for the chassis.
+    /// This function controls contact of the chassis with all other collision shapes in the simulation. Must be called
+    /// after initialization and has effect only if the derived object has defined some collision shapes.
+    virtual void SetCollide(bool state) override { m_body->SetCollide(state); }
 
     /// Add visualization assets to this subsystem, for the specified visualization mode.
     virtual void AddVisualizationAssets(VisualizationType vis) override;

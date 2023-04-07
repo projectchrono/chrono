@@ -485,7 +485,8 @@ namespace WheeledCollisionFamily {
 // Note: we cannot use strongly typed enums, since these are passed as integers
 enum Enum {
     CHASSIS = 0,  ///< chassis collision family
-    TIRES = 1     ///< collision family for tire systems
+    TIRE = 1,     ///< collision family for tire systems
+    WHEEL = 2     ///< collision family for wheel systems
 };
 }  // namespace WheeledCollisionFamily
 

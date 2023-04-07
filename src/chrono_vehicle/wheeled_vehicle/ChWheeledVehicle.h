@@ -152,8 +152,12 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// This function should be called only after vehicle and tire initialization.
     void SetTireVisualizationType(VisualizationType vis);
 
+    /// Enable/disable collision for the wheel subsystems.
+    /// This function controls contact of the wheels with all other collision shapes in the simulation.
+    void SetWheelCollide(bool state);
+
     /// Enable/disable collision between the chassis and all other vehicle subsystems.
-    /// This only controls collisions between the chassis and the tire systems.
+    /// This only controls collisions between the chassis and the wheel/tire systems.
     virtual void SetChassisVehicleCollide(bool state) override;
 
     /// Enable/disable output from the suspension subsystems.
