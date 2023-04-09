@@ -22,7 +22,7 @@
 //
 // =============================================================================
 
-#include "chrono/utils/ChParserAdams.h"
+#include "chrono_parsers/ChParserAdams.h"
 
 #include "chrono/core/ChFrame.h"
 
@@ -43,7 +43,7 @@
 #include <utility>
 
 namespace chrono {
-namespace utils {
+namespace parsers {
 
 void ChParserAdams::Report::Print() const {
     std::cout << "Parsed " << bodies.size() << " bodies:\n";
@@ -665,5 +665,5 @@ ChSystem* ChParserAdams::Parse(const std::string& filename, ChContactMethod cont
     return sys;
 }
 
-}  // end namespace utils
+}  // end namespace parsers
 }  // end namespace chrono

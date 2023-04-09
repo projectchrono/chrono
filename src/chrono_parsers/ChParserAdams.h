@@ -12,7 +12,7 @@
 // Authors: Conlain Kelly
 // =============================================================================
 //
-// Parser utility class for ADMAS .adm input files.
+// Parser utility class for ADAMS .adm input files.
 //
 // =============================================================================
 
@@ -23,7 +23,7 @@
 #include <map>
 #include <sstream>
 
-#include "chrono/core/ChApiCE.h"
+#include "chrono_parsers/ChApiParsers.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChSystem.h"
 
@@ -53,14 +53,13 @@ enum TokenType {
 };
 
 namespace chrono {
+namespace parsers {
 
-namespace utils {
-
-/// @addtogroup chrono_utils
+/// @addtogroup parsers_module
 /// @{
 
 /// ADAMS input file parser
-class ChApi ChParserAdams {
+class ChApiParsers ChParserAdams {
   public:
     // Use the vis assets loaded from ADAMS or not
     // could also be modified to add a different visualization technique
@@ -70,7 +69,7 @@ class ChApi ChParserAdams {
     ~ChParserAdams() {}
 
     /// Report containing information about objects parsed from file
-    class ChApi Report {
+    class ChApiParsers Report {
       public:
         /// Information about a joint read in from ADAMS.
         struct JointInfo {
@@ -168,11 +167,11 @@ class ChApi ChParserAdams {
 };
 
 // Capture yylex for our use
-#define YY_DECL int chrono::utils::ChParserAdams::yylex()
+#define YY_DECL int chrono::parsers::ChParserAdams::yylex()
 
-/// @} chrono_utils
+/// @} parsers_module
 
-}  // end namespace utils
+}  // end namespace parsers
 }  // end namespace chrono
 
 #endif

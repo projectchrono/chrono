@@ -47,6 +47,12 @@ if(ENABLE_MODULE_IRRLICHT OR ENABLE_MODULE_VSG)
 	if(BUILD_DEMOS_MBS)
 	  add_subdirectory(mbs)
 	endif()
+
+	option(BUILD_DEMOS_PARSERS "Build demo programs for Parsers module" TRUE)
+	mark_as_advanced(FORCE BUILD_DEMOS_PARSERS)
+	if(BUILD_DEMOS_PARSERS)
+	  add_subdirectory(parsers)
+	endif()	
 endif()
 
 option(BUILD_DEMOS_FEA "Build demo programs for FEA" TRUE)

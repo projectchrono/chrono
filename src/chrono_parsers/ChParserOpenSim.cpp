@@ -21,7 +21,7 @@
 //
 // =============================================================================
 
-#include "chrono/utils/ChParserOpenSim.h"
+#include "chrono_parsers/ChParserOpenSim.h"
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/filesystem/resolver.h"
 #include "chrono_thirdparty/rapidxml/rapidxml_print.hpp"
@@ -45,7 +45,7 @@ using namespace filesystem;
 using namespace rapidxml;
 
 namespace chrono {
-namespace utils {
+namespace parsers {
 
 using std::cout;
 using std::endl;
@@ -849,5 +849,5 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
     }
 }
 
-}  // end namespace utils
+}  // end namespace parsers
 }  // end namespace chrono

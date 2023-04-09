@@ -1267,9 +1267,6 @@ set(ChronoEngine_utils_SOURCES
     utils/ChProfiler.cpp
     utils/ChFilters.cpp
     utils/ChCompositeInertia.cpp
-    utils/ChParserOpenSim.cpp
-    utils/ChParserAdams.cpp
-    utils/ChAdamsTokenizer.yy.cpp
     utils/ChConvexHull.cpp
     utils/ChSocket.cpp
     )
@@ -1286,8 +1283,6 @@ set(ChronoEngine_utils_HEADERS
     utils/ChProfiler.h
     utils/ChFilters.h
     utils/ChCompositeInertia.h
-    utils/ChParserOpenSim.h
-    utils/ChParserAdams.h
     utils/ChConvexHull.h
     utils/ChSocket.h
 )

@@ -1,64 +1,17 @@
 #--------------------------------------------------------------
-# List of all MBS demos
+# List of all Parsers demos
 
 # Add demos that can work with either Irrlicht or VSG,
 # or no run-time visualization
 set(DEMOS
-  demo_MBS_aux_ref
-  demo_MBS_ballSMC
-  demo_MBS_bricks
-  demo_MBS_callbackNSC
-  demo_MBS_callbackSMC
-  demo_MBS_collisionNSC
-  demo_MBS_collisionSMC
-  demo_MBS_earthquake
-  demo_MBS_friction
-  demo_MBS_spring
 )
 
 # Add demos that can only work with Irrlicht
 if(ENABLE_MODULE_IRRLICHT)
     set(DEMOS ${DEMOS}
-      demo_MBS_cohesion
-      demo_MBS_conveyor
-      demo_MBS_feeder
-      demo_MBS_crank
-      demo_MBS_forklift
-      demo_MBS_fourbar
-      demo_MBS_gears
-      demo_MBS_mecanum
-      demo_MBS_pendulum
-      demo_MBS_sph
-      demo_MBS_suspension
-      demo_MBS_tire
-      demo_MBS_tracks
-      demo_MBS_convergence
-      demo_MBS_soilbin
-      demo_MBS_collision_trimesh
-      demo_MBS_collision_2d
-      demo_MBS_emitter
-      demo_MBS_emit_cluster
-      demo_MBS_emit_processor
-      demo_MBS_rev_sph
-      demo_MBS_rev_trans
-      demo_MBS_rev_limits
-      demo_MBS_rot_spring
-      demo_MBS_ujoint
-      demo_MBS_plane_plane
-      demo_MBS_link_bushing
-      demo_MBS_prismatic_limits
-      demo_MBS_prismatic_force
-      demo_MBS_motors
-      demo_MBS_report_collisions
-      demo_MBS_imposed_motion
-      demo_MBS_custom_contact
+      demo_PARSER_OpenSim
+      demo_PARSER_Adams
     )
-
-    if(THRUST_FOUND)
-      set(DEMOS ${DEMOS}
-        demo_MBS_collision_object
-      )
-    endif()
 endif()
 
 #--------------------------------------------------------------
@@ -71,6 +24,7 @@ include_directories(${CH_INCLUDES})
 set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
 set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
 list(APPEND LIBS "ChronoEngine")
+list(APPEND LIBS "ChronoEngine_parsers")
 
 if(ENABLE_MODULE_IRRLICHT)
   include_directories(${CH_IRRLICHT_INCLUDES})
@@ -95,7 +49,7 @@ endif()
 
 # Add executables
 
-message(STATUS "Demo programs for MBS module...")
+message(STATUS "Demo programs for Parsers module...")
 
 foreach(PROGRAM ${DEMOS})
   message(STATUS "...add ${PROGRAM}")

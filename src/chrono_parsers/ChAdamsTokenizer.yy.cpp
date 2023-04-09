@@ -1,5 +1,5 @@
 #line 1 "ChAdamsTokenizer.yy.cpp"
-#include "chrono/utils/ChParserAdams.h"
+#include "chrono_parsers/ChParserAdams.h"
 
 #line 4 "ChAdamsTokenizer.yy.cpp"
 
@@ -1928,7 +1928,7 @@ void yyfree (void * ptr )
 #line 78 "AdamsTokenizer.lex"
 
 namespace chrono {
-namespace utils {
+namespace parsers {
 
 // Opens the relevant file and calls yylex(), defined in ChAdamsTokenizer.yy.cpp
 // Tokenizes the file into the member tokens vector.

@@ -24,7 +24,7 @@
 %option never-interactive
 
 %top{
-#include "chrono/utils/ChParserAdams.h"
+#include "chrono_parsers/ChParserAdams.h"
 }
 
 whitespace	[ \t]+
@@ -77,7 +77,7 @@ output		OUTPUT\/
 
 %%
 namespace chrono {
-namespace utils {
+namespace parsers {
 
 // Opens the relevant file and calls yylex(), defined in ChAdamsTokenizer.yy.cpp
 // Tokenizes the file into the member tokens vector.
