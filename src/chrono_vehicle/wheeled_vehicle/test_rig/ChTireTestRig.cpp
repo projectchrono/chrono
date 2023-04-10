@@ -533,5 +533,9 @@ TerrainForce ChTireTestRig::ReportTireForce() const {
 
 // -----------------------------------------------------------------------------
 
+double ChTireTestRig::GetDBP() const {
+    return -m_lin_motor->GetMotorForce();
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono
