@@ -14,12 +14,15 @@ if(ENABLE_MODULE_IRRLICHT)
     )
 endif()
 
+if(HAVE_URDF)
+    set(DEMOS ${DEMOS}
+      demo_PARSER_URDF
+    )
+endif()
+
 #--------------------------------------------------------------
 
 # Set include paths, compiler & linker flags, and libraries
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-
 include_directories(${CH_INCLUDES})
 set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
 set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
