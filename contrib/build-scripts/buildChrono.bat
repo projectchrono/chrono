@@ -19,15 +19,22 @@ set SOURCE_DIR="C:/Source/chrono"
 set BUILD_DIR="C:/Build/chrono"
 set INSTALL_DIR="C:/Install/chrono"
 
+@rem -------------------------------------------
+
 set EIGEN3_INSTALL_DIR="C:/Packages/eigen"
-set IRRLICHT_INSTALL_DIR="C:/Packages/irrlicht"
+
 set BLAZE_INSTALL_DIR="C:/Packages/blaze"
 set SPECTRA_INSTALL_DIR="C:/Packages/spectra"
 set CRG_INSTALL_DIR="C:/Packages/openCRG"
+
+set SWIG_INSTALL_DIR="C:/Packages/swigwin"
+set THRUST_INSTALL_DIR="C:/Packages/thrust"
+
+set IRRLICHT_INSTALL_DIR="C:/Packages/irrlicht"
 set VSG_INSTALL_DIR="C:/Packages/vsg"
 set GL_INSTALL_DIR="C:/Packages/gl"
-set SWIG_INSTALL_DIR="C:/Packages/swigwin"
-set THRUST_INSTALL_DIR="C:/Users/udarn/Packages/thrust"
+
+set URDF_INSTALL_DIR="C:/Packages/urdf"
 
 set MATLAB_INSTALL_DIR="C:/Program Files/MATLAB/R2019a"
 set CASCADE_INSTALL_DIR="C:/OpenCASCADE-7.4.0-vc14-64/opencascade-7.4.0"
@@ -35,12 +42,15 @@ set OPTIX_INSTALL_DIR="C:/Program Files/NVIDIA Corporation/OptiX SDK 7.5.0"
 set FASTRTPS_INSTALL_DIR="C:/Program Files/eProsima/fastrtps 2.4.0"
 set PYTHON_EXECUTABLE_DIR="C:/Python39/python.exe"
 
+@rem -------------------------------------------
+
 set BUILDSYSTEM="Visual Studio 17 2022"
 
 rem ------------------------------------------------------------------------
 
 cmake -G %BUILDSYSTEM% -B %BUILD_DIR% -S %SOURCE_DIR% ^
       -DCMAKE_INSTALL_PREFIX:PATH=%INSTALL_DIR% ^
+      -DENABLE_MODULE_PARSERS:BOOL=ON ^
       -DENABLE_MODULE_IRRLICHT:BOOL=ON ^
       -DENABLE_MODULE_VSG:BOOL=ON ^
       -DENABLE_MODULE_OPENGL:BOOL=ON ^
@@ -81,6 +91,9 @@ cmake -G %BUILDSYSTEM% -B %BUILD_DIR% -S %SOURCE_DIR% ^
       -Dvsg_DIR:PATH=%VSG_INSTALL_DIR%/lib/cmake/vsg ^
       -DvsgImGui_DIR:PATH=%VSG_INSTALL_DIR%/lib/cmake/vsgImGui ^
       -DvsgXchange_DIR:PATH=%VSG_INSTALL_DIR%%/lib/cmake/vsgXchange ^
+      -Durdfdom_DIR:PATH=%URDF_INSTALL_DIR%/CMake ^
+      -Durdfdom_headers_DIR:PATH=%URDF_INSTALL_DIR%/CMake ^
+      -Dconsole_bridge_DIR:PATH=%URDF_INSTALL_DIR%/CMake ^
       -DSWIG_EXECUTABLE:FILEPATH=%SWIG_INSTALL_DIR%/swig.exe ^
       -DPYTHON_EXECUTABLE:PATH=%PYTHON_EXECUTABLE_DIR%
 
