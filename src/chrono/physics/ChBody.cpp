@@ -1095,7 +1095,7 @@ void ChBody::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(forcelist, "forces");
 
     marchive << CHNVP(body_id);
-    marchive << CHNVP(collision_model);
+    //marchive << CHNVP(collision_model);
     marchive << CHNVP(gyro);
     marchive << CHNVP(Xforce);
     marchive << CHNVP(Xtorque);
@@ -1153,8 +1153,8 @@ void ChBody::ArchiveIN(ChArchiveIn& marchive) {
     }
 
     marchive >> CHNVP(body_id);
-    marchive >> CHNVP(collision_model);
-    collision_model->SetContactable(this);
+    //marchive >> CHNVP(collision_model);
+    //collision_model->SetContactable(this);
     marchive >> CHNVP(gyro);
     marchive >> CHNVP(Xforce);
     marchive >> CHNVP(Xtorque);
