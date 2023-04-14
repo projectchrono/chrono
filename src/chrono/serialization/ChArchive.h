@@ -220,9 +220,13 @@ private:
         }
         template <class Tc=TClass>
         typename enable_if< !std::is_default_constructible<Tc>::value, void >::type
-        _constructor(ChArchiveIn& marchive, const char* classname) {
-            throw (ChExceptionArchive( "Cannot call CallConstructor() for an object without default constructor.")); 
+        _constructor_default(const char* classname) {
+            if (ChClassFactory::IsClassRegistered(std::string(classname)))
+                ChClassFactory::create(std::string(classname), pt2Object);
+            else
+                throw (ChExceptionArchive( "Cannot call CallConstructorDefault(). Class " + std::string(classname) + " not registered, and is without default constructor.")); 
         }
+
 
         private:
         template <class Tc=TClass>
