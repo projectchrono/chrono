@@ -81,7 +81,7 @@ The Eigen directory field should be correctly filled in already, assuming the Ei
       - Enable the recommended optional modules: at least tick `ENABLE_MODULE_IRRLICHT` and `ENABLE_MODULE_POSTPROCESS`.<br>
      Other modules might require additional settings and dependencies.
       -  Enter `c` to **Configure** and continue to the next screen.
-      - Verify the path to the Irrlicht root directory and the Irrlicht library are automatically filled in the `IRRLICHT_ROOT` and `IRRLICHT_LIBRARY` fields respectively. If this is not the case, update to match the example below.
+      - Verify the path to the Irrlicht include directory and the Irrlicht library are automatically filled in the `IRRLICHT_INCLUDE_DIR` and `IRRLICHT_LIBRARY` fields respectively. If this is not the case, update to match the example below.
 
 <img src="http://www.projectchrono.org/assets/Images/install_ccmake_2.png" class="img-responsive" width="400">
 

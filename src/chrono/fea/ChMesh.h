@@ -52,8 +52,8 @@ class ChApi ChMesh : public ChIndexedNodes {
     bool automatic_gravity_load;
     int num_points_gravity;
 
-    ChTimer<> timer_internal_forces;
-    ChTimer<> timer_KRMload;
+    ChTimer timer_internal_forces;
+    ChTimer timer_KRMload;
     int ncalls_internal_forces;
     int ncalls_KRMload;
 

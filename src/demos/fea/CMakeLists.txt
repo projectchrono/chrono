@@ -11,7 +11,6 @@ if(ENABLE_MODULE_IRRLICHT)
 set(FEA_DEMOS ${FEA_DEMOS}
     demo_FEA_thermal
     demo_FEA_electrostatics
-    demo_FEA_visualize
     demo_FEA_contacts_SMC
     demo_FEA_cables
     demo_FEA_shellsANCF_3423
@@ -84,7 +83,7 @@ set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
 list(APPEND LIBS "ChronoEngine")
 
 if(ENABLE_MODULE_IRRLICHT)
-  include_directories(${CH_IRRLICHTINC})
+  include_directories(${CH_IRRLICHT_INCLUDES})
   set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
   list(APPEND LIBS "ChronoEngine_irrlicht")
 endif()

@@ -11,9 +11,9 @@ endif()
 # List all demos
 
 set(DEMOS
-    demo_VEH_HMMWV_Multicore
-    demo_VEH_M113_Multicore
-    demo_VEH_TireTestRig_Multicore
+    demo_VEH_Multicore_HMMWV
+    demo_VEH_Multicore_M113
+    demo_VEH_Multicore_TireTestRig
 )
 
 #--------------------------------------------------------------

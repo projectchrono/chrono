@@ -72,10 +72,10 @@ void RotationalDamperSuspension::Create(const rapidjson::Document& d) {
 
     if (d["Torsional Spring"].HasMember("Spring Constant")) {
         m_spring_torqueCB = chrono_types::make_shared<LinearSpringTorque>(
-            d["Torsional Spring"]["Spring Constant"].GetDouble(), m_spring_rest_angle, preload);
+            d["Torsional Spring"]["Spring Constant"].GetDouble(), preload);
     } else {
         int num_points = d["Torsional Spring"]["Curve Data"].Size();
-        auto springTorqueCB = chrono_types::make_shared<NonlinearSpringTorque>(m_spring_rest_angle, preload);
+        auto springTorqueCB = chrono_types::make_shared<NonlinearSpringTorque>(preload);
         for (int i = 0; i < num_points; i++) {
             springTorqueCB->add_pointK(d["Torsional Spring"]["Curve Data"][i][0u].GetDouble(),
                                        d["Torsional Spring"]["Curve Data"][i][1u].GetDouble());

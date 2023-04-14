@@ -270,24 +270,24 @@ void ChTranslationalDamperSuspension::ExportComponentList(rapidjson::Document& j
 
     std::vector<std::shared_ptr<ChBody>> bodies;
     bodies.push_back(m_arm);
-    ChPart::ExportBodyList(jsonDocument, bodies);
+    ExportBodyList(jsonDocument, bodies);
 
     std::vector<std::shared_ptr<ChLink>> joints;
     std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
     m_joint->IsKinematic() ? joints.push_back(m_joint->GetAsLink()) : bushings.push_back(m_joint->GetAsBushing());
-    ChPart::ExportJointList(jsonDocument, joints);
-    ChPart::ExportBodyLoadList(jsonDocument, bushings);
+    ExportJointList(jsonDocument, joints);
+    ExportBodyLoadList(jsonDocument, bushings);
 
     std::vector<std::shared_ptr<ChLinkRSDA>> rot_springs;
     rot_springs.push_back(m_spring);
     if (m_damper)
         rot_springs.push_back(m_damper);
-    ChPart::ExportRotSpringList(jsonDocument, rot_springs);
+    ExportRotSpringList(jsonDocument, rot_springs);
 
     if (m_has_shock) {
         std::vector<std::shared_ptr<ChLinkTSDA>> lin_springs;
         lin_springs.push_back(m_shock);
-        ChPart::ExportLinSpringList(jsonDocument, lin_springs);
+        ExportLinSpringList(jsonDocument, lin_springs);
     }
 }
 

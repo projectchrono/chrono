@@ -6,6 +6,7 @@ set(DEMOS
   demo_IRR_assets
   demo_IRR_paths
   demo_IRR_visualize_collision
+  demo_IRR_visualize_FEA
 )
 
 if(THRUST_FOUND)
@@ -17,7 +18,7 @@ endif()
 #--------------------------------------------------------------
 # Additional include paths
 
-include_directories( ${CH_IRRLICHTINC} )
+include_directories( ${CH_IRRLICHT_INCLUDES} )
 
 #--------------------------------------------------------------
 

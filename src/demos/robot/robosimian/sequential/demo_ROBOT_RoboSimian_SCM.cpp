@@ -26,7 +26,7 @@
 #include "chrono_models/robot/robosimian/RoboSimian.h"
 #include "chrono_models/robot/robosimian/RoboSimianVisualSystemIrrlicht.h"
 
-#include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
+#include "chrono_vehicle/terrain/SCMTerrain.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
@@ -103,7 +103,7 @@ class DBPcontroller : public robosimian::RS_Driver::PhaseChangeCallback {
     double m_avg_speed;   // average speed over last segment
 
     utils::CSV_writer* m_csv;
-    ChTimer<> m_timer;
+    ChTimer m_timer;
 };
 
 DBPcontroller::DBPcontroller(robosimian::RoboSimian* robot)
@@ -171,7 +171,7 @@ void DBPcontroller::OnPhaseChange(robosimian::RS_Driver::Phase old_phase, robosi
 
 // =============================================================================
 
-std::shared_ptr<vehicle::SCMDeformableTerrain> CreateTerrain(robosimian::RoboSimian* robot,
+std::shared_ptr<vehicle::SCMTerrain> CreateTerrain(robosimian::RoboSimian* robot,
                                                              double length,
                                                              double width,
                                                              double height,
@@ -196,10 +196,10 @@ std::shared_ptr<vehicle::SCMDeformableTerrain> CreateTerrain(robosimian::RoboSim
     double E_elastic = 2e8;  // Elastic stiffness (Pa/m), before plastic yeld
     double damping = 3e4;    // Damping coefficient (Pa*s/m)
 
-    auto terrain = chrono_types::make_shared<vehicle::SCMDeformableTerrain>(robot->GetSystem());
+    auto terrain = chrono_types::make_shared<vehicle::SCMTerrain>(robot->GetSystem());
     terrain->SetPlane(ChCoordsys<>(ChVector<>(length / 2 - offset, 0, height), QUNIT));
     terrain->SetSoilParameters(Kphi, Kc, n, coh, phi, K, E_elastic, damping);
-    terrain->SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE, 0, 0.15);
+    terrain->SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.15);
     terrain->Initialize(length, width, 1.0 / 64);
 
     // Enable moving patch feature
@@ -431,7 +431,7 @@ int main(int argc, char* argv[]) {
     int sim_frame = 0;
     int render_frame = 0;
 
-    std::shared_ptr<vehicle::SCMDeformableTerrain> terrain;
+    std::shared_ptr<vehicle::SCMTerrain> terrain;
     bool terrain_created = false;
 
     while (true) {
@@ -456,7 +456,7 @@ int main(int argc, char* argv[]) {
 
             // Create terrain
             terrain = CreateTerrain(&robot, terrain_length, terrain_width, z, location_offset);
-            vis->BindItem(terrain->GetGroundObject());
+            vis->BindItem(terrain->GetSCMLoader());
             SetContactProperties(&robot);
 
             // Release robot

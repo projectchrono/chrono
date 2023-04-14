@@ -30,7 +30,7 @@
 #include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
+#include "chrono_vehicle/terrain/SCMTerrain.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -148,10 +148,10 @@ int main(int argc, char* argv[]) {
     }
 
     // Create the SCM deformable terrain
-    vehicle::SCMDeformableTerrain terrain(&sys);
+    vehicle::SCMTerrain terrain(&sys);
 
     // Displace/rotate the terrain reference plane.
-    // Note that SCMDeformableTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
+    // Note that SCMTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
     // a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
     terrain.SetPlane(ChCoordsys<>(ChVector<>(0, -0.5, 0), Q_from_AngX(-CH_C_PI_2)));
 
@@ -190,7 +190,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Set some visualization parameters
-    terrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_PRESSURE, 0, 20000);
+    terrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE, 0, 20000);
     terrain.GetMesh()->SetWireframe(true);
 
     // Create the run-time visualization interface
@@ -225,6 +225,7 @@ int main(int argc, char* argv[]) {
 #endif
             break;
         }
+        default:
         case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();

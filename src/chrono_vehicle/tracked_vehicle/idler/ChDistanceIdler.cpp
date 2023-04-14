@@ -44,7 +44,7 @@ class DistanceIdlerFunction : public ChFunction {
 
     virtual DistanceIdlerFunction* Clone() const override { return new DistanceIdlerFunction(*this); }
 
-    virtual double Get_y(double x) const {
+    virtual double Get_y(double x) const override {
         if (x < m_time)
             return m_init_val + (m_final_val - m_init_val) * (x / m_time);
         return m_final_val;
@@ -223,12 +223,12 @@ void ChDistanceIdler::ExportComponentList(rapidjson::Document& jsonDocument) con
 
     std::vector<std::shared_ptr<ChBody>> bodies;
     bodies.push_back(m_carrier);
-    ChPart::ExportBodyList(jsonDocument, bodies);
+    ExportBodyList(jsonDocument, bodies);
 
     std::vector<std::shared_ptr<ChLink>> joints;
     joints.push_back(m_revolute);
     joints.push_back(m_tensioner);
-    ChPart::ExportJointList(jsonDocument, joints);
+    ExportJointList(jsonDocument, joints);
 }
 
 void ChDistanceIdler::Output(ChVehicleOutput& database) const {

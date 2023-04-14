@@ -381,7 +381,7 @@ int main(int argc, char* argv[]) {
     double time = 0.0;
     int current_step = 0;
 
-    ChTimer<> timer;
+    ChTimer timer;
     timer.start();
     while (time < total_time) {
         // Get the infomation of the wheel

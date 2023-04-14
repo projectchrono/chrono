@@ -51,7 +51,7 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DMKL_INCLUDE_DIR=$BUILD_PREFIX/include \
  -DMKL_RT_LIBRARY=$BUILD_PREFIX/lib/libmkl_rt.so \
  -DEIGEN3_INCLUDE_DIR=$PREFIX/include/eigen3 \
- -DIRRLICHT_ROOT=$PREFIX/include/irrlicht \
+ -DIRRLICHT_INSTALL_DIR=$PREFIX/include/irrlicht \
  -DOptiX_INSTALL_DIR=/opt/optix/7.5.0 \
  -DNUMPY_INCLUDE_DIR=$NP_INCL \
  ./..

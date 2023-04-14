@@ -37,6 +37,7 @@
 #include "chrono_models/vehicle/man/MAN_7t_SimpleMapPowertrain.h"
 #include "chrono_models/vehicle/man/MAN_7t_SimpleCVTPowertrain.h"
 #include "chrono_models/vehicle/man/MAN_5t_TMeasyTire.h"
+#include "chrono_models/vehicle/man/MAN_5t_TMsimpleTire.h"
 
 namespace chrono {
 namespace vehicle {

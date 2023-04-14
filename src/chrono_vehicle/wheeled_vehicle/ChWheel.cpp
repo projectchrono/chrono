@@ -49,6 +49,9 @@ void ChWheel::Initialize(std::shared_ptr<ChBody> spindle, VehicleSide side, doub
     //// This requires changing the spindle to a ChBodyAuxRef.
     m_spindle->SetMass(m_spindle->GetMass() + GetWheelMass());
     m_spindle->SetInertiaXX(m_spindle->GetInertiaXX() + GetWheelInertia());
+
+    m_spindle->GetCollisionModel()->SetFamily(WheeledCollisionFamily::WHEEL);
+    m_spindle->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(WheeledCollisionFamily::WHEEL);
 }
 
 void ChWheel::InitializeInertiaProperties() {

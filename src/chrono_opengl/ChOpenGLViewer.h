@@ -117,9 +117,9 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
     RenderMode particle_render_mode;
     float particle_radius;
 
-    ChTimer<> timer_render;
-    ChTimer<> timer_text;
-    ChTimer<> timer_geometry;
+    ChTimer timer_render;
+    ChTimer timer_text;
+    ChTimer timer_geometry;
 
     glm::mat4 model, view, projection, modelview;
 

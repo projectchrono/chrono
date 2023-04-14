@@ -56,6 +56,7 @@
 #include "chrono_vehicle/wheeled_vehicle/suspension/ThreeLinkIRS.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/ToeBarLeafspringAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/SAEToeBarLeafspringAxle.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/GenericWheeledSuspension.h"
 #include "chrono_vehicle/wheeled_vehicle/subchassis/Balancer.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
@@ -63,6 +64,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/ReissnerTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/TMeasyTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/TMsimpleTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/Pac89Tire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/Pac02Tire.h"
 #include "chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
@@ -119,6 +121,13 @@ ChQuaternion<> ReadQuaternionJSON(const Value& a) {
     return ChQuaternion<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble(), a[3u].GetDouble());
 }
 
+ChCoordsys<> ReadCoordinateSystemJSON(const Value& a) {
+    assert(a.IsObject());
+    assert(a.HasMember("Position"));
+    assert(a.HasMember("Rotation"));
+    return ChCoordsys<>(ReadVectorJSON(a["Position"]), ReadQuaternionJSON(a["Rotation"]));
+}
+
 ChColor ReadColorJSON(const Value& a) {
     assert(a.IsArray());
     assert(a.Size() == 3);
@@ -164,6 +173,156 @@ std::shared_ptr<ChVehicleBushingData> ReadBushingDataJSON(const rapidjson::Value
     return bushing_data;
 }
 
+ChVehicleJoint::Type ReadVehicleJointTypeJSON(const Value& a) {
+    assert(a.IsString());
+    std::string type = a.GetString();
+    if (type.compare("Lock") == 0) {
+        return ChVehicleJoint::Type::LOCK;
+    } else if (type.compare("Point Line") == 0) {
+        return ChVehicleJoint::Type::POINTLINE;
+    } else if (type.compare("Point Plane") == 0) {
+        return ChVehicleJoint::Type::POINTPLANE;
+    } else if (type.compare("Revolute") == 0) {
+        return ChVehicleJoint::Type::REVOLUTE;
+    } else if (type.compare("Spherical") == 0) {
+        return ChVehicleJoint::Type::SPHERICAL;
+    } else if (type.compare("Universal") == 0) {
+        return ChVehicleJoint::Type::UNIVERSAL;
+    } else {
+        // TODO Unknown type, what do we do here?
+        return ChVehicleJoint::Type::LOCK;
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+ChVehicleGeometry ReadVehicleGeometryJSON(const rapidjson::Value& d) {
+    ChVehicleGeometry geometry;
+
+    // Read contact information
+    if (d.HasMember("Contact")) {
+        assert(d["Contact"].HasMember("Materials"));
+        assert(d["Contact"].HasMember("Shapes"));
+
+        // Read contact material information
+        assert(d["Contact"]["Materials"].IsArray());
+        int num_mats = d["Contact"]["Materials"].Size();
+
+        for (int i = 0; i < num_mats; i++) {
+            ChContactMaterialData minfo = ReadMaterialInfoJSON(d["Contact"]["Materials"][i]);
+            geometry.m_materials.push_back(minfo);
+        }
+
+        // Read contact shapes
+        assert(d["Contact"]["Shapes"].IsArray());
+        int num_shapes = d["Contact"]["Shapes"].Size();
+
+        for (int i = 0; i < num_shapes; i++) {
+            const Value& shape = d["Contact"]["Shapes"][i];
+
+            std::string type = shape["Type"].GetString();
+            int matID = shape["Material Index"].GetInt();
+            assert(matID >= 0 && matID < num_mats);
+
+            if (type.compare("SPHERE") == 0) {
+                ChVector<> pos = ReadVectorJSON(shape["Location"]);
+                double radius = shape["Radius"].GetDouble();
+                geometry.m_coll_spheres.push_back(ChVehicleGeometry::SphereShape(pos, radius, matID));
+            } else if (type.compare("BOX") == 0) {
+                ChVector<> pos = ReadVectorJSON(shape["Location"]);
+                ChQuaternion<> rot = ReadQuaternionJSON(shape["Orientation"]);
+                ChVector<> dims = ReadVectorJSON(shape["Dimensions"]);
+                geometry.m_coll_boxes.push_back(ChVehicleGeometry::BoxShape(pos, rot, dims, matID));
+            } else if (type.compare("CYLINDER") == 0) {
+                ChVector<> pos = ReadVectorJSON(shape["Location"]);
+                ChVector<> axis = ReadVectorJSON(shape["Axis"]);
+                double radius = shape["Radius"].GetDouble();
+                double length = shape["Length"].GetDouble();
+                geometry.m_coll_cylinders.push_back(
+                    ChVehicleGeometry::CylinderShape(pos, axis, radius, length, matID));
+            } else if (type.compare("HULL") == 0) {
+                std::string filename = shape["Filename"].GetString();
+                geometry.m_coll_hulls.push_back(ChVehicleGeometry::ConvexHullsShape(filename, matID));
+            } else if (type.compare("MESH") == 0) {
+                std::string filename = shape["Filename"].GetString();
+                ChVector<> pos = ReadVectorJSON(shape["Location"]);
+                double radius = shape["Contact Radius"].GetDouble();
+                geometry.m_coll_meshes.push_back(ChVehicleGeometry::TrimeshShape(pos, filename, radius, matID));
+            }
+        }
+
+        geometry.m_has_collision = true;
+    }
+
+    // Read visualization
+    if (d.HasMember("Visualization")) {
+        if (d["Visualization"].HasMember("Mesh")) {
+            geometry.m_vis_mesh_file = d["Visualization"]["Mesh"].GetString();
+            geometry.m_has_mesh = true;
+        }
+        if (d["Visualization"].HasMember("Primitives")) {
+            assert(d["Visualization"]["Primitives"].IsArray());
+            int num_shapes = d["Visualization"]["Primitives"].Size();
+            for (int i = 0; i < num_shapes; i++) {
+                const Value& shape = d["Visualization"]["Primitives"][i];
+                std::string type = shape["Type"].GetString();
+                if (type.compare("SPHERE") == 0) {
+                    ChVector<> pos = ReadVectorJSON(shape["Location"]);
+                    double radius = shape["Radius"].GetDouble();
+                    geometry.m_vis_spheres.push_back(ChVehicleGeometry::SphereShape(pos, radius));
+                } else if (type.compare("BOX") == 0) {
+                    ChVector<> pos = ReadVectorJSON(shape["Location"]);
+                    ChQuaternion<> rot = ReadQuaternionJSON(shape["Orientation"]);
+                    ChVector<> dims = ReadVectorJSON(shape["Dimensions"]);
+                    geometry.m_vis_boxes.push_back(ChVehicleGeometry::BoxShape(pos, rot, dims));
+                } else if (type.compare("CYLINDER") == 0) {
+                    ChVector<> pos = ReadVectorJSON(shape["Location"]);
+                    ChVector<> axis = ReadVectorJSON(shape["Axis"]);
+                    double radius = shape["Radius"].GetDouble();
+                    double length = shape["Length"].GetDouble();
+                    geometry.m_vis_cylinders.push_back(ChVehicleGeometry::CylinderShape(pos, axis, radius, length));
+                }
+            }
+            geometry.m_has_primitives = (num_shapes > 0);
+        }
+    }
+
+    return geometry;
+}
+
+CH_VEHICLE_API ChTSDAGeometry ReadTSDAGeometryJSON(const rapidjson::Value& d) {
+    ChTSDAGeometry geometry;
+
+    if (d.HasMember("Visualization") && d["Visualization"].IsObject()) {
+        auto& vis = d["Visualization"];
+        assert(vis.IsObject());
+        std::string type = vis["Type"].GetString();
+        if (type == "SEGMENT") {
+            geometry.m_vis_segment = chrono_types::make_shared<ChTSDAGeometry::SegmentShape>();
+        } else if (type == "SPRING") {
+            // the default below are copied from the actual class, and since there
+            // are no setters I can't just take the default constructor and override
+            // the properties the user specifies (my only alternative would be to
+            // construct and read from a prototype instance)
+            double radius = 0.05;
+            int resolution = 65;
+            double turns = 5;
+            if (vis.HasMember("Radius") && vis["Radius"].IsNumber()) {
+                radius = vis["Radius"].GetDouble();
+            }
+            if (vis.HasMember("Resolution") && vis["Resolution"].IsInt()) {
+                resolution = vis["Resolution"].GetInt();
+            }
+            if (vis.HasMember("Turns") && vis["Turns"].IsNumber()) {
+                turns = vis["Turns"].GetDouble();
+            }
+            geometry.m_vis_spring = chrono_types::make_shared<ChTSDAGeometry::SpringShape>(radius, resolution, turns);
+        }
+    }
+
+    return geometry;
+}
+
 // -----------------------------------------------------------------------------
 
 std::shared_ptr<ChLinkTSDA::ForceFunctor> ReadTSDAFunctorJSON(const rapidjson::Value& tsda, double& free_length) {
@@ -184,24 +343,26 @@ std::shared_ptr<ChLinkTSDA::ForceFunctor> ReadTSDAFunctorJSON(const rapidjson::V
 
     assert(tsda.IsObject());
 
-    if (tsda.HasMember("Spring Coefficient"))
+    if (tsda.HasMember("Spring Coefficient")) {
         if (tsda.HasMember("Damping Coefficient"))
             type = FunctorType::LinearSpringDamper;
         else
             type = FunctorType::LinearSpring;
-    else if (tsda.HasMember("Damping Coefficient"))
+    } else if (tsda.HasMember("Damping Coefficient")) {
         if (tsda.HasMember("Degressivity Compression") && tsda.HasMember("Degressivity Expansion"))
             type = FunctorType::DegressiveDamper;
         else
             type = FunctorType::LinearDamper;
+    }
 
-    if (tsda.HasMember("Spring Curve Data"))
+    if (tsda.HasMember("Spring Curve Data")) {
         if (tsda.HasMember("Damping Curve Data"))
             type = FunctorType::NonlinearSpringDamper;
         else
             type = FunctorType::NonlinearSpring;
-    else if (tsda.HasMember("Damping Curve Data"))
+    } else if (tsda.HasMember("Damping Curve Data")) {
         type = FunctorType::NonlinearDamper;
+    }
 
     if (tsda.HasMember("Map Data"))
         type = FunctorType::MapSpringDamper;
@@ -285,6 +446,9 @@ std::shared_ptr<ChLinkTSDA::ForceFunctor> ReadTSDAFunctorJSON(const rapidjson::V
         }
 
         case FunctorType::NonlinearSpringDamper: {
+            assert(tsda.HasMember("Free Length"));
+            free_length = tsda["Free Length"].GetDouble();
+
             auto forceCB = chrono_types::make_shared<NonlinearSpringDamperForce>(preload);
 
             assert(tsda["Spring Curve Data"].IsArray() && tsda["Spring Curve Data"][0u].Size() == 2);
@@ -308,9 +472,6 @@ std::shared_ptr<ChLinkTSDA::ForceFunctor> ReadTSDAFunctorJSON(const rapidjson::V
         }
 
         case FunctorType::MapSpringDamper: {
-            assert(tsda.HasMember("Free Length"));
-            free_length = tsda["Free Length"].GetDouble();
-
             auto forceCB = chrono_types::make_shared<MapSpringDamperForce>(preload);
 
             assert(tsda.HasMember("Deformation"));
@@ -435,6 +596,28 @@ std::shared_ptr<ChLinkRSDA::TorqueFunctor> ReadRSDAFunctorJSON(const rapidjson::
             return chrono_types::make_shared<LinearSpringDamperTorque>(k, c, preload);
         }
 
+        case FunctorType::NonlinearSpringDamper: {
+            assert(rsda.HasMember("Free Angle"));
+            free_angle = rsda["Free Angle"].GetDouble();
+
+            auto torqueCB = chrono_types::make_shared<NonlinearSpringDamperTorque>(preload);
+
+            assert(rsda["Spring Curve Data"].IsArray() && rsda["Spring Curve Data"][0u].Size() == 2);
+            int num_defs = rsda["Spring Curve Data"].Size();
+            for (int i = 0; i < num_defs; i++) {
+                double def = rsda["Spring Curve Data"][i][0u].GetDouble();
+                double force = rsda["Spring Curve Data"][i][1u].GetDouble();
+                torqueCB->add_pointK(def, force);
+            }
+            int num_speeds = rsda["Dumping Curve Data"].Size();
+            for (int i = 0; i < num_speeds; i++) {
+                double vel = rsda["Damping Curve Data"][i][0u].GetDouble();
+                double force = rsda["Damping Curve Data"][i][1u].GetDouble();
+                torqueCB->add_pointC(vel, force);
+            }
+
+            return torqueCB;
+        }
     }
 }
 
@@ -610,6 +793,8 @@ std::shared_ptr<ChSuspension> ReadSuspensionJSON(const std::string& filename) {
         suspension = chrono_types::make_shared<RigidPinnedAxle>(d);
     } else if (subtype.compare("HendricksonPRIMAXX") == 0) {
         suspension = chrono_types::make_shared<HendricksonPRIMAXX>(d);
+    } else if (subtype.compare("GenericWheeledSuspension") == 0) {
+        suspension = chrono_types::make_shared<GenericWheeledSuspension>(d);
     } else {
         throw ChException("Suspension type not supported in ReadSuspensionJSON.");
     }
@@ -813,6 +998,8 @@ std::shared_ptr<ChTire> ReadTireJSON(const std::string& filename) {
         tire = chrono_types::make_shared<RigidTire>(d);
     } else if (subtype.compare("TMeasyTire") == 0) {
         tire = chrono_types::make_shared<TMeasyTire>(d);
+    } else if (subtype.compare("TMsimpleTire") == 0) {
+        tire = chrono_types::make_shared<TMsimpleTire>(d);
     } else if (subtype.compare("FialaTire") == 0) {
         tire = chrono_types::make_shared<FialaTire>(d);
     } else if (subtype.compare("Pac89Tire") == 0) {

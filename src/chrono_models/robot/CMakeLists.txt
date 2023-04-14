@@ -75,7 +75,7 @@ set(LIBRARIES "ChronoEngine")
 if(ENABLE_MODULE_IRRLICHT)
     set(CXX_FLAGS "${CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
     list(APPEND LIBRARIES ChronoEngine_irrlicht)
-    include_directories(${CH_IRRLICHTINC})
+    include_directories(${CH_IRRLICHT_INCLUDES})
 endif()
 
 #-----------------------------------------------------------------------------

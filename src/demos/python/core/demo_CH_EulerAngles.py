@@ -18,7 +18,7 @@ try:
     import numpy as np
     from numpy import linalg as LA
 except ImportError:
-    print("You need NumPyto run this demo!")
+    print("You need NumPy to run this demo!")
 
 #------------------------------------------------------------------------------
 

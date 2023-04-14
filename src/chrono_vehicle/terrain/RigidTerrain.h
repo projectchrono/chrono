@@ -50,7 +50,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     enum class PatchType {
         BOX,        ///< rectangular box
         MESH,       ///< triangular mesh (from a Wavefront OBJ file)
-        HEIGHT_MAP  ///< triangular mesh (generated from a gray-scale BMP height-map)
+        HEIGHT_MAP  ///< triangular mesh (generated from a gray-scale heightmap image)
     };
 
     /// Definition of a patch in a rigid terrain model.
@@ -127,8 +127,9 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
         bool visualization = true                     ///< [in] enable/disable construction of visualization assets
     );
 
-    /// Add a terrain patch represented by a height-field map.
-    /// The height map is specified through a BMP gray-scale image.
+    /// Add a terrain patch represented by a heightmap image.
+    /// If the image has an explicit gray channel, that value is used as an encoding of height. Otherwise, RGB values
+    /// are converted to YUV and luminance (Y) is used as height encoding.
     std::shared_ptr<Patch> AddPatch(
         std::shared_ptr<ChMaterialSurface> material,  ///< [in] contact material
         const ChCoordsys<>& position,                 ///< [in] patch location and orientation
@@ -148,41 +149,46 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     /// Get the terrain patches currently added to the rigid terrain system.
     const std::vector<std::shared_ptr<Patch>>& GetPatches() const { return m_patches; }
 
+    /// Enable use of location-dependent coefficient of friction in terrain-solid contacts.
+    /// This assumes that a non-trivial functor (of type ChTerrain::FrictionFunctor) was defined and registered with the
+    /// terrain subsystem. Enable this only if simulating a system that has contacts with the terrain that must be
+    /// resolved using the underlying Chrono contact mechanism (e.g., for rigid tires, FEA tires, tracked vehicles).
+    /// Note that this feature requires a relatively expensive traversal of all contacts at each simulation step. By
+    /// default, this option is disabled.  This function must be called before Initialize.
+    void UseLocationDependentFriction(bool val) { m_use_friction_functor = val; }
+
     /// Get the terrain height below the specified location.
-    /// If a user-provided functor object of type ChTerrain::HeightFunctor is provided, that will take precedence over
-    /// the internal mechanism for calculating terrain height based on the specified geometry.  It is the user's
-    /// responsibility to ensure consistency.
+    /// This function should return the height of the closest point *below* the specified location (in the direction of
+    /// the current world vertical). If a user-provided functor object of type ChTerrain::HeightFunctor is provided,
+    /// that will take precedence over the internal mechanism for calculating terrain height based on the specified
+    /// geometry.
     virtual double GetHeight(const ChVector<>& loc) const override;
 
     /// Get the terrain normal at the point below the specified location.
-    /// If a user-provided functor object of type ChTerrain::NormalFunctor is provided, that will take precedence over
-    /// the internal mechanism for calculating terrain normal based on the specified geometry.  It is the user's
-    /// responsibility to ensure consistency.
+    /// This function should return the normal at the closest point *below* the specified location (in the direction of
+    /// the current world vertical). If a user-provided functor object of type ChTerrain::NormalFunctor is provided,
+    /// that will take precedence over the internal mechanism for calculating terrain normal based on the specified
+    /// geometry.
     virtual ChVector<> GetNormal(const ChVector<>& loc) const override;
 
-    /// Enable use of location-dependent coefficient of friction in terrain-solid contacts.
-    /// This assumes that a non-trivial functor (of type ChTerrain::FrictionFunctor) was defined
-    /// and registered with the terrain subsystem. Enable this only if simulating a system that
-    /// has contacts with the terrain that must be resolved using the underlying Chrono contact
-    /// mechanism (e.g., for rigid tires, FEA tires, tracked vehicles). Note that this feature
-    /// requires a relatively expensive traversal of all contacts at each simulation step.
-    /// By default, this option is disabled.  This function must be called before Initialize.
-    void UseLocationDependentFriction(bool val) { m_use_friction_functor = val; }
-
     /// Get the terrain coefficient of friction at the point below the specified location.
-    /// For RigidTerrain, this function defers to the user-provided functor object of type
-    /// ChTerrain::FrictionFunctor, if one was specified. Otherwise, it returns the constant
-    /// value from the appropriate patch, as specified through SetContactFrictionCoefficient.
-    /// Note that this function may be used by tire models to appropriately modify the tire
-    /// characteristics, but it will have no effect on the interaction of the terrain with
-    /// other objects (including tire models that do not explicitly use it).
-    /// See UseLocationDependentFriction.
+    /// This function should return the coefficient of friction at the closest point *below* the specified location (in
+    /// the direction of the current world vertical). For RigidTerrain, this function defers to the user-provided
+    /// functor object of type ChTerrain::FrictionFunctor, if one was specified. Otherwise, it returns the constant
+    /// value from the appropriate patch, as specified through SetContactFrictionCoefficient. Note that this function
+    /// may be used by tire models to appropriately modify the tire characteristics, but it will have no effect on the
+    /// interaction of the terrain with other objects (including tire models that do not explicitly use it). See
+    /// UseLocationDependentFriction.
     virtual float GetCoefficientFriction(const ChVector<>& loc) const override;
 
     /// Get all terrain characteristics at the point below the specified location.
-    /// This is more efficient than calling GetHeight, GetNormal, and GetCoefficientFriction separately as it performs a
-    /// single ray-casting operation (if needed at all).
-    virtual void GetProperties(const ChVector<>& loc, double& height, ChVector<>& normal, float& friction) const;
+    /// This function should return the terrain properties at the closest point *below* the specified location (in
+    /// the direction of the current world vertical). This is more efficient than calling GetHeight, GetNormal, and
+    /// GetCoefficientFriction separately, as it performs a single ray-casting operation (if needed at all).
+    virtual void GetProperties(const ChVector<>& loc,
+                               double& height,
+                               ChVector<>& normal,
+                               float& friction) const override;
 
     /// Export all patch meshes as macros in PovRay include files.
     void ExportMeshPovray(const std::string& out_dir, bool smoothed = false);
@@ -191,13 +197,13 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     void ExportMeshWavefront(const std::string& out_dir);
 
     /// Find the terrain height, normal, and coefficient of friction at the point below the specified location.
-    /// The point on the terrain surface is obtained through ray casting into the terrain contact model.
-    /// The return value is 'true' if the ray intersection succeeded and 'false' otherwise (in which case
-    /// the output is set to heigh=0, normal=[0,0,1], and friction=0.8).
+    /// The point on the terrain surface is obtained through ray casting into the terrain contact model. The return
+    /// value is 'true' if the ray intersection succeeded and 'false' otherwise (in which case the output is set to
+    /// heigh=0, normal=world vertical, and friction=0.8).
     bool FindPoint(const ChVector<> loc, double& height, ChVector<>& normal, float& friction) const;
 
     /// Set common collision family for patches. Default: 14.
-    /// Collision is disabled with all other objects in this family (to prevent generating contact forces between patches, if more than one is defined).
+    /// Collision is disabled with all other objects in this family.
     void SetCollisionFamily(int family) { m_collision_family = family; }
 
   private:

@@ -1,0 +1,216 @@
+{
+  "Name": "HMMWV DoubleWishboneReplica Front",
+  "Type": "Suspension",
+  "Template": "GenericWheeledSuspension",
+
+  "Vehicle-Frame Inertia": false, // currently not supported
+
+  "Independent": true,
+  "Steerable": true,
+
+  "Camber Angle (deg)": 0,
+  "Toe Angle (deg)": 0,
+
+  "Spindle": {
+    "Attachment Body": "Upright",
+    "Mass": 14.705,
+    "COM": [ -0.040, 0.910, -0.026 ],
+    "Inertia": [ 0.04117, 0.07352, 0.04117 ],
+    "Radius": 0.15,
+    "Width": 0.06
+  },
+
+  "Bodies": [
+    {
+      "Name": "Upright",
+      "Mirrored": true,
+      "Position": [ -0.040, 0.751, -0.026 ],
+      "Rotation": [ 1, 0, 0, 0 ],
+      "Mass": 19.450,
+      "Moments of Inertia": [ 0.1656, 0.1934, 0.04367 ],
+      "Products of Inertia": [ 0, 0, 0 ],
+      "Visualization": {
+        "Primitives": [
+          {
+            "Type": "CYLINDER",
+            "Location": [0, 0.07, 0],
+            "Axis": [ 0, 1, 0 ],
+            "Radius": 0.03,
+            "Length": 0.16
+          }
+        ]
+      }
+    },
+
+    {
+      "Name": "UCA",
+      "Mirrored": true,
+      "Position": [ -0.106, 0.589, 0.218 ],
+      "Rotation": [ 0.990546, -0.044692, -0.105231, -0.075701 ],
+      "Mass": 5.813,
+      "Moments of Inertia": [ 0.03, 0.03, 0.06276 ],
+      "Products of Inertia": [ 0, 0, 0 ],
+      "Visualization": {
+        "Primitives": [
+          {
+            "Type": "CYLINDER",
+            "Location": [ 0.0573, 0.0001, -0.0003 ],
+            "Axis": [ -0.181232, 0.983440, 0 ],
+            "Radius": 0.02,
+            "Length": 0.2717
+          },
+          {
+            "Type": "CYLINDER",
+            "Location": [ -0.0565, 0.0001, -0.0003 ],
+            "Axis": [ 0.555282, 0.831662, 0 ],
+            "Radius": 0.02,
+            "Length": 0.3213
+          }
+        ]
+      }
+    },
+
+    {
+      "Name": "LCA",
+      "Mirrored": true,
+      "Position": [ 0, 0.547, -0.059 ],
+      "Rotation": [ 0.992745, -0.120235, 0, 0 ],
+      "Mass": 23.965,
+      "Moments of Inertia": [ 0.4, 0.4, 0.8938 ],
+      "Products of Inertia": [ 0, 0, 0 ],
+      "Visualization": {
+        "Primitives": [
+          {
+            "Type": "CYLINDER",
+            "Location": [ 0.0935, 0, 0 ],
+            "Axis": [ -0.464127, 0.885768, 0 ],
+            "Radius": 0.03,
+            "Length": 0.5580
+          },
+          {
+            "Type": "CYLINDER",
+            "Location": [ -0.1295, 0, 0 ],
+            "Axis": [ 0.353844, 0.935305, 0.0 ],
+            "Radius": 0.03,
+            "Length": 0.5285
+          }
+        ]
+      }
+    }
+  ],
+
+  "Joints": [
+    {
+      "Name": "RevoluteUCA",
+      "Type": "Revolute",
+      "Mirrored": true,
+      "Body1": "Chassis",
+      "Body2": "UCA",
+      "Position": [ -0.158, 0.462, 0.2205 ],
+      "Rotation": [ 0.608089, 0.458166, 0.427157, 0.487697 ]
+    },
+
+    {
+      "Name": "SphericalUCA",
+      "Type": "Spherical",
+      "Mirrored": true,
+      "Body1": "UCA",
+      "Body2": "Upright",
+      "Position": [ -0.053, 0.716, 0.215 ],
+      "Rotation": [ 1, 0, 0, 0 ]
+    },
+
+    {
+      "Name": "RevoluteLCA",
+      "Type": "Revolute",
+      "Mirrored": true,
+      "Body1": "Chassis",
+      "Body2": "LCA",
+      "Position": [ 0.0, 0.307, 0.0 ],
+      "Rotation": [ 0.556490, 0.436255, 0.556490, 0.436255 ]
+    },
+
+    {
+      "Name": "SphericalLCA",
+      "Type": "Spherical",
+      "Mirrored": true,
+      "Body1": "LCA",
+      "Body2": "Upright",
+      "Position": [ -0.036, 0.787, -0.118 ],
+      "Rotation": [ 1, 0, 0, 0 ]
+    }
+  ],
+
+  "Distance Constraints": [
+    {
+      "Name": "Tierod",
+      "Mirrored": true,
+      "Body1": "Steering",
+      "Body2": "Upright",
+      "Point1": [ -0.250, 0.448, 0.054 ],
+      "Point2": [ -0.176, 0.821, -0.016 ]
+    }
+  ],
+
+  "TSDAs": [
+    {
+      "Name": "Spring",
+      "Mirrored": true,
+      "Body1": "Chassis",
+      "Body2": "LCA",
+      "Point1": [ 0.104, 0.510, 0.197 ],
+      "Point2": [ 0.097, 0.543, -0.047 ],
+      "Free Length": 0.339,
+      "Minimum Length": 0.15,
+      "Maximum Length": 0.3,
+      "Spring Curve Data": [
+        [ -0.2, -322095.536 ],
+        [ -0.18, -240521.166 ],
+        [ -0.16, -174535.686 ],
+        [ -0.14, -122406.996 ],
+        [ -0.12, -82402.997 ],
+        [ -0.1, -52791.592 ],
+        [ -0.08, -31840.681 ],
+        [ -0.06, -17818.165 ],
+        [ -0.04, -8991.945 ],
+        [ -0.02, -3629.923 ],
+        [ 0, 0 ],
+        [ 0.02, 3629.923 ],
+        [ 0.04, 8991.945 ],
+        [ 0.06, 17818.165 ],
+        [ 0.08, 31840.681 ],
+        [ 0.1, 52791.592 ],
+        [ 0.12, 82402.997 ],
+        [ 0.14, 122406.996 ],
+        [ 0.16, 174535.686 ],
+        [ 0.18, 240521.166 ],
+        [ 0.2, 322095.536 ]
+      ],
+      "Visualization": {
+        "Type": "SPRING",
+        "Radius": 0.06,
+        "Turns": 15,
+        "Resolution": 150
+      }
+    },
+
+    {
+      "Name": "Shock",
+      "Mirrored": true,
+      "Body1": "Chassis",
+      "Body2": "LCA",
+      "Point1": [ 0.104, 0.498, 0.323 ],
+      "Point2": [ 0.097, 0.543, -0.047 ],
+      "Damping Coefficient": 19015.5692,
+      "Visualization": {
+        "Type": "SEGMENT"
+      }
+    }
+  ],
+
+  "Antiroll Body": "LCA",
+
+  "Axle": {
+    "Inertia": 0.4
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "Name": "VW Bus TMsimple Tire",
+  "Type": "Tire",
+  "Template": "TMsimpleTire",
+
+  // ------------------------------------------------
+  // Tire design (REQUIRED)
+
+  "Design": {
+    "Unloaded Radius [m]": 0.376,
+    "Mass [kg]": 19.8,
+    "Inertia [kg.m2]": [ 1.2369, 2.22357, 1.2369 ],
+    "Width [m]": 0.185,
+    "Rim Radius [m]": 0.1778
+  },
+
+  "Coefficient of Friction": 0.8,
+
+  "Rolling Resistance Coefficient": 0.015,
+
+  // ------------------------------------------------
+  // Vehicle type.
+  // Required only if tire specified with "load index" or "bearing capacity".
+  // Must be one of "Truck" or "Passenger"
+
+  "Vehicle Type": "Passenger",
+
+  // ------------------------------------------------
+  // Load index specification.
+  // Takes priority over "bearing capacity" (used only if a full parameterization not provided)
+
+  "Load Index": 86,
+
+  // ------------------------------------------------
+  // Tire inflation pressure specification  (used only if a full parameterization not provided)
+  "Inflation Pressure Design [Pa]": 200000,
+  "Inflation Pressure Use [Pa]": 200000,
+
+"Parameters": {
+    "Tire Load": {
+      "Nominal Vertical Force [N]": 2599.65
+    },
+    "Tire Stiffness": {
+      "Vertical [N/m]": 163954
+    },
+    "Tire Damping": {
+      "Vertical [Ns/m]": 1801.74
+    },
+    "Longitudinal": {
+      "Initial Slopes dFx/dsx [N]": [ 48550.5, 104900 ],
+      "Maximum Fx Load [N]": [ 2912.91, 5573.65 ],
+      "Sliding Fx Load [N]": [ 2278.85, 4286.82 ]
+    },
+    "Lateral": {
+      "Initial Slopes dFy/dsy [N]": [ 38957.8, 52255.6 ],
+      "Maximum Fy Load [N]": [ 2621.49, 4679.53 ],
+      "Sliding Fy Load [N]": [ 2182.17, 3992.13 ]
+    }
+  },
+
+  // ------------------------------------------------
+  // Visualization mesh (OPTIONAL)
+
+  "Visualization": {
+    "Mesh Filename Left":  "VW_microbus/van_tire.obj",
+    "Mesh Filename Right": "VW_microbus/van_tire.obj"
+  }
+
+}

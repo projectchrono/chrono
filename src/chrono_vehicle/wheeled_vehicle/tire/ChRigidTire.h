@@ -92,12 +92,6 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
 
     std::shared_ptr<ChMaterialSurface> m_material;  ///< contact material;
 
-    /// Return the tire mass.
-    virtual double GetTireMass() const = 0;
-
-    /// Return the tire moments of inertia (in the tire centroidal frame).
-    virtual ChVector<> GetTireInertia() const = 0;
-
     virtual void InitializeInertiaProperties() override final;
     virtual void UpdateInertiaProperties() override final;
 

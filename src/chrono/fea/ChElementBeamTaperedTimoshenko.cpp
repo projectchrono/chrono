@@ -755,6 +755,116 @@ void ChElementBeamTaperedTimoshenko::ComputeGeometricStiffnessMatrix() {
     Kg = this->T.transpose() * Kg * this->T;
 }
 
+void ChElementBeamTaperedTimoshenko::ComputeAccurateTangentStiffnessMatrix(ChMatrixRef Kt_accurate,
+                                                               double Km_factor,
+                                                               double Kg_factor) {
+    ChMatrix33<> I33;
+    I33.setIdentity();
+    ChMatrix33<> O33;
+    O33.setZero();
+
+    ChVectorDynamic<> displ(12);
+    this->GetStateBlock(displ);
+    ChVectorDynamic<> Fi_local = Km * displ;
+    double L = this->length;
+
+    ChMatrixNM<double, 12, 12> H;
+    H.setZero();
+    for (int i = 0; i < nodes.size(); ++i) {
+        double rot_angle = displ.segment(3 + 6 * i, 3).norm();
+        ChVector<> rot_vector = displ.segment(3 + 6 * i, 3).normalized();
+        ChVector<> Theta = displ.segment(3 + 6 * i, 3);
+        // double eta = (1 - 0.5 * rot_angle * cos(0.5 * rot_angle) / sin(0.5 * rot_angle)) / (rot_angle * rot_angle);
+        double eta = 1.0 / 12.0 + 1.0 / 720.0 * pow(rot_angle, 2) + 1.0 / 30240.0 * pow(rot_angle, 4) +
+                     1.0 / 1209600.0 * pow(rot_angle, 6);
+        ChMatrix33<> Lambda =
+            I33 - 0.5 * ChStarMatrix33<>(Theta) + eta * ChStarMatrix33<>(Theta) * ChStarMatrix33<>(Theta);
+        ChMatrixNM<double, 6, 6> Hn;
+        Hn << I33, O33, O33, Lambda;
+        H.block<6, 6>(i * 6, i * 6) = Hn;
+    }
+
+    ChVector<> xA = nodes[0]->Frame().GetPos();
+    ChVector<> xB = nodes[1]->Frame().GetPos();
+    ChVector<> xF = 0.5 * (xA + xB);
+    ChVector<> xA_loc = this->q_element_abs_rot.RotateBack(xA - xF);
+    ChVector<> xB_loc = this->q_element_abs_rot.RotateBack(xB - xF);
+    ChMatrixNM<double, 12, 3> SD;
+    SD.topRows(3) = -ChStarMatrix33<>(xA_loc);
+    SD.middleRows(3, 3) = I33;
+    SD.middleRows(6, 3) = -ChStarMatrix33<>(xB_loc);
+    SD.bottomRows(3) = I33;
+
+    ChMatrixNM<double, 3, 12> G;
+    G << 0, 0, 0, 0.5, 0, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 1 / L, 0, 0, 0, 0, 0, -1 / L, 0, 0, 0, 0, -1 / L, 0, 0, 0, 0, 0,
+        1 / L, 0, 0, 0, 0;
+
+    ChMatrixNM<double, 12, 12> I12;
+    I12.setIdentity();
+    ChMatrixNM<double, 12, 12> P = I12 - SD * G;
+
+    ChVectorDynamic<> Fi_temp = P.transpose() * H.transpose() * Fi_local;
+    ChVectorDynamic<> nA_loc = Fi_temp.segment(0, 3);
+    ChVectorDynamic<> mA_loc = Fi_temp.segment(3, 3);
+    ChVectorDynamic<> nB_loc = Fi_temp.segment(6, 3);
+    ChVectorDynamic<> mB_loc = Fi_temp.segment(9, 3);
+
+    ChMatrixNM<double, 12, 3> Fnm;
+    Fnm.topRows(3) = ChStarMatrix33<>(nA_loc);
+    Fnm.middleRows(3, 3) = ChStarMatrix33<>(mA_loc);
+    Fnm.middleRows(6, 3) = ChStarMatrix33<>(nB_loc);
+    Fnm.bottomRows(3) = ChStarMatrix33<>(mB_loc);
+
+    ChMatrixNM<double, 12, 3> Fn;
+    Fn.topRows(3) = ChStarMatrix33<>(nA_loc);
+    Fn.middleRows(3, 3) = O33;
+    Fn.middleRows(6, 3) = ChStarMatrix33<>(nB_loc);
+    Fn.bottomRows(3) = O33;
+
+    ChMatrixNM<double, 12, 12> LH;
+    LH.setZero();
+    for (int i = 0; i < nodes.size(); ++i) {
+        double rot_angle = displ.segment(3 + 6 * i, 3).norm();
+        ChVector<> rot_vector = displ.segment(3 + 6 * i, 3).normalized();
+        ChVector<> Theta = displ.segment(3 + 6 * i, 3);
+        // double eta = (1 - 0.5 * rot_angle * cos(0.5 * rot_angle) / sin(0.5 * rot_angle)) / (rot_angle * rot_angle);
+        double eta = 1.0 / 12.0 + 1.0 / 720.0 * pow(rot_angle, 2) + 1.0 / 30240.0 * pow(rot_angle, 4) +
+                     1.0 / 1209600.0 * pow(rot_angle, 6);
+        ChMatrix33<> Lambda =
+            I33 - 0.5 * ChStarMatrix33<>(Theta) + eta * ChStarMatrix33<>(Theta) * ChStarMatrix33<>(Theta);
+
+        // double miu = (rot_angle*rot_angle+4*cos(rot_angle)+rot_angle*sin(rot_angle)-4)/(4*pow(rot_angle,
+        // 4)*pow(0.5*rot_angle, 2));
+        double miu = 1.0 / 360.0 + 1.0 / 7560.0 * pow(rot_angle, 2) + 1.0 / 201600.0 * pow(rot_angle, 4) +
+                     1.0 / 5987520.0 * pow(rot_angle, 6);
+        ChVector<> m_loc = Fi_temp.segment(3 + 6 * i, 3);
+
+        ChMatrix33<> Li =
+            (eta * (Theta.Dot(m_loc) * I33 + TensorProduct(Theta, m_loc) - 2.0 * TensorProduct(m_loc, Theta)) +
+             miu * ChStarMatrix33<>(Theta) * ChStarMatrix33<>(Theta) * TensorProduct(m_loc, Theta) -
+             0.5 * ChStarMatrix33<>(m_loc)) * Lambda;
+        LH.block<3, 3>(i * 6 + 3, i * 6 + 3) = Li;
+    }
+
+    ChMatrixNM<double, 12, 12> KM = P.transpose() * H.transpose() * Km * H * P;
+    ChMatrixNM<double, 12, 12> KGR = Fnm * G;
+    ChMatrixNM<double, 12, 12> KGP = G.transpose() * Fn.transpose() * P;
+    ChMatrixNM<double, 12, 12> KGH = P.transpose() * LH * P;
+    ChMatrixNM<double, 12, 12> Kt_loc = KM * Km_factor + (-KGR - KGP + KGH) * Kg_factor;
+
+    ChMatrixNM<double, 12, 12> R_rhombus;
+    R_rhombus.setZero();
+    R_rhombus.block<3, 3>(0, 0) = ChMatrix33<>(this->q_element_abs_rot);
+    R_rhombus.block<3, 3>(3, 3) =
+        ChMatrix33<>(this->GetNodeA()->Frame().GetRot().GetConjugate() % this->q_element_abs_rot);
+    R_rhombus.block<3, 3>(6, 6) = ChMatrix33<>(this->q_element_abs_rot);
+    R_rhombus.block<3, 3>(9, 9) =
+        ChMatrix33<>(this->GetNodeB()->Frame().GetRot().GetConjugate() % this->q_element_abs_rot);
+
+    Kt_accurate.setZero();
+    Kt_accurate = R_rhombus * Kt_loc * R_rhombus.transpose();
+}
+
 void ChElementBeamTaperedTimoshenko::ComputeKiRimatricesLocal(bool inertial_damping, bool inertial_stiffness) {
     assert(tapered_section);
 

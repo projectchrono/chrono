@@ -14,8 +14,8 @@
       "Steering Index": 0,
       "Left Wheel Input File": "Polaris/Polaris_Wheel.json",
       "Right Wheel Input File": "Polaris/Polaris_Wheel.json",
-      "Left Brake Input File": "Polaris/Polaris_BrakeSimple.json",
-      "Right Brake Input File": "Polaris/Polaris_BrakeSimple.json"
+      "Left Brake Input File": "Polaris/Polaris_BrakeShafts.json",
+      "Right Brake Input File": "Polaris/Polaris_BrakeShafts.json"
     },
 
     {
@@ -23,8 +23,8 @@
       "Suspension Location": [ 0, 0, 0.07 ],
       "Left Wheel Input File": "Polaris/Polaris_Wheel.json",
       "Right Wheel Input File": "Polaris/Polaris_Wheel.json",
-      "Left Brake Input File": "Polaris/Polaris_BrakeSimple.json",
-      "Right Brake Input File": "Polaris/Polaris_BrakeSimple.json",
+      "Left Brake Input File": "Polaris/Polaris_BrakeShafts.json",
+      "Right Brake Input File": "Polaris/Polaris_BrakeShafts.json",
       "Antirollbar Input File": "Polaris/Polaris_Antirollbar.json",
       "Antirollbar Location": [ -1.999488, 0, 0.4318 ]
     }

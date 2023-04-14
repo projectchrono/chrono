@@ -67,9 +67,9 @@ void ChRigidChassis::ExportComponentList(rapidjson::Document& jsonDocument) cons
 
     std::vector<std::shared_ptr<ChBody>> bodies;
     bodies.push_back(m_body);
-    ChPart::ExportBodyList(jsonDocument, bodies);
+    ExportBodyList(jsonDocument, bodies);
 
-    ChPart::ExportMarkerList(jsonDocument, m_markers);
+    ExportMarkerList(jsonDocument, m_markers);
 }
 
 void ChRigidChassis::Output(ChVehicleOutput& database) const {
@@ -117,9 +117,9 @@ void ChRigidChassisRear::ExportComponentList(rapidjson::Document& jsonDocument) 
 
     std::vector<std::shared_ptr<ChBody>> bodies;
     bodies.push_back(m_body);
-    ChPart::ExportBodyList(jsonDocument, bodies);
+    ExportBodyList(jsonDocument, bodies);
 
-    ChPart::ExportMarkerList(jsonDocument, m_markers);
+    ExportMarkerList(jsonDocument, m_markers);
 }
 
 void ChRigidChassisRear::Output(ChVehicleOutput& database) const {

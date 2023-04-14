@@ -598,9 +598,7 @@ ChFluidDynamics::ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
                 otherBceWorker, fsiSystem.sortedSphMarkersD, fsiSystem.markersProximityD, 
                 fsiSystem.fsiGeneralData, paramsH, numObjectsH, verb);
             if (verbose) {
-                cout << "============================================" << endl;
-                cout << "======   Created an I2SPH framework   ======" << endl;
-                cout << "============================================" << endl;
+                cout << "====== Created an I2SPH framework" << endl;
             }
             break;
 
@@ -609,9 +607,7 @@ ChFluidDynamics::ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
                 otherBceWorker, fsiSystem.sortedSphMarkersD, fsiSystem.markersProximityD,
                 fsiSystem.fsiGeneralData, paramsH, numObjectsH, verb);
             if (verbose) {
-                cout << "============================================" << endl;
-                cout << "======   Created an IISPH framework   ======" << endl;
-                cout << "============================================" << endl;
+                cout << "====== Created an IISPH framework" << endl;
             }
             break;
 
@@ -620,9 +616,7 @@ ChFluidDynamics::ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
                 otherBceWorker, fsiSystem.sortedSphMarkersD, fsiSystem.markersProximityD, 
                 fsiSystem.fsiGeneralData, paramsH, numObjectsH, verb);
             if (verbose) {
-                cout << "============================================" << endl;
-                cout << "======   Created a WCSPH framework   =======" << endl;
-                cout << "============================================" << endl;
+                cout << "====== Created a WCSPH framework" << endl;
             }
             break;
 

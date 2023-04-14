@@ -37,7 +37,8 @@ ChVisualSystemOpenGL::ChVisualSystemOpenGL()
       m_particle_render_mode(RenderMode::POINTS),
       m_particle_radius(0.1f),
       particle_selector(nullptr),
-      render_stats(true) {
+      render_stats(true),
+      m_verbose(true) {
     stats_renderer = chrono_types::make_shared<ChOpenGLStatsDefault>();
 }
 
@@ -203,7 +204,7 @@ void ChVisualSystemOpenGL::Initialize() {
     glfwSetCursorPosCallback(window, CallbackMousePos);
 
     GLReturnedError("Initialize GLEW");
-    GLFWGetVersion(window);
+    GLFWGetVersion(window, m_verbose);
 
     glfwGetFramebufferSize(window, &m_width, &m_height);
     if (m_height > 0) {
@@ -228,19 +229,22 @@ void ChVisualSystemOpenGL::Initialize() {
 
 // -----------------------------------------------------------------------------
 
-void ChVisualSystemOpenGL::GLFWGetVersion(GLFWwindow* main_window) {
+void ChVisualSystemOpenGL::GLFWGetVersion(GLFWwindow* main_window, bool verbose) {
     int major, minor, rev;
     major = glfwGetWindowAttrib(main_window, GLFW_CONTEXT_VERSION_MAJOR);
     minor = glfwGetWindowAttrib(main_window, GLFW_CONTEXT_VERSION_MINOR);
     rev = glfwGetWindowAttrib(main_window, GLFW_CONTEXT_REVISION);
-    fprintf(stdout, "Version: %d.%d.%d\n", major, minor, rev);
 
     const GLubyte* vendor = glGetString(GL_VENDOR);
     const GLubyte* renderer = glGetString(GL_RENDERER);
     const GLubyte* version = glGetString(GL_VERSION);
     const GLubyte* glsl_ver = glGetString(GL_SHADING_LANGUAGE_VERSION);
 
-    printf("%s : %s (%s)\n >> GLSL: %s\n", vendor, renderer, version, glsl_ver);
+    if (verbose) {
+        printf("Version: %d.%d.%d\n", major, minor, rev);
+        printf("%s : %s (%s)\n", vendor, renderer, version);
+        printf("GLSL: %s\n", glsl_ver);
+    }
 }
 
 void ChVisualSystemOpenGL::CallbackError(int error, const char* description) {
@@ -276,7 +280,7 @@ void ChVisualSystemOpenGL::CallbackKeyboard(GLFWwindow* window, int key, int sca
     }
 
     if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-        for (auto ue : vsGL->user_receivers) {
+        for (auto& ue : vsGL->user_receivers) {
             if (ue->CallbackKeyboard(window, key, scancode, action, mode))
                 return;
         }
@@ -288,7 +292,7 @@ void ChVisualSystemOpenGL::CallbackKeyboard(GLFWwindow* window, int key, int sca
 void ChVisualSystemOpenGL::CallbackMouseButton(GLFWwindow* window, int button, int state, int mods) {
     ChVisualSystemOpenGL* vsGL = (ChVisualSystemOpenGL*)glfwGetWindowUserPointer(window);
 
-    for (auto ue : vsGL->user_receivers) {
+    for (auto& ue : vsGL->user_receivers) {
         if (ue->CallbackMouseButton(window, button, state, mods))
             return;
     }
@@ -301,7 +305,7 @@ void ChVisualSystemOpenGL::CallbackMouseButton(GLFWwindow* window, int button, i
 void ChVisualSystemOpenGL::CallbackMousePos(GLFWwindow* window, double x, double y) {
     ChVisualSystemOpenGL* vsGL = (ChVisualSystemOpenGL*)glfwGetWindowUserPointer(window);
 
-    for (auto ue : vsGL->user_receivers) {
+    for (auto& ue : vsGL->user_receivers) {
         if (ue->CallbackMousePos(window, x, y))
             return;
     }

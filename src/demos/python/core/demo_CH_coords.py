@@ -19,7 +19,7 @@ try:
     import numpy as np
     from numpy import linalg as LA
 except ImportError:
-    print("You need NumPyto run this demo!")
+    print("You need NumPy to run this demo!")
         
 
 # Test logging
@@ -58,7 +58,7 @@ prod = v * npmat   # you can perform linear algebra operations with numpy and th
 mb.SetMatr(v.tolist())    # create a ChMatrixDynamicD from the numpy eigenvectors
 mr = chrono.ChMatrix33D()
 mr.SetMatr([[1,2,3], [4,5,6], [7,8,9]])
-print  (mr*my_vect1);
+print (mr*my_vect1);
 
 
 # Test frames -
@@ -91,11 +91,3 @@ class MySquareFunct (chrono.ChFunction):
 my_funct2 = MySquareFunct()
 print ('function f(2) =', my_funct2.Get_y(3) )
 print ('function df/dx=', my_funct2.Get_y_dx(3) )
-
-
-
-
-
-
-
-

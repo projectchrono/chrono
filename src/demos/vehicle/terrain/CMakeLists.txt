@@ -3,17 +3,24 @@
 # These example programs require Irrlicht run-time visualization.
 #=============================================================================
 
-if(NOT ENABLE_MODULE_IRRLICHT AND NOT ENABLE_MODULE_VSG)
-    return()
-endif()
-
 #--------------------------------------------------------------
 # List all demos
 
-set(DEMOS
-    demo_VEH_DeformableSoil
-    demo_VEH_RigidTerrain
-)
+set(DEMOS "")
+
+if(ENABLE_MODULE_IRRLICHT OR ENABLE_MODULE_VSG)
+    set(DEMOS ${DEMOS}
+        demo_VEH_RigidTerrain_WheeledVehicle
+        demo_VEH_SCMTerrain_WheeledVehicle
+    )
+endif()
+
+if(ENABLE_MODULE_IRRLICHT)
+    set(DEMOS ${DEMOS}  
+        demo_VEH_SCMTerrain_TrackedVehicle
+        demo_VEH_SCMTerrain_RigidTire
+    )
+endif()
 
 if(HAVE_OPENCRG AND ENABLE_MODULE_IRRLICHT)
     set(DEMOS ${DEMOS}
@@ -29,14 +36,22 @@ endif()
 
 if(ENABLE_MODULE_MULTICORE AND ENABLE_MODULE_OPENGL)
     set(DEMOS ${DEMOS}
-        demo_VEH_GranularTerrain
-        demo_VEH_MovingPatch
+        demo_VEH_GranularTerrain_RigidTire
+        demo_VEH_GranularTerrain_MovingPatch
     )
 endif()
 
-if(ENABLE_MODULE_PARDISO_MKL)
+if(ENABLE_MODULE_FSI AND (ENABLE_MODULE_OPENGL OR ENABLE_MODULE_VSG))
     set(DEMOS ${DEMOS}
-        demo_VEH_DeformableSoilAndTire
+        demo_VEH_SPHTerrain_Obstacles
+        demo_VEH_SPHTerrain_WheeledVehicle
+        demo_VEH_SPHTerrain_Viper
+    )
+endif()
+
+if(ENABLE_MODULE_PARDISO_MKL AND ENABLE_MODULE_IRRLICHT)
+    set(DEMOS ${DEMOS}
+        demo_VEH_SCMTerrain_FEATire
     )
 endif()
 
@@ -48,9 +63,10 @@ set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
 list(APPEND LIBS "ChronoEngine")
 list(APPEND LIBS "ChronoEngine_vehicle")
 list(APPEND LIBS "ChronoModels_vehicle")
+list(APPEND LIBS "ChronoModels_robot")
 
 if(ENABLE_MODULE_IRRLICHT)
-    include_directories(${CH_IRRLICHTINC})
+    include_directories(${CH_IRRLICHT_INCLUDES})
     set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
     list(APPEND LIBS "ChronoEngine_irrlicht")
     list(APPEND LIBS "ChronoEngine_vehicle_irrlicht")
@@ -68,6 +84,11 @@ if(ENABLE_MODULE_MULTICORE)
     include_directories(${CH_MULTICORE_INCLUDES})
     set(COMPILER_FLAGS "${CH_CXX_FLAGS}  ${CH_MULTICORE_CXX_FLAGS}")
     list(APPEND LIBS "ChronoEngine_multicore")
+endif()
+
+if(ENABLE_MODULE_FSI)
+    include_directories(${CH_FSI_INCLUDES})
+    list(APPEND LIBS "ChronoEngine_fsi")
 endif()
 
 if(ENABLE_MODULE_PARDISO_MKL)

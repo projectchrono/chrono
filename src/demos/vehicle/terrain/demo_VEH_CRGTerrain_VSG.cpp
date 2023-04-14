@@ -59,7 +59,7 @@ enum class DriverModelType {
     HUMAN     // simple realistic human driver
 };
 
-// Type of tire model (LUGRE, FIALA, PACEJKA, or TMEASY)
+// Type of tire model (LUGRE, FIALA, PACEJKA, TMSIMPLE or TMEASY)
 TireModelType tire_model = TireModelType::TMEASY;
 
 // Road visualization (mesh or boundary lines)
@@ -330,7 +330,7 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     my_hmmwv.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     my_hmmwv.SetWheelVisualizationType(VisualizationType::NONE);
-    my_hmmwv.SetTireVisualizationType(VisualizationType::PRIMITIVES);
+    my_hmmwv.SetTireVisualizationType(VisualizationType::MESH);
 
     // --------------------
     // Create driver system

@@ -158,11 +158,11 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
         cout << "[Terrain node] SCM " << endl;
 
     // Create the SCM patch (default center at origin)
-    m_terrain = new SCMDeformableTerrain(m_system);
+    m_terrain = new SCMTerrain(m_system);
     m_terrain->SetSoilParameters(m_Bekker_Kphi, m_Bekker_Kc, m_Bekker_n,            //
                                  m_Mohr_cohesion, m_Mohr_friction, m_Janosi_shear,  //
                                  m_elastic_K, m_damping_R);
-    m_terrain->SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE, 0, max_sinkage);
+    m_terrain->SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, max_sinkage);
     m_terrain->Initialize(2 * m_hdimX, 2 * m_hdimY, m_spacing);
 
     // If indicated, set node heights from checkpoint file
@@ -185,7 +185,7 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
         std::istringstream iss(line);
         iss >> num_nodes;
 
-        std::vector<SCMDeformableTerrain::NodeLevel> nodes(num_nodes);
+        std::vector<SCMTerrain::NodeLevel> nodes(num_nodes);
         for (int i = 0; i < num_nodes; i++) {
             std::getline(ifile, line);
             std::istringstream iss1(line);

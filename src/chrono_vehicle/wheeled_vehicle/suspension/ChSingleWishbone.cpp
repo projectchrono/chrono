@@ -286,18 +286,13 @@ double ChSingleWishbone::GetTrack() {
 // -----------------------------------------------------------------------------
 // Return current suspension forces
 // -----------------------------------------------------------------------------
-ChSuspension::Force ChSingleWishbone::ReportSuspensionForce(VehicleSide side) const {
-    ChSuspension::Force force;
+std::vector<ChSuspension::ForceTSDA> ChSingleWishbone::ReportSuspensionForce(VehicleSide side) const {
+    std::vector<ChSuspension::ForceTSDA> forces(1);
 
-    force.spring_force = m_shock[side]->GetForce();
-    force.spring_length = m_shock[side]->GetLength();
-    force.spring_velocity = m_shock[side]->GetVelocity();
+    forces[0] = ChSuspension::ForceTSDA("Shock", m_shock[side]->GetForce(), m_shock[side]->GetLength(),
+                                        m_shock[side]->GetVelocity());
 
-    force.shock_force = force.spring_force;
-    force.shock_length = force.spring_length;
-    force.shock_velocity = force.spring_velocity;
-
-    return force;
+    return forces;
 }
 
 // -----------------------------------------------------------------------------
@@ -515,12 +510,12 @@ void ChSingleWishbone::ExportComponentList(rapidjson::Document& jsonDocument) co
         bodies.push_back(m_tierod[0]);
         bodies.push_back(m_tierod[1]);
     }
-    ChPart::ExportBodyList(jsonDocument, bodies);
+    ExportBodyList(jsonDocument, bodies);
 
     std::vector<std::shared_ptr<ChShaft>> shafts;
     shafts.push_back(m_axle[0]);
     shafts.push_back(m_axle[1]);
-    ChPart::ExportShaftList(jsonDocument, shafts);
+    ExportShaftList(jsonDocument, shafts);
 
     std::vector<std::shared_ptr<ChLink>> joints;
     std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
@@ -547,13 +542,13 @@ void ChSingleWishbone::ExportComponentList(rapidjson::Document& jsonDocument) co
         joints.push_back(m_distTierod[0]);
         joints.push_back(m_distTierod[1]);
     }
-    ChPart::ExportJointList(jsonDocument, joints);
-    ChPart::ExportBodyLoadList(jsonDocument, bushings);
+    ExportJointList(jsonDocument, joints);
+    ExportBodyLoadList(jsonDocument, bushings);
 
     std::vector<std::shared_ptr<ChLinkTSDA>> springs;
     springs.push_back(m_shock[0]);
     springs.push_back(m_shock[1]);
-    ChPart::ExportLinSpringList(jsonDocument, springs);
+    ExportLinSpringList(jsonDocument, springs);
 }
 
 void ChSingleWishbone::Output(ChVehicleOutput& database) const {

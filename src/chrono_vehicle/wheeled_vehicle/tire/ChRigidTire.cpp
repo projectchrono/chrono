@@ -24,7 +24,7 @@
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
 
-#include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
+#include "chrono_vehicle/terrain/SCMTerrain.h"
 
 namespace chrono {
 namespace vehicle {
@@ -54,7 +54,7 @@ void ChRigidTire::Initialize(std::shared_ptr<ChWheel> wheel) {
 
     wheel_body->GetCollisionModel()->ClearModel();
 
-    wheel_body->GetCollisionModel()->SetFamily(WheeledCollisionFamily::TIRES);
+    wheel_body->GetCollisionModel()->SetFamily(WheeledCollisionFamily::TIRE);
 
     if (m_use_contact_mesh) {
         // Mesh contact
@@ -190,7 +190,7 @@ TerrainForce ChRigidTire::GetTireForce() const {
 TerrainForce ChRigidTire::ReportTireForce(ChTerrain* terrain) const {
     // If interacting with an SCM terrain, interrogate the terrain system
     // for the cumulative force on the associated rigid body.
-    if (auto scm = dynamic_cast<SCMDeformableTerrain*>(terrain)) {
+    if (auto scm = dynamic_cast<SCMTerrain*>(terrain)) {
         return scm->GetContactForce(m_wheel->GetSpindle());
     }
 

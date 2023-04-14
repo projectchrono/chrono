@@ -303,7 +303,7 @@ int main(int argc, char* argv[]) {
     ChQuaternion<> pollo(3, 5, 6, 7);
     ChVector<> pallo(2, 4, 6);
 
-    ChTimer<double> timer;
+    ChTimer timer;
 
     //int numcycles = 100000;
     int i;

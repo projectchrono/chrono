@@ -68,6 +68,11 @@ class CH_VEHICLE_API ChWheel : public ChPart {
                             double offset = 0                 ///< offset from associated spindle center
     );
 
+    /// Enable/disable contact for the wheel.
+    /// This function controls contact of the wheel with all other collision shapes in the simulation. Must be called
+    /// after initialization and has effect only if the derived object has defined some collision shapes.
+    void SetCollide(bool state) { m_spindle->SetCollide(state); }
+
     /// Synchronize the wheel subsystem. 
     /// This queries the forces from the attached tire and passes it to the associated suspension.
     void Synchronize();

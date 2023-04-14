@@ -119,17 +119,17 @@ Marder_TrackShoeSinglePin::Marder_TrackShoeSinglePin(const std::string& name) : 
 
     // Visualization cylinder: pin revolute joint
     m_geometry.m_vis_cylinders.push_back(
-        ChVehicleGeometry::CylinderShape(ChVector<>(0.077, 0, 0), QUNIT, 0.01, 0.399, -1));
+        ChVehicleGeometry::CylinderShape(ChVector<>(0.077, 0, 0), ChVector<>(0, 1, 0), 0.01, 0.399, -1));
 
     // Visualization cylinders: sprocket contact surfaces
     m_geometry.m_vis_cylinders.push_back(
-        ChVehicleGeometry::CylinderShape(ChVector<>(0.0535, -0.095, 0), QUNIT, 0.015, 0.095, -1));
+        ChVehicleGeometry::CylinderShape(ChVector<>(0.0535, -0.095, 0), ChVector<>(0, 1, 0), 0.015, 0.095, -1));
     m_geometry.m_vis_cylinders.push_back(
-        ChVehicleGeometry::CylinderShape(ChVector<>(0.0535, +0.095, 0), QUNIT, 0.015, 0.095, -1));
+        ChVehicleGeometry::CylinderShape(ChVector<>(0.0535, +0.095, 0), ChVector<>(0, 1, 0), 0.015, 0.095, -1));
     m_geometry.m_vis_cylinders.push_back(
-        ChVehicleGeometry::CylinderShape(ChVector<>(-0.061, -0.095, 0), QUNIT, 0.015, 0.095, -1));
+        ChVehicleGeometry::CylinderShape(ChVector<>(-0.061, -0.095, 0), ChVector<>(0, 1, 0), 0.015, 0.095, -1));
     m_geometry.m_vis_cylinders.push_back(
-        ChVehicleGeometry::CylinderShape(ChVector<>(-0.061, +0.095, 0), QUNIT, 0.015, 0.095, -1));
+        ChVehicleGeometry::CylinderShape(ChVector<>(-0.061, +0.095, 0), ChVector<>(0, 1, 0), 0.015, 0.095, -1));
 
     m_geometry.m_has_mesh = true;
     m_geometry.m_vis_mesh_file = "M113/TrackShoe.obj";

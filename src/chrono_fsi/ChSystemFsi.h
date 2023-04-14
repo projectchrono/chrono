@@ -92,6 +92,9 @@ class CH_FSI_API ChSystemFsi {
     /// Destructor for the FSI system.
     ~ChSystemFsi();
 
+    /// Attach Chrono MBS system.
+    void AttachSystem(ChSystem* sysMBS);
+
     /// Function to integrate the FSI system in time.
     /// It uses a Runge-Kutta 2nd order algorithm to update both the fluid and multibody system dynamics. The midpoint
     /// data of MBS is needed for fluid dynamics update.
@@ -100,8 +103,8 @@ class CH_FSI_API ChSystemFsi {
     /// Get current estimated RTF (real time factor).
     double GetRTF() const { return m_RTF; }
 
-    /// Enable/disable m_verbose terminal output.
-    void SetVerbose(bool m_verbose);
+    /// Enable/disable verbose terminal output.
+    void SetVerbose(bool verbose);
 
     /// Read Chrono::FSI parameters from the specified JSON file.
     void ReadParametersFromFile(const std::string& json_file);
@@ -554,7 +557,7 @@ class CH_FSI_API ChSystemFsi {
     bool m_integrate_SPH;   ///< set to true if needs to integrate the fsi solver
     double m_time;          ///< current simulation time
 
-    ChTimer<double> m_timer_step;  ///< timer for integration step
+    ChTimer m_timer_step;  ///< timer for integration step
     double m_RTF;                  ///< real-time factor (simulation time / simulated time)
 
     friend class ChFsiVisualizationGL;

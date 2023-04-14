@@ -34,6 +34,8 @@
 
 #include "chrono_vsg/ChVisualSystemVSG.h"
 
+#include "chrono_thirdparty/filesystem/path.h"
+
 // Use the namespace of Chrono
 using namespace chrono;
 using namespace chrono::geometry;
@@ -374,13 +376,20 @@ int main(int argc, char* argv[]) {
 
     vis->Initialize();
 
+    // Create output directory
+    const std::string out_dir = GetChronoOutputPath() + "VSG_ASSETS";
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+
     ChRealtimeStepTimer rt;
-    double step_size = 0.1;
+    double step_size = 0.01;
     unsigned int frame_number = 0;
     while (vis->Run()) {
         double time = sys.GetChTime();
         if (frame_number == 42) {
-            vis->WriteImageToFile("newshot.png");  // does not work with frame == 0!
+            vis->WriteImageToFile(out_dir + "/newshot.png");  // does not work with frame == 0!
         }
 
         vis->UpdateVisualModel(teapotId1, ChFrame(ChVector<>(0, 3.5 + 0.5 * sin(CH_C_PI * time / 10), 3), Zup));

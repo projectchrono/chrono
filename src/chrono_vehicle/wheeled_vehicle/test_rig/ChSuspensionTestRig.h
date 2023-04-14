@@ -225,6 +225,7 @@ class CH_VEHICLE_API ChSuspensionTestRig {
     double m_plot_output_step;
     double m_next_plot_output_time;
     utils::CSV_writer* m_csv;
+    std::vector<int> m_csv_lengths;
 };
 
 // -----------------------------------------------------------------------------

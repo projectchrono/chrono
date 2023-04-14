@@ -43,7 +43,7 @@ namespace utils {
 
 #ifndef CH_NO_PROFILE
 
-static ChTimer<double> gProfileClock;
+static ChTimer gProfileClock;
 
 #define mymin(a,b) (a > b ? a : b)
 

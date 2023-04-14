@@ -70,7 +70,7 @@ def main():
     driver.Initialize()
 
     # Create the SCM deformable terrain patch
-    terrain = veh.SCMDeformableTerrain(my_hmmwv.GetSystem())
+    terrain = veh.SCMTerrain(my_hmmwv.GetSystem())
     terrain.SetSoilParameters(2e6,   # Bekker Kphi
                               0,     # Bekker Kc
                               1.1,   # Bekker n exponent
@@ -85,7 +85,7 @@ def main():
     terrain.AddMovingPatch(my_hmmwv.GetChassisBody(), chrono.ChVectorD(0, 0, 0), chrono.ChVectorD(5, 3, 1))
 
     # Set plot type for SCM (false color plotting)
-    terrain.SetPlotType(veh.SCMDeformableTerrain.PLOT_SINKAGE, 0, 0.1);
+    terrain.SetPlotType(veh.SCMTerrain.PLOT_SINKAGE, 0, 0.1);
 
     # Initialize the SCM terrain, specifying the initial mesh grid
     terrain.Initialize(terrainLength, terrainWidth, delta);

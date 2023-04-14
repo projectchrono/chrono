@@ -51,12 +51,12 @@ using namespace chrono::vehicle;
 // Available models:
 //    HMMWV       - Hig Mobility Multipurpose Wheeled Vehicle
 //    Sedan       - Generic sedan vehicle
-//    Audi        - Audia A4 
+//    Audi        - Audia A4
 //    VW microbus - VW T2 microbus
 //    UAZ         - UAZ minibus
 //    CityBus     - passenger bus
 //    MAN         - MAN 10t truck
-//    MTV         - MTV truck 
+//    MTV         - MTV truck
 //    ACV         - articulated chassis vehicle (skid steer)
 
 class Vehicle_Model {
@@ -73,8 +73,9 @@ class HMMWV_Model : public Vehicle_Model {
   public:
     virtual std::string ModelName() const override { return "HMMWV"; }
     virtual std::string VehicleJSON() const override {
-        return "hmmwv/vehicle/HMMWV_Vehicle_mapShock.json";
-        ////return "hmmwv/vehicle/HMMWV_Vehicle.json";
+        return "hmmwv/vehicle/HMMWV_Vehicle.json";
+        ////return "hmmwv/vehicle/HMMWV_Vehicle_replica.json";
+        ////return "hmmwv/vehicle/HMMWV_Vehicle_mapShock.json";
         ////return "hmmwv/vehicle/HMMWV_Vehicle_bushings.json";
         ////return "hmmwv/vehicle/HMMWV_Vehicle_4WD.json";
     }
@@ -91,7 +92,7 @@ class HMMWV_Model : public Vehicle_Model {
         ////return "hmmwv/powertrain/HMMWV_SimplePowertrain.json";
     }
     virtual double CameraDistance() const override { return 6.0; }
-    virtual ChContactMethod ContactMethod() const { return ChContactMethod::SMC; }
+    virtual ChContactMethod ContactMethod() const override { return ChContactMethod::SMC; }
 };
 
 class Sedan_Model : public Vehicle_Model {
@@ -105,7 +106,7 @@ class Sedan_Model : public Vehicle_Model {
     }
     virtual std::string PowertrainJSON() const override { return "sedan/powertrain/Sedan_SimpleMapPowertrain.json"; }
     virtual double CameraDistance() const override { return 6.0; }
-    virtual ChContactMethod ContactMethod() const { return ChContactMethod::SMC; }
+    virtual ChContactMethod ContactMethod() const override { return ChContactMethod::SMC; }
 };
 
 class Audi_Model : public Vehicle_Model {
@@ -119,7 +120,7 @@ class Audi_Model : public Vehicle_Model {
     }
     virtual std::string PowertrainJSON() const override { return "audi/json/audi_SimpleMapPowertrain.json"; }
     virtual double CameraDistance() const override { return 6.0; }
-    virtual ChContactMethod ContactMethod() const { return ChContactMethod::SMC; }
+    virtual ChContactMethod ContactMethod() const override { return ChContactMethod::SMC; }
 };
 
 class Polaris_Model : public Vehicle_Model {
@@ -129,7 +130,7 @@ class Polaris_Model : public Vehicle_Model {
     virtual std::string TireJSON() const override { return "Polaris/Polaris_TMeasyTire.json"; }
     virtual std::string PowertrainJSON() const override { return "Polaris/Polaris_SimpleMapPowertrain.json"; }
     virtual double CameraDistance() const override { return 6.0; }
-    virtual ChContactMethod ContactMethod() const { return ChContactMethod::SMC; }
+    virtual ChContactMethod ContactMethod() const override { return ChContactMethod::SMC; }
 };
 
 class UAZ_Model : public Vehicle_Model {
@@ -146,7 +147,7 @@ class UAZ_Model : public Vehicle_Model {
     }
     virtual std::string PowertrainJSON() const override { return "uaz/powertrain/UAZBUS_SimpleMapPowertrain.json"; }
     virtual double CameraDistance() const override { return 6.0; }
-    virtual ChContactMethod ContactMethod() const { return ChContactMethod::SMC; }
+    virtual ChContactMethod ContactMethod() const override { return ChContactMethod::SMC; }
 };
 
 class VW_Microbus_Model : public Vehicle_Model {
@@ -155,11 +156,12 @@ class VW_Microbus_Model : public Vehicle_Model {
     virtual std::string VehicleJSON() const override { return "VW_microbus/json/van_Vehicle.json"; }
     virtual std::string TireJSON() const override {
         ////return "VW_microbus/json/van_Pac02Tire.json";
-        return "VW_microbus/json/van_TMeasyTire.json";
+        ////return "VW_microbus/json/van_TMeasyTire.json";
+        return "VW_microbus/json/van_TMsimpleTireFull.json";
     }
     virtual std::string PowertrainJSON() const override { return "VW_microbus/json/van_SimpleMapPowertrain.json"; }
     virtual double CameraDistance() const override { return 7.0; }
-    virtual ChContactMethod ContactMethod() const { return ChContactMethod::SMC; }
+    virtual ChContactMethod ContactMethod() const override { return ChContactMethod::SMC; }
 };
 
 class CityBus_Model : public Vehicle_Model {
@@ -175,7 +177,7 @@ class CityBus_Model : public Vehicle_Model {
         return "citybus/powertrain/CityBus_SimpleMapPowertrain.json";
     }
     virtual double CameraDistance() const override { return 14.0; }
-    virtual ChContactMethod ContactMethod() const { return ChContactMethod::SMC; }
+    virtual ChContactMethod ContactMethod() const override { return ChContactMethod::SMC; }
 };
 
 class MAN_Model : public Vehicle_Model {
@@ -192,7 +194,7 @@ class MAN_Model : public Vehicle_Model {
         return "MAN_Kat1/powertrain/MAN_7t_SimpleCVTPowertrain.json";
     }
     virtual double CameraDistance() const override { return 12.0; }
-    virtual ChContactMethod ContactMethod() const { return ChContactMethod::SMC; }
+    virtual ChContactMethod ContactMethod() const override { return ChContactMethod::SMC; }
 };
 
 class MTV_Model : public Vehicle_Model {
@@ -202,7 +204,7 @@ class MTV_Model : public Vehicle_Model {
     virtual std::string TireJSON() const override { return "mtv/tire/FMTV_TMeasyTire.json"; }
     virtual std::string PowertrainJSON() const override { return "mtv/powertrain/FMTV_ShaftsPowertrain.json"; }
     virtual double CameraDistance() const override { return 10.0; }
-    virtual ChContactMethod ContactMethod() const { return ChContactMethod::SMC; }
+    virtual ChContactMethod ContactMethod() const override { return ChContactMethod::SMC; }
 };
 
 class ACV_Model : public Vehicle_Model {
@@ -212,7 +214,7 @@ class ACV_Model : public Vehicle_Model {
     virtual std::string TireJSON() const override { return "articulated_chassis/ACV_RigidTire.json"; }
     virtual std::string PowertrainJSON() const override { return "articulated_chassis/ACV_SimplePowertrain.json"; }
     virtual double CameraDistance() const override { return 6.0; }
-    virtual ChContactMethod ContactMethod() const { return ChContactMethod::NSC; }
+    virtual ChContactMethod ContactMethod() const override { return ChContactMethod::NSC; }
 };
 
 // =============================================================================
@@ -363,6 +365,7 @@ int main(int argc, char* argv[]) {
 #endif
             break;
         }
+        default:
         case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
             // Create the vehicle VSG interface

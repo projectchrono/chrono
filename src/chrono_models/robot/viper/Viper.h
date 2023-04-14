@@ -233,6 +233,9 @@ class CH_MODELS_API Viper {
     /// Get the rover chassis.
     std::shared_ptr<ViperChassis> GetChassis() const { return m_chassis; }
 
+    /// Get all rover wheels.
+    std::array<std::shared_ptr<ViperWheel>, 4> GetWheels() const { return m_wheels; }
+
     /// Get the specified rover wheel.
     std::shared_ptr<ViperWheel> GetWheel(ViperWheelID id) const { return m_wheels[id]; }
 

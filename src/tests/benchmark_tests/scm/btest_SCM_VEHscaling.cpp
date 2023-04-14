@@ -27,7 +27,7 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
-#include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
+#include "chrono_vehicle/terrain/SCMTerrain.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
@@ -185,7 +185,7 @@ int main(int argc, char* argv[]) {
     // ------------------
     // Create the terrain
     // ------------------
-    SCMDeformableTerrain terrain(&sys, visualize);
+    SCMTerrain terrain(&sys, visualize);
 
     terrain.SetSoilParameters(2e6,   // Bekker Kphi
                               0,     // Bekker Kc
@@ -216,7 +216,7 @@ int main(int argc, char* argv[]) {
         terrain.AddMovingPatch(hmmwv.GetChassisBody(), ChVector<>(0, 0, 0), ChVector<>(5, 3, 1));
     }
 
-    terrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE, 0, 0.1);
+    terrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.1);
 
     terrain.Initialize(terrainLength, terrainWidth, delta);
 
@@ -257,7 +257,7 @@ int main(int argc, char* argv[]) {
     double raytest = 0;
     double raycast = 0;
 
-    ChTimer<> timer;
+    ChTimer timer;
     timer.start();
 
     while (true) {

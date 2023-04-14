@@ -142,10 +142,10 @@ class SYN_API SynChronoManager {
     double m_heartbeat;  ///< Rate at which synchronization between nodes occurs
     double m_next_sync;  ///< Time at which next synchronization between nodes should occur
 
-    ChTimer<> m_timer_update;         ///< timer for agent updates
-    ChTimer<> m_timer_msg_gather;     ///< timer for generating outgoing messages
-    ChTimer<> m_timer_communication;  ///< timer for communication
-    ChTimer<> m_timer_msg_process;    ///< timer for processing received messages
+    ChTimer m_timer_update;         ///< timer for agent updates
+    ChTimer m_timer_msg_gather;     ///< timer for generating outgoing messages
+    ChTimer m_timer_communication;  ///< timer for communication
+    ChTimer m_timer_msg_process;    ///< timer for processing received messages
 
     double m_time_update;         ///< cumulative time for agent updates
     double m_time_msg_gather;     ///< cumulative time for generating outgoing messages

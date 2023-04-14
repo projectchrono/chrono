@@ -167,13 +167,12 @@ class CH_VEHICLE_API ChVehicle {
     /// Set visualization mode for the rear chassis subsystems.
     void SetChassisRearVisualizationType(VisualizationType vis);
 
-    /// Enable/disable collision for the chassis subsystem. This function controls
-    /// contact of the chassis with all other collision shapes in the simulation.
+    /// Enable/disable collision for the chassis subsystem. 
+    /// This function controls contact of the chassis with all other collision shapes in the simulation.
     void SetChassisCollide(bool state);
 
-    /// Enable/disable collision between the chassis and all other vehicle
-    /// subsystems. Note that some of these collisions may be always disabled,
-    /// as set by the particular derived vehicle class.
+    /// Enable/disable collision between the chassis and all other vehicle subsystems. 
+    /// Note that some of these collisions may be always disabled, as set by the particular derived vehicle class.
     virtual void SetChassisVehicleCollide(bool state) {}
 
     /// Enable/disable output from the chassis subsystem.
@@ -250,7 +249,7 @@ class CH_VEHICLE_API ChVehicle {
     bool m_initialized;
     bool m_realtime_force;
     ChRealtimeStepTimer m_realtime_timer;
-    ChTimer<> m_sim_timer;
+    ChTimer m_sim_timer;
     double m_RTF;
 
     friend class ChVehicleCosimWheeledVehicleNode;

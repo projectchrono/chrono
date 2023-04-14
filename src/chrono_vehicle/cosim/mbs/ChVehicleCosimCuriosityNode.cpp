@@ -69,7 +69,7 @@ class CuriosityDBPDriver : public CuriosityDriver {
 
     virtual DriveMotorType GetDriveMotorType() const override { return DriveMotorType::SPEED; }
 
-    virtual void Update(double time) {
+    virtual void Update(double time) override {
         double driving = m_func->Get_y(time);
         double steering = 0;
         for (int i = 0; i < 6; i++) {

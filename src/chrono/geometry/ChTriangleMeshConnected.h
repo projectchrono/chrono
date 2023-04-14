@@ -36,23 +36,6 @@ namespace geometry {
 /// - if no m_face_col_indices but m_colors.size() == m_vertices.size(), then m_colors represents per-vertex colors, otherwise per-face-corner
 class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
   public:
-    std::vector<ChVector<double>> m_vertices;
-    std::vector<ChVector<double>> m_normals;
-    std::vector<ChVector2<double>> m_UV;
-    std::vector<ChColor> m_colors;
-
-    std::vector<ChVector<int>> m_face_v_indices;
-    std::vector<ChVector<int>> m_face_n_indices;
-    std::vector<ChVector<int>> m_face_uv_indices;
-    std::vector<ChVector<int>> m_face_col_indices;
-    std::vector<int> m_face_mat_indices;
-
-    std::string m_filename;  ///< file string if loading an obj file
-
-    std::vector<ChProperty*> m_properties_per_vertex;
-    std::vector<ChProperty*> m_properties_per_face;
-
-  public:
     ChTriangleMeshConnected() {}
     ChTriangleMeshConnected(const ChTriangleMeshConnected& source);
     ~ChTriangleMeshConnected();
@@ -219,6 +202,11 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
         std::vector<std::vector<ChVector<>>*>& aux_data_vect  ///< auxiliary buffer
     );
 
+    const std::vector<ChVector<>>& getFaceVertices();
+    const std::vector<ChVector<>>& getFaceNormals();
+    const std::vector<ChColor>& getFaceColors();
+    const std::vector<ChVector<>>& getAverageNormals();
+
     virtual GeometryType GetClassType() const override { return TRIANGLEMESH_CONNECTED; }
 
     /// Method to allow serialization of transient data to archives.
@@ -226,6 +214,26 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  public:
+    std::vector<ChVector<double>> m_vertices;
+    std::vector<ChVector<double>> m_normals;
+    std::vector<ChVector2<double>> m_UV;
+    std::vector<ChColor> m_colors;
+
+    std::vector<ChVector<int>> m_face_v_indices;
+    std::vector<ChVector<int>> m_face_n_indices;
+    std::vector<ChVector<int>> m_face_uv_indices;
+    std::vector<ChVector<int>> m_face_col_indices;
+    std::vector<int> m_face_mat_indices;
+
+    std::string m_filename;  ///< file string if loading an obj file
+
+    std::vector<ChProperty*> m_properties_per_vertex;
+    std::vector<ChProperty*> m_properties_per_face;
+
+    std::vector<ChVector<>> m_tmp_vectors;
+    std::vector<ChColor> m_tmp_colors;
 };
 
 }  // end namespace geometry

@@ -27,9 +27,11 @@
 #include "chrono/fea/ChElementShellBST.h"
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChMesh.h"
-#include "chrono/assets/ChVisualShapeFEA.h"
 #include "chrono/fea/ChMeshFileLoader.h"
+#include "chrono/fea/ChContactSurfaceMesh.h"
+#include "chrono/fea/ChContactSurfaceNodeCloud.h"
 
+#include "chrono/assets/ChVisualShapeFEA.h"
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
@@ -37,9 +39,6 @@
 #include "chrono_postprocess/ChGnuPlot.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
-
-// Remember to use the namespace 'chrono' because all classes
-// of Chrono::Engine belong to this namespace and its children...
 
 using namespace chrono;
 using namespace chrono::fea;
@@ -81,7 +80,7 @@ int main(int argc, char* argv[]) {
     ChVector<> load_force;
 
     //
-    // BENCHMARK n.1
+    // BENCHMARK 1
     //
     // Add a single BST element:
     //
@@ -167,7 +166,7 @@ int main(int argc, char* argv[]) {
     }
 
     //
-    // BENCHMARK n.2
+    // BENCHMARK 2
     //
     // Add a rectangular mesh of BST elements:
     //
@@ -274,7 +273,7 @@ int main(int argc, char* argv[]) {
     }
 
     //
-    // BENCHMARK n.3
+    // BENCHMARK 3
     //
     // Load and create shells from a .obj file containing a triangle mesh surface
     //
@@ -293,15 +292,11 @@ int main(int argc, char* argv[]) {
     }
 
     // Visualization of the FEM mesh.
-    // This will automatically update a triangle mesh (a ChTriangleMeshShape asset that is internally managed) by
-    // setting  proper coordinates and vertex colors as in the FEM elements. Such triangle mesh can be rendered by
-    // Irrlicht or POVray or whatever postprocessor that can handle a colored ChTriangleMeshShape).
-
     auto vis_shell_A = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
-    // vis_shell_A->SetSmoothFaces(true);
-    // vis_shell_A->SetWireframe(true);
+    vis_shell_A->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
+    vis_shell_A->SetWireframe(true);
     vis_shell_A->SetShellResolution(2);
-    // vis_shell_A->SetBackfaceCull(true);
+    ////vis_shell_A->SetBackfaceCull(true);
     mesh->AddVisualShapeFEA(vis_shell_A);
 
     auto vis_shell_B = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
@@ -309,6 +304,33 @@ int main(int argc, char* argv[]) {
     vis_shell_B->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     vis_shell_B->SetSymbolsThickness(0.006);
     mesh->AddVisualShapeFEA(vis_shell_B);
+
+    if (false) {
+        // Create a contact material
+        auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+        mat->SetYoungModulus(6e4f);
+        mat->SetFriction(0.3f);
+        mat->SetRestitution(0.5f);
+        mat->SetAdhesion(0);
+
+        // Add collision geometry to the FEA mesh
+        // (a) contact surface
+        auto contact_surf = chrono_types::make_shared<ChContactSurfaceMesh>(mat);
+        mesh->AddContactSurface(contact_surf);
+        contact_surf->AddFacesFromBoundary(0.01);
+        // (b) contact points
+        ////auto contact_cloud = chrono_types::make_shared<ChContactSurfaceNodeCloud>(mat);
+        ////mesh->AddContactSurface(contact_cloud);
+        ////contact_cloud->AddAllNodes(0.01);
+
+        // Create a fixed collision shape
+        auto cylinder = chrono_types::make_shared<ChBodyEasyCylinder>(0.1, 1.0, 1000, true, true, mat);
+        cylinder->SetBodyFixed(true);
+        cylinder->SetPos(ChVector<>(0.75, -0.25, 0.5));
+        cylinder->SetRot(Q_from_AngZ(CH_C_PI_2));
+        cylinder->GetVisualShape(0)->SetColor(ChColor(0.6f, 0.4f, 0.4f));
+        sys.AddBody(cylinder);
+    }
 
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
@@ -319,10 +341,8 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddCamera(ChVector<>(1, 0.3, 1.3), ChVector<>(0.5, -0.3, 0.5));
-    vis->AddLightWithShadow(ChVector<>(2, 2, 2), ChVector<>(0, 0, 0), 6, 0.2, 6, 50);
-    vis->AddLight(ChVector<>(-2, -2, 0), 6, ChColor(0.6f, 1.0f, 1.0f));
-    vis->AddLight(ChVector<>(0, -2, -2), 6, ChColor(0.6f, 1.0f, 1.0f));
-    vis->EnableShadows();
+    vis->AddLight(ChVector<>(2, 2, 0), 6, ChColor(0.6f, 0.6f, 0.6f));
+    vis->AddLight(ChVector<>(0, -2, 2), 6, ChColor(0.6f, 0.6f, 0.6f));
 
     // Change solver to PardisoMKL
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();

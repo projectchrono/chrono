@@ -140,9 +140,9 @@ double ChRigidSuspension::GetTrack() {
 // -----------------------------------------------------------------------------
 // Return current suspension forces
 // -----------------------------------------------------------------------------
-ChSuspension::Force ChRigidSuspension::ReportSuspensionForce(VehicleSide side) const {
-    ChSuspension::Force force{0, 0, 0, 0, 0, 0};
-    return force;
+std::vector<ChSuspension::ForceTSDA> ChRigidSuspension::ReportSuspensionForce(VehicleSide side) const {
+    std::vector<ChSuspension::ForceTSDA> forces;
+    return forces;
 }
 
 // -----------------------------------------------------------------------------
@@ -167,17 +167,17 @@ void ChRigidSuspension::ExportComponentList(rapidjson::Document& jsonDocument) c
     std::vector<std::shared_ptr<ChBody>> bodies;
     bodies.push_back(m_spindle[0]);
     bodies.push_back(m_spindle[1]);
-    ChPart::ExportBodyList(jsonDocument, bodies);
+    ExportBodyList(jsonDocument, bodies);
 
     std::vector<std::shared_ptr<ChShaft>> shafts;
     shafts.push_back(m_axle[0]);
     shafts.push_back(m_axle[1]);
-    ChPart::ExportShaftList(jsonDocument, shafts);
+    ExportShaftList(jsonDocument, shafts);
 
     std::vector<std::shared_ptr<ChLink>> joints;
     joints.push_back(m_revolute[0]);
     joints.push_back(m_revolute[1]);
-    ChPart::ExportJointList(jsonDocument, joints);
+    ExportJointList(jsonDocument, joints);
 }
 
 void ChRigidSuspension::Output(ChVehicleOutput& database) const {

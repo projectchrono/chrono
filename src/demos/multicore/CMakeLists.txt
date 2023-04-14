@@ -48,7 +48,7 @@ endif()
 
 # Add programs that require Irrlicht
 if(ENABLE_MODULE_IRRLICHT)
-	include_directories(${CH_IRRLICHTINC})
+	include_directories(${CH_IRRLICHT_INCLUDES})
 
 	set(DEMOS_IRRLICHT
 		demo_MCORE_custom_contact

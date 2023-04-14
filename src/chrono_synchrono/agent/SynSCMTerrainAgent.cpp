@@ -13,10 +13,10 @@
 // =============================================================================
 //
 // Class that wraps and synchronizes deformable terrain between Chrono Systems
-// See chrono_vehicle/terrain/SCMDeformableTerrain for the physics
+// See chrono_vehicle/terrain/SCMTerrain for the physics
 //
 // We have a square grid of points that get depressed as an object contacts
-// them. SCMDeformableTerrain computes what their deformation should be (and
+// them. SCMTerrain computes what their deformation should be (and
 // what forces get applied) at each time step. Every time step this class saves
 // the changes to each node, then at the SynChrono heartbeat sends those changes
 // (which span several physics timesteps) to all other ranks.
@@ -33,7 +33,7 @@ using namespace chrono::vehicle;
 namespace chrono {
 namespace synchrono {
 
-SynSCMTerrainAgent::SynSCMTerrainAgent(std::shared_ptr<vehicle::SCMDeformableTerrain> terrain)
+SynSCMTerrainAgent::SynSCMTerrainAgent(std::shared_ptr<vehicle::SCMTerrain> terrain)
     : SynAgent(), m_terrain(terrain) {
     m_message = chrono_types::make_shared<SynSCMMessage>();
 }

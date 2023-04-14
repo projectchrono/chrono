@@ -492,7 +492,7 @@ void ChTrackShoeBandANCF::ExportComponentList(rapidjson::Document& jsonDocument)
 
     std::vector<std::shared_ptr<ChBody>> bodies;
     bodies.push_back(m_shoe);
-    ChPart::ExportBodyList(jsonDocument, bodies);
+    ExportBodyList(jsonDocument, bodies);
 }
 
 void ChTrackShoeBandANCF::Output(ChVehicleOutput& database) const {

@@ -97,9 +97,8 @@ class CH_VEHICLE_API ChRigidPinnedAxle : public ChSuspension {
     /// Get the wheel track for the suspension subsystem.
     virtual double GetTrack() override;
 
-    /// Return current suspension forces (spring and shock) on the specified side.
-    /// For this suspension type, all values are zero.
-    virtual ChSuspension::Force ReportSuspensionForce(VehicleSide side) const override;
+    /// Return current suspension TSDA force information on the specified side.
+    virtual std::vector<ForceTSDA> ReportSuspensionForce(VehicleSide side) const override;
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) override;

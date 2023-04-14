@@ -34,7 +34,7 @@ namespace opengl {
 /// Base class for an OpenGL stats overlay
 class CH_OPENGL_API ChOpenGLStats : public ChOpenGLBase {
   public:
-    virtual ~ChOpenGLStats() {}
+    virtual ~ChOpenGLStats();
 
     virtual bool Initialize(ChOpenGLCamera* camera);
 
@@ -85,6 +85,7 @@ class CH_OPENGL_API ChOpenGLStats : public ChOpenGLBase {
 class CH_OPENGL_API ChOpenGLStatsDefault : public ChOpenGLStats {
   public:
     ChOpenGLStatsDefault();
+    ~ChOpenGLStatsDefault();
     virtual bool Initialize(ChOpenGLCamera* camera) override;
     virtual void GenerateStats(ChSystem& sys) override;
     virtual void GenerateHelp() override;
@@ -96,7 +97,7 @@ class CH_OPENGL_API ChOpenGLStatsDefault : public ChOpenGLStats {
     void GenerateCD(ChSystem& sys);
     void GenerateRenderer();
 
-    char buffer[50];
+    char buffer[500];
 };
 
 /// @} opengl_module

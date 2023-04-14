@@ -5,6 +5,11 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [New generic template for wheeled suspension subsystems](#added-new-generic-template-for-wheeled-suspension-subsystems)
+  - [CMake configuration and utility build scripts](#changed-cmake-configuration-and-utility-build-scripts)
+  - [SPHTerrain - continuum representation method for deformable terrain](#added-sphterrain---continuum-representation-method-for-deformable-terrain)
+  - [TMSimple tire model](#added-tmsimple-tire-model)
+  - [Blender plug-in for post-process visualization](#added-blender-plug-in-for-post-process-visualization)
   - [VSG-based run-time visualization module](#added-vsg-based-run-time-visualization-module)
   - [Support for linear and nonlinear vehicle force elements](#changed-support-for-linear-and-nonlinear-vehicle-force-elements)
 - [Release 8.0.0](#release-800---2022-12-21)
@@ -73,6 +78,53 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Added] New generic template for wheeled suspension subsystems
+
+A new Chrono::Vehicle template for modeling a wheeled vehicle suspension was added. The `ChGenericWheeledSuspension` class permits definition of a suspension subsystem with arbitrary, user-defined topology and sets of bodies, joints, and spring-damper elements. The only elements assumed to always exist in a suspension subsystem are the two spindles and the two axle shafts which connect the spindles to a driveline. A companion class, `GenericWheeledSuspension` allows definition of an arbitrary suspension subsystem based on a JSON specification file. 
+
+In this new template, modeling elements (bodies, joints, TSDAs, and RSDAs) are identified by their names. Positions and orientations are expected to be expressed relative to the suspension subsystem reference frame (except for collision and visualization shapes which must be provided relative to the associated physical modeling element). Any of the physical elements present in a suspension subsystem can be marked as "mirrored" or "non-mirrored"; in the former case, only the element on the left side (positive y) must be defined and two Chrono modeling elements are created, mirrored with respect to the x-z plane. Joints and spring-damper elements (TSDAs or RSDAs) can be connect any two bodies in the subsystem, as well as a suspension body to the chassis, a possible sub-chassis susbsystem, or a possible steering mechanism link. `ChGenericWheeledSuspension` provides a mechanism for identifying these three special bodies that are external to the suspension subsystem.
+
+This new template allows for more flexibility in defining non-standard or concept suspension subsystems without the restrictions imposed by the existing Chrono::Vehicle suspension templates (in terms of the number of bodies, joints, force elements, and their connectivity). In fact, any of the existing suspension templates can be replicated in the new framework and two examples are provided: the `HMMWV_DoubleWishboneFront_replica.json` file contains an exact replica of the HMMWV front double wishbone suspension defined in `HMMWV_DoubleWishboneFront.json`, while `UAZBUS_FrontSAELeafspringAxle_replica.json` replicates the front suspension defined in `UAZBUS_FrontSAELeafspringAxle.json`; the latter example illustrates the definition of a suspension subsystem that includes both mirrored and non-mirrored components.
+
+See `demo_VEH_WheeledVehicle` and `demo_VEH_SuspensionTestRig` which can be modified appropriately to use a HMMWV or UAZ vehicle with the new suspension specifications.
+
+### [Changed] CMake configuration and utility build scripts
+
+For consistency, the following changes were made to some of the Chrono CMake configuration scripts:
+  - Chrono::Irrlicht module: `IRRLICHT_INSTALL_DIR` replaces the old IRRLICHT_ROOT
+  - Chrono::Multicore module: `BLAZE_INSTALL_DIR` replaces the old BLAZE_DIR
+  - Chrono::Vehicle module: `IRRKLANG_INSTALL_DIR` and `IRRKLANG_LIBRARY` replace the old CH_IRRKLANG_SDKDIR and CH_IRRKLANGLIB, respectively
+  - Chrono::Synchrono module: `fastrtps_INSTALL_DIR` replaces the old fastrtps_ROOT
+  - Chrono::OpenGL module: finding the necessary GL dependencies (GLEW and GLFW) now relies on CMake project configuration scripts for these libraries. As such, unless automatically detected, the user must set the CMake variables `GLEW_DIR` and `GLFW3_DIR`. For systems where default packages for GLEW and GLFW do *not* install their CMake project configuration scripts (e.g., Ubuntu), see below for information on biulding these libraries from sources.  For the headers-only GLM dependency, the user must set `GLM_INCLUDE_DIR`.
+
+To help the configuration of certain Chrono modules, we added several scripts (for both Windows and Linux) to build dependencies from sources. The following scripts are available under contrib/build-scripts:
+  - `opencrg/buildOpenCRG.bat` and `opencrg/buildOpenCRG.sh` can be used to build and install the OpenCRG library. Optionally, the script can first download the sources for version 1.1.2 of OpenCRG from a GitHub repository.
+  - `opengl/buildGL.bat` and `opengl/buildGL.sh` can be used to build and install the GLEW, GLFW, and GLM dependencies for Chrono::OpenGL and Chrono::Sensor. The sources for these libraries are (optionally) downloaded from their respective SourceForce repositories. These scripts configure, build, and install all 3 necessary GL libraries under a common user-specified directory.
+  - `vsg/buildVSG.bat` and `vsg/buildVSG.sh` can be used to build and install all dependecies required for the Chrono::VSG module. Their sources can be optionally be downloaded from their respective GitHub repositories. These scripts are provided as a more flexible and robust alternative to the vsgFramework approach to installing the necessary VSG dependencies. The buildVSG scripts install all necessary VSG libraries (VulkanSceneGraph, vsgXchange, vsgImGui, ImGui, ImPlot, vsgExamples, and assimp) under a common, user-specified directory.
+Follow the instructions listed in comments at the top of each one of the above build scripts.
+
+Finally, the scripts `buildChrono.bat` (for Windows), `buildChrono.sh` (for Linux), and `buildChronoMac.sh` (for MacOS) are provided as examples of CMake configuration for the various Chrono modules. They should bve copied to a different directory and modified to reflect the setup on the user machine and to enable only those Chrono modules of interest. When executed, these scripts run the CMake configuration of Chrono and generate the files for building the Chrono libraries, as appropriate on each platform.
+
+
+### [Added] SPHTerrain - continuum representation method for deformable terrain
+
+A new Chrono::Vehicle terrain class, SPHTerrain, was added to model deformable terrain using the Continuum Representation Method (CRM), an SPH-based formulation that leverages the Chrono::FSI module.  An SPHTerrain can be created from data files with positions of SPH particles and BCE markers read from data files (these positions are assumed to be provided on an integer grid, in multiples of the initial separation of SPH particles) or from a heightmap image file.  In addition, this type of terrain permits definition of rigid obstacles that may be embedded, partially or fully, in the terrain volume (to model, for example, embedded rocks); currently, rigid obstacles must be specified with trimesh geometry read from a Wavefront OBJ file.  Run-time visualization is supported through `ChFsiVisualizationVSG` or `ChFsiVisualizationGL` which leverage the Chrono::VSG and Chrono::OpenGL modules, respectively. See `demo_VEH_SPHTerrain_Obstacles`, `demo_VEH_SPHTerrain_WheeledVehicle`, and `demo_VEH_SPHTerrain_Viper`.
+
+### [Added] TMSimple tire model
+
+A new tire model (`ChTMsimple`) was added to Chrono::Vehicle. This tire model is of "force element" type and shares part of its formulation with the TMeasy model (both of these tire models were developed by Wolfgang Hirscberg from TU Graz in Austria). The goal of TMsimple is to provide a simple handling tire model with fewer parameters than TMeasy while still providing realistic (albeit reduced) functionality.
+
+The TMsimple model
+- calculated horizontal patch forces based on single functions (whereas TMeasy requires three piece-wise definitions)
+- considers degressive influence of the vertical force Fz
+- calculates rolling resistance
+
+TMeasy requires 5 parameters to define its basic function for Fx and Fy: (1) slope at zero, (2) slip at force maximum, (3) maximal force, (4) slip at sliding initiation, and (5) sliding force. In contrast, TMsimple needs only 3 parameters: (1) slope, (2) maximal force, and (3) force at infinite slip.  A complete parameter set for Fx(sx,Fz) and Fy(sy,Fz) has 20 items for TMeasy and only 12 for TMsimple. Chrono’s TMsimple implementation has a new stand-still/low speed algorithm for friction forces. It is not part of TMsimple itself, and could be adapted to other handling tire models as well.
+
+### [Added] Blender plug-in for post-process visualization
+
+**TODO**
 
 ### [Added] VSG-based run-time visualization module
 

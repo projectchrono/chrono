@@ -53,7 +53,7 @@ cmake -G "Visual Studio 17 2022" -T "v142" ^
  -DCUDA_ARCH_PTX=52 ^
  -DCUDA_ARCH_BIN=5.2 ^
  -DBUILD_DEMOS=OFF ^
- -DIRRLICHT_ROOT="%PREFIX%"/Library/include/irrlicht ^
+ -DIRRLICHT_INSTALL_DIR="%PREFIX%"/Library/include/irrlicht ^
  -DIRRLICHT_LIBRARY="%PREFIX%"/Library/lib/Irrlicht.lib ^
  -DBUILD_TESTING=OFF ^
  -DBUILD_BENCHMARKING=OFF ^

@@ -21,6 +21,7 @@
 #include "chrono/fea/ChElementShellANCF_3443.h"
 #include "chrono/fea/ChElementShellANCF_3833.h"
 #include "chrono/fea/ChElementShellReissner4.h"
+#include "chrono/fea/ChElementShellBST.h"
 #include "chrono/fea/ChElementCableANCF.h"
 #include "chrono/fea/ChElementBeamANCF_3243.h"
 #include "chrono/fea/ChElementBeamANCF_3333.h"
@@ -733,6 +734,22 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
                 triangles_rot.push_back({{nB.get(), nC.get(), nD.get()}});
                 triangles_rot_ptrs.push_back({{nA, nB, nD}});
                 triangles_rot_ptrs.push_back({{nB, nC, nD}});
+            }
+        }
+    }
+
+    // Skin of BST shells
+    for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
+        if (auto mshell = std::dynamic_pointer_cast<ChElementShellBST>(m_mesh->GetElement(ie))) {
+            auto n0 = mshell->GetNodeTriangleN(0);
+            auto n1 = mshell->GetNodeTriangleN(1);
+            auto n2 = mshell->GetNodeTriangleN(2);
+            if (ccw) {
+                triangles.push_back({{n0.get(), n1.get(), n2.get()}});
+                triangles_ptrs.push_back({{n0, n1, n2}});
+            } else {
+                triangles.push_back({{n0.get(), n2.get(), n1.get()}});
+                triangles_ptrs.push_back({{n0, n2, n1}});
             }
         }
     }

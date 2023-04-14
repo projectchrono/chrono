@@ -76,6 +76,10 @@ ChSystemFsi::ChSystemFsi(ChSystem* sysMBS)
 
 ChSystemFsi::~ChSystemFsi() {}
 
+void ChSystemFsi::AttachSystem(ChSystem* sysMBS) {
+    m_sysMBS = sysMBS;
+}
+
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChSystemFsi::InitParams() {
@@ -498,9 +502,9 @@ void ChSystemFsi::ReadParametersFromFile(const std::string& json_file) {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChSystemFsi::SetVerbose(bool verb) {
-    m_verbose = verb;
-    m_fsi_interface->m_verbose = verb;
+void ChSystemFsi::SetVerbose(bool verbose) {
+    m_verbose = verbose;
+    m_fsi_interface->m_verbose = verbose;
 }
 
 void ChSystemFsi::SetSPHLinearSolver(SolverType lin_solver) {

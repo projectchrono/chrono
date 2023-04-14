@@ -312,15 +312,19 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
 
     patch->m_trimesh->getIndicesVertexes().resize(n_faces);
     patch->m_trimesh->getIndicesNormals().resize(n_faces);
+    patch->m_trimesh->getIndicesUV().resize(n_faces);
 
     // Initialize the array of accumulators (number of adjacent faces to a vertex)
     std::vector<int> accumulators(n_verts, 0);
 
     // Readability aliases
-    std::vector<ChVector<> >& vertices = patch->m_trimesh->getCoordsVertices();
-    std::vector<ChVector<> >& normals = patch->m_trimesh->getCoordsNormals();
-    std::vector<ChVector<int> >& idx_vertices = patch->m_trimesh->getIndicesVertexes();
-    std::vector<ChVector<int> >& idx_normals = patch->m_trimesh->getIndicesNormals();
+    std::vector<ChVector<>>& vertices = patch->m_trimesh->getCoordsVertices();
+    std::vector<ChVector<>>& normals = patch->m_trimesh->getCoordsNormals();
+    std::vector<ChColor>& colors = patch->m_trimesh->getCoordsColors();
+    std::vector<ChVector2<double>>& uvs = patch->m_trimesh->getCoordsUV();
+    std::vector<ChVector<int>>& idx_vertices = patch->m_trimesh->getIndicesVertexes();
+    std::vector<ChVector<int>>& idx_normals = patch->m_trimesh->getIndicesNormals();
+    std::vector<ChVector<int>>& idx_uvs = patch->m_trimesh->getIndicesUV();
 
     // Load mesh vertices.
     // Note that pixels in a BMP start at top-left corner.
@@ -338,9 +342,9 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
             // Initialize vertex normal to (0, 0, 0).
             normals[iv] = ChVector<>(0, 0, 0);
             // Assign color white to all vertices
-            patch->m_trimesh->getCoordsColors()[iv] = ChColor(1, 1, 1);
+            colors[iv] = ChColor(1, 1, 1);
             // Set UV coordinates in [0,1] x [0,1]
-            patch->m_trimesh->getCoordsUV()[iv] = ChVector2<>(ix * x_scale, iy * y_scale);
+            uvs[iv] = ChVector2<>(ix * x_scale, iy * y_scale);
             ++iv;
         }
     }
@@ -354,9 +358,11 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
             int v0 = ix + nv_x * iy;
             idx_vertices[it] = ChVector<int>(v0, v0 + nv_x + 1, v0 + nv_x);
             idx_normals[it] = ChVector<int>(v0, v0 + nv_x + 1, v0 + nv_x);
+            idx_uvs[it] = ChVector<int>(v0, v0 + nv_x + 1, v0 + nv_x);
             ++it;
             idx_vertices[it] = ChVector<int>(v0, v0 + 1, v0 + nv_x + 1);
             idx_normals[it] = ChVector<int>(v0, v0 + 1, v0 + nv_x + 1);
+            idx_uvs[it] = ChVector<int>(v0, v0 + 1, v0 + nv_x + 1);
             ++it;
         }
     }
@@ -633,8 +639,8 @@ bool RigidTerrain::FindPoint(const ChVector<> loc, double& height, ChVector<>& n
 
 bool RigidTerrain::BoxPatch::FindPoint(const ChVector<>& loc, double& height, ChVector<>& normal) const {
     // Ray definition (in global frame)
-    ChVector<> A = loc + (m_radius + 1000) * ChWorldFrame::Vertical();  // start point
-    ChVector<> v = -ChWorldFrame::Vertical();                           // direction (downward)
+    ChVector<> A = loc;                        // start point
+    ChVector<> v = -ChWorldFrame::Vertical();  // direction (downward)
 
     // Intersect ray with top plane
     double t = Vdot(m_location - A, m_normal) / Vdot(v, m_normal);
@@ -648,7 +654,7 @@ bool RigidTerrain::BoxPatch::FindPoint(const ChVector<>& loc, double& height, Ch
 }
 
 bool RigidTerrain::MeshPatch::FindPoint(const ChVector<>& loc, double& height, ChVector<>& normal) const {
-    ChVector<> from = loc + (m_radius + 1000) * ChWorldFrame::Vertical();
+    ChVector<> from = loc;
     ChVector<> to = loc - (m_radius + 1000) * ChWorldFrame::Vertical();
 
     collision::ChCollisionSystem::ChRayhitResult result;

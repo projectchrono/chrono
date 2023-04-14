@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Class that wraps data contained in a message about Soil Contact Model (SCM)
-// Deformable terrain. See chrono_vehicle/terrain/SCMDeformableTerrain.* for
+// Deformable terrain. See chrono_vehicle/terrain/SCMTerrain.* for
 // more details.
 //
 // =============================================================================
@@ -23,7 +23,7 @@
 
 #include "chrono_synchrono/flatbuffer/message/SynMessage.h"
 
-#include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
+#include "chrono_vehicle/terrain/SCMTerrain.h"
 
 namespace chrono {
 namespace synchrono {
@@ -51,7 +51,7 @@ class SYN_API SynSCMMessage : public SynMessage {
     ///@return FlatBufferMessage the constructed flatbuffer message
     virtual FlatBufferMessage ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const override;
 
-    std::vector<vehicle::SCMDeformableTerrain::NodeLevel> modified_nodes;
+    std::vector<vehicle::SCMTerrain::NodeLevel> modified_nodes;
 };
 
 /// @} synchrono_flatbuffer

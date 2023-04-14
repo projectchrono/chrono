@@ -1,0 +1,10 @@
+{
+    "Name": "HMMWV Front Suspension Test",
+    "Type": "SuspensionTestRig",
+
+    "Vehicle Input File": "hmmwv//vehicle/HMMWV_Vehicle_replica.json",
+    "Test Axle Indices": [ 0 ],
+    "Test Steering Indices": [ 0 ],
+    "Initial Ride Height": 0.5,
+    "Displacement Limit": 0.15
+}

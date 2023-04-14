@@ -58,7 +58,7 @@ using namespace chrono::vehicle::hmmwv;
 // =============================================================================
 
 // Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Type of powertrain model (SHAFTS, SIMPLE, SIMPLE_CVT)
 PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
@@ -66,8 +66,8 @@ PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 // Drive type (FWD, RWD, or AWD)
 DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
 
-// Type of tire model (RIGID, RIGID_MESH, FIALA, PAC89, PAC02, TMEASY)
-TireModelType tire_model = TireModelType::TMEASY;
+// Type of tire model (RIGID, RIGID_MESH, FIALA, PAC89, PAC02, TMEASY, TMSIMPLE)
+TireModelType tire_model = TireModelType::TMSIMPLE;
 
 enum class TerrainType { FLAT, RIGID };
 TerrainType terrain_type = TerrainType::RIGID;
@@ -191,6 +191,7 @@ int main(int argc, char* argv[]) {
 #endif
             break;
         }
+        default:
         case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
@@ -232,7 +233,7 @@ int main(int argc, char* argv[]) {
     double time = 0;
     bool done = false;
 
-    ChTimer<> timer;
+    ChTimer timer;
     timer.start();
     while (vis->Run()) {
         time = my_hmmwv.GetSystem()->GetChTime();

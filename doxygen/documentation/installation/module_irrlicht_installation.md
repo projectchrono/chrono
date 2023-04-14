@@ -44,7 +44,7 @@ Instructions on how to install the Chrono::Irrlicht library are already reported
    
 4. During CMake configuration, set `ENABLE_MODULE_IRRLICHT` to 'on', then press 'Configure'
  
-5. Set the directory in `IRRLICHT_ROOT`: it must contain the path to your unzipped Irrlicht directory.  
+5. Set the directory in `IRRLICHT_INSTALL_DIR`: it must contain the path to your unzipped Irrlicht directory.  
    In our example, browse to `C:/engine_demos/irrlicht-1.8.4`
    
 6. The corresponding `IRRLICHT_LIBRARY` should be found automatically: it must contain the file of the Irrlicht.lib.  

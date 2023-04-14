@@ -16,7 +16,6 @@ set(DEMOS
 
 if(ENABLE_MODULE_IRRLICHT)
    set(DEMOS ${DEMOS}
-       demo_VEH_M113_DefSoil
        demo_VEH_Marder
        demo_VEH_TrackedJSON
        demo_VEH_TrackedJSON_Band   
@@ -39,7 +38,7 @@ list(APPEND LIBS "ChronoEngine_vehicle")
 list(APPEND LIBS "ChronoModels_vehicle")
 
 if(ENABLE_MODULE_IRRLICHT)
-    include_directories(${CH_IRRLICHTINC})
+    include_directories(${CH_IRRLICHT_INCLUDES})
     set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
     list(APPEND LIBS "ChronoEngine_irrlicht")
     list(APPEND LIBS "ChronoEngine_vehicle_irrlicht")

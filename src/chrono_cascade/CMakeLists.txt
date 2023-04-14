@@ -35,16 +35,13 @@ set(ChronoEngine_CASCADE_HEADERS
     ChCascadeBodyEasy.h
 )
 if(ENABLE_MODULE_IRRLICHT)
-    set(ChronoEngine_CASCADE_HEADERS_IRRLICHT 
+    set(ChronoEngine_CASCADE_HEADERS ${ChronoEngine_CASCADE_HEADERS}
         ChCascadeIrrMeshTools.h)
-else()
-    set(ChronoEngine_CASCADE_HEADERS_IRRLICHT "")
 endif()
 
 source_group("" FILES 
     ${ChronoEngine_CASCADE_SOURCES} 
     ${ChronoEngine_CASCADE_HEADERS}
-    ${ChronoEngine_CASCADE_HEADERS_IRRLICHT}
     )
 
 #-----------------------------------------------------------------------------	
@@ -90,15 +87,12 @@ set(CXX_FLAGS "${CH_CXX_FLAGS} ${OpenCASCADE_CXX_FLAGS}")
 set(LIBRARIES "ChronoEngine")
 
 if(ENABLE_MODULE_IRRLICHT)
+    include_directories(${CH_IRRLICHT_INCLUDES})
     set(CXX_FLAGS "${CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
-    list(APPEND LIBRARIES ${IRRLICHT_LIBRARY})
-    include_directories(${CH_IRRLICHTINC})
+    list(APPEND LIBRARIES ChronoEngine_irrlicht)
 endif()
 
-add_library(ChronoEngine_cascade SHARED 
-            ${ChronoEngine_CASCADE_SOURCES}
-            ${ChronoEngine_CASCADE_HEADERS}
-            ${ChronoEngine_CASCADE_HEADERS_IRRLICHT})
+add_library(ChronoEngine_cascade SHARED ${ChronoEngine_CASCADE_SOURCES} ${ChronoEngine_CASCADE_HEADERS})
 
 set_target_properties(ChronoEngine_cascade PROPERTIES 
                       COMPILE_FLAGS "${CXX_FLAGS}"
@@ -123,6 +117,5 @@ install(TARGETS ChronoEngine_cascade
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
 
-install(FILES ${ChronoEngine_CASCADE_HEADERS} ${ChronoEngine_CASCADE_HEADERS_IRRLICHT}
+install(FILES ${ChronoEngine_CASCADE_HEADERS}
         DESTINATION include/chrono_cascade)
-

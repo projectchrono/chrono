@@ -37,9 +37,22 @@ const double HMMWV_Wheel::m_radius = 0.268;
 const double HMMWV_Wheel::m_width = 0.22;
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 HMMWV_Wheel::HMMWV_Wheel(const std::string& name) : ChWheel(name) {
     m_vis_mesh_file = "hmmwv/hmmwv_rim.obj";
+}
+
+void HMMWV_Wheel::Initialize(std::shared_ptr<ChBody> spindle,
+  VehicleSide side,
+  double offset
+) {
+    ChWheel::Initialize(spindle, side, offset);
+
+    ChContactMaterialData mat_info;
+    auto material = mat_info.CreateMaterial(spindle->GetSystem()->GetContactMethod());
+    spindle->GetCollisionModel()->ClearModel();
+    spindle->GetCollisionModel()->AddCylinder(material, m_radius, m_radius, m_width / 2, ChVector<>(0, m_offset, 0));
+    spindle->GetCollisionModel()->BuildModel();
 }
 
 }  // end namespace hmmwv
