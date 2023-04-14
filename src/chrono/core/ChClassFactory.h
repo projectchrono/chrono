@@ -62,6 +62,22 @@ public:
 
     /// Get the name used for registering
     virtual std::string& get_tag_name() = 0;
+
+    /// Tells if the class is polymorphic
+    virtual bool is_polymorphic() = 0;
+
+    /// Tells if the class is default constructible
+    virtual bool is_default_constructible() = 0;
+
+    /// Tells if the class is abstract
+    virtual bool is_abstract() = 0;
+
+    /// Tells if it implements the function
+    virtual bool has_ArchiveINconstructor() = 0;
+
+    /// Tells if it implements the function
+    virtual bool has_ArchiveIN() = 0;
+
 };
 
 
@@ -109,20 +125,31 @@ class ChApi ChClassFactory {
             DisposeGlobalClassFactory();
     }
 
-    /// Tell if a class is registered, from its name
+    /// Tell if a class is registered, from class name. Name is the mnemonic tag given at registration.
     static bool IsClassRegistered(const std::string& keyName) {
         ChClassFactory* global_factory = GetGlobalClassFactory();
         return global_factory->_IsClassRegistered(keyName);
     }
 
-    /// Tell the tag name of a class. 
-    /// This is the mnemonic name, given at registration, not the typeid.name().
+    /// Get class registration info from class name. Name is the mnemonic tag given at registration.
+    /// Return nullptr if not registered.
+    static ChClassRegistrationBase* GetClass(const std::string& keyName) {
+        ChClassFactory* global_factory = GetGlobalClassFactory();
+        const auto &it = global_factory->class_map.find(keyName);
+        if (it != global_factory->class_map.end())
+            return it->second;
+        else 
+            return nullptr;
+    }
+
+    /// Tell the class name, from type_info. 
+    /// This is a mnemonic tag name, given at registration, not the typeid.name().
     static std::string& GetClassTagName(const std::type_info& mtype) {
         ChClassFactory* global_factory = GetGlobalClassFactory();
         return global_factory->_GetClassTagName(mtype);
     }
 
-    /// Create from tag name, for registered classes.
+    /// Create from class name, for registered classes. Name is the mnemonic tag given at registration.
     /// The created object is returned in "ptr"
     template <class T>
     static void create(const std::string& keyName, T** ptr) {
@@ -130,7 +157,7 @@ class ChApi ChClassFactory {
         *ptr = reinterpret_cast<T*>(global_factory->_create(keyName));
     }
 
-    /// Create from tag name, for registered classes.
+    /// Create from class name, for registered classes. Name is the mnemonic tag given at registration.
     /// If a static T* ArchiveINconstructor(ChArchiveIn&) function is available, call it instead.
     /// The created object is returned in "ptr"
     template <class T>
@@ -204,7 +231,21 @@ private:
 /// Macro to create a  ChDetect_ArchiveINconstructor  
 CH_CREATE_MEMBER_DETECTOR(ArchiveINconstructor)
 
+/// Macro to create a  ChDetect_ArchiveOUTconstructor that can be used in 
+/// templates, to select which specialized template to use
+CH_CREATE_MEMBER_DETECTOR(ArchiveOUTconstructor)
 
+/// Macro to create a  ChDetect_ArchiveOUT that can be used in 
+/// templates, to select which specialized template to use
+CH_CREATE_MEMBER_DETECTOR(ArchiveOUT)
+
+/// Macro to create a  ChDetect_ArchiveIN that can be used in 
+/// templates, to select which specialized template to use
+CH_CREATE_MEMBER_DETECTOR(ArchiveIN)
+
+/// Macro to create a  ChDetect_ArchiveContainerName that can be used in 
+/// templates, to select which specialized template to use
+CH_CREATE_MEMBER_DETECTOR(ArchiveContainerName)
 
 
 /// Class for registration data of classes 
@@ -263,6 +304,22 @@ class ChClassRegistration : public ChClassRegistrationBase {
         return _get_tag_name();
     }
 
+    virtual bool is_polymorphic() override {
+        return std::is_polymorphic<t>::value;
+    }
+    virtual bool is_default_constructible() override {
+        return std::is_default_constructible<t>::value;
+    }
+    virtual bool is_abstract() override {
+        return std::is_abstract<t>::value;
+    }
+    virtual bool has_ArchiveINconstructor() override {
+        return _has_ArchiveINconstructor();
+    }
+    virtual bool has_ArchiveIN() override {
+        return _has_ArchiveIN();
+    }
+
 protected:
 
     template <class Tc=t>
@@ -285,6 +342,27 @@ protected:
     typename enable_if< !ChDetect_ArchiveINconstructor<Tc>::value, void* >::type 
     _archive_in_create(ChArchiveIn& marchive) {
         return reinterpret_cast<void*>(new Tc);
+    }
+
+    template <class Tc=t>
+    typename enable_if< ChDetect_ArchiveINconstructor<Tc>::value, bool >::type
+    _has_ArchiveINconstructor() {
+        return true;
+    }
+    template <class Tc=t>
+    typename enable_if< !ChDetect_ArchiveINconstructor<Tc>::value, bool >::type 
+    _has_ArchiveINconstructor() {
+        return false;
+    }
+    template <class Tc=t>
+    typename enable_if< ChDetect_ArchiveIN<Tc>::value, bool >::type
+    _has_ArchiveIN() {
+        return true;
+    }
+    template <class Tc=t>
+    typename enable_if< !ChDetect_ArchiveIN<Tc>::value, bool >::type 
+    _has_ArchiveIN() {
+        return false;
     }
 
     std::string& _get_tag_name() {
