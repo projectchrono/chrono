@@ -45,7 +45,19 @@ class ChApiParsers ChParserURDF {
     void PrintModelTree();
 
   private:
+    ChColor toChColor(const urdf::Color& color);
+    ChVector<> toChVector(const urdf::Vector3& vec);
+    ChQuaternion<> toChQuaternion(const urdf::Rotation& rot);
+    ChFrame<> toChFrame(const urdf::Pose& pose);
+    std::shared_ptr<ChVisualShape> toChVisualShape(const urdf::GeometrySharedPtr geometry);
+    std::shared_ptr<ChBodyAuxRef> toChBody(urdf::LinkConstSharedPtr link);
+    std::shared_ptr<ChLink> toChLink(urdf::JointSharedPtr& joint);
+
+    void populateSystem(urdf::LinkConstSharedPtr parent, const ChFrame<>& parent_frame);
+
+    std::string m_filepath;
     urdf::ModelInterfaceSharedPtr m_model;
+    ChSystem* m_sys;
 };
 
 /// @} parsers_module
