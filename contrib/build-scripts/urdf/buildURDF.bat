@@ -41,7 +41,7 @@ set BUILDDEBUG=ON
     set URDFDOM_HEADERS_SOURCE_DIR="download_urdf/urdfdom_headers"
 
     echo "  ... urdfdom"
-    git clone -c advice.detachedHead=false --depth 1 --branch scpeters/tinyxml2 "https://github.com/ros/urdfdom.git" "download_urdf/urdfdom"
+    git clone -c advice.detachedHead=false --depth 1 --branch scpeters/tinyxml2 "https://github.com/rserban/urdfdom.git" "download_urdf/urdfdom"
     @rem git clone "https://github.com/ros/urdfdom.git" "download_urdf/urdfdom"
     set URDFDOM_SOURCE_DIR="download_urdf/urdfdom"
 ) else (
@@ -55,7 +55,7 @@ rmdir /S/Q %URDF_INSTALL_DIR% 2>null
 rem --- tinyxml2 ------------------------------------------------------------
 
 rmdir /S/Q build_tinyxml2 2>null
-cmake -B build_tinyxml2 -S %TINYXML2_SOURCE_DIR%  ^
+cmake -B build_tinyxml2 -S %TINYXML2_SOURCE_DIR% ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd ^
       -Dtinyxml2_INSTALL_CMAKEDIR:PATH="CMake"
@@ -73,7 +73,7 @@ if %BUILDDEBUG% EQU ON (
 rem --- console_bridge ------------------------------------------------------
 
 rmdir /S/Q build_console_bridge 2>null
-cmake -B build_console_bridge -S %CONSOLE_BRIDGE_SOURCE_DIR%  ^
+cmake -B build_console_bridge -S %CONSOLE_BRIDGE_SOURCE_DIR% ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd
 
@@ -90,7 +90,7 @@ if %BUILDDEBUG% EQU ON (
 rem --- urdfdom_headers --------------------------------------------------------
 
 rmdir /S/Q build_urdfdom_headers 2>null
-cmake -B build_urdfdom_headers -S %URDFDOM_HEADERS_SOURCE_DIR%  ^
+cmake -B build_urdfdom_headers -S %URDFDOM_HEADERS_SOURCE_DIR% ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd
 
@@ -111,8 +111,7 @@ cmake -B build_urdfdom -S %URDFDOM_SOURCE_DIR% ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd ^
       -DDISABLE_TINYXML_SUPPORT:BOOL=ON ^
-      -DTinyXML2_INCLUDE_DIR:PATH=%URDF_INSTALL_DIR%/include ^
-      -DTinyXML2_LIBRARY:FILEPATH=%URDF_INSTALL_DIR%/lib/tinyxml2.lib ^
+      -Dtinyxml2_DIR:PATH=%URDF_INSTALL_DIR%/CMake ^
       -Dconsole_bridge_DIR:PATH=%URDF_INSTALL_DIR%/CMake ^
       -Durdfdom_headers_DIR:PATH=%URDF_INSTALL_DIR%/CMake
 
