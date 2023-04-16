@@ -419,6 +419,8 @@ set(CV_WV_SUBCHASSIS_FILES
 source_group("wheeled_vehicle\\subchassis" FILES ${CV_WV_SUBCHASSIS_FILES})
 
 set(CV_WV_SUSPENSION_FILES
+    wheeled_vehicle/suspension/ChDeDionAxle.h
+    wheeled_vehicle/suspension/ChDeDionAxle.cpp
     wheeled_vehicle/suspension/ChDoubleWishbone.h
     wheeled_vehicle/suspension/ChDoubleWishbone.cpp
     wheeled_vehicle/suspension/ChDoubleWishboneReduced.h
@@ -443,19 +445,27 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/ChRigidPinnedAxle.cpp
     wheeled_vehicle/suspension/ChLeafspringAxle.h
     wheeled_vehicle/suspension/ChLeafspringAxle.cpp
+    wheeled_vehicle/suspension/ChPushPipeAxle.h
+    wheeled_vehicle/suspension/ChPushPipeAxle.cpp
     wheeled_vehicle/suspension/ChSAELeafspringAxle.h
     wheeled_vehicle/suspension/ChSAELeafspringAxle.cpp
     wheeled_vehicle/suspension/ChSolidBellcrankThreeLinkAxle.h
     wheeled_vehicle/suspension/ChSolidBellcrankThreeLinkAxle.cpp
     wheeled_vehicle/suspension/ChSolidThreeLinkAxle.h
     wheeled_vehicle/suspension/ChSolidThreeLinkAxle.cpp
+    wheeled_vehicle/suspension/ChToeBarDeDionAxle.h
+    wheeled_vehicle/suspension/ChToeBarDeDionAxle.cpp
     wheeled_vehicle/suspension/ChToeBarLeafspringAxle.h
     wheeled_vehicle/suspension/ChToeBarLeafspringAxle.cpp
     wheeled_vehicle/suspension/ChSAEToeBarLeafspringAxle.h
     wheeled_vehicle/suspension/ChSAEToeBarLeafspringAxle.cpp
+    wheeled_vehicle/suspension/ChToeBarPushPipeAxle.h
+    wheeled_vehicle/suspension/ChToeBarPushPipeAxle.cpp
     wheeled_vehicle/suspension/ChGenericWheeledSuspension.h
     wheeled_vehicle/suspension/ChGenericWheeledSuspension.cpp
 
+    wheeled_vehicle/suspension/DeDionAxle.h
+    wheeled_vehicle/suspension/DeDionAxle.cpp
     wheeled_vehicle/suspension/DoubleWishbone.h
     wheeled_vehicle/suspension/DoubleWishbone.cpp
     wheeled_vehicle/suspension/DoubleWishboneReduced.h
@@ -480,16 +490,22 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/RigidPinnedAxle.cpp
     wheeled_vehicle/suspension/LeafspringAxle.h
     wheeled_vehicle/suspension/LeafspringAxle.cpp
+    wheeled_vehicle/suspension/PushPipeAxle.h
+    wheeled_vehicle/suspension/PushPipeAxle.cpp
     wheeled_vehicle/suspension/SAELeafspringAxle.h
     wheeled_vehicle/suspension/SAELeafspringAxle.cpp
     wheeled_vehicle/suspension/SolidBellcrankThreeLinkAxle.h
     wheeled_vehicle/suspension/SolidBellcrankThreeLinkAxle.cpp
     wheeled_vehicle/suspension/SolidThreeLinkAxle.h
     wheeled_vehicle/suspension/SolidThreeLinkAxle.cpp
+    wheeled_vehicle/suspension/ToeBarDeDionAxle.h
+    wheeled_vehicle/suspension/ToeBarDeDionAxle.cpp
     wheeled_vehicle/suspension/ToeBarLeafspringAxle.h
     wheeled_vehicle/suspension/ToeBarLeafspringAxle.cpp
     wheeled_vehicle/suspension/SAEToeBarLeafspringAxle.h
     wheeled_vehicle/suspension/SAEToeBarLeafspringAxle.cpp
+    wheeled_vehicle/suspension/ToeBarPushPipeAxle.h
+    wheeled_vehicle/suspension/ToeBarPushPipeAxle.cpp
     wheeled_vehicle/suspension/GenericWheeledSuspension.h
     wheeled_vehicle/suspension/GenericWheeledSuspension.cpp
 )

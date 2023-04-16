@@ -165,6 +165,7 @@ void HMMWV::Initialize() {
 
             break;
         }
+
         case TireModelType::TMEASY: {
             auto tire_FL = chrono_types::make_shared<HMMWV_TMeasyTire>("FL");
             auto tire_FR = chrono_types::make_shared<HMMWV_TMeasyTire>("FR");
@@ -180,6 +181,7 @@ void HMMWV::Initialize() {
 
             break;
         }
+            
         case TireModelType::TMSIMPLE: {
             auto tire_FL = chrono_types::make_shared<HMMWV_TMsimpleTire>("FL");
             auto tire_FR = chrono_types::make_shared<HMMWV_TMsimpleTire>("FR");
@@ -195,6 +197,7 @@ void HMMWV::Initialize() {
 
             break;
         }
+
         case TireModelType::PAC89: {
             auto tire_FL = chrono_types::make_shared<HMMWV_Pac89Tire>("FL");
             auto tire_FR = chrono_types::make_shared<HMMWV_Pac89Tire>("FR");

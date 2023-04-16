@@ -178,7 +178,7 @@ void MAN_7t::Initialize() {
 
             auto tire_RL2 = chrono_types::make_shared<MAN_5t_TMsimpleTire>("RL2");
             auto tire_RR2 = chrono_types::make_shared<MAN_5t_TMsimpleTire>("RR2");
-            
+
             m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
 
@@ -192,6 +192,7 @@ void MAN_7t::Initialize() {
 
             break;
         }
+
             /*
                     case TireModelType::PAC02: {
                         auto tire_FL = chrono_types::make_shared<MAN_5t_Pac02Tire>("FL");

@@ -9,18 +9,18 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Michael Taylor
+// Authors: Rainer Gericke
 // =============================================================================
 //
-// MAN5t TMsimple subsystem
+// U401 TMeasy tire subsystem
 //
 // =============================================================================
 
-#include <cmath>
 #include <algorithm>
+#include <cmath>
 
-#include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_models/vehicle/man/MAN_5t_TMsimpleTire.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 
 namespace chrono {
 namespace vehicle {
@@ -30,22 +30,22 @@ namespace man {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double MAN_5t_TMsimpleTire::m_normalDamping = 7500;
-
-const double MAN_5t_TMsimpleTire::m_mass = 37.6;
-const ChVector<> MAN_5t_TMsimpleTire::m_inertia(3.84, 6.69, 3.84);
-
 const std::string MAN_5t_TMsimpleTire::m_meshFile_left = "MAN_Kat1/meshes/MAN_tire.obj";
 const std::string MAN_5t_TMsimpleTire::m_meshFile_right = "MAN_Kat1/meshes/MAN_tire.obj";
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-MAN_5t_TMsimpleTire::MAN_5t_TMsimpleTire(const std::string& name) : ChTMsimpleTire(name) {}
+const double MAN_5t_TMsimpleTire::m_mass = 104.0;
+const ChVector<> MAN_5t_TMsimpleTire::m_inertia(17.8651, 31.6623, 17.8651);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+MAN_5t_TMsimpleTire::MAN_5t_TMsimpleTire(const std::string& name) : ChTMsimpleTire(name) {
+    SetTMsimpleParams();
+}
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void MAN_5t_TMsimpleTire::SetTMsimpleParams() {
+    ////unsigned int li = 164;
     const double in2m = 0.0254;
     double h = (1.258 - 20 * in2m) / 2.0;
     double w = 0.385;
@@ -61,15 +61,13 @@ void MAN_5t_TMsimpleTire::SetTMsimpleParams() {
                     r,       // aspect ratio []
                     rimdia,  // rim diameter [m]
                     pinfl_li, pinfl_use);
-
 }
 
-double MAN_5t_TMsimpleTire::GetNormalStiffnessForce(double depth) const {
-    return depth*m_Cz;
-}
-
-double MAN_5t_TMsimpleTire::GetNormalDampingForce(double depth, double velocity) const {
-    return m_normalDamping * velocity;
+void MAN_5t_TMsimpleTire::GenerateCharacteristicPlots(const std::string& dirname) {
+    // Write a plot file (gnuplot) to check the tire characteristics.
+    // Inside gnuplot use the command load 'filename'
+    std::string filename = dirname + "14.00R20_" + GetName() + ".gpl";
+    WritePlots(filename, "14.00R20");
 }
 
 // -----------------------------------------------------------------------------
@@ -88,7 +86,9 @@ void MAN_5t_TMsimpleTire::RemoveVisualizationAssets() {
     ChTMsimpleTire::RemoveVisualizationAssets();
 }
 
-}  // end namespace man
+}  // namespace unimog
 }  // end namespace vehicle
 }  // end namespace chrono
+
+
 

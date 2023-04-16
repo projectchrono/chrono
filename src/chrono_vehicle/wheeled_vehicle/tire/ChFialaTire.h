@@ -75,6 +75,8 @@ class CH_VEHICLE_API ChFialaTire : public ChForceElementTire {
 
     /// Get the tire deflection.
     virtual double GetDeflection() const override { return m_data.depth; }
+    
+    double GetTireOmega() { return m_states.omega; }
 
     /// Generate basic tire plots.
     /// This function creates a Gnuplot script file with the specified name.

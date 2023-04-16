@@ -50,6 +50,8 @@
 #include "chrono_vehicle/wheeled_vehicle/suspension/RigidSuspension.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/RigidPinnedAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/SemiTrailingArm.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/PushPipeAxle.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/ToeBarPushPipeAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/SolidAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/SolidBellcrankThreeLinkAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/SolidThreeLinkAxle.h"
@@ -238,8 +240,7 @@ ChVehicleGeometry ReadVehicleGeometryJSON(const rapidjson::Value& d) {
                 ChVector<> axis = ReadVectorJSON(shape["Axis"]);
                 double radius = shape["Radius"].GetDouble();
                 double length = shape["Length"].GetDouble();
-                geometry.m_coll_cylinders.push_back(
-                    ChVehicleGeometry::CylinderShape(pos, axis, radius, length, matID));
+                geometry.m_coll_cylinders.push_back(ChVehicleGeometry::CylinderShape(pos, axis, radius, length, matID));
             } else if (type.compare("HULL") == 0) {
                 std::string filename = shape["Filename"].GetString();
                 geometry.m_coll_hulls.push_back(ChVehicleGeometry::ConvexHullsShape(filename, matID));
@@ -494,7 +495,7 @@ std::shared_ptr<ChLinkTSDA::ForceFunctor> ReadTSDAFunctorJSON(const rapidjson::V
                 forceCB->enable_stops(tsda["Minimum Length"].GetDouble(), tsda["Maximum Length"].GetDouble());
             }
 
-            return forceCB;     
+            return forceCB;
         }
     }
 }
@@ -791,6 +792,10 @@ std::shared_ptr<ChSuspension> ReadSuspensionJSON(const std::string& filename) {
         suspension = chrono_types::make_shared<RigidSuspension>(d);
     } else if (subtype.compare("RigidPinnedAxle") == 0) {
         suspension = chrono_types::make_shared<RigidPinnedAxle>(d);
+    } else if (subtype.compare("PushPipeAxle") == 0) {
+        suspension = chrono_types::make_shared<PushPipeAxle>(d);
+    } else if (subtype.compare("ToeBarPushPipeAxle") == 0) {
+        suspension = chrono_types::make_shared<ToeBarPushPipeAxle>(d);
     } else if (subtype.compare("HendricksonPRIMAXX") == 0) {
         suspension = chrono_types::make_shared<HendricksonPRIMAXX>(d);
     } else if (subtype.compare("GenericWheeledSuspension") == 0) {
@@ -1000,7 +1005,7 @@ std::shared_ptr<ChTire> ReadTireJSON(const std::string& filename) {
         tire = chrono_types::make_shared<TMeasyTire>(d);
     } else if (subtype.compare("TMsimpleTire") == 0) {
         tire = chrono_types::make_shared<TMsimpleTire>(d);
-    } else if (subtype.compare("FialaTire") == 0) {
+    }  else if (subtype.compare("FialaTire") == 0) {
         tire = chrono_types::make_shared<FialaTire>(d);
     } else if (subtype.compare("Pac89Tire") == 0) {
         tire = chrono_types::make_shared<Pac89Tire>(d);

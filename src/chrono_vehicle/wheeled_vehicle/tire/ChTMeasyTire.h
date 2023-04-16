@@ -182,7 +182,9 @@ class CH_VEHICLE_API ChTMeasyTire : public ChForceElementTire {
 
     /// Simple parameter consistency test.
     bool CheckParameters();
-
+    
+    double GetTireOmega() { return m_states.omega; }
+    
   protected:
     /// Set the parameters in the TMeasy model.
     virtual void SetTMeasyParams() = 0;
