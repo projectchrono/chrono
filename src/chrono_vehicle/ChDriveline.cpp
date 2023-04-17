@@ -22,15 +22,19 @@
 namespace chrono {
 namespace vehicle {
 
-ChDriveline::ChDriveline(const std::string& name) : ChPart(name) {}
+ChDriveline::ChDriveline(const std::string& name) : ChPart(name) {
+    m_driveshaft = chrono_types::make_shared<ChShaft>();
+}
 
 ChDriveline::~ChDriveline() {
-    if (!m_driveshaft)
-        return;
-    auto sys = m_driveshaft->GetSystem();
-    if (sys) {
-        sys->RemoveShaft(m_driveshaft);
+    if (m_driveshaft->GetSystem()) {
+        m_driveshaft->GetSystem()->RemoveShaft(m_driveshaft);
     }
+}
+
+void ChDriveline::Initialize(std::shared_ptr<ChChassis> chassis) {
+    m_driveshaft->SetInertia(1.0);
+    chassis->GetSystem()->AddShaft(m_driveshaft);
 }
 
 void ChDriveline::InitializeInertiaProperties() {

@@ -23,7 +23,6 @@
 #define CH_DRIVELINE_TV_H
 
 #include "chrono_vehicle/ChDriveline.h"
-#include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
 namespace chrono {

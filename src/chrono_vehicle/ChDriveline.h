@@ -22,6 +22,7 @@
 #include "chrono/physics/ChShaft.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
+#include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/ChPart.h"
 
 namespace chrono {
@@ -35,12 +36,16 @@ class CH_VEHICLE_API ChDriveline : public ChPart {
   public:
     virtual ~ChDriveline();
 
+    /// Initialize the driveline.
+    /// This creates the driveshaft and attaches it to the containing Chrono system.
+    void Initialize(std::shared_ptr<ChChassis> chassis);
+
     /// Get a handle to the driveshaft.
-    /// Return a pointer to the shaft that connects this driveline to a powertrain system.
+    /// Return a pointer to the shaft that connects this driveline to a transmission system.
     std::shared_ptr<ChShaft> GetDriveshaft() const { return m_driveshaft; }
 
     /// Get the angular speed of the driveshaft.
-    /// This represents the output from the driveline subsystem that is passed to the powertrain system.
+    /// This represents the output from the driveline subsystem that is passed to the transmission system.
     double GetDriveshaftSpeed() const { return -m_driveshaft->GetPos_dt(); }
 
   protected:
@@ -49,7 +54,7 @@ class CH_VEHICLE_API ChDriveline : public ChPart {
     virtual void InitializeInertiaProperties() override;
     virtual void UpdateInertiaProperties() override;
 
-    std::shared_ptr<ChShaft> m_driveshaft;  ///< shaft connection to the powertrain
+    std::shared_ptr<ChShaft> m_driveshaft;  ///< shaft connection to the transmission
 };
 
 /// @} vehicle

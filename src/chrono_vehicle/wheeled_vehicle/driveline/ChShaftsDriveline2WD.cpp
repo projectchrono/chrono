@@ -60,13 +60,11 @@ void ChShaftsDriveline2WD::Initialize(std::shared_ptr<ChChassis> chassis,
     auto chassisBody = chassis->GetBody();
     auto sys = chassisBody->GetSystem();
 
-    // Create the driveshaft, a 1 d.o.f. object with rotational inertia which
-    // represents the connection of the driveline to the transmission box.
-    m_driveshaft = chrono_types::make_shared<ChShaft>();
+    // Create the driveshaft for the connection of the driveline to the transmission box.
+    ChDriveline::Initialize(chassis);
     m_driveshaft->SetInertia(GetDriveshaftInertia());
-    sys->AddShaft(m_driveshaft);
 
-    // Create a 1 d.o.f. object: a 'shaft' with rotational inertia.
+    // Create the differential box.
     // This represents the inertia of the rotating box of the differential.
     m_differentialbox = chrono_types::make_shared<ChShaft>();
     m_differentialbox->SetInertia(GetDifferentialBoxInertia());
@@ -82,10 +80,8 @@ void ChShaftsDriveline2WD::Initialize(std::shared_ptr<ChChassis> chassis,
     m_conicalgear->SetTransmissionRatio(-GetConicalGearRatio());
     sys->Add(m_conicalgear);
 
-    // Create a differential, i.e. an epicycloidal mechanism that connects three
-    // rotating members. This class of mechanisms can be simulated using
-    // ChShaftsPlanetary; a proper 'ordinary' transmission ratio t0 must be
-    // assigned according to Willis formula. For a differential, t0=-1.
+    // Create a differential, i.e. an epicycloidal mechanism that connects three rotating members.
+    // A proper 'ordinary' transmission ratio t0 must be set according to Willis formula. For a differential, t0=-1.
     m_differential = chrono_types::make_shared<ChShaftsPlanetary>();
     m_differential->Initialize(m_differentialbox, axles[m_driven_axles[0]]->m_suspension->GetAxle(LEFT),
                                axles[m_driven_axles[0]]->m_suspension->GetAxle(RIGHT));

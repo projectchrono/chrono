@@ -54,11 +54,9 @@ void ChTrackDrivelineBDS::Initialize(std::shared_ptr<ChChassis> chassis,
     auto chassisBody = chassis->GetBody();
     auto sys = chassisBody->GetSystem();
 
-    // Create the driveshaft, a 1 d.o.f. object with rotational inertia which
-    // represents the connection of the driveline to the transmission box.
-    m_driveshaft = chrono_types::make_shared<ChShaft>();
+    // Create the driveshaft for the connection of the driveline to the transmission box.
+    ChDriveline::Initialize(chassis);
     m_driveshaft->SetInertia(GetDriveshaftInertia());
-    sys->AddShaft(m_driveshaft);
 
     // Create a 1 d.o.f. object: a 'shaft' with rotational inertia.
     // This represents the inertia of the rotating box of the differential.

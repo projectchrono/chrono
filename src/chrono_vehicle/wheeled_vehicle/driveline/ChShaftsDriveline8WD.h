@@ -134,8 +134,6 @@ class CH_VEHICLE_API ChShaftsDriveline8WD : public ChDrivelineWV {
 
     ChVector<> m_dir_motor_block;
     ChVector<> m_dir_axle;
-
-    void Create(std::shared_ptr<ChChassis> chassis, const ChAxleList& axles);
 };
 
 /// @} vehicle_wheeled_driveline

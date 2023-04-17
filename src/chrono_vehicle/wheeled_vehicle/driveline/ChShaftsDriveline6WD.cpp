@@ -73,29 +73,21 @@ void ChShaftsDriveline6WD::Initialize(std::shared_ptr<ChChassis> chassis,
     auto chassisBody = chassis->GetBody();
     auto sys = chassisBody->GetSystem();
 
-    // Create the driveshaft, a 1 d.o.f. object with rotational inertia which
-    // represents the connection of the driveline to the transmission box.
-    m_driveshaft = chrono_types::make_shared<ChShaft>();
+    // Create the driveshaft for the connection of the driveline to the transmission box.
+    ChDriveline::Initialize(chassis);
     m_driveshaft->SetInertia(GetDriveshaftInertia());
-    sys->AddShaft(m_driveshaft);
 
-    // Create a 1 d.o.f. object: a 'shaft' with rotational inertia.
-    // This represents the shaft that connecting central differential to front
-    // differential.
+    // Create the shaft connecting the central differential to the front differential.
     m_front_shaft = chrono_types::make_shared<ChShaft>();
     m_front_shaft->SetInertia(GetToFrontDiffShaftInertia());
     sys->AddShaft(m_front_shaft);
 
-    // Create a 1 d.o.f. object: a 'shaft' with rotational inertia.
-    // This represents the shaft that connecting central differential to front
-    // differential.
+    // Create the shaft connecting the central differential to the front differential.
     m_rear1_shaft = chrono_types::make_shared<ChShaft>();
     m_rear1_shaft->SetInertia(GetToFrontDiffShaftInertia());
     sys->AddShaft(m_rear1_shaft);
 
-    // Create a 1 d.o.f. object: a 'shaft' with rotational inertia.
-    // This represents the shaft that connecting central differential to rear
-    // differential.
+    // Create the shaft connecting the central differential to the rear differential.
     m_rear2_shaft = chrono_types::make_shared<ChShaft>();
     m_rear2_shaft->SetInertia(GetToRearDiffShaftInertia());
     sys->AddShaft(m_rear2_shaft);

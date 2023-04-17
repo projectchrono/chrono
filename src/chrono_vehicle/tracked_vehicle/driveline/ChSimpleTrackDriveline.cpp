@@ -39,9 +39,7 @@ void ChSimpleTrackDriveline::Initialize(std::shared_ptr<ChChassis> chassis,
                                         std::shared_ptr<ChTrackAssembly> track_left,
                                         std::shared_ptr<ChTrackAssembly> track_right) {
     // Create the driveshaft
-    m_driveshaft = chrono_types::make_shared<ChShaft>();
-    m_driveshaft->SetInertia(0.5);
-    chassis->GetSystem()->AddShaft(m_driveshaft);
+    ChDriveline::Initialize(chassis);
 
     // Grab handles to the sprocket shafts.
     m_shaft_left = track_left->GetSprocket()->GetAxle();
