@@ -48,7 +48,7 @@ void ChLinkMotorRotationSpeed::Update(double mytime, bool update_assets) {
     ChLinkMotorRotation::Update(mytime, update_assets);
 
     // Override the rotational jacobian [Cq] and the rotational residual C,
-    // by assuming an additional hidden frame that rotates about frame2:
+    // by assuming an additional hidden frame that rotates about frame1:
 
     if (this->Body1 && this->Body2) {
         ChFrame<> aframe1 = this->frame1 >> (*this->Body1);
@@ -56,8 +56,6 @@ void ChLinkMotorRotationSpeed::Update(double mytime, bool update_assets) {
 
         ChFrame<> aframe12;
         aframe2.TransformParentToLocal(aframe1, aframe12);
-
-        ChFrame<> aframe2rotating;
 
         double aux_rotation;
 
@@ -68,27 +66,22 @@ void ChLinkMotorRotationSpeed::Update(double mytime, bool update_assets) {
             aux_rotation = aframe12.GetRot().Q_to_Rotv().z();
         }
 
-        aframe2rotating.SetRot(aframe2.GetRot() * Q_from_AngAxis(aux_rotation, VECT_Z));
+        ChFrame<> aframe1rotating;
+        aframe1rotating.SetRot(aframe1.GetRot() * Q_from_AngAxis(aux_rotation, VECT_Z).GetConjugate());
 
-        ChFrame<> aframe12rotating;
-        aframe2rotating.TransformParentToLocal(aframe1, aframe12rotating);
-
-        ChMatrix33<> abs_plane_rotating = aframe2rotating.GetA();
-
-        ChMatrix33<> Jw1 = abs_plane_rotating.transpose() * Body1->GetA();
-        ChMatrix33<> Jw2 = -abs_plane_rotating.transpose() * Body2->GetA();
+        ChFrame<> aframe21rotating;
+        aframe1rotating.TransformParentToLocal(aframe2, aframe21rotating);
 
         // Premultiply by Jw1 and Jw2 by  0.5*[Fp(q_resid)]' to get residual as imaginary part of a quaternion.
-        ChStarMatrix33<> mtempM(aframe12rotating.GetRot().GetVector() * 0.5);
-        mtempM(0, 0) = 0.5 * aframe12rotating.GetRot().e0();
-        mtempM(1, 1) = 0.5 * aframe12rotating.GetRot().e0();
-        mtempM(2, 2) = 0.5 * aframe12rotating.GetRot().e0();
+        this->P = 0.5 * (ChMatrix33<>(aframe21rotating.GetRot().e0()) +
+                         ChStarMatrix33<>(aframe21rotating.GetRot().GetVector()));
 
-        ChMatrix33<> mtempQ;
-        mtempQ = mtempM.transpose() * Jw1;
-        Jw1 = mtempQ;
-        mtempQ = mtempM.transpose() * Jw2;
-        Jw2 = mtempQ;
+        ChMatrix33<> Jw1 = this->P * aframe2.GetA().transpose() * Body1->GetA();
+        ChMatrix33<> Jw2 = -this->P * aframe2.GetA().transpose() * Body2->GetA();
+
+        // Another equivalent expression:
+        // ChMatrix33<> Jw1 = this->P.transpose() * aframe1rotating.GetA().transpose() * Body1->GetA();
+        // ChMatrix33<> Jw2 = -this->P.transpose() * aframe1rotating.GetA().transpose() * Body2->GetA();
 
         int nc = 0;
 
@@ -102,7 +95,7 @@ void ChLinkMotorRotationSpeed::Update(double mytime, bool update_assets) {
             nc++;
         }
         if (c_rx) {
-            C(nc) = aframe12rotating.GetRot().e1();
+            C(nc) = -aframe21rotating.GetRot().e1();
             mask.Constr_N(nc).Get_Cq_a().setZero();
             mask.Constr_N(nc).Get_Cq_b().setZero();
             mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(0);
@@ -110,7 +103,7 @@ void ChLinkMotorRotationSpeed::Update(double mytime, bool update_assets) {
             nc++;
         }
         if (c_ry) {
-            C(nc) = aframe12rotating.GetRot().e2();
+            C(nc) = -aframe21rotating.GetRot().e2();
             mask.Constr_N(nc).Get_Cq_a().setZero();
             mask.Constr_N(nc).Get_Cq_b().setZero();
             mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(1);
@@ -118,7 +111,7 @@ void ChLinkMotorRotationSpeed::Update(double mytime, bool update_assets) {
             nc++;
         }
         if (c_rz) {
-            C(nc) = aframe12rotating.GetRot().e3();
+            C(nc) = -aframe21rotating.GetRot().e3();
             mask.Constr_N(nc).Get_Cq_a().setZero();
             mask.Constr_N(nc).Get_Cq_b().setZero();
             mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(2);
