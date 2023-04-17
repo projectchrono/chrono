@@ -241,6 +241,19 @@ set(CV_DRIVER_FILES
 source_group("driver" FILES ${CV_DRIVER_FILES})
 
 set(CV_POVERTRAIN_FILES
+    powertrain/ChSimpleEngine.h
+    powertrain/ChSimpleEngine.cpp
+    powertrain/ChSimpleMapEngine.h
+    powertrain/ChSimpleMapEngine.cpp
+    powertrain/ChShaftsEngine.h
+    powertrain/ChShaftsEngine.cpp
+    powertrain/SimpleEngine.h
+    powertrain/SimpleEngine.cpp
+    powertrain/SimpleMapEngine.h
+    powertrain/SimpleMapEngine.cpp
+    powertrain/ShaftsEngine.h
+    powertrain/ShaftsEngine.cpp
+
     powertrain/ChSimplePowertrain.h
     powertrain/ChSimplePowertrain.cpp
     powertrain/ChShaftsPowertrain.h
