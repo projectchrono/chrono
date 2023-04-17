@@ -85,6 +85,7 @@ bool ChInteractiveDriverIRR::OnEvent(const SEvent& event) {
                     m_throttle = 0;
                     m_steering = 0;
                     m_braking = 0;
+                    m_clutch = 0;
                     m_mode = InputMode::KEYBOARD;
                 }
                 return true;
@@ -224,6 +225,7 @@ bool ChInteractiveDriverIRR::ProcessJoystickEvents(const SEvent& event) {
     return true;
 }
 
+//// TODO: keyboard control of clutch
 bool ChInteractiveDriverIRR::ProcessKeyboardEvents(const SEvent& event) {
     if (event.KeyInput.PressedDown) {
         switch (event.KeyInput.Key) {

@@ -91,6 +91,7 @@ struct DriverInputs {
     double m_steering;  ///< steering input [-1, +1]
     double m_throttle;  ///< throttle input [0, 1]
     double m_braking;   ///< braking input [0, 1]
+    double m_clutch;    ///< clutch input [0, 1]
 };
 
 // -----------------------------------------------------------------------------

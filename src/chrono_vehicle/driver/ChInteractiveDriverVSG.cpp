@@ -57,6 +57,7 @@ void ChInteractiveDriverVSG::SteeringCenter() {
 void ChInteractiveDriverVSG::ReleasePedals() {
     m_throttle_target = 0.0;
     m_braking_target = 0.0;
+    m_clutch_target = 0.0;
 }
 
 }  // namespace vehicle

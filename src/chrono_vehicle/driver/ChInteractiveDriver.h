@@ -35,9 +35,8 @@ namespace vehicle {
 /// @addtogroup vehicle_driver
 /// @{
 
-/// Irrlicht-based interactive driver for the a vehicle.
+/// Interactive driver for the a vehicle.
 /// This class implements the functionality required by the base ChDriver class using keyboard or joystick inputs.
-/// As an Irrlicht event receiver, its OnEvent() callback is used to keep track and update the current driver inputs.
 class CH_VEHICLE_API ChInteractiveDriver : public ChDriver {
   public:
     /// Functioning modes for a ChInteractiveDriver.
@@ -48,7 +47,7 @@ class CH_VEHICLE_API ChInteractiveDriver : public ChDriver {
         JOYSTICK   ///< driver inputs from joystick
     };
 
-    /// Construct an Irrlicht GUI driver.
+    /// Construct an interactive driver.
     ChInteractiveDriver(ChVehicle& vehicle);
 
     virtual ~ChInteractiveDriver() {}
@@ -74,12 +73,15 @@ class CH_VEHICLE_API ChInteractiveDriver : public ChDriver {
     /// Set the increment in braking input for each recorded keypress (default 1/50).
     void SetBrakingDelta(double delta);
 
+    /// Set the increment in clutch input for each recorded keypress (default 1/50).
+    void SetClutchDelta(double delta);
+
     /// Set the step size for integration of the internal driver dynamics.
     void SetStepsize(double val) { m_stepsize = val; }
 
     /// Set gains for internal dynamics.
     /// Default values are 4.0.
-    void SetGains(double steering_gain, double throttle_gain, double braking_gain);
+    void SetGains(double steering_gain = 1, double throttle_gain = 1, double braking_gain = 1, double clutch_gain = 1);
 
     /// Set the input file for the underlying data driver.
     void SetInputDataFile(const std::string& filename);
@@ -91,16 +93,19 @@ class CH_VEHICLE_API ChInteractiveDriver : public ChDriver {
     double m_steering_target;  ///< current target value for steering input
     double m_throttle_target;  ///< current target value for throttle input
     double m_braking_target;   ///< current target value for braking input
+    double m_clutch_target;    ///< current target value for clutch input
 
     double m_stepsize;  ///< time step for internal dynamics
 
     double m_steering_delta;  ///< steering increment on each keypress
     double m_throttle_delta;  ///< throttle increment on each keypress
     double m_braking_delta;   ///< braking increment on each keypress
+    double m_clutch_delta;    ///< clutch increment on each keypress
 
     double m_steering_gain;  ///< gain for steering internal dynamics
     double m_throttle_gain;  ///< gain for throttle internal dynamics
     double m_braking_gain;   ///< gain for braking internal dynamics
+    double m_clutch_gain;    ///< gain for clutch internal dynamics
 
     // Variables for mode=DATAFILE
     double m_time_shift;                          ///< time at which mode was switched to DATAFILE

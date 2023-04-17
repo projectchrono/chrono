@@ -39,7 +39,7 @@ namespace vehicle {
 /// Driver inputs from data file.
 /// A driver model based on user inputs provided as time series. If provided as a
 /// text file, each line in the file must contain 4 values:
-///   time steering throttle braking
+///   time steering throttle braking clutch
 /// It is assumed that the time values are unique.
 /// If the time values are not sorted, this must be specified at construction.
 /// Driver inputs at intermediate times are obtained through linear interpolation.
@@ -48,25 +48,26 @@ class CH_VEHICLE_API ChDataDriver : public ChDriver {
     /// Definition of driver inputs at a given time.
     struct Entry {
         Entry() {}
-        Entry(double time, double steering, double throttle, double braking)
-            : m_time(time), m_steering(steering), m_throttle(throttle), m_braking(braking) {}
+        Entry(double time, double steering, double throttle, double braking, double clutch)
+            : m_time(time), m_steering(steering), m_throttle(throttle), m_braking(braking), m_clutch(clutch) {}
         double m_time;
         double m_steering;
         double m_throttle;
         double m_braking;
+        double m_clutch;
     };
 
     /// Construct using data from the specified file.
     ChDataDriver(ChVehicle& vehicle,           ///< associated vehicle
                  const std::string& filename,  ///< name of data file
                  bool sorted = true            ///< indicate whether entries are sorted by time stamps
-                 );
+    );
 
     /// Construct using data from the specified data entries.
     ChDataDriver(ChVehicle& vehicle,              ///< associated vehicle
                  const std::vector<Entry>& data,  ///< vector of data entries
                  bool sorted = true               ///< indicate whether entries are sorted by time stamps
-                 );
+    );
 
     ~ChDataDriver() {}
 
