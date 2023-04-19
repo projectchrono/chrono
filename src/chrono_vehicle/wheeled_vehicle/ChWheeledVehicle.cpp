@@ -65,19 +65,18 @@ void ChWheeledVehicle::InitializePowertrain(std::shared_ptr<ChPowertrain> powert
 // to the terrain system.
 // -----------------------------------------------------------------------------
 void ChWheeledVehicle::Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) {
-    double powertrain_torque = 0;
-    if (m_powertrain && m_driveline) {
-        // Extract the torque from the powertrain.
-        powertrain_torque = m_powertrain->GetOutputTorque();
-        // Synchronize the associated powertrain system (pass throttle input).
-        m_powertrain->Synchronize(time, driver_inputs, m_driveline->GetDriveshaft()->GetPos_dt());
-    }
+    double powertrain_torque = m_powertrain ? m_powertrain->GetOutputTorque()  : 0;
+    double driveline_speed = m_driveline ? m_driveline->GetDriveshaft()->GetPos_dt() : 0;
 
-    // Apply powertrain torque to the driveline's input shaft.
+    // Set driveshaft speed for the transmission output shaft
+    if (m_powertrain)
+        m_powertrain->Synchronize(time, driver_inputs, driveline_speed);
+
+    // Apply powertrain torque to the driveline's input shaft
     if (m_driveline)
         m_driveline->Synchronize(time, driver_inputs, powertrain_torque);
 
-    // Let the steering subsystems process the steering input.
+    // Let the steering subsystems process the steering input
     for (auto& steering : m_steerings) {
         steering->Synchronize(time, driver_inputs);
     }
