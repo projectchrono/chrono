@@ -132,6 +132,7 @@ bool ChInteractiveDriverIRR::ProcessJoystickEvents(const SEvent& event) {
     SetSteering(steerAxis.GetValue(event.JoystickEvent));
     SetThrottle(throttleAxis.GetValue(event.JoystickEvent));
     SetBraking(brakeAxis.GetValue(event.JoystickEvent));
+    SetClutch(clutchAxis.GetValue(event.JoystickEvent));
 
     // Sequential shifter code...
     if (m_vehicle.GetPowertrain()) {
@@ -149,7 +150,7 @@ bool ChInteractiveDriverIRR::ProcessJoystickEvents(const SEvent& event) {
     if (clutchAxis.axis != ChJoystickAxisIRR::NONE) {
         // double rawClutchPosition = (double)event.JoystickEvent.Axis[clutchAxis.axis];
         double clutchPosition = clutchAxis.GetValue(event.JoystickEvent);
-        // Check if that clutch is pressed...
+        // Check if the clutch is pressed...
         if ((clutchAxis.scaled_max - clutchPosition) < 0.1) {
             SetThrottle(0);
             bool reverseGearEngaged = gearReverseButton.IsPressed(event.JoystickEvent);

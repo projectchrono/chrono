@@ -54,7 +54,7 @@ class CH_VEHICLE_API ChDriver {
     double GetBraking() const { return m_braking; }
 
     /// Get the driver clutch input (in the range [0,1]).
-    double GetClutch() const { return m_braking; }
+    double GetClutch() const { return m_clutch; }
 
     /// Get all current inputs at once.
     DriverInputs GetInputs() const;
