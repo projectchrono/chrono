@@ -23,6 +23,7 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChChassis.h"
+#include "chrono_vehicle/ChEngine.h"
 #include "chrono_vehicle/ChDriveline.h"
 
 namespace chrono {
@@ -65,9 +66,9 @@ class CH_VEHICLE_API ChTransmission : public ChPart {
     /// A return value of 0 indicates reverse; a positive value indicates a forward gear.
     int GetCurrentTransmissionGear() const { return m_current_gear; }
 
-    /// Return the output torque from the powertrain.
-    /// This is the torque that is passed to a vehicle system, thus providing the
-    /// interface between the powertrain and vehicle co-simulation modules.
+    /// Return the output torque from the transmission.
+    /// This is the torque that is passed to a vehicle system, thus providing the interface between the powertrain and
+    /// vehicle co-simulation modules.
     virtual double GetOutputTorque() const = 0;
 
     /// Set the drive mode.
@@ -77,7 +78,7 @@ class CH_VEHICLE_API ChTransmission : public ChPart {
     DriveMode GetDriveMode() const { return m_drive_mode; }
 
     /// Set the transmission mode (automatic or manual).
-    /// Note that a derived powertrain class may ignore this is the selected mode is not supported.
+    /// Note that a derived transmission class may ignore this is the selected mode is not supported.
     void SetTransmissionMode(TransmissionMode mode) { m_transmission_mode = mode; }
 
     /// Get the current transmission mode.
@@ -99,9 +100,11 @@ class CH_VEHICLE_API ChTransmission : public ChPart {
     virtual void InitializeInertiaProperties() override;
     virtual void UpdateInertiaProperties() override;
 
-    /// Initialize this transmission system by attaching it to an existing vehicle chassis.
-    /// A derived class override must first call this base class version.
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis);
+    /// Initialize this transmission system by attaching it to an existing vehicle chassis and connecting the provided
+    /// engine and driveline subsystems. A derived class override must first call this base class implementation.
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,
+                            std::shared_ptr<ChEngine> engine,
+                            std::shared_ptr<ChDriveline> driveline);
 
     /// Set the transmission gear ratios (one or more forward gear ratios and a single reverse gear ratio).
     virtual void SetGearRatios(std::vector<double>& fwd, double& rev) = 0;
@@ -112,11 +115,9 @@ class CH_VEHICLE_API ChTransmission : public ChPart {
     /// Perform any action required on placing the transmission in neutral.
     virtual void OnNeutralShift() {}
 
-    /// Synchronize the state of this powertrain system at the current time.
-    /// The powertrain system is provided the current driver throttle input, a value in the range [0,1].
-    virtual void Synchronize(double time,                        ///< [in] current time
-                             const DriverInputs& driver_inputs,  ///< [in] current driver inputs
-                             double shaft_speed                  ///< [in] driveshaft speed
+    /// Synchronize the state of this transmission system at the current time.
+    virtual void Synchronize(double time,                       ///< current time
+                             const DriverInputs& driver_inputs  ///< current driver inputs
                              ) = 0;
 
     /// Advance the state of this powertrain system by the specified time step.

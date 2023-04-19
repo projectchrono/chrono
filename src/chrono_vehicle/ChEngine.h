@@ -36,6 +36,9 @@ class CH_VEHICLE_API ChEngine : public ChPart {
   public:
     virtual ~ChEngine();
 
+    /// Get a handle to the underlying motorshaft (connection to a transmission).
+    std::shared_ptr<ChShaft> GetMotorshaft() const { return m_motorshaft; }
+
     /// Return the current engine speed.
     virtual double GetMotorSpeed() const = 0;
 
