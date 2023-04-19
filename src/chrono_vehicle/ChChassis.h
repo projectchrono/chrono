@@ -222,14 +222,14 @@ class CH_VEHICLE_API ChChassisConnector : public ChPart {
     /// the reference frame of the front chassis).
     virtual void Initialize(std::shared_ptr<ChChassis> front,    ///< [in] front chassis
                             std::shared_ptr<ChChassisRear> rear  ///< [in] rear chassis
-                            ) = 0;
+    );
 
     /// Update the state of this connector subsystem at the current time.
     /// The connector subsystem is provided the current steering driver input (a
     /// value between -1 and +1).  Positive steering input indicates steering
     /// to the left. This function is called during the vehicle update.
     /// The default implementation is no-op.
-    virtual void Synchronize(double time,                           ///< [in] current time
+    virtual void Synchronize(double time,                       ///< [in] current time
                              const DriverInputs& driver_inputs  ///< [in] current driver inputs
     ) {}
 

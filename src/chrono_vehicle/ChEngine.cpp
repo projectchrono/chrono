@@ -35,6 +35,9 @@ ChEngine::~ChEngine() {
 void ChEngine::Initialize(std::shared_ptr<ChChassis> chassis) {
     m_motorshaft->SetInertia(1.0);
     chassis->GetSystem()->AddShaft(m_motorshaft);
+
+    // Mark as initialized
+    m_initialized = true;
 }
 
 void ChEngine::InitializeInertiaProperties() {

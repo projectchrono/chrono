@@ -91,6 +91,9 @@ void ChSprocket::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector<>
     // Set user-defined custom collision callback class for sprocket-shoes contact.
     m_callback = GetCollisionCallback(track);
     chassis->GetSystem()->RegisterCustomCollisionCallback(m_callback);
+
+    // Mark as initialized
+    m_initialized = true;
 }
 
 void ChSprocket::InitializeInertiaProperties() {

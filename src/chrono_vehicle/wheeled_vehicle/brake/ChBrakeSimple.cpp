@@ -39,6 +39,8 @@ ChBrakeSimple::~ChBrakeSimple() {
 void ChBrakeSimple::Initialize(std::shared_ptr<ChChassis> chassis,
                                std::shared_ptr<ChSuspension> suspension,
                                VehicleSide side) {
+    ChBrake::Initialize(chassis, suspension, side);
+
     m_hub = suspension->GetRevolute(side);
 
     // Reuse the same bodies and link coordinate of the hub revolute joint

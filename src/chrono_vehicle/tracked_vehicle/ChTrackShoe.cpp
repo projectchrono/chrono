@@ -38,5 +38,12 @@ ChTrackShoe::~ChTrackShoe() {
     }
 }
 
+void ChTrackShoe::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+                             const ChVector<>& location,
+                             const ChQuaternion<>& rotation) {
+    // Mark as initialized
+    m_initialized = true;
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono
