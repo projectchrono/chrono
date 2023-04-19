@@ -20,9 +20,8 @@
 #define SIMPLEMAP_ENGINE_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/powertrain/ChSimpleMapEngine.h"
-
-#include "chrono_thirdparty/rapidjson/document.h"
 
 namespace chrono {
 namespace vehicle {
@@ -46,21 +45,12 @@ class CH_VEHICLE_API SimpleMapEngine : public ChSimpleMapEngine {
                                      ) override;
 
   private:
-    struct MapData {
-        unsigned int m_n;
-        std::vector<double> m_x;
-        std::vector<double> m_y;
-    };
-
     virtual void Create(const rapidjson::Document& d) override;
-
-    void ReadMapData(const rapidjson::Value& a, MapData& map_data);
-    void SetMapData(const MapData& map_data, std::shared_ptr<ChFunction_Recorder>& map);
 
     double m_max_engine_speed;
 
-    MapData m_engine_map_full;
-    MapData m_engine_map_zero;
+    ChMapData m_engine_map_full;
+    ChMapData m_engine_map_zero;
 };
 
 /// @} vehicle_powertrain

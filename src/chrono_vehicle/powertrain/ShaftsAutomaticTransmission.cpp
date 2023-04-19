@@ -20,14 +20,11 @@
 #include "chrono/core/ChGlobal.h"
 
 #include "chrono_vehicle/powertrain/ShaftsAutomaticTransmission.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
-
-const double rpm2rads = CH_C_PI / 30;
 
 ShaftsAutomaticTransmission::ShaftsAutomaticTransmission(const std::string& filename)
     : ChShaftsAutomaticTransmission("") {
@@ -56,8 +53,8 @@ void ShaftsAutomaticTransmission::Create(const rapidjson::Document& d) {
     // Read torque converter data
     assert(d.HasMember("Torque Converter"));
 
-    ReadMapData(d["Torque Converter"]["Capacity Factor Map"], m_tc_capacity_factor);
-    ReadMapData(d["Torque Converter"]["Torque Ratio Map"], m_tc_torque_ratio);
+    m_tc_capacity_factor.Read(d["Torque Converter"]["Capacity Factor Map"]);
+    m_tc_torque_ratio.Read(d["Torque Converter"]["Torque Ratio Map"]);
 
     // Read transmission data
     assert(d.HasMember("Gear Box"));
@@ -83,32 +80,12 @@ void ShaftsAutomaticTransmission::SetGearRatios(std::vector<double>& fwd, double
     fwd = m_fwd_gear;
 }
 
-// -----------------------------------------------------------------------------
-
-void ShaftsAutomaticTransmission::ReadMapData(const rapidjson::Value& a, MapData& map_data) {
-    assert(a.IsArray());
-    map_data.m_n = a.Size();
-    for (unsigned int i = 0; i < map_data.m_n; i++) {
-        map_data.m_x.push_back(a[i][0u].GetDouble());
-        map_data.m_y.push_back(a[i][1u].GetDouble());
-    }
-}
-
-void ShaftsAutomaticTransmission::SetMapData(const MapData& map_data,
-                                             double x_factor,
-                                             double y_factor,
-                                             std::shared_ptr<ChFunction_Recorder>& map) {
-    for (unsigned int i = 0; i < map_data.m_n; i++) {
-        map->AddPoint(x_factor * map_data.m_x[i], y_factor * map_data.m_y[i]);
-    }
-}
-
 void ShaftsAutomaticTransmission::SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunction_Recorder>& map) {
-    SetMapData(m_tc_capacity_factor, 1.0, 1.0, map);
+    m_tc_capacity_factor.Set(*map);
 }
 
 void ShaftsAutomaticTransmission::SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunction_Recorder>& map) {
-    SetMapData(m_tc_torque_ratio, 1.0, 1.0, map);
+    m_tc_torque_ratio.Set(*map);
 }
 
 }  // end namespace vehicle

@@ -17,6 +17,8 @@
 // =============================================================================
 
 #include <fstream>
+#include <vector>
+#include <utility>
 
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
@@ -1005,7 +1007,7 @@ std::shared_ptr<ChTire> ReadTireJSON(const std::string& filename) {
         tire = chrono_types::make_shared<TMeasyTire>(d);
     } else if (subtype.compare("TMsimpleTire") == 0) {
         tire = chrono_types::make_shared<TMsimpleTire>(d);
-    }  else if (subtype.compare("FialaTire") == 0) {
+    } else if (subtype.compare("FialaTire") == 0) {
         tire = chrono_types::make_shared<FialaTire>(d);
     } else if (subtype.compare("Pac89Tire") == 0) {
         tire = chrono_types::make_shared<Pac89Tire>(d);
@@ -1202,6 +1204,29 @@ std::shared_ptr<ChTrackWheel> ReadTrackWheelJSON(const std::string& filename) {
     }
 
     return wheel;
+}
+
+// -----------------------------------------------------------------------------
+
+void ChMapData::Read(const rapidjson::Value& a) {
+    assert(a.IsArray());
+    m_n = a.Size();
+    for (unsigned int i = 0; i < m_n; i++) {
+        m_x.push_back(a[i][0u].GetDouble());
+        m_y.push_back(a[i][1u].GetDouble());
+    }
+}
+
+void ChMapData::Set(ChFunction_Recorder& map, double x_factor, double y_factor) const {
+    for (unsigned int i = 0; i < m_n; i++) {
+        map.AddPoint(x_factor * m_x[i], y_factor * m_y[i]);
+    }
+}
+
+void ChMapData::Set(std::vector<std::pair<double, double>>& vec, double x_factor, double y_factor) const {
+    for (unsigned int i = 0; i < m_n; i++) {
+        vec.push_back(std::make_pair<double, double>(x_factor * m_x[i], y_factor * m_y[i]));
+    }
 }
 
 }  // end namespace vehicle

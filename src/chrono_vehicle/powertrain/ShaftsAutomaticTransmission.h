@@ -21,9 +21,8 @@
 #define SHAFTS_AUTOMATIC_TRANSMISSION_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/powertrain/ChShaftsAutomaticTransmission.h"
-
-#include "chrono_thirdparty/rapidjson/document.h"
 
 namespace chrono {
 namespace vehicle {
@@ -50,16 +49,7 @@ class CH_VEHICLE_API ShaftsAutomaticTransmission : public ChShaftsAutomaticTrans
     virtual void SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunction_Recorder>& map) override;
 
   private:
-    struct MapData {
-        unsigned int m_n;
-        std::vector<double> m_x;
-        std::vector<double> m_y;
-    };
-
     virtual void Create(const rapidjson::Document& d) override;
-
-    void ReadMapData(const rapidjson::Value& a, MapData& map_data);
-    void SetMapData(const MapData& map_data, double x_factor, double y_factor, std::shared_ptr<ChFunction_Recorder>& map);
 
     double m_transmissionblock_inertia;
     double m_ingear_shaft_inertia;
@@ -70,8 +60,8 @@ class CH_VEHICLE_API ShaftsAutomaticTransmission : public ChShaftsAutomaticTrans
     double m_upshift_RPM;
     double m_downshift_RPM;
 
-    MapData m_tc_capacity_factor;
-    MapData m_tc_torque_ratio;
+    ChMapData m_tc_capacity_factor;
+    ChMapData m_tc_torque_ratio;
 };
 
 /// @} vehicle_powertrain
