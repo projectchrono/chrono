@@ -46,16 +46,14 @@ U401_FialaTire::U401_FialaTire(const std::string& name) : ChFialaTire(name) {}
 // -----------------------------------------------------------------------------
 
 void U401_FialaTire::SetFialaParams() {
-    // Parameters were roughly converted from TMeasy, still questionable, but better
+    // Parameters were converted from TMsimple
     m_unloaded_radius = 0.4375;
     m_width = 0.184;
     m_rolling_resistance = 0.015;
-    m_c_slip = 193929.0;
-    m_c_alpha = 50000.0;
-    m_u_min = 0.5568;
-    m_u_max = 0.9835;
-    // m_relax_length_x = 0.1244;
-    // m_relax_length_y = 0.0317;
+    m_c_slip = 44254.1;
+    m_c_alpha = 18949.2;
+    m_u_min = 0.54397;
+    m_u_max = 0.88468;
     m_relax_length_x = 2;
     m_relax_length_y = 2;
 

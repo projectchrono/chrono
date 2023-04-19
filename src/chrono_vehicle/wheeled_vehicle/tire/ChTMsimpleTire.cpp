@@ -220,7 +220,7 @@ void ChTMsimpleTire::TMcombinedForces(double& fx, double& fy, double sx, double 
     double s = hypot(sx, sy);
     double cbeta;
     double sbeta;
-    if (m_states.vsx == 0.0 && m_states.omega * m_states.R_eff == 0.0) {
+    if (m_states.vsx == 0.0 && m_states.omega * m_states.R_eff == 0.0 && s == 0.0) {
         cbeta = 0.5 * sqrt(2.0);
         sbeta = cbeta;
     } else {
@@ -368,7 +368,7 @@ double ChTMsimpleTire::GetTireMaxLoad(unsigned int li) {
 void ChTMsimpleTire::WritePlots(const std::string& plName, const std::string& plTitle) {
     std::ofstream plt(plName);
     plt << "$ForceX << EOD" << std::endl;
-    for (int i = -100; i <= 100; i++) {
+    for (int i = 0; i <= 100; i++) {
         double s = double(i) / 100.0;
         double fx1, fy1, fx2, fy2;
         TMcombinedForces(fx1, fy1, s, 0, m_TMsimpleCoeff.pn, 1.0);
@@ -377,7 +377,7 @@ void ChTMsimpleTire::WritePlots(const std::string& plName, const std::string& pl
     }
     plt << "EOD" << std::endl;
     plt << "$ForceY << EOD" << std::endl;
-    for (int i = -100; i <= 100; i++) {
+    for (int i = 0; i <= 100; i++) {
         double s = double(i) / 100.0;
         double fx1, fy1, fx2, fy2;
         TMcombinedForces(fx1, fy1, 0, s, m_TMsimpleCoeff.pn, 1.0);
@@ -385,6 +385,17 @@ void ChTMsimpleTire::WritePlots(const std::string& plName, const std::string& pl
         plt << s << "\t" << fy1 << "\t" << fy2 << std::endl;
     }
     plt << "EOD" << std::endl;
+    plt << "set title 'TMsimple: " << plTitle << "'\n";
+    plt << "set xlabel 'longitudinal slip sx ()'\n";
+    plt << "set ylabel 'longitudinal force Fx (N)'\n";
+    plt << "plot $ForceX with lines t 'Fz = " << int(m_TMsimpleCoeff.pn)
+    << " N', $ForceX u 1:3 with lines t 'Fz = " << int(m_TMsimpleCoeff.pn*2) << " N\n";
+    plt << "pause -1\n";
+    plt << "set xlabel 'lateral slip sy ()'\n";
+    plt << "set ylabel 'lateral force Fx (N)'\n";
+    plt << "plot $ForceY with lines t 'Fz = " << int(m_TMsimpleCoeff.pn)
+    << " N', $ForceY u 1:3 with lines t 'Fz = " << int(m_TMsimpleCoeff.pn*2) << " N\n";
+    plt << "pause -1\n";
     plt.close();
 }
 
