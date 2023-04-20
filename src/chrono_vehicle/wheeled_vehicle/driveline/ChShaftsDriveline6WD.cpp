@@ -37,6 +37,7 @@ ChShaftsDriveline6WD::ChShaftsDriveline6WD(const std::string& name)
 ChShaftsDriveline6WD::~ChShaftsDriveline6WD() {
     auto sys = m_central_differential->GetSystem();
     if (sys) {
+        sys->Remove(m_driveshaft);
         sys->Remove(m_central_differential);
         sys->Remove(m_central_clutch);
         sys->Remove(m_hang_on_clutch);
@@ -65,6 +66,8 @@ ChShaftsDriveline6WD::~ChShaftsDriveline6WD() {
 void ChShaftsDriveline6WD::Initialize(std::shared_ptr<ChChassis> chassis,
                                       const ChAxleList& axles,
                                       const std::vector<int>& driven_axles) {
+    ChDriveline::Initialize(chassis);
+
     assert(axles.size() >= 3);
     assert(driven_axles.size() == 3);
 
@@ -74,8 +77,9 @@ void ChShaftsDriveline6WD::Initialize(std::shared_ptr<ChChassis> chassis,
     auto sys = chassisBody->GetSystem();
 
     // Create the driveshaft for the connection of the driveline to the transmission box.
-    ChDriveline::Initialize(chassis);
+    m_driveshaft = chrono_types::make_shared<ChShaft>();
     m_driveshaft->SetInertia(GetDriveshaftInertia());
+    sys->AddShaft(m_driveshaft);
 
     // Create the shaft connecting the central differential to the front differential.
     m_front_shaft = chrono_types::make_shared<ChShaft>();
@@ -260,6 +264,11 @@ void ChShaftsDriveline6WD::Initialize(std::shared_ptr<ChChassis> chassis,
     // Central differential
     double omega_driveshaft = 0.5 * (omega_rear1_shaft + omega_rear2_shaft);
     m_driveshaft->SetPos_dt(omega_driveshaft);
+}
+
+// -----------------------------------------------------------------------------
+void ChShaftsDriveline6WD::Synchronize(double time, const DriverInputs& driver_inputs, double driveshaft_torque) {
+    m_driveshaft->SetAppliedTorque(driveshaft_torque);
 }
 
 // -----------------------------------------------------------------------------

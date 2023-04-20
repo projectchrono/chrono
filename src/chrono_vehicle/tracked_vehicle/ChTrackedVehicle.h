@@ -53,9 +53,6 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// Get a handle to the vehicle's driveline subsystem.
     std::shared_ptr<ChDrivelineTV> GetDriveline() const { return m_driveline; }
 
-    /// Get a handle to the vehicle's driveshaft body.
-    virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_driveline->GetDriveshaft(); }
-
     /// Get the number of suspensions in the specified track assembly.
     size_t GetNumTrackSuspensions(VehicleSide side) const { return m_tracks[side]->GetNumTrackSuspensions(); }
 

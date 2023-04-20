@@ -31,7 +31,8 @@ const double Generic_SimpleDriveline::m_conicalgear_ratio = -0.2433;
 // -----------------------------------------------------------------------------
 // Construct a 2WD open differential simple driveline.
 // -----------------------------------------------------------------------------
-Generic_SimpleDriveline::Generic_SimpleDriveline(const std::string& name) : ChDrivelineWV(name), m_connected(true) {}
+Generic_SimpleDriveline::Generic_SimpleDriveline(const std::string& name)
+    : ChDrivelineWV(name), m_connected(true), m_driveshaft_speed(0) {}
 
 // -----------------------------------------------------------------------------
 // Initialize the driveline subsystem.
@@ -41,11 +42,6 @@ void Generic_SimpleDriveline::Initialize(std::shared_ptr<ChChassis> chassis,
                                          const ChAxleList& axles,
                                          const std::vector<int>& driven_axles) {
     assert(axles.size() >= 1);
-
-    // Create the driveshaft
-    m_driveshaft = chrono_types::make_shared<ChShaft>();
-    m_driveshaft->SetInertia(0.5);
-    chassis->GetSystem()->Add(m_driveshaft);
 
     m_driven_axles = driven_axles;
 
@@ -61,8 +57,8 @@ void Generic_SimpleDriveline::Synchronize(double time, const DriverInputs& drive
         return;
 
     // Enforce driveshaft speed 
-    double driveshaft_speed = 0.5 * (m_driven_left->GetPos_dt() + m_driven_right->GetPos_dt());
-    m_driveshaft->SetPos_dt(driveshaft_speed / m_conicalgear_ratio);
+    m_driveshaft_speed = 0.5 * (m_driven_left->GetPos_dt() + m_driven_right->GetPos_dt());
+    m_driveshaft_speed /= m_conicalgear_ratio;
 
     // Split the input torque front/back.
     double torque_drive = -torque / m_conicalgear_ratio;

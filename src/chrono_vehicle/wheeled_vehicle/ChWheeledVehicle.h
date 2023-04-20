@@ -93,9 +93,6 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// Get the subchassis system (if none present, returns an empty pointer).
     std::shared_ptr<ChSubchassis> GetSubchassis(int id) const { return m_subchassis[id]; }
 
-    /// Get a handle to the vehicle's driveshaft body.
-    virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_driveline->GetDriveshaft(); }
-
     /// Return the number of axles for this vehicle.
     virtual int GetNumberAxles() const = 0;
 

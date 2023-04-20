@@ -37,24 +37,28 @@ class CH_VEHICLE_API ChDriveline : public ChPart {
     virtual ~ChDriveline();
 
     /// Initialize the driveline.
-    /// This creates the driveshaft and attaches it to the containing Chrono system.
     void Initialize(std::shared_ptr<ChChassis> chassis);
 
-    /// Get a handle to the driveshaft.
-    /// Return a pointer to the shaft that connects this driveline to a transmission system.
-    std::shared_ptr<ChShaft> GetDriveshaft() const { return m_driveshaft; }
+    /// Update the driveline subsystem.
+    /// The motor torque represents the input to the driveline subsystem from the powertrain system.
+    /// Apply the provided torque to the driveshaft.
+    virtual void Synchronize(double time,                        ///< current time
+                             const DriverInputs& driver_inputs,  ///< current driver inputs
+                             double driveshaft_torque            ///< input transmission torque
+                             ) = 0;
 
-    /// Get the angular speed of the driveshaft.
-    /// This represents the output from the driveline subsystem that is passed to the transmission system.
-    double GetDriveshaftSpeed() const { return -m_driveshaft->GetPos_dt(); }
+    /// Disconnect driveline.
+    virtual void Disconnect() = 0;
+
+    /// Return the output driveline speed of the driveshaft.
+    /// This represents the output from the driveline subsystem that is passed to the transmission subsystem.
+    virtual double GetOutputDriveshaftSpeed() const = 0;
 
   protected:
     ChDriveline(const std::string& name);
 
     virtual void InitializeInertiaProperties() override;
     virtual void UpdateInertiaProperties() override;
-
-    std::shared_ptr<ChShaft> m_driveshaft;  ///< shaft connection to the transmission
 };
 
 /// @} vehicle

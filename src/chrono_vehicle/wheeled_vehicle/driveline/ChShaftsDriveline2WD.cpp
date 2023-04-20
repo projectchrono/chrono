@@ -38,6 +38,7 @@ ChShaftsDriveline2WD::ChShaftsDriveline2WD(const std::string& name)
 ChShaftsDriveline2WD::~ChShaftsDriveline2WD() {
     auto sys = m_differential->GetSystem();
     if (sys) {
+        sys->Remove(m_driveshaft);
         sys->Remove(m_conicalgear);
         sys->Remove(m_differentialbox);
         sys->Remove(m_differential);
@@ -52,6 +53,8 @@ ChShaftsDriveline2WD::~ChShaftsDriveline2WD() {
 void ChShaftsDriveline2WD::Initialize(std::shared_ptr<ChChassis> chassis,
                                       const ChAxleList& axles,
                                       const std::vector<int>& driven_axles) {
+    ChDriveline::Initialize(chassis);
+
     assert(axles.size() >= 1);
     assert(driven_axles.size() == 1);
 
@@ -61,8 +64,9 @@ void ChShaftsDriveline2WD::Initialize(std::shared_ptr<ChChassis> chassis,
     auto sys = chassisBody->GetSystem();
 
     // Create the driveshaft for the connection of the driveline to the transmission box.
-    ChDriveline::Initialize(chassis);
+    m_driveshaft = chrono_types::make_shared<ChShaft>();
     m_driveshaft->SetInertia(GetDriveshaftInertia());
+    sys->AddShaft(m_driveshaft);
 
     // Create the differential box.
     // This represents the inertia of the rotating box of the differential.
@@ -95,6 +99,11 @@ void ChShaftsDriveline2WD::Initialize(std::shared_ptr<ChChassis> chassis,
     m_clutch->SetTorqueLimit(GetAxleDifferentialLockingLimit());
     m_clutch->SetModulation(0);
     sys->Add(m_clutch);
+}
+
+// -----------------------------------------------------------------------------
+void ChShaftsDriveline2WD::Synchronize(double time, const DriverInputs& driver_inputs, double driveshaft_torque) {
+    m_driveshaft->SetAppliedTorque(driveshaft_torque);
 }
 
 // -----------------------------------------------------------------------------

@@ -29,7 +29,8 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Construct a default 4WD simple driveline.
 // -----------------------------------------------------------------------------
-ChSimpleDrivelineXWD::ChSimpleDrivelineXWD(const std::string& name) : ChDrivelineWV(name), m_connected(true) {}
+ChSimpleDrivelineXWD::ChSimpleDrivelineXWD(const std::string& name)
+    : ChDrivelineWV(name), m_connected(true), m_driveshaft_speed(0) {}
 
 // -----------------------------------------------------------------------------
 // Initialize the driveline subsystem.
@@ -89,21 +90,20 @@ void differentialSplitXWD(double torque,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSimpleDrivelineXWD::Synchronize(double time, const DriverInputs& driver_inputs, double torque) {
+void ChSimpleDrivelineXWD::Synchronize(double time, const DriverInputs& driver_inputs, double driveshaft_torque) {
     if (!m_connected)
         return;
 
     double alpha = 1.0 / double(m_shaft_left.size());
 
-    // Enforce driveshaft speed 
-    double driveshaft_speed = 0;
+    // Set driveshaft speed (output to transmission)
+    m_driveshaft_speed = 0;
     for (int i = 0; i < m_shaft_left.size(); i++) {
-        driveshaft_speed += alpha * 0.5 * (m_shaft_left[i]->GetPos_dt() + m_shaft_right[i]->GetPos_dt());
+        m_driveshaft_speed += alpha * 0.5 * (m_shaft_left[i]->GetPos_dt() + m_shaft_right[i]->GetPos_dt());
     }
-    m_driveshaft->SetPos_dt(driveshaft_speed);
 
-    // Split the input torque over all driven axles. 
-    double torque_axle = alpha * torque;
+    // Split the input torque over all driven axles.
+    double torque_axle = alpha * driveshaft_torque;
 
     // Split the axle torques for the corresponding left/right wheels and apply
     // them to the suspension wheel shafts.

@@ -62,10 +62,15 @@ class CH_MODELS_API Generic_SimpleDriveline : public ChDrivelineWV {
     /// Disconnect driveline from driven wheels.
     virtual void Disconnect() override;
 
+    /// Return the output driveline speed of the driveshaft.
+    /// This represents the output from the driveline subsystem that is passed to the transmission subsystem.
+    virtual double GetOutputDriveshaftSpeed() const override { return m_driveshaft_speed; }
+
   private:
     static const double m_conicalgear_ratio;
 
     bool m_connected;
+    double m_driveshaft_speed;
     std::shared_ptr<ChShaft> m_driven_left;
     std::shared_ptr<ChShaft> m_driven_right;
 };

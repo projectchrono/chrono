@@ -84,11 +84,23 @@ class CH_VEHICLE_API ChShaftsDriveline6WD : public ChDrivelineWV {
                             const std::vector<int>& driven_axles  ///< indexes of the driven vehicle axles
                             ) override;
 
+    /// Update the driveline subsystem.
+    /// The motor torque represents the input to the driveline subsystem from the powertrain system.
+    /// Apply the provided torque to the driveshaft.
+    virtual void Synchronize(double time,                        ///< current time
+                             const DriverInputs& driver_inputs,  ///< current driver inputs
+                             double driveshaft_torque            ///< input transmission torque
+                             ) override;
+
     /// Get the motor torque to be applied to the specified spindle.
     virtual double GetSpindleTorque(int axle, VehicleSide side) const override;
 
     /// Disconnect driveline from driven wheels.
     virtual void Disconnect() override;
+
+    /// Return the output driveline speed of the driveshaft.
+    /// This represents the output from the driveline subsystem that is passed to the transmission subsystem.
+    virtual double GetOutputDriveshaftSpeed() const override { return m_driveshaft->GetPos_dt(); }
 
   protected:
     /// Return the inertia of the driveshaft.
@@ -116,6 +128,8 @@ class CH_VEHICLE_API ChShaftsDriveline6WD : public ChDrivelineWV {
     virtual double GetCentralDifferentialLockingLimit() const = 0;
 
   private:
+    std::shared_ptr<ChShaft> m_driveshaft;  ///< shaft connection to the transmission
+
     std::shared_ptr<ChShaftsPlanetary> m_central_differential;  ///< central differential
     std::shared_ptr<ChShaftsClutch> m_central_clutch;           ///< clutch for locking central differential
 

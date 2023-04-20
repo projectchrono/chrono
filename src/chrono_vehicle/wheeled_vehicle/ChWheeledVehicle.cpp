@@ -66,7 +66,7 @@ void ChWheeledVehicle::InitializePowertrain(std::shared_ptr<ChPowertrain> powert
 // -----------------------------------------------------------------------------
 void ChWheeledVehicle::Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) {
     double powertrain_torque = m_powertrain ? m_powertrain->GetOutputTorque()  : 0;
-    double driveline_speed = m_driveline ? m_driveline->GetDriveshaft()->GetPos_dt() : 0;
+    double driveline_speed = m_driveline ? m_driveline->GetOutputDriveshaftSpeed() : 0;
 
     // Set driveshaft speed for the transmission output shaft
     if (m_powertrain)

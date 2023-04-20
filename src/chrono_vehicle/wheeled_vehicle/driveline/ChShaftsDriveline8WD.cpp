@@ -37,6 +37,7 @@ ChShaftsDriveline8WD::ChShaftsDriveline8WD(const std::string& name)
 ChShaftsDriveline8WD::~ChShaftsDriveline8WD() {
     auto sys = m_central_differential->GetSystem();
     if (sys) {
+        sys->Remove(m_driveshaft);
         sys->Remove(m_central_differential);
         sys->Remove(m_central_clutch);
 
@@ -63,6 +64,8 @@ ChShaftsDriveline8WD::~ChShaftsDriveline8WD() {
 void ChShaftsDriveline8WD::Initialize(std::shared_ptr<ChChassis> chassis,
                                       const ChAxleList& axles,
                                       const std::vector<int>& driven_axles) {
+    ChDriveline::Initialize(chassis);
+
     assert(axles.size() >= 4);
     assert(driven_axles.size() == 4);
 
@@ -72,8 +75,9 @@ void ChShaftsDriveline8WD::Initialize(std::shared_ptr<ChChassis> chassis,
     auto sys = chassisBody->GetSystem();
 
     // Create the driveshaft for the connection of the driveline to the transmission box.
-    ChDriveline::Initialize(chassis);
+    m_driveshaft = chrono_types::make_shared<ChShaft>();
     m_driveshaft->SetInertia(GetDriveshaftInertia());
+    sys->AddShaft(m_driveshaft);
 
     // Create the 7 differentials. For a differential, the transmission ratio in Willis formula must be set to -1.
     // For each differential, specify the input shaft (the carrier) and the two output shafts.
@@ -173,6 +177,11 @@ void ChShaftsDriveline8WD::Initialize(std::shared_ptr<ChChassis> chassis,
 
     double omega_driveshaft = 0.5 * (omega_GD_inshaft[0] + omega_GD_inshaft[1]);
     m_driveshaft->SetPos_dt(omega_driveshaft);
+}
+
+// -----------------------------------------------------------------------------
+void ChShaftsDriveline8WD::Synchronize(double time, const DriverInputs& driver_inputs, double driveshaft_torque) {
+    m_driveshaft->SetAppliedTorque(driveshaft_torque);
 }
 
 // -----------------------------------------------------------------------------

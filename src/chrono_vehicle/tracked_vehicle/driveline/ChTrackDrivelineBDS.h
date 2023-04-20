@@ -71,9 +71,10 @@ class CH_VEHICLE_API ChTrackDrivelineBDS : public ChDrivelineTV {
 
     /// Update the driveline subsystem.
     /// The motor torque represents the input to the driveline subsystem from the powertrain system.
-    virtual void Synchronize(double time,                            ///< [in] current time
-                             const DriverInputs& driver_inputs,  ///< [in] current driver inputs
-                             double torque                           ///< [in] motor torque
+    /// Apply the provided torque to the driveshaft.
+    virtual void Synchronize(double time,                        ///< current time
+                             const DriverInputs& driver_inputs,  ///< current driver inputs
+                             double driveshaft_torque            ///< input transmission torque
                              ) override;
 
     /// Get the motor torque to be applied to the specified sprocket.
@@ -84,6 +85,10 @@ class CH_VEHICLE_API ChTrackDrivelineBDS : public ChDrivelineTV {
 
     /// Disconnect driveline from driven sprockets.
     virtual void Disconnect() override;
+
+    /// Return the output driveline speed of the driveshaft.
+    /// This represents the output from the driveline subsystem that is passed to the transmission subsystem.
+    virtual double GetOutputDriveshaftSpeed() const override { return m_driveshaft->GetPos_dt(); }
 
   protected:
     /// Return the inertia of the driveshaft.
@@ -102,6 +107,7 @@ class CH_VEHICLE_API ChTrackDrivelineBDS : public ChDrivelineTV {
                                      double& braking_left,
                                      double& braking_right) override;
 
+    std::shared_ptr<ChShaft> m_driveshaft;                 ///< shaft connection to the transmission
     std::shared_ptr<ChShaftsGearboxAngled> m_conicalgear;  ///< conical gear
     std::shared_ptr<ChShaft> m_differentialbox;            ///< differential casing
     std::shared_ptr<ChShaftsPlanetary> m_differential;     ///< planetary differential
