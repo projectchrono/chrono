@@ -64,7 +64,7 @@ namespace vehicle {
 /// suspension and will be mirrored (reflecting the y coordinates) to construct
 /// the right side.
 class CH_VEHICLE_API ChDeDionAxle : public ChSuspension {
-  public:
+   public:
     ChDeDionAxle(const std::string& name  ///< [in] name of the subsystem
     );
 
@@ -137,15 +137,19 @@ class CH_VEHICLE_API ChDeDionAxle : public ChSuspension {
 
     void LogHardpointLocations(const ChVector<>& ref, bool inches = false);
 
-  protected:
+   protected:
     /// Identifiers for the various hardpoints.
     enum PointId {
-        SHOCK_A,   ///< shock, axle
-        SHOCK_C,   ///< shock, chassis
-        SPRING_A,  ///< spring, axle
-        SPRING_C,  ///< spring, chassis
-        SPINDLE,   ///< spindle location
-        AXLE_C,    ///< sphere link location
+        SHOCK_A,      ///< shock, axle
+        SHOCK_C,      ///< shock, chassis
+        SPRING_A,     ///< spring, axle
+        SPRING_C,     ///< spring, chassis
+        SPINDLE,      ///< spindle location
+        AXLE_C,       ///< sphere link location
+        WATT_CNT_LE,  ///<  spherical link location of center link to left link
+        WATT_CNT_RI,  ///<  spherical link location of center link to right link
+        WATT_LE_CH,    ///< spherical link location of left link (center link to chassis)
+        WATT_RI_CH,   ///< spherical link location of right link (center link to chassis)
         NUM_POINTS
     };
 
@@ -170,14 +174,24 @@ class CH_VEHICLE_API ChDeDionAxle : public ChSuspension {
     virtual double getAxleTubeMass() const = 0;
     /// Return the mass of the spindle body.
     virtual double getSpindleMass() const = 0;
+    /// Return the mass of the Watt center link body.
+    virtual double getWattCenterMass() const = 0;
+    /// Return the mass of the Watt side link bodies (same value for both sides).
+    virtual double getWattSideMass() const = 0;
 
     /// Return the radius of the axle tube body (visualization only).
     virtual double getAxleTubeRadius() const = 0;
+    /// Return the radius of the Watt linkage bodies (visualization only, same value for center, left, right).
+    virtual double getWattLinkRadius() const = 0;
 
     /// Return the moments of inertia of the axle tube body.
     virtual const ChVector<>& getAxleTubeInertia() const = 0;
     /// Return the moments of inertia of the spindle body.
     virtual const ChVector<>& getSpindleInertia() const = 0;
+    /// Return the moments of inertia of the Watt center body.
+    virtual const ChVector<>& getWattCenterInertia() const = 0;
+    /// Return the moments of inertia of the Watt side bodies (same value for both sides).
+    virtual const ChVector<>& getWattSideInertia() const = 0;
 
     /// Return the inertia of the axle shaft.
     virtual double getAxleInertia() const = 0;
@@ -191,14 +205,22 @@ class CH_VEHICLE_API ChDeDionAxle : public ChSuspension {
     /// Return the functor object for shock force.
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const = 0;
 
-    std::shared_ptr<ChBody> m_axleTube;  ///< handles to the axle tube body
+    std::shared_ptr<ChBody> m_axleTube;        ///< handles to the axle tube body
+    std::shared_ptr<ChBody> m_wattCenterLinkBody;  ///< handle to the Watt center link
+    std::shared_ptr<ChBody> m_wattLeftLinkBody;    ///< handle to the Watt left link
+    std::shared_ptr<ChBody> m_wattRightLinkBody;   ///< handle to the Watt right link
 
     std::shared_ptr<ChLinkLockSpherical> m_axleTubeGuideLong;
+    std::shared_ptr<ChLinkLockRevolute> m_wattCenterRev;
+    std::shared_ptr<ChLinkLockSpherical> m_wattLeftToCenterSph;
+    std::shared_ptr<ChLinkLockSpherical> m_wattLeftToAxleTubeSph;
+    std::shared_ptr<ChLinkLockSpherical> m_wattRightToCenterSph;
+    std::shared_ptr<ChLinkLockSpherical> m_wattRightToAxleTubeSph;
 
     std::shared_ptr<ChLinkTSDA> m_shock[2];   ///< handles to the spring links (L/R)
     std::shared_ptr<ChLinkTSDA> m_spring[2];  ///< handles to the shock links (L/R)
 
-  private:
+   private:
     // Hardpoint absolute locations
     std::vector<ChVector<>> m_pointsL;
     std::vector<ChVector<>> m_pointsR;
@@ -210,6 +232,12 @@ class CH_VEHICLE_API ChDeDionAxle : public ChSuspension {
     // Points for tierod visualization
     ChVector<> m_tierodOuterL;
     ChVector<> m_tierodOuterR;
+
+    // Points for watt mechanism visualization
+    ChVector<> m_wattOuterL;
+    ChVector<> m_wattOuterR;
+    ChVector<> m_wattLower;
+    ChVector<> m_wattUpper;
 
     void InitializeSide(VehicleSide side,
                         std::shared_ptr<ChBodyAuxRef> chassis,

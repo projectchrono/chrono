@@ -49,7 +49,8 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 const std::string ChToeBarDeDionAxle::m_pointNames[] = {"SHOCK_A    ", "SHOCK_C    ", "KNUCKLE_L  ", "KNUCKLE_U  ",
                                                         "KNUCKLE_DRL", "SPRING_A   ", "SPRING_C   ", "TIEROD_C   ",
-                                                        "TIEROD_K   ", "SPINDLE    ", "KNUCKLE_CM ", "AXLE_C     "};
+                                                        "TIEROD_K   ", "SPINDLE    ", "KNUCKLE_CM ", "AXLE_C     ",
+                                                        "WATT_CNT_LE", "WATT_CNT_RI", "WATT_LE_CH ", "WATT_RI_CH "};
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -61,7 +62,6 @@ ChToeBarDeDionAxle::~ChToeBarDeDionAxle() {
         sys->Remove(m_axleTube);
         sys->Remove(m_tierod);
         sys->Remove(m_draglink);
-        sys->Remove(m_axleTubeGuideLat);
         sys->Remove(m_sphericalTierod);
         sys->Remove(m_sphericalDraglink);
         sys->Remove(m_universalDraglink);
@@ -111,6 +111,11 @@ void ChToeBarDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     outer_local.y() = -outer_local.y();
     m_axleOuterR = suspension_to_abs.TransformPointLocalToParent(outer_local);
 
+    m_wattLower = suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_CNT_LE));
+    m_wattUpper = suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_CNT_RI));
+    m_wattOuterL = suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_LE_CH));
+    m_wattOuterR = suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_RI_CH));
+
     // Create and initialize the axle body.
     m_axleTube = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
     m_axleTube->SetNameString(m_name + "_axleTube");
@@ -120,19 +125,78 @@ void ChToeBarDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_axleTube->SetInertiaXX(getAxleTubeInertia());
     chassis->GetBody()->GetSystem()->AddBody(m_axleTube);
 
-    // Fix the axle body to the chassis 1
-    m_axleTubeGuideLat = chrono_types::make_shared<ChLinkLockPointPlane>();
-    m_axleTubeGuideLat->SetNameString(m_name + "_pointPlaneAxleTube");
-    const ChQuaternion<>& guideRot = chassis->GetBody()->GetFrame_REF_to_abs().GetRot();
-    m_axleTubeGuideLat->Initialize(chassis->GetBody(), m_axleTube,
-                                   ChCoordsys<>(axleCOM, guideRot * Q_from_AngY(CH_C_PI_2)));
-    chassis->GetBody()->GetSystem()->AddLink(m_axleTubeGuideLat);
-
-    // Fix the axle body to the chassis 2
+    // Fix the axle body to the chassis
     m_axleTubeGuideLong = chrono_types::make_shared<ChLinkLockSpherical>();
     m_axleTubeGuideLong->SetNameString(m_name + "_sphereAxleTube");
-    ChVector<> spPos = getLocation(AXLE_C);
+    ChVector<> spPos = suspension_to_abs.TransformLocalToParent(getLocation(AXLE_C));
     m_axleTubeGuideLong->Initialize(m_axleTube, chassis->GetBody(), ChCoordsys<>(spPos, QUNIT));
+    chassis->GetSystem()->AddLink(m_axleTubeGuideLong);
+
+    // Watt lateral guiding mechanism
+    ChVector<> cntrPos =
+        suspension_to_abs.TransformLocalToParent((getLocation(WATT_CNT_LE) + getLocation(WATT_CNT_RI)) / 2.0);
+    m_wattCenterLinkBody = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+    m_wattCenterLinkBody->SetNameString(m_name + "_wattCenterBody");
+    m_wattCenterLinkBody->SetPos(cntrPos);
+    m_wattCenterLinkBody->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    m_wattCenterLinkBody->SetMass(getWattCenterMass());
+    m_wattCenterLinkBody->SetInertiaXX(getWattCenterInertia());
+    chassis->GetBody()->GetSystem()->AddBody(m_wattCenterLinkBody);
+
+    ChVector<> lftPos =
+        suspension_to_abs.TransformLocalToParent((getLocation(WATT_LE_CH) + getLocation(WATT_CNT_LE)) / 2.0);
+    m_wattLeftLinkBody = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+    m_wattLeftLinkBody->SetNameString(m_name + "_wattLeftBody");
+    m_wattLeftLinkBody->SetPos(lftPos);
+    m_wattLeftLinkBody->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    m_wattLeftLinkBody->SetMass(getWattSideMass());
+    m_wattLeftLinkBody->SetInertiaXX(getWattSideInertia());
+    chassis->GetBody()->GetSystem()->AddBody(m_wattLeftLinkBody);
+
+    ChVector<> rghtPos =
+        suspension_to_abs.TransformLocalToParent((getLocation(WATT_RI_CH) + getLocation(WATT_CNT_RI)) / 2.0);
+    m_wattRightLinkBody = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+    m_wattRightLinkBody->SetNameString(m_name + "_wattRightBody");
+    m_wattRightLinkBody->SetPos(rghtPos);
+    m_wattRightLinkBody->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    m_wattRightLinkBody->SetMass(getWattSideMass());
+    m_wattRightLinkBody->SetInertiaXX(getWattSideInertia());
+    chassis->GetBody()->GetSystem()->AddBody(m_wattRightLinkBody);
+
+    // link the Watt center link to the axle tube
+    ChCoordsys<> watt_rev_csys(cntrPos, Q_from_AngAxis(CH_C_PI / 2.0, VECT_Y));
+    m_wattCenterRev = chrono_types::make_shared<ChLinkLockRevolute>();
+    m_wattCenterRev->SetNameString(m_name + "_wattCenterPivot");
+    m_wattCenterRev->Initialize(m_wattCenterLinkBody, m_axleTube, watt_rev_csys);
+    chassis->GetSystem()->AddLink(m_wattCenterRev);
+
+    // link the Watt left link to the center link
+    ChCoordsys<> lft1Mpos(suspension_to_abs.TransformLocalToParent(getLocation(WATT_CNT_LE)), QUNIT);
+    m_wattLeftToCenterSph = chrono_types::make_shared<ChLinkLockSpherical>();
+    m_wattLeftToCenterSph->SetNameString(m_name + "_wattLeft2CenterSph");
+    m_wattLeftToCenterSph->Initialize(m_wattLeftLinkBody, m_wattCenterLinkBody, lft1Mpos);
+    chassis->GetSystem()->AddLink(m_wattLeftToCenterSph);
+
+    // link the Watt left link to the axle tube
+    ChCoordsys<> lft2Mpos(suspension_to_abs.TransformLocalToParent(getLocation(WATT_LE_CH)), QUNIT);
+    m_wattLeftToAxleTubeSph = chrono_types::make_shared<ChLinkLockSpherical>();
+    m_wattLeftToAxleTubeSph->SetNameString(m_name + "_wattLeft2ChassisSph");
+    m_wattLeftToAxleTubeSph->Initialize(m_wattLeftLinkBody, chassis->GetBody(), lft2Mpos);
+    chassis->GetSystem()->AddLink(m_wattLeftToAxleTubeSph);
+
+    // link the Watt right link to the center link
+    ChCoordsys<> rght1Mpos(suspension_to_abs.TransformLocalToParent(getLocation(WATT_CNT_RI)), QUNIT);
+    m_wattRightToCenterSph = chrono_types::make_shared<ChLinkLockSpherical>();
+    m_wattRightToCenterSph->SetNameString(m_name + "_wattRight2CenterSph");
+    m_wattRightToCenterSph->Initialize(m_wattRightLinkBody, m_wattCenterLinkBody, rght1Mpos);
+    chassis->GetSystem()->AddLink(m_wattRightToCenterSph);
+
+    // link the Watt right link to the axle tube
+    ChCoordsys<> rght2Mpos(suspension_to_abs.TransformLocalToParent(getLocation(WATT_RI_CH)), QUNIT);
+    m_wattRightToAxleTubeSph = chrono_types::make_shared<ChLinkLockSpherical>();
+    m_wattRightToAxleTubeSph->SetNameString(m_name + "_wattRight2ChassisSph");
+    m_wattRightToAxleTubeSph->Initialize(m_wattRightLinkBody, chassis->GetBody(), rght2Mpos);
+    chassis->GetSystem()->AddLink(m_wattRightToAxleTubeSph);
 
     // Calculate end points on the tierod body, expressed in the absolute frame
     // (for visualization)
@@ -457,6 +521,9 @@ void ChToeBarDeDionAxle::AddVisualizationAssets(VisualizationType vis) {
         return;
 
     AddVisualizationLink(m_axleTube, m_axleOuterL, m_axleOuterR, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
+    AddVisualizationLink(m_wattCenterLinkBody, m_wattLower, m_wattUpper, getWattLinkRadius(), ChColor(0.5f, 0.7f, 0.8f));
+    AddVisualizationLink(m_wattLeftLinkBody, m_wattLower, m_wattOuterL, getWattLinkRadius(), ChColor(0.8f, 0.5f, 0.5f));
+    AddVisualizationLink(m_wattRightLinkBody, m_wattUpper, m_wattOuterR, getWattLinkRadius(), ChColor(0.5f, 0.8f, 0.5f));
 
     AddVisualizationLink(m_tierod, m_tierodOuterL, m_tierodOuterR, getTierodRadius(), ChColor(0.7f, 0.7f, 0.7f));
 
@@ -484,6 +551,9 @@ void ChToeBarDeDionAxle::RemoveVisualizationAssets() {
     ChPart::RemoveVisualizationAssets(m_axleTube);
     ChPart::RemoveVisualizationAssets(m_tierod);
     ChPart::RemoveVisualizationAssets(m_draglink);
+    ChPart::RemoveVisualizationAssets(m_wattCenterLinkBody);
+    ChPart::RemoveVisualizationAssets(m_wattLeftLinkBody);
+    ChPart::RemoveVisualizationAssets(m_wattRightLinkBody);
 
     ChPart::RemoveVisualizationAssets(m_knuckle[LEFT]);
     ChPart::RemoveVisualizationAssets(m_knuckle[RIGHT]);
@@ -512,6 +582,7 @@ void ChToeBarDeDionAxle::AddVisualizationLink(std::shared_ptr<ChBody> body,
     cyl->GetCylinderGeometry().p1 = p_1;
     cyl->GetCylinderGeometry().p2 = p_2;
     cyl->GetCylinderGeometry().rad = radius;
+    cyl->SetColor(color);
     body->AddVisualShape(cyl);
 }
 
