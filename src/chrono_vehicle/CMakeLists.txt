@@ -254,8 +254,12 @@ set(CV_POVERTRAIN_FILES
     powertrain/ShaftsEngine.h
     powertrain/ShaftsEngine.cpp
 
+    powertrain/ChSimpleMapAutomaticTransmission.h
+    powertrain/ChSimpleMapAutomaticTransmission.cpp
     powertrain/ChShaftsAutomaticTransmission.h
     powertrain/ChShaftsAutomaticTransmission.cpp
+    powertrain/SimpleMapAutomaticTransmission.h
+    powertrain/SimpleMapAutomaticTransmission.cpp
     powertrain/ShaftsAutomaticTransmission.h
     powertrain/ShaftsAutomaticTransmission.cpp
 
