@@ -30,7 +30,7 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "chrono_models/vehicle/m113/M113_Vehicle.h"
-#include "chrono_models/vehicle/m113/M113_ShaftsPowertrain.h"
+#include "chrono_models/vehicle/m113/powertrain/M113_ShaftsPowertrain.h"
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 

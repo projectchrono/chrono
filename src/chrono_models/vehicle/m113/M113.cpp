@@ -23,9 +23,9 @@
 
 #include "chrono_models/vehicle/m113/M113.h"
 
-#include "chrono_models/vehicle/m113/M113_SimpleCVTPowertrain.h"
-#include "chrono_models/vehicle/m113/M113_SimpleMapPowertrain.h"
-#include "chrono_models/vehicle/m113/M113_ShaftsPowertrain.h"
+#include "chrono_models/vehicle/m113/powertrain/M113_SimpleCVTPowertrain.h"
+#include "chrono_models/vehicle/m113/powertrain/M113_SimpleMapPowertrain.h"
+#include "chrono_models/vehicle/m113/powertrain/M113_ShaftsPowertrain.h"
 
 namespace chrono {
 namespace vehicle {

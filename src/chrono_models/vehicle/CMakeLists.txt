@@ -16,55 +16,67 @@ set(CVM_COMMON_FILES
 )
 source_group("" FILES ${CVM_COMMON_FILES})
 
-set(CVM_HMMWV_FILES
+set(CVM_HMMWV_SUSPENSION_FILES
+    hmmwv/suspension/HMMWV_DoubleWishbone.cpp
+    hmmwv/suspension/HMMWV_DoubleWishbone.h
+    hmmwv/suspension/HMMWV_DoubleWishboneReduced.cpp
+    hmmwv/suspension/HMMWV_DoubleWishboneReduced.h
+)
+set(CVM_HMMWV_STEERING_FILES
+    hmmwv/steering/HMMWV_PitmanArm.cpp
+    hmmwv/steering/HMMWV_PitmanArm.h
+    hmmwv/steering/HMMWV_PitmanArmShafts.cpp
+    hmmwv/steering/HMMWV_PitmanArmShafts.h
+    hmmwv/steering/HMMWV_RackPinion.cpp
+    hmmwv/steering/HMMWV_RackPinion.h    
+)
+set(CVM_HMMWV_DRIVELINE_FILES
+    hmmwv/driveline/HMMWV_Driveline2WD.cpp
+    hmmwv/driveline/HMMWV_Driveline2WD.h
+    hmmwv/driveline/HMMWV_Driveline4WD.cpp
+    hmmwv/driveline/HMMWV_Driveline4WD.h
+    hmmwv/driveline/HMMWV_SimpleDriveline.cpp
+    hmmwv/driveline/HMMWV_SimpleDriveline.h
+)
+set(CVM_HMMWV_BRAKE_FILES
+    hmmwv/brake/HMMWV_BrakeSimple.cpp
+    hmmwv/brake/HMMWV_BrakeSimple.h
+    hmmwv/brake/HMMWV_BrakeShafts.cpp
+    hmmwv/brake/HMMWV_BrakeShafts.h
+)
+set(CVM_HMMWV_POWERTRAIN_FILES
+    hmmwv/powertrain/HMMWV_Powertrain.cpp
+    hmmwv/powertrain/HMMWV_Powertrain.h
+    hmmwv/powertrain/HMMWV_SimplePowertrain.cpp
+    hmmwv/powertrain/HMMWV_SimplePowertrain.h
+    hmmwv/powertrain/HMMWV_SimpleCVTPowertrain.cpp
+    hmmwv/powertrain/HMMWV_SimpleCVTPowertrain.h
+    hmmwv/powertrain/HMMWV_SimpleMapPowertrain.cpp
+    hmmwv/powertrain/HMMWV_SimpleMapPowertrain.h
+)
+set(CVM_HMMWV_TIRE_FILES
+    hmmwv/tire/HMMWV_RigidTire.cpp
+    hmmwv/tire/HMMWV_RigidTire.h
+    hmmwv/tire/HMMWV_FialaTire.cpp
+    hmmwv/tire/HMMWV_FialaTire.h
+    hmmwv/tire/HMMWV_Pac89Tire.cpp
+    hmmwv/tire/HMMWV_Pac89Tire.h
+    hmmwv/tire/HMMWV_Pac02Tire.cpp
+    hmmwv/tire/HMMWV_Pac02Tire.h
+    hmmwv/tire/HMMWV_TMeasyTire.cpp
+    hmmwv/tire/HMMWV_TMeasyTire.h
+    hmmwv/tire/HMMWV_TMsimpleTire.cpp
+    hmmwv/tire/HMMWV_TMsimpleTire.h
+    hmmwv/tire/HMMWV_ANCFTire.cpp
+    hmmwv/tire/HMMWV_ANCFTire.h
+    hmmwv/tire/HMMWV_ReissnerTire.cpp
+    hmmwv/tire/HMMWV_ReissnerTire.h
+)
+set(CVM_HMMWV_VEHICLE_FILES
     hmmwv/HMMWV.cpp
     hmmwv/HMMWV.h
-    hmmwv/HMMWV_BrakeSimple.cpp
-    hmmwv/HMMWV_BrakeSimple.h
-    hmmwv/HMMWV_BrakeShafts.cpp
-    hmmwv/HMMWV_BrakeShafts.h
     hmmwv/HMMWV_Chassis.h
     hmmwv/HMMWV_Chassis.cpp
-    hmmwv/HMMWV_DoubleWishbone.cpp
-    hmmwv/HMMWV_DoubleWishbone.h
-    hmmwv/HMMWV_DoubleWishboneReduced.cpp
-    hmmwv/HMMWV_DoubleWishboneReduced.h
-    hmmwv/HMMWV_Driveline2WD.cpp
-    hmmwv/HMMWV_Driveline2WD.h
-    hmmwv/HMMWV_Driveline4WD.cpp
-    hmmwv/HMMWV_Driveline4WD.h
-    hmmwv/HMMWV_RigidTire.cpp
-    hmmwv/HMMWV_RigidTire.h
-    hmmwv/HMMWV_FialaTire.cpp
-    hmmwv/HMMWV_FialaTire.h
-    hmmwv/HMMWV_Pac89Tire.cpp
-    hmmwv/HMMWV_Pac89Tire.h
-    hmmwv/HMMWV_Pac02Tire.cpp
-    hmmwv/HMMWV_Pac02Tire.h
-    hmmwv/HMMWV_TMeasyTire.cpp
-    hmmwv/HMMWV_TMeasyTire.h
-    hmmwv/HMMWV_TMsimpleTire.cpp
-    hmmwv/HMMWV_TMsimpleTire.h
-    hmmwv/HMMWV_ANCFTire.cpp
-    hmmwv/HMMWV_ANCFTire.h
-    hmmwv/HMMWV_ReissnerTire.cpp
-    hmmwv/HMMWV_ReissnerTire.h
-    hmmwv/HMMWV_PitmanArm.cpp
-    hmmwv/HMMWV_PitmanArm.h
-    hmmwv/HMMWV_PitmanArmShafts.cpp
-    hmmwv/HMMWV_PitmanArmShafts.h
-    hmmwv/HMMWV_Powertrain.cpp
-    hmmwv/HMMWV_Powertrain.h
-    hmmwv/HMMWV_RackPinion.cpp
-    hmmwv/HMMWV_RackPinion.h
-    hmmwv/HMMWV_SimpleDriveline.cpp
-    hmmwv/HMMWV_SimpleDriveline.h
-    hmmwv/HMMWV_SimplePowertrain.cpp
-    hmmwv/HMMWV_SimplePowertrain.h
-    hmmwv/HMMWV_SimpleCVTPowertrain.cpp
-    hmmwv/HMMWV_SimpleCVTPowertrain.h
-    hmmwv/HMMWV_SimpleMapPowertrain.cpp
-    hmmwv/HMMWV_SimpleMapPowertrain.h
     hmmwv/HMMWV_Vehicle.h
     hmmwv/HMMWV_VehicleFull.cpp
     hmmwv/HMMWV_VehicleFull.h
@@ -73,7 +85,22 @@ set(CVM_HMMWV_FILES
     hmmwv/HMMWV_Wheel.cpp
     hmmwv/HMMWV_Wheel.h
 )
-source_group("hmmwv" FILES ${CVM_HMMWV_FILES})
+set(CVM_HMMWV_FILES
+    ${CVM_HMMWV_VEHICLE_FILES}
+    ${CVM_HMMWV_SUSPENSION_FILES}
+    ${CVM_HMMWV_STEERING_FILES}
+    ${CVM_HMMWV_DRIVELINE_FILES}
+    ${CVM_HMMWV_BRAKE_FILES}
+    ${CVM_HMMWV_POWERTRAIN_FILES}
+    ${CVM_HMMWV_TIRE_FILES}
+)
+source_group("hmmwv" FILES ${CVM_HMMWV_VEHICLE_FILES})
+source_group("hmmwv/suspension" FILES ${CVM_HMMWV_SUSPENSION_FILES})
+source_group("hmmwv/steering" FILES ${CVM_HMMWV_STEERING_FILES})
+source_group("hmmwv/driveline" FILES ${CVM_HMMWV_DRIVELINE_FILES})
+source_group("hmmwv/brake" FILES ${CVM_HMMWV_BRAKE_FILES})
+source_group("hmmwv/powertrain" FILES ${CVM_HMMWV_POWERTRAIN_FILES})
+source_group("hmmwv/tire" FILES ${CVM_HMMWV_TIRE_FILES})
 
 set(CVM_FEDA_FILES
     feda/FEDA_AntirollBarRSD.h
@@ -361,51 +388,69 @@ set(CVM_MAN_FILES
 )
 source_group("man" FILES ${CVM_MAN_FILES})
 
-set(CVM_GENERIC_FILES
+set(CVM_GENERIC_SUSPENSION_FILES
+    generic/suspension/Generic_DoubleWishbone.cpp
+    generic/suspension/Generic_DoubleWishbone.h
+    generic/suspension/Generic_HendricksonPRIMAXX.cpp
+    generic/suspension/Generic_HendricksonPRIMAXX.h
+    generic/suspension/Generic_MacPhersonStrut.cpp
+    generic/suspension/Generic_MacPhersonStrut.h
+    generic/suspension/Generic_MultiLink.cpp
+    generic/suspension/Generic_MultiLink.h
+    generic/suspension/Generic_SolidAxle.cpp
+    generic/suspension/Generic_SolidAxle.h
+    generic/suspension/Generic_RigidSuspension.h
+    generic/suspension/Generic_RigidSuspension.cpp
+    generic/suspension/Generic_RigidPinnedAxle.h
+    generic/suspension/Generic_RigidPinnedAxle.cpp
+)
+set(CVM_GENERIC_DRIVELINE_FILES
+    generic/driveline/Generic_Driveline2WD.h
+    generic/driveline/Generic_Driveline2WD.cpp
+    generic/driveline/Generic_SimpleDriveline.cpp
+    generic/driveline/Generic_SimpleDriveline.h
+)
+set(CVM_GENERIC_POWERTRAIN_FILES
+    generic/powertrain/Generic_SimplePowertrain.h
+    generic/powertrain/Generic_SimplePowertrain.cpp
+    generic/powertrain/Generic_SimpleMapPowertrain.cpp
+    generic/powertrain/Generic_SimpleMapPowertrain.h
+)
+set(CVM_GENERIC_TIRE_FILES
+    generic/tire/Generic_FialaTire.h
+    generic/tire/Generic_FialaTire.cpp
+    generic/tire/Generic_RigidTire.h
+    generic/tire/Generic_RigidTire.cpp
+    generic/tire/Generic_RigidMeshTire.h
+    generic/tire/Generic_RigidMeshTire.cpp
+)
+set(CVM_GENERIC_VEHICLE_FILES
     generic/Generic_AntirollBarRSD.h
     generic/Generic_AntirollBarRSD.cpp
     generic/Generic_BrakeSimple.h
     generic/Generic_BrakeSimple.cpp
     generic/Generic_Chassis.cpp
     generic/Generic_Chassis.h
-    generic/Generic_DoubleWishbone.cpp
-    generic/Generic_DoubleWishbone.h
-    generic/Generic_Driveline2WD.h
-    generic/Generic_Driveline2WD.cpp
     generic/Generic_FuncDriver.h
-    generic/Generic_HendricksonPRIMAXX.cpp
-    generic/Generic_HendricksonPRIMAXX.h
-    generic/Generic_MacPhersonStrut.cpp
-    generic/Generic_MacPhersonStrut.h
-    generic/Generic_MultiLink.cpp
-    generic/Generic_MultiLink.h
     generic/Generic_RackPinion.h
     generic/Generic_RackPinion.cpp
-    generic/Generic_RigidTire.h
-    generic/Generic_RigidTire.cpp
-    generic/Generic_RigidMeshTire.h
-    generic/Generic_RigidMeshTire.cpp
-    generic/Generic_FialaTire.h
-    generic/Generic_FialaTire.cpp
-    generic/Generic_SimplePowertrain.h
-    generic/Generic_SimplePowertrain.cpp
-    generic/Generic_SimpleMapPowertrain.cpp
-    generic/Generic_SimpleMapPowertrain.h
-    generic/Generic_SolidAxle.cpp
-    generic/Generic_SolidAxle.h
     generic/Generic_Vehicle.cpp
     generic/Generic_Vehicle.h
     generic/Generic_Wheel.h
     generic/Generic_Wheel.cpp
-    generic/Generic_SimpleDriveline.cpp
-    generic/Generic_SimpleDriveline.h
-    generic/Generic_RigidSuspension.h
-    generic/Generic_RigidSuspension.cpp
-    generic/Generic_RigidPinnedAxle.h
-    generic/Generic_RigidPinnedAxle.cpp
 )
-source_group("generic" FILES ${CVM_GENERIC_FILES})
-
+set(CVM_GENERIC_FILES
+    ${CVM_GENERIC_VEHICLE_FILES}
+    ${CVM_GENERIC_SUSPENSION_FILES}
+    ${CVM_GENERIC_DRIVELINE_FILES}
+    ${CVM_GENERIC_POWERTRAIN_FILES}
+    ${CVM_GENERIC_TIRE_FILES}
+)
+source_group("generic" FILES ${CVM_GENERIC_VEHICLE_FILES})
+source_group("generic/suspension" FILES ${CVM_GENERIC_SUSPENSION_FILES})
+source_group("generic/driveline" FILES ${CVM_GENERIC_DRIVELINE_FILES})
+source_group("generic/powertrain" FILES ${CVM_GENERIC_POWERTRAIN_FILES})
+source_group("generic/tire" FILES ${CVM_GENERIC_TIRE_FILES})
 
 set(CVM_SEDAN_FILES
     sedan/Sedan.cpp
@@ -545,60 +590,82 @@ set(CVM_MARDER_FILES
     marder/Marder_Vehicle.h
     marder/Marder_Vehicle.cpp
 )
-
 source_group("marder" FILES ${CVM_MARDER_FILES})
 
-set(CVM_M113_FILES
+set(CVM_M113_TRACKASSEMBLY_FILES
+    m113/track_assembly/M113_TrackAssemblySinglePin.cpp
+    m113/track_assembly/M113_TrackAssemblySinglePin.h
+    m113/track_assembly/M113_TrackAssemblyDoublePin.cpp
+    m113/track_assembly/M113_TrackAssemblyDoublePin.h
+    m113/track_assembly/M113_TrackAssemblyBandBushing.cpp
+    m113/track_assembly/M113_TrackAssemblyBandBushing.h
+    m113/track_assembly/M113_TrackAssemblyBandANCF.cpp
+    m113/track_assembly/M113_TrackAssemblyBandANCF.h
+)
+set(CVM_M113_SPROCKET_FILES
+    m113/sprocket/M113_SprocketSinglePin.cpp
+    m113/sprocket/M113_SprocketSinglePin.h
+    m113/sprocket/M113_SprocketDoublePin.cpp
+    m113/sprocket/M113_SprocketDoublePin.h
+    m113/sprocket/M113_SprocketBand.cpp
+    m113/sprocket/M113_SprocketBand.h
+)
+set(CVM_M113_TRACKSHOE_FILES
+    m113/track_shoe/M113_TrackShoeSinglePin.cpp
+    m113/track_shoe/M113_TrackShoeSinglePin.h
+    m113/track_shoe/M113_TrackShoeDoublePin.cpp
+    m113/track_shoe/M113_TrackShoeDoublePin.h
+    m113/track_shoe/M113_TrackShoeBandBushing.cpp
+    m113/track_shoe/M113_TrackShoeBandBushing.h
+    m113/track_shoe/M113_TrackShoeBandANCF.cpp
+    m113/track_shoe/M113_TrackShoeBandANCF.h
+)
+set(CVM_M113_DRIVELINE_FILES
+    m113/driveline/M113_DrivelineBDS.cpp
+    m113/driveline/M113_DrivelineBDS.h
+    m113/driveline/M113_SimpleDriveline.cpp
+    m113/driveline/M113_SimpleDriveline.h
+)
+set(CVM_M113_POWERTRAIN_FILES
+    m113/powertrain/M113_ShaftsPowertrain.cpp
+    m113/powertrain/M113_ShaftsPowertrain.h
+    m113/powertrain/M113_SimpleCVTPowertrain.cpp
+    m113/powertrain/M113_SimpleCVTPowertrain.h
+    m113/powertrain/M113_SimpleMapPowertrain.cpp
+    m113/powertrain/M113_SimpleMapPowertrain.h
+)
+set(CVM_M113_VEHICLE_FILES
     m113/M113.h
     m113/M113.cpp
     m113/M113_BrakeSimple.h
     m113/M113_BrakeShafts.h
     m113/M113_Chassis.h
     m113/M113_Chassis.cpp
-    m113/M113_DrivelineBDS.cpp
-    m113/M113_DrivelineBDS.h
-    m113/M113_SimpleDriveline.cpp
-    m113/M113_SimpleDriveline.h
     m113/M113_Idler.cpp
     m113/M113_Idler.h
     m113/M113_IdlerWheel.cpp
     m113/M113_IdlerWheel.h
     m113/M113_RoadWheel.cpp
     m113/M113_RoadWheel.h
-    m113/M113_ShaftsPowertrain.cpp
-    m113/M113_ShaftsPowertrain.h
-    m113/M113_SimpleCVTPowertrain.cpp
-    m113/M113_SimpleCVTPowertrain.h
-    m113/M113_SimpleMapPowertrain.cpp
-    m113/M113_SimpleMapPowertrain.h
-    m113/M113_SprocketSinglePin.cpp
-    m113/M113_SprocketSinglePin.h
-    m113/M113_SprocketDoublePin.cpp
-    m113/M113_SprocketDoublePin.h
-    m113/M113_SprocketBand.cpp
-    m113/M113_SprocketBand.h
     m113/M113_Suspension.cpp
     m113/M113_Suspension.h
-    m113/M113_TrackAssemblySinglePin.cpp
-    m113/M113_TrackAssemblySinglePin.h
-    m113/M113_TrackAssemblyDoublePin.cpp
-    m113/M113_TrackAssemblyDoublePin.h
-    m113/M113_TrackAssemblyBandBushing.cpp
-    m113/M113_TrackAssemblyBandBushing.h
-    m113/M113_TrackAssemblyBandANCF.cpp
-    m113/M113_TrackAssemblyBandANCF.h
-    m113/M113_TrackShoeSinglePin.cpp
-    m113/M113_TrackShoeSinglePin.h
-    m113/M113_TrackShoeDoublePin.cpp
-    m113/M113_TrackShoeDoublePin.h
-    m113/M113_TrackShoeBandBushing.cpp
-    m113/M113_TrackShoeBandBushing.h
-    m113/M113_TrackShoeBandANCF.cpp
-    m113/M113_TrackShoeBandANCF.h
     m113/M113_Vehicle.cpp
     m113/M113_Vehicle.h
 )
-source_group("m113" FILES ${CVM_M113_FILES})
+set(CVM_M113_FILES
+    ${CVM_M113_VEHICLE_FILES}
+    ${CVM_M113_TRACKASSEMBLY_FILES}
+    ${CVM_M113_SPROCKET_FILES}
+    ${CVM_M113_TRACKSHOE_FILES}
+    ${CVM_M113_DRIVELINE_FILES}
+    ${CVM_M113_POWERTRAIN_FILES}
+)
+source_group("m113" FILES ${CVM_M113_VEHICLE_FILES})
+source_group("m113/track_assembly" FILES ${CVM_M113_TRACKASSEMBLY_FILES})
+source_group("m113/sprocket" FILES ${CVM_M113_SPROCKET_FILES})
+source_group("m113/track_shoe" FILES ${CVM_M113_TRACKSHOE_FILES})
+source_group("m113/driveline" FILES ${CVM_M113_DRIVELINE_FILES})
+source_group("m113/powertrain" FILES ${CVM_M113_POWERTRAIN_FILES})
 
 set(CVM_RCCAR_FILES
   rccar/RCCar_BrakeSimple.cpp

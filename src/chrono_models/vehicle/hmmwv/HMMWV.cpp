@@ -22,18 +22,21 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_ANCFTire.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_FialaTire.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_Pac89Tire.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_Pac02Tire.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_Powertrain.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_ReissnerTire.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_RigidTire.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_SimpleMapPowertrain.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_SimplePowertrain.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_SimpleCVTPowertrain.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_TMeasyTire.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_TMsimpleTire.h"
+
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_ANCFTire.h"
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_FialaTire.h"
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_Pac89Tire.h"
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_Pac02Tire.h"
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_ReissnerTire.h"
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_RigidTire.h"
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_TMeasyTire.h"
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_TMsimpleTire.h"
+
+#include "chrono_models/vehicle/hmmwv/powertrain/HMMWV_Powertrain.h"
+#include "chrono_models/vehicle/hmmwv/powertrain/HMMWV_SimpleMapPowertrain.h"
+#include "chrono_models/vehicle/hmmwv/powertrain/HMMWV_SimplePowertrain.h"
+#include "chrono_models/vehicle/hmmwv/powertrain/HMMWV_SimpleCVTPowertrain.h"
+
 
 namespace chrono {
 namespace vehicle {

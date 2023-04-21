@@ -24,16 +24,16 @@
 
 #include "chrono_models/vehicle/hmmwv/HMMWV_VehicleFull.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Chassis.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_BrakeSimple.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_BrakeShafts.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_DoubleWishbone.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_Driveline2WD.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_Driveline4WD.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_SimpleDriveline.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_PitmanArm.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_PitmanArmShafts.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_RackPinion.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Wheel.h"
+#include "chrono_models/vehicle/hmmwv/brake/HMMWV_BrakeSimple.h"
+#include "chrono_models/vehicle/hmmwv/brake/HMMWV_BrakeShafts.h"
+#include "chrono_models/vehicle/hmmwv/suspension/HMMWV_DoubleWishbone.h"
+#include "chrono_models/vehicle/hmmwv/driveline/HMMWV_Driveline2WD.h"
+#include "chrono_models/vehicle/hmmwv/driveline/HMMWV_Driveline4WD.h"
+#include "chrono_models/vehicle/hmmwv/driveline/HMMWV_SimpleDriveline.h"
+#include "chrono_models/vehicle/hmmwv/steering/HMMWV_PitmanArm.h"
+#include "chrono_models/vehicle/hmmwv/steering/HMMWV_PitmanArmShafts.h"
+#include "chrono_models/vehicle/hmmwv/steering/HMMWV_RackPinion.h"
 
 namespace chrono {
 namespace vehicle {

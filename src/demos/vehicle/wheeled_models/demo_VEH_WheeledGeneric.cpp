@@ -31,9 +31,9 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
 #include "chrono_models/vehicle/generic/Generic_Vehicle.h"
-#include "chrono_models/vehicle/generic/Generic_SimplePowertrain.h"
-#include "chrono_models/vehicle/generic/Generic_RigidTire.h"
 #include "chrono_models/vehicle/generic/Generic_FuncDriver.h"
+#include "chrono_models/vehicle/generic/powertrain/Generic_SimplePowertrain.h"
+#include "chrono_models/vehicle/generic/tire/Generic_RigidTire.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
