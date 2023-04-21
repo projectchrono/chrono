@@ -34,39 +34,35 @@ namespace vehicle {
 /// Base class for an engine subsystem.
 class CH_VEHICLE_API ChEngine : public ChPart {
   public:
-    virtual ~ChEngine();
+    virtual ~ChEngine() {}
 
-    /// Get a handle to the underlying motorshaft (connection to a transmission).
-    std::shared_ptr<ChShaft> GetMotorshaft() const { return m_motorshaft; }
+    /// Initialize this engine.
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis);
+
+    /// Update the engine system at the current time.
+    /// The engine is provided the current driver throttle input, a value in the range [0,1].
+    /// The motorshaft speed represents the input to the engine from the transmision system.
+    /// This default implementation sets the speed of the motorshaft.
+    virtual void Synchronize(double time,                        ///< current time
+                             const DriverInputs& driver_inputs,  ///< current driver inputs
+                             double motorshaft_speed             ///< input transmission speed
+                             ) = 0;
+
+    /// Advance the state of the engine by the specified time step.
+    virtual void Advance(double step) {}
 
     /// Return the current engine speed.
     virtual double GetMotorSpeed() const = 0;
 
-    /// Return the current engine torque.
+    /// Return the output engine torque on the motorshaft.
     /// This is the torque passed to a transmission subsystem.
-    virtual double GetMotorTorque() const = 0;
+    virtual double GetOutputMotorshaftTorque() const = 0;
 
   protected:
     ChEngine(const std::string& name);
 
     virtual void InitializeInertiaProperties() override;
     virtual void UpdateInertiaProperties() override;
-
-    /// Initialize this engine system by attaching it to an existing vehicle chassis.
-    /// A derived class override must first call this base class version.
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis);
-
-    /// Synchronize the state of the engine at the current time.
-    /// The engine is provided the current driver throttle input, a value in the range [0,1].
-    virtual void Synchronize(double time,                        ///< [in] current time
-                             const DriverInputs& driver_inputs,  ///< [in] current driver inputs
-                             double shaft_speed                  ///< [in] motorshaft speed
-                             ) = 0;
-
-    /// Advance the state of the engine by the specified time step.
-    virtual void Advance(double step) {}
-
-    std::shared_ptr<ChShaft> m_motorshaft;  ///< shaft connection to the transmission
 
   private:
     friend class ChWheeledVehicle;

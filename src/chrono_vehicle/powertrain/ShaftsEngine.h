@@ -37,7 +37,7 @@ class CH_VEHICLE_API ShaftsEngine : public ChShaftsEngine {
     ~ShaftsEngine() {}
 
     virtual double GetMotorBlockInertia() const override { return m_motorblock_inertia; }
-    virtual double GetCrankshaftInertia() const override { return m_crankshaft_inertia; }
+    virtual double GetMotorshaftInertia() const override { return m_motorshaft_inertia; }
 
     virtual void SetEngineTorqueMap(std::shared_ptr<ChFunction_Recorder>& map) override;
     virtual void SetEngineLossesMap(std::shared_ptr<ChFunction_Recorder>& map) override;
@@ -46,7 +46,7 @@ class CH_VEHICLE_API ShaftsEngine : public ChShaftsEngine {
     virtual void Create(const rapidjson::Document& d) override;
 
     double m_motorblock_inertia;
-    double m_crankshaft_inertia;
+    double m_motorshaft_inertia;
 
     ChMapData m_engine_torque;
     ChMapData m_engine_losses;

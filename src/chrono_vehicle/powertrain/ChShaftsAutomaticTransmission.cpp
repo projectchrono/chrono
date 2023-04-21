@@ -34,6 +34,8 @@ ChShaftsAutomaticTransmission::ChShaftsAutomaticTransmission(const std::string& 
 ChShaftsAutomaticTransmission::~ChShaftsAutomaticTransmission() {
     auto sys = m_torqueconverter->GetSystem();
     if (sys) {
+        sys->Remove(m_motorshaft);
+        sys->Remove(m_driveshaft);
         sys->Remove(m_transmissionblock);
         sys->Remove(m_transmissionblock_to_body);
         sys->Remove(m_torqueconverter);
@@ -43,17 +45,20 @@ ChShaftsAutomaticTransmission::~ChShaftsAutomaticTransmission() {
 }
 
 // -----------------------------------------------------------------------------
-void ChShaftsAutomaticTransmission::Initialize(std::shared_ptr<ChChassis> chassis,
-                                               std::shared_ptr<ChEngine> engine,
-                                               std::shared_ptr<ChDriveline> driveline) {
+void ChShaftsAutomaticTransmission::Initialize(std::shared_ptr<ChChassis> chassis) {
+    ChTransmission::Initialize(chassis);
+
     assert(chassis->GetBody()->GetSystem());
     ChSystem* sys = chassis->GetBody()->GetSystem();
 
-    ChTransmission::Initialize(chassis, engine, driveline);
+    // Create the motorshaft and driveshaft
+    m_motorshaft = chrono_types::make_shared<ChShaft>();
+    m_motorshaft->SetInertia(GetMotorshaftInertia());
+    sys->AddShaft(m_motorshaft);
 
-    // Get hold of the motorshaft and driveshaft
-    auto motorshaft = engine->GetMotorshaft();
-    auto driveshaft = driveline->GetDriveshaft();
+    m_driveshaft = chrono_types::make_shared<ChShaft>();
+    m_driveshaft->SetInertia(GetDriveshaftInertia());
+    sys->AddShaft(m_driveshaft);
 
     //// TODO: allow longitudinal/transversal transmission block?
     ////       get from engine?
@@ -83,14 +88,14 @@ void ChShaftsAutomaticTransmission::Initialize(std::shared_ptr<ChChassis> chassi
     // CREATE a torque converter and connect the shafts:
     // Input: motorshaft, output: shaft_ingear, stator: transmission block.
     m_torqueconverter = chrono_types::make_shared<ChShaftsTorqueConverter>();
-    m_torqueconverter->Initialize(motorshaft, m_shaft_ingear, m_transmissionblock);
+    m_torqueconverter->Initialize(m_motorshaft, m_shaft_ingear, m_transmissionblock);
     sys->Add(m_torqueconverter);
 
     // To complete the setup of the torque converter, a capacity factor curve is needed:
     auto mK = chrono_types::make_shared<ChFunction_Recorder>();
     SetTorqueConverterCapacityFactorMap(mK);
     m_torqueconverter->SetCurveCapacityFactor(mK);
-    
+
     // To complete the setup of the torque converter, a torque ratio curve is needed:
     auto mT = chrono_types::make_shared<ChFunction_Recorder>();
     SetTorqeConverterTorqueRatioMap(mT);
@@ -100,7 +105,7 @@ void ChShaftsAutomaticTransmission::Initialize(std::shared_ptr<ChChassis> chassi
     // Note that differently from the basic ChShaftsGear, this also provides
     // the possibility of transmitting a reaction torque to the box (the truss).
     m_gears = chrono_types::make_shared<ChShaftsGearbox>();
-    m_gears->Initialize(m_shaft_ingear, driveshaft, chassis->GetBody(), dir_transmissionblock);
+    m_gears->Initialize(m_shaft_ingear, m_driveshaft, chassis->GetBody(), dir_transmissionblock);
     m_gears->SetTransmissionRatio(m_current_gear_ratio);
     sys->Add(m_gears);
 }
@@ -117,7 +122,14 @@ void ChShaftsAutomaticTransmission::OnNeutralShift() {
 }
 
 // -----------------------------------------------------------------------------
-void ChShaftsAutomaticTransmission::Synchronize(double time, const DriverInputs& driver_inputs) {
+void ChShaftsAutomaticTransmission::Synchronize(double time,
+                                                const DriverInputs& driver_inputs,
+                                                double motorshaft_torque,
+                                                double driveshaft_speed) {
+    // Enforce inputs from engine (torque) and driveline (speed)
+    m_motorshaft->SetAppliedTorque(motorshaft_torque);
+    m_driveshaft->SetPos_dt(driveshaft_speed);
+
     // To avoid bursts of gear shifts, do nothing if the last shift was too recent
     if (time - m_last_time_gearshift < m_gear_shift_latency)
         return;
@@ -141,8 +153,12 @@ void ChShaftsAutomaticTransmission::Synchronize(double time, const DriverInputs&
     }
 }
 
-double ChShaftsAutomaticTransmission::GetOutputTorque() const {
+double ChShaftsAutomaticTransmission::GetOutputDriveshaftTorque() const {
     return m_gears->GetTorqueReactionOn2();
+}
+
+double ChShaftsAutomaticTransmission::GetOutputMotorshaftSpeed() const {
+    return m_motorshaft->GetPos_dt();
 }
 
 }  // end namespace vehicle

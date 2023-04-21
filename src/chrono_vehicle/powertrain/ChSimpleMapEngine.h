@@ -43,8 +43,9 @@ class CH_VEHICLE_API ChSimpleMapEngine : public ChEngine {
     /// Return the current engine speed.
     virtual double GetMotorSpeed() const override { return m_motor_speed; }
 
-    /// Return the current total engine torque.
-    virtual double GetMotorTorque() const override { return m_motor_torque; }
+    /// Return the output engine torque.
+    /// This is the torque passed to a transmission subsystem.
+    virtual double GetOutputMotorshaftTorque() const override { return m_motor_torque; }
 
   protected:
     ChSimpleMapEngine(const std::string& name);
@@ -55,8 +56,8 @@ class CH_VEHICLE_API ChSimpleMapEngine : public ChEngine {
     /// Set the engine speed-torque maps.
     /// A concrete class must add the speed-torque points to the provided maps, using the
     /// ChFunction_Recorder::AddPoint() function.
-    virtual void SetEngineTorqueMaps(ChFunction_Recorder& map0,  ///< [out] engine map at zero throttle
-                                     ChFunction_Recorder& mapF   ///< [out] engine map at full throttle
+    virtual void SetEngineTorqueMaps(ChFunction_Recorder& map0,  ///< engine map at zero throttle
+                                     ChFunction_Recorder& mapF   ///< engine map at full throttle
                                      ) = 0;
 
   private:
@@ -65,9 +66,9 @@ class CH_VEHICLE_API ChSimpleMapEngine : public ChEngine {
 
     /// Update the state of this engine system at the current time.
     /// The engine is provided the current driver throttle input, a value in the range [0,1].
-    virtual void Synchronize(double time,                        ///< [in] current time
-                             const DriverInputs& driver_inputs,  ///< [in] current driver inputs
-                             double shaft_speed                  ///< [in] motorshaft speed
+    virtual void Synchronize(double time,                        ///< current time
+                             const DriverInputs& driver_inputs,  ///< current driver inputs
+                             double motorshaft_speed             ///< input transmission speed
                              ) override;
 
     /// Advance the state of this engine system by the specified time step.

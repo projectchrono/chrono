@@ -38,17 +38,21 @@ ChShaftsEngine::~ChShaftsEngine() {
         sys->Remove(m_motorblock_to_body);
         sys->Remove(m_engine);
         sys->Remove(m_engine_losses);
+        sys->Remove(m_motorshaft);
     }
 }
 
 // -----------------------------------------------------------------------------
 void ChShaftsEngine::Initialize(std::shared_ptr<ChChassis> chassis) {
+    ChEngine::Initialize(chassis);
+
     assert(chassis->GetBody()->GetSystem());
-    auto sys = chassis->GetBody()->GetSystem();
+    auto sys = chassis->GetSystem();
 
     // Create the motorshaft which represents the crankshaft plus flywheel.
-    ChEngine::Initialize(chassis);
-    m_motorshaft->SetInertia(GetCrankshaftInertia());
+    m_motorshaft = chrono_types::make_shared<ChShaft>();
+    m_motorshaft->SetInertia(GetMotorshaftInertia());
+    sys->AddShaft(m_motorshaft);
 
     // Create the motor block.
     // ChShaftsThermalEngine connects this motor block to the motorshaft and applies the engine torque between them.
@@ -86,9 +90,9 @@ void ChShaftsEngine::Initialize(std::shared_ptr<ChChassis> chassis) {
 }
 
 // -----------------------------------------------------------------------------
-void ChShaftsEngine::Synchronize(double time, const DriverInputs& driver_inputs, double shaft_speed) {
+void ChShaftsEngine::Synchronize(double time, const DriverInputs& driver_inputs, double motorshaft_speed) {
     // Apply shaft speed
-    m_motorshaft->SetPos_dt(shaft_speed);
+    m_motorshaft->SetPos_dt(motorshaft_speed);
 
     // Update the throttle level in the thermal engine
     m_engine->SetThrottle(driver_inputs.m_throttle);

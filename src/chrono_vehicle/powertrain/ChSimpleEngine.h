@@ -40,8 +40,9 @@ class CH_VEHICLE_API ChSimpleEngine : public ChEngine {
     /// Return the current engine speed.
     virtual double GetMotorSpeed() const override { return m_motor_speed; }
 
-    /// Return the current engine torque.
-    virtual double GetMotorTorque() const override { return m_motor_torque; }
+    /// Return the output engine torque.
+    /// This is the torque passed to a transmission subsystem.
+    virtual double GetOutputMotorshaftTorque() const override { return m_motor_torque; }
 
   protected:
     ChSimpleEngine(const std::string& name);
@@ -61,9 +62,9 @@ class CH_VEHICLE_API ChSimpleEngine : public ChEngine {
 
     /// Update the state of this engine system at the current time.
     /// The engine system is provided the current driver throttle input, a value in the range [0,1].
-    virtual void Synchronize(double time,                        ///< [in] current time
-                             const DriverInputs& driver_inputs,  ///< [in] current driver inputs
-                             double shaft_speed                  ///< [in] motorshaft speed
+    virtual void Synchronize(double time,                        ///< current time
+                             const DriverInputs& driver_inputs,  ///< current driver inputs
+                             double motorshaft_speed             ///< input transmission speed
                              ) override;
 
     /// Advance the state of this engine system by the specified time step.

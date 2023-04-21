@@ -71,16 +71,20 @@ class CH_VEHICLE_API ChShaftsAutomaticTransmission : public ChTransmission {
     /// Return the torque converter output shaft speed.
     virtual double GetTorqueConverterOutputSpeed() const override { return m_shaft_ingear->GetPos_dt(); }
 
-    /// Return the output torque from the transmission.
-    /// This is the torque that is passed to a vehicle system, thus providing the interface between the powertrain and
-    /// vehicle co-simulation modules.
-    virtual double GetOutputTorque() const override;
-
     /// Use this to define the gear shift latency, in seconds.
     void SetGearShiftLatency(double ml) { m_gear_shift_latency = ml; }
 
     /// Use this to get the gear shift latency, in seconds.
     double GetGearShiftLatency(double ml) { return m_gear_shift_latency; }
+
+    /// Return the transmission output torque on the driveshaft.
+    /// This is the torque that is passed to the driveline subsystem, thus providing the interface between the
+    /// powertrain and vehicle systems.
+    virtual double GetOutputDriveshaftTorque() const override;
+
+    /// Return the transmission output speed of the motorshaft.
+    /// This represents the output from the transmision subsystem that is passed to the engine subsystem.
+    virtual double GetOutputMotorshaftSpeed() const override;
 
   protected:
     /// Set inertia of the transmission block.
@@ -88,6 +92,12 @@ class CH_VEHICLE_API ChShaftsAutomaticTransmission : public ChTransmission {
 
     /// Inertias of the component ChShaft objects.
     virtual double GetIngearShaftInertia() const = 0;
+
+    /// Inertia of the motorshaft (connection to engine).
+    virtual double GetMotorshaftInertia() const = 0;
+
+    /// Inertia of the driveshaft (connection to driveline).
+    virtual double GetDriveshaftInertia() const = 0;
 
     /// Upshift and downshift rotation speeds (in RPM)
     virtual double GetUpshiftRPM() const = 0;
@@ -104,13 +114,13 @@ class CH_VEHICLE_API ChShaftsAutomaticTransmission : public ChTransmission {
   private:
     /// Initialize this transmission system by attaching it to an existing vehicle chassis and connecting the provided
     /// engine and driveline subsystems.
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis,
-                            std::shared_ptr<ChEngine> engine,
-                            std::shared_ptr<ChDriveline> driveline) override;
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis) override;
 
     /// Synchronize the state of this transmission system at the current time.
-    virtual void Synchronize(double time,                       ///< current time
-                             const DriverInputs& driver_inputs  ///< current driver inputs
+    virtual void Synchronize(double time,                        ///< current time
+                             const DriverInputs& driver_inputs,  ///< current driver inputs
+                             double motorshaft_torque,           ///< input engine torque
+                             double driveshaft_speed             ///< input driveline speed
                              ) override;
 
     /// Advance the state of this transmission system by the specified time step.
@@ -122,6 +132,9 @@ class CH_VEHICLE_API ChShaftsAutomaticTransmission : public ChTransmission {
 
     /// Perform any action required on placing the transmission in neutral.
     virtual void OnNeutralShift() override;
+
+    std::shared_ptr<ChShaft> m_motorshaft;  ///< shaft connection to the transmission
+    std::shared_ptr<ChShaft> m_driveshaft;  ///< shaft connection to driveline
 
     std::shared_ptr<ChShaft> m_transmissionblock;
     std::shared_ptr<ChShaftsBody> m_transmissionblock_to_body;

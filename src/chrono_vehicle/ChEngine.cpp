@@ -21,21 +21,9 @@
 namespace chrono {
 namespace vehicle {
 
-ChEngine::ChEngine(const std::string& name)
-    : ChPart(name){
-    m_motorshaft = chrono_types::make_shared<ChShaft>();
-}
-
-ChEngine::~ChEngine() {
-    if (m_motorshaft->GetSystem()) {
-        m_motorshaft->GetSystem()->RemoveShaft(m_motorshaft);
-    }
-}
+ChEngine::ChEngine(const std::string& name) : ChPart(name) {}
 
 void ChEngine::Initialize(std::shared_ptr<ChChassis> chassis) {
-    m_motorshaft->SetInertia(1.0);
-    chassis->GetSystem()->AddShaft(m_motorshaft);
-
     // Mark as initialized
     m_initialized = true;
 }

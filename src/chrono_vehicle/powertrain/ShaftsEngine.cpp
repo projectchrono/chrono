@@ -46,7 +46,7 @@ void ShaftsEngine::Create(const rapidjson::Document& d) {
 
     // Read engine data
     m_motorblock_inertia = d["Motor Block Inertia"].GetDouble();
-    m_crankshaft_inertia = d["Crankshaft Inertia"].GetDouble();
+    m_motorshaft_inertia = d["Motorshaft Inertia"].GetDouble();
     m_engine_torque.Read(d["Torque Map"]);
     m_engine_losses.Read(d["Losses Map"]);
 }

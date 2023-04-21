@@ -24,8 +24,6 @@ namespace vehicle {
 
 ChDriveline::ChDriveline(const std::string& name) : ChPart(name) {}
 
-ChDriveline::~ChDriveline() {}
-
 void ChDriveline::Initialize(std::shared_ptr<ChChassis> chassis) {
     // Mark as initialized
     m_initialized = true;

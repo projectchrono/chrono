@@ -28,13 +28,7 @@ ChTransmission::ChTransmission(const std::string& name)
       m_current_gear(-1),
       m_current_gear_ratio(1e20) {}
 
-void ChTransmission::Initialize(std::shared_ptr<ChChassis> chassis,
-                                std::shared_ptr<ChEngine> engine,
-                                std::shared_ptr<ChDriveline> driveline) {
-    // The engine and driveline must be fully initialized before initializing the transmission.
-    assert(engine->IsInitialized());
-    assert(driveline->IsInitialized());
-
+void ChTransmission::Initialize(std::shared_ptr<ChChassis> chassis) {
     // Let the derived class specify the gear ratios
     std::vector<double> fwd;
     double rev;

@@ -30,8 +30,9 @@ void ChSimpleEngine::Initialize(std::shared_ptr<ChChassis> chassis) {
     m_critical_speed = GetMaxPower() / GetMaxTorque();
 }
 
-void ChSimpleEngine::Synchronize(double time, const DriverInputs& driver_inputs, double shaft_speed) {
-    m_motor_speed = shaft_speed;
+void ChSimpleEngine::Synchronize(double time, const DriverInputs& driver_inputs, double motorshaft_speed) {
+    // Cache the motor speed (as dictated by the transmission)
+    m_motor_speed = motorshaft_speed;
 
     // The torque depends on a hyperbolic speed-torque curve of the motor
     // like in DC motors or combustion engines with CVT gearbox.
@@ -48,9 +49,6 @@ void ChSimpleEngine::Synchronize(double time, const DriverInputs& driver_inputs,
 
     // Motor torque is linearly modulated by throttle gas value:
     m_motor_torque *= driver_inputs.m_throttle;
-
-    // Apply the motor torque on the motorshaft
-    m_motorshaft->SetAppliedTorque(m_motor_torque);
 }
 
 }  // end namespace vehicle

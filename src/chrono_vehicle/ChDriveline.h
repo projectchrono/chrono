@@ -34,7 +34,7 @@ namespace vehicle {
 /// Base class for a vehicle driveline subsystem.
 class CH_VEHICLE_API ChDriveline : public ChPart {
   public:
-    virtual ~ChDriveline();
+    virtual ~ChDriveline() {}
 
     /// Initialize the driveline.
     void Initialize(std::shared_ptr<ChChassis> chassis);
