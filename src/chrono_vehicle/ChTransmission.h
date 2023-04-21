@@ -21,12 +21,9 @@
 
 #include <vector>
 
-#include "chrono/physics/ChShaft.h"
-
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChChassis.h"
-#include "chrono_vehicle/ChEngine.h"
-#include "chrono_vehicle/ChDriveline.h"
+#include "chrono_vehicle/ChPart.h"
 
 namespace chrono {
 namespace vehicle {
@@ -106,10 +103,6 @@ class CH_VEHICLE_API ChTransmission : public ChPart {
     virtual void InitializeInertiaProperties() override;
     virtual void UpdateInertiaProperties() override;
 
-    /// Initialize this transmission system by attaching it to an existing vehicle chassis and connecting the provided
-    /// engine and driveline subsystems. A derived class override must first call this base class implementation.
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis);
-
     /// Set the transmission gear ratios (one or more forward gear ratios and a single reverse gear ratio).
     virtual void SetGearRatios(std::vector<double>& fwd, double& rev) = 0;
 
@@ -118,6 +111,10 @@ class CH_VEHICLE_API ChTransmission : public ChPart {
 
     /// Perform any action required on placing the transmission in neutral.
     virtual void OnNeutralShift() {}
+
+    /// Initialize this transmission system by attaching it to an existing vehicle chassis and connecting the provided
+    /// engine and driveline subsystems. A derived class override must first call this base class implementation.
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis);
 
     /// Update the transmission system at the current time.
     /// The motorshaft torque represents the input to the transmission from the engine system.
@@ -139,9 +136,7 @@ class CH_VEHICLE_API ChTransmission : public ChPart {
     int m_current_gear;                 ///< current transmission gear (0: reverse, 1+: forward)
     double m_current_gear_ratio;        ///< current gear ratio (positive for forward, negative for reverse)
 
-  private:
-    friend class ChWheeledVehicle;
-    friend class ChTrackedVehicle;
+    friend class ChPowertrainAssembly;
 };
 
 /// @} vehicle_powertrain

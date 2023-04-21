@@ -19,11 +19,9 @@
 #ifndef CH_ENGINE_H
 #define CH_ENGINE_H
 
-#include "chrono/physics/ChShaft.h"
-
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChPart.h"
 #include "chrono_vehicle/ChChassis.h"
+#include "chrono_vehicle/ChPart.h"
 
 namespace chrono {
 namespace vehicle {
@@ -35,6 +33,19 @@ namespace vehicle {
 class CH_VEHICLE_API ChEngine : public ChPart {
   public:
     virtual ~ChEngine() {}
+
+    /// Return the current engine speed.
+    virtual double GetMotorSpeed() const = 0;
+
+    /// Return the output engine torque on the motorshaft.
+    /// This is the torque passed to a transmission subsystem.
+    virtual double GetOutputMotorshaftTorque() const = 0;
+
+  protected:
+    ChEngine(const std::string& name);
+
+    virtual void InitializeInertiaProperties() override;
+    virtual void UpdateInertiaProperties() override;
 
     /// Initialize this engine.
     virtual void Initialize(std::shared_ptr<ChChassis> chassis);
@@ -51,22 +62,7 @@ class CH_VEHICLE_API ChEngine : public ChPart {
     /// Advance the state of the engine by the specified time step.
     virtual void Advance(double step) {}
 
-    /// Return the current engine speed.
-    virtual double GetMotorSpeed() const = 0;
-
-    /// Return the output engine torque on the motorshaft.
-    /// This is the torque passed to a transmission subsystem.
-    virtual double GetOutputMotorshaftTorque() const = 0;
-
-  protected:
-    ChEngine(const std::string& name);
-
-    virtual void InitializeInertiaProperties() override;
-    virtual void UpdateInertiaProperties() override;
-
-  private:
-    friend class ChWheeledVehicle;
-    friend class ChTrackedVehicle;
+    friend class ChPowertrainAssembly;
 };
 
 /// @} vehicle_powertrain

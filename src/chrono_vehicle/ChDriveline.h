@@ -19,8 +19,6 @@
 #ifndef CH_DRIVELINE_H
 #define CH_DRIVELINE_H
 
-#include "chrono/physics/ChShaft.h"
-
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/ChPart.h"

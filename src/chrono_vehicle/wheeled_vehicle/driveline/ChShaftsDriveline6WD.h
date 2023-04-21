@@ -25,13 +25,10 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChDrivelineWV.h"
 
-#include "chrono/physics/ChShaftsBody.h"
+#include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChShaftsClutch.h"
-#include "chrono/physics/ChShaftsGear.h"
 #include "chrono/physics/ChShaftsGearboxAngled.h"
-#include "chrono/physics/ChShaftsMotor.h"
 #include "chrono/physics/ChShaftsPlanetary.h"
-#include "chrono/physics/ChShaftsTorque.h"
 
 namespace chrono {
 namespace vehicle {

@@ -22,6 +22,7 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChEngine.h"
 
+#include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChShaftsBody.h"
 #include "chrono/physics/ChShaftsThermalEngine.h"
 

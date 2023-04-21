@@ -174,6 +174,8 @@ set(CV_BASE_FILES
     ChDriveline.cpp
     ChPowertrain.h
     ChPowertrain.cpp
+    ChPowertrainAssembly.h
+    ChPowertrainAssembly.cpp
     ChEngine.h
     ChEngine.cpp
     ChTransmission.h
