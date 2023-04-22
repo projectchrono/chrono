@@ -53,6 +53,18 @@ set(CVM_HMMWV_POWERTRAIN_FILES
     hmmwv/powertrain/HMMWV_SimpleCVTPowertrain.h
     hmmwv/powertrain/HMMWV_SimpleMapPowertrain.cpp
     hmmwv/powertrain/HMMWV_SimpleMapPowertrain.h
+
+    hmmwv/powertrain/HMMWV_EngineShafts.h
+    hmmwv/powertrain/HMMWV_EngineShafts.cpp
+    hmmwv/powertrain/HMMWV_EngineSimpleMap.h
+    hmmwv/powertrain/HMMWV_EngineSimpleMap.cpp
+    hmmwv/powertrain/HMMWV_EngineSimple.h
+    hmmwv/powertrain/HMMWV_EngineSimple.cpp
+
+    hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.h
+    hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.cpp
+    hmmwv/powertrain/HMMWV_AutomaticTransmissionSimpleMap.h
+    hmmwv/powertrain/HMMWV_AutomaticTransmissionSimpleMap.cpp
 )
 set(CVM_HMMWV_TIRE_FILES
     hmmwv/tire/HMMWV_RigidTire.cpp

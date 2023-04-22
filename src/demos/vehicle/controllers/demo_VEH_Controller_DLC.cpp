@@ -121,8 +121,11 @@ VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType wheel_vis_type = VisualizationType::NONE;
 VisualizationType tire_vis_type = VisualizationType::MESH;
 
-// Type of powertrain model (SHAFTS, SIMPLE, SIMPLE_CVT)
-PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
+// Type of engine model (SHAFTS, SIMPLE, SIMPLE_MAP)
+EngineModelType engine_model = EngineModelType::SHAFTS;
+
+// Type of transmission model (SHAFTS, SIMPLE_MAP)
+TransmissionModelType transmission_model = TransmissionModelType::SHAFTS;
 
 // Drive type (FWD, RWD, or AWD)
 DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
@@ -207,7 +210,8 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetContactMethod(ChContactMethod::SMC);
     my_hmmwv.SetChassisFixed(false);
     my_hmmwv.SetInitPosition(ChCoordsys<>(ChVector<>(-terrainLength / 2 + 5, 0, 0.7), ChQuaternion<>(1, 0, 0, 0)));
-    my_hmmwv.SetPowertrainType(powertrain_model);
+    my_hmmwv.SetEngineType(engine_model);
+    my_hmmwv.SetTransmissionType(transmission_model);
     my_hmmwv.SetDriveType(drive_type);
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.SetTireStepSize(tire_step_size);
