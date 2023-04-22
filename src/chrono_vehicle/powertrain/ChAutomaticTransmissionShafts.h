@@ -46,7 +46,7 @@ class CH_VEHICLE_API ChAutomaticTransmissionShafts : public ChTransmission {
     virtual ~ChAutomaticTransmissionShafts();
 
     /// Get the name of the vehicle subsystem template.
-    virtual std::string GetTemplateName() const override { return "ShaftsPowertrain"; }
+    virtual std::string GetTemplateName() const override { return "AutomaticTransmissionShafts"; }
 
     /// Return the value of slippage in the torque converter.
     virtual double GetTorqueConverterSlippage() const override { return m_torqueconverter->GetSlippage(); }

@@ -41,6 +41,8 @@ class CH_VEHICLE_API AutomaticTransmissionShafts : public ChAutomaticTransmissio
 
     virtual double GetTransmissionBlockInertia() const { return m_transmissionblock_inertia; }
     virtual double GetIngearShaftInertia() const override { return m_ingear_shaft_inertia; }
+    virtual double GetMotorshaftInertia() const override { return m_motorshaft_inertia; }
+    virtual double GetDriveshaftInertia() const override { return m_driveshaft_inertia; }
 
     virtual double GetUpshiftRPM() const override { return m_upshift_RPM; }
     virtual double GetDownshiftRPM() const override { return m_downshift_RPM; }
@@ -51,6 +53,8 @@ class CH_VEHICLE_API AutomaticTransmissionShafts : public ChAutomaticTransmissio
   private:
     virtual void Create(const rapidjson::Document& d) override;
 
+    double m_motorshaft_inertia;
+    double m_driveshaft_inertia;
     double m_transmissionblock_inertia;
     double m_ingear_shaft_inertia;
 

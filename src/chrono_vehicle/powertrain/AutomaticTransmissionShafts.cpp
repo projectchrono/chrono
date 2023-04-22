@@ -49,6 +49,8 @@ void AutomaticTransmissionShafts::Create(const rapidjson::Document& d) {
 
     m_transmissionblock_inertia = d["Transmission Block Inertia"].GetDouble();
     m_ingear_shaft_inertia = d["Input Shaft Inertia"].GetDouble();
+    m_motorshaft_inertia = d["Motorshaft Inertia"].GetDouble();
+    m_driveshaft_inertia = d["Driveshaft Inertia"].GetDouble();
 
     // Read torque converter data
     assert(d.HasMember("Torque Converter"));

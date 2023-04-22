@@ -41,7 +41,7 @@ class CH_VEHICLE_API ChAutomaticTransmissionSimpleMap : public ChTransmission {
     virtual ~ChAutomaticTransmissionSimpleMap() {}
 
     /// Get the name of the vehicle subsystem template.
-    virtual std::string GetTemplateName() const override { return "SimpleMapPowertrain"; }
+    virtual std::string GetTemplateName() const override { return "AutomaticTransmissionSimpleMap"; }
 
     /// Return the value of slippage in the torque converter.
     /// This simplified model does not have a torque converter.
