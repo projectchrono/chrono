@@ -299,6 +299,32 @@ set(CVM_UNIMOG_FILES
 )
 source_group("unimog" FILES ${CVM_UNIMOG_FILES})
 
+set(CVM_DURO_FILES
+    duro/Duro_BrakeShafts.h
+    duro/Duro_BrakeShafts.cpp
+    duro/Duro_Chassis.h
+    duro/Duro_Chassis.cpp
+    duro/Duro_DeDionAxle.h
+    duro/Duro_DeDionAxle.cpp
+    duro/Duro_Driveline4WD.h
+    duro/Duro_Driveline4WD.cpp
+    duro/Duro_Powertrain.h
+    duro/Duro_Powertrain.cpp
+    duro/Duro_RotaryArm.h
+    duro/Duro_RotaryArm.cpp
+    duro/Duro_TMeasyTire.h
+    duro/Duro_TMeasyTire.cpp
+    duro/Duro_TMsimpleTire.h
+    duro/Duro_TMsimpleTire.cpp
+    duro/Duro_ToeBarDeDionAxle.h
+    duro/Duro_ToeBarDeDionAxle.cpp
+    duro/Duro_RigidTire.h
+    duro/Duro_RigidTire.cpp
+    duro/Duro_Wheel.h
+    duro/Duro_Wheel.cpp
+)
+source_group("duro" FILES ${CVM_DURO_FILES})
+
 set(CVM_MAN_FILES
     man/MAN_5t_BellcrankSolid3LinkAxle.cpp
     man/MAN_5t_BellcrankSolid3LinkAxle.h
@@ -679,6 +705,7 @@ add_library(ChronoModels_vehicle SHARED
     ${CVM_MROLE_FILES}
     ${CVM_UAZ_FILES}
     ${CVM_UNIMOG_FILES}
+    ${CVM_DURO_FILES}
     ${CVM_GENERIC_FILES}
     ${CVM_SEDAN_FILES}
     ${CVM_CITYBUS_FILES}
