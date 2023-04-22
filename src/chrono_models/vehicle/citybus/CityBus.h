@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Asher Elmquist, Evan Hoerl, Shuo He
+// Authors: Radu Serban, Asher Elmquist, Evan Hoerl, Shuo He, Marcel Offermans
 // =============================================================================
 //
 // Wrapper classes for modeling an entire CityBus vehicle assembly
@@ -26,6 +26,8 @@
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/citybus/CityBus_Vehicle.h"
 #include "chrono_models/vehicle/citybus/CityBus_SimpleMapPowertrain.h"
+#include "chrono_models/vehicle/citybus/CityBus_EngineSimpleMap.h"
+#include "chrono_models/vehicle/citybus/CityBus_AutomaticTransmissionSimpleMap.h"
 #include "chrono_models/vehicle/citybus/CityBus_RigidTire.h"
 #include "chrono_models/vehicle/citybus/CityBus_TMeasyTire.h"
 #include "chrono_models/vehicle/citybus/CityBus_Pac02Tire.h"
