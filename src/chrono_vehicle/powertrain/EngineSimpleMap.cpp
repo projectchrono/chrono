@@ -12,20 +12,18 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// ChShaft-based engine model constructed with data from file (JSON format).
+// JSON specification of a simple engine model based on torque-speed engine maps
 //
 // =============================================================================
 
-#include "chrono/core/ChGlobal.h"
-
-#include "chrono_vehicle/powertrain/ShaftsEngine.h"
+#include "chrono_vehicle/powertrain/EngineSimpleMap.h"
 
 using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
 
-ShaftsEngine::ShaftsEngine(const std::string& filename) : ChShaftsEngine("") {
+EngineSimpleMap::EngineSimpleMap(const std::string& filename) : ChEngineSimpleMap("") {
     Document d;
     ReadFileJSON(filename, d);
     if (d.IsNull())
@@ -36,27 +34,24 @@ ShaftsEngine::ShaftsEngine(const std::string& filename) : ChShaftsEngine("") {
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-ShaftsEngine::ShaftsEngine(const rapidjson::Document& d) : ChShaftsEngine("") {
+EngineSimpleMap::EngineSimpleMap(const rapidjson::Document& d) : ChEngineSimpleMap("") {
     Create(d);
 }
 
-void ShaftsEngine::Create(const rapidjson::Document& d) {
+void EngineSimpleMap::Create(const rapidjson::Document& d) {
     // Invoke base class method
     ChPart::Create(d);
 
     // Read engine data
-    m_motorblock_inertia = d["Motor Block Inertia"].GetDouble();
-    m_motorshaft_inertia = d["Motorshaft Inertia"].GetDouble();
-    m_engine_torque.Read(d["Torque Map"]);
-    m_engine_losses.Read(d["Losses Map"]);
+    m_max_engine_speed = CH_C_RPM_TO_RPS * d["Maximal Engine Speed RPM"].GetDouble();
+
+    m_engine_map_full.Read(d["Map Full Throttle"]);
+    m_engine_map_zero.Read(d["Map Zero Throttle"]);
 }
 
-void ShaftsEngine::SetEngineTorqueMap(std::shared_ptr<ChFunction_Recorder>& map) {
-    m_engine_torque.Set(*map, CH_C_RPM_TO_RPS, 1.0);
-}
-
-void ShaftsEngine::SetEngineLossesMap(std::shared_ptr<ChFunction_Recorder>& map) {
-    m_engine_losses.Set(*map, CH_C_RPM_TO_RPS, 1.0);
+void EngineSimpleMap::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) {
+    m_engine_map_zero.Set(map0, CH_C_RPM_TO_RPS, 1.0);
+    m_engine_map_full.Set(mapF, CH_C_RPM_TO_RPS, 1.0);
 }
 
 }  // end namespace vehicle

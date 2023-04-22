@@ -18,7 +18,7 @@
 
 #include "chrono/physics/ChSystem.h"
 
-#include "chrono_vehicle/powertrain/ChShaftsEngine.h"
+#include "chrono_vehicle/powertrain/ChEngineShafts.h"
 
 namespace chrono {
 namespace vehicle {
@@ -28,10 +28,10 @@ namespace vehicle {
 // direction of the crankshaft, in chassis local coords. This is needed because
 // ChShaftsBody could transfer rolling torque to the chassis.
 // -----------------------------------------------------------------------------
-ChShaftsEngine::ChShaftsEngine(const std::string& name, const ChVector<>& dir_motor_block)
+ChEngineShafts::ChEngineShafts(const std::string& name, const ChVector<>& dir_motor_block)
     : ChEngine(name), m_dir_motor_block(dir_motor_block) {}
 
-ChShaftsEngine::~ChShaftsEngine() {
+ChEngineShafts::~ChEngineShafts() {
     auto sys = m_engine->GetSystem();
     if (sys) {
         sys->Remove(m_motorblock);
@@ -43,7 +43,7 @@ ChShaftsEngine::~ChShaftsEngine() {
 }
 
 // -----------------------------------------------------------------------------
-void ChShaftsEngine::Initialize(std::shared_ptr<ChChassis> chassis) {
+void ChEngineShafts::Initialize(std::shared_ptr<ChChassis> chassis) {
     ChEngine::Initialize(chassis);
 
     assert(chassis->GetBody()->GetSystem());
@@ -90,7 +90,7 @@ void ChShaftsEngine::Initialize(std::shared_ptr<ChChassis> chassis) {
 }
 
 // -----------------------------------------------------------------------------
-void ChShaftsEngine::Synchronize(double time, const DriverInputs& driver_inputs, double motorshaft_speed) {
+void ChEngineShafts::Synchronize(double time, const DriverInputs& driver_inputs, double motorshaft_speed) {
     // Apply shaft speed
     m_motorshaft->SetPos_dt(motorshaft_speed);
 

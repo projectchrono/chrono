@@ -31,6 +31,7 @@
 #include "chrono_vehicle/ChVehicleOutput.h"
 #include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/ChPowertrain.h"
+#include "chrono_vehicle/ChPowertrainAssembly.h"
 
 namespace chrono {
 namespace vehicle {
@@ -80,6 +81,15 @@ class CH_VEHICLE_API ChVehicle {
     std::shared_ptr<ChBodyAuxRef> GetChassisRearBody(int id) const { return m_chassis_rear[id]->GetBody(); }
 
     /// Get the powertrain attached to this vehicle.
+    std::shared_ptr<ChPowertrainAssembly> GetPowertrainAssembly() const { return m_powertrain_assembly; }
+
+    /// Get the engine in the powertrain assembly (if a powertrain is attached).
+    std::shared_ptr<ChEngine> GetEngine() const;
+
+    /// Get the transmission in the powertrain assembly (if a powertrain is attached).
+    std::shared_ptr<ChTransmission> GetTransmission() const;
+
+    //// TODO: obsolete
     virtual std::shared_ptr<ChPowertrain> GetPowertrain() const { return nullptr; }
 
     /// Get the vehicle total mass.
@@ -153,6 +163,10 @@ class CH_VEHICLE_API ChVehicle {
     virtual void Initialize(const ChCoordsys<>& chassisPos,  ///< [in] initial global position and orientation
                             double chassisFwdVel = 0         ///< [in] initial chassis forward velocity
                             );
+
+    /// Initialize the given powertrain assembly and associate it to this vehicle.
+    /// The powertrain is initialized by connecting it to this vehicle's chassis and driveline shaft.
+    void InitializePowertrain(std::shared_ptr<ChPowertrainAssembly> powertrain);
 
     /// Calculate total vehicle mass from subsystems.
     /// This function is called at the end of the vehicle initialization, but can also be called explicitly.
@@ -241,6 +255,8 @@ class CH_VEHICLE_API ChVehicle {
     std::shared_ptr<ChChassis> m_chassis;         ///< handle to the main chassis subsystem
     ChChassisRearList m_chassis_rear;             ///< list of rear chassis subsystems (can be empty)
     ChChassisConnectorList m_chassis_connectors;  ///< list of chassis connector (must match m_chassis_rear)
+
+    std::shared_ptr<ChPowertrainAssembly> m_powertrain_assembly;  ///< associated powertrain system
 
   private:
     bool m_initialized;

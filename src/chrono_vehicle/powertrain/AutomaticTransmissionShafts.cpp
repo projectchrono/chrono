@@ -19,15 +19,15 @@
 
 #include "chrono/core/ChGlobal.h"
 
-#include "chrono_vehicle/powertrain/ShaftsAutomaticTransmission.h"
+#include "chrono_vehicle/powertrain/AutomaticTransmissionShafts.h"
 
 using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
 
-ShaftsAutomaticTransmission::ShaftsAutomaticTransmission(const std::string& filename)
-    : ChShaftsAutomaticTransmission("") {
+AutomaticTransmissionShafts::AutomaticTransmissionShafts(const std::string& filename)
+    : ChAutomaticTransmissionShafts("") {
     Document d;
     ReadFileJSON(filename, d);
     if (d.IsNull())
@@ -38,12 +38,12 @@ ShaftsAutomaticTransmission::ShaftsAutomaticTransmission(const std::string& file
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-ShaftsAutomaticTransmission::ShaftsAutomaticTransmission(const rapidjson::Document& d)
-    : ChShaftsAutomaticTransmission("") {
+AutomaticTransmissionShafts::AutomaticTransmissionShafts(const rapidjson::Document& d)
+    : ChAutomaticTransmissionShafts("") {
     Create(d);
 }
 
-void ShaftsAutomaticTransmission::Create(const rapidjson::Document& d) {
+void AutomaticTransmissionShafts::Create(const rapidjson::Document& d) {
     // Invoke base class method.
     ChPart::Create(d);
 
@@ -75,16 +75,16 @@ void ShaftsAutomaticTransmission::Create(const rapidjson::Document& d) {
 
 // -----------------------------------------------------------------------------
 
-void ShaftsAutomaticTransmission::SetGearRatios(std::vector<double>& fwd, double& rev) {
+void AutomaticTransmissionShafts::SetGearRatios(std::vector<double>& fwd, double& rev) {
     rev = m_rev_gear;
     fwd = m_fwd_gear;
 }
 
-void ShaftsAutomaticTransmission::SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunction_Recorder>& map) {
+void AutomaticTransmissionShafts::SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunction_Recorder>& map) {
     m_tc_capacity_factor.Set(*map);
 }
 
-void ShaftsAutomaticTransmission::SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunction_Recorder>& map) {
+void AutomaticTransmissionShafts::SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunction_Recorder>& map) {
     m_tc_torque_ratio.Set(*map);
 }
 

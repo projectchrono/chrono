@@ -22,7 +22,7 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
-#include "chrono_vehicle/powertrain/ChShaftsAutomaticTransmission.h"
+#include "chrono_vehicle/powertrain/ChAutomaticTransmissionShafts.h"
 
 namespace chrono {
 namespace vehicle {
@@ -31,11 +31,11 @@ namespace vehicle {
 /// @{
 
 /// Shafts-based automatic transmission subsystem (specified through JSON file).
-class CH_VEHICLE_API ShaftsAutomaticTransmission : public ChShaftsAutomaticTransmission {
+class CH_VEHICLE_API AutomaticTransmissionShafts : public ChAutomaticTransmissionShafts {
   public:
-    ShaftsAutomaticTransmission(const std::string& filename);
-    ShaftsAutomaticTransmission(const rapidjson::Document& d);
-    ~ShaftsAutomaticTransmission() {}
+    AutomaticTransmissionShafts(const std::string& filename);
+    AutomaticTransmissionShafts(const rapidjson::Document& d);
+    ~AutomaticTransmissionShafts() {}
 
     virtual void SetGearRatios(std::vector<double>& fwd, double& rev) override;
 

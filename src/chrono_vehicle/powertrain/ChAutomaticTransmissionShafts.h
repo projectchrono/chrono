@@ -38,12 +38,12 @@ class ChVehicle;
 
 /// Template for an automatic transmission model using shaft elements.
 /// This transmission template includes a torque converter and a manumatic gearbox.
-class CH_VEHICLE_API ChShaftsAutomaticTransmission : public ChTransmission {
+class CH_VEHICLE_API ChAutomaticTransmissionShafts : public ChTransmission {
   public:
     /// Construct a shafts-based automatic transmission model.
-    ChShaftsAutomaticTransmission(const std::string& name);
+    ChAutomaticTransmissionShafts(const std::string& name);
 
-    virtual ~ChShaftsAutomaticTransmission();
+    virtual ~ChAutomaticTransmissionShafts();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "ShaftsPowertrain"; }
@@ -117,7 +117,7 @@ class CH_VEHICLE_API ChShaftsAutomaticTransmission : public ChTransmission {
                              ) override;
 
     /// Advance the state of this transmission system by the specified time step.
-    /// No-op, since the state of a ShaftsAutomaticTransmission is advanced as part of the vehicle state.
+    /// No-op, since the state of a AutomaticTransmissionShafts is advanced as part of the vehicle state.
     virtual void Advance(double step) override {}
 
     /// Perform any action required on a gear shift (the new gear and gear ratio are available).

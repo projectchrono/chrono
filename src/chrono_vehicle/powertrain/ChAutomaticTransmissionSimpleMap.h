@@ -36,9 +36,9 @@ namespace vehicle {
 /// This transmission has no torque converter.
 /// It accepts a single reverse gear and any number of forward gears.
 /// In automatic mode, gear shifting is done based on specified ideal shift points.
-class CH_VEHICLE_API ChSimpleMapAutomaticTransmission : public ChTransmission {
+class CH_VEHICLE_API ChAutomaticTransmissionSimpleMap : public ChTransmission {
   public:
-    virtual ~ChSimpleMapAutomaticTransmission() {}
+    virtual ~ChAutomaticTransmissionSimpleMap() {}
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "SimpleMapPowertrain"; }
@@ -69,7 +69,7 @@ class CH_VEHICLE_API ChSimpleMapAutomaticTransmission : public ChTransmission {
     virtual double GetOutputMotorshaftSpeed() const override { return m_motorshaft_speed; }
 
   protected:
-    ChSimpleMapAutomaticTransmission(const std::string& name);
+    ChAutomaticTransmissionSimpleMap(const std::string& name);
 
     /// Set the ideal shift points for automatic gear shifting.
     /// For each forward gear, specify the min and max engine speed for shifting (down and up, respectively).

@@ -20,7 +20,7 @@
 #define SIMPLE_ENGINE_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/powertrain/ChSimpleEngine.h"
+#include "chrono_vehicle/powertrain/ChEngineSimple.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
@@ -31,11 +31,11 @@ namespace vehicle {
 /// @{
 
 /// Simple engine subsystem (specified through JSON file).
-class CH_VEHICLE_API SimpleEngine : public ChSimpleEngine {
+class CH_VEHICLE_API EngineSimple : public ChEngineSimple {
   public:
-    SimpleEngine(const std::string& filename);
-    SimpleEngine(const rapidjson::Document& d);
-    ~SimpleEngine() {}
+    EngineSimple(const std::string& filename);
+    EngineSimple(const rapidjson::Document& d);
+    ~EngineSimple() {}
 
     virtual double GetMaxTorque() const override { return m_max_torque; }
     virtual double GetMaxPower() const override { return m_max_power; }
@@ -44,9 +44,9 @@ class CH_VEHICLE_API SimpleEngine : public ChSimpleEngine {
   private:
     virtual void Create(const rapidjson::Document& d) override;
 
-    double m_max_torque;  // maximum motor torque
-    double m_max_power;   // maximum motor power
-    double m_max_speed;   // maximum engine speed
+    double m_max_torque;  ///< maximum motor torque
+    double m_max_power;   ///< maximum motor power
+    double m_max_speed;   ///< maximum engine speed
 };
 
 /// @} vehicle_powertrain

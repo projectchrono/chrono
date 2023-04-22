@@ -16,21 +16,21 @@
 //
 // =============================================================================
 
-#include "chrono_vehicle/powertrain/ChSimpleEngine.h"
+#include "chrono_vehicle/powertrain/ChEngineSimple.h"
 
 namespace chrono {
 namespace vehicle {
 
-ChSimpleEngine::ChSimpleEngine(const std::string& name)
+ChEngineSimple::ChEngineSimple(const std::string& name)
     : ChEngine(name), m_motor_speed(0), m_motor_torque(0), m_critical_speed(1e4) {}
 
-void ChSimpleEngine::Initialize(std::shared_ptr<ChChassis> chassis) {
+void ChEngineSimple::Initialize(std::shared_ptr<ChChassis> chassis) {
     ChEngine::Initialize(chassis);
 
     m_critical_speed = GetMaxPower() / GetMaxTorque();
 }
 
-void ChSimpleEngine::Synchronize(double time, const DriverInputs& driver_inputs, double motorshaft_speed) {
+void ChEngineSimple::Synchronize(double time, const DriverInputs& driver_inputs, double motorshaft_speed) {
     // Cache the motor speed (as dictated by the transmission)
     m_motor_speed = motorshaft_speed;
 

@@ -23,7 +23,7 @@ namespace vehicle {
 
 ChTransmission::ChTransmission(const std::string& name)
     : ChPart(name),
-      m_transmission_mode(TransmissionMode::AUTOMATIC),
+      m_mode(Mode::AUTOMATIC),
       m_drive_mode(DriveMode::FORWARD),
       m_current_gear(-1),
       m_current_gear_ratio(1e20) {}
@@ -56,16 +56,16 @@ void ChTransmission::InitializeInertiaProperties() {
 void ChTransmission::UpdateInertiaProperties() {}
 
 void ChTransmission::ShiftUp() {
-    if (m_transmission_mode == TransmissionMode::MANUAL &&  //
-        m_drive_mode == DriveMode::FORWARD &&               //
+    if (m_mode == Mode::MANUAL &&              //
+        m_drive_mode == DriveMode::FORWARD &&  //
         m_current_gear < m_gear_ratios.size() - 1) {
         SetGear(m_current_gear + 1);
     }
 }
 
 void ChTransmission::ShiftDown() {
-    if (m_transmission_mode == TransmissionMode::MANUAL &&  //
-        m_drive_mode == DriveMode::FORWARD &&               //
+    if (m_mode == Mode::MANUAL &&              //
+        m_drive_mode == DriveMode::FORWARD &&  //
         m_current_gear > 1) {
         SetGear(m_current_gear - 1);
     }

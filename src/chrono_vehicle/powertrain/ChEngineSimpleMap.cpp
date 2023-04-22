@@ -18,14 +18,14 @@
 
 #include "chrono/core/ChMathematics.h"
 
-#include "chrono_vehicle/powertrain/ChSimpleMapEngine.h"
+#include "chrono_vehicle/powertrain/ChEngineSimpleMap.h"
 
 namespace chrono {
 namespace vehicle {
 
-ChSimpleMapEngine::ChSimpleMapEngine(const std::string& name) : ChEngine(name), m_motor_speed(0), m_motor_torque(0) {}
+ChEngineSimpleMap::ChEngineSimpleMap(const std::string& name) : ChEngine(name), m_motor_speed(0), m_motor_torque(0) {}
 
-void ChSimpleMapEngine::Initialize(std::shared_ptr<ChChassis> chassis) {
+void ChEngineSimpleMap::Initialize(std::shared_ptr<ChChassis> chassis) {
     ChEngine::Initialize(chassis);
 
     // Let the derived class set the engine maps
@@ -34,7 +34,7 @@ void ChSimpleMapEngine::Initialize(std::shared_ptr<ChChassis> chassis) {
     assert(m_full_throttle_map.GetPoints().size() > 0);
 }
 
-void ChSimpleMapEngine::Synchronize(double time, const DriverInputs& driver_inputs, double motorshaft_speed) {
+void ChEngineSimpleMap::Synchronize(double time, const DriverInputs& driver_inputs, double motorshaft_speed) {
     // Clamp shaft speed to specified maximum
     m_motor_speed = ChClamp(motorshaft_speed, 0.0, GetMaxEngineSpeed());
 

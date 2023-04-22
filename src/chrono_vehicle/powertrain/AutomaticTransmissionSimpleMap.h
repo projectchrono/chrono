@@ -22,7 +22,7 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
-#include "chrono_vehicle/powertrain/ChSimpleMapAutomaticTransmission.h"
+#include "chrono_vehicle/powertrain/ChAutomaticTransmissionSimpleMap.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
@@ -33,11 +33,11 @@ namespace vehicle {
 /// @{
 
 /// Automatic transmission model template based on a simple gear-shifting model (specified through JSON file).
-class CH_VEHICLE_API SimpleMapAutomaticTransmission : public ChSimpleMapAutomaticTransmission {
+class CH_VEHICLE_API AutomaticTransmissionSimpleMap : public ChAutomaticTransmissionSimpleMap {
   public:
-    SimpleMapAutomaticTransmission(const std::string& filename);
-    SimpleMapAutomaticTransmission(const rapidjson::Document& d);
-    ~SimpleMapAutomaticTransmission() {}
+    AutomaticTransmissionSimpleMap(const std::string& filename);
+    AutomaticTransmissionSimpleMap(const rapidjson::Document& d);
+    ~AutomaticTransmissionSimpleMap() {}
 
     /// Set the transmission gear ratios (one or more forward gear ratios and a single reverse gear ratio).
     virtual void SetGearRatios(std::vector<double>& fwd, double& rev) override;

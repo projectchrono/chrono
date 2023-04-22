@@ -33,12 +33,12 @@ namespace vehicle {
 /// @{
 
 /// Template for simple engine model based on speed-torque engine maps.
-class CH_VEHICLE_API ChSimpleMapEngine : public ChEngine {
+class CH_VEHICLE_API ChEngineSimpleMap : public ChEngine {
   public:
-    virtual ~ChSimpleMapEngine() {}
+    virtual ~ChEngineSimpleMap() {}
 
     /// Get the name of the vehicle subsystem template.
-    virtual std::string GetTemplateName() const override { return "SimpleMapEngine"; }
+    virtual std::string GetTemplateName() const override { return "EngineSimpleMap"; }
 
     /// Return the current engine speed.
     virtual double GetMotorSpeed() const override { return m_motor_speed; }
@@ -48,7 +48,7 @@ class CH_VEHICLE_API ChSimpleMapEngine : public ChEngine {
     virtual double GetOutputMotorshaftTorque() const override { return m_motor_torque; }
 
   protected:
-    ChSimpleMapEngine(const std::string& name);
+    ChEngineSimpleMap(const std::string& name);
 
     /// Specify maximum engine speed.
     virtual double GetMaxEngineSpeed() = 0;

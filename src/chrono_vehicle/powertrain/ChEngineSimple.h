@@ -30,12 +30,12 @@ namespace vehicle {
 
 /// Template for simplified engine model.
 /// This model uses a trivial speed-torque curve.
-class CH_VEHICLE_API ChSimpleEngine : public ChEngine {
+class CH_VEHICLE_API ChEngineSimple : public ChEngine {
   public:
-    virtual ~ChSimpleEngine() {}
+    virtual ~ChEngineSimple() {}
 
     /// Get the name of the vehicle subsystem template.
-    virtual std::string GetTemplateName() const override { return "SimpleEngine"; }
+    virtual std::string GetTemplateName() const override { return "EngineSimple"; }
 
     /// Return the current engine speed.
     virtual double GetMotorSpeed() const override { return m_motor_speed; }
@@ -45,7 +45,7 @@ class CH_VEHICLE_API ChSimpleEngine : public ChEngine {
     virtual double GetOutputMotorshaftTorque() const override { return m_motor_torque; }
 
   protected:
-    ChSimpleEngine(const std::string& name);
+    ChEngineSimple(const std::string& name);
 
     /// Return the maximum motor torque.
     virtual double GetMaxTorque() const = 0;

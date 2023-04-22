@@ -17,15 +17,15 @@
 //
 // =============================================================================
 
-#include "chrono_vehicle/powertrain/SimpleMapAutomaticTransmission.h"
+#include "chrono_vehicle/powertrain/AutomaticTransmissionSimpleMap.h"
 
 using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
 
-SimpleMapAutomaticTransmission::SimpleMapAutomaticTransmission(const std::string& filename)
-    : ChSimpleMapAutomaticTransmission("") {
+AutomaticTransmissionSimpleMap::AutomaticTransmissionSimpleMap(const std::string& filename)
+    : ChAutomaticTransmissionSimpleMap("") {
     Document d;
     ReadFileJSON(filename, d);
     if (d.IsNull())
@@ -36,12 +36,12 @@ SimpleMapAutomaticTransmission::SimpleMapAutomaticTransmission(const std::string
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-SimpleMapAutomaticTransmission::SimpleMapAutomaticTransmission(const rapidjson::Document& d)
-    : ChSimpleMapAutomaticTransmission("") {
+AutomaticTransmissionSimpleMap::AutomaticTransmissionSimpleMap(const rapidjson::Document& d)
+    : ChAutomaticTransmissionSimpleMap("") {
     Create(d);
 }
 
-void SimpleMapAutomaticTransmission::Create(const rapidjson::Document& d) {
+void AutomaticTransmissionSimpleMap::Create(const rapidjson::Document& d) {
     // Invoke base class method.
     ChPart::Create(d);
 
@@ -57,12 +57,12 @@ void SimpleMapAutomaticTransmission::Create(const rapidjson::Document& d) {
 
 // -----------------------------------------------------------------------------
 
-void SimpleMapAutomaticTransmission::SetGearRatios(std::vector<double>& fwd, double& rev) {
+void AutomaticTransmissionSimpleMap::SetGearRatios(std::vector<double>& fwd, double& rev) {
     rev = m_rev_gear;
     fwd = m_fwd_gear;
 }
 
-void SimpleMapAutomaticTransmission::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {
+void AutomaticTransmissionSimpleMap::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {
     m_shift_bands.Set(shift_bands, CH_C_RPM_TO_RPS, CH_C_RPM_TO_RPS);
 }
 

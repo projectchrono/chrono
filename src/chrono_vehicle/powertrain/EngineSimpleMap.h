@@ -21,7 +21,7 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
-#include "chrono_vehicle/powertrain/ChSimpleMapEngine.h"
+#include "chrono_vehicle/powertrain/ChEngineSimpleMap.h"
 
 namespace chrono {
 namespace vehicle {
@@ -30,11 +30,11 @@ namespace vehicle {
 /// @{
 
 /// Simple speed-torque engine map subsystem (specified through JSON file).
-class CH_VEHICLE_API SimpleMapEngine : public ChSimpleMapEngine {
+class CH_VEHICLE_API EngineSimpleMap : public ChEngineSimpleMap {
   public:
-    SimpleMapEngine(const std::string& filename);
-    SimpleMapEngine(const rapidjson::Document& d);
-    ~SimpleMapEngine() {}
+    EngineSimpleMap(const std::string& filename);
+    EngineSimpleMap(const rapidjson::Document& d);
+    ~EngineSimpleMap() {}
 
     /// Specify maximum engine speed.
     virtual double GetMaxEngineSpeed() override { return m_max_engine_speed; }

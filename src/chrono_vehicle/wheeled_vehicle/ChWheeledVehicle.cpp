@@ -65,12 +65,12 @@ void ChWheeledVehicle::InitializePowertrain(std::shared_ptr<ChPowertrain> powert
 // to the terrain system.
 // -----------------------------------------------------------------------------
 void ChWheeledVehicle::Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) {
-    double powertrain_torque = m_powertrain ? m_powertrain->GetOutputTorque()  : 0;
+    double powertrain_torque = m_powertrain_assembly ? m_powertrain_assembly->GetOutputTorque()  : 0;
     double driveline_speed = m_driveline ? m_driveline->GetOutputDriveshaftSpeed() : 0;
 
     // Set driveshaft speed for the transmission output shaft
-    if (m_powertrain)
-        m_powertrain->Synchronize(time, driver_inputs, driveline_speed);
+    if (m_powertrain_assembly)
+        m_powertrain_assembly->Synchronize(time, driver_inputs, driveline_speed);
 
     // Apply powertrain torque to the driveline's input shaft
     if (m_driveline)
@@ -104,9 +104,9 @@ void ChWheeledVehicle::Synchronize(double time, const DriverInputs& driver_input
 // Advance the state of this vehicle by the specified time step.
 // -----------------------------------------------------------------------------
 void ChWheeledVehicle::Advance(double step) {
-    if (m_powertrain) {
-        // Advance state of the associated powertrain.
-        m_powertrain->Advance(step);
+    // Advance state of the associated powertrain (if any)
+    if (m_powertrain_assembly) {
+        m_powertrain_assembly->Advance(step);
     }
 
     // Advance state of all vehicle tires.
@@ -412,8 +412,11 @@ void ChWheeledVehicle::LogConstraintViolations() {
 void ChWheeledVehicle::LogSubsystemTypes() {
     GetLog() << "\nSubsystem types\n";
     GetLog() << "Chassis:        " << m_chassis->GetTemplateName().c_str() << "\n";
-    if (m_powertrain)
-        GetLog() << "Powertrain:     " << m_powertrain->GetTemplateName().c_str() << "\n";
+    if (m_powertrain_assembly) {
+        GetLog() << "Powertrain:\n";
+        GetLog() << "  Engine:       " << GetEngine()->GetTemplateName().c_str() << "\n";
+        GetLog() << "  Transmission: " << GetTransmission()->GetTemplateName().c_str() << "\n";
+    }
     if (m_driveline)
         GetLog() << "Driveline:      " << m_driveline->GetTemplateName().c_str() << "\n";
 

@@ -18,7 +18,7 @@
 
 #include "chrono/physics/ChSystem.h"
 
-#include "chrono_vehicle/powertrain/ChShaftsAutomaticTransmission.h"
+#include "chrono_vehicle/powertrain/ChAutomaticTransmissionShafts.h"
 
 namespace chrono {
 namespace vehicle {
@@ -28,10 +28,10 @@ namespace vehicle {
 // direction of the crankshaft, in chassis local coords. This is needed because
 // ChShaftsBody could transfer rolling torque to the chassis.
 // -----------------------------------------------------------------------------
-ChShaftsAutomaticTransmission::ChShaftsAutomaticTransmission(const std::string& name)
+ChAutomaticTransmissionShafts::ChAutomaticTransmissionShafts(const std::string& name)
     : ChTransmission(name), m_last_time_gearshift(0), m_gear_shift_latency(0.5) {}
 
-ChShaftsAutomaticTransmission::~ChShaftsAutomaticTransmission() {
+ChAutomaticTransmissionShafts::~ChAutomaticTransmissionShafts() {
     auto sys = m_torqueconverter->GetSystem();
     if (sys) {
         sys->Remove(m_motorshaft);
@@ -45,7 +45,7 @@ ChShaftsAutomaticTransmission::~ChShaftsAutomaticTransmission() {
 }
 
 // -----------------------------------------------------------------------------
-void ChShaftsAutomaticTransmission::Initialize(std::shared_ptr<ChChassis> chassis) {
+void ChAutomaticTransmissionShafts::Initialize(std::shared_ptr<ChChassis> chassis) {
     ChTransmission::Initialize(chassis);
 
     assert(chassis->GetBody()->GetSystem());
@@ -111,18 +111,18 @@ void ChShaftsAutomaticTransmission::Initialize(std::shared_ptr<ChChassis> chassi
 }
 
 // -----------------------------------------------------------------------------
-void ChShaftsAutomaticTransmission::OnGearShift() {
+void ChAutomaticTransmissionShafts::OnGearShift() {
     if (m_gears)
         m_gears->SetTransmissionRatio(m_current_gear_ratio);
 }
 
-void ChShaftsAutomaticTransmission::OnNeutralShift() {
+void ChAutomaticTransmissionShafts::OnNeutralShift() {
     if (m_gears)
         m_gears->SetTransmissionRatio(m_current_gear_ratio);
 }
 
 // -----------------------------------------------------------------------------
-void ChShaftsAutomaticTransmission::Synchronize(double time,
+void ChAutomaticTransmissionShafts::Synchronize(double time,
                                                 const DriverInputs& driver_inputs,
                                                 double motorshaft_torque,
                                                 double driveshaft_speed) {
@@ -135,7 +135,7 @@ void ChShaftsAutomaticTransmission::Synchronize(double time,
         return;
 
     // Automatic gear selection (fixed latency state machine)
-    if (m_transmission_mode == TransmissionMode::AUTOMATIC && m_drive_mode == DriveMode::FORWARD) {
+    if (m_mode == Mode::AUTOMATIC && m_drive_mode == DriveMode::FORWARD) {
         double gearshaft_speed = m_shaft_ingear->GetPos_dt();
         if (gearshaft_speed > m_upshift_speed) {
             // upshift if possible
@@ -153,11 +153,11 @@ void ChShaftsAutomaticTransmission::Synchronize(double time,
     }
 }
 
-double ChShaftsAutomaticTransmission::GetOutputDriveshaftTorque() const {
+double ChAutomaticTransmissionShafts::GetOutputDriveshaftTorque() const {
     return m_gears->GetTorqueReactionOn2();
 }
 
-double ChShaftsAutomaticTransmission::GetOutputMotorshaftSpeed() const {
+double ChAutomaticTransmissionShafts::GetOutputMotorshaftSpeed() const {
     return m_motorshaft->GetPos_dt();
 }
 

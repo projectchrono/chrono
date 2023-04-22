@@ -243,27 +243,27 @@ set(CV_DRIVER_FILES
 source_group("driver" FILES ${CV_DRIVER_FILES})
 
 set(CV_POVERTRAIN_FILES
-    powertrain/ChSimpleEngine.h
-    powertrain/ChSimpleEngine.cpp
-    powertrain/ChSimpleMapEngine.h
-    powertrain/ChSimpleMapEngine.cpp
-    powertrain/ChShaftsEngine.h
-    powertrain/ChShaftsEngine.cpp
-    powertrain/SimpleEngine.h
-    powertrain/SimpleEngine.cpp
-    powertrain/SimpleMapEngine.h
-    powertrain/SimpleMapEngine.cpp
-    powertrain/ShaftsEngine.h
-    powertrain/ShaftsEngine.cpp
+    powertrain/ChEngineSimple.h
+    powertrain/ChEngineSimple.cpp
+    powertrain/ChEngineSimpleMap.h
+    powertrain/ChEngineSimpleMap.cpp
+    powertrain/ChEngineShafts.h
+    powertrain/ChEngineShafts.cpp
+    powertrain/EngineSimple.h
+    powertrain/EngineSimple.cpp
+    powertrain/EngineSimpleMap.h
+    powertrain/EngineSimpleMap.cpp
+    powertrain/EngineShafts.h
+    powertrain/EngineShafts.cpp
 
-    powertrain/ChSimpleMapAutomaticTransmission.h
-    powertrain/ChSimpleMapAutomaticTransmission.cpp
-    powertrain/ChShaftsAutomaticTransmission.h
-    powertrain/ChShaftsAutomaticTransmission.cpp
-    powertrain/SimpleMapAutomaticTransmission.h
-    powertrain/SimpleMapAutomaticTransmission.cpp
-    powertrain/ShaftsAutomaticTransmission.h
-    powertrain/ShaftsAutomaticTransmission.cpp
+    powertrain/ChAutomaticTransmissionSimpleMap.h
+    powertrain/ChAutomaticTransmissionSimpleMap.cpp
+    powertrain/ChAutomaticTransmissionShafts.h
+    powertrain/ChAutomaticTransmissionShafts.cpp
+    powertrain/AutomaticTransmissionSimpleMap.h
+    powertrain/AutomaticTransmissionSimpleMap.cpp
+    powertrain/AutomaticTransmissionShafts.h
+    powertrain/AutomaticTransmissionShafts.cpp
 
 
     powertrain/ChSimplePowertrain.h

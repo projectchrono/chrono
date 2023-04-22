@@ -42,7 +42,7 @@ class CH_VEHICLE_API ChTransmission : public ChPart {
     };
 
     /// Transmission mode.
-    enum class TransmissionMode {
+    enum class Mode {
         AUTOMATIC,  ///< automatic transmission
         MANUAL      ///< manual (manumatic) transmission
     };
@@ -63,7 +63,7 @@ class CH_VEHICLE_API ChTransmission : public ChPart {
 
     /// Return the current transmission gear.
     /// A return value of 0 indicates reverse; a positive value indicates a forward gear.
-    int GetCurrentTransmissionGear() const { return m_current_gear; }
+    int GetCurrentGear() const { return m_current_gear; }
 
     /// Set the drive mode.
     void SetDriveMode(DriveMode mode);
@@ -73,10 +73,10 @@ class CH_VEHICLE_API ChTransmission : public ChPart {
 
     /// Set the transmission mode (automatic or manual).
     /// Note that a derived transmission class may ignore this is the selected mode is not supported.
-    void SetTransmissionMode(TransmissionMode mode) { m_transmission_mode = mode; }
+    void SetMode(Mode mode) { m_mode = mode; }
 
     /// Get the current transmission mode.
-    TransmissionMode GetTransmissionMode() const { return m_transmission_mode; }
+    Mode GetMode() const { return m_mode; }
 
     /// Shift up.
     void ShiftUp();
@@ -98,7 +98,7 @@ class CH_VEHICLE_API ChTransmission : public ChPart {
     virtual double GetOutputMotorshaftSpeed() const = 0;
 
   protected:
-    ChTransmission(const std::string& name);
+    ChTransmission(const std::string& name = "");
 
     virtual void InitializeInertiaProperties() override;
     virtual void UpdateInertiaProperties() override;
@@ -129,8 +129,8 @@ class CH_VEHICLE_API ChTransmission : public ChPart {
     /// Advance the state of this powertrain system by the specified time step.
     virtual void Advance(double step) {}
 
-    TransmissionMode m_transmission_mode;  ///< transmission mode (automatic or manual)
-    DriveMode m_drive_mode;                ///< drive mode (neutral, forward, or reverse)
+    Mode m_mode;             ///< transmission mode (automatic or manual)
+    DriveMode m_drive_mode;  ///< drive mode (neutral, forward, or reverse)
 
     std::vector<double> m_gear_ratios;  ///< gear ratios (0: reverse, 1+: forward)
     int m_current_gear;                 ///< current transmission gear (0: reverse, 1+: forward)

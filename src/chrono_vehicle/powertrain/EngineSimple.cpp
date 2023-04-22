@@ -12,18 +12,19 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// JSON specification of a simple engine model based on torque-speed engine maps
+// Simplified engine model constructed with data from file (JSON format).
 //
 // =============================================================================
 
-#include "chrono_vehicle/powertrain/SimpleMapEngine.h"
+#include "chrono_vehicle/powertrain/EngineSimple.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
 
-SimpleMapEngine::SimpleMapEngine(const std::string& filename) : ChSimpleMapEngine("") {
+EngineSimple::EngineSimple(const std::string& filename) : ChEngineSimple("") {
     Document d;
     ReadFileJSON(filename, d);
     if (d.IsNull())
@@ -34,24 +35,18 @@ SimpleMapEngine::SimpleMapEngine(const std::string& filename) : ChSimpleMapEngin
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-SimpleMapEngine::SimpleMapEngine(const rapidjson::Document& d) : ChSimpleMapEngine("") {
+EngineSimple::EngineSimple(const rapidjson::Document& d) : ChEngineSimple("") {
     Create(d);
 }
 
-void SimpleMapEngine::Create(const rapidjson::Document& d) {
-    // Invoke base class method
+void EngineSimple::Create(const rapidjson::Document& d) {
+    // Invoke base class method.
     ChPart::Create(d);
 
-    // Read engine data
-    m_max_engine_speed = CH_C_RPM_TO_RPS * d["Maximal Engine Speed RPM"].GetDouble();
-
-    m_engine_map_full.Read(d["Map Full Throttle"]);
-    m_engine_map_zero.Read(d["Map Zero Throttle"]);
-}
-
-void SimpleMapEngine::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) {
-    m_engine_map_zero.Set(map0, CH_C_RPM_TO_RPS, 1.0);
-    m_engine_map_full.Set(mapF, CH_C_RPM_TO_RPS, 1.0);
+    // Read data
+    m_max_torque = d["Maximum Engine Torque"].GetDouble();
+    m_max_power = d["Maximum Engine Power"].GetDouble();
+    m_max_speed = d["Maximum Engine Speed"].GetDouble();
 }
 
 }  // end namespace vehicle

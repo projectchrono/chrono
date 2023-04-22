@@ -431,6 +431,19 @@ enum class PowertrainModelType {
     SIMPLE_CVT   ///< simple cvt powertrain model (like a DC motor / CVT gearbox)
 };
 
+/// Enum for available engine model templates.
+enum class EngineModelType {
+    SHAFTS,      ///< engine model based on ChShaft elements
+    SIMPLE_MAP,  ///< simple model based on engine maps
+    SIMPLE       ///< simple engine model (similar to a DC motor)
+};
+
+/// Enum for available transmission model templates.
+enum class TransmissionModelType {
+    SHAFTS,     ///< transmission model based of ChShaft elements
+    SIMPLE_MAP  ///< transmission model based on TC maps
+};
+
 /// Enum for available wheeled-vehicle suspension model templates.
 enum class SuspensionTypeWV {
     DOUBLE_WISHBONE,                  ///< double wishbone

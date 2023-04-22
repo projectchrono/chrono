@@ -21,7 +21,7 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
-#include "chrono_vehicle/powertrain/ChShaftsEngine.h"
+#include "chrono_vehicle/powertrain/ChEngineShafts.h"
 
 namespace chrono {
 namespace vehicle {
@@ -30,11 +30,11 @@ namespace vehicle {
 /// @{
 
 /// Shafts-based engine subsystem (specified through JSON file).
-class CH_VEHICLE_API ShaftsEngine : public ChShaftsEngine {
+class CH_VEHICLE_API EngineShafts : public ChEngineShafts {
   public:
-    ShaftsEngine(const std::string& filename);
-    ShaftsEngine(const rapidjson::Document& d);
-    ~ShaftsEngine() {}
+    EngineShafts(const std::string& filename);
+    EngineShafts(const rapidjson::Document& d);
+    ~EngineShafts() {}
 
     virtual double GetMotorBlockInertia() const override { return m_motorblock_inertia; }
     virtual double GetMotorshaftInertia() const override { return m_motorshaft_inertia; }

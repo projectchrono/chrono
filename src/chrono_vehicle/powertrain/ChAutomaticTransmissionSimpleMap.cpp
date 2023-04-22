@@ -18,15 +18,15 @@
 
 #include "chrono/core/ChMathematics.h"
 
-#include "chrono_vehicle/powertrain/ChSimpleMapAutomaticTransmission.h"
+#include "chrono_vehicle/powertrain/ChAutomaticTransmissionSimpleMap.h"
 
 namespace chrono {
 namespace vehicle {
 
-ChSimpleMapAutomaticTransmission::ChSimpleMapAutomaticTransmission(const std::string& name)
+ChAutomaticTransmissionSimpleMap::ChAutomaticTransmissionSimpleMap(const std::string& name)
     : ChTransmission(name), m_motorshaft_speed(0), m_driveshaft_torque(0) {}
 
-void ChSimpleMapAutomaticTransmission::Initialize(std::shared_ptr<ChChassis> chassis) {
+void ChAutomaticTransmissionSimpleMap::Initialize(std::shared_ptr<ChChassis> chassis) {
     ChTransmission::Initialize(chassis);
 
     // Let the derived class specify the shift bands
@@ -34,12 +34,12 @@ void ChSimpleMapAutomaticTransmission::Initialize(std::shared_ptr<ChChassis> cha
     assert(m_shift_points.size() == m_gear_ratios.size() - 1);
 }
 
-void ChSimpleMapAutomaticTransmission::Synchronize(double time,
+void ChAutomaticTransmissionSimpleMap::Synchronize(double time,
                                                    const DriverInputs& driver_inputs,
                                                    double motorshaft_torque,
                                                    double driveshaft_speed) {
     // Automatic gear selection (based on ideal shift points) for current motorshaft speed
-    if (m_transmission_mode == TransmissionMode::AUTOMATIC && m_drive_mode == DriveMode::FORWARD) {
+    if (m_mode == Mode::AUTOMATIC && m_drive_mode == DriveMode::FORWARD) {
         if (m_motorshaft_speed > m_shift_points[m_current_gear].second) {
             // upshift if possible
             if (m_current_gear < m_gear_ratios.size() - 1) {

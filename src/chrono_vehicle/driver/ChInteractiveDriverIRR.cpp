@@ -252,39 +252,37 @@ bool ChInteractiveDriverIRR::ProcessKeyboardEvents(const SEvent& event) {
     } else {
         switch (event.KeyInput.Key) {
             case KEY_KEY_Z:
-                if (m_vsys.m_vehicle->GetPowertrain())
-                    m_vsys.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::FORWARD);
+                if (m_vsys.m_vehicle->GetTransmission())
+                    m_vsys.m_vehicle->GetTransmission()->SetDriveMode(ChTransmission::DriveMode::FORWARD);
                 return true;
             case KEY_KEY_X:
-                if (m_vsys.m_vehicle->GetPowertrain())
-                    m_vsys.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::NEUTRAL);
+                if (m_vsys.m_vehicle->GetTransmission())
+                    m_vsys.m_vehicle->GetTransmission()->SetDriveMode(ChTransmission::DriveMode::NEUTRAL);
                 return true;
             case KEY_KEY_C:
-                if (m_vsys.m_vehicle->GetPowertrain())
-                    m_vsys.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::REVERSE);
+                if (m_vsys.m_vehicle->GetTransmission())
+                    m_vsys.m_vehicle->GetTransmission()->SetDriveMode(ChTransmission::DriveMode::REVERSE);
                 return true;
 
             case KEY_KEY_T:
-                if (m_vsys.m_vehicle->GetPowertrain()) {
-                    switch (m_vsys.m_vehicle->GetPowertrain()->GetTransmissionMode()) {
-                        case ChPowertrain::TransmissionMode::MANUAL:
-                            m_vsys.m_vehicle->GetPowertrain()->SetTransmissionMode(
-                                ChPowertrain::TransmissionMode::AUTOMATIC);
+                if (m_vsys.m_vehicle->GetTransmission()) {
+                    switch (m_vsys.m_vehicle->GetTransmission()->GetMode()) {
+                        case ChTransmission::Mode::MANUAL:
+                            m_vsys.m_vehicle->GetTransmission()->SetMode(ChTransmission::Mode::AUTOMATIC);
                             break;
-                        case ChPowertrain::TransmissionMode::AUTOMATIC:
-                            m_vsys.m_vehicle->GetPowertrain()->SetTransmissionMode(
-                                ChPowertrain::TransmissionMode::MANUAL);
+                        case ChTransmission::Mode::AUTOMATIC:
+                            m_vsys.m_vehicle->GetTransmission()->SetMode(ChTransmission::Mode::MANUAL);
                             break;
                     }
                 }
                 return true;
             case KEY_PERIOD:
-                if (m_vsys.m_vehicle->GetPowertrain())
-                    m_vsys.m_vehicle->GetPowertrain()->ShiftUp();
+                if (m_vsys.m_vehicle->GetTransmission())
+                    m_vsys.m_vehicle->GetTransmission()->ShiftUp();
                 return true;
             case KEY_COMMA:
-                if (m_vsys.m_vehicle->GetPowertrain())
-                    m_vsys.m_vehicle->GetPowertrain()->ShiftDown();
+                if (m_vsys.m_vehicle->GetTransmission())
+                    m_vsys.m_vehicle->GetTransmission()->ShiftDown();
                 return true;
 
             default:

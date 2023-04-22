@@ -42,7 +42,7 @@ class CH_VEHICLE_API ChEngine : public ChPart {
     virtual double GetOutputMotorshaftTorque() const = 0;
 
   protected:
-    ChEngine(const std::string& name);
+    ChEngine(const std::string& name = "");
 
     virtual void InitializeInertiaProperties() override;
     virtual void UpdateInertiaProperties() override;

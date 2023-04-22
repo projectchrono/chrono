@@ -17,11 +17,11 @@
 //
 // =============================================================================
 
-#include "chrono_vehicle/powertrain/ChShaftsPowertrain.h"
+#include "chrono_vsg/ChGuiComponentVSG.h"
 
 #include "chrono_vehicle/ChVehicleVisualSystemVSG.h"
-#include "chrono_vsg/ChGuiComponentVSG.h"
 #include "chrono_vehicle/driver/ChInteractiveDriverVSG.h"
+#include "chrono_vehicle/powertrain/ChAutomaticTransmissionShafts.h"
 
 namespace chrono {
 namespace vehicle {
@@ -101,7 +101,7 @@ class ChVehicleKeyboardHandlerVSG : public vsg3d::ChEventHandlerVSG {
             case vsg::KEY_5:
                 m_app->SetChaseCameraState(utils::ChChaseCamera::Free);
                 return;
-       }
+        }
     }
 
   private:
@@ -128,8 +128,6 @@ void DrawGauge(float val, float v_min, float v_max) {
 }
 
 void ChVehicleGuiComponentVSG::render() {
-    auto powertrain = m_app->GetVehicle().GetPowertrain();
-
     char label[64];
     int nstr = sizeof(label) - 1;
 
@@ -147,7 +145,7 @@ void ChVehicleGuiComponentVSG::render() {
     }
 
     ImGui::Spacing();
-    
+
     if (ImGui::BeginTable("VehTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                           ImVec2(0.0f, 0.0f))) {
         ImGui::TableNextRow();
@@ -178,42 +176,46 @@ void ChVehicleGuiComponentVSG::render() {
         ImGui::EndTable();
     }
 
+    // Display information from powertrain system
+    const auto& powertrain = m_app->GetVehicle().GetPowertrainAssembly();
     if (powertrain) {
+        const auto& engine = powertrain->GetEngine();
+        const auto& transmission = powertrain->GetTransmission();
+
         ImGui::Spacing();
 
-        if (ImGui::BeginTable("PowerTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+        if (ImGui::BeginTable("Powertrain", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                               ImVec2(0.0f, 0.0f))) {
             ImGui::TableNextColumn();
             ImGui::Text("Engine Speed:");
             ImGui::TableNextColumn();
-            snprintf(label, nstr, "%8.1lf RPM", powertrain->GetMotorSpeed() * 30 / CH_C_PI);
+            snprintf(label, nstr, "%8.1lf RPM", engine->GetMotorSpeed() * 30 / CH_C_PI);
             ImGui::Text(label);
             ImGui::TableNextRow();
 
             ImGui::TableNextColumn();
             ImGui::Text("Engine Torque:");
             ImGui::TableNextColumn();
-            snprintf(label, nstr, "%8.1lf Nm", powertrain->GetMotorTorque());
+            snprintf(label, nstr, "%8.1lf Nm", engine->GetOutputMotorshaftTorque());
             ImGui::Text(label);
             ImGui::TableNextRow();
 
             ImGui::TableNextColumn();
-            char tranny_mode =
-                powertrain->GetTransmissionMode() == ChPowertrain::TransmissionMode::AUTOMATIC ? 'A' : 'M';
-            switch (powertrain->GetDriveMode()) {
-                case ChPowertrain::DriveMode::FORWARD:
+            char tranny_mode = transmission->GetMode() == ChTransmission::Mode::AUTOMATIC ? 'A' : 'M';
+            switch (transmission->GetDriveMode()) {
+                case ChTransmission::DriveMode::FORWARD:
                     snprintf(label, nstr, "[%c] Gear forward:", tranny_mode);
                     break;
-                case ChPowertrain::DriveMode::NEUTRAL:
+                case ChTransmission::DriveMode::NEUTRAL:
                     snprintf(label, nstr, "[%c] Gear neutral:", tranny_mode);
                     break;
-                case ChPowertrain::DriveMode::REVERSE:
+                case ChTransmission::DriveMode::REVERSE:
                     snprintf(label, nstr, "[%c] Gear reverse:", tranny_mode);
                     break;
             }
             ImGui::Text(label);
             ImGui::TableNextColumn();
-            snprintf(label, nstr, "%d", powertrain->GetCurrentTransmissionGear());
+            snprintf(label, nstr, "%d", transmission->GetCurrentGear());
             ImGui::Text(label);
             ImGui::TableNextRow();
             ImGui::EndTable();
@@ -222,30 +224,30 @@ void ChVehicleGuiComponentVSG::render() {
         if (m_app->m_has_TC) {
             ImGui::Spacing();
 
-            if (ImGui::BeginTable("ConvTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+            if (ImGui::BeginTable("TorqueConverter", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                                   ImVec2(0.0f, 0.0f))) {
                 ImGui::TableNextColumn();
                 ImGui::Text("T.conv.slip:");
                 ImGui::TableNextColumn();
-                snprintf(label, nstr, "%8.1f", powertrain->GetTorqueConverterSlippage());
+                snprintf(label, nstr, "%8.1f", transmission->GetTorqueConverterSlippage());
                 ImGui::Text(label);
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text("T.conv.torque.in:");
                 ImGui::TableNextColumn();
-                snprintf(label, nstr, "%8.1f Nm", powertrain->GetTorqueConverterInputTorque());
+                snprintf(label, nstr, "%8.1f Nm", transmission->GetTorqueConverterInputTorque());
                 ImGui::Text(label);
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text("T.conv.torque.out:");
                 ImGui::TableNextColumn();
-                snprintf(label, nstr, "%8.1f Nm", powertrain->GetTorqueConverterOutputTorque());
+                snprintf(label, nstr, "%8.1f Nm", transmission->GetTorqueConverterOutputTorque());
                 ImGui::Text(label);
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text("T.conv.speed.out:");
                 ImGui::TableNextColumn();
-                snprintf(label, nstr, "%8.1f RPM", powertrain->GetTorqueConverterOutputSpeed() * 30 / CH_C_PI);
+                snprintf(label, nstr, "%8.1f RPM", transmission->GetTorqueConverterOutputSpeed() * 30 / CH_C_PI);
                 ImGui::Text(label);
                 ImGui::TableNextRow();
                 ImGui::EndTable();
@@ -280,10 +282,10 @@ void ChVehicleVisualSystemVSG::Initialize() {
     // Initialize chase-cam mode
     SetChaseCameraState(utils::ChChaseCamera::State::Chase);
 
-    if (!m_vehicle || !m_vehicle->GetPowertrain())
+    if (!m_vehicle || !m_vehicle->GetPowertrainAssembly())
         return;
 
-    if (std::dynamic_pointer_cast<ChShaftsPowertrain>(m_vehicle->GetPowertrain()))
+    if (std::dynamic_pointer_cast<ChAutomaticTransmissionShafts>(m_vehicle->GetTransmission()))
         m_has_TC = true;
 }
 

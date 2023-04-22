@@ -36,12 +36,12 @@ namespace vehicle {
 class ChVehicle;
 
 /// Template for an engine model using shaft elements.
-class CH_VEHICLE_API ChShaftsEngine : public ChEngine {
+class CH_VEHICLE_API ChEngineShafts : public ChEngine {
   public:
-    virtual ~ChShaftsEngine();
+    virtual ~ChEngineShafts();
 
     /// Get the name of the vehicle subsystem template.
-    virtual std::string GetTemplateName() const override { return "ShaftsEngine"; }
+    virtual std::string GetTemplateName() const override { return "EngineShafts"; }
 
     /// Return the current engine speed.
     virtual double GetMotorSpeed() const override { return m_motorshaft->GetPos_dt(); }
@@ -53,7 +53,7 @@ class CH_VEHICLE_API ChShaftsEngine : public ChEngine {
 
   protected:
     /// Construct a shafts-based engine model.
-    ChShaftsEngine(const std::string& name, const ChVector<>& dir_motor_block = ChVector<>(1, 0, 0));
+    ChEngineShafts(const std::string& name, const ChVector<>& dir_motor_block = ChVector<>(1, 0, 0));
 
     /// Set inertia of the motor block.
     virtual double GetMotorBlockInertia() const = 0;
@@ -79,7 +79,7 @@ class CH_VEHICLE_API ChShaftsEngine : public ChEngine {
                              ) override;
 
     /// Advance the state of this engine system by the specified time step.
-    /// Since the state of a ShaftsEngine is advanced as part of the vehicle state, this function does nothing.
+    /// Since the state of a EngineShafts is advanced as part of the vehicle state, this function does nothing.
     virtual void Advance(double step) override {}
 
     std::shared_ptr<ChShaft> m_motorblock;

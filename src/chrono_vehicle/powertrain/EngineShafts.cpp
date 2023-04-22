@@ -12,19 +12,20 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Simplified engine model constructed with data from file (JSON format).
+// ChShaft-based engine model constructed with data from file (JSON format).
 //
 // =============================================================================
 
-#include "chrono_vehicle/powertrain/SimpleEngine.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono/core/ChGlobal.h"
+
+#include "chrono_vehicle/powertrain/EngineShafts.h"
 
 using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
 
-SimpleEngine::SimpleEngine(const std::string& filename) : ChSimpleEngine("") {
+EngineShafts::EngineShafts(const std::string& filename) : ChEngineShafts("") {
     Document d;
     ReadFileJSON(filename, d);
     if (d.IsNull())
@@ -35,18 +36,27 @@ SimpleEngine::SimpleEngine(const std::string& filename) : ChSimpleEngine("") {
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-SimpleEngine::SimpleEngine(const rapidjson::Document& d) : ChSimpleEngine("") {
+EngineShafts::EngineShafts(const rapidjson::Document& d) : ChEngineShafts("") {
     Create(d);
 }
 
-void SimpleEngine::Create(const rapidjson::Document& d) {
-    // Invoke base class method.
+void EngineShafts::Create(const rapidjson::Document& d) {
+    // Invoke base class method
     ChPart::Create(d);
 
-    // Read data
-    m_max_torque = d["Maximum Engine Torque"].GetDouble();
-    m_max_power = d["Maximum Engine Power"].GetDouble();
-    m_max_speed = d["Maximum Engine Speed"].GetDouble();
+    // Read engine data
+    m_motorblock_inertia = d["Motor Block Inertia"].GetDouble();
+    m_motorshaft_inertia = d["Motorshaft Inertia"].GetDouble();
+    m_engine_torque.Read(d["Torque Map"]);
+    m_engine_losses.Read(d["Losses Map"]);
+}
+
+void EngineShafts::SetEngineTorqueMap(std::shared_ptr<ChFunction_Recorder>& map) {
+    m_engine_torque.Set(*map, CH_C_RPM_TO_RPS, 1.0);
+}
+
+void EngineShafts::SetEngineLossesMap(std::shared_ptr<ChFunction_Recorder>& map) {
+    m_engine_losses.Set(*map, CH_C_RPM_TO_RPS, 1.0);
 }
 
 }  // end namespace vehicle
