@@ -252,18 +252,17 @@ bool ChInteractiveDriverIRR::ProcessKeyboardEvents(const SEvent& event) {
     } else {
         switch (event.KeyInput.Key) {
             case KEY_KEY_Z:
-                if (m_vsys.m_vehicle->GetTransmission())
-                    m_vsys.m_vehicle->GetTransmission()->SetDriveMode(ChTransmission::DriveMode::FORWARD);
+                if (m_vsys.m_vehicle->GetTransmission()) {
+                    if (m_vsys.m_vehicle->GetTransmission()->GetDriveMode() != ChTransmission::DriveMode::FORWARD)
+                        m_vsys.m_vehicle->GetTransmission()->SetDriveMode(ChTransmission::DriveMode::FORWARD);
+                    else
+                        m_vsys.m_vehicle->GetTransmission()->SetDriveMode(ChTransmission::DriveMode::REVERSE);
+                }
                 return true;
             case KEY_KEY_X:
                 if (m_vsys.m_vehicle->GetTransmission())
                     m_vsys.m_vehicle->GetTransmission()->SetDriveMode(ChTransmission::DriveMode::NEUTRAL);
                 return true;
-            case KEY_KEY_C:
-                if (m_vsys.m_vehicle->GetTransmission())
-                    m_vsys.m_vehicle->GetTransmission()->SetDriveMode(ChTransmission::DriveMode::REVERSE);
-                return true;
-
             case KEY_KEY_T:
                 if (m_vsys.m_vehicle->GetTransmission()) {
                     switch (m_vsys.m_vehicle->GetTransmission()->GetMode()) {

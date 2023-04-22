@@ -86,6 +86,18 @@ class ChVehicleKeyboardHandlerVSG : public vsg3d::ChEventHandlerVSG {
                 if (m_app->m_driver)
                     m_app->m_driver->ReleasePedals();
                 return;
+            case vsg::KEY_z:
+                if (m_app->m_vehicle->GetTransmission()) {
+                    if (m_app->m_vehicle->GetTransmission()->GetDriveMode() != ChTransmission::DriveMode::FORWARD)
+                        m_app->m_vehicle->GetTransmission()->SetDriveMode(ChTransmission::DriveMode::FORWARD);
+                    else
+                        m_app->m_vehicle->GetTransmission()->SetDriveMode(ChTransmission::DriveMode::REVERSE);
+                }
+                return;
+            case vsg::KEY_x:
+                if (m_app->m_vehicle->GetTransmission())
+                    m_app->m_vehicle->GetTransmission()->SetDriveMode(ChTransmission::DriveMode::NEUTRAL);
+                return;
             case vsg::KEY_1:
                 m_app->SetChaseCameraState(utils::ChChaseCamera::Chase);
                 return;
@@ -207,15 +219,18 @@ void ChVehicleGuiComponentVSG::render() {
                     snprintf(label, nstr, "[%c] Gear forward:", tranny_mode);
                     break;
                 case ChTransmission::DriveMode::NEUTRAL:
-                    snprintf(label, nstr, "[%c] Gear neutral:", tranny_mode);
+                    snprintf(label, nstr, "[%c] Gear neutral", tranny_mode);
                     break;
                 case ChTransmission::DriveMode::REVERSE:
-                    snprintf(label, nstr, "[%c] Gear reverse:", tranny_mode);
+                    snprintf(label, nstr, "[%c] Gear reverse", tranny_mode);
                     break;
             }
             ImGui::Text(label);
             ImGui::TableNextColumn();
-            snprintf(label, nstr, "%d", transmission->GetCurrentGear());
+            if (transmission->GetDriveMode() == ChTransmission::DriveMode::FORWARD)
+                snprintf(label, nstr, "%d", transmission->GetCurrentGear());
+            else
+                snprintf(label, nstr, "");
             ImGui::Text(label);
             ImGui::TableNextRow();
             ImGui::EndTable();
