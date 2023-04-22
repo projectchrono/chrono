@@ -529,6 +529,12 @@ set(CVM_CITYBUS_FILES
     citybus/CityBus_RackPinion.h
     citybus/CityBus_SimpleMapPowertrain.cpp
     citybus/CityBus_SimpleMapPowertrain.h
+
+    citybus/CityBus_EngineSimpleMap.cpp
+    citybus/CityBus_EngineSimpleMap.h
+    citybus/CityBus_AutomaticTransmissionSimpleMap.cpp
+    citybus/CityBus_AutomaticTransmissionSimpleMap.h
+
     citybus/CityBus_Vehicle.h
     citybus/CityBus_Vehicle.cpp
     citybus/CityBus_Wheel.cpp
