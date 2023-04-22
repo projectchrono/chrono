@@ -64,15 +64,18 @@ class WheeledVehicleDBPDriver : public ChDriver {
 // -----------------------------------------------------------------------------
 
 ChVehicleCosimWheeledVehicleNode::ChVehicleCosimWheeledVehicleNode(const std::string& vehicle_json,
-                                                                   const std::string& powertrain_json)
+                                                                   const std::string& engine_json,
+                                                                   const std::string& transmission_json)
     : ChVehicleCosimWheeledMBSNode(), m_num_spindles(0), m_init_yaw(0), m_chassis_fixed(false) {
     m_vehicle = chrono_types::make_shared<WheeledVehicle>(m_system, vehicle_json);
-    m_powertrain = ReadPowertrainJSON(powertrain_json);
+    auto engine = ReadEngineJSON(vehicle::GetDataFile(engine_json));
+    auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(transmission_json));
+    m_powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
     m_terrain = chrono_types::make_shared<ChTerrain>();
 }
 
 ChVehicleCosimWheeledVehicleNode::ChVehicleCosimWheeledVehicleNode(std::shared_ptr<ChWheeledVehicle> vehicle,
-                                                                   std::shared_ptr<ChPowertrain> powertrain)
+                                                                   std::shared_ptr<ChPowertrainAssembly> powertrain)
     : ChVehicleCosimWheeledMBSNode(), m_num_spindles(0), m_init_yaw(0), m_chassis_fixed(false) {
     // Ensure the vehicle system has a null ChSystem
     if (vehicle->GetSystem())
@@ -97,14 +100,14 @@ void ChVehicleCosimWheeledVehicleNode::InitializeMBS(const std::vector<ChVector<
     ChCoordsys<> init_pos(m_init_loc + ChVector<>(0, 0, terrain_height), Q_from_AngZ(m_init_yaw));
 
     m_vehicle->Initialize(init_pos);
-    m_vehicle->GetChassis()->SetFixed(m_chassis_fixed);    
+    m_vehicle->GetChassis()->SetFixed(m_chassis_fixed);
     m_vehicle->SetChassisVisualizationType(VisualizationType::MESH);
     m_vehicle->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     m_vehicle->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     m_vehicle->SetWheelVisualizationType(VisualizationType::MESH);
 
     // Initialize powertrain
-    m_vehicle->InitializePowertrain(m_powertrain);
+    m_vehicle->ChVehicle::InitializePowertrain(m_powertrain);
 
     // Create and initialize the dummy tires
     int itire = 0;

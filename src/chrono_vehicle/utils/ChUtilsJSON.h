@@ -29,7 +29,8 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChChassis.h"
-#include "chrono_vehicle/ChPowertrain.h"
+#include "chrono_vehicle/ChEngine.h"
+#include "chrono_vehicle/ChTransmission.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChAntirollBar.h"
 #include "chrono_vehicle/wheeled_vehicle/ChBrake.h"
@@ -105,8 +106,11 @@ CH_VEHICLE_API std::shared_ptr<ChChassisRear> ReadChassisRearJSON(const std::str
 /// Load and return a chassis connector subsystem from the specified JSON file.
 CH_VEHICLE_API std::shared_ptr<ChChassisConnector> ReadChassisConnectorJSON(const std::string& filename);
 
-/// Load and return a powertrain subsystem from the specified JSON file.
-CH_VEHICLE_API std::shared_ptr<ChPowertrain> ReadPowertrainJSON(const std::string& filename);
+/// Load and return an engine subsystem from the specified JSON file.
+CH_VEHICLE_API std::shared_ptr<ChEngine> ReadEngineJSON(const std::string& filename);
+
+/// Load and return a transmission subsystem from the specified JSON file.
+CH_VEHICLE_API std::shared_ptr<ChTransmission> ReadTransmissionJSON(const std::string& filename);
 
 // -----------------------------------------------------------------------------
 
