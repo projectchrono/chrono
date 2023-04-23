@@ -131,8 +131,7 @@ void ChFsiVisualizationGL::Initialize() {
         for (int i = 0; i < m_systemFSI->GetNumFluidMarkers(); i++) {
             m_sph_cloud->AddParticle(CSYSNULL);
         }
-        auto sph = chrono_types::make_shared<ChSphereShape>();
-        sph->GetSphereGeometry().rad = m_systemFSI->GetInitialSpacing() / 2;
+        auto sph = chrono_types::make_shared<ChSphereShape>(m_systemFSI->GetInitialSpacing() / 2);
         m_sph_cloud->AddVisualShape(sph);
         m_system->Add(m_sph_cloud);
     }

@@ -131,8 +131,7 @@ int main(int argc, char* argv[]) {
     orange_mat->SetDiffuseColor(ChColor(0.9f, 0.4f, 0.2f));
 
     // ==Asset== Attach a 'sphere' shape
-    auto sphere = chrono_types::make_shared<ChSphereShape>();
-    sphere->GetSphereGeometry().rad = 0.5;
+    auto sphere = chrono_types::make_shared<ChSphereShape>(0.5);
     sphere->AddMaterial(orange_mat);
     body->AddVisualShape(sphere, ChFrame<>(ChVector<>(-1, 0, 0), QUNIT));
 
@@ -195,8 +194,7 @@ int main(int argc, char* argv[]) {
         particles->SetCollide(true);
 
         double particle_radius = 0.3;
-        auto particle_vis = chrono_types::make_shared<ChSphereShape>();
-        particle_vis->GetSphereGeometry().rad = particle_radius;
+        auto particle_vis = chrono_types::make_shared<ChSphereShape>(particle_radius);
         particle_vis->SetColor(ChColor(0.7f, 0.3f, 0.3f));
         particles->AddVisualShape(particle_vis);
 
@@ -339,8 +337,7 @@ int main(int argc, char* argv[]) {
     auto sphere_mat = chrono_types::make_shared<ChVisualMaterial>();
     sphere_mat->SetDiffuseColor(ChColor(0.9f, 0.9f, 0.9f));
     sphere_mat->SetKdTexture(GetChronoDataFile("textures/spheretexture.png"));
-    auto sphereShape = chrono_types::make_shared<ChSphereShape>();
-    sphereShape->GetSphereGeometry().rad = 0.75;
+    auto sphereShape = chrono_types::make_shared<ChSphereShape>(0.75);
     sphereShape->SetMaterial(0, sphere_mat);
     int sphereId = vis->AddVisualModel(sphereShape, ChFrame(ChVector<>(-6, 0, -6), QUNIT));
 

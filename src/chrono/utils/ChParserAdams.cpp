@@ -381,8 +381,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
 
         sys.AddBody(newBody);
 
-        // auto sphere = chrono_types::make_shared<ChSphereShape>();
-        // sphere->GetSphereGeometry().rad = 0.05;
+        // auto sphere = chrono_types::make_shared<ChSphereShape>(0.05);
         // newBody->AddVisualShape(sphere, );
     }
     // Make any markers that don't exist yet

@@ -858,7 +858,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(ISceneNode* node,
                 ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(sphereMesh, mproxynode);
                 mproxynode->drop();
 
-                double mradius = sphere->GetSphereGeometry().rad;
+                double mradius = sphere->GetRadius();
                 mchildnode->setScale(core::vector3dfCH(ChVector<>(mradius, mradius, mradius)));
                 mchildnode->setPosition(shape_m4.getTranslation());
                 mchildnode->setRotation(shape_m4.getRotationDegrees());

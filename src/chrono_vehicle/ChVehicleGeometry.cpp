@@ -91,8 +91,7 @@ void ChVehicleGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body, 
 
     if (visualize_collision) {
         for (auto& sphere : m_coll_spheres) {
-            auto sphere_shape = chrono_types::make_shared<ChSphereShape>();
-            sphere_shape->GetSphereGeometry().rad = sphere.m_radius;
+            auto sphere_shape = chrono_types::make_shared<ChSphereShape>(sphere.m_radius);
             body->AddVisualShape(sphere_shape, ChFrame<>(sphere.m_pos));
         }
 
@@ -153,8 +152,7 @@ void ChVehicleGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body, 
         cyl_mat->SetDiffuseColor({m_color_cylinders.R, m_color_cylinders.G, m_color_cylinders.B});
 
         for (auto& sphere : m_vis_spheres) {
-            auto sphere_shape = chrono_types::make_shared<ChSphereShape>();
-            sphere_shape->GetSphereGeometry().rad = sphere.m_radius;
+            auto sphere_shape = chrono_types::make_shared<ChSphereShape>(sphere.m_radius);
             sphere_shape->AddMaterial(sph_mat);
             body->AddVisualShape(sphere_shape, ChFrame<>(sphere.m_pos));
         }

@@ -141,8 +141,7 @@ constr_bb.SetConstrainedCoords(True, True, True,      # x, y, z
                                 False, False, False)  # Rx, Ry, Rz
 
 # For example, attach small shape to show the constraint
-sphereconstr2 = chrono.ChSphereShape()
-sphereconstr2.GetSphereGeometry().rad = 0.01
+sphereconstr2 = chrono.ChSphereShape(0.01)
 constr_bb.AddVisualShape(sphereconstr2)
 
 # Create a beam as a crank
@@ -181,8 +180,7 @@ constr_bc.SetConstrainedCoords(True, True, True,    # x, y, z
                                 True, True, False)  # Rx, Ry, Rz
 
 # For example, attach small shape to show the constraint
-sphereconstr3 = chrono.ChSphereShape()
-sphereconstr3.GetSphereGeometry().rad = 0.01
+sphereconstr3 = chrono.ChSphereShape(0.01)
 constr_bc.AddVisualShape(sphereconstr3)
 
 #

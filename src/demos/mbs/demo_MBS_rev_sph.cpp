@@ -72,8 +72,7 @@ int main(int argc, char* argv[]) {
     cyl_p->SetColor(ChColor(0.6f, 0, 0));
     pend->AddVisualShape(cyl_p);
 
-    auto sph_p = chrono_types::make_shared<ChSphereShape>();
-    sph_p->GetSphereGeometry().rad = 0.04;
+    auto sph_p = chrono_types::make_shared<ChSphereShape>(0.04);
     sph_p->SetColor(ChColor(0.6f, 0, 0));
     pend->AddVisualShape(sph_p, ChFrame<>(ChVector<>(-1, 0, 0), QUNIT));
 

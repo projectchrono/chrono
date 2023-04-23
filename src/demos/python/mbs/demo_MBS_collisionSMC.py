@@ -42,8 +42,7 @@ def AddFallingItems(sys):
             body.GetCollisionModel().BuildModel()
             body.SetCollide(True)
 
-            sphere = chrono.ChSphereShape()
-            sphere.GetSphereGeometry().rad = radius
+            sphere = chrono.ChSphereShape(radius)
             sphere.SetTexture(chrono.GetChronoDataFile("textures/bluewhite.png"))
             body.AddVisualShape(sphere)
 

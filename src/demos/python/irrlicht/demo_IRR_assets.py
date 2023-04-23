@@ -129,8 +129,7 @@ orange_mat = chrono.ChVisualMaterial()
 orange_mat.SetDiffuseColor(chrono.ChColor(0.9, 0.4, 0.2))
 
 # ==Asset== Attach a 'sphere' shape
-sphere = chrono.ChSphereShape()
-sphere.GetSphereGeometry().rad = 0.5
+sphere = chrono.ChSphereShape(0.5)
 sphere.AddMaterial(orange_mat)
 body.AddVisualShape(sphere, chrono.ChFrameD(chrono.ChVectorD(-1,0,0), chrono.QUNIT))
 
@@ -206,8 +205,7 @@ sys.Add(particles)
 
 # ==Asset== Attach a 'sphere' shape asset. it will be used as a sample
 # shape to display all particles when rendering in 3D!
-sphereparticle = chrono.ChSphereShape()
-sphereparticle.GetSphereGeometry().rad = 0.05
+sphereparticle = chrono.ChSphereShape(0.05)
 particles.AddVisualShape(sphereparticle)
  
 displ = chrono.ChVectorD(1.0, 0.0, 0.0)

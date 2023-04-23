@@ -67,8 +67,7 @@ void ChBodyEasySphere::SetupBody(double radius,
         SetCollide(true);
     }
     if (visualize) {
-        auto vshape = chrono_types::make_shared<ChSphereShape>();
-        vshape->GetSphereGeometry().rad = radius;
+        auto vshape = chrono_types::make_shared<ChSphereShape>(radius);
         auto vmodel = chrono_types::make_shared<ChVisualModel>();
         vmodel->AddShape(vshape);
         this->AddVisualModel(vmodel);
@@ -542,8 +541,7 @@ void ChBodyEasyClusterOfSpheres::SetupBody(std::vector<ChVector<>>& positions,
     if (visualize) {
         auto vmodel = chrono_types::make_shared<ChVisualModel>();
         for (unsigned int i = 0; i < positions.size(); ++i) {
-            auto vshape = chrono_types::make_shared<ChSphereShape>();
-            vshape->GetSphereGeometry().rad = radii[i];
+            auto vshape = chrono_types::make_shared<ChSphereShape>(radii[i]);
             vmodel->AddShape(vshape, ChFrame<>(offset_positions[i]));
         }
         this->AddVisualModel(vmodel);

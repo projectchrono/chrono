@@ -551,7 +551,7 @@ void ChPovRay::ExportShapes(ChStreamOutAsciiFile& assets_file, std::shared_ptr<C
             assets_file << " <" << shape_frame.GetPos().x();
             assets_file << "," << shape_frame.GetPos().y();
             assets_file << "," << shape_frame.GetPos().z() << ">\n";
-            assets_file << " " << sphere->GetSphereGeometry().rad << "\n";
+            assets_file << " " << sphere->GetRadius() << "\n";
 
             ApplyMaterials(assets_file, shape->GetMaterials());
 

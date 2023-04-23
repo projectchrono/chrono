@@ -64,12 +64,10 @@ ground.SetIdentifier(-1)
 ground.SetBodyFixed(True)
 ground.SetCollide(False)
 
-sph_1 = chrono.ChSphereShape()
-sph_1.GetSphereGeometry().rad = 0.1
+sph_1 = chrono.ChSphereShape(0.1)
 ground.AddVisualShape(sph_1, chrono.ChFrameD(chrono.ChVectorD(-1, 0, 0)))
 
-sph_2 = chrono.ChSphereShape()
-sph_2.GetSphereGeometry().rad = 0.1
+sph_2 = chrono.ChSphereShape(0.1)
 ground.AddVisualShape(sph_2, chrono.ChFrameD(chrono.ChVectorD(1, 0, 0)))
 
 # Create a body suspended through a ChLinkTSDA (default linear)

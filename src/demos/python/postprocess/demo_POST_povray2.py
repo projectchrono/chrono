@@ -63,8 +63,7 @@ for ix in range(0,5):
             body_particles.AddParticle(chrono.ChCoordsysD(chrono.ChVectorD(ix/100,0.1+iy/100, iz/100)))
 
 # Visualization shape (shared by all particle clones)
-body_particles_shape = chrono.ChSphereShape()
-body_particles_shape.GetSphereGeometry().rad = 0.005
+body_particles_shape = chrono.ChSphereShape(0.005)
 body_particles.AddVisualShape(body_particles_shape)
 
 my_system.Add(body_particles)

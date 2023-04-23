@@ -197,11 +197,9 @@ ball.GetCollisionModel().ClearModel()
 ball.GetCollisionModel().AddSphere(ball_mat, ball_radius)
 ball.GetCollisionModel().BuildModel()
 
-vshape_s = chrono.ChSphereShape()
-vshape_s.GetSphereGeometry().rad = ball_radius
-vshape_s.GetSphereGeometry().Pos = ball.GetPos()
+vshape_s = chrono.ChSphereShape(ball_radius)
 vshape_s.SetTexture(chrono.GetChronoDataFile("textures/bluewhite.png"))
-ball.AddVisualShape(vshape_s)
+ball.AddVisualShape(vshape_s, chrono.ChFrameD(ball.GetPos(), chrono.QUNIT))
 
 # Create a custom collision detection callback object and register it with the sys
 my_collision = MyCustomCollisionDetection(ball, ground, ball_mat, obst_mat, ball_radius, obstacle)

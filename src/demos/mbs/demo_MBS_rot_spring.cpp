@@ -99,8 +99,7 @@ int main(int argc, char* argv[]) {
     body->SetInertiaXX(ChVector<>(1, 1, 1));
 
     // Attach visualization assets
-    auto sph = chrono_types::make_shared<ChSphereShape>();
-    sph->GetSphereGeometry().rad = 0.3;
+    auto sph = chrono_types::make_shared<ChSphereShape>(0.3);
     sph->SetColor(ChColor(0.7f, 0.8f, 0.8f));
     body->AddVisualShape(sph);
 

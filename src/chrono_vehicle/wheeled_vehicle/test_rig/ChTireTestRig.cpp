@@ -288,8 +288,7 @@ void ChTireTestRig::CreateMechanism() {
         auto mat = chrono_types::make_shared<ChVisualMaterial>();
         mat->SetDiffuseColor({0.2f, 0.8f, 0.2f});
 
-        auto sphere = chrono_types::make_shared<ChSphereShape>();
-        sphere->GetSphereGeometry().rad = dim;
+        auto sphere = chrono_types::make_shared<ChSphereShape>(dim);
         sphere->AddMaterial(mat);
         m_chassis_body->AddVisualShape(sphere);
 

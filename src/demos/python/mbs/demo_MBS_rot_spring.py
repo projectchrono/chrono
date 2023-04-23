@@ -92,8 +92,7 @@ body.SetMass(1)
 body.SetInertiaXX(chrono.ChVectorD(1, 1, 1))
 
 # Attach visualization assets
-sph = chrono.ChSphereShape()
-sph.GetSphereGeometry().rad = 0.3
+sph = chrono.ChSphereShape(0.3)
 body.AddVisualShape(sph)
 cyl = chrono.ChCylinderShape()
 cyl.GetCylinderGeometry().p1 = chrono.ChVectorD(-1.5, 0, 0)

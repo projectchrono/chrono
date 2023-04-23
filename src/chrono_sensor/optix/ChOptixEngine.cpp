@@ -435,8 +435,7 @@ void ChOptixEngine::boxVisualization(std::shared_ptr<ChBody> body,
 void ChOptixEngine::sphereVisualization(std::shared_ptr<ChBody> body,
                                         std::shared_ptr<ChSphereShape> sphere_shape,
                                         ChFrame<> asset_frame) {
-    ChVector<double> size = {sphere_shape->GetSphereGeometry().rad, sphere_shape->GetSphereGeometry().rad,
-                             sphere_shape->GetSphereGeometry().rad};
+    ChVector<double> size(sphere_shape->GetRadius());
 
     unsigned int mat_id;
     if (sphere_shape->GetNumMaterials() == 0) {

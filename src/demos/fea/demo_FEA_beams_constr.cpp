@@ -188,8 +188,7 @@ int main(int argc, char* argv[]) {
                                     false, false, false);  // Rx, Ry, Rz
 
     // For example, attach small shape to show the constraint
-    auto msphereconstr2 = chrono_types::make_shared<ChSphereShape>();
-    msphereconstr2->GetSphereGeometry().rad = 0.01;
+    auto msphereconstr2 = chrono_types::make_shared<ChSphereShape>(0.01);
     constr_bb->AddVisualShape(msphereconstr2);
 
     // Create a beam as a crank
@@ -228,8 +227,7 @@ int main(int argc, char* argv[]) {
                                     true, true, false);  // Rx, Ry, Rz
 
     // For example, attach small shape to show the constraint
-    auto msphereconstr3 = chrono_types::make_shared<ChSphereShape>();
-    msphereconstr3->GetSphereGeometry().rad = 0.01;
+    auto msphereconstr3 = chrono_types::make_shared<ChSphereShape>(0.01);
     constr_bc->AddVisualShape(msphereconstr3);
 
     //

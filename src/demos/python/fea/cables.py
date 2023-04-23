@@ -152,8 +152,7 @@ class Model3 :
             constraint_hinge.Initialize(builder.GetLastBeamNodes().front(), mtruss)
             system.Add(constraint_hinge)
 
-            msphere = chrono.ChSphereShape()
-            msphere.GetSphereGeometry().rad = 0.02
+            msphere = chrono.ChSphereShape(0.02)
             constraint_hinge.AddVisualShape(msphere)
 
             # make a box and connect it

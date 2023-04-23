@@ -911,8 +911,7 @@ void RS_Part::AddVisualizationAssets(VisualizationType vis) {
     }
 
     for (const auto& sphere : m_spheres) {
-        auto sphere_shape = chrono_types::make_shared<ChSphereShape>();
-        sphere_shape->GetSphereGeometry().rad = sphere.m_radius;
+        auto sphere_shape = chrono_types::make_shared<ChSphereShape>(sphere.m_radius);
         sphere_shape->SetColor(m_color);
         m_body->AddVisualShape(sphere_shape, ChFrame<>(sphere.m_pos, QUNIT));
     }

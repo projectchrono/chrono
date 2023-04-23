@@ -185,7 +185,7 @@ rapidjson::Value VisualModel2Val(std::shared_ptr<ChVisualModel> model, rapidjson
             obj.AddMember("center", Vec2Val(frame.GetPos(), allocator), allocator);
             obj.AddMember("orientation", Quat2Val(frame.GetRot(), allocator), allocator);
         } else if (auto sph = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
-            auto rad = sph->GetSphereGeometry().rad;
+            auto rad = sph->GetRadius();
             obj.AddMember("type", "SPHERE", allocator);
             obj.AddMember("center", Vec2Val(frame.GetPos(), allocator), allocator);
             obj.AddMember("radius", rad, allocator);

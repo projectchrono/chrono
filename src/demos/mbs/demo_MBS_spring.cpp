@@ -84,12 +84,10 @@ int main(int argc, char* argv[]) {
     ground->SetCollide(false);
 
     {
-        auto sph_1 = chrono_types::make_shared<ChSphereShape>();
-        sph_1->GetSphereGeometry().rad = 0.1;
+        auto sph_1 = chrono_types::make_shared<ChSphereShape>(0.1);
         ground->AddVisualShape(sph_1, ChFrame<>(ChVector<>(-1, 0, 0), QUNIT));
 
-        auto sph_2 = chrono_types::make_shared<ChSphereShape>();
-        sph_2->GetSphereGeometry().rad = 0.1;
+        auto sph_2 = chrono_types::make_shared<ChSphereShape>(0.1);
         ground->AddVisualShape(sph_2, ChFrame<>(ChVector<>(+1, 0, 0), QUNIT));
     }
 

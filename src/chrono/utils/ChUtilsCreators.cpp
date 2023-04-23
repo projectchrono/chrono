@@ -49,8 +49,7 @@ void AddSphereGeometry(ChBody* body,
             auto model = chrono_types::make_shared<ChVisualModel>();
             body->AddVisualModel(model);
         }
-        auto sphere = chrono_types::make_shared<ChSphereShape>();
-        sphere->GetSphereGeometry().rad = radius;
+        auto sphere = chrono_types::make_shared<ChSphereShape>(radius);
         sphere->AddMaterial(vis_material);
         body->GetVisualModel()->AddShape(sphere, ChFrame<>(pos, rot));
     }

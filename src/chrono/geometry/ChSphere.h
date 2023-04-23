@@ -34,6 +34,9 @@ class ChApi ChSphere : public ChGeometry {
      /// Get the class type as an enum.
     virtual Type GetClassType() const override { return Type::SPHERE; }
 
+    /// Get the sphere radius.
+    double GetRadius() const { return rad; }
+
     /// Compute bounding box along the directions defined by the given rotation matrix.
     virtual AABB GetBoundingBox(const ChMatrix33<>& rot) const override;
 

@@ -53,8 +53,7 @@ int main(int argc, char* argv[]) {
             for (int iz = 0; iz < 3; iz++)
                 particles->AddParticle(ChCoordsys<>(ChVector<>(ix / 100.0, 0.1 + iy / 100.0, iz / 100.0)));
 
-    auto particle_shape = chrono_types::make_shared<ChSphereShape>();
-    particle_shape->GetSphereGeometry().rad = 0.005;
+    auto particle_shape = chrono_types::make_shared<ChSphereShape>(0.005);
     particles->AddVisualShape(particle_shape);
 
     sys.Add(particles);

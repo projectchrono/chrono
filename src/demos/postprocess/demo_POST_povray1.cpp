@@ -122,8 +122,7 @@ int main(int argc, char* argv[]) {
     sys.Add(body);
 
     // ==Asset== Attach a 'sphere' shape
-    auto sphere = chrono_types::make_shared<ChSphereShape>();
-    sphere->GetSphereGeometry().rad = 0.5;
+    auto sphere = chrono_types::make_shared<ChSphereShape>(0.5);
     body->AddVisualShape(sphere, ChFrame<>(ChVector<>(-1, 0, 0)));
 
     // ==Asset== Attach also a 'box' shape
@@ -191,8 +190,7 @@ int main(int argc, char* argv[]) {
 
     //  ==Asset== Attach a 'sphere' shape asset.. it will be used as a sample
     // shape to display all particles when rendering in 3D!
-    auto sphereparticle = chrono_types::make_shared<ChSphereShape>();
-    sphereparticle->GetSphereGeometry().rad = 0.05;
+    auto sphereparticle = chrono_types::make_shared<ChSphereShape>(0.05);
     particles->AddVisualShape(sphereparticle);
 
     /// [Example 3]

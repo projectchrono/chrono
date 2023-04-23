@@ -318,7 +318,7 @@ void ChOpenGLViewer::DrawVisualModel(std::shared_ptr<ChPhysicsItem> item) {
         rot.Q_to_AngAxis(angle, axis);
 
         if (ChSphereShape* sphere_shape = dynamic_cast<ChSphereShape*>(shape.get())) {
-            double radius = sphere_shape->GetSphereGeometry().rad;
+            double radius = sphere_shape->GetRadius();
 
             model = glm::translate(glm::mat4(1), glm::vec3(pos.x(), pos.y(), pos.z()));
             model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));

@@ -791,8 +791,7 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
             vis_mat->SetDiffuseColor(ChColor(colorVal, 1.0f - colorVal, 0.0f));
 
             // Create a sphere at the body COM
-            auto sphere = chrono_types::make_shared<ChSphereShape>();
-            sphere->GetSphereGeometry().rad = 0.1;
+            auto sphere = chrono_types::make_shared<ChSphereShape>(0.1);
             sphere->AddMaterial(vis_mat);
             body_info.body->AddVisualShape(sphere, ChFrame<>(body_info.body->GetFrame_COG_to_REF().GetPos()));
 

@@ -1035,7 +1035,7 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
             group->addChild(grp);
         } else if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
             auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X_SM, sphere->GetSphereGeometry().rad);
+            transform->matrix = vsg::dmat4CH(X_SM, sphere->GetRadius());
             auto grp = m_shapeBuilder->createPbrShape(ShapeBuilder::SPHERE_SHAPE, material, transform, m_wireframe);
             group->addChild(grp);
         } else if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
@@ -1235,7 +1235,7 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
     ChVector<> shape_size(0);
     if (auto sph = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
         shape_type = ShapeType::SPHERE;
-        shape_size = ChVector<>(2 * sph->GetSphereGeometry().rad);
+        shape_size = ChVector<>(2 * sph->GetRadius());
     } else if (auto ell = std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
         shape_type = ShapeType::ELLIPSOID;
         shape_size = ell->GetEllipsoidGeometry().rad * 2;

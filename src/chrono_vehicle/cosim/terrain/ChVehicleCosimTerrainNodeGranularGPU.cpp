@@ -368,8 +368,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
             auto body = std::shared_ptr<ChBody>(m_system->NewBody());
             body->SetPos(p);
             body->SetBodyFixed(true);
-            auto sph = chrono_types::make_shared<ChSphereShape>();
-            sph->GetSphereGeometry().rad = m_radius_g;
+            auto sph = chrono_types::make_shared<ChSphereShape>(m_radius_g);
             body->AddVisualShape(sph);
             m_system->AddBody(body);
         }

@@ -56,8 +56,7 @@ void AddFallingItems(ChSystemSMC& sys) {
                 body->GetCollisionModel()->BuildModel();
                 body->SetCollide(true);
 
-                auto sphere = chrono_types::make_shared<ChSphereShape>();
-                sphere->GetSphereGeometry().rad = radius;
+                auto sphere = chrono_types::make_shared<ChSphereShape>(radius);
                 sphere->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
                 body->AddVisualShape(sphere);
 

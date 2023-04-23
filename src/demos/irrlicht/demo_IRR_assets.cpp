@@ -122,8 +122,7 @@ int main(int argc, char* argv[]) {
     orange_mat->SetDiffuseColor(ChColor(0.9f, 0.4f, 0.2f));
 
     // ==Asset== Attach a 'sphere' shape
-    auto sphere = chrono_types::make_shared<ChSphereShape>();
-    sphere->GetSphereGeometry().rad = 0.5;
+    auto sphere = chrono_types::make_shared<ChSphereShape>(0.5);
     sphere->AddMaterial(orange_mat);
     body->AddVisualShape(sphere, ChFrame<>(ChVector<>(-1, 0, 0), QUNIT));
 
@@ -180,8 +179,7 @@ int main(int argc, char* argv[]) {
     double particle_radius = 0.05;
 
     // Add visualization (shared by all particles in the cloud)
-    auto particle_vis = chrono_types::make_shared<ChSphereShape>();
-    particle_vis->GetSphereGeometry().rad = particle_radius;
+    auto particle_vis = chrono_types::make_shared<ChSphereShape>(particle_radius);
     particles->AddVisualShape(particle_vis);
 
     // Note: the collision shape, if needed, must be specified before creating particles.

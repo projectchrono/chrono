@@ -957,7 +957,7 @@ void ChBlender::ExportItemState(ChStreamOutAsciiFile& state_file,
 
                 // corner cases for performance reason (in case of multipe sphere asset with different radii, one blender mesh asset is used anyway, then use scale here)
                 if (auto mshpere = std::dynamic_pointer_cast<ChSphereShape>(shape))
-                    aux_scale = ChVector<>(mshpere->GetSphereGeometry().rad);
+                    aux_scale = ChVector<>(mshpere->GetRadius());
                 else if (auto mellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(shape))
                     aux_scale = mellipsoid->GetEllipsoidGeometry().rad;
                 else if (auto mbox = std::dynamic_pointer_cast<ChBoxShape>(shape))

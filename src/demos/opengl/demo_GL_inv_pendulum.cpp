@@ -194,12 +194,10 @@ int main(int argc, char* argv[]) {
     ground->SetBodyFixed(true);
 
     // Attach visualization assets
-    auto sphere1_g = chrono_types::make_shared<ChSphereShape>();
-    sphere1_g->GetSphereGeometry().rad = 0.02;
+    auto sphere1_g = chrono_types::make_shared<ChSphereShape>(0.02);
     ground->AddVisualShape(sphere1_g, ChFrame<>(ChVector<>(+travel_dist, 0, 0), QUNIT));
 
-    auto sphere2_g = chrono_types::make_shared<ChSphereShape>();
-    sphere2_g->GetSphereGeometry().rad = 0.02;
+    auto sphere2_g = chrono_types::make_shared<ChSphereShape>(0.02);
     ground->AddVisualShape(sphere2_g, ChFrame<>(ChVector<>(-travel_dist, 0, 0), QUNIT));
 
     // Create the cart body

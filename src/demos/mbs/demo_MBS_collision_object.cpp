@@ -192,8 +192,7 @@ int main(int argc, char* argv[]) {
             object->GetCollisionModel()->AddSphere(object_mat, radius, ChVector<>(0));
             object->GetCollisionModel()->BuildModel();
 
-            auto sphere = chrono_types::make_shared<ChSphereShape>();
-            sphere->GetSphereGeometry().rad = radius;
+            auto sphere = chrono_types::make_shared<ChSphereShape>(radius);
             object->AddVisualShape(sphere);
 
             break;

@@ -403,7 +403,7 @@ void WriteVisualizationAssets(ChSystem* system,
             std::stringstream gss;
 
             if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
-                gss << SPHERE << delim << sphere->GetSphereGeometry().rad;
+                gss << SPHERE << delim << sphere->GetRadius();
                 a_count++;
             } else if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
                 const Vector& size = ellipsoid->GetEllipsoidGeometry().rad;
