@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora, Radu Serban
+// Authors: Rainer Gericke
 // =============================================================================
 //
 // Duro powertrain model based on ChShaft objects.
@@ -67,9 +67,8 @@ class CH_MODELS_API Duro_Powertrain : public ChShaftsPowertrain {
 
 /// @} vehicle_models_Duro
 
-}  // end namespace Duro
+}  // namespace duro
 }  // end namespace vehicle
 }  // end namespace chrono
 
 #endif
-

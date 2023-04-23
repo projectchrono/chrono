@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora, Radu Serban
+// Authors: Rainer Gericke
 // =============================================================================
 //
 // Duro powertrain model based on ChShaft objects.
@@ -117,7 +117,6 @@ void Duro_Powertrain::SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunc
     map->AddPoint(0.928444, 9.33991);
     map->AddPoint(0.93938, 10.144);
     map->AddPoint(1, 12.1852);
-    
 }
 
 void Duro_Powertrain::SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunction_Recorder>& map) {

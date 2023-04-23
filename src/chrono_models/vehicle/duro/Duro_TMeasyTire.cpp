@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -45,7 +45,6 @@ Duro_TMeasyTire::Duro_TMeasyTire(const std::string& name) : ChTMeasyTire(name) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void Duro_TMeasyTire::SetTMeasyParams() {
-    const double lbs2N = 4.4482216153;
     const double in2m = 0.0254;
     double w = 0.275;
     double r = 0.8;

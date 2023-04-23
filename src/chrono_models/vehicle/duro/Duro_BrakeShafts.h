@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Rainer Gericke
 // =============================================================================
 //
 // Duro shafts-based brake model.
@@ -32,14 +32,14 @@ namespace duro {
 
 /// Shafts-based HMMWV brake subsystem (uses a clutch between two shafts).
 class CH_MODELS_API Duro_BrakeShafts : public ChBrakeShafts {
-   public:
+  public:
     Duro_BrakeShafts(const std::string& name);
     ~Duro_BrakeShafts() {}
 
     virtual double GetMaxBrakingTorque() override { return m_maxtorque; }
     virtual double GetShaftInertia() override { return m_shaft_inertia; }
 
-   private:
+  private:
     static const double m_maxtorque;
     static const double m_shaft_inertia;
 };

@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen, Rainer Gericke
+// Authors: Rainer Gericke
 // =============================================================================
 //
 //  Bucher Duro 4x4 wheel subsystem
@@ -36,7 +36,7 @@ namespace duro {
 
 /// Duro wheel (can be used on any axle, left or right).
 class CH_MODELS_API Duro_Wheel : public ChWheel {
-   public:
+  public:
     Duro_Wheel(const std::string& name);
     ~Duro_Wheel() {}
 
@@ -45,7 +45,7 @@ class CH_MODELS_API Duro_Wheel : public ChWheel {
     virtual double GetRadius() const override { return m_radius; }
     virtual double GetWidth() const override { return m_width; }
 
-   protected:
+  protected:
     static const double m_radius;
     static const double m_width;
     static const double m_mass;

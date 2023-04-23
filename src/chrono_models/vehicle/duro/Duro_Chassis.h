@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Rainer Gericke
 // =============================================================================
 //
 // Duro chassis subsystem.
@@ -37,8 +37,8 @@ namespace duro {
 class CH_MODELS_API Duro_Chassis : public ChRigidChassis {
   public:
     Duro_Chassis(const std::string& name,
-                  bool fixed = false,
-                  CollisionType chassis_collision_type = CollisionType::NONE);
+                 bool fixed = false,
+                 CollisionType chassis_collision_type = CollisionType::NONE);
     ~Duro_Chassis() {}
 
     /// Get the location (in the local frame of this chassis) of the connection to a rear chassis.
@@ -65,9 +65,8 @@ class CH_MODELS_API Duro_Chassis : public ChRigidChassis {
 
 /// @} vehicle_models_Duro
 
-}  // end namespace Duro
+}  // namespace duro
 }  // end namespace vehicle
 }  // end namespace chrono
 
 #endif
-
