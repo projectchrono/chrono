@@ -427,7 +427,7 @@ void GranularTerrain::Initialize(const ChVector<>& center,
     if (m_vis_enabled) {
         auto box = chrono_types::make_shared<ChBoxShape>();
         double hthick = 0.05;
-        box->GetBoxGeometry().Size = ChVector<>(length / 2, width / 2, hthick);
+        box->GetBoxGeometry().hlen = ChVector<>(length / 2, width / 2, hthick);
         m_ground->AddVisualShape(box, ChFrame<>(ChVector<>(0, 0, -hthick)));
     }
 

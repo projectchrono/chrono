@@ -33,7 +33,7 @@ namespace geometry {
 class ChApi ChGeometry {
   public:
     /// Enumeration of geometric object types.
-    enum GeometryType {
+    enum class Type {
         NONE,
         SPHERE,
         ELLIPSOID,
@@ -51,10 +51,27 @@ class ChApi ChGeometry {
         LINE_SEGMENT,
         ROUNDED_BOX,
         ROUNDED_CYLINDER,
-        ROUNDED_CONE,
         TRIANGLEMESH,
         TRIANGLEMESH_CONNECTED,
         TRIANGLEMESH_SOUP
+    };
+
+    /// Axis-aligned bounding box.
+    struct AABB {
+        /// Default is an inverted bounding box.
+        AABB();
+
+        /// Construct an AABB with provided corners.
+        AABB(const ChVector<>& aabb_min, const ChVector<>& aabb_max);
+
+        /// Get AABB center.
+        ChVector<> Center() const;
+
+        /// Get AABB dimensions.
+        ChVector<> Size() const;
+
+        ChVector<> min;  ///< low AABB corner
+        ChVector<> max;  ///< high AABB corner
     };
 
   public:
@@ -65,30 +82,29 @@ class ChApi ChGeometry {
     /// "Virtual" copy constructor.
     virtual ChGeometry* Clone() const = 0;
 
-    /// Get the class type as unique numerical ID (faster
-    /// than using ChronoRTTI mechanism).
-    /// Each inherited class must return an unique ID.
-    virtual GeometryType GetClassType() const { return NONE; }
+    /// Get the class type as an enum.
+    virtual Type GetClassType() const { return Type::NONE; }
 
     /// Compute bounding box along the directions defined by the given rotation matrix.
     /// The default implementation returns a bounding box with zeros dimensions.
-    virtual void GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const;
+    virtual AABB GetBoundingBox(const ChMatrix33<>& rot) const;
 
     /// Enlarge the given existing bounding box with the bounding box of this object.
-    void InflateBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const;
+    void InflateBoundingBox(AABB& bbox, const ChMatrix33<>& rot) const;
 
     /// Returns the radius of a bounding sphere for this geometry.
-    /// The default implementation returns the radius of a sphere bounding the geometry bounding box, which is not always the tightest possible.
+    /// The default implementation returns the radius of a sphere bounding the geometry bounding box, which is not
+    /// always the tightest possible.
     virtual double GetBoundingSphereRadius() const;
 
-    /// Compute center of mass
+    /// Compute center of mass.
     virtual ChVector<> Baricenter() const { return VNULL; }
 
     /// Returns the dimension of the geometry
     /// (0=point, 1=line, 2=surface, 3=solid)
     virtual int GetManifoldDimension() const { return 0; }
 
-    /// Generic update of internal data. 
+    /// Generic update of internal data.
     virtual void Update() {}
 
     /// Method to allow serialization of transient data to archives.

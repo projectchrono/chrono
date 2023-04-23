@@ -168,21 +168,21 @@ void ChTrackShoeBand::AddShoeVisualization() {
     ChVector<> g_hdims = GetGuideBoxDimensions() / 2;
     ChVector<> g_loc(GetGuideBoxOffsetX(), 0, GetWebThickness() / 2 + g_hdims.z());
     auto box_pin = chrono_types::make_shared<ChBoxShape>();
-    box_pin->GetBoxGeometry().Size = g_hdims;
+    box_pin->GetBoxGeometry().hlen = g_hdims;
     m_shoe->AddVisualShape(box_pin, ChFrame<>(g_loc));
 
     // Main box
     ChVector<> b_hdims(GetToothBaseLength() / 2, GetBeltWidth() / 2, GetWebThickness() / 2);
     ChVector<> b_loc(0, 0, 0);
     auto box_main = chrono_types::make_shared<ChBoxShape>();
-    box_main->GetBoxGeometry().Size = b_hdims;
+    box_main->GetBoxGeometry().hlen = b_hdims;
     m_shoe->AddVisualShape(box_main, ChFrame<>(b_loc));
 
     // Pad box
     ChVector<> t_hdims(GetTreadLength() / 2, GetBeltWidth() / 2, GetTreadThickness() / 2);
     ChVector<> t_loc(0, 0, (-GetWebThickness() - GetTreadThickness()) / 2);
     auto box_tread = chrono_types::make_shared<ChBoxShape>();
-    box_tread->GetBoxGeometry().Size = t_hdims;
+    box_tread->GetBoxGeometry().hlen = t_hdims;
     m_shoe->AddVisualShape(box_tread, ChFrame<>(t_loc));
 
     // Connection to first web segment

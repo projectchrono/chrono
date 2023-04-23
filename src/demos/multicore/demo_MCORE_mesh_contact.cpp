@@ -216,7 +216,7 @@ int main(int argc, char* argv[]) {
     ground->GetCollisionModel()->BuildModel();
 
     auto box = chrono_types::make_shared<ChBoxShape>();
-    box->GetBoxGeometry().Size = ChVector<>(width, length, thickness);
+    box->GetBoxGeometry().hlen = ChVector<>(width, length, thickness);
     ground->AddVisualShape(box, ChFrame<>(ChVector<>(0, 0, -thickness)));
 
     // Create the visualization window

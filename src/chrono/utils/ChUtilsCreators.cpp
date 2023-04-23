@@ -96,7 +96,7 @@ void AddBoxGeometry(ChBody* body,
             body->AddVisualModel(model);
         }
         auto box = chrono_types::make_shared<ChBoxShape>();
-        box->GetBoxGeometry().Size = size;
+        box->GetBoxGeometry().hlen = size;
         box->AddMaterial(vis_material);
         body->GetVisualModel()->AddShape(box, ChFrame<>(pos, rot));
     }
@@ -544,8 +544,8 @@ void AddRoundedBoxGeometry(ChBody* body,
             body->AddVisualModel(model);
         }
         auto box = chrono_types::make_shared<ChRoundedBoxShape>();
-        box->GetRoundedBoxGeometry().Size = size;
-        box->GetRoundedBoxGeometry().radsphere = srad;
+        box->GetRoundedBoxGeometry().hlen = size;
+        box->GetRoundedBoxGeometry().rad = srad;
         box->AddMaterial(vis_material);
         body->GetVisualModel()->AddShape(box, ChFrame<>(pos, rot));
     }

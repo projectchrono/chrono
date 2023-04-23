@@ -28,12 +28,11 @@ ChCylinder::ChCylinder(const ChCylinder& source) {
     rad = source.rad;
 }
 
-void ChCylinder::GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const {
+ChGeometry::AABB ChCylinder::GetBoundingBox(const ChMatrix33<>& rot) const {
     //// TODO: re-check this
     ChVector<> dims = ChVector<>(rad, p2.y() - p1.y(), rad);
     ChVector<> trsfCenter = rot.transpose() * Baricenter();
-    cmin = trsfCenter - dims;
-    cmax = trsfCenter + dims;
+    return AABB(trsfCenter - dims, trsfCenter + dims);
 }
 
 void ChCylinder::ArchiveOUT(ChArchiveOut& marchive) {

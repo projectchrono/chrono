@@ -47,10 +47,11 @@ class ChApi ChTriangleMesh : public ChGeometry {
     /// Transform all vertexes, by displacing and rotating (rotation  via matrix, so also scaling if needed)
     virtual void Transform(const ChVector<> displ, const ChQuaternion<> mquat = ChQuaternion<>(1, 0, 0, 0));
 
-    virtual GeometryType GetClassType() const override { return TRIANGLEMESH; }
+    /// Get the class type as an enum.
+    virtual Type GetClassType() const override { return Type::TRIANGLEMESH; }
 
     /// Compute bounding box along the directions defined by the given rotation matrix.
-    virtual void GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const override;
+    virtual AABB GetBoundingBox(const ChMatrix33<>& rot) const override;
 
     //// TODO
     //// virtual ChVector<> Baricenter() const override;

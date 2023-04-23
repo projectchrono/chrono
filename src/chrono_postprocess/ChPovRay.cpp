@@ -600,12 +600,12 @@ void ChPovRay::ExportShapes(ChStreamOutAsciiFile& assets_file, std::shared_ptr<C
             assets_file << "#macro sh_" << (size_t)shape.get() << "()\n";  // start macro
             assets_file << "box  {\n";                                     // start box
 
-            assets_file << " <" << -box->GetBoxGeometry().Size.x();
-            assets_file << "," << -box->GetBoxGeometry().Size.y();
-            assets_file << "," << -box->GetBoxGeometry().Size.z() << ">\n";
-            assets_file << " <" << box->GetBoxGeometry().Size.x();
-            assets_file << "," << box->GetBoxGeometry().Size.y();
-            assets_file << "," << box->GetBoxGeometry().Size.z() << ">\n";
+            assets_file << " <" << -box->GetBoxGeometry().hlen.x();
+            assets_file << "," << -box->GetBoxGeometry().hlen.y();
+            assets_file << "," << -box->GetBoxGeometry().hlen.z() << ">\n";
+            assets_file << " <" << box->GetBoxGeometry().hlen.x();
+            assets_file << "," << box->GetBoxGeometry().hlen.y();
+            assets_file << "," << box->GetBoxGeometry().hlen.z() << ">\n";
 
             const auto& pos = shape_frame.GetPos();
             const auto& rot = shape_frame.GetRot();

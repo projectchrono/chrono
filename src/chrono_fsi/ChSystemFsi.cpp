@@ -1972,18 +1972,16 @@ void ChSystemFsi::CreateMeshPoints(geometry::ChTriangleMeshConnected& mesh,
                                    double delta,
                                    std::vector<ChVector<>>& point_cloud) {
     mesh.RepairDuplicateVertexes(1e-9);  // if meshes are not watertight
-    ChVector<> minV;
-    ChVector<> maxV;
-    mesh.GetBoundingBox(minV, maxV, ChMatrix33<>(1));
+    auto bbox = mesh.GetBoundingBox(ChMatrix33<>(1));
 
     const double EPSI = 1e-6;
 
     ChVector<> ray_origin;
-    for (double x = minV.x(); x < maxV.x(); x += delta) {
+    for (double x = bbox.min.x(); x < bbox.max.x(); x += delta) {
         ray_origin.x() = x + 1e-9;
-        for (double y = minV.y(); y < maxV.y(); y += delta) {
+        for (double y = bbox.min.y(); y < bbox.max.y(); y += delta) {
             ray_origin.y() = y + 1e-9;
-            for (double z = minV.z(); z < maxV.z(); z += delta) {
+            for (double z = bbox.min.z(); z < bbox.max.z(); z += delta) {
                 ray_origin.z() = z + 1e-9;
 
                 ChVector<> ray_dir[2] = {ChVector<>(5, 0.5, 0.25), ChVector<>(-3, 0.7, 10)};

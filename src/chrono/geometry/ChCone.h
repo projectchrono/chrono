@@ -35,11 +35,12 @@ class ChApi ChCone : public ChGeometry {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChCone* Clone() const override { return new ChCone(*this); }
 
-    virtual GeometryType GetClassType() const override { return CONE; }
+    /// Get the class type as an enum.
+    virtual Type GetClassType() const override { return Type::CONE; }
 
     /// Compute bounding box along the directions defined by the given rotation matrix.
     /// Note: 'rot' is currently ignored.
-    virtual void GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const override;
+    virtual AABB GetBoundingBox(const ChMatrix33<>& rot) const override;
 
     virtual ChVector<> Baricenter() const override { return center; }
 

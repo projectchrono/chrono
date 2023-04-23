@@ -23,13 +23,12 @@ void ChTriangleMesh::Transform(const ChVector<> displ, const ChQuaternion<> mqua
     this->Transform(displ, ChMatrix33<>(mquat));
 }
 
-void ChTriangleMesh::GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const {
-    cmin = ChVector<>(+std::numeric_limits<double>::max());
-    cmax = ChVector<>(-std::numeric_limits<double>::max());
-
+ChGeometry::AABB ChTriangleMesh::GetBoundingBox(const ChMatrix33<>& rot) const {
+    AABB bbox;
     for (int i = 0; i < getNumTriangles(); i++) {
-        getTriangle(i).InflateBoundingBox(cmin, cmax, rot);
+        getTriangle(i).InflateBoundingBox(bbox, rot);
     }
+    return bbox;
 }
 
 void ChTriangleMesh::ArchiveOUT(ChArchiveOut& marchive) {

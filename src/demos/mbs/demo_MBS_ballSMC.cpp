@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
     bin->GetCollisionModel()->BuildModel();
 
     auto box = chrono_types::make_shared<ChBoxShape>();
-    box->GetBoxGeometry().Size = ChVector<>(width, thickness, length);
+    box->GetBoxGeometry().hlen = ChVector<>(width, thickness, length);
     box->SetColor(ChColor(0.8f, 0.2f, 0.2f));
     box->SetOpacity(0.8f);
 

@@ -530,7 +530,7 @@ void RigidTerrain::BoxPatch::Initialize() {
         m_body->AddVisualModel(chrono_types::make_shared<ChVisualModel>());
         auto box = chrono_types::make_shared<ChBoxShape>();
         box->AddMaterial(m_vis_mat);
-        box->GetBoxGeometry().Size = ChVector<>(m_hlength, m_hwidth, m_hthickness);
+        box->GetBoxGeometry().hlen = ChVector<>(m_hlength, m_hwidth, m_hthickness);
         m_body->AddVisualShape(box, ChFrame<>(ChVector<>(0, 0, -m_hthickness)));
     }
 }

@@ -23,11 +23,6 @@ namespace geometry {
 /// A cylindrical geometric object for collisions and visualization.
 class ChApi ChCylinder : public ChGeometry {
   public:
-    ChVector<> p1;  ///< center of first base
-    ChVector<> p2;  ///< center of second base
-    double rad;     ///< cylinder radius
-
-  public:
     ChCylinder() : p1(VNULL), p2(ChVector<>(0, 1, 0)), rad(0.1) {}
     ChCylinder(const ChVector<>& mp1, const ChVector<>& mp2, double mrad) : p1(mp1), p2(mp2), rad(mrad) {}
     ChCylinder(const ChCylinder& source);
@@ -36,10 +31,11 @@ class ChApi ChCylinder : public ChGeometry {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChCylinder* Clone() const override { return new ChCylinder(*this); }
 
-    virtual GeometryType GetClassType() const override { return CYLINDER; }
+    /// Get the class type as an enum.
+    virtual Type GetClassType() const override { return Type::CYLINDER; }
 
     /// Compute bounding box along the directions defined by the given rotation matrix.
-    virtual void GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const override;
+    virtual AABB GetBoundingBox(const ChMatrix33<>& rot) const override;
 
     virtual ChVector<> Baricenter() const override { return (p1 + p2) * 0.5; }
 
@@ -51,6 +47,10 @@ class ChApi ChCylinder : public ChGeometry {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+    ChVector<> p1;  ///< center of first base
+    ChVector<> p2;  ///< center of second base
+    double rad;     ///< cylinder radius
 };
 
 }  // end namespace geometry

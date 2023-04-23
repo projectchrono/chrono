@@ -630,17 +630,17 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
                         iter++;  // get length
                         double scale = std::stod(iter->second);
                         // maybe this is right?
-                        box->GetBoxGeometry().Size.x() = scale / 2;
+                        box->GetBoxGeometry().hlen.x() = scale / 2;
                     } else if (iter->second == std::string("Y")) {
                         iter++;  // get length
                         double scale = std::stod(iter->second);
                         // maybe this is right?
-                        box->GetBoxGeometry().Size.y() = scale / 2;
+                        box->GetBoxGeometry().hlen.y() = scale / 2;
                     } else if (iter->second == std::string("Z")) {
                         iter++;  // get length
                         double scale = std::stod(iter->second);
                         // maybe this is right?
-                        box->GetBoxGeometry().Size.z() = scale / 2;
+                        box->GetBoxGeometry().hlen.z() = scale / 2;
 
                     } else {
                         tokenParseError(LABEL, *iter);

@@ -26,9 +26,8 @@ ChEllipsoid::ChEllipsoid(const ChEllipsoid& source) {
     rad = source.rad;
 }
 
-void ChEllipsoid::GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const {
-    cmin = -rad;
-    cmax = +rad;
+ChGeometry::AABB ChEllipsoid::GetBoundingBox(const ChMatrix33<>& rot) const {
+    return AABB(-rad, +rad);
 }
 
 double ChEllipsoid::GetBoundingSphereRadius() const {

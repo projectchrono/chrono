@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
     floor->SetCollide(true);
 
     auto floor_shape = chrono_types::make_shared<ChBoxShape>();
-    floor_shape->GetBoxGeometry().Size = ChVector<>(0.1, 0.02, 0.1);
+    floor_shape->GetBoxGeometry().hlen = ChVector<>(0.1, 0.02, 0.1);
     floor_shape->SetColor(ChColor(0.5f, 0.5f, 0.5f));
     floor->AddVisualShape(floor_shape);
 
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
             body->SetCollide(true);
 
             auto body_shape = chrono_types::make_shared<ChBoxShape>();
-            body_shape->GetBoxGeometry().Size = ChVector<>(0.01, 0.01, 0.01);
+            body_shape->GetBoxGeometry().hlen = ChVector<>(0.01, 0.01, 0.01);
             body->AddVisualShape(body_shape);
 
             sys.Add(body);

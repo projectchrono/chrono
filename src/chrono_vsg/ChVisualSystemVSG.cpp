@@ -1024,9 +1024,9 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
             shape->GetMaterials().empty() ? ChVisualMaterial::Default() : shape->GetMaterial(0);
 
         if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
-            ChVector<> scale = box->GetBoxGeometry().Size;
+            ChVector<> scale = box->GetBoxGeometry().hlen;
             auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X_SM, box->GetBoxGeometry().Size);
+            transform->matrix = vsg::dmat4CH(X_SM, box->GetBoxGeometry().hlen);
 
             // We have boxes and dice. Dice take cubetextures, boxes take 6 identical textures.
             // Use a die if a kd map exists and its name contains "cubetexture". Otherwise, use a box.
@@ -1230,7 +1230,7 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
     auto num_particles = pcloud->GetNparticles();
 
     // Search for an appropriate rendering shape
-    typedef geometry::ChGeometry::GeometryType ShapeType;
+    typedef geometry::ChGeometry::Type ShapeType;
     auto shape = vis_model->GetShape(0);
     ShapeType shape_type = ShapeType::NONE;
     ChVector<> shape_size(0);
@@ -1242,7 +1242,7 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
         shape_size = ell->GetEllipsoidGeometry().rad * 2;
     } else if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
         shape_type = ShapeType::BOX;
-        shape_size = box->GetBoxGeometry().Size * 2;
+        shape_size = box->GetBoxGeometry().hlen * 2;
     } else if (auto cap = std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {
         double rad = cap->GetCapsuleGeometry().rad;
         double hlen = cap->GetCapsuleGeometry().hlen;

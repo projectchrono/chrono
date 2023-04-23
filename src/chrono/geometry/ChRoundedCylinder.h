@@ -31,11 +31,11 @@ class ChApi ChRoundedCylinder : public ChGeometry {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChRoundedCylinder* Clone() const override { return new ChRoundedCylinder(*this); }
 
-    virtual GeometryType GetClassType() const override { return ROUNDED_CYLINDER; }
+    virtual Type GetClassType() const override { return Type::ROUNDED_CYLINDER; }
 
     /// Compute bounding box along the directions defined by the given rotation matrix.
     /// TODO
-    ////virtual void GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const override;
+    ////virtual AABB GetBoundingBox(const ChMatrix33<>& rot) const override;
 
     virtual ChVector<> Baricenter() const override { return ChVector<>(0); }
 

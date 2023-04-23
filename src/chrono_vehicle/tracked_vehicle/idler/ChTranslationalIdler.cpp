@@ -143,7 +143,7 @@ void ChTranslationalIdler::AddVisualizationAssets(VisualizationType vis) {
     }
 
     auto box = chrono_types::make_shared<ChBoxShape>();
-    box->GetBoxGeometry().Size = ChVector<>(3 * radius, radius, radius);
+    box->GetBoxGeometry().hlen = ChVector<>(3 * radius, radius, radius);
     m_carrier->AddVisualShape(box, ChFrame<>(m_pT, ChMatrix33<>(GetPrismaticPitchAngle(), ChVector<>(0, 1, 0))));
 
     // Visualization of the tensioner spring (with default color)

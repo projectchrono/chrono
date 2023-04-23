@@ -146,7 +146,7 @@ std::shared_ptr<ChBody> CreateTerrain(ChSystem* sys, double length, double width
     ground->GetCollisionModel()->BuildModel();
 
     auto box = chrono_types::make_shared<ChBoxShape>();
-    box->GetBoxGeometry().Size = ChVector<>(length / 2, width / 2, 0.1);
+    box->GetBoxGeometry().hlen = ChVector<>(length / 2, width / 2, 0.1);
     box->SetTexture(GetChronoDataFile("textures/pinkwhite.png"), 10 * (float)length, 10 * (float)width);
     ground->AddVisualShape(box, ChFrame<>(ChVector<>(offset, 0, height - 0.1), QUNIT));
 

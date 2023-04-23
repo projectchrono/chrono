@@ -24,18 +24,19 @@ namespace geometry {
 class ChApi ChCapsule : public ChGeometry {
   public:
     ChCapsule() : rad(0), hlen(0) {}
-    ChCapsule(const ChVector<>& mcenter, double mrad, double mhlen) : rad(mrad), hlen(mhlen) {}
+    ChCapsule(double radius, double halflength) : rad(radius), hlen(halflength) {}
     ChCapsule(const ChCapsule& source);
     ~ChCapsule() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChCapsule* Clone() const override { return new ChCapsule(*this); }
 
-    virtual GeometryType GetClassType() const override { return CAPSULE; }
+    /// Get the class type as an enum.
+    virtual Type GetClassType() const override { return Type::CAPSULE; }
 
     /// Compute bounding box along the directions defined by the given rotation matrix.
     /// Note: 'rot' currently ignored.
-    virtual void GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const override;
+    virtual AABB GetBoundingBox(const ChMatrix33<>& rot) const override;
 
     /// Returns the radius of a bounding sphere for this geometry.
     virtual double GetBoundingSphereRadius() const override;

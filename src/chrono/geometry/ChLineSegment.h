@@ -36,7 +36,8 @@ class ChApi ChLineSegment : public ChLine {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLineSegment* Clone() const override { return new ChLineSegment(*this); }
 
-    virtual GeometryType GetClassType() const override { return LINE_SEGMENT; }
+    /// Get the class type as an enum.
+    virtual Type GetClassType() const override { return Type::LINE_SEGMENT; }
 
     virtual int Get_complexity() const override { return 2; }
 

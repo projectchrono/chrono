@@ -59,9 +59,9 @@ void ChBoundary::UpdatePlane(size_t id, const ChVector2<>& lengths) {
     m_planes[id].m_hlen = lengths * 0.5;
 
     if (m_planes[id].m_vis_box) {
-        double hthick = m_planes[id].m_vis_box->GetBoxGeometry().Size.z();
+        double hthick = m_planes[id].m_vis_box->GetBoxGeometry().hlen.z();
         ChVector<> hlen(m_planes[id].m_hlen.x(), m_planes[id].m_hlen.y(), hthick);
-        m_planes[id].m_vis_box->GetBoxGeometry().Size = hlen;
+        m_planes[id].m_vis_box->GetBoxGeometry().hlen = hlen;
     }
 }
 
@@ -70,7 +70,7 @@ void ChBoundary::AddVisualization(size_t id, double thickness) {
     ChVector<> hlen(m_planes[id].m_hlen.x(), m_planes[id].m_hlen.y(), hthick);
     ChVector<> normal = m_planes[id].m_frame_loc.GetA().Get_A_Zaxis();
     auto box = chrono_types::make_shared<ChBoxShape>();
-    box->GetBoxGeometry().Size = hlen;
+    box->GetBoxGeometry().hlen = hlen;
     m_body->AddVisualShape(
         box, ChFrame<>(m_planes[id].m_frame_loc.GetPos() - normal * hthick, m_planes[id].m_frame_loc.GetRot()));
     m_planes[id].m_vis_box = box;

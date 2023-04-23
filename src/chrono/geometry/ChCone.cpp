@@ -26,9 +26,10 @@ ChCone::ChCone(const ChCone& source) {
     center = source.center;
     rad = source.rad;
 }
-void ChCone::GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const {
-    cmin = ChVector<>(-rad.x(), center.y() - rad.y() / 3.0, -rad.z());
-    cmin = ChVector<>(+rad.x(), center.y() + 2 * rad.y() / 3.0, +rad.z());
+
+ChGeometry::AABB ChCone::GetBoundingBox(const ChMatrix33<>& rot) const {
+    return AABB(ChVector<>(-rad.x(), center.y() - rad.y() / 3.0, -rad.z()),
+                ChVector<>(+rad.x(), center.y() + 2 * rad.y() / 3.0, +rad.z()));
 }
 
 void ChCone::ArchiveOUT(ChArchiveOut& marchive) {

@@ -106,21 +106,20 @@ void ChTriangleMeshConnected::Clear() {
     m_properties_per_vertex.clear();
 }
 
-void ChTriangleMeshConnected::GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const {
-    cmin = ChVector<>(+std::numeric_limits<double>::max());
-    cmax = ChVector<>(-std::numeric_limits<double>::max());
-
+ChGeometry::AABB ChTriangleMeshConnected::GetBoundingBox(const ChMatrix33<>& rot) const {
+    AABB bbox;
     for (const auto& v : m_vertices) {
         auto p = rot.transpose() * v;
 
-        cmin.x() = ChMin(cmin.x(), p.x());
-        cmin.y() = ChMin(cmin.y(), p.y());
-        cmin.z() = ChMin(cmin.z(), p.z());
+        bbox.min.x() = ChMin(bbox.min.x(), p.x());
+        bbox.min.y() = ChMin(bbox.min.y(), p.y());
+        bbox.min.z() = ChMin(bbox.min.z(), p.z());
 
-        cmax.x() = ChMax(cmax.x(), p.x());
-        cmax.y() = ChMax(cmax.y(), p.y());
-        cmax.z() = ChMax(cmax.z(), p.z());
+        bbox.max.x() = ChMax(bbox.max.x(), p.x());
+        bbox.max.y() = ChMax(bbox.max.y(), p.y());
+        bbox.max.z() = ChMax(bbox.max.z(), p.z());
     }
+    return bbox;
 }
 
 // Following function is a modified version of:

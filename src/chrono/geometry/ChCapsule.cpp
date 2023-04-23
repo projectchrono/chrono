@@ -27,9 +27,8 @@ ChCapsule::ChCapsule(const ChCapsule& source) {
     hlen = source.hlen;
 }
 
-void ChCapsule::GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const {
-    cmin = ChVector<>(-rad, -(rad + hlen), -rad);
-    cmin = ChVector<>(+rad, +(rad + hlen), +rad);
+ChGeometry::AABB ChCapsule::GetBoundingBox(const ChMatrix33<>& rot) const {
+    return AABB(ChVector<>(-rad, -(rad + hlen), -rad), ChVector<>(+rad, +(rad + hlen), +rad));
 }
 
 double ChCapsule::GetBoundingSphereRadius() const {

@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
 
                 // Attach small cube to show the constraint
                 auto box = chrono_types::make_shared<ChBoxShape>();
-                box->GetBoxGeometry().Size = ChVector<>(0.005);
+                box->GetBoxGeometry().hlen = ChVector<>(0.005);
                 constraint->AddVisualShape(box);
             }
         }

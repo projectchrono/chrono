@@ -332,7 +332,7 @@ void ChOpenGLViewer::DrawVisualModel(std::shared_ptr<ChPhysicsItem> item) {
             model = glm::scale(model, glm::vec3(radius.x(), radius.y(), radius.z()));
             model_sphere.push_back(model);
         } else if (ChBoxShape* box_shape = dynamic_cast<ChBoxShape*>(shape.get())) {
-            Vector size = box_shape->GetBoxGeometry().Size;
+            Vector size = box_shape->GetBoxGeometry().hlen;
 
             model = glm::translate(glm::mat4(1), glm::vec3(pos.x(), pos.y(), pos.z()));
             model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));

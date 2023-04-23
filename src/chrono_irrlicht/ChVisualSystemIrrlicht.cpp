@@ -932,7 +932,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(ISceneNode* node,
                 ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(cubeMesh, mproxynode);
                 mproxynode->drop();
 
-                mchildnode->setScale(core::vector3dfCH(box->GetBoxGeometry().Size));
+                mchildnode->setScale(core::vector3dfCH(box->GetBoxGeometry().hlen));
                 mchildnode->setPosition(shape_m4.getTranslation());
                 mchildnode->setRotation(shape_m4.getRotationDegrees());
 

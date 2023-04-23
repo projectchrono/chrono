@@ -39,7 +39,8 @@ class ChApi ChLineBezier : public ChLine {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLineBezier* Clone() const override { return new ChLineBezier(*this); }
 
-    virtual GeometryType GetClassType() const override { return LINE_BEZIER; }
+    /// Get the class type as an enum.
+    virtual Type GetClassType() const override { return Type::LINE_BEZIER; }
 
     virtual void Set_closed(bool mc) override {}
     virtual void Set_complexity(int mc) override {}

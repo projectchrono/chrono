@@ -36,7 +36,8 @@ class ChApi ChLinePoly : public ChLine {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinePoly* Clone() const override { return new ChLinePoly(*this); }
 
-    virtual GeometryType GetClassType() const override { return LINE_POLY; }
+    /// Get the class type as an enum.
+    virtual Type GetClassType() const override { return Type::LINE_POLY; }
 
     virtual int Get_complexity() const override { return (int)points.size(); }
     virtual void Set_complexity(int mc) override{};
