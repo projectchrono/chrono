@@ -41,6 +41,9 @@ class ChApiParsers ChParserURDF {
                const std::string& filename  ///< URDF input file name
     );
 
+    /// Get model name
+    const std::string& GetModelName() const { return m_model->getName(); }
+
     /// Print body tree from parsed URDF file.
     void PrintModelTree();
 
