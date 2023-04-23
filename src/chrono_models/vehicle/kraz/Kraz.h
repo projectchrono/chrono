@@ -22,7 +22,8 @@
 #include "chrono_models/ChApiModels.h"
 
 #include "chrono_models/vehicle/kraz/Kraz_tractor.h"
-#include "chrono_models/vehicle/kraz/Kraz_tractor_Powertrain.h"
+#include "chrono_models/vehicle/kraz/Kraz_tractor_EngineSimpleMap.h"
+#include "chrono_models/vehicle/kraz/Kraz_tractor_AutomaticTransmissionSimpleMap.h"
 #include "chrono_models/vehicle/kraz/Kraz_tractor_Tire.h"
 #include "chrono_models/vehicle/kraz/Kraz_trailer.h"
 #include "chrono_models/vehicle/kraz/Kraz_trailer_Tire.h"
@@ -82,6 +83,9 @@ class CH_MODELS_API Kraz {
     ChCoordsys<> m_initPos;
     double m_initFwdVel;
     std::vector<double> m_initOmega;
+
+    EngineModelType m_engineType;
+    TransmissionModelType m_transmissionType;
 
     ChSystem* m_system;
     Kraz_tractor* m_tractor;

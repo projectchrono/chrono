@@ -12,7 +12,7 @@
 // Authors: Radu Serban, Rainer Gericke
 // =============================================================================
 //
-// Simple powertrain model for the Kraz tractor vehicle.
+// Simple EngineSimpleMap model for the Kraz tractor vehicle.
 // - based on torque-speed engine maps
 // - both power and torque limited
 // - no torque converter
@@ -20,7 +20,7 @@
 //
 // =============================================================================
 
-#include "chrono_models/vehicle/kraz/Kraz_tractor_Powertrain.h"
+#include "chrono_models/vehicle/kraz/Kraz_tractor_EngineSimpleMap.h"
 
 namespace chrono {
 namespace vehicle {
@@ -28,13 +28,13 @@ namespace kraz {
 
 const double rpm2rads = CH_C_PI / 30;
 
-Kraz_tractor_Powertrain::Kraz_tractor_Powertrain(const std::string& name) : ChSimpleMapPowertrain(name) {}
+Kraz_tractor_EngineSimpleMap::Kraz_tractor_EngineSimpleMap(const std::string& name) : ChEngineSimpleMap(name) {}
 
-double Kraz_tractor_Powertrain::GetMaxEngineSpeed() {
+double Kraz_tractor_EngineSimpleMap::GetMaxEngineSpeed() {
     return 2700 * rpm2rads;
 }
 
-void Kraz_tractor_Powertrain::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) {
+void Kraz_tractor_EngineSimpleMap::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) {
     map0.AddPoint(-10.472, 0.000);
     map0.AddPoint(83.776, -20.0);
     map0.AddPoint(104.720, -20.0);
@@ -63,28 +63,6 @@ void Kraz_tractor_Powertrain::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChF
     mapF.AddPoint(2300 * rpm2rads, 682 * tune);
     mapF.AddPoint(2500 * rpm2rads, -271.2 * tune);
     mapF.AddPoint(2400 * rpm2rads, -800.0 * tune);
-}
-
-void Kraz_tractor_Powertrain::SetGearRatios(std::vector<double>& fwd, double& rev) {
-    rev = -0.162337662;
-
-    fwd.push_back(0.162337662);
-    fwd.push_back(0.220750552);
-    fwd.push_back(0.283286119);
-    fwd.push_back(0.414937759);
-    fwd.push_back(0.571428571);
-    fwd.push_back(0.78125);
-    fwd.push_back(1.0);
-}
-
-void Kraz_tractor_Powertrain::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {
-    shift_bands.push_back(std::pair<double, double>(1000 * rpm2rads, 2226 * rpm2rads));
-    shift_bands.push_back(std::pair<double, double>(1000 * rpm2rads, 2226 * rpm2rads));
-    shift_bands.push_back(std::pair<double, double>(1000 * rpm2rads, 2225 * rpm2rads));
-    shift_bands.push_back(std::pair<double, double>(1000 * rpm2rads, 2210 * rpm2rads));
-    shift_bands.push_back(std::pair<double, double>(1000 * rpm2rads, 2226 * rpm2rads));
-    shift_bands.push_back(std::pair<double, double>(1000 * rpm2rads, 2225 * rpm2rads));
-    shift_bands.push_back(std::pair<double, double>(1000 * rpm2rads, 2700 * rpm2rads));
 }
 
 }  // end namespace kraz

@@ -742,6 +742,8 @@ set(CVM_KRAZ_FILES
     kraz/Kraz.h
     kraz/Kraz_tractor.cpp
     kraz/Kraz_tractor.h
+    kraz/Kraz_tractor_AutomaticTransmissionSimpleMap.cpp
+    kraz/Kraz_tractor_AutomaticTransmissionSimpleMap.h
     kraz/Kraz_tractor_Brake.cpp
     kraz/Kraz_tractor_Brake.h
     kraz/Kraz_tractor_Chassis.cpp
@@ -750,8 +752,8 @@ set(CVM_KRAZ_FILES
     kraz/Kraz_tractor_Driveline.h
     kraz/Kraz_tractor_FrontSuspension.cpp
     kraz/Kraz_tractor_FrontSuspension.h
-    kraz/Kraz_tractor_Powertrain.cpp
-    kraz/Kraz_tractor_Powertrain.h
+    kraz/Kraz_tractor_EngineSimpleMap.cpp
+    kraz/Kraz_tractor_EngineSimpleMap.h
     kraz/Kraz_tractor_RearSuspension.cpp
     kraz/Kraz_tractor_RearSuspension.h
     kraz/Kraz_tractor_Steering.cpp
