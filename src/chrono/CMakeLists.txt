@@ -741,43 +741,6 @@ source_group(collision FILES
     ${ChronoEngine_collision_SOURCES}
     ${ChronoEngine_collision_HEADERS})
 
-# Edgetempest group
-
-set(ChronoEngine_collision_edgetempest_SOURCES
-    collision/edgetempest/ChCCollisionTree.cpp
-    collision/edgetempest/ChCOBBTree.cpp
-    collision/edgetempest/ChCAABBTree.cpp
-    collision/edgetempest/ChCOBB.cpp
-    collision/edgetempest/ChCAABB.cpp
-    collision/edgetempest/ChCOBBcollider.cpp
-    collision/edgetempest/ChCAABBcollider.cpp
-    collision/edgetempest/ChCNarrowPhaseCollider.cpp
-    collision/edgetempest/ChCGeometryCollider.cpp
-    )
-
-set(ChronoEngine_collision_edgetempest_HEADERS
-    collision/edgetempest/ChCAABB.h
-    collision/edgetempest/ChCAABBcollider.h
-    collision/edgetempest/ChCAABBTree.h
-    collision/edgetempest/ChCAbsoluteAABB.h
-    collision/edgetempest/ChCBroadPhaseCollider.h
-    collision/edgetempest/ChCBruteForce.h
-    collision/edgetempest/ChCCollisionTree.h
-    collision/edgetempest/ChCCompile.h
-    collision/edgetempest/ChCGeometryCollider.h
-    collision/edgetempest/ChCGetTime.h
-    collision/edgetempest/ChCMates.h
-    collision/edgetempest/ChCMatVec.h
-    collision/edgetempest/ChCNarrowPhaseCollider.h
-    collision/edgetempest/ChCOBB.h
-    collision/edgetempest/ChCOBBcollider.h
-    collision/edgetempest/ChCOBBTree.h
-    collision/edgetempest/ChCSweepAndPrune.h
-    )
-
-source_group(collision\\edgetempest FILES
-    ${ChronoEngine_collision_edgetempest_SOURCES}
-    ${ChronoEngine_collision_edgetempest_HEADERS})
 
 # Particle factory group
 
@@ -1347,8 +1310,6 @@ set(ChronoEngine_FILES
     ${ChronoEngine_geometry_HEADERS}
     ${ChronoEngine_assets_SOURCES}
     ${ChronoEngine_assets_HEADERS}
-    ${ChronoEngine_collision_edgetempest_SOURCES}
-    ${ChronoEngine_collision_edgetempest_HEADERS}
     ${ChronoEngine_collision_convexdecompHACD_SOURCES}
     ${ChronoEngine_collision_convexdecompHACDv2_SOURCES}
     ${ChronoEngine_particlefactory_SOURCES}
