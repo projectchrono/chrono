@@ -96,8 +96,7 @@ TEST(ChronoMulticore, bodyauxref) {
     sys->AddBody(ground);
 
     // Attach a visualization asset representing the Y axis.
-    auto box = chrono_types::make_shared<ChBoxShape>();
-    box->GetBoxGeometry().Size = ChVector<>(0.02, 3, 0.02);
+    auto box = chrono_types::make_shared<ChBoxShape>(0.04, 6, 0.04);
     ground->AddVisualShape(box);
 
     // Create a pendulum modeled using ChBody

@@ -202,7 +202,7 @@ rapidjson::Value VisualModel2Val(std::shared_ptr<ChVisualModel> model, rapidjson
             obj.AddMember("radius", rad, allocator);
             obj.AddMember("length", len, allocator);
         } else if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
-            const auto& len = box->GetBoxGeometry().GetLengths();
+            const auto& len = box->GetLengths();
             obj.AddMember("type", "BOX", allocator);
             obj.AddMember("center", Vec2Val(frame.GetPos(), allocator), allocator);
             obj.AddMember("orientation", Quat2Val(frame.GetRot(), allocator), allocator);

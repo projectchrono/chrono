@@ -425,9 +425,8 @@ void GranularTerrain::Initialize(const ChVector<>& center,
 
     // If enabled, create visualization assets for the boundaries.
     if (m_vis_enabled) {
-        auto box = chrono_types::make_shared<ChBoxShape>();
         double hthick = 0.05;
-        box->GetBoxGeometry().hlen = ChVector<>(length / 2, width / 2, hthick);
+        auto box = chrono_types::make_shared<ChBoxShape>(length, width, 2 * hthick);
         m_ground->AddVisualShape(box, ChFrame<>(ChVector<>(0, 0, -hthick)));
     }
 

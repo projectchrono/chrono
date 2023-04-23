@@ -90,8 +90,7 @@ int main(int argc, char* argv[]) {
     sys.Add(floor);
 
     // ==Asset== attach a 'box' shape.
-    auto boxfloor = chrono_types::make_shared<ChBoxShape>();
-    boxfloor->GetBoxGeometry().hlen = ChVector<>(10, 0.5, 10);
+    auto boxfloor = chrono_types::make_shared<ChBoxShape>(20, 1, 20);
     boxfloor->SetColor(ChColor(0.3f, 0.3f, 0.6f));
     floor->AddVisualShape(boxfloor, ChFrame<>(ChVector<>(0, -1, 0)));
 
@@ -109,8 +108,7 @@ int main(int argc, char* argv[]) {
     sys.Add(body);
 
     // ==Asset== Attach a 'box' shape
-    auto mbox = chrono_types::make_shared<ChBoxShape>();
-    mbox->GetBoxGeometry().hlen = ChVector<>(0.2, 0.5, 0.1);
+    auto mbox = chrono_types::make_shared<ChBoxShape>(0.4, 1.0, 0.2);
     body->AddVisualShape(mbox, ChFrame<>(ChVector<>(1, 0, 0)));
 
     // ==Asset== Attach a 'cylinder' shape
@@ -141,8 +139,7 @@ int main(int argc, char* argv[]) {
 
     // ==Asset== Attach an array of boxes, each rotated to make a spiral
     for (int j = 0; j < 20; j++) {
-        auto smallbox = chrono_types::make_shared<ChBoxShape>();
-        smallbox->GetBoxGeometry().hlen = ChVector<>(0.1, 0.1, 0.01);
+        auto smallbox = chrono_types::make_shared<ChBoxShape>(0.2, 0.2, 0.02);
         smallbox->SetColor(ChColor(j * 0.05f, 1 - j * 0.05f, 0.0f));
         ChMatrix33<> rot(Q_from_AngY(j * 21 * CH_C_DEG_TO_RAD));
         ChVector<> pos = rot * ChVector<>(0.4, 0, 0) + ChVector<>(0, j * 0.02, 0);

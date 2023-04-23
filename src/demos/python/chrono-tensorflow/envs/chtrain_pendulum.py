@@ -97,8 +97,7 @@ class Model(object):
 
 
       if self.render:
-             self.body_floor_shape = chrono.ChBoxShape()
-             self.body_floor_shape.GetBoxGeometry().Size = chrono.ChVectorD(3, 1, 3)
+             self.body_floor_shape = chrono.ChBoxShape(6, 2, 6)
              self.body_floor_shape.SetTexture(chrono.GetChronoDataFile('textures/concrete.jpg'))
              self.body_floor.AddVisualShape(self.body_floor_shape)
 
@@ -111,8 +110,7 @@ class Model(object):
 
 
       if self.render:
-             self.body_table_shape = chrono.ChBoxShape()
-             self.body_table_shape.GetBoxGeometry().Size = chrono.ChVectorD(self.size_table_x/2, self.size_table_y/2, self.size_table_z/2)
+             self.body_table_shape = chrono.ChBoxShape(self.size_table_x, self.size_table_y, self.size_table_z)
              self.body_table_shape.SetColor(chrono.ChColor(0.4,0.4,0.5))
              self.body_table_shape.SetTexture(chrono.GetChronoDataFile('textures/concrete.jpg'))
              self.body_table.AddVisualShape(self.body_table_shape)

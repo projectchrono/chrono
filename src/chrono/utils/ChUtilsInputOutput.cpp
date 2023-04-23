@@ -410,7 +410,7 @@ void WriteVisualizationAssets(ChSystem* system,
                 gss << ELLIPSOID << delim << size.x() << delim << size.y() << delim << size.z();
                 a_count++;
             } else if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
-                const Vector& hlen = box->GetBoxGeometry().hlen;
+                const Vector& hlen = box->GetHalflengths();
                 gss << BOX << delim << hlen.x() << delim << hlen.y() << delim << hlen.z();
                 a_count++;
             } else if (auto capsule = std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {

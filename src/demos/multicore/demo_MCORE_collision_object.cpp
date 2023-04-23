@@ -305,8 +305,7 @@ int main(int argc, char* argv[]) {
     ground->GetCollisionModel()->AddBox(ground_mat, hx, hy, hz, ChVector<>(0, -hy, 0));
     ground->GetCollisionModel()->BuildModel();
 
-    auto box = chrono_types::make_shared<ChBoxShape>();
-    box->GetBoxGeometry().hlen = ChVector<>(hx, hy, hz);
+    auto box = chrono_types::make_shared<ChBoxShape>(2 * hx, 2 * hy, 2 * hz);
     box->SetTexture(GetChronoDataFile("textures/checker1.png"), 4, 2);
     ground->AddVisualShape(box, ChFrame<>(ChVector<>(0, -hy, 0), QUNIT));
 

@@ -45,12 +45,10 @@ int main(int argc, char* argv[]) {
     ground->SetBodyFixed(true);
     ground->SetCollide(false);
 
-    auto rail1 = chrono_types::make_shared<ChBoxShape>();
-    rail1->GetBoxGeometry().SetLengths(ChVector<>(8, 0.1, 0.1));
+    auto rail1 = chrono_types::make_shared<ChBoxShape>(8, 0.1, 0.1);
     ground->AddVisualShape(rail1, ChFrame<>(ChVector<>(0, 0, -1), QUNIT));
 
-    auto rail2 = chrono_types::make_shared<ChBoxShape>();
-    rail2->GetBoxGeometry().SetLengths(ChVector<>(8, 0.1, 0.1));
+    auto rail2 = chrono_types::make_shared<ChBoxShape>(8, 0.1, 0.1);
     ground->AddVisualShape(rail2, ChFrame<>(ChVector<>(0, 0, +1), QUNIT));
 
     // Create the slider bodies

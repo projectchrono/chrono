@@ -248,8 +248,7 @@ void ChTrackShoeDoublePin::AddConnectorVisualization2(std::shared_ptr<ChBody> co
     cyl_front->GetCylinderGeometry().rad = c_radius;
     connector->AddVisualShape(cyl_front);
 
-    auto box = chrono_types::make_shared<ChBoxShape>();
-    box->GetBoxGeometry().SetLengths(ChVector<>(c_length, c_width, 2 * c_radius));
+    auto box = chrono_types::make_shared<ChBoxShape>(c_length, c_width, 2 * c_radius);
     connector->AddVisualShape(box, ChFrame<>());
 }
 
@@ -282,8 +281,7 @@ void ChTrackShoeDoublePin::AddConnectorVisualization1(std::shared_ptr<ChBody> co
         cyl_front->AddMaterial(mat);
         connector->AddVisualShape(cyl_front);
 
-        auto box = chrono_types::make_shared<ChBoxShape>();
-        box->GetBoxGeometry().SetLengths(ChVector<>(c_length, c_width, 2 * c_radius));
+        auto box = chrono_types::make_shared<ChBoxShape>(c_length, c_width, 2 * c_radius);
         box->AddMaterial(mat);
         connector->AddVisualShape(box, ChFrame<>(ChVector<>(0, +offset, 0)));
     }
@@ -303,8 +301,7 @@ void ChTrackShoeDoublePin::AddConnectorVisualization1(std::shared_ptr<ChBody> co
         cyl_front->AddMaterial(mat);
         connector->AddVisualShape(cyl_front);
 
-        auto box = chrono_types::make_shared<ChBoxShape>();
-        box->GetBoxGeometry().SetLengths(ChVector<>(c_length, c_width, 2 * c_radius));
+        auto box = chrono_types::make_shared<ChBoxShape>(c_length, c_width, 2 * c_radius);
         box->AddMaterial(mat);
         connector->AddVisualShape(box, ChFrame<>(ChVector<>(0, -offset, 0)));
     }

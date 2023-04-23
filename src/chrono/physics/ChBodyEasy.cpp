@@ -224,8 +224,7 @@ void ChBodyEasyBox::SetupBody(double Xsize,
         SetCollide(true);
     }
     if (visualize) {
-        auto vshape = chrono_types::make_shared<ChBoxShape>();
-        vshape->GetBoxGeometry().SetLengths(ChVector<>(Xsize, Ysize, Zsize));
+        auto vshape = chrono_types::make_shared<ChBoxShape>(Xsize, Ysize, Zsize);
         auto vmodel = chrono_types::make_shared<ChVisualModel>();
         vmodel->AddShape(vshape);
         this->AddVisualModel(vmodel);

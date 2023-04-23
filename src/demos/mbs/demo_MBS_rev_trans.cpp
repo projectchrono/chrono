@@ -47,8 +47,7 @@ int main(int argc, char* argv[]) {
     ground->SetCollide(false);
     ground->SetPos(ChVector<>(0, 0, -1));
 
-    auto box = chrono_types::make_shared<ChBoxShape>();
-    box->GetBoxGeometry().hlen = ChVector<>(10, 0.04, 0.06);
+    auto box = chrono_types::make_shared<ChBoxShape>(20, 0.08, 0.12);
     box->SetColor(ChColor(0, 0, 0.6f));
     ground->AddVisualShape(box, ChFrame<>(ChVector<>(5, 0, 0)));
 

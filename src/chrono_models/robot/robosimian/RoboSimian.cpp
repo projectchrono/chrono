@@ -891,8 +891,7 @@ void RS_Part::AddVisualizationAssets(VisualizationType vis) {
     }
 
     for (const auto& box : m_boxes) {
-        auto box_shape = chrono_types::make_shared<ChBoxShape>();
-        box_shape->GetBoxGeometry().SetLengths(box.m_dims);
+        auto box_shape = chrono_types::make_shared<ChBoxShape>(box.m_dims);
         box_shape->SetColor(m_color);
         m_body->AddVisualShape(box_shape, ChFrame<>(box.m_pos, box.m_rot));
     }

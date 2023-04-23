@@ -78,8 +78,7 @@ void AddFallingItems(ChSystemSMC& sys) {
                 body->GetCollisionModel()->BuildModel();
                 body->SetCollide(true);
 
-                auto box = chrono_types::make_shared<ChBoxShape>();
-                box->GetBoxGeometry().hlen = hsize;
+                auto box = chrono_types::make_shared<ChBoxShape>(hsize * 2);
                 box->SetTexture(GetChronoDataFile("textures/cubetexture_pinkwhite.png"));
                 body->AddVisualShape(box);
 
@@ -100,8 +99,7 @@ void AddContainerWall(std::shared_ptr<ChBody> body,
     body->GetCollisionModel()->AddBox(mat, hsize.x(), hsize.y(), hsize.z(), pos);
 
     if (visible) {
-        auto box = chrono_types::make_shared<ChBoxShape>();
-        box->GetBoxGeometry().hlen = hsize;
+        auto box = chrono_types::make_shared<ChBoxShape>(hsize * 2);
         box->SetMaterial(0, vis_mat);
         body->AddVisualShape(box, ChFrame<>(pos, QUNIT));
     }
@@ -148,8 +146,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemSMC& sys) {
     rotatingBody->GetCollisionModel()->AddBox(rot_mat, hsize.x(), hsize.y(), hsize.z());
     rotatingBody->GetCollisionModel()->BuildModel();
 
-    auto box = chrono_types::make_shared<ChBoxShape>();
-    box->GetBoxGeometry().hlen = hsize;
+    auto box = chrono_types::make_shared<ChBoxShape>(hsize * 2);
     box->SetTexture(GetChronoDataFile("textures/blue.png"));
     rotatingBody->AddVisualShape(box);
 

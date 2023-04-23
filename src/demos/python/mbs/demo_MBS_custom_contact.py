@@ -160,28 +160,23 @@ ground.GetCollisionModel().BuildModel()
 ground_vis_mat = chrono.ChVisualMaterial()
 ground_vis_mat.SetKdTexture(chrono.GetChronoDataFile("textures/blue.png"))
 
-vshape_1 = chrono.ChBoxShape()
-vshape_1.GetBoxGeometry().SetLengths(chrono.ChVectorD(10, 2, 10))
+vshape_1 = chrono.ChBoxShape(10, 2, 10)
 vshape_1.SetMaterial(0, ground_vis_mat)
 ground.AddVisualShape(vshape_1, chrono.ChFrameD(chrono.ChVectorD(0, -1, 0)))
 
-vshape_2 = chrono.ChBoxShape()
-vshape_2.GetBoxGeometry().SetLengths(chrono.ChVectorD(0.2, 2, 10.2))
+vshape_2 = chrono.ChBoxShape(0.2, 2, 10.2)
 vshape_2.SetMaterial(0, ground_vis_mat)
 ground.AddVisualShape(vshape_2, chrono.ChFrameD(chrono.ChVectorD(-5, 0, 0)))
 
-vshape_3 = chrono.ChBoxShape()
-vshape_3.GetBoxGeometry().SetLengths(chrono.ChVectorD(0.2, 2, 10.2))
+vshape_3 = chrono.ChBoxShape(0.2, 2, 10.2)
 vshape_3.SetMaterial(0, ground_vis_mat)
 ground.AddVisualShape(vshape_3, chrono.ChFrameD(chrono.ChVectorD(5, 0, 0)))
 
-vshape_4 = chrono.ChBoxShape()
-vshape_4.GetBoxGeometry().SetLengths(chrono.ChVectorD(10.2, 2, 0.2))
+vshape_4 = chrono.ChBoxShape(10.2, 2, 0.2)
 vshape_4.SetMaterial(0, ground_vis_mat)
 ground.AddVisualShape(vshape_4, chrono.ChFrameD(chrono.ChVectorD(0, 0, -5)))
 
-vshape_5 = chrono.ChBoxShape()
-vshape_5.GetBoxGeometry().SetLengths(chrono.ChVectorD(10.2, 2, 0.2))
+vshape_5 = chrono.ChBoxShape(10.2, 2, 0.2)
 vshape_5.SetMaterial(0, ground_vis_mat)
 ground.AddVisualShape(vshape_5, chrono.ChFrameD(chrono.ChVectorD(0, 0, 5)))
 

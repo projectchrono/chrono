@@ -420,7 +420,7 @@ void ChOptixEngine::SceneProcess(RenderThread& tself) {
 void ChOptixEngine::boxVisualization(std::shared_ptr<ChBody> body,
                                      std::shared_ptr<ChBoxShape> box_shape,
                                      ChFrame<> asset_frame) {
-    ChVector<double> size = box_shape->GetBoxGeometry().GetLengths();
+    ChVector<double> size = box_shape->GetLengths();
 
     unsigned int mat_id;
     if (box_shape->GetNumMaterials() == 0) {

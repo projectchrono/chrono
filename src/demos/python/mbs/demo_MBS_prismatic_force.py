@@ -42,13 +42,11 @@ ground.SetIdentifier(-1)
 ground.SetBodyFixed(True)
 ground.SetCollide(False)
 
-rail1 = chrono.ChBoxShape()
-rail1.GetBoxGeometry().SetLengths(chrono.ChVectorD(8, 0.1, 0.1))
+rail1 = chrono.ChBoxShape(8, 0.1, 0.1)
 rail1.SetColor(chrono.ChColor(0.6, 0.6, 0.6))
 ground.AddVisualShape(rail1, chrono.ChFrameD(chrono.ChVectorD(0, 0, -1)))
 
-rail2 = chrono.ChBoxShape()
-rail2.GetBoxGeometry().SetLengths(chrono.ChVectorD(8, 0.1, 0.1))
+rail2 = chrono.ChBoxShape(8, 0.1, 0.1)
 rail2.SetColor(chrono.ChColor(0.6, 0.6, 0.6))
 ground.AddVisualShape(rail2, chrono.ChFrameD(chrono.ChVectorD(0, 0, 1)))
 

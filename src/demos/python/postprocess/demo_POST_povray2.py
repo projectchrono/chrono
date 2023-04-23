@@ -87,8 +87,7 @@ body_floor.GetCollisionModel().BuildModel()
 body_floor.SetCollide(True)
 
 # Visualization shape
-body_floor_shape = chrono.ChBoxShape()
-body_floor_shape.GetBoxGeometry().Size = chrono.ChVectorD(0.1, 0.02, 0.1)
+body_floor_shape = chrono.ChBoxShape(0.2, 0.04, 0.2)
 body_floor_shape.SetColor(chrono.ChColor(0.5,0.5,0.5))
 body_floor.AddVisualShape(body_floor_shape)
 
@@ -112,8 +111,7 @@ for ix in range(0,2):
         body_brick.SetCollide(True)
 
         # Visualization shape
-        body_brick_shape = chrono.ChBoxShape()
-        body_brick_shape.GetBoxGeometry().Size = chrono.ChVectorD(0.01, 0.01, 0.01)
+        body_brick_shape = chrono.ChBoxShape(0.02, 0.02, 0.02)
         body_brick.AddVisualShape(body_brick_shape)
 
         my_system.Add(body_brick)

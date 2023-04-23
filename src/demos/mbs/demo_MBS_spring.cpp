@@ -106,8 +106,7 @@ int main(int argc, char* argv[]) {
     body_1->SetInertiaXX(ChVector<>(1, 1, 1));
 
     // Attach a visualization asset.
-    auto box_1 = chrono_types::make_shared<ChBoxShape>();
-    box_1->GetBoxGeometry().SetLengths(ChVector<>(1, 1, 1));
+    auto box_1 = chrono_types::make_shared<ChBoxShape>(1, 1, 1);
     box_1->SetColor(ChColor(0.6f, 0, 0));
     body_1->AddVisualShape(box_1);
 
@@ -136,8 +135,7 @@ int main(int argc, char* argv[]) {
     body_2->SetInertiaXX(ChVector<>(1, 1, 1));
 
     // Attach a visualization asset.
-    auto box_2 = chrono_types::make_shared<ChBoxShape>();
-    box_2->GetBoxGeometry().SetLengths(ChVector<>(1, 1, 1));
+    auto box_2 = chrono_types::make_shared<ChBoxShape>(1, 1, 1);
     box_2->SetColor(ChColor(0, 0, 0.6f));
     body_2->AddVisualShape(box_2);
 

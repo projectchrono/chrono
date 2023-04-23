@@ -85,8 +85,7 @@ body_1.SetMass(1)
 body_1.SetInertiaXX(chrono.ChVectorD(1, 1, 1))
 
 # Attach a visualization asset.
-box_1 = chrono.ChBoxShape()
-box_1.GetBoxGeometry().SetLengths(chrono.ChVectorD(1, 1, 1))
+box_1 = chrono.ChBoxShape(1, 1, 1)
 box_1.SetColor(chrono.ChColor(0.6, 0, 0))
 body_1.AddVisualShape(box_1)
 
@@ -115,8 +114,7 @@ body_2.SetMass(1)
 body_2.SetInertiaXX(chrono.ChVectorD(1, 1, 1))
 
 # Attach a visualization asset.
-box_2 = chrono.ChBoxShape()
-box_2.GetBoxGeometry().SetLengths(chrono.ChVectorD(1, 1, 1))
+box_2 = chrono.ChBoxShape(1, 1, 1)
 box_2.SetColor(chrono.ChColor(0, 0, 0.6))
 body_2.AddVisualShape(box_2)
 

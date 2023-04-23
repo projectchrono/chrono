@@ -123,8 +123,7 @@ int main(int argc, char* argv[]) {
     bin->GetCollisionModel()->AddBox(material, width, thickness, length);
     bin->GetCollisionModel()->BuildModel();
 
-    auto box = chrono_types::make_shared<ChBoxShape>();
-    box->GetBoxGeometry().hlen = ChVector<>(width, thickness, length);
+    auto box = chrono_types::make_shared<ChBoxShape>(width * 2, thickness * 2, length * 2);
     box->SetColor(ChColor(0.8f, 0.2f, 0.2f));
     box->SetOpacity(0.8f);
 

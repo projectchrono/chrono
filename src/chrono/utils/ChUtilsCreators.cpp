@@ -95,8 +95,7 @@ void AddBoxGeometry(ChBody* body,
             auto model = chrono_types::make_shared<ChVisualModel>();
             body->AddVisualModel(model);
         }
-        auto box = chrono_types::make_shared<ChBoxShape>();
-        box->GetBoxGeometry().hlen = size;
+        auto box = chrono_types::make_shared<ChBoxShape>(size * 2);
         box->AddMaterial(vis_material);
         body->GetVisualModel()->AddShape(box, ChFrame<>(pos, rot));
     }

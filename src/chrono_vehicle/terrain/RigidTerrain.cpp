@@ -528,9 +528,8 @@ void RigidTerrain::Initialize() {
 void RigidTerrain::BoxPatch::Initialize() {
     if (m_visualize) {
         m_body->AddVisualModel(chrono_types::make_shared<ChVisualModel>());
-        auto box = chrono_types::make_shared<ChBoxShape>();
+        auto box = chrono_types::make_shared<ChBoxShape>(2 * m_hlength, 2 * m_hwidth, 2 * m_hthickness);
         box->AddMaterial(m_vis_mat);
-        box->GetBoxGeometry().hlen = ChVector<>(m_hlength, m_hwidth, m_hthickness);
         m_body->AddVisualShape(box, ChFrame<>(ChVector<>(0, 0, -m_hthickness)));
     }
 }

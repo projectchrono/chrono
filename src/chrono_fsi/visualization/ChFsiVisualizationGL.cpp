@@ -142,8 +142,7 @@ void ChFsiVisualizationGL::Initialize() {
             auto body = std::shared_ptr<ChBody>(m_system->NewBody());
             body->SetPos(ChVector<>(0, 0, 0));
             body->SetBodyFixed(true);
-            auto sph = chrono_types::make_shared<ChBoxShape>();
-            sph->GetBoxGeometry().SetLengths(ChVector<>(m_systemFSI->GetInitialSpacing() / 2));
+            auto sph = chrono_types::make_shared<ChBoxShape>(ChVector<>(m_systemFSI->GetInitialSpacing() / 2));
             body->AddVisualShape(sph);
             m_system->AddBody(body);
         }
@@ -154,8 +153,7 @@ void ChFsiVisualizationGL::Initialize() {
             auto body = std::shared_ptr<ChBody>(m_system->NewBody());
             body->SetPos(ChVector<>(0, 0, 0));
             body->SetBodyFixed(true);
-            auto sph = chrono_types::make_shared<ChBoxShape>();
-            sph->GetBoxGeometry().SetLengths(ChVector<>(m_systemFSI->GetInitialSpacing() / 2));
+            auto sph = chrono_types::make_shared<ChBoxShape>(ChVector<>(m_systemFSI->GetInitialSpacing() / 2));
             body->AddVisualShape(sph);
             m_system->AddBody(body);
         }
@@ -166,8 +164,7 @@ void ChFsiVisualizationGL::Initialize() {
             auto body = std::shared_ptr<ChBody>(m_system->NewBody());
             body->SetPos(ChVector<>(0, 0, 0));
             body->SetBodyFixed(true);
-            auto sph = chrono_types::make_shared<ChBoxShape>();
-            sph->GetBoxGeometry().SetLengths(ChVector<>(m_systemFSI->GetInitialSpacing() / 2));
+            auto sph = chrono_types::make_shared<ChBoxShape>(ChVector<>(m_systemFSI->GetInitialSpacing() / 2));
             body->AddVisualShape(sph);
             m_system->AddBody(body);
         }

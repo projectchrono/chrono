@@ -113,28 +113,23 @@ bin.GetCollisionModel().AddBox(bin_mat, 20.99/2., 2. / 2., 1. / 2., chrono.ChVec
 bin.GetCollisionModel().AddBox(bin_mat, 20.99/2., 2. / 2., 1. / 2., chrono.ChVectorD(0, 1,  10))
 bin.GetCollisionModel().BuildModel()
 
-vshape_1 = chrono.ChBoxShape()
-vshape_1.GetBoxGeometry().SetLengths(chrono.ChVectorD(20, 1, 20))
+vshape_1 = chrono.ChBoxShape(20, 1, 20)
 vshape_1.SetMaterial(0, vis_mat_floor)
 bin.AddVisualShape(vshape_1, chrono.ChFrameD(chrono.ChVectorD(0, 0, 0)))
 
-vshape_2 = chrono.ChBoxShape()
-vshape_2.GetBoxGeometry().SetLengths(chrono.ChVectorD(1, 2, 20.99))
+vshape_2 = chrono.ChBoxShape(1, 2, 20.99)
 vshape_2.SetMaterial(0, vis_mat_floor)
 bin.AddVisualShape(vshape_2, chrono.ChFrameD(chrono.ChVectorD(-10, 1, 0)))
 
-vshape_3 = chrono.ChBoxShape()
-vshape_3.GetBoxGeometry().SetLengths(chrono.ChVectorD(1, 2, 20.99))
+vshape_3 = chrono.ChBoxShape(1, 2, 20.99)
 vshape_3.SetMaterial(0, vis_mat_floor)
 bin.AddVisualShape(vshape_3, chrono.ChFrameD(chrono.ChVectorD(10, 1, 0)))
 
-vshape_4 = chrono.ChBoxShape()
-vshape_4.GetBoxGeometry().SetLengths(chrono.ChVectorD(20.99, 2, 1))
+vshape_4 = chrono.ChBoxShape(20.99, 2, 1)
 vshape_4.SetMaterial(0, vis_mat_floor)
 bin.AddVisualShape(vshape_4, chrono.ChFrameD(chrono.ChVectorD(0, 1, -10)))
 
-vshape_5 = chrono.ChBoxShape()
-vshape_5.GetBoxGeometry().SetLengths(chrono.ChVectorD(20.99, 2, 1))
+vshape_5 = chrono.ChBoxShape(20.99, 2, 1)
 vshape_5.SetMaterial(0, vis_mat_floor)
 bin.AddVisualShape(vshape_5, chrono.ChFrameD(chrono.ChVectorD(0, 1, 10)))
 

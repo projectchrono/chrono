@@ -957,15 +957,14 @@ void ChBlender::ExportItemState(ChStreamOutAsciiFile& state_file,
 
                 // corner cases for performance reason (in case of multipe sphere asset with different radii, one blender mesh asset is used anyway, then use scale here)
                 if (auto mshpere = std::dynamic_pointer_cast<ChSphereShape>(shape))
-                    aux_scale = ChVector<>(mshpere->GetSphereGeometry().rad, mshpere->GetSphereGeometry().rad, mshpere->GetSphereGeometry().rad);
-                if (auto mellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(shape))
-                    aux_scale = ChVector<>(mellipsoid->GetEllipsoidGeometry().rad.x(), mellipsoid->GetEllipsoidGeometry().rad.y(), mellipsoid->GetEllipsoidGeometry().rad.z());
-                if (auto mbox = std::dynamic_pointer_cast<ChBoxShape>(shape))
-                    aux_scale = ChVector<>(mbox->GetBoxGeometry().GetLengths().x(), mbox->GetBoxGeometry().GetLengths().y(), mbox->GetBoxGeometry().GetLengths().z());
-                if (auto mcone = std::dynamic_pointer_cast<ChConeShape>(shape)) {
-                    aux_scale = ChVector<>(mcone->GetConeGeometry().rad.x(), mcone->GetConeGeometry().rad.y(), mcone->GetConeGeometry().rad.z());
-                }
-                if (auto mcyl = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
+                    aux_scale = ChVector<>(mshpere->GetSphereGeometry().rad);
+                else if (auto mellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(shape))
+                    aux_scale = mellipsoid->GetEllipsoidGeometry().rad;
+                else if (auto mbox = std::dynamic_pointer_cast<ChBoxShape>(shape))
+                    aux_scale = mbox->GetLengths();
+                else if (auto mcone = std::dynamic_pointer_cast<ChConeShape>(shape))
+                    aux_scale = mcone->GetConeGeometry().rad;
+                else if (auto mcyl = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
                     aux_scale = ChVector<>(mcyl->GetCylinderGeometry().rad, mcyl->GetCylinderGeometry().rad, (mcyl->GetCylinderGeometry().p2 - mcyl->GetCylinderGeometry().p1).Length());
                     ChVector<> mdir = mcyl->GetCylinderGeometry().p2 - mcyl->GetCylinderGeometry().p1;
                     ChMatrix33<> mmatr; mmatr.Set_A_Xdir(mdir);

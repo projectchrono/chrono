@@ -92,8 +92,7 @@ int main(int argc, char* argv[]) {
     // Add visualization assets to represent the shaft (a box) and the arm of the
     // universal joint's cross associated with this shaft (a cylinder)
     {
-        auto box_1 = chrono_types::make_shared<ChBoxShape>();
-        box_1->GetBoxGeometry().hlen = ChVector<>(0.15, 0.15, 0.9 * hl);
+        auto box_1 = chrono_types::make_shared<ChBoxShape>(0.3, 0.3, 1.8 * hl);
         box_1->SetColor(ChColor(0.6f, 0, 0));
         shaft_1->AddVisualShape(box_1);
 
@@ -124,8 +123,7 @@ int main(int argc, char* argv[]) {
     // Add visualization assets to represent the shaft (a box) and the arm of the
     // universal joint's cross associated with this shaft (a cylinder)
     {
-        auto box_1 = chrono_types::make_shared<ChBoxShape>();
-        box_1->GetBoxGeometry().hlen = ChVector<>(0.15, 0.15, 0.9 * hl);
+        auto box_1 = chrono_types::make_shared<ChBoxShape>(0.3, 0.3, 1.8 * hl);
         box_1->SetColor(ChColor(0, 0, 0.6f));
         shaft_2->AddVisualShape(box_1);
 

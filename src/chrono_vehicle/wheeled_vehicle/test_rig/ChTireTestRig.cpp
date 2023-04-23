@@ -250,8 +250,7 @@ void ChTireTestRig::CreateMechanism() {
     m_ground_body->SetIdentifier(0);
     m_ground_body->SetBodyFixed(true);
     {
-        auto box = chrono_types::make_shared<ChBoxShape>();
-        box->GetBoxGeometry().SetLengths(ChVector<>(100, dim / 3, dim / 3));
+        auto box = chrono_types::make_shared<ChBoxShape>(100, dim / 3, dim / 3);
         m_ground_body->AddVisualShape(box);
     }
 
@@ -273,8 +272,7 @@ void ChTireTestRig::CreateMechanism() {
         cyl->AddMaterial(mat);
         m_carrier_body->AddVisualShape(cyl);
 
-        auto box = chrono_types::make_shared<ChBoxShape>();
-        box->GetBoxGeometry().SetLengths(ChVector<>(dim / 3, dim / 3, 10 * dim));
+        auto box = chrono_types::make_shared<ChBoxShape>(dim / 3, dim / 3, 10 * dim);
         box->AddMaterial(mat);
         m_carrier_body->AddVisualShape(box, ChFrame<>(ChVector<>(0, 0, -5 * dim)));
     }
@@ -314,8 +312,7 @@ void ChTireTestRig::CreateMechanism() {
         auto mat = chrono_types::make_shared<ChVisualMaterial>();
         mat->SetDiffuseColor({0.2f, 0.8f, 0.2f});
 
-        auto box = chrono_types::make_shared<ChBoxShape>();
-        box->GetBoxGeometry().SetLengths(ChVector<>(4 * dim, dim, 4 * dim));
+        auto box = chrono_types::make_shared<ChBoxShape>(4 * dim, dim, 4 * dim);
         box->AddMaterial(mat);
         m_slip_body->AddVisualShape(box);
     }

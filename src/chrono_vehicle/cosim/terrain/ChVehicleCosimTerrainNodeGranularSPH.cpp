@@ -243,8 +243,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
 
 #ifdef CHRONO_OPENGL
     // Add visualization asset for the container
-    auto box = chrono_types::make_shared<ChBoxShape>();
-    box->GetBoxGeometry().Size = ChVector<>(m_hdimX, m_hdimY, m_depth / 2);
+    auto box = chrono_types::make_shared<ChBoxShape>(2 * m_hdimX, 2 * m_hdimY, m_depth);
     container->AddVisualShape(box, ChFrame<>(ChVector<>(0, 0, m_depth / 2)));
 
     // Create the visualization window

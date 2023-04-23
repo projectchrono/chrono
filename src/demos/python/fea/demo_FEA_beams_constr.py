@@ -57,10 +57,8 @@ body_truss.SetBodyFixed(True)
 sys.AddBody(body_truss)
 
 # Attach a 'box' shape asset for visualization.
-boxtruss = chrono.ChBoxShape()
-boxtruss.GetBoxGeometry().Pos = chrono.ChVectorD(-0.01, 0, 0)
-boxtruss.GetBoxGeometry().SetLengths(chrono.ChVectorD(0.02, 0.2, 0.1))
-body_truss.AddVisualShape(boxtruss)
+boxtruss = chrono.ChBoxShape(0.02, 0.2, 0.1)
+body_truss.AddVisualShape(boxtruss, chrono.ChFrameD(chrono.ChVectorD(-0.01, 0, 0), chrono.QUNIT))
 
 # Create body for crank
 body_crank = chrono.ChBody()
@@ -69,9 +67,7 @@ body_crank.SetPos((vB + vG) * 0.5)
 sys.AddBody(body_crank)
 
 # Attach a 'box' shape asset for visualization.
-boxcrank = chrono.ChBoxShape()
-boxcrank.GetBoxGeometry().Pos = chrono.ChVectorD(0, 0, 0)
-boxcrank.GetBoxGeometry().SetLengths(chrono.ChVectorD(K, 0.02, 0.02))
+boxcrank = chrono.ChBoxShape(K, 0.02, 0.02)
 body_crank.AddVisualShape(boxcrank)
 
 motor = chrono.ChLinkMotorRotationAngle()

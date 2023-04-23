@@ -77,8 +77,7 @@ shaft_1.SetRot(chrono.ChQuaternionD(1, 0, 0, 0))
 
 # Add visualization assets to represent the shaft (a box) and the arm of the
 # universal joint's cross associated with this shaft (a cylinder)
-box_1 = chrono.ChBoxShape()
-box_1.GetBoxGeometry().Size = chrono.ChVectorD(0.15, 0.15, 0.9 * hl)
+box_1 = chrono.ChBoxShape(0.3, 0.3, 1.8 * hl)
 shaft_1.AddVisualShape(box_1)
 
 cyl_2 = chrono.ChCylinderShape()
@@ -106,8 +105,7 @@ shaft_2.SetRot(rot)
 
 # Add visualization assets to represent the shaft (a box) and the arm of the
 # universal joint's cross associated with this shaft (a cylinder)
-box_1 = chrono.ChBoxShape()
-box_1.GetBoxGeometry().Size = chrono.ChVectorD(0.15, 0.15, 0.9 * hl)
+box_1 = chrono.ChBoxShape(0.3, 0.3, 1.8 * hl)
 shaft_2.AddVisualShape(box_1)
 
 cyl_2 = chrono.ChCylinderShape()

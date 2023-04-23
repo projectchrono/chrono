@@ -49,10 +49,10 @@ class ChApi ChBox : public ChVolume {
     virtual int GetManifoldDimension() const override { return 3; }
 
     /// Get the box half-lengths.
-    ChVector<>& GetSize() { return hlen; }
+    const ChVector<>& GetHalflengths() const { return hlen; }
 
     /// Get the x, y, and z lengths of this box.
-    ChVector<> GetLengths() { return 2.0 * hlen; }
+    ChVector<> GetLengths() const { return 2.0 * hlen; }
 
     /// Set the x, y, and z lengths of this box.
     void SetLengths(const ChVector<>& lengths) { hlen = 0.5 * lengths; }

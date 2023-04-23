@@ -90,8 +90,7 @@ int main(int argc, char* argv[]) {
     sys.AddBody(body_truss);
 
     // Attach a 'box' shape asset for visualization.
-    auto mboxtruss = chrono_types::make_shared<ChBoxShape>();
-    mboxtruss->GetBoxGeometry().SetLengths(ChVector<>(0.02, 0.2, 0.1));
+    auto mboxtruss = chrono_types::make_shared<ChBoxShape>(0.02, 0.2, 0.1);
     body_truss->AddVisualShape(mboxtruss, ChFrame<>(ChVector<>(-0.01, 0, 0)));
 
     // Create body for crank
@@ -101,8 +100,7 @@ int main(int argc, char* argv[]) {
     sys.AddBody(body_crank);
 
     // Attach a 'box' shape asset for visualization.
-    auto mboxcrank = chrono_types::make_shared<ChBoxShape>();
-    mboxcrank->GetBoxGeometry().SetLengths(ChVector<>(K, 0.02, 0.02));
+    auto mboxcrank = chrono_types::make_shared<ChBoxShape>(K, 0.02, 0.02);
     body_crank->AddVisualShape(mboxcrank, ChFrame<>());
 
     // Create a motor between the truss and the crank:

@@ -191,8 +191,7 @@ class Model(object):
       self.body_floor.SetCollide(True)
 
     # Visualization shape
-      body_floor_shape = chrono.ChBoxShape()
-      body_floor_shape.GetBoxGeometry().Size = chrono.ChVectorD(5, 1, 5)
+      body_floor_shape = chrono.ChBoxShape(10, 2, 10)
       body_floor_shape.SetColor(chrono.ChColor(0.4,0.4,0.5))
       body_floor_shape.SetTexture(chrono.GetChronoDataFile('vehicle/terrain/textures/grass.jpg'))
       self.body_floor.AddVisualShape(body_floor_shape)   

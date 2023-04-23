@@ -97,8 +97,7 @@ void ChVehicleGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body, 
         }
 
         for (auto& box : m_coll_boxes) {
-            auto box_shape = chrono_types::make_shared<ChBoxShape>();
-            box_shape->GetBoxGeometry().SetLengths(box.m_dims);
+            auto box_shape = chrono_types::make_shared<ChBoxShape>(box.m_dims);
             body->AddVisualShape(box_shape, ChFrame<>(box.m_pos, box.m_rot));
         }
 
@@ -161,8 +160,7 @@ void ChVehicleGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body, 
         }
 
         for (auto& box : m_vis_boxes) {
-            auto box_shape = chrono_types::make_shared<ChBoxShape>();
-            box_shape->GetBoxGeometry().SetLengths(box.m_dims);
+            auto box_shape = chrono_types::make_shared<ChBoxShape>(box.m_dims);
             box_shape->AddMaterial(box_mat);
             body->AddVisualShape(box_shape, ChFrame<>(box.m_pos, box.m_rot));
         }

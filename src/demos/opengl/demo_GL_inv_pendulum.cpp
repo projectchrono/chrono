@@ -212,8 +212,7 @@ int main(int argc, char* argv[]) {
     cart->SetPos(ChVector<>(0, 0, 0));
 
     // Attach visualization assets.
-    auto box_c = chrono_types::make_shared<ChBoxShape>();
-    box_c->GetBoxGeometry().hlen = ChVector<>(0.1, 0.1, 0.1);
+    auto box_c = chrono_types::make_shared<ChBoxShape>(0.2, 0.2, 0.2);
     cart->AddVisualShape(box_c, ChFrame<>(ChVector<>(0, -0.1, 0), QUNIT));
 
     // Create the pendulum body

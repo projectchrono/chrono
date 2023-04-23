@@ -263,8 +263,7 @@ void ObsModTerrain::SetupCollision() {
         ChVector<> loc(-m_start_length / 2, 0, m_height - thickness / 2);
         m_ground->GetCollisionModel()->AddBox(m_material, 0.5 * m_start_length, 0.5 * m_width, 0.5 * thickness, loc);
 
-        auto box = chrono_types::make_shared<ChBoxShape>();
-        box->GetBoxGeometry().SetLengths(ChVector<>(m_start_length, m_width, thickness));
+        auto box = chrono_types::make_shared<ChBoxShape>(m_start_length, m_width, thickness);
         m_ground->AddVisualShape(box, ChFrame<>(loc));
 
         // we also need an end plate here
@@ -272,8 +271,7 @@ void ObsModTerrain::SetupCollision() {
         ChVector<> loc2(GetXObstacleEnd() + end_length / 2, 0, m_height - thickness / 2);
         m_ground->GetCollisionModel()->AddBox(m_material, 0.5 * end_length, 0.5 * m_width, 0.5 * thickness, loc2);
 
-        auto box2 = chrono_types::make_shared<ChBoxShape>();
-        box2->GetBoxGeometry().SetLengths(ChVector<>(end_length, m_width, thickness));
+        auto box2 = chrono_types::make_shared<ChBoxShape>(end_length, m_width, thickness);
         m_ground->AddVisualShape(box2, ChFrame<>(loc2));
     }
 
