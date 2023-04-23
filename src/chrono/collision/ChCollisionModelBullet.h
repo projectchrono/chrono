@@ -164,19 +164,6 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
         return false;
     }
 
-    /// Add a rounded cone to this collision model (default axis on Y direction).
-    virtual bool AddRoundedCone(                      //
-        std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
-        double rx,                                    ///< radius (X direction)
-        double rz,                                    ///< radius (Z direction)
-        double hy,                                    ///< half length
-        double sphere_r,                              ///< radius of sweeping sphere
-        const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
-        const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
-        ) override {
-        return false;
-    }
-
     /// Add a convex hull to this collision model. A convex hull is simply a point cloud that describe a convex
     /// polytope. Connectivity between the vertexes, as faces/edges in triangle meshes is not necessary.
     /// Points are passed as a list which is then copied into the model.

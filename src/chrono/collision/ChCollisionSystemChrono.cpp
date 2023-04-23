@@ -167,10 +167,6 @@ void ChCollisionSystemChrono::Add(ChCollisionModel* model) {
                 start = (int)shape_data.rbox_like_rigid.size();
                 shape_data.rbox_like_rigid.push_back(real4(obB, obC.x));
                 break;
-            case ChCollisionShape::Type::ROUNDEDCONE:
-                start = (int)shape_data.rbox_like_rigid.size();
-                shape_data.rbox_like_rigid.push_back(real4(obB, obC.x));
-                break;
             case ChCollisionShape::Type::CONVEX:
                 start = (int)(obB.y + convex_data_offset);
                 length = (int)obB.x;
@@ -250,9 +246,6 @@ void ChCollisionSystemChrono::Remove(ChCollisionModel* model) {
                     ERASE_MACRO_LEN(shape_data.rbox_like_rigid, start, length);
                     break;
                 case ChCollisionShape::Type::ROUNDEDCYL:
-                    ERASE_MACRO_LEN(shape_data.rbox_like_rigid, start, length);
-                    break;
-                case ChCollisionShape::Type::ROUNDEDCONE:
                     ERASE_MACRO_LEN(shape_data.rbox_like_rigid, start, length);
                     break;
                 case ChCollisionShape::Type::CONVEX:
@@ -558,8 +551,7 @@ void ChCollisionSystemChrono::GenerateAABB() {
                 real3 B = cd_data->shape_data.box_like_rigid[start];
                 ComputeAABBBox(B + envelope, local_pos, position, rotation, body_rot[id], temp_min, temp_max);
 
-            } else if (type == ChCollisionShape::Type::ROUNDEDBOX || type == ChCollisionShape::Type::ROUNDEDCYL ||
-                       type == ChCollisionShape::Type::ROUNDEDCONE) {
+            } else if (type == ChCollisionShape::Type::ROUNDEDBOX || type == ChCollisionShape::Type::ROUNDEDCYL) {
                 real4 T = cd_data->shape_data.rbox_like_rigid[start];
                 real3 B = real3(T.x, T.y, T.z) + T.w + envelope;
                 ComputeAABBBox(B, local_pos, position, rotation, body_rot[id], temp_min, temp_max);

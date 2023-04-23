@@ -331,8 +331,7 @@ enum POVRayShapeType {
     CONE = 8,
     ROUNDEDBOX = 9,
     ROUNDEDCYL = 10,
-    ROUNDEDCONE = 11,
-    BEZIER = 12
+    BEZIER = 11
 };
 
 enum POVRayLinkType {

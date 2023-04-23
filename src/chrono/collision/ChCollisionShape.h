@@ -43,7 +43,6 @@ class ChApi ChCollisionShape {
         CONE,         // Currently implemented in parallel only
         ROUNDEDBOX,   // Currently implemented in parallel only
         ROUNDEDCYL,   // Currently implemented in parallel only
-        ROUNDEDCONE,  // Currently implemented in parallel only
         CONVEX,       // Currently implemented in parallel only
         TETRAHEDRON,  // Currently implemented in parallel only
         PATH2D,

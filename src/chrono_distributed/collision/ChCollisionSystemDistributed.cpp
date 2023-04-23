@@ -223,9 +223,6 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
                 case ChCollisionShape::Type::ROUNDEDCYL:
                     shape_data.rbox_like_rigid[start] = real4(obB, obC.x);
                     break;
-                case ChCollisionShape::Type::ROUNDEDCONE:
-                    shape_data.rbox_like_rigid[start] = real4(obB, obC.x);
-                    break;
                 default:
                     ddm->my_sys->ErrorAbort("Shape not supported\n");
             }
@@ -408,9 +405,6 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
 //                     dm->shape_data.rbox_like_rigid[start] = real4(obB, obC.x);
 //                     break;
 //                 case chrono::collision::ROUNDEDCYL:
-//                     dm->shape_data.rbox_like_rigid[start] = real4(obB, obC.x);
-//                     break;
-//                 case chrono::collision::ROUNDEDCONE:
 //                     dm->shape_data.rbox_like_rigid[start] = real4(obB, obC.x);
 //                     break;
 //                 default:

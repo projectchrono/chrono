@@ -557,7 +557,6 @@ set(ChronoEngine_geometry_SOURCES
     geometry/ChTriangleMeshConnected.cpp
     geometry/ChRoundedBox.cpp
     geometry/ChRoundedCylinder.cpp
-    geometry/ChRoundedCone.cpp
     geometry/ChSurface.cpp
     geometry/ChSurfaceNurbs.cpp
     geometry/ChVolume.cpp
@@ -587,7 +586,6 @@ set(ChronoEngine_geometry_HEADERS
     geometry/ChTriangleMeshConnected.h
     geometry/ChRoundedBox.h
     geometry/ChRoundedCylinder.h
-    geometry/ChRoundedCone.h
     geometry/ChSurface.h
     geometry/ChSurfaceNurbs.h
     geometry/ChVolume.h
@@ -618,7 +616,6 @@ set(ChronoEngine_assets_SOURCES
     assets/ChGlyphs.cpp
     assets/ChRoundedCylinderShape.cpp
     assets/ChRoundedBoxShape.cpp
-    assets/ChRoundedConeShape.cpp
     assets/ChPathShape.cpp
     assets/ChLineShape.cpp
     assets/ChPointPointShape.cpp
@@ -646,7 +643,6 @@ set(ChronoEngine_assets_HEADERS
     assets/ChGlyphs.h
     assets/ChRoundedCylinderShape.h
     assets/ChRoundedBoxShape.h
-    assets/ChRoundedConeShape.h
     assets/ChPathShape.h
     assets/ChLineShape.h
     assets/ChPointPointShape.h
