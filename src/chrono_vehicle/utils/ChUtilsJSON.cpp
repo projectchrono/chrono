@@ -459,7 +459,7 @@ std::shared_ptr<ChLinkTSDA::ForceFunctor> ReadTSDAFunctorJSON(const rapidjson::V
                 double force = tsda["Spring Curve Data"][i][1u].GetDouble();
                 forceCB->add_pointK(def, force);
             }
-            int num_speeds = tsda["Dumping Curve Data"].Size();
+            int num_speeds = tsda["Damping Curve Data"].Size();
             for (int i = 0; i < num_speeds; i++) {
                 double vel = tsda["Damping Curve Data"][i][0u].GetDouble();
                 double force = tsda["Damping Curve Data"][i][1u].GetDouble();
@@ -577,7 +577,7 @@ std::shared_ptr<ChLinkRSDA::TorqueFunctor> ReadRSDAFunctorJSON(const rapidjson::
             auto torqueCB = chrono_types::make_shared<NonlinearDamperTorque>();
 
             assert(rsda["Damping Curve Data"].IsArray() && rsda["Damping Curve Data"][0u].Size() == 2);
-            int num_speeds = rsda["Dumping Curve Data"].Size();
+            int num_speeds = rsda["Damping Curve Data"].Size();
             for (int i = 0; i < num_speeds; i++) {
                 double vel = rsda["Damping Curve Data"][i][0u].GetDouble();
                 double force = rsda["Damping Curve Data"][i][1u].GetDouble();
@@ -610,7 +610,7 @@ std::shared_ptr<ChLinkRSDA::TorqueFunctor> ReadRSDAFunctorJSON(const rapidjson::
                 double force = rsda["Spring Curve Data"][i][1u].GetDouble();
                 torqueCB->add_pointK(def, force);
             }
-            int num_speeds = rsda["Dumping Curve Data"].Size();
+            int num_speeds = rsda["Damping Curve Data"].Size();
             for (int i = 0; i < num_speeds; i++) {
                 double vel = rsda["Damping Curve Data"][i][0u].GetDouble();
                 double force = rsda["Damping Curve Data"][i][1u].GetDouble();
