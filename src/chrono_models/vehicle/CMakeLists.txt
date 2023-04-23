@@ -595,6 +595,14 @@ set(CVM_GATOR_FILES
     gator/Gator_SimplePowertrain.h
     gator/Gator_SimpleMapPowertrain.cpp
     gator/Gator_SimpleMapPowertrain.h
+    gator/Gator_EngineSimpleMap.cpp
+    gator/Gator_EngineSimpleMap.h
+    gator/Gator_EngineSimple.cpp
+    gator/Gator_EngineSimple.h
+    gator/Gator_AutomaticTransmissionSimpleMap.cpp
+    gator/Gator_AutomaticTransmissionSimpleMap.h
+    gator/Gator_AutomaticTransmissionSimple.cpp
+    gator/Gator_AutomaticTransmissionSimple.h
     gator/Gator_Vehicle.h
     gator/Gator_Vehicle.cpp
     gator/Gator_Wheel.cpp
