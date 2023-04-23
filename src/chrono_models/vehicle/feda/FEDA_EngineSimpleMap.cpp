@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,18 +9,17 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Asher Elmquist
+// Authors: Radu Serban, Rainer Gericke
 // =============================================================================
 //
-// Simple powertrain model for the FEDA vehicle.
+// Simple engine model for the FEDA vehicle.
 // - based on torque-speed engine maps
 // - both power and torque limited
 // - no torque converter
-// - simple gear-shifting model (in automatic mode)
 //
 // =============================================================================
 
-#include "chrono_models/vehicle/feda/FEDA_SimpleMapPowertrain.h"
+#include "chrono_models/vehicle/feda/FEDA_EngineSimpleMap.h"
 
 namespace chrono {
 namespace vehicle {
@@ -28,13 +27,13 @@ namespace feda {
 
 const double rpm2rads = CH_C_PI / 30;
 
-FEDA_SimpleMapPowertrain::FEDA_SimpleMapPowertrain(const std::string& name) : ChSimpleMapPowertrain(name) {}
+FEDA_EngineSimpleMap::FEDA_EngineSimpleMap(const std::string& name) : ChEngineSimpleMap(name) {}
 
-double FEDA_SimpleMapPowertrain::GetMaxEngineSpeed() {
+double FEDA_EngineSimpleMap::GetMaxEngineSpeed() {
     return 2550 * rpm2rads;
 }
 
-void FEDA_SimpleMapPowertrain::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) {
+void FEDA_EngineSimpleMap::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) {
     const double limit_factor = 0.9;
 
     map0.AddPoint(-10.472, 0.000);
@@ -85,26 +84,6 @@ void FEDA_SimpleMapPowertrain::SetEngineTorqueMaps(ChFunction_Recorder& map0, Ch
     mapF.AddPoint(2500 * rpm2rads, 520 * limit_factor);
     mapF.AddPoint(2525 * rpm2rads, 505 * limit_factor);
     mapF.AddPoint(2550 * rpm2rads, 0);
-}
-
-void FEDA_SimpleMapPowertrain::SetGearRatios(std::vector<double>& fwd, double& rev) {
-    rev = -1.0 / 3.81;
-
-    fwd.push_back(1.0 / 3.74);
-    fwd.push_back(1.0 / 2.003);
-    fwd.push_back(1.0 / 1.343);
-    fwd.push_back(1.0 / 1.0);
-    fwd.push_back(1.0 / 0.773);
-    fwd.push_back(1.0 / 0.634);
-}
-
-void FEDA_SimpleMapPowertrain::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {
-    shift_bands.push_back(std::pair<double, double>(1200 * rpm2rads, 2225 * rpm2rads));
-    shift_bands.push_back(std::pair<double, double>(1200 * rpm2rads, 2225 * rpm2rads));
-    shift_bands.push_back(std::pair<double, double>(1200 * rpm2rads, 2225 * rpm2rads));
-    shift_bands.push_back(std::pair<double, double>(1200 * rpm2rads, 2225 * rpm2rads));
-    shift_bands.push_back(std::pair<double, double>(1200 * rpm2rads, 2225 * rpm2rads));
-    shift_bands.push_back(std::pair<double, double>(1200 * rpm2rads, 2700 * rpm2rads));
 }
 
 }  // namespace feda

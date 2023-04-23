@@ -38,7 +38,7 @@
 #include "chrono_thirdparty/filesystem/path.h"
 
 #ifdef CHRONO_POSTPROCESS
-#include "chrono_postprocess/ChGnuPlot.h"
+    #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
 using namespace chrono;
@@ -54,8 +54,11 @@ VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType wheel_vis_type = VisualizationType::MESH;
 
-// Type of powertrain model (SHAFTS, SIMPLE_MAP)
-PowertrainModelType powertrain_model = PowertrainModelType::SIMPLE_MAP;
+// Type of engine model (SHAFTS, SIMPLE, SIMPLE_MAP)
+EngineModelType engine_model = EngineModelType::SIMPLE_MAP;
+
+// Type of transmission model (SHAFTS, SIMPLE_MAP)
+TransmissionModelType transmission_model = TransmissionModelType::SIMPLE_MAP;
 
 // Type of tire model (PAC02, RIGID)
 TireModelType tire_model = TireModelType::PAC02;
@@ -89,7 +92,8 @@ int main(int argc, char* argv[]) {
     my_feda.SetContactMethod(ChContactMethod::SMC);
     my_feda.SetChassisFixed(false);
     my_feda.SetInitPosition(ChCoordsys<>(ChVector<>(-terrainLength / 2 + 5, 0, 0.5), ChQuaternion<>(1, 0, 0, 0)));
-    my_feda.SetPowertrainType(powertrain_model);
+    my_feda.SetEngineType(engine_model);
+    my_feda.SetTransmissionType(transmission_model);
     my_feda.SetTireType(tire_model);
     my_feda.SetBrakeType(brake_type);
     my_feda.SetTireStepSize(tire_step_size);
@@ -132,12 +136,12 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddSkyBox();
     vis->AddLogo();
-    vis->AddLight(ChVector<>(0, -30, 100), 250,    ChColor(0.7f, 0.7f, 0.7f));
-    vis->AddLight(ChVector<>(0, 50, 100), 130,     ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector<>(0, -30, 100), 250, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector<>(0, 50, 100), 130, ChColor(0.7f, 0.7f, 0.7f));
     vis->AddLight(ChVector<>(-300, -30, 100), 250, ChColor(0.7f, 0.7f, 0.7f));
-    vis->AddLight(ChVector<>(-300, 50, 100), 130,  ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector<>(-300, 50, 100), 130, ChColor(0.7f, 0.7f, 0.7f));
     vis->AddLight(ChVector<>(+300, -30, 100), 250, ChColor(0.7f, 0.7f, 0.7f));
-    vis->AddLight(ChVector<>(+300, 50, 100), 130,  ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector<>(+300, 50, 100), 130, ChColor(0.7f, 0.7f, 0.7f));
     vis->AttachVehicle(&my_feda.GetVehicle());
 
     // Prepare output
@@ -182,7 +186,7 @@ int main(int argc, char* argv[]) {
 
         double speed = speed_filter.Add(my_feda.GetVehicle().GetSpeed());
         double dist = terrainLength / 2.0 + my_feda.GetVehicle().GetPos().x();
-        int gear_pos = my_feda.GetPowertrain()->GetCurrentTransmissionGear();
+        int gear_pos = my_feda.GetTransmission()->GetCurrentGear();
         if (!done) {
             speed_recorder.AddPoint(time, speed);
             dist_recorder.AddPoint(time, dist);

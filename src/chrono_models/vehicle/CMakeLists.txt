@@ -115,6 +115,8 @@ source_group("hmmwv/powertrain" FILES ${CVM_HMMWV_POWERTRAIN_FILES})
 source_group("hmmwv/tire" FILES ${CVM_HMMWV_TIRE_FILES})
 
 set(CVM_FEDA_FILES
+    feda/FEDA_AutomaticTransmissionSimpleMap.h
+    feda/FEDA_AutomaticTransmissionSimpleMap.cpp
     feda/FEDA_AntirollBarRSD.h
     feda/FEDA_AntirollBarRSD.cpp
     feda/FEDA_BrakeSimple.cpp
@@ -123,20 +125,18 @@ set(CVM_FEDA_FILES
     feda/FEDA_BrakeShafts.h
     feda/FEDA_Chassis.cpp
     feda/FEDA_Chassis.h
-    feda/FEDA_DoubleWishbone.cpp
-    feda/FEDA_DoubleWishbone.h
     feda/FEDA_Driveline4WD.cpp
     feda/FEDA_Driveline4WD.h
+    feda/FEDA_DoubleWishbone.cpp
+    feda/FEDA_DoubleWishbone.h
+    feda/FEDA_EngineSimpleMap.cpp
+    feda/FEDA_EngineSimpleMap.h
     feda/FEDA_Pac02Tire.cpp
     feda/FEDA_Pac02Tire.h
     feda/FEDA_PitmanArm.cpp
     feda/FEDA_PitmanArm.h
     feda/FEDA_RigidTire.cpp
     feda/FEDA_RigidTire.h
-    feda/FEDA_SimpleMapPowertrain.cpp
-    feda/FEDA_SimpleMapPowertrain.h
-    feda/FEDA_Powertrain.cpp
-    feda/FEDA_Powertrain.h
     feda/FEDA_Vehicle.cpp
     feda/FEDA_Vehicle.h   
     feda/FEDA_Wheel.cpp
