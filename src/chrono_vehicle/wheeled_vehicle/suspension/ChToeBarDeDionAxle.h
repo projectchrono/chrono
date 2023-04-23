@@ -157,7 +157,11 @@ class CH_VEHICLE_API ChToeBarDeDionAxle : public ChSuspension {
         KNUCKLE_CM,   ///< knuckle, center of mass
         DRAGLINK_C,   ///< draglink, chassis
         AXLE_C,       ///< sphere link location
-        NUM_POINTS
+        WATT_CNT_LE,  ///<  spherical link location of center link to left link
+        WATT_CNT_RI,  ///<  spherical link location of center link to right link
+        WATT_LE_CH,    ///< spherical link location of left link (center link to chassis)
+        WATT_RI_CH,   ///< spherical link location of right link (center link to chassis)
+      NUM_POINTS
     };
 
     virtual void InitializeInertiaProperties() override;
@@ -187,6 +191,12 @@ class CH_VEHICLE_API ChToeBarDeDionAxle : public ChSuspension {
     virtual double getTierodMass() const = 0;
     /// Return the mass of the draglink body.
     virtual double getDraglinkMass() const = 0;
+    /// Return the mass of the Watt center link body.
+    virtual double getWattCenterMass() const = 0;
+    /// Return the mass of the Watt side link bodies (same value for both sides).
+    virtual double getWattSideMass() const = 0;
+    /// Return the radius of the Watt linkage bodies (visualization only, same value for center, left, right).
+    virtual double getWattLinkRadius() const = 0;
 
     /// Return the radius of the axle tube body (visualization only).
     virtual double getAxleTubeRadius() const = 0;
@@ -196,6 +206,10 @@ class CH_VEHICLE_API ChToeBarDeDionAxle : public ChSuspension {
     virtual double getTierodRadius() const = 0;
     /// Return the radius of the draglink body (visualization only).
     virtual double getDraglinkRadius() const = 0;
+    /// Return the moments of inertia of the Watt center body.
+    virtual const ChVector<>& getWattCenterInertia() const = 0;
+    /// Return the moments of inertia of the Watt side bodies (same value for both sides).
+    virtual const ChVector<>& getWattSideInertia() const = 0;
 
     /// Return the moments of inertia of the axle tube body.
     virtual const ChVector<>& getAxleTubeInertia() const = 0;
@@ -227,9 +241,10 @@ class CH_VEHICLE_API ChToeBarDeDionAxle : public ChSuspension {
     std::shared_ptr<ChBody> m_tierod;      ///< handles to the tierod body
     std::shared_ptr<ChBody> m_draglink;    ///< handles to the draglink body
     std::shared_ptr<ChBody> m_knuckle[2];  ///< handles to the knuckle bodies (L/R)
+    std::shared_ptr<ChBody> m_wattCenterLinkBody;  ///< handle to the Watt center link
+    std::shared_ptr<ChBody> m_wattLeftLinkBody;    ///< handle to the Watt left link
+    std::shared_ptr<ChBody> m_wattRightLinkBody;   ///< handle to the Watt right link
 
-    std::shared_ptr<ChLinkLockPointPlane>
-        m_axleTubeGuideLat;  ///< forbids translation Y, allows rotations X, Y, lateral guidance
     std::shared_ptr<ChLinkLockSpherical>
         m_axleTubeGuideLong;  ///< longitudinal guidance, forbids translations, allows rotations
     std::shared_ptr<ChLinkLockSpherical> m_sphericalTierod;    ///< knuckle-tierod spherical joint (left)
@@ -237,6 +252,12 @@ class CH_VEHICLE_API ChToeBarDeDionAxle : public ChSuspension {
     std::shared_ptr<ChLinkUniversal> m_universalDraglink;      ///< draglink-bellCrank universal joint (left)
     std::shared_ptr<ChLinkUniversal> m_universalTierod;        ///< knuckle-tierod universal joint (right)
     std::shared_ptr<ChLinkLockRevolute> m_revoluteKingpin[2];  ///< knuckle-axle tube revolute joints (L/R)
+
+    std::shared_ptr<ChLinkLockRevolute> m_wattCenterRev;
+    std::shared_ptr<ChLinkLockSpherical> m_wattLeftToCenterSph;
+    std::shared_ptr<ChLinkLockSpherical> m_wattLeftToAxleTubeSph;
+    std::shared_ptr<ChLinkLockSpherical> m_wattRightToCenterSph;
+    std::shared_ptr<ChLinkLockSpherical> m_wattRightToAxleTubeSph;
 
     std::shared_ptr<ChLinkTSDA> m_shock[2];   ///< handles to the spring links (L/R)
     std::shared_ptr<ChLinkTSDA> m_spring[2];  ///< handles to the shock links (L/R)
@@ -253,6 +274,12 @@ class CH_VEHICLE_API ChToeBarDeDionAxle : public ChSuspension {
     // Points for tierod visualization
     ChVector<> m_tierodOuterL;
     ChVector<> m_tierodOuterR;
+
+    // Points for watt mechanism visualization
+    ChVector<> m_wattOuterL;
+    ChVector<> m_wattOuterR;
+    ChVector<> m_wattLower;
+    ChVector<> m_wattUpper;
 
     // Left or right knuckle is actuated by draglink?
     bool m_left_knuckle_steers;

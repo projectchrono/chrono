@@ -35,7 +35,7 @@ cmake_dependent_option(ENABLE_IRRKLANG "Enable Irrklang library for sound" OFF
 if (ENABLE_OPENCRG)
    
    if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-      set(OpenRG_INCLUDE_DIR ""  CACHE PATH   "The directory where crgBaseLib.h resides")
+      set(OpenCRG_INCLUDE_DIR ""  CACHE PATH   "The directory where crgBaseLib.h resides")
       set(OpenCRG_LIBRARY   "" CACHE FILEPATH "The OpenCRG library")
       set(OpenCRG_DLL  "" CACHE FILEPATH "The OpenCRG DLL")
    elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -46,7 +46,7 @@ if (ENABLE_OPENCRG)
       find_library(OpenCRG_LIBRARY NAMES OpenCRG PATHS "/usr/local/lib")
    endif()
 
-   mark_as_advanced(CLEAR OpenRG_INCLUDE_DIR)
+   mark_as_advanced(CLEAR OpenCRG_INCLUDE_DIR)
    mark_as_advanced(CLEAR OpenCRG_LIBRARY)
    if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
      mark_as_advanced(CLEAR OpenCRG_DLL)

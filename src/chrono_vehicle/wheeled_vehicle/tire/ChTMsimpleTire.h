@@ -116,7 +116,7 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
     /// Generate basic tire plots.
     /// This function creates a Gnuplot script file with the specified name.
     void WritePlots(const std::string& plFileName, const std::string& plTireFormat);
-
+    
     /// Get the tire deflection.
     virtual double GetDeflection() const override { return m_data.depth; }
 

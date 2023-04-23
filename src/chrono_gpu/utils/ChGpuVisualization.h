@@ -23,6 +23,8 @@
 #include "chrono_gpu/ChApiGpu.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
 
+#include "chrono/assets/ChVisualSystem.h"
+
 #ifdef CHRONO_OPENGL
     #include "chrono_opengl/ChVisualSystemOpenGL.h"
 #endif

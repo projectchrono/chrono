@@ -88,6 +88,13 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     /// Its position is expressed in the coordinate system of body2.
     ChFrame<>& GetFrame2() { return frame2; }
 
+    /// Get the translational Lagrange multipliers, expressed in the master frame F2
+    ChVector<> GetLagrangeMultiplier_f() { return gamma_f; }
+
+    /// Get the rotational Lagrange multipliers, expressed in a ghost frame determined by the
+    /// projection matrix for \rho_F1(F2)
+    ChVector<> GetLagrangeMultiplier_m() { return gamma_m; }
+
     bool IsConstrainedX() const { return c_x; }
     bool IsConstrainedY() const { return c_y; }
     bool IsConstrainedZ() const { return c_z; }
@@ -222,6 +229,12 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     ChLinkMask mask;
 
     ChConstraintVectorX C;  ///< residuals
+
+    // The projection matrix from Lagrange multiplier to reaction torque
+    ChMatrix33<> P;
+
+    ChVector<> gamma_f;  ///< store the translational Lagrange multipliers, expressed in the master frame F2
+    ChVector<> gamma_m;  ///< store the rotational Lagrange multipliers, expressed in a ghost frame determined by the projection matrix for \rho_F1(F2)
 };
 
 CH_CLASS_VERSION(ChLinkMateGeneric, 0)

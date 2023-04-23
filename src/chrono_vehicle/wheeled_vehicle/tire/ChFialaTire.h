@@ -89,6 +89,13 @@ class CH_VEHICLE_API ChFialaTire : public ChForceElementTire {
     /// Calculate Patch Forces
     void FialaPatchForces(double& fx, double& fy, double& mz, double kappa, double alpha, double fz);
 
+    void CombinedCoulombForces(double& fx, double& fy, double fz, double muscale);
+    
+    // smooth blending of Coulomb Friction model and Fiala model
+    
+    double m_frblend_begin; // tire longitudinal velocity [m/s]
+    double m_frblend_end;   // tire longitudinal velocity [m/s]
+    
     /// Fiala tire model parameters
 
     double m_unloaded_radius;

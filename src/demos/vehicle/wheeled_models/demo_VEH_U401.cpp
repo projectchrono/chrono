@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All right reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -66,8 +66,8 @@ VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType wheel_vis_type = VisualizationType::MESH;
 VisualizationType tire_vis_type = VisualizationType::MESH;
 
-// Type of tire model (RIGID, TMEASY, PAC02)
-TireModelType tire_model = TireModelType::TMSIMPLE;
+// Type of tire model (RIGID, TMEASY, TMSIMPLE, FIALA)
+TireModelType tire_model = TireModelType::TMEASY;
 
 // Brake model (SHAFTS only!)
 BrakeType brake_model = BrakeType::SIMPLE;

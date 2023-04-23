@@ -96,6 +96,8 @@ void ChLinkMateGeneric::SetupLinkMask() {
 
     C.setZero(nc);
 
+    P = ChMatrix33<>(0.5);
+
     ChangedLinkMask();
 }
 
@@ -133,49 +135,35 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
     if (this->Body1 && this->Body2) {
         this->mask.SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
 
-        ChFrame<> aframe = this->frame1 >> (*this->Body1);
-        ChVector<> p1_abs = aframe.GetPos();
+        ChFrame<> aframe1 = this->frame1 >> (*this->Body1);
         ChFrame<> aframe2 = this->frame2 >> (*this->Body2);
-        ChVector<> p2_abs = aframe2.GetPos();
-        ChFrame<> bframe;
-        static_cast<ChFrame<>*>(this->Body2)->TransformParentToLocal(aframe, bframe); 
-        this->frame2.TransformParentToLocal(bframe, aframe); 
-        // Now 'aframe' contains the position/rotation of frame 1 respect to frame 2, in frame 2 coords. 
-        //***TODO*** check if it is faster to do   aframe2.TransformParentToLocal(aframe, bframe); instead of two transforms above
+        ChFrame<> aframe12;
+        aframe2.TransformParentToLocal(aframe1, aframe12);
+        // Now 'aframe12' contains the position/rotation of frame 1 respect to frame 2, in frame 2 coords.
 
+        ChMatrix33<> Jx1 = aframe2.GetA().transpose();
+        ChMatrix33<> Jx2 = -aframe2.GetA().transpose();
 
-        ChMatrix33<> abs_plane = Body2->GetA() * frame2.GetA();
-
-        ChMatrix33<> Jx1 = abs_plane.transpose();
-        ChMatrix33<> Jx2 = -abs_plane.transpose();
-
-        ChMatrix33<> Jw1 = abs_plane.transpose() * Body1->GetA();
-        ChMatrix33<> Jw2 = -abs_plane.transpose() * Body2->GetA();
-
-        ChMatrix33<> Jr1 = -Jw1 * ChStarMatrix33<>(frame1.GetPos());
-        ChMatrix33<> Jr2 = -Jw2 * ChStarMatrix33<>(frame2.GetPos());
-
-        ChVector<> p2p1_base2 = Body2->GetA().transpose() * (p1_abs - p2_abs);
-        Jr2 += frame2.GetA().transpose() * ChStarMatrix33<>(p2p1_base2);
+        ChMatrix33<> Jr1 = -aframe2.GetA().transpose() * Body1->GetA() * ChStarMatrix33<>(frame1.GetPos());
+        ChVector<> p2p1_base2 = Body2->GetA().transpose() * (aframe1.GetPos() - aframe2.GetPos());
+        ChMatrix33<> Jr2 = this->frame2.GetA().transpose() * ChStarMatrix33<>(frame2.GetPos() + p2p1_base2);
 
         // Premultiply by Jw1 and Jw2 by  0.5*[Fp(q_resid)]' to get residual as imaginary part of a quaternion.
         // For small misalignment this effect is almost insignificant because [Fp(q_resid)]=[I],
         // but otherwise it is needed (if you want to use the stabilization term - if not, you can live without).
-        ChStarMatrix33<> mtempM((aframe.GetRot().GetVector()) * 0.5);
-        mtempM(0, 0) = 0.5 * aframe.GetRot().e0();
-        mtempM(1, 1) = 0.5 * aframe.GetRot().e0();
-        mtempM(2, 2) = 0.5 * aframe.GetRot().e0();
+        this->P = 0.5 * (ChMatrix33<>(aframe12.GetRot().e0()) + ChStarMatrix33<>(aframe12.GetRot().GetVector()));
 
-        ChMatrix33<> mtempQ;
-        mtempQ = mtempM.transpose() * Jw1;
-        Jw1 = mtempQ;
-        mtempQ = mtempM.transpose() * Jw2;
-        Jw2 = mtempQ;
-        
+        ChMatrix33<> Jw1 = this->P.transpose() * aframe2.GetA().transpose() * Body1->GetA();
+        ChMatrix33<> Jw2 = -this->P.transpose() * aframe2.GetA().transpose() * Body2->GetA();
+
+        // Another equivalent expression:
+        // ChMatrix33<> Jw1 = this->P * aframe1.GetA().transpose() * Body1->GetA();
+        // ChMatrix33<> Jw2 = -this->P * aframe1.GetA().transpose() * Body2->GetA();
+
         int nc = 0;
 
         if (c_x) {
-            C(nc) = aframe.GetPos().x();
+            C(nc) = aframe12.GetPos().x();
             mask.Constr_N(nc).Get_Cq_a().segment(0, 3) = Jx1.row(0);
             mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jr1.row(0);
             mask.Constr_N(nc).Get_Cq_b().segment(0, 3) = Jx2.row(0);
@@ -183,7 +171,7 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
             nc++;
         }
         if (c_y) {
-            C(nc) = aframe.GetPos().y();
+            C(nc) = aframe12.GetPos().y();
             mask.Constr_N(nc).Get_Cq_a().segment(0, 3) = Jx1.row(1);
             mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jr1.row(1);
             mask.Constr_N(nc).Get_Cq_b().segment(0, 3) = Jx2.row(1);
@@ -191,7 +179,7 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
             nc++;
         }
         if (c_z) {
-            C(nc) = aframe.GetPos().z();
+            C(nc) = aframe12.GetPos().z();
             mask.Constr_N(nc).Get_Cq_a().segment(0, 3) = Jx1.row(2);
             mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jr1.row(2);
             mask.Constr_N(nc).Get_Cq_b().segment(0, 3) = Jx2.row(2);
@@ -199,7 +187,7 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
             nc++;
         }
         if (c_rx) {
-            C(nc) = aframe.GetRot().e1();
+            C(nc) = aframe12.GetRot().e1();
             mask.Constr_N(nc).Get_Cq_a().setZero();
             mask.Constr_N(nc).Get_Cq_b().setZero();
             mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(0);
@@ -207,7 +195,7 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
             nc++;
         }
         if (c_ry) {
-            C(nc) = aframe.GetRot().e2();
+            C(nc) = aframe12.GetRot().e2();
             mask.Constr_N(nc).Get_Cq_a().setZero();
             mask.Constr_N(nc).Get_Cq_b().setZero();
             mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(1);
@@ -215,7 +203,7 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
             nc++;
         }
         if (c_rz) {
-            C(nc) = aframe.GetRot().e3();
+            C(nc) = aframe12.GetRot().e3();
             mask.Constr_N(nc).Get_Cq_a().setZero();
             mask.Constr_N(nc).Get_Cq_b().setZero();
             mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(2);
@@ -316,32 +304,32 @@ void ChLinkMateGeneric::IntStateGatherReactions(const unsigned int off_L, ChVect
     int nc = 0;
     if (c_x) {
         if (mask.Constr_N(nc).IsActive())
-            L(off_L + nc) = -react_force.x();
+            L(off_L + nc) = -gamma_f.x();
         nc++;
     }
     if (c_y) {
         if (mask.Constr_N(nc).IsActive())
-            L(off_L + nc) = -react_force.y();
+            L(off_L + nc) = -gamma_f.y();
         nc++;
     }
     if (c_z) {
         if (mask.Constr_N(nc).IsActive())
-            L(off_L + nc) = -react_force.z();
+            L(off_L + nc) = -gamma_f.z();
         nc++;
     }
     if (c_rx) {
         if (mask.Constr_N(nc).IsActive())
-            L(off_L + nc) = -2.0 * react_torque.x();
+            L(off_L + nc) = -gamma_m.x();
         nc++;
     }
     if (c_ry) {
         if (mask.Constr_N(nc).IsActive())
-            L(off_L + nc) = -2.0 * react_torque.y();
+            L(off_L + nc) = -gamma_m.y();
         nc++;
     }
     if (c_rz) {
         if (mask.Constr_N(nc).IsActive())
-            L(off_L + nc) = -2.0 * react_torque.z();
+            L(off_L + nc) = -gamma_m.z();
         nc++;
     }
 }
@@ -349,6 +337,8 @@ void ChLinkMateGeneric::IntStateGatherReactions(const unsigned int off_L, ChVect
 void ChLinkMateGeneric::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
     react_force = VNULL;
     react_torque = VNULL;
+    gamma_f = VNULL;
+    gamma_m = VNULL;
 
     if (!this->IsActive())
         return;
@@ -356,34 +346,38 @@ void ChLinkMateGeneric::IntStateScatterReactions(const unsigned int off_L, const
     int nc = 0;
     if (c_x) {
         if (mask.Constr_N(nc).IsActive())
-            react_force.x() = -L(off_L + nc);
+            gamma_f.x() = -L(off_L + nc);
         nc++;
     }
     if (c_y) {
         if (mask.Constr_N(nc).IsActive())
-            react_force.y() = -L(off_L + nc);
+            gamma_f.y() = -L(off_L + nc);
         nc++;
     }
     if (c_z) {
         if (mask.Constr_N(nc).IsActive())
-            react_force.z() = -L(off_L + nc);
+            gamma_f.z() = -L(off_L + nc);
         nc++;
     }
     if (c_rx) {
         if (mask.Constr_N(nc).IsActive())
-            react_torque.x() = -0.5 * L(off_L + nc);
+            gamma_m.x() = -L(off_L + nc);
         nc++;
     }
     if (c_ry) {
         if (mask.Constr_N(nc).IsActive())
-            react_torque.y() = -0.5 * L(off_L + nc);
+            gamma_m.y() = -L(off_L + nc);
         nc++;
     }
     if (c_rz) {
         if (mask.Constr_N(nc).IsActive())
-            react_torque.z() = -0.5 * L(off_L + nc);
+            gamma_m.z() = -L(off_L + nc);
         nc++;
     }
+
+    react_force = gamma_f;
+    // convert from Lagrange multiplier to reaction torque
+    react_torque = this->P * gamma_m;
 }
 
 void ChLinkMateGeneric::IntLoadResidual_CqL(const unsigned int off_L,
@@ -520,6 +514,8 @@ void ChLinkMateGeneric::ConstraintsLoadJacobians() {
 void ChLinkMateGeneric::ConstraintsFetch_react(double factor) {
     react_force = VNULL;
     react_torque = VNULL;
+    gamma_f = VNULL;
+    gamma_m = VNULL;
 
     if (!this->IsActive())
         return;
@@ -527,34 +523,38 @@ void ChLinkMateGeneric::ConstraintsFetch_react(double factor) {
     int nc = 0;
     if (c_x) {
         if (mask.Constr_N(nc).IsActive())
-            react_force.x() = -mask.Constr_N(nc).Get_l_i() * factor;
+            gamma_f.x() = -mask.Constr_N(nc).Get_l_i() * factor;
         nc++;
     }
     if (c_y) {
         if (mask.Constr_N(nc).IsActive())
-            react_force.y() = -mask.Constr_N(nc).Get_l_i() * factor;
+            gamma_f.y() = -mask.Constr_N(nc).Get_l_i() * factor;
         nc++;
     }
     if (c_z) {
         if (mask.Constr_N(nc).IsActive())
-            react_force.z() = -mask.Constr_N(nc).Get_l_i() * factor;
+            gamma_f.z() = -mask.Constr_N(nc).Get_l_i() * factor;
         nc++;
     }
     if (c_rx) {
         if (mask.Constr_N(nc).IsActive())
-            react_torque.x() = -0.5 * mask.Constr_N(nc).Get_l_i() * factor;
+            gamma_m.x() = -mask.Constr_N(nc).Get_l_i() * factor;
         nc++;
     }
     if (c_ry) {
         if (mask.Constr_N(nc).IsActive())
-            react_torque.y() = -0.5 * mask.Constr_N(nc).Get_l_i() * factor;
+            gamma_m.y() = -mask.Constr_N(nc).Get_l_i() * factor;
         nc++;
     }
     if (c_rz) {
         if (mask.Constr_N(nc).IsActive())
-            react_torque.z() = -0.5 * mask.Constr_N(nc).Get_l_i() * factor;
+            gamma_m.z() = -mask.Constr_N(nc).Get_l_i() * factor;
         nc++;
     }
+
+    react_force = gamma_f;
+    // convert from Lagrange multiplier to reaction torque
+    react_torque = this->P * gamma_m;
 }
 
 void ChLinkMateGeneric::ArchiveOUT(ChArchiveOut& marchive) {

@@ -347,6 +347,7 @@ void ChPushPipeAxle::AddVisualizationLink(std::shared_ptr<ChBody> body,
     cyl->GetCylinderGeometry().p1 = p_1;
     cyl->GetCylinderGeometry().p2 = p_2;
     cyl->GetCylinderGeometry().rad = radius;
+    cyl->SetColor(color);
     body->AddVisualShape(cyl);
 }
 
