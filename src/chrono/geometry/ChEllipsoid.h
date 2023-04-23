@@ -24,7 +24,8 @@ namespace geometry {
 class ChApi ChEllipsoid : public ChGeometry {
   public:
     ChEllipsoid() : rad(0) {}
-    ChEllipsoid(const ChVector<>& semiaxes) : rad(semiaxes) {}
+    ChEllipsoid(const ChVector<>& );
+    ChEllipsoid(double axis_x, double axis_y, double axis_z);
     ChEllipsoid(const ChEllipsoid& source);
     ~ChEllipsoid() {}
 
@@ -33,6 +34,12 @@ class ChApi ChEllipsoid : public ChGeometry {
 
     /// Get the class type as an enum.
     virtual Type GetClassType() const override { return Type::ELLIPSOID; }
+
+    /// Get the ellipsoid semiaxes.
+    const ChVector<>& GetSemiaxes() const { return rad; }
+
+    /// Get the x, y, and z axes of this allipsoid.
+    ChVector<> GetAxes() const { return 2.0 * rad; }
 
     /// Compute bounding box along the directions defined by the given rotation matrix.
     /// Note: 'rot' currently ignored.

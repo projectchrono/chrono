@@ -568,9 +568,9 @@ void ChPovRay::ExportShapes(ChStreamOutAsciiFile& assets_file, std::shared_ptr<C
             assets_file << "," << shape_frame.GetPos().z() << ">\n";
             assets_file << " " << 1.0 << "\n";
             assets_file << " scale ";
-            assets_file << "<" << ellipsoid->GetEllipsoidGeometry().rad.x();
-            assets_file << "," << ellipsoid->GetEllipsoidGeometry().rad.y();
-            assets_file << "," << ellipsoid->GetEllipsoidGeometry().rad.z() << ">\n";
+            assets_file << "<" << ellipsoid->GetSemiaxes().x();
+            assets_file << "," << ellipsoid->GetSemiaxes().y();
+            assets_file << "," << ellipsoid->GetSemiaxes().z() << ">\n";
 
             ApplyMaterials(assets_file, shape->GetMaterials());
 

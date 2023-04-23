@@ -116,8 +116,7 @@ void ChBodyEasyEllipsoid::SetupBody(ChVector<> radius,
         SetCollide(true);
     }
     if (visualize) {
-        auto vshape = chrono_types::make_shared<ChEllipsoidShape>();
-        vshape->GetEllipsoidGeometry().rad = radius;
+        auto vshape = chrono_types::make_shared<ChEllipsoidShape>(radius * 2);
         auto vmodel = chrono_types::make_shared<ChVisualModel>();
         vmodel->AddShape(vshape);
         this->AddVisualModel(vmodel);

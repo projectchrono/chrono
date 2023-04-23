@@ -872,7 +872,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(ISceneNode* node,
                 ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(sphereMesh, mproxynode);
                 mproxynode->drop();
 
-                mchildnode->setScale(core::vector3dfCH(ellipsoid->GetEllipsoidGeometry().rad));
+                mchildnode->setScale(core::vector3dfCH(ellipsoid->GetSemiaxes()));
                 mchildnode->setPosition(shape_m4.getTranslation());
                 mchildnode->setRotation(shape_m4.getRotationDegrees());
 

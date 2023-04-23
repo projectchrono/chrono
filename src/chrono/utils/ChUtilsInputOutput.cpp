@@ -406,7 +406,7 @@ void WriteVisualizationAssets(ChSystem* system,
                 gss << SPHERE << delim << sphere->GetRadius();
                 a_count++;
             } else if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
-                const Vector& size = ellipsoid->GetEllipsoidGeometry().rad;
+                const Vector& size = ellipsoid->GetSemiaxes();
                 gss << ELLIPSOID << delim << size.x() << delim << size.y() << delim << size.z();
                 a_count++;
             } else if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {

@@ -23,8 +23,8 @@ namespace geometry {
 CH_FACTORY_REGISTER(ChBox)
 
 ChBox::ChBox(const ChVector<>& lengths) : hlen(0.5 * lengths) {}
-ChBox::ChBox(double length_x, double length_y, double length_z) : hlen(0.5 * ChVector<>(length_z, length_y, length_z)) {}
-
+ChBox::ChBox(double length_x, double length_y, double length_z)
+    : hlen(0.5 * ChVector<>(length_z, length_y, length_z)) {}
 ChBox::ChBox(const ChBox& source) {
     hlen = source.hlen;
 }

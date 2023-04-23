@@ -959,7 +959,7 @@ void ChBlender::ExportItemState(ChStreamOutAsciiFile& state_file,
                 if (auto mshpere = std::dynamic_pointer_cast<ChSphereShape>(shape))
                     aux_scale = ChVector<>(mshpere->GetRadius());
                 else if (auto mellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(shape))
-                    aux_scale = mellipsoid->GetEllipsoidGeometry().rad;
+                    aux_scale = mellipsoid->GetSemiaxes();
                 else if (auto mbox = std::dynamic_pointer_cast<ChBoxShape>(shape))
                     aux_scale = mbox->GetLengths();
                 else if (auto mcone = std::dynamic_pointer_cast<ChConeShape>(shape))

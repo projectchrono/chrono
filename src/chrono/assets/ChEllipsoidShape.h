@@ -22,13 +22,20 @@ namespace chrono {
 class ChApi ChEllipsoidShape : public ChVisualShape {
   public:
     ChEllipsoidShape();
-    ChEllipsoidShape(double x_length, double y_length, double z_length);
+    ChEllipsoidShape(double axis_x, double axis_y, double axis_z);
+    ChEllipsoidShape(const ChVector<>& axes);
     ChEllipsoidShape(const geometry::ChEllipsoid& ellipsoid);
 
     ~ChEllipsoidShape(){};
 
     // Access the ellipsoid geometry.
-    geometry::ChEllipsoid& GetEllipsoidGeometry() { return gellipsoid; }
+    geometry::ChEllipsoid& GetGeometry() { return gellipsoid; }
+
+    /// Get the ellipsoid semiaxes.
+    const ChVector<>& GetSemiaxes() const { return gellipsoid.GetSemiaxes(); }
+
+    /// Get the ellipsoid axes.
+    ChVector<> GetAxes() const { return gellipsoid.GetAxes(); }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;

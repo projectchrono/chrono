@@ -343,8 +343,7 @@ int main(int argc, char* argv[]) {
 
     auto ell_mat = chrono_types::make_shared<ChVisualMaterial>();
     ell_mat->SetKdTexture(GetChronoDataFile("textures/concrete.jpg"));
-    auto ellShape = chrono_types::make_shared<ChEllipsoidShape>();
-    ellShape->GetEllipsoidGeometry().rad = ChVector<>(0.1, 0.1, 0.3);
+    auto ellShape = chrono_types::make_shared<ChEllipsoidShape>(0.2, 0.2, 0.6);
     ellShape->SetMaterial(0, ell_mat);
     ChVector<> ellPos(-1, 1, -1);
     int ellId = vis->AddVisualModel(ellShape, ChFrame(ellPos, QUNIT));

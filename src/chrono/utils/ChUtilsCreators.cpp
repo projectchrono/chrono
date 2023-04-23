@@ -71,8 +71,7 @@ void AddEllipsoidGeometry(ChBody* body,
             auto model = chrono_types::make_shared<ChVisualModel>();
             body->AddVisualModel(model);
         }
-        auto ellipsoid = chrono_types::make_shared<ChEllipsoidShape>();
-        ellipsoid->GetEllipsoidGeometry().rad = size;
+        auto ellipsoid = chrono_types::make_shared<ChEllipsoidShape>(size * 2);
         ellipsoid->AddMaterial(vis_material);
         body->GetVisualModel()->AddShape(ellipsoid, ChFrame<>(pos, rot));
     }

@@ -588,17 +588,17 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
                         iter++;  // get length
                         double scale = std::stod(iter->second);
                         // maybe this is right?
-                        ellipsoid->GetEllipsoidGeometry().rad.x() = scale;
+                        ellipsoid->GetGeometry().rad.x() = scale;
                     } else if (iter->second == std::string("YSCALE") || iter->second == std::string("YS")) {
                         iter++;  // get length
                         double scale = std::stod(iter->second);
                         // maybe this is right?
-                        ellipsoid->GetEllipsoidGeometry().rad.y() = scale;
+                        ellipsoid->GetGeometry().rad.y() = scale;
                     } else if (iter->second == std::string("ZSCALE") || iter->second == std::string("ZS")) {
                         iter++;  // get length
                         double scale = std::stod(iter->second);
                         // maybe this is right?
-                        ellipsoid->GetEllipsoidGeometry().rad.z() = scale;
+                        ellipsoid->GetGeometry().rad.z() = scale;
 
                     } else {
                         tokenParseError(LABEL, *iter);

@@ -325,7 +325,7 @@ void ChOpenGLViewer::DrawVisualModel(std::shared_ptr<ChPhysicsItem> item) {
             model = glm::scale(model, glm::vec3(radius, radius, radius));
             model_sphere.push_back(model);
         } else if (ChEllipsoidShape* ellipsoid_shape = dynamic_cast<ChEllipsoidShape*>(shape.get())) {
-            Vector radius = ellipsoid_shape->GetEllipsoidGeometry().rad;
+            Vector radius = ellipsoid_shape->GetSemiaxes();
 
             model = glm::translate(glm::mat4(1), glm::vec3(pos.x(), pos.y(), pos.z()));
             model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
