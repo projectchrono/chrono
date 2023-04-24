@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Demonstration of ChLinkMateGeneric() and the importance of its tangent stiffness
-// matrix in the static analysis
+// matrix in the static and eigenvalue analysis
 //
 // Recall that Irrlicht uses a left-hand frame, so everything is rendered with
 // left and right flipped.
@@ -28,9 +28,11 @@
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #include <physics/ChLoadContainer.h>
 #include <physics/ChLoadsBody.h>
+#include <chrono_thirdparty/filesystem/path.h>
 
 using namespace chrono;
 using namespace chrono::irrlicht;
+using namespace filesystem;
 
 // Used to sort the Eigen matrix
 namespace Eigen {
@@ -60,10 +62,10 @@ class PauseEventReceiver : public irr::IEventReceiver {
 };
 
 void EigenSolver(ChSystemNSC& msys) {
-    chrono::ChSparseMatrix M_sp;
-    chrono::ChSparseMatrix K_sp;
-    chrono::ChSparseMatrix R_sp;
-    chrono::ChSparseMatrix Cq_sp;
+    ChSparseMatrix M_sp;
+    ChSparseMatrix K_sp;
+    ChSparseMatrix R_sp;
+    ChSparseMatrix Cq_sp;
     msys.GetMassMatrix(&M_sp);
     msys.GetStiffnessMatrix(&K_sp);
     msys.GetDampingMatrix(&R_sp);
@@ -72,9 +74,9 @@ void EigenSolver(ChSystemNSC& msys) {
     int n_v = Cq_sp.cols();
     int n_c = Cq_sp.rows();
 
-    chrono::ChMatrixDynamic<double> Ad(2 * n_v + n_c, 2 * n_v + n_c);
+    ChMatrixDynamic<double> Ad(2 * n_v + n_c, 2 * n_v + n_c);
     Ad.setZero();
-    chrono::ChMatrixDynamic<double> Ed(2 * n_v + n_c, 2 * n_v + n_c);
+    ChMatrixDynamic<double> Ed(2 * n_v + n_c, 2 * n_v + n_c);
     Ed.setZero();
     //// A  =  [  0     I      0   ]
     ////       [ -K    -R     -Cq' ]
@@ -93,7 +95,6 @@ void EigenSolver(ChSystemNSC& msys) {
     Eigen::GeneralizedEigenSolver<Eigen::MatrixXd> ges;
     ges.compute(Ad, Ed);
 
-    GetLog() << "The eigenvalues of the system are:\n";
     std::vector<std::complex<double>> eigenvalues;
 
     for (int i = 0; i < ges.betas().size(); i++) {
@@ -116,6 +117,7 @@ void EigenSolver(ChSystemNSC& msys) {
         std::sort(eig_D.rowwise().begin(), eig_D.rowwise().end(),
                   [](auto const& r1, auto const& r2) { return r1(1) < r2(1); });
 
+        GetLog() << "The eigenvalues of the system are:\n";
         for (int i = 0; i < eig_D.rows(); i++) {
             GetLog() << "Eigenvalue " << std::to_string(i + 1).c_str() << ":\tReal: " << eig_D(i, 0)
                      << "\tImag: " << eig_D(i, 1) << "\n";
@@ -137,7 +139,7 @@ void test_pendulum() {
     // The mass of the end point, kg
     double tip_mass = 13.5;
     // The offset angle of the pendulum at the initial configuration, rad
-    double offset_angle = 30.0 * chrono::CH_C_DEG_TO_RAD;
+    double offset_angle = 30.0 * CH_C_DEG_TO_RAD;
 
     // Gravity acceleration, m/s^2
     double gacc = 10.0;
@@ -213,7 +215,7 @@ void test_pendulum() {
     sys.Add(my_joint);
 
     // 3D visualization
-    auto vis = chrono_types::make_shared<chrono::irrlicht::ChVisualSystemIrrlicht>();
+    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
     vis->AttachSystem(&sys);
     vis->SetWindowSize(800, 800);
     vis->SetWindowTitle("Test demo: Pendulum");
@@ -313,7 +315,7 @@ void test_mooringline() {
     sys.AddOtherPhysicsItem(load_container);
 
     auto wallA = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.2, 0.2, density, true, false);
-    wallA->SetNameString("wall");
+    wallA->SetNameString("wallA");
     wallA->SetPos({0, 0, 0});
     wallA->SetBodyFixed(true);
     sys.AddBody(wallA);
@@ -324,37 +326,15 @@ void test_mooringline() {
     anchorA->SetRot(Q_from_AngY(CH_C_PI_4));
     anchorA->SetMass(mass);
     anchorA->SetInertiaXX({Jxx, Jyy, Jzz});
-    // anchorA->SetBodyFixed(true);
     sys.AddBody(anchorA);
 
-    auto jointA = chrono_types::make_shared<ChLinkMateGeneric>(true, false, true, false, false, false);
+    auto jointA = chrono_types::make_shared<ChLinkMateGeneric>(true, true, true, true, false, true);
     jointA->Initialize(anchorA, wallA, wallA->GetFrame_COG_to_abs());
     jointA->SetUseTangentStiffness(use_Kc);
     sys.AddLink(jointA);
 
-    // ChMatrixNM<double, 6, 6> K_matrix;
-    // ChMatrixNM<double, 6, 6> R_matrix;
-    // K_matrix.setZero();
-    // R_matrix.setZero();
-    // K_matrix(0, 0) = 100;
-    // K_matrix(1, 1) = 1e6;
-    // K_matrix(2, 2) = 1e6;
-    // K_matrix(3, 3) = 1e6;
-    // K_matrix(4, 4) = 100;
-    // K_matrix(5, 5) = 1e6;
-    // auto bushing_generic = chrono_types::make_shared<ChLoadBodyBodyBushingGeneric>(
-    //     anchorA,                      // body A
-    //     wall,                         // body B
-    //     wall->GetFrame_COG_to_abs(),  // initial frame of bushing in abs space
-    //     K_matrix,                     // the 6x6 (translation+rotation) K matrix in local frame
-    //     R_matrix                      // the 6x6 (translation+rotation) R matrix in local frame
-    //);
-    // bushing_generic->SetNeutralForce(ChVector<>(0, 0, 0));
-    // bushing_generic->NeutralDisplacement().SetPos(ChVector<>(0, 0, 0));
-    // load_container->Add(bushing_generic);
-
     auto wallB = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.2, 0.2, density, true, false);
-    wallB->SetNameString("wall");
+    wallB->SetNameString("wallB");
     wallB->SetPos({xB, 0, 0});
     wallB->SetBodyFixed(true);
     sys.AddBody(wallB);
@@ -365,10 +345,9 @@ void test_mooringline() {
     anchorB->SetRot(Q_from_AngY(-CH_C_PI_4));
     anchorB->SetMass(mass);
     anchorB->SetInertiaXX({Jxx, Jyy, Jzz});
-    // anchorB->SetBodyFixed(true)
     sys.AddBody(anchorB);
 
-    auto jointB = chrono_types::make_shared<ChLinkMateGeneric>(true, false, true, false, false, false);
+    auto jointB = chrono_types::make_shared<ChLinkMateGeneric>(true, true, true, true, false, true);
     jointB->Initialize(anchorB, wallB, wallB->GetFrame_COG_to_abs());
     jointB->SetUseTangentStiffness(use_Kc);
     sys.AddLink(jointB);
@@ -424,32 +403,20 @@ void test_mooringline() {
 
     std::vector<std::shared_ptr<ChLinkMateGeneric>> link_list;
     for (int i_link = 0; i_link < knot_list.size() - 1; i_link++) {
-        auto jointL = chrono_types::make_shared<ChLinkMateGeneric>(true, true, true, true, false, false);
-        // ChVector<> pos = 0.5 * (knot_list.at(i_link + 1)->GetPos() + knot_list.at(i_link)->GetPos());
-
-        // ChVector<> Xdir = (knot_list.at(i_link + 1)->GetPos() - knot_list.at(i_link)->GetPos()).GetNormalized();
-        // ChVector<> Ydir = {0, 1, 0};
-        // ChVector<> Zdir = Xdir.Cross(Ydir).GetNormalized();
-        // ChVector<> mX;
-        // ChVector<> mY;
-        // ChVector<> mZ;
-        // Xdir.DirToDxDyDz(mX, mY, mZ, Ydir);
-        // ChQuaternion<> qrot = ChMatrix33<>(mX, mY, mZ).Get_A_quaternion();
-        // ChFrame<> ref_frame(pos, qrot);
-        // jointL->Initialize(knot_list.at(i_link), knot_list.at(i_link + 1), ref_frame);
+        auto link_joint = chrono_types::make_shared<ChLinkMateGeneric>(true, true, true, true, false, false);
 
         double halfdis = 0.5 * (knot_list.at(i_link + 1)->GetPos() - knot_list.at(i_link)->GetPos()).Length();
         ChFrame<> ref_frame1({halfdis, 0, 0}, QUNIT);
         ChFrame<> ref_frame2({-halfdis, 0, 0}, QUNIT);
-        jointL->Initialize(knot_list.at(i_link), knot_list.at(i_link + 1), true, ref_frame1, ref_frame2);
+        link_joint->Initialize(knot_list.at(i_link), knot_list.at(i_link + 1), true, ref_frame1, ref_frame2);
 
-        jointL->SetUseTangentStiffness(use_Kc);
+        link_joint->SetUseTangentStiffness(use_Kc);
 
-        link_list.push_back(jointL);
-        sys.AddLink(jointL);
+        link_list.push_back(link_joint);
+        sys.AddLink(link_joint);
     }
 
-    // gravity
+    // Gravity
     sys.Set_G_acc({0, 0, -gacc});
 
     // Change solver to PardisoMKL
@@ -487,24 +454,25 @@ void test_mooringline() {
         GetLog() << "At the initial configuration:\n";
         GetLog() << "anchorC->GetPos():\t" << anchorC->GetPos();
 
+        // Firstly, we call DoFullAssembly() to calculate the reaction forces/torques at the initial configuration of
+        // system.
         sys.DoFullAssembly();
-
+        // Secondly, we perform the static analysis using the solver ChStaticNonLinearRigidMotion().
         sys.DoStaticAnalysis(rigid_static_analysis);
 
         GetLog() << "After doing the static nonlinear analysis:\n";
         GetLog() << "anchorC->GetPos():\t" << anchorC->GetPos();
 
-        ChMatrixDynamic<> coord;
-        coord.resize(sys.Get_bodylist().size(), 3);
+        ChMatrixDynamic<> coords;
+        coords.resize(sys.Get_bodylist().size(), 3);
         for (int i_body = 0; i_body < sys.Get_bodylist().size(); i_body++) {
-            coord(i_body, 0) = sys.Get_bodylist().at(i_body)->GetPos().x();
-            coord(i_body, 1) = sys.Get_bodylist().at(i_body)->GetPos().y();
-            coord(i_body, 2) = sys.Get_bodylist().at(i_body)->GetPos().z();
+            coords(i_body, 0) = sys.Get_bodylist().at(i_body)->GetPos().x();
+            coords(i_body, 1) = sys.Get_bodylist().at(i_body)->GetPos().y();
+            coords(i_body, 2) = sys.Get_bodylist().at(i_body)->GetPos().z();
         }
 
-        std::sort(coord.rowwise().begin(), coord.rowwise().end(),
+        std::sort(coords.rowwise().begin(), coords.rowwise().end(),
                   [](auto const& r1, auto const& r2) { return r1(0) < r2(0); });
-        // GetLog() << "coord:\n" << coord << "\n";
 
         ChMatrixDynamic<> reactions;
         reactions.resize(sys.Get_linklist().size(), 7);
@@ -520,26 +488,23 @@ void test_mooringline() {
         std::sort(reactions.rowwise().begin(), reactions.rowwise().end(),
                   [](auto const& r1, auto const& r2) { return r1(0) < r2(0); });
 
-        const std::string out_dir = R"(C:/work/test_floatingcorotation/chrono_model/post/mooringline)";
+        // Create output directory and output file
+        std::string out_dir = GetChronoOutputPath() + "MOORING_LINE";
         GetLog() << "out_dir is:\n" << out_dir << "\n";
 
-        // coordinates of bodies
-        ChStreamOutAsciiFile file_coord((out_dir + "/coord.dat").c_str());
-        file_coord.SetNumFormat("%.12g");
-        StreamOUTdenseMatlabFormat(coord, file_coord);
+        if (create_directory(path(out_dir))) {
+            // coordinates of bodies
+            ChStreamOutAsciiFile file_coords((out_dir + "/coords.dat").c_str());
+            file_coords.SetNumFormat("%.12g");
+            StreamOUTdenseMatlabFormat(coords, file_coords);
 
-        // reactions of links
-        ChStreamOutAsciiFile file_reactions((out_dir + "/reactions.dat").c_str());
-        file_reactions.SetNumFormat("%.12g");
-        StreamOUTdenseMatlabFormat(reactions, file_reactions);
-
-        // system matrices
-        ChSparseMatrix Cq;
-        sys.GetConstraintJacobianMatrix(&Cq);
-
-        ChStreamOutAsciiFile fileCq((out_dir + "/Cq_ds.dat").c_str());
-        fileCq.SetNumFormat("%.12g");
-        StreamOUTdenseMatlabFormat(ChMatrixDynamic<>(Cq), fileCq);
+            // reactions of links
+            ChStreamOutAsciiFile file_reactions((out_dir + "/reactions.dat").c_str());
+            file_reactions.SetNumFormat("%.12g");
+            StreamOUTdenseMatlabFormat(reactions, file_reactions);
+        } else {
+            GetLog() << "  ...Error creating subdirectories\n";
+        }
     }
 
     if (true) {
@@ -548,11 +513,9 @@ void test_mooringline() {
 
     if (true) {  // dynamic analysis
         ChVector<> vec_f = ChVector<>(0, 0, -mass * gacc * N);
-        auto pull_force1 =
-            chrono_types::make_shared<chrono::ChLoadBodyForce>(knot_list.at(N), vec_f, false, chrono::VNULL, true);
+        auto pull_force1 = chrono_types::make_shared<ChLoadBodyForce>(knot_list.at(N), vec_f, false, VNULL, true);
         load_container->Add(pull_force1);
-        auto pull_force2 =
-            chrono_types::make_shared<chrono::ChLoadBodyForce>(knot_list.at(N + 2), vec_f, false, chrono::VNULL, true);
+        auto pull_force2 = chrono_types::make_shared<ChLoadBodyForce>(knot_list.at(N + 2), vec_f, false, VNULL, true);
         load_container->Add(pull_force2);
 
         double time_step = 0.01;
@@ -560,7 +523,7 @@ void test_mooringline() {
         int frame = 0;
 
         // 3D visualization
-        auto vis = chrono_types::make_shared<chrono::irrlicht::ChVisualSystemIrrlicht>();
+        auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
         vis->AttachSystem(&sys);
         vis->SetWindowSize(1000, 1000);
         vis->SetWindowTitle("Test demo: Mooringline");
@@ -599,9 +562,9 @@ void test_mooringline() {
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-     test_pendulum();
+    // test_pendulum();
 
-    //test_mooringline();
+    test_mooringline();
 
     return 0;
 }
