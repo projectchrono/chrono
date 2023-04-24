@@ -60,7 +60,8 @@ class CH_MODELS_API mrole {
 
     void SetDriveType(DrivelineTypeWV val) { m_driveType = val; }
     void SetBrakeType(BrakeType brake_type) { m_brake_type = brake_type; }
-    void SetPowertrainType(PowertrainModelType val) { m_powertrainType = val; }
+    void SetEngineType(EngineModelType val) { m_engineType = val; }
+    void SetTransmissionType(TransmissionModelType val) { m_transmissionType = val; }
     void SetTireType(TireModelType val) { m_tireType = val; }
 
     void SetTireCollisionType(ChTire::CollisionType collision_type) { m_tire_collision_type = collision_type; }
@@ -114,7 +115,8 @@ class CH_MODELS_API mrole {
     bool m_brake_locking;
 
     DrivelineTypeWV m_driveType;
-    PowertrainModelType m_powertrainType;
+    EngineModelType m_engineType;
+    TransmissionModelType m_transmissionType;
     BrakeType m_brake_type;
     TireModelType m_tireType;
     ChTire::CollisionType m_tire_collision_type;

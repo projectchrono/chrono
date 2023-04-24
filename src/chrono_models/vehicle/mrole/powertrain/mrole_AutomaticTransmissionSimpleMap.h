@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,18 +12,17 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Simple powertrain model for the mrole vehicle.
-// - based on torque-speed engine maps
+// Automatic transmssion model for the mrole vehicle.
 // - both power and torque limited
 // - no torque converter
 // - simple gear-shifting model (in automatic mode)
 //
 // =============================================================================
 
-#ifndef MROLE_SIMPLEMAP_POWERTRAIN_H
-#define MROLE_SIMPLEMAP_POWERTRAIN_H
+#ifndef MROLE_AUTOMATIC_TRANSMISSION_SIMPLEMAP_H
+#define MROLE_AUTOMATIC_TRANSMISSION_SIMPLEMAP_H
 
-#include "chrono_vehicle/powertrain/ChSimpleMapPowertrain.h"
+#include "chrono_vehicle/powertrain/ChAutomaticTransmissionSimpleMap.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -34,27 +33,17 @@ namespace mrole {
 /// @addtogroup vehicle_models_mrole
 /// @{
 
-/// Simple mrole powertrain subsystem (based on engine speed-torque maps).
-class CH_MODELS_API mrole_SimpleMapPowertrain : public ChSimpleMapPowertrain {
+/// mrole automatic transmission model template based on a simple gear-shifting model.
+class CH_MODELS_API mrole_AutomaticTransmissionSimpleMap : public ChAutomaticTransmissionSimpleMap {
   public:
-    mrole_SimpleMapPowertrain(const std::string& name);
-
-    /// Specify maximum engine speed.
-    virtual double GetMaxEngineSpeed() override;
-
-    /// Set the engine speed-torque maps.
-    /// A concrete class must add the speed-torque points to the provided maps,
-    /// using the ChFunction_Recorder::AddPoint() function.
-    virtual void SetEngineTorqueMaps(ChFunction_Recorder& map0,  ///< [out] engine map at zero throttle
-                                     ChFunction_Recorder& mapF   ///< [out] engine map at full throttle
-                                     ) override;
+    mrole_AutomaticTransmissionSimpleMap(const std::string& name);
+    ~mrole_AutomaticTransmissionSimpleMap() {}
 
     /// Set the transmission gear ratios (one or more forward gear ratios and a single reverse gear ratio).
     virtual void SetGearRatios(std::vector<double>& fwd, double& rev) override;
 
     /// Set the ideal shift points for automatic gear shifting.
-    /// For each forward gear, specify a pair (min, max) with the minimum and
-    /// maximum engine speed for shifting (down and up, respectively).
+    /// For each forward gear, specify the min and max engine speed for shifting (down and up, respectively).
     virtual void SetShiftPoints(
         std::vector<std::pair<double, double>>& shift_bands  ///< [out] down-shift/up-shift points
         ) override;
@@ -62,7 +51,7 @@ class CH_MODELS_API mrole_SimpleMapPowertrain : public ChSimpleMapPowertrain {
 
 /// @} vehicle_models_mrole
 
-}  // namespace mrole
+}  // end namespace mrole
 }  // end namespace vehicle
 }  // end namespace chrono
 

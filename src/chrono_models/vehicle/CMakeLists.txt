@@ -146,7 +146,33 @@ set(CVM_FEDA_FILES
 )
 source_group("feda" FILES ${CVM_FEDA_FILES})
 
-set(CVM_MROLE_FILES
+set(CVM_MROLE_POWERTRAIN_FILES
+    mrole/powertrain/mrole_AutomaticTransmissionShafts.cpp
+    mrole/powertrain/mrole_AutomaticTransmissionShafts.h
+    mrole/powertrain/mrole_AutomaticTransmissionSimpleMap.cpp
+    mrole/powertrain/mrole_AutomaticTransmissionSimpleMap.h
+    mrole/powertrain/mrole_EngineShafts.cpp
+    mrole/powertrain/mrole_EngineShafts.h
+    mrole/powertrain/mrole_EngineSimple.cpp
+    mrole/powertrain/mrole_EngineSimple.h
+    mrole/powertrain/mrole_EngineSimpleMap.cpp
+    mrole/powertrain/mrole_EngineSimpleMap.h
+)
+set(CVM_MROLE_DRIVELINE_FILES
+    mrole/driveline/mrole_Driveline2WD.cpp
+    mrole/driveline/mrole_Driveline2WD.h
+    mrole/driveline/mrole_Driveline4WD.cpp
+    mrole/driveline/mrole_Driveline4WD.h
+    mrole/driveline/mrole_Driveline6WD.h
+    mrole/driveline/mrole_Driveline6WD.cpp
+    mrole/driveline/mrole_Driveline8WD.h
+    mrole/driveline/mrole_Driveline8WD.cpp
+    mrole/driveline/mrole_SimpleDriveline.cpp
+    mrole/driveline/mrole_SimpleDriveline.h
+    mrole/driveline/mrole_SimpleDrivelineXWD.cpp
+    mrole/driveline/mrole_SimpleDrivelineXWD.h
+)
+set(CVM_MROLE_VEHICLE_FILES
     mrole/mrole.cpp
     mrole/mrole.h
     mrole/mrole_BrakeSimple.cpp
@@ -159,14 +185,6 @@ set(CVM_MROLE_FILES
     mrole/mrole_DoubleWishbone.h
     mrole/mrole_DoubleWishboneReduced.cpp
     mrole/mrole_DoubleWishboneReduced.h
-    mrole/mrole_Driveline2WD.cpp
-    mrole/mrole_Driveline2WD.h
-    mrole/mrole_Driveline4WD.cpp
-    mrole/mrole_Driveline4WD.h
-    mrole/mrole_Driveline6WD.h
-    mrole/mrole_Driveline6WD.cpp
-    mrole/mrole_Driveline8WD.h
-    mrole/mrole_Driveline8WD.cpp
     mrole/mrole_RigidTire.cpp
     mrole/mrole_RigidTire.h
     mrole/mrole_TMeasyTire.cpp
@@ -175,20 +193,8 @@ set(CVM_MROLE_FILES
     mrole/mrole_PitmanArm.h
     mrole/mrole_PitmanArmShafts.cpp
     mrole/mrole_PitmanArmShafts.h
-    mrole/mrole_Powertrain.cpp
-    mrole/mrole_Powertrain.h
     mrole/mrole_RackPinion.cpp
     mrole/mrole_RackPinion.h
-    mrole/mrole_SimpleDriveline.cpp
-    mrole/mrole_SimpleDriveline.h
-    mrole/mrole_SimpleDrivelineXWD.cpp
-    mrole/mrole_SimpleDrivelineXWD.h
-    mrole/mrole_SimplePowertrain.cpp
-    mrole/mrole_SimplePowertrain.h
-    mrole/mrole_SimpleCVTPowertrain.cpp
-    mrole/mrole_SimpleCVTPowertrain.h
-    mrole/mrole_SimpleMapPowertrain.cpp
-    mrole/mrole_SimpleMapPowertrain.h
     mrole/mrole_Vehicle.h
     mrole/mrole_VehicleFull.cpp
     mrole/mrole_VehicleFull.h
@@ -197,7 +203,14 @@ set(CVM_MROLE_FILES
     mrole/mrole_Wheel.cpp
     mrole/mrole_Wheel.h
 )
-source_group("mrole" FILES ${CVM_MROLE_FILES})
+set(CVM_MROLE_FILES
+    ${CVM_MROLE_VEHICLE_FILES}
+    ${CVM_MROLE_POWERTRAIN_FILES}
+    ${CVM_MROLE_DRIVELINE_FILES}
+)
+source_group("mrole" FILES ${CVM_MROLE_VEHICLE_FILES})
+source_group("mrole/powertrain" FILES ${CVM_MROLE_POWERTRAIN_FILES})
+source_group("mrole/driveline" FILES ${CVM_MROLE_DRIVELINE_FILES})
 
 set(CVM_FMTV_FILES
     mtv/FMTV_ChassisFront.cpp

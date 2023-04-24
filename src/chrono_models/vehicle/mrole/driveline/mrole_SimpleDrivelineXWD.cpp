@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono_models/vehicle/mrole/mrole_SimpleDriveline.h"
+#include "chrono_models/vehicle/mrole/driveline/mrole_SimpleDrivelineXWD.h"
 
 namespace chrono {
 namespace vehicle {
@@ -25,14 +25,12 @@ namespace mrole {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double mrole_SimpleDriveline::m_front_torque_frac = 0.5;
-const double mrole_SimpleDriveline::m_front_diff_bias = 2.0;
-const double mrole_SimpleDriveline::m_rear_diff_bias = 2.0;
+const double mrole_SimpleDrivelineXWD::m_diff_bias = 2.0;
 
 // -----------------------------------------------------------------------------
 // Constructor of mrole_SimpleDriveline.
 // -----------------------------------------------------------------------------
-mrole_SimpleDriveline::mrole_SimpleDriveline(const std::string& name) : ChSimpleDriveline(name) {}
+mrole_SimpleDrivelineXWD::mrole_SimpleDrivelineXWD(const std::string& name) : ChSimpleDrivelineXWD(name) {}
 
 }  // namespace mrole
 }  // end namespace vehicle

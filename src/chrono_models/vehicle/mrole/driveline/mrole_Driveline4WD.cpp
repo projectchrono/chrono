@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono_models/vehicle/mrole/mrole_Driveline4WD.h"
+#include "chrono_models/vehicle/mrole/driveline/mrole_Driveline4WD.h"
 
 namespace chrono {
 namespace vehicle {

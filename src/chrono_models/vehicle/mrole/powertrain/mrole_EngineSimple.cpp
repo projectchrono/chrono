@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,26 +12,23 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// mrole simple driveline model.
+// mrole simple engine model based on hyperbolical speed-torque curve (CVT)
 //
 // =============================================================================
 
-#include "chrono_models/vehicle/mrole/mrole_SimpleDrivelineXWD.h"
+#include "chrono_models/vehicle/mrole/powertrain/mrole_EngineSimple.h"
 
 namespace chrono {
 namespace vehicle {
 namespace mrole {
 
-// -----------------------------------------------------------------------------
 // Static variables
-// -----------------------------------------------------------------------------
-const double mrole_SimpleDrivelineXWD::m_diff_bias = 2.0;
+const double mrole_EngineSimple::m_max_torque = 2400;
+const double mrole_EngineSimple::m_max_power = 530000;
+const double mrole_EngineSimple::m_max_speed = 10000;
 
-// -----------------------------------------------------------------------------
-// Constructor of mrole_SimpleDriveline.
-// -----------------------------------------------------------------------------
-mrole_SimpleDrivelineXWD::mrole_SimpleDrivelineXWD(const std::string& name) : ChSimpleDrivelineXWD(name) {}
+mrole_EngineSimple::mrole_EngineSimple(const std::string& name) : ChEngineSimple(name) {}
 
-}  // namespace mrole
+}  // end namespace mrole
 }  // end namespace vehicle
 }  // end namespace chrono
