@@ -17,6 +17,7 @@
 
 #include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChLinkMask.h"
+#include "chrono/solver/ChKblockGeneric.h"
 
 namespace chrono {
 
@@ -149,11 +150,15 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     /// Ex:3rd party software can set the 'broken' status via this method
     virtual void SetBroken(bool mon) override;
 
+    /// Set this as true to compute the tangent stiffness matrix (Kc) of this constraint.
+    /// It is false by default to keep consistent as previous code.
+    void SetUseTangentStiffness(bool useKc);
+
     virtual int GetDOC() override { return ndoc; }
     virtual int GetDOC_c() override { return ndoc_c; }
     virtual int GetDOC_d() override { return ndoc_d; }
 
-	// LINK VIOLATIONS
+    // LINK VIOLATIONS
     // Get the constraint violations, i.e. the residual of the constraint equations and their time derivatives (TODO)
 
     /// Link violation (residuals of the link constraint equations).
@@ -198,6 +203,14 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     virtual void ConstraintsLoadJacobians() override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
 
+    /// Tell to a system descriptor that there are item(s) of type
+    /// ChKblock in this object (for further passing it to a solver)
+    virtual void InjectKRMmatrices(ChSystemDescriptor& descriptor) override;
+
+    /// Add the current stiffness K matrix in encapsulated ChKblock item(s), if any.
+    /// The K matrices are load with scaling values Kfactor.
+    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
+
     //
     // SERIALIZATION
     //
@@ -236,6 +249,8 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     ChVector<> gamma_f;  ///< store the translational Lagrange multipliers, expressed in the master frame F2
     ChVector<> gamma_m;  ///< store the rotational Lagrange multipliers, expressed in a ghost frame
                          ///< determined by the projection matrix for \rho_F1(F2)
+
+    ChKblockGeneric* Kmatr = nullptr;  ///< the tangent stiffness matrix of constraint
 };
 
 CH_CLASS_VERSION(ChLinkMateGeneric, 0)
