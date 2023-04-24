@@ -45,42 +45,38 @@ void ChLinkMotionImposed::Update(double mytime, bool update_assets) {
         ChFrame<> frame1W = this->frame1 >> (*this->Body1);
         ChFrame<> frame2W = this->frame2 >> (*this->Body2);
 
-		frameM2.SetRot(rotation_function->Get_q(mytime));
-		frameM2.SetPos(position_function->Get_p(mytime));
-		
-		frameMb2 = frameM2 >> this->frame2;
+        frameM2.SetRot(rotation_function->Get_q(mytime));
+        frameM2.SetPos(position_function->Get_p(mytime));
 
-		ChFrame<> frameMW = frameM2 >> frame2W;
+        frameMb2 = frameM2 >> this->frame2;
+
+        ChFrame<> frameMW = frameM2 >> frame2W;  // "moving" auxiliary frame M which is coincident with frame1
 
         ChFrame<> frame1M;
         frameMW.TransformParentToLocal(frame1W, frame1M);
+        // Now, frame1M is the relative frame of frame1 respect to the "moving" auxiliary frame M,
+        // which should be a unit frame (VNULL,QUNIT) in case of constraint satisfied.
 
         ChMatrix33<> planeMW = frameMW.GetA();
 
-        ChMatrix33<> Jw1 = planeMW.transpose() * Body1->GetA();
-        ChMatrix33<> Jw2 = -planeMW.transpose() * Body2->GetA();
-
-		ChMatrix33<> Jx1 = planeMW.transpose();
+        ChMatrix33<> Jx1 = planeMW.transpose();
         ChMatrix33<> Jx2 = -planeMW.transpose();
 
-        ChMatrix33<> Jr1 = -Jw1 * ChStarMatrix33<>(frame1.GetPos());
-        ChMatrix33<> Jr2 = -Jw2 * ChStarMatrix33<>(frameMb2.GetPos());
+        ChMatrix33<> Jr1 = -planeMW.transpose() * Body1->GetA() * ChStarMatrix33<>(frame1.GetPos());
+        ChMatrix33<> Jr2 = planeMW.transpose() * Body2->GetA() * ChStarMatrix33<>(frameMb2.GetPos());
 
-		//???? not needed, because frame1W and frameRW should always coincide when x y z translations are constrained
-        //ChVector<> p2p1_base2 = Body2->GetA().transpose() * (p1_abs - p2_abs); 
-        //Jr2 += frame2.GetA().transpose() * ChStarMatrix33<>(p2p1_base2);
+        ChVector<> p2p1_base2 = Body2->GetA().transpose() * (frame1W.GetPos() - frameMW.GetPos());
+        Jr2 += planeMW.transpose() * Body2->GetA() * ChStarMatrix33<>(p2p1_base2);
 
         // Premultiply by Jw1 and Jw2 by  0.5*[Fp(q_resid)]' to get residual as imaginary part of a quaternion.
-        ChStarMatrix33<> mtempM(frame1M.GetRot().GetVector() * 0.5);
-        mtempM(0, 0) = 0.5 * frame1M.GetRot().e0();
-        mtempM(1, 1) = 0.5 * frame1M.GetRot().e0();
-        mtempM(2, 2) = 0.5 * frame1M.GetRot().e0();
+        this->P = 0.5 * (ChMatrix33<>(frame1M.GetRot().e0()) + ChStarMatrix33<>(frame1M.GetRot().GetVector()));
 
-        ChMatrix33<> mtempQ;
-        mtempQ = mtempM.transpose() * Jw1;
-        Jw1 = mtempQ;
-        mtempQ = mtempM.transpose() * Jw2;
-        Jw2 = mtempQ;
+        ChMatrix33<> Jw1 = this->P * frame1W.GetA().transpose() * Body1->GetA();
+        ChMatrix33<> Jw2 = -this->P * frame1W.GetA().transpose() * Body2->GetA();
+
+        // Another equivalent expression:
+        // ChMatrix33<> Jw1 = this->P.transpose() * planeMW.transpose() * Body1->GetA();
+        // ChMatrix33<> Jw2 = -this->P.transpose() * planeMW.transpose() * Body2->GetA();
 
         int nc = 0;
 
