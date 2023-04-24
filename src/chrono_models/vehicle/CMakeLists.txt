@@ -720,29 +720,33 @@ source_group("m113/driveline" FILES ${CVM_M113_DRIVELINE_FILES})
 source_group("m113/powertrain" FILES ${CVM_M113_POWERTRAIN_FILES})
 
 set(CVM_RCCAR_FILES
-  rccar/RCCar_BrakeSimple.cpp
-  rccar/RCCar_BrakeSimple.h
-  rccar/RCCar_Chassis.cpp
-  rccar/RCCar_Chassis.h
-  rccar/RCCar_DoubleWishbone.cpp
-  rccar/RCCar_DoubleWishbone.h
-  rccar/RCCar_Driveline4WD.cpp
-  rccar/RCCar_Driveline4WD.h
-  rccar/RCCar_PitmanArm.cpp
-  rccar/RCCar_PitmanArm.h
-  rccar/RCCar_RigidTire.cpp
-  rccar/RCCar_RigidTire.h
-  rccar/RCCar_TMeasyTire.cpp
-  rccar/RCCar_TMeasyTire.h
-  rccar/RCCar_SimpleMapPowertrain.cpp
-  rccar/RCCar_SimpleMapPowertrain.h
-  rccar/RCCar_Vehicle.cpp
-  rccar/RCCar_Vehicle.h
-  rccar/RCCar_Wheel.cpp
-  rccar/RCCar_Wheel.h
-  rccar/RCCar.cpp
-  rccar/RCCar.h
- )
+    rccar/RCCar_BrakeSimple.cpp
+    rccar/RCCar_BrakeSimple.h
+    rccar/RCCar_Chassis.cpp
+    rccar/RCCar_Chassis.h
+    rccar/RCCar_DoubleWishbone.cpp
+    rccar/RCCar_DoubleWishbone.h
+    rccar/RCCar_Driveline4WD.cpp
+    rccar/RCCar_Driveline4WD.h
+    rccar/RCCar_PitmanArm.cpp
+    rccar/RCCar_PitmanArm.h
+    rccar/RCCar_RigidTire.cpp
+    rccar/RCCar_RigidTire.h
+    rccar/RCCar_TMeasyTire.cpp
+    rccar/RCCar_TMeasyTire.h
+    rccar/RCCar_SimpleMapPowertrain.cpp
+    rccar/RCCar_SimpleMapPowertrain.h
+    rccar/RCCar_AutomaticTransmissionSimpleMap.cpp
+    rccar/RCCar_AutomaticTransmissionSimpleMap.h
+    rccar/RCCar_EngineSimpleMap.cpp
+    rccar/RCCar_EngineSimpleMap.h
+    rccar/RCCar_Vehicle.cpp
+    rccar/RCCar_Vehicle.h
+    rccar/RCCar_Wheel.cpp
+    rccar/RCCar_Wheel.h
+    rccar/RCCar.cpp
+    rccar/RCCar.h
+)
 source_group("rccar" FILES ${CVM_RCCAR_FILES})
 
 set(CVM_KRAZ_FILES
