@@ -28,8 +28,8 @@ namespace chrono {
 /// Note that most of the ChLinkMate constraints can be
 /// done also with the constraints inherited from ChLinkLock...
 /// but in case of links of the ChLinkLock class they
-/// reference two ChMarker objects, tht can also move, but
-/// this is could be an unnecessary complication in most cases.
+/// reference two ChMarker objects, that can also move, but
+/// this could be an unnecessary complication in most cases.
 
 class ChApi ChLinkMate : public ChLink {
   public:
@@ -349,7 +349,7 @@ class ChApi ChLinkMateSpherical : public ChLinkMateGeneric {
     using ChLinkMateGeneric::Initialize;
 
     /// Specialized initialization for coincident mate, given the two bodies to be connected, and two points
-    /// (each expressed in body or abs. coordinates). 
+    /// (each expressed in body or abs. coordinates).
     void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                     std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
                     bool pos_are_relative,                ///< true: following pos. are relative to bodies.
@@ -510,7 +510,7 @@ class ChApi ChLinkMateFix : public ChLinkMateGeneric {
 
     /// Specialized initialization for "fix" mate, given the two bodies to be connected, the positions of the two
     /// auxiliary frames where the two bodies are connected are both automatically initialized as the current absolute
-    /// position of mbody1. 
+    /// position of mbody1.
     void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                     std::shared_ptr<ChBodyFrame> mbody2   ///< second body to link
     );
