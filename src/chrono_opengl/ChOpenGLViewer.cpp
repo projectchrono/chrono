@@ -428,8 +428,8 @@ void ChOpenGLViewer::DrawVisualModel(std::shared_ptr<ChPhysicsItem> item) {
         }
         /*
         else if (ChRoundedBoxShape* shape = dynamic_cast<ChRoundedBoxShape*>(asset.get())) {
-            Vector rad = shape->GetRoundedBoxGeometry().Size;
-            double radsphere = shape->GetRoundedBoxGeometry().radsphere;
+            Vector rad = shape->GetHalflengths();
+            double radsphere = shape->GetRadius();
             ChVector<> pos_final = pos + center;
             model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x(), pos_final.y(), pos_final.z()));
             model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));

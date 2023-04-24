@@ -427,9 +427,9 @@ void WriteVisualizationAssets(ChSystem* system,
                 gss << CONE << delim << geom.rad.x() << delim << geom.rad.y();
                 a_count++;
             } else if (auto rbox = std::dynamic_pointer_cast<ChRoundedBoxShape>(shape)) {
-                const geometry::ChRoundedBox& geom = rbox->GetRoundedBoxGeometry();
-                gss << ROUNDEDBOX << delim << geom.hlen.x() << delim << geom.hlen.y() << delim << geom.hlen.z() << delim
-                    << geom.rad;
+                const Vector& hlen = rbox->GetHalflengths();
+                double srad = rbox->GetRadius();
+                gss << ROUNDEDBOX << delim << hlen.x() << delim << hlen.y() << delim << hlen.z() << delim << srad;
                 a_count++;
             } else if (auto rcyl = std::dynamic_pointer_cast<ChRoundedCylinderShape>(shape)) {
                 const geometry::ChRoundedCylinder& geom = rcyl->GetRoundedCylinderGeometry();

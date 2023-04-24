@@ -26,7 +26,8 @@ namespace geometry {
 class ChApi ChRoundedBox : public ChVolume {
   public:
     ChRoundedBox() : hlen(VNULL), rad(0) {}
-    ChRoundedBox(const ChVector<>& lengths, double radius) : hlen(0.5 * lengths), rad(radius) {}
+    ChRoundedBox(const ChVector<>& lengths, double radius);
+    ChRoundedBox(double length_x, double length_y, double length_z, double radius);
     ChRoundedBox(const ChRoundedBox& source);
     ~ChRoundedBox() {}
 
@@ -48,17 +49,20 @@ class ChApi ChRoundedBox : public ChVolume {
     /// This is a solid
     virtual int GetManifoldDimension() const override { return 3; }
 
-    /// Access the size of the box: a vector with the
-    /// three hemi-lengths (lengths divided by two!)
-    ChVector<>& GetSize() { return hlen; }
+    /// Get the box half-lengths.
+    const ChVector<>& GetHalflengths() const { return hlen; }
 
-    /// Get the x y z lengths of this box (that is, double
-    /// the Size values)
-    ChVector<> GetLengths() { return 2.0 * hlen; }
+    /// Get the x, y, and z lengths of this box.
+    ChVector<> GetLengths() const { return 2.0 * hlen; }
 
-    /// Set the x y z lengths of this box (that is, double
-    /// the Size values)
-    void SetLengths(ChVector<>& mlen) { hlen = 0.5 * mlen; }
+    /// Get the sweeping sphere radius.
+    double GetRadius() const { return rad; }
+
+    /// Set the x, y, and z lengths of this box.
+    void SetLengths(const ChVector<>& mlen) { hlen = 0.5 * mlen; }
+
+    /// Set the sweeping sphere radius.
+    void SetRadius(double radius) { rad = radius; }
 
     /// Get the volume (assuming no scaling in Rot matrix)
     double GetVolume() { return hlen.x() * hlen.y() * hlen.z() * 8.0; };

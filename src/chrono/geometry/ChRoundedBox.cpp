@@ -23,6 +23,9 @@ namespace geometry {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChRoundedBox)
 
+ChRoundedBox::ChRoundedBox(const ChVector<>& lengths, double radius) : hlen(0.5 * lengths), rad(radius) {}
+ChRoundedBox::ChRoundedBox(double length_x, double length_y, double length_z, double radius)
+    : hlen(0.5 * ChVector<>(length_z, length_y, length_z)), rad(radius) {}
 ChRoundedBox::ChRoundedBox(const ChRoundedBox& source) {
     hlen = source.hlen;
 }
