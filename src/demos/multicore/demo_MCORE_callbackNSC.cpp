@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
 
     container->SetCollide(true);
     container->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(container.get(), material, ChVector<>(4, 0.5, 4), ChVector<>(0, -0.5, 0));
+    utils::AddBoxGeometry(container.get(), material, ChVector<>(8, 1, 8), ChVector<>(0, -0.5, 0));
     container->GetCollisionModel()->BuildModel();
 
     auto obj1 = std::shared_ptr<ChBody>(sys.NewBody());

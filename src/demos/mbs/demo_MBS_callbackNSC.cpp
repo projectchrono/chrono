@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
     container->SetCollide(true);
     container->GetCollisionModel()->SetEnvelope(collision_envelope);
     container->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(container.get(), material, ChVector<>(4, 0.5, 4), ChVector<>(0, -0.5, 0));
+    utils::AddBoxGeometry(container.get(), material, ChVector<>(8, 1, 8), ChVector<>(0, -0.5, 0));
     container->GetCollisionModel()->BuildModel();
     container->GetVisualShape(0)->SetColor(ChColor(0.4f, 0.4f, 0.4f));
 
@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
     box1->SetCollide(true);
     box1->GetCollisionModel()->SetEnvelope(collision_envelope);
     box1->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(box1.get(), material, ChVector<>(0.4, 0.2, 0.1));
+    utils::AddBoxGeometry(box1.get(), material, ChVector<>(0.8, 0.4, 0.2));
     box1->GetCollisionModel()->BuildModel();
     box1->GetVisualShape(0)->SetColor(ChColor(0.1f, 0.1f, 0.4f));
 
@@ -170,7 +170,7 @@ int main(int argc, char* argv[]) {
     box2->SetCollide(true);
     box2->GetCollisionModel()->SetEnvelope(collision_envelope);
     box2->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(box2.get(), material, ChVector<>(0.4, 0.2, 0.1));
+    utils::AddBoxGeometry(box2.get(), material, ChVector<>(0.8, 0.4, 0.2));
     box2->GetCollisionModel()->BuildModel();
     box2->GetVisualShape(0)->SetColor(ChColor(0.4f, 0.1f, 0.1f));
 

@@ -94,10 +94,8 @@ void ChVehicleCosimTerrainNodeSCM::SetFromSpecfile(const std::string& specfile) 
     Document d;
     ReadSpecfile(specfile, d);
 
-    double length = d["Patch dimensions"]["Length"].GetDouble();
-    double width = d["Patch dimensions"]["Width"].GetDouble();
-    m_hdimX = length / 2;
-    m_hdimY = width / 2;
+    m_dimX = d["Patch dimensions"]["Length"].GetDouble();
+    m_dimY = d["Patch dimensions"]["Width"].GetDouble();
 
     m_spacing = d["Grid spacing"].GetDouble();
 
@@ -163,7 +161,7 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
                                  m_Mohr_cohesion, m_Mohr_friction, m_Janosi_shear,  //
                                  m_elastic_K, m_damping_R);
     m_terrain->SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, max_sinkage);
-    m_terrain->Initialize(2 * m_hdimX, 2 * m_hdimY, m_spacing);
+    m_terrain->Initialize(m_dimX, m_dimY, m_spacing);
 
     // If indicated, set node heights from checkpoint file
     if (m_use_checkpoint) {
@@ -247,7 +245,7 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
         m_vsys->AddLogo();
         m_vsys->AddSkyBox();
         m_vsys->AddTypicalLights();
-        m_vsys->AddCamera(ChVector<>(m_hdimX, 1.4, 1.0), ChVector<>(0, 0, 0));
+        m_vsys->AddCamera(ChVector<>(m_dimX / 2, 1.4, 1.0), ChVector<>(0, 0, 0));
     }
 #endif
 
@@ -257,7 +255,7 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
     outf << "System settings" << endl;
     outf << "  Integration step size = " << m_step_size << endl;
     outf << "Patch dimensions" << endl;
-    outf << "  X = " << 2 * m_hdimX << "  Y = " << 2 * m_hdimY << endl;
+    outf << "  X = " << m_dimX << "  Y = " << m_dimY << endl;
     outf << "  spacing = " << m_spacing << endl;
     outf << "Terrain material properties" << endl;
     outf << "  Kphi = " << m_Bekker_Kphi << endl;

@@ -181,11 +181,8 @@ int main(int argc, char* argv[]) {
     ground->SetBodyFixed(true);
 
     ground->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(5.0, 1, 5.0), ChVector<>(0, -1, 0), QUNIT, true, ground_mat_vis);
-    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(0.1, 1, 5.1), ChVector<>(-5, 0, 0), QUNIT, true, ground_mat_vis);
-    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(0.1, 1, 5.1), ChVector<>(+5, 0, 0), QUNIT, true, ground_mat_vis);
-    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(5.1, 1, 0.1), ChVector<>(0, 0, -5), QUNIT, true, ground_mat_vis);
-    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(5.1, 1, 0.1), ChVector<>(0, 0, +5), QUNIT, true, ground_mat_vis);
+    utils::AddBoxContainer(ground, ground_mat, ChFrame<>(), ChVector<>(10, 2, 10), 0.2, ChVector<int>(2, 1, 2), true,
+                           ground_mat_vis);
     ground->GetCollisionModel()->BuildModel();
 
     ground->AddVisualShape(obstacle.GetVisualization());

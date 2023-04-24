@@ -247,7 +247,7 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
                 case collision::ChCollisionShape::Type::ELLIPSOID: {
                     ChVector<> size;
                     iss >> size.x() >> size.y() >> size.z();
-                    AddEllipsoidGeometry(body.get(), mat, size, spos, srot);
+                    AddEllipsoidGeometry(body.get(), mat, size * 2, spos, srot);
                 } break;
                 case collision::ChCollisionShape::Type::BOX: {
                     ChVector<> size;
@@ -273,7 +273,7 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
                     ChVector<> size;
                     double srad;
                     iss >> size.x() >> size.y() >> size.z() >> srad;
-                    AddRoundedBoxGeometry(body.get(), mat, size, srad, spos, srot);
+                    AddRoundedBoxGeometry(body.get(), mat, size * 2, srad, spos, srot);
                 } break;
                 case collision::ChCollisionShape::Type::ROUNDEDCYL: {
                     double radius, hlen, srad, dummy;

@@ -202,7 +202,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Add geometry of the chassis.
     chassis->GetCollisionModel()->ClearModel();
-    chrono::utils::AddBoxGeometry(chassis.get(), cmaterial, ChVector<>(0.1, 0.1, 0.1), ChVector<>(0, 0, 0));
+    chrono::utils::AddBoxGeometry(chassis.get(), cmaterial, ChVector<>(0.2, 0.2, 0.2), ChVector<>(0, 0, 0));
     chassis->GetCollisionModel()->BuildModel();
     sysMBS.AddBody(chassis);
 

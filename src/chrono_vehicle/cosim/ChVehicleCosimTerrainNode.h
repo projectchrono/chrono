@@ -171,8 +171,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     bool m_render;         ///< if true, perform run-time rendering
     double m_render_step;  ///< time step between rendered frames
 
-    double m_hdimX;  ///< patch half-length (X direction)
-    double m_hdimY;  ///< patch half-width (Y direction)
+    double m_dimX;  ///< patch length (X direction)
+    double m_dimY;  ///< patch width (Y direction)
 
     // Communication data
 

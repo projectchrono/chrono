@@ -526,10 +526,10 @@ void Generator::createObjects(const PointVector& points, const ChVector<>& vel) 
                 AddSphereGeometry(body, mat, size.x());
                 break;
             case MixtureType::ELLIPSOID:
-                AddEllipsoidGeometry(body, mat, size);
+                AddEllipsoidGeometry(body, mat, size * 2);
                 break;
             case MixtureType::BOX:
-                AddBoxGeometry(body, mat, size);
+                AddBoxGeometry(body, mat, size * 2);
                 break;
             case MixtureType::CYLINDER:
                 AddCylinderGeometry(body, mat, size.x(), size.y());

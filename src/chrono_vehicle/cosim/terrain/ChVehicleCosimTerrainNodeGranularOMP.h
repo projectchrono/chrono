@@ -142,7 +142,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     opengl::ChVisualSystemOpenGL* m_vsys;  ///< OpenGL visualization system
 #endif
 
-    double m_hthick;  ///< container wall half-thickness
+    double m_thick;  ///< container wall thickness
 
     double m_radius_p;  ///< radius for a proxy body
 

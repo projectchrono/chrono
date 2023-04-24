@@ -174,15 +174,15 @@ int main(int argc, char* argv[]) {
     ground_vmat->SetKdTexture(GetChronoDataFile("textures/blue.png"));
 
     ground->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(5.0, 1, 5.0), ChVector<>(0, -1, 0), QUNIT, true,
+    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(10, 2, 10), ChVector<>(0, -1, 0), QUNIT, true,
                           ground_vmat);
-    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(0.1, 1, 5.1), ChVector<>(-5, 0, 0), QUNIT, true,
+    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(0.2, 2, 10.2), ChVector<>(-5, 0, 0), QUNIT, true,
                           ground_vmat);
-    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(0.1, 1, 5.1), ChVector<>(+5, 0, 0), QUNIT, true,
+    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(0.2, 2, 10.2), ChVector<>(+5, 0, 0), QUNIT, true,
                           ground_vmat);
-    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(5.1, 1, 0.1), ChVector<>(0, 0, -5), QUNIT, true,
+    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(10.2, 2, 0.2), ChVector<>(0, 0, -5), QUNIT, true,
                           ground_vmat);
-    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(5.1, 1, 0.1), ChVector<>(0, 0, +5), QUNIT, true,
+    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(10.2, 2, 0.2), ChVector<>(0, 0, +5), QUNIT, true,
                           ground_vmat);
     ground->GetCollisionModel()->BuildModel();
 

@@ -118,7 +118,7 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
     mat_terrain->SetGt(4e1f);
 
     ground->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(ground.get(), mat_terrain, ChVector<>(m_hdimX, m_hdimY, 0.1), ChVector<>(0, 0, -0.1),
+    utils::AddBoxGeometry(ground.get(), mat_terrain, ChVector<>(m_dimX, m_dimY, 0.2), ChVector<>(0, 0, -0.1),
                           ChQuaternion<>(1, 0, 0, 0), true);
     ground->GetCollisionModel()->BuildModel();
 

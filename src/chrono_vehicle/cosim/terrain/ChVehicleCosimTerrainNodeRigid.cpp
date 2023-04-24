@@ -148,10 +148,8 @@ void ChVehicleCosimTerrainNodeRigid::SetFromSpecfile(const std::string& specfile
     Document d;
     ReadSpecfile(specfile, d);
 
-    double length = d["Patch dimensions"]["Length"].GetDouble();
-    double width = d["Patch dimensions"]["Width"].GetDouble();
-    m_hdimX = length / 2;
-    m_hdimY = width / 2;
+    m_dimX = d["Patch dimensions"]["Length"].GetDouble();
+    m_dimY = d["Patch dimensions"]["Width"].GetDouble();
 
     switch (GetSystem()->GetContactMethod()) {
         case ChContactMethod::SMC: {
@@ -240,7 +238,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
     container->SetCollide(true);
 
     container->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_hdimX, m_hdimY, 0.1),
+    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_dimX, m_dimY, 0.2),
                           ChVector<>(0, 0, -0.1), ChQuaternion<>(1, 0, 0, 0), true);
     container->GetCollisionModel()->BuildModel();
 
@@ -321,7 +319,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
          << endl;
     outf << "   Collision envelope = " << m_system->GetSettings()->collision.collision_envelope << endl;
     outf << "Patch dimensions" << endl;
-    outf << "   X = " << 2 * m_hdimX << "  Y = " << 2 * m_hdimY << endl;
+    outf << "   X = " << m_dimX << "  Y = " << m_dimY << endl;
     outf << "Terrain material properties" << endl;
     switch (m_method) {
         case ChContactMethod::SMC: {
