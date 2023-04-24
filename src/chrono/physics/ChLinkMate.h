@@ -92,7 +92,7 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     ChVector<> GetLagrangeMultiplier_f() { return gamma_f; }
 
     /// Get the rotational Lagrange multipliers, expressed in a ghost frame determined by the
-    /// projection matrix for \rho_F1(F2)
+    /// projection matrix (this->P) for \rho_F1(F2)
     ChVector<> GetLagrangeMultiplier_m() { return gamma_m; }
 
     bool IsConstrainedX() const { return c_x; }
@@ -234,7 +234,8 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     ChMatrix33<> P;
 
     ChVector<> gamma_f;  ///< store the translational Lagrange multipliers, expressed in the master frame F2
-    ChVector<> gamma_m;  ///< store the rotational Lagrange multipliers, expressed in a ghost frame determined by the projection matrix for \rho_F1(F2)
+    ChVector<> gamma_m;  ///< store the rotational Lagrange multipliers, expressed in a ghost frame
+                         ///< determined by the projection matrix for \rho_F1(F2)
 };
 
 CH_CLASS_VERSION(ChLinkMateGeneric, 0)
