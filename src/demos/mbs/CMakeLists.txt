@@ -13,7 +13,7 @@ set(DEMOS
   demo_MBS_collisionSMC
   demo_MBS_earthquake
   demo_MBS_friction
-  demo_MBS_spring
+  demo_MBS_spring  
 )
 
 # Add demos that can only work with Irrlicht
@@ -61,6 +61,13 @@ if(ENABLE_MODULE_IRRLICHT)
         demo_MBS_collision_object
       )
     endif()
+
+    # Add demos that require MKL
+    if(ENABLE_MODULE_PARDISO_MKL)
+        set(DEMOS ${DEMOS}
+          demo_MBS_link_mate
+        )
+    endif()
 endif()
 
 #--------------------------------------------------------------
@@ -78,6 +85,13 @@ if(ENABLE_MODULE_IRRLICHT)
   include_directories(${CH_IRRLICHT_INCLUDES})
   set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
   list(APPEND LIBS "ChronoEngine_irrlicht")
+endif()
+
+if(ENABLE_MODULE_PARDISO_MKL)
+  include_directories(${CH_MKL_INCLUDES})
+  set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
+  set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
+  list(APPEND LIBS "ChronoEngine_pardisomkl")
 endif()
 
 if(ENABLE_MODULE_VSG)
