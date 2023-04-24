@@ -43,8 +43,8 @@ void ChLinkMotorRotationAngle::Update(double mytime, bool update_assets) {
         ChFrame<> aframe1 = this->frame1 >> (*this->Body1);
         ChFrame<> aframe2 = this->frame2 >> (*this->Body2);
 
-        ChFrame<> aframe12;
-        aframe2.TransformParentToLocal(aframe1, aframe12);
+        //ChFrame<> aframe12;
+        //aframe2.TransformParentToLocal(aframe1, aframe12);
 
         double aux_rotation;
         aux_rotation = m_func->Get_y(mytime) + rot_offset;
@@ -52,19 +52,19 @@ void ChLinkMotorRotationAngle::Update(double mytime, bool update_assets) {
         ChFrame<> aframe1rotating;
         aframe1rotating.SetRot(aframe1.GetRot() * Q_from_AngAxis(aux_rotation, VECT_Z).GetConjugate());
 
-        ChFrame<> aframe21rotating;
-        aframe1rotating.TransformParentToLocal(aframe2, aframe21rotating);
+        ChFrame<> aframe1rotating2;
+        aframe2.TransformParentToLocal(aframe1rotating, aframe1rotating2);
 
         // Premultiply by Jw1 and Jw2 by  0.5*[Fp(q_resid)]' to get residual as imaginary part of a quaternion.
-        this->P = 0.5 * (ChMatrix33<>(aframe21rotating.GetRot().e0()) +
-                         ChStarMatrix33<>(aframe21rotating.GetRot().GetVector()));
+        this->P = 0.5 * (ChMatrix33<>(aframe1rotating2.GetRot().e0()) +
+                         ChStarMatrix33<>(aframe1rotating2.GetRot().GetVector()));
 
-        ChMatrix33<> Jw1 = this->P * aframe2.GetA().transpose() * Body1->GetA();
-        ChMatrix33<> Jw2 = -this->P * aframe2.GetA().transpose() * Body2->GetA();
+        ChMatrix33<> Jw1 = this->P.transpose() * aframe2.GetA().transpose() * Body1->GetA();
+        ChMatrix33<> Jw2 = -this->P.transpose() * aframe2.GetA().transpose() * Body2->GetA();
 
         // Another equivalent expression:
-        // ChMatrix33<> Jw1 = this->P.transpose() * aframe1rotating.GetA().transpose() * Body1->GetA();
-        // ChMatrix33<> Jw2 = -this->P.transpose() * aframe1rotating.GetA().transpose() * Body2->GetA();
+        // ChMatrix33<> Jw1 = this->P * aframe1rotating.GetA().transpose() * Body1->GetA();
+        // ChMatrix33<> Jw2 = -this->P * aframe1rotating.GetA().transpose() * Body2->GetA();
 
         int nc = 0;
 
@@ -78,7 +78,7 @@ void ChLinkMotorRotationAngle::Update(double mytime, bool update_assets) {
             nc++;
         }
         if (c_rx) {
-            C(nc) = -aframe21rotating.GetRot().e1();
+            C(nc) = aframe1rotating2.GetRot().e1();
             mask.Constr_N(nc).Get_Cq_a().setZero();
             mask.Constr_N(nc).Get_Cq_b().setZero();
             mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(0);
@@ -86,7 +86,7 @@ void ChLinkMotorRotationAngle::Update(double mytime, bool update_assets) {
             nc++;
         }
         if (c_ry) {
-            C(nc) = -aframe21rotating.GetRot().e2();
+            C(nc) = aframe1rotating2.GetRot().e2();
             mask.Constr_N(nc).Get_Cq_a().setZero();
             mask.Constr_N(nc).Get_Cq_b().setZero();
             mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(1);
@@ -94,7 +94,7 @@ void ChLinkMotorRotationAngle::Update(double mytime, bool update_assets) {
             nc++;
         }
         if (c_rz) {
-            C(nc) = -aframe21rotating.GetRot().e3();
+            C(nc) = aframe1rotating2.GetRot().e3();
             mask.Constr_N(nc).Get_Cq_a().setZero();
             mask.Constr_N(nc).Get_Cq_b().setZero();
             mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(2);
