@@ -423,8 +423,7 @@ void WriteVisualizationAssets(ChSystem* system,
                     << geom.p1.z() << delim << geom.p2.x() << delim << geom.p2.y() << delim << geom.p2.z();
                 a_count++;
             } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(shape)) {
-                const geometry::ChCone& geom = cone->GetConeGeometry();
-                gss << CONE << delim << geom.rad.x() << delim << geom.rad.y();
+                gss << CONE << delim << cone->GetRadius() << delim << cone->GetHeight();
                 a_count++;
             } else if (auto rbox = std::dynamic_pointer_cast<ChRoundedBoxShape>(shape)) {
                 const Vector& hlen = rbox->GetHalflengths();

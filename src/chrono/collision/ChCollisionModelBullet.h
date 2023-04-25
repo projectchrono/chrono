@@ -120,9 +120,8 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
     /// Add a cone to this collision model (default axis on Y direction).
     virtual bool AddCone(                             //
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
-        double rx,                                    ///< radius (X direction)
-        double rz,                                    ///< radius (Z direction)
-        double hy,                                    ///< half length
+        double radius,                                ///< cone radius
+        double hheight,                               ///< cone half-height
         const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
         ) override {

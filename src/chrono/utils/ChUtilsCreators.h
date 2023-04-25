@@ -119,14 +119,16 @@ ChApi void AddCylinderGeometry(ChBody* body,
                                ChVisualMaterialSharedPtr vis_material = ChVisualMaterial::Default());
 
 /// Add a box cone shape and optionally a corresponding visualization asset to the specified body.
-ChApi void AddConeGeometry(ChBody* body,
-                           ChMaterialSurfaceSharedPtr material,
-                           double radius,
-                           double height,
-                           const ChVector<>& pos = ChVector<>(0, 0, 0),
-                           const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
-                           bool visualization = true,
-                           ChVisualMaterialSharedPtr vis_material = ChVisualMaterial::Default());
+ChApi void AddConeGeometry(
+    ChBody* body,                                                         ///< associated body
+    ChMaterialSurfaceSharedPtr material,                                  ///< contact material
+    double radius,                                                        ///< cone radius
+    double height,                                                        ///< cone height
+    const ChVector<>& pos = ChVector<>(0, 0, 0),                          ///< position on body
+    const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),               ///< orientation wrt body frame
+    bool visualization = true,                                            ///< create visualization shape
+    ChVisualMaterialSharedPtr vis_material = ChVisualMaterial::Default()  ///< visualization material
+);
 
 /// Add a triangular mesh collision shape and optionally a corresponding visualization asset to the specified body.
 ChApi bool AddTriangleMeshGeometry(

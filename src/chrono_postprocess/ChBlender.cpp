@@ -963,7 +963,7 @@ void ChBlender::ExportItemState(ChStreamOutAsciiFile& state_file,
                 else if (auto mbox = std::dynamic_pointer_cast<ChBoxShape>(shape))
                     aux_scale = mbox->GetLengths();
                 else if (auto mcone = std::dynamic_pointer_cast<ChConeShape>(shape))
-                    aux_scale = mcone->GetConeGeometry().rad;
+                    aux_scale = ChVector<>(mcone->GetRadius(), mcone->GetRadius(), mcone->GetHeight());
                 else if (auto mcyl = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
                     aux_scale = ChVector<>(mcyl->GetCylinderGeometry().rad, mcyl->GetCylinderGeometry().rad, (mcyl->GetCylinderGeometry().p2 - mcyl->GetCylinderGeometry().p1).Length());
                     ChVector<> mdir = mcyl->GetCylinderGeometry().p2 - mcyl->GetCylinderGeometry().p1;

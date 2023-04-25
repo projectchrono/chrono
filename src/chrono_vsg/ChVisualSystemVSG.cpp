@@ -1053,8 +1053,10 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
         } else if (auto barrel = std::dynamic_pointer_cast<ChBarrelShape>(shape)) {
             //// TODO
         } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(shape)) {
+            double rad = cone->GetRadius();
+            double height = cone->GetHeight();
             auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X_SM, cone->GetConeGeometry().rad);
+            transform->matrix = vsg::dmat4CH(X_SM, ChVector<>(rad, rad, height));
             auto grp = m_shapeBuilder->createPbrShape(ShapeBuilder::CONE_SHAPE, material, transform, m_wireframe);
             group->addChild(grp);
         } else if (auto trimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape)) {
@@ -1253,8 +1255,10 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
         shape_type = ShapeType::CYLINDER;
         shape_size = ChVector<>(rad, rad, hlen) * 2;
     } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(shape)) {
+        double rad = cone->GetRadius();
+        double height = cone->GetHeight();
         shape_type = ShapeType::CONE;
-        shape_size = cone->GetConeGeometry().rad * 2;
+        shape_size = ChVector<>(2 * rad, 2 * rad, height);
     }
 
     if (shape_type == ShapeType::NONE)

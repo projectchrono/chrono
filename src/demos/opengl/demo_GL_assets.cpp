@@ -26,6 +26,8 @@
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChConeShape.h"
+#include "chrono/assets/ChCapsuleShape.h"
 #include "chrono/assets/ChPathShape.h"
 #include "chrono/assets/ChModelFileShape.h"
 
@@ -61,13 +63,13 @@ int main(int argc, char* argv[]) {
 
     sys.Add(floor);
 
-    // ==Asset== attach a 'box' shape.
+    // Attach a 'box' shape
     // Note that assets are managed via shared pointer, so they can also be shared).
     auto boxfloor = chrono_types::make_shared<ChBoxShape>(20, 1, 20);
     boxfloor->SetColor(ChColor(0.2f, 0.3f, 1.0f));
     floor->AddVisualShape(boxfloor, ChFrame<>(ChVector<>(0, -1, 0), QUNIT));
 
-    // ==Asset== attach a 'path' shape populated with segments and arcs.
+    // Attach a 'path' shape populated with segments and arcs.
     auto pathfloor = chrono_types::make_shared<ChPathShape>();
     ChLineSegment mseg1(ChVector<>(1, 2, 0), ChVector<>(1, 3, 0));
     pathfloor->GetPathGeometry()->AddSubLine(mseg1);
@@ -78,7 +80,7 @@ int main(int argc, char* argv[]) {
     pathfloor->SetColor(ChColor(0.0f, 0.5f, 0.8f));
     floor->AddVisualShape(pathfloor);
 
-    // ==Asset== attach a 'nurbs line' shape:
+    // Attach a 'nurbs line' shape:
     // First create the ChLineNurbs geometry, then put it inside a ChLineShape
     auto nurbs = chrono_types::make_shared<ChLineNurbs>();
     std::vector<ChVector<>> controlpoints = {ChVector<>(1, 2, -1), ChVector<>(1, 3, -1), ChVector<>(1, 3, -2),
@@ -90,7 +92,7 @@ int main(int argc, char* argv[]) {
     nurbsasset->SetColor(ChColor(0.0f, 0.3f, 1.0f));
     floor->AddVisualShape(nurbsasset);
 
-    // ==Asset== attach a 'nurbs surface' shape:
+    // Attach a 'nurbs surface' shape:
     // First create the ChSurfaceNurbs geometry, then put it inside a ChSurfaceShape
     auto surf = chrono_types::make_shared<ChSurfaceNurbs>();
     ChMatrixDynamic<ChVector<>> surfpoints(4, 2);  // u points, v points
@@ -123,17 +125,17 @@ int main(int argc, char* argv[]) {
     auto orange_mat = chrono_types::make_shared<ChVisualMaterial>();
     orange_mat->SetDiffuseColor(ChColor(0.9f, 0.4f, 0.2f));
 
-    // ==Asset== Attach a 'sphere' shape
+    // Attach a sphere shape
     auto sphere = chrono_types::make_shared<ChSphereShape>(0.5);
     sphere->AddMaterial(orange_mat);
     body->AddVisualShape(sphere, ChFrame<>(ChVector<>(-1, 0, 0), QUNIT));
 
-    // ==Asset== Attach also a 'box' shape
+    // Attach a box shape
     auto box = chrono_types::make_shared<ChBoxShape>(0.6, 1.0, 0.2);
     box->AddMaterial(orange_mat);
     body->AddVisualShape(box, ChFrame<>(ChVector<>(1, 1, 0), QUNIT));
 
-    // ==Asset== Attach also a 'cylinder' shape
+    // Attach a cylinder shape
     auto cyl = chrono_types::make_shared<ChCylinderShape>();
     cyl->GetCylinderGeometry().p1 = ChVector<>(2, -0.2, 0);
     cyl->GetCylinderGeometry().p2 = ChVector<>(2.2, 0.5, 0);
@@ -141,7 +143,14 @@ int main(int argc, char* argv[]) {
     cyl->AddMaterial(orange_mat);
     body->AddVisualShape(cyl);
 
-    // ==Asset== Attach three instances of the same 'triangle mesh' shape
+    // Attach a cone shape
+    auto coneShape = chrono_types::make_shared<ChConeShape>(0.3, 1.0);
+    coneShape->SetMaterial(0, orange_mat);
+    body->AddVisualShape(coneShape, ChFrame<>(ChVector<>(1, 0, 0), QUNIT));
+    body->AddVisualShape(chrono_types::make_shared<ChSphereShape>(0.03), ChFrame<>(ChVector<>(1, 0, 0), QUNIT));
+    body->AddVisualShape(chrono_types::make_shared<ChSphereShape>(0.03), ChFrame<>(ChVector<>(1, 0, 1), QUNIT));
+
+    // Attach three instances of the same 'triangle mesh' shape
     auto mesh = chrono_types::make_shared<ChTriangleMeshShape>();
     mesh->GetMesh()->getCoordsVertices().push_back(ChVector<>(0, 0, 0));
     mesh->GetMesh()->getCoordsVertices().push_back(ChVector<>(0, 1, 0));
@@ -153,13 +162,13 @@ int main(int argc, char* argv[]) {
     body->AddVisualShape(mesh, ChFrame<>(ChVector<>(3, 0, 2), QUNIT));
     body->AddVisualShape(mesh, ChFrame<>(ChVector<>(2, 1, 2), QUNIT));
 
-    // ==Asset== Attach a 'Wavefront mesh' asset, referencing a .obj file and offset it.
+    // Attach a 'Wavefront mesh' asset, referencing a .obj file and offset it.
     auto objmesh = chrono_types::make_shared<ChModelFileShape>();
     objmesh->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
     objmesh->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
     body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(0, 0, 2), QUNIT));
 
-    // ==Asset== Attach an array of boxes, each rotated to make a spiral
+    // Attach an array of boxes, each rotated to make a spiral
     for (int j = 0; j < 20; j++) {
         auto smallbox = chrono_types::make_shared<ChBoxShape>(0.2, 0.2, 0.02);
         smallbox->SetColor(ChColor(j * 0.05f, 1 - j * 0.05f, 0.0f));

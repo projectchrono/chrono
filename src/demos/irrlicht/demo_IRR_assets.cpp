@@ -22,6 +22,7 @@
 #include "chrono/geometry/ChLineNurbs.h"
 #include "chrono/geometry/ChSurfaceNurbs.h"
 #include "chrono/assets/ChSurfaceShape.h"
+#include "chrono/assets/ChConeShape.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
@@ -117,27 +118,35 @@ int main(int argc, char* argv[]) {
     body->SetBodyFixed(true);
     sys.Add(body);
 
-    // Create a shared visualization material
+    // Create shared visualization materials
     auto orange_mat = chrono_types::make_shared<ChVisualMaterial>();
     orange_mat->SetDiffuseColor(ChColor(0.9f, 0.4f, 0.2f));
 
-    // ==Asset== Attach a 'sphere' shape
+    auto cone_mat = chrono_types::make_shared<ChVisualMaterial>();
+    cone_mat->SetKdTexture(GetChronoDataFile("textures/pinkwhite.png"));
+
+    // Attach a sphere shape
     auto sphere = chrono_types::make_shared<ChSphereShape>(0.5);
     sphere->AddMaterial(orange_mat);
     body->AddVisualShape(sphere, ChFrame<>(ChVector<>(-1, 0, 0), QUNIT));
 
-    // ==Asset== Attach also a 'box' shape
+    // Attach a box shape
     auto box = chrono_types::make_shared<ChBoxShape>(0.6, 1.0, 0.2);
     box->AddMaterial(orange_mat);
     body->AddVisualShape(box, ChFrame<>(ChVector<>(1, 1, 0), QUNIT));
 
-    // ==Asset== Attach also a 'cylinder' shape
+    // Attach a cylinder shape
     auto cyl = chrono_types::make_shared<ChCylinderShape>();
     cyl->GetCylinderGeometry().p1 = ChVector<>(2, -0.2, 0);
     cyl->GetCylinderGeometry().p2 = ChVector<>(2.2, 0.5, 0);
     cyl->GetCylinderGeometry().rad = 0.3;
     cyl->AddMaterial(orange_mat);
     body->AddVisualShape(cyl);
+
+    // Attach a cone shape (NOT YET SUPPORTED)
+    auto cone = chrono_types::make_shared<ChConeShape>(0.3, 1.0);
+    cone->SetMaterial(0, cone_mat);
+    body->AddVisualShape(cone, ChFrame<>(ChVector<>(-4, 1.5, -1), QUNIT));
 
     // ==Asset== Attach three instances of the same 'triangle mesh' shape
     auto mesh = chrono_types::make_shared<ChTriangleMeshShape>();

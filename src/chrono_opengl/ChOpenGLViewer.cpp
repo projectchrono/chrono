@@ -364,11 +364,12 @@ void ChOpenGLViewer::DrawVisualModel(std::shared_ptr<ChPhysicsItem> item) {
             model = glm::scale(model, glm::vec3(rad, height * .5, rad));
             model_cylinder.push_back(model);
         } else if (ChConeShape* cone_shape = dynamic_cast<ChConeShape*>(shape.get())) {
-            Vector rad = cone_shape->GetConeGeometry().rad;
+            double radius = cone_shape->GetRadius();
+            double height = cone_shape->GetHeight();
 
             model = glm::translate(glm::mat4(1), glm::vec3(pos.x(), pos.y(), pos.z()));
             model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
-            model = glm::scale(model, glm::vec3(rad.x(), rad.y(), rad.z()));
+            model = glm::scale(model, glm::vec3(radius, radius, height));
             model_cone.push_back(model);
         } else if (ChCapsuleShape* capsule_shape = dynamic_cast<ChCapsuleShape*>(shape.get())) {
             double rad = capsule_shape->GetCapsuleGeometry().rad;

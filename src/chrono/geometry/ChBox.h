@@ -39,7 +39,7 @@ class ChApi ChBox : public ChVolume {
     /// Compute bounding box along the directions defined by the given rotation matrix.
     virtual AABB GetBoundingBox(const ChMatrix33<>& rot) const override;
 
-    /// Computes the baricenter of the box
+    /// Compute the baricenter of the box.
     virtual ChVector<> Baricenter() const override { return ChVector<>(0); }
 
     /// Evaluate position in cube volume
