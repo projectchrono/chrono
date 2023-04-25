@@ -535,13 +535,13 @@ void Generator::createObjects(const PointVector& points, const ChVector<>& vel) 
                 AddCylinderGeometry(body, mat, size.x(), size.y());
                 break;
             case MixtureType::CONE:
-                AddConeGeometry(body, mat, size.x(), size.y());
+                AddConeGeometry(body, mat, size.x(), size.z());
                 break;
             case MixtureType::BISPHERE:
             	AddBiSphereGeometry(body, mat, size.x(), size.y());
                 break;
             case MixtureType::CAPSULE:
-                AddCapsuleGeometry(body, mat, size.x(), size.y());
+                AddCapsuleGeometry(body, mat, size.x(), size.z());
                 break;
             case MixtureType::ROUNDEDCYLINDER:
                 AddRoundedCylinderGeometry(body, mat, size.x(), size.y(), size.z());

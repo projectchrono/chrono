@@ -1044,11 +1044,11 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
             auto grp = m_shapeBuilder->createPbrShape(ShapeBuilder::SPHERE_SHAPE, material, transform, m_wireframe);
             group->addChild(grp);
         } else if (auto capsule = std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {
-            double rad = capsule->GetCapsuleGeometry().rad;
-            double height = capsule->GetCapsuleGeometry().hlen;
+            double rad = capsule->GetRadius();
+            double height = capsule->GetHeight();
             auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X_SM, ChVector<>(rad, height, rad));
-            auto grp = m_shapeBuilder->createPbrShape(ShapeBuilder::CAPSULE_SHAPE, material, transform, m_wireframe);
+            transform->matrix = vsg::dmat4CH(X_SM, ChVector<>(rad, rad, rad / 2 + height / 4));
+            auto grp = m_shapeBuilder->createPbrShape(ShapeBuilder::CAPSULE_SHAPE, material, transform, true);
             group->addChild(grp);
         } else if (auto barrel = std::dynamic_pointer_cast<ChBarrelShape>(shape)) {
             //// TODO
@@ -1245,10 +1245,10 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
         shape_type = ShapeType::BOX;
         shape_size = box->GetLengths();
     } else if (auto cap = std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {
-        double rad = cap->GetCapsuleGeometry().rad;
-        double hlen = cap->GetCapsuleGeometry().hlen;
+        double rad = cap->GetRadius();
+        double height = cap->GetHeight();
         shape_type = ShapeType::CAPSULE;
-        shape_size = ChVector<>(rad, rad, hlen) * 2;
+        shape_size = ChVector<>(2 * rad, 2 * rad, height);
     } else if (auto cyl = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
         double rad = cyl->GetCylinderGeometry().rad;
         double hlen = (cyl->GetCylinderGeometry().p1 - cyl->GetCylinderGeometry().p2).Length() / 2;

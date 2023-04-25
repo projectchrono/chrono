@@ -24,9 +24,10 @@ ChCapsuleShape::ChCapsuleShape() {
     SetMutable(false);
 }
 
-ChCapsuleShape::ChCapsuleShape(double radius, double length) {
-    gcapsule.rad = radius;
-    gcapsule.hlen = length / 2;
+ChCapsuleShape::ChCapsuleShape(double radius, double height) {
+    gcapsule.r = radius;
+    gcapsule.h = height;
+    SetMutable(false);
 }
 
 ChCapsuleShape::ChCapsuleShape(const geometry::ChCapsule& cap) : gcapsule(cap) {

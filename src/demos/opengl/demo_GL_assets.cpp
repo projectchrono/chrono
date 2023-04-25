@@ -143,6 +143,13 @@ int main(int argc, char* argv[]) {
     cyl->AddMaterial(orange_mat);
     body->AddVisualShape(cyl);
 
+    // Attach a capsule shape
+    auto capsule = chrono_types::make_shared<ChCapsuleShape>(0.4, 1);
+    capsule->AddMaterial(orange_mat);
+    body->AddVisualShape(capsule, ChFrame<>(ChVector<>(2, 0, 1), QUNIT));
+    body->AddVisualShape(chrono_types::make_shared<ChSphereShape>(0.03), ChFrame<>(ChVector<>(2, 0, 0), QUNIT));
+    body->AddVisualShape(chrono_types::make_shared<ChSphereShape>(0.03), ChFrame<>(ChVector<>(2, 0, 2), QUNIT));
+
     // Attach a cone shape
     auto coneShape = chrono_types::make_shared<ChConeShape>(0.3, 1.0);
     coneShape->SetMaterial(0, orange_mat);

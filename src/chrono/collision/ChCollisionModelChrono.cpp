@@ -258,7 +258,7 @@ bool ChCollisionModelChrono::AddCone(std::shared_ptr<ChMaterialSurface> material
 
 bool ChCollisionModelChrono::AddCapsule(std::shared_ptr<ChMaterialSurface> material,
                                         double radius,
-                                        double hlen,
+                                        double hheight,
                                         const ChVector<>& pos,
                                         const ChMatrix33<>& rot) {
     ChFrame<> frame;
@@ -268,7 +268,7 @@ bool ChCollisionModelChrono::AddCapsule(std::shared_ptr<ChMaterialSurface> mater
 
     auto shape = new ChCollisionShapeChrono(ChCollisionShape::Type::CAPSULE, material);
     shape->A = real3(position.x(), position.y(), position.z());
-    shape->B = real3(radius, hlen, radius);
+    shape->B = real3(radius, radius, hheight);
     shape->C = real3(0, 0, 0);
     shape->R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
     m_shapes.push_back(std::shared_ptr<ChCollisionShape>(shape));

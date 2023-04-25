@@ -69,9 +69,9 @@ int main(int argc, char *argv[]) {
     utils::AddConeGeometry(bin.get(), mat, b, 1.5, ydir * 5, rot);
     utils::AddConeGeometry(bin.get(), mat, c, 1.5, zdir * 5, rot);
 
-    utils::AddCapsuleGeometry(bin.get(), mat, a, 0.5, xdir * 6, rot);
-    utils::AddCapsuleGeometry(bin.get(), mat, b, 0.5, ydir * 6, rot);
-    utils::AddCapsuleGeometry(bin.get(), mat, c, 0.5, zdir * 6, rot);
+    utils::AddCapsuleGeometry(bin.get(), mat, a, 1.0, xdir * 6, rot);
+    utils::AddCapsuleGeometry(bin.get(), mat, b, 1.0, ydir * 6, rot);
+    utils::AddCapsuleGeometry(bin.get(), mat, c, 1.0, zdir * 6, rot);
 
     // Render everything
     opengl::ChVisualSystemOpenGL vis;

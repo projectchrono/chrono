@@ -414,8 +414,7 @@ void WriteVisualizationAssets(ChSystem* system,
                 gss << BOX << delim << hlen.x() << delim << hlen.y() << delim << hlen.z();
                 a_count++;
             } else if (auto capsule = std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {
-                const geometry::ChCapsule& geom = capsule->GetCapsuleGeometry();
-                gss << CAPSULE << delim << geom.rad << delim << geom.hlen;
+                gss << CAPSULE << delim << capsule->GetRadius() << delim << capsule->GetHeight();
                 a_count++;
             } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
                 const geometry::ChCylinder& geom = cylinder->GetCylinderGeometry();

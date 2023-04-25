@@ -215,9 +215,7 @@ int main(int argc, char* argv[]) {
             object->GetCollisionModel()->AddCapsule(object_mat, radius, hlen, ChVector<>(0), ChMatrix33<>(1));
             object->GetCollisionModel()->BuildModel();
 
-            auto cap = chrono_types::make_shared<ChCapsuleShape>();
-            cap->GetCapsuleGeometry().rad = radius;
-            cap->GetCapsuleGeometry().hlen = hlen;
+            auto cap = chrono_types::make_shared<ChCapsuleShape>(radius, 2 * hlen);
             object->AddVisualShape(cap);
 
             break;

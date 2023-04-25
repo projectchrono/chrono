@@ -132,7 +132,7 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
     virtual bool AddCapsule(                          //
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
         double radius,                                ///< radius
-        double hlen,                                  ///< half-length of capsule axis
+        double hheight,                               ///< half-leight of cylindrical portion
         const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
         ) override;

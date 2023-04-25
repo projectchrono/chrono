@@ -99,14 +99,16 @@ ChApi void AddBiSphereGeometry(
 );
 
 /// Add a box capsule shape and optionally a corresponding visualization asset to the specified body.
-ChApi void AddCapsuleGeometry(ChBody* body,
-                              ChMaterialSurfaceSharedPtr material,
-                              double radius,
-                              double hlen,
-                              const ChVector<>& pos = ChVector<>(0, 0, 0),
-                              const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
-                              bool visualization = true,
-                              ChVisualMaterialSharedPtr vis_material = ChVisualMaterial::Default());
+ChApi void AddCapsuleGeometry(
+    ChBody* body,                                                         ///< associated body
+    ChMaterialSurfaceSharedPtr material,                                  ///< contact material
+    double radius,                                                        ///< capsule radius
+    double height,                                                        ///< capsule height (cylindrical portion)
+    const ChVector<>& pos = ChVector<>(0, 0, 0),                          ///< position on body
+    const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),               ///< orientation wrt body frame
+    bool visualization = true,                                            ///< create visualization shape
+    ChVisualMaterialSharedPtr vis_material = ChVisualMaterial::Default()  ///< visualization material
+);
 
 /// Add a box cylinder shape and optionally a corresponding visualization asset to the specified body.
 ChApi void AddCylinderGeometry(ChBody* body,

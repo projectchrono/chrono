@@ -255,9 +255,7 @@ int main(int argc, char* argv[]) {
         particles->SetFixed(true);
         particles->SetCollide(false);
 
-        auto particle_vis = chrono_types::make_shared<ChCapsuleShape>();
-        particle_vis->GetCapsuleGeometry().rad = 0.2;
-        particle_vis->GetCapsuleGeometry().hlen = 0.1;
+        auto particle_vis = chrono_types::make_shared<ChCapsuleShape>(0.2, 0.2);
         particle_vis->SetColor(ChColor(0.3f, 0.3f, 0.7f));
         particles->AddVisualShape(particle_vis);
 
@@ -300,7 +298,7 @@ int main(int argc, char* argv[]) {
     auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
     vis->AttachSystem(&sys);
     vis->SetCameraVertical(CameraVerticalDir::Y);
-    vis->SetWindowSize(ChVector2<int>(800, 600));
+    vis->SetWindowSize(ChVector2<int>(1200, 800));
     vis->SetWindowPosition(ChVector2<int>(100, 300));
     vis->SetWindowTitle("Chrono VSG Assets");
     vis->SetUseSkyBox(true);
@@ -350,17 +348,19 @@ int main(int argc, char* argv[]) {
 
     auto caps_mat = chrono_types::make_shared<ChVisualMaterial>();
     caps_mat->SetDiffuseColor(ChColor(0.8f, 0.5f, 0.2f));
-    auto capsShape = chrono_types::make_shared<ChCapsuleShape>();
-    capsShape->GetCapsuleGeometry().rad = 0.4;
-    capsShape->GetCapsuleGeometry().hlen = 0.4;
+    auto capsShape = chrono_types::make_shared<ChCapsuleShape>(0.5, 2);
     capsShape->SetMaterial(0, caps_mat);
-    vis->AddVisualModel(capsShape, ChFrame<>(ChVector<>(-3, 1.5, -1), QUNIT));
+    vis->AddVisualModel(capsShape, ChFrame<>(ChVector<>(-6, 1, -1), QUNIT));
+    body->AddVisualShape(chrono_types::make_shared<ChSphereShape>(0.03), ChFrame<>(ChVector<>(-6, 1, -2.5), QUNIT));
+    body->AddVisualShape(chrono_types::make_shared<ChSphereShape>(0.03), ChFrame<>(ChVector<>(-6, 1, +0.5), QUNIT));
 
     auto cone_mat = chrono_types::make_shared<ChVisualMaterial>();
     cone_mat->SetKdTexture(GetChronoDataFile("textures/pinkwhite.png"));
-    auto coneShape = chrono_types::make_shared<ChConeShape>(0.3, 1.0);
+    auto coneShape = chrono_types::make_shared<ChConeShape>(0.5, 2.0);
     coneShape->SetMaterial(0, cone_mat);
-    vis->AddVisualModel(coneShape, ChFrame<>(ChVector<>(-4, 1.5, -1), QUNIT));
+    vis->AddVisualModel(coneShape, ChFrame<>(ChVector<>(-6, 1, 4), QUNIT));
+    vis->AddVisualModel(chrono_types::make_shared<ChSphereShape>(0.03), ChFrame<>(ChVector<>(-6, 1, 4), QUNIT));
+    vis->AddVisualModel(chrono_types::make_shared<ChSphereShape>(0.03), ChFrame<>(ChVector<>(-6, 1, 6), QUNIT));
 
     vis->Initialize();
 

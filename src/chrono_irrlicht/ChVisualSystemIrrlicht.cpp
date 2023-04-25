@@ -915,10 +915,10 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(ISceneNode* node,
                 ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(capsuleMesh, mproxynode);
                 mproxynode->drop();
 
-                double rad = capsule->GetCapsuleGeometry().rad;
-                double hlen = capsule->GetCapsuleGeometry().hlen;
+                double rad = capsule->GetRadius();
+                double height = capsule->GetHeight();
 
-                core::vector3df irrsize((f32)rad, (f32)hlen, (f32)rad);
+                core::vector3df irrsize((f32)rad, (f32)rad, (f32)(rad / 2 + height / 4));
                 mchildnode->setScale(irrsize);
                 mchildnode->setPosition(shape_m4.getTranslation());
                 mchildnode->setRotation(shape_m4.getRotationDegrees());

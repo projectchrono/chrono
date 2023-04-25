@@ -127,21 +127,19 @@ void AddBiSphereGeometry(ChBody* body,
 void AddCapsuleGeometry(ChBody* body,
                         ChMaterialSurfaceSharedPtr material,
                         double radius,
-                        double hlen,
+                        double height,
                         const ChVector<>& pos,
                         const ChQuaternion<>& rot,
                         bool visualization,
                         ChVisualMaterialSharedPtr vis_material) {
-    body->GetCollisionModel()->AddCapsule(material, radius, hlen, pos, rot);
+    body->GetCollisionModel()->AddCapsule(material, radius, height / 2, pos, rot);
 
     if (visualization) {
         if (!body->GetVisualModel()) {
             auto model = chrono_types::make_shared<ChVisualModel>();
             body->AddVisualModel(model);
         }
-        auto capsule = chrono_types::make_shared<ChCapsuleShape>();
-        capsule->GetCapsuleGeometry().rad = radius;
-        capsule->GetCapsuleGeometry().hlen = hlen;
+        auto capsule = chrono_types::make_shared<ChCapsuleShape>(radius, height);
         capsule->AddMaterial(vis_material);
         body->GetVisualModel()->AddShape(capsule, ChFrame<>(pos, rot));
     }
