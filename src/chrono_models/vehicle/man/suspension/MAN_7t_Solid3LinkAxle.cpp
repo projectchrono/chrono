@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono_models/vehicle/man/MAN_7t_Solid3LinkAxle.h"
+#include "chrono_models/vehicle/man/suspension/MAN_7t_Solid3LinkAxle.h"
 
 namespace chrono {
 namespace vehicle {

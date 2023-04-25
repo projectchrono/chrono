@@ -377,9 +377,37 @@ set(CVM_DURO_FILES
 )
 source_group("duro" FILES ${CVM_DURO_FILES})
 
-set(CVM_MAN_FILES
-    man/MAN_5t_BellcrankSolid3LinkAxle.cpp
-    man/MAN_5t_BellcrankSolid3LinkAxle.h
+set(CVM_MAN_POWERTRAIN_FILES
+    man/powertrain/MAN_5t_EngineSimple.h
+    man/powertrain/MAN_5t_EngineSimple.cpp
+    man/powertrain/MAN_5t_AutomaticTransmissionSimple.h
+    man/powertrain/MAN_5t_AutomaticTransmissionSimple.cpp
+    man/powertrain/MAN_5t_EngineSimpleMap.h
+    man/powertrain/MAN_5t_EngineSimpleMap.cpp
+    man/powertrain/MAN_5t_AutomaticTransmissionSimpleMap.h
+    man/powertrain/MAN_5t_AutomaticTransmissionSimpleMap.cpp
+    man/powertrain/MAN_7t_EngineSimple.h
+    man/powertrain/MAN_7t_EngineSimple.cpp
+    man/powertrain/MAN_7t_AutomaticTransmissionSimple.h
+    man/powertrain/MAN_7t_AutomaticTransmissionSimple.cpp
+    man/powertrain/MAN_7t_EngineSimpleMap.h
+    man/powertrain/MAN_7t_EngineSimpleMap.cpp
+    man/powertrain/MAN_7t_AutomaticTransmissionSimpleMap.h
+    man/powertrain/MAN_7t_AutomaticTransmissionSimpleMap.cpp
+)
+set(CVM_MAN_SUSPENSION_FILES
+    man/suspension/MAN_5t_BellcrankSolid3LinkAxle.cpp
+    man/suspension/MAN_5t_BellcrankSolid3LinkAxle.h
+    man/suspension/MAN_5t_Solid3LinkAxle.cpp
+    man/suspension/MAN_5t_Solid3LinkAxle.h
+    man/suspension/MAN_7t_Solid3LinkAxle.cpp
+    man/suspension/MAN_7t_Solid3LinkAxle.h
+    man/suspension/MAN_10t_Front1Axle.cpp
+    man/suspension/MAN_10t_Front1Axle.h
+    man/suspension/MAN_10t_Front2Axle.cpp
+    man/suspension/MAN_10t_Front2Axle.h
+ )
+set(CVM_MAN_VEHICLE_FILES
     man/MAN_5t_BrakeSimple.cpp
     man/MAN_5t_BrakeSimple.h
     man/MAN_5t_BrakeShafts.cpp
@@ -394,12 +422,6 @@ set(CVM_MAN_FILES
     man/MAN_5t_SimpleDriveline.h
     man/MAN_5t_SimpleDrivelineXWD.cpp
     man/MAN_5t_SimpleDrivelineXWD.h
-    man/MAN_5t_SimpleCVTPowertrain.cpp
-    man/MAN_5t_SimpleCVTPowertrain.h
-    man/MAN_5t_SimpleMapPowertrain.cpp
-    man/MAN_5t_SimpleMapPowertrain.h
-    man/MAN_5t_Solid3LinkAxle.cpp
-    man/MAN_5t_Solid3LinkAxle.h
     man/MAN_5t_TMeasyTire.cpp
     man/MAN_5t_TMeasyTire.h
     man/MAN_5t_TMsimpleTire.cpp
@@ -413,12 +435,6 @@ set(CVM_MAN_FILES
 
     man/MAN_7t_Chassis.cpp
     man/MAN_7t_Chassis.h
-    man/MAN_7t_SimpleCVTPowertrain.cpp
-    man/MAN_7t_SimpleCVTPowertrain.h
-    man/MAN_7t_SimpleMapPowertrain.cpp
-    man/MAN_7t_SimpleMapPowertrain.h
-    man/MAN_7t_Solid3LinkAxle.cpp
-    man/MAN_7t_Solid3LinkAxle.h
     man/MAN_7t_Vehicle.cpp
     man/MAN_7t_Vehicle.h
     man/MAN_7t.cpp
@@ -426,10 +442,6 @@ set(CVM_MAN_FILES
 
     man/MAN_10t_Chassis.cpp
     man/MAN_10t_Chassis.h
-    man/MAN_10t_Front1Axle.cpp
-    man/MAN_10t_Front1Axle.h
-    man/MAN_10t_Front2Axle.cpp
-    man/MAN_10t_Front2Axle.h
     man/MAN_10t_RotaryArm2.cpp
     man/MAN_10t_RotaryArm2.h
     man/MAN_10t_Vehicle.cpp
@@ -437,7 +449,14 @@ set(CVM_MAN_FILES
     man/MAN_10t.cpp
     man/MAN_10t.h
 )
-source_group("man" FILES ${CVM_MAN_FILES})
+set(CVM_MAN_FILES
+    ${CVM_MAN_VEHICLE_FILES}
+    ${CVM_MAN_POWERTRAIN_FILES}
+    ${CVM_MAN_SUSPENSION_FILES}
+)
+source_group("man" FILES ${CVM_MAN_VEHICLE_FILES})
+source_group("man/powertrain" FILES ${CVM_MAN_POWERTRAIN_FILES})
+source_group("man/suspension" FILES ${CVM_MAN_SUSPENSION_FILES})
 
 set(CVM_GENERIC_SUSPENSION_FILES
     generic/suspension/Generic_DoubleWishbone.cpp

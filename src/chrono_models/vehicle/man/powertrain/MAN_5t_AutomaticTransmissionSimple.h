@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,18 +12,16 @@
 // Authors: Radu Serban, Rainer Gericke
 // =============================================================================
 //
-// Simple powertrain model for the MAN 5t vehicle.
-// - based on torque-speed engine maps
-// - both power and torque limited
+// Simple automatic transmission to use EngineSimpleMap.
 // - no torque converter
 // - simple gear-shifting model (in automatic mode)
 //
 // =============================================================================
 
-#ifndef MAN5T_SIMPLEMAP_POWERTRAIN_H
-#define MAN5T_SIMPLEMAP_POWERTRAIN_H
+#ifndef MAN_5T_AUTOMATIC_TRANSMISSION_SIMPLE_H
+#define MAN_5T_AUTOMATIC_TRANSMISSION_SIMPLE_H
 
-#include "chrono_vehicle/powertrain/ChSimpleMapPowertrain.h"
+#include "chrono_vehicle/powertrain/ChAutomaticTransmissionSimpleMap.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -34,20 +32,10 @@ namespace man {
 /// @addtogroup vehicle_models_man
 /// @{
 
-/// Simple MAN 5t powertrain subsystem (based on engine speed-torque maps).
-class CH_MODELS_API MAN_5t_SimpleMapPowertrain : public ChSimpleMapPowertrain {
+/// Simple MAN_5t powertrain subsystem (based on engine speed-torque maps).
+class CH_MODELS_API MAN_5t_AutomaticTransmissionSimple : public ChAutomaticTransmissionSimpleMap {
   public:
-    MAN_5t_SimpleMapPowertrain(const std::string& name);
-
-    /// Specify maximum engine speed.
-    virtual double GetMaxEngineSpeed() override;
-
-    /// Set the engine speed-torque maps.
-    /// A concrete class must add the speed-torque points to the provided maps,
-    /// using the ChFunction_Recorder::AddPoint() function.
-    virtual void SetEngineTorqueMaps(ChFunction_Recorder& map0,  ///< [out] engine map at zero throttle
-                                     ChFunction_Recorder& mapF   ///< [out] engine map at full throttle
-                                     ) override;
+    MAN_5t_AutomaticTransmissionSimple(const std::string& name);
 
     /// Set the transmission gear ratios (one or more forward gear ratios and a single reverse gear ratio).
     virtual void SetGearRatios(std::vector<double>& fwd, double& rev) override;

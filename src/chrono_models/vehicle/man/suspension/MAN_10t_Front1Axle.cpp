@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono_models/vehicle/man/MAN_10t_Front1Axle.h"
+#include "chrono_models/vehicle/man/suspension/MAN_10t_Front1Axle.h"
 
 namespace chrono {
 namespace vehicle {

@@ -44,7 +44,8 @@ MAN_5t::MAN_5t()
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_brake_locking(false),
-      m_powertrainType(PowertrainModelType::SIMPLE_CVT),
+      m_engineType(EngineModelType::SIMPLE_MAP),
+      m_transmissionType(TransmissionModelType::SIMPLE_MAP),
       m_brake_type(BrakeType::SIMPLE),
       m_tireType(TireModelType::TMEASY),
       m_tire_step_size(-1),
@@ -59,7 +60,8 @@ MAN_5t::MAN_5t(ChSystem* system)
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
-      m_powertrainType(PowertrainModelType::SIMPLE_CVT),
+      m_engineType(EngineModelType::SIMPLE_MAP),
+      m_transmissionType(TransmissionModelType::SIMPLE_MAP),
       m_brake_locking(false),
       m_brake_type(BrakeType::SIMPLE),
       m_tireType(TireModelType::TMEASY),
@@ -97,18 +99,37 @@ void MAN_5t::Initialize() {
     }
 
     // Create and initialize the powertrain system
-    switch (m_powertrainType) {
-        case PowertrainModelType::SIMPLE: {
-            auto powertrain = chrono_types::make_shared<MAN_5t_SimpleMapPowertrain>("Powertrain");
-            m_vehicle->InitializePowertrain(powertrain);
+    std::shared_ptr<ChEngine> engine;
+    std::shared_ptr<ChTransmission> transmission;
+    switch (m_engineType) {
+        case EngineModelType::SHAFTS:
+            // engine = chrono_types::make_shared<MAN_5t_EngineShafts>("Engine");
+            GetLog() << "EngineModelType::SHAFTS not implemented for this model.\n";
             break;
-        }
-        default:
-        case PowertrainModelType::SIMPLE_CVT: {
-            auto powertrain = chrono_types::make_shared<MAN_5t_SimpleCVTPowertrain>("Powertrain");
-            m_vehicle->InitializePowertrain(powertrain);
+        case EngineModelType::SIMPLE_MAP:
+            engine = chrono_types::make_shared<MAN_5t_EngineSimpleMap>("Engine");
             break;
+        case EngineModelType::SIMPLE:
+            // this engine model includes already gearshifting
+            engine = chrono_types::make_shared<MAN_5t_EngineSimple>("Engine");
+            transmission = chrono_types::make_shared<MAN_5t_AutomaticTransmissionSimple>("Transmission");
+            break;
+    }
+    if (!transmission) {
+        switch (m_transmissionType) {
+            case TransmissionModelType::SHAFTS:
+                // transmission = chrono_types::make_shared<MAN_5t_AutomaticTransmissionShafts>("Transmission");
+                GetLog() << "TransmissionModelType::SHAFTS not implemented for this model.\n";
+                break;
+            case TransmissionModelType::SIMPLE_MAP:
+                transmission = chrono_types::make_shared<MAN_5t_AutomaticTransmissionSimpleMap>("Transmission");
+                break;
         }
+    }
+
+    if (engine && transmission) {
+        auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
+        m_vehicle->ChVehicle::InitializePowertrain(powertrain);
     }
 
     // Create the tires and set parameters depending on type.
@@ -158,7 +179,7 @@ void MAN_5t::Initialize() {
 
             break;
         }
-            
+
         case TireModelType::TMSIMPLE: {
             auto tire_FL = chrono_types::make_shared<MAN_5t_TMsimpleTire>("FL");
             auto tire_FR = chrono_types::make_shared<MAN_5t_TMsimpleTire>("FR");

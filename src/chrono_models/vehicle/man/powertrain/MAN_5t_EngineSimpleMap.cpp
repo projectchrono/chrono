@@ -1,7 +1,8 @@
+
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,19 +13,14 @@
 // Authors: Radu Serban, Rainer Gericke
 // =============================================================================
 //
-// Simple powertrain model for the MAN 5t vehicle.
+// Simple engine model for the MAN_5t vehicle.
 // - based on torque-speed engine maps
 // - both power and torque limited
 // - no torque converter
-// - simple gear-shifting model (in automatic mode)
-//
-// Original Engine Deutz F8L413F 188 kW, no data avilable, out of production
-// Used:    Deutz TCD 2013 L4 4V 181 kW found at https://www.deutz.com/produkte/motoren/
-//
 //
 // =============================================================================
 
-#include "chrono_models/vehicle/man/MAN_5t_SimpleMapPowertrain.h"
+#include "chrono_models/vehicle/man/powertrain/MAN_5t_EngineSimpleMap.h"
 
 namespace chrono {
 namespace vehicle {
@@ -33,13 +29,13 @@ namespace man {
 const double rpm2rads = CH_C_PI / 30;
 const double lbft2nm = 1.3558;
 
-MAN_5t_SimpleMapPowertrain::MAN_5t_SimpleMapPowertrain(const std::string& name) : ChSimpleMapPowertrain(name) {}
+MAN_5t_EngineSimpleMap::MAN_5t_EngineSimpleMap(const std::string& name) : ChEngineSimpleMap(name) {}
 
-double MAN_5t_SimpleMapPowertrain::GetMaxEngineSpeed() {
+double MAN_5t_EngineSimpleMap::GetMaxEngineSpeed() {
     return 2300 * rpm2rads;
 }
 
-void MAN_5t_SimpleMapPowertrain::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) {
+void MAN_5t_EngineSimpleMap::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) {
     map0.AddPoint(-100 * rpm2rads, 0.000 * lbft2nm);
     map0.AddPoint(0 * rpm2rads, 0.0 * lbft2nm);
     map0.AddPoint(100 * rpm2rads, 0.0 * lbft2nm);
@@ -88,26 +84,6 @@ void MAN_5t_SimpleMapPowertrain::SetEngineTorqueMaps(ChFunction_Recorder& map0, 
     mapF.AddPoint(2254.89 * rpm2rads, 763.41);
     mapF.AddPoint(2297.73 * rpm2rads, 747.19);
     mapF.AddPoint(2300.0 * rpm2rads, -100.0);
-}
-
-void MAN_5t_SimpleMapPowertrain::SetGearRatios(std::vector<double>& fwd, double& rev) {
-    rev = -0.167;
-
-    fwd.push_back(0.157);
-    fwd.push_back(0.275);
-    fwd.push_back(0.415);
-    fwd.push_back(0.588);
-    fwd.push_back(0.787);
-    fwd.push_back(1.0);
-}
-
-void MAN_5t_SimpleMapPowertrain::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {
-    shift_bands.push_back(std::pair<double, double>(1000 * rpm2rads, 2200 * rpm2rads));
-    shift_bands.push_back(std::pair<double, double>(1000 * rpm2rads, 2200 * rpm2rads));
-    shift_bands.push_back(std::pair<double, double>(1000 * rpm2rads, 2200 * rpm2rads));
-    shift_bands.push_back(std::pair<double, double>(1000 * rpm2rads, 2200 * rpm2rads));
-    shift_bands.push_back(std::pair<double, double>(1000 * rpm2rads, 2200 * rpm2rads));
-    shift_bands.push_back(std::pair<double, double>(1000 * rpm2rads, 2200 * rpm2rads));
 }
 
 }  // namespace man
