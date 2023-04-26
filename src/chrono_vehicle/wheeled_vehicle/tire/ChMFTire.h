@@ -23,7 +23,7 @@
 #define CH_MFTIRE_H
 
 #include <vector>
-#include <thread>
+// #include <thread>
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/assets/ChCylinderShape.h"
@@ -497,7 +497,7 @@ class CH_VEHICLE_API ChMFTire : public ChForceElementTire {
 
     // const bool useMultiThreading = true;
 
-    std::future<void> tire_future;
+    // std::future<void> tire_future;
 
     TireStates m_states;
     TireStates m_states_in;

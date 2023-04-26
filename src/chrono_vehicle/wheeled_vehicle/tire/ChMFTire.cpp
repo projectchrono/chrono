@@ -843,9 +843,9 @@ void ChMFTire::CalculateForcesMoments(double step) {
     // m_gamma = CalculateGamma(flipSide);
     // m_alpha = m_states_in.cp_side_slip;
     // m_kappa = m_states_in.cp_long_slip;
-    m_fz = m_fz;
-    m_dpi = m_dpi;
-    m_dfz = m_dfz;
+    // m_fz = m_fz;
+    // m_dpi = m_dpi;
+    // m_dfz = m_dfz;
 
     // If we don't use the star variables, we need to take the arctangent
     if (!useStarInputs)
