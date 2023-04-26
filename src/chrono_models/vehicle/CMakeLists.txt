@@ -376,8 +376,10 @@ set(CVM_DURO_FILES
     duro/Duro_DeDionAxle.cpp
     duro/Duro_Driveline4WD.h
     duro/Duro_Driveline4WD.cpp
-    duro/Duro_Powertrain.h
-    duro/Duro_Powertrain.cpp
+    duro/Duro_AutomaticTransmissionShafts.h
+    duro/Duro_AutomaticTransmissionShafts.cpp
+    duro/Duro_EngineShafts.h
+    duro/Duro_EngineShafts.cpp
     duro/Duro_RotaryArm.h
     duro/Duro_RotaryArm.cpp
     duro/Duro_TMeasyTire.h
