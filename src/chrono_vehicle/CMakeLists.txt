@@ -546,6 +546,9 @@ set(CV_WV_TIRE_FILES
     wheeled_vehicle/tire/ChReissnerTire.cpp
     wheeled_vehicle/tire/ChFEATire.h
     wheeled_vehicle/tire/ChFEATire.cpp
+    wheeled_vehicle/tire/ChMFTire.h
+    wheeled_vehicle/tire/ChMFTire.cpp
+
 
     wheeled_vehicle/tire/RigidTire.h
     wheeled_vehicle/tire/RigidTire.cpp
@@ -569,6 +572,9 @@ set(CV_WV_TIRE_FILES
     wheeled_vehicle/tire/ANCFToroidalTire.cpp
     wheeled_vehicle/tire/ReissnerToroidalTire.h
     wheeled_vehicle/tire/ReissnerToroidalTire.cpp
+    wheeled_vehicle/tire/MFTire.h
+    wheeled_vehicle/tire/MFTire.cpp
+
 )
 source_group("wheeled_vehicle\\tire" FILES ${CV_WV_TIRE_FILES})
 
