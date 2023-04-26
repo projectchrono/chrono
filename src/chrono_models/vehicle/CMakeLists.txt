@@ -276,6 +276,10 @@ source_group("mtv" FILES ${CVM_FMTV_FILES})
 set(CVM_UAZ_FILES
     uaz/UAZBUS.cpp
     uaz/UAZBUS.h
+    uaz/UAZBUS_AutomaticTransmissionSimpleMap.cpp
+    uaz/UAZBUS_AutomaticTransmissionSimpleMap.h
+    uaz/UAZBUS_EngineSimpleMap.cpp
+    uaz/UAZBUS_EngineSimpleMap.h
     uaz/UAZBUS_SAE.cpp
     uaz/UAZBUS_SAE.h
     uaz/UAZBUS_BrakeSimple.cpp
@@ -296,8 +300,6 @@ set(CVM_UAZ_FILES
     uaz/UAZBUS_RigidTire.h
     uaz/UAZBUS_RotaryArm.cpp
     uaz/UAZBUS_RotaryArm.h
-    uaz/UAZBUS_SimpleMapPowertrain.cpp
-    uaz/UAZBUS_SimpleMapPowertrain.h
     uaz/UAZBUS_TMeasyTire.cpp
     uaz/UAZBUS_TMeasyTire.h
     uaz/UAZBUS_Pac02Tire.cpp

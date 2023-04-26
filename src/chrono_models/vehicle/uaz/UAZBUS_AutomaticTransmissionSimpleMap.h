@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,21 +9,19 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Rainer Gericke
 // =============================================================================
 //
-// Simple powertrain model for the UAZBUS vehicle.
-// - based on torque-speed engine maps
-// - both power and torque limited
+// Simple automatic transmission to use EngineSimpleMap.
 // - no torque converter
 // - simple gear-shifting model (in automatic mode)
 //
 // =============================================================================
 
-#ifndef UAZBUS_SIMPLEMAP_POWERTRAIN_H
-#define UAZBUS_SIMPLEMAP_POWERTRAIN_H
+#ifndef UAZBUS_AUTOMATIC_TRANSMISSION_SIMPLE_MAP_H
+#define UAZBUS_AUTOMATIC_TRANSMISSION_SIMPLE_MAP_H
 
-#include "chrono_vehicle/powertrain/ChSimpleMapPowertrain.h"
+#include "chrono_vehicle/powertrain/ChAutomaticTransmissionSimpleMap.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -31,23 +29,13 @@ namespace chrono {
 namespace vehicle {
 namespace uaz {
 
-/// @addtogroup vehicle_models_uaz
+/// @addtogroup vehicle_models_UAZBUS
 /// @{
 
 /// Simple UAZBUS powertrain subsystem (based on engine speed-torque maps).
-class CH_MODELS_API UAZBUS_SimpleMapPowertrain : public ChSimpleMapPowertrain {
+class CH_MODELS_API UAZBUS_AutomaticTransmissionSimpleMap : public ChAutomaticTransmissionSimpleMap {
   public:
-    UAZBUS_SimpleMapPowertrain(const std::string& name);
-
-    /// Specify maximum engine speed.
-    virtual double GetMaxEngineSpeed() override;
-
-    /// Set the engine speed-torque maps.
-    /// A concrete class must add the speed-torque points to the provided maps,
-    /// using the ChFunction_Recorder::AddPoint() function.
-    virtual void SetEngineTorqueMaps(ChFunction_Recorder& map0,  ///< [out] engine map at zero throttle
-                                     ChFunction_Recorder& mapF   ///< [out] engine map at full throttle
-                                     ) override;
+    UAZBUS_AutomaticTransmissionSimpleMap(const std::string& name);
 
     /// Set the transmission gear ratios (one or more forward gear ratios and a single reverse gear ratio).
     virtual void SetGearRatios(std::vector<double>& fwd, double& rev) override;
@@ -60,9 +48,9 @@ class CH_MODELS_API UAZBUS_SimpleMapPowertrain : public ChSimpleMapPowertrain {
         ) override;
 };
 
-/// @} vehicle_models_uaz
+/// @} vehicle_models_UAZBUS
 
-}  // end namespace uaz
+}  // namespace uaz
 }  // end namespace vehicle
 }  // end namespace chrono
 

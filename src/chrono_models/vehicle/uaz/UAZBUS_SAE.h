@@ -25,7 +25,8 @@
 
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_SAEVehicle.h"
-#include "chrono_models/vehicle/uaz/UAZBUS_SimpleMapPowertrain.h"
+#include "chrono_models/vehicle/uaz/UAZBUS_EngineSimpleMap.h"
+#include "chrono_models/vehicle/uaz/UAZBUS_AutomaticTransmissionSimpleMap.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_RigidTire.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_TMeasyTire.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_Pac02Tire.h"
@@ -95,6 +96,8 @@ class CH_MODELS_API UAZBUS_SAE {
     CollisionType m_chassisCollisionType;
     bool m_fixed;
 
+    EngineModelType m_engineType;
+    TransmissionModelType m_transmissionType;
     TireModelType m_tireType;
 
     double m_tire_step_size;
