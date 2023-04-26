@@ -28,7 +28,6 @@
 #include "chrono_models/vehicle/mtv/FMTV_Driveline4WD.h"
 #include "chrono_models/vehicle/mtv/FMTV_AntiRollBar.h"
 #include "chrono_models/vehicle/mtv/FMTV_RotaryArm.h"
-#include "chrono_models/vehicle/mtv/FMTV_SimpleMapPowertrain.h"
 #include "chrono_models/vehicle/mtv/FMTV_ToebarLeafspringAxle.h"
 #include "chrono_models/vehicle/mtv/FMTV_Wheel.h"
 

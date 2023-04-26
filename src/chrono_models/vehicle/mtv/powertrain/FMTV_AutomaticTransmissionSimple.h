@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,18 +12,17 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Simple powertrain model for the FMTV vehicles.
-// - based on torque-speed engine maps
+// Automatic transmssion model for the FMTV vehicle.
 // - both power and torque limited
 // - no torque converter
 // - simple gear-shifting model (in automatic mode)
 //
 // =============================================================================
 
-#ifndef FMTV_SIMPLEMAP_POWERTRAIN_H
-#define FMTV_SIMPLEMAP_POWERTRAIN_H
+#ifndef FMTV_AUTOMATIC_TRANSMISSION_SIMPLE_H
+#define FMTV_AUTOMATIC_TRANSMISSION_SIMPLE_H
 
-#include "chrono_vehicle/powertrain/ChSimpleMapPowertrain.h"
+#include "chrono_vehicle/powertrain/ChAutomaticTransmissionSimpleMap.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -31,36 +30,26 @@ namespace chrono {
 namespace vehicle {
 namespace fmtv {
 
-/// @addtogroup vehicle_models_fmtv
+/// @addtogroup vehicle_models_FMTV
 /// @{
 
-/// Simple FMTV powertrain subsystem (based on engine speed-torque maps).
-class CH_MODELS_API FMTV_SimpleMapPowertrain : public ChSimpleMapPowertrain {
+/// FMTV automatic transmission model template based on a simple gear-shifting model.
+class CH_MODELS_API FMTV_AutomaticTransmissionSimple : public ChAutomaticTransmissionSimpleMap {
   public:
-    FMTV_SimpleMapPowertrain(const std::string& name);
-
-    /// Specify maximum engine speed.
-    virtual double GetMaxEngineSpeed() override;
-
-    /// Set the engine speed-torque maps.
-    /// A concrete class must add the speed-torque points to the provided maps,
-    /// using the ChFunction_Recorder::AddPoint() function.
-    virtual void SetEngineTorqueMaps(ChFunction_Recorder& map0,  ///< [out] engine map at zero throttle
-                                     ChFunction_Recorder& mapF   ///< [out] engine map at full throttle
-                                     ) override;
+    FMTV_AutomaticTransmissionSimple(const std::string& name);
+    ~FMTV_AutomaticTransmissionSimple() {}
 
     /// Set the transmission gear ratios (one or more forward gear ratios and a single reverse gear ratio).
     virtual void SetGearRatios(std::vector<double>& fwd, double& rev) override;
 
     /// Set the ideal shift points for automatic gear shifting.
-    /// For each forward gear, specify a pair (min, max) with the minimum and
-    /// maximum engine speed for shifting (down and up, respectively).
+    /// For each forward gear, specify the min and max engine speed for shifting (down and up, respectively).
     virtual void SetShiftPoints(
         std::vector<std::pair<double, double>>& shift_bands  ///< [out] down-shift/up-shift points
         ) override;
 };
 
-/// @} vehicle_models_fmtv
+/// @} vehicle_models_FMTV
 
 }  // namespace fmtv
 }  // end namespace vehicle

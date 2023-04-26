@@ -212,7 +212,21 @@ source_group("mrole" FILES ${CVM_MROLE_VEHICLE_FILES})
 source_group("mrole/powertrain" FILES ${CVM_MROLE_POWERTRAIN_FILES})
 source_group("mrole/driveline" FILES ${CVM_MROLE_DRIVELINE_FILES})
 
-set(CVM_FMTV_FILES
+set(CVM_FMTV_POWERTRAIN_FILES
+    mtv/powertrain/FMTV_EngineShafts.cpp
+    mtv/powertrain/FMTV_EngineShafts.h
+    mtv/powertrain/FMTV_EngineSimple.cpp
+    mtv/powertrain/FMTV_EngineSimple.h
+    mtv/powertrain/FMTV_EngineSimpleMap.cpp
+    mtv/powertrain/FMTV_EngineSimpleMap.h
+    mtv/powertrain/FMTV_AutomaticTransmissionShafts.cpp
+    mtv/powertrain/FMTV_AutomaticTransmissionShafts.h
+    mtv/powertrain/FMTV_AutomaticTransmissionSimple.cpp
+    mtv/powertrain/FMTV_AutomaticTransmissionSimple.h
+    mtv/powertrain/FMTV_AutomaticTransmissionSimpleMap.cpp
+    mtv/powertrain/FMTV_AutomaticTransmissionSimpleMap.h
+)
+set(CVM_FMTV_VEHICLE_FILES
     mtv/FMTV_ChassisFront.cpp
     mtv/FMTV_ChassisFront.h
     mtv/FMTV_ToebarLeafspringAxle.cpp
@@ -231,14 +245,6 @@ set(CVM_FMTV_FILES
     mtv/FMTV_SimpleDriveline.h
     mtv/FMTV_Driveline4WD.cpp
     mtv/FMTV_Driveline4WD.h
-    mtv/FMTV_SimpleCVTPowertrain.cpp
-    mtv/FMTV_SimpleCVTPowertrain.h
-    mtv/FMTV_SimpleMapPowertrain.cpp
-    mtv/FMTV_SimpleMapPowertrain.h
-    mtv/FMTV_SimplePowertrain.cpp
-    mtv/FMTV_SimplePowertrain.h
-    mtv/FMTV_Powertrain.cpp
-    mtv/FMTV_Powertrain.h
     mtv/FMTV_TMeasyTire.cpp
     mtv/FMTV_TMeasyTire.h
     mtv/FMTV_RigidTire.cpp
@@ -270,8 +276,14 @@ set(CVM_FMTV_FILES
     mtv/MTV_Solid3LinkAxle1.cpp
     mtv/MTV_Solid3LinkAxle1.h
     mtv/MTV_Solid3LinkAxle2.cpp
-    mtv/MTV_Solid3LinkAxle2.h)
-source_group("mtv" FILES ${CVM_FMTV_FILES})
+    mtv/MTV_Solid3LinkAxle2.h
+)
+set(CVM_FMTV_FILES
+    ${CVM_FMTV_POWERTRAIN_FILES}
+    ${CVM_FMTV_VEHICLE_FILES}
+)
+source_group("mtv" FILES ${CVM_FMTV_VEHICLE_FILES})
+source_group("mtv/powertrain" FILES ${CVM_FMTV_POWERTRAIN_FILES})
 
 set(CVM_UAZ_FILES
     uaz/UAZBUS.cpp
