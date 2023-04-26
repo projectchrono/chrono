@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,21 +9,20 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Rainer Gericke
 // =============================================================================
 //
-// Simple powertrain model for the UAZBUS vehicle.
+// Simple powertrain model for the Sedan vehicle.
 // - based on torque-speed engine maps
 // - both power and torque limited
 // - no torque converter
-// - simple gear-shifting model (in automatic mode)
 //
 // =============================================================================
 
-#ifndef U401_SIMPLEMAP_POWERTRAIN_H
-#define U401_SIMPLEMAP_POWERTRAIN_H
+#ifndef U401_ENGINE_SIMPLEMAP_H
+#define U401_ENGINE_SIMPLEMAP_H
 
-#include "chrono_vehicle/powertrain/ChSimpleMapPowertrain.h"
+#include "chrono_vehicle/powertrain/ChEngineSimpleMap.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -31,13 +30,13 @@ namespace chrono {
 namespace vehicle {
 namespace unimog {
 
-/// @addtogroup vehicle_models_uaz
+/// @addtogroup vehicle_models_U401
 /// @{
 
-/// Simple UAZBUS powertrain subsystem (based on engine speed-torque maps).
-class CH_MODELS_API U401_SimpleMapPowertrain : public ChSimpleMapPowertrain {
-   public:
-    U401_SimpleMapPowertrain(const std::string& name);
+/// Simple U401 powertrain subsystem (based on engine speed-torque maps).
+class CH_MODELS_API U401_EngineSimpleMap : public ChEngineSimpleMap {
+  public:
+    U401_EngineSimpleMap(const std::string& name);
 
     /// Specify maximum engine speed.
     virtual double GetMaxEngineSpeed() override;
@@ -48,16 +47,6 @@ class CH_MODELS_API U401_SimpleMapPowertrain : public ChSimpleMapPowertrain {
     virtual void SetEngineTorqueMaps(ChFunction_Recorder& map0,  ///< [out] engine map at zero throttle
                                      ChFunction_Recorder& mapF   ///< [out] engine map at full throttle
                                      ) override;
-
-    /// Set the transmission gear ratios (one or more forward gear ratios and a single reverse gear ratio).
-    virtual void SetGearRatios(std::vector<double>& fwd, double& rev) override;
-
-    /// Set the ideal shift points for automatic gear shifting.
-    /// For each forward gear, specify a pair (min, max) with the minimum and
-    /// maximum engine speed for shifting (down and up, respectively).
-    virtual void SetShiftPoints(
-        std::vector<std::pair<double, double>>& shift_bands  ///< [out] down-shift/up-shift points
-        ) override;
 };
 
 /// @} vehicle_models_U401

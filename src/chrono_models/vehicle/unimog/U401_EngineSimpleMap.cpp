@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,18 +9,17 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Rainer Gericke
 // =============================================================================
 //
-// Simple powertrain model for the UAZBUS vehicle.
+// Simple engine model for the U401 vehicle.
 // - based on torque-speed engine maps
 // - both power and torque limited
 // - no torque converter
-// - simple gear-shifting model (in automatic mode)
 //
 // =============================================================================
 
-#include "chrono_models/vehicle/unimog/U401_SimpleMapPowertrain.h"
+#include "chrono_models/vehicle/unimog/U401_EngineSimpleMap.h"
 
 namespace chrono {
 namespace vehicle {
@@ -28,13 +27,13 @@ namespace unimog {
 
 const double rpm2rads = CH_C_PI / 30;
 
-U401_SimpleMapPowertrain::U401_SimpleMapPowertrain(const std::string& name) : ChSimpleMapPowertrain(name) {}
+U401_EngineSimpleMap::U401_EngineSimpleMap(const std::string& name) : ChEngineSimpleMap(name) {}
 
-double U401_SimpleMapPowertrain::GetMaxEngineSpeed() {
+double U401_EngineSimpleMap::GetMaxEngineSpeed() {
     return 3200 * rpm2rads;
 }
 
-void U401_SimpleMapPowertrain::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) {
+void U401_EngineSimpleMap::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) {
     map0.AddPoint(rpm2rads * -10000.0, 0.0);
     map0.AddPoint(rpm2rads * 1000.0, 0.0);
     map0.AddPoint(rpm2rads * 1.5002376354371584e+03, -3.0);
@@ -59,26 +58,6 @@ void U401_SimpleMapPowertrain::SetEngineTorqueMaps(ChFunction_Recorder& map0, Ch
     mapF.AddPoint(rpm2rads * 3000.87, 58.29);
     mapF.AddPoint(rpm2rads * 3100.00, -50);
     mapF.AddPoint(rpm2rads * 3200.00, -100);
-}
-
-void U401_SimpleMapPowertrain::SetGearRatios(std::vector<double>& fwd, double& rev) {
-    rev = -1.0 / 14.286;
-
-    fwd.push_back(1.0 / 14.286);
-    fwd.push_back(1.0 / 8.333);
-    fwd.push_back(1.0 / 4.545);
-    fwd.push_back(1.0 / 2.500);
-    fwd.push_back(1.0 / 1.563);
-    fwd.push_back(1.0);
-}
-
-void U401_SimpleMapPowertrain::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {
-    shift_bands.push_back(std::pair<double, double>(1200 * rpm2rads, 2800 * rpm2rads));
-    shift_bands.push_back(std::pair<double, double>(1200 * rpm2rads, 2800 * rpm2rads));
-    shift_bands.push_back(std::pair<double, double>(1200 * rpm2rads, 2800 * rpm2rads));
-    shift_bands.push_back(std::pair<double, double>(1200 * rpm2rads, 2800 * rpm2rads));
-    shift_bands.push_back(std::pair<double, double>(1200 * rpm2rads, 2800 * rpm2rads));
-    shift_bands.push_back(std::pair<double, double>(1200 * rpm2rads, 2800 * rpm2rads));
 }
 
 }  // namespace unimog

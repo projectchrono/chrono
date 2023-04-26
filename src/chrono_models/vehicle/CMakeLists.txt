@@ -318,6 +318,8 @@ source_group("uaz" FILES ${CVM_UAZ_FILES})
 set(CVM_UNIMOG_FILES
     unimog/U401.h
     unimog/U401.cpp
+    unimog/U401_AutomaticTransmissionSimpleMap.h
+    unimog/U401_AutomaticTransmissionSimpleMap.cpp
     unimog/U401_BrakeSimple.h
     unimog/U401_BrakeSimple.cpp
     unimog/U401_BrakeShafts.h
@@ -328,12 +330,12 @@ set(CVM_UNIMOG_FILES
     unimog/U401_Driveline2WD.cpp
     unimog/U401_Driveline4WD.h
     unimog/U401_Driveline4WD.cpp
+    unimog/U401_EngineSimpleMap.h
+    unimog/U401_EngineSimpleMap.cpp
     unimog/U401_FialaTire.h
     unimog/U401_FialaTire.cpp
     unimog/U401_PushPipeAxle.h
     unimog/U401_PushPipeAxle.cpp
-    unimog/U401_SimpleMapPowertrain.h
-    unimog/U401_SimpleMapPowertrain.cpp
     unimog/U401_RotaryArm.h
     unimog/U401_RotaryArm.cpp
     unimog/U401_RigidTire.h
