@@ -25,7 +25,8 @@
 
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/sedan/Sedan_Vehicle.h"
-#include "chrono_models/vehicle/sedan/Sedan_SimpleMapPowertrain.h"
+#include "chrono_models/vehicle/sedan/Sedan_AutomaticTransmissionSimpleMap.h"
+#include "chrono_models/vehicle/sedan/Sedan_EngineSimpleMap.h"
 #include "chrono_models/vehicle/sedan/Sedan_RigidTire.h"
 #include "chrono_models/vehicle/sedan/Sedan_TMeasyTire.h"
 #include "chrono_models/vehicle/sedan/Sedan_TMsimpleTire.h"

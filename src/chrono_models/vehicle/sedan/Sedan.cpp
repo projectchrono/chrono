@@ -86,8 +86,10 @@ void Sedan::Initialize() {
     }
 
     // Create and initialize the powertrain system
-    auto powertrain = chrono_types::make_shared<Sedan_SimpleMapPowertrain>("Powertrain");
-    m_vehicle->InitializePowertrain(powertrain);
+    auto engine = chrono_types::make_shared<Sedan_EngineSimpleMap>("Engine");
+    auto transmission = chrono_types::make_shared<Sedan_AutomaticTransmissionSimpleMap>("Transmission");
+    auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
+    m_vehicle->ChVehicle::InitializePowertrain(powertrain);
 
     // Create the tires and set parameters depending on type.
     switch (m_tireType) {

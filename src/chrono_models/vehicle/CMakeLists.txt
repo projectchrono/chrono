@@ -567,6 +567,10 @@ set(CVM_SEDAN_FILES
     sedan/Sedan_RackPinion.h
     sedan/Sedan_SimpleMapPowertrain.cpp
     sedan/Sedan_SimpleMapPowertrain.h
+    sedan/Sedan_AutomaticTransmissionSimpleMap.cpp
+    sedan/Sedan_AutomaticTransmissionSimpleMap.h
+    sedan/Sedan_EngineSimpleMap.cpp
+    sedan/Sedan_EngineSimpleMap.h
     sedan/Sedan_Vehicle.h
     sedan/Sedan_Vehicle.cpp
     sedan/Sedan_Wheel.cpp
