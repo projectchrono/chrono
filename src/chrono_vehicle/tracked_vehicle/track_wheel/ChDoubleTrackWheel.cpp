@@ -68,17 +68,15 @@ void ChDoubleTrackWheel::AddVisualizationAssets(VisualizationType vis) {
     double width = GetWidth();
     double gap = GetGap();
 
-    auto cyl_1 = chrono_types::make_shared<ChCylinderShape>();
-    cyl_1->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);
-    cyl_1->GetCylinderGeometry().p2 = ChVector<>(0, gap / 2, 0);
-    cyl_1->GetCylinderGeometry().rad = radius;
-    m_wheel->AddVisualShape(cyl_1);
+    ChVehicleGeometry::AddVisualizationCylinder(m_wheel,                      //
+                                                ChVector<>(0, width / 2, 0),  //
+                                                ChVector<>(0, gap / 2, 0),    //
+                                                radius);
 
-    auto cyl_2 = chrono_types::make_shared<ChCylinderShape>();
-    cyl_2->GetCylinderGeometry().p1 = ChVector<>(0, -width / 2, 0);
-    cyl_2->GetCylinderGeometry().p2 = ChVector<>(0, -gap / 2, 0);
-    cyl_2->GetCylinderGeometry().rad = radius;
-    m_wheel->AddVisualShape(cyl_2);
+    ChVehicleGeometry::AddVisualizationCylinder(m_wheel,                       //
+                                                ChVector<>(0, -width / 2, 0),  //
+                                                ChVector<>(0, -gap / 2, 0),    //
+                                                radius);
 }
 
 void ChDoubleTrackWheel::RemoveVisualizationAssets() {

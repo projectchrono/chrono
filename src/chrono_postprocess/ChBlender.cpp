@@ -965,12 +965,7 @@ void ChBlender::ExportItemState(ChStreamOutAsciiFile& state_file,
                 else if (auto mcone = std::dynamic_pointer_cast<ChConeShape>(shape))
                     aux_scale = ChVector<>(mcone->GetRadius(), mcone->GetRadius(), mcone->GetHeight());
                 else if (auto mcyl = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
-                    aux_scale = ChVector<>(mcyl->GetCylinderGeometry().rad, mcyl->GetCylinderGeometry().rad, (mcyl->GetCylinderGeometry().p2 - mcyl->GetCylinderGeometry().p1).Length());
-                    ChVector<> mdir = mcyl->GetCylinderGeometry().p2 - mcyl->GetCylinderGeometry().p1;
-                    ChMatrix33<> mmatr; mmatr.Set_A_Xdir(mdir);
-                    ChMatrix33<> mmatr2(Q_ROTATE_X_TO_Z);
-                    ChFrame<> shape_frame_pre(0.5 * (mcyl->GetCylinderGeometry().p2 + mcyl->GetCylinderGeometry().p1), mmatr * mmatr2);
-                    shape_frame *= shape_frame_pre;
+                    aux_scale = ChVector<>(mcyl->GetRadius(), mcyl->GetRadius(), mcyl->GetHeight());
                 }
 
                 state_file << " [";

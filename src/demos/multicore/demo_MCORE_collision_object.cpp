@@ -220,12 +220,9 @@ int main(int argc, char* argv[]) {
             object->GetCollisionModel()->AddCylinder(object_mat, radius, radius, hlen, ChVector<>(0), ChMatrix33<>(1));
             object->GetCollisionModel()->BuildModel();
 
-            auto cyl = chrono_types::make_shared<ChCylinderShape>();
-            cyl->GetCylinderGeometry().p1 = ChVector<>(0, +hlen, 0);
-            cyl->GetCylinderGeometry().p2 = ChVector<>(0, -hlen, 0);
-            cyl->GetCylinderGeometry().rad = radius;
+            auto cyl = chrono_types::make_shared<ChCylinderShape>(radius, 2 * hlen);
             cyl->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
-            object->AddVisualShape(cyl);
+            object->AddVisualShape(cyl, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
             break;
         }
@@ -245,12 +242,9 @@ int main(int argc, char* argv[]) {
             object->GetCollisionModel()->AddCylindricalShell(object_mat, radius, hlen, ChVector<>(0), ChMatrix33<>(1));
             object->GetCollisionModel()->BuildModel();
 
-            auto cyl = chrono_types::make_shared<ChCylinderShape>();
-            cyl->GetCylinderGeometry().p1 = ChVector<>(0, +hlen, 0);
-            cyl->GetCylinderGeometry().p2 = ChVector<>(0, -hlen, 0);
-            cyl->GetCylinderGeometry().rad = radius;
+            auto cyl = chrono_types::make_shared<ChCylinderShape>(radius, 2 * hlen);
             cyl->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
-            object->AddVisualShape(cyl);
+            object->AddVisualShape(cyl, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
             break;
         }

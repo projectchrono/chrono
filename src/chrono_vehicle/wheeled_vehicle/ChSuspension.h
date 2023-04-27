@@ -159,7 +159,7 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     std::shared_ptr<ChLinkLockRevolute> m_revolute[2];   ///< handles to spindle revolute joints
 
   private:
-    std::shared_ptr<ChCylinderShape> m_spindle_shapes[2];
+    std::shared_ptr<ChVisualShape> m_spindle_shapes[2];
 
     void AddVisualizationSpindle(VehicleSide side, double radius, double width);
 };

@@ -156,41 +156,37 @@ void ChDistanceIdler::AddVisualizationAssets(VisualizationType vis) {
     ChColor carrier_col(0.6f, 0.2f, 0.6f);
 
     // Carrier-chassis revolute joint
-    { 
-        auto cyl = chrono_types::make_shared<ChCylinderShape>();
-        cyl->GetCylinderGeometry().p1 = ChVector<>(pR.x(), pC.y() - radius, pR.z());
-        cyl->GetCylinderGeometry().p2 = ChVector<>(pR.x(), pC.y() + radius, pR.z());
-        cyl->GetCylinderGeometry().rad = 3 * radius;
+    {
+        auto cyl = ChVehicleGeometry::AddVisualizationCylinder(m_carrier,                                    //
+                                                               ChVector<>(pR.x(), pC.y() - radius, pR.z()),  //
+                                                               ChVector<>(pR.x(), pC.y() + radius, pR.z()),  //
+                                                               3 * radius);
         cyl->SetColor(carrier_col);
-        m_carrier->AddVisualShape(cyl);
     }
 
     // Carrier-wheel revolute joint
     {
-        auto cyl = chrono_types::make_shared<ChCylinderShape>();
-        cyl->GetCylinderGeometry().p1 = ChVector<>(pW.x(), pC.y() - radius, pW.z());
-        cyl->GetCylinderGeometry().p2 = ChVector<>(pW.x(), pC.y() + radius, pW.z());
-        cyl->GetCylinderGeometry().rad = 2 * radius;
+        auto cyl = ChVehicleGeometry::AddVisualizationCylinder(m_carrier,                                    //
+                                                               ChVector<>(pW.x(), pC.y() - radius, pW.z()),  //
+                                                               ChVector<>(pW.x(), pC.y() + radius, pW.z()),  //
+                                                               2 * radius);
         cyl->SetColor(carrier_col);
-        m_carrier->AddVisualShape(cyl);
     }
 
     {
-        auto cyl = chrono_types::make_shared<ChCylinderShape>();
-        cyl->GetCylinderGeometry().p1 = ChVector<>(pR.x(), pC.y(), pR.z());
-        cyl->GetCylinderGeometry().p2 = ChVector<>(pW.x(), pC.y(), pW.z());
-        cyl->GetCylinderGeometry().rad = radius;
+        auto cyl = ChVehicleGeometry::AddVisualizationCylinder(m_carrier,                           //
+                                                               ChVector<>(pR.x(), pC.y(), pR.z()),  //
+                                                               ChVector<>(pW.x(), pC.y(), pW.z()),  //
+                                                               radius);
         cyl->SetColor(carrier_col);
-        m_carrier->AddVisualShape(cyl);
     }
 
     {
-        auto cyl = chrono_types::make_shared<ChCylinderShape>();
-        cyl->GetCylinderGeometry().p1 = ChVector<>(pW.x(), pC.y(), pW.z());
-        cyl->GetCylinderGeometry().p2 = ChVector<>(pM.x(), pC.y(), pM.z());
-        cyl->GetCylinderGeometry().rad = radius;
+        auto cyl = ChVehicleGeometry::AddVisualizationCylinder(m_carrier,                           //
+                                                               ChVector<>(pW.x(), pC.y(), pW.z()),  //
+                                                               ChVector<>(pM.x(), pC.y(), pM.z()),  //
+                                                               radius);
         cyl->SetColor(carrier_col);
-        m_carrier->AddVisualShape(cyl);
     }
 
     // Visualization of the tensioner spring

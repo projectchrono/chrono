@@ -223,11 +223,8 @@ int main(int argc, char* argv[]) {
     pend->SetPos(ChVector<>(0, hlen_pend, 0));
 
     // Attach visualization assets.
-    auto cyl_p = chrono_types::make_shared<ChCylinderShape>();
-    cyl_p->GetCylinderGeometry().p1 = ChVector<>(0, -hlen_pend, 0);
-    cyl_p->GetCylinderGeometry().p2 = ChVector<>(0, hlen_pend, 0);
-    cyl_p->GetCylinderGeometry().rad = r_pend;
-    pend->AddVisualShape(cyl_p);
+    auto cyl_p = chrono_types::make_shared<ChCylinderShape>(r_pend, 2 * hlen_pend);
+    pend->AddVisualShape(cyl_p, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
     // Translational joint ground-cart
     // -------------------------------

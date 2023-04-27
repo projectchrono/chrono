@@ -64,11 +64,10 @@ void ChSingleTrackWheel::AddVisualizationAssets(VisualizationType vis) {
     double radius = GetRadius();
     double width = GetWidth();
 
-    auto cyl = chrono_types::make_shared<ChCylinderShape>();
-    cyl->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);
-    cyl->GetCylinderGeometry().p2 = ChVector<>(0, -width / 2, 0);
-    cyl->GetCylinderGeometry().rad = radius;
-    m_wheel->AddVisualShape(cyl);
+    ChVehicleGeometry::AddVisualizationCylinder(m_wheel,                       //
+                                                ChVector<>(0, width / 2, 0),   //
+                                                ChVector<>(0, -width / 2, 0),  //
+                                                radius);
 }
 
 void ChSingleTrackWheel::RemoveVisualizationAssets() {

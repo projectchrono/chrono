@@ -137,13 +137,7 @@ void ChRotaryArm::AddVisualizationAssets(VisualizationType vis) {
         return;
 
     // Visualization for arm
-    {
-        auto cyl = chrono_types::make_shared<ChCylinderShape>();
-        cyl->GetCylinderGeometry().p1 = m_pC;
-        cyl->GetCylinderGeometry().p2 = m_pL;
-        cyl->GetCylinderGeometry().rad = getPitmanArmRadius();
-        m_link->AddVisualShape(cyl);
-    }
+    ChVehicleGeometry::AddVisualizationCylinder(m_link, m_pC, m_pL, getPitmanArmRadius());
 }
 
 void ChRotaryArm::RemoveVisualizationAssets() {

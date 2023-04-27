@@ -166,10 +166,7 @@ void ChBodyEasyCylinder::SetupBody(double radius,
         SetCollide(true);
     }
     if (visualize) {
-        auto vshape = chrono_types::make_shared<ChCylinderShape>();
-        vshape->GetCylinderGeometry().p1 = ChVector<>(0, -height * 0.5, 0);
-        vshape->GetCylinderGeometry().p2 = ChVector<>(0, height * 0.5, 0);
-        vshape->GetCylinderGeometry().rad = radius;
+        auto vshape = chrono_types::make_shared<ChCylinderShape>(radius, height);
         auto vmodel = chrono_types::make_shared<ChVisualModel>();
         vmodel->AddShape(vshape);
         this->AddVisualModel(vmodel);

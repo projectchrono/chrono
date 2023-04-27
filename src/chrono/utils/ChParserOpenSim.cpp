@@ -739,7 +739,7 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
             new_cyl.rad = .02;
             new_cyl.hlen = (p1 - p2).Length() / 2;
             new_cyl.pos = (p2 - p1) / 2;
-            new_cyl.rot = rot.Get_A_quaternion() * Q_from_AngZ(-CH_C_PI / 2);
+            new_cyl.rot = rot.Get_A_quaternion() * Q_from_AngY(-CH_C_PI / 2);
             body_collision_info[parent->GetName()].cylinders.push_back(new_cyl);
         }
 
@@ -757,7 +757,7 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
             new_cyl.rad = .02;
             new_cyl.hlen = (p2 - p1).Length() / 2;
             new_cyl.pos = (p1 - p2) / 2;
-            new_cyl.rot = rot.Get_A_quaternion() * Q_from_AngZ(-CH_C_PI / 2);
+            new_cyl.rot = rot.Get_A_quaternion() * Q_from_AngY(-CH_C_PI / 2);
             body_collision_info[child->GetName()].cylinders.push_back(new_cyl);
         }
 
@@ -797,10 +797,7 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
 
             // Create visualization cylinders
             for (auto cyl_info : body_info.cylinders) {
-                auto cylinder = chrono_types::make_shared<ChCylinderShape>();
-                cylinder->GetCylinderGeometry().rad = cyl_info.rad;
-                cylinder->GetCylinderGeometry().p1 = ChVector<>(0, cyl_info.hlen, 0);
-                cylinder->GetCylinderGeometry().p2 = ChVector<>(0, -cyl_info.hlen, 0);
+                auto cylinder = chrono_types::make_shared<ChCylinderShape>(cyl_info.rad, 2 * cyl_info.hlen);
                 cylinder->AddMaterial(vis_mat);
                 body_info.body->AddVisualShape(cylinder, ChFrame<>(cyl_info.pos, cyl_info.rot));
             }

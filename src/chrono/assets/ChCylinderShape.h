@@ -24,13 +24,19 @@ namespace chrono {
 class ChApi ChCylinderShape : public ChVisualShape {
   public:
     ChCylinderShape();
-    ChCylinderShape(double radius, double length);
+    ChCylinderShape(double radius, double height);
     ChCylinderShape(const geometry::ChCylinder& cyl);
 
-    ~ChCylinderShape(){};
+    ~ChCylinderShape(){}
 
     // Access the cylinder geometry.
-    geometry::ChCylinder& GetCylinderGeometry() { return gcylinder; }
+    geometry::ChCylinder& GetGeometry() { return gcylinder; }
+
+    /// Get the cylinder radius.
+    double GetRadius() const { return gcylinder.GetRadius(); }
+
+    /// Get the cylinder height.
+    double GetHeight() const { return gcylinder.GetHeight(); }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;

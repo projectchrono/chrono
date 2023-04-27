@@ -255,14 +255,14 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
                     AddBoxGeometry(body.get(), mat, size, spos, srot);
                 } break;
                 case collision::ChCollisionShape::Type::CAPSULE: {
-                    double radius, hlen;
-                    iss >> radius >> hlen;
-                    AddCapsuleGeometry(body.get(), mat, radius, hlen, spos, srot);
+                    double radius, height;
+                    iss >> radius >> height;
+                    AddCapsuleGeometry(body.get(), mat, radius, height, spos, srot);
                 } break;
                 case collision::ChCollisionShape::Type::CYLINDER: {
-                    double radius, hlen, dummy;
-                    iss >> radius >> dummy >> hlen;
-                    AddCylinderGeometry(body.get(), mat, radius, hlen, spos, srot);
+                    double radius, height, dummy;
+                    iss >> radius >> dummy >> height;
+                    AddCylinderGeometry(body.get(), mat, radius, height, spos, srot);
                 } break;
                 case collision::ChCollisionShape::Type::CONE: {
                     double radius, height, dummy;
@@ -417,9 +417,9 @@ void WriteVisualizationAssets(ChSystem* system,
                 gss << CAPSULE << delim << capsule->GetRadius() << delim << capsule->GetHeight();
                 a_count++;
             } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
-                const geometry::ChCylinder& geom = cylinder->GetCylinderGeometry();
-                gss << CYLINDER << delim << geom.rad << delim << geom.p1.x() << delim << geom.p1.y() << delim
-                    << geom.p1.z() << delim << geom.p2.x() << delim << geom.p2.y() << delim << geom.p2.z();
+                double rad = cylinder->GetRadius();
+                double height = cylinder->GetHeight();
+                gss << CYLINDER << delim << rad << delim << height;
                 a_count++;
             } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(shape)) {
                 gss << CONE << delim << cone->GetRadius() << delim << cone->GetHeight();

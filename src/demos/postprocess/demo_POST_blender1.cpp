@@ -112,11 +112,10 @@ int main(int argc, char* argv[]) {
     body->AddVisualShape(mbox, ChFrame<>(ChVector<>(1, 0, 0)));
 
     // ==Asset== Attach a 'cylinder' shape
-    auto cyl = chrono_types::make_shared<ChCylinderShape>();
-    cyl->GetCylinderGeometry().p1 = ChVector<>(3, 1, 0);
-    cyl->GetCylinderGeometry().p2 = ChVector<>(4, 2, 0);
-    cyl->GetCylinderGeometry().rad = 0.2;
-    body->AddVisualShape(cyl);
+    auto cyl = chrono_types::make_shared<ChCylinderShape>(0.3, 0.7);
+    body->AddVisualShape(cyl, ChFrame<>(ChVector<>(2, 0.15, 0), Q_from_AngX(CH_C_PI_2)));
+    body->AddVisualShape(chrono_types::make_shared<ChSphereShape>(0.03), ChFrame<>(ChVector<>(2, -0.2, 0), QUNIT));
+    body->AddVisualShape(chrono_types::make_shared<ChSphereShape>(0.03), ChFrame<>(ChVector<>(2, +0.5, 0), QUNIT));
     // ...here is an example on how to change the color:
     cyl->SetColor(ChColor(1.f, 0.8f, 0.f));
 

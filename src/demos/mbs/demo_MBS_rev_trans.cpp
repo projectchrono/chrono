@@ -66,19 +66,13 @@ int main(int argc, char* argv[]) {
     pend->SetPos(ChVector<>(1.5, -L, -1));
 
     // Attach visualization assets.
-    auto cyl_p = chrono_types::make_shared<ChCylinderShape>();
-    cyl_p->GetCylinderGeometry().p1 = ChVector<>(-1.46, 0, 0);
-    cyl_p->GetCylinderGeometry().p2 = ChVector<>(1.46, 0, 0);
-    cyl_p->GetCylinderGeometry().rad = 0.2;
+    auto cyl_p = chrono_types::make_shared<ChCylinderShape>(0.2, 2.92);
     cyl_p->SetColor(ChColor(0.6f, 0, 0));
-    pend->AddVisualShape(cyl_p);
+    pend->AddVisualShape(cyl_p, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
 
-    auto cyl_j = chrono_types::make_shared<ChCylinderShape>();
-    cyl_j->GetCylinderGeometry().p1 = ChVector<>(-1.5, 0, 0.2);
-    cyl_j->GetCylinderGeometry().p2 = ChVector<>(-1.5, 0, -0.2);
-    cyl_j->GetCylinderGeometry().rad = 0.04;
+    auto cyl_j = chrono_types::make_shared<ChCylinderShape>(0.04, 0.4);
     cyl_j->SetColor(ChColor(0.6f, 0, 0));
-    pend->AddVisualShape(cyl_j);
+    pend->AddVisualShape(cyl_j, ChFrame<>(ChVector<>(-1.5, 0, 0), QUNIT));
 
     // Create a revolute-translational joint to connect pendulum to ground.
     auto rev_trans = chrono_types::make_shared<ChLinkRevoluteTranslational>();

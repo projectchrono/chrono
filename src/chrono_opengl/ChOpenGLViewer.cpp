@@ -339,29 +339,12 @@ void ChOpenGLViewer::DrawVisualModel(std::shared_ptr<ChPhysicsItem> item) {
             model = glm::scale(model, glm::vec3(size.x(), size.y(), size.z()));
             model_box.push_back(model);
         } else if (ChCylinderShape* cylinder_shape = dynamic_cast<ChCylinderShape*>(shape.get())) {
-            double rad = cylinder_shape->GetCylinderGeometry().rad;
-            const auto& P1 = cylinder_shape->GetCylinderGeometry().p1;
-            const auto& P2 = cylinder_shape->GetCylinderGeometry().p2;
-
-            ChVector<> dir = P2 - P1;
-            double height = dir.Length();
-            dir.Normalize();
-            ChVector<> mx, my, mz;
-            dir.DirToDxDyDz(my, mz, mx);  // y is axis, in cylinder.obj frame
-            ChMatrix33<> R_CS;
-            R_CS.Set_A_axis(mx, my, mz);
-
-            auto t_CS = 0.5 * (P2 + P1);
-            ChFrame<> X_CS(t_CS, R_CS);
-            ChFrame<> X_CA = X_SA * X_CS;
-
-            pos = X_CA.GetPos();
-            rot = X_CA.GetRot();
-            rot.Q_to_AngAxis(angle, axis);
+            double rad = cylinder_shape->GetRadius();
+            double height = cylinder_shape->GetHeight();
 
             model = glm::translate(glm::mat4(1), glm::vec3(pos.x(), pos.y(), pos.z()));
             model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
-            model = glm::scale(model, glm::vec3(rad, height * .5, rad));
+            model = glm::scale(model, glm::vec3(rad, rad, height));
             model_cylinder.push_back(model);
         } else if (ChConeShape* cone_shape = dynamic_cast<ChConeShape*>(shape.get())) {
             double radius = cone_shape->GetRadius();
@@ -373,19 +356,19 @@ void ChOpenGLViewer::DrawVisualModel(std::shared_ptr<ChPhysicsItem> item) {
             model_cone.push_back(model);
         } else if (ChCapsuleShape* capsule_shape = dynamic_cast<ChCapsuleShape*>(shape.get())) {
             double rad = capsule_shape->GetRadius();
-            double height = capsule_shape->GetRadius();
+            double height = capsule_shape->GetHeight();
 
             model = glm::translate(glm::mat4(1), glm::vec3(pos.x(), pos.y(), pos.z()));
             model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
-            model = glm::scale(model, glm::vec3(rad, height, rad));
+            model = glm::scale(model, glm::vec3(rad, rad, height));
             model_cylinder.push_back(model);
 
-            glm::vec3 s1 = glm::rotate(glm::vec3(0, height, 0), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
+            glm::vec3 s1 = glm::rotate(glm::vec3(0, 0, +height / 2), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
             model = glm::translate(glm::mat4(1), glm::vec3(pos.x() + s1.x, pos.y() + s1.y, pos.z() + s1.z));
             model = glm::scale(model, glm::vec3((float)rad));
             model_sphere.push_back(model);
 
-            glm::vec3 s2 = glm::rotate(glm::vec3(0, -height, 0), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
+            glm::vec3 s2 = glm::rotate(glm::vec3(0, 0, -height / 2), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
             model = glm::translate(glm::mat4(1), glm::vec3(pos.x() + s2.x, pos.y() + s2.y, pos.z() + s2.z));
             model = glm::scale(model, glm::vec3((float)rad));
             model_sphere.push_back(model);

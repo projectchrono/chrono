@@ -221,21 +221,14 @@ void CRGTerrain::SetRoadsidePosts() {
         if (crgEvaluv2z(m_cpId, u, vr, &zr) != 1) {
             GetLog() << "could not get zr in " << __func__ << "\n";
         }
-        geometry::ChCylinder cyl;
-        cyl.p1 = ChVector<>(0, 0, 0);
-        if (iu == 0)
-            cyl.p2 = ChVector<>(0, 0, 2.0);
-        else
-            cyl.p2 = ChVector<>(0, 0, 1.0);
-        cyl.rad = 0.07;
-        auto shape_l = chrono_types::make_shared<ChCylinderShape>(cyl);
-        ChFrame<> frame_l(ChVector<>(xl, yl, zl), QUNIT);
+
+        auto shape_l = chrono_types::make_shared<ChCylinderShape>(0.07, 1.0);
         shape_l->SetTexture(GetChronoDataFile("textures/redwhite.png"), 2.0, 2.0);
-        m_ground->AddVisualShape(shape_l, frame_l);
-        auto shape_r = chrono_types::make_shared<ChCylinderShape>(cyl);
-        ChFrame<> frame_r(ChVector<>(xr, yr, zr), QUNIT);
+        m_ground->AddVisualShape(shape_l, ChFrame<>(ChVector<>(xl, yl, zl + 0.5), QUNIT));
+
+        auto shape_r = chrono_types::make_shared<ChCylinderShape>(0.07, 1.0);
         shape_r->SetTexture(GetChronoDataFile("textures/redwhite.png"), 2.0, 2.0);
-        m_ground->AddVisualShape(shape_r, frame_r);
+        m_ground->AddVisualShape(shape_r, ChFrame<>(ChVector<>(xr, yr, zr + 0.5), QUNIT));
     }
 }
 

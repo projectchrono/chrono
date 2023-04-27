@@ -136,12 +136,11 @@ int main(int argc, char* argv[]) {
     body->AddVisualShape(box, ChFrame<>(ChVector<>(1, 1, 0), QUNIT));
 
     // Attach a cylinder shape
-    auto cyl = chrono_types::make_shared<ChCylinderShape>();
-    cyl->GetCylinderGeometry().p1 = ChVector<>(2, -0.2, 0);
-    cyl->GetCylinderGeometry().p2 = ChVector<>(2.2, 0.5, 0);
-    cyl->GetCylinderGeometry().rad = 0.3;
+    auto cyl = chrono_types::make_shared<ChCylinderShape>(0.3, 0.7);
     cyl->AddMaterial(orange_mat);
-    body->AddVisualShape(cyl);
+    body->AddVisualShape(cyl, ChFrame<>(ChVector<>(2, 0.15, 0), Q_from_AngX(CH_C_PI_2)));
+    body->AddVisualShape(chrono_types::make_shared<ChSphereShape>(0.03), ChFrame<>(ChVector<>(2, -0.2, 0), QUNIT));
+    body->AddVisualShape(chrono_types::make_shared<ChSphereShape>(0.03), ChFrame<>(ChVector<>(2, +0.5, 0), QUNIT));
 
     // Attach a capsule shape
     auto capsule = chrono_types::make_shared<ChCapsuleShape>(0.5, 2);

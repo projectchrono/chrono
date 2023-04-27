@@ -181,11 +181,11 @@ void ChTrackShoeBand::AddShoeVisualization() {
 
     // Connection to first web segment
     double radius = GetWebThickness() / 4;
-    auto cyl = chrono_types::make_shared<ChCylinderShape>();
-    cyl->GetCylinderGeometry().rad = radius;
-    cyl->GetCylinderGeometry().p1 = ChVector<>(GetToothBaseLength() / 2, -GetBeltWidth() / 2 - 2 * radius, 0);
-    cyl->GetCylinderGeometry().p2 = ChVector<>(GetToothBaseLength() / 2, +GetBeltWidth() / 2 + 2 * radius, 0);
-    m_shoe->AddVisualShape(cyl);
+    ChVehicleGeometry::AddVisualizationCylinder(
+        m_shoe,                                                                     //
+        ChVector<>(GetToothBaseLength() / 2, -GetBeltWidth() / 2 - 2 * radius, 0),  //
+        ChVector<>(GetToothBaseLength() / 2, +GetBeltWidth() / 2 + 2 * radius, 0),  //
+        radius);
 
     // Create tooth meshes
     m_shoe->AddVisualShape(ToothMesh(GetBeltWidth() / 2 - GetToothWidth() / 2));

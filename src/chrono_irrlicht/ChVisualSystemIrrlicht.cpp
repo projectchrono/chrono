@@ -885,26 +885,13 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(ISceneNode* node,
                 ISceneNode* mchildnode = GetSceneManager()->addMeshSceneNode(cylinderMesh, mproxynode);
                 mproxynode->drop();
 
-                double rad = cylinder->GetCylinderGeometry().rad;
-                ChVector<> dir = cylinder->GetCylinderGeometry().p2 - cylinder->GetCylinderGeometry().p1;
-                double height = dir.Length();
+                double rad = cylinder->GetRadius();
+                double height = cylinder->GetHeight();
 
-                // Calculate transform from asset to geometry
-                dir.Normalize();
-                ChVector<> mx, my, mz;
-                dir.DirToDxDyDz(my, mz, mx);  // y is axis, in cylinder.obj frame
-                ChMatrix33<> mrot;
-                mrot.Set_A_axis(mx, my, mz);
-                ChVector<> mpos = 0.5 * (cylinder->GetCylinderGeometry().p2 + cylinder->GetCylinderGeometry().p1);
-
-                // Calculate transform from node to geometry (concatenate node - asset and asset - geometry)
-                ChFrame<> frame = shape_frame * ChFrame<>(mpos, mrot);
-                core::matrix4CH m4(frame);
-
-                core::vector3df irrsize((f32)rad, (f32)(0.5 * height), (f32)rad);
+                core::vector3df irrsize((f32)rad, (f32)rad, (f32)(height / 2));
                 mchildnode->setScale(irrsize);
-                mchildnode->setPosition(m4.getTranslation());
-                mchildnode->setRotation(m4.getRotationDegrees());
+                mchildnode->setPosition(shape_m4.getTranslation());
+                mchildnode->setRotation(shape_m4.getRotationDegrees());
 
                 SetVisualMaterial(mchildnode, cylinder);
                 mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);

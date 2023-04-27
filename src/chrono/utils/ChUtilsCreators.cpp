@@ -150,22 +150,19 @@ void AddCapsuleGeometry(ChBody* body,
 void AddCylinderGeometry(ChBody* body,
                          ChMaterialSurfaceSharedPtr material,
                          double radius,
-                         double hlen,
+                         double height,
                          const ChVector<>& pos,
                          const ChQuaternion<>& rot,
                          bool visualization,
                          ChVisualMaterialSharedPtr vis_material) {
-    body->GetCollisionModel()->AddCylinder(material, radius, radius, hlen, pos, rot);
+    body->GetCollisionModel()->AddCylinder(material, radius, radius, height/2, pos, rot);
 
     if (visualization) {
         if (!body->GetVisualModel()) {
             auto model = chrono_types::make_shared<ChVisualModel>();
             body->AddVisualModel(model);
         }
-        auto cylinder = chrono_types::make_shared<ChCylinderShape>();
-        cylinder->GetCylinderGeometry().rad = radius;
-        cylinder->GetCylinderGeometry().p1 = ChVector<>(0, hlen, 0);
-        cylinder->GetCylinderGeometry().p2 = ChVector<>(0, -hlen, 0);
+        auto cylinder = chrono_types::make_shared<ChCylinderShape>(radius, height);
         cylinder->AddMaterial(vis_material);
         body->GetVisualModel()->AddShape(cylinder, ChFrame<>(pos, rot));
     }

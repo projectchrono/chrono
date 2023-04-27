@@ -1043,6 +1043,13 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
             transform->matrix = vsg::dmat4CH(X_SM, ellipsoid->GetSemiaxes());
             auto grp = m_shapeBuilder->createPbrShape(ShapeBuilder::SPHERE_SHAPE, material, transform, m_wireframe);
             group->addChild(grp);
+        } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
+            double rad = cylinder->GetRadius();
+            double height = cylinder->GetHeight();
+            auto transform = vsg::MatrixTransform::create();
+            transform->matrix = vsg::dmat4CH(X_SM, ChVector<>(rad, rad, height));
+            auto grp = m_shapeBuilder->createPbrShape(ShapeBuilder::CYLINDER_SHAPE, material, transform, m_wireframe);
+            group->addChild(grp);
         } else if (auto capsule = std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {
             double rad = capsule->GetRadius();
             double height = capsule->GetHeight();
@@ -1108,25 +1115,6 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, 1.0);
             group->addChild(m_shapeBuilder->createPathShape(shape_instance, material, transform, path));
-        } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
-            double rad = cylinder->GetCylinderGeometry().rad;
-            const auto& P1 = cylinder->GetCylinderGeometry().p1;
-            const auto& P2 = cylinder->GetCylinderGeometry().p2;
-
-            ChVector<> dir = P2 - P1;
-            double height = dir.Length();
-            dir.Normalize();
-            ChVector<> mx, my, mz;
-            dir.DirToDxDyDz(my, mz, mx);  // y is axis, in cylinder.obj frame
-            ChMatrix33<> R_CS;
-            R_CS.Set_A_axis(mx, my, mz);
-            ChFrame<> X_CS(0.5 * (P2 + P1), R_CS);
-            ChFrame<> X_CM = X_SM * X_CS;
-
-            auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X_CM, ChVector<>(rad, height, rad));
-            auto grp = m_shapeBuilder->createPbrShape(ShapeBuilder::CYLINDER_SHAPE, material, transform, m_wireframe);
-            group->addChild(grp);
         }
 
     }  // end loop over visual shapes
@@ -1250,10 +1238,10 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
         shape_type = ShapeType::CAPSULE;
         shape_size = ChVector<>(2 * rad, 2 * rad, height);
     } else if (auto cyl = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
-        double rad = cyl->GetCylinderGeometry().rad;
-        double hlen = (cyl->GetCylinderGeometry().p1 - cyl->GetCylinderGeometry().p2).Length() / 2;
+        double rad = cyl->GetRadius();
+        double height = cyl->GetHeight();
         shape_type = ShapeType::CYLINDER;
-        shape_size = ChVector<>(rad, rad, hlen) * 2;
+        shape_size = ChVector<>(2 * rad, 2 * rad, height);
     } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(shape)) {
         double rad = cone->GetRadius();
         double height = cone->GetHeight();

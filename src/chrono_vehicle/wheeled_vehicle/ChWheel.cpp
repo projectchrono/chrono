@@ -115,11 +115,10 @@ void ChWheel::AddVisualizationAssets(VisualizationType vis) {
     if (GetRadius() == 0 || GetWidth() == 0)
         return;
 
-    m_cyl_shape = chrono_types::make_shared<ChCylinderShape>();
-    m_cyl_shape->GetCylinderGeometry().rad = GetRadius();
-    m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, m_offset + GetWidth() / 2, 0);
-    m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, m_offset - GetWidth() / 2, 0);
-    m_spindle->AddVisualShape(m_cyl_shape);
+    m_cyl_shape = ChVehicleGeometry::AddVisualizationCylinder(m_spindle,                                    //
+                                                              ChVector<>(0, m_offset + GetWidth() / 2, 0),  //
+                                                              ChVector<>(0, m_offset - GetWidth() / 2, 0),  //
+                                                              GetRadius());
 }
 
 void ChWheel::RemoveVisualizationAssets() {

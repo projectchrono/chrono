@@ -235,7 +235,7 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
     };
 
     TireStates m_states;
-    std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
+    std::shared_ptr<ChVisualShape> m_cyl_shape;  ///< visualization cylinder asset
 };
 
 }  // end namespace vehicle

@@ -186,7 +186,7 @@ class CH_VEHICLE_API ChPac89Tire : public ChForceElementTire {
     };
 
     TireStates m_states;
-    std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
+    std::shared_ptr<ChVisualShape> m_cyl_shape;  ///< visualization cylinder asset
 };
 
 /// @} vehicle_wheeled_tire

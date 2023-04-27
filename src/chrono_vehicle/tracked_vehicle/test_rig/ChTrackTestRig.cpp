@@ -378,28 +378,25 @@ void ChTrackTestRig::AddPostVisualization(std::shared_ptr<ChBody> post,
     mat->SetDiffuseColor({color.R, color.G, color.B});
 
     // Platform (on post body)
-    auto base_cyl = chrono_types::make_shared<ChCylinderShape>();
-    base_cyl->GetCylinderGeometry().rad = m_post_radius;
-    base_cyl->GetCylinderGeometry().p1 = ChVector<>(0, 0, 0);
-    base_cyl->GetCylinderGeometry().p2 = ChVector<>(0, 0, -2 * m_post_hheight);
-    base_cyl->AddMaterial(mat);
-    post->AddVisualShape(base_cyl);
+    ChVehicleGeometry::AddVisualizationCylinder(post,                                   //
+                                                ChVector<>(0, 0, 0),                    //
+                                                ChVector<>(0, 0, -2 * m_post_hheight),  //
+                                                m_post_radius,                          //
+                                                mat);
 
     // Piston (on post body)
-    auto piston = chrono_types::make_shared<ChCylinderShape>();
-    piston->GetCylinderGeometry().rad = m_post_radius / 6.0;
-    piston->GetCylinderGeometry().p1 = ChVector<>(0, 0, -2 * m_post_hheight);
-    piston->GetCylinderGeometry().p2 = ChVector<>(0, 0, -30 * m_post_hheight);
-    piston->AddMaterial(mat);
-    post->AddVisualShape(piston);
+    ChVehicleGeometry::AddVisualizationCylinder(post,                                    //
+                                                ChVector<>(0, 0, -2 * m_post_hheight),   //
+                                                ChVector<>(0, 0, -30 * m_post_hheight),  //
+                                                m_post_radius / 6.0,                     //
+                                                mat);
 
     // Post sleeve (on chassis/ground body)
-    auto cyl = chrono_types::make_shared<ChCylinderShape>();
-    cyl->GetCylinderGeometry().rad = m_post_radius / 4.0;
-    cyl->GetCylinderGeometry().p1 = post->GetPos() - ChVector<>(0, 0, 16 * m_post_hheight);
-    cyl->GetCylinderGeometry().p2 = post->GetPos() - ChVector<>(0, 0, 32 * m_post_hheight);
-    cyl->AddMaterial(mat);
-    chassis->AddVisualShape(cyl);
+    ChVehicleGeometry::AddVisualizationCylinder(chassis,                                                 //
+                                                post->GetPos() - ChVector<>(0, 0, 16 * m_post_hheight),  //
+                                                post->GetPos() - ChVector<>(0, 0, 32 * m_post_hheight),  //
+                                                m_post_radius / 4.0,                                     //
+                                                mat);
 }
 
 // -----------------------------------------------------------------------------

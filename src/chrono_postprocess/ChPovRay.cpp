@@ -582,13 +582,12 @@ void ChPovRay::ExportShapes(ChStreamOutAsciiFile& assets_file, std::shared_ptr<C
             assets_file << "#macro sh_" << (size_t)shape.get() << "()\n";  // start macro
             assets_file << "cylinder  {\n";                                // start cylinder
 
-            assets_file << " <" << cylinder->GetCylinderGeometry().p1.x();
-            assets_file << "," << cylinder->GetCylinderGeometry().p1.y();
-            assets_file << "," << cylinder->GetCylinderGeometry().p1.z() << ">,\n";
-            assets_file << " <" << cylinder->GetCylinderGeometry().p2.x();
-            assets_file << "," << cylinder->GetCylinderGeometry().p2.y();
-            assets_file << "," << cylinder->GetCylinderGeometry().p2.z() << ">,\n";
-            assets_file << " " << cylinder->GetCylinderGeometry().rad << "\n";
+            auto axis = shape_frame.GetA().Get_A_Zaxis();
+            auto hlen = cylinder->GetHeight() / 2;
+
+            assets_file << " <" << -hlen * axis.x() << "," << -hlen * axis.y() << "," << -hlen * axis.z() << ">,\n";
+            assets_file << " <" << +hlen * axis.x() << "," << +hlen * axis.y() << "," << +hlen * axis.z() << ">,\n";
+            assets_file << " " << cylinder->GetRadius() << "\n";
 
             ApplyMaterials(assets_file, shape->GetMaterials());
 

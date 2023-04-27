@@ -543,21 +543,17 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
                         assert(cm_marker != nullptr);
                         parentBody = dynamic_cast<ChBodyAuxRef*>(cm_marker->GetBody());
                         assert(parentBody != nullptr);
-                        cylinder->GetCylinderGeometry().p1 = (parentBody->GetFrame_COG_to_REF() * (*cm_marker))
-                                                                 .TransformPointLocalToParent(ChVector<>(0, 0, 0));
-
-                        parentBody->AddVisualShape(cylinder);
+                        auto cyl_pos = (parentBody->GetFrame_COG_to_REF() * (*cm_marker))
+                                           .TransformPointLocalToParent(ChVector<>(0, 0, 0));
+                        auto cyl_rot = (parentBody->GetFrame_COG_to_REF() * (*cm_marker)).Amatrix;
+                        parentBody->AddVisualShape(cylinder, ChFrame<>(cyl_pos, cyl_rot));
                     } else if (iter->second == std::string("RADIUS")) {
                         iter++;  // get radius
-                        cylinder->GetCylinderGeometry().rad = std::stod(iter->second);
+                        cylinder->GetGeometry().r = std::stod(iter->second);
                     } else if (iter->second == std::string("LENGTH")) {
                         assert(parentBody);
                         iter++;  // get length
-                        double length = std::stod(iter->second);
-                        // std::cout << "length is " << length <<std::endl;
-                        cylinder->GetCylinderGeometry().p2 = (parentBody->GetFrame_COG_to_REF() * (*cm_marker))
-                                                                 .TransformPointLocalToParent(ChVector<>(0, 0, length));
-
+                        cylinder->GetGeometry().h = std::stod(iter->second);
                     } else {
                         tokenParseError(LABEL, *iter);
                     }

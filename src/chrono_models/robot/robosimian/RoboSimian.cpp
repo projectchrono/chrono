@@ -897,17 +897,9 @@ void RS_Part::AddVisualizationAssets(VisualizationType vis) {
     }
 
     for (const auto& cyl : m_cylinders) {
-        //// HACK: Chrono::OpenGL does not properly account for Pos & Rot.
-        ////       So transform the end points explicitly.
-        ChCoordsys<> csys(cyl.m_pos, cyl.m_rot);
-        ChVector<> p1 = csys * ChVector<>(0, cyl.m_length / 2, 0);
-        ChVector<> p2 = csys * ChVector<>(0, -cyl.m_length / 2, 0);
-        auto cyl_shape = chrono_types::make_shared<ChCylinderShape>();
-        cyl_shape->GetCylinderGeometry().rad = cyl.m_radius;
-        cyl_shape->GetCylinderGeometry().p1 = p1;
-        cyl_shape->GetCylinderGeometry().p2 = p2;
+        auto cyl_shape = chrono_types::make_shared<ChCylinderShape>(cyl.m_radius, cyl.m_length);
         cyl_shape->SetColor(m_color);
-        m_body->AddVisualShape(cyl_shape);
+        m_body->AddVisualShape(cyl_shape, ChFrame<>(cyl.m_pos, cyl.m_rot));
     }
 
     for (const auto& sphere : m_spheres) {

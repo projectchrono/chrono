@@ -69,13 +69,9 @@ int main(int argc, char* argv[]) {
     sys.Add(mbody_gearA);
     mbody_gearA->SetPos(ChVector<>(0, 0, -1));
     mbody_gearA->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
-    mbody_gearA->GetVisualShape(0)->SetMaterial(0, vis_mat);
     // for aesthetic reasons, also add a thin cylinder only as a visualization:
-    auto mshaft_shape = chrono_types::make_shared<ChCylinderShape>();
-    mshaft_shape->GetCylinderGeometry().p1 = ChVector<>(0, -3, 0);
-    mshaft_shape->GetCylinderGeometry().p2 = ChVector<>(0, 10, 0);
-    mshaft_shape->GetCylinderGeometry().rad = radA * 0.4;
-    mbody_gearA->AddVisualShape(mshaft_shape);
+    auto mshaft_shape = chrono_types::make_shared<ChCylinderShape>(radA * 0.4, 13);
+    mbody_gearA->AddVisualShape(mshaft_shape, ChFrame<>(ChVector<>(0, 3.5, 0), Q_from_AngX(CH_C_PI_2)));
 
     // ...impose rotation speed between the first gear and the fixed truss
     auto link_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();

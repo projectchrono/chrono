@@ -296,14 +296,15 @@ void ChVehicleCosimBaseNode::SendGeometry(const ChVehicleGeometry& geom, int des
             cyl.m_pos.x(),                    //
             cyl.m_pos.y(),                    //
             cyl.m_pos.z(),                    //
-            cyl.m_axis.x(),                   //
-            cyl.m_axis.y(),                   //
-            cyl.m_axis.z(),                   //
+            cyl.m_rot.e0(),                   //
+            cyl.m_rot.e1(),                   //
+            cyl.m_rot.e2(),                   //
+            cyl.m_rot.e3(),                   //
             cyl.m_radius,                     //
             cyl.m_length,                     //
             static_cast<double>(cyl.m_matID)  //
         };
-        MPI_Send(data, 9, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD);
+        MPI_Send(data, 10, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD);
     }
 
     /*
@@ -400,13 +401,13 @@ void ChVehicleCosimBaseNode::RecvGeometry(ChVehicleGeometry& geom, int source) c
     }
 
     for (int i = 0; i < num_cylinders; i++) {
-        double data[9];
-        MPI_Recv(data, 9, MPI_DOUBLE, source, 0, MPI_COMM_WORLD, &status);
-        geom.m_coll_cylinders.push_back(                                             //
-            ChVehicleGeometry::CylinderShape(ChVector<>(data[0], data[1], data[2]),  //
-                                             ChVector<>(data[3], data[4], data[5]),  //
-                                             data[6], data[7],                       //
-                                             static_cast<int>(data[8]))              //
+        double data[10];
+        MPI_Recv(data, 10, MPI_DOUBLE, source, 0, MPI_COMM_WORLD, &status);
+        geom.m_coll_cylinders.push_back(                                                          //
+            ChVehicleGeometry::CylinderShape(ChVector<>(data[0], data[1], data[2]),               //
+                                             ChQuaternion<>(data[3], data[4], data[5], data[6]),  //
+                                             data[7], data[8],                                    //
+                                             static_cast<int>(data[9]))                           //
         );
     }
 

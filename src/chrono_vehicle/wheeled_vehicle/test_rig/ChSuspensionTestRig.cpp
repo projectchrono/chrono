@@ -622,28 +622,25 @@ void ChSuspensionTestRigPlatform::AddPostVisualization(std::shared_ptr<ChBody> p
     auto mat = chrono_types::make_shared<ChVisualMaterial>();
     mat->SetDiffuseColor({color.R, color.G, color.B});
 
-    auto base_cyl = chrono_types::make_shared<ChCylinderShape>();
-    base_cyl->GetCylinderGeometry().rad = m_post_radius;
-    base_cyl->GetCylinderGeometry().p1 = ChVector<>(0, 0, 0);
-    base_cyl->GetCylinderGeometry().p2 = ChVector<>(0, 0, -2 * m_post_hheight);
-    base_cyl->AddMaterial(mat);
-    post->AddVisualShape(base_cyl);
+    ChVehicleGeometry::AddVisualizationCylinder(post,                                   //
+                                                ChVector<>(0, 0, 0),                    //
+                                                ChVector<>(0, 0, -2 * m_post_hheight),  //
+                                                m_post_radius,                          //
+                                                mat);
 
     // Piston (on post body)
-    auto piston = chrono_types::make_shared<ChCylinderShape>();
-    piston->GetCylinderGeometry().rad = m_post_radius / 6.0;
-    piston->GetCylinderGeometry().p1 = ChVector<>(0, 0, -2 * m_post_hheight);
-    piston->GetCylinderGeometry().p2 = ChVector<>(0, 0, -m_post_hheight * 20.0);
-    piston->AddMaterial(mat);
-    post->AddVisualShape(piston);
+    ChVehicleGeometry::AddVisualizationCylinder(post,                                      //
+                                                ChVector<>(0, 0, -2 * m_post_hheight),     //
+                                                ChVector<>(0, 0, -m_post_hheight * 20.0),  //
+                                                m_post_radius / 6.0,                       //
+                                                mat);
 
     // Post sleeve (on chassis/ground body)
-    auto cyl = chrono_types::make_shared<ChCylinderShape>();
-    cyl->GetCylinderGeometry().rad = m_post_radius / 4.0;
-    cyl->GetCylinderGeometry().p1 = post->GetPos() - ChVector<>(0, 0, 16 * m_post_hheight);
-    cyl->GetCylinderGeometry().p2 = post->GetPos() - ChVector<>(0, 0, 32 * m_post_hheight);
-    cyl->AddMaterial(mat);
-    m_vehicle->GetChassisBody()->AddVisualShape(cyl);
+    ChVehicleGeometry::AddVisualizationCylinder(m_vehicle->GetChassisBody(),                             //
+                                                post->GetPos() - ChVector<>(0, 0, 16 * m_post_hheight),  //
+                                                post->GetPos() - ChVector<>(0, 0, 32 * m_post_hheight),  //
+                                                m_post_radius / 4.0,                                     //
+                                                mat);
 }
 
 double ChSuspensionTestRigPlatform::CalcDisplacementOffset(int axle) {
@@ -763,12 +760,11 @@ void ChSuspensionTestRigPushrod::InitializeRig() {
 }
 
 void ChSuspensionTestRigPushrod::AddRodVisualization(std::shared_ptr<ChBody> rod, const ChColor& color) {
-    auto cyl = chrono_types::make_shared<ChCylinderShape>();
-    cyl->GetCylinderGeometry().p1 = ChVector<>(0, 0, 0);
-    cyl->GetCylinderGeometry().p2 = ChVector<>(0, 0, -m_rod_length);
-    cyl->GetCylinderGeometry().rad = m_rod_radius;
+    auto cyl = ChVehicleGeometry::AddVisualizationCylinder(rod,                              //
+                                                           ChVector<>(0, 0, 0),              //
+                                                           ChVector<>(0, 0, -m_rod_length),  //
+                                                           m_rod_radius);
     cyl->SetColor(color);
-    rod->AddVisualShape(cyl);
 }
 
 double ChSuspensionTestRigPushrod::CalcDisplacementOffset(int axle) {
