@@ -741,6 +741,18 @@ set(CVM_M113_DRIVELINE_FILES
     m113/driveline/M113_SimpleDriveline.h
 )
 set(CVM_M113_POWERTRAIN_FILES
+    m113/powertrain/M113_AutomaticTransmissionShafts.cpp
+    m113/powertrain/M113_AutomaticTransmissionShafts.h
+    m113/powertrain/M113_AutomaticTransmissionSimple.cpp
+    m113/powertrain/M113_AutomaticTransmissionSimple.h
+    m113/powertrain/M113_AutomaticTransmissionSimpleMap.cpp
+    m113/powertrain/M113_AutomaticTransmissionSimpleMap.h
+    m113/powertrain/M113_EngineShafts.cpp
+    m113/powertrain/M113_EngineShafts.h
+    m113/powertrain/M113_EngineSimple.cpp
+    m113/powertrain/M113_EngineSimple.h
+    m113/powertrain/M113_EngineSimpleMap.cpp
+    m113/powertrain/M113_EngineSimpleMap.h
     m113/powertrain/M113_ShaftsPowertrain.cpp
     m113/powertrain/M113_ShaftsPowertrain.h
     m113/powertrain/M113_SimpleCVTPowertrain.cpp
