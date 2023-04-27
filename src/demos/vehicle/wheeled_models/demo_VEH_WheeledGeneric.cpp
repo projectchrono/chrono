@@ -32,7 +32,8 @@
 
 #include "chrono_models/vehicle/generic/Generic_Vehicle.h"
 #include "chrono_models/vehicle/generic/Generic_FuncDriver.h"
-#include "chrono_models/vehicle/generic/powertrain/Generic_SimplePowertrain.h"
+#include "chrono_models/vehicle/generic/powertrain/Generic_AutomaticTransmissionSimple.h"
+#include "chrono_models/vehicle/generic/powertrain/Generic_EngineSimple.h"
 #include "chrono_models/vehicle/generic/tire/Generic_RigidTire.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -119,8 +120,10 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create and initialize the powertrain system
-    auto powertrain = chrono_types::make_shared<Generic_SimplePowertrain>("powertrain");
-    vehicle.InitializePowertrain(powertrain);
+    auto engine = chrono_types::make_shared<Generic_EngineSimple>("Engine");
+    auto transmission = chrono_types::make_shared<Generic_AutomaticTransmissionSimple>("Transmission");
+    auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
+    vehicle.ChVehicle::InitializePowertrain(powertrain);
 
     // Create the tires
     auto tire_FL = chrono_types::make_shared<Generic_RigidTire>("FL");

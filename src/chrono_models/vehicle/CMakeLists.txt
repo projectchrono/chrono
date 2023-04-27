@@ -503,6 +503,10 @@ set(CVM_GENERIC_POWERTRAIN_FILES
     generic/powertrain/Generic_SimplePowertrain.cpp
     generic/powertrain/Generic_SimpleMapPowertrain.cpp
     generic/powertrain/Generic_SimpleMapPowertrain.h
+    generic/powertrain/Generic_AutomaticTransmissionSimple.h
+    generic/powertrain/Generic_AutomaticTransmissionSimple.cpp
+    generic/powertrain/Generic_EngineSimple.h
+    generic/powertrain/Generic_EngineSimple.cpp
 )
 set(CVM_GENERIC_TIRE_FILES
     generic/tire/Generic_FialaTire.h
