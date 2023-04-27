@@ -166,7 +166,7 @@ TEST(SensorInterface, shapes) {
 
     // remove sphere, add cylinder
     sys.RemoveBody(s);
-    auto c = chrono_types::make_shared<ChBodyEasyCylinder>(0.5, 1.0, 100, true, false);
+    auto c = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.5, 1.0, 100, true, false);
     c->SetPos({2.5, 0.0, 0.0});
     c->SetBodyFixed(true);
     sys.Add(c);

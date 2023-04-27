@@ -125,7 +125,8 @@ void ChBodyEasyEllipsoid::SetupBody(ChVector<> radius,
 
 // -----------------------------------------------------------------------------
 
-ChBodyEasyCylinder::ChBodyEasyCylinder(double radius,
+ChBodyEasyCylinder::ChBodyEasyCylinder(geometry::ChAxis direction,
+                                       double radius,
                                        double height,
                                        double density,
                                        bool visualize,
@@ -133,42 +134,61 @@ ChBodyEasyCylinder::ChBodyEasyCylinder(double radius,
                                        std::shared_ptr<ChMaterialSurface> material,
                                        std::shared_ptr<collision::ChCollisionModel> collision_model)
     : ChBody(collision_model) {
-    SetupBody(radius, height, density, visualize, collide, material);
+    SetupBody(direction, radius, height, density, visualize, collide, material);
 }
 
-ChBodyEasyCylinder::ChBodyEasyCylinder(double radius,
+ChBodyEasyCylinder::ChBodyEasyCylinder(geometry::ChAxis direction,
+                                       double radius,
                                        double height,
                                        double density,
                                        std::shared_ptr<ChMaterialSurface> material,
                                        collision::ChCollisionSystemType collision_type)
     : ChBody(collision_type) {
-    SetupBody(radius, height, density, true, true, material);
+    SetupBody(direction, radius, height, density, true, true, material);
 }
 
-void ChBodyEasyCylinder::SetupBody(double radius,
+void ChBodyEasyCylinder::SetupBody(geometry::ChAxis direction,
+                                   double radius,
                                    double height,
                                    double density,
                                    bool visualize,
                                    bool collide,
                                    std::shared_ptr<ChMaterialSurface> material) {
-    double mmass = density * (CH_C_PI * pow(radius, 2) * height);
+    double mass = density * (CH_C_PI * pow(radius, 2) * height);
+    double I_axis = 0.5 * mass * pow(radius, 2);
+    double I_orth = (1 / 12.0) * mass * (3 * pow(radius, 2) + pow(height, 2));
+    ChQuaternion<> rot;
 
-    this->SetDensity((float)density);
-    this->SetMass(mmass);
-    this->SetInertiaXX(ChVector<>((1.0 / 12.0) * mmass * (3 * pow(radius, 2) + pow(height, 2)),
-                                  0.5 * mmass * pow(radius, 2),
-                                  (1.0 / 12.0) * mmass * (3 * pow(radius, 2) + pow(height, 2))));
+    SetDensity((float)density);
+    SetMass(mass);
+
+    switch (direction) {
+        case geometry::ChAxis::X:
+            rot = Q_from_AngY(CH_C_PI_2);
+            SetInertiaXX(ChVector<>(I_axis, I_orth, I_orth));
+            break;
+        case geometry::ChAxis::Y:
+            rot = Q_from_AngX(CH_C_PI_2);
+            SetInertiaXX(ChVector<>(I_orth, I_axis, I_orth));
+            break;
+        case geometry::ChAxis::Z:
+            rot = QUNIT;
+            SetInertiaXX(ChVector<>(I_orth, I_orth, I_axis));
+            break;
+    }
+
     if (collide) {
         assert(material);
         GetCollisionModel()->ClearModel();
-        GetCollisionModel()->AddCylinder(material, radius, radius, height * 0.5);
+        GetCollisionModel()->AddCylinder(material, radius, radius, height * 0.5, VNULL, rot);
         GetCollisionModel()->BuildModel();
         SetCollide(true);
     }
+
     if (visualize) {
         auto vshape = chrono_types::make_shared<ChCylinderShape>(radius, height);
         auto vmodel = chrono_types::make_shared<ChVisualModel>();
-        vmodel->AddShape(vshape);
+        vmodel->AddShape(vshape, ChFrame<>(VNULL, rot));
         this->AddVisualModel(vmodel);
     }
 }

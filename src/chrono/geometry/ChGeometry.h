@@ -29,6 +29,13 @@ namespace geometry {
 /// @addtogroup chrono_geometry
 /// @{
 
+/// Enumeration for the 3 frame directions.
+enum class ChAxis {
+    X,  ///< x direction of a reference frame
+    Y,  ///< y direction of a reference frame
+    Z   ///< z direction of a reference frame
+};
+
 /// Base class for geometric objects used for collisions and visualization.
 class ChApi ChGeometry {
   public:

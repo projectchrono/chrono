@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
 
     // BODY: the rotating hub:
 
-    auto my_body_hub = chrono_types::make_shared<ChBodyEasyCylinder>(0.2, 0.5, 1000);
+    auto my_body_hub = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.2, 0.5, 1000);
     my_body_hub->SetPos(ChVector<>(0, 0, 1));
     my_body_hub->SetRot(Q_from_AngAxis(CH_C_PI_2, VECT_X));
     sys.Add(my_body_hub);

@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
 
     // auto box_body = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
     // // auto box_body = chrono_types::make_shared<ChBodyEasySphere>(.5, 1000, true, false);
-    // // auto box_body = chrono_types::make_shared<ChBodyEasyCylinder>(.25, 1, 1000, true, false);
+    // // auto box_body = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, .25, 1, 1000, true, false);
     // box_body->SetPos({0, 0, 2});
     // box_body->SetBodyFixed(true);
     // sys.Add(box_body);

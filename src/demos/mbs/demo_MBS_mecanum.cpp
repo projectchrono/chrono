@@ -111,10 +111,12 @@ std::shared_ptr<ChBody> create_mecanum_wheel(ChSystemNSC& sys,
                                              double spindle_density) {
     ChFrameMoving<> ftot(shaft_position, shaft_alignment);  // will be used to transform pos & rot of all objects
 
-    auto centralWheel = chrono_types::make_shared<ChBodyEasyCylinder>(wheel_radius / 2, wheel_width,  // radius, height
-                                                                      spindle_density,                // density
-                                                                      true,                           // visualize
-                                                                      false);                         // no collision
+    auto centralWheel = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y,  //
+                                                                      wheel_radius / 2,
+                                                                      wheel_width,      // radius, height
+                                                                      spindle_density,  // density
+                                                                      true,             // visualize
+                                                                      false);           // no collision
     centralWheel->SetPos(shaft_position);
     centralWheel->SetRot(shaft_alignment);
     centralWheel->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/pinkwhite.png"));
@@ -188,7 +190,8 @@ int main(int argc, char* argv[]) {
     double roller_angle = CH_C_PI / 4;
 
     // Create the robot truss, as a circular platform
-    auto platform = chrono_types::make_shared<ChBodyEasyCylinder>(platform_radius * 0.7, 2,  // radius, height
+    auto platform = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y,       //
+                                                                  platform_radius * 0.7, 2,  // radius, height
                                                                   1000,                      // density
                                                                   true,                      // visualize
                                                                   false);                    // no collision

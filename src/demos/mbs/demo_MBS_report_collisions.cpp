@@ -122,7 +122,8 @@ int main(int argc, char* argv[]) {
             my_box = box;
         }
 
-        auto cylinder = chrono_types::make_shared<ChBodyEasyCylinder>(0.75, 0.5, 100, true, true, mat);
+        auto cylinder =
+            chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.75, 0.5, 100, true, true, mat);
         sys.Add(cylinder);
         cylinder->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
         if (bi == 0) {

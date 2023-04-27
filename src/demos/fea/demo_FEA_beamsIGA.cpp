@@ -517,7 +517,8 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
 
     // Create the flywheel and attach it to the center of the beam
 
-    auto mbodyflywheel = chrono_types::make_shared<ChBodyEasyCylinder>(0.24, 0.05, 7800);  // R, h, density
+    auto mbodyflywheel = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y,  //
+                                                                       0.24, 0.05, 7800);    // R, h, density
     mbodyflywheel->SetCoord(ChCoordsys<>(
         node_mid->GetPos() + ChVector<>(0, 0.05, 0),  // flywheel initial center (plus Y offset)
         Q_from_AngAxis(CH_C_PI_2, VECT_Z))  // flywheel initial alignment (rotate 90° so cylinder axis is on X)

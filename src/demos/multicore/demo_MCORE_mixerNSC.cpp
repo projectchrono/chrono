@@ -121,7 +121,8 @@ void AddFallingBalls(ChSystemMulticore* sys) {
             ball->SetPos(b_pos);
             sys->AddBody(ball);
 
-            auto cyl = chrono_types::make_shared<ChBodyEasyCylinder>(0.1, 0.05, 2000, cyl_mat,
+            auto cyl = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y,       //
+                                                                     0.1, 0.05, 2000, cyl_mat,  //
                                                                      collision::ChCollisionSystemType::CHRONO);
             cyl->SetPos(c_pos);
             sys->AddBody(cyl);
