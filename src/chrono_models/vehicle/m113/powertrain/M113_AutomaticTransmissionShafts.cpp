@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono_models/vehicle/M113/powertrain/M113_AutomaticTransmissionShafts.h"
+#include "chrono_models/vehicle/m113/powertrain/M113_AutomaticTransmissionShafts.h"
 
 namespace chrono {
 namespace vehicle {
