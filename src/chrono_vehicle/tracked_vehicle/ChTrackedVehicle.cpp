@@ -88,12 +88,12 @@ void ChTrackedVehicle::Synchronize(double time,
     m_tracks[LEFT]->Synchronize(time, braking_left, shoe_forces_left);
     m_tracks[RIGHT]->Synchronize(time, braking_right, shoe_forces_right);
 
-    double powertrain_torque = m_powertrain ? m_powertrain->GetOutputTorque() : 0;
+    double powertrain_torque = m_powertrain_assembly ? m_powertrain_assembly->GetOutputTorque() : 0;
     double driveline_speed = m_driveline ? m_driveline->GetOutputDriveshaftSpeed() : 0;
 
     // Set driveshaft speed for the transmission output shaft
-    if (m_powertrain)
-        m_powertrain->Synchronize(time, driver_inputs, driveline_speed);
+    if (m_powertrain_assembly)
+        m_powertrain_assembly->Synchronize(time, driver_inputs, driveline_speed);
 
     // Apply powertrain torque to the driveline's input shaft
     if (m_driveline)
@@ -117,9 +117,9 @@ void ChTrackedVehicle::Synchronize(double time,
 // Advance the state of this vehicle by the specified time step.
 // -----------------------------------------------------------------------------
 void ChTrackedVehicle::Advance(double step) {
-    if (m_powertrain) {
+    if (m_powertrain_assembly) {
         // Advance state of the associated powertrain.
-        m_powertrain->Advance(step);
+        m_powertrain_assembly->Advance(step);
     }
 
     // Invoke base class function to advance state of underlying Chrono system.
