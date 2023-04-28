@@ -172,8 +172,6 @@ set(CV_BASE_FILES
     ChVehicleJoint.cpp
     ChDriveline.h
     ChDriveline.cpp
-    ChPowertrain.h
-    ChPowertrain.cpp
     ChPowertrainAssembly.h
     ChPowertrainAssembly.cpp
     ChEngine.h
@@ -264,25 +262,6 @@ set(CV_POVERTRAIN_FILES
     powertrain/AutomaticTransmissionSimpleMap.cpp
     powertrain/AutomaticTransmissionShafts.h
     powertrain/AutomaticTransmissionShafts.cpp
-
-
-    powertrain/ChSimplePowertrain.h
-    powertrain/ChSimplePowertrain.cpp
-    powertrain/ChShaftsPowertrain.h
-    powertrain/ChShaftsPowertrain.cpp
-    powertrain/ChSimpleMapPowertrain.h
-    powertrain/ChSimpleMapPowertrain.cpp
-    powertrain/ChSimpleCVTPowertrain.h
-    powertrain/ChSimpleCVTPowertrain.cpp
-
-    powertrain/SimpleMapPowertrain.h
-    powertrain/SimpleMapPowertrain.cpp
-    powertrain/SimplePowertrain.h
-    powertrain/SimplePowertrain.cpp
-    powertrain/SimpleCVTPowertrain.h
-    powertrain/SimpleCVTPowertrain.cpp
-    powertrain/ShaftsPowertrain.h
-    powertrain/ShaftsPowertrain.cpp
 )
 source_group("powertrain" FILES ${CV_POVERTRAIN_FILES})
 

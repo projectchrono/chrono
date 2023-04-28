@@ -20,7 +20,6 @@
 #define GENERIC_AUTOMATICTRANSMISSIONSIMPLEMAP_H
 
 #include "chrono_vehicle/ChVehicle.h"
-#include "chrono_vehicle/ChPowertrain.h"
 #include "chrono_vehicle/powertrain/ChAutomaticTransmissionSimpleMap.h"
 #include "chrono/core/ChCubicSpline.h"
 #include "chrono_models/ChApiModels.h"

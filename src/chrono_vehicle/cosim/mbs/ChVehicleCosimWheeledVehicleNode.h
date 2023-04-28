@@ -59,9 +59,6 @@ class CH_VEHICLE_API ChVehicleCosimWheeledVehicleNode : public ChVehicleCosimWhe
     /// Get the underlying vehicle system.
     std::shared_ptr<ChWheeledVehicle> GetVehicle() const { return m_vehicle; }
 
-    /// Get the underlying powertrain system.
-    std::shared_ptr<ChPowertrainAssembly> GetPowertrain() const { return m_powertrain; }
-
     /// Set the initial vehicle position, relative to the center of the terrain top-surface.
     void SetInitialLocation(const ChVector<>& init_loc) { m_init_loc = init_loc; }
 

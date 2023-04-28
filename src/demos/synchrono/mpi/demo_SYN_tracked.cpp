@@ -84,7 +84,8 @@ void LogCopyright(bool show);
 void AddCommandLineOptions(ChCLI& cli);
 void GetVehicleModelFiles(VehicleType type,
                           std::string& vehicle,
-                          std::string& powertrain,
+                          std::string& engine,
+                          std::string& transmission,
                           std::string& zombie,
                           double& cam_distance);
 
@@ -182,9 +183,9 @@ int main(int argc, char* argv[]) {
 
     // Get the vehicle JSON filenames
     double cam_distance;
-    std::string vehicle_file, powertrain_file, zombie_file;
-    GetVehicleModelFiles((VehicleType)cli.GetAsType<int>("vehicle"), vehicle_file, powertrain_file, zombie_file,
-                         cam_distance);
+    std::string vehicle_file, engine_file, transmission_file, zombie_file;
+    GetVehicleModelFiles((VehicleType)cli.GetAsType<int>("vehicle"), vehicle_file, engine_file, transmission_file,
+                         zombie_file, cam_distance);
 
     // Create the vehicle, set parameters, and initialize
     TrackedVehicle vehicle(vehicle_file, contact_method);
@@ -199,7 +200,9 @@ int main(int argc, char* argv[]) {
     vehicle.SetSuspensionVisualizationType(road_wheel_assembly_vis_type);
 
     // Create and initialize the powertrain system
-    auto powertrain = ReadPowertrainJSON(powertrain_file);
+    auto engine = ReadEngineJSON(vehicle::GetDataFile(engine_file));
+    auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(transmission_file));
+    auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
     vehicle.InitializePowertrain(powertrain);
 
     // Add vehicle as an agent and initialize SynChronoManager
@@ -320,13 +323,15 @@ void AddCommandLineOptions(ChCLI& cli) {
 
 void GetVehicleModelFiles(VehicleType type,
                           std::string& vehicle,
-                          std::string& powertrain,
+                          std::string& engine,
+                          std::string& transmission,
                           std::string& zombie,
                           double& cam_distance) {
     switch (type) {
         case VehicleType::M113:
             vehicle = vehicle::GetDataFile("M113/vehicle/M113_Vehicle_SinglePin.json");
-            powertrain = vehicle::GetDataFile("M113/powertrain/M113_SimpleCVTPowertrain.json");
+            engine = vehicle::GetDataFile("M113/powertrain/M113_EngineSimple.json");
+            transmission = vehicle::GetDataFile("M113/powertrain/M113_AutomaticTransmissionSimple.json");
             zombie = synchrono::GetDataFile("vehicle/M113.json");
             cam_distance = 8.0;
             break;

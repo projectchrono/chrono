@@ -21,7 +21,6 @@
 #define GATOR_ENGINESIMPLE_H
 
 #include "chrono_vehicle/ChVehicle.h"
-#include "chrono_vehicle/ChPowertrain.h"
 #include "chrono_vehicle/powertrain/ChEngineSimple.h"
 #include "chrono_models/ChApiModels.h"
 

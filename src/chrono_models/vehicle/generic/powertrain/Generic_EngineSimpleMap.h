@@ -33,9 +33,7 @@ namespace generic {
 /// @addtogroup vehicle_models_generic
 /// @{
 
-/// Custom powertrain model for a generic vehicle.
-/// Note that this does not use one of the Chrono::vehicle templates, but rather inherits directly
-/// from ChPowertrain.
+/// Engine model for a generic vehicle.
 class CH_MODELS_API Generic_EngineSimpleMap : public ChEngineSimpleMap {
   public:
     Generic_EngineSimpleMap(const std::string& name);

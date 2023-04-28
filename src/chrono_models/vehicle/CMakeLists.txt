@@ -45,22 +45,12 @@ set(CVM_HMMWV_BRAKE_FILES
     hmmwv/brake/HMMWV_BrakeShafts.h
 )
 set(CVM_HMMWV_POWERTRAIN_FILES
-    hmmwv/powertrain/HMMWV_Powertrain.cpp
-    hmmwv/powertrain/HMMWV_Powertrain.h
-    hmmwv/powertrain/HMMWV_SimplePowertrain.cpp
-    hmmwv/powertrain/HMMWV_SimplePowertrain.h
-    hmmwv/powertrain/HMMWV_SimpleCVTPowertrain.cpp
-    hmmwv/powertrain/HMMWV_SimpleCVTPowertrain.h
-    hmmwv/powertrain/HMMWV_SimpleMapPowertrain.cpp
-    hmmwv/powertrain/HMMWV_SimpleMapPowertrain.h
-
     hmmwv/powertrain/HMMWV_EngineShafts.h
     hmmwv/powertrain/HMMWV_EngineShafts.cpp
     hmmwv/powertrain/HMMWV_EngineSimpleMap.h
     hmmwv/powertrain/HMMWV_EngineSimpleMap.cpp
     hmmwv/powertrain/HMMWV_EngineSimple.h
     hmmwv/powertrain/HMMWV_EngineSimple.cpp
-
     hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.h
     hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.cpp
     hmmwv/powertrain/HMMWV_AutomaticTransmissionSimpleMap.h
@@ -499,10 +489,6 @@ set(CVM_GENERIC_DRIVELINE_FILES
     generic/driveline/Generic_SimpleDriveline.h
 )
 set(CVM_GENERIC_POWERTRAIN_FILES
-    generic/powertrain/Generic_SimplePowertrain.h
-    generic/powertrain/Generic_SimplePowertrain.cpp
-    generic/powertrain/Generic_SimpleMapPowertrain.cpp
-    generic/powertrain/Generic_SimpleMapPowertrain.h
     generic/powertrain/Generic_AutomaticTransmissionSimple.h
     generic/powertrain/Generic_AutomaticTransmissionSimple.cpp
     generic/powertrain/Generic_EngineSimple.h
@@ -573,8 +559,6 @@ set(CVM_SEDAN_FILES
     sedan/Sedan_Pac02Tire.h
     sedan/Sedan_RackPinion.cpp
     sedan/Sedan_RackPinion.h
-    sedan/Sedan_SimpleMapPowertrain.cpp
-    sedan/Sedan_SimpleMapPowertrain.h
     sedan/Sedan_AutomaticTransmissionSimpleMap.cpp
     sedan/Sedan_AutomaticTransmissionSimpleMap.h
     sedan/Sedan_EngineSimpleMap.cpp
@@ -615,8 +599,6 @@ set(CVM_CITYBUS_FILES
     citybus/CityBus_Pac02Tire.h
     citybus/CityBus_RackPinion.cpp
     citybus/CityBus_RackPinion.h
-    citybus/CityBus_SimpleMapPowertrain.cpp
-    citybus/CityBus_SimpleMapPowertrain.h
 
     citybus/CityBus_EngineSimpleMap.cpp
     citybus/CityBus_EngineSimpleMap.h
@@ -653,10 +635,6 @@ set(CVM_GATOR_FILES
     gator/Gator_TMeasyTire.h
     gator/Gator_RackPinion.cpp
     gator/Gator_RackPinion.h
-    gator/Gator_SimplePowertrain.cpp
-    gator/Gator_SimplePowertrain.h
-    gator/Gator_SimpleMapPowertrain.cpp
-    gator/Gator_SimpleMapPowertrain.h
     gator/Gator_EngineSimpleMap.cpp
     gator/Gator_EngineSimpleMap.h
     gator/Gator_EngineSimple.cpp
@@ -769,12 +747,6 @@ set(CVM_M113_POWERTRAIN_FILES
     m113/powertrain/M113_EngineSimple.h
     m113/powertrain/M113_EngineSimpleMap.cpp
     m113/powertrain/M113_EngineSimpleMap.h
-    m113/powertrain/M113_ShaftsPowertrain.cpp
-    m113/powertrain/M113_ShaftsPowertrain.h
-    m113/powertrain/M113_SimpleCVTPowertrain.cpp
-    m113/powertrain/M113_SimpleCVTPowertrain.h
-    m113/powertrain/M113_SimpleMapPowertrain.cpp
-    m113/powertrain/M113_SimpleMapPowertrain.h
 )
 set(CVM_M113_VEHICLE_FILES
     m113/M113.h
@@ -824,8 +796,6 @@ set(CVM_RCCAR_FILES
     rccar/RCCar_RigidTire.h
     rccar/RCCar_TMeasyTire.cpp
     rccar/RCCar_TMeasyTire.h
-    rccar/RCCar_SimpleMapPowertrain.cpp
-    rccar/RCCar_SimpleMapPowertrain.h
     rccar/RCCar_AutomaticTransmissionSimpleMap.cpp
     rccar/RCCar_AutomaticTransmissionSimpleMap.h
     rccar/RCCar_EngineSimpleMap.cpp

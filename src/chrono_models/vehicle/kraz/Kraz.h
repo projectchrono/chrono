@@ -59,7 +59,6 @@ class CH_MODELS_API Kraz {
     ChWheeledVehicle& GetTractor() const { return *m_tractor; }
     std::shared_ptr<ChChassis> GetTractorChassis() const { return m_tractor->GetChassis(); }
     std::shared_ptr<ChBodyAuxRef> GetTractorChassisBody() const { return m_tractor->GetChassisBody(); }
-    std::shared_ptr<ChPowertrain> GetPowertrain() const { return m_tractor->GetPowertrain(); }
     ChWheeledTrailer& GetTrailer() const { return *m_trailer; }
 
     void Initialize();

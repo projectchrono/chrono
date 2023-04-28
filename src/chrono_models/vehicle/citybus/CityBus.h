@@ -25,7 +25,6 @@
 
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/citybus/CityBus_Vehicle.h"
-#include "chrono_models/vehicle/citybus/CityBus_SimpleMapPowertrain.h"
 #include "chrono_models/vehicle/citybus/CityBus_EngineSimpleMap.h"
 #include "chrono_models/vehicle/citybus/CityBus_AutomaticTransmissionSimpleMap.h"
 #include "chrono_models/vehicle/citybus/CityBus_RigidTire.h"
@@ -69,7 +68,6 @@ class CH_MODELS_API CityBus {
     ChWheeledVehicle& GetVehicle() const { return *m_vehicle; }
     std::shared_ptr<ChChassis> GetChassis() const { return m_vehicle->GetChassis(); }
     std::shared_ptr<ChBodyAuxRef> GetChassisBody() const { return m_vehicle->GetChassisBody(); }
-    std::shared_ptr<ChPowertrain> GetPowertrain() const { return m_vehicle->GetPowertrain(); }
 
     void Initialize();
 

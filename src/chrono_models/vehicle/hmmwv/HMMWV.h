@@ -23,7 +23,6 @@
 #include <array>
 #include <string>
 
-#include "chrono_vehicle/ChPowertrain.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 
 #include "chrono_models/ChApiModels.h"
