@@ -38,7 +38,8 @@ def main():
     my_feda.SetChassisCollisionType(chassis_collision_type)
     my_feda.SetChassisFixed(False) 
     my_feda.SetInitPosition(chrono.ChCoordsysD(initLoc, initRot))
-    my_feda.SetPowertrainType(powertrain_model)
+    my_feda.SetEngineType(veh.EngineModelType_SIMPLE_MAP)
+    my_feda.SetTransmissionType(veh.TransmissionModelType_SIMPLE_MAP)
     my_feda.SetTireType(tire_model)
     my_feda.SetTireStepSize(tire_step_size)
     my_feda.Initialize()
@@ -140,9 +141,6 @@ tire_vis_type = veh.VisualizationType_MESH
 
 # Collision type for chassis (PRIMITIVES, MESH, or NONE)
 chassis_collision_type = veh.CollisionType_NONE
-
-# Type of powertrain model (SHAFTS, SIMPLE_MAP)
-powertrain_model = veh.PowertrainModelType_SIMPLE_MAP
 
 # Type of tire model (RIGID, PAC02)
 tire_model = veh.TireModelType_PAC02
