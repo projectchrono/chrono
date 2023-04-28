@@ -163,7 +163,7 @@ void M113::Initialize() {
 
     if (engine && transmission) {
         auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
-        m_vehicle->ChVehicle::InitializePowertrain(powertrain);
+        m_vehicle->InitializePowertrain(powertrain);
     }
 
     // Recalculate vehicle mass, to properly account for all subsystems

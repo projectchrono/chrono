@@ -318,7 +318,7 @@ int main(int argc, char* argv[]) {
     auto engine = ReadEngineJSON(vehicle::GetDataFile(vehicle_model.EngineJSON()));
     auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(vehicle_model.TransmissionJSON()));
     auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
-    vehicle.ChVehicle::InitializePowertrain(powertrain);
+    vehicle.InitializePowertrain(powertrain);
 
     cout << "  Track assembly templates" << endl;
     cout << "     Sprocket:   " << vehicle.GetTrackAssembly(LEFT)->GetSprocket()->GetTemplateName() << endl;

@@ -125,7 +125,7 @@ void Kraz::Initialize() {
 
     if (engine && transmission) {
         auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
-        m_tractor->ChVehicle::InitializePowertrain(powertrain);
+        m_tractor->InitializePowertrain(powertrain);
     }
 
     // Create the tractor tires

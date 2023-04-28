@@ -386,7 +386,7 @@ void WheeledVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
 
     // Initialize the powertain (if present)
     if (m_powertrain_assembly) {
-        ChVehicle::InitializePowertrain(m_powertrain_assembly);
+        InitializePowertrain(m_powertrain_assembly);
     }
 
     // Invoke base class method

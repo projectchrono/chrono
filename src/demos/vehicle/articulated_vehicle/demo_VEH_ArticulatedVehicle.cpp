@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
     auto engine = chrono_types::make_shared<ACV_EngineSimple>("Engine");
     auto transmission = chrono_types::make_shared<ACV_AutomaticTransmissionSimple>("Transmission");
     auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
-    vehicle.ChVehicle::InitializePowertrain(powertrain);
+    vehicle.InitializePowertrain(powertrain);
 
     // Create and initialize the front and rear tires
     auto tire_FL = chrono_types::make_shared<ACV_RigidTire>("FL");

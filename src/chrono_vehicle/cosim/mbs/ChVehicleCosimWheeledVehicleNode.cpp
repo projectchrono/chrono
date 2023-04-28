@@ -107,7 +107,7 @@ void ChVehicleCosimWheeledVehicleNode::InitializeMBS(const std::vector<ChVector<
     m_vehicle->SetWheelVisualizationType(VisualizationType::MESH);
 
     // Initialize powertrain
-    m_vehicle->ChVehicle::InitializePowertrain(m_powertrain);
+    m_vehicle->InitializePowertrain(m_powertrain);
 
     // Create and initialize the dummy tires
     int itire = 0;

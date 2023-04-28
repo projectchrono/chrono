@@ -113,7 +113,7 @@ void UAZBUS_SAE::Initialize() {
 
     if (engine && transmission) {
         auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
-        m_vehicle->ChVehicle::InitializePowertrain(powertrain);
+        m_vehicle->InitializePowertrain(powertrain);
     }
 
     // Create the tires and set parameters depending on type.

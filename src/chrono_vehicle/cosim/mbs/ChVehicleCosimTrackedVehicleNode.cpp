@@ -105,7 +105,7 @@ void ChVehicleCosimTrackedVehicleNode::InitializeMBS(const ChVector2<>& terrain_
     m_vehicle->SetTrackShoeVisualizationType(VisualizationType::MESH);
 
     // Initialize powertrain
-    m_vehicle->ChVehicle::InitializePowertrain(m_powertrain);
+    m_vehicle->InitializePowertrain(m_powertrain);
 
     // Size vectors of track shoe forces
     m_shoe_forces[0].resize(m_vehicle->GetNumTrackShoes(VehicleSide::LEFT));

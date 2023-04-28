@@ -59,14 +59,6 @@ void ChTrackedVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassis
 }
 
 // -----------------------------------------------------------------------------
-// Initialize a powertrain system and associate it with this vehicle.
-// -----------------------------------------------------------------------------
-void ChTrackedVehicle::InitializePowertrain(std::shared_ptr<ChPowertrain> powertrain) {
-    m_powertrain = powertrain;
-    powertrain->Initialize(m_chassis);
-}
-
-// -----------------------------------------------------------------------------
 // Update the state of this vehicle at the current time.
 // The vehicle system is provided the current driver inputs (throttle between 0
 // and 1, steering between -1 and +1, braking between 0 and 1) and terrain

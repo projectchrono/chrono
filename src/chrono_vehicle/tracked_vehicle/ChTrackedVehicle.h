@@ -172,10 +172,6 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
                             double chassisFwdVel = 0         ///< [in] initial chassis forward velocity
                             ) override;
 
-    /// Initialize the given powertrain system and associate it to this vehicle.
-    /// The powertrain is initialized by connecting it to this vehicle's chassis and driveline shaft.
-    void InitializePowertrain(std::shared_ptr<ChPowertrain> powertrain);
-
     /// Calculate total vehicle mass.
     /// This function is called at the end of the vehicle initialization, but can also be called explicitly.
     virtual void InitializeInertiaProperties() override final;

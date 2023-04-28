@@ -53,9 +53,6 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// Get the name of the vehicle system template.
     virtual std::string GetTemplateName() const override { return "WheeledVehicle"; }
 
-    /// Get the powertrain attached to this vehicle.
-    virtual std::shared_ptr<ChPowertrain> GetPowertrain() const override { return m_powertrain; }
-
     /// Get all vehicle axle subsystems.
     const ChAxleList& GetAxles() const { return m_axles; }
 
@@ -185,10 +182,6 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
                         VisualizationType tire_vis = VisualizationType::PRIMITIVES,
                         ChTire::CollisionType tire_coll = ChTire::CollisionType::SINGLE_POINT);
 
-    /// Initialize the given powertrain system and associate it to this vehicle.
-    /// The powertrain is initialized by connecting it to this vehicle's chassis and driveline shaft.
-    void InitializePowertrain(std::shared_ptr<ChPowertrain> powertrain);
-
     /// Calculate total vehicle mass.
     /// This function is called at the end of the vehicle initialization, but can also be called explicitly.
     virtual void InitializeInertiaProperties() override final;
@@ -267,7 +260,6 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     ChAxleList m_axles;                          ///< list of axle subsystems
     ChSteeringList m_steerings;                  ///< list of steering subsystems
     std::shared_ptr<ChDrivelineWV> m_driveline;  ///< driveline subsystem
-    std::shared_ptr<ChPowertrain> m_powertrain;  ///< associated powertrain system
     bool m_parking_on;                           ///< indicates whether or not parking brake is engaged
 };
 

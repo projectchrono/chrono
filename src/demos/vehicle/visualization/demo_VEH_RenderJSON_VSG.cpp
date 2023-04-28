@@ -87,7 +87,7 @@ ChVehicle* CreateVehicle(ChSystem* sys, bool is_wheeled) {
         auto engine = ReadEngineJSON(vehicle::GetDataFile(setup.EngineJSON()));
         auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(setup.TransmissionJSON()));
         auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
-        vehicle->ChVehicle::InitializePowertrain(powertrain);
+        vehicle->InitializePowertrain(powertrain);
 
         // Create and initialize the tires
         for (auto& axle : vehicle->GetAxles()) {
@@ -115,7 +115,7 @@ ChVehicle* CreateVehicle(ChSystem* sys, bool is_wheeled) {
         auto engine = ReadEngineJSON(vehicle::GetDataFile(setup.EngineJSON()));
         auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(setup.TransmissionJSON()));
         auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
-        vehicle->ChVehicle::InitializePowertrain(powertrain);
+        vehicle->InitializePowertrain(powertrain);
 
         return vehicle;
     }

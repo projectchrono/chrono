@@ -111,12 +111,12 @@ void Marder::Initialize() {
             std::cout << "Warning! Marder powertrain type not supported. Reverting to Simple Powertrain" << std::endl;
         case PowertrainModelType::SIMPLE: {
             auto powertrain = chrono_types::make_shared<Marder_SimplePowertrain>("Powertrain");
-            m_vehicle->InitializePowertrain(powertrain);
+            ////m_vehicle->InitializePowertrain(powertrain);
             break;
         }
         case PowertrainModelType::SIMPLE_CVT: {
             auto powertrain = chrono_types::make_shared<Marder_SimpleCVTPowertrain>("Powertrain");
-            m_vehicle->InitializePowertrain(powertrain);
+            ////m_vehicle->InitializePowertrain(powertrain);
             break;
         }
     }

@@ -187,7 +187,7 @@ int main(int argc, char* argv[]) {
     auto engine = ReadEngineJSON(vehicle::GetDataFile(engine_file));
     auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(transmission_file));
     auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
-    vehicle.ChVehicle::InitializePowertrain(powertrain);
+    vehicle.InitializePowertrain(powertrain);
 
 #ifdef USE_IRRLICHT
     // ---------------------------------------
