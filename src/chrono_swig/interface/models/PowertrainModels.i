@@ -6,99 +6,153 @@
 #include <vector>
 
 #include "chrono_vehicle/ChVehicle.h"
-#include "chrono_vehicle/ChPowertrain.h"
+#include "chrono_vehicle/ChPowertrainAssembly.h"
 #include "chrono/core/ChCubicSpline.h"
 
 //#include "chrono_models/ChApiModels.h"
 
-#include "chrono_models/vehicle/generic/Generic_SimplePowertrain.h"
-#include "chrono_models/vehicle/generic/Generic_SimpleMapPowertrain.h"
+#include "chrono_models/vehicle/generic/powertrain/Generic_AutomaticTransmissionSimple.h"
+#include "chrono_models/vehicle/generic/powertrain/Generic_EngineSimple.h"
+#include "chrono_models/vehicle/generic/powertrain/Generic_AutomaticTransmissionSimpleMap.h"
+#include "chrono_models/vehicle/generic/powertrain/Generic_EngineSimpleMap.h"
 
-#include "chrono_models/vehicle/hmmwv/HMMWV_SimplePowertrain.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_SimpleMapPowertrain.h"
+#include "chrono_models/vehicle/hmmwv/powertrain/HMMWV_EngineShafts.h"
+#include "chrono_models/vehicle/hmmwv/powertrain/HMMWV_EngineSimpleMap.h"
+#include "chrono_models/vehicle/hmmwv/powertrain/HMMWV_EngineSimple.h"
+#include "chrono_models/vehicle/hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.h"
+#include "chrono_models/vehicle/hmmwv/powertrain/HMMWV_AutomaticTransmissionSimpleMap.h"
 
-#include "chrono_models/vehicle/sedan/Sedan_SimpleMapPowertrain.h"
+#include "chrono_models/vehicle/sedan/Sedan_EngineSimpleMap.h"
+#include "chrono_models/vehicle/sedan/Sedan_AutomaticTransmissionSimpleMap.h"
 
-#include "chrono_models/vehicle/citybus/CityBus_SimpleMapPowertrain.h"
+#include "chrono_models/vehicle/citybus/CityBus_EngineSimpleMap.h"
+#include "chrono_models/vehicle/citybus/CityBus_AutomaticTransmissionSimpleMap.h"
 
-#include "chrono_models/vehicle/man/MAN_5t_SimpleMapPowertrain.h"
-#include "chrono_models/vehicle/man/MAN_5t_SimpleCVTPowertrain.h"
-#include "chrono_models/vehicle/man/MAN_7t_SimpleMapPowertrain.h"
-#include "chrono_models/vehicle/man/MAN_7t_SimpleCVTPowertrain.h"
+#include "chrono_models/vehicle/man/powertrain/MAN_5t_EngineSimple.h"
+#include "chrono_models/vehicle/man/powertrain/MAN_5t_AutomaticTransmissionSimple.h"
+#include "chrono_models/vehicle/man/powertrain/MAN_5t_EngineSimpleMap.h"
+#include "chrono_models/vehicle/man/powertrain/MAN_5t_AutomaticTransmissionSimpleMap.h"
+#include "chrono_models/vehicle/man/powertrain/MAN_7t_EngineSimple.h"
+#include "chrono_models/vehicle/man/powertrain/MAN_7t_AutomaticTransmissionSimple.h"
+#include "chrono_models/vehicle/man/powertrain/MAN_7t_EngineSimpleMap.h"
+#include "chrono_models/vehicle/man/powertrain/MAN_7t_AutomaticTransmissionSimpleMap.h"
 
-#include "chrono_models/vehicle/uaz/UAZBUS_SimpleMapPowertrain.h"
+#include "chrono_models/vehicle/uaz/UAZBUS_EngineSimpleMap.h"
+#include "chrono_models/vehicle/uaz/UAZBUS_AutomaticTransmissionSimpleMap.h"
 
-#include "chrono_models/vehicle/gator/Gator_SimplePowertrain.h"
-#include "chrono_models/vehicle/gator/Gator_SimpleMapPowertrain.h"
+#include "chrono_models/vehicle/gator/Gator_EngineSimpleMap.h"
+#include "chrono_models/vehicle/gator/Gator_EngineSimple.h"
+#include "chrono_models/vehicle/gator/Gator_AutomaticTransmissionSimpleMap.h"
+#include "chrono_models/vehicle/gator/Gator_AutomaticTransmissionSimple.h"
 
-#include "chrono_models/vehicle/rccar/RCCar_SimpleMapPowertrain.h"
+#include "chrono_models/vehicle/rccar/RCCar_EngineSimpleMap.h"
+#include "chrono_models/vehicle/rccar/RCCar_AutomaticTransmissionSimpleMap.h"
 
-#include "chrono_models/vehicle/feda/FEDA_Powertrain.h"
-#include "chrono_models/vehicle/feda/FEDA_SimpleMapPowertrain.h"
+#include "chrono_models/vehicle/feda/FEDA_EngineSimpleMap.h"
+#include "chrono_models/vehicle/feda/FEDA_AutomaticTransmissionSimpleMap.h"
 
-#include "chrono_models/vehicle/m113/M113_SimpleCVTPowertrain.h"
-#include "chrono_models/vehicle/m113/M113_SimpleMapPowertrain.h"
-#include "chrono_models/vehicle/m113/M113_ShaftsPowertrain.h"
+#include "chrono_models/vehicle/m113/powertrain/M113_AutomaticTransmissionShafts.h"
+#include "chrono_models/vehicle/m113/powertrain/M113_AutomaticTransmissionSimple.h"
+#include "chrono_models/vehicle/m113/powertrain/M113_AutomaticTransmissionSimpleMap.h"
+#include "chrono_models/vehicle/m113/powertrain/M113_EngineShafts.h"
+#include "chrono_models/vehicle/m113/powertrain/M113_EngineSimple.h"
+#include "chrono_models/vehicle/m113/powertrain/M113_EngineSimpleMap.h"
 %}
 
+%shared_ptr(chrono::vehicle::generic::Generic_AutomaticTransmissionSimple)
+%shared_ptr(chrono::vehicle::generic::Generic_EngineSimple)
+%shared_ptr(chrono::vehicle::generic::Generic_AutomaticTransmissionSimpleMap)
+%shared_ptr(chrono::vehicle::generic::Generic_EngineSimpleMap)
 
-%shared_ptr(chrono::vehicle::generic::Generic_SimplePowertrain)
-%shared_ptr(chrono::vehicle::generic::Generic_SimpleMapPowertrain)
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_EngineShafts)
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_EngineSimpleMap)
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_EngineSimple)
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_AutomaticTransmissionShafts)
+%shared_ptr(chrono::vehicle::hmmwv::HMMWV_AutomaticTransmissionSimpleMap)
 
-%shared_ptr(chrono::vehicle::hmmwv::HMMWV_SimplePowertrain)
-%shared_ptr(chrono::vehicle::hmmwv::HMMWV_SimpleMapPowertrain)
+%shared_ptr(chrono::vehicle::sedan::Sedan_EngineSimpleMap)
+%shared_ptr(chrono::vehicle::sedan::Sedan_AutomaticTransmissionSimpleMap)
 
-%shared_ptr(chrono::vehicle::sedan::Sedan_SimpleMapPowertrain)
+%shared_ptr(chrono::vehicle::citybus::CityBus_EngineSimpleMap)
+%shared_ptr(chrono::vehicle::citybus::CityBus_AutomaticTransmissionSimpleMap)
 
-%shared_ptr(chrono::vehicle::citybus::CityBus_SimpleMapPowertrain)
+%shared_ptr(chrono::vehicle::man::MAN_5t_EngineSimple)
+%shared_ptr(chrono::vehicle::man::MAN_5t_AutomaticTransmissionSimple)
+%shared_ptr(chrono::vehicle::man::MAN_5t_EngineSimpleMap)
+%shared_ptr(chrono::vehicle::man::MAN_5t_AutomaticTransmissionSimpleMap)
+%shared_ptr(chrono::vehicle::man::MAN_7t_EngineSimple)
+%shared_ptr(chrono::vehicle::man::MAN_7t_AutomaticTransmissionSimple)
+%shared_ptr(chrono::vehicle::man::MAN_7t_EngineSimpleMap)
+%shared_ptr(chrono::vehicle::man::MAN_7t_AutomaticTransmissionSimpleMap)
 
-%shared_ptr(chrono::vehicle::man::MAN_5t_SimpleMapPowertrain)
-%shared_ptr(chrono::vehicle::man::MAN_5t_SimpleCVTPowertrain)
-%shared_ptr(chrono::vehicle::man::MAN_7t_SimpleMapPowertrain)
-%shared_ptr(chrono::vehicle::man::MAN_7t_SimpleCVTPowertrain)
+%shared_ptr(chrono::vehicle::uaz::UAZBUS_EngineSimpleMap)
+%shared_ptr(chrono::vehicle::uaz::UAZBUS_AutomaticTransmissionSimpleMap)
 
-%shared_ptr(chrono::vehicle::uaz::UAZBUS_SimpleMapPowertrain)
+%shared_ptr(chrono::vehicle::rccar::RCCar_EngineSimpleMap)
+%shared_ptr(chrono::vehicle::rccar::RCCar_AutomaticTransmissionSimpleMap)
 
-%shared_ptr(chrono::vehicle::rccar::RCCar_SimpleMapPowertrain)
+%shared_ptr(chrono::vehicle::gator::Gator_EngineSimpleMap)
+%shared_ptr(chrono::vehicle::gator::Gator_EngineSimple)
+%shared_ptr(chrono::vehicle::gator::Gator_AutomaticTransmissionSimpleMap)
+%shared_ptr(chrono::vehicle::gator::Gator_AutomaticTransmissionSimple)
 
-%shared_ptr(chrono::vehicle::gator::Gator_SimplePowertrain)
-%shared_ptr(chrono::vehicle::gator::Gator_SimpleMapPowertrain)
+%shared_ptr(chrono::vehicle::feda::FEDA_EngineSimpleMap)
+%shared_ptr(chrono::vehicle::feda::FEDA_AutomaticTransmissionSimpleMap)
 
-%shared_ptr(chrono::vehicle::feda::FEDA_Powertrain)
-%shared_ptr(chrono::vehicle::feda::FEDA_SimpleMapPowertrain)
-
-%shared_ptr(chrono::vehicle::m113::M113_SimpleCVTPowertrain)
-%shared_ptr(chrono::vehicle::m113::M113_SimpleMapPowertrain)
-%shared_ptr(chrono::vehicle::m113::M113_ShaftsPowertrain)
+%shared_ptr(chrono::vehicle::m113::M113_AutomaticTransmissionShafts)
+%shared_ptr(chrono::vehicle::m113::M113_AutomaticTransmissionSimple)
+%shared_ptr(chrono::vehicle::m113::M113_AutomaticTransmissionSimpleMap)
+%shared_ptr(chrono::vehicle::m113::M113_EngineShafts)
+%shared_ptr(chrono::vehicle::m113::M113_EngineSimple)
+%shared_ptr(chrono::vehicle::m113::M113_EngineSimpleMap)
 
 %import "chrono_swig/interface/vehicle/ChPowertrain.i"
 
 // Model:
-%include "../../../chrono_models/vehicle/generic/Generic_SimplePowertrain.h"
-%include "../../../chrono_models/vehicle/generic/Generic_SimpleMapPowertrain.h"
 
-%include "../../../chrono_models/vehicle/hmmwv/HMMWV_SimplePowertrain.h"
-%include "../../../chrono_models/vehicle/hmmwv/HMMWV_SimpleMapPowertrain.h"
+%include "../../../chrono_models/vehicle/generic/powertrain/Generic_AutomaticTransmissionSimple.h"
+%include "../../../chrono_models/vehicle/generic/powertrain/Generic_EngineSimple.h"
+%include "../../../chrono_models/vehicle/generic/powertrain/Generic_AutomaticTransmissionSimpleMap.h"
+%include "../../../chrono_models/vehicle/generic/powertrain/Generic_EngineSimpleMap.h"
 
-%include "../../../chrono_models/vehicle/sedan/Sedan_SimpleMapPowertrain.h"
+%include "../../../chrono_models/vehicle/hmmwv/powertrain/HMMWV_EngineShafts.h"
+%include "../../../chrono_models/vehicle/hmmwv/powertrain/HMMWV_EngineSimpleMap.h"
+%include "../../../chrono_models/vehicle/hmmwv/powertrain/HMMWV_EngineSimple.h"
+%include "../../../chrono_models/vehicle/hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.h"
+%include "../../../chrono_models/vehicle/hmmwv/powertrain/HMMWV_AutomaticTransmissionSimpleMap.h"
 
-%include "../../../chrono_models/vehicle/citybus/CityBus_SimpleMapPowertrain.h"
+%include "../../../chrono_models/vehicle/sedan/Sedan_EngineSimpleMap.h"
+%include "../../../chrono_models/vehicle/sedan/Sedan_AutomaticTransmissionSimpleMap.h"
 
-%include "../../../chrono_models/vehicle/man/MAN_5t_SimpleMapPowertrain.h"
-%include "../../../chrono_models/vehicle/man/MAN_5t_SimpleCVTPowertrain.h"
-%include "../../../chrono_models/vehicle/man/MAN_7t_SimpleMapPowertrain.h"
-%include "../../../chrono_models/vehicle/man/MAN_7t_SimpleCVTPowertrain.h"
+%include "../../../chrono_models/vehicle/citybus/CityBus_EngineSimpleMap.h"
+%include "../../../chrono_models/vehicle/citybus/CityBus_AutomaticTransmissionSimpleMap.h"
 
-%include "../../../chrono_models/vehicle/rccar/RCCar_SimpleMapPowertrain.h"
+%include "../../../chrono_models/vehicle/man/powertrain/MAN_5t_EngineSimple.h"
+%include "../../../chrono_models/vehicle/man/powertrain/MAN_5t_AutomaticTransmissionSimple.h"
+%include "../../../chrono_models/vehicle/man/powertrain/MAN_5t_EngineSimpleMap.h"
+%include "../../../chrono_models/vehicle/man/powertrain/MAN_5t_AutomaticTransmissionSimpleMap.h"
+%include "../../../chrono_models/vehicle/man/powertrain/MAN_7t_EngineSimple.h"
+%include "../../../chrono_models/vehicle/man/powertrain/MAN_7t_AutomaticTransmissionSimple.h"
+%include "../../../chrono_models/vehicle/man/powertrain/MAN_7t_EngineSimpleMap.h"
+%include "../../../chrono_models/vehicle/man/powertrain/MAN_7t_AutomaticTransmissionSimpleMap.h"
 
-%include "../../../chrono_models/vehicle/uaz/UAZBUS_SimpleMapPowertrain.h"
+%include "../../../chrono_models/vehicle/rccar/RCCar_EngineSimpleMap.h"
+%include "../../../chrono_models/vehicle/rccar/RCCar_AutomaticTransmissionSimpleMap.h"
 
-%include "../../../chrono_models/vehicle/gator/Gator_SimplePowertrain.h"
-%include "../../../chrono_models/vehicle/gator/Gator_SimpleMapPowertrain.h"
+%include "../../../chrono_models/vehicle/uaz/UAZBUS_EngineSimpleMap.h"
+%include "../../../chrono_models/vehicle/uaz/UAZBUS_AutomaticTransmissionSimpleMap.h"
 
-%include "../../../chrono_models/vehicle/feda/FEDA_Powertrain.h"
-%include "../../../chrono_models/vehicle/feda/FEDA_SimpleMapPowertrain.h"
+%include "../../../chrono_models/vehicle/gator/Gator_EngineSimpleMap.h"
+%include "../../../chrono_models/vehicle/gator/Gator_EngineSimple.h"
+%include "../../../chrono_models/vehicle/gator/Gator_AutomaticTransmissionSimpleMap.h"
+%include "../../../chrono_models/vehicle/gator/Gator_AutomaticTransmissionSimple.h"
 
-%include "../../../chrono_models/vehicle/m113/M113_SimpleCVTPowertrain.h"
-%include "../../../chrono_models/vehicle/m113/M113_SimpleMapPowertrain.h"
-%include "../../../chrono_models/vehicle/m113/M113_ShaftsPowertrain.h"
+%include "../../../chrono_models/vehicle/feda/FEDA_EngineSimpleMap.h"
+%include "../../../chrono_models/vehicle/feda/FEDA_AutomaticTransmissionSimpleMap.h"
+
+%include "../../../chrono_models/vehicle/m113/powertrain/M113_AutomaticTransmissionShafts.h"
+%include "../../../chrono_models/vehicle/m113/powertrain/M113_AutomaticTransmissionSimple.h"
+%include "../../../chrono_models/vehicle/m113/powertrain/M113_AutomaticTransmissionSimpleMap.h"
+%include "../../../chrono_models/vehicle/m113/powertrain/M113_EngineShafts.h"
+%include "../../../chrono_models/vehicle/m113/powertrain/M113_EngineSimple.h"
+%include "../../../chrono_models/vehicle/m113/powertrain/M113_EngineSimpleMap.h"
