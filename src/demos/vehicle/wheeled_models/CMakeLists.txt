@@ -18,6 +18,7 @@ set(DEMOS
     demo_VEH_HMMWV_Rollover
     demo_VEH_HMMWV9
     demo_VEH_UAZBUS
+    demo_VEH_U401
     demo_VEH_WheeledGeneric
     demo_VEH_WheeledJSON
 )

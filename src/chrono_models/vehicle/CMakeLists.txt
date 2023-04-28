@@ -263,6 +263,68 @@ set(CVM_UAZ_FILES
 )
 source_group("uaz" FILES ${CVM_UAZ_FILES})
 
+set(CVM_UNIMOG_FILES
+    unimog/U401.h
+    unimog/U401.cpp
+    unimog/U401_BrakeSimple.h
+    unimog/U401_BrakeSimple.cpp
+    unimog/U401_BrakeShafts.h
+    unimog/U401_BrakeShafts.cpp
+    unimog/U401_Chassis.h
+    unimog/U401_Chassis.cpp
+    unimog/U401_Driveline2WD.h
+    unimog/U401_Driveline2WD.cpp
+    unimog/U401_Driveline4WD.h
+    unimog/U401_Driveline4WD.cpp
+    unimog/U401_FialaTire.h
+    unimog/U401_FialaTire.cpp
+    unimog/U401_PushPipeAxle.h
+    unimog/U401_PushPipeAxle.cpp
+    unimog/U401_SimpleMapPowertrain.h
+    unimog/U401_SimpleMapPowertrain.cpp
+    unimog/U401_RotaryArm.h
+    unimog/U401_RotaryArm.cpp
+    unimog/U401_RigidTire.h
+    unimog/U401_RigidTire.cpp
+    unimog/U401_TMeasyTire.h
+    unimog/U401_TMeasyTire.cpp
+    unimog/U401_TMsimpleTire.h
+    unimog/U401_TMsimpleTire.cpp
+    unimog/U401_ToeBarPushPipeAxle.h
+    unimog/U401_ToeBarPushPipeAxle.cpp
+    unimog/U401_Vehicle.h
+    unimog/U401_Vehicle.cpp
+    unimog/U401_Wheel.h
+    unimog/U401_Wheel.cpp
+)
+source_group("unimog" FILES ${CVM_UNIMOG_FILES})
+
+set(CVM_DURO_FILES
+    duro/Duro_BrakeShafts.h
+    duro/Duro_BrakeShafts.cpp
+    duro/Duro_Chassis.h
+    duro/Duro_Chassis.cpp
+    duro/Duro_DeDionAxle.h
+    duro/Duro_DeDionAxle.cpp
+    duro/Duro_Driveline4WD.h
+    duro/Duro_Driveline4WD.cpp
+    duro/Duro_Powertrain.h
+    duro/Duro_Powertrain.cpp
+    duro/Duro_RotaryArm.h
+    duro/Duro_RotaryArm.cpp
+    duro/Duro_TMeasyTire.h
+    duro/Duro_TMeasyTire.cpp
+    duro/Duro_TMsimpleTire.h
+    duro/Duro_TMsimpleTire.cpp
+    duro/Duro_ToeBarDeDionAxle.h
+    duro/Duro_ToeBarDeDionAxle.cpp
+    duro/Duro_RigidTire.h
+    duro/Duro_RigidTire.cpp
+    duro/Duro_Wheel.h
+    duro/Duro_Wheel.cpp
+)
+source_group("duro" FILES ${CVM_DURO_FILES})
+
 set(CVM_MAN_FILES
     man/MAN_5t_BellcrankSolid3LinkAxle.cpp
     man/MAN_5t_BellcrankSolid3LinkAxle.h
@@ -642,6 +704,8 @@ add_library(ChronoModels_vehicle SHARED
     ${CVM_FMTV_FILES}
     ${CVM_MROLE_FILES}
     ${CVM_UAZ_FILES}
+    ${CVM_UNIMOG_FILES}
+    ${CVM_DURO_FILES}
     ${CVM_GENERIC_FILES}
     ${CVM_SEDAN_FILES}
     ${CVM_CITYBUS_FILES}

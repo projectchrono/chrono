@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,15 +9,15 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Michael Taylor
+// Authors: Rainer Gericke
 // =============================================================================
 //
-// MAN5T TMsimple tire subsystem
+// MAN TMsimple tire subsystem
 //
 // =============================================================================
 
-#ifndef MAN5T_TMsimple_TIRE_H
-#define MAN5T_TMsimple_TIRE_H
+#ifndef MAN_5T_TMSIMPLE_TIRE_H
+#define MAN_5T_TMSIMPLE_TIRE_H
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChTMsimpleTire.h"
 
@@ -27,37 +27,31 @@ namespace chrono {
 namespace vehicle {
 namespace man {
 
-/// @addtogroup vehicle_models_hmmwv
+/// @addtogroup vehicle_models_man
 /// @{
 
-/// TMsimple tire model for the HMMWV vehicle.
+/// TMeasy tire model for the U401.
 class CH_MODELS_API MAN_5t_TMsimpleTire : public ChTMsimpleTire {
-  public:
+   public:
     MAN_5t_TMsimpleTire(const std::string& name);
     ~MAN_5t_TMsimpleTire() {}
 
-    virtual double GetNormalStiffnessForce(double depth) const override;
-    virtual double GetNormalDampingForce(double depth, double velocity) const override;
-
-    virtual double GetVisualizationWidth() const override { return 0.25; }
+    virtual double GetVisualizationWidth() const override { return m_width; }
 
     virtual void SetTMsimpleParams() override;
-
     virtual double GetTireMass() const override { return m_mass; }
     virtual ChVector<> GetTireInertia() const override { return m_inertia; }
 
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;
 
-  private:
-    ChFunction_Recorder m_vert_map;
-    double m_max_depth;
-    double m_max_val;
-    double m_slope;
+    void GenerateCharacteristicPlots(const std::string& dirname);
 
-    static const double m_normalDamping;
+   private:
     static const double m_mass;
     static const ChVector<> m_inertia;
+
+    ChFunction_Recorder m_stiffnessMap;
 
     static const std::string m_meshFile_left;
     static const std::string m_meshFile_right;
@@ -66,10 +60,9 @@ class CH_MODELS_API MAN_5t_TMsimpleTire : public ChTMsimpleTire {
 
 /// @} vehicle_models_man
 
-}  // end namespace man
+}  // namespace hmmwv
 }  // end namespace vehicle
 }  // end namespace chrono
 
 #endif
-
 

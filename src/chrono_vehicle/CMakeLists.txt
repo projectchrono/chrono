@@ -35,7 +35,7 @@ cmake_dependent_option(ENABLE_IRRKLANG "Enable Irrklang library for sound" OFF
 if (ENABLE_OPENCRG)
    
    if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-      set(OpenRG_INCLUDE_DIR ""  CACHE PATH   "The directory where crgBaseLib.h resides")
+      set(OpenCRG_INCLUDE_DIR ""  CACHE PATH   "The directory where crgBaseLib.h resides")
       set(OpenCRG_LIBRARY   "" CACHE FILEPATH "The OpenCRG library")
       set(OpenCRG_DLL  "" CACHE FILEPATH "The OpenCRG DLL")
    elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -46,7 +46,7 @@ if (ENABLE_OPENCRG)
       find_library(OpenCRG_LIBRARY NAMES OpenCRG PATHS "/usr/local/lib")
    endif()
 
-   mark_as_advanced(CLEAR OpenRG_INCLUDE_DIR)
+   mark_as_advanced(CLEAR OpenCRG_INCLUDE_DIR)
    mark_as_advanced(CLEAR OpenCRG_LIBRARY)
    if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
      mark_as_advanced(CLEAR OpenCRG_DLL)
@@ -419,6 +419,8 @@ set(CV_WV_SUBCHASSIS_FILES
 source_group("wheeled_vehicle\\subchassis" FILES ${CV_WV_SUBCHASSIS_FILES})
 
 set(CV_WV_SUSPENSION_FILES
+    wheeled_vehicle/suspension/ChDeDionAxle.h
+    wheeled_vehicle/suspension/ChDeDionAxle.cpp
     wheeled_vehicle/suspension/ChDoubleWishbone.h
     wheeled_vehicle/suspension/ChDoubleWishbone.cpp
     wheeled_vehicle/suspension/ChDoubleWishboneReduced.h
@@ -443,19 +445,27 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/ChRigidPinnedAxle.cpp
     wheeled_vehicle/suspension/ChLeafspringAxle.h
     wheeled_vehicle/suspension/ChLeafspringAxle.cpp
+    wheeled_vehicle/suspension/ChPushPipeAxle.h
+    wheeled_vehicle/suspension/ChPushPipeAxle.cpp
     wheeled_vehicle/suspension/ChSAELeafspringAxle.h
     wheeled_vehicle/suspension/ChSAELeafspringAxle.cpp
     wheeled_vehicle/suspension/ChSolidBellcrankThreeLinkAxle.h
     wheeled_vehicle/suspension/ChSolidBellcrankThreeLinkAxle.cpp
     wheeled_vehicle/suspension/ChSolidThreeLinkAxle.h
     wheeled_vehicle/suspension/ChSolidThreeLinkAxle.cpp
+    wheeled_vehicle/suspension/ChToeBarDeDionAxle.h
+    wheeled_vehicle/suspension/ChToeBarDeDionAxle.cpp
     wheeled_vehicle/suspension/ChToeBarLeafspringAxle.h
     wheeled_vehicle/suspension/ChToeBarLeafspringAxle.cpp
     wheeled_vehicle/suspension/ChSAEToeBarLeafspringAxle.h
     wheeled_vehicle/suspension/ChSAEToeBarLeafspringAxle.cpp
+    wheeled_vehicle/suspension/ChToeBarPushPipeAxle.h
+    wheeled_vehicle/suspension/ChToeBarPushPipeAxle.cpp
     wheeled_vehicle/suspension/ChGenericWheeledSuspension.h
     wheeled_vehicle/suspension/ChGenericWheeledSuspension.cpp
 
+    wheeled_vehicle/suspension/DeDionAxle.h
+    wheeled_vehicle/suspension/DeDionAxle.cpp
     wheeled_vehicle/suspension/DoubleWishbone.h
     wheeled_vehicle/suspension/DoubleWishbone.cpp
     wheeled_vehicle/suspension/DoubleWishboneReduced.h
@@ -480,16 +490,22 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/RigidPinnedAxle.cpp
     wheeled_vehicle/suspension/LeafspringAxle.h
     wheeled_vehicle/suspension/LeafspringAxle.cpp
+    wheeled_vehicle/suspension/PushPipeAxle.h
+    wheeled_vehicle/suspension/PushPipeAxle.cpp
     wheeled_vehicle/suspension/SAELeafspringAxle.h
     wheeled_vehicle/suspension/SAELeafspringAxle.cpp
     wheeled_vehicle/suspension/SolidBellcrankThreeLinkAxle.h
     wheeled_vehicle/suspension/SolidBellcrankThreeLinkAxle.cpp
     wheeled_vehicle/suspension/SolidThreeLinkAxle.h
     wheeled_vehicle/suspension/SolidThreeLinkAxle.cpp
+    wheeled_vehicle/suspension/ToeBarDeDionAxle.h
+    wheeled_vehicle/suspension/ToeBarDeDionAxle.cpp
     wheeled_vehicle/suspension/ToeBarLeafspringAxle.h
     wheeled_vehicle/suspension/ToeBarLeafspringAxle.cpp
     wheeled_vehicle/suspension/SAEToeBarLeafspringAxle.h
     wheeled_vehicle/suspension/SAEToeBarLeafspringAxle.cpp
+    wheeled_vehicle/suspension/ToeBarPushPipeAxle.h
+    wheeled_vehicle/suspension/ToeBarPushPipeAxle.cpp
     wheeled_vehicle/suspension/GenericWheeledSuspension.h
     wheeled_vehicle/suspension/GenericWheeledSuspension.cpp
 )

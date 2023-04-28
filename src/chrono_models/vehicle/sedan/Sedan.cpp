@@ -141,7 +141,7 @@ void Sedan::Initialize() {
 
             break;
         }
-            
+
         case TireModelType::PAC02: {
             auto tire_FL = chrono_types::make_shared<Sedan_Pac02Tire>("FL");
             auto tire_FR = chrono_types::make_shared<Sedan_Pac02Tire>("FR");

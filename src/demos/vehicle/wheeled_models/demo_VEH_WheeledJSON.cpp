@@ -82,7 +82,8 @@ class HMMWV_Model : public Vehicle_Model {
     virtual std::string TireJSON() const override {
         ////return "hmmwv/tire/HMMWV_RigidTire.json";
         ////return "hmmwv/tire/HMMWV_FialaTire.json";
-        return "hmmwv/tire/HMMWV_TMeasyTire.json";
+        //return "hmmwv/tire/HMMWV_TMeasyTire.json";
+        return "hmmwv/tire/HMMWV_TMsimpleTire.json";
         ////return "hmmwv/tire/HMMWV_Pac89Tire.json";
         ////return "hmmwv/tire/HMMWV_Pac02Tire.json";
     }
@@ -139,6 +140,7 @@ class UAZ_Model : public Vehicle_Model {
     virtual std::string VehicleJSON() const override {
         ////return "uaz/vehicle/UAZBUS_Vehicle.json";
         ////return "uaz/vehicle/UAZ469_Vehicle.json";
+        ////return "uaz/vehicle/UAZBUS_VehicleT.json";
         return "uaz/vehicle/UAZBUS_SAEVehicle.json";
     }
     virtual std::string TireJSON() const override {

@@ -60,7 +60,7 @@ enum class DriverModelType {
 };
 
 // Type of tire model (LUGRE, FIALA, PACEJKA, TMSIMPLE or TMEASY)
-TireModelType tire_model = TireModelType::TMEASY;
+TireModelType tire_model = TireModelType::TMSIMPLE;
 
 // Road visualization (mesh or boundary lines)
 bool useMesh = true;

@@ -17,6 +17,7 @@
 
 #include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChLinkMask.h"
+#include "chrono/solver/ChKblockGeneric.h"
 
 namespace chrono {
 
@@ -28,8 +29,8 @@ namespace chrono {
 /// Note that most of the ChLinkMate constraints can be
 /// done also with the constraints inherited from ChLinkLock...
 /// but in case of links of the ChLinkLock class they
-/// reference two ChMarker objects, tht can also move, but
-/// this is could be an unnecessary complication in most cases.
+/// reference two ChMarker objects, that can also move, but
+/// this could be an unnecessary complication in most cases.
 
 class ChApi ChLinkMate : public ChLink {
   public:
@@ -88,6 +89,13 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     /// Its position is expressed in the coordinate system of body2.
     ChFrame<>& GetFrame2() { return frame2; }
 
+    /// Get the translational Lagrange multipliers, expressed in the master frame F2
+    ChVector<> GetLagrangeMultiplier_f() { return gamma_f; }
+
+    /// Get the rotational Lagrange multipliers, expressed in a ghost frame determined by the
+    /// projection matrix (this->P) for \rho_F1(F2)
+    ChVector<> GetLagrangeMultiplier_m() { return gamma_m; }
+
     bool IsConstrainedX() const { return c_x; }
     bool IsConstrainedY() const { return c_y; }
     bool IsConstrainedZ() const { return c_z; }
@@ -142,11 +150,15 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     /// Ex:3rd party software can set the 'broken' status via this method
     virtual void SetBroken(bool mon) override;
 
+    /// Set this as true to compute the tangent stiffness matrix (Kc) of this constraint.
+    /// It is false by default to keep consistent as previous code.
+    void SetUseTangentStiffness(bool useKc);
+
     virtual int GetDOC() override { return ndoc; }
     virtual int GetDOC_c() override { return ndoc_c; }
     virtual int GetDOC_d() override { return ndoc_d; }
 
-	// LINK VIOLATIONS
+    // LINK VIOLATIONS
     // Get the constraint violations, i.e. the residual of the constraint equations and their time derivatives (TODO)
 
     /// Link violation (residuals of the link constraint equations).
@@ -191,6 +203,14 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     virtual void ConstraintsLoadJacobians() override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
 
+    /// Tell to a system descriptor that there are item(s) of type
+    /// ChKblock in this object (for further passing it to a solver)
+    virtual void InjectKRMmatrices(ChSystemDescriptor& descriptor) override;
+
+    /// Add the current stiffness K matrix in encapsulated ChKblock item(s), if any.
+    /// The K matrices are load with scaling values Kfactor.
+    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
+
     //
     // SERIALIZATION
     //
@@ -222,6 +242,15 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     ChLinkMask mask;
 
     ChConstraintVectorX C;  ///< residuals
+
+    // The projection matrix from Lagrange multiplier to reaction torque
+    ChMatrix33<> P;
+
+    ChVector<> gamma_f;  ///< store the translational Lagrange multipliers, expressed in the master frame F2
+    ChVector<> gamma_m;  ///< store the rotational Lagrange multipliers, expressed in a ghost frame
+                         ///< determined by the projection matrix for \rho_F1(F2)
+
+    ChKblockGeneric* Kmatr = nullptr;  ///< the tangent stiffness matrix of constraint
 };
 
 CH_CLASS_VERSION(ChLinkMateGeneric, 0)
@@ -336,7 +365,7 @@ class ChApi ChLinkMateSpherical : public ChLinkMateGeneric {
     using ChLinkMateGeneric::Initialize;
 
     /// Specialized initialization for coincident mate, given the two bodies to be connected, and two points
-    /// (each expressed in body or abs. coordinates). 
+    /// (each expressed in body or abs. coordinates).
     void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                     std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
                     bool pos_are_relative,                ///< true: following pos. are relative to bodies.
@@ -497,7 +526,7 @@ class ChApi ChLinkMateFix : public ChLinkMateGeneric {
 
     /// Specialized initialization for "fix" mate, given the two bodies to be connected, the positions of the two
     /// auxiliary frames where the two bodies are connected are both automatically initialized as the current absolute
-    /// position of mbody1. 
+    /// position of mbody1.
     void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                     std::shared_ptr<ChBodyFrame> mbody2   ///< second body to link
     );

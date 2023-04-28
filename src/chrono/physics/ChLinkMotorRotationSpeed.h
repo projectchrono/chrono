@@ -116,6 +116,10 @@ class ChApi ChLinkMotorRotationSpeed : public ChLinkMotorRotation {
 
     virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
 
+    /// Add the current stiffness K matrix in encapsulated ChKblock item(s), if any.
+    /// The K matrices are load with scaling values Kfactor.
+    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 

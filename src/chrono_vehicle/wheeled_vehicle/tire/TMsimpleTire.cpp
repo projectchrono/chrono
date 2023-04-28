@@ -31,7 +31,8 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 TMsimpleTire::TMsimpleTire(const std::string& filename) : ChTMsimpleTire(""), m_has_mesh(false) {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -56,29 +57,42 @@ void TMsimpleTire::Create(const rapidjson::Document& d) {
     m_mass = d["Design"]["Mass [kg]"].GetDouble();
     m_inertia = ReadVectorJSON(d["Design"]["Inertia [kg.m2]"]);
     m_unloaded_radius = d["Design"]["Unloaded Radius [m]"].GetDouble();
-    double rim_radius = d["Design"]["Rim Radius [m]"].GetDouble();
+    m_rim_radius = d["Design"]["Rim Radius [m]"].GetDouble();
     m_width = d["Design"]["Width [m]"].GetDouble();
 
     double p_li = 1.0;
     double p_use = 1.0;
+    ////bool pressure_info_found = false;
 
     if (d.HasMember("Parameters")) {
         // Full parameterization
-        m_Fz_nom = d["Parameters"]["Tire Load"]["Nominal Vertical Force [N]"].GetDouble();
-        m_Cz = d["Parameters"]["Tire Stiffness"]["Vertical [N/m]"].GetDouble();
-        m_Dz = d["Parameters"]["Tire Damping"]["Vertical [Ns/m]"].GetDouble();
-        m_dFx0_1 = d["Parameters"]["Longitudinal"]["Initial Slopes dFx/dsx [N]"][0u].GetDouble();
-        m_dFx0_2 = d["Parameters"]["Longitudinal"]["Initial Slopes dFx/dsx [N]"][1u].GetDouble();
-        m_Fx_max1 = d["Parameters"]["Longitudinal"]["Maximum Fx Load [N]"][0u].GetDouble();
-        m_Fx_max2 = d["Parameters"]["Longitudinal"]["Maximum Fx Load [N]"][1u].GetDouble();
-        m_Fx_inf1 = d["Parameters"]["Longitudinal"]["Sliding Fx Load [N]"][0u].GetDouble();
-        m_Fx_inf2 = d["Parameters"]["Longitudinal"]["Sliding Fx Load [N]"][1u].GetDouble();
-        m_dFy0_1 = d["Parameters"]["Lateral"]["Initial Slopes dFy/dsy [N]"][0u].GetDouble();
-        m_dFy0_2 = d["Parameters"]["Lateral"]["Initial Slopes dFy/dsy [N]"][1u].GetDouble();
-        m_Fy_max1 = d["Parameters"]["Lateral"]["Maximum Fy Load [N]"][0u].GetDouble();
-        m_Fy_max2 = d["Parameters"]["Lateral"]["Maximum Fy Load [N]"][1u].GetDouble();
-        m_Fy_inf1 = d["Parameters"]["Lateral"]["Sliding Fy Load [N]"][0u].GetDouble();
-        m_Fy_inf2 = d["Parameters"]["Lateral"]["Sliding Fy Load [N]"][1u].GetDouble();
+        m_TMsimpleCoeff.pn = d["Parameters"]["Tire Load"]["Nominal Vertical Force [N]"].GetDouble();
+        m_TMsimpleCoeff.pn_max = d["Parameters"]["Tire Load"]["Maximum Vertical Force [N]"].GetDouble();
+
+        m_TMsimpleCoeff.cx = d["Parameters"]["Tire Stiffness"]["Longitudinal [N/m]"].GetDouble();
+        m_TMsimpleCoeff.cy = d["Parameters"]["Tire Stiffness"]["Lateral [N/m]"].GetDouble();
+        double a1 = d["Parameters"]["Tire Stiffness"]["Vertical [N/m]"][0u].GetDouble();
+        double a2 = d["Parameters"]["Tire Stiffness"]["Vertical [N/m]"][1u].GetDouble();
+        SetVerticalStiffness(a1, a2);
+
+        m_TMsimpleCoeff.dx = d["Parameters"]["Tire Damping"]["Longitudinal [Ns/m]"].GetDouble();
+        m_TMsimpleCoeff.dy = d["Parameters"]["Tire Damping"]["Lateral [Ns/m]"].GetDouble();
+        m_TMsimpleCoeff.dz = d["Parameters"]["Tire Damping"]["Vertical [Ns/m]"].GetDouble();
+
+        m_TMsimpleCoeff.dfx0_pn = d["Parameters"]["Longitudinal"]["Initial Slopes dFx/dsx [N]"][0u].GetDouble();
+        m_TMsimpleCoeff.dfx0_p2n = d["Parameters"]["Longitudinal"]["Initial Slopes dFx/dsx [N]"][1u].GetDouble();
+        m_TMsimpleCoeff.fxm_pn = d["Parameters"]["Longitudinal"]["Maximum Fx Load [N]"][0u].GetDouble();
+        m_TMsimpleCoeff.fxm_p2n = d["Parameters"]["Longitudinal"]["Maximum Fx Load [N]"][1u].GetDouble();
+        m_TMsimpleCoeff.fxs_pn = d["Parameters"]["Longitudinal"]["Sliding Fx Load [N]"][0u].GetDouble();
+        m_TMsimpleCoeff.fxs_p2n = d["Parameters"]["Longitudinal"]["Sliding Fx Load [N]"][1u].GetDouble();
+
+        m_TMsimpleCoeff.dfy0_pn = d["Parameters"]["Lateral"]["Initial Slopes dFy/dsy [N]"][0u].GetDouble();
+        m_TMsimpleCoeff.dfy0_p2n = d["Parameters"]["Lateral"]["Initial Slopes dFy/dsy [N]"][1u].GetDouble();
+        m_TMsimpleCoeff.fym_pn = d["Parameters"]["Lateral"]["Maximum Fy Load [N]"][0u].GetDouble();
+        m_TMsimpleCoeff.fym_p2n = d["Parameters"]["Lateral"]["Maximum Fy Load [N]"][1u].GetDouble();
+        m_TMsimpleCoeff.fys_pn = d["Parameters"]["Lateral"]["Sliding Fy Load [N]"][0u].GetDouble();
+        m_TMsimpleCoeff.fys_p2n = d["Parameters"]["Lateral"]["Sliding Fy Load [N]"][1u].GetDouble();
+        SetHorizontalCoefficients();
     } else if (d.HasMember("Load Index")) {
         // Information about tire inflation pressure might be present
         if (d.HasMember("Inflation Pressure Design [Pa]")) {
@@ -100,9 +114,9 @@ void TMsimpleTire::Create(const rapidjson::Document& d) {
         unsigned int li = d["Load Index"].GetUint();
         std::string vehicle_type = d["Vehicle Type"].GetString();
         if (vehicle_type.compare("Truck") == 0) {
-            GuessTruck80Par(li, m_width, (m_unloaded_radius - rim_radius) / m_width, 2 * rim_radius, p_li, p_use);
+            GuessTruck80Par(li, m_width, (m_unloaded_radius - m_rim_radius) / m_width, 2 * m_rim_radius, p_li, p_use);
         } else {
-            GuessPassCar70Par(li, m_width, (m_unloaded_radius - rim_radius) / m_width, 2 * rim_radius, p_li, p_use);
+            GuessPassCar70Par(li, m_width, (m_unloaded_radius - m_rim_radius) / m_width, 2 * m_rim_radius, p_li, p_use);
         }
     } else if (d.HasMember("Maximum Bearing Capacity [N]")) {
         // Information about tire inflation pressure might be present
@@ -126,10 +140,10 @@ void TMsimpleTire::Create(const rapidjson::Document& d) {
         double bearing_capacity = d["Maximum Bearing Capacity [N]"].GetDouble();
         std::string vehicle_type = d["Name"].GetString();
         if (vehicle_type.compare("truck") == 0) {
-            GuessTruck80Par(bearing_capacity, m_width, (m_unloaded_radius - rim_radius) / m_width, rim_radius, p_li,
+            GuessTruck80Par(bearing_capacity, m_width, (m_unloaded_radius - m_rim_radius) / m_width, m_rim_radius, p_li,
                             p_use);
         } else {
-            GuessPassCar70Par(bearing_capacity, m_width, (m_unloaded_radius - rim_radius) / m_width, rim_radius,
+            GuessPassCar70Par(bearing_capacity, m_width, (m_unloaded_radius - m_rim_radius) / m_width, m_rim_radius,
                               p_li, p_use);
         }
     } else {
@@ -139,7 +153,7 @@ void TMsimpleTire::Create(const rapidjson::Document& d) {
 
     // Coefficient of friction and rolling resistance coefficients.
     // These must be set here to ensure they are not overwritten.
-    m_mu_0 = d["Coefficient of Friction"].GetDouble();
+    m_TMsimpleCoeff.mu_0 = d["Coefficient of Friction"].GetDouble();
     m_rolling_resistance = d["Rolling Resistance Coefficient"].GetDouble();
 
     // Check how to visualize this tire.
@@ -150,8 +164,6 @@ void TMsimpleTire::Create(const rapidjson::Document& d) {
             m_has_mesh = true;
         }
     }
-    
-    GenerateWorkParameters();
 }
 
 // -----------------------------------------------------------------------------
@@ -171,4 +183,3 @@ void TMsimpleTire::RemoveVisualizationAssets() {
 
 }  // end namespace vehicle
 }  // end namespace chrono
-

@@ -9,15 +9,15 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Michael Taylor
+// Authors: Rainer Gericke, Asher Elmquist
 // =============================================================================
 //
-// HMMWV TMsimple tire subsystem
+// Sedan TMsimple tire subsystem
 //
 // =============================================================================
 
-#ifndef SEDAN_TMsimple_TIRE_H
-#define SEDAN_TMsimple_TIRE_H
+#ifndef SEDAN_TMSIMPLE_TIRE_H
+#define SEDAN_TMSIMPLE_TIRE_H
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChTMsimpleTire.h"
 
@@ -30,37 +30,29 @@ namespace sedan {
 /// @addtogroup vehicle_models_sedan
 /// @{
 
-/// TMsimple tire model for the Sedan vehicle.
+/// TMeasy tire model for the Sedan vehicle.
 class CH_MODELS_API Sedan_TMsimpleTire : public ChTMsimpleTire {
   public:
     Sedan_TMsimpleTire(const std::string& name);
     ~Sedan_TMsimpleTire() {}
 
-    virtual double GetNormalStiffnessForce(double depth) const override;
-    virtual double GetNormalDampingForce(double depth, double velocity) const override;
-
-    virtual double GetVisualizationWidth() const override { return 0.25; }
+    virtual double GetVisualizationWidth() const override { return m_width; }
 
     virtual void SetTMsimpleParams() override;
-
     virtual double GetTireMass() const override { return m_mass; }
     virtual ChVector<> GetTireInertia() const override { return m_inertia; }
 
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;
 
-  private:
-    ChFunction_Recorder m_vert_map;
-    double m_max_depth;
-    double m_max_val;
-    double m_slope;
+    void GenerateCharacteristicPlots(const std::string& dirname);
 
-    static const double m_normalDamping;
+  private:
     static const double m_mass;
     static const ChVector<> m_inertia;
+    ChFunction_Recorder m_stiffnessMap;
 
-    static const std::string m_meshFile_left;
-    static const std::string m_meshFile_right;
+    static const std::string m_meshFile;
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 };
 
@@ -71,5 +63,4 @@ class CH_MODELS_API Sedan_TMsimpleTire : public ChTMsimpleTire {
 }  // end namespace chrono
 
 #endif
-
 

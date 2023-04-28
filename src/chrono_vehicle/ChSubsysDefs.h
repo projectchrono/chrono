@@ -419,7 +419,7 @@ enum class TireModelType {
     PAC89,       ///< Pacejka 89 (magic formula) tire
     TMEASY,      ///< Tire Model Made Easy tire (G. Rill)
     PAC02,       ///< Pacejka 02 (magic formula) tire
-    TMSIMPLE     ///< Tire Model Simple (W. Hirschberger)
+    TMSIMPLE     ///< Tire Model Simple (W. Hirschberg)
 };
 
 /// Enum for available powertrain model templates.
@@ -447,7 +447,9 @@ enum class SuspensionTypeWV {
     SOLID_BELLCRANK_THREE_LINK_AXLE,  ///< rigid suspension + 3 guiding links + bellcrank steering mechanism
     THREE_LINK_IRS,                   ///< three-link independent rear suspension
     TOE_BAR_LEAF_SPRING_AXLE,         ///< steerable leaf-spring solid axle
-    SAE_TOE_BAR_LEAF_SPRING_AXLE      ///< steerable leaf-spring solid axle with kinematic leaf-spring model
+    SAE_TOE_BAR_LEAF_SPRING_AXLE,     ///< steerable leaf-spring solid axle with kinematic leaf-spring model
+    PUSHPIPE_AXLE,                    ///< solid axle with pushpipe and panhard rod
+    TOEBAR_PUSHPIPE_AXLE              ///< steerable solid axle with pushpipe and panhard rod
 };
 
 /// Enum for available brake model templates.
