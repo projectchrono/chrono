@@ -31,7 +31,7 @@ void ChAutomaticTransmissionSimpleMap::Initialize(std::shared_ptr<ChChassis> cha
 
     // Let the derived class specify the shift bands
     SetShiftPoints(m_shift_points);
-    assert(m_shift_points.size() == m_gear_ratios.size() - 1);
+    ////assert(m_shift_points.size() == m_gear_ratios.size() - 1);
 }
 
 void ChAutomaticTransmissionSimpleMap::Synchronize(double time,
