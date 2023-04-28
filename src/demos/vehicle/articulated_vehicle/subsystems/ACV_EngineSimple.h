@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,32 +12,28 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Generic simple powertrain model for a vehicle.
-// - trivial speed-torque curve
-// - no torque converter
-// - no transmission box
+// Generic engine model for a vehicle with a trivial speed-torque curve
 //
 // =============================================================================
 
-#ifndef ACV_SIMPLEPOWERTRAIN_H
-#define ACV_SIMPLEPOWERTRAIN_H
+#ifndef ACV_ENGINE_SIMPLE_H
+#define ACV_ENGINE_SIMPLE_H
 
-#include "chrono_vehicle/powertrain/ChSimplePowertrain.h"
+#include "chrono_vehicle/powertrain/ChEngineSimple.h"
 
-class ACV_SimplePowertrain : public chrono::vehicle::ChSimplePowertrain {
+class ACV_EngineSimple : public chrono::vehicle::ChEngineSimple {
   public:
-    ACV_SimplePowertrain(const std::string& name);
-    ~ACV_SimplePowertrain() {}
+    ACV_EngineSimple(const std::string& name);
+    ~ACV_EngineSimple() {}
 
-    virtual void SetGearRatios(std::vector<double>& fwd, double& rev) override;
+    virtual double GetMaxPower() const override { return m_max_power; }
     virtual double GetMaxTorque() const override { return m_max_torque; }
     virtual double GetMaxSpeed() const override { return m_max_speed; }
 
   private:
+    static const double m_max_power;
     static const double m_max_torque;
     static const double m_max_speed;
-    static const double m_fwd_gear_ratio;
-    static const double m_rev_gear_ratio;
 };
 
 #endif
