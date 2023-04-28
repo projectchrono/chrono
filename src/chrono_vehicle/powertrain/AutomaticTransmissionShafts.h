@@ -39,7 +39,7 @@ class CH_VEHICLE_API AutomaticTransmissionShafts : public ChAutomaticTransmissio
 
     virtual void SetGearRatios(std::vector<double>& fwd, double& rev) override;
 
-    virtual double GetTransmissionBlockInertia() const { return m_transmissionblock_inertia; }
+    virtual double GetTransmissionBlockInertia() const override { return m_transmissionblock_inertia; }
     virtual double GetIngearShaftInertia() const override { return m_ingear_shaft_inertia; }
     virtual double GetMotorshaftInertia() const override { return m_motorshaft_inertia; }
     virtual double GetDriveshaftInertia() const override { return m_driveshaft_inertia; }

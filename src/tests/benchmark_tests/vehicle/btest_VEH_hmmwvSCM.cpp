@@ -101,7 +101,8 @@ class HmmwvScmTest : public utils::ChBenchmarkTest {
 
 template <int TIRE_TYPE, bool OBJECTS>
 HmmwvScmTest<TIRE_TYPE, OBJECTS>::HmmwvScmTest() : m_step(2e-3) {
-    PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
+    EngineModelType engine_model = EngineModelType::SHAFTS;
+    TransmissionModelType transmission_model = TransmissionModelType::SHAFTS;
     DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
     TireModelType tire_type = (TIRE_TYPE == MESH_TIRE) ? TireModelType::RIGID_MESH : TireModelType::RIGID;
     VisualizationType tire_vis = (TIRE_TYPE == MESH_TIRE) ? VisualizationType::MESH : VisualizationType::PRIMITIVES;
@@ -112,7 +113,8 @@ HmmwvScmTest<TIRE_TYPE, OBJECTS>::HmmwvScmTest() : m_step(2e-3) {
     m_hmmwv->SetChassisFixed(false);
     m_hmmwv->SetInitPosition(
         ChCoordsys<>(ChVector<>(5.0 - patch_size / 2, 5.0 - patch_size / 2, 0.7), Q_from_AngZ(CH_C_PI / 4)));
-    m_hmmwv->SetPowertrainType(powertrain_model);
+    m_hmmwv->SetEngineType(engine_model);
+    m_hmmwv->SetTransmissionType(transmission_model);
     m_hmmwv->SetDriveType(drive_type);
     m_hmmwv->SetTireType(tire_type);
     m_hmmwv->SetTireStepSize(m_step);
