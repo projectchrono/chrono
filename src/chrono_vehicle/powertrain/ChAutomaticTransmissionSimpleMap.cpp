@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Marcel Offermans
 // =============================================================================
 //
 // Automatic transmission model template based on a simple gear-shifting model.
@@ -29,9 +29,13 @@ ChAutomaticTransmissionSimpleMap::ChAutomaticTransmissionSimpleMap(const std::st
 void ChAutomaticTransmissionSimpleMap::Initialize(std::shared_ptr<ChChassis> chassis) {
     ChTransmission::Initialize(chassis);
 
-    // Let the derived class specify the shift bands
-    SetShiftPoints(m_shift_points);
-    ////assert(m_shift_points.size() == m_gear_ratios.size() - 1);
+    // If we have more than one forward gear...
+    if (m_gear_ratios.size() > 2) {
+        // ... we let the derived class specify the shift bands.
+        SetShiftPoints(m_shift_points);
+        // Make sure we have as many shift points as we have forward gears.
+        assert(m_shift_points.size() == m_gear_ratios.size() - 1);
+    }
 }
 
 void ChAutomaticTransmissionSimpleMap::Synchronize(double time,
@@ -39,17 +43,12 @@ void ChAutomaticTransmissionSimpleMap::Synchronize(double time,
                                                    double motorshaft_torque,
                                                    double driveshaft_speed) {
     // Automatic gear selection (based on ideal shift points) for current motorshaft speed
-    if (m_mode == Mode::AUTOMATIC && m_drive_mode == DriveMode::FORWARD) {
-        if (m_motorshaft_speed > m_shift_points[m_current_gear].second) {
-            // upshift if possible
-            if (m_current_gear < m_gear_ratios.size() - 1) {
-                SetGear(m_current_gear + 1);
-            }
-        } else if (m_motorshaft_speed < m_shift_points[m_current_gear].first) {
-            // downshift if possible
-            if (m_current_gear > 1) {
-                SetGear(m_current_gear - 1);
-            }
+    if (m_mode == Mode::AUTOMATIC && m_drive_mode == DriveMode::FORWARD && m_current_gear > 0) {
+        if ((m_current_gear < (m_gear_ratios.size() - 1)) &&
+            (m_motorshaft_speed > m_shift_points[m_current_gear - 1].second)) {
+            SetGear(m_current_gear + 1);
+        } else if ((m_current_gear > 1) && (m_motorshaft_speed < m_shift_points[m_current_gear - 1].first)) {
+            SetGear(m_current_gear - 1);
         }
     }
 
