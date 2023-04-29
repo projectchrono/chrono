@@ -89,13 +89,13 @@ class HMMWV_Model : public Vehicle_Model {
         ////return "hmmwv/tire/HMMWV_Pac02Tire.json";
     }
     virtual std::string EngineJSON() const override {
-        return "hmmwv/powertrain/HMMWV_EngineShafts.json";
-        ////return "hmmwv/powertrain/HMMWV_EngineSimpleMap.json";
+        //return "hmmwv/powertrain/HMMWV_EngineShafts.json";
+        return "hmmwv/powertrain/HMMWV_EngineSimpleMap.json";
         ////return "hmmwv/powertrain/HMMWV_EngineSimple.json";
     }
     virtual std::string TransmissionJSON() const override {
-        return "hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json";
-        ////return "hmmwv/powertrain/HMMWV_AutomaticTransmissionSimpleMap.json";
+        //return "hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json";
+        return "hmmwv/powertrain/HMMWV_AutomaticTransmissionSimpleMap.json";
     }
     virtual double CameraDistance() const override { return 6.0; }
     virtual ChContactMethod ContactMethod() const override { return ChContactMethod::SMC; }
