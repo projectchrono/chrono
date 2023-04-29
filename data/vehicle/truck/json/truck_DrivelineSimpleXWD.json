@@ -1,7 +1,7 @@
 {
-  "Name":                       "MAN 5t, 7t, 10t XWD Driveline",
-  "Type":                       "Driveline",
-  "Template":                   "SimpleDrivelineXWD",
+  "Name": "Truck 6x4 Offroad Truck XWD Driveline",
+  "Type": "Driveline",
+  "Template": "SimpleDrivelineXWD",
 
-  "Differential Max Bias":  2.0
+  "Differential Max Bias": 2.0
 }

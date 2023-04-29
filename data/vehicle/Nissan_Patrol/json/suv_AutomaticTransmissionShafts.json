@@ -1,0 +1,36 @@
+{
+  "Name": "Nissan Shafts Automatic Transmission",
+  "Type": "Transmission",
+  "Template": "AutomaticTransmissionShafts",
+
+  "Transmission Block Inertia": 10.5, // connection to chassis
+  "Input Shaft Inertia": 0.3,
+  "Motorshaft Inertia": 0.5, // connection to engine
+  "Driveshaft Inertia": 0.5, // connection to driveline
+
+  "Torque Converter": {
+    "Capacity Factor Map": [
+      [ 0.00, 15.00 ],
+      [ 0.25, 15.00 ],
+      [ 0.50, 15.00 ],
+      [ 0.75, 16.00 ],
+      [ 0.90, 18.00 ],
+      [ 1.00, 35.00 ]
+    ],
+    "Torque Ratio Map": [
+      [ 0.00, 2.00 ],
+      [ 0.25, 1.80 ],
+      [ 0.50, 1.50 ],
+      [ 0.75, 1.15 ],
+      [ 1.00, 1.00 ]
+    ]
+  },
+
+  "Gear Box": {
+    "Forward Gear Ratios": [ 0.2, 0.4, 0.8 ],
+    "Reverse Gear Ratio": -0.1,
+    "Upshift RPM": 2500,
+    "Downshift RPM": 1200,
+    "Shift Latency": 1.0
+  }
+}

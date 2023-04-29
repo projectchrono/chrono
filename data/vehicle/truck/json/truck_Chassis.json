@@ -1,61 +1,58 @@
 {
-  "Name":     "MAN 7t chassis",
-  "Type":     "Chassis",
+  "Name": "Truck 6x4 Offroad Truck chassis",
+  "Type": "Chassis",
   "Template": "RigidChassis",
 
-  "Components":
-  [
-   {
-     "Centroidal Frame":    {
-                              "Location":    [-1.948, 0, 0.744],
-                              "Orientation": [1, 0, 0, 0]
-                            },
-     "Mass":                8285,
-     "Moments of Inertia":  [4023, 33309, 34373],
-     "Products of Inertia": [0, 0, 0],
-     "Void":                false
-   }
+  "Components": [
+    {
+      "Centroidal Frame": {
+        "Location": [ -1.948, 0, 0.744 ],
+        "Orientation": [ 1, 0, 0, 0 ]
+      },
+      "Mass": 8285,
+      "Moments of Inertia": [ 4023, 33309, 34373 ],
+      "Products of Inertia": [ 0, 0, 0 ],
+      "Void": false
+    }
   ],
 
-  "Driver Position":
-  {
-    "Location":     [0, 0.5, 1.2],
-    "Orientation":  [1, 0, 0, 0]
+  "Driver Position": {
+    "Location": [ 0, 0.5, 1.2 ],
+    "Orientation": [ 1, 0, 0, 0 ]
   },
 
   "Contact": {
     "Materials": [
-        {
-            "Coefficient of Friction": 0.7,
-            "Coefficient of Restitution": 0.1,
+      {
+        "Coefficient of Friction": 0.7,
+        "Coefficient of Restitution": 0.1,
 
-            "Properties": {
-                "Young Modulus": 1e7,
-                "Poisson Ratio": 0.3
-            },
+        "Properties": {
+          "Young Modulus": 1e7,
+          "Poisson Ratio": 0.3
+        },
 
-            "Coefficients": {
-                "Normal Stiffness": 2e5,
-                "Normal Damping": 40.0,
-                "Tangential Stiffness": 2e5,
-                "Tangential Damping": 20.0
-            }
+        "Coefficients": {
+          "Normal Stiffness": 2e5,
+          "Normal Damping": 40.0,
+          "Tangential Stiffness": 2e5,
+          "Tangential Damping": 20.0
         }
+      }
     ],
 
     "Shapes": [
-        {
-            "Type": "MESH",
-            "Filename": "truck/truck_chassis_col.obj",
-            "Location": [0, 0.0, 0.0],
-            "Contact Radius": 0.0,
-            "Material Index": 0
-        }
+      {
+        "Type": "MESH",
+        "Filename": "truck/truck_chassis_col.obj",
+        "Location": [ 0, 0.0, 0.0 ],
+        "Contact Radius": 0.0,
+        "Material Index": 0
+      }
     ]
   },
 
-  "Visualization":
-  {
-    "Mesh":  "truck/truck_chassis.obj"
+  "Visualization": {
+    "Mesh": "truck/truck_chassis.obj"
   }
 }
