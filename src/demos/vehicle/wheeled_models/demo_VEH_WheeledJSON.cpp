@@ -89,13 +89,13 @@ class HMMWV_Model : public Vehicle_Model {
         ////return "hmmwv/tire/HMMWV_Pac02Tire.json";
     }
     virtual std::string EngineJSON() const override {
-        //return "hmmwv/powertrain/HMMWV_EngineShafts.json";
-        return "hmmwv/powertrain/HMMWV_EngineSimpleMap.json";
+        return "hmmwv/powertrain/HMMWV_EngineShafts.json";
+        //return "hmmwv/powertrain/HMMWV_EngineSimpleMap.json";
         ////return "hmmwv/powertrain/HMMWV_EngineSimple.json";
     }
     virtual std::string TransmissionJSON() const override {
-        //return "hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json";
-        return "hmmwv/powertrain/HMMWV_AutomaticTransmissionSimpleMap.json";
+        return "hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json";
+        //return "hmmwv/powertrain/HMMWV_AutomaticTransmissionSimpleMap.json";
     }
     virtual double CameraDistance() const override { return 6.0; }
     virtual ChContactMethod ContactMethod() const override { return ChContactMethod::SMC; }
@@ -127,7 +127,7 @@ class Audi_Model : public Vehicle_Model {
         ////return "audi/json/audi_RigidTire.json.json";
         ////return "audi/json/audi_Pac02Tire.json";
     }
-    virtual std::string EngineJSON() const override { return "audi/json/Sedan_EngineSimpleMap.json"; }
+    virtual std::string EngineJSON() const override { return "audi/json/audi_EngineSimpleMap.json"; }
     virtual std::string TransmissionJSON() const override { return "audi/json/audi_AutomaticTransmissionSimpleMap.json"; }
     virtual double CameraDistance() const override { return 6.0; }
     virtual ChContactMethod ContactMethod() const override { return ChContactMethod::SMC; }
@@ -171,8 +171,8 @@ class VW_Microbus_Model : public Vehicle_Model {
     virtual std::string VehicleJSON() const override { return "VW_microbus/json/van_Vehicle.json"; }
     virtual std::string TireJSON() const override {
         ////return "VW_microbus/json/van_Pac02Tire.json";
-        ////return "VW_microbus/json/van_TMeasyTire.json";
-        return "VW_microbus/json/van_TMsimpleTireFull.json";
+        return "VW_microbus/json/van_TMeasyTire.json";
+        //return "VW_microbus/json/van_TMsimpleTireFull.json";
     }
     virtual std::string EngineJSON() const override { return "VW_microbus/json/van_EngineSimpleMap.json"; }
     virtual std::string TransmissionJSON() const override {
@@ -211,10 +211,10 @@ class MAN_Model : public Vehicle_Model {
     virtual std::string TireJSON() const override { return "MAN_Kat1/tire/MAN_5t_TMeasyTire.json"; }
     virtual std::string EngineJSON() const override { return "MAN_Kat1/powertrain/MAN_7t_EngineSimpleMap.json"; }
     virtual std::string TransmissionJSON() const override {
-        return "MAN_Kat1/powertrain/MAN_7t_AutomaticTransmissionSimpleMap";
+        return "MAN_Kat1/powertrain/MAN_7t_AutomaticTransmissionSimpleMap.json";
     }
 
-    virtual double CameraDistance() const override { return 12.0; }
+    virtual double CameraDistance() const override { return 15.0; }
     virtual ChContactMethod ContactMethod() const override { return ChContactMethod::SMC; }
 };
 
@@ -235,7 +235,7 @@ class ACV_Model : public Vehicle_Model {
     virtual std::string ModelName() const override { return "ACV"; }
     virtual std::string VehicleJSON() const override { return "articulated_chassis/ACV_Vehicle.json"; }
     virtual std::string TireJSON() const override { return "articulated_chassis/ACV_RigidTire.json"; }
-    virtual std::string EngineJSON() const override { return "articulated_chassis/ACV_EngineSimple.json"; }
+    virtual std::string EngineJSON() const override { return "articulated_chassis/ACV_EngineSimpleMap.json"; }
     virtual std::string TransmissionJSON() const override {
         return "articulated_chassis/ACV_AutomaticTransmissionSimpleMap.json";
     }
@@ -273,15 +273,15 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Current vehicle model selection
 auto vehicle_model = HMMWV_Model();
-////auto vehicle_model = Sedan_Model();
-////auto vehicle_model = Audi_Model();
-////auto vehicle_model = Polaris_Model();
-////auto vehicle_model = VW_Microbus_Model();
-////auto vehicle_model = UAZ_Model();
-////auto vehicle_model = CityBus_Model();
-////auto vehicle_model = MAN_Model();
-////auto vehicle_model = MTV_Model();
-////auto vehicle_model = ACV_Model();
+// auto vehicle_model = Sedan_Model();
+// auto vehicle_model = Audi_Model();
+// auto vehicle_model = Polaris_Model();
+// auto vehicle_model = VW_Microbus_Model();
+// auto vehicle_model = UAZ_Model();
+// auto vehicle_model = CityBus_Model();
+// auto vehicle_model = MAN_Model();
+// auto vehicle_model = MTV_Model();
+// auto vehicle_model = ACV_Model();
 
 // Trailer model selection (use only with HMMWV, Sedan, or UAZ)
 bool add_trailer = false;
