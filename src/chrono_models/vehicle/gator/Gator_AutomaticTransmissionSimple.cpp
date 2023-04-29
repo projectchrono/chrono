@@ -31,11 +31,7 @@ void Gator_AutomaticTransmissionSimple::SetGearRatios(std::vector<double>& fwd, 
     fwd.push_back(fwd_gear_ratio);
 }
 
-void Gator_AutomaticTransmissionSimple::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {
-    // temporary hack -- a shift map is required even though there is a single forward gear.
-    shift_bands.push_back(std::pair<double, double>(1000 * rpm2rads, 3000 * rpm2rads));
-    shift_bands.push_back(std::pair<double, double>(1000 * rpm2rads, 3700 * rpm2rads));
-}
+void Gator_AutomaticTransmissionSimple::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {}
 
 }  // end namespace gator
 }  // end namespace vehicle

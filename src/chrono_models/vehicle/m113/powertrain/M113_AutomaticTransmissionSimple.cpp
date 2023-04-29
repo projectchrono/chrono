@@ -36,11 +36,7 @@ void M113_AutomaticTransmissionSimple::SetGearRatios(std::vector<double>& fwd, d
     fwd.push_back(0.240);  // 1st gear;
 }
 
-void M113_AutomaticTransmissionSimple::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {
-    // temporary hack -- a shift map is required even though there is a single forward gear.
-    shift_bands.push_back(std::pair<double, double>(750 * rpm2rads, 1500 * rpm2rads));
-    shift_bands.push_back(std::pair<double, double>(750 * rpm2rads, 1500 * rpm2rads));
-}
+void M113_AutomaticTransmissionSimple::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {}
 
 }  // end namespace M113
 }  // end namespace vehicle

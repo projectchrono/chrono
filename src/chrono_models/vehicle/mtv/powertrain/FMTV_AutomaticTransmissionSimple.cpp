@@ -37,9 +37,7 @@ void FMTV_AutomaticTransmissionSimple::SetGearRatios(std::vector<double>& fwd, d
     fwd.push_back(0.077160494);
 }
 
-void FMTV_AutomaticTransmissionSimple::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {
-    shift_bands.push_back(std::pair<double, double>(1000 * rpm2rads, 2226 * rpm2rads));
-}
+void FMTV_AutomaticTransmissionSimple::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {}
 
 }  // namespace fmtv
 }  // end namespace vehicle

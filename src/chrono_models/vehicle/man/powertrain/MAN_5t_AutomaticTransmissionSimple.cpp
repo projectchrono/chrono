@@ -35,9 +35,7 @@ void MAN_5t_AutomaticTransmissionSimple::SetGearRatios(std::vector<double>& fwd,
     fwd.push_back(0.157);
 }
 
-void MAN_5t_AutomaticTransmissionSimple::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {
-    shift_bands.push_back(std::pair<double, double>(1000 * rpm2rads, 2200 * rpm2rads));
-}
+void MAN_5t_AutomaticTransmissionSimple::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {}
 
 }  // namespace man
 }  // end namespace vehicle

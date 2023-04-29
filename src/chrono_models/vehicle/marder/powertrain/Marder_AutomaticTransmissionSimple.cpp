@@ -36,9 +36,7 @@ void Marder_AutomaticTransmissionSimple::SetGearRatios(std::vector<double>& fwd,
     fwd.push_back(0.1708);
 }
 
-void Marder_AutomaticTransmissionSimple::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {
-    shift_bands.push_back(std::pair<double, double>(1000 * rpm2rads, 2226 * rpm2rads));
-}
+void Marder_AutomaticTransmissionSimple::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {}
 
 }  // end namespace Marder
 }  // end namespace vehicle
