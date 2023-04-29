@@ -1,0 +1,9 @@
+{
+  "Name": "M113 Simple Engine",
+  "Type": "Engine",
+  "Template": "EngineSimple",
+
+  "Maximum Engine Torque": 610.12,
+  "Maximum Engine Power": 156597,
+  "Maximum Engine Speed": 550
+}

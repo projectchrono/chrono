@@ -43,27 +43,25 @@ void Marder_EngineSimpleMap::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFu
     map0.AddPoint(251.327, -100.0);
     map0.AddPoint(282.743, -800.0);
 
-    double rpm_to_radsec = CH_C_2PI / 60.;
-
-    mapF.AddPoint(-100 * rpm_to_radsec, 600);
-    mapF.AddPoint(702.26 * rpm_to_radsec, 700);
-    mapF.AddPoint(1099 * rpm_to_radsec, 2044);
-    mapF.AddPoint(1158 * rpm_to_radsec, 2149);
-    mapF.AddPoint(1207 * rpm_to_radsec, 2250);
-    mapF.AddPoint(1233 * rpm_to_radsec, 2350);
-    mapF.AddPoint(1263 * rpm_to_radsec, 2450);
-    mapF.AddPoint(1300 * rpm_to_radsec, 2545);
-    mapF.AddPoint(1352 * rpm_to_radsec, 2628);
-    mapF.AddPoint(1403 * rpm_to_radsec, 2683);
-    mapF.AddPoint(1499 * rpm_to_radsec, 2702);
-    mapF.AddPoint(1628 * rpm_to_radsec, 2683);
-    mapF.AddPoint(1757 * rpm_to_radsec, 2650);
-    mapF.AddPoint(1901 * rpm_to_radsec, 2569);
-    mapF.AddPoint(2004 * rpm_to_radsec, 2472);
-    mapF.AddPoint(2099 * rpm_to_radsec, 2386);
-    mapF.AddPoint(2195 * rpm_to_radsec, 2298);
-    mapF.AddPoint(2323 * rpm_to_radsec, 2154);
-    mapF.AddPoint(2450 * rpm_to_radsec, -1000.0);  // fading out of engine torque
+    mapF.AddPoint(-100 * rpm2rads, 600);
+    mapF.AddPoint(702 * rpm2rads, 700);
+    mapF.AddPoint(1099 * rpm2rads, 2044);
+    mapF.AddPoint(1158 * rpm2rads, 2149);
+    mapF.AddPoint(1207 * rpm2rads, 2250);
+    mapF.AddPoint(1233 * rpm2rads, 2350);
+    mapF.AddPoint(1263 * rpm2rads, 2450);
+    mapF.AddPoint(1300 * rpm2rads, 2545);
+    mapF.AddPoint(1352 * rpm2rads, 2628);
+    mapF.AddPoint(1403 * rpm2rads, 2683);
+    mapF.AddPoint(1499 * rpm2rads, 2702);
+    mapF.AddPoint(1628 * rpm2rads, 2683);
+    mapF.AddPoint(1757 * rpm2rads, 2650);
+    mapF.AddPoint(1901 * rpm2rads, 2569);
+    mapF.AddPoint(2004 * rpm2rads, 2472);
+    mapF.AddPoint(2099 * rpm2rads, 2386);
+    mapF.AddPoint(2195 * rpm2rads, 2298);
+    mapF.AddPoint(2323 * rpm2rads, 2154);
+    mapF.AddPoint(2450 * rpm2rads, -1000.0);  // fading out of engine torque
 }
 
 }  // end namespace Marder

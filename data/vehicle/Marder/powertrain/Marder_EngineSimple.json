@@ -1,0 +1,9 @@
+{
+  "Name": "Marder Simple Engine",
+  "Type": "Engine",
+  "Template": "EngineSimple",
+
+  "Maximum Engine Torque": 2400,
+  "Maximum Engine Power": 530000,
+  "Maximum Engine Speed": 10000
+}
