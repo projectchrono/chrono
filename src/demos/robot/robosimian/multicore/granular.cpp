@@ -148,7 +148,9 @@ void GroundGranularB::Initialize(double x_min, double z_max, double step_size) {
 
     // Create container walls
     m_ground->GetCollisionModel()->ClearModel();
-    utils::AddBoxContainer(m_ground, m_material_c, ChFrame<>(), ChVector<>(m_length, m_width, 1), 0.1,
+    utils::AddBoxContainer(m_ground, m_material_c,                   //
+                           ChFrame<>(ChVector<>(0, 0, 0.5), QUNIT),  //
+                           ChVector<>(m_length, m_width, 1), 0.1,    //
                            ChVector<int>(2, 2, -1));
     m_ground->GetCollisionModel()->BuildModel();
 

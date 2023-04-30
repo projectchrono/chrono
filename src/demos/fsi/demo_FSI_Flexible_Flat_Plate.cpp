@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
         fsi_vis.SetTitle("Chrono::FSI Flexible Flat Plate Demo");
         fsi_vis.UpdateCamera(ChVector<>(bxDim / 8, -3, 0.25), ChVector<>(bxDim / 8, 0.0, 0.25));
         fsi_vis.SetCameraMoveScale(1.0f);
-        fsi_vis.EnableBoundaryMarkers(false);
+        fsi_vis.EnableBoundaryMarkers(true);
         fsi_vis.Initialize();
     }
 #endif
@@ -227,7 +227,10 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     sysMBS.AddBody(ground);
 
     // Fluid representation of walls
-    sysFSI.AddContainerBCE(ground, ChFrame<>(), ChVector<>(bxDim, byDim, bzDim), ChVector<int>(2, 0, -1));
+    sysFSI.AddBoxContainerBCE(ground,                                         //
+                              ChFrame<>(ChVector<>(0, 0, bzDim / 2), QUNIT),  //
+                              ChVector<>(bxDim, byDim, bzDim),                //
+                              ChVector<int>(2, 0, -1));
 
     auto initSpace0 = sysFSI.GetInitialSpacing();
 

@@ -34,7 +34,7 @@ class MyObstacle {
     void AddVisualization(std::shared_ptr<ChBody> body) {
         auto cyl = chrono_types::make_shared<ChCylinderShape>(radius, 1.1);
         cyl->SetColor(ChColor(0.6f, 0.3f, 0.0f));
-        body->AddVisualShape(cyl, ChFrame<>(ChVector<>(0, 0.55, 0), Q_from_AngX(CH_C_PI_2)));
+        body->AddVisualShape(cyl, ChFrame<>(center + ChVector<>(0, 0.55, 0), Q_from_AngX(CH_C_PI_2)));
     }
 
     double radius;
@@ -178,8 +178,11 @@ int main(int argc, char* argv[]) {
     ground->SetBodyFixed(true);
 
     ground->GetCollisionModel()->ClearModel();
-    utils::AddBoxContainer(ground, ground_mat, ChFrame<>(), ChVector<>(10, 2, 10), 0.2, ChVector<int>(2, 1, 2), true,
-                           ground_mat_vis);
+    utils::AddBoxContainer(ground, ground_mat,                     //
+                           ChFrame<>(ChVector<>(0, 1, 0), QUNIT),  //
+                           ChVector<>(10, 2, 10), 0.2,             //
+                           ChVector<int>(2, -1, 2),                //
+                           true, ground_mat_vis);
     ground->GetCollisionModel()->BuildModel();
 
     obstacle.AddVisualization(ground);

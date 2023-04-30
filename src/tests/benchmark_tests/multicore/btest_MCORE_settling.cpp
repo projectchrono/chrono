@@ -99,7 +99,10 @@ SettlingSMC::SettlingSMC() : m_system(new ChSystemMulticoreSMC), m_step(1e-3) {
     bin->SetBodyFixed(true);
 
     bin->GetCollisionModel()->ClearModel();
-    utils::AddBoxContainer(bin, mat, ChFrame<>(), hdim * 2, 0.2, ChVector<int>(2, 2, -1));
+    utils::AddBoxContainer(bin, mat,                                      //
+                           ChFrame<>(ChVector<>(0, 0, hdim.z()), QUNIT),  //
+                           hdim * 2, 0.2,                                 //
+                           ChVector<int>(2, 2, -1));
     bin->GetCollisionModel()->BuildModel();
 
     m_system->AddBody(bin);

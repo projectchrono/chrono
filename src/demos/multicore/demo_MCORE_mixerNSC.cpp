@@ -67,7 +67,10 @@ std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreNSC* sys) {
     bin->SetBodyFixed(true);
 
     bin->GetCollisionModel()->ClearModel();
-    utils::AddBoxContainer(bin, mat, ChFrame<>(), ChVector<>(2, 2, 1), 0.2, ChVector<int>(2, 2, -1));
+    utils::AddBoxContainer(bin, mat,                                 //
+                           ChFrame<>(ChVector<>(0, 0, 0.5), QUNIT),  //
+                           ChVector<>(2, 2, 1), 0.2,                 //
+                           ChVector<int>(2, 2, -1));
     bin->GetCollisionModel()->SetFamily(1);
     bin->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(2);
     bin->GetCollisionModel()->BuildModel();

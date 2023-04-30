@@ -193,8 +193,10 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     container->SetCollide(false);
 
     // Create the geometry of the boundaries
-    m_systemFSI->AddContainerBCE(container, ChFrame<>(), ChVector<>(m_dimX, m_dimY, 1.25 * m_depth),
-                                 ChVector<int>(2, 2, -1));
+    m_systemFSI->AddBoxContainerBCE(container,                                                 //
+                                    ChFrame<>(ChVector<>(0, 0, (1.25 / 2) * m_depth), QUNIT),  //
+                                    ChVector<>(m_dimX, m_dimY, 1.25 * m_depth),                //
+                                    ChVector<int>(2, 2, -1));
 
     // Add all rigid obstacles
     int id = body_id_obstacles;

@@ -598,12 +598,12 @@ void AddBoxContainer(std::shared_ptr<ChBody> body,
     double ht = thickness / 2;
 
     // Wall center positions
-    ChVector<> zn(0, 0, -ht);
-    ChVector<> zp(0, 0, size.z() + ht);
-    ChVector<> xn(-hsize.x() - ht, 0, hsize.z());
-    ChVector<> xp(+hsize.x() + ht, 0, hsize.z());
-    ChVector<> yn(0, -hsize.y() - ht, hsize.z());
-    ChVector<> yp(0, +hsize.y() + ht, hsize.z());
+    ChVector<> xn(-hsize.x() - ht, 0, 0);
+    ChVector<> xp(+hsize.x() + ht, 0, 0);
+    ChVector<> yn(0, -hsize.y() - ht, 0);
+    ChVector<> yp(0, +hsize.y() + ht, 0);
+    ChVector<> zn(0, 0, -hsize.z() - ht);
+    ChVector<> zp(0, 0, +hsize.z() + ht);
 
     // Wall dimensions
     ChVector<> sizeX(thickness, size.y(), size.z());

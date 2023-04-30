@@ -258,7 +258,7 @@ int main(int argc, char* argv[]) {
         visFSI->SetTitle("Viper on SPH terrain");
         visFSI->AddCamera(ChVector<>(0, -3 * byDim, bzDim), ChVector<>(0, 0, 0));
         visFSI->SetCameraMoveScale(1.0f);
-        visFSI->EnableBoundaryMarkers(false);
+        visFSI->EnableBoundaryMarkers(true);
         visFSI->EnableRigidBodyMarkers(false);
         visFSI->SetRenderMode(ChFsiVisualizationGL::RenderMode::SOLID);
         visFSI->SetParticleRenderMode(ChFsiVisualizationGL::RenderMode::SOLID);
@@ -328,7 +328,10 @@ void CreateSolidPhase(ChSystemNSC& sysMBS, ChSystemFsi& sysFSI) {
     double initSpace0 = sysFSI.GetInitialSpacing();
 
     // Fluid-Solid Coupling at the walls via BCE particles
-    sysFSI.AddContainerBCE(box, ChFrame<>(), ChVector<>(bxDim, byDim, 2 * bzDim), ChVector<int>(2, 0, -1));
+    sysFSI.AddBoxContainerBCE(box,                                        //
+                              ChFrame<>(ChVector<>(0, 0, bzDim), QUNIT),  //
+                              ChVector<>(bxDim, byDim, 2 * bzDim),        //
+                              ChVector<int>(2, 0, -1));
 
     auto driver = chrono_types::make_shared<ViperDCMotorControl>();
     rover = chrono_types::make_shared<Viper>(&sysMBS, wheel_type);

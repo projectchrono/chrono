@@ -63,7 +63,10 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     sysMBS.AddBody(ground);
 
     // Container BCE markers
-    sysFSI.AddContainerBCE(ground, ChFrame<>(), ChVector<>(bxDim, byDim, bzDim), ChVector<int>(2, 2, -1));
+    sysFSI.AddBoxContainerBCE(ground,                                         //
+                              ChFrame<>(ChVector<>(0, 0, bzDim / 2), QUNIT),  //
+                              ChVector<>(bxDim, byDim, bzDim),                //
+                              ChVector<int>(2, 2, -1));
 }
 
 // =============================================================================

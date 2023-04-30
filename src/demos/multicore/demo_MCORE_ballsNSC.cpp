@@ -69,7 +69,10 @@ void AddContainer(ChSystemMulticoreNSC* sys) {
     bin->SetBodyFixed(true);
 
     bin->GetCollisionModel()->ClearModel();
-    utils::AddBoxContainer(bin, mat, ChFrame<>(), ChVector<>(4, 4, 1), 0.2, ChVector<int>(2, 2, -1));
+    utils::AddBoxContainer(bin, mat,                                 //
+                           ChFrame<>(ChVector<>(0, 0, 0.5), QUNIT),  //
+                           ChVector<>(4, 4, 1), 0.2,                 //
+                           ChVector<int>(2, 2, -1));
     bin->GetCollisionModel()->BuildModel();
 
     sys->AddBody(bin);

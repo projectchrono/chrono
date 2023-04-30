@@ -1044,20 +1044,22 @@ void ChSystemFsi::AddWallBCE(std::shared_ptr<ChBody> body, const ChFrame<>& fram
     AddBCE(body, bce, frame, false, false, false);
 }
 
-void ChSystemFsi::AddContainerBCE(std::shared_ptr<ChBody> body,
-                                  const ChFrame<>& frame,
-                                  const ChVector<>& size,
-                                  const ChVector<int> faces) {
+void ChSystemFsi::AddBoxContainerBCE(std::shared_ptr<ChBody> body,
+                                     const ChFrame<>& frame,
+                                     const ChVector<>& size,
+                                     const ChVector<int> faces) {
     Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
     Real buffer = 2 * m_paramsH->NUM_BOUNDARY_LAYERS * spacing;
 
+    ChVector<> hsize = size / 2;
+
     // Wall center positions
-    ChVector<> zn(0, 0, -spacing);
-    ChVector<> zp(0, 0, size.z() + spacing);
-    ChVector<> xn(-size.x() / 2 - spacing, 0, size.z() / 2);
-    ChVector<> xp(+size.x() / 2 + spacing, 0, size.z() / 2);
-    ChVector<> yn(0, -size.y() / 2 - spacing, size.z() / 2);
-    ChVector<> yp(0, +size.y() / 2 + spacing, size.z() / 2);
+    ChVector<> xn(-hsize.x() - spacing, 0, 0);
+    ChVector<> xp(+hsize.x() + spacing, 0, 0);
+    ChVector<> yn(0, -hsize.y() - spacing, 0);
+    ChVector<> yp(0, +hsize.y() + spacing, 0);
+    ChVector<> zn(0, 0, -hsize.z() - spacing);
+    ChVector<> zp(0, 0, +hsize.z() + spacing);
 
     // Z- wall
     if (faces.z() == -1 || faces.z() == 2)

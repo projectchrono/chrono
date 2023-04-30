@@ -229,18 +229,16 @@ ChApi void AddTorusGeometry(ChBody* body,
                             ChVisualMaterialSharedPtr vis_material = ChVisualMaterial::Default());
 
 /// Add collision shapes representing a box container of specified dimensions to the given body.
-/// The center of the container bottom face is at the origin of the given frame and the the container is aligned
-/// with the frame axes. The container walls are constructed with specified thickness
-///
-/// The 'faces' input vector specifies which faces of the container are to be created: for each
-/// direction, a value of -1 indicates the face in the negative direction, a value of +1 indicates the face in the
-/// positive direction, and a value of 2 indicates both faces. Setting a value of 0 does not create container faces
-/// in that direction.
+/// The center of the box volume is at the origin of the given frame and the the container is aligned with the frame
+/// axes. The container walls are constructed with the specified thickness.
+/// The 'faces' input vector specifies which faces of the container are to be created: for each direction, a value of -1
+/// indicates the face in the negative direction, a value of +1 indicates the face in the positive direction, and a
+/// value of 2 indicates both faces. Setting a value of 0 does not create container faces in that direction.
 ChApi void AddBoxContainer(
     std::shared_ptr<ChBody> body,                                         ///< associated body
     ChMaterialSurfaceSharedPtr material,                                  ///< contact material
     const ChFrame<>& frame,                                               ///< position and orientation wrt body frame
-    const ChVector<>& size,                                               ///< container diemnsions
+    const ChVector<>& size,                                               ///< interior container diemnsions
     double thickness,                                                     ///< wall thickness
     const ChVector<int> faces,                                            ///< indices of container faces to be created
     bool visualization = true,                                            ///< create visualization shape

@@ -49,7 +49,10 @@ void CreateContainer(ChSystemMulticore* system) {
 
     // Attach geometry of the containing bin
     container->GetCollisionModel()->ClearModel();
-    utils::AddBoxContainer(container, mat_walls, ChFrame<>(), ChVector<>(2, 2, 2), 0.1, ChVector<int>(2, 2, -1));
+    utils::AddBoxContainer(container, mat_walls,                   //
+                           ChFrame<>(ChVector<>(0, 0, 1), QUNIT),  //
+                           ChVector<>(2, 2, 2), 0.1,               //
+                           ChVector<int>(2, 2, -1));
     container->GetCollisionModel()->BuildModel();
 
     system->AddBody(container);
