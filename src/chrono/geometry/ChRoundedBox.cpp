@@ -23,9 +23,12 @@ namespace geometry {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChRoundedBox)
 
-ChRoundedBox::ChRoundedBox(const ChVector<>& lengths, double radius) : hlen(0.5 * lengths), rad(radius) {}
-ChRoundedBox::ChRoundedBox(double length_x, double length_y, double length_z, double radius)
-    : hlen(0.5 * ChVector<>(length_z, length_y, length_z)), rad(radius) {}
+ChRoundedBox::ChRoundedBox(const ChVector<>& lengths, double sphere_radius)
+    : hlen(0.5 * lengths), srad(sphere_radius) {}
+
+ChRoundedBox::ChRoundedBox(double length_x, double length_y, double length_z, double sphere_radius)
+    : hlen(0.5 * ChVector<>(length_z, length_y, length_z)), srad(sphere_radius) {}
+
 ChRoundedBox::ChRoundedBox(const ChRoundedBox& source) {
     hlen = source.hlen;
 }
@@ -72,7 +75,7 @@ void ChRoundedBox::ArchiveOUT(ChArchiveOut& marchive) {
     // serialize all member data:
     ChVector<> lengths = GetLengths();
     marchive << CHNVP(lengths);
-    marchive << CHNVP(rad);
+    marchive << CHNVP(srad);
 }
 
 void ChRoundedBox::ArchiveIN(ChArchiveIn& marchive) {
@@ -84,7 +87,7 @@ void ChRoundedBox::ArchiveIN(ChArchiveIn& marchive) {
     ChVector<> lengths;
     marchive >> CHNVP(lengths);
     SetLengths(lengths);
-    marchive >> CHNVP(rad);
+    marchive >> CHNVP(srad);
 }
 
 }  // end namespace geometry

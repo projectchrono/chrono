@@ -40,7 +40,7 @@ class ChApi ChRoundedBoxShape : public ChVisualShape {
     ChVector<> GetLengths() const { return gbox.GetLengths(); }
 
     /// Get the radius of the sweeping sphere.
-    double GetRadius() const { return gbox.GetRadius(); }
+    double GetSphereRadius() const { return gbox.GetSphereRadius(); }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;

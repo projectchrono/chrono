@@ -25,13 +25,13 @@ ChRoundedBoxShape::ChRoundedBoxShape() {
 
 ChRoundedBoxShape::ChRoundedBoxShape(double length_x, double length_y, double length_z, double radius) {
     gbox.SetLengths(ChVector<>(length_x, length_y, length_z));
-    gbox.SetRadius(radius);
+    gbox.SetSphereRadius(radius);
     SetMutable(false);
 }
 
 ChRoundedBoxShape::ChRoundedBoxShape(const ChVector<>& lengths, double radius) {
     gbox.SetLengths(lengths);
-    gbox.SetRadius(radius);
+    gbox.SetSphereRadius(radius);
     SetMutable(false);
 }
 

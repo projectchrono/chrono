@@ -23,6 +23,13 @@ ChRoundedCylinderShape::ChRoundedCylinderShape() {
     SetMutable(false);
 }
 
+ChRoundedCylinderShape::ChRoundedCylinderShape(double radius, double height, double sphere_radius) {
+    groundedcyl.r = radius;
+    groundedcyl.h = height;
+    groundedcyl.sr = sphere_radius;
+    SetMutable(false);
+}
+
 ChRoundedCylinderShape::ChRoundedCylinderShape(const geometry::ChRoundedCylinder& cyl) : groundedcyl(cyl) {
     SetMutable(false);
 }

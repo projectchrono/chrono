@@ -242,10 +242,6 @@ void MixtureIngredient::calcGeometricProps(const ChVector<>& size, double& volum
             volume = CalcCapsuleVolume(size.x(), size.y());
             gyration = CalcCapsuleGyration(size.x(), size.y()).diagonal();
             break;
-        case MixtureType::ROUNDEDCYLINDER:
-            volume = CalcRoundedCylinderVolume(size.x(), size.y(), size.z());
-            gyration = CalcRoundedCylinderGyration(size.x(), size.y(), size.z()).diagonal();
-            break;
     }
 }
 
@@ -542,9 +538,6 @@ void Generator::createObjects(const PointVector& points, const ChVector<>& vel) 
                 break;
             case MixtureType::CAPSULE:
                 AddCapsuleGeometry(body, mat, size.x(), size.z());
-                break;
-            case MixtureType::ROUNDEDCYLINDER:
-                AddRoundedCylinderGeometry(body, mat, size.x(), size.y(), size.z());
                 break;
         }
 

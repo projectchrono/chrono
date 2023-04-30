@@ -25,9 +25,9 @@ namespace geometry {
 /// A rounded box (sphere-swept box) geometric object for collisions and visualization.
 class ChApi ChRoundedBox : public ChVolume {
   public:
-    ChRoundedBox() : hlen(VNULL), rad(0) {}
-    ChRoundedBox(const ChVector<>& lengths, double radius);
-    ChRoundedBox(double length_x, double length_y, double length_z, double radius);
+    ChRoundedBox() : hlen(VNULL), srad(0) {}
+    ChRoundedBox(const ChVector<>& lengths, double sphere_radius);
+    ChRoundedBox(double length_x, double length_y, double length_z, double sphere_radius);
     ChRoundedBox(const ChRoundedBox& source);
     ~ChRoundedBox() {}
 
@@ -56,13 +56,13 @@ class ChApi ChRoundedBox : public ChVolume {
     ChVector<> GetLengths() const { return 2.0 * hlen; }
 
     /// Get the sweeping sphere radius.
-    double GetRadius() const { return rad; }
+    double GetSphereRadius() const { return srad; }
 
     /// Set the x, y, and z lengths of this box.
     void SetLengths(const ChVector<>& mlen) { hlen = 0.5 * mlen; }
 
     /// Set the sweeping sphere radius.
-    void SetRadius(double radius) { rad = radius; }
+    void SetSphereRadius(double radius) { srad = radius; }
 
     /// Get the volume (assuming no scaling in Rot matrix)
     double GetVolume() { return hlen.x() * hlen.y() * hlen.z() * 8.0; };
@@ -74,7 +74,7 @@ class ChApi ChRoundedBox : public ChVolume {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
     ChVector<> hlen;  ///< box halflengths
-    double rad;       ///< radius of sweeping sphere
+    double srad;      ///< radius of sweeping sphere
 };
 
 }  // end namespace geometry

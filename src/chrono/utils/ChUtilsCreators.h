@@ -198,22 +198,24 @@ ChApi void AddRoundedBoxGeometry(
     const ChVector<>& size,                                               ///< box side lengths
     double srad,                                                          ///< radius of sweeping sphere
     const ChVector<>& pos = ChVector<>(0, 0, 0),                          ///< position on body
-    const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),               //< orientation wrt body frame
+    const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),               ///< orientation wrt body frame
     bool visualization = true,                                            ///< create visualization shape
     ChVisualMaterialSharedPtr vis_material = ChVisualMaterial::Default()  ///< visualization material
 );
 
 /// Add a rounded cylinder (sphere-swept cylinder) collision shape and optionally a corresponding visualization asset
 /// to the specified body.
-ChApi void AddRoundedCylinderGeometry(ChBody* body,
-                                      ChMaterialSurfaceSharedPtr material,
-                                      double radius,
-                                      double hlen,
-                                      double srad,
-                                      const ChVector<>& pos = ChVector<>(0, 0, 0),
-                                      const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
-                                      bool visualization = true,
-                                      ChVisualMaterialSharedPtr vis_material = ChVisualMaterial::Default());
+ChApi void AddRoundedCylinderGeometry(
+    ChBody* body,                                                         ///< associated body
+    ChMaterialSurfaceSharedPtr material,                                  ///< contact material
+    double radius,                                                        ///< cylinder radius
+    double height,                                                        ///< cylinder radius
+    double srad,                                                          ///< radius of sweeping sphere
+    const ChVector<>& pos = ChVector<>(0, 0, 0),                          ///< position on body
+    const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),               ///< orientation wrt body frame
+    bool visualization = true,                                            ///< create visualization shape
+    ChVisualMaterialSharedPtr vis_material = ChVisualMaterial::Default()  ///< visualization material
+);
 
 /// Add a torus collision shape (compound object created with capsules) and optionally a corresponding visualization
 /// asset to the specified body.

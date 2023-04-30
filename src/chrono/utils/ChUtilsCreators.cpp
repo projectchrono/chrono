@@ -538,23 +538,20 @@ void AddRoundedBoxGeometry(ChBody* body,
 void AddRoundedCylinderGeometry(ChBody* body,
                                 ChMaterialSurfaceSharedPtr material,
                                 double radius,
-                                double hlen,
+                                double height,
                                 double srad,
                                 const ChVector<>& pos,
                                 const ChQuaternion<>& rot,
                                 bool visualization,
                                 ChVisualMaterialSharedPtr vis_material) {
-    body->GetCollisionModel()->AddRoundedCylinder(material, radius, radius, hlen, srad, pos, rot);
+    body->GetCollisionModel()->AddRoundedCylinder(material, radius, radius, height / 2, srad, pos, rot);
 
     if (visualization) {
         if (!body->GetVisualModel()) {
             auto model = chrono_types::make_shared<ChVisualModel>();
             body->AddVisualModel(model);
         }
-        auto rcyl = chrono_types::make_shared<ChRoundedCylinderShape>();
-        rcyl->GetRoundedCylinderGeometry().rad = radius;
-        rcyl->GetRoundedCylinderGeometry().hlen = hlen;
-        rcyl->GetRoundedCylinderGeometry().radsphere = srad;
+        auto rcyl = chrono_types::make_shared<ChRoundedCylinderShape>(radius, height, srad);
         rcyl->AddMaterial(vis_material);
         body->GetVisualModel()->AddShape(rcyl, ChFrame<>(pos, rot));
     }
