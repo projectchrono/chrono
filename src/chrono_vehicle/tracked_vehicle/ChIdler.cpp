@@ -38,6 +38,9 @@ void ChIdler::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector<>& l
     // Set collision flags for the idler wheel body
     m_idler_wheel->GetBody()->GetCollisionModel()->SetFamily(TrackedCollisionFamily::IDLERS);
     m_idler_wheel->GetBody()->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::WHEELS);
+
+    // Mark as initialized
+    m_initialized = true;
 }
 
 void ChIdler::SetOutput(bool state) {

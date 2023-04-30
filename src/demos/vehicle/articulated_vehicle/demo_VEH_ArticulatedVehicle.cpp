@@ -28,7 +28,8 @@
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "subsystems/ACV_Vehicle.h"
-#include "subsystems/ACV_SimplePowertrain.h"
+#include "subsystems/ACV_EngineSimple.h"
+#include "subsystems/ACV_AutomaticTransmissionSimple.h"
 #include "subsystems/ACV_RigidTire.h"
 
 using namespace chrono;
@@ -87,8 +88,10 @@ int main(int argc, char* argv[]) {
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize();
 
-    // Create and initialize the powertrain system
-    auto powertrain = chrono_types::make_shared<ACV_SimplePowertrain>("Powertrain");
+    // Create and initialize the powertrain subsystems
+    auto engine = chrono_types::make_shared<ACV_EngineSimple>("Engine");
+    auto transmission = chrono_types::make_shared<ACV_AutomaticTransmissionSimple>("Transmission");
+    auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
     vehicle.InitializePowertrain(powertrain);
 
     // Create and initialize the front and rear tires

@@ -9,11 +9,11 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Asher Elmquist, Evan Hoerl, Shuo He
+// Authors: Radu Serban, Asher Elmquist, Evan Hoerl, Shuo He, Marcel Offermans
 // =============================================================================
 //
 // Wrapper classes for modeling an entire CityBus vehicle assembly
-// (including the vehicle itself, the powertrain, and the tires).
+// (including the vehicle itself, the powertrain assembly, and the tires).
 //
 // =============================================================================
 
@@ -22,6 +22,8 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "chrono_models/vehicle/citybus/CityBus.h"
+#include "chrono_vehicle/powertrain/EngineSimpleMap.h"
+#include "chrono_vehicle/powertrain/AutomaticTransmissionSimpleMap.h"
 
 namespace chrono {
 namespace vehicle {
@@ -86,7 +88,9 @@ void CityBus::Initialize() {
     }
 
     // Create and initialize the powertrain system
-    auto powertrain = chrono_types::make_shared<CityBus_SimpleMapPowertrain>("Powertrain");
+    auto engine = chrono_types::make_shared<CityBus_EngineSimpleMap>("Engine");
+    auto transmission = chrono_types::make_shared<CityBus_AutomaticTransmissionSimpleMap>("Transmission");
+    auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
     m_vehicle->InitializePowertrain(powertrain);
 
     // Create the tires and set parameters depending on type.

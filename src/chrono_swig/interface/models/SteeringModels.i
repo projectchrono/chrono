@@ -18,8 +18,8 @@
 #include "chrono_vehicle/wheeled_vehicle/steering/RackPinion.h"
 #include "chrono_vehicle/wheeled_vehicle/steering/RotaryArm.h"
 
-#include "chrono_models/vehicle/hmmwv/HMMWV_PitmanArm.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_RackPinion.h"
+#include "chrono_models/vehicle/hmmwv/steering/HMMWV_PitmanArm.h"
+#include "chrono_models/vehicle/hmmwv/steering/HMMWV_RackPinion.h"
 
 #include "chrono_models/vehicle/citybus/CityBus_RotaryArm.h"
 #include "chrono_models/vehicle/citybus/CityBus_RackPinion.h"
@@ -58,8 +58,8 @@
 
 // Model:
 
-%include "../../../chrono_models/vehicle/hmmwv/HMMWV_PitmanArm.h"
-%include "../../../chrono_models/vehicle/hmmwv/HMMWV_RackPinion.h"
+%include "../../../chrono_models/vehicle/hmmwv/steering/HMMWV_PitmanArm.h"
+%include "../../../chrono_models/vehicle/hmmwv/steering/HMMWV_RackPinion.h"
 
 %include "../../../chrono_models/vehicle/citybus/CityBus_RotaryArm.h"
 %include "../../../chrono_models/vehicle/citybus/CityBus_RackPinion.h"

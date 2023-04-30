@@ -25,7 +25,8 @@
 
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/unimog/U401_Vehicle.h"
-#include "chrono_models/vehicle/unimog/U401_SimpleMapPowertrain.h"
+#include "chrono_models/vehicle/unimog/U401_EngineSimpleMap.h"
+#include "chrono_models/vehicle/unimog/U401_AutomaticTransmissionSimpleMap.h"
 #include "chrono_models/vehicle/unimog/U401_RigidTire.h"
 #include "chrono_models/vehicle/unimog/U401_TMeasyTire.h"
 #include "chrono_models/vehicle/unimog/U401_TMsimpleTire.h"
@@ -53,6 +54,8 @@ class CH_MODELS_API U401 {
     void SetChassisFixed(bool val) { m_fixed = val; }
     void SetChassisCollisionType(CollisionType val) { m_chassisCollisionType = val; }
 
+    void SetEngineType(EngineModelType val) { m_engineType = val; }
+    void SetTransmissionType(TransmissionModelType val) { m_transmissionType = val; }
     void SetBrakeType(BrakeType brake_type) { m_brake_type = brake_type; }
     void SetTireType(TireModelType val) { m_tireType = val; }
 
@@ -70,7 +73,6 @@ class CH_MODELS_API U401 {
     ChWheeledVehicle& GetVehicle() const { return *m_vehicle; }
     std::shared_ptr<ChChassis> GetChassis() const { return m_vehicle->GetChassis(); }
     std::shared_ptr<ChBodyAuxRef> GetChassisBody() const { return m_vehicle->GetChassisBody(); }
-    std::shared_ptr<ChPowertrain> GetPowertrain() const { return m_vehicle->GetPowertrain(); }
 
     void Initialize();
 
@@ -100,6 +102,8 @@ class CH_MODELS_API U401 {
     bool m_fixed;
     bool m_brake_locking;
 
+    EngineModelType m_engineType;
+    TransmissionModelType m_transmissionType;
     BrakeType m_brake_type;
     TireModelType m_tireType;
 

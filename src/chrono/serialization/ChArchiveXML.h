@@ -515,7 +515,7 @@ class  ChArchiveInXML : public ChArchiveIn {
 				if (!is_reference) {
 					// 2) Dynamically create 
 					// call new(), or deserialize constructor params+call new():
-					bVal.value().CallArchiveInConstructor(*this, cls_name.c_str());
+					bVal.value().CallConstructor(*this, cls_name.c_str());
 
 					if (bVal.value().GetRawPtr()) {
 						bool already_stored; size_t obj_ID;

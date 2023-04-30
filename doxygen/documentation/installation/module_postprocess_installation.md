@@ -4,8 +4,9 @@ Install the POSTPROCESS module {#module_postprocess_installation}
 [TOC]
 
 This is an optional unit that can be used to export scripts for 
-postprocessing simulation data. For example, it can generate 
-the .pov and .ini scripts to be used with the POVray rendering tool.
+postprocessing simulation data. For example, it can generate files that can be
+load in Blender for high quality photorealistic rendering, or in the POVray rendering tool. 
+It is also used to output files for GNUplot.
 
 Read [the introduction to modules](modularity.html) for a technical 
 background on the modularity of the Chrono project.
@@ -18,6 +19,19 @@ batch rendering of animations etc.
 
 Here are the main features:
 
+- Blender:
+	- exports files that can be load in [Blender](http://www.blender.org)
+	  using the chrono_import.py add-in
+	- converts the ChVisualization assets into Blender objects
+	- using the Blender GUI, one can add more objects, or modify the 
+	  imported ones by attaching additional textures etc.
+	- the camera can be attached to moving objects
+	- advanced functionalities for exporting scalar or vector fields
+	  attached to ChTriangleMeshConnected or to finite elements,  
+	  rendered via falsecolor maps
+	- renders object reference frames, contacts, joint references
+	- etc.
+	
 - POVray:
 	- converts the ChVisualization assets that one has 
 	  attached to rigid bodies into rendering primitives for POVray. 
@@ -42,6 +56,8 @@ because the architecture of this system is not limited to POVray.
 
 - To **run** applications based on this unit, there are no requirements. 
   Note however that you may want to 
+  	- install [Blender](http://www.blender.org) to load and render 
+	  the output files if you are interested in the POVray output, 
 	- install [POVray](http://www.POVray.org) to load and render 
 	  the output files if you are interested in the POVray output, 
 	- install [GNUPLOT](http://www.gnuplot.info) to display plots if 
@@ -67,7 +83,7 @@ binary directory, among other default demos.
 
 ## How to use it
 
-Please mind that, in order to use POVray and/or GNUPLOT, these have to be installed and their environmental variables set properly.
+Please mind that, in order to use Blender or POVray or GNUPLOT, these have to be installed and their environmental variables set properly.
 
 - Look at the [API section](group__postprocess__module.html) of this module for documentation about classes and functions.
 

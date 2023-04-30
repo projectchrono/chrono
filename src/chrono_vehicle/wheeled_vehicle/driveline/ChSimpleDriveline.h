@@ -54,9 +54,9 @@ class CH_VEHICLE_API ChSimpleDriveline : public ChDrivelineWV {
 
     /// Update the driveline subsystem: apply the specified motor torque.
     /// This represents the input to the driveline subsystem from the powertrain system.
-    virtual void Synchronize(double time,                            ///< [in] current time
-                             const DriverInputs& driver_inputs,  ///< [in] current driver inputs
-                             double torque                           ///< [in] motor torque
+    virtual void Synchronize(double time,                        ///< current time
+                             const DriverInputs& driver_inputs,  ///< current driver inputs
+                             double driveshaft_torque            ///< input transmission torque
                              ) override;
 
     /// Get the motor torque to be applied to the specified spindle.
@@ -64,6 +64,10 @@ class CH_VEHICLE_API ChSimpleDriveline : public ChDrivelineWV {
 
     /// Disconnect driveline from driven wheels.
     virtual void Disconnect() override;
+
+    /// Return the output driveline speed of the driveshaft.
+    /// This represents the output from the driveline subsystem that is passed to the transmission subsystem.
+    virtual double GetOutputDriveshaftSpeed() const override { return m_driveshaft_speed; }
 
   protected:
     /// Return the front torque fraction [0,1].
@@ -79,11 +83,11 @@ class CH_VEHICLE_API ChSimpleDriveline : public ChDrivelineWV {
 
   private:
     bool m_connected;
-
-    std::shared_ptr<ChShaft> m_front_left;
-    std::shared_ptr<ChShaft> m_front_right;
-    std::shared_ptr<ChShaft> m_rear_left;
-    std::shared_ptr<ChShaft> m_rear_right;
+    double m_driveshaft_speed;               ///< output to transmisson
+    std::shared_ptr<ChShaft> m_front_left;   ///< associated front left wheel axle
+    std::shared_ptr<ChShaft> m_front_right;  ///< associated front right wheel axle
+    std::shared_ptr<ChShaft> m_rear_left;    ///< associated rear left wheel axle
+    std::shared_ptr<ChShaft> m_rear_right;   ///< associated rear right wheel axle
 };
 
 /// @} vehicle_wheeled_driveline

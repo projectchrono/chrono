@@ -10,16 +10,16 @@
 
 #include "chrono_models/ChApiModels.h"
 
-#include "chrono_models/vehicle/generic/Generic_RigidTire.h"
-#include "chrono_models/vehicle/generic/Generic_RigidMeshTire.h"
-#include "chrono_models/vehicle/generic/Generic_FialaTire.h"
+#include "chrono_models/vehicle/generic/tire/Generic_RigidTire.h"
+#include "chrono_models/vehicle/generic/tire/Generic_RigidMeshTire.h"
+#include "chrono_models/vehicle/generic/tire/Generic_FialaTire.h"
 
-#include "chrono_models/vehicle/hmmwv/HMMWV_RigidTire.h"
-//#include "chrono_models/vehicle/hmmwv/HMMWV_ReissnerTire.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_Pac89Tire.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_Pac02Tire.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_FialaTire.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_TMeasyTire.h"
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_RigidTire.h"
+//#include "chrono_models/vehicle/hmmwv/tire/HMMWV_ReissnerTire.h"
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_Pac89Tire.h"
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_Pac02Tire.h"
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_FialaTire.h"
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_TMeasyTire.h"
 
 #include "chrono_models/vehicle/sedan/Sedan_TMeasyTire.h"
 #include "chrono_models/vehicle/sedan/Sedan_RigidTire.h"
@@ -72,16 +72,16 @@
 
 // Model:
 
-%include "../../../chrono_models/vehicle/generic/Generic_RigidTire.h"
-%include "../../../chrono_models/vehicle/generic/Generic_RigidMeshTire.h"
-%include "../../../chrono_models/vehicle/generic/Generic_FialaTire.h"
+%include "../../../chrono_models/vehicle/generic/tire/Generic_RigidTire.h"
+%include "../../../chrono_models/vehicle/generic/tire/Generic_RigidMeshTire.h"
+%include "../../../chrono_models/vehicle/generic/tire/Generic_FialaTire.h"
 
-%include "../../../chrono_models/vehicle/hmmwv/HMMWV_RigidTire.h"
-//%include "../../../chrono_models/vehicle/hmmwv/HMMWV_ReissnerTire.h"
-%include "../../../chrono_models/vehicle/hmmwv/HMMWV_Pac89Tire.h"
-%include "../../../chrono_models/vehicle/hmmwv/HMMWV_Pac02Tire.h"
-%include "../../../chrono_models/vehicle/hmmwv/HMMWV_FialaTire.h"
-%include "../../../chrono_models/vehicle/hmmwv/HMMWV_TMeasyTire.h"
+%include "../../../chrono_models/vehicle/hmmwv/tire/HMMWV_RigidTire.h"
+//%include "../../../chrono_models/vehicle/hmmwv/tire/HMMWV_ReissnerTire.h"
+%include "../../../chrono_models/vehicle/hmmwv/tire/HMMWV_Pac89Tire.h"
+%include "../../../chrono_models/vehicle/hmmwv/tire/HMMWV_Pac02Tire.h"
+%include "../../../chrono_models/vehicle/hmmwv/tire/HMMWV_FialaTire.h"
+%include "../../../chrono_models/vehicle/hmmwv/tire/HMMWV_TMeasyTire.h"
 
 %include "../../../chrono_models/vehicle/sedan/Sedan_TMeasyTire.h"
 %include "../../../chrono_models/vehicle/sedan/Sedan_RigidTire.h"

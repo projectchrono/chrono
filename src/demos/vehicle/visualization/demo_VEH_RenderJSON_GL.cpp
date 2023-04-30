@@ -44,21 +44,24 @@ bool enable_gravity = true;
 class Setup {
   public:
     virtual std::string VehicleJSON() const = 0;
-    virtual std::string PowertrainJSON() const = 0;
+    virtual std::string EngineJSON() const = 0;
+    virtual std::string TransmissionJSON() const = 0;
     virtual std::string TireJSON() const { return ""; }
 };
 
 class HMMWV_Setup : public Setup {
   public:
     virtual std::string VehicleJSON() const override { return "hmmwv/vehicle/HMMWV_Vehicle.json"; }
-    virtual std::string PowertrainJSON() const override { return "hmmwv/powertrain/HMMWV_ShaftsPowertrain.json"; }
+    virtual std::string EngineJSON() const override { return "hmmwv/powertrain/HMMWV_EngineShafts.json"; }
+    virtual std::string TransmissionJSON() const override { return "hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json"; }
     virtual std::string TireJSON() const override { return "hmmwv/tire/HMMWV_TMeasyTire.json"; }
 };
 
 class M113_Setup : public Setup {
   public:
     virtual std::string VehicleJSON() const override { return "M113/vehicle/M113_Vehicle_SinglePin.json"; }
-    virtual std::string PowertrainJSON() const override { return "M113/powertrain/M113_SimpleCVTPowertrain.json"; }
+    virtual std::string EngineJSON() const override { return "M113/powertrain/M113_EngineSimple.json"; }
+    virtual std::string TransmissionJSON() const override { return "M113/powertrain/M113_EngineSimpleMap.json"; }
 };
 
 HMMWV_Setup setup;
@@ -78,7 +81,9 @@ ChVehicle* CreateVehicle(ChSystem* sys, bool is_wheeled) {
         vehicle->SetWheelVisualizationType(VisualizationType::MESH);
 
         // Create and initialize the powertrain system
-        auto powertrain = ReadPowertrainJSON(vehicle::GetDataFile(setup.PowertrainJSON()));
+        auto engine = ReadEngineJSON(vehicle::GetDataFile(setup.EngineJSON()));
+        auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(setup.TransmissionJSON()));
+        auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
         vehicle->InitializePowertrain(powertrain);
 
         // Create and initialize the tires
@@ -104,7 +109,9 @@ ChVehicle* CreateVehicle(ChSystem* sys, bool is_wheeled) {
         vehicle->SetTrackShoeVisualizationType(VisualizationType::MESH);
 
         // Create and initialize the powertrain system
-        auto powertrain = ReadPowertrainJSON(vehicle::GetDataFile(setup.PowertrainJSON()));
+        auto engine = ReadEngineJSON(vehicle::GetDataFile(setup.EngineJSON()));
+        auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(setup.TransmissionJSON()));
+        auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
         vehicle->InitializePowertrain(powertrain);
 
         return vehicle;

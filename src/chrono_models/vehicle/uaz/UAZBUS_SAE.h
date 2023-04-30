@@ -25,7 +25,8 @@
 
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_SAEVehicle.h"
-#include "chrono_models/vehicle/uaz/UAZBUS_SimpleMapPowertrain.h"
+#include "chrono_models/vehicle/uaz/UAZBUS_EngineSimpleMap.h"
+#include "chrono_models/vehicle/uaz/UAZBUS_AutomaticTransmissionSimpleMap.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_RigidTire.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_TMeasyTire.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_Pac02Tire.h"
@@ -66,7 +67,6 @@ class CH_MODELS_API UAZBUS_SAE {
     ChWheeledVehicle& GetVehicle() const { return *m_vehicle; }
     std::shared_ptr<ChChassis> GetChassis() const { return m_vehicle->GetChassis(); }
     std::shared_ptr<ChBodyAuxRef> GetChassisBody() const { return m_vehicle->GetChassisBody(); }
-    std::shared_ptr<ChPowertrain> GetPowertrain() const { return m_vehicle->GetPowertrain(); }
 
     void Initialize();
 
@@ -95,6 +95,8 @@ class CH_MODELS_API UAZBUS_SAE {
     CollisionType m_chassisCollisionType;
     bool m_fixed;
 
+    EngineModelType m_engineType;
+    TransmissionModelType m_transmissionType;
     TireModelType m_tireType;
 
     double m_tire_step_size;

@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Rainer Gericke
 // =============================================================================
 //
 // Duro 4WD driveline model based on ChShaft objects.
@@ -48,7 +48,6 @@ Duro_Driveline4WD::Duro_Driveline4WD(const std::string& name) : ChShaftsDrivelin
     SetAxleDirection(ChVector<>(0, 1, 0));
 }
 
-}  // end namespace Duro
+}  // namespace duro
 }  // end namespace vehicle
 }  // end namespace chrono
-

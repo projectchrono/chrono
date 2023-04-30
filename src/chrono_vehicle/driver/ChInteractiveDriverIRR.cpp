@@ -85,6 +85,7 @@ bool ChInteractiveDriverIRR::OnEvent(const SEvent& event) {
                     m_throttle = 0;
                     m_steering = 0;
                     m_braking = 0;
+                    m_clutch = 0;
                     m_mode = InputMode::KEYBOARD;
                 }
                 return true;
@@ -131,16 +132,17 @@ bool ChInteractiveDriverIRR::ProcessJoystickEvents(const SEvent& event) {
     SetSteering(steerAxis.GetValue(event.JoystickEvent));
     SetThrottle(throttleAxis.GetValue(event.JoystickEvent));
     SetBraking(brakeAxis.GetValue(event.JoystickEvent));
+    SetClutch(clutchAxis.GetValue(event.JoystickEvent));
 
     // Sequential shifter code...
-    if (m_vehicle.GetPowertrain()) {
+    if (m_vehicle.GetTransmission()) {
         // To prevent people from "double shifting" we add a shift delay here and ignore any further
         // button presses for a while. Also we make sure that after pressing the shifter, you need
         // to release it again before you can shift again.
         if (shiftUpButton.IsPressed(event.JoystickEvent)) {
-            m_vehicle.GetPowertrain()->ShiftUp();
+            m_vehicle.GetTransmission()->ShiftUp();
         } else if (shiftDownButton.IsPressed(event.JoystickEvent)) {
-            m_vehicle.GetPowertrain()->ShiftDown();
+            m_vehicle.GetTransmission()->ShiftDown();
         }
     }
 
@@ -148,7 +150,7 @@ bool ChInteractiveDriverIRR::ProcessJoystickEvents(const SEvent& event) {
     if (clutchAxis.axis != ChJoystickAxisIRR::NONE) {
         // double rawClutchPosition = (double)event.JoystickEvent.Axis[clutchAxis.axis];
         double clutchPosition = clutchAxis.GetValue(event.JoystickEvent);
-        // Check if that clutch is pressed...
+        // Check if the clutch is pressed...
         if ((clutchAxis.scaled_max - clutchPosition) < 0.1) {
             SetThrottle(0);
             bool reverseGearEngaged = gearReverseButton.IsPressed(event.JoystickEvent);
@@ -173,18 +175,18 @@ bool ChInteractiveDriverIRR::ProcessJoystickEvents(const SEvent& event) {
                 forwardGearEngaged = 9;
             }
 
-            if (m_vsys.m_vehicle->GetPowertrain() &&
-                m_vsys.m_vehicle->GetPowertrain()->GetTransmissionMode() == ChPowertrain::TransmissionMode::MANUAL) {
+            if (m_vsys.m_vehicle->GetTransmission() &&
+                m_vsys.m_vehicle->GetTransmission()->GetMode() == ChTransmission::Mode::MANUAL) {
                 if (reverseGearEngaged) {
                     /// Gear is set to reverse
-                    m_vsys.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::REVERSE);
-                    m_vsys.m_vehicle->GetPowertrain()->SetGear(0);
+                    m_vsys.m_vehicle->GetTransmission()->SetDriveMode(ChTransmission::DriveMode::REVERSE);
+                    m_vsys.m_vehicle->GetTransmission()->SetGear(0);
                 } else if (forwardGearEngaged > 0) {
                     // All 'forward' gears set drive mode to forward, regardless of gear
-                    m_vsys.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::FORWARD);
-                    m_vsys.m_vehicle->GetPowertrain()->SetGear(forwardGearEngaged);
+                    m_vsys.m_vehicle->GetTransmission()->SetDriveMode(ChTransmission::DriveMode::FORWARD);
+                    m_vsys.m_vehicle->GetTransmission()->SetGear(forwardGearEngaged);
                 } else {
-                    m_vsys.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::NEUTRAL);
+                    m_vsys.m_vehicle->GetTransmission()->SetDriveMode(ChTransmission::DriveMode::NEUTRAL);
                     // Here you see it would be beneficial to have a gear selection for 'neutral' in the model.
                 }
             }
@@ -199,10 +201,10 @@ bool ChInteractiveDriverIRR::ProcessJoystickEvents(const SEvent& event) {
 
     // Toggle between a manual and automatic gearbox
     if (toggleManualGearboxButton.IsPressed(event.JoystickEvent)) {
-        if (m_vsys.m_vehicle->GetPowertrain()->GetTransmissionMode() == ChPowertrain::TransmissionMode::AUTOMATIC) {
-            m_vsys.m_vehicle->GetPowertrain()->SetTransmissionMode(ChPowertrain::TransmissionMode::MANUAL);
+        if (m_vsys.m_vehicle->GetTransmission()->GetMode() == ChTransmission::Mode::AUTOMATIC) {
+            m_vsys.m_vehicle->GetTransmission()->SetMode(ChTransmission::Mode::MANUAL);
         } else {
-            m_vsys.m_vehicle->GetPowertrain()->SetTransmissionMode(ChPowertrain::TransmissionMode::AUTOMATIC);
+            m_vsys.m_vehicle->GetTransmission()->SetMode(ChTransmission::Mode::AUTOMATIC);
         }
     }
 
@@ -224,6 +226,7 @@ bool ChInteractiveDriverIRR::ProcessJoystickEvents(const SEvent& event) {
     return true;
 }
 
+//// TODO: keyboard control of clutch
 bool ChInteractiveDriverIRR::ProcessKeyboardEvents(const SEvent& event) {
     if (event.KeyInput.PressedDown) {
         switch (event.KeyInput.Key) {
@@ -249,39 +252,36 @@ bool ChInteractiveDriverIRR::ProcessKeyboardEvents(const SEvent& event) {
     } else {
         switch (event.KeyInput.Key) {
             case KEY_KEY_Z:
-                if (m_vsys.m_vehicle->GetPowertrain())
-                    m_vsys.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::FORWARD);
+                if (m_vsys.m_vehicle->GetTransmission()) {
+                    if (m_vsys.m_vehicle->GetTransmission()->GetDriveMode() != ChTransmission::DriveMode::FORWARD)
+                        m_vsys.m_vehicle->GetTransmission()->SetDriveMode(ChTransmission::DriveMode::FORWARD);
+                    else
+                        m_vsys.m_vehicle->GetTransmission()->SetDriveMode(ChTransmission::DriveMode::REVERSE);
+                }
                 return true;
             case KEY_KEY_X:
-                if (m_vsys.m_vehicle->GetPowertrain())
-                    m_vsys.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::NEUTRAL);
+                if (m_vsys.m_vehicle->GetTransmission())
+                    m_vsys.m_vehicle->GetTransmission()->SetDriveMode(ChTransmission::DriveMode::NEUTRAL);
                 return true;
-            case KEY_KEY_C:
-                if (m_vsys.m_vehicle->GetPowertrain())
-                    m_vsys.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::REVERSE);
-                return true;
-
             case KEY_KEY_T:
-                if (m_vsys.m_vehicle->GetPowertrain()) {
-                    switch (m_vsys.m_vehicle->GetPowertrain()->GetTransmissionMode()) {
-                        case ChPowertrain::TransmissionMode::MANUAL:
-                            m_vsys.m_vehicle->GetPowertrain()->SetTransmissionMode(
-                                ChPowertrain::TransmissionMode::AUTOMATIC);
+                if (m_vsys.m_vehicle->GetTransmission()) {
+                    switch (m_vsys.m_vehicle->GetTransmission()->GetMode()) {
+                        case ChTransmission::Mode::MANUAL:
+                            m_vsys.m_vehicle->GetTransmission()->SetMode(ChTransmission::Mode::AUTOMATIC);
                             break;
-                        case ChPowertrain::TransmissionMode::AUTOMATIC:
-                            m_vsys.m_vehicle->GetPowertrain()->SetTransmissionMode(
-                                ChPowertrain::TransmissionMode::MANUAL);
+                        case ChTransmission::Mode::AUTOMATIC:
+                            m_vsys.m_vehicle->GetTransmission()->SetMode(ChTransmission::Mode::MANUAL);
                             break;
                     }
                 }
                 return true;
             case KEY_PERIOD:
-                if (m_vsys.m_vehicle->GetPowertrain())
-                    m_vsys.m_vehicle->GetPowertrain()->ShiftUp();
+                if (m_vsys.m_vehicle->GetTransmission())
+                    m_vsys.m_vehicle->GetTransmission()->ShiftUp();
                 return true;
             case KEY_COMMA:
-                if (m_vsys.m_vehicle->GetPowertrain())
-                    m_vsys.m_vehicle->GetPowertrain()->ShiftDown();
+                if (m_vsys.m_vehicle->GetTransmission())
+                    m_vsys.m_vehicle->GetTransmission()->ShiftDown();
                 return true;
 
             default:

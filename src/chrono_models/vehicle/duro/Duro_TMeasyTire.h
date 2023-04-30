@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -32,7 +32,7 @@ namespace duro {
 
 /// TMeasy tire model for the HMMWV.
 class CH_MODELS_API Duro_TMeasyTire : public ChTMeasyTire {
-   public:
+  public:
     Duro_TMeasyTire(const std::string& name);
     ~Duro_TMeasyTire() {}
 
@@ -47,7 +47,7 @@ class CH_MODELS_API Duro_TMeasyTire : public ChTMeasyTire {
 
     void GenerateCharacteristicPlots(const std::string& dirname);
 
-   private:
+  private:
     static const double m_mass;
     static const ChVector<> m_inertia;
 
@@ -60,9 +60,8 @@ class CH_MODELS_API Duro_TMeasyTire : public ChTMeasyTire {
 
 /// @} vehicle_models_Duro
 
-}  // namespace unimog
+}  // namespace duro
 }  // end namespace vehicle
 }  // end namespace chrono
 
 #endif
-

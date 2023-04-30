@@ -1,0 +1,21 @@
+{
+  "Name": "MAN 7t Simple Map Transmission",
+  "Type": "Transmission",
+  "Template": "AutomaticTransmissionSimpleMap",
+
+  "Gear Box": {
+    "Reverse Gear Ratio": -0.089525515,
+    "Forward Gear Ratios": [0.077, 0.118, 0.162, 0.221, 0.283, 0.416, 0.573, 0.780, 1.0],
+    "Shift Points Map RPM": [
+      [ 0, 2200 ],
+      [ 1000, 2200 ],
+      [ 1000, 2200 ],
+      [ 1000, 2200 ],
+      [ 1000, 2200 ],
+      [ 1000, 2200 ],
+      [ 1000, 2200 ],
+      [ 1000, 2200 ],
+      [ 1000, 2200 ]
+    ]
+  }
+}

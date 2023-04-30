@@ -91,6 +91,7 @@ def main() :
 
     # Simulation loop
     while vis.Run() :
+        time = rig.GetVehicle().GetChTime()
 
         # Render scene
         vis.BeginScene()

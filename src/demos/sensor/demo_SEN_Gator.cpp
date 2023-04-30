@@ -29,7 +29,6 @@
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/gator/Gator.h"
-#include "chrono_models/vehicle/gator/Gator_SimplePowertrain.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 

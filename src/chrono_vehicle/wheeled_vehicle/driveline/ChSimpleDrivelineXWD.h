@@ -56,9 +56,9 @@ class CH_VEHICLE_API ChSimpleDrivelineXWD : public ChDrivelineWV {
 
     /// Update the driveline subsystem: apply the specified motor torque.
     /// This represents the input to the driveline subsystem from the powertrain system.
-    virtual void Synchronize(double time,                            ///< [in] current time
-                             const DriverInputs& driver_inputs,  ///< [in] current driver inputs
-                             double torque                           ///< [in] motor torque
+    virtual void Synchronize(double time,                        ///< current time
+                             const DriverInputs& driver_inputs,  ///< current driver inputs
+                             double driveshaft_torque            ///< input transmission torque
                              ) override;
 
     /// Get the motor torque to be applied to the specified spindle.
@@ -67,6 +67,10 @@ class CH_VEHICLE_API ChSimpleDrivelineXWD : public ChDrivelineWV {
     /// Disconnect driveline from driven wheels.
     virtual void Disconnect() override;
 
+    /// Return the output driveline speed of the driveshaft.
+    /// This represents the output from the driveline subsystem that is passed to the transmission subsystem.
+    virtual double GetOutputDriveshaftSpeed() const override { return m_driveshaft_speed; }
+
   protected:
     /// Return the torque bias ratio every axlewise differential.
     /// This is a simple model of a Torsen limited-slip differential.
@@ -74,9 +78,9 @@ class CH_VEHICLE_API ChSimpleDrivelineXWD : public ChDrivelineWV {
 
   private:
     bool m_connected;
-
-    std::vector<std::shared_ptr<ChShaft> > m_shaft_left;
-    std::vector<std::shared_ptr<ChShaft> > m_shaft_right;
+    double m_driveshaft_speed;                             ///< output to transmission
+    std::vector<std::shared_ptr<ChShaft> > m_shaft_left;   ///< associated left axles
+    std::vector<std::shared_ptr<ChShaft> > m_shaft_right;  ///< associated right axles
 };
 
 /// @} vehicle_wheeled_driveline

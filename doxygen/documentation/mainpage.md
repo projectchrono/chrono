@@ -43,6 +43,10 @@ Instructions on how to set up a project that uses Chrono.
 - [Chrono::SolidWorks](@ref introduction_chrono_solidworks)
 
   SolidWorks plugin for exporting CAD data to Chrono
+  
+- [Chrono::Blender](@ref introduction_chrono_blender)
+
+  Add-on for importing Chrono simulations in Blender for rigging, editing and rendering
 
 - [Visualization](@ref manual_visualization)  
 

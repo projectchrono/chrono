@@ -59,14 +59,6 @@ void ChTrackedVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassis
 }
 
 // -----------------------------------------------------------------------------
-// Initialize a powertrain system and associate it with this vehicle.
-// -----------------------------------------------------------------------------
-void ChTrackedVehicle::InitializePowertrain(std::shared_ptr<ChPowertrain> powertrain) {
-    m_powertrain = powertrain;
-    powertrain->Initialize(m_chassis);
-}
-
-// -----------------------------------------------------------------------------
 // Update the state of this vehicle at the current time.
 // The vehicle system is provided the current driver inputs (throttle between 0
 // and 1, steering between -1 and +1, braking between 0 and 1) and terrain
@@ -76,9 +68,11 @@ void ChTrackedVehicle::Synchronize(double time,
                                    const DriverInputs& driver_inputs,
                                    const TerrainForces& shoe_forces_left,
                                    const TerrainForces& shoe_forces_right) {
-    // Let the driveline combine driver inputs if needed.
-    double braking_left, braking_right;
-    m_driveline->CombineDriverInputs(driver_inputs, braking_left, braking_right);
+    // Let the driveline combine driver inputs if needed
+    double braking_left = 0;
+    double braking_right = 0;
+    if (m_driveline)
+        m_driveline->CombineDriverInputs(driver_inputs, braking_left, braking_right);
 
     // Apply contact track shoe forces and braking.
     // Attention: this function also zeroes out the applied torque to the sprocket axle
@@ -86,18 +80,18 @@ void ChTrackedVehicle::Synchronize(double time,
     m_tracks[LEFT]->Synchronize(time, braking_left, shoe_forces_left);
     m_tracks[RIGHT]->Synchronize(time, braking_right, shoe_forces_right);
 
-    double powertrain_torque = 0;
-    if (m_powertrain) {
-        // Extract the torque from the powertrain.
-        powertrain_torque = m_powertrain->GetOutputTorque();
-        // Synchronize the associated powertrain system (pass throttle input).
-        m_powertrain->Synchronize(time, driver_inputs, m_driveline->GetDriveshaft()->GetPos_dt());
-    }
+    double powertrain_torque = m_powertrain_assembly ? m_powertrain_assembly->GetOutputTorque() : 0;
+    double driveline_speed = m_driveline ? m_driveline->GetOutputDriveshaftSpeed() : 0;
 
-    // Apply powertrain torque to the driveline's input shaft.
-    m_driveline->Synchronize(time, driver_inputs, powertrain_torque);
+    // Set driveshaft speed for the transmission output shaft
+    if (m_powertrain_assembly)
+        m_powertrain_assembly->Synchronize(time, driver_inputs, driveline_speed);
 
-    // Pass the steering input to any chassis connectors (in case one of them is actuated).
+    // Apply powertrain torque to the driveline's input shaft
+    if (m_driveline)
+        m_driveline->Synchronize(time, driver_inputs, powertrain_torque);
+
+    // Pass the steering input to any chassis connectors (in case one of them is actuated)
     for (auto& connector : m_chassis_connectors) {
         connector->Synchronize(time, driver_inputs);
     }
@@ -106,7 +100,7 @@ void ChTrackedVehicle::Synchronize(double time,
     for (auto& c : m_chassis_rear)
         c->Synchronize(time);
 
-    // If in use, reset the collision manager.
+    // If in use, reset the collision manager
     if (m_collision_manager)
         m_collision_manager->Reset();
 }
@@ -115,9 +109,9 @@ void ChTrackedVehicle::Synchronize(double time,
 // Advance the state of this vehicle by the specified time step.
 // -----------------------------------------------------------------------------
 void ChTrackedVehicle::Advance(double step) {
-    if (m_powertrain) {
+    if (m_powertrain_assembly) {
         // Advance state of the associated powertrain.
-        m_powertrain->Advance(step);
+        m_powertrain_assembly->Advance(step);
     }
 
     // Invoke base class function to advance state of underlying Chrono system.

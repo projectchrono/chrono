@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [Chrono::Vehicle engine and transmission templates](#changed-chronovehicle-engine-and-transmission-templates)
   - [New generic template for wheeled suspension subsystems](#added-new-generic-template-for-wheeled-suspension-subsystems)
   - [CMake configuration and utility build scripts](#changed-cmake-configuration-and-utility-build-scripts)
   - [SPHTerrain - continuum representation method for deformable terrain](#added-sphterrain---continuum-representation-method-for-deformable-terrain)
@@ -16,7 +17,7 @@ Change Log
   - [Chrono::Sensor features and updates](#added-chronosensor-features-and-updates)
   - [Closed-loop vehicle paths](#fixed-closed-loop-vehicle-paths)
   - [Miscellaneous Chrono::Vehicle extensions](#added-miscellaneous-chronovehicle-extensions)
-  - [Chrono:Fsi API changes](#changed-chronofsi-api-changes)
+  - [Chrono::Fsi API changes](#changed-chronofsi-api-changes)
   - [User-defined SMC contact force calculation](#added-user-defined-smc-contact-force-calculation)
   - [Redesigned run-time visualization system](#changed-redesigned-run-time-visualization-system)
   - [Vehicle inertia properties](#changed-vehicle-inertia-properties)
@@ -78,6 +79,26 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Changed] Chrono::Vehicle engine and transmission templates
+
+New Chrono::Vehicle templates for the engine and transmission subsystems replace the old powertrain template. The new templates maintain the same modellling capabilities, but allow more flexibility in mixing and matching different models of engines with different transmission models. The coupling between an engine and a transmission is done at the motorshaft, with the engine providing the torque on this shaft and the transmission specifying the angular speed of the shaft. For interfacing with the vehicle system, an aggregate class, ChPowertrainAssembly, manages an engine and transmission and intermediates the coupling with a driveline vehicle subsystem through the driveshaft connecting the transmission to the driveline.
+
+The following engine templates are available:
+  - ChEngineShafts - template for modeling an engine using 1-D shaft elements and engine torque-speed maps including maps for engine losses.
+  - ChEngineSimpleMap - template for a kinematic engine model based on torque-speed maps.
+  - ChEngineSimple - template for a kinematic engine model based on a linear torque-speed dependency.
+
+  The following templates for automatic transmissions are available:
+  - ChAutomaticTransmissionShafts - template for modelling an automatic transmission using 1-D shaft elements and a torque converter specified through the capacity factor and torque ratio maps.
+  - ChAutomaticTransmissionSimpleMap - template for a kinematic model of an automatic transmission using shift maps.
+
+Any of the above engine models can be coupled with either transmission model, as well with any Chrono::Vehicle driveline model (for either a wheeled or tracked vehicle).
+
+While currently only templates for autmatic transmissions are implemented, the new code design allows introduction of manual transmissions which will be implemented at a later date.
+
+This code change requires modifications to any existing vehicle model, whether specified through a set of C++ classes providing concrete instantiations of various subsystem templates or else specified through a set of JSON files. Consult the vehicle models in the Chrono::Vehicle models library and the sample JSON specification files distributed with Chrono.
+
 
 ### [Added] New generic template for wheeled suspension subsystems
 

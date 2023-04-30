@@ -62,14 +62,17 @@ class TrackedVehicleDBPDriver : public ChDriver {
 // -----------------------------------------------------------------------------
 
 ChVehicleCosimTrackedVehicleNode::ChVehicleCosimTrackedVehicleNode(const std::string& vehicle_json,
-                                                                   const std::string& powertrain_json)
+                                                                   const std::string& engine_json,
+                                                                   const std::string& transmission_json)
     : ChVehicleCosimTrackedMBSNode(), m_init_yaw(0), m_chassis_fixed(false) {
     m_vehicle = chrono_types::make_shared<TrackedVehicle>(m_system, vehicle_json);
-    m_powertrain = ReadPowertrainJSON(powertrain_json);
+    auto engine = ReadEngineJSON(vehicle::GetDataFile(engine_json));
+    auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(transmission_json));
+    m_powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
 }
 
 ChVehicleCosimTrackedVehicleNode::ChVehicleCosimTrackedVehicleNode(std::shared_ptr<ChTrackedVehicle> vehicle,
-                                                                   std::shared_ptr<ChPowertrain> powertrain)
+                                                                   std::shared_ptr<ChPowertrainAssembly> powertrain)
     : ChVehicleCosimTrackedMBSNode(), m_init_yaw(0), m_chassis_fixed(false) {
     // Ensure the vehicle system has a null ChSystem
     if (vehicle->GetSystem())
@@ -86,13 +89,12 @@ ChVehicleCosimTrackedVehicleNode::~ChVehicleCosimTrackedVehicleNode() {}
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTrackedVehicleNode::InitializeMBS(const ChVector2<>& terrain_size,
-                                                     double terrain_height) {
+void ChVehicleCosimTrackedVehicleNode::InitializeMBS(const ChVector2<>& terrain_size, double terrain_height) {
     // Initialize vehicle
     ChCoordsys<> init_pos(m_init_loc + ChVector<>(0, 0, terrain_height), Q_from_AngZ(m_init_yaw));
 
     m_vehicle->Initialize(init_pos);
-    m_vehicle->GetChassis()->SetFixed(m_chassis_fixed);    
+    m_vehicle->GetChassis()->SetFixed(m_chassis_fixed);
     m_vehicle->SetChassisVisualizationType(VisualizationType::MESH);
     m_vehicle->SetSprocketVisualizationType(VisualizationType::MESH);
     m_vehicle->SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
@@ -177,7 +179,7 @@ void ChVehicleCosimTrackedVehicleNode::PreAdvance() {
 }
 
 void ChVehicleCosimTrackedVehicleNode::ApplyTrackShoeForce(int track_id, int shoe_id, const TerrainForce& force) {
-    // Cache the track shoe force. 
+    // Cache the track shoe force.
     // Forces acting on all track shoes will be applied during synchronization of the vehicle system (in PreAdvance)
     m_shoe_forces[track_id][shoe_id] = force;
 }
@@ -218,23 +220,23 @@ void ChVehicleCosimTrackedVehicleNode::OnOutputData(int frame) {
 
 void ChVehicleCosimTrackedVehicleNode::WriteBodyInformation(utils::CSV_writer& csv) {
     //// RADU TODO
-/*
+    /*
 
-    // Write number of bodies
-    csv << 1 + m_num_spindles << endl;
+        // Write number of bodies
+        csv << 1 + m_num_spindles << endl;
 
-    // Write body state information
-    auto chassis = m_vehicle->GetChassisBody();
-    csv << chassis->GetPos() << chassis->GetRot() << chassis->GetPos_dt() << chassis->GetRot_dt() << endl;
+        // Write body state information
+        auto chassis = m_vehicle->GetChassisBody();
+        csv << chassis->GetPos() << chassis->GetRot() << chassis->GetPos_dt() << chassis->GetRot_dt() << endl;
 
-    for (auto& axle : m_vehicle->GetAxles()) {
-        for (auto& wheel : axle->GetWheels()) {
-            auto spindle_body = wheel->GetSpindle();
-            csv << spindle_body->GetPos() << spindle_body->GetRot() << spindle_body->GetPos_dt()
-                << spindle_body->GetRot_dt() << endl;
+        for (auto& axle : m_vehicle->GetAxles()) {
+            for (auto& wheel : axle->GetWheels()) {
+                auto spindle_body = wheel->GetSpindle();
+                csv << spindle_body->GetPos() << spindle_body->GetRot() << spindle_body->GetPos_dt()
+                    << spindle_body->GetRot_dt() << endl;
+            }
         }
-    }
-*/
+    */
 }
 
 }  // end namespace vehicle

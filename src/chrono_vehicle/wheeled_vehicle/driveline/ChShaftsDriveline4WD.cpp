@@ -37,6 +37,7 @@ ChShaftsDriveline4WD::ChShaftsDriveline4WD(const std::string& name)
 ChShaftsDriveline4WD::~ChShaftsDriveline4WD() {
     auto sys = m_central_differential->GetSystem();
     if (sys) {
+        sys->Remove(m_driveshaft);
         sys->Remove(m_central_differential);
         sys->Remove(m_central_clutch);
         sys->Remove(m_front_shaft);
@@ -59,6 +60,8 @@ ChShaftsDriveline4WD::~ChShaftsDriveline4WD() {
 void ChShaftsDriveline4WD::Initialize(std::shared_ptr<ChChassis> chassis,
                                       const ChAxleList& axles,
                                       const std::vector<int>& driven_axles) {
+    ChDriveline::Initialize(chassis);
+
     assert(axles.size() >= 2);
     assert(driven_axles.size() == 2);
 
@@ -67,33 +70,25 @@ void ChShaftsDriveline4WD::Initialize(std::shared_ptr<ChChassis> chassis,
     auto chassisBody = chassis->GetBody();
     auto sys = chassisBody->GetSystem();
 
-    // Create the driveshaft, a 1 d.o.f. object with rotational inertia which
-    // represents the connection of the driveline to the transmission box.
+    // Create the driveshaft for the connection of the driveline to the transmission box.
     m_driveshaft = chrono_types::make_shared<ChShaft>();
     m_driveshaft->SetInertia(GetDriveshaftInertia());
     sys->AddShaft(m_driveshaft);
 
-    // Create a 1 d.o.f. object: a 'shaft' with rotational inertia.
-    // This represents the shaft that connecting central differential to front
-    // differential.
+    // Create the shaft connecting the central differential to the front differential.
     m_front_shaft = chrono_types::make_shared<ChShaft>();
     m_front_shaft->SetInertia(GetToFrontDiffShaftInertia());
     sys->AddShaft(m_front_shaft);
 
-    // Create a 1 d.o.f. object: a 'shaft' with rotational inertia.
-    // This represents the shaft that connecting central differential to rear
-    // differential.
+    // Create the shaft that connecting the central differential to the rear differential.
     m_rear_shaft = chrono_types::make_shared<ChShaft>();
     m_rear_shaft->SetInertia(GetToRearDiffShaftInertia());
     sys->AddShaft(m_rear_shaft);
 
-    // Create the central differential, i.e. an epicycloidal mechanism that
-    // connects three rotating members. This class of mechanisms can be simulated
-    // using ChShaftsPlanetary; a proper 'ordinary' transmission ratio t0 must be
-    // assigned according to Willis formula. For a differential, t0=-1.
+    // Create the central differential, i.e. an epicycloidal mechanism that connects three rotating members.
+    // A proper 'ordinary' transmission ratio t0 must be set according to Willis formula. For a differential, t0=-1.
     m_central_differential = chrono_types::make_shared<ChShaftsPlanetary>();
-    m_central_differential->Initialize(m_driveshaft,  // the carrier
-                                       m_rear_shaft, m_front_shaft);
+    m_central_differential->Initialize(m_driveshaft, m_rear_shaft, m_front_shaft);
     m_central_differential->SetTransmissionRatioOrdinary(-1.0);
     sys->Add(m_central_differential);
 
@@ -202,6 +197,11 @@ void ChShaftsDriveline4WD::Initialize(std::shared_ptr<ChChassis> chassis,
     // Central differential
     double omega_driveshaft = 0.5 * (omega_front_shaft + omega_rear_shaft);
     m_driveshaft->SetPos_dt(omega_driveshaft);
+}
+
+// -----------------------------------------------------------------------------
+void ChShaftsDriveline4WD::Synchronize(double time, const DriverInputs& driver_inputs, double driveshaft_torque) {
+    m_driveshaft->SetAppliedTorque(driveshaft_torque);
 }
 
 // -----------------------------------------------------------------------------

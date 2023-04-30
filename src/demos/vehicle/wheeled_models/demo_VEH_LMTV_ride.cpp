@@ -27,8 +27,8 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RandomSurfaceTerrain.h"
 #ifdef USE_IRRLICHT
-#include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
-#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
+    #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 #endif
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
@@ -414,8 +414,8 @@ int main(int argc, char* argv[]) {
             // std::cout << time << std::endl;
             csv << time;
             csv << driver_inputs.m_throttle;
-            csv << lmtv.GetVehicle().GetPowertrain()->GetMotorSpeed();
-            csv << lmtv.GetVehicle().GetPowertrain()->GetCurrentTransmissionGear();
+            csv << lmtv.GetVehicle().GetEngine()->GetMotorSpeed();
+            csv << lmtv.GetVehicle().GetTransmission()->GetCurrentGear();
             for (int axle = 0; axle < 2; axle++) {
                 csv << lmtv.GetVehicle().GetDriveline()->GetSpindleTorque(axle, LEFT);
                 csv << lmtv.GetVehicle().GetDriveline()->GetSpindleTorque(axle, RIGHT);
@@ -435,7 +435,7 @@ int main(int argc, char* argv[]) {
                 }
             }
 
-            csv << lmtv.GetVehicle().GetPowertrain()->GetMotorTorque();
+            csv << lmtv.GetVehicle().GetEngine()->GetOutputMotorshaftTorque();
 
             csv << std::endl;
         }

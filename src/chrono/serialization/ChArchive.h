@@ -87,7 +87,7 @@ public:
         /// - the constructor embedded in an (optional) static member function ArchiveINconstructor, if implemented
         /// The latter is expected to a) deserialize constructor parameters, b) create a new obj as pt2Object = new myclass(params..).
         /// If classname not registered, call default constructor via new(T) or call construction via T::ArchiveINconstructor()    
-    virtual void CallArchiveInConstructor(ChArchiveIn& marchive, const char* classname)=0;
+    virtual void CallConstructor(ChArchiveIn& marchive, const char* classname)=0;
 
         /// Use this to create a new object as pt2Object = new myclass(), but using the class factory for polymorphic classes.
         /// If classname not registered, creates simply via new(T).
@@ -118,8 +118,8 @@ public:
       virtual void CallArchiveIn(ChArchiveIn& marchive)
         { this->_archive_in(marchive);}
 
-      virtual void CallArchiveInConstructor(ChArchiveIn& marchive, const char* classname)
-        { throw (ChExceptionArchive( "Cannot call CallArchiveInConstructor() for a constructed object.")); };
+      virtual void CallConstructor(ChArchiveIn& marchive, const char* classname)
+        { throw (ChExceptionArchive( "Cannot call CallConstructor() for a constructed object.")); };
 
       virtual void CallConstructorDefault(const char* classname) 
         { throw (ChExceptionArchive( "Cannot call CallConstructorDefault() for a constructed object.")); };
@@ -162,8 +162,8 @@ public:
       virtual void CallArchiveIn(ChArchiveIn& marchive)
         { this->_archive_in(marchive);}
 
-      virtual void CallArchiveInConstructor(ChArchiveIn& marchive, const char* classname) 
-        { this->_archive_in_constructor(marchive, classname); }
+      virtual void CallConstructor(ChArchiveIn& marchive, const char* classname) 
+        { this->_constructor(marchive, classname); }
 
       virtual void CallConstructorDefault(const char* classname)  
         { this->_constructor_default(classname);  }
@@ -181,7 +181,7 @@ private:
 
         template <class Tc=TClass>
         typename enable_if< ChDetect_ArchiveINconstructor<Tc>::value, void >::type
-        _archive_in_constructor(ChArchiveIn& marchive, const char* classname) {
+        _constructor(ChArchiveIn& marchive, const char* classname) {
             if (ChClassFactory::IsClassRegistered(std::string(classname)))
                 ChClassFactory::create(std::string(classname), marchive, pt2Object);
             else
@@ -189,7 +189,7 @@ private:
         }
         template <class Tc=TClass>
         typename enable_if< !ChDetect_ArchiveINconstructor<Tc>::value, void >::type 
-        _archive_in_constructor(ChArchiveIn& marchive, const char* classname) {
+        _constructor(ChArchiveIn& marchive, const char* classname) {
             this->CallConstructorDefault(classname);
         }
 

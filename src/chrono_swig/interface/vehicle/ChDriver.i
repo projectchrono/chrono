@@ -13,6 +13,7 @@
 #include "chrono_vehicle/utils/ChSteeringController.h"
 #include "chrono_vehicle/utils/ChAdaptiveSpeedController.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
+#include "chrono_vehicle/driver/ChInteractiveDriver.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/driver/ChPathFollowerACCDriver.h"
 #include "chrono_vehicle/driver/ChExternalDriver.h"
@@ -62,6 +63,7 @@
 
 %shared_ptr(chrono::vehicle::ChDriver)
 %shared_ptr(chrono::vehicle::ChDataDriver)
+%shared_ptr(chrono::vehicle::ChInteractiveDriver)
 %shared_ptr(chrono::vehicle::ChClosedLoopDriver)
 %shared_ptr(chrono::vehicle::ChPathFollowerDriver)
 %shared_ptr(chrono::vehicle::ChPathFollowerDriverXT)
@@ -98,6 +100,7 @@
 %include "../../../chrono/utils/ChUtilsChaseCamera.h"
 %include "../../../chrono_vehicle/ChDriver.h"
 %include "../../../chrono_vehicle/driver/ChDataDriver.h"
+%include "../../../chrono_vehicle/driver/ChInteractiveDriver.h"
 %include "../../../chrono_vehicle/driver/ChPathFollowerDriver.h"
 %include "../../../chrono_vehicle/driver/ChPathFollowerACCDriver.h"
 %include "../../../chrono_vehicle/driver/ChExternalDriver.h"
@@ -119,6 +122,9 @@
 %include "vector2d.h"
 %include "dimension2d.h"
 %template(dimension2du) irr::core::dimension2d<irr::u32>;
+
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChInteractiveDriver, ChInteractiveDriverIRR)
+
 #endif
 
 #endif             // --------------------------------------------------------------------- PYTHON

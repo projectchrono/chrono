@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Rainer Gericke
 // =============================================================================
 //
 // Duro chassis subsystem.
@@ -34,7 +34,7 @@ const double Duro_Chassis::m_body_mass = 4900;
 const ChVector<> Duro_Chassis::m_body_inertiaXX(2629, 13484, 13502);
 const ChVector<> Duro_Chassis::m_body_inertiaXY(0, 0, 0);
 const ChVector<> Duro_Chassis::m_body_COM_loc(-2.2529, 0, 0.6586);
-const ChVector<> Duro_Chassis::m_connector_rear_loc(-3.88-1.37, 0, -0.3);
+const ChVector<> Duro_Chassis::m_connector_rear_loc(-3.88 - 1.37, 0, -0.3);
 const ChCoordsys<> Duro_Chassis::m_driverCsys(ChVector<>(-0.52, 0.7, 1.4), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------
@@ -86,7 +86,6 @@ Duro_Chassis::Duro_Chassis(const std::string& name, bool fixed, CollisionType ch
     }
 }
 
-}  // end namespace Duro
+}  // namespace duro
 }  // end namespace vehicle
 }  // end namespace chrono
-

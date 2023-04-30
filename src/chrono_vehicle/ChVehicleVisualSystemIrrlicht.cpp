@@ -206,9 +206,9 @@ void ChVehicleVisualSystemIrrlicht::Advance(double step) {
     static int stepsbetweensound = 0;
 
     // Update sound pitch
-    if (m_car_sound && m_vehicle->GetPowertrain()) {
+    if (m_car_sound && m_vehicle->GetPowertrainA()) {
         stepsbetweensound++;
-        double engine_rpm = m_vehicle->GetPowertrain()->GetMotorSpeed() * 60 / CH_C_2PI;
+        double engine_rpm = m_vehicle->GetPowertrainA()->GetEngine()->GetMotorSpeed() * 60 / CH_C_2PI;
         double soundspeed = engine_rpm / (4000.);  // denominator: to guess
         if (soundspeed < 0.1)
             soundspeed = 0.1;
@@ -289,40 +289,43 @@ void ChVehicleVisualSystemIrrlicht::renderStats() {
     sprintf(msg, "Speed(m/s): %+.2f", speed);
     renderLinGauge(std::string(msg), speed / 30, false, m_HUD_x, m_HUD_y + 30, 170, 15);
 
-    // Display information from powertrain system.
+    // Display information from powertrain system
+    const auto& powertrain = m_vehicle->GetPowertrainAssembly();
 
-    auto powertrain = m_vehicle->GetPowertrain();
     if (powertrain) {
-        double engine_rpm = powertrain->GetMotorSpeed() * 60 / CH_C_2PI;
+        const auto& engine = powertrain->GetEngine();
+        const auto& transmission = powertrain->GetTransmission();
+
+        double engine_rpm = engine->GetMotorSpeed() * 60 / CH_C_2PI;
         sprintf(msg, "Eng.speed(RPM): %+.2f", engine_rpm);
         renderLinGauge(std::string(msg), engine_rpm / 7000, false, m_HUD_x, m_HUD_y + 50, 170, 15);
 
-        double engine_torque = powertrain->GetMotorTorque();
+        double engine_torque = engine->GetOutputMotorshaftTorque();
         sprintf(msg, "Eng.torque(Nm): %+.2f", engine_torque);
         renderLinGauge(std::string(msg), engine_torque / 600, false, m_HUD_x, m_HUD_y + 70, 170, 15);
 
-        double tc_slip = powertrain->GetTorqueConverterSlippage();
+        double tc_slip = transmission->GetTorqueConverterSlippage();
         sprintf(msg, "T.conv.slip: %+.2f", tc_slip);
         renderLinGauge(std::string(msg), tc_slip / 1, false, m_HUD_x, m_HUD_y + 90, 170, 15);
 
-        double tc_torquein = powertrain->GetTorqueConverterInputTorque();
+        double tc_torquein = transmission->GetTorqueConverterInputTorque();
         sprintf(msg, "T.conv.in(Nm): %+.2f", tc_torquein);
         renderLinGauge(std::string(msg), tc_torquein / 600, false, m_HUD_x, m_HUD_y + 110, 170, 15);
 
-        double tc_torqueout = powertrain->GetTorqueConverterOutputTorque();
+        double tc_torqueout = transmission->GetTorqueConverterOutputTorque();
         sprintf(msg, "T.conv.out(Nm): %+.2f", tc_torqueout);
         renderLinGauge(std::string(msg), tc_torqueout / 600, false, m_HUD_x, m_HUD_y + 130, 170, 15);
 
-        double tc_rpmout = powertrain->GetTorqueConverterOutputSpeed() * 60 / CH_C_2PI;
+        double tc_rpmout = transmission->GetTorqueConverterOutputSpeed() * 60 / CH_C_2PI;
         sprintf(msg, "T.conv.out(RPM): %+.2f", tc_rpmout);
         renderLinGauge(std::string(msg), tc_rpmout / 7000, false, m_HUD_x, m_HUD_y + 150, 170, 15);
 
         char msgT[5];
-        switch (powertrain->GetTransmissionMode()) {
-            case ChPowertrain::TransmissionMode::AUTOMATIC:
+        switch (transmission->GetMode()) {
+            case ChTransmission::Mode::AUTOMATIC:
                 sprintf(msgT, "[A]");
                 break;
-            case ChPowertrain::TransmissionMode::MANUAL:
+            case ChTransmission::Mode::MANUAL:
                 sprintf(msgT, "[M]");
                 break;
             default:
@@ -330,16 +333,16 @@ void ChVehicleVisualSystemIrrlicht::renderStats() {
                 break;
         }
 
-        int ngear = powertrain->GetCurrentTransmissionGear();
-        ChPowertrain::DriveMode drivemode = powertrain->GetDriveMode();
+        int ngear = transmission->GetCurrentGear();
+        ChTransmission::DriveMode drivemode = transmission->GetDriveMode();
         switch (drivemode) {
-            case ChPowertrain::DriveMode::FORWARD:
+            case ChTransmission::DriveMode::FORWARD:
                 sprintf(msg, "%s Gear: Forward %d", msgT, ngear);
                 break;
-            case ChPowertrain::DriveMode::NEUTRAL:
+            case ChTransmission::DriveMode::NEUTRAL:
                 sprintf(msg, "%s Gear: Neutral", msgT);
                 break;
-            case ChPowertrain::DriveMode::REVERSE:
+            case ChTransmission::DriveMode::REVERSE:
                 sprintf(msg, "%s Gear: Reverse", msgT);
                 break;
             default:

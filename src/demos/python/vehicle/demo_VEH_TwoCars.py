@@ -44,7 +44,8 @@ def main():
     # Create and initialize the first vehicle
     hmmwv_1 = veh.HMMWV_Reduced(sys)
     hmmwv_1.SetInitPosition(chrono.ChCoordsysD(chrono.ChVectorD(0, -1.5, 1.0), chrono.ChQuaternionD(1, 0, 0, 0)))
-    hmmwv_1.SetPowertrainType(veh.PowertrainModelType_SIMPLE)
+    hmmwv_1.SetEngineType(veh.EngineModelType_SIMPLE)
+    hmmwv_1.SetTransmissionType(veh.TransmissionModelType_SIMPLE_MAP)
     hmmwv_1.SetDriveType(veh.DrivelineTypeWV_RWD)
     hmmwv_1.SetTireType(veh.TireModelType_RIGID)
     hmmwv_1.Initialize()
@@ -54,11 +55,11 @@ def main():
     hmmwv_1.SetWheelVisualizationType(veh.VisualizationType_NONE)
     hmmwv_1.SetTireVisualizationType(veh.VisualizationType_PRIMITIVES)
 
-    driver_data_1 = veh.vector_Entry([veh.DataDriverEntry(0.0, 0.0, 0.0, 0.0), 
-                                      veh.DataDriverEntry(0.5, 0.0, 0.0, 0.0),
-                                      veh.DataDriverEntry(0.7, 0.3, 0.7, 0.0),
-                                      veh.DataDriverEntry(1.0, 0.3, 0.7, 0.0),
-                                      veh.DataDriverEntry(3.0, 0.5, 0.1, 0.0)
+    driver_data_1 = veh.vector_Entry([veh.DataDriverEntry(0.0, 0.0, 0.0, 0.0, 0.0), 
+                                      veh.DataDriverEntry(0.5, 0.0, 0.0, 0.0, 0.0),
+                                      veh.DataDriverEntry(0.7, 0.3, 0.7, 0.0, 0.0),
+                                      veh.DataDriverEntry(1.0, 0.3, 0.7, 0.0, 0.0),
+                                      veh.DataDriverEntry(3.0, 0.5, 0.1, 0.0, 0.0)
                                      ])
     driver_1 = veh.ChDataDriver(hmmwv_1.GetVehicle(), driver_data_1)
     driver_1.Initialize()
@@ -66,7 +67,8 @@ def main():
     # Create and initialize the second vehicle
     hmmwv_2 = veh.HMMWV_Reduced(sys)
     hmmwv_2.SetInitPosition(chrono.ChCoordsysD(chrono.ChVectorD(7, 1.5, 1.0), chrono.ChQuaternionD(1, 0, 0, 0)))
-    hmmwv_2.SetPowertrainType(veh.PowertrainModelType_SIMPLE)
+    hmmwv_2.SetEngineType(veh.EngineModelType_SIMPLE)
+    hmmwv_2.SetTransmissionType(veh.TransmissionModelType_SIMPLE_MAP)
     hmmwv_2.SetDriveType(veh.DrivelineTypeWV_RWD)
     hmmwv_2.SetTireType(veh.TireModelType_RIGID)
     hmmwv_2.Initialize()
@@ -76,11 +78,11 @@ def main():
     hmmwv_2.SetWheelVisualizationType(veh.VisualizationType_NONE)
     hmmwv_2.SetTireVisualizationType(veh.VisualizationType_PRIMITIVES)
 
-    driver_data_2 = veh.vector_Entry([veh.DataDriverEntry(0.0, 0.0, 0.0, 0.0), 
-                                      veh.DataDriverEntry(0.5, 0.0, 0.0, 0.0),
-                                      veh.DataDriverEntry(0.7, -0.3, 0.7, 0.0),
-                                      veh.DataDriverEntry(1.0, -0.3, 0.7, 0.0),
-                                      veh.DataDriverEntry(3.0, -0.5, 0.1, 0.0)
+    driver_data_2 = veh.vector_Entry([veh.DataDriverEntry(0.0, 0.0, 0.0, 0.0, 0.0), 
+                                      veh.DataDriverEntry(0.5, 0.0, 0.0, 0.0, 0.0),
+                                      veh.DataDriverEntry(0.7, -0.3, 0.7, 0.0, 0.0),
+                                      veh.DataDriverEntry(1.0, -0.3, 0.7, 0.0, 0.0),
+                                      veh.DataDriverEntry(3.0, -0.5, 0.1, 0.0, 0.0)
                                      ])
     driver_2 = veh.ChDataDriver(hmmwv_2.GetVehicle(), driver_data_2)
     driver_2.Initialize()

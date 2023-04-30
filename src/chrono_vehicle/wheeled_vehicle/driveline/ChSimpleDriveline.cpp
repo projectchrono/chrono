@@ -29,7 +29,8 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Construct a default 4WD simple driveline.
 // -----------------------------------------------------------------------------
-ChSimpleDriveline::ChSimpleDriveline(const std::string& name) : ChDrivelineWV(name), m_connected(true) {}
+ChSimpleDriveline::ChSimpleDriveline(const std::string& name)
+    : ChDrivelineWV(name), m_connected(true), m_driveshaft_speed(0) {}
 
 // -----------------------------------------------------------------------------
 // Initialize the driveline subsystem.
@@ -41,9 +42,7 @@ void ChSimpleDriveline::Initialize(std::shared_ptr<ChChassis> chassis,
     assert(driven_axles.size() == 2);
 
     // Create the driveshaft
-    m_driveshaft = chrono_types::make_shared<ChShaft>();
-    m_driveshaft->SetInertia(0.5);
-    chassis->GetSystem()->AddShaft(m_driveshaft);
+    ChDriveline::Initialize(chassis);
 
     m_driven_axles = driven_axles;
 
@@ -92,20 +91,19 @@ void differentialSplit(double torque,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSimpleDriveline::Synchronize(double time, const DriverInputs& driver_inputs, double torque) {
+void ChSimpleDriveline::Synchronize(double time, const DriverInputs& driver_inputs, double driveshaft_torque) {
     if (!m_connected)
         return;
 
-    // Enforce driveshaft speed 
+    // Set driveshaft speed (output to transmission)
     double speed_front = 0.5 * (m_front_left->GetPos_dt() + m_front_right->GetPos_dt());
     double speed_rear = 0.5 * (m_rear_left->GetPos_dt() + m_rear_right->GetPos_dt());
     double alpha = GetFrontTorqueFraction();
-    double driveshaft_speed = alpha * speed_front + (1 - alpha) * speed_rear;
-    m_driveshaft->SetPos_dt(driveshaft_speed);
+    m_driveshaft_speed = alpha * speed_front + (1 - alpha) * speed_rear;
 
     // Split the input torque front/back.
-    double torque_front = torque * GetFrontTorqueFraction();
-    double torque_rear = torque - torque_front;
+    double torque_front = driveshaft_torque * GetFrontTorqueFraction();
+    double torque_rear = driveshaft_torque - torque_front;
 
     // Split the axle torques for the corresponding left/right wheels and apply
     // them to the suspension wheel shafts.

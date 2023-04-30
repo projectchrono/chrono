@@ -52,7 +52,7 @@ void U401_TMsimpleTire::SetTMsimpleParams() {
     const double in2m = 0.0254;
     double h = 6.5 * in2m;
     double w = 6.5 * in2m;
-    double r = 1.0;
+    double r = h / w;
     double rimdia = 20.0 * in2m;
 
     double load = 1125.0 * lbs2N;

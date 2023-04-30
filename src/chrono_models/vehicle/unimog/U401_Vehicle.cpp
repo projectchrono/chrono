@@ -29,7 +29,6 @@
 #include "chrono_models/vehicle/unimog/U401_Driveline4WD.h"
 #include "chrono_models/vehicle/unimog/U401_PushPipeAxle.h"
 #include "chrono_models/vehicle/unimog/U401_RotaryArm.h"
-#include "chrono_models/vehicle/unimog/U401_SimpleMapPowertrain.h"
 #include "chrono_models/vehicle/unimog/U401_ToeBarPushPipeAxle.h"
 #include "chrono_models/vehicle/unimog/U401_Wheel.h"
 

@@ -1,0 +1,17 @@
+{
+  "Name": "UAZBUS Simple Map Transmission",
+  "Type": "Transmission",
+  "Template": "AutomaticTransmissionSimpleMap",
+
+  "Gear Box": {
+    "Reverse Gear Ratio": -0.191,
+    "Forward Gear Ratios": [0.125, 0.242, 0.379, 0.633, 1.0],
+    "Shift Points Map RPM": [
+      [ 1000, 3000 ],
+      [ 1200, 3700 ],
+      [ 1200, 3700 ],
+      [ 1200, 3700 ],
+      [ 1200, 4000 ]
+    ]
+  }
+}

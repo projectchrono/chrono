@@ -32,7 +32,7 @@ namespace duro {
 
 /// Rigid tire model for the Duro vehicle.
 class CH_MODELS_API Duro_RigidTire : public ChRigidTire {
-   public:
+  public:
     Duro_RigidTire(const std::string& name, bool use_mesh = false);
     ~Duro_RigidTire() {}
 
@@ -41,7 +41,7 @@ class CH_MODELS_API Duro_RigidTire : public ChRigidTire {
     virtual double GetTireMass() const override { return m_mass; }
     virtual ChVector<> GetTireInertia() const override { return m_inertia; }
 
-   private:
+  private:
     virtual void CreateContactMaterial(ChContactMethod contact_method) override;
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;

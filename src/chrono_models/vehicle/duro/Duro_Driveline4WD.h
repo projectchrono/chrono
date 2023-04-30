@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Rainer Gericke
 // =============================================================================
 //
 // Duro 4WD driveline model based on ChShaft objects.
@@ -32,7 +32,7 @@ namespace duro {
 
 /// Shafts-based 4-WD driveline for the Duro vehicle.
 class CH_MODELS_API Duro_Driveline4WD : public ChShaftsDriveline4WD {
-   public:
+  public:
     Duro_Driveline4WD(const std::string& name);
     ~Duro_Driveline4WD() {}
 
@@ -49,7 +49,7 @@ class CH_MODELS_API Duro_Driveline4WD : public ChShaftsDriveline4WD {
     virtual double GetAxleDifferentialLockingLimit() const override { return m_axle_differential_locking_limit; }
     virtual double GetCentralDifferentialLockingLimit() const override { return m_central_differential_locking_limit; }
 
-   private:
+  private:
     // Shaft inertias.
     static const double m_central_differentialbox_inertia;
     static const double m_front_differentialbox_inertia;

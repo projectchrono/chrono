@@ -19,13 +19,18 @@
 #ifndef CH_JSON_UTILS_H
 #define CH_JSON_UTILS_H
 
+#include <vector>
+
 #include "chrono/assets/ChColor.h"
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChVector.h"
 
+#include "chrono/motion_functions/ChFunction_Recorder.h"
+
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChChassis.h"
-#include "chrono_vehicle/ChPowertrain.h"
+#include "chrono_vehicle/ChEngine.h"
+#include "chrono_vehicle/ChTransmission.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChAntirollBar.h"
 #include "chrono_vehicle/wheeled_vehicle/ChBrake.h"
@@ -101,8 +106,11 @@ CH_VEHICLE_API std::shared_ptr<ChChassisRear> ReadChassisRearJSON(const std::str
 /// Load and return a chassis connector subsystem from the specified JSON file.
 CH_VEHICLE_API std::shared_ptr<ChChassisConnector> ReadChassisConnectorJSON(const std::string& filename);
 
-/// Load and return a powertrain subsystem from the specified JSON file.
-CH_VEHICLE_API std::shared_ptr<ChPowertrain> ReadPowertrainJSON(const std::string& filename);
+/// Load and return an engine subsystem from the specified JSON file.
+CH_VEHICLE_API std::shared_ptr<ChEngine> ReadEngineJSON(const std::string& filename);
+
+/// Load and return a transmission subsystem from the specified JSON file.
+CH_VEHICLE_API std::shared_ptr<ChTransmission> ReadTransmissionJSON(const std::string& filename);
 
 // -----------------------------------------------------------------------------
 
@@ -151,6 +159,31 @@ CH_VEHICLE_API std::shared_ptr<ChTrackSuspension> ReadTrackSuspensionJSON(const 
 
 /// Load and return a road-wheel from the specified JSON file.
 CH_VEHICLE_API std::shared_ptr<ChTrackWheel> ReadTrackWheelJSON(const std::string& filename);
+
+// -----------------------------------------------------------------------------
+
+/// Utility class for reading and setting an (x,y) map.
+class CH_VEHICLE_API ChMapData {
+  public:
+    /// Construct a ChMapData with an empty map.
+    ChMapData() : m_n(0) {}
+
+    /// Read data from the specified JSON object.
+    void Read(const rapidjson::Value& a);
+
+    /// Set the map data to the specified recorder function.
+    /// The map data is scaled by the specified factors.
+    void Set(ChFunction_Recorder& map, double x_factor = 1, double y_factor = 1) const;
+
+    /// Set the map data to the specified vector of pairs.
+    /// The map data is scaled by the specified factors.
+    void Set(std::vector<std::pair<double, double>>& vec, double x_factor = 1, double y_factor = 1) const;
+
+  private:
+    unsigned int m_n;
+    std::vector<double> m_x;
+    std::vector<double> m_y;
+};
 
 }  // end namespace vehicle
 }  // end namespace chrono

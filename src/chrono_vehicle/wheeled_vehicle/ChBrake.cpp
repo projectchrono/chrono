@@ -32,5 +32,12 @@ void ChBrake::InitializeInertiaProperties() {
 
 void ChBrake::UpdateInertiaProperties() {}
 
+void ChBrake::Initialize(std::shared_ptr<ChChassis> chassis,
+                         std::shared_ptr<ChSuspension> suspension,
+                         VehicleSide side) {
+    // Mark as initialized
+    m_initialized = true;
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -44,17 +44,11 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// Get the name of the vehicle system template.
     virtual std::string GetTemplateName() const override { return "TrackedVehicle"; }
 
-    /// Get the powertrain attached to this vehicle.
-    virtual std::shared_ptr<ChPowertrain> GetPowertrain() const override { return m_powertrain; }
-
     /// Get the specified suspension subsystem.
     std::shared_ptr<ChTrackAssembly> GetTrackAssembly(VehicleSide side) const { return m_tracks[side]; }
 
     /// Get a handle to the vehicle's driveline subsystem.
     std::shared_ptr<ChDrivelineTV> GetDriveline() const { return m_driveline; }
-
-    /// Get a handle to the vehicle's driveshaft body.
-    virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_driveline->GetDriveshaft(); }
 
     /// Get the number of suspensions in the specified track assembly.
     size_t GetNumTrackSuspensions(VehicleSide side) const { return m_tracks[side]->GetNumTrackSuspensions(); }
@@ -175,10 +169,6 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
                             double chassisFwdVel = 0         ///< [in] initial chassis forward velocity
                             ) override;
 
-    /// Initialize the given powertrain system and associate it to this vehicle.
-    /// The powertrain is initialized by connecting it to this vehicle's chassis and driveline shaft.
-    void InitializePowertrain(std::shared_ptr<ChPowertrain> powertrain);
-
     /// Calculate total vehicle mass.
     /// This function is called at the end of the vehicle initialization, but can also be called explicitly.
     virtual void InitializeInertiaProperties() override final;
@@ -235,7 +225,6 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
 
     std::shared_ptr<ChTrackAssembly> m_tracks[2];  ///< track assemblies (left/right)
     std::shared_ptr<ChDrivelineTV> m_driveline;    ///< driveline subsystem
-    std::shared_ptr<ChPowertrain> m_powertrain;    ///< associated powertrain system
 
     std::shared_ptr<ChTrackCollisionManager> m_collision_manager;  ///< manager for internal collisions
     std::shared_ptr<ChTrackContactManager> m_contact_manager;      ///< manager for internal contacts

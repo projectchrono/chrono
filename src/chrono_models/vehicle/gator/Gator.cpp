@@ -22,8 +22,10 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "chrono_models/vehicle/gator/Gator.h"
-#include "chrono_models/vehicle/gator/Gator_SimplePowertrain.h"
-////#include "chrono_models/vehicle/gator/Gator_SimpleMapPowertrain.h"
+#include "chrono_models/vehicle/gator/Gator_AutomaticTransmissionSimple.h"
+#include "chrono_models/vehicle/gator/Gator_AutomaticTransmissionSimpleMap.h"
+#include "chrono_models/vehicle/gator/Gator_EngineSimple.h"
+#include "chrono_models/vehicle/gator/Gator_EngineSimpleMap.h"
 #include "chrono_models/vehicle/gator/Gator_RigidTire.h"
 #include "chrono_models/vehicle/gator/Gator_TMeasyTire.h"
 
@@ -106,9 +108,18 @@ void Gator::Initialize() {
     }
 
     // Create and initialize the powertrain system
-    auto powertrain = chrono_types::make_shared<Gator_SimplePowertrain>("Powertrain");
-    ////auto powertrain = chrono_types::make_shared<Gator_SimpleMapPowertrain>("Powertrain");
-    m_vehicle->InitializePowertrain(powertrain);
+    if (true) { // set this to true/false to select one of the two powertrains below
+        auto engine = chrono_types::make_shared<Gator_EngineSimple>("Engine");
+        auto transmission = chrono_types::make_shared<Gator_AutomaticTransmissionSimple>("Transmission");
+        auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
+        m_vehicle->InitializePowertrain(powertrain);
+    }
+    else {
+        auto engine = chrono_types::make_shared<Gator_EngineSimpleMap>("Engine");
+        auto transmission = chrono_types::make_shared<Gator_AutomaticTransmissionSimpleMap>("Transmission");
+        auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
+        m_vehicle->InitializePowertrain(powertrain);
+    }
 
     // Create the tires and set parameters depending on type.
     switch (m_tire_type) {
