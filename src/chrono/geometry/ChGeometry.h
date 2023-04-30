@@ -64,7 +64,7 @@ class ChApi ChGeometry {
     };
 
     /// Axis-aligned bounding box.
-    struct AABB {
+    struct ChApi AABB {
         /// Default is an inverted bounding box.
         AABB();
 
