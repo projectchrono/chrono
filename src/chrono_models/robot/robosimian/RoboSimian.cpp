@@ -55,7 +55,7 @@ const Link PitchLink("robosim_pitch_link",
                      ChVector<>(-0.050402, 0.012816, 0.000000),
                      ChVector<>(0.000670, 0.000955, 0.000726),
                      ChVector<>(0.000062, 0.000000, 0.000000),
-                     {CylinderShape(ChVector<>(-0.07, 0, 0), Q_from_AngZ(CH_C_PI_2), 0.055, 0.07)});
+                     {CylinderShape(ChVector<>(-0.07, 0, 0), Q_from_AngY(CH_C_PI_2), 0.055, 0.07)});
 
 const Link RollLink("robosim_roll_link",
                     ChVector<>(0, 0, 0),
@@ -64,7 +64,7 @@ const Link RollLink("robosim_roll_link",
                     ChVector<>(0.066970, -0.090099, -0.000084),
                     ChVector<>(0.010580, 0.025014, 0.031182),
                     ChVector<>(-0.008765, -0.000002, 0.000007),
-                    {CylinderShape(ChVector<>(0.065, -0.12, 0), Q_from_AngZ(CH_C_PI_2), 0.055, 0.24),
+                    {CylinderShape(ChVector<>(0.065, -0.12, 0), Q_from_AngY(CH_C_PI_2), 0.055, 0.24),
                      CylinderShape(ChVector<>(0.0, -0.035, 0), QUNIT, 0.055, 0.075)});
 
 const Link RollLinkLast("robosim_roll_link",
@@ -74,7 +74,7 @@ const Link RollLinkLast("robosim_roll_link",
                         ChVector<>(0.066970, -0.090099, -0.000084),
                         ChVector<>(0.010580, 0.025014, 0.031182),
                         ChVector<>(-0.008765, -0.000002, 0.000007),
-                        {CylinderShape(ChVector<>(0.105, -0.12, 0), Q_from_AngZ(CH_C_PI_2), 0.055, 0.32),
+                        {CylinderShape(ChVector<>(0.105, -0.12, 0), Q_from_AngY(CH_C_PI_2), 0.055, 0.32),
                          CylinderShape(ChVector<>(0.0, -0.035, 0), QUNIT, 0.055, 0.075)});
 
 const Link RollLinkLastWheel("robosim_roll_link_w_wheel",
@@ -84,9 +84,9 @@ const Link RollLinkLastWheel("robosim_roll_link_w_wheel",
                              ChVector<>(0.066970, -0.090099, -0.000084),
                              ChVector<>(0.010580, 0.025014, 0.031182),
                              ChVector<>(-0.008765, -0.000002, 0.000007),
-                             {CylinderShape(ChVector<>(0.105, -0.12, 0), Q_from_AngZ(CH_C_PI_2), 0.055, 0.32),
-                              CylinderShape(ChVector<>(0.0, -0.035, 0), QUNIT, 0.055, 0.075),
-                              CylinderShape(ChVector<>(0.0, -0.19, 0), QUNIT, 0.080, 0.0375)});
+                             {CylinderShape(ChVector<>(0.105, -0.12, 0), Q_from_AngY(CH_C_PI_2), 0.055, 0.32),
+                              CylinderShape(ChVector<>(0.0, -0.035, 0), Q_from_AngX(CH_C_PI_2), 0.055, 0.075),
+                              CylinderShape(ChVector<>(0.0, -0.19, 0), Q_from_AngX(CH_C_PI_2), 0.080, 0.0375)});
 
 const Link FtAdapterLink("robosim_ft_adapter",
                          ChVector<>(0, 0, 0),
@@ -113,7 +113,7 @@ const Link WheelMountLink("robosim_wheel_mount",
                           ChVector<>(-0.005260, 0.042308, 0.000088),
                           ChVector<>(0.010977, 0.005330, 0.011405),
                           ChVector<>(0.000702, 0.000026, -0.000028),
-                          {CylinderShape(ChVector<>(0.12024, 0.02, 0), QUNIT, 0.0545, 0.175)});
+                          {CylinderShape(ChVector<>(0.12024, 0.02, 0), Q_from_AngX(CH_C_PI_2), 0.0545, 0.175)});
 
 const Link WheelLink("robosim_wheel",
                      ChVector<>(0, 0, 0),
@@ -122,7 +122,7 @@ const Link WheelLink("robosim_wheel",
                      ChVector<>(0.0, 0.0, -0.000229),
                      ChVector<>(0.006378, 0.006377, 0.009155),
                      ChVector<>(0, 0, 0),
-                     {CylinderShape(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2), 0.12, 0.123)});
+                     {CylinderShape(ChVector<>(0, 0, 0), QUNIT, 0.12, 0.123)});
 
 // List of links for front and rear legs
 //     name, link, body included?
@@ -932,8 +932,7 @@ void RS_Part::AddCollisionShapes() {
         m_body->GetCollisionModel()->AddBox(m_mat, hdims.x(), hdims.y(), hdims.z(), box.m_pos, box.m_rot);
     }
     for (const auto& cyl : m_cylinders) {
-        m_body->GetCollisionModel()->AddCylinder(m_mat, cyl.m_radius, cyl.m_radius, cyl.m_length / 2, cyl.m_pos,
-                                                 cyl.m_rot);
+        m_body->GetCollisionModel()->AddCylinder(m_mat, cyl.m_radius, cyl.m_length / 2, cyl.m_pos, cyl.m_rot);
     }
     for (const auto& mesh : m_meshes) {
         auto vis_mesh_file = GetChronoDataFile("robot/robosimian/obj/" + mesh.m_name + ".obj");
