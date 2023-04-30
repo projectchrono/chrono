@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -34,7 +34,7 @@ const std::string Duro_TMsimpleTire::m_meshFile_left = "duro/Duro_Tire.obj";
 const std::string Duro_TMsimpleTire::m_meshFile_right = "duro/Duro_Tire.obj";
 
 const double Duro_TMsimpleTire::m_mass = 34.4;
-const ChVector<> Duro_TMsimpleTire::m_inertia(3.34,    6.28,    3.34);
+const ChVector<> Duro_TMsimpleTire::m_inertia(3.34, 6.28, 3.34);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -45,9 +45,6 @@ Duro_TMsimpleTire::Duro_TMsimpleTire(const std::string& name) : ChTMsimpleTire(n
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void Duro_TMsimpleTire::SetTMsimpleParams() {
-
-    const double lbs2N = 4.4482216153;
-    
     const double in2m = 0.0254;
     double w = 0.275;
     double r = 0.8;
@@ -55,7 +52,7 @@ void Duro_TMsimpleTire::SetTMsimpleParams() {
 
     int li = 128;
     double load = GetTireMaxLoad(li);
-    
+
     GuessTruck80Par(load,   // tire load [N]
                     w,      // tire width [m]
                     r,      // aspect ratio []
@@ -86,7 +83,6 @@ void Duro_TMsimpleTire::RemoveVisualizationAssets() {
     ChTMsimpleTire::RemoveVisualizationAssets();
 }
 
-}  // namespace unimog
+}  // namespace duro
 }  // end namespace vehicle
 }  // end namespace chrono
-

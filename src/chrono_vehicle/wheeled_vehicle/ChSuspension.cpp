@@ -82,5 +82,15 @@ void ChSuspension::ApplyParkingBrake(bool brake) {
     m_revolute[1]->Lock(brake);
 }
 
+void ChSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
+                              std::shared_ptr<ChSubchassis> subchassis,
+                              std::shared_ptr<ChSteering> steering,
+                              const ChVector<>& location,
+                              double left_ang_vel,
+                              double right_ang_vel) {
+    // Mark as initialized
+    m_initialized = true;
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

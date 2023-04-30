@@ -64,7 +64,12 @@ ChLinkMateGeneric::ChLinkMateGeneric(const ChLinkMateGeneric& other) : ChLinkMat
     SetupLinkMask();
 }
 
-ChLinkMateGeneric::~ChLinkMateGeneric() {}
+ChLinkMateGeneric::~ChLinkMateGeneric() {
+    if (this->Kmatr != nullptr) {
+        delete this->Kmatr;
+        this->Kmatr = nullptr;
+    }
+}
 
 void ChLinkMateGeneric::SetConstrainedCoords(bool mc_x, bool mc_y, bool mc_z, bool mc_rx, bool mc_ry, bool mc_rz) {
     c_x = mc_x;
@@ -293,6 +298,88 @@ void ChLinkMateGeneric::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
 
     this->frame1 = mfr1;
     this->frame2 = mfr2;
+}
+
+void ChLinkMateGeneric::SetUseTangentStiffness(bool useKc) {
+
+    if (useKc && this->Kmatr == nullptr) {
+
+        this->Kmatr = new ChKblockGeneric(&Body1->Variables(), &Body2->Variables());
+
+    } else if (!useKc && this->Kmatr != nullptr) {
+
+        delete this->Kmatr;
+        this->Kmatr = nullptr;
+    }
+}
+
+void ChLinkMateGeneric::InjectKRMmatrices(ChSystemDescriptor& descriptor) {
+    if (!this->IsActive())
+        return;
+
+    if (this->Kmatr)
+        descriptor.InsertKblock(Kmatr);
+}
+
+void ChLinkMateGeneric::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+    if (!this->IsActive())
+        return;
+
+    if (this->Kmatr) {
+        ChMatrix33<> R_B1_W = Body1->GetA();
+        ChMatrix33<> R_B2_W = Body2->GetA();
+        //ChMatrix33<> R_F1_B1 = frame1.GetA();
+        //ChMatrix33<> R_F2_B2 = frame2.GetA();
+        ChFrame<> F1_W = this->frame1 >> (*this->Body1);
+        ChFrame<> F2_W = this->frame2 >> (*this->Body2);
+        ChMatrix33<> R_F1_W = F1_W.GetA();
+        ChMatrix33<> R_F2_W = F2_W.GetA();
+        ChVector<> P12_B2 = R_B2_W.transpose() * (F1_W.GetPos() - F2_W.GetPos());
+        ChFrame<> F1_wrt_F2;
+        F2_W.TransformParentToLocal(F1_W, F1_wrt_F2);
+
+        ChVector<> r_F1_B1 = this->frame1.GetPos();
+        ChVector<> r_F2_B2 = this->frame2.GetPos();
+        ChStarMatrix33<> rtilde_F1_B1(r_F1_B1);
+        ChStarMatrix33<> rtilde_F2_B2(r_F2_B2);
+
+        // Main part
+        ChMatrixDynamic<> Km;
+        Km.setZero(12, 12);
+        Km.block<3, 3>(0, 9) = -R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B2_W;
+        Km.block<3, 3>(3, 3) =
+            rtilde_F1_B1 * R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B1_W +
+            R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(this->P * gamma_m) * R_F2_W.transpose() * R_B1_W;
+        Km.block<3, 3>(3, 9) =
+            -rtilde_F1_B1 * R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B2_W -
+            R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(this->P * gamma_m) * R_F2_W.transpose() * R_B2_W;
+        Km.block<3, 3>(6, 9) = R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B2_W;
+
+        Km.block<3, 3>(9, 0) = R_B2_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose();
+        Km.block<3, 3>(9, 3) =
+            -R_B2_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B1_W * rtilde_F1_B1;
+        Km.block<3, 3>(9, 6) = -R_B2_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose();
+        Km.block<3, 3>(9, 9) = R_B2_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B2_W *
+                               ChStarMatrix33<>(P12_B2 + r_F2_B2);
+
+        double s_F1_F2 = F1_wrt_F2.GetRot().e0();
+        ChVector<> v_F1_F2 = F1_wrt_F2.GetRot().GetVector();
+        ChMatrix33<> I33;
+        I33.setIdentity();
+        ChMatrix33<> G = -0.25 * TensorProduct(gamma_m, v_F1_F2) -
+                         0.25 * ChStarMatrix33<>(gamma_m) * (s_F1_F2 * I33 + ChStarMatrix33<>(v_F1_F2));
+
+        // Stabilization part
+        ChMatrixDynamic<> Ks;
+        Ks.setZero(12, 12);
+        Ks.block<3, 3>(3, 3) = R_B1_W.transpose() * R_F2_W * G * R_F1_W.transpose() * R_B1_W;
+        Ks.block<3, 3>(3, 9) = -R_B1_W.transpose() * R_F2_W * G * R_F1_W.transpose() * R_B2_W;
+        Ks.block<3, 3>(9, 3) = -R_B2_W.transpose() * R_F2_W * G * R_F1_W.transpose() * R_B1_W;
+        Ks.block<3, 3>(9, 9) = R_B2_W.transpose() * R_F2_W * G * R_F1_W.transpose() * R_B2_W;
+
+        // The complete tangent stiffness matrix
+        this->Kmatr->Get_K() = (Km + Ks) * Kfactor;
+    }
 }
 
 //// STATE BOOKKEEPING FUNCTIONS
@@ -607,7 +694,7 @@ ChLinkMatePlane::ChLinkMatePlane(const ChLinkMatePlane& other) : ChLinkMateGener
 
 void ChLinkMatePlane::SetFlipped(bool doflip) {
     if (doflip != this->flipped) {
-        // swaps direction of X axis by flipping 180° the frame A (slave)
+        // swaps direction of X axis by flipping 180 deg the frame A (slave)
 
         ChFrame<> frameRotator(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y));
         this->frame1.ConcatenatePostTransformation(frameRotator);
@@ -680,7 +767,7 @@ ChLinkMateCoaxial::ChLinkMateCoaxial(const ChLinkMateCoaxial& other) : ChLinkMat
 
 void ChLinkMateCoaxial::SetFlipped(bool doflip) {
     if (doflip != flipped) {
-        // swaps direction of X axis by flipping 180° the frame A (slave)
+        // swaps direction of X axis by flipping 180 deg the frame A (slave)
 
         ChFrame<> frameRotator(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y));
         this->frame1.ConcatenatePostTransformation(frameRotator);
@@ -806,7 +893,7 @@ ChLinkMateParallel::ChLinkMateParallel(const ChLinkMateParallel& other) : ChLink
 
 void ChLinkMateParallel::SetFlipped(bool doflip) {
     if (doflip != flipped) {
-        // swaps direction of X axis by flipping 180° the frame A (slave)
+        // swaps direction of X axis by flipping 180 deg the frame A (slave)
 
         ChFrame<> frameRotator(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y));
         this->frame1.ConcatenatePostTransformation(frameRotator);

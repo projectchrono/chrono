@@ -34,6 +34,8 @@ UAZBUS::UAZBUS()
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
+      m_engineType(EngineModelType::SIMPLE_MAP),
+      m_transmissionType(TransmissionModelType::SIMPLE_MAP),
       m_brake_locking(false),
       m_brake_type(BrakeType::SIMPLE),
       m_tireType(TireModelType::RIGID),
@@ -50,6 +52,8 @@ UAZBUS::UAZBUS(ChSystem* system)
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
+      m_engineType(EngineModelType::SIMPLE_MAP),
+      m_transmissionType(TransmissionModelType::SIMPLE_MAP),
       m_brake_locking(false),
       m_brake_type(BrakeType::SIMPLE),
       m_tireType(TireModelType::RIGID),
@@ -89,8 +93,33 @@ void UAZBUS::Initialize() {
     }
 
     // Create and initialize the powertrain system
-    auto powertrain = chrono_types::make_shared<UAZBUS_SimpleMapPowertrain>("powertrain");
-    m_vehicle->InitializePowertrain(powertrain);
+    std::shared_ptr<ChEngine> engine;
+    std::shared_ptr<ChTransmission> transmission;
+    switch (m_engineType) {
+        case EngineModelType::SHAFTS:
+            // engine = chrono_types::make_shared<UAZBUS_EngineShafts>("Engine");
+            break;
+        case EngineModelType::SIMPLE_MAP:
+            engine = chrono_types::make_shared<UAZBUS_EngineSimpleMap>("Engine");
+            break;
+        case EngineModelType::SIMPLE:
+            // engine = chrono_types::make_shared<UAZBUS_EngineSimple>("Engine");
+            break;
+    }
+
+    switch (m_transmissionType) {
+        case TransmissionModelType::SHAFTS:
+            // transmission = chrono_types::make_shared<UAZBUS_AutomaticTransmissionShafts>("Transmission");
+            break;
+        case TransmissionModelType::SIMPLE_MAP:
+            transmission = chrono_types::make_shared<UAZBUS_AutomaticTransmissionSimpleMap>("Transmission");
+            break;
+    }
+
+    if (engine && transmission) {
+        auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
+        m_vehicle->InitializePowertrain(powertrain);
+    }
 
     // Create the tires and set parameters depending on type.
     switch (m_tireType) {

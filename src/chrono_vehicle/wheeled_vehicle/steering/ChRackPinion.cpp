@@ -48,6 +48,8 @@ ChRackPinion::~ChRackPinion() {
 void ChRackPinion::Initialize(std::shared_ptr<ChChassis> chassis,
                               const ChVector<>& location,
                               const ChQuaternion<>& rotation) {
+    ChSteering::Initialize(chassis, location, rotation);
+
     m_parent = chassis;
     m_rel_xform = ChFrame<>(location, rotation);
 

@@ -66,6 +66,8 @@ ChTrackShoeBand::ChTrackShoeBand(const std::string& name) : ChTrackShoe(name) {}
 void ChTrackShoeBand::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                                  const ChVector<>& location,
                                  const ChQuaternion<>& rotation) {
+    ChTrackShoe::Initialize(chassis, location, rotation);
+
     // Cache the postive (+x) tooth arc position and arc starting and ending angles
     ChVector2<> tooth_base_p(GetToothBaseLength() / 2, GetWebThickness() / 2);
     ChVector2<> tooth_tip_p(GetToothTipLength() / 2, GetToothHeight() + GetWebThickness() / 2);

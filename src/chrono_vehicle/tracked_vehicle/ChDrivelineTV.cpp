@@ -24,13 +24,7 @@
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChDrivelineTV::ChDrivelineTV(const std::string& name) : ChDriveline(name), m_gyration_mode(false) {}
-
-void ChDrivelineTV::Synchronize(double time, const DriverInputs& driver_inputs, double torque) { 
-    m_driveshaft->SetAppliedTorque(torque);
-}
 
 void ChDrivelineTV::LockDifferential(bool lock) {
     GetLog() << "WARNING: Differential locking not yet implemented for " << GetTemplateName() << "\n";

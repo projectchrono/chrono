@@ -1,0 +1,16 @@
+{
+  "Name": "VW Microbus Simple Map Transmission",
+  "Type": "Transmission",
+  "Template": "AutomaticTransmissionSimpleMap",
+
+  "Gear Box": {
+    "Reverse Gear Ratio": -0.272,
+    "Forward Gear Ratios": [0.243, 0.429, 0.677, 0.977],
+    "Shift Points Map RPM": [
+        [ 1000, 2210 ],
+        [ 1000, 2226 ],
+        [ 1000, 2225 ],
+        [ 1000, 2700 ]
+      ]
+  }
+}

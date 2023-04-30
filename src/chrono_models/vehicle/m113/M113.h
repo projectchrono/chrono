@@ -64,7 +64,8 @@ class CH_MODELS_API M113 {
         m_ancf_constrain_curvature = constrain_curvature;
     }
     void SetDrivelineType(DrivelineTypeTV driveline_type) { m_driveline_type = driveline_type; }
-    void SetPowertrainType(PowertrainModelType powertrain_type) { m_powertrain_type = powertrain_type; }
+    void SetEngineType(EngineModelType val) { m_engineType = val; }
+    void SetTransmissionType(TransmissionModelType val) { m_transmissionType = val; }
 
     void SetTrackBushings(bool val) { m_use_track_bushings = val; }
     void SetSuspensionBushings(bool val) { m_use_suspension_bushings = val; }
@@ -86,7 +87,6 @@ class CH_MODELS_API M113 {
     std::shared_ptr<ChChassis> GetChassis() const { return m_vehicle->GetChassis(); }
     std::shared_ptr<ChBodyAuxRef> GetChassisBody() const { return m_vehicle->GetChassisBody(); }
     std::shared_ptr<ChDrivelineTV> GetDriveline() const { return m_vehicle->GetDriveline(); }
-    std::shared_ptr<ChPowertrain> GetPowertrain() const { return m_vehicle->GetPowertrain(); }
 
     void Initialize();
 
@@ -123,7 +123,8 @@ class CH_MODELS_API M113 {
     int m_ancf_num_elements_length;
     int m_ancf_num_elements_width;
     DrivelineTypeTV m_driveline_type;
-    PowertrainModelType m_powertrain_type;
+    EngineModelType m_engineType;
+    TransmissionModelType m_transmissionType;
 
     bool m_use_track_bushings;
     bool m_use_suspension_bushings;

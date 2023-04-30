@@ -22,14 +22,14 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "chrono_models/vehicle/m113/M113_Chassis.h"
-#include "chrono_models/vehicle/m113/M113_DrivelineBDS.h"
-#include "chrono_models/vehicle/m113/M113_SimpleDriveline.h"
-#include "chrono_models/vehicle/m113/M113_TrackAssemblyBandBushing.h"
-#include "chrono_models/vehicle/m113/M113_TrackAssemblyDoublePin.h"
-#include "chrono_models/vehicle/m113/M113_TrackAssemblySinglePin.h"
-#include "chrono_models/vehicle/m113/M113_TrackAssemblyBandANCF.h"
 #include "chrono_models/vehicle/m113/M113_Vehicle.h"
+#include "chrono_models/vehicle/m113/M113_Chassis.h"
+#include "chrono_models/vehicle/m113/driveline/M113_DrivelineBDS.h"
+#include "chrono_models/vehicle/m113/driveline/M113_SimpleDriveline.h"
+#include "chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblyBandBushing.h"
+#include "chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblyDoublePin.h"
+#include "chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblySinglePin.h"
+#include "chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblyBandANCF.h"
 
 namespace chrono {
 namespace vehicle {

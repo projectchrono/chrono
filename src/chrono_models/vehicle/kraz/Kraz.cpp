@@ -22,6 +22,8 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline4WD.h"
 
+#include "chrono_vehicle/ChPowertrainAssembly.h"
+
 #include "chrono_models/vehicle/kraz/Kraz.h"
 
 namespace chrono {
@@ -35,6 +37,8 @@ Kraz::Kraz()
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
+      m_engineType(EngineModelType::SIMPLE_MAP),
+      m_transmissionType(TransmissionModelType::SIMPLE_MAP),
       m_tire_step_size(-1),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
@@ -47,6 +51,8 @@ Kraz::Kraz(ChSystem* system)
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
+      m_engineType(EngineModelType::SIMPLE_MAP),
+      m_transmissionType(TransmissionModelType::SIMPLE_MAP),
       m_tire_step_size(-1),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
@@ -94,8 +100,33 @@ void Kraz::Initialize() {
     m_trailer->Initialize(m_tractor->GetChassis());
 
     // Create and initialize the powertrain system
-    auto powertrain = chrono_types::make_shared<Kraz_tractor_Powertrain>("Powertrain");
-    m_tractor->InitializePowertrain(powertrain);
+    std::shared_ptr<ChEngine> engine;
+    std::shared_ptr<ChTransmission> transmission;
+    switch (m_engineType) {
+        case EngineModelType::SHAFTS:
+            // engine = chrono_types::make_shared<Kraz_tractor_EngineShafts>("Engine");
+            break;
+        case EngineModelType::SIMPLE_MAP:
+            engine = chrono_types::make_shared<Kraz_tractor_EngineSimpleMap>("Engine");
+            break;
+        case EngineModelType::SIMPLE:
+            // engine = chrono_types::make_shared<Kraz_tractor_EngineSimple>("Engine");
+            break;
+    }
+
+    switch (m_transmissionType) {
+        case TransmissionModelType::SHAFTS:
+            // transmission = chrono_types::make_shared<Kraz_tractor_AutomaticTransmissionShafts>("Transmission");
+            break;
+        case TransmissionModelType::SIMPLE_MAP:
+            transmission = chrono_types::make_shared<Kraz_tractor_AutomaticTransmissionSimpleMap>("Transmission");
+            break;
+    }
+
+    if (engine && transmission) {
+        auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
+        m_tractor->InitializePowertrain(powertrain);
+    }
 
     // Create the tractor tires
     auto tire_FL = chrono_types::make_shared<Kraz_tractor_Tire>("TractorTire_FL");

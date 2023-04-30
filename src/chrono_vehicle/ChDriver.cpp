@@ -29,21 +29,16 @@
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChDriver::ChDriver(ChVehicle& vehicle)
-    : m_vehicle(vehicle), m_throttle(0), m_steering(0), m_braking(0), m_log_filename("") {
+    : m_vehicle(vehicle), m_throttle(0), m_steering(0), m_braking(0), m_clutch(0), m_log_filename("") {
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+// Get current driver inputs
 DriverInputs ChDriver::GetInputs() const {
-    return { m_steering, m_throttle, m_braking };
+    return { m_steering, m_throttle, m_braking, m_clutch };
 }
 
-// -----------------------------------------------------------------------------
 // Initialize output file for recording deriver inputs.
-// -----------------------------------------------------------------------------
 bool ChDriver::LogInit(const std::string& filename) {
     m_log_filename = filename;
 
@@ -51,14 +46,12 @@ bool ChDriver::LogInit(const std::string& filename) {
     if (!ofile)
         return false;
 
-    ofile << "Time\tSteering\tThrottle\tBraking\n";
+    ofile << "Time\tSteering\tThrottle\tBraking\tClutch\n";
     ofile.close();
     return true;
 }
 
-// -----------------------------------------------------------------------------
 // Record the current driver inputs to the log file.
-// -----------------------------------------------------------------------------
 bool ChDriver::Log(double time) {
     if (m_log_filename.empty())
         return false;
@@ -67,25 +60,25 @@ bool ChDriver::Log(double time) {
     if (!ofile)
         return false;
 
-    ofile << time << "\t" << m_steering << "\t" << m_throttle << "\t" << m_braking << std::endl;
+    ofile << time << "\t" << m_steering << "\t" << m_throttle << "\t" << m_braking << "\t" << m_clutch << std::endl;
     ofile.close();
     return true;
 }
 
-// -----------------------------------------------------------------------------
-// Clamp a specified input value to appropriate interval.
-// -----------------------------------------------------------------------------
-void ChDriver::SetSteering(double val, double min_val, double max_val) {
-    m_steering = ChClamp(val, min_val, max_val);
+// Set driver inputs and clamp the specified value to the appropriate interval
+void ChDriver::SetSteering(double steering) {
+    m_steering = ChClamp(steering, -1.0, 1.0);
+}
+void ChDriver::SetThrottle(double throttle) {
+    m_throttle = ChClamp(throttle, 0.0, 1.0);
+}
+void ChDriver::SetBraking(double braking) {
+    m_braking = ChClamp(braking, 0.0, 1.0);
+}
+void ChDriver::SetClutch(double clutch) {
+    m_clutch = ChClamp(clutch, 0.0, 1.0);
 }
 
-void ChDriver::SetThrottle(double val, double min_val, double max_val) {
-    m_throttle = ChClamp(val, min_val, max_val);
-}
-
-void ChDriver::SetBraking(double val, double min_val, double max_val) {
-    m_braking = ChClamp(val, min_val, max_val);
-}
 
 }  // end namespace vehicle
 }  // end namespace chrono

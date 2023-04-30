@@ -31,7 +31,9 @@ def main() :
     vehicle.SetWheelVisualizationType(veh.VisualizationType_NONE)
 
     # Create and initialize the powertrain system
-    powertrain = veh.ReadPowertrainJSON(powertrain_file)
+    engine = veh.ReadEngineJSON(engine_file)
+    transmission = veh.ReadTransmissionJSON(transmission_file)
+    powertrain = veh.ChPowertrainAssembly(engine, transmission)
     vehicle.InitializePowertrain(powertrain)
 
     # Create and initialize the tires
@@ -112,7 +114,8 @@ rigidterrain_file = veh.GetDataFile('terrain/RigidPlane.json')
 
 # HMMWV specification files (vehicle, powertrain, and tire models)
 vehicle_file = veh.GetDataFile('hmmwv/vehicle/HMMWV_Vehicle.json')
-powertrain_file = veh.GetDataFile('hmmwv/powertrain/HMMWV_ShaftsPowertrain.json')
+engine_file = veh.GetDataFile('hmmwv/powertrain/HMMWV_EngineShafts.json')
+transmission_file = veh.GetDataFile('hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json')
 tire_file = veh.GetDataFile('hmmwv/tire/HMMWV_Pac02Tire.json')
 
 # ACV specification files (vehicle, powertrain, and tire models)

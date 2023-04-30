@@ -17,6 +17,8 @@
 // =============================================================================
 
 #include <fstream>
+#include <vector>
+#include <utility>
 
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
@@ -25,10 +27,11 @@
 #include "chrono_vehicle/chassis/ChassisConnectorArticulated.h"
 #include "chrono_vehicle/chassis/ChassisConnectorTorsion.h"
 
-#include "chrono_vehicle/powertrain/ShaftsPowertrain.h"
-#include "chrono_vehicle/powertrain/SimpleCVTPowertrain.h"
-#include "chrono_vehicle/powertrain/SimpleMapPowertrain.h"
-#include "chrono_vehicle/powertrain/SimplePowertrain.h"
+#include "chrono_vehicle/powertrain/EngineSimple.h"
+#include "chrono_vehicle/powertrain/EngineSimpleMap.h"
+#include "chrono_vehicle/powertrain/EngineShafts.h"
+#include "chrono_vehicle/powertrain/AutomaticTransmissionSimpleMap.h"
+#include "chrono_vehicle/powertrain/AutomaticTransmissionShafts.h"
 
 #include "chrono_vehicle/wheeled_vehicle/antirollbar/AntirollBarRSD.h"
 #include "chrono_vehicle/wheeled_vehicle/brake/BrakeSimple.h"
@@ -69,6 +72,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/TMsimpleTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/Pac89Tire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/Pac02Tire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/MFTire.h"
 #include "chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
 
 #include "chrono_vehicle/tracked_vehicle/brake/TrackBrakeSimple.h"
@@ -709,37 +713,64 @@ std::shared_ptr<ChChassisConnector> ReadChassisConnectorJSON(const std::string& 
     return connector;
 }
 
-std::shared_ptr<ChPowertrain> ReadPowertrainJSON(const std::string& filename) {
-    std::shared_ptr<ChPowertrain> powertrain;
+std::shared_ptr<ChEngine> ReadEngineJSON(const std::string& filename) {
+    std::shared_ptr<ChEngine> engine;
 
     Document d;
     ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
-    // Check that the given file is a powertrain specification file.
+    // Check that the given file is an engine specification file.
     assert(d.HasMember("Type"));
     std::string type = d["Type"].GetString();
-    assert(type.compare("Powertrain") == 0);
+    assert(type.compare("Engine") == 0);
 
-    // Extract the powertrain type.
+    // Extract the engine type.
     assert(d.HasMember("Template"));
     std::string subtype = d["Template"].GetString();
 
-    // Create the powertrain using the appropriate template.
-    if (subtype.compare("ShaftsPowertrain") == 0) {
-        powertrain = chrono_types::make_shared<ShaftsPowertrain>(d);
-    } else if (subtype.compare("SimpleCVTPowertrain") == 0) {
-        powertrain = chrono_types::make_shared<SimpleCVTPowertrain>(d);
-    } else if (subtype.compare("SimpleMapPowertrain") == 0) {
-        powertrain = chrono_types::make_shared<SimpleMapPowertrain>(d);
-    } else if (subtype.compare("SimplePowertrain") == 0) {
-        powertrain = chrono_types::make_shared<SimplePowertrain>(d);
+    // Create the engine using the appropriate template.
+    if (subtype.compare("EngineSimple") == 0) {
+        engine = chrono_types::make_shared<EngineSimple>(d);
+    } else if (subtype.compare("EngineSimpleMap") == 0) {
+        engine = chrono_types::make_shared<EngineSimpleMap>(d);
+    } else if (subtype.compare("EngineShafts") == 0) {
+        engine = chrono_types::make_shared<EngineShafts>(d);
     } else {
-        throw ChException("Powertrain type not supported in ReadChassisJSON.");
+        throw ChException("Engine type not supported in ReadEngineJSON.");
     }
 
-    return powertrain;
+    return engine;
+}
+
+std::shared_ptr<ChTransmission> ReadTransmissionJSON(const std::string& filename) {
+    std::shared_ptr<ChTransmission> transmission;
+
+    Document d;
+    ReadFileJSON(filename, d);
+    if (d.IsNull())
+        return nullptr;
+
+    // Check that the given file is a transmission specification file.
+    assert(d.HasMember("Type"));
+    std::string type = d["Type"].GetString();
+    assert(type.compare("Transmission") == 0);
+
+    // Extract the transmission type.
+    assert(d.HasMember("Template"));
+    std::string subtype = d["Template"].GetString();
+
+    // Create the transmission using the appropriate template.
+    if (subtype.compare("AutomaticTransmissionSimpleMap") == 0) {
+        transmission = chrono_types::make_shared<AutomaticTransmissionSimpleMap>(d);
+    } else if (subtype.compare("AutomaticTransmissionShafts") == 0) {
+        transmission = chrono_types::make_shared<AutomaticTransmissionShafts>(d);
+    } else {
+        throw ChException("Transmission type not supported in ReadTransmissionJSON.");
+    }
+
+    return transmission;
 }
 
 // -----------------------------------------------------------------------------
@@ -1005,12 +1036,14 @@ std::shared_ptr<ChTire> ReadTireJSON(const std::string& filename) {
         tire = chrono_types::make_shared<TMeasyTire>(d);
     } else if (subtype.compare("TMsimpleTire") == 0) {
         tire = chrono_types::make_shared<TMsimpleTire>(d);
-    }  else if (subtype.compare("FialaTire") == 0) {
+    } else if (subtype.compare("FialaTire") == 0) {
         tire = chrono_types::make_shared<FialaTire>(d);
     } else if (subtype.compare("Pac89Tire") == 0) {
         tire = chrono_types::make_shared<Pac89Tire>(d);
     } else if (subtype.compare("Pac02Tire") == 0) {
         tire = chrono_types::make_shared<Pac02Tire>(d);
+    } else if (subtype.compare("MFTire") == 0) {
+        tire = chrono_types::make_shared<MFTire>(d);
     } else if (subtype.compare("ANCFTire") == 0) {
         tire = chrono_types::make_shared<ANCFTire>(d);
     } else if (subtype.compare("ReissnerTire") == 0) {
@@ -1202,6 +1235,29 @@ std::shared_ptr<ChTrackWheel> ReadTrackWheelJSON(const std::string& filename) {
     }
 
     return wheel;
+}
+
+// -----------------------------------------------------------------------------
+
+void ChMapData::Read(const rapidjson::Value& a) {
+    assert(a.IsArray());
+    m_n = a.Size();
+    for (unsigned int i = 0; i < m_n; i++) {
+        m_x.push_back(a[i][0u].GetDouble());
+        m_y.push_back(a[i][1u].GetDouble());
+    }
+}
+
+void ChMapData::Set(ChFunction_Recorder& map, double x_factor, double y_factor) const {
+    for (unsigned int i = 0; i < m_n; i++) {
+        map.AddPoint(x_factor * m_x[i], y_factor * m_y[i]);
+    }
+}
+
+void ChMapData::Set(std::vector<std::pair<double, double>>& vec, double x_factor, double y_factor) const {
+    for (unsigned int i = 0; i < m_n; i++) {
+        vec.push_back(std::make_pair<double, double>(x_factor * m_x[i], y_factor * m_y[i]));
+    }
 }
 
 }  // end namespace vehicle

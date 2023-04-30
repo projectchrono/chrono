@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
     // frame for a ChBody).
     auto cyl_1 = chrono_types::make_shared<ChCylinderShape>(0.2, 2);
     cyl_1->SetColor(ChColor(0.6f, 0, 0));
-    pend_1->AddVisualShape(cyl_1, ChFrame(ChVector<>(), Q_from_AngY(CH_C_PI_2)));
+    pend_1->AddVisualShape(cyl_1, ChFrame<>(ChVector<>(), Q_from_AngY(CH_C_PI_2)));
 
     // Specify the initial position of the pendulum (horizontal, pointing towards
     // positive X). In this case, we set the absolute position of its center of

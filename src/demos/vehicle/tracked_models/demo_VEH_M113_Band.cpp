@@ -27,7 +27,6 @@
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBand.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyBandANCF.h"
 
-#include "chrono_models/vehicle/m113/M113_SimpleCVTPowertrain.h"
 #include "chrono_models/vehicle/m113/M113.h"
 
 #ifdef CHRONO_IRRLICHT
@@ -115,7 +114,8 @@ int main(int argc, char* argv[]) {
     m113.SetANCFTrackShoeElementType(element_type);
     m113.SetANCFTrackShoeNumElements(num_elements_length, num_elements_width);
     m113.SetANCFTrackShoeCurvatureConstraints(constrain_curvature);
-    m113.SetPowertrainType(PowertrainModelType::SIMPLE_CVT);
+    m113.SetEngineType(EngineModelType::SIMPLE_MAP);
+    m113.SetTransmissionType(TransmissionModelType::SIMPLE_MAP);
     m113.SetDrivelineType(DrivelineTypeTV::SIMPLE);
     m113.SetBrakeType(BrakeType::SIMPLE);
     m113.SetSuspensionBushings(false);

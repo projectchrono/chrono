@@ -248,7 +248,8 @@ int main(int argc, char* argv[]) {
     m113.SetTrackStiffness(use_track_RSDA);
     m113.SetDrivelineType(driveline_type);
     m113.SetBrakeType(brake_type);
-    m113.SetPowertrainType(powertrain_type);
+    m113.SetEngineType(EngineModelType::SIMPLE_MAP);
+    m113.SetTransmissionType(TransmissionModelType::SIMPLE_MAP);
     m113.SetChassisCollisionType(chassis_collision_type);
 
     m113.SetChassisFixed(fix_chassis);
@@ -519,7 +520,8 @@ int main(int argc, char* argv[]) {
     if (vehicle.GetNumTrackShoes(LEFT) > 0)
         std::cout << "Track shoe type: " << vehicle.GetTrackShoe(LEFT, 0)->GetTemplateName() << std::endl;
     std::cout << "Driveline type:  " << vehicle.GetDriveline()->GetTemplateName() << std::endl;
-    std::cout << "Powertrain type: " << m113.GetPowertrain()->GetTemplateName() << std::endl;
+    std::cout << "Engine type: " << m113.GetVehicle().GetEngine()->GetTemplateName() << std::endl;
+    std::cout << "Transmission type: " << m113.GetVehicle().GetTransmission()->GetTemplateName() << std::endl;
     std::cout << "Vehicle mass: " << vehicle.GetMass() << std::endl;
 
     vis->AttachVehicle(&m113.GetVehicle());

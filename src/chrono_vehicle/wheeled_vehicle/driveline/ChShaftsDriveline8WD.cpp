@@ -37,6 +37,7 @@ ChShaftsDriveline8WD::ChShaftsDriveline8WD(const std::string& name)
 ChShaftsDriveline8WD::~ChShaftsDriveline8WD() {
     auto sys = m_central_differential->GetSystem();
     if (sys) {
+        sys->Remove(m_driveshaft);
         sys->Remove(m_central_differential);
         sys->Remove(m_central_clutch);
 
@@ -63,41 +64,20 @@ ChShaftsDriveline8WD::~ChShaftsDriveline8WD() {
 void ChShaftsDriveline8WD::Initialize(std::shared_ptr<ChChassis> chassis,
                                       const ChAxleList& axles,
                                       const std::vector<int>& driven_axles) {
+    ChDriveline::Initialize(chassis);
+
     assert(axles.size() >= 4);
     assert(driven_axles.size() == 4);
 
     m_driven_axles = driven_axles;
 
-    Create(chassis, axles);
-
-    // Initialize shaft angular velocities based on the initial wheel angular velocities.
-    // Propagate from wheels to axle differentials to group differentials and finally to the central differential.
-
-    double omega_AD_inshaft[4];
-    for (int i = 0; i < 4; i++) {
-        double omega_L = axles[m_driven_axles[i]]->m_suspension->GetAxleSpeed(LEFT);
-        double omega_R = axles[m_driven_axles[i]]->m_suspension->GetAxleSpeed(RIGHT);
-
-        double omega_diffbox = 0.5 * (omega_L + omega_R);
-        m_AD_differentialbox[i]->SetPos_dt(omega_diffbox);
-
-        omega_AD_inshaft[i] = omega_diffbox / GetAxleDiffConicalGearRatio();
-        m_AD_inshaft[i]->SetPos_dt(omega_AD_inshaft[i]);
-    }
-
-    double omega_GD_inshaft[2];
-    for (int i = 0; i < 2; i++) {
-        omega_GD_inshaft[i] = 0.5 * (omega_AD_inshaft[2 *i] + omega_AD_inshaft[2*i+1]);
-        m_GD_inshaft[i]->SetPos_dt(omega_GD_inshaft[i]);
-    }
-
-    double omega_driveshaft = 0.5 * (omega_GD_inshaft[0] + omega_GD_inshaft[1]);
-    m_driveshaft->SetPos_dt(omega_driveshaft);
-}
-
-void ChShaftsDriveline8WD::Create(std::shared_ptr<ChChassis> chassis, const ChAxleList& axles) {
     auto chassisBody = chassis->GetBody();
     auto sys = chassisBody->GetSystem();
+
+    // Create the driveshaft for the connection of the driveline to the transmission box.
+    m_driveshaft = chrono_types::make_shared<ChShaft>();
+    m_driveshaft->SetInertia(GetDriveshaftInertia());
+    sys->AddShaft(m_driveshaft);
 
     // Create the 7 differentials. For a differential, the transmission ratio in Willis formula must be set to -1.
     // For each differential, specify the input shaft (the carrier) and the two output shafts.
@@ -161,11 +141,6 @@ void ChShaftsDriveline8WD::Create(std::shared_ptr<ChChassis> chassis, const ChAx
         sys->Add(m_GD_clutch[i]);
     }
 
-    // Shaft connecting transmission box to driveline
-    m_driveshaft = chrono_types::make_shared<ChShaft>();
-    m_driveshaft->SetInertia(GetDriveshaftInertia());
-    sys->AddShaft(m_driveshaft);
-
     // Central differential
     m_central_differential = chrono_types::make_shared<ChShaftsPlanetary>();
     m_central_differential->Initialize(m_driveshaft, m_GD_inshaft[1], m_GD_inshaft[0]);
@@ -178,6 +153,35 @@ void ChShaftsDriveline8WD::Create(std::shared_ptr<ChChassis> chassis, const ChAx
     m_central_clutch->SetTorqueLimit(GetCentralDifferentialLockingLimit());
     m_central_clutch->SetModulation(0);
     sys->Add(m_central_clutch);
+
+    // Initialize shaft angular velocities based on the initial wheel angular velocities.
+    // Propagate from wheels to axle differentials to group differentials and finally to the central differential.
+
+    double omega_AD_inshaft[4];
+    for (int i = 0; i < 4; i++) {
+        double omega_L = axles[m_driven_axles[i]]->m_suspension->GetAxleSpeed(LEFT);
+        double omega_R = axles[m_driven_axles[i]]->m_suspension->GetAxleSpeed(RIGHT);
+
+        double omega_diffbox = 0.5 * (omega_L + omega_R);
+        m_AD_differentialbox[i]->SetPos_dt(omega_diffbox);
+
+        omega_AD_inshaft[i] = omega_diffbox / GetAxleDiffConicalGearRatio();
+        m_AD_inshaft[i]->SetPos_dt(omega_AD_inshaft[i]);
+    }
+
+    double omega_GD_inshaft[2];
+    for (int i = 0; i < 2; i++) {
+        omega_GD_inshaft[i] = 0.5 * (omega_AD_inshaft[2 *i] + omega_AD_inshaft[2*i+1]);
+        m_GD_inshaft[i]->SetPos_dt(omega_GD_inshaft[i]);
+    }
+
+    double omega_driveshaft = 0.5 * (omega_GD_inshaft[0] + omega_GD_inshaft[1]);
+    m_driveshaft->SetPos_dt(omega_driveshaft);
+}
+
+// -----------------------------------------------------------------------------
+void ChShaftsDriveline8WD::Synchronize(double time, const DriverInputs& driver_inputs, double driveshaft_torque) {
+    m_driveshaft->SetAppliedTorque(driveshaft_torque);
 }
 
 // -----------------------------------------------------------------------------

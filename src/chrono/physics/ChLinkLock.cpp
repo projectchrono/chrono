@@ -803,7 +803,7 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
 
     // Ts = 0.5*CsT*G(q2)*Chi*(q1 qp)_barT*qs~*KT*lambda
     ChGlMatrix34<> Gl_q2(q2);
-    ChMatrix34<> Ts = 0.25 * Cs.transpose() * Gl_q2 * Chi__q1p_barT * qs_tilde;
+    ChMatrix34<> Ts = 0.5 * Cs.transpose() * Gl_q2 * Chi__q1p_barT * qs_tilde;
 
     // Translational constraint reaction force = -lambda_translational
     // Translational constraint reaction torque = -d~''(t)*lambda_translational
@@ -830,23 +830,41 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
         local_off++;
     }
 
+    // The conversion from Lagrange multiplier to reaction torque is computed as:
+    // m = P * \lambda
+    // where, P = 0.5*(s*I33+tilde(v)). 
+    // the quaternion of relM is: (s,v)
+    ChMatrix33<> P = 
+        0.5 * (ChMatrix33<>(relM.rot.e0()) + ChStarMatrix33<>(relM.rot.GetVector()));
+    ChVector<> m_react_m = VNULL; // collect the vector of Lagrange multipler of rotational DOFs
     if (mask.Constr_E1().IsActive()) {
-        react_torque.x() += Ts(0, 1) * (react(local_off));
-        react_torque.y() += Ts(1, 1) * (react(local_off));
-        react_torque.z() += Ts(2, 1) * (react(local_off));
+        m_react_m.x() = react(local_off);
         local_off++;
     }
     if (mask.Constr_E2().IsActive()) {
-        react_torque.x() += Ts(0, 2) * (react(local_off));
-        react_torque.y() += Ts(1, 2) * (react(local_off));
-        react_torque.z() += Ts(2, 2) * (react(local_off));
+        m_react_m.y() = react(local_off);
         local_off++;
     }
     if (mask.Constr_E3().IsActive()) {
-        react_torque.x() += Ts(0, 3) * (react(local_off));
-        react_torque.y() += Ts(1, 3) * (react(local_off));
-        react_torque.z() += Ts(2, 3) * (react(local_off));
+        m_react_m.z() = react(local_off);
         local_off++;
+    }
+    ChVector<> m_torque_L = P * m_react_m;  // reaction torque from Lagrange multiplier
+
+    if (mask.Constr_E1().IsActive()) {
+        react_torque.x() += Ts(0, 1) * m_torque_L.x();
+        react_torque.y() += Ts(1, 1) * m_torque_L.x();
+        react_torque.z() += Ts(2, 1) * m_torque_L.x();
+    }
+    if (mask.Constr_E2().IsActive()) {
+        react_torque.x() += Ts(0, 2) * m_torque_L.y();
+        react_torque.y() += Ts(1, 2) * m_torque_L.y();
+        react_torque.z() += Ts(2, 2) * m_torque_L.y();
+    }
+    if (mask.Constr_E3().IsActive()) {
+        react_torque.x() += Ts(0, 3) * m_torque_L.z();
+        react_torque.y() += Ts(1, 3) * m_torque_L.z();
+        react_torque.z() += Ts(2, 3) * m_torque_L.z();
     }
 
     // ***TO DO***?: TRANSFORMATION FROM delta COORDS TO LINK COORDS, if
@@ -885,36 +903,40 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
             local_off++;
         }
     }
+
+    m_react_m = VNULL;
     if (limit_Rx && limit_Rx->IsActive()) {
         if (limit_Rx->constr_lower.IsActive()) {
-            react_torque.x() -= 0.5 * L(off_L + local_off);
+            m_react_m.x() -= L(off_L + local_off);
             local_off++;
         }
         if (limit_Rx->constr_upper.IsActive()) {
-            react_torque.x() += 0.5 * L(off_L + local_off);
+            m_react_m.x() += L(off_L + local_off);
             local_off++;
         }
     }
     if (limit_Ry && limit_Ry->IsActive()) {
         if (limit_Ry->constr_lower.IsActive()) {
-            react_torque.y() -= 0.5 * L(off_L + local_off);
+            m_react_m.y() -= L(off_L + local_off);
             local_off++;
         }
         if (limit_Ry->constr_upper.IsActive()) {
-            react_torque.y() += 0.5 * L(off_L + local_off);
+            m_react_m.y() += L(off_L + local_off);
             local_off++;
         }
     }
     if (limit_Rz && limit_Rz->IsActive()) {
         if (limit_Rz->constr_lower.IsActive()) {
-            react_torque.z() -= 0.5 * L(off_L + local_off);
+            m_react_m.z() -= L(off_L + local_off);
             local_off++;
         }
         if (limit_Rz->constr_upper.IsActive()) {
-            react_torque.z() += 0.5 * L(off_L + local_off);
+            m_react_m.z() += L(off_L + local_off);
             local_off++;
         }
     }
+    m_torque_L = P * m_react_m;
+    react_torque = Vadd(react_torque, m_torque_L);
 
     // the internal forces add their contribute to the reactions
     // NOT NEEDED?, since C_force and react_force must stay separated???
@@ -1746,7 +1768,7 @@ void ChLinkLock::ConstraintsFetch_react(double factor) {
 
     // Ts = 0.5*CsT*G(q2)*Chi*(q1 qp)_barT*qs~*KT*lambda
     ChGlMatrix34<> Gl_q2(q2);
-    ChMatrix34<> Ts = 0.25 * Cs.transpose() * Gl_q2 * Chi__q1p_barT * qs_tilde;
+    ChMatrix34<> Ts = 0.5 * Cs.transpose() * Gl_q2 * Chi__q1p_barT * qs_tilde;
 
     // Translational constraint reaction force = -lambda_translational
     // Translational constraint reaction torque = -d~''(t)*lambda_translational
@@ -1773,23 +1795,40 @@ void ChLinkLock::ConstraintsFetch_react(double factor) {
         n_constraint++;
     }
 
+        // The conversion from Lagrange multiplier to reaction torque is computed as:
+    // m = P * \lambda
+    // where, P = 0.5*(s*I33+tilde(v)).
+    // the quaternion of relM is: (s,v)
+    ChMatrix33<> P = 0.5 * (ChMatrix33<>(relM.rot.e0()) + ChStarMatrix33<>(relM.rot.GetVector()));
+    ChVector<> m_react_m = VNULL;  // collect the vector of Lagrange multipler of rotational DOFs
     if (mask.Constr_E1().IsActive()) {
-        react_torque.x() += Ts(0, 1) * (react(n_constraint));
-        react_torque.y() += Ts(1, 1) * (react(n_constraint));
-        react_torque.z() += Ts(2, 1) * (react(n_constraint));
+        m_react_m.x() = react(n_constraint);
         n_constraint++;
     }
     if (mask.Constr_E2().IsActive()) {
-        react_torque.x() += Ts(0, 2) * (react(n_constraint));
-        react_torque.y() += Ts(1, 2) * (react(n_constraint));
-        react_torque.z() += Ts(2, 2) * (react(n_constraint));
+        m_react_m.y() = react(n_constraint);
         n_constraint++;
     }
     if (mask.Constr_E3().IsActive()) {
-        react_torque.x() += Ts(0, 3) * (react(n_constraint));
-        react_torque.y() += Ts(1, 3) * (react(n_constraint));
-        react_torque.z() += Ts(2, 3) * (react(n_constraint));
+        m_react_m.z() = react(n_constraint);
         n_constraint++;
+    }
+    ChVector<> m_torque_L = P * m_react_m;  // reaction torque from Lagrange multiplier
+
+    if (mask.Constr_E1().IsActive()) {
+        react_torque.x() += Ts(0, 1) * m_torque_L.x();
+        react_torque.y() += Ts(1, 1) * m_torque_L.x();
+        react_torque.z() += Ts(2, 1) * m_torque_L.x();
+    }
+    if (mask.Constr_E2().IsActive()) {
+        react_torque.x() += Ts(0, 2) * m_torque_L.y();
+        react_torque.y() += Ts(1, 2) * m_torque_L.y();
+        react_torque.z() += Ts(2, 2) * m_torque_L.y();
+    }
+    if (mask.Constr_E3().IsActive()) {
+        react_torque.x() += Ts(0, 3) * m_torque_L.z();
+        react_torque.y() += Ts(1, 3) * m_torque_L.z();
+        react_torque.z() += Ts(2, 3) * m_torque_L.z();
     }
 
     // ***TO DO***?: TRANSFORMATION FROM delta COORDS TO LINK COORDS, if
@@ -1822,30 +1861,34 @@ void ChLinkLock::ConstraintsFetch_react(double factor) {
             react_force.z() += factor * limit_Z->constr_upper.Get_l_i();
         }
     }
+
+    m_react_m = VNULL;
     if (limit_Rx && limit_Rx->IsActive()) {
         if (limit_Rx->constr_lower.IsActive()) {
-            react_torque.x() -= 0.5 * factor * limit_Rx->constr_lower.Get_l_i();
+            m_react_m.x() -= factor * limit_Rx->constr_lower.Get_l_i();
         }
         if (limit_Rx->constr_upper.IsActive()) {
-            react_torque.x() += 0.5 * factor * limit_Rx->constr_upper.Get_l_i();
+            m_react_m.x() += factor * limit_Rx->constr_upper.Get_l_i();
         }
     }
     if (limit_Ry && limit_Ry->IsActive()) {
         if (limit_Ry->constr_lower.IsActive()) {
-            react_torque.y() -= 0.5 * factor * limit_Ry->constr_lower.Get_l_i();
+            m_react_m.y() -= factor * limit_Ry->constr_lower.Get_l_i();
         }
         if (limit_Ry->constr_upper.IsActive()) {
-            react_torque.y() += 0.5 * factor * limit_Ry->constr_upper.Get_l_i();
+            m_react_m.y() += factor * limit_Ry->constr_upper.Get_l_i();
         }
     }
     if (limit_Rz && limit_Rz->IsActive()) {
         if (limit_Rz->constr_lower.IsActive()) {
-            react_torque.z() -= 0.5 * factor * limit_Rz->constr_lower.Get_l_i();
+            m_react_m.z() -= factor * limit_Rz->constr_lower.Get_l_i();
         }
         if (limit_Rz->constr_upper.IsActive()) {
-            react_torque.z() += 0.5 * factor * limit_Rz->constr_upper.Get_l_i();
+            m_react_m.z() += factor * limit_Rz->constr_upper.Get_l_i();
         }
     }
+    m_torque_L = P * m_react_m;
+    react_torque = Vadd(react_torque, m_torque_L);
 
     // the internal forces add their contribute to the reactions
     // NOT NEEDED?, since C_force and react_force must stay separated???

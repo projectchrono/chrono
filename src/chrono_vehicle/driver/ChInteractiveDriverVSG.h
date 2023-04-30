@@ -67,4 +67,5 @@ class CH_VEHICLE_API ChInteractiveDriverVSG : public ChInteractiveDriver {
 
 }  // namespace vehicle
 }  // namespace chrono
+
 #endif

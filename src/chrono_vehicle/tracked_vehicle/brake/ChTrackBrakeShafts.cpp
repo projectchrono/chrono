@@ -32,6 +32,8 @@ ChTrackBrakeShafts::~ChTrackBrakeShafts() {
 }
 
 void ChTrackBrakeShafts::Initialize(std::shared_ptr<ChChassis> chassis, std::shared_ptr<ChSprocket> sprocket) {
+    ChTrackBrake::Initialize(chassis, sprocket);
+
     // Create and initialize the brake shaft
     m_shaft = chrono_types::make_shared<ChShaft>();
     m_shaft->SetNameString(m_name + "_shaft");

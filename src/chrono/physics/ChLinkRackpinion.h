@@ -57,14 +57,14 @@ class ChApi ChLinkRackpinion : public ChLinkMateGeneric {
     /// Set the primitive radius of the pinion.
     void SetPinionRadius(double mR) { R = mR; }
 
-    /// Get the pressure angle (usually 20° for typical gears)
+    /// Get the pressure angle (usually 20 deg for typical gears)
     double GetAlpha() const { return alpha; }
-    /// Set the pressure angle (usually 20° for typical gears)
+    /// Set the pressure angle (usually 20 deg for typical gears)
     void SetAlpha(double mset) { alpha = mset; }
 
-    /// Get the angle of teeth in bevel gears (0° for spur gears)
+    /// Get the angle of teeth in bevel gears (0 deg for spur gears)
     double GetBeta() const { return beta; }
-    /// Set the angle of teeth in bevel gears (0° for spur gears)
+    /// Set the angle of teeth in bevel gears (0 deg for spur gears)
     void SetBeta(double mset) { beta = mset; }
 
     /// Get the initial phase of rotation of pinion respect to rack

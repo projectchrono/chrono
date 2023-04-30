@@ -52,6 +52,9 @@ void ChWheel::Initialize(std::shared_ptr<ChBody> spindle, VehicleSide side, doub
 
     m_spindle->GetCollisionModel()->SetFamily(WheeledCollisionFamily::WHEEL);
     m_spindle->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(WheeledCollisionFamily::WHEEL);
+
+    // Mark as initialized
+    m_initialized = true;
 }
 
 void ChWheel::InitializeInertiaProperties() {

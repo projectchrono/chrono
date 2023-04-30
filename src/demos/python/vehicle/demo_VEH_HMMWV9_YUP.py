@@ -36,7 +36,8 @@ def main():
     my_hmmwv.SetChassisCollisionType(veh.CollisionType_NONE)
     my_hmmwv.SetChassisFixed(False) 
     my_hmmwv.SetInitPosition(chrono.ChCoordsysD(initLoc, chrono.Q_from_AngY(initYaw)))
-    my_hmmwv.SetPowertrainType(veh.PowertrainModelType_SIMPLE)
+    my_hmmwv.SetEngineType(veh.EngineModelType_SIMPLE)
+    my_hmmwv.SetTransmissionType(veh.TransmissionModelType_SIMPLE_MAP)
     my_hmmwv.SetDriveType(veh.DrivelineTypeWV_AWD)
     my_hmmwv.SetTireType(tire_model)
     my_hmmwv.SetTireStepSize(tire_step_size)
@@ -88,8 +89,6 @@ def main():
 
         vis.BeginScene()
         vis.Render()
-        vis.RenderFrame(chrono.ChFrameD(), 10)
-        vis.RenderGrid(chrono.ChVectorD(0, 0.01, 0), 20, 1.0)
         vis.EndScene()
 
         # Get driver inputs

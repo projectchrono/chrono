@@ -39,6 +39,8 @@ ChBalancer::~ChBalancer() {
 // -----------------------------------------------------------------------------
 
 void ChBalancer::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector<>& location) {
+    ChSubchassis::Initialize(chassis, location);
+
     m_parent = chassis;
     m_rel_loc = location;
 

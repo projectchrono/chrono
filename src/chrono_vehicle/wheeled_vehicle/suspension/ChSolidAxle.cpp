@@ -36,10 +36,22 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const std::string ChSolidAxle::m_pointNames[] = {"SHOCK_A    ", "SHOCK_C    ", "KNUCKLE_L  ", "KNUCKLE_U  ",
-                                                 "LL_A       ", "LL_C       ", "UL_A       ", "UL_C       ",
-                                                 "SPRING_A   ", "SPRING_C   ", "TIEROD_C   ", "TIEROD_K   ",
-                                                 "SPINDLE    ", "KNUCKLE_CM ", "LL_CM      ", "UL_CM      "};
+const std::string ChSolidAxle::m_pointNames[] = {"SHOCK_A    ",
+                                                 "SHOCK_C    ",
+                                                 "KNUCKLE_L  ",
+                                                 "KNUCKLE_U  ",
+                                                 "LL_A       ",
+                                                 "LL_C       ",
+                                                 "UL_A       ",
+                                                 "UL_C       ",
+                                                 "SPRING_A   ",
+                                                 "SPRING_C   ",
+                                                 "TIEROD_C   ",
+                                                 "TIEROD_K   ",
+                                                 "SPINDLE    ",
+                                                 "KNUCKLE_CM ",
+                                                 "LL_CM      ",
+                                                 "UL_CM      "};
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -80,11 +92,13 @@ ChSolidAxle::~ChSolidAxle() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSolidAxle::Initialize(std::shared_ptr<ChChassis> chassis,
-                             std::shared_ptr<ChSubchassis> subchassis,
-                             std::shared_ptr<ChSteering> steering,
-                             const ChVector<>& location,
-                             double left_ang_vel,
-                             double right_ang_vel) {
+                                  std::shared_ptr<ChSubchassis> subchassis,
+                                  std::shared_ptr<ChSteering> steering,
+                                  const ChVector<>& location,
+                                  double left_ang_vel,
+                                  double right_ang_vel) {
+    ChSuspension::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
+
     m_parent = chassis;
     m_rel_loc = location;
 

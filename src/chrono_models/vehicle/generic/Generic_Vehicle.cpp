@@ -26,19 +26,19 @@
 
 #include "chrono_models/vehicle/generic/Generic_Vehicle.h"
 
-#include "chrono_models/vehicle/generic/Generic_SolidAxle.h"
-#include "chrono_models/vehicle/generic/Generic_MultiLink.h"
-#include "chrono_models/vehicle/generic/Generic_DoubleWishbone.h"
-#include "chrono_models/vehicle/generic/Generic_HendricksonPRIMAXX.h"
-#include "chrono_models/vehicle/generic/Generic_MacPhersonStrut.h"
+#include "chrono_models/vehicle/generic/suspension/Generic_SolidAxle.h"
+#include "chrono_models/vehicle/generic/suspension/Generic_MultiLink.h"
+#include "chrono_models/vehicle/generic/suspension/Generic_DoubleWishbone.h"
+#include "chrono_models/vehicle/generic/suspension/Generic_HendricksonPRIMAXX.h"
+#include "chrono_models/vehicle/generic/suspension/Generic_MacPhersonStrut.h"
 
 #include "chrono_models/vehicle/generic/Generic_AntirollBarRSD.h"
 
 #include "chrono_models/vehicle/generic/Generic_Chassis.h"
 #include "chrono_models/vehicle/generic/Generic_Wheel.h"
 #include "chrono_models/vehicle/generic/Generic_RackPinion.h"
-#include "chrono_models/vehicle/generic/Generic_Driveline2WD.h"
-#include "chrono_models/vehicle/generic/Generic_SimpleDriveline.h"
+#include "chrono_models/vehicle/generic/driveline/Generic_Driveline2WD.h"
+#include "chrono_models/vehicle/generic/driveline/Generic_SimpleDriveline.h"
 #include "chrono_models/vehicle/generic/Generic_BrakeSimple.h"
 
 namespace chrono {
