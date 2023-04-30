@@ -83,7 +83,7 @@ class HMMWV_Model : public Vehicle_Model {
     virtual std::string TireJSON() const override {
         ////return "hmmwv/tire/HMMWV_RigidTire.json";
         ////return "hmmwv/tire/HMMWV_FialaTire.json";
-        //return "hmmwv/tire/HMMWV_TMeasyTire.json";
+        // return "hmmwv/tire/HMMWV_TMeasyTire.json";
         return "hmmwv/tire/HMMWV_TMsimpleTire.json";
         ////return "hmmwv/tire/HMMWV_Pac89Tire.json";
         ////return "hmmwv/tire/HMMWV_Pac02Tire.json";
@@ -123,7 +123,12 @@ class Audi_Model : public Vehicle_Model {
     virtual std::string ModelName() const override { return "Audi"; }
     virtual std::string VehicleJSON() const override { return "audi/json/audi_Vehicle.json"; }
     virtual std::string TireJSON() const override {
-        return "audi/json/audi_TMeasyTire.json";
+        // MFTire model variants
+        return "generic/tire/MagicFormula52_Parameters.json";
+        // return "generic/tire/MagicFormula61_Parameters.json";
+        ////return "generic/tire/MagicFormula62_Parameters.json";
+
+        //// return "audi/json/audi_TMeasyTire.json";
         ////return "audi/json/audi_RigidTire.json.json";
         ////return "audi/json/audi_Pac02Tire.json";
     }
