@@ -40,7 +40,8 @@ def main():
     my_hmmwv.SetChassisCollisionType(chassis_collision_type)
     my_hmmwv.SetChassisFixed(False) 
     my_hmmwv.SetInitPosition(chrono.ChCoordsysD(initLoc, initRot))
-    my_hmmwv.SetPowertrainType(powertrain_model)
+    my_hmmwv.SetEngineType(engine_model)
+    my_hmmwv.SetTransmissionType(transmission_model)
     my_hmmwv.SetDriveType(drive_type)
     my_hmmwv.SetSteeringType(steering_type)
     my_hmmwv.SetTireType(tire_model)
@@ -206,8 +207,9 @@ tire_vis_type = veh.VisualizationType_MESH
 # Collision type for chassis (PRIMITIVES, MESH, or NONE)
 chassis_collision_type = veh.CollisionType_NONE
 
-# Type of powertrain model (SHAFTS, SIMPLE)
-powertrain_model = veh.PowertrainModelType_SHAFTS
+# Type of powertrain models (SHAFTS, SIMPLE)
+engine_model = veh.EngineModelType_SHAFTS
+transmission_model = veh.TransmissionModelType_SHAFTS
 
 # Drive type (FWD, RWD, or AWD)
 drive_type = veh.DrivelineTypeWV_AWD

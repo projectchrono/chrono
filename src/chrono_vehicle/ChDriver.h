@@ -44,14 +44,17 @@ class CH_VEHICLE_API ChDriver {
 
     virtual ~ChDriver() {}
 
-    /// Get the driver throttle input (in the range [0,1])
+    /// Get the driver throttle input (in the range [0,1]).
     double GetThrottle() const { return m_throttle; }
 
-    /// Get the driver steering input (in the range [-1,+1])
+    /// Get the driver steering input (in the range [-1,+1]).
     double GetSteering() const { return m_steering; }
 
-    /// Get the driver braking input (in the range [0,1])
+    /// Get the driver braking input (in the range [0,1]).
     double GetBraking() const { return m_braking; }
+
+    /// Get the driver clutch input (in the range [0,1]).
+    double GetClutch() const { return m_clutch; }
 
     /// Get all current inputs at once.
     DriverInputs GetInputs() const;
@@ -71,20 +74,24 @@ class CH_VEHICLE_API ChDriver {
     /// Record the current driver inputs to the log file.
     bool Log(double time);
 
-    /// Overwrite the value for the driver steering input.
-    void SetSteering(double val, double min_val = -1, double max_val = 1);
+    /// Overwrite the value for the driver steering input (input is clamped in [-1,+1]).
+    void SetSteering(double steering);
 
-    /// Overwrite the value for the driver throttle input.
-    void SetThrottle(double val, double min_val = 0, double max_val = 1);
+    /// Overwrite the value for the driver throttle input (input is clamped in [0,+1]).
+    void SetThrottle(double throttle);
 
-    /// Overwrite the value for the driver braking input.
-    void SetBraking(double val, double min_val = 0, double max_val = 1);
+    /// Overwrite the value for the driver braking input (input is clamped in [0,+1]).
+    void SetBraking(double braking);
+
+    /// Overwrite the value for the clutch braking input (input is clamped in [0,+1]).
+    void SetClutch(double clutch);
 
   protected:
     ChVehicle& m_vehicle;  ///< reference to associated vehicle
     double m_throttle;     ///< current value of throttle input
     double m_steering;     ///< current value of steering input
     double m_braking;      ///< current value of braking input
+    double m_clutch;       ///< current value of clutch input
 
   private:
     std::string m_log_filename;  ///< name of output file for recording driver inputs

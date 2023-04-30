@@ -51,9 +51,9 @@ class CH_VEHICLE_API ChSimpleTrackDriveline : public ChDrivelineTV {
 
     /// Update the driveline subsystem.
     /// The motor torque represents the input to the driveline subsystem from the powertrain system.
-    virtual void Synchronize(double time,                            ///< [in] current time
-                             const DriverInputs& driver_inputs,  ///< [in] current driver inputs
-                             double torque                           ///< [in] motor torque
+    virtual void Synchronize(double time,                        ///< current time
+                             const DriverInputs& driver_inputs,  ///< current driver inputs
+                             double driveshaft_torque            ///< input transmission torque
                              ) override;
 
     /// Get the motor torque to be applied to the specified sprocket.
@@ -65,6 +65,10 @@ class CH_VEHICLE_API ChSimpleTrackDriveline : public ChDrivelineTV {
     /// Disconnect driveline from driven sprockets.
     virtual void Disconnect() override;
 
+    /// Return the output driveline speed of the driveshaft.
+    /// This represents the output from the driveline subsystem that is passed to the transmission subsystem.
+    virtual double GetOutputDriveshaftSpeed() const override { return m_driveshaft_speed; }
+
   protected:
     /// Return the torque bias ratio for the differential.
     /// This is a simple model of a Torsen limited-slip differential.
@@ -72,6 +76,7 @@ class CH_VEHICLE_API ChSimpleTrackDriveline : public ChDrivelineTV {
 
   private:
     bool m_connected;
+    double m_driveshaft_speed;               ///< output to transmission
     std::shared_ptr<ChShaft> m_shaft_left;   ///< associated left sprocket shaft
     std::shared_ptr<ChShaft> m_shaft_right;  ///< associated right sprocket shaft
 };

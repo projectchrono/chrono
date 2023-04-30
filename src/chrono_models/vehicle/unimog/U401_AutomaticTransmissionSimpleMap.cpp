@@ -1,0 +1,54 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2023 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Radu Serban, Rainer Gericke
+// =============================================================================
+//
+// Simple automatic transmission to use EngineSimpleMap.
+// - no torque converter
+// - simple gear-shifting model (in automatic mode)
+//
+// =============================================================================
+
+#include "chrono_models/vehicle/unimog/U401_AutomaticTransmissionSimpleMap.h"
+
+namespace chrono {
+namespace vehicle {
+namespace unimog {
+
+const double rpm2rads = CH_C_PI / 30;
+
+U401_AutomaticTransmissionSimpleMap::U401_AutomaticTransmissionSimpleMap(const std::string& name)
+    : ChAutomaticTransmissionSimpleMap(name) {}
+
+void U401_AutomaticTransmissionSimpleMap::SetGearRatios(std::vector<double>& fwd, double& rev) {
+    rev = -1.0 / 14.286;
+
+    fwd.push_back(1.0 / 14.286);
+    fwd.push_back(1.0 / 8.333);
+    fwd.push_back(1.0 / 4.545);
+    fwd.push_back(1.0 / 2.500);
+    fwd.push_back(1.0 / 1.563);
+    fwd.push_back(1.0);
+}
+
+void U401_AutomaticTransmissionSimpleMap::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {
+    shift_bands.push_back(std::pair<double, double>(1200 * rpm2rads, 2800 * rpm2rads));
+    shift_bands.push_back(std::pair<double, double>(1200 * rpm2rads, 2800 * rpm2rads));
+    shift_bands.push_back(std::pair<double, double>(1200 * rpm2rads, 2800 * rpm2rads));
+    shift_bands.push_back(std::pair<double, double>(1200 * rpm2rads, 2800 * rpm2rads));
+    shift_bands.push_back(std::pair<double, double>(1200 * rpm2rads, 2800 * rpm2rads));
+    shift_bands.push_back(std::pair<double, double>(1200 * rpm2rads, 2800 * rpm2rads));
+}
+
+}  // namespace unimog
+}  // end namespace vehicle
+}  // end namespace chrono

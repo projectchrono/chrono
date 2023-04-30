@@ -37,9 +37,11 @@ ChTrackDrivelineBDS::ChTrackDrivelineBDS(const std::string& name)
 ChTrackDrivelineBDS::~ChTrackDrivelineBDS() {
     auto sys = m_differential->GetSystem();
     if (sys) {
-        sys->Remove(m_differential);
+        sys->Remove(m_driveshaft);
         sys->Remove(m_conicalgear);
         sys->Remove(m_differentialbox);
+        sys->Remove(m_differential);
+        sys->Remove(m_clutch);
     }
 }
 
@@ -51,11 +53,12 @@ ChTrackDrivelineBDS::~ChTrackDrivelineBDS() {
 void ChTrackDrivelineBDS::Initialize(std::shared_ptr<ChChassis> chassis,
                                      std::shared_ptr<ChTrackAssembly> track_left,
                                      std::shared_ptr<ChTrackAssembly> track_right) {
+    ChDriveline::Initialize(chassis);
+
     auto chassisBody = chassis->GetBody();
     auto sys = chassisBody->GetSystem();
 
-    // Create the driveshaft, a 1 d.o.f. object with rotational inertia which
-    // represents the connection of the driveline to the transmission box.
+    // Create the driveshaft for the connection of the driveline to the transmission box.
     m_driveshaft = chrono_types::make_shared<ChShaft>();
     m_driveshaft->SetInertia(GetDriveshaftInertia());
     sys->AddShaft(m_driveshaft);
@@ -93,6 +96,12 @@ void ChTrackDrivelineBDS::Initialize(std::shared_ptr<ChChassis> chassis,
     sys->Add(m_clutch);
 }
 
+// -----------------------------------------------------------------------------
+void ChTrackDrivelineBDS::Synchronize(double time, const DriverInputs& driver_inputs, double driveshaft_torque) {
+    m_driveshaft->SetAppliedTorque(driveshaft_torque);
+}
+
+// -----------------------------------------------------------------------------
 void ChTrackDrivelineBDS::LockDifferential(bool lock) {
     m_clutch->SetModulation(lock ? 1 : 0);
 }
@@ -107,10 +116,6 @@ void ChTrackDrivelineBDS::CombineDriverInputs(const DriverInputs& driver_inputs,
     } else if (driver_inputs.m_steering < 0) {
         braking_right -= driver_inputs.m_steering;
     }
-}
-
-void ChTrackDrivelineBDS::Synchronize(double time, const DriverInputs& driver_inputs, double torque) {
-    ChDrivelineTV::Synchronize(time, driver_inputs, torque);
 }
 
 // -----------------------------------------------------------------------------

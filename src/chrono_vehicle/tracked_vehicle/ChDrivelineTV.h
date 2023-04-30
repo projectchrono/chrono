@@ -23,7 +23,6 @@
 #define CH_DRIVELINE_TV_H
 
 #include "chrono_vehicle/ChDriveline.h"
-#include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
 namespace chrono {
@@ -53,27 +52,13 @@ class CH_VEHICLE_API ChDrivelineTV : public ChDriveline {
                             std::shared_ptr<ChTrackAssembly> track_right  ///< right track assembly
                             ) = 0;
 
-    /// Update the driveline subsystem.
-    /// The motor torque represents the input to the driveline subsystem from the powertrain system. The default
-    /// implementation applies this torque to the driveline's driveshaft. A derived class must also process the steering
-    /// input to send appropriate torques to the sprockets of the two track assemblies.
-    virtual void Synchronize(double time,                            ///< [in] current time
-                             const DriverInputs& driver_inputs,  ///< [in] current driver inputs
-                             double torque                           ///< [in] motor torque
-    );
-
     /// Lock/unlock the differential (if available).
     virtual void LockDifferential(bool lock);
-
-    /// Disconnect driveline from driven sprockets.
-    virtual void Disconnect() = 0;
 
   protected:
     ChDrivelineTV(const std::string& name);
 
-    virtual void CombineDriverInputs(const DriverInputs& driver_inputs,
-                                     double& braking_left,
-                                     double& braking_right);
+    virtual void CombineDriverInputs(const DriverInputs& driver_inputs, double& braking_left, double& braking_right);
 
     bool m_gyration_mode;  ///< flag indicating if in gyration mode (turn in place)
 

@@ -63,6 +63,9 @@ class CH_VEHICLE_API ChPart {
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const = 0;
 
+    /// Return flag indicating whether or not the part is fully constructed.
+    bool IsInitialized() const { return m_initialized; }
+
     /// Get the subsystem mass.
     /// Note that the correct value is reported only *after* the subsystem is initialized.
     double GetMass() const { return m_mass; }
@@ -185,6 +188,7 @@ class CH_VEHICLE_API ChPart {
     static void RemoveVisualizationAsset(std::shared_ptr<ChPhysicsItem> item, std::shared_ptr<ChVisualShape> shape);
 
     std::string m_name;  ///< subsystem name
+    bool m_initialized;  ///< specifies whether ot not the part is fully constructed
     bool m_output;       ///< specifies whether or not output is generated for this subsystem
 
     std::shared_ptr<ChPart> m_parent;  ///< parent subsystem (empty if parent is vehicle)

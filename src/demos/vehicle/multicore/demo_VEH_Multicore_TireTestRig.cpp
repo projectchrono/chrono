@@ -16,15 +16,15 @@
 
 #include <algorithm>
 
-#include "chrono_models/vehicle/hmmwv/HMMWV_RigidTire.h"
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_RigidTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Wheel.h"
-//
+
 #include "chrono_opengl/ChVisualSystemOpenGL.h"
-//
+
 #include "chrono_multicore/physics/ChSystemMulticore.h"
-//
+
 #include "chrono_thirdparty/filesystem/path.h"
-//
+
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChTireTestRig.h"
 
 using namespace chrono;

@@ -18,14 +18,13 @@
 // varying speed that depends on the curvature of the road.
 //
 // This implementation is based on the following paper:
-// BEST, M.C., 2012. A simple realistic driver model. Presented at:
-// AVEC `12: The 11th International Symposium on Advanced Vehicle Control,
+// BEST, M.C., 2012. A simple realistic driver model.
+// Presented at: AVEC `12, The 11th International Symposium on Advanced Vehicle Control,
 // 9th-12th September 2012, Seoul, Korea.
 //
-// The path to be followed is specified as a ChBezierCurve object and the the
-// original definition points are extracted automatically.
-// Open and closed course definitions can be handled.
-// The ChBezier is still used for visualization.
+// The path to be followed is specified as a ChBezierCurve object and the the original
+// definition points are extracted automatically. Open and closed course definitions
+// can be handled. The ChBezier is still used for visualization.
 //
 // =============================================================================
 

@@ -1,0 +1,25 @@
+{
+  "Name": "Truck 6x4 Offroad Truck Simple Map Transmission",
+  "Type": "Transmission",
+  "Template": "AutomaticTransmissionSimpleMap",
+
+  "Gear Box": {
+    "Reverse Gear Ratio": -0.151,
+    "Forward Gear Ratios": [
+      0.1708,
+      0.2791,
+      0.4218,
+      0.6223,
+      1.0173,
+      1.5361
+    ],
+    "Shift Points Map RPM": [
+      [ 1000, 2226 ],
+      [ 1000, 2225 ],
+      [ 1000, 2210 ],
+      [ 1000, 2226 ],
+      [ 1000, 2225 ],
+      [ 1000, 2700 ]
+    ]
+  }
+}

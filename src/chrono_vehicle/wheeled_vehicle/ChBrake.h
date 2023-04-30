@@ -38,7 +38,7 @@ class CH_VEHICLE_API ChBrake : public ChPart {
     virtual void Initialize(std::shared_ptr<ChChassis> chassis,        ///< associated chassis subsystem
                             std::shared_ptr<ChSuspension> suspension,  ///< associated suspension subsystem
                             VehicleSide side                           ///< brake mounted on left/right side
-                            ) = 0;
+    );
 
     /// Update the brake subsystem: set the brake modulation.
     /// The input value is in the range [0,1].<br>

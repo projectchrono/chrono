@@ -23,9 +23,13 @@
 
 #include "chrono_models/vehicle/m113/M113.h"
 
-#include "chrono_models/vehicle/m113/M113_SimpleCVTPowertrain.h"
-#include "chrono_models/vehicle/m113/M113_SimpleMapPowertrain.h"
-#include "chrono_models/vehicle/m113/M113_ShaftsPowertrain.h"
+#include "chrono_vehicle/ChPowertrainAssembly.h"
+#include "chrono_models/vehicle/m113/powertrain/M113_EngineShafts.h"
+#include "chrono_models/vehicle/m113/powertrain/M113_AutomaticTransmissionShafts.h"
+#include "chrono_models/vehicle/m113/powertrain/M113_EngineSimpleMap.h"
+#include "chrono_models/vehicle/m113/powertrain/M113_AutomaticTransmissionSimpleMap.h"
+#include "chrono_models/vehicle/m113/powertrain/M113_EngineSimple.h"
+#include "chrono_models/vehicle/m113/powertrain/M113_AutomaticTransmissionSimple.h"
 
 namespace chrono {
 namespace vehicle {
@@ -50,7 +54,8 @@ M113::M113()
       m_ancf_num_elements_width(4),
       m_ancf_constrain_curvature(false),
       m_driveline_type(DrivelineTypeTV::SIMPLE),
-      m_powertrain_type(PowertrainModelType::SIMPLE_CVT),
+      m_engineType(EngineModelType::SHAFTS),
+      m_transmissionType(TransmissionModelType::SHAFTS),
       m_use_track_bushings(false),
       m_use_suspension_bushings(false),
       m_use_track_RSDA(false),
@@ -77,7 +82,8 @@ M113::M113(ChSystem* system)
       m_ancf_num_elements_width(4),
       m_ancf_constrain_curvature(false),
       m_driveline_type(DrivelineTypeTV::SIMPLE),
-      m_powertrain_type(PowertrainModelType::SIMPLE_CVT),
+      m_engineType(EngineModelType::SHAFTS),
+      m_transmissionType(TransmissionModelType::SHAFTS),
       m_use_track_bushings(false),
       m_use_suspension_bushings(false),
       m_use_track_RSDA(false),
@@ -129,24 +135,35 @@ void M113::Initialize() {
     m_vehicle->GetDriveline()->SetGyrationMode(m_gyration_mode);
 
     // Create and initialize the powertrain system
-    switch (m_powertrain_type) {
-        default:
-            std::cout << "Warning! M113 powertrain type not supported. Reverting to Simple CVT Powertrain" << std::endl;
-        case PowertrainModelType::SIMPLE_CVT: {
-            auto powertrain = chrono_types::make_shared<M113_SimpleCVTPowertrain>("Powertrain");
-            m_vehicle->InitializePowertrain(powertrain);
+    std::shared_ptr<ChEngine> engine;
+    std::shared_ptr<ChTransmission> transmission;
+    switch (m_engineType) {
+        case EngineModelType::SHAFTS:
+            engine = chrono_types::make_shared<M113_EngineShafts>("Engine");
             break;
-        }
-        case PowertrainModelType::SIMPLE_MAP: {
-            auto powertrain = chrono_types::make_shared<M113_SimpleMapPowertrain>("Powertrain");
-            m_vehicle->InitializePowertrain(powertrain);
+        case EngineModelType::SIMPLE_MAP:
+            engine = chrono_types::make_shared<M113_EngineSimpleMap>("Engine");
             break;
-        }
-        case PowertrainModelType::SHAFTS: {
-            auto powertrain = chrono_types::make_shared<M113_ShaftsPowertrain>("Powertrain");
-            m_vehicle->InitializePowertrain(powertrain);
+        case EngineModelType::SIMPLE:
+            engine = chrono_types::make_shared<M113_EngineSimple>("Engine");
+            transmission = chrono_types::make_shared<M113_AutomaticTransmissionSimple>("Transmission");
             break;
+    }
+
+    if(!transmission) {
+        switch (m_transmissionType) {
+            case TransmissionModelType::SHAFTS:
+                transmission = chrono_types::make_shared<M113_AutomaticTransmissionShafts>("Transmission");
+                break;
+            case TransmissionModelType::SIMPLE_MAP:
+                transmission = chrono_types::make_shared<M113_AutomaticTransmissionSimpleMap>("Transmission");
+                break;
         }
+    }
+
+    if (engine && transmission) {
+        auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
+        m_vehicle->InitializePowertrain(powertrain);
     }
 
     // Recalculate vehicle mass, to properly account for all subsystems

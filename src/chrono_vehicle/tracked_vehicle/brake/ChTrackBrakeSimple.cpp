@@ -36,6 +36,8 @@ ChTrackBrakeSimple::~ChTrackBrakeSimple() {
 }
 
 void ChTrackBrakeSimple::Initialize(std::shared_ptr<ChChassis> chassis, std::shared_ptr<ChSprocket> sprocket) {
+    ChTrackBrake::Initialize(chassis, sprocket);
+
     auto hub = sprocket->GetRevolute();
     auto sys = hub->GetSystem();
 

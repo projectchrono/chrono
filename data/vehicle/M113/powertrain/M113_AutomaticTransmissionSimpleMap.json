@@ -1,0 +1,16 @@
+{
+  "Name": "M113 Simple Map Transmission",
+  "Type": "Transmission",
+  "Template": "AutomaticTransmissionSimpleMap",
+
+  "Gear Box": {
+    "Reverse Gear Ratio": -0.151,
+    "Forward Gear Ratios": [ 0.240, 0.427, 0.685, 0.962 ],
+    "Shift Points Map RPM": [
+      [ 750, 1500 ],
+      [ 750, 1500 ],
+      [ 750, 1500 ],
+      [ 750, 1500 ]
+    ]
+  }
+}

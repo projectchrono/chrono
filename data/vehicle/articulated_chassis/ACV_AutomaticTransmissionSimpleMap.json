@@ -1,0 +1,18 @@
+{
+  "Name": "ACV Simple Map Transmission",
+  "Type": "Transmission",
+  "Template": "AutomaticTransmissionSimpleMap",
+
+  "Gear Box": {
+   "Reverse Gear Ratio":    -0.20,
+    "Forward Gear Ratios":   [ 0.29, 0.54, 0.71, 1.0, 1.33, 1.54 ],
+    "Shift Points Map RPM":  [
+                                [ 800, 1500 ],
+                                [ 800, 1500 ],
+                                [ 800, 1500 ],
+                                [ 800, 1500 ],
+                                [ 800, 1500 ],
+                                [ 800, 2200 ]
+                             ]
+   }
+}

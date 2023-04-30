@@ -49,6 +49,8 @@ ChAntirollBarRSD::~ChAntirollBarRSD() {
 void ChAntirollBarRSD::Initialize(std::shared_ptr<ChChassis> chassis,
                                   std::shared_ptr<ChSuspension> suspension,
                                   const ChVector<>& location) {
+    ChAntirollBar::Initialize(chassis, suspension, location);
+
     m_parent = chassis;
     m_rel_loc = location;
 

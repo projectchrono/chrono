@@ -31,21 +31,24 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
 #include "chrono_models/vehicle/generic/Generic_Vehicle.h"
-#include "chrono_models/vehicle/generic/Generic_SimplePowertrain.h"
-#include "chrono_models/vehicle/generic/Generic_RigidTire.h"
 #include "chrono_models/vehicle/generic/Generic_FuncDriver.h"
+#include "chrono_models/vehicle/generic/powertrain/Generic_AutomaticTransmissionSimple.h"
+#include "chrono_models/vehicle/generic/powertrain/Generic_EngineSimple.h"
+#include "chrono_models/vehicle/generic/powertrain/Generic_AutomaticTransmissionSimpleMap.h"
+#include "chrono_models/vehicle/generic/powertrain/Generic_EngineSimpleMap.h"
+#include "chrono_models/vehicle/generic/tire/Generic_RigidTire.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
 #ifdef CHRONO_IRRLICHT
-#include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
-#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
-// specify whether the demo should actually use Irrlicht
-#define USE_IRRLICHT
+    #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
+    // specify whether the demo should actually use Irrlicht
+    #define USE_IRRLICHT
 #endif
 
 // DEBUGGING:  Uncomment the following line to print shock data
-//#define DEBUG_LOG
+// #define DEBUG_LOG
 
 using namespace chrono;
 #ifdef USE_IRRLICHT
@@ -119,8 +122,17 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create and initialize the powertrain system
-    auto powertrain = chrono_types::make_shared<Generic_SimplePowertrain>("powertrain");
-    vehicle.InitializePowertrain(powertrain);
+    if (true) {
+        auto engine = chrono_types::make_shared<Generic_EngineSimple>("Engine");
+        auto transmission = chrono_types::make_shared<Generic_AutomaticTransmissionSimple>("Transmission");
+        auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
+        vehicle.InitializePowertrain(powertrain);
+    } else {
+        auto engine = chrono_types::make_shared<Generic_EngineSimpleMap>("Engine");
+        auto transmission = chrono_types::make_shared<Generic_AutomaticTransmissionSimpleMap>("Transmission");
+        auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
+        vehicle.InitializePowertrain(powertrain);
+    }
 
     // Create the tires
     auto tire_FL = chrono_types::make_shared<Generic_RigidTire>("FL");
@@ -163,9 +175,9 @@ int main(int argc, char* argv[]) {
 
     driver.Initialize();
 
-// ---------------
-// Simulation loop
-// ---------------
+    // ---------------
+    // Simulation loop
+    // ---------------
 
 #ifdef DEBUG_LOG
     GetLog() << "\n\n============ System Configuration ============\n";
@@ -196,7 +208,7 @@ int main(int argc, char* argv[]) {
         vis->Render();
         vis->EndScene();
 
-#ifdef DEBUG_LOG
+    #ifdef DEBUG_LOG
         // Number of simulation steps between two output frames
         int output_steps = (int)std::ceil(output_step_size / step_size);
 
@@ -205,7 +217,7 @@ int main(int argc, char* argv[]) {
             GetLog() << "Time = " << time << "\n\n";
             vehicle.DebugLog(DBG_SPRINGS | DBG_SHOCKS | DBG_CONSTRAINTS);
         }
-#endif
+    #endif
 
         // Driver inputs
         DriverInputs driver_inputs = driver.GetInputs();

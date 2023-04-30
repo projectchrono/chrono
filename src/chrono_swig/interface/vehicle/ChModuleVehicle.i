@@ -71,7 +71,7 @@
 #include "chrono_vehicle/ChPart.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 
-#include "chrono_vehicle/ChPowertrain.h"
+#include "chrono_vehicle/ChPowertrainAssembly.h"
 
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/ChTerrain.h"
@@ -506,10 +506,12 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChPac02Tire)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChTire, ChFialaTire)
 
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChPowertrain, SimplePowertrain)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChPowertrain, SimpleMapPowertrain)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChPowertrain, SimpleCVTPowertrain)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChPowertrain, ShaftsPowertrain)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChEngine, EngineSimple)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChEngine, EngineSimpleMap)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChEngine, EngineShafts)
+
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChTransmission, AutomaticTransmissionSimpleMap)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChTransmission, AutomaticTransmissionShafts)
 
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChDriveline, ChDrivelineWV)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChDriveline, ChShaftsDriveline2WD)

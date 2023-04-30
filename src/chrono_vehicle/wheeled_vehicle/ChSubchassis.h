@@ -46,7 +46,7 @@ class CH_VEHICLE_API ChSubchassis : public ChPart {
     /// always aligned with the chassis reference frame.
     virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis
                             const ChVector<>& location           ///< [in] location relative to the chassis frame
-                            ) = 0;
+    );
 
   protected:
     /// Construct a subchassis subsystem with given name.

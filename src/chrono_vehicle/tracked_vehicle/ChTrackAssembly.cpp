@@ -102,6 +102,9 @@ void ChTrackAssembly::Initialize(std::shared_ptr<ChChassis> chassis, const ChVec
         next = (i == num_shoes - 1) ? GetTrackShoe(0) : GetTrackShoe(i + 1);
         GetTrackShoe(i)->Connect(next, this, chassis.get(), ccw);
     }
+
+    // Mark as initialized
+    m_initialized = true;
 }
 
 // -----------------------------------------------------------------------------

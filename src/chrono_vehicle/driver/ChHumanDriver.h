@@ -13,12 +13,15 @@
 // =============================================================================
 //
 // A driver model that combines a path steering controller and a speed controller.
-// The controller adjusts the steering input to follow the prescribed
-// path.  The output also adjusts throttle and braking inputs in order to maintain a varying speed that depends
-// on the curvature of the road. This implementation is based on the following paper:
+// The controller adjusts the steering input to follow the prescribed path.
+// The output also adjusts throttle and braking inputs in order to maintain a
+// varying speed that depends on the curvature of the road. 
 //
-// BEST, M.C., 2012. A simple realistic driver model. Presented at:
-// AVEC `12: The 11th International Symposium on Advanced Vehicle Control, 9th-12th September 2012, Seoul, Korea.
+// This implementation is based on the following paper:
+// BEST, M.C., 2012. A simple realistic driver model. 
+// Presented at: AVEC `12, The 11th International Symposium on Advanced Vehicle Control,
+// 9th-12th September 2012, Seoul, Korea.
+//
 // The path to be followed is specified as a ChBezierCurve object and the the original
 // definition points are extracted automatically. Open and closed course definitions
 // can be handled. The ChBezier is still used for visualization.
@@ -46,7 +49,6 @@ namespace vehicle {
 /// The controller adjusts the steering input to follow the prescribed
 /// path.  The output also adjusts throttle and braking inputs in order to maintain a varying speed that depends
 /// on the curvature of the road.
-///
 class CH_VEHICLE_API ChHumanDriver : public ChDriver {
   public:
     /// Construct using the specified Bezier curve.

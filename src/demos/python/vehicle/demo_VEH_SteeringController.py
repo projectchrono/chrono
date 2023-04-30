@@ -34,7 +34,8 @@ def main():
     my_hmmwv.SetContactMethod(contact_method)
     my_hmmwv.SetChassisFixed(False) 
     my_hmmwv.SetInitPosition(chrono.ChCoordsysD(initLoc, chrono.ChQuaternionD(1, 0, 0, 0)))
-    my_hmmwv.SetPowertrainType(powertrain_model)
+    my_hmmwv.SetEngineType(engine_model)
+    my_hmmwv.SetTransmissionType(transmission_model)
     my_hmmwv.SetDriveType(drive_type)
     my_hmmwv.SetSteeringType(steering_type)
     my_hmmwv.SetTireType(tire_model)
@@ -150,8 +151,9 @@ steering_vis_type = veh.VisualizationType_PRIMITIVES
 wheel_vis_type = veh.VisualizationType_MESH
 tire_vis_type = veh.VisualizationType_MESH 
 
-# Type of powertrain model (SHAFTS, SIMPLE)
-powertrain_model = veh.PowertrainModelType_SHAFTS
+# Type of powertrain models (SHAFTS, SIMPLE)
+engine_model = veh.EngineModelType_SHAFTS
+transmission_model = veh.TransmissionModelType_SHAFTS
 
 # Drive type (FWD, RWD, or AWD)
 drive_type = veh.DrivelineTypeWV_AWD

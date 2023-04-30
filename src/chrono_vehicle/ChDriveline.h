@@ -19,9 +19,8 @@
 #ifndef CH_DRIVELINE_H
 #define CH_DRIVELINE_H
 
-#include "chrono/physics/ChShaft.h"
-
 #include "chrono_vehicle/ChApiVehicle.h"
+#include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/ChPart.h"
 
 namespace chrono {
@@ -33,23 +32,31 @@ namespace vehicle {
 /// Base class for a vehicle driveline subsystem.
 class CH_VEHICLE_API ChDriveline : public ChPart {
   public:
-    virtual ~ChDriveline();
+    virtual ~ChDriveline() {}
 
-    /// Get a handle to the driveshaft.
-    /// Return a pointer to the shaft that connects this driveline to a powertrain system.
-    std::shared_ptr<ChShaft> GetDriveshaft() const { return m_driveshaft; }
+    /// Initialize the driveline.
+    void Initialize(std::shared_ptr<ChChassis> chassis);
 
-    /// Get the angular speed of the driveshaft.
-    /// This represents the output from the driveline subsystem that is passed to the powertrain system.
-    double GetDriveshaftSpeed() const { return -m_driveshaft->GetPos_dt(); }
+    /// Update the driveline subsystem.
+    /// The motor torque represents the input to the driveline subsystem from the powertrain system.
+    /// Apply the provided torque to the driveshaft.
+    virtual void Synchronize(double time,                        ///< current time
+                             const DriverInputs& driver_inputs,  ///< current driver inputs
+                             double driveshaft_torque            ///< input transmission torque
+                             ) = 0;
+
+    /// Disconnect driveline.
+    virtual void Disconnect() = 0;
+
+    /// Return the output driveline speed of the driveshaft.
+    /// This represents the output from the driveline subsystem that is passed to the transmission subsystem.
+    virtual double GetOutputDriveshaftSpeed() const = 0;
 
   protected:
     ChDriveline(const std::string& name);
 
     virtual void InitializeInertiaProperties() override;
     virtual void UpdateInertiaProperties() override;
-
-    std::shared_ptr<ChShaft> m_driveshaft;  ///< shaft connection to the powertrain
 };
 
 /// @} vehicle

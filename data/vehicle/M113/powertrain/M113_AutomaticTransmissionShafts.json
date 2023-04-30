@@ -1,0 +1,37 @@
+{
+  "Name": "M113 Shafts Automatic Transmission",
+  "Type": "Transmission",
+  "Template": "AutomaticTransmissionShafts",
+
+  "Transmission Block Inertia": 10.5, // connection to chassis
+  "Input Shaft Inertia": 0.3,
+  "Motorshaft Inertia": 0.5, // connection to engine
+  "Driveshaft Inertia": 0.5, // connection to driveline
+
+  "Torque Converter": {
+    "Capacity Factor Map": [
+      [ 0.00, 7.00 ],
+      [ 0.25, 7.00 ],
+      [ 0.50, 7.00 ],
+      [ 0.75, 8.00 ],
+      [ 0.90, 9.00 ],
+      [ 1.00, 18.00 ]
+    ],
+    "Torque Ratio Map": [
+      [ 0.00, 2.00 ],
+      [ 0.25, 1.80 ],
+      [ 0.50, 1.50 ],
+      [ 0.75, 1.15 ],
+      [ 0.90, 1.00 ],
+      [ 1.00, 1.00 ]
+    ]
+  },
+
+  "Gear Box": {
+    "Forward Gear Ratios": [ 0.240, 0.427, 0.685, 0.962 ],
+    "Reverse Gear Ratio": -0.151,
+    "Upshift RPM": 1500,
+    "Downshift RPM": 1000,
+    "Shift Latency": 0.5
+  }
+}

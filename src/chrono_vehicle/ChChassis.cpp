@@ -111,6 +111,9 @@ void ChChassis::Initialize(ChSystem* system,
     // Add pre-defined markers (driver position and COM) on the chassis body.
     AddMarker("driver position", GetLocalDriverCoordsys());
     AddMarker("COM", ChCoordsys<>(GetCOMFrame().GetPos(), GetCOMFrame().GetRot()));
+
+    // Mark as initialized
+    m_initialized = true;
 }
 
 void ChChassis::AddMarker(const std::string& name, const ChCoordsys<>& pos) {
@@ -243,6 +246,9 @@ void ChChassisRear::Initialize(std::shared_ptr<ChChassis> chassis, int collision
 
     // Add pre-defined marker (COM) on the chassis body.
     AddMarker("COM", ChCoordsys<>(GetBodyCOMFrame().GetPos(), GetBodyCOMFrame().GetRot()));
+
+    // Mark as initialized
+    m_initialized = true;
 }
 
 // -----------------------------------------------------------------------------
@@ -257,6 +263,11 @@ void ChChassisConnector::InitializeInertiaProperties() {
 }
 
 void ChChassisConnector::UpdateInertiaProperties() {}
+
+void ChChassisConnector::Initialize(std::shared_ptr<ChChassis> front, std::shared_ptr<ChChassisRear> rear) {
+    // Mark as initialized
+    m_initialized = true;
+}
 
 }  // end namespace vehicle
 }  // end namespace chrono

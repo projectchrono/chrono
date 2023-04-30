@@ -32,5 +32,10 @@ ChSubchassis::~ChSubchassis() {
     }
 }
 
+void ChSubchassis::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector<>& location) {
+    // Mark as initialized
+    m_initialized = true;
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

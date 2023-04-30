@@ -22,12 +22,15 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "chrono_models/vehicle/mrole/mrole.h"
-#include "chrono_models/vehicle/mrole/mrole_Powertrain.h"
 #include "chrono_models/vehicle/mrole/mrole_RigidTire.h"
-#include "chrono_models/vehicle/mrole/mrole_SimpleMapPowertrain.h"
-#include "chrono_models/vehicle/mrole/mrole_SimplePowertrain.h"
-#include "chrono_models/vehicle/mrole/mrole_SimpleCVTPowertrain.h"
 #include "chrono_models/vehicle/mrole/mrole_TMeasyTire.h"
+
+#include "chrono_vehicle/ChPowertrainAssembly.h"
+#include "chrono_models/vehicle/mrole/powertrain/mrole_EngineSimpleMap.h"
+#include "chrono_models/vehicle/mrole/powertrain/mrole_EngineSimple.h"
+#include "chrono_models/vehicle/mrole/powertrain/mrole_EngineShafts.h"
+#include "chrono_models/vehicle/mrole/powertrain/mrole_AutomaticTransmissionSimpleMap.h"
+#include "chrono_models/vehicle/mrole/powertrain/mrole_AutomaticTransmissionShafts.h"
 
 namespace chrono {
 namespace vehicle {
@@ -43,8 +46,9 @@ mrole::mrole()
       m_brake_locking(false),
       m_brake_type(BrakeType::SIMPLE),
       m_driveType(DrivelineTypeWV::AWD),
-      m_powertrainType(PowertrainModelType::SHAFTS),
-      m_tireType(TireModelType::RIGID),
+m_engineType(EngineModelType::SHAFTS),
+m_transmissionType(TransmissionModelType::SHAFTS),
+ m_tireType(TireModelType::RIGID),
       m_tire_collision_type(ChTire::CollisionType::SINGLE_POINT),
       m_tire_step_size(-1),
       m_initFwdVel(0),
@@ -62,8 +66,9 @@ mrole::mrole(ChSystem* system)
       m_brake_locking(false),
       m_brake_type(BrakeType::SIMPLE),
       m_driveType(DrivelineTypeWV::AWD),
-      m_powertrainType(PowertrainModelType::SHAFTS),
-      m_tireType(TireModelType::RIGID),
+m_engineType(EngineModelType::SHAFTS),
+m_transmissionType(TransmissionModelType::SHAFTS),
+m_tireType(TireModelType::RIGID),
       m_tire_collision_type(ChTire::CollisionType::SINGLE_POINT),
       m_tire_step_size(-1),
       m_initFwdVel(0),
@@ -96,31 +101,37 @@ void mrole::Initialize() {
     if (m_apply_drag) {
         m_vehicle->GetChassis()->SetAerodynamicDrag(m_Cd, m_area, m_air_density);
     }
-
+    
     // Create and initialize the powertrain system
-    switch (m_powertrainType) {
-        case PowertrainModelType::SHAFTS: {
-            auto powertrain = chrono_types::make_shared<mrole_Powertrain>("Powertrain");
-            m_vehicle->InitializePowertrain(powertrain);
+    std::shared_ptr<ChEngine> engine;
+    std::shared_ptr<ChTransmission> transmission;
+    switch (m_engineType) {
+        case EngineModelType::SHAFTS:
+            engine = chrono_types::make_shared<mrole_EngineShafts>("Engine");
             break;
-        }
-        case PowertrainModelType::SIMPLE_MAP: {
-            auto powertrain = chrono_types::make_shared<mrole_SimpleMapPowertrain>("Powertrain");
-            m_vehicle->InitializePowertrain(powertrain);
+        case EngineModelType::SIMPLE_MAP:
+            engine = chrono_types::make_shared<mrole_EngineSimpleMap>("Engine");
             break;
-        }
-        case PowertrainModelType::SIMPLE: {
-            auto powertrain = chrono_types::make_shared<mrole_SimplePowertrain>("Powertrain");
-            m_vehicle->InitializePowertrain(powertrain);
+        case EngineModelType::SIMPLE:
+            engine = chrono_types::make_shared<mrole_EngineSimple>("Engine");
             break;
-        }
-        case PowertrainModelType::SIMPLE_CVT: {
-            auto powertrain = chrono_types::make_shared<mrole_SimpleCVTPowertrain>("Powertrain");
-            m_vehicle->InitializePowertrain(powertrain);
-            break;
-        }
     }
 
+    switch (m_transmissionType) {
+        case TransmissionModelType::SHAFTS:
+            transmission = chrono_types::make_shared<mrole_AutomaticTransmissionShafts>("Transmission");
+            break;
+        case TransmissionModelType::SIMPLE_MAP:
+            transmission = chrono_types::make_shared<mrole_AutomaticTransmissionSimpleMap>("Transmission");
+            break;
+    }
+
+    if (engine && transmission) {
+        auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
+        m_vehicle->InitializePowertrain(powertrain);
+    }
+
+ 
     // Create the tires and set parameters depending on type.
     switch (m_tireType) {
         case TireModelType::RIGID:

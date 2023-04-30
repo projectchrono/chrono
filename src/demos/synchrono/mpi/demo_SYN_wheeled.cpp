@@ -87,7 +87,8 @@ void LogCopyright(bool show);
 void AddCommandLineOptions(ChCLI& cli);
 void GetVehicleModelFiles(VehicleType type,
                           std::string& vehicle,
-                          std::string& powertrain,
+                          std::string& engine,
+                          std::string& transmission,
                           std::string& tire,
                           std::string& zombie,
                           double& cam_distance);
@@ -186,9 +187,9 @@ int main(int argc, char* argv[]) {
 
     // Get the vehicle JSON filenames
     double cam_distance;
-    std::string vehicle_filename, powertrain_filename, tire_filename, zombie_filename;
-    GetVehicleModelFiles((VehicleType)cli.GetAsType<int>("vehicle"), vehicle_filename, powertrain_filename,
-                         tire_filename, zombie_filename, cam_distance);
+    std::string vehicle_filename, engine_filename, transmission_filename, tire_filename, zombie_filename;
+    GetVehicleModelFiles((VehicleType)cli.GetAsType<int>("vehicle"), vehicle_filename, engine_filename,
+                         transmission_filename, tire_filename, zombie_filename, cam_distance);
 
     // Create the vehicle, set parameters, and initialize
     WheeledVehicle vehicle(vehicle_filename, contact_method);
@@ -200,7 +201,9 @@ int main(int argc, char* argv[]) {
     vehicle.SetWheelVisualizationType(wheel_vis_type);
 
     // Create and initialize the powertrain system
-    auto powertrain = ReadPowertrainJSON(powertrain_filename);
+    auto engine = ReadEngineJSON(vehicle::GetDataFile(engine_filename));
+    auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(transmission_filename));
+    auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
     vehicle.InitializePowertrain(powertrain);
 
     // Create and initialize the tires
@@ -325,42 +328,48 @@ void AddCommandLineOptions(ChCLI& cli) {
 
 void GetVehicleModelFiles(VehicleType type,
                           std::string& vehicle,
-                          std::string& powertrain,
+                          std::string& engine,
+                          std::string& transmission,
                           std::string& tire,
                           std::string& zombie,
                           double& cam_distance) {
     switch (type) {
         case VehicleType::SEDAN:
             vehicle = vehicle::GetDataFile("sedan/vehicle/Sedan_Vehicle.json");
-            powertrain = vehicle::GetDataFile("sedan/powertrain/Sedan_SimpleMapPowertrain.json");
+            engine = vehicle::GetDataFile("sedan/powertrain/Sedan_EngineSimpleMap.json");
+            transmission = vehicle::GetDataFile("sedan/powertrain/Sedan_AutomaticTransmissionSimpleMap.json");
             tire = vehicle::GetDataFile("sedan/tire/Sedan_TMeasyTire.json");
             zombie = synchrono::GetDataFile("vehicle/Sedan.json");
             cam_distance = 6.0;
             break;
         case VehicleType::HMMWV:
             vehicle = vehicle::GetDataFile("hmmwv/vehicle/HMMWV_Vehicle.json");
-            powertrain = vehicle::GetDataFile("hmmwv/powertrain/HMMWV_ShaftsPowertrain.json");
+            engine = vehicle::GetDataFile("hmmwv/powertrain/HMMWV_EngineShafts.json");
+            transmission = vehicle::GetDataFile("hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json");
             tire = vehicle::GetDataFile("hmmwv/tire/HMMWV_TMeasyTire.json");
             zombie = synchrono::GetDataFile("vehicle/HMMWV.json");
             cam_distance = 6.0;
             break;
         case VehicleType::UAZ:
             vehicle = vehicle::GetDataFile("uaz/vehicle/UAZBUS_SAEVehicle.json");
-            powertrain = vehicle::GetDataFile("uaz/powertrain/UAZBUS_SimpleMapPowertrain.json");
+            engine = vehicle::GetDataFile("uaz/powertrain/UAZBUS_EngineSimpleMap.json");
+            transmission = vehicle::GetDataFile("uaz/powertrain/UAZBUS_AutomaticTransmissioniSimpleMap.json");
             tire = vehicle::GetDataFile("uaz/tire/UAZBUS_TMeasyTireFront.json");
             zombie = synchrono::GetDataFile("vehicle/UAZBUS.json");
             cam_distance = 6.0;
             break;
         case VehicleType::CITYBUS:
             vehicle = vehicle::GetDataFile("citybus/vehicle/CityBus_Vehicle.json");
-            powertrain = vehicle::GetDataFile("citybus/powertrain/CityBus_SimpleMapPowertrain.json");
+            engine = vehicle::GetDataFile("citybus/powertrain/CityBus_EngineSimpleMap.json");
+            transmission = vehicle::GetDataFile("citybus/powertrain/CityBus_AutomaticTransmissionSimpleMap.json");
             tire = vehicle::GetDataFile("citybus/tire/CityBus_TMeasyTire.json");
             zombie = synchrono::GetDataFile("vehicle/CityBus.json");
             cam_distance = 14.0;
             break;
         case VehicleType::MAN:
             vehicle = vehicle::GetDataFile("MAN_Kat1/vehicle/MAN_10t_Vehicle_8WD.json");
-            powertrain = vehicle::GetDataFile("MAN_Kat1/powertrain/MAN_7t_SimpleCVTPowertrain.json");
+            engine = vehicle::GetDataFile("MAN_Kat1/powertrain/MAN_7t_EngineSimpleMap.json");
+            transmission = vehicle::GetDataFile("MAN_Kat1/powertrain/MAN_7t_AutomaticTransmissionSimpleMap.json");
             tire = vehicle::GetDataFile("MAN_Kat1/tire/MAN_5t_TMeasyTire.json");
             zombie = synchrono::GetDataFile("vehicle/MAN_8WD.json");
             cam_distance = 12.0;

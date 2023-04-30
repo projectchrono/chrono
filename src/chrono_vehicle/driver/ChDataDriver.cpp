@@ -32,8 +32,6 @@
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChDataDriver::ChDataDriver(ChVehicle& vehicle, const std::string& filename, bool sorted) : ChDriver(vehicle) {
     std::ifstream ifile(filename.c_str());
     std::string line;
@@ -41,14 +39,14 @@ ChDataDriver::ChDataDriver(ChVehicle& vehicle, const std::string& filename, bool
     while (std::getline(ifile, line)) {
         std::istringstream iss(line);
 
-        double time, steering, throttle, braking;
+        double time, steering, throttle, braking, clutch;
 
-        iss >> time >> steering >> throttle >> braking;
+        iss >> time >> steering >> throttle >> braking >> clutch;
 
         if (iss.fail())
             break;
 
-        m_data.push_back(Entry(time, steering, throttle, braking));
+        m_data.push_back(Entry(time, steering, throttle, braking, clutch));
     }
 
     ifile.close();
@@ -66,22 +64,24 @@ ChDataDriver::ChDataDriver(ChVehicle& vehicle, const std::vector<Entry>& data, b
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 void ChDataDriver::Synchronize(double time) {
     if (time <= m_data[0].m_time) {
         m_steering = m_data[0].m_steering;
         m_throttle = m_data[0].m_throttle;
         m_braking = m_data[0].m_braking;
+        m_clutch = m_data[0].m_clutch;
         return;
     } else if (time >= m_data.back().m_time) {
         m_steering = m_data.back().m_steering;
         m_throttle = m_data.back().m_throttle;
         m_braking = m_data.back().m_braking;
+        m_clutch = m_data.back().m_clutch;
         return;
     }
 
     std::vector<Entry>::iterator right =
-        std::lower_bound(m_data.begin(), m_data.end(), Entry(time, 0, 0, 0), ChDataDriver::compare);
+        std::lower_bound(m_data.begin(), m_data.end(), Entry(time, 0, 0, 0, 0), ChDataDriver::compare);
 
     std::vector<Entry>::iterator left = right - 1;
 
@@ -90,6 +90,7 @@ void ChDataDriver::Synchronize(double time) {
     m_steering = left->m_steering + tbar * (right->m_steering - left->m_steering);
     m_throttle = left->m_throttle + tbar * (right->m_throttle - left->m_throttle);
     m_braking = left->m_braking + tbar * (right->m_braking - left->m_braking);
+    m_clutch = left->m_clutch + tbar * (right->m_clutch - left->m_clutch);
 }
 
 }  // end namespace vehicle

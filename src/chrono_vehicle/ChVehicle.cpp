@@ -37,9 +37,9 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
+
 // Constructor for a ChVehicle using a default Chrono system.
 // Specify default step size and solver parameters.
-// -----------------------------------------------------------------------------
 ChVehicle::ChVehicle(const std::string& name, ChContactMethod contact_method)
     : m_name(name),
       m_ownsSystem(true),
@@ -71,9 +71,7 @@ ChVehicle::ChVehicle(const std::string& name, ChContactMethod contact_method)
     m_system->SetMaxPenetrationRecoverySpeed(4.0);
 }
 
-// -----------------------------------------------------------------------------
 // Constructor for a ChVehicle using the specified Chrono ChSystem.
-// -----------------------------------------------------------------------------
 ChVehicle::ChVehicle(const std::string& name, ChSystem* system)
     : m_name(name),
       m_system(system),
@@ -89,9 +87,6 @@ ChVehicle::ChVehicle(const std::string& name, ChSystem* system)
       m_RTF(0),
       m_initialized(false) {}
 
-// -----------------------------------------------------------------------------
-// Destructor for ChVehicle
-// -----------------------------------------------------------------------------
 ChVehicle::~ChVehicle() {
     delete m_output_db;
     if (m_ownsSystem)
@@ -101,6 +96,7 @@ ChVehicle::~ChVehicle() {
 // -----------------------------------------------------------------------------
 // Change the default collision system type
 // -----------------------------------------------------------------------------
+
 void ChVehicle::SetCollisionSystemType(collision::ChCollisionSystemType collsys_type) {
     if (m_ownsSystem)
         m_system->SetCollisionSystemType(collsys_type);
@@ -109,6 +105,7 @@ void ChVehicle::SetCollisionSystemType(collision::ChCollisionSystemType collsys_
 // -----------------------------------------------------------------------------
 // Enable output for this vehicle system.
 // -----------------------------------------------------------------------------
+
 void ChVehicle::SetOutput(ChVehicleOutput::Type type,
                           const std::string& out_dir,
                           const std::string& out_name,
@@ -132,15 +129,22 @@ void ChVehicle::SetOutput(ChVehicleOutput::Type type,
 }
 
 // -----------------------------------------------------------------------------
+
 void ChVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
     // Calculate total vehicle mass and inertia properties at initial configuration
     InitializeInertiaProperties();
     UpdateInertiaProperties();
 }
 
+void ChVehicle::InitializePowertrain(std::shared_ptr<ChPowertrainAssembly> powertrain) {
+    m_powertrain_assembly = powertrain;
+    m_powertrain_assembly->Initialize(m_chassis);
+}
+
 // -----------------------------------------------------------------------------
 // Advance the state of the system.
-// ---------------------------------------------------------------------------- -
+// -----------------------------------------------------------------------------
+
 void ChVehicle::Advance(double step) {
     // Ensure the vehicle mass includes the mass of subsystems that may have been initialized after the vehicle
     if (!m_initialized) {
@@ -179,7 +183,17 @@ double ChVehicle::GetRTF() const {
 }
 
 // -----------------------------------------------------------------------------
+
+std::shared_ptr<ChEngine> ChVehicle::GetEngine() const {
+    return m_powertrain_assembly ? m_powertrain_assembly->GetEngine() : nullptr;
+}
+
+std::shared_ptr<ChTransmission> ChVehicle::GetTransmission() const {
+    return m_powertrain_assembly ? m_powertrain_assembly->GetTransmission() : nullptr;
+}
+
 // -----------------------------------------------------------------------------
+
 void ChVehicle::SetChassisVisualizationType(VisualizationType vis) {
     m_chassis->SetVisualizationType(vis);
 }

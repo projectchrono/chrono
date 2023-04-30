@@ -27,6 +27,8 @@ ChTrackShoeSegmented::ChTrackShoeSegmented(const std::string& name) : ChTrackSho
 void ChTrackShoeSegmented::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                                       const ChVector<>& location,
                                       const ChQuaternion<>& rotation) {
+    ChTrackShoe::Initialize(chassis, location, rotation);
+
     m_shoe_sprk_material = m_shoe_sprk_minfo.CreateMaterial(chassis->GetSystem()->GetContactMethod());
 }
 

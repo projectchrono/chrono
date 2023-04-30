@@ -42,7 +42,7 @@ class CH_VEHICLE_API ChAntirollBar : public ChPart {
     virtual void Initialize(std::shared_ptr<ChChassis> chassis,        ///< [in] handle to the chassis body
                             std::shared_ptr<ChSuspension> suspension,  ///< [in] associated suspension subsystem
                             const ChVector<>& location                 ///< [in] location relative to the chassis frame
-                            ) = 0;
+    );
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() {}

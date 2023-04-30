@@ -1,7 +1,7 @@
 {
-  "Name":                       "Truck Simple Brake",
-  "Type":                       "Brake",
-  "Template":                   "BrakeSimple",
+  "Name": "Truck 6x4 Offroad Truck Simple Brake",
+  "Type": "Brake",
+  "Template": "BrakeSimple",
 
-  "Maximum Torque":             10000
+  "Maximum Torque": 10000
 }
