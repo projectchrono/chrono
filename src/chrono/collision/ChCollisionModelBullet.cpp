@@ -221,20 +221,19 @@ bool ChCollisionModelBullet::AddBox(std::shared_ptr<ChMaterialSurface> material,
 }
 
 bool ChCollisionModelBullet::AddCylinder(std::shared_ptr<ChMaterialSurface> material,
-                                         double rx,
-                                         double rz,
-                                         double hy,
+                                         double radius,
+                                         double hheight,
                                          const ChVector<>& pos,
                                          const ChMatrix33<>& rot) {
     // adjust default inward margin (if object too thin)
-    SetSafeMargin(ChMin(GetSafeMargin(), 0.2 * ChMin(ChMin(rx, rz), 0.5 * hy)));
+    SetSafeMargin(ChMin(GetSafeMargin(), 0.2 * ChMin(radius, hheight)));
 
     auto shape = new ChCollisionShapeBullet(ChCollisionShape::Type::CYLINDER, material);
 
-    cbtScalar arx = (cbtScalar)(rx + GetEnvelope());
-    cbtScalar arz = (cbtScalar)(rz + GetEnvelope());
-    cbtScalar ahy = (cbtScalar)(hy + GetEnvelope());
-    shape->m_bt_shape = new cbtCylinderShape(cbtVector3(arx, ahy, arz));
+    cbtScalar ax = (cbtScalar)(radius + GetEnvelope());
+    cbtScalar ay = (cbtScalar)(radius + GetEnvelope());
+    cbtScalar az = (cbtScalar)(hheight + GetEnvelope());
+    shape->m_bt_shape = new cbtCylinderShapeZ(cbtVector3(ax, ay, az));
     shape->m_bt_shape->setMargin((cbtScalar)GetSuggestedFullMargin());
 
     injectShape(pos, rot, shape);
@@ -262,15 +261,15 @@ bool ChCollisionModelBullet::AddCapsule(std::shared_ptr<ChMaterialSurface> mater
 
 bool ChCollisionModelBullet::AddCylindricalShell(std::shared_ptr<ChMaterialSurface> material,
                                                  double radius,
-                                                 double hlen,
+                                                 double hheight,
                                                  const ChVector<>& pos,
                                                  const ChMatrix33<>& rot) {
     // adjust default inward margin (if object too thin)
-    SetSafeMargin(ChMin(GetSafeMargin(), 0.2 * ChMin(radius, 0.5 * hlen)));
+    SetSafeMargin(ChMin(GetSafeMargin(), 0.2 * ChMin(radius, 0.5 * hheight)));
 
     auto shape = new ChCollisionShapeBullet(ChCollisionShape::Type::CYLSHELL, material);
     shape->m_bt_shape =
-        new cbtCylindricalShellShape((cbtScalar)(radius + GetEnvelope()), (cbtScalar)(hlen + GetEnvelope()));
+        new cbtCylindricalShellShape((cbtScalar)(radius + GetEnvelope()), (cbtScalar)(hheight + GetEnvelope()));
     shape->m_bt_shape->setMargin((cbtScalar)GetSuggestedFullMargin());
 
     injectShape(pos, rot, shape);
@@ -899,15 +898,15 @@ std::vector<double> ChCollisionModelBullet::GetShapeDimensions(int index) const 
             break;
         }
         case ChCollisionShape::Type::CYLINDER: {
-            auto bt_cyl = static_cast<cbtCylinderShape*>(shape->m_bt_shape);
+            auto bt_cyl = static_cast<cbtCylinderShapeZ*>(shape->m_bt_shape);
             auto hdims = ChBulletToVect(bt_cyl->getHalfExtentsWithoutMargin());
-            dims = {hdims.x(), hdims.z(), hdims.y()};
+            dims = {hdims.x(), hdims.y(), hdims.z()};
             break;
         }
         case ChCollisionShape::Type::CYLSHELL: {
             auto bt_cyl = static_cast<cbtCylindricalShellShape*>(shape->m_bt_shape);
             auto hdims = ChBulletToVect(bt_cyl->getHalfExtentsWithoutMargin());
-            dims = {hdims.x(), hdims.y()};
+            dims = {hdims.x(), hdims.z()};
             break;
         }
         default:

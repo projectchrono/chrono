@@ -72,8 +72,8 @@ void ChRigidTire::Initialize(std::shared_ptr<ChWheel> wheel) {
                                                          ChMatrix33<>(1), m_sweep_sphere_radius);
     } else {
         // Cylinder contact
-        wheel_body->GetCollisionModel()->AddCylinder(m_material, GetRadius(), GetRadius(), GetWidth() / 2,
-                                                     ChVector<>(0, GetOffset(), 0));
+        wheel_body->GetCollisionModel()->AddCylinder(m_material, GetRadius(), GetWidth() / 2,
+                                                     ChVector<>(0, 0, GetOffset()), Q_from_AngX(CH_C_PI_2));
     }
 
     wheel_body->GetCollisionModel()->BuildModel();

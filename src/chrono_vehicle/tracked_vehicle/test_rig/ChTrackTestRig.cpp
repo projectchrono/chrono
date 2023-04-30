@@ -188,9 +188,8 @@ void ChTrackTestRig::Create(bool create_track, bool detracking_control) {
         m_system->Add(post);
 
         post->GetCollisionModel()->ClearModel();
-        post->GetCollisionModel()->AddCylinder(post_mat, m_post_radius, m_post_radius, m_post_hheight,
-                                               ChVector<>(0, 0, -m_post_hheight),
-                                               ChMatrix33<>(Q_from_AngX(CH_C_PI / 2)));
+        post->GetCollisionModel()->AddCylinder(post_mat, m_post_radius, m_post_hheight,
+                                               ChVector<>(0, 0, -m_post_hheight));
         post->GetCollisionModel()->BuildModel();
 
         AddPostVisualization(post, m_chassis->GetBody(), ChColor(0.1f, 0.8f, 0.15f));

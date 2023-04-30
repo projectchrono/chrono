@@ -180,7 +180,7 @@ void ChBodyEasyCylinder::SetupBody(geometry::ChAxis direction,
     if (collide) {
         assert(material);
         GetCollisionModel()->ClearModel();
-        GetCollisionModel()->AddCylinder(material, radius, radius, height * 0.5, VNULL, rot);
+        GetCollisionModel()->AddCylinder(material, radius, height * 0.5, VNULL, rot);
         GetCollisionModel()->BuildModel();
         SetCollide(true);
     }

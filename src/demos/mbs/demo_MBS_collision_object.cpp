@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
         }
         case CollisionShape::CYLINDER: {
             object->GetCollisionModel()->ClearModel();
-            object->GetCollisionModel()->AddCylinder(object_mat, radius, radius, hlen, ChVector<>(0), ChMatrix33<>(1));
+            object->GetCollisionModel()->AddCylinder(object_mat, radius, hlen, ChVector<>(0), ChMatrix33<>(1));
             object->GetCollisionModel()->BuildModel();
 
             auto cyl = chrono_types::make_shared<ChCylinderShape>(radius, 2 * hlen);

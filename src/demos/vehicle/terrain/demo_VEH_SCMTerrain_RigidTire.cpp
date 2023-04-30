@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
         case TireType::CYLINDRICAL: {
             double radius = 0.5;
             double width = 0.4;
-            mrigidbody->GetCollisionModel()->AddCylinder(material, radius, radius, width / 2, ChVector<>(0), Q_from_AngZ(CH_C_PI_2));
+            mrigidbody->GetCollisionModel()->AddCylinder(material, radius, width / 2, ChVector<>(0), Q_from_AngY(CH_C_PI_2));
             
             auto cyl_shape = chrono_types::make_shared<ChCylinderShape>(radius, width);
             cyl_shape->SetColor(ChColor(0.3f, 0.3f, 0.3f));

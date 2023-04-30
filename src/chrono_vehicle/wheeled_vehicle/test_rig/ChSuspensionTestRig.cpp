@@ -569,9 +569,8 @@ void ChSuspensionTestRigPlatform::InitializeRig() {
         AddPostVisualization(post_L, ChColor(0.1f, 0.8f, 0.15f));
 
         post_L->GetCollisionModel()->ClearModel();
-        post_L->GetCollisionModel()->AddCylinder(post_mat, m_post_radius, m_post_radius, m_post_hheight,
-                                                 ChVector<>(0, 0, -m_post_hheight),
-                                                 ChMatrix33<>(Q_from_AngX(CH_C_PI / 2)));
+        post_L->GetCollisionModel()->AddCylinder(post_mat, m_post_radius, m_post_hheight,
+                                                 ChVector<>(0, 0, -m_post_hheight));
         post_L->GetCollisionModel()->BuildModel();
 
         // Create the right post body (red)
@@ -586,9 +585,8 @@ void ChSuspensionTestRigPlatform::InitializeRig() {
         AddPostVisualization(post_R, ChColor(0.8f, 0.1f, 0.1f));
 
         post_R->GetCollisionModel()->ClearModel();
-        post_R->GetCollisionModel()->AddCylinder(post_mat, m_post_radius, m_post_radius, m_post_hheight,
-                                                 ChVector<>(0, 0, -m_post_hheight),
-                                                 ChMatrix33<>(Q_from_AngX(CH_C_PI / 2)));
+        post_R->GetCollisionModel()->AddCylinder(post_mat, m_post_radius, m_post_hheight,
+                                                 ChVector<>(0, 0, -m_post_hheight));
         post_R->GetCollisionModel()->BuildModel();
 
         // Create and initialize actuators

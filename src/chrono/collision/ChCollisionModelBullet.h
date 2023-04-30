@@ -98,21 +98,20 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
         ) override;
 
-    /// Add a cylinder to this collision model (default axis on Y direction).
+    /// Add a cylinder to this collision model (axis in Z direction).
     virtual bool AddCylinder(                         //
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
-        double rx,                                    ///< radius (X direction)
-        double rz,                                    ///< radius (Z direction)
-        double hy,                                    ///< half length
+        double radius,                                ///< radius
+        double hheight,                               ///< half height
         const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
         ) override;
 
-    /// Add a cylindrical shell to this collision model (default axis in Y direction).
+    /// Add a cylindrical shell to this collision model (axis in Z direction).
     virtual bool AddCylindricalShell(                 //
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
-        double radius,                                ///< cylinder radius
-        double hlen,                                  ///< cylinder half length
+        double radius,                                ///< radius
+        double hheight,                               ///< half height
         const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
         ) override;
@@ -120,19 +119,19 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
     /// Add a cone to this collision model (default axis on Y direction).
     virtual bool AddCone(                             //
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
-        double radius,                                ///< cone radius
-        double hheight,                               ///< cone half-height
-        const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
+        double radius,                                ///< radius
+        double hheight,                               ///< half height
+        const ChVector<>& pos = ChVector<>(),         ///< base center position in model coordinates
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
         ) override {
         return false;
     }
 
-    /// Add a capsule to this collision model (default axis in Y direction).
+    /// Add a capsule to this collision model (axis in Z direction).
     virtual bool AddCapsule(                          //
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
         double radius,                                ///< radius
-        double hheight,                               ///< half-leight of cylindrical portion
+        double hheight,                               ///< half height of cylindrical portion
         const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
         ) override;
@@ -150,12 +149,11 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
         return false;
     }
 
-    /// Add a rounded cylinder to this collision model (default axis on Y direction).
+    /// Add a rounded cylinder to this collision model (axis in Z direction).
     virtual bool AddRoundedCylinder(                  //
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
-        double rx,                                    ///< radius (X direction)
-        double rz,                                    ///< radius (Z direction)
-        double hy,                                    ///< half length
+        double radius,                                ///< radius
+        double hheight,                               ///< half height
         double sphere_r,                              ///< radius of sweeping sphere
         const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates

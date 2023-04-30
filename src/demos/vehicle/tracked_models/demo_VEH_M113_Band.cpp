@@ -529,7 +529,7 @@ void AddFixedObstacles(ChSystem* system) {
     obst_mat->SetPoissonRatio(0.3f);
 
     obstacle->GetCollisionModel()->ClearModel();
-    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, radius, length * 0.5);
+    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, length * 0.5, VNULL, Q_from_AngX(CH_C_PI_2));
     obstacle->GetCollisionModel()->BuildModel();
 
     system->AddBody(obstacle);
