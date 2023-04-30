@@ -55,10 +55,10 @@ ChMFTire::ChMFTire(const std::string& name)
 void ChMFTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     ChTire::Initialize(wheel);
 
-    // SetPac02Params();
+    SetMFParams();
     // Build the lookup table for penetration depth as function of intersection area
     // (used only with the ChTire::ENVELOPE method for terrain-tire collision detection)
-    // ConstructAreaDepthTable(m_PacCoeff.R0, m_areaDep);
+    ConstructAreaDepthTable(par.UNLOADED_RADIUS, m_areaDep);
 
     // all parameters are known now pepare mirroring
     // if (m_allow_mirroring) {

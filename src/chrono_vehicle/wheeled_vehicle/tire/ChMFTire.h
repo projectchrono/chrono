@@ -48,6 +48,8 @@ class CH_VEHICLE_API ChMFTire : public ChForceElementTire {
 
     virtual ~ChMFTire() {}
 
+    virtual void SetMFParams() {};
+
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "ChMFTire"; }
 
