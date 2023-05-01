@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora 
+// Authors: Alessandro Tasora
 // =============================================================================
 
 #ifndef CHBLENDER_H
@@ -29,21 +29,21 @@ namespace chrono {
 namespace postprocess {
 
 /// Class for post processing implementation that generates scripts for Blender.
-/// The script can be used in Blender to render photo-realistic animations, if the chrono_import.py add-on is 
-/// installed in Blender. 
+/// The script can be used in Blender to render photo-realistic animations, if the chrono_import.py add-on is
+/// installed in Blender.
 class ChApiPostProcess ChBlender : public ChPostProcessBase {
   public:
     ChBlender(ChSystem* system);
     ~ChBlender() {}
 
-    /// Modes for type of vector arrow length 
+    /// Modes for type of vector arrow length
     enum class ContactSymbolType {
         NONE = 0,
         VECTOR,
         SPHERE,
     };
 
-    /// Modes for type of vector arrow length 
+    /// Modes for type of vector arrow length
     enum class ContactSymbolVectorLength {
         CONSTANT = 0,
         PROPERTY,
@@ -61,7 +61,7 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
         PROPERTY,
     };
 
-    /// Modes for colorizing vector or dot 
+    /// Modes for colorizing vector or dot
     enum class ContactSymbolColor {
         CONSTANT = 0,
         PROPERTY,
@@ -102,18 +102,13 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     ///          ....
     void SetBasePath(const std::string& mpath) { base_path = mpath; }
 
-    /// Set transformation from Chrono frame to Blender 
-    void SetBlenderFrame(const ChFrame<> mframe) {
-        this->blender_frame = mframe;
-    }
+    /// Set transformation from Chrono frame to Blender
+    void SetBlenderFrame(const ChFrame<> mframe) { this->blender_frame = mframe; }
     /// Set transformation from Chrono frame to Blender (in Blender, Z is up axis). Default.
-    void SetBlenderUp_is_ChronoY() {
-        this->blender_frame = ChFrame<>(VNULL, Q_ROTATE_Y_TO_Z);
-    }
-    /// Set transformation from Chrono frame to Blender (in Blender, Z is up axis). Useful when using Chrono::Vehicle, based on SAE standard with Z up.
-    void SetBlenderUp_is_ChronoZ() {
-        this->blender_frame = ChFrame<>(VNULL, QUNIT);
-    }
+    void SetBlenderUp_is_ChronoY() { this->blender_frame = ChFrame<>(VNULL, Q_ROTATE_Y_TO_Z); }
+    /// Set transformation from Chrono frame to Blender (in Blender, Z is up axis). Useful when using Chrono::Vehicle,
+    /// based on SAE standard with Z up.
+    void SetBlenderUp_is_ChronoZ() { this->blender_frame = ChFrame<>(VNULL, QUNIT); }
 
     /// Set the filename of the output Blender script.
     /// If not set, it defaults to "render_frames.assets.py".
@@ -157,36 +152,38 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     /// Turn off the display of contacts
     void SetShowContactsOff();
 
-    /// Turn on the display of contacts, using arrows to show vectors. 
-    /// The lenght of the arrow can be: constant, or force strength multiplied by 'scale_length', or property multiplied by 'scale_length'.
-    /// The width of the arrow can be: constant, or force strength multiplied by 'scale_length', or property multiplied by 'scale_length'.
+    /// Turn on the display of contacts, using arrows to show vectors.
+    /// The lenght of the arrow can be: constant, or force strength multiplied by 'scale_length', or property multiplied
+    /// by 'scale_length'. The width of the arrow can be: constant, or force strength multiplied by 'scale_length', or
+    /// property multiplied by 'scale_length'.
     void SetShowContactsVectors(
-                        ContactSymbolVectorLength length_type,
-                        double scale_length,          // if ContactSymbolVectorLength::CONSTANT means abs.length, otherwise is scaling factor for attr
-                        const std::string scale_attr, // needed if ContactSymbolVectorLength::PROPERTY, options: 'norm'. Otherwise "" 
-                        ContactSymbolVectorWidth width_type,
-                        double scale_width,           // if ContactSymbolVectorWidth::CONSTANT means abs.width, otherwise is scaling factor for norm or attr
-                        const std::string width_attr, // needed if ContactSymbolVectorWidth::PROPERTY, options: "norm". Otherwise ""
-                        ContactSymbolColor color_type,
-                        ChColor const_color,          // if ContactSymbolColor::CONSTANT, otherwise not used
-                        const std::string color_attr, // needed if ContactSymbolColor::PROPERTY, options: "norm". Otherwise "" 
-                        double colormap_start, // falsecolor start value, if not  ContactSymbolColor::CONSTANT,
-                        double colormap_end, // falsecolor start value, if not  ContactSymbolColor::CONSTANT
-                        bool do_vector_tip = true
-                         );
+        ContactSymbolVectorLength length_type,
+        double scale_length,  // if ContactSymbolVectorLength::CONSTANT means abs.length, otherwise is scaling factor
+                              // for attr
+        const std::string scale_attr,  // needed if ContactSymbolVectorLength::PROPERTY, options: 'norm'. Otherwise ""
+        ContactSymbolVectorWidth width_type,
+        double scale_width,  // if ContactSymbolVectorWidth::CONSTANT means abs.width, otherwise is scaling factor for
+                             // norm or attr
+        const std::string width_attr,  // needed if ContactSymbolVectorWidth::PROPERTY, options: "norm". Otherwise ""
+        ContactSymbolColor color_type,
+        ChColor const_color,           // if ContactSymbolColor::CONSTANT, otherwise not used
+        const std::string color_attr,  // needed if ContactSymbolColor::PROPERTY, options: "norm". Otherwise ""
+        double colormap_start,         // falsecolor start value, if not  ContactSymbolColor::CONSTANT,
+        double colormap_end,           // falsecolor start value, if not  ContactSymbolColor::CONSTANT
+        bool do_vector_tip = true);
 
-    /// Turn on the display of contacts, using spheres to show contact locations. 
+    /// Turn on the display of contacts, using spheres to show contact locations.
     /// The size of the arrow depends on force strength multiplied by 'scale_length'.
-    void SetShowContactsSpheres(
-                         ContactSymbolSphereSize size_type,
-                         double scale_size,    // if ContactSymbolSphereSize::CONSTANT means abs.size, otherwise is scaling factor for norm or attr
-                         ContactSymbolColor color_type,
-                         ChColor const_color,  // if ContactSymbolColor::CONSTANT, otherwise not used
-                         double colormap_start, // falsecolor start value, if not  ContactSymbolColor::CONSTANT,
-                         double colormap_end, // falsecolor start value, if not  ContactSymbolColor::CONSTANT
-                         const std::string size_attr = "", // needed if ContactSymbolSphereSize::PROPERTY
-                         const std::string color_attr = ""  // needed if ContactSymbolColor::PROPERTY
-                         );
+    void SetShowContactsSpheres(ContactSymbolSphereSize size_type,
+                                double scale_size,  // if ContactSymbolSphereSize::CONSTANT means abs.size, otherwise is
+                                                    // scaling factor for norm or attr
+                                ContactSymbolColor color_type,
+                                ChColor const_color,    // if ContactSymbolColor::CONSTANT, otherwise not used
+                                double colormap_start,  // falsecolor start value, if not  ContactSymbolColor::CONSTANT,
+                                double colormap_end,    // falsecolor start value, if not  ContactSymbolColor::CONSTANT
+                                const std::string size_attr = "",  // needed if ContactSymbolSphereSize::PROPERTY
+                                const std::string color_attr = ""  // needed if ContactSymbolColor::PROPERTY
+    );
 
     /// Set thickness for wireframe mode of meshes.
     /// If a ChTriangleMeshShape asset was set as SetWireframe(true), it will be rendered in Blender as a cage of thin
@@ -201,19 +198,19 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     void SetCustomBlenderCommandsScript(const std::string& text) { custom_script = text; }
     const std::string& GetCustomBlenderCommandsScript() const { return custom_script; }
 
-    /// Set a string (a text block) of custom Blender commands that you can optionally append to 
+    /// Set a string (a text block) of custom Blender commands that you can optionally append to
     /// the Blender script files that are load at each timestep, e.g.,
     ///    state00001.py, state00002.py,
     /// for example adding other lights, materials, etc.
     void SetCustomBlenderCommandsData(const std::string& text) { custom_data = text; }
     const std::string& GetCustomBlenderCommandsData() const { return custom_data; }
 
-    /// When ExportData() is called, it saves .dat files in incremental way, starting from zero: 
+    /// When ExportData() is called, it saves .dat files in incremental way, starting from zero:
     ///    data00000.dat, data00001.dat etc.,
     /// but you can override the formatted number by first calling SetFramenumber().
     void SetFramenumber(unsigned int fn) { framenumber = fn; }
 
-    /// Export the script that will be used by Blender that contains the definitions of assets of 
+    /// Export the script that will be used by Blender that contains the definitions of assets of
     /// geometric shapes, lights, etc.
     /// This function must be called once at the beginning of the animation.
     void ExportScript() { ExportScript(out_script_filename); }
@@ -221,29 +218,35 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     /// As ExportScript(), but overrides the filename.
     virtual void ExportScript(const std::string& filename) override;
 
-    /// This function must used at each timestep to export the state of the shared assets as 
+    /// This function must used at each timestep to export the state of the shared assets as
     /// file(s) with incremental numbering in output/
     /// The user should call this function in the while() loop of the simulation, once per frame.
     void ExportData();
 
-    /// As ExportData(), but overrides the automatically generated filename. Prefer using ExportData() so naming is automatic.
+    /// As ExportData(), but overrides the automatically generated filename. Prefer using ExportData() so naming is
+    /// automatic.
     virtual void ExportData(const std::string& filename) override;
 
     /// Set if the assets for the entre scenes at all timesteps must be appended into one
     /// single large file "exported.assets.py". If not, assets will be written inside
-    /// each state00001.dat, state00002.dat, etc files; this would waste more disk space but 
+    /// each state00001.dat, state00002.dat, etc files; this would waste more disk space but
     /// would allow assets whose settings change during time (ex time-changing colors)
     void SetUseSingleAssetFile(bool use) { single_asset_file = use; }
 
   private:
     void UpdateRenderList();
     void ExportAssets(ChStreamOutAsciiFile& assets_file, ChStreamOutAsciiFile& state_file);
-    void ExportShapes(ChStreamOutAsciiFile& assets_file, ChStreamOutAsciiFile& state_file, std::shared_ptr<ChPhysicsItem> item);
-    void ExportMaterials(ChStreamOutAsciiFile& mfile,std::unordered_map<size_t, std::shared_ptr<ChVisualMaterial>>& m_materials, 
-        const std::vector<std::shared_ptr<ChVisualMaterial>>& materials, bool per_frame, std::shared_ptr<ChVisualShape> mshape);
+    void ExportShapes(ChStreamOutAsciiFile& assets_file,
+                      ChStreamOutAsciiFile& state_file,
+                      std::shared_ptr<ChPhysicsItem> item);
+    void ExportMaterials(ChStreamOutAsciiFile& mfile,
+                         std::unordered_map<size_t, std::shared_ptr<ChVisualMaterial>>& m_materials,
+                         const std::vector<std::shared_ptr<ChVisualMaterial>>& materials,
+                         bool per_frame,
+                         std::shared_ptr<ChVisualShape> mshape);
     void ExportItemState(ChStreamOutAsciiFile& state_file,
-                       std::shared_ptr<ChPhysicsItem> item,
-                       const ChFrame<>& parentframe);
+                         std::shared_ptr<ChPhysicsItem> item,
+                         const ChFrame<>& parentframe);
 
     /// List of physics items in the rendering list.
     std::unordered_set<std::shared_ptr<ChPhysicsItem>> m_items;
@@ -255,9 +258,10 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     std::unordered_map<size_t, std::shared_ptr<ChVisualMaterial>> m_blender_materials;  ///< cache of visual materials
     std::unordered_map<size_t, std::shared_ptr<ChCamera>> m_blender_cameras;            ///< cache of cameras
 
-    std::unordered_map<size_t, std::shared_ptr<ChVisualShape>> m_blender_frame_shapes;        ///< cache of visual shapes, mutable (reset each frame)
-    std::unordered_map<size_t, std::shared_ptr<ChVisualMaterial>> m_blender_frame_materials;  ///< cache of visual materials, mutable (reset each frame)
-
+    std::unordered_map<size_t, std::shared_ptr<ChVisualShape>>
+        m_blender_frame_shapes;  ///< cache of visual shapes, mutable (reset each frame)
+    std::unordered_map<size_t, std::shared_ptr<ChVisualMaterial>>
+        m_blender_frame_materials;  ///< cache of visual materials, mutable (reset each frame)
 
     std::string base_path;
     std::string pic_path;
@@ -292,22 +296,22 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     bool frames_links_show;
     double frames_links_size;
 
-    ContactSymbolType contacts_show ;
+    ContactSymbolType contacts_show;
     double contacts_maxsize;
     ContactSymbolVectorLength contacts_vector_length_type;
     std::string contacts_vector_length_prop;
     double contacts_vector_scalelenght;
-    ContactSymbolVectorWidth  contacts_vector_width_type;
+    ContactSymbolVectorWidth contacts_vector_width_type;
     std::string contacts_vector_width_prop;
     double contacts_vector_scalewidth;
-    ContactSymbolSphereSize  contacts_sphere_size_type;
+    ContactSymbolSphereSize contacts_sphere_size_type;
     std::string contacts_sphere_size_prop;
     double contacts_sphere_scalesize;
-    ContactSymbolColor  contacts_color_type;
+    ContactSymbolColor contacts_color_type;
     std::string contacts_color_prop;
     ChColor contacts_color_constant;
-    double  contacts_colormap_startscale;
-    double  contacts_colormap_endscale;
+    double contacts_colormap_startscale;
+    double contacts_colormap_endscale;
     bool contacts_vector_tip;
 
     double wireframe_thickness;

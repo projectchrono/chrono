@@ -251,7 +251,6 @@ void ChPovRay::ExportScript(const std::string& filename) {
 
     // Rough way to load the template head file in the string buffer
     if (template_filename != "") {
-
         std::cout << "USE TEMPLATE FILE: " << template_filename << std::endl;
 
         ChStreamInAsciiFile templatefile(template_filename.c_str());
@@ -662,7 +661,7 @@ void ChPovRay::ExportMaterials(ChStreamOutAsciiFile& assets_file,
         if (mat->GetKdTexture().empty()) {
             const auto& color = mat->GetDiffuseColor();
             assets_file << "pigment {color rgbt <" << color.R << "," << color.G << "," << color.B << ","
-                << 1 - mat->GetOpacity() << "> }\n";
+                        << 1 - mat->GetOpacity() << "> }\n";
         }
 
         // POV macro - end
@@ -680,12 +679,12 @@ void ChPovRay::ExportObjData(ChStreamOutAsciiFile& pov_file,
     int num_shapes = vis_model->GetNumShapes();
     int num_shapesFEA = vis_model->GetNumShapesFEA();
     int num_cameras = (int)item->GetCameras().size();
-    int num_commands = (commands == m_custom_commands.end()) ? 0 : 1;  
+    int num_commands = (commands == m_custom_commands.end()) ? 0 : 1;
     int num_csys = (parentframe.GetCoord() == CSYSNORM) ? 0 : 1;
 
     // Use a union only if more than one element
     bool use_union = num_shapes + num_shapesFEA + num_cameras + num_commands + num_csys > 1;
-    
+
     if (use_union)
         pov_file << "union{\n";  // begin union
 
@@ -694,9 +693,10 @@ void ChPovRay::ExportObjData(ChStreamOutAsciiFile& pov_file,
         const auto& shape = shape_instance.first;
 
         // Process only "known" shapes (i.e., shapes that were included in the assets file)
-        if (std::dynamic_pointer_cast<ChModelFileShape>(shape) || std::dynamic_pointer_cast<ChTriangleMeshShape>(shape) ||
-            std::dynamic_pointer_cast<ChSphereShape>(shape) || std::dynamic_pointer_cast<ChEllipsoidShape>(shape) ||
-            std::dynamic_pointer_cast<ChCylinderShape>(shape) || std::dynamic_pointer_cast<ChBoxShape>(shape)) {
+        if (std::dynamic_pointer_cast<ChModelFileShape>(shape) ||
+            std::dynamic_pointer_cast<ChTriangleMeshShape>(shape) || std::dynamic_pointer_cast<ChSphereShape>(shape) ||
+            std::dynamic_pointer_cast<ChEllipsoidShape>(shape) || std::dynamic_pointer_cast<ChCylinderShape>(shape) ||
+            std::dynamic_pointer_cast<ChBoxShape>(shape)) {
             pov_file << "sh_" << (size_t)shape.get() << "()\n";
         }
     }
@@ -717,7 +717,7 @@ void ChPovRay::ExportObjData(ChStreamOutAsciiFile& pov_file,
         camera_aim = camera->GetAimPoint() >> parentframe;
         camera_up = camera->GetUpVector() >> parentframe;
         camera_angle = camera->GetAngle();
-        camera_orthographic = camera->IsOrthographic();       
+        camera_orthographic = camera->IsOrthographic();
     }
 
     // Invoke the custom commands string (if any)
