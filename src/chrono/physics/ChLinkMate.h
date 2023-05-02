@@ -31,6 +31,12 @@ namespace chrono {
 /// but in case of links of the ChLinkLock class they
 /// reference two ChMarker objects, that can also move, but
 /// this could be an unnecessary complication in most cases.
+///
+/// Note:
+/// In ChLinkLock class, the Z axis is considered as the
+///     free/locked translational/rotational DOF by default;
+/// In ChLinkMate calss, the X axis is considered as the
+///     free/locked translational/rotational DOF by default;
 
 class ChApi ChLinkMate : public ChLink {
   public:
