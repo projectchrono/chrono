@@ -291,7 +291,7 @@ void ChOptixGeometry::AddCylinder(std::shared_ptr<ChBody> body,
     if (!m_cyl_inst) {
         // create first cylinder instance
         OptixAabb aabb[1];
-        *aabb = {-1.f, -.5f, -1.f, 1.f, .5f, 1.f};
+        *aabb = {-1.f, -1.f, -.5f, 1.f, 1.f, .5f};
         CUdeviceptr d_aabb;
         CUDA_ERROR_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_aabb), sizeof(OptixAabb)));
         CUDA_ERROR_CHECK(cudaMemcpy(reinterpret_cast<void*>(d_aabb), &aabb, sizeof(OptixAabb), cudaMemcpyHostToDevice));
