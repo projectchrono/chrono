@@ -168,6 +168,30 @@ void AddCylinderGeometry(ChBody* body,
     }
 }
 
+void AddCylinderGeometry(ChBody* body,
+                         ChMaterialSurfaceSharedPtr material,
+                         double radius,
+                         const ChVector<>& p1,
+                         const ChVector<>& p2,
+                         bool visualization,
+                         ChVisualMaterialSharedPtr vis_material) {
+    geometry::ChLineSegment seg(p1, p2);
+    auto height = seg.GetLength();
+    auto frame = seg.GetFrame();
+
+    body->GetCollisionModel()->AddCylinder(material, radius, height / 2, frame.GetPos(), frame.GetA());
+
+    if (visualization) {
+        if (!body->GetVisualModel()) {
+            auto model = chrono_types::make_shared<ChVisualModel>();
+            body->AddVisualModel(model);
+        }
+        auto cylinder = chrono_types::make_shared<ChCylinderShape>(radius, height);
+        cylinder->AddMaterial(vis_material);
+        body->GetVisualModel()->AddShape(cylinder, frame);
+    }
+}
+
 // -----------------------------------------------------------------------------
 
 void AddConeGeometry(ChBody* body,

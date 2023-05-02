@@ -111,6 +111,14 @@ class ChApi ChCollisionModel {
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
         ) = 0;
 
+    /// Add a cylinder specified through a radius and end points.
+    bool AddCylinder(                                 //
+        std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
+        double radius,                                ///< radius
+        const ChVector<>& p1,                         ///< first end point
+        const ChVector<>& p2                          ///< second end point
+    );
+
     /// Add a cylindrical shell to this collision model (axis in Z direction).
     virtual bool AddCylindricalShell(                 //
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material

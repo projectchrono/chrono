@@ -98,7 +98,7 @@ ChApi void AddBiSphereGeometry(
     ChVisualMaterialSharedPtr vis_material = ChVisualMaterial::Default()  ///< visualization material
 );
 
-/// Add a box capsule shape and optionally a corresponding visualization asset to the specified body.
+/// Add a capsule shape and optionally a corresponding visualization asset to the specified body.
 ChApi void AddCapsuleGeometry(
     ChBody* body,                                                         ///< associated body
     ChMaterialSurfaceSharedPtr material,                                  ///< contact material
@@ -110,7 +110,7 @@ ChApi void AddCapsuleGeometry(
     ChVisualMaterialSharedPtr vis_material = ChVisualMaterial::Default()  ///< visualization material
 );
 
-/// Add a box cylinder shape and optionally a corresponding visualization asset to the specified body.
+/// Add a cylinder shape and optionally a corresponding visualization asset to the specified body.
 ChApi void AddCylinderGeometry(
     ChBody* body,                                                         ///< associated body
     ChMaterialSurfaceSharedPtr material,                                  ///< contact material
@@ -122,7 +122,18 @@ ChApi void AddCylinderGeometry(
     ChVisualMaterialSharedPtr vis_material = ChVisualMaterial::Default()  ///< visualization material
 );
 
-/// Add a box cone shape and optionally a corresponding visualization asset to the specified body.
+/// Add a cylinder shape and optionally a corresponding visualization asset to the specified body.
+ChApi void AddCylinderGeometry(
+    ChBody* body,                                                         ///< associated body
+    ChMaterialSurfaceSharedPtr material,                                  ///< contact material
+    double radius,                                                        ///< cylinder radius
+    const ChVector<>& p1,                                                 ///< first end point
+    const ChVector<>& p2,                                                 ///< second end point
+    bool visualization = true,                                            ///< create visualization shape
+    ChVisualMaterialSharedPtr vis_material = ChVisualMaterial::Default()  ///< visualization material
+);
+
+/// Add a cone shape and optionally a corresponding visualization asset to the specified body.
 ChApi void AddConeGeometry(
     ChBody* body,                                                         ///< associated body
     ChMaterialSurfaceSharedPtr material,                                  ///< contact material
