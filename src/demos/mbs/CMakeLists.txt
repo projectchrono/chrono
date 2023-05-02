@@ -61,13 +61,6 @@ if(ENABLE_MODULE_IRRLICHT)
         demo_MBS_collision_object
       )
     endif()
-
-    # Add demos that require MKL
-    if(ENABLE_MODULE_PARDISO_MKL)
-        set(DEMOS ${DEMOS}
-          demo_MBS_link_mate
-        )
-    endif()
 endif()
 
 #--------------------------------------------------------------
@@ -128,3 +121,21 @@ foreach(PROGRAM ${DEMOS})
 
   install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 endforeach()
+
+if(ENABLE_MODULE_PARDISO_MKL)
+  set(PROGRAM demo_MBS_link_mate)
+  message(STATUS "...add ${PROGRAM}")
+
+  add_executable(${PROGRAM}  "${PROGRAM}.cpp")
+  source_group(""  FILES  "${PROGRAM}.cpp")
+
+  set_target_properties(${PROGRAM} PROPERTIES FOLDER demos COMPILE_FLAGS "${COMPILER_FLAGS}" LINK_FLAGS "${LINKER_FLAGS}")
+  if(APPLE)
+    set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
+  endif()
+  set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+  target_compile_options(${PROGRAM} PRIVATE /bigobj)
+  target_link_libraries(${PROGRAM} ${LIBS})  
+
+  install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
+endif()

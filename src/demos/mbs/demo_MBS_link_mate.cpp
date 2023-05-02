@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,11 +12,8 @@
 // Authors: Chao Peng, Alessandro Tasora, Radu Serban
 // =============================================================================
 //
-// Demonstration of ChLinkMateGeneric() and the importance of its tangent stiffness
-// matrix in the static and eigenvalue analysis
-//
-// Recall that Irrlicht uses a left-hand frame, so everything is rendered with
-// left and right flipped.
+// Demonstration of ChLinkMateGeneric() and the importance of its tangent
+// stiffness matrix in the static and eigenvalue analysis.
 //
 // =============================================================================
 
@@ -24,23 +21,17 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMate.h"
 
+#include "chrono/physics/ChLoadContainer.h"
+#include "chrono/physics/ChLoadsBody.h"
+
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
-#include <physics/ChLoadContainer.h>
-#include <physics/ChLoadsBody.h>
-#include <chrono_thirdparty/filesystem/path.h>
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
 using namespace chrono::irrlicht;
 using namespace filesystem;
-
-// Used to sort the Eigen matrix
-namespace Eigen {
-template <class T>
-void swap(T&& a, T&& b) {
-    a.swap(b);
-}
-}  // namespace Eigen
 
 class PauseEventReceiver : public irr::IEventReceiver {
   public:
@@ -518,7 +509,7 @@ void test_mooringline() {
         vis->Initialize();
         vis->AddLogo();
         vis->AddSkyBox();
-        vis->AddCamera(anchorC->GetPos() + ChVector<>({0, -10, 0}));
+        vis->AddCamera(anchorC->GetPos() + ChVector<>(1, -10, 2), anchorC->GetPos() + ChVector<>(1, 0, 2));
         vis->AddTypicalLights();
         vis->EnableBodyFrameDrawing(true);
         vis->EnableLinkFrameDrawing(true);
