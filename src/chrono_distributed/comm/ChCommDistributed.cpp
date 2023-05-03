@@ -251,7 +251,7 @@ void ChCommDistributed::ProcessShapes(int num_recv, Shape* buf) {
                     break;
                 case ChCollisionShape::Type::ELLIPSOID:
                     body->GetCollisionModel()->AddEllipsoid(
-                        material, data[0], data[1], data[2], A,
+                        material, 2 * data[0], 2 * data[1], 2 * data[2], A,
                         ChMatrix33<>(ChQuaternion<>(rot[0], rot[1], rot[2], rot[3])));
                     break;
                 default:

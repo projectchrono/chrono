@@ -89,9 +89,9 @@ bool ChCollisionModelChrono::AddSphere(std::shared_ptr<ChMaterialSurface> materi
 }
 
 bool ChCollisionModelChrono::AddEllipsoid(std::shared_ptr<ChMaterialSurface> material,
-                                          double rx,
-                                          double ry,
-                                          double rz,
+                                          double axis_x,
+                                          double axis_y,
+                                          double axis_z,
                                           const ChVector<>& pos,
                                           const ChMatrix33<>& rot) {
     ChFrame<> frame;
@@ -101,7 +101,7 @@ bool ChCollisionModelChrono::AddEllipsoid(std::shared_ptr<ChMaterialSurface> mat
 
     auto shape = new ChCollisionShapeChrono(ChCollisionShape::Type::ELLIPSOID, material);
     shape->A = real3(position.x(), position.y(), position.z());
-    shape->B = real3(rx, ry, rz);
+    shape->B = real3(axis_x / 2, axis_y / 2, axis_z / 2);
     shape->C = real3(0, 0, 0);
     shape->R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
     m_shapes.push_back(std::shared_ptr<ChCollisionShape>(shape));
@@ -236,7 +236,7 @@ bool ChCollisionModelChrono::AddRoundedCylinder(std::shared_ptr<ChMaterialSurfac
 
 bool ChCollisionModelChrono::AddCone(std::shared_ptr<ChMaterialSurface> material,
                                      double radius,
-                                     double hheight,
+                                     double height,
                                      const ChVector<>& pos,
                                      const ChMatrix33<>& rot) {
     ChFrame<> frame;
@@ -246,7 +246,7 @@ bool ChCollisionModelChrono::AddCone(std::shared_ptr<ChMaterialSurface> material
 
     auto shape = new ChCollisionShapeChrono(ChCollisionShape::Type::CONE, material);
     shape->A = real3(position.x(), position.y(), position.z());
-    shape->B = real3(radius, radius, hheight);
+    shape->B = real3(radius, radius, height / 2);
     shape->C = real3(0, 0, 0);
     shape->R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
     m_shapes.push_back(std::shared_ptr<ChCollisionShape>(shape));
@@ -256,7 +256,7 @@ bool ChCollisionModelChrono::AddCone(std::shared_ptr<ChMaterialSurface> material
 
 bool ChCollisionModelChrono::AddCapsule(std::shared_ptr<ChMaterialSurface> material,
                                         double radius,
-                                        double hheight,
+                                        double height,
                                         const ChVector<>& pos,
                                         const ChMatrix33<>& rot) {
     ChFrame<> frame;
@@ -266,7 +266,7 @@ bool ChCollisionModelChrono::AddCapsule(std::shared_ptr<ChMaterialSurface> mater
 
     auto shape = new ChCollisionShapeChrono(ChCollisionShape::Type::CAPSULE, material);
     shape->A = real3(position.x(), position.y(), position.z());
-    shape->B = real3(radius, radius, hheight);
+    shape->B = real3(radius, radius, height / 2);
     shape->C = real3(0, 0, 0);
     shape->R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
     m_shapes.push_back(std::shared_ptr<ChCollisionShape>(shape));
@@ -301,8 +301,8 @@ bool ChCollisionModelChrono::AddConvexHull(std::shared_ptr<ChMaterialSurface> ma
 bool ChCollisionModelChrono::AddBarrel(std::shared_ptr<ChMaterialSurface> material,
                                        double Y_low,
                                        double Y_high,
-                                       double R_vert,
-                                       double R_hor,
+                                       double axis_vert,
+                                       double axis_hor,
                                        double R_offset,
                                        const ChVector<>& pos,
                                        const ChMatrix33<>& rot) {

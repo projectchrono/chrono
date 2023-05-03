@@ -228,7 +228,7 @@ int main(int argc, char* argv[]) {
         }
         case CollisionShape::CAPSULE: {
             object->GetCollisionModel()->ClearModel();
-            object->GetCollisionModel()->AddCapsule(object_mat, radius, hlen, ChVector<>(0), ChMatrix33<>(1));
+            object->GetCollisionModel()->AddCapsule(object_mat, radius, 2 * hlen, ChVector<>(0), ChMatrix33<>(1));
             object->GetCollisionModel()->BuildModel();
 
             auto cap = chrono_types::make_shared<ChCapsuleShape>(radius, 2 * hlen);

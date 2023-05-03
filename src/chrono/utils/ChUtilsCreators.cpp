@@ -59,19 +59,19 @@ void AddSphereGeometry(ChBody* body,
 
 void AddEllipsoidGeometry(ChBody* body,
                           ChMaterialSurfaceSharedPtr material,
-                          const ChVector<>& size,
+                          const ChVector<>& axes,
                           const ChVector<>& pos,
                           const ChQuaternion<>& rot,
                           bool visualization,
                           ChVisualMaterialSharedPtr vis_material) {
-    body->GetCollisionModel()->AddEllipsoid(material, size.x() / 2, size.y() / 2, size.z() / 2, pos, rot);
+    body->GetCollisionModel()->AddEllipsoid(material, axes.x(), axes.y(), axes.z(), pos, rot);
 
     if (visualization) {
         if (!body->GetVisualModel()) {
             auto model = chrono_types::make_shared<ChVisualModel>();
             body->AddVisualModel(model);
         }
-        auto ellipsoid = chrono_types::make_shared<ChEllipsoidShape>(size);
+        auto ellipsoid = chrono_types::make_shared<ChEllipsoidShape>(axes);
         ellipsoid->AddMaterial(vis_material);
         body->GetVisualModel()->AddShape(ellipsoid, ChFrame<>(pos, rot));
     }
@@ -132,7 +132,7 @@ void AddCapsuleGeometry(ChBody* body,
                         const ChQuaternion<>& rot,
                         bool visualization,
                         ChVisualMaterialSharedPtr vis_material) {
-    body->GetCollisionModel()->AddCapsule(material, radius, height / 2, pos, rot);
+    body->GetCollisionModel()->AddCapsule(material, radius, height, pos, rot);
 
     if (visualization) {
         if (!body->GetVisualModel()) {

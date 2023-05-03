@@ -67,7 +67,7 @@ class ChApi ChBodyEasyEllipsoid : public ChBody {
   public:
     /// Create a ChBody with optional ellipsoid visualization and/or collision shape. The ellipsoid is created centered
     /// at the center of mass. Mass and inertia are set automatically depending on density.
-    ChBodyEasyEllipsoid(ChVector<> radius,                                      ///< radii of the ellipsoid
+    ChBodyEasyEllipsoid(ChVector<> axes,                                        ///< ellipsoid axis lengths
                         double density,                                         ///< density of the body
                         bool visualize = true,                                  ///< create visualization asset
                         bool collide = false,                                   ///< enable collision
@@ -79,14 +79,14 @@ class ChApi ChBodyEasyEllipsoid : public ChBody {
     /// Create a ChBody with an ellipsoid visualization and collision shape using the specified collision model type.
     /// The ellipsoid is created centered at the center of mass. Mass and inertia are set automatically depending on
     /// density.
-    ChBodyEasyEllipsoid(ChVector<> radius,                               ///< radii of the ellipsoid
+    ChBodyEasyEllipsoid(ChVector<> axes,                                 ///< ellipsoid axis lengths
                         double density,                                  ///< density of the body
                         std::shared_ptr<ChMaterialSurface> material,     ///< surface contact material
                         collision::ChCollisionSystemType collision_type  ///< collision model type
     );
 
   private:
-    void SetupBody(ChVector<> radius,
+    void SetupBody(ChVector<> axes,
                    double density,
                    bool visualize,
                    bool collide,

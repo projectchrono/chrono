@@ -179,18 +179,18 @@ bool ChCollisionModelBullet::AddSphere(std::shared_ptr<ChMaterialSurface> materi
 }
 
 bool ChCollisionModelBullet::AddEllipsoid(std::shared_ptr<ChMaterialSurface> material,
-                                          double rx,
-                                          double ry,
-                                          double rz,
+                                          double axis_x,
+                                          double axis_y,
+                                          double axis_z,
                                           const ChVector<>& pos,
                                           const ChMatrix33<>& rot) {
     auto shape = new ChCollisionShapeBullet(ChCollisionShape::Type::ELLIPSOID, material);
 
     cbtScalar rad = 1.0;
     cbtVector3 spos(0, 0, 0);
-    double arx = rx + GetEnvelope();
-    double ary = ry + GetEnvelope();
-    double arz = rz + GetEnvelope();
+    double arx = axis_x / 2 + GetEnvelope();
+    double ary = axis_y / 2 + GetEnvelope();
+    double arz = axis_z / 2 + GetEnvelope();
     shape->m_bt_shape = new cbtMultiSphereShape(&spos, &rad, 1);
     shape->m_bt_shape->setLocalScaling(cbtVector3((cbtScalar)arx, (cbtScalar)ary, (cbtScalar)arz));
     shape->m_bt_shape->setMargin((cbtScalar)ChMin(GetSuggestedFullMargin(), 0.9 * ChMin(ChMin(arx, ary), arz)));
@@ -242,16 +242,16 @@ bool ChCollisionModelBullet::AddCylinder(std::shared_ptr<ChMaterialSurface> mate
 
 bool ChCollisionModelBullet::AddCapsule(std::shared_ptr<ChMaterialSurface> material,
                                         double radius,
-                                        double hheight,
+                                        double height,
                                         const ChVector<>& pos,
                                         const ChMatrix33<>& rot) {
     // adjust default inward margin (if object too thin)
-    SetSafeMargin(ChMin(GetSafeMargin(), 0.2 * ChMin(radius, hheight)));
+    SetSafeMargin(ChMin(GetSafeMargin(), 0.2 * ChMin(radius, height / 2)));
 
     auto shape = new ChCollisionShapeBullet(ChCollisionShape::Type::CAPSULE, material);
 
     cbtScalar ar = (cbtScalar)(radius + GetEnvelope());
-    cbtScalar ah = (cbtScalar)(hheight + GetEnvelope());
+    cbtScalar ah = (cbtScalar)(height / 2 + GetEnvelope());
     shape->m_bt_shape = new cbtCapsuleShapeZ(ar, 2 * ah);
     shape->m_bt_shape->setMargin((cbtScalar)GetSuggestedFullMargin());
 
@@ -279,20 +279,20 @@ bool ChCollisionModelBullet::AddCylindricalShell(std::shared_ptr<ChMaterialSurfa
 bool ChCollisionModelBullet::AddBarrel(std::shared_ptr<ChMaterialSurface> material,
                                        double Y_low,
                                        double Y_high,
-                                       double R_vert,
-                                       double R_hor,
+                                       double axis_vert,
+                                       double axis_hor,
                                        double R_offset,
                                        const ChVector<>& pos,
                                        const ChMatrix33<>& rot) {
     // adjust default inward margin (if object too thin)
-    SetSafeMargin(ChMin(GetSafeMargin(), 0.15 * ChMin(ChMin(R_vert, R_hor), Y_high - Y_low)));
+    SetSafeMargin(ChMin(GetSafeMargin(), 0.15 * ChMin(ChMin(axis_vert / 2, axis_hor / 2), Y_high - Y_low)));
 
     auto shape = new ChCollisionShapeBullet(ChCollisionShape::Type::BARREL, material);
 
     cbtScalar sY_low = (cbtScalar)(Y_low - model_envelope);
     cbtScalar sY_high = (cbtScalar)(Y_high + model_envelope);
-    cbtScalar sR_vert = (cbtScalar)(R_vert + model_envelope);
-    cbtScalar sR_hor = (cbtScalar)(R_hor + model_envelope);
+    cbtScalar sR_vert = (cbtScalar)(axis_vert / 2 + model_envelope);
+    cbtScalar sR_hor = (cbtScalar)(axis_hor / 2 + model_envelope);
     cbtScalar sR_offset = (cbtScalar)(R_offset);
     shape->m_bt_shape = new cbtBarrelShape(sY_low, sY_high, sR_vert, sR_hor, sR_offset);
     shape->m_bt_shape->setMargin((cbtScalar)GetSuggestedFullMargin());

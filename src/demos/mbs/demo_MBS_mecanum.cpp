@@ -153,17 +153,17 @@ std::shared_ptr<ChBody> create_mecanum_wheel(ChSystemNSC& sys,
 
         // add collision shape
         roller->GetCollisionModel()->ClearModel();
-        roller->GetCollisionModel()->AddBarrel(wheel_mat,                                              //
-                                               -half_length_roller, +half_length_roller,               //
-                                               roller_elliptical_rad_Vert, roller_elliptical_rad_Hor,  //
+        roller->GetCollisionModel()->AddBarrel(wheel_mat,                                                      //
+                                               -half_length_roller, +half_length_roller,                       //
+                                               2 * roller_elliptical_rad_Vert, 2 * roller_elliptical_rad_Hor,  //
                                                Roffset);
         roller->GetCollisionModel()->BuildModel();
         roller->SetCollide(true);
 
         // add visualization shape
         auto rollershape =
-            chrono_types::make_shared<ChBarrelShape>(-half_length_roller, +half_length_roller,               //
-                                                     roller_elliptical_rad_Vert, roller_elliptical_rad_Hor,  //
+            chrono_types::make_shared<ChBarrelShape>(-half_length_roller, +half_length_roller,                       //
+                                                     2 * roller_elliptical_rad_Vert, 2 * roller_elliptical_rad_Hor,  //
                                                      Roffset);
         roller->AddVisualShape(rollershape);
 

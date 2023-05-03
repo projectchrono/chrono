@@ -76,33 +76,33 @@ void ChBodyEasySphere::SetupBody(double radius,
 
 // -----------------------------------------------------------------------------
 
-ChBodyEasyEllipsoid::ChBodyEasyEllipsoid(ChVector<> radius,
+ChBodyEasyEllipsoid::ChBodyEasyEllipsoid(ChVector<> axes,
                                          double density,
                                          bool visualize,
                                          bool collide,
                                          std::shared_ptr<ChMaterialSurface> material,
                                          std::shared_ptr<collision::ChCollisionModel> collision_model)
     : ChBody(collision_model) {
-    SetupBody(radius, density, visualize, collide, material);
+    SetupBody(axes, density, visualize, collide, material);
 }
 
-ChBodyEasyEllipsoid::ChBodyEasyEllipsoid(ChVector<> radius,
+ChBodyEasyEllipsoid::ChBodyEasyEllipsoid(ChVector<> axes,
                                          double density,
                                          std::shared_ptr<ChMaterialSurface> material,
                                          collision::ChCollisionSystemType collision_type)
     : ChBody(collision_type) {
-    SetupBody(radius, density, true, true, material);
+    SetupBody(axes, density, true, true, material);
 }
 
-void ChBodyEasyEllipsoid::SetupBody(ChVector<> radius,
+void ChBodyEasyEllipsoid::SetupBody(ChVector<> axes,
                                     double density,
                                     bool visualize,
                                     bool collide,
                                     std::shared_ptr<ChMaterialSurface> material) {
-    double mmass = density * ((4.0 / 3.0) * CH_C_PI * radius.x() * radius.y() * radius.z());
-    double inertiax = (1.0 / 5.0) * mmass * (pow(radius.y(), 2) + pow(radius.z(), 2));
-    double inertiay = (1.0 / 5.0) * mmass * (pow(radius.x(), 2) + pow(radius.z(), 2));
-    double inertiaz = (1.0 / 5.0) * mmass * (pow(radius.x(), 2) + pow(radius.y(), 2));
+    double mmass = density * ((1 / 6.0) * CH_C_PI * axes.x() * axes.y() * axes.z());
+    double inertiax = (1 / 20.0) * mmass * (pow(axes.y(), 2) + pow(axes.z(), 2));
+    double inertiay = (1 / 20.0) * mmass * (pow(axes.x(), 2) + pow(axes.z(), 2));
+    double inertiaz = (1 / 20.0) * mmass * (pow(axes.x(), 2) + pow(axes.y(), 2));
 
     this->SetDensity((float)density);
     this->SetMass(mmass);
@@ -111,12 +111,12 @@ void ChBodyEasyEllipsoid::SetupBody(ChVector<> radius,
     if (collide) {
         assert(material);
         GetCollisionModel()->ClearModel();
-        GetCollisionModel()->AddEllipsoid(material, radius.x(), radius.y(), radius.z());
+        GetCollisionModel()->AddEllipsoid(material, axes.x(), axes.y(), axes.z());
         GetCollisionModel()->BuildModel();
         SetCollide(true);
     }
     if (visualize) {
-        auto vshape = chrono_types::make_shared<ChEllipsoidShape>(radius * 2);
+        auto vshape = chrono_types::make_shared<ChEllipsoidShape>(axes);
         auto vmodel = chrono_types::make_shared<ChVisualModel>();
         vmodel->AddShape(vshape);
         this->AddVisualModel(vmodel);

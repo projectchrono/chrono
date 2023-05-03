@@ -68,7 +68,7 @@ ChApi void AddSphereGeometry(
 ChApi void AddEllipsoidGeometry(
     ChBody* body,                                                         ///< associated body
     ChMaterialSurfaceSharedPtr material,                                  ///< contact material
-    const ChVector<>& size,                                               ///< elipsoid axes
+    const ChVector<>& axes,                                               ///< elipsoid axes
     const ChVector<>& pos = ChVector<>(0, 0, 0),                          ///< position on body
     const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),               ///< orientation wrt body frame
     bool visualization = true,                                            ///< create visualization shape
