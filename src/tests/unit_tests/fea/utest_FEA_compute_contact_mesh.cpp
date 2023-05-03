@@ -78,16 +78,16 @@ float gt = 0;
 // --------------------------------
 
 int numDiv_x = 2;
-int numDiv_y = 1;
-int numDiv_z = 2;
+int numDiv_y = 2;
+int numDiv_z = 1;
 
 // ---------------------------------
 // Parameters for ANCF shell element mesh
 // ---------------------------------
 
 int binId = 0;
-double bin_width = 10;
-double bin_length = 10;
+double bin_width = 20;
+double bin_length = 20;
 double bin_thickness = 0.1;
 
 // ====================================================================================
@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
     material->SetKt(kt);
     material->SetGt(gt);
 
-    system.Set_G_acc(ChVector<>(0, gravity, 0));
+    system.Set_G_acc(ChVector<>(0, 0, gravity));
 
     // Create the ANCF shell element mesh
 
@@ -117,15 +117,15 @@ int main(int argc, char* argv[]) {
 
     // Geometry of the plate
     double plate_lenght_x = 0.5;
-    double plate_lenght_y = 0.05;
-    double plate_lenght_z = 0.5;  // small thickness
+    double plate_lenght_y = 0.5;
+    double plate_lenght_z = 0.05;
+
     // Specification of the mesh
     int N_x = numDiv_x + 1;
 
-    // Number of elements in the y direction is considered as 1
-    int TotalNumElements = numDiv_x * numDiv_z;
-    //(1+1) is the number of nodes in the z direction
-    int TotalNumNodes = (numDiv_x + 1) * (numDiv_z + 1);  // Or *(numDiv_y+1) for multilayer
+    // Number of elements in the z direction is considered as 1
+    int TotalNumElements = numDiv_x * numDiv_y;
+    int TotalNumNodes = (numDiv_x + 1) * (numDiv_y + 1);
 
     // Element dimensions (uniform grid)
     double dx = plate_lenght_x / numDiv_x;
@@ -133,20 +133,16 @@ int main(int argc, char* argv[]) {
     double dz = plate_lenght_z / numDiv_z;
 
     // Create and add the nodes
-
+    std::cout << "Nodes: " << TotalNumNodes << std::endl;
     for (int i = 0; i < TotalNumNodes; i++) {
         // Parametric location and direction of nodal coordinates
         double loc_x = (i % (numDiv_x + 1)) * dx;
-        double loc_y = (i) / ((numDiv_x + 1) * (numDiv_z + 1)) * dy;
-        double loc_z = (i / (numDiv_x + 1)) % (numDiv_z + 1) * dz;
-
-        double dir_x = 0;
-        double dir_y = 1;
-        double dir_z = 0;
+        double loc_y = (i / (numDiv_x + 1)) % (numDiv_y + 1) * dy;
+        double loc_z = (i) / ((numDiv_x + 1) * (numDiv_y + 1)) * dz;
+        std::cout << "  " << i << "|  " << ChVector<>(loc_x, loc_y, loc_z) << std::endl;
 
         // Create the node
-        auto node =
-            chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
+        auto node = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(0, 0, 1));
         node->SetMass(0);
 
         // Add node to mesh
@@ -160,18 +156,14 @@ int main(int argc, char* argv[]) {
     auto mat = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu);
 
     // Create the elements
+    std::cout << "Elements: " << TotalNumElements << std::endl;
     for (int i = 0; i < TotalNumElements; i++) {
         // Definition of nodes forming an element
         int node0 = (i / (numDiv_x)) * (N_x) + i % numDiv_x;
-        int node1 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + N_x;
+        int node3 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + N_x;
         int node2 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1 + N_x;
-        int node3 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1;
-
-        /*GetLog() << std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node0))->GetPos() << "\t" <<
-            std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node1))->GetPos() << "\t" <<
-            std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node2))->GetPos() << "\t" <<
-            std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node3))->GetPos() << "\t";
-        getchar();*/
+        int node1 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1;
+        std::cout << "  " << i << "| " << node0 << " " << node1 << " " << node2 << " " << node3 << std::endl;
 
         // Create the element and set its nodes.
         auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
@@ -181,9 +173,9 @@ int main(int argc, char* argv[]) {
                           std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node3)));
 
         // Element length is a fixed number in both direction. (uniform distribution of nodes in both directions)
-        element->SetDimensions(dz, dx);
+        element->SetDimensions(dy, dx);
         // Single layer
-        element->AddLayer(dy, 0.0, mat);  // Thickness: dy;  Ply angle: 0.
+        element->AddLayer(dz, 0.0, mat);  // Thickness: dz;  Ply angle: 0.
         // Set other element properties
         element->SetAlphaDamp(0.05);  // Structural damping for this
         // Add element to mesh
@@ -208,9 +200,9 @@ int main(int argc, char* argv[]) {
     system.Add(my_mesh);
 
     // Create container box
-    auto ground = utils::CreateBoxContainer(&system, binId, material, ChVector<>(bin_width, bin_length, 200 * dy),
-                                            bin_thickness, ChVector<>(0, -1.5 * m_contact_node_radius, 0),
-                                            ChQuaternion<>(1, 0, 0, 0), true, true, false, false);
+    auto ground = utils::CreateBoxContainer(&system, binId, material,                                    //
+                                            ChVector<>(bin_width, bin_length, 200 * dy), bin_thickness,  //
+                                            ChVector<>(0, 0, -1.5 * m_contact_node_radius), QUNIT);      //
 
     // -------------------
     // Setup linear solver
@@ -261,13 +253,13 @@ int main(int argc, char* argv[]) {
         system.GetContactContainer()->ComputeContactForces();
         ChVector<> contact_force = ground->GetContactForce();
         GetLog() << "t = " << system.GetChTime() << " num contacts = " << system.GetContactContainer()->GetNcontacts()
-                 << "  force =  " << contact_force.y() << "\n";
-        GetLog() << "Vertical Displacement of a Node: " << nodeRef->GetPos().y() << "\n";
+                 << "  force =  " << contact_force.z() << "\n";
+        GetLog() << "Vertical Displacement of a Node: " << nodeRef->GetPos().z() << "\n";
         GetLog() << "Total Weight of Shell: " << total_weight << "\n";
 
         if (system.GetChTime() > start_time) {
-            if (std::abs(1 - std::abs(contact_force.y()) / total_weight) > rtol) {
-                GetLog() << "t = " << system.GetChTime() << "  force =  " << contact_force.y() << "\n";
+            if (std::abs(1 - std::abs(contact_force.z()) / total_weight) > rtol) {
+                GetLog() << "t = " << system.GetChTime() << "  force =  " << contact_force.z() << "\n";
                 passed = false;
                 break;
             }

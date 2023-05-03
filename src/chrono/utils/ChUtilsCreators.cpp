@@ -674,12 +674,11 @@ void AddBoxContainer(std::shared_ptr<ChBody> body,
 std::shared_ptr<ChBody> CreateBoxContainer(ChSystem* system,
                                            int id,
                                            ChMaterialSurfaceSharedPtr mat,
-                                           const ChVector<>& hdim,
-                                           double hthick,
+                                           const ChVector<>& size,
+                                           double thickness,
                                            const ChVector<>& pos,
                                            const ChQuaternion<>& rot,
                                            bool collide,
-                                           bool y_up,
                                            bool overlap,
                                            bool closed) {
     // Verify consistency of input arguments.
@@ -695,41 +694,28 @@ std::shared_ptr<ChBody> CreateBoxContainer(ChSystem* system,
     body->SetRot(rot);
     body->SetCollide(collide);
     body->SetBodyFixed(true);
-    double o_lap = 0;
-    if (overlap) {
-        o_lap = hthick * 2;
-    }
+
+    double o_lap = overlap ? thickness : 0.0;
+    double hthick = thickness / 2;
+    auto hdim = size / 2;
+
     body->GetCollisionModel()->ClearModel();
-    if (y_up) {
-        AddBoxGeometry(body.get(), mat, ChVector<>(hdim.x() + o_lap, hthick, hdim.y() + o_lap),
-                       ChVector<>(0, -hthick, 0));
-        AddBoxGeometry(body.get(), mat, ChVector<>(hthick, hdim.z() + o_lap, hdim.y() + o_lap),
-                       ChVector<>(-hdim.x() - hthick, hdim.z(), 0));
-        AddBoxGeometry(body.get(), mat, ChVector<>(hthick, hdim.z() + o_lap, hdim.y() + o_lap),
-                       ChVector<>(hdim.x() + hthick, hdim.z(), 0));
-        AddBoxGeometry(body.get(), mat, ChVector<>(hdim.x() + o_lap, hdim.z() + o_lap, hthick),
-                       ChVector<>(0, hdim.z(), -hdim.y() - hthick));
-        AddBoxGeometry(body.get(), mat, ChVector<>(hdim.x() + o_lap, hdim.z() + o_lap, hthick),
-                       ChVector<>(0, hdim.z(), hdim.y() + hthick));
-        if (closed) {
-            AddBoxGeometry(body.get(), mat, ChVector<>(hdim.x() + o_lap, hthick, hdim.y() + o_lap),
-                           ChVector<>(0, hdim.z() * 2 + hthick, 0));
-        }
-    } else {
-        AddBoxGeometry(body.get(), mat, ChVector<>(hdim.x() + o_lap, hdim.y() + o_lap, hthick),
-                       ChVector<>(0, 0, -hthick));
-        AddBoxGeometry(body.get(), mat, ChVector<>(hthick, hdim.y() + o_lap, hdim.z() + o_lap),
-                       ChVector<>(-hdim.x() - hthick, 0, hdim.z()));
-        AddBoxGeometry(body.get(), mat, ChVector<>(hthick, hdim.y() + o_lap, hdim.z() + o_lap),
-                       ChVector<>(hdim.x() + hthick, 0, hdim.z()));
-        AddBoxGeometry(body.get(), mat, ChVector<>(hdim.x() + o_lap, hthick, hdim.z() + o_lap),
-                       ChVector<>(0, -hdim.y() - hthick, hdim.z()));
-        AddBoxGeometry(body.get(), mat, ChVector<>(hdim.x() + o_lap, hthick, hdim.z() + o_lap),
-                       ChVector<>(0, hdim.y() + hthick, hdim.z()));
-        if (closed) {
-            AddBoxGeometry(body.get(), mat, ChVector<>(hdim.x() + o_lap, hdim.y() + o_lap, hthick),
-                           ChVector<>(0, 0, hdim.z() * 2 + hthick));
-        }
+    AddBoxGeometry(body.get(), mat, ChVector<>(size.x() + o_lap, size.y() + o_lap, thickness),
+                   ChVector<>(0, 0, -hthick));
+
+    AddBoxGeometry(body.get(), mat, ChVector<>(thickness, size.y() + o_lap, size.z() + o_lap),
+                   ChVector<>(-hdim.x() - hthick, 0, hdim.z()));
+    AddBoxGeometry(body.get(), mat, ChVector<>(thickness, size.y() + o_lap, size.z() + o_lap),
+                   ChVector<>(hdim.x() + hthick, 0, hdim.z()));
+
+    AddBoxGeometry(body.get(), mat, ChVector<>(size.x() + o_lap, thickness, size.z() + o_lap),
+                   ChVector<>(0, -hdim.y() - hthick, hdim.z()));
+    AddBoxGeometry(body.get(), mat, ChVector<>(size.x() + o_lap, thickness, size.z() + o_lap),
+                   ChVector<>(0, hdim.y() + hthick, hdim.z()));
+
+    if (closed) {
+        AddBoxGeometry(body.get(), mat, ChVector<>(size.x() + o_lap, size.y() + o_lap, thickness),
+                       ChVector<>(0, 0, hdim.z() * 2 + hthick));
     }
     body->GetCollisionModel()->BuildModel();
 
@@ -749,8 +735,9 @@ std::shared_ptr<ChBody> CreateBoxContainer(ChSystem* system,
 std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
                                                             int id,
                                                             ChMaterialSurfaceSharedPtr mat,
-                                                            const ChVector<>& hdim,
-                                                            double hthick,
+                                                            double radius,
+                                                            double height,
+                                                            double thickness,
                                                             int numBoxes,
                                                             const ChVector<>& pos,
                                                             const ChQuaternion<>& rot,
@@ -773,50 +760,45 @@ std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
     body->SetCollide(collide);
     body->SetBodyFixed(true);
 
-    double box_side = hdim.x() * 2.0 * tan(CH_C_PI / numBoxes);  // side length of cyl
-    double o_lap = 0;
-    if (overlap) {
-        o_lap = hthick * 2;
-    }
-    double ang = 2.0 * CH_C_PI / numBoxes;
-    ChVector<> p_boxSize = ChVector<>((box_side + hthick) / 2.0, hthick, hdim.z() + o_lap);  // size of plates
-    ChVector<> p_pos;                                                                        // position of each plate
-    ChQuaternion<> p_quat = QUNIT;                                                           // rotation of each plate
+    double o_lap = overlap ? thickness : 0;
+    double hthick = thickness / 2;
+
     body->GetCollisionModel()->ClearModel();
 
+    // Add circumference pieces
+    double box_side = radius * 2.0 * tan(CH_C_PI / numBoxes);                                   // side length of cyl
+    ChVector<> plate_size = ChVector<>((box_side + thickness / 2), thickness, height + o_lap);  // size of plates
+    double delta_angle = CH_C_2PI / numBoxes;
+
     for (int i = 0; i < numBoxes; i++) {
-        p_pos = pos + ChVector<>(sin(ang * i) * (hthick + hdim.x()), cos(ang * i) * (hthick + hdim.x()), hdim.z());
+        double angle = i * delta_angle;
+        auto plate_pos =
+            pos + ChVector<>(sin(angle) * (hthick + radius), cos(angle) * (hthick + height / 2), height / 2);
+        auto plate_rot = Q_from_AngZ(angle);
 
-        p_quat = Angle_to_Quat(AngleSet::RXYZ, ChVector<>(0, 0, ang * i));
-
-        // this is here to make half the cylinder invisible.
-        bool m_visualization = true;
-        if ((ang * i > CH_C_PI && ang * i < 3.0 * CH_C_PI / 2.0) && partialVisualization) {
-            m_visualization = false;
-        }
-        utils::AddBoxGeometry(body.get(), mat, p_boxSize * 2, p_pos, p_quat, m_visualization);
+        bool visualize = !partialVisualization || angle > CH_C_PI_2;
+        utils::AddBoxGeometry(body.get(), mat, plate_size, plate_pos, plate_rot, visualize);
     }
 
-    // Add ground piece
-    if (isBoxBase) {
-        utils::AddBoxGeometry(body.get(), mat, Vector(hdim.x() + 2 * hthick, hdim.x() + 2 * hthick, hthick) * 2,
+    // Add bottom piece
+    if (isBoxBase)
+        utils::AddBoxGeometry(body.get(), mat, Vector(2 * radius + thickness, height + thickness, thickness),
                               Vector(0, 0, -hthick), QUNIT, true);
-    } else {
-        utils::AddCylinderGeometry(body.get(), mat, hdim.x() + 2 * hthick, hthick, ChVector<>(0, 0, -hthick),
+    else
+        utils::AddCylinderGeometry(body.get(), mat, radius + thickness, thickness, ChVector<>(0, 0, -hthick),
                                    Q_from_AngAxis(CH_C_PI / 2, VECT_X));
-    }
 
+    // Add top piece
     if (closed) {
-        if (isBoxBase) {
-            utils::AddBoxGeometry(body.get(), mat, Vector(hdim.x() + 2 * hthick, hdim.x() + 2 * hthick, hthick) * 2,
-                                  Vector(0, 0, 2 * hdim.z() + hthick), QUNIT, true);
-        } else {
-            utils::AddCylinderGeometry(body.get(), mat, hdim.x() + 2 * hthick, hthick,
-                                       ChVector<>(0, 0, 2 * hdim.z() + hthick), Q_from_AngAxis(CH_C_PI / 2, VECT_X));
-        }
+        if (isBoxBase)
+            utils::AddBoxGeometry(body.get(), mat, Vector(2 * radius + thickness, height + thickness, thickness),
+                                  Vector(0, 0, height + hthick), QUNIT, true);
+        else
+            utils::AddCylinderGeometry(body.get(), mat, radius + thickness, thickness,
+                                       ChVector<>(0, 0, height + hthick), Q_from_AngAxis(CH_C_PI / 2, VECT_X));
     }
 
-    body->GetCollisionModel()->SetEnvelope(0.2 * hthick);
+    body->GetCollisionModel()->SetEnvelope(0.2 * thickness);
     body->GetCollisionModel()->BuildModel();
 
     system->AddBody(body);

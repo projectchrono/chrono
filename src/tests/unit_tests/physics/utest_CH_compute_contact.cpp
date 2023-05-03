@@ -104,7 +104,7 @@ ContactForceTest::ContactForceTest() {
     }
 
     double gravity = -9.81;
-    system->Set_G_acc(ChVector<>(0, gravity, 0));
+    system->Set_G_acc(ChVector<>(0, 0, gravity));
 
     // Create the falling balls
     unsigned int num_balls = 8;
@@ -113,7 +113,7 @@ ContactForceTest::ContactForceTest() {
 
     double radius = 0.05;
     double mass = 5;
-    ChVector<> pos(0, 0.06, 0);
+    ChVector<> pos(0, 0, 0.06);
     ChQuaternion<> rot(1, 0, 0, 0);
     ChVector<> init_vel(0, 0, 0);
     ChVector<> init_omg(0, 0, 0);
@@ -125,7 +125,7 @@ ContactForceTest::ContactForceTest() {
         ball->SetIdentifier(ballId++);
         ball->SetMass(mass);
         ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
-        ball->SetPos(pos + ChVector<>(i * 2 * radius, 0, i * 2 * radius));
+        ball->SetPos(pos + ChVector<>(i * 2 * radius, i * 2 * radius, 0));
         ball->SetRot(rot);
         ball->SetPos_dt(init_vel);
         ball->SetWvel_par(init_omg);
@@ -149,10 +149,8 @@ ContactForceTest::ContactForceTest() {
     double bin_width = 20;
     double bin_length = 20;
     double bin_thickness = 0.1;
-    ground = utils::CreateBoxContainer(system, binId, material,                                       //
-                                       ChVector<>(bin_width, bin_length, 2 * radius), bin_thickness,  //
-                                       ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0),               //
-                                       true, true, false, false);
+    ground = utils::CreateBoxContainer(system, binId, material, ChVector<>(bin_width, bin_length, 2 * radius),
+                                       bin_thickness);
 
     // -------------------
     // Setup linear solver
@@ -192,11 +190,13 @@ TEST_P(ContactForceTest, simulate) {
         system->DoStepDynamics(time_step);
 
         ChVector<> contact_force = ground->GetContactForce();
-        ////std::cout << "t = " << system->GetChTime() << " num contacts = " <<
-        ///system->GetContactContainer()->GetNcontacts() /          << "  force =  " << contact_force.y() << std::endl;
-
+        /*
+        std::cout << "t = " << system->GetChTime()
+                  << " num contacts = " << system->GetContactContainer()->GetNcontacts()
+                  << "  force =  " << contact_force.z() << std::endl;
+        */
         if (system->GetChTime() > start_time) {
-            ASSERT_LT(std::abs(1 - contact_force.y() / total_weight), rtol);
+            ASSERT_LT(std::abs(1 - contact_force.z() / total_weight), rtol);
         }
     }
 }
