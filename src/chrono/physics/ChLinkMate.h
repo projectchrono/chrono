@@ -31,6 +31,12 @@ namespace chrono {
 /// but in case of links of the ChLinkLock class they
 /// reference two ChMarker objects, that can also move, but
 /// this could be an unnecessary complication in most cases.
+///
+/// Note:
+/// In ChLinkLock class, the Z axis is considered as the
+///     free/locked translational/rotational DOF by default;
+/// In ChLinkMate calss, the X axis is considered as the
+///     free/locked translational/rotational DOF by default;
 
 class ChApi ChLinkMate : public ChLink {
   public:
@@ -347,6 +353,50 @@ class ChApi ChLinkMateCoaxial : public ChLinkMateGeneric {
 };
 
 CH_CLASS_VERSION(ChLinkMateCoaxial, 0)
+
+// -----------------------------------------------------------------------------
+
+/// Mate constraint of revolute type.
+/// The two revolute axes are the X axes of the two frames.
+
+class ChApi ChLinkMateRevolute : public ChLinkMateGeneric {
+  protected:
+    bool flipped;
+
+  public:
+    ChLinkMateRevolute() : ChLinkMateGeneric(true, true, true, false, true, true), flipped(false) {}
+    ChLinkMateRevolute(const ChLinkMateRevolute& other);
+    virtual ~ChLinkMateRevolute() {}
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkMateRevolute* Clone() const override { return new ChLinkMateRevolute(*this); }
+
+    using ChLinkMateGeneric::Initialize;
+
+    /// Tell if the two axes must be opposed (flipped=false) or must have the same verse (flipped=true)
+    void SetFlipped(bool doflip);
+    bool IsFlipped() const { return flipped; }
+
+    /// Specialized initialization for revolute mate, given the two bodies to be connected, two points, two directions
+    /// (each expressed in body or abs. coordinates). These two directions are the X axes of slave frame F1 and master
+    /// frame F2
+    virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
+                            std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
+                            bool pos_are_relative,                ///< true: following pos. are relative to bodies
+                            ChVector<> mpt1,                      ///< point on slave axis 1 (rel. or abs.)
+                            ChVector<> mpt2,                      ///< point on master axis 2 (rel. or abs.)
+                            ChVector<> mdir1,                     ///< direction of slave axis 1 (rel. or abs.)
+                            ChVector<> mdir2                      ///< direction of master axis 2 (rel. or abs.)
+                            ) override;
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+};
+
+CH_CLASS_VERSION(ChLinkMateRevolute, 0)
 
 // -----------------------------------------------------------------------------
 

@@ -821,6 +821,68 @@ void ChLinkMateCoaxial::ArchiveIN(ChArchiveIn& marchive) {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChLinkMateRevolute)
+
+ChLinkMateRevolute::ChLinkMateRevolute(const ChLinkMateRevolute& other) : ChLinkMateGeneric(other) {
+    flipped = other.flipped;
+}
+
+void ChLinkMateRevolute::SetFlipped(bool doflip) {
+    if (doflip != flipped) {
+        // swaps direction of X axis by flipping 180 deg the frame A (slave)
+
+        ChFrame<> frameRotator(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y));
+        this->frame1.ConcatenatePostTransformation(frameRotator);
+
+        flipped = doflip;
+    }
+}
+
+void ChLinkMateRevolute::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
+                                   std::shared_ptr<ChBodyFrame> mbody2,
+                                   bool pos_are_relative,
+                                   ChVector<> mpt1,
+                                   ChVector<> mpt2,
+                                   ChVector<> mnorm1,
+                                   ChVector<> mnorm2) {
+    // set the two frames so that they have the X axis aligned when the
+    // two normals are opposed (default behavior, otherwise is considered 'flipped')
+
+    ChVector<> mnorm1_reversed;
+    if (!flipped)
+        mnorm1_reversed = mnorm1;
+    else
+        mnorm1_reversed = -mnorm1;
+
+    ChLinkMateGeneric::Initialize(mbody1, mbody2, pos_are_relative, mpt1, mpt2, mnorm1_reversed, mnorm2);
+}
+
+void ChLinkMateRevolute::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChLinkMateRevolute>();
+
+    // serialize parent class
+    ChLinkMateGeneric::ArchiveOUT(marchive);
+
+    // serialize all member data:
+    marchive << CHNVP(flipped);
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChLinkMateRevolute::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    /*int version =*/marchive.VersionRead<ChLinkMateRevolute>();
+
+    // deserialize parent class
+    ChLinkMateGeneric::ArchiveIN(marchive);
+
+    // deserialize all member data:
+    marchive >> CHNVP(flipped);
+}
+
+// -----------------------------------------------------------------------------
+
+// Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLinkMateSpherical)
 
 ChLinkMateSpherical::ChLinkMateSpherical(const ChLinkMateSpherical& other) : ChLinkMateGeneric(other) {}
