@@ -132,7 +132,7 @@ class MySimpleForklift {
         // collision properties:
         ChMatrix33<> Arot(chrono::Q_from_AngY(CH_C_PI / 2));
         wheelRF->GetCollisionModel()->ClearModel();
-        wheelRF->GetCollisionModel()->AddCylinder(wheel_mat, RAD_front_wheel, 0.1, ChVector<>(0, 0, 0), Arot);
+        wheelRF->GetCollisionModel()->AddCylinder(wheel_mat, RAD_front_wheel, 0.2, ChVector<>(0, 0, 0), Arot);
         wheelRF->GetCollisionModel()->BuildModel();
         wheelRF->SetCollide(true);
         // visualization properties:
@@ -152,7 +152,7 @@ class MySimpleForklift {
         wheelLF->SetInertiaXX(ChVector<>(2, 2, 2));
         // collision properties:
         wheelLF->GetCollisionModel()->ClearModel();
-        wheelLF->GetCollisionModel()->AddCylinder(wheel_mat, RAD_front_wheel, 0.1, ChVector<>(0, 0, 0), Arot);
+        wheelLF->GetCollisionModel()->AddCylinder(wheel_mat, RAD_front_wheel, 0.2, ChVector<>(0, 0, 0), Arot);
         wheelLF->GetCollisionModel()->BuildModel();
         wheelLF->SetCollide(true);
         // visualization properties:
@@ -185,7 +185,7 @@ class MySimpleForklift {
         wheelB->SetInertiaXX(ChVector<>(2, 2, 2));
         // collision properties:
         wheelB->GetCollisionModel()->ClearModel();
-        wheelB->GetCollisionModel()->AddCylinder(wheel_mat, RAD_back_wheel, 0.1, ChVector<>(0, 0, 0), Arot);
+        wheelB->GetCollisionModel()->AddCylinder(wheel_mat, RAD_back_wheel, 0.2, ChVector<>(0, 0, 0), Arot);
         wheelB->GetCollisionModel()->BuildModel();
         wheelB->SetCollide(true);
         // visualization properties:

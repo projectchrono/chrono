@@ -117,7 +117,7 @@ bool ChCollisionModel::AddCylinder(std::shared_ptr<ChMaterialSurface> material,
     std::cout << frame.GetPos() << std::endl;
     std::cout << frame.GetA() << std::endl;
 
-    return AddCylinder(material, radius, height / 2, frame.GetPos(), frame.GetA());
+    return AddCylinder(material, radius, height, frame.GetPos(), frame.GetA());
 }
 
 bool ChCollisionModel::AddConvexHullsFromFile(std::shared_ptr<ChMaterialSurface> material,

@@ -29,7 +29,7 @@
 #include "chrono_models/vehicle/marder/Marder.h"
 
 #ifdef CHRONO_PARDISO_MKL
-#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
     BrakeType brake_type = BrakeType::SIMPLE;
     EngineModelType engine_type = EngineModelType::SIMPLE;
     TransmissionModelType transmission_type = TransmissionModelType::SIMPLE_MAP;
-    
+
     Marder marder;
     marder.SetContactMethod(contact_method);
     ////marder.SetTrackShoeType(shoe_type);
@@ -450,7 +450,7 @@ void AddFixedObstacles(ChSystem* system) {
     auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
     obstacle->GetCollisionModel()->ClearModel();
-    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, length * 0.5, VNULL, Q_from_AngX(CH_C_PI_2));
+    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, length, VNULL, Q_from_AngX(CH_C_PI_2));
     obstacle->GetCollisionModel()->BuildModel();
 
     system->AddBody(obstacle);

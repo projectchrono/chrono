@@ -27,7 +27,7 @@
 #include "chrono_models/vehicle/m113/M113.h"
 
 #ifdef CHRONO_PARDISO_MKL
-#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -124,8 +124,7 @@ int main(int argc, char* argv[]) {
     ////m113.GetVehicle().SetCollide(TrackedCollisionFlag::NONE);
 
     // Monitor internal contacts for the left sprocket, left idler, and first shoe on the left track.
-    ////m113.GetVehicle().MonitorContacts(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT |
-    ///TrackedCollisionFlag::IDLER_LEFT);
+    ////m113.GetVehicle().MonitorContacts(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT | TrackedCollisionFlag::IDLER_LEFT);
 
     // Collect contact information
     ////m113.GetVehicle().SetContactCollection(true);
@@ -302,7 +301,7 @@ int main(int argc, char* argv[]) {
         // Increment frame number
         step_number++;
 
-        // Execution time 
+        // Execution time
         double step_timing = system->GetTimerStep();
         total_timing += step_timing;
         ////std::cout << step_number << " " << step_timing << " " << total_timing << std::endl;
@@ -336,7 +335,7 @@ void AddFixedObstacles(ChSystem* system) {
     auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
     obstacle->GetCollisionModel()->ClearModel();
-    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, length * 0.5, VNULL, Q_from_AngX(CH_C_PI_2));
+    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, length, VNULL, Q_from_AngX(CH_C_PI_2));
     obstacle->GetCollisionModel()->BuildModel();
 
     system->AddBody(obstacle);

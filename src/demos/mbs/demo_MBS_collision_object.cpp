@@ -199,8 +199,10 @@ int main(int argc, char* argv[]) {
         }
         case CollisionShape::CYLINDER: {
             object->GetCollisionModel()->ClearModel();
-            object->GetCollisionModel()->AddCylinder(object_mat, radius, hlen, ChVector<>(0), Q_from_AngX(CH_C_PI_2));
-            ////object->GetCollisionModel()->AddCylinder(object_mat, radius, ChVector<>(0, -hlen, 0), ChVector<>(0, +hlen, 0));
+            object->GetCollisionModel()->AddCylinder(object_mat, radius, 2 * hlen, ChVector<>(0),
+                                                     Q_from_AngX(CH_C_PI_2));
+            ////object->GetCollisionModel()->AddCylinder(object_mat, radius, ChVector<>(0, -hlen, 0), ChVector<>(0,
+            ///+hlen, 0));
             object->GetCollisionModel()->BuildModel();
 
             auto cyl = chrono_types::make_shared<ChCylinderShape>(radius, 2 * hlen);
@@ -220,11 +222,12 @@ int main(int argc, char* argv[]) {
         }
         case CollisionShape::CYLSHELL: {
             object->GetCollisionModel()->ClearModel();
-            object->GetCollisionModel()->AddCylindricalShell(object_mat, radius, hlen, ChVector<>(0), ChMatrix33<>(1));
+            object->GetCollisionModel()->AddCylindricalShell(object_mat, radius, 2 * hlen, ChVector<>(0),
+                                                             Q_from_AngX(CH_C_PI_2));
             object->GetCollisionModel()->BuildModel();
 
             auto cyl = chrono_types::make_shared<ChCylinderShape>(radius, 2 * hlen);
-            object->AddVisualShape(cyl);
+            object->AddVisualShape(cyl, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
             break;
         }

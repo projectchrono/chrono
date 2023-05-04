@@ -49,9 +49,9 @@ void ChSingleTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
     m_wheel->GetCollisionModel()->ClearModel();
 
     if (track->IsRoadwheelCylinder()) {
-        m_wheel->GetCollisionModel()->AddCylinder(m_material, radius, width / 2, VNULL, Q_from_AngX(CH_C_PI_2));
+        m_wheel->GetCollisionModel()->AddCylinder(m_material, radius, width, VNULL, Q_from_AngX(CH_C_PI_2));
     } else {
-        m_wheel->GetCollisionModel()->AddCylindricalShell(m_material, radius, width / 2, VNULL, Q_from_AngX(CH_C_PI_2));
+        m_wheel->GetCollisionModel()->AddCylindricalShell(m_material, radius, width, VNULL, Q_from_AngX(CH_C_PI_2));
     }
 
     m_wheel->GetCollisionModel()->BuildModel();

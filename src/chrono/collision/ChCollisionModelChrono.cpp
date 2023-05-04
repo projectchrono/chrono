@@ -175,7 +175,7 @@ bool ChCollisionModelChrono::AddTriangle(std::shared_ptr<ChMaterialSurface> mate
 
 bool ChCollisionModelChrono::AddCylinder(std::shared_ptr<ChMaterialSurface> material,
                                          double radius,
-                                         double hheight,
+                                         double height,
                                          const ChVector<>& pos,
                                          const ChMatrix33<>& rot) {
     ChFrame<> frame;
@@ -185,7 +185,7 @@ bool ChCollisionModelChrono::AddCylinder(std::shared_ptr<ChMaterialSurface> mate
 
     auto shape = new ChCollisionShapeChrono(ChCollisionShape::Type::CYLINDER, material);
     shape->A = real3(position.x(), position.y(), position.z());
-    shape->B = real3(radius, radius, hheight);
+    shape->B = real3(radius, radius, height / 2);
     shape->C = real3(0, 0, 0);
     shape->R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
     m_shapes.push_back(std::shared_ptr<ChCollisionShape>(shape));
@@ -195,7 +195,7 @@ bool ChCollisionModelChrono::AddCylinder(std::shared_ptr<ChMaterialSurface> mate
 
 bool ChCollisionModelChrono::AddCylindricalShell(std::shared_ptr<ChMaterialSurface> material,
                                                  double radius,
-                                                 double hheight,
+                                                 double height,
                                                  const ChVector<>& pos,
                                                  const ChMatrix33<>& rot) {
     ChFrame<> frame;
@@ -205,7 +205,7 @@ bool ChCollisionModelChrono::AddCylindricalShell(std::shared_ptr<ChMaterialSurfa
 
     auto shape = new ChCollisionShapeChrono(ChCollisionShape::Type::CYLSHELL, material);
     shape->A = real3(position.x(), position.y(), position.z());
-    shape->B = real3(radius, radius, hheight);
+    shape->B = real3(radius, radius, height / 2);
     shape->C = real3(0, 0, 0);
     shape->R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
     m_shapes.push_back(std::shared_ptr<ChCollisionShape>(shape));
@@ -215,7 +215,7 @@ bool ChCollisionModelChrono::AddCylindricalShell(std::shared_ptr<ChMaterialSurfa
 
 bool ChCollisionModelChrono::AddRoundedCylinder(std::shared_ptr<ChMaterialSurface> material,
                                                 double radius,
-                                                double hheight,
+                                                double height,
                                                 double sphere_r,
                                                 const ChVector<>& pos,
                                                 const ChMatrix33<>& rot) {
@@ -226,7 +226,7 @@ bool ChCollisionModelChrono::AddRoundedCylinder(std::shared_ptr<ChMaterialSurfac
 
     auto shape = new ChCollisionShapeChrono(ChCollisionShape::Type::ROUNDEDCYL, material);
     shape->A = real3(position.x(), position.y(), position.z());
-    shape->B = real3(radius, radius, hheight);
+    shape->B = real3(radius, radius, height / 2);
     shape->C = real3(sphere_r, 0, 0);
     shape->R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
     m_shapes.push_back(std::shared_ptr<ChCollisionShape>(shape));

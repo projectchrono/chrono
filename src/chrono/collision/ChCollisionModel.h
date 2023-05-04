@@ -106,7 +106,7 @@ class ChApi ChCollisionModel {
     virtual bool AddCylinder(                         //
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
         double radius,                                ///< radius
-        double hheight,                               ///< half height
+        double height,                                ///< height
         const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
         ) = 0;
@@ -123,7 +123,7 @@ class ChApi ChCollisionModel {
     virtual bool AddCylindricalShell(                 //
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
         double radius,                                ///< radius
-        double hheight,                               ///< half height
+        double height,                                ///< height
         const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
         ) = 0;
@@ -161,7 +161,7 @@ class ChApi ChCollisionModel {
     virtual bool AddRoundedCylinder(                  //
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
         double radius,                                ///< radius
-        double hheight,                               ///< half height
+        double height,                                ///< height
         double sphere_r,                              ///< radius of sweeping sphere
         const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates

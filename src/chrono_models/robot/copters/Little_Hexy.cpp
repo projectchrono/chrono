@@ -53,7 +53,7 @@ void Little_Hexy::AddCollisionShapes(std::shared_ptr<ChMaterialSurface> material
     // propeller arm + propeller radius
     double radius = 0.762 + 0.6718 / 2;
     ChMatrix33<> matr(Q_ROTATE_Y_TO_Z);
-    chassis->GetCollisionModel()->AddCylinder(material, radius, 0.1, ChVector<>(0, 0, 0.2783), matr);
+    chassis->GetCollisionModel()->AddCylinder(material, radius, 0.2, ChVector<>(0, 0, 0.2783), matr);
     chassis->GetCollisionModel()->BuildModel();
     chassis->SetCollide(true);
 }

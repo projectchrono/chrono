@@ -185,7 +185,7 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
     }
 
     // Add a cylinder to represent the wheel hub.
-    coll_model->AddCylinder(wheel_material, 0.223, 0.126, VNULL, Q_from_AngX(CH_C_PI_2));
+    coll_model->AddCylinder(wheel_material, 0.223, 0.252, VNULL, Q_from_AngX(CH_C_PI_2));
     coll_model->BuildModel();
 
     // Visualization

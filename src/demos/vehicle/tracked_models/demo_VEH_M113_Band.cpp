@@ -529,7 +529,7 @@ void AddFixedObstacles(ChSystem* system) {
     obst_mat->SetPoissonRatio(0.3f);
 
     obstacle->GetCollisionModel()->ClearModel();
-    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, length * 0.5, VNULL, Q_from_AngX(CH_C_PI_2));
+    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, length, VNULL, Q_from_AngX(CH_C_PI_2));
     obstacle->GetCollisionModel()->BuildModel();
 
     system->AddBody(obstacle);
@@ -596,13 +596,15 @@ void WriteVehicleVTK(int frame, ChTrackedVehicle& vehicle) {
         const auto& gearR = vehicle.GetTrackAssembly(VehicleSide::RIGHT)->GetSprocket()->GetGearBody();
         csv << gearL->GetPos() << gearL->GetRot() << gearL->GetPos_dt() << gearL->GetWvel_loc() << endl;
         csv << gearR->GetPos() << gearR->GetRot() << gearR->GetPos_dt() << gearR->GetWvel_loc() << endl;
-        csv.write_to_file(vtk_dir + "/sprockets." + std::to_string(frame) + ".vtk", "x,y,z,e0,e1,e2,e3,vx,vy,vz,ox,oy,oz");
+        csv.write_to_file(vtk_dir + "/sprockets." + std::to_string(frame) + ".vtk",
+                          "x,y,z,e0,e1,e2,e3,vx,vy,vz,ox,oy,oz");
     }
 
     {
         utils::CSV_writer csv(",");
         auto chassis = vehicle.GetChassisBody();
         csv << chassis->GetPos() << chassis->GetRot() << chassis->GetPos_dt() << chassis->GetWvel_loc() << endl;
-        csv.write_to_file(vtk_dir + "/chassis." + std::to_string(frame) + ".vtk", "x,y,z,e0,e1,e2,e3,vx,vy,vz,ox,oy,oz");
+        csv.write_to_file(vtk_dir + "/chassis." + std::to_string(frame) + ".vtk",
+                          "x,y,z,e0,e1,e2,e3,vx,vy,vz,ox,oy,oz");
     }
 }

@@ -234,8 +234,8 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     VisualizationType m_vis_roadwheel;
     VisualizationType m_vis_shoe;
 
-    double m_post_radius;   ///< radius of the post cylindrical platform
-    double m_post_hheight;  ///< half-height of the post cylindrical platform
+    double m_post_radius;  ///< radius of the post cylindrical platform
+    double m_post_height;  ///< height of the post cylindrical platform
 
     std::shared_ptr<ChTrackContactManager> m_contact_manager;  ///< manager for internal contacts
 

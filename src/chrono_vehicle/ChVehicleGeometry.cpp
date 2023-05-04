@@ -222,7 +222,7 @@ void ChVehicleGeometry::CreateCollisionShapes(std::shared_ptr<ChBody> body,
     }
     for (auto& cyl : m_coll_cylinders) {
         assert(materials[cyl.m_matID]);
-        body->GetCollisionModel()->AddCylinder(materials[cyl.m_matID], cyl.m_radius, cyl.m_length / 2, cyl.m_pos,
+        body->GetCollisionModel()->AddCylinder(materials[cyl.m_matID], cyl.m_radius, cyl.m_length, cyl.m_pos,
                                                cyl.m_rot);
     }
     for (auto& hulls_group : m_coll_hulls) {

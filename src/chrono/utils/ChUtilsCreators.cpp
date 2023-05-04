@@ -155,7 +155,7 @@ void AddCylinderGeometry(ChBody* body,
                          const ChQuaternion<>& rot,
                          bool visualization,
                          ChVisualMaterialSharedPtr vis_material) {
-    body->GetCollisionModel()->AddCylinder(material, radius, height / 2, pos, rot);
+    body->GetCollisionModel()->AddCylinder(material, radius, height, pos, rot);
 
     if (visualization) {
         if (!body->GetVisualModel()) {
@@ -179,7 +179,7 @@ void AddCylinderGeometry(ChBody* body,
     auto height = seg.GetLength();
     auto frame = seg.GetFrame();
 
-    body->GetCollisionModel()->AddCylinder(material, radius, height / 2, frame.GetPos(), frame.GetA());
+    body->GetCollisionModel()->AddCylinder(material, radius, height, frame.GetPos(), frame.GetA());
 
     if (visualization) {
         if (!body->GetVisualModel()) {
@@ -568,7 +568,7 @@ void AddRoundedCylinderGeometry(ChBody* body,
                                 const ChQuaternion<>& rot,
                                 bool visualization,
                                 ChVisualMaterialSharedPtr vis_material) {
-    body->GetCollisionModel()->AddRoundedCylinder(material, radius, height / 2, srad, pos, rot);
+    body->GetCollisionModel()->AddRoundedCylinder(material, radius, height, srad, pos, rot);
 
     if (visualization) {
         if (!body->GetVisualModel()) {

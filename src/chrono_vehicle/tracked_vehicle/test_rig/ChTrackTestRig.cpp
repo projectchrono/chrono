@@ -162,7 +162,7 @@ void ChTrackTestRig::Create(bool create_track, bool detracking_control) {
     auto num_wheels = m_track->GetNumTrackSuspensions();
     double rw_radius = m_track->GetRoadWheel(0)->GetRadius();
 
-    m_post_hheight = 0.05;
+    m_post_height = 0.1;
     m_post_radius = 0.9 * rw_radius;
 
     // Resize vectors
@@ -188,8 +188,8 @@ void ChTrackTestRig::Create(bool create_track, bool detracking_control) {
         m_system->Add(post);
 
         post->GetCollisionModel()->ClearModel();
-        post->GetCollisionModel()->AddCylinder(post_mat, m_post_radius, m_post_hheight,
-                                               ChVector<>(0, 0, -m_post_hheight));
+        post->GetCollisionModel()->AddCylinder(post_mat, m_post_radius, m_post_height,
+                                               ChVector<>(0, 0, -m_post_height / 2));
         post->GetCollisionModel()->BuildModel();
 
         AddPostVisualization(post, m_chassis->GetBody(), ChColor(0.1f, 0.8f, 0.15f));
@@ -377,24 +377,24 @@ void ChTrackTestRig::AddPostVisualization(std::shared_ptr<ChBody> post,
     mat->SetDiffuseColor({color.R, color.G, color.B});
 
     // Platform (on post body)
-    ChVehicleGeometry::AddVisualizationCylinder(post,                                   //
-                                                ChVector<>(0, 0, 0),                    //
-                                                ChVector<>(0, 0, -2 * m_post_hheight),  //
-                                                m_post_radius,                          //
+    ChVehicleGeometry::AddVisualizationCylinder(post,                              //
+                                                ChVector<>(0, 0, 0),               //
+                                                ChVector<>(0, 0, -m_post_height),  //
+                                                m_post_radius,                     //
                                                 mat);
 
     // Piston (on post body)
-    ChVehicleGeometry::AddVisualizationCylinder(post,                                    //
-                                                ChVector<>(0, 0, -2 * m_post_hheight),   //
-                                                ChVector<>(0, 0, -30 * m_post_hheight),  //
-                                                m_post_radius / 6.0,                     //
+    ChVehicleGeometry::AddVisualizationCylinder(post,                                   //
+                                                ChVector<>(0, 0, -m_post_height),        //
+                                                ChVector<>(0, 0, -15 * m_post_height),  //
+                                                m_post_radius / 6.0,                    //
                                                 mat);
 
     // Post sleeve (on chassis/ground body)
-    ChVehicleGeometry::AddVisualizationCylinder(chassis,                                                 //
-                                                post->GetPos() - ChVector<>(0, 0, 16 * m_post_hheight),  //
-                                                post->GetPos() - ChVector<>(0, 0, 32 * m_post_hheight),  //
-                                                m_post_radius / 4.0,                                     //
+    ChVehicleGeometry::AddVisualizationCylinder(chassis,                                                //
+                                                post->GetPos() - ChVector<>(0, 0, 8 * m_post_height),   //
+                                                post->GetPos() - ChVector<>(0, 0, 16 * m_post_height),  //
+                                                m_post_radius / 4.0,                                    //
                                                 mat);
 }
 

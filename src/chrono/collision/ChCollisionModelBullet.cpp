@@ -222,17 +222,17 @@ bool ChCollisionModelBullet::AddBox(std::shared_ptr<ChMaterialSurface> material,
 
 bool ChCollisionModelBullet::AddCylinder(std::shared_ptr<ChMaterialSurface> material,
                                          double radius,
-                                         double hheight,
+                                         double height,
                                          const ChVector<>& pos,
                                          const ChMatrix33<>& rot) {
     // adjust default inward margin (if object too thin)
-    SetSafeMargin(ChMin(GetSafeMargin(), 0.2 * ChMin(radius, hheight)));
+    SetSafeMargin(ChMin(GetSafeMargin(), 0.2 * ChMin(radius, height)));
 
     auto shape = new ChCollisionShapeBullet(ChCollisionShape::Type::CYLINDER, material);
 
     cbtScalar ax = (cbtScalar)(radius + GetEnvelope());
     cbtScalar ay = (cbtScalar)(radius + GetEnvelope());
-    cbtScalar az = (cbtScalar)(hheight + GetEnvelope());
+    cbtScalar az = (cbtScalar)(height / 2 + GetEnvelope());
     shape->m_bt_shape = new cbtCylinderShapeZ(cbtVector3(ax, ay, az));
     shape->m_bt_shape->setMargin((cbtScalar)GetSuggestedFullMargin());
 
@@ -261,15 +261,15 @@ bool ChCollisionModelBullet::AddCapsule(std::shared_ptr<ChMaterialSurface> mater
 
 bool ChCollisionModelBullet::AddCylindricalShell(std::shared_ptr<ChMaterialSurface> material,
                                                  double radius,
-                                                 double hheight,
+                                                 double height,
                                                  const ChVector<>& pos,
                                                  const ChMatrix33<>& rot) {
     // adjust default inward margin (if object too thin)
-    SetSafeMargin(ChMin(GetSafeMargin(), 0.2 * ChMin(radius, 0.5 * hheight)));
+    SetSafeMargin(ChMin(GetSafeMargin(), 0.2 * ChMin(radius, height)));
 
     auto shape = new ChCollisionShapeBullet(ChCollisionShape::Type::CYLSHELL, material);
     shape->m_bt_shape =
-        new cbtCylindricalShellShape((cbtScalar)(radius + GetEnvelope()), (cbtScalar)(hheight + GetEnvelope()));
+        new cbtCylindricalShellShape((cbtScalar)(radius + GetEnvelope()), (cbtScalar)(height / 2 + GetEnvelope()));
     shape->m_bt_shape->setMargin((cbtScalar)GetSuggestedFullMargin());
 
     injectShape(pos, rot, shape);

@@ -285,8 +285,7 @@ int main(int argc, char* argv[]) {
 
     // Change (SMC) contact force model
     ////if (contact_method == ChContactMethod::SMC) {
-    ////
-    ///static_cast<ChSystemSMC*>(m113.GetSystem())->SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
+    ////    static_cast<ChSystemSMC*>(m113.GetSystem())->SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
     ////}
 
     // --------------------------------------------------
@@ -721,7 +720,7 @@ void AddFixedObstacles(ChSystem* system) {
     auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
     obstacle->GetCollisionModel()->ClearModel();
-    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, length * 0.5, VNULL, Q_from_AngX(CH_C_PI_2));
+    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, length, VNULL, Q_from_AngX(CH_C_PI_2));
     obstacle->GetCollisionModel()->BuildModel();
 
     system->AddBody(obstacle);
