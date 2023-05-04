@@ -423,14 +423,6 @@ enum class TireModelType {
     TMSIMPLE     ///< Tire Model Simple (W. Hirschberg)
 };
 
-/// Enum for available powertrain model templates.
-enum class PowertrainModelType {
-    SHAFTS,      ///< powertrain based on ChShaft elements
-    SIMPLE_MAP,  ///< simple powertrain model (based on engine-map)
-    SIMPLE,      ///< simple powertrain model (similar to a DC motor)
-    SIMPLE_CVT   ///< simple cvt powertrain model (like a DC motor / CVT gearbox)
-};
-
 /// Enum for available engine model templates.
 enum class EngineModelType {
     SHAFTS,      ///< engine model based on ChShaft elements

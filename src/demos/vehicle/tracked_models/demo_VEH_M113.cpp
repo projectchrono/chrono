@@ -64,7 +64,6 @@ TrackShoeType shoe_type = TrackShoeType::DOUBLE_PIN;
 DoublePinTrackShoeType shoe_topology = DoublePinTrackShoeType::ONE_CONNECTOR;
 BrakeType brake_type = BrakeType::SHAFTS;
 DrivelineTypeTV driveline_type = DrivelineTypeTV::BDS;
-PowertrainModelType powertrain_type = PowertrainModelType::SHAFTS;
 
 bool use_track_bushings = false;
 bool use_suspension_bushings = false;

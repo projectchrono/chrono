@@ -105,7 +105,6 @@ class CH_MODELS_API MTV {
 
     BrakeType m_brake_type;
     TireModelType m_tireType;
-    PowertrainModelType m_powertrainType;
     EngineModelType m_engineType;
     TransmissionModelType m_transmissionType;
 
