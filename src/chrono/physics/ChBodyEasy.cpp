@@ -234,7 +234,7 @@ void ChBodyEasyBox::SetupBody(double Xsize,
     if (collide) {
         assert(material);
         GetCollisionModel()->ClearModel();
-        GetCollisionModel()->AddBox(material, Xsize * 0.5, Ysize * 0.5, Zsize * 0.5);
+        GetCollisionModel()->AddBox(material, Xsize, Ysize, Zsize);
         GetCollisionModel()->BuildModel();
         SetCollide(true);
     }

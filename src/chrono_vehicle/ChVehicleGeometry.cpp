@@ -217,9 +217,8 @@ void ChVehicleGeometry::CreateCollisionShapes(std::shared_ptr<ChBody> body,
     }
     for (auto& box : m_coll_boxes) {
         assert(materials[box.m_matID]);
-        ChVector<> hdims = box.m_dims / 2;
-        body->GetCollisionModel()->AddBox(materials[box.m_matID], hdims.x(), hdims.y(), hdims.z(), box.m_pos,
-                                          box.m_rot);
+        body->GetCollisionModel()->AddBox(materials[box.m_matID], box.m_dims.x(), box.m_dims.y(), box.m_dims.z(),
+                                          box.m_pos, box.m_rot);
     }
     for (auto& cyl : m_coll_cylinders) {
         assert(materials[cyl.m_matID]);

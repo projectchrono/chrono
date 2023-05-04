@@ -25,7 +25,7 @@
 
 #include "chrono_fsi/ChSystemFsi.h"
 
-#include "chrono/assets/ChVisualSystem.h"
+#include "chrono_fsi/visualization/ChFsiVisualization.h"
 #ifdef CHRONO_OPENGL
     #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
 #endif
@@ -286,6 +286,9 @@ int main(int argc, char* argv[]) {
 #ifndef CHRONO_VSG
     if (vis_type == ChVisualSystem::Type::VSG)
         vis_type = ChVisualSystem::Type::OpenGL;
+#endif
+#if !defined(CHRONO_OPENGL) && !defined(CHRONO_VSG)
+    render = false;
 #endif
 
     std::shared_ptr<ChFsiVisualization> visFSI;

@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
     auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
     floor->GetCollisionModel()->ClearModel();
-    floor->GetCollisionModel()->AddBox(floor_mat, 0.1, 0.02, 0.1);
+    floor->GetCollisionModel()->AddBox(floor_mat, 0.2, 0.04, 0.2);
     floor->GetCollisionModel()->BuildModel();
     floor->SetCollide(true);
 
@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
             body->SetInertiaXX(ChVector<>((2.0 / 5.0) * (0.01 * 0.01) * 0.02));
 
             body->GetCollisionModel()->ClearModel();
-            body->GetCollisionModel()->AddBox(floor_mat, 0.01, 0.01, 0.01);
+            body->GetCollisionModel()->AddBox(floor_mat, 0.02, 0.02, 0.02);
             body->GetCollisionModel()->BuildModel();
             body->SetCollide(true);
 

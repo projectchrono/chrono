@@ -929,7 +929,7 @@ void RS_Part::AddCollisionShapes() {
     }
     for (const auto& box : m_boxes) {
         ChVector<> hdims = box.m_dims / 2;
-        m_body->GetCollisionModel()->AddBox(m_mat, hdims.x(), hdims.y(), hdims.z(), box.m_pos, box.m_rot);
+        m_body->GetCollisionModel()->AddBox(m_mat, 2 * hdims.x(), 2 * hdims.y(), 2 * hdims.z(), box.m_pos, box.m_rot);
     }
     for (const auto& cyl : m_cylinders) {
         m_body->GetCollisionModel()->AddCylinder(m_mat, cyl.m_radius, cyl.m_length / 2, cyl.m_pos, cyl.m_rot);

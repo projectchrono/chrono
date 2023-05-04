@@ -138,19 +138,19 @@ void ChTrackShoeBand::AddShoeContact(ChContactMethod contact_method) {
     m_shoe->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::SHOES);
 
     // Guide pin
-    ChVector<> g_hdims = GetGuideBoxDimensions() / 2;
-    ChVector<> g_loc(GetGuideBoxOffsetX(), 0, GetWebThickness() / 2 + g_hdims.z());
-    m_shoe->GetCollisionModel()->AddBox(guide_material, g_hdims.x(), g_hdims.y(), g_hdims.z(), g_loc);
+    ChVector<> g_dims = GetGuideBoxDimensions();
+    ChVector<> g_loc(GetGuideBoxOffsetX(), 0, GetWebThickness() / 2 + g_dims.z() / 2);
+    m_shoe->GetCollisionModel()->AddBox(guide_material, g_dims.x(), g_dims.y(), g_dims.z(), g_loc);
 
     // Main box
-    ChVector<> b_hdims(GetToothBaseLength() / 2, GetBeltWidth() / 2, GetWebThickness() / 2);
+    ChVector<> b_dims(GetToothBaseLength(), GetBeltWidth(), GetWebThickness());
     ChVector<> b_loc(0, 0, 0);
-    m_shoe->GetCollisionModel()->AddBox(body_material, b_hdims.x(), b_hdims.y(), b_hdims.z(), b_loc);
+    m_shoe->GetCollisionModel()->AddBox(body_material, b_dims.x(), b_dims.y(), b_dims.z(), b_loc);
 
     // Pad box
-    ChVector<> t_hdims(GetTreadLength() / 2, GetBeltWidth() / 2, GetTreadThickness() / 2);
+    ChVector<> t_dims(GetTreadLength(), GetBeltWidth(), GetTreadThickness());
     ChVector<> t_loc(0, 0, (-GetWebThickness() - GetTreadThickness()) / 2);
-    m_shoe->GetCollisionModel()->AddBox(pad_material, t_hdims.x(), t_hdims.y(), t_hdims.z(), t_loc);
+    m_shoe->GetCollisionModel()->AddBox(pad_material, t_dims.x(), t_dims.y(), t_dims.z(), t_loc);
 
     m_shoe->GetCollisionModel()->BuildModel();
 }

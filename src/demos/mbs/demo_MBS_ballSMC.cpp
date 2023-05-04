@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
     bin->SetBodyFixed(true);
 
     bin->GetCollisionModel()->ClearModel();
-    bin->GetCollisionModel()->AddBox(material, width, thickness, length);
+    bin->GetCollisionModel()->AddBox(material, width * 2, thickness * 2, length * 2);
     bin->GetCollisionModel()->BuildModel();
 
     auto box = chrono_types::make_shared<ChBoxShape>(width * 2, thickness * 2, length * 2);

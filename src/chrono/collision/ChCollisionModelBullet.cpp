@@ -200,19 +200,19 @@ bool ChCollisionModelBullet::AddEllipsoid(std::shared_ptr<ChMaterialSurface> mat
 }
 
 bool ChCollisionModelBullet::AddBox(std::shared_ptr<ChMaterialSurface> material,
-                                    double hx,
-                                    double hy,
-                                    double hz,
+                                    double size_x,
+                                    double size_y,
+                                    double size_z,
                                     const ChVector<>& pos,
                                     const ChMatrix33<>& rot) {
     // adjust default inward margin (if object too thin)
-    SetSafeMargin(ChMin(GetSafeMargin(), 0.2 * ChMin(ChMin(hx, hy), hz)));
+    SetSafeMargin(ChMin(GetSafeMargin(), 0.1 * ChMin(ChMin(size_x, size_y), size_z)));
 
     auto shape = new ChCollisionShapeBullet(ChCollisionShape::Type::BOX, material);
 
-    cbtScalar ahx = (cbtScalar)(hx + GetEnvelope());
-    cbtScalar ahy = (cbtScalar)(hy + GetEnvelope());
-    cbtScalar ahz = (cbtScalar)(hz + GetEnvelope());
+    cbtScalar ahx = (cbtScalar)(size_x / 2 + GetEnvelope());
+    cbtScalar ahy = (cbtScalar)(size_y / 2 + GetEnvelope());
+    cbtScalar ahz = (cbtScalar)(size_z / 2 + GetEnvelope());
     shape->m_bt_shape = new cbtBoxShape(cbtVector3(ahx, ahy, ahz));
     shape->m_bt_shape->setMargin((cbtScalar)GetSuggestedFullMargin());
 

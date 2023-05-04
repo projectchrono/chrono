@@ -85,9 +85,9 @@ class ChApi ChCollisionModelChrono : public ChCollisionModel {
     /// Add a box shape to this collision model.
     virtual bool AddBox(                              //
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
-        double hx,                                    ///< x half-dimension
-        double hy,                                    ///< y half-dimension
-        double hz,                                    ///< z half-dimension
+        double size_x,                                ///< x dimension
+        double size_y,                                ///< y dimension
+        double size_z,                                ///< z dimension
         const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
         ) override;
@@ -95,9 +95,9 @@ class ChApi ChCollisionModelChrono : public ChCollisionModel {
     /// Add a rounded box shape to this collision model.
     virtual bool AddRoundedBox(                       //
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
-        double hx,                                    ///< x half-dimension
-        double hy,                                    ///< y half-dimension
-        double hz,                                    ///< z half-dimension
+        double size_x,                                ///< x dimension
+        double size_y,                                ///< y dimension
+        double size_z,                                ///< z dimension
         double sphere_r,                              ///< radius of sweeping sphere
         const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates

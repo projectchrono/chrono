@@ -110,9 +110,9 @@ bool ChCollisionModelChrono::AddEllipsoid(std::shared_ptr<ChMaterialSurface> mat
 }
 
 bool ChCollisionModelChrono::AddBox(std::shared_ptr<ChMaterialSurface> material,
-                                    double rx,
-                                    double ry,
-                                    double rz,
+                                    double size_x,
+                                    double size_y,
+                                    double size_z,
                                     const ChVector<>& pos,
                                     const ChMatrix33<>& rot) {
     ChFrame<> frame;
@@ -122,7 +122,7 @@ bool ChCollisionModelChrono::AddBox(std::shared_ptr<ChMaterialSurface> material,
 
     auto shape = new ChCollisionShapeChrono(ChCollisionShape::Type::BOX, material);
     shape->A = real3(position.x(), position.y(), position.z());
-    shape->B = real3(rx, ry, rz);
+    shape->B = real3(size_x / 2, size_y / 2, size_z / 2);
     shape->C = real3(0, 0, 0);
     shape->R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
     m_shapes.push_back(std::shared_ptr<ChCollisionShape>(shape));
@@ -131,9 +131,9 @@ bool ChCollisionModelChrono::AddBox(std::shared_ptr<ChMaterialSurface> material,
 }
 
 bool ChCollisionModelChrono::AddRoundedBox(std::shared_ptr<ChMaterialSurface> material,
-                                           double rx,
-                                           double ry,
-                                           double rz,
+                                           double size_x,
+                                           double size_y,
+                                           double size_z,
                                            double sphere_r,
                                            const ChVector<>& pos,
                                            const ChMatrix33<>& rot) {
@@ -144,7 +144,7 @@ bool ChCollisionModelChrono::AddRoundedBox(std::shared_ptr<ChMaterialSurface> ma
 
     auto shape = new ChCollisionShapeChrono(ChCollisionShape::Type::ROUNDEDBOX, material);
     shape->A = real3(position.x(), position.y(), position.z());
-    shape->B = real3(rx, ry, rz);
+    shape->B = real3(size_x / 2, size_y / 2, size_z / 2);
     shape->C = real3(sphere_r, 0, 0);
     shape->R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
     m_shapes.push_back(std::shared_ptr<ChCollisionShape>(shape));

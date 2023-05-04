@@ -95,9 +95,9 @@ class ChApi ChCollisionModel {
     /// Add a box shape to this collision model.
     virtual bool AddBox(                              //
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
-        double hx,                                    ///< x half-dimension
-        double hy,                                    ///< y half-dimension
-        double hz,                                    ///< z half-dimension
+        double size_x,                                ///< x dimension
+        double size_y,                                ///< y dimension
+        double size_z,                                ///< z dimension
         const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
         ) = 0;
@@ -149,9 +149,9 @@ class ChApi ChCollisionModel {
     /// Add a rounded box shape to this collision model.
     virtual bool AddRoundedBox(                       //
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
-        double hx,                                    ///< x half-dimension
-        double hy,                                    ///< y half-dimension
-        double hz,                                    ///< z half-dimension
+        double size_x,                                ///< x dimension
+        double size_y,                                ///< y dimension
+        double size_z,                                ///< z dimension
         double sphere_r,                              ///< radius of sweeping sphere
         const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
@@ -317,32 +317,23 @@ class ChApi ChCollisionModel {
 
     // TOLERANCES, ENVELOPES, THRESHOLDS
 
-    /// Set the suggested collision 'inward safe margin' for the
-    /// shapes to be added from now on, using the AddBox,
-    /// AddCylinder etc (where, if this margin is too high for some
-    /// thin or small shapes, it may be clamped).
-    /// If dist\<0 and interpretation occurs (ex.for numerical errors) within
-    /// this 'safe margin' inward range, collision detection is still fast
-    /// and reliable (beyond this, for deep penetrations, CD still works,
-    /// but might be slower and less reliable)
-    /// Call this BEFORE adding the shapes into the model.
-    /// Side effect: think at the margin as a radius of a 'smoothing' fillet
-    /// on all corners of the shapes - that's why you cannot exceed with this.
+    /// Set the suggested collision 'inward safe margin' for the shapes to be added from now on.
+    /// If this margin is too high for some thin or small shapes, it may be clamped.
+    /// If dist\<0 and inter-penetration occurs (e.g. due to numerical errors) within this 'safe margin' inward range,
+    /// collision detection is still fast and reliable (beyond this, for deep penetrations, CD still works, but might be
+    /// slower and less reliable) Call this BEFORE adding the shapes into the model. Side effect: think of the margin as
+    /// a radius of a 'smoothing' fillet on all corners of the shapes - that's why you cannot exceed with this.
     virtual void SetSafeMargin(double amargin) { model_safe_margin = (float)amargin; }
+
     /// Returns the inward safe margin (see SetSafeMargin() )
     virtual float GetSafeMargin() { return model_safe_margin; }
 
-    /// Set the suggested collision outward 'envelope' (used from shapes
-    /// added, from now on, to this collision model).  This 'envelope' is a
-    /// surrounding invisible volume which extends outward from the
-    /// surface, and it is used to detect contacts a bit before shapes
-    /// come into contact, i.e. when dist\>0. However contact points will stay
-    /// on the true surface of the geometry, not on the external surface of the
-    /// envelope.
-    /// Call this BEFORE adding the shapes into the model.
-    /// Side effect: AABB are 'expanded' outward by this amount, so if you
-    /// exaggerate with this value, CD might be slower and too sensible.
-    /// On the other hand, if you set this value to 0, contacts are detected
+    /// Set the suggested collision outward 'envelope' used from shapes added from now on.
+    /// This 'envelope' is a surrounding invisible volume which extends outward from the surface, and it is used to
+    /// detect contacts a bit before shapes come into contact, i.e. when dist\>0. However contact points will stay on
+    /// the true surface of the geometry, not on the external surface of the envelope. Call this BEFORE adding the
+    /// shapes into the model. Side effect: AABB are 'expanded' outward by this amount, so if you exaggerate with this
+    /// value, CD might be slower and too sensible. On the other hand, if you set this value to 0, contacts are detected
     /// only for dist<=0, thus causing unstable simulation.
     virtual void SetEnvelope(double amargin) { model_envelope = (float)amargin; }
 

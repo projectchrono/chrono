@@ -86,7 +86,7 @@ void AddBoxGeometry(ChBody* body,
                     const ChQuaternion<>& rot,
                     bool visualization,
                     ChVisualMaterialSharedPtr vis_material) {
-    body->GetCollisionModel()->AddBox(material, size.x() / 2, size.y() / 2, size.z() / 2, pos, rot);
+    body->GetCollisionModel()->AddBox(material, size.x(), size.y(), size.z(), pos, rot);
 
     if (visualization) {
         if (!body->GetVisualModel()) {
@@ -544,7 +544,7 @@ void AddRoundedBoxGeometry(ChBody* body,
                            const ChQuaternion<>& rot,
                            bool visualization,
                            ChVisualMaterialSharedPtr vis_material) {
-    body->GetCollisionModel()->AddRoundedBox(material, size.x() / 2, size.y() / 2, size.z() / 2, srad, pos, rot);
+    body->GetCollisionModel()->AddRoundedBox(material, size.x(), size.y(), size.z(), srad, pos, rot);
 
     if (visualization) {
         if (!body->GetVisualModel()) {

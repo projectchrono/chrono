@@ -146,9 +146,9 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     ground->SetCollide(true);
 
     // Add BCE particles attached on the walls into FSI system
-    sysFSI.AddBoxContainerBCE(ground,                                         //
-                              ChFrame<>(ChVector<>(0, 0, bzDim / 2), QUNIT),  //
-                              ChVector<>(bxDim, byDim, 2 * bzDim),            //
+    sysFSI.AddBoxContainerBCE(ground,                                     //
+                              ChFrame<>(ChVector<>(0, 0, bzDim), QUNIT),  //
+                              ChVector<>(bxDim, byDim, 2 * bzDim),        //
                               ChVector<int>(2, 0, -1));
 
     // Create the wheel -- always SECOND body in the system

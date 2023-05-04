@@ -137,31 +137,6 @@ std::shared_ptr<ChBody> AddContainer(ChSystemNSC& sys) {
     my_motor->SetSpeedFunction(mfun);
     sys.AddLink(my_motor);
 
-    /// NOTE: Instead of creating five separate 'box' bodies to make
-    /// the walls of the container, you could have used a single body
-    /// made of five box shapes, which build a single collision description,
-    /// as in the alternative approach:
-
-    /*
-    // create a plain ChBody (no colliding shape nor visualization mesh is used yet)
-    auto rigidBody = chrono_types::make_shared<ChBody>(collision_type);
-
-    // set as fixed body, and turn collision ON, otherwise no collide by default
-    rigidBody->SetBodyFixed(true);
-    rigidBody->SetCollide(true);
-
-    // Clear model. The colliding shape description MUST be between  ClearModel() .. BuildModel() pair.
-    rigidBody->GetCollisionModel()->ClearModel();
-    // Describe the (invisible) colliding shape by adding five boxes (the walls and floor)
-    rigidBody->GetCollisionModel()->AddBox(ground_mat, 20, 1, 20, ChVector<>(0, -10, 0));
-    rigidBody->GetCollisionModel()->AddBox(ground_mat, 1, 40, 20, ChVector<>(-11, 0, 0));
-    rigidBody->GetCollisionModel()->AddBox(ground_mat, 1, 40, 20, ChVector<>(11, 0, 0));
-    rigidBody->GetCollisionModel()->AddBox(ground_mat, 20, 40, 1, ChVector<>(0, 0, -11));
-    rigidBody->GetCollisionModel()->AddBox(ground_mat, 20, 40, 1, ChVector<>(0, 0, 11));
-    // Complete the description of collision shape.
-    rigidBody->GetCollisionModel()->BuildModel();
-    */
-
     return rotatingBody;
 }
 

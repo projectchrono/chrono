@@ -104,9 +104,9 @@ class MySimpleForklift {
         auto chassis_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
         chassis->GetCollisionModel()->ClearModel();
-        chassis->GetCollisionModel()->AddBox(chassis_mat, 1.227 / 2., 1.621 / 2., 1.864 / 2., ChVector<>(-0.003, 1.019, 0.192));
-        chassis->GetCollisionModel()->AddBox(chassis_mat, 0.187 / 2., 0.773 / 2., 1.201 / 2., ChVector<>(0.486, 0.153, -0.047));
-        chassis->GetCollisionModel()->AddBox(chassis_mat, 0.187 / 2., 0.773 / 2., 1.201 / 2., ChVector<>(-0.486, 0.153, -0.047));
+        chassis->GetCollisionModel()->AddBox(chassis_mat, 1.227, 1.621, 1.864, ChVector<>(-0.003, 1.019, 0.192));
+        chassis->GetCollisionModel()->AddBox(chassis_mat, 0.187, 0.773, 1.201, ChVector<>(0.486, 0.153, -0.047));
+        chassis->GetCollisionModel()->AddBox(chassis_mat, 0.187, 0.773, 1.201, ChVector<>(-0.486, 0.153, -0.047));
         chassis->GetCollisionModel()->BuildModel();
         chassis->SetCollide(true);
 
@@ -224,9 +224,9 @@ class MySimpleForklift {
         fork->SetInertiaXX(ChVector<>(15, 15, 15));
         // collision properties:
         fork->GetCollisionModel()->ClearModel();
-        fork->GetCollisionModel()->AddBox(fork_mat, 0.1 / 2., 0.032 / 2., 1.033 / 2., ChVector<>(-0.352, -0.312, 0.613));
-        fork->GetCollisionModel()->AddBox(fork_mat, 0.1 / 2., 0.032 / 2., 1.033 / 2., ChVector<>(0.352, -0.312, 0.613));
-        fork->GetCollisionModel()->AddBox(fork_mat, 0.344 / 2., 1.134 / 2., 0.101 / 2., ChVector<>(-0.000, 0.321, -0.009));
+        fork->GetCollisionModel()->AddBox(fork_mat, 0.100, 0.032, 1.033, ChVector<>(-0.352, -0.312, 0.613));
+        fork->GetCollisionModel()->AddBox(fork_mat, 0.100, 0.032, 1.033, ChVector<>(0.352, -0.312, 0.613));
+        fork->GetCollisionModel()->AddBox(fork_mat, 0.344, 1.134, 0.101, ChVector<>(0.000, 0.321, -0.009));
         fork->GetCollisionModel()->BuildModel();
         fork->SetCollide(true);
         // visualization properties:

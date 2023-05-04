@@ -197,7 +197,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
             for (int iy = 0; iy < nY; iy++) {
                 patch->m_body->GetCollisionModel()->AddBox(          //
                     material,                                        //
-                    0.5 * sizeX1, 0.5 * sizeY1, 0.5 * thickness,     //
+                    sizeX1, sizeY1, thickness,                       //
                     ChVector<>((sizeX1 - length) / 2 + ix * sizeX1,  //
                                (sizeY1 - width) / 2 + iy * sizeY1,   //
                                -0.5 * thickness)                     //
@@ -205,7 +205,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
             }
         }
     } else {
-        patch->m_body->GetCollisionModel()->AddBox(material, 0.5 * length, 0.5 * width, 0.5 * thickness,
+        patch->m_body->GetCollisionModel()->AddBox(material, length, width, thickness,
                                                    ChVector<>(0, 0, -0.5 * thickness));
     }
     patch->m_body->GetCollisionModel()->BuildModel();

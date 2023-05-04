@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
 
     // Define a collision shape
     floor->GetCollisionModel()->ClearModel();
-    floor->GetCollisionModel()->AddBox(floor_mat, 10, 0.5, 10, ChVector<>(0, -1, 0));
+    floor->GetCollisionModel()->AddBox(floor_mat, 20, 1, 20, ChVector<>(0, -1, 0));
     floor->GetCollisionModel()->BuildModel();
     floor->SetCollide(true);
 
@@ -215,16 +215,16 @@ int main(int argc, char* argv[]) {
         particles->SetInertiaXX(ChVector<>(0.001, 0.001, 0.001));
         particles->SetCollide(true);
 
-        double hx = 0.15;
-        double hy = 0.10;
-        double hz = 0.35;
-        auto particle_vis = chrono_types::make_shared<ChBoxShape>(2 * hx, 2 * hy, 2 * hz);
+        double size_x = 0.3;
+        double size_y = 0.2;
+        double size_z = 0.7;
+        auto particle_vis = chrono_types::make_shared<ChBoxShape>(size_x, size_y, size_z);
         particle_vis->SetColor(ChColor(0.3f, 0.7f, 0.3f));
         particles->AddVisualShape(particle_vis);
 
         auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
         particles->GetCollisionModel()->ClearModel();
-        particles->GetCollisionModel()->AddBox(particle_mat, hx, hy, hz);
+        particles->GetCollisionModel()->AddBox(particle_mat, size_x, size_y, size_z);
         particles->GetCollisionModel()->BuildModel();
 
         for (int np = 0; np < 30; ++np)
@@ -336,7 +336,7 @@ int main(int argc, char* argv[]) {
     sphere_mat->SetKdTexture(GetChronoDataFile("textures/spheretexture.png"));
     auto sphereShape = chrono_types::make_shared<ChSphereShape>(0.75);
     sphereShape->SetMaterial(0, sphere_mat);
-    int sphereId = vis->AddVisualModel(sphereShape, ChFrame<>(ChVector<>(-6, 0, -6), QUNIT));
+    int sphereId = vis->AddVisualModel(sphereShape, ChFrame<>(ChVector<>(-6, 2, -6), QUNIT));
 
     auto ell_mat = chrono_types::make_shared<ChVisualMaterial>();
     ell_mat->SetKdTexture(GetChronoDataFile("textures/concrete.jpg"));
@@ -393,13 +393,13 @@ int main(int argc, char* argv[]) {
         vis->UpdateVisualModel(ellId, ChFrame<>(ellPos, Zup * Q_from_AngY(0.2 * time) * Q_from_AngZ(0.1 * time)));
 
         if (time < 10.0)
-            vis->UpdateVisualModel(sphereId, ChFrame<>(ChVector<>(6, 0, 6), QUNIT));
+            vis->UpdateVisualModel(sphereId, ChFrame<>(ChVector<>(6, 2, 6), QUNIT));
         else if (time >= 10.0 && time < 20.0)
-            vis->UpdateVisualModel(sphereId, ChFrame<>(ChVector<>(-6, 0, 6), QUNIT));
+            vis->UpdateVisualModel(sphereId, ChFrame<>(ChVector<>(-6, 2, 6), QUNIT));
         else if (time >= 20.0 && time < 30.0)
-            vis->UpdateVisualModel(sphereId, ChFrame<>(ChVector<>(-6, 0, -6), QUNIT));
+            vis->UpdateVisualModel(sphereId, ChFrame<>(ChVector<>(-6, 2, -6), QUNIT));
         else if (time >= 30.0)
-            vis->UpdateVisualModel(sphereId, ChFrame<>(ChVector<>(6, 0, -6), QUNIT));
+            vis->UpdateVisualModel(sphereId, ChFrame<>(ChVector<>(6, 2, -6), QUNIT));
 
         vis->Render();
         sys.DoStepDynamics(step_size);

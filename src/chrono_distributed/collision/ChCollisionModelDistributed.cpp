@@ -33,16 +33,16 @@ int ChCollisionModelDistributed::ClearModel() {
 }
 
 bool ChCollisionModelDistributed::AddBox(std::shared_ptr<ChMaterialSurface> material,
-                                         double hx,
-                                         double hy,
-                                         double hz,
+                                         double size_x,
+                                         double size_y,
+                                         double size_z,
                                          const ChVector<>& pos,
                                          const ChMatrix33<>& rot) {
     // TODO pos is relative to body pos, add to body pos
     // Generate 8 corners of the box
-    ChVector<> rx = rot * ChVector<>(hx, 0, 0);
-    ChVector<> ry = rot * ChVector<>(0, hy, 0);
-    ChVector<> rz = rot * ChVector<>(0, 0, hz);
+    ChVector<> rx = rot * ChVector<>(size_x / 2, 0, 0);
+    ChVector<> ry = rot * ChVector<>(0, size_y / 2, 0);
+    ChVector<> rz = rot * ChVector<>(0, 0, size_z / 2);
 
     ChVector<> v[8];  // Vertices of collision box
     v[0] = pos + rx + ry + rz;
@@ -84,7 +84,7 @@ bool ChCollisionModelDistributed::AddBox(std::shared_ptr<ChMaterialSurface> mate
     shape_aabb_min.push_back(box_aabb_min);
     shape_aabb_max.push_back(box_aabb_max);
 
-    return this->ChCollisionModelChrono::AddBox(material, hx, hy, hz, pos, rot);
+    return this->ChCollisionModelChrono::AddBox(material, size_x, size_y, size_z, pos, rot);
 }
 
 bool ChCollisionModelDistributed::AddSphere(std::shared_ptr<ChMaterialSurface> material,

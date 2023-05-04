@@ -93,11 +93,11 @@ int main(int argc, char* argv[]) {
     container->SetBodyFixed(true);
     container->SetCollide(true);
     container->GetCollisionModel()->ClearModel();
-    container->GetCollisionModel()->AddBox(mat, 20, 1, 20, ChVector<>(0, -10, 0));
-    container->GetCollisionModel()->AddBox(mat, 1, 40, 20, ChVector<>(-11, 0, 0));
-    container->GetCollisionModel()->AddBox(mat, 1, 40, 20, ChVector<>(11, 0, 0));
-    container->GetCollisionModel()->AddBox(mat, 20, 40, 1, ChVector<>(0, 0, -11));
-    container->GetCollisionModel()->AddBox(mat, 20, 40, 1, ChVector<>(0, 0, 11));
+    container->GetCollisionModel()->AddBox(mat, 40, 2, 40, ChVector<>(0, -10, 0));
+    container->GetCollisionModel()->AddBox(mat, 2, 80, 40, ChVector<>(-11, 0, 0));
+    container->GetCollisionModel()->AddBox(mat, 2, 80, 40, ChVector<>(11, 0, 0));
+    container->GetCollisionModel()->AddBox(mat, 40, 80, 2, ChVector<>(0, 0, -11));
+    container->GetCollisionModel()->AddBox(mat, 40, 80, 2, ChVector<>(0, 0, 11));
     container->GetCollisionModel()->BuildModel();
     sys.AddBody(container);
 
