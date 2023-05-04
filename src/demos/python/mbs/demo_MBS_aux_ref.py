@@ -50,17 +50,11 @@ ground.SetIdentifier(-1)
 ground.SetBodyFixed(True)
 ground.SetCollide(False)
 
-cyl_1 = chrono.ChCylinderShape()
-cyl_1.GetCylinderGeometry().p1 = chrono.ChVectorD(0, 0, 1.2)
-cyl_1.GetCylinderGeometry().p2 = chrono.ChVectorD(0, 0, 0.8)
-cyl_1.GetCylinderGeometry().rad = 0.2
-ground.AddVisualShape(cyl_1)
+cyl_1 = chrono.ChCylinderShape(0.2, 0.4)
+ground.AddVisualShape(cyl_1, chrono.ChFrameD(chrono.ChVectorD(0, 0, +1)))
 
-cyl_2 = chrono.ChCylinderShape()
-cyl_2.GetCylinderGeometry().p1 = chrono.ChVectorD(0, 0, -1.2)
-cyl_2.GetCylinderGeometry().p2 = chrono.ChVectorD(0, 0, -0.8)
-cyl_2.GetCylinderGeometry().rad = 0.2
-ground.AddVisualShape(cyl_2)
+cyl_2 = chrono.ChCylinderShape(0.2, 0.4)
+ground.AddVisualShape(cyl_2, chrono.ChFrameD(chrono.ChVectorD(0, 0, -1)))
 
 
 # Create a pendulum modeled using ChBody
@@ -76,12 +70,9 @@ pend_1.SetInertiaXX(chrono.ChVectorD(0.2, 1, 1))
 # Attach a visualization asset. Note that the cylinder is defined with
 # respect to the centroidal reference frame (which is the body reference
 # frame for a ChBody)
-cyl_1 = chrono.ChCylinderShape()
-cyl_1.GetCylinderGeometry().p1 = chrono.ChVectorD(-1, 0, 0)
-cyl_1.GetCylinderGeometry().p2 = chrono.ChVectorD(1, 0, 0)
-cyl_1.GetCylinderGeometry().rad = 0.2
+cyl_1 = chrono.ChCylinderShape(0.2, 2)
 cyl_1.SetColor(chrono.ChColor(0.6, 0, 0))
-pend_1.AddVisualShape(cyl_1)
+pend_1.AddVisualShape(cyl_1, chrono.ChFrameD(chrono.VNULL, chrono.Q_from_AngY(chrono.CH_C_PI_2)))
 
 
 # Specify the intial position of the pendulum (horizontal, pointing towards
@@ -107,12 +98,9 @@ pend_2.SetInertiaXX(chrono.ChVectorD(0.2, 1, 1))
 
 # Attach a visualizationn asset. Note that now the cylinder is defined with
 # respect to the body reference frame.
-cyl_2 = chrono.ChCylinderShape()
-cyl_2.GetCylinderGeometry().p1 = chrono.ChVectorD(0, 0, 0)
-cyl_2.GetCylinderGeometry().p2 = chrono.ChVectorD(2, 0, 0)
-cyl_2.GetCylinderGeometry().rad = 0.2
+cyl_2 = chrono.ChCylinderShape(0.2, 2)
 cyl_2.SetColor(chrono.ChColor(0, 0, 0.6))
-pend_2.AddVisualShape(cyl_2)
+pend_2.AddVisualShape(cyl_2, chrono.ChFrameD(chrono.ChVectorD(1, 0, 0), chrono.Q_from_AngY(chrono.CH_C_PI_2)))
 
 
 # In this case, we must specify the centroidal frame, relative to the body

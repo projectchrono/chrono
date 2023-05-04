@@ -106,11 +106,11 @@ bin_mat.SetSpinningFriction(1)
 
 # Add collision geometry and visualization shapes for the floor and the 4 walls
 bin.GetCollisionModel().ClearModel()
-bin.GetCollisionModel().AddBox(bin_mat, 20. / 2., 1. / 2., 20. / 2., chrono.ChVectorD(0, 0, 0))
-bin.GetCollisionModel().AddBox(bin_mat, 1. / 2.,  2. / 2., 20.99/2., chrono.ChVectorD(-10, 1, 0))
-bin.GetCollisionModel().AddBox(bin_mat, 1. / 2.,  2. / 2., 20.99/2., chrono.ChVectorD( 10, 1, 0))
-bin.GetCollisionModel().AddBox(bin_mat, 20.99/2., 2. / 2., 1. / 2., chrono.ChVectorD(0, 1, -10))
-bin.GetCollisionModel().AddBox(bin_mat, 20.99/2., 2. / 2., 1. / 2., chrono.ChVectorD(0, 1,  10))
+bin.GetCollisionModel().AddBox(bin_mat, 20, 1, 20, chrono.ChVectorD(0, 0, 0))
+bin.GetCollisionModel().AddBox(bin_mat, 1,  2, 20.99, chrono.ChVectorD(-10, 1, 0))
+bin.GetCollisionModel().AddBox(bin_mat, 1,  2, 20.99, chrono.ChVectorD( 10, 1, 0))
+bin.GetCollisionModel().AddBox(bin_mat, 20.99, 2, 1, chrono.ChVectorD(0, 1, -10))
+bin.GetCollisionModel().AddBox(bin_mat, 20.99, 2, 1, chrono.ChVectorD(0, 1,  10))
 bin.GetCollisionModel().BuildModel()
 
 vshape_1 = chrono.ChBoxShape(20, 1, 20)

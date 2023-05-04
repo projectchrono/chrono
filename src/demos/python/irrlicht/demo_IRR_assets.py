@@ -139,11 +139,10 @@ box.AddMaterial(orange_mat)
 body.AddVisualShape(box, chrono.ChFrameD(chrono.ChVectorD(1,1,0), chrono.QUNIT))
 
 # ==Asset== Attach also a 'cylinder' shape
-cyl = chrono.ChCylinderShape()
-cyl.GetCylinderGeometry().p1 = chrono.ChVectorD(2, -0.2, 0)
-cyl.GetCylinderGeometry().p2 = chrono.ChVectorD(2.2, 0.5, 0)
-cyl.GetCylinderGeometry().rad = 0.3
-body.AddVisualShape(cyl)
+cyl = chrono.ChCylinderShape(0.3, 0.7)
+body.AddVisualShape(cyl, 
+                    chrono.ChFrameD(chrono.ChVectorD(2, 0.15, 0),
+                                    chrono.Q_from_AngX(chrono.CH_C_PI_2)))
 
 # ==Asset== Attach three instances of the same 'triangle mesh' shape
 # TODO: not sure how to add vertices
