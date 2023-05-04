@@ -32,25 +32,15 @@
 %shared_ptr(chrono::vehicle::ChPowertrainAssembly)
 
 %shared_ptr(chrono::vehicle::ChEngineSimple)
-%shared_ptr(chrono::vehicle::ChEngineSimple)
-%shared_ptr(chrono::vehicle::ChEngineSimpleMap)
 %shared_ptr(chrono::vehicle::ChEngineSimpleMap)
 %shared_ptr(chrono::vehicle::ChEngineShafts)
-%shared_ptr(chrono::vehicle::ChEngineShafts)
-%shared_ptr(chrono::vehicle::EngineSimple)
 %shared_ptr(chrono::vehicle::EngineSimple)
 %shared_ptr(chrono::vehicle::EngineSimpleMap)
-%shared_ptr(chrono::vehicle::EngineSimpleMap)
-%shared_ptr(chrono::vehicle::EngineShafts)
 %shared_ptr(chrono::vehicle::EngineShafts)
 
 %shared_ptr(chrono::vehicle::ChAutomaticTransmissionSimpleMap)
-%shared_ptr(chrono::vehicle::ChAutomaticTransmissionSimpleMap)
-%shared_ptr(chrono::vehicle::ChAutomaticTransmissionShafts)
 %shared_ptr(chrono::vehicle::ChAutomaticTransmissionShafts)
 %shared_ptr(chrono::vehicle::AutomaticTransmissionSimpleMap)
-%shared_ptr(chrono::vehicle::AutomaticTransmissionSimpleMap)
-%shared_ptr(chrono::vehicle::AutomaticTransmissionShafts)
 %shared_ptr(chrono::vehicle::AutomaticTransmissionShafts)
 
 

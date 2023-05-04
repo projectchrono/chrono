@@ -64,7 +64,6 @@ M113AccTest<EnumClass, SHOE_TYPE>::M113AccTest() : m_step(1e-3) {
     DrivelineTypeTV driveline_type = DrivelineTypeTV::SIMPLE;
     BrakeType brake_type = BrakeType::SIMPLE;
     ChContactMethod contact_method = ChContactMethod::NSC;
-    PowertrainModelType powertrain_type = PowertrainModelType::SIMPLE;
     EngineModelType engine_model = EngineModelType::SIMPLE;
     TransmissionModelType transmission_model = TransmissionModelType::SIMPLE_MAP;
 

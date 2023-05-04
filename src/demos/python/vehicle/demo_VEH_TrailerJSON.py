@@ -43,8 +43,8 @@ def main() :
         vehicle.InitializeTire(tireR, axle.m_wheels[1], veh.VisualizationType_MESH)
 
     # Create and initialize the powertrain systems
-    engine = veh.EngineSimpleMap(vehicle_engine_file)
-    transmission = veh.AutomaticTransmissionSimpleMap(vehicle_transmission_file)
+    engine = veh.ReadEngineJSON(vehicle_engine_file)
+    transmission = veh.ReadTransmissionJSON(vehicle_transmission_file)
     powertrain = veh.ChPowertrainAssembly(engine, transmission)
     vehicle.InitializePowertrain(powertrain)
 
@@ -107,7 +107,7 @@ def main() :
         driver_inputs = driver.GetInputs()
 
         # Update modules (process inputs from other modules)
-        time = vehicle.GetSystem().GetChTime()
+        time = vehicle.GetChTime()
         driver.Synchronize(time)
         vehicle.Synchronize(time, driver_inputs, terrain)
         trailer.Synchronize(time, driver_inputs, terrain)
