@@ -33,6 +33,14 @@ using namespace chrono;
 using namespace chrono::irrlicht;
 using namespace filesystem;
 
+// Used to sort the Eigen matrix
+namespace Eigen {
+template <class T>
+void swap(T&& a, T&& b) {
+    a.swap(b);
+}
+}  // namespace Eigen
+
 class PauseEventReceiver : public irr::IEventReceiver {
   public:
     PauseEventReceiver(bool start_paused = false) : is_paused(start_paused) {}
