@@ -399,6 +399,50 @@ CH_CLASS_VERSION(ChLinkMateRevolute, 0)
 
 // -----------------------------------------------------------------------------
 
+/// Mate constraint of prismatic type.
+/// Default axis along +X
+
+class ChApi ChLinkMatePrismatic : public ChLinkMateGeneric {
+  protected:
+    bool flipped;
+
+  public:
+    ChLinkMatePrismatic() : ChLinkMateGeneric(false, true, true, true, true, true), flipped(false) {}
+    ChLinkMatePrismatic(const ChLinkMatePrismatic& other);
+    virtual ~ChLinkMatePrismatic() {}
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkMatePrismatic* Clone() const override { return new ChLinkMatePrismatic(*this); }
+
+    using ChLinkMateGeneric::Initialize;
+
+    /// Tell if the two axes must be opposed (flipped=false) or must have the same verse (flipped=true)
+    void SetFlipped(bool doflip);
+    bool IsFlipped() const { return flipped; }
+
+    /// Specialized initialization for prismatic mate, given the two bodies to be connected, two points, two directions
+    /// (each expressed in body or abs. coordinates). These two directions are the X axes of slave frame F1 and master
+    /// frame F2
+    virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
+                            std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
+                            bool pos_are_relative,                ///< true: following pos. are relative to bodies
+                            ChVector<> mpt1,                      ///< point on slave axis 1 (rel. or abs.)
+                            ChVector<> mpt2,                      ///< point on master axis 2 (rel. or abs.)
+                            ChVector<> mdir1,                     ///< direction of slave axis 1 (rel. or abs.)
+                            ChVector<> mdir2                      ///< direction of master axis 2 (rel. or abs.)
+                            ) override;
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+};
+
+CH_CLASS_VERSION(ChLinkMatePrismatic, 0)
+
+// -----------------------------------------------------------------------------
+
 /// Mate constraint of spherical type. This correspond to the
 /// typical point-on-point or spherical joint mating used in 3D CAD assemblies.
 
