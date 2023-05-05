@@ -466,9 +466,24 @@ void ChLinkMateGeneric::IntStateScatterReactions(const unsigned int off_L, const
         nc++;
     }
 
+    // The transpose of the Jacobian matrix of constraint is:
+    // Cq.T = [ Jx1.T;  O      ]
+    //        [ Jr1.T;  Jw1.T  ]
+    //        [ Jx2.T;  O      ]
+    //        [ Jr2.T;  Jw2.T  ]
+    // The Lagrange multipliers are:
+    // gamma = [ gamma_f ]
+    //         [ gamma_m ]
+    //
+    // The forces and torques acting on Body1 and Body2 are simply calculated as: Cq.T*gamma,
+    // where the forces are expressed in the absolute frame,
+    // the torques are expressed in the local frame of B1,B2, respectively.
+    // This is consistent with the mixed basis of rigid bodies and nodes.
     react_force = gamma_f;
-    // convert from Lagrange multiplier to reaction torque
-    react_torque = this->P * gamma_m;
+    ChFrame<> F1_W = this->frame1 >> (*this->Body1);
+    ChFrame<> F2_W = this->frame2 >> (*this->Body2);
+    ChVector<> r12_F2 = F2_W.GetA().transpose() * (F1_W.GetPos() - F2_W.GetPos());
+    react_torque = ChStarMatrix33<>(r12_F2) * gamma_f + this->P * gamma_m;
 }
 
 void ChLinkMateGeneric::IntLoadResidual_CqL(const unsigned int off_L,
@@ -644,8 +659,11 @@ void ChLinkMateGeneric::ConstraintsFetch_react(double factor) {
     }
 
     react_force = gamma_f;
-    // convert from Lagrange multiplier to reaction torque
-    react_torque = this->P * gamma_m;
+
+    ChFrame<> F1_W = this->frame1 >> (*this->Body1);
+    ChFrame<> F2_W = this->frame2 >> (*this->Body2);
+    ChVector<> r12_F2 = F2_W.GetA().transpose() * (F1_W.GetPos() - F2_W.GetPos());
+    react_torque = ChStarMatrix33<>(r12_F2) * gamma_f + this->P * gamma_m;
 }
 
 void ChLinkMateGeneric::ArchiveOUT(ChArchiveOut& marchive) {

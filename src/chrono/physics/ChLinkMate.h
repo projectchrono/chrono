@@ -252,9 +252,8 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     // The projection matrix from Lagrange multiplier to reaction torque
     ChMatrix33<> P;
 
-    ChVector<> gamma_f;  ///< store the translational Lagrange multipliers, expressed in the master frame F2
-    ChVector<> gamma_m;  ///< store the rotational Lagrange multipliers, expressed in a ghost frame
-                         ///< determined by the projection matrix for \rho_F1(F2)
+    ChVector<> gamma_f;  ///< store the translational Lagrange multipliers
+    ChVector<> gamma_m;  ///< store the rotational Lagrange multipliers
 
     ChKblockGeneric* Kmatr = nullptr;  ///< the tangent stiffness matrix of constraint
 };
