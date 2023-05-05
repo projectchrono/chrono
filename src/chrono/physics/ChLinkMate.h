@@ -35,8 +35,10 @@ namespace chrono {
 /// Note:
 /// In ChLinkLock class, the Z axis is considered as the
 ///     free/locked translational/rotational DOF by default;
-/// In ChLinkMate calss, the X axis is considered as the
-///     free/locked translational/rotational DOF by default;
+/// In ChLinkMate class, the X axis is considered as the
+///     free/locked translational/rotational DOF by default,
+///     except ChLinkMateRotation where the Z axis is set as 
+///     the default rotation axis again.
 
 class ChApi ChLinkMate : public ChLink {
   public:
@@ -130,6 +132,9 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
 
     /// Initialization based on passing two vectors (point + dir) on the two bodies, which will represent the X axes of
     /// the two frames (Y and Z will be built from the X vector via Gram Schmidt orthonormalization).
+    /// Note: It is safer and recommended to check whether the final result of the master frame F2
+    /// is as your expectation since it could affect the output result of the joint, such as the reaction
+    /// forces/torques, etc.
     virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
                             bool pos_are_relative,                ///< true: following pos. are relative to bodies
