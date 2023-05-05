@@ -25,7 +25,6 @@ include_directories(${CH_FSI_INCLUDES})
 set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
 set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
 list(APPEND LIBS "ChronoEngine")
-list(APPEND LIBS "ChronoEngine_fsi")
 
 if(ENABLE_MODULE_VSG)
     set(CMAKE_CXX_STANDARD 17)
@@ -44,6 +43,8 @@ if(ENABLE_MODULE_PARDISO_MKL)
     set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
     list(APPEND LIBS "ChronoEngine_pardisomkl")
 endif()
+
+list(APPEND LIBS "ChronoEngine_fsi")
 
 #--------------------------------------------------------------
 
