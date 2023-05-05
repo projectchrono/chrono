@@ -134,14 +134,14 @@ void test_pendulum() {
 
     // Some variables to parameterize the model
     // The length of the pendulum, m
-    double length = 2.0;
+    double length = 4.0;
     // The mass of the end point, kg
-    double tip_mass = 13.5;
+    double tip_mass = 15.0;
     // The offset angle of the pendulum at the initial configuration, rad
     double offset_angle = 30.0 * CH_C_DEG_TO_RAD;
 
     // Gravity acceleration, m/s^2
-    double gacc = 10.0;
+    double gacc = 9.81;
 
     // Whether the tangent stiffness matrix of constraint (Kc) is used?
     // The Kc matrix is mandotary for the static and eigenvalue analysis of a pendulum,
@@ -277,33 +277,37 @@ void test_pendulum() {
 
 // ====================================
 // Test 2
-// Second example: Mooring line
+// Second example: Anchor chain
 // ====================================
-void test_mooringline() {
+void test_anchorchain() {
     // The density is temporarily used to facilitate the code implementation
     double density = 7800;
 
-    // The mass and inertia properties of every link in the mooring line
+    // The mass and inertia properties of every link in the anchor chain
     double mass = 10;
     double Jxx = 10;
     double Jyy = 10;
     double Jzz = 10;
 
-    // We have three anchors to determine the initial configuration of the mooring line:
+    // We have three anchors to determine the initial configuration of the anchor chain:
     // A: located at {0,0,0} as the left anchor point.
     // B: located at {xB,0,0} as the right anchor point.
     // C: located at {xC,0,zC} as the bottom anchor point.
     // A series of links are built between A and B, B and C via rigid bodies and joints
-    // to form the shape 'V' at the initial configuration of the mooring line.
+    // to form the shape 'V' at the initial configuration of the anchor chain.
+    double xA = 0.0;
     double xB = 10.0;
     double xC = xB / 2.0;
     double zC = -6.0;
 
     // Gravity
-    double gacc = 10.0;
+    double gacc = 9.81;
+
+    // Nrig rigid bodies are built between A,B and B,C.
+    int Nrig = 20;
 
     // Whether the tangent stiffness matrix of constraint (Kc) is used?
-    // The Kc matrix is mandotary for the static and eigenvalue analysis of the mooring line,
+    // The Kc matrix is mandotary for the static and eigenvalue analysis of the anchor chain,
     // otherwise it cannot find the static equilibrium status, and the eigenvalues are also zero
     // because there is no stiffness matrix in the system.
     bool use_Kc = true;
@@ -315,16 +319,18 @@ void test_mooringline() {
 
     auto wallA = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.2, 0.2, density, true, false);
     wallA->SetNameString("wallA");
-    wallA->SetPos({0, 0, 0});
+    wallA->SetPos({xA, 0, 0});
     wallA->SetBodyFixed(true);
+    wallA->GetVisualShape(0)->SetColor(ChColor(1, 0, 0));
     sys.AddBody(wallA);
 
     auto anchorA = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.2, 0.2, density, true, false);
     anchorA->SetNameString("anchorA");
-    anchorA->SetPos({0, 0, 0});
+    anchorA->SetPos({xA, 0, 0});
     anchorA->SetRot(Q_from_AngY(CH_C_PI_4));
     anchorA->SetMass(mass);
     anchorA->SetInertiaXX({Jxx, Jyy, Jzz});
+    anchorA->GetVisualShape(0)->SetColor(ChColor(1, 0, 0));
     sys.AddBody(anchorA);
 
     auto jointA = chrono_types::make_shared<ChLinkMateGeneric>(true, true, true, true, false, true);
@@ -336,6 +342,7 @@ void test_mooringline() {
     wallB->SetNameString("wallB");
     wallB->SetPos({xB, 0, 0});
     wallB->SetBodyFixed(true);
+    wallB->GetVisualShape(0)->SetColor(ChColor(1, 0, 0));
     sys.AddBody(wallB);
 
     auto anchorB = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.2, 0.2, density, true, false);
@@ -344,6 +351,7 @@ void test_mooringline() {
     anchorB->SetRot(Q_from_AngY(-CH_C_PI_4));
     anchorB->SetMass(mass);
     anchorB->SetInertiaXX({Jxx, Jyy, Jzz});
+    anchorB->GetVisualShape(0)->SetColor(ChColor(1, 0, 0));
     sys.AddBody(anchorB);
 
     auto jointB = chrono_types::make_shared<ChLinkMateGeneric>(true, true, true, true, false, true);
@@ -356,13 +364,14 @@ void test_mooringline() {
     anchorC->SetPos({xC, 0.0, zC});
     anchorC->SetMass(mass);
     anchorC->SetInertiaXX({Jxx, Jyy, Jzz});
+    anchorC->GetVisualShape(0)->SetColor(ChColor(0, 0, 1));
     sys.AddBody(anchorC);
 
     std::vector<std::shared_ptr<ChBody>> knot_list;
-    // Build N rigid bodies between A and B
-    auto BuildMooringLine_body = [&](std::shared_ptr<ChBody> pA, std::shared_ptr<ChBody> pB, int N) {
+    // Build N rigid bodies between pA and pB
+    auto BuildAnchorChain_body = [&](std::shared_ptr<ChBody> pA, std::shared_ptr<ChBody> pB, int mN) {
         double len_tot = (pA->GetPos() - pB->GetPos()).Length();
-        double len = len_tot / (double)(N + 1);
+        double len = len_tot / (double)(mN + 1);
 
         ChVector<> Xdir = (pB->GetPos() - pA->GetPos()).GetNormalized();
         ChVector<> Ydir = {0, 1, 0};
@@ -373,19 +382,20 @@ void test_mooringline() {
         Xdir.DirToDxDyDz(mX, mY, mZ, Ydir);
         ChQuaternion<> knot_rot = ChMatrix33<>(mX, mY, mZ).Get_A_quaternion();
 
-        for (int i_body = 0; i_body < N; i_body++) {
+        for (int i_body = 0; i_body < mN; i_body++) {
             auto knot = chrono_types::make_shared<ChBody>();
-            ChVector<> deltaP = (pB->GetPos() - pA->GetPos()) / (double)(N + 1);
+            ChVector<> deltaP = (pB->GetPos() - pA->GetPos()) / (double)(mN + 1);
             knot->SetPos(pA->GetPos() + deltaP * (i_body + 1));
             knot->SetRot(knot_rot);
             knot->SetMass(mass);
             knot->SetInertiaXX({Jxx, Jyy, Jzz});
 
             auto cyl_rev = chrono_types::make_shared<ChCylinderShape>();
-            ChVector<> deltaV = {0.5 * len * 0.6, 0, 0};
+            ChVector<> deltaV = {0.5 * len * 0.8, 0, 0};
             cyl_rev->GetCylinderGeometry().p1 = deltaV;
             cyl_rev->GetCylinderGeometry().p2 = -deltaV;
             cyl_rev->GetCylinderGeometry().rad = 0.1;
+            cyl_rev->SetColor(ChColor(0, 0, 1));
             knot->AddVisualShape(cyl_rev);
 
             knot_list.push_back(knot);
@@ -393,11 +403,10 @@ void test_mooringline() {
         }
     };
 
-    int N = 20;
     knot_list.push_back(anchorA);
-    BuildMooringLine_body(anchorA, anchorC, N);
+    BuildAnchorChain_body(anchorA, anchorC, Nrig);
     knot_list.push_back(anchorC);
-    BuildMooringLine_body(anchorC, anchorB, N);
+    BuildAnchorChain_body(anchorC, anchorB, Nrig);
     knot_list.push_back(anchorB);
 
     std::vector<std::shared_ptr<ChLinkMateGeneric>> link_list;
@@ -450,6 +459,16 @@ void test_mooringline() {
     sys.Setup();
 
     if (true) {  // static analysis
+
+        // There are (2*Nrig+1) mass points along the anchor chain.(Excluding the two ends A,B)
+        // anchorA, anchorB could contribute a half mass onto the total mass of anchor chain.
+        double total_mass = (2 * Nrig + 2) * mass;
+        // The total length of anchor chain is:
+        double total_length =
+            (anchorA->GetPos() - anchorC->GetPos()).Length() + (anchorB->GetPos() - anchorC->GetPos()).Length();
+        // The mass per unit length of the anchor chain
+        double mass_per_unit_length = total_mass / total_length;
+
         GetLog() << "At the initial configuration:\n";
         GetLog() << "anchorC->GetPos():\t" << anchorC->GetPos();
 
@@ -470,6 +489,7 @@ void test_mooringline() {
             coords(i_body, 2) = sys.Get_bodylist().at(i_body)->GetPos().z();
         }
 
+        // The sorted result is wrong when Nrig is larger than 20
         std::sort(coords.rowwise().begin(), coords.rowwise().end(),
                   [](auto const& r1, auto const& r2) { return r1(0) < r2(0); });
 
@@ -477,18 +497,44 @@ void test_mooringline() {
         reactions.resize(sys.Get_linklist().size(), 7);
         for (int i_link = 0; i_link < sys.Get_linklist().size(); i_link++) {
             reactions(i_link, 0) = sys.Get_linklist().at(i_link)->GetLinkAbsoluteCoords().pos.x();
-            reactions(i_link, 1) = sys.Get_linklist().at(i_link)->Get_react_force().x();
-            reactions(i_link, 2) = sys.Get_linklist().at(i_link)->Get_react_force().y();
-            reactions(i_link, 3) = sys.Get_linklist().at(i_link)->Get_react_force().z();
-            reactions(i_link, 4) = sys.Get_linklist().at(i_link)->Get_react_torque().x();
-            reactions(i_link, 5) = sys.Get_linklist().at(i_link)->Get_react_torque().y();
-            reactions(i_link, 6) = sys.Get_linklist().at(i_link)->Get_react_torque().z();
+
+            ChVector<> f_loc = sys.Get_linklist().at(i_link)->Get_react_force();
+            ChVector<> m_loc = sys.Get_linklist().at(i_link)->Get_react_torque();
+            ChQuaternion<> q_link = sys.Get_linklist().at(i_link)->GetLinkAbsoluteCoords().rot;
+            // Transform the reaction forces and torques of the joints from local frame to the absolute frame.
+            // The horizontal reaction forces (along X direction) should be equal for the catenary curve.
+            ChVector<> f_out = q_link.Rotate(f_loc);
+            ChVector<> m_out = q_link.Rotate(m_loc);
+
+            reactions(i_link, 1) = f_out.x();  // it should be a constant value
+            reactions(i_link, 2) = f_out.y();
+            reactions(i_link, 3) = f_out.z();
+            reactions(i_link, 4) = m_out.x();
+            reactions(i_link, 5) = m_out.y();
+            reactions(i_link, 6) = m_out.z();
         }
         std::sort(reactions.rowwise().begin(), reactions.rowwise().end(),
                   [](auto const& r1, auto const& r2) { return r1(0) < r2(0); });
 
+        // The horizontal reaction force of the catenary curve
+        double T0 = reactions.col(1).cwiseAbs().mean();
+        // The coefficient of the catenary curve
+        double a_coeff = T0 / (gacc * mass_per_unit_length);
+        // Offset of the theoretical catenary curve
+        double z_offset = anchorC->GetPos().z() - a_coeff;
+        double x_offset = xC;
+        // catenary curve
+        ChMatrixDynamic<> catenary_cmp;
+        catenary_cmp.resize(sys.Get_bodylist().size(), 3);
+        for (int i_body = 0; i_body < sys.Get_bodylist().size(); i_body++) {
+            catenary_cmp(i_body, 0) = coords(i_body, 0);  // X coordinate
+            catenary_cmp(i_body, 1) = coords(i_body, 2);  // Z coordiante from simulation
+            // Z coordiante from the theoretical catinary curve
+            catenary_cmp(i_body, 2) = a_coeff * std::cosh((coords(i_body, 0) - x_offset) / a_coeff) + z_offset;            
+        }
+
         // Create output directory and output file
-        std::string out_dir = GetChronoOutputPath() + "MOORING_LINE";
+        std::string out_dir = GetChronoOutputPath() + "ANCHOR_CHAIN";
         GetLog() << "out_dir is:\n" << out_dir << "\n";
 
         if (create_directory(path(out_dir))) {
@@ -496,6 +542,11 @@ void test_mooringline() {
             ChStreamOutAsciiFile file_coords((out_dir + "/coords.dat").c_str());
             file_coords.SetNumFormat("%.12g");
             StreamOUTdenseMatlabFormat(coords, file_coords);
+
+            // catinary curve for comparison
+            ChStreamOutAsciiFile file_catenary((out_dir + "/catenary_cmp.dat").c_str());
+            file_catenary.SetNumFormat("%.12g");
+            StreamOUTdenseMatlabFormat(catenary_cmp, file_catenary);
 
             // reactions of links
             ChStreamOutAsciiFile file_reactions((out_dir + "/reactions.dat").c_str());
@@ -511,10 +562,11 @@ void test_mooringline() {
     }
 
     if (true) {  // dynamic analysis
-        ChVector<> vec_f = ChVector<>(0, 0, -mass * gacc * N);
-        auto pull_force1 = chrono_types::make_shared<ChLoadBodyForce>(knot_list.at(N), vec_f, false, VNULL, true);
+        ChVector<> vec_f = ChVector<>(0, 0, -mass * gacc * Nrig);
+        auto pull_force1 = chrono_types::make_shared<ChLoadBodyForce>(knot_list.at(Nrig), vec_f, false, VNULL, true);
         load_container->Add(pull_force1);
-        auto pull_force2 = chrono_types::make_shared<ChLoadBodyForce>(knot_list.at(N + 2), vec_f, false, VNULL, true);
+        auto pull_force2 =
+            chrono_types::make_shared<ChLoadBodyForce>(knot_list.at(Nrig + 2), vec_f, false, VNULL, true);
         load_container->Add(pull_force2);
 
         double time_step = 0.01;
@@ -524,15 +576,15 @@ void test_mooringline() {
         // 3D visualization
         auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
         vis->AttachSystem(&sys);
-        vis->SetWindowSize(1000, 1000);
-        vis->SetWindowTitle("Test demo: Mooringline");
+        vis->SetWindowSize(600, 800);
+        vis->SetWindowTitle("Test demo: AnchorChain");
         vis->Initialize();
         vis->AddLogo();
         vis->AddSkyBox();
         vis->AddCamera(anchorC->GetPos() + ChVector<>(1, -10, 2), anchorC->GetPos() + ChVector<>(1, 0, 2));
         vis->AddTypicalLights();
-        vis->EnableBodyFrameDrawing(true);
-        vis->EnableLinkFrameDrawing(true);
+        vis->EnableBodyFrameDrawing(false);
+        vis->EnableLinkFrameDrawing(false);
 
         // Pause event receiver
         PauseEventReceiver pause_ER(true);
@@ -563,7 +615,7 @@ int main(int argc, char* argv[]) {
 
     // test_pendulum();
 
-    test_mooringline();
+    test_anchorchain();
 
     return 0;
 }
