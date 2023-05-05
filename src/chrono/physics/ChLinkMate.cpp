@@ -332,13 +332,13 @@ void ChLinkMateGeneric::KRMmatricesLoad(double Kfactor, double Rfactor, double M
     if (this->Kmatr) {
         ChMatrix33<> R_B1_W = Body1->GetA();
         ChMatrix33<> R_B2_W = Body2->GetA();
-        //ChMatrix33<> R_F1_B1 = frame1.GetA();
-        //ChMatrix33<> R_F2_B2 = frame2.GetA();
+        // ChMatrix33<> R_F1_B1 = frame1.GetA();
+        // ChMatrix33<> R_F2_B2 = frame2.GetA();
         ChFrame<> F1_W = this->frame1 >> (*this->Body1);
         ChFrame<> F2_W = this->frame2 >> (*this->Body2);
         ChMatrix33<> R_F1_W = F1_W.GetA();
         ChMatrix33<> R_F2_W = F2_W.GetA();
-        ChVector<> P12_B2 = R_B2_W.transpose() * (F1_W.GetPos() - F2_W.GetPos());
+        ChVector<> r12_B2 = R_B2_W.transpose() * (F1_W.GetPos() - F2_W.GetPos());
         ChFrame<> F1_wrt_F2;
         F2_W.TransformParentToLocal(F1_W, F1_wrt_F2);
 
@@ -348,23 +348,23 @@ void ChLinkMateGeneric::KRMmatricesLoad(double Kfactor, double Rfactor, double M
         ChStarMatrix33<> rtilde_F2_B2(r_F2_B2);
 
         // Main part
-        ChMatrixDynamic<> Km;
-        Km.setZero(12, 12);
-        Km.block<3, 3>(0, 9) = -R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B2_W;
-        Km.block<3, 3>(3, 3) =
+        ChMatrixDynamic<> Kcm;
+        Kcm.setZero(12, 12);
+        Kcm.block<3, 3>(0, 9) = -R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B2_W;
+        Kcm.block<3, 3>(3, 3) =
             rtilde_F1_B1 * R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B1_W +
             R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(this->P * gamma_m) * R_F2_W.transpose() * R_B1_W;
-        Km.block<3, 3>(3, 9) =
+        Kcm.block<3, 3>(3, 9) =
             -rtilde_F1_B1 * R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B2_W -
             R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(this->P * gamma_m) * R_F2_W.transpose() * R_B2_W;
-        Km.block<3, 3>(6, 9) = R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B2_W;
+        Kcm.block<3, 3>(6, 9) = R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B2_W;
 
-        Km.block<3, 3>(9, 0) = R_B2_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose();
-        Km.block<3, 3>(9, 3) =
+        Kcm.block<3, 3>(9, 0) = R_B2_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose();
+        Kcm.block<3, 3>(9, 3) =
             -R_B2_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B1_W * rtilde_F1_B1;
-        Km.block<3, 3>(9, 6) = -R_B2_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose();
-        Km.block<3, 3>(9, 9) = R_B2_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B2_W *
-                               ChStarMatrix33<>(P12_B2 + r_F2_B2);
+        Kcm.block<3, 3>(9, 6) = -R_B2_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose();
+        Kcm.block<3, 3>(9, 9) = R_B2_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B2_W *
+                                ChStarMatrix33<>(r12_B2 + r_F2_B2);
 
         double s_F1_F2 = F1_wrt_F2.GetRot().e0();
         ChVector<> v_F1_F2 = F1_wrt_F2.GetRot().GetVector();
@@ -374,15 +374,15 @@ void ChLinkMateGeneric::KRMmatricesLoad(double Kfactor, double Rfactor, double M
                          0.25 * ChStarMatrix33<>(gamma_m) * (s_F1_F2 * I33 + ChStarMatrix33<>(v_F1_F2));
 
         // Stabilization part
-        ChMatrixDynamic<> Ks;
-        Ks.setZero(12, 12);
-        Ks.block<3, 3>(3, 3) = R_B1_W.transpose() * R_F2_W * G * R_F1_W.transpose() * R_B1_W;
-        Ks.block<3, 3>(3, 9) = -R_B1_W.transpose() * R_F2_W * G * R_F1_W.transpose() * R_B2_W;
-        Ks.block<3, 3>(9, 3) = -R_B2_W.transpose() * R_F2_W * G * R_F1_W.transpose() * R_B1_W;
-        Ks.block<3, 3>(9, 9) = R_B2_W.transpose() * R_F2_W * G * R_F1_W.transpose() * R_B2_W;
+        ChMatrixDynamic<> Kcs;
+        Kcs.setZero(12, 12);
+        Kcs.block<3, 3>(3, 3) = R_B1_W.transpose() * R_F2_W * G * R_F1_W.transpose() * R_B1_W;
+        Kcs.block<3, 3>(3, 9) = -R_B1_W.transpose() * R_F2_W * G * R_F1_W.transpose() * R_B2_W;
+        Kcs.block<3, 3>(9, 3) = -R_B2_W.transpose() * R_F2_W * G * R_F1_W.transpose() * R_B1_W;
+        Kcs.block<3, 3>(9, 9) = R_B2_W.transpose() * R_F2_W * G * R_F1_W.transpose() * R_B2_W;
 
         // The complete tangent stiffness matrix
-        this->Kmatr->Get_K() = (Km + Ks) * Kfactor;
+        this->Kmatr->Get_K() = (Kcm + Kcs) * Kfactor;
     }
 }
 
