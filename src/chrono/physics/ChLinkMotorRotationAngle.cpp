@@ -50,6 +50,7 @@ void ChLinkMotorRotationAngle::Update(double mytime, bool update_assets) {
         aux_rotation = m_func->Get_y(mytime) + rot_offset;
 
         ChFrame<> aframe1rotating;
+        aframe1rotating.SetPos(aframe1.GetPos()); // for safe
         aframe1rotating.SetRot(aframe1.GetRot() * Q_from_AngAxis(aux_rotation, VECT_Z).GetConjugate());
 
         ChFrame<> aframe1rotating2;
