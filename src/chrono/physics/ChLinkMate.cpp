@@ -140,35 +140,39 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
     if (this->Body1 && this->Body2) {
         this->mask.SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
 
-        ChFrame<> aframe1 = this->frame1 >> (*this->Body1);
-        ChFrame<> aframe2 = this->frame2 >> (*this->Body2);
-        ChFrame<> aframe12;
-        aframe2.TransformParentToLocal(aframe1, aframe12);
-        // Now 'aframe12' contains the position/rotation of frame 1 respect to frame 2, in frame 2 coords.
+        ChFrame<> F1_W = this->frame1 >> (*this->Body1);
+        ChFrame<> F2_W = this->frame2 >> (*this->Body2);
+        ChFrame<> F1_wrt_F2;
+        F2_W.TransformParentToLocal(F1_W, F1_wrt_F2);
+        // Now 'F1_wrt_F2' contains the position/rotation of frame 1 respect to frame 2, in frame 2 coords.
 
-        ChMatrix33<> Jx1 = aframe2.GetA().transpose();
-        ChMatrix33<> Jx2 = -aframe2.GetA().transpose();
+        ChMatrix33<> Jx1 = F2_W.GetA().transpose();
+        ChMatrix33<> Jx2 = -F2_W.GetA().transpose();
 
-        ChMatrix33<> Jr1 = -aframe2.GetA().transpose() * Body1->GetA() * ChStarMatrix33<>(frame1.GetPos());
-        ChVector<> p2p1_base2 = Body2->GetA().transpose() * (aframe1.GetPos() - aframe2.GetPos());
-        ChMatrix33<> Jr2 = this->frame2.GetA().transpose() * ChStarMatrix33<>(frame2.GetPos() + p2p1_base2);
+        ChMatrix33<> Jr1 = -F2_W.GetA().transpose() * Body1->GetA() * ChStarMatrix33<>(frame1.GetPos());
+        ChVector<> r12_B2 = Body2->GetA().transpose() * (F1_W.GetPos() - F2_W.GetPos());
+        ChMatrix33<> Jr2 = this->frame2.GetA().transpose() * ChStarMatrix33<>(frame2.GetPos() + r12_B2);
 
-        // Premultiply by Jw1 and Jw2 by  0.5*[Fp(q_resid)]' to get residual as imaginary part of a quaternion.
-        // For small misalignment this effect is almost insignificant because [Fp(q_resid)]=[I],
-        // but otherwise it is needed (if you want to use the stabilization term - if not, you can live without).
-        this->P = 0.5 * (ChMatrix33<>(aframe12.GetRot().e0()) + ChStarMatrix33<>(aframe12.GetRot().GetVector()));
+        // Premultiply by Jw1 and Jw2 by P = 0.5 * [Fp(q_resid^*)]'.bottomRow(3) to get residual as imaginary part of a
+        // quaternion. For small misalignment this effect is almost insignificant because P ~= [I33], but otherwise it
+        // is needed (if you want to use the stabilization term - if not, you can live without).
+        this->P = 0.5 * (ChMatrix33<>(F1_wrt_F2.GetRot().e0()) + ChStarMatrix33<>(F1_wrt_F2.GetRot().GetVector()));
 
-        ChMatrix33<> Jw1 = this->P.transpose() * aframe2.GetA().transpose() * Body1->GetA();
-        ChMatrix33<> Jw2 = -this->P.transpose() * aframe2.GetA().transpose() * Body2->GetA();
+        ChMatrix33<> Jw1 = this->P.transpose() * F2_W.GetA().transpose() * Body1->GetA();
+        ChMatrix33<> Jw2 = -this->P.transpose() * F2_W.GetA().transpose() * Body2->GetA();
 
         // Another equivalent expression:
-        // ChMatrix33<> Jw1 = this->P * aframe1.GetA().transpose() * Body1->GetA();
-        // ChMatrix33<> Jw2 = -this->P * aframe1.GetA().transpose() * Body2->GetA();
+        // ChMatrix33<> Jw1 = this->P * F1_W.GetA().transpose() * Body1->GetA();
+        // ChMatrix33<> Jw2 = -this->P * F1_W.GetA().transpose() * Body2->GetA();
+
+        // The Jacobian matrix of constraint is:
+        // Cq = [ Jx1,  Jr1,  Jx2,  Jr2 ]
+        //      [   0,  Jw1,    0,  Jw2 ]
 
         int nc = 0;
 
         if (c_x) {
-            C(nc) = aframe12.GetPos().x();
+            C(nc) = F1_wrt_F2.GetPos().x();
             mask.Constr_N(nc).Get_Cq_a().segment(0, 3) = Jx1.row(0);
             mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jr1.row(0);
             mask.Constr_N(nc).Get_Cq_b().segment(0, 3) = Jx2.row(0);
@@ -176,7 +180,7 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
             nc++;
         }
         if (c_y) {
-            C(nc) = aframe12.GetPos().y();
+            C(nc) = F1_wrt_F2.GetPos().y();
             mask.Constr_N(nc).Get_Cq_a().segment(0, 3) = Jx1.row(1);
             mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jr1.row(1);
             mask.Constr_N(nc).Get_Cq_b().segment(0, 3) = Jx2.row(1);
@@ -184,7 +188,7 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
             nc++;
         }
         if (c_z) {
-            C(nc) = aframe12.GetPos().z();
+            C(nc) = F1_wrt_F2.GetPos().z();
             mask.Constr_N(nc).Get_Cq_a().segment(0, 3) = Jx1.row(2);
             mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jr1.row(2);
             mask.Constr_N(nc).Get_Cq_b().segment(0, 3) = Jx2.row(2);
@@ -192,7 +196,7 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
             nc++;
         }
         if (c_rx) {
-            C(nc) = aframe12.GetRot().e1();
+            C(nc) = F1_wrt_F2.GetRot().e1();
             mask.Constr_N(nc).Get_Cq_a().setZero();
             mask.Constr_N(nc).Get_Cq_b().setZero();
             mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(0);
@@ -200,7 +204,7 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
             nc++;
         }
         if (c_ry) {
-            C(nc) = aframe12.GetRot().e2();
+            C(nc) = F1_wrt_F2.GetRot().e2();
             mask.Constr_N(nc).Get_Cq_a().setZero();
             mask.Constr_N(nc).Get_Cq_b().setZero();
             mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(1);
@@ -208,7 +212,7 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
             nc++;
         }
         if (c_rz) {
-            C(nc) = aframe12.GetRot().e3();
+            C(nc) = F1_wrt_F2.GetRot().e3();
             mask.Constr_N(nc).Get_Cq_a().setZero();
             mask.Constr_N(nc).Get_Cq_b().setZero();
             mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(2);
