@@ -29,7 +29,7 @@ THRUST_INSTALL_DIR="$HOME/Packages/thrust"
 CASCADE_INSTALL_DIR="$HOME/Packages/opencascade-7.4.0"
 SPECTRA_INSTALL_DIR="$HOME/Packages/spectra"
 
-CRG_INCLUDE_DIR="$HOME/Packages/OpenCRG/include"
+CRG_INCLUDE_DIR="${HOME}/Packages/OpenCRG/include"
 CRG_LIBRARY="$HOME/Packages/OpenCRG/lib/libOpenCRG.1.1.2.a"
 
 IRRLICHT_INSTALL_DIR="$HOME/Packages/irrlicht-1.8.5/include"
