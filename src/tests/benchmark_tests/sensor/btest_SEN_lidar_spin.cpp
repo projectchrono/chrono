@@ -69,13 +69,13 @@ int main(int argc, char* argv[]) {
     int walls = 1000;
     float wall_size = .5;
     for (int i = 0; i < walls; i++) {
-        auto wall_body = std::make_shared<ChBodyEasyCylinder>(wall_size, 1, 1000, true, true);
+        auto wall_body = std::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, wall_size, 1, 1000, true, true);
         wall_body->SetPos({4 * i * wall_size, 4, wall_size / 2});
         wall_body->SetRot(Q_from_AngX(CH_C_PI / 2));
         wall_body->SetBodyFixed(true);
         sys.Add(wall_body);
 
-        auto wall_body1 = std::make_shared<ChBodyEasyCylinder>(wall_size, 1, 1000, true, true);
+        auto wall_body1 = std::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, wall_size, 1, 1000, true, true);
         wall_body1->SetPos({4 * i * wall_size, -4, wall_size / 2});
         wall_body1->SetRot(Q_from_AngX(CH_C_PI / 2));
         wall_body1->SetBodyFixed(true);

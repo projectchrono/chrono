@@ -42,13 +42,11 @@ ground.SetIdentifier(-1)
 ground.SetBodyFixed(True)
 ground.SetCollide(False)
 
-rail1 = chrono.ChBoxShape()
-rail1.GetBoxGeometry().SetLengths(chrono.ChVectorD(8, 0.1, 0.1))
+rail1 = chrono.ChBoxShape(8, 0.1, 0.1)
 rail1.SetColor(chrono.ChColor(0.6, 0.6, 0.6))
 ground.AddVisualShape(rail1, chrono.ChFrameD(chrono.ChVectorD(0, 0, -1)))
 
-rail2 = chrono.ChBoxShape()
-rail2.GetBoxGeometry().SetLengths(chrono.ChVectorD(8, 0.1, 0.1))
+rail2 = chrono.ChBoxShape(8, 0.1, 0.1)
 rail2.SetColor(chrono.ChColor(0.6, 0.6, 0.6))
 ground.AddVisualShape(rail2, chrono.ChFrameD(chrono.ChVectorD(0, 0, 1)))
 
@@ -62,12 +60,9 @@ slider1.SetMass(1)
 slider1.SetInertiaXX(chrono.ChVectorD(0.1, 0.1, 0.1))
 slider1.SetPos(chrono.ChVectorD(-4, 0, -1))
 
-cyl1 = chrono.ChCylinderShape()
-cyl1.GetCylinderGeometry().p1 = chrono.ChVectorD(-0.2, 0, 0)
-cyl1.GetCylinderGeometry().p2 = chrono.ChVectorD(0.2, 0, 0)
-cyl1.GetCylinderGeometry().rad = 0.2
+cyl1 = chrono.ChCylinderShape(0.2, 0.4)
 cyl1.SetColor(chrono.ChColor(0.6, 0, 0))
-slider1.AddVisualShape(cyl1)
+slider1.AddVisualShape(cyl1, chrono.ChFrameD(chrono.VNULL, chrono.Q_from_AngY(chrono.CH_C_PI_2)))
 
 slider2 = chrono.ChBody()
 sys.AddBody(slider2)
@@ -78,12 +73,9 @@ slider2.SetMass(1)
 slider2.SetInertiaXX(chrono.ChVectorD(0.1, 0.1, 0.1))
 slider2.SetPos(chrono.ChVectorD(-4, 0, 1))
 
-cyl2 = chrono.ChCylinderShape()
-cyl2.GetCylinderGeometry().p1 = chrono.ChVectorD(-0.2, 0, 0)
-cyl2.GetCylinderGeometry().p2 = chrono.ChVectorD(0.2, 0, 0)
-cyl2.GetCylinderGeometry().rad = 0.2
+cyl2 = chrono.ChCylinderShape(0.2, 0.4)
 cyl2.SetColor(chrono.ChColor(0, 0, 0.6))
-slider2.AddVisualShape(cyl2)
+slider2.AddVisualShape(cyl2, chrono.ChFrameD(chrono.VNULL, chrono.Q_from_AngY(chrono.CH_C_PI_2)))
 
 # Create prismatic joints between ground a sliders
 prismatic1 = chrono.ChLinkLockPrismatic()

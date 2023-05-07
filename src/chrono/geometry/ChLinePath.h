@@ -38,7 +38,8 @@ class ChApi ChLinePath : public ChLine {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinePath* Clone() const override { return new ChLinePath(*this); }
 
-    virtual GeometryType GetClassType() const override { return LINE_PATH; }
+    /// Get the class type as an enum.
+    virtual Type GetClassType() const override { return Type::LINE_PATH; }
 
     virtual int Get_complexity() const override { return 2; }
 

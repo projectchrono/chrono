@@ -284,8 +284,7 @@ int main(int argc, char* argv[]) {
 
     // Change (SMC) contact force model
     ////if (contact_method == ChContactMethod::SMC) {
-    ////
-    ///static_cast<ChSystemSMC*>(m113.GetSystem())->SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
+    ////    static_cast<ChSystemSMC*>(m113.GetSystem())->SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
     ////}
 
     // --------------------------------------------------
@@ -708,12 +707,9 @@ void AddFixedObstacles(ChSystem* system) {
     obstacle->SetCollide(true);
 
     // Visualization
-    auto shape = chrono_types::make_shared<ChCylinderShape>();
-    shape->GetCylinderGeometry().p1 = ChVector<>(0, -length * 0.5, 0);
-    shape->GetCylinderGeometry().p2 = ChVector<>(0, length * 0.5, 0);
-    shape->GetCylinderGeometry().rad = radius;
+    auto shape = chrono_types::make_shared<ChCylinderShape>(radius, length);
     shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 10, 10);
-    obstacle->AddVisualShape(shape);
+    obstacle->AddVisualShape(shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
     // Contact
     ChContactMaterialData minfo;
@@ -723,7 +719,7 @@ void AddFixedObstacles(ChSystem* system) {
     auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
     obstacle->GetCollisionModel()->ClearModel();
-    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, radius, length * 0.5);
+    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, length, VNULL, Q_from_AngX(CH_C_PI_2));
     obstacle->GetCollisionModel()->BuildModel();
 
     system->AddBody(obstacle);
@@ -750,8 +746,7 @@ void AddFallingObjects(ChSystem* system) {
     ball->GetCollisionModel()->AddSphere(obst_mat, radius);
     ball->GetCollisionModel()->BuildModel();
 
-    auto sphere = chrono_types::make_shared<ChSphereShape>();
-    sphere->GetSphereGeometry().rad = radius;
+    auto sphere = chrono_types::make_shared<ChSphereShape>(radius);
     sphere->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
     ball->AddVisualShape(sphere);
 

@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
     ground->GetVisualShape(0)->SetColor(ChColor(0.2f, 0.3f, 0.6f));
     sys.AddBody(ground);
 
-    auto cyl = chrono_types::make_shared<ChBodyEasyCylinder>(0.5, 1.0, 100, mat, csys_type);
+    auto cyl = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.5, 1.0, 100, mat, csys_type);
     cyl->SetPos(ChVector<>(0.0, 3.0, 0.0));
     cyl->GetVisualShape(0)->SetColor(ChColor(0.2f, 0.3f, 0.6f));
     sys.AddBody(cyl);
@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
     sphere->GetVisualShape(0)->SetColor(ChColor(0.2f, 0.3f, 0.6f));
     sys.AddBody(sphere);
 
-    auto ellipse = chrono_types::make_shared<ChBodyEasyEllipsoid>(ChVector<>(0.2, 0.4, 0.6), 100.0, mat, csys_type);
+    auto ellipse = chrono_types::make_shared<ChBodyEasyEllipsoid>(ChVector<>(0.4, 0.8, 1.2), 100.0, mat, csys_type);
     ellipse->SetPos(ChVector<>(0.2, 2.0, -1.0));
     ellipse->GetVisualShape(0)->SetColor(ChColor(0.2f, 0.3f, 0.6f));
     sys.AddBody(ellipse);

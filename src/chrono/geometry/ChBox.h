@@ -25,21 +25,21 @@ namespace geometry {
 /// A box geometric object for collisions and visualization.
 class ChApi ChBox : public ChVolume {
   public:
-    ChBox() : Size(VNULL) {}
+    ChBox() {}
     ChBox(const ChVector<>& lengths);
-    ChBox(double len_x, double len_y, double len_z);
-    ////ChBox(const ChVector<>& mC0, const ChVector<>& mC1, const ChVector<>& mC2, const ChVector<>& mC3);
+    ChBox(double length_x, double length_y, double length_z);
     ChBox(const ChBox& source);
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChBox* Clone() const override { return new ChBox(*this); }
 
-    virtual ChGeometry::GeometryType GetClassType() const override { return BOX; }
+    /// Get the class type as an enum.
+    virtual Type GetClassType() const override { return Type::BOX; }
 
     /// Compute bounding box along the directions defined by the given rotation matrix.
-    virtual void GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const override;
+    virtual AABB GetBoundingBox(const ChMatrix33<>& rot) const override;
 
-    /// Computes the baricenter of the box
+    /// Compute the baricenter of the box.
     virtual ChVector<> Baricenter() const override { return ChVector<>(0); }
 
     /// Evaluate position in cube volume
@@ -48,31 +48,17 @@ class ChApi ChBox : public ChVolume {
     /// This is a solid
     virtual int GetManifoldDimension() const override { return 3; }
 
-    /// Get the box half-lengths
-    ChVector<>& GetSize() { return Size; }
+    /// Get the box half-lengths.
+    const ChVector<>& GetHalflengths() const { return hlen; }
 
-    /// Get the x y z lengths of this box (that is, double the Size values)
-    ChVector<> GetLengths() { return 2.0 * Size; }
+    /// Get the x, y, and z lengths of this box.
+    ChVector<> GetLengths() const { return 2.0 * hlen; }
 
-    /// Set the x y z lengths of this box (that is, double
-    /// the Size values)
-    void SetLengths(const ChVector<>& mlen) { Size = 0.5 * mlen; }
-
-    // Get the 8 corner points.
-    ChVector<> GetP1() const;
-    ChVector<> GetP2() const;
-    ChVector<> GetP3() const;
-    ChVector<> GetP4() const;
-    ChVector<> GetP5() const;
-    ChVector<> GetP6() const;
-    ChVector<> GetP7() const;
-    ChVector<> GetP8() const;
-
-    /// Get the n-th corner point, with ipoint = 1...8
-    ChVector<> GetPn(int ipoint) const;
+    /// Set the x, y, and z lengths of this box.
+    void SetLengths(const ChVector<>& lengths) { hlen = 0.5 * lengths; }
 
     /// Get the volume (assuming no scaling in Rot matrix)
-    double GetVolume() const { return Size.x() * Size.y() * Size.z() * 8.0; }
+    double GetVolume() const { return hlen.x() * hlen.y() * hlen.z() * 8.0; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
@@ -80,7 +66,7 @@ class ChApi ChBox : public ChVolume {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
-    ChVector<> Size;  ///< box halflengths
+    ChVector<> hlen;  ///< box halflengths
 };
 
 }  // end namespace geometry

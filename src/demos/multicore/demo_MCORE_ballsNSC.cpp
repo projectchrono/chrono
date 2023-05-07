@@ -68,19 +68,11 @@ void AddContainer(ChSystemMulticoreNSC* sys) {
     bin->SetCollide(true);
     bin->SetBodyFixed(true);
 
-    ChVector<> hdim(2, 2, 0.5);
-    double hthick = 0.1;
-
     bin->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hdim.x(), hdim.y(), hthick), ChVector<>(0, 0, -hthick));
-    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hthick, hdim.y(), hdim.z()),
-                          ChVector<>(-hdim.x() - hthick, 0, hdim.z()));
-    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hthick, hdim.y(), hdim.z()),
-                          ChVector<>(hdim.x() + hthick, 0, hdim.z()));
-    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hdim.x(), hthick, hdim.z()),
-                          ChVector<>(0, -hdim.y() - hthick, hdim.z()));
-    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hdim.x(), hthick, hdim.z()),
-                          ChVector<>(0, hdim.y() + hthick, hdim.z()));
+    utils::AddBoxContainer(bin, mat,                                 //
+                           ChFrame<>(ChVector<>(0, 0, 0.5), QUNIT),  //
+                           ChVector<>(4, 4, 1), 0.2,                 //
+                           ChVector<int>(2, 2, -1));
     bin->GetCollisionModel()->BuildModel();
 
     sys->AddBody(bin);

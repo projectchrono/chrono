@@ -85,7 +85,14 @@ ChVehicleGeometry TransformVehicleGeometry(const ChVehicleGeometry& geom, int si
         }
         for (auto& c : g.m_vis_cylinders) {
             c.m_pos.y() *= -1;
-            c.m_axis.y() *= -1;
+            auto rot = c.m_rot;
+            ChVector<> u = rot.GetXaxis();
+            ChVector<> w = rot.GetZaxis();
+            u.y() *= -1;
+            w.y() *= -1;
+            ChVector<> v = Vcross(w, u);
+            ChMatrix33<> R(u, v, w);
+            c.m_rot = R.Get_A_quaternion();
         }
         for (auto& b : g.m_vis_boxes) {
             b.m_pos.y() *= -1;

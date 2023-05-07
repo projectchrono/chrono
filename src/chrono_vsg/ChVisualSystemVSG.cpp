@@ -1024,9 +1024,8 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
             shape->GetMaterials().empty() ? ChVisualMaterial::Default() : shape->GetMaterial(0);
 
         if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
-            ChVector<> scale = box->GetBoxGeometry().Size;
             auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X_SM, box->GetBoxGeometry().Size);
+            transform->matrix = vsg::dmat4CH(X_SM, box->GetHalflengths());
 
             // We have boxes and dice. Dice take cubetextures, boxes take 6 identical textures.
             // Use a die if a kd map exists and its name contains "cubetexture". Otherwise, use a box.
@@ -1036,26 +1035,35 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
             group->addChild(grp);
         } else if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
             auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X_SM, sphere->GetSphereGeometry().rad);
+            transform->matrix = vsg::dmat4CH(X_SM, sphere->GetRadius());
             auto grp = m_shapeBuilder->createPbrShape(ShapeBuilder::SPHERE_SHAPE, material, transform, m_wireframe);
             group->addChild(grp);
         } else if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
             auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X_SM, ellipsoid->GetEllipsoidGeometry().rad);
+            transform->matrix = vsg::dmat4CH(X_SM, ellipsoid->GetSemiaxes());
             auto grp = m_shapeBuilder->createPbrShape(ShapeBuilder::SPHERE_SHAPE, material, transform, m_wireframe);
             group->addChild(grp);
-        } else if (auto capsule = std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {
-            double rad = capsule->GetCapsuleGeometry().rad;
-            double height = capsule->GetCapsuleGeometry().hlen;
+        } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
+            double rad = cylinder->GetRadius();
+            double height = cylinder->GetHeight();
             auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X_SM, ChVector<>(rad, height, rad));
-            auto grp = m_shapeBuilder->createPbrShape(ShapeBuilder::CAPSULE_SHAPE, material, transform, m_wireframe);
+            transform->matrix = vsg::dmat4CH(X_SM, ChVector<>(rad, rad, height));
+            auto grp = m_shapeBuilder->createPbrShape(ShapeBuilder::CYLINDER_SHAPE, material, transform, m_wireframe);
+            group->addChild(grp);
+        } else if (auto capsule = std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {
+            double rad = capsule->GetRadius();
+            double height = capsule->GetHeight();
+            auto transform = vsg::MatrixTransform::create();
+            transform->matrix = vsg::dmat4CH(X_SM, ChVector<>(rad, rad, rad / 2 + height / 4));
+            auto grp = m_shapeBuilder->createPbrShape(ShapeBuilder::CAPSULE_SHAPE, material, transform, true);
             group->addChild(grp);
         } else if (auto barrel = std::dynamic_pointer_cast<ChBarrelShape>(shape)) {
             //// TODO
         } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(shape)) {
+            double rad = cone->GetRadius();
+            double height = cone->GetHeight();
             auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X_SM, cone->GetConeGeometry().rad);
+            transform->matrix = vsg::dmat4CH(X_SM, ChVector<>(rad, rad, height));
             auto grp = m_shapeBuilder->createPbrShape(ShapeBuilder::CONE_SHAPE, material, transform, m_wireframe);
             group->addChild(grp);
         } else if (auto trimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape)) {
@@ -1107,25 +1115,6 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, 1.0);
             group->addChild(m_shapeBuilder->createPathShape(shape_instance, material, transform, path));
-        } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
-            double rad = cylinder->GetCylinderGeometry().rad;
-            const auto& P1 = cylinder->GetCylinderGeometry().p1;
-            const auto& P2 = cylinder->GetCylinderGeometry().p2;
-
-            ChVector<> dir = P2 - P1;
-            double height = dir.Length();
-            dir.Normalize();
-            ChVector<> mx, my, mz;
-            dir.DirToDxDyDz(my, mz, mx);  // y is axis, in cylinder.obj frame
-            ChMatrix33<> R_CS;
-            R_CS.Set_A_axis(mx, my, mz);
-            ChFrame<> X_CS(0.5 * (P2 + P1), R_CS);
-            ChFrame<> X_CM = X_SM * X_CS;
-
-            auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X_CM, ChVector<>(rad, height, rad));
-            auto grp = m_shapeBuilder->createPbrShape(ShapeBuilder::CYLINDER_SHAPE, material, transform, m_wireframe);
-            group->addChild(grp);
         }
 
     }  // end loop over visual shapes
@@ -1230,32 +1219,34 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
     auto num_particles = pcloud->GetNparticles();
 
     // Search for an appropriate rendering shape
-    typedef geometry::ChGeometry::GeometryType ShapeType;
+    typedef geometry::ChGeometry::Type ShapeType;
     auto shape = vis_model->GetShape(0);
     ShapeType shape_type = ShapeType::NONE;
     ChVector<> shape_size(0);
     if (auto sph = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
         shape_type = ShapeType::SPHERE;
-        shape_size = ChVector<>(2 * sph->GetSphereGeometry().rad);
+        shape_size = ChVector<>(2 * sph->GetRadius());
     } else if (auto ell = std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
         shape_type = ShapeType::ELLIPSOID;
-        shape_size = ell->GetEllipsoidGeometry().rad * 2;
+        shape_size = ell->GetAxes();
     } else if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
         shape_type = ShapeType::BOX;
-        shape_size = box->GetBoxGeometry().Size * 2;
+        shape_size = box->GetLengths();
     } else if (auto cap = std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {
-        double rad = cap->GetCapsuleGeometry().rad;
-        double hlen = cap->GetCapsuleGeometry().hlen;
+        double rad = cap->GetRadius();
+        double height = cap->GetHeight();
         shape_type = ShapeType::CAPSULE;
-        shape_size = ChVector<>(rad, rad, hlen) * 2;
+        shape_size = ChVector<>(2 * rad, 2 * rad, height);
     } else if (auto cyl = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
-        double rad = cyl->GetCylinderGeometry().rad;
-        double hlen = (cyl->GetCylinderGeometry().p1 - cyl->GetCylinderGeometry().p2).Length() / 2;
+        double rad = cyl->GetRadius();
+        double height = cyl->GetHeight();
         shape_type = ShapeType::CYLINDER;
-        shape_size = ChVector<>(rad, rad, hlen) * 2;
+        shape_size = ChVector<>(2 * rad, 2 * rad, height);
     } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(shape)) {
+        double rad = cone->GetRadius();
+        double height = cone->GetHeight();
         shape_type = ShapeType::CONE;
-        shape_size = cone->GetConeGeometry().rad * 2;
+        shape_size = ChVector<>(2 * rad, 2 * rad, height);
     }
 
     if (shape_type == ShapeType::NONE)

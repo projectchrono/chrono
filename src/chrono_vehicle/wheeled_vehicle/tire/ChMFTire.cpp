@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Michael Taylor, Rainer Gericke, Marvin Struijk
+// Authors: Marvin Struijk, Rainer Gericke
 // =============================================================================
 //
 // Template for a tire model based on the Pacejka MF5.2-6.2 tire model
@@ -931,7 +931,6 @@ void ChMFTire::CalculateForcesMoments(double step) {
 }
 
 void ChMFTire::Advance(double step) {
-    //   if (!useMultiThreading) {
     CopyContactData();
     CopyTireStates();
 
@@ -940,26 +939,6 @@ void ChMFTire::Advance(double step) {
     m_tireforce.force = m_tireforce_out.force;
     m_tireforce.moment = m_tireforce_out.moment;
 
-    /*
-        } else {
-            if (!tire_future.valid()) {
-                CopyContactData();
-                CopyTireStates();
-
-                CalculateForcesMoments(step);
-            } else {
-                tire_future.get();
-            }
-
-            m_tireforce.force = m_tireforce_out.force;
-            m_tireforce.moment = m_tireforce_out.moment;
-
-            CopyContactData();
-            CopyTireStates();
-
-            tire_future = tirepool.submit(&ChMFTire::CalculateForcesMoments, this, step);
-        }
-    */
     return;
 }
 
@@ -969,16 +948,12 @@ void ChMFTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
-    auto R0 = par.UNLOADED_RADIUS;  // Free tyre radius
-    auto vis_width = par.WIDTH;     // Free tyre radius
-    // auto vis_width = GetVisualizationWidth();
-
-    m_cyl_shape = chrono_types::make_shared<ChCylinderShape>();
-    m_cyl_shape->GetCylinderGeometry().rad = R0;
-    m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, GetOffset() + vis_width / 2, 0);
-    m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, GetOffset() - vis_width / 2, 0);
+    m_cyl_shape =
+        ChVehicleGeometry::AddVisualizationCylinder(m_wheel->GetSpindle(),                                        //
+                                                    ChVector<>(0, GetOffset() + GetVisualizationWidth() / 2, 0),  //
+                                                    ChVector<>(0, GetOffset() - GetVisualizationWidth() / 2, 0),  //
+                                                    par.UNLOADED_RADIUS);
     m_cyl_shape->SetTexture(GetChronoDataFile("textures/greenwhite.png"));
-    m_wheel->GetSpindle()->AddVisualShape(m_cyl_shape);
 }
 
 void ChMFTire::RemoveVisualizationAssets() {

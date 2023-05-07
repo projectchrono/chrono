@@ -16,17 +16,17 @@
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChCapsuleShape)
 
 ChCapsuleShape::ChCapsuleShape() {
     SetMutable(false);
 }
 
-ChCapsuleShape::ChCapsuleShape(double radius, double length) {
-    gcapsule.rad = radius;
-    gcapsule.hlen = length / 2;
+ChCapsuleShape::ChCapsuleShape(double radius, double height) {
+    gcapsule.r = radius;
+    gcapsule.h = height;
+    SetMutable(false);
 }
 
 ChCapsuleShape::ChCapsuleShape(const geometry::ChCapsule& cap) : gcapsule(cap) {

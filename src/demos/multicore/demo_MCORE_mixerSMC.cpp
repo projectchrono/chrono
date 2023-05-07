@@ -67,19 +67,11 @@ std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreSMC* sys) {
     bin->SetCollide(true);
     bin->SetBodyFixed(true);
 
-    ChVector<> hdim(1, 1, 0.5);
-    double hthick = 0.1;
-
     bin->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hdim.x(), hdim.y(), hthick), ChVector<>(0, 0, -hthick));
-    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hthick, hdim.y(), hdim.z()),
-                          ChVector<>(-hdim.x() - hthick, 0, hdim.z()));
-    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hthick, hdim.y(), hdim.z()),
-                          ChVector<>(hdim.x() + hthick, 0, hdim.z()));
-    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hdim.x(), hthick, hdim.z()),
-                          ChVector<>(0, -hdim.y() - hthick, hdim.z()));
-    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hdim.x(), hthick, hdim.z()),
-                          ChVector<>(0, hdim.y() + hthick, hdim.z()));
+    utils::AddBoxContainer(bin, mat,                                 //
+                           ChFrame<>(ChVector<>(0, 0, 0.5), QUNIT),  //
+                           ChVector<>(2, 2, 1), 0.2,                 //
+                           ChVector<int>(2, 2, -1));
     bin->GetCollisionModel()->SetFamily(1);
     bin->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(2);
     bin->GetCollisionModel()->BuildModel();

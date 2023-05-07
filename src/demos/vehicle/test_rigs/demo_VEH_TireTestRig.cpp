@@ -35,6 +35,8 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFToroidalTire.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChTireTestRig.h"
 
+#include "chrono_thirdparty/filesystem/path.h"
+
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChGnuPlot.h"
 #endif
@@ -63,6 +65,9 @@ TireType tire_type = TireType::TMEASY;
 
 // Read from JSON specification file?
 bool use_JSON = true;
+
+// Output directory
+const std::string out_dir = GetChronoOutputPath() + "TIRE_TEST_RIG";
 
 int main() {
     // Create wheel and tire subsystems
@@ -244,6 +249,11 @@ int main() {
         }
     }
 
+    // Initialize output
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
 
     // Perform the simulation
     ChFunction_Recorder long_slip;
@@ -283,19 +293,19 @@ int main() {
     }
 
 #ifdef CHRONO_POSTPROCESS
-    postprocess::ChGnuPlot gplot_long_slip("tmp1.gpl");
+    postprocess::ChGnuPlot gplot_long_slip(out_dir + "/tmp1.gpl");
     gplot_long_slip.SetGrid();
     gplot_long_slip.SetLabelX("time (s)");
     gplot_long_slip.SetLabelY("Long. slip");
     gplot_long_slip.Plot(long_slip, "", " with lines lt -1 lc rgb'#00AAEE' ");
 
-    postprocess::ChGnuPlot gplot_slip_angle("tmp2.gpl");
+    postprocess::ChGnuPlot gplot_slip_angle(out_dir + "/tmp2.gpl");
     gplot_slip_angle.SetGrid();
     gplot_slip_angle.SetLabelX("time (s)");
     gplot_slip_angle.SetLabelY("Slip angle");
     gplot_slip_angle.Plot(slip_angle, "", " with lines lt -1 lc rgb'#00AAEE' ");
 
-    postprocess::ChGnuPlot gplot_camber_angle("tmp3.gpl");
+    postprocess::ChGnuPlot gplot_camber_angle(out_dir + "/tmp3.gpl");
     gplot_camber_angle.SetGrid();
     gplot_camber_angle.SetLabelX("time (s)");
     gplot_camber_angle.SetLabelY("Camber angle");

@@ -126,7 +126,7 @@ class CH_VEHICLE_API ChWheel : public ChPart {
 
     std::string m_vis_mesh_file;                           ///< visualization mesh file (may be empty)
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;  ///< visualization mesh asset
-    std::shared_ptr<ChCylinderShape> m_cyl_shape;          ///< visualization cylinder asset
+    std::shared_ptr<ChVisualShape> m_cyl_shape;            ///< visualization cylinder asset
 
     friend class ChTire;
     friend class ChWheeledVehicle;

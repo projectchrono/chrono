@@ -36,9 +36,9 @@ class CH_DISTR_API ChCollisionModelDistributed : public ChCollisionModelChrono {
 
     /// Adds a box collision shape to the model and calculates the model's new AABB
     virtual bool AddBox(std::shared_ptr<ChMaterialSurface> material,  ///< Contact material
-                        double hx,                                    ///< Half-dimension in X direction
-                        double hy,                                    ///< Half-dimension in Y direction
-                        double hz,                                    ///< Half-dimension in Z direction
+                        double size_x,                                ///< dimension in X direction
+                        double size_y,                                ///< dimension in Y direction
+                        double size_z,                                ///< dimension in Z direction
                         const ChVector<>& pos = ChVector<>(),         ///< Box center location
                         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< Box orientation
                         ) override;

@@ -173,8 +173,7 @@ class Model3 {
             constraint_hinge->Initialize(builder.GetLastBeamNodes().front(), mtruss);
             system.Add(constraint_hinge);
 
-            auto msphere = chrono_types::make_shared<ChSphereShape>();
-            msphere->GetSphereGeometry().rad = 0.02;
+            auto msphere = chrono_types::make_shared<ChSphereShape>(0.02);
             constraint_hinge->AddVisualShape(msphere);
 
             // make a box and connect it

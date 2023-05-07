@@ -23,7 +23,7 @@ namespace chrono {
 class ChApi ChBarrelShape : public ChVisualShape {
   public:
     ChBarrelShape();
-    ChBarrelShape(double mHlow, double mHsup, double mRvert, double mRhor, double mRoffset);
+    ChBarrelShape(double Y_low, double Y_high, double axis_vert, double axis_hor, double R_offset);
 
     ~ChBarrelShape() {}
 

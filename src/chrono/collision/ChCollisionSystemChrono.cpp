@@ -167,10 +167,6 @@ void ChCollisionSystemChrono::Add(ChCollisionModel* model) {
                 start = (int)shape_data.rbox_like_rigid.size();
                 shape_data.rbox_like_rigid.push_back(real4(obB, obC.x));
                 break;
-            case ChCollisionShape::Type::ROUNDEDCONE:
-                start = (int)shape_data.rbox_like_rigid.size();
-                shape_data.rbox_like_rigid.push_back(real4(obB, obC.x));
-                break;
             case ChCollisionShape::Type::CONVEX:
                 start = (int)(obB.y + convex_data_offset);
                 length = (int)obB.x;
@@ -250,9 +246,6 @@ void ChCollisionSystemChrono::Remove(ChCollisionModel* model) {
                     ERASE_MACRO_LEN(shape_data.rbox_like_rigid, start, length);
                     break;
                 case ChCollisionShape::Type::ROUNDEDCYL:
-                    ERASE_MACRO_LEN(shape_data.rbox_like_rigid, start, length);
-                    break;
-                case ChCollisionShape::Type::ROUNDEDCONE:
                     ERASE_MACRO_LEN(shape_data.rbox_like_rigid, start, length);
                     break;
                 case ChCollisionShape::Type::CONVEX:
@@ -558,8 +551,7 @@ void ChCollisionSystemChrono::GenerateAABB() {
                 real3 B = cd_data->shape_data.box_like_rigid[start];
                 ComputeAABBBox(B + envelope, local_pos, position, rotation, body_rot[id], temp_min, temp_max);
 
-            } else if (type == ChCollisionShape::Type::ROUNDEDBOX || type == ChCollisionShape::Type::ROUNDEDCYL ||
-                       type == ChCollisionShape::Type::ROUNDEDCONE) {
+            } else if (type == ChCollisionShape::Type::ROUNDEDBOX || type == ChCollisionShape::Type::ROUNDEDCYL) {
                 real4 T = cd_data->shape_data.rbox_like_rigid[start];
                 real3 B = real3(T.x, T.y, T.z) + T.w + envelope;
                 ComputeAABBBox(B, local_pos, position, rotation, body_rot[id], temp_min, temp_max);
@@ -739,15 +731,15 @@ void DrawCylinder(ChCollisionSystem::VisualizationCallback* vis,
                   double hlen,
                   const ChColor& color) {
     int rstep = 30;
-    ChVector<> p_start(radius, -hlen, 0);
-    ChVector<> p_end(radius, +hlen, 0);
+    ChVector<> p_start(radius, 0, -hlen);
+    ChVector<> p_end(radius, 0, +hlen);
 
     for (int i = 0; i < 360; i += rstep) {
         vis->DrawLine(csys.TransformPointLocalToParent(p_start), csys.TransformPointLocalToParent(p_end), color);
         double rc = radius * std::cos((i + rstep) * CH_C_DEG_TO_RAD);
         double rs = radius * std::sin((i + rstep) * CH_C_DEG_TO_RAD);
-        ChVector<> start(rc, -hlen, rs);
-        ChVector<> end(rc, +hlen, rs);
+        ChVector<> start(rc, rs, -hlen);
+        ChVector<> end(rc, rs, +hlen);
         vis->DrawLine(csys.TransformPointLocalToParent(p_start), csys.TransformPointLocalToParent(start), color);
         vis->DrawLine(csys.TransformPointLocalToParent(p_end), csys.TransformPointLocalToParent(end), color);
         p_start = start;
@@ -761,15 +753,15 @@ void DrawCone(ChCollisionSystem::VisualizationCallback* vis,
               double hlen,
               const ChColor& color) {
     int rstep = 30;
-    ChVector<> p_start(radius, -hlen, 0);
-    ChVector<> p_end(0, +hlen, 0);
+    ChVector<> p_start(radius, 0, 0);
+    ChVector<> p_end(0, 0, 2 * hlen);
 
     for (int i = 0; i < 360; i += rstep) {
         vis->DrawLine(csys.TransformPointLocalToParent(p_start), csys.TransformPointLocalToParent(p_end), color);
         double rc = radius * std::cos((i + rstep) * CH_C_DEG_TO_RAD);
         double rs = radius * std::sin((i + rstep) * CH_C_DEG_TO_RAD);
-        ChVector<> start(rc, -hlen, rs);
-        ChVector<> end(rc, +hlen, rs);
+        ChVector<> start(rc, rs, 0);
+        ChVector<> end(rc, rs, 2 * hlen);
         vis->DrawLine(csys.TransformPointLocalToParent(p_start), csys.TransformPointLocalToParent(start), color);
         p_start = start;
     }
@@ -785,16 +777,16 @@ void DrawCapsule(ChCollisionSystem::VisualizationCallback* vis,
     for (int i = 0; i < 360; i += rstep) {
         double rc = radius * std::cos((i + rstep) * CH_C_DEG_TO_RAD);
         double rs = radius * std::sin((i + rstep) * CH_C_DEG_TO_RAD);
-        ChVector<> start(rc, -hlen, rs);
-        ChVector<> end(rc, +hlen, rs);
+        ChVector<> start(rc, rs, -hlen);
+        ChVector<> end(rc, rs, +hlen);
         vis->DrawLine(csys.TransformPointLocalToParent(start), csys.TransformPointLocalToParent(end), color);
     }
     ChCoordsys<> csys1;
-    csys1.pos = csys.TransformPointLocalToParent(ChVector<>(0, hlen, 0));
+    csys1.pos = csys.TransformPointLocalToParent(ChVector<>(0, 0, hlen));
     csys1.rot = csys.rot;
     DrawHemisphere(vis, csys1, radius, color);
     ChCoordsys<> csys2;
-    csys2.pos = csys.TransformPointLocalToParent(ChVector<>(0, -hlen, 0));
+    csys2.pos = csys.TransformPointLocalToParent(ChVector<>(0, 0, -hlen));
     csys2.rot = csys.rot * Q_from_AngX(CH_C_PI);
     DrawHemisphere(vis, csys2, radius, color);
 }
@@ -856,7 +848,7 @@ void ChCollisionSystemChrono::VisualizeShapes() {
             case ChCollisionShape::Type::CYLSHELL: {
                 const real3& B = cd_data->shape_data.box_like_rigid[start];
                 DrawCylinder(vis_callback.get(), ChCoordsys<>(ToChVector(position), ToChQuaternion(rotation)),
-                             double(B.x + envelope), double(B.y + envelope), ChColor(1, 0, 0));
+                             double(B.x + envelope), double(B.z + envelope), ChColor(1, 0, 0));
                 break;
             }
             case ChCollisionShape::Type::CAPSULE: {

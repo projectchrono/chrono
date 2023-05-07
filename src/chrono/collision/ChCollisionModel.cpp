@@ -14,6 +14,7 @@
 
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/physics/ChBody.h"
+#include "chrono/geometry/ChLineSegment.h"
 
 namespace chrono {
 namespace collision {
@@ -102,6 +103,21 @@ void ChCollisionModel::SetFamilyGroup(short int group) {
 void ChCollisionModel::SetFamilyMask(short int mask) {
     assert(mask >= 0 && mask <= 0x7FFF);
     family_mask = mask;
+}
+
+bool ChCollisionModel::AddCylinder(std::shared_ptr<ChMaterialSurface> material,
+                                   double radius,
+                                   const ChVector<>& p1,
+                                   const ChVector<>& p2) {
+    geometry::ChLineSegment seg(p1, p2);
+    auto height = seg.GetLength();
+    auto frame = seg.GetFrame();
+
+    std::cout << height << std::endl;
+    std::cout << frame.GetPos() << std::endl;
+    std::cout << frame.GetA() << std::endl;
+
+    return AddCylinder(material, radius, height, frame.GetPos(), frame.GetA());
 }
 
 bool ChCollisionModel::AddConvexHullsFromFile(std::shared_ptr<ChMaterialSurface> material,

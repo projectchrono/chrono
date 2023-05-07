@@ -90,7 +90,6 @@ SettlingSMC::SettlingSMC() : m_system(new ChSystemMulticoreSMC), m_step(1e-3) {
 
     // Container half-dimensions
     ChVector<> hdim(2, 2, 0.5);
-    double hthick = 0.1;
 
     // Create a bin consisting of five boxes attached to the ground.
     auto bin = std::shared_ptr<ChBody>(m_system->NewBody());
@@ -100,15 +99,10 @@ SettlingSMC::SettlingSMC() : m_system(new ChSystemMulticoreSMC), m_step(1e-3) {
     bin->SetBodyFixed(true);
 
     bin->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hdim.x(), hdim.y(), hthick), ChVector<>(0, 0, -hthick));
-    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hthick, hdim.y(), hdim.z()),
-                          ChVector<>(-hdim.x() - hthick, 0, hdim.z()));
-    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hthick, hdim.y(), hdim.z()),
-                          ChVector<>(hdim.x() + hthick, 0, hdim.z()));
-    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hdim.x(), hthick, hdim.z()),
-                          ChVector<>(0, -hdim.y() - hthick, hdim.z()));
-    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hdim.x(), hthick, hdim.z()),
-                          ChVector<>(0, hdim.y() + hthick, hdim.z()));
+    utils::AddBoxContainer(bin, mat,                                      //
+                           ChFrame<>(ChVector<>(0, 0, hdim.z()), QUNIT),  //
+                           hdim * 2, 0.2,                                 //
+                           ChVector<int>(2, 2, -1));
     bin->GetCollisionModel()->BuildModel();
 
     m_system->AddBody(bin);

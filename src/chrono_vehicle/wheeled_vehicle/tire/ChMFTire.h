@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2015 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Michael Taylor, Rainer Gericke, Marvin Struijk
+// Authors: Marvin Struijk, Rainer Gericke
 // =============================================================================
 //
 // Template for a tire model based on the Pacejka MF5.2-6.2 tire model
@@ -23,17 +23,12 @@
 #define CH_MFTIRE_H
 
 #include <vector>
-// #include <thread>
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/assets/ChCylinderShape.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 #include "chrono_vehicle/ChTerrain.h"
-
-// #include "chrono_vehicle/utils/ChThreadPool.h"
-
-// static ChThreadPool::thread_pool tirepool(2);
 
 namespace chrono {
 namespace vehicle {
@@ -66,19 +61,13 @@ class CH_VEHICLE_API ChMFTire : public ChForceElementTire {
     void SetGammaLimit(double gamma_limit) { m_gamma_limit = gamma_limit; }
 
     /// Get the width of the tire.
-    virtual double GetWidth() const override {
-        return par.WIDTH;
-        // m_PacCoeff.width;
-    }
+    virtual double GetWidth() const override { return par.WIDTH; }
 
     /// Get the tire deflection
     virtual double GetDeflection() const override { return m_data.depth; }
 
     /// Get visualization width.
-    virtual double GetVisualizationWidth() const {
-        return par.WIDTH;
-        // m_PacCoeff.width;
-    }
+    virtual double GetVisualizationWidth() const { return par.WIDTH; }
 
     /// Get the slip angle used in Pac89 (expressed in radians).
     /// The reported value will have opposite sign to that reported by ChTire::GetSlipAngle because ChPac89 uses
@@ -497,16 +486,12 @@ class CH_VEHICLE_API ChMFTire : public ChForceElementTire {
     void CopyTireStates();
     void CalculateForcesMoments(double step);
 
-    // const bool useMultiThreading = true;
-
-    // std::future<void> tire_future;
-
     TireStates m_states;
     TireStates m_states_in;
     ContactData m_data_in;
     TerrainForce m_tireforce_out;
 
-    std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
+    std::shared_ptr<ChVisualShape> m_cyl_shape;  ///< visualization cylinder asset
 
     double CalculateGamma(bool flip);
     double CalculatePressureDifference(double p);

@@ -515,11 +515,7 @@ void ChSAELeafspringAxle::AddVisualizationLink(std::shared_ptr<ChBody> body,
     ChVector<> p_1 = body->TransformPointParentToLocal(pt_1);
     ChVector<> p_2 = body->TransformPointParentToLocal(pt_2);
 
-    auto cyl = chrono_types::make_shared<ChCylinderShape>();
-    cyl->GetCylinderGeometry().p1 = p_1;
-    cyl->GetCylinderGeometry().p2 = p_2;
-    cyl->GetCylinderGeometry().rad = radius;
-    body->AddVisualShape(cyl);
+    ChVehicleGeometry::AddVisualizationCylinder(body, p_1, p_2, radius);
 }
 
 // -----------------------------------------------------------------------------

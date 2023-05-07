@@ -74,8 +74,7 @@ int main(int argc, char* argv[]) {
     body->SetPos_dt(ChVector<>(1.0, -0.4, 0.2));
     body->GetVisualShape(0)->SetColor(ChColor(0.6f, 0, 0));
 
-    auto symbol_bushing = chrono_types::make_shared<ChSphereShape>();
-    symbol_bushing->GetSphereGeometry().rad = 0.1;
+    auto symbol_bushing = chrono_types::make_shared<ChSphereShape>(0.1);
     body->AddVisualShape(symbol_bushing, ChFrame<>(ChVector<>(-1, 0, 0), QUNIT));
 
     // Now create the bushing connecting the "body" to the "ground".

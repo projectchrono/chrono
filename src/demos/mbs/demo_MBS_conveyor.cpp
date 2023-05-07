@@ -181,11 +181,12 @@ void create_debris(ChVisualSystemIrrlicht& vis, ChSystem& sys, double dt, double
         }
 
         if (rand_fract > box_fraction + cyl_fraction) {
-            auto rigidBody = chrono_types::make_shared<ChBodyEasyCylinder>(sphrad, sphrad * 2,  // rad, height
-                                                                           1000,                // density
-                                                                           true,                // visualization?
-                                                                           true,                // collision?
-                                                                           cyl_mat);            // contact material
+            auto rigidBody = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y,  //
+                                                                           sphrad, sphrad * 2,   // rad, height
+                                                                           1000,                 // density
+                                                                           true,                 // visualization?
+                                                                           true,                 // collision?
+                                                                           cyl_mat);             // contact material
             rigidBody->SetPos(ChVector<>(-0.5 * xnozzlesize + ChRandom() * xnozzlesize, ynozzle + i * 0.005,
                                          -0.5 * znozzlesize + ChRandom() * znozzlesize));
             rigidBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/pinkwhite.png"));

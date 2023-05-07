@@ -112,7 +112,7 @@ container.SetIdentifier(-1)
 container.SetCollide(True)
 container.GetCollisionModel().SetEnvelope(collision_envelope)
 container.GetCollisionModel().ClearModel()
-chrono.AddBoxGeometry(container, material, chrono.ChVectorD(4, 0.5, 4), chrono.ChVectorD(0, -0.5, 0))
+chrono.AddBoxGeometry(container, material, chrono.ChVectorD(8, 1, 8), chrono.ChVectorD(0, -0.5, 0))
 container.GetCollisionModel().BuildModel()
 
 container.GetVisualShape(0).SetColor(chrono.ChColor(0.4, 0.4, 0.4))

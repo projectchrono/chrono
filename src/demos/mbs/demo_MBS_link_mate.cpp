@@ -167,11 +167,8 @@ void test_pendulum() {
     my_root->SetCollide(false);
     sys.AddBody(my_root);
 
-    auto cyl_rev = chrono_types::make_shared<ChCylinderShape>();
-    cyl_rev->GetCylinderGeometry().p1 = ChVector<>(-0.2, 0, 0);
-    cyl_rev->GetCylinderGeometry().p2 = ChVector<>(0.2, 0, 0);
-    cyl_rev->GetCylinderGeometry().rad = 0.1;
-    my_root->AddVisualShape(cyl_rev);
+    auto cyl_rev = chrono_types::make_shared<ChCylinderShape>(0.1, 0.4);
+    my_root->AddVisualShape(cyl_rev, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
 
     auto my_mass = chrono_types::make_shared<ChBody>();
     ChVector<> mass_pos = ChVector<>(length * std::sin(offset_angle), 0, -length * std::cos(offset_angle));
@@ -190,19 +187,16 @@ void test_pendulum() {
     my_mass->SetCollide(false);
     sys.AddBody(my_mass);
 
-    auto sph = chrono_types::make_shared<ChSphereShape>();
-    sph->GetSphereGeometry().rad = 0.3;
+    auto sph = chrono_types::make_shared<ChSphereShape>(0.3);
     sph->SetColor(ChColor(0.7f, 0.8f, 0.8f));
     my_mass->AddVisualShape(sph);
 
-    auto cyl = chrono_types::make_shared<ChCylinderShape>();
-    cyl->GetCylinderGeometry().p1 = VNULL;
     ChFrameMoving<> rel_frame;
     my_mass->TransformParentToLocal(my_root->GetFrame_COG_to_abs(), rel_frame);
-    cyl->GetCylinderGeometry().p2 = rel_frame.GetPos();
-    cyl->GetCylinderGeometry().rad = 0.05;
+    geometry::ChLineSegment seg(VNULL, rel_frame.GetPos());
+    auto cyl = chrono_types::make_shared<ChCylinderShape>(0.05, seg.GetLength());
     cyl->SetColor(ChColor(0.7f, 0.8f, 0.8f));
-    my_mass->AddVisualShape(cyl);
+    my_mass->AddVisualShape(cyl, seg.GetFrame());
 
     // Revolute joint at the root
     auto my_joint = chrono_types::make_shared<ChLinkMateGeneric>();
@@ -390,13 +384,9 @@ void test_anchorchain() {
             knot->SetMass(mass);
             knot->SetInertiaXX({Jxx, Jyy, Jzz});
 
-            auto cyl_rev = chrono_types::make_shared<ChCylinderShape>();
-            ChVector<> deltaV = {0.5 * len * 0.8, 0, 0};
-            cyl_rev->GetCylinderGeometry().p1 = deltaV;
-            cyl_rev->GetCylinderGeometry().p2 = -deltaV;
-            cyl_rev->GetCylinderGeometry().rad = 0.1;
+            auto cyl_rev = chrono_types::make_shared<ChCylinderShape>(0.1, len * 0.8);
             cyl_rev->SetColor(ChColor(0, 0, 1));
-            knot->AddVisualShape(cyl_rev);
+            knot->AddVisualShape(cyl_rev, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
 
             knot_list.push_back(knot);
             sys.AddBody(knot);

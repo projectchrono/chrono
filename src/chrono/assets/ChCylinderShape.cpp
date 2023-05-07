@@ -16,18 +16,17 @@
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChCylinderShape)
 
 ChCylinderShape::ChCylinderShape() {
     SetMutable(false);
 }
 
-ChCylinderShape::ChCylinderShape(double radius, double length) {
-    gcylinder.rad = radius;
-    gcylinder.p1 = ChVector<>(0, -length / 2, 0);
-    gcylinder.p1 = ChVector<>(0, +length / 2, 0);
+ChCylinderShape::ChCylinderShape(double radius, double height) {
+    gcylinder.r = radius;
+    gcylinder.h = height;
+    SetMutable(false);
 }
 
 ChCylinderShape::ChCylinderShape(const geometry::ChCylinder& cyl) : gcylinder(cyl) {

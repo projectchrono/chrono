@@ -167,7 +167,7 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
     }
 
     // Add a cylinder to represent the wheel hub.
-    coll_model->AddCylinder(wheel_material, 0.223, 0.223, 0.126);
+    coll_model->AddCylinder(wheel_material, 0.223, 0.252, VNULL, Q_from_AngX(CH_C_PI_2));
     coll_model->BuildModel();
 
     // Visualization
@@ -243,13 +243,13 @@ int main(int argc, char* argv[]) {
 
     SCMTerrain terrain(system);
     terrain.SetSoilParameters(2e6,   // Bekker Kphi
-                                0,     // Bekker Kc
-                                1.1,   // Bekker n exponent
-                                0,     // Mohr cohesive limit (Pa)
-                                30,    // Mohr friction limit (degrees)
-                                0.01,  // Janosi shear coefficient (m)
-                                2e8,   // Elastic stiffness (Pa/m), before plastic yield
-                                3e4    // Damping (Pa s/m), proportional to negative vertical speed (optional)
+                              0,     // Bekker Kc
+                              1.1,   // Bekker n exponent
+                              0,     // Mohr cohesive limit (Pa)
+                              30,    // Mohr friction limit (degrees)
+                              0.01,  // Janosi shear coefficient (m)
+                              2e8,   // Elastic stiffness (Pa/m), before plastic yield
+                              3e4    // Damping (Pa s/m), proportional to negative vertical speed (optional)
     );
 
     ////terrain.EnableBulldozing(true);      // inflate soil at the border of the rut

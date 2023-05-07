@@ -251,7 +251,6 @@ void ChPovRay::ExportScript(const std::string& filename) {
 
     // Rough way to load the template head file in the string buffer
     if (template_filename != "") {
-
         std::cout << "USE TEMPLATE FILE: " << template_filename << std::endl;
 
         ChStreamInAsciiFile templatefile(template_filename.c_str());
@@ -551,7 +550,7 @@ void ChPovRay::ExportShapes(ChStreamOutAsciiFile& assets_file, std::shared_ptr<C
             assets_file << " <" << shape_frame.GetPos().x();
             assets_file << "," << shape_frame.GetPos().y();
             assets_file << "," << shape_frame.GetPos().z() << ">\n";
-            assets_file << " " << sphere->GetSphereGeometry().rad << "\n";
+            assets_file << " " << sphere->GetRadius() << "\n";
 
             ApplyMaterials(assets_file, shape->GetMaterials());
 
@@ -568,9 +567,9 @@ void ChPovRay::ExportShapes(ChStreamOutAsciiFile& assets_file, std::shared_ptr<C
             assets_file << "," << shape_frame.GetPos().z() << ">\n";
             assets_file << " " << 1.0 << "\n";
             assets_file << " scale ";
-            assets_file << "<" << ellipsoid->GetEllipsoidGeometry().rad.x();
-            assets_file << "," << ellipsoid->GetEllipsoidGeometry().rad.y();
-            assets_file << "," << ellipsoid->GetEllipsoidGeometry().rad.z() << ">\n";
+            assets_file << "<" << ellipsoid->GetSemiaxes().x();
+            assets_file << "," << ellipsoid->GetSemiaxes().y();
+            assets_file << "," << ellipsoid->GetSemiaxes().z() << ">\n";
 
             ApplyMaterials(assets_file, shape->GetMaterials());
 
@@ -582,13 +581,12 @@ void ChPovRay::ExportShapes(ChStreamOutAsciiFile& assets_file, std::shared_ptr<C
             assets_file << "#macro sh_" << (size_t)shape.get() << "()\n";  // start macro
             assets_file << "cylinder  {\n";                                // start cylinder
 
-            assets_file << " <" << cylinder->GetCylinderGeometry().p1.x();
-            assets_file << "," << cylinder->GetCylinderGeometry().p1.y();
-            assets_file << "," << cylinder->GetCylinderGeometry().p1.z() << ">,\n";
-            assets_file << " <" << cylinder->GetCylinderGeometry().p2.x();
-            assets_file << "," << cylinder->GetCylinderGeometry().p2.y();
-            assets_file << "," << cylinder->GetCylinderGeometry().p2.z() << ">,\n";
-            assets_file << " " << cylinder->GetCylinderGeometry().rad << "\n";
+            auto axis = shape_frame.GetA().Get_A_Zaxis();
+            auto hlen = cylinder->GetHeight() / 2;
+
+            assets_file << " <" << -hlen * axis.x() << "," << -hlen * axis.y() << "," << -hlen * axis.z() << ">,\n";
+            assets_file << " <" << +hlen * axis.x() << "," << +hlen * axis.y() << "," << +hlen * axis.z() << ">,\n";
+            assets_file << " " << cylinder->GetRadius() << "\n";
 
             ApplyMaterials(assets_file, shape->GetMaterials());
 
@@ -600,12 +598,12 @@ void ChPovRay::ExportShapes(ChStreamOutAsciiFile& assets_file, std::shared_ptr<C
             assets_file << "#macro sh_" << (size_t)shape.get() << "()\n";  // start macro
             assets_file << "box  {\n";                                     // start box
 
-            assets_file << " <" << -box->GetBoxGeometry().Size.x();
-            assets_file << "," << -box->GetBoxGeometry().Size.y();
-            assets_file << "," << -box->GetBoxGeometry().Size.z() << ">\n";
-            assets_file << " <" << box->GetBoxGeometry().Size.x();
-            assets_file << "," << box->GetBoxGeometry().Size.y();
-            assets_file << "," << box->GetBoxGeometry().Size.z() << ">\n";
+            assets_file << " <" << -box->GetHalflengths().x();
+            assets_file << "," << -box->GetHalflengths().y();
+            assets_file << "," << -box->GetHalflengths().z() << ">\n";
+            assets_file << " <" << box->GetHalflengths().x();
+            assets_file << "," << box->GetHalflengths().y();
+            assets_file << "," << box->GetHalflengths().z() << ">\n";
 
             const auto& pos = shape_frame.GetPos();
             const auto& rot = shape_frame.GetRot();
@@ -663,7 +661,7 @@ void ChPovRay::ExportMaterials(ChStreamOutAsciiFile& assets_file,
         if (mat->GetKdTexture().empty()) {
             const auto& color = mat->GetDiffuseColor();
             assets_file << "pigment {color rgbt <" << color.R << "," << color.G << "," << color.B << ","
-                << 1 - mat->GetOpacity() << "> }\n";
+                        << 1 - mat->GetOpacity() << "> }\n";
         }
 
         // POV macro - end
@@ -681,12 +679,12 @@ void ChPovRay::ExportObjData(ChStreamOutAsciiFile& pov_file,
     int num_shapes = vis_model->GetNumShapes();
     int num_shapesFEA = vis_model->GetNumShapesFEA();
     int num_cameras = (int)item->GetCameras().size();
-    int num_commands = (commands == m_custom_commands.end()) ? 0 : 1;  
+    int num_commands = (commands == m_custom_commands.end()) ? 0 : 1;
     int num_csys = (parentframe.GetCoord() == CSYSNORM) ? 0 : 1;
 
     // Use a union only if more than one element
     bool use_union = num_shapes + num_shapesFEA + num_cameras + num_commands + num_csys > 1;
-    
+
     if (use_union)
         pov_file << "union{\n";  // begin union
 
@@ -695,9 +693,10 @@ void ChPovRay::ExportObjData(ChStreamOutAsciiFile& pov_file,
         const auto& shape = shape_instance.first;
 
         // Process only "known" shapes (i.e., shapes that were included in the assets file)
-        if (std::dynamic_pointer_cast<ChModelFileShape>(shape) || std::dynamic_pointer_cast<ChTriangleMeshShape>(shape) ||
-            std::dynamic_pointer_cast<ChSphereShape>(shape) || std::dynamic_pointer_cast<ChEllipsoidShape>(shape) ||
-            std::dynamic_pointer_cast<ChCylinderShape>(shape) || std::dynamic_pointer_cast<ChBoxShape>(shape)) {
+        if (std::dynamic_pointer_cast<ChModelFileShape>(shape) ||
+            std::dynamic_pointer_cast<ChTriangleMeshShape>(shape) || std::dynamic_pointer_cast<ChSphereShape>(shape) ||
+            std::dynamic_pointer_cast<ChEllipsoidShape>(shape) || std::dynamic_pointer_cast<ChCylinderShape>(shape) ||
+            std::dynamic_pointer_cast<ChBoxShape>(shape)) {
             pov_file << "sh_" << (size_t)shape.get() << "()\n";
         }
     }
@@ -718,7 +717,7 @@ void ChPovRay::ExportObjData(ChStreamOutAsciiFile& pov_file,
         camera_aim = camera->GetAimPoint() >> parentframe;
         camera_up = camera->GetUpVector() >> parentframe;
         camera_angle = camera->GetAngle();
-        camera_orthographic = camera->IsOrthographic();       
+        camera_orthographic = camera->IsOrthographic();
     }
 
     // Invoke the custom commands string (if any)

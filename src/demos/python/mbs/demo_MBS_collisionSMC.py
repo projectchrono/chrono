@@ -42,8 +42,7 @@ def AddFallingItems(sys):
             body.GetCollisionModel().BuildModel()
             body.SetCollide(True)
 
-            sphere = chrono.ChSphereShape()
-            sphere.GetSphereGeometry().rad = radius
+            sphere = chrono.ChSphereShape(radius)
             sphere.SetTexture(chrono.GetChronoDataFile("textures/bluewhite.png"))
             body.AddVisualShape(sphere)
 
@@ -51,30 +50,27 @@ def AddFallingItems(sys):
 
             # add boxes
             mass = 1
-            hsize = chrono.ChVectorD(0.75, 0.75, 0.75)
+            size = chrono.ChVectorD(1.5, 1.5, 1.5)
             body = chrono.ChBody()
 
             body.SetMass(mass)
             body.SetPos(chrono.ChVectorD(4.0 * ix, 6.0, 4.0 * iz))
 
             body.GetCollisionModel().ClearModel()
-            body.GetCollisionModel().AddBox(mat, hsize.x, hsize.y, hsize.z)
+            body.GetCollisionModel().AddBox(mat, size.x, size.y, size.z)
             body.GetCollisionModel().BuildModel()
             body.SetCollide(True)
 
-            box = chrono.ChBoxShape()
-            box.GetBoxGeometry().Size = hsize
+            box = chrono.ChBoxShape(size)
             box.SetTexture(chrono.GetChronoDataFile("textures/pinkwhite.png"))
             body.AddVisualShape(box)
 
             sys.AddBody(body)
 
 def AddContainerWall(body, mat, size, pos, visible=True):
-    hsize = chrono.ChVectorD(0.5 * size.x, 0.5 * size.y, 0.5 * size.z)
-    body.GetCollisionModel().AddBox(mat, hsize.x, hsize.y, hsize.z, pos)
+    body.GetCollisionModel().AddBox(mat, size.x, size.y, size.z, pos)
     if visible:
-        box = chrono.ChBoxShape()
-        box.GetBoxGeometry().Size = hsize
+        box = chrono.ChBoxShape(size)
         box.SetTexture(chrono.GetChronoDataFile("textures/concrete.jpg"))
         body.AddVisualShape(box, chrono.ChFrameD(pos))
 
@@ -117,8 +113,7 @@ def AddContainer(sys):
     rotatingBody.GetCollisionModel().AddBox(rot_mat, hsize.x, hsize.y, hsize.z)
     rotatingBody.GetCollisionModel().BuildModel()
 
-    box = chrono.ChBoxShape()
-    box.GetBoxGeometry().Size = hsize
+    box = chrono.ChBoxShape(hsize * 2.0)
     rotatingBody.AddVisualShape(box)
 
     sys.AddBody(rotatingBody)
@@ -129,7 +124,7 @@ def AddContainer(sys):
     my_motor.Initialize(rotatingBody,
                         fixedBody,
                         chrono.ChFrameD(chrono.ChVectorD(0, 0, 0), 
-                            chrono.Q_from_AngAxis(chrono.CH_C_PI_2, chrono.VECT_X)))
+                                        chrono.Q_from_AngAxis(chrono.CH_C_PI_2, chrono.VECT_X)))
     mfun = chrono.ChFunction_Const(chrono.CH_C_PI / 2.0)  # speed w=90°/s
     my_motor.SetSpeedFunction(mfun)
 

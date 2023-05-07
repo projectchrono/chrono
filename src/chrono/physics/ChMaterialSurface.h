@@ -130,6 +130,9 @@ class ChApi ChMaterialCompositionStrategy {
     virtual float CombineDampingCoefficient(float a1, float a2) const { return (a1 + a2) / 2; }
 };
 
+
+typedef std::shared_ptr<ChMaterialSurface> ChMaterialSurfaceSharedPtr;
+
 }  // end namespace chrono
 
 #endif

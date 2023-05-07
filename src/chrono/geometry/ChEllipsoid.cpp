@@ -22,13 +22,14 @@ namespace geometry {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChEllipsoid)
 
+ChEllipsoid::ChEllipsoid(const ChVector<>& axes) : rad(0.5 * axes) {}
+ChEllipsoid::ChEllipsoid(double axis_x, double axis_y, double axis_z) : rad(0.5 * ChVector<>(axis_x, axis_y, axis_z)) {}
 ChEllipsoid::ChEllipsoid(const ChEllipsoid& source) {
     rad = source.rad;
 }
 
-void ChEllipsoid::GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const {
-    cmin = -rad;
-    cmax = +rad;
+ChGeometry::AABB ChEllipsoid::GetBoundingBox(const ChMatrix33<>& rot) const {
+    return AABB(-rad, +rad);
 }
 
 double ChEllipsoid::GetBoundingSphereRadius() const {

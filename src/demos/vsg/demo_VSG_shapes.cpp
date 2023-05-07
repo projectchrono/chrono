@@ -51,13 +51,13 @@ int main(int argc, char* argv[]) {
     utils::AddSphereGeometry(bin.get(), mat, b, ydir * 1, rot);
     utils::AddSphereGeometry(bin.get(), mat, c, zdir * 1, rot);
 
-    utils::AddEllipsoidGeometry(bin.get(), mat, ChVector<>(a, 2 * a, 2 * a), xdir * 2, rot);
-    utils::AddEllipsoidGeometry(bin.get(), mat, ChVector<>(2 * b, b, 2 * b), ydir * 2, rot);
-    utils::AddEllipsoidGeometry(bin.get(), mat, ChVector<>(2 * c, 2 * c, c), zdir * 2, rot);
+    utils::AddEllipsoidGeometry(bin.get(), mat, ChVector<>(2 * a, 4 * a, 4 * a), xdir * 2, rot);
+    utils::AddEllipsoidGeometry(bin.get(), mat, ChVector<>(4 * b, 2 * b, 4 * b), ydir * 2, rot);
+    utils::AddEllipsoidGeometry(bin.get(), mat, ChVector<>(4 * c, 4 * c, 2 * c), zdir * 2, rot);
 
-    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(a, 2 * a, 2 * a), xdir * 3, rot);
-    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(2 * b, b, 2 * b), ydir * 3, rot);
-    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(2 * c, 2 * c, c), zdir * 3, rot);
+    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(2 * a, 4 * a, 4 * a), xdir * 3, rot);
+    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(4 * b, 2 * b, 4 * b), ydir * 3, rot);
+    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(4 * c, 4 * c, 2 * c), zdir * 3, rot);
 
     utils::AddCylinderGeometry(bin.get(), mat, a, 0.5, xdir * 4, rot);
     utils::AddCylinderGeometry(bin.get(), mat, b, 0.5, ydir * 4, rot);
@@ -67,9 +67,9 @@ int main(int argc, char* argv[]) {
     utils::AddConeGeometry(bin.get(), mat, b, 1.5, ydir * 5, rot);
     utils::AddConeGeometry(bin.get(), mat, c, 1.5, zdir * 5, rot);
 
-    utils::AddCapsuleGeometry(bin.get(), mat, a, 0.5, xdir * 6, rot);
-    utils::AddCapsuleGeometry(bin.get(), mat, b, 0.5, ydir * 6, rot);
-    utils::AddCapsuleGeometry(bin.get(), mat, c, 0.5, zdir * 6, rot);
+    utils::AddCapsuleGeometry(bin.get(), mat, a, 1.0, xdir * 6, rot);
+    utils::AddCapsuleGeometry(bin.get(), mat, b, 1.0, ydir * 6, rot);
+    utils::AddCapsuleGeometry(bin.get(), mat, c, 1.0, zdir * 6, rot);
 
     auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
     vis->AttachSystem(&sys);

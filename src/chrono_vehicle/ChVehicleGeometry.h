@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "chrono/assets/ChColor.h"
+#include "chrono/assets/ChVisualShape.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
@@ -62,8 +63,8 @@ class CH_VEHICLE_API ChVehicleGeometry {
     /// Cylinder shape for visualization and/or collision.
     struct CH_VEHICLE_API CylinderShape {
         CylinderShape(const ChVector<>& pos, const ChVector<>& axis, double radius, double length, int matID = -1);
+        CylinderShape(const ChVector<>& pos, const ChQuaternion<>& rot, double radius, double length, int matID = -1);
         ChVector<> m_pos;      ///< center position relative to body
-        ChVector<> m_axis;     ///< cylinder axis relative to body
         ChQuaternion<> m_rot;  ///< orientation relative to body
         double m_radius;       ///< cylinder radius
         double m_length;       ///< cylinder length
@@ -135,6 +136,14 @@ class CH_VEHICLE_API ChVehicleGeometry {
 
     /// Create collision shapes for the specified body.
     void CreateCollisionShapes(std::shared_ptr<ChBody> body, int collision_family, ChContactMethod contact_method);
+
+    /// Utility function for adding a cylinder visualization shape defined by the end points and a radius.
+    /// This function adds the visualization shape to the body's visual model and returns the shape.
+    static std::shared_ptr<ChVisualShape> AddVisualizationCylinder(std::shared_ptr<ChBody> body,
+                                                                   const ChVector<>& p1,
+                                                                   const ChVector<>& p2,
+                                                                   double radius,
+                                                                   ChVisualMaterialSharedPtr mat = nullptr);
 
     /// Calculate axis-aligned bounding box of all collision shapes.
     AABB CalculateAABB();

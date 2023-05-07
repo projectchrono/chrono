@@ -55,7 +55,7 @@ ground.SetBodyFixed(True);
 ground.SetPos(chrono.ChVectorD(0, 0, 0))
 sys.AddBody(ground)
 
-cyl = chrono.ChBodyEasyCylinder(0.5, 1.0, 100, True, True, mat)
+cyl = chrono.ChBodyEasyCylinder(chrono.ChAxis_Y, 0.5, 1.0, 100, True, True, mat)
 cyl.SetPos(chrono.ChVectorD(0, 3, 0))
 sys.AddBody(cyl)
 

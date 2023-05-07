@@ -236,20 +236,17 @@ void ChTrackShoeDoublePin::AddConnectorVisualization2(std::shared_ptr<ChBody> co
     double c_width = GetConnectorWidth();
     double c_radius = GetConnectorRadius();
 
-    auto cyl_rear = chrono_types::make_shared<ChCylinderShape>();
-    cyl_rear->GetCylinderGeometry().p1 = ChVector<>(-0.5 * c_length, -0.5 * c_width, 0);
-    cyl_rear->GetCylinderGeometry().p2 = ChVector<>(-0.5 * c_length, +0.5 * c_width, 0);
-    cyl_rear->GetCylinderGeometry().rad = c_radius;
-    connector->AddVisualShape(cyl_rear);
+    ChVehicleGeometry::AddVisualizationCylinder(connector,                                       //
+                                                ChVector<>(-0.5 * c_length, -0.5 * c_width, 0),  //
+                                                ChVector<>(-0.5 * c_length, +0.5 * c_width, 0),  //
+                                                c_radius);
 
-    auto cyl_front = chrono_types::make_shared<ChCylinderShape>();
-    cyl_front->GetCylinderGeometry().p1 = ChVector<>(0.5 * c_length, -0.5 * c_width, 0);
-    cyl_front->GetCylinderGeometry().p2 = ChVector<>(0.5 * c_length, +0.5 * c_width, 0);
-    cyl_front->GetCylinderGeometry().rad = c_radius;
-    connector->AddVisualShape(cyl_front);
+    ChVehicleGeometry::AddVisualizationCylinder(connector,                                      //
+                                                ChVector<>(0.5 * c_length, -0.5 * c_width, 0),  //
+                                                ChVector<>(0.5 * c_length, +0.5 * c_width, 0),  //
+                                                c_radius);
 
-    auto box = chrono_types::make_shared<ChBoxShape>();
-    box->GetBoxGeometry().SetLengths(ChVector<>(c_length, c_width, 2 * c_radius));
+    auto box = chrono_types::make_shared<ChBoxShape>(c_length, c_width, 2 * c_radius);
     connector->AddVisualShape(box, ChFrame<>());
 }
 
@@ -268,43 +265,37 @@ void ChTrackShoeDoublePin::AddConnectorVisualization1(std::shared_ptr<ChBody> co
     double c_radius = GetConnectorRadius();
 
     {
-        auto cyl_rear = chrono_types::make_shared<ChCylinderShape>();
-        cyl_rear->GetCylinderGeometry().p1 = ChVector<>(-0.5 * c_length, +offset - 0.5 * c_width, 0);
-        cyl_rear->GetCylinderGeometry().p2 = ChVector<>(-0.5 * c_length, +offset + 0.5 * c_width, 0);
-        cyl_rear->GetCylinderGeometry().rad = c_radius;
-        cyl_rear->AddMaterial(mat);
-        connector->AddVisualShape(cyl_rear);
+        ChVehicleGeometry::AddVisualizationCylinder(connector,                                                //
+                                                    ChVector<>(-0.5 * c_length, +offset - 0.5 * c_width, 0),  //
+                                                    ChVector<>(-0.5 * c_length, +offset + 0.5 * c_width, 0),  //
+                                                    c_radius,                                                 //
+                                                    mat);
 
-        auto cyl_front = chrono_types::make_shared<ChCylinderShape>();
-        cyl_front->GetCylinderGeometry().p1 = ChVector<>(0.5 * c_length, +offset - 0.5 * c_width, 0);
-        cyl_front->GetCylinderGeometry().p2 = ChVector<>(0.5 * c_length, +offset + 0.5 * c_width, 0);
-        cyl_front->GetCylinderGeometry().rad = c_radius;
-        cyl_front->AddMaterial(mat);
-        connector->AddVisualShape(cyl_front);
+        ChVehicleGeometry::AddVisualizationCylinder(connector,                                               //
+                                                    ChVector<>(0.5 * c_length, +offset - 0.5 * c_width, 0),  //
+                                                    ChVector<>(0.5 * c_length, +offset + 0.5 * c_width, 0),  //
+                                                    c_radius,                                                //
+                                                    mat);
 
-        auto box = chrono_types::make_shared<ChBoxShape>();
-        box->GetBoxGeometry().SetLengths(ChVector<>(c_length, c_width, 2 * c_radius));
+        auto box = chrono_types::make_shared<ChBoxShape>(c_length, c_width, 2 * c_radius);
         box->AddMaterial(mat);
         connector->AddVisualShape(box, ChFrame<>(ChVector<>(0, +offset, 0)));
     }
 
     {
-        auto cyl_rear = chrono_types::make_shared<ChCylinderShape>();
-        cyl_rear->GetCylinderGeometry().p1 = ChVector<>(-0.5 * c_length, -offset - 0.5 * c_width, 0);
-        cyl_rear->GetCylinderGeometry().p2 = ChVector<>(-0.5 * c_length, -offset + 0.5 * c_width, 0);
-        cyl_rear->GetCylinderGeometry().rad = c_radius;
-        cyl_rear->AddMaterial(mat);
-        connector->AddVisualShape(cyl_rear);
+        ChVehicleGeometry::AddVisualizationCylinder(connector,                                                //
+                                                    ChVector<>(-0.5 * c_length, -offset - 0.5 * c_width, 0),  //
+                                                    ChVector<>(-0.5 * c_length, -offset + 0.5 * c_width, 0),  //
+                                                    c_radius,                                                 //
+                                                    mat);
 
-        auto cyl_front = chrono_types::make_shared<ChCylinderShape>();
-        cyl_front->GetCylinderGeometry().p1 = ChVector<>(0.5 * c_length, -offset - 0.5 * c_width, 0);
-        cyl_front->GetCylinderGeometry().p2 = ChVector<>(0.5 * c_length, -offset + 0.5 * c_width, 0);
-        cyl_front->GetCylinderGeometry().rad = c_radius;
-        cyl_front->AddMaterial(mat);
-        connector->AddVisualShape(cyl_front);
+        ChVehicleGeometry::AddVisualizationCylinder(connector,                                               //
+                                                    ChVector<>(0.5 * c_length, -offset - 0.5 * c_width, 0),  //
+                                                    ChVector<>(0.5 * c_length, -offset + 0.5 * c_width, 0),  //
+                                                    c_radius,                                                //
+                                                    mat);
 
-        auto box = chrono_types::make_shared<ChBoxShape>();
-        box->GetBoxGeometry().SetLengths(ChVector<>(c_length, c_width, 2 * c_radius));
+        auto box = chrono_types::make_shared<ChBoxShape>(c_length, c_width, 2 * c_radius);
         box->AddMaterial(mat);
         connector->AddVisualShape(box, ChFrame<>(ChVector<>(0, -offset, 0)));
     }

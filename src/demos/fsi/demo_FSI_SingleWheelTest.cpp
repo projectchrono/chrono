@@ -137,13 +137,19 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     sysMBS.AddBody(ground);
 
     ground->GetCollisionModel()->ClearModel();
-    chrono::utils::AddBoxContainer(ground, cmaterial, ChFrame<>(), ChVector<>(bxDim, byDim, bzDim), 0.1,
-                                   ChVector<int>(0, 0, -1), false);
+    chrono::utils::AddBoxContainer(ground, cmaterial,                              //
+                                   ChFrame<>(ChVector<>(0, 0, bzDim / 2), QUNIT),  //
+                                   ChVector<>(bxDim, byDim, bzDim), 0.1,           //
+                                   ChVector<int>(0, 0, -1),                        //
+                                   false);
     ground->GetCollisionModel()->BuildModel();
     ground->SetCollide(true);
 
     // Add BCE particles attached on the walls into FSI system
-    sysFSI.AddContainerBCE(ground, ChFrame<>(), ChVector<>(bxDim, byDim, 2 * bzDim), ChVector<int>(2, 0, -1));
+    sysFSI.AddBoxContainerBCE(ground,                                     //
+                              ChFrame<>(ChVector<>(0, 0, bzDim), QUNIT),  //
+                              ChVector<>(bxDim, byDim, 2 * bzDim),        //
+                              ChVector<int>(2, 0, -1));
 
     // Create the wheel -- always SECOND body in the system
     auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
@@ -202,7 +208,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Add geometry of the chassis.
     chassis->GetCollisionModel()->ClearModel();
-    chrono::utils::AddBoxGeometry(chassis.get(), cmaterial, ChVector<>(0.1, 0.1, 0.1), ChVector<>(0, 0, 0));
+    chrono::utils::AddBoxGeometry(chassis.get(), cmaterial, ChVector<>(0.2, 0.2, 0.2), ChVector<>(0, 0, 0));
     chassis->GetCollisionModel()->BuildModel();
     sysMBS.AddBody(chassis);
 

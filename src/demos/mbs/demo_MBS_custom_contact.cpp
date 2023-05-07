@@ -32,13 +32,10 @@ class MyObstacle {
   public:
     MyObstacle() : radius(2), center(2.9, 0, 2.9) {}
 
-    std::shared_ptr<ChVisualShape> GetVisualization() {
-        auto cyl = chrono_types::make_shared<ChCylinderShape>();
-        cyl->GetCylinderGeometry().rad = radius;
-        cyl->GetCylinderGeometry().p1 = center + ChVector<>(0, 0, 0);
-        cyl->GetCylinderGeometry().p2 = center + ChVector<>(0, 1.1, 0);
+    void AddVisualization(std::shared_ptr<ChBody> body) {
+        auto cyl = chrono_types::make_shared<ChCylinderShape>(radius, 1.1);
         cyl->SetColor(ChColor(0.6f, 0.3f, 0.0f));
-        return cyl;
+        body->AddVisualShape(cyl, ChFrame<>(center + ChVector<>(0, 0.55, 0), Q_from_AngX(CH_C_PI_2)));    
     }
 
     double radius;
@@ -174,19 +171,19 @@ int main(int argc, char* argv[]) {
     ground_vmat->SetKdTexture(GetChronoDataFile("textures/blue.png"));
 
     ground->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(5.0, 1, 5.0), ChVector<>(0, -1, 0), QUNIT, true,
+    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(10, 2, 10), ChVector<>(0, -1, 0), QUNIT, true,
                           ground_vmat);
-    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(0.1, 1, 5.1), ChVector<>(-5, 0, 0), QUNIT, true,
+    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(0.2, 2, 10.2), ChVector<>(-5, 0, 0), QUNIT, true,
                           ground_vmat);
-    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(0.1, 1, 5.1), ChVector<>(+5, 0, 0), QUNIT, true,
+    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(0.2, 2, 10.2), ChVector<>(+5, 0, 0), QUNIT, true,
                           ground_vmat);
-    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(5.1, 1, 0.1), ChVector<>(0, 0, -5), QUNIT, true,
+    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(10.2, 2, 0.2), ChVector<>(0, 0, -5), QUNIT, true,
                           ground_vmat);
-    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(5.1, 1, 0.1), ChVector<>(0, 0, +5), QUNIT, true,
+    utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(10.2, 2, 0.2), ChVector<>(0, 0, +5), QUNIT, true,
                           ground_vmat);
     ground->GetCollisionModel()->BuildModel();
 
-    ground->GetVisualModel()->AddShape(obstacle.GetVisualization());
+    obstacle.AddVisualization(ground);
 
     // Create the falling ball
     auto ball = chrono_types::make_shared<ChBody>();

@@ -143,7 +143,7 @@ void CreateBoxes(ChSystemSMC& sys) {
 void CreateCylinders(ChSystemSMC& sys) {
     auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
 
-    auto c1 = chrono_types::make_shared<ChBodyEasyCylinder>(1.0, 2.0, 1, mat, collision_type);
+    auto c1 = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 1.0, 2.0, 1, mat, collision_type);
     c1->SetPos(ChVector<>(0, 0, 0));
     c1->SetRot(ChQuaternion<>(ChRandom(), ChRandom(), ChRandom(), ChRandom()).GetNormalized());
     c1->GetVisualShape(0)->SetColor(ChColor(0, 0, 0.4f));
@@ -151,7 +151,7 @@ void CreateCylinders(ChSystemSMC& sys) {
     c1->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
     sys.Add(c1);
 
-    auto c2 = chrono_types::make_shared<ChBodyEasyCylinder>(2.0, 4.0, 1, mat, collision_type);
+    auto c2 = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 2.0, 4.0, 1, mat, collision_type);
     c2->SetPos(ChVector<>(0, 0, 3));
     c2->SetRot(Q_from_AngZ(CH_C_PI / 4));
     c2->GetVisualShape(0)->SetColor(ChColor(0.6f, 0.6f, 0.7f));
@@ -185,7 +185,8 @@ void CreateShapes(ChSystemSMC& sys) {
         b->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
         sys.Add(b);
 
-        auto c = chrono_types::make_shared<ChBodyEasyCylinder>(0.75 * scale, 0.75 * scale, 1, mat, collision_type);
+        auto c = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.75 * scale, 0.75 * scale, 1, mat,
+                                                               collision_type);
         c->SetPos(points[3 * i + 2]);
         c->SetRot(ChQuaternion<>(ChRandom(), ChRandom(), ChRandom(), ChRandom()).GetNormalized());
         c->GetVisualShape(0)->SetColor(ChColor(0, 0, 0.4f));

@@ -51,7 +51,8 @@ void HMMWV_Wheel::Initialize(std::shared_ptr<ChBody> spindle,
     ChContactMaterialData mat_info;
     auto material = mat_info.CreateMaterial(spindle->GetSystem()->GetContactMethod());
     spindle->GetCollisionModel()->ClearModel();
-    spindle->GetCollisionModel()->AddCylinder(material, m_radius, m_radius, m_width / 2, ChVector<>(0, m_offset, 0));
+    spindle->GetCollisionModel()->AddCylinder(material, m_radius, m_width, ChVector<>(0, 0, m_offset),
+                                              Q_from_AngX(CH_C_PI_2));
     spindle->GetCollisionModel()->BuildModel();
 }
 

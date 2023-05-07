@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
     vis_mat4->SetClassID(30000);
     vis_mat4->SetInstanceID(1000);
 
-    auto cyl_body = chrono_types::make_shared<ChBodyEasyCylinder>(.25, 1, 1000, true, false);
+    auto cyl_body = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, .25, 1, 1000, true, false);
     cyl_body->SetPos({0, 2, 0});
     cyl_body->SetBodyFixed(true);
     sys.Add(cyl_body);

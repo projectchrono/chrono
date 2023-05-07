@@ -81,13 +81,12 @@ for ix in range(0,nbricks_on_x):
 
         # Collision shape
         body_brick.GetCollisionModel().ClearModel()
-        body_brick.GetCollisionModel().AddBox(brick_material, size_brick_x/2, size_brick_y/2, size_brick_z/2) # must set half sizes
+        body_brick.GetCollisionModel().AddBox(brick_material, size_brick_x, size_brick_y, size_brick_z) # must set half sizes
         body_brick.GetCollisionModel().BuildModel()
         body_brick.SetCollide(True)
 
         # Visualization shape, for rendering animation
-        body_brick_shape = chrono.ChBoxShape()
-        body_brick_shape.GetBoxGeometry().Size = chrono.ChVectorD(size_brick_x/2, size_brick_y/2, size_brick_z/2)
+        body_brick_shape = chrono.ChBoxShape(size_brick_x, size_brick_y, size_brick_z)
         if iy%2==0 :
             body_brick_shape.SetColor(chrono.ChColor(0.65, 0.65, 0.6)) # set gray color only for odd bricks
         body_brick.AddVisualShape(body_brick_shape)
@@ -104,13 +103,12 @@ body_floor.SetPos(chrono.ChVectorD(0, -2, 0 ))
 
 # Collision shape
 body_floor.GetCollisionModel().ClearModel()
-body_floor.GetCollisionModel().AddBox(brick_material, 3, 1, 3) # hemi sizes
+body_floor.GetCollisionModel().AddBox(brick_material, 6, 2, 6)
 body_floor.GetCollisionModel().BuildModel()
 body_floor.SetCollide(True)
 
 # Visualization shape
-body_floor_shape = chrono.ChBoxShape()
-body_floor_shape.GetBoxGeometry().Size = chrono.ChVectorD(3, 1, 3)
+body_floor_shape = chrono.ChBoxShape(6, 2, 6)
 body_floor_shape.SetTexture(chrono.GetChronoDataFile('textures/concrete.jpg'))
 body_floor.AddVisualShape(body_floor_shape)
 
@@ -129,13 +127,12 @@ body_table.SetPos(chrono.ChVectorD(0, -size_table_y/2, 0 ))
 
 # Collision shape
 body_table.GetCollisionModel().ClearModel()
-body_table.GetCollisionModel().AddBox(brick_material, size_table_x/2, size_table_y/2, size_table_z/2) # hemi sizes
+body_table.GetCollisionModel().AddBox(brick_material, size_table_x, size_table_y, size_table_z)
 body_table.GetCollisionModel().BuildModel()
 body_table.SetCollide(True)
 
 # Visualization shape
-body_table_shape = chrono.ChBoxShape()
-body_table_shape.GetBoxGeometry().Size = chrono.ChVectorD(size_table_x/2, size_table_y/2, size_table_z/2)
+body_table_shape = chrono.ChBoxShape(size_table_x, size_table_y, size_table_z)
 body_table_shape.SetColor(chrono.ChColor(0.4,0.4,0.5))
 body_table_shape.SetTexture(chrono.GetChronoDataFile('textures/concrete.jpg'))
 body_table.AddVisualShape(body_table_shape)

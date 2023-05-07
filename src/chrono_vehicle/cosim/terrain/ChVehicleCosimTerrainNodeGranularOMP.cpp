@@ -70,7 +70,7 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(doubl
       m_use_checkpoint(false),
       m_settling_output(false),
       m_settling_fps(100),
-      m_hthick(0.1),
+      m_thick(0.2),
       m_num_particles(0) {
     // Default granular material properties
     m_radius_g = 0.01;
@@ -130,7 +130,7 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChCon
       m_use_checkpoint(false),
       m_settling_output(false),
       m_settling_fps(100),
-      m_hthick(0.1),
+      m_thick(0.2),
       m_num_particles(0) {
     // Create system and set method-specific solver settings
     switch (m_method) {
@@ -192,10 +192,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::SetFromSpecfile(const std::string& sp
     Document d;
     ReadSpecfile(specfile, d);
 
-    double length = d["Patch dimensions"]["Length"].GetDouble();
-    double width = d["Patch dimensions"]["Width"].GetDouble();
-    m_hdimX = length / 2;
-    m_hdimY = width / 2;
+    m_dimX = d["Patch dimensions"]["Length"].GetDouble();
+    m_dimY = d["Patch dimensions"]["Width"].GetDouble();
 
     m_radius_g = d["Granular material"]["Radius"].GetDouble();
     m_rho_g = d["Granular material"]["Density"].GetDouble();
@@ -271,7 +269,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::SetNumThreads(int num_threads) {
 }
 
 void ChVehicleCosimTerrainNodeGranularOMP::SetWallThickness(double thickness) {
-    m_hthick = thickness / 2;
+    m_thick = thickness;
 }
 
 void ChVehicleCosimTerrainNodeGranularOMP::SetGranularMaterial(double radius, double density) {
@@ -357,12 +355,11 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     // Calculate container (half) height
     double r = m_separation_factor * m_radius_g;
     double delta = 2.0f * r;
-    double hdimZ = 0.5 * m_init_depth;
 
     // Estimates for number of bins for broad-phase.
     int factor = 2;
-    int binsX = (int)std::ceil(m_hdimX / m_radius_g) / factor;
-    int binsY = (int)std::ceil(m_hdimY / m_radius_g) / factor;
+    int binsX = (int)std::ceil(m_dimX / (2 * m_radius_g)) / factor;
+    int binsY = (int)std::ceil(m_dimY / (2 * m_radius_g)) / factor;
     int binsZ = 1;
     m_system->GetSettings()->collision.bins_per_axis = vec3(binsX, binsY, binsZ);
     if (m_verbose)
@@ -379,29 +376,34 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     container->SetBodyFixed(true);
     container->SetCollide(true);
 
+    double hdimX = m_dimX / 2;
+    double hdimY = m_dimY / 2;
+    double hdimZ = 0.5 * m_init_depth;
+    double hthick = m_thick / 2;
+
     container->GetCollisionModel()->ClearModel();
     // Bottom box
-    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_hdimX, m_hdimY, m_hthick),
-                          ChVector<>(0, 0, -m_hthick), ChQuaternion<>(1, 0, 0, 0), true);
+    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_dimX, m_dimY, m_thick),
+                          ChVector<>(0, 0, -m_thick/2), ChQuaternion<>(1, 0, 0, 0), true);
     // Front box
-    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_hthick, m_hdimY, hdimZ + m_hthick),
-                          ChVector<>(m_hdimX + m_hthick, 0, hdimZ - m_hthick), ChQuaternion<>(1, 0, 0, 0), false);
+    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_thick, m_dimY, m_init_depth + m_thick),
+                          ChVector<>(hdimX + hthick, 0, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), false);
     // Rear box
-    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_hthick, m_hdimY, hdimZ + m_hthick),
-                          ChVector<>(-m_hdimX - m_hthick, 0, hdimZ - m_hthick), ChQuaternion<>(1, 0, 0, 0), false);
+    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_thick, m_dimY, m_init_depth + m_thick),
+                          ChVector<>(-hdimX - hthick, 0, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), false);
     // Left box
-    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_hdimX, m_hthick, hdimZ + m_hthick),
-                          ChVector<>(0, m_hdimY + m_hthick, hdimZ - m_hthick), ChQuaternion<>(1, 0, 0, 0), false);
+    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_dimX, m_thick, m_init_depth + m_thick),
+                          ChVector<>(0, hdimY + hthick, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), false);
     // Right box
-    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_hdimX, m_hthick, hdimZ + m_hthick),
-                          ChVector<>(0, -m_hdimY - m_hthick, hdimZ - m_hthick), ChQuaternion<>(1, 0, 0, 0), false);
+    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_dimX, m_thick, m_init_depth + m_thick),
+                          ChVector<>(0, -hdimY - hthick, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), false);
     container->GetCollisionModel()->BuildModel();
 
     // Enable deactivation of bodies that exit a specified bounding box.
     // We set this bounding box to encapsulate the container with a conservative height.
     m_system->GetSettings()->collision.use_aabb_active = true;
-    m_system->GetSettings()->collision.aabb_min = real3(-m_hdimX - m_hthick, -m_hdimY - m_hthick, -m_hthick);
-    m_system->GetSettings()->collision.aabb_max = real3(+m_hdimX + m_hthick, +m_hdimY + m_hthick, 2 * hdimZ + 2);
+    m_system->GetSettings()->collision.aabb_min = real3(-hdimX - hthick, -hdimY - hthick, -hthick);
+    m_system->GetSettings()->collision.aabb_max = real3(+hdimX + hthick, +hdimY + hthick, 2 * hdimZ + 2);
 
     // --------------------------
     // Generate granular material
@@ -438,7 +440,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     }
 
     if (m_in_layers) {
-        ChVector<> hdims(m_hdimX - r, m_hdimY - r, 0);
+        ChVector<> hdims(hdimX - r, hdimY - r, 0);
         double z = delta;
         while (z < m_init_depth) {
             gen.CreateObjectsBox(*sampler, ChVector<>(0, 0, z), hdims);
@@ -447,7 +449,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
             z += delta;
         }
     } else {
-        ChVector<> hdims(m_hdimX - r, m_hdimY - r, m_init_depth / 2 - r);
+        ChVector<> hdims(hdimX - r, hdimY - r, m_init_depth / 2 - r);
         gen.CreateObjectsBox(*sampler, ChVector<>(0, 0, m_init_depth / 2), hdims);
     }
 
@@ -574,7 +576,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
          << endl;
     outf << "   Collision envelope = " << m_system->GetSettings()->collision.collision_envelope << endl;
     outf << "Terrain patch dimensions" << endl;
-    outf << "   X = " << 2 * m_hdimX << "  Y = " << 2 * m_hdimY << endl;
+    outf << "   X = " << m_dimX << "  Y = " << m_dimY << endl;
     outf << "Terrain material properties" << endl;
     switch (m_method) {
         case ChContactMethod::SMC: {
@@ -761,7 +763,7 @@ double ChVehicleCosimTerrainNodeGranularOMP::CalculatePackingDensity(double& dep
     depth = z_max - z_min;
 
     // Find total volume of granular material
-    double Vt = (2 * m_hdimX) * (2 * m_hdimY) * (z_max - z_min);
+    double Vt = m_dimX * m_dimY * (z_max - z_min);
 
     // Find volume of granular particles
     double Vs = m_num_particles * (4.0 / 3) * CH_C_PI * std::pow(m_radius_g, 3);

@@ -260,13 +260,19 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     cmaterial->SetRestitution(0.2f);
     cmaterial->SetAdhesion(0);
     ground->GetCollisionModel()->ClearModel();
-    chrono::utils::AddBoxContainer(ground, cmaterial, ChFrame<>(), ChVector<>(bxDim, byDim, bzDim), 0.1,
-                                   ChVector<int>(0, 0, -1), false);
+    chrono::utils::AddBoxContainer(ground, cmaterial,                              //
+                                   ChFrame<>(ChVector<>(0, 0, bzDim / 2), QUNIT),  //
+                                   ChVector<>(bxDim, byDim, bzDim), 0.1,           //
+                                   ChVector<int>(0, 0, -1),                        //
+                                   false);
     ground->GetCollisionModel()->BuildModel();
     ground->SetCollide(true);
 
     // Fluid representation of walls
-    sysFSI.AddContainerBCE(ground, ChFrame<>(), ChVector<>(bxDim, byDim, bzDim), ChVector<int>(2, 0, -1));
+    sysFSI.AddBoxContainerBCE(ground,                                         //
+                              ChFrame<>(ChVector<>(0, 0, bzDim / 2), QUNIT),  //
+                              ChVector<>(bxDim, byDim, bzDim),                //
+                              ChVector<int>(2, 0, -1));
 
     // ******************************* Rigid bodies ***********************************
     // set the abs orientation, position and velocity

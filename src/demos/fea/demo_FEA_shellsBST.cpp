@@ -324,7 +324,8 @@ int main(int argc, char* argv[]) {
         ////contact_cloud->AddAllNodes(0.01);
 
         // Create a fixed collision shape
-        auto cylinder = chrono_types::make_shared<ChBodyEasyCylinder>(0.1, 1.0, 1000, true, true, mat);
+        auto cylinder =
+            chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.1, 1.0, 1000, true, true, mat);
         cylinder->SetBodyFixed(true);
         cylinder->SetPos(ChVector<>(0.75, -0.25, 0.5));
         cylinder->SetRot(Q_from_AngZ(CH_C_PI_2));

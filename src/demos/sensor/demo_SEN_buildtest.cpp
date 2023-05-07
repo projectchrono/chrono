@@ -201,10 +201,11 @@ int main(int argc, char* argv[]) {
         texsphere->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
     }
 
-    auto texcyl = chrono_types::make_shared<ChBodyEasyCylinder>(.5, 1,             // size
-                                                                1000,              // density
-                                                                true,              // vis enable?
-                                                                false, phys_mat);  //
+    auto texcyl = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y,  //
+                                                                .5, 1,                // size
+                                                                1000,                 // density
+                                                                true,                 // vis enable?
+                                                                false, phys_mat);     //
     texcyl->SetPos({1, -4, 3});
     texcyl->SetBodyFixed(true);
     sys.Add(texcyl);
@@ -219,13 +220,13 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < num_bodies; i++) {
         // add a box
         auto box =
-            chrono_types::make_shared<ChBodyEasyBox>((float)ChRandom() / 2.0 + 0.1, (float)ChRandom() / 2.0 + 0.1,
-                                                     (float)ChRandom() / 2.0 + 0.1,  // x,y,z size
+            chrono_types::make_shared<ChBodyEasyBox>(ChRandom() / 2.0 + 0.1, ChRandom() / 2.0 + 0.1,
+                                                     ChRandom() / 2.0 + 0.1,  // x,y,z size
                                                      1000,                           // density
                                                      true,                           // collide enable?
                                                      true, phys_mat);                // visualization?
-        box->SetPos({(float)ChRandom(), (float)ChRandom(), 2.0 + i});
-        box->SetRot(Q_from_Euler123({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()}));
+        box->SetPos({ChRandom(), ChRandom(), 2.0 + i});
+        box->SetRot(Q_from_Euler123({ChRandom(), ChRandom(), ChRandom()}));
         sys.Add(box);
         {
             auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
@@ -238,13 +239,14 @@ int main(int argc, char* argv[]) {
             imu_parent = box;
         }
 
-        auto cyl = chrono_types::make_shared<ChBodyEasyCylinder>((float)ChRandom() / 2.0 + 0.1,  // radius
-                                                                 (float)ChRandom() / 2.0 + 0.1,  // height
+        auto cyl = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y,            //
+                                                                 ChRandom() / 2.0 + 0.1,  // radius
+                                                                 ChRandom() / 2.0 + 0.1,  // height
                                                                  1000,                           // density
                                                                  true,                           // collide enable?
                                                                  true, phys_mat);                // visualization?
-        cyl->SetPos({(float)ChRandom(), (float)ChRandom(), 2.0 + i});
-        cyl->SetRot(Q_from_Euler123({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()}));
+        cyl->SetPos({ChRandom(), ChRandom(), 2.0 + i});
+        cyl->SetRot(Q_from_Euler123({ChRandom(), ChRandom(), ChRandom()}));
         sys.Add(cyl);
         {
             auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
@@ -257,7 +259,7 @@ int main(int argc, char* argv[]) {
                                                                   1000,                           // density
                                                                   true,                           // collide enable?
                                                                   true, phys_mat);                // visualization?
-        sphere->SetPos({(float)ChRandom(), (float)ChRandom(), 2.0 + i});
+        sphere->SetPos({ChRandom(), ChRandom(), 2.0 + i});
         // sphere->SetRot(Q_from_Euler123({(float)ChRandom(), (float)ChRandom(), (float)rand() /
         // RAND_MAX}));
         sys.Add(sphere);
@@ -276,7 +278,7 @@ int main(int argc, char* argv[]) {
         mesh_body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
         mesh_body->SetMass(mmass * mdensity);
         mesh_body->SetInertiaXX(mdensity * principal_I);
-        mesh_body->SetFrame_REF_to_abs(ChFrame<>(ChVector<>((float)ChRandom(), (float)ChRandom(), 2.0 + i)));
+        mesh_body->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(ChRandom(), ChRandom(), 2.0 + i)));
         sys.Add(mesh_body);
 
         mesh_body->GetCollisionModel()->ClearModel();

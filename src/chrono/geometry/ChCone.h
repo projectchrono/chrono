@@ -23,25 +23,29 @@ namespace geometry {
 /// A conical geometric object for collisions and visualization.
 class ChApi ChCone : public ChGeometry {
   public:
-    ChVector<> center;  ///< base center
-    ChVector<> rad;     ///< cone radius
-
-  public:
-    ChCone() : center(VNULL), rad(0) {}
-    ChCone(const ChVector<>& mc, const ChVector<>& mrad) : center(mc), rad(mrad) {}
+    ChCone() : h(0), r(0) {}
+    ChCone(double radius, double height) : r(radius), h(height) {}
     ChCone(const ChCone& source);
     ~ChCone() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChCone* Clone() const override { return new ChCone(*this); }
 
-    virtual GeometryType GetClassType() const override { return CONE; }
+    /// Get the class type as an enum.
+    virtual Type GetClassType() const override { return Type::CONE; }
 
     /// Compute bounding box along the directions defined by the given rotation matrix.
     /// Note: 'rot' is currently ignored.
-    virtual void GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const override;
+    virtual AABB GetBoundingBox(const ChMatrix33<>& rot) const override;
 
-    virtual ChVector<> Baricenter() const override { return center; }
+    /// Compute the baricenter of the cone.
+    virtual ChVector<> Baricenter() const override { return ChVector<>(); }
+
+    /// Get the cone radius.
+    double GetRadius() const { return r; }
+
+    /// Get the cone height.
+    double GetHeight() const { return h; }
 
     /// This is a solid
     virtual int GetManifoldDimension() const override { return 3; }
@@ -51,6 +55,9 @@ class ChApi ChCone : public ChGeometry {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+    double h;
+    double r;
 };
 
 }  // end namespace geometry

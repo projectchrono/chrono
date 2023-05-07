@@ -201,6 +201,23 @@ CUDA_HOST_DEVICE ChApi quaternion Q_from_AngAxis(const real& angle, const real3&
     return (quat);
 }
 
+CUDA_HOST_DEVICE ChApi real3 AMatU(const quaternion& q) {
+    real3 V;
+
+    real e0e0 = q.w * q.w;
+    real e0e2 = q.w * q.y;
+    real e0e3 = q.w * q.z;
+    real e1e1 = q.x * q.x;
+    real e1e3 = q.x * q.z;
+    real e1e2 = q.x * q.y;
+
+    V[0] = (e0e0 + e1e1) * 2 - 1;
+    V[1] = (e1e2 + e0e3) * 2;
+    V[2] = (e1e3 - e0e2) * 2;
+
+    return V;
+}
+
 CUDA_HOST_DEVICE ChApi real3 AMatV(const quaternion& q) {
     real3 V;
 
@@ -214,6 +231,23 @@ CUDA_HOST_DEVICE ChApi real3 AMatV(const quaternion& q) {
     V[0] = (e1e2 - e0e3) * 2;
     V[1] = (e0e0 + e2e2) * 2 - 1;
     V[2] = (e2e3 + e0e1) * 2;
+
+    return V;
+}
+
+CUDA_HOST_DEVICE ChApi real3 AMatW(const quaternion& q) {
+    real3 V;
+
+    real e0e0 = q.w * q.w;
+    real e0e1 = q.w * q.x;
+    real e0e2 = q.w * q.y;
+    real e1e3 = q.x * q.z;
+    real e2e3 = q.y * q.z;
+    real e3e3 = q.z * q.z;
+
+    V[0] = (e1e3 + e0e2) * 2;
+    V[1] = (e2e3 - e0e1) * 2;
+    V[2] = (e0e0 + e3e3) * 2 - 1;
 
     return V;
 }

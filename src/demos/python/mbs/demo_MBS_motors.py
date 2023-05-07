@@ -56,7 +56,7 @@ def CreateSliderGuide(material,
 def CreateStatorRotor(material,
                       msystem,
                       mpos) :
-    mstator = chrono.ChBodyEasyCylinder(0.5, 0.1, 1000, True, True, material)
+    mstator = chrono.ChBodyEasyCylinder(chrono.ChAxis_Y, 0.5, 0.1, 1000, True, True, material)
     mstator.SetPos(mpos)
     mstator.SetRot(chrono.Q_from_AngAxis(chrono.CH_C_PI_2, chrono.VECT_X))
     mstator.SetBodyFixed(True)

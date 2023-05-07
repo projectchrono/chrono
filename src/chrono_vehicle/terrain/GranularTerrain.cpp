@@ -356,8 +356,7 @@ void GranularTerrain::Initialize(const ChVector<>& center,
     m_ground->SetPos(center);
 
     // If enabled, create particles fixed to ground. Share the same visual model.
-    auto sph_shape = chrono_types::make_shared<ChSphereShape>();
-    sph_shape->GetSphereGeometry().rad = radius;
+    auto sph_shape = chrono_types::make_shared<ChSphereShape>(radius);
 
     if (m_rough_surface) {
         m_sep_x = length / (m_nx - 1);
@@ -366,8 +365,7 @@ void GranularTerrain::Initialize(const ChVector<>& center,
         for (int ix = 0; ix < m_nx; ix++) {
             double y_pos = -0.5 * width;
             for (int iy = 0; iy < m_ny; iy++) {
-                auto sphere = chrono_types::make_shared<ChSphereShape>();
-                sphere->GetSphereGeometry().rad = radius;
+                auto sphere = chrono_types::make_shared<ChSphereShape>(radius);
                 m_ground->AddVisualShape(sph_shape, ChFrame<>(ChVector<>(x_pos, y_pos, radius)));
                 y_pos += m_sep_y;
             }
@@ -425,9 +423,8 @@ void GranularTerrain::Initialize(const ChVector<>& center,
 
     // If enabled, create visualization assets for the boundaries.
     if (m_vis_enabled) {
-        auto box = chrono_types::make_shared<ChBoxShape>();
         double hthick = 0.05;
-        box->GetBoxGeometry().Size = ChVector<>(length / 2, width / 2, hthick);
+        auto box = chrono_types::make_shared<ChBoxShape>(length, width, 2 * hthick);
         m_ground->AddVisualShape(box, ChFrame<>(ChVector<>(0, 0, -hthick)));
     }
 

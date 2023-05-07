@@ -1396,13 +1396,13 @@ void cbtCollisionWorld::debugDrawObject(const cbtTransform& worldTransform, cons
 				getDebugDrawer()->drawCylinder(radius, halfHeight, upAxis, worldTransform, color);
 				break;
 			}
-            case CYLSHELL_SHAPE_PROXYTYPE: { /* ***CHRONO*** */
-                const cbtCylindricalShellShape* cylinder = static_cast<const cbtCylindricalShellShape*>(shape);
+			case CYLSHELL_SHAPE_PROXYTYPE: { /* ***CHRONO*** */
+				const cbtCylindricalShellShape* cylinder = static_cast<const cbtCylindricalShellShape*>(shape);
 				cbtScalar radius = cylinder->getRadius();
-                cbtScalar halfHeight = cylinder->getHalfExtentsWithMargin()[1];
-                getDebugDrawer()->drawCylinder(radius, halfHeight, 1, worldTransform, color);
-                break;
-            }
+				cbtScalar halfHeight = cylinder->getHalfExtentsWithMargin()[1];
+				getDebugDrawer()->drawCylinder(radius, halfHeight, 1, worldTransform, color);
+				break;
+			}
 			case STATIC_PLANE_PROXYTYPE:
 			{
 				const cbtStaticPlaneShape* staticPlaneShape = static_cast<const cbtStaticPlaneShape*>(shape);

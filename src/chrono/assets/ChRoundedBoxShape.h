@@ -24,12 +24,23 @@ namespace chrono {
 class ChApi ChRoundedBoxShape : public ChVisualShape {
   public:
     ChRoundedBoxShape();
+    ChRoundedBoxShape(double length_x, double length_y, double length_z, double radius);
+    ChRoundedBoxShape(const ChVector<>& lengths, double radius);
     ChRoundedBoxShape(const geometry::ChRoundedBox& box);
 
     ~ChRoundedBoxShape() {}
 
-    // Access the rounded box geometry
-    geometry::ChRoundedBox& GetRoundedBoxGeometry() { return groundedbox; }
+    // Access the rounded box geometry.
+    geometry::ChRoundedBox& GetGeometry() { return gbox; }
+
+    /// Get the box half-lengths.
+    const ChVector<>& GetHalflengths() const { return gbox.GetHalflengths(); }
+
+    /// Get the box dimensions.
+    ChVector<> GetLengths() const { return gbox.GetLengths(); }
+
+    /// Get the radius of the sweeping sphere.
+    double GetSphereRadius() const { return gbox.GetSphereRadius(); }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
@@ -38,7 +49,7 @@ class ChApi ChRoundedBoxShape : public ChVisualShape {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
   private:
-    geometry::ChRoundedBox groundedbox;
+    geometry::ChRoundedBox gbox;
 };
 
 CH_CLASS_VERSION(ChRoundedBoxShape, 0)

@@ -41,17 +41,20 @@ ChTriangle& ChTriangle::operator=(const ChTriangle& source) {
     return *this;
 }
 
-void ChTriangle::GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const {
+ChGeometry::AABB ChTriangle::GetBoundingBox(const ChMatrix33<>& rot) const {
     ChVector<> trp1 = rot.transpose() * p1;
     ChVector<> trp2 = rot.transpose() * p2;
     ChVector<> trp3 = rot.transpose() * p3;
 
-    cmin.x() = ChMin(ChMin(trp1.x(), trp2.x()), trp3.x());
-    cmin.y() = ChMin(ChMin(trp1.y(), trp2.y()), trp3.y());
-    cmin.z() = ChMin(ChMin(trp1.z(), trp2.z()), trp3.z());
-    cmax.x() = ChMax(ChMax(trp1.x(), trp2.x()), trp3.x());
-    cmax.y() = ChMax(ChMax(trp1.y(), trp2.y()), trp3.y());
-    cmax.z() = ChMax(ChMax(trp1.z(), trp2.z()), trp3.z());
+    AABB bbox;
+    bbox.min.x() = ChMin(ChMin(trp1.x(), trp2.x()), trp3.x());
+    bbox.min.y() = ChMin(ChMin(trp1.y(), trp2.y()), trp3.y());
+    bbox.min.z() = ChMin(ChMin(trp1.z(), trp2.z()), trp3.z());
+    bbox.max.x() = ChMax(ChMax(trp1.x(), trp2.x()), trp3.x());
+    bbox.max.y() = ChMax(ChMax(trp1.y(), trp2.y()), trp3.y());
+    bbox.max.z() = ChMax(ChMax(trp1.z(), trp2.z()), trp3.z());
+
+    return bbox;
 }
 
 ChVector<> ChTriangle::Baricenter() const {

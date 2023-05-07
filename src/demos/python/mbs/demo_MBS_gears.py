@@ -59,18 +59,15 @@ link_revoluteTT.Initialize(mbody_truss, mbody_train,
 sys.AddLink(link_revoluteTT)
 
 # ...the first gear
-mbody_gearA = chrono.ChBodyEasyCylinder(radA, 0.5, 1000, True, False, mat)
+mbody_gearA = chrono.ChBodyEasyCylinder(chrono.ChAxis_Y, radA, 0.5, 1000, True, False, mat)
 sys.Add(mbody_gearA)
 mbody_gearA.SetPos(chrono.ChVectorD(0, 0, -1))
 mbody_gearA.SetRot(chrono.Q_from_AngX(m.pi / 2))
 mbody_gearA.GetVisualShape(0).SetMaterial(0, vis_mat)
 
 # for aesthetic reasons, also add a thin cylinder only as a visualization
-mshaft_shape = chrono.ChCylinderShape()
-mshaft_shape.GetCylinderGeometry().p1 = chrono.ChVectorD(0, -3, 0)
-mshaft_shape.GetCylinderGeometry().p2 = chrono.ChVectorD(0, 10, 0)
-mshaft_shape.GetCylinderGeometry().rad = radA * 0.4
-mbody_gearA.AddVisualShape(mshaft_shape)
+mshaft_shape = chrono.ChCylinderShape(radA * 0.4, 13)
+mbody_gearA.AddVisualShape(mshaft_shape, chrono.ChFrameD(chrono.ChVectorD(0, 3.5, 0), chrono.Q_from_AngX(chrono.CH_C_PI_2)))
 
 # ...impose rotation speed between the first gear and the fixed truss
 link_motor = chrono.ChLinkMotorRotationSpeed()
@@ -82,7 +79,7 @@ sys.AddLink(link_motor)
 
 # ...the second gear
 interaxis12 = radA + radB
-mbody_gearB = chrono.ChBodyEasyCylinder(radB, 0.4, 1000, True, False, mat)
+mbody_gearB = chrono.ChBodyEasyCylinder(chrono.ChAxis_Y, radB, 0.4, 1000, True, False, mat)
 sys.Add(mbody_gearB)
 mbody_gearB.SetPos(chrono.ChVectorD(interaxis12, 0, -1))
 mbody_gearB.SetRot(chrono.Q_from_AngX(m.pi / 2))
@@ -127,7 +124,7 @@ sys.AddLink(link_gearBC)
 
 # ...the bevel gear at the side,
 radD = 5
-mbody_gearD = chrono.ChBodyEasyCylinder(radD, 0.8, 1000, True, False, mat)
+mbody_gearD = chrono.ChBodyEasyCylinder(chrono.ChAxis_Y, radD, 0.8, 1000, True, False, mat)
 sys.Add(mbody_gearD)
 mbody_gearD.SetPos(chrono.ChVectorD(-10, 0, -9))
 mbody_gearD.SetRot(chrono.Q_from_AngZ(m.pi / 2))
@@ -153,7 +150,7 @@ sys.AddLink(link_gearAD)
 
 # ...the pulley at the side,
 radE = 2;
-mbody_pulleyE = chrono.ChBodyEasyCylinder(radE, 0.8, 1000, True, False, mat)
+mbody_pulleyE = chrono.ChBodyEasyCylinder(chrono.ChAxis_Y, radE, 0.8, 1000, True, False, mat)
 sys.Add(mbody_pulleyE)
 mbody_pulleyE.SetPos(chrono.ChVectorD(-10, -11, -9))
 mbody_pulleyE.SetRot(chrono.Q_from_AngZ(m.pi / 2))

@@ -242,10 +242,6 @@ void MixtureIngredient::calcGeometricProps(const ChVector<>& size, double& volum
             volume = CalcCapsuleVolume(size.x(), size.y());
             gyration = CalcCapsuleGyration(size.x(), size.y()).diagonal();
             break;
-        case MixtureType::ROUNDEDCYLINDER:
-            volume = CalcRoundedCylinderVolume(size.x(), size.y(), size.z());
-            gyration = CalcRoundedCylinderGyration(size.x(), size.y(), size.z()).diagonal();
-            break;
     }
 }
 
@@ -526,25 +522,22 @@ void Generator::createObjects(const PointVector& points, const ChVector<>& vel) 
                 AddSphereGeometry(body, mat, size.x());
                 break;
             case MixtureType::ELLIPSOID:
-                AddEllipsoidGeometry(body, mat, size);
+                AddEllipsoidGeometry(body, mat, size * 2);
                 break;
             case MixtureType::BOX:
-                AddBoxGeometry(body, mat, size);
+                AddBoxGeometry(body, mat, size * 2);
                 break;
             case MixtureType::CYLINDER:
                 AddCylinderGeometry(body, mat, size.x(), size.y());
                 break;
             case MixtureType::CONE:
-                AddConeGeometry(body, mat, size.x(), size.y());
+                AddConeGeometry(body, mat, size.x(), size.z());
                 break;
             case MixtureType::BISPHERE:
             	AddBiSphereGeometry(body, mat, size.x(), size.y());
                 break;
             case MixtureType::CAPSULE:
-                AddCapsuleGeometry(body, mat, size.x(), size.y());
-                break;
-            case MixtureType::ROUNDEDCYLINDER:
-                AddRoundedCylinderGeometry(body, mat, size.x(), size.y(), size.z());
+                AddCapsuleGeometry(body, mat, size.x(), size.z());
                 break;
         }
 

@@ -23,102 +23,48 @@ namespace geometry {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChRoundedBox)
 
+ChRoundedBox::ChRoundedBox(const ChVector<>& lengths, double sphere_radius)
+    : hlen(0.5 * lengths), srad(sphere_radius) {}
+
+ChRoundedBox::ChRoundedBox(double length_x, double length_y, double length_z, double sphere_radius)
+    : hlen(0.5 * ChVector<>(length_z, length_y, length_z)), srad(sphere_radius) {}
+
 ChRoundedBox::ChRoundedBox(const ChRoundedBox& source) {
-    Size = source.Size;
+    hlen = source.hlen;
 }
-
-/*
-ChRoundedBox::ChRoundedBox(const ChVector<>& mC0, const ChVector<>& mC1, const ChVector<>& mC2, const ChVector<>& mC3) {
-    ChVector<> D1 = Vsub(mC1, mC0);
-    ChVector<> D2 = Vsub(mC2, mC0);
-    ChVector<> D3 = Vsub(mC3, mC0);
-    ChVector<> C0 = mC0;
-
-    ChVector<> zax;
-    zax.Cross(D1, D2);
-    if (Vdot(D3, zax) < 0) {
-        C0 += D3;
-        D3 = -D3;
-    }
-
-    this->Size.x() = 0.5 * Vlength(D1);
-    this->Size.y() = 0.5 * Vlength(D2);
-    this->Size.z() = 0.5 * Vlength(D3);
-    this->Pos = Vadd(Vadd(Vadd(C0, Vmul(D1, 0.5)), Vmul(D2, 0.5)), Vmul(D3, 0.5));
-    this->Rot.Set_A_axis(Vnorm(D1), Vnorm(D2), Vnorm(D3));
-}
-*/
 
 void ChRoundedBox::Evaluate(ChVector<>& pos, const double parU, const double parV, const double parW) const {
-    pos.x() = Size.x() * (parU - 0.5);
-    pos.y() = Size.y() * (parV - 0.5);
-    pos.z() = Size.z() * (parW - 0.5);
+    pos.x() = hlen.x() * (parU - 0.5);
+    pos.y() = hlen.y() * (parV - 0.5);
+    pos.z() = hlen.z() * (parW - 0.5);
 }
 
-ChVector<> ChRoundedBox::GetP1() const {
-    return ChVector<>(+Size.x(), +Size.y(), +Size.z());
-}
-ChVector<> ChRoundedBox::GetP2() const {
-    return ChVector<>(-Size.x(), +Size.y(), +Size.z());
-}
-ChVector<> ChRoundedBox::GetP3() const {
-    return ChVector<>(-Size.x(), -Size.y(), +Size.z());
-}
-ChVector<> ChRoundedBox::GetP4() const {
-    return ChVector<>(+Size.x(), -Size.y(), +Size.z());
-}
-ChVector<> ChRoundedBox::GetP5() const {
-    return ChVector<>(+Size.x(), +Size.y(), -Size.z());
-}
-ChVector<> ChRoundedBox::GetP6() const {
-    return ChVector<>(-Size.x(), +Size.y(), -Size.z());
-}
-ChVector<> ChRoundedBox::GetP7() const {
-    return ChVector<>(-Size.x(), -Size.y(), -Size.z());
-}
-ChVector<> ChRoundedBox::GetP8() const {
-    return ChVector<>(+Size.x(), -Size.y(), -Size.z());
-}
+ChGeometry::AABB ChRoundedBox::GetBoundingBox(const ChMatrix33<>& rot) const {
+    std::vector<ChVector<>> vertices{
+        ChVector<>(+hlen.x(), +hlen.y(), +hlen.z()),  //
+        ChVector<>(-hlen.x(), +hlen.y(), +hlen.z()),  //
+        ChVector<>(-hlen.x(), -hlen.y(), +hlen.z()),  //
+        ChVector<>(+hlen.x(), -hlen.y(), +hlen.z()),  //
+        ChVector<>(+hlen.x(), +hlen.y(), -hlen.z()),  //
+        ChVector<>(-hlen.x(), +hlen.y(), -hlen.z()),  //
+        ChVector<>(-hlen.x(), -hlen.y(), -hlen.z()),  //
+        ChVector<>(+hlen.x(), -hlen.y(), -hlen.z())   //
+    };
 
-ChVector<> ChRoundedBox::GetPn(int ipoint) const {
-    switch (ipoint) {
-        case 1:
-            return GetP1();
-        case 2:
-            return GetP2();
-        case 3:
-            return GetP3();
-        case 4:
-            return GetP4();
-        case 5:
-            return GetP5();
-        case 6:
-            return GetP6();
-        case 7:
-            return GetP7();
-        case 8:
-            return GetP8();
-        default:
-            return GetP1();
-    }
-}
-void ChRoundedBox::GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const {
-    std::vector<ChVector<>> vertices{GetP1(), GetP2(), GetP3(), GetP4(), GetP5(), GetP6(), GetP7(), GetP8()};
-
-    cmin = ChVector<>(+std::numeric_limits<double>::max());
-    cmax = ChVector<>(-std::numeric_limits<double>::max());
-
+    AABB bbox;
     for (const auto& v : vertices) {
         auto p = rot.transpose() * v;
 
-        cmin.x() = ChMin(cmin.x(), p.x());
-        cmin.y() = ChMin(cmin.y(), p.y());
-        cmin.z() = ChMin(cmin.z(), p.z());
+        bbox.min.x() = ChMin(bbox.min.x(), p.x());
+        bbox.min.y() = ChMin(bbox.min.y(), p.y());
+        bbox.min.z() = ChMin(bbox.min.z(), p.z());
 
-        cmax.x() = ChMax(cmax.x(), p.x());
-        cmax.y() = ChMax(cmax.y(), p.y());
-        cmax.z() = ChMax(cmax.z(), p.z());
+        bbox.max.x() = ChMax(bbox.max.x(), p.x());
+        bbox.max.y() = ChMax(bbox.max.y(), p.y());
+        bbox.max.z() = ChMax(bbox.max.z(), p.z());
     }
+
+    return bbox;
 }
 
 void ChRoundedBox::ArchiveOUT(ChArchiveOut& marchive) {
@@ -127,9 +73,9 @@ void ChRoundedBox::ArchiveOUT(ChArchiveOut& marchive) {
     // serialize parent class
     ChVolume::ArchiveOUT(marchive);
     // serialize all member data:
-    ChVector<> Lengths = GetLengths();
-    marchive << CHNVP(Lengths);  // avoid storing 'Size', i.e. half lengths, because less intuitive
-    marchive << CHNVP(radsphere);
+    ChVector<> lengths = GetLengths();
+    marchive << CHNVP(lengths);
+    marchive << CHNVP(srad);
 }
 
 void ChRoundedBox::ArchiveIN(ChArchiveIn& marchive) {
@@ -138,10 +84,10 @@ void ChRoundedBox::ArchiveIN(ChArchiveIn& marchive) {
     // deserialize parent class
     ChVolume::ArchiveIN(marchive);
     // stream in all member data:
-    ChVector<> Lengths;
-    marchive >> CHNVP(Lengths);
-    SetLengths(Lengths);
-    marchive >> CHNVP(radsphere);
+    ChVector<> lengths;
+    marchive >> CHNVP(lengths);
+    SetLengths(lengths);
+    marchive >> CHNVP(srad);
 }
 
 }  // end namespace geometry

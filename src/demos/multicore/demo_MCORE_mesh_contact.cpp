@@ -83,9 +83,9 @@ int main(int argc, char* argv[]) {
     // Parameters for the containing bin
     // ---------------------------------
 
-    double width = 2;
-    double length = 1;
-    double thickness = 0.1;
+    double width = 4;
+    double length = 2;
+    double thickness = 0.2;
 
     // Create the system
     ChSystemMulticore* sys = nullptr;
@@ -212,12 +212,11 @@ int main(int argc, char* argv[]) {
     }
 
     ground->GetCollisionModel()->ClearModel();
-    ground->GetCollisionModel()->AddBox(ground_mat, width, length, thickness, ChVector<>(0, 0, -thickness));
+    ground->GetCollisionModel()->AddBox(ground_mat, width, length, thickness, ChVector<>(0, 0, -thickness / 2));
     ground->GetCollisionModel()->BuildModel();
 
-    auto box = chrono_types::make_shared<ChBoxShape>();
-    box->GetBoxGeometry().Size = ChVector<>(width, length, thickness);
-    ground->AddVisualShape(box, ChFrame<>(ChVector<>(0, 0, -thickness)));
+    auto box = chrono_types::make_shared<ChBoxShape>(width, length, thickness);
+    ground->AddVisualShape(box, ChFrame<>(ChVector<>(0, 0, -thickness / 2)));
 
     // Create the visualization window
     opengl::ChVisualSystemOpenGL vis;

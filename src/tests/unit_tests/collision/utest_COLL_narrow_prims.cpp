@@ -81,15 +81,15 @@ TEST(ChNarrowphasePRIMS, snap_to_cylinder) {
 
     {
         // interior point
-        real3 loc(0.5, -1.0, 1.5);
+        real3 loc(0.5, 1.5, -1.0);
         int code = snap_to_cylinder(rad, hlen, loc);
         ASSERT_EQ(code, 0);
-        Assert_eq(loc, real3(0.5, -1.0, 1.5));
+        Assert_eq(loc, real3(0.5, 1.5, -1.0));
     }
 
     {
         // cap point
-        real3 loc(0.5, 2.0, 1.5);
+        real3 loc(0.5, 1.5, 2.0);
         int code = snap_to_cylinder(rad, hlen, loc);
         ASSERT_EQ(code, 1);
         Assert_eq(loc, real3(0.5, 1.5, 1.5));
@@ -97,18 +97,18 @@ TEST(ChNarrowphasePRIMS, snap_to_cylinder) {
 
     {
         // side point
-        real3 loc(2.0, 0.5, 1.0);
+        real3 loc(2.0, 1.0, 0.5);
         int code = snap_to_cylinder(rad, hlen, loc);
         ASSERT_EQ(code, 2);
-        Assert_near(loc, real3(4 / sqrt(5.0), 0.5, 2 / sqrt(5.0)), precision);
+        Assert_near(loc, real3(4 / sqrt(5.0), 2 / sqrt(5.0), 0.5), precision);
     }
 
     {
         // edge point
-        real3 loc(2.0, 2.0, 1.0);
+        real3 loc(2.0, 1.0, 2.0);
         int code = snap_to_cylinder(rad, hlen, loc);
         ASSERT_EQ(code, 3);
-        Assert_near(loc, real3(4 / sqrt(5.0), 1.5, 2 / sqrt(5.0)), precision);
+        Assert_near(loc, real3(4 / sqrt(5.0), 2 / sqrt(5.0), 1.5), precision);
     }
 }
 
@@ -1092,7 +1092,7 @@ TEST_P(Collision, box_sphere) {
     // Rotated by 45 degrees around Z axis and shifted by sqrt(2) in X direction.
     real3 b_hdims(1.0, 2.0, 3.0);
     real3 b_pos(sqrt(2.0), 0.0, 0.0);
-    quaternion b_rot = FromChQuaternion(Q_from_AngAxis(CH_C_PI_4, ChVector<>(0, 0, 1)));
+    quaternion b_rot = FromChQuaternion(Q_from_AngZ(CH_C_PI_4));
 
     ConvexShapeCustom* shapeC = new ConvexShapeCustom();
     shapeC->type = ChCollisionShape::Type::BOX;
@@ -1246,7 +1246,7 @@ TEST_P(Collision, capsule_sphere) {
     real c_rad = 0.5;
     real c_hlen = 2.0;
     real3 c_pos(c_hlen, 0, 0);
-    quaternion c_rot = FromChQuaternion(Q_from_AngAxis(CH_C_PI_2, ChVector<>(0, 0, 1)));
+    quaternion c_rot = FromChQuaternion(Q_from_AngY(CH_C_PI_2));
 
     ConvexShapeCustom* shapeC = new ConvexShapeCustom();
     shapeC->type = ChCollisionShape::Type::CAPSULE;
@@ -1335,7 +1335,7 @@ TEST_P(Collision, cylinder_sphere) {
     real c_rad = 2.0;
     real c_hlen = 1.5;
     real3 c_pos(c_hlen, 0, 0);
-    quaternion c_rot = FromChQuaternion(Q_from_AngAxis(CH_C_PI_2, ChVector<>(0, 0, 1)));
+    quaternion c_rot = FromChQuaternion(Q_from_AngY(CH_C_PI_2));
 
     ConvexShapeCustom* shapeC = new ConvexShapeCustom();
     shapeC->type = ChCollisionShape::Type::CYLINDER;
@@ -1441,7 +1441,7 @@ TEST_P(Collision, roundedcyl_sphere) {
     real c_hlen = 1.5;  // half-length of skeleton cylinder
     real c_srad = 0.1;  // radius of sweeping sphere
     real3 c_pos(c_hlen, 0, 0);
-    quaternion c_rot = FromChQuaternion(Q_from_AngAxis(CH_C_PI_2, ChVector<>(0, 0, 1)));
+    quaternion c_rot = FromChQuaternion(Q_from_AngY(CH_C_PI_2));
 
     ConvexShapeCustom* shapeC = new ConvexShapeCustom();
     shapeC->type = ChCollisionShape::Type::ROUNDEDCYL;

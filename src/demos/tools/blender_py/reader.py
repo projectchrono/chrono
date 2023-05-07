@@ -10,8 +10,7 @@ class shapes_index():
     CONE = 8
     ROUNDEDBOX = 9
     ROUNDEDCYL = 10
-    ROUNDEDCONE = 11
-    BEZIER = 12
+    BEZIER = 11
 
 
 def import_shapes(filepath):

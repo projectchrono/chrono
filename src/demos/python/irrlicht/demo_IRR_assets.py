@@ -54,8 +54,7 @@ sys.Add(floor)
 
 # ==Asset== attach a 'box' shape.
 # Note that assets are managed via shared pointer, so they can also be shared.
-boxfloor = chrono.ChBoxShape()
-boxfloor.GetBoxGeometry().Size = chrono.ChVectorD(10, 0.5, 10)
+boxfloor = chrono.ChBoxShape(20, 1, 20)
 boxfloor.SetColor(chrono.ChColor(0.2, 0.3, 1.0))
 floor.AddVisualShape(boxfloor, chrono.ChFrameD(chrono.ChVectorD(0, -1, 0), chrono.QUNIT))
 
@@ -130,23 +129,20 @@ orange_mat = chrono.ChVisualMaterial()
 orange_mat.SetDiffuseColor(chrono.ChColor(0.9, 0.4, 0.2))
 
 # ==Asset== Attach a 'sphere' shape
-sphere = chrono.ChSphereShape()
-sphere.GetSphereGeometry().rad = 0.5
+sphere = chrono.ChSphereShape(0.5)
 sphere.AddMaterial(orange_mat)
 body.AddVisualShape(sphere, chrono.ChFrameD(chrono.ChVectorD(-1,0,0), chrono.QUNIT))
 
 # ==Asset== Attach also a 'box' shape
-box = chrono.ChBoxShape()
-box.GetBoxGeometry().Size = chrono.ChVectorD(0.3, 0.5, 0.1)
+box = chrono.ChBoxShape(0.6, 1.0, 0.2)
 box.AddMaterial(orange_mat)
 body.AddVisualShape(box, chrono.ChFrameD(chrono.ChVectorD(1,1,0), chrono.QUNIT))
 
 # ==Asset== Attach also a 'cylinder' shape
-cyl = chrono.ChCylinderShape()
-cyl.GetCylinderGeometry().p1 = chrono.ChVectorD(2, -0.2, 0)
-cyl.GetCylinderGeometry().p2 = chrono.ChVectorD(2.2, 0.5, 0)
-cyl.GetCylinderGeometry().rad = 0.3
-body.AddVisualShape(cyl)
+cyl = chrono.ChCylinderShape(0.3, 0.7)
+body.AddVisualShape(cyl, 
+                    chrono.ChFrameD(chrono.ChVectorD(2, 0.15, 0),
+                                    chrono.Q_from_AngX(chrono.CH_C_PI_2)))
 
 # ==Asset== Attach three instances of the same 'triangle mesh' shape
 # TODO: not sure how to add vertices
@@ -167,8 +163,7 @@ body.AddVisualShape(objmesh, chrono.ChFrameD(chrono.ChVectorD(0,0,2), chrono.QUN
 
 # ==Asset== , chrono.ChFrameD(chrono.ChVectorD(2,1,2), chrono.QUNIT))
 for j in range(20):
-    smallbox = chrono.ChBoxShape()
-    smallbox.GetBoxGeometry().Size = chrono.ChVectorD(0.1, 0.1, 0.01)
+    smallbox = chrono.ChBoxShape(0.2, 0.2, 0.02)
     smallbox.SetColor(chrono.ChColor(j * 0.05, 1 - j * 0.05, 0.0))
     rot = chrono.ChMatrix33D(chrono.Q_from_AngY(j * 21 * chrono.CH_C_DEG_TO_RAD))
     pos = rot * chrono.ChVectorD(0.4, 0, 0) + chrono.ChVectorD(0, j * 0.02, 0)
@@ -209,8 +204,7 @@ sys.Add(particles)
 
 # ==Asset== Attach a 'sphere' shape asset. it will be used as a sample
 # shape to display all particles when rendering in 3D!
-sphereparticle = chrono.ChSphereShape()
-sphereparticle.GetSphereGeometry().rad = 0.05
+sphereparticle = chrono.ChSphereShape(0.05)
 particles.AddVisualShape(sphereparticle)
  
 displ = chrono.ChVectorD(1.0, 0.0, 0.0)

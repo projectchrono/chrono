@@ -75,8 +75,7 @@ void runBallDrop(ChSystemGpuMesh& gpu_sys, ChGpuSimulationParameters& params) {
     ball_body->SetMass(ball_mass);
     ball_body->SetInertiaXX(ChVector<>(inertia, inertia, inertia));
     ball_body->SetPos(ball_initial_pos);
-    auto sph = chrono_types::make_shared<ChSphereShape>();
-    sph->GetSphereGeometry().rad = ball_radius;
+    auto sph = chrono_types::make_shared<ChSphereShape>(ball_radius);
     ball_body->AddVisualShape(sph);
     sys_ball.AddBody(ball_body);
 

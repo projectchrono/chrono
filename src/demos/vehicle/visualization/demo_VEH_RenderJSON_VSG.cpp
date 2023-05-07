@@ -225,9 +225,7 @@ int main(int argc, char* argv[]) {
     }
 
     while (vis.Run()) {
-        vis.BeginScene();
         vis.Render();
-        vis.EndScene();
 
         if (!vehicle)
             continue;

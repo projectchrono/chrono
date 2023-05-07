@@ -30,8 +30,7 @@ body_1= chrono.ChBodyAuxRef()
 my_system.Add(body_1)
 
 # Attach a visualization asset to the body (ex.: a sphere)
-myasset = chrono.ChSphereShape()
-myasset.GetSphereGeometry().rad =0.2
+myasset = chrono.ChSphereShape(0.2)
 body_1.AddVisualShape(myasset)
 
 

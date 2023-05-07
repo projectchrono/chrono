@@ -261,19 +261,18 @@ inline real3 GetSupportPoint_Ellipsoid(const real3& B, const real3& n) {
 }
 
 /// Support point for a cylinder (for GJK and MPR).
+/// Cylinder assumed to be along Z axis with origin at center.
 inline real3 GetSupportPoint_Cylinder(const real3& B, const real3& n) {
-    real s = Sqrt(n.x * n.x + n.z * n.z);
-    real3 tmp;
-    if (s != 0) {
-        tmp.x = n.x * B.x / s;
-        tmp.y = n.y < 0.0 ? -B.y : B.y;
-        tmp.z = n.z * B.x / s;
-    } else {
-        tmp.x = B.x;
-        tmp.y = n.y < 0.0 ? -B.y : B.y;
-        tmp.z = 0;
-    }
-    return tmp;
+    const real& radius = B.x;
+    const real& hheight = B.z;
+
+    // If direction along cone axis, support point arbitrary on base circumference
+    real s = Sqrt(n.x * n.x + n.y * n.y);
+    if (s < 1e-9)
+        return real3(radius, 0, n.z < 0.0 ? -hheight : hheight);
+
+    // Support point on base circumference
+    return real3(n.x * radius / s, n.y * radius / s, n.z < 0.0 ? -hheight : hheight);
 }
 
 /// Support point for a plane (for GJK and MPR).
@@ -290,30 +289,23 @@ inline real3 GetSupportPoint_Plane(const real3& B, const real3& n) {
 }
 
 /// Support point for a cone (for GJK and MPR).
+/// Cone assumed to be along Z axis with origing at base center.
 inline real3 GetSupportPoint_Cone(const real3& B, const real3& n) {
-    real radius = B.x;
-    real height = B.y;
+    const real& radius = B.x;
+    const real& height = B.y;
 
-    real m_sinAngle = (radius / Sqrt(radius * radius + height * height));
+    // If direction close to cone axis, support point at apex
+    real sinAngle = (radius / Sqrt(radius * radius + height * height));
+    if (n.z > Length(n) * sinAngle)
+        return real3(0, 0, height);
 
-    if (n.y > Length(n) * m_sinAngle) {
-        return real3(0, height / 2.0, 0);
-    } else {
-        real s = Sqrt(n.x * n.x + n.z * n.z);
-        if (s > 1e-9) {
-            real3 tmp;
-            tmp.x = n.x * B.x / s;
-            tmp.y = -height / 2.0;
-            tmp.z = n.z * B.z / s;
-            return tmp;
-        } else {
-            real3 tmp;
-            tmp.x = 0;
-            tmp.y = -height / 2.0;
-            tmp.z = 0;
-            return tmp;
-        }
-    }
+    // If direction along cone axis downwards, support point at center of base
+    real s = Sqrt(n.x * n.x + n.y * n.y);
+    if (s < 1e-9)
+        return real3(0, 0, 0);
+
+    // Support point on base circumference
+    return real3(n.x * radius / s, n.y * radius / s, 0);
 }
 
 /// Support point for a line segment (for GJK and MPR).
@@ -325,6 +317,7 @@ inline real3 GetSupportPoint_Seg(const real B, const real3& n) {
 }
 
 /// Support point for a capsule (for GJK and MPR).
+/// Capsule assumed to be along Z axis with origin at center.
 inline real3 GetSupportPoint_Capsule(const real2& B, const real3& n) {
     return GetSupportPoint_Seg(B.y, n) + GetSupportPoint_Sphere(B.x, n);
 }
@@ -353,18 +346,15 @@ inline real3 GetSupportPoint_RoundedBox(const real4& B, const real3& n) {
 }
 
 /// Support point for a rounded cylinder, i.e. a sphere-swept cylinder (for GJK and MPR).
+/// Rounded cylinder assumed to be along Z axis with origin at center.
 inline real3 GetSupportPoint_RoundedCylinder(const real4& B, const real3& n) {
     return GetSupportPoint_Cylinder(real3(B.x, B.y, B.z), n) + GetSupportPoint_Sphere(B.w, n);
 }
 
 /// Support point for a cylindrical shell (for GJK and MPR).
+/// Cylindrical shell assumed to be along Z axis with origin at center.
 inline real3 GetSupportPoint_CylindricalShell(const real3& B, const real3& n) {
     return GetSupportPoint_Cylinder(real3(B.x, B.y, B.z), n);
-}
-
-/// Support point for a rounded cone, i.e. a sphere-swept cone (for GJK and MPR).
-inline real3 GetSupportPoint_RoundedCone(const real4& B, const real3& n) {
-    return GetSupportPoint_Cone(real3(B.x, B.y, B.z), n) + GetSupportPoint_Sphere(B.w, n);
 }
 
 /// Support point for a generic convex shape (for GJK and MPR).
@@ -498,7 +488,7 @@ ChApi bool point_in_triangle(const real3& A, const real3& B, const real3& C, con
 
 /// This utility function snaps the specified location to a point on a cylinder with given radius and half-length. The
 /// in/out location is assumed to be specified in the frame of the cylinder (in this frame the cylinder is assumed to be
-/// centered at the origin and aligned with the Y axis).  The return code indicates the feature of the cylinder that
+/// centered at the origin and aligned with the Z axis).  The return code indicates the feature of the cylinder that
 /// caused snapping.
 ///   - code = 0 indicates and interior point
 ///   - code = 1 indicates snapping to one of the cylinder caps
@@ -507,21 +497,21 @@ ChApi bool point_in_triangle(const real3& A, const real3& B, const real3& C, con
 inline uint snap_to_cylinder(const real& rad, const real& hlen, real3& loc) {
     uint code = 0;
 
-    if (loc.y > hlen) {
+    if (loc.z > hlen) {
         code |= 1;
-        loc.y = hlen;
-    } else if (loc.y < -hlen) {
+        loc.z = hlen;
+    } else if (loc.z < -hlen) {
         code |= 1;
-        loc.y = -hlen;
+        loc.z = -hlen;
     }
 
-    real d2 = loc.x * loc.x + loc.z * loc.z;
+    real d2 = loc.x * loc.x + loc.y * loc.y;
 
     if (d2 > rad * rad) {
         code |= 2;
         real d = Sqrt(d2);
         loc.x *= (rad / d);
-        loc.z *= (rad / d);
+        loc.y *= (rad / d);
     }
 
     return code;

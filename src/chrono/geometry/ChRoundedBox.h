@@ -25,20 +25,20 @@ namespace geometry {
 /// A rounded box (sphere-swept box) geometric object for collisions and visualization.
 class ChApi ChRoundedBox : public ChVolume {
   public:
-  public:
-    ChRoundedBox() : Size(VNULL), radsphere(0) {}
-    ChRoundedBox(const ChVector<>& lengths, double radsphere) : Size(0.5 * lengths), radsphere(radsphere) {}
-    ////ChRoundedBox(const ChVector<>& mC0, const ChVector<>& mC1, const ChVector<>& mC2, const ChVector<>& mC3);
+    ChRoundedBox() : hlen(VNULL), srad(0) {}
+    ChRoundedBox(const ChVector<>& lengths, double sphere_radius);
+    ChRoundedBox(double length_x, double length_y, double length_z, double sphere_radius);
     ChRoundedBox(const ChRoundedBox& source);
     ~ChRoundedBox() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChRoundedBox* Clone() const override { return new ChRoundedBox(*this); }
 
-    virtual GeometryType GetClassType() const override { return ROUNDED_BOX; }
+    /// Get the class type as an enum.
+    virtual Type GetClassType() const override { return Type::ROUNDED_BOX; }
 
     /// Compute bounding box along the directions defined by the given rotation matrix.
-    virtual void GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const override;
+    virtual AABB GetBoundingBox(const ChMatrix33<>& rot) const override;
 
     /// Computes the baricenter of the box
     virtual ChVector<> Baricenter() const override { return ChVector<>(0); }
@@ -49,33 +49,23 @@ class ChApi ChRoundedBox : public ChVolume {
     /// This is a solid
     virtual int GetManifoldDimension() const override { return 3; }
 
-    /// Access the size of the box: a vector with the
-    /// three hemi-lengths (lengths divided by two!)
-    ChVector<>& GetSize() { return Size; }
+    /// Get the box half-lengths.
+    const ChVector<>& GetHalflengths() const { return hlen; }
 
-    /// Get the x y z lengths of this box (that is, double
-    /// the Size values)
-    ChVector<> GetLengths() { return 2.0 * Size; }
+    /// Get the x, y, and z lengths of this box.
+    ChVector<> GetLengths() const { return 2.0 * hlen; }
 
-    /// Set the x y z lengths of this box (that is, double
-    /// the Size values)
-    void SetLengths(ChVector<>& mlen) { Size = 0.5 * mlen; }
+    /// Get the sweeping sphere radius.
+    double GetSphereRadius() const { return srad; }
 
-    // Get the 8 corner points, translated and rotated
-    ChVector<> GetP1() const;
-    ChVector<> GetP2() const;
-    ChVector<> GetP3() const;
-    ChVector<> GetP4() const;
-    ChVector<> GetP5() const;
-    ChVector<> GetP6() const;
-    ChVector<> GetP7() const;
-    ChVector<> GetP8() const;
+    /// Set the x, y, and z lengths of this box.
+    void SetLengths(const ChVector<>& mlen) { hlen = 0.5 * mlen; }
 
-    /// Get the n-th corner point, with ipoint = 1...8
-    ChVector<> GetPn(int ipoint) const;
+    /// Set the sweeping sphere radius.
+    void SetSphereRadius(double radius) { srad = radius; }
 
     /// Get the volume (assuming no scaling in Rot matrix)
-    double GetVolume() { return Size.x() * Size.y() * Size.z() * 8.0; };
+    double GetVolume() { return hlen.x() * hlen.y() * hlen.z() * 8.0; };
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
@@ -83,8 +73,8 @@ class ChApi ChRoundedBox : public ChVolume {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
-    ChVector<> Size;   /// box halflengths
-    double radsphere;  ///< radius of sweeping sphere
+    ChVector<> hlen;  ///< box halflengths
+    double srad;      ///< radius of sweeping sphere
 };
 
 }  // end namespace geometry

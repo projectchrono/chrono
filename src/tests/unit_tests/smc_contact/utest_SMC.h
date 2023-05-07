@@ -102,7 +102,7 @@ std::shared_ptr<ChBody> AddWall(int id,
     body->SetCollide(true);
 
     body->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(body.get(), mat, size / 2);
+    utils::AddBoxGeometry(body.get(), mat, size);
     body->GetCollisionModel()->BuildModel();
 
     // Return a pointer to the wall object

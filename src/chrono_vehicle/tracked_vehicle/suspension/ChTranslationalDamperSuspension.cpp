@@ -197,46 +197,33 @@ void ChTranslationalDamperSuspension::AddVisualizationAssets(VisualizationType v
     double radius = GetArmVisRadius();
 
     if ((m_pA - m_pAW).Length2() > threshold2) {
-        auto cyl = chrono_types::make_shared<ChCylinderShape>();
-        cyl->GetCylinderGeometry().p1 = m_pA;
-        cyl->GetCylinderGeometry().p2 = m_pAW;
-        cyl->GetCylinderGeometry().rad = radius;
-        m_arm->AddVisualShape(cyl);
+        ChVehicleGeometry::AddVisualizationCylinder(m_arm, m_pA, m_pAW, radius);
     }
 
     if ((m_pA - m_pAC).Length2() > threshold2) {
-        auto cyl = chrono_types::make_shared<ChCylinderShape>();
-        cyl->GetCylinderGeometry().p1 = m_pA;
-        cyl->GetCylinderGeometry().p2 = m_pAC;
-        cyl->GetCylinderGeometry().rad = radius;
-        m_arm->AddVisualShape(cyl);
+        ChVehicleGeometry::AddVisualizationCylinder(m_arm, m_pA, m_pAC, radius);
     }
 
     if ((m_pA - m_pAS).Length2() > threshold2) {
-        auto cyl = chrono_types::make_shared<ChCylinderShape>();
-        cyl->GetCylinderGeometry().p1 = m_pA;
-        cyl->GetCylinderGeometry().p2 = m_pAS;
-        cyl->GetCylinderGeometry().rad = 0.75 * radius;
-        m_arm->AddVisualShape(cyl);
+        ChVehicleGeometry::AddVisualizationCylinder(m_arm, m_pA, m_pAS, 0.75 * radius);
     }
 
     // Revolute joint (arm-chassis)
     {
-        auto cyl = chrono_types::make_shared<ChCylinderShape>();
-        cyl->GetCylinderGeometry().p1 = m_pAC - radius * m_dY;
-        cyl->GetCylinderGeometry().p2 = m_pAC + radius * m_dY;
-        cyl->GetCylinderGeometry().rad = 1.5 * radius;
-        m_arm->AddVisualShape(cyl);
+        ChVehicleGeometry::AddVisualizationCylinder(m_arm,                  //
+                                                    m_pAC - radius * m_dY,  //
+                                                    m_pAC + radius * m_dY,  //
+                                                    1.5 * radius);
     }
 
     // Revolute joint (arm-wheel)
     if ((m_pO - m_pAW).Length2() > threshold2) {
         auto cyl = chrono_types::make_shared<ChCylinderShape>();
         double len = (m_pO - m_pAW).Length();
-        cyl->GetCylinderGeometry().p1 = m_pO;
-        cyl->GetCylinderGeometry().p2 = m_pAW + (m_pAW - m_pO) * radius / len;
-        cyl->GetCylinderGeometry().rad = radius;
-        m_arm->AddVisualShape(cyl);
+        ChVehicleGeometry::AddVisualizationCylinder(m_arm,                                  //
+                                                    m_pO,                                   //
+                                                    m_pAW + (m_pAW - m_pO) * radius / len,  //
+                                                    radius);
     }
 
     // Visualization of the shock (with default color)

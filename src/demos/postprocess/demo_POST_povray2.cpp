@@ -53,8 +53,7 @@ int main(int argc, char* argv[]) {
             for (int iz = 0; iz < 3; iz++)
                 particles->AddParticle(ChCoordsys<>(ChVector<>(ix / 100.0, 0.1 + iy / 100.0, iz / 100.0)));
 
-    auto particle_shape = chrono_types::make_shared<ChSphereShape>();
-    particle_shape->GetSphereGeometry().rad = 0.005;
+    auto particle_shape = chrono_types::make_shared<ChSphereShape>(0.005);
     particles->AddVisualShape(particle_shape);
 
     sys.Add(particles);
@@ -66,12 +65,11 @@ int main(int argc, char* argv[]) {
     auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
     floor->GetCollisionModel()->ClearModel();
-    floor->GetCollisionModel()->AddBox(floor_mat, 0.1, 0.02, 0.1);
+    floor->GetCollisionModel()->AddBox(floor_mat, 0.2, 0.04, 0.2);
     floor->GetCollisionModel()->BuildModel();
     floor->SetCollide(true);
 
-    auto floor_shape = chrono_types::make_shared<ChBoxShape>();
-    floor_shape->GetBoxGeometry().Size = ChVector<>(0.1, 0.02, 0.1);
+    auto floor_shape = chrono_types::make_shared<ChBoxShape>(0.2, 0.04, 0.2);
     floor_shape->SetColor(ChColor(0.5f, 0.5f, 0.5f));
     floor->AddVisualShape(floor_shape);
 
@@ -86,12 +84,11 @@ int main(int argc, char* argv[]) {
             body->SetInertiaXX(ChVector<>((2.0 / 5.0) * (0.01 * 0.01) * 0.02));
 
             body->GetCollisionModel()->ClearModel();
-            body->GetCollisionModel()->AddBox(floor_mat, 0.01, 0.01, 0.01);
+            body->GetCollisionModel()->AddBox(floor_mat, 0.02, 0.02, 0.02);
             body->GetCollisionModel()->BuildModel();
             body->SetCollide(true);
 
-            auto body_shape = chrono_types::make_shared<ChBoxShape>();
-            body_shape->GetBoxGeometry().Size = ChVector<>(0.01, 0.01, 0.01);
+            auto body_shape = chrono_types::make_shared<ChBoxShape>(0.02, 0.02, 0.02);
             body->AddVisualShape(body_shape);
 
             sys.Add(body);

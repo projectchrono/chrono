@@ -90,8 +90,7 @@ int main(int argc, char* argv[]) {
     sys.AddBody(body_truss);
 
     // Attach a 'box' shape asset for visualization.
-    auto mboxtruss = chrono_types::make_shared<ChBoxShape>();
-    mboxtruss->GetBoxGeometry().SetLengths(ChVector<>(0.02, 0.2, 0.1));
+    auto mboxtruss = chrono_types::make_shared<ChBoxShape>(0.02, 0.2, 0.1);
     body_truss->AddVisualShape(mboxtruss, ChFrame<>(ChVector<>(-0.01, 0, 0)));
 
     // Create body for crank
@@ -101,8 +100,7 @@ int main(int argc, char* argv[]) {
     sys.AddBody(body_crank);
 
     // Attach a 'box' shape asset for visualization.
-    auto mboxcrank = chrono_types::make_shared<ChBoxShape>();
-    mboxcrank->GetBoxGeometry().SetLengths(ChVector<>(K, 0.02, 0.02));
+    auto mboxcrank = chrono_types::make_shared<ChBoxShape>(K, 0.02, 0.02);
     body_crank->AddVisualShape(mboxcrank, ChFrame<>());
 
     // Create a motor between the truss and the crank:
@@ -190,8 +188,7 @@ int main(int argc, char* argv[]) {
                                     false, false, false);  // Rx, Ry, Rz
 
     // For example, attach small shape to show the constraint
-    auto msphereconstr2 = chrono_types::make_shared<ChSphereShape>();
-    msphereconstr2->GetSphereGeometry().rad = 0.01;
+    auto msphereconstr2 = chrono_types::make_shared<ChSphereShape>(0.01);
     constr_bb->AddVisualShape(msphereconstr2);
 
     // Create a beam as a crank
@@ -230,8 +227,7 @@ int main(int argc, char* argv[]) {
                                     true, true, false);  // Rx, Ry, Rz
 
     // For example, attach small shape to show the constraint
-    auto msphereconstr3 = chrono_types::make_shared<ChSphereShape>();
-    msphereconstr3->GetSphereGeometry().rad = 0.01;
+    auto msphereconstr3 = chrono_types::make_shared<ChSphereShape>(0.01);
     constr_bc->AddVisualShape(msphereconstr3);
 
     //

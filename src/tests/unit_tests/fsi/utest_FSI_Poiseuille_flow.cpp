@@ -85,7 +85,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Size and position of the bottom and top walls
     auto initSpace0 = sysFSI.GetInitialSpacing();
-    ChVector<> size_XY(bxDim / 2, byDim / 2, 2 * initSpace0);
+    ChVector<> size_XY(bxDim, byDim, 4 * initSpace0);
     ChVector<> pos_zn(0, 0, -3 * initSpace0);
     ChVector<> pos_zp(0, 0, bzDim + 1 * initSpace0);
 
@@ -95,7 +95,10 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     sysMBS.AddBody(body);
 
     // Add BCE particles to the bottom and top wall boundary
-    sysFSI.AddContainerBCE(body, ChFrame<>(), ChVector<>(bxDim, byDim, bzDim), ChVector<int>(0, 0, 2));
+    sysFSI.AddBoxContainerBCE(body,                                           //
+                              ChFrame<>(ChVector<>(0, 0, bzDim / 2), QUNIT),  //
+                              ChVector<>(bxDim, byDim, bzDim),                //
+                              ChVector<int>(0, 0, 2));
 }
 
 // ===============================

@@ -109,10 +109,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::SetFromSpecfile(const std::string& sp
     Document d;
     ReadSpecfile(specfile, d);
 
-    double length = d["Patch dimensions"]["Length"].GetDouble();
-    double width = d["Patch dimensions"]["Width"].GetDouble();
-    m_hdimX = length / 2;
-    m_hdimY = width / 2;
+    m_dimX = d["Patch dimensions"]["Length"].GetDouble();
+    m_dimY = d["Patch dimensions"]["Width"].GetDouble();
 
     m_radius_g = d["Granular material"]["Radius"].GetDouble();
     m_rho_g = d["Granular material"]["Density"].GetDouble();
@@ -157,8 +155,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     m_systemFSI->SetKernelLength(initSpace0);
 
     // Set up the periodic boundary condition (if not, set relative larger values)
-    ChVector<> cMin(-2 * m_hdimX, -2 * m_hdimY, -10 * m_depth - 10 * initSpace0);
-    ChVector<> cMax(+2 * m_hdimX, +2 * m_hdimY, +20 * m_depth + 10 * initSpace0);
+    ChVector<> cMin(-m_dimX, -m_dimY, -10 * m_depth - 10 * initSpace0);
+    ChVector<> cMax(+m_dimX, +m_dimY, +20 * m_depth + 10 * initSpace0);
     m_systemFSI->SetBoundaries(cMin, cMax);
 
     // Set the time integration type and the linear solver type (only for ISPH)
@@ -169,7 +167,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
 
     // Create fluid region and discretize with SPH particles
     ChVector<> boxCenter(0.0, 0.0, m_depth / 2);
-    ChVector<> boxHalfDim(m_hdimX, m_hdimY, m_depth / 2);
+    ChVector<> boxHalfDim(m_dimX / 2, m_dimY / 2, m_depth / 2);
 
     // Use a chrono sampler to create a bucket of points
     utils::GridSampler<> sampler(initSpace0);
@@ -195,8 +193,10 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     container->SetCollide(false);
 
     // Create the geometry of the boundaries
-    m_systemFSI->AddContainerBCE(container, ChFrame<>(), ChVector<>(2 * m_hdimX, 2 * m_hdimY, 1.25 * m_depth),
-                                 ChVector<int>(2, 2, -1));
+    m_systemFSI->AddBoxContainerBCE(container,                                                 //
+                                    ChFrame<>(ChVector<>(0, 0, (1.25 / 2) * m_depth), QUNIT),  //
+                                    ChVector<>(m_dimX, m_dimY, 1.25 * m_depth),                //
+                                    ChVector<int>(2, 2, -1));
 
     // Add all rigid obstacles
     int id = body_id_obstacles;
@@ -243,8 +243,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
 
 #ifdef CHRONO_OPENGL
     // Add visualization asset for the container
-    auto box = chrono_types::make_shared<ChBoxShape>();
-    box->GetBoxGeometry().Size = ChVector<>(m_hdimX, m_hdimY, m_depth / 2);
+    auto box = chrono_types::make_shared<ChBoxShape>(m_dimX, m_dimY, m_depth);
     container->AddVisualShape(box, ChFrame<>(ChVector<>(0, 0, m_depth / 2)));
 
     // Create the visualization window
@@ -266,7 +265,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     outf << "System settings" << endl;
     outf << "   Integration step size = " << m_step_size << endl;
     outf << "Patch dimensions" << endl;
-    outf << "   X = " << 2 * m_hdimX << "  Y = " << 2 * m_hdimY << endl;
+    outf << "   X = " << m_dimX << "  Y = " << m_dimY << endl;
     outf << "   depth = " << m_depth << endl;
 }
 

@@ -23,21 +23,30 @@ namespace geometry {
 /// A rounded cylinder (sphere-swept cylinder) geometric object for collision and visualization.
 class ChApi ChRoundedCylinder : public ChGeometry {
   public:
-    ChRoundedCylinder() : rad(0), hlen(0), radsphere(0) {}
-    ChRoundedCylinder(double mrad, double mhlen, double mradsphere) : rad(mrad), hlen(mhlen), radsphere(mradsphere) {}
+    ChRoundedCylinder() : r(0), h(0), sr(0) {}
+    ChRoundedCylinder(double radius, double height, double sphere_radius);
     ChRoundedCylinder(const ChRoundedCylinder& source);
     ~ChRoundedCylinder() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChRoundedCylinder* Clone() const override { return new ChRoundedCylinder(*this); }
 
-    virtual GeometryType GetClassType() const override { return ROUNDED_CYLINDER; }
+    virtual Type GetClassType() const override { return Type::ROUNDED_CYLINDER; }
 
     /// Compute bounding box along the directions defined by the given rotation matrix.
     /// TODO
-    ////virtual void GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const override;
+    ////virtual AABB GetBoundingBox(const ChMatrix33<>& rot) const override;
 
     virtual ChVector<> Baricenter() const override { return ChVector<>(0); }
+
+    /// Get the cylinder radius.
+    double GetRadius() const { return r; }
+
+    /// Get the cylinder height.
+    double GetHeight() const { return h; }
+
+    /// Get the sweeping sphere radius.
+    double GetSphereRadius() const { return sr; }
 
     /// This is a solid
     virtual int GetManifoldDimension() const override { return 3; }
@@ -48,9 +57,9 @@ class ChApi ChRoundedCylinder : public ChGeometry {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
-    double rad;        ///< cylinder radius
-    double hlen;       ///< cylinder halflength
-    double radsphere;  ///< Radius of sweeping sphere
+    double r;   ///< cylinder radius
+    double h;   ///< cylinder height
+    double sr;  ///< radius of sweeping sphere
 };
 
 }  // end namespace geometry

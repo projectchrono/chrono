@@ -22,12 +22,19 @@ namespace chrono {
 class ChApi ChConeShape : public ChVisualShape {
   public:
     ChConeShape();
+    ChConeShape(double radius, double height);
     ChConeShape(const geometry::ChCone& cone);
 
     ~ChConeShape(){};
 
-    // Access the cone geometry.
-    geometry::ChCone& GetConeGeometry() { return gcone; }
+    /// Access the cone geometry.
+    geometry::ChCone& GetGeometry() { return gcone; }
+
+    /// Get the cone radius.
+    double GetRadius() const { return gcone.GetRadius(); }
+
+    /// Get the cone height.
+    double GetHeight() const { return gcone.GetHeight(); }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;

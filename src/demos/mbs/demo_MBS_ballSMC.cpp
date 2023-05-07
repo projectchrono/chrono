@@ -98,8 +98,7 @@ int main(int argc, char* argv[]) {
 
     ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
 
-    auto sphere = chrono_types::make_shared<ChSphereShape>();
-    sphere->GetSphereGeometry().rad = radius;
+    auto sphere = chrono_types::make_shared<ChSphereShape>(radius);
     sphere->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
     sphere->SetOpacity(1.0f);
 
@@ -120,11 +119,10 @@ int main(int argc, char* argv[]) {
     bin->SetBodyFixed(true);
 
     bin->GetCollisionModel()->ClearModel();
-    bin->GetCollisionModel()->AddBox(material, width, thickness, length);
+    bin->GetCollisionModel()->AddBox(material, width * 2, thickness * 2, length * 2);
     bin->GetCollisionModel()->BuildModel();
 
-    auto box = chrono_types::make_shared<ChBoxShape>();
-    box->GetBoxGeometry().Size = ChVector<>(width, thickness, length);
+    auto box = chrono_types::make_shared<ChBoxShape>(width * 2, thickness * 2, length * 2);
     box->SetColor(ChColor(0.8f, 0.2f, 0.2f));
     box->SetOpacity(0.8f);
 
