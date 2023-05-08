@@ -234,6 +234,11 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
     elseif(${COMPONENT_UPPER} MATCHES "OPENGL")
 
+      set(GLEW_DIR "@GLEW_DIR@")
+      set(glfw3_DIR "@glfw3_DIR@")
+      find_package(GLEW REQUIRED)
+      find_package(glfw3 REQUIRED)
+
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_OPENGL_INCLUDES@")
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_opengl")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_opengl.dll")
@@ -242,8 +247,8 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
         list(APPEND CHRONO_LINKER_FLAGS "-s" "FULL_ES3=1" "-s" "USE_GLFW=3")
       else()
-        list(APPEND CHRONO_LIBRARIES "@GLEW_LIBRARY@")
-        list(APPEND CHRONO_LIBRARIES "@GLFW_LIBRARY@")
+        list(APPEND CHRONO_LIBRARIES "GLEW::glew")
+        list(APPEND CHRONO_LIBRARIES "glfw")
         list(APPEND CHRONO_LIBRARIES "@OPENGL_LIBRARIES@")
       endif()
 
