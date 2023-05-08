@@ -229,7 +229,17 @@ TMeasy requires 5 parameters to define its basic function for Fx and Fy: (1) slo
 
 ### [Added] Blender plug-in for post-process visualization
 
-**TODO**
+A new tool has been developed. It is an add-on for the [Blender](http://blender.org) rendering/modeling/animation software, that allows importing Chrono simulation in the GUI of Blender. From the C++ side, the only requirement is using some export functions of the POSTPROCESS module. This aims at replacing the old POVray post-processing pipeline.
+
+- Interactive 3D navigation of the scenes, and timeline scrubbing.
+- Allows rendering of high-quality photorealistic animations, using the Cycles physically-based unbiased path tracer that is available in Blender.
+- The user can optionally modify the Chrono assets, once imported, by attaching custom materials, special FXs, more detailed meshes, etc. 
+- Visualization of auxiliary references (cetenr of masses, link markers etc)
+- False color rendering of mesh attributes and glyph attributes, using colormaps
+- Speed optimizations for the ChParticleCloud shapes
+
+Details on this new tool is available at [the Chrono::Blender page](https://api.projectchrono.org/development/introduction_chrono_blender.html) on the projectchrono.org website.
+
 
 ### [Added] VSG-based run-time visualization module
 
