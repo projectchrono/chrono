@@ -47,9 +47,9 @@ bl_info = {
     "location": "File > Import-Export",
     "description": "Import ProjectChrono simulations",
     "author": "Alessandro Tasora",
-    "version": (0, 0, 2),
-    "wiki_url": "http://projectchrono.org",
-    "doc_url": "http://projectchrono.org",
+    "version": (0, 0, 3),
+    "wiki_url": "https://api.projectchrono.org/development/introduction_chrono_blender.html",
+    "doc_url": "https://api.projectchrono.org/development/introduction_chrono_blender.html",
 }
 
 import bpy
@@ -1355,6 +1355,9 @@ def read_chrono_simulation(context, filepath, setting_materials):
     global chrono_view_materials
     global chrono_view_contacts
     global chrono_gui_doupdate
+    
+    # (this is needed to avoid crashes when pressing F12 for rendering)
+    bpy.context.scene.render.use_lock_interface = True
 
     # disable Chrono GUI update, for performance when changing properties calling Update(), will be re-enabled at the end of this 
     chrono_gui_doupdate = False
@@ -1961,8 +1964,6 @@ def menu_func_import(self, context):
 
 def register():
     
-    # this is needed to avoid crashes when pressing F12 for rendering  
-    bpy.context.scene.render.use_lock_interface = True
     
     bpy.utils.register_class(ImportChrono)
     bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
@@ -2018,18 +2019,24 @@ def register():
         update=UpdatedFunction
     )
     
-    # Custom scene properties
-    bpy.types.Scene.ch_meshsetting = CollectionProperty(type=CUSTOM_meshsettingCollection, description = "Assets with data attached from Chrono, that can be rendered in falsecolor",)
-    bpy.types.Scene.ch_meshsetting_index = IntProperty()
+    # Custom mesh properties
+    bpy.types.Scene.ch_meshsetting = bpy.props.CollectionProperty(
+        type=CUSTOM_meshsettingCollection, 
+        description = "Assets with data attached from Chrono, that can be rendered in falsecolor",
+    )
+    bpy.types.Scene.ch_meshsetting_index = bpy.props.IntProperty(
+        default = -1
+    )
 
-    bpy.context.scene.ch_meshsetting_index = -1
-    bpy.context.scene.ch_meshsetting.clear()
-    
-    bpy.types.Scene.ch_glyph_setting = CollectionProperty(type=CUSTOM_glyphsettingCollection, description = "Assets with data attached from Chrono, that can be rendered in falsecolor",)
-    bpy.types.Scene.ch_glyph_setting_index = IntProperty()
+    # custom glyph properties
+    bpy.types.Scene.ch_glyph_setting = bpy.props.CollectionProperty(
+        type=CUSTOM_glyphsettingCollection, 
+        description = "Assets with data attached from Chrono, that can be rendered in falsecolor",
+    )
+    bpy.types.Scene.ch_glyph_setting_index = bpy.props.IntProperty(
+        default = -1
+    )
 
-    bpy.context.scene.ch_glyph_setting_index = -1
-    bpy.context.scene.ch_glyph_setting.clear()
     
     
     
@@ -2061,9 +2068,23 @@ def unregister():
     
 
 
+# The following is executed all times one runs this chrono_import.py script in Blender
+# scripting editor: it effectively register the add-on "by hand".
 
 if __name__ == "__main__":
+    
+    # register the add-on just like it was one of the registered add-ons in Edit/preferences...
     register()
 
+    # The following bpy.context.scene.... stuff canNOT be put in register() 
+    # because they give a "Restricted content error", but still can be called
+    # here, i.e. when running this script in the Scripting editor:
+    
+    bpy.context.scene.ch_meshsetting.clear()
+    bpy.context.scene.ch_glyph_setting.clear()
+    
+    # (this is needed to avoid crashes when pressing F12 for rendering)
+    bpy.context.scene.render.use_lock_interface = True
+    
     # TEST: test call
     #bpy.ops.import_chrono.data('INVOKE_DEFAULT')

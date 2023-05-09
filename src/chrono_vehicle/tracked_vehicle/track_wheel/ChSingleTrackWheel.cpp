@@ -49,9 +49,9 @@ void ChSingleTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
     m_wheel->GetCollisionModel()->ClearModel();
 
     if (track->IsRoadwheelCylinder()) {
-        m_wheel->GetCollisionModel()->AddCylinder(m_material, radius, radius, width / 2);
+        m_wheel->GetCollisionModel()->AddCylinder(m_material, radius, width, VNULL, Q_from_AngX(CH_C_PI_2));
     } else {
-        m_wheel->GetCollisionModel()->AddCylindricalShell(m_material, radius, width / 2);
+        m_wheel->GetCollisionModel()->AddCylindricalShell(m_material, radius, width, VNULL, Q_from_AngX(CH_C_PI_2));
     }
 
     m_wheel->GetCollisionModel()->BuildModel();
@@ -64,11 +64,10 @@ void ChSingleTrackWheel::AddVisualizationAssets(VisualizationType vis) {
     double radius = GetRadius();
     double width = GetWidth();
 
-    auto cyl = chrono_types::make_shared<ChCylinderShape>();
-    cyl->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);
-    cyl->GetCylinderGeometry().p2 = ChVector<>(0, -width / 2, 0);
-    cyl->GetCylinderGeometry().rad = radius;
-    m_wheel->AddVisualShape(cyl);
+    ChVehicleGeometry::AddVisualizationCylinder(m_wheel,                       //
+                                                ChVector<>(0, width / 2, 0),   //
+                                                ChVector<>(0, -width / 2, 0),  //
+                                                radius);
 }
 
 void ChSingleTrackWheel::RemoveVisualizationAssets() {

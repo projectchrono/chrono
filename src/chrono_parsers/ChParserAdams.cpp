@@ -381,8 +381,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
 
         sys.AddBody(newBody);
 
-        // auto sphere = chrono_types::make_shared<ChSphereShape>();
-        // sphere->GetSphereGeometry().rad = 0.05;
+        // auto sphere = chrono_types::make_shared<ChSphereShape>(0.05);
         // newBody->AddVisualShape(sphere, );
     }
     // Make any markers that don't exist yet
@@ -544,21 +543,17 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
                         assert(cm_marker != nullptr);
                         parentBody = dynamic_cast<ChBodyAuxRef*>(cm_marker->GetBody());
                         assert(parentBody != nullptr);
-                        cylinder->GetCylinderGeometry().p1 = (parentBody->GetFrame_COG_to_REF() * (*cm_marker))
-                                                                 .TransformPointLocalToParent(ChVector<>(0, 0, 0));
-
-                        parentBody->AddVisualShape(cylinder);
+                        auto cyl_pos = (parentBody->GetFrame_COG_to_REF() * (*cm_marker))
+                                           .TransformPointLocalToParent(ChVector<>(0, 0, 0));
+                        auto cyl_rot = (parentBody->GetFrame_COG_to_REF() * (*cm_marker)).Amatrix;
+                        parentBody->AddVisualShape(cylinder, ChFrame<>(cyl_pos, cyl_rot));
                     } else if (iter->second == std::string("RADIUS")) {
                         iter++;  // get radius
-                        cylinder->GetCylinderGeometry().rad = std::stod(iter->second);
+                        cylinder->GetGeometry().r = std::stod(iter->second);
                     } else if (iter->second == std::string("LENGTH")) {
                         assert(parentBody);
                         iter++;  // get length
-                        double length = std::stod(iter->second);
-                        // std::cout << "length is " << length <<std::endl;
-                        cylinder->GetCylinderGeometry().p2 = (parentBody->GetFrame_COG_to_REF() * (*cm_marker))
-                                                                 .TransformPointLocalToParent(ChVector<>(0, 0, length));
-
+                        cylinder->GetGeometry().h = std::stod(iter->second);
                     } else {
                         tokenParseError(LABEL, *iter);
                     }
@@ -589,17 +584,17 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
                         iter++;  // get length
                         double scale = std::stod(iter->second);
                         // maybe this is right?
-                        ellipsoid->GetEllipsoidGeometry().rad.x() = scale;
+                        ellipsoid->GetGeometry().rad.x() = scale;
                     } else if (iter->second == std::string("YSCALE") || iter->second == std::string("YS")) {
                         iter++;  // get length
                         double scale = std::stod(iter->second);
                         // maybe this is right?
-                        ellipsoid->GetEllipsoidGeometry().rad.y() = scale;
+                        ellipsoid->GetGeometry().rad.y() = scale;
                     } else if (iter->second == std::string("ZSCALE") || iter->second == std::string("ZS")) {
                         iter++;  // get length
                         double scale = std::stod(iter->second);
                         // maybe this is right?
-                        ellipsoid->GetEllipsoidGeometry().rad.z() = scale;
+                        ellipsoid->GetGeometry().rad.z() = scale;
 
                     } else {
                         tokenParseError(LABEL, *iter);
@@ -630,17 +625,17 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
                         iter++;  // get length
                         double scale = std::stod(iter->second);
                         // maybe this is right?
-                        box->GetBoxGeometry().Size.x() = scale / 2;
+                        box->GetGeometry().hlen.x() = scale / 2;
                     } else if (iter->second == std::string("Y")) {
                         iter++;  // get length
                         double scale = std::stod(iter->second);
                         // maybe this is right?
-                        box->GetBoxGeometry().Size.y() = scale / 2;
+                        box->GetGeometry().hlen.y() = scale / 2;
                     } else if (iter->second == std::string("Z")) {
                         iter++;  // get length
                         double scale = std::stod(iter->second);
                         // maybe this is right?
-                        box->GetBoxGeometry().Size.z() = scale / 2;
+                        box->GetGeometry().hlen.z() = scale / 2;
 
                     } else {
                         tokenParseError(LABEL, *iter);

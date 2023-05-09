@@ -24,13 +24,9 @@ namespace vehicle {
 
 ChDriveline::ChDriveline(const std::string& name) : ChPart(name) {}
 
-ChDriveline::~ChDriveline() {
-    if (!m_driveshaft)
-        return;
-    auto sys = m_driveshaft->GetSystem();
-    if (sys) {
-        sys->RemoveShaft(m_driveshaft);
-    }
+void ChDriveline::Initialize(std::shared_ptr<ChChassis> chassis) {
+    // Mark as initialized
+    m_initialized = true;
 }
 
 void ChDriveline::InitializeInertiaProperties() {

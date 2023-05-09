@@ -27,7 +27,6 @@
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBand.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyBandANCF.h"
 
-#include "chrono_models/vehicle/m113/M113_SimpleCVTPowertrain.h"
 #include "chrono_models/vehicle/m113/M113.h"
 
 #ifdef CHRONO_IRRLICHT
@@ -115,7 +114,8 @@ int main(int argc, char* argv[]) {
     m113.SetANCFTrackShoeElementType(element_type);
     m113.SetANCFTrackShoeNumElements(num_elements_length, num_elements_width);
     m113.SetANCFTrackShoeCurvatureConstraints(constrain_curvature);
-    m113.SetPowertrainType(PowertrainModelType::SIMPLE_CVT);
+    m113.SetEngineType(EngineModelType::SIMPLE_MAP);
+    m113.SetTransmissionType(TransmissionModelType::SIMPLE_MAP);
     m113.SetDrivelineType(DrivelineTypeTV::SIMPLE);
     m113.SetBrakeType(BrakeType::SIMPLE);
     m113.SetSuspensionBushings(false);
@@ -517,12 +517,9 @@ void AddFixedObstacles(ChSystem* system) {
     obstacle->SetCollide(true);
 
     // Visualization
-    auto shape = chrono_types::make_shared<ChCylinderShape>();
-    shape->GetCylinderGeometry().p1 = ChVector<>(0, -length * 0.5, 0);
-    shape->GetCylinderGeometry().p2 = ChVector<>(0, length * 0.5, 0);
-    shape->GetCylinderGeometry().rad = radius;
-    shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"));
-    obstacle->AddVisualShape(shape);
+    auto shape = chrono_types::make_shared<ChCylinderShape>(radius, length);
+    shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 10, 10);
+    obstacle->AddVisualShape(shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
     // Contact
     auto obst_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
@@ -532,7 +529,7 @@ void AddFixedObstacles(ChSystem* system) {
     obst_mat->SetPoissonRatio(0.3f);
 
     obstacle->GetCollisionModel()->ClearModel();
-    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, radius, length * 0.5);
+    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, length, VNULL, Q_from_AngX(CH_C_PI_2));
     obstacle->GetCollisionModel()->BuildModel();
 
     system->AddBody(obstacle);
@@ -599,13 +596,15 @@ void WriteVehicleVTK(int frame, ChTrackedVehicle& vehicle) {
         const auto& gearR = vehicle.GetTrackAssembly(VehicleSide::RIGHT)->GetSprocket()->GetGearBody();
         csv << gearL->GetPos() << gearL->GetRot() << gearL->GetPos_dt() << gearL->GetWvel_loc() << endl;
         csv << gearR->GetPos() << gearR->GetRot() << gearR->GetPos_dt() << gearR->GetWvel_loc() << endl;
-        csv.write_to_file(vtk_dir + "/sprockets." + std::to_string(frame) + ".vtk", "x,y,z,e0,e1,e2,e3,vx,vy,vz,ox,oy,oz");
+        csv.write_to_file(vtk_dir + "/sprockets." + std::to_string(frame) + ".vtk",
+                          "x,y,z,e0,e1,e2,e3,vx,vy,vz,ox,oy,oz");
     }
 
     {
         utils::CSV_writer csv(",");
         auto chassis = vehicle.GetChassisBody();
         csv << chassis->GetPos() << chassis->GetRot() << chassis->GetPos_dt() << chassis->GetWvel_loc() << endl;
-        csv.write_to_file(vtk_dir + "/chassis." + std::to_string(frame) + ".vtk", "x,y,z,e0,e1,e2,e3,vx,vy,vz,ox,oy,oz");
+        csv.write_to_file(vtk_dir + "/chassis." + std::to_string(frame) + ".vtk",
+                          "x,y,z,e0,e1,e2,e3,vx,vy,vz,ox,oy,oz");
     }
 }

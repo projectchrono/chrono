@@ -35,7 +35,6 @@
 #include "chrono_models/vehicle/uaz/UAZBUS_Driveline4WD.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_SAELeafspringAxle.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_RotaryArm.h"
-#include "chrono_models/vehicle/uaz/UAZBUS_SimpleMapPowertrain.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_SAEToeBarLeafspringAxle.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_Wheel.h"
 

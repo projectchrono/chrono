@@ -25,8 +25,8 @@
 
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/feda/FEDA_Vehicle.h"
-#include "chrono_models/vehicle/feda/FEDA_Powertrain.h"
-#include "chrono_models/vehicle/feda/FEDA_SimpleMapPowertrain.h"
+#include "chrono_models/vehicle/feda/FEDA_EngineSimpleMap.h"
+#include "chrono_models/vehicle/feda/FEDA_AutomaticTransmissionSimpleMap.h"
 #include "chrono_models/vehicle/feda/FEDA_RigidTire.h"
 #include "chrono_models/vehicle/feda/FEDA_Pac02Tire.h"
 
@@ -56,7 +56,8 @@ class CH_MODELS_API FEDA {
     void SetChassisCollisionType(CollisionType val) { m_chassisCollisionType = val; }
 
     void SetBrakeType(BrakeType brake_type) { m_brake_type = brake_type; }
-    void SetPowertrainType(PowertrainModelType val) { m_powertrain_type = val; }
+    void SetEngineType(EngineModelType val) { m_engineType = val; }
+    void SetTransmissionType(TransmissionModelType val) { m_transmissionType = val; }
 
     void SetTireType(TireModelType val) { m_tireType = val; }
     void SetTireCollisionType(ChTire::CollisionType collType) { m_tire_collision_type = collType; }
@@ -78,7 +79,7 @@ class CH_MODELS_API FEDA {
     ChWheeledVehicle& GetVehicle() const { return *m_vehicle; }
     std::shared_ptr<ChChassis> GetChassis() const { return m_vehicle->GetChassis(); }
     std::shared_ptr<ChBodyAuxRef> GetChassisBody() const { return m_vehicle->GetChassisBody(); }
-    std::shared_ptr<ChPowertrain> GetPowertrain() const { return m_vehicle->GetPowertrain(); }
+    std::shared_ptr<ChTransmission> GetTransmission() const { return m_vehicle->GetTransmission(); }
 
     void Initialize();
 
@@ -105,7 +106,8 @@ class CH_MODELS_API FEDA {
 
     TireModelType m_tireType;
     BrakeType m_brake_type;
-    PowertrainModelType m_powertrain_type;
+    EngineModelType m_engineType;
+    TransmissionModelType m_transmissionType;
 
     double m_tire_step_size;
 

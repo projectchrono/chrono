@@ -187,6 +187,10 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
     /// If you later change some material property, call this or InitialSetup().
     void ComputeGeometricStiffnessMatrix();
 
+    /// Computes the accurate tangent stiffness matrix of the element according to the paper:
+    /// C A Felippa, B Haugen. A unified formulation of small strain corotational finite elements, I. Theory. 2005.
+    void ComputeAccurateTangentStiffnessMatrix(ChMatrixRef Kt_accurate, double Km_factor = 1.0, double Kg_factor = 1.0);
+
     /// Compute the inertia stiffness matrix [Ki^] and inertial damping matrix [Ri^]
     /// which are due to the gyroscopic effect.
     void ComputeKiRimatricesLocal(bool inertial_damping, bool inertial_stiffness);

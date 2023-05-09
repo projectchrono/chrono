@@ -142,7 +142,8 @@ int main(int argc, char* argv[]) {
     m113.SetTrackShoeType(TrackShoeType::SINGLE_PIN);
     m113.SetBrakeType(BrakeType::SIMPLE);
     m113.SetDrivelineType(DrivelineTypeTV::BDS);
-    m113.SetPowertrainType(PowertrainModelType::SHAFTS);
+    m113.SetEngineType(EngineModelType::SHAFTS);
+    m113.SetTransmissionType(TransmissionModelType::SHAFTS);
     m113.Initialize();
 
     m113.SetChassisVisualizationType(VisualizationType::MESH);

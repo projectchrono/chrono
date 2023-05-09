@@ -69,9 +69,10 @@ void AddFallingItems(ChSystemNSC& sys) {
         boxBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/cubetexture_bluewhite.png"));
         sys.Add(boxBody);
 
-        auto cylBody = chrono_types::make_shared<ChBodyEasyCylinder>(0.75, 0.5,  // radius, height
-                                                                     100,        // density
-                                                                     cyl_mat,    // contact material
+        auto cylBody = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y,  //
+                                                                     0.75, 0.5,            // radius, height
+                                                                     100,                  // density
+                                                                     cyl_mat,              // contact material
                                                                      collision_type);
         cylBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
         cylBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/pinkwhite.png"));
@@ -135,31 +136,6 @@ std::shared_ptr<ChBody> AddContainer(ChSystemNSC& sys) {
     auto mfun = chrono_types::make_shared<ChFunction_Const>(CH_C_PI / 4.0);  // speed 45 deg/s
     my_motor->SetSpeedFunction(mfun);
     sys.AddLink(my_motor);
-
-    /// NOTE: Instead of creating five separate 'box' bodies to make
-    /// the walls of the container, you could have used a single body
-    /// made of five box shapes, which build a single collision description,
-    /// as in the alternative approach:
-
-    /*
-    // create a plain ChBody (no colliding shape nor visualization mesh is used yet)
-    auto rigidBody = chrono_types::make_shared<ChBody>(collision_type);
-
-    // set as fixed body, and turn collision ON, otherwise no collide by default
-    rigidBody->SetBodyFixed(true);
-    rigidBody->SetCollide(true);
-
-    // Clear model. The colliding shape description MUST be between  ClearModel() .. BuildModel() pair.
-    rigidBody->GetCollisionModel()->ClearModel();
-    // Describe the (invisible) colliding shape by adding five boxes (the walls and floor)
-    rigidBody->GetCollisionModel()->AddBox(ground_mat, 20, 1, 20, ChVector<>(0, -10, 0));
-    rigidBody->GetCollisionModel()->AddBox(ground_mat, 1, 40, 20, ChVector<>(-11, 0, 0));
-    rigidBody->GetCollisionModel()->AddBox(ground_mat, 1, 40, 20, ChVector<>(11, 0, 0));
-    rigidBody->GetCollisionModel()->AddBox(ground_mat, 20, 40, 1, ChVector<>(0, 0, -11));
-    rigidBody->GetCollisionModel()->AddBox(ground_mat, 20, 40, 1, ChVector<>(0, 0, 11));
-    // Complete the description of collision shape.
-    rigidBody->GetCollisionModel()->BuildModel();
-    */
 
     return rotatingBody;
 }

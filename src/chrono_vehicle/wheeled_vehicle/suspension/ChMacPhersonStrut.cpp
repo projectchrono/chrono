@@ -82,6 +82,8 @@ void ChMacPhersonStrut::Initialize(std::shared_ptr<ChChassis> chassis,
                                    const ChVector<>& location,
                                    double left_ang_vel,
                                    double right_ang_vel) {
+    ChSuspension::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
+
     m_parent = chassis;
     m_rel_loc = location;
 
@@ -518,11 +520,7 @@ void ChMacPhersonStrut::AddVisualizationStrut(std::shared_ptr<ChBody> strut,
     ChVector<> p_c = strut->TransformPointParentToLocal(pt_c);
     ChVector<> p_u = strut->TransformPointParentToLocal(pt_u);
 
-    auto cyl = chrono_types::make_shared<ChCylinderShape>();
-    cyl->GetCylinderGeometry().p1 = p_c;
-    cyl->GetCylinderGeometry().p2 = p_u;
-    cyl->GetCylinderGeometry().rad = radius;
-    strut->AddVisualShape(cyl);
+  ChVehicleGeometry::AddVisualizationCylinder(strut, p_c, p_u, radius);
 }
 
 void ChMacPhersonStrut::AddVisualizationControlArm(std::shared_ptr<ChBody> arm,
@@ -530,22 +528,13 @@ void ChMacPhersonStrut::AddVisualizationControlArm(std::shared_ptr<ChBody> arm,
                                                    const ChVector<> pt_B,
                                                    const ChVector<> pt_U,
                                                    double radius) {
-    // Express hardpoint locations in body frame.
-    ChVector<> p_F = arm->TransformPointParentToLocal(pt_F);
-    ChVector<> p_B = arm->TransformPointParentToLocal(pt_B);
-    ChVector<> p_U = arm->TransformPointParentToLocal(pt_U);
+  // Express hardpoint locations in body frame.
+  ChVector<> p_F = arm->TransformPointParentToLocal(pt_F);
+  ChVector<> p_B = arm->TransformPointParentToLocal(pt_B);
+  ChVector<> p_U = arm->TransformPointParentToLocal(pt_U);
 
-    auto cyl_F = chrono_types::make_shared<ChCylinderShape>();
-    cyl_F->GetCylinderGeometry().p1 = p_F;
-    cyl_F->GetCylinderGeometry().p2 = p_U;
-    cyl_F->GetCylinderGeometry().rad = radius;
-    arm->AddVisualShape(cyl_F);
-
-    auto cyl_B = chrono_types::make_shared<ChCylinderShape>();
-    cyl_B->GetCylinderGeometry().p1 = p_B;
-    cyl_B->GetCylinderGeometry().p2 = p_U;
-    cyl_B->GetCylinderGeometry().rad = radius;
-    arm->AddVisualShape(cyl_B);
+  ChVehicleGeometry::AddVisualizationCylinder(arm, p_F, p_U, radius);
+  ChVehicleGeometry::AddVisualizationCylinder(arm, p_B, p_U, radius);
 }
 
 void ChMacPhersonStrut::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
@@ -563,27 +552,15 @@ void ChMacPhersonStrut::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
     ChVector<> p_T = upright->TransformPointParentToLocal(pt_T);
 
     if ((p_L - p_C).Length2() > threshold2) {
-        auto cyl_L = chrono_types::make_shared<ChCylinderShape>();
-        cyl_L->GetCylinderGeometry().p1 = p_L;
-        cyl_L->GetCylinderGeometry().p2 = p_C;
-        cyl_L->GetCylinderGeometry().rad = radius;
-        upright->AddVisualShape(cyl_L);
+        ChVehicleGeometry::AddVisualizationCylinder(upright, p_L, p_C, radius);
     }
 
     if ((p_U - p_C).Length2() > threshold2) {
-        auto cyl_U = chrono_types::make_shared<ChCylinderShape>();
-        cyl_U->GetCylinderGeometry().p1 = p_U;
-        cyl_U->GetCylinderGeometry().p2 = p_C;
-        cyl_U->GetCylinderGeometry().rad = radius;
-        upright->AddVisualShape(cyl_U);
+        ChVehicleGeometry::AddVisualizationCylinder(upright, p_U, p_C, radius);
     }
 
     if ((p_T - p_C).Length2() > threshold2) {
-        auto cyl_T = chrono_types::make_shared<ChCylinderShape>();
-        cyl_T->GetCylinderGeometry().p1 = p_T;
-        cyl_T->GetCylinderGeometry().p2 = p_C;
-        cyl_T->GetCylinderGeometry().rad = radius;
-        upright->AddVisualShape(cyl_T);
+        ChVehicleGeometry::AddVisualizationCylinder(upright, p_T, p_C, radius);
     }
 }
 
@@ -595,11 +572,7 @@ void ChMacPhersonStrut::AddVisualizationTierod(std::shared_ptr<ChBody> tierod,
     ChVector<> p_C = tierod->TransformPointParentToLocal(pt_C);
     ChVector<> p_U = tierod->TransformPointParentToLocal(pt_U);
 
-    auto cyl = chrono_types::make_shared<ChCylinderShape>();
-    cyl->GetCylinderGeometry().p1 = p_C;
-    cyl->GetCylinderGeometry().p2 = p_U;
-    cyl->GetCylinderGeometry().rad = radius;
-    tierod->AddVisualShape(cyl);
+    ChVehicleGeometry::AddVisualizationCylinder(tierod, p_C, p_U, radius);
 }
 
 // -----------------------------------------------------------------------------

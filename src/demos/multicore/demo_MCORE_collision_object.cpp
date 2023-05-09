@@ -97,9 +97,9 @@ int main(int argc, char* argv[]) {
     double hlen = 0.1;    // cylinder half-length
 
     // Fixed box (ground) dimensions
-    double hx = 4;
-    double hy = 0.5;
-    double hz = 2;
+    double size_x = 8;
+    double size_y = 1;
+    double size_z = 4;
 
     // Step size
     double time_step = contact_method == ChContactMethod::NSC ? 1e-3 : 1e-4;
@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
 
     sys->SetCollisionSystemType(collision_type);
     sys->Set_G_acc(ChVector<>(0, -9.81, 0));
-    //sys->Set_G_acc(ChVector<>(0, 0, 0));
+    // sys->Set_G_acc(ChVector<>(0, 0, 0));
 
     // Set number of threads
     sys->SetNumThreads(2);
@@ -209,8 +209,7 @@ int main(int argc, char* argv[]) {
             object->GetCollisionModel()->AddSphere(object_mat, radius, ChVector<>(0));
             object->GetCollisionModel()->BuildModel();
 
-            auto sphere = chrono_types::make_shared<ChSphereShape>();
-            sphere->GetSphereGeometry().rad = radius;
+            auto sphere = chrono_types::make_shared<ChSphereShape>(radius);
             sphere->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
             object->AddVisualShape(sphere);
 
@@ -218,42 +217,37 @@ int main(int argc, char* argv[]) {
         }
         case CollisionShape::CYLINDER: {
             object->GetCollisionModel()->ClearModel();
-            object->GetCollisionModel()->AddCylinder(object_mat, radius, radius, hlen, ChVector<>(0), ChMatrix33<>(1));
+            object->GetCollisionModel()->AddCylinder(object_mat, radius, 2 * hlen, ChVector<>(0),
+                                                     Q_from_AngX(CH_C_PI_2));
             object->GetCollisionModel()->BuildModel();
 
-            auto cyl = chrono_types::make_shared<ChCylinderShape>();
-            cyl->GetCylinderGeometry().p1 = ChVector<>(0, +hlen, 0);
-            cyl->GetCylinderGeometry().p2 = ChVector<>(0, -hlen, 0);
-            cyl->GetCylinderGeometry().rad = radius;
+            auto cyl = chrono_types::make_shared<ChCylinderShape>(radius, 2 * hlen);
             cyl->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
-            object->AddVisualShape(cyl);
+            object->AddVisualShape(cyl, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
             break;
         }
         case CollisionShape::CAPSULE: {
             object->GetCollisionModel()->ClearModel();
-            object->GetCollisionModel()->AddCapsule(object_mat, radius, hlen, ChVector<>(0), ChMatrix33<>(1));
+            object->GetCollisionModel()->AddCapsule(object_mat, radius, 2 * hlen, ChVector<>(0),
+                                                    Q_from_AngX(CH_C_PI_2));
             object->GetCollisionModel()->BuildModel();
 
-            auto cap = chrono_types::make_shared<ChCapsuleShape>();
-            cap->GetCapsuleGeometry().rad = radius;
-            cap->GetCapsuleGeometry().hlen = hlen;
+            auto cap = chrono_types::make_shared<ChCapsuleShape>(radius, 2 * hlen);
             cap->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
-            object->AddVisualShape(cap);
+            object->AddVisualShape(cap, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
             break;
         }
         case CollisionShape::CYLSHELL: {
             object->GetCollisionModel()->ClearModel();
-            object->GetCollisionModel()->AddCylindricalShell(object_mat, radius, hlen, ChVector<>(0), ChMatrix33<>(1));
+            object->GetCollisionModel()->AddCylindricalShell(object_mat, radius, 2 * hlen, ChVector<>(0),
+                                                             Q_from_AngX(CH_C_PI_2));
             object->GetCollisionModel()->BuildModel();
 
-            auto cyl = chrono_types::make_shared<ChCylinderShape>();
-            cyl->GetCylinderGeometry().p1 = ChVector<>(0, +hlen, 0);
-            cyl->GetCylinderGeometry().p2 = ChVector<>(0, -hlen, 0);
-            cyl->GetCylinderGeometry().rad = radius;
+            auto cyl = chrono_types::make_shared<ChCylinderShape>(radius, 2 * hlen);
             cyl->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
-            object->AddVisualShape(cyl);
+            object->AddVisualShape(cyl, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
             break;
         }
@@ -302,13 +296,12 @@ int main(int argc, char* argv[]) {
     }
 
     ground->GetCollisionModel()->ClearModel();
-    ground->GetCollisionModel()->AddBox(ground_mat, hx, hy, hz, ChVector<>(0, -hy, 0));
+    ground->GetCollisionModel()->AddBox(ground_mat, size_x, size_y, size_z, ChVector<>(0, -size_y / 2, 0));
     ground->GetCollisionModel()->BuildModel();
 
-    auto box = chrono_types::make_shared<ChBoxShape>();
-    box->GetBoxGeometry().Size = ChVector<>(hx, hy, hz);
+    auto box = chrono_types::make_shared<ChBoxShape>(size_x, size_y, size_z);
     box->SetTexture(GetChronoDataFile("textures/checker1.png"), 4, 2);
-    ground->AddVisualShape(box, ChFrame<>(ChVector<>(0, -hy, 0), QUNIT));
+    ground->AddVisualShape(box, ChFrame<>(ChVector<>(0, -size_y / 2, 0), QUNIT));
 
     // Create the Irrlicht visualization sys
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
@@ -326,7 +319,6 @@ int main(int argc, char* argv[]) {
     vis->EnableContactDrawing(ContactsDrawMode::CONTACT_FORCES);
     ////vis->SetSymbolScale(1);
     ////vis->EnableContactDrawing(ContactsDrawMode::CONTACT_NORMALS);
-
 
     auto cmanager = chrono_types::make_shared<ContactManager>();
 

@@ -32,5 +32,10 @@ void ChTrackBrake::InitializeInertiaProperties() {
 
 void ChTrackBrake::UpdateInertiaProperties() {}
 
+void ChTrackBrake::Initialize(std::shared_ptr<ChChassis> chassis, std::shared_ptr<ChSprocket> sprocket) {
+    // Mark as initialized
+    m_initialized = true;
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

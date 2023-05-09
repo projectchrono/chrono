@@ -95,11 +95,11 @@ int main(int argc, char* argv[]) {
     floor_body->SetBodyFixed(true);
     floor_body->GetVisualShape(0)->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom()));
     floor_body->GetCollisionModel()->ClearModel();
-    floor_body->GetCollisionModel()->AddBox(floor_mat, 10, 0.5, 10);
-    floor_body->GetCollisionModel()->AddBox(floor_mat, 1, 12, 20, ChVector<>(-5, 0, 0));
-    floor_body->GetCollisionModel()->AddBox(floor_mat, 1, 12, 20, ChVector<>(5, 0, 0));
-    floor_body->GetCollisionModel()->AddBox(floor_mat, 10, 12, 1, ChVector<>(0, 0, -5));
-    floor_body->GetCollisionModel()->AddBox(floor_mat, 10, 12, 1, ChVector<>(0, 0, 5));
+    floor_body->GetCollisionModel()->AddBox(floor_mat, 20, 1, 20);
+    floor_body->GetCollisionModel()->AddBox(floor_mat, 2, 24, 40, ChVector<>(-5, 0, 0));
+    floor_body->GetCollisionModel()->AddBox(floor_mat, 2, 24, 40, ChVector<>(5, 0, 0));
+    floor_body->GetCollisionModel()->AddBox(floor_mat, 20, 24, 2, ChVector<>(0, 0, -5));
+    floor_body->GetCollisionModel()->AddBox(floor_mat, 20, 24, 2, ChVector<>(0, 0, 5));
     floor_body->GetCollisionModel()->BuildModel();
 
     // Custom rendering in POVray:

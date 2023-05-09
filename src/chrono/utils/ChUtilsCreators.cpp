@@ -36,12 +36,12 @@ namespace utils {
 // -----------------------------------------------------------------------------
 
 void AddSphereGeometry(ChBody* body,
-                       std::shared_ptr<ChMaterialSurface> material,
+                       ChMaterialSurfaceSharedPtr material,
                        double radius,
                        const ChVector<>& pos,
                        const ChQuaternion<>& rot,
                        bool visualization,
-                       std::shared_ptr<ChVisualMaterial> vis_material) {
+                       ChVisualMaterialSharedPtr vis_material) {
     body->GetCollisionModel()->AddSphere(material, radius, pos);
 
     if (visualization) {
@@ -49,8 +49,7 @@ void AddSphereGeometry(ChBody* body,
             auto model = chrono_types::make_shared<ChVisualModel>();
             body->AddVisualModel(model);
         }
-        auto sphere = chrono_types::make_shared<ChSphereShape>();
-        sphere->GetSphereGeometry().rad = radius;
+        auto sphere = chrono_types::make_shared<ChSphereShape>(radius);
         sphere->AddMaterial(vis_material);
         body->GetVisualModel()->AddShape(sphere, ChFrame<>(pos, rot));
     }
@@ -59,21 +58,20 @@ void AddSphereGeometry(ChBody* body,
 // -----------------------------------------------------------------------------
 
 void AddEllipsoidGeometry(ChBody* body,
-                          std::shared_ptr<ChMaterialSurface> material,
-                          const ChVector<>& size,
+                          ChMaterialSurfaceSharedPtr material,
+                          const ChVector<>& axes,
                           const ChVector<>& pos,
                           const ChQuaternion<>& rot,
                           bool visualization,
-                          std::shared_ptr<ChVisualMaterial> vis_material) {
-    body->GetCollisionModel()->AddEllipsoid(material, size.x(), size.y(), size.z(), pos, rot);
+                          ChVisualMaterialSharedPtr vis_material) {
+    body->GetCollisionModel()->AddEllipsoid(material, axes.x(), axes.y(), axes.z(), pos, rot);
 
     if (visualization) {
         if (!body->GetVisualModel()) {
             auto model = chrono_types::make_shared<ChVisualModel>();
             body->AddVisualModel(model);
         }
-        auto ellipsoid = chrono_types::make_shared<ChEllipsoidShape>();
-        ellipsoid->GetEllipsoidGeometry().rad = size;
+        auto ellipsoid = chrono_types::make_shared<ChEllipsoidShape>(axes);
         ellipsoid->AddMaterial(vis_material);
         body->GetVisualModel()->AddShape(ellipsoid, ChFrame<>(pos, rot));
     }
@@ -82,12 +80,12 @@ void AddEllipsoidGeometry(ChBody* body,
 // -----------------------------------------------------------------------------
 
 void AddBoxGeometry(ChBody* body,
-                    std::shared_ptr<ChMaterialSurface> material,
+                    ChMaterialSurfaceSharedPtr material,
                     const ChVector<>& size,
                     const ChVector<>& pos,
                     const ChQuaternion<>& rot,
                     bool visualization,
-                    std::shared_ptr<ChVisualMaterial> vis_material) {
+                    ChVisualMaterialSharedPtr vis_material) {
     body->GetCollisionModel()->AddBox(material, size.x(), size.y(), size.z(), pos, rot);
 
     if (visualization) {
@@ -95,8 +93,7 @@ void AddBoxGeometry(ChBody* body,
             auto model = chrono_types::make_shared<ChVisualModel>();
             body->AddVisualModel(model);
         }
-        auto box = chrono_types::make_shared<ChBoxShape>();
-        box->GetBoxGeometry().Size = size;
+        auto box = chrono_types::make_shared<ChBoxShape>(size);
         box->AddMaterial(vis_material);
         body->GetVisualModel()->AddShape(box, ChFrame<>(pos, rot));
     }
@@ -105,13 +102,13 @@ void AddBoxGeometry(ChBody* body,
 // -----------------------------------------------------------------------------
 
 void AddBiSphereGeometry(ChBody* body,
-                         std::shared_ptr<ChMaterialSurface> material,
+                         ChMaterialSurfaceSharedPtr material,
                          double radius,
                          double cDist,
                          const ChVector<>& pos,
                          const ChQuaternion<>& rot,
                          bool visualization,
-                         std::shared_ptr<ChVisualMaterial> vis_material) {
+                         ChVisualMaterialSharedPtr vis_material) {
     ChFrame<> frame;
     frame = ChFrame<>(pos, rot);
     if (ChBodyAuxRef* body_ar = dynamic_cast<ChBodyAuxRef*>(body)) {
@@ -128,23 +125,21 @@ void AddBiSphereGeometry(ChBody* body,
 // -----------------------------------------------------------------------------
 
 void AddCapsuleGeometry(ChBody* body,
-                        std::shared_ptr<ChMaterialSurface> material,
+                        ChMaterialSurfaceSharedPtr material,
                         double radius,
-                        double hlen,
+                        double height,
                         const ChVector<>& pos,
                         const ChQuaternion<>& rot,
                         bool visualization,
-                        std::shared_ptr<ChVisualMaterial> vis_material) {
-    body->GetCollisionModel()->AddCapsule(material, radius, hlen, pos, rot);
+                        ChVisualMaterialSharedPtr vis_material) {
+    body->GetCollisionModel()->AddCapsule(material, radius, height, pos, rot);
 
     if (visualization) {
         if (!body->GetVisualModel()) {
             auto model = chrono_types::make_shared<ChVisualModel>();
             body->AddVisualModel(model);
         }
-        auto capsule = chrono_types::make_shared<ChCapsuleShape>();
-        capsule->GetCapsuleGeometry().rad = radius;
-        capsule->GetCapsuleGeometry().hlen = hlen;
+        auto capsule = chrono_types::make_shared<ChCapsuleShape>(radius, height);
         capsule->AddMaterial(vis_material);
         body->GetVisualModel()->AddShape(capsule, ChFrame<>(pos, rot));
     }
@@ -153,70 +148,83 @@ void AddCapsuleGeometry(ChBody* body,
 // -----------------------------------------------------------------------------
 
 void AddCylinderGeometry(ChBody* body,
-                         std::shared_ptr<ChMaterialSurface> material,
+                         ChMaterialSurfaceSharedPtr material,
                          double radius,
-                         double hlen,
+                         double height,
                          const ChVector<>& pos,
                          const ChQuaternion<>& rot,
                          bool visualization,
-                         std::shared_ptr<ChVisualMaterial> vis_material) {
-    body->GetCollisionModel()->AddCylinder(material, radius, radius, hlen, pos, rot);
+                         ChVisualMaterialSharedPtr vis_material) {
+    body->GetCollisionModel()->AddCylinder(material, radius, height, pos, rot);
 
     if (visualization) {
         if (!body->GetVisualModel()) {
             auto model = chrono_types::make_shared<ChVisualModel>();
             body->AddVisualModel(model);
         }
-        auto cylinder = chrono_types::make_shared<ChCylinderShape>();
-        cylinder->GetCylinderGeometry().rad = radius;
-        cylinder->GetCylinderGeometry().p1 = ChVector<>(0, hlen, 0);
-        cylinder->GetCylinderGeometry().p2 = ChVector<>(0, -hlen, 0);
+        auto cylinder = chrono_types::make_shared<ChCylinderShape>(radius, height);
         cylinder->AddMaterial(vis_material);
         body->GetVisualModel()->AddShape(cylinder, ChFrame<>(pos, rot));
+    }
+}
+
+void AddCylinderGeometry(ChBody* body,
+                         ChMaterialSurfaceSharedPtr material,
+                         double radius,
+                         const ChVector<>& p1,
+                         const ChVector<>& p2,
+                         bool visualization,
+                         ChVisualMaterialSharedPtr vis_material) {
+    geometry::ChLineSegment seg(p1, p2);
+    auto height = seg.GetLength();
+    auto frame = seg.GetFrame();
+
+    body->GetCollisionModel()->AddCylinder(material, radius, height, frame.GetPos(), frame.GetA());
+
+    if (visualization) {
+        if (!body->GetVisualModel()) {
+            auto model = chrono_types::make_shared<ChVisualModel>();
+            body->AddVisualModel(model);
+        }
+        auto cylinder = chrono_types::make_shared<ChCylinderShape>(radius, height);
+        cylinder->AddMaterial(vis_material);
+        body->GetVisualModel()->AddShape(cylinder, frame);
     }
 }
 
 // -----------------------------------------------------------------------------
 
 void AddConeGeometry(ChBody* body,
-                     std::shared_ptr<ChMaterialSurface> material,
+                     ChMaterialSurfaceSharedPtr material,
                      double radius,
                      double height,
                      const ChVector<>& pos,
                      const ChQuaternion<>& rot,
                      bool visualization,
-                     std::shared_ptr<ChVisualMaterial> vis_material) {
-    ChFrame<> frame;
-    frame = ChFrame<>(pos, rot);
-    if (ChBodyAuxRef* body_ar = dynamic_cast<ChBodyAuxRef*>(body)) {
-        frame = frame >> body_ar->GetFrame_REF_to_COG();
-    }
-    ChVector<> pos_shifted = frame.GetPos() + ChVector<>(0, 0.25 * height, 0);
-
-    body->GetCollisionModel()->AddCone(material, radius, radius, height, pos_shifted, rot);
+                     ChVisualMaterialSharedPtr vis_material) {
+    body->GetCollisionModel()->AddCone(material, radius, height, pos, rot);
 
     if (visualization) {
         if (!body->GetVisualModel()) {
             auto model = chrono_types::make_shared<ChVisualModel>();
             body->AddVisualModel(model);
         }
-        auto cone = chrono_types::make_shared<ChConeShape>();
-        cone->GetConeGeometry().rad = ChVector<>(radius, height, radius);
+        auto cone = chrono_types::make_shared<ChConeShape>(radius, height);
         cone->AddMaterial(vis_material);
-        body->GetVisualModel()->AddShape(cone, ChFrame<>(pos_shifted, rot));
+        body->GetVisualModel()->AddShape(cone, ChFrame<>(pos, rot));
     }
 }
 
 // -----------------------------------------------------------------------------
 
 bool AddTriangleMeshGeometry(ChBody* body,
-                             std::shared_ptr<ChMaterialSurface> material,
+                             ChMaterialSurfaceSharedPtr material,
                              const std::string& obj_filename,
                              const std::string& name,
                              const ChVector<>& pos,
                              const ChQuaternion<>& rot,
                              bool visualization,
-                             std::shared_ptr<ChVisualMaterial> vis_material) {
+                             ChVisualMaterialSharedPtr vis_material) {
     auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(obj_filename, false, false);
     if (!trimesh)
         return false;
@@ -244,14 +252,14 @@ bool AddTriangleMeshGeometry(ChBody* body,
 // -----------------------------------------------------------------------------
 
 bool AddTriangleMeshConvexDecomposition(ChBody* body,
-                                        std::shared_ptr<ChMaterialSurface> material,
+                                        ChMaterialSurfaceSharedPtr material,
                                         const std::string& obj_filename,
                                         const std::string& name,
                                         const ChVector<>& pos,
                                         const ChQuaternion<>& rot,
                                         float skin_thickness,
                                         bool use_original_asset,
-                                        std::shared_ptr<ChVisualMaterial> vis_material) {
+                                        ChVisualMaterialSharedPtr vis_material) {
     if (!body->GetVisualModel()) {
         auto model = chrono_types::make_shared<ChVisualModel>();
         body->AddVisualModel(model);
@@ -315,13 +323,13 @@ bool AddTriangleMeshConvexDecomposition(ChBody* body,
 // -----------------------------------------------------------------------------
 
 bool AddTriangleMeshConvexDecompositionV2(ChBody* body,
-                                          std::shared_ptr<ChMaterialSurface> material,
+                                          ChMaterialSurfaceSharedPtr material,
                                           const std::string& obj_filename,
                                           const std::string& name,
                                           const ChVector<>& pos,
                                           const ChQuaternion<>& rot,
                                           bool use_original_asset,
-                                          std::shared_ptr<ChVisualMaterial> vis_material) {
+                                          ChVisualMaterialSharedPtr vis_material) {
     if (!body->GetVisualModel()) {
         auto model = chrono_types::make_shared<ChVisualModel>();
         body->AddVisualModel(model);
@@ -390,7 +398,7 @@ bool AddTriangleMeshConvexDecompositionV2(ChBody* body,
 //// TODO: extend this to also work for smooth (penalty) contact systems.
 
 bool AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
-                                             std::shared_ptr<ChMaterialSurface> material,
+                                             ChMaterialSurfaceSharedPtr material,
                                              const std::string& obj_filename,
                                              const std::string& name,
                                              const ChVector<>& pos,
@@ -491,7 +499,7 @@ bool AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
 // -----------------------------------------------------------------------------
 
 void AddTriangleGeometry(ChBody* body,
-                         std::shared_ptr<ChMaterialSurface> material,
+                         ChMaterialSurfaceSharedPtr material,
                          const ChVector<>& vertA,
                          const ChVector<>& vertB,
                          const ChVector<>& vertC,
@@ -499,7 +507,7 @@ void AddTriangleGeometry(ChBody* body,
                          const ChVector<>& pos,
                          const ChQuaternion<>& rot,
                          bool visualization,
-                         std::shared_ptr<ChVisualMaterial> vis_material) {
+                         ChVisualMaterialSharedPtr vis_material) {
     auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     trimesh->m_vertices.clear();
     trimesh->m_face_v_indices.clear();
@@ -529,13 +537,13 @@ void AddTriangleGeometry(ChBody* body,
 // -----------------------------------------------------------------------------
 
 void AddRoundedBoxGeometry(ChBody* body,
-                           std::shared_ptr<ChMaterialSurface> material,
+                           ChMaterialSurfaceSharedPtr material,
                            const ChVector<>& size,
                            double srad,
                            const ChVector<>& pos,
                            const ChQuaternion<>& rot,
                            bool visualization,
-                           std::shared_ptr<ChVisualMaterial> vis_material) {
+                           ChVisualMaterialSharedPtr vis_material) {
     body->GetCollisionModel()->AddRoundedBox(material, size.x(), size.y(), size.z(), srad, pos, rot);
 
     if (visualization) {
@@ -543,9 +551,7 @@ void AddRoundedBoxGeometry(ChBody* body,
             auto model = chrono_types::make_shared<ChVisualModel>();
             body->AddVisualModel(model);
         }
-        auto box = chrono_types::make_shared<ChRoundedBoxShape>();
-        box->GetRoundedBoxGeometry().Size = size;
-        box->GetRoundedBoxGeometry().radsphere = srad;
+        auto box = chrono_types::make_shared<ChRoundedBoxShape>(size, srad);
         box->AddMaterial(vis_material);
         body->GetVisualModel()->AddShape(box, ChFrame<>(pos, rot));
     }
@@ -554,25 +560,22 @@ void AddRoundedBoxGeometry(ChBody* body,
 // -----------------------------------------------------------------------------
 
 void AddRoundedCylinderGeometry(ChBody* body,
-                                std::shared_ptr<ChMaterialSurface> material,
+                                ChMaterialSurfaceSharedPtr material,
                                 double radius,
-                                double hlen,
+                                double height,
                                 double srad,
                                 const ChVector<>& pos,
                                 const ChQuaternion<>& rot,
                                 bool visualization,
-                                std::shared_ptr<ChVisualMaterial> vis_material) {
-    body->GetCollisionModel()->AddRoundedCylinder(material, radius, radius, hlen, srad, pos, rot);
+                                ChVisualMaterialSharedPtr vis_material) {
+    body->GetCollisionModel()->AddRoundedCylinder(material, radius, height, srad, pos, rot);
 
     if (visualization) {
         if (!body->GetVisualModel()) {
             auto model = chrono_types::make_shared<ChVisualModel>();
             body->AddVisualModel(model);
         }
-        auto rcyl = chrono_types::make_shared<ChRoundedCylinderShape>();
-        rcyl->GetRoundedCylinderGeometry().rad = radius;
-        rcyl->GetRoundedCylinderGeometry().hlen = hlen;
-        rcyl->GetRoundedCylinderGeometry().radsphere = srad;
+        auto rcyl = chrono_types::make_shared<ChRoundedCylinderShape>(radius, height, srad);
         rcyl->AddMaterial(vis_material);
         body->GetVisualModel()->AddShape(rcyl, ChFrame<>(pos, rot));
     }
@@ -581,7 +584,7 @@ void AddRoundedCylinderGeometry(ChBody* body,
 // -----------------------------------------------------------------------------
 
 void AddTorusGeometry(ChBody* body,
-                      std::shared_ptr<ChMaterialSurface> material,
+                      ChMaterialSurfaceSharedPtr material,
                       double radius,
                       double thickness,
                       int segments,
@@ -589,7 +592,7 @@ void AddTorusGeometry(ChBody* body,
                       const ChVector<>& pos,
                       const ChQuaternion<>& rot,
                       bool visualization,
-                      std::shared_ptr<ChVisualMaterial> vis_material) {
+                      ChVisualMaterialSharedPtr vis_material) {
     for (int i = 0; i < angle; i += angle / segments) {
         double alpha = i * CH_C_PI / 180.0;
         double x = cos(alpha) * radius;
@@ -605,63 +608,62 @@ void AddTorusGeometry(ChBody* body,
 // -----------------------------------------------------------------------------
 
 void AddBoxContainer(std::shared_ptr<ChBody> body,
-                     std::shared_ptr<ChMaterialSurface> material,
+                     ChMaterialSurfaceSharedPtr material,
                      const ChFrame<>& frame,
                      const ChVector<>& size,
                      double thickness,
                      const ChVector<int> faces,
                      bool visualization,
-                     std::shared_ptr<ChVisualMaterial> vis_material) {
+                     ChVisualMaterialSharedPtr vis_material) {
     ChVector<> hsize = size / 2;
     double ht = thickness / 2;
 
     // Wall center positions
-    ChVector<> zn(0, 0, -ht);
-    ChVector<> zp(0, 0, size.z() + ht);
-    ChVector<> xn(-hsize.x() - ht, 0, hsize.z());
-    ChVector<> xp(+hsize.x() + ht, 0, hsize.z());
-    ChVector<> yn(0, -hsize.y() - ht, hsize.z());
-    ChVector<> yp(0, +hsize.y() + ht, hsize.z());
+    ChVector<> xn(-hsize.x() - ht, 0, 0);
+    ChVector<> xp(+hsize.x() + ht, 0, 0);
+    ChVector<> yn(0, -hsize.y() - ht, 0);
+    ChVector<> yp(0, +hsize.y() + ht, 0);
+    ChVector<> zn(0, 0, -hsize.z() - ht);
+    ChVector<> zp(0, 0, +hsize.z() + ht);
 
     // Wall dimensions
-    ChVector<> hsizeX(ht, hsize.y(), hsize.z());
-    ChVector<> hsizeY(hsize.x(), ht, hsize.z());
-    ChVector<> hsizeZ(hsize.x(), hsize.y(), ht);
+    ChVector<> sizeX(thickness, size.y(), size.z());
+    ChVector<> sizeY(size.x(), thickness, size.z());
+    ChVector<> sizeZ(size.x(), size.y(), thickness);
 
     // Z- wall
     if (faces.z() == -1 || faces.z() == 2) {
         auto f = frame * ChFrame<>(zn, QUNIT);
-        AddBoxGeometry(body.get(), material, hsizeZ, f.GetPos(), f.GetRot(), visualization, vis_material);
+        AddBoxGeometry(body.get(), material, sizeZ, f.GetPos(), f.GetRot(), visualization, vis_material);
     }
     // Z+ wall
     if (faces.z() == +1 || faces.z() == 2) {
         auto f = frame * ChFrame<>(zp, QUNIT);
-        AddBoxGeometry(body.get(), material, hsizeZ, f.GetPos(), f.GetRot(), visualization, vis_material);
+        AddBoxGeometry(body.get(), material, sizeZ, f.GetPos(), f.GetRot(), visualization, vis_material);
     }
 
     // X- wall
     if (faces.x() == -1 || faces.x() == 2) {
         auto f = frame * ChFrame<>(xn, QUNIT);
-        AddBoxGeometry(body.get(), material, hsizeX, f.GetPos(), f.GetRot(), visualization, vis_material);
+        AddBoxGeometry(body.get(), material, sizeX, f.GetPos(), f.GetRot(), visualization, vis_material);
     }
     // X+ wall
     if (faces.x() == +1 || faces.x() == 2) {
         auto f = frame * ChFrame<>(xp, QUNIT);
-        AddBoxGeometry(body.get(), material, hsizeX, f.GetPos(), f.GetRot(), visualization, vis_material);
+        AddBoxGeometry(body.get(), material, sizeX, f.GetPos(), f.GetRot(), visualization, vis_material);
     }
 
     // Y- wall
     if (faces.y() == -1 || faces.y() == 2) {
         auto f = frame * ChFrame<>(yn, QUNIT);
-        AddBoxGeometry(body.get(), material, hsizeY, f.GetPos(), f.GetRot(), visualization, vis_material);
+        AddBoxGeometry(body.get(), material, sizeY, f.GetPos(), f.GetRot(), visualization, vis_material);
     }
     // Y+ wall
     if (faces.y() == +1 || faces.y() == 2) {
         auto f = frame * ChFrame<>(yp, QUNIT);
-        AddBoxGeometry(body.get(), material, hsizeY, f.GetPos(), f.GetRot(), visualization, vis_material);
+        AddBoxGeometry(body.get(), material, sizeY, f.GetPos(), f.GetRot(), visualization, vis_material);
     }
 }
-
 
 // -----------------------------------------------------------------------------
 // CreateBoxContainer
@@ -671,13 +673,12 @@ void AddBoxContainer(std::shared_ptr<ChBody> body,
 // -----------------------------------------------------------------------------
 std::shared_ptr<ChBody> CreateBoxContainer(ChSystem* system,
                                            int id,
-                                           std::shared_ptr<ChMaterialSurface> mat,
-                                           const ChVector<>& hdim,
-                                           double hthick,
+                                           ChMaterialSurfaceSharedPtr mat,
+                                           const ChVector<>& size,
+                                           double thickness,
                                            const ChVector<>& pos,
                                            const ChQuaternion<>& rot,
                                            bool collide,
-                                           bool y_up,
                                            bool overlap,
                                            bool closed) {
     // Verify consistency of input arguments.
@@ -693,41 +694,28 @@ std::shared_ptr<ChBody> CreateBoxContainer(ChSystem* system,
     body->SetRot(rot);
     body->SetCollide(collide);
     body->SetBodyFixed(true);
-    double o_lap = 0;
-    if (overlap) {
-        o_lap = hthick * 2;
-    }
+
+    double o_lap = overlap ? thickness : 0.0;
+    double hthick = thickness / 2;
+    auto hdim = size / 2;
+
     body->GetCollisionModel()->ClearModel();
-    if (y_up) {
-        AddBoxGeometry(body.get(), mat, ChVector<>(hdim.x() + o_lap, hthick, hdim.y() + o_lap),
-                       ChVector<>(0, -hthick, 0));
-        AddBoxGeometry(body.get(), mat, ChVector<>(hthick, hdim.z() + o_lap, hdim.y() + o_lap),
-                       ChVector<>(-hdim.x() - hthick, hdim.z(), 0));
-        AddBoxGeometry(body.get(), mat, ChVector<>(hthick, hdim.z() + o_lap, hdim.y() + o_lap),
-                       ChVector<>(hdim.x() + hthick, hdim.z(), 0));
-        AddBoxGeometry(body.get(), mat, ChVector<>(hdim.x() + o_lap, hdim.z() + o_lap, hthick),
-                       ChVector<>(0, hdim.z(), -hdim.y() - hthick));
-        AddBoxGeometry(body.get(), mat, ChVector<>(hdim.x() + o_lap, hdim.z() + o_lap, hthick),
-                       ChVector<>(0, hdim.z(), hdim.y() + hthick));
-        if (closed) {
-            AddBoxGeometry(body.get(), mat, ChVector<>(hdim.x() + o_lap, hthick, hdim.y() + o_lap),
-                           ChVector<>(0, hdim.z() * 2 + hthick, 0));
-        }
-    } else {
-        AddBoxGeometry(body.get(), mat, ChVector<>(hdim.x() + o_lap, hdim.y() + o_lap, hthick),
-                       ChVector<>(0, 0, -hthick));
-        AddBoxGeometry(body.get(), mat, ChVector<>(hthick, hdim.y() + o_lap, hdim.z() + o_lap),
-                       ChVector<>(-hdim.x() - hthick, 0, hdim.z()));
-        AddBoxGeometry(body.get(), mat, ChVector<>(hthick, hdim.y() + o_lap, hdim.z() + o_lap),
-                       ChVector<>(hdim.x() + hthick, 0, hdim.z()));
-        AddBoxGeometry(body.get(), mat, ChVector<>(hdim.x() + o_lap, hthick, hdim.z() + o_lap),
-                       ChVector<>(0, -hdim.y() - hthick, hdim.z()));
-        AddBoxGeometry(body.get(), mat, ChVector<>(hdim.x() + o_lap, hthick, hdim.z() + o_lap),
-                       ChVector<>(0, hdim.y() + hthick, hdim.z()));
-        if (closed) {
-            AddBoxGeometry(body.get(), mat, ChVector<>(hdim.x() + o_lap, hdim.y() + o_lap, hthick),
-                           ChVector<>(0, 0, hdim.z() * 2 + hthick));
-        }
+    AddBoxGeometry(body.get(), mat, ChVector<>(size.x() + o_lap, size.y() + o_lap, thickness),
+                   ChVector<>(0, 0, -hthick));
+
+    AddBoxGeometry(body.get(), mat, ChVector<>(thickness, size.y() + o_lap, size.z() + o_lap),
+                   ChVector<>(-hdim.x() - hthick, 0, hdim.z()));
+    AddBoxGeometry(body.get(), mat, ChVector<>(thickness, size.y() + o_lap, size.z() + o_lap),
+                   ChVector<>(hdim.x() + hthick, 0, hdim.z()));
+
+    AddBoxGeometry(body.get(), mat, ChVector<>(size.x() + o_lap, thickness, size.z() + o_lap),
+                   ChVector<>(0, -hdim.y() - hthick, hdim.z()));
+    AddBoxGeometry(body.get(), mat, ChVector<>(size.x() + o_lap, thickness, size.z() + o_lap),
+                   ChVector<>(0, hdim.y() + hthick, hdim.z()));
+
+    if (closed) {
+        AddBoxGeometry(body.get(), mat, ChVector<>(size.x() + o_lap, size.y() + o_lap, thickness),
+                       ChVector<>(0, 0, hdim.z() * 2 + hthick));
     }
     body->GetCollisionModel()->BuildModel();
 
@@ -746,9 +734,10 @@ std::shared_ptr<ChBody> CreateBoxContainer(ChSystem* system,
 // -----------------------------------------------------------------------------
 std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
                                                             int id,
-                                                            std::shared_ptr<ChMaterialSurface> mat,
-                                                            const ChVector<>& hdim,
-                                                            double hthick,
+                                                            ChMaterialSurfaceSharedPtr mat,
+                                                            double radius,
+                                                            double height,
+                                                            double thickness,
                                                             int numBoxes,
                                                             const ChVector<>& pos,
                                                             const ChQuaternion<>& rot,
@@ -771,50 +760,45 @@ std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
     body->SetCollide(collide);
     body->SetBodyFixed(true);
 
-    double box_side = hdim.x() * 2.0 * tan(CH_C_PI / numBoxes);  // side length of cyl
-    double o_lap = 0;
-    if (overlap) {
-        o_lap = hthick * 2;
-    }
-    double ang = 2.0 * CH_C_PI / numBoxes;
-    ChVector<> p_boxSize = ChVector<>((box_side + hthick) / 2.0, hthick, hdim.z() + o_lap);  // size of plates
-    ChVector<> p_pos;                                                                        // position of each plate
-    ChQuaternion<> p_quat = QUNIT;                                                           // rotation of each plate
+    double o_lap = overlap ? thickness : 0;
+    double hthick = thickness / 2;
+
     body->GetCollisionModel()->ClearModel();
 
+    // Add circumference pieces
+    double box_side = radius * 2.0 * tan(CH_C_PI / numBoxes);                                   // side length of cyl
+    ChVector<> plate_size = ChVector<>((box_side + thickness / 2), thickness, height + o_lap);  // size of plates
+    double delta_angle = CH_C_2PI / numBoxes;
+
     for (int i = 0; i < numBoxes; i++) {
-        p_pos = pos + ChVector<>(sin(ang * i) * (hthick + hdim.x()), cos(ang * i) * (hthick + hdim.x()), hdim.z());
+        double angle = i * delta_angle;
+        auto plate_pos =
+            pos + ChVector<>(sin(angle) * (hthick + radius), cos(angle) * (hthick + height / 2), height / 2);
+        auto plate_rot = Q_from_AngZ(angle);
 
-        p_quat = Angle_to_Quat(AngleSet::RXYZ, ChVector<>(0, 0, ang * i));
-
-        // this is here to make half the cylinder invisible.
-        bool m_visualization = true;
-        if ((ang * i > CH_C_PI && ang * i < 3.0 * CH_C_PI / 2.0) && partialVisualization) {
-            m_visualization = false;
-        }
-        utils::AddBoxGeometry(body.get(), mat, p_boxSize, p_pos, p_quat, m_visualization);
+        bool visualize = !partialVisualization || angle > CH_C_PI_2;
+        utils::AddBoxGeometry(body.get(), mat, plate_size, plate_pos, plate_rot, visualize);
     }
 
-    // Add ground piece
-    if (isBoxBase) {
-        utils::AddBoxGeometry(body.get(), mat, Vector(hdim.x() + 2 * hthick, hdim.x() + 2 * hthick, hthick),
+    // Add bottom piece
+    if (isBoxBase)
+        utils::AddBoxGeometry(body.get(), mat, Vector(2 * radius + thickness, height + thickness, thickness),
                               Vector(0, 0, -hthick), QUNIT, true);
-    } else {
-        utils::AddCylinderGeometry(body.get(), mat, hdim.x() + 2 * hthick, hthick, ChVector<>(0, 0, -hthick),
+    else
+        utils::AddCylinderGeometry(body.get(), mat, radius + thickness, thickness, ChVector<>(0, 0, -hthick),
                                    Q_from_AngAxis(CH_C_PI / 2, VECT_X));
-    }
 
+    // Add top piece
     if (closed) {
-        if (isBoxBase) {
-            utils::AddBoxGeometry(body.get(), mat, Vector(hdim.x() + 2 * hthick, hdim.x() + 2 * hthick, hthick),
-                                  Vector(0, 0, 2 * hdim.z() + hthick), QUNIT, true);
-        } else {
-            utils::AddCylinderGeometry(body.get(), mat, hdim.x() + 2 * hthick, hthick,
-                                       ChVector<>(0, 0, 2 * hdim.z() + hthick), Q_from_AngAxis(CH_C_PI / 2, VECT_X));
-        }
+        if (isBoxBase)
+            utils::AddBoxGeometry(body.get(), mat, Vector(2 * radius + thickness, height + thickness, thickness),
+                                  Vector(0, 0, height + hthick), QUNIT, true);
+        else
+            utils::AddCylinderGeometry(body.get(), mat, radius + thickness, thickness,
+                                       ChVector<>(0, 0, height + hthick), Q_from_AngAxis(CH_C_PI / 2, VECT_X));
     }
 
-    body->GetCollisionModel()->SetEnvelope(0.2 * hthick);
+    body->GetCollisionModel()->SetEnvelope(0.2 * thickness);
     body->GetCollisionModel()->BuildModel();
 
     system->AddBody(body);
@@ -892,13 +876,13 @@ bool LoadConvexHulls(const std::string& file_name,
 // -----------------------------------------------------------------------------
 
 void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
-                             std::shared_ptr<ChMaterialSurface> material,
+                             ChMaterialSurfaceSharedPtr material,
                              std::shared_ptr<ChTriangleMeshConnected> convex_mesh,
                              ChConvexDecompositionHACDv2& convex_shape,
                              const ChVector<>& pos,
                              const ChQuaternion<>& rot,
                              bool use_original_asset,
-                             std::shared_ptr<ChVisualMaterial> vis_material) {
+                             ChVisualMaterialSharedPtr vis_material) {
     if (!body->GetVisualModel()) {
         auto model = chrono_types::make_shared<ChVisualModel>();
         body->AddVisualModel(model);
@@ -940,12 +924,12 @@ void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
 // -----------------------------------------------------------------------------
 
 void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
-                             std::shared_ptr<ChMaterialSurface> material,
+                             ChMaterialSurfaceSharedPtr material,
                              std::shared_ptr<ChTriangleMeshConnected> convex_mesh,
                              std::vector<std::vector<ChVector<double>>>& convex_hulls,
                              const ChVector<>& pos,
                              const ChQuaternion<>& rot,
-                             std::shared_ptr<ChVisualMaterial> vis_material) {
+                             ChVisualMaterialSharedPtr vis_material) {
     for (int c = 0; c < convex_hulls.size(); c++) {
         body->GetCollisionModel()->AddConvexHull(material, convex_hulls[c], pos, rot);
     }

@@ -324,17 +324,16 @@ class CH_FSI_API ChSystemFsi {
     void AddWallBCE(std::shared_ptr<ChBody> body, const ChFrame<>& frame, const ChVector2<> size);
 
     /// Add BCE markers for a box container of specified dimensions and associate them with the given body.
-    /// The center of the container bottom face is at the origin of the given frame and the the container is aligned
-    /// with the frame axes. The 'faces' input vector specifies which faces of the container are to be created: for each
-    /// direction, a value of -1 indicates the face in the negative direction, a value of +1 indicates the face in the
-    /// positive direction, and a value of 2 indicates both faces. Setting a value of 0 does not create container faces
-    /// in that direction. 
+    /// The center of the box volume is at the origin of the given frame and the the container is aligned with the frame
+    /// axes. Such a container is assumed to be used as a boundary.
+    /// The 'faces' input vector specifies which faces of the container are to be created: for each direction, a value
+    /// of -1 indicates the face in the negative direction, a value of +1 indicates the face in the positive direction,
+    /// and a value of 2 indicates both faces. Setting a value of 0 does not create container faces in that direction.
     /// BCE markers are created in a number of layers corresponding to system parameters.
-    /// Such a container is assumed to be used as a boundary.
-    void AddContainerBCE(std::shared_ptr<ChBody> body,
-                         const ChFrame<>& frame,
-                         const ChVector<>& size,
-                         const ChVector<int> faces);
+    void AddBoxContainerBCE(std::shared_ptr<ChBody> body,
+                            const ChFrame<>& frame,
+                            const ChVector<>& size,
+                            const ChVector<int> faces);
 
     /// Add BCE markers for a box of specified dimensions and associate them with the given body.
     /// The box is assumed to be centered at the origin of the provided frame and aligned with its axes.

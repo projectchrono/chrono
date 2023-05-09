@@ -108,7 +108,6 @@ int main(int argc, char* argv[]) {
 #endif
     }
 
-
     auto mtruss = chrono_types::make_shared<ChBody>(collsys_type);
     mtruss->SetBodyFixed(true);
     sys.Add(mtruss);
@@ -151,14 +150,12 @@ int main(int argc, char* argv[]) {
         case TireType::CYLINDRICAL: {
             double radius = 0.5;
             double width = 0.4;
-            mrigidbody->GetCollisionModel()->AddCylinder(material, radius, radius, width / 2, ChVector<>(0), Q_from_AngZ(CH_C_PI_2));
-            
-            auto cyl_shape = chrono_types::make_shared<ChCylinderShape>();
-            cyl_shape->GetCylinderGeometry().rad = radius;
-            cyl_shape->GetCylinderGeometry().p1 = ChVector<>(+width / 2, 0, 0);
-            cyl_shape->GetCylinderGeometry().p2 = ChVector<>(-width / 2, 0, 0);
+            mrigidbody->GetCollisionModel()->AddCylinder(material, radius, width, ChVector<>(0),
+                                                         Q_from_AngY(CH_C_PI_2));
+
+            auto cyl_shape = chrono_types::make_shared<ChCylinderShape>(radius, width);
             cyl_shape->SetColor(ChColor(0.3f, 0.3f, 0.3f));
-            mrigidbody->AddVisualShape(cyl_shape);
+            mrigidbody->AddVisualShape(cyl_shape, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
 
             break;
         }
@@ -229,9 +226,9 @@ int main(int argc, char* argv[]) {
     if (enable_bulldozing) {
         mterrain.EnableBulldozing(true);  // inflate soil at the border of the rut
         mterrain.SetBulldozingParameters(
-            55,   // angle of friction for erosion of displaced material at the border of the rut
-            1,    // displaced material vs downward pressed material.
-            5,    // number of erosion refinements per timestep
+            55,  // angle of friction for erosion of displaced material at the border of the rut
+            1,   // displaced material vs downward pressed material.
+            5,   // number of erosion refinements per timestep
             6);  // number of concentric vertex selections subject to erosion
     }
 
@@ -262,7 +259,6 @@ int main(int argc, char* argv[]) {
     vis->AddSkyBox();
     vis->AddCamera(ChVector<>(2.0, 1.4, 0.0), ChVector<>(0, tire_rad, 0));
     vis->AddLightDirectional();
-
 
     //
     // THE SOFT-REAL-TIME CYCLE

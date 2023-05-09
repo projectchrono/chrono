@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2015 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -18,10 +18,10 @@
 // https://simcompanion.mscsoftware.com/infocenter/index?page=content&id=DOC10645&cat=2014_ADAMS_DOCS&actp=LIST
 //
 // =============================================================================
-// Authors: Radu Serban, Mike Taylor
+// Authors: Radu Serban, Mike Taylor, Rainer Gericke
 // =============================================================================
 //
-// Fiala tire model.
+// Fiala tire model with Coulomb friction based stand-still algorithm
 //
 // =============================================================================
 
@@ -43,7 +43,9 @@ ChFialaTire::ChFialaTire(const std::string& name)
       m_mu_0(0.8),
       m_time_trans(0.2),
       m_c_slip(0),
-      m_c_alpha(0) {
+      m_c_alpha(0),
+      m_frblend_begin(1),
+      m_frblend_end(3) {
     m_tireforce.force = ChVector<>(0, 0, 0);
     m_tireforce.point = ChVector<>(0, 0, 0);
     m_tireforce.moment = ChVector<>(0, 0, 0);
@@ -65,8 +67,7 @@ void ChFialaTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     m_states.alpha = 0;
 }
 
-void ChFialaTire::Synchronize(double time,
-                              const ChTerrain& terrain) {
+void ChFialaTire::Synchronize(double time, const ChTerrain& terrain) {
     m_time = time;
     WheelState wheel_state = m_wheel->GetState();
 
@@ -169,12 +170,19 @@ void ChFialaTire::Advance(double step) {
     // Now calculate the new force and moment values.
     // Normal force and moment have already been accounted for in Synchronize().
     // See reference for more detail on the calculations
-    double Fx = 0;
-    double Fy = 0;
+    double Fx = 0, Fx0 = 0;
+    double Fy = 0, Fy0 = 0;
     double My = 0;
     double Mz = 0;
 
+    CombinedCoulombForces(Fx0, Fy0, m_data.normal_force, m_mu / m_mu_0);
+
+    double frblend = ChSineStep(m_data.vel.x(), m_frblend_begin, 0.0, m_frblend_end, 1.0);
+
     FialaPatchForces(Fx, Fy, Mz, m_states.kappa, m_states.alpha, m_data.normal_force);
+
+    Fx = (1.0 - frblend) * Fx0 + frblend * Fx;
+    Fy = (1.0 - frblend) * Fy0 + frblend * Fy;
 
     // Smoothing factor dependend on m_state.abs_vx, allows soft switching of My
     double myStartUp = ChSineStep(m_states.abs_vx, vx_min, 0.0, vx_max, 1.0);
@@ -209,18 +217,30 @@ void ChFialaTire::Advance(double step) {
     m_tireforce.moment = ChVector<>(0, My, Mz);
 }
 
+void ChFialaTire::CombinedCoulombForces(double& fx, double& fy, double fz, double muscale) {
+    ChVector2<> F;
+    F.x() = tanh(-2.0 * m_states.vsx) * fz * muscale;
+    F.y() = tanh(-2.0 * m_states.vsy) * fz * muscale;
+    if (F.Length() > fz * muscale) {
+        F.Normalize();
+        F *= fz * muscale;
+    }
+    fx = F.x();
+    fy = F.y();
+}
+
 // -----------------------------------------------------------------------------
 
 void ChFialaTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
-    m_cyl_shape = chrono_types::make_shared<ChCylinderShape>();
-    m_cyl_shape->GetCylinderGeometry().rad = GetRadius();
-    m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, GetOffset() + GetVisualizationWidth() / 2, 0);
-    m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, GetOffset() - GetVisualizationWidth() / 2, 0);
+    m_cyl_shape =
+        ChVehicleGeometry::AddVisualizationCylinder(m_wheel->GetSpindle(),                                        //
+                                                    ChVector<>(0, GetOffset() + GetVisualizationWidth() / 2, 0),  //
+                                                    ChVector<>(0, GetOffset() - GetVisualizationWidth() / 2, 0),  //
+                                                    GetRadius());
     m_cyl_shape->SetTexture(GetChronoDataFile("textures/greenwhite.png"));
-    m_wheel->GetSpindle()->AddVisualShape(m_cyl_shape);
 }
 
 void ChFialaTire::RemoveVisualizationAssets() {

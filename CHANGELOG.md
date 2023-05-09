@@ -5,6 +5,8 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [Definition and use of primitive geometric shapes](#changed-definition-and-use-of-primitive-geometric-shapes)
+  - [Chrono::Vehicle engine and transmission templates](#changed-chronovehicle-engine-and-transmission-templates)
   - [New generic template for wheeled suspension subsystems](#added-new-generic-template-for-wheeled-suspension-subsystems)
   - [CMake configuration and utility build scripts](#changed-cmake-configuration-and-utility-build-scripts)
   - [SPHTerrain - continuum representation method for deformable terrain](#added-sphterrain---continuum-representation-method-for-deformable-terrain)
@@ -16,7 +18,7 @@ Change Log
   - [Chrono::Sensor features and updates](#added-chronosensor-features-and-updates)
   - [Closed-loop vehicle paths](#fixed-closed-loop-vehicle-paths)
   - [Miscellaneous Chrono::Vehicle extensions](#added-miscellaneous-chronovehicle-extensions)
-  - [Chrono:Fsi API changes](#changed-chronofsi-api-changes)
+  - [Chrono::Fsi API changes](#changed-chronofsi-api-changes)
   - [User-defined SMC contact force calculation](#added-user-defined-smc-contact-force-calculation)
   - [Redesigned run-time visualization system](#changed-redesigned-run-time-visualization-system)
   - [Vehicle inertia properties](#changed-vehicle-inertia-properties)
@@ -79,6 +81,109 @@ Change Log
 
 ## Unreleased (development branch)
 
+### [Changed] Definition and use of primitive geometric shapes
+
+Specification of low-level geometric shapes and their use as collision and visualization shapes was changed for consistency and a more intuitive API.  The main changes can be described as follows:
+  - Geometric shapes with a directional axis (e.g., cylinder, cone, capsule) are always aligned with the Z axis.
+  - Size information is now provided through more intuitive quantities (full lengths for a box sides, axis lengths for an ellispoid, radius and length for a cylinder or a cone, etc).
+    Notable exceptions are:
+      - a sphere is specified by its radius,
+      - a capsule is specified by a radius and the length of its cylindrical portion.
+  - Geometric data for a shape contains no information on pose of that shape when used as a collision or visualization shape.  A transform (position and orientation) is specified only when a geometric shape is included in a visualization model or in a collision model. In particular, the specification of a cylinder by the coordinates of its end cap center points was removed. However, convenience functions are provided to facilitate this approach to constructing a cylindrical shape (see below).
+  - For classes derived from `ChVisualShape` we provide constructors that take relevant arguments specifying the shape size; as such, access to the low-lvel underlying geometry (through the `GetGeometry()` functions) is needed only in very special situations.
+
+While these changes affected a lot of the Chrono code base, user code must be updated only in a relatively few places:
+  - Specification of `ChVisualShape` objects and inclusion in a visual model:
+
+    Old code (visualization cylinder along Y axis):
+    ```cpp
+    auto cyl = chrono_types::make_shared<ChCylinderShape>();
+    cyl->GetCylinderGeometry().p1 = ChVector<>(2, -0.2, 0);
+    cyl->GetCylinderGeometry().p2 = ChVector<>(2, 0.5, 0);
+    cyl->GetCylinderGeometry().rad = 0.3;
+    cyl->AddMaterial(orange_mat);
+    body->AddVisualShape(cyl);
+    ```
+    New code:
+    ```cpp
+    auto cyl = chrono_types::make_shared<ChCylinderShape>(0.3, 0.7);
+    cyl->AddMaterial(orange_mat);
+    body->AddVisualShape(cyl, ChFrame<>(ChVector<>(2, 0.15, 0), Q_from_AngX(CH_C_PI_2)));
+    ```
+
+  - Addition of primitive collision shapes to a collision model:
+  
+    Old code (collision cylinder along Y axis):
+    ```cpp
+    object->GetCollisionModel()->ClearModel();
+    object->GetCollisionModel()->AddCylinder(object_mat, radius, radius, hlen, ChVector<>(0), ChMatrix33<>(1));
+    object->GetCollisionModel()->BuildModel();
+    ```
+    New code:
+    ```cpp
+    object->GetCollisionModel()->ClearModel();
+    object->GetCollisionModel()->AddCylinder(object_mat, radius, 2 * hlen, ChVector<>(0), Q_from_AngX(CH_C_PI_2));
+    object->GetCollisionModel()->BuildModel();
+    ```
+
+  - Creation of a `ChBodyEasyCylinder`:
+
+    Old code:
+    ```cpp
+    auto body = chrono_types::make_shared<ChBodyEasyCylinder>(radB, 0.4, 1000, true, false, mat);
+    ```
+    New code:
+    ```cpp
+    auto body = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, radB, 0.4, 1000, true, false, mat);
+    ```
+
+Consult the various Chrono demos for examples of specifying visualization and collision shapes using the new API.
+
+For convenience, the following mechanisms are provided to construct cylinders when the locations of the endcap centers are known:
+  - visualization cylinder shape defined through its endcaps -- construct a helper `ChLineSegment` object:
+  ```cpp
+  geometry::ChLineSegment seg(ChVector<>(0, -(hl - 0.2) * sina, (hl - 0.2) * cosa),
+                              ChVector<>(0, -(hl + 0.2) * sina, (hl + 0.2) * cosa));
+  auto cyl_2 = chrono_types::make_shared<ChCylinderShape>(0.3, seg.GetLength());
+  ground->AddVisualShape(cyl_2, seg.GetFrame());
+  ```       
+  - collision cylinder shape defined through its endcaps -- use the alternative version of `ChCollisionModel::AddCylinder`:
+  ```cpp
+  bool AddCylinder(                                   //
+        std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
+        double radius,                                ///< radius
+        const ChVector<>& p1,                         ///< first end point
+        const ChVector<>& p2                          ///< second end point
+    );
+  ```
+  
+In conjunction with the above changes to the basic primitive shapes, several other updates were made for a more consistent and intuitive API:
+  - all utility functions defined in `utils::ChUtilsCreators.h` were updated to follow the new conventions.
+  - the utility function `utils::AddBoxContainer` was modified to construct a box volume with given dimensions centered at the origin of the provided reference frame (previously, the center of the "bottom" wall was at the frame origin).
+  - the utility function `fsi::AddBoxContaionerBCE` (previously named `fsi::AddContainerBCE`) was modified to follow the same convention as above.
+
+For users of the `Chrono::Vehicle` module, note that these changes **do not** affect use of any of the vehicle subsystem templates nor do they require any changes to JSON specification files.
+
+### [Changed] Chrono::Vehicle engine and transmission templates
+
+New Chrono::Vehicle templates for the engine and transmission subsystems replace the old powertrain template. The new templates maintain the same modellling capabilities, but allow more flexibility in mixing and matching different models of engines with different transmission models. The coupling between an engine and a transmission is done at the motorshaft, with the engine providing the torque on this shaft and the transmission specifying the angular speed of the shaft. For interfacing with the vehicle system, an aggregate class, ChPowertrainAssembly, manages an engine and transmission and intermediates the coupling with a driveline vehicle subsystem through the driveshaft connecting the transmission to the driveline.
+
+The following engine templates are available:
+  - ChEngineShafts - template for modeling an engine using 1-D shaft elements and engine torque-speed maps including maps for engine losses.
+  - ChEngineSimpleMap - template for a kinematic engine model based on torque-speed maps.
+  - ChEngineSimple - template for a kinematic engine model based on a linear torque-speed dependency.
+
+The following templates for automatic transmissions are available:
+  - ChAutomaticTransmissionShafts - template for modelling an automatic transmission using 1-D shaft elements and a torque converter specified through the capacity factor and torque ratio maps.
+  - ChAutomaticTransmissionSimpleMap - template for a kinematic model of an automatic transmission using shift maps.
+
+Any of the above engine models can be coupled with either transmission model, as well with any Chrono::Vehicle driveline model (for either a wheeled or tracked vehicle).
+
+While currently only templates for autmatic transmissions are implemented, the new code design allows introduction of manual transmissions which will be implemented at a later date.
+
+This code change requires modifications to any existing vehicle model, whether specified through a set of C++ classes providing concrete instantiations of various subsystem templates or else specified through a set of JSON files. Consult the vehicle models in the Chrono::Vehicle models library and the sample JSON specification files distributed with Chrono.
+
+
 ### [Added] New generic template for wheeled suspension subsystems
 
 A new Chrono::Vehicle template for modeling a wheeled vehicle suspension was added. The `ChGenericWheeledSuspension` class permits definition of a suspension subsystem with arbitrary, user-defined topology and sets of bodies, joints, and spring-damper elements. The only elements assumed to always exist in a suspension subsystem are the two spindles and the two axle shafts which connect the spindles to a driveline. A companion class, `GenericWheeledSuspension` allows definition of an arbitrary suspension subsystem based on a JSON specification file. 
@@ -124,7 +229,17 @@ TMeasy requires 5 parameters to define its basic function for Fx and Fy: (1) slo
 
 ### [Added] Blender plug-in for post-process visualization
 
-**TODO**
+A new tool has been developed. It is an add-on for the [Blender](http://blender.org) rendering/modeling/animation software, that allows importing Chrono simulation in the GUI of Blender. From the C++ side, the only requirement is using some export functions of the POSTPROCESS module. This aims at replacing the old POVray post-processing pipeline.
+
+- Interactive 3D navigation of the scenes, and timeline scrubbing.
+- Allows rendering of high-quality photorealistic animations, using the Cycles physically-based unbiased path tracer that is available in Blender.
+- The user can optionally modify the Chrono assets, once imported, by attaching custom materials, special FXs, more detailed meshes, etc. 
+- Visualization of auxiliary references (cetenr of masses, link markers etc)
+- False color rendering of mesh attributes and glyph attributes, using colormaps
+- Speed optimizations for the ChParticleCloud shapes
+
+Details on this new tool is available at [the Chrono::Blender page](https://api.projectchrono.org/development/introduction_chrono_blender.html) on the projectchrono.org website.
+
 
 ### [Added] VSG-based run-time visualization module
 

@@ -39,6 +39,8 @@ ChBalancer::~ChBalancer() {
 // -----------------------------------------------------------------------------
 
 void ChBalancer::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector<>& location) {
+    ChSubchassis::Initialize(chassis, location);
+
     m_parent = chassis;
     m_rel_loc = location;
 
@@ -133,12 +135,10 @@ void ChBalancer::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
-    auto box_left = chrono_types::make_shared<ChBoxShape>();
-    box_left->GetBoxGeometry().SetLengths(GetBalancerBeamDimensions());
+    auto box_left = chrono_types::make_shared<ChBoxShape>(GetBalancerBeamDimensions());
     m_beam[LEFT]->AddVisualShape(box_left);
 
-    auto box_right = chrono_types::make_shared<ChBoxShape>();
-    box_right->GetBoxGeometry().SetLengths(GetBalancerBeamDimensions());
+    auto box_right = chrono_types::make_shared<ChBoxShape>(GetBalancerBeamDimensions());
     m_beam[RIGHT]->AddVisualShape(box_right);
 }
 

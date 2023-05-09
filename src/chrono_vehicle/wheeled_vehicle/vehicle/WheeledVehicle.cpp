@@ -26,8 +26,6 @@ using namespace rapidjson;
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 WheeledVehicle::WheeledVehicle(const std::string& filename,
                                ChContactMethod contact_method,
                                bool create_powertrain,
@@ -42,7 +40,7 @@ WheeledVehicle::WheeledVehicle(ChSystem* system, const std::string& filename, bo
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 void WheeledVehicle::Create(const std::string& filename, bool create_powertrain, bool create_tires) {
     // Open and parse the input file
     Document d;
@@ -189,8 +187,14 @@ void WheeledVehicle::Create(const std::string& filename, bool create_powertrain,
     // ------------------------------------
 
     if (create_powertrain && d.HasMember("Powertrain")) {
-        std::string file_name = d["Powertrain"]["Input File"].GetString();
-        m_powertrain = ReadPowertrainJSON(vehicle::GetDataFile(file_name));
+        assert(d["Powertrain"].HasMember("Engine Input File"));
+        assert(d["Powertrain"].HasMember("Transmission Input File"));
+
+        std::string file_name_e = d["Powertrain"]["Engine Input File"].GetString();
+        std::string file_name_t = d["Powertrain"]["Transmission Input File"].GetString();
+        auto engine = ReadEngineJSON(vehicle::GetDataFile(file_name_e));
+        auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(file_name_t));
+        m_powertrain_assembly = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
     }
 
     // --------------------
@@ -327,7 +331,7 @@ void WheeledVehicle::Create(const std::string& filename, bool create_powertrain,
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 void WheeledVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
     // Initialize the chassis subsystem.
     m_chassis->Initialize(m_system, chassisPos, chassisFwdVel, WheeledCollisionFamily::CHASSIS);
@@ -381,8 +385,8 @@ void WheeledVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
     }
 
     // Initialize the powertain (if present)
-    if (m_powertrain) {
-        InitializePowertrain(m_powertrain);
+    if (m_powertrain_assembly) {
+        InitializePowertrain(m_powertrain_assembly);
     }
 
     // Invoke base class method

@@ -73,7 +73,10 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     sysMBS.AddBody(ground);
 
     // Add BCE particles attached on the walls into FSI system
-    sysFSI.AddContainerBCE(ground, ChFrame<>(), ChVector<>(bxDim, byDim, bzDim), ChVector<int>(2, 0, 2));
+    sysFSI.AddBoxContainerBCE(ground,                                         //
+                              ChFrame<>(ChVector<>(0, 0, bzDim / 2), QUNIT),  //
+                              ChVector<>(bxDim, byDim, bzDim),                //
+                              ChVector<int>(2, 0, 2));
 }
 
 // =============================================================================
@@ -144,7 +147,7 @@ int main(int argc, char* argv[]) {
         fsi_vis.SetTitle("Chrono::FSI dam break");
         fsi_vis.AddCamera(ChVector<>(0, -3 * byDim, bzDim), ChVector<>(0, 0, 0));
         fsi_vis.SetCameraMoveScale(1.0f);
-        fsi_vis.EnableBoundaryMarkers(false);
+        fsi_vis.EnableBoundaryMarkers(true);
         fsi_vis.Initialize();
     }
 #endif

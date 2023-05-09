@@ -51,8 +51,7 @@ int main(int argc, char* argv[]) {
     sys.AddBody(my_body_A);
 
     // Attach a 'box' shape asset for visualization.
-    auto mboxtruss = chrono_types::make_shared<ChBoxShape>();
-    mboxtruss->GetBoxGeometry().SetLengths(ChVector<>(0.02, 0.5, 0.5));
+    auto mboxtruss = chrono_types::make_shared<ChBoxShape>(0.02, 0.5, 0.5);
     my_body_A->AddVisualShape(mboxtruss, ChFrame<>(ChVector<>(-0.01, -0.2, -0.25)));
 
     // Create a FEM mesh, that is a container for groups

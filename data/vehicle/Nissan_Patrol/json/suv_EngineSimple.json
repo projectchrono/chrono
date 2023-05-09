@@ -1,0 +1,9 @@
+{
+  "Name": "Nissan Simple Engine",
+  "Type": "Engine",
+  "Template": "EngineSimple",
+
+  "Maximum Engine Torque": 1000,
+  "Maximum Engine Power": 110000,
+  "Maximum Engine Speed": 2000
+}

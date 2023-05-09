@@ -48,6 +48,8 @@ ChRackPinion::~ChRackPinion() {
 void ChRackPinion::Initialize(std::shared_ptr<ChChassis> chassis,
                               const ChVector<>& location,
                               const ChQuaternion<>& rotation) {
+    ChSteering::Initialize(chassis, location, rotation);
+
     m_parent = chassis;
     m_rel_xform = ChFrame<>(location, rotation);
 
@@ -120,11 +122,10 @@ void ChRackPinion::AddVisualizationAssets(VisualizationType vis) {
 
     double length = GetSteeringLinkLength();
 
-    auto cyl = chrono_types::make_shared<ChCylinderShape>();
-    cyl->GetCylinderGeometry().p1 = ChVector<>(0, length / 2, 0);
-    cyl->GetCylinderGeometry().p2 = ChVector<>(0, -length / 2, 0);
-    cyl->GetCylinderGeometry().rad = GetSteeringLinkRadius();
-    m_link->AddVisualShape(cyl);
+    ChVehicleGeometry::AddVisualizationCylinder(m_link,                         //
+                                                ChVector<>(0, length / 2, 0),   //
+                                                ChVector<>(0, -length / 2, 0),  //
+                                                GetSteeringLinkRadius());
 }
 
 void ChRackPinion::RemoveVisualizationAssets() {

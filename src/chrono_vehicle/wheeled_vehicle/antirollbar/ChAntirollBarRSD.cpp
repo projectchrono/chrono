@@ -49,6 +49,8 @@ ChAntirollBarRSD::~ChAntirollBarRSD() {
 void ChAntirollBarRSD::Initialize(std::shared_ptr<ChChassis> chassis,
                                   std::shared_ptr<ChSuspension> suspension,
                                   const ChVector<>& location) {
+    ChAntirollBar::Initialize(chassis, suspension, location);
+
     m_parent = chassis;
     m_rel_loc = location;
 
@@ -188,23 +190,14 @@ void ChAntirollBarRSD::AddVisualizationArm(std::shared_ptr<ChBody> arm,
                                            const ChVector<>& pt_3,
                                            double radius,
                                            const ChColor& color) {
-    auto cyl_1 = chrono_types::make_shared<ChCylinderShape>();
-    cyl_1->GetCylinderGeometry().p1 = pt_1;
-    cyl_1->GetCylinderGeometry().p2 = pt_2;
-    cyl_1->GetCylinderGeometry().rad = radius;
-    arm->AddVisualShape(cyl_1);
+    ChVehicleGeometry::AddVisualizationCylinder(arm, pt_1, pt_2, radius);
 
-    auto cyl_2 = chrono_types::make_shared<ChCylinderShape>();
-    cyl_2->GetCylinderGeometry().p1 = pt_2;
-    cyl_2->GetCylinderGeometry().p2 = pt_3;
-    cyl_2->GetCylinderGeometry().rad = radius;
-    arm->AddVisualShape(cyl_2);
+    ChVehicleGeometry::AddVisualizationCylinder(arm, pt_2, pt_3, radius);
 
-    auto cyl_3 = chrono_types::make_shared<ChCylinderShape>();
-    cyl_3->GetCylinderGeometry().p1 = pt_1 + ChVector<>(0, 0, 3 * radius);
-    cyl_3->GetCylinderGeometry().p2 = pt_1 - ChVector<>(0, 0, 3 * radius);
-    cyl_3->GetCylinderGeometry().rad = radius / 2;
-    arm->AddVisualShape(cyl_3);
+    ChVehicleGeometry::AddVisualizationCylinder(arm,                                  //
+                                                pt_1 + ChVector<>(0, 0, 3 * radius),  //
+                                                pt_1 - ChVector<>(0, 0, 3 * radius),  //
+                                                radius / 2);
 }
 
 // -----------------------------------------------------------------------------

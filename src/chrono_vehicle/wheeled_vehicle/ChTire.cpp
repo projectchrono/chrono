@@ -53,6 +53,9 @@ void ChTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     //// This requires changing the spindle to a ChBodyAuxRef.
     wheel->GetSpindle()->SetMass(wheel->GetSpindle()->GetMass() + GetAddedMass());
     wheel->GetSpindle()->SetInertiaXX(wheel->GetSpindle()->GetInertiaXX() + GetAddedInertia());
+
+    // Mark as initialized
+    m_initialized = true;
 }
 
 // -----------------------------------------------------------------------------

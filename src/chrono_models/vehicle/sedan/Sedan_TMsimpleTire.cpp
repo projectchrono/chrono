@@ -9,18 +9,18 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Michael Taylor
+// Authors: Rainer Gericke, Asher Elmquist
 // =============================================================================
 //
-// Sedan TMsimple subsystem
+// Sedan TMsimple tire subsystem
 //
 // =============================================================================
 
-#include <cmath>
 #include <algorithm>
+#include <cmath>
 
-#include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_models/vehicle/sedan/Sedan_TMsimpleTire.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 
 namespace chrono {
 namespace vehicle {
@@ -30,26 +30,28 @@ namespace sedan {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double Sedan_TMsimpleTire::m_normalDamping = 7500;
+const std::string Sedan_TMsimpleTire::m_meshFile = "sedan/sedan_tire.obj";
 
 const double Sedan_TMsimpleTire::m_mass = 11.5;
 const ChVector<> Sedan_TMsimpleTire::m_inertia(0.156, 0.679, 0.156);
 
-const std::string Sedan_TMsimpleTire::m_meshFile_left = "sedan/sedan_tire.obj";
-const std::string Sedan_TMsimpleTire::m_meshFile_right = "sedan/sedan_tire.obj";
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+Sedan_TMsimpleTire::Sedan_TMsimpleTire(const std::string& name) : ChTMsimpleTire(name) {
+    SetTMsimpleParams();
+    if(GetName().compare("FL") == 0) {
+        WritePlots("sedan.plt", "sedan");
+    }
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Sedan_TMsimpleTire::Sedan_TMsimpleTire(const std::string& name) : ChTMsimpleTire(name) {}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-
 void Sedan_TMsimpleTire::SetTMsimpleParams() {
     const double in2m = 0.0254;
+
     // Tire 245/40R18
     // mass ~11.5 kg
-    // load per tire aprox. 1600 lbf -> LI = 97
+    // weight per tire aprox. 1600 lbf -> LI = 97
     // tire pressure 32 psi ~220000 N/m2
     // max pressure 50 psi ~350000 N/m2
     unsigned int li = 97;
@@ -68,20 +70,19 @@ void Sedan_TMsimpleTire::SetTMsimpleParams() {
     );
 }
 
-double Sedan_TMsimpleTire::GetNormalStiffnessForce(double depth) const {
-    return depth*m_Cz; // just linear in this example
-}
-
-double Sedan_TMsimpleTire::GetNormalDampingForce(double depth, double velocity) const {
-    return m_normalDamping * velocity;
+void Sedan_TMsimpleTire::GenerateCharacteristicPlots(const std::string& dirname) {
+    // Write a plot file (gnuplot) to check the tire characteristics.
+    // Inside gnuplot use the command load 'filename'
+    std::string filename = dirname + "/245.40R18_" + GetName() + ".gpl";
+    WritePlots(filename, "245.40R18");
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void Sedan_TMsimpleTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        m_trimesh_shape = AddVisualizationMesh(m_meshFile_left,    // left side
-                                               m_meshFile_right);  // right side
+        m_trimesh_shape = AddVisualizationMesh(m_meshFile,   // left side
+                                               m_meshFile);  // right side
     } else {
         ChTMsimpleTire::AddVisualizationAssets(vis);
     }
@@ -95,5 +96,4 @@ void Sedan_TMsimpleTire::RemoveVisualizationAssets() {
 }  // end namespace sedan
 }  // end namespace vehicle
 }  // end namespace chrono
-
 

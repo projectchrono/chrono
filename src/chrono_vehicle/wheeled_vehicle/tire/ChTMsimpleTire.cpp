@@ -1,59 +1,44 @@
-// =============================================================================
-// PROJECT CHRONO - http://projectchrono.org
-//
-// Copyright (c) 2015 projectchrono.org
-// All rights reserved.
-//
-// Use of this source code is governed by a BSD-style license that can be found
-// in the LICENSE file at the top level of the distribution and at
-// http://projectchrono.org/license-chrono.txt.
-//
-// =============================================================================
-// Authors: Radu Serban, Michael Taylor
-// =============================================================================
-//
-// Template for a TMsimple Tire Model
-//
-// =============================================================================
-// Authors: Radu Serban, Mike Taylor, Rainer Gericke
-// =============================================================================
-//
-// TMsimple tire model.
-//
-// =============================================================================
-
 #include <algorithm>
 #include <cmath>
+#include <iomanip>
 
 #include "chrono/core/ChGlobal.h"
 #include "chrono/core/ChLog.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChTMsimpleTire.h"
 
+#include "chrono_thirdparty/rapidjson/document.h"
+#include "chrono_thirdparty/rapidjson/stringbuffer.h"
+#include "chrono_thirdparty/rapidjson/writer.h"
+
 namespace chrono {
 namespace vehicle {
 
 ChTMsimpleTire::ChTMsimpleTire(const std::string& name)
     : ChForceElementTire(name),
-      m_mu(0.8),
-      m_mu_0(0.8),
-      m_vcoulomb(0.2),
-      m_Fx_max1(-1.0),
-      m_Fx_inf1(0.0),
-      m_dFx0_1(0.0),
-      m_Fx_max2(0.0),
-      m_Fx_inf2(0.0),
-      m_dFx0_2(0.0),
-      m_Fy_max1(0.0),
-      m_Fy_inf1(0.0),
-      m_dFy0_1(0.0),
-      m_Fy_max2(0.0),
-      m_Fy_inf2(0.0),
-      m_dFy0_2(0.0),
-      m_time_trans(0.2) {
+      m_vnum(0.01),
+      m_gamma(0),
+      m_gamma_limit(5),
+      m_begin_start_transition(0.1),
+      m_end_start_transition(0.25),
+      m_use_startup_transition(false),
+      m_vcoulomb(1.0),
+      m_frblend_begin(1.0),
+      m_frblend_end(3.0) {
     m_tireforce.force = ChVector<>(0, 0, 0);
     m_tireforce.point = ChVector<>(0, 0, 0);
     m_tireforce.moment = ChVector<>(0, 0, 0);
+
+    m_TMsimpleCoeff.pn = 0.0;
+    m_TMsimpleCoeff.mu_0 = 0.8;
+
+    // alignment parameters, fixed for simplicity
+    m_TMsimpleCoeff.nL0_pn = 0.133;
+    m_TMsimpleCoeff.nL0_p2n = 0.1;
+    m_TMsimpleCoeff.sq0_pn = 0.250;
+    m_TMsimpleCoeff.sq0_p2n = 0.275;
+    m_TMsimpleCoeff.sqe_pn = 0.6;
+    m_TMsimpleCoeff.sqe_p2n = 0.8;
 }
 
 // -----------------------------------------------------------------------------
@@ -63,48 +48,21 @@ void ChTMsimpleTire::Initialize(std::shared_ptr<ChWheel> wheel) {
 
     SetTMsimpleParams();
 
-    GenerateWorkParameters();
- }
-
-void ChTMsimpleTire::GenerateWorkParameters() {
-    // convert input parameters into work parameters
-    
-    if(m_Fx_max1 < 0.0) {
-        GetLog() << "No Input Parameters loaded!, Tires will not works as expected\n";
-        return;
-    }
-    
-    m_ax1 = 2.0*m_Fx_max1-0.5*m_Fx_max2;
-    m_ax2 = 0.5*m_Fx_max2-m_Fx_max1;
-
-    m_bx1 = 2.0*m_dFx0_1-0.5*m_dFx0_2;
-    m_bx2 = 0.5*m_dFx0_2-m_dFx0_1;
-    
-    m_cx1 = 2.0*m_Fx_inf1-0.5*m_Fx_inf2;
-    m_cx2 = 0.5*m_Fx_inf2-m_Fx_inf1;
-    
-    m_ay1 = 2.0*m_Fy_max1-0.5*m_Fy_max2;
-    m_ay2 = 0.5*m_Fy_max2-m_Fy_max1;
-
-    m_by1 = 2.0*m_dFy0_1-0.5*m_dFy0_2;
-    m_by2 = 0.5*m_dFy0_2-m_dFy0_1;
-
-    m_cy1 = 2.0*m_Fy_inf1-0.5*m_Fy_inf2;
-    m_cy2 = 0.5*m_Fy_inf2-m_Fy_inf1;
-    
     // Build the lookup table for penetration depth as function of intersection area
     // (used only with the ChTire::ENVELOPE method for terrain-tire collision detection)
     ConstructAreaDepthTable(m_unloaded_radius, m_areaDep);
 
-    //WritePlots("tmsimple_plot.plt", "37x12.5x16.5");
-    
-    // Initialize contact patch state variables to 0
-    m_states.kappa = 0;
-    m_states.alpha = 0;
+    // Initialize contact patch state variables to 0;
+    m_states.sx = 0;
+    m_states.sy = 0;
+    m_states.vta = m_vnum;
+    m_states.R_eff = m_unloaded_radius;
+    m_integration_method = 2;
 }
 
-void ChTMsimpleTire::Synchronize(double time,
-                              const ChTerrain& terrain) {
+// -----------------------------------------------------------------------------
+
+void ChTMsimpleTire::Synchronize(double time, const ChTerrain& terrain) {
     m_time = time;
     WheelState wheel_state = m_wheel->GetState();
 
@@ -121,51 +79,56 @@ void ChTMsimpleTire::Synchronize(double time,
 
     // Calculate tire kinematics
     CalculateKinematics(wheel_state, m_data.frame);
-
-    double r_stat = m_unloaded_radius - m_data.depth;
+    m_gamma = GetCamberAngle();
 
     if (m_data.in_contact) {
         // Wheel velocity in the ISO-C Frame
         ChVector<> vel = wheel_state.lin_vel;
         m_data.vel = m_data.frame.TransformDirectionParentToLocal(vel);
 
-        // Generate normal contact force (recall, all forces are reduced to the wheel
-        // center). If the resulting force is negative, the disc is moving away from
-        // the terrain so fast that no contact force is generated.
-        // The sign of the velocity term in the damping function is negative since
-        // a positive velocity means a decreasing depth, not an increasing depth
+        // Generate normal contact force. If the resulting force is negative, the disc
+        // is moving away from the terrain so fast that no contact force is generated.
+        // The sign of the velocity term in the damping function is negative since a
+        // positive velocity means a decreasing depth, not an increasing depth.
         double Fn_mag = GetNormalStiffnessForce(m_data.depth) + GetNormalDampingForce(m_data.depth, -m_data.vel.z());
 
+        // Skip Force and moment calculations when the normal force = 0
         if (Fn_mag < 0) {
             Fn_mag = 0;
-            m_data.in_contact = false;  // Skip Force and moment calculations when the normal force = 0
+            m_data.in_contact = false;
         }
 
         m_data.normal_force = Fn_mag;
-        m_states.Reff = (2.0 * m_unloaded_radius + r_stat) / 3.0;
-        m_states.abs_vx = std::abs(m_data.vel.x());
-        m_states.abs_vt = std::abs(wheel_state.omega * m_states.Reff);
-        m_states.vsy = m_data.vel.y();
-        m_states.vta = m_states.Reff * std::abs(wheel_state.omega) + 0.01;
-        m_states.vsx = m_data.vel.x() - wheel_state.omega * m_states.Reff;
+        double r_stat = m_unloaded_radius - m_data.depth;
         m_states.omega = wheel_state.omega;
+        m_states.R_eff = (2.0 * m_unloaded_radius + r_stat) / 3.0;
+        m_states.P_len = 2.0 * sqrt(m_unloaded_radius * m_data.depth);
+        m_states.vta = m_states.R_eff * std::abs(m_states.omega) + m_vnum;
+        m_states.vsx = m_data.vel.x() - m_states.omega * m_states.R_eff;
+        m_states.vsy = m_data.vel.y();
         m_states.sx = -m_states.vsx / m_states.vta;
         m_states.sy = -m_states.vsy / m_states.vta;
+        m_states.nL0 = m_TMsimpleCoeff.nL0_pn + (m_TMsimpleCoeff.nL0_p2n - m_TMsimpleCoeff.nL0_pn) *
+                                                    (m_data.normal_force / m_TMsimpleCoeff.pn - 1.0);
+        m_states.sq0 = m_TMsimpleCoeff.sq0_pn + (m_TMsimpleCoeff.sq0_p2n - m_TMsimpleCoeff.sq0_pn) *
+                                                    (m_data.normal_force / m_TMsimpleCoeff.pn - 1.0);
+        m_states.sqe = m_TMsimpleCoeff.sqe_pn + (m_TMsimpleCoeff.sqe_p2n - m_TMsimpleCoeff.sqe_pn) *
+                                                    (m_data.normal_force / m_TMsimpleCoeff.pn - 1.0);
         m_states.disc_normal = disc_normal;
     } else {
         // Reset all states if the tire comes off the ground.
         m_data.normal_force = 0;
-        m_states.kappa = 0;
-        m_states.alpha = 0;
-        m_states.abs_vx = 0;
-        m_states.vta = 0;
-        m_states.vsx = 0;
-        m_states.vsy = 0;
+        m_states.R_eff = m_unloaded_radius;
+        m_states.P_len = 0;
         m_states.sx = 0;
         m_states.sy = 0;
-        m_states.Reff = m_unloaded_radius;
+        m_states.vta = m_vnum;
+        m_states.vsx = 0;
+        m_states.vsy = 0;
         m_states.omega = 0;
-        m_states.abs_vt = 0;
+        m_states.nL0 = 0;
+        m_states.sq0 = 0;
+        m_states.sqe = 0;
         m_states.disc_normal = ChVector<>(0, 0, 0);
     }
 }
@@ -179,67 +142,142 @@ void ChTMsimpleTire::Advance(double step) {
     if (!m_data.in_contact)
         return;
 
-    const double vnum = 0.1;
+    double muscale;  // factor for considering local friction
 
-    // smoothing interval for My
-    const double vx_min = 0.125;
-    const double vx_max = 0.5;
+    muscale = m_mu / m_TMsimpleCoeff.mu_0;
 
-    if (m_states.abs_vx != 0) {
-        m_states.kappa = -m_states.vsx / (m_states.abs_vx + vnum);
-        m_states.alpha = std::atan2(m_states.vsy, m_states.abs_vx);
-    } else {
-        m_states.kappa = 0;
-        m_states.alpha = 0;
-    }
+    // Clamp |gamma| to specified value: Limit due to tire testing, avoids erratic extrapolation.
+    double gamma = ChClamp(GetCamberAngle(), -m_gamma_limit * CH_C_DEG_TO_RAD, m_gamma_limit * CH_C_DEG_TO_RAD);
 
-    // Now calculate the new force and moment values.
-    // Normal force and moment have already been accounted for in Synchronize().
-    // See reference for more detail on the calculations
-    double Fx_low = 0;
-    double Fy_low = 0;
+    // Limit the effect of Fz on handling forces and torques to avoid nonsensical extrapolation of the curve
+    // coefficients
+    // m_data.normal_force is nevertheless still taken as the applied vertical tire force
+    double Fz = std::min(m_data.normal_force, m_TMsimpleCoeff.pn_max);
+
+    double Fx = 0, Fy = 0;
+    double Fx0, Fy0;
+
+    CombinedCoulombForces(Fx0, Fy0, Fz, muscale);
+
+    double frblend = ChSineStep(m_data.vel.x(), m_frblend_begin, 0.0, m_frblend_end, 1.0);
+
+    TMcombinedForces(Fx, Fy, m_states.sx, m_states.sy, Fz, muscale);
+    Fx = (1.0 - frblend) * Fx0 + frblend * Fx;
+    Fy = (1.0 - frblend) * Fy0 + frblend * Fy;
+
+    double Mx = 0;
     double My = 0;
     double Mz = 0;
-    double Fx0 = 0;
-    double Fy0 = 0;
-    
-    /*
-     longitudinal speed <= vblend1: coulomb friction assumed
-     longitudinal speed >= vblend2: slip dependent friction assumed
-     slip dependent friction calculation avoided <= vblend1
-     blending is applied in the interval [vblend1:vblend2]
-     */
-    double Fz_star = m_data.normal_force*m_mu/m_mu_0;
-    Fx0 = Fx_low = tanh(-m_states.vsx/m_vcoulomb)*Fz_star;
-    Fy0 = Fy_low = tanh(-m_states.vsy/m_vcoulomb)*Fz_star;
-    Fy_low = sqrt(1.0-pow(Fx_low/Fz_star,2.0))*Fy0;
-    Fx_low = sqrt(1.0-pow(Fy_low/Fz_star,2.0))*Fx0;
 
-    double Fx_high = 0;     // 'high' speed longitudinal force
-    double Fy_high = 0;     // 'high' speed lateral force
-    double vblend1 = 3.0;
-    double vblend2 = 5.0;
-    if(m_states.abs_vx > vblend1) {
-        // avoid calculation with noisy slip values
-        TMsimplePatchForces(Fx_high, Fy_high, m_states.sx, m_states.sy, m_data.normal_force);
+    if (m_data.vel.x() >= m_frblend_begin) {
+        Mz = AlignmentTorque(Fy);
     }
 
-    // Smoothing factor dependend on m_state.abs_vx, allows soft switching of My
-    double myStartUp = ChSineStep(m_states.abs_vx, vx_min, 0.0, vx_max, 1.0);
-    // Rolling Resistance
-    My = -myStartUp * m_rolling_resistance * m_data.normal_force * ChSignum(m_states.omega);
+    // Rolling Resistance, Ramp Like Signum inhibits 'switching' of My
+    My = -m_rolling_resistance * m_data.normal_force * m_unloaded_radius * tanh(m_states.omega);
 
-    // Smooth starting transients
-    double tr_fact = ChSineStep(m_time, 0, 0, m_time_trans, 1.0);
-    double fblend = ChSineStep(m_states.abs_vx, vblend1, 1.0, vblend2, 0.0);
-    double Fx = fblend*Fx_low + (1.0-fblend)*Fx_high;
-    double Fy = fblend*Fy_low + (1.0-fblend)*Fy_high;
-    Fx *= tr_fact;
-    Fy *= tr_fact;
-    // compile the force and moment vectors so that they can be
-    // transformed into the global coordinate system
-    m_tireforce.force = ChVector<>(Fx, Fy, m_data.normal_force);
-    m_tireforce.moment = ChVector<>(0, My, Mz);
+    // Overturning Torque
+    double cg = std::pow(m_width, 2.0) * m_TMsimpleCoeff.cz / 12.0;
+    Mx = -cg * gamma;
+
+    double Ms = 0.0;
+
+    double startup = 1;
+    if (m_use_startup_transition) {
+        startup = ChSineStep(m_time, m_begin_start_transition, 0.0, m_end_start_transition, 1.0);
+    }
+
+    // Compile the force and moment vectors so that they can be
+    // transformed into the global coordinate system.
+    m_tireforce.force = ChVector<>(startup * Fx, startup * Fy, m_data.normal_force);
+    m_tireforce.moment = startup * ChVector<>(Mx, My, Mz);
+}
+
+void ChTMsimpleTire::CombinedCoulombForces(double& fx, double& fy, double fz, double muscale) {
+    ChVector2<> F;
+    F.x() = tanh(-2.0 * m_states.vsx / m_vcoulomb) * fz * muscale;
+    F.y() = tanh(-2.0 * m_states.vsy / m_vcoulomb) * fz * muscale;
+    if (F.Length() > fz * muscale) {
+        F.Normalize();
+        F *= fz * muscale;
+    }
+    fx = F.x();
+    fy = F.y();
+}
+
+void ChTMsimpleTire::TMcombinedForces(double& fx, double& fy, double sx, double sy, double Fz, double muscale) {
+    // fx and fy calculated from combined parameters (original TMeasy)
+    // get curve parameters via interpolation
+    double q = Fz / m_TMsimpleCoeff.pn;
+    double q2 = q * q;
+    double Fx_max = m_ax1 * q + m_ax2 * q2;
+    double Fy_max = m_ay1 * q + m_ay2 * q2;
+    double dFx0 = m_bx1 * q + m_bx2 * q2;
+    double dFy0 = m_by1 * q + m_by2 * q2;
+    double Fxs = m_cx1 * q + m_cx2 * q2;
+    double Fys = m_cy1 * q + m_cy2 * q2;
+
+    double s = hypot(sx, sy);
+    double cbeta;
+    double sbeta;
+    if (m_states.vsx == 0.0 && m_states.omega * m_states.R_eff == 0.0 && s == 0.0) {
+        cbeta = 0.5 * sqrt(2.0);
+        sbeta = cbeta;
+    } else {
+        cbeta = sx / s;
+        sbeta = sy / s;
+    }
+
+    double F_max = hypot(Fx_max * cbeta, Fy_max * sbeta);
+    double dF0 = hypot(dFx0 * cbeta, dFy0 * sbeta);
+    double Fs = hypot(Fxs * cbeta, Fys * sbeta);
+
+    double Qcrit = Fs / F_max;
+    ChClampValue(Qcrit, -1.0, 1.0);
+    double K = F_max;
+    double B = CH_C_PI - asin(Qcrit);
+    double A = K * B / dF0;
+    double Fa = K * sin(B * (1.0 - exp(-s / A)));
+
+    fx = Fa * cbeta;
+    fy = Fa * sbeta;
+}
+
+double ChTMsimpleTire::AlignmentTorque(double fy) {
+    double nto;
+    double nto0 = m_states.nL0;
+    double synto0 = m_states.sq0;
+    double syntoE = m_states.sqe;
+
+    double sy_a = fabs(m_states.sy);
+    double syntoE_loc = std::max(syntoE, synto0);
+
+    if (sy_a >= syntoE_loc) {
+        nto = 0;
+    } else {
+        double wf = synto0 / syntoE_loc;
+        double sy_n;
+        if (sy_a <= synto0) {
+            sy_n = sy_a / synto0;
+            double nto1 = nto0 * (1.0 - sy_n);
+            double nto2 = nto0 * (1.0 - (3.0 - 2.0 * sy_n) * pow(sy_n, 2));
+            nto = (1.0 - wf) * nto1 + wf * nto2;
+        } else {
+            sy_n = (syntoE_loc - sy_a) / (syntoE_loc - synto0);
+            nto = -nto0 * (1.0 - wf) * (sy_a - synto0) / synto0 * pow(sy_n, 2);
+        }
+    }
+    return -fy * m_states.P_len * nto;
+}
+
+// -----------------------------------------------------------------------------
+
+double ChTMsimpleTire::GetNormalStiffnessForce(double depth) const {
+    return depth * m_d1 + depth * depth * m_d2;
+}
+
+double ChTMsimpleTire::GetNormalDampingForce(double depth, double velocity) const {
+    return m_TMsimpleCoeff.dz * velocity;
 }
 
 // -----------------------------------------------------------------------------
@@ -248,12 +286,12 @@ void ChTMsimpleTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
-    m_cyl_shape = chrono_types::make_shared<ChCylinderShape>();
-    m_cyl_shape->GetCylinderGeometry().rad = GetRadius();
-    m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, GetOffset() + GetVisualizationWidth() / 2, 0);
-    m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, GetOffset() - GetVisualizationWidth() / 2, 0);
+    m_cyl_shape =
+        ChVehicleGeometry::AddVisualizationCylinder(m_wheel->GetSpindle(),                                        //
+                                                    ChVector<>(0, GetOffset() + GetVisualizationWidth() / 2, 0),  //
+                                                    ChVector<>(0, GetOffset() - GetVisualizationWidth() / 2, 0),  //
+                                                    GetRadius());
     m_cyl_shape->SetTexture(GetChronoDataFile("textures/greenwhite.png"));
-    m_wheel->GetSpindle()->AddVisualShape(m_cyl_shape);
 }
 
 void ChTMsimpleTire::RemoveVisualizationAssets() {
@@ -265,41 +303,32 @@ void ChTMsimpleTire::RemoveVisualizationAssets() {
 
 // -----------------------------------------------------------------------------
 
-void ChTMsimpleTire::TMsimplePatchForces(double& fx, double& fy, double sx, double sy, double fz) {
-    fx = 0.0;
-    fy = 0.0;
-    
-    double q1 = fz/m_Fz_nom;
-    double q2 = q1*q1;
-    
-    double Fx_max = m_ax1*q1 + m_ax2*q2;
-    double dFx0   = m_bx1*q1 + m_bx2*q2;
-    double Fx_inf = m_cx1*q1 + m_cx2*q2;
-    
-    double Fy_max = m_ay1*q1 + m_ay2*q2;
-    double dFy0   = m_by1*q1 + m_by2*q2;
-    double Fy_inf = m_cy1*q1 + m_cy2*q2;
-
-    double Kx = Fx_max;
-    double Bx = CH_C_PI - asin(Fx_inf/Fx_max);
-    double Ax = Kx*Bx/dFx0;
-
-    double Ky = Fy_max;
-    double By = CH_C_PI - asin(Fy_inf/Fy_max);
-    double Ay = Ky*By/dFy0;
-
-    fx = Kx*sin(Bx*(1.0-exp(-fabs(sx)/Ax))*ChSignum(sx));
-    fy = Ky*sin(By*(1.0-exp(-fabs(sy)/Ay))*ChSignum(sy));
-
-    ChVector2<> F;
-    F.x() = fx;
-    F.y() = fy;
-    double m = F.Length();
-    if(m > fz) {
-        F *= fz*m_mu/(m*m_mu_0);
+void ChTMsimpleTire::SetVerticalStiffness(double Cz1, double Cz2) {
+    if (m_TMsimpleCoeff.pn <= 0.0) {
+        GetLog() << "Fatal error in TMsimpleTire: nominal tire load has not been set.\n";
+        exit(99);
     }
-    fx = F.x();
-    fy = F.y();
+
+    m_TMsimpleCoeff.cz = Cz1;
+    m_d1 = sqrt(2.0 * Cz1 * Cz1 - Cz2 * Cz2);
+    m_d2 = (Cz2 * Cz2 - Cz1 * Cz1) / (4.0 * m_TMsimpleCoeff.pn);
+}
+
+void ChTMsimpleTire::SetVerticalStiffness(std::vector<double>& defl, std::vector<double>& frc) {
+    // calculate coefficients from test data
+    Eigen::MatrixXd A(defl.size(), 2);
+    Eigen::VectorXd b(defl.size());
+    Eigen::Vector2d r;
+    for (int k = 0; k < defl.size(); k++) {
+        A(k, 0) = defl[k];
+        A(k, 1) = defl[k] * defl[k];
+        b(k) = frc[k];
+    }
+    r = A.colPivHouseholderQr().solve(b);
+    m_d1 = r(0);
+    m_d2 = r(1);
+    m_TMsimpleCoeff.cz = sqrt(m_d1 * m_d1 + 4.0 * m_d2 * m_TMsimpleCoeff.pn);
+    GetLog() << "Stiffness Coeffs from test data d1 = " << m_d1 << "  d2 = " << m_d2 << "\n";
 }
 
 double ChTMsimpleTire::GetTireMaxLoad(unsigned int li) {
@@ -336,14 +365,48 @@ double ChTMsimpleTire::GetTireMaxLoad(unsigned int li) {
     return fmax;
 }
 
+void ChTMsimpleTire::WritePlots(const std::string& plName, const std::string& plTitle) {
+    std::ofstream plt(plName);
+    plt << "$ForceX << EOD" << std::endl;
+    for (int i = 0; i <= 100; i++) {
+        double s = double(i) / 100.0;
+        double fx1, fy1, fx2, fy2;
+        TMcombinedForces(fx1, fy1, s, 0, m_TMsimpleCoeff.pn, 1.0);
+        TMcombinedForces(fx2, fy2, s, 0, 2.0 * m_TMsimpleCoeff.pn, 1.0);
+        plt << s << "\t" << fx1 << "\t" << fx2 << std::endl;
+    }
+    plt << "EOD" << std::endl;
+    plt << "$ForceY << EOD" << std::endl;
+    for (int i = 0; i <= 100; i++) {
+        double s = double(i) / 100.0;
+        double fx1, fy1, fx2, fy2;
+        TMcombinedForces(fx1, fy1, 0, s, m_TMsimpleCoeff.pn, 1.0);
+        TMcombinedForces(fx2, fy2, 0, s, 2.0 * m_TMsimpleCoeff.pn, 1.0);
+        plt << s << "\t" << fy1 << "\t" << fy2 << std::endl;
+    }
+    plt << "EOD" << std::endl;
+    plt << "set title 'TMsimple: " << plTitle << "'\n";
+    plt << "set xlabel 'longitudinal slip sx ()'\n";
+    plt << "set ylabel 'longitudinal force Fx (N)'\n";
+    plt << "plot $ForceX with lines t 'Fz = " << int(m_TMsimpleCoeff.pn)
+    << " N', $ForceX u 1:3 with lines t 'Fz = " << int(m_TMsimpleCoeff.pn*2) << " N\n";
+    plt << "pause -1\n";
+    plt << "set xlabel 'lateral slip sy ()'\n";
+    plt << "set ylabel 'lateral force Fx (N)'\n";
+    plt << "plot $ForceY with lines t 'Fz = " << int(m_TMsimpleCoeff.pn)
+    << " N', $ForceY u 1:3 with lines t 'Fz = " << int(m_TMsimpleCoeff.pn*2) << " N\n";
+    plt << "pause -1\n";
+    plt.close();
+}
+
 // No Data available? Try this to get a working truck tire
 void ChTMsimpleTire::GuessTruck80Par(unsigned int li,       // tire load index
-                                   double tireWidth,      // [m]
-                                   double ratio,          // [] = use 0.75 meaning 75%
-                                   double rimDia,         // rim diameter [m]
-                                   double pinfl_li,       // inflation pressure at load index
-                                   double pinfl_use,      // inflation pressure in this configuration
-                                   double damping_ratio)  // damping ratio
+                                     double tireWidth,      // [m]
+                                     double ratio,          // [] = use 0.75 meaning 75%
+                                     double rimDia,         // rim diameter [m]
+                                     double pinfl_li,       // inflation pressure at load index
+                                     double pinfl_use,      // inflation pressure in this configuration
+                                     double damping_ratio)  // damping ratio
 {
     double tireLoad = GetTireMaxLoad(li);
     GuessTruck80Par(tireLoad, tireWidth, ratio, rimDia, pinfl_li, pinfl_use, damping_ratio);
@@ -351,134 +414,181 @@ void ChTMsimpleTire::GuessTruck80Par(unsigned int li,       // tire load index
 
 // No Data available? Try this to get a working truck tire
 void ChTMsimpleTire::GuessTruck80Par(double tireLoad,       // tire load force [N]
-                                   double tireWidth,      // [m]
-                                   double ratio,          // [] = use 0.75 meaning 75%
-                                   double rimDia,         // rim diameter [m]
-                                   double pinfl_li,       // inflation pressure at load index
-                                   double pinfl_use,      // inflation pressure in this configuration
-                                   double damping_ratio)  // damping ratio
-{
-    double secth = tireWidth * ratio;  // tire section height
-    double defl_max = 0.16 * secth;    // deflection at tire payload
-
-    m_Fz_nom = 0.5 * tireLoad * pow(pinfl_use / pinfl_li, 0.8);
-
-    m_Cz = tireLoad / defl_max;
-    m_Dz = 2.0 * damping_ratio * sqrt(m_Cz * GetTireMass());
-
-    m_rolling_resistance = 0.015;
-
-    m_width = tireWidth;
-    m_unloaded_radius = secth + rimDia / 2.0;
-    m_mu_0 = 0.8;
-
-    m_dFx0_1 = 17.6866 * m_Fz_nom;
-    m_Fx_max1 = 0.88468 * m_Fz_nom;
-    m_Fx_inf1 = 0.54397 * m_Fz_nom;
-
-    m_dFx0_2 = 13.8046 * 2.0 * m_Fz_nom;
-    m_Fx_max2 = 0.7479 * 2.0 * m_Fz_nom;
-    m_Fx_inf2 = 0.50365 * 2.0 * m_Fz_nom;
-
-    m_dFy0_1 = 5.948 * m_Fz_nom;
-    m_Fy_max1 = 0.77253 * m_Fz_nom;
-    m_Fy_inf1 = 0.71139 * m_Fz_nom;
-
-    m_dFy0_2 = 5.506 * 2.0 * m_Fz_nom;
-    m_Fy_max2 = 0.73048 * 2.0 * m_Fz_nom;
-    m_Fy_inf2 = 0.66823 * 2.0 * m_Fz_nom;
-}
-
-void ChTMsimpleTire::GuessPassCar70Par(unsigned int li,       // tire load index
                                      double tireWidth,      // [m]
                                      double ratio,          // [] = use 0.75 meaning 75%
                                      double rimDia,         // rim diameter [m]
                                      double pinfl_li,       // inflation pressure at load index
                                      double pinfl_use,      // inflation pressure in this configuration
                                      double damping_ratio)  // damping ratio
+{
+    double secth = tireWidth * ratio;  // tire section height
+    double defl_max = 0.16 * secth;    // deflection at tire payload
+
+    m_TMsimpleCoeff.pn = 0.5 * tireLoad * pow(pinfl_use / pinfl_li, 0.8);
+    m_TMsimpleCoeff.pn_max = 3.5 * m_TMsimpleCoeff.pn;
+
+    double CZ = tireLoad / defl_max;
+    double DZ = 2.0 * damping_ratio * sqrt(CZ * GetTireMass());
+
+    SetVerticalStiffness(CZ);
+
+    SetRollingResistanceCoefficient(0.015);
+
+    m_TMsimpleCoeff.dz = DZ;
+    m_TMsimpleCoeff.cx = 0.9 * CZ;
+    m_TMsimpleCoeff.dx = damping_ratio * sqrt(m_TMsimpleCoeff.cx * GetTireMass());
+    m_TMsimpleCoeff.cy = 0.8 * CZ;
+    m_TMsimpleCoeff.dy = damping_ratio * sqrt(m_TMsimpleCoeff.cy * GetTireMass());
+
+    m_rim_radius = 0.5 * rimDia;
+
+    m_width = tireWidth;
+    m_unloaded_radius = secth + rimDia / 2.0;
+    m_TMsimpleCoeff.mu_0 = 0.8;
+
+    m_TMsimpleCoeff.dfx0_pn = 17.6866 * m_TMsimpleCoeff.pn;
+    m_TMsimpleCoeff.fxm_pn = 0.88468 * m_TMsimpleCoeff.pn;
+    m_TMsimpleCoeff.fxs_pn = 0.54397 * m_TMsimpleCoeff.pn;
+
+    m_TMsimpleCoeff.dfx0_p2n = 13.8046 * 2.0 * m_TMsimpleCoeff.pn;
+    m_TMsimpleCoeff.fxm_p2n = 0.7479 * 2.0 * m_TMsimpleCoeff.pn;
+    m_TMsimpleCoeff.fxs_p2n = 0.50365 * 2.0 * m_TMsimpleCoeff.pn;
+
+    m_TMsimpleCoeff.dfy0_pn = 5.948 * m_TMsimpleCoeff.pn;
+    m_TMsimpleCoeff.fym_pn = 0.77253 * m_TMsimpleCoeff.pn;
+    m_TMsimpleCoeff.fys_pn = 0.71139 * m_TMsimpleCoeff.pn;
+
+    m_TMsimpleCoeff.dfy0_p2n = 5.506 * 2.0 * m_TMsimpleCoeff.pn;
+    m_TMsimpleCoeff.fym_p2n = 0.73048 * 2.0 * m_TMsimpleCoeff.pn;
+    m_TMsimpleCoeff.fys_p2n = 0.66823 * 2.0 * m_TMsimpleCoeff.pn;
+
+    SetHorizontalCoefficients();
+}
+
+void ChTMsimpleTire::SetHorizontalCoefficients() {
+    m_ax1 = 2.0 * m_TMsimpleCoeff.fxm_pn - 0.5 * m_TMsimpleCoeff.fxm_p2n;
+    m_ax2 = 0.5 * m_TMsimpleCoeff.fxm_p2n - m_TMsimpleCoeff.fxm_pn;
+
+    m_bx1 = 2.0 * m_TMsimpleCoeff.dfx0_pn - 0.5 * m_TMsimpleCoeff.dfx0_p2n;
+    m_bx2 = 0.5 * m_TMsimpleCoeff.dfx0_p2n - m_TMsimpleCoeff.dfx0_pn;
+
+    m_cx1 = 2.0 * m_TMsimpleCoeff.fxs_pn - 0.5 * m_TMsimpleCoeff.fxs_p2n;
+    m_cx2 = 0.5 * m_TMsimpleCoeff.fxs_p2n - m_TMsimpleCoeff.fxs_pn;
+
+    m_ay1 = 2.0 * m_TMsimpleCoeff.fym_pn - 0.5 * m_TMsimpleCoeff.fym_p2n;
+    m_ay2 = 0.5 * m_TMsimpleCoeff.fym_p2n - m_TMsimpleCoeff.fym_pn;
+
+    m_by1 = 2.0 * m_TMsimpleCoeff.dfy0_pn - 0.5 * m_TMsimpleCoeff.dfy0_p2n;
+    m_by2 = 0.5 * m_TMsimpleCoeff.dfy0_p2n - m_TMsimpleCoeff.dfy0_pn;
+
+    m_cy1 = 2.0 * m_TMsimpleCoeff.fys_pn - 0.5 * m_TMsimpleCoeff.fys_p2n;
+    m_cy2 = 0.5 * m_TMsimpleCoeff.fys_p2n - m_TMsimpleCoeff.fys_pn;
+}
+
+void ChTMsimpleTire::GuessPassCar70Par(unsigned int li,       // tire load index
+                                       double tireWidth,      // [m]
+                                       double ratio,          // [] = use 0.75 meaning 75%
+                                       double rimDia,         // rim diameter [m]
+                                       double pinfl_li,       // inflation pressure at load index
+                                       double pinfl_use,      // inflation pressure in this configuration
+                                       double damping_ratio)  // damping ratio
 {
     double tireLoad = GetTireMaxLoad(li);
     GuessPassCar70Par(tireLoad, tireWidth, ratio, rimDia, pinfl_li, pinfl_use, damping_ratio);
 }
 
 void ChTMsimpleTire::GuessPassCar70Par(double tireLoad,       // tire load force [N]
-                                     double tireWidth,      // [m]
-                                     double ratio,          // [] = use 0.75 meaning 75%
-                                     double rimDia,         // rim diameter [m]
-                                     double pinfl_li,       // inflation pressure at load index
-                                     double pinfl_use,      // inflation pressure in this configuration
-                                     double damping_ratio)  // damping ratio
+                                       double tireWidth,      // [m]
+                                       double ratio,          // [] = use 0.75 meaning 75%
+                                       double rimDia,         // rim diameter [m]
+                                       double pinfl_li,       // inflation pressure at load index
+                                       double pinfl_use,      // inflation pressure in this configuration
+                                       double damping_ratio)  // damping ratio
 {
     double secth = tireWidth * ratio;  // tire section height
     double defl_max = 0.16 * secth;    // deflection at tire payload
 
-    m_Fz_nom = 0.5 * tireLoad * pow(pinfl_use / pinfl_li, 0.8);
+    m_TMsimpleCoeff.pn = 0.5 * tireLoad * pow(pinfl_use / pinfl_li, 0.8);
+    m_TMsimpleCoeff.pn_max = 3.5 * m_TMsimpleCoeff.pn;
 
     m_width = tireWidth;
     m_unloaded_radius = secth + rimDia / 2.0;
-    m_mu_0 = 0.8;
+    m_TMsimpleCoeff.mu_0 = 0.8;
 
-    m_Cz = tireLoad / defl_max;
-    m_Dz = 2.0 * damping_ratio * sqrt(m_Cz * GetTireMass());
+    double CZ = tireLoad / defl_max;
+    double DZ = 2.0 * damping_ratio * sqrt(CZ * GetTireMass());
 
-    m_rolling_resistance = 0.015;
+    SetVerticalStiffness(CZ);
 
-    m_dFx0_1 = 18.6758 * m_Fz_nom;
-    m_Fx_max1 = 1.1205 * m_Fz_nom;
-    m_Fx_inf1 = 0.8766 * m_Fz_nom;
+    SetRollingResistanceCoefficient(0.015);
 
-    m_dFx0_2 = 20.1757 * 2.0 * m_Fz_nom;
-    m_Fx_max2 = 1.072 * 2.0 * m_Fz_nom;
-    m_Fx_inf2 = 0.8245 * 2.0 * m_Fz_nom;
+    m_TMsimpleCoeff.dz = DZ;
+    m_TMsimpleCoeff.cx = 0.9 * CZ;
+    m_TMsimpleCoeff.dx = damping_ratio * sqrt(m_TMsimpleCoeff.cx * GetTireMass());
+    m_TMsimpleCoeff.cy = 0.8 * CZ;
+    m_TMsimpleCoeff.dy = damping_ratio * sqrt(m_TMsimpleCoeff.cy * GetTireMass());
 
-    m_dFy0_1 = 14.9858 * m_Fz_nom;
-    m_Fy_max1 = 1.0084 * m_Fz_nom;
-    m_Fy_inf1 = 0.83941 * m_Fz_nom;
+    m_rim_radius = 0.5 * rimDia;
 
-    m_dFy0_2 = 10.0505 * 2.0 * m_Fz_nom;
-    m_Fy_max2 = 0.90003 * 2.0 * m_Fz_nom;
-    m_Fy_inf2 = 0.76782 * 2.0 * m_Fz_nom;
+    m_TMsimpleCoeff.dfx0_pn = (18.6758 + 1) * m_TMsimpleCoeff.pn;
+    m_TMsimpleCoeff.fxm_pn = 1.1205 * m_TMsimpleCoeff.pn;
+    m_TMsimpleCoeff.fxs_pn = 0.8766 * m_TMsimpleCoeff.pn;
+
+    m_TMsimpleCoeff.dfx0_p2n = (20.1757 + 1) * 2.0 * m_TMsimpleCoeff.pn;
+    m_TMsimpleCoeff.fxm_p2n = 1.072 * 2.0 * m_TMsimpleCoeff.pn;
+    m_TMsimpleCoeff.fxs_p2n = 0.8245 * 2.0 * m_TMsimpleCoeff.pn;
+
+    m_TMsimpleCoeff.dfy0_pn = (14.9858 + 1) * m_TMsimpleCoeff.pn;
+    m_TMsimpleCoeff.fym_pn = 1.0084 * m_TMsimpleCoeff.pn;
+    m_TMsimpleCoeff.fys_pn = 0.83941 * m_TMsimpleCoeff.pn;
+
+    m_TMsimpleCoeff.dfy0_p2n = (10.0505 + 1) * 2.0 * m_TMsimpleCoeff.pn;
+    m_TMsimpleCoeff.fym_p2n = 0.90003 * 2.0 * m_TMsimpleCoeff.pn;
+    m_TMsimpleCoeff.fys_p2n = 0.76782 * 2.0 * m_TMsimpleCoeff.pn;
+
+    SetHorizontalCoefficients();
 }
 
-void ChTMsimpleTire::WritePlots(const std::string& plFileName, const std::string& plTireFormat) {
-    std::ofstream plt(plFileName);
-    plt << "$datx << EOF" << std::endl;
-    for(int i=-100; i<= 100; i++) {
-        double s = double(i)/100.0;
-        double K1 = m_Fx_max1;
-        double B1 = CH_C_PI - asin(m_Fx_inf1/m_Fx_max1);
-        double A1 = K1*B1/m_dFx0_1;
-        double Y1 = K1*sin(B1*(1.0-exp(-fabs(s)/A1))*ChSignum(s));
-        double K2 = m_Fx_max2;
-        double B2 = CH_C_PI - asin(m_Fx_inf2/m_Fx_max2);
-        double A2 = K2*B2/m_dFx0_2;
-        double Y2 = K2*sin(B2*(1.0-exp(-fabs(s)/A2))*ChSignum(s));
-        plt << s << "\t" << Y1 << "\t" << Y2 <<std::endl;
+// Do some rough constency checks
+bool ChTMsimpleTire::CheckParameters() {
+    bool isOk = false;
+
+    // Nominal Load set?
+    if (m_TMsimpleCoeff.pn < GetTireMaxLoad(0)) {
+        GetLog() << "TMsimpleCheckParameters(): Tire Nominal Load Problem!\n";
+        return isOk;
     }
-    plt << "EOF" << std::endl;
-    plt << "$daty << EOF" << std::endl;
-    for(int i=-100; i<= 100; i++) {
-        double s = double(i)/100.0;
-        double K1 = m_Fy_max1;
-        double B1 = CH_C_PI - asin(m_Fy_inf1/m_Fy_max1);
-        double A1 = K1*B1/m_dFy0_1;
-        double Y1 = K1*sin(B1*(1.0-exp(-fabs(s)/A1))*ChSignum(s));
-        double K2 = m_Fy_max2;
-        double B2 = CH_C_PI - asin(m_Fy_inf2/m_Fy_max2);
-        double A2 = K2*B2/m_dFy0_2;
-        double Y2 = K2*sin(B2*(1.0-exp(-fabs(s)/A2))*ChSignum(s));
-        plt << s << "\t" << Y1 << "\t" << Y2 <<std::endl;
+
+    // Stiffness parameters, spring
+    if (m_d1 <= 0.0) {
+        GetLog() << "TMsimpleCheckParameters(): Tire Vertical Stiffness Problem!\n";
+        return isOk;
     }
-    plt << "EOF" << std::endl;
-    plt << "set title 'TMsimpleTire :" << plTireFormat << "'" << std::endl;
-    plt << "set xlabel 'Slip ()'" << std::endl;
-    plt << "set ylabel 'Patch Force (N)'" << std::endl;
-    plt << "set xrange [-1:1]" << std::endl;
-    plt << "plot $datx with lines t 'fx(fznom)', \\" << std::endl;
-    plt << " $datx u 1:3 with lines t 'fx(2*fznom)', \\" << std::endl;
-    plt << " $daty with dots t 'fy(2*fznom)', \\" << std::endl;
-    plt << " $daty u 1:3 with dots t 'fy(2*fznom)'" << std::endl;
-    plt.close();
+
+    // Stiffness parameters, spring
+    if (m_TMsimpleCoeff.mu_0 <= 0.0) {
+        GetLog() << "TMsimpleCheckParameters(): Friction Coefficien Mu_0 unset!\n";
+        return isOk;
+    }
+
+    if (m_TMsimpleCoeff.dz <= 0.0) {
+        GetLog() << "TMsimpleCheckParameters(): Tire Vertical Damping Problem!\n";
+        return isOk;
+    }
+
+    isOk = true;
+
+    return isOk;
+}
+
+// set tire reference coefficient of friction
+void ChTMsimpleTire::SetFrictionCoefficient(double coeff) {
+    m_TMsimpleCoeff.mu_0 = coeff;
+}
+
+// Set Rolling Resistance Coefficients
+void ChTMsimpleTire::SetRollingResistanceCoefficient(double r_coef) {
+    m_rolling_resistance = r_coef;
 }
 
 }  // end namespace vehicle

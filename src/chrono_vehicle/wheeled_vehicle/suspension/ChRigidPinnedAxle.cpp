@@ -57,6 +57,8 @@ void ChRigidPinnedAxle::Initialize(std::shared_ptr<ChChassis> chassis,
                                    const ChVector<>& location,
                                    double left_ang_vel,
                                    double right_ang_vel) {
+    ChSuspension::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
+
     m_parent = chassis;
     m_rel_loc = location;
 
@@ -204,26 +206,17 @@ void ChRigidPinnedAxle::AddVisualizationAssets(VisualizationType vis) {
     ChVector<> pP = m_axleTube->TransformPointParentToLocal(m_axlePinLoc);
 
     // Add visualization assets for the axle tube body
-    auto cyl1 = chrono_types::make_shared<ChCylinderShape>();
-    cyl1->GetCylinderGeometry().p1 = pSL;
-    cyl1->GetCylinderGeometry().p2 = pSR;
-    cyl1->GetCylinderGeometry().rad = getAxleTubeRadius();
-    m_axleTube->AddVisualShape(cyl1);
+    ChVehicleGeometry::AddVisualizationCylinder(m_axleTube, pSL, pSR, getAxleTubeRadius());
 
     static const double threshold2 = 1e-6;
     if (pP.Length2() > threshold2) {
-        auto cyl2 = chrono_types::make_shared<ChCylinderShape>();
-        cyl2->GetCylinderGeometry().p1 = pP;
-        cyl2->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
-        cyl2->GetCylinderGeometry().rad = getAxleTubeRadius() / 2;
-        m_axleTube->AddVisualShape(cyl2);
+        ChVehicleGeometry::AddVisualizationCylinder(m_axleTube, pP, VNULL, getAxleTubeRadius() / 2);
     }
 
-    auto cyl3 = chrono_types::make_shared<ChCylinderShape>();
-    cyl3->GetCylinderGeometry().p1 = pP - ChVector<>(1.5 * getAxleTubeRadius(), 0, 0);
-    cyl3->GetCylinderGeometry().p2 = pP + ChVector<>(1.5 * getAxleTubeRadius(), 0, 0);
-    cyl3->GetCylinderGeometry().rad = getAxleTubeRadius();
-    m_axleTube->AddVisualShape(cyl3);
+    ChVehicleGeometry::AddVisualizationCylinder(m_axleTube,                                        //
+                                                pP - ChVector<>(1.5 * getAxleTubeRadius(), 0, 0),  //
+                                                ChVector<>(1.5 * getAxleTubeRadius(), 0, 0),       //
+                                                getAxleTubeRadius());
 }
 
 void ChRigidPinnedAxle::RemoveVisualizationAssets() {

@@ -57,11 +57,14 @@ VisualizationType tire_vis_type = VisualizationType::MESH;
 // Collision type for chassis (PRIMITIVES, MESH, or NONE)
 CollisionType chassis_collision_type = CollisionType::NONE;
 
-// Type of powertrain (SIMPLE or SIMPLE_CVT)
-PowertrainModelType powertrain_type = PowertrainModelType::SIMPLE_CVT;
+// Type of engine model (SHAFTS, SIMPLE, SIMPLE_MAP)
+EngineModelType engine_model = EngineModelType::SIMPLE;
 
-// Type of tire model (TMEASY)
-TireModelType tire_model = TireModelType::TMEASY;
+// Type of transmission model (SHAFTS, SIMPLE_MAP)
+TransmissionModelType transmission_model = TransmissionModelType::SIMPLE_MAP;
+
+// Type of tire model (TMEASY, TMSIMPLE)
+TireModelType tire_model = TireModelType::TMSIMPLE;
 
 // Rigid terrain
 RigidTerrain::PatchType terrain_model = RigidTerrain::PatchType::BOX;
@@ -111,7 +114,8 @@ int main(int argc, char* argv[]) {
     my_truck.SetChassisCollisionType(chassis_collision_type);
     my_truck.SetChassisFixed(false);
     my_truck.SetInitPosition(ChCoordsys<>(initLoc, initRot));
-    my_truck.SetPowertrainType(powertrain_type);
+    my_truck.SetEngineType(engine_model);
+    my_truck.SetTransmissionType(transmission_model);
     my_truck.SetTireType(tire_model);
     my_truck.SetTireStepSize(tire_step_size);
     my_truck.Initialize();
@@ -138,8 +142,8 @@ int main(int argc, char* argv[]) {
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:
-            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"),
-                                     128, 128, 0, 4);
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"), 128,
+                                     128, 0, 4);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
             break;
         case RigidTerrain::PatchType::MESH:

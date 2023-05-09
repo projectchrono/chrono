@@ -17,6 +17,7 @@
 
 #include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChLinkMask.h"
+#include "chrono/solver/ChKblockGeneric.h"
 
 namespace chrono {
 
@@ -28,8 +29,16 @@ namespace chrono {
 /// Note that most of the ChLinkMate constraints can be
 /// done also with the constraints inherited from ChLinkLock...
 /// but in case of links of the ChLinkLock class they
-/// reference two ChMarker objects, tht can also move, but
-/// this is could be an unnecessary complication in most cases.
+/// reference two ChMarker objects, that can also move, but
+/// this could be an unnecessary complication in most cases.
+///
+/// Note:
+/// In ChLinkLock class, the Z axis is considered as the
+///     free/locked translational/rotational DOF by default;
+/// In ChLinkMate class, the X axis is considered as the
+///     free/locked translational/rotational DOF by default,
+///     except ChLinkMateRotation where the Z axis is set as 
+///     the default rotation axis again.
 
 class ChApi ChLinkMate : public ChLink {
   public:
@@ -88,6 +97,13 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     /// Its position is expressed in the coordinate system of body2.
     ChFrame<>& GetFrame2() { return frame2; }
 
+    /// Get the translational Lagrange multipliers, expressed in the master frame F2
+    ChVector<> GetLagrangeMultiplier_f() { return gamma_f; }
+
+    /// Get the rotational Lagrange multipliers, expressed in a ghost frame determined by the
+    /// projection matrix (this->P) for \rho_F1(F2)
+    ChVector<> GetLagrangeMultiplier_m() { return gamma_m; }
+
     bool IsConstrainedX() const { return c_x; }
     bool IsConstrainedY() const { return c_y; }
     bool IsConstrainedZ() const { return c_z; }
@@ -116,6 +132,9 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
 
     /// Initialization based on passing two vectors (point + dir) on the two bodies, which will represent the X axes of
     /// the two frames (Y and Z will be built from the X vector via Gram Schmidt orthonormalization).
+    /// Note: It is safer and recommended to check whether the final result of the master frame F2
+    /// is as your expectation since it could affect the output result of the joint, such as the reaction
+    /// forces/torques, etc.
     virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
                             bool pos_are_relative,                ///< true: following pos. are relative to bodies
@@ -142,11 +161,15 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     /// Ex:3rd party software can set the 'broken' status via this method
     virtual void SetBroken(bool mon) override;
 
+    /// Set this as true to compute the tangent stiffness matrix (Kc) of this constraint.
+    /// It is false by default to keep consistent as previous code.
+    void SetUseTangentStiffness(bool useKc);
+
     virtual int GetDOC() override { return ndoc; }
     virtual int GetDOC_c() override { return ndoc_c; }
     virtual int GetDOC_d() override { return ndoc_d; }
 
-	// LINK VIOLATIONS
+    // LINK VIOLATIONS
     // Get the constraint violations, i.e. the residual of the constraint equations and their time derivatives (TODO)
 
     /// Link violation (residuals of the link constraint equations).
@@ -191,6 +214,14 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     virtual void ConstraintsLoadJacobians() override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
 
+    /// Tell to a system descriptor that there are item(s) of type
+    /// ChKblock in this object (for further passing it to a solver)
+    virtual void InjectKRMmatrices(ChSystemDescriptor& descriptor) override;
+
+    /// Add the current stiffness K matrix in encapsulated ChKblock item(s), if any.
+    /// The K matrices are load with scaling values Kfactor.
+    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
+
     //
     // SERIALIZATION
     //
@@ -222,6 +253,14 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     ChLinkMask mask;
 
     ChConstraintVectorX C;  ///< residuals
+
+    // The projection matrix from Lagrange multiplier to reaction torque
+    ChMatrix33<> P;
+
+    ChVector<> gamma_f;  ///< store the translational Lagrange multipliers
+    ChVector<> gamma_m;  ///< store the rotational Lagrange multipliers
+
+    ChKblockGeneric* Kmatr = nullptr;  ///< the tangent stiffness matrix of constraint
 };
 
 CH_CLASS_VERSION(ChLinkMateGeneric, 0)
@@ -321,6 +360,94 @@ CH_CLASS_VERSION(ChLinkMateCoaxial, 0)
 
 // -----------------------------------------------------------------------------
 
+/// Mate constraint of revolute type.
+/// The two revolute axes are the X axes of the two frames.
+
+class ChApi ChLinkMateRevolute : public ChLinkMateGeneric {
+  protected:
+    bool flipped;
+
+  public:
+    ChLinkMateRevolute() : ChLinkMateGeneric(true, true, true, false, true, true), flipped(false) {}
+    ChLinkMateRevolute(const ChLinkMateRevolute& other);
+    virtual ~ChLinkMateRevolute() {}
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkMateRevolute* Clone() const override { return new ChLinkMateRevolute(*this); }
+
+    using ChLinkMateGeneric::Initialize;
+
+    /// Tell if the two axes must be opposed (flipped=false) or must have the same verse (flipped=true)
+    void SetFlipped(bool doflip);
+    bool IsFlipped() const { return flipped; }
+
+    /// Specialized initialization for revolute mate, given the two bodies to be connected, two points, two directions
+    /// (each expressed in body or abs. coordinates). These two directions are the X axes of slave frame F1 and master
+    /// frame F2
+    virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
+                            std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
+                            bool pos_are_relative,                ///< true: following pos. are relative to bodies
+                            ChVector<> mpt1,                      ///< point on slave axis 1 (rel. or abs.)
+                            ChVector<> mpt2,                      ///< point on master axis 2 (rel. or abs.)
+                            ChVector<> mdir1,                     ///< direction of slave axis 1 (rel. or abs.)
+                            ChVector<> mdir2                      ///< direction of master axis 2 (rel. or abs.)
+                            ) override;
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+};
+
+CH_CLASS_VERSION(ChLinkMateRevolute, 0)
+
+// -----------------------------------------------------------------------------
+
+/// Mate constraint of prismatic type.
+/// Default axis along +X
+
+class ChApi ChLinkMatePrismatic : public ChLinkMateGeneric {
+  protected:
+    bool flipped;
+
+  public:
+    ChLinkMatePrismatic() : ChLinkMateGeneric(false, true, true, true, true, true), flipped(false) {}
+    ChLinkMatePrismatic(const ChLinkMatePrismatic& other);
+    virtual ~ChLinkMatePrismatic() {}
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkMatePrismatic* Clone() const override { return new ChLinkMatePrismatic(*this); }
+
+    using ChLinkMateGeneric::Initialize;
+
+    /// Tell if the two axes must be opposed (flipped=false) or must have the same verse (flipped=true)
+    void SetFlipped(bool doflip);
+    bool IsFlipped() const { return flipped; }
+
+    /// Specialized initialization for prismatic mate, given the two bodies to be connected, two points, two directions
+    /// (each expressed in body or abs. coordinates). These two directions are the X axes of slave frame F1 and master
+    /// frame F2
+    virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
+                            std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
+                            bool pos_are_relative,                ///< true: following pos. are relative to bodies
+                            ChVector<> mpt1,                      ///< point on slave axis 1 (rel. or abs.)
+                            ChVector<> mpt2,                      ///< point on master axis 2 (rel. or abs.)
+                            ChVector<> mdir1,                     ///< direction of slave axis 1 (rel. or abs.)
+                            ChVector<> mdir2                      ///< direction of master axis 2 (rel. or abs.)
+                            ) override;
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+};
+
+CH_CLASS_VERSION(ChLinkMatePrismatic, 0)
+
+// -----------------------------------------------------------------------------
+
 /// Mate constraint of spherical type. This correspond to the
 /// typical point-on-point or spherical joint mating used in 3D CAD assemblies.
 
@@ -336,7 +463,7 @@ class ChApi ChLinkMateSpherical : public ChLinkMateGeneric {
     using ChLinkMateGeneric::Initialize;
 
     /// Specialized initialization for coincident mate, given the two bodies to be connected, and two points
-    /// (each expressed in body or abs. coordinates). 
+    /// (each expressed in body or abs. coordinates).
     void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                     std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
                     bool pos_are_relative,                ///< true: following pos. are relative to bodies.
@@ -497,7 +624,7 @@ class ChApi ChLinkMateFix : public ChLinkMateGeneric {
 
     /// Specialized initialization for "fix" mate, given the two bodies to be connected, the positions of the two
     /// auxiliary frames where the two bodies are connected are both automatically initialized as the current absolute
-    /// position of mbody1. 
+    /// position of mbody1.
     void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                     std::shared_ptr<ChBodyFrame> mbody2   ///< second body to link
     );

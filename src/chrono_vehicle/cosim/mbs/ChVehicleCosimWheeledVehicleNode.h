@@ -22,7 +22,7 @@
 #ifndef CH_VEHCOSIM_WHEELED_VEHICLE_NODE_H
 #define CH_VEHCOSIM_WHEELED_VEHICLE_NODE_H
 
-#include "chrono_vehicle/ChPowertrain.h"
+#include "chrono_vehicle/ChPowertrainAssembly.h"
 #include "chrono_vehicle/ChTerrain.h"
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
@@ -41,25 +41,23 @@ namespace vehicle {
 class CH_VEHICLE_API ChVehicleCosimWheeledVehicleNode : public ChVehicleCosimWheeledMBSNode {
   public:
     /// Construct a wheeled vehicle node using the provided vehicle and powertrain JSON specification files.
-    ChVehicleCosimWheeledVehicleNode(const std::string& vehicle_json,    ///< vehicle JSON specification file
-                                     const std::string& powertrain_json  ///< powertrain JSON specification file
+    ChVehicleCosimWheeledVehicleNode(const std::string& vehicle_json,      ///< vehicle JSON specification file
+                                     const std::string& engine_json,       ///< engine JSON specification file
+                                     const std::string& transmission_json  ///< transmission JSON specification file
     );
 
     /// Construct a wheeled vehicle node using the provided vehicle and powertrain objects.
     /// Notes:
     /// - the provided vehicle system must be constructed with a null Chrono system.
     /// - the vehicle and powertrain system should not be initialized.
-    ChVehicleCosimWheeledVehicleNode(std::shared_ptr<ChWheeledVehicle> vehicle,  ///< vehicle system
-                                     std::shared_ptr<ChPowertrain> powertrain    ///< powertrain system
+    ChVehicleCosimWheeledVehicleNode(std::shared_ptr<ChWheeledVehicle> vehicle,        ///< vehicle system
+                                     std::shared_ptr<ChPowertrainAssembly> powertrain  ///< powertrain system
     );
 
     ~ChVehicleCosimWheeledVehicleNode();
 
     /// Get the underlying vehicle system.
     std::shared_ptr<ChWheeledVehicle> GetVehicle() const { return m_vehicle; }
-
-    /// Get the underlying powertrain system.
-    std::shared_ptr<ChPowertrain> GetPowertrain() const { return m_powertrain; }
 
     /// Set the initial vehicle position, relative to the center of the terrain top-surface.
     void SetInitialLocation(const ChVector<>& init_loc) { m_init_loc = init_loc; }
@@ -137,11 +135,11 @@ class CH_VEHICLE_API ChVehicleCosimWheeledVehicleNode : public ChVehicleCosimWhe
         TerrainForce m_force;
     };
 
-    std::shared_ptr<ChWheeledVehicle> m_vehicle;      ///< vehicle MBS
-    std::shared_ptr<ChPowertrain> m_powertrain;       ///< vehicle powertrain
-    std::shared_ptr<ChDriver> m_driver;               ///< vehicle driver
-    std::shared_ptr<ChTerrain> m_terrain;             ///< dummy terrain (for vehicle synchronization)
-    std::vector<std::shared_ptr<DummyTire>> m_tires;  ///< dummy tires (for applying spindle forces)
+    std::shared_ptr<ChWheeledVehicle> m_vehicle;         ///< vehicle MBS
+    std::shared_ptr<ChPowertrainAssembly> m_powertrain;  ///< vehicle powertrain
+    std::shared_ptr<ChDriver> m_driver;                  ///< vehicle driver
+    std::shared_ptr<ChTerrain> m_terrain;                ///< dummy terrain (for vehicle synchronization)
+    std::vector<std::shared_ptr<DummyTire>> m_tires;     ///< dummy tires (for applying spindle forces)
 
     ChVector<> m_init_loc;  ///< initial vehicle location (relative to center of terrain top surface)
     double m_init_yaw;      ///< initial vehicle yaw

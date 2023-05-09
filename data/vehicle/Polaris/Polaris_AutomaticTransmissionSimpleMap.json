@@ -1,0 +1,18 @@
+{
+  "Name": "Polaris Simple Map Transmission",
+  "Type": "Transmission",
+  "Template": "AutomaticTransmissionSimpleMap",
+
+  "Gear Box": {
+    "Reverse Gear Ratio": -0.171,
+    "Forward Gear Ratios": [0.267, 0.500, 0.744, 1.0, 1.294, 1.577],
+    "Shift Points Map RPM": [
+      [ 0, 2375 ],
+      [ 1000, 2375 ],
+      [ 1000, 2375 ],
+      [ 1000, 2375 ],
+      [ 1000, 2375 ],
+      [ 1000, 2375 ]
+    ]
+  }
+}

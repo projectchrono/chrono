@@ -29,7 +29,7 @@ THRUST_INSTALL_DIR="$HOME/Packages/thrust"
 CASCADE_INSTALL_DIR="$HOME/Packages/opencascade-7.4.0"
 SPECTRA_INSTALL_DIR="$HOME/Packages/spectra"
 
-CRG_INCLUDE_DIR="$HOME/Packages/OpenCRG/include"
+CRG_INCLUDE_DIR="${HOME}/Packages/OpenCRG/include"
 CRG_LIBRARY="$HOME/Packages/OpenCRG/lib/libOpenCRG.1.1.2.a"
 
 IRRLICHT_INSTALL_DIR="$HOME/Packages/irrlicht-1.8.5/include"
@@ -82,7 +82,7 @@ cmake -G ${BUILDSYSTEM} -B ${BUILD_DIR} -S ${SOURCE_DIR} \
       -DOptiX_INSTALL_DIR:PATH=${OPTIX_INSTALL_DIR} \
       -Dfastrtps_INSTALL_DIR:PATH=${FASTRTPS_INSTALL_DIR} \
       -DGLEW_DIR=${GL_INSTALL_DIR}/${LIB_DIR}/cmake/glew \
-      -DGLFW3_DIR=${GL_INSTALL_DIR}/${LIB_DIR}/cmake/glfw3 \
+      -Dglfw3_DIR=${GL_INSTALL_DIR}/${LIB_DIR}/cmake/glfw3 \
       -DGLM_INCLUDE_DIR:PATH=${GL_INSTALL_DIR}/include \
       -DOpenCRG_INCLUDE_DIR:PATH=${CRG_INCLUDE_DIR} \
       -DOpenCRG_LIBRARY:FILEPATH=${CRG_LIBRARY} \

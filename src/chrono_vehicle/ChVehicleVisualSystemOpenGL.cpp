@@ -13,8 +13,6 @@
 //
 // =============================================================================
 
-#include "chrono_vehicle/powertrain/ChShaftsPowertrain.h"
-
 #include "chrono_vehicle/ChVehicleVisualSystemOpenGL.h"
 #include "chrono_vsg/ChGuiComponentVSG.h"
 

@@ -239,7 +239,7 @@ void ChCommDistributed::ProcessShapes(int num_recv, Shape* buf) {
                     body->GetCollisionModel()->AddSphere(material, data[0], A);
                     break;
                 case ChCollisionShape::Type::BOX:
-                    body->GetCollisionModel()->AddBox(material, data[0], data[1], data[2], A,
+                    body->GetCollisionModel()->AddBox(material, 2 * data[0], 2 * data[1], 2 * data[2], A,
                                                       ChMatrix33<>(ChQuaternion<>(rot[0], rot[1], rot[2], rot[3])));
                     break;
                 case ChCollisionShape::Type::TRIANGLEMESH:
@@ -251,7 +251,7 @@ void ChCommDistributed::ProcessShapes(int num_recv, Shape* buf) {
                     break;
                 case ChCollisionShape::Type::ELLIPSOID:
                     body->GetCollisionModel()->AddEllipsoid(
-                        material, data[0], data[1], data[2], A,
+                        material, 2 * data[0], 2 * data[1], 2 * data[2], A,
                         ChMatrix33<>(ChQuaternion<>(rot[0], rot[1], rot[2], rot[3])));
                     break;
                 default:

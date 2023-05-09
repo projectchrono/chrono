@@ -61,8 +61,9 @@ class Vehicle_Model {
   public:
     virtual std::string ModelName() const = 0;
     virtual std::string VehicleJSON() const = 0;
-    virtual std::string PowertrainJSON() const = 0;
-    virtual ChVector<> CameraPoint() const = 0; 
+    virtual std::string EngineJSON() const = 0;
+    virtual std::string TransmissionJSON() const = 0;
+    virtual ChVector<> CameraPoint() const = 0;
     virtual double CameraDistance() const = 0;
 };
 
@@ -73,10 +74,14 @@ class M113_SinglePin : public Vehicle_Model {
         return "M113/vehicle/M113_Vehicle_SinglePin.json";
         ////return "M113/vehicle/M113_Vehicle_SinglePin_BDS.json";
     }
-    virtual std::string PowertrainJSON() const override {
-        return "M113/powertrain/M113_SimpleCVTPowertrain.json";
-        ////return "M113/powertrain/M113_SimpleMapPowertrain.json";
-        ////return "M113/powertrain/M113_ShaftsPowertrain.json";
+    virtual std::string EngineJSON() const override {
+        return "M113/powertrain/M113_EngineSimple.json";
+        ////return "M113/powertrain/M113_EngineSimpleMap.json";
+        ////return "M113/powertrain/M113_EngineShafts.json";
+    }
+    virtual std::string TransmissionJSON() const override {
+        return "M113/powertrain/M113_AutomaticTransmissionSimpleMap.json";
+        ////return "M113/powertrain/M113_AutomaticTransmissionShafts.json";
     }
     virtual ChVector<> CameraPoint() const override { return ChVector<>(0, 0, 0); }
     virtual double CameraDistance() const override { return 6.0; }
@@ -89,10 +94,14 @@ class M113_DoublePin : public Vehicle_Model {
         return "M113/vehicle/M113_Vehicle_DoublePin.json";
         ////return "M113/vehicle/M113_Vehicle_DoublePin_BDS.json";
     }
-    virtual std::string PowertrainJSON() const override {
-        return "M113/powertrain/M113_SimpleCVTPowertrain.json";
-        ////return "M113/powertrain/M113_SimpleMapPowertrain.json";
-        ////return "M113/powertrain/M113_ShaftsPowertrain.json";
+    virtual std::string EngineJSON() const override {
+        return "M113/powertrain/M113_EngineSimple.json";
+        ////return "M113/powertrain/M113_EngineSimpleMap.json";
+        ////return "M113/powertrain/M113_EngineShafts.json";
+    }
+    virtual std::string TransmissionJSON() const override {
+        return "M113/powertrain/M113_AutomaticTransmissionSimpleMap.json";
+        ////return "M113/powertrain/M113_AutomaticTransmissionShafts.json";
     }
     virtual ChVector<> CameraPoint() const override { return ChVector<>(0, 0, 0); }
     virtual double CameraDistance() const override { return 6.0; }
@@ -105,10 +114,14 @@ class M113_RS_SinglePin : public Vehicle_Model {
         ////return "M113_RS/vehicle/M113_Vehicle_SinglePin_Translational_BDS.json";
         return "M113_RS/vehicle/M113_Vehicle_SinglePin_Distance_BDS.json";
     }
-    virtual std::string PowertrainJSON() const override {
-        return "M113_RS/powertrain/M113_SimpleCVTPowertrain.json";
-        ////return "M113_RS/powertrain/M113_SimpleMapPowertrain.json";
-        ////return "M113_RS/powertrain/M113_ShaftsPowertrain.json";
+    virtual std::string EngineJSON() const override {
+        return "M113_RS/powertrain/M113_EngineSimple.json";
+        ////return "M113_RS/powertrain/M113_EngineSimpleMap.json";
+        ////return "M113_RS/powertrain/M113_EngineShafts.json";
+    }
+    virtual std::string TransmissionJSON() const override {
+        return "M113_RS/powertrain/M113_AutomaticTransmissionSimpleMap.json";
+        ////return "M113_RS/powertrain/M113_AutomaticTransmissionShafts.json";
     }
     virtual ChVector<> CameraPoint() const override { return ChVector<>(4, 0, 0); }
     virtual double CameraDistance() const override { return 6.0; }
@@ -122,9 +135,9 @@ class Marder_SinglePin : public Vehicle_Model {
         ////return "Marder/vehicle/marder_sp_bushings_shafts.json";
         return "Marder/vehicle/marder_sp_bushings_simple.json";
     }
-    virtual std::string PowertrainJSON() const override {
-        return "Marder/powertrain/simpleCVTPowertrain.json";
-        ////return "Marder/powertrain/simplePowertrain.json";
+    virtual std::string EngineJSON() const override { return "Marder/powertrain/Marder_EngineSimple.json"; }
+    virtual std::string TransmissionJSON() const override {
+        return "Marder/powertrain/Marder_AutomaticTransmissionSimpleMap.json";
     }
     virtual ChVector<> CameraPoint() const override { return ChVector<>(0, 0, 0); }
     virtual double CameraDistance() const override { return 8.0; }
@@ -302,7 +315,9 @@ int main(int argc, char* argv[]) {
     ////vehicle.SetRenderContactForces(true, 1e-4);
 
     // Create and initialize the powertrain system
-    auto powertrain = ReadPowertrainJSON(vehicle::GetDataFile(vehicle_model.PowertrainJSON()));
+    auto engine = ReadEngineJSON(vehicle::GetDataFile(vehicle_model.EngineJSON()));
+    auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(vehicle_model.TransmissionJSON()));
+    auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
     vehicle.InitializePowertrain(powertrain);
 
     cout << "  Track assembly templates" << endl;
@@ -311,9 +326,10 @@ int main(int argc, char* argv[]) {
     cout << "     Idler:      " << vehicle.GetTrackAssembly(LEFT)->GetIdler()->GetTemplateName() << endl;
     cout << "     Suspension: " << vehicle.GetTrackAssembly(LEFT)->GetTrackSuspension(0)->GetTemplateName() << endl;
     cout << "     Track shoe: " << vehicle.GetTrackShoe(LEFT, 0)->GetTemplateName() << endl;
-    cout << "  Driveline type:  " << vehicle.GetDriveline()->GetTemplateName() << endl;
-    cout << "  Powertrain type: " << powertrain->GetTemplateName() << endl;
-    cout << "  Vehicle mass:    " << vehicle.GetMass() << endl;
+    cout << "  Driveline type:    " << vehicle.GetDriveline()->GetTemplateName() << endl;
+    cout << "  Engine type:       " << engine->GetTemplateName() << endl;
+    cout << "  Transmission type: " << transmission->GetTemplateName() << endl;
+    cout << "  Vehicle mass:      " << vehicle.GetMass() << endl;
 
     // Create the terrain
     RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile(rigidterrain_file));
@@ -357,7 +373,8 @@ int main(int argc, char* argv[]) {
             break;
         }
         case DriverMode::PATH: {
-            auto path = chrono::vehicle::StraightLinePath(chrono::ChVector<>(0, 0, 0.02), chrono::ChVector<>(500, 0, 0.02), 50);
+            auto path =
+                chrono::vehicle::StraightLinePath(chrono::ChVector<>(0, 0, 0.02), chrono::ChVector<>(500, 0, 0.02), 50);
             auto path_driver = std::make_shared<ChPathFollowerDriver>(vehicle, path, "my_path", target_speed);
             path_driver->GetSteeringController().SetLookAheadDistance(5.0);
             path_driver->GetSteeringController().SetGains(0.5, 0, 0);

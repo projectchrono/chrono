@@ -24,13 +24,22 @@ namespace chrono {
 class ChApi ChCapsuleShape : public ChVisualShape {
   public:
     ChCapsuleShape();
-    ChCapsuleShape(double radius, double length);
+    ChCapsuleShape(double radius, double height);
     ChCapsuleShape(const geometry::ChCapsule& cap);
 
     ~ChCapsuleShape() {}
 
     // Access the capsule geometry.
-    geometry::ChCapsule& GetCapsuleGeometry() { return gcapsule; }
+    geometry::ChCapsule& GetGeometry() { return gcapsule; }
+
+    /// Get the capsule radius.
+    double GetRadius() const { return gcapsule.GetRadius(); }
+
+    /// Get the capsule height (length of cylindrical portion).
+    double GetHeight() const { return gcapsule.GetHeight(); }
+
+    /// Get the capsule total length.
+    double GetLength() const { return gcapsule.GetLength(); }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;

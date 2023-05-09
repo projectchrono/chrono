@@ -420,7 +420,7 @@ void ChOptixEngine::SceneProcess(RenderThread& tself) {
 void ChOptixEngine::boxVisualization(std::shared_ptr<ChBody> body,
                                      std::shared_ptr<ChBoxShape> box_shape,
                                      ChFrame<> asset_frame) {
-    ChVector<double> size = box_shape->GetBoxGeometry().GetLengths();
+    ChVector<double> size = box_shape->GetLengths();
 
     unsigned int mat_id;
     if (box_shape->GetNumMaterials() == 0) {
@@ -435,8 +435,7 @@ void ChOptixEngine::boxVisualization(std::shared_ptr<ChBody> body,
 void ChOptixEngine::sphereVisualization(std::shared_ptr<ChBody> body,
                                         std::shared_ptr<ChSphereShape> sphere_shape,
                                         ChFrame<> asset_frame) {
-    ChVector<double> size = {sphere_shape->GetSphereGeometry().rad, sphere_shape->GetSphereGeometry().rad,
-                             sphere_shape->GetSphereGeometry().rad};
+    ChVector<double> size(sphere_shape->GetRadius());
 
     unsigned int mat_id;
     if (sphere_shape->GetNumMaterials() == 0) {
@@ -451,13 +450,10 @@ void ChOptixEngine::sphereVisualization(std::shared_ptr<ChBody> body,
 void ChOptixEngine::cylinderVisualization(std::shared_ptr<ChBody> body,
                                           std::shared_ptr<ChCylinderShape> cyl_shape,
                                           ChFrame<> asset_frame) {
-    double radius = cyl_shape->GetCylinderGeometry().rad;
-    double height = (cyl_shape->GetCylinderGeometry().p1 - cyl_shape->GetCylinderGeometry().p2).Length();
-    ChVector<double> center = (cyl_shape->GetCylinderGeometry().p1 + cyl_shape->GetCylinderGeometry().p2) / 2;
+    double radius = cyl_shape->GetRadius();
+    double height = cyl_shape->GetHeight();
 
-    ChVector<double> size = {radius, height, radius};
-
-    ChFrame<double> cyl_frame = asset_frame * ChFrame<double>(center);
+    ChVector<double> size = {radius, radius, height};
 
     unsigned int mat_id;
     if (cyl_shape->GetNumMaterials() == 0) {
@@ -465,7 +461,7 @@ void ChOptixEngine::cylinderVisualization(std::shared_ptr<ChBody> body,
     } else {
         mat_id = m_pipeline->GetCylinderMaterial(cyl_shape->GetMaterials());
     }
-    m_geometry->AddCylinder(body, cyl_frame, size, mat_id);
+    m_geometry->AddCylinder(body, asset_frame, size, mat_id);
     m_pipeline->AddBody(body);
 }
 

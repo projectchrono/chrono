@@ -51,7 +51,7 @@ using namespace chrono::vehicle::hmmwv;
 // =============================================================================
 
 // Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
 
 // Initial vehicle location and orientation
 ChVector<> initLoc(0, 0, 1.6);
@@ -74,8 +74,11 @@ VisualizationType tire_vis_type = VisualizationType::MESH;
 // Collision type for chassis (PRIMITIVES, MESH, or NONE)
 CollisionType chassis_collision_type = CollisionType::NONE;
 
-// Type of powertrain model (SHAFTS, SIMPLE)
-PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
+// Type of engine model (SHAFTS, SIMPLE, SIMPLE_MAP)
+EngineModelType engine_model = EngineModelType::SHAFTS;
+
+// Type of transmission model (SHAFTS, SIMPLE_MAP)
+TransmissionModelType transmission_model = TransmissionModelType::SHAFTS;
 
 // Drive type (FWD, RWD, or AWD)
 DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
@@ -141,7 +144,8 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetChassisCollisionType(chassis_collision_type);
     my_hmmwv.SetChassisFixed(false);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
-    my_hmmwv.SetPowertrainType(powertrain_model);
+    my_hmmwv.SetEngineType(engine_model);
+    my_hmmwv.SetTransmissionType(transmission_model);
     my_hmmwv.SetDriveType(drive_type);
     my_hmmwv.UseTierodBodies(use_tierod_bodies);
     my_hmmwv.SetSteeringType(steering_type);

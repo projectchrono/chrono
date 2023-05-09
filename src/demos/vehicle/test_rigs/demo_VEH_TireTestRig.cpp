@@ -21,19 +21,21 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 
-#include "chrono_models/vehicle/hmmwv/HMMWV_ANCFTire.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_FialaTire.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_ReissnerTire.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_RigidTire.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_TMeasyTire.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_Pac89Tire.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_Pac02Tire.h"
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_ANCFTire.h"
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_FialaTire.h"
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_ReissnerTire.h"
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_RigidTire.h"
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_TMeasyTire.h"
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_Pac89Tire.h"
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_Pac02Tire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Wheel.h"
 
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFToroidalTire.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChTireTestRig.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChGnuPlot.h"
@@ -63,6 +65,9 @@ TireType tire_type = TireType::TMEASY;
 
 // Read from JSON specification file?
 bool use_JSON = true;
+
+// Output directory
+const std::string out_dir = GetChronoOutputPath() + "TIRE_TEST_RIG";
 
 int main() {
     // Create wheel and tire subsystems
@@ -244,6 +249,11 @@ int main() {
         }
     }
 
+    // Initialize output
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
 
     // Perform the simulation
     ChFunction_Recorder long_slip;
@@ -283,19 +293,19 @@ int main() {
     }
 
 #ifdef CHRONO_POSTPROCESS
-    postprocess::ChGnuPlot gplot_long_slip("tmp1.gpl");
+    postprocess::ChGnuPlot gplot_long_slip(out_dir + "/tmp1.gpl");
     gplot_long_slip.SetGrid();
     gplot_long_slip.SetLabelX("time (s)");
     gplot_long_slip.SetLabelY("Long. slip");
     gplot_long_slip.Plot(long_slip, "", " with lines lt -1 lc rgb'#00AAEE' ");
 
-    postprocess::ChGnuPlot gplot_slip_angle("tmp2.gpl");
+    postprocess::ChGnuPlot gplot_slip_angle(out_dir + "/tmp2.gpl");
     gplot_slip_angle.SetGrid();
     gplot_slip_angle.SetLabelX("time (s)");
     gplot_slip_angle.SetLabelY("Slip angle");
     gplot_slip_angle.Plot(slip_angle, "", " with lines lt -1 lc rgb'#00AAEE' ");
 
-    postprocess::ChGnuPlot gplot_camber_angle("tmp3.gpl");
+    postprocess::ChGnuPlot gplot_camber_angle(out_dir + "/tmp3.gpl");
     gplot_camber_angle.SetGrid();
     gplot_camber_angle.SetLabelX("time (s)");
     gplot_camber_angle.SetLabelY("Camber angle");

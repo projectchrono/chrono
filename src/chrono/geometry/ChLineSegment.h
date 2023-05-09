@@ -17,6 +17,7 @@
 
 #include <cmath>
 
+#include "chrono/core/ChFrame.h"
 #include "chrono/geometry/ChLine.h"
 
 namespace chrono {
@@ -25,32 +26,39 @@ namespace geometry {
 /// Geometric object representing a segment in 3D space with two end points.
 class ChApi ChLineSegment : public ChLine {
   public:
-    ChVector<> pA;  ///< first segment endpoint
-    ChVector<> pB;  ///< second segment endpoint
-
-  public:
-    ChLineSegment(const ChVector<> mA = VNULL, const ChVector<> mB = VNULL) : pA(mA), pB(mB) {}
+    ChLineSegment(const ChVector<> A = VNULL, const ChVector<> B = VNULL) : pA(A), pB(B) {}
     ChLineSegment(const ChLineSegment& source);
     ~ChLineSegment() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLineSegment* Clone() const override { return new ChLineSegment(*this); }
 
-    virtual GeometryType GetClassType() const override { return LINE_SEGMENT; }
+    /// Get the class type as an enum.
+    virtual Type GetClassType() const override { return Type::LINE_SEGMENT; }
 
     virtual int Get_complexity() const override { return 2; }
 
-    /// Curve evaluation (only parU is used, in 0..1 range)
+    /// Curve evaluation (only parU is used, in 0..1 range).
     virtual void Evaluate(ChVector<>& pos, const double parU) const override;
 
-    /// Returns curve length. sampling does not matter
+    /// Return curve length.
     virtual double Length(int sampling) const override { return (pA - pB).Length(); }
+
+    /// Get the segment length.
+    double GetLength() const { return Length(0); }
+
+    /// Return the segment frame.
+    /// This is a frame centered at the midpoint and with Z axis along the segment.
+    ChFrame<> GetFrame() const;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+    ChVector<> pA;  ///< first segment endpoint
+    ChVector<> pB;  ///< second segment endpoint
 };
 
 }  // end namespace geometry

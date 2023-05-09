@@ -33,6 +33,8 @@ ChChassisConnectorArticulated::~ChChassisConnectorArticulated() {
 }
 
 void ChChassisConnectorArticulated::Initialize(std::shared_ptr<ChChassis> front, std::shared_ptr<ChChassisRear> rear) {
+    ChChassisConnector::Initialize(front, rear);
+
     // Express the connector reference frame in the absolute coordinate system
     ChFrame<> to_abs(rear->GetLocalPosFrontConnector());
     to_abs.ConcatenatePreTransformation(rear->GetBody()->GetFrame_REF_to_abs());

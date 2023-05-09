@@ -35,7 +35,7 @@ stages:
   - uname -a
   - export LIB_DIR="lib"
   - export IOMP5_DIR=""
-  - pacman -Sy --noconfirm cuda git eigen cmake glfw glm glew glut irrlicht ninja wget python python-pip openmpi openssh swig hdf5 intel-oneapi-mkl doxygen fontconfig libxmu
+  - pacman -Sy --noconfirm --overwrite cuda git eigen cmake glfw glm glew glut irrlicht ninja wget python python-pip openmpi openssh swig hdf5 intel-oneapi-mkl doxygen fontconfig libxmu
   # Clean up the package cache to make more space for the build
   - pacman -Scc --noconfirm
   - ldconfig

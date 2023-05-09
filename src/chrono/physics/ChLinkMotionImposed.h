@@ -21,9 +21,9 @@
 
 namespace chrono {
 
-/// A joint that enforces position and rotation between two frames on two bodies, using six 
-/// rheonomic constraints. 
-/// That is, position and rotation of Body 1 are precisely enforced respect to Body 1 by using 
+/// A joint that enforces position and rotation between two frames on two bodies, using six
+/// rheonomic constraints.
+/// That is, position and rotation of Body 1 are precisely enforced respect to Body 2 by using
 /// functions of time, where functions are defined via ChFunctionRotation and ChFunctionPosition objects.
 /// A typical usage scenario is where Body 2 is a fixed body, representing the absolute reference,
 /// so you move/rotate Body 1 in space according to the provided functions; this is the case for example where
@@ -38,7 +38,11 @@ namespace chrono {
 /// Think at it as a 6DOF servo drive with "infinitely stiff" control.
 /// By default it is initialized with no motion / no rotation, so by default is just like welding the two bodies,
 /// so it is up to the user to provide proper ChFunctionRotation and a proper ChFunctionPosition.
-
+/// Note: differently from most other ChLinkMate -inherited links, that assume the frame2 as link coodrinate system,
+/// in this case we use the "moving" auxiliary frame M whose motion is concatenated to frame2 (in absolute coordinates,
+/// such moving frame will be cohincident with frame1 if the constraint is well assembled - in fact this makes
+/// constraint forces more intuitive, as one will get reaction forces and torques as applied to the frame1 of moving
+/// body 1).
 class ChApi ChLinkMotionImposed : public ChLinkMateGeneric {
   public:
     ChLinkMotionImposed();
@@ -91,6 +95,10 @@ class ChApi ChLinkMotionImposed : public ChLinkMateGeneric {
     // SOLVER INTERFACE (OLD)
     //
     virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
+
+    /// Add the current stiffness K matrix in encapsulated ChKblock item(s), if any.
+    /// The K matrices are load with scaling values Kfactor.
+    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;

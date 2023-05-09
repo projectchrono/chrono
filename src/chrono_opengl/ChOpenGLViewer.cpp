@@ -30,8 +30,6 @@
 #include "chrono/assets/ChConeShape.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChRoundedBoxShape.h"
-#include "chrono/assets/ChRoundedConeShape.h"
-#include "chrono/assets/ChRoundedCylinderShape.h"
 #include "chrono/assets/ChCapsuleShape.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/solver/ChIterativeSolverVI.h"
@@ -319,73 +317,57 @@ void ChOpenGLViewer::DrawVisualModel(std::shared_ptr<ChPhysicsItem> item) {
         rot.Q_to_AngAxis(angle, axis);
 
         if (ChSphereShape* sphere_shape = dynamic_cast<ChSphereShape*>(shape.get())) {
-            double radius = sphere_shape->GetSphereGeometry().rad;
+            double radius = sphere_shape->GetRadius();
 
             model = glm::translate(glm::mat4(1), glm::vec3(pos.x(), pos.y(), pos.z()));
             model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
             model = glm::scale(model, glm::vec3(radius, radius, radius));
             model_sphere.push_back(model);
         } else if (ChEllipsoidShape* ellipsoid_shape = dynamic_cast<ChEllipsoidShape*>(shape.get())) {
-            Vector radius = ellipsoid_shape->GetEllipsoidGeometry().rad;
+            Vector radius = ellipsoid_shape->GetSemiaxes();
 
             model = glm::translate(glm::mat4(1), glm::vec3(pos.x(), pos.y(), pos.z()));
             model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
             model = glm::scale(model, glm::vec3(radius.x(), radius.y(), radius.z()));
             model_sphere.push_back(model);
         } else if (ChBoxShape* box_shape = dynamic_cast<ChBoxShape*>(shape.get())) {
-            Vector size = box_shape->GetBoxGeometry().Size;
+            const Vector& size = box_shape->GetHalflengths();
 
             model = glm::translate(glm::mat4(1), glm::vec3(pos.x(), pos.y(), pos.z()));
             model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
             model = glm::scale(model, glm::vec3(size.x(), size.y(), size.z()));
             model_box.push_back(model);
         } else if (ChCylinderShape* cylinder_shape = dynamic_cast<ChCylinderShape*>(shape.get())) {
-            double rad = cylinder_shape->GetCylinderGeometry().rad;
-            const auto& P1 = cylinder_shape->GetCylinderGeometry().p1;
-            const auto& P2 = cylinder_shape->GetCylinderGeometry().p2;
-
-            ChVector<> dir = P2 - P1;
-            double height = dir.Length();
-            dir.Normalize();
-            ChVector<> mx, my, mz;
-            dir.DirToDxDyDz(my, mz, mx);  // y is axis, in cylinder.obj frame
-            ChMatrix33<> R_CS;
-            R_CS.Set_A_axis(mx, my, mz);
-
-            auto t_CS = 0.5 * (P2 + P1);
-            ChFrame<> X_CS(t_CS, R_CS);
-            ChFrame<> X_CA = X_SA * X_CS;
-
-            pos = X_CA.GetPos();
-            rot = X_CA.GetRot();
-            rot.Q_to_AngAxis(angle, axis);
+            double rad = cylinder_shape->GetRadius();
+            double height = cylinder_shape->GetHeight();
 
             model = glm::translate(glm::mat4(1), glm::vec3(pos.x(), pos.y(), pos.z()));
             model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
-            model = glm::scale(model, glm::vec3(rad, height * .5, rad));
+            model = glm::scale(model, glm::vec3(rad, rad, height));
             model_cylinder.push_back(model);
         } else if (ChConeShape* cone_shape = dynamic_cast<ChConeShape*>(shape.get())) {
-            Vector rad = cone_shape->GetConeGeometry().rad;
+            double radius = cone_shape->GetRadius();
+            double height = cone_shape->GetHeight();
 
             model = glm::translate(glm::mat4(1), glm::vec3(pos.x(), pos.y(), pos.z()));
             model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
-            model = glm::scale(model, glm::vec3(rad.x(), rad.y(), rad.z()));
+            model = glm::scale(model, glm::vec3(radius, radius, height));
             model_cone.push_back(model);
         } else if (ChCapsuleShape* capsule_shape = dynamic_cast<ChCapsuleShape*>(shape.get())) {
-            double rad = capsule_shape->GetCapsuleGeometry().rad;
-            double height = capsule_shape->GetCapsuleGeometry().hlen;
+            double rad = capsule_shape->GetRadius();
+            double height = capsule_shape->GetHeight();
 
             model = glm::translate(glm::mat4(1), glm::vec3(pos.x(), pos.y(), pos.z()));
             model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
-            model = glm::scale(model, glm::vec3(rad, height, rad));
+            model = glm::scale(model, glm::vec3(rad, rad, height));
             model_cylinder.push_back(model);
 
-            glm::vec3 s1 = glm::rotate(glm::vec3(0, height, 0), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
+            glm::vec3 s1 = glm::rotate(glm::vec3(0, 0, +height / 2), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
             model = glm::translate(glm::mat4(1), glm::vec3(pos.x() + s1.x, pos.y() + s1.y, pos.z() + s1.z));
             model = glm::scale(model, glm::vec3((float)rad));
             model_sphere.push_back(model);
 
-            glm::vec3 s2 = glm::rotate(glm::vec3(0, -height, 0), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
+            glm::vec3 s2 = glm::rotate(glm::vec3(0, 0, -height / 2), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
             model = glm::translate(glm::mat4(1), glm::vec3(pos.x() + s2.x, pos.y() + s2.y, pos.z() + s2.z));
             model = glm::scale(model, glm::vec3((float)rad));
             model_sphere.push_back(model);
@@ -429,8 +411,8 @@ void ChOpenGLViewer::DrawVisualModel(std::shared_ptr<ChPhysicsItem> item) {
         }
         /*
         else if (ChRoundedBoxShape* shape = dynamic_cast<ChRoundedBoxShape*>(asset.get())) {
-            Vector rad = shape->GetRoundedBoxGeometry().Size;
-            double radsphere = shape->GetRoundedBoxGeometry().radsphere;
+            Vector rad = shape->GetHalflengths();
+            double radsphere = shape->GetRadius();
             ChVector<> pos_final = pos + center;
             model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x(), pos_final.y(), pos_final.z()));
             model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));

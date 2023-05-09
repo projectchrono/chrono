@@ -85,9 +85,9 @@ class ChApi ChCollisionModel {
     /// Add an ellipsoid shape to this collision model.
     virtual bool AddEllipsoid(                        //
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
-        double rx,                                    ///< x semi-axis
-        double ry,                                    ///< y semi-axis
-        double rz,                                    ///< z semi-axis
+        double axis_x,                                ///< x axis length
+        double axis_y,                                ///< y axis length
+        double axis_z,                                ///< z axis length
         const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
         ) = 0;
@@ -95,47 +95,53 @@ class ChApi ChCollisionModel {
     /// Add a box shape to this collision model.
     virtual bool AddBox(                              //
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
-        double hx,                                    ///< x half-dimension
-        double hy,                                    ///< y half-dimension
-        double hz,                                    ///< z half-dimension
+        double size_x,                                ///< x dimension
+        double size_y,                                ///< y dimension
+        double size_z,                                ///< z dimension
         const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
         ) = 0;
 
-    /// Add a cylinder to this collision model (default axis in Y direction).
+    /// Add a cylinder to this collision model (axis in Z direction).
     virtual bool AddCylinder(                         //
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
-        double rx,                                    ///< radius (X direction)
-        double rz,                                    ///< radius (Z direction)
-        double hy,                                    ///< half length
+        double radius,                                ///< radius
+        double height,                                ///< height
         const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
         ) = 0;
 
-    /// Add a cylindrical shell to this collision model (default axis in Y direction).
+    /// Add a cylinder specified through a radius and end points.
+    bool AddCylinder(                                 //
+        std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
+        double radius,                                ///< radius
+        const ChVector<>& p1,                         ///< first end point
+        const ChVector<>& p2                          ///< second end point
+    );
+
+    /// Add a cylindrical shell to this collision model (axis in Z direction).
     virtual bool AddCylindricalShell(                 //
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
-        double radius,                                ///< cylinder radius
-        double hlen,                                  ///< cylinder half length
+        double radius,                                ///< radius
+        double height,                                ///< height
         const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
         ) = 0;
 
-    /// Add a cone to this collision model (default axis on Y direction).
+    /// Add a cone to this collision model (axis in Z direction).
     virtual bool AddCone(                             //
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
-        double rx,                                    ///< radius (X direction)
-        double rz,                                    ///< radius (Z direction)
-        double hy,                                    ///< half length
-        const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
+        double radius,                                ///< radius
+        double height,                                ///< height
+        const ChVector<>& pos = ChVector<>(),         ///< base center position in model coordinates
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
         ) = 0;
 
-    /// Add a capsule to this collision model (default axis in Y direction).
+    /// Add a capsule to this collision model (axis in Z direction).
     virtual bool AddCapsule(                          //
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
         double radius,                                ///< radius
-        double hlen,                                  ///< half-length of capsule axis
+        double height,                                ///< height of cylindrical portion
         const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
         ) = 0;
@@ -143,31 +149,19 @@ class ChApi ChCollisionModel {
     /// Add a rounded box shape to this collision model.
     virtual bool AddRoundedBox(                       //
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
-        double hx,                                    ///< x half-dimension
-        double hy,                                    ///< y half-dimension
-        double hz,                                    ///< z half-dimension
+        double size_x,                                ///< x dimension
+        double size_y,                                ///< y dimension
+        double size_z,                                ///< z dimension
         double sphere_r,                              ///< radius of sweeping sphere
         const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
         ) = 0;
 
-    /// Add a rounded cylinder to this collision model (default axis on Y direction).
+    /// Add a rounded cylinder to this collision model (axis in Z direction).
     virtual bool AddRoundedCylinder(                  //
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
-        double rx,                                    ///< radius (X direction)
-        double rz,                                    ///< radius (Z direction)
-        double hy,                                    ///< half length
-        double sphere_r,                              ///< radius of sweeping sphere
-        const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
-        const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
-        ) = 0;
-
-    /// Add a rounded cone to this collision model (default axis on Y direction).
-    virtual bool AddRoundedCone(                      //
-        std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
-        double rx,                                    ///< radius (X direction)
-        double rz,                                    ///< radius (Z direction)
-        double hy,                                    ///< half length
+        double radius,                                ///< radius
+        double height,                                ///< height
         double sphere_r,                              ///< radius of sweeping sphere
         const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
@@ -199,16 +193,16 @@ class ChApi ChCollisionModel {
     /// Add a barrel-like shape to this collision model (main axis on Y direction).
     /// The barrel shape is made by lathing an arc of an ellipse around the vertical Y axis.
     /// The center of the ellipse is on Y=0 level, and it is offsetted by R_offset from
-    /// the Y axis in radial direction. The two radii of the ellipse are R_vert (for the
-    /// vertical direction, i.e. the axis parallel to Y) and R_hor (for the axis that
+    /// the Y axis in radial direction. The two axes of the ellipse are axis_vert (for the
+    /// vertical direction, i.e. the axis parallel to Y) and axis_hor (for the axis that
     /// is perpendicular to Y). Also, the solid is clamped with two discs on the top and
     /// the bottom, at levels Y_low and Y_high.
     virtual bool AddBarrel(                           //
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
         double Y_low,                                 ///< bottom level
         double Y_high,                                ///< top level
-        double R_vert,                                ///< ellipse semi-axis in vertical direction
-        double R_hor,                                 ///< ellipse semi-axis in horizontal direction
+        double axis_vert,                             ///< ellipse axis in vertical direction
+        double axis_hor,                              ///< ellipse axis in horizontal direction
         double R_offset,                              ///< lateral offset (radius at top and bottom)
         const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
@@ -323,32 +317,23 @@ class ChApi ChCollisionModel {
 
     // TOLERANCES, ENVELOPES, THRESHOLDS
 
-    /// Set the suggested collision 'inward safe margin' for the
-    /// shapes to be added from now on, using the AddBox,
-    /// AddCylinder etc (where, if this margin is too high for some
-    /// thin or small shapes, it may be clamped).
-    /// If dist\<0 and interpretation occurs (ex.for numerical errors) within
-    /// this 'safe margin' inward range, collision detection is still fast
-    /// and reliable (beyond this, for deep penetrations, CD still works,
-    /// but might be slower and less reliable)
-    /// Call this BEFORE adding the shapes into the model.
-    /// Side effect: think at the margin as a radius of a 'smoothing' fillet
-    /// on all corners of the shapes - that's why you cannot exceed with this.
+    /// Set the suggested collision 'inward safe margin' for the shapes to be added from now on.
+    /// If this margin is too high for some thin or small shapes, it may be clamped.
+    /// If dist\<0 and inter-penetration occurs (e.g. due to numerical errors) within this 'safe margin' inward range,
+    /// collision detection is still fast and reliable (beyond this, for deep penetrations, CD still works, but might be
+    /// slower and less reliable) Call this BEFORE adding the shapes into the model. Side effect: think of the margin as
+    /// a radius of a 'smoothing' fillet on all corners of the shapes - that's why you cannot exceed with this.
     virtual void SetSafeMargin(double amargin) { model_safe_margin = (float)amargin; }
+
     /// Returns the inward safe margin (see SetSafeMargin() )
     virtual float GetSafeMargin() { return model_safe_margin; }
 
-    /// Set the suggested collision outward 'envelope' (used from shapes
-    /// added, from now on, to this collision model).  This 'envelope' is a
-    /// surrounding invisible volume which extends outward from the
-    /// surface, and it is used to detect contacts a bit before shapes
-    /// come into contact, i.e. when dist\>0. However contact points will stay
-    /// on the true surface of the geometry, not on the external surface of the
-    /// envelope.
-    /// Call this BEFORE adding the shapes into the model.
-    /// Side effect: AABB are 'expanded' outward by this amount, so if you
-    /// exaggerate with this value, CD might be slower and too sensible.
-    /// On the other hand, if you set this value to 0, contacts are detected
+    /// Set the suggested collision outward 'envelope' used from shapes added from now on.
+    /// This 'envelope' is a surrounding invisible volume which extends outward from the surface, and it is used to
+    /// detect contacts a bit before shapes come into contact, i.e. when dist\>0. However contact points will stay on
+    /// the true surface of the geometry, not on the external surface of the envelope. Call this BEFORE adding the
+    /// shapes into the model. Side effect: AABB are 'expanded' outward by this amount, so if you exaggerate with this
+    /// value, CD might be slower and too sensible. On the other hand, if you set this value to 0, contacts are detected
     /// only for dist<=0, thus causing unstable simulation.
     virtual void SetEnvelope(double amargin) { model_envelope = (float)amargin; }
 

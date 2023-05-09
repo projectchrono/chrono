@@ -1,0 +1,32 @@
+{
+  "Name": "FMTV Shafts Engine",
+  "Type": "Engine",
+  "Template": "EngineShafts",
+
+  "Motor Block Inertia": 10.5, // connection to chassis
+  "Motorshaft Inertia": 1.1, // connection to transmission
+
+  "Torque Map": [
+                                  [ -100 , 200 ],
+                                [  500 , 300 ],
+                                [ 1000 , 500 ],
+                                [ 1200 , 572 ],
+                                [ 1400 , 664 ],
+                                [ 1600 , 713 ],
+                                [ 1800 , 733 ],
+                                [ 2000 , 725 ],
+                                [ 2100 , 717 ],
+                                [ 2200 , 707 ],
+                                [ 2400 , 682 ],
+                                [ 2700 ,-400 ]
+  ],
+
+  "Losses Map": [
+                                [  -50 ,  30 ],
+                                [    0 ,   0 ],
+                                [   50 , -30 ],
+                                [ 1000 , -50 ],
+                                [ 2000 , -70 ],
+                                [ 3000 , -90 ]
+  ]
+}

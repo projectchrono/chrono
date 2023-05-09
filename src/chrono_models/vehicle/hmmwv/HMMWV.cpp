@@ -22,18 +22,22 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_ANCFTire.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_FialaTire.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_Pac89Tire.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_Pac02Tire.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_Powertrain.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_ReissnerTire.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_RigidTire.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_SimpleMapPowertrain.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_SimplePowertrain.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_SimpleCVTPowertrain.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_TMeasyTire.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_TMsimpleTire.h"
+
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_ANCFTire.h"
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_FialaTire.h"
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_Pac89Tire.h"
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_Pac02Tire.h"
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_ReissnerTire.h"
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_RigidTire.h"
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_TMeasyTire.h"
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_TMsimpleTire.h"
+
+#include "chrono_vehicle/ChPowertrainAssembly.h"
+#include "chrono_models/vehicle/hmmwv/powertrain/HMMWV_EngineShafts.h"
+#include "chrono_models/vehicle/hmmwv/powertrain/HMMWV_EngineSimpleMap.h"
+#include "chrono_models/vehicle/hmmwv/powertrain/HMMWV_EngineSimple.h"
+#include "chrono_models/vehicle/hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.h"
+#include "chrono_models/vehicle/hmmwv/powertrain/HMMWV_AutomaticTransmissionSimpleMap.h"
 
 namespace chrono {
 namespace vehicle {
@@ -51,7 +55,8 @@ HMMWV::HMMWV()
       m_brake_type(BrakeType::SIMPLE),
       m_steeringType(SteeringTypeWV::PITMAN_ARM),
       m_driveType(DrivelineTypeWV::AWD),
-      m_powertrainType(PowertrainModelType::SHAFTS),
+      m_engineType(EngineModelType::SHAFTS),
+      m_transmissionType(TransmissionModelType::SHAFTS),
       m_tireType(TireModelType::RIGID),
       m_tire_collision_type(ChTire::CollisionType::SINGLE_POINT),
       m_tire_step_size(-1),
@@ -71,7 +76,8 @@ HMMWV::HMMWV(ChSystem* system)
       m_brake_type(BrakeType::SIMPLE),
       m_steeringType(SteeringTypeWV::PITMAN_ARM),
       m_driveType(DrivelineTypeWV::AWD),
-      m_powertrainType(PowertrainModelType::SHAFTS),
+      m_engineType(EngineModelType::SHAFTS),
+      m_transmissionType(TransmissionModelType::SHAFTS),
       m_tireType(TireModelType::RIGID),
       m_tire_collision_type(ChTire::CollisionType::SINGLE_POINT),
       m_tire_step_size(-1),
@@ -107,27 +113,32 @@ void HMMWV::Initialize() {
     }
 
     // Create and initialize the powertrain system
-    switch (m_powertrainType) {
-        case PowertrainModelType::SHAFTS: {
-            auto powertrain = chrono_types::make_shared<HMMWV_Powertrain>("Powertrain");
-            m_vehicle->InitializePowertrain(powertrain);
+    std::shared_ptr<ChEngine> engine;
+    std::shared_ptr<ChTransmission> transmission;
+    switch (m_engineType) {
+        case EngineModelType::SHAFTS:
+            engine = chrono_types::make_shared<HMMWV_EngineShafts>("Engine");
             break;
-        }
-        case PowertrainModelType::SIMPLE_MAP: {
-            auto powertrain = chrono_types::make_shared<HMMWV_SimpleMapPowertrain>("Powertrain");
-            m_vehicle->InitializePowertrain(powertrain);
+        case EngineModelType::SIMPLE_MAP:
+            engine = chrono_types::make_shared<HMMWV_EngineSimpleMap>("Engine");
             break;
-        }
-        case PowertrainModelType::SIMPLE: {
-            auto powertrain = chrono_types::make_shared<HMMWV_SimplePowertrain>("Powertrain");
-            m_vehicle->InitializePowertrain(powertrain);
+        case EngineModelType::SIMPLE:
+            engine = chrono_types::make_shared<HMMWV_EngineSimple>("Engine");
             break;
-        }
-        case PowertrainModelType::SIMPLE_CVT: {
-            auto powertrain = chrono_types::make_shared<HMMWV_SimpleCVTPowertrain>("Powertrain");
-            m_vehicle->InitializePowertrain(powertrain);
+    }
+
+    switch (m_transmissionType) {
+        case TransmissionModelType::SHAFTS:
+            transmission = chrono_types::make_shared<HMMWV_AutomaticTransmissionShafts>("Transmission");
             break;
-        }
+        case TransmissionModelType::SIMPLE_MAP:
+            transmission = chrono_types::make_shared<HMMWV_AutomaticTransmissionSimpleMap>("Transmission");
+            break;
+    }
+
+    if (engine && transmission) {
+        auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
+        m_vehicle->InitializePowertrain(powertrain);
     }
 
     // Create the tires and set parameters depending on type.
@@ -165,6 +176,7 @@ void HMMWV::Initialize() {
 
             break;
         }
+
         case TireModelType::TMEASY: {
             auto tire_FL = chrono_types::make_shared<HMMWV_TMeasyTire>("FL");
             auto tire_FR = chrono_types::make_shared<HMMWV_TMeasyTire>("FR");
@@ -180,6 +192,7 @@ void HMMWV::Initialize() {
 
             break;
         }
+            
         case TireModelType::TMSIMPLE: {
             auto tire_FL = chrono_types::make_shared<HMMWV_TMsimpleTire>("FL");
             auto tire_FR = chrono_types::make_shared<HMMWV_TMsimpleTire>("FR");
@@ -195,6 +208,7 @@ void HMMWV::Initialize() {
 
             break;
         }
+
         case TireModelType::PAC89: {
             auto tire_FL = chrono_types::make_shared<HMMWV_Pac89Tire>("FL");
             auto tire_FR = chrono_types::make_shared<HMMWV_Pac89Tire>("FR");

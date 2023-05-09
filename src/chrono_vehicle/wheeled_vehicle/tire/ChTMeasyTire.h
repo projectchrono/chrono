@@ -182,7 +182,9 @@ class CH_VEHICLE_API ChTMeasyTire : public ChForceElementTire {
 
     /// Simple parameter consistency test.
     bool CheckParameters();
-
+    
+    double GetTireOmega() { return m_states.omega; }
+    
   protected:
     /// Set the parameters in the TMeasy model.
     virtual void SetTMeasyParams() = 0;
@@ -321,7 +323,7 @@ class CH_VEHICLE_API ChTMeasyTire : public ChForceElementTire {
     };
 
     TireStates m_states;
-    std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
+    std::shared_ptr<ChVisualShape> m_cyl_shape;  ///< visualization cylinder asset
 };
 
 /// @} vehicle_wheeled_tire

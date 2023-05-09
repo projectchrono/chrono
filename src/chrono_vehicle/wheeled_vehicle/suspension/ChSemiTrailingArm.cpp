@@ -65,6 +65,8 @@ void ChSemiTrailingArm::Initialize(std::shared_ptr<ChChassis> chassis,
                                    const ChVector<>& location,
                                    double left_ang_vel,
                                    double right_ang_vel) {
+    ChSuspension::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
+
     m_parent = chassis;
     m_rel_loc = location;
 
@@ -89,7 +91,7 @@ void ChSemiTrailingArm::Initialize(std::shared_ptr<ChChassis> chassis,
 
 void ChSemiTrailingArm::InitializeSide(VehicleSide side,
                                        std::shared_ptr<ChChassis> chassis,
-                                       const std::vector<ChVector<> >& points,
+                                       const std::vector<ChVector<>>& points,
                                        double ang_vel) {
     std::string suffix = (side == LEFT) ? "_L" : "_R";
 
@@ -317,24 +319,10 @@ void ChSemiTrailingArm::AddVisualizationArm(std::shared_ptr<ChBody> arm,
     ChVector<> p_AS = arm->TransformPointParentToLocal(pt_AS);
     ChVector<> p_S = arm->TransformPointParentToLocal(pt_S);
 
-    auto cyl_O = chrono_types::make_shared<ChCylinderShape>();
-    cyl_O->GetCylinderGeometry().p1 = p_AC_O;
-    cyl_O->GetCylinderGeometry().p2 = p_AS;
-    cyl_O->GetCylinderGeometry().rad = radius;
-    arm->AddVisualShape(cyl_O);
-
-    auto cyl_I = chrono_types::make_shared<ChCylinderShape>();
-    cyl_I->GetCylinderGeometry().p1 = p_AC_I;
-    cyl_I->GetCylinderGeometry().p2 = p_AS;
-    cyl_I->GetCylinderGeometry().rad = radius;
-    arm->AddVisualShape(cyl_I);
-
+    ChVehicleGeometry::AddVisualizationCylinder(arm, p_AC_O, p_AS, radius);
+    ChVehicleGeometry::AddVisualizationCylinder(arm, p_AC_I, p_AS, radius);
     if ((p_AS - p_S).Length2() > threshold2) {
-        auto cyl_S = chrono_types::make_shared<ChCylinderShape>();
-        cyl_S->GetCylinderGeometry().p1 = p_AS;
-        cyl_S->GetCylinderGeometry().p2 = p_S;
-        cyl_S->GetCylinderGeometry().rad = radius;
-        arm->AddVisualShape(cyl_S);
+        ChVehicleGeometry::AddVisualizationCylinder(arm, p_AS, p_S, radius);
     }
 }
 // -----------------------------------------------------------------------------

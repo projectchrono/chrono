@@ -64,7 +64,7 @@ void ChTrackedVehicleVisualSystemIrrlicht::renderOtherStats(int left, int top) {
     auto driveline = m_tvehicle->GetDriveline();
     double toRPM = 30 / CH_C_PI;
 
-    double shaft_speed = driveline->GetDriveshaftSpeed() * toRPM;
+    double shaft_speed = driveline->GetOutputDriveshaftSpeed() * toRPM;
     sprintf(msg, "Driveshaft (RPM): %+.2f", shaft_speed);
     renderLinGauge(std::string(msg), shaft_speed / 2000, true, left, top, 170, 15);
 

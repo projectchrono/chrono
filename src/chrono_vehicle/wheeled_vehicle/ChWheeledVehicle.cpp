@@ -51,33 +51,24 @@ void ChWheeledVehicle::InitializeTire(std::shared_ptr<ChTire> tire,
 }
 
 // -----------------------------------------------------------------------------
-// Initialize a powertrain system and associate it with this vehicle.
-// -----------------------------------------------------------------------------
-void ChWheeledVehicle::InitializePowertrain(std::shared_ptr<ChPowertrain> powertrain) {
-    m_powertrain = powertrain;
-    powertrain->Initialize(m_chassis);
-}
-
-// -----------------------------------------------------------------------------
 // Update the state of this vehicle at the current time.
 // The vehicle system is provided the current driver inputs (throttle between 0
 // and 1, steering between -1 and +1, braking between 0 and 1), and a reference
 // to the terrain system.
 // -----------------------------------------------------------------------------
 void ChWheeledVehicle::Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) {
-    double powertrain_torque = 0;
-    if (m_powertrain && m_driveline) {
-        // Extract the torque from the powertrain.
-        powertrain_torque = m_powertrain->GetOutputTorque();
-        // Synchronize the associated powertrain system (pass throttle input).
-        m_powertrain->Synchronize(time, driver_inputs, m_driveline->GetDriveshaft()->GetPos_dt());
-    }
+    double powertrain_torque = m_powertrain_assembly ? m_powertrain_assembly->GetOutputTorque()  : 0;
+    double driveline_speed = m_driveline ? m_driveline->GetOutputDriveshaftSpeed() : 0;
 
-    // Apply powertrain torque to the driveline's input shaft.
+    // Set driveshaft speed for the transmission output shaft
+    if (m_powertrain_assembly)
+        m_powertrain_assembly->Synchronize(time, driver_inputs, driveline_speed);
+
+    // Apply powertrain torque to the driveline's input shaft
     if (m_driveline)
         m_driveline->Synchronize(time, driver_inputs, powertrain_torque);
 
-    // Let the steering subsystems process the steering input.
+    // Let the steering subsystems process the steering input
     for (auto& steering : m_steerings) {
         steering->Synchronize(time, driver_inputs);
     }
@@ -105,9 +96,9 @@ void ChWheeledVehicle::Synchronize(double time, const DriverInputs& driver_input
 // Advance the state of this vehicle by the specified time step.
 // -----------------------------------------------------------------------------
 void ChWheeledVehicle::Advance(double step) {
-    if (m_powertrain) {
-        // Advance state of the associated powertrain.
-        m_powertrain->Advance(step);
+    // Advance state of the associated powertrain (if any)
+    if (m_powertrain_assembly) {
+        m_powertrain_assembly->Advance(step);
     }
 
     // Advance state of all vehicle tires.
@@ -413,8 +404,11 @@ void ChWheeledVehicle::LogConstraintViolations() {
 void ChWheeledVehicle::LogSubsystemTypes() {
     GetLog() << "\nSubsystem types\n";
     GetLog() << "Chassis:        " << m_chassis->GetTemplateName().c_str() << "\n";
-    if (m_powertrain)
-        GetLog() << "Powertrain:     " << m_powertrain->GetTemplateName().c_str() << "\n";
+    if (m_powertrain_assembly) {
+        GetLog() << "Powertrain:\n";
+        GetLog() << "  Engine:       " << GetEngine()->GetTemplateName().c_str() << "\n";
+        GetLog() << "  Transmission: " << GetTransmission()->GetTemplateName().c_str() << "\n";
+    }
     if (m_driveline)
         GetLog() << "Driveline:      " << m_driveline->GetTemplateName().c_str() << "\n";
 

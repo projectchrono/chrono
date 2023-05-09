@@ -1,0 +1,9 @@
+{
+  "Name": "HMMWV Simple Engine",
+  "Type": "Engine",
+  "Template": "EngineSimple",
+
+  "Maximum Engine Torque": 330,
+  "Maximum Engine Power": 110000,
+  "Maximum Engine Speed": 10000
+}

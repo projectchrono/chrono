@@ -128,10 +128,8 @@ void ChVehicleCosimTerrainNodeGranularGPU::SetFromSpecfile(const std::string& sp
     Document d;
     ReadSpecfile(specfile, d);
 
-    double length = d["Patch dimensions"]["Length"].GetDouble();
-    double width = d["Patch dimensions"]["Width"].GetDouble();
-    m_hdimX = length / 2;
-    m_hdimY = width / 2;
+    m_dimX = d["Patch dimensions"]["Length"].GetDouble();
+    m_dimY = d["Patch dimensions"]["Width"].GetDouble();
 
     m_radius_g = d["Granular material"]["Radius"].GetDouble();
     m_rho_g = d["Granular material"]["Density"].GetDouble();
@@ -249,10 +247,8 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
     ////       Second, we are limited to creating this domain centered at the origin!?!
     float r = m_separation_factor * (float)m_radius_g;
     float delta = 2.0f * r;
-    float dimX = 2.0f * (float)m_hdimX;
-    float dimY = 2.0f * (float)m_hdimY;
     float dimZ = m_init_depth + EXTRA_HEIGHT;
-    auto box = ChVector<float>(dimX, dimY, dimZ);
+    auto box = ChVector<float>(m_dimX, m_dimY, dimZ);
 
     // Create granular system here
     m_systemGPU = new gpu::ChSystemGpuMesh((float)m_radius_g, (float)m_rho_g, box);
@@ -321,7 +317,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
         }
 
         if (m_in_layers) {
-            ChVector<float> hdims(dimX / 2 - r, dimY / 2 - r, 0);
+            ChVector<float> hdims(m_dimX / 2 - r, m_dimY / 2 - r, 0);
             double z = delta;
             while (z < m_init_depth) {
                 auto p = sampler->SampleBox(ChVector<>(0, 0, z - dimZ / 2), hdims);
@@ -331,7 +327,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
                 z += delta;
             }
         } else {
-            ChVector<> hdims(m_hdimX - r, m_hdimY - r, m_init_depth / 2 - r);
+            ChVector<> hdims(m_dimX / 2 - r, m_dimY / 2 - r, m_init_depth / 2 - r);
             auto p = sampler->SampleBox(ChVector<>(0, 0, m_init_depth / 2 - dimZ / 2), hdims);
             pos.insert(pos.end(), p.begin(), p.end());
         }
@@ -368,8 +364,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
             auto body = std::shared_ptr<ChBody>(m_system->NewBody());
             body->SetPos(p);
             body->SetBodyFixed(true);
-            auto sph = chrono_types::make_shared<ChSphereShape>();
-            sph->GetSphereGeometry().rad = m_radius_g;
+            auto sph = chrono_types::make_shared<ChSphereShape>(m_radius_g);
             body->AddVisualShape(sph);
             m_system->AddBody(body);
         }
@@ -433,7 +428,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
     outf << "System settings" << endl;
     outf << "   Integration step size = " << m_step_size << endl;
     outf << "Terrain patch dimensions" << endl;
-    outf << "   X = " << 2 * m_hdimX << "  Y = " << 2 * m_hdimY << endl;
+    outf << "   X = " << m_dimX << "  Y = " << m_dimY << endl;
     outf << "Terrain material properties" << endl;
     auto mat = std::static_pointer_cast<ChMaterialSurfaceSMC>(m_material_terrain);
     outf << "   Coefficient of friction    = " << mat->GetKfriction() << endl;
@@ -588,7 +583,7 @@ double ChVehicleCosimTerrainNodeGranularGPU::CalculatePackingDensity(double& dep
     depth = z_max - z_min;
 
     // Find total volume of granular material
-    double Vt = (2 * m_hdimX) * (2 * m_hdimY) * (z_max - z_min);
+    double Vt = m_dimX * m_dimY * (z_max - z_min);
 
     // Find volume of granular particles
     double Vs = m_num_particles * (4.0 / 3) * CH_C_PI * std::pow(m_radius_g, 3);

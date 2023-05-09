@@ -60,7 +60,8 @@ MixerTestNSC<N>::MixerTestNSC() : m_system(new ChSystemNSC()), m_step(0.02) {
         boxBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
         m_system->Add(boxBody);
 
-        auto cylBody = chrono_types::make_shared<ChBodyEasyCylinder>(0.8, 1.0, 1000, true, true, mat);
+        auto cylBody =
+            chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.8, 1.0, 1000, true, true, mat);
         cylBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
         m_system->Add(cylBody);
     }

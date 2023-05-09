@@ -246,7 +246,8 @@ int main(int argc, char* argv[]) {
 
     // Get the vehicle JSON filenames
     const std::string vehicle_filename = vehicle::GetDataFile("sedan/vehicle/Sedan_Vehicle.json");
-    const std::string powertrain_filename = vehicle::GetDataFile("sedan/powertrain/Sedan_SimpleMapPowertrain.json");
+    const std::string engine_filename = vehicle::GetDataFile("sedan/powertrain/Sedan_EngineSimpleMap.json");
+    const std::string transmission_filename = vehicle::GetDataFile("sedan/powertrain/Sedan_AutomaticTransmissionSimpleMap.json");
     const std::string tire_filename = vehicle::GetDataFile("sedan/tire/Sedan_TMeasyTire.json");
     const std::string zombie_filename = synchrono::GetDataFile("vehicle/Sedan.json");
 
@@ -260,7 +261,9 @@ int main(int argc, char* argv[]) {
     vehicle.SetWheelVisualizationType(wheel_vis_type);
 
     // Create and initialize the powertrain system
-    auto powertrain = ReadPowertrainJSON(powertrain_filename);
+    auto engine = ReadEngineJSON(vehicle::GetDataFile(engine_filename));
+    auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(transmission_filename));
+    auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
     vehicle.InitializePowertrain(powertrain);
 
     // Create and initialize the tires

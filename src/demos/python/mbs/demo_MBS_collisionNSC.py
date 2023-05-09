@@ -48,7 +48,8 @@ def AddFallingItems(sys):
         mboxBody.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile("textures/cubetexture_bluewhite.png"))
         sys.Add(mboxBody)
 
-        mcylBody = chrono.ChBodyEasyCylinder(0.75, 0.5, # radius, height
+        mcylBody = chrono.ChBodyEasyCylinder(chrono.ChAxis_Y,
+                                             0.75, 0.5, # radius, height
                                              100,       # density
                                              True,      # visualization?
                                              True,      # collision?

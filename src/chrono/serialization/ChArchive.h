@@ -43,19 +43,19 @@ class ChArchiveIn;
 
 /// Macro to create a  ChDetect_ArchiveOUTconstructor that can be used in 
 /// templates, to select which specialized template to use
-CH_CREATE_MEMBER_DETECTOR(ArchiveOUTconstructor)
+//CH_CREATE_MEMBER_DETECTOR(ArchiveOUTconstructor) already defined in ChClassFactory
 
 /// Macro to create a  ChDetect_ArchiveOUT that can be used in 
 /// templates, to select which specialized template to use
-CH_CREATE_MEMBER_DETECTOR(ArchiveOUT)
+//CH_CREATE_MEMBER_DETECTOR(ArchiveOUT) already defined in ChClassFactory
 
 /// Macro to create a  ChDetect_ArchiveIN that can be used in 
 /// templates, to select which specialized template to use
-CH_CREATE_MEMBER_DETECTOR(ArchiveIN)
+//CH_CREATE_MEMBER_DETECTOR(ArchiveIN) already defined in ChClassFactory
 
 /// Macro to create a  ChDetect_ArchiveContainerName that can be used in 
 /// templates, to select which specialized template to use
-CH_CREATE_MEMBER_DETECTOR(ArchiveContainerName)
+//CH_CREATE_MEMBER_DETECTOR(ArchiveContainerName) already defined in ChClassFactory
 
 
 
@@ -82,15 +82,16 @@ public:
         /// Use this to call member function ArchiveIn. 
     virtual void CallArchiveIn(ChArchiveIn& marchive)=0;
 
-        /// Use this to call an (optional) static member function ArchiveINconstructor. This 
-        /// is expected to a) deserialize constructor parameters, b) create a new obj as pt2Object = new myclass(params..).
-        /// If classname not registered, call T::ArchiveINconstructor()    
-        /// If ArchiveINconstructor() is not provided, simply creates a new object as new obj() in CallNewPolimorphic.
-    virtual void CallArchiveInConstructor(ChArchiveIn& marchive, const char* classname)=0;
+        /// Use this to call 
+        /// - the default constructor, or, 
+        /// - the constructor embedded in an (optional) static member function ArchiveINconstructor, if implemented
+        /// The latter is expected to a) deserialize constructor parameters, b) create a new obj as pt2Object = new myclass(params..).
+        /// If classname not registered, call default constructor via new(T) or call construction via T::ArchiveINconstructor()    
+    virtual void CallConstructor(ChArchiveIn& marchive, const char* classname)=0;
 
-        /// Use this to create a new object as pt2Object = new myclass()
-        /// If classname not registered, throws exception
-    virtual void CallConstructor(ChArchiveIn& marchive, const char* classname) =0;
+        /// Use this to create a new object as pt2Object = new myclass(), but using the class factory for polymorphic classes.
+        /// If classname not registered, creates simply via new(T).
+    virtual void CallConstructorDefault(const char* classname) =0;
 
         /// Set the pointer (use static_cast) 
     virtual void  SetRawPtr(void* mptr) =0;
@@ -98,7 +99,7 @@ public:
         /// Get the pointer (use static_cast) 
     virtual void* GetRawPtr() =0;
 
-        /// Tell if the pointed object is polymorphic
+        /// Tell if the pointed object is polymorphic  
     virtual bool  IsPolymorphic() = 0;
 };
 
@@ -117,11 +118,11 @@ public:
       virtual void CallArchiveIn(ChArchiveIn& marchive)
         { this->_archive_in(marchive);}
 
-      virtual void CallArchiveInConstructor(ChArchiveIn& marchive, const char* classname)
-        { throw (ChExceptionArchive( "Cannot call CallArchiveInConstructor() for a constructed object.")); };
-
-      virtual void CallConstructor(ChArchiveIn& marchive, const char* classname) 
+      virtual void CallConstructor(ChArchiveIn& marchive, const char* classname)
         { throw (ChExceptionArchive( "Cannot call CallConstructor() for a constructed object.")); };
+
+      virtual void CallConstructorDefault(const char* classname) 
+        { throw (ChExceptionArchive( "Cannot call CallConstructorDefault() for a constructed object.")); };
 
       virtual void  SetRawPtr(void* mptr) 
         { throw (ChExceptionArchive( "Cannot call SetRawPtr() for a constructed object.")); };
@@ -129,7 +130,7 @@ public:
       virtual void* GetRawPtr() 
         { return static_cast<void*>(pt2Object); };
 
-      virtual bool IsPolymorphic() 
+      virtual bool IsPolymorphic()   
         { throw (ChExceptionArchive( "Cannot call IsPolymorphic() for a constructed object.")); };
 
 private:
@@ -161,11 +162,11 @@ public:
       virtual void CallArchiveIn(ChArchiveIn& marchive)
         { this->_archive_in(marchive);}
 
-      virtual void CallArchiveInConstructor(ChArchiveIn& marchive, const char* classname) 
-        { this->_archive_in_constructor(marchive, classname); }
+      virtual void CallConstructor(ChArchiveIn& marchive, const char* classname) 
+        { this->_constructor(marchive, classname); }
 
-      virtual void CallConstructor(ChArchiveIn& marchive, const char* classname)  
-        { this->_constructor(marchive, classname);  }
+      virtual void CallConstructorDefault(const char* classname)  
+        { this->_constructor_default(classname);  }
 
       virtual void  SetRawPtr(void* mptr) 
         { *pt2Object = static_cast<TClass*>(mptr); };
@@ -177,9 +178,10 @@ public:
         { return this->_is_polymorphic(); };
       
 private:
+
         template <class Tc=TClass>
         typename enable_if< ChDetect_ArchiveINconstructor<Tc>::value, void >::type
-        _archive_in_constructor(ChArchiveIn& marchive, const char* classname) {
+        _constructor(ChArchiveIn& marchive, const char* classname) {
             if (ChClassFactory::IsClassRegistered(std::string(classname)))
                 ChClassFactory::create(std::string(classname), marchive, pt2Object);
             else
@@ -187,9 +189,10 @@ private:
         }
         template <class Tc=TClass>
         typename enable_if< !ChDetect_ArchiveINconstructor<Tc>::value, void >::type 
-        _archive_in_constructor(ChArchiveIn& marchive, const char* classname) {
-            this->CallConstructor(marchive, classname);
+        _constructor(ChArchiveIn& marchive, const char* classname) {
+            this->CallConstructorDefault(classname);
         }
+
 
         template <class Tc=TClass>
         typename enable_if< std::is_polymorphic<Tc>::value, bool >::type
@@ -201,10 +204,11 @@ private:
         _is_polymorphic() {
             return false;
         }
+        
 
         template <class Tc=TClass>
         typename enable_if< std::is_default_constructible<Tc>::value && !std::is_abstract<Tc>::value, void >::type
-        _constructor(ChArchiveIn& marchive, const char* classname) {
+        _constructor_default(const char* classname) {
             if (ChClassFactory::IsClassRegistered(std::string(classname)))
                 ChClassFactory::create(std::string(classname), pt2Object);
             else
@@ -212,17 +216,21 @@ private:
         }
         template <class Tc=TClass>
         typename enable_if< std::is_default_constructible<Tc>::value && std::is_abstract<Tc>::value, void >::type
-        _constructor(ChArchiveIn& marchive, const char* classname) {
+        _constructor_default(const char* classname) {
             if (ChClassFactory::IsClassRegistered(std::string(classname)))
                 ChClassFactory::create(std::string(classname), pt2Object);
             else
-                throw (ChExceptionArchive( "Cannot call CallConstructor(). Class not registered, and base is an abstract class."));
+                throw (ChExceptionArchive( "Cannot call CallConstructorDefault(). Class  " + std::string(classname) + " not registered, and is an abstract class."));
         }
         template <class Tc=TClass>
         typename enable_if< !std::is_default_constructible<Tc>::value, void >::type
-        _constructor(ChArchiveIn& marchive, const char* classname) {
-            throw (ChExceptionArchive( "Cannot call CallConstructor() for an object without default constructor.")); 
+        _constructor_default(const char* classname) {
+            if (ChClassFactory::IsClassRegistered(std::string(classname)))
+                ChClassFactory::create(std::string(classname), pt2Object);
+            else
+                throw (ChExceptionArchive( "Cannot call CallConstructorDefault(). Class " + std::string(classname) + " not registered, and is without default constructor.")); 
         }
+
 
         private:
         template <class Tc=TClass>

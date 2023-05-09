@@ -185,7 +185,7 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
     }
 
     // Add a cylinder to represent the wheel hub.
-    coll_model->AddCylinder(wheel_material, 0.223, 0.223, 0.126);
+    coll_model->AddCylinder(wheel_material, 0.223, 0.252, VNULL, Q_from_AngX(CH_C_PI_2));
     coll_model->BuildModel();
 
     // Visualization
@@ -216,7 +216,8 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetContactMethod(ChContactMethod::SMC);
     my_hmmwv.SetChassisFixed(false);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
-    my_hmmwv.SetPowertrainType(PowertrainModelType::SHAFTS);
+    my_hmmwv.SetEngineType(EngineModelType::SHAFTS);
+    my_hmmwv.SetTransmissionType(TransmissionModelType::SHAFTS);
     my_hmmwv.SetDriveType(DrivelineTypeWV::AWD);
     switch (tire_type) {
         case TireType::CYLINDRICAL:

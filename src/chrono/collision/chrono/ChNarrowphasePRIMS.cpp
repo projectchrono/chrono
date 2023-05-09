@@ -72,7 +72,7 @@ bool sphere_sphere(const real3& pos1,
 
 // Capsule-sphere narrow phase collision detection.
 // In:  capsule at pos1, with orientation rot1
-//              capsule has radius1 and half-length hlen1 (in Y direction)
+//              capsule has radius1 and half-length hlen1 (in Z direction)
 //      sphere centered at pos2 with radius2
 
 bool capsule_sphere(const real3& pos1,
@@ -90,11 +90,11 @@ bool capsule_sphere(const real3& pos1,
     // Working in the global frame, project the sphere center onto the
     // capsule's centerline and clamp the resulting location to the extent
     // of the capsule length.
-    real3 V = AMatV(rot1);
-    real alpha = Dot(pos2 - pos1, V);
+    real3 W = AMatW(rot1);
+    real alpha = Dot(pos2 - pos1, W);
     alpha = Clamp(alpha, -hlen1, hlen1);
 
-    real3 loc = pos1 + alpha * V;
+    real3 loc = pos1 + alpha * W;
 
     // Treat the capsule as a sphere centered at the above location. If the
     // sphere center is farther away than the sum of radii plus the separation
@@ -125,7 +125,7 @@ bool capsule_sphere(const real3& pos1,
 
 // Cylinder-sphere narrow phase collision detection.
 // In:  cylinder at pos1, with orientation rot1
-//              cylinder has radius1 and half-length hlen1 (in Y direction)
+//              cylinder has radius1 and half-length hlen1 (in Z direction)
 //      sphere centered at pos2 with radius2
 
 bool cylinder_sphere(const real3& pos1,
@@ -190,7 +190,7 @@ bool cylinder_sphere(const real3& pos1,
 
 // RoundedCylinder-sphere narrow phase collision detection.
 // In:  roundedcyl at pos1, with orientation rot1
-//              roundedcyl has radius1 and half-length hlen1 (in Y direction)
+//              roundedcyl has radius1 and half-length hlen1 (in Z direction)
 //              radius of the sweeping sphere is srad1
 //      sphere centered at pos2 with radius2
 
@@ -435,9 +435,9 @@ bool triangle_sphere(const real3& A1,
 
 // Capsule-capsule narrow phase collision detection.
 // In:  capsule at pos1, with orientation rot1
-//              capsule has radius1 and half-length hlen1 (in Y direction)
+//              capsule has radius1 and half-length hlen1 (in Z direction)
 //      capsule at pos2, with orientation rot2
-//              capsule has radius2 and half-length hlen2 (in Y direction)
+//              capsule has radius2 and half-length hlen2 (in Z direction)
 // Note: a capsule-capsule collision may return 0, 1, or 2 contacts
 
 int capsule_capsule(const real3& pos1,
@@ -459,9 +459,9 @@ int capsule_capsule(const real3& pos1,
     quaternion rot = Mult(Inv(rot1), rot2);
 
     // Unit vectors along capsule axes.
-    real3 V1 = AMatV(rot1);  // capsule1 in the global frame
-    real3 V2 = AMatV(rot2);  // capsule2 in the global frame
-    real3 V = AMatV(rot);    // capsule2 in the frame of capsule1
+    real3 W1 = AMatW(rot1);  // capsule1 in the global frame
+    real3 W2 = AMatW(rot2);  // capsule2 in the global frame
+    real3 W = AMatW(rot);    // capsule2 in the frame of capsule1
 
     // Sum of radii
     real radSum = radius1 + radius2;
@@ -474,59 +474,59 @@ int capsule_capsule(const real3& pos1,
     int numLocs = 0;
     real3 locs1[2];
     real3 locs2[2];
-    real denom = 1 - V.y * V.y;
+    real denom = 1 - W.z * W.z;
 
     if (denom < 1e-4f) {
         // The two capsules are parallel. If the distance between their axes is
         // more than the sum of radii plus the separation value, there is no contact.
-        if (pos.x * pos.x + pos.z * pos.z >= radSum_s2)
+        if (pos.x * pos.x + pos.y * pos.y >= radSum_s2)
             return 0;
 
         // Find overlap of the two axes (as signed distances along the axis of
         // the first capsule).
-        real locs[2] = {Min(hlen1, pos.y + hlen2), Max(-hlen1, pos.y - hlen2)};
+        real locs[2] = {Min(hlen1, pos.z + hlen2), Max(-hlen1, pos.z - hlen2)};
 
         if (locs[0] > locs[1]) {
             // The two axes overlap. Both ends of the overlapping segment represent
             // potential contacts.
             numLocs = 2;
-            locs1[0] = pos1 + locs[0] * V1;
-            locs2[0] = TransformLocalToParent(pos1, rot1, real3(pos.x, locs[0], pos.z));
-            locs1[1] = pos1 + locs[1] * V1;
-            locs2[1] = TransformLocalToParent(pos1, rot1, real3(pos.x, locs[1], pos.z));
+            locs1[0] = pos1 + locs[0] * W1;
+            locs2[0] = TransformLocalToParent(pos1, rot1, real3(pos.x, pos.y, locs[0]));
+            locs1[1] = pos1 + locs[1] * W1;
+            locs2[1] = TransformLocalToParent(pos1, rot1, real3(pos.x, pos.y, locs[1]));
         } else {
             // There is no overlap between axes. The two closest ends represent
             // a single potential contact.
             numLocs = 1;
-            locs1[0] = pos1 + locs[pos.y < 0] * V1;
-            locs2[0] = TransformLocalToParent(pos1, rot1, real3(pos.x, locs[pos.y > 0], pos.z));
+            locs1[0] = pos1 + locs[pos.z < 0] * W1;
+            locs2[0] = TransformLocalToParent(pos1, rot1, real3(pos.x, pos.y, locs[pos.y > 0]));
         }
     } else {
         // The two capsule axes are not parallel. Find the closest points on the
         // two axes and clamp them to the extents of the their respective capsule.
         // This pair of points represents a single potential contact.
-        real alpha2 = (V.y * pos.y - Dot(V, pos)) / denom;
-        real alpha1 = V.y * alpha2 + pos.y;
+        real alpha2 = (W.z * pos.z - Dot(W, pos)) / denom;
+        real alpha1 = W.z * alpha2 + pos.z;
 
         if (alpha1 < -hlen1) {
             alpha1 = -hlen1;
-            alpha2 = -Dot(pos, V) - hlen1 * V.y;
+            alpha2 = -Dot(pos, W) - hlen1 * W.z;
         } else if (alpha1 > hlen1) {
             alpha1 = hlen1;
-            alpha2 = -Dot(pos, V) + hlen1 * V.y;
+            alpha2 = -Dot(pos, W) + hlen1 * W.z;
         }
 
         if (alpha2 < -hlen2) {
             alpha2 = -hlen2;
-            alpha1 = Clamp(pos.y - hlen2 * V.y, -hlen1, hlen1);
+            alpha1 = Clamp(pos.z - hlen2 * W.z, -hlen1, hlen1);
         } else if (alpha2 > hlen2) {
             alpha2 = hlen2;
-            alpha1 = Clamp(pos.y + hlen2 * V.y, -hlen1, hlen1);
+            alpha1 = Clamp(pos.z + hlen2 * W.z, -hlen1, hlen1);
         }
 
         numLocs = 1;
-        locs1[0] = pos1 + alpha1 * V1;
-        locs2[0] = pos2 + alpha2 * V2;
+        locs1[0] = pos1 + alpha1 * W1;
+        locs2[0] = pos2 + alpha2 * W2;
     }
 
     // Check the pairs of locations for actual contact and generate contact
@@ -566,7 +566,7 @@ int capsule_capsule(const real3& pos1,
 // Box-capsule narrow phase collision detection.
 // In:  box at position pos1, with orientation rot1, and half-dimensions hdims1
 //      capsule at pos2, with orientation rot2
-//              capsule has radius2 and half-length hlen2 (in Y direction)
+//              capsule has radius2 and half-length hlen2 (in Z direction)
 // Note: a box-capsule collision may return 0, 1, or 2 contacts
 
 int box_capsule(const real3& pos1,
@@ -588,7 +588,7 @@ int box_capsule(const real3& pos1,
     // (this is a bit cryptic with the functions we have available)
     real3 pos = RotateT(pos2 - pos1, rot1);
     quaternion rot = Mult(Inv(rot1), rot2);
-    real3 V = AMatV(rot);
+    real3 W = AMatW(rot);
 
     // Inflate the box by the radius of the capsule plus the separation value
     // and check if the capsule centerline intersects the expanded box. We do
@@ -598,13 +598,13 @@ int box_capsule(const real3& pos1,
     real tMin = -C_REAL_MAX;
     real tMax = C_REAL_MAX;
 
-    if (Abs(V.x) < 1e-5) {
+    if (Abs(W.x) < 1e-5) {
         // Capsule axis parallel to the box x-faces
         if (Abs(pos.x) > hdims1_exp.x)
             return 0;
     } else {
-        real t1 = (-hdims1_exp.x - pos.x) / V.x;
-        real t2 = (hdims1_exp.x - pos.x) / V.x;
+        real t1 = (-hdims1_exp.x - pos.x) / W.x;
+        real t2 = (hdims1_exp.x - pos.x) / W.x;
 
         tMin = Max(tMin, Min(t1, t2));
         tMax = Min(tMax, Max(t1, t2));
@@ -613,13 +613,13 @@ int box_capsule(const real3& pos1,
             return 0;
     }
 
-    if (Abs(V.y) < 1e-5) {
+    if (Abs(W.y) < 1e-5) {
         // Capsule axis parallel to the box y-faces
         if (Abs(pos.y) > hdims1_exp.y)
             return 0;
     } else {
-        real t1 = (-hdims1_exp.y - pos.y) / V.y;
-        real t2 = (hdims1_exp.y - pos.y) / V.y;
+        real t1 = (-hdims1_exp.y - pos.y) / W.y;
+        real t2 = (hdims1_exp.y - pos.y) / W.y;
 
         tMin = Max(tMin, Min(t1, t2));
         tMax = Min(tMax, Max(t1, t2));
@@ -628,13 +628,13 @@ int box_capsule(const real3& pos1,
             return 0;
     }
 
-    if (Abs(V.z) < 1e-5) {
+    if (Abs(W.z) < 1e-5) {
         // Capsule axis parallel to the box z-faces
         if (Abs(pos.z) > hdims1_exp.z)
             return 0;
     } else {
-        real t1 = (-hdims1_exp.z - pos.z) / V.z;
-        real t2 = (hdims1_exp.z - pos.z) / V.z;
+        real t1 = (-hdims1_exp.z - pos.z) / W.z;
+        real t2 = (hdims1_exp.z - pos.z) / W.z;
 
         tMin = Max(tMin, Min(t1, t2));
         tMax = Min(tMax, Max(t1, t2));
@@ -648,12 +648,12 @@ int box_capsule(const real3& pos1,
     // locations onto the original box, then snap back onto the capsule
     // axis. This reduces the collision problem to 1 or 2 box-sphere
     // collisions.
-    real3 locs[2] = {pos + tMin * V, pos + tMax * V};
+    real3 locs[2] = {pos + tMin * W, pos + tMax * W};
     real t[2];
 
     for (int i = 0; i < 2; i++) {
         /*uint code =*/snap_to_box(hdims1, locs[i]);
-        t[i] = Clamp(Dot(locs[i] - pos, V), -hlen2, hlen2);
+        t[i] = Clamp(Dot(locs[i] - pos, W), -hlen2, hlen2);
     }
 
     // Check if the two sphere centers coincide (i.e. if we should
@@ -666,7 +666,7 @@ int box_capsule(const real3& pos1,
     for (int i = 0; i < numSpheres; i++) {
         // Calculate the center of the corresponding sphere on the capsule
         // centerline (expressed in the box frame).
-        real3 spherePos = pos + V * t[i];
+        real3 spherePos = pos + W * t[i];
 
         // Snap the sphere position to the surface of the box.
         real3 boxPos = spherePos;
@@ -708,7 +708,7 @@ int box_capsule(const real3& pos1,
 
 // Box-cylshell narrow phase collision detection.
 // In:  box at position pos1, with orientation rot1, and half-dimensions hdims
-//      cylshell at pos2, with orientation rot2, radius and half-length hlen (in Y direction)
+//      cylshell at pos2, with orientation rot2, radius and half-length hlen (in Z direction)
 // Notes:
 // - only treat interactions when the cylinder axis is parallel to or perpendicular on a box face.
 // - for any other relative configuration report -1 contacts (which will trigger a fall-back onto MPR).
@@ -729,7 +729,7 @@ int box_cylshell(const real3& pos1,
     // Express cylinder in the box frame
     real3 c = RotateT(pos2 - pos1, rot1);    // cylinder center (expressed in box frame)
     quaternion rot = Mult(Inv(rot1), rot2);  // cylinder orientation (w.r.t box frame)
-    real3 a = AMatV(rot);                    // cylinder axis (expressed in box frame)
+    real3 a = AMatW(rot);                    // cylinder axis (expressed in box frame)
 
     real3 c_abs = Abs(c);
     real3 a_abs = Abs(a);

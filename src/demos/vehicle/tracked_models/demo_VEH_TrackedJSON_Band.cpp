@@ -25,9 +25,9 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBand.h"
 
-#include "chrono_vehicle/powertrain/SimplePowertrain.h"
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
 
 #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
@@ -58,8 +58,9 @@ using std::endl;
 std::string vehicle_file("M113/vehicle/M113_Vehicle_BandBushing.json");
 ////std::string vehicle_file("M113/vehicle/M113_Vehicle_BandANCF.json");
 
-// JSON file for powertrain
-std::string simplepowertrain_file("M113/powertrain/M113_SimpleCVTPowertrain.json");
+// JSON files for powertrain
+std::string engine_file("M113/powertrain/M113_EngineSimple.json");
+std::string transmission_file("M113/powertrain/M113_EngineSimpleMap.json");
 
 // Initial vehicle position
 ChVector<> initLoc(0, 0, 1.1);
@@ -182,7 +183,9 @@ int main(int argc, char* argv[]) {
     // Create the powertrain system
     // ----------------------------
 
-    auto powertrain = chrono_types::make_shared<SimplePowertrain>(vehicle::GetDataFile(simplepowertrain_file));
+    auto engine = ReadEngineJSON(vehicle::GetDataFile(engine_file));
+    auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(transmission_file));
+    auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
     vehicle.InitializePowertrain(powertrain);
 
 #ifdef USE_IRRLICHT

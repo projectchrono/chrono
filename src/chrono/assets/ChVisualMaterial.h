@@ -138,6 +138,8 @@ class ChApi ChVisualMaterial {
     unsigned short int instance_id;
 };
 
+typedef std::shared_ptr<ChVisualMaterial> ChVisualMaterialSharedPtr;
+
 }  // end namespace chrono
 
 #endif

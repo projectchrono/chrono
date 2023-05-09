@@ -72,11 +72,9 @@ int main(int argc, char* argv[]) {
     ground->SetCollide(false);
 
     // Visualization for revolute joint
-    auto cyl_rev = chrono_types::make_shared<ChCylinderShape>();
-    cyl_rev->GetCylinderGeometry().p1 = rev_pos + 0.2 * rev_dir;
-    cyl_rev->GetCylinderGeometry().p2 = rev_pos - 0.2 * rev_dir;
-    cyl_rev->GetCylinderGeometry().rad = 0.1;
-    ground->AddVisualShape(cyl_rev);
+    geometry::ChLineSegment seg(rev_pos + 0.2 * rev_dir, rev_pos - 0.2 * rev_dir);
+    auto cyl_rev = chrono_types::make_shared<ChCylinderShape>(0.1, seg.GetLength());
+    ground->AddVisualShape(cyl_rev, seg.GetFrame());
 
     // Offset from joint to body COM
     ChVector<> offset(1.5, 0, 0);
@@ -99,17 +97,13 @@ int main(int argc, char* argv[]) {
     body->SetInertiaXX(ChVector<>(1, 1, 1));
 
     // Attach visualization assets
-    auto sph = chrono_types::make_shared<ChSphereShape>();
-    sph->GetSphereGeometry().rad = 0.3;
+    auto sph = chrono_types::make_shared<ChSphereShape>(0.3);
     sph->SetColor(ChColor(0.7f, 0.8f, 0.8f));
     body->AddVisualShape(sph);
 
-    auto cyl = chrono_types::make_shared<ChCylinderShape>();
-    cyl->GetCylinderGeometry().p1 = ChVector<>(-1.5, 0, 0);
-    cyl->GetCylinderGeometry().p2 = ChVector<>(0, 0, 0);
-    cyl->GetCylinderGeometry().rad = 0.1;
+    auto cyl = chrono_types::make_shared<ChCylinderShape>(0.1, 1.5);
     cyl->SetColor(ChColor(0.7f, 0.8f, 0.8f));
-    body->AddVisualShape(cyl);
+    body->AddVisualShape(cyl, ChFrame<>(ChVector<>(-0.75, 0, 0), Q_from_AngY(CH_C_PI_2)));
 
     // Create revolute joint between body and ground
     auto rev = chrono_types::make_shared<ChLinkLockRevolute>();

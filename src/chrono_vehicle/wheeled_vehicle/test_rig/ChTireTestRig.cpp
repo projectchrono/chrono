@@ -250,8 +250,7 @@ void ChTireTestRig::CreateMechanism() {
     m_ground_body->SetIdentifier(0);
     m_ground_body->SetBodyFixed(true);
     {
-        auto box = chrono_types::make_shared<ChBoxShape>();
-        box->GetBoxGeometry().SetLengths(ChVector<>(100, dim / 3, dim / 3));
+        auto box = chrono_types::make_shared<ChBoxShape>(100, dim / 3, dim / 3);
         m_ground_body->AddVisualShape(box);
     }
 
@@ -266,15 +265,13 @@ void ChTireTestRig::CreateMechanism() {
         auto mat = chrono_types::make_shared<ChVisualMaterial>();
         mat->SetDiffuseColor({0.8f, 0.2f, 0.2f});
 
-        auto cyl = chrono_types::make_shared<ChCylinderShape>();
-        cyl->GetCylinderGeometry().rad = dim / 2;
-        cyl->GetCylinderGeometry().p1 = ChVector<>(+2 * dim, 0, 0);
-        cyl->GetCylinderGeometry().p2 = ChVector<>(-2 * dim, 0, 0);
-        cyl->AddMaterial(mat);
-        m_carrier_body->AddVisualShape(cyl);
+        ChVehicleGeometry::AddVisualizationCylinder(m_carrier_body,              //
+                                                    ChVector<>(+2 * dim, 0, 0),  //
+                                                    ChVector<>(-2 * dim, 0, 0),  //
+                                                    dim / 2,                     //
+                                                    mat);
 
-        auto box = chrono_types::make_shared<ChBoxShape>();
-        box->GetBoxGeometry().SetLengths(ChVector<>(dim / 3, dim / 3, 10 * dim));
+        auto box = chrono_types::make_shared<ChBoxShape>(dim / 3, dim / 3, 10 * dim);
         box->AddMaterial(mat);
         m_carrier_body->AddVisualShape(box, ChFrame<>(ChVector<>(0, 0, -5 * dim)));
     }
@@ -290,17 +287,15 @@ void ChTireTestRig::CreateMechanism() {
         auto mat = chrono_types::make_shared<ChVisualMaterial>();
         mat->SetDiffuseColor({0.2f, 0.8f, 0.2f});
 
-        auto sphere = chrono_types::make_shared<ChSphereShape>();
-        sphere->GetSphereGeometry().rad = dim;
+        auto sphere = chrono_types::make_shared<ChSphereShape>(dim);
         sphere->AddMaterial(mat);
         m_chassis_body->AddVisualShape(sphere);
 
-        auto cyl = chrono_types::make_shared<ChCylinderShape>();
-        cyl->GetCylinderGeometry().rad = dim / 2;
-        cyl->GetCylinderGeometry().p1 = ChVector<>(0, 0, 0);
-        cyl->GetCylinderGeometry().p2 = ChVector<>(0, 0, -2 * dim);
-        cyl->AddMaterial(mat);
-        m_chassis_body->AddVisualShape(cyl);
+        ChVehicleGeometry::AddVisualizationCylinder(m_chassis_body,              //
+                                                    ChVector<>(0, 0, 0),         //
+                                                    ChVector<>(0, 0, -2 * dim),  //
+                                                    dim / 2,                     //
+                                                    mat);
     }
 
     m_slip_body = std::shared_ptr<ChBody>(m_system->NewBody());
@@ -314,8 +309,7 @@ void ChTireTestRig::CreateMechanism() {
         auto mat = chrono_types::make_shared<ChVisualMaterial>();
         mat->SetDiffuseColor({0.2f, 0.8f, 0.2f});
 
-        auto box = chrono_types::make_shared<ChBoxShape>();
-        box->GetBoxGeometry().SetLengths(ChVector<>(4 * dim, dim, 4 * dim));
+        auto box = chrono_types::make_shared<ChBoxShape>(4 * dim, dim, 4 * dim);
         box->AddMaterial(mat);
         m_slip_body->AddVisualShape(box);
     }
@@ -330,13 +324,10 @@ void ChTireTestRig::CreateMechanism() {
     m_spindle_body->SetInertiaXX(ChVector<>(0, 0, 0));
     m_spindle_body->SetPos(ChVector<>(0, 3 * dim, -4 * dim));
     m_spindle_body->SetRot(qc);
-    {
-        auto cyl = chrono_types::make_shared<ChCylinderShape>();
-        cyl->GetCylinderGeometry().rad = dim / 2;
-        cyl->GetCylinderGeometry().p1 = ChVector<>(0, 0, 0);
-        cyl->GetCylinderGeometry().p2 = ChVector<>(0, -3 * dim, 0);
-        m_spindle_body->AddVisualShape(cyl);
-    }
+    ChVehicleGeometry::AddVisualizationCylinder(m_spindle_body,              //
+                                                ChVector<>(0, 0, 0),         //
+                                                ChVector<>(0, -3 * dim, 0),  //
+                                                dim / 2);
 
     // Create joints and motors
     if (m_ls_actuated) {
@@ -532,6 +523,10 @@ TerrainForce ChTireTestRig::ReportTireForce() const {
 }
 
 // -----------------------------------------------------------------------------
+
+double ChTireTestRig::GetDBP() const {
+    return -m_lin_motor->GetMotorForce();
+}
 
 }  // end namespace vehicle
 }  // end namespace chrono

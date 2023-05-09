@@ -45,6 +45,8 @@ ChPitmanArm::~ChPitmanArm() {
 void ChPitmanArm::Initialize(std::shared_ptr<ChChassis> chassis,
                              const ChVector<>& location,
                              const ChQuaternion<>& rotation) {
+    ChSteering::Initialize(chassis, location, rotation);
+
     m_parent = chassis;
     m_rel_xform = ChFrame<>(location, rotation);
 
@@ -199,34 +201,12 @@ void ChPitmanArm::AddVisualizationAssets(VisualizationType vis) {
         return;
 
     // Visualization for link
-    {
-        auto cyl = chrono_types::make_shared<ChCylinderShape>();
-        cyl->GetCylinderGeometry().p1 = m_pP;
-        cyl->GetCylinderGeometry().p2 = m_pI;
-        cyl->GetCylinderGeometry().rad = getSteeringLinkRadius();
-        m_link->AddVisualShape(cyl);
-
-        auto cyl_P = chrono_types::make_shared<ChCylinderShape>();
-        cyl_P->GetCylinderGeometry().p1 = m_pP;
-        cyl_P->GetCylinderGeometry().p2 = m_pTP;
-        cyl_P->GetCylinderGeometry().rad = getSteeringLinkRadius();
-        m_link->AddVisualShape(cyl_P);
-
-        auto cyl_I = chrono_types::make_shared<ChCylinderShape>();
-        cyl_I->GetCylinderGeometry().p1 = m_pI;
-        cyl_I->GetCylinderGeometry().p2 = m_pTI;
-        cyl_I->GetCylinderGeometry().rad = getSteeringLinkRadius();
-        m_link->AddVisualShape(cyl_I);
-    }
+    ChVehicleGeometry::AddVisualizationCylinder(m_link, m_pP, m_pI, getSteeringLinkRadius());
+    ChVehicleGeometry::AddVisualizationCylinder(m_link, m_pP, m_pTP, getSteeringLinkRadius());
+    ChVehicleGeometry::AddVisualizationCylinder(m_link, m_pI, m_pTI, getSteeringLinkRadius());
 
     // Visualization for arm
-    {
-        auto cyl = chrono_types::make_shared<ChCylinderShape>();
-        cyl->GetCylinderGeometry().p1 = m_pC;
-        cyl->GetCylinderGeometry().p2 = m_pL;
-        cyl->GetCylinderGeometry().rad = getPitmanArmRadius();
-        m_arm->AddVisualShape(cyl);
-    }
+    ChVehicleGeometry::AddVisualizationCylinder(m_arm, m_pC, m_pL, getPitmanArmRadius());
 
     // Visualization for rev-sph link
     m_revsph->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());

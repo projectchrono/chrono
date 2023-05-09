@@ -419,8 +419,8 @@ int main(int argc, char* argv[]) {
             // std::cout << time << std::endl;
             csv << time;
             csv << driver_inputs.m_throttle;
-            csv << mtv.GetVehicle().GetPowertrain()->GetMotorSpeed();
-            csv << mtv.GetVehicle().GetPowertrain()->GetCurrentTransmissionGear();
+            csv << mtv.GetVehicle().GetEngine()->GetMotorSpeed();
+            csv << mtv.GetVehicle().GetTransmission()->GetCurrentGear();
             for (int axle = 0; axle < 3; axle++) {
                 csv << mtv.GetVehicle().GetDriveline()->GetSpindleTorque(axle, LEFT);
                 csv << mtv.GetVehicle().GetDriveline()->GetSpindleTorque(axle, RIGHT);
@@ -440,7 +440,7 @@ int main(int argc, char* argv[]) {
                 }
             }
 
-            csv << mtv.GetVehicle().GetPowertrain()->GetMotorTorque();
+            csv << mtv.GetVehicle().GetEngine()->GetOutputMotorshaftTorque();
 
             csv << std::endl;
         }

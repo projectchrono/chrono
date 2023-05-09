@@ -27,13 +27,14 @@
 namespace chrono {
 namespace geometry {
 
-
 /// A triangle mesh with connectivity info: vertices can be shared between faces.
 /// To keep this simple, the class assumes that you will manage the size of vectors
 /// m_vertices, m_normals etc., so ve cautious about resizing etc.
-/// We assume that 
-/// - if no m_face_uv_indices but m_UV.size() == m_vertices.size(), then m_UV represents per-vertex UV, otherwise per-face-corner
-/// - if no m_face_col_indices but m_colors.size() == m_vertices.size(), then m_colors represents per-vertex colors, otherwise per-face-corner
+/// We assume that
+/// - if no m_face_uv_indices but m_UV.size() == m_vertices.size(), then m_UV represents per-vertex UV, otherwise
+/// per-face-corner
+/// - if no m_face_col_indices but m_colors.size() == m_vertices.size(), then m_colors represents per-vertex colors,
+/// otherwise per-face-corner
 class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
   public:
     ChTriangleMeshConnected() {}
@@ -58,12 +59,12 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     std::vector<ChProperty*> getPropertiesPerFace() { return m_properties_per_face; };
 
     /// Add a property as an array of data per-vertex. Deletion will be automatic at the end of mesh life.
-    /// Warning: mprop.data.size() must be equal to m_vertices.size().  Cost: allocation and a data copy. 
-    void AddPropertyPerVertex(ChProperty& mprop) { m_properties_per_vertex.push_back(mprop.clone());}
-    
+    /// Warning: mprop.data.size() must be equal to m_vertices.size().  Cost: allocation and a data copy.
+    void AddPropertyPerVertex(ChProperty& mprop) { m_properties_per_vertex.push_back(mprop.clone()); }
+
     /// Add a property as an array of data per-face. Deletion will be automatic at the end of mesh life.
-    /// Warning: mprop.data.size() must be equal to m_vertices.size().  Cost: allocation a data copy. 
-    void AddPropertyPerFace(ChProperty& mprop) { m_properties_per_face.push_back(mprop.clone());}
+    /// Warning: mprop.data.size() must be equal to m_vertices.size().  Cost: allocation a data copy.
+    void AddPropertyPerFace(ChProperty& mprop) { m_properties_per_face.push_back(mprop.clone()); }
 
     /// Create and return a ChTriangleMeshConnected from a Wavefront OBJ file.
     /// If an error occurrs during loading, an empty shared pointer is returned.
@@ -106,7 +107,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     virtual void Clear() override;
 
     /// Compute bounding box along the directions defined by the given rotation matrix.
-    virtual void GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const override;
+    virtual AABB GetBoundingBox(const ChMatrix33<>& rot) const override;
 
     /// Compute barycenter, mass, inertia tensor.
     void ComputeMassProperties(bool bodyCoords, double& mass, ChVector<>& center, ChMatrix33<>& inertia);
@@ -193,8 +194,8 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
         std::vector<int>& marked_tris,     ///< indexes of triangles to refine (also surrounding triangles might be
                                            ///< affected by refinements)
         double edge_maxlen,                ///< maximum length of edge (small values give higher resolution)
-        ChRefineEdgeCriterion* criterion,  ///< criterion for computing lenght (or other merit function) of edge, if null
-                                           ///< uses default (euclidean length)
+        ChRefineEdgeCriterion* criterion,  ///< criterion for computing lenght (or other merit function) of edge, if
+                                           ///< null uses default (euclidean length)
         std::vector<std::array<int, 4>>* atri_map,            ///< optional triangle connectivity map
         std::vector<std::vector<double>*>& aux_data_double,   ///< auxiliary buffer
         std::vector<std::vector<int>*>& aux_data_int,         ///< auxiliary buffer
@@ -207,7 +208,8 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     const std::vector<ChColor>& getFaceColors();
     const std::vector<ChVector<>>& getAverageNormals();
 
-    virtual GeometryType GetClassType() const override { return TRIANGLEMESH_CONNECTED; }
+    /// Get the class type as an enum.
+    virtual Type GetClassType() const override { return Type::TRIANGLEMESH_CONNECTED; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;

@@ -27,7 +27,7 @@
 #include "chrono_models/vehicle/m113/M113.h"
 
 #ifdef CHRONO_PARDISO_MKL
-#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -98,7 +98,8 @@ int main(int argc, char* argv[]) {
     m113.SetTrackShoeType(TrackShoeType::SINGLE_PIN);
     m113.SetBrakeType(BrakeType::SIMPLE);
     m113.SetDrivelineType(DrivelineTypeTV::BDS);
-    m113.SetPowertrainType(PowertrainModelType::SHAFTS);
+    m113.SetEngineType(EngineModelType::SHAFTS);
+    m113.SetTransmissionType(TransmissionModelType::SHAFTS);
     m113.SetChassisCollisionType(CollisionType::NONE);
 
     // Control steering type (enable crossdrive capability)
@@ -123,8 +124,7 @@ int main(int argc, char* argv[]) {
     ////m113.GetVehicle().SetCollide(TrackedCollisionFlag::NONE);
 
     // Monitor internal contacts for the left sprocket, left idler, and first shoe on the left track.
-    ////m113.GetVehicle().MonitorContacts(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT |
-    ///TrackedCollisionFlag::IDLER_LEFT);
+    ////m113.GetVehicle().MonitorContacts(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT | TrackedCollisionFlag::IDLER_LEFT);
 
     // Collect contact information
     ////m113.GetVehicle().SetContactCollection(true);
@@ -301,7 +301,7 @@ int main(int argc, char* argv[]) {
         // Increment frame number
         step_number++;
 
-        // Execution time 
+        // Execution time
         double step_timing = system->GetTimerStep();
         total_timing += step_timing;
         ////std::cout << step_number << " " << step_timing << " " << total_timing << std::endl;
@@ -323,12 +323,9 @@ void AddFixedObstacles(ChSystem* system) {
     obstacle->SetCollide(true);
 
     // Visualization
-    auto shape = chrono_types::make_shared<ChCylinderShape>();
-    shape->GetCylinderGeometry().p1 = ChVector<>(0, -length * 0.5, 0);
-    shape->GetCylinderGeometry().p2 = ChVector<>(0, length * 0.5, 0);
-    shape->GetCylinderGeometry().rad = radius;
+    auto shape = chrono_types::make_shared<ChCylinderShape>(radius, length);
     shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"));
-    obstacle->AddVisualShape(shape);
+    obstacle->AddVisualShape(shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
     // Contact
     ChContactMaterialData minfo;
@@ -338,7 +335,7 @@ void AddFixedObstacles(ChSystem* system) {
     auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
     obstacle->GetCollisionModel()->ClearModel();
-    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, radius, length * 0.5);
+    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, length, VNULL, Q_from_AngX(CH_C_PI_2));
     obstacle->GetCollisionModel()->BuildModel();
 
     system->AddBody(obstacle);
@@ -374,8 +371,7 @@ void AddMovingObstacles(ChSystem* system) {
 
     ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
 
-    auto sphere = chrono_types::make_shared<ChSphereShape>();
-    sphere->GetSphereGeometry().rad = radius;
+    auto sphere = chrono_types::make_shared<ChSphereShape>(radius);
     sphere->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
     ball->AddVisualShape(sphere);
 

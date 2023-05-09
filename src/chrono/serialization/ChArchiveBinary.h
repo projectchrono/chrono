@@ -202,7 +202,7 @@ class  ChArchiveInBinary : public ChArchiveIn {
           else {
             // Dynamically create (no class factory will be invoked for non-polymorphic obj):
             // call new(), or deserialize constructor params+call new():
-            bVal.value().CallArchiveInConstructor(*this, cls_name.c_str()); 
+            bVal.value().CallConstructor(*this, cls_name.c_str()); 
 
             if (bVal.value().GetRawPtr()) {
                 bool already_stored; size_t obj_ID;

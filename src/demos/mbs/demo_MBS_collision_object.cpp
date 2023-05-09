@@ -192,47 +192,42 @@ int main(int argc, char* argv[]) {
             object->GetCollisionModel()->AddSphere(object_mat, radius, ChVector<>(0));
             object->GetCollisionModel()->BuildModel();
 
-            auto sphere = chrono_types::make_shared<ChSphereShape>();
-            sphere->GetSphereGeometry().rad = radius;
+            auto sphere = chrono_types::make_shared<ChSphereShape>(radius);
             object->AddVisualShape(sphere);
 
             break;
         }
         case CollisionShape::CYLINDER: {
             object->GetCollisionModel()->ClearModel();
-            object->GetCollisionModel()->AddCylinder(object_mat, radius, radius, hlen, ChVector<>(0), ChMatrix33<>(1));
+            object->GetCollisionModel()->AddCylinder(object_mat, radius, 2 * hlen, ChVector<>(0),
+                                                     Q_from_AngX(CH_C_PI_2));
+            ////object->GetCollisionModel()->AddCylinder(object_mat, radius, ChVector<>(0, -hlen, 0), ChVector<>(0,
+            ///+hlen, 0));
             object->GetCollisionModel()->BuildModel();
 
-            auto cyl = chrono_types::make_shared<ChCylinderShape>();
-            cyl->GetCylinderGeometry().p1 = ChVector<>(0, +hlen, 0);
-            cyl->GetCylinderGeometry().p2 = ChVector<>(0, -hlen, 0);
-            cyl->GetCylinderGeometry().rad = radius;
-            object->AddVisualShape(cyl);
+            auto cyl = chrono_types::make_shared<ChCylinderShape>(radius, 2 * hlen);
+            object->AddVisualShape(cyl, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
             break;
         }
         case CollisionShape::CAPSULE: {
             object->GetCollisionModel()->ClearModel();
-            object->GetCollisionModel()->AddCapsule(object_mat, radius, hlen, ChVector<>(0), ChMatrix33<>(1));
+            object->GetCollisionModel()->AddCapsule(object_mat, radius, 2 * hlen, ChVector<>(0), ChMatrix33<>(1));
             object->GetCollisionModel()->BuildModel();
 
-            auto cap = chrono_types::make_shared<ChCapsuleShape>();
-            cap->GetCapsuleGeometry().rad = radius;
-            cap->GetCapsuleGeometry().hlen = hlen;
+            auto cap = chrono_types::make_shared<ChCapsuleShape>(radius, 2 * hlen);
             object->AddVisualShape(cap);
 
             break;
         }
         case CollisionShape::CYLSHELL: {
             object->GetCollisionModel()->ClearModel();
-            object->GetCollisionModel()->AddCylindricalShell(object_mat, radius, hlen, ChVector<>(0), ChMatrix33<>(1));
+            object->GetCollisionModel()->AddCylindricalShell(object_mat, radius, 2 * hlen, ChVector<>(0),
+                                                             Q_from_AngX(CH_C_PI_2));
             object->GetCollisionModel()->BuildModel();
 
-            auto cyl = chrono_types::make_shared<ChCylinderShape>();
-            cyl->GetCylinderGeometry().p1 = ChVector<>(0, +hlen, 0);
-            cyl->GetCylinderGeometry().p2 = ChVector<>(0, -hlen, 0);
-            cyl->GetCylinderGeometry().rad = radius;
-            object->AddVisualShape(cyl);
+            auto cyl = chrono_types::make_shared<ChCylinderShape>(radius, 2 * hlen);
+            object->AddVisualShape(cyl, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
             break;
         }
@@ -281,18 +276,17 @@ int main(int argc, char* argv[]) {
         matSMC->SetGt(ground_gt);
     }
 
-    double hx = 1;
-    double hy = 0.5;
-    double hz = 1;
+    double size_x = 2;
+    double size_y = 1;
+    double size_z = 2;
 
     ground->GetCollisionModel()->ClearModel();
-    ground->GetCollisionModel()->AddBox(ground_mat, hx, hy, hz, ChVector<>(0, -hy, 0));
+    ground->GetCollisionModel()->AddBox(ground_mat, size_x, size_y, size_z, ChVector<>(0, -size_y / 2, 0));
     ground->GetCollisionModel()->BuildModel();
 
-    auto box = chrono_types::make_shared<ChBoxShape>();
-    box->GetBoxGeometry().Size = ChVector<>(hx, hy, hz);
+    auto box = chrono_types::make_shared<ChBoxShape>(size_x, size_y, size_z);
     box->SetTexture(GetChronoDataFile("textures/checker1.png"), 4, 2);
-    ground->AddVisualShape(box, ChFrame<>(ChVector<>(0, -hy, 0), QUNIT));
+    ground->AddVisualShape(box, ChFrame<>(ChVector<>(0, -size_y / 2, 0), QUNIT));
 
     // Create the Irrlicht visualization sys
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();

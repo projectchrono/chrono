@@ -113,7 +113,7 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
         const ChVector<>& location,                ///< [in] location relative to the chassis frame
         double left_ang_vel = 0,                   ///< [in] initial angular velocity of left wheel
         double right_ang_vel = 0                   ///< [in] initial angular velocity of right wheel
-        ) = 0;
+    );
 
     /// Return the radius of the spindle body (visualization only).
     virtual double getSpindleRadius() const = 0;
@@ -159,7 +159,7 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     std::shared_ptr<ChLinkLockRevolute> m_revolute[2];   ///< handles to spindle revolute joints
 
   private:
-    std::shared_ptr<ChCylinderShape> m_spindle_shapes[2];
+    std::shared_ptr<ChVisualShape> m_spindle_shapes[2];
 
     void AddVisualizationSpindle(VehicleSide side, double radius, double width);
 };

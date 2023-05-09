@@ -35,7 +35,7 @@ cmake_dependent_option(ENABLE_IRRKLANG "Enable Irrklang library for sound" OFF
 if (ENABLE_OPENCRG)
    
    if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-      set(OpenRG_INCLUDE_DIR ""  CACHE PATH   "The directory where crgBaseLib.h resides")
+      set(OpenCRG_INCLUDE_DIR ""  CACHE PATH   "The directory where crgBaseLib.h resides")
       set(OpenCRG_LIBRARY   "" CACHE FILEPATH "The OpenCRG library")
       set(OpenCRG_DLL  "" CACHE FILEPATH "The OpenCRG DLL")
    elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -46,7 +46,7 @@ if (ENABLE_OPENCRG)
       find_library(OpenCRG_LIBRARY NAMES OpenCRG PATHS "/usr/local/lib")
    endif()
 
-   mark_as_advanced(CLEAR OpenRG_INCLUDE_DIR)
+   mark_as_advanced(CLEAR OpenCRG_INCLUDE_DIR)
    mark_as_advanced(CLEAR OpenCRG_LIBRARY)
    if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
      mark_as_advanced(CLEAR OpenCRG_DLL)
@@ -172,8 +172,12 @@ set(CV_BASE_FILES
     ChVehicleJoint.cpp
     ChDriveline.h
     ChDriveline.cpp
-    ChPowertrain.h
-    ChPowertrain.cpp
+    ChPowertrainAssembly.h
+    ChPowertrainAssembly.cpp
+    ChEngine.h
+    ChEngine.cpp
+    ChTransmission.h
+    ChTransmission.cpp
     ChSubsysDefs.h
     ChSubsysDefs.cpp
     ChTerrain.h
@@ -237,23 +241,27 @@ set(CV_DRIVER_FILES
 source_group("driver" FILES ${CV_DRIVER_FILES})
 
 set(CV_POVERTRAIN_FILES
-    powertrain/ChSimplePowertrain.h
-    powertrain/ChSimplePowertrain.cpp
-    powertrain/ChShaftsPowertrain.h
-    powertrain/ChShaftsPowertrain.cpp
-    powertrain/ChSimpleMapPowertrain.h
-    powertrain/ChSimpleMapPowertrain.cpp
-    powertrain/ChSimpleCVTPowertrain.h
-    powertrain/ChSimpleCVTPowertrain.cpp
+    powertrain/ChEngineSimple.h
+    powertrain/ChEngineSimple.cpp
+    powertrain/ChEngineSimpleMap.h
+    powertrain/ChEngineSimpleMap.cpp
+    powertrain/ChEngineShafts.h
+    powertrain/ChEngineShafts.cpp
+    powertrain/EngineSimple.h
+    powertrain/EngineSimple.cpp
+    powertrain/EngineSimpleMap.h
+    powertrain/EngineSimpleMap.cpp
+    powertrain/EngineShafts.h
+    powertrain/EngineShafts.cpp
 
-    powertrain/SimpleMapPowertrain.h
-    powertrain/SimpleMapPowertrain.cpp
-    powertrain/SimplePowertrain.h
-    powertrain/SimplePowertrain.cpp
-    powertrain/SimpleCVTPowertrain.h
-    powertrain/SimpleCVTPowertrain.cpp
-    powertrain/ShaftsPowertrain.h
-    powertrain/ShaftsPowertrain.cpp
+    powertrain/ChAutomaticTransmissionSimpleMap.h
+    powertrain/ChAutomaticTransmissionSimpleMap.cpp
+    powertrain/ChAutomaticTransmissionShafts.h
+    powertrain/ChAutomaticTransmissionShafts.cpp
+    powertrain/AutomaticTransmissionSimpleMap.h
+    powertrain/AutomaticTransmissionSimpleMap.cpp
+    powertrain/AutomaticTransmissionShafts.h
+    powertrain/AutomaticTransmissionShafts.cpp
 )
 source_group("powertrain" FILES ${CV_POVERTRAIN_FILES})
 
@@ -419,6 +427,8 @@ set(CV_WV_SUBCHASSIS_FILES
 source_group("wheeled_vehicle\\subchassis" FILES ${CV_WV_SUBCHASSIS_FILES})
 
 set(CV_WV_SUSPENSION_FILES
+    wheeled_vehicle/suspension/ChDeDionAxle.h
+    wheeled_vehicle/suspension/ChDeDionAxle.cpp
     wheeled_vehicle/suspension/ChDoubleWishbone.h
     wheeled_vehicle/suspension/ChDoubleWishbone.cpp
     wheeled_vehicle/suspension/ChDoubleWishboneReduced.h
@@ -443,19 +453,27 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/ChRigidPinnedAxle.cpp
     wheeled_vehicle/suspension/ChLeafspringAxle.h
     wheeled_vehicle/suspension/ChLeafspringAxle.cpp
+    wheeled_vehicle/suspension/ChPushPipeAxle.h
+    wheeled_vehicle/suspension/ChPushPipeAxle.cpp
     wheeled_vehicle/suspension/ChSAELeafspringAxle.h
     wheeled_vehicle/suspension/ChSAELeafspringAxle.cpp
     wheeled_vehicle/suspension/ChSolidBellcrankThreeLinkAxle.h
     wheeled_vehicle/suspension/ChSolidBellcrankThreeLinkAxle.cpp
     wheeled_vehicle/suspension/ChSolidThreeLinkAxle.h
     wheeled_vehicle/suspension/ChSolidThreeLinkAxle.cpp
+    wheeled_vehicle/suspension/ChToeBarDeDionAxle.h
+    wheeled_vehicle/suspension/ChToeBarDeDionAxle.cpp
     wheeled_vehicle/suspension/ChToeBarLeafspringAxle.h
     wheeled_vehicle/suspension/ChToeBarLeafspringAxle.cpp
     wheeled_vehicle/suspension/ChSAEToeBarLeafspringAxle.h
     wheeled_vehicle/suspension/ChSAEToeBarLeafspringAxle.cpp
+    wheeled_vehicle/suspension/ChToeBarPushPipeAxle.h
+    wheeled_vehicle/suspension/ChToeBarPushPipeAxle.cpp
     wheeled_vehicle/suspension/ChGenericWheeledSuspension.h
     wheeled_vehicle/suspension/ChGenericWheeledSuspension.cpp
 
+    wheeled_vehicle/suspension/DeDionAxle.h
+    wheeled_vehicle/suspension/DeDionAxle.cpp
     wheeled_vehicle/suspension/DoubleWishbone.h
     wheeled_vehicle/suspension/DoubleWishbone.cpp
     wheeled_vehicle/suspension/DoubleWishboneReduced.h
@@ -480,16 +498,22 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/RigidPinnedAxle.cpp
     wheeled_vehicle/suspension/LeafspringAxle.h
     wheeled_vehicle/suspension/LeafspringAxle.cpp
+    wheeled_vehicle/suspension/PushPipeAxle.h
+    wheeled_vehicle/suspension/PushPipeAxle.cpp
     wheeled_vehicle/suspension/SAELeafspringAxle.h
     wheeled_vehicle/suspension/SAELeafspringAxle.cpp
     wheeled_vehicle/suspension/SolidBellcrankThreeLinkAxle.h
     wheeled_vehicle/suspension/SolidBellcrankThreeLinkAxle.cpp
     wheeled_vehicle/suspension/SolidThreeLinkAxle.h
     wheeled_vehicle/suspension/SolidThreeLinkAxle.cpp
+    wheeled_vehicle/suspension/ToeBarDeDionAxle.h
+    wheeled_vehicle/suspension/ToeBarDeDionAxle.cpp
     wheeled_vehicle/suspension/ToeBarLeafspringAxle.h
     wheeled_vehicle/suspension/ToeBarLeafspringAxle.cpp
     wheeled_vehicle/suspension/SAEToeBarLeafspringAxle.h
     wheeled_vehicle/suspension/SAEToeBarLeafspringAxle.cpp
+    wheeled_vehicle/suspension/ToeBarPushPipeAxle.h
+    wheeled_vehicle/suspension/ToeBarPushPipeAxle.cpp
     wheeled_vehicle/suspension/GenericWheeledSuspension.h
     wheeled_vehicle/suspension/GenericWheeledSuspension.cpp
 )
@@ -530,6 +554,9 @@ set(CV_WV_TIRE_FILES
     wheeled_vehicle/tire/ChReissnerTire.cpp
     wheeled_vehicle/tire/ChFEATire.h
     wheeled_vehicle/tire/ChFEATire.cpp
+    wheeled_vehicle/tire/ChMFTire.h
+    wheeled_vehicle/tire/ChMFTire.cpp
+
 
     wheeled_vehicle/tire/RigidTire.h
     wheeled_vehicle/tire/RigidTire.cpp
@@ -553,6 +580,9 @@ set(CV_WV_TIRE_FILES
     wheeled_vehicle/tire/ANCFToroidalTire.cpp
     wheeled_vehicle/tire/ReissnerToroidalTire.h
     wheeled_vehicle/tire/ReissnerToroidalTire.cpp
+    wheeled_vehicle/tire/MFTire.h
+    wheeled_vehicle/tire/MFTire.cpp
+
 )
 source_group("wheeled_vehicle\\tire" FILES ${CV_WV_TIRE_FILES})
 

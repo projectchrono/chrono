@@ -317,7 +317,7 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
     };
 
     TireStates m_states;
-    std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
+    std::shared_ptr<ChVisualShape> m_cyl_shape;  ///< visualization cylinder asset
 
     double CalcFx(double kappa, double Fz, double gamma);
     double CalcFy(double alpha, double Fz, double gamma);

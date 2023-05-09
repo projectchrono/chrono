@@ -38,7 +38,8 @@ def main():
     m113.SetContactMethod(chrono.ChContactMethod_SMC)
     m113.SetTrackShoeType(veh.TrackShoeType_SINGLE_PIN)
     m113.SetDrivelineType(veh.DrivelineTypeTV_BDS)
-    m113.SetPowertrainType(veh.PowertrainModelType_SHAFTS)
+    m113.SetEngineType(veh.EngineModelType_SHAFTS)
+    m113.SetTransmissionType(veh.TransmissionModelType_SHAFTS)
     m113.SetBrakeType(veh.BrakeType_SIMPLE)
 
     m113.SetInitPosition(chrono.ChCoordsysD(initLoc, initRot))

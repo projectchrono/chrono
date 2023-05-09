@@ -36,6 +36,9 @@
 #include "chrono/core/ChException.h"
 #include "chrono/solver/ChConstraintTuple.h"
 
+#include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChLinkMotorRotationSpeed.h"
+
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
@@ -479,6 +482,48 @@ void my_deserialization_example(ChArchiveIn& marchive) {
     delete a_boss;
 }
 
+// Example on how to serialize OUT complex Chrono data: 
+// we will serialize a ChSystem including its children objects (bodies, links etc.)
+void my_system_serialization_example(ChArchiveOut& marchive) {
+
+    // ..create a system:
+    ChSystemNSC sys;
+
+    // ..create a truss
+    auto my_body_A = chrono_types::make_shared<ChBody>();
+    sys.AddBody(my_body_A);
+    my_body_A->SetBodyFixed(true);  // truss does not move!
+
+    // ..create a flywheel
+    auto my_body_B = chrono_types::make_shared<ChBody>();
+    sys.AddBody(my_body_B);
+    my_body_B->SetPos(ChVector<>(0, 0, 0)); 
+
+    // ..create a constraint, i.e. a motor between flywheel and truss:
+    auto my_link_AB = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
+    my_link_AB->Initialize(my_body_A, my_body_B, ChFrame<>(ChVector<>(0, 0, 0)));
+    sys.AddLink(my_link_AB);
+    auto my_speed_function = chrono_types::make_shared<ChFunction_Const>(CH_C_PI);  // speed w=3.145 rad/sec
+    my_link_AB->SetSpeedFunction(my_speed_function);
+
+    // Serialize all the physical system (including bodies, links etc.),
+    // it takes just a single line:
+    marchive << CHNVP(sys); 
+}
+
+
+// Example on how to serialize IN complex Chrono data:
+// we will deserialize a ChSystem including its children objects (bodies, links etc.)
+void my_system_deserialization_example(ChArchiveIn& marchive) {
+
+    ChSystemNSC sys;
+
+    // deserialize all the physical system (including bodies, links etc.),
+    // it takes just a single line:
+    marchive >> CHNVP(sys);  
+}
+
+
 // Example on how to use reflection (c++ introspection) to explore the properties exposed
 // through the ArchiveIN() and ArchiveOUT() functions.
 void my_reflection_example() {
@@ -556,6 +601,10 @@ void my_reflection_example() {
         }
     }
 }
+
+
+
+
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
@@ -652,12 +701,38 @@ int main(int argc, char* argv[]) {
 
         GetLog() << "Serialization test ended with success.\n\n";
 
+
+        // Example: SERIALIZE A FULL CHRONO SYSTEM TO/FROM JSON
+        {
+            std::string jsonfile = out_dir + "/chsystem_archive.json";
+            ChStreamOutAsciiFile mfileo(jsonfile.c_str());
+
+            // Use a JSON archive object to serialize C++ objects into the file
+            ChArchiveOutJSON marchiveout(mfileo);
+
+            my_system_serialization_example(marchiveout);
+        }
+
+        {
+            std::string jsonfile = out_dir + "/chsystem_archive.json";
+            ChStreamInAsciiFile mfilei(jsonfile.c_str());
+
+            // Use a JSON archive object to deserialize C++ objects from the file
+            ChArchiveInJSON marchivein(mfilei);
+
+            my_system_deserialization_example(marchivein);
+        }
+
+        GetLog() << "Serialization of ChSystem ended with success.\n\n";
+        
+
         my_reflection_example();
 
         GetLog() << "Reflection test ended with success.\n";
 
     } catch (const ChException& myex) {
         GetLog() << "ERROR: " << myex.what() << "\n\n";
+        throw(ChException("stop"));
     }
 
     return 0;

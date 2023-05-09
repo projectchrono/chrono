@@ -30,7 +30,8 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-ChPart::ChPart(const std::string& name) : m_name(name), m_output(false), m_parent(nullptr), m_mass(0), m_inertia(0) {}
+ChPart::ChPart(const std::string& name)
+    : m_name(name), m_initialized(false), m_output(false), m_parent(nullptr), m_mass(0), m_inertia(0) {}
 
 // -----------------------------------------------------------------------------
 void ChPart::Create(const rapidjson::Document& d) {
@@ -185,24 +186,20 @@ rapidjson::Value VisualModel2Val(std::shared_ptr<ChVisualModel> model, rapidjson
             obj.AddMember("center", Vec2Val(frame.GetPos(), allocator), allocator);
             obj.AddMember("orientation", Quat2Val(frame.GetRot(), allocator), allocator);
         } else if (auto sph = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
-            auto rad = sph->GetSphereGeometry().rad;
+            auto rad = sph->GetRadius();
             obj.AddMember("type", "SPHERE", allocator);
             obj.AddMember("center", Vec2Val(frame.GetPos(), allocator), allocator);
             obj.AddMember("radius", rad, allocator);
         } else if (auto cyl = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
-            const auto& p1 = cyl->GetCylinderGeometry().p1;
-            const auto& p2 = cyl->GetCylinderGeometry().p2;
-            auto rad = cyl->GetCylinderGeometry().rad;
-            auto loc = (p2 + p1) / 2;
-            auto len = (p2 - p1).Length();
-            auto axis = (p2 - p1) / len;
+            auto rad = cyl->GetRadius();
+            auto height = cyl->GetHeight();
             obj.AddMember("type", "CYLINDER", allocator);
-            obj.AddMember("center", Vec2Val(loc, allocator), allocator);
-            obj.AddMember("axis", Vec2Val(axis, allocator), allocator);
+            obj.AddMember("center", Vec2Val(frame.GetPos(), allocator), allocator);
+            obj.AddMember("orientation", Quat2Val(frame.GetRot(), allocator), allocator);
             obj.AddMember("radius", rad, allocator);
-            obj.AddMember("length", len, allocator);
+            obj.AddMember("height", height, allocator);
         } else if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
-            const auto& len = box->GetBoxGeometry().GetLengths();
+            const auto& len = box->GetLengths();
             obj.AddMember("type", "BOX", allocator);
             obj.AddMember("center", Vec2Val(frame.GetPos(), allocator), allocator);
             obj.AddMember("orientation", Quat2Val(frame.GetRot(), allocator), allocator);

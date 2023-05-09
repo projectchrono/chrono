@@ -39,13 +39,16 @@ ChInteractiveDriver::ChInteractiveDriver(ChVehicle& vehicle)
       m_steering_target(0),
       m_throttle_target(0),
       m_braking_target(0),
+      m_clutch_target(0),
       m_stepsize(1e-3),
       m_steering_delta(1.0 / 50),
       m_throttle_delta(1.0 / 50),
       m_braking_delta(1.0 / 50),
+      m_clutch_delta(1.0 / 50),
       m_steering_gain(4.0),
       m_throttle_gain(4.0),
-      m_braking_gain(4.0) {}
+      m_braking_gain(4.0),
+      m_clutch_gain(4.0) {}
 
 // -----------------------------------------------------------------------------
 
@@ -55,6 +58,7 @@ void ChInteractiveDriver::SetInputMode(InputMode mode) {
             m_throttle_target = 0;
             m_steering_target = 0;
             m_braking_target = 0;
+            m_clutch_target = 0;
             m_mode = mode;
             break;
         case InputMode::DATAFILE:
@@ -87,14 +91,22 @@ void ChInteractiveDriver::SetBrakingDelta(double delta) {
     m_braking_delta = delta;
 }
 
-void ChInteractiveDriver::SetGains(double steering_gain, double throttle_gain, double braking_gain) {
+void ChInteractiveDriver::SetClutchDelta(double delta) {
+    m_clutch_delta = delta;
+}
+
+void ChInteractiveDriver::SetGains(double steering_gain,
+                                   double throttle_gain,
+                                   double braking_gain,
+                                   double clutch_gain) {
     m_steering_gain = steering_gain;
     m_throttle_gain = throttle_gain;
     m_braking_gain = braking_gain;
+    m_clutch_gain = clutch_gain;
 }
 
 void ChInteractiveDriver::SetInputDataFile(const std::string& filename) {
-    // Embed a DataDriver.
+    // Embed a DataDriver
     m_data_driver = chrono_types::make_shared<ChDataDriver>(m_vehicle, filename, false);
 }
 
@@ -112,6 +124,7 @@ void ChInteractiveDriver::Synchronize(double time) {
     m_throttle = m_data_driver->GetThrottle();
     m_steering = m_data_driver->GetSteering();
     m_braking = m_data_driver->GetBraking();
+    m_clutch = m_data_driver->GetClutch();
 }
 
 void ChInteractiveDriver::Advance(double step) {
@@ -127,10 +140,12 @@ void ChInteractiveDriver::Advance(double step) {
         double throttle_deriv = m_throttle_gain * (m_throttle_target - m_throttle);
         double steering_deriv = m_steering_gain * (m_steering_target - m_steering);
         double braking_deriv = m_braking_gain * (m_braking_target - m_braking);
+        double clutch_deriv = m_clutch_gain * (m_clutch_target - m_clutch);
 
         SetThrottle(m_throttle + h * throttle_deriv);
         SetSteering(m_steering + h * steering_deriv);
         SetBraking(m_braking + h * braking_deriv);
+        SetClutch(m_clutch + h * clutch_deriv);
 
         t += h;
     }

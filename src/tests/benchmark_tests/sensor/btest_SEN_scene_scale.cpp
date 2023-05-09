@@ -95,11 +95,15 @@ int main(int argc, char* argv[]) {
         int target_item_cnt = pow(2, q);
         std::cout << "Box Count: " << target_item_cnt << std::endl;
         while (curr_item_cnt < target_item_cnt) {
-            if (obj_type == 2) {  // cylinder
-                auto cyl = std::make_shared<ChBodyEasyCylinder>(randf() + .05, 2 * randf() + .1, 1000, true, false);
+            if (obj_type == 2) {
+                // cylinder
+                auto cyl = std::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y,              //
+                                                                randf() + .05, 2 * randf() + .1,  //
+                                                                1000,                             //
+                                                                true, false);
                 cyl->SetBodyFixed(true);
                 cyl->SetPos({2 * x_bound * (randf() - .5), 2 * y_bound * (randf() - .5), 2 * z_bound * (randf() - .5)});
-        
+
                 auto vis_mat = std::make_shared<ChVisualMaterial>();
                 vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
                 vis_mat->SetDiffuseColor({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()});
@@ -108,7 +112,8 @@ int main(int argc, char* argv[]) {
 
                 sys.Add(cyl);
                 curr_item_cnt++;
-            } else if (obj_type == 1) {  // sphere
+            } else if (obj_type == 1) {
+                // sphere
                 auto sphere = std::make_shared<ChBodyEasySphere>(randf() + .05, 1000, true, false);
                 sphere->SetBodyFixed(true);
                 sphere->SetPos(
@@ -121,7 +126,8 @@ int main(int argc, char* argv[]) {
 
                 sys.Add(sphere);
                 curr_item_cnt++;
-            } else {  // box
+            } else {
+                // box
                 auto box = std::make_shared<ChBodyEasyBox>(2 * randf() + .1, 2 * randf() + .1, 2 * randf() + .1, 1000,
                                                            true, false);
                 box->SetBodyFixed(true);

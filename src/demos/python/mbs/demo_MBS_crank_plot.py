@@ -46,7 +46,7 @@ mfloor.SetBodyFixed(True)
 sys.Add(mfloor)
 
 # Create the flywheel crank
-mcrank = chrono.ChBodyEasyCylinder(crank_rad, crank_thick, 1000)
+mcrank = chrono.ChBodyEasyCylinder(chrono.ChAxis_Y, crank_rad, crank_thick, 1000)
 mcrank.SetPos(crank_center + chrono.ChVectorD(0, 0, -0.1))
 # Since ChBodyEasyCylinder creates a vertical (y up) cylinder, here rotate it:
 mcrank.SetRot(chrono.Q_ROTATE_Y_TO_Z)
@@ -58,7 +58,7 @@ mrod.SetPos(crank_center + chrono.ChVectorD(crank_rad+rod_length/2 , 0, 0))
 sys.Add(mrod)
 
 # Create a stylized piston
-mpiston = chrono.ChBodyEasyCylinder(0.2, 0.3, 1000)
+mpiston = chrono.ChBodyEasyCylinder(chrono.ChAxis_Y, 0.2, 0.3, 1000)
 mpiston.SetPos(crank_center + chrono.ChVectorD(crank_rad+rod_length, 0, 0))
 mpiston.SetRot(chrono.Q_ROTATE_Y_TO_X)
 sys.Add(mpiston)
@@ -141,7 +141,7 @@ while vis.Run():
     vis.BeginScene() 
     vis.Render()
     vis.EndScene()
-    sys.DoStepDynamics(5e-3)
+    sys.DoStepDynamics(1e-3)
     
     # stop simulation after 2 seconds
     if sys.GetChTime() > 20:

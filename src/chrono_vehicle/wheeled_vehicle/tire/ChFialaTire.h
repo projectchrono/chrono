@@ -75,6 +75,8 @@ class CH_VEHICLE_API ChFialaTire : public ChForceElementTire {
 
     /// Get the tire deflection.
     virtual double GetDeflection() const override { return m_data.depth; }
+    
+    double GetTireOmega() { return m_states.omega; }
 
     /// Generate basic tire plots.
     /// This function creates a Gnuplot script file with the specified name.
@@ -87,6 +89,13 @@ class CH_VEHICLE_API ChFialaTire : public ChForceElementTire {
     /// Calculate Patch Forces
     void FialaPatchForces(double& fx, double& fy, double& mz, double kappa, double alpha, double fz);
 
+    void CombinedCoulombForces(double& fx, double& fy, double fz, double muscale);
+    
+    // smooth blending of Coulomb Friction model and Fiala model
+    
+    double m_frblend_begin; // tire longitudinal velocity [m/s]
+    double m_frblend_end;   // tire longitudinal velocity [m/s]
+    
     /// Fiala tire model parameters
 
     double m_unloaded_radius;
@@ -133,7 +142,7 @@ class CH_VEHICLE_API ChFialaTire : public ChForceElementTire {
     };
 
     TireStates m_states;
-    std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
+    std::shared_ptr<ChVisualShape> m_cyl_shape;  ///< visualization cylinder asset
 };
 
 /// @} vehicle_wheeled_tire

@@ -421,12 +421,12 @@ void ChPac02Tire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
-    m_cyl_shape = chrono_types::make_shared<ChCylinderShape>();
-    m_cyl_shape->GetCylinderGeometry().rad = m_PacCoeff.R0;
-    m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, GetOffset() + GetVisualizationWidth() / 2, 0);
-    m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, GetOffset() - GetVisualizationWidth() / 2, 0);
+    m_cyl_shape =
+        ChVehicleGeometry::AddVisualizationCylinder(m_wheel->GetSpindle(),                                        //
+                                                    ChVector<>(0, GetOffset() + GetVisualizationWidth() / 2, 0),  //
+                                                    ChVector<>(0, GetOffset() - GetVisualizationWidth() / 2, 0),  //
+                                                    GetRadius());
     m_cyl_shape->SetTexture(GetChronoDataFile("textures/greenwhite.png"));
-    m_wheel->GetSpindle()->AddVisualShape(m_cyl_shape);
 }
 
 void ChPac02Tire::RemoveVisualizationAssets() {

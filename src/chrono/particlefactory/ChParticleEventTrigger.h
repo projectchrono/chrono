@@ -65,7 +65,7 @@ class ChParticleEventTriggerBox : public ChParticleEventTrigger {
 
         ChVector<> pos = m_frame.TransformPointParentToLocal(particle_pos);
 
-        if (((fabs(pos.x()) < m_box.Size.x()) && (fabs(pos.y()) < m_box.Size.y()) && (fabs(pos.z()) < m_box.Size.z())) ^
+        if (((fabs(pos.x()) < m_box.hlen.x()) && (fabs(pos.y()) < m_box.hlen.y()) && (fabs(pos.z()) < m_box.hlen.z())) ^
             invert_volume)
             return true;
         else

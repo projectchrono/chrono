@@ -71,16 +71,25 @@ void ChSuspension::RemoveVisualizationAssets() {
 }
 
 void ChSuspension::AddVisualizationSpindle(VehicleSide side, double radius, double width) {
-    m_spindle_shapes[side] = chrono_types::make_shared<ChCylinderShape>();
-    m_spindle_shapes[side]->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);
-    m_spindle_shapes[side]->GetCylinderGeometry().p2 = ChVector<>(0, -width / 2, 0);
-    m_spindle_shapes[side]->GetCylinderGeometry().rad = radius;
-    m_spindle[side]->AddVisualShape(m_spindle_shapes[side]);
+    m_spindle_shapes[side] = ChVehicleGeometry::AddVisualizationCylinder(m_spindle[side],               //
+                                                                         ChVector<>(0, width / 2, 0),   //
+                                                                         ChVector<>(0, -width / 2, 0),  //
+                                                                         radius);
 }
 
 void ChSuspension::ApplyParkingBrake(bool brake) {
     m_revolute[0]->Lock(brake);
     m_revolute[1]->Lock(brake);
+}
+
+void ChSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
+                              std::shared_ptr<ChSubchassis> subchassis,
+                              std::shared_ptr<ChSteering> steering,
+                              const ChVector<>& location,
+                              double left_ang_vel,
+                              double right_ang_vel) {
+    // Mark as initialized
+    m_initialized = true;
 }
 
 }  // end namespace vehicle

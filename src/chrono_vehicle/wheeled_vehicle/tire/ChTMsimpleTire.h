@@ -1,41 +1,20 @@
-// =============================================================================
-// PROJECT CHRONO - http://projectchrono.org
-//
-// Copyright (c) 2015 projectchrono.org
-// All rights reserved.
-//
-// Use of this source code is governed by a BSD-style license that can be found
-// in the LICENSE file at the top level of the distribution and at
-// http://projectchrono.org/license-chrono.txt.
-//
-// =============================================================================
-// Authors: Radu Serban, Michael Taylor, Rainer Gericke
-// =============================================================================
-//
-// Template for TMsimple tire model
-//
-// =============================================================================
-
-#ifndef CH_SIMPLETIRE_H
-#define CH_SIMPLETIRE_H
+#ifndef CH_TMSIMPLETIRE
+#define CH_TMSIMPLETIRE
 
 #include <vector>
 
-#include "chrono/physics/ChBody.h"
 #include "chrono/assets/ChCylinderShape.h"
+#include "chrono/physics/ChBody.h"
+#include "chrono/utils/ChFilters.h"
 
-#include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 #include "chrono_vehicle/ChTerrain.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 
 namespace chrono {
 namespace vehicle {
 
-/// @addtogroup vehicle_wheeled_tire
-/// @{
-
-/// TMsimple based tire model.
 class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
-  public:
+   public:
     ChTMsimpleTire(const std::string& name);
 
     virtual ~ChTMsimpleTire() {}
@@ -49,9 +28,11 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
     /// Remove visualization assets for the rigid tire subsystem.
     virtual void RemoveVisualizationAssets() override;
 
-    /// Get the tire width.
-    /// For a TMsimple tire, this is the unloaded tire radius.
-    virtual double GetRadius() const override { return m_unloaded_radius; }
+    /// Get the tire radius.
+    virtual double GetRadius() const override { return m_states.R_eff; }
+
+    /// Set the limit for camber angle (in degrees).  Default: 3 degrees.
+    void SetGammaLimit(double gamma_limit) { m_gamma_limit = gamma_limit; }
 
     /// Get the width of the tire.
     virtual double GetWidth() const override { return m_width; }
@@ -61,21 +42,18 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
 
     /// Get the tire slip angle computed internally by the TMsimple model (in radians).
     /// The reported value will be similar to that reported by ChTire::GetSlipAngle.
-    double GetSlipAngle_internal() const { return m_states.alpha; }
+    double GetSlipAngle_internal() const { return atan(-m_states.sy); }
 
     /// Get the tire longitudinal slip computed internally by the TMsimple model.
-    /// The reported value will be different from that reported by ChTire::GetLongitudinalSlip
-    /// because ChTMsimpleTire uses the loaded tire radius for its calculation.
-    double GetLongitudinalSlip_internal() const { return m_states.kappa; }
+    /// The reported value will be similar to that reported by ChTire::GetLongitudinalSlip.
+    double GetLongitudinalSlip_internal() const { return m_states.sx; }
 
-    /// Get the camber angle for the TMsimple tire model (in radians).
-    /// ChTMsimpleTire does not calculate its own camber angle. This value is the same as that
-    /// reported by ChTire::GetCamberAngle.
-    double GetCamberAngle_internal() { return GetCamberAngle(); }
+    /// Get the camber angle computed internally by the TMsimple model (in radians).
+    /// The reported value will be similar to that reported by ChTire::GetCamberAngle.
+    double GetCamberAngle_internal() { return m_gamma; }
 
-    /// Get the tire deflection.
-    virtual double GetDeflection() const override { return m_data.depth; }
-
+    double GetTireOmega() { return m_states.omega; }
+    
     /// Get maximum tire load from Load Index (LI) in N [0:279].
     static double GetTireMaxLoad(unsigned int li);
 
@@ -116,65 +94,114 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
                            double damping_ratio = 0.5  ///< scaling factor for normal damping coefficient
     );
 
+    /// Set vertical tire stiffness as linear function by coefficient [N/m].
+    void SetVerticalStiffness(double Cz) { SetVerticalStiffness(Cz, Cz); }
+
+    /// Set vertical tire stiffness as nonlinear function by coefficients at nominal load 1 [N/m]
+    /// and nominal load 2 [N/m].
+    void SetVerticalStiffness(double Cz1, double Cz2);
+
+    /// Set vertical tire stiffness as nonlinear function by calculation from tire test data (least squares).
+    void SetVerticalStiffness(std::vector<double>& defl, std::vector<double>& frc);
+
+    /// Set polynomial coefficients for interpolation
+    void SetHorizontalCoefficients();
+
+    /// Set the tire reference coefficient of friction.
+    void SetFrictionCoefficient(double coeff);
+
+    /// Set rolling resistance coefficients.
+    void SetRollingResistanceCoefficient(double rr_coeff);
+
     /// Generate basic tire plots.
     /// This function creates a Gnuplot script file with the specified name.
     void WritePlots(const std::string& plFileName, const std::string& plTireFormat);
+    
+    /// Get the tire deflection.
+    virtual double GetDeflection() const override { return m_data.depth; }
 
-  protected:
+    /// Simple parameter consistency test.
+    bool CheckParameters();
+
+   protected:
     /// Set the parameters in the TMsimple model.
     virtual void SetTMsimpleParams() = 0;
-    
-    void GenerateWorkParameters();
 
-    /// Calculate Patch Forces
-    void TMsimplePatchForces(double& fx, double& fy, double kappa, double alpha, double fz);
+    /// Return the vertical tire stiffness contribution to the normal force.
+    virtual double GetNormalStiffnessForce(double depth) const override final;
 
-    /// TMsimple tire model parameters
+    /// Return the vertical tire damping contribution to the normal force.
+    virtual double GetNormalDampingForce(double depth, double velocity) const override final;
 
-    double m_unloaded_radius;
-    double m_width;
-    double m_rolling_resistance;
+    bool m_use_startup_transition;
 
-    double m_mu;    ///< Actual friction coefficient of the road
-    double m_mu_0;  ///< Local friction coefficient of the road for given parameters
+    unsigned int m_integration_method;
 
-    double m_vcoulomb; // full sliding velocity with coulomb friction
+    double m_time;
+    double m_begin_start_transition;
+    double m_end_start_transition;
 
-    double m_Fz_nom; // nominal tire load force (N)
-    
-    // TMsimple input parameters
-    // Fx at Fz = Fz_nom
-    double m_Fx_max1;   // longitudinal force maximum (N)
-    double m_Fx_inf1;   // force at infinite longitudinal slip (N)
-    double m_dFx0_1;    // slope of Fx curve at longitunal slip = 0 (N)
-    // Fx at Fz = 2*Fz_nom
-    double m_Fx_max2;   // longitudinal force maximum (N)
-    double m_Fx_inf2;   // force at infinite longitudinal slip (N)
-    double m_dFx0_2;    // slope of Fx curve at longitunal slip = 0 (N)
-    // Fy at Fz = Fz_nom
-    double m_Fy_max1;   // lateral force maximum (N)
-    double m_Fy_inf1;   // force at infinite lateral slip (N)
-    double m_dFy0_1;    // slope of Fx curve at lateral slip = 0 (N)
-    // Fy at Fz = 2*Fz_nom
-    double m_Fy_max2;   // lateral force maximum (N)
-    double m_Fy_inf2;   // force at infinite lateral slip (N)
-    double m_dFy0_2;    // slope of Fx curve at lateral slip = 0 (N)
+    double m_vnum;
 
-    // vertical spring constant
-    double m_Cz;
-    // vertical damping constant
-    double m_Dz;
+    double m_gamma;  ///< actual camber angle
 
-    // TMsimple work parameters
-    double m_ax1, m_ax2;
-    double m_bx1, m_bx2;
-    double m_cx1, m_cx2;
-    double m_ay1, m_ay2;
-    double m_by1, m_by2;
-    double m_cy1, m_cy2;
+    double m_gamma_limit;  ///< limit camber angle (degrees!)
 
-    double m_time;        // actual system time
-    double m_time_trans;  // end of start transient
+    // TMsimple tire model parameters
+    double m_unloaded_radius;     ///< reference tire radius
+    double m_width;               ///< tire width
+    double m_rim_radius;          ///< tire rim radius
+    double m_rolling_resistance;  ///< actual rolling friction coeff
+    double m_mu;                  ///< local friction coefficient of the road
+
+    double m_ax1;
+    double m_ax2;
+    double m_bx1;
+    double m_bx2;
+    double m_ay1;
+    double m_ay2;
+    double m_by1;
+    double m_by2;
+    double m_cx1;
+    double m_cx2;
+    double m_cy1;
+    double m_cy2;
+
+    double m_d1;  ///< polynomial coefficient for stiffness interpolation
+    double m_d2;  ///< polynomial coefficient for stiffness interpolation
+
+    double m_vcoulomb;
+    double m_frblend_begin;
+    double m_frblend_end;
+
+    VehicleSide m_measured_side;
+
+    typedef struct {
+        double pn;      ///< Nominal vertical force [N]
+        double pn_max;  ///< Maximum vertical force [N]
+
+        double mu_0;  ///< Local friction coefficient of the road for given parameters
+        double cx;    ///< Linear stiffness x [N/m]
+        double cy;    ///< Linear stiffness y [N/m]
+        double cz;    ///< Stiffness, may vary with the vertical force [N/m]
+        double dx;    ///< Linear damping coefficient x [Ns/m]
+        double dy;    ///< Linear damping coefficient y [Ns/m]
+        double dz;    ///< Linear damping coefficient z [Ns/m]
+
+        double dfx0_pn, dfx0_p2n;  ///< Initial longitudinal slopes dFx/dsx [kN]
+        double fxm_pn, fxm_p2n;    ///< Maximum longitudinal force [kN]
+        double fxs_pn, fxs_p2n;    ///< Longitudinal load at sliding [kN]
+
+        double dfy0_pn, dfy0_p2n;  ///< Initial lateral slopes dFy/dsy [kN]
+        double fym_pn, fym_p2n;    ///< Maximum lateral force [kN]
+        double fys_pn, fys_p2n;    ///< Lateral load at sliding [kN]
+        
+        double nL0_pn, nL0_p2n;     ///< dimensionless alignment lever
+        double sq0_pn, sq0_p2n;     ///< lateral slip, where lever is zero
+        double sqe_pn, sqe_p2n;     ///< lever after sliding is reached
+    } TMsimpleCoeff;
+
+    TMsimpleCoeff m_TMsimpleCoeff;
 
     /// Initialize this tire by associating it to the specified wheel.
     virtual void Initialize(std::shared_ptr<ChWheel> wheel) override;
@@ -187,26 +214,29 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
     /// Advance the state of this tire by the specified time step.
     virtual void Advance(double step) override;
 
+    void TMcombinedForces(double& fx, double& fy, double sx, double sy, double fz, double muscale);
+    void CombinedCoulombForces(double& fx, double& fy, double fz, double muscale);
+    
+    double AlignmentTorque(double fy);
+    
     struct TireStates {
-        double kappa;   // Contact Path - Stationary Longitudinal Slip State (Kappa)
-        double alpha;   // Contact Path - Stationary Side Slip State (Alpha)
-        double abs_vx;  // Longitudinal speed
-        double abs_vt;  // Longitudinal transport speed
-        double vta;     // absolute transport speed
-        double vsx;     // Longitudinal slip velocity
-        double vsy;     // Lateral slip velocity = Lateral velocity
-        double omega;   // Wheel angular velocity about its spin axis (temporary for debug)
-        double sx;      // Longitudinal Slip
-        double sy;      // Lateral slip
-        double Reff;    // effective roll radius
-        ChVector<> disc_normal;  // temporary for debug
+        double sx;               // Contact Path - Longitudinal Slip State (Kappa)
+        double sy;               // Contact Path - Side Slip State (Alpha)
+        double vta;              // absolut transport velocity
+        double vsx;              // Longitudinal slip velocity
+        double vsy;              // Lateral slip velocity = Lateral velocity
+        double omega;            // Wheel angular velocity about its spin axis, filtered by running avg,
+        double R_eff;            // Effective Rolling Radius
+        double P_len;            // Length of contact patch
+        double nL0;              // Dimensionless lever at actual load level
+        double sq0;              // Zero crossing at actual load level
+        double sqe;              // Zero after complete sliding at actual load level
+        ChVector<> disc_normal;  // (temporary for debug)
     };
 
     TireStates m_states;
-    std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
+    std::shared_ptr<ChVisualShape> m_cyl_shape;  ///< visualization cylinder asset
 };
-
-/// @} vehicle_wheeled_tire
 
 }  // end namespace vehicle
 }  // end namespace chrono

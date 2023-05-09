@@ -146,6 +146,10 @@ class CH_VEHICLE_API ChTireTestRig {
     /// Get the current tire forces
     TerrainForce ReportTireForce() const;
 
+    /// Return current drawbar-pull value.
+    /// This is the reaction force in the linear motor used to enforce the specified rig longitudinal speed.
+    double GetDBP() const;
+
   private:
     enum class TerrainType { SCM, RIGID, CRG, GRANULAR, NONE };
 

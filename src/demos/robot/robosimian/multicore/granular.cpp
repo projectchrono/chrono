@@ -147,16 +147,11 @@ void GroundGranularB::Initialize(double x_min, double z_max, double step_size) {
     m_ground->SetPos(m_center);
 
     // Create container walls
-    double hx = m_length / 2;
-    double hy = m_width / 2;
-    double hz = 0.5;
-    double ht = 0.05;
     m_ground->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(m_ground.get(), m_material_c, ChVector<>(hx, hy, ht), ChVector<>(0, 0, -ht), QUNIT, true);
-    utils::AddBoxGeometry(m_ground.get(), m_material_c, ChVector<>(ht, hy, hz), ChVector<>(-hx - ht, 0, hz), QUNIT, false);
-    utils::AddBoxGeometry(m_ground.get(), m_material_c, ChVector<>(ht, hy, hz), ChVector<>(hx + ht, 0, hz), QUNIT, false);
-    utils::AddBoxGeometry(m_ground.get(), m_material_c, ChVector<>(hx, ht, hz), ChVector<>(0, -hy - ht, hz), QUNIT, false);
-    utils::AddBoxGeometry(m_ground.get(), m_material_c, ChVector<>(hx, ht, hz), ChVector<>(0, hy + ht, hz), QUNIT, true);
+    utils::AddBoxContainer(m_ground, m_material_c,                   //
+                           ChFrame<>(ChVector<>(0, 0, 0.5), QUNIT),  //
+                           ChVector<>(m_length, m_width, 1), 0.1,    //
+                           ChVector<int>(2, 2, -1));
     m_ground->GetCollisionModel()->BuildModel();
 
     // Create particles (all spheres)

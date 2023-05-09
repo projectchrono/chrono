@@ -77,6 +77,8 @@ void ChSingleWishbone::Initialize(std::shared_ptr<ChChassis> chassis,
                                   const ChVector<>& location,
                                   double left_ang_vel,
                                   double right_ang_vel) {
+    ChSuspension::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
+
     m_parent = chassis;
     m_rel_loc = location;
 
@@ -427,17 +429,9 @@ void ChSingleWishbone::AddVisualizationControlArm(std::shared_ptr<ChBody> arm,
     ChVector<> p_C = arm->TransformPointParentToLocal(pt_C);
     ChVector<> p_U = arm->TransformPointParentToLocal(pt_U);
 
-    auto cyl = chrono_types::make_shared<ChCylinderShape>();
-    cyl->GetCylinderGeometry().p1 = p_C;
-    cyl->GetCylinderGeometry().p2 = p_U;
-    cyl->GetCylinderGeometry().rad = radius;
-    arm->AddVisualShape(cyl);
-
-    auto cyl_B = chrono_types::make_shared<ChCylinderShape>();
-    cyl_B->GetCylinderGeometry().p1 = p_C + ChVector<>(radius, 0, 0);
-    cyl_B->GetCylinderGeometry().p2 = p_C - ChVector<>(radius, 0, 0);
-    cyl_B->GetCylinderGeometry().rad = radius;
-    arm->AddVisualShape(cyl_B);
+    ChVehicleGeometry::AddVisualizationCylinder(arm, p_C, p_U, radius);
+    ChVehicleGeometry::AddVisualizationCylinder(arm, p_C + ChVector<>(radius, 0, 0), p_C - ChVector<>(radius, 0, 0),
+                                                radius);
 }
 
 void ChSingleWishbone::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
@@ -455,27 +449,15 @@ void ChSingleWishbone::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
     ChVector<> p_T = upright->TransformPointParentToLocal(pt_T);  // connection to tierod
 
     if ((p_U - p_S).Length2() > threshold2) {
-        auto cyl = chrono_types::make_shared<ChCylinderShape>();
-        cyl->GetCylinderGeometry().p1 = p_U;
-        cyl->GetCylinderGeometry().p2 = p_S;
-        cyl->GetCylinderGeometry().rad = radius;
-        upright->AddVisualShape(cyl);
+        ChVehicleGeometry::AddVisualizationCylinder(upright, p_U, p_S, radius);
     }
 
     if ((p_U - p_A).Length2() > threshold2) {
-        auto cyl = chrono_types::make_shared<ChCylinderShape>();
-        cyl->GetCylinderGeometry().p1 = p_U;
-        cyl->GetCylinderGeometry().p2 = p_A;
-        cyl->GetCylinderGeometry().rad = radius;
-        upright->AddVisualShape(cyl);
+        ChVehicleGeometry::AddVisualizationCylinder(upright, p_U, p_A, radius);
     }
 
     if ((p_U - p_T).Length2() > threshold2) {
-        auto cyl = chrono_types::make_shared<ChCylinderShape>();
-        cyl->GetCylinderGeometry().p1 = p_U;
-        cyl->GetCylinderGeometry().p2 = p_T;
-        cyl->GetCylinderGeometry().rad = radius;
-        upright->AddVisualShape(cyl);
+        ChVehicleGeometry::AddVisualizationCylinder(upright, p_U, p_T, radius);
     }
 }
 
@@ -487,11 +469,7 @@ void ChSingleWishbone::AddVisualizationTierod(std::shared_ptr<ChBody> tierod,
     ChVector<> p_C = tierod->TransformPointParentToLocal(pt_C);
     ChVector<> p_U = tierod->TransformPointParentToLocal(pt_U);
 
-    auto cyl = chrono_types::make_shared<ChCylinderShape>();
-    cyl->GetCylinderGeometry().p1 = p_C;
-    cyl->GetCylinderGeometry().p2 = p_U;
-    cyl->GetCylinderGeometry().rad = radius;
-    tierod->AddVisualShape(cyl);
+    ChVehicleGeometry::AddVisualizationCylinder(tierod, p_C, p_U, radius);
 }
 
 // -----------------------------------------------------------------------------

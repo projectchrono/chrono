@@ -1,0 +1,39 @@
+{
+  "Name": "FMTV Shafts Automatic Transmission",
+  "Type": "Transmission",
+  "Template": "AutomaticTransmissionShafts",
+
+  "Transmission Block Inertia": 10.5, // connection to chassis
+  "Input Shaft Inertia": 0.3,
+  "Motorshaft Inertia": 0.5, // connection to engine
+  "Driveshaft Inertia": 0.5, // connection to driveline
+
+  "Torque Converter": {
+    "Capacity Factor Map": [
+                              [ 0.0 , 6.962 ],
+                              [ 0.1 , 6.962 ],
+                              [ 0.2 , 7.053 ],
+                              [ 0.3 , 7.083 ],
+                              [ 0.4 , 7.174 ],
+                              [ 0.5 , 7.265 ],
+                              [ 0.6 , 7.355 ],
+                              [ 0.7 , 7.507 ],
+                              [ 0.8 , 7.689 ],
+                              [ 0.9 , 7.931 ],
+                              [ 1.0 , 15.135 ]
+    ],
+    "Torque Ratio Map": [
+                              [ 0.00 , 2.17 ],
+                              [ 0.85 , 1.00 ],
+                              [ 1.00 , 1.00 ]
+    ]
+  },
+
+  "Gear Box": {
+    "Forward Gear Ratios": [ 0.084, 0.182, 0.335, 0.448, 0.64, 0.865, 1.000 ],
+    "Reverse Gear Ratio": -0.085,
+    "Upshift RPM": 2400,
+    "Downshift RPM": 1200,
+    "Shift Latency": 1.0
+  }
+}

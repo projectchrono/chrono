@@ -38,7 +38,7 @@
 #include "chrono_thirdparty/filesystem/path.h"
 
 #ifdef CHRONO_OPENGL
-#include "chrono_opengl/ChVisualSystemOpenGL.h"
+    #include "chrono_opengl/ChVisualSystemOpenGL.h"
 #endif
 
 using namespace chrono;
@@ -103,9 +103,7 @@ static inline void TimingOutput(chrono::ChSystem* mSys, chrono::ChStreamOutAscii
 // Callback class for contact reporting
 class ContactReporter : public ChContactContainer::ReportContactCallback {
   public:
-    ContactReporter(ChSystemMulticore* system) : sys(system) {
-        csv << sys->GetChTime() << sys->GetNcontacts() << endl;
-    }
+    ContactReporter(ChSystemMulticore* system) : sys(system) { csv << sys->GetChTime() << sys->GetNcontacts() << endl; }
 
     void write(const std::string& filename) { csv.write_to_file(filename); }
 
@@ -216,10 +214,10 @@ float cr_b = 0.1f;
 
 // Parameters for the containing bin
 int binId = -200;
-double hDimX = 2e-2;         // length in x direction
-double hDimY = 2e-2;         // depth in y direction
-double hDimZ = 7.5e-2;       // height in z direction
-double hThickness = 0.5e-2;  // wall thickness
+double sizeX = 4e-2;      // length in x direction
+double sizeY = 4e-2;      // depth in y direction
+double sizeZ = 15e-2;     // height in z direction
+double thickness = 1e-2;  // wall thickness
 
 float Y_c = 2e6f;
 float mu_c = 0.3f;
@@ -249,12 +247,12 @@ int CreateObjects(ChSystemMulticore* system) {
     mat_c->SetFriction(mu_c);
     mat_c->SetRestitution(cr_c);
 
-    utils::CreateBoxContainer(system, binId, mat_c, ChVector<>(hDimX, hDimY, hDimZ), hThickness);
+    utils::CreateBoxContainer(system, binId, mat_c, ChVector<>(sizeX, sizeY, sizeZ), thickness);
 #else
     auto mat_c = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     mat_c->SetFriction(mu_c);
 
-    utils::CreateBoxContainer(system, binId, mat_c, ChVector<>(hDimX, hDimY, hDimZ), hThickness);
+    utils::CreateBoxContainer(system, binId, mat_c, ChVector<>(sizeX, sizeY, sizeZ), thickness);
 #endif
 
     // Create a material for the granular material
@@ -280,10 +278,10 @@ int CreateObjects(ChSystemMulticore* system) {
 
     gen.setBodyIdentifier(Id_g);
 
-
     for (int i = 0; i < numLayers; i++) {
         double center = r + layerHeight / 2 + i * (2 * r + layerHeight);
-        gen.CreateObjectsBox(sampler, ChVector<>(0, 0, center), ChVector<>(hDimX - r, hDimY - r, layerHeight / 2));
+        gen.CreateObjectsBox(sampler, ChVector<>(0, 0, center),
+                             ChVector<>(sizeX / 2 - r, sizeY / 2 - r, layerHeight / 2));
         cout << "Layer " << i << "  total bodies: " << gen.getTotalNumBodies() << endl;
     }
 
@@ -436,7 +434,7 @@ int main(int argc, char* argv[]) {
         if (!filesystem::path(checkpoint_file).exists()) {
             cout << "Checkpoint file " << checkpoint_file << " not found" << endl;
             cout << "Make sure to first run a SETTLING problem." << endl;
-            return 1;       
+            return 1;
         }
 
         // Create the falling ball, the granular material, and the container from the checkpoint file.
@@ -489,8 +487,9 @@ int main(int argc, char* argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::WIREFRAME);
     vis.Initialize();
-    vis.AddCamera(ChVector<>(0, -10 * hDimY, hDimZ), ChVector<>(0, 0, hDimZ));
+    vis.AddCamera(ChVector<>(0, -5 * sizeY, sizeZ / 2), ChVector<>(0, 0, sizeZ / 2));
     vis.SetCameraVertical(CameraVerticalDir::Z);
+    vis.SetCameraProperties(0.01f);
 #endif
 
     while (time < time_end) {
@@ -554,7 +553,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Report contact information
-    
+
     const std::string contact_file = out_dir + "/contacts_" + (problem == ProblemPhase::SETTLING ? "S" : "D") + ".dat";
     auto creporter = chrono_types::make_shared<ContactReporter>(sys);
     sys->GetContactContainer()->ReportAllContacts(creporter);

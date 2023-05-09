@@ -247,7 +247,7 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
                 case collision::ChCollisionShape::Type::ELLIPSOID: {
                     ChVector<> size;
                     iss >> size.x() >> size.y() >> size.z();
-                    AddEllipsoidGeometry(body.get(), mat, size, spos, srot);
+                    AddEllipsoidGeometry(body.get(), mat, size * 2, spos, srot);
                 } break;
                 case collision::ChCollisionShape::Type::BOX: {
                     ChVector<> size;
@@ -255,30 +255,30 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
                     AddBoxGeometry(body.get(), mat, size, spos, srot);
                 } break;
                 case collision::ChCollisionShape::Type::CAPSULE: {
-                    double radius, hlen;
-                    iss >> radius >> hlen;
-                    AddCapsuleGeometry(body.get(), mat, radius, hlen, spos, srot);
+                    double radius, height;
+                    iss >> radius >> height;
+                    AddCapsuleGeometry(body.get(), mat, radius, height, spos, srot);
                 } break;
                 case collision::ChCollisionShape::Type::CYLINDER: {
-                    double radius, hlen, dummy;
-                    iss >> radius >> dummy >> hlen;
-                    AddCylinderGeometry(body.get(), mat, radius, hlen, spos, srot);
+                    double radius, height;
+                    iss >> radius >> height;
+                    AddCylinderGeometry(body.get(), mat, radius, height, spos, srot);
                 } break;
                 case collision::ChCollisionShape::Type::CONE: {
-                    double radius, height, dummy;
-                    iss >> radius >> dummy >> height;
+                    double radius, height;
+                    iss >> radius >> height;
                     AddConeGeometry(body.get(), mat, radius, height, spos, srot);
                 } break;
                 case collision::ChCollisionShape::Type::ROUNDEDBOX: {
                     ChVector<> size;
                     double srad;
                     iss >> size.x() >> size.y() >> size.z() >> srad;
-                    AddRoundedBoxGeometry(body.get(), mat, size, srad, spos, srot);
+                    AddRoundedBoxGeometry(body.get(), mat, size * 2, srad, spos, srot);
                 } break;
                 case collision::ChCollisionShape::Type::ROUNDEDCYL: {
-                    double radius, hlen, srad, dummy;
-                    iss >> radius >> dummy >> hlen >> srad;
-                    AddRoundedCylinderGeometry(body.get(), mat, radius, hlen, srad, spos, srot);
+                    double radius, height, srad;
+                    iss >> radius >> height >> srad;
+                    AddRoundedCylinderGeometry(body.get(), mat, radius, height, srad, spos, srot);
                 } break;
                 default:
                     break;
@@ -331,8 +331,7 @@ enum POVRayShapeType {
     CONE = 8,
     ROUNDEDBOX = 9,
     ROUNDEDCYL = 10,
-    ROUNDEDCONE = 11,
-    BEZIER = 12
+    BEZIER = 11
 };
 
 enum POVRayLinkType {
@@ -404,37 +403,35 @@ void WriteVisualizationAssets(ChSystem* system,
             std::stringstream gss;
 
             if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
-                gss << SPHERE << delim << sphere->GetSphereGeometry().rad;
+                gss << SPHERE << delim << sphere->GetRadius();
                 a_count++;
             } else if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
-                const Vector& size = ellipsoid->GetEllipsoidGeometry().rad;
+                const Vector& size = ellipsoid->GetSemiaxes();
                 gss << ELLIPSOID << delim << size.x() << delim << size.y() << delim << size.z();
                 a_count++;
             } else if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
-                const Vector& size = box->GetBoxGeometry().Size;
-                gss << BOX << delim << size.x() << delim << size.y() << delim << size.z();
+                const Vector& hlen = box->GetHalflengths();
+                gss << BOX << delim << hlen.x() << delim << hlen.y() << delim << hlen.z();
                 a_count++;
             } else if (auto capsule = std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {
-                const geometry::ChCapsule& geom = capsule->GetCapsuleGeometry();
-                gss << CAPSULE << delim << geom.rad << delim << geom.hlen;
+                gss << CAPSULE << delim << capsule->GetRadius() << delim << capsule->GetHeight();
                 a_count++;
             } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
-                const geometry::ChCylinder& geom = cylinder->GetCylinderGeometry();
-                gss << CYLINDER << delim << geom.rad << delim << geom.p1.x() << delim << geom.p1.y() << delim
-                    << geom.p1.z() << delim << geom.p2.x() << delim << geom.p2.y() << delim << geom.p2.z();
+                gss << CYLINDER << delim << cylinder->GetRadius() << delim << cylinder->GetHeight();
                 a_count++;
             } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(shape)) {
-                const geometry::ChCone& geom = cone->GetConeGeometry();
-                gss << CONE << delim << geom.rad.x() << delim << geom.rad.y();
+                gss << CONE << delim << cone->GetRadius() << delim << cone->GetHeight();
                 a_count++;
             } else if (auto rbox = std::dynamic_pointer_cast<ChRoundedBoxShape>(shape)) {
-                const geometry::ChRoundedBox& geom = rbox->GetRoundedBoxGeometry();
-                gss << ROUNDEDBOX << delim << geom.Size.x() << delim << geom.Size.y() << delim << geom.Size.z() << delim
-                    << geom.radsphere;
+                const Vector& hlen = rbox->GetHalflengths();
+                double srad = rbox->GetSphereRadius();
+                gss << ROUNDEDBOX << delim << hlen.x() << delim << hlen.y() << delim << hlen.z() << delim << srad;
                 a_count++;
             } else if (auto rcyl = std::dynamic_pointer_cast<ChRoundedCylinderShape>(shape)) {
-                const geometry::ChRoundedCylinder& geom = rcyl->GetRoundedCylinderGeometry();
-                gss << ROUNDEDCYL << delim << geom.rad << delim << geom.hlen << delim << geom.radsphere;
+                double rad = rcyl->GetRadius();
+                double height = rcyl->GetHeight();
+                double srad = rcyl->GetSphereRadius();
+                gss << ROUNDEDCYL << delim << rad << delim << height << delim << srad;
                 a_count++;
             } else if (auto mesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape)) {
                 gss << TRIANGLEMESH << delim << "\"" << mesh->GetName() << "\"";

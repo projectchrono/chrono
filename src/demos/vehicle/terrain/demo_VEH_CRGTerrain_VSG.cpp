@@ -60,7 +60,7 @@ enum class DriverModelType {
 };
 
 // Type of tire model (LUGRE, FIALA, PACEJKA, TMSIMPLE or TMEASY)
-TireModelType tire_model = TireModelType::TMEASY;
+TireModelType tire_model = TireModelType::TMSIMPLE;
 
 // Road visualization (mesh or boundary lines)
 bool useMesh = true;
@@ -320,7 +320,8 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetContactMethod(ChContactMethod::SMC);
     my_hmmwv.SetChassisFixed(false);
     my_hmmwv.SetInitPosition(init_csys);
-    my_hmmwv.SetPowertrainType(PowertrainModelType::SHAFTS);
+    my_hmmwv.SetEngineType(EngineModelType::SHAFTS);
+    my_hmmwv.SetTransmissionType(TransmissionModelType::SHAFTS);
     my_hmmwv.SetDriveType(DrivelineTypeWV::RWD);
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.SetTireStepSize(tire_step_size);

@@ -173,7 +173,7 @@ class ChApiPostProcess ChPovRay : public ChPostProcessBase {
     void SetCustomPOVcommandsData(const std::string& text) { custom_data = text; }
     const std::string& GetCustomPOVcommandsData() const { return custom_data; }
 
-    /// When ExportData() is called, it saves .dat files in incremental way, starting from zero: 
+    /// When ExportData() is called, it saves .dat files in incremental way, starting from zero:
     ///    data0000.dat, data0001.dat etc.,
     /// but you can override the formatted number by first calling SetFramenumber().
     void SetFramenumber(unsigned int fn) { framenumber = fn; }

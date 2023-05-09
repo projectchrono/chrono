@@ -34,8 +34,9 @@
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeRigid.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeSCM.h"
 
-#include "chrono_models/vehicle/feda/FEDA_Vehicle.h"
-#include "chrono_models/vehicle/feda/FEDA_SimpleMapPowertrain.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_VehicleFull.h"
+#include "chrono_models/vehicle/hmmwv/powertrain/HMMWV_EngineSimpleMap.h"
+#include "chrono_models/vehicle/hmmwv/powertrain/HMMWV_AutomaticTransmissionSimpleMap.h"
 
 using std::cout;
 using std::cin;
@@ -161,12 +162,17 @@ int main(int argc, char** argv) {
         if (use_JSON_spec) {
             vehicle = new ChVehicleCosimWheeledVehicleNode(
                 vehicle::GetDataFile("hmmwv/vehicle/HMMWV_Vehicle.json"),
-                vehicle::GetDataFile("hmmwv/powertrain/HMMWV_ShaftsPowertrain.json"));
+                vehicle::GetDataFile("hmmwv/powertrain/HMMWV_EngineShafts.json"),
+                vehicle::GetDataFile("hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json"));
         } else {
-            auto feda_vehicle = chrono_types::make_shared<feda::FEDA_Vehicle>(nullptr, false, BrakeType::SIMPLE,
-                                                                              CollisionType::NONE, 2, 1);
-            auto feda_powertrain = chrono_types::make_shared<feda::FEDA_SimpleMapPowertrain>("Powertrain");
-            vehicle = new ChVehicleCosimWheeledVehicleNode(feda_vehicle, feda_powertrain);
+            auto hmmwv_vehicle = chrono_types::make_shared<hmmwv::HMMWV_VehicleFull>(
+                nullptr, false, DrivelineTypeWV::AWD, BrakeType::SIMPLE, SteeringTypeWV::PITMAN_ARM, false, true,
+                CollisionType::NONE);
+            auto hmmwv_engine = chrono_types::make_shared<hmmwv::HMMWV_EngineSimpleMap>("Engine");
+            auto hmmwv_transmission =
+                chrono_types::make_shared<hmmwv::HMMWV_AutomaticTransmissionSimpleMap>("Transmission");
+            auto hmmwv_powertrain = chrono_types::make_shared<ChPowertrainAssembly>(hmmwv_engine, hmmwv_transmission);
+            vehicle = new ChVehicleCosimWheeledVehicleNode(hmmwv_vehicle, hmmwv_powertrain);
         }
 
         if (use_DBP_rig) {

@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Rainer Gericke
 // =============================================================================
 //
 // TMsimpleTire tire constructed with data from file (JSON format).
@@ -36,9 +36,6 @@ class CH_VEHICLE_API TMsimpleTire : public ChTMsimpleTire {
     TMsimpleTire(const std::string& filename);
     TMsimpleTire(const rapidjson::Document& d);
     ~TMsimpleTire() {}
-
-    virtual double GetNormalStiffnessForce(double depth) const override { return depth*m_Cz; }
-    virtual double GetNormalDampingForce(double depth, double velocity) const override { return velocity*m_Dz; };
 
     virtual void SetTMsimpleParams() override {}
     virtual double GetTireMass() const override { return m_mass; }

@@ -23,7 +23,19 @@ ChRoundedBoxShape::ChRoundedBoxShape() {
     SetMutable(false);
 }
 
-ChRoundedBoxShape::ChRoundedBoxShape(const geometry::ChRoundedBox& box) : groundedbox(box) {
+ChRoundedBoxShape::ChRoundedBoxShape(double length_x, double length_y, double length_z, double radius) {
+    gbox.SetLengths(ChVector<>(length_x, length_y, length_z));
+    gbox.SetSphereRadius(radius);
+    SetMutable(false);
+}
+
+ChRoundedBoxShape::ChRoundedBoxShape(const ChVector<>& lengths, double radius) {
+    gbox.SetLengths(lengths);
+    gbox.SetSphereRadius(radius);
+    SetMutable(false);
+}
+
+ChRoundedBoxShape::ChRoundedBoxShape(const geometry::ChRoundedBox& box) : gbox(box) {
     SetMutable(false);
 }
 
@@ -33,7 +45,7 @@ void ChRoundedBoxShape::ArchiveOUT(ChArchiveOut& marchive) {
     // serialize parent class
     ChVisualShape::ArchiveOUT(marchive);
     // serialize all member data:
-    marchive << CHNVP(groundedbox);
+    marchive << CHNVP(gbox);
 }
 
 void ChRoundedBoxShape::ArchiveIN(ChArchiveIn& marchive) {
@@ -42,7 +54,7 @@ void ChRoundedBoxShape::ArchiveIN(ChArchiveIn& marchive) {
     // deserialize parent class
     ChVisualShape::ArchiveIN(marchive);
     // stream in all member data:
-    marchive >> CHNVP(groundedbox);
+    marchive >> CHNVP(gbox);
 }
 
 }  // end namespace chrono

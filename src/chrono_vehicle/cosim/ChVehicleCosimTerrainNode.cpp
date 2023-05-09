@@ -43,8 +43,8 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 ChVehicleCosimTerrainNode::ChVehicleCosimTerrainNode(double length, double width)
     : ChVehicleCosimBaseNode("TERRAIN"),
-      m_hdimX(length / 2),
-      m_hdimY(width / 2),
+      m_dimX(length / 2),
+      m_dimY(width / 2),
       m_load_mass(50),
       m_render(false),
       m_render_step(0.01),
@@ -58,8 +58,8 @@ void ChVehicleCosimTerrainNode::EnableRuntimeVisualization(bool render, double r
 }
 
 void ChVehicleCosimTerrainNode::SetDimensions(double length, double width) {
-    m_hdimX = length / 2;
-    m_hdimY = width / 2;
+    m_dimX = length;
+    m_dimY = width;
 }
 
 // -----------------------------------------------------------------------------
@@ -82,7 +82,7 @@ void ChVehicleCosimTerrainNode::Initialize() {
         // 1. Send terrain patch dimensions to MBS node
 
         // Note: take into account dimension of proxy bodies
-        double init_dim[3] = {GetInitHeight() + 0.05, 2 * m_hdimX, 2 * m_hdimY};
+        double init_dim[3] = {GetInitHeight() + 0.05, m_dimX, m_dimY};
         MPI_Send(init_dim, 3, MPI_DOUBLE, MBS_NODE_RANK, 0, MPI_COMM_WORLD);
 
         if (m_verbose) {

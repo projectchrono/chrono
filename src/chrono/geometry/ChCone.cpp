@@ -23,12 +23,12 @@ namespace geometry {
 CH_FACTORY_REGISTER(ChCone)
 
 ChCone::ChCone(const ChCone& source) {
-    center = source.center;
-    rad = source.rad;
+    r = source.r;
+    h = source.h;
 }
-void ChCone::GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const {
-    cmin = ChVector<>(-rad.x(), center.y() - rad.y() / 3.0, -rad.z());
-    cmin = ChVector<>(+rad.x(), center.y() + 2 * rad.y() / 3.0, +rad.z());
+
+ChGeometry::AABB ChCone::GetBoundingBox(const ChMatrix33<>& rot) const {
+    return AABB(ChVector<>(-r, -r, 0), ChVector<>(+r, +r, h));
 }
 
 void ChCone::ArchiveOUT(ChArchiveOut& marchive) {
@@ -37,8 +37,8 @@ void ChCone::ArchiveOUT(ChArchiveOut& marchive) {
     // serialize parent class
     ChGeometry::ArchiveOUT(marchive);
     // serialize all member data:
-    marchive << CHNVP(center);
-    marchive << CHNVP(rad);
+    marchive << CHNVP(r);
+    marchive << CHNVP(h);
 }
 
 void ChCone::ArchiveIN(ChArchiveIn& marchive) {
@@ -47,8 +47,8 @@ void ChCone::ArchiveIN(ChArchiveIn& marchive) {
     // deserialize parent class
     ChGeometry::ArchiveIN(marchive);
     // stream in all member data:
-    marchive >> CHNVP(center);
-    marchive >> CHNVP(rad);
+    marchive >> CHNVP(r);
+    marchive >> CHNVP(h);
 }
 
 }  // end namespace geometry

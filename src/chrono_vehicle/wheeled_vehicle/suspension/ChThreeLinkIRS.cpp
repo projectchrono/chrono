@@ -73,6 +73,8 @@ void ChThreeLinkIRS::Initialize(std::shared_ptr<ChChassis> chassis,
                                 const ChVector<>& location,
                                 double left_ang_vel,
                                 double right_ang_vel) {
+    ChSuspension::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
+
     m_parent = chassis;
     m_rel_loc = location;
 
@@ -439,32 +441,16 @@ void ChThreeLinkIRS::AddVisualizationArm(std::shared_ptr<ChBody> body,
     ChVector<> p_U = body->TransformPointParentToLocal(pt_U);
     ChVector<> p_L = body->TransformPointParentToLocal(pt_L);
 
-    auto cyl_1 = chrono_types::make_shared<ChCylinderShape>();
-    cyl_1->GetCylinderGeometry().p1 = p_C;
-    cyl_1->GetCylinderGeometry().p2 = p_CM;
-    cyl_1->GetCylinderGeometry().rad = radius;
-    body->AddVisualShape(cyl_1);
+    ChVehicleGeometry::AddVisualizationCylinder(body, p_C, p_CM, radius);
 
-    auto cyl_2 = chrono_types::make_shared<ChCylinderShape>();
-    cyl_2->GetCylinderGeometry().p1 = p_S;
-    cyl_2->GetCylinderGeometry().p2 = p_CM;
-    cyl_2->GetCylinderGeometry().rad = radius;
-    body->AddVisualShape(cyl_2);
+    ChVehicleGeometry::AddVisualizationCylinder(body, p_S, p_CM, radius);
 
     if ((p_S - p_U).Length2() > threshold2) {
-        auto cyl_U = chrono_types::make_shared<ChCylinderShape>();
-        cyl_U->GetCylinderGeometry().p1 = p_S;
-        cyl_U->GetCylinderGeometry().p2 = p_U;
-        cyl_U->GetCylinderGeometry().rad = radius;
-        body->AddVisualShape(cyl_U);
+        ChVehicleGeometry::AddVisualizationCylinder(body, p_S, p_U, radius);
     }
 
     if ((p_S - p_L).Length2() > threshold2) {
-        auto cyl_L = chrono_types::make_shared<ChCylinderShape>();
-        cyl_L->GetCylinderGeometry().p1 = p_S;
-        cyl_L->GetCylinderGeometry().p2 = p_L;
-        cyl_L->GetCylinderGeometry().rad = radius;
-        body->AddVisualShape(cyl_L);
+        ChVehicleGeometry::AddVisualizationCylinder(body, p_S, p_L, radius);
     }
 }
 
@@ -478,17 +464,8 @@ void ChThreeLinkIRS::AddVisualizationLink(std::shared_ptr<ChBody> body,
     ChVector<> p_2 = body->TransformPointParentToLocal(pt_2);
     ChVector<> p_CM = body->TransformPointParentToLocal(pt_CM);
 
-    auto cyl_1 = chrono_types::make_shared<ChCylinderShape>();
-    cyl_1->GetCylinderGeometry().p1 = p_1;
-    cyl_1->GetCylinderGeometry().p2 = p_CM;
-    cyl_1->GetCylinderGeometry().rad = radius;
-    body->AddVisualShape(cyl_1);
-
-    auto cyl_2 = chrono_types::make_shared<ChCylinderShape>();
-    cyl_2->GetCylinderGeometry().p1 = p_2;
-    cyl_2->GetCylinderGeometry().p2 = p_CM;
-    cyl_2->GetCylinderGeometry().rad = radius;
-    body->AddVisualShape(cyl_2);
+    ChVehicleGeometry::AddVisualizationCylinder(body, p_1, p_CM, radius);
+    ChVehicleGeometry::AddVisualizationCylinder(body, p_2, p_CM, radius);
 }
 
 // -----------------------------------------------------------------------------

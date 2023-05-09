@@ -65,17 +65,14 @@ int main(int argc, char* argv[]) {
     sys.AddLink(link_revoluteTT);
 
     // ...the first gear
-    auto mbody_gearA = chrono_types::make_shared<ChBodyEasyCylinder>(radA, 0.5, 1000, true, false, mat);
+    auto mbody_gearA =
+        chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, radA, 0.5, 1000, true, false, mat);
     sys.Add(mbody_gearA);
     mbody_gearA->SetPos(ChVector<>(0, 0, -1));
     mbody_gearA->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
-    mbody_gearA->GetVisualShape(0)->SetMaterial(0, vis_mat);
     // for aesthetic reasons, also add a thin cylinder only as a visualization:
-    auto mshaft_shape = chrono_types::make_shared<ChCylinderShape>();
-    mshaft_shape->GetCylinderGeometry().p1 = ChVector<>(0, -3, 0);
-    mshaft_shape->GetCylinderGeometry().p2 = ChVector<>(0, 10, 0);
-    mshaft_shape->GetCylinderGeometry().rad = radA * 0.4;
-    mbody_gearA->AddVisualShape(mshaft_shape);
+    auto mshaft_shape = chrono_types::make_shared<ChCylinderShape>(radA * 0.4, 13);
+    mbody_gearA->AddVisualShape(mshaft_shape, ChFrame<>(ChVector<>(0, 3.5, 0), Q_from_AngX(CH_C_PI_2)));
 
     // ...impose rotation speed between the first gear and the fixed truss
     auto link_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
@@ -85,7 +82,8 @@ int main(int argc, char* argv[]) {
 
     // ...the second gear
     double interaxis12 = radA + radB;
-    auto mbody_gearB = chrono_types::make_shared<ChBodyEasyCylinder>(radB, 0.4, 1000, true, false, mat);
+    auto mbody_gearB =
+        chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, radB, 0.4, 1000, true, false, mat);
     sys.Add(mbody_gearB);
     mbody_gearB->SetPos(ChVector<>(interaxis12, 0, -1));
     mbody_gearB->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
@@ -129,7 +127,8 @@ int main(int argc, char* argv[]) {
 
     // ...the bevel gear at the side,
     double radD = 5;
-    auto mbody_gearD = chrono_types::make_shared<ChBodyEasyCylinder>(radD, 0.8, 1000, true, false, mat);
+    auto mbody_gearD =
+        chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, radD, 0.8, 1000, true, false, mat);
     sys.Add(mbody_gearD);
     mbody_gearD->SetPos(ChVector<>(-10, 0, -9));
     mbody_gearD->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
@@ -153,7 +152,8 @@ int main(int argc, char* argv[]) {
 
     // ...the pulley at the side,
     double radE = 2;
-    auto mbody_pulleyE = chrono_types::make_shared<ChBodyEasyCylinder>(radE, 0.8, 1000, true, false, mat);
+    auto mbody_pulleyE =
+        chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, radE, 0.8, 1000, true, false, mat);
     sys.Add(mbody_pulleyE);
     mbody_pulleyE->SetPos(ChVector<>(-10, -11, -9));
     mbody_pulleyE->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Z));

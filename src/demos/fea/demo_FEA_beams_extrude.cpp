@@ -69,14 +69,6 @@ std::shared_ptr<ChBody> CreateLobedGear(ChVector<> gear_center,
             ChVector<>(lobe_primitive_rad * sin(phase), lobe_primitive_rad * cos(phase), 0),  //
             Q_from_AngAxis(CH_C_PI_2, VECT_X),  // rotate cylinder axis: from default on Y axis, to Z axis
             true);
-
-        ////utils::AddBoxGeometry(
-        ////    mgear.get(), mysurfmaterial,
-        ////    ChVector<>(lobe_width, lobe_outer_rad - lobe_inner_rad, lobe_thickness) * 0.5,
-        ////    ChVector<>(0.5 * (lobe_outer_rad + lobe_inner_rad) * sin(phase),
-        ////               0.5 * (lobe_outer_rad + lobe_inner_rad) * cos(phase), 0),
-        ////    Q_from_AngAxis(-phase, VECT_Z),  // rotate cylinder axis: from default on Y axis, to Z axis
-        ////    true);
     }
 
     utils::AddCylinderGeometry(mgear.get(), mysurfmaterial, lobe_inner_rad, lobe_thickness * 0.5, ChVector<>(0, 0, 0),

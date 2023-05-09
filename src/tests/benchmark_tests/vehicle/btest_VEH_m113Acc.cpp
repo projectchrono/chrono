@@ -64,7 +64,9 @@ M113AccTest<EnumClass, SHOE_TYPE>::M113AccTest() : m_step(1e-3) {
     DrivelineTypeTV driveline_type = DrivelineTypeTV::SIMPLE;
     BrakeType brake_type = BrakeType::SIMPLE;
     ChContactMethod contact_method = ChContactMethod::NSC;
-    PowertrainModelType powertrain_type = PowertrainModelType::SIMPLE;
+    EngineModelType engine_model = EngineModelType::SIMPLE;
+    TransmissionModelType transmission_model = TransmissionModelType::SIMPLE_MAP;
+
     CollisionType chassis_collision_type = CollisionType::NONE;
 
     // Create the M113 vehicle, set parameters, and initialize.
@@ -73,7 +75,8 @@ M113AccTest<EnumClass, SHOE_TYPE>::M113AccTest() : m_step(1e-3) {
     m_m113->SetTrackShoeType(SHOE_TYPE);
     m_m113->SetDrivelineType(driveline_type);
     m_m113->SetBrakeType(brake_type);
-    m_m113->SetPowertrainType(powertrain_type);
+    m_m113->SetEngineType(engine_model);
+    m_m113->SetTransmissionType(transmission_model);
     m_m113->SetChassisCollisionType(chassis_collision_type);
 
     m_m113->SetInitPosition(ChCoordsys<>(ChVector<>(-250 + 5, 0, 1.1), ChQuaternion<>(1, 0, 0, 0)));

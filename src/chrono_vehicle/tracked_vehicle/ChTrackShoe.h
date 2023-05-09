@@ -82,7 +82,7 @@ class CH_VEHICLE_API ChTrackShoe : public ChPart {
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
                             const ChVector<>& location,             ///< [in] location relative to the chassis frame
                             const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
-                            ) = 0;
+    );
 
     /// Set the index of this track shoe within its containing track assembly.
     void SetIndex(size_t index) { m_index = index; }

@@ -15,13 +15,22 @@ message(STATUS "\n==== Chrono Sensor module ====\n")
 # Return now if CUDA is not available
 if(NOT CUDA_FOUND)
     message(WARNING "Chrono::Sensor requires CUDA, but CUDA was not found; disabling Chrono::Sensor")
+
+    mark_as_advanced(FORCE GLM_INCLUDE_DIR)
+    mark_as_advanced(FORCE GLEW_DIR)
+    mark_as_advanced(FORCE glfw3_DIR)
+    if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+      mark_as_advanced(FORCE GLEW_DLL)
+      mark_as_advanced(FORCE GLFW_DLL)
+    endif()
+
     set(ENABLE_MODULE_SENSOR OFF CACHE BOOL "Enable the Chrono Sensor module" FORCE)
     return()
 endif()
 
-mark_as_advanced(CLEAR GLEW_DIR)
-mark_as_advanced(CLEAR GLFW3_DIR)
 mark_as_advanced(CLEAR GLM_INCLUDE_DIR)
+mark_as_advanced(CLEAR GLEW_DIR)
+mark_as_advanced(CLEAR glfw3_DIR)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   mark_as_advanced(CLEAR GLEW_DLL)
   mark_as_advanced(CLEAR GLFW_DLL)
@@ -31,9 +40,13 @@ endif()
 # Find optional GL support
 # ------------------------------------------------------------------------------
 
-find_package(OpenGL)
-find_package(GLEW)
-find_package(GLFW3)
+find_package(OpenGL QUIET)
+find_package(GLEW QUIET)
+find_package(glfw3 QUIET)
+
+message(STATUS "OpenGL found: ${OPENGL_FOUND}")
+message(STATUS "GLEW found:   ${GLEW_FOUND}")
+message(STATUS "GLFW3 found:  ${glfw3_FOUND}")
 
 # On windows, ask for the GLEW and GLFW DLLs so that we can copy. This is
 # optional.  If not specified, it is the user's responsibility to make them
@@ -43,13 +56,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     SET(GLFW_DLL  "" CACHE FILEPATH "The GLFW DLL")
 endif()
 
-#message("OPENGL_FOUND: ${OPENGL_FOUND}")
-#message("GLM_FOUND: ${GLM_FOUND}")
-#message("GLEW_FOUND: ${GLEW_FOUND}")
-#message("GLFW3_FOUND: ${GLFW3_FOUND}")
-#message("GLM_INCLUDE_DIRS: ${GLM_INCLUDE_DIRS}")
-
-if(${OPENGL_FOUND} AND ${GLEW_FOUND} AND ${GLFW3_FOUND})
+if(${OPENGL_FOUND} AND ${GLEW_FOUND} AND ${glfw3_FOUND})
   set(HAVE_GL TRUE)
   message(STATUS "GL libraries found.")
 else()

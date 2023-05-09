@@ -44,7 +44,8 @@ MAN_10t::MAN_10t()
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_use_8WD_drivetrain(false),
-      m_powertrainType(PowertrainModelType::SIMPLE_CVT),
+      m_engineType(EngineModelType::SIMPLE_MAP),
+      m_transmissionType(TransmissionModelType::SIMPLE_MAP),
       m_brake_locking(false),
       m_brake_type(BrakeType::SIMPLE),
       m_tireType(TireModelType::TMEASY),
@@ -61,7 +62,8 @@ MAN_10t::MAN_10t(ChSystem* system)
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_use_8WD_drivetrain(false),
-      m_powertrainType(PowertrainModelType::SIMPLE_CVT),
+      m_engineType(EngineModelType::SIMPLE_MAP),
+      m_transmissionType(TransmissionModelType::SIMPLE_MAP),
       m_brake_locking(false),
       m_brake_type(BrakeType::SIMPLE),
       m_tireType(TireModelType::TMEASY),
@@ -101,18 +103,37 @@ void MAN_10t::Initialize() {
     }
 
     // Create and initialize the powertrain system
-    switch (m_powertrainType) {
-        case PowertrainModelType::SIMPLE: {
-            auto powertrain = chrono_types::make_shared<MAN_7t_SimpleMapPowertrain>("Powertrain");
-            m_vehicle->InitializePowertrain(powertrain);
+    std::shared_ptr<ChEngine> engine;
+    std::shared_ptr<ChTransmission> transmission;
+    switch (m_engineType) {
+        case EngineModelType::SHAFTS:
+            // engine = chrono_types::make_shared<MAN_7t_EngineShafts>("Engine");
+            GetLog() << "EngineModelType::SHAFTS not implemented for this model.\n";
             break;
-        }
-        default:
-        case PowertrainModelType::SIMPLE_CVT: {
-            auto powertrain = chrono_types::make_shared<MAN_7t_SimpleCVTPowertrain>("Powertrain");
-            m_vehicle->InitializePowertrain(powertrain);
+        case EngineModelType::SIMPLE_MAP:
+            engine = chrono_types::make_shared<MAN_7t_EngineSimpleMap>("Engine");
             break;
+        case EngineModelType::SIMPLE:
+            engine = chrono_types::make_shared<MAN_7t_EngineSimple>("Engine");
+            transmission = chrono_types::make_shared<MAN_7t_AutomaticTransmissionSimple>("Transmission");
+            break;
+    }
+
+    if (!transmission) {
+        switch (m_transmissionType) {
+            case TransmissionModelType::SHAFTS:
+                // transmission = chrono_types::make_shared<MAN_7t_AutomaticTransmissionShafts>("Transmission");
+                GetLog() << "TransmissionModelType::SHAFTS not implemented for this model.\n";
+                break;
+            case TransmissionModelType::SIMPLE_MAP:
+                transmission = chrono_types::make_shared<MAN_7t_AutomaticTransmissionSimpleMap>("Transmission");
+                break;
         }
+    }
+
+    if (engine && transmission) {
+        auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
+        m_vehicle->InitializePowertrain(powertrain);
     }
 
     // Create the tires and set parameters depending on type.
@@ -174,20 +195,20 @@ void MAN_10t::Initialize() {
 
             break;
         }
-            
+
         case TireModelType::TMSIMPLE: {
             auto tire_FL1 = chrono_types::make_shared<MAN_5t_TMsimpleTire>("FL1");
             auto tire_FR1 = chrono_types::make_shared<MAN_5t_TMsimpleTire>("FR1");
-            
+
             auto tire_FL2 = chrono_types::make_shared<MAN_5t_TMsimpleTire>("FL2");
             auto tire_FR2 = chrono_types::make_shared<MAN_5t_TMsimpleTire>("FR2");
-            
+
             auto tire_RL1 = chrono_types::make_shared<MAN_5t_TMsimpleTire>("RL1");
             auto tire_RR1 = chrono_types::make_shared<MAN_5t_TMsimpleTire>("RR1");
-            
+
             auto tire_RL2 = chrono_types::make_shared<MAN_5t_TMsimpleTire>("RL2");
             auto tire_RR2 = chrono_types::make_shared<MAN_5t_TMsimpleTire>("RR2");
-            
+
             m_vehicle->InitializeTire(tire_FL1, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_FR1, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
 
@@ -204,7 +225,7 @@ void MAN_10t::Initialize() {
 
             break;
         }
-            
+
             /*
                     case TireModelType::PAC02: {
                         auto tire_FL = chrono_types::make_shared<MAN_5t_Pac02Tire>("FL");

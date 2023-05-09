@@ -205,13 +205,11 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     virtual void InitializeInertiaProperties() override {}
     virtual void UpdateInertiaProperties() override {}
     virtual std::string GetTemplateName() const override { return "TrackTestRig"; }
-    virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_dummy_shaft; }
     virtual std::string ExportComponentList() const override { return ""; }
     virtual void ExportComponentList(const std::string& filename) const override {}
     virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override { Initialize(); }
 
     std::shared_ptr<ChTrackAssembly> m_track;  ///< track assembly
-    std::shared_ptr<ChShaft> m_dummy_shaft;    ///< dummy driveshaft
     int m_collide_flags;                       ///< collision flags
 
     std::vector<std::shared_ptr<ChBody>> m_post;                            ///< post bodies
@@ -236,8 +234,8 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     VisualizationType m_vis_roadwheel;
     VisualizationType m_vis_shoe;
 
-    double m_post_radius;   ///< radius of the post cylindrical platform
-    double m_post_hheight;  ///< half-height of the post cylindrical platform
+    double m_post_radius;  ///< radius of the post cylindrical platform
+    double m_post_height;  ///< height of the post cylindrical platform
 
     std::shared_ptr<ChTrackContactManager> m_contact_manager;  ///< manager for internal contacts
 

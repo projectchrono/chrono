@@ -61,8 +61,11 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 // ChQuaternion<> initRot(0.25882, 0, 0, 0.965926);
 // ChQuaternion<> initRot(0, 0, 0, 1);
 
-// Type of powertrain model (SHAFTS, SIMPLE)
-PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
+// Type of engine model (SHAFTS, SIMPLE, SIMPLE_MAP)
+EngineModelType engine_model = EngineModelType::SHAFTS;
+
+// Type of transmission model (SHAFTS, SIMPLE_MAP)
+TransmissionModelType transmission_model = TransmissionModelType::SHAFTS;
 
 // Type of driveline model
 DrivelineTypeWV driveline_model = DrivelineTypeWV::AWD;
@@ -105,7 +108,8 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetChassisFixed(false);
     my_hmmwv.SetChassisCollisionType(CollisionType::NONE);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
-    my_hmmwv.SetPowertrainType(powertrain_model);
+    my_hmmwv.SetEngineType(engine_model);
+    my_hmmwv.SetTransmissionType(transmission_model);
     my_hmmwv.SetDriveType(driveline_model);
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.SetTireStepSize(tire_step_size);

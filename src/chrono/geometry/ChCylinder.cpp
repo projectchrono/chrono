@@ -23,17 +23,13 @@ namespace geometry {
 CH_FACTORY_REGISTER(ChCylinder)
 
 ChCylinder::ChCylinder(const ChCylinder& source) {
-    p1 = source.p1;
-    p2 = source.p2;
-    rad = source.rad;
+    r = source.r;
+    h = source.h;
 }
 
-void ChCylinder::GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const {
-    //// TODO: re-check this
-    ChVector<> dims = ChVector<>(rad, p2.y() - p1.y(), rad);
-    ChVector<> trsfCenter = rot.transpose() * Baricenter();
-    cmin = trsfCenter - dims;
-    cmax = trsfCenter + dims;
+ChGeometry::AABB ChCylinder::GetBoundingBox(const ChMatrix33<>& rot) const {
+    return AABB(ChVector<>(-r, -r, -h / 2),  //
+                ChVector<>(+r, +r, +h / 2));
 }
 
 void ChCylinder::ArchiveOUT(ChArchiveOut& marchive) {
@@ -42,8 +38,8 @@ void ChCylinder::ArchiveOUT(ChArchiveOut& marchive) {
     // serialize parent class
     ChGeometry::ArchiveOUT(marchive);
     // serialize all member data:
-    marchive << CHNVP(p1);
-    marchive << CHNVP(p2);
+    marchive << CHNVP(r);
+    marchive << CHNVP(h);
 }
 
 void ChCylinder::ArchiveIN(ChArchiveIn& marchive) {
@@ -52,8 +48,8 @@ void ChCylinder::ArchiveIN(ChArchiveIn& marchive) {
     // deserialize parent class
     ChGeometry::ArchiveIN(marchive);
     // stream in all member data:
-    marchive >> CHNVP(p1);
-    marchive >> CHNVP(p2);
+    marchive >> CHNVP(r);
+    marchive >> CHNVP(h);
 }
 
 }  // end namespace geometry

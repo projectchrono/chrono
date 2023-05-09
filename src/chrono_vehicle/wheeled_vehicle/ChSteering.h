@@ -48,12 +48,12 @@ class CH_VEHICLE_API ChSteering : public ChPart {
     virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
                             const ChVector<>& location,          ///< [in] location relative to the chassis frame
                             const ChQuaternion<>& rotation       ///< [in] orientation relative to the chassis frame
-                            ) = 0;
+    );
 
     /// Update the state of this steering subsystem at the current time.
     /// The steering subsystem is provided the current steering driver input (a value between -1 and +1).  Positive
     /// steering input indicates steering to the left. This function is called during the vehicle update.
-    virtual void Synchronize(double time,                           ///< [in] current time
+    virtual void Synchronize(double time,                       ///< [in] current time
                              const DriverInputs& driver_inputs  ///< [in] current driver inputs
                              ) = 0;
 

@@ -314,32 +314,32 @@ int main(int argc, char* argv[]) {
     // Bottom box
     utils::AddBoxGeometry(ground.get(),                                           //
                           mat_g,                                                  //
-                          ChVector<>(hdimX, hdimY, hthick),                       //
+                          ChVector<>(hdimX, hdimY, hthick) * 2,                   //
                           ChVector<>(0, 0, -hthick), ChQuaternion<>(1, 0, 0, 0),  //
                           true);
     if (terrain_type == GRANULAR_TERRAIN) {
         // Front box
         utils::AddBoxGeometry(ground.get(),                                                               //
                               mat_g,                                                                      //
-                              ChVector<>(hthick, hdimY, hdimZ + hthick),                                  //
+                              ChVector<>(hthick, hdimY, hdimZ + hthick) * 2,                              //
                               ChVector<>(hdimX + hthick, 0, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0),  //
                               visible_walls);
         // Rear box
         utils::AddBoxGeometry(ground.get(),                                                                //
                               mat_g,                                                                       //
-                              ChVector<>(hthick, hdimY, hdimZ + hthick),                                   //
+                              ChVector<>(hthick, hdimY, hdimZ + hthick) * 2,                               //
                               ChVector<>(-hdimX - hthick, 0, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0),  //
                               visible_walls);
         // Left box
         utils::AddBoxGeometry(ground.get(),                                                               //
                               mat_g,                                                                      //
-                              ChVector<>(hdimX, hthick, hdimZ + hthick),                                  //
+                              ChVector<>(hdimX, hthick, hdimZ + hthick) * 2,                              //
                               ChVector<>(0, hdimY + hthick, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0),  //
                               visible_walls);
         // Right box
         utils::AddBoxGeometry(ground.get(),                                                                //
                               mat_g,                                                                       //
-                              ChVector<>(hdimX, hthick, hdimZ + hthick),                                   //
+                              ChVector<>(hdimX, hthick, hdimZ + hthick) * 2,                               //
                               ChVector<>(0, -hdimY - hthick, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0),  //
                               visible_walls);
     }
@@ -362,7 +362,8 @@ int main(int argc, char* argv[]) {
     m113.SetTrackShoeType(TrackShoeType::SINGLE_PIN);
     m113.SetDrivelineType(DrivelineTypeTV::SIMPLE);
     m113.SetBrakeType(BrakeType::SIMPLE);
-    m113.SetPowertrainType(PowertrainModelType::SIMPLE_CVT);
+    m113.SetEngineType(EngineModelType::SIMPLE_MAP);
+    m113.SetTransmissionType(TransmissionModelType::SIMPLE_MAP);
     m113.SetChassisCollisionType(CollisionType::NONE);
 
     ////m113.GetVehicle().SetStepsize(0.0001);

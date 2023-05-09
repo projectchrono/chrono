@@ -91,6 +91,7 @@ struct DriverInputs {
     double m_steering;  ///< steering input [-1, +1]
     double m_throttle;  ///< throttle input [0, 1]
     double m_braking;   ///< braking input [0, 1]
+    double m_clutch;    ///< clutch input [0, 1]
 };
 
 // -----------------------------------------------------------------------------
@@ -419,15 +420,20 @@ enum class TireModelType {
     PAC89,       ///< Pacejka 89 (magic formula) tire
     TMEASY,      ///< Tire Model Made Easy tire (G. Rill)
     PAC02,       ///< Pacejka 02 (magic formula) tire
-    TMSIMPLE     ///< Tire Model Simple (W. Hirschberger)
+    TMSIMPLE     ///< Tire Model Simple (W. Hirschberg)
 };
 
-/// Enum for available powertrain model templates.
-enum class PowertrainModelType {
-    SHAFTS,      ///< powertrain based on ChShaft elements
-    SIMPLE_MAP,  ///< simple powertrain model (based on engine-map)
-    SIMPLE,      ///< simple powertrain model (similar to a DC motor)
-    SIMPLE_CVT   ///< simple cvt powertrain model (like a DC motor / CVT gearbox)
+/// Enum for available engine model templates.
+enum class EngineModelType {
+    SHAFTS,      ///< engine model based on ChShaft elements
+    SIMPLE_MAP,  ///< simple model based on engine maps
+    SIMPLE       ///< simple engine model (similar to a DC motor)
+};
+
+/// Enum for available transmission model templates.
+enum class TransmissionModelType {
+    SHAFTS,     ///< transmission model based of ChShaft elements
+    SIMPLE_MAP  ///< transmission model based on TC maps
 };
 
 /// Enum for available wheeled-vehicle suspension model templates.
@@ -447,7 +453,9 @@ enum class SuspensionTypeWV {
     SOLID_BELLCRANK_THREE_LINK_AXLE,  ///< rigid suspension + 3 guiding links + bellcrank steering mechanism
     THREE_LINK_IRS,                   ///< three-link independent rear suspension
     TOE_BAR_LEAF_SPRING_AXLE,         ///< steerable leaf-spring solid axle
-    SAE_TOE_BAR_LEAF_SPRING_AXLE      ///< steerable leaf-spring solid axle with kinematic leaf-spring model
+    SAE_TOE_BAR_LEAF_SPRING_AXLE,     ///< steerable leaf-spring solid axle with kinematic leaf-spring model
+    PUSHPIPE_AXLE,                    ///< solid axle with pushpipe and panhard rod
+    TOEBAR_PUSHPIPE_AXLE              ///< steerable solid axle with pushpipe and panhard rod
 };
 
 /// Enum for available brake model templates.

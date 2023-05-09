@@ -86,7 +86,9 @@ void Sedan::Initialize() {
     }
 
     // Create and initialize the powertrain system
-    auto powertrain = chrono_types::make_shared<Sedan_SimpleMapPowertrain>("Powertrain");
+    auto engine = chrono_types::make_shared<Sedan_EngineSimpleMap>("Engine");
+    auto transmission = chrono_types::make_shared<Sedan_AutomaticTransmissionSimpleMap>("Transmission");
+    auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
     m_vehicle->InitializePowertrain(powertrain);
 
     // Create the tires and set parameters depending on type.
@@ -141,7 +143,7 @@ void Sedan::Initialize() {
 
             break;
         }
-            
+
         case TireModelType::PAC02: {
             auto tire_FL = chrono_types::make_shared<Sedan_Pac02Tire>("FL");
             auto tire_FR = chrono_types::make_shared<Sedan_Pac02Tire>("FR");

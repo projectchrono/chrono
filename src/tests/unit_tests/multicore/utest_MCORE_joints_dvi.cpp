@@ -99,8 +99,7 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         sled->SetBodyFixed(false);
         sled->SetCollide(false);
 
-        auto box_sled = chrono_types::make_shared<ChBoxShape>();
-        box_sled->GetBoxGeometry().Size = ChVector<>(1, 0.25, 0.25);
+        auto box_sled = chrono_types::make_shared<ChBoxShape>(2, 0.5, 0.5);
         sled->AddVisualShape(box_sled, ChFrame<>());
 
         sys->AddBody(sled);

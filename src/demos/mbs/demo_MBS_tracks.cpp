@@ -97,7 +97,7 @@ class MySimpleTank {
 
         ChVector<> cyl_displA(0, 0.075 + 0.02, 0);
         ChVector<> cyl_displB(0, -0.075 - 0.02, 0);
-        double cyl_hthickness = 0.045;
+        double cyl_thickness = 0.09;
 
         // --- The tank body ---
 
@@ -137,15 +137,15 @@ class MySimpleTank {
 
         sys.Add(wheelRF);
         wheelRF->SetPos(ChVector<>(mx + passo, my + radiustrack, 0));
-        wheelRF->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
+        wheelRF->SetRot(Q_from_AngX(CH_C_PI / 2));
         wheelRF->SetMass(9.0);
         wheelRF->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
 
         wheelRF->GetCollisionModel()->ClearModel();
-        wheelRF->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness,
-                                                  cyl_displA);
-        wheelRF->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness,
-                                                  cyl_displB);
+        wheelRF->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, cyl_thickness, cyl_displA,
+                                                  Q_from_AngX(CH_C_PI / 2));
+        wheelRF->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, cyl_thickness, cyl_displB,
+                                                  Q_from_AngX(CH_C_PI / 2));
         wheelRF->GetCollisionModel()->BuildModel();
         wheelRF->SetCollide(true);
 
@@ -171,15 +171,15 @@ class MySimpleTank {
 
         sys.Add(wheelLF);
         wheelLF->SetPos(ChVector<>(mx + passo, my + radiustrack, rlwidth));
-        wheelLF->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
+        wheelLF->SetRot(Q_from_AngX(CH_C_PI / 2));
         wheelLF->SetMass(9.0);
         wheelLF->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
 
         wheelLF->GetCollisionModel()->ClearModel();
-        wheelLF->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness,
-                                                  cyl_displA);
-        wheelLF->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness,
-                                                  cyl_displB);
+        wheelLF->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, cyl_thickness, cyl_displA,
+                                                  Q_from_AngX(CH_C_PI / 2));
+        wheelLF->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, cyl_thickness, cyl_displB,
+                                                  Q_from_AngX(CH_C_PI / 2));
         wheelLF->GetCollisionModel()->BuildModel();
         wheelLF->SetCollide(true);
 
@@ -206,15 +206,15 @@ class MySimpleTank {
 
         sys.Add(wheelRB);
         wheelRB->SetPos(ChVector<>(mx, my + radiustrack, 0));
-        wheelRB->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
+        wheelRB->SetRot(Q_from_AngX(CH_C_PI / 2));
         wheelRB->SetMass(9.0);
         wheelRB->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
 
         wheelRB->GetCollisionModel()->ClearModel();
-        wheelRB->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness,
-                                                  cyl_displA);
-        wheelRB->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness,
-                                                  cyl_displB);
+        wheelRB->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, cyl_thickness, cyl_displA,
+                                                  Q_from_AngX(CH_C_PI / 2));
+        wheelRB->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, cyl_thickness, cyl_displB,
+                                                  Q_from_AngX(CH_C_PI / 2));
         wheelRB->GetCollisionModel()->BuildModel();
         wheelRB->SetCollide(true);
 
@@ -242,15 +242,15 @@ class MySimpleTank {
 
         sys.Add(wheelLB);
         wheelLB->SetPos(ChVector<>(mx, my + radiustrack, rlwidth));
-        wheelLB->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
+        wheelLB->SetRot(Q_from_AngX(CH_C_PI / 2));
         wheelLB->SetMass(9.0);
         wheelLB->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
 
         wheelLB->GetCollisionModel()->ClearModel();
-        wheelLB->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness,
-                                                  cyl_displA);
-        wheelLB->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness,
-                                                  cyl_displB);
+        wheelLB->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, cyl_thickness, cyl_displA,
+                                                  Q_from_AngX(CH_C_PI / 2));
+        wheelLB->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, cyl_thickness, cyl_displB,
+                                                  Q_from_AngX(CH_C_PI / 2));
         wheelLB->GetCollisionModel()->BuildModel();
         wheelLB->SetCollide(true);
 

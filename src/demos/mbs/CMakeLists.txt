@@ -13,7 +13,7 @@ set(DEMOS
   demo_MBS_collisionSMC
   demo_MBS_earthquake
   demo_MBS_friction
-  demo_MBS_spring
+  demo_MBS_spring  
 )
 
 # Add demos that can only work with Irrlicht
@@ -78,6 +78,13 @@ if(ENABLE_MODULE_IRRLICHT)
   list(APPEND LIBS "ChronoEngine_irrlicht")
 endif()
 
+if(ENABLE_MODULE_PARDISO_MKL)
+  include_directories(${CH_MKL_INCLUDES})
+  set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
+  set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
+  list(APPEND LIBS "ChronoEngine_pardisomkl")
+endif()
+
 if(ENABLE_MODULE_VSG)
   set(CMAKE_CXX_STANDARD 17)
 
@@ -112,3 +119,23 @@ foreach(PROGRAM ${DEMOS})
 
   install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 endforeach()
+
+if(ENABLE_MODULE_PARDISO_MKL)
+  set(PROGRAM demo_MBS_link_mate)
+  message(STATUS "...add ${PROGRAM}")
+
+  add_executable(${PROGRAM}  "${PROGRAM}.cpp")
+  source_group(""  FILES  "${PROGRAM}.cpp")
+
+  set_target_properties(${PROGRAM} PROPERTIES FOLDER demos COMPILE_FLAGS "${COMPILER_FLAGS}" LINK_FLAGS "${LINKER_FLAGS}")
+  if(APPLE)
+    set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
+  endif()
+  set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+  if(MSVC)
+    target_compile_options(${PROGRAM} PRIVATE /bigobj)
+  endif()
+  target_link_libraries(${PROGRAM} ${LIBS})  
+
+  install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
+endif()

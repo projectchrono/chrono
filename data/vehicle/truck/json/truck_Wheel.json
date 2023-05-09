@@ -1,15 +1,14 @@
 {
-  "Name":                       "MAN Wheel",
-  "Type":                       "Wheel",
-  "Template":                   "Wheel",
+  "Name": "Truck 6x4 Offroad Truck Wheel",
+  "Type": "Wheel",
+  "Template": "Wheel",
 
-  "Mass":                       18.8,
-  "Inertia":                    [0.6, 0.63, 0.6],
+  "Mass": 18.8,
+  "Inertia": [ 0.6, 0.63, 0.6 ],
 
-  "Visualization":
-  {
-    "Mesh Filename":            "truck/truck_rim.obj",
-    "Radius":                   0.254,
-    "Width":                    0.254
+  "Visualization": {
+    "Mesh Filename": "truck/truck_rim.obj",
+    "Radius": 0.254,
+    "Width": 0.254
   }
 }

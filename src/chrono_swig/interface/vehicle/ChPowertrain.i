@@ -14,30 +14,35 @@
 #include "chrono/core/ChFrame.h"
 #include "chrono/physics/ChBody.h"
 
-#include "chrono_vehicle/ChPowertrain.h"
+#include "chrono_vehicle/ChPowertrainAssembly.h"
 
-#include "chrono_vehicle/powertrain/ChSimplePowertrain.h"
-#include "chrono_vehicle/powertrain/ChSimpleMapPowertrain.h"
-#include "chrono_vehicle/powertrain/ChSimpleCVTPowertrain.h"
-#include "chrono_vehicle/powertrain/ChShaftsPowertrain.h"
+#include "chrono_vehicle/powertrain/ChEngineSimple.h"
+#include "chrono_vehicle/powertrain/ChEngineSimpleMap.h"
+#include "chrono_vehicle/powertrain/ChEngineShafts.h"
+#include "chrono_vehicle/powertrain/EngineSimple.h"
+#include "chrono_vehicle/powertrain/EngineSimpleMap.h"
+#include "chrono_vehicle/powertrain/EngineShafts.h"
 
-#include "chrono_vehicle/powertrain/SimplePowertrain.h"
-#include "chrono_vehicle/powertrain/SimpleMapPowertrain.h"
-#include "chrono_vehicle/powertrain/SimpleCVTPowertrain.h"
-#include "chrono_vehicle/powertrain/ShaftsPowertrain.h"
+#include "chrono_vehicle/powertrain/ChAutomaticTransmissionSimpleMap.h"
+#include "chrono_vehicle/powertrain/ChAutomaticTransmissionShafts.h"
+#include "chrono_vehicle/powertrain/AutomaticTransmissionSimpleMap.h"
+#include "chrono_vehicle/powertrain/AutomaticTransmissionShafts.h"
 %}
 
-%shared_ptr(chrono::vehicle::ChPowertrain)
+%shared_ptr(chrono::vehicle::ChPowertrainAssembly)
 
-%shared_ptr(chrono::vehicle::ChSimplePowertrain)
-%shared_ptr(chrono::vehicle::ChSimpleMapPowertrain)
-%shared_ptr(chrono::vehicle::ChSimpleCVTPowertrain)
-%shared_ptr(chrono::vehicle::ChShaftsPowertrain)
+%shared_ptr(chrono::vehicle::ChEngineSimple)
+%shared_ptr(chrono::vehicle::ChEngineSimpleMap)
+%shared_ptr(chrono::vehicle::ChEngineShafts)
+%shared_ptr(chrono::vehicle::EngineSimple)
+%shared_ptr(chrono::vehicle::EngineSimpleMap)
+%shared_ptr(chrono::vehicle::EngineShafts)
 
-%shared_ptr(chrono::vehicle::SimplePowertrain)
-%shared_ptr(chrono::vehicle::SimpleMapPowertrain)
-%shared_ptr(chrono::vehicle::SimpleCVTPowertrain)
-%shared_ptr(chrono::vehicle::ShaftsPowertrain)
+%shared_ptr(chrono::vehicle::ChAutomaticTransmissionSimpleMap)
+%shared_ptr(chrono::vehicle::ChAutomaticTransmissionShafts)
+%shared_ptr(chrono::vehicle::AutomaticTransmissionSimpleMap)
+%shared_ptr(chrono::vehicle::AutomaticTransmissionShafts)
+
 
 %import "../../../chrono_vehicle/ChPart.h"
 
@@ -50,16 +55,18 @@
 #endif
 
 // Parse the header file to generate wrappers
-%include "../../../chrono_vehicle/ChPowertrain.h"
+%include "../../../chrono_vehicle/ChPowertrainAssembly.h"
 
-%include "../../../chrono_vehicle/powertrain/ChSimplePowertrain.h"
-%include "../../../chrono_vehicle/powertrain/ChSimpleMapPowertrain.h"
-%include "../../../chrono_vehicle/powertrain/ChSimpleCVTPowertrain.h"
-%include "../../../chrono_vehicle/powertrain/ChShaftsPowertrain.h"
+%include "../../../chrono_vehicle/powertrain/ChEngineSimple.h"
+%include "../../../chrono_vehicle/powertrain/ChEngineSimpleMap.h"
+%include "../../../chrono_vehicle/powertrain/ChEngineShafts.h"
+%include "../../../chrono_vehicle/powertrain/EngineSimple.h"
+%include "../../../chrono_vehicle/powertrain/EngineSimpleMap.h"
+%include "../../../chrono_vehicle/powertrain/EngineShafts.h"
 
-%include "../../../chrono_vehicle/powertrain/SimplePowertrain.h"
-%include "../../../chrono_vehicle/powertrain/SimpleMapPowertrain.h"
-%include "../../../chrono_vehicle/powertrain/SimpleCVTPowertrain.h"
-%include "../../../chrono_vehicle/powertrain/ShaftsPowertrain.h"
+%include "../../../chrono_vehicle/powertrain/ChAutomaticTransmissionSimpleMap.h"
+%include "../../../chrono_vehicle/powertrain/ChAutomaticTransmissionShafts.h"
+%include "../../../chrono_vehicle/powertrain/AutomaticTransmissionSimpleMap.h"
+%include "../../../chrono_vehicle/powertrain/AutomaticTransmissionShafts.h"
 
 %include "chrono_swig/interface/models/PowertrainModels.i"
