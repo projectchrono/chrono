@@ -27,6 +27,12 @@ vec3CH::vec3CH(const chrono::ChVector<>& vec) {
     z = static_cast<float>(vec.z());
 }
 
+vec3CH::vec3CH(const chrono::ChColor& col) {
+    x = col.R;
+    y = col.G;
+    z = col.B;
+}
+
 dvec3CH::dvec3CH(const chrono::ChVector<>& vec) {
     x = vec.x();
     y = vec.y();

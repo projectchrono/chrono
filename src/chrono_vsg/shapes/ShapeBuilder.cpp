@@ -1336,7 +1336,26 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshPbrMatShape(std::shared_ptr<
     return scenegraph;
 }
 
-vsg::ref_ptr<vsg::Group> ShapeBuilder::createCoGSymbol(vsg::ref_ptr<vsg::MatrixTransform> transform) {
+vsg::ref_ptr<vsg::Group> ShapeBuilder::createFrameSymbol(vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                                         float color_factor) {
+    // Set red, green, and blue colors at specified darkness level
+    ChColor R(1, 0, 0);
+    ChColor G(0, 1, 0);
+    ChColor B(0, 0, 1);
+
+    auto hsvR = ChColor::RGB2HSV(R);
+    hsvR[2] *= color_factor;
+    R = ChColor::HSV2RGB(hsvR);
+
+    auto hsvG = ChColor::RGB2HSV(G);
+    hsvG[2] *= color_factor;
+    G = ChColor::HSV2RGB(hsvG);
+
+    auto hsvB = ChColor::RGB2HSV(B);
+    hsvB[2] *= color_factor;
+    B = ChColor::HSV2RGB(hsvB);
+
+    //
     auto scenegraph = vsg::Group::create();
 
     vsg::ref_ptr<vsg::ShaderStage> vertexShader = lineShader_vert();
@@ -1397,18 +1416,19 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createCoGSymbol(vsg::ref_ptr<vsg::MatrixT
     auto vertices = vsg::vec3Array::create(numPoints);
     auto colors = vsg::vec3Array::create(numPoints);
 
-    vertices->set(0, vsg::vec3(0.0, 0.0, 0.0));
-    vertices->set(1, vsg::vec3(1.0, 0.0, 0.0));
-    colors->set(0, vsg::vec3(1.0, 0.0, 0.0));
-    colors->set(1, vsg::vec3(1.0, 0.0, 0.0));
-    vertices->set(2, vsg::vec3(0.0, 0.0, 0.0));
-    vertices->set(3, vsg::vec3(0.0, 1.0, 0.0));
-    colors->set(2, vsg::vec3(0.0, 1.0, 0.0));
-    colors->set(3, vsg::vec3(0.0, 1.0, 0.0));
-    vertices->set(4, vsg::vec3(0.0, 0.0, 0.0));
-    vertices->set(5, vsg::vec3(0.0, 0.0, 1.0));
-    colors->set(4, vsg::vec3(0.0, 0.0, 1.0));
-    colors->set(5, vsg::vec3(0.0, 0.0, 1.0));
+    vertices->set(0, vsg::vec3(0, 0, 0));
+    vertices->set(1, vsg::vec3(1, 0, 0));
+    vertices->set(2, vsg::vec3(0, 0, 0));
+    vertices->set(3, vsg::vec3(0, 1, 0));
+    vertices->set(4, vsg::vec3(0, 0, 0));
+    vertices->set(5, vsg::vec3(0, 0, 1));
+
+    colors->set(0, vsg::vec3CH(R));
+    colors->set(1, vsg::vec3CH(R));
+    colors->set(2, vsg::vec3CH(G));
+    colors->set(3, vsg::vec3CH(G));
+    colors->set(4, vsg::vec3CH(B));
+    colors->set(5, vsg::vec3CH(B));
 
     // setup geometry
     auto drawCommands = vsg::Commands::create();

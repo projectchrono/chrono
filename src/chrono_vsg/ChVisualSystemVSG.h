@@ -26,7 +26,6 @@
 
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono/assets/ChVisualModel.h"
-#include "chrono/physics/ChLoadContainer.h"
 
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChSphereShape.h"
@@ -40,6 +39,11 @@
 #include "chrono/assets/ChModelFileShape.h"
 #include "chrono/assets/ChLineShape.h"
 #include "chrono/assets/ChPathShape.h"
+
+#include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChLinkMarkers.h"
+#include "chrono/physics/ChLinkMate.h"
+#include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChParticleCloud.h"
 
 #include "chrono_vsg/ChApiVSG.h"
@@ -86,6 +90,12 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     void SetCOGFrameScale(double axis_length);
     void ToggleCOGFrameVisibility();
+
+    /// Render joint frames for all links in the system.
+    void RenderJointFrames(double axis_length = 1);
+
+    void SetJointFrameScale(double axis_length);
+    void ToggleJointFrameVisibility();
 
     /// End the scene draw at the end of each animation frame.
     virtual void EndScene() override {}
@@ -228,7 +238,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::Group> m_deformableScene;
     vsg::ref_ptr<vsg::Group> m_decoScene;
 
-    vsg::ref_ptr<vsg::Switch> m_cogScene;
+    vsg::ref_ptr<vsg::Switch> m_cogFrameScene;
+    vsg::ref_ptr<vsg::Switch> m_jointFrameScene;
 
     vsg::ref_ptr<vsg::Options> m_options;  ///< I/O related options for vsg::read/write calls
     vsg::ref_ptr<vsg::Builder> m_vsgBuilder;
@@ -311,8 +322,11 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     double m_azimuth = 0;
     float m_guiFontSize = 20.0f;
 
-    bool m_show_cog;     ///< flag to toggle COG visibility
-    double m_cog_scale;  ///< current COG frame scale
+    bool m_show_cog_frames;    ///< flag to toggle COG frame visibility
+    double m_cog_frame_scale;  ///< current COG frame scale
+
+    bool m_show_joint_frames;    ///< flag to toggle COG frame visibility
+    double m_joint_frame_scale;  ///< current joint frame scale
 
     unsigned int m_frame_number;                      ///< current number of rendered frames
     double m_start_time;                              ///< wallclock time at first render
