@@ -17,6 +17,8 @@
 
 #include "chrono_modal/ChApiModal.h"
 #include "chrono/core/ChMatrix.h"
+#include "chrono/core/ChTimer.h"
+
 #include <complex>
 
 namespace chrono {
@@ -38,7 +40,8 @@ public:
         int max_iters = 500,       ///< upper limit for the number of iterations. If too low might not converge.
         double mtolerance = 1e-10, ///< tolerance for the iterative solver. 
         bool mverbose = false,     ///< turn to true to see some diagnostic.
-        std::complex<double> msigma = 1e-5       ///< for shift&invert. Too small gives ill conditioning (no convergence). Too large misses rigid body modes.
+        std::complex<double> msigma = 1e-5,       ///< for shift&invert. Too small gives ill conditioning (no convergence). Too large misses rigid body modes.
+        bool scaleCq = true
     ) :
         n_modes(m_nmodes),
         max_iterations(max_iters),
@@ -54,6 +57,7 @@ public:
     std::complex<double> sigma = 1e-5;        ///< for shift&invert. Too small gives ill conditioning (no convergence). Too large misses rigid body modes.
     int max_iterations = 500;   ///< upper limit for the number of iterations. If too low might not converge.
     bool verbose = false;       ///< turn to true to see some diagnostic.
+    bool scaleCq = true;
 };
 
 //---------------------------------------------------------------------------------------------
@@ -236,6 +240,27 @@ public:
         ChVectorDynamic<double>& damping_ratio,  ///< output vector with n damping rations r=damping/critical_damping.
         ChEigenvalueSolverSettings settings = 0   ///< optional: settings for the solver, or n. of desired lower eigenvalues. If =0, return all eigenvalues.
     ) const = 0;
+
+    /// Get cumulative time for matrix assembly.
+    double GetTimeMatrixAssembly() const { return m_timer_matrix_assembly(); }
+
+    /// Get cumulative time eigensolver setup.
+    double GetTimeEigenSetup() const { return m_timer_eigen_setup(); }
+
+    /// Get cumulative time eigensolver solution.
+    double GetTimeEigenSolver() const { return m_timer_eigen_solver(); }
+
+    /// Get cumulative time for post-solver solution postprocessing.
+    double GetTimeSolutionPostProcessing() const { return m_timer_solution_postprocessing(); }
+
+protected:
+
+    mutable ChTimer m_timer_matrix_assembly;    ///< timer for matrix assembly
+    mutable ChTimer m_timer_eigen_setup;    ///< timer for eigensolver setup
+    mutable ChTimer m_timer_eigen_solver;    ///< timer for eigensolver solution
+    mutable ChTimer m_timer_solution_postprocessing;    ///< timer for conversion of eigensolver solution
+
+
 };
 
 /// Solves the eigenvalue problem with a direct method: first does LU factorization of Cq jacobians
@@ -259,6 +284,8 @@ public:
         ChVectorDynamic<double>& damping_ratio,  ///< output vector with n damping rations r=damping/critical_damping.
         ChEigenvalueSolverSettings settings = 0   ///< optional: settings for the solver, or n. of desired lower eigenvalues. If =0, return all eigenvalues.
     ) const override;
+
+
 };
 
 
@@ -289,6 +316,8 @@ public:
     ) const override;
 
     ChDirectSolverLScomplex* linear_solver;
+    
+
 };
 
 
@@ -372,11 +401,16 @@ public:
     ) const;
 
 
+
+protected:
+
+
     std::vector< ChFreqSpan > freq_spans;
     double tolerance = 1e-10;   ///< tolerance for the iterative solver. 
     int max_iterations = 500;   ///< upper limit for the number of iterations. If too low might not converge.
     bool verbose = false;       ///< turn to true to see some diagnostic.
     const ChQuadraticEigenvalueSolver& msolver;
+
 };
 
 

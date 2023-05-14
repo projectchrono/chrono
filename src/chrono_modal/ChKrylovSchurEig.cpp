@@ -191,7 +191,7 @@ int testConverge(
 	}
     
 	if (delta > 0) {                     // real case
-		if (abs(H(k, i-1)) < std::max(H.norm() * epsilon, abs(H(i-1, i-1)) * tol)) {
+		if (std::abs(H(k, i-1)) < std::max(H.norm() * epsilon, std::abs(H(i-1, i-1)) * tol)) {
 			flag = 1;
 		}
 		else {
@@ -201,7 +201,7 @@ int testConverge(
 	else {                               // complex case
 		std::complex<double> lambda(H(i - 1, i - 1).real() + H(i, i).real(), sqrt(-delta)); 
 		lambda *= 0.5;
-		if (abs(H(k, i-1)) < std::max(H.norm() * epsilon, abs(lambda) * tol)) {
+		if (std::abs(H(k, i-1)) < std::max(H.norm() * epsilon, std::abs(lambda) * tol)) {
 			flag = 2;
 		}
 		else {

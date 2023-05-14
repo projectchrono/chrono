@@ -96,15 +96,31 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
 
         if (ImGui::BeginTable("Frames", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                               ImVec2(0.0f, 0.0f))) {
-            ImGui::Text("COG frames:");
+            ImGui::Text("COG:");
             ImGui::TableNextColumn();
-            static bool bES_active = false;
-            if (ImGui::Checkbox("COG", &bES_active))
+            static bool bCOG_frame_active = false;
+            if (ImGui::Checkbox("COG", &bCOG_frame_active))
                 m_app->ToggleCOGFrameVisibility();
-            ImGui::SameLine();
-            float foo = m_app->m_cog_scale;
-            ImGui::SliderFloat("scale", &foo, 0.1f, 10.0f);
-            m_app->m_cog_scale = foo;
+            ImGui::TableNextColumn();
+            float cog_frame_scale = m_app->m_cog_frame_scale;
+            ImGui::PushItemWidth(120.0f);
+            ImGui::SliderFloat("scale##cog", &cog_frame_scale, 0.1f, 10.0f);
+            ImGui::PopItemWidth();
+            m_app->m_cog_frame_scale = cog_frame_scale;
+
+            ImGui::TableNextRow();
+            ImGui::Text("Joint:");
+            ImGui::TableNextColumn();
+            static bool bJoint_frame_active = false;
+            if (ImGui::Checkbox("Joint", &bJoint_frame_active))
+                m_app->ToggleJointFrameVisibility();
+            ImGui::TableNextColumn();
+            float joint_frame_scale = m_app->m_joint_frame_scale;
+            ImGui::PushItemWidth(120.0f);
+            ImGui::SliderFloat("scale##joint", &joint_frame_scale, 0.1f, 5.0f);
+            ImGui::PopItemWidth();
+            m_app->m_joint_frame_scale = joint_frame_scale;
+
             ImGui::EndTable();
         }
 
@@ -380,8 +396,10 @@ ChVisualSystemVSG::ChVisualSystemVSG()
       m_show_gui(true),
       m_show_base_gui(true),
       m_camera_trackball(true),
-      m_cog_scale(1),
-      m_show_cog(false),
+      m_cog_frame_scale(1),
+      m_show_cog_frames(false),
+      m_joint_frame_scale(1),
+      m_show_joint_frames(false),
       m_frame_number(0),
       m_start_time(0),
       m_time_total(0),
@@ -396,7 +414,8 @@ ChVisualSystemVSG::ChVisualSystemVSG()
 
     // creation here allows to set entries before initialize
     m_bodyScene = vsg::Group::create();
-    m_cogScene = vsg::Switch::create();
+    m_cogFrameScene = vsg::Switch::create();
+    m_jointFrameScene = vsg::Switch::create();
     m_linkScene = vsg::Group::create();
     m_particleScene = vsg::Group::create();
     m_decoScene = vsg::Group::create();
@@ -706,7 +725,8 @@ void ChVisualSystemVSG::Initialize() {
 
     m_scene->addChild(absoluteTransform);
     m_scene->addChild(m_bodyScene);
-    m_scene->addChild(m_cogScene);
+    m_scene->addChild(m_cogFrameScene);
+    m_scene->addChild(m_jointFrameScene);
     m_scene->addChild(m_linkScene);
     m_scene->addChild(m_particleScene);
     m_scene->addChild(m_decoScene);
@@ -965,27 +985,51 @@ void ChVisualSystemVSG::Render() {
 }
 
 void ChVisualSystemVSG::RenderCOGFrames(double axis_length) {
-    m_cog_scale = axis_length;
-    m_show_cog = true;
+    m_cog_frame_scale = axis_length;
+    m_show_cog_frames = true;
 
     if (m_initialized) {
-        for (auto& child : m_cogScene->children)
-            child.mask = m_show_cog;
+        for (auto& child : m_cogFrameScene->children)
+            child.mask = m_show_cog_frames;
     }
 }
 
 void ChVisualSystemVSG::SetCOGFrameScale(double axis_length) {
-    m_cog_scale = axis_length;
+    m_cog_frame_scale = axis_length;
 }
 
 void ChVisualSystemVSG::ToggleCOGFrameVisibility() {
-    m_show_cog = !m_show_cog;
+    m_show_cog_frames = !m_show_cog_frames;
 
     if (m_initialized) {
-        for (auto& child : m_cogScene->children)
-            child.mask = m_show_cog;
+        for (auto& child : m_cogFrameScene->children)
+            child.mask = m_show_cog_frames;
     }
 }
+
+void ChVisualSystemVSG::RenderJointFrames(double axis_length) {
+    m_joint_frame_scale = axis_length;
+    m_show_joint_frames = true;
+
+    if (m_initialized) {
+        for (auto& child : m_jointFrameScene->children)
+            child.mask = m_show_joint_frames;
+    }
+}
+
+void ChVisualSystemVSG::SetJointFrameScale(double axis_length) {
+    m_joint_frame_scale = axis_length;
+}
+
+void ChVisualSystemVSG::ToggleJointFrameVisibility() {
+    m_show_joint_frames = !m_show_joint_frames;
+
+    if (m_initialized) {
+        for (auto& child : m_jointFrameScene->children)
+            child.mask = m_show_joint_frames;
+    }
+}
+
 
 void ChVisualSystemVSG::WriteImageToFile(const string& filename) {
     m_imageFilename = filename;
@@ -1414,14 +1458,14 @@ void ChVisualSystemVSG::BindAll() {
     for (auto sys : m_systems) {
         // Bind visual models associated with bodies in the system
         for (const auto& body : sys->GetAssembly().Get_bodylist()) {
-            // Create the COG node
+            // Create the COG frame node
             auto cog_transform = vsg::MatrixTransform::create();
-            cog_transform->matrix = vsg::dmat4CH(body->GetFrame_COG_to_abs(), m_cog_scale);
-            vsg::Mask mask = m_show_cog;
-            auto cog_node = m_shapeBuilder->createCoGSymbol(cog_transform);
+            cog_transform->matrix = vsg::dmat4CH(body->GetFrame_COG_to_abs(), m_cog_frame_scale);
+            vsg::Mask mask = m_show_cog_frames;
+            auto cog_node = m_shapeBuilder->createFrameSymbol(cog_transform, 1.0f);
             cog_node->setValue("Body", body);
             cog_node->setValue("Transform", cog_transform);
-            m_cogScene->addChild(mask, cog_node);
+            m_cogFrameScene->addChild(mask, cog_node);
 
             if (!body->GetVisualModel())
                 continue;
@@ -1451,6 +1495,25 @@ void ChVisualSystemVSG::BindAll() {
 
         // Bind visual models associated with links in the system
         for (const auto& link : sys->Get_linklist()) {
+            // Create the joint frame nodes
+            ChFrame<> frameA;
+            ChFrame<> frameB;
+            if (auto link_markers = std::dynamic_pointer_cast<ChLinkMarkers>(link)) {
+                frameA = *link_markers->GetMarker1() >> *link_markers->GetBody1();
+                frameB = *link_markers->GetMarker2() >> *link_markers->GetBody2();
+            } else if (auto link_mate = std::dynamic_pointer_cast<ChLinkMateGeneric>(link)) {
+                frameA = link_mate->GetFrame1() >> *link_mate->GetBody1();
+                frameB = link_mate->GetFrame2() >> *link_mate->GetBody2();
+            }
+
+            auto joint_transform = vsg::MatrixTransform::create();
+            joint_transform->matrix = vsg::dmat4CH(frameB, m_joint_frame_scale);
+            vsg::Mask mask = m_show_cog_frames;
+            auto joint_node = m_shapeBuilder->createFrameSymbol(joint_transform, 0.5f);
+            joint_node->setValue("Joint", link);
+            joint_node->setValue("Transform", joint_transform);
+            m_jointFrameScene->addChild(mask, joint_node);
+
             if (!link->GetVisualModel())
                 continue;
 
@@ -1467,16 +1530,41 @@ void ChVisualSystemVSG::BindAll() {
 // -----------------------------------------------------------------------------
 
 void ChVisualSystemVSG::UpdateFromMBS() {
-    // Update VSG nodes for body COG visualization
-    if (m_show_cog) {
-        for (auto& child : m_cogScene->children) {
+    // Update VSG nodes for body COG frame visualization
+    if (m_show_cog_frames) {
+        for (auto& child : m_cogFrameScene->children) {
             std::shared_ptr<ChBody> body;
             vsg::ref_ptr<vsg::MatrixTransform> transform;
             if (!child.node->getValue("Body", body))
                 continue;
             if (!child.node->getValue("Transform", transform))
                 continue;
-            transform->matrix = vsg::dmat4CH(body->GetFrame_COG_to_abs(), m_cog_scale);
+
+            transform->matrix = vsg::dmat4CH(body->GetFrame_COG_to_abs(), m_cog_frame_scale);
+        }
+    }
+
+    // Update VSG nodes for joint frame visualization
+    if (m_show_joint_frames) {
+        for (auto& child : m_jointFrameScene->children) {
+            std::shared_ptr<ChLinkBase> link;
+            vsg::ref_ptr<vsg::MatrixTransform> transform;
+            if (!child.node->getValue("Joint", link))
+              continue;
+            if (!child.node->getValue("Transform", transform))
+                continue;
+
+            ChFrame<> frameA;
+            ChFrame<> frameB;
+            if (auto link_markers = std::dynamic_pointer_cast<ChLinkMarkers>(link)) {
+                frameA = *link_markers->GetMarker1() >> *link_markers->GetBody1();
+                frameB = *link_markers->GetMarker2() >> *link_markers->GetBody2();
+            } else if (auto link_mate = std::dynamic_pointer_cast<ChLinkMateGeneric>(link)) {
+                frameA = link_mate->GetFrame1() >> *link_mate->GetBody1();
+                frameB = link_mate->GetFrame2() >> *link_mate->GetBody2();
+            }
+
+            transform->matrix = vsg::dmat4CH(frameB, m_joint_frame_scale);
         }
     }
 

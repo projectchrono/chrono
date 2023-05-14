@@ -92,55 +92,25 @@ public:
 
 
 
-// Assembly a sparse matrix by bordering square H with rectangular Cq.
-//    HCQ = [ H  Cq' ]
-//          [ Cq  0  ]
-void sparse_assembly_2x2symm(Eigen::SparseMatrix<double, Eigen::ColMajor, int>& HCQ,       ///< resulting square sparse matrix (column major)
-	const ChSparseMatrix& H,   ///< square sparse H matrix, n_v x n_v
-	const ChSparseMatrix& Cq)  ///< rectangular  sparse Cq  n_c x n_v
-{
-	int n_v   = H.rows();
-	int n_c   = Cq.rows();
-	HCQ.resize(n_v + n_c, n_v + n_c);
-	HCQ.reserve(H.nonZeros() + 2 * Cq.nonZeros());
-    HCQ.setZero();
-
-	for (int k=0; k<H.outerSize(); ++k)
-		for (ChSparseMatrix::InnerIterator it(H,k); it; ++it) {
-			HCQ.insert(it.row(),it.col()) = it.value();
-        }
-
-	for (int k=0; k<Cq.outerSize(); ++k)
-        for (ChSparseMatrix::InnerIterator it(Cq, k); it; ++it) {
-            HCQ.insert(it.row() + n_v, it.col()) = it.value(); // insert Cq
-            HCQ.insert(it.col(), it.row() + n_v) = it.value(); // insert Cq'
-        }
-
-    // This seems necessary in Release mode
-    HCQ.makeCompressed();
-
-    //***NOTE*** 
-    // for some reason the HCQ matrix created via .insert() or .elementRef() or triplet insert, is 
-    // corrupt in Release mode, not in Debug mode. However, when doing a loop like the one below,
-    // it repairs it. 
-    // ***TODO*** avoid this bad hack and find the cause of the release/debug difference.
-    /*
-    for (int k = 0; k < HCQ.rows(); ++k) {
-        for (int j = 0; j < HCQ.cols(); ++j) {
-            auto foo = HCQ.coeffRef(k, j);
-            //GetLog() << HCQ.coeffRef(k,j) << " ";
-        }
-    }
-	*/
-}
-
-
-
 void placeMatrix(Eigen::SparseMatrix<double, Eigen::ColMajor, int>& HCQ, const ChSparseMatrix& H, int row_start, int col_start) {
+
+	//int insertion = 0;
+
 	for (int k=0; k<H.outerSize(); ++k)
 		for (ChSparseMatrix::InnerIterator it(H,k); it; ++it) {
-			HCQ.insert(it.row()+row_start,it.col()+col_start) = it.value();
+
+
+
+
+
+			HCQ.coeffRef(it.row()+row_start,it.col()+col_start) = it.value();
+
+
+			//HCQ.coeffRef(it.row()+row_start,it.col()+col_start) = it.value();
 		}
+
+	//std::cout << "Requested " << insertion << " insertions" << std::endl;
+
 }
 
 
@@ -158,16 +128,32 @@ bool ChGeneralizedEigenvalueSolverKrylovSchur::Solve(const ChSparseMatrix& M,  /
 	int n_vars   = M.rows();
 	int n_constr = Cq.rows();
 
+	// Scale constraints matrix
+	double scaling = 0;
+	if (settings.scaleCq) {
+		//GetLog() << "Scaling Cq\n";
+		scaling = K.diagonal().mean();
+		for (int k = 0; k < Cq.outerSize(); ++k)
+			for (ChSparseMatrix::InnerIterator it(Cq, k); it; ++it) {
+				it.valueRef() *= scaling;
+			}
+	}
+
 	// A  =  [ -K   -Cq' ]
 	//       [ -Cq    0  ]
 	Eigen::SparseMatrix<double> A(n_vars + n_constr, n_vars + n_constr);
-	sparse_assembly_2x2symm(A, -K, -Cq);
+	A.setZero();
+	placeMatrix(A, -K, 0, 0);
+	placeMatrix(A, -Cq.transpose(), 0, n_vars);
+	placeMatrix(A, -Cq, n_vars, 0);
+	A.makeCompressed();
 
 	// B  =  [  M     0  ]
 	//       [  0     0  ]
 	Eigen::SparseMatrix<double> B(n_vars + n_constr, n_vars + n_constr);
-	ChSparseMatrix O(n_constr, n_vars); O.setZero();
-	sparse_assembly_2x2symm(B, M, O);
+	B.setZero();
+	placeMatrix(B, M, 0, 0);
+	B.makeCompressed();
 
 	int m = 2 * settings.n_modes >= 30 ? 2 * settings.n_modes : 30;  // minimum subspace size   //**TO DO*** make parametric?
 	if (m > n_vars + n_constr-1)
@@ -267,14 +253,19 @@ bool ChGeneralizedEigenvalueSolverLanczos::Solve(const ChSparseMatrix& M,  ///< 
  
 	// A  =  [ -K   -Cq' ]
 	//       [ -Cq    0  ]
-	Eigen::SparseMatrix<double, Eigen::ColMajor, int> A(n_vars + n_constr, n_vars + n_constr);
-	sparse_assembly_2x2symm(A, -K, -Cq);
+	Eigen::SparseMatrix<double> A(n_vars + n_constr, n_vars + n_constr);
+	A.setZero();
+	placeMatrix(A, -K, 0, 0);
+	placeMatrix(A, -Cq.transpose(), 0, n_vars);
+	placeMatrix(A, -Cq, n_vars, 0);
+	A.makeCompressed();
 
 	// B  =  [  M     0  ]
 	//       [  0     0  ]
-	Eigen::SparseMatrix<double, Eigen::ColMajor, int> B(n_vars + n_constr, n_vars + n_constr);
-	ChSparseMatrix O(n_constr, n_vars); O.setZero();
-	sparse_assembly_2x2symm(B, M, O);
+	Eigen::SparseMatrix<double> B(n_vars + n_constr, n_vars + n_constr);
+	B.setZero();
+	placeMatrix(B, M, 0, 0);
+	B.makeCompressed();
 
 	int m = 2 * settings.n_modes >= 20 ? 2 * settings.n_modes : 20;  // minimum subspace size   
 	if (m > n_vars + n_constr -1)
@@ -522,20 +513,49 @@ bool ChQuadraticEigenvalueSolverKrylovSchur::Solve(const ChSparseMatrix& M, cons
 	ChVectorDynamic<double>& damping_ratio,		///< output vector with n damping rations r=damping/critical_damping.
 	ChEigenvalueSolverSettings settings) const
 {
+	m_timer_matrix_assembly.start();
+
+
 	// Generate the A and B in state space
 	int n_vars = M.rows();
 	int n_constr = Cq.rows();
 
-	GetLog() << "Scaling Cq\n";
-	double scaling = K.diagonal().mean();
-	for (int k=0; k<Cq.outerSize(); ++k)
-		for (ChSparseMatrix::InnerIterator it(Cq,k); it; ++it) {
-			it.valueRef() *= scaling;
-		}
+
+	// Scale constraints matrix
+	double scaling = 0;
+	if (settings.scaleCq) {
+		//GetLog() << "Scaling Cq\n";
+		scaling = K.diagonal().mean();
+		for (int k = 0; k < Cq.outerSize(); ++k)
+			for (ChSparseMatrix::InnerIterator it(Cq, k); it; ++it) {
+				it.valueRef() *= scaling;
+			}
+	}
+
 
 	Eigen::SparseMatrix<double, Eigen::ColMajor> As(2 * n_vars + n_constr, 2 * n_vars + n_constr);
 	Eigen::SparseMatrix<double, Eigen::ColMajor> Bs(2 * n_vars + n_constr, 2 * n_vars + n_constr);
 	ChSparseMatrix identity_n_vars(n_vars, n_vars); identity_n_vars.setIdentity();
+
+	Eigen::VectorXi As_resSize;
+	As_resSize.resize(As.cols());
+	As_resSize.setZero();
+
+	for (int k = 0; k < K.outerSize(); ++k)
+		for (ChSparseMatrix::InnerIterator it(K, k); it; ++it)
+			As_resSize[it.col()]++;
+	for (int k = 0; k < Cq.outerSize(); ++k)
+		for (ChSparseMatrix::InnerIterator it(Cq, k); it; ++it)
+			As_resSize[it.col()]++;
+	for (int k = 0; k < R.outerSize(); ++k)
+		for (ChSparseMatrix::InnerIterator it(R, k); it; ++it)
+			As_resSize[it.col() + n_vars]++;
+	for (auto col_i = 0; col_i < Cq.outerSize(); col_i++) {
+		As_resSize[col_i+2*n_vars] += Cq.isCompressed() ? Cq.outerIndexPtr()[col_i+1]-Cq.outerIndexPtr()[col_i] : Cq.innerNonZeroPtr()[col_i];
+	}
+	As_resSize.segment(n_vars, n_vars) = As_resSize.segment(n_vars, n_vars) + 1;
+	As.reserve(As_resSize);
+
 	// A  =  [  0     I     0 ]
 	//       [ -K    -R  -Cq' ]
 	//       [ -Cq    0     0 ]
@@ -548,6 +568,14 @@ bool ChQuadraticEigenvalueSolverKrylovSchur::Solve(const ChSparseMatrix& M, cons
 	placeMatrix(As, -Cq.transpose(), n_vars, 2 * n_vars);
 	As.makeCompressed();
 
+	Eigen::VectorXi Bs_resSize;
+	Bs_resSize.resize(Bs.cols());
+	Bs_resSize.setZero();
+	for (int k = 0; k < M.outerSize(); ++k)
+		for (ChSparseMatrix::InnerIterator it(M, k); it; ++it)
+			Bs_resSize[it.col() + n_vars]++;
+	Bs_resSize.segment(0, n_vars) = Bs_resSize.segment(0, n_vars) + 1;
+	Bs.reserve(Bs_resSize);
 
 
 	// B  =  [  I     0     0 ]
@@ -558,6 +586,7 @@ bool ChQuadraticEigenvalueSolverKrylovSchur::Solve(const ChSparseMatrix& M, cons
 	placeMatrix(Bs, M, n_vars, n_vars);
 	Bs.makeCompressed();
 
+	m_timer_matrix_assembly.stop();
 
 	int n_computed_eigs = 2 * settings.n_modes;
 	int m = 2 * n_computed_eigs >= 30 ? 2 * n_computed_eigs : 30;  // minimum subspace size   //**TO DO*** make parametric
@@ -565,6 +594,7 @@ bool ChQuadraticEigenvalueSolverKrylovSchur::Solve(const ChSparseMatrix& M, cons
 		m = 2 * n_vars + n_constr;
 
 	// Setup the Krylov Schur solver:
+	m_timer_eigen_setup.start();
 	ChVectorDynamic<std::complex<double>> eigen_values;
 	ChMatrixDynamic<std::complex<double>> eigen_vectors;
 	ChVectorDynamic<std::complex<double>> v1;
@@ -576,6 +606,10 @@ bool ChQuadraticEigenvalueSolverKrylovSchur::Solve(const ChSparseMatrix& M, cons
 		Bs,
 		settings.sigma,
 		this->linear_solver);
+
+	m_timer_eigen_setup.stop();
+
+	m_timer_eigen_solver.start();
 
 	bool isC, flag;
 	int nconv, niter;
@@ -599,6 +633,7 @@ bool ChQuadraticEigenvalueSolverKrylovSchur::Solve(const ChSparseMatrix& M, cons
 	//Eigen::saveMarket(R, "D:/workspace/KrylovSchur-master/ChronoDump/R.dat");
 	//Eigen::saveMarket(K, "D:/workspace/KrylovSchur-master/ChronoDump/K.dat");
 	//Eigen::saveMarket(Cq, "D:/workspace/KrylovSchur-master/ChronoDump/Cq.dat");
+	m_timer_eigen_solver.stop();
 
 	//Eigen::saveMarket(As, "D:/workspace/KrylovSchur-master/ChronoDump/As.dat");
 	//Eigen::saveMarket(Bs, "D:/workspace/KrylovSchur-master/ChronoDump/Bs.dat");
@@ -625,6 +660,8 @@ bool ChQuadraticEigenvalueSolverKrylovSchur::Solve(const ChSparseMatrix& M, cons
 			GetLog() << " niter   = " << niter << "\n";
 		}
 	}
+
+	m_timer_solution_postprocessing.start();
  
 	// Restore eigenvals, trasform back  from  shift-inverted problem to original problem:
 	for (int i = 0; i < eigen_values.rows() ; ++i)
