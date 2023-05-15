@@ -1061,12 +1061,7 @@ endif()
 #-------------------------------------------------------------------------------
 # Trigger CMake for vehicle cosimulation
 #-------------------------------------------------------------------------------
-
-option(ENABLE_MODULE_VEHICLE_COSIM "Build the Chrono vehicle cosimulation library" TRUE)
-mark_as_advanced(FORCE ENABLE_MODULE_VEHICLE_COSIM)
-if(ENABLE_MODULE_VEHICLE_COSIM)
-  add_subdirectory(cosim)
-endif()
+add_subdirectory(cosim)
 
 #-------------------------------------------------------------------------------
 # Install Chrono::Vehicle headers

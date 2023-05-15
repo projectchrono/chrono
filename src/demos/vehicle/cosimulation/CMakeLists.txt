@@ -6,10 +6,6 @@ if(NOT MPI_FOUND)
   return()
 endif()
 
-if(NOT ENABLE_MODULE_VEHICLE_COSIM)
-  return()
-endif()
-
 #message(STATUS "COSIM CXX: ${CH_VEHCOSIM_CXX_FLAGS}")
 #message(STATUS "COSIM LINK: ${CH_VEHCOSIM_LINKER_FLAGS}")
 #message(STATUS "COSIM INCLUDES: ${CH_VEHCOSIM_INCLUDES}")
@@ -22,14 +18,9 @@ set(PROGRAMS
     demo_VEH_Cosim_WheelRig_CustomTerrain
     demo_VEH_Cosim_WheeledVehicle
     demo_VEH_Cosim_TrackedVehicle
+    demo_VEH_Cosim_Viper
+    demo_VEH_Cosim_Curiosity
     )
-
-if(ENABLE_MODULE_MODELS_ROBOT)
-  set(PROGRAMS ${PROGRAMS}
-      demo_VEH_Cosim_Viper
-      demo_VEH_Cosim_Curiosity  
-  )
-endif()
 
 #if(ENABLE_MODULE_DISTRIBUTED)
 #  set(PROGRAMS ${PROGRAMS}
