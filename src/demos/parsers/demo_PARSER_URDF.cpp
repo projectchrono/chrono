@@ -39,18 +39,52 @@ using namespace chrono::parsers;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 int main(int argc, char* argv[]) {
-    std::string filename = (argc > 1) ? std::string(argv[1]) : "robot/robosimian/rs.urdf";
+    std::string filename = (argc > 1) ? std::string(argv[1]) : "robot/r2d2/r2d2.urdf";
+    ////std::string filename = (argc > 1) ? std::string(argv[1]) : "robot/robosimian/rs.urdf";
     ////std::string filename = (argc > 1) ? std::string(argv[1]) : "robot/viper/viper.urdf";
 
     // Make a system
     ChSystemSMC sys;
+    sys.Set_G_acc(ChVector<>(0, 0, 0));
 
-    // Create parser instance and set options.
-    ChParserURDF parser;
-    parser.Parse(sys, GetChronoDataFile(filename));
+    // Create a "floor" body
+    auto floor = chrono_types::make_shared<ChBody>();
+    floor->SetBodyFixed(true);
+    auto floor_box = chrono_types::make_shared<ChBoxShape>(3, 2, 0.1);
+    floor_box->SetTexture(GetChronoDataFile("textures/checker2.png"));
+    floor->AddVisualShape(floor_box);
+    sys.AddBody(floor);
 
-    // Get a report on parsed elements
-    parser.PrintModelTree();
+    // Create parser instance
+    ChParserURDF parser(GetChronoDataFile(filename));
+
+    // Set root body pose
+    parser.SetRootInitPose(ChFrame<>(ChVector<>(0, 0, 1.5), QUNIT));
+
+    // Make all eligible joints as actuated
+    parser.SetAllJointsActuated(ChParserURDF::ActuationType::POSITION);
+
+    // Example: change contact material properties for a body
+    ////ChContactMaterialData mat;
+    ////mat.kn = 2.5e6;
+    ////parser.SetBodyContactMaterial("head", mat);  // hardcoded for R2D2 model
+
+    // Report parsed elements
+    parser.PrintModelBodies();
+    parser.PrintModelJoints();
+
+    // Create the Chrono model
+    parser.PopulateSystem(sys);
+
+    // Get location of the root body
+    auto root_loc = parser.GetRootBody()->GetPos();
+
+    // Example: fix root body
+    parser.GetRootBody()->SetBodyFixed(true);
+
+    // Example: Change actuation function for a particular joint
+    auto sfun = chrono_types::make_shared<ChFunction_Sine>(0, 0.5, 1.0);
+    parser.SetMotorFunction("head_swivel", sfun);  // hardcoded for R2D2 model
 
     // Create the visualization window
     std::shared_ptr<ChVisualSystem> vis;
@@ -74,7 +108,7 @@ int main(int argc, char* argv[]) {
             vis_irr->Initialize();
             vis_irr->AddLogo();
             vis_irr->AddSkyBox();
-            vis_irr->AddCamera(ChVector<>(3, 3, 0));
+            vis_irr->AddCamera(root_loc + ChVector<>(3, 3, 0), root_loc);
             vis_irr->AddTypicalLights();
 
             vis = vis_irr;
@@ -88,11 +122,11 @@ int main(int argc, char* argv[]) {
             vis_vsg->AttachSystem(&sys);
             vis_vsg->SetCameraVertical(CameraVerticalDir::Z);
             vis_vsg->SetWindowTitle("NSC callbacks");
-            vis_vsg->AddCamera(ChVector<>(3, 3, 0));
+            vis_vsg->AddCamera(root_loc + ChVector<>(3, 3, 0), root_loc);
             vis_vsg->SetWindowSize(ChVector2<int>(800, 600));
             vis_vsg->SetWindowPosition(ChVector2<int>(100, 100));
-            vis_vsg->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
-            vis_vsg->SetUseSkyBox(true);
+            vis_vsg->SetClearColor(ChColor(0.455f, 0.525f, 0.640f));
+            vis_vsg->SetUseSkyBox(false);
             vis_vsg->SetCameraAngleDeg(40.0);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
@@ -110,6 +144,8 @@ int main(int argc, char* argv[]) {
         vis->BeginScene();
         vis->Render();
         vis->EndScene();
+
+        sys.DoStepDynamics(1e-3);
     }
 
     return 0;
