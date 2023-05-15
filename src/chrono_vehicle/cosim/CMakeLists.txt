@@ -36,11 +36,16 @@ set(CV_COSIM_MBS_FILES
     mbs/ChVehicleCosimWheeledVehicleNode.cpp
     mbs/ChVehicleCosimTrackedVehicleNode.h
     mbs/ChVehicleCosimTrackedVehicleNode.cpp
-    mbs/ChVehicleCosimViperNode.h
-    mbs/ChVehicleCosimViperNode.cpp
-    mbs/ChVehicleCosimCuriosityNode.h
-    mbs/ChVehicleCosimCuriosityNode.cpp
 )
+
+if(ENABLE_MODULE_MODELS_ROBOT)
+  set(CV_COSIM_MBS_FILES ${CV_COSIM_MBS_FILES}
+      mbs/ChVehicleCosimViperNode.h
+      mbs/ChVehicleCosimViperNode.cpp
+      mbs/ChVehicleCosimCuriosityNode.h
+      mbs/ChVehicleCosimCuriosityNode.cpp
+  )
+endif()
 
 set(CV_COSIM_TIRE_FILES
     tire/ChVehicleCosimTireNodeRigid.h
@@ -64,11 +69,14 @@ set(CV_COSIM_TERRAIN_FILES
 
 list(APPEND LIBRARIES ChronoEngine_vehicle)
 list(APPEND LIBRARIES ChronoModels_vehicle)
-list(APPEND LIBRARIES ChronoModels_robot)
 list(APPEND LIBRARIES "${MPI_CXX_LIBRARIES}")
 set(LINKER_FLAGS "${CH_LINKERFLAG_SHARED} ${MPI_CXX_LINK_FLAGS}")
 set(INCLUDES "${CH_INCLUDES};${MPI_CXX_INCLUDE_PATH}")
 set(CXX_FLAGS "${CH_CXX_FLAGS} ${MPI_CXX_COMPILE_FLAGS}")
+
+if(ENABLE_MODULE_MODELS_ROBOT)
+  list(APPEND LIBRARIES ChronoModels_robot)
+endif()
 
 if(ENABLE_MODULE_MULTICORE)
   set(CV_COSIM_TERRAIN_FILES ${CV_COSIM_TERRAIN_FILES}

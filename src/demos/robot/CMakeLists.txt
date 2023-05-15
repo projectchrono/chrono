@@ -1,8 +1,10 @@
 # Demo programs for simulations with models from the Chrono::Robots library
 # ------------------------------------------------------------------------------
 
+message(STATUS "Demo programs for ROBOT models...")
+
 if(NOT ENABLE_MODULE_VEHICLE)
-  message(STATUS "  Warning: the Rover projects require Chrono::Vehicle!")
+  message(STATUS "  Warning: the ROBOT demos require Chrono::Vehicle!")
   return()
 endif()
 
@@ -84,8 +86,6 @@ endif()
 # ------------------------------------------------------------------------------
 # Add all executables
 # ------------------------------------------------------------------------------
-
-message(STATUS "Demo programs for ROBOT models...")
 
 foreach(PROGRAM ${DEMOS})
     message(STATUS "...add ${PROGRAM}")
