@@ -582,6 +582,7 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono,ChFunction, ChFunction_Sequence)
 %DefSharedPtrDynamicDowncast(chrono,ChFunction, ChFunction_Sigma)
 %DefSharedPtrDynamicDowncast(chrono,ChFunction, ChFunction_Sine)
+%DefSharedPtrDynamicDowncast(chrono,ChFunction, ChFunction_Setpoint)
 
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChShaft)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChShaftsBody)
