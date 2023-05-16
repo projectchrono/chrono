@@ -114,7 +114,7 @@
 				"ENABLE_MODULE_PYTHON": "ON",
 				"ENABLE_MODULE_CSHARP": "ON",
 				"CMAKE_INSTALL_PREFIX": "$env{HOME}/install/chrono",
-				"OpenMP_CXX_FLAGS": "-Xclang -fopenmp -I $env{HOMEBREW_PREFIX}/Cellar/libomp/15.0.7/include",
+				"OpenMP_CXX_FLAGS": "-Xclang -fopenmp -I $env{HOMEBREW_PREFIX}/Cellar/libomp/16.0.3/include",
 				"OpenMP_C_FLAGS": "-Xclang -fopenmp",
 				"OpenMP_C_INCLUDE_DIR": "-L $env{HOMEBREW_PREFIX}/opt/libomp/lib",
 				"OpenMP_CXX_INCLUDE_DIR": "$env{HOMEBREW_PREFIX}/include",
