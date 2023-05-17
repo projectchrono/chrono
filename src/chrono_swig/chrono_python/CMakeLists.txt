@@ -658,7 +658,7 @@ endif()
 # MODULE for the vehicle python wrapper.
 #-----------------------------------------------------------------------------
 
-if(ENABLE_MODULE_VEHICLE)
+if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
 
   message(STATUS "...add python vehicle module:  pychrono.vehicle")
 

@@ -4,7 +4,7 @@
 # Requires the SynChrono and Chrono::Vehicle modules 
 #--------------------------------------------------------------
 
-if(NOT ENABLE_MODULE_VEHICLE OR NOT ENABLE_MODULE_SYNCHRONO)
+if(NOT ENABLE_MODULE_VEHICLE OR NOT ENABLE_MODULE_MOELS_VEHICLE OR NOT ENABLE_MODULE_SYNCHRONO)
   return()
 endif()  
 
