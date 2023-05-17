@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
 
     // Make a system
     ChSystemSMC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, 0));
+    sys.Set_G_acc(ChVector<>(0, 0, -9.8));
 
     // Create a "floor" body
     auto floor = chrono_types::make_shared<ChBody>();
@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
     // Get location of the root body
     auto root_loc = parser.GetRootBody()->GetPos();
 
-    // Example: fix root body
+    // Fix root body
     parser.GetRootBody()->SetBodyFixed(true);
 
     // Example: Change actuation function for a particular joint

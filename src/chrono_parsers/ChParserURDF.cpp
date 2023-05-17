@@ -46,6 +46,9 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
+// Threshold for identifying bodies with zero inertia properties.
+const double inertia_threshold = 1e-6;
+
 ChParserURDF::ChParserURDF(const std::string& filename) : m_filename(filename), m_sys(nullptr) {
     // Read input file into XML string
     std::string xml_string;
@@ -75,7 +78,7 @@ void ChParserURDF::SetRootInitPose(const ChFrame<>& init_pose) {
 void ChParserURDF::SetJointActuated(const std::string& joint_name, ActuationType actuation_type) {
     auto joint = m_model->getJoint(joint_name);
     if (!joint) {
-        cerr << "SetJointActuated: No joint named \"" << joint_name << "\"." << endl;
+        cerr << "WARNING: SetJointActuated: No joint named \"" << joint_name << "\"." << endl;
         return;
     }
 
@@ -84,7 +87,7 @@ void ChParserURDF::SetJointActuated(const std::string& joint_name, ActuationType
         joint->type == urdf::Joint::PRISMATIC)
         m_actuated_joints.insert(std::make_pair(joint_name, actuation_type));
     else
-        cerr << "SetJointActuated: Joint \"" << joint_name << "\" cannot be actuated." << endl;
+        cerr << "WARNING: SetJointActuated: Joint \"" << joint_name << "\" cannot be actuated." << endl;
 }
 
 void ChParserURDF::SetAllJointsActuated(ActuationType actuation_type) {
@@ -137,10 +140,12 @@ void ChParserURDF::createChildren(urdf::LinkConstSharedPtr parent, const ChFrame
 
         // Create the child Chrono body
         auto body = toChBody(*child);
-        body->SetFrame_REF_to_abs(child_frame);
-        m_sys->AddBody(body);
+        if (body) {
+            body->SetFrame_REF_to_abs(child_frame);
+            m_sys->AddBody(body);
+        }
 
-        // Set this as the root body of the model if not set yet
+        // Set this as the root body of the model if not already set
         if (!m_root_body)
             m_root_body = body;
 
@@ -205,16 +210,38 @@ std::shared_ptr<ChVisualShape> ChParserURDF::toChVisualShape(const urdf::Geometr
 
 // Create a body (with default collision model type) from the provided URDF link
 std::shared_ptr<ChBodyAuxRef> ChParserURDF::toChBody(urdf::LinkConstSharedPtr link) {
+    // Get inertia properties
+    //// TODO - check convention for signs of products of inertia
+    const auto& inertial = link->inertial;
+    double mass = inertial->mass;
+    auto inertia_moments = ChVector<>(inertial->ixx, inertial->iyy, inertial->izz);
+    auto inertia_products = ChVector<>(inertial->ixy, inertial->ixz, inertial->iyz);
+    
+    // Discard bodies with zero inertia properties
+    if (mass < inertia_threshold || inertia_moments.Length() < inertia_threshold) {
+        cerr << "WARNING: Body " << link->name << " has ZERO inertia." << endl;
+
+        // Error if a discarded body was connected to its parent with anything but a FIXED joint
+        if (link->parent_joint->type != urdf::Joint::FIXED) {
+            cerr << "ERROR: Body with ZERO inertia not connected through FIXED joint to parent." << endl;
+            throw ChException("Body with ZERO inertia not connected through FIXED joint to parent.");
+        }
+
+        // Add to the list of discarded bodies and cache the body's parent
+        m_discarded.insert(std::make_pair(link->name, link->parent_joint->parent_link_name));
+
+        //// TODO: transfer visualization and collision assets to parent body
+
+        return nullptr;
+    }
+
+    // Create the Chrono body
     auto body = chrono_types::make_shared<ChBodyAuxRef>();
     body->SetNameString(link->name);
-
-    // Set inertia properties
-    const auto& inertial = link->inertial;
     body->SetFrame_COG_to_REF(toChFrame(inertial->origin));
-    body->SetMass(inertial->mass);
-    //// TODO - check convention for signs of products of inertia
-    body->SetInertiaXX(ChVector<>(inertial->ixx, inertial->iyy, inertial->izz));
-    body->SetInertiaXY(ChVector<>(inertial->ixy, inertial->ixz, inertial->iyz));
+    body->SetMass(mass);
+    body->SetInertiaXX(inertia_moments);
+    body->SetInertiaXY(inertia_products);
 
     // Set visualization assets
     for (const auto& visual : link->visual_array) {
@@ -284,8 +311,20 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
     auto joint_type = joint->type;
 
     // Find the parent and child bodies
-    const auto& parent_link_name = joint->parent_link_name;
-    const auto& child_link_name = joint->child_link_name;
+    auto parent_link_name = joint->parent_link_name;
+    auto child_link_name = joint->child_link_name;
+
+    // If the child is a discarded body, do not create this joint
+    if (m_discarded.find(child_link_name) != m_discarded.end()) {
+        assert(joint_type == urdf::Joint::FIXED);
+        return nullptr;
+    }
+
+    // If the parent is a discarded body, use the grandparent
+    if (m_discarded.find(parent_link_name) != m_discarded.end()) {
+        parent_link_name = m_discarded.find(parent_link_name)->second;
+    }
+
     auto parent = std::find_if(
         std::begin(m_sys->Get_bodylist()), std::end(m_sys->Get_bodylist()),
         [parent_link_name](std::shared_ptr<ChBody> body) { return body->GetNameString() == parent_link_name; });
@@ -296,11 +335,12 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
     // The parent body may not have been created (e.g., when using a dummy root)
     if (parent == m_sys->Get_bodylist().end())
         return nullptr;
+
     // The child body should always exist
     assert(child != m_sys->Get_bodylist().end());
 
-    auto parent_body = *parent;
-    auto child_body = *child;
+    const auto& parent_body = *parent;
+    const auto& child_body = *child;
 
     // Create 3 mutually orthogonal directions, with d1 being the joint axis.
     // These form a rotation matrix relative to the child frame (in the URDF representation, a body reference frame
@@ -313,7 +353,7 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
     ChFrame<> joint_frame = *child_body;  // default joint frame == child body frame
 
     if (m_actuated_joints.find(joint->name) != m_actuated_joints.end()) {
-        // Create a motor
+        // Create a motor (with a default zero constant motor function)
         auto actuation_type = m_actuated_joints.find(joint->name)->second;
         auto actuation_fun = chrono_types::make_shared<ChFunction_Const>(0);
 
@@ -414,24 +454,24 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
 
 std::shared_ptr<ChBodyAuxRef> ChParserURDF::GetRootBody() const {
     if (!m_sys)
-        cerr << "SetRootBodyFixed: The Chrono model was not yet populated." << endl;
+        cerr << "WARNING: GetRootBody: The Chrono model was not yet populated." << endl;
 
     return m_root_body;
 }
 
 void ChParserURDF::SetMotorFunction(const std::string& motor_name, const std::shared_ptr<ChFunction> function) {
     if (!m_sys) {
-        cerr << "SetMotorFunction: The Chrono model was not yet populated." << endl;
+        cerr << "WARNING: SetMotorFunction: The Chrono model was not yet populated." << endl;
         return;
     }
 
     if (!m_model->getJoint(motor_name)) {
-        cerr << "SetMotorFunction: No joint named \"" << motor_name << "\"." << endl;
+        cerr << "WARNING: SetMotorFunction: No joint named \"" << motor_name << "\"." << endl;
         return;
     }
 
     if (m_actuated_joints.find(motor_name) == m_actuated_joints.end()) {
-        cerr << "SetMotorFunction: The joint \"" << motor_name << "\" was not marked as actuated." << endl;
+        cerr << "WARNING: SetMotorFunction: The joint \"" << motor_name << "\" was not marked as actuated." << endl;
         return;
     }
 
@@ -465,15 +505,16 @@ void printBodyTree(urdf::LinkConstSharedPtr link, int level = 0) {
 
 void ChParserURDF::PrintModelBodies() {
     auto root_link = m_model->getRoot();
-    cout << "\nBody list in <" << m_model->getName() << "> model" << endl;
-    cout << "Root body: " << root_link->name << " has " << root_link->child_links.size() << " child(ren)" << endl;
+    cout << "Body list in <" << m_model->getName() << "> model" << endl;
+    cout << "  Root body " << root_link->name << " has " << root_link->child_links.size() << " child(ren)" << endl;
     printBodyTree(root_link);
+    cout << endl;
 }
 
 // -----------------------------------------------------------------------------
 
 void ChParserURDF::PrintModelJoints() {
-    cout << "\nJoint list in <" << m_model->getName() << "> model" << endl;
+    cout << "Joint list in <" << m_model->getName() << "> model" << endl;
     std::vector<urdf::LinkSharedPtr> links;
     m_model->getLinks(links);
     for (const auto& link : links) {
@@ -506,6 +547,7 @@ void ChParserURDF::PrintModelJoints() {
         cout << "Link: " << std::left << std::setw(20) << link->name;
         cout << "Parent:" << std::left << std::setw(20) << joint->parent_link_name << std::endl;
     }
+    cout << endl;
 }
 
 // -----------------------------------------------------------------------------

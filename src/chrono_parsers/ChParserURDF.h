@@ -112,8 +112,9 @@ class ChApiParsers ChParserURDF {
     ChSystem* m_sys;                                          ///< containing Chrono system
     ChFrame<> m_init_pose;                                    ///< root body initial pose
     std::shared_ptr<ChBodyAuxRef> m_root_body;                ///< model root body
-    std::map<std::string, ActuationType> m_actuated_joints;   ///< actuated joints
+    std::map<std::string, std::string> m_discarded;           ///< discarded bodies
     std::map<std::string, ChContactMaterialData> m_mat_data;  ///< body contact material data
+    std::map<std::string, ActuationType> m_actuated_joints;   ///< actuated joints
     ChContactMaterialData m_default_mat_data;                 ///< default contact material data
 };
 
