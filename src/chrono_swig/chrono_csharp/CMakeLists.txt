@@ -132,7 +132,7 @@ endif()
 # Wrapper for VEHICLE Chrono module
 #-----------------------------------------------------------------------------
 
-if(ENABLE_MODULE_VEHICLE)
+if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
 
   message(STATUS "...add CSharp VEHICLE module")
   

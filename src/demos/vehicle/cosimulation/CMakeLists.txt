@@ -6,6 +6,10 @@ if(NOT MPI_FOUND)
   return()
 endif()
 
+if(NOT ENABLE_MODULE_VEHICLE_COSIM)
+  return()
+endif()
+
 #message(STATUS "COSIM CXX: ${CH_VEHCOSIM_CXX_FLAGS}")
 #message(STATUS "COSIM LINK: ${CH_VEHCOSIM_LINKER_FLAGS}")
 #message(STATUS "COSIM INCLUDES: ${CH_VEHCOSIM_INCLUDES}")
@@ -16,11 +20,16 @@ endif()
 set(PROGRAMS 
     demo_VEH_Cosim_WheelRig
     demo_VEH_Cosim_WheelRig_CustomTerrain
-    demo_VEH_Cosim_WheeledVehicle
-    demo_VEH_Cosim_TrackedVehicle
     demo_VEH_Cosim_Viper
     demo_VEH_Cosim_Curiosity
-    )
+)
+
+if(ENABLE_MODULE_VEHICLE_MODELS)
+  set(PROGRAMS ${PRGRAMS}
+    demo_VEH_Cosim_WheeledVehicle
+    demo_VEH_Cosim_TrackedVehicle
+  )
+endif()
 
 #if(ENABLE_MODULE_DISTRIBUTED)
 #  set(PROGRAMS ${PROGRAMS}
@@ -29,6 +38,11 @@ set(PROGRAMS
 #endif()
 
 include_directories(${CH_VEHCOSIM_INCLUDES})
+list(APPEND LIBRARIES ChronoEngine_vehicle_cosim)
+list(APPEND LIBRARIES ${CH_VEHCOSIM_LIBRARIES})
+if(ENABLE_MODULE_VEHICLE_MODELS)
+  list(APPEND LIBRARIES ChronoModels_vehicle)
+endif()
 
 FOREACH(PROGRAM ${PROGRAMS})
   message(STATUS "...add ${PROGRAM}")
@@ -40,5 +54,5 @@ FOREACH(PROGRAM ${PROGRAMS})
       COMPILE_FLAGS "${CH_VEHCOSIM_CXX_FLAGS}"
       LINK_FLAGS "${CH_VEHCOSIM_LINKER_FLAGS}")
 
-  target_link_libraries(${PROGRAM} ChronoEngine_vehicle_cosim ${CH_VEHCOSIM_LIBRARIES})
+  target_link_libraries(${PROGRAM} ${LIBRARIES})
 ENDFOREACH()

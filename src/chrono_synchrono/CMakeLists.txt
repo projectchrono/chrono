@@ -26,6 +26,13 @@ if(NOT ENABLE_MODULE_VEHICLE)
     return()
 endif()
 
+# Return now if the Chrono vehicle models are not enabled
+if(NOT ENABLE_MODULE_VEHICLE_MODELS)
+    message("Chrono::SynChrono depends on the vehicle models library which is disabled. Disabling Chrono::SynChrono")
+    set(ENABLE_MODULE_SYNCHRONO OFF CACHE BOOL "Enable the SynChrono module" FORCE)
+    return()
+endif()
+
 set(SYN_CXX_FLAGS "${CH_CXX_FLAGS}")
 set(SYN_LINKER_FLAGS "${CH_LINKERFLAG_SHARED}")
 set(SYN_LIBRARIES "")
@@ -236,6 +243,8 @@ endif()
 # Chrono::Vehicle is required
 list(APPEND SYN_LIB_NAMES ChronoEngine_vehicle)
 list(APPEND SYN_LIB_NAMES ChronoModels_vehicle)
+
+list(APPEND SYN_LIB_NAMES ChronoModels_robot)
 
 # Set some variables to be visible outside this directory
 set(FASTDDS_FOUND "${FASTDDS_FOUND}" PARENT_SCOPE)

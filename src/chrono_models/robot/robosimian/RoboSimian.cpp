@@ -1162,7 +1162,7 @@ RS_Limb::RS_Limb(const std::string& name,
         link->m_offset = data[i].link.m_offset;
         link->m_color = data[i].link.m_color;
 
-        for (auto cyl : data[i].link.m_shapes) {
+        for (const auto& cyl : data[i].link.m_shapes) {
             link->m_cylinders.push_back(cyl);
         }
 

@@ -11,11 +11,14 @@
 @rem   project configuration scripts required to configure Chrono with the Chrono::VSG module enabled.
 @rem
 @rem Notes:
-@rem - This was tested with the following versions of VSG libraries:
-@rem      VulkanSceneGraph (github.com/vsg-dev/VulkanSceneGraph.git): Tag VulkanSceneGraph-1.0.3
-@rem      vsgXchange (github.com/vsg-dev/vsgXchange.git):             Tag vsgXchange-11.0.3
-@rem      vsgImGui (github.com/vsg-dev/vsgImGui.git):                 Commit #0ec0cd4
-@rem      vsgExamples (github.com/vsg-dev/vsgExamples.git):           Tag vsgExamples-1.0.2
+@rem - This script uses the latest versions of the various codes from their respective repositories, with the
+@rem   only exception being assimp (set at version 5.2.5). This means that pushes to any of the VSG repositories
+@rem   may break the generation of the dependencies for Chrono::VSG.
+@rem - This script was tested with the following versions of VSG libraries:
+@rem      VulkanSceneGraph (github.com/vsg-dev/VulkanSceneGraph.git): Commit #c87b4cca
+@rem      vsgXchange (github.com/vsg-dev/vsgXchange.git):             Commit #883f887
+@rem      vsgImGui (github.com/vsg-dev/vsgImGui.git):                 Commit #d9261b1
+@rem      vsgExamples (github.com/vsg-dev/vsgExamples.git):           Commit #7ac782b
 @rem      assimp (github.com/assimp/assimp):                          Tag v5.2.5
 @rem ---------------------------------------------------------------------------------------------------------
 
@@ -47,11 +50,13 @@ set BUILDDEBUG=ON
     mkdir download_vsg
 
     echo "  ... VulkanSceneGraph"
-    git clone -c advice.detachedHead=false --depth 1 --branch VulkanSceneGraph-1.0.3 "https://github.com/vsg-dev/VulkanSceneGraph" "download_vsg/vsg"
+    rem git clone -c advice.detachedHead=false --depth 1 --branch VulkanSceneGraph-1.0.5 "https://github.com/vsg-dev/VulkanSceneGraph" "download_vsg/vsg"
+    git clone "https://github.com/vsg-dev/VulkanSceneGraph" "download_vsg/vsg"
     set VSG_SOURCE_DIR="download_vsg/vsg"
 
     echo "  ... vsgXchange"    
-    git clone -c advice.detachedHead=false --depth 1 --branch vsgXchange-1.0.2 "https://github.com/vsg-dev/vsgXchange" "download_vsg/vsgXchange"
+    rem git clone -c advice.detachedHead=false --depth 1 --branch vsgXchange-1.0.2 "https://github.com/vsg-dev/vsgXchange" "download_vsg/vsgXchange"
+    git clone "https://github.com/vsg-dev/vsgXchange" "download_vsg/vsgXchange"
     set VSGXCHANGE_SOURCE_DIR="download_vsg/vsgXchange"
 
     echo "  ... vsgImGui"
@@ -59,7 +64,8 @@ set BUILDDEBUG=ON
     set VSGIMGUI_SOURCE_DIR="download_vsg/vsgImGui"
 
     echo "  ... vsgExamples"
-    git clone -c advice.detachedHead=false --depth 1 --branch vsgExamples-1.0.2 "https://github.com/vsg-dev/vsgExamples" "download_vsg/vsgExamples"
+    rem git clone -c advice.detachedHead=false --depth 1 --branch vsgExamples-1.0.3 "https://github.com/vsg-dev/vsgExamples" "download_vsg/vsgExamples"
+    git clone "https://github.com/vsg-dev/vsgExamples" "download_vsg/vsgExamples"
     set VSGEXAMPLES_SOURCE_DIR="download_vsg/vsgExamples"
 
     echo "  ... assimp"
