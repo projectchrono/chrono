@@ -514,7 +514,7 @@ bool ChSystem::ManageSleepingBodies() {
         return 0;
 
     // STEP 1:
-    // See if some body could change from no sleep-> sleep
+    // See if some body could change from no sleep to sleep
 
     for (auto& body : assembly.bodylist) {
         // mark as 'could sleep' candidate
@@ -522,11 +522,9 @@ bool ChSystem::ManageSleepingBodies() {
     }
 
     // STEP 2:
-    // See if some sleeping or potential sleeping body is touching a non sleeping one,
-    // if so, set to no sleep.
+    // See if some sleeping or potential sleeping body is touching a non sleeping one; if so, set to no sleep.
 
     // Make this class for iterating through contacts
-
     class _wakeup_reporter_class : public ChContactContainer::ReportContactCallback {
       public:
         // Callback, used to report contact points already added to the container.
@@ -568,7 +566,7 @@ bool ChSystem::ManageSleepingBodies() {
             if (could_sleep2 && !(sleep1 || could_sleep1) && !ground1) {
                 b2->BFlagSet(ChBody::BodyFlag::COULDSLEEP, false);
             }
-            someone_sleeps = sleep1 | sleep2 | someone_sleeps;
+            someone_sleeps = someone_sleeps ||sleep1 || sleep2;
 
             return true;  // to continue scanning contacts
         }

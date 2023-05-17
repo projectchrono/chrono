@@ -365,38 +365,43 @@ void ChAssembly::RemoveAllOtherPhysicsItems() {
         system->is_updated = false;
 }
 
-std::shared_ptr<ChBody> ChAssembly::SearchBody(const char* name) {
-    return ChContainerSearchFromName<std::shared_ptr<ChBody>, std::vector<std::shared_ptr<ChBody>>::iterator>(
-        name, bodylist.begin(), bodylist.end());
+std::shared_ptr<ChBody> ChAssembly::SearchBody(const std::string& name) const {
+    auto body = std::find_if(std::begin(bodylist), std::end(bodylist),
+                             [name](std::shared_ptr<ChBody> body) { return body->GetNameString() == name; });
+    return (body != std::end(bodylist)) ? *body : nullptr;
 }
 
-std::shared_ptr<ChBody> ChAssembly::SearchBodyID(int bodyID) {
-    return ChContainerSearchFromID<std::shared_ptr<ChBody>, std::vector<std::shared_ptr<ChBody>>::iterator>(
-        bodyID, bodylist.begin(), bodylist.end());
+std::shared_ptr<ChBody> ChAssembly::SearchBodyID(int id) const {
+    auto body = std::find_if(std::begin(bodylist), std::end(bodylist),
+                             [id](std::shared_ptr<ChBody> body) { return body->GetIdentifier() == id; });
+    return (body != std::end(bodylist)) ? *body : nullptr;
 }
 
-std::shared_ptr<ChShaft> ChAssembly::SearchShaft(const char* name) {
-    return ChContainerSearchFromName<std::shared_ptr<ChShaft>, std::vector<std::shared_ptr<ChShaft>>::iterator>(
-        name, shaftlist.begin(), shaftlist.end());
+std::shared_ptr<ChShaft> ChAssembly::SearchShaft(const std::string& name) const {
+    auto shaft = std::find_if(std::begin(shaftlist), std::end(shaftlist),
+                              [name](std::shared_ptr<ChShaft> shaft) { return shaft->GetNameString() == name; });
+    return (shaft != std::end(shaftlist)) ? *shaft : nullptr;
 }
 
-std::shared_ptr<ChLinkBase> ChAssembly::SearchLink(const char* name) {
-    return ChContainerSearchFromName<std::shared_ptr<ChLinkBase>, std::vector<std::shared_ptr<ChLinkBase>>::iterator>(
-        name, linklist.begin(), linklist.end());
+std::shared_ptr<ChLinkBase> ChAssembly::SearchLink(const std::string& name) const {
+    auto link = std::find_if(std::begin(linklist), std::end(linklist),
+                             [name](std::shared_ptr<ChLinkBase> link) { return link->GetNameString() == name; });
+    return (link != std::end(linklist)) ? *link : nullptr;
 }
 
-std::shared_ptr<fea::ChMesh> ChAssembly::SearchMesh(const char* name) {
-    return ChContainerSearchFromName<std::shared_ptr<fea::ChMesh>, std::vector<std::shared_ptr<fea::ChMesh>>::iterator>(
-        name, meshlist.begin(), meshlist.end());
+std::shared_ptr<fea::ChMesh> ChAssembly::SearchMesh(const std::string& name) const{
+    auto mesh = std::find_if(std::begin(meshlist), std::end(meshlist),
+                             [name](std::shared_ptr<fea::ChMesh> mesh) { return mesh->GetNameString() == name; });
+    return (mesh != std::end(meshlist)) ? *mesh : nullptr;
 }
 
-std::shared_ptr<ChPhysicsItem> ChAssembly::SearchOtherPhysicsItem(const char* name) {
-    return ChContainerSearchFromName<std::shared_ptr<ChPhysicsItem>,
-                                     std::vector<std::shared_ptr<ChPhysicsItem>>::iterator>(
-        name, otherphysicslist.begin(), otherphysicslist.end());
+std::shared_ptr<ChPhysicsItem> ChAssembly::SearchOtherPhysicsItem(const std::string& name) const {
+    auto item = std::find_if(std::begin(otherphysicslist), std::end(otherphysicslist),
+                             [name](std::shared_ptr<ChPhysicsItem> item) { return item->GetNameString() == name; });
+    return (item != std::end(otherphysicslist)) ? *item : nullptr;
 }
 
-std::shared_ptr<ChPhysicsItem> ChAssembly::Search(const char* name) {
+std::shared_ptr<ChPhysicsItem> ChAssembly::Search(const std::string& name) const {
     if (auto mbo = SearchBody(name))
         return mbo;
 
@@ -415,26 +420,24 @@ std::shared_ptr<ChPhysicsItem> ChAssembly::Search(const char* name) {
     return std::shared_ptr<ChPhysicsItem>();  // not found; return an empty shared_ptr
 }
 
-std::shared_ptr<ChMarker> ChAssembly::SearchMarker(const char* name) {
+std::shared_ptr<ChMarker> ChAssembly::SearchMarker(const std::string& name) const {
     // Iterate over all bodies and search in the body's marker list
     for (auto& body : bodylist) {
-        if (auto mmark = body->SearchMarker(name))
-            return mmark;
+        if (auto marker = body->SearchMarker(name))
+            return marker;
     }
 
-    return (std::shared_ptr<ChMarker>());  // not found; return an empty shared_ptr
+    return nullptr;  // not found
 }
 
-std::shared_ptr<ChMarker> ChAssembly::SearchMarker(int markID) {
+std::shared_ptr<ChMarker> ChAssembly::SearchMarker(int id) const {
     // Iterate over all bodies and search in the body's marker list
     for (auto& body : bodylist) {
-        if (auto res = ChContainerSearchFromID<std::shared_ptr<ChMarker>,
-                                               std::vector<std::shared_ptr<ChMarker>>::const_iterator>(
-                markID, body->GetMarkerList().begin(), body->GetMarkerList().end()))
-            return res;
+        if (auto marker = body->SearchMarker(id))
+            return marker;
     }
 
-    return (std::shared_ptr<ChMarker>());  // not found; return an empty shared_ptr
+    return nullptr;  // not found
 }
 
 // -----------------------------------------------------------------------------

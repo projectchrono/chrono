@@ -216,9 +216,12 @@ std::shared_ptr<ChBodyAuxRef> ChParserURDF::toChBody(urdf::LinkConstSharedPtr li
     double mass = inertial->mass;
     auto inertia_moments = ChVector<>(inertial->ixx, inertial->iyy, inertial->izz);
     auto inertia_products = ChVector<>(inertial->ixy, inertial->ixz, inertial->iyz);
-    
+
     // Discard bodies with zero inertia properties
-    if (mass < inertia_threshold || inertia_moments.Length() < inertia_threshold) {
+    if (mass < inertia_threshold ||                 //
+        inertia_moments.x() < inertia_threshold ||  //
+        inertia_moments.y() < inertia_threshold ||  //
+        inertia_moments.z() < inertia_threshold) {
         cerr << "WARNING: Body " << link->name << " has ZERO inertia." << endl;
 
         // Error if a discarded body was connected to its parent with anything but a FIXED joint
@@ -325,22 +328,17 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
         parent_link_name = m_discarded.find(parent_link_name)->second;
     }
 
-    auto parent = std::find_if(
-        std::begin(m_sys->Get_bodylist()), std::end(m_sys->Get_bodylist()),
-        [parent_link_name](std::shared_ptr<ChBody> body) { return body->GetNameString() == parent_link_name; });
-    auto child = std::find_if(
-        std::begin(m_sys->Get_bodylist()), std::end(m_sys->Get_bodylist()),
-        [child_link_name](std::shared_ptr<ChBody> body) { return body->GetNameString() == child_link_name; });
+    const auto& parent = m_sys->SearchBody(parent_link_name);
+    const auto& child = m_sys->SearchBody(child_link_name);
 
-    // The parent body may not have been created (e.g., when using a dummy root)
-    if (parent == m_sys->Get_bodylist().end())
+    // The parent body may not have been created (e.g., when using a dummy root),
+    // but the child must always exist.
+    if (!parent)
         return nullptr;
-
-    // The child body should always exist
-    assert(child != m_sys->Get_bodylist().end());
-
-    const auto& parent_body = *parent;
-    const auto& child_body = *child;
+    if (!child) {
+        cerr << "ERROR: Body " << child_link_name << " not found." << endl;
+        throw ChException("Body not found.");
+    }
 
     // Create 3 mutually orthogonal directions, with d1 being the joint axis.
     // These form a rotation matrix relative to the child frame (in the URDF representation, a body reference frame
@@ -350,7 +348,7 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
     joint_axis.DirToDxDyDz(d1, d2, d3);
 
     // Create motors or passive joints
-    ChFrame<> joint_frame = *child_body;  // default joint frame == child body frame
+    ChFrame<> joint_frame = *child;  // default joint frame == child body frame
 
     if (m_actuated_joints.find(joint->name) != m_actuated_joints.end()) {
         // Create a motor (with a default zero constant motor function)
@@ -371,7 +369,7 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
                     break;
             }
             joint_frame.SetRot(joint_frame.Amatrix * ChMatrix33<>(d2, d3, d1));  // Chrono rot. motor axis along Z
-            revolute->Initialize(parent_body, child_body, joint_frame);
+            revolute->Initialize(parent, child, joint_frame);
             revolute->SetMotorFunction(actuation_fun);
             revolute->SetNameString(joint_name);
             return revolute;
@@ -391,7 +389,7 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
                     break;
             }
             joint_frame.SetRot(joint_frame.Amatrix * ChMatrix33<>(d1, d2, d3));  // Chrono lin. motor axis along X
-            prismatic->Initialize(parent_body, child_body, joint_frame);
+            prismatic->Initialize(parent, child, joint_frame);
             prismatic->SetMotorFunction(actuation_fun);
             prismatic->SetNameString(joint_name);
             return prismatic;
@@ -406,7 +404,7 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
                 revolute->GetLimit_Rz().SetMax(joint->limits->upper);
             }
             joint_frame.SetRot(joint_frame.Amatrix * ChMatrix33<>(d2, d3, d1));  // Chrono revolute axis along Z
-            revolute->Initialize(parent_body, child_body, joint_frame.GetCoord());
+            revolute->Initialize(parent, child, joint_frame.GetCoord());
             revolute->SetNameString(joint_name);
             return revolute;
         }
@@ -419,14 +417,14 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
                 prismatic->GetLimit_Rz().SetMax(joint->limits->upper);
             }
             joint_frame.SetRot(joint_frame.Amatrix * ChMatrix33<>(d2, d3, d1));  // Chrono prismatic axis along Z
-            prismatic->Initialize(parent_body, child_body, joint_frame.GetCoord());
+            prismatic->Initialize(parent, child, joint_frame.GetCoord());
             prismatic->SetNameString(joint_name);
             return prismatic;
         }
 
         if (joint_type == urdf::Joint::FLOATING) {
             auto free = chrono_types::make_shared<ChLinkLockFree>();
-            free->Initialize(parent_body, child_body, joint_frame.GetCoord());
+            free->Initialize(parent, child, joint_frame.GetCoord());
             free->SetNameString(joint_name);
             return free;
         }
@@ -434,14 +432,14 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
         if (joint_type == urdf::Joint::PLANAR) {
             auto planar = chrono_types::make_shared<ChLinkLockPointPlane>();
             joint_frame.SetRot(joint_frame.Amatrix * ChMatrix33<>(d2, d3, d1));  // Chrono plane normal along Z
-            planar->Initialize(parent_body, child_body, joint_frame.GetCoord());
+            planar->Initialize(parent, child, joint_frame.GetCoord());
             planar->SetNameString(joint_name);
             return planar;
         }
 
         if (joint_type == urdf::Joint::FIXED) {
             auto fixed = chrono_types::make_shared<ChLinkLockLock>();
-            fixed->Initialize(parent_body, child_body, joint_frame.GetCoord());
+            fixed->Initialize(parent, child, joint_frame.GetCoord());
             fixed->SetNameString(joint_name);
             return fixed;
         }

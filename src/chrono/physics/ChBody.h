@@ -213,33 +213,39 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     // DATABASE HANDLING.
     //
-    // To attach/remove items (rigid bodies, links, etc.) you must use
-    // shared pointer, so that you don't need to care about item deletion,
-    // which will be automatic when needed.
-    // Please don't add the same item multiple times; also, don't remove
-    // items which haven't ever been added.
+    // Do not add the same item multiple times
+    // Do not remove items that have not been added.
 
     /// Attach a marker to this body.
     void AddMarker(std::shared_ptr<ChMarker> amarker);
+
     /// Attach a force to this body.
     void AddForce(std::shared_ptr<ChForce> aforce);
 
-    /// Remove a specific marker from this body. Warning: linear time search.
+    /// Remove a specific marker from this body.
+    /// Warning: linear time search.
     void RemoveMarker(std::shared_ptr<ChMarker> amarker);
-    /// Remove a specific force from this body. Warning: linear time search.
+
+    /// Remove a specific force from this body.
+    /// Warning: linear time search.
     void RemoveForce(std::shared_ptr<ChForce> aforce);
 
-    /// Remove all markers at once. Faster than doing multiple RemoveForce()
-    /// Don't care about deletion: it is automatic, only when needed.
+    /// Remove all markers at once.
+    /// Faster than doing multiple RemoveForce().
     void RemoveAllForces();
-    /// Remove all markers at once. Faster than doing multiple RemoveForce()
-    /// Don't care about deletion: it is automatic, only when needed.
+
+    /// Remove all markers at once.
+    /// Faster than doing multiple RemoveForce().
     void RemoveAllMarkers();
 
-    /// Finds a marker from its ChObject name
-    std::shared_ptr<ChMarker> SearchMarker(const char* m_name);
-    /// Finds a force from its ChObject name
-    std::shared_ptr<ChForce> SearchForce(const char* m_name);
+    /// Find a marker by its name.
+    std::shared_ptr<ChMarker> SearchMarker(const std::string& name) const;
+
+    /// Find a marker by its identifier.
+    std::shared_ptr<ChMarker> SearchMarker(int id) const;
+
+    /// Find a force by its name.
+    std::shared_ptr<ChForce> SearchForce(const std::string& name) const;
 
     /// Gets the list of children markers.
     /// NOTE: to modify this list, use the appropriate Remove..

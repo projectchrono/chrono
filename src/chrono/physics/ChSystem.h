@@ -319,25 +319,25 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     }
 
     /// Search a body by its name.
-    std::shared_ptr<ChBody> SearchBody(const char* name) { return assembly.SearchBody(name); }
+    std::shared_ptr<ChBody> SearchBody(const std::string& name) const { return assembly.SearchBody(name); }
     /// Search a body by its ID
-    std::shared_ptr<ChBody> SearchBodyID(int bodyID) { return assembly.SearchBodyID(bodyID); }
+    std::shared_ptr<ChBody> SearchBodyID(int id) const { return assembly.SearchBodyID(id); }
     /// Search a shaft by its name.
-    std::shared_ptr<ChShaft> SearchShaft(const char* name) { return assembly.SearchShaft(name); }
+    std::shared_ptr<ChShaft> SearchShaft(const std::string& name) const { return assembly.SearchShaft(name); }
     /// Search a link by its name.
-    std::shared_ptr<ChLinkBase> SearchLink(const char* name) { return assembly.SearchLink(name); }
+    std::shared_ptr<ChLinkBase> SearchLink(const std::string& name) const { return assembly.SearchLink(name); }
     /// Search a mesh by its name.
-    std::shared_ptr<fea::ChMesh> SearchMesh(const char* name) { return assembly.SearchMesh(name); }
+    std::shared_ptr<fea::ChMesh> SearchMesh(const std::string& name) const { return assembly.SearchMesh(name); }
     /// Search from other ChPhysics items (not bodies, links, or meshes) by name.
-    std::shared_ptr<ChPhysicsItem> SearchOtherPhysicsItem(const char* name) {
+    std::shared_ptr<ChPhysicsItem> SearchOtherPhysicsItem(const std::string& name) const {
         return assembly.SearchOtherPhysicsItem(name);
     }
     /// Search a marker by its name.
-    std::shared_ptr<ChMarker> SearchMarker(const char* name) { return assembly.SearchMarker(name); }
+    std::shared_ptr<ChMarker> SearchMarker(const std::string& name) const { return assembly.SearchMarker(name); }
     /// Search a marker by its unique ID.
-    std::shared_ptr<ChMarker> SearchMarker(int markID) { return assembly.SearchMarker(markID); }
+    std::shared_ptr<ChMarker> SearchMarker(int id) const { return assembly.SearchMarker(id); }
     /// Search an item (body, link or other ChPhysics items) by name.
-    std::shared_ptr<ChPhysicsItem> Search(const char* name) { return assembly.Search(name); }
+    std::shared_ptr<ChPhysicsItem> Search(const std::string& name) const { return assembly.Search(name); }
 
     /// Get the number of active bodies (excluding those that are sleeping or are fixed to ground).
     int GetNbodies() const { return assembly.GetNbodies(); }

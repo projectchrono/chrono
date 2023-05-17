@@ -97,30 +97,6 @@ class ChApi ChObj {
 
 CH_CLASS_VERSION(ChObj, 0)
 
-// Functions to manipulate STL containers of ChObj objects
-
-template <class T, class Iterator>
-T ChContainerSearchFromName(const char* m_name, Iterator from, Iterator to) {
-    Iterator iter = from;
-    while (iter != to) {
-        if (!strcmp(m_name, (*iter)->GetName()))
-            return (*iter);
-        iter++;
-    }
-    return T(0);
-}
-
-template <class T, class Iterator>
-T ChContainerSearchFromID(int myID, Iterator from, Iterator to) {
-    Iterator iter = from;
-    while (iter != to) {
-        if (myID == (*iter)->GetIdentifier())
-            return (*iter);
-        iter++;
-    }
-    return T(0);
-}
-
 /// @} chrono_physics
 
 }  // end namespace chrono
