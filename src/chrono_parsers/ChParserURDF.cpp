@@ -208,10 +208,79 @@ std::shared_ptr<ChVisualShape> ChParserURDF::toChVisualShape(const urdf::Geometr
     return vis_shape;
 }
 
+void ChParserURDF::attachVisualization(std::shared_ptr<ChBody> body,
+                                       const std::vector<urdf::VisualSharedPtr>& visual_array,
+                                       const ChFrame<>& ref_frame) {
+    for (const auto& visual : visual_array) {
+        if (visual) {
+            auto vis_shape = toChVisualShape(visual->geometry);
+            if (visual->material) {
+                vis_shape->SetColor(toChColor(visual->material->color));
+                if (!visual->material->texture_filename.empty())
+                    vis_shape->SetTexture(m_filepath + "/" + visual->material->texture_filename);
+            }
+            body->AddVisualShape(vis_shape, ref_frame * toChFrame(visual->origin));
+        }
+    }
+}
+
+void ChParserURDF::attachCollision(std::shared_ptr<ChBody> body,
+                                   const std::vector<urdf::CollisionSharedPtr>& collision_array,
+                                   const ChFrame<>& ref_frame) {
+    // Create the contact material for all collision shapes associated with this body
+    auto link_name = body->GetNameString();
+    std::shared_ptr<ChMaterialSurface> contact_material;
+    if (m_mat_data.find(link_name) != m_mat_data.end())
+        contact_material = m_mat_data.find(link_name)->second.CreateMaterial(m_sys->GetContactMethod());
+    else
+        contact_material = m_default_mat_data.CreateMaterial(m_sys->GetContactMethod());
+
+    // Create collision shapes
+    auto collision_model = body->GetCollisionModel();
+    collision_model->ClearModel();
+    for (const auto& collision : collision_array) {
+        if (collision) {
+            auto frame = ref_frame * toChFrame(collision->origin);
+
+            switch (collision->geometry->type) {
+                case urdf::Geometry::BOX: {
+                    auto box = std::static_pointer_cast<urdf::Box>(collision->geometry);
+                    collision_model->AddBox(contact_material,                    //
+                                            box->dim.x, box->dim.y, box->dim.z,  //
+                                            frame.GetPos(), frame.GetA());
+                    break;
+                }
+                case urdf::Geometry::CYLINDER: {
+                    auto cylinder = std::static_pointer_cast<urdf::Cylinder>(collision->geometry);
+                    collision_model->AddCylinder(contact_material,                    //
+                                                 cylinder->radius, cylinder->length,  //
+                                                 frame.GetPos(), frame.GetA());
+                    break;
+                }
+                case urdf::Geometry::SPHERE: {
+                    auto sphere = std::static_pointer_cast<urdf::Sphere>(collision->geometry);
+                    collision_model->AddSphere(contact_material,  //
+                                               sphere->radius,    //
+                                               frame.GetPos());
+                    break;
+                }
+                case urdf::Geometry::MESH: {
+                    auto mesh = std::static_pointer_cast<urdf::Mesh>(collision->geometry);
+                    //// TODO: we can only support OBJ files!
+                    ////       use assimp?
+                    break;
+                }
+            }
+            collision->origin;
+        }
+    }
+    collision_model->BuildModel();
+}
+
 // Create a body (with default collision model type) from the provided URDF link
 std::shared_ptr<ChBodyAuxRef> ChParserURDF::toChBody(urdf::LinkConstSharedPtr link) {
     // Get inertia properties
-    //// TODO - check convention for signs of products of inertia
+    // Note that URDF and Chrono use the same convention regarding sign of products of inertia
     const auto& inertial = link->inertial;
     double mass = inertial->mass;
     auto inertia_moments = ChVector<>(inertial->ixx, inertial->iyy, inertial->izz);
@@ -230,10 +299,20 @@ std::shared_ptr<ChBodyAuxRef> ChParserURDF::toChBody(urdf::LinkConstSharedPtr li
             throw ChException("Body with ZERO inertia not connected through FIXED joint to parent.");
         }
 
-        // Add to the list of discarded bodies and cache the body's parent
-        m_discarded.insert(std::make_pair(link->name, link->parent_joint->parent_link_name));
+        // Get the parent link and the Chrono parent body
+        const auto& parent_link_name = link->parent_joint->parent_link_name;
+        const auto& parent_link = m_model->getLink(parent_link_name);
+        const auto& parent_body = m_sys->SearchBody(parent_link_name);
 
-        //// TODO: transfer visualization and collision assets to parent body
+        // Add to the list of discarded bodies and cache the body's parent
+        // (this will be used to attach children joints of this body)
+        m_discarded.insert(std::make_pair(link->name, parent_link_name));
+
+        // Transfer visualization and collision assets to parent body
+        attachVisualization(parent_body, link->visual_array,
+                            toChFrame(link->parent_joint->parent_to_joint_origin_transform));
+        attachCollision(parent_body, link->collision_array,
+                        toChFrame(link->parent_joint->parent_to_joint_origin_transform));
 
         return nullptr;
     }
@@ -246,65 +325,11 @@ std::shared_ptr<ChBodyAuxRef> ChParserURDF::toChBody(urdf::LinkConstSharedPtr li
     body->SetInertiaXX(inertia_moments);
     body->SetInertiaXY(inertia_products);
 
-    // Set visualization assets
-    for (const auto& visual : link->visual_array) {
-        if (visual) {
-            auto vis_shape = toChVisualShape(visual->geometry);
-            if (visual->material) {
-                vis_shape->SetColor(toChColor(visual->material->color));
-                if (!visual->material->texture_filename.empty())
-                    vis_shape->SetTexture(m_filepath + "/" + visual->material->texture_filename);
-            }
-            body->AddVisualShape(vis_shape, toChFrame(visual->origin));
-        }
-    }
+    // Create and attach visualization assets
+    attachVisualization(body, link->visual_array, ChFrame<>());
 
-    // Create the contact material for all collision shapes associated with this body
-    std::shared_ptr<ChMaterialSurface> cmat;
-    if (m_mat_data.find(link->name) != m_mat_data.end())
-        cmat = m_mat_data.find(link->name)->second.CreateMaterial(m_sys->GetContactMethod());
-    else
-        cmat = m_default_mat_data.CreateMaterial(m_sys->GetContactMethod());
-
-    // Set collision
-    auto collision_model = body->GetCollisionModel();
-    collision_model->ClearModel();
-    for (const auto& collision : link->collision_array) {
-        if (collision) {
-            auto frame = toChFrame(collision->origin);
-
-            switch (collision->geometry->type) {
-                case urdf::Geometry::BOX: {
-                    auto box = std::static_pointer_cast<urdf::Box>(collision->geometry);
-                    collision_model->AddBox(cmat,                                //
-                                            box->dim.x, box->dim.y, box->dim.z,  //
-                                            frame.GetPos(), frame.GetA());
-                    break;
-                }
-                case urdf::Geometry::CYLINDER: {
-                    auto cylinder = std::static_pointer_cast<urdf::Cylinder>(collision->geometry);
-                    collision_model->AddCylinder(cmat,                                //
-                                                 cylinder->radius, cylinder->length,  //
-                                                 frame.GetPos(), frame.GetA());
-                    break;
-                }
-                case urdf::Geometry::SPHERE: {
-                    auto sphere = std::static_pointer_cast<urdf::Sphere>(collision->geometry);
-                    collision_model->AddSphere(cmat,            //
-                                               sphere->radius,  //
-                                               frame.GetPos());
-                    break;
-                }
-                case urdf::Geometry::MESH: {
-                    auto mesh = std::static_pointer_cast<urdf::Mesh>(collision->geometry);
-                    //// TODO: we can only support OBJ files!
-                    break;
-                }
-            }
-            collision->origin;
-        }
-    }
-    collision_model->BuildModel();
+    // Create and attach collision shapes
+    attachCollision(body, link->collision_array, ChFrame<>());
 
     return body;
 }

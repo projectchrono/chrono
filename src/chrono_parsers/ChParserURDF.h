@@ -106,6 +106,16 @@ class ChApiParsers ChParserURDF {
     /// Recursively create bodies and joints in the Chrono model.
     void createChildren(urdf::LinkConstSharedPtr parent, const ChFrame<>& parent_frame);
 
+    /// Attach visualization assets to a Chrono body.
+    void attachVisualization(std::shared_ptr<ChBody> body,
+                             const std::vector<urdf::VisualSharedPtr>& visual_array,
+                             const ChFrame<>& ref_frame);
+
+    /// Attach collision assets to a Chrono body.
+    void attachCollision(std::shared_ptr<ChBody> body,
+                         const std::vector<urdf::CollisionSharedPtr>& collision_array,
+                         const ChFrame<>& ref_frame);
+
     std::string m_filename;                                   ///< URDF file name
     std::string m_filepath;                                   ///< path of URDF file
     urdf::ModelInterfaceSharedPtr m_model;                    ///< parsed URDF model
