@@ -475,11 +475,25 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
 
 // -----------------------------------------------------------------------------
 
-std::shared_ptr<ChBodyAuxRef> ChParserURDF::GetRootBody() const {
+std::shared_ptr<ChBodyAuxRef> ChParserURDF::GetRootChBody() const {
     if (!m_sys)
-        cerr << "WARNING: GetRootBody: The Chrono model was not yet populated." << endl;
+        cerr << "WARNING: GetRootChBody: The Chrono model was not yet populated." << endl;
 
     return m_root_body;
+}
+
+std::shared_ptr<ChBody> ChParserURDF::GetChBody(const std::string& name) const {
+    if (!m_sys)
+        cerr << "WARNING: GetChBody: The Chrono model was not yet populated." << endl;
+
+    return m_sys->SearchBody(name);
+}
+
+std::shared_ptr<ChLinkBase> ChParserURDF::GetChLink(const std::string& name) const {
+    if (!m_sys)
+        cerr << "WARNING: GetChLink: The Chrono model was not yet populated." << endl;
+
+    return m_sys->SearchLink(name);
 }
 
 void ChParserURDF::SetMotorFunction(const std::string& motor_name, const std::shared_ptr<ChFunction> function) {

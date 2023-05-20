@@ -85,7 +85,15 @@ class ChApiParsers ChParserURDF {
 
     /// Get the root body of the Chrono model.
     /// This function must be called after PopulateSystem.
-    std::shared_ptr<ChBodyAuxRef> GetRootBody() const;
+    std::shared_ptr<ChBodyAuxRef> GetRootChBody() const;
+
+    /// Get the body with specified name in the Chrono model.
+    /// This function must be called after PopulateSystem.
+    std::shared_ptr<ChBody> GetChBody(const std::string& name) const;
+
+    /// Get the joint with specified name in the Chrono model.
+    /// This function must be called after PopulateSystem.
+    std::shared_ptr<ChLinkBase> GetChLink(const std::string& name) const;
 
     /// Set the actuation function for the specified Chrono motor.
     /// The return value of this function has different meaning, depending on the type of motor, and can represent a

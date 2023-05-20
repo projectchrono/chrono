@@ -16,6 +16,9 @@
 //
 // =============================================================================
 
+////#include <float.h>
+////unsigned int fp_control_state = _controlfp(_EM_INEXACT, _MCW_EM);
+
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
@@ -77,10 +80,10 @@ int main(int argc, char* argv[]) {
     parser.PopulateSystem(sys);
 
     // Get location of the root body
-    auto root_loc = parser.GetRootBody()->GetPos();
+    auto root_loc = parser.GetRootChBody()->GetPos();
 
     // Fix root body
-    parser.GetRootBody()->SetBodyFixed(true);
+    parser.GetRootChBody()->SetBodyFixed(true);
 
     // Example: Change actuation function for a particular joint
     auto sfun = chrono_types::make_shared<ChFunction_Sine>(0, 0.5, 1.0);
