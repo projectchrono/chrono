@@ -121,6 +121,8 @@ set(CVM_FEDA_FILES
     feda/FEDA_DoubleWishbone.h
     feda/FEDA_EngineSimpleMap.cpp
     feda/FEDA_EngineSimpleMap.h
+    feda/FEDA_MFTire.cpp
+    feda/FEDA_MFTire.h
     feda/FEDA_Pac02Tire.cpp
     feda/FEDA_Pac02Tire.h
     feda/FEDA_PitmanArm.cpp

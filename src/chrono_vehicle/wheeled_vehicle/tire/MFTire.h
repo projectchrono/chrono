@@ -9,10 +9,10 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Michael Taylor, Rainer Gericke, Marvin Struijk
+// Authors: Radu Serban, Michael Taylor
 // =============================================================================
 //
-// MFTire 6.2-5.2 constructed with data from file (JSON format).
+// JSON MF tire subsystem
 //
 // =============================================================================
 
@@ -37,13 +37,29 @@ class CH_VEHICLE_API MFTire : public ChMFTire {
     MFTire(const rapidjson::Document& d);
     ~MFTire() {}
 
-    virtual double GetNormalStiffnessForce(double depth) const override { return 0.0; }
+    virtual double GetNormalStiffnessForce(double depth) const override {
+        if (m_has_vert_table) {
+            if (m_has_bott_table) {
+                return m_vert_map.Get_y(depth) + m_bott_map.Get_y(depth);
+            } else {
+                return m_vert_map.Get_y(depth);
+            }
+        } else {
+            if (m_has_bott_table) {
+                return m_par.VERTICAL_STIFFNESS * depth + m_bott_map.Get_y(depth);
+            } else {
+                return m_par.VERTICAL_STIFFNESS * depth;
+            }
+        }
+    }
 
-    virtual double GetNormalDampingForce(double depth, double velocity) const override { return 0.0; }
+    virtual double GetNormalDampingForce(double depth, double velocity) const override {
+        return m_par.VERTICAL_DAMPING * velocity;
+    }
 
     virtual double GetTireMass() const override { return m_mass; }
     virtual ChVector<> GetTireInertia() const override { return m_inertia; }
-    virtual void SetPac02Params() override {}
+    virtual void SetMFParams() override {}
 
     virtual double GetVisualizationWidth() const override { return m_visualization_width; }
 
@@ -58,12 +74,12 @@ class CH_VEHICLE_API MFTire : public ChMFTire {
     bool m_has_mesh;
 
     // tire vertical stiffness given as lookup table
-    // bool m_has_vert_table;
-    // ChFunction_Recorder m_vert_map;
+    bool m_has_vert_table;
+    ChFunction_Recorder m_vert_map;
 
     // tire bottoming stiffness given as lookup table (rim impact)
-    // bool m_has_bott_table;
-    // ChFunction_Recorder m_bott_map;
+    bool m_has_bott_table;
+    ChFunction_Recorder m_bott_map;
 
     double m_visualization_width;
     std::string m_meshFile_left;
@@ -77,3 +93,4 @@ class CH_VEHICLE_API MFTire : public ChMFTire {
 }  // end namespace chrono
 
 #endif
+
