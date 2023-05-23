@@ -69,8 +69,6 @@ void FEDA_MFTire::SetMFParams() {
 }
 
 void FEDA_MFTire::SetParametersLevel1() {
-    m_use_mode = 3;
-    m_allow_mirroring = false;
 
     // setting vertical table
     m_use_vert_map = true;
@@ -105,8 +103,9 @@ void FEDA_MFTire::SetParametersLevel1() {
 
 void FEDA_MFTire::SetParametersLevel2() {
     // begin of variables set up
-    m_use_mode = 3;
-    m_allow_mirroring = false;
+    std::string dataFile("feda/tires/335_65R22_5_G275MSA_60psi.tir");
+    SetMFParamsByFile(dataFile);
+    
     // setting vertical table
     m_use_vert_map = true;
     
@@ -141,8 +140,6 @@ void FEDA_MFTire::SetParametersLevel2() {
 
 void FEDA_MFTire::SetParametersLevel3() {
     // begin of variables set up
-    m_use_mode = 3;
-    m_allow_mirroring = false;
 
     m_use_vert_map = false;
 
@@ -155,8 +152,6 @@ void FEDA_MFTire::SetParametersLevel3() {
 
 void FEDA_MFTire::SetParametersLevel4() {
     // begin of variables set up
-    m_use_mode = 3;
-    m_allow_mirroring = false;
 
     m_use_vert_map = false;
 

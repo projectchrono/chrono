@@ -43,8 +43,6 @@ class CH_VEHICLE_API ChMFTire : public ChForceElementTire {
    public:
     ChMFTire(const std::string& name);
 
-    ChMFTire(const std::string& name, std::string& tirFileName);
-
     virtual ~ChMFTire() {}
 
     /// Get the name of the vehicle subsystem template.
@@ -86,6 +84,17 @@ class CH_VEHICLE_API ChMFTire : public ChForceElementTire {
 
    protected:
     void SetMFParamsByFile(std::string& tirFileName);
+    void LoadSectionUnits(FILE* fp);
+    void LoadSectionModel(FILE* fp);
+    void LoadSectionDimension(FILE* fp);
+    void LoadSectionVertical(FILE* fp);
+    void LoadSectionScaling(FILE* fp);
+    void LoadSectionLongitudinal(FILE* fp);
+    void LoadSectionOverturning(FILE* fp);
+    void LoadSectionLateral(FILE* fp);
+    void LoadSectionRolling(FILE* fp);
+    void LoadSectionAligning(FILE* fp);
+    bool FindSectionStart(std::string sectName, FILE* fp); // returns false, if section could not be found
     
     /// Set the parameters in the Pac89 model.
     virtual void SetMFParams() = 0;
@@ -108,11 +117,17 @@ class CH_VEHICLE_API ChMFTire : public ChForceElementTire {
   
     struct MFCoeff {
          // [UNITS]
-         double time_factor = 1;
-         double length_factor = 1;
-         double angle_factor = 1;
-         double mass_factor = 1;
-         double force_factor = 1;
+         double u_time = 1;
+         double u_length = 1;
+         double u_angle = 1;
+         double u_mass = 1;
+         double u_force = 1;
+        
+        // derived units
+        double u_speed = 1;
+        double u_inertia = 1;
+        double u_stiffness = 1;
+        double u_damping = 1;
          
          // [MODEL]
          int FITTYP = 6;     // MFTire 5.2; 61 = 6.1; 62 = 6.2
