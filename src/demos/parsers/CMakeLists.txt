@@ -17,6 +17,7 @@ endif()
 if(HAVE_URDF)
     set(DEMOS ${DEMOS}
       demo_PARSER_URDF
+      demo_PARSER_RoboSimianURDF
     )
 endif()
 
