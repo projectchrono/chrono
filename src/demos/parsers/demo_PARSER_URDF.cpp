@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
     ////std::string filename = (argc > 1) ? std::string(argv[1]) : "robot/robosimian/rs.urdf";
     ////std::string filename = (argc > 1) ? std::string(argv[1]) : "robot/viper/viper.urdf";
 
-    // Make a system
+    // Create a Chrono system
     ChSystemSMC sys;
     sys.Set_G_acc(ChVector<>(0, 0, -9.8));
 
@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
             auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
             vis_irr->AttachSystem(&sys);
             vis_irr->SetCameraVertical(CameraVerticalDir::Z);
-            vis_irr->SetWindowSize(800, 600);
+            vis_irr->SetWindowSize(1200, 800);
             vis_irr->SetWindowTitle("NSC callbacks");
             vis_irr->Initialize();
             vis_irr->AddLogo();
@@ -126,8 +126,8 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetCameraVertical(CameraVerticalDir::Z);
             vis_vsg->SetWindowTitle("NSC callbacks");
             vis_vsg->AddCamera(root_loc + ChVector<>(3, 3, 0), root_loc);
-            vis_vsg->SetWindowSize(ChVector2<int>(800, 600));
-            vis_vsg->SetWindowPosition(ChVector2<int>(100, 100));
+            vis_vsg->SetWindowSize(ChVector2<int>(1200, 800));
+            vis_vsg->SetWindowPosition(ChVector2<int>(500, 100));
             vis_vsg->SetClearColor(ChColor(0.455f, 0.525f, 0.640f));
             vis_vsg->SetUseSkyBox(false);
             vis_vsg->SetCameraAngleDeg(40.0);
@@ -143,12 +143,16 @@ int main(int argc, char* argv[]) {
     }
 
     // Simulation loop
+    double step_size = 1e-3;
+    ChRealtimeStepTimer real_timer;
+
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
         vis->EndScene();
 
-        sys.DoStepDynamics(1e-3);
+        sys.DoStepDynamics(step_size);
+        real_timer.Spin(step_size);
     }
 
     return 0;

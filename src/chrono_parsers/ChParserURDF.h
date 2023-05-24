@@ -23,6 +23,8 @@
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBodyAuxRef.h"
+#include "chrono/physics/ChLinkBase.h"
+#include "chrono/physics/ChLinkMotor.h"
 #include "chrono/physics/ChMaterialSurface.h"
 
 #include <urdf_parser/urdf_parser.h>
@@ -64,11 +66,11 @@ class ChApiParsers ChParserURDF {
     /// Set the specified joint as actuated, using the specified actuation type.
     /// By default, all URDF joints are translated into Chrono kinematic joints. Joints marked as actuated will be
     /// translated to Chrono motors (with same kinematics as the corresponding passive joint). This function has no
-    /// effect for joints other than Revolute or Prismatic.
+    /// effect for joints other than Revolute, Continuous, or Prismatic.
     void SetJointActuated(const std::string& joint_name, ActuationType actuation_type);
 
     /// Set all candidate joints in the URDF model as actuated, using the specified actuation type.
-    /// This function has no effect for joints other than Revolute or Prismatic.
+    /// This function has no effect for joints other than Revolute, Continuous, or Prismatic.
     void SetAllJointsActuated(ActuationType actuation_type);
 
     /// Set default contact material properties.
@@ -94,6 +96,10 @@ class ChApiParsers ChParserURDF {
     /// Get the joint with specified name in the Chrono model.
     /// This function must be called after PopulateSystem.
     std::shared_ptr<ChLinkBase> GetChLink(const std::string& name) const;
+
+    /// Get the motor with specified name in the Chrono model.
+    /// This function must be called after PopulateSystem.
+    std::shared_ptr<ChLinkMotor> GetChMotor(const std::string& name) const;
 
     /// Set the actuation function for the specified Chrono motor.
     /// The return value of this function has different meaning, depending on the type of motor, and can represent a

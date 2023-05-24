@@ -476,24 +476,44 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
 // -----------------------------------------------------------------------------
 
 std::shared_ptr<ChBodyAuxRef> ChParserURDF::GetRootChBody() const {
-    if (!m_sys)
+    if (!m_sys) {
         cerr << "WARNING: GetRootChBody: The Chrono model was not yet populated." << endl;
+        return nullptr;
+    }
 
     return m_root_body;
 }
 
 std::shared_ptr<ChBody> ChParserURDF::GetChBody(const std::string& name) const {
-    if (!m_sys)
+    if (!m_sys) {
         cerr << "WARNING: GetChBody: The Chrono model was not yet populated." << endl;
+        return nullptr;
+    }
 
     return m_sys->SearchBody(name);
 }
 
 std::shared_ptr<ChLinkBase> ChParserURDF::GetChLink(const std::string& name) const {
-    if (!m_sys)
+    if (!m_sys) {
         cerr << "WARNING: GetChLink: The Chrono model was not yet populated." << endl;
+        return nullptr;
+    }
 
     return m_sys->SearchLink(name);
+}
+
+std::shared_ptr<ChLinkMotor> ChParserURDF::GetChMotor(const std::string& name) const {
+    if (!m_sys) {
+        cerr << "WARNING: GetChMotor: The Chrono model was not yet populated." << endl;
+        return nullptr;
+    }
+
+    if (m_actuated_joints.find(name) == m_actuated_joints.end()) {
+        cerr << "WARNING: GetChMotor: The joint \"" << name << "\" was not marked as actuated." << endl;
+        return nullptr;
+    }
+
+    return std::static_pointer_cast<ChLinkMotor>(m_sys->SearchLink(name));
 }
 
 void ChParserURDF::SetMotorFunction(const std::string& motor_name, const std::shared_ptr<ChFunction> function) {
@@ -512,11 +532,7 @@ void ChParserURDF::SetMotorFunction(const std::string& motor_name, const std::sh
         return;
     }
 
-    auto motor =
-        std::find_if(std::begin(m_sys->Get_linklist()), std::end(m_sys->Get_linklist()),
-                     [motor_name](std::shared_ptr<ChLinkBase> link) { return link->GetNameString() == motor_name; });
-
-    std::static_pointer_cast<ChLinkMotor>(*motor)->SetMotorFunction(function);
+    std::static_pointer_cast<ChLinkMotor>(m_sys->SearchLink(motor_name))->SetMotorFunction(function);
 }
 
 // -----------------------------------------------------------------------------

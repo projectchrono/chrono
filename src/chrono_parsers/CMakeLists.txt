@@ -47,12 +47,14 @@ set(ChronoEngine_PARSERS_SOURCES
     ChParserAdams.cpp
     ChAdamsTokenizer.yy.cpp
     ChParserOpenSim.cpp
+    ChRobotActuation.cpp
 )
 
 set(ChronoEngine_PARSERS_HEADERS
     ChApiParsers.h
     ChParserAdams.h 
     ChParserOpenSim.h
+    ChRobotActuation.h
 )
 
 if(HAVE_URDF)
