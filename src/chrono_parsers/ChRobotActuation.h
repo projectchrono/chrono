@@ -32,6 +32,31 @@ namespace parsers {
 /// @addtogroup parsers_module
 /// @{
 
+/// Generic robot actuation driver using interpolated data from files.
+/// ChRobotActuation takes 3 input files, the lines of which contain a time stamp and values for the motor actuations
+/// (equal in number to the number of specified motors). The "cycle" input data file is required, while the "start"
+/// and "stop" input files are optional. Within each input data file, time stamps are assumed to start at 0.
+/// Actuations at the current time are calculated (through linear interpolation within each data set) each time the
+/// Update() function is called.
+///
+/// In the most general case, the robot is assumed to go through the following phases:
+/// <pre>
+/// 1. POSE:
+///    During this phase (of user-specified duration), the actuations are evolved to the initial pose, defined by the
+///    first line of the "start" dataset (if it exists, otherwise, the "cycle" dataset).
+///    This is done by interpolation using a logistic function.
+/// 2. HOLD:
+///    During this phase (of user-specified duration), the robot holds the initial pose.
+/// 3. START:
+///    During this phase, the robot assumes the pose necessary for a particular operation mode.
+/// 4. CYCLE:
+///    This is the main operating phase. This phase can be repeated if so indicated.
+/// 5. STOP:
+///    During this phase, the robot assumes a rest end position.
+/// </pre>
+///
+/// The different input data files are assumed to be consistent with each other (for example, the end of the "start"
+/// dataset must match the beginning of a cycle.
 class ChApiParsers ChRobotActuation {
   public:
     /// Actuation phases.
@@ -45,6 +70,8 @@ class ChApiParsers ChRobotActuation {
 
     typedef std::vector<double> Actuation;
 
+    /// Constrauct a robot actuator using the specified input data files.
+    /// The data files for the "start" and "stop" phases are not required (pass an ampty string).
     ChRobotActuation(int num_motors,                     ///< number of actuated motors
                      const std::string& filename_start,  ///< name of file with joint actuations for start phase
                      const std::string& filename_cycle,  ///< name of file with joint actuations for cycle phase
@@ -65,7 +92,7 @@ class ChApiParsers ChRobotActuation {
     /// Return the current motor actuations.
     const Actuation& GetActuation() const { return m_actuations; }
 
-    /// Return the current phase
+    /// Return the current phase.
     const std::string& GetCurrentPhase() const { return m_phase_names[m_phase]; }
 
     /// Class to be used as callback interface for user-defined actions at phase changes.
