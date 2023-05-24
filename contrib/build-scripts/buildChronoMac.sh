@@ -64,6 +64,8 @@ THRUST_INSTALL_DIR="$HOME/Packages/thrust"
 CRG_INSTALL_DIR="$HOME/Packages/OpenCRG"
 VSG_INSTALL_DIR="$HOME/Packages/vsg"
 
+URDF_INSTALL_DIR="C:/Packages/urdf"
+
 CASCADE_INSTALL_DIR="/usr/local/include/opencascade"
 SPECTRA_INSTALL_DIR="/usr/local/include"
 
@@ -107,9 +109,12 @@ cmake -G "${BUILDSYSTEM}" -B ${BUILD_DIR} -S ${SOURCE_DIR} \
       -DOpenCRG_LIBRARY:FILEPATH=${CRG_INSTALL_DIR}/lib/libOpenCRG.a \
       -DOpenCASCADE_DIR:PATH=${CASCADE_INSTALL_DIR}/lib/cmake/opencascade \
       -DSPECTRA_INCLUDE_DIR:PATH=${SPECTRA_INSTALL_DIR} \
+      -Durdfdom_DIR:PATH=${URDF_INSTALL_DIR}/CMake \
+      -Durdfdom_headers_DIR:PATH=${URDF_INSTALL_DIR}/CMake \
+      -Dconsole_bridge_DIR:PATH=${URDF_INSTALL_DIR}/CMake \
       -DPYTHON_EXECUTABLE:PATH=$HOMEBREW_PREFIX/bin \
-	-DPYTHON_INCLUDE_DIR:PATH=$HOMEBREW_PREFIX/Cellar/python@$BREW_PY_MAJOR/$BREW_PY_VER/Frameworks/Python.framework/Versions/$BREW_PY_MAJOR/include/python$BREW_PY_MAJOR \
-	-DPYTHON_LIBRARY:PATH=$HOMEBREW_PREFIX/Cellar/python@$BREW_PY_MAJOR/$BREW_PY_VER/Frameworks/Python.framework/Versions/$BREW_PY_MAJOR/lib/python$BREW_PY_MAJOR/config-$BREW_PY_MAJOR-darwin/libpython$BREW_PY_MAJOR.dylib
+      -DPYTHON_INCLUDE_DIR:PATH=$HOMEBREW_PREFIX/Cellar/python@$BREW_PY_MAJOR/$BREW_PY_VER/Frameworks/Python.framework/Versions/$BREW_PY_MAJOR/include/python$BREW_PY_MAJOR \
+      -DPYTHON_LIBRARY:PATH=$HOMEBREW_PREFIX/Cellar/python@$BREW_PY_MAJOR/$BREW_PY_VER/Frameworks/Python.framework/Versions/$BREW_PY_MAJOR/lib/python$BREW_PY_MAJOR/config-$BREW_PY_MAJOR-darwin/libpython$BREW_PY_MAJOR.dylib
 
  
 # ------------------------------------------------------------------------
