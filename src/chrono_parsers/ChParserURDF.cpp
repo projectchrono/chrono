@@ -85,7 +85,7 @@ void ChParserURDF::SetJointActuated(const std::string& joint_name, ActuationType
     if (joint->type == urdf::Joint::REVOLUTE ||    //
         joint->type == urdf::Joint::CONTINUOUS ||  //
         joint->type == urdf::Joint::PRISMATIC)
-        m_actuated_joints.insert(std::make_pair(joint_name, actuation_type));
+        m_actuated_joints[joint_name] = actuation_type;
     else
         cerr << "WARNING: SetJointActuated: Joint \"" << joint_name << "\" cannot be actuated." << endl;
 }
@@ -95,7 +95,7 @@ void ChParserURDF::SetAllJointsActuated(ActuationType actuation_type) {
         if (joint.second->type == urdf::Joint::REVOLUTE ||    //
             joint.second->type == urdf::Joint::CONTINUOUS ||  //
             joint.second->type == urdf::Joint::PRISMATIC)
-            m_actuated_joints.insert(std::make_pair(joint.first, actuation_type));
+            m_actuated_joints[joint.first] = actuation_type;
     }
 }
 
@@ -108,7 +108,7 @@ void ChParserURDF::SetBodyContactMaterial(const std::string& body_name, const Ch
     if (!link)
         return;
 
-    m_mat_data.insert(std::make_pair(body_name, mat_data));
+    m_mat_data[body_name] = mat_data;
 }
 
 // -----------------------------------------------------------------------------
