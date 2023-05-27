@@ -277,7 +277,8 @@ void ChParserURDF::attachCollision(std::shared_ptr<ChBody> body,
     collision_model->BuildModel();
 }
 
-// Create a body (with default collision model type) from the provided URDF link
+// Create a body (with default collision model type) from the provided URDF link.
+// This is called in a base-to-tip traversal, so the parent Chrono body exists. 
 std::shared_ptr<ChBodyAuxRef> ChParserURDF::toChBody(urdf::LinkConstSharedPtr link) {
     // Get inertia properties
     // Note that URDF and Chrono use the same convention regarding sign of products of inertia
@@ -301,7 +302,6 @@ std::shared_ptr<ChBodyAuxRef> ChParserURDF::toChBody(urdf::LinkConstSharedPtr li
 
         // Get the parent link and the Chrono parent body
         const auto& parent_link_name = link->parent_joint->parent_link_name;
-        const auto& parent_link = m_model->getLink(parent_link_name);
         const auto& parent_body = m_sys->SearchBody(parent_link_name);
 
         // Add to the list of discarded bodies and cache the body's parent
@@ -338,7 +338,7 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
     auto joint_name = joint->name;
     auto joint_type = joint->type;
 
-    // Find the parent and child bodies
+    // Get the names of the parent and child bodies
     auto parent_link_name = joint->parent_link_name;
     auto child_link_name = joint->child_link_name;
 
@@ -353,11 +353,11 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
         parent_link_name = m_discarded.find(parent_link_name)->second;
     }
 
+    // Find the parent and child Chrono bodies
     const auto& parent = m_sys->SearchBody(parent_link_name);
     const auto& child = m_sys->SearchBody(child_link_name);
 
-    // The parent body may not have been created (e.g., when using a dummy root),
-    // but the child must always exist.
+    // The parent body may not have been created (e.g., when using a dummy root), but the child must always exist.
     if (!parent)
         return nullptr;
     if (!child) {
@@ -373,7 +373,7 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
     joint_axis.DirToDxDyDz(d1, d2, d3);
 
     // Create motors or passive joints
-    ChFrame<> joint_frame = *child;  // default joint frame == child body frame
+    ChFrame<> joint_frame = child->GetFrame_REF_to_abs();  // default joint frame == child body frame
 
     if (m_actuated_joints.find(joint->name) != m_actuated_joints.end()) {
         // Create a motor (with a default zero constant motor function)
