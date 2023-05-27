@@ -42,13 +42,29 @@ ChMFTire::ChMFTire(const std::string& name)
       m_gamma_limit(3.0 * CH_C_DEG_TO_RAD),
       m_use_friction_ellipsis(true),
       m_mu0(0.8),
-      m_Shf(0),
       m_measured_side(LEFT),
       m_allow_mirroring(false),
       m_use_mode(0) {
     m_tireforce.force = ChVector<>(0, 0, 0);
     m_tireforce.point = ChVector<>(0, 0, 0);
     m_tireforce.moment = ChVector<>(0, 0, 0);
+}
+
+double ChMFTire::GetNormalStiffnessForce(double depth) const {
+    double R0 = m_par.UNLOADED_RADIUS;
+    double gamma = m_states.gamma;
+    double dpi = m_states.dpi;
+    double Fc = (1.0)*(m_par.QFZ1 * depth / R0 + m_par.QFZ2 * pow(depth / R0, 2) + m_par.QFZ3 * pow(gamma, 2)*depth/R0) *
+                (1.0 + m_par.QPFZ1 * dpi) * m_par.LCZ * m_par.FNOMIN;
+    double Fb = 0;
+    if (m_bottoming_table_found)
+        Fb = m_bott_map.Get_y(depth);
+    return Fc + Fb;
+}
+
+double ChMFTire::GetNormalDampingForce(double depth, double velocity) const {
+    double Fd = m_par.VERTICAL_DAMPING * velocity;
+    return Fd;
 }
 
 // Force calculations
@@ -142,6 +158,31 @@ void ChMFTire::SetMFParamsByFile(std::string& tirFileName) {
     LoadSectionRolling(fp);
     LoadSectionAligning(fp);
     LoadSectionConditions(fp);
+    LoadVerticalTable(fp);
+    LoadBottomingTable(fp);
+
+    if (!m_vertical_table_found) {
+        // set linear stiffness funct parameters
+        m_par.QFZ1 = m_par.VERTICAL_STIFFNESS * m_par.UNLOADED_RADIUS / m_par.FNOMIN;
+        m_par.QFZ2 = 0;
+    }
+
+    if (!m_tire_conditions_found) {
+        // set all pressure dependence parameters to zero
+        m_par.PPX1 = 0;
+        m_par.PPX2 = 0;
+        m_par.PPX3 = 0;
+        m_par.PPX4 = 0;
+        m_par.PPY1 = 0;
+        m_par.PPY2 = 0;
+        m_par.PPY3 = 0;
+        m_par.PPY4 = 0;
+        m_par.QSY1 = 0;
+        m_par.QSY2 = 0;
+        m_par.QSY8 = 0;
+        m_par.QPFZ1 = 0;
+    }
+
     fclose(fp);
 }
 
@@ -459,23 +500,18 @@ void ChMFTire::LoadSectionDimension(FILE* fp) {
         // GetLog() << ">>Key=" << skey << "|" << sval << "\n";
         if (skey.compare("UNLOADED_RADIUS") == 0) {
             m_par.UNLOADED_RADIUS = m_par.u_length * stod(sval);
-            GetLog() << "R0 = " << m_par.UNLOADED_RADIUS << " m\n";
         }
         if (skey.compare("WIDTH") == 0) {
             m_par.WIDTH = m_par.u_length * stod(sval);
-            GetLog() << "width = " << m_par.WIDTH << " m\n";
         }
         if (skey.compare("ASPECT_RATIO") == 0) {
             m_par.ASPECT_RATIO = stod(sval);
-            GetLog() << "ratio = " << m_par.ASPECT_RATIO << "\n";
         }
         if (skey.compare("RIM_RADIUS") == 0) {
             m_par.RIM_RADIUS = m_par.u_length * stod(sval);
-            GetLog() << "rimrad = " << m_par.RIM_RADIUS << " m\n";
         }
         if (skey.compare("RIM_WIDTH") == 0) {
             m_par.RIM_WIDTH = m_par.u_length * stod(sval);
-            GetLog() << "rimw = " << m_par.RIM_WIDTH << " m\n";
         }
     }
 }
@@ -524,35 +560,39 @@ void ChMFTire::LoadSectionVertical(FILE* fp) {
         // GetLog() << ">>Key=" << skey << "|" << sval << "\n";
         if (skey.compare("VERTICAL_STIFFNESS") == 0) {
             m_par.VERTICAL_STIFFNESS = m_par.u_stiffness * stod(sval);
-            GetLog() << "Cz = " << m_par.VERTICAL_STIFFNESS << " N/m\n";
         }
         if (skey.compare("VERTICAL_DAMPING") == 0) {
             m_par.VERTICAL_DAMPING = m_par.u_damping * stod(sval);
-            GetLog() << "Kz = " << m_par.VERTICAL_DAMPING << " Ns/m\n";
         }
         if (skey.compare("BREFF") == 0) {
             m_par.BREFF = stod(sval);
-            GetLog() << "BREFF = " << m_par.BREFF << "\n";
         }
         if (skey.compare("DREFF") == 0) {
             m_par.DREFF = stod(sval);
-            GetLog() << "DREFF = " << m_par.DREFF << " \n";
         }
         if (skey.compare("FREFF") == 0) {
             m_par.FREFF = stod(sval);
-            GetLog() << "FREFF = " << m_par.FREFF << " \n";
         }
         if (skey.compare("FNOMIN") == 0) {
             m_par.FNOMIN = m_par.u_force * stod(sval);
-            GetLog() << "FNOMIN = " << m_par.FNOMIN << " N\n";
         }
         if (skey.compare("TIRE_MASS") == 0) {
             m_par.TIRE_MASS = m_par.u_mass * stod(sval);
-            GetLog() << "TIRE_MASS = " << m_par.TIRE_MASS << " kg\n";
+        }
+        if (skey.compare("QFZ1") == 0) {
+            m_par.QFZ1 = stod(sval);
+        }
+        if (skey.compare("QFZ2") == 0) {
+            m_par.QFZ2 = stod(sval);
         }
         if (skey.compare("QFZ3") == 0) {
             m_par.QFZ3 = stod(sval);
-            GetLog() << "QFZ3 = " << m_par.QFZ3 << " \n";
+        }
+        if (skey.compare("QPFZ1") == 0) {
+            m_par.QPFZ1 = stod(sval);
+        }
+        if (skey.compare("QV2") == 0) {
+            m_par.QV2 = stod(sval);
         }
     }
 }
@@ -601,111 +641,84 @@ void ChMFTire::LoadSectionScaling(FILE* fp) {
         // GetLog() << ">>Key=" << skey << "|" << sval << "\n";
         if (skey.compare("LFZO") == 0) {
             m_par.LFZO = stod(sval);
-            GetLog() << "LFZO = " << m_par.LFZO << "\n";
         }
         if (skey.compare("LCX") == 0) {
             m_par.LCX = stod(sval);
-            GetLog() << "LCX = " << m_par.LCX << "\n";
         }
         if (skey.compare("LMUX") == 0) {
             m_par.LMUX = stod(sval);
-            GetLog() << "LMUX = " << m_par.LMUX << "\n";
         }
         if (skey.compare("LEX") == 0) {
             m_par.LEX = stod(sval);
-            GetLog() << "LEX = " << m_par.LEX << "\n";
         }
         if (skey.compare("LKX") == 0) {
             m_par.LKX = stod(sval);
-            GetLog() << "LKX = " << m_par.LKX << "\n";
         }
         if (skey.compare("LHX") == 0) {
             m_par.LHX = stod(sval);
-            GetLog() << "LHX = " << m_par.LHX << "\n";
         }
         if (skey.compare("LVX") == 0) {
             m_par.LVX = stod(sval);
-            GetLog() << "LVX = " << m_par.LVX << "\n";
         }
         if (skey.compare("LCY") == 0) {
             m_par.LCY = stod(sval);
-            GetLog() << "LCY = " << m_par.LCY << "\n";
         }
         if (skey.compare("LMUY") == 0) {
             m_par.LMUY = stod(sval);
-            GetLog() << "LMUY = " << m_par.LMUY << "\n";
         }
         if (skey.compare("LEY") == 0) {
             m_par.LEY = stod(sval);
-            GetLog() << "LEY = " << m_par.LEY << "\n";
         }
         if (skey.compare("LKY") == 0) {
             m_par.LKY = stod(sval);
-            GetLog() << "LKY = " << m_par.LKY << "\n";
         }
         if (skey.compare("LHY") == 0) {
             m_par.LHY = stod(sval);
-            GetLog() << "LHY = " << m_par.LHY << "\n";
         }
         if (skey.compare("LVY") == 0) {
             m_par.LVY = stod(sval);
-            GetLog() << "LVY = " << m_par.LVY << "\n";
         }
         if (skey.compare("LGAY") == 0) {
             m_par.LGAY = stod(sval);
-            GetLog() << "LGAY = " << m_par.LGAY << "\n";
         }
         if (skey.compare("LTR") == 0) {
             m_par.LTR = stod(sval);
-            GetLog() << "LTR = " << m_par.LTR << "\n";
         }
         if (skey.compare("LRES") == 0) {
             m_par.LRES = stod(sval);
-            GetLog() << "LRES = " << m_par.LRES << "\n";
         }
         if (skey.compare("LGAZ") == 0) {
             m_par.LGAZ = stod(sval);
-            GetLog() << "LGAZ = " << m_par.LGAZ << "\n";
         }
         if (skey.compare("LXAL") == 0) {
             m_par.LXAL = stod(sval);
-            GetLog() << "LXAL = " << m_par.LXAL << "\n";
         }
         if (skey.compare("LYKA") == 0) {
             m_par.LYKA = stod(sval);
-            GetLog() << "LYKA = " << m_par.LYKA << "\n";
         }
         if (skey.compare("LVYKA") == 0) {
             m_par.LVYKA = stod(sval);
-            GetLog() << "LVYKA = " << m_par.LVYKA << "\n";
         }
         if (skey.compare("LS") == 0) {
             m_par.LS = stod(sval);
-            GetLog() << "LS = " << m_par.LS << "\n";
         }
         if (skey.compare("LSGKP") == 0) {
             m_par.LSGKP = stod(sval);
-            GetLog() << "LSGKP = " << m_par.LSGKP << "\n";
         }
         if (skey.compare("LSGAL") == 0) {
             m_par.LSGAL = stod(sval);
-            GetLog() << "LSGAL = " << m_par.LSGAL << "\n";
         }
         if (skey.compare("LGYR") == 0) {
             m_par.LGYR = stod(sval);
-            GetLog() << "LGYR = " << m_par.LGYR << "\n";
         }
         if (skey.compare("LMX") == 0) {
             m_par.LMX = stod(sval);
-            GetLog() << "LMX = " << m_par.LMX << "\n";
         }
         if (skey.compare("LMY") == 0) {
             m_par.LMY = stod(sval);
-            GetLog() << "LMY = " << m_par.LMY << "\n";
         }
         if (skey.compare("LIP") == 0) {
             m_par.LIP = stod(sval);
-            GetLog() << "LIP = " << m_par.LIP << "\n";
         }
     }
 }
@@ -754,103 +767,78 @@ void ChMFTire::LoadSectionLongitudinal(FILE* fp) {
         // GetLog() << ">>Key=" << skey << "|" << sval << "\n";
         if (skey.compare("PCX1") == 0) {
             m_par.PCX1 = stod(sval);
-            GetLog() << "PCX1 = " << m_par.PCX1 << "\n";
         }
         if (skey.compare("PDX1") == 0) {
             m_par.PDX1 = stod(sval);
-            GetLog() << "PDX1 = " << m_par.PDX1 << "\n";
         }
         if (skey.compare("PDX2") == 0) {
             m_par.PDX2 = stod(sval);
-            GetLog() << "PDX2 = " << m_par.PDX2 << "\n";
         }
         if (skey.compare("PEX1") == 0) {
             m_par.PEX1 = stod(sval);
-            GetLog() << "PEX1 = " << m_par.PEX1 << "\n";
         }
         if (skey.compare("PEX2") == 0) {
             m_par.PEX2 = stod(sval);
-            GetLog() << "PEX2 = " << m_par.PEX2 << "\n";
         }
         if (skey.compare("PEX3") == 0) {
             m_par.PEX3 = stod(sval);
-            GetLog() << "PEX3 = " << m_par.PEX3 << "\n";
         }
         if (skey.compare("PEX4") == 0) {
             m_par.PEX4 = stod(sval);
-            GetLog() << "PEX4 = " << m_par.PEX4 << "\n";
         }
         if (skey.compare("PKX1") == 0) {
             m_par.PKX1 = stod(sval);
-            GetLog() << "PKX1 = " << m_par.PKX1 << "\n";
         }
         if (skey.compare("PKX2") == 0) {
             m_par.PKX2 = stod(sval);
-            GetLog() << "PKX2 = " << m_par.PKX2 << "\n";
         }
         if (skey.compare("PKX3") == 0) {
             m_par.PKX3 = stod(sval);
-            GetLog() << "PKX3 = " << m_par.PKX3 << "\n";
         }
         if (skey.compare("PHX1") == 0) {
             m_par.PHX1 = stod(sval);
-            GetLog() << "PHX1 = " << m_par.PHX1 << "\n";
         }
         if (skey.compare("PHX2") == 0) {
             m_par.PHX2 = stod(sval);
-            GetLog() << "PHX2 = " << m_par.PHX2 << "\n";
         }
         if (skey.compare("PVX1") == 0) {
             m_par.PVX1 = stod(sval);
-            GetLog() << "PVX1 = " << m_par.PVX1 << "\n";
         }
         if (skey.compare("PVX2") == 0) {
             m_par.PVX2 = stod(sval);
-            GetLog() << "PVX2 = " << m_par.PVX2 << "\n";
         }
         if (skey.compare("RBX1") == 0) {
             m_par.RBX1 = stod(sval);
-            GetLog() << "RBX1 = " << m_par.RBX1 << "\n";
         }
         if (skey.compare("RBX2") == 0) {
             m_par.RBX2 = stod(sval);
-            GetLog() << "RBX2 = " << m_par.RBX2 << "\n";
         }
         if (skey.compare("RCX1") == 0) {
             m_par.RCX1 = stod(sval);
-            GetLog() << "RCX1 = " << m_par.RCX1 << "\n";
         }
         if (skey.compare("RHX1") == 0) {
             m_par.RHX1 = stod(sval);
-            GetLog() << "RHX1 = " << m_par.RHX1 << "\n";
         }
         if (skey.compare("PTX1") == 0) {
             m_par.PTX1 = stod(sval);
-            GetLog() << "PTX1 = " << m_par.PTX1 << "\n";
         }
         if (skey.compare("PTX2") == 0) {
             m_par.PTX2 = stod(sval);
-            GetLog() << "PTX2 = " << m_par.PTX2 << "\n";
         }
         if (skey.compare("PTX3") == 0) {
             m_par.PTX3 = stod(sval);
-            GetLog() << "PTX3 = " << m_par.PTX3 << "\n";
         }
         if (skey.compare("PPX1") == 0) {
             m_par.PPX1 = stod(sval);
-            GetLog() << "PPX1 = " << m_par.PPX1 << "\n";
         }
         if (skey.compare("PPX2") == 0) {
             m_par.PPX2 = stod(sval);
-            GetLog() << "PPX2 = " << m_par.PPX2 << "\n";
         }
         if (skey.compare("PPX3") == 0) {
             m_par.PPX3 = stod(sval);
-            GetLog() << "PPX3 = " << m_par.PPX3 << "\n";
         }
         if (skey.compare("PPX4") == 0) {
             m_par.PPX4 = stod(sval);
-            GetLog() << "PPX4 = " << m_par.PPX4 << "\n";
         }
     }
 }
@@ -899,51 +887,39 @@ void ChMFTire::LoadSectionOverturning(FILE* fp) {
         // GetLog() << ">>Key=" << skey << "|" << sval << "\n";
         if (skey.compare("QSX1") == 0) {
             m_par.QSX1 = stod(sval);
-            GetLog() << "QSX1 = " << m_par.QSX1 << "\n";
         }
         if (skey.compare("QSX2") == 0) {
             m_par.QSX2 = stod(sval);
-            GetLog() << "QSX2 = " << m_par.QSX2 << "\n";
         }
         if (skey.compare("QSX3") == 0) {
             m_par.QSX3 = stod(sval);
-            GetLog() << "QSX3 = " << m_par.QSX3 << "\n";
         }
         if (skey.compare("QSX4") == 0) {
             m_par.QSX4 = stod(sval);
-            GetLog() << "QSX4 = " << m_par.QSX4 << "\n";
         }
         if (skey.compare("QSX5") == 0) {
             m_par.QSX5 = stod(sval);
-            GetLog() << "QSX5 = " << m_par.QSX5 << "\n";
         }
         if (skey.compare("QSX6") == 0) {
             m_par.QSX6 = stod(sval);
-            GetLog() << "QSX6 = " << m_par.QSX6 << "\n";
         }
         if (skey.compare("QSX7") == 0) {
             m_par.QSX7 = stod(sval);
-            GetLog() << "QSX7 = " << m_par.QSX7 << "\n";
         }
         if (skey.compare("QSX8") == 0) {
             m_par.QSX8 = stod(sval);
-            GetLog() << "QSX8 = " << m_par.QSX8 << "\n";
         }
         if (skey.compare("QSX9") == 0) {
             m_par.QSX9 = stod(sval);
-            GetLog() << "QSX9 = " << m_par.QSX9 << "\n";
         }
         if (skey.compare("QSX10") == 0) {
             m_par.QSX10 = stod(sval);
-            GetLog() << "QSX10 = " << m_par.QSX10 << "\n";
         }
         if (skey.compare("QSX11") == 0) {
             m_par.QSX11 = stod(sval);
-            GetLog() << "QSX11 = " << m_par.QSX11 << "\n";
         }
         if (skey.compare("QPX1") == 0) {
             m_par.QPX1 = stod(sval);
-            GetLog() << "QPX1 = " << m_par.QPX1 << "\n";
         }
     }
 }
@@ -992,143 +968,108 @@ void ChMFTire::LoadSectionLateral(FILE* fp) {
         // GetLog() << ">>Key=" << skey << "|" << sval << "\n";
         if (skey.compare("PCY1") == 0) {
             m_par.PCY1 = stod(sval);
-            GetLog() << "PCY1 = " << m_par.PCY1 << "\n";
         }
         if (skey.compare("PDY1") == 0) {
             m_par.PDY1 = stod(sval);
-            GetLog() << "PDY1 = " << m_par.PDY1 << "\n";
         }
         if (skey.compare("PDY2") == 0) {
             m_par.PDY2 = stod(sval);
-            GetLog() << "PDY2 = " << m_par.PDY2 << "\n";
         }
         if (skey.compare("PDY3") == 0) {
             m_par.PDY3 = stod(sval);
-            GetLog() << "PDY3 = " << m_par.PDY3 << "\n";
         }
         if (skey.compare("PEY1") == 0) {
             m_par.PEY1 = stod(sval);
-            GetLog() << "PEY1 = " << m_par.PEY1 << "\n";
         }
         if (skey.compare("PEY2") == 0) {
             m_par.PEY2 = stod(sval);
-            GetLog() << "PEY2 = " << m_par.PEY2 << "\n";
         }
         if (skey.compare("PEY3") == 0) {
             m_par.PEY3 = stod(sval);
-            GetLog() << "PEY3 = " << m_par.PEY3 << "\n";
         }
         if (skey.compare("PEY4") == 0) {
             m_par.PEY4 = stod(sval);
-            GetLog() << "PEY4 = " << m_par.PEY4 << "\n";
         }
         if (skey.compare("PKY1") == 0) {
             m_par.PKY1 = stod(sval);
-            GetLog() << "PKY1 = " << m_par.PKY1 << "\n";
         }
         if (skey.compare("PKY2") == 0) {
             m_par.PKY2 = stod(sval);
-            GetLog() << "PKY2 = " << m_par.PKY2 << "\n";
         }
         if (skey.compare("PKY3") == 0) {
             m_par.PKY3 = stod(sval);
-            GetLog() << "PKY3 = " << m_par.PKY3 << "\n";
         }
         if (skey.compare("PHY1") == 0) {
             m_par.PHY1 = stod(sval);
-            GetLog() << "PHY1 = " << m_par.PHY1 << "\n";
         }
         if (skey.compare("PHY2") == 0) {
             m_par.PHY2 = stod(sval);
-            GetLog() << "PHY2 = " << m_par.PHY2 << "\n";
         }
         if (skey.compare("PHY3") == 0) {
             m_par.PHY3 = stod(sval);
-            GetLog() << "PHY3 = " << m_par.PHY3 << "\n";
         }
         if (skey.compare("PVY1") == 0) {
             m_par.PVY1 = stod(sval);
-            GetLog() << "PVY1 = " << m_par.PVY1 << "\n";
         }
         if (skey.compare("PVY2") == 0) {
             m_par.PVY2 = stod(sval);
-            GetLog() << "PVY2 = " << m_par.PVY2 << "\n";
         }
         if (skey.compare("PVY3") == 0) {
             m_par.PVY3 = stod(sval);
-            GetLog() << "PVY3 = " << m_par.PVY3 << "\n";
         }
         if (skey.compare("PVY4") == 0) {
             m_par.PVY4 = stod(sval);
-            GetLog() << "PVY4 = " << m_par.PVY4 << "\n";
         }
         if (skey.compare("RBY1") == 0) {
             m_par.RBY1 = stod(sval);
-            GetLog() << "RBY1 = " << m_par.RBY1 << "\n";
         }
         if (skey.compare("RBY2") == 0) {
             m_par.RBY2 = stod(sval);
-            GetLog() << "RBY2 = " << m_par.RBY2 << "\n";
         }
         if (skey.compare("RBY3") == 0) {
             m_par.RBY3 = stod(sval);
-            GetLog() << "RBY3 = " << m_par.RBY3 << "\n";
         }
         if (skey.compare("RCY1") == 0) {
             m_par.RCY1 = stod(sval);
-            GetLog() << "RCY1 = " << m_par.RCY1 << "\n";
         }
         if (skey.compare("RHY1") == 0) {
             m_par.RHY1 = stod(sval);
-            GetLog() << "RHY1 = " << m_par.RHY1 << "\n";
         }
         if (skey.compare("RVY1") == 0) {
             m_par.RVY1 = stod(sval);
-            GetLog() << "RVY1 = " << m_par.RVY1 << "\n";
         }
         if (skey.compare("RVY2") == 0) {
             m_par.RVY2 = stod(sval);
-            GetLog() << "RVY2 = " << m_par.RVY2 << "\n";
         }
         if (skey.compare("RVY3") == 0) {
             m_par.RVY3 = stod(sval);
-            GetLog() << "RVY3 = " << m_par.RVY3 << "\n";
         }
         if (skey.compare("RVY4") == 0) {
             m_par.RVY4 = stod(sval);
-            GetLog() << "RVY4 = " << m_par.RVY4 << "\n";
         }
         if (skey.compare("RVY5") == 0) {
             m_par.RVY5 = stod(sval);
-            GetLog() << "RVY5 = " << m_par.RVY5 << "\n";
         }
         if (skey.compare("RVY6") == 0) {
             m_par.RVY6 = stod(sval);
-            GetLog() << "RVY6 = " << m_par.RVY6 << "\n";
         }
         if (skey.compare("PTY1") == 0) {
             m_par.PTY1 = stod(sval);
-            GetLog() << "PTY1 = " << m_par.PTY1 << "\n";
         }
         if (skey.compare("PTY2") == 0) {
             m_par.PTY2 = stod(sval);
-            GetLog() << "PTY2 = " << m_par.PTY2 << "\n";
         }
         if (skey.compare("PPY1") == 0) {
             m_par.PPY1 = stod(sval);
-            GetLog() << "PPY1 = " << m_par.PPY1 << "\n";
         }
         if (skey.compare("PPY2") == 0) {
             m_par.PPY2 = stod(sval);
-            GetLog() << "PPY2 = " << m_par.PPY2 << "\n";
         }
         if (skey.compare("PPY3") == 0) {
             m_par.PPY3 = stod(sval);
-            GetLog() << "PPY3 = " << m_par.PPY3 << "\n";
         }
         if (skey.compare("PPY4") == 0) {
             m_par.PPY4 = stod(sval);
-            GetLog() << "PPY4 = " << m_par.PPY4 << "\n";
         }
     }
 }
@@ -1179,35 +1120,27 @@ void ChMFTire::LoadSectionRolling(FILE* fp) {
             m_par.QSY1 = stod(sval);
             if (m_par.QSY1 <= 0.0)
                 m_par.QSY1 = 0.01;  // be sure to have some rolling resistance
-            GetLog() << "QSY1 = " << m_par.QSY1 << "\n";
         }
         if (skey.compare("QSY2") == 0) {
             m_par.QSY2 = stod(sval);
-            GetLog() << "QSY2 = " << m_par.QSY2 << "\n";
         }
         if (skey.compare("QSY3") == 0) {
             m_par.QSY3 = stod(sval);
-            GetLog() << "QSY3 = " << m_par.QSY3 << "\n";
         }
         if (skey.compare("QSY4") == 0) {
             m_par.QSY4 = stod(sval);
-            GetLog() << "QSY4 = " << m_par.QSY4 << "\n";
         }
         if (skey.compare("QSY5") == 0) {
             m_par.QSY5 = stod(sval);
-            GetLog() << "QSY5 = " << m_par.QSY5 << "\n";
         }
         if (skey.compare("QSY6") == 0) {
             m_par.QSY6 = stod(sval);
-            GetLog() << "QSY6 = " << m_par.QSY6 << "\n";
         }
         if (skey.compare("QSY7") == 0) {
             m_par.QSY7 = stod(sval);
-            GetLog() << "QSY7 = " << m_par.QSY7 << "\n";
         }
         if (skey.compare("QSY8") == 0) {
             m_par.QSY8 = stod(sval);
-            GetLog() << "QSY8 = " << m_par.QSY8 << "\n";
         }
     }
 }
@@ -1215,7 +1148,7 @@ void ChMFTire::LoadSectionRolling(FILE* fp) {
 void ChMFTire::LoadSectionConditions(FILE* fp) {
     bool ok = FindSectionStart("[TIRE_CONDITIONS]", fp);
     if (!ok) {
-        GetLog() << "Desired section [TIRE_CONDITIONS] not found.\n";
+        GetLog() << "Desired section [TIRE_CONDITIONS] not found, older MFTire file version.\n";
         return;
     }
     while (!feof(fp)) {
@@ -1254,15 +1187,126 @@ void ChMFTire::LoadSectionConditions(FILE* fp) {
             skey = skey.substr(0, sppos);
         }
         // GetLog() << ">>Key=" << skey << "|" << sval << "\n";
+        bool ip_ok = false;
         if (skey.compare("IP") == 0) {
-            m_par.IP = stod(sval);
-            GetLog() << "IP = " << m_par.u_pressure * m_par.IP << " Pa\n";
+            m_par.IP = m_par.u_pressure * stod(sval);
+            ip_ok = true;
         }
+        bool ip_nom_ok = false;
         if (skey.compare("IP_NOM") == 0) {
-            m_par.IP_NOM = stod(sval);
-            GetLog() << "IP_NOM = " << m_par.u_pressure * m_par.IP_NOM << " Pa\n";
+            m_par.IP_NOM = m_par.u_pressure * stod(sval);
+            ip_nom_ok = true;
         }
+        m_tire_conditions_found = ip_ok && ip_nom_ok;
     }
+}
+
+void ChMFTire::LoadVerticalTable(FILE* fp) {
+    bool ok = FindSectionStart("[DEFLECTION_LOAD_CURVE]", fp);
+    if (!ok) {
+        GetLog() << "Desired section [DEFLECTION_LOAD_CURVE] not found, using linear vertical stiffness.\n";
+        return;
+    }
+    std::vector<double> xval, yval;
+    while (true) {
+        char line[201];
+        fgets(line, 200, fp);  // buffer one line
+        if (feof(fp))
+            break;
+        // remove leading white space
+        size_t l = strlen(line);
+        size_t ipos = 0;
+        while (isblank(line[ipos])) {
+            if (ipos < l)
+                ipos++;
+        }
+        std::string sbuf(line + ipos);
+        // skip pure comment lines
+        if (sbuf.front() == '!' || sbuf.front() == '$' || sbuf.front() == '{')
+            continue;
+        // leave, since a new section is reached
+        if (sbuf.front() == '[')
+            break;
+        // this should be a data line
+        // there can be a trailing comment
+        size_t trpos = sbuf.find_first_of("$");
+        if (trpos != std::string::npos) {
+            sbuf = sbuf.substr(0, trpos - 1);
+        }
+        size_t sz;
+        double x = m_par.u_length * stod(sbuf, &sz);
+        double y = m_par.u_force * stod(sbuf.substr(sz), &sz);
+        xval.push_back(x / m_par.UNLOADED_RADIUS);
+        yval.push_back(y / m_par.FNOMIN);
+    }
+    size_t ndata = xval.size();
+    Eigen::MatrixXd M(ndata, 2);
+    Eigen::VectorXd r(ndata);
+    for (size_t i = 0; i < ndata; i++) {
+        M(i, 0) = xval[i];
+        M(i, 1) = pow(xval[i], 2);
+        r(i) = yval[i];
+    }
+    Eigen::VectorXd x = M.householderQr().solve(r);
+    m_par.QFZ1 = x(0);
+    m_par.QFZ2 = x(1);
+    /*
+    GetLog() << "a = " << x(0) << "\n";
+    GetLog() << "b = " << x(1) << "\n";
+    GetLog() << "Test1 " << (x(0)*xval.back()/4.0 + x(1)*pow(xval.back()/4.0,2))*m_par.FNOMIN << "\n";
+    GetLog() << "Test2 " << (x(0)*xval.back()/2.0 + x(1)*pow(xval.back()/2.0,2))*m_par.FNOMIN << "\n";
+    GetLog() << "Test3 " << (x(0)*xval.back()*3.0/4.0 + x(1)*pow(xval.back()*3.0/4.0,2))*m_par.FNOMIN << "\n";
+    GetLog() << "Test2 " << (x(0)*xval.back() + x(1)*pow(xval.back(),2))*m_par.FNOMIN << "\n";
+    double sum = 0.0;
+    for(int i=0; i<ndata; i++) {
+        double f = (m_par.QFZ1*xval[i] + m_par.QFZ2*pow(xval[i],2));
+        double y = yval[i];
+        double e = (f-y);
+        sum += e*e;
+    }
+    GetLog() << "SumOfSquares = " << sum/double(ndata) << "\n";
+     */
+    m_vertical_table_found = true;
+}
+
+void ChMFTire::LoadBottomingTable(FILE* fp) {
+    bool ok = FindSectionStart("[BOTTOMING_CURVE]", fp);
+    if (!ok) {
+        GetLog() << "Desired section [BOTTOMING_CURVE] not found, no bottoming stiffness set.\n";
+        return;
+    }
+    while (true) {
+        char line[201];
+        fgets(line, 200, fp);  // buffer one line
+        if (feof(fp))
+            break;
+        // remove leading white space
+        size_t l = strlen(line);
+        size_t ipos = 0;
+        while (isblank(line[ipos])) {
+            if (ipos < l)
+                ipos++;
+        }
+        std::string sbuf(line + ipos);
+        // skip pure comment lines
+        if (sbuf.front() == '!' || sbuf.front() == '$' || sbuf.front() == '{')
+            continue;
+        // leave, since a new section is reached
+        if (sbuf.front() == '[')
+            break;
+        // this should be a data line
+        // there can be a trailing comment
+        size_t trpos = sbuf.find_first_of("$");
+        if (trpos != std::string::npos) {
+            sbuf = sbuf.substr(0, trpos - 1);
+        }
+        size_t sz;
+        double x = m_par.u_length * stod(sbuf, &sz);
+        double y = m_par.u_force * stod(sbuf.substr(sz), &sz);
+        m_bott_map.AddPoint(x, y);
+    }
+    if (m_bott_map.GetPoints().size() >= 3)
+        m_bottoming_table_found = true;
 }
 
 void ChMFTire::LoadSectionAligning(FILE* fp) {
@@ -1309,123 +1353,93 @@ void ChMFTire::LoadSectionAligning(FILE* fp) {
         // GetLog() << ">>Key=" << skey << "|" << sval << "\n";
         if (skey.compare("QBZ1") == 0) {
             m_par.QBZ1 = stod(sval);
-            GetLog() << "QBZ1 = " << m_par.QBZ1 << "\n";
         }
         if (skey.compare("QBZ2") == 0) {
             m_par.QBZ2 = stod(sval);
-            GetLog() << "QBZ2 = " << m_par.QBZ2 << "\n";
         }
         if (skey.compare("QBZ3") == 0) {
             m_par.QBZ3 = stod(sval);
-            GetLog() << "QBZ3 = " << m_par.QBZ3 << "\n";
         }
         if (skey.compare("QBZ4") == 0) {
             m_par.QBZ4 = stod(sval);
-            GetLog() << "QBZ4 = " << m_par.QBZ4 << "\n";
         }
         if (skey.compare("QBZ5") == 0) {
             m_par.QBZ5 = stod(sval);
-            GetLog() << "QBZ5 = " << m_par.QBZ5 << "\n";
         }
         if (skey.compare("QBZ9") == 0) {
             m_par.QBZ9 = stod(sval);
-            GetLog() << "QBZ9 = " << m_par.QBZ9 << "\n";
         }
         if (skey.compare("QCZ1") == 0) {
             m_par.QCZ1 = stod(sval);
-            GetLog() << "QCZ1 = " << m_par.QCZ1 << "\n";
         }
         if (skey.compare("QDZ1") == 0) {
             m_par.QDZ1 = stod(sval);
-            GetLog() << "QDZ1 = " << m_par.QDZ1 << "\n";
         }
         if (skey.compare("QDZ2") == 0) {
             m_par.QDZ2 = stod(sval);
-            GetLog() << "QDZ2 = " << m_par.QDZ2 << "\n";
         }
         if (skey.compare("QDZ3") == 0) {
             m_par.QDZ3 = stod(sval);
-            GetLog() << "QDZ3 = " << m_par.QDZ3 << "\n";
         }
         if (skey.compare("QDZ4") == 0) {
             m_par.QDZ4 = stod(sval);
-            GetLog() << "QDZ4 = " << m_par.QDZ4 << "\n";
         }
         if (skey.compare("QDZ6") == 0) {
             m_par.QDZ6 = stod(sval);
-            GetLog() << "QDZ6 = " << m_par.QDZ6 << "\n";
         }
         if (skey.compare("QDZ7") == 0) {
             m_par.QDZ7 = stod(sval);
-            GetLog() << "QDZ7 = " << m_par.QDZ7 << "\n";
         }
         if (skey.compare("QDZ8") == 0) {
             m_par.QDZ8 = stod(sval);
-            GetLog() << "QDZ8 = " << m_par.QDZ8 << "\n";
         }
         if (skey.compare("QDZ9") == 0) {
             m_par.QDZ9 = stod(sval);
-            GetLog() << "QDZ9 = " << m_par.QDZ9 << "\n";
         }
         if (skey.compare("QEZ1") == 0) {
             m_par.QEZ1 = stod(sval);
-            GetLog() << "QEZ1 = " << m_par.QEZ1 << "\n";
         }
         if (skey.compare("QEZ2") == 0) {
             m_par.QEZ2 = stod(sval);
-            GetLog() << "QEZ2 = " << m_par.QEZ2 << "\n";
         }
         if (skey.compare("QEZ3") == 0) {
             m_par.QEZ3 = stod(sval);
-            GetLog() << "QEZ3 = " << m_par.QEZ3 << "\n";
         }
         if (skey.compare("QEZ4") == 0) {
             m_par.QEZ4 = stod(sval);
-            GetLog() << "QEZ4 = " << m_par.QEZ4 << "\n";
         }
         if (skey.compare("QEZ5") == 0) {
             m_par.QEZ5 = stod(sval);
-            GetLog() << "QEZ5 = " << m_par.QEZ5 << "\n";
         }
         if (skey.compare("QHZ1") == 0) {
             m_par.QHZ1 = stod(sval);
-            GetLog() << "QHZ1 = " << m_par.QHZ1 << "\n";
         }
         if (skey.compare("QHZ2") == 0) {
             m_par.QHZ2 = stod(sval);
-            GetLog() << "QHZ2 = " << m_par.QHZ2 << "\n";
         }
         if (skey.compare("QHZ3") == 0) {
             m_par.QHZ3 = stod(sval);
-            GetLog() << "QHZ3 = " << m_par.QHZ3 << "\n";
         }
         if (skey.compare("QHZ4") == 0) {
             m_par.QHZ4 = stod(sval);
-            GetLog() << "QHZ4 = " << m_par.QHZ4 << "\n";
         }
         if (skey.compare("SSZ1") == 0) {
             m_par.SSZ1 = stod(sval);
-            GetLog() << "SSZ1 = " << m_par.SSZ1 << "\n";
         }
         if (skey.compare("SSZ2") == 0) {
             m_par.SSZ2 = stod(sval);
-            GetLog() << "SSZ2 = " << m_par.SSZ2 << "\n";
         }
         if (skey.compare("SSZ3") == 0) {
             m_par.SSZ3 = stod(sval);
-            GetLog() << "SSZ3 = " << m_par.SSZ3 << "\n";
         }
         if (skey.compare("SSZ4") == 0) {
             m_par.SSZ4 = stod(sval);
-            GetLog() << "SSZ4 = " << m_par.SSZ4 << "\n";
         }
         if (skey.compare("QTZ1") == 0) {
             m_par.QTZ1 = stod(sval);
-            GetLog() << "QTZ1 = " << m_par.QTZ1 << "\n";
         }
         if (skey.compare("MBELT") == 0) {
             m_par.MBELT = stod(sval);
-            GetLog() << "MBELT = " << m_par.MBELT << "\n";
         }
     }
 }

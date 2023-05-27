@@ -82,6 +82,9 @@ class CH_VEHICLE_API ChMFTire : public ChForceElementTire {
     /// The reported value will be similar to that reported by ChTire::GetCamberAngle.
     double GetCamberAngle_internal() { return m_states.gamma * CH_C_DEG_TO_RAD; }
 
+    virtual double GetNormalStiffnessForce(double depth) const override;
+    virtual double GetNormalDampingForce(double depth, double velocity) const override;
+
    protected:
     double CalcFx0(double kappa, double Fz, double gamma);  // get pure longitudinal force
     double CalcFy0(double alpha, double Fz, double gamma);  // get pure lateral force
@@ -101,7 +104,11 @@ class CH_VEHICLE_API ChMFTire : public ChForceElementTire {
     void LoadSectionRolling(FILE* fp);
     void LoadSectionConditions(FILE* fp);
     void LoadSectionAligning(FILE* fp);
+    void LoadVerticalTable(FILE* fp);
+    void LoadBottomingTable(FILE* fp);
     bool FindSectionStart(std::string sectName, FILE* fp);  // returns false, if section could not be found
+
+    ChFunction_Recorder m_bott_map;
 
     /// Set the parameters in the Pac89 model.
     virtual void SetMFParams() = 0;
@@ -113,12 +120,11 @@ class CH_VEHICLE_API ChMFTire : public ChForceElementTire {
     /// Road friction at tire test conditions
     double m_mu0;
 
-    double m_Shf;
-    double m_Cy;
-    double m_By;
-
     VehicleSide m_measured_side;
     bool m_allow_mirroring;
+    bool m_tire_conditions_found = false;
+    bool m_vertical_table_found = false;
+    bool m_bottoming_table_found = false;
 
     unsigned int m_use_mode;
 
@@ -158,7 +164,11 @@ class CH_VEHICLE_API ChMFTire : public ChForceElementTire {
         double FREFF = 0;               // High load stiffness e.r.r.
         double FNOMIN = 0;              // Nominal wheel load
         double TIRE_MASS = 0;           // Tire mass (if belt dynmics is used)
-        double QFZ3 = 0.0;              // Variation of vertical stiffness with tire pressure
+        double QFZ1 = 0.0;              // Variation of vertical stiffness with deflection (linear)
+        double QFZ2 = 0.0;              // Variation of vertical stiffness with deflection (quadratic)
+        double QFZ3 = 0.0;              // Variation of vertical stiffness with inclination angle
+        double QPFZ1 = 0.0;             // Variation of vertical stiffness with tire pressure
+        double QV2 = 0.0;
 
         // [TIRE_CONDITIONS]
         double IP = 200000;      // Actual inflation pressure
@@ -195,6 +205,7 @@ class CH_VEHICLE_API ChMFTire : public ChForceElementTire {
         double LMY = 1;    // Scale factor of rolling resistance torque
         double LIP = 1;    // Scale factor of inflation pressure
         double LKYG = 1;
+        double LCZ = 1;     // Scale factor of vertical stiffness
 
         // [LONGITUDINAL_COEFFICIENTS]
         double PCX1 = 0;  // Shape factor Cfx for longitudinal force

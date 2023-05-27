@@ -38,11 +38,6 @@ class CH_MODELS_API FEDA_MFTire : public ChMFTire {
     FEDA_MFTire(const std::string& name, unsigned int pressure_level = 2);
     ~FEDA_MFTire() {}
 
-    virtual double GetNormalStiffnessForce(double depth) const override;
-    virtual double GetNormalDampingForce(double depth, double velocity) const override {
-        return m_par.VERTICAL_DAMPING * velocity;
-    }
-
     virtual double GetTireMass() const override { return m_mass; }
     virtual ChVector<> GetTireInertia() const override { return m_inertia; }
 
@@ -58,10 +53,6 @@ class CH_MODELS_API FEDA_MFTire : public ChMFTire {
   private:
     static const double m_mass;
     static const ChVector<> m_inertia;
-    ChFunction_Recorder m_vert_map;
-    bool m_use_vert_map;
-    ChFunction_Recorder m_bott_map;
-    bool m_use_bott_map;
     unsigned int m_tire_inflation_pressure_level;
 
     static const std::string m_meshFile_left;

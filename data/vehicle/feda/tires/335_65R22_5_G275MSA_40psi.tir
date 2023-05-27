@@ -79,6 +79,12 @@ BREFF                 =          8.400        $Low load stiffness e.r.r.
 DREFF                 =          0.212        $Peak value of e.r.r.
 FREFF                 =          0.007        $High load stiffness e.r.r.
 FNOMIN                =          16929        $Nominal wheel load
+$------------------------------------------------bottoming deflection load
+[BOTTOMING_CURVE]
+{pen         fz}
+0.00000       0.0
+0.10546       0.0
+0.30546  563080.0
 $------------------------------------------------long_slip_range
 [LONG_SLIP_RANGE]
 KPUMIN                =       -0.80000        $Minimum valid wheel slip

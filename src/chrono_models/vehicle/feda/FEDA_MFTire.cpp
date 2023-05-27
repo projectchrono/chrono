@@ -42,7 +42,7 @@ const std::string FEDA_MFTire::m_meshFile_right = "feda/meshes/feda_tire_fine.ob
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 FEDA_MFTire::FEDA_MFTire(const std::string& name, unsigned int pressure_level)
-    : ChMFTire(name), m_use_vert_map(false), m_tire_inflation_pressure_level(pressure_level) {}
+    : ChMFTire(name), m_tire_inflation_pressure_level(pressure_level) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -69,111 +69,26 @@ void FEDA_MFTire::SetMFParams() {
 }
 
 void FEDA_MFTire::SetParametersLevel1() {
-
-    // setting vertical table
-    m_use_vert_map = true;
-    m_vert_map.AddPoint(0, 0);
-    m_vert_map.AddPoint(0.005, 1505.41);
-    m_vert_map.AddPoint(0.01, 3154);
-    m_vert_map.AddPoint(0.015, 4931.89);
-    m_vert_map.AddPoint(0.02, 6825.2);
-    m_vert_map.AddPoint(0.025, 8820.06);
-    m_vert_map.AddPoint(0.03, 10902.6);
-    m_vert_map.AddPoint(0.035, 13058.9);
-    m_vert_map.AddPoint(0.04, 15275.2);
-    m_vert_map.AddPoint(0.045, 17537.5);
-    m_vert_map.AddPoint(0.05, 19832);
-    m_vert_map.AddPoint(0.055, 22144.8);
-    m_vert_map.AddPoint(0.06, 24462);
-    m_vert_map.AddPoint(0.065, 26769.8);
-    m_vert_map.AddPoint(0.07, 29054.2);
-    m_vert_map.AddPoint(0.075, 31301.4);
-    m_vert_map.AddPoint(0.08, 33497.6);
-    m_vert_map.AddPoint(0.085, 35628.8);
-    m_vert_map.AddPoint(0.09, 37681.2);
-    m_vert_map.AddPoint(0.095, 39640.9);
-    m_vert_map.AddPoint(0.1, 41494);
-
-    // setting bottoming table
-    m_use_bott_map = true;
-    m_bott_map.AddPoint(0, 0);
-    m_bott_map.AddPoint(0.10546, 0);
-    m_bott_map.AddPoint(0.30546, 563080);
+    std::string dataFile("feda/tires/335_65R22_5_G275MSA_40psi.tir");
+    SetMFParamsByFile(dataFile);
 }
 
 void FEDA_MFTire::SetParametersLevel2() {
     // begin of variables set up
     std::string dataFile("feda/tires/335_65R22_5_G275MSA_60psi.tir");
     SetMFParamsByFile(dataFile);
-    
-    // setting vertical table
-    m_use_vert_map = true;
-    
-    m_vert_map.AddPoint(0, 0);
-    m_vert_map.AddPoint(0.005, 2004.06);
-    m_vert_map.AddPoint(0.01, 4242.26);
-    m_vert_map.AddPoint(0.015, 6688.46);
-    m_vert_map.AddPoint(0.02, 9316.51);
-    m_vert_map.AddPoint(0.025, 12100.2);
-    m_vert_map.AddPoint(0.03, 15013.5);
-    m_vert_map.AddPoint(0.035, 18030.2);
-    m_vert_map.AddPoint(0.04, 21124.2);
-    m_vert_map.AddPoint(0.045, 24269.2);
-    m_vert_map.AddPoint(0.05, 27439.2);
-    m_vert_map.AddPoint(0.055, 30607.9);
-    m_vert_map.AddPoint(0.06, 33749.4);
-    m_vert_map.AddPoint(0.065, 36837.3);
-    m_vert_map.AddPoint(0.07, 39845.5);
-    m_vert_map.AddPoint(0.075, 42748);
-    m_vert_map.AddPoint(0.08, 45518.5);
-    m_vert_map.AddPoint(0.085, 48130.9);
-    m_vert_map.AddPoint(0.09, 50559.1);
-    m_vert_map.AddPoint(0.095, 52776.8);
-    m_vert_map.AddPoint(0.1, 54758);
-
-    // setting bottoming table
-    m_use_bott_map = true;
-    m_bott_map.AddPoint(0, 0);
-    m_bott_map.AddPoint(0.10546, 0);
-    m_bott_map.AddPoint(0.30546, 563080);
 }
 
 void FEDA_MFTire::SetParametersLevel3() {
     // begin of variables set up
-
-    m_use_vert_map = false;
-
-    // setting bottoming table
-    m_use_bott_map = true;
-    m_bott_map.AddPoint(0, 0);
-    m_bott_map.AddPoint(0.10546, 0);
-    m_bott_map.AddPoint(0.30546, 563080);
+    std::string dataFile("feda/tires/335_65R22_5_G275MSA_70psi.tir");
+    SetMFParamsByFile(dataFile);
 }
 
 void FEDA_MFTire::SetParametersLevel4() {
     // begin of variables set up
-
-    m_use_vert_map = false;
-
-    // setting bottoming table
-    m_use_bott_map = true;
-    m_bott_map.AddPoint(0, 0);
-    m_bott_map.AddPoint(0.10546, 0);
-    m_bott_map.AddPoint(0.30546, 563080);
-}
-
-double FEDA_MFTire::GetNormalStiffnessForce(double depth) const {
-    if (m_use_vert_map)
-        if (m_use_bott_map) {
-            return m_vert_map.Get_y(depth) + m_bott_map.Get_y(depth);
-        } else {
-            return m_vert_map.Get_y(depth);
-        }
-    else if (m_use_bott_map) {
-        return depth * m_par.VERTICAL_STIFFNESS + m_bott_map.Get_y(depth);
-    } else {
-        return depth * m_par.VERTICAL_STIFFNESS;
-    }
+    std::string dataFile("feda/tires/335_65R22_5_G275MSA_95psi.tir");
+    SetMFParamsByFile(dataFile);
 }
 
 // -----------------------------------------------------------------------------
