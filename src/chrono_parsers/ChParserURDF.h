@@ -55,6 +55,9 @@ class ChApiParsers ChParserURDF {
     const urdf::ModelInterfaceSharedPtr& GetModelTree() const { return m_model; }
 
     /// Print the body tree from parsed URDF file.
+    void PrintModelBodyTree();
+
+    /// Print the list of bodies from parsed URDF file.
     void PrintModelBodies();
 
     /// Print the list of joints from parsed URDF file.

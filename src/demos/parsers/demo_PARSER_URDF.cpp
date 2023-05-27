@@ -73,6 +73,7 @@ int main(int argc, char* argv[]) {
     ////parser.SetBodyContactMaterial("head", mat);  // hardcoded for R2D2 model
 
     // Report parsed elements
+    parser.PrintModelBodyTree();
     parser.PrintModelBodies();
     parser.PrintModelJoints();
 

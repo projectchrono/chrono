@@ -277,21 +277,23 @@ void ChParserURDF::attachCollision(std::shared_ptr<ChBody> body,
     collision_model->BuildModel();
 }
 
-// Create a body (with default collision model type) from the provided URDF link.
-// This is called in a base-to-tip traversal, so the parent Chrono body exists. 
-std::shared_ptr<ChBodyAuxRef> ChParserURDF::toChBody(urdf::LinkConstSharedPtr link) {
-    // Get inertia properties
-    // Note that URDF and Chrono use the same convention regarding sign of products of inertia
+bool Discard(urdf::LinkConstSharedPtr link) {
     const auto& inertial = link->inertial;
-    double mass = inertial->mass;
-    auto inertia_moments = ChVector<>(inertial->ixx, inertial->iyy, inertial->izz);
-    auto inertia_products = ChVector<>(inertial->ixy, inertial->ixz, inertial->iyz);
+    if (!inertial)
+        return true;
 
+    if (inertial->mass < inertia_threshold ||  //
+        inertial->ixx < inertia_threshold || inertial->iyy < inertia_threshold || inertial->izz < inertia_threshold)
+        return true;
+
+    return false;
+}
+
+// Create a body (with default collision model type) from the provided URDF link.
+// This is called in a base-to-tip traversal, so the parent Chrono body exists.
+std::shared_ptr<ChBodyAuxRef> ChParserURDF::toChBody(urdf::LinkConstSharedPtr link) {
     // Discard bodies with zero inertia properties
-    if (mass < inertia_threshold ||                 //
-        inertia_moments.x() < inertia_threshold ||  //
-        inertia_moments.y() < inertia_threshold ||  //
-        inertia_moments.z() < inertia_threshold) {
+    if (Discard(link)) {
         cerr << "WARNING: Body " << link->name << " has ZERO inertia." << endl;
 
         // Error if a discarded body was connected to its parent with anything but a FIXED joint
@@ -316,6 +318,13 @@ std::shared_ptr<ChBodyAuxRef> ChParserURDF::toChBody(urdf::LinkConstSharedPtr li
 
         return nullptr;
     }
+
+    // Get inertia properties
+    // Note that URDF and Chrono use the same convention regarding sign of products of inertia
+    const auto& inertial = link->inertial;
+    double mass = inertial->mass;
+    auto inertia_moments = ChVector<>(inertial->ixx, inertial->iyy, inertial->izz);
+    auto inertia_products = ChVector<>(inertial->ixy, inertial->ixz, inertial->iyz);
 
     // Create the Chrono body
     auto body = chrono_types::make_shared<ChBodyAuxRef>();
@@ -556,11 +565,28 @@ void printBodyTree(urdf::LinkConstSharedPtr link, int level = 0) {
     }
 }
 
-void ChParserURDF::PrintModelBodies() {
+void ChParserURDF::PrintModelBodyTree() {
     auto root_link = m_model->getRoot();
-    cout << "Body list in <" << m_model->getName() << "> model" << endl;
+    cout << "Body tree in <" << m_model->getName() << "> model" << endl;
     cout << "  Root body " << root_link->name << " has " << root_link->child_links.size() << " child(ren)" << endl;
     printBodyTree(root_link);
+    cout << endl;
+}
+
+// -----------------------------------------------------------------------------
+
+void ChParserURDF::PrintModelBodies() {
+    cout << "Joint list in <" << m_model->getName() << "> model" << endl;
+    std::vector<urdf::LinkSharedPtr> links;
+    m_model->getLinks(links);
+    for (const auto& link : links) {
+        bool collision = !link->collision_array.empty();
+
+        cout << "Link: " << std::left << std::setw(25) << link->name;
+        cout << "discarded? " << (Discard(link) ? "Y    " : "     ");
+        cout << "collision? " << (collision ? "Y    " : "     ");
+        cout << endl;
+    }
     cout << endl;
 }
 
@@ -596,9 +622,9 @@ void ChParserURDF::PrintModelJoints() {
                 cout << "continous ";
                 break;
         }
-        cout << "Joint: " << std::left << std::setw(30) << joint->name;
-        cout << "Link: " << std::left << std::setw(20) << link->name;
-        cout << "Parent:" << std::left << std::setw(20) << joint->parent_link_name << std::endl;
+        cout << "Joint: " << std::left << std::setw(25) << joint->name;
+        cout << "Link: " << std::left << std::setw(25) << link->name;
+        cout << "Parent:" << std::left << std::setw(25) << joint->parent_link_name << endl;
     }
     cout << endl;
 }
