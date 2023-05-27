@@ -51,7 +51,7 @@ BUILDSYSTEM="Ninja Multi-Config"
 # ------------------------------------------------------------------------
 
 cmake -G ${BUILDSYSTEM} -B ${BUILD_DIR} -S ${SOURCE_DIR} \
-      -DCMAKE_INSTALL_PREFIX:PATH=%INSTALL_DIR% \
+      -DCMAKE_INSTALL_PREFIX:PATH=${INSTALL_DIR} \
       -DENABLE_MODULE_IRRLICHT:BOOL=ON \
       -DENABLE_MODULE_VSG:BOOL=OFF \
       -DENABLE_MODULE_OPENGL:BOOL=ON \
