@@ -90,6 +90,12 @@ class CH_VEHICLE_API ChMFTire : public ChForceElementTire {
     double CalcFy0(double alpha, double Fz, double gamma);  // get pure lateral force
     double CalcMx(double Fy, double Fz, double gamma);      // get overturning couple
     double CalcMy(double Fx, double Fz, double gamma);      // get rolling resistance moment
+    void CalcFxyCombined(double& Fx,
+                         double& Fy,
+                         double kappa,
+                         double alpha,
+                         double Fz,
+                         double gamma);  // combined forces
 
     // TIR file (ADAMS compatible) loader routines
     void SetMFParamsByFile(std::string& tirFileName);
@@ -205,7 +211,7 @@ class CH_VEHICLE_API ChMFTire : public ChForceElementTire {
         double LMY = 1;    // Scale factor of rolling resistance torque
         double LIP = 1;    // Scale factor of inflation pressure
         double LKYG = 1;
-        double LCZ = 1;     // Scale factor of vertical stiffness
+        double LCZ = 1;  // Scale factor of vertical stiffness
 
         // [LONGITUDINAL_COEFFICIENTS]
         double PCX1 = 0;  // Shape factor Cfx for longitudinal force
@@ -249,8 +255,8 @@ class CH_VEHICLE_API ChMFTire : public ChForceElementTire {
         double QSX9 = 0;   // Fz induced overturning couple due to lateral tire deflection by lateral force
         double QSX10 = 0;  // Inclination induced overturning couple, load dependency
         double QSX11 = 0;  // load dependency inclination induced overturning couple
-        double QPX1 = 0; // Variation of camber effect with pressure
-        
+        double QPX1 = 0;   // Variation of camber effect with pressure
+
         // [LATERAL_COEFFICIENTS]
         double PCY1 = 0;  // Shape factor Cfy for lateral forces
         double PDY1 = 0;  // Lateral friction Muy
