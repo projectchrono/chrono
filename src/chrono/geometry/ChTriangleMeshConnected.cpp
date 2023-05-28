@@ -28,6 +28,9 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/tinyobjloader/tiny_obj_loader.h"
+extern "C" {
+#include "chrono_thirdparty/libstl/stlfile.h"
+}
 
 namespace chrono {
 namespace geometry {
@@ -312,6 +315,64 @@ bool ChTriangleMeshConnected::LoadWavefrontMesh(const std::string& filename, boo
         }
     }
 
+    return true;
+}
+
+std::shared_ptr<ChTriangleMeshConnected> ChTriangleMeshConnected::CreateFromSTLFile(const std::string& filename,
+                                                                                    bool load_normals) {
+    auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
+    if (!trimesh->LoadSTLMesh(filename, load_normals))
+        return nullptr;
+    return trimesh;
+}
+
+bool ChTriangleMeshConnected::LoadSTLMesh(const std::string& filename, bool load_normals) {
+    char comment[80];
+    FILE* fp;
+    vertex_t nverts;
+    float* verts;
+    triangle_t ntris;
+    triangle_t *tris;
+    uint16_t* attrs;
+
+    fp = fopen(filename.c_str(), "rb");
+    auto success = loadstl(fp, comment, &verts, &nverts, &tris, &attrs, &ntris);
+    fclose(fp);
+
+    if (success != 0) {
+        free(tris);
+        free(verts);
+        free(attrs);
+        return false;
+    }
+
+    m_vertices.resize(nverts);
+    for (vertex_t i = 0, j = 0; i < nverts; i++) {
+        m_vertices[i] = ChVector<>(verts[j], verts[j + 1], verts[j + 2]);
+        j += 3;
+    }
+
+    m_face_v_indices.resize(ntris);
+    for (triangle_t i = 0, j = 0; i < ntris; i++) {
+        m_face_v_indices[i] = ChVector<int>(tris[j], tris[j + 1], tris[j+2]);
+        j += 3;
+    }
+
+    if (load_normals) {
+        m_normals.resize(ntris);
+        m_face_n_indices.resize(ntris);
+        for (triangle_t i = 0; i < ntris; i++) {
+            const auto& v0 = m_vertices[m_face_v_indices[i][0]];
+            const auto& v1 = m_vertices[m_face_v_indices[i][1]];
+            const auto& v2 = m_vertices[m_face_v_indices[i][2]];
+            m_normals[i] = Vcross(v1 - v0, v2 - v0).GetNormalized();            
+            m_face_n_indices[i] = ChVector<int>(i, i, i);
+        }
+    }
+
+		free(tris);
+    free(verts);
+    free(attrs);
     return true;
 }
 
