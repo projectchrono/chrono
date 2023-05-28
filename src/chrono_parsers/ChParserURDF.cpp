@@ -49,7 +49,7 @@ using std::endl;
 // Threshold for identifying bodies with zero inertia properties.
 const double inertia_threshold = 1e-6;
 
-ChParserURDF::ChParserURDF(const std::string& filename) : m_filename(filename), m_sys(nullptr) {
+ChParserURDF::ChParserURDF(const std::string& filename) : m_filename(filename), m_vis_collision(false), m_sys(nullptr) {
     // Read input file into XML string
     std::string xml_string;
     std::fstream xml_file(filename, std::fstream::in);
@@ -163,6 +163,15 @@ void ChParserURDF::SetBodyContactMaterial(const std::string& body_name, const Ch
     m_mat_data[body_name] = mat_data;
 }
 
+void ChParserURDF::EnableCollisionVisualization() {
+    if (m_sys) {
+        cerr << "WARNING: SetBodyContactMaterial must be called before PopulateSystem." << endl;
+        return;
+    }
+
+    m_vis_collision = true;
+}
+
 // -----------------------------------------------------------------------------
 
 void ChParserURDF::PopulateSystem(ChSystem& sys) {
@@ -261,24 +270,37 @@ std::shared_ptr<ChVisualShape> ChParserURDF::toChVisualShape(const urdf::Geometr
 }
 
 void ChParserURDF::attachVisualization(std::shared_ptr<ChBody> body,
-                                       const std::vector<urdf::VisualSharedPtr>& visual_array,
+                                       urdf::LinkConstSharedPtr link,
                                        const ChFrame<>& ref_frame) {
-    for (const auto& visual : visual_array) {
-        if (visual) {
-            auto vis_shape = toChVisualShape(visual->geometry);
-            if (visual->material) {
-                vis_shape->SetColor(toChColor(visual->material->color));
-                if (!visual->material->texture_filename.empty())
-                    vis_shape->SetTexture(m_filepath + "/" + visual->material->texture_filename);
+    if (m_vis_collision) {
+        const auto& collision_array = link->collision_array;
+        for (const auto& collision : collision_array) {
+            if (collision) {
+                auto vis_shape = toChVisualShape(collision->geometry);
+                body->AddVisualShape(vis_shape, ref_frame * toChFrame(collision->origin));
             }
-            body->AddVisualShape(vis_shape, ref_frame * toChFrame(visual->origin));
+        }
+    } else {
+        const auto& visual_array = link->visual_array;
+        for (const auto& visual : visual_array) {
+            if (visual) {
+                auto vis_shape = toChVisualShape(visual->geometry);
+                if (visual->material) {
+                    vis_shape->SetColor(toChColor(visual->material->color));
+                    if (!visual->material->texture_filename.empty())
+                        vis_shape->SetTexture(m_filepath + "/" + visual->material->texture_filename);
+                }
+                body->AddVisualShape(vis_shape, ref_frame * toChFrame(visual->origin));
+            }
         }
     }
 }
 
 void ChParserURDF::attachCollision(std::shared_ptr<ChBody> body,
-                                   const std::vector<urdf::CollisionSharedPtr>& collision_array,
+                                   urdf::LinkConstSharedPtr link,
                                    const ChFrame<>& ref_frame) {
+    const auto& collision_array = link->collision_array;
+
     // Create the contact material for all collision shapes associated with this body
     auto link_name = body->GetNameString();
     std::shared_ptr<ChMaterialSurface> contact_material;
@@ -391,10 +413,8 @@ std::shared_ptr<ChBodyAuxRef> ChParserURDF::toChBody(urdf::LinkConstSharedPtr li
         m_discarded.insert(std::make_pair(link->name, parent_link_name));
 
         // Transfer visualization and collision assets to parent body
-        attachVisualization(parent_body, link->visual_array,
-                            toChFrame(link->parent_joint->parent_to_joint_origin_transform));
-        attachCollision(parent_body, link->collision_array,
-                        toChFrame(link->parent_joint->parent_to_joint_origin_transform));
+        attachVisualization(parent_body, link, toChFrame(link->parent_joint->parent_to_joint_origin_transform));
+        attachCollision(parent_body, link, toChFrame(link->parent_joint->parent_to_joint_origin_transform));
 
         return nullptr;
     }
@@ -414,11 +434,9 @@ std::shared_ptr<ChBodyAuxRef> ChParserURDF::toChBody(urdf::LinkConstSharedPtr li
     body->SetInertiaXX(inertia_moments);
     body->SetInertiaXY(inertia_products);
 
-    // Create and attach visualization assets
-    attachVisualization(body, link->visual_array, ChFrame<>());
-
-    // Create and attach collision shapes
-    attachCollision(body, link->collision_array, ChFrame<>());
+    // Create and attach visualization and collision assets
+    attachVisualization(body, link, ChFrame<>());
+    attachCollision(body, link, ChFrame<>());
 
     return body;
 }

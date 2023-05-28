@@ -45,7 +45,7 @@ using namespace chrono::parsers;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // RoboSimian locomotion mode
-enum class LocomotionMode {WALK, SCULL, INCHWORM, DRIVE};
+enum class LocomotionMode { WALK, SCULL, INCHWORM, DRIVE };
 LocomotionMode mode = LocomotionMode::INCHWORM;
 
 // -----------------------------------------------------------------------------
@@ -104,6 +104,9 @@ int main(int argc, char* argv[]) {
 
     // Use convex hull for the sled collision shape
     robot.SetBodyMeshCollisionType("sled", ChParserURDF::MeshCollisionType::CONVEX_HULL);
+
+    // Optional: visualize collision shapes
+    ////robot.EnableCollisionVisualization();
 
     // Report parsed elements
     robot.PrintModelBodies();

@@ -99,6 +99,9 @@ class ChApiParsers ChParserURDF {
     /// Bodies for which this function is not explictly called are constructed with the default contact material.
     void SetBodyContactMaterial(const std::string& body_name, const ChContactMaterialData& mat_data);
 
+    /// Enable visualization of collision shapes (default: visualization shapes).
+    void EnableCollisionVisualization();
+
     /// Create the Chrono model in the given system from the parsed URDF model.
     void PopulateSystem(ChSystem& sys);
 
@@ -138,20 +141,17 @@ class ChApiParsers ChParserURDF {
     void createChildren(urdf::LinkConstSharedPtr parent, const ChFrame<>& parent_frame);
 
     /// Attach visualization assets to a Chrono body.
-    void attachVisualization(std::shared_ptr<ChBody> body,
-                             const std::vector<urdf::VisualSharedPtr>& visual_array,
-                             const ChFrame<>& ref_frame);
+    void attachVisualization(std::shared_ptr<ChBody> body, urdf::LinkConstSharedPtr link, const ChFrame<>& ref_frame);
 
     /// Attach collision assets to a Chrono body.
-    void attachCollision(std::shared_ptr<ChBody> body,
-                         const std::vector<urdf::CollisionSharedPtr>& collision_array,
-                         const ChFrame<>& ref_frame);
+    void attachCollision(std::shared_ptr<ChBody> body, urdf::LinkConstSharedPtr link, const ChFrame<>& ref_frame);
 
     std::string m_filename;                                   ///< URDF file name
     std::string m_filepath;                                   ///< path of URDF file
     urdf::ModelInterfaceSharedPtr m_model;                    ///< parsed URDF model
     ChSystem* m_sys;                                          ///< containing Chrono system
     ChFrame<> m_init_pose;                                    ///< root body initial pose
+    bool m_vis_collision;                                     ///< visualize collision shapes
     std::shared_ptr<ChBodyAuxRef> m_root_body;                ///< model root body
     std::map<std::string, std::string> m_discarded;           ///< discarded bodies
     std::map<std::string, ChContactMaterialData> m_mat_data;  ///< body contact material data
