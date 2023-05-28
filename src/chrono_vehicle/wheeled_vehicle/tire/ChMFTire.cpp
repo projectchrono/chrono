@@ -114,6 +114,53 @@ double ChMFTire::CalcFy0(double alpha, double Fz, double gamma) {
     return Fy0;
 }
 
+void ChMFTire::CalcFyMz0(double& Fy, double& Mz, double alpha, double Fz, double gamma) {
+    double gamma_y = gamma * m_par.LGAY;
+    double Cy = m_par.PCY1 * m_par.LCY;
+    double Ky0 = m_par.PKY1 * m_par.FNOMIN * (1 + m_par.PPY1 * m_states.dpi) *
+                 sin(2.0 * atan(Fz / (m_par.PKY2 * m_states.Fz0_prime * (1.0 + m_par.PPY2 * m_states.dpi)))) *
+                 m_par.LFZO * m_par.LMUY;
+    double Ky = Ky0 * (1.0 - m_par.PKY3 * fabs(gamma_y));
+    double Shy = (m_par.PHY1 + m_par.PHY2 * m_states.dfz0) * m_par.LHY + m_par.PHY3 * gamma_y * m_par.LKYG;
+    double alpha_y = alpha + Shy;
+    double Svy = Fz *
+                 ((m_par.PVY1 + m_par.PVY2 * m_states.dfz0) * m_par.LVY +
+                  (m_par.PVY3 + m_par.PVY4 * m_states.dfz0) * gamma_y * m_par.LKYG) *
+                 m_par.LMUY;
+    double Ey = (m_par.PEY1 + m_par.PEY2 * m_states.dfz0) *
+                (1.0 - (m_par.PEY3 + m_par.PEY4 * gamma_y) * ChSignum(alpha_y)) * m_par.LEY;
+    double mu_y = m_states.mu_scale * (m_par.PDY1 + m_par.PDY2 * m_states.dfz0) *
+                  (1.0 + m_par.PPY3 * m_states.dpi + m_par.PPY4 * pow(m_states.dpi, 2)) *
+                  (1.0 - m_par.PDY3 * pow(gamma_y, 2)) * m_par.LMUY;
+    double Dy = mu_y * Fz;
+    double By = Ky / (Cy * Dy + 0.1);
+    Fy = Dy * sin(Cy * atan(By * alpha_y - Ey * (By * alpha_y - atan(By * alpha_y)))) + Svy;
+    // pneumatic trail
+    double R0 = m_par.UNLOADED_RADIUS;
+    double gamma_z = gamma * m_par.LGAZ;
+    double Sht = m_par.QHZ1 + m_par.QHZ2 * m_states.dfz0 + (m_par.QHZ3 + m_par.QHZ4 * m_states.dfz0) * gamma_z;
+    double alpha_t = alpha + Sht;
+    double Ct = m_par.QCZ1;
+    double Bt = (m_par.QBZ1 + m_par.QBZ2 * m_states.dfz0 + m_par.QBZ3 * pow(m_states.dfz0, 2)) *
+                (1.0 + m_par.QBZ4 * gamma_z + m_par.QBZ5 * std::abs(gamma_z)) * m_par.LKY / m_par.LMUY;
+    double Et = (m_par.QEZ1 + m_par.QEZ2 * m_states.dfz0 + m_par.QEZ3 * pow(m_states.dfz0, 2)) *
+                (1.0 + (m_par.QEZ4 + m_par.QEZ5 * gamma_z) * ((2.0 / CH_C_PI) * atan(Bt * Ct * alpha_t)));
+    double Dt = Fz * (m_par.QDZ1 + m_par.QDZ2 * m_states.dfz0) * (1.0 - m_par.QPZ1 * m_states.dpi) *
+                (1.0 + m_par.QDZ3 * gamma_z + m_par.QDZ4 * pow(gamma_z, 2)) * R0 / m_states.Fz0_prime * m_par.LTR;
+    double t = Dt * (cos(Ct * atan(Bt * alpha_t - Et * (Bt * alpha_t - atan(Bt * alpha_t))))) * cos(alpha);
+    // residual moment
+    double Shf = Shy + Svy / Ky;
+    double alpha_r = alpha + Shf;
+    double Cr = 1.0;
+    double Br = (m_par.QBZ9 * m_par.LKY / m_par.LMUY + m_par.QBZ10 * By * Cy);
+    double Dr = Fz *
+                ((m_par.QDZ6 + m_par.QDZ7 * m_states.dfz0) * m_par.LRES +
+                 (m_par.QDZ8 + m_par.QDZ9 * m_states.dfz0) * (1.0 + m_par.QPZ2 * m_states.dpi) * gamma_z) *
+                R0 * m_par.LMUY;
+    double Mzr = Dr * cos(Ct * atan(Br * alpha_r)) * cos(alpha);
+    Mz = -t * Fy + Mzr;
+}
+
 void ChMFTire::CalcFxyCombined(double& Fx, double& Fy, double kappa, double alpha, double Fz, double gamma) {
     double Fx0 = 0;
     double Cx = m_par.PCX1 * m_par.LCX;
@@ -176,6 +223,107 @@ void ChMFTire::CalcFxyCombined(double& Fx, double& Fy, double kappa, double alph
     double Gyk = cos(Cyk * atan(Byk * kappa_s - Eyk * (Byk * kappa_s - atan(Byk * alpha_s)))) /
                  cos(Cyk * atan(Byk * Shyk - Eyk * (Byk * Shyk - atan(Byk * Shyk))));
     Fy = Fy0 * Gyk + Svyk;
+}
+
+void ChMFTire::CalcFxyMzCombined(double& Fx,
+                                 double& Fy,
+                                 double& Mz,
+                                 double kappa,
+                                 double alpha,
+                                 double Fz,
+                                 double gamma) {
+    double Fx0 = 0;
+    double Cx = m_par.PCX1 * m_par.LCX;
+    double Shx = (m_par.PHX1 + m_par.PHX2 * m_states.dfz0) * m_par.LHX;
+    double Svx = Fz * (m_par.PVX1 + m_par.PVX2 * m_states.dfz0) * m_par.LVX * m_par.LMUX;
+    double kappa_x = kappa + Svx;
+    double gamma_x = gamma * m_par.LGAX;
+    double Ex = (m_par.PEX1 + m_par.PEX2 * m_states.dfz0 + m_par.PEX3 * pow(m_states.dfz0, 2)) *
+                (1.0 - m_par.PEX4 * ChSignum(kappa_x)) * m_par.LEX;
+    double mu_x = m_states.mu_scale * (m_par.PDX1 + m_par.PDX2 * m_states.dfz0) *
+                  (1.0 + m_par.PPX3 * m_states.dpi + m_par.PPX4 * pow(m_states.dpi, 2)) *
+                  (1.0 - m_par.PDX3 * pow(gamma_x, 2)) * m_par.LMUX;
+    double Dx = mu_x * Fz;
+    double Kx = Fz * (m_par.PKX1 + m_par.PKX2 * m_states.dfz0) * exp(m_par.PKX3 * m_states.dfz0) *
+                (1.0 + m_par.PPX1 * m_states.dpi + m_par.PPX2 * pow(m_states.dpi, 2)) * m_par.LKX;
+    double Bx = Kx / (Cx * Dx + 0.1);
+    Fx0 = Dx * sin(Cx * atan(Bx * kappa_x - Ex * (Bx * kappa_x - atan(Bx * kappa_x)))) + Svx;
+
+    double Fy0 = 0;
+    double gamma_y = gamma * m_par.LGAY;
+    double Cy = m_par.PCY1 * m_par.LCY;
+    double Ky0 = m_par.PKY1 * m_par.FNOMIN * (1 + m_par.PPY1 * m_states.dpi) *
+                 sin(2.0 * atan(Fz / (m_par.PKY2 * m_states.Fz0_prime * (1.0 + m_par.PPY2 * m_states.dpi)))) *
+                 m_par.LFZO * m_par.LMUY;
+    double Ky = Ky0 * (1.0 - m_par.PKY3 * fabs(gamma_y));
+    double Shy = (m_par.PHY1 + m_par.PHY2 * m_states.dfz0) * m_par.LHY + m_par.PHY3 * gamma_y * m_par.LKYG;
+    double alpha_y = alpha + Shy;
+    double Svy = Fz *
+                 ((m_par.PVY1 + m_par.PVY2 * m_states.dfz0) * m_par.LVY +
+                  (m_par.PVY3 + m_par.PVY4 * m_states.dfz0) * gamma_y * m_par.LKYG) *
+                 m_par.LMUY;
+    double Ey = (m_par.PEY1 + m_par.PEY2 * m_states.dfz0) *
+                (1.0 - (m_par.PEY3 + m_par.PEY4 * gamma_y) * ChSignum(alpha_y)) * m_par.LEY;
+    double mu_y = m_states.mu_scale * (m_par.PDY1 + m_par.PDY2 * m_states.dfz0) *
+                  (1.0 + m_par.PPY3 * m_states.dpi + m_par.PPY4 * pow(m_states.dpi, 2)) *
+                  (1.0 - m_par.PDY3 * pow(gamma_y, 2)) * m_par.LMUY;
+    double Dy = mu_y * Fz;
+    double By = Ky / (Cy * Dy + 0.1);
+    Fy0 = Dy * sin(Cy * atan(By * alpha_y - Ey * (By * alpha_y - atan(By * alpha_y)))) + Svy;
+
+    double Shxa = m_par.RHX1;
+    double Cxa = m_par.RCX1;
+    double alpha_s = alpha + Shxa;
+    double Exa = m_par.REX1 + m_par.REX2 * m_states.dfz0;
+    double Bxa = m_par.RBX1 * cos(atan(m_par.RBX2 * kappa)) * m_par.LXAL;
+    double Dxa = Fx0 / cos(Cxa * atan(Bxa * Shxa - Exa * (Bxa * Shxa - atan(Bxa * Shxa))));
+    double Gxa = cos(Cxa * atan(Bxa * alpha_s - Exa * (Bxa * alpha_s - atan(Bxa * alpha_s)))) /
+                 cos(Cxa * atan(Bxa * Shxa - Exa * (Bxa * Shxa - atan(Bxa * Shxa))));
+    Fx = Fx0 * Gxa;
+
+    double Shyk = m_par.RHY1 + m_par.RHY2 * m_states.dfz0;
+    double kappa_s = kappa + Shyk;
+    double Cyk = m_par.RCY1;
+    double Eyk = m_par.REY1 + m_par.REY2 * m_states.dfz0;
+    double Byk = m_par.RBY1 * cos(atan(m_par.RBY2 * (alpha - m_par.RBY3))) * m_par.LYKA;
+    double Dyk = Fy0 / cos(Cyk * atan(Byk * Shyk - Eyk * (Byk * Shyk - atan(Byk * Shyk))));
+    double Dvyk =
+        mu_y * Fz * (m_par.RVY1 + m_par.RVY2 * m_states.dfz0 + m_par.RVY3 * gamma) * cos(atan(m_par.RVY4 * alpha));
+    double Svyk = Dvyk * sin(m_par.RVY5 * atan(m_par.RVY6 * kappa)) * m_par.LVYKA;
+    double Gyk = cos(Cyk * atan(Byk * kappa_s - Eyk * (Byk * kappa_s - atan(Byk * alpha_s)))) /
+                 cos(Cyk * atan(Byk * Shyk - Eyk * (Byk * Shyk - atan(Byk * Shyk))));
+    Fy = Fy0 * Gyk + Svyk;
+
+    // alignment torque
+    // pneumatic trail
+    double R0 = m_par.UNLOADED_RADIUS;
+    double gamma_z = gamma * m_par.LGAZ;
+    double Sht = m_par.QHZ1 + m_par.QHZ2 * m_states.dfz0 + (m_par.QHZ3 + m_par.QHZ4 * m_states.dfz0) * gamma_z;
+    double Shf = Shy + Svy / Ky;
+    double alpha_r = alpha + Shf;
+    double alpha_t = alpha + Sht;
+    double alpha_teq = atan(sqrt(pow(tan(alpha_t), 2) + pow(Kx / Ky, 2) * pow(kappa, 2))) * ChSignum(kappa);
+    double alpha_req = atan(sqrt(pow(tan(alpha_r), 2) + pow(Kx / Ky, 2) * pow(kappa, 2))) * ChSignum(alpha_r);
+    double Ct = m_par.QCZ1;
+    double Bt = (m_par.QBZ1 + m_par.QBZ2 * m_states.dfz0 + m_par.QBZ3 * pow(m_states.dfz0, 2)) *
+                (1.0 + m_par.QBZ4 * gamma_z + m_par.QBZ5 * std::abs(gamma_z)) * m_par.LKY / m_par.LMUY;
+    double Et = (m_par.QEZ1 + m_par.QEZ2 * m_states.dfz0 + m_par.QEZ3 * pow(m_states.dfz0, 2)) *
+                (1.0 + (m_par.QEZ4 + m_par.QEZ5 * gamma_z) * ((2.0 / CH_C_PI) * atan(Bt * Ct * alpha_t)));
+    double Dt = Fz * (m_par.QDZ1 + m_par.QDZ2 * m_states.dfz0) * (1.0 - m_par.QPZ1 * m_states.dpi) *
+                (1.0 + m_par.QDZ3 * gamma_z + m_par.QDZ4 * pow(gamma_z, 2)) * R0 / m_states.Fz0_prime * m_par.LTR;
+    double t = Dt * (cos(Ct * atan(Bt * alpha_teq - Et * (Bt * alpha_teq - atan(Bt * alpha_teq))))) * cos(alpha);
+    // residual moment
+    double Cr = 1.0;
+    double Br = (m_par.QBZ9 * m_par.LKY / m_par.LMUY + m_par.QBZ10 * By * Cy);
+    double Dr = Fz *
+                ((m_par.QDZ6 + m_par.QDZ7 * m_states.dfz0) * m_par.LRES +
+                 (m_par.QDZ8 + m_par.QDZ9 * m_states.dfz0) * (1.0 + m_par.QPZ2 * m_states.dpi) * gamma_z) *
+                R0 * m_par.LMUY;
+    double s = (m_par.SSZ1 + m_par.SSZ2 * Fy / m_states.Fz0_prime + (m_par.SSZ3 + m_par.SSZ4 * m_states.dfz0) * gamma) *
+               R0 * m_par.LS;
+    double Mzr = Dr * cos(Ct * atan(Br * alpha_req)) * cos(alpha);
+    double Fy_prime = Fy - Svyk;
+    Mz = -t * Fy_prime + Mzr + s * Fx;
 }
 
 double ChMFTire::CalcMx(double Fy, double Fz, double gamma) {
@@ -1507,6 +1655,12 @@ void ChMFTire::LoadSectionAligning(FILE* fp) {
         if (skey.compare("QTZ1") == 0) {
             m_par.QTZ1 = stod(sval);
         }
+        if (skey.compare("QPZ1") == 0) {
+            m_par.QPZ1 = stod(sval);
+        }
+        if (skey.compare("QPZ2") == 0) {
+            m_par.QPZ2 = stod(sval);
+        }
         if (skey.compare("MBELT") == 0) {
             m_par.MBELT = stod(sval);
         }
@@ -1677,19 +1831,21 @@ void ChMFTire::Advance(double step) {
             break;
         case 2:
             // steady state pure lateral slip
-            Fy = CalcFy0(alpha, Fz, gamma);
+            CalcFyMz0(Fy, Mz, alpha, Fz, gamma);
             Mx = CalcMx(Fy, Fx, gamma);
             break;
         case 3:
             // steady state pure lateral slip uncombined
             Fx = CalcFx0(kappa, Fz, gamma);
-            Fy = CalcFy0(alpha, Fz, gamma);
+            CalcFyMz0(Fy, Mz, alpha, Fz, gamma);
             My = CalcMy(Fx, Fz, gamma);
             Mx = CalcMx(Fy, Fx, gamma);
             break;
         case 4:
             // steady state combined slip
-            CalcFxyCombined(Fx, Fy, kappa, alpha, Fz, gamma);
+            CalcFxyMzCombined(Fx, Fy, Mz, kappa, alpha, Fz, gamma);
+            My = CalcMy(Fx, Fz, gamma);
+            Mx = CalcMx(Fy, Fx, gamma);
             break;
     }
 

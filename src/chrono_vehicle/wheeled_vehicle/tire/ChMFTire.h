@@ -88,14 +88,26 @@ class CH_VEHICLE_API ChMFTire : public ChForceElementTire {
    protected:
     double CalcFx0(double kappa, double Fz, double gamma);  // get pure longitudinal force
     double CalcFy0(double alpha, double Fz, double gamma);  // get pure lateral force
-    double CalcMx(double Fy, double Fz, double gamma);      // get overturning couple
-    double CalcMy(double Fx, double Fz, double gamma);      // get rolling resistance moment
+    void CalcFyMz0(double& Fy,
+                   double& Mz,
+                   double alpha,
+                   double Fz,
+                   double gamma);                       // get pure lateral force and alignment torque
+    double CalcMx(double Fy, double Fz, double gamma);  // get overturning couple
+    double CalcMy(double Fx, double Fz, double gamma);  // get rolling resistance moment
     void CalcFxyCombined(double& Fx,
                          double& Fy,
                          double kappa,
                          double alpha,
                          double Fz,
                          double gamma);  // combined forces
+    void CalcFxyMzCombined(double& Fx,
+                           double& Fy,
+                           double& Mz,
+                           double kappa,
+                           double alpha,
+                           double Fz,
+                           double gamma);  // combined forces
 
     // TIR file (ADAMS compatible) loader routines
     void SetMFParamsByFile(std::string& tirFileName);
@@ -338,6 +350,8 @@ class CH_VEHICLE_API ChMFTire : public ChForceElementTire {
         double QHZ2 = 0;   // Variation of shift Sht with load
         double QHZ3 = 0;   // Variation of shift Sht with camber
         double QHZ4 = 0;   // Variation of shift Sht with camber and load
+        double QPZ1 = 0;   // Variation of peak Dt with pressure
+        double QPZ2 = 0;   // Variation of peak Dr with pressure
         double SSZ1 = 0;   // Nominal value of s/R0: effect of Fx on Mz
         double SSZ2 = 0;   // Variation of distance s/R0 with Fy/Fznom
         double SSZ3 = 0;   // Variation of distance s/R0 with camber
