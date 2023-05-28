@@ -44,7 +44,7 @@ using namespace chrono::parsers;
 
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
-//// NOTE: SCULL mode not working right now (sled mesh collision shape not created)
+// RoboSimian locomotion mode
 enum class LocomotionMode {WALK, SCULL, INCHWORM, DRIVE};
 LocomotionMode mode = LocomotionMode::INCHWORM;
 
@@ -94,13 +94,16 @@ int main(int argc, char* argv[]) {
     // Set root body pose
     robot.SetRootInitPose(ChFrame<>(ChVector<>(0, 0, 1.5), QUNIT));
 
-    // Make all eligible joints as actuated (POSITION TYPE) and
+    // Make all eligible joints as actuated (POSITION type) and
     // overwrite wheel motors with SPEED actuation.
-    robot.SetAllJointsActuated(ChParserURDF::ActuationType::POSITION);
-    robot.SetJointActuated("limb1_joint8", ChParserURDF::ActuationType::SPEED);
-    robot.SetJointActuated("limb2_joint8", ChParserURDF::ActuationType::SPEED);
-    robot.SetJointActuated("limb3_joint8", ChParserURDF::ActuationType::SPEED);
-    robot.SetJointActuated("limb4_joint8", ChParserURDF::ActuationType::SPEED);
+    robot.SetAllJointsActuationType(ChParserURDF::ActuationType::POSITION);
+    robot.SetJointActuationType("limb1_joint8", ChParserURDF::ActuationType::SPEED);
+    robot.SetJointActuationType("limb2_joint8", ChParserURDF::ActuationType::SPEED);
+    robot.SetJointActuationType("limb3_joint8", ChParserURDF::ActuationType::SPEED);
+    robot.SetJointActuationType("limb4_joint8", ChParserURDF::ActuationType::SPEED);
+
+    // Use convex hull for the sled collision shape
+    robot.SetBodyMeshCollisionType("sled", ChParserURDF::MeshCollisionType::CONVEX_HULL);
 
     // Report parsed elements
     robot.PrintModelBodies();
@@ -125,7 +128,7 @@ int main(int argc, char* argv[]) {
     limb4_wheel->SetCollide(true);
 
     ChContactMaterialData mat;
-    mat.mu = 0.9f;
+    mat.mu = 0.8f;
     mat.cr = 0.0f;
     mat.Y = 1e7f;
     auto cmat = mat.CreateMaterial(sys.GetContactMethod());

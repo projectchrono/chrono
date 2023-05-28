@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
     parser.SetRootInitPose(ChFrame<>(ChVector<>(0, 0, 1.5), QUNIT));
 
     // Make all eligible joints as actuated
-    parser.SetAllJointsActuated(ChParserURDF::ActuationType::POSITION);
+    parser.SetAllJointsActuationType(ChParserURDF::ActuationType::POSITION);
 
     // Example: change contact material properties for a body
     ////ChContactMaterialData mat;

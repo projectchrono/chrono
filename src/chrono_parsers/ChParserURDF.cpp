@@ -72,10 +72,20 @@ ChParserURDF::ChParserURDF(const std::string& filename) : m_filename(filename), 
 }
 
 void ChParserURDF::SetRootInitPose(const ChFrame<>& init_pose) {
+    if (m_sys) {
+        cerr << "WARNING: SetRootInitPose must be called before PopulateSystem." << endl;
+        return;
+    }
+
     m_init_pose = init_pose;
 }
 
-void ChParserURDF::SetJointActuated(const std::string& joint_name, ActuationType actuation_type) {
+void ChParserURDF::SetJointActuationType(const std::string& joint_name, ActuationType actuation_type) {
+    if (m_sys) {
+        cerr << "WARNING: SetJointActuated must be called before PopulateSystem." << endl;
+        return;
+    }
+
     auto joint = m_model->getJoint(joint_name);
     if (!joint) {
         cerr << "WARNING: SetJointActuated: No joint named \"" << joint_name << "\"." << endl;
@@ -90,8 +100,13 @@ void ChParserURDF::SetJointActuated(const std::string& joint_name, ActuationType
         cerr << "WARNING: SetJointActuated: Joint \"" << joint_name << "\" cannot be actuated." << endl;
 }
 
-void ChParserURDF::SetAllJointsActuated(ActuationType actuation_type) {
-    for (auto joint : m_model->joints_) {
+void ChParserURDF::SetAllJointsActuationType(ActuationType actuation_type) {
+    if (m_sys) {
+        cerr << "WARNING: SetAllJointsActuated must be called before PopulateSystem." << endl;
+        return;
+    }
+
+    for (const auto& joint : m_model->joints_) {
         if (joint.second->type == urdf::Joint::REVOLUTE ||    //
             joint.second->type == urdf::Joint::CONTINUOUS ||  //
             joint.second->type == urdf::Joint::PRISMATIC)
@@ -99,14 +114,51 @@ void ChParserURDF::SetAllJointsActuated(ActuationType actuation_type) {
     }
 }
 
+void ChParserURDF::SetBodyMeshCollisionType(const std::string& body_name, MeshCollisionType collision_type) {
+    if (m_sys) {
+        cerr << "WARNING: SetBodyMeshCollisionType must be called before PopulateSystem." << endl;
+        return;
+    }
+
+    auto link = m_model->getLink(body_name);
+    if (!link) {
+        cerr << "WARNING: SetBodyContactMaterial: No body named \"" << body_name << "\"." << endl;
+        return;
+    }
+
+    m_coll_type[body_name] = collision_type;
+}
+
+void ChParserURDF::SetAllBodiesMeshCollisinoType(MeshCollisionType collision_type) {
+    if (m_sys) {
+        cerr << "WARNING: SetAllBodiesMeshCollisinoType must be called before PopulateSystem." << endl;
+        return;
+    }
+
+    for (const auto& link : m_model->links_)
+        m_coll_type[link.first] = collision_type;
+}
+
 void ChParserURDF::SetDefaultContactMaterial(const ChContactMaterialData& mat_data) {
+    if (m_sys) {
+        cerr << "WARNING: SetDefaultContactMaterial must be called before PopulateSystem." << endl;
+        return;
+    }
+
     m_default_mat_data = mat_data;
 }
 
 void ChParserURDF::SetBodyContactMaterial(const std::string& body_name, const ChContactMaterialData& mat_data) {
-    auto link = m_model->getLink(body_name);
-    if (!link)
+    if (m_sys) {
+        cerr << "WARNING: SetBodyContactMaterial must be called before PopulateSystem." << endl;
         return;
+    }
+
+    auto link = m_model->getLink(body_name);
+    if (!link) {
+        cerr << "WARNING: SetBodyContactMaterial: No body named \"" << body_name << "\"." << endl;
+        return;
+    }
 
     m_mat_data[body_name] = mat_data;
 }
@@ -266,8 +318,36 @@ void ChParserURDF::attachCollision(std::shared_ptr<ChBody> body,
                 }
                 case urdf::Geometry::MESH: {
                     auto mesh = std::static_pointer_cast<urdf::Mesh>(collision->geometry);
-                    //// TODO: we can only support OBJ files!
-                    ////       use assimp?
+                    auto mesh_filename = m_filepath + "/" + mesh->filename;
+                    auto ext = filesystem::path(mesh->filename).extension();
+
+                    std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh;
+                    if (ext == "obj" || ext == "OBJ")
+                        trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(mesh_filename, false);
+                    else if (ext == "stl" || ext == "STL")
+                        trimesh = geometry::ChTriangleMeshConnected::CreateFromSTLFile(mesh_filename, true);
+
+                    MeshCollisionType coll_type = m_coll_type.find(link_name) != m_coll_type.end()
+                                                      ? m_coll_type.find(link_name)->second
+                                                      : MeshCollisionType::TRIANGLE_MESH;
+                    switch (coll_type) {
+                        case MeshCollisionType::TRIANGLE_MESH:
+                            collision_model->AddTriangleMesh(contact_material,              //
+                                                             trimesh, false, false,         //
+                                                             frame.GetPos(), frame.GetA(),  //
+                                                             0.002);
+                            break;
+                        case MeshCollisionType::CONVEX_HULL:
+                            collision_model->AddConvexHull(contact_material,              //
+                                                           trimesh->getCoordsVertices(),  //
+                                                           frame.GetPos(), frame.GetA());
+                            break;
+                        case MeshCollisionType::NODE_CLOUD:
+                            for (const auto& v : trimesh->getCoordsVertices()) {
+                                collision_model->AddSphere(contact_material, 0.002, v);
+                            }
+                            break;
+                    }
                     break;
                 }
             }

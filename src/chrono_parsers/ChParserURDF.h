@@ -40,9 +40,16 @@ class ChApiParsers ChParserURDF {
   public:
     /// Motor actuation types.
     enum class ActuationType {
-        POSITION,  ///< position (linear motor) or angle (rotation motor)
-        SPEED,     ///< linear speed (linear motor) or angular speed (rotation motor)
-        FORCE      ///< force (linear motor) or torque (rotation motor)
+        POSITION,  ///< position (if linear motor) or angle (if rotation motor)
+        SPEED,     ///< linear speed (if linear motor) or angular speed (if rotation motor)
+        FORCE      ///< force (if linear motor) or torque (if rotation motor)
+    };
+
+    /// Collision type for meshes.
+    enum class MeshCollisionType {
+        TRIANGLE_MESH,  ///< use the triangular mesh itself
+        CONVEX_HULL,    ///< use the convex hull of the trimesh
+        NODE_CLOUD      ///< use spheres at mesh vertices
     };
 
     /// Construct a Chrono parser for the specified URDF file.
@@ -70,11 +77,18 @@ class ChApiParsers ChParserURDF {
     /// By default, all URDF joints are translated into Chrono kinematic joints. Joints marked as actuated will be
     /// translated to Chrono motors (with same kinematics as the corresponding passive joint). This function has no
     /// effect for joints other than Revolute, Continuous, or Prismatic.
-    void SetJointActuated(const std::string& joint_name, ActuationType actuation_type);
+    void SetJointActuationType(const std::string& joint_name, ActuationType actuation_type);
 
     /// Set all candidate joints in the URDF model as actuated, using the specified actuation type.
     /// This function has no effect for joints other than Revolute, Continuous, or Prismatic.
-    void SetAllJointsActuated(ActuationType actuation_type);
+    void SetAllJointsActuationType(ActuationType actuation_type);
+
+    /// Set the collision type for mesh collision (default: TRIMESH).
+    /// This is interpreted only if the specified body has a mesh collision shape.
+    void SetBodyMeshCollisionType(const std::string& body_name, MeshCollisionType collision_type);
+
+    /// Set the collision type for all bodies with mesh collision shapes (default: TRIMESH).
+    void SetAllBodiesMeshCollisinoType(MeshCollisionType collision_type);
 
     /// Set default contact material properties.
     /// All bodies for which SetBodyContactMaterial was not explicitly called will be constructed with this contact
@@ -141,6 +155,7 @@ class ChApiParsers ChParserURDF {
     std::shared_ptr<ChBodyAuxRef> m_root_body;                ///< model root body
     std::map<std::string, std::string> m_discarded;           ///< discarded bodies
     std::map<std::string, ChContactMaterialData> m_mat_data;  ///< body contact material data
+    std::map<std::string, MeshCollisionType> m_coll_type;     ///< mesh collision type
     std::map<std::string, ActuationType> m_actuated_joints;   ///< actuated joints
     ChContactMaterialData m_default_mat_data;                 ///< default contact material data
 };
