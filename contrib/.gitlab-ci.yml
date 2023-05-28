@@ -24,7 +24,6 @@ stages:
 # Arch Linux Builders #
 #---------------------#
 
-
 .archlinux:
   tags:
   - linux
@@ -35,15 +34,10 @@ stages:
   - uname -a
   - export LIB_DIR="lib"
   - export IOMP5_DIR=""
-  - pacman -Sy --noconfirm --overwrite cuda git eigen cmake glfw glm glew glut irrlicht ninja wget python python-pip openmpi openssh swig hdf5 intel-oneapi-mkl doxygen fontconfig libxmu
+  - pacman -Sy --noconfirm git eigen cmake glfw glm glew glut irrlicht ninja wget python python-pip openmpi openssh swig hdf5 intel-oneapi-mkl doxygen fontconfig libxmu cuda
   # Clean up the package cache to make more space for the build
   - pacman -Scc --noconfirm
   - ldconfig
-  # Building and installing opencascade
-  - cd ~/Packages/opencascade-7.4.0/build
-  - cmake -DBUILD_MODULE_Draw:BOOL=FALSE ..
-  - make -j 8
-  - make install -j 8
   # Initializing git repository
   - cd $CI_PROJECT_DIR
   - git submodule init
@@ -122,12 +116,12 @@ linux:arch-llvm:test:
     # Defining configuration variables
     - export LIB_DIR="lib"
     - export IOMP5_DIR=""
+    - nvidia-smi
     # Obtain dependencies
     - apt-get update; apt-get -y install unzip wget python3 python3-pip
       git cmake ninja-build doxygen libvulkan-dev pkg-config libirrlicht-dev 
       freeglut3-dev mpich libasio-dev libboost-dev libglfw3-dev libglm-dev 
-      libglew-dev libtinyxml2-dev swig python3-dev libhdf5-dev libnvidia-gl-515
-    - ldconfig
+      libglew-dev libtinyxml2-dev swig python3-dev libhdf5-dev libnvidia-gl-530
     - wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | 
       gpg --dearmor | tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
     - echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] 
@@ -135,11 +129,6 @@ linux:arch-llvm:test:
     - apt update
     - apt -y install intel-basekit libxcb-randr0-dev libxcb-xtest0-dev libxcb-xinerama0-dev
       libxcb-shape0-dev libxcb-xkb-dev xorg-dev
-    # Build opencascade
-    - cd ~/Packages/opencascade-7.4.0/build
-    - cmake -DBUILD_MODULE_Draw:BOOL=FALSE ..
-    - make -j 8
-    - make install -j 8
     # Initialize git repository
     - cd $CI_PROJECT_DIR
     - git submodule init
@@ -254,10 +243,10 @@ linux:ubuntu22.04:test:
     - conda config --add channels https://conda.anaconda.org/conda-forge
     - conda config --add channels https://conda.anaconda.org/intel
   environment:
-    name: pychrono-ubuntu2004
+    name: pychrono-ubuntu22.04
     url: https://anaconda.org/projectchrono/pychrono
 
-linux:ubuntu2004:deploy-python3.8:
+linux:ubuntu22.04:deploy-python3.8:
   stage: deploy
   needs: []
   extends: .ubuntu-deploy-base
@@ -268,7 +257,7 @@ linux:ubuntu2004:deploy-python3.8:
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l main --force
   when: manual
 
-linux:ubuntu2004:deploy-python3.9:
+linux:ubuntu22.04:deploy-python3.9:
   stage: deploy
   needs: []
   extends: .ubuntu-deploy-base
@@ -278,7 +267,7 @@ linux:ubuntu2004:deploy-python3.9:
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l main --force
   when: manual
 
-linux:ubuntu2004:deploy-python3.10:
+linux:ubuntu22.04:deploy-python3.10:
   stage: deploy
   needs: []
   extends: .ubuntu-deploy-base
@@ -306,6 +295,7 @@ linux:ubuntu2004:deploy-python3.10:
     # Resuming build configuration
     - uname -a
     - printf "[oneAPI]\nname=Intel® oneAPI repository\nbaseurl=https://yum.repos.intel.com/oneapi\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB\n" > /etc/yum.repos.d/oneAPI.repo
+    - dnf -y upgrade
     - dnf groupinstall -y 'Development Tools'
     - dnf config-manager --set-enabled powertools
     - dnf install -y epel-release
