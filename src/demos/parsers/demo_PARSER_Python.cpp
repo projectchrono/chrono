@@ -19,13 +19,14 @@
 //
 // =============================================================================
 
-#include "chrono_pyparser/ChPython.h"
+#include "chrono_parsers/ChParserPython.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include <iostream>
 #include <sstream>
 
 using namespace chrono;
+using namespace chrono::parsers;
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";

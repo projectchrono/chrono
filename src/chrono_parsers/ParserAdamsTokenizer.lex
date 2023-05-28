@@ -13,8 +13,8 @@
 // =============================================================================
 //
 // Used to generate tokenizer for ChParserAdams. The lex file is used to
-// generate ChAdamsTokenizer.yy.cpp via the command
-//		`flex -o ChAdamsTokenizer.yy.cpp AdamsTokenizer.lex`
+// generate ChParserAdamsTokenizer.yy.cpp via the command
+//		`flex -o ChParserAdamsTokenizer.yy.cpp ParserAdamsTokenizer.lex`
 // This file provides the funciton
 // =============================================================================
 */
@@ -79,7 +79,7 @@ output		OUTPUT\/
 namespace chrono {
 namespace parsers {
 
-// Opens the relevant file and calls yylex(), defined in ChAdamsTokenizer.yy.cpp
+// Opens the relevant file and calls yylex(), defined in ChParserAdamsTokenizer.yy.cpp
 // Tokenizes the file into the member tokens vector.
 // This file needs to be in the same file as yylex() is defined since it uses variables
 // private to that file.

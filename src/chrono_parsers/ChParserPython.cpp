@@ -10,15 +10,16 @@
 //
 // =============================================================================
 
-#include "chrono_pyparser/ChSwigutils.h"
-
-#include "chrono_pyparser/ChPython.h"
 #include <Python.h>
 #include <iostream>
 #include <sstream>
 #include <typeinfo>
 
+#include "chrono_parsers/ChSwigutils.h"
+#include "chrono_parsers/ChParserPython.h"
+
 namespace chrono {
+namespace parsers {
 
 ChPythonEngine::ChPythonEngine() {
     Py_Initialize();
@@ -240,5 +241,6 @@ void ChPythonEngine::ImportSolidWorksSystem(const char* solidworks_py_file, ChSy
     }
 }
 
+}  // end namespace parsers
 }  // namespace chrono
 

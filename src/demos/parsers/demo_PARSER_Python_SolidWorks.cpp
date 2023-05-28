@@ -18,18 +18,16 @@
 //
 // =============================================================================
 
-#include "chrono_pyparser/ChPython.h"
+#include "chrono_parsers/ChParserPython.h"
 #include "chrono/core/ChRealtimeStep.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
-// Use the namespace of Chrono
-
 using namespace chrono;
+using namespace chrono::parsers;
 using namespace chrono::collision;
 using namespace chrono::irrlicht;
 
-// Use the main namespaces of Irrlicht
 using namespace irr;
 
 using namespace core;

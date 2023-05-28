@@ -1,7 +1,7 @@
-#line 1 "ChAdamsTokenizer.yy.cpp"
+#line 1 "ChParserAdamsTokenizer.yy.cpp"
 #include "chrono_parsers/ChParserAdams.h"
 
-#line 4 "ChAdamsTokenizer.yy.cpp"
+#line 4 "ChParserAdamsTokenizer.yy.cpp"
 
 #define  YY_INT_ALIGNED short int
 
@@ -504,7 +504,7 @@ int yy_flex_debug = 0;
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
-#line 1 "AdamsTokenizer.lex"
+#line 1 "ParserAdamsTokenizer.lex"
 /* =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
@@ -520,15 +520,15 @@ char *yytext;
 // =============================================================================
 //
 // Used to generate tokenizer for ChParserAdams. The lex file is used to
-// generate ChAdamsTokenizer.yy.cpp via the command
-//		`flex -o ChAdamsTokenizer.yy.cpp AdamsTokenizer.lex`
+// generate ChParserAdamsTokenizer.yy.cpp via the command
+//		`flex -o ChParserAdamsTokenizer.yy.cpp ParserParserAdamsTokenizer.lex`
 // This file provides the funciton
 // =============================================================================
 */
 #define YY_NO_UNISTD_H 1
 
 /* DELIMITER signals that an Adams object token stream is next */
-#line 531 "ChAdamsTokenizer.yy.cpp"
+#line 531 "ChParserAdamsTokenizer.yy.cpp"
 
 #define INITIAL 0
 
@@ -745,9 +745,9 @@ YY_DECL
 		}
 
 	{
-#line 54 "AdamsTokenizer.lex"
+#line 54 "ParserAdamsTokenizer.lex"
 
-#line 750 "ChAdamsTokenizer.yy.cpp"
+#line 750 "ChParserAdamsTokenizer.yy.cpp"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -802,38 +802,38 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 55 "AdamsTokenizer.lex"
+#line 55 "ParserAdamsTokenizer.lex"
 /* don't do anything, we don't care */
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 56 "AdamsTokenizer.lex"
+#line 56 "ParserAdamsTokenizer.lex"
 m_tokens.emplace_back(DELIMITER, "|");m_tokens.emplace_back(END, yytext);
 	YY_BREAK
 case 3:
 /* rule 3 can match eol */
 YY_RULE_SETUP
-#line 57 "AdamsTokenizer.lex"
+#line 57 "ParserAdamsTokenizer.lex"
 /* Ignore newlines */ /*m_tokens.emplace_back(NEWLINE, yytext);*/
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 58 "AdamsTokenizer.lex"
+#line 58 "ParserAdamsTokenizer.lex"
 /* comma's aren't important either */ /*m_tokens.emplace_back(COMMA, ",");*/
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 59 "AdamsTokenizer.lex"
+#line 59 "ParserAdamsTokenizer.lex"
 m_tokens.emplace_back(VALUE, yytext);
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 60 "AdamsTokenizer.lex"
+#line 60 "ParserAdamsTokenizer.lex"
 m_tokens.emplace_back(LABEL, yytext);
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 61 "AdamsTokenizer.lex"
+#line 61 "ParserAdamsTokenizer.lex"
 /*m_tokens.emplace_back(EQUALS, "=");*/
 	YY_BREAK
 case 8:
@@ -841,85 +841,85 @@ case 8:
 (yy_c_buf_p) = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 62 "AdamsTokenizer.lex"
+#line 62 "ParserAdamsTokenizer.lex"
 /* Ignore comments */ /*m_tokens.emplace_back(COMMENT, "!");*/
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 63 "AdamsTokenizer.lex"
+#line 63 "ParserAdamsTokenizer.lex"
 m_tokens.emplace_back(NEGATE, "-");
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 64 "AdamsTokenizer.lex"
+#line 64 "ParserAdamsTokenizer.lex"
 m_tokens.emplace_back(COLON, ":");
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 65 "AdamsTokenizer.lex"
+#line 65 "ParserAdamsTokenizer.lex"
 m_tokens.emplace_back(BACKSLASH, "\\");
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 66 "AdamsTokenizer.lex"
+#line 66 "ParserAdamsTokenizer.lex"
 m_tokens.emplace_back(PAREN_O, "(");
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 67 "AdamsTokenizer.lex"
+#line 67 "ParserAdamsTokenizer.lex"
 m_tokens.emplace_back(PAREN_C, ")");
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 68 "AdamsTokenizer.lex"
+#line 68 "ParserAdamsTokenizer.lex"
 m_tokens.emplace_back(ADAMS, yytext);
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 69 "AdamsTokenizer.lex"
+#line 69 "ParserAdamsTokenizer.lex"
 m_tokens.emplace_back(DELIMITER, "|");m_tokens.emplace_back(GRAPHICS, yytext);
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 70 "AdamsTokenizer.lex"
+#line 70 "ParserAdamsTokenizer.lex"
 m_tokens.emplace_back(UNITS, yytext);
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 71 "AdamsTokenizer.lex"
+#line 71 "ParserAdamsTokenizer.lex"
 m_tokens.emplace_back(DELIMITER, "|");m_tokens.emplace_back(MARKER, yytext);
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 72 "AdamsTokenizer.lex"
+#line 72 "ParserAdamsTokenizer.lex"
 m_tokens.emplace_back(DELIMITER, "|");m_tokens.emplace_back(PART, yytext);
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 73 "AdamsTokenizer.lex"
+#line 73 "ParserAdamsTokenizer.lex"
 m_tokens.emplace_back(DELIMITER, "|");m_tokens.emplace_back(JOINT, yytext);
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 74 "AdamsTokenizer.lex"
+#line 74 "ParserAdamsTokenizer.lex"
 m_tokens.emplace_back(DELIMITER, "|");m_tokens.emplace_back(ACCGRAV, yytext);
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 75 "AdamsTokenizer.lex"
+#line 75 "ParserAdamsTokenizer.lex"
 m_tokens.emplace_back(DELIMITER, "|");m_tokens.emplace_back(REQUEST, yytext);
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 76 "AdamsTokenizer.lex"
+#line 76 "ParserAdamsTokenizer.lex"
 m_tokens.emplace_back(OUTPUT, yytext);
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 78 "AdamsTokenizer.lex"
+#line 78 "ParserAdamsTokenizer.lex"
 YY_FATAL_ERROR( "flex scanner jammed" );
 	YY_BREAK
-#line 922 "ChAdamsTokenizer.yy.cpp"
+#line 922 "ChParserAdamsTokenizer.yy.cpp"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1925,12 +1925,12 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 78 "AdamsTokenizer.lex"
+#line 78 "ParserAdamsTokenizer.lex"
 
 namespace chrono {
 namespace parsers {
 
-// Opens the relevant file and calls yylex(), defined in ChAdamsTokenizer.yy.cpp
+// Opens the relevant file and calls yylex(), defined in ChParserAdamsTokenizer.yy.cpp
 // Tokenizes the file into the member tokens vector.
 // This file needs to be in the same file as yylex() is defined since it uses variables
 // private to that file.
