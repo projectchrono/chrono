@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2015 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,15 +9,15 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Michael Taylor, Rainer Gericke
+// Authors: Rainer Gericke
 // =============================================================================
 //
-// Template for a tire model based on the Pacejka 2002 Tire Model
+// Template for a Magic Formula tire model
 //
-// =============================================================================
-// =============================================================================
-// STILL UNDERDEVELOPMENT
-// =============================================================================
+// ChMFTire is based on the Pacejka 2002 formulae as written in
+// Hans B. Pacejka's "Tire and Vehicle Dynamics" Third Edition, Elsevier 2012
+// ISBN: 978-0-08-097016-5
+//
 // =============================================================================
 
 #include <cstdio>
@@ -1526,7 +1526,9 @@ void ChMFTire::LoadSectionAligning(FILE* fp) {
 void ChMFTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     ChTire::Initialize(wheel);
 
+    // Let derived class set the MF tire parameters
     SetMFParams();
+
     // Build the lookup table for penetration depth as function of intersection area
     // (used only with the ChTire::ENVELOPE method for terrain-tire collision detection)
     ConstructAreaDepthTable(m_par.UNLOADED_RADIUS, m_areaDep);

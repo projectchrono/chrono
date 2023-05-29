@@ -35,7 +35,7 @@ namespace feda {
 /// PAC02 tire model for the FEDA vehicle.
 class CH_MODELS_API FEDA_Pac02Tire : public ChPac02Tire {
   public:
-    FEDA_Pac02Tire(const std::string& name, unsigned int pressure_level = 2);
+    FEDA_Pac02Tire(const std::string& name);
     ~FEDA_Pac02Tire() {}
 
     virtual double GetNormalStiffnessForce(double depth) const override;
@@ -53,8 +53,6 @@ class CH_MODELS_API FEDA_Pac02Tire : public ChPac02Tire {
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;
 
-    void SetPressureLevel(unsigned int p_level) { m_tire_inflation_pressure_level = p_level; }
-
   private:
     static const double m_mass;
     static const ChVector<> m_inertia;
@@ -62,16 +60,15 @@ class CH_MODELS_API FEDA_Pac02Tire : public ChPac02Tire {
     bool m_use_vert_map;
     ChFunction_Recorder m_bott_map;
     bool m_use_bott_map;
-    unsigned int m_tire_inflation_pressure_level;
 
     static const std::string m_meshFile_left;
     static const std::string m_meshFile_right;
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 
-    void SetParametersLevel1();
-    void SetParametersLevel2();
-    void SetParametersLevel3();
-    void SetParametersLevel4();
+    void SetParametersLevel40psi();
+    void SetParametersLevel60psi();
+    void SetParametersLevel70psi();
+    void SetParametersLevel95psi();
 };
 
 /// @} vehicle_models_hmmwv

@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Michael Taylor, Rainer Gericke
+// Authors: Rainer Gericke
 // =============================================================================
 //
 // FEDA Magic Formula tire subsystem
@@ -48,21 +48,13 @@ class CH_MODELS_API FEDA_MFTire : public ChMFTire {
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;
 
-    void SetPressureLevel(unsigned int p_level) { m_tire_inflation_pressure_level = p_level; }
-
   private:
     static const double m_mass;
     static const ChVector<> m_inertia;
-    unsigned int m_tire_inflation_pressure_level;
 
     static const std::string m_meshFile_left;
     static const std::string m_meshFile_right;
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
-
-    void SetParametersLevel1();
-    void SetParametersLevel2();
-    void SetParametersLevel3();
-    void SetParametersLevel4();
 };
 
 /// @} vehicle_models_hmmwv

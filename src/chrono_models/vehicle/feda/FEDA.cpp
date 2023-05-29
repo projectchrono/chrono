@@ -45,7 +45,7 @@ FEDA::FEDA()
       m_apply_drag(false),
       m_ride_height_config(1),
       m_tire_collision_type(ChTire::CollisionType::SINGLE_POINT),
-      m_tire_pressure_level(2),
+      m_tire_pressure(60 * 6894.76),
       m_damper_mode(1) {}
 
 FEDA::FEDA(ChSystem* system)
@@ -65,7 +65,7 @@ FEDA::FEDA(ChSystem* system)
       m_apply_drag(false),
       m_ride_height_config(1),
       m_tire_collision_type(ChTire::CollisionType::SINGLE_POINT),
-      m_tire_pressure_level(2),
+      m_tire_pressure(60 * 6894.76),
       m_damper_mode(1) {}
 
 FEDA::~FEDA() {
@@ -170,6 +170,11 @@ void FEDA::Initialize() {
             auto tire_RL = chrono_types::make_shared<FEDA_MFTire>("RL");
             auto tire_RR = chrono_types::make_shared<FEDA_MFTire>("RR");
 
+            tire_FL->SetPressure(m_tire_pressure);
+            tire_FR->SetPressure(m_tire_pressure);
+            tire_RL->SetPressure(m_tire_pressure);
+            tire_RR->SetPressure(m_tire_pressure);
+
             m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE,
                                       m_tire_collision_type);
             m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE,
@@ -219,10 +224,15 @@ void FEDA::Initialize() {
             break;
         } */
         case TireModelType::PAC02: {
-            auto tire_FL = chrono_types::make_shared<FEDA_Pac02Tire>("FL", m_tire_pressure_level);
-            auto tire_FR = chrono_types::make_shared<FEDA_Pac02Tire>("FR", m_tire_pressure_level);
-            auto tire_RL = chrono_types::make_shared<FEDA_Pac02Tire>("RL", m_tire_pressure_level);
-            auto tire_RR = chrono_types::make_shared<FEDA_Pac02Tire>("RR", m_tire_pressure_level);
+            auto tire_FL = chrono_types::make_shared<FEDA_Pac02Tire>("FL");
+            auto tire_FR = chrono_types::make_shared<FEDA_Pac02Tire>("FR");
+            auto tire_RL = chrono_types::make_shared<FEDA_Pac02Tire>("RL");
+            auto tire_RR = chrono_types::make_shared<FEDA_Pac02Tire>("RR");
+
+            tire_FL->SetPressure(m_tire_pressure);
+            tire_FR->SetPressure(m_tire_pressure);
+            tire_RL->SetPressure(m_tire_pressure);
+            tire_RR->SetPressure(m_tire_pressure);
 
             m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE,
                                       m_tire_collision_type);

@@ -48,7 +48,7 @@ class CH_VEHICLE_API ANCFToroidalTire : public ChANCFTire {
 
     void SetContactMaterial(std::shared_ptr<ChMaterialSurfaceSMC> mat) { m_mat = mat; }
 
-    void SetPressure(double pressure) { m_default_pressure = pressure; }
+    void SetDefaultPressure(double pressure) { m_default_pressure = pressure; }
     void SetAlpha(double alpha) { m_alpha = alpha; }
     virtual void CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) override;
 

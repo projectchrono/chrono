@@ -29,46 +29,35 @@ namespace chrono {
 namespace vehicle {
 namespace feda {
 
-// -----------------------------------------------------------------------------
 // Static variables
-// -----------------------------------------------------------------------------
-
 const double FEDA_Pac02Tire::m_mass = 55.4;
 const ChVector<> FEDA_Pac02Tire::m_inertia(6.39, 11.31, 6.39);
-
 const std::string FEDA_Pac02Tire::m_meshFile_left = "feda/meshes/feda_tire_fine.obj";
 const std::string FEDA_Pac02Tire::m_meshFile_right = "feda/meshes/feda_tire_fine.obj";
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-FEDA_Pac02Tire::FEDA_Pac02Tire(const std::string& name, unsigned int pressure_level)
-    : ChPac02Tire(name), m_use_vert_map(false), m_tire_inflation_pressure_level(pressure_level) {}
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+FEDA_Pac02Tire::FEDA_Pac02Tire(const std::string& name)
+    : ChPac02Tire(name), m_use_vert_map(false) {}
+
 void FEDA_Pac02Tire::SetPac02Params() {
-    switch (m_tire_inflation_pressure_level) {
-        case 1:
-            GetLog() << "Tire Inflation Pressure set to 40 psi\n";
-            SetParametersLevel1();
-            break;
-        default:
-        case 2:
-            GetLog() << "Tire Inflation Pressure set to 60 psi\n";
-            SetParametersLevel2();
-            break;
-        case 3:
-            GetLog() << "Tire Inflation Pressure set to 70 psi\n";
-            SetParametersLevel3();
-            break;
-        case 4:
-            GetLog() << "Tire Inflation Pressure set to 95 psi\n";
-            SetParametersLevel4();
-            break;
-    }
+    // Convert the given tire inflation pressure from Pa to PSI
+    const double kPa2PSI = 0.145038;
+    double pressure_psi = (m_pressure / 1000) * kPa2PSI;
+
+    // Clamp the given tire inflation pressure to one of the available 4 levels
+    std::string tir_file;
+    if (pressure_psi < 50)
+        SetParametersLevel40psi();
+    else if (pressure_psi < 65)
+        SetParametersLevel60psi();
+    else if (pressure_psi < 82.5)
+        SetParametersLevel70psi();
+    else
+        SetParametersLevel95psi();
 }
 
-void FEDA_Pac02Tire::SetParametersLevel1() {
+void FEDA_Pac02Tire::SetParametersLevel40psi() {
     m_use_mode = 3;
     m_allow_mirroring = false;
     m_PacCoeff.R0 = 0.4987;
@@ -223,7 +212,7 @@ void FEDA_Pac02Tire::SetParametersLevel1() {
     m_bott_map.AddPoint(0.30546, 563080);
 }
 
-void FEDA_Pac02Tire::SetParametersLevel2() {
+void FEDA_Pac02Tire::SetParametersLevel60psi() {
     // begin of variables set up
     m_use_mode = 3;
     m_allow_mirroring = false;
@@ -379,7 +368,7 @@ void FEDA_Pac02Tire::SetParametersLevel2() {
     m_bott_map.AddPoint(0.30546, 563080);
 }
 
-void FEDA_Pac02Tire::SetParametersLevel3() {
+void FEDA_Pac02Tire::SetParametersLevel70psi() {
     // begin of variables set up
     m_use_mode = 3;
     m_allow_mirroring = false;
@@ -513,7 +502,7 @@ void FEDA_Pac02Tire::SetParametersLevel3() {
     m_bott_map.AddPoint(0.30546, 563080);
 }
 
-void FEDA_Pac02Tire::SetParametersLevel4() {
+void FEDA_Pac02Tire::SetParametersLevel95psi() {
     // begin of variables set up
     m_use_mode = 3;
     m_allow_mirroring = false;
@@ -662,7 +651,7 @@ double FEDA_Pac02Tire::GetNormalStiffnessForce(double depth) const {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 void FEDA_Pac02Tire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
         m_trimesh_shape = AddVisualizationMesh(m_meshFile_left,    // left side
