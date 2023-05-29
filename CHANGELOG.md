@@ -36,7 +36,7 @@ Change Log
 - [Release 7.0.0](#release-700---2021-11-15) 
   - [DDS communicator in Chrono::Synchrono module](#added-dds-communicator-in-chronosynchrono-module)
   - [New terramechanics co-simulation module](#added-new-terramechanics-co-simulation-module)
-  - [Chrono::Fsi API redesign](#changed-chronofsi-api-redesign)
+  - [Chrono::FSI API redesign](#changed-chronofsi-api-redesign)
   - [Sensor performance improvements and feature additions](#changed-sensor-to-improve-performance-and-added-features)
   - [ANCF element improvements and additions](#changed-ancf-element-improvements-and-additions)
   - [New Chrono::Vehicle features](#added-new-chronovehicle-features)
