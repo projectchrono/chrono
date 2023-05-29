@@ -20,7 +20,7 @@ Change Log
   - [Chrono::Sensor features and updates](#added-chronosensor-features-and-updates)
   - [Closed-loop vehicle paths](#fixed-closed-loop-vehicle-paths)
   - [Miscellaneous Chrono::Vehicle extensions](#added-miscellaneous-chronovehicle-extensions)
-  - [Chrono::Fsi API changes](#changed-chronofsi-api-changes)
+  - [Chrono::FSI API changes](#changed-chronofsi-api-changes)
   - [User-defined SMC contact force calculation](#added-user-defined-smc-contact-force-calculation)
   - [Redesigned run-time visualization system](#changed-redesigned-run-time-visualization-system)
   - [Vehicle inertia properties](#changed-vehicle-inertia-properties)
