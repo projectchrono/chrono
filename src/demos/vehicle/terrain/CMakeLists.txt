@@ -31,6 +31,7 @@ endif()
 if(HAVE_OPENCRG AND ENABLE_MODULE_VSG)
     set(DEMOS ${DEMOS}
         demo_VEH_CRGTerrain_VSG
+        demo_VEH_FEDA_Road
     )
 endif()
 

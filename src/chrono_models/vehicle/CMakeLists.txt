@@ -129,6 +129,8 @@ set(CVM_FEDA_FILES
     feda/FEDA_PitmanArm.h
     feda/FEDA_RigidTire.cpp
     feda/FEDA_RigidTire.h
+    feda/FEDA_TMsimpleTire.cpp
+    feda/FEDA_TMsimpleTire.h
     feda/FEDA_Vehicle.cpp
     feda/FEDA_Vehicle.h   
     feda/FEDA_Wheel.cpp

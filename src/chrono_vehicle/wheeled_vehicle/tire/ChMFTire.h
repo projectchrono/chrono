@@ -86,15 +86,16 @@ class CH_VEHICLE_API ChMFTire : public ChForceElementTire {
     virtual double GetNormalDampingForce(double depth, double velocity) const override;
 
    protected:
-    double CalcFx0(double kappa, double Fz, double gamma);  // get pure longitudinal force
-    double CalcFy0(double alpha, double Fz, double gamma);  // get pure lateral force
-    void CalcFyMz0(double& Fy,
+    double CalcMx(double Fy, double Fz, double gamma);  // get overturning couple
+    double CalcMy(double Fx, double Fz, double gamma);  // get rolling resistance moment
+    /* to be removed
+     double CalcFx0(double kappa, double Fz, double gamma);  // get pure longitudinal force
+     double CalcFy0(double alpha, double Fz, double gamma);  // get pure lateral force
+     void CalcFyMz0(double& Fy,
                    double& Mz,
                    double alpha,
                    double Fz,
                    double gamma);                       // get pure lateral force and alignment torque
-    double CalcMx(double Fy, double Fz, double gamma);  // get overturning couple
-    double CalcMy(double Fx, double Fz, double gamma);  // get rolling resistance moment
     void CalcFxyCombined(double& Fx,
                          double& Fy,
                          double kappa,
@@ -108,6 +109,16 @@ class CH_VEHICLE_API ChMFTire : public ChForceElementTire {
                            double alpha,
                            double Fz,
                            double gamma);  // combined forces
+     */
+    // by this method
+    void CalcFxyMz(double& Fx,
+                           double& Fy,
+                           double& Mz,
+                           double kappa,
+                           double alpha,
+                           double Fz,
+                           double gamma,
+                           bool combined = false);
 
     // TIR file (ADAMS compatible) loader routines
     void SetMFParamsByFile(std::string& tirFileName);
