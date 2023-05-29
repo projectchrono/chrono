@@ -209,11 +209,9 @@ double ChMFTire::CalcMy(double Fx, double Fz, double gamma) {
 // -----------------------------------------------------------------------------
 
 void ChMFTire::SetMFParamsByFile(const std::string& tirFileName) {
-    std::string dataFile = vehicle::GetDataFile(tirFileName);
-
-    FILE* fp = fopen(dataFile.c_str(), "r+");
+    FILE* fp = fopen(tirFileName.c_str(), "r+");
     if (fp == NULL) {
-        GetLog() << "TIR File not found <" << dataFile << ">!\n";
+        GetLog() << "TIR File not found <" << tirFileName << ">!\n";
         exit(1);
     }
     LoadSectionUnits(fp);
