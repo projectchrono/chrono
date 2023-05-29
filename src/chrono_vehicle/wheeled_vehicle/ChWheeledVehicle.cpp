@@ -151,7 +151,8 @@ void ChWheeledVehicle::ApplyParkingBrake(bool lock) {
         return;
 
     for (auto& axle : m_axles) {
-        axle->m_suspension->ApplyParkingBrake(lock);
+        if (!axle->m_suspension->IsSteerable())
+            axle->m_suspension->ApplyParkingBrake(lock);
     }
     m_parking_on = lock;
 }
