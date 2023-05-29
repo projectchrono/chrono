@@ -31,7 +31,8 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 Pac02Tire::Pac02Tire(const std::string& filename)
     : ChPac02Tire(""), m_mass(0), m_has_mesh(false), m_has_vert_table(false), m_has_bott_table(false) {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -45,7 +46,8 @@ Pac02Tire::Pac02Tire(const rapidjson::Document& d)
     Create(d);
 }
 
-void Pac02Tire::Create(const rapidjson::Document& d) {  // Invoke base class method.
+void Pac02Tire::Create(const rapidjson::Document& d) {
+    // Invoke base class method
     ChPart::Create(d);
 
     m_mass = d["Mass"].GetDouble();
