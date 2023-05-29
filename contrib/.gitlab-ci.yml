@@ -305,7 +305,6 @@ linux:ubuntu22.04:deploy-python3.10:
     - git submodule init
     - git submodule update
     - mkdir -p build
-    - nvidia-smi
 
 linux:almalinux:build:
   stage: build
