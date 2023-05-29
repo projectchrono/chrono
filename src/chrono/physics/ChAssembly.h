@@ -117,23 +117,23 @@ class ChApi ChAssembly : public ChPhysicsItem {
     const std::vector<std::shared_ptr<ChPhysicsItem>>& Get_otherphysicslist() const { return otherphysicslist; }
 
     /// Search a body by its name.
-    std::shared_ptr<ChBody> SearchBody(const char* name);
+    std::shared_ptr<ChBody> SearchBody(const std::string& name) const;
     /// Search a body by its ID
-    std::shared_ptr<ChBody> SearchBodyID(int bodyID);
+    std::shared_ptr<ChBody> SearchBodyID(int id) const;
     /// Search a shaft by its name.
-    std::shared_ptr<ChShaft> SearchShaft(const char* name);
+    std::shared_ptr<ChShaft> SearchShaft(const std::string& name) const;
     /// Search a link by its name.
-    std::shared_ptr<ChLinkBase> SearchLink(const char* name);
+    std::shared_ptr<ChLinkBase> SearchLink(const std::string& name) const;
     /// Search a mesh by its name.
-    std::shared_ptr<fea::ChMesh> SearchMesh(const char* name);
+    std::shared_ptr<fea::ChMesh> SearchMesh(const std::string& name) const;
     /// Search from other ChPhysics items (not bodies, links, or meshes) by name.
-    std::shared_ptr<ChPhysicsItem> SearchOtherPhysicsItem(const char* name);
+    std::shared_ptr<ChPhysicsItem> SearchOtherPhysicsItem(const std::string& name) const;
     /// Search a marker by its name.
-    std::shared_ptr<ChMarker> SearchMarker(const char* name);
+    std::shared_ptr<ChMarker> SearchMarker(const std::string& name) const;
     /// Search a marker by its unique ID.
-    std::shared_ptr<ChMarker> SearchMarker(int markID);
+    std::shared_ptr<ChMarker> SearchMarker(int id) const;
     /// Search an item (body, link or other ChPhysics items) by name.
-    std::shared_ptr<ChPhysicsItem> Search(const char* name);
+    std::shared_ptr<ChPhysicsItem> Search(const std::string& name) const;
 
     //
     // STATISTICS

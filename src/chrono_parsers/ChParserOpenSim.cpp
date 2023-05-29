@@ -21,7 +21,7 @@
 //
 // =============================================================================
 
-#include "chrono/utils/ChParserOpenSim.h"
+#include "chrono_parsers/ChParserOpenSim.h"
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/filesystem/resolver.h"
 #include "chrono_thirdparty/rapidxml/rapidxml_print.hpp"
@@ -45,7 +45,7 @@ using namespace filesystem;
 using namespace rapidxml;
 
 namespace chrono {
-namespace utils {
+namespace parsers {
 
 using std::cout;
 using std::endl;
@@ -257,7 +257,7 @@ bool ChParserOpenSim::parseForce(rapidxml::xml_node<>* forceNode,
         std::string name = stringStripCStr(forceNode->first_attribute("name")->value());
         std::cout << "Actuator " << name << std::endl;
         // Chrono should be using std::string
-        auto body = system.SearchBody(stringStripCStr(forceNode->first_node("body")->value()).c_str());
+        auto body = system.SearchBody(stringStripCStr(forceNode->first_node("body")->value()));
         ChVector<> point = strToChVector<double>(forceNode->first_node("point")->value());
         auto point_global = CStrToBool(forceNode->first_node("point_is_global")->value());
         ChVector<> direction = strToChVector<double>(forceNode->first_node("direction")->value());
@@ -274,8 +274,8 @@ bool ChParserOpenSim::parseForce(rapidxml::xml_node<>* forceNode,
         return true;
     } else if (stringStripCStr(forceNode->name()) == std::string("TorqueActuator")) {
         std::string name = stringStripCStr(forceNode->first_attribute("name")->value());
-        auto bodyA = system.SearchBody(stringStripCStr(forceNode->first_node("bodyA")->value()).c_str());
-        auto bodyB = system.SearchBody(stringStripCStr(forceNode->first_node("bodyB")->value()).c_str());
+        auto bodyA = system.SearchBody(stringStripCStr(forceNode->first_node("bodyA")->value()));
+        auto bodyB = system.SearchBody(stringStripCStr(forceNode->first_node("bodyB")->value()));
         auto torque_is_global = CStrToBool(forceNode->first_node("torque_is_global")->value());
         ChVector<> axis = strToChVector<double>(forceNode->first_node("axis")->value());
         auto max_force = std::stod(forceNode->first_node("optimal_force")->value());
@@ -415,7 +415,7 @@ void ChParserOpenSim::initFunctionTable() {
             std::cout << "Making a " << type << " with " << jointNode->first_node("parent_body")->value() << std::endl;
 
         // Get other body for joint
-        auto parent = system->SearchBody(stringStripCStr(jointNode->first_node("parent_body")->value()).c_str());
+        auto parent = system->SearchBody(stringStripCStr(jointNode->first_node("parent_body")->value()));
 
         if (parent != nullptr) {
             if (m_verbose)
@@ -845,5 +845,5 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
     }
 }
 
-}  // end namespace utils
+}  // end namespace parsers
 }  // end namespace chrono

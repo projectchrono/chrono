@@ -20,8 +20,9 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/utils/ChParserOpenSim.h"
 #include "chrono/utils/ChUtilsCreators.h"
+
+#include "chrono_parsers/ChParserOpenSim.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
@@ -33,7 +34,7 @@
 #include <functional>
 
 using namespace chrono;
-using namespace chrono::utils;
+using namespace chrono::parsers;
 using namespace chrono::irrlicht;
 
 // =============================================================================

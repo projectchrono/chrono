@@ -10,25 +10,26 @@
 //
 // =============================================================================
 
-#ifndef CHPYTHON_H
-#define CHPYTHON_H
+#ifndef CH_PARSER_PYTHON_H
+#define CH_PARSER_PYTHON_H
 
-#include "chrono_pyparser/ChApiPyParser.h"
+#include "chrono_parsers/ChApiParsers.h"
+
 #include "chrono/core/ChLog.h"
 #include "chrono/physics/ChSystemNSC.h"
 
 namespace chrono {
+namespace parsers {
 
-/// @addtogroup python_module
+/// @addtogroup parsers_module
 /// @{
 
-/// Class for a Python parser. This is an interpreter that can parse Python
-/// programs, from a single formula up to large programs.
-class ChApiPYPARSER ChPythonEngine {
+/// Class for a Python parser. 
+/// This is an interpreter that can parse Python programs, from a single formula up to large programs.
+class ChApiParsers ChPythonEngine {
   public:
-    /// Create a Python parser: an interpreter that can parse Python
-    /// programs, from a single formula up to large programs.
-    /// NOTE!!!	currently only one instance at a time can be created.
+    /// Create a Python parser, an interpreter that can parse Python programs.
+    /// NOTE: currently only one instance at a time can be created.
     ChPythonEngine();
 
     ~ChPythonEngine();
@@ -82,8 +83,9 @@ class ChApiPYPARSER ChPythonEngine {
     void ImportSolidWorksSystem(const char* solidworks_py_file, ChSystem& msystem);
 };
 
-/// @} python_module
+/// @} parsers_module
 
+}  // end namespace parsers
 }  // namespace chrono
 
 #endif

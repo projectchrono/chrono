@@ -22,7 +22,7 @@
 #include <functional>
 #include <map>
 
-#include "chrono/core/ChApiCE.h"
+#include "chrono_parsers/ChApiParsers.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChLoadsBody.h"
@@ -31,19 +31,18 @@
 #include "chrono_thirdparty/rapidxml/rapidxml.hpp"
 
 namespace chrono {
+namespace parsers {
 
-namespace utils {
-
-/// @addtogroup chrono_utils
+/// @addtogroup parsers_module
 /// @{
 
 /// OpenSim input file parser.
-class ChApi ChParserOpenSim {
+class ChApiParsers ChParserOpenSim {
   public:
     enum VisType { PRIMITIVES, MESH, NONE };
 
     /// Report containing information about objects parsed from file
-    class ChApi Report {
+    class ChApiParsers Report {
       public:
         /// Information about a joint read in from OpenSim.
         struct JointInfo {

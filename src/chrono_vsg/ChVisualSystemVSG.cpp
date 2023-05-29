@@ -1168,6 +1168,9 @@ void ChVisualSystemVSG::BindBody(const std::shared_ptr<ChBody>& body) {
     const auto& vis_model = body->GetVisualModel();
     const auto& vis_frame = body->GetVisualModelFrame();
 
+    if (!vis_model)
+        return;
+
     // Important for update: keep the correct scenegraph hierarchy
     //     modelGroup->model_transform->shapes_group
 
@@ -1201,6 +1204,9 @@ void ChVisualSystemVSG::BindBody(const std::shared_ptr<ChBody>& body) {
 
 void ChVisualSystemVSG::BindMesh(const std::shared_ptr<fea::ChMesh>& mesh) {
     const auto& vis_model = mesh->GetVisualModel();
+
+    if (!vis_model)
+        return;
 
     // Update FEA visualization
     for (auto& shapeFEA : vis_model->GetShapesFEA()) {
@@ -1261,6 +1267,9 @@ void ChVisualSystemVSG::BindMesh(const std::shared_ptr<fea::ChMesh>& mesh) {
 void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>& pcloud) {
     const auto& vis_model = pcloud->GetVisualModel();
     auto num_particles = pcloud->GetNparticles();
+
+    if (!vis_model)
+        return;
 
     // Search for an appropriate rendering shape
     typedef geometry::ChGeometry::Type ShapeType;
@@ -1363,6 +1372,9 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
 void ChVisualSystemVSG::BindLoadContainer(const std::shared_ptr<ChLoadContainer>& loadcont) {
     const auto& vis_model = loadcont->GetVisualModel();
 
+    if (!vis_model)
+        return;
+
     const auto& shape_instance = vis_model->GetShapes().at(0);
     auto& shape = shape_instance.first;
     auto trimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape);
@@ -1410,6 +1422,9 @@ void ChVisualSystemVSG::BindLoadContainer(const std::shared_ptr<ChLoadContainer>
 void ChVisualSystemVSG::BindTSDA(const std::shared_ptr<ChLinkTSDA>& tsda) {
     const auto& vis_model = tsda->GetVisualModel();
 
+    if (!vis_model)
+        return;
+
     for (auto& shape_instance : vis_model->GetShapes()) {
         auto& shape = shape_instance.first;
         if (auto segshape = std::dynamic_pointer_cast<ChSegmentShape>(shape)) {
@@ -1439,6 +1454,9 @@ void ChVisualSystemVSG::BindTSDA(const std::shared_ptr<ChLinkTSDA>& tsda) {
 void ChVisualSystemVSG::BindLinkDistance(const std::shared_ptr<ChLinkDistance>& dist) {
     const auto& vis_model = dist->GetVisualModel();
 
+    if (!vis_model)
+        return;
+
     for (auto& shape_instance : vis_model->GetShapes()) {
         auto& shape = shape_instance.first;
         if (auto segshape = std::dynamic_pointer_cast<ChSegmentShape>(shape)) {
@@ -1454,76 +1472,94 @@ void ChVisualSystemVSG::BindLinkDistance(const std::shared_ptr<ChLinkDistance>& 
     }
 }
 
+void ChVisualSystemVSG::BindBodyFrame(const std::shared_ptr<ChBody>& body) {
+    auto cog_transform = vsg::MatrixTransform::create();
+    cog_transform->matrix = vsg::dmat4CH(body->GetFrame_COG_to_abs(), m_cog_frame_scale);
+    vsg::Mask mask = m_show_cog_frames;
+    auto cog_node = m_shapeBuilder->createFrameSymbol(cog_transform, 1.0f);
+    cog_node->setValue("Body", body);
+    cog_node->setValue("Transform", cog_transform);
+    m_cogFrameScene->addChild(mask, cog_node);
+}
+
+void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
+    ChFrame<> frameA;
+    ChFrame<> frameB;
+    if (auto link_markers = std::dynamic_pointer_cast<ChLinkMarkers>(link)) {
+        frameA = *link_markers->GetMarker1() >> *link_markers->GetBody1();
+        frameB = *link_markers->GetMarker2() >> *link_markers->GetBody2();
+    } else if (auto link_mate = std::dynamic_pointer_cast<ChLinkMateGeneric>(link)) {
+        frameA = link_mate->GetFrame1() >> *link_mate->GetBody1();
+        frameB = link_mate->GetFrame2() >> *link_mate->GetBody2();
+    }
+
+    auto joint_transform = vsg::MatrixTransform::create();
+    joint_transform->matrix = vsg::dmat4CH(frameB, m_joint_frame_scale);
+    vsg::Mask mask = m_show_cog_frames;
+    auto joint_node = m_shapeBuilder->createFrameSymbol(joint_transform, 0.5f);
+    joint_node->setValue("Joint", link);
+    joint_node->setValue("Transform", joint_transform);
+    m_jointFrameScene->addChild(mask, joint_node);
+}
+
+void ChVisualSystemVSG::BindItem(std::shared_ptr<ChPhysicsItem> item) {
+    if (auto body = std::dynamic_pointer_cast<ChBody>(item)) {
+        BindBodyFrame(body);
+        BindBody(body);
+        return;
+    }
+
+    if (auto link = std::dynamic_pointer_cast<ChLinkBase>(item)) {
+        BindLinkFrame(link);
+        if (const auto& tsda = std::dynamic_pointer_cast<ChLinkTSDA>(link))
+            BindTSDA(tsda);
+        else if (const auto& dist = std::dynamic_pointer_cast<ChLinkDistance>(link))
+            BindLinkDistance(dist);
+        return;
+    }
+
+    if (auto mesh = std::dynamic_pointer_cast<fea::ChMesh>(item)) {
+        BindMesh(mesh);
+        return;
+    }
+
+    if (item->GetVisualModel()) {
+        if (const auto& pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item))
+            BindParticleCloud(pcloud);
+        else if (const auto& loadcont = std::dynamic_pointer_cast<ChLoadContainer>(item))
+            BindLoadContainer(loadcont);
+    }
+}
+
 void ChVisualSystemVSG::BindAll() {
     for (auto sys : m_systems) {
         // Bind visual models associated with bodies in the system
         for (const auto& body : sys->GetAssembly().Get_bodylist()) {
-            // Create the COG frame node
-            auto cog_transform = vsg::MatrixTransform::create();
-            cog_transform->matrix = vsg::dmat4CH(body->GetFrame_COG_to_abs(), m_cog_frame_scale);
-            vsg::Mask mask = m_show_cog_frames;
-            auto cog_node = m_shapeBuilder->createFrameSymbol(cog_transform, 1.0f);
-            cog_node->setValue("Body", body);
-            cog_node->setValue("Transform", cog_transform);
-            m_cogFrameScene->addChild(mask, cog_node);
-
-            if (!body->GetVisualModel())
-                continue;
-
+            BindBodyFrame(body);
             BindBody(body);
+        }
+
+        // Bind visual models associated with links in the system
+        for (const auto& link : sys->Get_linklist()) {
+            BindLinkFrame(link);
+            if (const auto& tsda = std::dynamic_pointer_cast<ChLinkTSDA>(link))
+                BindTSDA(tsda);
+            else if (const auto& dist = std::dynamic_pointer_cast<ChLinkDistance>(link))
+                BindLinkDistance(dist);
         }
 
         // Bind visual models associated with FEA meshes
         for (const auto& mesh : sys->GetAssembly().Get_meshlist()) {
-            if (!mesh->GetVisualModel())
-                continue;
-
             BindMesh(mesh);
         }
 
         // Bind visual models associated with other physics items in the system
         for (const auto& item : sys->Get_otherphysicslist()) {
-            if (!item->GetVisualModel())
-                continue;
-
-            if (const auto& pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
+            if (const auto& pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item))
                 BindParticleCloud(pcloud);
-            } else if (const auto& loadcont = std::dynamic_pointer_cast<ChLoadContainer>(item)) {
+            else if (const auto& loadcont = std::dynamic_pointer_cast<ChLoadContainer>(item))
                 BindLoadContainer(loadcont);
-            }
         }
-
-        // Bind visual models associated with links in the system
-        for (const auto& link : sys->Get_linklist()) {
-            // Create the joint frame nodes
-            ChFrame<> frameA;
-            ChFrame<> frameB;
-            if (auto link_markers = std::dynamic_pointer_cast<ChLinkMarkers>(link)) {
-                frameA = *link_markers->GetMarker1() >> *link_markers->GetBody1();
-                frameB = *link_markers->GetMarker2() >> *link_markers->GetBody2();
-            } else if (auto link_mate = std::dynamic_pointer_cast<ChLinkMateGeneric>(link)) {
-                frameA = link_mate->GetFrame1() >> *link_mate->GetBody1();
-                frameB = link_mate->GetFrame2() >> *link_mate->GetBody2();
-            }
-
-            auto joint_transform = vsg::MatrixTransform::create();
-            joint_transform->matrix = vsg::dmat4CH(frameB, m_joint_frame_scale);
-            vsg::Mask mask = m_show_cog_frames;
-            auto joint_node = m_shapeBuilder->createFrameSymbol(joint_transform, 0.5f);
-            joint_node->setValue("Joint", link);
-            joint_node->setValue("Transform", joint_transform);
-            m_jointFrameScene->addChild(mask, joint_node);
-
-            if (!link->GetVisualModel())
-                continue;
-
-            if (const auto& tsda = std::dynamic_pointer_cast<ChLinkTSDA>(link)) {
-                BindTSDA(tsda);
-            } else if (const auto& dist = std::dynamic_pointer_cast<ChLinkDistance>(link)) {
-                BindLinkDistance(dist);
-            }
-        }
-
     }  // end loop over systems
 }
 

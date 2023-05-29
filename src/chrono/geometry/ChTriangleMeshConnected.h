@@ -75,6 +75,14 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     /// Load a Wavefront OBJ file into this triangle mesh.
     bool LoadWavefrontMesh(const std::string& filename, bool load_normals = true, bool load_uv = false);
 
+    /// Create and return a ChTriangleMeshConnected from an STL file.
+    /// If an error occurrs during loading, an empty shared pointer is returned.
+    static std::shared_ptr<ChTriangleMeshConnected> CreateFromSTLFile(const std::string& filename,
+                                                                      bool load_normals = true);
+
+    /// Load an STL file into this triangle mesh.
+    bool LoadSTLMesh(const std::string& filename, bool load_normals = true);
+
     /// Write the specified meshes in a Wavefront .obj file
     static void WriteWavefront(const std::string& filename, const std::vector<ChTriangleMeshConnected>& meshes);
 

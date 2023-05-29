@@ -4,6 +4,8 @@
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
 
+option(ENABLE_MODULE_PYTHON "Enable the Chrono Python module" OFF)
+
 # Return now if this module is not enabled
 if(NOT ENABLE_MODULE_PYTHON)
   mark_as_advanced(FORCE SWIG_EXECUTABLE)

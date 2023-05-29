@@ -639,6 +639,7 @@ include_directories(${CH_INCLUDES})
 
 # Add directories to build various optional modules.  Each module is supposed
 # to provide an option for enabling that particular module.
+add_subdirectory(chrono_parsers)
 add_subdirectory(chrono_pardisomkl)
 add_subdirectory(chrono_mumps)
 add_subdirectory(chrono_matlab)
@@ -657,7 +658,6 @@ add_subdirectory(chrono_distributed)
 add_subdirectory(chrono_vehicle)
 add_subdirectory(chrono_sensor)
 add_subdirectory(chrono_synchrono)
-add_subdirectory(chrono_pyparser)
 add_subdirectory(chrono_swig/chrono_python)
 add_subdirectory(chrono_swig/chrono_csharp)
 

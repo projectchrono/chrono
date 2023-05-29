@@ -19,8 +19,9 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/utils/ChParserAdams.h"
 #include "chrono/core/ChRealtimeStep.h"
+
+#include "chrono_parsers/ChParserAdams.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
@@ -29,7 +30,7 @@
 #include <functional>
 
 using namespace chrono;
-using namespace chrono::utils;
+using namespace chrono::parsers;
 using namespace chrono::irrlicht;
 
 int main(int argc, char* argv[]) {
@@ -74,7 +75,7 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(0, 0, 2));
+    vis->AddCamera(ChVector<>(0, 0, 3));
     vis->AddTypicalLights();
 
     // Simulation loop

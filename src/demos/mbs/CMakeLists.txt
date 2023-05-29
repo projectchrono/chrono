@@ -49,9 +49,7 @@ if(ENABLE_MODULE_IRRLICHT)
       demo_MBS_prismatic_limits
       demo_MBS_prismatic_force
       demo_MBS_motors
-      demo_MBS_OpenSim_parser
       demo_MBS_report_collisions
-      demo_MBS_Adams_parser
       demo_MBS_imposed_motion
       demo_MBS_custom_contact
     )

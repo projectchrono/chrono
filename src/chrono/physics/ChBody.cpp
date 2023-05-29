@@ -564,20 +564,26 @@ void ChBody::RemoveAllMarkers() {
     marklist.clear();
 }
 
-std::shared_ptr<ChMarker> ChBody::SearchMarker(const char* m_name) {
-    return ChContainerSearchFromName<std::shared_ptr<ChMarker>, std::vector<std::shared_ptr<ChMarker>>::iterator>(
-        m_name, marklist.begin(), marklist.end());
+std::shared_ptr<ChMarker> ChBody::SearchMarker(const std::string& name) const {
+    auto marker = std::find_if(std::begin(marklist), std::end(marklist),
+                               [name](std::shared_ptr<ChMarker> marker) { return marker->GetNameString() == name; });
+    return (marker != std::end(marklist)) ? *marker : nullptr;
 }
 
-std::shared_ptr<ChForce> ChBody::SearchForce(const char* m_name) {
-    return ChContainerSearchFromName<std::shared_ptr<ChForce>, std::vector<std::shared_ptr<ChForce>>::iterator>(
-        m_name, forcelist.begin(), forcelist.end());
+std::shared_ptr<ChMarker> ChBody::SearchMarker(int id) const {
+    auto marker = std::find_if(std::begin(marklist), std::end(marklist),
+                               [id](std::shared_ptr<ChMarker> marker) { return marker->GetIdentifier() == id; });
+    return (marker != std::end(marklist)) ? *marker : nullptr;
 }
 
-// These are the members used to UPDATE
-// the body coordinates during the animation
-// Also the coordinates of forces and markers
-// linked to the body will be updated.
+std::shared_ptr<ChForce> ChBody::SearchForce(const std::string& name) const {
+    auto force = std::find_if(std::begin(forcelist), std::end(forcelist),
+                              [name](std::shared_ptr<ChForce> force) { return force->GetNameString() == name; });
+    return (force != std::end(forcelist)) ? *force : nullptr;
+}
+
+// These are the members used to UPDATE the body coordinates during the animation.
+// Also the coordinates of forces and markers linked to the body will be updated.
 
 void ChBody::UpdateMarkers(double mytime) {
     for (auto& marker : marklist) {

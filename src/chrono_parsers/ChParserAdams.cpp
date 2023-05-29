@@ -22,7 +22,7 @@
 //
 // =============================================================================
 
-#include "chrono/utils/ChParserAdams.h"
+#include "chrono_parsers/ChParserAdams.h"
 
 #include "chrono/core/ChFrame.h"
 
@@ -43,7 +43,7 @@
 #include <utility>
 
 namespace chrono {
-namespace utils {
+namespace parsers {
 
 void ChParserAdams::Report::Print() const {
     std::cout << "Parsed " << bodies.size() << " bodies:\n";
@@ -388,7 +388,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
     for (auto marker_pair : markers_map) {
         adams_marker_struct marker = marker_pair.second;
         // find the parent body in the system
-        auto parentBody = std::dynamic_pointer_cast<ChBodyAuxRef>(sys.SearchBody(marker.part_id.c_str()));
+        auto parentBody = std::dynamic_pointer_cast<ChBodyAuxRef>(sys.SearchBody(marker.part_id));
         assert(parentBody);
         // std::cout << "body is " << marker.part_id <<std::endl;
         ChVector<> loc(marker.loc[0], marker.loc[1], marker.loc[2]);
@@ -416,8 +416,8 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
         // Search by c-string representations of marker IDs
         // std::cout << "I is " << joint.marker_I <<std::endl;
         // std::cout << "J is " << joint.marker_J <<std::endl;
-        auto marker_I = sys.SearchMarker(joint.marker_I.c_str());
-        auto marker_J = sys.SearchMarker(joint.marker_J.c_str());
+        auto marker_I = sys.SearchMarker(joint.marker_I);
+        auto marker_J = sys.SearchMarker(joint.marker_J);
         assert(marker_I);
         assert(marker_J);
         /*
@@ -538,7 +538,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
                     // std::cout << "token is " << iter->first << ", " << iter->second <<std::endl;
                     if (iter->second == std::string("CM")) {
                         iter++;  // Get marker ID
-                        cm_marker = sys.SearchMarker(iter->second.c_str());
+                        cm_marker = sys.SearchMarker(iter->second);
                         // std::cout << " adding cylinder to marker " << iter->second << std::endl;
                         assert(cm_marker != nullptr);
                         parentBody = dynamic_cast<ChBodyAuxRef*>(cm_marker->GetBody());
@@ -568,7 +568,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
                     // std::cout << "token is " << iter->first << ", " << iter->second <<std::endl;
                     if (iter->second == std::string("CM")) {
                         iter++;  // Get marker ID
-                        cm_marker = sys.SearchMarker(iter->second.c_str());
+                        cm_marker = sys.SearchMarker(iter->second);
                         // std::cout << " adding ellipsoid to marker " << iter->second <<std::endl;
                         assert(cm_marker != nullptr);
                         parentBody = dynamic_cast<ChBodyAuxRef*>(cm_marker->GetBody());
@@ -610,7 +610,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
                     // std::cout << "token is " << iter->first << ", " << iter->second <<std::endl;
                     if (iter->second == std::string("CORNER")) {
                         iter++;  // Get marker ID
-                        cm_marker = sys.SearchMarker(iter->second.c_str());
+                        cm_marker = sys.SearchMarker(iter->second);
                         // std::cout << " adding box to marker " << iter->second <<std::endl;
                         assert(cm_marker != nullptr);
                         parentBody = dynamic_cast<ChBodyAuxRef*>(cm_marker->GetBody());
@@ -660,5 +660,5 @@ ChSystem* ChParserAdams::Parse(const std::string& filename, ChContactMethod cont
     return sys;
 }
 
-}  // end namespace utils
+}  // end namespace parsers
 }  // end namespace chrono

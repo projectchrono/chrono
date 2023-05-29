@@ -37,6 +37,8 @@ IRRLICHT_LIBRARY="$HOME/Packages/irrlicht-1.8.5/lib/libirlicht.so"
 VSG_INSTALL_DIR="$HOME/Packages/vsg"
 GL_INSTALL_DIR="$HOME/Packages/gl"
 
+URDF_INSTALL_DIR="C:/Packages/urdf"
+
 OPTIX_INSTALL_DIR="$HOME/Packages/optix-7.5.0"
 FASTRTPS_INSTALL_DIR="$HOME/Packages/fastrtps-2.4.0"
 
@@ -49,7 +51,7 @@ BUILDSYSTEM="Ninja Multi-Config"
 # ------------------------------------------------------------------------
 
 cmake -G ${BUILDSYSTEM} -B ${BUILD_DIR} -S ${SOURCE_DIR} \
-      -DCMAKE_INSTALL_PREFIX:PATH=%INSTALL_DIR% \
+      -DCMAKE_INSTALL_PREFIX:PATH=${INSTALL_DIR} \
       -DENABLE_MODULE_IRRLICHT:BOOL=ON \
       -DENABLE_MODULE_VSG:BOOL=OFF \
       -DENABLE_MODULE_OPENGL:BOOL=ON \
@@ -92,6 +94,9 @@ cmake -G ${BUILDSYSTEM} -B ${BUILD_DIR} -S ${SOURCE_DIR} \
       -Dvsg_DIR:PATH=${VSG_INSTALL_DIR}/${LIB_DIR}/cmake/vsg \
       -DvsgImGui_DIR:PATH=${VSG_INSTALL_DIR}/${LIB_DIR}/cmake/vsgImGui \
       -DvsgXchange_DIR:PATH=${VSG_INSTALL_DIR}/${LIB_DIR}/cmake/vsgXchange \
+      -Durdfdom_DIR:PATH=${URDF_INSTALL_DIR}/CMake \
+      -Durdfdom_headers_DIR:PATH=${URDF_INSTALL_DIR}/CMake \
+      -Dconsole_bridge_DIR:PATH=${URDF_INSTALL_DIR}/CMake \
       -DSWIG_EXECUTABLE:FILEPATH=${SWIG_EXE} \
       -DCMAKE_BUILD_TYPE="Release"
 

@@ -1226,9 +1226,6 @@ set(ChronoEngine_utils_SOURCES
     utils/ChProfiler.cpp
     utils/ChFilters.cpp
     utils/ChCompositeInertia.cpp
-    utils/ChParserOpenSim.cpp
-    utils/ChParserAdams.cpp
-    utils/ChAdamsTokenizer.yy.cpp
     utils/ChConvexHull.cpp
     utils/ChSocket.cpp
     )
@@ -1245,8 +1242,6 @@ set(ChronoEngine_utils_HEADERS
     utils/ChProfiler.h
     utils/ChFilters.h
     utils/ChCompositeInertia.h
-    utils/ChParserOpenSim.h
-    utils/ChParserAdams.h
     utils/ChConvexHull.h
     utils/ChSocket.h
 )
@@ -1269,6 +1264,17 @@ set(ChronoEngine_tiny_obj_FILES
 
 source_group(utils\\tiny_obj FILES
     ${ChronoEngine_tiny_obj_FILES})
+
+# LibSTL Group
+
+set(ChronoEngine_libstl_FILES
+  ../chrono_thirdparty/libstl/stlfile.c
+  ../chrono_thirdparty/libstl/stlfile.h
+)
+
+source_group(utils\\libstl FILES
+    ${ChronoEngine_libstl_FILES})
+
 
 # Collect all source and header files for the ChronoEngine library
 
@@ -1320,7 +1326,8 @@ set(ChronoEngine_FILES
     ${ChronoEngine_utils_SOURCES}
     ${ChronoEngine_utils_HEADERS}
     ${ChronoEngine_tiny_obj_FILES}
-    )
+    ${ChronoEngine_libstl_FILES}
+)
 
 # Add the 'socket' library to the linking, depending on platform.
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
