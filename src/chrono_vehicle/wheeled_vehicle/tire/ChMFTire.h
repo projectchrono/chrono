@@ -120,7 +120,7 @@ class CH_VEHICLE_API ChMFTire : public ChForceElementTire {
                            bool combined = false);
 
     // TIR file (ADAMS compatible) loader routines
-    void SetMFParamsByFile(std::string& tirFileName);
+    void SetMFParamsByFile(const std::string& tirFileName);
     void LoadSectionUnits(FILE* fp);
     void LoadSectionModel(FILE* fp);
     void LoadSectionDimension(FILE* fp);
@@ -134,7 +134,8 @@ class CH_VEHICLE_API ChMFTire : public ChForceElementTire {
     void LoadSectionAligning(FILE* fp);
     void LoadVerticalTable(FILE* fp);
     void LoadBottomingTable(FILE* fp);
-    bool FindSectionStart(std::string sectName, FILE* fp);  // returns false, if section could not be found
+    // returns false, if section could not be found
+    bool FindSectionStart(const std::string& sectName, FILE* fp);
 
     ChFunction_Recorder m_bott_map;
 

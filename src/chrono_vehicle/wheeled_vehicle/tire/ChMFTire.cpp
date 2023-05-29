@@ -208,7 +208,7 @@ double ChMFTire::CalcMy(double Fx, double Fz, double gamma) {
 
 // -----------------------------------------------------------------------------
 
-void ChMFTire::SetMFParamsByFile(std::string& tirFileName) {
+void ChMFTire::SetMFParamsByFile(const std::string& tirFileName) {
     std::string dataFile = vehicle::GetDataFile(tirFileName);
 
     FILE* fp = fopen(dataFile.c_str(), "r+");
@@ -255,7 +255,7 @@ void ChMFTire::SetMFParamsByFile(std::string& tirFileName) {
     fclose(fp);
 }
 
-bool ChMFTire::FindSectionStart(std::string sectName, FILE* fp) {
+bool ChMFTire::FindSectionStart(const std::string& sectName, FILE* fp) {
     bool ret = false;
     rewind(fp);
     while (!feof(fp)) {
