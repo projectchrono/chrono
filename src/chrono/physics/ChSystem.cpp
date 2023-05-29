@@ -434,10 +434,12 @@ void ChSystem::Reference_LM_byID() {
             std::shared_ptr<ChMarker> shm1 = assembly.SearchMarker(malink->GetMarkID1());
             std::shared_ptr<ChMarker> shm2 = assembly.SearchMarker(malink->GetMarkID2());
             ChMarker* mm1 = shm1.get();
-            ChMarker* mm2 = shm1.get();
+            ChMarker* mm2 = shm2.get();
             malink->SetUpMarkers(mm1, mm2);
             if (mm1 && mm2) {
                 malink->SetValid(true);
+                mm1->Impose_Abs_Coord(mm1->GetAbsCoord());
+                mm2->Impose_Abs_Coord(mm2->GetAbsCoord());
             } else {
                 malink->SetValid(false);
                 malink->SetUpMarkers(0, 0);  // note: marker IDs are maintained

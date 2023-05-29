@@ -1866,7 +1866,7 @@ void ChLinkLock::ArchiveOUT(ChArchiveOut& marchive) {
 
     marchive << CHNVP(d_restlength);
 
-    marchive << CHNVP(force_D.get());
+    marchive << CHNVP(force_D.get(), "force_D_ptr");
 
     ////marchive << CHNVP(force_D);
     ////marchive << CHNVP(force_R);
