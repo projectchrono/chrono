@@ -9,7 +9,7 @@
 # In the call to find_package(), the following Chrono components can be
 # requested (case insensitive): 
 #   Cascade, Cosimulation, Fsi, Irrlicht, OpenGL, Matlab, Multicore, Gpu,
-#   PardisoMKL, PardisoProject, Postprocess, Python, Sensor, Synchrono,
+#   PardisoMKL, PardisoProject, Parsers, Postprocess, Sensor, Synchrono,
 #   Vehicle, VehicleCosim, Modal.
 # A component can be requested either as required or optional
 # (see the CMake documentation for find_package).
@@ -110,7 +110,7 @@ set(Chrono_HAS_mumps @ENABLE_MODULE_MUMPS@)
 set(Chrono_HAS_multicore @ENABLE_MODULE_MULTICORE@)
 set(Chrono_HAS_opengl @ENABLE_MODULE_OPENGL@)
 set(Chrono_HAS_postprocess @ENABLE_MODULE_POSTPROCESS@)
-set(Chrono_HAS_python @ENABLE_MODULE_PYTHON@)
+set(Chrono_HAS_parsers @ENABLE_MODULE_PARSERS@)
 set(Chrono_HAS_vehicle @ENABLE_MODULE_VEHICLE@)
 set(Chrono_HAS_fsi @ENABLE_MODULE_FSI@)
 set(Chrono_HAS_gpu @ENABLE_MODULE_GPU@)
@@ -405,16 +405,11 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_cosimulation")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_cosimulation.dll")
 
-    elseif(${COMPONENT_UPPER} MATCHES "PYTHON")
+    elseif(${COMPONENT_UPPER} MATCHES "PARSERS")
 
-      list(APPEND CHRONO_INCLUDE_DIRS "@CH_PYTHONINC@")
-      list(PREPEND CHRONO_LIB_NAMES "_ChronoEngine_python_core")
-      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_pyparser")
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_pyparser.dll")
-
-      if(${Chrono_HAS_irrlicht})
-        list(PREPEND CHRONO_LIB_NAMES "_ChronoEngine_python_irrlicht")
-      endif()
+      list(APPEND CHRONO_INCLUDE_DIRS "@CH_PARSERS_INCLUDES@")
+      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_parsers")
+      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_parsers.dll")
 
     elseif(${COMPONENT_UPPER} MATCHES "MATLAB")
 
@@ -515,7 +510,7 @@ message(STATUS "   CHRONO_FSI_DATA_DIR      (Path to Chrono::FSI data folder): $
 # folder for the current VS configuration.
 #
 # The input list must contain a list of DLLs with full paths, such as that
-# returned by the ChronoConfig script.
+# returned by the chrono-config script.
 #
 # Note that EXECUTABLE_OUTPUT_PATH must be defined (even if it's simply
 # CMAKE_BINARY_DIR or PROJECT_BINARY_DIR)
