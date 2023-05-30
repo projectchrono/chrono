@@ -57,7 +57,6 @@ class CH_VEHICLE_API ChVehicleVisualSystemVSG : public ChVehicleVisualSystem, pu
     virtual void AppendGUIStats() {}
 
     ChInteractiveDriverVSG* m_driver;
-    bool m_has_TC;
 
     friend class ChInteractiveDriverVSG;
     friend class ChVehicleGuiComponentVSG;

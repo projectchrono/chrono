@@ -38,7 +38,7 @@ class ChVehicle;
 
 /// Template for an automatic transmission model using shaft elements.
 /// This transmission template includes a torque converter and a manumatic gearbox.
-class CH_VEHICLE_API ChAutomaticTransmissionShafts : public ChTransmission {
+class CH_VEHICLE_API ChAutomaticTransmissionShafts : public ChAutomaticTransmission {
   public:
     /// Construct a shafts-based automatic transmission model.
     ChAutomaticTransmissionShafts(const std::string& name);
@@ -47,6 +47,10 @@ class CH_VEHICLE_API ChAutomaticTransmissionShafts : public ChTransmission {
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "AutomaticTransmissionShafts"; }
+
+    /// Return true if a torque converter model is included.
+    /// A ChAutomaticTransmissionShafts includes a torque converter model.
+    virtual bool HasTorqueConverter() const override { return true; }
 
     /// Return the value of slippage in the torque converter.
     virtual double GetTorqueConverterSlippage() const override { return m_torqueconverter->GetSlippage(); }

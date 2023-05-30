@@ -304,52 +304,56 @@ void ChVehicleVisualSystemIrrlicht::renderStats() {
         sprintf(msg, "Eng.torque(Nm): %+.2f", engine_torque);
         renderLinGauge(std::string(msg), engine_torque / 600, false, m_HUD_x, m_HUD_y + 70, 170, 15);
 
-        double tc_slip = transmission->GetTorqueConverterSlippage();
-        sprintf(msg, "T.conv.slip: %+.2f", tc_slip);
-        renderLinGauge(std::string(msg), tc_slip / 1, false, m_HUD_x, m_HUD_y + 90, 170, 15);
+        if (transmission->IsAutomatic()) {
+            auto transmission_auto = transmission->asAutomatic();
 
-        double tc_torquein = transmission->GetTorqueConverterInputTorque();
-        sprintf(msg, "T.conv.in(Nm): %+.2f", tc_torquein);
-        renderLinGauge(std::string(msg), tc_torquein / 600, false, m_HUD_x, m_HUD_y + 110, 170, 15);
+            double tc_slip = transmission_auto->GetTorqueConverterSlippage();
+            sprintf(msg, "T.conv.slip: %+.2f", tc_slip);
+            renderLinGauge(std::string(msg), tc_slip / 1, false, m_HUD_x, m_HUD_y + 90, 170, 15);
 
-        double tc_torqueout = transmission->GetTorqueConverterOutputTorque();
-        sprintf(msg, "T.conv.out(Nm): %+.2f", tc_torqueout);
-        renderLinGauge(std::string(msg), tc_torqueout / 600, false, m_HUD_x, m_HUD_y + 130, 170, 15);
+            double tc_torquein = transmission_auto->GetTorqueConverterInputTorque();
+            sprintf(msg, "T.conv.in(Nm): %+.2f", tc_torquein);
+            renderLinGauge(std::string(msg), tc_torquein / 600, false, m_HUD_x, m_HUD_y + 110, 170, 15);
 
-        double tc_rpmout = transmission->GetTorqueConverterOutputSpeed() * 60 / CH_C_2PI;
-        sprintf(msg, "T.conv.out(RPM): %+.2f", tc_rpmout);
-        renderLinGauge(std::string(msg), tc_rpmout / 7000, false, m_HUD_x, m_HUD_y + 150, 170, 15);
+            double tc_torqueout = transmission_auto->GetTorqueConverterOutputTorque();
+            sprintf(msg, "T.conv.out(Nm): %+.2f", tc_torqueout);
+            renderLinGauge(std::string(msg), tc_torqueout / 600, false, m_HUD_x, m_HUD_y + 130, 170, 15);
 
-        char msgT[5];
-        switch (transmission->GetMode()) {
-            case ChTransmission::Mode::AUTOMATIC:
-                sprintf(msgT, "[A]");
-                break;
-            case ChTransmission::Mode::MANUAL:
-                sprintf(msgT, "[M]");
-                break;
-            default:
-                sprintf(msgT, "   ");
-                break;
+            double tc_rpmout = transmission_auto->GetTorqueConverterOutputSpeed() * 60 / CH_C_2PI;
+            sprintf(msg, "T.conv.out(RPM): %+.2f", tc_rpmout);
+            renderLinGauge(std::string(msg), tc_rpmout / 7000, false, m_HUD_x, m_HUD_y + 150, 170, 15);
+
+            char msgT[5];
+            switch (transmission_auto->GetShiftMode()) {
+                case ChAutomaticTransmission::ShiftMode::AUTOMATIC:
+                    sprintf(msgT, "[A]");
+                    break;
+                case ChAutomaticTransmission::ShiftMode::MANUAL:
+                    sprintf(msgT, "[M]");
+                    break;
+                default:
+                    sprintf(msgT, "   ");
+                    break;
+            }
+
+            int ngear = transmission->GetCurrentGear();
+            ChTransmission::DriveMode drivemode = transmission->GetDriveMode();
+            switch (drivemode) {
+                case ChTransmission::DriveMode::FORWARD:
+                    sprintf(msg, "%s Gear: Forward %d", msgT, ngear);
+                    break;
+                case ChTransmission::DriveMode::NEUTRAL:
+                    sprintf(msg, "%s Gear: Neutral", msgT);
+                    break;
+                case ChTransmission::DriveMode::REVERSE:
+                    sprintf(msg, "%s Gear: Reverse", msgT);
+                    break;
+                default:
+                    sprintf(msg, "Gear:");
+                    break;
+            }
+            renderLinGauge(std::string(msg), (double)ngear / 4.0, false, m_HUD_x, m_HUD_y + 170, 170, 15);
         }
-
-        int ngear = transmission->GetCurrentGear();
-        ChTransmission::DriveMode drivemode = transmission->GetDriveMode();
-        switch (drivemode) {
-            case ChTransmission::DriveMode::FORWARD:
-                sprintf(msg, "%s Gear: Forward %d", msgT, ngear);
-                break;
-            case ChTransmission::DriveMode::NEUTRAL:
-                sprintf(msg, "%s Gear: Neutral", msgT);
-                break;
-            case ChTransmission::DriveMode::REVERSE:
-                sprintf(msg, "%s Gear: Reverse", msgT);
-                break;
-            default:
-                sprintf(msg, "Gear:");
-                break;
-        }
-        renderLinGauge(std::string(msg), (double)ngear / 4.0, false, m_HUD_x, m_HUD_y + 170, 170, 15);
     }
 
     // Display information from driver system.

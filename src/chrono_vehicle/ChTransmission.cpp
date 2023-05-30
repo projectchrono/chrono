@@ -23,7 +23,6 @@ namespace vehicle {
 
 ChTransmission::ChTransmission(const std::string& name)
     : ChPart(name),
-      m_mode(Mode::AUTOMATIC),
       m_drive_mode(DriveMode::FORWARD),
       m_current_gear(-1),
       m_current_gear_ratio(1e20) {}
@@ -55,22 +54,6 @@ void ChTransmission::InitializeInertiaProperties() {
 
 void ChTransmission::UpdateInertiaProperties() {}
 
-void ChTransmission::ShiftUp() {
-    if (m_mode == Mode::MANUAL &&              //
-        m_drive_mode == DriveMode::FORWARD &&  //
-        m_current_gear < m_gear_ratios.size() - 1) {
-        SetGear(m_current_gear + 1);
-    }
-}
-
-void ChTransmission::ShiftDown() {
-    if (m_mode == Mode::MANUAL &&              //
-        m_drive_mode == DriveMode::FORWARD &&  //
-        m_current_gear > 1) {
-        SetGear(m_current_gear - 1);
-    }
-}
-
 void ChTransmission::SetGear(int gear) {
     assert(gear >= 0);
     assert(gear < m_gear_ratios.size());
@@ -99,6 +82,31 @@ void ChTransmission::SetDriveMode(DriveMode mode) {
             break;
     }
 }
+
+// -----------------------------------------------------------------------------
+
+ChAutomaticTransmission::ChAutomaticTransmission(const std::string& name)
+    : ChTransmission(name), m_shift_mode(ShiftMode::AUTOMATIC) {}
+
+void ChAutomaticTransmission::ShiftUp() {
+    if (m_shift_mode == ShiftMode::MANUAL &&   //
+        m_drive_mode == DriveMode::FORWARD &&  //
+        m_current_gear < m_gear_ratios.size() - 1) {
+        SetGear(m_current_gear + 1);
+    }
+}
+
+void ChAutomaticTransmission::ShiftDown() {
+    if (m_shift_mode == ShiftMode::MANUAL &&   //
+        m_drive_mode == DriveMode::FORWARD &&  //
+        m_current_gear > 1) {
+        SetGear(m_current_gear - 1);
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+ChManualTransmission::ChManualTransmission(const std::string& name) : ChTransmission(name) {}
 
 }  // end namespace vehicle
 }  // end namespace chrono
