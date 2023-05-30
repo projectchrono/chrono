@@ -118,10 +118,11 @@ linux:arch-llvm:test:
     - export IOMP5_DIR=""
     - nvidia-smi
     # Obtain dependencies
+    - nvidia-smi
     - apt-get update; apt-get -y install unzip wget python3 python3-pip
       git cmake ninja-build doxygen libvulkan-dev pkg-config libirrlicht-dev 
       freeglut3-dev mpich libasio-dev libboost-dev libglfw3-dev libglm-dev 
-      libglew-dev libtinyxml2-dev swig python3-dev libhdf5-dev libnvidia-gl-530
+      libglew-dev libtinyxml2-dev swig python3-dev libhdf5-dev
     - wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | 
       gpg --dearmor | tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
     - echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] 
@@ -129,6 +130,7 @@ linux:arch-llvm:test:
     - apt update
     - apt -y install intel-basekit libxcb-randr0-dev libxcb-xtest0-dev libxcb-xinerama0-dev
       libxcb-shape0-dev libxcb-xkb-dev xorg-dev
+    - ldconfig
     # Initialize git repository
     - cd $CI_PROJECT_DIR
     - git submodule init
@@ -302,6 +304,7 @@ linux:ubuntu22.04:deploy-python3.10:
     - yum config-manager --add-repo http://developer.download.nvidia.com/compute/cuda/repos/rhel8/x86_64/cuda-rhel8.repo
     - dnf install -y vulkan-devel libXmu-devel libXi-devel fontconfig-devel
     - dnf install -y doxygen cmake irrlicht-devel glm-devel glfw-devel glew-devel libXrandr ninja-build freeglut-devel swig python3-devel platform-python-devel intel-oneapi-mkl-devel cuda
+    - ldconfig
     - git submodule init
     - git submodule update
     - mkdir -p build
