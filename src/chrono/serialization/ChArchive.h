@@ -18,6 +18,7 @@
 #include <vector>
 #include <list>
 #include <typeinfo>
+#include <type_traits>
 #include <unordered_set>
 #include <memory>
 #include <algorithm>
@@ -996,15 +997,20 @@ class  ChArchiveOut : public ChArchive {
               mptr = 0;
           if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())
               mptr = 0;
-          bool already_stored = false;  
+          bool already_stored = false;
           size_t obj_ID = 0; 
           size_t ext_ID = 0;
-          if (this->external_ptr_id.find(static_cast<void*>(mptr)) != this->external_ptr_id.end()) {
+          void* idptr;
+          if constexpr (std::is_polymorphic<T>::value)
+              idptr = dynamic_cast<void*>(mptr);
+          else
+              idptr = static_cast<void*>(mptr);
+          if (this->external_ptr_id.find(idptr) != this->external_ptr_id.end()) {
               already_stored = true;
-              ext_ID = external_ptr_id[static_cast<void*>(mptr)];
+              ext_ID = external_ptr_id[idptr];
           }
           else {
-              PutPointer(mptr, already_stored, obj_ID);
+              PutPointer(idptr, already_stored, obj_ID);
           }
           ChValueSpecific< T > specVal(*mptr, bVal.name(), bVal.flags());
           this->out_ref( 
@@ -1027,12 +1033,16 @@ class  ChArchiveOut : public ChArchive {
           bool already_stored = false;  
           size_t obj_ID = 0; 
           size_t ext_ID = 0;
-          if (this->external_ptr_id.find(static_cast<void*>(mptr)) != this->external_ptr_id.end()) {
+          void* idptr;
+          if constexpr (std::is_polymorphic<T>::value)
+              idptr = dynamic_cast<void*>(mptr);
+          else
+              idptr = static_cast<void*>(mptr);
+          if (this->external_ptr_id.find(idptr) != this->external_ptr_id.end()) {
               already_stored = true;
-              ext_ID = external_ptr_id[static_cast<void*>(mptr)];
-          }
-          else {
-              PutPointer(mptr, already_stored, obj_ID);
+              ext_ID = external_ptr_id[idptr];
+          } else {
+              PutPointer(idptr, already_stored, obj_ID);
           } 
           ChValueSpecific< T > specVal(*mptr, bVal.name(), bVal.flags());
           this->out_ref(
@@ -1051,7 +1061,12 @@ class  ChArchiveOut : public ChArchive {
           {
               bool already_stored; 
               T* mptr = &bVal.value();
-              PutPointer(mptr, already_stored, obj_ID);
+              void* idptr;
+              if constexpr(std::is_polymorphic<T>::value)
+                  idptr = dynamic_cast<void*>(mptr);
+              else
+                  idptr = static_cast<void*>(mptr);
+              PutPointer(idptr, already_stored, obj_ID);
               if (already_stored) 
                   {throw (ChExceptionArchive( "Cannot serialize tracked object '" + std::string(bVal.name()) + "' by value, AFTER already serialized by pointer."));}
               tracked = true;
