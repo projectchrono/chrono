@@ -34,7 +34,7 @@ stages:
   - uname -a
   - export LIB_DIR="lib"
   - export IOMP5_DIR=""
-  - pacman -Sy --noconfirm git eigen cmake glfw glm glew glut irrlicht ninja wget python python-pip openmpi openssh swig hdf5 intel-oneapi-mkl doxygen fontconfig libxmu cuda
+  - pacman -Sy --noconfirm git eigen cmake glfw glm glew glut irrlicht ninja wget python python-pip openmpi openssh swig hdf5 intel-oneapi-mkl doxygen fontconfig libxmu
   # Clean up the package cache to make more space for the build
   - pacman -Scc --noconfirm
   - ldconfig
@@ -184,7 +184,7 @@ linux:doxygen:deploy:
     - if: '$CI_COMMIT_REF_NAME == "main"'
       when: always
 
-# Build uses custom ubuntu image committed from nvidia/cuda:11.8.0-devel-ubuntu22.04 with dependencies pre-downloaded
+# Build uses custom ubuntu image committed from nvidia/cuda:12.1.1-devel-ubuntu22.04 with dependencies pre-downloaded
 linux:ubuntu22.04:build:
   extends: .ubuntu
   stage: build
@@ -301,9 +301,9 @@ linux:ubuntu22.04:deploy-python3.10:
     - dnf groupinstall -y 'Development Tools'
     - dnf config-manager --set-enabled powertools
     - dnf install -y epel-release
-    - yum config-manager --add-repo http://developer.download.nvidia.com/compute/cuda/repos/rhel8/x86_64/cuda-rhel8.repo
+    - nvidia-smi
     - dnf install -y vulkan-devel libXmu-devel libXi-devel fontconfig-devel
-    - dnf install -y doxygen cmake irrlicht-devel glm-devel glfw-devel glew-devel libXrandr ninja-build freeglut-devel swig python3-devel platform-python-devel intel-oneapi-mkl-devel cuda
+    - dnf install -y doxygen cmake irrlicht-devel glm-devel glfw-devel glew-devel libXrandr ninja-build freeglut-devel swig python3-devel platform-python-devel intel-oneapi-mkl-devel
     - ldconfig
     - git submodule init
     - git submodule update
