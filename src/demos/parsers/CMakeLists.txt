@@ -1,3 +1,7 @@
+if(NOT ENABLE_MODULE_IRRLICHT AND NOT_ENABLE_MODULE_VSG)
+   return()
+endif()   
+
 #--------------------------------------------------------------
 # List of all Parsers demos
 
