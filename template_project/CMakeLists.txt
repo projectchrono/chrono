@@ -31,7 +31,7 @@ project(my_project)
 # Matlab, Parallel, Postprocess, Python, Vehicle.
 # 
 # Note that you will have to set the variable Chrono_DIR to 
-# specify the location of the ChronoConfig.cmake script, if
+# specify the location of the chrono-config.cmake script, if
 # it is not in its default install location.
 # Chrono_DIR can be either a Chrono build tree or a Chrono install tree.
 # 

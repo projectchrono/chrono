@@ -49,6 +49,9 @@
 // If module OPENGL was enabled, define CHRONO_OPENGL
 @CHRONO_OPENGL@
 
+// If module PARSERS was enabled, define CHRONO_PARSERS
+@CHRONO_PARSERS@
+
 // If module MULTICORE was enabled, define CHRONO_MULTICORE
 @CHRONO_MULTICORE@
 
