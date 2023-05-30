@@ -42,6 +42,10 @@ ChEngineShafts::~ChEngineShafts() {
     }
 }
 
+double ChEngineShafts::GetOutputMotorshaftTorque() const {
+    return m_engine->GetTorqueReactionOn1() + m_engine_losses->GetTorqueReactionOn1();
+}
+
 // -----------------------------------------------------------------------------
 void ChEngineShafts::Initialize(std::shared_ptr<ChChassis> chassis) {
     ChEngine::Initialize(chassis);

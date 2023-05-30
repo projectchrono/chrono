@@ -48,8 +48,7 @@ class CH_VEHICLE_API ChEngineShafts : public ChEngine {
 
     /// Return the output engine torque.
     /// This is the torque passed to a transmission subsystem.
-    virtual double GetOutputMotorshaftTorque() const override { return m_engine->GetTorqueReactionOn1(); }
-    //// TODO: is this correct?  shouldn't we also add the reaction torque from engine_losses?!?
+    virtual double GetOutputMotorshaftTorque() const override;
 
   protected:
     /// Construct a shafts-based engine model.
