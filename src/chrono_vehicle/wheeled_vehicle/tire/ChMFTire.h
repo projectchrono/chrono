@@ -83,29 +83,6 @@ class CH_VEHICLE_API ChMFTire : public ChForceElementTire {
    protected:
     double CalcMx(double Fy, double Fz, double gamma);  // get overturning couple
     double CalcMy(double Fx, double Fz, double gamma);  // get rolling resistance moment
-    /* to be removed
-     double CalcFx0(double kappa, double Fz, double gamma);  // get pure longitudinal force
-     double CalcFy0(double alpha, double Fz, double gamma);  // get pure lateral force
-     void CalcFyMz0(double& Fy,
-                   double& Mz,
-                   double alpha,
-                   double Fz,
-                   double gamma);                       // get pure lateral force and alignment torque
-    void CalcFxyCombined(double& Fx,
-                         double& Fy,
-                         double kappa,
-                         double alpha,
-                         double Fz,
-                         double gamma);  // combined forces
-    void CalcFxyMzCombined(double& Fx,
-                           double& Fy,
-                           double& Mz,
-                           double kappa,
-                           double alpha,
-                           double Fz,
-                           double gamma);  // combined forces
-     */
-    // by this method
     void CalcFxyMz(double& Fx,
                            double& Fy,
                            double& Mz,
@@ -114,6 +91,7 @@ class CH_VEHICLE_API ChMFTire : public ChForceElementTire {
                            double Fz,
                            double gamma,
                            bool combined = false);
+    void CombinedCoulombForces(double& fx, double& fy, double fz);
 
     // TIR file (ADAMS compatible) loader routines
     void SetMFParamsByFile(const std::string& tirFileName);
@@ -144,6 +122,10 @@ class CH_VEHICLE_API ChMFTire : public ChForceElementTire {
 
     /// Road friction at tire test conditions
     double m_mu0;
+
+    double m_vcoulomb;
+    double m_frblend_begin;
+    double m_frblend_end;
 
     VehicleSide m_measured_side;
     bool m_allow_mirroring;

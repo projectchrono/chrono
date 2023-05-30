@@ -44,7 +44,10 @@ ChMFTire::ChMFTire(const std::string& name)
       m_mu0(0.8),
       m_measured_side(LEFT),
       m_allow_mirroring(false),
-      m_use_mode(0) {
+      m_use_mode(0),
+      m_vcoulomb(1.0),
+      m_frblend_begin(1.0),
+      m_frblend_end(3.0) {
     m_tireforce.force = ChVector<>(0, 0, 0);
     m_tireforce.point = ChVector<>(0, 0, 0);
     m_tireforce.moment = ChVector<>(0, 0, 0);
@@ -66,6 +69,18 @@ double ChMFTire::GetNormalStiffnessForce(double depth) const {
 double ChMFTire::GetNormalDampingForce(double depth, double velocity) const {
     double Fd = m_par.VERTICAL_DAMPING * velocity;
     return Fd;
+}
+
+void ChMFTire::CombinedCoulombForces(double& fx, double& fy, double fz) {
+    ChVector2<> F;
+    F.x() = tanh(-2.0 * m_states.vsx / m_vcoulomb) * fz * m_states.mu_scale;
+    F.y() = tanh(-2.0 * m_states.vsy / m_vcoulomb) * fz * m_states.mu_scale;
+    if (F.Length() > fz * m_states.mu_scale) {
+        F.Normalize();
+        F *= fz * m_states.mu_scale;
+    }
+    fx = F.x();
+    fy = F.y();
 }
 
 void ChMFTire::CalcFxyMz(double& Fx,
@@ -1594,7 +1609,7 @@ void ChMFTire::Synchronize(double time, const ChTerrain& terrain) {
     CalculateKinematics(wheel_state, m_data.frame);
 
     m_states.gamma = ChClamp(GetCamberAngle(), -m_gamma_limit * CH_C_DEG_TO_RAD, m_gamma_limit * CH_C_DEG_TO_RAD);
-    
+
     if (m_data.in_contact) {
         // Wheel velocity in the ISO-C Frame
         ChVector<> vel = wheel_state.lin_vel;
@@ -1666,6 +1681,8 @@ void ChMFTire::Advance(double step) {
     // Calculate the new force and moment values (normal force and moment have already been accounted for in
     // Synchronize()).
     // See reference for details on the calculations.
+    double Fx0 = 0;  // Fx at zero/small speed
+    double Fy0 = 0;  // Fy at zero/small speed
     double Fx = 0;
     double Fy = 0;
     double Fz = m_data.normal_force;
@@ -1675,6 +1692,7 @@ void ChMFTire::Advance(double step) {
     double kappa = m_states.kappa;
     double alpha = m_states.alpha;
     double gamma = m_states.gamma;
+    double frblend = ChSineStep(m_data.vel.x(), m_frblend_begin, 0.0, m_frblend_end, 1.0);
 
     switch (m_use_mode) {
         case 0:
@@ -1692,13 +1710,19 @@ void ChMFTire::Advance(double step) {
             break;
         case 3:
             // steady state pure lateral slip uncombined
+            CombinedCoulombForces(Fx0, Fy0, Fz);
             CalcFxyMz(Fx, Fy, Mz, kappa, alpha, Fz, gamma, false);
+            Fx = (1.0 - frblend) * Fx0 + frblend * Fx;
+            Fy = (1.0 - frblend) * Fy0 + frblend * Fy;
             My = CalcMy(Fx, Fz, gamma);
             Mx = CalcMx(Fy, Fx, gamma);
             break;
         case 4:
             // steady state combined slip
+            CombinedCoulombForces(Fx0, Fy0, Fz);
             CalcFxyMz(Fx, Fy, Mz, kappa, alpha, Fz, gamma, true);
+            Fx = (1.0 - frblend) * Fx0 + frblend * Fx;
+            Fy = (1.0 - frblend) * Fy0 + frblend * Fy;
             My = CalcMy(Fx, Fz, gamma);
             Mx = CalcMx(Fy, Fx, gamma);
             break;
