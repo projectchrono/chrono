@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # -------------------------------------------------------------------------------------------------------
-# Windows batch script for building and installing URDF parser dependencies
+# Bash script for building and installing URDF parser dependencies
 # - Place in an arbitrary temporary directory.
 # - Specify the locations for the URDF sources OR indicate that these should be downloaded.
 # - Specify the install directory.
-# - Run the script (.\buildURDF.bat).
+# - Run the script (sh ./buildURDF.sh).
 # - The install directory will contain subdirectories for all necessary dependencies.
 # -------------------------------------------------------------------------------------------------------
 
@@ -30,8 +30,8 @@ if [ ${DOWNLOAD} = ON ]
 then
     echo "Download sources from GitHub"
 
-    rm -rf download_vsg
-    mkdir download_vsg
+    rm -rf download_urdf
+    mkdir download_urdf
 
     echo "  ... tinyxml2"
     git clone "https://github.com/leethomason/tinyxml2.git" "download_urdf/tinyxml2"
@@ -65,30 +65,28 @@ rm -rf ${URDF_INSTALL_DIR}
 mkdir ${URDF_INSTALL_DIR}
 
 # --- tinyxml2 -------------------------------------------------------------
+#
+# Note that tinixml2 cannot be built with "Ninja Multi-Config".
+# Only configure and build a Release tinixml2 library.
+# Pass "-fPIC" to allow linking in a shared library.
+#
 
 echo -e "\n------------------------ Configure tinyxml2\n"
 rm -rf build_tinyxml2
-cmake -G "${BUILDSYSTEM}" -B build_tinyxml2 -S ${TINYXML2_SOURCE_DIR} \
-      -DCMAKE_DEBUG_POSTFIX=_d \
-      -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd \
+cmake -E env CXXFLAGS="-fPIC" cmake -G "Ninja" -B build_tinyxml2 -S ${TINYXML2_SOURCE_DIR} \
+      -DCMAKE_BUILD_TYPE="Release" \
       -Dtinyxml2_INSTALL_CMAKEDIR:PATH="CMake"
 
 echo -e "\n------------------------ Build and install tinyxml2\n"
-cmake --build build_tinyxml2 --config Release
-cmake --install build_tinyxml2 --config Release --prefix ${URDF_INSTALL_DIR}
-if [ ${BUILDDEBUG} = ON ]
-then
-    cmake --build build_tinyxml2 --config Debug
-    cmake --install build_tinyxml2 --config Debug --prefix ${URDF_INSTALL_DIR}
-else
-    echo "No Debug build of tinyxml2"
-fi
+cmake --build build_tinyxml2
+cmake --install build_tinyxml2 --prefix ${URDF_INSTALL_DIR}
 
 # --- console_bridge ----------------------------------------------------------------
 
 echo -e "\n------------------------ Configure console_bridge\n"
 rm -rf build_console_bridge
-cmake  -G "${BUILDSYSTEM}" -B build_console_bridge -S ${CONSOLE_BRIDGE_SOURCE_DIR}  \
+cmake -G "${BUILDSYSTEM}" -B build_console_bridge -S ${CONSOLE_BRIDGE_SOURCE_DIR}  \
+      -DCMAKE_BUILD_TYPE="Release" \
       -DCMAKE_DEBUG_POSTFIX=_d \
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd
 
@@ -125,14 +123,14 @@ fi
 # --- urdfdom -----------------------------------------------------------
 
 echo -e "\n------------------------ Configure urdfdom\n"
-rm -rf  build_urdfdom
+rm -rf build_urdfdom
 cmake -G "${BUILDSYSTEM}" -B build_urdfdom -S ${URDFDOM_SOURCE_DIR} \
       -DCMAKE_DEBUG_POSTFIX=_d \
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd \
       -DDISABLE_TINYXML_SUPPORT:BOOL=ON \
-      -Dtinyxml2_DIR:PATH=%URDF_INSTALL_DIR%/CMake \
-      -Dconsole_bridge_DIR:PATH=%URDF_INSTALL_DIR%/CMake \
-      -Durdfdom_headers_DIR:PATH=%URDF_INSTALL_DIR%/CMake
+      -Dtinyxml2_DIR:PATH=${URDF_INSTALL_DIR}/CMake \
+      -Dconsole_bridge_DIR:PATH=${URDF_INSTALL_DIR}/lib/console_bridge/cmake \
+      -Durdfdom_headers_DIR:PATH=${URDF_INSTALL_DIR}/lib/urdfdom_headers/cmake
 
 echo -e "\n------------------------ Build and install urdfdom\n"
 cmake --build build_urdfdom --config Release
