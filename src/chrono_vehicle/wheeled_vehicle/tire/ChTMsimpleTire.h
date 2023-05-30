@@ -48,10 +48,6 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
     /// The reported value will be similar to that reported by ChTire::GetLongitudinalSlip.
     double GetLongitudinalSlip_internal() const { return m_states.sx; }
 
-    /// Get the camber angle computed internally by the TMsimple model (in radians).
-    /// The reported value will be similar to that reported by ChTire::GetCamberAngle.
-    double GetCamberAngle_internal() { return m_gamma; }
-
     double GetTireOmega() { return m_states.omega; }
     
     /// Get maximum tire load from Load Index (LI) in N [0:279].
@@ -143,8 +139,6 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
 
     double m_vnum;
 
-    double m_gamma;  ///< actual camber angle
-
     double m_gamma_limit;  ///< limit camber angle (degrees!)
 
     // TMsimple tire model parameters
@@ -152,7 +146,6 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
     double m_width;               ///< tire width
     double m_rim_radius;          ///< tire rim radius
     double m_rolling_resistance;  ///< actual rolling friction coeff
-    double m_mu;                  ///< local friction coefficient of the road
 
     double m_ax1;
     double m_ax2;
@@ -201,7 +194,7 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
         double sqe_pn, sqe_p2n;     ///< lever after sliding is reached
     } TMsimpleCoeff;
 
-    TMsimpleCoeff m_TMsimpleCoeff;
+    TMsimpleCoeff m_par;
 
     /// Initialize this tire by associating it to the specified wheel.
     virtual void Initialize(std::shared_ptr<ChWheel> wheel) override;
@@ -222,6 +215,8 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
     struct TireStates {
         double sx;               // Contact Path - Longitudinal Slip State (Kappa)
         double sy;               // Contact Path - Side Slip State (Alpha)
+        double gamma;            // Inclination Angle
+        double muscale;          // Scaling factor for Tire/Road friction
         double vta;              // absolut transport velocity
         double vsx;              // Longitudinal slip velocity
         double vsy;              // Lateral slip velocity = Lateral velocity

@@ -50,22 +50,22 @@ void FEDA_TMsimpleTire::SetTMsimpleParams() {
     m_rim_radius = 0.2858;       //$Nominal rim radius
     m_rolling_resistance = 0.015;
 
-    m_TMsimpleCoeff.dz = 6188.0;
-    m_TMsimpleCoeff.pn = 21674.0 / 2.0;
-    m_TMsimpleCoeff.pn_max = 3.5 * m_TMsimpleCoeff.pn;
+    m_par.dz = 6188.0;
+    m_par.pn = 21674.0 / 2.0;
+    m_par.pn_max = 3.5 * m_par.pn;
     
-    m_TMsimpleCoeff.dfx0_pn = 131379.8988;
-    m_TMsimpleCoeff.dfx0_p2n = 289802.2285;
-    m_TMsimpleCoeff.fxm_pn = 10148.8286;
-    m_TMsimpleCoeff.fxm_p2n = 19437.8446;
-    m_TMsimpleCoeff.fxs_pn = 7948.8727;
-    m_TMsimpleCoeff.fxs_p2n = 15723.0773;
-    m_TMsimpleCoeff.dfy0_pn = 125823.3139;
-    m_TMsimpleCoeff.dfy0_p2n = 227719.1423;
-    m_TMsimpleCoeff.fym_pn = 8352.7333;
-    m_TMsimpleCoeff.fym_p2n = 15635.4453;
-    m_TMsimpleCoeff.fys_pn = 8174.1916;
-    m_TMsimpleCoeff.fys_p2n = 15344.1442;
+    m_par.dfx0_pn = 131379.8988;
+    m_par.dfx0_p2n = 289802.2285;
+    m_par.fxm_pn = 10148.8286;
+    m_par.fxm_p2n = 19437.8446;
+    m_par.fxs_pn = 7948.8727;
+    m_par.fxs_p2n = 15723.0773;
+    m_par.dfy0_pn = 125823.3139;
+    m_par.dfy0_p2n = 227719.1423;
+    m_par.fym_pn = 8352.7333;
+    m_par.fym_p2n = 15635.4453;
+    m_par.fys_pn = 8174.1916;
+    m_par.fys_p2n = 15344.1442;
 
     SetVerticalStiffness(618787.0);
     SetHorizontalCoefficients();

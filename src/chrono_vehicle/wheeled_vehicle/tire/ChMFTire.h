@@ -77,10 +77,6 @@ class CH_VEHICLE_API ChMFTire : public ChForceElementTire {
     /// The reported value will be similar to that reported by ChTire::GetLongitudinalSlip.
     double GetLongitudinalSlip_internal() const { return m_states.kappa; }
 
-    /// Get the camber angle used in Pac89 (expressed in radians).
-    /// The reported value will be similar to that reported by ChTire::GetCamberAngle.
-    double GetCamberAngle_internal() { return m_states.gamma * CH_C_DEG_TO_RAD; }
-
     virtual double GetNormalStiffnessForce(double depth) const override;
     virtual double GetNormalDampingForce(double depth, double velocity) const override;
 

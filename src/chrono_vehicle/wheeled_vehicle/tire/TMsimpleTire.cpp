@@ -66,32 +66,32 @@ void TMsimpleTire::Create(const rapidjson::Document& d) {
 
     if (d.HasMember("Parameters")) {
         // Full parameterization
-        m_TMsimpleCoeff.pn = d["Parameters"]["Tire Load"]["Nominal Vertical Force [N]"].GetDouble();
-        m_TMsimpleCoeff.pn_max = d["Parameters"]["Tire Load"]["Maximum Vertical Force [N]"].GetDouble();
+        m_par.pn = d["Parameters"]["Tire Load"]["Nominal Vertical Force [N]"].GetDouble();
+        m_par.pn_max = d["Parameters"]["Tire Load"]["Maximum Vertical Force [N]"].GetDouble();
 
-        m_TMsimpleCoeff.cx = d["Parameters"]["Tire Stiffness"]["Longitudinal [N/m]"].GetDouble();
-        m_TMsimpleCoeff.cy = d["Parameters"]["Tire Stiffness"]["Lateral [N/m]"].GetDouble();
+        m_par.cx = d["Parameters"]["Tire Stiffness"]["Longitudinal [N/m]"].GetDouble();
+        m_par.cy = d["Parameters"]["Tire Stiffness"]["Lateral [N/m]"].GetDouble();
         double a1 = d["Parameters"]["Tire Stiffness"]["Vertical [N/m]"][0u].GetDouble();
         double a2 = d["Parameters"]["Tire Stiffness"]["Vertical [N/m]"][1u].GetDouble();
         SetVerticalStiffness(a1, a2);
 
-        m_TMsimpleCoeff.dx = d["Parameters"]["Tire Damping"]["Longitudinal [Ns/m]"].GetDouble();
-        m_TMsimpleCoeff.dy = d["Parameters"]["Tire Damping"]["Lateral [Ns/m]"].GetDouble();
-        m_TMsimpleCoeff.dz = d["Parameters"]["Tire Damping"]["Vertical [Ns/m]"].GetDouble();
+        m_par.dx = d["Parameters"]["Tire Damping"]["Longitudinal [Ns/m]"].GetDouble();
+        m_par.dy = d["Parameters"]["Tire Damping"]["Lateral [Ns/m]"].GetDouble();
+        m_par.dz = d["Parameters"]["Tire Damping"]["Vertical [Ns/m]"].GetDouble();
 
-        m_TMsimpleCoeff.dfx0_pn = d["Parameters"]["Longitudinal"]["Initial Slopes dFx/dsx [N]"][0u].GetDouble();
-        m_TMsimpleCoeff.dfx0_p2n = d["Parameters"]["Longitudinal"]["Initial Slopes dFx/dsx [N]"][1u].GetDouble();
-        m_TMsimpleCoeff.fxm_pn = d["Parameters"]["Longitudinal"]["Maximum Fx Load [N]"][0u].GetDouble();
-        m_TMsimpleCoeff.fxm_p2n = d["Parameters"]["Longitudinal"]["Maximum Fx Load [N]"][1u].GetDouble();
-        m_TMsimpleCoeff.fxs_pn = d["Parameters"]["Longitudinal"]["Sliding Fx Load [N]"][0u].GetDouble();
-        m_TMsimpleCoeff.fxs_p2n = d["Parameters"]["Longitudinal"]["Sliding Fx Load [N]"][1u].GetDouble();
+        m_par.dfx0_pn = d["Parameters"]["Longitudinal"]["Initial Slopes dFx/dsx [N]"][0u].GetDouble();
+        m_par.dfx0_p2n = d["Parameters"]["Longitudinal"]["Initial Slopes dFx/dsx [N]"][1u].GetDouble();
+        m_par.fxm_pn = d["Parameters"]["Longitudinal"]["Maximum Fx Load [N]"][0u].GetDouble();
+        m_par.fxm_p2n = d["Parameters"]["Longitudinal"]["Maximum Fx Load [N]"][1u].GetDouble();
+        m_par.fxs_pn = d["Parameters"]["Longitudinal"]["Sliding Fx Load [N]"][0u].GetDouble();
+        m_par.fxs_p2n = d["Parameters"]["Longitudinal"]["Sliding Fx Load [N]"][1u].GetDouble();
 
-        m_TMsimpleCoeff.dfy0_pn = d["Parameters"]["Lateral"]["Initial Slopes dFy/dsy [N]"][0u].GetDouble();
-        m_TMsimpleCoeff.dfy0_p2n = d["Parameters"]["Lateral"]["Initial Slopes dFy/dsy [N]"][1u].GetDouble();
-        m_TMsimpleCoeff.fym_pn = d["Parameters"]["Lateral"]["Maximum Fy Load [N]"][0u].GetDouble();
-        m_TMsimpleCoeff.fym_p2n = d["Parameters"]["Lateral"]["Maximum Fy Load [N]"][1u].GetDouble();
-        m_TMsimpleCoeff.fys_pn = d["Parameters"]["Lateral"]["Sliding Fy Load [N]"][0u].GetDouble();
-        m_TMsimpleCoeff.fys_p2n = d["Parameters"]["Lateral"]["Sliding Fy Load [N]"][1u].GetDouble();
+        m_par.dfy0_pn = d["Parameters"]["Lateral"]["Initial Slopes dFy/dsy [N]"][0u].GetDouble();
+        m_par.dfy0_p2n = d["Parameters"]["Lateral"]["Initial Slopes dFy/dsy [N]"][1u].GetDouble();
+        m_par.fym_pn = d["Parameters"]["Lateral"]["Maximum Fy Load [N]"][0u].GetDouble();
+        m_par.fym_p2n = d["Parameters"]["Lateral"]["Maximum Fy Load [N]"][1u].GetDouble();
+        m_par.fys_pn = d["Parameters"]["Lateral"]["Sliding Fy Load [N]"][0u].GetDouble();
+        m_par.fys_p2n = d["Parameters"]["Lateral"]["Sliding Fy Load [N]"][1u].GetDouble();
         SetHorizontalCoefficients();
     } else if (d.HasMember("Load Index")) {
         // Information about tire inflation pressure might be present
@@ -153,7 +153,7 @@ void TMsimpleTire::Create(const rapidjson::Document& d) {
 
     // Coefficient of friction and rolling resistance coefficients.
     // These must be set here to ensure they are not overwritten.
-    m_TMsimpleCoeff.mu_0 = d["Coefficient of Friction"].GetDouble();
+    m_par.mu_0 = d["Coefficient of Friction"].GetDouble();
     m_rolling_resistance = d["Rolling Resistance Coefficient"].GetDouble();
 
     // Check how to visualize this tire.

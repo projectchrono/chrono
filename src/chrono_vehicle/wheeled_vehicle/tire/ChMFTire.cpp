@@ -1593,6 +1593,8 @@ void ChMFTire::Synchronize(double time, const ChTerrain& terrain) {
     // Calculate tire kinematics
     CalculateKinematics(wheel_state, m_data.frame);
 
+    m_states.gamma = ChClamp(GetCamberAngle(), -m_gamma_limit * CH_C_DEG_TO_RAD, m_gamma_limit * CH_C_DEG_TO_RAD);
+    
     if (m_data.in_contact) {
         // Wheel velocity in the ISO-C Frame
         ChVector<> vel = wheel_state.lin_vel;
@@ -1611,7 +1613,6 @@ void ChMFTire::Synchronize(double time, const ChTerrain& terrain) {
         }
 
         m_data.normal_force = Fn_mag;
-        m_states.gamma = CH_C_PI_2 - std::acos(m_states.disc_normal.z());
         // R_eff is a Rill estimation, not Pacejka. Advantage: it works well with speed = zero.
         m_states.R_eff = (2.0 * m_par.UNLOADED_RADIUS + (m_par.UNLOADED_RADIUS - m_data.depth)) / 3.0;
         m_states.vx = std::abs(m_data.vel.x());
@@ -1621,7 +1622,6 @@ void ChMFTire::Synchronize(double time, const ChTerrain& terrain) {
         const double epsilon = 0.1;
         m_states.kappa = -m_states.vsx / (m_states.vx + epsilon);
         m_states.alpha = std::atan2(m_states.vsy, m_states.vx + epsilon);
-        m_states.gamma = CH_C_PI_2 - std::acos(m_states.disc_normal.z());
         m_states.omega = wheel_state.omega;
         m_states.disc_normal = disc_normal;
         m_states.Fz0_prime = m_par.FNOMIN * m_par.LFZO;
