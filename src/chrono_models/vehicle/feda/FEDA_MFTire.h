@@ -64,4 +64,3 @@ class CH_MODELS_API FEDA_MFTire : public ChMFTire {
 }  // end namespace chrono
 
 #endif
-

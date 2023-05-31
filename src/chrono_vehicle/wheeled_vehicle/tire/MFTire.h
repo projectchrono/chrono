@@ -9,11 +9,30 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Michael Taylor
+// Authors: Rainer Gericke, Radu Serban
 // =============================================================================
 //
-// MFTire tire constructed with data from file (JSON format).
+// Template for a Magic Formula tire model
 //
+// ChMFTire is based on the Pacejka 2002 formulae as written in
+// Hans B. Pacejka's "Tire and Vehicle Dynamics" Third Edition, Elsevier 2012
+// ISBN: 978-0-08-097016-5
+//
+// In opposite to the commercial product MFtire this implementation is merly
+// a subset:
+//  - only steady state force/torque calculations
+//  - uncombined (use_mode = 3)
+//  - combined (use_mode = 4) via Pacejka method
+//  - parametration is given by a TIR file (Tiem Orbit Format,
+//    ADAMS/Car compatible)
+//  - unit conversion is implemented but only tested for SI units
+//  - optional inflation pressure dependency is implemented, but not tested
+//  - this implementation could be validated for the FED-Alpha vehicle and rsp.
+//    tire data sets against KRC test results from a Nato CDT
+//
+// This derived class reads parameters from a JSON parameter file
+//  - input can be redirected from a TIR file
+//  - input parameters can set directly (only SI units!)
 // =============================================================================
 
 #ifndef MF_TIRE_H
@@ -67,4 +86,3 @@ class CH_VEHICLE_API MFTire : public ChMFTire {
 }  // end namespace chrono
 
 #endif
-

@@ -74,9 +74,9 @@ void ChTMsimpleTire::Synchronize(double time, const ChTerrain& terrain) {
     m_data.in_contact = DiscTerrainCollision(m_collision_type, terrain, wheel_state.pos, disc_normal, m_unloaded_radius,
                                              m_width, m_areaDep, m_data.frame, m_data.depth, mu_road);
     ChClampValue(mu_road, 0.1f, 1.0f);
- 
-    m_states.muscale = mu_road/m_par.mu_0;
-    
+
+    m_states.muscale = mu_road / m_par.mu_0;
+
     // Calculate tire kinematics
     CalculateKinematics(wheel_state, m_data.frame);
 
@@ -109,12 +109,9 @@ void ChTMsimpleTire::Synchronize(double time, const ChTerrain& terrain) {
         m_states.vsy = m_data.vel.y();
         m_states.sx = -m_states.vsx / m_states.vta;
         m_states.sy = -m_states.vsy / m_states.vta;
-        m_states.nL0 = m_par.nL0_pn + (m_par.nL0_p2n - m_par.nL0_pn) *
-                                                    (m_data.normal_force / m_par.pn - 1.0);
-        m_states.sq0 = m_par.sq0_pn + (m_par.sq0_p2n - m_par.sq0_pn) *
-                                                    (m_data.normal_force / m_par.pn - 1.0);
-        m_states.sqe = m_par.sqe_pn + (m_par.sqe_p2n - m_par.sqe_pn) *
-                                                    (m_data.normal_force / m_par.pn - 1.0);
+        m_states.nL0 = m_par.nL0_pn + (m_par.nL0_p2n - m_par.nL0_pn) * (m_data.normal_force / m_par.pn - 1.0);
+        m_states.sq0 = m_par.sq0_pn + (m_par.sq0_p2n - m_par.sq0_pn) * (m_data.normal_force / m_par.pn - 1.0);
+        m_states.sqe = m_par.sqe_pn + (m_par.sqe_p2n - m_par.sqe_pn) * (m_data.normal_force / m_par.pn - 1.0);
         m_states.disc_normal = disc_normal;
     } else {
         // Reset all states if the tire comes off the ground.

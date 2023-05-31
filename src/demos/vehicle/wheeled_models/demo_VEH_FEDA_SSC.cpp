@@ -36,14 +36,14 @@
 #include "chrono_vehicle/utils/ChVehiclePath.h"
 
 #ifdef CHRONO_IRRLICHT
-#include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
-#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
+    #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
 #endif
 
 #ifdef CHRONO_VSG
-#include "chrono_vehicle/driver/ChInteractiveDriverVSG.h"
-#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
+    #include "chrono_vehicle/driver/ChInteractiveDriverVSG.h"
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 using namespace chrono::vsg3d;
 #endif
 
@@ -153,10 +153,10 @@ double t_end = t_hold + t_acc + 60.0;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
     ChFunction_Recorder steeringGear;
-    steeringGear.AddPoint(-1.0, -540.0*1.2);
-    steeringGear.AddPoint(0.0,0.0);
-    steeringGear.AddPoint(1.0, 540.0*1.2);
-    
+    steeringGear.AddPoint(-1.0, -540.0 * 1.2);
+    steeringGear.AddPoint(0.0, 0.0);
+    steeringGear.AddPoint(1.0, 540.0 * 1.2);
+
     if (argc == 2) {
         switch (argv[1][0]) {
             case 'l':
@@ -171,7 +171,7 @@ int main(int argc, char* argv[]) {
                 GetLog() << "Turn right selected\n";
                 break;
         }
-    } else if(argc == 3) {
+    } else if (argc == 3) {
         switch (argv[1][0]) {
             case 'l':
             case 'L':
@@ -185,15 +185,15 @@ int main(int argc, char* argv[]) {
                 GetLog() << "Turn right selected\n";
                 break;
         }
-        switch(argv[2][0]) {
+        switch (argv[2][0]) {
             case '1':
-                tire_model  = TireModelType::PAC02;
+                tire_model = TireModelType::PAC02;
                 break;
             case '2':
-                tire_model  = TireModelType::MFTIRE;
+                tire_model = TireModelType::MFTIRE;
                 break;
             case '3':
-                tire_model  = TireModelType::TMSIMPLE;
+                tire_model = TireModelType::TMSIMPLE;
                 break;
             default:
                 GetLog() << "Unsupported tire model selected\n";
@@ -203,7 +203,7 @@ int main(int argc, char* argv[]) {
                 return 99;
         }
     }
-    
+
     // --------------
     // Create systems
     // --------------

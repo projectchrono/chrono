@@ -178,7 +178,12 @@ class MyDriver {
             }
         }
     }
-    double GetTraveledDistance() { if(m_type == DriverModelType::HUMAN)  return std::static_pointer_cast<ChHumanDriver>(m_driver)->GetTraveledDistance(); else return -99; }
+    double GetTraveledDistance() {
+        if (m_type == DriverModelType::HUMAN)
+            return std::static_pointer_cast<ChHumanDriver>(m_driver)->GetTraveledDistance();
+        else
+            return -99;
+    }
     DriverInputs GetInputs() { return m_driver->GetInputs(); }
     void Initialize() { m_driver->Initialize(); }
     void Synchronize(double time) { m_driver->Synchronize(time); }
@@ -373,7 +378,7 @@ int main(int argc, char* argv[]) {
     int render_frame = 0;
 
     double max_travel = 6500.0;
-    
+
     while (vis->Run()) {
         double time = my_feda.GetSystem()->GetChTime();
 
@@ -410,8 +415,9 @@ int main(int argc, char* argv[]) {
         vis->Advance(step_size);
         sys.DoStepDynamics(step_size);
 
-        if(DriverModelType::HUMAN == driver_type) {
-            if(driver.GetTraveledDistance() > max_travel) break;
+        if (DriverModelType::HUMAN == driver_type) {
+            if (driver.GetTraveledDistance() > max_travel)
+                break;
         }
         // Increment simulation frame number
         sim_frame++;
@@ -421,4 +427,3 @@ int main(int argc, char* argv[]) {
 
     return 0;
 }
-

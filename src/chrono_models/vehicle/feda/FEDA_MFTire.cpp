@@ -77,4 +77,3 @@ void FEDA_MFTire::RemoveVisualizationAssets() {
 }  // namespace feda
 }  // end namespace vehicle
 }  // end namespace chrono
-

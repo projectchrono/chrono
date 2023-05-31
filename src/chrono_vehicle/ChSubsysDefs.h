@@ -420,7 +420,7 @@ enum class TireModelType {
     PAC89,       ///< Pacejka 89 (magic formula) tire
     TMEASY,      ///< Tire Model Made Easy tire (G. Rill)
     PAC02,       ///< Pacejka 02 (magic formula) tire
-    MFTIRE,       ///< Pacejka 02 (magic formula) tire
+    MFTIRE,      ///< Pacejka 02 (magic formula) tire
     TMSIMPLE     ///< Tire Model Simple (W. Hirschberg)
 };
 

@@ -18,6 +18,17 @@
 // Hans B. Pacejka's "Tire and Vehicle Dynamics" Third Edition, Elsevier 2012
 // ISBN: 978-0-08-097016-5
 //
+// In opposite to the commercial product MFtire this implementation is merly
+// a subset:
+//  - only steady state force/torque calculations
+//  - uncombined (use_mode = 3)
+//  - combined (use_mode = 4) via Pacejka method
+//  - parametration is given by a TIR file (Tiem Orbit Format,
+//    ADAMS/Car compatible)
+//  - unit conversion is implemented but only tested for SI units
+//  - optional inflation pressure dependency is implemented, but not tested
+//  - this implementation could be validated for the FED-Alpha vehicle and rsp.
+//    tire data sets against KRC test results from a Nato CDT
 // =============================================================================
 
 #ifndef CH_MFTIRE_H
@@ -39,7 +50,7 @@ namespace vehicle {
 
 /// Pacjeka 02 tire model.
 class CH_VEHICLE_API ChMFTire : public ChForceElementTire {
-   public:
+  public:
     ChMFTire(const std::string& name);
 
     virtual ~ChMFTire() {}
@@ -80,17 +91,17 @@ class CH_VEHICLE_API ChMFTire : public ChForceElementTire {
     virtual double GetNormalStiffnessForce(double depth) const override;
     virtual double GetNormalDampingForce(double depth, double velocity) const override;
 
-   protected:
+  protected:
     double CalcMx(double Fy, double Fz, double gamma);  // get overturning couple
     double CalcMy(double Fx, double Fz, double gamma);  // get rolling resistance moment
     void CalcFxyMz(double& Fx,
-                           double& Fy,
-                           double& Mz,
-                           double kappa,
-                           double alpha,
-                           double Fz,
-                           double gamma,
-                           bool combined = false);
+                   double& Fy,
+                   double& Mz,
+                   double kappa,
+                   double alpha,
+                   double Fz,
+                   double gamma,
+                   bool combined = false);
     void CombinedCoulombForces(double& fx, double& fy, double fz);
 
     // TIR file (ADAMS compatible) loader routines

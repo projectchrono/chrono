@@ -9,11 +9,30 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Rainer Gericke
+// Authors: Rainer Gericke, Radu Serban
 // =============================================================================
 //
-// MFTire tire constructed with data from file (JSON format).
+// Template for a Magic Formula tire model
 //
+// ChMFTire is based on the Pacejka 2002 formulae as written in
+// Hans B. Pacejka's "Tire and Vehicle Dynamics" Third Edition, Elsevier 2012
+// ISBN: 978-0-08-097016-5
+//
+// In opposite to the commercial product MFtire this implementation is merly
+// a subset:
+//  - only steady state force/torque calculations
+//  - uncombined (use_mode = 3)
+//  - combined (use_mode = 4) via Pacejka method
+//  - parametration is given by a TIR file (Tiem Orbit Format,
+//    ADAMS/Car compatible)
+//  - unit conversion is implemented but only tested for SI units
+//  - optional inflation pressure dependency is implemented, but not tested
+//  - this implementation could be validated for the FED-Alpha vehicle and rsp.
+//    tire data sets against KRC test results from a Nato CDT
+//
+// This derived class reads parameters from a JSON parameter file
+//  - input can be redirected from a TIR file
+//  - input parameters can set directly (only SI units!)
 // =============================================================================
 
 #include <algorithm>
@@ -76,7 +95,9 @@ void MFTire::Create(const rapidjson::Document& d) {
         if (d.HasMember("Tire Side")) {
             std::string tside = d["Tire Side"].GetString();
             if (tside.compare("left") == 0 || tside.compare("unknown") == 0) {
-                m_allow_mirroring = true;
+                m_measured_side = LEFT;
+            } else {
+                m_measured_side = RIGHT;
             }
         }
         if (d.HasMember("Dimension")) {
@@ -426,7 +447,7 @@ void MFTire::Create(const rapidjson::Document& d) {
             GetLog() << "Fatal: Rolling Coefficients not set!\n";
             exit(9);
         }
-        
+
         if (!m_tire_conditions_found) {
             // direct setting of inflation pressure is actually unsupported!
             // set all pressure dependence parameters to zero to prevent erratic force calculations
