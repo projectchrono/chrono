@@ -30,6 +30,17 @@
 
 namespace chrono {
 
+    
+template <typename T, typename std::enable_if<!std::is_polymorphic<T>::value>::type* = nullptr>
+void* getVoidPointer(T* ptr) {
+    return static_cast<void*>(ptr);
+}
+
+template <typename T, typename std::enable_if<std::is_polymorphic<T>::value>::type* = nullptr>
+void* getVoidPointer(T* ptr) {
+    return dynamic_cast<void*>(ptr);
+}
+
 /// @addtogroup chrono_serialization
 /// @{
 
@@ -129,7 +140,7 @@ public:
         { throw (ChExceptionArchive( "Cannot call SetRawPtr() for a constructed object.")); };
 
       virtual void* GetRawPtr() 
-        { return static_cast<void*>(pt2Object); };
+        { return getVoidPointer<TClass>(pt2Object); };
 
       virtual bool IsPolymorphic()   
         { throw (ChExceptionArchive( "Cannot call IsPolymorphic() for a constructed object.")); };
@@ -173,7 +184,7 @@ public:
         { *pt2Object = static_cast<TClass*>(mptr); };
 
       virtual void* GetRawPtr() 
-        { return static_cast<void*>(*pt2Object); };
+        { return getVoidPointer<TClass>(*pt2Object); };
 
       virtual bool IsPolymorphic() 
         { return this->_is_polymorphic(); };
@@ -501,7 +512,7 @@ public:
 
 
       virtual void* GetRawPtr() 
-        { return static_cast<void*>(_ptr_to_val); };
+        { return getVoidPointer<TClass>(_ptr_to_val); };
 
       virtual bool IsPolymorphic() 
         { return std::is_polymorphic<TClass>::value; };
@@ -992,19 +1003,15 @@ class  ChArchiveOut : public ChArchive {
       void out     (ChNameValue< std::shared_ptr<T> > bVal) {
           
           T* mptr = bVal.value().get();
+          void* idptr = getVoidPointer<T>(mptr);
 
           if (this->cut_all_pointers)
               mptr = 0;
-          if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())
+          if (this->cut_pointers.find(idptr) != this->cut_pointers.end())
               mptr = 0;
           bool already_stored = false;
           size_t obj_ID = 0; 
           size_t ext_ID = 0;
-          void* idptr;
-          if constexpr (std::is_polymorphic<T>::value)
-              idptr = dynamic_cast<void*>(mptr);
-          else
-              idptr = static_cast<void*>(mptr);
           if (this->external_ptr_id.find(idptr) != this->external_ptr_id.end()) {
               already_stored = true;
               ext_ID = external_ptr_id[idptr];
@@ -1025,19 +1032,17 @@ class  ChArchiveOut : public ChArchive {
       void out     (ChNameValue<T*> bVal) {
           
           T* mptr = bVal.value();
+          void* idptr = getVoidPointer<T>(mptr);
 
           if (this->cut_all_pointers)
               mptr = 0;
-          if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())
+          if (this->cut_pointers.find(idptr) != this->cut_pointers.end())
               mptr = 0;
+
           bool already_stored = false;  
           size_t obj_ID = 0; 
           size_t ext_ID = 0;
-          void* idptr;
-          if constexpr (std::is_polymorphic<T>::value)
-              idptr = dynamic_cast<void*>(mptr);
-          else
-              idptr = static_cast<void*>(mptr);
+         
           if (this->external_ptr_id.find(idptr) != this->external_ptr_id.end()) {
               already_stored = true;
               ext_ID = external_ptr_id[idptr];
@@ -1061,11 +1066,7 @@ class  ChArchiveOut : public ChArchive {
           {
               bool already_stored; 
               T* mptr = &bVal.value();
-              void* idptr;
-              if constexpr(std::is_polymorphic<T>::value)
-                  idptr = dynamic_cast<void*>(mptr);
-              else
-                  idptr = static_cast<void*>(mptr);
+              void* idptr = getVoidPointer<T>(mptr);
               PutPointer(idptr, already_stored, obj_ID);
               if (already_stored) 
                   {throw (ChExceptionArchive( "Cannot serialize tracked object '" + std::string(bVal.name()) + "' by value, AFTER already serialized by pointer."));}
