@@ -146,7 +146,7 @@ class CH_VEHICLE_API ChAutomaticTransmission : public ChTransmission {
     };
 
     /// Get transmission type.
-    virtual Type GetType() const override { return Type::AUTOMATIC; }
+    virtual Type GetType() const override final { return Type::AUTOMATIC; }
 
     /// Return true if a torque converter model is included.
     virtual bool HasTorqueConverter() const = 0;
@@ -183,7 +183,7 @@ class CH_VEHICLE_API ChAutomaticTransmission : public ChTransmission {
 
   private:
     /// Return this object as an automatic transmission.
-    virtual ChAutomaticTransmission* asAutomatic() override { return this; }
+    virtual ChAutomaticTransmission* asAutomatic() override final { return this; }
 };
 
 // -----------------------------------------------------------------------------
@@ -191,14 +191,17 @@ class CH_VEHICLE_API ChAutomaticTransmission : public ChTransmission {
 class CH_VEHICLE_API ChManualTransmission : public ChTransmission {
   public:
     /// Get transmission type.
-    virtual Type GetType() const override { return Type::MANUAL; }
+    virtual Type GetType() const override final { return Type::MANUAL; }
+
+    /// Return true if a clutch model is included.
+    virtual bool HasClutch() const = 0;
 
   protected:
     ChManualTransmission(const std::string& name);
 
   private:
     /// Return this object as an automatic transmission.
-    virtual ChManualTransmission* asManual() override { return this; }
+    virtual ChManualTransmission* asManual() override final { return this; }
 };
 
 /// @} vehicle_powertrain
