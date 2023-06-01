@@ -28,7 +28,7 @@ stages:
   tags:
   - linux
   image:
-    name: uwsbel/archlinux_packages_image:latest
+    name: uwsbel/packages:arch
     entrypoint: ["/usr/bin/bash", "-c"]
   before_script:
   - uname -a
@@ -111,7 +111,7 @@ linux:arch-llvm:test:
   tags:
     - linux
   image:
-      name: uwsbel/ubuntu_packages_image:latest
+      name: uwsbel/packages:ubuntu
   before_script:
     # Defining configuration variables
     - export LIB_DIR="lib"
@@ -216,7 +216,7 @@ linux:ubuntu22.04:test:
   tags:
     - linux
   image:
-      name: uwsbel/ubuntu_packages_image:latest
+      name: uwsbel/packages:ubuntu
   before_script:
     # this script overwrites the default ubuntu script to include conda preparations
     - uname -a
@@ -286,7 +286,7 @@ linux:ubuntu22.04:deploy-python3.10:
   tags:
     - linux
   image:
-    name: uwsbel/almalinux_packages_image
+    name: uwsbel/packages:alma
   before_script:
     # Defining configuration variables
     - export C_COMPILER="/usr/bin/gcc"
