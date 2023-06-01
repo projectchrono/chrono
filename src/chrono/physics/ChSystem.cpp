@@ -2030,14 +2030,14 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(use_sleeping);
 
     marchive << CHNVP(descriptor);
-    marchive << CHNVP(solver);
+    //marchive << CHNVP(solver);
 
     marchive << CHNVP(min_bounce_speed);
     marchive << CHNVP(max_penetration_recovery_speed);
 
-    marchive << CHNVP(collision_system);  // ChCollisionSystem should implement class factory for abstract create
+    //marchive << CHNVP(collision_system);  // ChCollisionSystem should implement class factory for abstract create
 
-    marchive << CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
+    //marchive << CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
 
     //***TODO*** complete...
 }
@@ -2065,15 +2065,15 @@ void ChSystem::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(use_sleeping);
 
     marchive >> CHNVP(descriptor);
-    marchive >> CHNVP(solver);
+    //marchive >> CHNVP(solver);
 
     marchive >> CHNVP(min_bounce_speed);
     marchive >> CHNVP(max_penetration_recovery_speed);
 
-    marchive >> CHNVP(collision_system);  // ChCollisionSystem should implement class factory for abstract create
+    //marchive >> CHNVP(collision_system);  // ChCollisionSystem should implement class factory for abstract create
 
-    marchive >> CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
-    timestepper->SetIntegrable(this);
+    //marchive >> CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
+    //timestepper->SetIntegrable(this);
 
     //***TODO*** complete...
 
