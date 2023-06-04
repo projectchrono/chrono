@@ -25,7 +25,7 @@ set(PROGRAMS
 )
 
 if(ENABLE_MODULE_VEHICLE_MODELS)
-  set(PROGRAMS ${PRGRAMS}
+  set(PROGRAMS ${PROGRAMS}
     demo_VEH_Cosim_WheeledVehicle
     demo_VEH_Cosim_TrackedVehicle
   )
