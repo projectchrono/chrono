@@ -294,17 +294,6 @@ void ChTMsimpleTire::RemoveVisualizationAssets() {
 
 // -----------------------------------------------------------------------------
 
-void ChTMsimpleTire::SetVerticalStiffness(double Cz1, double Cz2) {
-    if (m_par.pn <= 0.0) {
-        GetLog() << "Fatal error in TMsimpleTire: nominal tire load has not been set.\n";
-        exit(99);
-    }
-
-    m_par.cz = Cz1;
-    m_d1 = sqrt(2.0 * Cz1 * Cz1 - Cz2 * Cz2);
-    m_d2 = (Cz2 * Cz2 - Cz1 * Cz1) / (4.0 * m_par.pn);
-}
-
 void ChTMsimpleTire::SetVerticalStiffness(std::vector<double>& defl, std::vector<double>& frc) {
     // calculate coefficients from test data
     Eigen::MatrixXd A(defl.size(), 2);

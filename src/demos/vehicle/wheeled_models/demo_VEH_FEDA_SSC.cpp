@@ -153,9 +153,9 @@ double t_end = t_hold + t_acc + 60.0;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
     ChFunction_Recorder steeringGear;
-    steeringGear.AddPoint(-1.0, -540.0 * 1.2);
+    steeringGear.AddPoint(-1.0, -648.0);
     steeringGear.AddPoint(0.0, 0.0);
-    steeringGear.AddPoint(1.0, 540.0 * 1.2);
+    steeringGear.AddPoint(1.0, 648.0);
 
     if (argc == 2) {
         switch (argv[1][0]) {
@@ -195,11 +195,15 @@ int main(int argc, char* argv[]) {
             case '3':
                 tire_model = TireModelType::TMSIMPLE;
                 break;
+            case '4':
+                tire_model = TireModelType::TMEASY;
+                break;
             default:
                 GetLog() << "Unsupported tire model selected\n";
                 GetLog() << " 1 : Pacejka02\n";
                 GetLog() << " 2 : MFtire\n";
                 GetLog() << " 3 : TMsimple\n";
+                GetLog() << " 4 : TMeasy\n";
                 return 99;
         }
     }
@@ -293,6 +297,9 @@ int main(int argc, char* argv[]) {
     }
     if (tire_model == TireModelType::TMSIMPLE) {
         ssc_file.append("tmsimple");
+    }
+    if (tire_model == TireModelType::TMEASY) {
+        ssc_file.append("tmeasy");
     }
     ssc_file.append(".txt");
     utils::CSV_writer ssc_csv(" ");

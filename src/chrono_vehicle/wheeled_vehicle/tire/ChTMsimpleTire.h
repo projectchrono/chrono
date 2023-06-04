@@ -91,11 +91,11 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
     );
 
     /// Set vertical tire stiffness as linear function by coefficient [N/m].
-    void SetVerticalStiffness(double Cz) { SetVerticalStiffness(Cz, Cz); }
+    void SetVerticalStiffness(double Cz) { m_d1 = Cz; m_d2 = 0.0; }
 
     /// Set vertical tire stiffness as nonlinear function by coefficients at nominal load 1 [N/m]
     /// and nominal load 2 [N/m].
-    void SetVerticalStiffness(double Cz1, double Cz2);
+    //void SetVerticalStiffness(double Cz1, double Cz2);
 
     /// Set vertical tire stiffness as nonlinear function by calculation from tire test data (least squares).
     void SetVerticalStiffness(std::vector<double>& defl, std::vector<double>& frc);

@@ -73,7 +73,7 @@ void TMsimpleTire::Create(const rapidjson::Document& d) {
         m_par.cy = d["Parameters"]["Tire Stiffness"]["Lateral [N/m]"].GetDouble();
         double a1 = d["Parameters"]["Tire Stiffness"]["Vertical [N/m]"][0u].GetDouble();
         double a2 = d["Parameters"]["Tire Stiffness"]["Vertical [N/m]"][1u].GetDouble();
-        SetVerticalStiffness(a1, a2);
+        SetVerticalStiffness(a1);
 
         m_par.dx = d["Parameters"]["Tire Damping"]["Longitudinal [Ns/m]"].GetDouble();
         m_par.dy = d["Parameters"]["Tire Damping"]["Lateral [Ns/m]"].GetDouble();

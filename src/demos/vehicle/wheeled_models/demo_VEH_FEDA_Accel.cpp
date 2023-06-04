@@ -61,7 +61,7 @@ EngineModelType engine_model = EngineModelType::SIMPLE_MAP;
 TransmissionModelType transmission_model = TransmissionModelType::SIMPLE_MAP;
 
 // Type of tire model (PAC02, RIGID)
-TireModelType tire_model = TireModelType::MFTIRE;
+TireModelType tire_model = TireModelType::TMSIMPLE;
 
 // Type of brake model (SIMPLE, SHAFTS)
 BrakeType brake_type = BrakeType::SIMPLE;

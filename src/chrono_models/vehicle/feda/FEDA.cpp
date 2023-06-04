@@ -207,7 +207,6 @@ void FEDA::Initialize() {
 
             break;
         }
-            /*
         case TireModelType::TMEASY: {
             auto tire_FL = chrono_types::make_shared<FEDA_TMeasyTire>("FL");
             auto tire_FR = chrono_types::make_shared<FEDA_TMeasyTire>("FR");
@@ -222,7 +221,7 @@ void FEDA::Initialize() {
             m_tire_mass = tire_FL->GetMass();
 
             break;
-        } */
+        } 
         case TireModelType::PAC02: {
             auto tire_FL = chrono_types::make_shared<FEDA_Pac02Tire>("FL");
             auto tire_FR = chrono_types::make_shared<FEDA_Pac02Tire>("FR");
