@@ -66,8 +66,8 @@ ChVehicleCosimTrackedVehicleNode::ChVehicleCosimTrackedVehicleNode(const std::st
                                                                    const std::string& transmission_json)
     : ChVehicleCosimTrackedMBSNode(), m_init_yaw(0), m_chassis_fixed(false) {
     m_vehicle = chrono_types::make_shared<TrackedVehicle>(m_system, vehicle_json);
-    auto engine = ReadEngineJSON(vehicle::GetDataFile(engine_json));
-    auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(transmission_json));
+    auto engine = ReadEngineJSON(engine_json);
+    auto transmission = ReadTransmissionJSON(transmission_json);
     m_powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
 }
 

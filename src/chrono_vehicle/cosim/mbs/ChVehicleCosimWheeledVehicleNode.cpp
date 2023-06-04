@@ -68,8 +68,8 @@ ChVehicleCosimWheeledVehicleNode::ChVehicleCosimWheeledVehicleNode(const std::st
                                                                    const std::string& transmission_json)
     : ChVehicleCosimWheeledMBSNode(), m_num_spindles(0), m_init_yaw(0), m_chassis_fixed(false) {
     m_vehicle = chrono_types::make_shared<WheeledVehicle>(m_system, vehicle_json);
-    auto engine = ReadEngineJSON(vehicle::GetDataFile(engine_json));
-    auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(transmission_json));
+    auto engine = ReadEngineJSON(engine_json);
+    auto transmission = ReadTransmissionJSON(transmission_json);
     m_powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
     m_terrain = chrono_types::make_shared<ChTerrain>();
 }
