@@ -47,7 +47,7 @@ using namespace chrono::vehicle;
 
 // Example of a custom terrain node.
 // This simple demonstration terrain node uses a simple rigid plate as the terrain mode and creates rigid cylindrical
-// tires. This terrain node works can work with a tire node of type BYPASS.
+// tires. This terrain node works with a tire node of type BYPASS.
 class MyTerrain : public ChVehicleCosimTerrainNode {
   public:
     MyTerrain(double length, double width);
@@ -70,7 +70,7 @@ class MyTerrain : public ChVehicleCosimTerrainNode {
     virtual void OnAdvance(double step_size) override;
 
     // Render simulation.
-    virtual void Render(double time) override;
+    virtual void Render() override;
 
     /// Update the state of the i-th proxy rigid.
     virtual void UpdateRigidProxy(unsigned int i, BodyState& rigid_state) override;
@@ -183,7 +183,7 @@ void MyTerrain::OnAdvance(double step_size) {
     }
 }
 
-void MyTerrain::Render(double time) {
+void MyTerrain::Render() {
 #ifdef CHRONO_IRRLICHT
     if (!m_vis->Run()) {
         MPI_Abort(MPI_COMM_WORLD, 1);
@@ -309,7 +309,7 @@ int main(int argc, char** argv) {
         terrain->SetVerbose(verbose);
         terrain->SetStepSize(step_size);
         terrain->SetOutDir(out_dir, suffix);
-        terrain->EnableRuntimeVisualization(render, render_fps);
+        terrain->EnableRuntimeVisualization(render, ChVector<>(5, 2, 1), render_fps);
 
         node = terrain;
     }

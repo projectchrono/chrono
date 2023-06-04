@@ -143,7 +143,7 @@ void ChVehicleCosimViperNode::OnInitializeDBPRig(std::shared_ptr<ChFunction> fun
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimViperNode::PreAdvance() {
+void ChVehicleCosimViperNode::PreAdvance(double step_size) {
     m_viper->Update();
 }
 

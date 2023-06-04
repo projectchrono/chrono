@@ -234,6 +234,9 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
     }
 
 #ifdef CHRONO_IRRLICHT
+
+    std::cout << "&&&&&&&&&&&&&&&&&&&&&" << m_render << std::endl;
+
     // Create the visualization window
     if (m_render) {
         m_vsys = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
@@ -245,7 +248,7 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
         m_vsys->AddLogo();
         m_vsys->AddSkyBox();
         m_vsys->AddTypicalLights();
-        m_vsys->AddCamera(ChVector<>(m_dimX / 2, 1.4, 1.0), ChVector<>(0, 0, 0));
+        m_vsys->AddCamera(m_cam_pos, ChVector<>(0, 0, 0));
     }
 #endif
 
@@ -352,7 +355,7 @@ void ChVehicleCosimTerrainNodeSCM::GetForceRigidProxy(unsigned int i, TerrainFor
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTerrainNodeSCM::Render(double time) {
+void ChVehicleCosimTerrainNodeSCM::Render() {
 #ifdef CHRONO_IRRLICHT
     if (!m_vsys->Run()) {
         MPI_Abort(MPI_COMM_WORLD, 1);

@@ -143,7 +143,7 @@ void ChVehicleCosimCuriosityNode::OnInitializeDBPRig(std::shared_ptr<ChFunction>
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimCuriosityNode::PreAdvance() {
+void ChVehicleCosimCuriosityNode::PreAdvance(double step_size) {
     m_curiosity->Update();
 }
 

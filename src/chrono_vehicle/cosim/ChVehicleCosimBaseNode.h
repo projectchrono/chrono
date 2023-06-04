@@ -104,7 +104,7 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
         TIRE          ///< node performing tire simulation
     };
 
-    /// Type of the tire-terrain communication interface.
+    /// Type of the vehicle-terrain communication interface.
     /// - A BODY interface assumes communication is done at the wheel spindle or track shoe level.  At a synchronization
     /// time, the terrain node receives the full state of the spindle or track shoe body and must send forces acting on
     /// that body, for each tire or track shoe present in the simulation.  This type of interface should be used for
@@ -144,6 +144,11 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     /// Enable/disable verbose messages during simulation (default: true).
     void SetVerbose(bool verbose) { m_verbose = verbose; }
 
+    /// Enable/disable run-time visualization (default: false).
+    /// If enabled, rendering is done with the specified frequency.
+    /// Note that a concrete node may not support run-time visualization or may not render all physics elements.
+    void EnableRuntimeVisualization(bool render, const ChVector<>& cam_pos = VNULL, double render_fps = 100);
+
     /// Get the output directory name for this node.
     const std::string& GetOutDirName() const { return m_node_out_dir; }
 
@@ -163,6 +168,11 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     /// This function is called at every co-simulation synchronization time to
     /// allow the node to exchange information with any other node.
     virtual void Synchronize(int step_number, double time) = 0;
+
+    /// Render simulation.
+    /// This function is called from Advance() at the frequency specified in the call to EnableRuntimeVisualization().
+    /// Any call to Render occurs after a call to OnAdvance().
+    virtual void Render() {}
 
     /// Advance simulation.
     /// This function is called after a synchronization to allow the node to advance
@@ -217,6 +227,10 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     std::string m_out_dir;       ///< top-level output directory
     std::string m_node_out_dir;  ///< node-specific output directory
     std::ofstream m_outf;        ///< output file stream
+
+    bool m_render;         ///< if true, perform run-time rendering
+    double m_render_step;  ///< time step between rendered frames
+    ChVector<> m_cam_pos;  ///< camera location
 
     unsigned int m_num_wheeled_mbs_nodes;
     unsigned int m_num_tracked_mbs_nodes;

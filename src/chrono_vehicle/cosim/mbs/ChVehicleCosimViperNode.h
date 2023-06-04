@@ -63,7 +63,7 @@ class CH_VEHICLE_API ChVehicleCosimViperNode : public ChVehicleCosimWheeledMBSNo
     virtual void OnOutputData(int frame) override;
 
     /// Perform Viper update before advancing the dynamics.
-    virtual void PreAdvance() override;
+    virtual void PreAdvance(double step_size) override;
 
     /// Process the provided spindle force (received from the corresponding tire node).
     virtual void ApplySpindleForce(unsigned int i, const TerrainForce& spindle_force) override;

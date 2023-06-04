@@ -124,6 +124,7 @@ if(ENABLE_MODULE_IRRLICHT)
   set(INCLUDES "${INCLUDES};${CH_IRRLICHT_INCLUDES}")
   set(CXX_FLAGS "${CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
   list(APPEND LIBRARIES ChronoEngine_irrlicht)
+  list(APPEND LIBRARIES ChronoEngine_vehicle_irrlicht)
 endif()
 
 if(ENABLE_MODULE_OPENGL)

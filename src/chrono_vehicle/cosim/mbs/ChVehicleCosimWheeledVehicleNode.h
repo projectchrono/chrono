@@ -27,6 +27,7 @@
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
+#include "chrono_vehicle/ChVehicleVisualSystem.h"
 
 #include "chrono_vehicle/cosim/ChVehicleCosimWheeledMBSNode.h"
 
@@ -81,8 +82,11 @@ class CH_VEHICLE_API ChVehicleCosimWheeledVehicleNode : public ChVehicleCosimWhe
     // Output vehicle data.
     virtual void OnOutputData(int frame) override;
 
-    /// Perform vehicle system synchronization before advancing the dynamics.
-    virtual void PreAdvance() override;
+    /// Perform vehicle system operations before advancing the dynamics.
+    virtual void PreAdvance(double step_size) override;
+
+    /// Perform vehicle system operations after advancing the dynamics.
+    virtual void PostAdvance(double step_size) override;
 
     /// Process the provided spindle force (received from the corresponding tire node).
     virtual void ApplySpindleForce(unsigned int i, const TerrainForce& spindle_force) override;
@@ -106,6 +110,8 @@ class CH_VEHICLE_API ChVehicleCosimWheeledVehicleNode : public ChVehicleCosimWhe
     virtual void OnInitializeDBPRig(std::shared_ptr<ChFunction> func) override;
 
     void WriteBodyInformation(utils::CSV_writer& csv);
+
+    virtual void Render() override;
 
   private:
     /// ChTire subsystem, needed to pass the terrain contact forces back to the vehicle wheels.
@@ -140,6 +146,7 @@ class CH_VEHICLE_API ChVehicleCosimWheeledVehicleNode : public ChVehicleCosimWhe
     std::shared_ptr<ChDriver> m_driver;                  ///< vehicle driver
     std::shared_ptr<ChTerrain> m_terrain;                ///< dummy terrain (for vehicle synchronization)
     std::vector<std::shared_ptr<DummyTire>> m_tires;     ///< dummy tires (for applying spindle forces)
+    std::shared_ptr<ChVehicleVisualSystem> m_vsys;       ///< run-time visualization system
 
     ChVector<> m_init_loc;  ///< initial vehicle location (relative to center of terrain top surface)
     double m_init_yaw;      ///< initial vehicle yaw

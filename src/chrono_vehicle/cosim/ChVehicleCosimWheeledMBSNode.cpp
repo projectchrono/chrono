@@ -284,21 +284,32 @@ void ChVehicleCosimWheeledMBSNode::Synchronize(int step_number, double time) {
 // Advance simulation of the MBS node by the specified duration
 // -----------------------------------------------------------------------------
 void ChVehicleCosimWheeledMBSNode::Advance(double step_size) {
+    static double sim_time = 0;
+    static double render_time = 0;
+
+    // Advance state of the vehicle system for one step
     m_timer.reset();
     m_timer.start();
     double t = 0;
     while (t < step_size) {
         double h = std::min<>(m_step_size, step_size - t);
-        PreAdvance();
+        PreAdvance(h);
         m_system->DoStepDynamics(h);
         if (m_DBP_rig) {
             m_DBP_rig->OnAdvance(step_size);
         }
-        PostAdvance();
+        PostAdvance(h);
         t += h;
     }
     m_timer.stop();
     m_cum_sim_time += m_timer();
+    sim_time += step_size;
+
+    // Request the derived class to render simulation
+    if (m_render && sim_time >= render_time) {
+        Render();
+        render_time += std::max(m_render_step, step_size);
+    }
 }
 
 void ChVehicleCosimWheeledMBSNode::OutputData(int frame) {

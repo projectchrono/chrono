@@ -320,7 +320,7 @@ int main(int argc, char** argv) {
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
-                terrain->EnableRuntimeVisualization(render, render_fps);
+                terrain->EnableRuntimeVisualization(render, ChVector<>(terrain_length / 2, 0, 2), render_fps);
                 if (add_obstacles) {
                     terrain->AddRigidObstacle(CreateObstacle(ChVector<>(1, 1, 0.5)));
                     terrain->AddRigidObstacle(CreateObstacle(ChVector<>(-1, -1, 0.5)));
@@ -340,7 +340,7 @@ int main(int argc, char** argv) {
                 terrain->SetStepSize(step_size);
                 terrain->SetNumThreads(nthreads_terrain);
                 terrain->SetOutDir(out_dir, suffix);
-                terrain->EnableRuntimeVisualization(render, render_fps);
+                terrain->EnableRuntimeVisualization(render, ChVector<>(terrain_length / 2, 0, 2), render_fps);
                 if (add_obstacles) {
                     terrain->AddRigidObstacle(CreateObstacle(ChVector<>(1, 1, 0.5)));
                     terrain->AddRigidObstacle(CreateObstacle(ChVector<>(-1, -1, 0.5)));
@@ -362,7 +362,7 @@ int main(int argc, char** argv) {
                 terrain->SetStepSize(step_size);
                 terrain->SetNumThreads(nthreads_terrain);
                 terrain->SetOutDir(out_dir, suffix);
-                terrain->EnableRuntimeVisualization(render, render_fps);
+                terrain->EnableRuntimeVisualization(render, ChVector<>(terrain_length / 2, 0, 2), render_fps);
                 if (add_obstacles) {
                     terrain->AddRigidObstacle(CreateObstacle(ChVector<>(1, 1, 0.5)));
                     terrain->AddRigidObstacle(CreateObstacle(ChVector<>(-1, -1, 0.5)));
@@ -388,7 +388,7 @@ int main(int argc, char** argv) {
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
-                terrain->EnableRuntimeVisualization(render, render_fps);
+                terrain->EnableRuntimeVisualization(render, ChVector<>(terrain_length / 2, 0, 2), render_fps);
                 if (add_obstacles) {
                     terrain->AddRigidObstacle(CreateObstacle(ChVector<>(1, 1, 0.5)));
                     terrain->AddRigidObstacle(CreateObstacle(ChVector<>(-1, -1, 0.5)));
@@ -414,7 +414,7 @@ int main(int argc, char** argv) {
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
-                terrain->EnableRuntimeVisualization(render, render_fps);
+                terrain->EnableRuntimeVisualization(render, ChVector<>(terrain_length / 2, 0, 2), render_fps);
                 if (add_obstacles) {
                     terrain->AddRigidObstacle(CreateObstacle(ChVector<>(1, 1, 0.5)));
                     terrain->AddRigidObstacle(CreateObstacle(ChVector<>(-1, -1, 0.5)));

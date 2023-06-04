@@ -85,7 +85,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrain
     virtual void WriteCheckpoint(const std::string& filename) const override;
 
   private:
-    ChSystem* m_system;               ///< containing system
+    ChSystem* m_system;     ///< containing system
     SCMTerrain* m_terrain;  ///< SCM terrain
 #ifdef CHRONO_IRRLICHT
     std::shared_ptr<irrlicht::ChVisualSystemIrrlicht> m_vsys;  ///< Irrlicht run-time visualization
@@ -119,7 +119,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrain
     virtual void GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) override;
 
     virtual void OnOutputData(int frame) override;
-    virtual void Render(double time) override;
+    virtual void Render() override;
 };
 
 /// @} vehicle_cosim_chrono

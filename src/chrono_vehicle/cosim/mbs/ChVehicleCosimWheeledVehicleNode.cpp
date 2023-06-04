@@ -29,6 +29,9 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
+#endif
 
 #include "chrono_vehicle/cosim/mbs/ChVehicleCosimWheeledVehicleNode.h"
 
@@ -132,6 +135,25 @@ void ChVehicleCosimWheeledVehicleNode::InitializeMBS(const std::vector<ChVector<
         auto tire_mass = tire_info[is].x();
         m_spindle_loads.push_back(tire_mass + total_mass / m_num_spindles);
     }
+
+    // Initialize run-time visualization
+#ifdef CHRONO_IRRLICHT
+    if (m_render) {
+        auto vsys_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+        vsys_irr->AttachVehicle(m_vehicle.get());
+        vsys_irr->SetWindowTitle("Wheeled Vehicle Node");
+        vsys_irr->SetWindowSize(1280, 720);
+        vsys_irr->SetChaseCamera(ChVector<>(0, 0, 1.5), 6.0, 0.5);
+        vsys_irr->SetChaseCameraState(utils::ChChaseCamera::Track);
+        vsys_irr->SetChaseCameraPosition(m_cam_pos);
+        vsys_irr->Initialize();
+        vsys_irr->AddLightDirectional();
+        vsys_irr->AddSkyBox();
+        vsys_irr->AddLogo();
+
+        m_vsys = vsys_irr;
+    }
+#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -175,7 +197,7 @@ void ChVehicleCosimWheeledVehicleNode::OnInitializeDBPRig(std::shared_ptr<ChFunc
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimWheeledVehicleNode::PreAdvance() {
+void ChVehicleCosimWheeledVehicleNode::PreAdvance(double step_size) {
     // Synchronize vehicle systems
     double time = m_vehicle->GetChTime();
     DriverInputs driver_inputs;
@@ -188,6 +210,15 @@ void ChVehicleCosimWheeledVehicleNode::PreAdvance() {
         driver_inputs.m_braking = 0;
     }
     m_vehicle->Synchronize(time, driver_inputs, *m_terrain);
+    if (m_render) {
+        m_vsys->Synchronize(time, driver_inputs);
+    }
+}
+
+void ChVehicleCosimWheeledVehicleNode::PostAdvance(double step_size) {
+    m_vehicle->Advance(step_size);
+    if (m_render)
+      m_vsys->Advance(step_size);
 }
 
 void ChVehicleCosimWheeledVehicleNode::ApplySpindleForce(unsigned int i, const TerrainForce& spindle_force) {
@@ -197,6 +228,15 @@ void ChVehicleCosimWheeledVehicleNode::ApplySpindleForce(unsigned int i, const T
 }
 
 // -----------------------------------------------------------------------------
+
+void ChVehicleCosimWheeledVehicleNode::Render() {
+    if (!m_vsys->Run()) {
+        MPI_Abort(MPI_COMM_WORLD, 1);
+    }
+    m_vsys->BeginScene();
+    m_vsys->Render();
+    m_vsys->EndScene();
+}
 
 void ChVehicleCosimWheeledVehicleNode::OnOutputData(int frame) {
     // Append to results output file

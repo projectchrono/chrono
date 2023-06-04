@@ -416,7 +416,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
         m_vsys->SetWindowSize(1280, 720);
         m_vsys->SetRenderMode(opengl::WIREFRAME);
         m_vsys->Initialize();
-        m_vsys->AddCamera(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0));
+        m_vsys->AddCamera(m_cam_pos, ChVector<>(0, 0, 0));
         m_vsys->SetCameraProperties(0.05f);
         m_vsys->SetCameraVertical(CameraVerticalDir::Z);
     }
@@ -511,7 +511,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
 
         // Render (if enabled)
         if (m_render && m_system->GetChTime() > render_time) {
-            Render(m_system->GetChTime());
+            Render();
             render_time += std::max(m_render_step, m_step_size);
         }
 
@@ -731,7 +731,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::OnAdvance(double step_size) {
     }
 }
 
-void ChVehicleCosimTerrainNodeGranularGPU::Render(double time) {
+void ChVehicleCosimTerrainNodeGranularGPU::Render() {
 #ifdef CHRONO_OPENGL
     if (m_vsys->Run()) {
         UpdateVisualizationParticles();

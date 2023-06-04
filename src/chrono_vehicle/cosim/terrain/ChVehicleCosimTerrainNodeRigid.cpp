@@ -303,7 +303,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
         m_vsys->SetWindowSize(1280, 720);
         m_vsys->SetRenderMode(opengl::SOLID);
         m_vsys->Initialize();
-        m_vsys->AddCamera(ChVector<>(0, -2, 1), ChVector<>(0, 0, 0));
+        m_vsys->AddCamera(m_cam_pos, ChVector<>(0, 0, 0));
         m_vsys->SetCameraProperties(0.05f);
         m_vsys->SetCameraVertical(CameraVerticalDir::Z);
     }
@@ -473,7 +473,7 @@ void ChVehicleCosimTerrainNodeRigid::OnAdvance(double step_size) {
     m_system->CalculateContactForces();
 }
 
-void ChVehicleCosimTerrainNodeRigid::Render(double time) {
+void ChVehicleCosimTerrainNodeRigid::Render() {
 #ifdef CHRONO_OPENGL
     if (m_vsys->Run()) {
         m_vsys->Render();

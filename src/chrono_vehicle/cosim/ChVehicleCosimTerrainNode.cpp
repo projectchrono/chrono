@@ -46,20 +46,18 @@ ChVehicleCosimTerrainNode::ChVehicleCosimTerrainNode(double length, double width
       m_dimX(length / 2),
       m_dimY(width / 2),
       m_load_mass(50),
-      m_render(false),
-      m_render_step(0.01),
       m_interface_type(InterfaceType::BODY) {}
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTerrainNode::EnableRuntimeVisualization(bool render, double render_fps) {
-    m_render = render;
-    m_render_step = 1.0 / render_fps;
-}
-
 void ChVehicleCosimTerrainNode::SetDimensions(double length, double width) {
     m_dimX = length;
     m_dimY = width;
+}
+
+void ChVehicleCosimTerrainNode::GetDimensions(double& length, double& width) {
+    length = m_dimX;
+    width = m_dimY;
 }
 
 // -----------------------------------------------------------------------------
@@ -423,7 +421,7 @@ void ChVehicleCosimTerrainNode::Advance(double step_size) {
 
     // Request the derived class to render simulation
     if (m_render && sim_time >= render_time) {
-        Render(sim_time);
+        Render();
         render_time += std::max(m_render_step, step_size);
     }
 }

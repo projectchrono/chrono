@@ -30,6 +30,9 @@
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeSegmented.h"
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
+#endif
 
 #include "chrono_vehicle/cosim/mbs/ChVehicleCosimTrackedVehicleNode.h"
 
@@ -110,6 +113,25 @@ void ChVehicleCosimTrackedVehicleNode::InitializeMBS(const ChVector2<>& terrain_
     // Size vectors of track shoe forces
     m_shoe_forces[0].resize(m_vehicle->GetNumTrackShoes(VehicleSide::LEFT));
     m_shoe_forces[1].resize(m_vehicle->GetNumTrackShoes(VehicleSide::RIGHT));
+
+    // Initialize run-time visualization
+#ifdef CHRONO_IRRLICHT
+    if (m_render) {
+        auto vsys_irr = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
+        vsys_irr->AttachVehicle(m_vehicle.get());
+        vsys_irr->SetWindowTitle("Tracked Vehicle Node");
+        vsys_irr->SetWindowSize(1280, 720);
+        vsys_irr->SetChaseCamera(ChVector<>(10, 0, 1), 6.0, 0.5);
+        vsys_irr->SetChaseCameraState(utils::ChChaseCamera::Track);
+        vsys_irr->SetChaseCameraPosition(m_cam_pos);
+        vsys_irr->Initialize();
+        vsys_irr->AddLightDirectional();
+        vsys_irr->AddSkyBox();
+        vsys_irr->AddLogo();
+
+        m_vsys = vsys_irr;
+    }
+#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -163,7 +185,7 @@ void ChVehicleCosimTrackedVehicleNode::OnInitializeDBPRig(std::shared_ptr<ChFunc
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTrackedVehicleNode::PreAdvance() {
+void ChVehicleCosimTrackedVehicleNode::PreAdvance(double step_size) {
     // Synchronize vehicle systems
     double time = m_vehicle->GetChTime();
     DriverInputs driver_inputs;
@@ -176,6 +198,15 @@ void ChVehicleCosimTrackedVehicleNode::PreAdvance() {
         driver_inputs.m_braking = 0;
     }
     m_vehicle->Synchronize(time, driver_inputs, m_shoe_forces[0], m_shoe_forces[1]);
+    if (m_render) {
+        m_vsys->Synchronize(time, driver_inputs);
+    }
+}
+
+void ChVehicleCosimTrackedVehicleNode::PostAdvance(double step_size) {
+    m_vehicle->Advance(step_size);
+    if (m_render)
+        m_vsys->Advance(step_size);
 }
 
 void ChVehicleCosimTrackedVehicleNode::ApplyTrackShoeForce(int track_id, int shoe_id, const TerrainForce& force) {
@@ -185,6 +216,15 @@ void ChVehicleCosimTrackedVehicleNode::ApplyTrackShoeForce(int track_id, int sho
 }
 
 // -----------------------------------------------------------------------------
+
+void ChVehicleCosimTrackedVehicleNode::Render() {
+    if (!m_vsys->Run()) {
+        MPI_Abort(MPI_COMM_WORLD, 1);
+    }
+    m_vsys->BeginScene();
+    m_vsys->Render();
+    m_vsys->EndScene();
+}
 
 void ChVehicleCosimTrackedVehicleNode::OnOutputData(int frame) {
     // Append to results output file

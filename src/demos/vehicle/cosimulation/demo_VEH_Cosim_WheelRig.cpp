@@ -276,6 +276,9 @@ int main(int argc, char** argv) {
         if (verbose)
             cout << "[Terrain node] rank = " << rank << " running on: " << procname << endl;
 
+        double length;
+        double width;
+
         switch (terrain_type) {
             case ChVehicleCosimTerrainNodeChrono::Type::RIGID: {
 #ifdef CHRONO_MULTICORE
@@ -284,7 +287,8 @@ int main(int argc, char** argv) {
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
-                terrain->EnableRuntimeVisualization(render, render_fps);
+                terrain->GetDimensions(length, width);
+                terrain->EnableRuntimeVisualization(render, ChVector<>(1.2 * length, 1.2 * width, 0.5), render_fps);
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
@@ -299,7 +303,8 @@ int main(int argc, char** argv) {
                 terrain->SetStepSize(step_size);
                 terrain->SetNumThreads(nthreads_terrain);
                 terrain->SetOutDir(out_dir, suffix);
-                terrain->EnableRuntimeVisualization(render, render_fps);
+                terrain->GetDimensions(length, width);
+                terrain->EnableRuntimeVisualization(render, ChVector<>(1.2 * length, 1.2 * width, 0.5), render_fps);
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
@@ -319,7 +324,8 @@ int main(int argc, char** argv) {
                 terrain->SetStepSize(step_size);
                 terrain->SetNumThreads(nthreads_terrain);
                 terrain->SetOutDir(out_dir, suffix);
-                terrain->EnableRuntimeVisualization(render, render_fps);
+                terrain->GetDimensions(length, width);
+                terrain->EnableRuntimeVisualization(render, ChVector<>(1.2 * length, 1.2 * width, 0.5), render_fps);
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
@@ -348,7 +354,8 @@ int main(int argc, char** argv) {
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
-                terrain->EnableRuntimeVisualization(render, render_fps);
+                terrain->GetDimensions(length, width);
+                terrain->EnableRuntimeVisualization(render, ChVector<>(1.2 * length, 1.2 * width, 0.5), render_fps);
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
@@ -376,7 +383,8 @@ int main(int argc, char** argv) {
                 std::string param_filename = GetChronoDataFile("fsi/input_json/demo_tire_rig.json");
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
-                terrain->EnableRuntimeVisualization(render, render_fps);
+                terrain->GetDimensions(length, width);
+                terrain->EnableRuntimeVisualization(render, ChVector<>(1.2 * length, 1.2 * width, 0.5), render_fps);
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
