@@ -28,6 +28,12 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+#endif
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+#endif
 
 #include "chrono_vehicle/cosim/mbs/ChVehicleCosimViperNode.h"
 
@@ -105,6 +111,37 @@ void ChVehicleCosimViperNode::InitializeMBS(const std::vector<ChVector<>>& tire_
     for (int is = 0; is < m_num_spindles; is++) {
         m_spindle_loads.push_back(total_mass / m_num_spindles);
     }
+
+    // Initialize run-time visualization
+    if (m_render) {
+#if defined(CHRONO_VSG)
+        auto vsys_vsg = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+        vsys_vsg->AttachSystem(m_system);
+        vsys_vsg->SetWindowTitle("Viper Rover Node");
+        vsys_vsg->SetWindowSize(ChVector2<int>(1280, 720));
+        vsys_vsg->SetWindowPosition(ChVector2<int>(100, 300));
+        vsys_vsg->AddCamera(m_cam_pos);
+        vsys_vsg->AddGrid(1.0, 1.0, (int)(terrain_size.x() / 1.0), (int)(terrain_size.y() / 1.0), CSYSNORM,
+                          ChColor(0.1f, 0.3f, 0.1f));
+        vsys_vsg->Initialize();
+
+        m_vsys = vsys_vsg;
+#elif defined(CHRONO_IRRLICHT)
+        auto vsys_irr = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
+        vsys_irr->AttachSystem(m_system);
+        vsys_irr->SetWindowTitle("Viper Rover Node");
+        vsys_irr->SetCameraVertical(CameraVerticalDir::Z);
+        vsys_irr->SetWindowSize(1280, 720);
+        vsys_irr->Initialize();
+        vsys_irr->AddLogo();
+        vsys_irr->AddSkyBox();
+        vsys_irr->AddCamera(m_cam_pos);
+        vsys_irr->AddTypicalLights();
+
+        m_vsys = vsys_irr;
+
+#endif
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -155,6 +192,16 @@ void ChVehicleCosimViperNode::ApplySpindleForce(unsigned int i, const TerrainFor
 }
 
 // -----------------------------------------------------------------------------
+
+void ChVehicleCosimViperNode::Render() {
+    if (!m_vsys)
+        return;
+    if (!m_vsys->Run())
+        MPI_Abort(MPI_COMM_WORLD, 1);
+    m_vsys->BeginScene();
+    m_vsys->Render();
+    m_vsys->EndScene();
+}
 
 void ChVehicleCosimViperNode::OnOutputData(int frame) {
     // Append to results output file

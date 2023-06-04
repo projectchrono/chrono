@@ -282,6 +282,7 @@ int main(int argc, char** argv) {
         viper->SetStepSize(step_size);
         viper->SetNumThreads(1);
         viper->SetOutDir(out_dir, suffix);
+        viper->EnableRuntimeVisualization(render, ChVector<>(terrain_length / 2, 0, 2), render_fps);
         if (verbose)
             cout << "[Viper node  ] output directory: " << viper->GetOutDirName() << endl;
 

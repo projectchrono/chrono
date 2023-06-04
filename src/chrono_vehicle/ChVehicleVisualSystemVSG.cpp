@@ -294,9 +294,6 @@ void ChVehicleVisualSystemVSG::Initialize() {
     // Invoke the base Initialize method
     ChVisualSystemVSG::Initialize();
 
-    // Initialize chase-cam mode
-    SetChaseCameraState(utils::ChChaseCamera::State::Chase);
-
     if (!m_vehicle || !m_vehicle->GetPowertrainAssembly())
         return;
 

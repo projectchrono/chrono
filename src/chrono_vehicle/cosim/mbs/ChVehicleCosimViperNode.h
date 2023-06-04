@@ -22,6 +22,7 @@
 #ifndef CH_VEHCOSIM_VIPER_NODE_H
 #define CH_VEHCOSIM_VIPER_NODE_H
 
+#include "chrono/assets/ChVisualSystem.h"
 #include "chrono_models/robot/viper/Viper.h"
 #include "chrono_vehicle/cosim/ChVehicleCosimWheeledMBSNode.h"
 
@@ -88,9 +89,12 @@ class CH_VEHICLE_API ChVehicleCosimViperNode : public ChVehicleCosimWheeledMBSNo
 
     void WriteBodyInformation(utils::CSV_writer& csv);
 
+    virtual void Render() override;
+
   private:
     std::shared_ptr<viper::Viper> m_viper;         ///< Viper rover;
     std::shared_ptr<viper::ViperDriver> m_driver;  ///< Viper driver
+    std::shared_ptr<ChVisualSystem> m_vsys;        ///< run-time visualization system
 
     ChVector<> m_init_loc;  ///< initial rover location (relative to center of terrain top surface)
     double m_init_yaw;      ///< initial rover yaw

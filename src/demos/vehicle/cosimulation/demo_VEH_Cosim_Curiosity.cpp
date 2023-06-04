@@ -284,6 +284,7 @@ int main(int argc, char** argv) {
         curiosity->SetStepSize(step_size);
         curiosity->SetNumThreads(1);
         curiosity->SetOutDir(out_dir, suffix);
+        curiosity->EnableRuntimeVisualization(render, ChVector<>(terrain_length / 2, 0, 2), render_fps);
         if (verbose)
             cout << "[Curiosity node] output directory: " << curiosity->GetOutDirName() << endl;
 

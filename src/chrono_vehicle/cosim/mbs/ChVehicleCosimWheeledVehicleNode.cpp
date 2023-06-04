@@ -32,6 +32,9 @@
 #ifdef CHRONO_IRRLICHT
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 #endif
+#ifdef CHRONO_VSG
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
+#endif
 
 #include "chrono_vehicle/cosim/mbs/ChVehicleCosimWheeledVehicleNode.h"
 
@@ -137,8 +140,26 @@ void ChVehicleCosimWheeledVehicleNode::InitializeMBS(const std::vector<ChVector<
     }
 
     // Initialize run-time visualization
-#ifdef CHRONO_IRRLICHT
     if (m_render) {
+#if defined(CHRONO_VSG)
+        auto vsys_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
+        vsys_vsg->AttachVehicle(m_vehicle.get());
+        vsys_vsg->SetWindowTitle("Wheeled Vehicle Node");
+        vsys_vsg->SetWindowSize(ChVector2<int>(1280, 720));
+        vsys_vsg->SetWindowPosition(ChVector2<int>(100, 300));
+        vsys_vsg->SetChaseCamera(ChVector<>(0, 0, 1.5), 6.0, 0.5);
+        vsys_vsg->SetChaseCameraState(utils::ChChaseCamera::Track);
+        vsys_vsg->SetChaseCameraPosition(m_cam_pos);
+        vsys_vsg->SetUseSkyBox(true);
+        vsys_vsg->SetCameraAngleDeg(40);
+        vsys_vsg->SetLightIntensity(1.0f);
+        vsys_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+        vsys_vsg->AddGrid(1.0, 1.0, (int)(terrain_size.x() / 1.0), (int)(terrain_size.y() / 1.0), CSYSNORM,
+                          ChColor(0.1f, 0.3f, 0.1f));
+        vsys_vsg->Initialize();
+
+        m_vsys = vsys_vsg;
+#elif defined(CHRONO_IRRLICHT)
         auto vsys_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
         vsys_irr->AttachVehicle(m_vehicle.get());
         vsys_irr->SetWindowTitle("Wheeled Vehicle Node");
@@ -152,8 +173,8 @@ void ChVehicleCosimWheeledVehicleNode::InitializeMBS(const std::vector<ChVector<
         vsys_irr->AddLogo();
 
         m_vsys = vsys_irr;
-    }
 #endif
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -210,14 +231,14 @@ void ChVehicleCosimWheeledVehicleNode::PreAdvance(double step_size) {
         driver_inputs.m_braking = 0;
     }
     m_vehicle->Synchronize(time, driver_inputs, *m_terrain);
-    if (m_render) {
+    if (m_vsys) {
         m_vsys->Synchronize(time, driver_inputs);
     }
 }
 
 void ChVehicleCosimWheeledVehicleNode::PostAdvance(double step_size) {
     m_vehicle->Advance(step_size);
-    if (m_render)
+    if (m_vsys)
       m_vsys->Advance(step_size);
 }
 
@@ -230,9 +251,10 @@ void ChVehicleCosimWheeledVehicleNode::ApplySpindleForce(unsigned int i, const T
 // -----------------------------------------------------------------------------
 
 void ChVehicleCosimWheeledVehicleNode::Render() {
-    if (!m_vsys->Run()) {
+    if (!m_vsys)
+      return;
+    if (!m_vsys->Run())
         MPI_Abort(MPI_COMM_WORLD, 1);
-    }
     m_vsys->BeginScene();
     m_vsys->Render();
     m_vsys->EndScene();

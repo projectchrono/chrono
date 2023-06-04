@@ -22,6 +22,7 @@
 #ifndef CH_VEHCOSIM_CURIOSITY_NODE_H
 #define CH_VEHCOSIM_CURIOSITY_NODE_H
 
+#include "chrono/assets/ChVisualSystem.h"
 #include "chrono_models/robot/curiosity/Curiosity.h"
 #include "chrono_vehicle/cosim/ChVehicleCosimWheeledMBSNode.h"
 
@@ -88,9 +89,12 @@ class CH_VEHICLE_API ChVehicleCosimCuriosityNode : public ChVehicleCosimWheeledM
 
     void WriteBodyInformation(utils::CSV_writer& csv);
 
+    virtual void Render() override;
+
   private:
     std::shared_ptr<curiosity::Curiosity> m_curiosity;     ///< Curiosity rover;
     std::shared_ptr<curiosity::CuriosityDriver> m_driver;  ///< Curiosity driver
+    std::shared_ptr<ChVisualSystem> m_vsys;                ///< run-time visualization system
 
     ChVector<> m_init_loc;  ///< initial rover location (relative to center of terrain top surface)
     double m_init_yaw;      ///< initial rover yaw
