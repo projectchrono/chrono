@@ -733,20 +733,24 @@ void ChVehicleCosimTerrainNodeGranularGPU::OnAdvance(double step_size) {
 
 void ChVehicleCosimTerrainNodeGranularGPU::Render() {
 #ifdef CHRONO_OPENGL
-    if (m_vsys->Run()) {
-        UpdateVisualizationParticles();
+    if (!m_vsys)
+        return;
+    if (!m_vsys->Run())
+        MPI_Abort(MPI_COMM_WORLD, 1);
+
+    UpdateVisualizationParticles();
+
+    if (m_track) {
         if (!m_proxies.empty()) {
             const auto& proxies = m_proxies[0];  // proxies for first object
             if (!proxies.empty()) {
                 ChVector<> cam_point = proxies[0].m_body->GetPos();
-                ChVector<> cam_loc = cam_point + ChVector<>(0, -3, 0.6);
-                m_vsys->UpdateCamera(cam_loc, cam_point);
+                m_vsys->UpdateCamera(m_cam_pos, cam_point);
             }
         }
-        m_vsys->Render();
-    } else {
-        MPI_Abort(MPI_COMM_WORLD, 1);
     }
+
+    m_vsys->Render();
 #endif
 }
 

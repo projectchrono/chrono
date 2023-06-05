@@ -309,8 +309,8 @@ int main(int argc, char** argv) {
         terrain->SetVerbose(verbose);
         terrain->SetStepSize(step_size);
         terrain->SetOutDir(out_dir, suffix);
-        terrain->EnableRuntimeVisualization(render, ChVector<>(5, 2, 1), render_fps);
-
+        terrain->EnableRuntimeVisualization(render, render_fps);
+        terrain->SetCameraPosition(ChVector<>(5, 2, 1));
         node = terrain;
     }
 

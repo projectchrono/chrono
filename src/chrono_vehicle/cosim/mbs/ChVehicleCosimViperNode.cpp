@@ -120,7 +120,7 @@ void ChVehicleCosimViperNode::InitializeMBS(const std::vector<ChVector<>>& tire_
         vsys_vsg->SetWindowTitle("Viper Rover Node");
         vsys_vsg->SetWindowSize(ChVector2<int>(1280, 720));
         vsys_vsg->SetWindowPosition(ChVector2<int>(100, 300));
-        vsys_vsg->AddCamera(m_cam_pos);
+        vsys_vsg->AddCamera(m_cam_pos, m_cam_target);
         vsys_vsg->AddGrid(1.0, 1.0, (int)(terrain_size.x() / 1.0), (int)(terrain_size.y() / 1.0), CSYSNORM,
                           ChColor(0.1f, 0.3f, 0.1f));
         vsys_vsg->Initialize();
@@ -135,7 +135,7 @@ void ChVehicleCosimViperNode::InitializeMBS(const std::vector<ChVector<>>& tire_
         vsys_irr->Initialize();
         vsys_irr->AddLogo();
         vsys_irr->AddSkyBox();
-        vsys_irr->AddCamera(m_cam_pos);
+        vsys_irr->AddCamera(m_cam_pos, m_cam_target);
         vsys_irr->AddTypicalLights();
 
         m_vsys = vsys_irr;
@@ -198,6 +198,11 @@ void ChVehicleCosimViperNode::Render() {
         return;
     if (!m_vsys->Run())
         MPI_Abort(MPI_COMM_WORLD, 1);
+
+    if (m_track) {
+        m_vsys->UpdateCamera(m_cam_pos, m_viper->GetChassisPos());
+    }
+
     m_vsys->BeginScene();
     m_vsys->Render();
     m_vsys->EndScene();

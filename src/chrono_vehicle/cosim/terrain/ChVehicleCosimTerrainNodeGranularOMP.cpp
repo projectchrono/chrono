@@ -1019,11 +1019,20 @@ void ChVehicleCosimTerrainNodeGranularOMP::OnAdvance(double step_size) {
 
 void ChVehicleCosimTerrainNodeGranularOMP::Render() {
 #ifdef CHRONO_OPENGL
-    if (m_vsys->Run()) {
-        m_vsys->Render();
-    } else {
+    if (!m_vsys)
+        return;
+    if (!m_vsys->Run())
         MPI_Abort(MPI_COMM_WORLD, 1);
+
+    if (m_track) {
+        const auto& proxies = m_proxies[0];  // proxies for first object
+        ChVector<> cam_point = proxies[0].m_body->GetPos();
+        m_vsys->UpdateCamera(m_cam_pos, cam_point);
     }
+
+    m_vsys->BeginScene();
+    m_vsys->Render();
+    m_vsys->EndScene();
 #endif
 }
 

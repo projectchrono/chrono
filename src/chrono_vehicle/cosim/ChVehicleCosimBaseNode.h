@@ -147,7 +147,13 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     /// Enable/disable run-time visualization (default: false).
     /// If enabled, rendering is done with the specified frequency.
     /// Note that a concrete node may not support run-time visualization or may not render all physics elements.
-    void EnableRuntimeVisualization(bool render, const ChVector<>& cam_pos = VNULL, double render_fps = 100);
+    void EnableRuntimeVisualization(bool render, double render_fps = 100);
+
+    /// Set camera location and target point.
+    void SetCameraPosition(const ChVector<>& cam_pos, const ChVector<>& cam_target = VNULL);
+
+    /// Enable/disable tracking of objects (default: true).
+    void SetCameraTracking(bool track) { m_track = track; }
 
     /// Get the output directory name for this node.
     const std::string& GetOutDirName() const { return m_node_out_dir; }
@@ -228,9 +234,11 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     std::string m_node_out_dir;  ///< node-specific output directory
     std::ofstream m_outf;        ///< output file stream
 
-    bool m_render;         ///< if true, perform run-time rendering
-    double m_render_step;  ///< time step between rendered frames
-    ChVector<> m_cam_pos;  ///< camera location
+    bool m_render;            ///< if true, perform run-time rendering
+    double m_render_step;     ///< time step between rendered frames
+    bool m_track;             ///< track objects
+    ChVector<> m_cam_pos;     ///< camera location
+    ChVector<> m_cam_target;  ///< camera target (lookat) point
 
     unsigned int m_num_wheeled_mbs_nodes;
     unsigned int m_num_tracked_mbs_nodes;

@@ -25,12 +25,9 @@
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono_fsi/ChSystemFsi.h"
+#include "chrono_fsi/visualization/ChFsiVisualization.h"
 
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeChrono.h"
-
-#ifdef CHRONO_OPENGL
-    #include "chrono_opengl/ChVisualSystemOpenGL.h"
-#endif
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
@@ -75,12 +72,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
     virtual void OutputVisualizationData(int frame) override final;
 
   private:
-    ChSystemSMC* m_system;          ///< containing system
-    fsi::ChSystemFsi* m_systemFSI;  ///< containing FSI system
-
-#ifdef CHRONO_OPENGL
-    opengl::ChVisualSystemOpenGL* m_vsys;  ///< OpenGL visualization system
-#endif
+    ChSystemSMC* m_system;                            ///< containing system
+    fsi::ChSystemFsi* m_systemFSI;                    ///< containing FSI system
+    std::shared_ptr<fsi::ChFsiVisualization> m_vsys;  ///< run-time visualization system
 
     double m_depth;  ///< SPH soil depth
 

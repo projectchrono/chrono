@@ -365,13 +365,14 @@ void ChVehicleCosimTerrainNodeSCM::GetForceRigidProxy(unsigned int i, TerrainFor
 void ChVehicleCosimTerrainNodeSCM::Render() {
     if (!m_vsys)
         return;
-
-    const auto& proxies = m_proxies[0];  // proxies for first object
-    ChVector<> cam_point = proxies[0].m_body->GetPos();
-    m_vsys->UpdateCamera(m_cam_pos, cam_point);
-
     if (!m_vsys->Run())
         MPI_Abort(MPI_COMM_WORLD, 1);
+
+    if (m_track) {
+        const auto& proxies = m_proxies[0];  // proxies for first object
+        ChVector<> cam_point = proxies[0].m_body->GetPos();
+        m_vsys->UpdateCamera(m_cam_pos, cam_point);
+    }
  
     m_vsys->BeginScene();
     m_vsys->Render();

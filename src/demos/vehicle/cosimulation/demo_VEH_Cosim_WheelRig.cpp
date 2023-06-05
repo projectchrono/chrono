@@ -288,7 +288,8 @@ int main(int argc, char** argv) {
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
                 terrain->GetDimensions(length, width);
-                terrain->EnableRuntimeVisualization(render, ChVector<>(1.2 * length, 1.2 * width, 0.5), render_fps);
+                terrain->EnableRuntimeVisualization(render, render_fps);
+                terrain->SetCameraPosition(ChVector<>(1.2 * length, 1.2 * width, 0.5));
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
@@ -304,7 +305,8 @@ int main(int argc, char** argv) {
                 terrain->SetNumThreads(nthreads_terrain);
                 terrain->SetOutDir(out_dir, suffix);
                 terrain->GetDimensions(length, width);
-                terrain->EnableRuntimeVisualization(render, ChVector<>(1.2 * length, 1.2 * width, 0.5), render_fps);
+                terrain->EnableRuntimeVisualization(render, render_fps);
+                terrain->SetCameraPosition(ChVector<>(1.2 * length, 1.2 * width, 0.5));
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
@@ -325,7 +327,8 @@ int main(int argc, char** argv) {
                 terrain->SetNumThreads(nthreads_terrain);
                 terrain->SetOutDir(out_dir, suffix);
                 terrain->GetDimensions(length, width);
-                terrain->EnableRuntimeVisualization(render, ChVector<>(1.2 * length, 1.2 * width, 0.5), render_fps);
+                terrain->EnableRuntimeVisualization(render, render_fps);
+                terrain->SetCameraPosition(ChVector<>(1.2 * length, 1.2 * width, 0.5));
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
@@ -355,7 +358,8 @@ int main(int argc, char** argv) {
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
                 terrain->GetDimensions(length, width);
-                terrain->EnableRuntimeVisualization(render, ChVector<>(1.2 * length, 1.2 * width, 0.5), render_fps);
+                terrain->EnableRuntimeVisualization(render, render_fps);
+                terrain->SetCameraPosition(ChVector<>(1.2 * length, 1.2 * width, 0.5));
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
@@ -384,7 +388,8 @@ int main(int argc, char** argv) {
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
                 terrain->GetDimensions(length, width);
-                terrain->EnableRuntimeVisualization(render, ChVector<>(1.2 * length, 1.2 * width, 0.5), render_fps);
+                terrain->EnableRuntimeVisualization(render, render_fps);
+                terrain->SetCameraPosition(ChVector<>(1.2 * length, 1.2 * width, 0.5));
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
