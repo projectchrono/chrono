@@ -535,7 +535,7 @@ class  ChArchiveInXML : public ChArchiveIn {
 					    }
 
                         void* referred_ptr = ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), internal_id_ptr[ref_ID]);
-                    bVal.value().SetRawPtr(referred_ptr ? referred_ptr : internal_id_ptr[ref_ID]);
+                        bVal.value().SetRawPtr(referred_ptr ? referred_ptr : internal_id_ptr[ref_ID]);
                     }
 					else if (ext_ID) {
 						if (this->external_id_ptr.find(ext_ID) == this->external_id_ptr.end()) {
