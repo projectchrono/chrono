@@ -231,9 +231,8 @@ void ChVehicleCosimWheeledVehicleNode::PreAdvance(double step_size) {
         driver_inputs.m_braking = 0;
     }
     m_vehicle->Synchronize(time, driver_inputs, *m_terrain);
-    if (m_vsys) {
+    if (m_vsys)
         m_vsys->Synchronize(time, driver_inputs);
-    }
 }
 
 void ChVehicleCosimWheeledVehicleNode::PostAdvance(double step_size) {
