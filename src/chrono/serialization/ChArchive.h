@@ -30,7 +30,13 @@
 
 namespace chrono {
 
-    
+/// \brief Type-erase pointer-to-object after making sure that it is pointing to the proper address
+/// Casting to void* through a static_cast leads to different results:
+/// - if the object is *not* polymorphic the result is just the type-erasure;
+/// - if the object *is* polymorphic, and the pointer is not of the most derived class,
+///   the resulting address (if the derived class has multiple inheritance) might not point to the original object address
+/// In this latter case, a dynamic_cast is required. However, the dynamic_cast is not possible for non-polymorphic classes,
+/// thus the need for a compile-time switch.
 template <typename T, typename std::enable_if<!std::is_polymorphic<T>::value>::type* = nullptr>
 void* getVoidPointer(T* ptr) {
     return static_cast<void*>(ptr);

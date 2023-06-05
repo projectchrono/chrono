@@ -389,9 +389,15 @@ namespace class_factory {                                                       
 }  
 
 
-/// <summary>
-/// ChCastingMap
-/// </summary>
+/// \class ChCastingMap
+/// \brief Stores type-casting functions between different type pairs, allowing to pick them at runtime from std::type_index or classname
+/// Converting pointers between different classes is usually possible by standard type casting, given that the source and destination class types are known *at compile time*.
+/// This class allows to typecast between class types that are known *only at runtime*.
+/// The requirement is that the typecasting function has to be prepared in advance (i.e. *at compile time*), when the types are still known.
+/// For each potential conversion an instance of ChCastingMap has to be declared, together with its typecasting function.
+/// This procedure is simplified by the macros #CH_CASTING_PARENT(FROM, TO) and #CH_CASTING_PARENT_SANITIZED(FROM, TO, UNIQUETAG)
+/// When the conversion should take place the following can be called:
+/// `ConversionMap::convert(std::string("source_classname"), std::string("destination_classname"), <void* to object>)`
 class ChApi ChCastingMap {
     using to_map_type = std::unordered_map<std::string, std::function<void*(void*)>>;
     using from_map_type = std::unordered_map<std::string, to_map_type>;
@@ -413,8 +419,8 @@ private:
     static ti_map_type& getTypeIndexMap();
 };
 
-/// SAFE POINTER UP-CASTING MACRO
-/// A pointer of a parent class can be safely used to point to a class of a derived class;
+/// \brief Initialization of pointer up-casting functions
+/// A pointer of a parent-class type can safely points to an object of derived class;
 /// however, if the derived class has multiple parents it might happen that the pointer of the base class and of the derived class have different values:
 /// Derived d;
 /// Derived* d_ptr = &d;
@@ -422,29 +428,40 @@ private:
 /// Usually d_ptr == b_ptr, but if Derived is defined with multiple inheritance, then d_ptr != b_ptr
 /// This is usually not a problem, since the conversion between pointers of different types is usually done automatically;
 /// However during serialization the type-erasure impedes this automatic conversion. This can have distruptive consequences:
-/// Suppose that:
-/// - an object of type Derived is created, a pointer to such object is type-erased to void* and stored in a common container;
-/// - another object might contain a pointer that needs to be bound to the object above; however, assigning the type-erased pointer will not trigger any automatic conversion, thus leading to wrong errors;
-/// the following macro allows the creation of an auxiliary class that can take care of this conversion manually.
+/// Suppose that (as during serialization):
+/// - an object of type Derived is created: `Derived d;`
+/// - a pointer to such object is type-erased to void* (e.g. to be stored in a common container): `void* v_ptr = getVoidPointer<Derived>(&d);`
+/// - another object might contain a pointer *of upper class type* (e.g. `Base* b_ptr`) that needs to be bound to the object above;
+/// - however, assigning the type-erased pointer (e.g. `b_ptr = v_ptr) will not trigger any automatic conversion, thus leading to wrong results;
+/// The following macro allows the creation of an auxiliary class that can take care of this conversion manually.
 /// This macro should be used in any class with inheritance, in this way:
-/// CH_CASTING_PARENT(DerivedType, BaseType)
+///     `CH_CASTING_PARENT(DerivedType, BaseType)`
 /// or, in case of template parent classes
-/// CH_CASTING_PARENT_SANITIZED(DerivedType, BaseType<6>, DerivedType_BaseType_6)
+///     `CH_CASTING_PARENT_SANITIZED(DerivedType, BaseType<6>, DerivedType_BaseType_6)`
 /// and repeated for each base class, e.g.
-/// CH_CASTING_PARENT(DerivedType, BaseType1)
-/// CH_CASTING_PARENT(DerivedType, BaseType2)
-/// Whenever a conversion is needed, it suffices to call ConversionMap::convert(std::string(<classname of the original object>), std::string(<classname of the destination pointer>), <void* to object>)
-/// e.g. CH_CASTING_PARENT(ChBody, ChBodyFrame)
-///      CH_CASTING_PARENT(ChBody, ChPhysicsItem)
-///      CH_CASTING_PARENT(ChBody, etc....)
-/// then, assuming that previously:
-///   ChBody b;
-///   void* vptr = getVoidPointer<ChBody>(&b);
+///     `CH_CASTING_PARENT(DerivedType, BaseType1)`
+///     `CH_CASTING_PARENT(DerivedType, BaseType2)`
+/// Whenever a conversion is needed, it suffices to call `ConversionMap::convert(std::string("source_classname"), std::string("destination_classname"), <void* to object>)`
+/// or `ConversionMap::convert(std::type_index(typeid(SourceClassType)), std::type_index(typeid(DestinationClassType)), <void* to object>)`
+/// e.g.
+/// \code{.cpp}
+/// CH_CASTING_PARENT(ChBody, ChBodyFrame)
+/// CH_CASTING_PARENT(ChBody, ChPhysicsItem)
+/// CH_CASTING_PARENT(ChBody, etc....)
+/// \endcode
+/// then, assuming that:
+/// \code{.cpp}
+/// ChBody b;
+/// void* vptr = getVoidPointer<ChBody>(&b);
+/// \endcode
 /// then
-///   void* bf_ptr ConversionMap::convert("ChBody", "ChBodyFrame", vptr);
-///   ChBodyFrame* bframe_ptr = bf_ptr; // CORRECT
+/// \code{.cpp}
+/// void* bf_ptr ConversionMap::convert("ChBody", "ChBodyFrame", vptr);
+/// ChBodyFrame* bframe_ptr = bf_ptr; // CORRECT
+/// \endcode
 /// in fact, this would have been wrong:
-///   ChBodyFrame* bframe_ptr = vptr; // WRONG
+///     `ChBodyFrame* bframe_ptr = vptr; // WRONG`
+/// Refer to \ref ConversionMap for further details.
 #define CH_CASTING_PARENT(FROM, TO) \
 namespace class_factory {                                                       \
     ChCastingMap convfun_from_##FROM##_##TO(std::string(#FROM), std::type_index(typeid(FROM*)), std::string(#TO), std::type_index(typeid(TO*)), [](void* vptr) { return static_cast<void*>(static_cast<TO*>(static_cast<FROM*>(vptr))); });\
