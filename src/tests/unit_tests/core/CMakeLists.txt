@@ -2,6 +2,7 @@ SET(LIBRARIES ChronoEngine)
 INCLUDE_DIRECTORIES( ${CH_INCLUDES} )
 
 SET(TESTS
+    utest_CH_archive
     utest_CH_ChVector
     utest_CH_ChQuaternion
     utest_CH_ChState
