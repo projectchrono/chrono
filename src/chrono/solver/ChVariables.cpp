@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-//CH_FACTORY_REGISTER(ChVariables)
+//CH_FACTORY_REGISTER(ChVariables) \\ ABSTRACT: cannot be instantiated
 
 ChVariables::ChVariables() : disabled(false), ndof(0), offset(0) {}
 
@@ -43,6 +43,24 @@ ChVariables& ChVariables::operator=(const ChVariables& other) {
     return *this;
 }
 
+
+void ChVariables::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChVariables>();
+    // serialize all member data:
+    marchive << CHNVP(ndof);
+    marchive << CHNVP(disabled);
+    marchive << CHNVP(offset); // TODO: check_if_serialize_needed
+}
+
+void ChVariables::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    /*int version =*/ marchive.VersionRead<ChVariables>();
+    // stream in all member data:
+    marchive >> CHNVP(ndof);
+    marchive >> CHNVP(disabled);
+    marchive >> CHNVP(offset); // TODO: check_if_serialize_needed
+}
 
 
 }  // end namespace chrono

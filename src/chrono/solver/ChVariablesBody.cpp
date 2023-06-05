@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-//CH_FACTORY_REGISTER(ChVariablesBody)
+//CH_FACTORY_REGISTER(ChVariablesBody) \\ ABSTRACT: cannot be instantiated
 
 ChVariablesBody& ChVariablesBody::operator=(const ChVariablesBody& other) {
     if (&other == this)

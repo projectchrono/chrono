@@ -124,8 +124,8 @@ class ChApi ChVariables {
     /// Get offset in global q vector
     int GetOffset() const { return offset; }
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) {}
-    virtual void ArchiveIN(ChArchiveIn& marchive) {}
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
 }  // end namespace chrono

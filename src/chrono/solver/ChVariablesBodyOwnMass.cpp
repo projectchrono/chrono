@@ -147,7 +147,7 @@ void ChVariablesBodyOwnMass::ArchiveOUT(ChArchiveOut& marchive) {
     ChVariablesBody::ArchiveOUT(marchive);
     // serialize all member data:
     marchive << CHNVP(mass);
-    ////marchive << CHNVP(inertia);
+    marchive << CHNVP(inertia);
 }
 
 void ChVariablesBodyOwnMass::ArchiveIN(ChArchiveIn& marchive) {
@@ -157,9 +157,9 @@ void ChVariablesBodyOwnMass::ArchiveIN(ChArchiveIn& marchive) {
     ChVariablesBody::ArchiveIN(marchive);
     // stream in all member data:
     marchive >> CHNVP(mass);
-    ////marchive >> CHNVP(inertia);
+    marchive >> CHNVP(inertia);
     SetBodyMass(mass);
-    ////SetBodyInertia(inertia);
+    SetBodyInertia(inertia);
 }
 
 }  // end namespace chrono
