@@ -19,6 +19,8 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChShaft)
+CH_CASTING_PARENT(ChShaft, ChPhysicsItem)
+CH_CASTING_PARENT(ChShaft, ChLoadable)
 
 ChShaft::ChShaft()
     : torque(0),

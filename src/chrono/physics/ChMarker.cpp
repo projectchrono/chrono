@@ -23,6 +23,8 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChMarker)
+CH_CASTING_PARENT(ChMarker, ChObj)
+CH_CASTING_PARENT_SANITIZED(ChMarker, ChFrameMoving<double>, ChMarker_ChFrameMoving_double)
 
 ChMarker::ChMarker()
     : Body(NULL),
