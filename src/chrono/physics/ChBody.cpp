@@ -34,6 +34,11 @@ using namespace geometry;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChBody)
+CH_CASTING_PARENT(ChBody, ChPhysicsItem)
+CH_CASTING_PARENT(ChBody, ChBodyFrame)
+CH_CASTING_PARENT_SANITIZED(ChBody, ChContactable_1vars<6>, ChBody_ChContactable_1vars_6)
+CH_CASTING_PARENT(ChBody, ChLoadableUVW)
+
 
 ChBody::ChBody(collision::ChCollisionSystemType collision_type) {
     marklist.clear();

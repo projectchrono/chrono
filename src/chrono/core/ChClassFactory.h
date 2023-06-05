@@ -32,6 +32,7 @@
 
 #include <cstdio>
 #include <string>
+#include <functional>
 #include <typeinfo>
 #include <typeindex>
 #include <unordered_map>
@@ -387,6 +388,82 @@ namespace class_factory {                                                       
     static ChClassRegistration< classname > classname ## _factory_registration(#classname); \
 }  
 
+
+
+class ChApi ChCastingMap {
+    using to_map = std::unordered_map<std::string, std::function<void*(void*)>>;
+    using from_map = std::unordered_map<std::string, to_map>;
+public:
+    ChCastingMap(const std::string& from, const std::string& to, std::function<void*(void*)> fun);
+
+    template <typename... Args>
+    ChCastingMap(const std::string& from, const std::string& to, std::function<void*(void*)> fun, Args... more_pairs);
+
+    template <typename... Args>
+    void addElements(const std::string& from, const std::string& to, std::function<void*(void*)> fun, Args... more_pairs);
+
+    void addElements(const std::string& from, const std::string& to, std::function<void*(void*)> fun);
+
+    static void printData();
+
+    static void* convert(const std::string& from, const std::string& to, void* vptr);
+
+private:
+    static from_map& getData();
+};
+
+template <typename... Args>
+ChCastingMap::ChCastingMap(const std::string& from, const std::string& to, std::function<void*(void*)> fun, Args... more_pairs) {
+    addElements(from, to, fun, more_pairs...);
+}
+
+template <typename... Args>
+void ChCastingMap::addElements(const std::string& from, const std::string& to, std::function<void*(void*)> fun, Args... more_pairs) {
+    getData()[from][to] = fun;
+    addElements(from, more_pairs...);
+}
+
+/// SAFE POINTER UP-CASTING MACRO
+/// A pointer of a parent class can be safely used to point to a class of a derived class;
+/// however, if the derived class has multiple parents it might happen that the pointer of the base class and of the derived class have different values:
+/// Derived d;
+/// Derived* d_ptr = &d;
+/// Base*    b_ptr = &d;
+/// Usually d_ptr == b_ptr, but if Derived is defined with multiple inheritance, then d_ptr != b_ptr
+/// This is usually not a problem, since the conversion between pointers of different types is usually done automatically;
+/// However during serialization the type-erasure impedes this automatic conversion. This can have distruptive consequences:
+/// Suppose that:
+/// - an object of type Derived is created, a pointer to such object is type-erased to void* and stored in a common container;
+/// - another object might contain a pointer that needs to be bound to the object above; however, assigning the type-erased pointer will not trigger any automatic conversion, thus leading to wrong errors;
+/// the following macro allows the creation of an auxiliary class that can take care of this conversion manually.
+/// This macro should be used in any class with inheritance, in this way:
+/// CH_CASTING_PARENT(DerivedType, BaseType)
+/// or, in case of template parent classes
+/// CH_CASTING_PARENT_SANITIZED(DerivedType, BaseType<6>, DerivedType_BaseType_6)
+/// and repeated for each base class, e.g.
+/// CH_CASTING_PARENT(DerivedType, BaseType1)
+/// CH_CASTING_PARENT(DerivedType, BaseType2)
+/// Whenever a conversion is needed, it suffices to call ConversionMap::convert(std::string(<classname of the original object>), std::string(<classname of the destination pointer>), <void* to object>)
+/// e.g. CH_CASTING_PARENT(ChBody, ChBodyFrame)
+///      CH_CASTING_PARENT(ChBody, ChPhysicsItem)
+///      CH_CASTING_PARENT(ChBody, etc....)
+/// then, assuming that previously:
+///   ChBody b;
+///   void* vptr = getVoidPointer<ChBody>(&b);
+/// then
+///   void* bf_ptr ConversionMap::convert("ChBody", "ChBodyFrame", vptr);
+///   ChBodyFrame* bframe_ptr = bf_ptr; // CORRECT
+/// in fact, this would have been wrong:
+///   ChBodyFrame* bframe_ptr = vptr; // WRONG
+#define CH_CASTING_PARENT(FROM, TO) \
+namespace class_factory { \
+    ChCastingMap convfun_from_##FROM##_##TO(std::string(#FROM), std::string(#TO), [](void* vptr) { return static_cast<void*>(static_cast<TO*>(static_cast<FROM*>(vptr))); });\
+}
+
+#define CH_CASTING_PARENT_SANITIZED(FROM, TO, UNIQUETAG) \
+namespace class_factory { \
+    ChCastingMap convfun_from_##UNIQUETAG(std::string(#FROM), std::string(#TO), [](void* vptr) { return static_cast<void*>(static_cast<TO*>(static_cast<FROM*>(vptr))); });\
+}
 
 // Class version registration 
 

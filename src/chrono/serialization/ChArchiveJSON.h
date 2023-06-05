@@ -468,9 +468,10 @@ class  ChArchiveInJSON : public ChArchiveIn {
                 // call new(), or deserialize constructor params+call new():
                 bVal.value().CallConstructor(*this, cls_name.c_str());
             
-                if (bVal.value().GetRawPtr()) {
+                void* new_ptr_temp = bVal.value().GetRawPtr();
+                if (new_ptr_temp) {
                     bool already_stored; size_t obj_ID;
-                    PutPointer(bVal.value().GetRawPtr(), already_stored, obj_ID);
+                    PutPointer(new_ptr_temp, already_stored, obj_ID);
                     // 3) Deserialize
                     bVal.value().CallArchiveIn(*this);
                 } else {
@@ -482,13 +483,17 @@ class  ChArchiveInJSON : public ChArchiveIn {
                 if (this->internal_id_ptr.find(ref_ID) == this->internal_id_ptr.end()) {
                     throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the _reference_ID " + std::to_string((int)ref_ID) +" is not a valid number." ));
                 }
-                bVal.value().SetRawPtr(internal_id_ptr[ref_ID]);
+
+                void* referred_ptr = ChCastingMap::convert(cls_name, bVal.value().GetObjectClassname(), internal_id_ptr[ref_ID]);
+                bVal.value().SetRawPtr(referred_ptr ? referred_ptr : internal_id_ptr[ref_ID]);
+                
 
                 if (ext_ID) {
                     if (this->external_id_ptr.find(ext_ID) == this->external_id_ptr.end()) {
                         throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the _external_ID " + std::to_string((int)ext_ID) +" is not valid." ));
                     }
-                    bVal.value().SetRawPtr(external_id_ptr[ext_ID]);
+                    referred_ptr = ChCastingMap::convert(cls_name, bVal.value().GetObjectClassname(), external_id_ptr[ext_ID]);
+                    bVal.value().SetRawPtr(referred_ptr ? referred_ptr : external_id_ptr[ext_ID]);
                 }
             }
             this->levels.pop();
