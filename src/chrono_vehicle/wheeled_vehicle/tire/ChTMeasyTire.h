@@ -81,6 +81,7 @@ class CH_VEHICLE_API ChTMeasyTire : public ChForceElementTire {
                            double pinfl_use = 1.0,     ///< inflation pressure in this configuration
                            double damping_ratio = 0.5  ///< scaling factor for normal damping coefficient
     );
+    
     void GuessPassCar70Par(double loadForce,           ///< tire nominal load force [N]
                            double tireWidth,           ///< tire width [m]
                            double ratio,               ///< use 0.75 meaning 75%
@@ -90,7 +91,7 @@ class CH_VEHICLE_API ChTMeasyTire : public ChForceElementTire {
                            double damping_ratio = 0.5  ///< scaling factor for normal damping coefficient
     );
 
-    /// Set vertical tire stiffness as linear function by coefficient [N/m].
+ /// Set vertical tire stiffness as linear function by coefficient [N/m].
     void SetVerticalStiffness(double Cz) {
         m_d1 = Cz;
         m_d2 = 0;

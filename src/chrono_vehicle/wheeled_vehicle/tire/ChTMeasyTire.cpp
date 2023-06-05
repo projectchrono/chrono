@@ -400,7 +400,6 @@ void ChTMeasyTire::WritePlots(const std::string& plName, const std::string& plTi
     plt.close();
 }
 
-// No Data available? Try this to get a working truck tire
 void ChTMeasyTire::GuessTruck80Par(unsigned int li,       // tire load index
                                    double tireWidth,      // [m]
                                    double ratio,          // [] = use 0.75 meaning 75%
@@ -413,7 +412,7 @@ void ChTMeasyTire::GuessTruck80Par(unsigned int li,       // tire load index
     GuessTruck80Par(tireLoad, tireWidth, ratio, rimDia, pinfl_li, pinfl_use, damping_ratio);
 }
 
-// No Data available? Try this to get a working truck tire
+// truck tire pattern  with ratio = 80%
 void ChTMeasyTire::GuessTruck80Par(double tireLoad,       // tire load force [N]
                                    double tireWidth,      // [m]
                                    double ratio,          // [] = use 0.75 meaning 75%
@@ -442,6 +441,34 @@ void ChTMeasyTire::GuessTruck80Par(double tireLoad,       // tire load force [N]
     m_width = tireWidth;
     m_unloaded_radius = secth + rimDia / 2.0;
     m_par.mu_0 = 0.8;
+    
+    // Normalized Parameters gained from data set containing original data from Pacejka book
+    m_par.dfx0_pn = 17.7764 * m_par.pn;
+    m_par.dfx0_p2n = 14.5301 * 2.0 * m_par.pn;
+    m_par.fxm_pn = 0.89965 * m_par.pn;
+    m_par.fxm_p2n = 0.77751 * 2.0 * m_par.pn;
+    m_par.fxs_pn = 0.46183 * m_par.pn;
+    m_par.fxs_p2n = 0.42349 * 2.0 * m_par.pn;
+    m_par.sxm_pn = 0.10811;
+    m_par.sxm_p2n = 0.12389;
+    m_par.sxs_pn = 0.66667;
+    m_par.sxs_p2n = 0.66667;
+    m_par.dfy0_pn = 7.4013 * m_par.pn;
+    m_par.dfy0_p2n = 6.8505 * 2.0 * m_par.pn;
+    m_par.fym_pn = 0.75876 * m_par.pn;
+    m_par.fym_p2n = 0.72628 * 2.0 * m_par.pn;
+    m_par.fys_pn = 0.68276 * m_par.pn;
+    m_par.fys_p2n = 0.65319 * 2.0 * m_par.pn;
+    m_par.sym_pn = 0.33167;
+    m_par.sym_p2n = 0.33216;
+    m_par.sys_pn = 1.0296;
+    m_par.sys_p2n = 1.0296;
+    m_par.nL0_pn = 0.178;
+    m_par.sq0_pn = 0.36484;
+    m_par.sqe_pn = 1.0296;
+    m_par.nL0_p2n = 0.19;
+    m_par.sq0_p2n = 0.36538;
+    m_par.sqe_p2n = 1.0296;
 }
 
 void ChTMeasyTire::GuessPassCar70Par(unsigned int li,       // tire load index
@@ -456,6 +483,7 @@ void ChTMeasyTire::GuessPassCar70Par(unsigned int li,       // tire load index
     GuessPassCar70Par(tireLoad, tireWidth, ratio, rimDia, pinfl_li, pinfl_use, damping_ratio);
 }
 
+// tire pattern for passenger car with ratio = 70%
 void ChTMeasyTire::GuessPassCar70Par(double tireLoad,       // tire load force [N]
                                      double tireWidth,      // [m]
                                      double ratio,          // [] = use 0.75 meaning 75%
@@ -484,7 +512,36 @@ void ChTMeasyTire::GuessPassCar70Par(double tireLoad,       // tire load force [
     m_par.dz = DZ;
 
     m_rim_radius = 0.5 * rimDia;
+    
+    // Normalized Parameters gained from data set containing original data from Pacejka book
+    m_par.dfx0_pn = 18.3741 * m_par.pn;
+    m_par.dfx0_p2n = 19.4669 * 2.0 * m_par.pn;
+    m_par.fxm_pn = 1.1292 * m_par.pn;
+    m_par.fxm_p2n = 1.0896 * 2.0 * m_par.pn;
+    m_par.fxs_pn = 0.80149 * m_par.pn;
+    m_par.fxs_p2n = 0.76917 * 2.0 * m_par.pn;
+    m_par.sxm_pn = 0.13913;
+    m_par.sxm_p2n = 0.13913;
+    m_par.sxs_pn = 0.66667;
+    m_par.sxs_p2n = 0.66667;
+    m_par.dfy0_pn = 15.9826 * m_par.pn;
+    m_par.dfy0_p2n = 12.8509 * 2.0 * m_par.pn;
+    m_par.fym_pn = 1.0009 * m_par.pn;
+    m_par.fym_p2n = 0.91367 * 2.0 * m_par.pn;
+    m_par.fys_pn = 0.8336 * m_par.pn;
+    m_par.fys_p2n = 0.77336 * 2.0 * m_par.pn;
+    m_par.sym_pn = 0.14852;
+    m_par.sym_p2n = 0.18504;
+    m_par.sys_pn = 0.96524;
+    m_par.sys_p2n = 1.0714;
+    m_par.nL0_pn = 0.178;
+    m_par.sq0_pn = 0.16337;
+    m_par.sqe_pn = 0.96524;
+    m_par.nL0_p2n = 0.19;
+    m_par.sq0_p2n = 0.20355;
+    m_par.sqe_p2n = 1.0714;
 }
+
 
 // Do some rough constency checks
 bool ChTMeasyTire::CheckParameters() {

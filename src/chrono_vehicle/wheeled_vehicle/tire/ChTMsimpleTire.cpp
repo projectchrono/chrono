@@ -426,21 +426,20 @@ void ChTMsimpleTire::GuessTruck80Par(double tireLoad,       // tire load force [
     m_unloaded_radius = secth + rimDia / 2.0;
     m_par.mu_0 = 0.8;
 
-    m_par.dfx0_pn = 17.6866 * m_par.pn;
-    m_par.fxm_pn = 0.88468 * m_par.pn;
-    m_par.fxs_pn = 0.54397 * m_par.pn;
-
-    m_par.dfx0_p2n = 13.8046 * 2.0 * m_par.pn;
-    m_par.fxm_p2n = 0.7479 * 2.0 * m_par.pn;
-    m_par.fxs_p2n = 0.50365 * 2.0 * m_par.pn;
-
-    m_par.dfy0_pn = 5.948 * m_par.pn;
-    m_par.fym_pn = 0.77253 * m_par.pn;
-    m_par.fys_pn = 0.71139 * m_par.pn;
-
-    m_par.dfy0_p2n = 5.506 * 2.0 * m_par.pn;
-    m_par.fym_p2n = 0.73048 * 2.0 * m_par.pn;
-    m_par.fys_p2n = 0.66823 * 2.0 * m_par.pn;
+    // Normalized Parameters gained from data set containing original data from Pacejka book
+    m_par.dfx0_pn = 19.1677 * m_par.pn;
+    m_par.dfx0_p2n = 15.1285 * 2.0 * m_par.pn;
+    m_par.fxm_pn = 0.91432 * m_par.pn;
+    m_par.fxm_p2n = 0.79538 * 2.0 * m_par.pn;
+    m_par.fxs_pn = 0.52273 * m_par.pn;
+    m_par.fxs_p2n = 0.48517 * 2.0 * m_par.pn;
+    
+    m_par.dfy0_pn = 6.8392 * m_par.pn;
+    m_par.dfy0_p2n = 6.4235 * 2.0 * m_par.pn;
+    m_par.fym_pn = 0.75948 * m_par.pn;
+    m_par.fym_p2n = 0.72714 * 2.0 * m_par.pn;
+    m_par.fys_pn = 0.68739 * m_par.pn;
+    m_par.fys_p2n = 0.65594 * 2.0 * m_par.pn;
 
     SetHorizontalCoefficients();
 }
@@ -510,22 +509,20 @@ void ChTMsimpleTire::GuessPassCar70Par(double tireLoad,       // tire load force
 
     m_rim_radius = 0.5 * rimDia;
 
-    m_par.dfx0_pn = (18.6758 + 1) * m_par.pn;
-    m_par.fxm_pn = 1.1205 * m_par.pn;
-    m_par.fxs_pn = 0.8766 * m_par.pn;
-
-    m_par.dfx0_p2n = (20.1757 + 1) * 2.0 * m_par.pn;
-    m_par.fxm_p2n = 1.072 * 2.0 * m_par.pn;
-    m_par.fxs_p2n = 0.8245 * 2.0 * m_par.pn;
-
-    m_par.dfy0_pn = (14.9858 + 1) * m_par.pn;
-    m_par.fym_pn = 1.0084 * m_par.pn;
-    m_par.fys_pn = 0.83941 * m_par.pn;
-
-    m_par.dfy0_p2n = (10.0505 + 1) * 2.0 * m_par.pn;
-    m_par.fym_p2n = 0.90003 * 2.0 * m_par.pn;
-    m_par.fys_p2n = 0.76782 * 2.0 * m_par.pn;
-
+    // TMsimple pattern gained from data from Pacejka book
+    m_par.dfx0_pn = 19.9774 * m_par.pn;
+    m_par.dfx0_p2n = 20.8424 * 2.0 * m_par.pn;
+    m_par.fxm_pn = 1.1404 * m_par.pn;
+    m_par.fxm_p2n = 1.1045 * 2.0 * m_par.pn;
+    m_par.fxs_pn = 0.84482 * m_par.pn;
+    m_par.fxs_p2n = 0.82041 * 2.0 * m_par.pn;
+    m_par.dfy0_pn = 16.7895 * m_par.pn;
+    m_par.dfy0_p2n = 12.9866 * 2.0 * m_par.pn;
+    m_par.fym_pn = 1.0107 * m_par.pn;
+    m_par.fym_p2n = 0.91902 * 2.0 * m_par.pn;
+    m_par.fys_pn = 0.84864 * m_par.pn;
+    m_par.fys_p2n = 0.78702 * 2.0 * m_par.pn;
+    
     SetHorizontalCoefficients();
 }
 
