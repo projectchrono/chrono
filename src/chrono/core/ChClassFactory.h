@@ -389,39 +389,29 @@ namespace class_factory {                                                       
 }  
 
 
-
+/// <summary>
+/// ChCastingMap
+/// </summary>
 class ChApi ChCastingMap {
-    using to_map = std::unordered_map<std::string, std::function<void*(void*)>>;
-    using from_map = std::unordered_map<std::string, to_map>;
+    using to_map_type = std::unordered_map<std::string, std::function<void*(void*)>>;
+    using from_map_type = std::unordered_map<std::string, to_map_type>;
+    using ti_map_type = std::unordered_map<std::type_index, std::string>;
 public:
-    ChCastingMap(const std::string& from, const std::string& to, std::function<void*(void*)> fun);
+    ChCastingMap(const std::string& from, const std::type_index& from_ti, const std::string& to, const std::type_index& to_ti, std::function<void*(void*)> fun);
 
-    template <typename... Args>
-    ChCastingMap(const std::string& from, const std::string& to, std::function<void*(void*)> fun, Args... more_pairs);
+    void AddCastingFunction(const std::string& from, const std::type_index& from_ti, const std::string& to, const std::type_index& to_ti, std::function<void*(void*)> fun);
 
-    template <typename... Args>
-    void addElements(const std::string& from, const std::string& to, std::function<void*(void*)> fun, Args... more_pairs);
+    static void PrintCastingFunctions();
 
-    void addElements(const std::string& from, const std::string& to, std::function<void*(void*)> fun);
-
-    static void printData();
-
-    static void* convert(const std::string& from, const std::string& to, void* vptr);
+    static void* Convert(const std::string& from, const std::string& to, void* vptr);
+    static void* Convert(const std::type_index& from_it, const std::type_index& to_it, void* vptr);
+    static void* Convert(const std::string& from, const std::type_index& to_it, void* vptr);
+    static void* Convert(const std::type_index& from_it, const std::string& to, void* vptr);
 
 private:
-    static from_map& getData();
+    static from_map_type& getCastingMap();
+    static ti_map_type& getTypeIndexMap();
 };
-
-template <typename... Args>
-ChCastingMap::ChCastingMap(const std::string& from, const std::string& to, std::function<void*(void*)> fun, Args... more_pairs) {
-    addElements(from, to, fun, more_pairs...);
-}
-
-template <typename... Args>
-void ChCastingMap::addElements(const std::string& from, const std::string& to, std::function<void*(void*)> fun, Args... more_pairs) {
-    getData()[from][to] = fun;
-    addElements(from, more_pairs...);
-}
 
 /// SAFE POINTER UP-CASTING MACRO
 /// A pointer of a parent class can be safely used to point to a class of a derived class;
@@ -456,13 +446,13 @@ void ChCastingMap::addElements(const std::string& from, const std::string& to, s
 /// in fact, this would have been wrong:
 ///   ChBodyFrame* bframe_ptr = vptr; // WRONG
 #define CH_CASTING_PARENT(FROM, TO) \
-namespace class_factory { \
-    ChCastingMap convfun_from_##FROM##_##TO(std::string(#FROM), std::string(#TO), [](void* vptr) { return static_cast<void*>(static_cast<TO*>(static_cast<FROM*>(vptr))); });\
+namespace class_factory {                                                       \
+    ChCastingMap convfun_from_##FROM##_##TO(std::string(#FROM), std::type_index(typeid(FROM*)), std::string(#TO), std::type_index(typeid(TO*)), [](void* vptr) { return static_cast<void*>(static_cast<TO*>(static_cast<FROM*>(vptr))); });\
 }
 
 #define CH_CASTING_PARENT_SANITIZED(FROM, TO, UNIQUETAG) \
 namespace class_factory { \
-    ChCastingMap convfun_from_##UNIQUETAG(std::string(#FROM), std::string(#TO), [](void* vptr) { return static_cast<void*>(static_cast<TO*>(static_cast<FROM*>(vptr))); });\
+    ChCastingMap convfun_from_##UNIQUETAG(std::string(#FROM), std::type_index(typeid(FROM*)), std::string(#TO), std::type_index(typeid(TO*)), [](void* vptr) { return static_cast<void*>(static_cast<TO*>(static_cast<FROM*>(vptr))); });\
 }
 
 // Class version registration 
