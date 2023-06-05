@@ -23,13 +23,10 @@
 #define CH_VEHCOSIM_TERRAIN_NODE_RIGID_H
 
 #include "chrono/ChConfig.h"
+#include "chrono/assets/ChVisualSystem.h"
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeChrono.h"
-
-#ifdef CHRONO_OPENGL
-    #include "chrono_opengl/ChVisualSystemOpenGL.h"
-#endif
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
@@ -79,13 +76,14 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerra
     /// Output post-processing visualization data.
     virtual void OutputVisualizationData(int frame) override final;
 
-  private:
-    ChSystemMulticore* m_system;  ///< containing system
-    double m_radius_p;            ///< radius for a proxy body
+    /// Initialize this Chrono terrain node.
+    /// Construct the terrain system and the proxy bodies, then finalize the underlying system.
+    virtual void OnInitialize(unsigned int num_objects) override;
 
-#ifdef CHRONO_OPENGL
-    opengl::ChVisualSystemOpenGL* m_vsys;  ///< OpenGL visualization system
-#endif
+  private:
+    ChSystemMulticore* m_system;             ///< containing system
+    double m_radius_p;                       ///< radius for a proxy body
+    std::shared_ptr<ChVisualSystem> m_vsys;  ///< run-time visualization system
 
     virtual bool SupportsMeshInterface() const override { return true; }
 
