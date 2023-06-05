@@ -484,7 +484,7 @@ class  ChArchiveInJSON : public ChArchiveIn {
                     throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the _reference_ID " + std::to_string((int)ref_ID) +" is not a valid number." ));
                 }
 
-                void* referred_ptr = ChCastingMap::convert(cls_name, bVal.value().GetObjectClassname(), internal_id_ptr[ref_ID]);
+                void* referred_ptr = ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), internal_id_ptr[ref_ID]);
                 bVal.value().SetRawPtr(referred_ptr ? referred_ptr : internal_id_ptr[ref_ID]);
                 
 
@@ -492,7 +492,7 @@ class  ChArchiveInJSON : public ChArchiveIn {
                     if (this->external_id_ptr.find(ext_ID) == this->external_id_ptr.end()) {
                         throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the _external_ID " + std::to_string((int)ext_ID) +" is not valid." ));
                     }
-                    referred_ptr = ChCastingMap::convert(cls_name, bVal.value().GetObjectClassname(), external_id_ptr[ext_ID]);
+                    referred_ptr = ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), external_id_ptr[ext_ID]);
                     bVal.value().SetRawPtr(referred_ptr ? referred_ptr : external_id_ptr[ext_ID]);
                 }
             }

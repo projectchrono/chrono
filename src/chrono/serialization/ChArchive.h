@@ -94,25 +94,28 @@ public:
         /// Use this to call member function ArchiveIn. 
     virtual void CallArchiveIn(ChArchiveIn& marchive)=0;
 
-        /// Use this to call 
-        /// - the default constructor, or, 
-        /// - the constructor embedded in an (optional) static member function ArchiveINconstructor, if implemented
-        /// The latter is expected to a) deserialize constructor parameters, b) create a new obj as pt2Object = new myclass(params..).
-        /// If classname not registered, call default constructor via new(T) or call construction via T::ArchiveINconstructor()    
+    /// Use this to call 
+    /// - the default constructor, or, 
+    /// - the constructor embedded in an (optional) static member function ArchiveINconstructor, if implemented
+    /// The latter is expected to a) deserialize constructor parameters, b) create a new obj as pt2Object = new myclass(params..).
+    /// If classname not registered, call default constructor via new(T) or call construction via T::ArchiveINconstructor()    
     virtual void CallConstructor(ChArchiveIn& marchive, const char* classname)=0;
 
-        /// Use this to create a new object as pt2Object = new myclass(), but using the class factory for polymorphic classes.
-        /// If classname not registered, creates simply via new(T).
+    /// Use this to create a new object as pt2Object = new myclass(), but using the class factory for polymorphic classes.
+    /// If classname not registered, creates simply via new(T).
     virtual void CallConstructorDefault(const char* classname) =0;
 
-        /// Set the pointer (use static_cast) 
-    virtual void  SetRawPtr(void* mptr) =0;
+    /// Set the pointer (use static_cast) 
+    virtual void SetRawPtr(void* mptr) =0;
 
-        /// Get the pointer (use static_cast) 
+    /// Get the pointer (use static_cast) 
     virtual void* GetRawPtr() =0;
 
-        /// Tell if the pointed object is polymorphic  
-    virtual bool  IsPolymorphic() = 0;
+    /// Tell if the pointed object is polymorphic  
+    virtual bool IsPolymorphic() = 0;
+
+    /// Get the classname of the object holding the ArchiveIN function
+    virtual std::type_index GetObjectPtrTypeindex() = 0;
 };
 
 template <class TClass> 
@@ -127,23 +130,26 @@ public:
       ChFunctorArchiveInSpecific(TClass* _pt2Object)
          { pt2Object = _pt2Object; };
 
-      virtual void CallArchiveIn(ChArchiveIn& marchive)
+      virtual void CallArchiveIn(ChArchiveIn& marchive) override
         { this->_archive_in(marchive);}
 
-      virtual void CallConstructor(ChArchiveIn& marchive, const char* classname)
+      virtual void CallConstructor(ChArchiveIn& marchive, const char* classname) override
         { throw (ChExceptionArchive( "Cannot call CallConstructor() for a constructed object.")); };
 
-      virtual void CallConstructorDefault(const char* classname) 
+      virtual void CallConstructorDefault(const char* classname) override
         { throw (ChExceptionArchive( "Cannot call CallConstructorDefault() for a constructed object.")); };
 
-      virtual void  SetRawPtr(void* mptr) 
+      virtual void SetRawPtr(void* mptr) override
         { throw (ChExceptionArchive( "Cannot call SetRawPtr() for a constructed object.")); };
 
-      virtual void* GetRawPtr() 
+      virtual void* GetRawPtr() override
         { return getVoidPointer<TClass>(pt2Object); };
 
-      virtual bool IsPolymorphic()   
+      virtual bool IsPolymorphic() override
         { throw (ChExceptionArchive( "Cannot call IsPolymorphic() for a constructed object.")); };
+
+      virtual std::type_index GetObjectPtrTypeindex() override
+        { return std::type_index(typeid(pt2Object)); };
 
 private:
         template <class Tc=TClass>
@@ -163,7 +169,7 @@ template <class TClass>
 class ChFunctorArchiveInSpecificPtr : public ChFunctorArchiveIn
 {
 private:
-      TClass** pt2Object;                    // pointer to object
+      TClass** pt2Object;                    // pointer to pointer to object
 
 public:
 
@@ -171,23 +177,26 @@ public:
       ChFunctorArchiveInSpecificPtr(TClass** _pt2Object)
          { pt2Object = _pt2Object; }
 
-      virtual void CallArchiveIn(ChArchiveIn& marchive)
+      virtual void CallArchiveIn(ChArchiveIn& marchive) override
         { this->_archive_in(marchive);}
 
-      virtual void CallConstructor(ChArchiveIn& marchive, const char* classname) 
+      virtual void CallConstructor(ChArchiveIn& marchive, const char* classname) override
         { this->_constructor(marchive, classname); }
 
-      virtual void CallConstructorDefault(const char* classname)  
+      virtual void CallConstructorDefault(const char* classname) override
         { this->_constructor_default(classname);  }
 
-      virtual void  SetRawPtr(void* mptr) 
+      virtual void  SetRawPtr(void* mptr) override
         { *pt2Object = static_cast<TClass*>(mptr); };
 
-      virtual void* GetRawPtr() 
+      virtual void* GetRawPtr() override
         { return getVoidPointer<TClass>(*pt2Object); };
 
-      virtual bool IsPolymorphic() 
+      virtual bool IsPolymorphic() override
         { return this->_is_polymorphic(); };
+
+      virtual std::type_index GetObjectPtrTypeindex() override
+        { return std::type_index(typeid(*pt2Object)); };
       
 private:
 
