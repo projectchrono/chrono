@@ -168,8 +168,8 @@ void ChShaftsBody::ArchiveOUT(ChArchiveOut& marchive) {
 
     // serialize all member data:
     marchive << CHNVP(shaft_dir);
-    // marchive << CHNVP(shaft);  //***TODO*** serialize, with shared ptr
-    // marchive << CHNVP(body); //***TODO*** serialize, with shared ptr
+    marchive << CHNVP(shaft);  //***TODO*** serialize, with shared ptr
+    marchive << CHNVP(body); //***TODO*** serialize, with shared ptr
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -182,8 +182,9 @@ void ChShaftsBody::ArchiveIN(ChArchiveIn& marchive) {
 
     // deserialize all member data:
     marchive >> CHNVP(shaft_dir);
-    // marchive >> CHNVP(shaft);  //***TODO*** serialize, with shared ptr
-    // marchive >> CHNVP(body); //***TODO*** serialize, with shared ptr
+    marchive >> CHNVP(shaft);  //***TODO*** serialize, with shared ptr
+    marchive >> CHNVP(body); //***TODO*** serialize, with shared ptr
+    constraint.SetVariables(&shaft->Variables(), &body->Variables());
 }
 
 
@@ -345,8 +346,9 @@ void ChShaftsBodyTranslation::ArchiveOUT(ChArchiveOut& marchive) {
     // serialize all member data:
     marchive << CHNVP(shaft_dir);
     marchive << CHNVP(shaft_pos);
-    // marchive << CHNVP(shaft);  //***TODO*** serialize, with shared ptr
-    // marchive << CHNVP(body); //***TODO*** serialize, with shared ptr
+    marchive << CHNVP(shaft);  //***TODO*** serialize, with shared ptr
+    marchive << CHNVP(body); //***TODO*** serialize, with shared ptr
+
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -360,8 +362,10 @@ void ChShaftsBodyTranslation::ArchiveIN(ChArchiveIn& marchive) {
     // deserialize all member data:
     marchive >> CHNVP(shaft_dir);
     marchive >> CHNVP(shaft_pos);
-    // marchive >> CHNVP(shaft);  //***TODO*** serialize, with shared ptr
-    // marchive >> CHNVP(body); //***TODO*** serialize, with shared ptr
+    marchive >> CHNVP(shaft);  //***TODO*** serialize, with shared ptr
+    marchive >> CHNVP(body); //***TODO*** serialize, with shared ptr
+    constraint.SetVariables(&shaft->Variables(), &body->Variables());
+
 }
 
 

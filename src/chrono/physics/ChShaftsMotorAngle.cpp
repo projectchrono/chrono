@@ -178,6 +178,7 @@ void ChShaftsMotorAngle::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(motor_torque);
     marchive >> CHNVP(this->rot_offset);
     marchive >> CHNVP(this->f_rot);
+    constraint.SetVariables(&shaft1->Variables(), &shaft2->Variables());
 }
 
 

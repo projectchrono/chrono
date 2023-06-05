@@ -174,6 +174,7 @@ void ChShaftsGear::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(avoid_phase_drift);
     marchive >> CHNVP(phase1);
     marchive >> CHNVP(phase2);
+    constraint.SetVariables(&shaft1->Variables(), &shaft2->Variables());
 }
 
 }  // end namespace chrono

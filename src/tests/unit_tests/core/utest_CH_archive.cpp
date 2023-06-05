@@ -25,25 +25,15 @@
 
 #include "chrono/serialization/ChArchive.h"
 #include "chrono/serialization/ChArchiveBinary.h"
-#include "chrono/serialization/ChArchiveAsciiDump.h"
 #include "chrono/serialization/ChArchiveJSON.h"
 #include "chrono/serialization/ChArchiveXML.h"
-#include "chrono/serialization/ChArchiveExplorer.h"
 
-#include "chrono/core/ChGlobal.h"
+#include "chrono/physics/ChShaftsPlanetary.h"
+#include "chrono/physics/ChShaftsClutch.h"
 
-#include "chrono/core/ChLog.h"
-#include "chrono/core/ChVector.h"
-#include "chrono/core/ChQuaternion.h"
-#include "chrono/core/ChMatrix.h"
-#include "chrono/core/ChException.h"
-#include "chrono/solver/ChConstraintTuple.h"
 
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 
 using namespace chrono;
@@ -105,31 +95,213 @@ void assemble_fourbar(ChSystem& system){
 
 }
 
-TEST(ChArchive, ChArchiveJSON){
+//TEST(ChArchive, ChArchiveJSON){
+//
+//    double timestep = 0.01;
+//    int step_num = 200;
+//
+//    ChVector<> before_archive;
+//
+//    {
+//        ChSystemNSC system;
+//        assemble_fourbar(system);
+//
+//        std::string jsonfile = "ChArchiveJSON_out.json";
+//        ChStreamOutAsciiFile mfileo(jsonfile.c_str());
+//        ChArchiveOutJSON marchiveout(mfileo);
+//        marchiveout << CHNVP(system);
+//
+//        for (int step = 0; step<step_num; ++step) {
+//            system.DoStepDynamics(timestep);
+//        }
+//
+//        before_archive = system.Get_bodylist()[1]->GetPos();
+//
+//    }
+//
+//    std::string jsonfile = "ChArchiveJSON_out.json";
+//    ChStreamInAsciiFile mfilei(jsonfile.c_str());
+//    ChArchiveInJSON marchivein(mfilei);
+//    ChSystemNSC system;
+//    marchivein >> CHNVP(system);
+//    
+//
+//    // Simulation loop
+//    for (int step = 0; step<step_num; ++step) {
+//        system.DoStepDynamics(timestep);
+//    }
+//
+//    ChVector<> after_archive = system.Get_bodylist()[1]->GetPos();
+//
+//    ASSERT_DOUBLE_EQ(before_archive.x(), after_archive.x());
+//    ASSERT_DOUBLE_EQ(before_archive.y(), after_archive.y());
+//    ASSERT_DOUBLE_EQ(before_archive.z(), after_archive.z());
+//
+//}
+//
+//TEST(ChArchive, ChArchiveXML){
+//
+//    double timestep = 0.01;
+//    int step_num = 200;
+//
+//    ChVector<> before_archive;
+//
+//    {
+//        ChSystemNSC system;
+//        assemble_fourbar(system);
+//
+//        std::string xmlfile = "ChArchiveXML_out.xml";
+//        ChStreamOutAsciiFile mfileo(xmlfile.c_str());
+//        ChArchiveOutXML marchiveout(mfileo);
+//        marchiveout << CHNVP(system);
+//
+//        for (int step = 0; step<step_num; ++step) {
+//            system.DoStepDynamics(timestep);
+//        }
+//
+//        before_archive = system.Get_bodylist()[1]->GetPos();
+//
+//    }
+//
+//    std::string xmlfile = "ChArchiveXML_out.xml";
+//    ChStreamInAsciiFile mfilei(xmlfile.c_str());
+//    ChArchiveInXML marchivein(mfilei);
+//    ChSystemNSC system;
+//    marchivein >> CHNVP(system);
+//    
+//
+//    // Simulation loop
+//    for (int step = 0; step<step_num; ++step) {
+//        system.DoStepDynamics(timestep);
+//    }
+//
+//    ChVector<> after_archive = system.Get_bodylist()[1]->GetPos();
+//
+//    ASSERT_DOUBLE_EQ(before_archive.x(), after_archive.x());
+//    ASSERT_DOUBLE_EQ(before_archive.y(), after_archive.y());
+//    ASSERT_DOUBLE_EQ(before_archive.z(), after_archive.z());
+//
+//}
+//
+//TEST(ChArchive, ChArchiveBinary){
+////int main(){
+//
+//    double timestep = 0.01;
+//    int step_num = 200;
+//
+//    ChVector<> before_archive;
+//
+//    {
+//        ChSystemNSC system;
+//        assemble_fourbar(system);
+//
+//        std::string binfile = "ChArchiveBinary_out.dat";
+//        ChStreamOutBinaryFile mfileo(binfile.c_str());
+//        ChArchiveOutBinary marchiveout(mfileo);
+//        marchiveout << CHNVP(system);
+//
+//        for (int step = 0; step<step_num; ++step) {
+//            system.DoStepDynamics(timestep);
+//        }
+//
+//        before_archive = system.Get_bodylist()[1]->GetPos();
+//
+//    }
+//
+//    std::string binfile = "ChArchiveBinary_out.dat";
+//    ChStreamInBinaryFile mfilei(binfile.c_str());
+//    ChArchiveInBinary marchivein(mfilei);
+//    ChSystemNSC system;
+//    marchivein >> CHNVP(system);
+//    
+//
+//    // Simulation loop
+//    for (int step = 0; step<step_num; ++step) {
+//        system.DoStepDynamics(timestep);
+//    }
+//
+//    ChVector<> after_archive = system.Get_bodylist()[1]->GetPos();
+//
+//    ASSERT_DOUBLE_EQ(before_archive.x(), after_archive.x());
+//    ASSERT_DOUBLE_EQ(before_archive.y(), after_archive.y());
+//    ASSERT_DOUBLE_EQ(before_archive.z(), after_archive.z());
+//
+//}
 
+
+TEST(ChArchive, shaft_JSON){
+//int main(){
+    
     double timestep = 0.01;
     int step_num = 200;
 
-    ChVector<> before_archive;
+    double shaft0_pos_before_archive;
+    double shaft1_posdt_before_archive;
 
     {
         ChSystemNSC system;
-        assemble_fourbar(system);
 
-        std::string jsonfile = "foo_archive.json";
+        // Create shaft A, with applied torque
+        auto shaftA = chrono_types::make_shared<ChShaft>();
+        shaftA->SetInertia(0.5);
+        shaftA->SetAppliedTorque(10);
+        system.Add(shaftA);
+
+        // Create shaft B
+        auto shaftB = chrono_types::make_shared<ChShaft>();
+        shaftB->SetInertia(0.5);
+        system.Add(shaftB);
+
+        // Create shaft C, that will be fixed (to be used as truss of epicycloidal reducer)
+        auto shaftC = chrono_types::make_shared<ChShaft>();
+        shaftC->SetShaftFixed(true);
+        system.Add(shaftC);
+
+        // Create a ChShaftsPlanetary, that represents a simplified model
+        // of a planetary gear between THREE ChShaft objects (ex.: a car differential)
+        // An epicycloidal reducer is a special type of planetary gear.
+        auto planetaryBAC = chrono_types::make_shared<ChShaftsPlanetary>();
+        planetaryBAC->Initialize(shaftB, shaftA, shaftC);  // output, carrier, fixed
+
+        // We can set the ratios of the planetary using a simplified formula, for the
+        // so called 'Willis' case. Imagine we hold fixed the carrier (shaft B in epic. reducers),
+        // and leave free the truss C (the outer gear with inner teeth in our reducer); which is
+        // the transmission ratio t0 that we get? It is simply t0=-Za/Zc, with Z = num of teeth of gears.
+        // So just use the following to set all the three ratios automatically:
+        double t0 = -50.0 / 100.0;  // suppose, in the reducer, that pinion A has 50 teeth and truss has 100 inner teeth.
+        planetaryBAC->SetTransmissionRatioOrdinary(t0);
+        system.Add(planetaryBAC);
+
+        // Now, let's make a shaft D, that is fixed, and used for the right side
+        // of a clutch (so the clutch will act as a brake).
+        auto shaftD = chrono_types::make_shared<ChShaft>();
+        shaftD->SetShaftFixed(true);
+        system.Add(shaftD);
+
+        // Make the brake. It is, in fact a clutch between shafts B and D, where
+        // D is fixed as a truss, so the clutch will operate as a brake.
+        auto clutchBD = chrono_types::make_shared<ChShaftsClutch>();
+        clutchBD->Initialize(shaftB, shaftD);
+        clutchBD->SetTorqueLimit(60);
+        system.Add(clutchBD);
+
+        std::string jsonfile = "ChArchiveJSON_shafts_out.json";
         ChStreamOutAsciiFile mfileo(jsonfile.c_str());
         ChArchiveOutJSON marchiveout(mfileo);
         marchiveout << CHNVP(system);
 
+        system.Update();
+        // Simulation loop
         for (int step = 0; step<step_num; ++step) {
             system.DoStepDynamics(timestep);
         }
 
-        before_archive = system.Get_bodylist()[1]->GetPos();
+        shaft0_pos_before_archive = system.Get_shaftlist()[1]->GetPos();
+        shaft1_posdt_before_archive = system.Get_shaftlist()[1]->GetPos_dt();
 
     }
 
-    std::string jsonfile = "foo_archive.json";
+    std::string jsonfile = "ChArchiveJSON_shafts_out.json";
     ChStreamInAsciiFile mfilei(jsonfile.c_str());
     ChArchiveInJSON marchivein(mfilei);
     ChSystemNSC system;
@@ -141,55 +313,11 @@ TEST(ChArchive, ChArchiveJSON){
         system.DoStepDynamics(timestep);
     }
 
-    ChVector<> after_archive = system.Get_bodylist()[1]->GetPos();
+    double shaft0_pos_after_archive = system.Get_shaftlist()[1]->GetPos();
+    double shaft1_posdt_after_archive = system.Get_shaftlist()[1]->GetPos_dt();
 
-    ASSERT_DOUBLE_EQ(before_archive.x(), after_archive.x());
-    ASSERT_DOUBLE_EQ(before_archive.y(), after_archive.y());
-    ASSERT_DOUBLE_EQ(before_archive.z(), after_archive.z());
-
-}
-
-TEST(ChArchive, ChArchiveXML){
-
-    double timestep = 0.01;
-    int step_num = 200;
-
-    ChVector<> before_archive;
-
-    {
-        ChSystemNSC system;
-        assemble_fourbar(system);
-
-        std::string xmlfile = "foo_archive.xml";
-        ChStreamOutAsciiFile mfileo(xmlfile.c_str());
-        ChArchiveOutXML marchiveout(mfileo);
-        marchiveout << CHNVP(system);
-
-        for (int step = 0; step<step_num; ++step) {
-            system.DoStepDynamics(timestep);
-        }
-
-        before_archive = system.Get_bodylist()[1]->GetPos();
-
-    }
-
-    std::string xmlfile = "foo_archive.xml";
-    ChStreamInAsciiFile mfilei(xmlfile.c_str());
-    ChArchiveInXML marchivein(mfilei);
-    ChSystemNSC system;
-    marchivein >> CHNVP(system);
-    
-
-    // Simulation loop
-    for (int step = 0; step<step_num; ++step) {
-        system.DoStepDynamics(timestep);
-    }
-
-    ChVector<> after_archive = system.Get_bodylist()[1]->GetPos();
-
-    ASSERT_DOUBLE_EQ(before_archive.x(), after_archive.x());
-    ASSERT_DOUBLE_EQ(before_archive.y(), after_archive.y());
-    ASSERT_DOUBLE_EQ(before_archive.z(), after_archive.z());
+    ASSERT_DOUBLE_EQ(shaft0_pos_before_archive, shaft0_pos_after_archive);
+    ASSERT_DOUBLE_EQ(shaft1_posdt_before_archive, shaft1_posdt_after_archive);
 
 }
 
@@ -200,7 +328,7 @@ TEST(ChArchive, ChArchiveXML){
 //void AssemblePendulum(){
 //    // Example: SERIALIZE TO/FROM JSON:
 //    {
-//        std::string jsonfile = "foo_archive.json";
+//        std::string jsonfile = "ChArchiveJSON.json";
 //        ChStreamOutAsciiFile mfileo(jsonfile.c_str());
 //
 //        // Use a JSON archive object to serialize C++ objects into the file

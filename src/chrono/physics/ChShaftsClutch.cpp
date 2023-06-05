@@ -202,6 +202,8 @@ void ChShaftsClutch::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(maxT);
     marchive >> CHNVP(minT);
     marchive >> CHNVP(modulation);
+    constraint.SetVariables(&shaft1->Variables(), &shaft2->Variables());
+
 }
 
 }  // end namespace chrono

@@ -210,9 +210,9 @@ void ChShaftsPlanetary::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(phase1);
     marchive << CHNVP(phase2);
     marchive << CHNVP(phase3);
-    // marchive << CHNVP(shaft1); //***TODO*** serialize with shared ptr
-    // marchive << CHNVP(shaft2); //***TODO*** serialize with shared ptr
-    // marchive << CHNVP(shaft3); //***TODO*** serialize with shared ptr
+    marchive << CHNVP(shaft1); //***TODO*** serialize with shared ptr
+    marchive << CHNVP(shaft2); //***TODO*** serialize with shared ptr
+    marchive << CHNVP(shaft3); //***TODO*** serialize with shared ptr
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -231,9 +231,11 @@ void ChShaftsPlanetary::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(phase1);
     marchive >> CHNVP(phase2);
     marchive >> CHNVP(phase3);
-    // marchive >> CHNVP(shaft1); //***TODO*** serialize with shared ptr
-    // marchive >> CHNVP(shaft2); //***TODO*** serialize with shared ptr
-    // marchive >> CHNVP(shaft3); //***TODO*** serialize with shared ptr
+    marchive >> CHNVP(shaft1); //***TODO*** serialize with shared ptr
+    marchive >> CHNVP(shaft2); //***TODO*** serialize with shared ptr
+    marchive >> CHNVP(shaft3); //***TODO*** serialize with shared ptr
+
+    constraint.SetVariables(&shaft1->Variables(), &shaft2->Variables(), &shaft3->Variables());
 }
 
 }  // end namespace chrono

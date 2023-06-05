@@ -302,6 +302,7 @@ void ChShaftsMotorSpeed::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(f_speed);
     marchive >> CHNVP(rot_offset);
     marchive >> CHNVP(avoid_angle_drift);
+    constraint.SetVariables(&shaft1->Variables(), &shaft2->Variables());
 }
 
 

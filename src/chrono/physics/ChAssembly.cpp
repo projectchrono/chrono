@@ -1506,10 +1506,12 @@ void ChAssembly::ArchiveIN(ChArchiveIn& marchive) {
 
     // stream in all member data:
     std::vector<std::shared_ptr<ChBody>> tempbodies;
+    std::vector<std::shared_ptr<ChShaft>> tempshafts;
     std::vector<std::shared_ptr<ChLinkBase>> templinks;
     std::vector<std::shared_ptr<ChMesh>> tempmeshes;
     std::vector<std::shared_ptr<ChPhysicsItem>> tempitems;
     marchive >> CHNVP(tempbodies, "bodies");
+    marchive >> CHNVP(tempshafts, "shafts");
     marchive >> CHNVP(templinks, "links");
     marchive >> CHNVP(tempmeshes, "meshes");
     marchive >> CHNVP(tempitems, "other_physics_items");
@@ -1517,6 +1519,10 @@ void ChAssembly::ArchiveIN(ChArchiveIn& marchive) {
     RemoveAllBodies();
     for (auto& body : tempbodies) {
         AddBody(body);
+    }
+    RemoveAllShafts();
+    for (auto& shaft : tempshafts) {
+        AddShaft(shaft);
     }
     RemoveAllLinks();
     for (auto& link : templinks) {

@@ -202,6 +202,8 @@ void ChShaftsFreewheel::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(phase);
     marchive >> CHNVP(alpha_max);
     marchive >> CHNVP(free_forward);
+    constraint.SetVariables(&shaft1->Variables(), &shaft2->Variables());
+
 }
 
 }  // end namespace chrono
