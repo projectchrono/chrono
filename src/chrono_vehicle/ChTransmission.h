@@ -59,7 +59,7 @@ class CH_VEHICLE_API ChTransmission : public ChPart {
     bool IsAutomatic() const { return GetType() == Type::AUTOMATIC; }
 
     /// Return true if manual transmission.
-    bool IsManual() const { return GetType() == Type::MANUAL; }    
+    bool IsManual() const { return GetType() == Type::MANUAL; }
 
     /// Return the current transmission gear.
     /// A return value of 0 indicates reverse; a positive value indicates a forward gear.
@@ -83,6 +83,12 @@ class CH_VEHICLE_API ChTransmission : public ChPart {
     /// Return the transmission output speed of the motorshaft.
     /// This represents the output from the transmision subsystem that is passed to the engine subsystem.
     virtual double GetOutputMotorshaftSpeed() const = 0;
+
+    /// Shift up.
+    virtual void ShiftUp() = 0;
+
+    /// Shift down.
+    virtual void ShiftDown() = 0;
 
   protected:
     ChTransmission(const std::string& name = "");
@@ -170,11 +176,9 @@ class CH_VEHICLE_API ChAutomaticTransmission : public ChTransmission {
     /// Get the current transmission shift mode.
     ShiftMode GetShiftMode() const { return m_shift_mode; }
 
-    /// Shift up.
-    void ShiftUp();
+    void ShiftUp() override;
 
-    /// Shift down.
-    void ShiftDown();
+    void ShiftDown() override;
 
   protected:
     ChAutomaticTransmission(const std::string& name);
@@ -195,6 +199,12 @@ class CH_VEHICLE_API ChManualTransmission : public ChTransmission {
 
     /// Return true if a clutch model is included.
     virtual bool HasClutch() const = 0;
+
+    /// Shifts up a gear, including from reverse to neutral to 1st.
+    void ShiftUp() override;
+
+    /// Shifts down a gear, including from 1st to neutral and to reverse.
+    void ShiftDown() override;
 
   protected:
     ChManualTransmission(const std::string& name);

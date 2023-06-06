@@ -166,45 +166,50 @@ bool ChInteractiveDriverIRR::ProcessJoystickEvents(const SEvent& event) {
         }
     }
 
-    // H-shifter code...
-    if (transmission->IsManual() && clutchAxis.axis != ChJoystickAxisIRR::NONE) {
-        // double rawClutchPosition = (double)event.JoystickEvent.Axis[clutchAxis.axis];
-        double clutchPosition = clutchAxis.GetValue(event.JoystickEvent);
-        // Check if the clutch is pressed...
-        if ((clutchAxis.scaled_max - clutchPosition) < 0.1) {
-            SetThrottle(0);
-            bool reverseGearEngaged = gearReverseButton.IsPressed(event.JoystickEvent);
-            int forwardGearEngaged = 0;
-            if (gear1Button.IsPressed(event.JoystickEvent, true))
-                forwardGearEngaged = 1;
-            else if (gear2Button.IsPressed(event.JoystickEvent, true))
-                forwardGearEngaged = 2;
-            else if (gear3Button.IsPressed(event.JoystickEvent, true))
-                forwardGearEngaged = 3;
-            else if (gear4Button.IsPressed(event.JoystickEvent, true))
-                forwardGearEngaged = 4;
-            else if (gear5Button.IsPressed(event.JoystickEvent, true))
-                forwardGearEngaged = 5;
-            else if (gear6Button.IsPressed(event.JoystickEvent, true))
-                forwardGearEngaged = 6;
-            else if (gear7Button.IsPressed(event.JoystickEvent, true))
-                forwardGearEngaged = 7;
-            else if (gear8Button.IsPressed(event.JoystickEvent, true))
-                forwardGearEngaged = 8;
-            else if (gear9Button.IsPressed(event.JoystickEvent, true))
-                forwardGearEngaged = 9;
-           
-            if (reverseGearEngaged) {
-                /// Gear is set to reverse
-                m_vsys.m_vehicle->GetTransmission()->SetDriveMode(ChTransmission::DriveMode::REVERSE);
-                m_vsys.m_vehicle->GetTransmission()->SetGear(0);
-            } else if (forwardGearEngaged > 0) {
-                // All 'forward' gears set drive mode to forward, regardless of gear
-                m_vsys.m_vehicle->GetTransmission()->SetDriveMode(ChTransmission::DriveMode::FORWARD);
-                m_vsys.m_vehicle->GetTransmission()->SetGear(forwardGearEngaged);
-            } else {
-                m_vsys.m_vehicle->GetTransmission()->SetDriveMode(ChTransmission::DriveMode::NEUTRAL);
-                // Here you see it would be beneficial to have a gear selection for 'neutral' in the model.
+    // Manual transmission
+    if (transmission->IsManual()) {
+        // Sequential gear shifts: up or down
+        if (shiftUpButton.IsPressed(event.JoystickEvent)) {
+            transmission_manual->ShiftUp();
+        } else if (shiftDownButton.IsPressed(event.JoystickEvent)) {
+            transmission_manual->ShiftDown();
+        }
+        // Support an H-shifter if present and change gears if you press
+        // the clutch and shift the car into a specific gear.
+        if (clutchAxis.axis != ChJoystickAxisIRR::NONE) {
+            double clutchPosition = clutchAxis.GetValue(event.JoystickEvent);
+            // Check if the clutch is pressed...
+            if ((clutchAxis.scaled_max - clutchPosition) < 0.1) {
+                bool reverseGearEngaged = gearReverseButton.IsPressed(event.JoystickEvent);
+                int forwardGearEngaged = 0;
+                if (gear1Button.IsPressed(event.JoystickEvent, true))
+                    forwardGearEngaged = 1;
+                else if (gear2Button.IsPressed(event.JoystickEvent, true))
+                    forwardGearEngaged = 2;
+                else if (gear3Button.IsPressed(event.JoystickEvent, true))
+                    forwardGearEngaged = 3;
+                else if (gear4Button.IsPressed(event.JoystickEvent, true))
+                    forwardGearEngaged = 4;
+                else if (gear5Button.IsPressed(event.JoystickEvent, true))
+                    forwardGearEngaged = 5;
+                else if (gear6Button.IsPressed(event.JoystickEvent, true))
+                    forwardGearEngaged = 6;
+                else if (gear7Button.IsPressed(event.JoystickEvent, true))
+                    forwardGearEngaged = 7;
+                else if (gear8Button.IsPressed(event.JoystickEvent, true))
+                    forwardGearEngaged = 8;
+                else if (gear9Button.IsPressed(event.JoystickEvent, true))
+                    forwardGearEngaged = 9;
+
+                if (reverseGearEngaged) {
+                    /// Gear is set to reverse
+                    m_vsys.m_vehicle->GetTransmission()->SetDriveMode(ChTransmission::DriveMode::REVERSE);
+                    m_vsys.m_vehicle->GetTransmission()->SetGear(0);
+                } else if (forwardGearEngaged > 0) {
+                    // All 'forward' gears set drive mode to forward, regardless of gear
+                    m_vsys.m_vehicle->GetTransmission()->SetDriveMode(ChTransmission::DriveMode::FORWARD);
+                    m_vsys.m_vehicle->GetTransmission()->SetGear(forwardGearEngaged);
+                }
             }
         }
     }
@@ -227,7 +232,6 @@ bool ChInteractiveDriverIRR::ProcessJoystickEvents(const SEvent& event) {
     return true;
 }
 
-//// TODO: keyboard control of clutch
 bool ChInteractiveDriverIRR::ProcessKeyboardEvents(const SEvent& event) {
     if (event.KeyInput.PressedDown) {
         switch (event.KeyInput.Key) {
@@ -246,6 +250,9 @@ bool ChInteractiveDriverIRR::ProcessKeyboardEvents(const SEvent& event) {
                 m_throttle_target = ChClamp(m_throttle_target - m_throttle_delta * 3, 0.0, +1.0);
                 if (m_throttle_target <= 0)
                     m_braking_target = ChClamp(m_braking_target + m_braking_delta, 0.0, +1.0);
+                return true;
+            case KEY_KEY_C:
+                m_clutch_target = ChClamp(m_clutch_target - m_clutch_delta, 0.0, +1.0);
                 return true;
             default:
                 break;
@@ -277,6 +284,18 @@ bool ChInteractiveDriverIRR::ProcessKeyboardEvents(const SEvent& event) {
                     return true;
                 case KEY_COMMA:
                     transmission_auto->ShiftDown();
+                    return true;
+                default:
+                    break;
+            }
+        } else if (transmission && transmission->IsManual()) {
+            auto transmission_manual = transmission->asManual();
+            switch (event.KeyInput.Key) {
+                case KEY_PERIOD:
+                    transmission_manual->ShiftUp();
+                    return true;
+                case KEY_COMMA:
+                    transmission_manual->ShiftDown();
                     return true;
                 default:
                     break;
