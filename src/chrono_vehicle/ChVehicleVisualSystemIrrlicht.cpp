@@ -360,7 +360,7 @@ void ChVehicleVisualSystemIrrlicht::renderStats() {
 
     // Display information from driver system.
     sprintf(msg, "Steering: %+.2f", m_steering);
-    renderLinGauge(std::string(msg), m_steering, true, m_HUD_x + 190, m_HUD_y + 10, 170, 15);
+    renderLinGauge(std::string(msg), -m_steering, true, m_HUD_x + 190, m_HUD_y + 10, 170, 15);
 
     sprintf(msg, "Clutch: %+.2f", m_clutch * 100.);
     renderLinGauge(std::string(msg), m_clutch, false, m_HUD_x + 190, m_HUD_y + 30, 170, 15);
