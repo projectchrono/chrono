@@ -968,7 +968,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     ChTimer timer_collision;  ///< timer for collision detection
     ChTimer timer_setup;      ///< timer for system setup
     ChTimer timer_update;     ///< timer for system update
-    double m_RTF;                     ///< real-time factor (simulation time / simulated time)
+    double m_RTF;             ///< real-time factor (simulation time / simulated time)
 
     std::shared_ptr<ChTimestepper> timestepper;  ///< time-stepper object
 
