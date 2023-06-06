@@ -246,6 +246,11 @@ int main(int argc, char** argv) {
     std::string suffix = "";
     bool verbose = true;
 
+    // Terrain dimensions and spindle initial location
+    double terrain_length = 10;
+    double terrain_width = 1;
+    ChVector<> init_loc(-4, 0, 0.5);
+
     // Prepare output directory.
     std::string out_dir = GetChronoOutputPath() + "RIG_COSIM_CUSTOM";
     if (rank == 0) {
@@ -289,6 +294,7 @@ int main(int argc, char** argv) {
 
         auto mbs = new ChVehicleCosimRigNode();
         mbs->SetVerbose(verbose);
+        mbs->SetInitialLocation(init_loc);
         mbs->SetStepSize(step_size);
         mbs->SetNumThreads(1);
         mbs->SetTotalMass(100);
@@ -306,6 +312,7 @@ int main(int argc, char** argv) {
         node = tire;
     } else if (rank == TERRAIN_NODE_RANK) {
         auto terrain = new MyTerrain(4.0, 1.0);
+        terrain->SetDimensions(terrain_length, terrain_width);
         terrain->SetVerbose(verbose);
         terrain->SetStepSize(step_size);
         terrain->SetOutDir(out_dir, suffix);

@@ -55,10 +55,12 @@ class CH_VEHICLE_API ChVehicleCosimCuriosityNode : public ChVehicleCosimWheeledM
 
   private:
     /// Initialize the rover MBS and any associated subsystems.
-    virtual void InitializeMBS(const std::vector<ChVector<>>& tire_info,  ///< mass, radius, width for each tire
-                               const ChVector2<>& terrain_size,           ///< terrain length x width
-                               double terrain_height                      ///< initial terrain height
+    virtual void InitializeMBS(const ChVector2<>& terrain_size,  ///< terrain length x width
+                               double terrain_height             ///< initial terrain height
                                ) override;
+
+    /// Apply tire info (mass, radius, width).
+    virtual void ApplyTireInfo(const std::vector<ChVector<>>& tire_info) override;
 
     // Output rover data.
     virtual void OnOutputData(int frame) override;
@@ -76,6 +78,7 @@ class CH_VEHICLE_API ChVehicleCosimCuriosityNode : public ChVehicleCosimWheeledM
     virtual std::shared_ptr<ChBody> GetSpindleBody(unsigned int i) const override;
 
     /// Return the vertical mass load on the i-th spindle.
+    /// This does not include the mass of the wheel.
     virtual double GetSpindleLoad(unsigned int i) const override;
 
     /// Get the body state of the spindle body to which the i-th wheel/tire is attached.

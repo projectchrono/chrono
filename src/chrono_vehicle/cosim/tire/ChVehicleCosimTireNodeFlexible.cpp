@@ -29,15 +29,31 @@ using std::endl;
 namespace chrono {
 namespace vehicle {
 
-ChVehicleCosimTireNodeFlexible::ChVehicleCosimTireNodeFlexible(int index) : ChVehicleCosimTireNode(index) {}
+ChVehicleCosimTireNodeFlexible::ChVehicleCosimTireNodeFlexible(int index, const std::string& tire_json)
+    : ChVehicleCosimTireNode(index, tire_json) {
+    assert(GetTireTypeFromSpecfile(tire_json) == TireType::FLEXIBLE);
+    assert(m_tire);
+    m_tire_def = std::static_pointer_cast<ChDeformableTire>(m_tire);  // cache tire as ChDeformableTire
+
+    // Overwrite default integrator and solver types
+    m_int_type = ChTimestepper::Type::HHT;
+
+#if defined(CHRONO_PARDISO_MKL)
+    m_slv_type = ChSolver::Type::PARDISO_MKL;
+#elif defined(CHRONO_MUMPS)
+    m_lsv_type = ChSolver::Type::MUMPS;
+#else
+    m_slv_type = ChSolver::Type::SPARSE_QR
+#endif
+}
 
 void ChVehicleCosimTireNodeFlexible::Advance(double step_size) {
     m_timer.reset();
     m_timer.start();
     double t = 0;
     while (t < step_size) {
-        m_tire->GetMesh()->ResetCounters();
-        m_tire->GetMesh()->ResetTimers();
+        m_tire_def->GetMesh()->ResetCounters();
+        m_tire_def->GetMesh()->ResetTimers();
         double h = std::min<>(m_step_size, step_size - t);
         m_system->DoStepDynamics(h);
         t += h;
@@ -46,23 +62,20 @@ void ChVehicleCosimTireNodeFlexible::Advance(double step_size) {
     m_cum_sim_time += m_timer();
 }
 
-void ChVehicleCosimTireNodeFlexible::ConstructTire() {
-    m_tire = chrono_types::make_shared<ANCFTire>(m_tire_json);
-    m_tire->EnablePressure(m_tire_pressure);
-    m_tire->EnableContact(true);
-    m_tire->EnableRimConnection(true);
-    m_tire->SetContactSurfaceType(ChDeformableTire::ContactSurfaceType::TRIANGLE_MESH);
-}
+void ChVehicleCosimTireNodeFlexible::InitializeTire(std::shared_ptr<ChWheel> wheel, const ChVector<>& init_loc) {
+    m_tire_def->EnablePressure(m_tire_pressure);
+    m_tire_def->EnableContact(true);
+    m_tire_def->EnableRimConnection(true);
+    m_tire_def->SetContactSurfaceType(ChDeformableTire::ContactSurfaceType::TRIANGLE_MESH);
 
-void ChVehicleCosimTireNodeFlexible::InitializeTire(std::shared_ptr<ChWheel> wheel) {
-    // Initialize the ANCF tire
-    wheel->SetTire(m_tire);                                       // technically not really needed here
-    std::static_pointer_cast<ChTire>(m_tire)->Initialize(wheel);  // hack to call protected virtual method
+    m_spindle->SetPos(init_loc);
+    wheel->SetTire(m_tire);
+    m_tire->Initialize(wheel);
 
     // Create a mesh load for contact forces and add it to the tire's load container
-    auto contact_surface = std::static_pointer_cast<fea::ChContactSurfaceMesh>(m_tire->GetContactSurface());
+    auto contact_surface = std::static_pointer_cast<fea::ChContactSurfaceMesh>(m_tire_def->GetContactSurface());
     m_contact_load = chrono_types::make_shared<fea::ChLoadContactSurfaceMesh>(contact_surface);
-    m_tire->GetLoadContainer()->Add(m_contact_load);
+    m_tire_def->GetLoadContainer()->Add(m_contact_load);
 
     // Set mesh data (initial configuration, vertex positions in local frame)
     //// TODO: vertex normals?
@@ -80,7 +93,7 @@ void ChVehicleCosimTireNodeFlexible::InitializeTire(std::shared_ptr<ChWheel> whe
     idx_norms.resize(idx_verts.size(), ChVector<>(0,0,1));
 
     // Tire geometry and contact material
-    auto cmat = m_tire->GetContactMaterial();
+    auto cmat = m_tire_def->GetContactMaterial();
     m_geometry.m_coll_meshes.push_back(ChVehicleGeometry::TrimeshShape(VNULL, trimesh, 0.0, 0));
     m_geometry.m_materials.push_back(ChContactMaterialData(cmat->GetKfriction(), cmat->GetRestitution(),
                                                            cmat->GetYoungModulus(), cmat->GetPoissonRatio(),
@@ -88,7 +101,7 @@ void ChVehicleCosimTireNodeFlexible::InitializeTire(std::shared_ptr<ChWheel> whe
 
     // Preprocess the tire mesh and store neighbor element information for each vertex
     // and vertex indices for each element. This data is used in output.
-    auto mesh = m_tire->GetMesh();
+    auto mesh = m_tire_def->GetMesh();
     m_adjElements.resize(mesh->GetNnodes());
     m_adjVertices.resize(mesh->GetNelements());
 
@@ -116,7 +129,7 @@ void ChVehicleCosimTireNodeFlexible::LoadMeshState(MeshState& mesh_state) {
 }
 
 void ChVehicleCosimTireNodeFlexible::LoadSpindleForce(TerrainForce& spindle_force) {
-    spindle_force = m_tire->ReportTireForce(nullptr);
+    spindle_force = m_tire_def->ReportTireForce(nullptr);
 }
 
 void ChVehicleCosimTireNodeFlexible::ApplySpindleState(const BodyState& spindle_state) {
@@ -153,7 +166,7 @@ void ChVehicleCosimTireNodeFlexible::OutputVisualizationData(int frame) {
 
 void ChVehicleCosimTireNodeFlexible::WriteTireStateInformation(utils::CSV_writer& csv) {
     // Extract vertex states from mesh
-    auto mesh = m_tire->GetMesh();
+    auto mesh = m_tire_def->GetMesh();
     ChState x(mesh->GetDOF(), NULL);
     ChStateDelta v(mesh->GetDOF_w(), NULL);
     unsigned int offset_x = 0;
@@ -178,7 +191,7 @@ void ChVehicleCosimTireNodeFlexible::WriteTireStateInformation(utils::CSV_writer
 
 void ChVehicleCosimTireNodeFlexible::WriteTireMeshInformation(utils::CSV_writer& csv) {
     // Extract mesh
-    auto mesh = m_tire->GetMesh();
+    auto mesh = m_tire_def->GetMesh();
 
     // Print tire mesh connectivity
     csv << "\n Connectivity " << mesh->GetNelements() << 5 * mesh->GetNelements() << endl;
@@ -191,6 +204,7 @@ void ChVehicleCosimTireNodeFlexible::WriteTireMeshInformation(utils::CSV_writer&
     }
 
     // Print strain information: eps_xx, eps_yy, eps_xy averaged over surrounding elements
+    /*
     csv << "\n Vectors of Strains \n";
     for (unsigned int in = 0; in < mesh->GetNnodes(); in++) {
         double areaX = 0, areaY = 0, areaZ = 0;
@@ -209,29 +223,34 @@ void ChVehicleCosimTireNodeFlexible::WriteTireMeshInformation(utils::CSV_writer&
         }
         csv << areaX / area << " " << areaY / area << " " << areaZ / area << endl;
     }
+    */
 }
 
 void ChVehicleCosimTireNodeFlexible::PrintLowestNode() {
     // Unfortunately, we do not have access to the node container of a mesh, so we cannot use some nice algorithm here.
-    unsigned int num_nodes = m_tire->GetMesh()->GetNnodes();
+    unsigned int num_nodes = m_tire_def->GetMesh()->GetNnodes();
     unsigned int index = 0;
     double zmin = 1e10;
     for (unsigned int i = 0; i < num_nodes; ++i) {
-        // Ugly casting here. (Note also that we need dynamic downcasting, due to the virtual base)
-        auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyz>(m_tire->GetMesh()->GetNode(i));
-        if (node->GetPos().z() < zmin) {
-            zmin = node->GetPos().z();
+        double z = 1e10;
+        // Ugly castings here!!!
+        if (auto nodeXYZ = std::dynamic_pointer_cast<fea::ChNodeFEAxyz>(m_tire_def->GetMesh()->GetNode(i))) {
+            z = nodeXYZ->GetPos().z();
+        } else if (auto nodeXYZrot = std::dynamic_pointer_cast<fea::ChNodeFEAxyzrot>(m_tire_def->GetMesh()->GetNode(i))) {
+            z = nodeXYZrot->GetPos().z();
+        }
+
+        if (z < zmin) {
+            zmin = z;
             index = i;
         }
     }
 
-    ChVector<> vel = std::dynamic_pointer_cast<fea::ChNodeFEAxyz>(m_tire->GetMesh()->GetNode(index))->GetPos_dt();
-    cout << "[Tire node   ] lowest node:    index = " << index << "  height = " << zmin << "  velocity = " << vel.x()
-         << "  " << vel.y() << "  " << vel.z() << endl;
+    cout << "[Tire node   ] lowest node:    index = " << index << "  height = " << zmin << endl;
 }
 
 void ChVehicleCosimTireNodeFlexible::PrintContactData(const std::vector<ChVector<>>& forces,
-                                                         const std::vector<int>& indices) {
+                                                      const std::vector<int>& indices) {
     cout << "[Tire node   ] contact forces" << endl;
     for (int i = 0; i < indices.size(); i++) {
         cout << "  id = " << indices[i] << "  force = " << forces[i].x() << "  " << forces[i].y() << "  "

@@ -87,15 +87,13 @@ class ViperDBPDriver : public ViperDriver {
 
 // -----------------------------------------------------------------------------
 
-ChVehicleCosimViperNode::ChVehicleCosimViperNode() : ChVehicleCosimWheeledMBSNode(), m_num_spindles(0) {
+ChVehicleCosimViperNode::ChVehicleCosimViperNode() : ChVehicleCosimWheeledMBSNode() {
     m_viper = chrono_types::make_shared<Viper>(m_system);
 }
 
 ChVehicleCosimViperNode::~ChVehicleCosimViperNode() {}
 
-void ChVehicleCosimViperNode::InitializeMBS(const std::vector<ChVector<>>& tire_info,
-                                            const ChVector2<>& terrain_size,
-                                            double terrain_height) {
+void ChVehicleCosimViperNode::InitializeMBS(const ChVector2<>& terrain_size, double terrain_height) {
     // Initialize vehicle
     ChFrame<> init_pos(m_init_loc + ChVector<>(0, 0, terrain_height), Q_from_AngZ(m_init_yaw));
 
@@ -103,13 +101,12 @@ void ChVehicleCosimViperNode::InitializeMBS(const std::vector<ChVector<>>& tire_
     m_viper->SetWheelVisualization(false);
     m_viper->Initialize(init_pos);
 
-    // Extract and cache spindle bodies
-    m_num_spindles = 4;
-    assert(m_num_spindles == (int)m_num_tire_nodes);
+    // Calculate load on each spindle (excluding the wheels)
+    assert(4 == (int)m_num_tire_nodes);
 
-    auto total_mass = m_viper->GetRoverMass();
-    for (int is = 0; is < m_num_spindles; is++) {
-        m_spindle_loads.push_back(total_mass / m_num_spindles);
+    auto total_mass = m_viper->GetRoverMass() - 4 * m_viper->GetWheelMass();
+    for (int is = 0; is < 4; is++) {
+        m_spindle_loads.push_back(total_mass / 4);
     }
 
     // Initialize run-time visualization
@@ -144,10 +141,11 @@ void ChVehicleCosimViperNode::InitializeMBS(const std::vector<ChVector<>>& tire_
     }
 }
 
-// -----------------------------------------------------------------------------
-int ChVehicleCosimViperNode::GetNumSpindles() const {
-    return m_num_spindles;
+void ChVehicleCosimViperNode::ApplyTireInfo(const std::vector<ChVector<>>& tire_info) {
+    //// TODO
 }
+
+// -----------------------------------------------------------------------------
 
 std::shared_ptr<ChBody> ChVehicleCosimViperNode::GetSpindleBody(unsigned int i) const {
     return m_viper->GetWheel(wheel_id(i))->GetBody();

@@ -297,9 +297,8 @@ int main(int argc, char** argv) {
         if (verbose)
             cout << "[Tire node   ] rank = " << rank << " running on: " << procname << endl;
 
-        auto tire = new ChVehicleCosimTireNodeRigid(rank - 2);
-        ////tire->SetTireFromSpecfile(vehicle::GetDataFile("cosim/curiosity/Curiosity_RigidTire_real.json"));
-        tire->SetTireFromSpecfile(vehicle::GetDataFile("cosim/curiosity/Curiosity_RigidTire_cyl.json"));
+        auto tire = new ChVehicleCosimTireNodeRigid(
+            rank - 2, vehicle::GetDataFile("cosim/curiosity/Curiosity_RigidTire_cyl.json"));
         tire->SetVerbose(verbose);
         tire->SetStepSize(step_size);
         tire->SetNumThreads(1);

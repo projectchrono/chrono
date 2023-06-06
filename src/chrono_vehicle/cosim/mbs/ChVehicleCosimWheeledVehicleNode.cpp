@@ -99,9 +99,7 @@ ChVehicleCosimWheeledVehicleNode::~ChVehicleCosimWheeledVehicleNode() {}
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimWheeledVehicleNode::InitializeMBS(const std::vector<ChVector<>>& tire_info,
-                                                     const ChVector2<>& terrain_size,
-                                                     double terrain_height) {
+void ChVehicleCosimWheeledVehicleNode::InitializeMBS(const ChVector2<>& terrain_size, double terrain_height) {
     // Initialize vehicle
     ChCoordsys<> init_pos(m_init_loc + ChVector<>(0, 0, terrain_height), Q_from_AngZ(m_init_yaw));
 
@@ -115,18 +113,6 @@ void ChVehicleCosimWheeledVehicleNode::InitializeMBS(const std::vector<ChVector<
     // Initialize powertrain
     m_vehicle->InitializePowertrain(m_powertrain);
 
-    // Create and initialize the dummy tires
-    int itire = 0;
-    for (auto& axle : m_vehicle->GetAxles()) {
-        for (auto& wheel : axle->GetWheels()) {
-            auto tire = chrono_types::make_shared<DummyTire>(itire, tire_info[itire].x(), tire_info[itire].y(),
-                                                             tire_info[itire].z());
-            m_vehicle->InitializeTire(tire, wheel, VisualizationType::NONE);
-            m_tires.push_back(tire);
-            itire++;
-        }
-    }
-
     // Extract and cache spindle bodies
     auto num_axles = m_vehicle->GetNumberAxles();
 
@@ -135,8 +121,7 @@ void ChVehicleCosimWheeledVehicleNode::InitializeMBS(const std::vector<ChVector<
 
     auto total_mass = m_vehicle->GetMass();
     for (int is = 0; is < m_num_spindles; is++) {
-        auto tire_mass = tire_info[is].x();
-        m_spindle_loads.push_back(tire_mass + total_mass / m_num_spindles);
+        m_spindle_loads.push_back(total_mass / m_num_spindles);
     }
 
     // Initialize run-time visualization
@@ -174,6 +159,20 @@ void ChVehicleCosimWheeledVehicleNode::InitializeMBS(const std::vector<ChVector<
 
         m_vsys = vsys_irr;
 #endif
+    }
+}
+
+void ChVehicleCosimWheeledVehicleNode::ApplyTireInfo(const std::vector<ChVector<>>& tire_info) {
+    // Create and initialize the dummy tires
+    int itire = 0;
+    for (auto& axle : m_vehicle->GetAxles()) {
+        for (auto& wheel : axle->GetWheels()) {
+            auto tire = chrono_types::make_shared<DummyTire>(itire, tire_info[itire].x(), tire_info[itire].y(),
+                                                             tire_info[itire].z());
+            m_vehicle->InitializeTire(tire, wheel, VisualizationType::NONE);
+            m_tires.push_back(tire);
+            itire++;
+        }
     }
 }
 

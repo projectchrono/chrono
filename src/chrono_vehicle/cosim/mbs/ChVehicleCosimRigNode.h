@@ -41,19 +41,25 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimWheeledMBSNode
     ~ChVehicleCosimRigNode();
 
     /// Set total rig system mass (default: 100).
-    /// This represents the equivalent load on the soil from all rig bodies and the tire itself. Note that the total
-    /// mass must be at least 2 kg more than the tire mass; otherwise, it will be overwritten.
+    /// This represents the equivalent load on the soil from all rig bodies. 
+    /// Note that the total mass must be at least 2 kg; otherwise, it will be overwritten.
     void SetTotalMass(double mass) { m_total_mass = mass; }
 
     /// Set (constant) toe angle in radians (default: 0).
     void SetToeAngle(double angle) { m_toe_angle = angle; }
 
+    /// Set the initial rig position, relative to the center of the terrain top-surface.
+    /// This is the initial location of the spindle.
+    void SetInitialLocation(const ChVector<>& init_loc) { m_init_loc = init_loc; }
+
   private:
     /// Initialize the vehicle MBS and any associated subsystems.
-    virtual void InitializeMBS(const std::vector<ChVector<>>& tire_info,  ///< mass, radius, width for each tire
-                               const ChVector2<>& terrain_size,           ///< terrain length x width
-                               double terrain_height                      ///< initial terrain height
+    virtual void InitializeMBS(const ChVector2<>& terrain_size,  ///< terrain length x width
+                               double terrain_height             ///< initial terrain height
                                ) override;
+
+    /// Apply tire info (mass, radius, width).
+    virtual void ApplyTireInfo(const std::vector<ChVector<>>& tire_info) override;
 
     // Output rig data.
     virtual void OnOutputData(int frame) override;
@@ -68,6 +74,7 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimWheeledMBSNode
     virtual std::shared_ptr<ChBody> GetSpindleBody(unsigned int i) const override { return m_spindle; }
 
     /// Return the vertical mass load on the i-th spindle.
+    /// This does not include the mass of the tire.
     virtual double GetSpindleLoad(unsigned int i) const override { return m_total_mass; }
 
     /// Get the body state of the spindle body to which the i-th wheel/tire is attached.
@@ -83,7 +90,8 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimWheeledMBSNode
     std::shared_ptr<ChBody> m_chassis;  ///< chassis body
     std::shared_ptr<ChBody> m_spindle;  ///< spindle body
 
-    double m_total_mass;   ///< total equivalent wheel mass
+    ChVector<> m_init_loc;  ///< initial rig location (relative to center of terrain top surface)
+    double m_total_mass;    ///< total equivalent wheel mass
     double m_toe_angle;    ///< toe angle (controls tire slip angle)
 
     std::shared_ptr<ChLinkMotorRotationSpeed> m_rev_motor;  ///< motor to enforce spindle angular vel

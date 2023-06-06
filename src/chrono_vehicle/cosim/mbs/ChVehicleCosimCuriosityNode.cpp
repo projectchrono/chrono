@@ -97,9 +97,7 @@ ChVehicleCosimCuriosityNode::ChVehicleCosimCuriosityNode() : ChVehicleCosimWheel
 
 ChVehicleCosimCuriosityNode::~ChVehicleCosimCuriosityNode() {}
 
-void ChVehicleCosimCuriosityNode::InitializeMBS(const std::vector<ChVector<>>& tire_info,
-                                            const ChVector2<>& terrain_size,
-                                            double terrain_height) {
+void ChVehicleCosimCuriosityNode::InitializeMBS(const ChVector2<>& terrain_size, double terrain_height) {
     // Initialize vehicle
     ChFrame<> init_pos(m_init_loc + ChVector<>(0, 0, terrain_height), Q_from_AngZ(m_init_yaw));
 
@@ -107,10 +105,10 @@ void ChVehicleCosimCuriosityNode::InitializeMBS(const std::vector<ChVector<>>& t
     m_curiosity->SetWheelVisualization(false);
     m_curiosity->Initialize(init_pos);
 
-    // Extract and cache spindle bodies
+    // Calculate load on each spindle (excluding the wheels)
     assert(6 == (int)m_num_tire_nodes);
 
-    auto total_mass = m_curiosity->GetRoverMass();
+    auto total_mass = m_curiosity->GetRoverMass() - 6 * m_curiosity->GetWheelMass();
     for (int is = 0; is < 6; is++) {
         m_spindle_loads.push_back(total_mass / 6);
     }
@@ -145,6 +143,10 @@ void ChVehicleCosimCuriosityNode::InitializeMBS(const std::vector<ChVector<>>& t
 
 #endif
     }
+}
+
+void ChVehicleCosimCuriosityNode::ApplyTireInfo(const std::vector<ChVector<>>& tire_info) {
+    //// TODO
 }
 
 // -----------------------------------------------------------------------------

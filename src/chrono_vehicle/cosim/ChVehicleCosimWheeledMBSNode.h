@@ -109,10 +109,13 @@ class CH_VEHICLE_API ChVehicleCosimWheeledMBSNode : public ChVehicleCosimBaseNod
     ChVehicleCosimWheeledMBSNode();
 
     /// Initialize the underlying MBS
-    virtual void InitializeMBS(const std::vector<ChVector<>>& tire_info,  ///< mass, radius, width for each tire
-                               const ChVector2<>& terrain_size,           ///< terrain length x width
-                               double terrain_height                      ///< initial terrain height
+    virtual void InitializeMBS(const ChVector2<>& terrain_size,  ///< terrain length x width
+                               double terrain_height             ///< initial terrain height
                                ) = 0;
+
+    /// Apply tire info (after InitializeMBS).
+    /// This includes mass, radius, and width for each tire.
+    virtual void ApplyTireInfo(const std::vector<ChVector<>>& tire_info) = 0;
 
     /// Perform any required operations before advancing the state of the MBS.
     /// This function is called before every integration step.
