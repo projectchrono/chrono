@@ -71,6 +71,7 @@ class CH_VEHICLE_API ChVehicleVisualSystem : virtual public ChVisualSystem {
     double GetSteering() const { return m_steering; }
     double GetThrottle() const { return m_throttle; }
     double GetBraking() const { return m_braking; }
+    double GetClutch() const { return m_clutch; }
 
   protected:
     ChVehicle* m_vehicle;  ///< pointer to the associated vehicle system

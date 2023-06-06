@@ -82,6 +82,24 @@ class ChVehicleKeyboardHandlerVSG : public vsg3d::ChEventHandlerVSG {
                 if (m_app->m_driver)
                     m_app->m_driver->DecreaseThrottle();
                 return;
+            case vsg::KEY_e:
+                if (m_app->m_driver)
+                    m_app->m_driver->IncreaseClutch();
+                return;
+            case vsg::KEY_q:
+                if (m_app->m_driver)
+                    m_app->m_driver->DecreaseClutch();
+                return;
+            case vsg::KEY_Rightbracket:
+                if (m_app->m_vehicle->GetTransmission()) {
+                    m_app->m_vehicle->GetTransmission()->ShiftUp();
+                }
+                return;
+            case vsg::KEY_Leftbracket:
+                if (m_app->m_vehicle->GetTransmission()) {
+                    m_app->m_vehicle->GetTransmission()->ShiftDown();
+                }
+                return;
             case vsg::KEY_r:
                 if (m_app->m_driver)
                     m_app->m_driver->ReleasePedals();
@@ -177,14 +195,19 @@ void ChVehicleGuiComponentVSG::render() {
         ImGui::PopItemWidth();
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::Text("Throttle:");
+        ImGui::Text("Clutch:");
         ImGui::TableNextColumn();
-        DrawGauge(m_app->GetThrottle(), 0, 1);
+        DrawGauge(m_app->GetClutch(), 0, 1);
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::Text("Braking:");
         ImGui::TableNextColumn();
         DrawGauge(m_app->GetBraking(), 0, 1);
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Throttle:");
+        ImGui::TableNextColumn();
+        DrawGauge(m_app->GetThrottle(), 0, 1);
         ImGui::EndTable();
     }
 
