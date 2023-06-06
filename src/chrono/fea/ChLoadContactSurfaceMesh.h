@@ -9,13 +9,14 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
 #ifndef CHLOADCONTACTSURFACEMESH_H
 #define CHLOADCONTACTSURFACEMESH_H
 
 #include "chrono/physics/ChLoadsXYZnode.h"
+#include "chrono/fea/ChLoadsXYZROTnode.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
 
 namespace chrono {
@@ -115,6 +116,7 @@ class ChApi ChLoadContactSurfaceMesh : public ChLoadBase {
   private:
     std::shared_ptr<ChContactSurfaceMesh> contactmesh;
     std::vector<std::shared_ptr<ChLoadXYZnode>> forces;
+    std::vector<std::shared_ptr<ChLoadXYZROTnodeForceAbsolute>> forces_rot;
 };
 
 /// @} chrono_fea
