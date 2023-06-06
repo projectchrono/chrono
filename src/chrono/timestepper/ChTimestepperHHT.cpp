@@ -20,6 +20,8 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTimestepperHHT)
+CH_CASTING_PARENT(ChTimestepperHHT, ChTimestepperIIorder)
+CH_CASTING_PARENT(ChTimestepperHHT, ChImplicitIterativeTimestepper)
 
 ChTimestepperHHT::ChTimestepperHHT(ChIntegrableIIorder* intgr)
     : ChTimestepperIIorder(intgr),

@@ -16,6 +16,9 @@
 
 namespace chrono {
 
+CH_CASTING_PARENT(ChIterativeSolverVI, ChIterativeSolver)
+CH_CASTING_PARENT(ChIterativeSolverVI, ChSolverVI)
+
 ChIterativeSolverVI::ChIterativeSolverVI()
     : ChIterativeSolver(50, 0.0, true, false),
       m_omega(1.0),

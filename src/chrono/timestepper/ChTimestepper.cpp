@@ -303,6 +303,8 @@ void ChTimestepperLeapfrog::Advance(const double dt) {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTimestepperEulerImplicit)
+CH_CASTING_PARENT(ChTimestepperEulerImplicit, ChTimestepperIIorder)
+CH_CASTING_PARENT(ChTimestepperEulerImplicit, ChImplicitIterativeTimestepper)
 
 // Performs a step of Euler implicit for II order systems
 void ChTimestepperEulerImplicit::Advance(const double dt) {
@@ -391,6 +393,8 @@ void ChTimestepperEulerImplicit::Advance(const double dt) {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTimestepperEulerImplicitLinearized)
+CH_CASTING_PARENT(ChTimestepperEulerImplicitLinearized, ChTimestepperIIorder)
+CH_CASTING_PARENT(ChTimestepperEulerImplicitLinearized, ChImplicitTimestepper)
 
 // Performs a step of Euler implicit for II order systems
 // using the Anitescu/Stewart/Trinkle single-iteration method,
@@ -461,6 +465,8 @@ void ChTimestepperEulerImplicitLinearized::Advance(const double dt) {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTimestepperEulerImplicitProjected)
+CH_CASTING_PARENT(ChTimestepperEulerImplicitProjected, ChTimestepperIIorder)
+CH_CASTING_PARENT(ChTimestepperEulerImplicitProjected, ChImplicitTimestepper)
 
 // Performs a step of Euler implicit for II order systems
 // using a semi implicit Euler without constr.stabilization, followed by a projection,
@@ -554,6 +560,8 @@ void ChTimestepperEulerImplicitProjected::Advance(const double dt) {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTimestepperTrapezoidal)
+CH_CASTING_PARENT(ChTimestepperTrapezoidal, ChTimestepperIIorder)
+CH_CASTING_PARENT(ChTimestepperTrapezoidal, ChImplicitIterativeTimestepper)
 
 // Performs a step of trapezoidal implicit for II order systems
 // NOTE this is a modified version of the trapezoidal for DAE: the
@@ -654,6 +662,8 @@ void ChTimestepperTrapezoidal::Advance(const double dt) {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTimestepperTrapezoidalLinearized)
+CH_CASTING_PARENT(ChTimestepperTrapezoidalLinearized, ChTimestepperIIorder)
+CH_CASTING_PARENT(ChTimestepperTrapezoidalLinearized, ChImplicitIterativeTimestepper)
 
 // Performs a step of trapezoidal implicit linearized for II order systems
 void ChTimestepperTrapezoidalLinearized::Advance(const double dt) {
@@ -733,6 +743,8 @@ void ChTimestepperTrapezoidalLinearized::Advance(const double dt) {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTimestepperTrapezoidalLinearized2)
+CH_CASTING_PARENT(ChTimestepperTrapezoidalLinearized2, ChTimestepperIIorder)
+CH_CASTING_PARENT(ChTimestepperTrapezoidalLinearized2, ChImplicitIterativeTimestepper)
 
 // Performs a step of trapezoidal implicit linearized for II order systems
 //*** SIMPLIFIED VERSION -DOES NOT WORK - PREFER ChTimestepperTrapezoidalLinearized
@@ -805,6 +817,8 @@ void ChTimestepperTrapezoidalLinearized2::Advance(const double dt) {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTimestepperNewmark)
+CH_CASTING_PARENT(ChTimestepperNewmark, ChTimestepperIIorder)
+CH_CASTING_PARENT(ChTimestepperNewmark, ChImplicitIterativeTimestepper)
 
 // Set the numerical damping parameter gamma and the beta parameter.
 void ChTimestepperNewmark::SetGammaBeta(double mgamma, double mbeta) {
