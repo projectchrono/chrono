@@ -164,6 +164,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     bool m_settling_output;          ///< output files during settling?
     double m_settling_fps;           ///< frequency of output during settling phase
 
+    virtual ChSystem* GetSystemPostprocess() const override { return m_system; }
+
     virtual bool SupportsMeshInterface() const override { return true; }
 
     virtual void Construct() override;
@@ -182,7 +184,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
 
     virtual void OnAdvance(double step_size) override;
     virtual void OnOutputData(int frame) override;
-    virtual void Render() override;
+    virtual void OnRender() override;
 
     /// Calculate current height of granular terrain.
     double CalcCurrentHeight();

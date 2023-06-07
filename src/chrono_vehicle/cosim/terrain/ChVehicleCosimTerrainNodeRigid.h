@@ -85,6 +85,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerra
     double m_radius_p;                       ///< radius for a proxy body
     std::shared_ptr<ChVisualSystem> m_vsys;  ///< run-time visualization system
 
+    virtual ChSystem* GetSystemPostprocess() const override { return m_system; }
+
     virtual bool SupportsMeshInterface() const override { return true; }
 
     virtual void Construct() override;
@@ -102,7 +104,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerra
     virtual void GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) override;
 
     virtual void OnAdvance(double step_size) override;
-    virtual void Render() override;
+    virtual void OnRender() override;
 };
 
 /// @} vehicle_cosim_chrono

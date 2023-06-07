@@ -125,7 +125,7 @@ void ChVehicleCosimWheeledVehicleNode::InitializeMBS(const ChVector2<>& terrain_
     }
 
     // Initialize run-time visualization
-    if (m_render) {
+    if (m_renderRT) {
 #if defined(CHRONO_VSG)
         auto vsys_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
         vsys_vsg->AttachVehicle(m_vehicle.get());
@@ -248,7 +248,7 @@ void ChVehicleCosimWheeledVehicleNode::ApplySpindleForce(unsigned int i, const T
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimWheeledVehicleNode::Render() {
+void ChVehicleCosimWheeledVehicleNode::OnRender() {
     if (!m_vsys)
       return;
     if (!m_vsys->Run())

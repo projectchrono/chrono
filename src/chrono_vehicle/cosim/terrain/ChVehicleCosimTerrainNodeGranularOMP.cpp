@@ -554,7 +554,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
 
 #ifdef CHRONO_OPENGL
     // Create the visualization window
-    if (m_render) {
+    if (m_renderRT) {
         m_vsys->AttachSystem(m_system);
         m_vsys->SetWindowTitle("Terrain Node (GranularOMP)");
         m_vsys->SetWindowSize(1280, 720);
@@ -638,7 +638,6 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
     int n_contacts;
     int max_contacts = 0;
     int cum_contacts = 0;
-    double render_time = 0;
 
     int steps = 0;
     double time = 0;
@@ -669,10 +668,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
         }
 
         // Render (if enabled)
-        if (m_render && m_system->GetChTime() > render_time) {
-            Render();
-            render_time += std::max(m_render_step, m_step_size);
-        }
+        Render(m_step_size);
 
         steps++;
         time += m_step_size;
@@ -1017,7 +1013,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::OnAdvance(double step_size) {
     m_system->CalculateContactForces();
 }
 
-void ChVehicleCosimTerrainNodeGranularOMP::Render() {
+void ChVehicleCosimTerrainNodeGranularOMP::OnRender() {
 #ifdef CHRONO_OPENGL
     if (!m_vsys)
         return;

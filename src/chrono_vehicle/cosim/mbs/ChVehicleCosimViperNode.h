@@ -92,7 +92,7 @@ class CH_VEHICLE_API ChVehicleCosimViperNode : public ChVehicleCosimWheeledMBSNo
 
     void WriteBodyInformation(utils::CSV_writer& csv);
 
-    virtual void Render() override;
+    virtual void OnRender() override;
 
   private:
     std::shared_ptr<viper::Viper> m_viper;         ///< Viper rover;

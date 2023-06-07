@@ -114,7 +114,7 @@ void ChVehicleCosimCuriosityNode::InitializeMBS(const ChVector2<>& terrain_size,
     }
 
     // Initialize run-time visualization
-    if (m_render) {
+    if (m_renderRT) {
 #if defined(CHRONO_VSG)
         auto vsys_vsg = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
         vsys_vsg->AttachSystem(m_system);
@@ -195,7 +195,7 @@ void ChVehicleCosimCuriosityNode::ApplySpindleForce(unsigned int i, const Terrai
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimCuriosityNode::Render() {
+void ChVehicleCosimCuriosityNode::OnRender() {
     if (!m_vsys)
         return;
     if (!m_vsys->Run())

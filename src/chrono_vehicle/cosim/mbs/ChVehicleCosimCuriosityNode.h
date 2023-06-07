@@ -92,7 +92,7 @@ class CH_VEHICLE_API ChVehicleCosimCuriosityNode : public ChVehicleCosimWheeledM
 
     void WriteBodyInformation(utils::CSV_writer& csv);
 
-    virtual void Render() override;
+    virtual void OnRender() override;
 
   private:
     std::shared_ptr<curiosity::Curiosity> m_curiosity;     ///< Curiosity rover;

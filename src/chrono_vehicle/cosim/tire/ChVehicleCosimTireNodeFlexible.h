@@ -26,6 +26,7 @@
 
 #include "chrono/fea/ChLoadContactSurfaceMesh.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/assets/ChVisualSystem.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
 
@@ -77,6 +78,9 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeFlexible : public ChVehicleCosimTireN
     /// Output post-processing visualization data.
     virtual void OutputVisualizationData(int frame) override;
 
+    /// Render tire system
+    virtual void OnRender() override;
+
   private:
     /// Write mesh vertex positions and velocities.
     void WriteTireStateInformation(utils::CSV_writer& csv);
@@ -91,6 +95,8 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeFlexible : public ChVehicleCosimTireN
     std::shared_ptr<fea::ChLoadContactSurfaceMesh> m_contact_load;  ///< tire contact surface
     std::vector<std::vector<unsigned int>> m_adjElements;  ///< list of neighboring elements for each mesh vertex
     std::vector<std::vector<unsigned int>> m_adjVertices;  ///< list of vertex indices for each mesh element
+
+    std::shared_ptr<ChVisualSystem> m_vsys;  ///< run-time visualization system
 };
 
 /// @} vehicle_cosim_tire

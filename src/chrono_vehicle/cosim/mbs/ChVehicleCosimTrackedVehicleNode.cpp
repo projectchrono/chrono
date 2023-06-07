@@ -118,7 +118,7 @@ void ChVehicleCosimTrackedVehicleNode::InitializeMBS(const ChVector2<>& terrain_
     m_shoe_forces[1].resize(m_vehicle->GetNumTrackShoes(VehicleSide::RIGHT));
 
     // Initialize run-time visualization
-    if (m_render) {
+    if (m_renderRT) {
 #if defined(CHRONO_VSG)
         auto vsys_vsg = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
         vsys_vsg->AttachVehicle(m_vehicle.get());
@@ -237,7 +237,7 @@ void ChVehicleCosimTrackedVehicleNode::ApplyTrackShoeForce(int track_id, int sho
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTrackedVehicleNode::Render() {
+void ChVehicleCosimTrackedVehicleNode::OnRender() {
     if (!m_vsys)
         return;
     if (!m_vsys->Run())

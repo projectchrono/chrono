@@ -81,6 +81,12 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
     double m_radius_g;  ///< radius of one particle of granular material
     double m_rho_g;     ///< particle material density
 
+    virtual ChSystem* GetSystemPostprocess() const override {
+        if (m_vsys)
+            return m_vsys->GetSystem();
+        return nullptr;
+    }
+
     virtual bool SupportsMeshInterface() const override { return true; }
 
     virtual void Construct() override;
@@ -95,7 +101,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
     virtual void GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) override;
 
     virtual void OnOutputData(int frame) override;
-    virtual void Render() override;
+    virtual void OnRender() override;
 
     /// Advance simulation.
     /// This function is called after a synchronization to allow the node to advance

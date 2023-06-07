@@ -149,6 +149,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
     bool m_settling_output;          ///< output files during settling?
     double m_settling_fps;           ///< frequency of output during settling phase
 
+    virtual ChSystem* GetSystemPostprocess() const override { return m_system; }
+
     virtual bool SupportsMeshInterface() const override { return false; }
 
     /// Construct granular terrain
@@ -162,7 +164,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
     virtual void GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) override;
 
     virtual void OnOutputData(int frame) override;
-    virtual void Render() override;
+    virtual void OnRender() override;
 
     /// Advance simulation.
     /// This function is called after a synchronization to allow the node to advance

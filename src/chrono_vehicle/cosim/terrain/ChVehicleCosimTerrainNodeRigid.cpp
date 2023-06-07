@@ -403,7 +403,7 @@ void ChVehicleCosimTerrainNodeRigid::OnInitialize(unsigned int num_objects) {
     ChVehicleCosimTerrainNodeChrono::OnInitialize(num_objects);
 
     // Create the visualization window
-    if (m_render) {
+    if (m_renderRT) {
 #if defined(CHRONO_VSG)
         auto vsys_vsg = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
         vsys_vsg->AttachSystem(m_system);
@@ -458,7 +458,8 @@ void ChVehicleCosimTerrainNodeRigid::UpdateMeshProxy(unsigned int i, MeshState& 
         proxies[iv].m_body->SetRot_dt(ChQuaternion<>(0, 0, 0, 0));
     }
 
-    PrintMeshProxiesUpdateData(i, mesh_state);
+    ////if (m_verbose)
+    ////    PrintMeshProxiesUpdateData(i, mesh_state);
 }
 
 // Set state of wheel proxy body.
@@ -506,7 +507,7 @@ void ChVehicleCosimTerrainNodeRigid::OnAdvance(double step_size) {
     m_system->CalculateContactForces();
 }
 
-void ChVehicleCosimTerrainNodeRigid::Render() {
+void ChVehicleCosimTerrainNodeRigid::OnRender() {
     if (!m_vsys)
         return;
 

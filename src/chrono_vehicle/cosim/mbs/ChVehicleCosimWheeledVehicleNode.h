@@ -114,7 +114,7 @@ class CH_VEHICLE_API ChVehicleCosimWheeledVehicleNode : public ChVehicleCosimWhe
 
     void WriteBodyInformation(utils::CSV_writer& csv);
 
-    virtual void Render() override;
+    virtual void OnRender() override;
 
   private:
     /// ChTire subsystem, needed to pass the terrain contact forces back to the vehicle wheels.

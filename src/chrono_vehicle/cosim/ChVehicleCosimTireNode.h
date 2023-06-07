@@ -177,6 +177,7 @@ class CH_VEHICLE_API ChVehicleCosimTireNode : public ChVehicleCosimBaseNode {
     ChVehicleGeometry m_geometry;  ///< tire geometry and contact material
 
   private:
+    virtual ChSystem* GetSystemPostprocess() const override { return m_system; }
     void InitializeSystem();
     void SynchronizeBody(int step_number, double time);
     void SynchronizeMesh(int step_number, double time);

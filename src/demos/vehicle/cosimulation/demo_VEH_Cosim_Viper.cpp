@@ -282,7 +282,8 @@ int main(int argc, char** argv) {
         viper->SetStepSize(step_size);
         viper->SetNumThreads(1);
         viper->SetOutDir(out_dir, suffix);
-        viper->EnableRuntimeVisualization(render, render_fps);
+        if (render)
+            viper->EnableRuntimeVisualization(render_fps);
         viper->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
 
         if (verbose)
@@ -320,7 +321,8 @@ int main(int argc, char** argv) {
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
-                terrain->EnableRuntimeVisualization(render, render_fps);
+                if (render)
+                    terrain->EnableRuntimeVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
                 if (add_obstacles) {
                     terrain->AddRigidObstacle(CreateObstacle(ChVector<>(1, 1, 0.5)));
@@ -341,7 +343,8 @@ int main(int argc, char** argv) {
                 terrain->SetStepSize(step_size);
                 terrain->SetNumThreads(nthreads_terrain);
                 terrain->SetOutDir(out_dir, suffix);
-                terrain->EnableRuntimeVisualization(render, render_fps);
+                if (render)
+                    terrain->EnableRuntimeVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
                 if (add_obstacles) {
                     terrain->AddRigidObstacle(CreateObstacle(ChVector<>(1, 1, 0.5)));
@@ -364,7 +367,8 @@ int main(int argc, char** argv) {
                 terrain->SetStepSize(step_size);
                 terrain->SetNumThreads(nthreads_terrain);
                 terrain->SetOutDir(out_dir, suffix);
-                terrain->EnableRuntimeVisualization(render, render_fps);
+                if (render)
+                    terrain->EnableRuntimeVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
                 if (add_obstacles) {
                     terrain->AddRigidObstacle(CreateObstacle(ChVector<>(1, 1, 0.5)));
@@ -391,7 +395,8 @@ int main(int argc, char** argv) {
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
-                terrain->EnableRuntimeVisualization(render, render_fps);
+                if (render)
+                    terrain->EnableRuntimeVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
                 if (add_obstacles) {
                     terrain->AddRigidObstacle(CreateObstacle(ChVector<>(1, 1, 0.5)));
@@ -418,7 +423,8 @@ int main(int argc, char** argv) {
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
-                terrain->EnableRuntimeVisualization(render, render_fps);
+                if (render)
+                    terrain->EnableRuntimeVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
                 if (add_obstacles) {
                     terrain->AddRigidObstacle(CreateObstacle(ChVector<>(1, 1, 0.5)));

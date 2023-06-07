@@ -121,7 +121,7 @@ class CH_VEHICLE_API ChVehicleCosimTrackedVehicleNode : public ChVehicleCosimTra
 
     void WriteBodyInformation(utils::CSV_writer& csv);
 
-    virtual void Render() override;
+    virtual void OnRender() override;
 
   private:
     std::shared_ptr<ChTrackedVehicle> m_vehicle;         ///< vehicle MBS

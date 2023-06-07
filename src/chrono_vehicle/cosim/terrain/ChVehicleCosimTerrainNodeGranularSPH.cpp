@@ -302,7 +302,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
     m_systemFSI->Initialize();
 
     // Initialize run-time visualization
-    if (m_render) {
+    if (m_renderRT) {
 #if defined(CHRONO_OPENGL)
         m_vsys = chrono_types::make_shared<ChFsiVisualizationGL>(m_systemFSI, false);
 #endif
@@ -363,7 +363,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnAdvance(double step_size) {
     }
 }
 
-void ChVehicleCosimTerrainNodeGranularSPH::Render() {
+void ChVehicleCosimTerrainNodeGranularSPH::OnRender() {
     if (!m_vsys)
         return;
 

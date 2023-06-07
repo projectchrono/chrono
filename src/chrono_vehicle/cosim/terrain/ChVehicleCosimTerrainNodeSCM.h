@@ -109,6 +109,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrain
     bool m_use_checkpoint;              ///< if true, initialize height from checkpoint file
     std::string m_checkpoint_filename;  ///< name of input checkpoint file
 
+    virtual ChSystem* GetSystemPostprocess() const override { return m_system; }
+
     virtual bool SupportsMeshInterface() const override { return false; }  //// TODO
 
     virtual void Construct() override;
@@ -122,7 +124,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrain
     virtual void GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) override;
 
     virtual void OnOutputData(int frame) override;
-    virtual void Render() override;
+    virtual void OnRender() override;
 };
 
 /// @} vehicle_cosim_chrono

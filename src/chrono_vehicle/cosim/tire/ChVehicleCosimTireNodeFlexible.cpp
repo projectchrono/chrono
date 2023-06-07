@@ -23,6 +23,13 @@
 
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeFlexible.h"
 
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+#endif
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+#endif
+
 using std::cout;
 using std::endl;
 
@@ -36,7 +43,8 @@ ChVehicleCosimTireNodeFlexible::ChVehicleCosimTireNodeFlexible(int index, const 
     m_tire_def = std::static_pointer_cast<ChDeformableTire>(m_tire);  // cache tire as ChDeformableTire
 
     // Overwrite default integrator and solver types
-    m_int_type = ChTimestepper::Type::HHT;
+    ////m_int_type = ChTimestepper::Type::HHT;
+    m_int_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
 
 #if defined(CHRONO_PARDISO_MKL)
     m_slv_type = ChSolver::Type::PARDISO_MKL;
@@ -60,6 +68,25 @@ void ChVehicleCosimTireNodeFlexible::Advance(double step_size) {
     }
     m_timer.stop();
     m_cum_sim_time += m_timer();
+
+    // Possible rendering
+    Render(step_size);
+}
+
+void ChVehicleCosimTireNodeFlexible::OnRender() {
+    if (!m_vsys)
+        return;
+    if (!m_vsys->Run())
+        MPI_Abort(MPI_COMM_WORLD, 1);
+
+    if (m_track) {
+        ChVector<> cam_point = m_spindle->GetPos();
+        m_vsys->UpdateCamera(cam_point + ChVector<>(1, 2, 0), cam_point);
+    }
+
+    m_vsys->BeginScene();
+    m_vsys->Render();
+    m_vsys->EndScene();
 }
 
 void ChVehicleCosimTireNodeFlexible::InitializeTire(std::shared_ptr<ChWheel> wheel, const ChVector<>& init_loc) {
@@ -71,6 +98,7 @@ void ChVehicleCosimTireNodeFlexible::InitializeTire(std::shared_ptr<ChWheel> whe
     m_spindle->SetPos(init_loc);
     wheel->SetTire(m_tire);
     m_tire->Initialize(wheel);
+    m_tire->SetVisualizationType(VisualizationType::MESH);
 
     // Create a mesh load for contact forces and add it to the tire's load container
     auto contact_surface = std::static_pointer_cast<fea::ChContactSurfaceMesh>(m_tire_def->GetContactSurface());
@@ -115,6 +143,37 @@ void ChVehicleCosimTireNodeFlexible::InitializeTire(std::shared_ptr<ChWheel> whe
             m_adjElements[iv].push_back(ie);
             m_adjVertices[ie].push_back((unsigned int)iv);
         }
+    }
+
+    // Create the visualization window (only for the first tire)
+    if (m_renderRT && m_index == 0) {
+#if defined(CHRONO_VSG)
+        auto vsys_vsg = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+        vsys_vsg->AttachSystem(m_system);
+        vsys_vsg->SetWindowTitle("Tire 0 Node");
+        vsys_vsg->SetWindowSize(ChVector2<int>(1280, 720));
+        vsys_vsg->SetWindowPosition(ChVector2<int>(100, 100));
+        vsys_vsg->SetUseSkyBox(true);
+        vsys_vsg->AddCamera(m_cam_pos, ChVector<>(0, 0, 0));
+        vsys_vsg->SetCameraAngleDeg(40);
+        vsys_vsg->SetLightIntensity(1.0f);
+        vsys_vsg->Initialize();
+
+        m_vsys = vsys_vsg;
+#elif defined(CHRONO_IRRLICHT)
+        auto vsys_irr = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
+        vsys_irr->AttachSystem(m_system);
+        vsys_irr->SetWindowTitle("Tire 0 Node");
+        vsys_irr->SetCameraVertical(CameraVerticalDir::Z);
+        vsys_irr->SetWindowSize(1280, 720);
+        vsys_irr->Initialize();
+        vsys_irr->AddLogo();
+        vsys_irr->AddSkyBox();
+        vsys_irr->AddTypicalLights();
+        vsys_irr->AddCamera(m_cam_pos, ChVector<>(0, 0, 0));
+
+        m_vsys = vsys_irr;
+#endif
     }
 }
 

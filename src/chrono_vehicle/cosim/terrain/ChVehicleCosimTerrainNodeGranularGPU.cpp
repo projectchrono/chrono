@@ -359,7 +359,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
     m_systemGPU->Initialize();
 
     // Create bodies in Chrono system (visualization only)
-    if (m_render) {
+    if (m_renderRT) {
         for (const auto& p : pos) {
             auto body = std::shared_ptr<ChBody>(m_system->NewBody());
             body->SetPos(p);
@@ -410,7 +410,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
 
 #ifdef CHRONO_OPENGL
     // Create the visualization window
-    if (m_render) {
+    if (m_renderRT) {
         m_vsys->AttachSystem(m_system);
         m_vsys->SetWindowTitle("Terrain Node (GranularGPU)");
         m_vsys->SetWindowSize(1280, 720);
@@ -475,7 +475,6 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
     int n_contacts;
     int max_contacts = 0;
     unsigned long long int cum_contacts = 0;
-    double render_time = 0;
 
     int steps = 0;
     double time = 0;
@@ -484,7 +483,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
         // Advance step
         m_timer.reset();
         m_timer.start();
-        if (m_render) {
+        if (m_renderRT) {
             m_system->DoStepDynamics(m_step_size);
         }
         m_systemGPU->AdvanceSimulation((float)m_step_size);
@@ -510,10 +509,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
         }
 
         // Render (if enabled)
-        if (m_render && m_system->GetChTime() > render_time) {
-            Render();
-            render_time += std::max(m_render_step, m_step_size);
-        }
+        Render(m_step_size);
 
         steps++;
         time += m_step_size;
@@ -723,7 +719,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::OnAdvance(double step_size) {
     double t = 0;
     while (t < step_size) {
         double h = std::min<>(m_step_size, step_size - t);
-        if (m_render) {
+        if (m_renderRT) {
             m_system->DoStepDynamics(h);
         }
         m_systemGPU->AdvanceSimulation((float)h);
@@ -731,7 +727,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::OnAdvance(double step_size) {
     }
 }
 
-void ChVehicleCosimTerrainNodeGranularGPU::Render() {
+void ChVehicleCosimTerrainNodeGranularGPU::OnRender() {
 #ifdef CHRONO_OPENGL
     if (!m_vsys)
         return;

@@ -300,7 +300,7 @@ void ChVehicleCosimTerrainNodeSCM::OnInitialize(unsigned int num_objects) {
     ChVehicleCosimTerrainNodeChrono::OnInitialize(num_objects);
 
     // Create the visualization window
-    if (m_render) {
+    if (m_renderRT) {
 #if defined(CHRONO_VSG)
         auto vsys_vsg = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
         vsys_vsg->AttachSystem(m_system);
@@ -362,7 +362,7 @@ void ChVehicleCosimTerrainNodeSCM::GetForceRigidProxy(unsigned int i, TerrainFor
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTerrainNodeSCM::Render() {
+void ChVehicleCosimTerrainNodeSCM::OnRender() {
     if (!m_vsys)
         return;
     if (!m_vsys->Run())

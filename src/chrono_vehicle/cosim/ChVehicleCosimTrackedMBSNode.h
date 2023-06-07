@@ -153,6 +153,7 @@ class CH_VEHICLE_API ChVehicleCosimTrackedMBSNode : public ChVehicleCosimBaseNod
     std::ofstream m_DBP_outf;                         ///< DBP output file stream
 
   private:
+    virtual ChSystem* GetSystemPostprocess() const override { return m_system; }
     void InitializeSystem();
 
     bool m_fix_chassis;
