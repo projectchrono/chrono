@@ -39,7 +39,12 @@
 "Parameters": {
     "Vertical": {
       "Nominal Vertical Force [N]": 2599.65,
-      "Vertical Tire Stiffness [N/m]": 163954,
+      //"Vertical Tire Stiffness [N/m]": 163954,
+      "Tire Spring Curve Data": [
+          [0,0],
+          [0.03 ,2900],
+          [0.06, 6000]
+      ],
       "Vertical Tire Damping [Ns/m]": 1801.74,
       "Tire Bottoming Radius [m]": 0.396,
       "Tire Bottoming Stiffness [N/m]": 500000

@@ -67,20 +67,36 @@ void TMsimpleTire::Create(const rapidjson::Document& d) {
     if (d.HasMember("Parameters")) {
         // Full parameterization
         m_par.pn = d["Parameters"]["Vertical"]["Nominal Vertical Force [N]"].GetDouble();
-        if(d["Parameters"]["Vertical"].HasMember("Maximum Vertical Force [N]"))
+        if (d["Parameters"]["Vertical"].HasMember("Maximum Vertical Force [N]"))
             m_par.pn_max = d["Parameters"]["Vertical"]["Maximum Vertical Force [N]"].GetDouble();
         else
             m_par.pn_max = 3.5 * m_par.pn;
 
-        double a1 = d["Parameters"]["Vertical"]["Vertical Tire Stiffness [N/m]"].GetDouble();
-        SetVerticalStiffness(a1);
-
+        if (d["Parameters"]["Vertical"].HasMember("Vertical Tire Stiffness [N/m]")) {
+            double a1 = d["Parameters"]["Vertical"]["Vertical Tire Stiffness [N/m]"].GetDouble();
+            SetVerticalStiffness(a1);
+        } else if (d["Parameters"]["Vertical"].HasMember("Tire Spring Curve Data")) {
+            assert(d["Parameters"]["Vertical"]["Tire Spring Curve Data"].IsArray() &&
+                   d["Parameters"]["Vertical"]["Tire Spring Curve Data"][0u].Size() == 2);
+            std::vector<double> defl, frc;
+            int num_defs = d["Parameters"]["Vertical"]["Tire Spring Curve Data"].Size();
+            for (int i = 0; i < num_defs; i++) {
+                double def = d["Parameters"]["Vertical"]["Tire Spring Curve Data"][i][0u].GetDouble();
+                double force = d["Parameters"]["Vertical"]["Tire Spring Curve Data"][i][1u].GetDouble();
+                defl.push_back(def);
+                frc.push_back(force);
+            }
+            SetVerticalStiffness(defl, frc);
+        } else {
+            GetLog() << "FATAL: No Vertical Tire Stiffness Definition!\n";
+            exit(19);
+        }
         m_par.dz = d["Parameters"]["Vertical"]["Vertical Tire Damping [Ns/m]"].GetDouble();
-        
+
         // Bottoming parameters are optional, if not set, Initialize() sets default values
-        if(d["Parameters"]["Vertical"].HasMember("Tire Bottoming Radius [m]"))
+        if (d["Parameters"]["Vertical"].HasMember("Tire Bottoming Radius [m]"))
             m_bottom_radius = d["Parameters"]["Vertical"]["Tire Bottoming Radius [m]"].GetDouble();
-        if(d["Parameters"]["Vertical"].HasMember("Tire Bottoming Stiffness [N/m]"))
+        if (d["Parameters"]["Vertical"].HasMember("Tire Bottoming Stiffness [N/m]"))
             m_bottom_stiffness = d["Parameters"]["Vertical"]["Tire Bottoming Stiffness [N/m]"].GetDouble();
 
         m_par.dfx0_pn = d["Parameters"]["Longitudinal"]["Initial Slopes dFx/dsx [N]"][0u].GetDouble();

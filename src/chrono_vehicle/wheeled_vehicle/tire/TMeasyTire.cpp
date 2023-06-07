@@ -70,8 +70,26 @@ void TMeasyTire::Create(const rapidjson::Document& d) {
         else
             m_par.pn_max = 3.5 * m_par.pn;
 
-        double a1 = d["Parameters"]["Vertical"]["Tire Vertical Stiffness[N/m]"].GetDouble();
-        SetVerticalStiffness(a1);
+        if (d["Parameters"]["Vertical"].HasMember("Vertical Tire Stiffness [N/m]")) {
+            double a1 = d["Parameters"]["Vertical"]["Vertical Tire Stiffness [N/m]"].GetDouble();
+            SetVerticalStiffness(a1);
+        } else if (d["Parameters"]["Vertical"].HasMember("Tire Spring Curve Data")) {
+            assert(d["Parameters"]["Vertical"]["Tire Spring Curve Data"].IsArray() &&
+                   d["Parameters"]["Vertical"]["Tire Spring Curve Data"][0u].Size() == 2);
+            std::vector<double> defl, force;
+            int num_defs = d["Parameters"]["Vertical"]["Tire Spring Curve Data"].Size();
+            for (int i = 0; i < num_defs; i++) {
+                double t_defl = d["Parameters"]["Vertical"]["Tire Spring Curve Data"][i][0u].GetDouble();
+                double t_force = d["Parameters"]["Vertical"]["Tire Spring Curve Data"][i][1u].GetDouble();
+                defl.push_back(t_defl);
+                force.push_back(t_force);
+            }
+            SetVerticalStiffness(defl, force);
+            GetLog() << "Table set\n";
+        } else {
+            GetLog() << "FATAL: No Vertical Tire Stiffness Definition!\n";
+            exit(19);
+        }
 
         m_par.dz = d["Parameters"]["Vertical"]["Tire Vertical Damping [Ns/m]"].GetDouble();
         
