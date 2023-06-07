@@ -186,7 +186,8 @@ int main(int argc, char** argv) {
     }
 
     std::string suffix = "";
-    bool render = true;
+    bool renderRT = true;
+    bool renderPP = true;
 
     // Peek in spec file and extract terrain type
     auto terrain_type = ChVehicleCosimTerrainNodeChrono::GetTypeFromSpecfile(terrain_specfile);
@@ -284,7 +285,7 @@ int main(int argc, char** argv) {
         curiosity->SetStepSize(step_size);
         curiosity->SetNumThreads(1);
         curiosity->SetOutDir(out_dir, suffix);
-        if (render)
+        if (renderRT)
             curiosity->EnableRuntimeVisualization(render_fps);
         curiosity->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
         if (verbose)
@@ -322,7 +323,7 @@ int main(int argc, char** argv) {
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
-                if (render)
+                if (renderRT)
                     terrain->EnableRuntimeVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
                 if (add_obstacles) {
@@ -344,7 +345,7 @@ int main(int argc, char** argv) {
                 terrain->SetStepSize(step_size);
                 terrain->SetNumThreads(nthreads_terrain);
                 terrain->SetOutDir(out_dir, suffix);
-                if (render)
+                if (renderRT)
                     terrain->EnableRuntimeVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
                 if (add_obstacles) {
@@ -368,7 +369,7 @@ int main(int argc, char** argv) {
                 terrain->SetStepSize(step_size);
                 terrain->SetNumThreads(nthreads_terrain);
                 terrain->SetOutDir(out_dir, suffix);
-                if (render)
+                if (renderRT)
                     terrain->EnableRuntimeVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
                 if (add_obstacles) {
@@ -396,7 +397,7 @@ int main(int argc, char** argv) {
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
-                if (render)
+                if (renderRT)
                     terrain->EnableRuntimeVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
                 if (add_obstacles) {
@@ -424,7 +425,7 @@ int main(int argc, char** argv) {
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
-                if (render)
+                if (renderRT)
                     terrain->EnableRuntimeVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
                 if (add_obstacles) {

@@ -133,8 +133,9 @@ int main(int argc, char** argv) {
     bool sim_output = true;
     bool settling_output = true;
     bool vis_output = true;
-    bool render = true;
-    double total_mass = 200;
+    bool renderRT = true;
+    bool renderPP = true;
+    double total_mass = 500;
     double toe_angle = 0;
     double dbp_filter_window = 0.1;
     std::string suffix = "";
@@ -142,7 +143,7 @@ int main(int argc, char** argv) {
     if (!GetProblemSpecs(argc, argv, rank, terrain_specfile, tire_specfile, nthreads_tire, nthreads_terrain, step_size,
                          fixed_settling_time, KE_threshold, settling_time, sim_time, act_type, base_vel, slip,
                          total_mass, toe_angle, dbp_filter_window, use_checkpoint, output_fps, vis_output_fps,
-                         render_fps, sim_output, settling_output, vis_output, render, verbose, suffix)) {
+                         render_fps, sim_output, settling_output, vis_output, renderRT, verbose, suffix)) {
         MPI_Finalize();
         return 1;
     }
@@ -165,7 +166,7 @@ int main(int argc, char** argv) {
 
     // Terrain dimensions and spindle initial location
     double terrain_length = 10;
-    double terrain_width = 1;
+    double terrain_width = 2;
     ChVector<> init_loc(-4, 0, 0.5);
 
 // Check if required modules are enabled
@@ -268,8 +269,10 @@ int main(int argc, char** argv) {
                 tire->SetStepSize(step_size);
                 tire->SetNumThreads(nthreads_tire);
                 tire->SetOutDir(out_dir, suffix);
-                if (render)
+                if (renderRT)
                     tire->EnableRuntimeVisualization(render_fps);
+                if (renderPP)
+                    tire->EnablePostprocessVisualization(render_fps);
                 tire->SetCameraPosition(ChVector<>(0, 2 * terrain_width, 1.0));
 
                 node = tire;
@@ -294,8 +297,10 @@ int main(int argc, char** argv) {
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
-                if (render)
+                if (renderRT)
                     terrain->EnableRuntimeVisualization(render_fps);
+                if (renderPP)
+                    terrain->EnablePostprocessVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector<>(0, 2 * terrain_width, 1.0));
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
@@ -312,10 +317,10 @@ int main(int argc, char** argv) {
                 terrain->SetStepSize(step_size);
                 terrain->SetNumThreads(nthreads_terrain);
                 terrain->SetOutDir(out_dir, suffix);
-                if (render) {
+                if (renderRT)
                     terrain->EnableRuntimeVisualization(render_fps);
+                if (renderPP)
                     terrain->EnablePostprocessVisualization(render_fps);
-                }
                 terrain->SetCameraPosition(ChVector<>(0, 2 * terrain_width, 1.0));
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
@@ -337,8 +342,10 @@ int main(int argc, char** argv) {
                 terrain->SetStepSize(step_size);
                 terrain->SetNumThreads(nthreads_terrain);
                 terrain->SetOutDir(out_dir, suffix);
-                if (render)
+                if (renderRT)
                     terrain->EnableRuntimeVisualization(render_fps);
+                if (renderPP)
+                    terrain->EnablePostprocessVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector<>(0, 2 * terrain_width, 1.0));
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
@@ -369,8 +376,10 @@ int main(int argc, char** argv) {
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
-                if (render)
+                if (renderRT)
                     terrain->EnableRuntimeVisualization(render_fps);
+                if (renderPP)
+                    terrain->EnablePostprocessVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector<>(0, 2 * terrain_width, 1.0));
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
@@ -400,10 +409,10 @@ int main(int argc, char** argv) {
                 std::string param_filename = GetChronoDataFile("fsi/input_json/demo_tire_rig.json");
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
-                if (render) {
+                if (renderRT)
                     terrain->EnableRuntimeVisualization(render_fps);
+                if (renderPP)
                     terrain->EnablePostprocessVisualization(render_fps);
-                }
                 terrain->SetCameraPosition(ChVector<>(0, 2 * terrain_width, 1.0));
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;

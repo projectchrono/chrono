@@ -244,7 +244,7 @@ int main(int argc, char** argv) {
     double sim_time = 10;
     double output_fps = 100;
     double render_fps = 100;
-    bool render = true;
+    bool renderRT = true;
     std::string suffix = "";
     bool verbose = true;
 
@@ -318,7 +318,7 @@ int main(int argc, char** argv) {
         terrain->SetVerbose(verbose);
         terrain->SetStepSize(step_size);
         terrain->SetOutDir(out_dir, suffix);
-        if (render)
+        if (renderRT)
             terrain->EnableRuntimeVisualization(render_fps);
         terrain->SetCameraPosition(ChVector<>(5, 2, 1));
         node = terrain;

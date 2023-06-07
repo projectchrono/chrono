@@ -184,7 +184,8 @@ int main(int argc, char** argv) {
     }
 
     std::string suffix = "";
-    bool render = true;
+    bool renderRT = true;
+    bool renderPP = true;
 
     // Peek in spec file and extract terrain type
     auto terrain_type = ChVehicleCosimTerrainNodeChrono::GetTypeFromSpecfile(terrain_specfile);
@@ -199,6 +200,10 @@ int main(int argc, char** argv) {
         terrain_length = size.x();
     if (terrain_width < 0)
         terrain_width = size.y();
+
+    std::cout << "-------------------" << std::endl;
+    std::cout << "Dimensions: " << terrain_length << "  " << terrain_width << std::endl;
+    std::cout << "-------------------" << std::endl;
 
     // Do not create obstacles if a DBP rig is attached
     if (use_DBP_rig) {
@@ -282,8 +287,10 @@ int main(int argc, char** argv) {
         viper->SetStepSize(step_size);
         viper->SetNumThreads(1);
         viper->SetOutDir(out_dir, suffix);
-        if (render)
+        if (renderRT)
             viper->EnableRuntimeVisualization(render_fps);
+        if (renderPP)
+            viper->EnablePostprocessVisualization(render_fps);
         viper->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
 
         if (verbose)
@@ -321,8 +328,10 @@ int main(int argc, char** argv) {
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
-                if (render)
+                if (renderRT)
                     terrain->EnableRuntimeVisualization(render_fps);
+                if (renderPP)
+                    terrain->EnablePostprocessVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
                 if (add_obstacles) {
                     terrain->AddRigidObstacle(CreateObstacle(ChVector<>(1, 1, 0.5)));
@@ -343,8 +352,10 @@ int main(int argc, char** argv) {
                 terrain->SetStepSize(step_size);
                 terrain->SetNumThreads(nthreads_terrain);
                 terrain->SetOutDir(out_dir, suffix);
-                if (render)
+                if (renderRT)
                     terrain->EnableRuntimeVisualization(render_fps);
+                if (renderPP)
+                    terrain->EnablePostprocessVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
                 if (add_obstacles) {
                     terrain->AddRigidObstacle(CreateObstacle(ChVector<>(1, 1, 0.5)));
@@ -367,8 +378,10 @@ int main(int argc, char** argv) {
                 terrain->SetStepSize(step_size);
                 terrain->SetNumThreads(nthreads_terrain);
                 terrain->SetOutDir(out_dir, suffix);
-                if (render)
+                if (renderRT)
                     terrain->EnableRuntimeVisualization(render_fps);
+                if (renderPP)
+                    terrain->EnablePostprocessVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
                 if (add_obstacles) {
                     terrain->AddRigidObstacle(CreateObstacle(ChVector<>(1, 1, 0.5)));
@@ -395,8 +408,10 @@ int main(int argc, char** argv) {
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
-                if (render)
+                if (renderRT)
                     terrain->EnableRuntimeVisualization(render_fps);
+                if (renderPP)
+                    terrain->EnablePostprocessVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
                 if (add_obstacles) {
                     terrain->AddRigidObstacle(CreateObstacle(ChVector<>(1, 1, 0.5)));
@@ -423,8 +438,10 @@ int main(int argc, char** argv) {
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
-                if (render)
+                if (renderRT)
                     terrain->EnableRuntimeVisualization(render_fps);
+                if (renderPP)
+                    terrain->EnablePostprocessVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
                 if (add_obstacles) {
                     terrain->AddRigidObstacle(CreateObstacle(ChVector<>(1, 1, 0.5)));
