@@ -81,7 +81,7 @@ class CH_VEHICLE_API ChTMeasyTire : public ChForceElementTire {
                            double pinfl_use = 1.0,     ///< inflation pressure in this configuration
                            double damping_ratio = 0.5  ///< scaling factor for normal damping coefficient
     );
-    
+
     void GuessPassCar70Par(double loadForce,           ///< tire nominal load force [N]
                            double tireWidth,           ///< tire width [m]
                            double ratio,               ///< use 0.75 meaning 75%
@@ -91,7 +91,7 @@ class CH_VEHICLE_API ChTMeasyTire : public ChForceElementTire {
                            double damping_ratio = 0.5  ///< scaling factor for normal damping coefficient
     );
 
- /// Set vertical tire stiffness as linear function by coefficient [N/m].
+    /// Set vertical tire stiffness as linear function by coefficient [N/m].
     void SetVerticalStiffness(double Cz) {
         m_d1 = Cz;
         m_d2 = 0;
@@ -132,8 +132,6 @@ class CH_VEHICLE_API ChTMeasyTire : public ChForceElementTire {
 
     bool m_use_startup_transition;
 
-    unsigned int m_integration_method;
-
     double m_time;
     double m_begin_start_transition;
     double m_end_start_transition;
@@ -146,23 +144,12 @@ class CH_VEHICLE_API ChTMeasyTire : public ChForceElementTire {
     double m_unloaded_radius;     ///< reference tire radius
     double m_width;               ///< tire width
     double m_rim_radius;          ///< tire rim radius
+    double m_bottom_radius;       ///< radius where tire bottoming begins
+    double m_bottom_stiffness;    ///< stiffness of the tire/bottom contact
     double m_rolling_resistance;  ///< actual rolling friction coeff
 
-    double m_ax1;
-    double m_ax2;
-    double m_bx1;
-    double m_bx2;
-    double m_ay1;
-    double m_ay2;
-    double m_by1;
-    double m_by2;
-    double m_cx1;
-    double m_cx2;
-    double m_cy1;
-    double m_cy2;
-
-    double m_d1;  ///< polynomial coefficient for stiffness interpolation
-    double m_d2;  ///< polynomial coefficient for stiffness interpolation
+    double m_d1;  ///< polynomial coefficient for stiffness interpolation, linear
+    double m_d2;  ///< polynomial coefficient for stiffness interpolation, quadratic
 
     double m_vcoulomb;
     double m_frblend_begin;

@@ -60,7 +60,7 @@ enum class DriverModelType {
 };
 
 // Type of tire model (RIGID, MFTIRE, PAC02, TMSIMPLE)
-TireModelType tire_model = TireModelType::TMEASY;
+TireModelType tire_model = TireModelType::MFTIRE;
 
 // Road visualization (mesh or boundary lines)
 bool useMesh = true;

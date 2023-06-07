@@ -14,7 +14,7 @@ namespace chrono {
 namespace vehicle {
 
 class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
-  public:
+   public:
     ChTMsimpleTire(const std::string& name);
 
     virtual ~ChTMsimpleTire() {}
@@ -91,11 +91,14 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
     );
 
     /// Set vertical tire stiffness as linear function by coefficient [N/m].
-    void SetVerticalStiffness(double Cz) { m_d1 = Cz; m_d2 = 0.0; }
+    void SetVerticalStiffness(double Cz) {
+        m_d1 = Cz;
+        m_d2 = 0.0;
+    }
 
     /// Set vertical tire stiffness as nonlinear function by coefficients at nominal load 1 [N/m]
     /// and nominal load 2 [N/m].
-    //void SetVerticalStiffness(double Cz1, double Cz2);
+    // void SetVerticalStiffness(double Cz1, double Cz2);
 
     /// Set vertical tire stiffness as nonlinear function by calculation from tire test data (least squares).
     void SetVerticalStiffness(std::vector<double>& defl, std::vector<double>& frc);
@@ -119,7 +122,7 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
     /// Simple parameter consistency test.
     bool CheckParameters();
 
-  protected:
+   protected:
     /// Set the parameters in the TMsimple model.
     virtual void SetTMsimpleParams() = 0;
 
@@ -145,6 +148,8 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
     double m_unloaded_radius;     ///< reference tire radius
     double m_width;               ///< tire width
     double m_rim_radius;          ///< tire rim radius
+    double m_bottom_radius;       ///< radius where tire bottoming begins
+    double m_bottom_stiffness;    ///< stiffness of the tire/bottom contact
     double m_rolling_resistance;  ///< actual rolling friction coeff
 
     double m_ax1;
@@ -174,11 +179,6 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
         double pn_max;  ///< Maximum vertical force [N]
 
         double mu_0;  ///< Local friction coefficient of the road for given parameters
-        double cx;    ///< Linear stiffness x [N/m]
-        double cy;    ///< Linear stiffness y [N/m]
-        double cz;    ///< Stiffness, may vary with the vertical force [N/m]
-        double dx;    ///< Linear damping coefficient x [Ns/m]
-        double dy;    ///< Linear damping coefficient y [Ns/m]
         double dz;    ///< Linear damping coefficient z [Ns/m]
 
         double dfx0_pn, dfx0_p2n;  ///< Initial longitudinal slopes dFx/dsx [kN]

@@ -66,18 +66,22 @@ void TMsimpleTire::Create(const rapidjson::Document& d) {
 
     if (d.HasMember("Parameters")) {
         // Full parameterization
-        m_par.pn = d["Parameters"]["Tire Load"]["Nominal Vertical Force [N]"].GetDouble();
-        m_par.pn_max = d["Parameters"]["Tire Load"]["Maximum Vertical Force [N]"].GetDouble();
+        m_par.pn = d["Parameters"]["Vertical"]["Nominal Vertical Force [N]"].GetDouble();
+        if(d["Parameters"]["Vertical"].HasMember("Maximum Vertical Force [N]"))
+            m_par.pn_max = d["Parameters"]["Vertical"]["Maximum Vertical Force [N]"].GetDouble();
+        else
+            m_par.pn_max = 3.5 * m_par.pn;
 
-        m_par.cx = d["Parameters"]["Tire Stiffness"]["Longitudinal [N/m]"].GetDouble();
-        m_par.cy = d["Parameters"]["Tire Stiffness"]["Lateral [N/m]"].GetDouble();
-        double a1 = d["Parameters"]["Tire Stiffness"]["Vertical [N/m]"][0u].GetDouble();
-        double a2 = d["Parameters"]["Tire Stiffness"]["Vertical [N/m]"][1u].GetDouble();
+        double a1 = d["Parameters"]["Vertical"]["Vertical Tire Stiffness [N/m]"].GetDouble();
         SetVerticalStiffness(a1);
 
-        m_par.dx = d["Parameters"]["Tire Damping"]["Longitudinal [Ns/m]"].GetDouble();
-        m_par.dy = d["Parameters"]["Tire Damping"]["Lateral [Ns/m]"].GetDouble();
-        m_par.dz = d["Parameters"]["Tire Damping"]["Vertical [Ns/m]"].GetDouble();
+        m_par.dz = d["Parameters"]["Vertical"]["Vertical Tire Damping [Ns/m]"].GetDouble();
+        
+        // Bottoming parameters are optional, if not set, Initialize() sets default values
+        if(d["Parameters"]["Vertical"].HasMember("Tire Bottoming Radius [m]"))
+            m_bottom_radius = d["Parameters"]["Vertical"]["Tire Bottoming Radius [m]"].GetDouble();
+        if(d["Parameters"]["Vertical"].HasMember("Tire Bottoming Stiffness [N/m]"))
+            m_bottom_stiffness = d["Parameters"]["Vertical"]["Tire Bottoming Stiffness [N/m]"].GetDouble();
 
         m_par.dfx0_pn = d["Parameters"]["Longitudinal"]["Initial Slopes dFx/dsx [N]"][0u].GetDouble();
         m_par.dfx0_p2n = d["Parameters"]["Longitudinal"]["Initial Slopes dFx/dsx [N]"][1u].GetDouble();
@@ -113,7 +117,8 @@ void TMsimpleTire::Create(const rapidjson::Document& d) {
         // Specification through load index
         unsigned int li = d["Load Index"].GetUint();
         std::string vehicle_type = d["Vehicle Type"].GetString();
-        if (vehicle_type.compare("Truck") == 0) {
+        std::transform(vehicle_type.begin(), vehicle_type.end(), vehicle_type.begin(), ::tolower);
+        if (vehicle_type.compare("truck") == 0) {
             GuessTruck80Par(li, m_width, (m_unloaded_radius - m_rim_radius) / m_width, 2 * m_rim_radius, p_li, p_use);
         } else {
             GuessPassCar70Par(li, m_width, (m_unloaded_radius - m_rim_radius) / m_width, 2 * m_rim_radius, p_li, p_use);
@@ -139,6 +144,7 @@ void TMsimpleTire::Create(const rapidjson::Document& d) {
         // Specification through bearing capacity
         double bearing_capacity = d["Maximum Bearing Capacity [N]"].GetDouble();
         std::string vehicle_type = d["Name"].GetString();
+        std::transform(vehicle_type.begin(), vehicle_type.end(), vehicle_type.begin(), ::tolower);
         if (vehicle_type.compare("truck") == 0) {
             GuessTruck80Par(bearing_capacity, m_width, (m_unloaded_radius - m_rim_radius) / m_width, m_rim_radius, p_li,
                             p_use);

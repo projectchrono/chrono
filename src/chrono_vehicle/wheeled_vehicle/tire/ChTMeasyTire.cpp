@@ -23,7 +23,9 @@ ChTMeasyTire::ChTMeasyTire(const std::string& name)
       m_use_startup_transition(false),
       m_vcoulomb(1.0),
       m_frblend_begin(1.0),
-      m_frblend_end(3.0) {
+      m_frblend_end(3.0),
+      m_bottom_radius(0.0),
+      m_bottom_stiffness(0.0) {
     m_tireforce.force = ChVector<>(0, 0, 0);
     m_tireforce.point = ChVector<>(0, 0, 0);
     m_tireforce.moment = ChVector<>(0, 0, 0);
@@ -39,6 +41,14 @@ void ChTMeasyTire::Initialize(std::shared_ptr<ChWheel> wheel) {
 
     SetTMeasyParams();
 
+    // unset bottoming parameters?
+    if (m_bottom_radius == 0) {
+        m_bottom_radius = m_rim_radius + 0.01;  // consider thickness of the carcass
+    }
+    if(m_bottom_stiffness == 0.0) {
+        m_bottom_stiffness = 5.0 * m_d1;
+    }
+
     // Build the lookup table for penetration depth as function of intersection area
     // (used only with the ChTire::ENVELOPE method for terrain-tire collision detection)
     ConstructAreaDepthTable(m_unloaded_radius, m_areaDep);
@@ -48,7 +58,6 @@ void ChTMeasyTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     m_states.sy = 0;
     m_states.vta = m_vnum;
     m_states.R_eff = m_unloaded_radius;
-    m_integration_method = 2;
 }
 
 // -----------------------------------------------------------------------------
@@ -74,6 +83,7 @@ void ChTMeasyTire::Synchronize(double time, const ChTerrain& terrain) {
 
     if (m_par.pn <= 0.0) {
         GetLog() << "FATAL error in " << __func__ << ": Nominal Force has not been set!\n";
+        exit(99);
     }
     m_states.gamma = ChClamp(GetCamberAngle(), -m_gamma_limit * CH_C_DEG_TO_RAD, m_gamma_limit * CH_C_DEG_TO_RAD);
 
@@ -95,8 +105,7 @@ void ChTMeasyTire::Synchronize(double time, const ChTerrain& terrain) {
         }
 
         m_data.normal_force = Fn_mag;
-        m_states.q = Fn_mag / m_par.pn;
-        ChClampValue(m_states.q, 0.0, 3.5);
+        m_states.q = ChClamp(Fn_mag, 0.0, m_par.pn_max) / m_par.pn;
         double r_stat = m_unloaded_radius - m_data.depth;
         m_states.omega = wheel_state.omega;
         m_states.R_eff = (2.0 * m_unloaded_radius + r_stat) / 3.0;
@@ -314,7 +323,12 @@ double ChTMeasyTire::AlignmentTorque(double fy) {
 // -----------------------------------------------------------------------------
 
 double ChTMeasyTire::GetNormalStiffnessForce(double depth) const {
-    return depth * m_d1 + depth * depth * m_d2;
+    double F = depth * m_d1 + depth * depth * m_d2;  // tire force
+    double free_depth = m_unloaded_radius - m_bottom_radius;
+    if (depth - free_depth > 0) {
+        F += (depth - free_depth) * m_bottom_stiffness;  // add bottom contact force
+    }
+    return F;
 }
 
 double ChTMeasyTire::GetNormalDampingForce(double depth, double velocity) const {
@@ -441,7 +455,7 @@ void ChTMeasyTire::GuessTruck80Par(double tireLoad,       // tire load force [N]
     m_width = tireWidth;
     m_unloaded_radius = secth + rimDia / 2.0;
     m_par.mu_0 = 0.8;
-    
+
     // Normalized Parameters gained from data set containing original data from Pacejka book
     m_par.dfx0_pn = 17.7764 * m_par.pn;
     m_par.dfx0_p2n = 14.5301 * 2.0 * m_par.pn;
@@ -512,7 +526,7 @@ void ChTMeasyTire::GuessPassCar70Par(double tireLoad,       // tire load force [
     m_par.dz = DZ;
 
     m_rim_radius = 0.5 * rimDia;
-    
+
     // Normalized Parameters gained from data set containing original data from Pacejka book
     m_par.dfx0_pn = 18.3741 * m_par.pn;
     m_par.dfx0_p2n = 19.4669 * 2.0 * m_par.pn;
@@ -541,7 +555,6 @@ void ChTMeasyTire::GuessPassCar70Par(double tireLoad,       // tire load force [
     m_par.sq0_p2n = 0.20355;
     m_par.sqe_p2n = 1.0714;
 }
-
 
 // Do some rough constency checks
 bool ChTMeasyTire::CheckParameters() {

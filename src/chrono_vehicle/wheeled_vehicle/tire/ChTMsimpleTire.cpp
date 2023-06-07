@@ -17,13 +17,15 @@ namespace vehicle {
 ChTMsimpleTire::ChTMsimpleTire(const std::string& name)
     : ChForceElementTire(name),
       m_vnum(0.01),
-      m_gamma_limit(5),
+      m_gamma_limit(4),
       m_begin_start_transition(0.1),
       m_end_start_transition(0.25),
       m_use_startup_transition(false),
       m_vcoulomb(1.0),
       m_frblend_begin(1.0),
-      m_frblend_end(3.0) {
+      m_frblend_end(3.0),
+      m_bottom_radius(0.0),
+      m_bottom_stiffness(0.0) {
     m_tireforce.force = ChVector<>(0, 0, 0);
     m_tireforce.point = ChVector<>(0, 0, 0);
     m_tireforce.moment = ChVector<>(0, 0, 0);
@@ -46,7 +48,14 @@ void ChTMsimpleTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     ChTire::Initialize(wheel);
 
     SetTMsimpleParams();
-
+    
+    // unset bottoming parameters?
+    if (m_bottom_radius == 0) {
+        m_bottom_radius = m_rim_radius + 0.01;  // consider thickness of the carcass
+    }
+    if (m_bottom_stiffness == 0) {
+        m_bottom_stiffness = 5.0 * m_d1;
+    }
     // Build the lookup table for penetration depth as function of intersection area
     // (used only with the ChTire::ENVELOPE method for terrain-tire collision detection)
     ConstructAreaDepthTable(m_unloaded_radius, m_areaDep);
@@ -168,7 +177,7 @@ void ChTMsimpleTire::Advance(double step) {
     My = -m_rolling_resistance * m_data.normal_force * m_unloaded_radius * tanh(m_states.omega);
 
     // Overturning Torque
-    double cg = std::pow(m_width, 2.0) * m_par.cz / 12.0;
+    double cg = std::pow(m_width, 2.0) * (m_d1 + 2.0 * m_d2 * m_data.depth) / 12.0;
     Mx = -cg * m_states.gamma;
 
     double Ms = 0.0;
@@ -264,7 +273,12 @@ double ChTMsimpleTire::AlignmentTorque(double fy) {
 // -----------------------------------------------------------------------------
 
 double ChTMsimpleTire::GetNormalStiffnessForce(double depth) const {
-    return depth * m_d1 + depth * depth * m_d2;
+    double F = depth * m_d1 + depth * depth * m_d2;  // tire force
+    double free_depth = m_unloaded_radius - m_bottom_radius;
+    if (depth - free_depth > 0) {
+        F += (depth - free_depth) * m_bottom_stiffness;  // add bottom contact force
+    }
+    return F;
 }
 
 double ChTMsimpleTire::GetNormalDampingForce(double depth, double velocity) const {
@@ -307,7 +321,6 @@ void ChTMsimpleTire::SetVerticalStiffness(std::vector<double>& defl, std::vector
     r = A.colPivHouseholderQr().solve(b);
     m_d1 = r(0);
     m_d2 = r(1);
-    m_par.cz = sqrt(m_d1 * m_d1 + 4.0 * m_d2 * m_par.pn);
     GetLog() << "Stiffness Coeffs from test data d1 = " << m_d1 << "  d2 = " << m_d2 << "\n";
 }
 
@@ -415,10 +428,6 @@ void ChTMsimpleTire::GuessTruck80Par(double tireLoad,       // tire load force [
     SetRollingResistanceCoefficient(0.015);
 
     m_par.dz = DZ;
-    m_par.cx = 0.9 * CZ;
-    m_par.dx = damping_ratio * sqrt(m_par.cx * GetTireMass());
-    m_par.cy = 0.8 * CZ;
-    m_par.dy = damping_ratio * sqrt(m_par.cy * GetTireMass());
 
     m_rim_radius = 0.5 * rimDia;
 
@@ -433,7 +442,7 @@ void ChTMsimpleTire::GuessTruck80Par(double tireLoad,       // tire load force [
     m_par.fxm_p2n = 0.79538 * 2.0 * m_par.pn;
     m_par.fxs_pn = 0.52273 * m_par.pn;
     m_par.fxs_p2n = 0.48517 * 2.0 * m_par.pn;
-    
+
     m_par.dfy0_pn = 6.8392 * m_par.pn;
     m_par.dfy0_p2n = 6.4235 * 2.0 * m_par.pn;
     m_par.fym_pn = 0.75948 * m_par.pn;
@@ -502,10 +511,6 @@ void ChTMsimpleTire::GuessPassCar70Par(double tireLoad,       // tire load force
     SetRollingResistanceCoefficient(0.015);
 
     m_par.dz = DZ;
-    m_par.cx = 0.9 * CZ;
-    m_par.dx = damping_ratio * sqrt(m_par.cx * GetTireMass());
-    m_par.cy = 0.8 * CZ;
-    m_par.dy = damping_ratio * sqrt(m_par.cy * GetTireMass());
 
     m_rim_radius = 0.5 * rimDia;
 
@@ -522,7 +527,7 @@ void ChTMsimpleTire::GuessPassCar70Par(double tireLoad,       // tire load force
     m_par.fym_p2n = 0.91902 * 2.0 * m_par.pn;
     m_par.fys_pn = 0.84864 * m_par.pn;
     m_par.fys_p2n = 0.78702 * 2.0 * m_par.pn;
-    
+
     SetHorizontalCoefficients();
 }
 

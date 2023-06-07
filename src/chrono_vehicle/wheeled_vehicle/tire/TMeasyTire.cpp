@@ -51,8 +51,8 @@ void TMeasyTire::Create(const rapidjson::Document& d) {
     // Read design parameters (required)
     assert(d.HasMember("Design"));
     assert(d.HasMember("Coefficient of Friction"));
-    assert(d.HasMember("Rolling Resistance Coefficients"));
-
+    assert(d.HasMember("Rolling Resistance Coefficient"));
+        
     m_mass = d["Design"]["Mass [kg]"].GetDouble();
     m_inertia = ReadVectorJSON(d["Design"]["Inertia [kg.m2]"]);
     m_unloaded_radius = d["Design"]["Unloaded Radius [m]"].GetDouble();
@@ -61,18 +61,25 @@ void TMeasyTire::Create(const rapidjson::Document& d) {
 
     double p_li = 1.0;
     double p_use = 1.0;
-    ////bool pressure_info_found = false;
-
+ 
     if (d.HasMember("Parameters")) {
         // Full parameterization
-        m_par.pn = d["Parameters"]["Tire Load"]["Nominal Vertical Force [N]"].GetDouble();
-        m_par.pn_max = d["Parameters"]["Tire Load"]["Maximum Vertical Force [N]"].GetDouble();
+        m_par.pn = d["Parameters"]["Vertical"]["Nominal Vertical Force [N]"].GetDouble();
+        if(d["Parameters"]["Vertical"].HasMember("Maximum Vertical Force [N]"))
+            m_par.pn_max = d["Parameters"]["Vertical"]["Maximum Vertical Force [N]"].GetDouble();
+        else
+            m_par.pn_max = 3.5 * m_par.pn;
 
-        double a1 = d["Parameters"]["Tire Stiffness"]["Vertical [N/m]"][0u].GetDouble();
-        double a2 = d["Parameters"]["Tire Stiffness"]["Vertical [N/m]"][1u].GetDouble();
+        double a1 = d["Parameters"]["Vertical"]["Tire Vertical Stiffness[N/m]"].GetDouble();
         SetVerticalStiffness(a1);
 
-        m_par.dz = d["Parameters"]["Tire Damping"]["Vertical [Ns/m]"].GetDouble();
+        m_par.dz = d["Parameters"]["Vertical"]["Tire Vertical Damping [Ns/m]"].GetDouble();
+        
+        // Bottoming parameters are optional, if not set, Initialize() sets default values
+        if(d["Parameters"]["Vertical"].HasMember("Tire Bottoming Radius [m]"))
+            m_bottom_radius = d["Parameters"]["Vertical"]["Tire Bottoming Radius [m]"].GetDouble();
+        if(d["Parameters"]["Vertical"].HasMember("Tire Bottoming Stiffness [N/m]"))
+            m_bottom_stiffness = d["Parameters"]["Vertical"]["Tire Bottoming Stiffness [N/m]"].GetDouble();
 
         m_par.dfx0_pn = d["Parameters"]["Longitudinal"]["Initial Slopes dFx/dsx [N]"][0u].GetDouble();
         m_par.dfx0_p2n = d["Parameters"]["Longitudinal"]["Initial Slopes dFx/dsx [N]"][1u].GetDouble();
@@ -164,9 +171,7 @@ void TMeasyTire::Create(const rapidjson::Document& d) {
     // Coefficient of friction and rolling resistance coefficients.
     // These must be set here to ensure they are not overwritten.
     m_par.mu_0 = d["Coefficient of Friction"].GetDouble();
-
-    // m_par.rrcoeff_pn = d["Rolling Resistance Coefficients"][0u].GetDouble();
-    // m_par.rrcoeff_p2n = d["Rolling Resistance Coefficients"][1u].GetDouble();
+    m_rolling_resistance = d["Rolling Resistance Coefficient"].GetDouble();
 
     // Check how to visualize this tire.
     if (d.HasMember("Visualization")) {

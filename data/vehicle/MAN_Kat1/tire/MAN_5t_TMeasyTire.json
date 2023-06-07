@@ -11,13 +11,12 @@
     "Mass [kg]": 104.0,
     "Inertia [kg.m2]": [ 17.8651, 31.6623, 17.8651 ],
     "Width [m]": 0.386,
-    "Rim Radius [m]": 0.254,
-    "Roundness of Cross Section": 0.1
+    "Rim Radius [m]": 0.254
   },
 
   "Coefficient of Friction": 0.8,
 
-  "Rolling Resistance Coefficients": [ 0.015, 0.015 ],
+  "Rolling Resistance Coefficient": 0.015,
 
   // ------------------------------------------------
   // Vehicle type.
