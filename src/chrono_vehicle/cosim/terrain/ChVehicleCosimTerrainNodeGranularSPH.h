@@ -75,6 +75,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
     ChSystemSMC* m_system;                            ///< containing system
     fsi::ChSystemFsi* m_systemFSI;                    ///< containing FSI system
     std::shared_ptr<fsi::ChFsiVisualization> m_vsys;  ///< run-time visualization system
+    ChVector<> m_aabb_min;                            ///< particle AABB corner
+    ChVector<> m_aabb_max;                            ///< particle AABB corner
 
     double m_depth;  ///< SPH soil depth
 

@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <cmath>
 #include <set>
+#include <limits>
 
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
@@ -37,9 +38,9 @@
 #ifdef CHRONO_OPENGL
     #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
 #endif
-////#ifdef CHRONO_VSG
-////    #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
-////#endif
+#ifdef CHRONO_VSG
+    #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
+#endif
 
 using std::cout;
 using std::endl;
@@ -59,7 +60,11 @@ static const int body_id_obstacles = 100000;
 // - create the Chrono FSI system
 // -----------------------------------------------------------------------------
 ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(double length, double width)
-    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_SPH, length, width, ChContactMethod::SMC), m_depth(0) {
+    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_SPH, length, width, ChContactMethod::SMC),
+      m_depth(0),
+      m_aabb_min(std::numeric_limits<double>::max()),
+      m_aabb_max(-std::numeric_limits<double>::max())
+{
     // Default granular material properties
     m_radius_g = 0.01;
     m_rho_g = 2000;
@@ -176,6 +181,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
             m_systemFSI->GetDensity() + pre_ini / (m_systemFSI->GetSoundSpeed() * m_systemFSI->GetSoundSpeed());
         m_systemFSI->AddSPHParticle(points[i], rho_ini, 0.0, m_systemFSI->GetViscosity(), ChVector<>(1e-10),
                                     ChVector<>(-pre_ini), ChVector<>(1e-10));
+        m_aabb_min = Vmin(m_aabb_min, points[i]);
+        m_aabb_max = Vmax(m_aabb_max, points[i]);
     }
 
     // Create a body for the fluid container body
@@ -303,7 +310,9 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
 
     // Initialize run-time visualization
     if (m_renderRT) {
-#if defined(CHRONO_OPENGL)
+#if defined(CHRONO_VSG)
+        m_vsys = chrono_types::make_shared<ChFsiVisualizationVSG>(m_systemFSI, false);
+#elif defined(CHRONO_OPENGL)
         m_vsys = chrono_types::make_shared<ChFsiVisualizationGL>(m_systemFSI, false);
 #endif
         if (m_vsys) {
@@ -316,8 +325,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
             m_vsys->EnableRigidBodyMarkers(true);
             m_vsys->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
             m_vsys->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
-            ////m_vsys->SetSPHColorCallback(chrono_types::make_shared<HeightColorCallback>(ChColor(0.10f, 0.40f, 0.65f),
-            ////                                                                           aabb_min.z(), aabb_max.z()));
+            m_vsys->SetSPHColorCallback(chrono_types::make_shared<HeightColorCallback>(ChColor(0.10f, 0.40f, 0.65f),
+                                                                                       m_aabb_min.z(), m_aabb_max.z()));
             m_vsys->AttachSystem(m_system);
             m_vsys->Initialize();
         }
