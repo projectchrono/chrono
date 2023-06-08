@@ -63,8 +63,6 @@ set(CVM_HMMWV_TIRE_FILES
     hmmwv/tire/HMMWV_FialaTire.h
     hmmwv/tire/HMMWV_Pac89Tire.cpp
     hmmwv/tire/HMMWV_Pac89Tire.h
-    hmmwv/tire/HMMWV_Pac02Tire.cpp
-    hmmwv/tire/HMMWV_Pac02Tire.h
     hmmwv/tire/HMMWV_TMeasyTire.cpp
     hmmwv/tire/HMMWV_TMeasyTire.h
     hmmwv/tire/HMMWV_TMsimpleTire.cpp
@@ -123,8 +121,6 @@ set(CVM_FEDA_FILES
     feda/FEDA_EngineSimpleMap.h
     feda/FEDA_MFTire.cpp
     feda/FEDA_MFTire.h
-    feda/FEDA_Pac02Tire.cpp
-    feda/FEDA_Pac02Tire.h
     feda/FEDA_PitmanArm.cpp
     feda/FEDA_PitmanArm.h
     feda/FEDA_RigidTire.cpp
@@ -310,8 +306,6 @@ set(CVM_UAZ_FILES
     uaz/UAZBUS_RotaryArm.h
     uaz/UAZBUS_TMeasyTire.cpp
     uaz/UAZBUS_TMeasyTire.h
-    uaz/UAZBUS_Pac02Tire.cpp
-    uaz/UAZBUS_Pac02Tire.h
     uaz/UAZBUS_SAEToeBarLeafspringAxle.cpp
     uaz/UAZBUS_SAEToeBarLeafspringAxle.h
     uaz/UAZBUS_ToeBarLeafspringAxle.cpp
@@ -561,8 +555,6 @@ set(CVM_SEDAN_FILES
     sedan/Sedan_TMeasyTire.h
     sedan/Sedan_TMsimpleTire.cpp
     sedan/Sedan_TMsimpleTire.h
-    sedan/Sedan_Pac02Tire.cpp
-    sedan/Sedan_Pac02Tire.h
     sedan/Sedan_RackPinion.cpp
     sedan/Sedan_RackPinion.h
     sedan/Sedan_AutomaticTransmissionSimpleMap.cpp
@@ -601,8 +593,6 @@ set(CVM_CITYBUS_FILES
     citybus/CityBus_RigidTire.h
     citybus/CityBus_TMeasyTire.cpp
     citybus/CityBus_TMeasyTire.h
-    citybus/CityBus_Pac02Tire.cpp
-    citybus/CityBus_Pac02Tire.h
     citybus/CityBus_RackPinion.cpp
     citybus/CityBus_RackPinion.h
 

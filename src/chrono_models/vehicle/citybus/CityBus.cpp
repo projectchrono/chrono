@@ -122,6 +122,8 @@ void CityBus::Initialize() {
             break;
         }
 
+        default:
+            GetLog() << "Unsupported Tire Model Type! Switching to TMeasy.\n";
         case TireModelType::TMEASY: {
             auto tire_FL = chrono_types::make_shared<CityBus_TMeasyTire>("FL");
             auto tire_FR = chrono_types::make_shared<CityBus_TMeasyTire>("FR");
@@ -145,33 +147,6 @@ void CityBus::Initialize() {
 
             break;
         }
-
-        case TireModelType::PAC02: {
-            auto tire_FL = chrono_types::make_shared<CityBus_Pac02Tire>("FL");
-            auto tire_FR = chrono_types::make_shared<CityBus_Pac02Tire>("FR");
-
-            auto tire_RLi = chrono_types::make_shared<CityBus_Pac02Tire>("RLi");
-            auto tire_RRi = chrono_types::make_shared<CityBus_Pac02Tire>("RRi");
-
-            auto tire_RLo = chrono_types::make_shared<CityBus_Pac02Tire>("RLo");
-            auto tire_RRo = chrono_types::make_shared<CityBus_Pac02Tire>("RRo");
-
-            m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
-
-            m_vehicle->InitializeTire(tire_RLi, m_vehicle->GetAxle(1)->GetWheel(LEFT, INNER), VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RRi, m_vehicle->GetAxle(1)->GetWheel(RIGHT, INNER), VisualizationType::NONE);
-
-            m_vehicle->InitializeTire(tire_RLo, m_vehicle->GetAxle(1)->GetWheel(LEFT, OUTER), VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RRo, m_vehicle->GetAxle(1)->GetWheel(RIGHT, OUTER), VisualizationType::NONE);
-
-            m_tire_mass = tire_FL->GetMass();
-
-            break;
-        }
-
-        default:
-            break;
     }
 
     for (auto& axle : m_vehicle->GetAxles()) {

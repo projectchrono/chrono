@@ -30,7 +30,6 @@
 #include "chrono_models/vehicle/sedan/Sedan_RigidTire.h"
 #include "chrono_models/vehicle/sedan/Sedan_TMeasyTire.h"
 #include "chrono_models/vehicle/sedan/Sedan_TMsimpleTire.h"
-#include "chrono_models/vehicle/sedan/Sedan_Pac02Tire.h"
 
 namespace chrono {
 namespace vehicle {

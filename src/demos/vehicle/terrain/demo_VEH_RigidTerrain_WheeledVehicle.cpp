@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetTransmissionType(TransmissionModelType::SIMPLE_MAP);
     my_hmmwv.SetDriveType(DrivelineTypeWV::RWD);
     my_hmmwv.SetBrakeType(BrakeType::SHAFTS);
-    my_hmmwv.SetTireType(TireModelType::PAC02);
+    my_hmmwv.SetTireType(TireModelType::TMEASY);
     my_hmmwv.SetTireStepSize(tire_step_size);
     my_hmmwv.Initialize();
 

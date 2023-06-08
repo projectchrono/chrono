@@ -29,7 +29,6 @@
 #include "chrono_models/vehicle/uaz/UAZBUS_AutomaticTransmissionSimpleMap.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_RigidTire.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_TMeasyTire.h"
-#include "chrono_models/vehicle/uaz/UAZBUS_Pac02Tire.h"
 
 namespace chrono {
 namespace vehicle {

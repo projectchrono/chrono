@@ -536,8 +536,6 @@ set(CV_WV_TIRE_FILES
     wheeled_vehicle/tire/ChRigidTire.cpp
     wheeled_vehicle/tire/ChForceElementTire.h
     wheeled_vehicle/tire/ChForceElementTire.cpp
-    wheeled_vehicle/tire/ChPac02Tire.h
-    wheeled_vehicle/tire/ChPac02Tire.cpp
     wheeled_vehicle/tire/ChPac89Tire.h
     wheeled_vehicle/tire/ChPac89Tire.cpp
     wheeled_vehicle/tire/ChFialaTire.h
@@ -560,8 +558,6 @@ set(CV_WV_TIRE_FILES
 
     wheeled_vehicle/tire/RigidTire.h
     wheeled_vehicle/tire/RigidTire.cpp
-    wheeled_vehicle/tire/Pac02Tire.h
-    wheeled_vehicle/tire/Pac02Tire.cpp
     wheeled_vehicle/tire/Pac89Tire.h
     wheeled_vehicle/tire/Pac89Tire.cpp
     wheeled_vehicle/tire/FialaTire.h

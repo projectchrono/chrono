@@ -188,6 +188,8 @@ void FEDA::Initialize() {
 
             break;
         }
+        default:
+            GetLog() << "Unknown Tire Model Type! Switching to TMsimple.\n";
         case TireModelType::TMSIMPLE: {
             auto tire_FL = chrono_types::make_shared<FEDA_TMsimpleTire>("FL");
             auto tire_FR = chrono_types::make_shared<FEDA_TMsimpleTire>("FR");
@@ -222,33 +224,6 @@ void FEDA::Initialize() {
 
             break;
         } 
-        case TireModelType::PAC02: {
-            auto tire_FL = chrono_types::make_shared<FEDA_Pac02Tire>("FL");
-            auto tire_FR = chrono_types::make_shared<FEDA_Pac02Tire>("FR");
-            auto tire_RL = chrono_types::make_shared<FEDA_Pac02Tire>("RL");
-            auto tire_RR = chrono_types::make_shared<FEDA_Pac02Tire>("RR");
-
-            tire_FL->SetPressure(m_tire_pressure);
-            tire_FR->SetPressure(m_tire_pressure);
-            tire_RL->SetPressure(m_tire_pressure);
-            tire_RR->SetPressure(m_tire_pressure);
-
-            m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE,
-                                      m_tire_collision_type);
-            m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE,
-                                      m_tire_collision_type);
-            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE,
-                                      m_tire_collision_type);
-            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE,
-                                      m_tire_collision_type);
-
-            m_tire_mass = tire_FL->GetMass();
-
-            break;
-        }
-
-        default:
-            break;
     }
 
     for (auto& axle : m_vehicle->GetAxles()) {

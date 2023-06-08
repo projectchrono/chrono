@@ -71,7 +71,6 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/TMeasyTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/TMsimpleTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/Pac89Tire.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/Pac02Tire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/MFTire.h"
 #include "chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
 
@@ -1040,8 +1039,6 @@ std::shared_ptr<ChTire> ReadTireJSON(const std::string& filename) {
         tire = chrono_types::make_shared<FialaTire>(d);
     } else if (subtype.compare("Pac89Tire") == 0) {
         tire = chrono_types::make_shared<Pac89Tire>(d);
-    } else if (subtype.compare("Pac02Tire") == 0) {
-        tire = chrono_types::make_shared<Pac02Tire>(d);
     } else if (subtype.compare("MFTire") == 0) {
         tire = chrono_types::make_shared<MFTire>(d);
     } else if (subtype.compare("ANCFTire") == 0) {

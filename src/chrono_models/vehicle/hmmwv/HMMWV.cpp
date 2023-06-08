@@ -26,7 +26,6 @@
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_ANCFTire.h"
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_FialaTire.h"
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_Pac89Tire.h"
-#include "chrono_models/vehicle/hmmwv/tire/HMMWV_Pac02Tire.h"
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_ReissnerTire.h"
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_RigidTire.h"
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_TMeasyTire.h"
@@ -193,6 +192,8 @@ void HMMWV::Initialize() {
             break;
         }
             
+        default:
+            GetLog() << "Unsupported Tire Model Type!, Switching to TMsimple.\n";
         case TireModelType::TMSIMPLE: {
             auto tire_FL = chrono_types::make_shared<HMMWV_TMsimpleTire>("FL");
             auto tire_FR = chrono_types::make_shared<HMMWV_TMsimpleTire>("FR");
@@ -214,21 +215,6 @@ void HMMWV::Initialize() {
             auto tire_FR = chrono_types::make_shared<HMMWV_Pac89Tire>("FR");
             auto tire_RL = chrono_types::make_shared<HMMWV_Pac89Tire>("RL");
             auto tire_RR = chrono_types::make_shared<HMMWV_Pac89Tire>("RR");
-
-            m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
-
-            m_tire_mass = tire_FL->GetMass();
-
-            break;
-        }
-        case TireModelType::PAC02: {
-            auto tire_FL = chrono_types::make_shared<HMMWV_Pac02Tire>("FL");
-            auto tire_FR = chrono_types::make_shared<HMMWV_Pac02Tire>("FR");
-            auto tire_RL = chrono_types::make_shared<HMMWV_Pac02Tire>("RL");
-            auto tire_RR = chrono_types::make_shared<HMMWV_Pac02Tire>("RR");
 
             m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
@@ -269,8 +255,6 @@ void HMMWV::Initialize() {
 
             break;
         }
-        default:
-            break;
     }
 
     for (auto& axle : m_vehicle->GetAxles()) {

@@ -27,7 +27,6 @@
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_RigidTire.h"
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_TMeasyTire.h"
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_Pac89Tire.h"
-#include "chrono_models/vehicle/hmmwv/tire/HMMWV_Pac02Tire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Wheel.h"
 
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
@@ -126,9 +125,6 @@ int main() {
                 break;
             case TireType::PAC89:
                 tire = chrono_types::make_shared<hmmwv::HMMWV_Pac89Tire>("Pac89 tire");
-                break;
-            case TireType::PAC02:
-                tire = chrono_types::make_shared<hmmwv::HMMWV_Pac02Tire>("Pac02 tire");
                 break;
             case TireType::ANCF4:
                 tire = chrono_types::make_shared<hmmwv::HMMWV_ANCFTire>("ANCF tire",
