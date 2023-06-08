@@ -2030,7 +2030,7 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(use_sleeping);
 
     marchive << CHNVP(descriptor);
-    //marchive << CHNVP(solver);
+    marchive << CHNVP(solver);
 
     marchive << CHNVP(min_bounce_speed);
     marchive << CHNVP(max_penetration_recovery_speed);
@@ -2065,7 +2065,7 @@ void ChSystem::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(use_sleeping);
 
     marchive >> CHNVP(descriptor);
-    //marchive >> CHNVP(solver);
+    marchive >> CHNVP(solver);
 
     marchive >> CHNVP(min_bounce_speed);
     marchive >> CHNVP(max_penetration_recovery_speed);

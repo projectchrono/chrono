@@ -98,6 +98,36 @@ void assemble_fourbar(ChSystem& system){
 
 }
 
+
+
+void assemble_pendulum(ChSystem& system){
+
+    system.Set_G_acc(ChVector<>(0.0, -9.81, 0.0));
+
+    auto floor = chrono_types::make_shared<ChBody>();
+    floor->SetBodyFixed(true);
+    floor->SetName("floor");
+    floor->SetIdentifier(100);
+    system.Add(floor);
+
+
+    auto moving_body = chrono_types::make_shared<ChBody>();
+    moving_body->SetPos(ChVector<>(1.0, -1.0, 1.0));
+    moving_body->SetName("moving_body");
+    moving_body->SetIdentifier(101);
+    system.Add(moving_body);
+
+
+    auto link = chrono_types::make_shared<ChLinkMateRevolute>();
+    link->Initialize(moving_body, floor, ChFrame<>());
+    //auto link = chrono_types::make_shared<ChLinkLockRevolute>();
+    //link->Initialize(moving_body, floor, ChCoordsys<>());
+    system.Add(link);
+
+}
+
+
+
 //int main(){
 //    ChSolver* solver_baseptr;
 //
@@ -119,68 +149,127 @@ void assemble_fourbar(ChSystem& system){
 
 
 
-//TEST(ChArchive, ChArchiveJSON_solver){
+////TEST(ChArchive, ChArchiveJSON_solver){
+//int main(){
+//    //{
+//    //    ChSolver* solver_baseptr;
+//
+//    //    ChClassFactory::create(std::string("ChSolverPSOR"), &solver_baseptr);
+//    //    solver_baseptr->GetType(); // WRONG CALL
+//    //    //ChSolverPSOR* solver_vptr_psor_correct = reinterpret_cast<ChSolverPSOR*>(solver_baseptr);
+//    //    //solver_vptr_psor_correct->GetType();
+//    //    //ChSolver* solver_vptr2 = static_cast<ChSolver*>(solver_vptr_psor_correct);
+//    //    //solver_vptr2->GetType();
+//
+//    //    void* solver_vptr = getVoidPointer<ChSolver>(solver_baseptr); // nothing changes
+//
+//
+//    //    void* solverbase_vptr_conv = static_cast<void*>(static_cast<ChSolver*>(reinterpret_cast<ChSolverPSOR*>(solver_vptr)));
+//    //    ChSolver* solverbase_ptr_conv = reinterpret_cast<ChSolver*>(solverbase_vptr_conv);
+//    //    solverbase_ptr_conv->GetType();
+//    //    std::cout << "Expected ChSolver*: " << solverbase_ptr_conv << std::endl;
+//
+//    //    void* solverbase_vptr_convauto = ChCastingMap::Convert("ChSolverPSOR", "ChSolver", solver_vptr);
+//    //    ChSolver* solverbase_ptr_convauto = reinterpret_cast<ChSolver*>(solverbase_vptr_convauto);
+//    //    solverbase_ptr_convauto->GetType();
+//    //    std::cout << "Resulting ChSolver*: " << solverbase_ptr_convauto << std::endl;
+//
+//    //}
+//
+//    {
+//        ChSolverPSOR* solverPSOR_ptr = new ChSolverPSOR();
+//        ChIterativeSolverVI* solverISVI_ptr = solverPSOR_ptr;
+//        ChIterativeSolver* solverIS_ptr = solverPSOR_ptr;
+//        ChSolverVI* solverVI_ptr = solverPSOR_ptr;
+//        ChSolver* solverBase_ptr = solverPSOR_ptr;
+//
+//
+//        solverPSOR_ptr->GetType();
+//        solverBase_ptr->GetType();
+//
+//        std::cout << "solverPSOR_ptr : " << solverPSOR_ptr << std::endl;
+//        std::cout << "solverISVI_ptr : " << solverISVI_ptr << std::endl;
+//        std::cout << "solverIS_ptr   : " << solverIS_ptr << std::endl;
+//        std::cout << "solverVI_ptr   : " << solverVI_ptr << std::endl;
+//        std::cout << "solverBase_ptr : " << solverBase_ptr << std::endl;
+//
+//        std::string jsonfile = "ChArchiveJSON_solver_out.json";
+//        ChStreamOutAsciiFile mfileo(jsonfile.c_str());
+//        ChArchiveOutJSON marchiveout(mfileo);
+//
+//        marchiveout << CHNVP(solverBase_ptr);
+//
+//        delete solverPSOR_ptr;
+//    }
+//
+//    std::string jsonfile = "ChArchiveJSON_solver_out.json";
+//    ChStreamInAsciiFile mfilei(jsonfile.c_str());
+//    ChArchiveInJSON marchivein(mfilei);
+//    ChSolver* solverBase_ptr;
+//    marchivein >> CHNVP(solverBase_ptr);
+//
+//    ChSolverPSOR* solverPSOR_ptr = dynamic_cast<ChSolverPSOR*>(solverBase_ptr);
+//
+//    solverPSOR_ptr->GetType();
+//    solverBase_ptr->GetType();
+//    
+//
+//    //ASSERT_DOUBLE_EQ(before_archive.x(), after_archive.x());
+//    //ASSERT_DOUBLE_EQ(before_archive.y(), after_archive.y());
+//    //ASSERT_DOUBLE_EQ(before_archive.z(), after_archive.z());
+//
+//}
+
+//TEST(ChArchive, ChArchiveJSON){
 int main(){
-    {
-        ChSolver* solver_baseptr;
-
-        ChClassFactory::create(std::string("ChSolverPSOR"), &solver_baseptr);
-        solver_baseptr->GetType(); // WRONG CALL
-        //ChSolverPSOR* solver_vptr_psor_correct = reinterpret_cast<ChSolverPSOR*>(solver_baseptr);
-        //solver_vptr_psor_correct->GetType();
-        //ChSolver* solver_vptr2 = static_cast<ChSolver*>(solver_vptr_psor_correct);
-        //solver_vptr2->GetType();
-
-        void* solver_vptr = getVoidPointer<ChSolver>(solver_baseptr); // nothing changes
 
 
-        void* solverbase_vptr_conv = static_cast<void*>(static_cast<ChSolver*>(reinterpret_cast<ChSolverPSOR*>(solver_vptr)));
-        ChSolver* solverbase_ptr_conv = reinterpret_cast<ChSolver*>(solverbase_vptr_conv);
-        solverbase_ptr_conv->GetType();
-        std::cout << "Expected ChSolver*: " << solverbase_ptr_conv << std::endl;
 
-        void* solverbase_vptr_convauto = ChCastingMap::Convert("ChSolverPSOR", "ChSolver", solver_vptr);
-        ChSolver* solverbase_ptr_convauto = reinterpret_cast<ChSolver*>(solverbase_vptr_convauto);
-        solverbase_ptr_convauto->GetType();
-        std::cout << "Resulting ChSolver*: " << solverbase_ptr_convauto << std::endl;
+    double timestep = 0.01;
+    int step_num = 200;
 
-    }
+    ChVector<> before_archive;
 
     {
-        ChSolverPSOR* solverder_ptr = new ChSolverPSOR();
-        ChSolver* solverbase_ptr = solverder_ptr;
+        ChSystemNSC system;
+        //assemble_fourbar(system);
+        assemble_pendulum(system);
 
-        ChSolverVI* solverVI_ptr = solverder_ptr;
-        ChIterativeSolver* solverIS_ptr = solverder_ptr;
-
-        solverder_ptr->GetType();
-        solverbase_ptr->GetType();
-
-        std::cout << "solverder_ptr:  " << solverder_ptr << std::endl;
-        std::cout << "solverbase_ptr: " << solverbase_ptr << std::endl;
-        std::cout << "solverVI_ptr: " << solverVI_ptr << std::endl;
-        std::cout << "solverIS_ptr: " << solverIS_ptr << std::endl;
-
-        std::string jsonfile = "ChArchiveJSON_solver_out.json";
+        std::string jsonfile = "ChArchiveJSON_out.json";
         ChStreamOutAsciiFile mfileo(jsonfile.c_str());
         ChArchiveOutJSON marchiveout(mfileo);
+        marchiveout << CHNVP(system);
 
-        marchiveout << CHNVP(solverbase_ptr);
 
-        delete solverder_ptr;
+        for (int step = 0; step<step_num; ++step) {
+            system.DoStepDynamics(timestep);
+        }
+
+        before_archive = system.Get_bodylist()[1]->GetPos();
+
     }
 
-    std::string jsonfile = "ChArchiveJSON_solver_out.json";
+    std::string jsonfile = "ChArchiveJSON_out.json";
     ChStreamInAsciiFile mfilei(jsonfile.c_str());
     ChArchiveInJSON marchivein(mfilei);
-    ChSolver* solverbase_ptr;
-    marchivein >> CHNVP(solverbase_ptr);
-
-    ChSolverPSOR* solverder_ptr = dynamic_cast<ChSolverPSOR*>(solverbase_ptr);
-
-    solverder_ptr->GetType();
-    solverbase_ptr->GetType();
+    ChSystemNSC system;
+    marchivein >> CHNVP(system);
     
+    for (auto& body : system.Get_bodylist()) {
+        body->GetBodyFixed();
+    }
+
+    for (auto& link : system.Get_linklist()) {
+        link->IsActive();
+    }
+
+
+    // Simulation loop
+    for (int step = 0; step<step_num; ++step) {
+        system.DoStepDynamics(timestep);
+    }
+
+    ChVector<> after_archive = system.Get_bodylist()[1]->GetPos();
 
     //ASSERT_DOUBLE_EQ(before_archive.x(), after_archive.x());
     //ASSERT_DOUBLE_EQ(before_archive.y(), after_archive.y());
@@ -188,54 +277,6 @@ int main(){
 
 }
 
-////TEST(ChArchive, ChArchiveJSON){
-//int main(){
-//
-//
-//
-//    double timestep = 0.01;
-//    int step_num = 200;
-//
-//    ChVector<> before_archive;
-//
-//    {
-//        ChSystemNSC system;
-//        assemble_fourbar(system);
-//
-//        std::string jsonfile = "ChArchiveJSON_out.json";
-//        ChStreamOutAsciiFile mfileo(jsonfile.c_str());
-//        ChArchiveOutJSON marchiveout(mfileo);
-//        marchiveout << CHNVP(system);
-//
-//
-//        for (int step = 0; step<step_num; ++step) {
-//            system.DoStepDynamics(timestep);
-//        }
-//
-//        before_archive = system.Get_bodylist()[1]->GetPos();
-//
-//    }
-//
-//    std::string jsonfile = "ChArchiveJSON_out.json";
-//    ChStreamInAsciiFile mfilei(jsonfile.c_str());
-//    ChArchiveInJSON marchivein(mfilei);
-//    ChSystemNSC system;
-//    marchivein >> CHNVP(system);
-//    
-//
-//    // Simulation loop
-//    for (int step = 0; step<step_num; ++step) {
-//        system.DoStepDynamics(timestep);
-//    }
-//
-//    ChVector<> after_archive = system.Get_bodylist()[1]->GetPos();
-//
-//    //ASSERT_DOUBLE_EQ(before_archive.x(), after_archive.x());
-//    //ASSERT_DOUBLE_EQ(before_archive.y(), after_archive.y());
-//    //ASSERT_DOUBLE_EQ(before_archive.z(), after_archive.z());
-//
-//}
-//
 //TEST(ChArchive, ChArchiveXML){
 //
 //    double timestep = 0.01;
@@ -428,81 +469,3 @@ int main(){
 //
 
 
-//
-//
-//void AssemblePendulum(){
-//    // Example: SERIALIZE TO/FROM JSON:
-//    {
-//        std::string jsonfile = "ChArchiveJSON.json";
-//        ChStreamOutAsciiFile mfileo(jsonfile.c_str());
-//
-//        // Use a JSON archive object to serialize C++ objects into the file
-//        ChArchiveOutJSON marchiveout(mfileo);
-//
-//        ChSystemNSC system;
-//
-//        system.Set_G_acc(ChVector<>(0.0, -9.81, 0.0));
-//
-//        auto floor = chrono_types::make_shared<ChBody>();
-//        floor->SetBodyFixed(true);
-//        floor->SetName("floor");
-//        floor->SetIdentifier(100);
-//        system.Add(floor);
-//
-//
-//        auto moving_body = chrono_types::make_shared<ChBody>();
-//        moving_body->SetPos(ChVector<>(1.0, -1.0, 1.0));
-//        moving_body->SetName("moving_body");
-//        moving_body->SetIdentifier(101);
-//        system.Add(moving_body);
-//
-//
-//        auto link = chrono_types::make_shared<ChLinkMateRevolute>();
-//        link->Initialize(moving_body, floor, ChFrame<>());
-//        //auto link = chrono_types::make_shared<ChLinkLockRevolute>();
-//        //link->Initialize(moving_body, floor, ChCoordsys<>());
-//        system.Add(link);
-//
-//        ChBodyFrame* Body1_test = link->GetBody1();
-//        ChBody* b_empty_ptr = nullptr;
-//
-//        void* vptr = getVoidPointer<ChBodyFrame>(link->GetBody1());
-//        ChNameValue<ChBodyFrame*> bVal = make_ChNameValue("Body1_test", Body1_test);
-//        ChFunctorArchiveInSpecificPtr<ChBodyFrame> specFuncA(&bVal.value());
-//        ChNameValue<ChFunctorArchiveIn> in_ref_arg = ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA, bVal.flags());
-//
-//        const std::type_info& in_ref_arg_ti = typeid(in_ref_arg.value());
-//        const std::type_info& vptr_ti = typeid(vptr);
-//        const std::type_info& ChBodyFrame_ptr_ti = typeid(*Body1_test);
-//
-//        std::cout << vptr_ti.name() << std::endl;
-//        std::cout << ChClassFactory::GetClassTagName(ChBodyFrame_ptr_ti) << std::endl;
-//
-//
-//
-//        marchiveout << CHNVP(system);
-//
-//        ChBody* moving_body_body_ptr = moving_body.get();
-//        ChBodyFrame* moving_body_bodyframe_ptr = moving_body.get();
-//        ChBodyFrame* link_body1_bodyframe_ptr = link->GetBody1();
-//        
-//        std::cout << "ChBody*(ChBody)                         : " << moving_body_body_ptr << "\n";
-//        std::cout << "ChBody*(ChBody)  static_cast<void*>     : " << static_cast<void*>(moving_body_body_ptr) << "\n";
-//        std::cout << "ChBody*(ChBody) dynamic_cast<void*>     : " << dynamic_cast<void*>(moving_body_body_ptr) << "\n";
-//
-//        std::cout << "ChBodyFrame*(ChBody)                    : " << moving_body_bodyframe_ptr << "\n";
-//        std::cout << "ChBodyFrame*(ChBody)  static_cast<void*>: " << static_cast<void*>(moving_body_bodyframe_ptr) << "\n";
-//        std::cout << "ChBodyFrame*(ChBody) dynamic_cast<void*>: " << dynamic_cast<void*>(moving_body_bodyframe_ptr) << "\n";
-//        std::cout << "link->GetBody1()                        : " << link_body1_bodyframe_ptr << "\n";
-//        std::cout << "\n";
-//
-//        // Simulation loop
-//        while (system.GetChTime() < 2) {
-//            system.DoStepDynamics(0.01);
-//        }
-//
-//        GetLog() << "GetPos: " << system.Get_bodylist()[1]->GetPos() << "\n";
-//        
-//    }
-//}
-//
