@@ -233,6 +233,13 @@ bool ChInteractiveDriverIRR::ProcessJoystickEvents(const SEvent& event) {
 }
 
 bool ChInteractiveDriverIRR::ProcessKeyboardEvents(const SEvent& event) {
+    ChAutomaticTransmission* transmission_auto = nullptr;
+    ChManualTransmission* transmission_manual = nullptr;
+    if (m_vehicle.GetTransmission()) {
+        transmission_auto = m_vehicle.GetTransmission()->asAutomatic();  // nullptr for a manual transmission
+        transmission_manual = m_vehicle.GetTransmission()->asManual();   // nullptr for an automatic transmission
+    }
+
     if (event.KeyInput.PressedDown) {
         switch (event.KeyInput.Key) {
             case KEY_KEY_A:
@@ -251,6 +258,23 @@ bool ChInteractiveDriverIRR::ProcessKeyboardEvents(const SEvent& event) {
                 if (m_throttle_target <= 0)
                     m_braking_target = ChClamp(m_braking_target + m_braking_delta, 0.0, +1.0);
                 return true;
+            default:
+                break;
+        }
+        if (transmission_manual) {
+            switch (event.KeyInput.Key) {
+                case KEY_KEY_E:
+                    m_clutch_target = ChClamp(m_clutch_target + m_clutch_delta, 0.0, +1.0);
+                    return true;
+                case KEY_KEY_Q:
+                    m_clutch_target = ChClamp(m_clutch_target - m_clutch_delta, 0.0, +1.0);
+                    return true;
+                default:
+                    break;
+            }       
+        }
+    } else {
+        switch (event.KeyInput.Key) {
             case KEY_KEY_C:
                 m_steering_target = 0;
                 return true;
@@ -259,15 +283,8 @@ bool ChInteractiveDriverIRR::ProcessKeyboardEvents(const SEvent& event) {
                 m_braking_target = 0;
                 m_clutch_target = 0;
                 return true;
-            default:
-                break;
         }
-    } else {
-        auto transmission = m_vehicle.GetTransmission();
-
-        if (transmission && transmission->IsAutomatic()) {
-            auto transmission_auto = transmission->asAutomatic();
-
+        if (transmission_auto) {
             switch (event.KeyInput.Key) {
                 case KEY_KEY_Z:
                     if (transmission_auto->GetDriveMode() != ChTransmission::DriveMode::FORWARD)
@@ -293,20 +310,13 @@ bool ChInteractiveDriverIRR::ProcessKeyboardEvents(const SEvent& event) {
                 default:
                     break;
             }
-        } else if (transmission && transmission->IsManual()) {
-            auto transmission_manual = transmission->asManual();
+        } else if (transmission_manual) {
             switch (event.KeyInput.Key) {
                 case KEY_OEM_6:  // ']'
                     transmission_manual->ShiftUp();
                     return true;
                 case KEY_OEM_4:  // '['
                     transmission_manual->ShiftDown();
-                    return true;
-                case KEY_KEY_E:
-                    m_clutch_target = ChClamp(m_clutch_target + m_clutch_delta, 0.0, +1.0);
-                    return true;
-                case KEY_KEY_Q:
-                    m_clutch_target = ChClamp(m_clutch_target - m_clutch_delta, 0.0, +1.0);
                     return true;
                 default:
                     break;

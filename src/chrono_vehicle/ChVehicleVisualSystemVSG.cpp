@@ -139,10 +139,10 @@ class ChVehicleKeyboardHandlerVSG : public vsg3d::ChEventHandlerVSG {
         if (m_transmission_manual) {
             switch (keyPress.keyBase) {
                 case vsg::KEY_Rightbracket:
-                    m_transmission_auto->ShiftUp();
+                    m_transmission_manual->ShiftUp();
                     return;
                 case vsg::KEY_Leftbracket:
-                    m_transmission_auto->ShiftDown();
+                    m_transmission_manual->ShiftDown();
                     return;
                 case vsg::KEY_e:
                     if (m_app->m_driver)
@@ -211,14 +211,14 @@ void ShowHelp() {
         ImGui::Indent();
         ImGui::Text("W/S: acceleartion/decceleration (combined throttle/brake controls)");
         ImGui::Text("A/D: steering (left/right)");
+        ImGui::Text("C: center steering wheel (set steering=0)");
+        ImGui::Text("R: release pedals (set throttle=brake=clutch=0)");
         ImGui::Unindent();
 
         ImGui::BulletText("Automatic transmission vehicles");
         ImGui::Indent();
         ImGui::Text("Z: toggle forward/reverse");
         ImGui::Text("X: shift to neutral");
-        ImGui::Text("C: center steering wheel (set steering=0)");
-        ImGui::Text("R: release pedals (set throttle=brake=0)");
         ImGui::Text("T: toggle manumatic/full automatic mode");
         ImGui::Text("]: shift up (in manumatic mode)");
         ImGui::Text("[: shift down (in manumatic mode)");
