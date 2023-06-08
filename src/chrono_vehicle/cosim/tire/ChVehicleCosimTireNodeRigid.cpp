@@ -34,22 +34,25 @@ using std::endl;
 namespace chrono {
 namespace vehicle {
 
-ChVehicleCosimTireNodeRigid::ChVehicleCosimTireNodeRigid(int index) : ChVehicleCosimTireNode(index) {}
-
-void ChVehicleCosimTireNodeRigid::ConstructTire() {
-    m_tire = chrono_types::make_shared<RigidTire>(m_tire_json);
-    assert(m_tire->UseContactMesh());
+ChVehicleCosimTireNodeRigid::ChVehicleCosimTireNodeRigid(int index, const std::string& tire_json)
+    : ChVehicleCosimTireNode(index, tire_json) {
+    assert(GetTireTypeFromSpecfile(tire_json) == TireType::RIGID);
+    assert(m_tire);
+    m_tire_rgd = std::static_pointer_cast<ChRigidTire>(m_tire);  // cache tire as ChRigidTire
 }
 
-void ChVehicleCosimTireNodeRigid::InitializeTire(std::shared_ptr<ChWheel> wheel) {
-    // Initialize the rigid tire
+void ChVehicleCosimTireNodeRigid::InitializeTire(std::shared_ptr<ChWheel> wheel, const ChVector<>& init_loc) {
+    assert(m_tire_rgd->UseContactMesh());
+
+    m_spindle->SetPos(init_loc);
     wheel->SetTire(m_tire);                                       
-    std::static_pointer_cast<ChTire>(m_tire)->Initialize(wheel);  // hack to call protected virtual method
-    m_tire->SetVisualizationType(VisualizationType::MESH);
+    m_tire->Initialize(wheel);
+
+    m_tire_rgd->SetVisualizationType(VisualizationType::MESH);
 
     // Tire mesh geometry and contact material
-    auto trimesh = m_tire->GetContactMesh();
-    auto cmat = std::static_pointer_cast<ChMaterialSurfaceSMC>(m_tire->GetContactMaterial());
+    auto trimesh = m_tire_rgd->GetContactMesh();
+    auto cmat = std::static_pointer_cast<ChMaterialSurfaceSMC>(m_tire_rgd->GetContactMaterial());
     m_geometry.m_coll_meshes.push_back(ChVehicleGeometry::TrimeshShape(VNULL, trimesh, 0.0, 0));
     m_geometry.m_materials.push_back(ChContactMaterialData(cmat->GetKfriction(), cmat->GetRestitution(),
                                                            cmat->GetYoungModulus(), cmat->GetPoissonRatio(),
@@ -125,13 +128,13 @@ void ChVehicleCosimTireNodeRigid::OnOutputData(int frame) {
 
 void ChVehicleCosimTireNodeRigid::WriteTireStateInformation(utils::CSV_writer& csv) {
     // Write number of vertices
-    int num_vertices = m_tire->GetContactMesh()->getNumVertices();
+    int num_vertices = m_tire_rgd->GetContactMesh()->getNumVertices();
     csv << num_vertices << endl;
 
     // Write mesh vertex positions and velocities
     std::vector<ChVector<>> pos;
     std::vector<ChVector<>> vel;
-    m_tire->GetMeshVertexStates(pos, vel);
+    m_tire_rgd->GetMeshVertexStates(pos, vel);
     for (int in = 0; in < num_vertices; in++)
         csv << pos[in] << endl;
     for (int in = 0; in < num_vertices; in++)
@@ -140,10 +143,10 @@ void ChVehicleCosimTireNodeRigid::WriteTireStateInformation(utils::CSV_writer& c
 
 void ChVehicleCosimTireNodeRigid::WriteTireMeshInformation(utils::CSV_writer& csv) {
     // Print tire mesh connectivity
-    int num_triangles = m_tire->GetContactMesh()->getNumTriangles();
+    int num_triangles = m_tire_rgd->GetContactMesh()->getNumTriangles();
     csv << num_triangles << endl;
 
-    const std::vector<ChVector<int>>& triangles = m_tire->GetContactMesh()->getIndicesVertexes();
+    const std::vector<ChVector<int>>& triangles = m_tire_rgd->GetContactMesh()->getIndicesVertexes();
     for (int ie = 0; ie < num_triangles; ie++) {
         csv << triangles[ie] << endl;
     }

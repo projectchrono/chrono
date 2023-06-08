@@ -37,6 +37,9 @@
 #ifdef CHRONO_IRRLICHT
     #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 #endif
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+#endif
 
 using std::cout;
 using std::endl;
@@ -233,22 +236,6 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
         m_system->AddBody(body);
     }
 
-#ifdef CHRONO_IRRLICHT
-    // Create the visualization window
-    if (m_render) {
-        m_vsys = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
-        m_vsys->AttachSystem(m_system);
-        m_vsys->SetCameraVertical(CameraVerticalDir::Z);
-        m_vsys->SetWindowSize(1280, 720);
-        m_vsys->SetWindowTitle("Terrain Node (SCM)");
-        m_vsys->Initialize();
-        m_vsys->AddLogo();
-        m_vsys->AddSkyBox();
-        m_vsys->AddTypicalLights();
-        m_vsys->AddCamera(ChVector<>(m_dimX / 2, 1.4, 1.0), ChVector<>(0, 0, 0));
-    }
-#endif
-
     // Write file with terrain node settings
     std::ofstream outf;
     outf.open(m_node_out_dir + "/settings.info", std::ios::out);
@@ -276,13 +263,6 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
 // two members of this family.
 void ChVehicleCosimTerrainNodeSCM::CreateMeshProxy(unsigned int i) {
     //// TODO
-
-#ifdef CHRONO_IRRLICHT
-    // Bind Irrlicht assets
-    if (m_render) {
-        m_vsys->BindAll();
-    }
-#endif
 }
 
 void ChVehicleCosimTerrainNodeSCM::CreateRigidProxy(unsigned int i) {
@@ -313,13 +293,43 @@ void ChVehicleCosimTerrainNodeSCM::CreateRigidProxy(unsigned int i) {
     // Add corresponding moving patch to SCM terrain
     //// RADU TODO: this may be overkill for tracked vehicles!
     m_terrain->AddMovingPatch(body, m_aabb[i_shape].m_center, m_aabb[i_shape].m_dims);
+}
 
-#ifdef CHRONO_IRRLICHT
-    // Bind Irrlicht assets
+// Once all proxy bodies are created, complete construction of the underlying system.
+void ChVehicleCosimTerrainNodeSCM::OnInitialize(unsigned int num_objects) {
+    ChVehicleCosimTerrainNodeChrono::OnInitialize(num_objects);
+
+    // Create the visualization window
     if (m_render) {
-        m_vsys->BindAll();
-    }
+#if defined(CHRONO_VSG)
+        auto vsys_vsg = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+        vsys_vsg->AttachSystem(m_system);
+        vsys_vsg->SetWindowTitle("Terrain Node (SCM)");
+        vsys_vsg->SetWindowSize(ChVector2<int>(1280, 720));
+        vsys_vsg->SetWindowPosition(ChVector2<int>(100, 100));
+        vsys_vsg->SetUseSkyBox(true);
+        vsys_vsg->AddCamera(m_cam_pos, ChVector<>(0, 0, 0));
+        vsys_vsg->SetCameraAngleDeg(40);
+        vsys_vsg->SetLightIntensity(1.0f);
+        vsys_vsg->AddGuiColorbar("Sinkage (m)", 0.0, 0.1);
+        vsys_vsg->Initialize();
+
+        m_vsys = vsys_vsg;
+#elif defined(CHRONO_IRRLICHT)
+        auto vsys_irr = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
+        vsys_irr->AttachSystem(m_system);
+        vsys_irr->SetWindowTitle("Terrain Node (SCM)");
+        vsys_irr->SetCameraVertical(CameraVerticalDir::Z);
+        vsys_irr->SetWindowSize(1280, 720);
+        vsys_irr->Initialize();
+        vsys_irr->AddLogo();
+        vsys_irr->AddSkyBox();
+        vsys_irr->AddTypicalLights();
+        vsys_irr->AddCamera(m_cam_pos, ChVector<>(0, 0, 0));
+
+        m_vsys = vsys_irr;
 #endif
+    }
 }
 
 // Set position, orientation, and velocity of proxy bodies based on mesh faces.
@@ -352,16 +362,21 @@ void ChVehicleCosimTerrainNodeSCM::GetForceRigidProxy(unsigned int i, TerrainFor
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTerrainNodeSCM::Render(double time) {
-#ifdef CHRONO_IRRLICHT
-    if (!m_vsys->Run()) {
+void ChVehicleCosimTerrainNodeSCM::Render() {
+    if (!m_vsys)
+        return;
+    if (!m_vsys->Run())
         MPI_Abort(MPI_COMM_WORLD, 1);
+
+    if (m_track) {
+        const auto& proxies = m_proxies[0];  // proxies for first object
+        ChVector<> cam_point = proxies[0].m_body->GetPos();
+        m_vsys->UpdateCamera(m_cam_pos, cam_point);
     }
+ 
     m_vsys->BeginScene();
     m_vsys->Render();
-    irrlicht::tools::drawColorbar(m_vsys.get(), 0, max_sinkage, "Sinkage [m]", 1180);
     m_vsys->EndScene();
-#endif
 }
 
 // -----------------------------------------------------------------------------

@@ -34,6 +34,13 @@
 
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularSPH.h"
 
+#ifdef CHRONO_OPENGL
+    #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
+#endif
+////#ifdef CHRONO_VSG
+////    #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
+////#endif
+
 using std::cout;
 using std::endl;
 
@@ -66,11 +73,6 @@ ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(doubl
 
     // Set number of threads
     m_system->SetNumThreads(1);
-
-    // Create OpenGL visualization system
-#ifdef CHRONO_OPENGL
-    m_vsys = new opengl::ChVisualSystemOpenGL;
-#endif
 }
 
 ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(const std::string& specfile)
@@ -87,19 +89,11 @@ ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(const
 
     // Read SPH granular terrain parameters from provided specfile
     SetFromSpecfile(specfile);
-
-    // Create OpenGL visualization system
-#ifdef CHRONO_OPENGL
-    m_vsys = new opengl::ChVisualSystemOpenGL;
-#endif
 }
 
 ChVehicleCosimTerrainNodeGranularSPH::~ChVehicleCosimTerrainNodeGranularSPH() {
     delete m_systemFSI;
     delete m_system;
-#ifdef CHRONO_OPENGL
-    delete m_vsys;
-#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -241,24 +235,6 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         m_systemFSI->AddPointsBCE(body, point_cloud, ChFrame<>(), true);
     }
 
-#ifdef CHRONO_OPENGL
-    // Add visualization asset for the container
-    auto box = chrono_types::make_shared<ChBoxShape>(m_dimX, m_dimY, m_depth);
-    container->AddVisualShape(box, ChFrame<>(ChVector<>(0, 0, m_depth / 2)));
-
-    // Create the visualization window
-    if (m_render) {
-        m_vsys->AttachSystem(m_system);
-        m_vsys->SetWindowTitle("Terrain Node (GranularSPH)");
-        m_vsys->SetWindowSize(1280, 720);
-        m_vsys->SetRenderMode(opengl::WIREFRAME);
-        m_vsys->Initialize();
-        m_vsys->AddCamera(ChVector<>(0, -6, 0), ChVector<>(0, 0, 0));
-        m_vsys->SetCameraProperties(0.05f);
-        m_vsys->SetCameraVertical(CameraVerticalDir::Z);
-    }
-#endif
-
     // Write file with terrain node settings
     std::ofstream outf;
     outf.open(m_node_out_dir + "/settings.info", std::ios::out);
@@ -324,6 +300,28 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateRigidProxy(unsigned int i) {
 void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects) {
     ChVehicleCosimTerrainNodeChrono::OnInitialize(num_objects);
     m_systemFSI->Initialize();
+
+    // Initialize run-time visualization
+    if (m_render) {
+#if defined(CHRONO_OPENGL)
+        m_vsys = chrono_types::make_shared<ChFsiVisualizationGL>(m_systemFSI, false);
+#endif
+        if (m_vsys) {
+            m_vsys->SetTitle("Terrain Node (GranularSPH)");
+            m_vsys->SetSize(1280, 720);
+            m_vsys->AddCamera(m_cam_pos, ChVector<>(0, 0, 0));
+            m_vsys->SetCameraMoveScale(0.2f);
+            m_vsys->EnableFluidMarkers(true);
+            m_vsys->EnableBoundaryMarkers(false);
+            m_vsys->EnableRigidBodyMarkers(true);
+            m_vsys->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
+            m_vsys->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
+            ////m_vsys->SetSPHColorCallback(chrono_types::make_shared<HeightColorCallback>(ChColor(0.10f, 0.40f, 0.65f),
+            ////                                                                           aabb_min.z(), aabb_max.z()));
+            m_vsys->AttachSystem(m_system);
+            m_vsys->Initialize();
+        }
+    }
 }
 
 // Set state of proxy rigid body.
@@ -348,10 +346,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::GetForceRigidProxy(unsigned int i, Te
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTerrainNodeGranularSPH::CreateMeshProxy(unsigned int i) {
-
-
-}
+void ChVehicleCosimTerrainNodeGranularSPH::CreateMeshProxy(unsigned int i) {}
 
 void ChVehicleCosimTerrainNodeGranularSPH::UpdateMeshProxy(unsigned int i, MeshState& mesh_state) {}
 
@@ -368,18 +363,18 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnAdvance(double step_size) {
     }
 }
 
-void ChVehicleCosimTerrainNodeGranularSPH::Render(double time) {
-#ifdef CHRONO_OPENGL
-    if (m_vsys->Run()) {
-        const auto& proxies = m_proxies[0];  // proxies for first object
-        ChVector<> cam_point = proxies[0].m_body->GetPos();
-        ChVector<> cam_loc = cam_point + ChVector<>(0, -3, 0.6);
-        m_vsys->UpdateCamera(cam_loc, cam_point);
-        m_vsys->Render();
-    } else {
+void ChVehicleCosimTerrainNodeGranularSPH::Render() {
+    if (!m_vsys)
+        return;
+
+    const auto& proxies = m_proxies[0];  // proxies for first object
+    ChVector<> cam_point = proxies[0].m_body->GetPos();
+    m_vsys->UpdateCamera(m_cam_pos, cam_point);
+
+    auto ok = m_vsys->Render();
+
+    if (!ok)
         MPI_Abort(MPI_COMM_WORLD, 1);
-    }
-#endif
 }
 
 // -----------------------------------------------------------------------------

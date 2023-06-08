@@ -191,6 +191,8 @@ int main(int argc, char** argv) {
         vehicle->SetStepSize(step_size);
         vehicle->SetNumThreads(1);
         vehicle->SetOutDir(out_dir, suffix);
+        vehicle->EnableRuntimeVisualization(render, render_fps);
+        vehicle->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
         if (verbose)
             cout << "[Vehicle node] output directory: " << vehicle->GetOutDirName() << endl;
 
@@ -207,6 +209,7 @@ int main(int argc, char** argv) {
         terrain->SetNumThreads(2);
         terrain->SetOutDir(out_dir, suffix);
         terrain->EnableRuntimeVisualization(render, render_fps);
+        terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
         if (verbose)
             cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
@@ -216,13 +219,14 @@ int main(int argc, char** argv) {
         if (verbose)
             cout << "[Tire node   ] rank = " << rank << " running on: " << procname << endl;
 
-        auto tire = new ChVehicleCosimTireNodeRigid(rank - 2);
-        tire->SetTireFromSpecfile(vehicle::GetDataFile("hmmwv/tire/HMMWV_RigidMeshTire_Coarse.json"));
+        auto tire = new ChVehicleCosimTireNodeRigid(rank - 2,
+                                                    vehicle::GetDataFile("hmmwv/tire/HMMWV_RigidMeshTire_Coarse.json"));
         tire->SetVerbose(verbose);
         tire->SetStepSize(step_size);
         tire->SetNumThreads(1);
         tire->SetOutDir(out_dir, suffix);
-
+        tire->EnableRuntimeVisualization(render, render_fps);
+        tire->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
         node = tire;
     }
 

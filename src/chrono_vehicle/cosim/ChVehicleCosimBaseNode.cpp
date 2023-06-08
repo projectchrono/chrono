@@ -82,6 +82,11 @@ ChVehicleCosimBaseNode::ChVehicleCosimBaseNode(const std::string& name)
       m_step_size(1e-4),
       m_cum_sim_time(0),
       m_verbose(true),
+      m_render(false),
+      m_render_step(0.01),
+      m_track(true),
+      m_cam_pos({1, 0, 0}),
+      m_cam_target({0, 0, 0}),
       m_num_wheeled_mbs_nodes(0),
       m_num_tracked_mbs_nodes(0),
       m_num_terrain_nodes(0),
@@ -242,6 +247,16 @@ std::string ChVehicleCosimBaseNode::GetNodeTypeString() const {
         default:
             return "Unknown";
     }
+}
+
+void ChVehicleCosimBaseNode::EnableRuntimeVisualization(bool render, double render_fps) {
+    m_render = render;
+    m_render_step = 1.0 / render_fps;
+}
+
+void ChVehicleCosimBaseNode::SetCameraPosition(const ChVector<>& cam_pos, const ChVector<>& cam_target) {
+    m_cam_pos = cam_pos;
+    m_cam_target = cam_target;
 }
 
 void ChVehicleCosimBaseNode::SendGeometry(const ChVehicleGeometry& geom, int dest) const {

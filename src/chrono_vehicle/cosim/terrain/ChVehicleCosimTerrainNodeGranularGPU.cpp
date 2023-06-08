@@ -416,7 +416,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
         m_vsys->SetWindowSize(1280, 720);
         m_vsys->SetRenderMode(opengl::WIREFRAME);
         m_vsys->Initialize();
-        m_vsys->AddCamera(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0));
+        m_vsys->AddCamera(m_cam_pos, ChVector<>(0, 0, 0));
         m_vsys->SetCameraProperties(0.05f);
         m_vsys->SetCameraVertical(CameraVerticalDir::Z);
     }
@@ -511,7 +511,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
 
         // Render (if enabled)
         if (m_render && m_system->GetChTime() > render_time) {
-            Render(m_system->GetChTime());
+            Render();
             render_time += std::max(m_render_step, m_step_size);
         }
 
@@ -731,22 +731,26 @@ void ChVehicleCosimTerrainNodeGranularGPU::OnAdvance(double step_size) {
     }
 }
 
-void ChVehicleCosimTerrainNodeGranularGPU::Render(double time) {
+void ChVehicleCosimTerrainNodeGranularGPU::Render() {
 #ifdef CHRONO_OPENGL
-    if (m_vsys->Run()) {
-        UpdateVisualizationParticles();
+    if (!m_vsys)
+        return;
+    if (!m_vsys->Run())
+        MPI_Abort(MPI_COMM_WORLD, 1);
+
+    UpdateVisualizationParticles();
+
+    if (m_track) {
         if (!m_proxies.empty()) {
             const auto& proxies = m_proxies[0];  // proxies for first object
             if (!proxies.empty()) {
                 ChVector<> cam_point = proxies[0].m_body->GetPos();
-                ChVector<> cam_loc = cam_point + ChVector<>(0, -3, 0.6);
-                m_vsys->UpdateCamera(cam_loc, cam_point);
+                m_vsys->UpdateCamera(m_cam_pos, cam_point);
             }
         }
-        m_vsys->Render();
-    } else {
-        MPI_Abort(MPI_COMM_WORLD, 1);
     }
+
+    m_vsys->Render();
 #endif
 }
 

@@ -92,7 +92,11 @@
 				"USE_FAST_DDS": "ON",
 				"CMAKE_BUILD_TYPE": "Release",
 				"CUDA_ARCH_NAME": "All",
-				"IRRLICHT_INSTALL_DIR": "$env{HOME}/Packages/irrlicht-1.8.5"
+				"IRRLICHT_INSTALL_DIR": "$env{HOME}/Packages/irrlicht-1.8.5", 
+				"urdfdom_DIR": "$env{HOME}/Packages/urdf/$env{LIB_DIR}/urdfdom/cmake",
+				"urdfdom_headers_DIR": "$env{HOME}/Packages/urdf/$env{LIB_DIR}/urdfdom_headers/cmake",
+				"console_bridge_DIR": "$env{HOME}/Packages/urdf/$env{LIB_DIR}/console_bridge/cmake",
+				"tinyxml2_DIR": "$env{HOME}/Packages/urdf/CMake"
 			}
 		},
 		{

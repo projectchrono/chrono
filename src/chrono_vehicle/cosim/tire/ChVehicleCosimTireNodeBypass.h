@@ -51,10 +51,6 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeBypass : public ChVehicleCosimTireNod
     /// A bypass tire implements the BODY communication interface.
     virtual InterfaceType GetInterfaceType() const override { return InterfaceType::BODY; }
 
-    /// Construct the tire.
-    /// A bypass tire requires no construction.
-    virtual void ConstructTire() override {}
-
     /// Return the tire mass.
     virtual double GetTireMass() const override { return m_mass; }
 
@@ -66,7 +62,7 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeBypass : public ChVehicleCosimTireNod
 
     /// Initialize the tire by attaching it to the provided ChWheel.
     /// A bypass tire requires no construction.
-    virtual void InitializeTire(std::shared_ptr<ChWheel> wheel) override {}
+    virtual void InitializeTire(std::shared_ptr<ChWheel> wheel, const ChVector<>& init_loc) override {}
 
     /// Output post-processing visualization data.
     virtual void OutputVisualizationData(int frame) override {}

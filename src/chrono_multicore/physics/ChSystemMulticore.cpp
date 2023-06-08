@@ -103,6 +103,9 @@ ChBodyAuxRef* ChSystemMulticore::NewBodyAuxRef() {
 }
 
 bool ChSystemMulticore::Integrate_Y() {
+    ResetTimers();
+    timer_step.start();  // time elapsed for step (for RTF calculation)
+
     // Store system data in the data manager
     data_manager->system_descriptor = this->descriptor;
     data_manager->body_list = &assembly.bodylist;
@@ -222,6 +225,8 @@ bool ChSystemMulticore::Integrate_Y() {
     if (data_manager->settings.perform_thread_tuning) {
         RecomputeThreads();
     }
+
+    timer_step.stop();  // time elapsed for step (for RTF calculation)
 
     return true;
 }

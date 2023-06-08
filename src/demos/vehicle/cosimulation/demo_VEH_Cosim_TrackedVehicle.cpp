@@ -30,8 +30,8 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "chrono_models/vehicle/m113/M113_Vehicle.h"
-////#include "chrono_models/vehicle/m113/powertrain/M113_EngineShafts.h"
-////#include "chrono_models/vehicle/m113/powertrain/M113_AutomaticTransmissionShafts.h"
+#include "chrono_models/vehicle/m113/powertrain/M113_EngineShafts.h"
+#include "chrono_models/vehicle/m113/powertrain/M113_AutomaticTransmissionShafts.h"
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 
@@ -209,11 +209,11 @@ int main(int argc, char** argv) {
         } else {
             auto m113_vehicle = chrono_types::make_shared<m113::M113_Vehicle_SinglePin>(
                 false, DrivelineTypeTV::BDS, BrakeType::SIMPLE, false, false, false, nullptr);
-            ////auto m113_engine = chrono_types::make_shared<m113::M113_EngineSimpleMap>("Engine");
-            ////auto m113_transmission =
-            ////    chrono_types::make_shared<m113::M113_AutomaticTransmissionSimpleMap>("Transmission");
-            ////auto m113_powertrain = chrono_types::make_shared<ChPowertrainAssembly>(m113_engine, m113_transmission);
-            ////vehicle = new ChVehicleCosimTrackedVehicleNode(m113_vehicle, m113_powertrain);
+            auto m113_engine = chrono_types::make_shared<m113::M113_EngineShafts>("Engine");
+            auto m113_transmission =
+                chrono_types::make_shared<m113::M113_AutomaticTransmissionShafts>("Transmission");
+            auto m113_powertrain = chrono_types::make_shared<ChPowertrainAssembly>(m113_engine, m113_transmission);
+            vehicle = new ChVehicleCosimTrackedVehicleNode(m113_vehicle, m113_powertrain);
         }
 
         if (use_DBP_rig) {
@@ -233,6 +233,8 @@ int main(int argc, char** argv) {
         vehicle->SetStepSize(step_size);
         vehicle->SetNumThreads(1);
         vehicle->SetOutDir(out_dir, suffix);
+        vehicle->EnableRuntimeVisualization(render, render_fps);
+        vehicle->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
         if (verbose)
             cout << "[Vehicle node] output directory: " << vehicle->GetOutDirName() << endl;
 
@@ -252,6 +254,7 @@ int main(int argc, char** argv) {
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
                 terrain->EnableRuntimeVisualization(render, render_fps);
+                terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
@@ -268,6 +271,7 @@ int main(int argc, char** argv) {
                 terrain->SetNumThreads(2);
                 terrain->SetOutDir(out_dir, suffix);
                 terrain->EnableRuntimeVisualization(render, render_fps);
+                terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 

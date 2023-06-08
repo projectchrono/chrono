@@ -162,8 +162,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
     virtual void GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) override;
 
     virtual void OnOutputData(int frame) override;
-
-    virtual void Render(double time) override;
+    virtual void Render() override;
 
     /// Advance simulation.
     /// This function is called after a synchronization to allow the node to advance

@@ -39,7 +39,7 @@ namespace vehicle {
 /// Definition of the rigid tire node.
 class CH_VEHICLE_API ChVehicleCosimTireNodeRigid : public ChVehicleCosimTireNode {
   public:
-    ChVehicleCosimTireNodeRigid(int index);
+    ChVehicleCosimTireNodeRigid(int index, const std::string& tire_json);
     ~ChVehicleCosimTireNodeRigid() {}
 
     /// Return the tire type.
@@ -53,21 +53,8 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeRigid : public ChVehicleCosimTireNode
     /// A rigid tire implements the BODY communication interface.
     virtual InterfaceType GetInterfaceType() const override { return InterfaceType::BODY; }
 
-    /// Construct the tire.
-    /// The tire radius and mass must be available after this function is called.
-    virtual void ConstructTire() override;
-
-    /// Return the tire mass.
-    virtual double GetTireMass() const override { return m_tire->GetMass(); }
-
-    /// Return the tire radius.
-    virtual double GetTireRadius() const override { return m_tire->GetRadius(); }
-
-    /// Return the tire width.
-    virtual double GetTireWidth() const override { return m_tire->GetWidth(); }
-
     /// Initialize the tire by attaching it to the provided ChWheel.
-    virtual void InitializeTire(std::shared_ptr<ChWheel> wheel) override;
+    virtual void InitializeTire(std::shared_ptr<ChWheel> wheel, const ChVector<>& init_loc) override;
 
     /// Apply the spindle state (received from MBS node).
     virtual void ApplySpindleState(const BodyState& spindle_state) override;
@@ -87,7 +74,7 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeRigid : public ChVehicleCosimTireNode
     /// Write mesh connectivity and strain information.
     void WriteTireMeshInformation(utils::CSV_writer& csv);
 
-    std::shared_ptr<ChRigidTire> m_tire;                   ///< rigid tire
+    std::shared_ptr<ChRigidTire> m_tire_rgd;               ///< rigid tire
     std::vector<std::vector<unsigned int>> m_adjElements;  ///< list of neighboring elements for each mesh vertex
     std::vector<double> m_vertexArea;                      ///< representative areas for each mesh vertex
     TerrainForce m_force;                                  ///< cached force received from Terran node
