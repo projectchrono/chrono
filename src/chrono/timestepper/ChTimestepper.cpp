@@ -18,6 +18,11 @@
 
 namespace chrono {
 
+CH_CASTING_PARENT(ChTimestepperIorder, ChTimestepper)
+CH_CASTING_PARENT(ChTimestepperIIorder, ChTimestepper)
+CH_CASTING_PARENT(ChImplicitIterativeTimestepper, ChImplicitTimestepper)
+
+
 // -----------------------------------------------------------------------------
 
 // Trick to avoid putting the following mapper macro inside the class definition in .h file:
@@ -69,6 +74,7 @@ void ChTimestepper::ArchiveIN(ChArchiveIn& archive) {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTimestepperEulerExpl)
+CH_CASTING_PARENT(ChTimestepperEulerExpl, ChTimestepperIorder)
 
 // Euler explicit timestepper.
 // This performs the typical  y_new = y+ dy/dt * dt integration with Euler formula.
@@ -99,6 +105,7 @@ void ChTimestepperEulerExpl::Advance(const double dt) {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTimestepperEulerExplIIorder)
+CH_CASTING_PARENT(ChTimestepperEulerExplIIorder, ChTimestepperIIorder)
 
 // Euler explicit timestepper customized for II order.
 // (It gives the same results of ChTimestepperEulerExpl,
@@ -140,6 +147,8 @@ void ChTimestepperEulerExplIIorder::Advance(const double dt) {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTimestepperEulerSemiImplicit)
+CH_CASTING_PARENT(ChTimestepperEulerSemiImplicit, ChTimestepperIIorder)
+
 
 // Euler semi-implicit timestepper
 // This performs the typical
@@ -177,6 +186,8 @@ void ChTimestepperEulerSemiImplicit::Advance(const double dt) {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTimestepperRungeKuttaExpl)
+CH_CASTING_PARENT(ChTimestepperRungeKuttaExpl, ChTimestepperIorder)
+
 
 // Performs a step of a 4th order explicit Runge-Kutta integration scheme.
 void ChTimestepperRungeKuttaExpl::Advance(const double dt) {
@@ -223,6 +234,8 @@ void ChTimestepperRungeKuttaExpl::Advance(const double dt) {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTimestepperHeun)
+CH_CASTING_PARENT(ChTimestepperHeun, ChTimestepperIorder)
+
 
 // Performs a step of a Heun explicit integrator. It is like a 2nd Runge Kutta.
 void ChTimestepperHeun::Advance(const double dt) {
@@ -260,6 +273,8 @@ void ChTimestepperHeun::Advance(const double dt) {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTimestepperLeapfrog)
+CH_CASTING_PARENT(ChTimestepperLeapfrog, ChTimestepperIIorder)
+
 
 // Performs a step of a Leapfrog explicit integrator.
 // It is a symplectic method, with 2nd order accuracy,
@@ -389,6 +404,22 @@ void ChTimestepperEulerImplicit::Advance(const double dt) {
     mintegrable->StateScatterReactions(L);  // -> system auxiliary data
 }
 
+void ChTimestepperEulerImplicit::ArchiveOUT(ChArchiveOut& archive) {
+    // version number
+    archive.VersionWrite<ChTimestepperEulerImplicit>();
+    // serialize parent class:
+    ChTimestepperIIorder::ArchiveOUT(archive);
+    ChImplicitIterativeTimestepper::ArchiveOUT(archive);
+}
+
+void ChTimestepperEulerImplicit::ArchiveIN(ChArchiveIn& archive) {
+    // version number
+    /*int version =*/ archive.VersionRead<ChTimestepperEulerImplicit>();
+    // deserialize parent class:
+    ChTimestepperIIorder::ArchiveIN(archive);
+    ChImplicitIterativeTimestepper::ArchiveIN(archive);
+}
+
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
@@ -460,6 +491,7 @@ void ChTimestepperEulerImplicitLinearized::Advance(const double dt) {
     mintegrable->StateScatter(X, V, T, true);  // state -> system
     mintegrable->StateScatterReactions(L);     // -> system auxiliary data
 }
+
 
 // -----------------------------------------------------------------------------
 
@@ -658,6 +690,22 @@ void ChTimestepperTrapezoidal::Advance(const double dt) {
                                        0.5);  // -> system auxiliary data   (*=0.5 cause we used the hack of l_old = 0)
 }
 
+void ChTimestepperTrapezoidal::ArchiveOUT(ChArchiveOut& archive) {
+    // version number
+    archive.VersionWrite<ChTimestepperTrapezoidal>();
+    // serialize parent class:
+    ChTimestepperIIorder::ArchiveOUT(archive);
+    ChImplicitIterativeTimestepper::ArchiveOUT(archive);
+}
+
+void ChTimestepperTrapezoidal::ArchiveIN(ChArchiveIn& archive) {
+    // version number
+    /*int version =*/ archive.VersionRead<ChTimestepperTrapezoidal>();
+    // deserialize parent class:
+    ChTimestepperIIorder::ArchiveIN(archive);
+    ChImplicitIterativeTimestepper::ArchiveIN(archive);
+}
+
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
@@ -739,6 +787,22 @@ void ChTimestepperTrapezoidalLinearized::Advance(const double dt) {
     mintegrable->StateScatterReactions(L *= 0.5);             // -> system auxiliary data (*=0.5 because use l_old = 0)
 }
 
+void ChTimestepperTrapezoidalLinearized::ArchiveOUT(ChArchiveOut& archive) {
+    // version number
+    archive.VersionWrite<ChTimestepperTrapezoidalLinearized>();
+    // serialize parent class:
+    ChTimestepperIIorder::ArchiveOUT(archive);
+    ChImplicitIterativeTimestepper::ArchiveOUT(archive);
+}
+
+void ChTimestepperTrapezoidalLinearized::ArchiveIN(ChArchiveIn& archive) {
+    // version number
+    /*int version =*/ archive.VersionRead<ChTimestepperTrapezoidalLinearized>();
+    // deserialize parent class:
+    ChTimestepperIIorder::ArchiveIN(archive);
+    ChImplicitIterativeTimestepper::ArchiveIN(archive);
+}
+
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
@@ -811,6 +875,23 @@ void ChTimestepperTrapezoidalLinearized2::Advance(const double dt) {
 
     mintegrable->StateScatter(X, V, T, true);  // state -> system
     mintegrable->StateScatterReactions(L);     // -> system auxiliary data
+}
+
+
+void ChTimestepperTrapezoidalLinearized2::ArchiveOUT(ChArchiveOut& archive) {
+    // version number
+    archive.VersionWrite<ChTimestepperTrapezoidalLinearized2>();
+    // serialize parent class:
+    ChTimestepperIIorder::ArchiveOUT(archive);
+    ChImplicitIterativeTimestepper::ArchiveOUT(archive);
+}
+
+void ChTimestepperTrapezoidalLinearized2::ArchiveIN(ChArchiveIn& archive) {
+    // version number
+    /*int version =*/ archive.VersionRead<ChTimestepperTrapezoidalLinearized2>();
+    // deserialize parent class:
+    ChTimestepperIIorder::ArchiveIN(archive);
+    ChImplicitIterativeTimestepper::ArchiveIN(archive);
 }
 
 // -----------------------------------------------------------------------------

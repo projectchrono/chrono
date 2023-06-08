@@ -18,6 +18,8 @@ namespace chrono {
 
 CH_CASTING_PARENT(ChIterativeSolverVI, ChIterativeSolver)
 CH_CASTING_PARENT(ChIterativeSolverVI, ChSolverVI)
+CH_CASTING_PARENT(ChSolverVI, ChSolver) // placed here since ChSolver is missing the .cpp
+
 
 ChIterativeSolverVI::ChIterativeSolverVI()
     : ChIterativeSolver(50, 0.0, true, false),

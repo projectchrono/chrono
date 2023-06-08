@@ -188,7 +188,7 @@ class  ChArchiveInBinary : public ChArchiveIn {
                 throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the reference ID " + std::to_string((int)obj_ID) +" is not a valid number." ));
             
             void* referred_ptr = ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), internal_id_ptr[obj_ID]);
-            bVal.value().SetRawPtr(referred_ptr ? referred_ptr : internal_id_ptr[obj_ID]);
+            bVal.value().SetRawPtr(referred_ptr);
           }
           else if (cls_name == "eID") {
             size_t ext_ID = 0;
@@ -199,7 +199,7 @@ class  ChArchiveInBinary : public ChArchiveIn {
                     throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the external reference ID " + std::to_string((int)ext_ID) +" cannot be rebuilt." ));
             
             void* referred_ptr = ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), external_id_ptr[ext_ID]);
-            bVal.value().SetRawPtr(referred_ptr ? referred_ptr : external_id_ptr[ext_ID]);
+            bVal.value().SetRawPtr(referred_ptr);
           }
           else {
             // Dynamically create (no class factory will be invoked for non-polymorphic obj):

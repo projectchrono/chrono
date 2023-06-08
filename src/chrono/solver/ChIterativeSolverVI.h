@@ -90,18 +90,18 @@ class ChApi ChIterativeSolverVI : public ChIterativeSolver, public ChSolverVI {
     /// Note that collection of constraint violations must be enabled through SetRecordViolation.
     const std::vector<double>& GetDeltalambdaHistory() const { return dlambda_history; }
 
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
   protected:
     /// This method MUST be called by all iterative methods INSIDE their iteration loops
     /// (at the end). If history recording is enabled, this function will store the
     /// current values as passed as arguments.
     /// Note: 'iternum' starts at 0 for the first iteration.
     void AtIterationEnd(double mmaxviolation, double mdeltalambda, unsigned int iternum);
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
-
-    /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
   protected:
     /// Indicate whether ot not the Solve() phase requires an up-to-date problem matrix.

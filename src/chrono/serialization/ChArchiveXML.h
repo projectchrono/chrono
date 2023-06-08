@@ -534,15 +534,15 @@ class  ChArchiveInXML : public ChArchiveIn {
 						    throw (ChExceptionArchive("In object '" + std::string(bVal.name()) + "' the refID " + std::to_string((int)ref_ID) + " is not a valid number."));
 					    }
 
-                        void* referred_ptr = ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), internal_id_ptr[ref_ID]);
-                        bVal.value().SetRawPtr(referred_ptr ? referred_ptr : internal_id_ptr[ref_ID]);
+                        void* referred_ptr = ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), internal_id_ptr[ref_ID]); //TODO: DARIOM compact
+                        bVal.value().SetRawPtr(referred_ptr);
                     }
 					else if (ext_ID) {
 						if (this->external_id_ptr.find(ext_ID) == this->external_id_ptr.end()) {
 							throw (ChExceptionArchive("In object '" + std::string(bVal.name()) + "' the external_refID " + std::to_string((int)ext_ID) + " is not valid."));
 						}
-						void* referred_ptr = ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), external_id_ptr[ext_ID]);
-                        bVal.value().SetRawPtr(referred_ptr ? referred_ptr : external_id_ptr[ext_ID]);
+                        void* referred_ptr = ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), external_id_ptr[ext_ID]); //TODO: DARIOM compact
+                        bVal.value().SetRawPtr(referred_ptr);
 					}
 				}
 				this->levels.pop();

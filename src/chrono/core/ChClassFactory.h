@@ -58,6 +58,9 @@ public:
     /// otherwise just call new().
     virtual void* create(ChArchiveIn& marchive) = 0;
 
+    /// Call the ArchiveIN(ChArchiveIn&) function if available, populating an already existing object
+    virtual void archive(ChArchiveIn& marchive, void* ptr) = 0;
+
     /// Get the type_info of the class
     virtual std::type_index  get_type_index() = 0;
 
@@ -167,6 +170,13 @@ class ChApi ChClassFactory {
         *ptr = reinterpret_cast<T*>(global_factory->_archive_in_create(keyName, marchive));
     }
 
+    /// Populate an already existing object with its ArchiveIn
+    template <class T>
+    static void archive(const std::string& keyName, ChArchiveIn& marchive, T* ptr) {
+        ChClassFactory* global_factory = GetGlobalClassFactory();
+        global_factory->_archive_in(keyName, marchive, getVoidPointer<T>(ptr)); // TODO: DARIOM chech if a getVoidPointer is needed here, since _archive_in is actually asking for void* 
+    }
+
 private:
     /// Access the unique class factory here. It is unique even 
     /// between dll boundaries. It is allocated the 1st time it is called, if null.
@@ -215,12 +225,22 @@ private:
         }
         throw ( ChException("ChClassFactory::create() cannot find the class with name " + keyName + ". Please register it.\n") );
     }
+
     void* _archive_in_create(const std::string& keyName, ChArchiveIn& marchive) {
         const auto &it = class_map.find(keyName);
         if (it != class_map.end()) {
             return it->second->create(marchive);
         }
         throw ( ChException("ChClassFactory::create() cannot find the class with name " + keyName + ". Please register it.\n") );
+    }
+
+    void _archive_in(const std::string& keyName, ChArchiveIn& marchive, void* ptr) {
+        const auto &it = class_map.find(keyName);
+        if (it != class_map.end()) {
+            it->second->archive(marchive, ptr);
+        }
+        else
+            throw ( ChException("ChClassFactory::archive() cannot find the class with name " + keyName + ". Please register it.\n") );
     }
 
 private:
@@ -289,19 +309,23 @@ class ChClassRegistration : public ChClassRegistrationBase {
     // METHODS
     //
 
-    virtual void* create() {
+    virtual void* create() override {
         return _create();
     }
 
-    virtual void* create(ChArchiveIn& marchive) {
+    virtual void* create(ChArchiveIn& marchive) override {
         return _archive_in_create(marchive);
     }
- 
-    virtual std::type_index get_type_index() {
+
+    virtual void archive(ChArchiveIn& marchive, void* ptr) override {
+        _archive_in(marchive, ptr);
+    }
+
+    virtual std::type_index get_type_index() override {
         return std::type_index(typeid(t));
     }
 
-    virtual std::string& get_tag_name() {
+    virtual std::string& get_tag_name() override {
         return _get_tag_name();
     }
 
@@ -343,6 +367,17 @@ protected:
     typename enable_if< !ChDetect_ArchiveINconstructor<Tc>::value, void* >::type 
     _archive_in_create(ChArchiveIn& marchive) {
         return reinterpret_cast<void*>(new Tc);
+    }
+
+    template <class Tc=t>
+    typename enable_if<ChDetect_ArchiveIN<Tc>::value, void >::type
+    _archive_in(ChArchiveIn& marchive, void* ptr) {
+        reinterpret_cast<Tc*>(ptr)->ArchiveIN(marchive);
+    }
+    template <class Tc=t>
+    typename enable_if<!ChDetect_ArchiveIN<Tc>::value, void >::type 
+    _archive_in(ChArchiveIn& marchive, void* ptr) {
+        // do nothing, ArchiveIn does not esist for this type
     }
 
     template <class Tc=t>
@@ -398,14 +433,32 @@ namespace class_factory {                                                       
 /// This procedure is simplified by the macros #CH_CASTING_PARENT(FROM, TO) and #CH_CASTING_PARENT_SANITIZED(FROM, TO, UNIQUETAG)
 /// When the conversion should take place the following can be called:
 /// `ConversionMap::convert(std::string("source_classname"), std::string("destination_classname"), <void* to object>)`
+
+
 class ChApi ChCastingMap {
-    using to_map_type = std::unordered_map<std::string, std::function<void*(void*)>>;
-    using from_map_type = std::unordered_map<std::string, to_map_type>;
+private:
+    struct PairHash {
+    template <typename T1, typename T2>
+    std::size_t operator()(const std::pair<T1, T2>& p) const {
+        return std::hash<T1>()(p.first) ^ std::hash<T2>()(p.second);
+    }
+};
+
+struct EqualHash {
+    template <typename T1, typename T2>
+    bool operator()(const std::pair<T1, T2>& p, const std::pair<T1, T2>& q) const {
+        return (p.first.compare(q.first) == 0) && (p.second.compare(q.second) == 0);
+    }
+};
+
+    using conv_fun_pair_type = std::pair<std::function<void*(void*)>, std::function<std::shared_ptr<void>(std::shared_ptr<void>)>>;
+    using conv_key_pair_type = std::pair<std::string, std::string>;
+    using conv_map_type = std::unordered_map<conv_key_pair_type, conv_fun_pair_type, PairHash, EqualHash>;
     using ti_map_type = std::unordered_map<std::type_index, std::string>;
 public:
-    ChCastingMap(const std::string& from, const std::type_index& from_ti, const std::string& to, const std::type_index& to_ti, std::function<void*(void*)> fun);
+    ChCastingMap(const std::string& from, const std::type_index& from_ti, const std::string& to, const std::type_index& to_ti, std::function<void*(void*)> conv_ptr_fun, std::function<std::shared_ptr<void>(std::shared_ptr<void>)> conv_shptr_fun);
 
-    void AddCastingFunction(const std::string& from, const std::type_index& from_ti, const std::string& to, const std::type_index& to_ti, std::function<void*(void*)> fun);
+    void AddCastingFunction(const std::string& from, const std::type_index& from_ti, const std::string& to, const std::type_index& to_ti, std::function<void*(void*)> conv_ptr_fun, std::function<std::shared_ptr<void>(std::shared_ptr<void>)> conv_shptr_fun);
 
     static void PrintCastingFunctions();
 
@@ -414,8 +467,18 @@ public:
     static void* Convert(const std::string& from, const std::type_index& to_it, void* vptr);
     static void* Convert(const std::type_index& from_it, const std::string& to, void* vptr);
 
+    static std::shared_ptr<void> Convert(const std::string& from, const std::string& to, std::shared_ptr<void> vptr);
+    static std::shared_ptr<void> Convert(const std::type_index& from_it, const std::type_index& to_it, std::shared_ptr<void> vptr);
+    static std::shared_ptr<void> Convert(const std::string& from, const std::type_index& to_it, std::shared_ptr<void> vptr);
+    static std::shared_ptr<void> Convert(const std::type_index& from_it, const std::string& to, std::shared_ptr<void> vptr);
+
+    static std::string GetClassnameFromPtrTypeindex(std::type_index typeindex);
+
 private:
-    static from_map_type& getCastingMap();
+    static void* _convert(const std::string& from, const std::string& to, void* vptr, bool& success);
+    static std::shared_ptr<void> _convert(const std::string& from, const std::string& to, std::shared_ptr<void> vptr, bool& success);
+
+    static conv_map_type& getCastingMap();
     static ti_map_type& getTypeIndexMap();
 };
 
@@ -463,13 +526,21 @@ private:
 ///     `ChBodyFrame* bframe_ptr = vptr; // WRONG`
 /// Refer to \ref ConversionMap for further details.
 #define CH_CASTING_PARENT(FROM, TO) \
-namespace class_factory {                                                       \
-    ChCastingMap convfun_from_##FROM##_##TO(std::string(#FROM), std::type_index(typeid(FROM*)), std::string(#TO), std::type_index(typeid(TO*)), [](void* vptr) { return static_cast<void*>(static_cast<TO*>(static_cast<FROM*>(vptr))); });\
+namespace class_factory { \
+    ChCastingMap convfun_from_##FROM##_##TO( \
+        std::string(#FROM), std::type_index(typeid(FROM*)), \
+        std::string(#TO), std::type_index(typeid(TO*)), \
+        [](void* vptr) { return static_cast<void*>(static_cast<TO*>(reinterpret_cast<FROM*>(vptr))); }, \
+        [](std::shared_ptr<void> vptr) { return std::static_pointer_cast<void>(std::static_pointer_cast<TO>(std::reinterpret_pointer_cast<FROM>(vptr))); });\
 }
 
 #define CH_CASTING_PARENT_SANITIZED(FROM, TO, UNIQUETAG) \
 namespace class_factory { \
-    ChCastingMap convfun_from_##UNIQUETAG(std::string(#FROM), std::type_index(typeid(FROM*)), std::string(#TO), std::type_index(typeid(TO*)), [](void* vptr) { return static_cast<void*>(static_cast<TO*>(static_cast<FROM*>(vptr))); });\
+    ChCastingMap convfun_from_##UNIQUETAG( \
+        std::string(#FROM), std::type_index(typeid(FROM*)), \
+        std::string(#TO), std::type_index(typeid(TO*)), \
+        [](void* vptr) { return static_cast<void*>(static_cast<TO*>(reinterpret_cast<FROM*>(vptr))); }, \
+        [](std::shared_ptr<void> vptr) { return std::static_pointer_cast<void>(std::static_pointer_cast<TO>(std::reinterpret_pointer_cast<FROM>(vptr))); });\
 }
 
 // Class version registration 

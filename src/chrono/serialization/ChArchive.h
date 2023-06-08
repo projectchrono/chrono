@@ -98,6 +98,8 @@ public:
     virtual ~ChFunctorArchiveIn() {};
 
         /// Use this to call member function ArchiveIn. 
+    virtual void CallArchiveIn(ChArchiveIn& marchive, const char* classname)=0;
+
     virtual void CallArchiveIn(ChArchiveIn& marchive)=0;
 
     /// Use this to call 
@@ -139,6 +141,9 @@ public:
       virtual void CallArchiveIn(ChArchiveIn& marchive) override
         { this->_archive_in(marchive);}
 
+      virtual void CallArchiveIn(ChArchiveIn& marchive, const char* classname) override
+        { this->_archive_in(marchive, classname);}
+
       virtual void CallConstructor(ChArchiveIn& marchive, const char* classname) override
         { throw (ChExceptionArchive( "Cannot call CallConstructor() for a constructed object.")); };
 
@@ -159,10 +164,20 @@ public:
 
 private:
         template <class Tc=TClass>
-        typename enable_if< ChDetect_ArchiveIN<Tc>::value, void >::type
+        typename enable_if<ChDetect_ArchiveIN<Tc>::value, void>::type
         _archive_in(ChArchiveIn& marchive) {
             this->pt2Object->ArchiveIN(marchive);
         }
+
+        template <class Tc=TClass>
+        typename enable_if<ChDetect_ArchiveIN<Tc>::value, void>::type
+        _archive_in(ChArchiveIn& marchive, const char* classname) {
+            if (ChClassFactory::IsClassRegistered(std::string(classname)))
+                ChClassFactory::archive(std::string(classname), marchive, pt2Object);
+            else
+                throw (ChExceptionArchive("CallArchiveIn(ChArchiveIn&, const char*): class " + std::string(classname) + " is expected to have ArchiveIn, but it doesn't."));
+        }
+
         //template <class Tc=TClass>
         //typename enable_if< !ChDetect_ArchiveIN<Tc>::value, void >::type 
         //_archive_in(ChArchiveIn& marchive) {
@@ -185,6 +200,9 @@ public:
 
       virtual void CallArchiveIn(ChArchiveIn& marchive) override
         { this->_archive_in(marchive);}
+
+      virtual void CallArchiveIn(ChArchiveIn& marchive, const char* classname) override
+        { this->_archive_in(marchive, classname);}
 
       virtual void CallConstructor(ChArchiveIn& marchive, const char* classname) override
         { this->_constructor(marchive, classname); }
@@ -260,11 +278,23 @@ private:
 
 
         private:
+
         template <class Tc=TClass>
         typename enable_if< ChDetect_ArchiveIN<Tc>::value, void >::type
         _archive_in(ChArchiveIn& marchive) {
-            (*this->pt2Object)->ArchiveIN(marchive);
+            (*pt2Object)->ArchiveIN(marchive);
         }
+
+        template <class Tc=TClass>
+        typename enable_if< ChDetect_ArchiveIN<Tc>::value, void >::type
+        _archive_in(ChArchiveIn& marchive, const char* classname) {
+            if (ChClassFactory::IsClassRegistered(std::string(classname)))
+                ChClassFactory::archive(std::string(classname), marchive, *pt2Object);
+            else
+                throw (ChExceptionArchive("CallArchiveIn(ChArchiveIn&, const char*): class " + std::string(classname) + " is expected to have ArchiveIn, but it doesn't."));
+
+        }
+
         //template <class Tc=TClass>
         //typename enable_if< !ChDetect_ArchiveIN<Tc>::value, void >::type 
         //_archive_in(ChArchiveIn& marchive) {
@@ -1021,9 +1051,9 @@ class  ChArchiveOut : public ChArchive {
           void* idptr = getVoidPointer<T>(mptr);
 
           if (this->cut_all_pointers)
-              mptr = 0;
+              mptr = nullptr;
           if (this->cut_pointers.find(idptr) != this->cut_pointers.end())
-              mptr = 0;
+              mptr = nullptr;
           bool already_stored = false;
           size_t obj_ID = 0; 
           size_t ext_ID = 0;
@@ -1034,7 +1064,7 @@ class  ChArchiveOut : public ChArchive {
           else {
               PutPointer(idptr, already_stored, obj_ID);
           }
-          ChValueSpecific< T > specVal(*mptr, bVal.name(), bVal.flags());
+          ChValueSpecific< T > specVal(*mptr, bVal.name(), bVal.flags()); // TODO: mptr might be null if cut_all_pointers; double check if it is ok
           this->out_ref( 
               specVal,
               already_stored, 
@@ -1157,15 +1187,14 @@ class  ChArchiveIn : public ChArchive {
         std::unordered_map<void*, size_t>  internal_ptr_id;
         std::unordered_map<size_t, void*>  internal_id_ptr;
         size_t currentID;
-
-        std::unordered_map<void*, std::shared_ptr<void> >  shared_ptr_map;
+        using shared_pair_type = std::pair<std::shared_ptr<void>, std::type_index>;
+        std::unordered_map<void*, shared_pair_type>  shared_ptr_map;
 
         /// container of pointers marker with external IDs to re-bind instead of de-serializing
         std::unordered_map<size_t, void*>  external_id_ptr;
   public:
 
          ChArchiveIn() {
-
             internal_ptr_id.clear();
             internal_ptr_id[0]=(0);  // null pointer -> ID=0.
             internal_id_ptr.clear();
@@ -1191,7 +1220,8 @@ class  ChArchiveIn : public ChArchive {
         /// Note, there is no check on pointer types when rebinding!
         void RebindExternalPointer(std::shared_ptr<void> mptr, size_t ID) {
             external_id_ptr[ID] = mptr.get();
-            shared_ptr_map[mptr.get()] = mptr;
+            //shared_ptr_map[mptr.get()] = shared_pair_type(mptr, std::type_index(typeid(void)));
+            shared_ptr_map.emplace(std::make_pair(mptr.get(), shared_pair_type(mptr, std::type_index(typeid(void)))));
         }
 
   protected:
@@ -1344,23 +1374,32 @@ class  ChArchiveIn : public ChArchive {
           ChNameValue<ChFunctorArchiveIn> mtmp(bVal.name(), specFuncA, bVal.flags());
           void* newptr = this->in_ref(mtmp);
 
+          // 'mtmp' might contain a pointer to:
+          // I) an object of type T
+          // II) an object of type derived from T
+          // (see ChArchiveJSON::in_ref for further details)
+
+          // bVal must now be updated (in_ref just modified mtmp!)
           // Some additional complication respect to raw pointers: 
           // it must properly increment shared count of shared pointers.
-          if(newptr) {
-              // case A: new object, so just make a shared ptr with initial count=1
-              bVal.value() = std::shared_ptr<T> ( mptr ); 
-              this->shared_ptr_map[mptr] = std::static_pointer_cast<void>(bVal.value());
+          void* true_ptr = getVoidPointer<T>(mptr);
+          std::unordered_map<void*, shared_pair_type>::iterator existing_sh_ptr = shared_ptr_map.find(true_ptr);
+          if (newptr || existing_sh_ptr == shared_ptr_map.end()) {
+              // CASE A: newly created object or object created through raw pointers.
+              //   mptr (== *mtmp._value.pt2Object) has already been properly converted to type T
+              // no matter if case I) or case II)
+              bVal.value() = std::shared_ptr<T>(mptr);
+              // shared_ptr_map, on the contrary, needs to know the *true* address of the referred object
+              // i.e. the address of the most derived type
+              // and it holds a copy of a shared_prt so to be able to add to it if anyone else is going to refer to it
+              std::shared_ptr<void> temp_shptr = std::static_pointer_cast<void>(bVal.value());
+              shared_ptr_map.emplace(std::make_pair(true_ptr, std::make_pair(std::static_pointer_cast<void>(bVal.value()), std::type_index(typeid(T)))));
           }
           else {
-              if (this->shared_ptr_map.find(mptr) != this->shared_ptr_map.end()) {
-                  // case B1: preexisting object, previously referenced by a shared ptr, so increment ref count
-                  bVal.value() = std::static_pointer_cast<T>(shared_ptr_map[mptr]);
-              }
-              else {
-                  // case B2: preexisting object, but not referenced by shared ptr (maybe by some raw ptr) so just make a shared ptr with initial count=1
-                  bVal.value() = std::shared_ptr<T> ( mptr ); 
-                  this->shared_ptr_map[mptr] = std::static_pointer_cast<void>(bVal.value());
-              }
+              // case B: existing object already referenced by a shared_ptr, so increment ref count
+              std::shared_ptr<void> converted_shptr = ChCastingMap::Convert(existing_sh_ptr->second.second, std::type_index(typeid(bVal.value())), existing_sh_ptr->second.first); //TODO: DARIOM compact
+              bVal.value() = std::static_pointer_cast<T>(converted_shptr);
+
           }
       }
 

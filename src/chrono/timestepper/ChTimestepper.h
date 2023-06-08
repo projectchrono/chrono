@@ -376,6 +376,12 @@ class ChApi ChTimestepperEulerImplicit : public ChTimestepperIIorder, public ChI
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
                          ) override;
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& archive) override;
+
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& archive) override;
 };
 
 /// Performs a step of Euler implicit for II order systems using the Anitescu/Stewart/Trinkle
@@ -400,6 +406,7 @@ class ChApi ChTimestepperEulerImplicitLinearized : public ChTimestepperIIorder, 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
                          ) override;
+
 };
 
 /// Performs a step of Euler implicit for II order systems using a semi implicit Euler without
@@ -424,6 +431,7 @@ class ChApi ChTimestepperEulerImplicitProjected : public ChTimestepperIIorder, p
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
                          ) override;
+
 };
 
 /// Performs a step of trapezoidal implicit for II order systems.
@@ -450,6 +458,12 @@ class ChApi ChTimestepperTrapezoidal : public ChTimestepperIIorder, public ChImp
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
                          ) override;
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& archive) override;
+
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& archive) override;
 };
 
 /// Performs a step of trapezoidal implicit linearized for II order systems.
@@ -473,6 +487,12 @@ class ChApi ChTimestepperTrapezoidalLinearized : public ChTimestepperIIorder, pu
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
                          ) override;
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& archive) override;
+
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& archive) override;
 };
 
 /// Performs a step of trapezoidal implicit linearized for II order systems.
@@ -493,6 +513,12 @@ class ChApi ChTimestepperTrapezoidalLinearized2 : public ChTimestepperIIorder, p
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
     );
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& archive) override;
+
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& archive) override;
 };
 
 /// Performs a step of Newmark constrained implicit for II order DAE systems.

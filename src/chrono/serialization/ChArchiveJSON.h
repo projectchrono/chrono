@@ -463,20 +463,40 @@ class  ChArchiveInJSON : public ChArchiveIn {
                 is_reference = true;
             }
 
+
             if (!is_reference) {
-                // 2) Dynamically create 
-                // call new(), or deserialize constructor params+call new():
+                // 2) Dynamically create: call new(), or deserialize constructor params+call new()
+                // However, two cases might happen:
+                // a) the creation of a Derived object is triggered by a Derived*
+                // b) the creation of a Derived object is triggered by a Base*
+
+                // The object will *always* be created with the *true* type, given by 'cls_name', however:
+                // a) the cls_name will     coincide with the type of bVal._value.*pt2object
+                // b) the cls_name will NOT coincide with the type of bVal._value.*pt2object,
+                //    thus corrupting the value of the pointer itself
                 bVal.value().CallConstructor(*this, cls_name.c_str());
             
+
+                // if b), at this point the bVal._value.*pt2object is thinking to point to an object of a Base type;
+                // the following step will instead set the pointer type to 'cls_name*' i.e. Derived*
+                // and then typecasted back to Base*, as required by bVal._value.pt2Object
+                // but this time, if the class is polymorphic and with multiple inheritence,
+                // we might see that the address is slightly changed (as it should be!)
                 void* new_ptr_temp = bVal.value().GetRawPtr();
-                if (new_ptr_temp) {
+                void* new_ptr_fixed = ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), new_ptr_temp);
+                bVal.value().SetRawPtr(new_ptr_fixed);
+
+                void* new_ptr_void = bVal.value().GetRawPtr();
+
+                if (new_ptr_void) {
                     bool already_stored; size_t obj_ID;
-                    PutPointer(new_ptr_temp, already_stored, obj_ID);
+                    PutPointer(new_ptr_void, already_stored, obj_ID);
                     // 3) Deserialize
-                    bVal.value().CallArchiveIn(*this);
+                    bVal.value().CallArchiveIn(*this, cls_name.c_str());
                 } else {
                     throw(ChExceptionArchive("Archive cannot create object " + std::string(bVal.name()) +"\n"));
                 }
+
                 new_ptr = bVal.value().GetRawPtr();
             } 
             else {
@@ -484,16 +504,17 @@ class  ChArchiveInJSON : public ChArchiveIn {
                     if (this->internal_id_ptr.find(ref_ID) == this->internal_id_ptr.end()) {
                         throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the _reference_ID " + std::to_string((int)ref_ID) +" is not a valid number." ));
                     }
+                    void* referred_ptr = ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), internal_id_ptr[ref_ID]); //TODO: DARIOM compact
+                    bVal.value().SetRawPtr(referred_ptr);
 
-                    void* referred_ptr = ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), internal_id_ptr[ref_ID]);
-                    bVal.value().SetRawPtr(referred_ptr ? referred_ptr : internal_id_ptr[ref_ID]);
                 }
                 else if (ext_ID) {
                     if (this->external_id_ptr.find(ext_ID) == this->external_id_ptr.end()) {
                         throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the _external_ID " + std::to_string((int)ext_ID) +" is not valid." ));
                     }
                     void* referred_ptr = ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), external_id_ptr[ext_ID]);
-                    bVal.value().SetRawPtr(referred_ptr ? referred_ptr : external_id_ptr[ext_ID]);
+                    bVal.value().SetRawPtr(referred_ptr);
+
                 }
             }
             this->levels.pop();
