@@ -446,7 +446,7 @@ ChVisualSystemVSG::ChVisualSystemVSG()
 #ifdef __APPLE__
     SetGuiFontSize(20.0);
 #else
-    SetGuiFontSize(10.0);
+    SetGuiFontSize(13.0);
 #endif
 }
 

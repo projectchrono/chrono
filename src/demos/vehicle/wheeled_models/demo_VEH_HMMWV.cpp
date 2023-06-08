@@ -51,7 +51,7 @@ using namespace chrono::vehicle::hmmwv;
 // =============================================================================
 
 // Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Initial vehicle location and orientation
 ChVector<> initLoc(0, 0, 1.6);
@@ -290,7 +290,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowTitle("HMMWV Demo");
             vis_vsg->AttachVehicle(&my_hmmwv.GetVehicle());
             vis_vsg->SetChaseCamera(trackPoint, 6.0, 0.5);
-            vis_vsg->SetWindowSize(ChVector2<int>(800, 600));
+            vis_vsg->SetWindowSize(ChVector2<int>(1200, 900));
             vis_vsg->SetWindowPosition(ChVector2<int>(100, 300));
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);

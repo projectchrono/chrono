@@ -110,9 +110,13 @@ class Sedan_Model : public Vehicle_Model {
         return "sedan/tire/Sedan_TMeasyTire.json";
         ////return "sedan/tire/Sedan_Pac02Tire.json";
     }
-    virtual std::string EngineJSON() const override { return "sedan/powertrain/Sedan_EngineSimpleMap.json"; }
+    virtual std::string EngineJSON() const override {
+        // return "sedan/powertrain/Sedan_EngineSimpleMap.json";
+        return "sedan/powertrain/Sedan_EngineShafts.json";
+    }
     virtual std::string TransmissionJSON() const override {
-        return "sedan/powertrain/Sedan_AutomaticTransmissionSimpleMap.json";
+        // return "sedan/powertrain/Sedan_AutomaticTransmissionSimpleMap.json";
+        return "sedan/powertrain/Sedan_ManualTransmissionShafts.json";
     }
     virtual double CameraDistance() const override { return 6.0; }
     virtual ChContactMethod ContactMethod() const override { return ChContactMethod::SMC; }
@@ -274,11 +278,11 @@ class UT_Model : public Trailer_Model {
 // =============================================================================
 
 // Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
 
 // Current vehicle model selection
-auto vehicle_model = HMMWV_Model();
-// auto vehicle_model = Sedan_Model();
+// auto vehicle_model = HMMWV_Model();
+auto vehicle_model = Sedan_Model();
 // auto vehicle_model = Audi_Model();
 // auto vehicle_model = Polaris_Model();
 // auto vehicle_model = VW_Microbus_Model();

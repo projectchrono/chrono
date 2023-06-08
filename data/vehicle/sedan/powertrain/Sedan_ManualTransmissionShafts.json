@@ -1,0 +1,15 @@
+{
+  "Name": "Sedan Shafts Manual Transmission",
+  "Type": "Transmission",
+  "Template": "ManualTransmissionShafts",
+
+  "Transmission Block Inertia": 10.5, // connection to chassis
+  "Input Shaft Inertia": 0.05,
+  "Motorshaft Inertia": 0.05, // connection to engine
+  "Driveshaft Inertia": 0.05, // connection to driveline
+  "Clutch Torque Limit": 500,
+  "Gear Box": {
+    "Forward Gear Ratios": [ 0.265, 0.489, 0.784, 1.063, 1.276, 1.499 ],
+    "Reverse Gear Ratio": -0.333
+  }
+}

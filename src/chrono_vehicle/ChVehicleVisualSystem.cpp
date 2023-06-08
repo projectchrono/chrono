@@ -69,6 +69,7 @@ void ChVehicleVisualSystem::Synchronize(double time, const DriverInputs& driver_
     m_steering = driver_inputs.m_steering;
     m_throttle = driver_inputs.m_throttle;
     m_braking = driver_inputs.m_braking;
+    m_clutch = driver_inputs.m_clutch;
 }
 
 void ChVehicleVisualSystem::SetChaseCamera(const ChVector<>& ptOnChassis, double chaseDist, double chaseHeight) {

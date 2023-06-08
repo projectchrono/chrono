@@ -9,15 +9,16 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Marcel Offermans
 // =============================================================================
 //
-// Automatic transmission model template based on ChShaft objects.
+// Manual transmission model template based on ChShaft objects consisting of
+// a clutch and a manual gearbox.
 //
 // =============================================================================
 
-#ifndef CH_SHAFTS_AUTOMATIC_TRANSMISSION_H
-#define CH_SHAFTS_AUTOMATIC_TRANSMISSION_H
+#ifndef CH_SHAFTS_MANUAL_TRANSMISSION_H
+#define CH_SHAFTS_MANUAL_TRANSMISSION_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChTransmission.h"
@@ -25,7 +26,7 @@
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChShaftsGearbox.h"
 #include "chrono/physics/ChShaftsBody.h"
-#include "chrono/physics/ChShaftsTorqueConverter.h"
+#include "chrono/physics/ChShaftsClutch.h"
 
 namespace chrono {
 namespace vehicle {
@@ -36,43 +37,21 @@ namespace vehicle {
 // Forward reference
 class ChVehicle;
 
-/// Template for an automatic transmission model using shaft elements.
-/// This transmission template includes a torque converter and a manumatic gearbox.
-class CH_VEHICLE_API ChAutomaticTransmissionShafts : public ChAutomaticTransmission {
+/// Template for a manual transmission model using shaft elements.
+/// This transmission template includes a clutch and a manual gearbox.
+class CH_VEHICLE_API ChManualTransmissionShafts : public ChManualTransmission {
   public:
-    /// Construct a shafts-based automatic transmission model.
-    ChAutomaticTransmissionShafts(const std::string& name);
+    /// Construct a shafts-based manual transmission model.
+    ChManualTransmissionShafts(const std::string& name);
 
-    virtual ~ChAutomaticTransmissionShafts();
+    virtual ~ChManualTransmissionShafts();
 
     /// Get the name of the vehicle subsystem template.
-    virtual std::string GetTemplateName() const override { return "AutomaticTransmissionShafts"; }
+    virtual std::string GetTemplateName() const override { return "ManualTransmissionShafts"; }
 
-    /// Return true if a torque converter model is included.
-    /// A ChAutomaticTransmissionShafts includes a torque converter model.
-    virtual bool HasTorqueConverter() const override { return true; }
-
-    /// Return the value of slippage in the torque converter.
-    virtual double GetTorqueConverterSlippage() const override { return m_torqueconverter->GetSlippage(); }
-
-    /// Return the input torque to the torque converter.
-    virtual double GetTorqueConverterInputTorque() const override {
-        return -m_torqueconverter->GetTorqueReactionOnInput();
-    }
-
-    /// Return the output torque from the torque converter.
-    virtual double GetTorqueConverterOutputTorque() const override {
-        return m_torqueconverter->GetTorqueReactionOnOutput();
-    }
-
-    /// Return the torque converter output shaft speed.
-    virtual double GetTorqueConverterOutputSpeed() const override { return m_shaft_ingear->GetPos_dt(); }
-
-    /// Use this to define the gear shift latency, in seconds.
-    void SetGearShiftLatency(double ml) { m_gear_shift_latency = ml; }
-
-    /// Use this to get the gear shift latency, in seconds.
-    double GetGearShiftLatency(double ml) { return m_gear_shift_latency; }
+    /// Return true if a clutch model is included.
+    /// A ChManualTransmissionShafts includes a clutch model.
+    virtual bool HasClutch() const override { return true; }
 
     /// Return the transmission output torque on the driveshaft.
     /// This is the torque that is passed to the driveline subsystem, thus providing the interface between the
@@ -96,17 +75,8 @@ class CH_VEHICLE_API ChAutomaticTransmissionShafts : public ChAutomaticTransmiss
     /// Inertia of the driveshaft (connection to driveline).
     virtual double GetDriveshaftInertia() const = 0;
 
-    /// Upshift and downshift rotation speeds (in RPM)
-    virtual double GetUpshiftRPM() const = 0;
-    virtual double GetDownshiftRPM() const = 0;
-
-    /// Set the capacity factor map.
-    /// Specify the capacity factor as a function of the speed ratio.
-    virtual void SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunction_Recorder>& map) = 0;
-
-    /// Set the torque ratio map.
-    /// Specify torque ratio as a function of the speed ratio.
-    virtual void SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunction_Recorder>& map) = 0;
+    /// Maximum torque that the clutch can transmit without slipping.
+    virtual double GetClutchTorqueLimit() const = 0;
 
   private:
     /// Initialize this transmission system by attaching it to an existing vehicle chassis and connecting the provided
@@ -135,14 +105,11 @@ class CH_VEHICLE_API ChAutomaticTransmissionShafts : public ChAutomaticTransmiss
 
     std::shared_ptr<ChShaft> m_transmissionblock;
     std::shared_ptr<ChShaftsBody> m_transmissionblock_to_body;
-    std::shared_ptr<ChShaftsTorqueConverter> m_torqueconverter;
-    std::shared_ptr<ChShaft> m_shaft_ingear;
     std::shared_ptr<ChShaftsGearbox> m_gears;
 
-    double m_last_time_gearshift;
-    double m_gear_shift_latency;
-    double m_upshift_speed;
-    double m_downshift_speed;
+    // Extras for clutch
+    std::shared_ptr<ChShaftsClutch> m_clutch;
+    std::shared_ptr<ChShaft> m_clutchShaft;
 };
 
 /// @} vehicle_powertrain

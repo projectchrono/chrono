@@ -50,6 +50,14 @@ void ChInteractiveDriverVSG::SteeringRight() {
     m_steering_target = ChClamp(m_steering_target - m_steering_delta, -1.0, +1.0);
 }
 
+void ChInteractiveDriverVSG::IncreaseClutch() {
+    m_clutch_target = ChClamp(m_clutch_target + m_clutch_delta, 0.0, +1.0);
+}
+
+void ChInteractiveDriverVSG::DecreaseClutch() {
+    m_clutch_target = ChClamp(m_clutch_target - m_clutch_delta, 0.0, +1.0);
+}
+
 void ChInteractiveDriverVSG::SteeringCenter() {
     m_steering_target = 0.0;
 }

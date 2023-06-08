@@ -32,6 +32,7 @@
 #include "chrono_vehicle/powertrain/EngineShafts.h"
 #include "chrono_vehicle/powertrain/AutomaticTransmissionSimpleMap.h"
 #include "chrono_vehicle/powertrain/AutomaticTransmissionShafts.h"
+#include "chrono_vehicle/powertrain/ManualTransmissionShafts.h"
 
 #include "chrono_vehicle/wheeled_vehicle/antirollbar/AntirollBarRSD.h"
 #include "chrono_vehicle/wheeled_vehicle/brake/BrakeSimple.h"
@@ -766,6 +767,8 @@ std::shared_ptr<ChTransmission> ReadTransmissionJSON(const std::string& filename
         transmission = chrono_types::make_shared<AutomaticTransmissionSimpleMap>(d);
     } else if (subtype.compare("AutomaticTransmissionShafts") == 0) {
         transmission = chrono_types::make_shared<AutomaticTransmissionShafts>(d);
+    } else if (subtype.compare("ManualTransmissionShafts") == 0) {
+        transmission = chrono_types::make_shared<ManualTransmissionShafts>(d);
     } else {
         throw ChException("Transmission type not supported in ReadTransmissionJSON.");
     }

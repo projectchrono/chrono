@@ -71,6 +71,7 @@ class CH_VEHICLE_API ChVehicleVisualSystem : virtual public ChVisualSystem {
     double GetSteering() const { return m_steering; }
     double GetThrottle() const { return m_throttle; }
     double GetBraking() const { return m_braking; }
+    double GetClutch() const { return m_clutch; }
 
   protected:
     ChVehicle* m_vehicle;  ///< pointer to the associated vehicle system
@@ -86,9 +87,10 @@ class CH_VEHICLE_API ChVehicleVisualSystem : virtual public ChVisualSystem {
     double m_camera_minMult;                         ///< initial camera minimum multiplier
     double m_camera_maxMult;                         ///< initial camera maximum multiplier
 
-    double m_steering;         ///< driver steering input
-    double m_throttle;         ///< driver throttle input
-    double m_braking;          ///< driver braking input
+    double m_steering;  ///< driver steering input
+    double m_throttle;  ///< driver throttle input
+    double m_braking;   ///< driver braking input
+    double m_clutch;    ///< driver clutch input
 
     friend class ChVehicle;
 };
