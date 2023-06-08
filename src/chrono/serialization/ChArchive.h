@@ -1393,7 +1393,7 @@ class  ChArchiveIn : public ChArchive {
               // i.e. the address of the most derived type
               // and it holds a copy of a shared_prt so to be able to add to it if anyone else is going to refer to it
               std::shared_ptr<void> temp_shptr = std::static_pointer_cast<void>(bVal.value());
-              shared_ptr_map.emplace(std::make_pair(true_ptr, std::make_pair(std::static_pointer_cast<void>(bVal.value()), std::type_index(typeid(T)))));
+              shared_ptr_map.emplace(std::make_pair(true_ptr, std::make_pair(std::static_pointer_cast<void>(bVal.value()), std::type_index(typeid(T*)))));
           }
           else {
               // case B: existing object already referenced by a shared_ptr, so increment ref count
