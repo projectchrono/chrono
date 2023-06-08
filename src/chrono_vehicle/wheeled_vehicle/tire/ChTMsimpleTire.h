@@ -1,3 +1,31 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2023 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Rainer Gericke
+// =============================================================================
+//
+// Template for the "TMsimple" handling tire model.
+//
+// Original developer is Prof. em. Wolfgang Hirschberg TU Graz 2009
+// The initial paper could not be accessed, but reconstructed from the
+// Master Thesis of Eva Heimlich https://diglib.tugraz.at/download.php?id=5990d1fdae37a&location=browse
+// The combined forces calculation in Chrono uses the same algorithm as TMeasy.
+//
+// This implementation has been validated with:
+//  - FED-Alpha vehicle model
+//  - Tire data sets gained by conversion of Pac02 TIR parameter files
+//  - Steady state cornering test and test results from Keweenah Research Center (KRC)
+//  - unvalidateble functionality has been removed
+// ===================================================================================
+
 #ifndef CH_TMSIMPLETIRE
 #define CH_TMSIMPLETIRE
 
@@ -14,7 +42,7 @@ namespace chrono {
 namespace vehicle {
 
 class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
-   public:
+  public:
     ChTMsimpleTire(const std::string& name);
 
     virtual ~ChTMsimpleTire() {}
@@ -122,7 +150,7 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
     /// Simple parameter consistency test.
     bool CheckParameters();
 
-   protected:
+  protected:
     /// Set the parameters in the TMsimple model.
     virtual void SetTMsimpleParams() = 0;
 
@@ -188,10 +216,6 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
         double dfy0_pn, dfy0_p2n;  ///< Initial lateral slopes dFy/dsy [kN]
         double fym_pn, fym_p2n;    ///< Maximum lateral force [kN]
         double fys_pn, fys_p2n;    ///< Lateral load at sliding [kN]
-
-        double nL0_pn, nL0_p2n;  ///< dimensionless alignment lever
-        double sq0_pn, sq0_p2n;  ///< lateral slip, where lever is zero
-        double sqe_pn, sqe_p2n;  ///< lever after sliding is reached
     } TMsimpleCoeff;
 
     TMsimpleCoeff m_par;
@@ -210,8 +234,6 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
     void TMcombinedForces(double& fx, double& fy, double sx, double sy, double fz, double muscale);
     void CombinedCoulombForces(double& fx, double& fy, double fz, double muscale);
 
-    double AlignmentTorque(double fy);
-
     struct TireStates {
         double sx;               // Contact Path - Longitudinal Slip State (Kappa)
         double sy;               // Contact Path - Side Slip State (Alpha)
@@ -223,9 +245,6 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
         double omega;            // Wheel angular velocity about its spin axis, filtered by running avg,
         double R_eff;            // Effective Rolling Radius
         double P_len;            // Length of contact patch
-        double nL0;              // Dimensionless lever at actual load level
-        double sq0;              // Zero crossing at actual load level
-        double sqe;              // Zero after complete sliding at actual load level
         ChVector<> disc_normal;  // (temporary for debug)
     };
 

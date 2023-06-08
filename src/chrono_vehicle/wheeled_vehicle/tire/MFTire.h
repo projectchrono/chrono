@@ -18,7 +18,7 @@
 // Hans B. Pacejka's "Tire and Vehicle Dynamics" Third Edition, Elsevier 2012
 // ISBN: 978-0-08-097016-5
 //
-// In opposite to the commercial product MFtire this implementation is merly
+// In opposite to the commercial product MFtire this implementation is merely
 // a subset:
 //  - only steady state force/torque calculations
 //  - uncombined (use_mode = 3)
@@ -32,7 +32,7 @@
 //
 // This derived class reads parameters from a JSON parameter file
 //  - input can be redirected from a TIR file
-//  - input parameters can set directly (only SI units!)
+//  - input parameters can be set directly (only SI units!)
 // =============================================================================
 
 #ifndef MF_TIRE_H

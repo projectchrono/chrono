@@ -1,3 +1,31 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2023 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Rainer Gericke
+// =============================================================================
+//
+// Template for the "TMsimple" handling tire model.
+//
+// Original developer is Prof. em. Wolfgang Hirschberg TU Graz 2009
+// The initial paper could not be accessed, but reconstructed from the
+// Master Thesis of Eva Heimlich https://diglib.tugraz.at/download.php?id=5990d1fdae37a&location=browse
+// The combined forces calculation in Chrono uses the same algorithm as TMeasy.
+//
+// This implementation has been validated with:
+//  - FED-Alpha vehicle model
+//  - Tire data sets gained by conversion of Pac02 TIR parameter files
+//  - Steady state cornering test and test results from Keweenah Research Center (KRC)
+//  - unvalidateble functionality has been removed
+// ===================================================================================
+
 #include <algorithm>
 #include <cmath>
 #include <iomanip>
@@ -32,14 +60,6 @@ ChTMsimpleTire::ChTMsimpleTire(const std::string& name)
 
     m_par.pn = 0.0;
     m_par.mu_0 = 0.8;
-
-    // alignment parameters, fixed for simplicity
-    m_par.nL0_pn = 0.133;
-    m_par.nL0_p2n = 0.1;
-    m_par.sq0_pn = 0.250;
-    m_par.sq0_p2n = 0.275;
-    m_par.sqe_pn = 0.6;
-    m_par.sqe_p2n = 0.8;
 }
 
 // -----------------------------------------------------------------------------
@@ -48,7 +68,7 @@ void ChTMsimpleTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     ChTire::Initialize(wheel);
 
     SetTMsimpleParams();
-    
+
     // unset bottoming parameters?
     if (m_bottom_radius == 0) {
         m_bottom_radius = m_rim_radius + 0.01;  // consider thickness of the carcass
@@ -118,9 +138,6 @@ void ChTMsimpleTire::Synchronize(double time, const ChTerrain& terrain) {
         m_states.vsy = m_data.vel.y();
         m_states.sx = -m_states.vsx / m_states.vta;
         m_states.sy = -m_states.vsy / m_states.vta;
-        m_states.nL0 = m_par.nL0_pn + (m_par.nL0_p2n - m_par.nL0_pn) * (m_data.normal_force / m_par.pn - 1.0);
-        m_states.sq0 = m_par.sq0_pn + (m_par.sq0_p2n - m_par.sq0_pn) * (m_data.normal_force / m_par.pn - 1.0);
-        m_states.sqe = m_par.sqe_pn + (m_par.sqe_p2n - m_par.sqe_pn) * (m_data.normal_force / m_par.pn - 1.0);
         m_states.disc_normal = disc_normal;
     } else {
         // Reset all states if the tire comes off the ground.
@@ -133,9 +150,6 @@ void ChTMsimpleTire::Synchronize(double time, const ChTerrain& terrain) {
         m_states.vsx = 0;
         m_states.vsy = 0;
         m_states.omega = 0;
-        m_states.nL0 = 0;
-        m_states.sq0 = 0;
-        m_states.sqe = 0;
         m_states.disc_normal = ChVector<>(0, 0, 0);
     }
 }
@@ -168,10 +182,6 @@ void ChTMsimpleTire::Advance(double step) {
     double Mx = 0;
     double My = 0;
     double Mz = 0;
-
-    if (m_data.vel.x() >= m_frblend_begin) {
-        Mz = AlignmentTorque(Fy);
-    }
 
     // Rolling Resistance, Ramp Like Signum inhibits 'switching' of My
     My = -m_rolling_resistance * m_data.normal_force * m_unloaded_radius * tanh(m_states.omega);
@@ -241,33 +251,6 @@ void ChTMsimpleTire::TMcombinedForces(double& fx, double& fy, double sx, double 
 
     fx = Fa * cbeta;
     fy = Fa * sbeta;
-}
-
-double ChTMsimpleTire::AlignmentTorque(double fy) {
-    double nto;
-    double nto0 = m_states.nL0;
-    double synto0 = m_states.sq0;
-    double syntoE = m_states.sqe;
-
-    double sy_a = fabs(m_states.sy);
-    double syntoE_loc = std::max(syntoE, synto0);
-
-    if (sy_a >= syntoE_loc) {
-        nto = 0;
-    } else {
-        double wf = synto0 / syntoE_loc;
-        double sy_n;
-        if (sy_a <= synto0) {
-            sy_n = sy_a / synto0;
-            double nto1 = nto0 * (1.0 - sy_n);
-            double nto2 = nto0 * (1.0 - (3.0 - 2.0 * sy_n) * pow(sy_n, 2));
-            nto = (1.0 - wf) * nto1 + wf * nto2;
-        } else {
-            sy_n = (syntoE_loc - sy_a) / (syntoE_loc - synto0);
-            nto = -nto0 * (1.0 - wf) * (sy_a - synto0) / synto0 * pow(sy_n, 2);
-        }
-    }
-    return -fy * m_states.P_len * nto;
 }
 
 // -----------------------------------------------------------------------------

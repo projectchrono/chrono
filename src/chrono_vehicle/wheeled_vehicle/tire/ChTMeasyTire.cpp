@@ -1,3 +1,45 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2023 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Rainer Gericke
+// =============================================================================
+//
+// Template for the "Tire Model made Easy". Our implementation is a basic version
+// of the algorithms in http://www.tmeasy.de/, a comercial tire simulation code
+// developed by Prof. Dr. Georg Rill.
+//
+//
+// Ref: Georg Rill, "Road Vehicle Dynamics - Fundamentals and Modelling",
+//          https://www.routledge.com/Road-Vehicle-Dynamics-Fundamentals-and-Modeling-with-MATLAB/Rill-Castro/p/book/9780367199739
+//      Georg Rill, "An Engineer's Guess On Tyre Model Parameter Made Possible With TMeasy",
+//          https://www.researchgate.net/publication/317036908_An_Engineer's_Guess_on_Tyre_Parameter_made_possible_with_TMeasy
+//      Georg Rill, "Simulation von Kraftfahrzeugen",
+//          https://www.researchgate.net/publication/317037037_Simulation_von_Kraftfahrzeugen
+//
+// Known differences to the comercial version:
+//  - No parking slip calculations
+//  - No dynamic parking torque
+//  - No dynamic tire inflation pressure
+//  - No belt dynamics
+//  - Simplified stand still handling
+//  - Optional tire contact smoothing based on "A New Analytical Tire Model for Vehicle Dynamic Analysis" by
+//      J. Shane Sui & John A Hirshey II
+//
+// This implementation has been validated with:
+//  - FED-Alpha vehicle model
+//  - Tire data sets gained by conversion of Pac02 TIR parameter files
+//  - Steady state cornering test and test results from Keweenah Research Center (KRC)
+//  - unvalidateble functionality has been removed
+// ===================================================================================
+
 #include <algorithm>
 #include <cmath>
 #include <iomanip>
@@ -45,7 +87,7 @@ void ChTMeasyTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     if (m_bottom_radius == 0) {
         m_bottom_radius = m_rim_radius + 0.01;  // consider thickness of the carcass
     }
-    if(m_bottom_stiffness == 0.0) {
+    if (m_bottom_stiffness == 0.0) {
         m_bottom_stiffness = 5.0 * m_d1;
     }
 
