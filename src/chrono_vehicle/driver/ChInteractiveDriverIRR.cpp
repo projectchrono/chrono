@@ -252,7 +252,12 @@ bool ChInteractiveDriverIRR::ProcessKeyboardEvents(const SEvent& event) {
                     m_braking_target = ChClamp(m_braking_target + m_braking_delta, 0.0, +1.0);
                 return true;
             case KEY_KEY_C:
-                m_clutch_target = ChClamp(m_clutch_target - m_clutch_delta, 0.0, +1.0);
+                m_steering_target = 0;
+                return true;
+            case KEY_KEY_R:
+                m_throttle_target = 0;
+                m_braking_target = 0;
+                m_clutch_target = 0;
                 return true;
             default:
                 break;
@@ -279,10 +284,10 @@ bool ChInteractiveDriverIRR::ProcessKeyboardEvents(const SEvent& event) {
                     else
                         transmission_auto->SetShiftMode(ChAutomaticTransmission::ShiftMode::MANUAL);
                     return true;
-                case KEY_PERIOD:
+                case KEY_OEM_6:  // ']'
                     transmission_auto->ShiftUp();
                     return true;
-                case KEY_COMMA:
+                case KEY_OEM_4:  // '['
                     transmission_auto->ShiftDown();
                     return true;
                 default:
@@ -291,11 +296,17 @@ bool ChInteractiveDriverIRR::ProcessKeyboardEvents(const SEvent& event) {
         } else if (transmission && transmission->IsManual()) {
             auto transmission_manual = transmission->asManual();
             switch (event.KeyInput.Key) {
-                case KEY_PERIOD:
+                case KEY_OEM_6:  // ']'
                     transmission_manual->ShiftUp();
                     return true;
-                case KEY_COMMA:
+                case KEY_OEM_4:  // '['
                     transmission_manual->ShiftDown();
+                    return true;
+                case KEY_KEY_E:
+                    m_clutch_target = ChClamp(m_clutch_target + m_clutch_delta, 0.0, +1.0);
+                    return true;
+                case KEY_KEY_Q:
+                    m_clutch_target = ChClamp(m_clutch_target - m_clutch_delta, 0.0, +1.0);
                     return true;
                 default:
                     break;

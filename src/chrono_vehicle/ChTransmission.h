@@ -138,6 +138,7 @@ class CH_VEHICLE_API ChTransmission : public ChPart {
     friend class ChVehicleVisualSystemIrrlicht;
     friend class ChInteractiveDriverIRR;
     friend class ChVehicleVisualSystemVSG;
+    friend class ChVehicleKeyboardHandlerVSG;
     friend class ChVehicleGuiComponentVSG;
 };
 
