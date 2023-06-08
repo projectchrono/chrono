@@ -195,11 +195,14 @@ void ChVehicleGuiComponentVSG::render() {
         ImGui::PopItemWidth();
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::Text("Clutch:");
-        ImGui::TableNextColumn();
-        DrawGauge(m_app->GetClutch(), 0, 1);
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
+        if (m_app->GetVehicle().GetPowertrainAssembly() &&
+            m_app->GetVehicle().GetPowertrainAssembly()->GetTransmission()->IsManual()) {
+            ImGui::Text("Clutch:");
+            ImGui::TableNextColumn();
+            DrawGauge(m_app->GetClutch(), 0, 1);
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+        }
         ImGui::Text("Braking:");
         ImGui::TableNextColumn();
         DrawGauge(m_app->GetBraking(), 0, 1);

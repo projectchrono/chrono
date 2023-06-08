@@ -359,17 +359,23 @@ void ChVehicleVisualSystemIrrlicht::renderStats() {
     }
 
     // Display information from driver system.
+    int ypos = m_HUD_y + 10;
     sprintf(msg, "Steering: %+.2f", m_steering);
-    renderLinGauge(std::string(msg), -m_steering, true, m_HUD_x + 190, m_HUD_y + 10, 170, 15);
+    renderLinGauge(std::string(msg), -m_steering, true, m_HUD_x + 190, ypos, 170, 15);
+    ypos += 20;
 
-    sprintf(msg, "Clutch: %+.2f", m_clutch * 100.);
-    renderLinGauge(std::string(msg), m_clutch, false, m_HUD_x + 190, m_HUD_y + 30, 170, 15);
+    if (powertrain && powertrain->GetTransmission()->IsManual()) {
+        sprintf(msg, "Clutch: %+.2f", m_clutch * 100.);
+        renderLinGauge(std::string(msg), m_clutch, false, m_HUD_x + 190, ypos, 170, 15);
+        ypos += 20;
+    }
 
     sprintf(msg, "Throttle: %+.2f", m_throttle * 100.);
-    renderLinGauge(std::string(msg), m_throttle, false, m_HUD_x + 190, m_HUD_y + 50, 170, 15);
+    renderLinGauge(std::string(msg), m_throttle, false, m_HUD_x + 190, ypos, 170, 15);
+    ypos += 20;
 
     sprintf(msg, "Braking: %+.2f", m_braking * 100.);
-    renderLinGauge(std::string(msg), m_braking, false, m_HUD_x + 190, m_HUD_y + 70, 170, 15);
+    renderLinGauge(std::string(msg), m_braking, false, m_HUD_x + 190, ypos, 170, 15);
 
     // Display current global location
     auto pos = m_vehicle->GetPos();
