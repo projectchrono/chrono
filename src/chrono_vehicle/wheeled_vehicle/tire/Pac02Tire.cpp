@@ -37,7 +37,7 @@
 
 #include <algorithm>
 
-#include "chrono_vehicle/wheeled_vehicle/tire/MFTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/Pac02Tire.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
@@ -46,7 +46,7 @@ using namespace rapidjson;
 namespace chrono {
 namespace vehicle {
 
-MFTire::MFTire(const std::string& filename) : ChMFTire(""), m_mass(0), m_has_mesh(false) {
+Pac02Tire::Pac02Tire(const std::string& filename) : ChPac02Tire(""), m_mass(0), m_has_mesh(false) {
     Document d;
     ReadFileJSON(filename, d);
     if (d.IsNull())
@@ -57,11 +57,11 @@ MFTire::MFTire(const std::string& filename) : ChMFTire(""), m_mass(0), m_has_mes
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-MFTire::MFTire(const rapidjson::Document& d) : ChMFTire(""), m_mass(0), m_has_mesh(false) {
+Pac02Tire::Pac02Tire(const rapidjson::Document& d) : ChPac02Tire(""), m_mass(0), m_has_mesh(false) {
     Create(d);
 }
 
-void MFTire::Create(const rapidjson::Document& d) {
+void Pac02Tire::Create(const rapidjson::Document& d) {
     // Invoke base class method
     ChPart::Create(d);
 
@@ -483,7 +483,7 @@ void MFTire::Create(const rapidjson::Document& d) {
     }
 }
 
-void MFTire::SetMFParams() {
+void Pac02Tire::SetMFParams() {
     if (!m_tir_file.empty()) {
         SetMFParamsByFile(vehicle::GetDataFile(m_tir_file));
     } else {
@@ -491,18 +491,18 @@ void MFTire::SetMFParams() {
     }
 }
 
-void MFTire::AddVisualizationAssets(VisualizationType vis) {
+void Pac02Tire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
         m_trimesh_shape = AddVisualizationMesh(m_meshFile_left,    // left side
                                                m_meshFile_right);  // right side
     } else {
-        ChMFTire::AddVisualizationAssets(vis);
+        ChPac02Tire::AddVisualizationAssets(vis);
     }
 }
 
-void MFTire::RemoveVisualizationAssets() {
+void Pac02Tire::RemoveVisualizationAssets() {
     ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_trimesh_shape);
-    ChMFTire::RemoveVisualizationAssets();
+    ChPac02Tire::RemoveVisualizationAssets();
 }
 
 }  // namespace vehicle

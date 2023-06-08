@@ -59,8 +59,8 @@ enum class DriverModelType {
     HUMAN     // simple realistic human driver
 };
 
-// Type of tire model (RIGID, MFTIRE, PAC02, TMSIMPLE)
-TireModelType tire_model = TireModelType::MFTIRE;
+// Type of tire model (RIGID, PAC02, TMSIMPLE)
+TireModelType tire_model = TireModelType::PAC02;
 
 // Road visualization (mesh or boundary lines)
 bool useMesh = true;

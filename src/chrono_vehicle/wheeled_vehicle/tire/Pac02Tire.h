@@ -35,10 +35,10 @@
 //  - input parameters can be set directly (only SI units!)
 // =============================================================================
 
-#ifndef MF_TIRE_H
-#define MF_TIRE_H
+#ifndef PAC02_TIRE_H
+#define PAC02_TIRE_H
 
-#include "chrono_vehicle/wheeled_vehicle/tire/ChMFTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChPac02Tire.h"
 #include "chrono_vehicle/ChApiVehicle.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
@@ -50,11 +50,11 @@ namespace vehicle {
 /// @{
 
 /// PAC89 tire model from JSON file.
-class CH_VEHICLE_API MFTire : public ChMFTire {
+class CH_VEHICLE_API Pac02Tire : public ChPac02Tire {
   public:
-    MFTire(const std::string& filename);
-    MFTire(const rapidjson::Document& d);
-    ~MFTire() {}
+    Pac02Tire(const std::string& filename);
+    Pac02Tire(const rapidjson::Document& d);
+    ~Pac02Tire() {}
 
     virtual double GetTireMass() const override { return m_mass; }
     virtual ChVector<> GetTireInertia() const override { return m_inertia; }

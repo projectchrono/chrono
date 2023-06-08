@@ -1,7 +1,7 @@
 {
     "Name": "Magic Formula Tire from ADAMS/Car TIR file",
     "Type": "Tire",
-    "Template": "MFTire",
+    "Template": "Pac02Tire",
     "Mass": 16.0,
     "Inertia": [
         1.021213842086728,

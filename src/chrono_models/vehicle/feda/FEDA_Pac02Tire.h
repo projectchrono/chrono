@@ -16,12 +16,12 @@
 //
 // =============================================================================
 
-#ifndef FEDA_MF_TIRE_H
-#define FEDA_MF_TIRE_H
+#ifndef FEDA_PAC02_TIRE_H
+#define FEDA_PAC02_TIRE_H
 
 #include "chrono/assets/ChTriangleMeshShape.h"
 
-#include "chrono_vehicle/wheeled_vehicle/tire/ChMFTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChPac02Tire.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -33,10 +33,10 @@ namespace feda {
 /// @{
 
 /// MF tire model for the FEDA vehicle.
-class CH_MODELS_API FEDA_MFTire : public ChMFTire {
+class CH_MODELS_API FEDA_Pac02Tire : public ChPac02Tire {
   public:
-    FEDA_MFTire(const std::string& name, unsigned int pressure_level = 2);
-    ~FEDA_MFTire() {}
+    FEDA_Pac02Tire(const std::string& name, unsigned int pressure_level = 2);
+    ~FEDA_Pac02Tire() {}
 
     virtual double GetTireMass() const override { return m_mass; }
     virtual ChVector<> GetTireInertia() const override { return m_inertia; }

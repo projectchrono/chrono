@@ -187,7 +187,7 @@ int main(int argc, char* argv[]) {
         }
         switch (argv[2][0]) {
             case '1':
-                tire_model = TireModelType::MFTIRE;
+                tire_model = TireModelType::PAC02;
                 break;
             case '2':
                 tire_model = TireModelType::TMSIMPLE;
@@ -197,7 +197,7 @@ int main(int argc, char* argv[]) {
                 break;
             default:
                 GetLog() << "Unsupported tire model selected\n";
-                GetLog() << " 1 : MFtire\n";
+                GetLog() << " 1 : Pac02Tire\n";
                 GetLog() << " 2 : TMsimple\n";
                 GetLog() << " 3 : TMeasy\n";
                 return 99;
@@ -285,8 +285,8 @@ int main(int argc, char* argv[]) {
     } else {
         ssc_file.append("right_");
     }
-    if (tire_model == TireModelType::MFTIRE) {
-        ssc_file.append("mftire");
+    if (tire_model == TireModelType::PAC02) {
+        ssc_file.append("pac02");
     }
     if (tire_model == TireModelType::TMSIMPLE) {
         ssc_file.append("tmsimple");

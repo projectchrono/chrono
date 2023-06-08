@@ -43,12 +43,12 @@
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "chrono_vehicle/wheeled_vehicle/tire/ChMFTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChPac02Tire.h"
 
 namespace chrono {
 namespace vehicle {
 
-ChMFTire::ChMFTire(const std::string& name)
+ChPac02Tire::ChPac02Tire(const std::string& name)
     : ChForceElementTire(name),
       m_gamma_limit(3.0 * CH_C_DEG_TO_RAD),
       m_use_friction_ellipsis(true),
@@ -64,7 +64,7 @@ ChMFTire::ChMFTire(const std::string& name)
     m_tireforce.moment = ChVector<>(0, 0, 0);
 }
 
-double ChMFTire::GetNormalStiffnessForce(double depth) const {
+double ChPac02Tire::GetNormalStiffnessForce(double depth) const {
     double R0 = m_par.UNLOADED_RADIUS;
     double gamma = m_states.gamma;
     double dpi = m_states.dpi;
@@ -77,12 +77,12 @@ double ChMFTire::GetNormalStiffnessForce(double depth) const {
     return Fc + Fb;
 }
 
-double ChMFTire::GetNormalDampingForce(double depth, double velocity) const {
+double ChPac02Tire::GetNormalDampingForce(double depth, double velocity) const {
     double Fd = m_par.VERTICAL_DAMPING * velocity;
     return Fd;
 }
 
-void ChMFTire::CombinedCoulombForces(double& fx, double& fy, double fz) {
+void ChPac02Tire::CombinedCoulombForces(double& fx, double& fy, double fz) {
     ChVector2<> F;
     F.x() = tanh(-2.0 * m_states.vsx / m_vcoulomb) * fz * m_states.mu_scale;
     F.y() = tanh(-2.0 * m_states.vsy / m_vcoulomb) * fz * m_states.mu_scale;
@@ -94,7 +94,7 @@ void ChMFTire::CombinedCoulombForces(double& fx, double& fy, double fz) {
     fy = F.y();
 }
 
-void ChMFTire::CalcFxyMz(double& Fx,
+void ChPac02Tire::CalcFxyMz(double& Fx,
                          double& Fy,
                          double& Mz,
                          double kappa,
@@ -208,7 +208,7 @@ void ChMFTire::CalcFxyMz(double& Fx,
     }
 }
 
-double ChMFTire::CalcMx(double Fy, double Fz, double gamma) {
+double ChPac02Tire::CalcMx(double Fy, double Fz, double gamma) {
     double Mx =
         m_par.UNLOADED_RADIUS * Fz *
         (m_par.QSX3 * Fy / m_states.Fz0_prime +
@@ -221,7 +221,7 @@ double ChMFTire::CalcMx(double Fy, double Fz, double gamma) {
     return Mx;
 }
 
-double ChMFTire::CalcMy(double Fx, double Fz, double gamma) {
+double ChPac02Tire::CalcMy(double Fx, double Fz, double gamma) {
     // in most cases only QSY1 is used.
     double V0 = sqrt(9.81 * m_par.UNLOADED_RADIUS);
     double My = Fz * m_par.UNLOADED_RADIUS *
@@ -234,7 +234,7 @@ double ChMFTire::CalcMy(double Fx, double Fz, double gamma) {
 
 // -----------------------------------------------------------------------------
 
-void ChMFTire::SetMFParamsByFile(const std::string& tirFileName) {
+void ChPac02Tire::SetMFParamsByFile(const std::string& tirFileName) {
     FILE* fp = fopen(tirFileName.c_str(), "r+");
     if (fp == NULL) {
         GetLog() << "TIR File not found <" << tirFileName << ">!\n";
@@ -279,7 +279,7 @@ void ChMFTire::SetMFParamsByFile(const std::string& tirFileName) {
     fclose(fp);
 }
 
-bool ChMFTire::FindSectionStart(const std::string& sectName, FILE* fp) {
+bool ChPac02Tire::FindSectionStart(const std::string& sectName, FILE* fp) {
     bool ret = false;
     rewind(fp);
     while (!feof(fp)) {
@@ -306,7 +306,7 @@ bool ChMFTire::FindSectionStart(const std::string& sectName, FILE* fp) {
     return ret;
 }
 
-void ChMFTire::LoadSectionUnits(FILE* fp) {
+void ChPac02Tire::LoadSectionUnits(FILE* fp) {
     bool ok = FindSectionStart("[UNITS]", fp);
     if (!ok) {
         GetLog() << "Desired section [UNITS] not found.\n";
@@ -453,7 +453,7 @@ void ChMFTire::LoadSectionUnits(FILE* fp) {
     m_par.u_damping = m_par.u_force / m_par.u_speed;
 }
 
-void ChMFTire::LoadSectionModel(FILE* fp) {
+void ChPac02Tire::LoadSectionModel(FILE* fp) {
     bool ok = FindSectionStart("[MODEL]", fp);
     if (!ok) {
         GetLog() << "Desired section [MODEL] not found.\n";
@@ -553,7 +553,7 @@ void ChMFTire::LoadSectionModel(FILE* fp) {
     }
 }
 
-void ChMFTire::LoadSectionDimension(FILE* fp) {
+void ChPac02Tire::LoadSectionDimension(FILE* fp) {
     bool ok = FindSectionStart("[DIMENSION]", fp);
     if (!ok) {
         GetLog() << "Desired section [DIMENSION] not found.\n";
@@ -613,7 +613,7 @@ void ChMFTire::LoadSectionDimension(FILE* fp) {
     }
 }
 
-void ChMFTire::LoadSectionVertical(FILE* fp) {
+void ChPac02Tire::LoadSectionVertical(FILE* fp) {
     bool ok = FindSectionStart("[VERTICAL]", fp);
     if (!ok) {
         GetLog() << "Desired section [VERTICAL] not found.\n";
@@ -694,7 +694,7 @@ void ChMFTire::LoadSectionVertical(FILE* fp) {
     }
 }
 
-void ChMFTire::LoadSectionScaling(FILE* fp) {
+void ChPac02Tire::LoadSectionScaling(FILE* fp) {
     bool ok = FindSectionStart("[SCALING_COEFFICIENTS]", fp);
     if (!ok) {
         GetLog() << "Desired section [SCALING_COEFFICIENTS] not found.\n";
@@ -820,7 +820,7 @@ void ChMFTire::LoadSectionScaling(FILE* fp) {
     }
 }
 
-void ChMFTire::LoadSectionLongitudinal(FILE* fp) {
+void ChPac02Tire::LoadSectionLongitudinal(FILE* fp) {
     bool ok = FindSectionStart("[LONGITUDINAL_COEFFICIENTS]", fp);
     if (!ok) {
         GetLog() << "Desired section [LONGITUDINAL_COEFFICIENTS] not found.\n";
@@ -940,7 +940,7 @@ void ChMFTire::LoadSectionLongitudinal(FILE* fp) {
     }
 }
 
-void ChMFTire::LoadSectionOverturning(FILE* fp) {
+void ChPac02Tire::LoadSectionOverturning(FILE* fp) {
     bool ok = FindSectionStart("[OVERTURNING_COEFFICIENTS]", fp);
     if (!ok) {
         GetLog() << "Desired section [OVERTURNING_COEFFICIENTS] not found.\n";
@@ -1021,7 +1021,7 @@ void ChMFTire::LoadSectionOverturning(FILE* fp) {
     }
 }
 
-void ChMFTire::LoadSectionLateral(FILE* fp) {
+void ChPac02Tire::LoadSectionLateral(FILE* fp) {
     bool ok = FindSectionStart("[LATERAL_COEFFICIENTS]", fp);
     if (!ok) {
         GetLog() << "Desired section [LATERAL_COEFFICIENTS] not found.\n";
@@ -1171,7 +1171,7 @@ void ChMFTire::LoadSectionLateral(FILE* fp) {
     }
 }
 
-void ChMFTire::LoadSectionRolling(FILE* fp) {
+void ChPac02Tire::LoadSectionRolling(FILE* fp) {
     bool ok = FindSectionStart("[ROLLING_COEFFICIENTS]", fp);
     if (!ok) {
         GetLog() << "Desired section [ROLLING_COEFFICIENTS] not found.\n";
@@ -1242,7 +1242,7 @@ void ChMFTire::LoadSectionRolling(FILE* fp) {
     }
 }
 
-void ChMFTire::LoadSectionConditions(FILE* fp) {
+void ChPac02Tire::LoadSectionConditions(FILE* fp) {
     bool ok = FindSectionStart("[TIRE_CONDITIONS]", fp);
     if (!ok) {
         GetLog() << "Desired section [TIRE_CONDITIONS] not found, older MFTire file version.\n";
@@ -1298,7 +1298,7 @@ void ChMFTire::LoadSectionConditions(FILE* fp) {
     }
 }
 
-void ChMFTire::LoadVerticalTable(FILE* fp) {
+void ChPac02Tire::LoadVerticalTable(FILE* fp) {
     bool ok = FindSectionStart("[DEFLECTION_LOAD_CURVE]", fp);
     if (!ok) {
         GetLog() << "Desired section [DEFLECTION_LOAD_CURVE] not found, using linear vertical stiffness.\n";
@@ -1366,7 +1366,7 @@ void ChMFTire::LoadVerticalTable(FILE* fp) {
     m_vertical_table_found = true;
 }
 
-void ChMFTire::LoadBottomingTable(FILE* fp) {
+void ChPac02Tire::LoadBottomingTable(FILE* fp) {
     bool ok = FindSectionStart("[BOTTOMING_CURVE]", fp);
     if (!ok) {
         GetLog() << "Desired section [BOTTOMING_CURVE] not found, no bottoming stiffness set.\n";
@@ -1406,7 +1406,7 @@ void ChMFTire::LoadBottomingTable(FILE* fp) {
         m_bottoming_table_found = true;
 }
 
-void ChMFTire::LoadSectionAligning(FILE* fp) {
+void ChPac02Tire::LoadSectionAligning(FILE* fp) {
     bool ok = FindSectionStart("[ALIGNING_COEFFICIENTS]", fp);
     if (!ok) {
         GetLog() << "Desired section [ALIGNING_COEFFICIENTS] not found.\n";
@@ -1547,7 +1547,7 @@ void ChMFTire::LoadSectionAligning(FILE* fp) {
     }
 }
 
-void ChMFTire::Initialize(std::shared_ptr<ChWheel> wheel) {
+void ChPac02Tire::Initialize(std::shared_ptr<ChWheel> wheel) {
     ChTire::Initialize(wheel);
 
     // Let derived class set the MF tire parameters
@@ -1600,7 +1600,7 @@ void ChMFTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     m_states.disc_normal = ChVector<>(0, 0, 0);
 }
 
-void ChMFTire::Synchronize(double time, const ChTerrain& terrain) {
+void ChPac02Tire::Synchronize(double time, const ChTerrain& terrain) {
     WheelState wheel_state = m_wheel->GetState();
 
     // Extract the wheel normal (expressed in global frame)
@@ -1680,7 +1680,7 @@ void ChMFTire::Synchronize(double time, const ChTerrain& terrain) {
     }
 }
 
-void ChMFTire::Advance(double step) {
+void ChPac02Tire::Advance(double step) {
     // Set tire forces to zero.
     m_tireforce.force = ChVector<>(0, 0, 0);
     m_tireforce.moment = ChVector<>(0, 0, 0);
@@ -1748,7 +1748,7 @@ void ChMFTire::Advance(double step) {
 
 // -----------------------------------------------------------------------------
 
-void ChMFTire::AddVisualizationAssets(VisualizationType vis) {
+void ChPac02Tire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
@@ -1760,7 +1760,7 @@ void ChMFTire::AddVisualizationAssets(VisualizationType vis) {
     m_cyl_shape->SetTexture(GetChronoDataFile("textures/greenwhite.png"));
 }
 
-void ChMFTire::RemoveVisualizationAssets() {
+void ChPac02Tire::RemoveVisualizationAssets() {
     // Make sure we only remove the assets added by ChMFTire::AddVisualizationAssets.
     // This is important for the ChTire object because a wheel may add its own assets to the same body (the
     // spindle/wheel).

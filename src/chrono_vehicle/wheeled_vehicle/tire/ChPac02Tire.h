@@ -31,8 +31,8 @@
 //    tire data sets against KRC test results from a Nato CDT
 // =============================================================================
 
-#ifndef CH_MFTIRE_H
-#define CH_MFTIRE_H
+#ifndef CH_PAC02_TIRE_H
+#define CH_PAC02_TIRE_H
 
 #include <vector>
 
@@ -49,14 +49,14 @@ namespace vehicle {
 /// @{
 
 /// Pacjeka 02 tire model.
-class CH_VEHICLE_API ChMFTire : public ChForceElementTire {
+class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
   public:
-    ChMFTire(const std::string& name);
+    ChPac02Tire(const std::string& name);
 
-    virtual ~ChMFTire() {}
+    virtual ~ChPac02Tire() {}
 
     /// Get the name of the vehicle subsystem template.
-    virtual std::string GetTemplateName() const override { return "MFTire"; }
+    virtual std::string GetTemplateName() const override { return "Pac02Tire"; }
 
     /// Add visualization assets for the rigid tire subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;

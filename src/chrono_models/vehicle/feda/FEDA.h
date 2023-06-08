@@ -28,7 +28,7 @@
 #include "chrono_models/vehicle/feda/FEDA_EngineSimpleMap.h"
 #include "chrono_models/vehicle/feda/FEDA_AutomaticTransmissionSimpleMap.h"
 #include "chrono_models/vehicle/feda/FEDA_RigidTire.h"
-#include "chrono_models/vehicle/feda/FEDA_MFTire.h"
+#include "chrono_models/vehicle/feda/FEDA_Pac02Tire.h"
 #include "chrono_models/vehicle/feda/FEDA_TMsimpleTire.h"
 #include "chrono_models/vehicle/feda/FEDA_TMeasyTire.h"
 

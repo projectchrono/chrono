@@ -164,11 +164,11 @@ void FEDA::Initialize() {
 
             break;
         }
-        case TireModelType::MFTIRE: {
-            auto tire_FL = chrono_types::make_shared<FEDA_MFTire>("FL");
-            auto tire_FR = chrono_types::make_shared<FEDA_MFTire>("FR");
-            auto tire_RL = chrono_types::make_shared<FEDA_MFTire>("RL");
-            auto tire_RR = chrono_types::make_shared<FEDA_MFTire>("RR");
+        case TireModelType::PAC02: {
+            auto tire_FL = chrono_types::make_shared<FEDA_Pac02Tire>("FL");
+            auto tire_FR = chrono_types::make_shared<FEDA_Pac02Tire>("FR");
+            auto tire_RL = chrono_types::make_shared<FEDA_Pac02Tire>("RL");
+            auto tire_RR = chrono_types::make_shared<FEDA_Pac02Tire>("RR");
 
             tire_FL->SetPressure(m_tire_pressure);
             tire_FR->SetPressure(m_tire_pressure);
