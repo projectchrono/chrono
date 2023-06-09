@@ -226,7 +226,9 @@ class  ChArchiveOutJSON : public ChArchiveOut {
 
 
       virtual void out_ref          (ChValue& bVal,  bool already_inserted, size_t obj_ID, size_t ext_ID)  {
-          const char* classname = bVal.GetClassRegisteredName().c_str();
+          // the returned classname refers not to the type of the pointer itself, but to the *true* type of the object
+          // i.e. the most derived type for inherited classes
+          std::string classname = bVal.GetClassRegisteredName();
           comma_cr();
 		  if (is_array.top() == false) {
 			  indent();
@@ -239,10 +241,10 @@ class  ChArchiveOutJSON : public ChArchiveOut {
           nitems.push(0);
           is_array.push(false);
 
-          if(strlen(classname)>0) {
+          if(classname.length()>0) {
               comma_cr();
               indent();
-              (*ostream) << "\"_type\"\t: "  << "\"" << classname << "\"";
+              (*ostream) << "\"_type\"\t: "  << "\"" << classname.c_str() << "\"";
               ++nitems.top();
           }
           

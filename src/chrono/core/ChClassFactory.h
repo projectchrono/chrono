@@ -44,7 +44,7 @@ namespace chrono {
 
 // forward decl.
 class ChArchiveIn;
-
+class ChArchiveOut;
 
 /// Base class for all registration data of classes 
 /// whose objects can be created via a class factory.
@@ -59,7 +59,11 @@ public:
     virtual void* create(ChArchiveIn& marchive) = 0;
 
     /// Call the ArchiveIN(ChArchiveIn&) function if available, populating an already existing object
-    virtual void archive(ChArchiveIn& marchive, void* ptr) = 0;
+    virtual void archive_in(ChArchiveIn& marchive, void* ptr) = 0;
+
+    virtual void archive_out_constructor(ChArchiveOut& marchive, void* ptr) = 0;
+
+    virtual void archive_out(ChArchiveOut& marchive, void* ptr) = 0;
 
     /// Get the type_info of the class
     virtual std::type_index  get_type_index() = 0;
@@ -81,6 +85,12 @@ public:
 
     /// Tells if it implements the function
     virtual bool has_ArchiveIN() = 0;
+
+    /// Tells if it implements the function
+    virtual bool has_ArchiveOUTconstructor() = 0;
+
+    /// Tells if it implements the function
+    virtual bool has_ArchiveOUT() = 0;
 
 };
 
@@ -172,9 +182,23 @@ class ChApi ChClassFactory {
 
     /// Populate an already existing object with its ArchiveIn
     template <class T>
-    static void archive(const std::string& keyName, ChArchiveIn& marchive, T* ptr) {
+    static void archive_in(const std::string& keyName, ChArchiveIn& marchive, T* ptr) {
         ChClassFactory* global_factory = GetGlobalClassFactory();
         global_factory->_archive_in(keyName, marchive, getVoidPointer<T>(ptr)); // TODO: DARIOM chech if a getVoidPointer is needed here, since _archive_in is actually asking for void* 
+    }
+
+    /// Populate an already existing object with its ArchiveIn
+    template <class T>
+    static void archive_out(const std::string& keyName, ChArchiveOut& marchive, T* ptr) {
+        ChClassFactory* global_factory = GetGlobalClassFactory();
+        global_factory->_archive_out(keyName, marchive, getVoidPointer<T>(ptr)); // TODO: DARIOM chech if a getVoidPointer is needed here, since _archive_in is actually asking for void* 
+    }
+
+    /// Populate an already existing object with its ArchiveIn
+    template <class T>
+    static void archive_out_constructor(const std::string& keyName, ChArchiveOut& marchive, T* ptr) {
+        ChClassFactory* global_factory = GetGlobalClassFactory();
+        global_factory->_archive_out_constructor(keyName, marchive, getVoidPointer<T>(ptr)); // TODO: DARIOM chech if a getVoidPointer is needed here, since _archive_in is actually asking for void* 
     }
 
 private:
@@ -237,10 +261,28 @@ private:
     void _archive_in(const std::string& keyName, ChArchiveIn& marchive, void* ptr) {
         const auto &it = class_map.find(keyName);
         if (it != class_map.end()) {
-            it->second->archive(marchive, ptr);
+            it->second->archive_in(marchive, ptr);
         }
         else
-            throw ( ChException("ChClassFactory::archive() cannot find the class with name " + keyName + ". Please register it.\n") );
+            throw ( ChException("ChClassFactory::archive_in() cannot find the class with name " + keyName + ". Please register it.\n") );
+    }
+
+    void _archive_out(const std::string& keyName, ChArchiveOut& marchive, void* ptr) {
+        const auto &it = class_map.find(keyName);
+        if (it != class_map.end()) {
+            it->second->archive_out(marchive, ptr);
+        }
+        else
+            throw ( ChException("ChClassFactory::archive_out() cannot find the class with name " + keyName + ". Please register it.\n") );
+    }
+
+    void _archive_out_constructor(const std::string& keyName, ChArchiveOut& marchive, void* ptr) {
+        const auto &it = class_map.find(keyName);
+        if (it != class_map.end()) {
+            it->second->archive_out_constructor(marchive, ptr);
+        }
+        else
+            throw ( ChException("ChClassFactory::archive_out() cannot find the class with name " + keyName + ". Please register it.\n") );
     }
 
 private:
@@ -272,6 +314,7 @@ CH_CREATE_MEMBER_DETECTOR(ArchiveContainerName)
 /// Class for registration data of classes 
 /// whose objects can be created via a class factory.
 
+//TODO: DARIOM move up close to ChClassRegistrationBase
 template <class t>
 class ChClassRegistration : public ChClassRegistrationBase {
   protected:
@@ -317,8 +360,16 @@ class ChClassRegistration : public ChClassRegistrationBase {
         return _archive_in_create(marchive);
     }
 
-    virtual void archive(ChArchiveIn& marchive, void* ptr) override {
+    virtual void archive_in(ChArchiveIn& marchive, void* ptr) override {
         _archive_in(marchive, ptr);
+    }
+
+    virtual void archive_out_constructor(ChArchiveOut& marchive, void* ptr) override {
+        _archive_out_constructor(marchive, ptr);
+    }
+
+    virtual void archive_out(ChArchiveOut& marchive, void* ptr) override {
+        _archive_out(marchive, ptr);
     }
 
     virtual std::type_index get_type_index() override {
@@ -344,6 +395,12 @@ class ChClassRegistration : public ChClassRegistrationBase {
     virtual bool has_ArchiveIN() override {
         return _has_ArchiveIN();
     }
+    virtual bool has_ArchiveOUTconstructor() override {
+        return _has_ArchiveOUTconstructor();
+    }
+    virtual bool has_ArchiveOUT() override {
+        return _has_ArchiveOUT();
+    }
 
 protected:
 
@@ -366,7 +423,8 @@ protected:
     template <class Tc=t>
     typename enable_if< !ChDetect_ArchiveINconstructor<Tc>::value, void* >::type 
     _archive_in_create(ChArchiveIn& marchive) {
-        return reinterpret_cast<void*>(new Tc);
+        // rolling back to simple creation
+        return _create();
     }
 
     template <class Tc=t>
@@ -378,6 +436,28 @@ protected:
     typename enable_if<!ChDetect_ArchiveIN<Tc>::value, void >::type 
     _archive_in(ChArchiveIn& marchive, void* ptr) {
         // do nothing, ArchiveIn does not esist for this type
+    }
+
+    template <class Tc=t>
+    typename enable_if<ChDetect_ArchiveOUT<Tc>::value, void >::type
+    _archive_out(ChArchiveOut& marchive, void* ptr) {
+        reinterpret_cast<Tc*>(ptr)->ArchiveOUT(marchive);
+    }
+    template <class Tc=t>
+    typename enable_if<!ChDetect_ArchiveOUT<Tc>::value, void >::type 
+    _archive_out(ChArchiveOut& marchive, void* ptr) {
+        // do nothing, ArchiveIn does not esist for this type
+    }
+
+    template <class Tc=t>
+    typename enable_if<ChDetect_ArchiveOUTconstructor<Tc>::value, void >::type
+    _archive_out_constructor(ChArchiveOut& marchive, void* ptr) {
+        reinterpret_cast<Tc*>(ptr)->ArchiveOUTconstructor(marchive);
+    }
+    template <class Tc=t>
+    typename enable_if<!ChDetect_ArchiveOUTconstructor<Tc>::value, void >::type 
+    _archive_out_constructor(ChArchiveOut& marchive, void* ptr) {
+        // do nothing, ArchiveOUTconstructor does not esist for this type
     }
 
     template <class Tc=t>
@@ -401,6 +481,29 @@ protected:
         return false;
     }
 
+
+    template <class Tc=t>
+    typename enable_if< ChDetect_ArchiveOUTconstructor<Tc>::value, bool >::type
+    _has_ArchiveOUTconstructor() {
+        return true;
+    }
+    template <class Tc=t>
+    typename enable_if< !ChDetect_ArchiveOUTconstructor<Tc>::value, bool >::type 
+    _has_ArchiveOUTconstructor() {
+        return false;
+    }
+    template <class Tc=t>
+    typename enable_if< ChDetect_ArchiveOUT<Tc>::value, bool >::type
+    _has_ArchiveOUT() {
+        return true;
+    }
+    template <class Tc=t>
+    typename enable_if< !ChDetect_ArchiveOUT<Tc>::value, bool >::type 
+    _has_ArchiveOUT() {
+        return false;
+    }
+
+
     std::string& _get_tag_name() {
         return m_sTagName;
     }
@@ -421,6 +524,12 @@ protected:
 #define CH_FACTORY_REGISTER(classname)                                          \
 namespace class_factory {                                                       \
     static ChClassRegistration< classname > classname ## _factory_registration(#classname); \
+}
+
+ // TODO: DARIOM check if needed
+#define CH_FACTORY_REGISTER_CUSTOMNAME(classname, customname)                                          \
+namespace class_factory {                                                       \
+    static ChClassRegistration< classname > customname ## _factory_registration(#classname); \
 }  
 
 
