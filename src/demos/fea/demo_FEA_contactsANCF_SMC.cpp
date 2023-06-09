@@ -153,46 +153,43 @@ int main(int argc, char* argv[]) {
 
     // Mark completion of system construction
 
-    //    ////////////////////////////////////////
-    //    // Options for visualization in irrlicht
-    //    ////////////////////////////////////////
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
-    mvisualizemesh->SetSmoothFaces(true);
-    my_mesh->AddVisualShapeFEA(mvisualizemesh);
+    // FEA visualization
+    auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    vis_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
+    vis_mesh->SetColorscaleMinMax(0.0, 3.0);
+    vis_mesh->SetSmoothFaces(true);
+    my_mesh->AddVisualShapeFEA(vis_mesh);
 
-    auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshcoll->SetFEMdataType(ChVisualShapeFEA::DataType::CONTACTSURFACES);
-    mvisualizemeshcoll->SetWireframe(true);
-    mvisualizemeshcoll->SetDefaultMeshColor(ChColor(1, 0.5, 0));
-    my_mesh->AddVisualShapeFEA(mvisualizemeshcoll);
+    ////auto vis_elem = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    ////vis_elem->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
+    ////vis_elem->SetWireframe(true);
+    ////my_mesh->AddVisualShapeFEA(vis_elem);
 
-    auto mvisualizemeshbeam = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshbeam->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    mvisualizemeshbeam->SetColorscaleMinMax(0.0, 5.50);
-    mvisualizemeshbeam->SetSmoothFaces(true);
-    my_mesh->AddVisualShapeFEA(mvisualizemeshbeam);
+    auto vis_ctct = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    vis_ctct->SetFEMdataType(ChVisualShapeFEA::DataType::CONTACTSURFACES);
+    vis_ctct->SetWireframe(true);
+    vis_ctct->SetDefaultMeshColor(ChColor(1, 0.5, 0));
+    my_mesh->AddVisualShapeFEA(vis_ctct);
 
-    auto mvisualizemeshbeamnodes = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemeshbeamnodes->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
-    mvisualizemeshbeamnodes->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
-    mvisualizemeshbeamnodes->SetSymbolsThickness(0.0008);
-    my_mesh->AddVisualShapeFEA(mvisualizemeshbeamnodes);
+    auto vis_nodes = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    vis_nodes->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+    vis_nodes->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    vis_nodes->SetSymbolsThickness(0.008);
+    my_mesh->AddVisualShapeFEA(vis_nodes);
 
     // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->AttachSystem(&sys);
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("ANCF Contact");
-    vis->SetCameraVertical(CameraVerticalDir::Z);
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(0.5, 0.5, 0.3), ChVector<>(0.0, 0.0, 0.0));
-    vis->EnableContactDrawing(ContactsDrawMode::CONTACT_DISTANCES);
-    vis->EnableShadows();
+    auto vsys = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vsys->AttachSystem(&sys);
+    vsys->SetWindowSize(800, 600);
+    vsys->SetWindowTitle("ANCF Contact");
+    vsys->SetCameraVertical(CameraVerticalDir::Z);
+    vsys->Initialize();
+    vsys->AddLogo();
+    vsys->AddSkyBox();
+    vsys->AddTypicalLights();
+    vsys->AddCamera(ChVector<>(0.25, -0.25, 0.5), ChVector<>(0, -0.5, 0.0));
+    vsys->EnableContactDrawing(ContactsDrawMode::CONTACT_DISTANCES);
+    vsys->EnableShadows();
 
     // ---------------
     // Simulation loop
@@ -222,10 +219,10 @@ int main(int argc, char* argv[]) {
     mystepper->SetVerbose(false);
     ////sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
 
-    while (vis->Run()) {
-        vis->BeginScene();
-        vis->Render();
-        vis->EndScene();
+    while (vsys->Run()) {
+        vsys->BeginScene();
+        vsys->Render();
+        vsys->EndScene();
 
         ////std::cout << "Time t = " << sys.GetChTime() << "s \t";
         ////std::cout << "n contacts: " << sys.GetNcontacts() << "\t";

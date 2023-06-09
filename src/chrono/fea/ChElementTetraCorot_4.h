@@ -77,7 +77,7 @@ class ChApi ChElementTetraCorot_4 : public ChElementTetrahedron,
     /// it stores only the n1 n2 n3 n4 values in a 1 row, 4 columns matrix.
     void ShapeFunctions(ShapeVector& N, double r, double s, double t);
 
-    /// Fills the D vector (displacement) with the currentfield values at the nodes of the element, with proper
+    /// Fills the D vector (displacement) with the current field values at the nodes of the element, with proper
     /// ordering. If the D vector has not the size of this->GetNdofs(), it will be resized.For corotational elements,
     /// field is assumed in local reference!
     virtual void GetStateBlock(ChVectorDynamic<>& mD) override;

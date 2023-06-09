@@ -24,6 +24,8 @@ namespace chrono {
 // Forward declarations
 namespace fea {
 class ChMesh;
+class ChMeshSurface;
+class ChContactSurface;
 class ChNodeFEAxyz;
 class ChNodeFEAxyzP;
 class ChElementBase;
@@ -164,12 +166,57 @@ class ChApi ChVisualShapeFEA {
                                int nodeID,
                                std::shared_ptr<fea::ChElementBase> melement);
     ChColor ComputeFalseColor(double in);
+
+    // Helper functions for updateing buffers of specific element types
+    void UpdateBuffers_Tetrahedron(std::shared_ptr<fea::ChElementBase> element,
+                                   geometry::ChTriangleMeshConnected& trianglemesh,
+                                   unsigned int& i_verts,
+                                   unsigned int& i_vnorms,
+                                   unsigned int& i_vcols,
+                                   unsigned int& i_triindex,
+                                   bool& need_automatic_smoothing);
+    void UpdateBuffers_Tetra_4_P(std::shared_ptr<fea::ChElementBase> element,
+                                 geometry::ChTriangleMeshConnected& trianglemesh,
+                                 unsigned int& i_verts,
+                                 unsigned int& i_vnorms,
+                                 unsigned int& i_vcols,
+                                 unsigned int& i_triindex,
+                                 bool& need_automatic_smoothing);
     void UpdateBuffers_Hex(std::shared_ptr<fea::ChElementBase> element,
                            geometry::ChTriangleMeshConnected& trianglemesh,
                            unsigned int& i_verts,
                            unsigned int& i_vnorms,
                            unsigned int& i_vcols,
-                           unsigned int& i_triindex);
+                           unsigned int& i_triindex,
+                           bool& need_automatic_smoothing);
+    void UpdateBuffers_Beam(std::shared_ptr<fea::ChElementBase> element,
+                            geometry::ChTriangleMeshConnected& trianglemesh,
+                            unsigned int& i_verts,
+                            unsigned int& i_vnorms,
+                            unsigned int& i_vcols,
+                            unsigned int& i_triindex,
+                            bool& need_automatic_smoothing);
+    void UpdateBuffers_Shell(std::shared_ptr<fea::ChElementBase> element,
+                             geometry::ChTriangleMeshConnected& trianglemesh,
+                             unsigned int& i_verts,
+                             unsigned int& i_vnorms,
+                             unsigned int& i_vcols,
+                             unsigned int& i_triindex,
+                             bool& need_automatic_smoothing);
+    void UpdateBuffers_LoadSurface(std::shared_ptr<fea::ChMeshSurface> surface,
+                                   geometry::ChTriangleMeshConnected& trianglemesh,
+                                   unsigned int& i_verts,
+                                   unsigned int& i_vnorms,
+                                   unsigned int& i_vcols,
+                                   unsigned int& i_triindex,
+                                   bool& need_automatic_smoothing);
+    void UpdateBuffers_ContactSurfaceMesh(std::shared_ptr<fea::ChContactSurface> surface,
+                                          geometry::ChTriangleMeshConnected& trianglemesh,
+                                          unsigned int& i_verts,
+                                          unsigned int& i_vnorms,
+                                          unsigned int& i_vcols,
+                                          unsigned int& i_triindex,
+                                          bool& need_automatic_smoothing);
 
     std::shared_ptr<fea::ChMesh> FEMmesh;
 
