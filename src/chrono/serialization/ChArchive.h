@@ -288,10 +288,10 @@ private:
         template <class Tc=TClass>
         typename enable_if< ChDetect_ArchiveIN<Tc>::value, void >::type
         _archive_in(ChArchiveIn& marchive, const char* classname) {
-            if (ChClassFactory::IsClassRegistered(std::string(classname)))
+            if (strcmp(classname, "") != 0 && ChClassFactory::IsClassRegistered(std::string(classname)))
                 ChClassFactory::archive(std::string(classname), marchive, *pt2Object);
             else
-                throw (ChExceptionArchive("CallArchiveIn(ChArchiveIn&, const char*): class " + std::string(classname) + " is expected to have ArchiveIn, but it doesn't."));
+                _archive_in(marchive);
 
         }
 
