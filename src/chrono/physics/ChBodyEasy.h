@@ -161,7 +161,14 @@ class ChApi ChBodyEasyBox : public ChBody {
                   collision::ChCollisionSystemType collision_type  ///< collision model type
     );
 
-  private:
+    // Deserialization for non-default constructor classes.
+    virtual void ArchiveOUTconstructor(ChArchiveOut& marchive);
+
+    // Add a  ArchiveINconstructor  static function to deserialize the parameters
+    // of the non-default constructor!!!
+    static void* ArchiveINconstructor(ChArchiveIn& marchive);
+
+private:
     void SetupBody(double Xsize,
                    double Ysize,
                    double Zsize,
@@ -169,6 +176,8 @@ class ChApi ChBodyEasyBox : public ChBody {
                    bool visualize,
                    bool collide,
                    std::shared_ptr<ChMaterialSurface> material);
+
+    ChBodyEasyBox(){}
 };
 
 /// Create rigid bodies with a convex hull shape.

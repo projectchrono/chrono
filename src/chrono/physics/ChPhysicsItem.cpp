@@ -120,6 +120,8 @@ void ChPhysicsItem::ArchiveOUT(ChArchiveOut& marchive) {
 
     // serialize all member data:
     // marchive << CHNVP(system); ***TODO***
+    marchive << CHNVP(GetVisualModel(), "visual_model");
+    marchive << CHNVP(cameras);
     // marchive << CHNVP(offset_x);
     // marchive << CHNVP(offset_w);
     // marchive << CHNVP(offset_L);
@@ -135,6 +137,11 @@ void ChPhysicsItem::ArchiveIN(ChArchiveIn& marchive) {
 
     // stream in all member data:
     // marchive >> CHNVP(system); ***TODO***
+    std::shared_ptr<ChVisualModel> visual_model;
+    marchive >> CHNVP(visual_model);
+    if (visual_model)
+        AddVisualModel(visual_model);
+    marchive >> CHNVP(cameras);
     // marchive >> CHNVP(offset_x);
     // marchive >> CHNVP(offset_w);
     // marchive >> CHNVP(offset_L);

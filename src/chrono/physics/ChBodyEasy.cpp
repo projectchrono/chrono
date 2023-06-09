@@ -28,6 +28,7 @@
 #include "chrono/collision/ChCollisionUtilsBullet.h"
 
 namespace chrono {
+CH_FACTORY_REGISTER(ChBodyEasySphere) // TODO: DARIOM enable
 
 ChBodyEasySphere::ChBodyEasySphere(double radius,
                                    double density,
@@ -75,6 +76,7 @@ void ChBodyEasySphere::SetupBody(double radius,
 }
 
 // -----------------------------------------------------------------------------
+CH_FACTORY_REGISTER(ChBodyEasyEllipsoid) // TODO: DARIOM enable
 
 ChBodyEasyEllipsoid::ChBodyEasyEllipsoid(ChVector<> axes,
                                          double density,
@@ -124,6 +126,7 @@ void ChBodyEasyEllipsoid::SetupBody(ChVector<> axes,
 }
 
 // -----------------------------------------------------------------------------
+CH_FACTORY_REGISTER(ChBodyEasyCylinder) // TODO: DARIOM enable
 
 ChBodyEasyCylinder::ChBodyEasyCylinder(geometry::ChAxis direction,
                                        double radius,
@@ -195,6 +198,8 @@ void ChBodyEasyCylinder::SetupBody(geometry::ChAxis direction,
 
 // -----------------------------------------------------------------------------
 
+CH_FACTORY_REGISTER(ChBodyEasyBox)
+
 ChBodyEasyBox::ChBodyEasyBox(double Xsize,
                              double Ysize,
                              double Zsize,
@@ -246,7 +251,29 @@ void ChBodyEasyBox::SetupBody(double Xsize,
     }
 }
 
+void ChBodyEasyBox::ArchiveOUTconstructor(ChArchiveOut& marchive) {
+    marchive.VersionWrite<ChBodyEasyBox>();
+
+    // ChBodyEasy do not hold any variables; only parent classes have.
+    // by archiving the ChVariables, ChVisualModel and ChCollisionModel
+    // all the properties will be retrieved
+
+}
+
+void* ChBodyEasyBox::ArchiveINconstructor(ChArchiveIn& marchive  ) {
+    /*int version =*/marchive.VersionRead<ChBodyEasyBox>();
+
+    ChBodyEasyBox* new_obj = new ChBodyEasyBox(); // TODO: DARIOM can a ChBody be instantiated, so to not need ChBodyEasy default constructor? Probably a bad idea...
+
+    //new_obj->ArchiveIN(marchive); // TODO: the call to ArchiveINconstructor is followed by ArchiveIN... not sure why
+
+    return new_obj;
+}
+
 // -----------------------------------------------------------------------------
+
+CH_FACTORY_REGISTER(ChBodyEasyConvexHull) // TODO: DARIOM enable
+
 
 ChBodyEasyConvexHull::ChBodyEasyConvexHull(std::vector<ChVector<>>& points,
                                            double density,
@@ -314,6 +341,8 @@ void ChBodyEasyConvexHull::SetupBody(std::vector<ChVector<>>& points,
 }
 
 // -----------------------------------------------------------------------------
+
+CH_FACTORY_REGISTER(ChBodyEasyConvexHullAuxRef) // TODO: DARIOM enable
 
 ChBodyEasyConvexHullAuxRef::ChBodyEasyConvexHullAuxRef(std::vector<ChVector<>>& points,
                                                        double density,
@@ -387,6 +416,8 @@ void ChBodyEasyConvexHullAuxRef::SetupBody(std::vector<ChVector<>>& points,
 }
 
 // -----------------------------------------------------------------------------
+
+CH_FACTORY_REGISTER(ChBodyEasyMesh) // TODO: DARIOM enable
 
 ChBodyEasyMesh::ChBodyEasyMesh(const std::string& filename,
                                double density,
@@ -481,6 +512,8 @@ void ChBodyEasyMesh::SetupBody(std::shared_ptr<geometry::ChTriangleMeshConnected
 }
 
 // -----------------------------------------------------------------------------
+
+CH_FACTORY_REGISTER(ChBodyEasyClusterOfSpheres) // TODO: DARIOM enable
 
 ChBodyEasyClusterOfSpheres::ChBodyEasyClusterOfSpheres(std::vector<ChVector<>>& positions,
                                                        std::vector<double>& radii,

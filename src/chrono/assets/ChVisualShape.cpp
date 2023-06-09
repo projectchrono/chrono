@@ -99,6 +99,8 @@ void ChVisualShape::ArchiveOUT(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChVisualShape>();
     // serialize all member data:
     marchive << CHNVP(visible);
+    marchive << CHNVP(is_mutable);
+    marchive << CHNVP(material_list);
 }
 
 void ChVisualShape::ArchiveIN(ChArchiveIn& marchive) {
@@ -106,6 +108,8 @@ void ChVisualShape::ArchiveIN(ChArchiveIn& marchive) {
     /*int version =*/ marchive.VersionRead<ChVisualShape>();
     // stream in all member data:
     marchive >> CHNVP(visible);
+    marchive >> CHNVP(is_mutable);
+    marchive >> CHNVP(material_list);
 }
 
 }  // namespace chrono

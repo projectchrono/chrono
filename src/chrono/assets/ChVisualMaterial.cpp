@@ -16,6 +16,8 @@
 
 namespace chrono {
 
+CH_FACTORY_REGISTER(ChVisualMaterial)
+
 ChVisualMaterial::ChVisualMaterial()
     : Ka({0.2f, 0.2f, 0.2f}),
       Kd({1.0f, 1.0f, 1.0f}),
@@ -144,6 +146,63 @@ void ChVisualMaterial::SetRoughness(float r) {
 
 void ChVisualMaterial::SetMetallic(float m) {
     metallic = std::max(0.001f, std::min(m, 1.f));
+}
+
+void ChVisualMaterial::ArchiveOUT(ChArchiveOut& marchive) {
+    marchive.VersionWrite<ChVisualMaterial>();
+
+    marchive << CHNVP(Ka);
+    marchive << CHNVP(Kd);
+    marchive << CHNVP(Ks);
+    marchive << CHNVP(Ke);
+    marchive << CHNVP(fresnel_max);
+    marchive << CHNVP(fresnel_min);
+    marchive << CHNVP(fresnel_exp);
+    marchive << CHNVP(Ns);
+    marchive << CHNVP(d);
+    marchive << CHNVP(illum);
+    marchive << CHNVP(roughness);
+    marchive << CHNVP(metallic);
+    marchive << CHNVP(use_specular_workflow);
+    marchive << CHNVP(kd_texture);
+    marchive << CHNVP(ks_texture);
+    marchive << CHNVP(ke_texture);
+    marchive << CHNVP(normal_texture);
+    marchive << CHNVP(metallic_texture);
+    marchive << CHNVP(roughness_texture);
+    marchive << CHNVP(opacity_texture);
+    marchive << CHNVP(weight_texture);
+    marchive << CHNVP(disp_texture);
+    marchive << CHNVP(ao_texture);
+
+}
+
+void ChVisualMaterial::ArchiveIN(ChArchiveIn& marchive) {
+    /*int version =*/marchive.VersionRead<ChVisualMaterial>();
+
+    marchive >> CHNVP(Ka);
+    marchive >> CHNVP(Kd);
+    marchive >> CHNVP(Ks);
+    marchive >> CHNVP(Ke);
+    marchive >> CHNVP(fresnel_max);
+    marchive >> CHNVP(fresnel_min);
+    marchive >> CHNVP(fresnel_exp);
+    marchive >> CHNVP(Ns);
+    marchive >> CHNVP(d);
+    marchive >> CHNVP(illum);
+    marchive >> CHNVP(roughness);
+    marchive >> CHNVP(metallic);
+    marchive >> CHNVP(use_specular_workflow);
+    marchive >> CHNVP(kd_texture);
+    marchive >> CHNVP(ks_texture);
+    marchive >> CHNVP(ke_texture);
+    marchive >> CHNVP(normal_texture);
+    marchive >> CHNVP(metallic_texture);
+    marchive >> CHNVP(roughness_texture);
+    marchive >> CHNVP(opacity_texture);
+    marchive >> CHNVP(weight_texture);
+    marchive >> CHNVP(disp_texture);
+    marchive >> CHNVP(ao_texture);
 }
 
 // -----------------------------------------------------------------------------

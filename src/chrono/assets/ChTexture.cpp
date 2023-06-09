@@ -41,6 +41,7 @@ void ChTexture::ArchiveOUT(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChTexture>();
     // serialize all member data:
     marchive << CHNVP(m_filename);
+    marchive << CHNVP(m_scale);
 }
 
 void ChTexture::ArchiveIN(ChArchiveIn& marchive) {
@@ -48,6 +49,7 @@ void ChTexture::ArchiveIN(ChArchiveIn& marchive) {
     /*int version =*/marchive.VersionRead<ChTexture>();
     // stream in all member data:
     marchive >> CHNVP(m_filename);
+    marchive >> CHNVP(m_scale);
 }
 
 }  // end namespace chrono

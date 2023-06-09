@@ -101,6 +101,12 @@ class ChApi ChVisualMaterial {
     unsigned short int GetClassID() const { return class_id; }
     unsigned short int GetInstanceID() const { return instance_id; }
 
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
+
     /// Create a default material.
     static std::shared_ptr<ChVisualMaterial> Default();
 

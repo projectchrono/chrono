@@ -72,6 +72,12 @@ class ChApi ChVisualModel {
     /// Erase the specified visual shape from this model.
     void Erase(std::shared_ptr<ChVisualShape> shape);
 
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
+
   private:
     /// Update this visual model with information for the owning physical object.
     /// Since a visual model can be shared in multiple instances, this function may be called with different owners.
