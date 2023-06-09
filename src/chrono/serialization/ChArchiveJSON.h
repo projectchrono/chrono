@@ -516,6 +516,8 @@ class  ChArchiveInJSON : public ChArchiveIn {
                     bVal.value().SetRawPtr(referred_ptr);
 
                 }
+                else
+                    bVal.value().SetRawPtr(nullptr);
             }
             this->levels.pop();
             this->level = this->levels.top();

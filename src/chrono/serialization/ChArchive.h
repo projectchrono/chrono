@@ -1377,7 +1377,14 @@ class  ChArchiveIn : public ChArchive {
           // 'mtmp' might contain a pointer to:
           // I) an object of type T
           // II) an object of type derived from T
+          // III) null
           // (see ChArchiveJSON::in_ref for further details)
+
+          // III) Get rid of nullptr immediately; no need to update shared_ptr_map
+          if (!mptr){
+              bVal.value() = std::shared_ptr<T>(nullptr);
+              return;
+          }
 
           // bVal must now be updated (in_ref just modified mtmp!)
           // Some additional complication respect to raw pointers: 
@@ -1399,7 +1406,6 @@ class  ChArchiveIn : public ChArchive {
               // case B: existing object already referenced by a shared_ptr, so increment ref count
               std::shared_ptr<void> converted_shptr = ChCastingMap::Convert(existing_sh_ptr->second.second, std::type_index(typeid(bVal.value())), existing_sh_ptr->second.first); //TODO: DARIOM compact
               bVal.value() = std::static_pointer_cast<T>(converted_shptr);
-
           }
       }
 
