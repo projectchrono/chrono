@@ -28,7 +28,9 @@
 #include "chrono/collision/ChCollisionUtilsBullet.h"
 
 namespace chrono {
-CH_FACTORY_REGISTER(ChBodyEasySphere) // TODO: DARIOM enable
+CH_FACTORY_REGISTER(ChBodyEasySphere)
+CH_CASTING_PARENT(ChBodyEasySphere, ChBody)
+
 
 ChBodyEasySphere::ChBodyEasySphere(double radius,
                                    double density,
@@ -75,8 +77,22 @@ void ChBodyEasySphere::SetupBody(double radius,
     }
 }
 
+void ChBodyEasySphere::ArchiveOUTconstructor(ChArchiveOut& marchive) {
+    marchive.VersionWrite<ChBodyEasySphere>();
+
+}
+
+void* ChBodyEasySphere::ArchiveINconstructor(ChArchiveIn& marchive  ) {
+    /*int version =*/marchive.VersionRead<ChBodyEasySphere>();
+
+    ChBodyEasySphere* new_obj = new ChBodyEasySphere();
+
+    return new_obj;
+}
+
 // -----------------------------------------------------------------------------
-CH_FACTORY_REGISTER(ChBodyEasyEllipsoid) // TODO: DARIOM enable
+CH_FACTORY_REGISTER(ChBodyEasyEllipsoid)
+CH_CASTING_PARENT(ChBodyEasyEllipsoid, ChBody)
 
 ChBodyEasyEllipsoid::ChBodyEasyEllipsoid(ChVector<> axes,
                                          double density,
@@ -125,8 +141,22 @@ void ChBodyEasyEllipsoid::SetupBody(ChVector<> axes,
     }
 }
 
+void ChBodyEasyEllipsoid::ArchiveOUTconstructor(ChArchiveOut& marchive) {
+    marchive.VersionWrite<ChBodyEasyEllipsoid>();
+
+}
+
+void* ChBodyEasyEllipsoid::ArchiveINconstructor(ChArchiveIn& marchive  ) {
+    /*int version =*/marchive.VersionRead<ChBodyEasyEllipsoid>();
+
+    ChBodyEasyEllipsoid* new_obj = new ChBodyEasyEllipsoid();
+
+    return new_obj;
+}
+
 // -----------------------------------------------------------------------------
-CH_FACTORY_REGISTER(ChBodyEasyCylinder) // TODO: DARIOM enable
+CH_FACTORY_REGISTER(ChBodyEasyCylinder)
+CH_CASTING_PARENT(ChBodyEasyCylinder, ChBody)
 
 ChBodyEasyCylinder::ChBodyEasyCylinder(geometry::ChAxis direction,
                                        double radius,
@@ -196,9 +226,23 @@ void ChBodyEasyCylinder::SetupBody(geometry::ChAxis direction,
     }
 }
 
+void ChBodyEasyCylinder::ArchiveOUTconstructor(ChArchiveOut& marchive) {
+    marchive.VersionWrite<ChBodyEasyCylinder>();
+
+}
+
+void* ChBodyEasyCylinder::ArchiveINconstructor(ChArchiveIn& marchive  ) {
+    /*int version =*/marchive.VersionRead<ChBodyEasyCylinder>();
+
+    ChBodyEasyCylinder* new_obj = new ChBodyEasyCylinder();
+
+    return new_obj;
+}
+
 // -----------------------------------------------------------------------------
 
 CH_FACTORY_REGISTER(ChBodyEasyBox)
+CH_CASTING_PARENT(ChBodyEasyBox, ChBody)
 
 ChBodyEasyBox::ChBodyEasyBox(double Xsize,
                              double Ysize,
@@ -263,16 +307,15 @@ void ChBodyEasyBox::ArchiveOUTconstructor(ChArchiveOut& marchive) {
 void* ChBodyEasyBox::ArchiveINconstructor(ChArchiveIn& marchive  ) {
     /*int version =*/marchive.VersionRead<ChBodyEasyBox>();
 
-    ChBodyEasyBox* new_obj = new ChBodyEasyBox(); // TODO: DARIOM can a ChBody be instantiated, so to not need ChBodyEasy default constructor? Probably a bad idea...
-
-    //new_obj->ArchiveIN(marchive); // TODO: the call to ArchiveINconstructor is followed by ArchiveIN... not sure why
+    ChBodyEasyBox* new_obj = new ChBodyEasyBox();
 
     return new_obj;
 }
 
 // -----------------------------------------------------------------------------
 
-CH_FACTORY_REGISTER(ChBodyEasyConvexHull) // TODO: DARIOM enable
+CH_FACTORY_REGISTER(ChBodyEasyConvexHull)
+CH_CASTING_PARENT(ChBodyEasyConvexHull, ChBody)
 
 
 ChBodyEasyConvexHull::ChBodyEasyConvexHull(std::vector<ChVector<>>& points,
@@ -340,9 +383,29 @@ void ChBodyEasyConvexHull::SetupBody(std::vector<ChVector<>>& points,
     m_mesh = vshape->GetMesh();
 }
 
+void ChBodyEasyConvexHull::ArchiveOUTconstructor(ChArchiveOut& marchive) {
+    marchive.VersionWrite<ChBodyEasyConvexHull>();
+
+    marchive << CHNVP(m_mesh);
+
+}
+
+void* ChBodyEasyConvexHull::ArchiveINconstructor(ChArchiveIn& marchive  ) {
+    /*int version =*/marchive.VersionRead<ChBodyEasyConvexHull>();
+
+    std::shared_ptr<geometry::ChTriangleMeshConnected> mesh;
+    marchive >> CHNVP(mesh);
+
+    ChBodyEasyConvexHull* new_obj = new ChBodyEasyConvexHull(mesh);
+
+    return new_obj;
+}
+
 // -----------------------------------------------------------------------------
 
-CH_FACTORY_REGISTER(ChBodyEasyConvexHullAuxRef) // TODO: DARIOM enable
+CH_FACTORY_REGISTER(ChBodyEasyConvexHullAuxRef)
+CH_CASTING_PARENT(ChBodyEasyConvexHullAuxRef, ChBodyAuxRef)
+
 
 ChBodyEasyConvexHullAuxRef::ChBodyEasyConvexHullAuxRef(std::vector<ChVector<>>& points,
                                                        double density,
@@ -415,9 +478,29 @@ void ChBodyEasyConvexHullAuxRef::SetupBody(std::vector<ChVector<>>& points,
     m_mesh = vshape->GetMesh();
 }
 
+void ChBodyEasyConvexHullAuxRef::ArchiveOUTconstructor(ChArchiveOut& marchive) {
+    marchive.VersionWrite<ChBodyEasyConvexHullAuxRef>();
+
+    marchive << CHNVP(m_mesh);
+
+}
+
+void* ChBodyEasyConvexHullAuxRef::ArchiveINconstructor(ChArchiveIn& marchive  ) {
+    /*int version =*/marchive.VersionRead<ChBodyEasyConvexHullAuxRef>();
+
+    std::shared_ptr<geometry::ChTriangleMeshConnected> mesh;
+    marchive >> CHNVP(mesh);
+
+    ChBodyEasyConvexHullAuxRef* new_obj = new ChBodyEasyConvexHullAuxRef(mesh);
+
+    return new_obj;
+}
+
 // -----------------------------------------------------------------------------
 
-CH_FACTORY_REGISTER(ChBodyEasyMesh) // TODO: DARIOM enable
+CH_FACTORY_REGISTER(ChBodyEasyMesh)
+CH_CASTING_PARENT(ChBodyEasyMesh, ChBodyAuxRef)
+
 
 ChBodyEasyMesh::ChBodyEasyMesh(const std::string& filename,
                                double density,
@@ -511,9 +594,28 @@ void ChBodyEasyMesh::SetupBody(std::shared_ptr<geometry::ChTriangleMeshConnected
     }
 }
 
+void ChBodyEasyMesh::ArchiveOUTconstructor(ChArchiveOut& marchive) {
+    marchive.VersionWrite<ChBodyEasyMesh>();
+
+    // ChBodyEasy do not hold any variables; only parent classes have.
+    // by archiving the ChVariables, ChVisualModel and ChCollisionModel
+    // all the properties will be retrieved
+
+}
+
+void* ChBodyEasyMesh::ArchiveINconstructor(ChArchiveIn& marchive  ) {
+    /*int version =*/marchive.VersionRead<ChBodyEasyMesh>();
+
+    ChBodyEasyMesh* new_obj = new ChBodyEasyMesh();
+
+    return new_obj;
+}
+
 // -----------------------------------------------------------------------------
 
-CH_FACTORY_REGISTER(ChBodyEasyClusterOfSpheres) // TODO: DARIOM enable
+CH_FACTORY_REGISTER(ChBodyEasyClusterOfSpheres)
+CH_CASTING_PARENT(ChBodyEasyClusterOfSpheres, ChBody)
+
 
 ChBodyEasyClusterOfSpheres::ChBodyEasyClusterOfSpheres(std::vector<ChVector<>>& positions,
                                                        std::vector<double>& radii,
@@ -595,6 +697,23 @@ void ChBodyEasyClusterOfSpheres::SetupBody(std::vector<ChVector<>>& positions,
         }
         this->AddVisualModel(vmodel);
     }
+}
+
+void ChBodyEasyClusterOfSpheres::ArchiveOUTconstructor(ChArchiveOut& marchive) {
+    marchive.VersionWrite<ChBodyEasyClusterOfSpheres>();
+
+    // ChBodyEasy do not hold any variables; only parent classes have.
+    // by archiving the ChVariables, ChVisualModel and ChCollisionModel
+    // all the properties will be retrieved
+
+}
+
+void* ChBodyEasyClusterOfSpheres::ArchiveINconstructor(ChArchiveIn& marchive  ) {
+    /*int version =*/marchive.VersionRead<ChBodyEasyClusterOfSpheres>();
+
+    ChBodyEasyClusterOfSpheres* new_obj = new ChBodyEasyClusterOfSpheres();
+
+    return new_obj;
 }
 
 }  // end namespace chrono

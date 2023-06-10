@@ -21,6 +21,7 @@ using namespace geometry;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChBodyAuxRef)
+CH_CASTING_PARENT(ChBodyAuxRef, ChBody)
 
 ChBodyAuxRef::ChBodyAuxRef(const ChBodyAuxRef& other) : ChBody(other) {
     auxref_to_cog = other.auxref_to_cog;

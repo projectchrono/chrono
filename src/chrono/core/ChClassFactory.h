@@ -412,7 +412,7 @@ protected:
     template <class Tc=t>
     typename enable_if< !std::is_default_constructible<Tc>::value, void* >::type
     _create() {
-        throw ("ChClassFactory::create() failed for class " + std::string(typeid(Tc).name())  + ": it has no default constructor.\n" );
+        throw ("ChClassFactory::create() failed for class " + std::string(typeid(Tc).name())  + ": it has no default constructor nor archive constructor.\n" );
     }
 
     template <class Tc=t>

@@ -52,12 +52,20 @@ class ChApi ChBodyEasySphere : public ChBody {
                      collision::ChCollisionSystemType collision_type  ///< collision model type
     );
 
+    /// Deserialization for non-default constructor classes.
+    virtual void ArchiveOUTconstructor(ChArchiveOut& marchive);
+
+    /// Serialization for non-default constructor classes.
+    static void* ArchiveINconstructor(ChArchiveIn& marchive);
+
   private:
     void SetupBody(double radius,
                    double density,
                    bool visualize,
                    bool collide,
                    std::shared_ptr<ChMaterialSurface> material);
+
+    ChBodyEasySphere(){}
 };
 
 /// Create rigid bodies with an ellipsoid shape.
@@ -85,12 +93,20 @@ class ChApi ChBodyEasyEllipsoid : public ChBody {
                         collision::ChCollisionSystemType collision_type  ///< collision model type
     );
 
+    /// Deserialization for non-default constructor classes.
+    virtual void ArchiveOUTconstructor(ChArchiveOut& marchive);
+
+    /// Serialization for non-default constructor classes.
+    static void* ArchiveINconstructor(ChArchiveIn& marchive);
+
   private:
     void SetupBody(ChVector<> axes,
                    double density,
                    bool visualize,
                    bool collide,
                    std::shared_ptr<ChMaterialSurface> material);
+
+    ChBodyEasyEllipsoid(){}
 };
 
 /// Create rigid bodies with a cylinder shape.
@@ -123,6 +139,12 @@ class ChApi ChBodyEasyCylinder : public ChBody {
                        collision::ChCollisionSystemType collision_type  ///< collision model type
     );
 
+    /// Deserialization for non-default constructor classes.
+    virtual void ArchiveOUTconstructor(ChArchiveOut& marchive);
+
+    /// Serialization for non-default constructor classes.
+    static void* ArchiveINconstructor(ChArchiveIn& marchive);
+
   private:
     void SetupBody(geometry::ChAxis direction,
                    double radius,
@@ -131,6 +153,8 @@ class ChApi ChBodyEasyCylinder : public ChBody {
                    bool visualize,
                    bool collide,
                    std::shared_ptr<ChMaterialSurface> material);
+
+    ChBodyEasyCylinder(){}
 };
 
 /// Create rigid bodies with a box shape.
@@ -161,11 +185,10 @@ class ChApi ChBodyEasyBox : public ChBody {
                   collision::ChCollisionSystemType collision_type  ///< collision model type
     );
 
-    // Deserialization for non-default constructor classes.
+    /// Deserialization for non-default constructor classes.
     virtual void ArchiveOUTconstructor(ChArchiveOut& marchive);
 
-    // Add a  ArchiveINconstructor  static function to deserialize the parameters
-    // of the non-default constructor!!!
+    /// Serialization for non-default constructor classes.
     static void* ArchiveINconstructor(ChArchiveIn& marchive);
 
 private:
@@ -210,6 +233,12 @@ class ChApi ChBodyEasyConvexHull : public ChBody {
 
     std::shared_ptr<geometry::ChTriangleMeshConnected> GetMesh() const { return m_mesh; }
 
+    /// Deserialization for non-default constructor classes.
+    virtual void ArchiveOUTconstructor(ChArchiveOut& marchive);
+
+    /// Serialization for non-default constructor classes.
+    static void* ArchiveINconstructor(ChArchiveIn& marchive);
+
   private:
     void SetupBody(std::vector<ChVector<>>& points,
                    double density,
@@ -218,6 +247,8 @@ class ChApi ChBodyEasyConvexHull : public ChBody {
                    std::shared_ptr<ChMaterialSurface> material);
 
     std::shared_ptr<geometry::ChTriangleMeshConnected> m_mesh;
+
+    ChBodyEasyConvexHull(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh) : m_mesh(mesh){}
 };
 
 /// Create rigid body with a convex hull shape, with a reference frame distinct from the centroidal frame.
@@ -248,6 +279,12 @@ class ChApi ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
 
     std::shared_ptr<geometry::ChTriangleMeshConnected> GetMesh() const { return m_mesh; }
 
+    /// Deserialization for non-default constructor classes.
+    virtual void ArchiveOUTconstructor(ChArchiveOut& marchive);
+
+    /// Serialization for non-default constructor classes.
+    static void* ArchiveINconstructor(ChArchiveIn& marchive);
+
   private:
     void SetupBody(std::vector<ChVector<>>& points,
                    double density,
@@ -256,6 +293,8 @@ class ChApi ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
                    std::shared_ptr<ChMaterialSurface> material);
 
     std::shared_ptr<geometry::ChTriangleMeshConnected> m_mesh;
+
+    ChBodyEasyConvexHullAuxRef(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh) : m_mesh(mesh) {}
 };
 
 /// Create rigid bodies with a mesh shape, with a reference frame distinct from the centroidal frame.
@@ -310,6 +349,12 @@ class ChApi ChBodyEasyMesh : public ChBodyAuxRef {
                    collision::ChCollisionSystemType collision_type  ///< collision model type
     );
 
+    /// Deserialization for non-default constructor classes.
+    virtual void ArchiveOUTconstructor(ChArchiveOut& marchive);
+
+    /// Serialization for non-default constructor classes.
+    static void* ArchiveINconstructor(ChArchiveIn& marchive);
+
   private:
     void SetupBody(std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh,
                    const std::string& name,
@@ -319,6 +364,8 @@ class ChApi ChBodyEasyMesh : public ChBodyAuxRef {
                    bool collide,
                    std::shared_ptr<ChMaterialSurface> material,
                    double sphere_swept);
+
+    ChBodyEasyMesh(){}
 };
 
 /// Create rigid bodies with a shape made of a cluster of spheres.
@@ -352,6 +399,12 @@ class ChApi ChBodyEasyClusterOfSpheres : public ChBody {
                                collision::ChCollisionSystemType collision_type  ///< collision model type
     );
 
+    /// Deserialization for non-default constructor classes.
+    virtual void ArchiveOUTconstructor(ChArchiveOut& marchive);
+
+    /// Serialization for non-default constructor classes.
+    static void* ArchiveINconstructor(ChArchiveIn& marchive);
+
   private:
     void SetupBody(std::vector<ChVector<>>& positions,
                    std::vector<double>& radii,
@@ -359,6 +412,8 @@ class ChApi ChBodyEasyClusterOfSpheres : public ChBody {
                    bool visualize,
                    bool collide,
                    std::shared_ptr<ChMaterialSurface> material);
+
+    ChBodyEasyClusterOfSpheres(){}
 };
 
 }  // end namespace chrono
