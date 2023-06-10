@@ -110,6 +110,8 @@ void ChConstraint::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(broken);
     eChConstraintMode_mapper typemapper;
     marchive >> CHNVP(typemapper(this->mode), "mode");
+    UpdateActiveFlag();
+
 }
 
 }  // end namespace chrono

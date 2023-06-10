@@ -193,11 +193,16 @@ int ChLinkMask::SetAllBroken(bool mdis) {
 }
 
 void ChLinkMask::ArchiveOUT(ChArchiveOut& marchive) {
-    //// TODO
+    marchive.VersionWrite<ChLinkMask>();
+
+    marchive << CHNVP(constraints);
 }
 
 void ChLinkMask::ArchiveIN(ChArchiveIn& marchive) {
-    //// TODO
+    /*int version =*/ marchive.VersionRead<ChLinkMask>();
+
+    marchive >> CHNVP(constraints);
+
 }
 
 // -----------------------------------------------------------------------------
@@ -254,11 +259,14 @@ void ChLinkMaskLF::SetLockMask(bool x, bool y, bool z, bool e0, bool e1, bool e2
 }
 
 void ChLinkMaskLF::ArchiveOUT(ChArchiveOut& marchive) {
-    //// TODO
+    marchive.VersionWrite<ChLinkMaskLF>();
+    ChLinkMask::ArchiveOUT(marchive);
 }
 
 void ChLinkMaskLF::ArchiveIN(ChArchiveIn& marchive) {
-    //// TODO
+    /*int version =*/ marchive.VersionRead<ChLinkMaskLF>();
+    ChLinkMask::ArchiveIN(marchive);
 }
+
 
 }  // end namespace chrono

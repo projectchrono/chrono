@@ -419,6 +419,8 @@ void ChLinkMarkers::ArchiveOUT(ChArchiveOut& marchive) {
     ChLink::ArchiveOUT(marchive);
 
     // serialize all member data:
+    marchive << CHNVP(marker1);
+    marchive << CHNVP(marker2);
     marchive << CHNVP(markID1);
     marchive << CHNVP(markID2);
 }
@@ -432,6 +434,8 @@ void ChLinkMarkers::ArchiveIN(ChArchiveIn& marchive) {
     ChLink::ArchiveIN(marchive);
 
     // deserialize all member data:
+    marchive >> CHNVP(marker1);
+    marchive >> CHNVP(marker2);
     marchive >> CHNVP(markID1);
     marchive >> CHNVP(markID2);
 }

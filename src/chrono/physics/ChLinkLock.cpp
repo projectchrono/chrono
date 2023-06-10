@@ -1862,7 +1862,7 @@ void ChLinkLock::ArchiveOUT(ChArchiveOut& marchive) {
     my_enum_mappers_types::LinkType_mapper typemapper;
     marchive << CHNVP(typemapper(type), "link_type");
 
-    ////marchive << CHNVP(mask); //// TODO: needed?
+    marchive << CHNVP(mask); //// TODO: needed?
 
     marchive << CHNVP(d_restlength);
 
@@ -1900,7 +1900,8 @@ void ChLinkLock::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(typemapper(link_type), "link_type");
     ChangeLinkType(link_type);
 
-    ////if (mask) delete (mask); marchive >> CHNVP(mask); //// TODO: needed?
+    ////if (mask) delete (mask);
+    marchive >> CHNVP(mask); //// TODO: needed?
 
     marchive >> CHNVP(d_restlength);
 
@@ -1926,6 +1927,7 @@ void ChLinkLock::ArchiveIN(ChArchiveIn& marchive) {
     ////marchive >> CHNVP(limit_Rz);
     ////marchive >> CHNVP(limit_Rp);
     ////marchive >> CHNVP(limit_D);
+
 }
 
 // =======================================================================================

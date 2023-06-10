@@ -306,6 +306,10 @@ void ChLinkGear::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(r2);
     marchive >> CHNVP(local_shaft1);
     marchive >> CHNVP(local_shaft2);
+
+    mask.SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
+    BuildLink();
+
 }
 
 }  // end namespace chrono

@@ -646,17 +646,20 @@ void assemble_pendulum(ChSystem& system){
 
 
 int main(){
+
     // Create a material that will be shared among all collision shapes
     {
-        // Create a Chrono physical system
+
         ChSystemNSC sys;
+        sys.Set_G_acc(ChVector<>(0, -10, 0));
+        // Create a Chrono physical system
 
         // Contact material shared among all bodies
         auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
         // Shared visualization material
         auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
-        //vis_mat->SetKdTexture(GetChronoDataFile("textures/pinkwhite.png")); // TODO: DARIOM
+        vis_mat->SetKdTexture(GetChronoDataFile("textures/pinkwhite.png")); // TODO: DARIOM
 
         // Create all the rigid bodies.
 
@@ -669,25 +672,27 @@ int main(){
         mbody_truss->SetBodyFixed(true);
         mbody_truss->SetPos(ChVector<>(0, 0, 3));
 
-        // ...the rotating bar support for the two epicycloidal wheels
-        auto mbody_train = chrono_types::make_shared<ChBodyEasyBox>(8, 1.5, 1.0, 1000, true, false, mat);
-        sys.Add(mbody_train);
-        mbody_train->SetPos(ChVector<>(3, 0, 0));
+        //// ...the rotating bar support for the two epicycloidal wheels
+        //auto mbody_train = chrono_types::make_shared<ChBodyEasyBox>(8, 1.5, 1.0, 1000, true, false, mat);
+        //sys.Add(mbody_train);
+        //mbody_train->SetPos(ChVector<>(3, 0, 0));
 
-        // ...which must rotate respect to truss along Z axis, in 0,0,0,
-        auto link_revoluteTT = chrono_types::make_shared<ChLinkLockRevolute>();
-        link_revoluteTT->Initialize(mbody_truss, mbody_train, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
-        sys.AddLink(link_revoluteTT);
+        //// ...which must rotate respect to truss along Z axis, in 0,0,0,
+        //auto link_revoluteTT = chrono_types::make_shared<ChLinkLockRevolute>();
+        //link_revoluteTT->Initialize(mbody_truss, mbody_train, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
+        //sys.AddLink(link_revoluteTT);
 
         // ...the first gear
-        auto mbody_gearA =
-            chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, radA, 0.5, 1000, true, false, mat);
+        auto mbody_gearA = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, radA, 0.5, 1000, true, false, mat);
+        //auto mbody_gearA = chrono_types::make_shared<ChBodyEasyBox>(20, 10, 2, 1000, true, false, mat);
         sys.Add(mbody_gearA);
         mbody_gearA->SetPos(ChVector<>(0, 0, -1));
         mbody_gearA->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
-        // for aesthetic reasons, also add a thin cylinder only as a visualization:
-        auto mshaft_shape = chrono_types::make_shared<ChCylinderShape>(radA * 0.4, 13);
-        mbody_gearA->AddVisualShape(mshaft_shape, ChFrame<>(ChVector<>(0, 3.5, 0), Q_from_AngX(CH_C_PI_2)));
+        mbody_gearA->GetVisualShape(0)->SetMaterial(0, vis_mat);
+
+        //// for aesthetic reasons, also add a thin cylinder only as a visualization:
+        //auto mshaft_shape = chrono_types::make_shared<ChCylinderShape>(radA * 0.4, 13);
+        //mbody_gearA->AddVisualShape(mshaft_shape, ChFrame<>(ChVector<>(0, 3.5, 0), Q_from_AngX(CH_C_PI_2)));
 
         // ...impose rotation speed between the first gear and the fixed truss
         auto link_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
@@ -697,8 +702,7 @@ int main(){
 
         // ...the second gear
         double interaxis12 = radA + radB;
-        auto mbody_gearB =
-            chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, radB, 0.4, 1000, true, false, mat);
+        auto mbody_gearB = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, radB, 0.4, 1000, true, false, mat);
         sys.Add(mbody_gearB);
         mbody_gearB->SetPos(ChVector<>(interaxis12, 0, -1));
         mbody_gearB->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
@@ -706,7 +710,8 @@ int main(){
 
         // ... the second gear is fixed to the rotating bar
         auto link_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
-        link_revolute->Initialize(mbody_gearB, mbody_train, ChCoordsys<>(ChVector<>(interaxis12, 0, 0), QUNIT));
+        link_revolute->Initialize(mbody_gearB, mbody_truss, ChCoordsys<>(ChVector<>(interaxis12, 0, 0), QUNIT)); // TEMP
+        //link_revolute->Initialize(mbody_gearB, mbody_train, ChCoordsys<>(ChVector<>(interaxis12, 0, 0), QUNIT));
         sys.AddLink(link_revolute);
 
         // ...the gear constraint between the two wheels A and B.
@@ -728,17 +733,17 @@ int main(){
         link_gearAB->Set_checkphase(true);
         sys.AddLink(link_gearAB);
 
-        // ...the gear constraint between the second wheel B and a large wheel C with inner teeth, that
-        //    does not necessarily need to be created as a new body because it is the 'fixed' part of the
-        //    epicycloidal reducer, so, as wheel C, we will simply use the ground object 'mbody_truss'.
-        double radC = 2 * radB + radA;
-        auto link_gearBC = chrono_types::make_shared<ChLinkGear>();
-        link_gearBC->Initialize(mbody_gearB, mbody_truss, CSYSNORM);
-        link_gearBC->Set_local_shaft1(ChFrame<>(VNULL, chrono::Q_from_AngAxis(-CH_C_PI / 2, VECT_X)));
-        link_gearBC->Set_local_shaft2(ChFrame<>(ChVector<>(0, 0, -4), QUNIT));
-        link_gearBC->Set_tau(radB / radC);
-        link_gearBC->Set_epicyclic(true);  // <-- this means: use a wheel with internal teeth!
-        sys.AddLink(link_gearBC);
+        //// ...the gear constraint between the second wheel B and a large wheel C with inner teeth, that
+        ////    does not necessarily need to be created as a new body because it is the 'fixed' part of the
+        ////    epicycloidal reducer, so, as wheel C, we will simply use the ground object 'mbody_truss'.
+        //double radC = 2 * radB + radA;
+        //auto link_gearBC = chrono_types::make_shared<ChLinkGear>();
+        //link_gearBC->Initialize(mbody_gearB, mbody_truss, CSYSNORM);
+        //link_gearBC->Set_local_shaft1(ChFrame<>(VNULL, chrono::Q_from_AngAxis(-CH_C_PI / 2, VECT_X)));
+        //link_gearBC->Set_local_shaft2(ChFrame<>(ChVector<>(0, 0, -4), QUNIT));
+        //link_gearBC->Set_tau(radB / radC);
+        //link_gearBC->Set_epicyclic(true);  // <-- this means: use a wheel with internal teeth!
+        //sys.AddLink(link_gearBC);
 
         //// ...the bevel gear at the side,
         //double radD = 5;
@@ -845,6 +850,9 @@ int main(){
     vis->AddSkyBox();
     vis->AddCamera(ChVector<>(12, 15, -20));
     vis->AddTypicalLights();
+
+    sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_PROJECTED);
+
 
     double timestep = 0.001;
     while (vis->Run()) {

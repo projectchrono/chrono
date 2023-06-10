@@ -21,7 +21,6 @@ namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 // CH_FACTORY_REGISTER(ChGeometry)  // NO! Abstract class!
-//CH_FACTORY_REGISTER_CUSTOMNAME(ChGeometry::AABB, ChGeometry__AABB) // TODO: DARIOM check if needed
 
 class my_enum_mappers : public ChGeometry {
   public:
