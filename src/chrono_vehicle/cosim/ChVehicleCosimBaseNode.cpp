@@ -294,7 +294,7 @@ void ChVehicleCosimBaseNode::Render(double step_size) {
     }
 
     if (m_renderPP && GetSystemPostprocess()) {
-      if (!renderPP_initialized) {
+        if (!renderPP_initialized) {
             m_blender = chrono_types::make_shared<postprocess::ChBlender>(GetSystemPostprocess());
             m_blender->SetBasePath(m_node_out_dir + "/blender");
             m_blender->AddAll();
