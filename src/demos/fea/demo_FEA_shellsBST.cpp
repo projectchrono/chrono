@@ -292,18 +292,25 @@ int main(int argc, char* argv[]) {
     }
 
     // Visualization of the FEM mesh.
-    auto vis_shell_A = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
-    vis_shell_A->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
-    vis_shell_A->SetWireframe(true);
-    vis_shell_A->SetShellResolution(2);
-    ////vis_shell_A->SetBackfaceCull(true);
-    mesh->AddVisualShapeFEA(vis_shell_A);
+    auto vis_shell_mesh = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    vis_shell_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
+    vis_shell_mesh->SetWireframe(true);
+    vis_shell_mesh->SetShellResolution(2);
+    ////vis_shell_mesh->SetBackfaceCull(true);
+    mesh->AddVisualShapeFEA(vis_shell_mesh);
 
-    auto vis_shell_B = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
-    vis_shell_B->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
-    vis_shell_B->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
-    vis_shell_B->SetSymbolsThickness(0.006);
-    mesh->AddVisualShapeFEA(vis_shell_B);
+    auto vis_shell_speed = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    vis_shell_speed->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
+    vis_shell_speed->SetColorscaleMinMax(0.0, 5.0);
+    vis_shell_speed->SetWireframe(false);
+    vis_shell_speed->SetShellResolution(3);
+    mesh->AddVisualShapeFEA(vis_shell_speed);
+
+    auto vis_shell_nodes = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    vis_shell_nodes->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    vis_shell_nodes->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+    vis_shell_nodes->SetSymbolsThickness(0.006);
+    mesh->AddVisualShapeFEA(vis_shell_nodes);
 
     if (false) {
         // Create a contact material
@@ -334,16 +341,16 @@ int main(int argc, char* argv[]) {
     }
 
     // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->AttachSystem(&sys);
-    vis->SetWindowSize(1024, 768);
-    vis->SetWindowTitle("Shells FEA test: triangle BST elements");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(1, 0.3, 1.3), ChVector<>(0.5, -0.3, 0.5));
-    vis->AddLight(ChVector<>(2, 2, 0), 6, ChColor(0.6f, 0.6f, 0.6f));
-    vis->AddLight(ChVector<>(0, -2, 2), 6, ChColor(0.6f, 0.6f, 0.6f));
+    auto vsys = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    vsys->AttachSystem(&sys);
+    vsys->SetWindowSize(1024, 768);
+    vsys->SetWindowTitle("Shells FEA test: triangle BST elements");
+    vsys->Initialize();
+    vsys->AddLogo();
+    vsys->AddSkyBox();
+    vsys->AddCamera(ChVector<>(1, 0.3, 1.3), ChVector<>(0.5, -0.3, 0.5));
+    vsys->AddLight(ChVector<>(2, 2, 0), 6, ChColor(0.6f, 0.6f, 0.6f));
+    vsys->AddLight(ChVector<>(0, -2, 2), 6, ChColor(0.6f, 0.6f, 0.6f));
 
     // Change solver to PardisoMKL
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -362,10 +369,10 @@ int main(int argc, char* argv[]) {
     ChFunction_Recorder rec_X;
     ChFunction_Recorder rec_Y;
 
-    while (vis->Run()) {
-        vis->BeginScene();
-        vis->Render();
-        vis->EndScene();
+    while (vsys->Run()) {
+        vsys->BeginScene();
+        vsys->Render();
+        vsys->EndScene();
         sys.DoStepDynamics(timestep);
     }
 

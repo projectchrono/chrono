@@ -104,7 +104,9 @@ void ChDeformableTire::AddVisualizationAssets(VisualizationType vis) {
 
     m_visualization = chrono_types::make_shared<ChVisualShapeFEA>(m_mesh);
     m_visualization->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    m_visualization->SetColorscaleMinMax(0.0, 1);
+    m_visualization->SetShellResolution(3);
+    m_visualization->SetWireframe(false);
+    m_visualization->SetColorscaleMinMax(0.0, 5.0);
     m_visualization->SetSmoothFaces(true);
     m_mesh->AddVisualShapeFEA(m_visualization);
 }

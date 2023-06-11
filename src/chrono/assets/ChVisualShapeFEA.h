@@ -35,6 +35,7 @@ class ChElementBase;
 /// Adds to the containing visual model a trimesh and a glyphs visual shapes.
 class ChApi ChVisualShapeFEA {
   public:
+    /// Visualization mesh data type.  
     enum class DataType {
         NONE,
         SURFACE,
@@ -64,9 +65,10 @@ class ChApi ChVisualShapeFEA {
         ELEM_BEAM_TZ,
         NODE_P,
         ANCF_BEAM_AX,
-        ANCF_BEAM_BD,
+        ANCF_BEAM_BD
     };
 
+    /// Visualization glyph data type.
     enum class GlyphType {
         NONE,
         NODE_DOT_POS,
@@ -75,7 +77,7 @@ class ChApi ChVisualShapeFEA {
         NODE_VECT_ACCEL,
         ELEM_TENS_STRAIN,
         ELEM_TENS_STRESS,
-        ELEM_VECT_DP,  // gradient field for Poisson problems (ex. heat flow if thermal FEM)
+        ELEM_VECT_DP  // gradient field for Poisson problems
     };
 
   public:
@@ -98,10 +100,10 @@ class ChApi ChVisualShapeFEA {
     /// Set the current data type to be drawn with glyphs.
     void SetFEMglyphType(GlyphType mdata) { fem_glyph = mdata; }
 
-    /// Set upper and lower values of the plotted variable for the colorscale plots.
-    void SetColorscaleMinMax(double mmin, double mmax) {
-        colorscale_min = mmin;
-        colorscale_max = mmax;
+    /// Set min and max values of the plotted variable for the colorscale plots.
+    void SetColorscaleMinMax(double min, double max) {
+        colorscale_min = min;
+        colorscale_max = max;
     }
 
     /// Set the scale for drawing the symbols for vectors, tensors, etc.
@@ -112,22 +114,24 @@ class ChApi ChVisualShapeFEA {
     void SetSymbolsThickness(double mthick) { this->symbols_thickness = mthick; }
     double GetSymbolsThickness() { return this->symbols_thickness; }
 
-    /// Set the resolution of beam triangulated drawing, along direction of beam.
+    /// Set the resolution of beam triangulated drawing, along the beam direction (default: 8).
     void SetBeamResolution(int mres) { this->beam_resolution = mres; }
     int GetBeamResolution() { return this->beam_resolution; }
 
-    /// Set the resolution of beam triangulated drawing, along the section
-    /// (i.e. for circular section = number of points along the circle)
+    /// Set the resolution of beam triangulated drawing, along the section (default: 10).
+    /// For example, in case of a circular section, this is the number of points along the circle.
     void SetBeamResolutionSection(int mres) { this->beam_resolution_section = mres; }
     int GetBeamResolutionSection() { return this->beam_resolution_section; }
 
-    /// Set the resolution of shell triangulated drawing.
+    /// Set the resolution of shell triangulated drawing (default: 2).
+    /// This value represents the number of visualization mesh vertices on each FEM element edge.
+    /// The default value of 2 results in a visualization mesh constructed using only the FEM nodes.
     void SetShellResolution(int mres) { this->shell_resolution = mres; }
     int GetShellResolution() { return this->shell_resolution; }
 
     /// Set shrinkage of elements during drawing.
     void SetShrinkElements(bool mshrink, double mfact) {
-        this->shrink_elements = mshrink;
+        shrink_elements = mshrink;
         shrink_factor = mfact;
     }
 

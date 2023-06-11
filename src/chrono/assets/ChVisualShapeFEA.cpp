@@ -64,7 +64,7 @@ ChVisualShapeFEA::ChVisualShapeFEA(std::shared_ptr<fea::ChMesh> fea_mesh) {
 
     beam_resolution = 8;
     beam_resolution_section = 10;
-    shell_resolution = 3;
+    shell_resolution = 2;
 
     meshcolor = ChColor(1, 1, 1);
     symbolscolor = ChColor(0, 0.5, 0.5);
@@ -595,24 +595,20 @@ void ChVisualShapeFEA::UpdateBuffers_Shell(std::shared_ptr<fea::ChElementBase> e
             for (int iv = 0; iv + iu < shell_resolution; ++iv) {
                 double u = ((double)iu / (double)(shell_resolution - 1));
                 double v = ((double)iv / (double)(shell_resolution - 1));
+
                 ChVector<> P;
                 shell->EvaluateSectionPoint(u, v, P);  // compute abs. pos and rot of section plane
 
                 ChColor mcol(1, 1, 1);
-                /*
                 ChVector<> vresult;
-                ChVector<> vresultB;
                 double sresult = 0;
-                switch(fem_data_type)
-                {
-                    case ELEM_SHELL_blabla:
-                        shell->EvaluateSectionForceTorque(eta, vresult, vresultB);
-                        sresult = vresultB.x();
+                switch (fem_data_type) {
+                    case DataType::NODE_SPEED_NORM:
+                        shell->EvaluateSectionVelNorm(u, v, vresult);
+                        sresult = vresult.Length();
                         break;
-
                 }
-                ChColor mcol = ComputeFalseColor(sresult);
-                */
+                mcol = ComputeFalseColor(sresult);
 
                 trianglemesh.getCoordsVertices()[i_verts] = P;
                 ++i_verts;
@@ -620,7 +616,8 @@ void ChVisualShapeFEA::UpdateBuffers_Shell(std::shared_ptr<fea::ChElementBase> e
                 trianglemesh.getCoordsColors()[i_vcols] = mcol;
                 ++i_vcols;
 
-                ++i_vnorms;
+                if (smooth_faces)
+                    ++i_vnorms;
 
                 if (iu < shell_resolution - 1) {
                     if (iv > 0) {
@@ -677,8 +674,7 @@ void ChVisualShapeFEA::UpdateBuffers_Shell(std::shared_ptr<fea::ChElementBase> e
                 double v = -1.0 + (2.0 * iv / (shell_resolution - 1));
 
                 ChVector<> P;
-                ChQuaternion<> rot;
-                shell->EvaluateSectionFrame(u, v, P, rot);
+                shell->EvaluateSectionPoint(u, v, P);
 
                 ChColor mcol(1, 1, 1);
                 ChVector<> vresult;
@@ -697,10 +693,8 @@ void ChVisualShapeFEA::UpdateBuffers_Shell(std::shared_ptr<fea::ChElementBase> e
                 trianglemesh.getCoordsColors()[i_vcols] = mcol;
                 ++i_vcols;
 
-                if (smooth_faces) {
-                    trianglemesh.getCoordsNormals()[i_vnorms] = rot.GetZaxis();
+                if (smooth_faces)
                     ++i_vnorms;
-                }
 
                 if (iu > 0 && iv > 0) {
                     trianglemesh.getIndicesVertexes()[i_triindex] =
