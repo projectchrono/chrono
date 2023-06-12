@@ -1928,6 +1928,10 @@ void ChLinkLock::ArchiveIN(ChArchiveIn& marchive) {
     ////marchive >> CHNVP(limit_Rp);
     ////marchive >> CHNVP(limit_D);
 
+    mask.SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
+
+    BuildLink();
+
 }
 
 // =======================================================================================

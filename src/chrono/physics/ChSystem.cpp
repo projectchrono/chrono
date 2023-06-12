@@ -2080,7 +2080,7 @@ void ChSystem::ArchiveIN(ChArchiveIn& marchive) {
     //***TODO*** complete...
 
     //  Rebuild link pointers to markers
-    Reference_LM_byID();
+    //Reference_LM_byID();
 
     // Recompute statistics, offsets, etc.
     Setup();
