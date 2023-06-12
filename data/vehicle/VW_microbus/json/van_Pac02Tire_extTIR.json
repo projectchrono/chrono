@@ -1,0 +1,18 @@
+{
+    "Name": "Magic Formula Tire from ADAMS/Car TIR file",
+    "Type": "Tire",
+    "Template": "Pac02Tire",
+    "Mass": 16.0,
+    "Inertia": [
+        1.021213842086728,
+        1.828238395872898,
+        1.021213842086728
+    ],
+    "TIR Specification File" : "VW_microbus/json/mf_185_80R14.tir",
+    "Coefficient of Friction": 0.8,
+    "Visualization": {
+        "Mesh Filename Left":  "VW_microbus/van_tire.obj",
+        "Mesh Filename Right": "VW_microbus/van_tire.obj",
+        "Width": 0.185
+    }
+}

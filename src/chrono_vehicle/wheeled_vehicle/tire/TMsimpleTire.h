@@ -62,4 +62,3 @@ class CH_VEHICLE_API TMsimpleTire : public ChTMsimpleTire {
 }  // end namespace chrono
 
 #endif
-

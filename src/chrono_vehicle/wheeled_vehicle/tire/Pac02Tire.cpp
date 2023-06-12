@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2015 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,11 +9,29 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Michael Taylor, Rainer Gericke
+// Authors: Rainer Gericke, Radu Serban
 // =============================================================================
 //
-// Pac89 tire constructed with data from file (JSON format).
+// Template for a Magic Formula tire model
 //
+// ChPac02 is based on the Pacejka 2002 formulae as written in
+// Hans B. Pacejka's "Tire and Vehicle Dynamics" Third Edition, Elsevier 2012
+// ISBN: 978-0-08-097016-5
+//
+// This implementation is a subset of the commercial product MFtire:
+//  - only steady state force/torque calculations
+//  - uncombined (use_mode = 3)
+//  - combined (use_mode = 4) via Pacejka method
+//  - parametration is given by a TIR file (Tiem Orbit Format,
+//    ADAMS/Car compatible)
+//  - unit conversion is implemented but only tested for SI units
+//  - optional inflation pressure dependency is implemented, but not tested
+//  - this implementation could be validated for the FED-Alpha vehicle and rsp.
+//    tire data sets against KRC test results from a Nato CDT
+//
+// This derived class reads parameters from a JSON parameter file
+//  - input can be redirected from a TIR file
+//  - input parameters can set directly (only SI units!)
 // =============================================================================
 
 #include <algorithm>
@@ -27,11 +45,9 @@ using namespace rapidjson;
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-Pac02Tire::Pac02Tire(const std::string& filename)
-    : ChPac02Tire(""), m_mass(0), m_has_mesh(false), m_has_vert_table(false), m_has_bott_table(false) {
-    Document d; ReadFileJSON(filename, d);
+Pac02Tire::Pac02Tire(const std::string& filename) : ChPac02Tire(""), m_mass(0), m_has_mesh(false) {
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -40,503 +56,418 @@ Pac02Tire::Pac02Tire(const std::string& filename)
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-Pac02Tire::Pac02Tire(const rapidjson::Document& d)
-    : ChPac02Tire(""), m_mass(0), m_has_mesh(false), m_has_vert_table(false), m_has_bott_table(false) {
+Pac02Tire::Pac02Tire(const rapidjson::Document& d) : ChPac02Tire(""), m_mass(0), m_has_mesh(false) {
     Create(d);
 }
 
-void Pac02Tire::Create(const rapidjson::Document& d) {  // Invoke base class method.
+void Pac02Tire::Create(const rapidjson::Document& d) {
+    // Invoke base class method
     ChPart::Create(d);
 
-    m_mass = d["Mass"].GetDouble();
-    m_inertia = ReadVectorJSON(d["Inertia"]);
-    if (d.HasMember("Use Mode")) {
-        // Default value = 3
-        m_use_mode = d["Use Mode"].GetInt();
+    if (d.HasMember("Mass")) {
+        m_mass = d["Mass"].GetDouble();
+    } else {
+        GetLog() << "Fatal: Mass not set!\n";
+        exit(9);
     }
-    if (d.HasMember("Use Friction Ellipsis")) {
-        // Default value = true
-        m_use_friction_ellipsis = d["Use Friction Ellipsis"].GetBool();
+    if (d.HasMember("Inertia")) {
+        m_inertia = ReadVectorJSON(d["Inertia"]);
+    } else {
+        GetLog() << "Fatal: Inertia not set!\n";
+        exit(9);
     }
     if (d.HasMember("Coefficient of Friction")) {
-        // Default value = 0.8
-        m_PacCoeff.mu0 = d["Coefficient of Friction"].GetDouble();
-    }
-    if (d.HasMember("Tire Side")) {
-        // Default value = LEFT
-        std::string tSide = d["Tire Side"].GetString();
-        if (tSide.compare("left") == 0) {
-            m_measured_side = LEFT;
-            m_allow_mirroring = true;
-        }
-        if (tSide.compare("right") == 0) {
-            m_measured_side = RIGHT;
-            m_allow_mirroring = true;
-        }
-    }
-    if (d.HasMember("Dimension")) {
-        m_PacCoeff.R0 = d["Dimension"]["Unloaded Radius"].GetDouble();
-        m_PacCoeff.width = d["Dimension"]["Width"].GetDouble();
-        m_PacCoeff.aspect_ratio = d["Dimension"]["Aspect Ratio"].GetDouble();
-        m_PacCoeff.rim_radius = d["Dimension"]["Rim Radius"].GetDouble();
-        m_PacCoeff.rim_width = d["Dimension"]["Rim Width"].GetDouble();
+        m_mu0 = d["Coefficient of Friction"].GetDouble();
     } else {
-        GetLog() << "Couldn't find mandatory block 'Dimension' in JSON file.\n";
+        GetLog() << "Fatal: Friction not set!\n";
+        exit(9);
     }
 
-    if (d.HasMember("Vertical")) {
-        m_PacCoeff.Cz = d["Vertical"]["Vertical Stiffness"].GetDouble();
-        m_PacCoeff.Kz = d["Vertical"]["Vertical Damping"].GetDouble();
-        m_PacCoeff.FzNomin = d["Vertical"]["Nominal Wheel Load"].GetDouble();
-        if (d["Vertical"].HasMember("Vertical Curve Data")) {
-            int num_points = d["Vertical"]["Vertical Curve Data"].Size();
-            for (int i = 0; i < num_points; i++) {
-                m_vert_map.AddPoint(d["Vertical"]["Vertical Curve Data"][i][0u].GetDouble(),
-                                    d["Vertical"]["Vertical Curve Data"][i][1u].GetDouble());
-            }
-            m_has_vert_table = true;
-        }
-        if (d["Vertical"].HasMember("Bottoming Curve Data")) {
-            int num_points = d["Vertical"]["Bottoming Curve Data"].Size();
-            for (int i = 0; i < num_points; i++) {
-                m_vert_map.AddPoint(d["Vertical"]["Bottoming Curve Data"][i][0u].GetDouble(),
-                                    d["Vertical"]["Bottoming Curve Data"][i][1u].GetDouble());
-            }
-            m_has_bott_table = true;
-        }
-    }
-    if (d.HasMember("Scaling Factors")) {
-        if (d["Scaling Factors"].HasMember("lfz0")) {
-            m_PacScal.lfz0 = d["Scaling Factors"]["lfz0"].GetDouble();
-        }
-        if (d["Scaling Factors"].HasMember("ltr")) {
-            m_PacScal.ltr = d["Scaling Factors"]["ltr"].GetDouble();
-        }
-        if (d["Scaling Factors"].HasMember("lcx")) {
-            m_PacScal.lcx = d["Scaling Factors"]["lcx"].GetDouble();
-        }
-        if (d["Scaling Factors"].HasMember("lmux")) {
-            m_PacScal.lmux = d["Scaling Factors"]["lmux"].GetDouble();
-        }
-        if (d["Scaling Factors"].HasMember("lex")) {
-            m_PacScal.lex = d["Scaling Factors"]["lex"].GetDouble();
-        }
-        if (d["Scaling Factors"].HasMember("lkx")) {
-            m_PacScal.lkx = d["Scaling Factors"]["lkx"].GetDouble();
-        }
-        if (d["Scaling Factors"].HasMember("lhx")) {
-            m_PacScal.lhx = d["Scaling Factors"]["lhx"].GetDouble();
-        }
-        if (d["Scaling Factors"].HasMember("lvx")) {
-            m_PacScal.lvx = d["Scaling Factors"]["lvx"].GetDouble();
-        }
-        if (d["Scaling Factors"].HasMember("lgax")) {
-            m_PacScal.lgax = d["Scaling Factors"]["lgax"].GetDouble();
-        }
-        if (d["Scaling Factors"].HasMember("lcy")) {
-            m_PacScal.lcy = d["Scaling Factors"]["lcy"].GetDouble();
-        }
-        if (d["Scaling Factors"].HasMember("lmuy")) {
-            m_PacScal.lmuy = d["Scaling Factors"]["lmuy"].GetDouble();
-        }
-        if (d["Scaling Factors"].HasMember("ley")) {
-            m_PacScal.ley = d["Scaling Factors"]["ley"].GetDouble();
-        }
-        if (d["Scaling Factors"].HasMember("lky")) {
-            m_PacScal.lky = d["Scaling Factors"]["lky"].GetDouble();
-        }
-        if (d["Scaling Factors"].HasMember("lhy")) {
-            m_PacScal.lhy = d["Scaling Factors"]["lhy"].GetDouble();
-        }
-        if (d["Scaling Factors"].HasMember("lvy")) {
-            m_PacScal.lvy = d["Scaling Factors"]["lvy"].GetDouble();
-        }
-        if (d["Scaling Factors"].HasMember("lgay")) {
-            m_PacScal.lgay = d["Scaling Factors"]["lgay"].GetDouble();
-        }
-        if (d["Scaling Factors"].HasMember("lres")) {
-            m_PacScal.lres = d["Scaling Factors"]["lres"].GetDouble();
-        }
-        if (d["Scaling Factors"].HasMember("lgaz")) {
-            m_PacScal.lgaz = d["Scaling Factors"]["lgaz"].GetDouble();
-        }
-        if (d["Scaling Factors"].HasMember("lxal")) {
-            m_PacScal.lxal = d["Scaling Factors"]["lxal"].GetDouble();
-        }
-        if (d["Scaling Factors"].HasMember("lyka")) {
-            m_PacScal.lyka = d["Scaling Factors"]["lyka"].GetDouble();
-        }
-        if (d["Scaling Factors"].HasMember("lvyka")) {
-            m_PacScal.lvyka = d["Scaling Factors"]["lvyka"].GetDouble();
-        }
-        if (d["Scaling Factors"].HasMember("ls")) {
-            m_PacScal.ls = d["Scaling Factors"]["ls"].GetDouble();
-        }
-        if (d["Scaling Factors"].HasMember("lsgkp")) {
-            m_PacScal.lsgkp = d["Scaling Factors"]["lsgkp"].GetDouble();
-        }
-        if (d["Scaling Factors"].HasMember("lsgal")) {
-            m_PacScal.lsgal = d["Scaling Factors"]["lsgal"].GetDouble();
-        }
-        if (d["Scaling Factors"].HasMember("lgyr")) {
-            m_PacScal.lgyr = d["Scaling Factors"]["lgyr"].GetDouble();
-        }
-        if (d["Scaling Factors"].HasMember("lmx")) {
-            m_PacScal.lmx = d["Scaling Factors"]["lmx"].GetDouble();
-        }
-        if (d["Scaling Factors"].HasMember("lvmx")) {
-            m_PacScal.lvmx = d["Scaling Factors"]["lvmx"].GetDouble();
-        }
-        if (d["Scaling Factors"].HasMember("lmy")) {
-            m_PacScal.lmy = d["Scaling Factors"]["lmy"].GetDouble();
-        }
+    // Check if TIR specification file provided
+    if (d.HasMember("TIR Specification File")) {
+        m_tir_file = d["TIR Specification File"].GetString();
     } else {
-        GetLog() << "All scaling factors have been set to 1.0\n";
-    }
-    if (d.HasMember("Lateral Coefficients")) {
-        if (d["Lateral Coefficients"].HasMember("pcy1")) {
-            m_PacCoeff.pcy1 = d["Lateral Coefficients"]["pcy1"].GetDouble();
+        // Tire parameters explicitly specified in JSON file
+        if (d.HasMember("Use Mode")) {
+            m_use_mode = d["Use Mode"].GetInt();
         }
-        if (d["Lateral Coefficients"].HasMember("pdy1")) {
-            m_PacCoeff.pdy1 = d["Lateral Coefficients"]["pdy1"].GetDouble();
+        if (d.HasMember("Tire Side")) {
+            std::string tside = d["Tire Side"].GetString();
+            if (tside.compare("left") == 0 || tside.compare("unknown") == 0) {
+                m_measured_side = LEFT;
+            } else {
+                m_measured_side = RIGHT;
+            }
         }
-        if (d["Lateral Coefficients"].HasMember("pdy2")) {
-            m_PacCoeff.pdy2 = d["Lateral Coefficients"]["pdy2"].GetDouble();
+        if (d.HasMember("Dimension")) {
+            m_par.UNLOADED_RADIUS = d["Dimension"]["Unloaded Radius"].GetDouble();
+            m_par.WIDTH = d["Dimension"]["Width"].GetDouble();
+            m_par.ASPECT_RATIO = d["Dimension"]["Aspect Ratio"].GetDouble();
+            m_par.RIM_RADIUS = d["Dimension"]["Rim Radius"].GetDouble();
+            m_par.RIM_WIDTH = d["Dimension"]["Rim Width"].GetDouble();
+        } else {
+            GetLog() << "Fatal: Dimension not set!\n";
+            exit(9);
         }
-        if (d["Lateral Coefficients"].HasMember("pdy3")) {
-            m_PacCoeff.pdy3 = d["Lateral Coefficients"]["pdy3"].GetDouble();
+        if (d.HasMember("Vertical")) {
+            m_par.VERTICAL_STIFFNESS = d["Vertical"]["Vertical Stiffness"].GetDouble();
+            m_par.VERTICAL_DAMPING = d["Vertical"]["Vertical Damping"].GetDouble();
+            m_par.FNOMIN = d["Vertical"]["Nominal Wheel Load"].GetDouble();
+            m_par.QFZ1 = m_par.VERTICAL_STIFFNESS * m_par.UNLOADED_RADIUS / m_par.FNOMIN;
+            m_par.QFZ2 = 0;
+        } else {
+            GetLog() << "Fatal: Vertical not set!\n";
+            exit(9);
         }
-        if (d["Lateral Coefficients"].HasMember("pey1")) {
-            m_PacCoeff.pey1 = d["Lateral Coefficients"]["pey1"].GetDouble();
+        if (d.HasMember("Scaling Factors")) {
+            if (d["Scaling Factors"].HasMember("LFZO"))
+                m_par.LFZO = d["Scaling Factors"]["LFZO"].GetDouble();
+            if (d["Scaling Factors"].HasMember("LCX"))
+                m_par.LCX = d["Scaling Factors"]["LCX"].GetDouble();
+            if (d["Scaling Factors"].HasMember("LMUX"))
+                m_par.LMUX = d["Scaling Factors"]["LMUX"].GetDouble();
+            if (d["Scaling Factors"].HasMember("LEX"))
+                m_par.LEX = d["Scaling Factors"]["LEX"].GetDouble();
+            if (d["Scaling Factors"].HasMember("LKX"))
+                m_par.LKX = d["Scaling Factors"]["LKX"].GetDouble();
+            if (d["Scaling Factors"].HasMember("LHX"))
+                m_par.LHX = d["Scaling Factors"]["LHX"].GetDouble();
+            if (d["Scaling Factors"].HasMember("LVX"))
+                m_par.LVX = d["Scaling Factors"]["LVX"].GetDouble();
+            if (d["Scaling Factors"].HasMember("LGAX"))
+                m_par.LGAX = d["Scaling Factors"]["LGAX"].GetDouble();
+            if (d["Scaling Factors"].HasMember("LCY"))
+                m_par.LCY = d["Scaling Factors"]["LCY"].GetDouble();
+            if (d["Scaling Factors"].HasMember("LMUY"))
+                m_par.LMUY = d["Scaling Factors"]["LMUY"].GetDouble();
+            if (d["Scaling Factors"].HasMember("LEY"))
+                m_par.LEY = d["Scaling Factors"]["LEY"].GetDouble();
+            if (d["Scaling Factors"].HasMember("LKY"))
+                m_par.LKY = d["Scaling Factors"]["LKY"].GetDouble();
+            if (d["Scaling Factors"].HasMember("LHY"))
+                m_par.LHY = d["Scaling Factors"]["LHY"].GetDouble();
+            if (d["Scaling Factors"].HasMember("LVY"))
+                m_par.LVY = d["Scaling Factors"]["LVY"].GetDouble();
+            if (d["Scaling Factors"].HasMember("LGAY"))
+                m_par.LGAY = d["Scaling Factors"]["LGAY"].GetDouble();
+            if (d["Scaling Factors"].HasMember("LTR"))
+                m_par.LTR = d["Scaling Factors"]["LTR"].GetDouble();
+            if (d["Scaling Factors"].HasMember("LRES"))
+                m_par.LRES = d["Scaling Factors"]["LRES"].GetDouble();
+            if (d["Scaling Factors"].HasMember("LGAZ"))
+                m_par.LGAZ = d["Scaling Factors"]["LGAZ"].GetDouble();
+            if (d["Scaling Factors"].HasMember("LXAL"))
+                m_par.LXAL = d["Scaling Factors"]["LXAL"].GetDouble();
+            if (d["Scaling Factors"].HasMember("LYKA"))
+                m_par.LYKA = d["Scaling Factors"]["LYKA"].GetDouble();
+            if (d["Scaling Factors"].HasMember("LVYKA"))
+                m_par.LVYKA = d["Scaling Factors"]["LVYKA"].GetDouble();
+            if (d["Scaling Factors"].HasMember("LS"))
+                m_par.LS = d["Scaling Factors"]["LS"].GetDouble();
+            if (d["Scaling Factors"].HasMember("LSGKP"))
+                m_par.LSGKP = d["Scaling Factors"]["LSGKP"].GetDouble();
+            if (d["Scaling Factors"].HasMember("LSGAL"))
+                m_par.LSGAL = d["Scaling Factors"]["LSGAL"].GetDouble();
+            if (d["Scaling Factors"].HasMember("LGYR"))
+                m_par.LGYR = d["Scaling Factors"]["LGYR"].GetDouble();
+            if (d["Scaling Factors"].HasMember("LVMX"))
+                m_par.LVMX = d["Scaling Factors"]["LVMX"].GetDouble();
+            if (d["Scaling Factors"].HasMember("LMY"))
+                m_par.LMY = d["Scaling Factors"]["LMY"].GetDouble();
+            if (d["Scaling Factors"].HasMember("LIP"))
+                m_par.LIP = d["Scaling Factors"]["LIP"].GetDouble();
+            if (d["Scaling Factors"].HasMember("LKYG"))
+                m_par.LKYG = d["Scaling Factors"]["LKYG"].GetDouble();
+            if (d["Scaling Factors"].HasMember("LCZ"))
+                m_par.LCZ = d["Scaling Factors"]["LCZ"].GetDouble();
+        } else {
+            GetLog() << "Missing Scaling Factors are set to 1!\n";
         }
-        if (d["Lateral Coefficients"].HasMember("pey2")) {
-            m_PacCoeff.pey2 = d["Lateral Coefficients"]["pey2"].GetDouble();
+        if (d.HasMember("Longitudinal Coefficients")) {
+            if (d["Longitudinal Coefficients"].HasMember("PCX1"))
+                m_par.PCX1 = d["Longitudinal Coefficients"]["PCX1"].GetDouble();
+            if (d["Longitudinal Coefficients"].HasMember("PDX1"))
+                m_par.PDX1 = d["Longitudinal Coefficients"]["PDX1"].GetDouble();
+            if (d["Longitudinal Coefficients"].HasMember("PDX2"))
+                m_par.PDX2 = d["Longitudinal Coefficients"]["PDX2"].GetDouble();
+            if (d["Longitudinal Coefficients"].HasMember("PDX3"))
+                m_par.PDX3 = d["Longitudinal Coefficients"]["PDX3"].GetDouble();
+            if (d["Longitudinal Coefficients"].HasMember("PEX1"))
+                m_par.PEX1 = d["Longitudinal Coefficients"]["PEX1"].GetDouble();
+            if (d["Longitudinal Coefficients"].HasMember("PEX2"))
+                m_par.PEX2 = d["Longitudinal Coefficients"]["PEX2"].GetDouble();
+            if (d["Longitudinal Coefficients"].HasMember("PEX3"))
+                m_par.PEX3 = d["Longitudinal Coefficients"]["PEX3"].GetDouble();
+            if (d["Longitudinal Coefficients"].HasMember("PEX4"))
+                m_par.PEX4 = d["Longitudinal Coefficients"]["PEX4"].GetDouble();
+            if (d["Longitudinal Coefficients"].HasMember("PKX1"))
+                m_par.PKX1 = d["Longitudinal Coefficients"]["PKX1"].GetDouble();
+            if (d["Longitudinal Coefficients"].HasMember("PKX2"))
+                m_par.PKX2 = d["Longitudinal Coefficients"]["PKX2"].GetDouble();
+            if (d["Longitudinal Coefficients"].HasMember("PKX3"))
+                m_par.PKX3 = d["Longitudinal Coefficients"]["PKX3"].GetDouble();
+            if (d["Longitudinal Coefficients"].HasMember("PHX1"))
+                m_par.PHX1 = d["Longitudinal Coefficients"]["PHX1"].GetDouble();
+            if (d["Longitudinal Coefficients"].HasMember("PHX2"))
+                m_par.PHX2 = d["Longitudinal Coefficients"]["PHX2"].GetDouble();
+            if (d["Longitudinal Coefficients"].HasMember("PVX1"))
+                m_par.PVX1 = d["Longitudinal Coefficients"]["PVX1"].GetDouble();
+            if (d["Longitudinal Coefficients"].HasMember("PVX2"))
+                m_par.PVX2 = d["Longitudinal Coefficients"]["PVX2"].GetDouble();
+            if (d["Longitudinal Coefficients"].HasMember("RBX1"))
+                m_par.RBX1 = d["Longitudinal Coefficients"]["RBX1"].GetDouble();
+            if (d["Longitudinal Coefficients"].HasMember("RBX2"))
+                m_par.RBX2 = d["Longitudinal Coefficients"]["RBX2"].GetDouble();
+            if (d["Longitudinal Coefficients"].HasMember("RCX1"))
+                m_par.RCX1 = d["Longitudinal Coefficients"]["RCX1"].GetDouble();
+            if (d["Longitudinal Coefficients"].HasMember("REX1"))
+                m_par.REX1 = d["Longitudinal Coefficients"]["REX1"].GetDouble();
+            if (d["Longitudinal Coefficients"].HasMember("REX2"))
+                m_par.REX2 = d["Longitudinal Coefficients"]["REX2"].GetDouble();
+            if (d["Longitudinal Coefficients"].HasMember("RHX1"))
+                m_par.RHX1 = d["Longitudinal Coefficients"]["RHX1"].GetDouble();
+            if (d["Longitudinal Coefficients"].HasMember("PTX1"))
+                m_par.PTX1 = d["Longitudinal Coefficients"]["PTX1"].GetDouble();
+            if (d["Longitudinal Coefficients"].HasMember("PTX2"))
+                m_par.PTX2 = d["Longitudinal Coefficients"]["PTX2"].GetDouble();
+            if (d["Longitudinal Coefficients"].HasMember("PTX3"))
+                m_par.PTX3 = d["Longitudinal Coefficients"]["PTX3"].GetDouble();
+            if (d["Longitudinal Coefficients"].HasMember("PPX1"))
+                m_par.PPX1 = d["Longitudinal Coefficients"]["PPX1"].GetDouble();
+            if (d["Longitudinal Coefficients"].HasMember("PPX2"))
+                m_par.PPX2 = d["Longitudinal Coefficients"]["PPX2"].GetDouble();
+            if (d["Longitudinal Coefficients"].HasMember("PPX3"))
+                m_par.PPX3 = d["Longitudinal Coefficients"]["PPX3"].GetDouble();
+            if (d["Longitudinal Coefficients"].HasMember("PPX4"))
+                m_par.PPX4 = d["Longitudinal Coefficients"]["PPX4"].GetDouble();
+        } else {
+            GetLog() << "Fatal: Longitudinal Coefficients not set!\n";
+            exit(9);
         }
-        if (d["Lateral Coefficients"].HasMember("pey3")) {
-            m_PacCoeff.pey3 = d["Lateral Coefficients"]["pey3"].GetDouble();
+        if (d.HasMember("Lateral Coefficients")) {
+            if (d["Lateral Coefficients"].HasMember("PCY1"))
+                m_par.PCY1 = d["Lateral Coefficients"]["PCY1"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("PDY1"))
+                m_par.PDY1 = d["Lateral Coefficients"]["PDY1"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("PDY2"))
+                m_par.PDY2 = d["Lateral Coefficients"]["PDY2"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("PDY3"))
+                m_par.PDY3 = d["Lateral Coefficients"]["PDY3"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("PEY1"))
+                m_par.PEY1 = d["Lateral Coefficients"]["PEY1"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("PEY2"))
+                m_par.PEY2 = d["Lateral Coefficients"]["PEY2"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("PEY3"))
+                m_par.PEY3 = d["Lateral Coefficients"]["PEY3"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("PEY4"))
+                m_par.PEY4 = d["Lateral Coefficients"]["PEY4"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("PKY1"))
+                m_par.PKY1 = d["Lateral Coefficients"]["PKY1"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("PKY2"))
+                m_par.PKY2 = d["Lateral Coefficients"]["PKY2"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("PKY3"))
+                m_par.PKY3 = d["Lateral Coefficients"]["PKY3"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("PHY1"))
+                m_par.PHY1 = d["Lateral Coefficients"]["PHY1"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("PHY2"))
+                m_par.PHY2 = d["Lateral Coefficients"]["PHY2"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("PHY3"))
+                m_par.PHY3 = d["Lateral Coefficients"]["PHY3"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("PVY1"))
+                m_par.PVY1 = d["Lateral Coefficients"]["PVY1"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("PVY2"))
+                m_par.PVY2 = d["Lateral Coefficients"]["PVY2"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("PVY3"))
+                m_par.PVY3 = d["Lateral Coefficients"]["PVY3"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("PVY4"))
+                m_par.PVY4 = d["Lateral Coefficients"]["PVY4"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("RBY1"))
+                m_par.RBY1 = d["Lateral Coefficients"]["RBY1"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("RBY2"))
+                m_par.RBY2 = d["Lateral Coefficients"]["RBY2"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("RBY3"))
+                m_par.RBY3 = d["Lateral Coefficients"]["RBY3"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("RCY1"))
+                m_par.RCY1 = d["Lateral Coefficients"]["RCY1"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("REY1"))
+                m_par.REY1 = d["Lateral Coefficients"]["REY1"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("REY2"))
+                m_par.REY2 = d["Lateral Coefficients"]["REY2"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("RHY1"))
+                m_par.RHY1 = d["Lateral Coefficients"]["RHY1"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("RHY2"))
+                m_par.RHY2 = d["Lateral Coefficients"]["RHY2"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("RVY1"))
+                m_par.RVY1 = d["Lateral Coefficients"]["RVY1"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("RVY2"))
+                m_par.RVY2 = d["Lateral Coefficients"]["RVY2"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("RVY3"))
+                m_par.RVY3 = d["Lateral Coefficients"]["RVY3"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("RVY4"))
+                m_par.RVY4 = d["Lateral Coefficients"]["RVY4"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("RVY5"))
+                m_par.RVY5 = d["Lateral Coefficients"]["RVY5"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("RVY6"))
+                m_par.RVY6 = d["Lateral Coefficients"]["RVY6"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("PTY1"))
+                m_par.PTY1 = d["Lateral Coefficients"]["PTY1"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("PTY2"))
+                m_par.PTY2 = d["Lateral Coefficients"]["PTY2"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("PPY1"))
+                m_par.PPY1 = d["Lateral Coefficients"]["PPY1"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("PPY2"))
+                m_par.PPY2 = d["Lateral Coefficients"]["PPY2"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("PPY3"))
+                m_par.PPY3 = d["Lateral Coefficients"]["PPY3"].GetDouble();
+            if (d["Lateral Coefficients"].HasMember("PPY4"))
+                m_par.PPY4 = d["Lateral Coefficients"]["PPY4"].GetDouble();
+        } else {
+            GetLog() << "Fatal: Lateral Coefficients not set!\n";
+            exit(9);
         }
-        if (d["Lateral Coefficients"].HasMember("pey4")) {
-            m_PacCoeff.pey4 = d["Lateral Coefficients"]["pey4"].GetDouble();
+        if (d.HasMember("Aligning Coefficients")) {
+            if (d["Aligning Coefficients"].HasMember("QBZ1"))
+                m_par.QBZ1 = d["Aligning Coefficients"]["QBZ1"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("QBZ2"))
+                m_par.QBZ2 = d["Aligning Coefficients"]["QBZ2"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("QBZ3"))
+                m_par.QBZ3 = d["Aligning Coefficients"]["QBZ3"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("QBZ4"))
+                m_par.QBZ4 = d["Aligning Coefficients"]["QBZ4"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("QBZ5"))
+                m_par.QBZ5 = d["Aligning Coefficients"]["QBZ5"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("QBZ9"))
+                m_par.QBZ9 = d["Aligning Coefficients"]["QBZ9"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("QBZ10"))
+                m_par.QBZ10 = d["Aligning Coefficients"]["QBZ10"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("QCZ1"))
+                m_par.QCZ1 = d["Aligning Coefficients"]["QCZ1"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("QDZ1"))
+                m_par.QDZ1 = d["Aligning Coefficients"]["QDZ1"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("QDZ2"))
+                m_par.QDZ2 = d["Aligning Coefficients"]["QDZ2"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("QDZ3"))
+                m_par.QDZ3 = d["Aligning Coefficients"]["QDZ3"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("QDZ4"))
+                m_par.QDZ4 = d["Aligning Coefficients"]["QDZ4"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("QDZ6"))
+                m_par.QDZ6 = d["Aligning Coefficients"]["QDZ6"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("QDZ7"))
+                m_par.QDZ7 = d["Aligning Coefficients"]["QDZ7"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("QDZ8"))
+                m_par.QDZ8 = d["Aligning Coefficients"]["QDZ8"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("QDZ9"))
+                m_par.QDZ9 = d["Aligning Coefficients"]["QDZ9"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("QEZ1"))
+                m_par.QEZ1 = d["Aligning Coefficients"]["QEZ1"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("QEZ2"))
+                m_par.QEZ2 = d["Aligning Coefficients"]["QEZ2"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("QEZ3"))
+                m_par.QEZ3 = d["Aligning Coefficients"]["QEZ3"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("QEZ4"))
+                m_par.QEZ4 = d["Aligning Coefficients"]["QEZ4"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("QEZ5"))
+                m_par.QEZ5 = d["Aligning Coefficients"]["QEZ5"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("QHZ1"))
+                m_par.QHZ1 = d["Aligning Coefficients"]["QHZ1"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("QHZ2"))
+                m_par.QHZ2 = d["Aligning Coefficients"]["QHZ2"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("QHZ3"))
+                m_par.QHZ3 = d["Aligning Coefficients"]["QHZ3"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("QHZ4"))
+                m_par.QHZ4 = d["Aligning Coefficients"]["QHZ4"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("QPZ1"))
+                m_par.QPZ1 = d["Aligning Coefficients"]["QPZ1"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("QPZ2"))
+                m_par.QPZ2 = d["Aligning Coefficients"]["QPZ2"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("SSZ1"))
+                m_par.SSZ1 = d["Aligning Coefficients"]["SSZ1"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("SSZ2"))
+                m_par.SSZ2 = d["Aligning Coefficients"]["SSZ2"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("SSZ3"))
+                m_par.SSZ3 = d["Aligning Coefficients"]["SSZ3"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("SSZ4"))
+                m_par.SSZ4 = d["Aligning Coefficients"]["SSZ4"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("QTZ1"))
+                m_par.QTZ1 = d["Aligning Coefficients"]["QTZ1"].GetDouble();
+            if (d["Aligning Coefficients"].HasMember("MBELT"))
+                m_par.MBELT = d["Aligning Coefficients"]["MBELT"].GetDouble();
+        } else {
+            GetLog() << "Fatal: Aligning Coefficients not set!\n";
+            exit(9);
         }
-        if (d["Lateral Coefficients"].HasMember("pky1")) {
-            m_PacCoeff.pky1 = d["Lateral Coefficients"]["pky1"].GetDouble();
+        if (d.HasMember("Overturning Coefficients")) {
+            if (d["Overturning Coefficients"].HasMember("QSX1"))
+                m_par.QSX1 = d["Overturning Coefficients"]["QSX1"].GetDouble();
+            if (d["Overturning Coefficients"].HasMember("QSX2"))
+                m_par.QSX2 = d["Overturning Coefficients"]["QSX2"].GetDouble();
+            if (d["Overturning Coefficients"].HasMember("QSX3"))
+                m_par.QSX3 = d["Overturning Coefficients"]["QSX3"].GetDouble();
+            if (d["Overturning Coefficients"].HasMember("QSX4"))
+                m_par.QSX4 = d["Overturning Coefficients"]["QSX4"].GetDouble();
+            if (d["Overturning Coefficients"].HasMember("QSX5"))
+                m_par.QSX5 = d["Overturning Coefficients"]["QSX5"].GetDouble();
+            if (d["Overturning Coefficients"].HasMember("QSX6"))
+                m_par.QSX6 = d["Overturning Coefficients"]["QSX6"].GetDouble();
+            if (d["Overturning Coefficients"].HasMember("QSX7"))
+                m_par.QSX7 = d["Overturning Coefficients"]["QSX7"].GetDouble();
+            if (d["Overturning Coefficients"].HasMember("QSX8"))
+                m_par.QSX8 = d["Overturning Coefficients"]["QSX8"].GetDouble();
+            if (d["Overturning Coefficients"].HasMember("QSX9"))
+                m_par.QSX9 = d["Overturning Coefficients"]["QSX9"].GetDouble();
+            if (d["Overturning Coefficients"].HasMember("QSX10"))
+                m_par.QSX10 = d["Overturning Coefficients"]["QSX10"].GetDouble();
+            if (d["Overturning Coefficients"].HasMember("QSX11"))
+                m_par.QSX11 = d["Overturning Coefficients"]["QSX11"].GetDouble();
+            if (d["Overturning Coefficients"].HasMember("QPX1"))
+                m_par.QPX1 = d["Overturning Coefficients"]["QPX1"].GetDouble();
+        } else {
+            GetLog() << "Fatal: Overturning Coefficients not set!\n";
+            exit(9);
         }
-        if (d["Lateral Coefficients"].HasMember("pky2")) {
-            m_PacCoeff.pky2 = d["Lateral Coefficients"]["pky2"].GetDouble();
+        if (d.HasMember("Rolling Coefficients")) {
+            if (d["Rolling Coefficients"].HasMember("QSY1"))
+                m_par.QSY1 = d["Rolling Coefficients"]["QSY1"].GetDouble();
+            if (d["Rolling Coefficients"].HasMember("QSY2"))
+                m_par.QSY2 = d["Rolling Coefficients"]["QSY2"].GetDouble();
+            if (d["Rolling Coefficients"].HasMember("QSY3"))
+                m_par.QSY3 = d["Rolling Coefficients"]["QSY3"].GetDouble();
+            if (d["Rolling Coefficients"].HasMember("QSY4"))
+                m_par.QSY4 = d["Rolling Coefficients"]["QSY4"].GetDouble();
+            if (d["Rolling Coefficients"].HasMember("QSY5"))
+                m_par.QSY5 = d["Rolling Coefficients"]["QSY5"].GetDouble();
+            if (d["Rolling Coefficients"].HasMember("QSY6"))
+                m_par.QSY6 = d["Rolling Coefficients"]["QSY6"].GetDouble();
+            if (d["Rolling Coefficients"].HasMember("QSY7"))
+                m_par.QSY7 = d["Rolling Coefficients"]["QSY7"].GetDouble();
+            if (d["Rolling Coefficients"].HasMember("QSY8"))
+                m_par.QSY8 = d["Rolling Coefficients"]["QSY8"].GetDouble();
+        } else {
+            GetLog() << "Fatal: Rolling Coefficients not set!\n";
+            exit(9);
         }
-        if (d["Lateral Coefficients"].HasMember("pky3")) {
-            m_PacCoeff.pky3 = d["Lateral Coefficients"]["pky3"].GetDouble();
+
+        if (!m_tire_conditions_found) {
+            // direct setting of inflation pressure is actually unsupported!
+            // set all pressure dependence parameters to zero to prevent erratic force calculations
+            m_par.PPX1 = 0;
+            m_par.PPX2 = 0;
+            m_par.PPX3 = 0;
+            m_par.PPX4 = 0;
+            m_par.PPY1 = 0;
+            m_par.PPY2 = 0;
+            m_par.PPY3 = 0;
+            m_par.PPY4 = 0;
+            m_par.QSY1 = 0;
+            m_par.QSY2 = 0;
+            m_par.QSY8 = 0;
+            m_par.QPFZ1 = 0;
         }
-        if (d["Lateral Coefficients"].HasMember("phy1")) {
-            m_PacCoeff.phy1 = d["Lateral Coefficients"]["phy1"].GetDouble();
-        }
-        if (d["Lateral Coefficients"].HasMember("phy2")) {
-            m_PacCoeff.phy2 = d["Lateral Coefficients"]["phy2"].GetDouble();
-        }
-        if (d["Lateral Coefficients"].HasMember("phy3")) {
-            m_PacCoeff.phy3 = d["Lateral Coefficients"]["phy3"].GetDouble();
-        }
-        if (d["Lateral Coefficients"].HasMember("pvy1")) {
-            m_PacCoeff.pvy1 = d["Lateral Coefficients"]["pvy1"].GetDouble();
-        }
-        if (d["Lateral Coefficients"].HasMember("pvy2")) {
-            m_PacCoeff.pvy2 = d["Lateral Coefficients"]["pvy2"].GetDouble();
-        }
-        if (d["Lateral Coefficients"].HasMember("pvy3")) {
-            m_PacCoeff.pvy3 = d["Lateral Coefficients"]["pvy3"].GetDouble();
-        }
-        if (d["Lateral Coefficients"].HasMember("pvy4")) {
-            m_PacCoeff.pvy4 = d["Lateral Coefficients"]["pvy4"].GetDouble();
-        }
-        if (d["Lateral Coefficients"].HasMember("rby1")) {
-            m_PacCoeff.rby1 = d["Lateral Coefficients"]["rby1"].GetDouble();
-        }
-        if (d["Lateral Coefficients"].HasMember("rby2")) {
-            m_PacCoeff.rby2 = d["Lateral Coefficients"]["rby2"].GetDouble();
-        }
-        if (d["Lateral Coefficients"].HasMember("rby3")) {
-            m_PacCoeff.rby3 = d["Lateral Coefficients"]["rby3"].GetDouble();
-        }
-        if (d["Lateral Coefficients"].HasMember("rcy1")) {
-            m_PacCoeff.rcy1 = d["Lateral Coefficients"]["rcy1"].GetDouble();
-        }
-        if (d["Lateral Coefficients"].HasMember("rey1")) {
-            m_PacCoeff.rey1 = d["Lateral Coefficients"]["rey1"].GetDouble();
-        }
-        if (d["Lateral Coefficients"].HasMember("rey2")) {
-            m_PacCoeff.rey2 = d["Lateral Coefficients"]["rey2"].GetDouble();
-        }
-        if (d["Lateral Coefficients"].HasMember("rhy1")) {
-            m_PacCoeff.rhy1 = d["Lateral Coefficients"]["rhy1"].GetDouble();
-        }
-        if (d["Lateral Coefficients"].HasMember("rhy2")) {
-            m_PacCoeff.rhy2 = d["Lateral Coefficients"]["rhy2"].GetDouble();
-        }
-        if (d["Lateral Coefficients"].HasMember("rvy1")) {
-            m_PacCoeff.rvy1 = d["Lateral Coefficients"]["rvy1"].GetDouble();
-        }
-        if (d["Lateral Coefficients"].HasMember("rvy2")) {
-            m_PacCoeff.rvy2 = d["Lateral Coefficients"]["rvy2"].GetDouble();
-        }
-        if (d["Lateral Coefficients"].HasMember("rvy3")) {
-            m_PacCoeff.rvy3 = d["Lateral Coefficients"]["rvy3"].GetDouble();
-        }
-        if (d["Lateral Coefficients"].HasMember("rvy4")) {
-            m_PacCoeff.rvy4 = d["Lateral Coefficients"]["rvy4"].GetDouble();
-        }
-        if (d["Lateral Coefficients"].HasMember("rvy5")) {
-            m_PacCoeff.rvy5 = d["Lateral Coefficients"]["rvy5"].GetDouble();
-        }
-        if (d["Lateral Coefficients"].HasMember("rvy6")) {
-            m_PacCoeff.rvy6 = d["Lateral Coefficients"]["rvy6"].GetDouble();
-        }
-        if (d["Lateral Coefficients"].HasMember("pty1")) {
-            m_PacCoeff.pty1 = d["Lateral Coefficients"]["pty1"].GetDouble();
-        }
-        if (d["Lateral Coefficients"].HasMember("pty2")) {
-            m_PacCoeff.pty2 = d["Lateral Coefficients"]["pty2"].GetDouble();
-        }
-    }
-    if (d.HasMember("Longitudinal Coefficients")) {
-        if (d["Longitudinal Coefficients"].HasMember("pcx1")) {
-            m_PacCoeff.pcx1 = d["Longitudinal Coefficients"]["pcx1"].GetDouble();
-        }
-        if (d["Longitudinal Coefficients"].HasMember("pdx1")) {
-            m_PacCoeff.pdx1 = d["Longitudinal Coefficients"]["pdx1"].GetDouble();
-        }
-        if (d["Longitudinal Coefficients"].HasMember("pdx2")) {
-            m_PacCoeff.pdx2 = d["Longitudinal Coefficients"]["pdx2"].GetDouble();
-        }
-        if (d["Longitudinal Coefficients"].HasMember("pdx3")) {
-            m_PacCoeff.pdx3 = d["Longitudinal Coefficients"]["pdx3"].GetDouble();
-        }
-        if (d["Longitudinal Coefficients"].HasMember("pex1")) {
-            m_PacCoeff.pex1 = d["Longitudinal Coefficients"]["pex1"].GetDouble();
-        }
-        if (d["Longitudinal Coefficients"].HasMember("pex2")) {
-            m_PacCoeff.pex2 = d["Longitudinal Coefficients"]["pex2"].GetDouble();
-        }
-        if (d["Longitudinal Coefficients"].HasMember("pex3")) {
-            m_PacCoeff.pex3 = d["Longitudinal Coefficients"]["pex3"].GetDouble();
-        }
-        if (d["Longitudinal Coefficients"].HasMember("pex4")) {
-            m_PacCoeff.pex4 = d["Longitudinal Coefficients"]["pex4"].GetDouble();
-        }
-        if (d["Longitudinal Coefficients"].HasMember("pkx1")) {
-            m_PacCoeff.pkx1 = d["Longitudinal Coefficients"]["pkx1"].GetDouble();
-        }
-        if (d["Longitudinal Coefficients"].HasMember("pkx2")) {
-            m_PacCoeff.pkx2 = d["Longitudinal Coefficients"]["pkx2"].GetDouble();
-        }
-        if (d["Longitudinal Coefficients"].HasMember("pkx3")) {
-            m_PacCoeff.pkx3 = d["Longitudinal Coefficients"]["pkx3"].GetDouble();
-        }
-        if (d["Longitudinal Coefficients"].HasMember("phx1")) {
-            m_PacCoeff.phx1 = d["Longitudinal Coefficients"]["phx1"].GetDouble();
-        }
-        if (d["Longitudinal Coefficients"].HasMember("phx2")) {
-            m_PacCoeff.phx2 = d["Longitudinal Coefficients"]["phx2"].GetDouble();
-        }
-        if (d["Longitudinal Coefficients"].HasMember("pvx1")) {
-            m_PacCoeff.pvx1 = d["Longitudinal Coefficients"]["pvx1"].GetDouble();
-        }
-        if (d["Longitudinal Coefficients"].HasMember("pvx2")) {
-            m_PacCoeff.pvx2 = d["Longitudinal Coefficients"]["pvx2"].GetDouble();
-        }
-        if (d["Longitudinal Coefficients"].HasMember("rbx1")) {
-            m_PacCoeff.rbx1 = d["Longitudinal Coefficients"]["rbx1"].GetDouble();
-        }
-        if (d["Longitudinal Coefficients"].HasMember("rbx2")) {
-            m_PacCoeff.rbx2 = d["Longitudinal Coefficients"]["rbx2"].GetDouble();
-        }
-        if (d["Longitudinal Coefficients"].HasMember("rcx1")) {
-            m_PacCoeff.rcx1 = d["Longitudinal Coefficients"]["rcx1"].GetDouble();
-        }
-        if (d["Longitudinal Coefficients"].HasMember("rex1")) {
-            m_PacCoeff.rex1 = d["Longitudinal Coefficients"]["rex1"].GetDouble();
-        }
-        if (d["Longitudinal Coefficients"].HasMember("rex2")) {
-            m_PacCoeff.rex2 = d["Longitudinal Coefficients"]["rex2"].GetDouble();
-        }
-        if (d["Longitudinal Coefficients"].HasMember("rhx1")) {
-            m_PacCoeff.rhx1 = d["Longitudinal Coefficients"]["rhx1"].GetDouble();
-        }
-        if (d["Longitudinal Coefficients"].HasMember("ptx1")) {
-            m_PacCoeff.ptx1 = d["Longitudinal Coefficients"]["ptx1"].GetDouble();
-        }
-        if (d["Longitudinal Coefficients"].HasMember("ptx2")) {
-            m_PacCoeff.ptx2 = d["Longitudinal Coefficients"]["ptx2"].GetDouble();
-        }
-        if (d["Longitudinal Coefficients"].HasMember("ptx3")) {
-            m_PacCoeff.ptx3 = d["Longitudinal Coefficients"]["ptx3"].GetDouble();
-        }
+
+        //// TODO
     }
 
-    if (d.HasMember("Aligning Coefficients")) {
-        if (d["Aligning Coefficients"].HasMember("qbz1")) {
-            m_PacCoeff.qbz1 = d["Aligning Coefficients"]["qbz1"].GetDouble();
-        }
-        if (d["Aligning Coefficients"].HasMember("qbz2")) {
-            m_PacCoeff.qbz2 = d["Aligning Coefficients"]["qbz2"].GetDouble();
-        }
-        if (d["Aligning Coefficients"].HasMember("qbz3")) {
-            m_PacCoeff.qbz3 = d["Aligning Coefficients"]["qbz3"].GetDouble();
-        }
-        if (d["Aligning Coefficients"].HasMember("qbz4")) {
-            m_PacCoeff.qbz4 = d["Aligning Coefficients"]["qbz4"].GetDouble();
-        }
-        if (d["Aligning Coefficients"].HasMember("qbz5")) {
-            m_PacCoeff.qbz5 = d["Aligning Coefficients"]["qbz5"].GetDouble();
-        }
-        if (d["Aligning Coefficients"].HasMember("qbz6")) {
-            m_PacCoeff.qbz6 = d["Aligning Coefficients"]["qbz6"].GetDouble();
-        }
-        if (d["Aligning Coefficients"].HasMember("qbz9")) {
-            m_PacCoeff.qbz9 = d["Aligning Coefficients"]["qbz9"].GetDouble();
-        }
-        if (d["Aligning Coefficients"].HasMember("qbz10")) {
-            m_PacCoeff.qbz10 = d["Aligning Coefficients"]["qbz10"].GetDouble();
-        }
-        if (d["Aligning Coefficients"].HasMember("qcz1")) {
-            m_PacCoeff.qcz1 = d["Aligning Coefficients"]["qcz1"].GetDouble();
-        }
-        if (d["Aligning Coefficients"].HasMember("qdz1")) {
-            m_PacCoeff.qdz1 = d["Aligning Coefficients"]["qdz1"].GetDouble();
-        }
-        if (d["Aligning Coefficients"].HasMember("qdz2")) {
-            m_PacCoeff.qdz2 = d["Aligning Coefficients"]["qdz2"].GetDouble();
-        }
-        if (d["Aligning Coefficients"].HasMember("qdz3")) {
-            m_PacCoeff.qdz3 = d["Aligning Coefficients"]["qdz3"].GetDouble();
-        }
-        if (d["Aligning Coefficients"].HasMember("qdz4")) {
-            m_PacCoeff.qdz4 = d["Aligning Coefficients"]["qdz4"].GetDouble();
-        }
-        if (d["Aligning Coefficients"].HasMember("qdz5")) {
-            m_PacCoeff.qdz5 = d["Aligning Coefficients"]["qdz5"].GetDouble();
-        }
-        if (d["Aligning Coefficients"].HasMember("qdz6")) {
-            m_PacCoeff.qdz6 = d["Aligning Coefficients"]["qdz6"].GetDouble();
-        }
-        if (d["Aligning Coefficients"].HasMember("qdz7")) {
-            m_PacCoeff.qdz7 = d["Aligning Coefficients"]["qdz7"].GetDouble();
-        }
-        if (d["Aligning Coefficients"].HasMember("qdz8")) {
-            m_PacCoeff.qdz8 = d["Aligning Coefficients"]["qdz8"].GetDouble();
-        }
-        if (d["Aligning Coefficients"].HasMember("qdz9")) {
-            m_PacCoeff.qdz9 = d["Aligning Coefficients"]["qdz9"].GetDouble();
-        }
-        if (d["Aligning Coefficients"].HasMember("qez1")) {
-            m_PacCoeff.qez1 = d["Aligning Coefficients"]["qez1"].GetDouble();
-        }
-        if (d["Aligning Coefficients"].HasMember("qez2")) {
-            m_PacCoeff.qez2 = d["Aligning Coefficients"]["qez2"].GetDouble();
-        }
-        if (d["Aligning Coefficients"].HasMember("qez3")) {
-            m_PacCoeff.qez3 = d["Aligning Coefficients"]["qez3"].GetDouble();
-        }
-        if (d["Aligning Coefficients"].HasMember("qez4")) {
-            m_PacCoeff.qez4 = d["Aligning Coefficients"]["qez4"].GetDouble();
-        }
-        if (d["Aligning Coefficients"].HasMember("qez5")) {
-            m_PacCoeff.qez5 = d["Aligning Coefficients"]["qez5"].GetDouble();
-        }
-        if (d["Aligning Coefficients"].HasMember("qhz1")) {
-            m_PacCoeff.qhz1 = d["Aligning Coefficients"]["qhz1"].GetDouble();
-        }
-        if (d["Aligning Coefficients"].HasMember("qhz2")) {
-            m_PacCoeff.qhz2 = d["Aligning Coefficients"]["qhz2"].GetDouble();
-        }
-        if (d["Aligning Coefficients"].HasMember("qhz3")) {
-            m_PacCoeff.qhz3 = d["Aligning Coefficients"]["qhz3"].GetDouble();
-        }
-        if (d["Aligning Coefficients"].HasMember("qhz4")) {
-            m_PacCoeff.qhz4 = d["Aligning Coefficients"]["qhz4"].GetDouble();
-        }
-        if (d["Aligning Coefficients"].HasMember("ssz1")) {
-            m_PacCoeff.ssz1 = d["Aligning Coefficients"]["ssz1"].GetDouble();
-        }
-        if (d["Aligning Coefficients"].HasMember("ssz2")) {
-            m_PacCoeff.ssz2 = d["Aligning Coefficients"]["ssz2"].GetDouble();
-        }
-        if (d["Aligning Coefficients"].HasMember("ssz3")) {
-            m_PacCoeff.ssz3 = d["Aligning Coefficients"]["ssz3"].GetDouble();
-        }
-        if (d["Aligning Coefficients"].HasMember("ssz4")) {
-            m_PacCoeff.ssz4 = d["Aligning Coefficients"]["ssz4"].GetDouble();
-        }
-        if (d["Aligning Coefficients"].HasMember("qtz1")) {
-            m_PacCoeff.qtz1 = d["Aligning Coefficients"]["qtz1"].GetDouble();
-        }
-        if (d["Aligning Coefficients"].HasMember("mbelt")) {
-            m_PacCoeff.mbelt = d["Aligning Coefficients"]["mbelt"].GetDouble();
-        }
-    }
-    if (d.HasMember("Rolling Coefficients")) {
-        // m_PacCoeff.A0 = d["Lateral Coefficients"]["a0"].GetDouble();
-        if (d["Rolling Coefficients"].HasMember("qsy1")) {
-            m_PacCoeff.qsy1 = d["Rolling Coefficients"]["qsy1"].GetDouble();
-        }
-        if (d["Rolling Coefficients"].HasMember("qsy2")) {
-            m_PacCoeff.qsy2 = d["Rolling Coefficients"]["qsy2"].GetDouble();
-        }
-        if (d["Rolling Coefficients"].HasMember("qsy3")) {
-            m_PacCoeff.qsy3 = d["Rolling Coefficients"]["qsy3"].GetDouble();
-        }
-        if (d["Rolling Coefficients"].HasMember("qsy4")) {
-            m_PacCoeff.qsy4 = d["Rolling Coefficients"]["qsy4"].GetDouble();
-        }
-        if (d["Rolling Coefficients"].HasMember("qyx5")) {
-            m_PacCoeff.qsy5 = d["Rolling Coefficients"]["qsy5"].GetDouble();
-        }
-        if (d["Rolling Coefficients"].HasMember("qyx6")) {
-            m_PacCoeff.qsy6 = d["Rolling Coefficients"]["qsy6"].GetDouble();
-        }
-        if (d["Rolling Coefficients"].HasMember("qsy7")) {
-            m_PacCoeff.qsy7 = d["Rolling Coefficients"]["qsy7"].GetDouble();
-        }
-        if (d["Rolling Coefficients"].HasMember("qsy8")) {
-            m_PacCoeff.qsy1 = d["Rolling Coefficients"]["qsy8"].GetDouble();
-        }
-    }
-    if (d.HasMember("Overturning Coefficients")) {
-        if (d["Overturning Coefficients"].HasMember("qsx1")) {
-            m_PacCoeff.qsx1 = d["Overturning Coefficients"]["qsx1"].GetDouble();
-        }
-        if (d["Overturning Coefficients"].HasMember("qsx2")) {
-            m_PacCoeff.qsx2 = d["Overturning Coefficients"]["qsx2"].GetDouble();
-        }
-        if (d["Overturning Coefficients"].HasMember("qsx3")) {
-            m_PacCoeff.qsx3 = d["Overturning Coefficients"]["qsx3"].GetDouble();
-        }
-        if (d["Overturning Coefficients"].HasMember("qsx4")) {
-            m_PacCoeff.qsx4 = d["Overturning Coefficients"]["qsx4"].GetDouble();
-        }
-        if (d["Overturning Coefficients"].HasMember("qsx5")) {
-            m_PacCoeff.qsx5 = d["Overturning Coefficients"]["qsx5"].GetDouble();
-        }
-        if (d["Overturning Coefficients"].HasMember("qsx6")) {
-            m_PacCoeff.qsx6 = d["Overturning Coefficients"]["qsx6"].GetDouble();
-        }
-        if (d["Overturning Coefficients"].HasMember("qsx7")) {
-            m_PacCoeff.qsx7 = d["Overturning Coefficients"]["qsx7"].GetDouble();
-        }
-        if (d["Overturning Coefficients"].HasMember("qsx8")) {
-            m_PacCoeff.qsx8 = d["Overturning Coefficients"]["qsx8"].GetDouble();
-        }
-        if (d["Overturning Coefficients"].HasMember("qsx9")) {
-            m_PacCoeff.qsx9 = d["Overturning Coefficients"]["qsx9"].GetDouble();
-        }
-        if (d["Overturning Coefficients"].HasMember("qsx10")) {
-            m_PacCoeff.qsx10 = d["Overturning Coefficients"]["qsx10"].GetDouble();
-        }
-        if (d["Overturning Coefficients"].HasMember("qsx11")) {
-            m_PacCoeff.qsx11 = d["Overturning Coefficients"]["qsx11"].GetDouble();
-        }
-    }
-
-    m_visualization_width = m_PacCoeff.width;
+    m_visualization_width = 0;
     // Check how to visualize this tire.
     if (d.HasMember("Visualization")) {
         if (d["Visualization"].HasMember("Mesh Filename Left") && d["Visualization"].HasMember("Mesh Filename Right")) {
@@ -548,6 +479,14 @@ void Pac02Tire::Create(const rapidjson::Document& d) {  // Invoke base class met
         if (d["Visualization"].HasMember("Width")) {
             m_visualization_width = d["Visualization"]["Width"].GetDouble();
         }
+    }
+}
+
+void Pac02Tire::SetMFParams() {
+    if (!m_tir_file.empty()) {
+        SetMFParamsByFile(vehicle::GetDataFile(m_tir_file));
+    } else {
+        //// TODO
     }
 }
 

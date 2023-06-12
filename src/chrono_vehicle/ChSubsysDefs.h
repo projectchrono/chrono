@@ -417,9 +417,9 @@ enum class TireModelType {
     ANCF,        ///< ANCF shell element-based tire
     REISSNER,    ///< Reissner 6-field shell element-based tire
     FEA,         ///< FEA co-rotational tire
-    PAC89,       ///< Pacejka 89 (magic formula) tire
+    PAC89,       ///< Pacejka 89 (magic formula) tire, version 1989
     TMEASY,      ///< Tire Model Made Easy tire (G. Rill)
-    PAC02,       ///< Pacejka 02 (magic formula) tire
+    PAC02,       ///< Pacejka 02 (magic formula) tire, version 2002 or later
     TMSIMPLE     ///< Tire Model Simple (W. Hirschberg)
 };
 

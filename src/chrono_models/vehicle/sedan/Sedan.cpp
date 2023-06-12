@@ -112,38 +112,6 @@ void Sedan::Initialize() {
             break;
         }
 
-        case TireModelType::TMEASY: {
-            auto tire_FL = chrono_types::make_shared<Sedan_TMeasyTire>("FL");
-            auto tire_FR = chrono_types::make_shared<Sedan_TMeasyTire>("FR");
-            auto tire_RL = chrono_types::make_shared<Sedan_TMeasyTire>("RL");
-            auto tire_RR = chrono_types::make_shared<Sedan_TMeasyTire>("RR");
-
-            m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
-
-            m_tire_mass = tire_FL->GetMass();
-
-            break;
-        }
-
-        case TireModelType::TMSIMPLE: {
-            auto tire_FL = chrono_types::make_shared<Sedan_TMsimpleTire>("FL");
-            auto tire_FR = chrono_types::make_shared<Sedan_TMsimpleTire>("FR");
-            auto tire_RL = chrono_types::make_shared<Sedan_TMsimpleTire>("RL");
-            auto tire_RR = chrono_types::make_shared<Sedan_TMsimpleTire>("RR");
-
-            m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
-
-            m_tire_mass = tire_FL->GetMass();
-
-            break;
-        }
-
         case TireModelType::PAC02: {
             auto tire_FL = chrono_types::make_shared<Sedan_Pac02Tire>("FL");
             auto tire_FR = chrono_types::make_shared<Sedan_Pac02Tire>("FR");
@@ -159,9 +127,38 @@ void Sedan::Initialize() {
 
             break;
         }
+        case TireModelType::TMEASY: {
+            auto tire_FL = chrono_types::make_shared<Sedan_TMeasyTire>("FL");
+            auto tire_FR = chrono_types::make_shared<Sedan_TMeasyTire>("FR");
+            auto tire_RL = chrono_types::make_shared<Sedan_TMeasyTire>("RL");
+            auto tire_RR = chrono_types::make_shared<Sedan_TMeasyTire>("RR");
 
-        default:
+            m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
+
+            m_tire_mass = tire_FL->GetMass();
+
             break;
+        }
+        default:
+            GetLog() << "Unsupported Tire Model Type! Switching to TMeasy.\n";
+        case TireModelType::TMSIMPLE: {
+            auto tire_FL = chrono_types::make_shared<Sedan_TMsimpleTire>("FL");
+            auto tire_FR = chrono_types::make_shared<Sedan_TMsimpleTire>("FR");
+            auto tire_RL = chrono_types::make_shared<Sedan_TMsimpleTire>("RL");
+            auto tire_RR = chrono_types::make_shared<Sedan_TMsimpleTire>("RR");
+
+            m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
+
+            m_tire_mass = tire_FL->GetMass();
+
+            break;
+        }
     }
 
     for (auto& axle : m_vehicle->GetAxles()) {

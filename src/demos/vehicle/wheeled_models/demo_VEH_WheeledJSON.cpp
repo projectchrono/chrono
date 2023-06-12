@@ -49,7 +49,7 @@ using namespace chrono::vehicle;
 // =============================================================================
 // Specification of a vehicle model from JSON files
 // Available models:
-//    HMMWV       - Hig Mobility Multipurpose Wheeled Vehicle
+//    HMMWV       - High Mobility Multipurpose Wheeled Vehicle
 //    Sedan       - Generic sedan vehicle
 //    Audi        - Audia A4
 //    VW microbus - VW T2 microbus
@@ -83,19 +83,19 @@ class HMMWV_Model : public Vehicle_Model {
     virtual std::string TireJSON() const override {
         ////return "hmmwv/tire/HMMWV_RigidTire.json";
         ////return "hmmwv/tire/HMMWV_FialaTire.json";
-        // return "hmmwv/tire/HMMWV_TMeasyTire.json";
-        return "hmmwv/tire/HMMWV_TMsimpleTire.json";
+        return "hmmwv/tire/HMMWV_TMeasyTire.json";
+        ////return "hmmwv/tire/HMMWV_TMsimpleTire.json";
         ////return "hmmwv/tire/HMMWV_Pac89Tire.json";
         ////return "hmmwv/tire/HMMWV_Pac02Tire.json";
     }
     virtual std::string EngineJSON() const override {
         return "hmmwv/powertrain/HMMWV_EngineShafts.json";
-        //return "hmmwv/powertrain/HMMWV_EngineSimpleMap.json";
+        ////return "hmmwv/powertrain/HMMWV_EngineSimpleMap.json";
         ////return "hmmwv/powertrain/HMMWV_EngineSimple.json";
     }
     virtual std::string TransmissionJSON() const override {
         return "hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json";
-        //return "hmmwv/powertrain/HMMWV_AutomaticTransmissionSimpleMap.json";
+        ////return "hmmwv/powertrain/HMMWV_AutomaticTransmissionSimpleMap.json";
     }
     virtual double CameraDistance() const override { return 6.0; }
     virtual ChContactMethod ContactMethod() const override { return ChContactMethod::SMC; }
@@ -107,15 +107,15 @@ class Sedan_Model : public Vehicle_Model {
     virtual std::string VehicleJSON() const override { return "sedan/vehicle/Sedan_Vehicle.json"; }
     virtual std::string TireJSON() const override {
         ////return "sedan/tire/Sedan_RigidTire.json";
-        return "sedan/tire/Sedan_TMeasyTire.json";
-        ////return "sedan/tire/Sedan_Pac02Tire.json";
+        ////return "sedan/tire/Sedan_TMeasyTire.json";
+        return "sedan/tire/Sedan_Pac02Tire.json";
     }
     virtual std::string EngineJSON() const override {
-        // return "sedan/powertrain/Sedan_EngineSimpleMap.json";
+        ////return "sedan/powertrain/Sedan_EngineSimpleMap.json";
         return "sedan/powertrain/Sedan_EngineShafts.json";
     }
     virtual std::string TransmissionJSON() const override {
-        // return "sedan/powertrain/Sedan_AutomaticTransmissionSimpleMap.json";
+        ////return "sedan/powertrain/Sedan_AutomaticTransmissionSimpleMap.json";
         return "sedan/powertrain/Sedan_ManualTransmissionShafts.json";
     }
     virtual double CameraDistance() const override { return 6.0; }
@@ -127,14 +127,9 @@ class Audi_Model : public Vehicle_Model {
     virtual std::string ModelName() const override { return "Audi"; }
     virtual std::string VehicleJSON() const override { return "audi/json/audi_Vehicle.json"; }
     virtual std::string TireJSON() const override {
-        // MFTire model variants
-        return "generic/tire/MagicFormula52_Parameters.json";
-        // return "generic/tire/MagicFormula61_Parameters.json";
-        ////return "generic/tire/MagicFormula62_Parameters.json";
-
-        //// return "audi/json/audi_TMeasyTire.json";
+        ////return "audi/json/audi_TMeasyTire.json";
+        return "audi/json/audi_Pac02Tire.json";
         ////return "audi/json/audi_RigidTire.json.json";
-        ////return "audi/json/audi_Pac02Tire.json";
     }
     virtual std::string EngineJSON() const override { return "audi/json/audi_EngineSimpleMap.json"; }
     virtual std::string TransmissionJSON() const override { return "audi/json/audi_AutomaticTransmissionSimpleMap.json"; }
@@ -146,7 +141,10 @@ class Polaris_Model : public Vehicle_Model {
   public:
     virtual std::string ModelName() const override { return "Polaris"; }
     virtual std::string VehicleJSON() const override { return "Polaris/Polaris.json"; }
-    virtual std::string TireJSON() const override { return "Polaris/Polaris_TMeasyTire.json"; }
+    virtual std::string TireJSON() const override {
+        return "Polaris/Polaris_TMeasyTire.json";
+        ////return "Polaris/Polaris_Pac02Tire.json";
+    }
     virtual std::string EngineJSON() const override { return "Polaris/Polaris_EngineSimpleMap.json"; }
     virtual std::string TransmissionJSON() const override { return "Polaris/Polaris_AutomaticTransmissionSimpleMap.json"; }
     virtual double CameraDistance() const override { return 6.0; }
@@ -163,8 +161,8 @@ class UAZ_Model : public Vehicle_Model {
         return "uaz/vehicle/UAZBUS_SAEVehicle.json";
     }
     virtual std::string TireJSON() const override {
-        return "uaz/tire/UAZBUS_TMeasyTireFront.json";
-        ////return "uaz/tire/UAZBUS_Pac02Tire.json";
+        ////return "uaz/tire/UAZBUS_TMeasyTireFront.json";
+        return "uaz/tire/UAZBUS_Pac02Tire.json";
     }
     virtual std::string EngineJSON() const override { return "uaz/powertrain/UAZBUS_EngineSimpleMap.json"; }
     virtual std::string TransmissionJSON() const override {
@@ -179,9 +177,12 @@ class VW_Microbus_Model : public Vehicle_Model {
     virtual std::string ModelName() const override { return "VW_Microbus"; }
     virtual std::string VehicleJSON() const override { return "VW_microbus/json/van_Vehicle.json"; }
     virtual std::string TireJSON() const override {
+        ///return "VW_microbus/json/van_TMsimpleTireFull.json";
+        ///return "VW_microbus/json/van_TMsimpleTire.json";
+        ///return "VW_microbus/json/van_TMeasyTireFull.json";
+        ///return "VW_microbus/json/van_TMeasyTire.json";
+        return "VW_microbus/json/van_Pac02Tire_extTIR.json";
         ////return "VW_microbus/json/van_Pac02Tire.json";
-        return "VW_microbus/json/van_TMeasyTire.json";
-        //return "VW_microbus/json/van_TMsimpleTireFull.json";
     }
     virtual std::string EngineJSON() const override { return "VW_microbus/json/van_EngineSimpleMap.json"; }
     virtual std::string TransmissionJSON() const override {
@@ -197,8 +198,8 @@ class CityBus_Model : public Vehicle_Model {
     virtual std::string VehicleJSON() const override { return "citybus/vehicle/CityBus_Vehicle.json"; }
     virtual std::string TireJSON() const override {
         ////return "citybus/tire/CityBus_RigidTire.json";
-        return "citybus/tire/CityBus_TMeasyTire.json";
-        ////return "citybus/tire/CityBus_Pac02Tire.json";
+        ////return "citybus/tire/CityBus_TMeasyTire.json";
+        return "citybus/tire/CityBus_Pac02Tire.json";
     }
     virtual std::string EngineJSON() const override { return "citybus/powertrain/CityBus_EngineSimpleMap.json"; }
     virtual std::string TransmissionJSON() const override {
@@ -278,11 +279,11 @@ class UT_Model : public Trailer_Model {
 // =============================================================================
 
 // Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Current vehicle model selection
-// auto vehicle_model = HMMWV_Model();
-auto vehicle_model = Sedan_Model();
+auto vehicle_model = HMMWV_Model();
+// auto vehicle_model = Sedan_Model();
 // auto vehicle_model = Audi_Model();
 // auto vehicle_model = Polaris_Model();
 // auto vehicle_model = VW_Microbus_Model();
@@ -411,7 +412,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowTitle(title);
             vis_vsg->AttachVehicle(&vehicle);
             vis_vsg->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), vehicle_model.CameraDistance(), 0.5);
-            vis_vsg->SetWindowSize(ChVector2<int>(800, 600));
+            vis_vsg->SetWindowSize(ChVector2<int>(1200, 800));
             vis_vsg->SetWindowPosition(ChVector2<int>(100, 300));
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);

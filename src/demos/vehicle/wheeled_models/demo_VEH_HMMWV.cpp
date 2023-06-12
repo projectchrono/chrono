@@ -98,7 +98,7 @@ BrakeType brake_type = BrakeType::SHAFTS;
 bool use_tierod_bodies = true;
 
 // Type of tire model (RIGID, RIGID_MESH, TMEASY, FIALA, PAC89, PAC02, TMSIMPLE)
-TireModelType tire_model = TireModelType::TMEASY;
+TireModelType tire_model = TireModelType::PAC02;
 
 // Rigid terrain
 RigidTerrain::PatchType terrain_model = RigidTerrain::PatchType::BOX;

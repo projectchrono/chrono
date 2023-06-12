@@ -1,0 +1,82 @@
+{
+  "Name": "VW Bus TMeasy Tire",
+  "Type": "Tire",
+  "Template": "TMeasyTire",
+
+  // ------------------------------------------------
+  // Tire design (REQUIRED)
+
+  "Design": {
+    "Unloaded Radius [m]": 0.376,
+    "Mass [kg]": 19.8,
+    "Inertia [kg.m2]": [ 1.2369, 2.22357, 1.2369 ],
+    "Width [m]": 0.185,
+    "Rim Radius [m]": 0.1778
+  },
+
+  "Coefficient of Friction": 0.8,
+
+  "Rolling Resistance Coefficient": 0.015,
+
+  // ------------------------------------------------
+  // Vehicle type.
+  // Required only if tire specified with "load index" or "bearing capacity".
+  // Must be one of "Truck" or "Passenger"
+
+  "Vehicle Type": "Passenger",
+
+  // ------------------------------------------------
+  // Load index specification.
+  // Takes priority over "bearing capacity" (used only if a full parameterization not provided)
+
+  "Load Index": 86,
+
+  // ------------------------------------------------
+  // Tire inflation pressure specification  (used only if a full parameterization not provided)
+  "Inflation Pressure Design [Pa]": 200000,
+  "Inflation Pressure Use [Pa]": 200000,
+
+"Parameters": {
+    "Vertical": {
+      "Nominal Vertical Force [N]": 1900,
+      //"Vertical Tire Stiffness [N/m]": 175000,
+      "Tire Spring Curve Data": [
+          [0,0],
+          [0.03 ,2900],
+          [0.06, 6000]
+      ],
+     "Vertical Tire Damping [Ns/m]": 1801.74,
+      "Tire Bottoming Radius [m]": 0.396,
+      "Tire Bottoming Stiffness [N/m]": 500000
+    },
+    "Longitudinal": {
+      "Initial Slopes dFx/dsx [N]": [ 34910.7021, 73974.3082 ],
+      "Maximum Fx Load [N]": [ 2145.5102, 4140.6407 ],
+      "Sliding Fx Load [N]": [ 1522.8229, 2922.8487 ],
+      "Slip sx at Maximum Fx": [ 0.13913, 0.13913 ],
+      "Slip sx where sliding begins": [ 0.66667, 0.66667 ]
+    },
+    "Lateral": {
+      "Initial Slopes dFy/dsy [N]": [ 30366.8749, 48833.5824 ],
+      "Maximum Fy Load [N]": [ 1901.7234, 3471.9636 ],
+      "Sliding Fy Load [N]": [ 1583.8391, 2938.7727 ],
+      "Slip sy at Maximum Fy": [ 0.14852, 0.18504 ],
+      "Slip sy where sliding begins": [ 0.96524, 1.0714 ]
+    },
+    "Aligning": {
+      "Normalized Trail at Zero Slip sy": [ 0.178, 0.19 ],
+      "Slip sy where Trail Changes Sign": [ 0.16337, 0.20355 ],
+      "Slip sy where Trail Tends to Zero": [ 0.96524, 1.0714 ]
+    }
+  },
+
+
+  // ------------------------------------------------
+  // Visualization mesh (OPTIONAL)
+
+  "Visualization": {
+    "Mesh Filename Left":  "VW_microbus/van_tire.obj",
+    "Mesh Filename Right": "VW_microbus/van_tire.obj"
+  }
+
+}

@@ -42,43 +42,6 @@
   // Full parameter specification.
   // Takes priority over both "Load Index" and "bearing capacity".
 
-  "Parameters": {
-    "Tire Load": {
-      "Nominal Vertical Force [N]": 8562.8266,
-      "Maximum Vertical Force [N]": 29969.893
-    },
-    "Tire Stiffness": {
-      "Longitudinal [N/m]": 185004.42,
-      "Lateral [N/m]": 164448.37,
-      "Vertical [N/m]": [ 411121.0, 411121.00 ]
-    },
-    "Tire Damping": {
-      "Longitudinal [Ns/m]": 3700,
-      "Lateral [Ns/m]": 3488,
-      "Vertical [Ns/m]": 3900
-    },
-    "Dynamic Radius Weighting Coefficients": [ 0.375, 0.75 ],
-    "Longitudinal": {
-      "Initial Slopes dFx/dsx [N]": [ 151447.29, 236412.79 ],
-      "Maximum Fx Load [N]": [ 16362.7806, 27665.8762 ],
-      "Sliding Fx Load [N]": [ 14487.9968, 22356.8689 ],
-      "Slip sx at Maximum Fx": [ 0.08, 0.10 ],
-      "Slip sx where sliding begins": [ 0.15, 0.20 ]
-    },
-    "Lateral": {
-      "Initial Slopes dFy/dsy [N]": [ 50931.693, 94293.847 ],
-      "Maximum Fy Load [N]": [ 12402.5, 20328.6638 ],
-      "Sliding Fy Load [N]": [ 11421.5798, 18596.2968 ],
-      "Slip sy at Maximum Fy": [ 0.08, 0.12 ],
-      "Slip sy where sliding begins": [ 0.15284, 0.17803 ]
-    },
-    "Aligning": {
-      "Normalized Trail at Zero Slip sy": [ 0.178, 0.19 ],
-      "Slip sy where Trail Changes Sign": [ 0.40726, 0.40726 ],
-      "Slip sy where Trail Tends to Zero": [ 0.82534, 0.91309 ]
-    }
-  },
-
   // ------------------------------------------------
   // Visualization mesh (OPTIONAL)
 

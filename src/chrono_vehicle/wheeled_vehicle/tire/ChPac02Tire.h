@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2015 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,22 +9,29 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Michael Taylor, Rainer Gericke
+// Authors: Rainer Gericke
 // =============================================================================
 //
-// Template for a PAC02 tire model
+// Template for a Magic Formula tire model
 //
-// ChPac02Tire is based on the Pacejka 2002 formulae as written in
+// ChPac02 is based on the Pacejka 2002 formulae as written in
 // Hans B. Pacejka's "Tire and Vehicle Dynamics" Third Edition, Elsevier 2012
 // ISBN: 978-0-08-097016-5
 //
-// Actually implemented:
-// - steady state longitudinal, lateral force, alignment torque, overturning torque
-// - can run in combined (Pacejka or Friction Ellipsis Method) or uncombined mode
+// This implementation is a subset of the commercial product MFtire:
+//  - only steady state force/torque calculations
+//  - uncombined (use_mode = 3)
+//  - combined (use_mode = 4) via Pacejka method
+//  - parametration is given by a TIR file (Tiem Orbit Format,
+//    ADAMS/Car compatible)
+//  - unit conversion is implemented but only tested for SI units
+//  - optional inflation pressure dependency is implemented, but not tested
+//  - this implementation could be validated for the FED-Alpha vehicle and rsp.
+//    tire data sets against KRC test results from a Nato CDT
 // =============================================================================
 
-#ifndef CH_PAC02TIRE_H
-#define CH_PAC02TIRE_H
+#ifndef CH_PAC02_TIRE_H
+#define CH_PAC02_TIRE_H
 
 #include <vector>
 
@@ -63,228 +70,296 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
     void SetGammaLimit(double gamma_limit) { m_gamma_limit = gamma_limit; }
 
     /// Get the width of the tire.
-    virtual double GetWidth() const override { return m_PacCoeff.width; }
+    virtual double GetWidth() const override { return m_par.WIDTH; }
 
     /// Get the tire deflection
     virtual double GetDeflection() const override { return m_data.depth; }
 
     /// Get visualization width.
-    virtual double GetVisualizationWidth() const { return m_PacCoeff.width; }
+    virtual double GetVisualizationWidth() const { return m_par.WIDTH; }
 
     /// Get the slip angle used in Pac89 (expressed in radians).
     /// The reported value will have opposite sign to that reported by ChTire::GetSlipAngle because ChPac89 uses
     /// internally a different frame convention.
-    double GetSlipAngle_internal() const { return m_states.cp_side_slip; }
+    double GetSlipAngle_internal() const { return m_states.alpha; }
 
     /// Get the longitudinal slip used in Pac89.
     /// The reported value will be similar to that reported by ChTire::GetLongitudinalSlip.
-    double GetLongitudinalSlip_internal() const { return m_states.cp_long_slip; }
+    double GetLongitudinalSlip_internal() const { return m_states.kappa; }
 
-    /// Get the camber angle used in Pac89 (expressed in radians).
-    /// The reported value will be similar to that reported by ChTire::GetCamberAngle.
-    double GetCamberAngle_internal() { return m_gamma * CH_C_DEG_TO_RAD; }
+    virtual double GetNormalStiffnessForce(double depth) const override;
+    virtual double GetNormalDampingForce(double depth, double velocity) const override;
 
   protected:
-    /// Set the parameters in the Pac89 model.
-    virtual void SetPac02Params() = 0;
+    double CalcMx(double Fy, double Fz, double gamma);  // get overturning couple
+    double CalcMy(double Fx, double Fz, double gamma);  // get rolling resistance moment
+    void CalcFxyMz(double& Fx,
+                   double& Fy,
+                   double& Mz,
+                   double kappa,
+                   double alpha,
+                   double Fz,
+                   double gamma,
+                   bool combined = false);
+    void CombinedCoulombForces(double& fx, double& fy, double fz);
 
-    double m_kappa;  ///< longitudinal slip ratio
-    double m_alpha;  ///< slip angle
-    double m_gamma;  ///< camber angle
+    // TIR file (ADAMS compatible) loader routines
+    void SetMFParamsByFile(const std::string& tirFileName);
+    void LoadSectionUnits(FILE* fp);
+    void LoadSectionModel(FILE* fp);
+    void LoadSectionDimension(FILE* fp);
+    void LoadSectionVertical(FILE* fp);
+    void LoadSectionScaling(FILE* fp);
+    void LoadSectionLongitudinal(FILE* fp);
+    void LoadSectionOverturning(FILE* fp);
+    void LoadSectionLateral(FILE* fp);
+    void LoadSectionRolling(FILE* fp);
+    void LoadSectionConditions(FILE* fp);
+    void LoadSectionAligning(FILE* fp);
+    void LoadVerticalTable(FILE* fp);
+    void LoadBottomingTable(FILE* fp);
+    // returns false, if section could not be found
+    bool FindSectionStart(const std::string& sectName, FILE* fp);
+
+    ChFunction_Recorder m_bott_map;
+
+    /// Set the parameters in the Pac89 model.
+    virtual void SetMFParams() = 0;
 
     double m_gamma_limit;  ///< limit camber angle
 
     bool m_use_friction_ellipsis;
 
-    /// Road friction
-    double m_mu;
+    /// Road friction at tire test conditions
+    double m_mu0;
 
-    double m_Shf;
-    double m_Cy;
-    double m_By;
+    double m_vcoulomb;
+    double m_frblend_begin;
+    double m_frblend_end;
 
     VehicleSide m_measured_side;
     bool m_allow_mirroring;
+    bool m_tire_conditions_found = false;
+    bool m_vertical_table_found = false;
+    bool m_bottoming_table_found = false;
 
     unsigned int m_use_mode;
-    // combined forces calculation
-    double m_kappa_c;
-    double m_alpha_c;
-    double m_mu_x_act;
-    double m_mu_x_max;
-    double m_mu_y_act;
-    double m_mu_y_max;
 
-    struct Pac02ScalingFactors {
-        double lfz0;
-        double lcx;
-        double lex;
-        double lkx;
-        double lhx;
-        double lmux;
-        double lvx;
-        double lxal;
-        double lmx;
-        double lvmx;
-        double lmy;
+    struct MFCoeff {
+        // [UNITS]
+        double u_time = 1;
+        double u_length = 1;
+        double u_angle = 1;
+        double u_mass = 1;
+        double u_force = 1;
+        double u_pressure = 1;
 
-        double lcy;
-        double ley;
-        double lhy;
-        double lky;
-        double lmuy;
-        double lvy;
-        double lyka;
-        double lvyka;
-        double ltr;
-        double lgax;
-        double lgay;
-        double lgaz;
-        double lres;
-        double lsgkp;
-        double lsgal;
-        double lgyr;
-        double ls;
+        // derived units
+        double u_speed = 1;
+        double u_inertia = 1;
+        double u_stiffness = 1;
+        double u_damping = 1;
+
+        // [MODEL]
+        int FITTYP = 6;    // MFTire 5.2; 61 = 6.1; 62 = 6.2
+        int USE_MODE = 1;  // Tyre use switch (IUSED)
+        double VXLOW = 1;
+        double LONGVL = 16.6;  // Measurement speed
+
+        // [DIMENSION]
+        double UNLOADED_RADIUS = 0;  // Free tyre radius
+        double WIDTH = 0;            // Nominal section width of the tyre
+        double ASPECT_RATIO = 0;     // Nominal aspect ratio
+        double RIM_RADIUS = 0;       // Nominal rim radius
+        double RIM_WIDTH = 0;        // Rim width
+
+        // [VERTICAL]
+        double VERTICAL_STIFFNESS = 0;  // Tyre vertical stiffness
+        double VERTICAL_DAMPING = 0;    // Tyre vertical damping
+        double BREFF = 0;               // Low load stiffness e.r.r.
+        double DREFF = 0;               // Peak value of e.r.r.
+        double FREFF = 0;               // High load stiffness e.r.r.
+        double FNOMIN = 0;              // Nominal wheel load
+        double TIRE_MASS = 0;           // Tire mass (if belt dynmics is used)
+        double QFZ1 = 0.0;              // Variation of vertical stiffness with deflection (linear)
+        double QFZ2 = 0.0;              // Variation of vertical stiffness with deflection (quadratic)
+        double QFZ3 = 0.0;              // Variation of vertical stiffness with inclination angle
+        double QPFZ1 = 0.0;             // Variation of vertical stiffness with tire pressure
+        double QV2 = 0.0;
+
+        // [TIRE_CONDITIONS]
+        double IP = 200000;      // Actual inflation pressure
+        double IP_NOM = 200000;  // Nominal inflation pressure
+
+        // [SCALING_COEFFICIENTS]
+        double LFZO = 1;   // Scale factor of nominal (rated) load
+        double LCX = 1;    // Scale factor of Fx shape factor
+        double LMUX = 1;   // Scale factor of Fx peak friction coefficient
+        double LEX = 1;    // Scale factor of Fx curvature factor
+        double LKX = 1;    // Scale factor of Fx slip stiffness
+        double LHX = 1;    // Scale factor of Fx horizontal shift
+        double LVX = 1;    // Scale factor of Fx vertical shift
+        double LGAX = 1;   // Scale factor of camber for Fx
+        double LCY = 1;    // Scale factor of Fy shape factor
+        double LMUY = 1;   // Scale factor of Fy peak friction coefficient
+        double LEY = 1;    // Scale factor of Fy curvature factor
+        double LKY = 1;    // Scale factor of Fy cornering stiffness
+        double LHY = 1;    // Scale factor of Fy horizontal shift
+        double LVY = 1;    // Scale factor of Fy vertical shift
+        double LGAY = 1;   // Scale factor of camber for Fy
+        double LTR = 1;    // Scale factor of Peak of pneumatic trail
+        double LRES = 1;   // Scale factor for offset of residual torque
+        double LGAZ = 1;   // Scale factor of camber for Mz
+        double LXAL = 1;   // Scale factor of alpha influence on Fx
+        double LYKA = 1;   // Scale factor of alpha influence on Fx
+        double LVYKA = 1;  // Scale factor of kappa induced Fy
+        double LS = 1;     // Scale factor of Moment arm of Fx
+        double LSGKP = 1;  // Scale factor of Relaxation length of Fx
+        double LSGAL = 1;  // Scale factor of Relaxation length of Fy
+        double LGYR = 1;   // Scale factor of gyroscopic torque
+        double LMX = 1;    // Scale factor of overturning couple
+        double LVMX = 1;   // Scale factor of Mx vertical shift
+        double LMY = 1;    // Scale factor of rolling resistance torque
+        double LIP = 1;    // Scale factor of inflation pressure
+        double LKYG = 1;
+        double LCZ = 1;  // Scale factor of vertical stiffness
+
+        // [LONGITUDINAL_COEFFICIENTS]
+        double PCX1 = 0;  // Shape factor Cfx for longitudinal force
+        double PDX1 = 0;  // Longitudinal friction Mux at Fznom
+        double PDX2 = 0;  // Variation of friction Mux with load
+        double PDX3 = 0;  // Variation of friction Mux with camber
+        double PEX1 = 0;  // Longitudinal curvature Efx at Fznom
+        double PEX2 = 0;  // Variation of curvature Efx with load
+        double PEX3 = 0;  // Variation of curvature Efx with load squared
+        double PEX4 = 0;  // Factor in curvature Efx while driving
+        double PKX1 = 0;  // Longitudinal slip stiffness Kfx/Fz at Fznom
+        double PKX2 = 0;  // Variation of slip stiffness Kfx/Fz with load
+        double PKX3 = 0;  // Exponent in slip stiffness Kfx/Fz with load
+        double PHX1 = 0;  // Horizontal shift Shx at Fznom
+        double PHX2 = 0;  // Variation of shift Shx with load
+        double PVX1 = 0;  // Vertical shift Svx/Fz at Fznom
+        double PVX2 = 0;  // Variation of shift Svx/Fz with load
+        double RBX1 = 0;  // Slope factor for combined slip Fx reduction
+        double RBX2 = 0;  // Variation of slope Fx reduction with kappa
+        double RCX1 = 0;  // Shape factor for combined slip Fx reduction
+        double REX1 = 0;  // Curvature factor of combined Fx
+        double REX2 = 0;  // Curvature factor of combined Fx with load
+        double RHX1 = 0;  // Shift factor for combined slip Fx reduction
+        double PTX1 = 0;  // Relaxation length SigKap0/Fz at Fznom
+        double PTX2 = 0;  // Variation of SigKap0/Fz with load
+        double PTX3 = 0;  // Variation of SigKap0/Fz with exponent of load
+        double PPX1 = 0;  // Variation of slip stiffness Kfx/Fz with pressure
+        double PPX2 = 0;  // Variation of slip stiffness Kfx/Fz with pressure squared
+        double PPX3 = 0;  // Variation of friction Mux with pressure
+        double PPX4 = 0;  // Variation of friction Mux with pressure squared
+
+        // [OVERTURNING_COEFFICIENTS]
+        double QSX1 = 0;   // Lateral force induced overturning moment
+        double QSX2 = 0;   // Camber induced overturning couple
+        double QSX3 = 0;   // Fy induced overturning couple
+        double QSX4 = 0;   // Fz induced overturning couple due to lateral tire deflection
+        double QSX5 = 0;   // Fz induced overturning couple due to lateral tire deflection
+        double QSX6 = 0;   // Fz induced overturning couple due to lateral tire deflection
+        double QSX7 = 0;   // Fz induced overturning couple due to lateral tire deflection by inclination
+        double QSX8 = 0;   // Fz induced overturning couple due to lateral tire deflection by lateral force
+        double QSX9 = 0;   // Fz induced overturning couple due to lateral tire deflection by lateral force
+        double QSX10 = 0;  // Inclination induced overturning couple, load dependency
+        double QSX11 = 0;  // load dependency inclination induced overturning couple
+        double QPX1 = 0;   // Variation of camber effect with pressure
+
+        // [LATERAL_COEFFICIENTS]
+        double PCY1 = 0;  // Shape factor Cfy for lateral forces
+        double PDY1 = 0;  // Lateral friction Muy
+        double PDY2 = 0;  // Variation of friction Muy with load
+        double PDY3 = 0;  // Variation of friction Muy with squared camber
+        double PEY1 = 0;  // Lateral curvature Efy at Fznom
+        double PEY2 = 0;  // Variation of curvature Efy with load
+        double PEY3 = 0;  // Zero order camber dependency of curvature Efy
+        double PEY4 = 0;  // Variation of curvature Efy with camber
+        double PKY1 = 0;  // Maximum value of stiffness Kfy/Fznom
+        double PKY2 = 0;  // Load at which Kfy reaches maximum value
+        double PKY3 = 0;  // Variation of Kfy/Fznom with camber
+        double PHY1 = 0;  // Horizontal shift Shy at Fznom
+        double PHY2 = 0;  // Variation of shift Shy with load
+        double PHY3 = 0;  // Variation of shift Shy with camber
+        double PVY1 = 0;  // Vertical shift in Svy/Fz at Fznom
+        double PVY2 = 0;  // Variation of shift Svy/Fz with load
+        double PVY3 = 0;  // Variation of shift Svy/Fz with camber
+        double PVY4 = 0;  // Variation of shift Svy/Fz with camber and load
+        double RBY1 = 0;  // Slope factor for combined Fy reduction
+        double RBY2 = 0;  // Variation of slope Fy reduction with alpha
+        double RBY3 = 0;  // Shift term for alpha in slope Fy reduction
+        double RCY1 = 0;  // Shape factor for combined Fy reduction
+        double REY1 = 0;  // Curvature factor of combined Fy
+        double REY2 = 0;  // Curvature factor of combined Fy with load
+        double RHY1 = 0;  // Shift factor for combined Fy reduction
+        double RHY2 = 0;  // Shift factor for combined Fy reduction with load
+        double RVY1 = 0;  // Kappa induced side force Svyk/Muy*Fz at Fznom
+        double RVY2 = 0;  // Variation of Svyk/Muy*Fz with load
+        double RVY3 = 0;  // Variation of Svyk/Muy*Fz with camber
+        double RVY4 = 0;  // Variation of Svyk/Muy*Fz with alpha
+        double RVY5 = 0;  // Variation of Svyk/Muy*Fz with kappa
+        double RVY6 = 0;  // Variation of Svyk/Muy*Fz with atan(kappa)
+        double PTY1 = 0;  // Peak value of relaxation length SigAlp0/R0
+        double PTY2 = 0;  // Value of Fz/Fznom where SigAlp0 is extreme
+        double PPY1 = 0;  // Variation of  max. stiffness Kfy/Fznom with pressure
+        double PPY2 = 0;  // Variation of load at max. Kfy with pressure
+        double PPY3 = 0;  // Variation of friction Muy with pressure
+        double PPY4 = 0;  // Variation of friction Muy with pressure squared
+
+        // [ROLLING_COEFFICIENTS]
+        double QSY1 = 0;  // Rolling resistance torque coefficient
+        double QSY2 = 0;  // Rolling resistance torque depending on Fx
+        double QSY3 = 0;  // Rolling resistance torque depending on speed
+        double QSY4 = 0;  // Rolling resistance torque depending on speed ^4
+        double QSY5 = 0;  // Rolling resistance moment depending on camber
+        double QSY6 = 0;  // Rolling resistance moment depending on camber and load
+        double QSY7 = 0;  // Rolling resistance moment depending on load (exponential)
+        double QSY8 = 0;  // Rolling resistance moment depending on inflation pressure
+
+        // [INERTIA]
+        double MASS = 0;
+        double IXX = 0;
+        double IYY = 0;
+
+        // [ALIGNING_COEFFICIENTS]
+        double QBZ1 = 0;   // Trail slope factor for trail Bpt at Fznom
+        double QBZ2 = 0;   // Variation of slope Bpt with load
+        double QBZ3 = 0;   // Variation of slope Bpt with load squared
+        double QBZ4 = 0;   // Variation of slope Bpt with camber
+        double QBZ5 = 0;   // Variation of slope Bpt with absolute camber
+        double QBZ9 = 0;   // Slope factor Br of residual torque Mzr
+        double QBZ10 = 0;  // Slope factor Br of residual torque Mzr
+        double QCZ1 = 0;   // Shape factor Cpt for pneumatic trail
+        double QDZ1 = 0;   // Peak trail Dpt" = Dpt*(Fz/Fznom*R0)
+        double QDZ2 = 0;   // Variation of peak Dpt" with load
+        double QDZ3 = 0;   // Variation of peak Dpt" with camber
+        double QDZ4 = 0;   // Variation of peak Dpt" with camber squared
+        double QDZ6 = 0;   // Peak residual torque Dmr" = Dmr/(Fz*R0)
+        double QDZ7 = 0;   // Variation of peak factor Dmr" with load
+        double QDZ8 = 0;   // Variation of peak factor Dmr" with camber
+        double QDZ9 = 0;   // Variation of peak factor Dmr" with camber and load
+        double QEZ1 = 0;   // Trail curvature Ept at Fznom
+        double QEZ2 = 0;   // Variation of curvature Ept with load
+        double QEZ3 = 0;   // Variation of curvature Ept with load squared
+        double QEZ4 = 0;   // Variation of curvature Ept with sign of Alpha-t
+        double QEZ5 = 0;   // Variation of Ept with camber and sign Alpha-t
+        double QHZ1 = 0;   // Trail horizontal shift Sht at Fznom
+        double QHZ2 = 0;   // Variation of shift Sht with load
+        double QHZ3 = 0;   // Variation of shift Sht with camber
+        double QHZ4 = 0;   // Variation of shift Sht with camber and load
+        double QPZ1 = 0;   // Variation of peak Dt with pressure
+        double QPZ2 = 0;   // Variation of peak Dr with pressure
+        double SSZ1 = 0;   // Nominal value of s/R0: effect of Fx on Mz
+        double SSZ2 = 0;   // Variation of distance s/R0 with Fy/Fznom
+        double SSZ3 = 0;   // Variation of distance s/R0 with camber
+        double SSZ4 = 0;   // Variation of distance s/R0 with load and camber
+        double QTZ1 = 0;   // Gyration torque constant
+        double MBELT = 0;  // Belt mass of the wheel
     };
 
-    struct Pac02Coeff {
-        double mu0;           // road friction coefficient at test conditions for the handling parameters
-        double R0;            // unloaded radius
-        double width;         // tire width
-        double aspect_ratio;  // actually unused
-        double rim_width;     // actually unused
-        double rim_radius;    // actually unused
-        double FzNomin;       // nominla wheel load
-        double Cz;            // vertical tire stiffness
-        double Kz;            // vertical tire damping
-
-        // Longitudinal Coefficients
-        double pcx1;
-        double pdx1;
-        double pdx2;
-        double pdx3;
-        double pex1;
-        double pex2;
-        double pex3;
-        double pex4;
-        double phx1;
-        double phx2;
-        double pkx1;
-        double pkx2;
-        double pkx3;
-        double pvx1;
-        double pvx2;
-        double rbx1;
-        double rbx2;
-        double rbx3;
-        double rcx1;
-        double rex1;
-        double rex2;
-        double rhx1;
-        double ptx1;
-        double ptx2;
-        double ptx3;
-        double ptx4;
-
-        // overturning coefficients
-        double qsx1;
-        double qsx2;
-        double qsx3;
-        double qsx4;
-        double qsx5;
-        double qsx6;
-        double qsx7;
-        double qsx8;
-        double qsx9;
-        double qsx10;
-        double qsx11;
-
-        // rolling resistance coefficients
-        double qsy1;
-        double qsy2;
-        double qsy3;
-        double qsy4;
-        double qsy5;
-        double qsy6;
-        double qsy7;
-        double qsy8;
-
-        // Lateral Coefficients
-        double pcy1;
-        double pdy1;
-        double pdy2;
-        double pdy3;
-        double pey1;
-        double pey2;
-        double pey3;
-        double pey4;
-        double pey5;
-        double phy1;
-        double phy2;
-        double phy3;
-        double pky1;
-        double pky2;
-        double pky3;
-        double pvy1;
-        double pvy2;
-        double pvy3;
-        double pvy4;
-        double rby1;
-        double rby2;
-        double rby3;
-        double rby4;
-        double rcy1;
-        double rey1;
-        double rey2;
-        double rhy1;
-        double rhy2;
-        double rvy1;
-        double rvy2;
-        double rvy3;
-        double rvy4;
-        double rvy5;
-        double rvy6;
-        double pty1;
-        double pty2;
-
-        // alignment coefficients
-        double qbz1;
-        double qbz2;
-        double qbz3;
-        double qbz4;
-        double qbz5;
-        double qbz6;
-        double qbz9;
-        double qbz10;
-        double qcz1;
-        double qdz1;
-        double qdz2;
-        double qdz3;
-        double qdz4;
-        double qdz5;
-        double qdz6;
-        double qdz7;
-        double qdz8;
-        double qdz9;
-        double qez1;
-        double qez2;
-        double qez3;
-        double qez4;
-        double qez5;
-        double qhz1;
-        double qhz2;
-        double qhz3;
-        double qhz4;
-        double ssz1;
-        double ssz2;
-        double ssz3;
-        double ssz4;
-        double qtz1;
-        double mbelt;
-    };
-
-    Pac02ScalingFactors m_PacScal;
-    Pac02Coeff m_PacCoeff;
+    MFCoeff m_par;
 
     /// Initialize this tire by associating it to the specified wheel.
     virtual void Initialize(std::shared_ptr<ChWheel> wheel) override;
@@ -306,29 +381,24 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
     };
 
     struct TireStates {
-        double cp_long_slip;     // Contact Path - Longitudinal Slip State (Kappa)
-        double cp_side_slip;     // Contact Path - Side Slip State (Alpha)
+        double mu_scale;
+        double kappa;            // slip ratio [-1:+1]
+        double alpha;            // slip angle [-PI/2:+PI/2]
+        double gamma;            // inclination angle
         double vx;               // Longitudinal speed
         double vsx;              // Longitudinal slip velocity
         double vsy;              // Lateral slip velocity = Lateral velocity
         double omega;            // Wheel angular velocity about its spin axis
         double R_eff;            // Effective Radius
+        double Fz0_prime;        // scaled Fz
+        double dfz0;             // normalized vertical force
+        double Pi0_prime;        // scaled inflation pressure
+        double dpi;              // normalized inflation pressure
         ChVector<> disc_normal;  //(temporary for debug)
     };
 
     TireStates m_states;
     std::shared_ptr<ChVisualShape> m_cyl_shape;  ///< visualization cylinder asset
-
-    double CalcFx(double kappa, double Fz, double gamma);
-    double CalcFy(double alpha, double Fz, double gamma);
-    double CalcMx(double Fy, double Fz, double gamma);
-    double CalcMy(double Fx, double Fy, double gamma);
-    double CalcMz(double alpha, double Fz, double gamma, double Fy);
-    double CalcTrail(double alpha, double Fz, double gamma);
-    double CalcMres(double alpha, double Fz, double gamma);
-    double CalcFxComb(double kappa, double alpha, double Fz, double gamma);
-    double CalcFyComb(double kappa, double alpha, double Fz, double gamma);
-    double CalcMzComb(double kappa, double alpha, double Fz, double gamma, double Fx, double Fy);
 };
 
 /// @} vehicle_wheeled_tire
