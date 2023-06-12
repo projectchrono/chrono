@@ -422,38 +422,6 @@ void ChSystem::SetupInitial() {
     is_initialized = true;
 }
 
-// -----------------------------------------------------------------------------
-// HIERARCHY HANDLERS
-// -----------------------------------------------------------------------------
-
-void ChSystem::Reference_LM_byID() {
-    std::vector<std::shared_ptr<ChLinkBase>> toremove;
-
-    for (auto& link : assembly.linklist) {
-        if (auto malink = std::dynamic_pointer_cast<ChLinkMarkers>(link)) {
-            std::shared_ptr<ChMarker> shm1 = assembly.SearchMarker(malink->GetMarkID1());
-            std::shared_ptr<ChMarker> shm2 = assembly.SearchMarker(malink->GetMarkID2());
-            ChMarker* mm1 = shm1.get();
-            ChMarker* mm2 = shm2.get();
-            malink->SetUpMarkers(mm1, mm2);
-            if (mm1 && mm2) {
-                malink->SetValid(true);
-                mm1->UpdateState();
-                mm2->UpdateState();
-                //mm1->Impose_Abs_Coord(mm1->GetAbsCoord());
-                //mm2->Impose_Abs_Coord(mm2->GetAbsCoord());
-            } else {
-                malink->SetValid(false);
-                malink->SetUpMarkers(0, 0);  // note: marker IDs are maintained
-                toremove.push_back(malink);
-            }
-        }
-    }
-
-    for (int ir = 0; ir < toremove.size(); ++ir) {
-        assembly.RemoveLink(toremove[ir]);
-    }
-}
 
 // -----------------------------------------------------------------------------
 // PREFERENCES
@@ -2078,9 +2046,6 @@ void ChSystem::ArchiveIN(ChArchiveIn& marchive) {
     //timestepper->SetIntegrable(this);
 
     //***TODO*** complete...
-
-    //  Rebuild link pointers to markers
-    //Reference_LM_byID();
 
     // Recompute statistics, offsets, etc.
     Setup();

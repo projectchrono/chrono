@@ -22,8 +22,6 @@ namespace chrono {
 ChLinkMarkers::ChLinkMarkers()
     : marker1(NULL),
       marker2(NULL),
-      markID1(0),
-      markID2(0),
       relM(CSYSNORM),
       relM_dt(CSYSNULL),
       relM_dtdt(CSYSNULL),
@@ -37,9 +35,6 @@ ChLinkMarkers::ChLinkMarkers()
 ChLinkMarkers::ChLinkMarkers(const ChLinkMarkers& other) : ChLink(other) {
     marker1 = NULL;
     marker2 = NULL;
-
-    markID1 = other.markID1;
-    markID2 = other.markID2;
 
     relM = other.relM;  // copy vars
     relM_dt = other.relM_dt;
@@ -72,21 +67,6 @@ void ChLinkMarkers::SetUpMarkers(ChMarker* mark1, ChMarker* mark2) {
         Body2 = NULL;
 }
 
-bool ChLinkMarkers::ReferenceMarkers(ChMarker* mark1, ChMarker* mark2) {
-    this->SetUpMarkers(mark1, mark2);
-
-    if (mark1)
-        SetMarkID1(mark1->GetIdentifier());
-    else
-        SetMarkID1(0);
-    if (mark2)
-        SetMarkID2(mark2->GetIdentifier());
-    else
-        SetMarkID2(0);
-
-    return mark1 && mark2;
-}
-
 void ChLinkMarkers::Initialize(std::shared_ptr<ChMarker> mmark1, std::shared_ptr<ChMarker> mmark2) {
     ChMarker* mm1 = mmark1.get();
     ChMarker* mm2 = mmark2.get();
@@ -95,7 +75,7 @@ void ChLinkMarkers::Initialize(std::shared_ptr<ChMarker> mmark1, std::shared_ptr
     assert(mm1->GetBody() && mm2->GetBody());
     assert(mm1->GetBody()->GetSystem() == mm2->GetBody()->GetSystem());
 
-    ReferenceMarkers(mm1, mm2);
+    SetUpMarkers(mm1, mm2);
 }
 
 void ChLinkMarkers::Initialize(std::shared_ptr<ChBody> mbody1,
@@ -120,7 +100,7 @@ void ChLinkMarkers::Initialize(std::shared_ptr<ChBody> mbody1,
 
     ChMarker* mm1 = mmark1.get();
     ChMarker* mm2 = mmark2.get();
-    ReferenceMarkers(mm1, mm2);
+    SetUpMarkers(mm1, mm2);
 
     if (pos_are_relative) {
         mmark1->Impose_Rel_Coord(mpos1);
@@ -421,8 +401,6 @@ void ChLinkMarkers::ArchiveOUT(ChArchiveOut& marchive) {
     // serialize all member data:
     marchive << CHNVP(marker1);
     marchive << CHNVP(marker2);
-    marchive << CHNVP(markID1);
-    marchive << CHNVP(markID2);
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -436,9 +414,6 @@ void ChLinkMarkers::ArchiveIN(ChArchiveIn& marchive) {
     // deserialize all member data:
     marchive >> CHNVP(marker1);
     marchive >> CHNVP(marker2);
-    marchive >> CHNVP(markID1);
-    marchive >> CHNVP(markID2);
-
 }
 
 }  // end namespace chrono

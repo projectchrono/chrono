@@ -46,7 +46,7 @@ ChConveyor::ChConveyor(double xlength, double ythick, double zwidth) : conveyor_
     conveyor_truss->AddMarker(mmark1);
     conveyor_plate->AddMarker(mmark2);
 
-    internal_link->ReferenceMarkers(mmark1.get(), mmark2.get());
+    internal_link->SetUpMarkers(mmark1.get(), mmark2.get());
 }
 
 ChConveyor::ChConveyor(const ChConveyor& other) : ChPhysicsItem(other) {

@@ -417,10 +417,6 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Note that the body is *not* attached to this system.
     virtual ChBodyAuxRef* NewBodyAuxRef();
 
-    /// Given inserted markers and links, restores the
-    /// pointers of links to markers given the information
-    /// about the marker IDs. Will be made obsolete in future with new serialization systems.
-    void Reference_LM_byID();
 
     //
     // STATISTICS

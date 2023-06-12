@@ -34,9 +34,6 @@ class ChApi ChLinkMarkers : public ChLink {
     ChMarker* marker1;  ///< slave coordsys
     ChMarker* marker2;  ///< master coordsys, =0 if liked to ground
 
-    int markID1;  ///< unique identifier for markers 1 & 2,
-    int markID2;  ///< when using plugin dynamic hierarchies
-
     Coordsys relM;       ///< relative marker position 2-1
     Coordsys relM_dt;    ///< relative marker speed
     Coordsys relM_dtdt;  ///< relative marker acceleration
@@ -72,15 +69,10 @@ class ChApi ChLinkMarkers : public ChLink {
     ChMarker* GetMarker1() { return marker1; }
     /// Return the 2nd referenced marker (the 'master' marker, owned by 2nd body)
     ChMarker* GetMarker2() { return marker2; }
+
     /// set the two markers associated with this link
     virtual void SetUpMarkers(ChMarker* mark1, ChMarker* mark2);
-    void SetMarkID1(int mid) { markID1 = mid; }
-    void SetMarkID2(int mid) { markID2 = mid; }
-    int GetMarkID1() { return markID1; }
-    int GetMarkID2() { return markID2; }
 
-    /// Shortcut: set markers and marker IDs at once.
-    bool ReferenceMarkers(ChMarker* mark1, ChMarker* mark2);
 
     /// Use this function after link creation, to initialize the link from
     /// two markers to join.
