@@ -438,8 +438,10 @@ void ChSystem::Reference_LM_byID() {
             malink->SetUpMarkers(mm1, mm2);
             if (mm1 && mm2) {
                 malink->SetValid(true);
-                mm1->Impose_Abs_Coord(mm1->GetAbsCoord());
-                mm2->Impose_Abs_Coord(mm2->GetAbsCoord());
+                mm1->UpdateState();
+                mm2->UpdateState();
+                //mm1->Impose_Abs_Coord(mm1->GetAbsCoord());
+                //mm2->Impose_Abs_Coord(mm2->GetAbsCoord());
             } else {
                 malink->SetValid(false);
                 malink->SetUpMarkers(0, 0);  // note: marker IDs are maintained

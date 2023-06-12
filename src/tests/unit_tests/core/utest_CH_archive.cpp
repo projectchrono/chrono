@@ -142,6 +142,7 @@ void assemble_pendulum(ChSystem& system){
 
 
 
+
 //int main(){
 //    ChSolver* solver_baseptr;
 //
@@ -644,13 +645,9 @@ void assemble_pendulum(ChSystem& system){
 //    marchivein >> CHNVP(myVect);
 //}
 
+std::string assemble_gear_and_pulleys(ChSystem& sys){
 
-int main(){
 
-    // Create a material that will be shared among all collision shapes
-    {
-
-        ChSystemNSC sys;
         sys.Set_G_acc(ChVector<>(0, -10, 0));
         // Create a Chrono physical system
 
@@ -725,6 +722,7 @@ int main(){
         //    we use Set_local_shaft1() and pass some local ChFrame. Note that, since the Z axis of that frame
         //    will be considered the axis of the wheel, we must rotate the frame 90° with Q_from_AngAxis(), because
         //    we created the wheel with ChBodyEasyCylinder() which created a cylinder with Y as axis.
+
         auto link_gearAB = chrono_types::make_shared<ChLinkGear>();
         link_gearAB->Initialize(mbody_gearA, mbody_gearB, CSYSNORM);
         link_gearAB->Set_local_shaft1(ChFrame<>(VNULL, chrono::Q_from_AngAxis(-CH_C_PI / 2, VECT_X)));
@@ -797,28 +795,80 @@ int main(){
         //link_pulleyDE->Set_checkphase(
         //    true);  // synchro belts don't tolerate slipping: this avoids it as numerical errors accumulate.
         //sys.AddLink(link_pulleyDE);
+        return std::string("ChArchiveJSON_gears.json");
+}
 
+
+std::string assemble_pendulum_visual(ChSystem& system){
+
+    system.Set_G_acc(ChVector<>(0.0, -9.81, 0.0));
+
+    auto floor = chrono_types::make_shared<ChBody>();
+    floor->SetBodyFixed(true);
+    floor->SetName("floor");
+    floor->SetIdentifier(100);
+    system.Add(floor);
+
+
+
+
+    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    mat->SetFriction(0.4f);
+    mat->SetCompliance(0.0);
+    mat->SetComplianceT(0.0);
+    mat->SetDampingF(0.2f);
+
+    auto moving_body = chrono_types::make_shared<ChBodyEasyBox>(3.96, 2, 4,  // x,y,z size
+                                                        100,         // density
+                                                        true,        // visualization?
+                                                        false,        // collision?
+                                                        mat);        // contact material
+    //auto moving_body = chrono_types::make_shared<ChBody>();
+    moving_body->SetPos(ChVector<>(1.0, -1.0, 1.0));
+    moving_body->SetName("moving_body");
+    moving_body->SetIdentifier(101);
+    system.Add(moving_body);
+
+
+    //auto link = chrono_types::make_shared<ChLinkMateRevolute>();
+    //link->Initialize(moving_body, floor, ChFrame<>());
+    auto link = chrono_types::make_shared<ChLinkLockRevolute>();
+    link->Initialize(moving_body, floor, ChCoordsys<>());
+    system.Add(link);
+
+    return std::string("ChArchiveJSON_visual.json");
+}
+
+int main(){
+
+    std::string jsonfile;
+    // Create a material that will be shared among all collision shapes
+    {
+
+        ChSystemNSC sys;
+        
+        //assemble_pendulum_visual(sys);
+        jsonfile = assemble_gear_and_pulleys(sys);
+        
+
+        ChStreamOutAsciiFile mfileo(jsonfile.c_str());
+        ChArchiveOutJSON marchiveout(mfileo);
+        marchiveout << CHNVP(sys);
+
+
+        
         // Create the Irrlicht visualization system
         auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
         vis->AttachSystem(&sys);
         vis->SetWindowSize(800, 600);
-        vis->SetWindowTitle("Gears and pulleys");
+        vis->SetWindowTitle(jsonfile);
         vis->Initialize();
         vis->AddLogo();
         vis->AddSkyBox();
         vis->AddCamera(ChVector<>(12, 15, -20));
         vis->AddTypicalLights();
 
-        // Prepare the physical system for the simulation
 
-        sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_PROJECTED);
-
-        std::string jsonfile = "ChArchiveJSON_gears.json";
-        ChStreamOutAsciiFile mfileo(jsonfile.c_str());
-        ChArchiveOutJSON marchiveout(mfileo);
-        marchiveout << CHNVP(sys);
-
-        // Simulation loop
 
         double timestep = 0.001;
         while (vis->Run()) {
@@ -834,24 +884,29 @@ int main(){
 
     ChSystemNSC sys;
 
-    std::string jsonfile = "ChArchiveJSON_gears.json";
     ChStreamInAsciiFile mfilei(jsonfile.c_str());
     ChArchiveInJSON marchivein(mfilei);
-    ChSystemNSC system;
     marchivein >> CHNVP(sys);
+
+    {
+
+        ChStreamOutAsciiFile mfileo("ChArchiveJSON_gears2.json");
+        ChArchiveOutJSON marchiveout(mfileo);
+        marchiveout << CHNVP(sys);
+    }
+
 
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
     vis->AttachSystem(&sys);
     vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("Gears and pulleys");
+    vis->SetWindowTitle(jsonfile);
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddCamera(ChVector<>(12, 15, -20));
     vis->AddTypicalLights();
 
-    sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_PROJECTED);
 
 
     double timestep = 0.001;
@@ -863,4 +918,6 @@ int main(){
         vis->EndScene();
 
     }
+
+
 }

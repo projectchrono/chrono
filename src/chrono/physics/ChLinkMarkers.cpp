@@ -438,6 +438,7 @@ void ChLinkMarkers::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(marker2);
     marchive >> CHNVP(markID1);
     marchive >> CHNVP(markID2);
+
 }
 
 }  // end namespace chrono

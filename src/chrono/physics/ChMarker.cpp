@@ -318,6 +318,7 @@ void ChMarker::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(motion_Z);
     marchive << CHNVP(motion_ang);
     marchive << CHNVP(motion_axis);
+    marchive << CHNVP(Body);
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -338,6 +339,9 @@ void ChMarker::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(motion_Z);
     marchive >> CHNVP(motion_ang);
     marchive >> CHNVP(motion_axis);
+    marchive >> CHNVP(Body);
+    UpdateState(); // takes care of abs_frame
+
 }
 
 }  // end namespace chrono
