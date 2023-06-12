@@ -45,6 +45,7 @@ if(ENABLE_MODULE_FSI AND (ENABLE_MODULE_OPENGL OR ENABLE_MODULE_VSG))
     set(DEMOS ${DEMOS}
         demo_VEH_SPHTerrain_Obstacles
         demo_VEH_SPHTerrain_WheeledVehicle
+        demo_VEH_SPHTerrain_TrackedVehicle
         demo_VEH_SPHTerrain_Viper
     )
 endif()

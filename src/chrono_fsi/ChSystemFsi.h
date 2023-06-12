@@ -193,6 +193,9 @@ class CH_FSI_API ChSystemFsi {
     /// Return the initial spacing of the SPH particles.
     double GetInitialSpacing() const;
 
+    /// Return the number of BCE layers.
+    int GetNumBoundaryLayers() const;
+
     /// Set the fluid container dimension
     ChVector<> GetContainerDim() const;
 
@@ -339,63 +342,63 @@ class CH_FSI_API ChSystemFsi {
     /// The box is assumed to be centered at the origin of the provided frame and aligned with its axes.
     /// BCE markers are created inside the box if solid=true, and outside the box otherwise.
     /// BCE markers are created in a number of layers corresponding to system parameters.
-    void AddBoxBCE(std::shared_ptr<ChBody> body, const ChFrame<>& frame, const ChVector<>& size, bool solid);
+    size_t AddBoxBCE(std::shared_ptr<ChBody> body, const ChFrame<>& frame, const ChVector<>& size, bool solid);
 
     /// Add BCE markers for a sphere of specified radius and associate them with the given body.
     /// The sphere is assumed to be centered at the origin of the provided frame.
     /// BCE markers are created inside the sphere if solid=true, and outside the sphere otherwise.
     /// BCE markers are created in a number of layers corresponding to system parameters.
     /// BCE markers are created using spherical coordinates (default), or else on a uniform Cartesian grid.
-    void AddSphereBCE(std::shared_ptr<ChBody> body,
-                      const ChFrame<>& frame,
-                      double radius,
-                      bool solid,
-                      bool polar = true);
+    size_t AddSphereBCE(std::shared_ptr<ChBody> body,
+                        const ChFrame<>& frame,
+                        double radius,
+                        bool solid,
+                        bool polar = true);
 
     /// Add BCE markers for a cylinder of specified radius and height and associate them with the given body.
     /// The cylinder is assumed centered at the origin of the provided frame and aligned with its Z axis.
     /// BCE markers are created inside the cylinder if solid=true, and outside the cylinder otherwise.
     /// BCE markers are created in a number of layers corresponding to system parameters.
     /// BCE markers are created using cylinderical coordinates (default), or else on a uniform Cartesian grid.
-    void AddCylinderBCE(std::shared_ptr<ChBody> body,
-                        const ChFrame<>& frame,
-                        double radius,
-                        double height,
-                        bool solid,
-                        bool capped = true,
-                        bool polar = true);
+    size_t AddCylinderBCE(std::shared_ptr<ChBody> body,
+                          const ChFrame<>& frame,
+                          double radius,
+                          double height,
+                          bool solid,
+                          bool capped = true,
+                          bool polar = true);
 
     /// Add BCE markers for a cylindrical annulus of specified radii and height and associate them with the given body.
     /// The cylindrical annulus is assumed centered at the origin of the provided frame and aligned with its Z axis.
     /// BCE markers are created in a number of layers corresponding to system parameters.
     /// BCE markers are created using cylinderical coordinates (default), or else on a uniform Cartesian grid.
     /// Such a cylindrical annulus is assumed to be used on a solid body.
-    void AddCylinderAnnulusBCE(std::shared_ptr<ChBody> body,
-                               const ChFrame<>& frame,
-                               double radius_inner,
-                               double radius_outer,
-                               double height,
-                               bool polar = true);
+    size_t AddCylinderAnnulusBCE(std::shared_ptr<ChBody> body,
+                                 const ChFrame<>& frame,
+                                 double radius_inner,
+                                 double radius_outer,
+                                 double height,
+                                 bool polar = true);
 
     /// Add BCE markers for a cone of specified radius and height and associate them with the given body.
     /// The cone is assumed centered at the origin of the provided frame and aligned with its Z axis.
     /// BCE markers are created inside the cone if solid=true, and outside the cone otherwise.
     /// BCE markers are created in a number of layers corresponding to system parameters.
     /// BCE markers are created using cylinderical coordinates (default), or else on a uniform Cartesian grid.
-    void AddConeBCE(std::shared_ptr<ChBody> body,
-                    const ChFrame<>& frame,
-                    double radius,
-                    double height,
-                    bool solid,
-                    bool capped = true,
-                    bool polar = true);
+    size_t AddConeBCE(std::shared_ptr<ChBody> body,
+                      const ChFrame<>& frame,
+                      double radius,
+                      double height,
+                      bool solid,
+                      bool capped = true,
+                      bool polar = true);
 
     /// Add BCE markers from a set of points and associate them with the given body.
     /// The points are assumed to be provided relative to the specified frame.
-    void AddPointsBCE(std::shared_ptr<ChBody> body,
-                      const std::vector<ChVector<>>& points,
-                      const ChFrame<>& frame,
-                      bool solid);
+    size_t AddPointsBCE(std::shared_ptr<ChBody> body,
+                        const std::vector<ChVector<>>& points,
+                        const ChFrame<>& frame,
+                        bool solid);
 
     /// Add BCE markers from mesh.
     //// RADU TODO
@@ -544,7 +547,7 @@ class CH_FSI_API ChSystemFsi {
     std::shared_ptr<ChCounters> m_num_objectsH;       ///< number of objects, fluid, bce, and boundary markers
     std::vector<std::vector<int>> m_fea_shell_nodes;  ///< indices of nodes of each shell element
     std::vector<std::vector<int>> m_fea_cable_nodes;  ///< indices of nodes of each cable element
-    
+
     size_t m_num_cable_elements;
     size_t m_num_shell_elements;
 
@@ -557,7 +560,7 @@ class CH_FSI_API ChSystemFsi {
     double m_time;          ///< current simulation time
 
     ChTimer m_timer_step;  ///< timer for integration step
-    double m_RTF;                  ///< real-time factor (simulation time / simulated time)
+    double m_RTF;          ///< real-time factor (simulation time / simulated time)
 
     friend class ChFsiVisualizationGL;
     friend class ChFsiVisualizationVSG;
