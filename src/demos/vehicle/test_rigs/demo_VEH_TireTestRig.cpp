@@ -39,6 +39,7 @@
 
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChGnuPlot.h"
+    #include "chrono_postprocess/ChBlender.h"
 #endif
 
 #include "demos/vehicle/SetChronoSolver.h"
@@ -56,18 +57,25 @@ using namespace chrono::vsg3d;
 using namespace chrono;
 using namespace chrono::vehicle;
 
+// -----------------------------------------------------------------------------
+
 // Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Tire model
 enum class TireType { RIGID, TMEASY, FIALA, PAC89, PAC02, ANCF4, ANCF8, ANCF_TOROIDAL, REISSNER };
-TireType tire_type = TireType::TMEASY;
+TireType tire_type = TireType::REISSNER;
 
 // Read from JSON specification file?
 bool use_JSON = true;
 
 // Output directory
 const std::string out_dir = GetChronoOutputPath() + "TIRE_TEST_RIG";
+
+bool gnuplot_output = true;
+bool blender_output = true;
+
+// -----------------------------------------------------------------------------
 
 int main() {
     // Create wheel and tire subsystems
@@ -209,6 +217,17 @@ int main() {
     // Scenario: specified longitudinal slip
     ////rig.Initialize(0.2, 0.1);
 
+    // Optionally, modify tire visualization (can be done only after initialization)
+    if (auto tire_def = std::dynamic_pointer_cast<ChDeformableTire>(tire)) {
+        tire_def->GetMeshVisualization()->SetColorscaleMinMax(0.0, 5.0);  // range for nodal speed norm
+    }
+
+    // Initialize output
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+
     // Create the vehicle run-time visualization interface and the interactive driver
     std::shared_ptr<ChVisualSystem> vis;
 
@@ -223,7 +242,7 @@ int main() {
             vis_irr->Initialize();
             vis_irr->AddLogo();
             vis_irr->AddSkyBox();
-            vis_irr->AddCamera(ChVector<>(1.0, 2.5, 1.5));
+            vis_irr->AddCamera(ChVector<>(1.0, 2.5, 1.0));
             vis_irr->AddLightDirectional();
 
             vis_irr->GetActiveCamera()->setFOV(irr::core::PI / 4.5f);
@@ -237,10 +256,10 @@ int main() {
 #ifdef CHRONO_VSG
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(sys);
-            ////vis_vsg->SetCameraVertical(CameraVerticalDir::Z);
-            vis_vsg->SetWindowSize(800, 600);
+            vis_vsg->SetCameraVertical(CameraVerticalDir::Z);
+            vis_vsg->SetWindowSize(1200, 600);
             vis_vsg->SetWindowTitle("Tire Test Rig");
-            vis_vsg->AddCamera(ChVector<>(1.0, 2.5, 1.5));
+            vis_vsg->AddCamera(ChVector<>(1.0, 2.5, 1.0));
             vis_vsg->Initialize();
 
             vis = vis_vsg;
@@ -249,34 +268,54 @@ int main() {
         }
     }
 
-    // Initialize output
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cout << "Error creating directory " << out_dir << std::endl;
-        return 1;
+// Create the Blender exporter
+#ifdef CHRONO_POSTPROCESS
+    postprocess::ChBlender blender_exporter(sys);
+
+    if (blender_output) {
+        std::string blender_dir = out_dir + "/blender";
+        if (!filesystem::create_directory(filesystem::path(blender_dir))) {
+            std::cout << "Error creating directory " << blender_dir << std::endl;
+            return 1;
+        }
+
+        blender_exporter.SetBlenderUp_is_ChronoZ();
+        blender_exporter.SetBasePath(blender_dir);
+        blender_exporter.AddAll();
+        blender_exporter.SetCamera(ChVector<>(3, 3, 1), ChVector<>(0, 0, 0), 50);
+        blender_exporter.ExportScript();
     }
+#endif
 
     // Perform the simulation
     ChFunction_Recorder long_slip;
     ChFunction_Recorder slip_angle;
     ChFunction_Recorder camber_angle;
 
+    double time_offset = 0.5;
+
     while (vis->Run()) {
         double time = sys->GetChTime();
 
-        if (time > 0.5) {
+        if (time > time_offset) {
             long_slip.AddPoint(time, tire->GetLongitudinalSlip());
             slip_angle.AddPoint(time, tire->GetSlipAngle() * CH_C_RAD_TO_DEG);
             camber_angle.AddPoint(time, tire->GetCamberAngle() * CH_C_RAD_TO_DEG);
         }
 
         auto& loc = rig.GetPos();
-        vis->UpdateCamera(loc + ChVector<>(1.0, 2.5, 1.5), loc + ChVector<>(0, 0.25, 0));
+        vis->UpdateCamera(loc + ChVector<>(1.0, 2.5, 0.5), loc + ChVector<>(0, 0.25, -0.25));
 
         vis->BeginScene();
         vis->Render();
         ////tools::drawAllContactPoints(vis.get(), 1.0, ContactsDrawMode::CONTACT_NORMALS);
         rig.Advance(step_size);
         vis->EndScene();
+
+#ifdef CHRONO_POSTPROCESS
+        if (blender_output)
+            blender_exporter.ExportData();
+#endif
 
         ////std::cout << sys.GetChTime() << std::endl;
         ////auto long_slip = tire->GetLongitudinalSlip();
@@ -293,23 +332,25 @@ int main() {
     }
 
 #ifdef CHRONO_POSTPROCESS
-    postprocess::ChGnuPlot gplot_long_slip(out_dir + "/tmp1.gpl");
-    gplot_long_slip.SetGrid();
-    gplot_long_slip.SetLabelX("time (s)");
-    gplot_long_slip.SetLabelY("Long. slip");
-    gplot_long_slip.Plot(long_slip, "", " with lines lt -1 lc rgb'#00AAEE' ");
+    if (gnuplot_output && sys->GetChTime() > time_offset) {
+        postprocess::ChGnuPlot gplot_long_slip(out_dir + "/tmp1.gpl");
+        gplot_long_slip.SetGrid();
+        gplot_long_slip.SetLabelX("time (s)");
+        gplot_long_slip.SetLabelY("Long. slip");
+        gplot_long_slip.Plot(long_slip, "", " with lines lt -1 lc rgb'#00AAEE' ");
 
-    postprocess::ChGnuPlot gplot_slip_angle(out_dir + "/tmp2.gpl");
-    gplot_slip_angle.SetGrid();
-    gplot_slip_angle.SetLabelX("time (s)");
-    gplot_slip_angle.SetLabelY("Slip angle");
-    gplot_slip_angle.Plot(slip_angle, "", " with lines lt -1 lc rgb'#00AAEE' ");
+        postprocess::ChGnuPlot gplot_slip_angle(out_dir + "/tmp2.gpl");
+        gplot_slip_angle.SetGrid();
+        gplot_slip_angle.SetLabelX("time (s)");
+        gplot_slip_angle.SetLabelY("Slip angle");
+        gplot_slip_angle.Plot(slip_angle, "", " with lines lt -1 lc rgb'#00AAEE' ");
 
-    postprocess::ChGnuPlot gplot_camber_angle(out_dir + "/tmp3.gpl");
-    gplot_camber_angle.SetGrid();
-    gplot_camber_angle.SetLabelX("time (s)");
-    gplot_camber_angle.SetLabelY("Camber angle");
-    gplot_camber_angle.Plot(camber_angle, "", " with lines lt -1 lc rgb'#00AAEE' ");
+        postprocess::ChGnuPlot gplot_camber_angle(out_dir + "/tmp3.gpl");
+        gplot_camber_angle.SetGrid();
+        gplot_camber_angle.SetLabelX("time (s)");
+        gplot_camber_angle.SetLabelY("Camber angle");
+        gplot_camber_angle.Plot(camber_angle, "", " with lines lt -1 lc rgb'#00AAEE' ");
+    }
 #endif
 
     return 0;
