@@ -300,10 +300,11 @@ linux:ubuntu22.04:deploy-python3.10:
     - dnf groupinstall -y 'Development Tools'
     - dnf config-manager --set-enabled powertools
     - dnf install -y epel-release
-    - nvidia-smi
+    - yum config-manager --add-repo http://developer.download.nvidia.com/compute/cuda/repos/rhel8/x86_64/cuda-rhel8.repo
     - dnf install -y vulkan-devel libXmu-devel libXi-devel fontconfig-devel
-    - dnf install -y doxygen cmake irrlicht-devel glm-devel glfw-devel glew-devel libXrandr ninja-build freeglut-devel swig python3-devel platform-python-devel intel-oneapi-mkl-devel
+    - dnf install -y doxygen cmake irrlicht-devel glm-devel glfw-devel glew-devel libXrandr ninja-build freeglut-devel swig python3-devel platform-python-devel intel-oneapi-mkl-devel openmpi cuda
     - ldconfig
+    - nvidia-smi
     - git submodule init
     - git submodule update
     - mkdir -p build
@@ -313,7 +314,7 @@ linux:almalinux:build:
   extends: .almalinux
   script:
     # Building chrono
-    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR --preset=linuxci
+    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR --preset=almaci
     # Making chrono
     - cd $CI_PROJECT_DIR/build
     - ninja -j 8
