@@ -1,0 +1,14 @@
+{
+    "Name": "Magic Formula Tire from ADAMS/Car TIR file",
+    "Type": "Tire",
+    "Template": "Pac02Tire",
+    "Mass": 19.8,
+    "Inertia": [ 1.2369, 2.22357, 1.2369 ],
+    "TIR Specification File" : "uaz/tire/UAZBUS_Pac02Tire.tir",
+    "Coefficient of Friction": 0.8,
+    "Visualization": {
+        "Mesh Filename Left":  "uaz/uaz_tire.obj",
+        "Mesh Filename Right": "uaz/uaz_tire.obj",
+        "Width": 0.225
+    }
+}

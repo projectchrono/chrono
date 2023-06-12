@@ -29,6 +29,7 @@
 #include "chrono_models/vehicle/citybus/CityBus_AutomaticTransmissionSimpleMap.h"
 #include "chrono_models/vehicle/citybus/CityBus_RigidTire.h"
 #include "chrono_models/vehicle/citybus/CityBus_TMeasyTire.h"
+#include "chrono_models/vehicle/citybus/CityBus_Pac02Tire.h"
 
 namespace chrono {
 namespace vehicle {
