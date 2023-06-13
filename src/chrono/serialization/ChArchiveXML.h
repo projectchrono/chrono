@@ -513,13 +513,16 @@ class  ChArchiveInXML : public ChArchiveIn {
 				}
 
 				if (!is_reference) {
-					// 2) Dynamically create 
-					// call new(), or deserialize constructor params+call new():
+					// See ChArchiveJSON for detailed explanation
 					bVal.value().CallConstructor(*this, cls_name.c_str());
 
-					if (bVal.value().GetRawPtr()) {
+                    bVal.value().SetRawPtr(ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), bVal.value().GetRawPtr()));
+
+                    void* new_ptr_void = bVal.value().GetRawPtr();
+
+					if (new_ptr_void) {
 						bool already_stored; size_t obj_ID;
-						PutPointer(bVal.value().GetRawPtr(), already_stored, obj_ID);
+						PutPointer(new_ptr_void, already_stored, obj_ID);
 						// 3) Deserialize
 						bVal.value().CallArchiveIn(*this);
 					}
@@ -534,16 +537,16 @@ class  ChArchiveInXML : public ChArchiveIn {
 						    throw (ChExceptionArchive("In object '" + std::string(bVal.name()) + "' the refID " + std::to_string((int)ref_ID) + " is not a valid number."));
 					    }
 
-                        void* referred_ptr = ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), internal_id_ptr[ref_ID]); //TODO: DARIOM compact
-                        bVal.value().SetRawPtr(referred_ptr);
+                        bVal.value().SetRawPtr(ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), internal_id_ptr[ref_ID]));
                     }
 					else if (ext_ID) {
 						if (this->external_id_ptr.find(ext_ID) == this->external_id_ptr.end()) {
 							throw (ChExceptionArchive("In object '" + std::string(bVal.name()) + "' the external_refID " + std::to_string((int)ext_ID) + " is not valid."));
 						}
-                        void* referred_ptr = ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), external_id_ptr[ext_ID]); //TODO: DARIOM compact
-                        bVal.value().SetRawPtr(referred_ptr);
+                        bVal.value().SetRawPtr(ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), external_id_ptr[ext_ID]));
 					}
+                    else
+                        bVal.value().SetRawPtr(nullptr);
 				}
 				this->levels.pop();
 				this->level = this->levels.top();

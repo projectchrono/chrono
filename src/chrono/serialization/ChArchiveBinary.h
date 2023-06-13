@@ -187,8 +187,7 @@ class  ChArchiveInBinary : public ChArchiveIn {
             if (this->internal_id_ptr.find(obj_ID) == this->internal_id_ptr.end()) 
                 throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the reference ID " + std::to_string((int)obj_ID) +" is not a valid number." ));
             
-            void* referred_ptr = ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), internal_id_ptr[obj_ID]);
-            bVal.value().SetRawPtr(referred_ptr);
+            bVal.value().SetRawPtr(ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), internal_id_ptr[obj_ID]));
           }
           else if (cls_name == "eID") {
             size_t ext_ID = 0;
@@ -198,17 +197,19 @@ class  ChArchiveInBinary : public ChArchiveIn {
             if (this->external_id_ptr.find(ext_ID) == this->external_id_ptr.end()) 
                     throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the external reference ID " + std::to_string((int)ext_ID) +" cannot be rebuilt." ));
             
-            void* referred_ptr = ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), external_id_ptr[ext_ID]);
-            bVal.value().SetRawPtr(referred_ptr);
+            bVal.value().SetRawPtr(ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), external_id_ptr[ext_ID]));
           }
           else {
-            // Dynamically create (no class factory will be invoked for non-polymorphic obj):
-            // call new(), or deserialize constructor params+call new():
-            bVal.value().CallConstructor(*this, cls_name.c_str()); 
+            // see ChArchiveJSON for further details
+            bVal.value().CallConstructor(*this, cls_name.c_str());
 
-            if (bVal.value().GetRawPtr()) {
+            bVal.value().SetRawPtr(ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), bVal.value().GetRawPtr()));
+
+            void* new_ptr_void = bVal.value().GetRawPtr();
+
+            if (new_ptr_void) {
                 bool already_stored; size_t obj_ID;
-                PutPointer(bVal.value().GetRawPtr(), already_stored, obj_ID);
+                PutPointer(new_ptr_void, already_stored, obj_ID);
                 // 3) Deserialize
                 bVal.value().CallArchiveIn(*this);
             } else {

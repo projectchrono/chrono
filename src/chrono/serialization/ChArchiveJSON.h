@@ -479,21 +479,21 @@ class  ChArchiveInJSON : public ChArchiveIn {
                 bVal.value().CallConstructor(*this, cls_name.c_str());
             
 
-                // if b), at this point the bVal._value.*pt2object is thinking to point to an object of a Base type;
-                // the following step will instead set the pointer type to 'cls_name*' i.e. Derived*
-                // and then typecasted back to Base*, as required by bVal._value.pt2Object
-                // but this time, if the class is polymorphic and with multiple inheritence,
-                // we might see that the address is slightly changed (as it should be!)
-                void* new_ptr_temp = bVal.value().GetRawPtr();
-                void* new_ptr_fixed = ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), new_ptr_temp);
-                bVal.value().SetRawPtr(new_ptr_fixed);
+                // if b), at this point the bVal._value.*pt2object (of type Base*) is thinking to point to an object of a Base type;
+                // but that might not be true.
+                // The ChCastingMap::Convert will take the bVal.value().GetRawPtr() pointer, reinterpret it like a Derived* (i.e. "cls_name"*),
+                // and once it has been given the Derived* type, will be converted to a Base* (i.e. bVal.value().GetObjectPtrTypeindex()) in the proper way.
+                bVal.value().SetRawPtr(ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), bVal.value().GetRawPtr()));
 
+                // Calling bVal.value().GetRawPtr() will now correctly point to the true derived object in the proper way 
                 void* new_ptr_void = bVal.value().GetRawPtr();
 
                 if (new_ptr_void) {
                     bool already_stored; size_t obj_ID;
                     PutPointer(new_ptr_void, already_stored, obj_ID);
                     // 3) Deserialize
+                    // It is required to tell the "cls_name" since the bValue.value() might be of a different type compared to the true object,
+                    // while we need to call the ArchiveIN of the proper derived class.
                     bVal.value().CallArchiveIn(*this, cls_name.c_str());
                 } else {
                     throw(ChExceptionArchive("Archive cannot create object " + std::string(bVal.name()) +"\n"));
@@ -506,16 +506,14 @@ class  ChArchiveInJSON : public ChArchiveIn {
                     if (this->internal_id_ptr.find(ref_ID) == this->internal_id_ptr.end()) {
                         throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the _reference_ID " + std::to_string((int)ref_ID) +" is not a valid number." ));
                     }
-                    void* referred_ptr = ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), internal_id_ptr[ref_ID]); //TODO: DARIOM compact
-                    bVal.value().SetRawPtr(referred_ptr);
+                    bVal.value().SetRawPtr(ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), internal_id_ptr[ref_ID]));
 
                 }
                 else if (ext_ID) {
                     if (this->external_id_ptr.find(ext_ID) == this->external_id_ptr.end()) {
                         throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the _external_ID " + std::to_string((int)ext_ID) +" is not valid." ));
                     }
-                    void* referred_ptr = ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), external_id_ptr[ext_ID]);
-                    bVal.value().SetRawPtr(referred_ptr);
+                    bVal.value().SetRawPtr(ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), external_id_ptr[ext_ID]));
 
                 }
                 else
