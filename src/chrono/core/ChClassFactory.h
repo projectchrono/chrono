@@ -36,6 +36,7 @@
 #include <typeinfo>
 #include <typeindex>
 #include <unordered_map>
+#include <memory>
 
 #include "chrono/core/ChLog.h"
 #include "chrono/core/ChTemplateExpressions.h"
@@ -584,7 +585,7 @@ struct EqualHash {
 public:
     ChCastingMap(const std::string& from, const std::type_index& from_ti, const std::string& to, const std::type_index& to_ti, std::function<void*(void*)> conv_ptr_fun, std::function<std::shared_ptr<void>(std::shared_ptr<void>)> conv_shptr_fun);
 
-    void AddCastingFunction(const std::string& from, const std::type_index& from_ti, const std::string& to, const std::type_index& to_ti, std::function<void*(void*)> conv_ptr_fun, std::function<std::shared_ptr<void>(std::shared_ptr<void>)> conv_shptr_fun);
+    static void AddCastingFunction(const std::string& from, const std::type_index& from_ti, const std::string& to, const std::type_index& to_ti, std::function<void*(void*)> conv_ptr_fun, std::function<std::shared_ptr<void>(std::shared_ptr<void>)> conv_shptr_fun);
 
     static void PrintCastingFunctions();
 
