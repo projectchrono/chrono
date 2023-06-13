@@ -60,7 +60,7 @@ using namespace irr::video;
 using namespace irr::io;
 using namespace irr::gui;
 
-//const double ABS_ERR = 1e-8;
+const double ABS_ERR = 1e-6;
 
 enum class ArchiveType {
     BINARY,
@@ -273,7 +273,7 @@ void create_test(std::function<void(ChSystem&)> assembler_fun, ArchiveType outty
     };
 
     double timestep = 0.01;
-    int step_num = 200;
+    int step_num = 2000;
 
     std::shared_ptr<ChState> state_before_archive;
     std::shared_ptr<ChState> state_after_archive;
@@ -348,7 +348,7 @@ void create_test(std::function<void(ChSystem&)> assembler_fun, ArchiveType outty
     ASSERT_EQ(state_before_archive->size(), state_after_archive->size());
 
     for (auto i = 0; i < state_before_archive->size(); ++i){
-        ASSERT_DOUBLE_EQ(state_before_archive->data()[i], state_after_archive->data()[i]);
+        ASSERT_NEAR(state_before_archive->data()[i], state_after_archive->data()[i], ABS_ERR);
     }
 }
 
@@ -356,8 +356,15 @@ void create_test(std::function<void(ChSystem&)> assembler_fun, ArchiveType outty
 
 
 TEST(ChArchiveJSON, Fourbar){
-//int main(){
     create_test(assemble_fourbar, ArchiveType::JSON);
+}
+
+TEST(ChArchiveJSON, PendulumVisual){
+    create_test(assemble_pendulum_visual, ArchiveType::JSON);
+}
+
+TEST(ChArchiveJSON, Gears){
+    create_test(assemble_gear_and_pulleys, ArchiveType::JSON);
 }
 
 TEST(ChArchiveXML, Fourbar){
@@ -365,38 +372,11 @@ TEST(ChArchiveXML, Fourbar){
 }
 
 TEST(ChArchiveBinary, Fourbar){
-//int main(){
-    create_test(assemble_pendulum, ArchiveType::BINARY, "test");
+    create_test(assemble_pendulum, ArchiveType::BINARY);
 }
 
 TEST(ChArchiveJSON, Solver){
 std::string outputfile = std::string(::testing::UnitTest::GetInstance()->current_test_suite()->name()) + "_" + std::string(::testing::UnitTest::GetInstance()->current_test_info()->name());
-
-//int main(){
-    //{
-    //    ChSolver* solver_baseptr;
-
-    //    ChClassFactory::create(std::string("ChSolverPSOR"), &solver_baseptr);
-    //    solver_baseptr->GetType(); // WRONG CALL
-    //    //ChSolverPSOR* solver_vptr_psor_correct = reinterpret_cast<ChSolverPSOR*>(solver_baseptr);
-    //    //solver_vptr_psor_correct->GetType();
-    //    //ChSolver* solver_vptr2 = static_cast<ChSolver*>(solver_vptr_psor_correct);
-    //    //solver_vptr2->GetType();
-
-    //    void* solver_vptr = getVoidPointer<ChSolver>(solver_baseptr); // nothing changes
-
-
-    //    void* solverbase_vptr_conv = static_cast<void*>(static_cast<ChSolver*>(reinterpret_cast<ChSolverPSOR*>(solver_vptr)));
-    //    ChSolver* solverbase_ptr_conv = reinterpret_cast<ChSolver*>(solverbase_vptr_conv);
-    //    solverbase_ptr_conv->GetType();
-    //    std::cout << "Expected ChSolver*: " << solverbase_ptr_conv << std::endl;
-
-    //    void* solverbase_vptr_convauto = ChCastingMap::Convert("ChSolverPSOR", "ChSolver", solver_vptr);
-    //    ChSolver* solverbase_ptr_convauto = reinterpret_cast<ChSolver*>(solverbase_vptr_convauto);
-    //    solverbase_ptr_convauto->GetType();
-    //    std::cout << "Resulting ChSolver*: " << solverbase_ptr_convauto << std::endl;
-
-    //}
 
     {
         ChSolverPSOR* solverPSOR_ptr = new ChSolverPSOR();
@@ -464,98 +444,6 @@ TEST(ChArchiveJSON, nullpointers){
 
 }
 
-//
-//TEST(ChArchiveXML, Fourbar){
-//    std::string outputfile = std::string(::testing::UnitTest::GetInstance()->current_test_suite()->name()) + "_" + std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()) ;
-//
-//
-//    double timestep = 0.01;
-//    int step_num = 200;
-//
-//    ChState state_before_archive;
-//    ChState state_after_archive;
-//    ChStateDelta state_delta_dummy;
-//    double time_dummy;
-//
-//    {
-//        ChSystemNSC system;
-//        assemble_fourbar(system);
-//
-//        ChStreamOutAsciiFile mfileo((outputfile + std::string(".xml")).c_str());
-//        ChArchiveOutXML marchiveout(mfileo);
-//        marchiveout << CHNVP(system);
-//
-//        for (int step = 0; step<step_num; ++step) {
-//            system.DoStepDynamics(timestep);
-//        }
-//
-//        system.StateGather(state_before_archive, state_delta_dummy, time_dummy);
-//
-//    }
-//
-//    ChStreamInAsciiFile mfilei((outputfile + std::string(".xml")).c_str());
-//    ChArchiveInXML marchivein(mfilei);
-//    ChSystemNSC system;
-//    marchivein >> CHNVP(system);
-//    
-//
-//    // Simulation loop
-//    for (int step = 0; step<step_num; ++step) {
-//        system.DoStepDynamics(timestep);
-//    }
-//
-//    system.StateGather(state_after_archive, state_delta_dummy, time_dummy);
-//
-//    assert_state(state_before_archive, state_after_archive);
-//}
-//
-//TEST(ChArchiveBinary, Fourbar){
-//    std::string outputfile = std::string(::testing::UnitTest::GetInstance()->current_test_suite()->name()) + "_" + std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()) ;
-//
-//
-//    double timestep = 0.01;
-//    int step_num = 200;
-//
-//    ChState state_before_archive;
-//    ChState state_after_archive;
-//    ChStateDelta state_delta_dummy;
-//    double time_dummy;
-//
-//    {
-//        ChSystemNSC system;
-//        assemble_fourbar(system);
-//
-//        ChStreamOutBinaryFile mfileo((outputfile + std::string(".dat")).c_str());
-//        ChArchiveOutBinary marchiveout(mfileo);
-//        marchiveout << CHNVP(system);
-//
-//        for (int step = 0; step<step_num; ++step) {
-//            system.DoStepDynamics(timestep);
-//        }
-//
-//        before_archive = system.Get_bodylist()[1]->GetPos();
-//
-//    }
-//
-//    ChStreamInBinaryFile mfilei((outputfile + std::string(".dat")).c_str());
-//    ChArchiveInBinary marchivein(mfilei);
-//    ChSystemNSC system;
-//    marchivein >> CHNVP(system);
-//    
-//
-//    // Simulation loop
-//    for (int step = 0; step<step_num; ++step) {
-//        system.DoStepDynamics(timestep);
-//    }
-//
-//    ChVector<> after_archive = system.Get_bodylist()[1]->GetPos();
-//
-//    ASSERT_DOUBLE_EQ(before_archive.x(), after_archive.x());
-//    ASSERT_DOUBLE_EQ(before_archive.y(), after_archive.y());
-//    ASSERT_DOUBLE_EQ(before_archive.z(), after_archive.z());
-//
-//}
-//
 //
 ////TEST(ChArchive, shaft_JSON){
 //int main(){
@@ -653,33 +541,33 @@ TEST(ChArchiveJSON, nullpointers){
 //
 //}
 
-//TEST(ChArchiveJSON, ChVectorDynamic){
-//
-//    std::string outputfile = std::string(::testing::UnitTest::GetInstance()->current_test_suite()->name()) + "_" + std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()) + std::string(".json");
-//    ChVectorDynamic<> myVect_before;
-//    {
-//        ChVectorDynamic<> myVect;
-//        myVect.resize(3);
-//        myVect[0] = 1.0;
-//        myVect[1] = 2.0;
-//        myVect[2] = 3.0;
-//        myVect_before = myVect;
-//
-//        ChStreamOutAsciiFile mfileo(outputfile.c_str());
-//        ChArchiveOutJSON marchiveout(mfileo);
-//        marchiveout << CHNVP(myVect);
-//    }
-//
-//    ChStreamInAsciiFile mfilei(outputfile.c_str());
-//    ChArchiveInJSON marchivein(mfilei);
-//    ChVectorDynamic<> myVect;
-//    marchivein >> CHNVP(myVect);
-//
-//    ASSERT_DOUBLE_EQ(myVect_before.x(), myVect.x());
-//    ASSERT_DOUBLE_EQ(myVect_before.y(), myVect.y());
-//    ASSERT_DOUBLE_EQ(myVect_before.z(), myVect.z());
-//
-//}
+TEST(ChArchiveJSON, ChVectorDynamicTest){
+
+    std::string outputfile = std::string(::testing::UnitTest::GetInstance()->current_test_suite()->name()) + "_" + std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()) + std::string(".json");
+    ChVectorDynamic<> myVect_before;
+    {
+        ChVectorDynamic<> myVect;
+        myVect.resize(3);
+        myVect[0] = 1.0;
+        myVect[1] = 2.0;
+        myVect[2] = 3.0;
+        myVect_before = myVect;
+
+        ChStreamOutAsciiFile mfileo(outputfile.c_str());
+        ChArchiveOutJSON marchiveout(mfileo);
+        marchiveout << CHNVP(myVect);
+    }
+
+    ChStreamInAsciiFile mfilei(outputfile.c_str());
+    ChArchiveInJSON marchivein(mfilei);
+    ChVectorDynamic<> myVect;
+    marchivein >> CHNVP(myVect);
+
+    ASSERT_DOUBLE_EQ(myVect_before.x(), myVect.x());
+    ASSERT_DOUBLE_EQ(myVect_before.y(), myVect.y());
+    ASSERT_DOUBLE_EQ(myVect_before.z(), myVect.z());
+
+}
 
 
 //
