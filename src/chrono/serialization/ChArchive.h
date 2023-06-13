@@ -740,7 +740,7 @@ class ChEnumMapper : public ChEnumMapperBase {
 
     Te& Value() {return *value_ptr;}
 
-    virtual int  GetValueAsInt() override { 
+    virtual int GetValueAsInt() override { 
         return static_cast<int>(*value_ptr);
     };
     virtual void SetValueAsInt(const int mval) override {
@@ -748,7 +748,7 @@ class ChEnumMapper : public ChEnumMapperBase {
     };
 
     virtual std::string GetValueAsString() override {
-        for (int i = 0; i < enummap->size(); ++i)
+        for (auto i = 0; i < enummap->size(); ++i)
         {
             if(enummap->at(i).enumid == *value_ptr)
                 return enummap->at(i).name;
@@ -760,7 +760,7 @@ class ChEnumMapper : public ChEnumMapperBase {
     };
 
     virtual bool SetValueAsString(const std::string& mname) override {
-        for (int i = 0; i < enummap->size(); ++i) {
+        for (auto i = 0; i < enummap->size(); ++i) {
             if (enummap->at(i).name == mname) {
                 *value_ptr = enummap->at(i).enumid;
                 return true;

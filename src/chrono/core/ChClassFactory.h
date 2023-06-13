@@ -253,7 +253,7 @@ private:
         if (it != class_map_typeids.end()) {
             return it->second->get_tag_name();
         }
-        throw ( ChException("ChClassFactory::GetClassTagName() cannot find the class. Please register it.\n") );
+        throw ( ChException("ChClassFactory::GetClassTagName() cannot find the class with type_info::name: " + std::string(mtype.name()) + ". Please register it.\n") );
     }
 
     size_t _GetNumberOfRegisteredClasses() {
