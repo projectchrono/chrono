@@ -260,7 +260,7 @@ class ChApi ChTimestepperEulerExpl : public ChTimestepperIorder {
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
-    );
+    ) override;
 };
 
 /// Euler explicit timestepper customized for II order.
@@ -296,7 +296,7 @@ class ChApi ChTimestepperEulerSemiImplicit : public ChTimestepperIIorder {
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
-    );
+    ) override;
 };
 
 /// Performs a step of a 4th order explicit Runge-Kutta integration scheme.
