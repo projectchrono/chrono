@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [Rewrite of Pac02 handling tire model](#changed-rewrite-of-pac02-handling-tire-model)
   - [New URDF parser](#added-new-urdf-parser)
   - [Support for STL 3D file format](#added-support-for-stl-3d-file-format)
   - [Definition and use of primitive geometric shapes](#changed-definition-and-use-of-primitive-geometric-shapes)
@@ -82,6 +83,138 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Changed] Rewrite of Pac02 handling tire model
+
+Some of the salient characteristic of the updated Pac02 handling tire model (implemented in the `ChPac02Tire` class) are:
+- performs only steady state calculations.
+- Fx and Fy can be combined by the Pacejka cosine weighting functions (requires specification of accurate coefficients). 
+- the friction ellipsis code has been removed (if the approach based on the friction ellipsis combination method is acceptable, it is better to use the TMEasy or TMsimple tire models which are much simpler and offer the same level of accuracy).
+- Pac02 model parameters can be set directly as before, but now can also be specified through an ADAMS/Car-compatible `TIR` file. Note that such TIR files may contain data for alternate tire models (such as Fiala or Pac89); if provided such a file, a Pac02 tire will *not* be initialized.
+
+Setting Pac02 tire parameters through the C++ API is done as before. For example,
+```cpp
+  m_par.UNLOADED_RADIUS = 0.345;
+  m_par.LFZO = 1.0;
+```
+Note that the names of member variables in the `MFCoeff` structure `m_par` are now in all-caps for consistency with the format of `TIR` files.
+
+The concrete tire subsystem `Pac02Tire` class reads a full specification of a Chrono Pac02 tire from a `JSON` file. There are two ppossibilities:
+1. Referencing a `TIR` file. For example:
+   ```json
+   {
+    "Name": "Magic Formula Tire from ADAMS/Car TIR file",
+    "Type": "Tire",
+    "Template": "Pac02Tire",
+    "Mass": 16.0,
+    "Inertia": [
+        1.021213842086728,
+        1.828238395872898,
+        1.021213842086728
+    ],
+    "TIR Specification File" : "VW_microbus/json/mf_185_80R14.tir",
+    "Coefficient of Friction": 0.8,
+    "Visualization": {
+        "Mesh Filename Left":  "VW_microbus/van_tire.obj",
+        "Mesh Filename Right": "VW_microbus/van_tire.obj",
+        "Width": 0.185
+    }
+   }
+   ```
+2. Explicitly setting all tire parameters. For example:
+   ```json
+   {
+    "Name": "Magic Formula Tire from parameters",
+    "Type": "Tire",
+    "Template": "Pac02Tire",
+    "Mass": 16.0,
+    "Inertia": [
+        1.021213842086728,
+        1.828238395872898,
+        1.021213842086728
+    ],
+    "Coefficient of Friction": 0.8,
+    "Use Mode" : 3,
+    "Dimension": {
+        "Unloaded Radius": 0.376,
+        "Width": 0.185,
+        "Aspect Ratio": 0.85,
+        "Rim Radius": 0.1778,
+        "Rim Width": 0.17
+    },
+   "Vertical": {
+        "Vertical Stiffness": 332736.8,
+        "Vertical Damping": 2307.3,
+        "Nominal Wheel Load": 4700.0
+    },
+    "Scaling Factors": {
+        "LFZO" : 1,                         // Scale factor of nominal (rated) load
+        "LCX" : 1,                          // Scale factor of Fx shape factor
+        "LMUX" : 1,                         // Scale factor of Fx peak friction coefficient
+        "LEX" : 1,                          // Scale factor of Fx curvature factor
+    // etc...
+        "LKYG" : 1,
+        "LCZ" : 1                           // Scale factor of vertical stiffness
+    },
+    "Longitudinal Coefficients": {
+        "PCX1" : 1.5587,                    // Shape factor Cfx for longitudinal force         
+        "PDX1" : 1.09,                      // Longitudinal friction Mux at Fznom         
+        "PDX2" : -0.079328,                 // Variation of friction Mux with load         
+        "PDX3" : 9.9376e-006,               // Variation of friction Mux with camber         
+    // etc...
+        "PTX2" : -0.0014739,                // Variation of SigKap0/Fz with load         
+        "PTX3" : 0.03631                    // Variation of SigKap0/Fz with exponent of load         
+    },
+    "Lateral Coefficients": {
+        "PCY1" : 1.4675,                    // Shape factor Cfy for lateral forces         
+        "PDY1" : 0.94002,                   // Lateral friction Muy         
+        "PDY2" : -0.17669,                  // Variation of friction Muy with load         
+        "PDY3" : -0.69602,                  // Variation of friction Muy with squared camber         
+    // etc...
+        "RVY6" : 0,                         // Variation of Svyk/Muy*Fz with atan(kappa)         
+        "PTY1" : 1.8473,                    // Peak value of relaxation length SigAlp0/R0         
+        "PTY2" : 1.9465                     // Value of Fz/Fznom where SigAlp0 is extreme         
+    },
+    "Aligning Coefficients": {
+        "QBZ1" : 9.2824,                    // Trail slope factor for trail Bpt at Fznom         
+        "QBZ2" : -2.6095,                   // Variation of slope Bpt with load         
+        "QBZ3" : -0.86548,                  // Variation of slope Bpt with load squared         
+        "QBZ4" : -0.16332,                  // Variation of slope Bpt with camber         
+        "QBZ5" : -0.35511,                  // Variation of slope Bpt with absolute camber         
+        "QBZ9" : 13.946,                    // Slope factor Br of residual torque Mzr         
+        "QBZ10" : 0,                        // Slope factor Br of residual torque Mzr         
+    // etc...
+        "SSZ1" : 0.026243,                  // Nominal value of s/R0: effect of Fx on Mz         
+        "SSZ2" : -0.013391,                 // Variation of distance s/R0 with Fy/Fznom         
+        "SSZ3" : 0.3923,                    // Variation of distance s/R0 with camber         
+        "SSZ4" : -0.16022,                  // Variation of distance s/R0 with load and camber         
+        "QTZ1" : 0.2,                       // Gyration torque constant         
+        "MBELT" : 3.5                       // Belt mass of the wheel         
+    },
+    "Overturning Coefficients": {
+        "QSX1" : 0,                         // Lateral force induced overturning moment         
+        "QSX2" : 0,                         // Camber induced overturning couple         
+        "QSX3" : 0                          // Fy induced overturning couple         
+    },
+    "Rolling Coefficients": {
+        "QSY1"                     : 0.01,  // Rolling resistance torque coefficient         
+        "QSY2"                     : 0,     // Rolling resistance torque depending on Fx         
+        "QSY3"                     : 0,     // Rolling resistance torque depending on speed         
+        "QSY4"                     : 0      // Rolling resistance torque depending on speed ^4         
+    },
+    "Visualization": {
+        "Mesh Filename Left":  "VW_microbus/van_tire.obj",
+        "Mesh Filename Right": "VW_microbus/van_tire.obj",
+        "Width": 0.185
+    }
+   }
+   ```
+
+Notes:
+- not all masses and inertia values are read from the `TIR` file and as such must be set separately. This is because the magic formula has seen numerous updates over the years and some specification files include inertia properties while other do not.
+- `TIR` files may include data in units other than SI. The Chrono parser in `Pac02Tire` applies the appropriate conversions.
+- when specifying tire parameters explicitly (option 2 above), all units **must** be SI (fortunately, most Pac02 parameters are adimensional).
+- if a parameter is not explicitly set in the JSON file, it is set to a default value of `0.0`; similarly, scaling factors not explicitly defined in the JSON file are set to a default value of `1.0`.
 
 ### [Added] New URDF parser
 
