@@ -512,7 +512,7 @@ class ChApi ChTimestepperTrapezoidalLinearized2 : public ChTimestepperIIorder, p
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
-    );
+    ) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& archive) override;

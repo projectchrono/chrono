@@ -72,7 +72,7 @@ enum class ArchiveType {
 
 
 
-void assemble_fourbar(ChSystem& system){
+void assemble_fourbar(ChSystemNSC& system){
     system.Set_G_acc(ChVector<>(0, -9.81, 0));
 
     // Joint coords
@@ -125,7 +125,7 @@ void assemble_fourbar(ChSystem& system){
 
 
 
-void assemble_pendulum(ChSystem& system){
+void assemble_pendulum(ChSystemNSC& system){
 
     system.Set_G_acc(ChVector<>(0.0, -9.81, 0.0));
 
@@ -151,7 +151,7 @@ void assemble_pendulum(ChSystem& system){
 
 }
 
-void assemble_gear_and_pulleys(ChSystem& sys){
+void assemble_gear_and_pulleys(ChSystemNSC& sys){
 
 
         sys.Set_G_acc(ChVector<>(0, -10, 0));
@@ -214,7 +214,7 @@ void assemble_gear_and_pulleys(ChSystem& sys){
 }
 
 
-void assemble_pendulum_visual(ChSystem& system){
+void assemble_pendulum_visual(ChSystemNSC& system){
 
     system.Set_G_acc(ChVector<>(0.0, -9.81, 0.0));
 
@@ -254,7 +254,7 @@ void assemble_pendulum_visual(ChSystem& system){
 }
 
 
-void create_test(std::function<void(ChSystem&)> assembler_fun, ArchiveType outtype, std::string outputfilename = ""){
+void create_test(std::function<void(ChSystemNSC&)> assembler_fun, ArchiveType outtype, std::string outputfilename = ""){
     std::string outputfile;
     if (outputfilename.compare("") == 0)
         outputfile = std::string(::testing::UnitTest::GetInstance()->current_test_suite()->name()) + "_" + std::string(::testing::UnitTest::GetInstance()->current_test_info()->name());
@@ -354,7 +354,67 @@ void create_test(std::function<void(ChSystem&)> assembler_fun, ArchiveType outty
     }
 }
 
+TEST(ChArchiveJSON, Pendulum){
 
+    double timestep = 0.01;
+    int step_num = 2000;
+
+    std::shared_ptr<ChState> state_before_archive;
+    std::shared_ptr<ChState> state_after_archive;
+
+    {
+
+        ChSystemNSC system;
+        system.Set_G_acc(ChVector<>(0.0, -9.81, 0.0));
+
+        auto floor = chrono_types::make_shared<ChBody>();
+        floor->SetBodyFixed(true);
+        floor->SetName("floor");
+        floor->SetIdentifier(100);
+        system.Add(floor);
+
+
+        auto moving_body = chrono_types::make_shared<ChBody>();
+        moving_body->SetPos(ChVector<>(1.0, -1.0, 1.0));
+        moving_body->SetName("moving_body");
+        moving_body->SetIdentifier(101);
+        system.Add(moving_body);
+
+        ChStreamOutAsciiFile mfileo((outputfile + std::string(".json")).c_str());
+        ChArchiveOutJSON marchiveout(mfileo);
+        marchiveout << CHNVP(system);
+    
+
+        state_before_archive = chrono_types::make_shared<ChState>(system.GetNcoords_x(), &system);
+        auto state_delta_dummy = chrono_types::make_shared<ChStateDelta>(system.GetNcoords_w(), &system);
+        double time_dummy;
+        system.StateGather(*state_before_archive, *state_delta_dummy, time_dummy);
+
+    }
+
+    ChStreamInAsciiFile mfilei((outputfile + std::string(".json")).c_str());
+    ChArchiveInJSON marchivein(mfilei);
+
+    ChSystemNSC system;
+    marchivein >> CHNVP(system);
+    
+
+    // Simulation loop
+    for (int step = 0; step<step_num; ++step) {
+        system.DoStepDynamics(timestep);
+    }
+
+    state_after_archive = chrono_types::make_shared<ChState>(system.GetNcoords_x(), &system);
+    auto state_delta_dummy = chrono_types::make_shared<ChStateDelta>(system.GetNcoords_w(), &system);
+    double time_dummy;
+    system.StateGather(*state_after_archive, *state_delta_dummy, time_dummy);
+
+    ASSERT_EQ(state_before_archive->size(), state_after_archive->size());
+
+    for (auto i = 0; i < state_before_archive->size(); ++i){
+        ASSERT_NEAR(state_before_archive->data()[i], state_after_archive->data()[i], ABS_ERR);
+    }
+}
 
 
 TEST(ChArchiveJSON, Fourbar){

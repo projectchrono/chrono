@@ -1085,10 +1085,9 @@ class  ChArchiveOut : public ChArchive {
           T* mptr = bVal.value().get();
           void* idptr = getVoidPointer<T>(mptr);
 
-          if (this->cut_all_pointers)
-              mptr = nullptr;
-          if (this->cut_pointers.find(idptr) != this->cut_pointers.end())
-              mptr = nullptr;
+          if (this->cut_all_pointers || this->cut_pointers.find(idptr) != this->cut_pointers.end())
+              return;
+
           bool already_stored = false;
           size_t obj_ID = 0; 
           size_t ext_ID = 0;
@@ -1114,10 +1113,9 @@ class  ChArchiveOut : public ChArchive {
           T* mptr = bVal.value();
           void* idptr = getVoidPointer<T>(mptr);
 
-          if (this->cut_all_pointers)
-              mptr = 0;
-          if (this->cut_pointers.find(idptr) != this->cut_pointers.end())
-              mptr = 0;
+          if (this->cut_all_pointers || this->cut_pointers.find(idptr) != this->cut_pointers.end())
+              return;
+
 
           bool already_stored = false;  
           size_t obj_ID = 0; 
