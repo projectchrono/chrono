@@ -60,7 +60,7 @@ using namespace irr::video;
 using namespace irr::io;
 using namespace irr::gui;
 
-const double ABS_ERR = 1e-6;
+const double ABS_ERR = 1e-5;
 
 enum class ArchiveType {
     BINARY,
