@@ -658,7 +658,7 @@ namespace class_factory { \
         std::string(#FROM), std::type_index(typeid(FROM*)), \
         std::string(#TO), std::type_index(typeid(TO*)), \
         [](void* vptr) { return static_cast<void*>(static_cast<TO*>(reinterpret_cast<FROM*>(vptr))); }, \
-        [](std::shared_ptr<void> vptr) { return std::static_pointer_cast<void>(std::static_pointer_cast<TO>(std::reinterpret_pointer_cast<FROM>(vptr))); });\
+        [](std::shared_ptr<void> vptr) { return std::static_pointer_cast<void>(std::static_pointer_cast<TO>(std::static_pointer_cast<FROM>(vptr))); });\
 }
 
 #define CH_CASTING_PARENT_SANITIZED(FROM, TO, UNIQUETAG) \
@@ -667,7 +667,7 @@ namespace class_factory { \
         std::string(#FROM), std::type_index(typeid(FROM*)), \
         std::string(#TO), std::type_index(typeid(TO*)), \
         [](void* vptr) { return static_cast<void*>(static_cast<TO*>(reinterpret_cast<FROM*>(vptr))); }, \
-        [](std::shared_ptr<void> vptr) { return std::static_pointer_cast<void>(std::static_pointer_cast<TO>(std::reinterpret_pointer_cast<FROM>(vptr))); });\
+        [](std::shared_ptr<void> vptr) { return std::static_pointer_cast<void>(std::static_pointer_cast<TO>(std::static_pointer_cast<FROM>(vptr))); });\
 }
 
 // Class version registration 
