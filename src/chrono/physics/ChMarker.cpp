@@ -340,7 +340,8 @@ void ChMarker::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(motion_ang);
     marchive >> CHNVP(motion_axis);
     marchive >> CHNVP(Body);
-    UpdateState(); // takes care of abs_frame
+    UpdateState(); // updates the ChMarker::abs_frame first
+    Impose_Abs_Coord(this->GetAbsCoord()); // from ChMarker::abs_frame update ChMarker::rest_coord and ChFrame::coord
 
 }
 
