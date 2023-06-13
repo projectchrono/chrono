@@ -22,9 +22,8 @@
 #ifndef CH_VEHCOSIM_TERRAIN_NODE_RIGID_H
 #define CH_VEHCOSIM_TERRAIN_NODE_RIGID_H
 
-#include "chrono/ChConfig.h"
+#include "chrono/physics/ChSystem.h"
 #include "chrono/assets/ChVisualSystem.h"
-#include "chrono_multicore/physics/ChSystemMulticore.h"
 
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeChrono.h"
 
@@ -81,7 +80,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerra
     virtual void OnInitialize(unsigned int num_objects) override;
 
   private:
-    ChSystemMulticore* m_system;             ///< containing system
+    ChSystem* m_system;                      ///< containing system
     double m_radius_p;                       ///< radius for a proxy body
     std::shared_ptr<ChVisualSystem> m_vsys;  ///< run-time visualization system
 
@@ -103,7 +102,6 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerra
     virtual void UpdateRigidProxy(unsigned int i, BodyState& rigid_state) override;
     virtual void GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) override;
 
-    virtual void OnAdvance(double step_size) override;
     virtual void OnRender() override;
 };
 

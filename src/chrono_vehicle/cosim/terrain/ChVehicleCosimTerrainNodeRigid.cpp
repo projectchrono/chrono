@@ -23,6 +23,9 @@
 #include <cmath>
 #include <set>
 
+#include "chrono/physics/ChSystemSMC.h"
+#include "chrono/physics/ChSystemNSC.h"
+
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
@@ -66,32 +69,18 @@ ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(double length, do
     // Create system and set default method-specific solver settings
     switch (m_method) {
         case ChContactMethod::SMC: {
-            ChSystemMulticoreSMC* sys = new ChSystemMulticoreSMC;
-            sys->GetSettings()->solver.contact_force_model = ChSystemSMC::Hertz;
-            sys->GetSettings()->solver.tangential_displ_mode = ChSystemSMC::TangentialDisplacementModel::OneStep;
-            sys->GetSettings()->solver.use_material_properties = true;
+            ChSystemSMC* sys = new ChSystemSMC;
             m_system = sys;
             break;
         }
         case ChContactMethod::NSC: {
-            ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC;
-            sys->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
-            sys->GetSettings()->solver.max_iteration_normal = 0;
-            sys->GetSettings()->solver.max_iteration_sliding = 200;
-            sys->GetSettings()->solver.max_iteration_spinning = 0;
-            sys->GetSettings()->solver.alpha = 0;
-            sys->GetSettings()->solver.contact_recovery_speed = -1;
-            sys->GetSettings()->collision.collision_envelope = 0.001;
-            sys->ChangeSolverType(SolverType::APGD);
+            ChSystemNSC* sys = new ChSystemNSC;
             m_system = sys;
             break;
         }
     }
 
-    // Solver settings independent of method type
     m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
-
-    // Set number of threads
     m_system->SetNumThreads(1);
 }
 
@@ -100,32 +89,18 @@ ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(ChContactMethod m
     // Create system and set default method-specific solver settings
     switch (m_method) {
         case ChContactMethod::SMC: {
-            ChSystemMulticoreSMC* sys = new ChSystemMulticoreSMC;
-            sys->GetSettings()->solver.contact_force_model = ChSystemSMC::Hertz;
-            sys->GetSettings()->solver.tangential_displ_mode = ChSystemSMC::TangentialDisplacementModel::OneStep;
-            sys->GetSettings()->solver.use_material_properties = true;
+            ChSystemSMC* sys = new ChSystemSMC;
             m_system = sys;
             break;
         }
         case ChContactMethod::NSC: {
-            ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC;
-            sys->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
-            sys->GetSettings()->solver.max_iteration_normal = 0;
-            sys->GetSettings()->solver.max_iteration_sliding = 200;
-            sys->GetSettings()->solver.max_iteration_spinning = 0;
-            sys->GetSettings()->solver.alpha = 0;
-            sys->GetSettings()->solver.contact_recovery_speed = -1;
-            sys->GetSettings()->collision.collision_envelope = 0.001;
-            sys->ChangeSolverType(SolverType::APGD);
+            ChSystemNSC* sys = new ChSystemNSC;
             m_system = sys;
             break;
         }
     }
 
-    // Solver settings independent of method type
     m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
-
-    // Set number of threads
     m_system->SetNumThreads(1);
 
     // Read rigid terrain parameters from provided specfile
@@ -170,26 +145,26 @@ void ChVehicleCosimTerrainNodeRigid::SetFromSpecfile(const std::string& specfile
     }
 
     if (m_system->GetContactMethod() == ChContactMethod::SMC) {
-        std::string n_model = d["Simulation settings"]["Normal contact model"].GetString();
+        auto sysSMC = static_cast<ChSystemSMC*>(m_system);  
+      std::string n_model = d["Simulation settings"]["Normal contact model"].GetString();
         if (n_model.compare("Hertz") == 0)
-            m_system->GetSettings()->solver.contact_force_model = ChSystemSMC::ContactForceModel::Hertz;
+            sysSMC->SetContactForceModel(ChSystemSMC::ContactForceModel::Hertz);
         else if (n_model.compare("Hooke") == 0)
-            m_system->GetSettings()->solver.contact_force_model = ChSystemSMC::ContactForceModel::Hooke;
+            sysSMC->SetContactForceModel(ChSystemSMC::ContactForceModel::Hooke);
         else if (n_model.compare("Flores") == 0)
-            m_system->GetSettings()->solver.contact_force_model = ChSystemSMC::ContactForceModel::Flores;
+            sysSMC->SetContactForceModel(ChSystemSMC::ContactForceModel::Flores);
         else if (n_model.compare("Hertz") == 0)
-            m_system->GetSettings()->solver.contact_force_model = ChSystemSMC::ContactForceModel::PlainCoulomb;
+            sysSMC->SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
 
         std::string t_model = d["Simulation settings"]["Tangential displacement model"].GetString();
         if (t_model.compare("MultiStep") == 0)
-            m_system->GetSettings()->solver.tangential_displ_mode = ChSystemSMC::TangentialDisplacementModel::MultiStep;
+            sysSMC->SetTangentialDisplacementModel(ChSystemSMC::TangentialDisplacementModel::MultiStep);
         else if (t_model.compare("OneStep") == 0)
-            m_system->GetSettings()->solver.tangential_displ_mode = ChSystemSMC::TangentialDisplacementModel::OneStep;
+            sysSMC->SetTangentialDisplacementModel(ChSystemSMC::TangentialDisplacementModel::OneStep);
         else if (t_model.compare("None") == 0)
-            m_system->GetSettings()->solver.tangential_displ_mode = ChSystemSMC::TangentialDisplacementModel::None;
+            sysSMC->SetTangentialDisplacementModel(ChSystemSMC::TangentialDisplacementModel::None);
 
-        m_system->GetSettings()->solver.use_material_properties =
-            d["Simulation settings"]["Use material properties"].GetBool();
+        sysSMC->UseMaterialProperties(d["Simulation settings"]["Use material properties"].GetBool());
     }
 
     m_radius_p = d["Simulation settings"]["Proxy contact radius"].GetDouble();
@@ -198,12 +173,12 @@ void ChVehicleCosimTerrainNodeRigid::SetFromSpecfile(const std::string& specfile
 
 void ChVehicleCosimTerrainNodeRigid::UseMaterialProperties(bool flag) {
     assert(m_system->GetContactMethod() == ChContactMethod::SMC);
-    m_system->GetSettings()->solver.use_material_properties = flag;
+    static_cast<ChSystemSMC*>(m_system)->UseMaterialProperties(flag);
 }
 
 void ChVehicleCosimTerrainNodeRigid::SetContactForceModel(ChSystemSMC::ContactForceModel model) {
     assert(m_system->GetContactMethod() == ChContactMethod::SMC);
-    m_system->GetSettings()->solver.contact_force_model = model;
+    static_cast<ChSystemSMC*>(m_system)->SetContactForceModel(model);
 }
 
 void ChVehicleCosimTerrainNodeRigid::SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mat) {
@@ -300,9 +275,6 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
     outf << "System settings" << endl;
     outf << "   Integration step size = " << m_step_size << endl;
     outf << "   Contact method = " << (m_method == ChContactMethod::SMC ? "SMC" : "NSC") << endl;
-    outf << "   Use material properties? " << (m_system->GetSettings()->solver.use_material_properties ? "YES" : "NO")
-         << endl;
-    outf << "   Collision envelope = " << m_system->GetSettings()->collision.collision_envelope << endl;
     outf << "Patch dimensions" << endl;
     outf << "   X = " << m_dimX << "  Y = " << m_dimY << endl;
     outf << "Terrain material properties" << endl;
@@ -499,24 +471,17 @@ void ChVehicleCosimTerrainNodeRigid::GetForceRigidProxy(unsigned int i, TerrainF
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTerrainNodeRigid::OnAdvance(double step_size) {
-    ChVehicleCosimTerrainNodeChrono::OnAdvance(step_size);
-
-    // Force a calculation of cumulative contact forces for all bodies in the system
-    // (needed at the next synchronization)
-    m_system->CalculateContactForces();
-}
-
 void ChVehicleCosimTerrainNodeRigid::OnRender() {
     if (!m_vsys)
         return;
-
-    const auto& proxies = m_proxies[0];  // proxies for first object
-    ChVector<> cam_point = proxies[0].m_body->GetPos();
-    m_vsys->UpdateCamera(m_cam_pos, cam_point);
-
     if (!m_vsys->Run())
         MPI_Abort(MPI_COMM_WORLD, 1);
+
+    if (m_track) {
+        const auto& proxies = m_proxies[0];  // proxies for first object
+        ChVector<> cam_point = proxies[0].m_body->GetPos();
+        m_vsys->UpdateCamera(m_cam_pos, cam_point);
+    }
 
     m_vsys->BeginScene();
     m_vsys->Render();

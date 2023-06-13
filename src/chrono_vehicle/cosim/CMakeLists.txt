@@ -54,6 +54,8 @@ set(CV_COSIM_TIRE_FILES
 set(CV_COSIM_TERRAIN_FILES
     terrain/ChVehicleCosimTerrainNodeChrono.h
     terrain/ChVehicleCosimTerrainNodeChrono.cpp
+    terrain/ChVehicleCosimTerrainNodeRigid.h
+    terrain/ChVehicleCosimTerrainNodeRigid.cpp
     terrain/ChVehicleCosimTerrainNodeSCM.h
     terrain/ChVehicleCosimTerrainNodeSCM.cpp
 )
@@ -71,8 +73,6 @@ set(CXX_FLAGS "${CH_CXX_FLAGS} ${MPI_CXX_COMPILE_FLAGS}")
 
 if(ENABLE_MODULE_MULTICORE)
   set(CV_COSIM_TERRAIN_FILES ${CV_COSIM_TERRAIN_FILES}
-      terrain/ChVehicleCosimTerrainNodeRigid.h
-      terrain/ChVehicleCosimTerrainNodeRigid.cpp
       terrain/ChVehicleCosimTerrainNodeGranularOMP.h
       terrain/ChVehicleCosimTerrainNodeGranularOMP.cpp)
   source_group("terrain" FILES)

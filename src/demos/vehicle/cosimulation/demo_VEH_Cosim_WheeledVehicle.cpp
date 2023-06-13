@@ -32,10 +32,8 @@
 
 #include "chrono_vehicle/cosim/mbs/ChVehicleCosimWheeledVehicleNode.h"
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeRigid.h"
+#include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeRigid.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeSCM.h"
-#ifdef CHRONO_MULTICORE
-    #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeRigid.h"
-#endif
 
 using std::cout;
 using std::cin;
@@ -247,7 +245,6 @@ int main(int argc, char** argv) {
         switch (terrain_type) {
             default:
             case ChVehicleCosimTerrainNodeChrono::Type::RIGID: {
-#ifdef CHRONO_MULTICORE
                 auto method = ChContactMethod::SMC;
                 auto terrain = new ChVehicleCosimTerrainNodeRigid(method, vehicle::GetDataFile(terrain_specfile));
                 terrain->SetDimensions(terrain_length, terrain_width);
@@ -263,7 +260,6 @@ int main(int argc, char** argv) {
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
                 node = terrain;
-#endif
                 break;
             }
 

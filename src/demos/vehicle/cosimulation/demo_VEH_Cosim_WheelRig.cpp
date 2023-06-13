@@ -32,9 +32,9 @@
 #include "chrono_vehicle/cosim/mbs/ChVehicleCosimRigNode.h"
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeRigid.h"
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeFlexible.h"
+#include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeRigid.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeSCM.h"
 #ifdef CHRONO_MULTICORE
-    #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeRigid.h"
     #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularOMP.h"
 #endif
 #ifdef CHRONO_FSI
@@ -171,10 +171,9 @@ int main(int argc, char** argv) {
 
 // Check if required modules are enabled
 #ifndef CHRONO_MULTICORE
-    if (terrain_type == ChVehicleCosimTerrainNodeChrono::Type::RIGID ||
-        terrain_type == ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_OMP) {
+    if (terrain_type == ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_OMP) {
         if (rank == 0)
-            cout << "Chrono::Multicore is required for RIGID or GRANULAR_OMP terrain type!" << endl;
+            cout << "Chrono::Multicore is required for GRANULAR_OMP terrain type!" << endl;
         MPI_Abort(MPI_COMM_WORLD, 1);
         return 1;
     }
@@ -290,7 +289,6 @@ int main(int argc, char** argv) {
 
         switch (terrain_type) {
             case ChVehicleCosimTerrainNodeChrono::Type::RIGID: {
-#ifdef CHRONO_MULTICORE
                 auto method = ChContactMethod::SMC;
                 auto terrain = new ChVehicleCosimTerrainNodeRigid(method, terrain_specfile);
                 terrain->SetDimensions(terrain_length, terrain_width);
@@ -306,7 +304,6 @@ int main(int argc, char** argv) {
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
                 node = terrain;
-#endif
                 break;
             }
 
