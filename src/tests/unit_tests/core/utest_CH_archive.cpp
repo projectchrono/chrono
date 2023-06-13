@@ -41,7 +41,7 @@
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 
 
-
+#ifdef CHRONO_IRRLICHT
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
@@ -59,6 +59,8 @@ using namespace irr::scene;
 using namespace irr::video;
 using namespace irr::io;
 using namespace irr::gui;
+
+#endif
 
 const double ABS_ERR = 1e-5;
 
