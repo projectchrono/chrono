@@ -21,7 +21,7 @@
   "Idler":
   {
       "Input File":           "M113_RS/idler/M113_DoubleIdler_Translational_Right.json",
-      "Location":             [3.83, 0, -0.12]
+      "Location":             [4.00, 0, -0.12]
   },
 
   "Suspension Subsystems":

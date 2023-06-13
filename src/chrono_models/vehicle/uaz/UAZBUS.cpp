@@ -142,6 +142,8 @@ void UAZBUS::Initialize() {
             break;
         }
 
+        default:
+            GetLog() << "Unsupported Tire Model Type! Switching to TMeasy.\n";
         case TireModelType::TMEASY: {
             auto tire_FL = chrono_types::make_shared<UAZBUS_TMeasyTireFront>("FL");
             auto tire_FR = chrono_types::make_shared<UAZBUS_TMeasyTireFront>("FR");
@@ -157,7 +159,6 @@ void UAZBUS::Initialize() {
 
             break;
         }
-
         case TireModelType::PAC02: {
             auto tire_FL = chrono_types::make_shared<UAZBUS_Pac02Tire>("FL");
             auto tire_FR = chrono_types::make_shared<UAZBUS_Pac02Tire>("FR");
@@ -173,9 +174,6 @@ void UAZBUS::Initialize() {
 
             break;
         }
-
-        default:
-            break;
     }
 
     for (auto& axle : m_vehicle->GetAxles()) {

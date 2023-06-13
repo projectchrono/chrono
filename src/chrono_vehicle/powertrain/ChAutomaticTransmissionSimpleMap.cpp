@@ -24,7 +24,7 @@ namespace chrono {
 namespace vehicle {
 
 ChAutomaticTransmissionSimpleMap::ChAutomaticTransmissionSimpleMap(const std::string& name)
-    : ChTransmission(name), m_motorshaft_speed(0), m_driveshaft_torque(0) {}
+    : ChAutomaticTransmission(name), m_motorshaft_speed(0), m_driveshaft_torque(0) {}
 
 void ChAutomaticTransmissionSimpleMap::Initialize(std::shared_ptr<ChChassis> chassis) {
     ChTransmission::Initialize(chassis);
@@ -43,7 +43,7 @@ void ChAutomaticTransmissionSimpleMap::Synchronize(double time,
                                                    double motorshaft_torque,
                                                    double driveshaft_speed) {
     // Automatic gear selection (based on ideal shift points) for current motorshaft speed
-    if (m_mode == Mode::AUTOMATIC && m_drive_mode == DriveMode::FORWARD && m_current_gear > 0) {
+    if (m_shift_mode == ShiftMode::AUTOMATIC && m_drive_mode == DriveMode::FORWARD && m_current_gear > 0) {
         if ((m_current_gear < (m_gear_ratios.size() - 1)) &&
             (m_motorshaft_speed > m_shift_points[m_current_gear - 1].second)) {
             SetGear(m_current_gear + 1);

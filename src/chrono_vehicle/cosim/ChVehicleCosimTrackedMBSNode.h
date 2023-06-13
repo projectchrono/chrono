@@ -102,11 +102,11 @@ class CH_VEHICLE_API ChVehicleCosimTrackedMBSNode : public ChVehicleCosimBaseNod
 
     /// Perform any required operations before advancing the state of the MBS.
     /// This function is called before every integration step.
-    virtual void PreAdvance() {}
+    virtual void PreAdvance(double step_size) {}
 
     /// Perform any required operations after advancing the state of the MBS.
     /// This function is called after every integration step.
-    virtual void PostAdvance() {}
+    virtual void PostAdvance(double step_size) {}
 
     /// Perform additional output at the specified frame (called from within OutputData).
     /// For example, output mechanism-specific data for post-procesing.
@@ -153,6 +153,7 @@ class CH_VEHICLE_API ChVehicleCosimTrackedMBSNode : public ChVehicleCosimBaseNod
     std::ofstream m_DBP_outf;                         ///< DBP output file stream
 
   private:
+    virtual ChSystem* GetSystemPostprocess() const override { return m_system; }
     void InitializeSystem();
 
     bool m_fix_chassis;

@@ -12,10 +12,10 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Demo for wheeled vehicle cosimulation on SCM terrain.
-// The vehicle (specified through a pair of JSON files, one for the vehicle
-// itself, the other for the powertrain) is co-simulated with an SCM terrain
-// node and a number of tire nodes equal to the number of wheels.
+// Demo for wheeled vehicle cosimulation on SCM or rigid terrain.
+// The vehicle (specified through JSON files, for the vehicle, engine,
+// and transmission, is co-simulated with a terrain node and a number of rigid
+// tire nodes equal to the number of wheels.
 //
 // Global reference frame: Z up, X towards the front, and Y pointing to the left
 //
@@ -32,11 +32,8 @@
 
 #include "chrono_vehicle/cosim/mbs/ChVehicleCosimWheeledVehicleNode.h"
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeRigid.h"
+#include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeRigid.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeSCM.h"
-
-#include "chrono_models/vehicle/hmmwv/HMMWV_VehicleFull.h"
-#include "chrono_models/vehicle/hmmwv/powertrain/HMMWV_EngineSimpleMap.h"
-#include "chrono_models/vehicle/hmmwv/powertrain/HMMWV_AutomaticTransmissionSimpleMap.h"
 
 using std::cout;
 using std::cin;
@@ -44,6 +41,48 @@ using std::endl;
 
 using namespace chrono;
 using namespace chrono::vehicle;
+
+// =============================================================================
+// Specification of a vehicle model from JSON files
+
+class Vehicle_Model {
+  public:
+    virtual std::string ModelName() const = 0;
+    virtual std::string VehicleJSON() const = 0;
+    virtual std::string TireJSON() const = 0;
+    virtual std::string EngineJSON() const = 0;
+    virtual std::string TransmissionJSON() const = 0;
+};
+
+class HMMWV_Model : public Vehicle_Model {
+  public:
+    virtual std::string ModelName() const override { return "HMMWV"; }
+    virtual std::string VehicleJSON() const override { return "hmmwv/vehicle/HMMWV_Vehicle.json"; }
+    virtual std::string TireJSON() const override { return "hmmwv/tire/HMMWV_RigidMeshTire_Coarse.json"; }
+    virtual std::string EngineJSON() const override { return "hmmwv/powertrain/HMMWV_EngineShafts.json"; }
+    virtual std::string TransmissionJSON() const override {
+        return "hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json";
+    }
+};
+
+class Polaris_Model : public Vehicle_Model {
+  public:
+    virtual std::string ModelName() const override { return "Polaris"; }
+    virtual std::string VehicleJSON() const override { return "Polaris/Polaris.json"; }
+    virtual std::string TireJSON() const override { return "Polaris/Polaris_RigidMeshTire.json"; }
+    virtual std::string EngineJSON() const override { return "Polaris/Polaris_EngineSimpleMap.json"; }
+    virtual std::string TransmissionJSON() const override {
+        return "Polaris/Polaris_AutomaticTransmissionSimpleMap.json";
+    }
+};
+
+auto vehicle_model = Polaris_Model();
+
+// =============================================================================
+// Specification of a terrain model from JSON file
+
+std::string terrain_specfile = "cosim/terrain/scm_soft.json";
+////std::string terrain_specfile = "cosim/terrain/rigid.json";
 
 // =============================================================================
 
@@ -110,16 +149,14 @@ int main(int argc, char** argv) {
 
     // Simulation parameters
     double step_size = 1e-3;
+    int nthreads_terrain = 4;
     double sim_time = 20;
     double output_fps = 100;
     double render_fps = 100;
-    bool render = true;
+    bool renderRT = true;
+    bool renderPP = false;
     std::string suffix = "";
     bool verbose = true;
-
-    // If use_JSON_spec=true, use a HMMWV model specified through JSON files.
-    // If use_JSON_spec=false, use a FEDA model from the Chrono::Vehicle model library
-    bool use_JSON_spec = true;
 
     // If use_DBP_rig=true, attach a drawbar pull rig to the vehicle
     bool use_DBP_rig = false;
@@ -151,6 +188,18 @@ int main(int argc, char** argv) {
     // Initialize co-simulation framework (specify 4 tire nodes).
     cosim::InitializeFramework(4);
 
+    // Peek in spec file and extract terrain type
+    auto terrain_type = ChVehicleCosimTerrainNodeChrono::GetTypeFromSpecfile(vehicle::GetDataFile(terrain_specfile));
+    if (terrain_type != ChVehicleCosimTerrainNodeChrono::Type::RIGID &&
+        terrain_type != ChVehicleCosimTerrainNodeChrono::Type::SCM) {
+        if (rank == 0)
+            cout << "\n\nTerrain type " << ChVehicleCosimTerrainNodeChrono::GetTypeAsString(terrain_type)
+                 << " NOT supported.\nUse Rigid or SCM.\n\n " << endl;
+
+        MPI_Finalize();
+        return 1;
+    }
+
     // Create the node (vehicle, terrain, or tire node, depending on rank).
     ChVehicleCosimBaseNode* node = nullptr;
 
@@ -159,21 +208,9 @@ int main(int argc, char** argv) {
             cout << "[Vehicle node] rank = " << rank << " running on: " << procname << endl;
 
         ChVehicleCosimWheeledVehicleNode* vehicle;
-        if (use_JSON_spec) {
-            vehicle = new ChVehicleCosimWheeledVehicleNode(
-                vehicle::GetDataFile("hmmwv/vehicle/HMMWV_Vehicle.json"),
-                vehicle::GetDataFile("hmmwv/powertrain/HMMWV_EngineShafts.json"),
-                vehicle::GetDataFile("hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json"));
-        } else {
-            auto hmmwv_vehicle = chrono_types::make_shared<hmmwv::HMMWV_VehicleFull>(
-                nullptr, false, DrivelineTypeWV::AWD, BrakeType::SIMPLE, SteeringTypeWV::PITMAN_ARM, false, true,
-                CollisionType::NONE);
-            auto hmmwv_engine = chrono_types::make_shared<hmmwv::HMMWV_EngineSimpleMap>("Engine");
-            auto hmmwv_transmission =
-                chrono_types::make_shared<hmmwv::HMMWV_AutomaticTransmissionSimpleMap>("Transmission");
-            auto hmmwv_powertrain = chrono_types::make_shared<ChPowertrainAssembly>(hmmwv_engine, hmmwv_transmission);
-            vehicle = new ChVehicleCosimWheeledVehicleNode(hmmwv_vehicle, hmmwv_powertrain);
-        }
+        vehicle = new ChVehicleCosimWheeledVehicleNode(vehicle::GetDataFile(vehicle_model.VehicleJSON()),
+                                                       vehicle::GetDataFile(vehicle_model.EngineJSON()),
+                                                       vehicle::GetDataFile(vehicle_model.TransmissionJSON()));
 
         if (use_DBP_rig) {
             auto act_type = ChVehicleCosimDBPRigImposedSlip::ActuationType::SET_ANG_VEL;
@@ -191,6 +228,11 @@ int main(int argc, char** argv) {
         vehicle->SetStepSize(step_size);
         vehicle->SetNumThreads(1);
         vehicle->SetOutDir(out_dir, suffix);
+        if (renderRT)
+            vehicle->EnableRuntimeVisualization(render_fps);
+        if (renderPP)
+            vehicle->EnablePostprocessVisualization(render_fps);
+        vehicle->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
         if (verbose)
             cout << "[Vehicle node] output directory: " << vehicle->GetOutDirName() << endl;
 
@@ -200,29 +242,56 @@ int main(int argc, char** argv) {
         if (verbose)
             cout << "[Terrain node] rank = " << rank << " running on: " << procname << endl;
 
-        auto terrain = new ChVehicleCosimTerrainNodeSCM(vehicle::GetDataFile("cosim/terrain/scm_soft.json"));
-        terrain->SetDimensions(terrain_length, terrain_width);
-        terrain->SetVerbose(verbose);
-        terrain->SetStepSize(step_size);
-        terrain->SetNumThreads(2);
-        terrain->SetOutDir(out_dir, suffix);
-        terrain->EnableRuntimeVisualization(render, render_fps);
-        if (verbose)
-            cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
+        switch (terrain_type) {
+            default:
+            case ChVehicleCosimTerrainNodeChrono::Type::RIGID: {
+                auto method = ChContactMethod::SMC;
+                auto terrain = new ChVehicleCosimTerrainNodeRigid(method, vehicle::GetDataFile(terrain_specfile));
+                terrain->SetDimensions(terrain_length, terrain_width);
+                terrain->SetVerbose(verbose);
+                terrain->SetStepSize(step_size);
+                terrain->SetOutDir(out_dir, suffix);
+                if (renderRT)
+                    terrain->EnableRuntimeVisualization(render_fps);
+                if (renderPP)
+                    terrain->EnablePostprocessVisualization(render_fps);
+                terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
+                if (verbose)
+                    cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
-        node = terrain;
+                node = terrain;
+                break;
+            }
 
+            case ChVehicleCosimTerrainNodeChrono::Type::SCM: {
+                auto terrain = new ChVehicleCosimTerrainNodeSCM(vehicle::GetDataFile(terrain_specfile));
+                terrain->SetDimensions(terrain_length, terrain_width);
+                terrain->SetVerbose(verbose);
+                terrain->SetStepSize(step_size);
+                terrain->SetNumThreads(nthreads_terrain);
+                terrain->SetOutDir(out_dir, suffix);
+                if (renderRT)
+                    terrain->EnableRuntimeVisualization(render_fps);
+                if (renderPP)
+                    terrain->EnablePostprocessVisualization(render_fps);
+                terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
+                if (verbose)
+                    cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
+
+                node = terrain;
+                break;
+            }
+        }
     } else {
         if (verbose)
             cout << "[Tire node   ] rank = " << rank << " running on: " << procname << endl;
 
-        auto tire = new ChVehicleCosimTireNodeRigid(rank - 2);
-        tire->SetTireFromSpecfile(vehicle::GetDataFile("hmmwv/tire/HMMWV_RigidMeshTire_Coarse.json"));
+        auto tire = new ChVehicleCosimTireNodeRigid(rank - 2, vehicle::GetDataFile(vehicle_model.TireJSON()));
         tire->SetVerbose(verbose);
         tire->SetStepSize(step_size);
         tire->SetNumThreads(1);
         tire->SetOutDir(out_dir, suffix);
-
+        tire->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
         node = tire;
     }
 

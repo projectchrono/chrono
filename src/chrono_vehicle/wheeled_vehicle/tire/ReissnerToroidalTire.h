@@ -48,7 +48,7 @@ class CH_VEHICLE_API ReissnerToroidalTire : public ChReissnerTire {
 
     void SetContactMaterial(std::shared_ptr<ChMaterialSurfaceSMC> mat) { m_mat = mat; }
 
-    void SetPressure(double pressure_) { m_default_pressure = pressure_; }
+    void SetDefaultPressure(double pressure_) { m_default_pressure = pressure_; }
     void SetAlpha(double alpha_) { m_alpha = alpha_; }
     virtual void CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) override;
 

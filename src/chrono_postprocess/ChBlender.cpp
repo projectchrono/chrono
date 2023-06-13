@@ -85,6 +85,7 @@ ChBlender::ChBlender(ChSystem* system) : ChPostProcessBase(system) {
     contacts_vector_tip = true;
     wireframe_thickness = 0.001;
     single_asset_file = true;
+    rank = -1;
 
     SetBlenderUp_is_ChronoY();
 }
@@ -249,6 +250,14 @@ void ChBlender::SetShowContactsSpheres(
     this->contacts_colormap_endscale = colormap_end;
 }
 
+const std::string ChBlender::unique_bl_id(size_t mpointer) const {
+    if (this->rank == -1)
+        return std::to_string(mpointer);
+    else
+        return std::to_string(this->rank) + "_" + std::to_string(mpointer);
+}
+
+
 void ChBlender::ExportScript(const std::string& filename) {
     // Regenerate the list of objects that need Blender rendering
     UpdateRenderList();
@@ -394,7 +403,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
         // Export shape materials
         ExportMaterials(*mfile, *m_materials, shape->GetMaterials(), per_frame, shape);
 
-        std::string shapename("shape_" + std::to_string((size_t)shape.get()));
+        std::string shapename("shape_" + unique_bl_id((size_t)shape.get()));
 
         // Do nothing if the shape was already processed (because it is shared)
         // Otherwise, add the shape to the cache list and process it
@@ -575,7 +584,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
                 *mfile << "add_mesh_data_vectors(new_object, colors, 'chrono_color', mdomain='POINT') \n";
 
                 *mfile << "property = setup_property_color(meshsetting, 'chrono_color', matname='mat_"
-                       << std::to_string((size_t)shape.get()).c_str() << "_col')\n";
+                       << unique_bl_id((size_t)shape.get()).c_str() << "_col')\n";
                 *mfile << "mat = update_meshsetting_color_material(new_object,meshsetting, 'chrono_color')\n";
             }
 
@@ -591,7 +600,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
 
                     *mfile << "property = setup_property_scalar(meshsetting, '" << mprop_scalar->name.c_str()
                            << "',min=" << mprop_scalar->min << ", max=" << mprop_scalar->max << ", matname='mat_"
-                           << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_scalar->name.c_str()
+                           << unique_bl_id((size_t)shape.get()).c_str() << "_" << mprop_scalar->name.c_str()
                            << "')\n";
                     *mfile << "mat = update_meshsetting_falsecolor_material(new_object,meshsetting, '"
                            << mprop_scalar->name.c_str() << "')\n";
@@ -608,7 +617,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
 
                     *mfile << "property = setup_property_vector(meshsetting, '" << mprop_vectors->name.c_str()
                            << "',min=" << mprop_vectors->min << ", max=" << mprop_vectors->max << ", matname='mat_"
-                           << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_vectors->name.c_str()
+                           << unique_bl_id((size_t)shape.get()).c_str() << "_" << mprop_vectors->name.c_str()
                            << "')\n";
                     *mfile << "mat = update_meshsetting_falsecolor_material(new_object,meshsetting, '"
                            << mprop_vectors->name.c_str() << "')\n";
@@ -626,7 +635,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
 
                     *mfile << "property = setup_property_scalar(meshsetting, '" << mprop_scalar->name.c_str()
                            << "',min=" << mprop_scalar->min << ", max=" << mprop_scalar->max << ", matname='mat_"
-                           << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_scalar->name.c_str()
+                           << unique_bl_id((size_t)shape.get()).c_str() << "_" << mprop_scalar->name.c_str()
                            << "')\n";
                     *mfile << "mat = update_meshsetting_falsecolor_material(new_object,meshsetting, '"
                            << mprop_scalar->name.c_str() << "')\n";
@@ -643,7 +652,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
 
                     *mfile << "property = setup_property_vector(meshsetting, '" << mprop_vectors->name.c_str()
                            << "',min=" << mprop_vectors->min << ", max=" << mprop_vectors->max << ", matname='mat_"
-                           << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_vectors->name.c_str()
+                           << unique_bl_id((size_t)shape.get()).c_str() << "_" << mprop_vectors->name.c_str()
                            << "')\n";
                     *mfile << "mat = update_meshsetting_falsecolor_material(new_object,meshsetting, '"
                            << mprop_vectors->name.c_str() << "')\n";
@@ -772,7 +781,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
                     *mfile << "] \n";
                     *mfile << "property = setup_property_scalar(glyphsetting, '" << mprop_scalar->name.c_str()
                            << "',min=" << mprop_scalar->min << ", max=" << mprop_scalar->max << ", matname='mat_"
-                           << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_scalar->name.c_str()
+                           << unique_bl_id((size_t)shape.get()).c_str() << "_" << mprop_scalar->name.c_str()
                            << "', per_instance=True)\n";
                 }
                 if (auto mprop_vectors = dynamic_cast<ChPropertyT<ChVector<>>*>(mprop)) {
@@ -784,7 +793,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
                     *mfile << "] \n";
                     *mfile << "property = setup_property_vector(glyphsetting, '" << mprop_vectors->name.c_str()
                            << "',min=" << mprop_vectors->min << ", max=" << mprop_vectors->max << ", matname='mat_"
-                           << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_vectors->name.c_str()
+                           << unique_bl_id((size_t)shape.get()).c_str() << "_" << mprop_vectors->name.c_str()
                            << "', per_instance=True)\n";
                 }
                 if (auto mprop_rots = dynamic_cast<ChPropertyT<ChQuaternion<>>*>(mprop)) {
@@ -796,7 +805,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
                     *mfile << "] \n";
                     *mfile << "property = setup_property_quaternion(glyphsetting, '" << mprop_rots->name.c_str()
                            << "',min=" << mprop_rots->min << ", max=" << mprop_rots->max << ", matname='mat_"
-                           << std::to_string((size_t)shape.get()).c_str() << "_" << mprop_rots->name.c_str()
+                           << unique_bl_id((size_t)shape.get()).c_str() << "_" << mprop_rots->name.c_str()
                            << "', per_instance=True)\n";
                 }
                 if (auto mprop_cols = dynamic_cast<ChPropertyT<ChColor>*>(mprop)) {
@@ -807,7 +816,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
                     }
                     *mfile << "] \n";
                     *mfile << "property = setup_property_color(glyphsetting, '" << mprop_cols->name.c_str()
-                           << "', matname='mat_" << std::to_string((size_t)shape.get()).c_str() << "_"
+                           << "', matname='mat_" << unique_bl_id((size_t)shape.get()).c_str() << "_"
                            << mprop_cols->name.c_str() << "', per_instance=True)\n";
                 }
             }
@@ -887,7 +896,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
         ChStreamOutAsciiFile* mfile;
         mfile = &assets_file;
 
-        std::string cameraname("camera_" + std::to_string((size_t)camera_instance.get()));
+        std::string cameraname("camera_" + unique_bl_id((size_t)camera_instance.get()));
         *mfile << "bpy.ops.object.camera_add(enter_editmode=False, location=(0, 0, 0), scale=(1, 1, 1)) \n"
                << "new_object = bpy.context.object \n"
                << "new_object.name= '" << cameraname << "' \n"
@@ -924,7 +933,7 @@ void ChBlender::ExportMaterials(ChStreamOutAsciiFile& mfile,
             continue;
         m_materials.insert({(size_t)mat.get(), mat});
 
-        std::string matname("material_" + std::to_string((size_t)mat.get()));
+        std::string matname("material_" + unique_bl_id((size_t)mat.get()));
 
         mfile << "new_mat = make_bsdf_material('" << matname << "',";
 
@@ -1025,7 +1034,7 @@ void ChBlender::ExportItemState(ChStreamOutAsciiFile& state_file,
                 (m_blender_frame_shapes.find((size_t)shape.get()) != m_blender_frame_shapes.end())) {
                 ChVector<> aux_scale(0, 0, 0);
 
-                std::string shapename("shape_" + std::to_string((size_t)shape.get()));
+                std::string shapename("shape_" + unique_bl_id((size_t)shape.get()));
                 auto shape_frame = shape_instance.second;
 
                 // corner cases for performance reason (in case of multipe sphere asset with different radii, one
@@ -1053,7 +1062,7 @@ void ChBlender::ExportItemState(ChStreamOutAsciiFile& state_file,
                     for (int im = 0; im < shape->GetNumMaterials(); ++im) {
                         state_file << "'";
                         auto mat = shape->GetMaterial(im);
-                        std::string matname("material_" + std::to_string((size_t)mat.get()));
+                        std::string matname("material_" + unique_bl_id((size_t)mat.get()));
                         state_file << matname;
                         state_file << "',";
                     }
@@ -1089,7 +1098,7 @@ void ChBlender::ExportItemState(ChStreamOutAsciiFile& state_file,
     if (has_stored_cameras) {
         // cameras
         for (const auto& camera_instance : item->GetCameras()) {
-            std::string cameraname("camera_" + std::to_string((size_t)camera_instance.get()));
+            std::string cameraname("camera_" + unique_bl_id((size_t)camera_instance.get()));
             auto& cpos = camera_instance->GetPosition();
             ChVector<> cdirzm = camera_instance->GetAimPoint() - camera_instance->GetPosition();
             ChVector<> cdirx = Vcross(cdirzm, camera_instance->GetUpVector());

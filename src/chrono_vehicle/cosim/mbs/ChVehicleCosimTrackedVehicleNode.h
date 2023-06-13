@@ -26,6 +26,7 @@
 #include "chrono_vehicle/ChTerrain.h"
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
+#include "chrono_vehicle/ChVehicleVisualSystem.h"
 
 #include "chrono_vehicle/cosim/ChVehicleCosimTrackedMBSNode.h"
 
@@ -85,8 +86,11 @@ class CH_VEHICLE_API ChVehicleCosimTrackedVehicleNode : public ChVehicleCosimTra
     /// Output vehicle data.
     virtual void OnOutputData(int frame) override;
 
-    /// Perform vehicle system synchronization before advancing the dynamics.
-    virtual void PreAdvance() override;
+    /// Perform vehicle system operations before advancing the dynamics.
+    virtual void PreAdvance(double step_size) override;
+
+    /// Perform vehicle system operations after advancing the dynamics.
+    virtual void PostAdvance(double step_size) override;
 
     /// Process the provided track shoe force (received from the corresponding track node).
     virtual void ApplyTrackShoeForce(int track_id, int shoe_id, const TerrainForce& force) override;
@@ -117,10 +121,13 @@ class CH_VEHICLE_API ChVehicleCosimTrackedVehicleNode : public ChVehicleCosimTra
 
     void WriteBodyInformation(utils::CSV_writer& csv);
 
+    virtual void OnRender() override;
+
   private:
     std::shared_ptr<ChTrackedVehicle> m_vehicle;         ///< vehicle MBS
     std::shared_ptr<ChPowertrainAssembly> m_powertrain;  ///< vehicle powertrain
     std::shared_ptr<ChDriver> m_driver;                  ///< vehicle driver
+    std::shared_ptr<ChVehicleVisualSystem> m_vsys;       ///< run-time visualization system
 
     ChVector<> m_init_loc;  ///< initial vehicle location (relative to center of terrain top surface)
     double m_init_yaw;      ///< initial vehicle yaw

@@ -25,12 +25,9 @@
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono_fsi/ChSystemFsi.h"
+#include "chrono_fsi/visualization/ChFsiVisualization.h"
 
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeChrono.h"
-
-#ifdef CHRONO_OPENGL
-    #include "chrono_opengl/ChVisualSystemOpenGL.h"
-#endif
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
@@ -75,17 +72,22 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
     virtual void OutputVisualizationData(int frame) override final;
 
   private:
-    ChSystemSMC* m_system;          ///< containing system
-    fsi::ChSystemFsi* m_systemFSI;  ///< containing FSI system
-
-#ifdef CHRONO_OPENGL
-    opengl::ChVisualSystemOpenGL* m_vsys;  ///< OpenGL visualization system
-#endif
+    ChSystemSMC* m_system;                            ///< containing system
+    fsi::ChSystemFsi* m_systemFSI;                    ///< containing FSI system
+    std::shared_ptr<fsi::ChFsiVisualization> m_vsys;  ///< run-time visualization system
+    ChVector<> m_aabb_min;                            ///< particle AABB corner
+    ChVector<> m_aabb_max;                            ///< particle AABB corner
 
     double m_depth;  ///< SPH soil depth
 
     double m_radius_g;  ///< radius of one particle of granular material
     double m_rho_g;     ///< particle material density
+
+    virtual ChSystem* GetSystemPostprocess() const override {
+        if (m_vsys)
+            return m_vsys->GetSystem();
+        return nullptr;
+    }
 
     virtual bool SupportsMeshInterface() const override { return true; }
 
@@ -101,7 +103,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
     virtual void GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) override;
 
     virtual void OnOutputData(int frame) override;
-    virtual void Render(double time) override;
+    virtual void OnRender() override;
 
     /// Advance simulation.
     /// This function is called after a synchronization to allow the node to advance

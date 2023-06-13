@@ -33,7 +33,6 @@ ChDeformableTire::ChDeformableTire(const std::string& name)
       m_connection_enabled(true),
       m_pressure_enabled(true),
       m_contact_enabled(true),
-      m_pressure(-1),
       m_contact_type(ContactSurfaceType::NODE_CLOUD),
       m_contact_node_radius(0.001),
       m_contact_face_thickness(0.0) {}
@@ -76,7 +75,7 @@ void ChDeformableTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     // Enable tire pressure
     if (m_pressure_enabled) {
         // If pressure was not explicitly specified, fall back to the default value.
-        if (m_pressure < 0)
+        if (m_pressure <= 0)
             m_pressure = GetDefaultPressure();
 
         // Let the derived class create the pressure load and add it to the load container.
@@ -104,7 +103,9 @@ void ChDeformableTire::AddVisualizationAssets(VisualizationType vis) {
 
     m_visualization = chrono_types::make_shared<ChVisualShapeFEA>(m_mesh);
     m_visualization->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    m_visualization->SetColorscaleMinMax(0.0, 1);
+    m_visualization->SetShellResolution(3);
+    m_visualization->SetWireframe(false);
+    m_visualization->SetColorscaleMinMax(0.0, 5.0);
     m_visualization->SetSmoothFaces(true);
     m_mesh->AddVisualShapeFEA(m_visualization);
 }

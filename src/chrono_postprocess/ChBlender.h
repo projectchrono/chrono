@@ -233,6 +233,17 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     /// would allow assets whose settings change during time (ex time-changing colors)
     void SetUseSingleAssetFile(bool use) { single_asset_file = use; }
 
+    /// Se the rank of this process. This is useful when doing parallel simulations on multiple computing
+    /// nodes, each with its own ChBlender exporter, each generating .py files in different directories, and later
+    /// you want to load all them in a single Blender project: this is possible tanks to the "Merge" mode
+    /// in the Blender plugin, but there is the risk that identifiers such as "shape_149372748349" may 
+    /// be duplicated in different processes, causing conflicts after loading in Blender. To fix this, 
+    /// for example, you set rank as 1 and 2 on two processes, so the IDs will become shape_1_149372748349 shape_2_149372748349,
+    /// avoiding potential conflicts. Setting to -1 will disable the .._n_... prefix (default)
+    void SetRank(int mrank) {
+        this->rank = mrank;
+    }
+
   private:
     void UpdateRenderList();
     void ExportAssets(ChStreamOutAsciiFile& assets_file, ChStreamOutAsciiFile& state_file);
@@ -247,6 +258,8 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     void ExportItemState(ChStreamOutAsciiFile& state_file,
                          std::shared_ptr<ChPhysicsItem> item,
                          const ChFrame<>& parentframe);
+
+    const std::string unique_bl_id(size_t mpointer) const;
 
     /// List of physics items in the rendering list.
     std::unordered_set<std::shared_ptr<ChPhysicsItem>> m_items;
@@ -324,6 +337,8 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     std::string custom_data;
 
     bool single_asset_file;
+
+    int rank;
 };
 
 }  // end namespace postprocess

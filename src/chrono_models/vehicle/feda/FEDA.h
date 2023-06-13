@@ -29,6 +29,8 @@
 #include "chrono_models/vehicle/feda/FEDA_AutomaticTransmissionSimpleMap.h"
 #include "chrono_models/vehicle/feda/FEDA_RigidTire.h"
 #include "chrono_models/vehicle/feda/FEDA_Pac02Tire.h"
+#include "chrono_models/vehicle/feda/FEDA_TMsimpleTire.h"
+#include "chrono_models/vehicle/feda/FEDA_TMeasyTire.h"
 
 namespace chrono {
 namespace vehicle {
@@ -61,7 +63,7 @@ class CH_MODELS_API FEDA {
 
     void SetTireType(TireModelType val) { m_tireType = val; }
     void SetTireCollisionType(ChTire::CollisionType collType) { m_tire_collision_type = collType; }
-    void SetTirePressureLevel(unsigned int pressure_level = 2) { m_tire_pressure_level = pressure_level; }
+    void SetTirePressure(double pressure) { m_tire_pressure = pressure; }
 
     void SetInitPosition(const ChCoordsys<>& pos) { m_initPos = pos; }
     void SetInitFwdVel(double fwdVel) { m_initFwdVel = fwdVel; }
@@ -124,8 +126,7 @@ class CH_MODELS_API FEDA {
     FEDA_Vehicle* m_vehicle;
 
     double m_tire_mass;
-
-    unsigned int m_tire_pressure_level;
+    double m_tire_pressure;
 
     int m_ride_height_config;
     int m_damper_mode;

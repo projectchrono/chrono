@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,55 +9,61 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Rainer Gericke
 // =============================================================================
 //
-// Pacejka tire constructed with data from file (JSON format).
+// FEDA TMeasy tire subsystem, data converted from MFtire for 60 psi
 //
 // =============================================================================
 
-#ifndef PACEJKA_TIRE_H
-#define PACEJKA_TIRE_H
+#ifndef FEDA_TMEASY_TIRE_H
+#define FEDA_TMEASY_TIRE_H
 
-#include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/ChPacejkaTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChTMeasyTire.h"
 
-#include "chrono_thirdparty/rapidjson/document.h"
+#include "chrono_models/ChApiModels.h"
 
 namespace chrono {
 namespace vehicle {
+namespace feda {
 
-/// @addtogroup vehicle_wheeled_tire
+/// @addtogroup vehicle_models_U401
 /// @{
 
-/// Pacejka tire constructed with data from file (JSON format).
-class CH_VEHICLE_API PacejkaTire : public ChPacejkaTire {
-  public:
-    PacejkaTire(const std::string& filename);
-    PacejkaTire(const rapidjson::Document& d);
-    ~PacejkaTire() {}
+/// TMeasy tire model for the U401.
+class CH_MODELS_API FEDA_TMeasyTire : public ChTMeasyTire {
+   public:
+    FEDA_TMeasyTire(const std::string& name);
+    ~FEDA_TMeasyTire() {}
 
+    virtual double GetVisualizationWidth() const override { return m_width; }
+
+    virtual void SetTMeasyParams() override;
     virtual double GetTireMass() const override { return m_mass; }
     virtual ChVector<> GetTireInertia() const override { return m_inertia; }
 
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;
 
-  private:
-    virtual void Create(const rapidjson::Document& d) override;
+    void GenerateCharacteristicPlots(const std::string& dirname);
 
-    double m_mass;
-    ChVector<> m_inertia;
+   private:
+    static const double m_mass;
+    static const ChVector<> m_inertia;
 
-    bool m_has_mesh;
-    std::string m_meshFile_left;
-    std::string m_meshFile_right;
+    ChFunction_Recorder m_stiffnessMap;
+
+    static const std::string m_meshFile_left;
+    static const std::string m_meshFile_right;
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 };
 
-/// @} vehicle_wheeled_tire
+/// @} vehicle_models_U401
 
+}  // namespace FEDA
 }  // end namespace vehicle
 }  // end namespace chrono
 
 #endif
+
+

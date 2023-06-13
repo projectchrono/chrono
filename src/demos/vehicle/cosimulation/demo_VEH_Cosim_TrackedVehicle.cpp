@@ -30,15 +30,15 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "chrono_models/vehicle/m113/M113_Vehicle.h"
-////#include "chrono_models/vehicle/m113/powertrain/M113_EngineShafts.h"
-////#include "chrono_models/vehicle/m113/powertrain/M113_AutomaticTransmissionShafts.h"
+#include "chrono_models/vehicle/m113/powertrain/M113_EngineShafts.h"
+#include "chrono_models/vehicle/m113/powertrain/M113_AutomaticTransmissionShafts.h"
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 
 #include "chrono_vehicle/cosim/mbs/ChVehicleCosimTrackedVehicleNode.h"
+    #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeRigid.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeSCM.h"
 #ifdef CHRONO_MULTICORE
-    #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeRigid.h"
     #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularOMP.h"
 #endif
 #ifdef CHRONO_FSI
@@ -209,11 +209,11 @@ int main(int argc, char** argv) {
         } else {
             auto m113_vehicle = chrono_types::make_shared<m113::M113_Vehicle_SinglePin>(
                 false, DrivelineTypeTV::BDS, BrakeType::SIMPLE, false, false, false, nullptr);
-            ////auto m113_engine = chrono_types::make_shared<m113::M113_EngineSimpleMap>("Engine");
-            ////auto m113_transmission =
-            ////    chrono_types::make_shared<m113::M113_AutomaticTransmissionSimpleMap>("Transmission");
-            ////auto m113_powertrain = chrono_types::make_shared<ChPowertrainAssembly>(m113_engine, m113_transmission);
-            ////vehicle = new ChVehicleCosimTrackedVehicleNode(m113_vehicle, m113_powertrain);
+            auto m113_engine = chrono_types::make_shared<m113::M113_EngineShafts>("Engine");
+            auto m113_transmission =
+                chrono_types::make_shared<m113::M113_AutomaticTransmissionShafts>("Transmission");
+            auto m113_powertrain = chrono_types::make_shared<ChPowertrainAssembly>(m113_engine, m113_transmission);
+            vehicle = new ChVehicleCosimTrackedVehicleNode(m113_vehicle, m113_powertrain);
         }
 
         if (use_DBP_rig) {
@@ -233,6 +233,9 @@ int main(int argc, char** argv) {
         vehicle->SetStepSize(step_size);
         vehicle->SetNumThreads(1);
         vehicle->SetOutDir(out_dir, suffix);
+        if (render)
+            vehicle->EnableRuntimeVisualization(render_fps);
+        vehicle->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
         if (verbose)
             cout << "[Vehicle node] output directory: " << vehicle->GetOutDirName() << endl;
 
@@ -244,19 +247,19 @@ int main(int argc, char** argv) {
 
         switch (terrain_type) {
             case ChVehicleCosimTerrainNodeChrono::Type::RIGID: {
-#ifdef CHRONO_MULTICORE
                 auto method = ChContactMethod::SMC;
                 auto terrain = new ChVehicleCosimTerrainNodeRigid(method, terrain_specfile);
                 terrain->SetDimensions(terrain_length, terrain_width);
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
-                terrain->EnableRuntimeVisualization(render, render_fps);
+                if (render)
+                    terrain->EnableRuntimeVisualization(render_fps);
+                terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
                 node = terrain;
-#endif
                 break;
             }
 
@@ -267,7 +270,9 @@ int main(int argc, char** argv) {
                 terrain->SetStepSize(step_size);
                 terrain->SetNumThreads(2);
                 terrain->SetOutDir(out_dir, suffix);
-                terrain->EnableRuntimeVisualization(render, render_fps);
+                if (render)
+                    terrain->EnableRuntimeVisualization(render_fps);
+                terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 

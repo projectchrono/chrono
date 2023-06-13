@@ -61,10 +61,10 @@ set(CVM_HMMWV_TIRE_FILES
     hmmwv/tire/HMMWV_RigidTire.h
     hmmwv/tire/HMMWV_FialaTire.cpp
     hmmwv/tire/HMMWV_FialaTire.h
-    hmmwv/tire/HMMWV_Pac89Tire.cpp
-    hmmwv/tire/HMMWV_Pac89Tire.h
     hmmwv/tire/HMMWV_Pac02Tire.cpp
     hmmwv/tire/HMMWV_Pac02Tire.h
+    hmmwv/tire/HMMWV_Pac89Tire.cpp
+    hmmwv/tire/HMMWV_Pac89Tire.h
     hmmwv/tire/HMMWV_TMeasyTire.cpp
     hmmwv/tire/HMMWV_TMeasyTire.h
     hmmwv/tire/HMMWV_TMsimpleTire.cpp
@@ -127,6 +127,10 @@ set(CVM_FEDA_FILES
     feda/FEDA_PitmanArm.h
     feda/FEDA_RigidTire.cpp
     feda/FEDA_RigidTire.h
+    feda/FEDA_TMeasyTire.cpp
+    feda/FEDA_TMeasyTire.h
+    feda/FEDA_TMsimpleTire.cpp
+    feda/FEDA_TMsimpleTire.h
     feda/FEDA_Vehicle.cpp
     feda/FEDA_Vehicle.h   
     feda/FEDA_Wheel.cpp

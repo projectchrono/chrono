@@ -33,6 +33,10 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChVehicleGeometry.h"
 
+#if defined(CHRONO_POSTPROCESS)
+    #include "chrono_postprocess/ChBlender.h"
+#endif
+
 #include "chrono_thirdparty/filesystem/path.h"
 
 #define MBS_NODE_RANK 0
@@ -104,7 +108,7 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
         TIRE          ///< node performing tire simulation
     };
 
-    /// Type of the tire-terrain communication interface.
+    /// Type of the vehicle-terrain communication interface.
     /// - A BODY interface assumes communication is done at the wheel spindle or track shoe level.  At a synchronization
     /// time, the terrain node receives the full state of the spindle or track shoe body and must send forces acting on
     /// that body, for each tire or track shoe present in the simulation.  This type of interface should be used for
@@ -144,6 +148,21 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     /// Enable/disable verbose messages during simulation (default: true).
     void SetVerbose(bool verbose) { m_verbose = verbose; }
 
+    /// Enable run-time visualization (default: false).
+    /// If enabled, rendering is done with the specified frequency.
+    /// Note that a concrete node may not support run-time visualization or may not render all physics elements.
+    void EnableRuntimeVisualization(double render_fps = 100);
+
+    /// Set camera location and target point.
+    void SetCameraPosition(const ChVector<>& cam_pos, const ChVector<>& cam_target = VNULL);
+
+    /// Enable/disable tracking of objects (default: true).
+    void SetCameraTracking(bool track) { m_track = track; }
+ 
+    /// Enable Blender postprocessing (default: false).
+    /// If enabled, output will be generated in dir_name/[NodeName]suffix/ (see SetOutDir).
+    void EnablePostprocessVisualization(double render_fps = 100);
+
     /// Get the output directory name for this node.
     const std::string& GetOutDirName() const { return m_node_out_dir; }
 
@@ -164,11 +183,19 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     /// allow the node to exchange information with any other node.
     virtual void Synchronize(int step_number, double time) = 0;
 
+    /// Render the current simulation frame.
+    /// This function is invoked from Render() at the frequency specified in the call to EnableRuntimeVisualization().
+    virtual void OnRender() {}
+
     /// Advance simulation.
-    /// This function is called after a synchronization to allow the node to advance
-    /// its state by the specified time step.  A node is allowed to take as many internal
-    /// integration steps as required, but no inter-node communication should occur.
+    /// This function is called after a synchronization to allow the node to advance its state by the specified step.
+    /// A node is allowed to take as many internal integration steps as required, but no inter-node communication
+    /// should occur. A node may call Render() at the end of the step for possible visualization.
     virtual void Advance(double step_size) = 0;
+
+    /// Render simulation frame.
+    /// This function invokes OnRender() at the frequency specified through EnableRuntimeVisualization().
+    void Render(double step_size);
 
     /// Output logging and debugging data.
     virtual void OutputData(int frame) = 0;
@@ -206,6 +233,9 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
   protected:
     ChVehicleCosimBaseNode(const std::string& name);
 
+    /// Get the Chrono system that holds the visualization shapes *used only for post-processing export).
+    virtual ChSystem* GetSystemPostprocess() const = 0;
+
     void SendGeometry(const ChVehicleGeometry& geom, int dest) const;
     void RecvGeometry(ChVehicleGeometry& geom, int source) const;
 
@@ -217,6 +247,22 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     std::string m_out_dir;       ///< top-level output directory
     std::string m_node_out_dir;  ///< node-specific output directory
     std::ofstream m_outf;        ///< output file stream
+
+    // Run-time visualization
+    bool m_renderRT;         ///< if true, perform run-time rendering
+    bool m_renderRT_all;     ///< if true, render all frames
+    double m_renderRT_step;  ///< time step between rendered frames
+
+    // Post-process visualization
+    bool m_renderPP;                                    ///< if true, save data for post-processing
+    bool m_renderPP_all;                                ///< if true, save data at all frames
+    double m_renderPP_step;                             ///< time step between post-processing save frames
+    std::shared_ptr<postprocess::ChBlender> m_blender;  ///< Blender exporter
+    
+    // Camera settings
+    bool m_track;             ///< track objects
+    ChVector<> m_cam_pos;     ///< camera location
+    ChVector<> m_cam_target;  ///< camera target (lookat) point
 
     unsigned int m_num_wheeled_mbs_nodes;
     unsigned int m_num_tracked_mbs_nodes;

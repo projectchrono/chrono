@@ -26,8 +26,9 @@
 
 #include "chrono/fea/ChLoadContactSurfaceMesh.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/assets/ChVisualSystem.h"
 
-#include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
 
 #include "chrono_vehicle/cosim/ChVehicleCosimTireNode.h"
 
@@ -40,7 +41,7 @@ namespace vehicle {
 /// Definition of the flexible tire node.
 class CH_VEHICLE_API ChVehicleCosimTireNodeFlexible : public ChVehicleCosimTireNode {
   public:
-    ChVehicleCosimTireNodeFlexible(int index);
+    ChVehicleCosimTireNodeFlexible(int index, const std::string& tire_json);
     ~ChVehicleCosimTireNodeFlexible() {}
 
     /// Return the tire type.
@@ -56,21 +57,8 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeFlexible : public ChVehicleCosimTireN
     /// A flexible tire implements the MESH communication interface.
     virtual InterfaceType GetInterfaceType() const override { return InterfaceType::MESH; }
 
-    /// Construct the tire.
-    /// The tire radius and mass must be available after this function is called.
-    virtual void ConstructTire() override;
-
-    /// Return the tire mass.
-    virtual double GetTireMass() const override { return m_tire->GetMass(); }
-
-    /// Return the tire radius.
-    virtual double GetTireRadius() const override { return m_tire->GetRadius(); }
-
-    /// Return the tire width.
-    virtual double GetTireWidth() const override { return m_tire->GetWidth(); }
-
     /// Initialize the tire by attaching it to the provided ChWheel.
-    virtual void InitializeTire(std::shared_ptr<ChWheel> wheel) override;
+    virtual void InitializeTire(std::shared_ptr<ChWheel> wheel, const ChVector<>& init_loc) override;
 
     /// Load current tire mesh state.
     virtual void LoadMeshState(MeshState& mesh_state) override;
@@ -90,6 +78,9 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeFlexible : public ChVehicleCosimTireN
     /// Output post-processing visualization data.
     virtual void OutputVisualizationData(int frame) override;
 
+    /// Render tire system
+    virtual void OnRender() override;
+
   private:
     /// Write mesh vertex positions and velocities.
     void WriteTireStateInformation(utils::CSV_writer& csv);
@@ -100,10 +91,12 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeFlexible : public ChVehicleCosimTireN
     /// Print current contact forces.
     void PrintContactData(const std::vector<ChVector<>>& forces, const std::vector<int>& indices);
 
-    std::shared_ptr<ChDeformableTire> m_tire;                       ///< deformable tire
+    std::shared_ptr<ChDeformableTire> m_tire_def;                   ///< deformable tire
     std::shared_ptr<fea::ChLoadContactSurfaceMesh> m_contact_load;  ///< tire contact surface
     std::vector<std::vector<unsigned int>> m_adjElements;  ///< list of neighboring elements for each mesh vertex
     std::vector<std::vector<unsigned int>> m_adjVertices;  ///< list of vertex indices for each mesh element
+
+    std::shared_ptr<ChVisualSystem> m_vsys;  ///< run-time visualization system
 };
 
 /// @} vehicle_cosim_tire

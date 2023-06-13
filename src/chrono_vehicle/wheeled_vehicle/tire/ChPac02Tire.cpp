@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2015 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,21 +9,38 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Michael Taylor, Rainer Gericke
+// Authors: Rainer Gericke
 // =============================================================================
 //
-// Template for a tire model based on the Pacejka 2002 Tire Model
+// Template for a Magic Formula tire model
 //
+// ChPac02 is based on the Pacejka 2002 formulae as written in
+// Hans B. Pacejka's "Tire and Vehicle Dynamics" Third Edition, Elsevier 2012
+// ISBN: 978-0-08-097016-5
+//
+// This implementation is a subset of the commercial product MFtire:
+//  - only steady state force/torque calculations
+//  - uncombined (use_mode = 3)
+//  - combined (use_mode = 4) via Pacejka method
+//  - parametration is given by a TIR file (Tiem Orbit Format,
+//    ADAMS/Car compatible)
+//  - unit conversion is implemented but only tested for SI units
+//  - optional inflation pressure dependency is implemented, but not tested
+//  - this implementation could be validated for the FED-Alpha vehicle and rsp.
+//    tire data sets against KRC test results from a Nato CDT
 // =============================================================================
-// =============================================================================
-// STILL UNDERDEVELOPMENT
-// =============================================================================
-// =============================================================================
+
+#include <cstdio>
+#include <cstdlib>
+#include <cctype>
+#include <cstring>
 
 #include <algorithm>
 #include <cmath>
 
 #include "chrono/core/ChGlobal.h"
+#include "chrono_vehicle/ChConfigVehicle.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPac02Tire.h"
 
@@ -32,216 +49,1535 @@ namespace vehicle {
 
 ChPac02Tire::ChPac02Tire(const std::string& name)
     : ChForceElementTire(name),
-      m_kappa(0),
-      m_alpha(0),
-      m_gamma(0),
       m_gamma_limit(3.0 * CH_C_DEG_TO_RAD),
       m_use_friction_ellipsis(true),
-      m_mu(0),
-      m_Shf(0),
+      m_mu0(0.8),
       m_measured_side(LEFT),
       m_allow_mirroring(false),
-      m_use_mode(1) {
+      m_use_mode(0),
+      m_vcoulomb(1.0),
+      m_frblend_begin(1.0),
+      m_frblend_end(3.0) {
     m_tireforce.force = ChVector<>(0, 0, 0);
     m_tireforce.point = ChVector<>(0, 0, 0);
     m_tireforce.moment = ChVector<>(0, 0, 0);
+}
 
-    // standard settings for scaling factors
-    m_PacScal.lfz0 = 1.0;
-    m_PacScal.lcx = 1.0;
-    m_PacScal.lex = 1.0;
-    m_PacScal.lkx = 1.0;
-    m_PacScal.lhx = 1.0;
-    m_PacScal.lmux = 1.0;
-    m_PacScal.lvx = 1.0;
-    m_PacScal.lxal = 1.0;
+double ChPac02Tire::GetNormalStiffnessForce(double depth) const {
+    double R0 = m_par.UNLOADED_RADIUS;
+    double gamma = m_states.gamma;
+    double dpi = m_states.dpi;
+    double Fc = (1.0) *
+                (m_par.QFZ1 * depth / R0 + m_par.QFZ2 * pow(depth / R0, 2) + m_par.QFZ3 * pow(gamma, 2) * depth / R0) *
+                (1.0 + m_par.QPFZ1 * dpi) * m_par.LCZ * m_par.FNOMIN;
+    double Fb = 0;
+    if (m_bottoming_table_found)
+        Fb = m_bott_map.Get_y(depth);
+    return Fc + Fb;
+}
 
-    m_PacScal.lcy = 1.0;
-    m_PacScal.ley = 1.0;
-    m_PacScal.lhy = 1.0;
-    m_PacScal.lky = 1.0;
-    m_PacScal.lmuy = 1.0;
-    m_PacScal.lvy = 1.0;
-    m_PacScal.lyka = 1.0;
-    m_PacScal.lvyka = 1.0;
+double ChPac02Tire::GetNormalDampingForce(double depth, double velocity) const {
+    double Fd = m_par.VERTICAL_DAMPING * velocity;
+    return Fd;
+}
 
-    m_PacScal.ltr = 1.0;
-    m_PacScal.lgax = 1.0;
-    m_PacScal.lgay = 1.0;
-    m_PacScal.lgaz = 1.0;
-    m_PacScal.lres = 1.0;
-    m_PacScal.ls = 1.0;
-    m_PacScal.lsgkp = 1.0;
-    m_PacScal.lsgal = 1.0;
-    m_PacScal.lgyr = 1.0;
+void ChPac02Tire::CombinedCoulombForces(double& fx, double& fy, double fz) {
+    ChVector2<> F;
+    F.x() = tanh(-2.0 * m_states.vsx / m_vcoulomb) * fz * m_states.mu_scale;
+    F.y() = tanh(-2.0 * m_states.vsy / m_vcoulomb) * fz * m_states.mu_scale;
+    if (F.Length() > fz * m_states.mu_scale) {
+        F.Normalize();
+        F *= fz * m_states.mu_scale;
+    }
+    fx = F.x();
+    fy = F.y();
+}
 
-    m_PacCoeff.mu0 = 0.8;           // reference friction coefficient
-    m_PacCoeff.R0 = 0.0;            // unloaded radius
-    m_PacCoeff.width = 0.0;         // tire width = 0.0;
-    m_PacCoeff.aspect_ratio = 0.8;  // actually unused
-    m_PacCoeff.rim_radius = 0.0;    // actually unused
-    m_PacCoeff.rim_width = 0.0;     // actually unused
-    m_PacCoeff.FzNomin = 0.0;       // nominla wheel load
-    m_PacCoeff.Cz = 0.0;            // vertical tire stiffness
-    m_PacCoeff.Kz = 0.0;            // vertical tire damping
+void ChPac02Tire::CalcFxyMz(double& Fx,
+                         double& Fy,
+                         double& Mz,
+                         double kappa,
+                         double alpha,
+                         double Fz,
+                         double gamma,
+                         bool combined) {
+    double Fx0 = 0;
+    double Cx = m_par.PCX1 * m_par.LCX;
+    ////double Shx = (m_par.PHX1 + m_par.PHX2 * m_states.dfz0) * m_par.LHX;
+    double Svx = Fz * (m_par.PVX1 + m_par.PVX2 * m_states.dfz0) * m_par.LVX * m_par.LMUX;
+    double kappa_x = kappa + Svx;
+    double gamma_x = gamma * m_par.LGAX;
+    double Ex = (m_par.PEX1 + m_par.PEX2 * m_states.dfz0 + m_par.PEX3 * pow(m_states.dfz0, 2)) *
+                (1.0 - m_par.PEX4 * ChSignum(kappa_x)) * m_par.LEX;
+    double mu_x = m_states.mu_scale * (m_par.PDX1 + m_par.PDX2 * m_states.dfz0) *
+                  (1.0 + m_par.PPX3 * m_states.dpi + m_par.PPX4 * pow(m_states.dpi, 2)) *
+                  (1.0 - m_par.PDX3 * pow(gamma_x, 2)) * m_par.LMUX;
+    double Dx = mu_x * Fz;
+    double Kx = Fz * (m_par.PKX1 + m_par.PKX2 * m_states.dfz0) * exp(m_par.PKX3 * m_states.dfz0) *
+                (1.0 + m_par.PPX1 * m_states.dpi + m_par.PPX2 * pow(m_states.dpi, 2)) * m_par.LKX;
+    double Bx = Kx / (Cx * Dx + 0.1);
+    Fx0 = Dx * sin(Cx * atan(Bx * kappa_x - Ex * (Bx * kappa_x - atan(Bx * kappa_x)))) + Svx;
 
-    // Longitudinal Coefficients
-    m_PacCoeff.pcx1 = 0.0;
-    m_PacCoeff.pdx1 = 0.0;
-    m_PacCoeff.pdx2 = 0.0;
-    m_PacCoeff.pdx3 = 0.0;
-    m_PacCoeff.pex1 = 0.0;
-    m_PacCoeff.pex2 = 0.0;
-    m_PacCoeff.pex3 = 0.0;
-    m_PacCoeff.pex4 = 0.0;
-    m_PacCoeff.phx1 = 0.0;
-    m_PacCoeff.phx2 = 0.0;
-    m_PacCoeff.pkx1 = 0.0;
-    m_PacCoeff.pkx2 = 0.0;
-    m_PacCoeff.pkx3 = 0.0;
-    m_PacCoeff.pvx1 = 0.0;
-    m_PacCoeff.pvx2 = 0.0;
-    m_PacCoeff.rcx1 = 0.0;
-    m_PacCoeff.rbx1 = 0.0;
-    m_PacCoeff.rbx2 = 0.0;
-    m_PacCoeff.rbx3 = 0.0;
-    m_PacCoeff.rex1 = 0.0;
-    m_PacCoeff.rex2 = 0.0;
-    m_PacCoeff.rhx1 = 0.0;
-    m_PacCoeff.ptx1 = 0.0;
-    m_PacCoeff.ptx2 = 0.0;
-    m_PacCoeff.ptx3 = 0.0;
-    m_PacCoeff.ptx4 = 0.0;
+    double Fy0 = 0;
+    double gamma_y = gamma * m_par.LGAY;
+    double Cy = m_par.PCY1 * m_par.LCY;
+    double Ky0 = m_par.PKY1 * m_par.FNOMIN * (1 + m_par.PPY1 * m_states.dpi) *
+                 sin(2.0 * atan(Fz / (m_par.PKY2 * m_states.Fz0_prime * (1.0 + m_par.PPY2 * m_states.dpi)))) *
+                 m_par.LFZO * m_par.LMUY;
+    double Ky = Ky0 * (1.0 - m_par.PKY3 * fabs(gamma_y));
+    double Shy = (m_par.PHY1 + m_par.PHY2 * m_states.dfz0) * m_par.LHY + m_par.PHY3 * gamma_y * m_par.LKYG;
+    double alpha_y = alpha + Shy;
+    double Svy = Fz *
+                 ((m_par.PVY1 + m_par.PVY2 * m_states.dfz0) * m_par.LVY +
+                  (m_par.PVY3 + m_par.PVY4 * m_states.dfz0) * gamma_y * m_par.LKYG) *
+                 m_par.LMUY;
+    double Ey = (m_par.PEY1 + m_par.PEY2 * m_states.dfz0) *
+                (1.0 - (m_par.PEY3 + m_par.PEY4 * gamma_y) * ChSignum(alpha_y)) * m_par.LEY;
+    double mu_y = m_states.mu_scale * (m_par.PDY1 + m_par.PDY2 * m_states.dfz0) *
+                  (1.0 + m_par.PPY3 * m_states.dpi + m_par.PPY4 * pow(m_states.dpi, 2)) *
+                  (1.0 - m_par.PDY3 * pow(gamma_y, 2)) * m_par.LMUY;
+    double Dy = mu_y * Fz;
+    double By = Ky / (Cy * Dy + 0.1);
+    Fy0 = Dy * sin(Cy * atan(By * alpha_y - Ey * (By * alpha_y - atan(By * alpha_y)))) + Svy;
 
-    // overturning coefficients
-    m_PacCoeff.qsx1 = 0.0;
-    m_PacCoeff.qsx2 = 0.0;
-    m_PacCoeff.qsx3 = 0.0;
-    m_PacCoeff.qsx4 = 0.0;
-    m_PacCoeff.qsx5 = 0.0;
-    m_PacCoeff.qsx6 = 0.0;
-    m_PacCoeff.qsx7 = 0.0;
-    m_PacCoeff.qsx8 = 0.0;
-    m_PacCoeff.qsx9 = 0.0;
-    m_PacCoeff.qsx10 = 0.0;
-    m_PacCoeff.qsx11 = 0.0;
+    double Shxa = m_par.RHX1;
+    double Cxa = m_par.RCX1;
+    double alpha_s = alpha + Shxa;
+    double Exa = m_par.REX1 + m_par.REX2 * m_states.dfz0;
+    double Bxa = m_par.RBX1 * cos(atan(m_par.RBX2 * kappa)) * m_par.LXAL;
+    ////double Dxa = Fx0 / cos(Cxa * atan(Bxa * Shxa - Exa * (Bxa * Shxa - atan(Bxa * Shxa))));
+    double Gxa = cos(Cxa * atan(Bxa * alpha_s - Exa * (Bxa * alpha_s - atan(Bxa * alpha_s)))) /
+                 cos(Cxa * atan(Bxa * Shxa - Exa * (Bxa * Shxa - atan(Bxa * Shxa))));
+    Fx = Fx0 * Gxa;
 
-    // rolling coefficients
-    m_PacCoeff.qsy1 = 0.0;
-    m_PacCoeff.qsy2 = 0.0;
-    m_PacCoeff.qsy3 = 0.0;
-    m_PacCoeff.qsy4 = 0.0;
-    m_PacCoeff.qsy5 = 0.0;
-    m_PacCoeff.qsy6 = 0.0;
-    m_PacCoeff.qsy7 = 0.0;
-    m_PacCoeff.qsy8 = 0.0;
+    double Shyk = m_par.RHY1 + m_par.RHY2 * m_states.dfz0;
+    double kappa_s = kappa + Shyk;
+    double Cyk = m_par.RCY1;
+    double Eyk = m_par.REY1 + m_par.REY2 * m_states.dfz0;
+    double Byk = m_par.RBY1 * cos(atan(m_par.RBY2 * (alpha - m_par.RBY3))) * m_par.LYKA;
+    ////double Dyk = Fy0 / cos(Cyk * atan(Byk * Shyk - Eyk * (Byk * Shyk - atan(Byk * Shyk))));
+    double Dvyk =
+        mu_y * Fz * (m_par.RVY1 + m_par.RVY2 * m_states.dfz0 + m_par.RVY3 * gamma) * cos(atan(m_par.RVY4 * alpha));
+    double Svyk = Dvyk * sin(m_par.RVY5 * atan(m_par.RVY6 * kappa)) * m_par.LVYKA;
+    double Gyk = cos(Cyk * atan(Byk * kappa_s - Eyk * (Byk * kappa_s - atan(Byk * alpha_s)))) /
+                 cos(Cyk * atan(Byk * Shyk - Eyk * (Byk * Shyk - atan(Byk * Shyk))));
+    Fy = Fy0 * Gyk + Svyk;
 
-    // Lateral Coefficients
-    m_PacCoeff.pcy1 = 0.0;
-    m_PacCoeff.pdy1 = 0.0;
-    m_PacCoeff.pdy2 = 0.0;
-    m_PacCoeff.pdy3 = 0.0;
-    m_PacCoeff.pey1 = 0.0;
-    m_PacCoeff.pey2 = 0.0;
-    m_PacCoeff.pey3 = 0.0;
-    m_PacCoeff.pey4 = 0.0;
-    m_PacCoeff.pey5 = 0.0;
-    m_PacCoeff.phy1 = 0.0;
-    m_PacCoeff.phy2 = 0.0;
-    m_PacCoeff.phy3 = 0.0;
-    m_PacCoeff.pky1 = 0.0;
-    m_PacCoeff.pky2 = 0.0;
-    m_PacCoeff.pky3 = 0.0;
-    m_PacCoeff.pvy1 = 0.0;
-    m_PacCoeff.pvy2 = 0.0;
-    m_PacCoeff.pvy3 = 0.0;
-    m_PacCoeff.pvy4 = 0.0;
-    m_PacCoeff.rby1 = 0.0;
-    m_PacCoeff.rby2 = 0.0;
-    m_PacCoeff.rby3 = 0.0;
-    m_PacCoeff.rby4 = 0.0;
-    m_PacCoeff.rcy1 = 0.0;
-    m_PacCoeff.rey1 = 0.0;
-    m_PacCoeff.rey2 = 0.0;
-    m_PacCoeff.rhy1 = 0.0;
-    m_PacCoeff.rhy2 = 0.0;
-    m_PacCoeff.rvy1 = 0.0;
-    m_PacCoeff.rvy2 = 0.0;
-    m_PacCoeff.rvy3 = 0.0;
-    m_PacCoeff.rvy4 = 0.0;
-    m_PacCoeff.rvy5 = 0.0;
-    m_PacCoeff.rvy6 = 0.0;
-    m_PacCoeff.pty1 = 0.0;
-    m_PacCoeff.pty2 = 0.0;
+    // alignment torque
+    // pneumatic trail
+    double R0 = m_par.UNLOADED_RADIUS;
+    double gamma_z = gamma * m_par.LGAZ;
+    double Sht = m_par.QHZ1 + m_par.QHZ2 * m_states.dfz0 + (m_par.QHZ3 + m_par.QHZ4 * m_states.dfz0) * gamma_z;
+    double Shf = Shy + Svy / Ky;
+    double alpha_r = alpha + Shf;
+    double alpha_t = alpha + Sht;
+    double alpha_teq = atan(sqrt(pow(tan(alpha_t), 2) + pow(Kx / Ky, 2) * pow(kappa, 2))) * ChSignum(kappa);
+    double alpha_req = atan(sqrt(pow(tan(alpha_r), 2) + pow(Kx / Ky, 2) * pow(kappa, 2))) * ChSignum(alpha_r);
+    double Ct = m_par.QCZ1;
+    double Bt = (m_par.QBZ1 + m_par.QBZ2 * m_states.dfz0 + m_par.QBZ3 * pow(m_states.dfz0, 2)) *
+                (1.0 + m_par.QBZ4 * gamma_z + m_par.QBZ5 * std::abs(gamma_z)) * m_par.LKY / m_par.LMUY;
+    double Et = (m_par.QEZ1 + m_par.QEZ2 * m_states.dfz0 + m_par.QEZ3 * pow(m_states.dfz0, 2)) *
+                (1.0 + (m_par.QEZ4 + m_par.QEZ5 * gamma_z) * ((2.0 / CH_C_PI) * atan(Bt * Ct * alpha_t)));
+    double Dt = Fz * (m_par.QDZ1 + m_par.QDZ2 * m_states.dfz0) * (1.0 - m_par.QPZ1 * m_states.dpi) *
+                (1.0 + m_par.QDZ3 * gamma_z + m_par.QDZ4 * pow(gamma_z, 2)) * R0 / m_states.Fz0_prime * m_par.LTR;
+    // trail, uncombined forces
+    double t = Dt * (cos(Ct * atan(Bt * alpha_t - Et * (Bt * alpha_t - atan(Bt * alpha_t))))) * cos(alpha);
+    // trail combined forces
+    double tc = Dt * (cos(Ct * atan(Bt * alpha_teq - Et * (Bt * alpha_teq - atan(Bt * alpha_teq))))) * cos(alpha);
+    // residual moment
+    ////double Cr = 1.0;
+    double Br = (m_par.QBZ9 * m_par.LKY / m_par.LMUY + m_par.QBZ10 * By * Cy);
+    double Dr = Fz *
+                ((m_par.QDZ6 + m_par.QDZ7 * m_states.dfz0) * m_par.LRES +
+                 (m_par.QDZ8 + m_par.QDZ9 * m_states.dfz0) * (1.0 + m_par.QPZ2 * m_states.dpi) * gamma_z) *
+                R0 * m_par.LMUY;
+    double s = (m_par.SSZ1 + m_par.SSZ2 * Fy / m_states.Fz0_prime + (m_par.SSZ3 + m_par.SSZ4 * m_states.dfz0) * gamma) *
+               R0 * m_par.LS;
+    // residual moment, uncombined forces
+    double Mzr = Dr * cos(Ct * atan(Br * alpha_r)) * cos(alpha);
+    // residual moment, combined forces
+    double Mzrc = Dr * cos(Ct * atan(Br * alpha_req)) * cos(alpha);
+    double Fy_prime = Fy - Svyk;
+    if (combined) {
+        Mz = -tc * Fy_prime + Mzrc + s * Fx;
+    } else {
+        Fx = Fx0;
+        Fy = Fy0;
+        Mz = -t * Fy0 + Mzr;
+    }
+}
 
-    // alignment coefficients
-    m_PacCoeff.qbz1 = 0.0;
-    m_PacCoeff.qbz2 = 0.0;
-    m_PacCoeff.qbz3 = 0.0;
-    m_PacCoeff.qbz4 = 0.0;
-    m_PacCoeff.qbz5 = 0.0;
-    m_PacCoeff.qbz6 = 0.0;
-    m_PacCoeff.qbz9 = 0.0;
-    m_PacCoeff.qbz10 = 0.0;
-    m_PacCoeff.qcz1 = 0.0;
-    m_PacCoeff.qdz1 = 0.0;
-    m_PacCoeff.qdz2 = 0.0;
-    m_PacCoeff.qdz3 = 0.0;
-    m_PacCoeff.qdz4 = 0.0;
-    m_PacCoeff.qdz5 = 0.0;
-    m_PacCoeff.qdz6 = 0.0;
-    m_PacCoeff.qdz7 = 0.0;
-    m_PacCoeff.qdz8 = 0.0;
-    m_PacCoeff.qdz9 = 0.0;
-    m_PacCoeff.qez1 = 0.0;
-    m_PacCoeff.qez2 = 0.0;
-    m_PacCoeff.qez3 = 0.0;
-    m_PacCoeff.qez4 = 0.0;
-    m_PacCoeff.qez5 = 0.0;
-    m_PacCoeff.qhz1 = 0.0;
-    m_PacCoeff.qhz2 = 0.0;
-    m_PacCoeff.qhz3 = 0.0;
-    m_PacCoeff.qhz4 = 0.0;
-    m_PacCoeff.ssz1 = 0.0;
-    m_PacCoeff.ssz2 = 0.0;
-    m_PacCoeff.ssz3 = 0.0;
-    m_PacCoeff.ssz4 = 0.0;
-    m_PacCoeff.qtz1 = 0.0;
-    m_PacCoeff.mbelt = 0.0;
+double ChPac02Tire::CalcMx(double Fy, double Fz, double gamma) {
+    double Mx =
+        m_par.UNLOADED_RADIUS * Fz *
+        (m_par.QSX3 * Fy / m_states.Fz0_prime +
+         m_par.QSX4 * cos(m_par.QSX5 * atan(pow(Fz / m_states.Fz0_prime, 2))) *
+             sin(m_par.QSX7 * gamma + m_par.QSX8 * atan(m_par.QSX9 * Fy / m_states.Fz0_prime)) +
+         (m_par.QSX10 * atan(m_par.QSX11 * Fz / m_states.Fz0_prime) - m_par.QSX2 * (1.0 + m_par.QPX1 * m_states.dpi)) *
+             gamma +
+         m_par.QSX1 * m_par.LVMX) *
+        m_par.LMX;
+    return Mx;
+}
+
+double ChPac02Tire::CalcMy(double Fx, double Fz, double gamma) {
+    // in most cases only QSY1 is used.
+    double V0 = sqrt(9.81 * m_par.UNLOADED_RADIUS);
+    double My = Fz * m_par.UNLOADED_RADIUS *
+                (m_par.QSY1 + m_par.QSY2 * Fx / m_par.FNOMIN + m_par.QSY3 * fabs(m_states.vx / V0) +
+                 m_par.QSY4 * pow(m_states.vx / V0, 4) + m_par.QSY5 * pow(gamma, 2) +
+                 m_par.QSY6 * pow(gamma, 2) * Fz / m_par.FNOMIN) *
+                (pow(Fz / m_par.FNOMIN, m_par.QSY7) * pow(m_par.IP / m_par.IP_NOM, m_par.QSY8)) * m_par.LMY;
+    return My;
 }
 
 // -----------------------------------------------------------------------------
 
+void ChPac02Tire::SetMFParamsByFile(const std::string& tirFileName) {
+    FILE* fp = fopen(tirFileName.c_str(), "r+");
+    if (fp == NULL) {
+        GetLog() << "TIR File not found <" << tirFileName << ">!\n";
+        exit(1);
+    }
+    LoadSectionUnits(fp);
+    LoadSectionModel(fp);
+    LoadSectionDimension(fp);
+    LoadSectionVertical(fp);
+    LoadSectionScaling(fp);
+    LoadSectionLongitudinal(fp);
+    LoadSectionOverturning(fp);
+    LoadSectionLateral(fp);
+    LoadSectionRolling(fp);
+    LoadSectionAligning(fp);
+    LoadSectionConditions(fp);
+    LoadVerticalTable(fp);
+    LoadBottomingTable(fp);
+
+    if (!m_vertical_table_found) {
+        // set linear stiffness funct parameters
+        m_par.QFZ1 = m_par.VERTICAL_STIFFNESS * m_par.UNLOADED_RADIUS / m_par.FNOMIN;
+        m_par.QFZ2 = 0;
+    }
+
+    if (!m_tire_conditions_found) {
+        // set all pressure dependence parameters to zero
+        m_par.PPX1 = 0;
+        m_par.PPX2 = 0;
+        m_par.PPX3 = 0;
+        m_par.PPX4 = 0;
+        m_par.PPY1 = 0;
+        m_par.PPY2 = 0;
+        m_par.PPY3 = 0;
+        m_par.PPY4 = 0;
+        m_par.QSY1 = 0;
+        m_par.QSY2 = 0;
+        m_par.QSY8 = 0;
+        m_par.QPFZ1 = 0;
+    }
+
+    fclose(fp);
+}
+
+bool ChPac02Tire::FindSectionStart(const std::string& sectName, FILE* fp) {
+    bool ret = false;
+    rewind(fp);
+    while (!feof(fp)) {
+        char line[201];
+        fgets(line, 200, fp);  // buffer one line
+        // remove leading white space
+        size_t l = strlen(line);
+        size_t ipos = 0;
+        while (isblank(line[ipos])) {
+            if (ipos < l)
+                ipos++;
+        }
+        std::string sbuf(line + ipos);
+        // don't process pure comment lines
+        if (sbuf.front() == '!' || sbuf.front() == '$')
+            continue;
+        // section name contained in line?
+        size_t npos = sbuf.find(sectName);
+        if (npos != std::string::npos) {
+            ret = true;
+            break;
+        }
+    }
+    return ret;
+}
+
+void ChPac02Tire::LoadSectionUnits(FILE* fp) {
+    bool ok = FindSectionStart("[UNITS]", fp);
+    if (!ok) {
+        GetLog() << "Desired section [UNITS] not found.\n";
+        return;
+    }
+    while (!feof(fp)) {
+        char line[201];
+        fgets(line, 200, fp);  // buffer one line
+        // remove leading white space
+        size_t l = strlen(line);
+        size_t ipos = 0;
+        while (isblank(line[ipos])) {
+            if (ipos < l)
+                ipos++;
+        }
+        std::string sbuf(line + ipos);
+        // skip pure comment lines
+        if (sbuf.front() == '!' || sbuf.front() == '$')
+            continue;
+        // leave, since a new section is reached
+        if (sbuf.front() == '[')
+            break;
+        // this should be a data line
+        // there can be a trailing comment
+        size_t trpos = sbuf.find_first_of("$");
+        if (trpos != std::string::npos) {
+            sbuf = sbuf.substr(0, trpos - 1);
+        }
+        // GetLog() << sbuf;
+        std::string skey, sval;
+        size_t eqpos = sbuf.find_first_of("=");
+        if (eqpos != std::string::npos) {
+            skey = sbuf.substr(0, eqpos - 1);
+        }
+        size_t bpos = skey.find_first_of(' ');
+        if (bpos != std::string::npos) {
+            skey = skey.substr(0, bpos);
+        }
+        sval = sbuf.substr(eqpos + 1);
+        size_t a1pos = sval.find_first_of("'");
+        size_t a2pos = sval.find_last_of("'");
+        if (a1pos == std::string::npos) {
+            // unprocessable input
+            continue;
+        }
+        sval = sval.substr(a1pos + 1, a2pos - a1pos - 1);
+        // change letters to upper case
+        std::transform(sval.begin(), sval.end(), sval.begin(), ::toupper);
+        // GetLog() << "Key=" << skey << "  Val=" << sval << "\n";
+        if (skey.compare("LENGTH") == 0) {
+            // GetLog() << skey << "\n";
+            if (sval.compare("METER") == 0) {
+                m_par.u_length = 1.0;
+            } else if (sval.compare("MM") == 0) {
+                m_par.u_length = 0.001;
+            } else if (sval.compare("CM") == 0) {
+                m_par.u_length = 0.01;
+            } else if (sval.compare("KM") == 0) {
+                m_par.u_length = 1000.0;
+            } else if (sval.compare("MILE") == 0) {
+                m_par.u_length = 1609.35;
+            } else if (sval.compare("FOOT") == 0) {
+                m_par.u_length = 0.3048;
+            } else if (sval.compare("IN") == 0) {
+                m_par.u_length = 0.0254;
+            } else {
+                GetLog() << "No unit conversion for " << skey << "=" << sval << "\n";
+            }
+        } else if (skey.compare("TIME") == 0) {
+            // GetLog() << skey << "\n";
+            if (sval.compare("MILLI") == 0) {
+                m_par.u_time = 0.001;
+            } else if (sval.compare("SEC") == 0 || sval.compare("SECOND") == 0) {
+                m_par.u_time = 1.0;
+            } else if (sval.compare("MIN") == 0) {
+                m_par.u_time = 60.0;
+            } else if (sval.compare("HOUR") == 0) {
+                m_par.u_time = 3600;
+            } else {
+                GetLog() << "No unit conversion for " << skey << "=" << sval << "\n";
+            }
+        } else if (skey.compare("ANGLE") == 0) {
+            // GetLog() << skey << "\n";
+            if (sval.compare("DEG") == 0) {
+                m_par.u_angle = 0.0174532925;
+            } else if (sval.compare("RAD") == 0 || sval.compare("RADIAN") == 0 || sval.compare("RADIANS") == 0) {
+                m_par.u_angle = 1.0;
+            } else {
+                GetLog() << "No unit conversion for " << skey << "=" << sval << "\n";
+            }
+        } else if (skey.compare("MASS") == 0) {
+            // GetLog() << skey << "\n";
+            if (sval.compare("KG") == 0) {
+                m_par.u_mass = 1.0;
+            } else if (sval.compare("GRAM") == 0) {
+                m_par.u_mass = 0.001;
+            } else if (sval.compare("POUND_MASS") == 0) {
+                m_par.u_mass = 0.45359237;
+            } else if (sval.compare("KPOUND_MASS") == 0) {
+                m_par.u_mass = 0.45359237 / 1000.0;
+            } else if (sval.compare("SLUG") == 0) {
+                m_par.u_mass = 14.593902937;
+            } else if (sval.compare("OUNCE_MASS") == 0) {
+                m_par.u_mass = 0.0283495231;
+            } else {
+                GetLog() << "No unit conversion for " << skey << "=" << sval << "\n";
+            }
+        } else if (skey.compare("FORCE") == 0) {
+            // GetLog() << skey << "\n";
+            if (sval.compare("N") == 0 || sval.compare("NEWTON") == 0) {
+                m_par.u_force = 1.0;
+            } else if (sval.compare("KN") == 0 || sval.compare("KNEWTON") == 0) {
+                m_par.u_force = 0.001;
+            } else if (sval.compare("POUND_FORCE") == 0) {
+                m_par.u_force = 4.4482216153;
+            } else if (sval.compare("KPOUND_FORCE") == 0) {
+                m_par.u_force = 4.4482216153 / 1000.0;
+            } else if (sval.compare("DYNE") == 0) {
+                m_par.u_force = 0.00001;
+            } else if (sval.compare("OUNCE_FORCE") == 0) {
+                m_par.u_force = 0.278013851;
+            } else if (sval.compare("KG_FORCE") == 0) {
+                m_par.u_force = 9.80665;
+            } else {
+                GetLog() << "No unit conversion for " << skey << "=" << sval << "\n";
+            }
+        } else if (skey.compare("PRESSURE") == 0) {
+            if (sval.compare("PASCAL") == 0 || sval.compare("PA") == 0) {
+                m_par.u_pressure = 1.0;
+            } else if (sval.compare("KPASCAL") == 0 || sval.compare("KPA") == 0) {
+                m_par.u_pressure = 1000.0;
+            } else if (sval.compare("BAR") == 0) {
+                m_par.u_pressure = 1.0e5;
+            } else if (sval.compare("PSI") == 0) {
+                m_par.u_pressure = 6894.7572932;
+            } else if (sval.compare("KSI") == 0) {
+                m_par.u_pressure = 6894757.2932;
+            }
+        }
+    }
+    m_par.u_speed = m_par.u_length / m_par.u_time;
+    m_par.u_inertia = m_par.u_mass * m_par.u_length * m_par.u_length;
+    m_par.u_stiffness = m_par.u_force / m_par.u_length;
+    m_par.u_damping = m_par.u_force / m_par.u_speed;
+}
+
+void ChPac02Tire::LoadSectionModel(FILE* fp) {
+    bool ok = FindSectionStart("[MODEL]", fp);
+    if (!ok) {
+        GetLog() << "Desired section [MODEL] not found.\n";
+        return;
+    }
+    while (!feof(fp)) {
+        char line[201];
+        fgets(line, 200, fp);  // buffer one line
+        // remove leading white space
+        size_t l = strlen(line);
+        size_t ipos = 0;
+        while (isblank(line[ipos])) {
+            if (ipos < l)
+                ipos++;
+        }
+        std::string sbuf(line + ipos);
+        // skip pure comment lines
+        if (sbuf.front() == '!' || sbuf.front() == '$')
+            continue;
+        // leave, since a new section is reached
+        if (sbuf.front() == '[')
+            break;
+        // this should be a data line
+        // there can be a trailing comment
+        size_t trpos = sbuf.find_first_of("$");
+        if (trpos != std::string::npos) {
+            sbuf = sbuf.substr(0, trpos - 1);
+        }
+        // GetLog() << sbuf << "\n";
+        // not all entries are of numerical type!
+        size_t eqpos = sbuf.find_first_of("=");
+        if (eqpos == std::string::npos)
+            continue;
+        std::string skey, sval;
+        skey = sbuf.substr(0, eqpos);
+        sval = sbuf.substr(eqpos + 1);
+        size_t sppos = skey.find_first_of(" ");
+        if (sppos != std::string::npos) {
+            skey = skey.substr(0, sppos);
+        }
+        if (skey.compare("PROPERTY_FILE_FORMAT") == 0) {
+            size_t a1pos = sval.find_first_of("'");
+            size_t a2pos = sval.find_last_of("'");
+            sval = sval.substr(a1pos, a2pos - a1pos + 1);
+            // GetLog() << ">>Key=" << skey << "|" << sval << "|\n";
+            if (sval.compare("'PAC2002'") != 0 && sval.compare("'MF_05'") != 0) {
+                GetLog() << "FATAL: unknown file format " << sval << ".\n";
+                exit(41);
+            }
+        }
+        if (skey.compare("TYRESIDE") == 0) {
+            size_t a1pos = sval.find_first_of("'");
+            size_t a2pos = sval.find_last_of("'");
+            sval = sval.substr(a1pos, a2pos - a1pos + 1);
+            // GetLog() << ">>Key=" << skey << "|" << sval << "|\n";
+            if (sval.compare("'LEFT'") != 0 || sval.compare("'UNKNOWN'") == 0) {
+                m_measured_side = LEFT;
+            } else {
+                m_measured_side = RIGHT;
+            }
+        }
+        if (skey.compare("USE_MODE") == 0) {
+            m_par.USE_MODE = stoi(sval);
+            switch (m_par.USE_MODE) {
+                default:
+                case 0:
+                    m_use_mode = m_par.USE_MODE;
+                    GetLog() << "Only Vertical Force Fz will be calculated!\n";
+                    break;
+                case 1:
+                    m_use_mode = m_par.USE_MODE;
+                    GetLog() << "Only Forces Fx and Fz will be calculated!\n";
+                    break;
+                case 2:
+                    m_use_mode = m_par.USE_MODE;
+                    GetLog() << "Only Forces Fy and Fz will be calculated!\n";
+                    break;
+                case 3:
+                    m_use_mode = m_par.USE_MODE;
+                    GetLog() << "Uncombined Force calculation!\n";
+                    break;
+                case 4:
+                    m_use_mode = m_par.USE_MODE;
+                    GetLog() << "Combined Force calculation!\n";
+                    break;
+            }
+        }
+        if (skey.compare("FITTYP") == 0) {
+            m_par.FITTYP = stoi(sval);
+        }
+        if (skey.compare("VXLOW") == 0) {
+            m_par.VXLOW = stod(sval);
+        }
+        if (skey.compare("LONGVL") == 0) {
+            m_par.LONGVL = stod(sval);
+        }
+    }
+}
+
+void ChPac02Tire::LoadSectionDimension(FILE* fp) {
+    bool ok = FindSectionStart("[DIMENSION]", fp);
+    if (!ok) {
+        GetLog() << "Desired section [DIMENSION] not found.\n";
+        return;
+    }
+    while (!feof(fp)) {
+        char line[201];
+        fgets(line, 200, fp);  // buffer one line
+        // remove leading white space
+        size_t l = strlen(line);
+        size_t ipos = 0;
+        while (isblank(line[ipos])) {
+            if (ipos < l)
+                ipos++;
+        }
+        std::string sbuf(line + ipos);
+        // skip pure comment lines
+        if (sbuf.front() == '!' || sbuf.front() == '$')
+            continue;
+        // leave, since a new section is reached
+        if (sbuf.front() == '[')
+            break;
+        // this should be a data line
+        // there can be a trailing comment
+        size_t trpos = sbuf.find_first_of("$");
+        if (trpos != std::string::npos) {
+            sbuf = sbuf.substr(0, trpos - 1);
+        }
+        // GetLog() << sbuf << "\n";
+        // not all entries are of numerical type!
+        size_t eqpos = sbuf.find_first_of("=");
+        if (eqpos == std::string::npos)
+            continue;
+        std::string skey, sval;
+        skey = sbuf.substr(0, eqpos);
+        sval = sbuf.substr(eqpos + 1);
+        size_t sppos = skey.find_first_of(" ");
+        if (sppos != std::string::npos) {
+            skey = skey.substr(0, sppos);
+        }
+        // GetLog() << ">>Key=" << skey << "|" << sval << "\n";
+        if (skey.compare("UNLOADED_RADIUS") == 0) {
+            m_par.UNLOADED_RADIUS = m_par.u_length * stod(sval);
+        }
+        if (skey.compare("WIDTH") == 0) {
+            m_par.WIDTH = m_par.u_length * stod(sval);
+        }
+        if (skey.compare("ASPECT_RATIO") == 0) {
+            m_par.ASPECT_RATIO = stod(sval);
+        }
+        if (skey.compare("RIM_RADIUS") == 0) {
+            m_par.RIM_RADIUS = m_par.u_length * stod(sval);
+        }
+        if (skey.compare("RIM_WIDTH") == 0) {
+            m_par.RIM_WIDTH = m_par.u_length * stod(sval);
+        }
+    }
+}
+
+void ChPac02Tire::LoadSectionVertical(FILE* fp) {
+    bool ok = FindSectionStart("[VERTICAL]", fp);
+    if (!ok) {
+        GetLog() << "Desired section [VERTICAL] not found.\n";
+        return;
+    }
+    while (!feof(fp)) {
+        char line[201];
+        fgets(line, 200, fp);  // buffer one line
+        // remove leading white space
+        size_t l = strlen(line);
+        size_t ipos = 0;
+        while (isblank(line[ipos])) {
+            if (ipos < l)
+                ipos++;
+        }
+        std::string sbuf(line + ipos);
+        // skip pure comment lines
+        if (sbuf.front() == '!' || sbuf.front() == '$')
+            continue;
+        // leave, since a new section is reached
+        if (sbuf.front() == '[')
+            break;
+        // this should be a data line
+        // there can be a trailing comment
+        size_t trpos = sbuf.find_first_of("$");
+        if (trpos != std::string::npos) {
+            sbuf = sbuf.substr(0, trpos - 1);
+        }
+        // GetLog() << sbuf << "\n";
+        // not all entries are of numerical type!
+        size_t eqpos = sbuf.find_first_of("=");
+        if (eqpos == std::string::npos)
+            continue;
+        std::string skey, sval;
+        skey = sbuf.substr(0, eqpos);
+        sval = sbuf.substr(eqpos + 1);
+        size_t sppos = skey.find_first_of(" ");
+        if (sppos != std::string::npos) {
+            skey = skey.substr(0, sppos);
+        }
+        // GetLog() << ">>Key=" << skey << "|" << sval << "\n";
+        if (skey.compare("VERTICAL_STIFFNESS") == 0) {
+            m_par.VERTICAL_STIFFNESS = m_par.u_stiffness * stod(sval);
+        }
+        if (skey.compare("VERTICAL_DAMPING") == 0) {
+            m_par.VERTICAL_DAMPING = m_par.u_damping * stod(sval);
+        }
+        if (skey.compare("BREFF") == 0) {
+            m_par.BREFF = stod(sval);
+        }
+        if (skey.compare("DREFF") == 0) {
+            m_par.DREFF = stod(sval);
+        }
+        if (skey.compare("FREFF") == 0) {
+            m_par.FREFF = stod(sval);
+        }
+        if (skey.compare("FNOMIN") == 0) {
+            m_par.FNOMIN = m_par.u_force * stod(sval);
+        }
+        if (skey.compare("TIRE_MASS") == 0) {
+            m_par.TIRE_MASS = m_par.u_mass * stod(sval);
+        }
+        if (skey.compare("QFZ1") == 0) {
+            m_par.QFZ1 = stod(sval);
+        }
+        if (skey.compare("QFZ2") == 0) {
+            m_par.QFZ2 = stod(sval);
+        }
+        if (skey.compare("QFZ3") == 0) {
+            m_par.QFZ3 = stod(sval);
+        }
+        if (skey.compare("QPFZ1") == 0) {
+            m_par.QPFZ1 = stod(sval);
+        }
+        if (skey.compare("QV2") == 0) {
+            m_par.QV2 = stod(sval);
+        }
+    }
+}
+
+void ChPac02Tire::LoadSectionScaling(FILE* fp) {
+    bool ok = FindSectionStart("[SCALING_COEFFICIENTS]", fp);
+    if (!ok) {
+        GetLog() << "Desired section [SCALING_COEFFICIENTS] not found.\n";
+        return;
+    }
+    while (!feof(fp)) {
+        char line[201];
+        fgets(line, 200, fp);  // buffer one line
+        // remove leading white space
+        size_t l = strlen(line);
+        size_t ipos = 0;
+        while (isblank(line[ipos])) {
+            if (ipos < l)
+                ipos++;
+        }
+        std::string sbuf(line + ipos);
+        // skip pure comment lines
+        if (sbuf.front() == '!' || sbuf.front() == '$')
+            continue;
+        // leave, since a new section is reached
+        if (sbuf.front() == '[')
+            break;
+        // this should be a data line
+        // there can be a trailing comment
+        size_t trpos = sbuf.find_first_of("$");
+        if (trpos != std::string::npos) {
+            sbuf = sbuf.substr(0, trpos - 1);
+        }
+        // GetLog() << sbuf << "\n";
+        // not all entries are of numerical type!
+        size_t eqpos = sbuf.find_first_of("=");
+        if (eqpos == std::string::npos)
+            continue;
+        std::string skey, sval;
+        skey = sbuf.substr(0, eqpos);
+        sval = sbuf.substr(eqpos + 1);
+        size_t sppos = skey.find_first_of(" ");
+        if (sppos != std::string::npos) {
+            skey = skey.substr(0, sppos);
+        }
+        // GetLog() << ">>Key=" << skey << "|" << sval << "\n";
+        if (skey.compare("LFZO") == 0) {
+            m_par.LFZO = stod(sval);
+        }
+        if (skey.compare("LCX") == 0) {
+            m_par.LCX = stod(sval);
+        }
+        if (skey.compare("LMUX") == 0) {
+            m_par.LMUX = stod(sval);
+        }
+        if (skey.compare("LEX") == 0) {
+            m_par.LEX = stod(sval);
+        }
+        if (skey.compare("LKX") == 0) {
+            m_par.LKX = stod(sval);
+        }
+        if (skey.compare("LHX") == 0) {
+            m_par.LHX = stod(sval);
+        }
+        if (skey.compare("LVX") == 0) {
+            m_par.LVX = stod(sval);
+        }
+        if (skey.compare("LCY") == 0) {
+            m_par.LCY = stod(sval);
+        }
+        if (skey.compare("LMUY") == 0) {
+            m_par.LMUY = stod(sval);
+        }
+        if (skey.compare("LEY") == 0) {
+            m_par.LEY = stod(sval);
+        }
+        if (skey.compare("LKY") == 0) {
+            m_par.LKY = stod(sval);
+        }
+        if (skey.compare("LHY") == 0) {
+            m_par.LHY = stod(sval);
+        }
+        if (skey.compare("LVY") == 0) {
+            m_par.LVY = stod(sval);
+        }
+        if (skey.compare("LGAY") == 0) {
+            m_par.LGAY = stod(sval);
+        }
+        if (skey.compare("LTR") == 0) {
+            m_par.LTR = stod(sval);
+        }
+        if (skey.compare("LRES") == 0) {
+            m_par.LRES = stod(sval);
+        }
+        if (skey.compare("LGAZ") == 0) {
+            m_par.LGAZ = stod(sval);
+        }
+        if (skey.compare("LXAL") == 0) {
+            m_par.LXAL = stod(sval);
+        }
+        if (skey.compare("LYKA") == 0) {
+            m_par.LYKA = stod(sval);
+        }
+        if (skey.compare("LVYKA") == 0) {
+            m_par.LVYKA = stod(sval);
+        }
+        if (skey.compare("LS") == 0) {
+            m_par.LS = stod(sval);
+        }
+        if (skey.compare("LSGKP") == 0) {
+            m_par.LSGKP = stod(sval);
+        }
+        if (skey.compare("LSGAL") == 0) {
+            m_par.LSGAL = stod(sval);
+        }
+        if (skey.compare("LGYR") == 0) {
+            m_par.LGYR = stod(sval);
+        }
+        if (skey.compare("LMX") == 0) {
+            m_par.LMX = stod(sval);
+        }
+        if (skey.compare("LMY") == 0) {
+            m_par.LMY = stod(sval);
+        }
+        if (skey.compare("LIP") == 0) {
+            m_par.LIP = stod(sval);
+        }
+    }
+}
+
+void ChPac02Tire::LoadSectionLongitudinal(FILE* fp) {
+    bool ok = FindSectionStart("[LONGITUDINAL_COEFFICIENTS]", fp);
+    if (!ok) {
+        GetLog() << "Desired section [LONGITUDINAL_COEFFICIENTS] not found.\n";
+        return;
+    }
+    while (!feof(fp)) {
+        char line[201];
+        fgets(line, 200, fp);  // buffer one line
+        // remove leading white space
+        size_t l = strlen(line);
+        size_t ipos = 0;
+        while (isblank(line[ipos])) {
+            if (ipos < l)
+                ipos++;
+        }
+        std::string sbuf(line + ipos);
+        // skip pure comment lines
+        if (sbuf.front() == '!' || sbuf.front() == '$')
+            continue;
+        // leave, since a new section is reached
+        if (sbuf.front() == '[')
+            break;
+        // this should be a data line
+        // there can be a trailing comment
+        size_t trpos = sbuf.find_first_of("$");
+        if (trpos != std::string::npos) {
+            sbuf = sbuf.substr(0, trpos - 1);
+        }
+        // GetLog() << sbuf << "\n";
+        // not all entries are of numerical type!
+        size_t eqpos = sbuf.find_first_of("=");
+        if (eqpos == std::string::npos)
+            continue;
+        std::string skey, sval;
+        skey = sbuf.substr(0, eqpos);
+        sval = sbuf.substr(eqpos + 1);
+        size_t sppos = skey.find_first_of(" ");
+        if (sppos != std::string::npos) {
+            skey = skey.substr(0, sppos);
+        }
+        // GetLog() << ">>Key=" << skey << "|" << sval << "\n";
+        if (skey.compare("PCX1") == 0) {
+            m_par.PCX1 = stod(sval);
+        }
+        if (skey.compare("PDX1") == 0) {
+            m_par.PDX1 = stod(sval);
+        }
+        if (skey.compare("PDX2") == 0) {
+            m_par.PDX2 = stod(sval);
+        }
+        if (skey.compare("PEX1") == 0) {
+            m_par.PEX1 = stod(sval);
+        }
+        if (skey.compare("PEX2") == 0) {
+            m_par.PEX2 = stod(sval);
+        }
+        if (skey.compare("PEX3") == 0) {
+            m_par.PEX3 = stod(sval);
+        }
+        if (skey.compare("PEX4") == 0) {
+            m_par.PEX4 = stod(sval);
+        }
+        if (skey.compare("PKX1") == 0) {
+            m_par.PKX1 = stod(sval);
+        }
+        if (skey.compare("PKX2") == 0) {
+            m_par.PKX2 = stod(sval);
+        }
+        if (skey.compare("PKX3") == 0) {
+            m_par.PKX3 = stod(sval);
+        }
+        if (skey.compare("PHX1") == 0) {
+            m_par.PHX1 = stod(sval);
+        }
+        if (skey.compare("PHX2") == 0) {
+            m_par.PHX2 = stod(sval);
+        }
+        if (skey.compare("PVX1") == 0) {
+            m_par.PVX1 = stod(sval);
+        }
+        if (skey.compare("PVX2") == 0) {
+            m_par.PVX2 = stod(sval);
+        }
+        if (skey.compare("RBX1") == 0) {
+            m_par.RBX1 = stod(sval);
+        }
+        if (skey.compare("RBX2") == 0) {
+            m_par.RBX2 = stod(sval);
+        }
+        if (skey.compare("RCX1") == 0) {
+            m_par.RCX1 = stod(sval);
+        }
+        if (skey.compare("RHX1") == 0) {
+            m_par.RHX1 = stod(sval);
+        }
+        if (skey.compare("PTX1") == 0) {
+            m_par.PTX1 = stod(sval);
+        }
+        if (skey.compare("PTX2") == 0) {
+            m_par.PTX2 = stod(sval);
+        }
+        if (skey.compare("PTX3") == 0) {
+            m_par.PTX3 = stod(sval);
+        }
+        if (skey.compare("PPX1") == 0) {
+            m_par.PPX1 = stod(sval);
+        }
+        if (skey.compare("PPX2") == 0) {
+            m_par.PPX2 = stod(sval);
+        }
+        if (skey.compare("PPX3") == 0) {
+            m_par.PPX3 = stod(sval);
+        }
+        if (skey.compare("PPX4") == 0) {
+            m_par.PPX4 = stod(sval);
+        }
+    }
+}
+
+void ChPac02Tire::LoadSectionOverturning(FILE* fp) {
+    bool ok = FindSectionStart("[OVERTURNING_COEFFICIENTS]", fp);
+    if (!ok) {
+        GetLog() << "Desired section [OVERTURNING_COEFFICIENTS] not found.\n";
+        return;
+    }
+    while (!feof(fp)) {
+        char line[201];
+        fgets(line, 200, fp);  // buffer one line
+        // remove leading white space
+        size_t l = strlen(line);
+        size_t ipos = 0;
+        while (isblank(line[ipos])) {
+            if (ipos < l)
+                ipos++;
+        }
+        std::string sbuf(line + ipos);
+        // skip pure comment lines
+        if (sbuf.front() == '!' || sbuf.front() == '$')
+            continue;
+        // leave, since a new section is reached
+        if (sbuf.front() == '[')
+            break;
+        // this should be a data line
+        // there can be a trailing comment
+        size_t trpos = sbuf.find_first_of("$");
+        if (trpos != std::string::npos) {
+            sbuf = sbuf.substr(0, trpos - 1);
+        }
+        // GetLog() << sbuf << "\n";
+        // not all entries are of numerical type!
+        size_t eqpos = sbuf.find_first_of("=");
+        if (eqpos == std::string::npos)
+            continue;
+        std::string skey, sval;
+        skey = sbuf.substr(0, eqpos);
+        sval = sbuf.substr(eqpos + 1);
+        size_t sppos = skey.find_first_of(" ");
+        if (sppos != std::string::npos) {
+            skey = skey.substr(0, sppos);
+        }
+        // GetLog() << ">>Key=" << skey << "|" << sval << "\n";
+        if (skey.compare("QSX1") == 0) {
+            m_par.QSX1 = stod(sval);
+        }
+        if (skey.compare("QSX2") == 0) {
+            m_par.QSX2 = stod(sval);
+        }
+        if (skey.compare("QSX3") == 0) {
+            m_par.QSX3 = stod(sval);
+        }
+        if (skey.compare("QSX4") == 0) {
+            m_par.QSX4 = stod(sval);
+        }
+        if (skey.compare("QSX5") == 0) {
+            m_par.QSX5 = stod(sval);
+        }
+        if (skey.compare("QSX6") == 0) {
+            m_par.QSX6 = stod(sval);
+        }
+        if (skey.compare("QSX7") == 0) {
+            m_par.QSX7 = stod(sval);
+        }
+        if (skey.compare("QSX8") == 0) {
+            m_par.QSX8 = stod(sval);
+        }
+        if (skey.compare("QSX9") == 0) {
+            m_par.QSX9 = stod(sval);
+        }
+        if (skey.compare("QSX10") == 0) {
+            m_par.QSX10 = stod(sval);
+        }
+        if (skey.compare("QSX11") == 0) {
+            m_par.QSX11 = stod(sval);
+        }
+        if (skey.compare("QPX1") == 0) {
+            m_par.QPX1 = stod(sval);
+        }
+    }
+}
+
+void ChPac02Tire::LoadSectionLateral(FILE* fp) {
+    bool ok = FindSectionStart("[LATERAL_COEFFICIENTS]", fp);
+    if (!ok) {
+        GetLog() << "Desired section [LATERAL_COEFFICIENTS] not found.\n";
+        return;
+    }
+    while (!feof(fp)) {
+        char line[201];
+        fgets(line, 200, fp);  // buffer one line
+        // remove leading white space
+        size_t l = strlen(line);
+        size_t ipos = 0;
+        while (isblank(line[ipos])) {
+            if (ipos < l)
+                ipos++;
+        }
+        std::string sbuf(line + ipos);
+        // skip pure comment lines
+        if (sbuf.front() == '!' || sbuf.front() == '$')
+            continue;
+        // leave, since a new section is reached
+        if (sbuf.front() == '[')
+            break;
+        // this should be a data line
+        // there can be a trailing comment
+        size_t trpos = sbuf.find_first_of("$");
+        if (trpos != std::string::npos) {
+            sbuf = sbuf.substr(0, trpos - 1);
+        }
+        // GetLog() << sbuf << "\n";
+        // not all entries are of numerical type!
+        size_t eqpos = sbuf.find_first_of("=");
+        if (eqpos == std::string::npos)
+            continue;
+        std::string skey, sval;
+        skey = sbuf.substr(0, eqpos);
+        sval = sbuf.substr(eqpos + 1);
+        size_t sppos = skey.find_first_of(" ");
+        if (sppos != std::string::npos) {
+            skey = skey.substr(0, sppos);
+        }
+        // GetLog() << ">>Key=" << skey << "|" << sval << "\n";
+        if (skey.compare("PCY1") == 0) {
+            m_par.PCY1 = stod(sval);
+        }
+        if (skey.compare("PDY1") == 0) {
+            m_par.PDY1 = stod(sval);
+        }
+        if (skey.compare("PDY2") == 0) {
+            m_par.PDY2 = stod(sval);
+        }
+        if (skey.compare("PDY3") == 0) {
+            m_par.PDY3 = stod(sval);
+        }
+        if (skey.compare("PEY1") == 0) {
+            m_par.PEY1 = stod(sval);
+        }
+        if (skey.compare("PEY2") == 0) {
+            m_par.PEY2 = stod(sval);
+        }
+        if (skey.compare("PEY3") == 0) {
+            m_par.PEY3 = stod(sval);
+        }
+        if (skey.compare("PEY4") == 0) {
+            m_par.PEY4 = stod(sval);
+        }
+        if (skey.compare("PKY1") == 0) {
+            m_par.PKY1 = stod(sval);
+        }
+        if (skey.compare("PKY2") == 0) {
+            m_par.PKY2 = stod(sval);
+        }
+        if (skey.compare("PKY3") == 0) {
+            m_par.PKY3 = stod(sval);
+        }
+        if (skey.compare("PHY1") == 0) {
+            m_par.PHY1 = stod(sval);
+        }
+        if (skey.compare("PHY2") == 0) {
+            m_par.PHY2 = stod(sval);
+        }
+        if (skey.compare("PHY3") == 0) {
+            m_par.PHY3 = stod(sval);
+        }
+        if (skey.compare("PVY1") == 0) {
+            m_par.PVY1 = stod(sval);
+        }
+        if (skey.compare("PVY2") == 0) {
+            m_par.PVY2 = stod(sval);
+        }
+        if (skey.compare("PVY3") == 0) {
+            m_par.PVY3 = stod(sval);
+        }
+        if (skey.compare("PVY4") == 0) {
+            m_par.PVY4 = stod(sval);
+        }
+        if (skey.compare("RBY1") == 0) {
+            m_par.RBY1 = stod(sval);
+        }
+        if (skey.compare("RBY2") == 0) {
+            m_par.RBY2 = stod(sval);
+        }
+        if (skey.compare("RBY3") == 0) {
+            m_par.RBY3 = stod(sval);
+        }
+        if (skey.compare("RCY1") == 0) {
+            m_par.RCY1 = stod(sval);
+        }
+        if (skey.compare("RHY1") == 0) {
+            m_par.RHY1 = stod(sval);
+        }
+        if (skey.compare("RVY1") == 0) {
+            m_par.RVY1 = stod(sval);
+        }
+        if (skey.compare("RVY2") == 0) {
+            m_par.RVY2 = stod(sval);
+        }
+        if (skey.compare("RVY3") == 0) {
+            m_par.RVY3 = stod(sval);
+        }
+        if (skey.compare("RVY4") == 0) {
+            m_par.RVY4 = stod(sval);
+        }
+        if (skey.compare("RVY5") == 0) {
+            m_par.RVY5 = stod(sval);
+        }
+        if (skey.compare("RVY6") == 0) {
+            m_par.RVY6 = stod(sval);
+        }
+        if (skey.compare("PTY1") == 0) {
+            m_par.PTY1 = stod(sval);
+        }
+        if (skey.compare("PTY2") == 0) {
+            m_par.PTY2 = stod(sval);
+        }
+        if (skey.compare("PPY1") == 0) {
+            m_par.PPY1 = stod(sval);
+        }
+        if (skey.compare("PPY2") == 0) {
+            m_par.PPY2 = stod(sval);
+        }
+        if (skey.compare("PPY3") == 0) {
+            m_par.PPY3 = stod(sval);
+        }
+        if (skey.compare("PPY4") == 0) {
+            m_par.PPY4 = stod(sval);
+        }
+    }
+}
+
+void ChPac02Tire::LoadSectionRolling(FILE* fp) {
+    bool ok = FindSectionStart("[ROLLING_COEFFICIENTS]", fp);
+    if (!ok) {
+        GetLog() << "Desired section [ROLLING_COEFFICIENTS] not found.\n";
+        return;
+    }
+    while (!feof(fp)) {
+        char line[201];
+        fgets(line, 200, fp);  // buffer one line
+        // remove leading white space
+        size_t l = strlen(line);
+        size_t ipos = 0;
+        while (isblank(line[ipos])) {
+            if (ipos < l)
+                ipos++;
+        }
+        std::string sbuf(line + ipos);
+        // skip pure comment lines
+        if (sbuf.front() == '!' || sbuf.front() == '$')
+            continue;
+        // leave, since a new section is reached
+        if (sbuf.front() == '[')
+            break;
+        // this should be a data line
+        // there can be a trailing comment
+        size_t trpos = sbuf.find_first_of("$");
+        if (trpos != std::string::npos) {
+            sbuf = sbuf.substr(0, trpos - 1);
+        }
+        // GetLog() << sbuf << "\n";
+        // not all entries are of numerical type!
+        size_t eqpos = sbuf.find_first_of("=");
+        if (eqpos == std::string::npos)
+            continue;
+        std::string skey, sval;
+        skey = sbuf.substr(0, eqpos);
+        sval = sbuf.substr(eqpos + 1);
+        size_t sppos = skey.find_first_of(" ");
+        if (sppos != std::string::npos) {
+            skey = skey.substr(0, sppos);
+        }
+        // GetLog() << ">>Key=" << skey << "|" << sval << "\n";
+        if (skey.compare("QSY1") == 0) {
+            m_par.QSY1 = stod(sval);
+            if (m_par.QSY1 <= 0.0)
+                m_par.QSY1 = 0.01;  // be sure to have some rolling resistance
+        }
+        if (skey.compare("QSY2") == 0) {
+            m_par.QSY2 = stod(sval);
+        }
+        if (skey.compare("QSY3") == 0) {
+            m_par.QSY3 = stod(sval);
+        }
+        if (skey.compare("QSY4") == 0) {
+            m_par.QSY4 = stod(sval);
+        }
+        if (skey.compare("QSY5") == 0) {
+            m_par.QSY5 = stod(sval);
+        }
+        if (skey.compare("QSY6") == 0) {
+            m_par.QSY6 = stod(sval);
+        }
+        if (skey.compare("QSY7") == 0) {
+            m_par.QSY7 = stod(sval);
+        }
+        if (skey.compare("QSY8") == 0) {
+            m_par.QSY8 = stod(sval);
+        }
+    }
+}
+
+void ChPac02Tire::LoadSectionConditions(FILE* fp) {
+    bool ok = FindSectionStart("[TIRE_CONDITIONS]", fp);
+    if (!ok) {
+        GetLog() << "Desired section [TIRE_CONDITIONS] not found, older Pacejka file version.\n";
+        return;
+    }
+    while (!feof(fp)) {
+        char line[201];
+        fgets(line, 200, fp);  // buffer one line
+        // remove leading white space
+        size_t l = strlen(line);
+        size_t ipos = 0;
+        while (isblank(line[ipos])) {
+            if (ipos < l)
+                ipos++;
+        }
+        std::string sbuf(line + ipos);
+        // skip pure comment lines
+        if (sbuf.front() == '!' || sbuf.front() == '$')
+            continue;
+        // leave, since a new section is reached
+        if (sbuf.front() == '[')
+            break;
+        // this should be a data line
+        // there can be a trailing comment
+        size_t trpos = sbuf.find_first_of("$");
+        if (trpos != std::string::npos) {
+            sbuf = sbuf.substr(0, trpos - 1);
+        }
+        // GetLog() << sbuf << "\n";
+        // not all entries are of numerical type!
+        size_t eqpos = sbuf.find_first_of("=");
+        if (eqpos == std::string::npos)
+            continue;
+        std::string skey, sval;
+        skey = sbuf.substr(0, eqpos);
+        sval = sbuf.substr(eqpos + 1);
+        size_t sppos = skey.find_first_of(" ");
+        if (sppos != std::string::npos) {
+            skey = skey.substr(0, sppos);
+        }
+        // GetLog() << ">>Key=" << skey << "|" << sval << "\n";
+        bool ip_ok = false;
+        if (skey.compare("IP") == 0) {
+            m_par.IP = m_par.u_pressure * stod(sval);
+            ip_ok = true;
+        }
+        bool ip_nom_ok = false;
+        if (skey.compare("IP_NOM") == 0) {
+            m_par.IP_NOM = m_par.u_pressure * stod(sval);
+            ip_nom_ok = true;
+        }
+        m_tire_conditions_found = ip_ok && ip_nom_ok;
+    }
+}
+
+void ChPac02Tire::LoadVerticalTable(FILE* fp) {
+    bool ok = FindSectionStart("[DEFLECTION_LOAD_CURVE]", fp);
+    if (!ok) {
+        GetLog() << "Desired section [DEFLECTION_LOAD_CURVE] not found, using linear vertical stiffness.\n";
+        return;
+    }
+    std::vector<double> xval, yval;
+    while (true) {
+        char line[201];
+        fgets(line, 200, fp);  // buffer one line
+        if (feof(fp))
+            break;
+        // remove leading white space
+        size_t l = strlen(line);
+        size_t ipos = 0;
+        while (isblank(line[ipos])) {
+            if (ipos < l)
+                ipos++;
+        }
+        std::string sbuf(line + ipos);
+        // skip pure comment lines
+        if (sbuf.front() == '!' || sbuf.front() == '$' || sbuf.front() == '{')
+            continue;
+        // leave, since a new section is reached
+        if (sbuf.front() == '[')
+            break;
+        // this should be a data line
+        // there can be a trailing comment
+        size_t trpos = sbuf.find_first_of("$");
+        if (trpos != std::string::npos) {
+            sbuf = sbuf.substr(0, trpos - 1);
+        }
+        size_t sz;
+        double x = m_par.u_length * stod(sbuf, &sz);
+        double y = m_par.u_force * stod(sbuf.substr(sz), &sz);
+        xval.push_back(x / m_par.UNLOADED_RADIUS);
+        yval.push_back(y / m_par.FNOMIN);
+    }
+    size_t ndata = xval.size();
+    Eigen::MatrixXd M(ndata, 2);
+    Eigen::VectorXd r(ndata);
+    for (size_t i = 0; i < ndata; i++) {
+        M(i, 0) = xval[i];
+        M(i, 1) = pow(xval[i], 2);
+        r(i) = yval[i];
+    }
+    Eigen::VectorXd x = M.householderQr().solve(r);
+    m_par.QFZ1 = x(0);
+    m_par.QFZ2 = x(1);
+    /*
+    GetLog() << "a = " << x(0) << "\n";
+    GetLog() << "b = " << x(1) << "\n";
+    GetLog() << "Test1 " << (x(0)*xval.back()/4.0 + x(1)*pow(xval.back()/4.0,2))*m_par.FNOMIN << "\n";
+    GetLog() << "Test2 " << (x(0)*xval.back()/2.0 + x(1)*pow(xval.back()/2.0,2))*m_par.FNOMIN << "\n";
+    GetLog() << "Test3 " << (x(0)*xval.back()*3.0/4.0 + x(1)*pow(xval.back()*3.0/4.0,2))*m_par.FNOMIN << "\n";
+    GetLog() << "Test2 " << (x(0)*xval.back() + x(1)*pow(xval.back(),2))*m_par.FNOMIN << "\n";
+    double sum = 0.0;
+    for(int i=0; i<ndata; i++) {
+        double f = (m_par.QFZ1*xval[i] + m_par.QFZ2*pow(xval[i],2));
+        double y = yval[i];
+        double e = (f-y);
+        sum += e*e;
+    }
+    GetLog() << "SumOfSquares = " << sum/double(ndata) << "\n";
+     */
+    m_vertical_table_found = true;
+}
+
+void ChPac02Tire::LoadBottomingTable(FILE* fp) {
+    bool ok = FindSectionStart("[BOTTOMING_CURVE]", fp);
+    if (!ok) {
+        GetLog() << "Desired section [BOTTOMING_CURVE] not found, no bottoming stiffness set.\n";
+        return;
+    }
+    while (true) {
+        char line[201];
+        fgets(line, 200, fp);  // buffer one line
+        if (feof(fp))
+            break;
+        // remove leading white space
+        size_t l = strlen(line);
+        size_t ipos = 0;
+        while (isblank(line[ipos])) {
+            if (ipos < l)
+                ipos++;
+        }
+        std::string sbuf(line + ipos);
+        // skip pure comment lines
+        if (sbuf.front() == '!' || sbuf.front() == '$' || sbuf.front() == '{')
+            continue;
+        // leave, since a new section is reached
+        if (sbuf.front() == '[')
+            break;
+        // this should be a data line
+        // there can be a trailing comment
+        size_t trpos = sbuf.find_first_of("$");
+        if (trpos != std::string::npos) {
+            sbuf = sbuf.substr(0, trpos - 1);
+        }
+        size_t sz;
+        double x = m_par.u_length * stod(sbuf, &sz);
+        double y = m_par.u_force * stod(sbuf.substr(sz), &sz);
+        m_bott_map.AddPoint(x, y);
+    }
+    if (m_bott_map.GetPoints().size() >= 3)
+        m_bottoming_table_found = true;
+}
+
+void ChPac02Tire::LoadSectionAligning(FILE* fp) {
+    bool ok = FindSectionStart("[ALIGNING_COEFFICIENTS]", fp);
+    if (!ok) {
+        GetLog() << "Desired section [ALIGNING_COEFFICIENTS] not found.\n";
+        return;
+    }
+    while (!feof(fp)) {
+        char line[201];
+        fgets(line, 200, fp);  // buffer one line
+        // remove leading white space
+        size_t l = strlen(line);
+        size_t ipos = 0;
+        while (isblank(line[ipos])) {
+            if (ipos < l)
+                ipos++;
+        }
+        std::string sbuf(line + ipos);
+        // skip pure comment lines
+        if (sbuf.front() == '!' || sbuf.front() == '$')
+            continue;
+        // leave, since a new section is reached
+        if (sbuf.front() == '[')
+            break;
+        // this should be a data line
+        // there can be a trailing comment
+        size_t trpos = sbuf.find_first_of("$");
+        if (trpos != std::string::npos) {
+            sbuf = sbuf.substr(0, trpos - 1);
+        }
+        // GetLog() << sbuf << "\n";
+        // not all entries are of numerical type!
+        size_t eqpos = sbuf.find_first_of("=");
+        if (eqpos == std::string::npos)
+            continue;
+        std::string skey, sval;
+        skey = sbuf.substr(0, eqpos);
+        sval = sbuf.substr(eqpos + 1);
+        size_t sppos = skey.find_first_of(" ");
+        if (sppos != std::string::npos) {
+            skey = skey.substr(0, sppos);
+        }
+        // GetLog() << ">>Key=" << skey << "|" << sval << "\n";
+        if (skey.compare("QBZ1") == 0) {
+            m_par.QBZ1 = stod(sval);
+        }
+        if (skey.compare("QBZ2") == 0) {
+            m_par.QBZ2 = stod(sval);
+        }
+        if (skey.compare("QBZ3") == 0) {
+            m_par.QBZ3 = stod(sval);
+        }
+        if (skey.compare("QBZ4") == 0) {
+            m_par.QBZ4 = stod(sval);
+        }
+        if (skey.compare("QBZ5") == 0) {
+            m_par.QBZ5 = stod(sval);
+        }
+        if (skey.compare("QBZ9") == 0) {
+            m_par.QBZ9 = stod(sval);
+        }
+        if (skey.compare("QCZ1") == 0) {
+            m_par.QCZ1 = stod(sval);
+        }
+        if (skey.compare("QDZ1") == 0) {
+            m_par.QDZ1 = stod(sval);
+        }
+        if (skey.compare("QDZ2") == 0) {
+            m_par.QDZ2 = stod(sval);
+        }
+        if (skey.compare("QDZ3") == 0) {
+            m_par.QDZ3 = stod(sval);
+        }
+        if (skey.compare("QDZ4") == 0) {
+            m_par.QDZ4 = stod(sval);
+        }
+        if (skey.compare("QDZ6") == 0) {
+            m_par.QDZ6 = stod(sval);
+        }
+        if (skey.compare("QDZ7") == 0) {
+            m_par.QDZ7 = stod(sval);
+        }
+        if (skey.compare("QDZ8") == 0) {
+            m_par.QDZ8 = stod(sval);
+        }
+        if (skey.compare("QDZ9") == 0) {
+            m_par.QDZ9 = stod(sval);
+        }
+        if (skey.compare("QEZ1") == 0) {
+            m_par.QEZ1 = stod(sval);
+        }
+        if (skey.compare("QEZ2") == 0) {
+            m_par.QEZ2 = stod(sval);
+        }
+        if (skey.compare("QEZ3") == 0) {
+            m_par.QEZ3 = stod(sval);
+        }
+        if (skey.compare("QEZ4") == 0) {
+            m_par.QEZ4 = stod(sval);
+        }
+        if (skey.compare("QEZ5") == 0) {
+            m_par.QEZ5 = stod(sval);
+        }
+        if (skey.compare("QHZ1") == 0) {
+            m_par.QHZ1 = stod(sval);
+        }
+        if (skey.compare("QHZ2") == 0) {
+            m_par.QHZ2 = stod(sval);
+        }
+        if (skey.compare("QHZ3") == 0) {
+            m_par.QHZ3 = stod(sval);
+        }
+        if (skey.compare("QHZ4") == 0) {
+            m_par.QHZ4 = stod(sval);
+        }
+        if (skey.compare("SSZ1") == 0) {
+            m_par.SSZ1 = stod(sval);
+        }
+        if (skey.compare("SSZ2") == 0) {
+            m_par.SSZ2 = stod(sval);
+        }
+        if (skey.compare("SSZ3") == 0) {
+            m_par.SSZ3 = stod(sval);
+        }
+        if (skey.compare("SSZ4") == 0) {
+            m_par.SSZ4 = stod(sval);
+        }
+        if (skey.compare("QTZ1") == 0) {
+            m_par.QTZ1 = stod(sval);
+        }
+        if (skey.compare("QPZ1") == 0) {
+            m_par.QPZ1 = stod(sval);
+        }
+        if (skey.compare("QPZ2") == 0) {
+            m_par.QPZ2 = stod(sval);
+        }
+        if (skey.compare("MBELT") == 0) {
+            m_par.MBELT = stod(sval);
+        }
+    }
+}
+
 void ChPac02Tire::Initialize(std::shared_ptr<ChWheel> wheel) {
     ChTire::Initialize(wheel);
 
-    SetPac02Params();
+    // Let derived class set the MF tire parameters
+    SetMFParams();
+
     // Build the lookup table for penetration depth as function of intersection area
     // (used only with the ChTire::ENVELOPE method for terrain-tire collision detection)
-    ConstructAreaDepthTable(m_PacCoeff.R0, m_areaDep);
+    ConstructAreaDepthTable(m_par.UNLOADED_RADIUS, m_areaDep);
 
     // all parameters are known now pepare mirroring
     if (m_allow_mirroring) {
         if (wheel->GetSide() != m_measured_side) {
-            // we flip the sign of some parameters
-            m_PacCoeff.rhx1 *= -1.0;
-            m_PacCoeff.qsx1 *= -1.0;
-            m_PacCoeff.pey3 *= -1.0;
-            m_PacCoeff.phy1 *= -1.0;
-            m_PacCoeff.phy2 *= -1.0;
-            m_PacCoeff.pvy1 *= -1.0;
-            m_PacCoeff.pvy2 *= -1.0;
-            m_PacCoeff.rby3 *= -1.0;
-            m_PacCoeff.rvy1 *= -1.0;
-            m_PacCoeff.rvy2 *= -1.0;
-            m_PacCoeff.qbz4 *= -1.0;
-            m_PacCoeff.qdz3 *= -1.0;
-            m_PacCoeff.qdz6 *= -1.0;
-            m_PacCoeff.qdz7 *= -1.0;
-            m_PacCoeff.qez4 *= -1.0;
-            m_PacCoeff.qhz1 *= -1.0;
-            m_PacCoeff.qhz2 *= -1.0;
-            m_PacCoeff.ssz1 *= -1.0;
+            // we flip the sign of some parameters to compensate asymmetry
+            m_par.RHX1 *= -1.0;
+            m_par.QSX1 *= -1.0;
+            m_par.PEY3 *= -1.0;
+            m_par.PHY1 *= -1.0;
+            m_par.PHY2 *= -1.0;
+            m_par.PVY1 *= -1.0;
+            m_par.PVY2 *= -1.0;
+            m_par.RBY3 *= -1.0;
+            m_par.RVY1 *= -1.0;
+            m_par.RVY2 *= -1.0;
+            m_par.QBZ4 *= -1.0;
+            m_par.QDZ3 *= -1.0;
+            m_par.QDZ6 *= -1.0;
+            m_par.QDZ7 *= -1.0;
+            m_par.QEZ4 *= -1.0;
+            m_par.QHZ1 *= -1.0;
+            m_par.QHZ2 *= -1.0;
+            m_par.SSZ1 *= -1.0;
             if (m_measured_side == LEFT) {
                 GetLog() << "Tire is measured as left tire but mounted on the right vehicle side -> mirroring.\n";
             } else {
@@ -252,17 +1588,15 @@ void ChPac02Tire::Initialize(std::shared_ptr<ChWheel> wheel) {
 
     // Initialize contact patch state variables to 0
     m_data.normal_force = 0;
-    m_states.R_eff = m_PacCoeff.R0;
-    m_states.cp_long_slip = 0;
-    m_states.cp_side_slip = 0;
+    m_states.R_eff = m_par.UNLOADED_RADIUS;
+    m_states.kappa = 0;
+    m_states.alpha = 0;
+    m_states.gamma = 0;
     m_states.vx = 0;
     m_states.vsx = 0;
     m_states.vsy = 0;
     m_states.omega = 0;
     m_states.disc_normal = ChVector<>(0, 0, 0);
-
-    m_states.cp_long_slip = 0;
-    m_states.cp_side_slip = 0;
 }
 
 void ChPac02Tire::Synchronize(double time, const ChTerrain& terrain) {
@@ -273,14 +1607,18 @@ void ChPac02Tire::Synchronize(double time, const ChTerrain& terrain) {
     ChVector<> disc_normal = A.Get_A_Yaxis();
 
     // Assuming the tire is a disc, check contact with terrain
-    float mu;
-    m_data.in_contact = DiscTerrainCollision(m_collision_type, terrain, wheel_state.pos, disc_normal, m_PacCoeff.R0,
-                                             m_PacCoeff.width, m_areaDep, m_data.frame, m_data.depth, mu);
-    ChClampValue(mu, 0.1f, 1.0f);
-    m_mu = mu;
+    float mu_road;
+    m_data.in_contact =
+        DiscTerrainCollision(m_collision_type, terrain, wheel_state.pos, disc_normal, m_par.UNLOADED_RADIUS,
+                             m_par.WIDTH, m_areaDep, m_data.frame, m_data.depth, mu_road);
+    ChClampValue(mu_road, 0.1f, 1.0f);
+
+    m_states.mu_scale = mu_road / m_mu0;  // can change with terrain conditions
 
     // Calculate tire kinematics
     CalculateKinematics(wheel_state, m_data.frame);
+
+    m_states.gamma = ChClamp(GetCamberAngle(), -m_gamma_limit * CH_C_DEG_TO_RAD, m_gamma_limit * CH_C_DEG_TO_RAD);
 
     if (m_data.in_contact) {
         // Wheel velocity in the ISO-C Frame
@@ -300,22 +1638,43 @@ void ChPac02Tire::Synchronize(double time, const ChTerrain& terrain) {
         }
 
         m_data.normal_force = Fn_mag;
-        m_states.R_eff = m_PacCoeff.R0 - m_data.depth;
+        // R_eff is a Rill estimation, not Pacejka. Advantage: it works well with speed = zero.
+        m_states.R_eff = (2.0 * m_par.UNLOADED_RADIUS + (m_par.UNLOADED_RADIUS - m_data.depth)) / 3.0;
         m_states.vx = std::abs(m_data.vel.x());
         m_states.vsx = m_data.vel.x() - wheel_state.omega * m_states.R_eff;
-        m_states.vsy = -m_data.vel.y();  // PAC89 is defined in a modified SAE coordinate system
+        m_states.vsy = -m_data.vel.y();
+        // prevent singularity for kappa, when vx == 0
+        const double epsilon = 0.1;
+        m_states.kappa = -m_states.vsx / (m_states.vx + epsilon);
+        m_states.alpha = std::atan2(m_states.vsy, m_states.vx + epsilon);
         m_states.omega = wheel_state.omega;
         m_states.disc_normal = disc_normal;
+        m_states.Fz0_prime = m_par.FNOMIN * m_par.LFZO;
+        m_states.dfz0 = (Fn_mag - m_states.Fz0_prime) / m_states.Fz0_prime;
+        m_states.Pi0_prime = m_par.IP_NOM * m_par.LIP;
+        m_states.dpi = (m_par.IP - m_states.Pi0_prime) / m_states.Pi0_prime;
+        // Ensure that kappa stays between -1 & 1
+        ChClampValue(m_states.kappa, -1.0, 1.0);
+        // Ensure that alpha stays between -pi()/2 & pi()/2 (a little less to prevent tan from going to infinity)
+        ChClampValue(m_states.alpha, -CH_C_PI_2 + 0.001, CH_C_PI_2 - 0.001);
+        // Clamp |gamma| to specified value: Limit due to tire testing, avoids erratic extrapolation. m_gamma_limit is
+        // in rad too.
+        ChClampValue(m_states.gamma, -m_gamma_limit, m_gamma_limit);
     } else {
         // Reset all states if the tire comes off the ground.
         m_data.normal_force = 0;
-        m_states.R_eff = m_PacCoeff.R0;
-        m_states.cp_long_slip = 0;
-        m_states.cp_side_slip = 0;
+        m_states.R_eff = m_par.UNLOADED_RADIUS;
+        m_states.kappa = 0;
+        m_states.alpha = 0;
+        m_states.gamma = 0;
         m_states.vx = 0;
         m_states.vsx = 0;
         m_states.vsy = 0;
         m_states.omega = 0;
+        m_states.Fz0_prime = 0;
+        m_states.dfz0 = 0;
+        m_states.Pi0_prime = 0;
+        m_states.dpi = 1;
         m_states.disc_normal = ChVector<>(0, 0, 0);
     }
 }
@@ -329,40 +1688,21 @@ void ChPac02Tire::Advance(double step) {
     if (!m_data.in_contact)
         return;
 
-    // prevent singularity for kappa, when vx == 0
-    const double epsilon = 0.1;
-    m_states.cp_long_slip = -m_states.vsx / (m_states.vx + epsilon);
-
-    if (m_states.omega != 0) {
-        m_states.cp_side_slip = std::atan(m_states.vsy / std::abs(m_states.omega * (m_PacCoeff.R0 - m_data.depth)));
-    } else {
-        m_states.cp_side_slip = 0;
-    }
-    // Ensure that cp_lon_slip stays between -1 & 1
-    ChClampValue(m_states.cp_long_slip, -1.0, 1.0);
-
-    // Ensure that cp_side_slip stays between -pi()/2 & pi()/2 (a little less to prevent tan from going to infinity)
-    ChClampValue(m_states.cp_side_slip, -CH_C_PI_2 + 0.001, CH_C_PI_2 - 0.001);
-
     // Calculate the new force and moment values (normal force and moment have already been accounted for in
     // Synchronize()).
-    // Express Fz in kN (note that all other forces and moments are in N and Nm).
     // See reference for details on the calculations.
+    double Fx0 = 0;  // Fx at zero/small speed
+    double Fy0 = 0;  // Fy at zero/small speed
     double Fx = 0;
     double Fy = 0;
     double Fz = m_data.normal_force;
     double Mx = 0;
     double My = 0;
     double Mz = 0;
-
-    // Express alpha and gamma in rad. Express kappa as ratio.
-    m_gamma = CH_C_PI_2 - std::acos(m_states.disc_normal.z());
-    m_alpha = m_states.cp_side_slip;
-    m_kappa = m_states.cp_long_slip;
-
-    // Clamp |gamma| to specified value: Limit due to tire testing, avoids erratic extrapolation. m_gamma_limit is
-    // in rad too.
-    double gamma = ChClamp(m_gamma, -m_gamma_limit, m_gamma_limit);
+    double kappa = m_states.kappa;
+    double alpha = m_states.alpha;
+    double gamma = m_states.gamma;
+    double frblend = ChSineStep(m_data.vel.x(), m_frblend_begin, 0.0, m_frblend_end, 1.0);
 
     switch (m_use_mode) {
         case 0:
@@ -370,41 +1710,31 @@ void ChPac02Tire::Advance(double step) {
             break;
         case 1:
             // steady state pure longitudinal slip
-            Fx = CalcFx(m_kappa, Fz, gamma);
+            CalcFxyMz(Fx, Fy, Mz, kappa, 0.0, Fz, gamma, false);
+            My = CalcMy(Fx, Fz, gamma);
             break;
         case 2:
             // steady state pure lateral slip
-            Fy = CalcFy(m_alpha, Fz, gamma);
+            CalcFxyMz(Fx, Fy, Mz, 0.0, alpha, Fz, gamma, false);
+            Mx = CalcMx(Fy, Fx, gamma);
             break;
         case 3:
             // steady state pure lateral slip uncombined
-            Fx = CalcFx(m_kappa, Fz, gamma);
-            Fy = CalcFy(m_alpha, Fz, gamma);
-            Mx = CalcMx(Fy, Fz, gamma);
+            CombinedCoulombForces(Fx0, Fy0, Fz);
+            CalcFxyMz(Fx, Fy, Mz, kappa, alpha, Fz, gamma, false);
+            Fx = (1.0 - frblend) * Fx0 + frblend * Fx;
+            Fy = (1.0 - frblend) * Fy0 + frblend * Fy;
             My = CalcMy(Fx, Fz, gamma);
-            Mz = CalcMz(m_alpha, Fz, gamma, Fy);
+            Mx = CalcMx(Fy, Fx, gamma);
             break;
         case 4:
             // steady state combined slip
-            if (m_use_friction_ellipsis) {
-                double Fx_u = CalcFx(m_kappa, Fz, gamma);
-                double Fy_u = CalcFy(m_alpha, Fz, gamma);
-                double as = sin(m_alpha_c);
-                double beta = acos(std::abs(m_kappa_c) / sqrt(pow(m_kappa_c, 2) + pow(as, 2)));
-                double mux = 1.0 / sqrt(pow(1.0 / m_mu_x_act, 2) + pow(tan(beta) / m_mu_y_max, 2));
-                double muy = tan(beta) / sqrt(pow(1.0 / m_mu_x_max, 2) + pow(tan(beta) / m_mu_y_act, 2));
-                Fx = mux / m_mu_x_act * Fx_u;
-                Fy = muy / m_mu_y_act * Fy_u;
-                Mx = CalcMx(Fy, Fz, gamma);
-                My = CalcMy(Fx, Fz, gamma);
-                Mz = CalcMz(m_alpha, Fz, gamma, Fy);
-            } else {
-                Fx = CalcFxComb(m_kappa, m_alpha, Fz, gamma);
-                Fy = CalcFyComb(m_kappa, m_alpha, Fz, gamma);
-                Mx = CalcMx(Fy, Fz, gamma);
-                My = CalcMy(Fx, Fz, gamma);
-                Mz = CalcMzComb(m_kappa, m_alpha, Fz, gamma, Fx, Fy);
-            }
+            CombinedCoulombForces(Fx0, Fy0, Fz);
+            CalcFxyMz(Fx, Fy, Mz, kappa, alpha, Fz, gamma, true);
+            Fx = (1.0 - frblend) * Fx0 + frblend * Fx;
+            Fy = (1.0 - frblend) * Fy0 + frblend * Fy;
+            My = CalcMy(Fx, Fz, gamma);
+            Mx = CalcMx(Fy, Fx, gamma);
             break;
     }
 
@@ -437,233 +1767,6 @@ void ChPac02Tire::RemoveVisualizationAssets() {
 }
 
 // -----------------------------------------------------------------------------
-
-
-double ChPac02Tire::CalcFx(double kappa, double Fz, double gamma) {
-    // calculates the longitudinal force based on a limited parameter set.
-    // Pi is not considered
-    double Fz0s = m_PacCoeff.FzNomin * m_PacScal.lfz0;
-    double dFz = (Fz - Fz0s) / Fz0s;
-    double C = m_PacCoeff.pcx1 * m_PacScal.lcx;
-    double Mu = (m_PacCoeff.pdx1 + m_PacCoeff.pdx2 * dFz) * (1.0 - m_PacCoeff.pdx3 * pow(gamma, 2)) * m_PacScal.lmux;
-    double D = Mu * Fz * m_mu / m_PacCoeff.mu0;
-    double E = (m_PacCoeff.pex1 + m_PacCoeff.pex2 * dFz + m_PacCoeff.pex3 * dFz * dFz) * m_PacScal.lex;
-    if (E > 1.0)
-        E = 1.0;
-    double BCD = Fz * (m_PacCoeff.pkx1 + m_PacCoeff.pkx2 * dFz) * m_PacScal.lkx;  // BCD = Kx
-    double B = BCD / (C * D);
-    double Sh = (m_PacCoeff.phx1 + m_PacCoeff.phx2 * dFz) * m_PacScal.lhx;
-    double Sv = Fz * (m_PacCoeff.pvx1 + m_PacCoeff.pvx2 * dFz) * m_PacScal.lvx * m_PacScal.lmux;
-    m_kappa_c = kappa + Sh + Sv / BCD;
-    double X1 = B * (kappa + Sh);
-    double Fx0 = D * sin(C * atan(X1 - E * (X1 - atan(X1)))) + Sv;
-    m_mu_x_act = std::abs((Fx0 - Sv) / Fz);
-    m_mu_x_max = std::abs(D / Fz);
-    return Fx0;
-}
-
-double ChPac02Tire::CalcFy(double alpha, double Fz, double gamma) {
-    double Fz0s = m_PacCoeff.FzNomin * m_PacScal.lfz0;
-    double dFz = (Fz - Fz0s) / Fz0s;
-    double C = m_PacCoeff.pcy1 * m_PacScal.lcy;
-    m_Cy = C;
-    double Mu = (m_PacCoeff.pdy1 + m_PacCoeff.pdy2 * dFz) * (1.0 - m_PacCoeff.pdy3 * pow(gamma, 2)) * m_PacScal.lmuy;
-    double D = Mu * Fz * m_mu / m_PacCoeff.mu0;
-    double E = (m_PacCoeff.pey1 + m_PacCoeff.pey2 * dFz) *
-               (1.0 + m_PacCoeff.pey5 * pow(gamma, 2) - (m_PacCoeff.pey3 + m_PacCoeff.pey4 * gamma) * ChSignum(alpha)) *
-               m_PacScal.ley;
-    if (E > 1.0)
-        E = 1.0;
-    double Ky0 = m_PacCoeff.pky1 * m_PacCoeff.FzNomin * sin(2.0 * atan(Fz / (m_PacCoeff.pky2 * Fz0s))) *
-                 m_PacScal.lfz0 * m_PacScal.lky;
-    double BCD = Ky0;  // BCD = Ky
-    double B = BCD / (C * D);
-    m_By = B;
-    double Sh = (m_PacCoeff.phy1 + m_PacCoeff.phy2 * dFz) * m_PacScal.lhy;
-    double Sv = Fz * ((m_PacCoeff.pvy1 + m_PacCoeff.pvy2 * dFz) * m_PacScal.lvy) * m_PacScal.lmuy;
-    m_alpha_c = alpha + Sh + Sv / BCD;
-    double X1 = ChClamp(B * (alpha + Sh), -CH_C_PI_2 + 0.001,
-                        CH_C_PI_2 - 0.001);  // Ensure that X1 stays within +/-90 deg minus a little bit
-    double Fy0 = D * sin(C * atan(X1 - E * (X1 - atan(X1)))) + Sv;
-    m_Shf = Sh + Sv / BCD;
-    m_mu_y_act = std::abs((Fy0 - Sv) / Fz);
-    m_mu_y_max = std::abs(D / Fz);
-    return Fy0;
-}
-
-// Oeverturning Couple
-double ChPac02Tire::CalcMx(double Fy, double Fz, double gamma) {
-    double Mx = m_PacCoeff.R0 * Fz *
-                (m_PacCoeff.qsx1 * m_PacScal.lvx - m_PacCoeff.qsx2 * gamma + m_PacCoeff.qsx3 * Fy / m_PacCoeff.FzNomin +
-                 m_PacCoeff.qsx4 * cos(m_PacCoeff.qsx5 * pow(atan(m_PacCoeff.qsx6 * Fz / m_PacCoeff.FzNomin), 2)) *
-                     sin(m_PacCoeff.qsx7 * gamma + m_PacCoeff.qsx8 * atan(m_PacCoeff.qsx9 * Fy / m_PacCoeff.FzNomin)) +
-                 m_PacCoeff.qsx10 * atan(m_PacCoeff.qsx11 * Fz / m_PacCoeff.FzNomin) * gamma);
-    return Mx;
-}
-
-// Rolling Resistance
-double ChPac02Tire::CalcMy(double Fx, double Fz, double gamma) {
-    double v0 = sqrt(9.81 * m_PacCoeff.R0);
-    double vstar = std::abs(m_states.vx / v0);
-    double My = ChSineStep(std::abs(m_states.vx), 0.5, 0, 1.0, 1.0) * ChSignum(m_states.vx) * Fz * m_PacCoeff.R0 *
-                (m_PacCoeff.qsy1 + m_PacCoeff.qsy2 * Fx / m_PacCoeff.FzNomin + m_PacCoeff.qsy3 * vstar +
-                 m_PacCoeff.qsy4 * pow(vstar, 4) +
-                 (m_PacCoeff.qsy5 + m_PacCoeff.qsy6 * Fz / m_PacCoeff.FzNomin) * pow(gamma, 2)) *
-                pow(Fz / m_PacCoeff.FzNomin, m_PacCoeff.qsy7) * m_PacScal.lmuy;
-    return My;
-}
-
-double ChPac02Tire::CalcTrail(double alpha, double Fz, double gamma) {
-    double Fz0s = m_PacCoeff.FzNomin * m_PacScal.lfz0;
-    double dFz = (Fz - Fz0s) / Fz0s;
-    double C = m_PacCoeff.qcz1;
-    double gamma_z = gamma * m_PacScal.lgaz;
-    double Sh = m_PacCoeff.qhz1 + m_PacCoeff.qhz2 * dFz + (m_PacCoeff.qhz3 + m_PacCoeff.qhz4 * dFz) * gamma_z;
-    double alpha_t = alpha + Sh;
-    double B = (m_PacCoeff.qbz1 + m_PacCoeff.qbz2 * dFz + m_PacCoeff.qbz3 * pow(dFz, 2)) *
-               (1.0 + m_PacCoeff.qbz4 * gamma_z + m_PacCoeff.qbz5 * std::abs(gamma_z)) * m_PacScal.lky / m_PacScal.lmuy;
-    double D = Fz * (m_PacCoeff.qdz1 + m_PacCoeff.qdz2 * dFz) *
-               (1.0 + m_PacCoeff.qdz3 * gamma_z + m_PacCoeff.qdz4 * pow(gamma_z, 2)) * m_PacCoeff.R0 / Fz0s *
-               m_PacScal.ltr;
-    double E = (m_PacCoeff.qez1 + m_PacCoeff.qez2 * dFz + m_PacCoeff.qez3 * pow(dFz, 2)) *
-               (1.0 + (m_PacCoeff.qez4 + m_PacCoeff.qez5 * gamma_z) * atan(B * C * alpha_t) / CH_C_PI_2);
-    double X1 = B * alpha_t;
-    return D * cos(C * atan(B * X1 - E * (B * X1 - atan(B * X1)))) * cos(alpha);
-}
-
-double ChPac02Tire::CalcMres(double alpha, double Fz, double gamma) {
-    double Fz0s = m_PacCoeff.FzNomin * m_PacScal.lfz0;
-    double dFz = (Fz - Fz0s) / Fz0s;
-    double alpha_r = alpha + m_Shf;
-    double gamma_z = gamma * m_PacScal.lgaz;
-    double C = 1.0;
-    double B = (m_PacCoeff.qbz9 * m_PacScal.lky / m_PacScal.lmuy + m_PacCoeff.qbz10 * m_By * m_Cy);
-    double D = Fz *
-               ((m_PacCoeff.qdz6 + m_PacCoeff.qdz7 * dFz) * m_PacScal.ltr +
-                (m_PacCoeff.qdz8 + m_PacCoeff.qdz9 * dFz) * gamma_z) *
-               m_PacCoeff.R0 * m_PacScal.lmuy;
-    return D * cos(C * atan(B * alpha_r)) * cos(alpha);
-}
-
-double ChPac02Tire::CalcFxComb(double kappa, double alpha, double Fz, double gamma) {
-    double Fz0s = m_PacCoeff.FzNomin * m_PacScal.lfz0;
-    double dFz = (Fz - Fz0s) / Fz0s;
-    double C = m_PacCoeff.pcx1 * m_PacScal.lcx;
-    double Mux = (m_PacCoeff.pdx1 + m_PacCoeff.pdx2 * dFz) * (1.0 - m_PacCoeff.pdx3 * pow(gamma, 2)) * m_PacScal.lmux;
-    double D = Mux * Fz * m_mu / m_PacCoeff.mu0;
-    double E = (m_PacCoeff.pex1 + m_PacCoeff.pex2 * dFz + m_PacCoeff.pex3 * dFz * dFz) * m_PacScal.lex;
-    if (E > 1.0)
-        E = 1.0;
-    double BCD = Fz * (m_PacCoeff.pkx1 + m_PacCoeff.pkx2 * dFz) * m_PacScal.lkx;  // BCD = Kx
-    double B = BCD / (C * D);
-    double Sh = (m_PacCoeff.phx1 + m_PacCoeff.phx2 * dFz) * m_PacScal.lhx;
-    double Sv = Fz * (m_PacCoeff.pvx1 + m_PacCoeff.pvx2 * dFz) * m_PacScal.lvx * m_PacScal.lmux;
-    double X1 = B * (kappa + Sh);
-    double Fx0 = D * sin(C * atan(X1 - E * (X1 - atan(X1)))) + Sv;
-    double Shxa = m_PacCoeff.rhx1;
-    double alpha_s = tan(alpha) * ChSignum(m_data.vel.x()) + Shxa;
-    double Bxa =
-        (m_PacCoeff.rbx1 + m_PacCoeff.rbx3 * pow(sin(gamma), 2)) * cos(atan(m_PacCoeff.rbx2 * kappa)) * m_PacScal.lxal;
-    double Cxa = m_PacCoeff.rcx1;
-    double Exa = m_PacCoeff.rex1 + m_PacCoeff.rex2 * dFz;
-    double Gxa = cos(Cxa * atan(Bxa * alpha_s) - Exa * (Bxa * alpha_s - atan(Bxa * alpha_s))) /
-                 cos(Cxa * atan(Bxa * Shxa) - Exa * (Bxa * Shxa - atan(Bxa * Shxa)));
-    return Fx0 * Gxa;
-}
-
-double ChPac02Tire::CalcFyComb(double kappa, double alpha, double Fz, double gamma) {
-    double Fz0s = m_PacCoeff.FzNomin * m_PacScal.lfz0;
-    double dFz = (Fz - Fz0s) / Fz0s;
-    double C = m_PacCoeff.pcy1 * m_PacScal.lcy;
-    double Muy = (m_PacCoeff.pdy1 + m_PacCoeff.pdy2 * dFz) * (1.0 - m_PacCoeff.pdy3 * pow(gamma, 2)) * m_PacScal.lmuy;
-    double D = Muy * Fz * m_mu / m_PacCoeff.mu0;
-    double E = (m_PacCoeff.pey1 + m_PacCoeff.pey2 * dFz) *
-               (1.0 + m_PacCoeff.pey5 * pow(gamma, 2) - (m_PacCoeff.pey3 + m_PacCoeff.pey4 * gamma) * ChSignum(alpha)) *
-               m_PacScal.ley;
-    if (E > 1.0)
-        E = 1.0;
-    double Ky0 = m_PacCoeff.pky1 * m_PacCoeff.FzNomin * sin(2.0 * atan(Fz / (m_PacCoeff.pky2 * Fz0s))) *
-                 m_PacScal.lfz0 * m_PacScal.lky;
-    double BCD = Ky0;  // BCD = Ky
-    double B = BCD / (C * D);
-    double Sh = (m_PacCoeff.phy1 + m_PacCoeff.phy2 * dFz) * m_PacScal.lhy;
-    double Sv = Fz * ((m_PacCoeff.pvy1 + m_PacCoeff.pvy2 * dFz) * m_PacScal.lvy) * m_PacScal.lmuy;
-    double X1 = ChClamp(B * (alpha + Sh), -CH_C_PI_2 + 0.001,
-                        CH_C_PI_2 - 0.001);  // Ensure that X1 stays within +/-90 deg minus a little bit
-    double Fy0 = D * sin(C * atan(X1 - E * (X1 - atan(X1)))) + Sv;
-    double Shyk = m_PacCoeff.rhy1 + m_PacCoeff.rhy2 * dFz;
-    m_Shf = Sh + Sv / BCD;
-    double kappa_s = kappa + Shyk;
-    double Byk = m_PacCoeff.rby1 * cos(atan(m_PacCoeff.rby2 * (tan(alpha) - m_PacCoeff.rby3)));
-    double Cyk = m_PacCoeff.rcy1;
-    double Dvyk = Muy * Fz * (m_PacCoeff.rvy1 + m_PacCoeff.rvy2 * dFz + m_PacCoeff.rvy3 * gamma) *
-                  cos(atan(m_PacCoeff.rvy4 * tan(alpha)));
-    double Svyk = Dvyk * sin(m_PacCoeff.rvy5 * atan(m_PacCoeff.rvy6 * kappa));
-    double Gyk = cos(Cyk * atan(Byk * kappa_s)) / cos(Cyk * atan(Byk * Shyk));
-    return Fy0 * Gyk + Svyk;
-}
-
-double ChPac02Tire::CalcMz(double alpha, double Fz, double gamma, double Fy) {
-    double Fz0s = m_PacCoeff.FzNomin * m_PacScal.lfz0;
-    double dFz = (Fz - Fz0s) / Fz0s;
-    double C = m_PacCoeff.qcz1;
-    double gamma_z = gamma * m_PacScal.lgaz;
-    double Sh = m_PacCoeff.qhz1 + m_PacCoeff.qhz2 * dFz + (m_PacCoeff.qhz3 + m_PacCoeff.qhz4 * dFz) * gamma_z;
-    double alpha_t = alpha + Sh;
-    double B = (m_PacCoeff.qbz1 + m_PacCoeff.qbz2 * dFz + m_PacCoeff.qbz3 * pow(dFz, 2)) *
-               (1.0 + m_PacCoeff.qbz4 * gamma_z + m_PacCoeff.qbz5 * std::abs(gamma_z)) * m_PacScal.lky / m_PacScal.lmuy;
-    double D = Fz * (m_PacCoeff.qdz1 + m_PacCoeff.qdz2 * dFz) *
-               (1.0 + m_PacCoeff.qdz3 * gamma_z + m_PacCoeff.qdz4 * pow(gamma_z, 2)) * m_PacCoeff.R0 / Fz0s *
-               m_PacScal.ltr;
-    double E = (m_PacCoeff.qez1 + m_PacCoeff.qez2 * dFz + m_PacCoeff.qez3 * pow(dFz, 2)) *
-               (1.0 + (m_PacCoeff.qez4 + m_PacCoeff.qez5 * gamma_z) * atan(B * C * alpha_t) / CH_C_PI_2);
-    double X1 = B * alpha_t;
-    double t = D * cos(C * atan(B * X1 - E * (B * X1 - atan(B * X1)))) * cos(alpha);
-    double Mz = -t * Fy + CalcMres(m_alpha, Fz, gamma);
-    return Mz;
-}
-
-double ChPac02Tire::CalcMzComb(double kappa, double alpha, double Fz, double gamma, double Fx, double Fy) {
-    double Mz = 0.0;
-    double Fz0s = m_PacCoeff.FzNomin * m_PacScal.lfz0;
-    double dFz = (Fz - Fz0s) / Fz0s;
-    double Sht = m_PacCoeff.qhz1 + m_PacCoeff.qhz2 * dFz + (m_PacCoeff.qhz3 + m_PacCoeff.qhz4 * dFz) * sin(gamma);
-    double alpha_s = alpha + (m_PacCoeff.phy1 + m_PacCoeff.phy2 * dFz) * m_PacScal.lhy;
-    double alpha_t = alpha_s + Sht;
-    double Ct = m_PacCoeff.qcz1;
-    double gamma_s = sin(gamma);
-    // pneumatic trail
-    double Dt0 = Fz * (m_PacCoeff.R0 / Fz0s) * (m_PacCoeff.qdz1 + m_PacCoeff.qdz2 * dFz) * m_PacScal.ltr *
-                 ChSignum(m_data.vel.x());
-    double Dt = Dt0 * (1.0 + m_PacCoeff.qdz3 * std::abs(gamma_s) + m_PacCoeff.qdz4 * pow(gamma_s, 2));
-    double Bt = (m_PacCoeff.qbz1 + m_PacCoeff.qbz2 * dFz + m_PacCoeff.qbz3 * pow(dFz, 2)) *
-                (1.0 + m_PacCoeff.qbz5 * std::abs(gamma_s) + m_PacCoeff.qbz6 * pow(gamma_s, 2)) * m_PacScal.lky /
-                m_PacScal.lmuy;
-    double Et = (m_PacCoeff.qez1 + m_PacCoeff.qez2 * dFz + m_PacCoeff.qez3 * pow(dFz, 2)) *
-                ((1.0 + m_PacCoeff.qez4 + m_PacCoeff.qez5 * gamma_s) * atan(Bt * Ct * alpha_t / CH_C_PI_2));
-    double Kxk = Fz * (m_PacCoeff.pkx1 + m_PacCoeff.pkx2) * m_PacScal.lkx;
-    double Kya = m_PacCoeff.pky1 * m_PacCoeff.FzNomin * sin(2.0 * atan(Fz / (m_PacCoeff.pky2 * Fz0s))) *
-                 m_PacScal.lfz0 * m_PacScal.lky;
-    double t = Dt * (Ct * atan(Bt * alpha_t - Et * (Bt * alpha_t - atan(Bt * alpha_t))));
-    // residual moment
-    double Shf = 0.0;  // todo!!
-    double alpha_r = alpha + Shf;
-    double alpha_req = sqrt(pow(alpha_r, 2) + pow(Kxk, 2) * pow(kappa, 2) / pow(Kya, 2)) * ChSignum(alpha_r);
-    double gamma_z = gamma * m_PacScal.lgaz;
-    double Cr = 1.0;
-    double Br = (m_PacCoeff.qbz9 * m_PacScal.lky / m_PacScal.lmuy + m_PacCoeff.qbz10 * m_By * m_Cy);
-    double Dr = Fz *
-                ((m_PacCoeff.qdz6 + m_PacCoeff.qdz7 * dFz) * m_PacScal.ltr +
-                 (m_PacCoeff.qdz8 + m_PacCoeff.qdz9 * dFz) * gamma_z) *
-                m_PacCoeff.R0 * m_PacScal.lmuy;
-    double Mr = Dr * cos(Cr * atan(Br * alpha_req));
-    // moment caused by longitudinal force
-    double s = m_PacCoeff.R0 *
-               (m_PacCoeff.ssz1 + m_PacCoeff.ssz2 * (Fy / Fz0s) + (m_PacCoeff.ssz3 + m_PacCoeff.ssz4 * dFz) * gamma_s) *
-               m_PacScal.ls;
-    Mz = -t * Fy + Mr + s * Fx;
-    return Mz;
-}
 
 }  // end namespace vehicle
 }  // namespace chrono

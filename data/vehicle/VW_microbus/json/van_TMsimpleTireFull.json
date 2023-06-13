@@ -37,14 +37,17 @@
   "Inflation Pressure Use [Pa]": 200000,
 
 "Parameters": {
-    "Tire Load": {
-      "Nominal Vertical Force [N]": 2599.65
-    },
-    "Tire Stiffness": {
-      "Vertical [N/m]": 163954
-    },
-    "Tire Damping": {
-      "Vertical [Ns/m]": 1801.74
+    "Vertical": {
+      "Nominal Vertical Force [N]": 2599.65,
+      //"Vertical Tire Stiffness [N/m]": 163954,
+      "Tire Spring Curve Data": [
+          [0,0],
+          [0.03 ,2900],
+          [0.06, 6000]
+      ],
+      "Vertical Tire Damping [Ns/m]": 1801.74,
+      "Tire Bottoming Radius [m]": 0.396,
+      "Tire Bottoming Stiffness [N/m]": 500000
     },
     "Longitudinal": {
       "Initial Slopes dFx/dsx [N]": [ 48550.5, 104900 ],

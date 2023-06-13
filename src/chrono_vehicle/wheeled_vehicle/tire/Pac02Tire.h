@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,11 +9,29 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Michael Taylor
+// Authors: Rainer Gericke, Radu Serban
 // =============================================================================
 //
-// JSON PAC89 tire subsystem
+// Template for a Magic Formula tire model
 //
+// ChPac02 is based on the Pacejka 2002 formulae as written in
+// Hans B. Pacejka's "Tire and Vehicle Dynamics" Third Edition, Elsevier 2012
+// ISBN: 978-0-08-097016-5
+//
+// This implementation is a subset of the commercial product MFtire:
+//  - only steady state force/torque calculations
+//  - uncombined (use_mode = 3)
+//  - combined (use_mode = 4) via Pacejka method
+//  - parametration is given by a TIR file (Tiem Orbit Format,
+//    ADAMS/Car compatible)
+//  - unit conversion is implemented but only tested for SI units
+//  - optional inflation pressure dependency is implemented, but not tested
+//  - this implementation could be validated for the FED-Alpha vehicle and rsp.
+//    tire data sets against KRC test results from a Nato CDT
+//
+// This derived class reads parameters from a JSON parameter file
+//  - input can be redirected from a TIR file
+//  - input parameters can be set directly (only SI units!)
 // =============================================================================
 
 #ifndef PAC02_TIRE_H
@@ -37,31 +55,12 @@ class CH_VEHICLE_API Pac02Tire : public ChPac02Tire {
     Pac02Tire(const rapidjson::Document& d);
     ~Pac02Tire() {}
 
-    virtual double GetNormalStiffnessForce(double depth) const override {
-        if (m_has_vert_table) {
-            if (m_has_bott_table) {
-                return m_vert_map.Get_y(depth) + m_bott_map.Get_y(depth);
-            } else {
-                return m_vert_map.Get_y(depth);
-            }
-        } else {
-            if (m_has_bott_table) {
-                return m_PacCoeff.Cz * depth + m_bott_map.Get_y(depth);
-            } else {
-                return m_PacCoeff.Cz * depth;
-            }
-        }
-    }
-
-    virtual double GetNormalDampingForce(double depth, double velocity) const override {
-        return m_PacCoeff.Kz * velocity;
-    }
-
     virtual double GetTireMass() const override { return m_mass; }
     virtual ChVector<> GetTireInertia() const override { return m_inertia; }
-    virtual void SetPac02Params() override {}
 
     virtual double GetVisualizationWidth() const override { return m_visualization_width; }
+
+    virtual void SetMFParams() override;
 
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;
@@ -71,15 +70,8 @@ class CH_VEHICLE_API Pac02Tire : public ChPac02Tire {
 
     double m_mass;
     ChVector<> m_inertia;
+    std::string m_tir_file;
     bool m_has_mesh;
-
-    // tire vertical stiffness given as lookup table
-    bool m_has_vert_table;
-    ChFunction_Recorder m_vert_map;
-
-    // tire bottoming stiffness given as lookup table (rim impact)
-    bool m_has_bott_table;
-    ChFunction_Recorder m_bott_map;
 
     double m_visualization_width;
     std::string m_meshFile_left;

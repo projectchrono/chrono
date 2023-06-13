@@ -44,6 +44,11 @@ using namespace chrono::irrlicht;
 using namespace chrono::vsg3d;
 #endif
 
+#ifdef CHRONO_POSTPROCESS
+    #include "chrono_postprocess/ChBlender.h"
+using namespace chrono::postprocess;
+#endif
+
 using namespace chrono;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
@@ -51,7 +56,7 @@ using namespace chrono::vehicle::hmmwv;
 // =============================================================================
 
 // Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Initial vehicle location and orientation
 ChVector<> initLoc(0, 0, 1.6);
@@ -93,7 +98,7 @@ BrakeType brake_type = BrakeType::SHAFTS;
 bool use_tierod_bodies = true;
 
 // Type of tire model (RIGID, RIGID_MESH, TMEASY, FIALA, PAC89, PAC02, TMSIMPLE)
-TireModelType tire_model = TireModelType::TMEASY;
+TireModelType tire_model = TireModelType::PAC02;
 
 // Rigid terrain
 RigidTerrain::PatchType terrain_model = RigidTerrain::PatchType::BOX;
@@ -121,13 +126,15 @@ double render_step_size = 1.0 / 50;  // FPS = 50
 // Output directories
 const std::string out_dir = GetChronoOutputPath() + "HMMWV";
 const std::string pov_dir = out_dir + "/POVRAY";
+const std::string blender_dir = out_dir + "/BLENDER";
 
 // Debug logging
 bool debug_output = false;
 double debug_step_size = 1.0 / 1;  // FPS = 1
 
-// POV-Ray output
+// Post-processing output
 bool povray_output = false;
+bool blender_output = false;
 
 // =============================================================================
 
@@ -219,6 +226,13 @@ int main(int argc, char* argv[]) {
         }
         terrain.ExportMeshPovray(out_dir);
     }
+    if (blender_output) {
+        if (!filesystem::create_directory(filesystem::path(blender_dir))) {
+            std::cout << "Error creating directory " << blender_dir << std::endl;
+            return 1;
+        }
+        terrain.ExportMeshPovray(out_dir);
+    }
 
     // Initialize output file for driver inputs
     std::string driver_file = out_dir + "/driver_inputs.txt";
@@ -290,7 +304,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowTitle("HMMWV Demo");
             vis_vsg->AttachVehicle(&my_hmmwv.GetVehicle());
             vis_vsg->SetChaseCamera(trackPoint, 6.0, 0.5);
-            vis_vsg->SetWindowSize(ChVector2<int>(800, 600));
+            vis_vsg->SetWindowSize(ChVector2<int>(1200, 900));
             vis_vsg->SetWindowPosition(ChVector2<int>(100, 300));
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);
@@ -315,6 +329,20 @@ int main(int argc, char* argv[]) {
             break;
         }
     }
+
+        // ---------------------------------------------------------
+        // Create the Blender post-processing visualization exporter
+        // ---------------------------------------------------------
+
+#ifdef CHRONO_POSTPROCESS
+    postprocess::ChBlender blender_exporter(my_hmmwv.GetSystem());
+    if (blender_output) {
+        blender_exporter.SetBasePath(blender_dir);
+        blender_exporter.SetCamera(ChVector<>(4.0, 2, 1.0), ChVector<>(0, 0, 0), 50);
+        blender_exporter.AddAll();
+        blender_exporter.ExportScript();
+    }
+#endif
 
     // ---------------
     // Simulation loop
@@ -349,7 +377,7 @@ int main(int argc, char* argv[]) {
         if (time >= t_end)
             break;
 
-        // Render scene and output POV-Ray data
+        // Render scene and output post-processing data
         if (step_number % render_steps == 0) {
             vis->BeginScene();
             vis->Render();
@@ -360,6 +388,12 @@ int main(int argc, char* argv[]) {
                 sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
                 utils::WriteVisualizationAssets(my_hmmwv.GetSystem(), filename);
             }
+
+#ifdef CHRONO_POSTPROCESS
+            if (blender_output) {
+                blender_exporter.ExportData();
+            }
+#endif
 
             render_frame++;
         }

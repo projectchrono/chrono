@@ -34,7 +34,7 @@ namespace m113 {
 // Static variables
 // -----------------------------------------------------------------------------
 const ChVector<> M113_TrackAssemblySinglePin::m_sprocket_loc(0, 0, 0);
-const ChVector<> M113_TrackAssemblySinglePin::m_idler_loc(-3.83, 0, -0.12);
+const ChVector<> M113_TrackAssemblySinglePin::m_idler_loc(-3.95, 0, -0.12);
 const ChVector<> M113_TrackAssemblySinglePin::m_susp_locs_L[5] = {
     ChVector<>(-0.655, 0, -0.215), ChVector<>(-1.322, 0, -0.215), ChVector<>(-1.989, 0, -0.215),
     ChVector<>(-2.656, 0, -0.215), ChVector<>(-3.322, 0, -0.215)};

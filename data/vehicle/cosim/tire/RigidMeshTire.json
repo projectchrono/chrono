@@ -1,0 +1,40 @@
+{
+  "Name":                       "Sample Rigid Mesh Tire",
+  "Type":                       "Tire",
+  "Template":                   "RigidTire",
+
+  "Radius":                     0.4699,
+  "Width":                      0.254,
+  "Mass":                       37.6,
+  "Inertia":                    [3.84, 6.69, 3.84],
+
+  "Contact Material":
+  {
+      "Coefficient of Friction":    0.9,
+      "Coefficient of Restitution": 0.1,
+
+      "Properties": {
+          "Young Modulus":          2e7,
+          "Poisson Ratio":          0.3
+      },
+
+      "Coefficients": {
+          "Normal Stiffness":       2e5,
+          "Normal Damping":         40.0,
+          "Tangential Stiffness":   2e5,
+          "Tangential Damping":     20.0
+      }
+  },
+
+  "Contact Mesh":
+  {
+    "Mesh Filename":            "cosim/tire/tire_fine.obj",
+    "Sweep Sphere Radius":      0.005
+  },
+
+  "Visualization":
+  {
+    "Mesh Filename Left":       "cosim/tire/tire_fine.obj",
+    "Mesh Filename Right":      "cosim/tire/tire_fine.obj"
+  }
+}

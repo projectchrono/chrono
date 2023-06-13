@@ -23,6 +23,7 @@
 #define CH_VEHCOSIM_TERRAIN_NODE_SCM_H
 
 #include "chrono/physics/ChSystem.h"
+#include "chrono/assets/ChVisualSystem.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeChrono.h"
@@ -81,15 +82,17 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrain
     /// By default, a flat rectangular SCM terrain patch is used.
     void SetInputFromCheckpoint(const std::string& filename);
 
+    /// Initialize this Chrono terrain node.
+    /// Construct the terrain system and the proxy bodies, then finalize the underlying system.
+    virtual void OnInitialize(unsigned int num_objects) override;
+
     /// Write checkpoint to the specified file (which will be created in the output directory).
     virtual void WriteCheckpoint(const std::string& filename) const override;
 
   private:
-    ChSystem* m_system;               ///< containing system
-    SCMTerrain* m_terrain;  ///< SCM terrain
-#ifdef CHRONO_IRRLICHT
-    std::shared_ptr<irrlicht::ChVisualSystemIrrlicht> m_vsys;  ///< Irrlicht run-time visualization
-#endif
+    ChSystem* m_system;                      ///< containing system
+    SCMTerrain* m_terrain;                   ///< SCM terrain
+    std::shared_ptr<ChVisualSystem> m_vsys;  ///< run-time visualization system
 
     double m_spacing;        ///< SCM grid spacing
     double m_Bekker_Kphi;    ///< Kphi, frictional modulus in Bekker model
@@ -106,6 +109,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrain
     bool m_use_checkpoint;              ///< if true, initialize height from checkpoint file
     std::string m_checkpoint_filename;  ///< name of input checkpoint file
 
+    virtual ChSystem* GetSystemPostprocess() const override { return m_system; }
+
     virtual bool SupportsMeshInterface() const override { return false; }  //// TODO
 
     virtual void Construct() override;
@@ -119,7 +124,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrain
     virtual void GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) override;
 
     virtual void OnOutputData(int frame) override;
-    virtual void Render(double time) override;
+    virtual void OnRender() override;
 };
 
 /// @} vehicle_cosim_chrono

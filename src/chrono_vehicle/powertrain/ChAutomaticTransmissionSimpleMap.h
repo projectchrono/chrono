@@ -36,12 +36,16 @@ namespace vehicle {
 /// This transmission has no torque converter.
 /// It accepts a single reverse gear and any number of forward gears.
 /// In automatic mode, gear shifting is done based on specified ideal shift points.
-class CH_VEHICLE_API ChAutomaticTransmissionSimpleMap : public ChTransmission {
+class CH_VEHICLE_API ChAutomaticTransmissionSimpleMap : public ChAutomaticTransmission {
   public:
     virtual ~ChAutomaticTransmissionSimpleMap() {}
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "AutomaticTransmissionSimpleMap"; }
+
+    /// Return true if a torque converter model is included.
+    /// A ChAutomaticTransmissionSimpleMap does not model the torque converter.
+    virtual bool HasTorqueConverter() const override { return false; }
 
     /// Return the value of slippage in the torque converter.
     /// This simplified model does not have a torque converter.

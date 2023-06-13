@@ -31,6 +31,7 @@
 #include "chrono_mumps/ChSolverMumps.h"
 #endif
 
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/cosim/ChVehicleCosimTireNode.h"
 
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
@@ -61,7 +62,7 @@ class DummyWheel : public ChWheel {
 
 // =============================================================================
 
-ChVehicleCosimTireNode::ChVehicleCosimTireNode(int index)
+ChVehicleCosimTireNode::ChVehicleCosimTireNode(int index, const std::string& tire_json)
     : ChVehicleCosimBaseNode("TIRE_" + std::to_string(index)), m_index(index), m_tire_pressure(true) {
     // Default integrator and solver types
     m_int_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
@@ -70,6 +71,10 @@ ChVehicleCosimTireNode::ChVehicleCosimTireNode(int index)
     // Create the (sequential) SMC system
     m_system = new ChSystemSMC;
     m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
+
+    // Create a tire subsystem from JSON specification file (if provided)
+    if (!tire_json.empty())
+        m_tire = ReadTireJSON(tire_json);
 }
 
 // -----------------------------------------------------------------------------
@@ -136,10 +141,6 @@ ChVehicleCosimTireNode::TireType ChVehicleCosimTireNode::GetTireTypeFromSpecfile
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTireNode::SetTireFromSpecfile(const std::string& filename) {
-    m_tire_json = filename;
-}
-
 void ChVehicleCosimTireNode::EnableTirePressure(bool val) {
     m_tire_pressure = val;
 }
@@ -170,9 +171,6 @@ void ChVehicleCosimTireNode::Initialize() {
 
     MPI_Status status;
 
-    // Let derived classes construct the tire
-    ConstructTire();
-
     // Create the spindle body
     m_spindle = chrono_types::make_shared<ChBody>();
     m_system->AddBody(m_spindle);
@@ -182,10 +180,15 @@ void ChVehicleCosimTireNode::Initialize() {
     m_wheel->Initialize(m_spindle, LEFT);
     m_wheel->SetVisualizationType(VisualizationType::NONE);
 
-    // Let derived classes initialize the tire and attach it to the provided ChWheel
-    InitializeTire(m_wheel);
+    // Receive from the MBS node the initial location of this tire.
+    double loc_data[3];
+    MPI_Recv(loc_data, 3, MPI_DOUBLE, MBS_NODE_RANK, 0, MPI_COMM_WORLD, &status);
 
-    // Send the tire radius and mass to the MBS node
+    // Let derived classes initialize the tire and attach it to the provided ChWheel.
+    // Initialize the tire at the specified location (as received from the MBS node).
+    InitializeTire(m_wheel, {loc_data[0], loc_data[1], loc_data[2]});
+
+    // Send the tire radius and mass to the (wheeled) MBS node
     double tire_mass = GetTireMass();
     double tire_radius = GetTireRadius();
     double tire_width = GetTireWidth();
@@ -197,9 +200,8 @@ void ChVehicleCosimTireNode::Initialize() {
     MPI_Recv(&load_mass, 1, MPI_DOUBLE, MBS_NODE_RANK, 0, MPI_COMM_WORLD, &status);
 
     // Overwrite spindle mass and inertia
-    double spindle_mass = load_mass - GetTireMass();
     ChVector<> spindle_inertia(1, 1, 1);  //// TODO
-    m_spindle->SetMass(spindle_mass);
+    m_spindle->SetMass(load_mass);
     m_spindle->SetInertiaXX(spindle_inertia);
 
     // Send the expected communication interface type to the TERRAIN node (only tire 0 does this)
@@ -211,7 +213,8 @@ void ChVehicleCosimTireNode::Initialize() {
     // Send tire geometry
     SendGeometry(m_geometry, TERRAIN_NODE_RANK);
 
-    // Send load on this tire
+    // Send load on this tire (include the mass of the tire)
+    load_mass += GetTireMass();
     MPI_Send(&load_mass, 1, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
     if (m_verbose)
         cout << "[Tire node " << m_index << " ] Send: load mass = " << load_mass << endl;
@@ -277,11 +280,12 @@ void ChVehicleCosimTireNode::InitializeSystem() {
             m_integrator = std::static_pointer_cast<ChTimestepperHHT>(m_system->GetTimestepper());
             m_integrator->SetAlpha(-0.2);
             m_integrator->SetMaxiters(50);
-            m_integrator->SetAbsTolerances(5e-05, 1.8e00);
-            m_integrator->SetMode(ChTimestepperHHT::POSITION);
-            m_integrator->SetScaling(true);
+            m_integrator->SetAbsTolerances(1e-04, 1e2);
+            m_integrator->SetMode(ChTimestepperHHT::ACCELERATION);
+            m_integrator->SetStepControl(false);
+            m_integrator->SetModifiedNewton(false);
+            m_integrator->SetScaling(false);
             m_integrator->SetVerbose(false);
-            m_integrator->SetMaxItersSuccess(5);
             break;
 
         default:
@@ -359,7 +363,7 @@ void ChVehicleCosimTireNode::SynchronizeMesh(int step_number, double time) {
     // Send mesh state (vertex locations and velocities) to TERRAIN node
     MeshState mesh_state;
     LoadMeshState(mesh_state);
-    unsigned int nvs = 3 * (unsigned int)mesh_state.vpos.size();
+    unsigned int nvs = (unsigned int)mesh_state.vpos.size();
     double* vert_data = new double[2 * 3 * nvs];
     for (unsigned int iv = 0; iv < nvs; iv++) {
         vert_data[3 * iv + 0] = mesh_state.vpos[iv].x();

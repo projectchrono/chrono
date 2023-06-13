@@ -58,15 +58,12 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     /// Return the node type as NodeType::TERRAIN.
     virtual NodeType GetNodeType() const override { return NodeType::TERRAIN; }
 
-    /// Enable/disable run-time visualization (default: false).
-    /// If enabled, rendering is done with the specified frequency.
-    /// Note that a particular concrete terrain node may not support run-time visualization or may not render all
-    /// physics elements.
-    void EnableRuntimeVisualization(bool render, double render_fps = 100);
-
     /// Set the terrain patch dimensions.
     /// If invoked, this function must be called before Initialize.
     void SetDimensions(double length, double width);
+
+    /// Get the terrain patch dimensions.
+    void GetDimensions(double& length, double& width);
 
     /// Initialize this node.
     /// This function allows the node to initialize itself and, optionally, perform an
@@ -132,11 +129,6 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     /// Perform additional output at the specified frame (called from within OutputData).
     virtual void OnOutputData(int frame) {}
 
-    /// Render simulation.
-    /// This function is called from Advance() at the frequency spoecified in the call to EnableRuntimeVisualization().
-    /// Any call to Render occurs after a call to OnAdvance().
-    virtual void Render(double time) {}
-
     // ------------------------- Virtual methods for the MESH communication interface
     // A derived class must implement these methods if SupportsMeshInterface returns true.
 
@@ -168,9 +160,6 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     virtual void GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) = 0;
 
   protected:
-    bool m_render;         ///< if true, perform run-time rendering
-    double m_render_step;  ///< time step between rendered frames
-
     double m_dimX;  ///< patch length (X direction)
     double m_dimY;  ///< patch width (Y direction)
 

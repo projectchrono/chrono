@@ -304,35 +304,41 @@ void ChVehicleVisualSystemIrrlicht::renderStats() {
         sprintf(msg, "Eng.torque(Nm): %+.2f", engine_torque);
         renderLinGauge(std::string(msg), engine_torque / 600, false, m_HUD_x, m_HUD_y + 70, 170, 15);
 
-        double tc_slip = transmission->GetTorqueConverterSlippage();
-        sprintf(msg, "T.conv.slip: %+.2f", tc_slip);
-        renderLinGauge(std::string(msg), tc_slip / 1, false, m_HUD_x, m_HUD_y + 90, 170, 15);
-
-        double tc_torquein = transmission->GetTorqueConverterInputTorque();
-        sprintf(msg, "T.conv.in(Nm): %+.2f", tc_torquein);
-        renderLinGauge(std::string(msg), tc_torquein / 600, false, m_HUD_x, m_HUD_y + 110, 170, 15);
-
-        double tc_torqueout = transmission->GetTorqueConverterOutputTorque();
-        sprintf(msg, "T.conv.out(Nm): %+.2f", tc_torqueout);
-        renderLinGauge(std::string(msg), tc_torqueout / 600, false, m_HUD_x, m_HUD_y + 130, 170, 15);
-
-        double tc_rpmout = transmission->GetTorqueConverterOutputSpeed() * 60 / CH_C_2PI;
-        sprintf(msg, "T.conv.out(RPM): %+.2f", tc_rpmout);
-        renderLinGauge(std::string(msg), tc_rpmout / 7000, false, m_HUD_x, m_HUD_y + 150, 170, 15);
-
         char msgT[5];
-        switch (transmission->GetMode()) {
-            case ChTransmission::Mode::AUTOMATIC:
-                sprintf(msgT, "[A]");
-                break;
-            case ChTransmission::Mode::MANUAL:
-                sprintf(msgT, "[M]");
-                break;
-            default:
-                sprintf(msgT, "   ");
-                break;
-        }
+        if (transmission->IsAutomatic()) {
+            auto transmission_auto = transmission->asAutomatic();
 
+            double tc_slip = transmission_auto->GetTorqueConverterSlippage();
+            sprintf(msg, "T.conv.slip: %+.2f", tc_slip);
+            renderLinGauge(std::string(msg), tc_slip / 1, false, m_HUD_x, m_HUD_y + 90, 170, 15);
+
+            double tc_torquein = transmission_auto->GetTorqueConverterInputTorque();
+            sprintf(msg, "T.conv.in(Nm): %+.2f", tc_torquein);
+            renderLinGauge(std::string(msg), tc_torquein / 600, false, m_HUD_x, m_HUD_y + 110, 170, 15);
+
+            double tc_torqueout = transmission_auto->GetTorqueConverterOutputTorque();
+            sprintf(msg, "T.conv.out(Nm): %+.2f", tc_torqueout);
+            renderLinGauge(std::string(msg), tc_torqueout / 600, false, m_HUD_x, m_HUD_y + 130, 170, 15);
+
+            double tc_rpmout = transmission_auto->GetTorqueConverterOutputSpeed() * 60 / CH_C_2PI;
+            sprintf(msg, "T.conv.out(RPM): %+.2f", tc_rpmout);
+            renderLinGauge(std::string(msg), tc_rpmout / 7000, false, m_HUD_x, m_HUD_y + 150, 170, 15);
+            switch (transmission_auto->GetShiftMode()) {
+                case ChAutomaticTransmission::ShiftMode::AUTOMATIC:
+                    sprintf(msgT, "[A]");
+                    break;
+                case ChAutomaticTransmission::ShiftMode::MANUAL:
+                    sprintf(msgT, "[M]");
+                    break;
+                default:
+                    sprintf(msgT, "  ");
+                    break;
+            }
+        } else if (transmission->IsManual()) {
+            sprintf(msgT, "[M]");
+        } else {
+            sprintf(msgT, "  ");
+        }
         int ngear = transmission->GetCurrentGear();
         ChTransmission::DriveMode drivemode = transmission->GetDriveMode();
         switch (drivemode) {
@@ -353,14 +359,23 @@ void ChVehicleVisualSystemIrrlicht::renderStats() {
     }
 
     // Display information from driver system.
+    int ypos = m_HUD_y + 10;
     sprintf(msg, "Steering: %+.2f", m_steering);
-    renderLinGauge(std::string(msg), m_steering, true, m_HUD_x + 190, m_HUD_y + 30, 170, 15);
+    renderLinGauge(std::string(msg), -m_steering, true, m_HUD_x + 190, ypos, 170, 15);
+    ypos += 20;
+
+    if (powertrain && powertrain->GetTransmission()->IsManual()) {
+        sprintf(msg, "Clutch: %+.2f", m_clutch * 100.);
+        renderLinGauge(std::string(msg), m_clutch, false, m_HUD_x + 190, ypos, 170, 15);
+        ypos += 20;
+    }
 
     sprintf(msg, "Throttle: %+.2f", m_throttle * 100.);
-    renderLinGauge(std::string(msg), m_throttle, false, m_HUD_x + 190, m_HUD_y + 50, 170, 15);
+    renderLinGauge(std::string(msg), m_throttle, false, m_HUD_x + 190, ypos, 170, 15);
+    ypos += 20;
 
     sprintf(msg, "Braking: %+.2f", m_braking * 100.);
-    renderLinGauge(std::string(msg), m_braking, false, m_HUD_x + 190, m_HUD_y + 70, 170, 15);
+    renderLinGauge(std::string(msg), m_braking, false, m_HUD_x + 190, ypos, 170, 15);
 
     // Display current global location
     auto pos = m_vehicle->GetPos();

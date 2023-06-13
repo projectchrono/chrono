@@ -121,17 +121,8 @@ void ChVehicleCosimWheeledMBSNode::Initialize() {
     double terrain_height = init_dim[0];
     ChVector2<> terrain_size(init_dim[1], init_dim[2]);
 
-    // For each TIRE, receive the tire mass and radius
-    std::vector<ChVector<>> tire_info;
-
-    for (unsigned int i = 0; i < m_num_tire_nodes; i++) {
-        double tmp[3];
-        MPI_Recv(tmp, 3, MPI_DOUBLE, TIRE_NODE_RANK(i), 0, MPI_COMM_WORLD, &status);
-        tire_info.push_back(ChVector<>(tmp[0], tmp[1], tmp[2]));
-    }
-
     // Let derived classes construct and initialize their multibody system
-    InitializeMBS(tire_info, terrain_size, terrain_height);
+    InitializeMBS(terrain_size, terrain_height);
     auto num_spindles = GetNumSpindles();
 
     // There must be a number of TIRE nodes equal to the number of spindles.
@@ -142,6 +133,32 @@ void ChVehicleCosimWheeledMBSNode::Initialize() {
     }
 
     GetChassisBody()->SetBodyFixed(m_fix_chassis);
+
+    // For each TIRE, send initial location
+    for (unsigned int i = 0; i < m_num_tire_nodes; i++) {
+        // Send wheel state to the tire node
+        BodyState state = GetSpindleState(i);
+        double loc_data[] = {state.pos.x(), state.pos.y(), state.pos.z()};
+
+        MPI_Send(loc_data, 3, MPI_DOUBLE, TIRE_NODE_RANK(i), 0, MPI_COMM_WORLD);
+
+        if (m_verbose)
+            cout << "[MBS node    ] Send: spindle initial location (" << i << ") = " << state.pos << endl;
+    }
+
+    // For each TIRE, receive the tire mass, radius, and width
+    std::vector<ChVector<>> tire_info;
+
+    for (unsigned int i = 0; i < m_num_tire_nodes; i++) {
+        double tmp[3];
+        MPI_Recv(tmp, 3, MPI_DOUBLE, TIRE_NODE_RANK(i), 0, MPI_COMM_WORLD, &status);
+        tire_info.push_back(ChVector<>(tmp[0], tmp[1], tmp[2]));
+    }
+
+    // Incorporate information on tire mass, radius, and width.
+    // This is defered to this point so that the MBS system could be initialized first and correct spindle locations
+    // sent to the tire nodes. Only after their own initialization can the tire nodes send back here the tire info.
+    ApplyTireInfo(tire_info);
 
     // Send to TERRAIN node the number of interacting objects (here, number of spindles)
     MPI_Send(&num_spindles, 1, MPI_INT, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
@@ -284,21 +301,25 @@ void ChVehicleCosimWheeledMBSNode::Synchronize(int step_number, double time) {
 // Advance simulation of the MBS node by the specified duration
 // -----------------------------------------------------------------------------
 void ChVehicleCosimWheeledMBSNode::Advance(double step_size) {
+    // Advance state of the vehicle system for one step
     m_timer.reset();
     m_timer.start();
     double t = 0;
     while (t < step_size) {
         double h = std::min<>(m_step_size, step_size - t);
-        PreAdvance();
+        PreAdvance(h);
         m_system->DoStepDynamics(h);
         if (m_DBP_rig) {
             m_DBP_rig->OnAdvance(step_size);
         }
-        PostAdvance();
+        PostAdvance(h);
         t += h;
     }
     m_timer.stop();
     m_cum_sim_time += m_timer();
+
+    // Possible rendering
+    Render(step_size);
 }
 
 void ChVehicleCosimWheeledMBSNode::OutputData(int frame) {

@@ -47,7 +47,7 @@ using namespace chrono::vehicle;
 
 // Example of a custom terrain node.
 // This simple demonstration terrain node uses a simple rigid plate as the terrain mode and creates rigid cylindrical
-// tires. This terrain node works can work with a tire node of type BYPASS.
+// tires. This terrain node works with a tire node of type BYPASS.
 class MyTerrain : public ChVehicleCosimTerrainNode {
   public:
     MyTerrain(double length, double width);
@@ -70,13 +70,15 @@ class MyTerrain : public ChVehicleCosimTerrainNode {
     virtual void OnAdvance(double step_size) override;
 
     // Render simulation.
-    virtual void Render(double time) override;
+    virtual void OnRender() override;
 
     /// Update the state of the i-th proxy rigid.
     virtual void UpdateRigidProxy(unsigned int i, BodyState& rigid_state) override;
 
     /// Collect cumulative contact force and torque on the i-th proxy rigid.
     virtual void GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) override;
+
+    virtual ChSystem* GetSystemPostprocess() const override { return m_system; }
 
   private:
     ChSystemSMC* m_system;                          // containing Chrono system
@@ -157,7 +159,7 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
     m_system->SetChTime(0);
 
 #ifdef CHRONO_IRRLICHT
-    if (m_render) {
+    if (m_renderRT) {
         // Create the Irrlicht visualization system
         m_vis = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
         m_vis->SetCameraVertical(CameraVerticalDir::Z);
@@ -183,7 +185,7 @@ void MyTerrain::OnAdvance(double step_size) {
     }
 }
 
-void MyTerrain::Render(double time) {
+void MyTerrain::OnRender() {
 #ifdef CHRONO_IRRLICHT
     if (!m_vis->Run()) {
         MPI_Abort(MPI_COMM_WORLD, 1);
@@ -242,9 +244,14 @@ int main(int argc, char** argv) {
     double sim_time = 10;
     double output_fps = 100;
     double render_fps = 100;
-    bool render = true;
+    bool renderRT = true;
     std::string suffix = "";
     bool verbose = true;
+
+    // Terrain dimensions and spindle initial location
+    double terrain_length = 10;
+    double terrain_width = 1;
+    ChVector<> init_loc(-4, 0, 0.5);
 
     // Prepare output directory.
     std::string out_dir = GetChronoOutputPath() + "RIG_COSIM_CUSTOM";
@@ -289,6 +296,7 @@ int main(int argc, char** argv) {
 
         auto mbs = new ChVehicleCosimRigNode();
         mbs->SetVerbose(verbose);
+        mbs->SetInitialLocation(init_loc);
         mbs->SetStepSize(step_size);
         mbs->SetNumThreads(1);
         mbs->SetTotalMass(100);
@@ -306,11 +314,13 @@ int main(int argc, char** argv) {
         node = tire;
     } else if (rank == TERRAIN_NODE_RANK) {
         auto terrain = new MyTerrain(4.0, 1.0);
+        terrain->SetDimensions(terrain_length, terrain_width);
         terrain->SetVerbose(verbose);
         terrain->SetStepSize(step_size);
         terrain->SetOutDir(out_dir, suffix);
-        terrain->EnableRuntimeVisualization(render, render_fps);
-
+        if (renderRT)
+            terrain->EnableRuntimeVisualization(render_fps);
+        terrain->SetCameraPosition(ChVector<>(5, 2, 1));
         node = terrain;
     }
 

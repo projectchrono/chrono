@@ -123,6 +123,9 @@ class ChApi ChMesh : public ChIndexedNodes {
     /// Add a contact surface.
     void AddContactSurface(std::shared_ptr<ChContactSurface> m_surf);
 
+    /// Get all contact surfaces associated with this mesh.
+    const std::vector<std::shared_ptr<ChContactSurface>>& GetContactSurfaces() const { return vcontactsurfaces; }
+
     /// Access the N-th contact surface.
     std::shared_ptr<ChContactSurface> GetContactSurface(unsigned int n) { return vcontactsurfaces[n]; }
 
@@ -134,6 +137,9 @@ class ChApi ChMesh : public ChIndexedNodes {
 
     /// Add a mesh surface (set of ChLoadableUV items that support area loads such as pressure).
     void AddMeshSurface(std::shared_ptr<ChMeshSurface> m_surf);
+
+    /// Get all mesh surfaces associated with this mesh.
+    const std::vector<std::shared_ptr<ChMeshSurface>>& GetMeshSurfaces() const { return vmeshsurfaces; }
 
     /// Access the N-th mesh surface.
     std::shared_ptr<ChMeshSurface> GetMeshSurface(unsigned int n) { return vmeshsurfaces[n]; }

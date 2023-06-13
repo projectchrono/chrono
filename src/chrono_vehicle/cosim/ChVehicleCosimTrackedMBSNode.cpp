@@ -298,16 +298,19 @@ void ChVehicleCosimTrackedMBSNode::Advance(double step_size) {
     double t = 0;
     while (t < step_size) {
         double h = std::min<>(m_step_size, step_size - t);
-        PreAdvance();
+        PreAdvance(h);
         m_system->DoStepDynamics(h);
         if (m_DBP_rig) {
             m_DBP_rig->OnAdvance(step_size);
         }
-        PostAdvance();
+        PostAdvance(h);
         t += h;
     }
     m_timer.stop();
     m_cum_sim_time += m_timer();
+
+    // Possible rendering
+    Render(step_size);
 }
 
 void ChVehicleCosimTrackedMBSNode::OutputData(int frame) {

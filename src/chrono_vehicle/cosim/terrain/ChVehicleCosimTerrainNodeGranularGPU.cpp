@@ -359,7 +359,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
     m_systemGPU->Initialize();
 
     // Create bodies in Chrono system (visualization only)
-    if (m_render) {
+    if (m_renderRT) {
         for (const auto& p : pos) {
             auto body = std::shared_ptr<ChBody>(m_system->NewBody());
             body->SetPos(p);
@@ -410,13 +410,13 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
 
 #ifdef CHRONO_OPENGL
     // Create the visualization window
-    if (m_render) {
+    if (m_renderRT) {
         m_vsys->AttachSystem(m_system);
         m_vsys->SetWindowTitle("Terrain Node (GranularGPU)");
         m_vsys->SetWindowSize(1280, 720);
         m_vsys->SetRenderMode(opengl::WIREFRAME);
         m_vsys->Initialize();
-        m_vsys->AddCamera(ChVector<>(0, -3, 0), ChVector<>(0, 0, 0));
+        m_vsys->AddCamera(m_cam_pos, ChVector<>(0, 0, 0));
         m_vsys->SetCameraProperties(0.05f);
         m_vsys->SetCameraVertical(CameraVerticalDir::Z);
     }
@@ -475,7 +475,6 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
     int n_contacts;
     int max_contacts = 0;
     unsigned long long int cum_contacts = 0;
-    double render_time = 0;
 
     int steps = 0;
     double time = 0;
@@ -484,7 +483,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
         // Advance step
         m_timer.reset();
         m_timer.start();
-        if (m_render) {
+        if (m_renderRT) {
             m_system->DoStepDynamics(m_step_size);
         }
         m_systemGPU->AdvanceSimulation((float)m_step_size);
@@ -510,10 +509,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
         }
 
         // Render (if enabled)
-        if (m_render && m_system->GetChTime() > render_time) {
-            Render(m_system->GetChTime());
-            render_time += std::max(m_render_step, m_step_size);
-        }
+        Render(m_step_size);
 
         steps++;
         time += m_step_size;
@@ -723,7 +719,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::OnAdvance(double step_size) {
     double t = 0;
     while (t < step_size) {
         double h = std::min<>(m_step_size, step_size - t);
-        if (m_render) {
+        if (m_renderRT) {
             m_system->DoStepDynamics(h);
         }
         m_systemGPU->AdvanceSimulation((float)h);
@@ -731,22 +727,26 @@ void ChVehicleCosimTerrainNodeGranularGPU::OnAdvance(double step_size) {
     }
 }
 
-void ChVehicleCosimTerrainNodeGranularGPU::Render(double time) {
+void ChVehicleCosimTerrainNodeGranularGPU::OnRender() {
 #ifdef CHRONO_OPENGL
-    if (m_vsys->Run()) {
-        UpdateVisualizationParticles();
+    if (!m_vsys)
+        return;
+    if (!m_vsys->Run())
+        MPI_Abort(MPI_COMM_WORLD, 1);
+
+    UpdateVisualizationParticles();
+
+    if (m_track) {
         if (!m_proxies.empty()) {
             const auto& proxies = m_proxies[0];  // proxies for first object
             if (!proxies.empty()) {
                 ChVector<> cam_point = proxies[0].m_body->GetPos();
-                ChVector<> cam_loc = cam_point + ChVector<>(0, -3, 0.6);
-                m_vsys->UpdateCamera(cam_loc, cam_point);
+                m_vsys->UpdateCamera(m_cam_pos, cam_point);
             }
         }
-        m_vsys->Render();
-    } else {
-        MPI_Abort(MPI_COMM_WORLD, 1);
     }
+
+    m_vsys->Render();
 #endif
 }
 

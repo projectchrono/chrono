@@ -1,5 +1,5 @@
 {
-    "Name": "Pac02 Tire from ADAMS/Car TIR file",
+    "Name": "Magic Formula Tire from parameters",
     "Type": "Tire",
     "Template": "Pac02Tire",
     "Mass": 16.0,
@@ -8,9 +8,8 @@
         1.828238395872898,
         1.021213842086728
     ],
-    "Use Mode": 3,
     "Coefficient of Friction": 0.8,
-    "Tire Side": "left",
+    "Use Mode" : 3,
     "Dimension": {
         "Unloaded Radius": 0.376,
         "Width": 0.185,
@@ -18,143 +17,153 @@
         "Rim Radius": 0.1778,
         "Rim Width": 0.17
     },
-    "Vertical": {
+   "Vertical": {
         "Vertical Stiffness": 332736.8,
         "Vertical Damping": 2307.3,
         "Nominal Wheel Load": 4700.0
     },
     "Scaling Factors": {
-        "lfz0": 2.357723577,
-        "lcx": 1.0,
-        "lmux": 1.0,
-        "lex": 1.0,
-        "lkx": 1.0,
-        "lhx": 1.0,
-        "lvx": 1.0,
-        "lgax": 1.0,
-        "lcy": 1.0,
-        "lmuy": 1.0,
-        "ley": 1.0,
-        "lky": 1.0,
-        "lhy": 1.0,
-        "lvy": 1.0,
-        "lgay": 1.0,
-        "ltr": 1.3191,
-        "lres": 1.0,
-        "lgaz": 1.0,
-        "lxal": 1.0,
-        "lyka": 1.0,
-        "lvyka": 1.0,
-        "ls": 1.0,
-        "lsgkp": 1.0,
-        "lsgal": 1.0,
-        "lgyr": 1.0,
-        "lmx": 1.0,
-        "lvmx": 1.0,
-        "lmy": 1.0
+         "LFZO" : 1,   // Scale factor of nominal (rated) load
+        "LCX" : 1,    // Scale factor of Fx shape factor
+        "LMUX" : 1,   // Scale factor of Fx peak friction coefficient
+        "LEX" : 1,   // Scale factor of Fx curvature factor
+        "LKX" : 1,    // Scale factor of Fx slip stiffness
+        "LHX" : 1,    // Scale factor of Fx horizontal shift
+        "LVX" : 1,    // Scale factor of Fx vertical shift
+        "LGAX" : 1,   // Scale factor of camber for Fx
+        "LCY" : 1,    // Scale factor of Fy shape factor
+        "LMUY" : 1,   // Scale factor of Fy peak friction coefficient
+        "LEY" : 1,    // Scale factor of Fy curvature factor
+        "LKY" : 1,    // Scale factor of Fy cornering stiffness
+        "LHY" : 1,    // Scale factor of Fy horizontal shift
+        "LVY" : 1,    // Scale factor of Fy vertical shift
+        "LGAY" : 1,   // Scale factor of camber for Fy
+         "LTR" : 1,    // Scale factor of Peak of pneumatic trail
+         "LRES" : 1,   // Scale factor for offset of residual torque
+         "LGAZ" : 1,   // Scale factor of camber for Mz
+         "LXAL" : 1,   // Scale factor of alpha influence on Fx
+         "LYKA" : 1,   // Scale factor of alpha influence on Fx
+         "LVYKA" : 1,  // Scale factor of kappa induced Fy
+         "LS" : 1,     // Scale factor of Moment arm of Fx
+         "LSGKP" : 1,  // Scale factor of Relaxation length of Fx
+         "LSGAL" : 1,  // Scale factor of Relaxation length of Fy
+         "LGYR" : 1,   // Scale factor of gyroscopic torque
+         "LMX" : 1,    // Scale factor of overturning couple
+         "LVMX" : 1,   // Scale factor of Mx vertical shift
+         "LMY" : 1,    // Scale factor of rolling resistance torque
+         "LIP" : 1,    // Scale factor of inflation pressure
+         "LKYG" : 1,
+         "LCZ" : 1  // Scale factor of vertical stiffness
     },
     "Longitudinal Coefficients": {
-        "pcx1": 1.3178,
-        "pdx1": 1.0455,
-        "pdx2": 0.063954,
-        "pdx3": 0.0,
-        "pex1": 0.15798,
-        "pex2": 0.41141,
-        "pex3": 0.1487,
-        "pex4": 3.0004,
-        "pkx1": 23.181,
-        "pkx2": -0.037391,
-        "pkx3": 0.80348,
-        "phx1": -0.00058264,
-        "phx2": -0.0037992,
-        "pvx1": 0.045118,
-        "pvx2": 0.058244,
-        "rbx1": 13.276,
-        "rbx2": -13.778,
-        "rcx1": 1.0,
-        "rex1": 0.0,
-        "rex2": 0.0,
-        "rhx1": 0.0
+        "PCX1" : 1.5587,               // Shape factor Cfx for longitudinal force         
+        "PDX1" : 1.09,                 // Longitudinal friction Mux at Fznom         
+        "PDX2" : -0.079328,            // Variation of friction Mux with load         
+        "PDX3" : 9.9376e-006,          // Variation of friction Mux with camber         
+        "PEX1" : 0.27403,              // Longitudinal curvature Efx at Fznom         
+        "PEX2" : 0.10232,              // Variation of curvature Efx with load         
+        "PEX3" : 0.074903,             // Variation of curvature Efx with load squared         
+        "PEX4" : -0.00026944,          // Factor in curvature Efx while driving         
+        "PKX1" : 19.733,               // Longitudinal slip stiffness Kfx/Fz at Fznom         
+        "PKX2" : 0.093405,             // Variation of slip stiffness Kfx/Fz with load         
+        "PKX3" : 0.12433,              // Exponent in slip stiffness Kfx/Fz with load         
+        "PHX1" : -0.001779,            // Horizontal shift Shx at Fznom         
+        "PHX2" : 0.00021808,           // Variation of shift Shx with load         
+        "PVX1" : -9.9052e-006,         // Vertical shift Svx/Fz at Fznom         
+        "PVX2" : -2.8568e-005,         // Variation of shift Svx/Fz with load         
+        "RBX1" : 14.927,               // Slope factor for combined slip Fx reduction         
+        "RBX2" : -10.534,              // Variation of slope Fx reduction with kappa         
+        "RCX1" : 1.1288,               // Shape factor for combined slip Fx reduction         
+        "REX1" : 0.62334,              // Curvature factor of combined Fx         
+        "REX2" : -0.0039079,           // Curvature factor of combined Fx with load         
+        "RHX1" : 0.001683,             // Shift factor for combined slip Fx reduction         
+        "PTX1" : 1.9021,               // Relaxation length SigKap0/Fz at Fznom         
+        "PTX2" : -0.0014739,           // Variation of SigKap0/Fz with load         
+        "PTX3" : 0.03631               // Variation of SigKap0/Fz with exponent of load         
     },
     "Lateral Coefficients": {
-        "pcy1": 1.2676,
-        "pdy1": 0.90031,
-        "pdy2": -0.16748,
-        "pdy3": -0.43989,
-        "pey1": -0.3442,
-        "pey2": -0.10763,
-        "pey3": 0.11513,
-        "pey4": -6.9663,
-        "pky1": -25.714,
-        "pky2": 3.2658,
-        "pky3": -0.0054467,
-        "phy1": 0.0031111,
-        "phy2": 0.000021666,
-        "phy3": 0.036592,
-        "pvy1": 0.0064945,
-        "pvy2": -0.0052059,
-        "pvy3": 0.013713,
-        "pvy4": -0.0092737,
-        "rby1": 7.1433,
-        "rby2": 9.1916,
-        "rby3": -0.027856,
-        "rcy1": 1.0,
-        "rey1": 0.0,
-        "rey2": 0.0,
-        "rhy1": 0.0,
-        "rhy2": 0.0,
-        "rvy1": 0.0,
-        "rvy2": 0.0,
-        "rvy3": 0.0,
-        "rvy4": 0.0,
-        "rvy5": 1.9,
-        "rvy6": 0.0
+        "PCY1" : 1.4675,               // Shape factor Cfy for lateral forces         
+        "PDY1" : 0.94002,              // Lateral friction Muy         
+        "PDY2" : -0.17669,             // Variation of friction Muy with load         
+        "PDY3" : -0.69602,             // Variation of friction Muy with squared camber         
+        "PEY1" : 0.0040023,            // Lateral curvature Efy at Fznom         
+        "PEY2" : 0.00085719,           // Variation of curvature Efy with load         
+        "PEY3" : 41.465,               // Zero order camber dependency of curvature Efy         
+        "PEY4" : 665.25,               // Variation of curvature Efy with camber         
+        "PKY1" : -12.536,              // Maximum value of stiffness Kfy/Fznom         
+        "PKY2" : 1.3856,               // Load at which Kfy reaches maximum value         
+        "PKY3" : -0.93342,             // Variation of Kfy/Fznom with camber         
+        "PHY1" : 0.0024749,            // Horizontal shift Shy at Fznom         
+        "PHY2" : 0.0037538,            // Variation of shift Shy with load         
+        "PHY3" : 0.037561,             // Variation of shift Shy with camber         
+        "PVY1" : 0.031255,             // Vertical shift in Svy/Fz at Fznom         
+        "PVY2" : -0.0017359,           // Variation of shift Svy/Fz with load         
+        "PVY3" : -0.38166,             // Variation of shift Svy/Fz with camber         
+        "PVY4" : -0.033117,            // Variation of shift Svy/Fz with camber and load         
+        "RBY1" : 5.5228,               // Slope factor for combined Fy reduction         
+        "RBY2" : 2.7966,               // Variation of slope Fy reduction with alpha         
+        "RBY3" : 0.08688,              // Shift term for alpha in slope Fy reduction         
+        "RCY1" : 1.0783,               // Shape factor for combined Fy reduction         
+        "REY1" : 0.055543,             // Curvature factor of combined Fy         
+        "REY2" : -0.0022958,           // Curvature factor of combined Fy with load         
+        "RHY1" : -0.0027141,           // Shift factor for combined Fy reduction         
+        "RHY2" : -0.00098972,          // Shift factor for combined Fy reduction with load         
+        "RVY1" : 0.0076305,            // Kappa induced side force Svyk/Muy*Fz at Fznom         
+        "RVY2" : -0.09933,             // Variation of Svyk/Muy*Fz with load         
+        "RVY3" : 0.16991,              // Variation of Svyk/Muy*Fz with camber         
+        "RVY4" : -9.6324e-005,         // Variation of Svyk/Muy*Fz with alpha         
+        "RVY5" : 1.9,                  // Variation of Svyk/Muy*Fz with kappa         
+        "RVY6" : 0,                    // Variation of Svyk/Muy*Fz with atan(kappa)         
+        "PTY1" : 1.8473,               // Peak value of relaxation length SigAlp0/R0         
+        "PTY2" : 1.9465               // Value of Fz/Fznom where SigAlp0 is extreme         
     },
     "Aligning Coefficients": {
-        "qbz1": 5.6008,
-        "qbz2": -1.9968,
-        "qbz3": -0.58685,
-        "qbz4": -0.20922,
-        "qbz5": 0.2973,
-        "qbz9": 3.2333,
-        "qbz10": 0.0,
-        "qcz1": 1.0913,
-        "qdz1": 0.082536,
-        "qdz2": -0.011631,
-        "qdz3": -0.18704,
-        "qdz4": 0.18698,
-        "qdz6": 0.00071228,
-        "qdz7": 0.0010419,
-        "qdz8": -0.11886,
-        "qdz9": -0.011967,
-        "qez1": -35.25,
-        "qez2": -34.746,
-        "qez3": 0.0,
-        "qez4": 0.62393,
-        "qez5": -2.6405,
-        "qhz1": 0.0023279,
-        "qhz2": -0.0010156,
-        "qhz3": 0.030508,
-        "qhz4": 0.058344,
-        "ssz1": 0.0097546,
-        "ssz2": 0.0043624,
-        "ssz3": 0.0,
-        "ssz4": 0.0
+        "QBZ1" : 9.2824,               // Trail slope factor for trail Bpt at Fznom         
+        "QBZ2" : -2.6095,              // Variation of slope Bpt with load         
+        "QBZ3" : -0.86548,             // Variation of slope Bpt with load squared         
+        "QBZ4" : -0.16332,             // Variation of slope Bpt with camber         
+        "QBZ5" : -0.35511,             // Variation of slope Bpt with absolute camber         
+        "QBZ9" : 13.946,               // Slope factor Br of residual torque Mzr         
+        "QBZ10" : 0,                    // Slope factor Br of residual torque Mzr         
+        "QCZ1" : 1.1119,               // Shape factor Cpt for pneumatic trail         
+        "QDZ1" : 0.14332,              // Peak trail Dpt" : Dpt*(Fz/Fznom*R0)         
+        "QDZ2" : -0.0062385,           // Variation of peak Dpt" with load         
+        "QDZ3" : -0.43424,             // Variation of peak Dpt" with camber         
+        "QDZ4" : -8.1598,              // Variation of peak Dpt" with camber squared         
+        "QDZ6" : -0.0073867,           // Peak residual torque Dmr" : Dmr/(Fz*R0)         
+        "QDZ7" : 0.0016767,            // Variation of peak factor Dmr" with load         
+        "QDZ8" : -0.17212,             // Variation of peak factor Dmr" with camber         
+        "QDZ9" : -0.033444,            // Variation of peak factor Dmr" with camber and load         
+        "QEZ1" : -2.9203,              // Trail curvature Ept at Fznom         
+        "QEZ2" : -0.91079,             // Variation of curvature Ept with load         
+        "QEZ3" : 0,                    // Variation of curvature Ept with load squared         
+        "QEZ4" : 0.32935,              // Variation of curvature Ept with sign of Alpha-t         
+        "QEZ5" : -1.9083,              // Variation of Ept with camber and sign Alpha-t         
+        "QHZ1" : 0.0019422,            // Trail horizontal shift Sht at Fznom         
+        "QHZ2" : 0.0034645,            // Variation of shift Sht with load         
+        "QHZ3" : 0.14727,              // Variation of shift Sht with camber         
+        "QHZ4" : -0.035133,            // Variation of shift Sht with camber and load         
+        "SSZ1" : 0.026243,             // Nominal value of s/R0: effect of Fx on Mz         
+        "SSZ2" : -0.013391,            // Variation of distance s/R0 with Fy/Fznom         
+        "SSZ3" : 0.3923,               // Variation of distance s/R0 with camber         
+        "SSZ4" : -0.16022,             // Variation of distance s/R0 with load and camber         
+        "QTZ1" : 0.2,                  // Gyration torque constant         
+        "MBELT" : 3.5                  // Belt mass of the wheel         
     },
     "Overturning Coefficients": {
-        "qsx1": 0.0,
-        "qsx2": 0.0,
-        "qsx3": 0.0
+        "QSX1" : 0,                    // Lateral force induced overturning moment         
+        "QSX2" : 0,                    // Camber induced overturning couple         
+        "QSX3" : 0                     // Fy induced overturning couple         
     },
     "Rolling Coefficients": {
-        "qsy1": 0.015,
-        "qsy2": 0.0,
-        "qsy3": 0.0,
-        "qsy4": 0.0
+        "QSY1"                     : 0.01,                 // Rolling resistance torque coefficient         
+        "QSY2"                     : 0,                    // Rolling resistance torque depending on Fx         
+        "QSY3"                     : 0,                    // Rolling resistance torque depending on speed         
+        "QSY4"                     : 0                    // Rolling resistance torque depending on speed ^4         
     },
     "Visualization": {
         "Mesh Filename Left":  "VW_microbus/van_tire.obj",
         "Mesh Filename Right": "VW_microbus/van_tire.obj",
-        "Width": 0.228
+        "Width": 0.185
     }
 }

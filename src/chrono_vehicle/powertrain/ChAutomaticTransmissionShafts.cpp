@@ -23,13 +23,8 @@
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
-// dir_motor_block specifies the direction of the motor block, i.e. the
-// direction of the crankshaft, in chassis local coords. This is needed because
-// ChShaftsBody could transfer rolling torque to the chassis.
-// -----------------------------------------------------------------------------
 ChAutomaticTransmissionShafts::ChAutomaticTransmissionShafts(const std::string& name)
-    : ChTransmission(name), m_last_time_gearshift(0), m_gear_shift_latency(0.5) {}
+    : ChAutomaticTransmission(name), m_last_time_gearshift(0), m_gear_shift_latency(0.5) {}
 
 ChAutomaticTransmissionShafts::~ChAutomaticTransmissionShafts() {
     auto sys = m_torqueconverter->GetSystem();
@@ -135,7 +130,7 @@ void ChAutomaticTransmissionShafts::Synchronize(double time,
         return;
 
     // Automatic gear selection (fixed latency state machine)
-    if (m_mode == Mode::AUTOMATIC && m_drive_mode == DriveMode::FORWARD) {
+    if (m_shift_mode == ShiftMode::AUTOMATIC && m_drive_mode == DriveMode::FORWARD) {
         double gearshaft_speed = m_shaft_ingear->GetPos_dt();
         if (gearshaft_speed > m_upshift_speed) {
             // upshift if possible

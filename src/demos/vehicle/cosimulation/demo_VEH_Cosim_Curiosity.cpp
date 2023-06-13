@@ -34,9 +34,9 @@
 
 #include "chrono_vehicle/cosim/mbs/ChVehicleCosimCuriosityNode.h"
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeRigid.h"
+#include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeRigid.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeSCM.h"
 #ifdef CHRONO_MULTICORE
-    #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeRigid.h"
     #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularOMP.h"
 #endif
 #ifdef CHRONO_FSI
@@ -186,7 +186,8 @@ int main(int argc, char** argv) {
     }
 
     std::string suffix = "";
-    bool render = true;
+    bool renderRT = true;
+    bool renderPP = true;
 
     // Peek in spec file and extract terrain type
     auto terrain_type = ChVehicleCosimTerrainNodeChrono::GetTypeFromSpecfile(terrain_specfile);
@@ -209,10 +210,9 @@ int main(int argc, char** argv) {
 
     // Check if required modules are enabled
 #ifndef CHRONO_MULTICORE
-    if (terrain_type == ChVehicleCosimTerrainNodeChrono::Type::RIGID ||
-        terrain_type == ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_OMP) {
+    if (terrain_type == ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_OMP) {
         if (rank == 0)
-            cout << "Chrono::Multicore is required for RIGID or GRANULAR_OMP terrain type!" << endl;
+            cout << "Chrono::Multicore is required for GRANULAR_OMP terrain type!" << endl;
         MPI_Abort(MPI_COMM_WORLD, 1);
         return 1;
     }
@@ -284,6 +284,11 @@ int main(int argc, char** argv) {
         curiosity->SetStepSize(step_size);
         curiosity->SetNumThreads(1);
         curiosity->SetOutDir(out_dir, suffix);
+        if (renderRT)
+            curiosity->EnableRuntimeVisualization(render_fps);
+        if (renderPP)
+            curiosity->EnablePostprocessVisualization(render_fps);
+        curiosity->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
         if (verbose)
             cout << "[Curiosity node] output directory: " << curiosity->GetOutDirName() << endl;
 
@@ -295,9 +300,8 @@ int main(int argc, char** argv) {
         if (verbose)
             cout << "[Tire node   ] rank = " << rank << " running on: " << procname << endl;
 
-        auto tire = new ChVehicleCosimTireNodeRigid(rank - 2);
-        ////tire->SetTireFromSpecfile(vehicle::GetDataFile("cosim/curiosity/Curiosity_RigidTire_real.json"));
-        tire->SetTireFromSpecfile(vehicle::GetDataFile("cosim/curiosity/Curiosity_RigidTire_cyl.json"));
+        auto tire = new ChVehicleCosimTireNodeRigid(
+            rank - 2, vehicle::GetDataFile("cosim/curiosity/Curiosity_RigidTire_cyl.json"));
         tire->SetVerbose(verbose);
         tire->SetStepSize(step_size);
         tire->SetNumThreads(1);
@@ -312,7 +316,6 @@ int main(int argc, char** argv) {
 
         switch (terrain_type) {
             case ChVehicleCosimTerrainNodeChrono::Type::RIGID: {
-#ifdef CHRONO_MULTICORE
                 auto method = ChContactMethod::SMC;
                 auto terrain = new ChVehicleCosimTerrainNodeRigid(method, terrain_specfile);
                 terrain->SetDimensions(terrain_length, terrain_width);
@@ -320,7 +323,11 @@ int main(int argc, char** argv) {
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
-                terrain->EnableRuntimeVisualization(render, render_fps);
+                if (renderRT)
+                    terrain->EnableRuntimeVisualization(render_fps);
+                if (renderPP)
+                    terrain->EnablePostprocessVisualization(render_fps);
+                terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
                 if (add_obstacles) {
                     terrain->AddRigidObstacle(CreateObstacle(ChVector<>(1, 1, 0.5)));
                     terrain->AddRigidObstacle(CreateObstacle(ChVector<>(-1, -1, 0.5)));
@@ -329,7 +336,6 @@ int main(int argc, char** argv) {
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
                 node = terrain;
-#endif
                 break;
             }
 
@@ -340,7 +346,11 @@ int main(int argc, char** argv) {
                 terrain->SetStepSize(step_size);
                 terrain->SetNumThreads(nthreads_terrain);
                 terrain->SetOutDir(out_dir, suffix);
-                terrain->EnableRuntimeVisualization(render, render_fps);
+                if (renderRT)
+                    terrain->EnableRuntimeVisualization(render_fps);
+                if (renderPP)
+                    terrain->EnablePostprocessVisualization(render_fps);
+                terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
                 if (add_obstacles) {
                     terrain->AddRigidObstacle(CreateObstacle(ChVector<>(1, 1, 0.5)));
                     terrain->AddRigidObstacle(CreateObstacle(ChVector<>(-1, -1, 0.5)));
@@ -362,7 +372,11 @@ int main(int argc, char** argv) {
                 terrain->SetStepSize(step_size);
                 terrain->SetNumThreads(nthreads_terrain);
                 terrain->SetOutDir(out_dir, suffix);
-                terrain->EnableRuntimeVisualization(render, render_fps);
+                if (renderRT)
+                    terrain->EnableRuntimeVisualization(render_fps);
+                if (renderPP)
+                    terrain->EnablePostprocessVisualization(render_fps);
+                terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
                 if (add_obstacles) {
                     terrain->AddRigidObstacle(CreateObstacle(ChVector<>(1, 1, 0.5)));
                     terrain->AddRigidObstacle(CreateObstacle(ChVector<>(-1, -1, 0.5)));
@@ -388,7 +402,11 @@ int main(int argc, char** argv) {
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
-                terrain->EnableRuntimeVisualization(render, render_fps);
+                if (renderRT)
+                    terrain->EnableRuntimeVisualization(render_fps);
+                if (renderPP)
+                    terrain->EnablePostprocessVisualization(render_fps);
+                terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
                 if (add_obstacles) {
                     terrain->AddRigidObstacle(CreateObstacle(ChVector<>(1, 1, 0.5)));
                     terrain->AddRigidObstacle(CreateObstacle(ChVector<>(-1, -1, 0.5)));
@@ -414,7 +432,11 @@ int main(int argc, char** argv) {
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
-                terrain->EnableRuntimeVisualization(render, render_fps);
+                if (renderRT)
+                    terrain->EnableRuntimeVisualization(render_fps);
+                if (renderPP)
+                    terrain->EnablePostprocessVisualization(render_fps);
+                terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
                 if (add_obstacles) {
                     terrain->AddRigidObstacle(CreateObstacle(ChVector<>(1, 1, 0.5)));
                     terrain->AddRigidObstacle(CreateObstacle(ChVector<>(-1, -1, 0.5)));

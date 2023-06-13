@@ -20,7 +20,9 @@
 #ifdef CHRONO_COLLISION
     #include "chrono/collision/ChCollisionSystemChrono.h"
 #endif
-
+#ifdef CHRONO_POSTPROCESS
+    #include "chrono_postprocess/ChBlender.h"
+#endif
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -32,6 +34,7 @@ using namespace chrono;
 using namespace chrono::irrlicht;
 
 bool output = false;
+bool blender_output = false;
 const std::string out_dir = GetChronoOutputPath() + "SCM_DEF_SOIL";
 
 // Type of tire (controls both contact and visualization)
@@ -113,7 +116,7 @@ int main(int argc, char* argv[]) {
     sys.Add(mtruss);
 
     // Initialize output
-    if (output) {
+    if (output || blender_output) {
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
             return 1;
@@ -260,6 +263,17 @@ int main(int argc, char* argv[]) {
     vis->AddCamera(ChVector<>(2.0, 1.4, 0.0), ChVector<>(0, tire_rad, 0));
     vis->AddLightDirectional();
 
+    // Create the Blender exporter
+#ifdef CHRONO_POSTPROCESS
+    postprocess::ChBlender blender_exporter(&sys);
+    if (blender_output) {
+        blender_exporter.SetBasePath(out_dir);
+        blender_exporter.SetCamera(ChVector<>(2.0, 1.4, 3.0), ChVector<>(0, tire_rad, 0), 50);
+        blender_exporter.AddAll();
+        blender_exporter.ExportScript();
+    }
+#endif
+
     //
     // THE SOFT-REAL-TIME CYCLE
     //
@@ -285,6 +299,12 @@ int main(int argc, char* argv[]) {
             vehicle::TerrainForce frc = mterrain.GetContactForce(mrigidbody);
             csv << time << frc.force << frc.moment << frc.point << std::endl;
         }
+
+#ifdef CHRONO_POSTPROCESS
+        if (blender_output) {
+            blender_exporter.ExportData();
+        }
+#endif
 
         ////std::cout << "\nTime: " << time << std::endl;
         ////std::cout << "Wheel pos: " << mrigidbody->GetPos() << std::endl;

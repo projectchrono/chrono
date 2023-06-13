@@ -109,18 +109,21 @@ class CH_VEHICLE_API ChVehicleCosimWheeledMBSNode : public ChVehicleCosimBaseNod
     ChVehicleCosimWheeledMBSNode();
 
     /// Initialize the underlying MBS
-    virtual void InitializeMBS(const std::vector<ChVector<>>& tire_info,  ///< mass, radius, width for each tire
-                               const ChVector2<>& terrain_size,           ///< terrain length x width
-                               double terrain_height                      ///< initial terrain height
+    virtual void InitializeMBS(const ChVector2<>& terrain_size,  ///< terrain length x width
+                               double terrain_height             ///< initial terrain height
                                ) = 0;
+
+    /// Apply tire info (after InitializeMBS).
+    /// This includes mass, radius, and width for each tire.
+    virtual void ApplyTireInfo(const std::vector<ChVector<>>& tire_info) = 0;
 
     /// Perform any required operations before advancing the state of the MBS.
     /// This function is called before every integration step.
-    virtual void PreAdvance() {}
+    virtual void PreAdvance(double step_size) {}
 
     /// Perform any required operations after advancing the state of the MBS.
     /// This function is called after every integration step.
-    virtual void PostAdvance() {}
+    virtual void PostAdvance(double step_size) {}
 
     /// Perform additional output at the specified frame (called from within OutputData).
     /// For example, output mechanism-specific data for post-procesing.
@@ -163,6 +166,7 @@ class CH_VEHICLE_API ChVehicleCosimWheeledMBSNode : public ChVehicleCosimBaseNod
     std::ofstream m_DBP_outf;                         ///< DBP output file stream
 
   private:
+    virtual ChSystem* GetSystemPostprocess() const override { return m_system; }
     void InitializeSystem();
 
     bool m_fix_chassis;

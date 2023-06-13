@@ -22,6 +22,7 @@
 #ifndef CH_VEHCOSIM_CURIOSITY_NODE_H
 #define CH_VEHCOSIM_CURIOSITY_NODE_H
 
+#include "chrono/assets/ChVisualSystem.h"
 #include "chrono_models/robot/curiosity/Curiosity.h"
 #include "chrono_vehicle/cosim/ChVehicleCosimWheeledMBSNode.h"
 
@@ -54,16 +55,18 @@ class CH_VEHICLE_API ChVehicleCosimCuriosityNode : public ChVehicleCosimWheeledM
 
   private:
     /// Initialize the rover MBS and any associated subsystems.
-    virtual void InitializeMBS(const std::vector<ChVector<>>& tire_info,  ///< mass, radius, width for each tire
-                               const ChVector2<>& terrain_size,           ///< terrain length x width
-                               double terrain_height                      ///< initial terrain height
+    virtual void InitializeMBS(const ChVector2<>& terrain_size,  ///< terrain length x width
+                               double terrain_height             ///< initial terrain height
                                ) override;
+
+    /// Apply tire info (mass, radius, width).
+    virtual void ApplyTireInfo(const std::vector<ChVector<>>& tire_info) override;
 
     // Output rover data.
     virtual void OnOutputData(int frame) override;
 
     /// Perform Curiosity update before advancing the dynamics.
-    virtual void PreAdvance() override;
+    virtual void PreAdvance(double step_size) override;
 
     /// Process the provided spindle force (received from the corresponding tire node).
     virtual void ApplySpindleForce(unsigned int i, const TerrainForce& spindle_force) override;
@@ -75,6 +78,7 @@ class CH_VEHICLE_API ChVehicleCosimCuriosityNode : public ChVehicleCosimWheeledM
     virtual std::shared_ptr<ChBody> GetSpindleBody(unsigned int i) const override;
 
     /// Return the vertical mass load on the i-th spindle.
+    /// This does not include the mass of the wheel.
     virtual double GetSpindleLoad(unsigned int i) const override;
 
     /// Get the body state of the spindle body to which the i-th wheel/tire is attached.
@@ -88,9 +92,12 @@ class CH_VEHICLE_API ChVehicleCosimCuriosityNode : public ChVehicleCosimWheeledM
 
     void WriteBodyInformation(utils::CSV_writer& csv);
 
+    virtual void OnRender() override;
+
   private:
     std::shared_ptr<curiosity::Curiosity> m_curiosity;     ///< Curiosity rover;
     std::shared_ptr<curiosity::CuriosityDriver> m_driver;  ///< Curiosity driver
+    std::shared_ptr<ChVisualSystem> m_vsys;                ///< run-time visualization system
 
     ChVector<> m_init_loc;  ///< initial rover location (relative to center of terrain top surface)
     double m_init_yaw;      ///< initial rover yaw

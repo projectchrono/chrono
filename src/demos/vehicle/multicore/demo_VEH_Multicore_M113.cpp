@@ -12,7 +12,10 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-//
+// Note: this is only a demonstration. For proper simulation on DEM terrain, 
+// significantly more particles would be required (with a corresponding increase
+// in computational cost).
+// 
 // =============================================================================
 
 #include <iostream>
@@ -62,9 +65,6 @@ using std::endl;
 // Comment the following line to use Chrono::Multicore
 //#define USE_SEQ
 
-// Comment the following line to use NSC contact
-#define USE_SMC
-
 // -----------------------------------------------------------------------------
 // Specification of the terrain
 // -----------------------------------------------------------------------------
@@ -72,7 +72,7 @@ using std::endl;
 enum TerrainType { RIGID_TERRAIN, GRANULAR_TERRAIN };
 
 // Type of terrain
-TerrainType terrain_type = RIGID_TERRAIN;
+TerrainType terrain_type = GRANULAR_TERRAIN;
 
 // Control visibility of containing bin walls
 bool visible_walls = false;
@@ -93,18 +93,18 @@ ChVector<> inertia_g = 0.4 * mass_g * r_g * r_g * ChVector<>(1, 1, 1);
 
 float mu_g = 0.8f;
 
-unsigned int num_particles = 100; //// 40000;
+unsigned int num_particles = 40000;
 
 // -----------------------------------------------------------------------------
 // Specification of the vehicle model
 // -----------------------------------------------------------------------------
 
 // Initial vehicle position and orientation
-ChVector<> initLoc(-hdimX + 4.5, 0, 1);
+ChVector<> initLoc(-hdimX + 4.5, 0, 0.8);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 // Simple powertrain model
-std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
+std::string simplepowertrain_file("generic/p owertrain/SimplePowertrain.json");
 
 // -----------------------------------------------------------------------------
 // Simulation parameters
@@ -148,15 +148,8 @@ int out_fps = 60;
 
 double CreateParticles(ChSystem* sys) {
     // Create a material
-#ifdef USE_SMC
-    auto mat_g = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-    mat_g->SetYoungModulus(1e8f);
-    mat_g->SetFriction(mu_g);
-    mat_g->SetRestitution(0.4f);
-#else
     auto mat_g = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     mat_g->SetFriction(mu_g);
-#endif
 
     // Create a particle generator and a mixture entirely made out of spheres
     double r = 1.01 * r_g;
@@ -230,24 +223,12 @@ int main(int argc, char* argv[]) {
 
 #ifdef USE_SEQ
     // ----  Sequential
-#ifdef USE_SMC
-    std::cout << "Create SMC sys" << std::endl;
-    ChSystemSMC* sys = new ChSystemSMC();
-#else
     std::cout << "Create NSC sys" << std::endl;
     ChSystemNSC* sys = new ChSystemNSC();
-#endif
-
 #else
     // ----  Multicore
-#ifdef USE_SMC
-    std::cout << "Create Multicore SMC sys" << std::endl;
-    ChSystemMulticoreSMC* sys = new ChSystemMulticoreSMC();
-#else
     std::cout << "Create Multicore NSC sys" << std::endl;
     ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC();
-#endif
-
 #endif
 
     sys->Set_G_acc(ChVector<>(0, 0, -9.81));
@@ -271,18 +252,14 @@ int main(int argc, char* argv[]) {
     sys->GetSettings()->solver.use_full_inertia_tensor = false;
     sys->GetSettings()->solver.tolerance = tolerance;
 
-#ifndef USE_SMC
     sys->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
     sys->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
     sys->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
     sys->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
     sys->GetSettings()->solver.alpha = 0;
     sys->GetSettings()->solver.contact_recovery_speed = contact_recovery_speed;
-    sys->ChangeSolverType(SolverType::APGD);
+    sys->ChangeSolverType(SolverType::BB);
     sys->GetSettings()->collision.collision_envelope = 0.1 * r_g;
-#else
-    sys->GetSettings()->solver.contact_force_model = ChSystemSMC::PlainCoulomb;
-#endif
 
     sys->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
@@ -293,15 +270,8 @@ int main(int argc, char* argv[]) {
     // -------------------
 
     // Contact material
-#ifdef USE_SMC
-    auto mat_g = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-    mat_g->SetYoungModulus(1e8f);
-    mat_g->SetFriction(mu_g);
-    mat_g->SetRestitution(0.4f);
-#else
     auto mat_g = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     mat_g->SetFriction(mu_g);
-#endif
 
     // Ground body
     auto ground = std::shared_ptr<ChBody>(sys->NewBody());
@@ -360,8 +330,8 @@ int main(int argc, char* argv[]) {
     // Create and initialize vehicle sys
     M113 m113(sys);
     m113.SetTrackShoeType(TrackShoeType::SINGLE_PIN);
-    m113.SetDrivelineType(DrivelineTypeTV::SIMPLE);
-    m113.SetBrakeType(BrakeType::SIMPLE);
+    m113.SetDrivelineType(DrivelineTypeTV::BDS);
+    m113.SetBrakeType(BrakeType::SHAFTS);
     m113.SetEngineType(EngineModelType::SIMPLE_MAP);
     m113.SetTransmissionType(TransmissionModelType::SIMPLE_MAP);
     m113.SetChassisCollisionType(CollisionType::NONE);

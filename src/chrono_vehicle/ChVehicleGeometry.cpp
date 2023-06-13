@@ -130,6 +130,7 @@ void ChVehicleGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body,
         for (auto& mesh : m_coll_meshes) {
             auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
             trimesh_shape->SetMesh(mesh.m_trimesh);
+            trimesh_shape->SetMutable(false);
             body->AddVisualShape(trimesh_shape, ChFrame<>());
         }
 

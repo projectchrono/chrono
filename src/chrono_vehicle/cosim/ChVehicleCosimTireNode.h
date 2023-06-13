@@ -25,6 +25,7 @@
 #include "chrono/physics/ChSystemSMC.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
+#include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 
 #include "chrono_vehicle/cosim/ChVehicleCosimBaseNode.h"
 
@@ -76,9 +77,6 @@ class CH_VEHICLE_API ChVehicleCosimTireNode : public ChVehicleCosimBaseNode {
     /// Get the tire type from the given JSON specification file.
     static TireType GetTireTypeFromSpecfile(const std::string& specfile);
 
-    /// Specify the tire JSON specification file name.
-    void SetTireFromSpecfile(const std::string& filename);
-
     /// Enable/disable tire pressure (default: true).
     void EnableTirePressure(bool val);
 
@@ -105,28 +103,24 @@ class CH_VEHICLE_API ChVehicleCosimTireNode : public ChVehicleCosimBaseNode {
     virtual void OutputData(int frame) override final;
 
   protected:
-    ChVehicleCosimTireNode(int index);
+    ChVehicleCosimTireNode(int index, const std::string& tire_json = "");
 
     /// Specify the type of communication interface (BODY or MESH) required by this the tire node.
     /// See ChVehicleCosimBaseNode::InterfaceType.
     virtual InterfaceType GetInterfaceType() const = 0;
 
-    /// Construct the tire.
-    /// The tire radius and mass must be available after this function is called.
-    virtual void ConstructTire() = 0;
-
     /// Return the tire mass.
-    virtual double GetTireMass() const = 0;
+    virtual double GetTireMass() const { return m_tire->GetMass(); }
 
     /// Return the tire radius.
-    virtual double GetTireRadius() const = 0;
+    virtual double GetTireRadius() const { return m_tire->GetRadius(); }
 
     /// Return the tire width.
-    virtual double GetTireWidth() const = 0;
+    virtual double GetTireWidth() const { return m_tire->GetWidth(); }
 
     /// Initialize the tire by attaching it to the provided ChWheel.
     /// A derived class must load m_geometry (collision shape and contact material).
-    virtual void InitializeTire(std::shared_ptr<ChWheel>) = 0;
+    virtual void InitializeTire(std::shared_ptr<ChWheel>, const ChVector<>& init_loc) = 0;
 
     /// Apply the spindle state.
     /// The BodyState struct contains the spindle body state as received from the MBS node.
@@ -172,17 +166,18 @@ class CH_VEHICLE_API ChVehicleCosimTireNode : public ChVehicleCosimBaseNode {
     ChSolver::Type m_slv_type;                       ///< solver type
     std::shared_ptr<ChTimestepperHHT> m_integrator;  ///< HHT integrator object
 
-    std::string m_tire_json;  ///< name of tire JSON specification file
     bool m_tire_pressure;     ///< tire pressure enabled?
     int m_index;              ///< index of the tire
 
     std::shared_ptr<ChBody> m_spindle;  ///< spindle body
     std::shared_ptr<ChWheel> m_wheel;   ///< wheel subsystem (to which a tire is attached)
+    std::shared_ptr<ChTire> m_tire;     ///< tire subsystem
 
     // Communication data (loaded by derived classes)
-    ChVehicleGeometry m_geometry; ///< tire geometry and contact material
+    ChVehicleGeometry m_geometry;  ///< tire geometry and contact material
 
   private:
+    virtual ChSystem* GetSystemPostprocess() const override { return m_system; }
     void InitializeSystem();
     void SynchronizeBody(int step_number, double time);
     void SynchronizeMesh(int step_number, double time);

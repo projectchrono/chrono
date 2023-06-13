@@ -31,7 +31,8 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 TMeasyTire::TMeasyTire(const std::string& filename) : ChTMeasyTire(""), m_has_mesh(false) {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -51,67 +52,82 @@ void TMeasyTire::Create(const rapidjson::Document& d) {
     // Read design parameters (required)
     assert(d.HasMember("Design"));
     assert(d.HasMember("Coefficient of Friction"));
-    assert(d.HasMember("Rolling Resistance Coefficients"));
+    assert(d.HasMember("Rolling Resistance Coefficient"));
 
     m_mass = d["Design"]["Mass [kg]"].GetDouble();
     m_inertia = ReadVectorJSON(d["Design"]["Inertia [kg.m2]"]);
     m_unloaded_radius = d["Design"]["Unloaded Radius [m]"].GetDouble();
     m_rim_radius = d["Design"]["Rim Radius [m]"].GetDouble();
     m_width = d["Design"]["Width [m]"].GetDouble();
-    m_roundness = d["Design"]["Roundness of Cross Section"].GetDouble();
 
     double p_li = 1.0;
     double p_use = 1.0;
-    ////bool pressure_info_found = false;
 
     if (d.HasMember("Parameters")) {
         // Full parameterization
-        const double N2kN = 0.001;
+        m_par.pn = d["Parameters"]["Vertical"]["Nominal Vertical Force [N]"].GetDouble();
+        if (d["Parameters"]["Vertical"].HasMember("Maximum Vertical Force [N]"))
+            m_par.pn_max = d["Parameters"]["Vertical"]["Maximum Vertical Force [N]"].GetDouble();
+        else
+            m_par.pn_max = 3.5 * m_par.pn;
 
-        m_TMeasyCoeff.pn = d["Parameters"]["Tire Load"]["Nominal Vertical Force [N]"].GetDouble();
-        m_TMeasyCoeff.pn_max = d["Parameters"]["Tire Load"]["Maximum Vertical Force [N]"].GetDouble();
+        if (d["Parameters"]["Vertical"].HasMember("Vertical Tire Stiffness [N/m]")) {
+            double a1 = d["Parameters"]["Vertical"]["Vertical Tire Stiffness [N/m]"].GetDouble();
+            SetVerticalStiffness(a1);
+        } else if (d["Parameters"]["Vertical"].HasMember("Tire Spring Curve Data")) {
+            assert(d["Parameters"]["Vertical"]["Tire Spring Curve Data"].IsArray() &&
+                   d["Parameters"]["Vertical"]["Tire Spring Curve Data"][0u].Size() == 2);
+            std::vector<double> defl, force;
+            int num_defs = d["Parameters"]["Vertical"]["Tire Spring Curve Data"].Size();
+            for (int i = 0; i < num_defs; i++) {
+                double t_defl = d["Parameters"]["Vertical"]["Tire Spring Curve Data"][i][0u].GetDouble();
+                double t_force = d["Parameters"]["Vertical"]["Tire Spring Curve Data"][i][1u].GetDouble();
+                defl.push_back(t_defl);
+                force.push_back(t_force);
+            }
+            SetVerticalStiffness(defl, force);
+            GetLog() << "Table set\n";
+        } else {
+            GetLog() << "FATAL: No Vertical Tire Stiffness Definition!\n";
+            exit(19);
+        }
 
-        m_TMeasyCoeff.cx = d["Parameters"]["Tire Stiffness"]["Longitudinal [N/m]"].GetDouble();
-        m_TMeasyCoeff.cy = d["Parameters"]["Tire Stiffness"]["Lateral [N/m]"].GetDouble();
-        double a1 = d["Parameters"]["Tire Stiffness"]["Vertical [N/m]"][0u].GetDouble();
-        double a2 = d["Parameters"]["Tire Stiffness"]["Vertical [N/m]"][1u].GetDouble();
-        SetVerticalStiffness(a1, a2);
+        m_par.dz = d["Parameters"]["Vertical"]["Tire Vertical Damping [Ns/m]"].GetDouble();
 
-        m_TMeasyCoeff.dx = d["Parameters"]["Tire Damping"]["Longitudinal [Ns/m]"].GetDouble();
-        m_TMeasyCoeff.dy = d["Parameters"]["Tire Damping"]["Lateral [Ns/m]"].GetDouble();
-        m_TMeasyCoeff.dz = d["Parameters"]["Tire Damping"]["Vertical [Ns/m]"].GetDouble();
+        // Bottoming parameters are optional, if not set, Initialize() sets default values
+        if (d["Parameters"]["Vertical"].HasMember("Tire Bottoming Radius [m]"))
+            m_bottom_radius = d["Parameters"]["Vertical"]["Tire Bottoming Radius [m]"].GetDouble();
+        if (d["Parameters"]["Vertical"].HasMember("Tire Bottoming Stiffness [N/m]"))
+            m_bottom_stiffness = d["Parameters"]["Vertical"]["Tire Bottoming Stiffness [N/m]"].GetDouble();
 
-        m_TMeasyCoeff.rdynco_pn = d["Parameters"]["Dynamic Radius Weighting Coefficients"][0u].GetDouble();
-        m_TMeasyCoeff.rdynco_p2n = d["Parameters"]["Dynamic Radius Weighting Coefficients"][1u].GetDouble();
+        m_par.dfx0_pn = d["Parameters"]["Longitudinal"]["Initial Slopes dFx/dsx [N]"][0u].GetDouble();
+        m_par.dfx0_p2n = d["Parameters"]["Longitudinal"]["Initial Slopes dFx/dsx [N]"][1u].GetDouble();
+        m_par.fxm_pn = d["Parameters"]["Longitudinal"]["Maximum Fx Load [N]"][0u].GetDouble();
+        m_par.fxm_p2n = d["Parameters"]["Longitudinal"]["Maximum Fx Load [N]"][1u].GetDouble();
+        m_par.fxs_pn = d["Parameters"]["Longitudinal"]["Sliding Fx Load [N]"][0u].GetDouble();
+        m_par.fxs_p2n = d["Parameters"]["Longitudinal"]["Sliding Fx Load [N]"][1u].GetDouble();
+        m_par.sxm_pn = d["Parameters"]["Longitudinal"]["Slip sx at Maximum Fx"][0u].GetDouble();
+        m_par.sxm_p2n = d["Parameters"]["Longitudinal"]["Slip sx at Maximum Fx"][1u].GetDouble();
+        m_par.sxs_pn = d["Parameters"]["Longitudinal"]["Slip sx where sliding begins"][0u].GetDouble();
+        m_par.sxs_p2n = d["Parameters"]["Longitudinal"]["Slip sx where sliding begins"][1u].GetDouble();
 
-        m_TMeasyCoeff.dfx0_pn = N2kN * d["Parameters"]["Longitudinal"]["Initial Slopes dFx/dsx [N]"][0u].GetDouble();
-        m_TMeasyCoeff.dfx0_p2n = N2kN * d["Parameters"]["Longitudinal"]["Initial Slopes dFx/dsx [N]"][1u].GetDouble();
-        m_TMeasyCoeff.fxm_pn = N2kN * d["Parameters"]["Longitudinal"]["Maximum Fx Load [N]"][0u].GetDouble();
-        m_TMeasyCoeff.fxm_p2n = N2kN * d["Parameters"]["Longitudinal"]["Maximum Fx Load [N]"][1u].GetDouble();
-        m_TMeasyCoeff.fxs_pn = N2kN * d["Parameters"]["Longitudinal"]["Sliding Fx Load [N]"][0u].GetDouble();
-        m_TMeasyCoeff.fxs_p2n = N2kN * d["Parameters"]["Longitudinal"]["Sliding Fx Load [N]"][1u].GetDouble();
-        m_TMeasyCoeff.sxm_pn = d["Parameters"]["Longitudinal"]["Slip sx at Maximum Fx"][0u].GetDouble();
-        m_TMeasyCoeff.sxm_p2n = d["Parameters"]["Longitudinal"]["Slip sx at Maximum Fx"][1u].GetDouble();
-        m_TMeasyCoeff.sxs_pn = d["Parameters"]["Longitudinal"]["Slip sx where sliding begins"][0u].GetDouble();
-        m_TMeasyCoeff.sxs_p2n = d["Parameters"]["Longitudinal"]["Slip sx where sliding begins"][1u].GetDouble();
+        m_par.dfy0_pn = d["Parameters"]["Lateral"]["Initial Slopes dFy/dsy [N]"][0u].GetDouble();
+        m_par.dfy0_p2n = d["Parameters"]["Lateral"]["Initial Slopes dFy/dsy [N]"][1u].GetDouble();
+        m_par.fym_pn = d["Parameters"]["Lateral"]["Maximum Fy Load [N]"][0u].GetDouble();
+        m_par.fym_p2n = d["Parameters"]["Lateral"]["Maximum Fy Load [N]"][1u].GetDouble();
+        m_par.fys_pn = d["Parameters"]["Lateral"]["Sliding Fy Load [N]"][0u].GetDouble();
+        m_par.fys_p2n = d["Parameters"]["Lateral"]["Sliding Fy Load [N]"][1u].GetDouble();
+        m_par.sym_pn = d["Parameters"]["Lateral"]["Slip sy at Maximum Fy"][0u].GetDouble();
+        m_par.sym_p2n = d["Parameters"]["Lateral"]["Slip sy at Maximum Fy"][1u].GetDouble();
+        m_par.sys_pn = d["Parameters"]["Lateral"]["Slip sy where sliding begins"][0u].GetDouble();
+        m_par.sys_p2n = d["Parameters"]["Lateral"]["Slip sy where sliding begins"][1u].GetDouble();
 
-        m_TMeasyCoeff.dfy0_pn = N2kN * d["Parameters"]["Lateral"]["Initial Slopes dFy/dsy [N]"][0u].GetDouble();
-        m_TMeasyCoeff.dfy0_p2n = N2kN * d["Parameters"]["Lateral"]["Initial Slopes dFy/dsy [N]"][1u].GetDouble();
-        m_TMeasyCoeff.fym_pn = N2kN * d["Parameters"]["Lateral"]["Maximum Fy Load [N]"][0u].GetDouble();
-        m_TMeasyCoeff.fym_p2n = N2kN * d["Parameters"]["Lateral"]["Maximum Fy Load [N]"][1u].GetDouble();
-        m_TMeasyCoeff.fys_pn = N2kN * d["Parameters"]["Lateral"]["Sliding Fy Load [N]"][0u].GetDouble();
-        m_TMeasyCoeff.fys_p2n = N2kN * d["Parameters"]["Lateral"]["Sliding Fy Load [N]"][1u].GetDouble();
-        m_TMeasyCoeff.sym_pn = d["Parameters"]["Lateral"]["Slip sy at Maximum Fy"][0u].GetDouble();
-        m_TMeasyCoeff.sym_p2n = d["Parameters"]["Lateral"]["Slip sy at Maximum Fy"][1u].GetDouble();
-        m_TMeasyCoeff.sys_pn = d["Parameters"]["Lateral"]["Slip sy where sliding begins"][0u].GetDouble();
-        m_TMeasyCoeff.sys_p2n = d["Parameters"]["Lateral"]["Slip sy where sliding begins"][1u].GetDouble();
-
-        m_TMeasyCoeff.nto0_pn = d["Parameters"]["Aligning"]["Normalized Trail at Zero Slip sy"][0u].GetDouble();
-        m_TMeasyCoeff.nto0_p2n = d["Parameters"]["Aligning"]["Normalized Trail at Zero Slip sy"][1u].GetDouble();
-        m_TMeasyCoeff.synto0_pn = d["Parameters"]["Aligning"]["Slip sy where Trail Changes Sign"][0u].GetDouble();
-        m_TMeasyCoeff.synto0_p2n = d["Parameters"]["Aligning"]["Slip sy where Trail Changes Sign"][1u].GetDouble();
-        m_TMeasyCoeff.syntoE_pn = d["Parameters"]["Aligning"]["Slip sy where Trail Tends to Zero"][0u].GetDouble();
-        m_TMeasyCoeff.syntoE_p2n = d["Parameters"]["Aligning"]["Slip sy where Trail Tends to Zero"][1u].GetDouble();
+        m_par.nL0_pn = d["Parameters"]["Aligning"]["Normalized Trail at Zero Slip sy"][0u].GetDouble();
+        m_par.nL0_p2n = d["Parameters"]["Aligning"]["Normalized Trail at Zero Slip sy"][1u].GetDouble();
+        m_par.sq0_pn = d["Parameters"]["Aligning"]["Slip sy where Trail Changes Sign"][0u].GetDouble();
+        m_par.sq0_p2n = d["Parameters"]["Aligning"]["Slip sy where Trail Changes Sign"][1u].GetDouble();
+        m_par.sqe_pn = d["Parameters"]["Aligning"]["Slip sy where Trail Tends to Zero"][0u].GetDouble();
+        m_par.sqe_p2n = d["Parameters"]["Aligning"]["Slip sy where Trail Tends to Zero"][1u].GetDouble();
 
     } else if (d.HasMember("Load Index")) {
         // Information about tire inflation pressure might be present
@@ -173,9 +189,8 @@ void TMeasyTire::Create(const rapidjson::Document& d) {
 
     // Coefficient of friction and rolling resistance coefficients.
     // These must be set here to ensure they are not overwritten.
-    m_TMeasyCoeff.mu_0 = d["Coefficient of Friction"].GetDouble();
-    m_TMeasyCoeff.rrcoeff_pn = d["Rolling Resistance Coefficients"][0u].GetDouble();
-    m_TMeasyCoeff.rrcoeff_p2n = d["Rolling Resistance Coefficients"][1u].GetDouble();
+    m_par.mu_0 = d["Coefficient of Friction"].GetDouble();
+    m_rolling_resistance = d["Rolling Resistance Coefficient"].GetDouble();
 
     // Check how to visualize this tire.
     if (d.HasMember("Visualization")) {

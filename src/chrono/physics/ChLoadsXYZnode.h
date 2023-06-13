@@ -69,9 +69,10 @@ class ChLoaderXYZnode : public ChLoaderUVWatomic {
 class ChLoadXYZnode : public ChLoad<ChLoaderXYZnode> {
   public:
     ChLoadXYZnode(std::shared_ptr<ChNodeXYZ> mloadable) : ChLoad<ChLoaderXYZnode>(mloadable) {}
+    ChLoadXYZnode(std::shared_ptr<ChNodeXYZ> mloadable, const ChVector<>& force) : ChLoad<ChLoaderXYZnode>(mloadable) {
+        this->loader.SetForce(force);
+    }
 };
-
-
 
 ////////////////////////////////////////////////////////////////////////////
 // 
