@@ -524,7 +524,7 @@ class  ChArchiveInXML : public ChArchiveIn {
 						bool already_stored; size_t obj_ID;
 						PutPointer(new_ptr_void, already_stored, obj_ID);
 						// 3) Deserialize
-						bVal.value().CallArchiveIn(*this);
+						bVal.value().CallArchiveIn(*this, cls_name.c_str());
 					}
 					else {
 						throw(ChExceptionArchive("Archive cannot create object " + std::string(bVal.name()) + "\n"));
