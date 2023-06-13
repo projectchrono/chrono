@@ -26,14 +26,13 @@
 //  This allows creating an object from a string with its class name.
 //  Also, this sets a compiler-independent type name, which you can retrieve 
 //  by ChClassFactory::GetClassTagName(); in fact different compilers might
-//  have different name decorations in type_info.name, which cannot be 
+//  have different name decorations in type_index.name, which cannot be 
 //  used for serialization, for example.
 //
 
 #include <cstdio>
 #include <string>
 #include <functional>
-#include <typeinfo>
 #include <typeindex>
 #include <unordered_map>
 #include <memory>
@@ -83,8 +82,8 @@ public:
 
     virtual void archive_out(ChArchiveOut& marchive, void* ptr) = 0;
 
-    /// Get the type_info of the class
-    virtual std::type_index  get_type_index() = 0;
+    /// Get the type_index of the class
+    virtual std::type_index get_type_index() = 0;
 
     /// Get the name used for registering
     virtual std::string& get_tag_name() = 0;
@@ -163,6 +162,12 @@ class ChApi ChClassFactory {
         return global_factory->_IsClassRegistered(keyName);
     }
 
+    /// Tell if a class is registered, from std::type_index.
+    static bool IsClassRegistered(const std::type_index& mtypeid) {
+        ChClassFactory* global_factory = GetGlobalClassFactory();
+        return global_factory->_IsClassRegistered(mtypeid);
+    }
+
     /// Get class registration info from class name. Name is the mnemonic tag given at registration.
     /// Return nullptr if not registered.
     static ChClassRegistrationBase* GetClass(const std::string& keyName) {
@@ -174,11 +179,11 @@ class ChApi ChClassFactory {
             return nullptr;
     }
 
-    /// Tell the class name, from type_info. 
+    /// Tell the class name, from type_index. 
     /// This is a mnemonic tag name, given at registration, not the typeid.name().
-    static std::string& GetClassTagName(const std::type_info& mtype) {
+    static std::string& GetClassTagName(const std::type_index& mtypeid) {
         ChClassFactory* global_factory = GetGlobalClassFactory();
-        return global_factory->_GetClassTagName(mtype);
+        return global_factory->_GetClassTagName(mtypeid);
     }
 
     /// Create from class name, for registered classes. Name is the mnemonic tag given at registration.
@@ -248,12 +253,20 @@ private:
             return false;
     }
 
-    std::string& _GetClassTagName(const std::type_info& mtype) {
-        const auto &it = class_map_typeids.find(std::type_index(mtype));
+    bool _IsClassRegistered(const std::type_index& mtypeid) {
+        const auto &it = class_map_typeids.find(mtypeid);
+        if (it != class_map_typeids.end())
+            return true;
+        else 
+            return false;
+    }
+
+    std::string& _GetClassTagName(const std::type_index& mtypeid) {
+        const auto &it = class_map_typeids.find(mtypeid);
         if (it != class_map_typeids.end()) {
             return it->second->get_tag_name();
         }
-        throw ( ChException("ChClassFactory::GetClassTagName() cannot find the class with type_info::name: " + std::string(mtype.name()) + ". Please register it.\n") );
+        throw ( ChException("ChClassFactory::GetClassTagName() cannot find the class with type_index::name: " + std::string(mtypeid.name()) + ". Please register it.\n") );
     }
 
     size_t _GetNumberOfRegisteredClasses() {

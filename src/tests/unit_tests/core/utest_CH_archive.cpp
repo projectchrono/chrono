@@ -355,7 +355,7 @@ void create_test(std::function<void(ChSystemNSC&)> assembler_fun, ArchiveType ou
 }
 
 TEST(ChArchiveJSON, Pendulum){
-
+//int main(){
     double timestep = 0.01;
     int step_num = 2000;
 
@@ -380,10 +380,14 @@ TEST(ChArchiveJSON, Pendulum){
         moving_body->SetIdentifier(101);
         system.Add(moving_body);
 
-        ChStreamOutAsciiFile mfileo((outputfile + std::string(".json")).c_str());
+        ChStreamOutAsciiFile mfileo("ChArchiveJSON_Pendulum.json");
         ChArchiveOutJSON marchiveout(mfileo);
         marchiveout << CHNVP(system);
     
+        // Simulation loop
+        for (int step = 0; step<step_num; ++step) {
+            system.DoStepDynamics(timestep);
+        }
 
         state_before_archive = chrono_types::make_shared<ChState>(system.GetNcoords_x(), &system);
         auto state_delta_dummy = chrono_types::make_shared<ChStateDelta>(system.GetNcoords_w(), &system);
@@ -392,7 +396,7 @@ TEST(ChArchiveJSON, Pendulum){
 
     }
 
-    ChStreamInAsciiFile mfilei((outputfile + std::string(".json")).c_str());
+    ChStreamInAsciiFile mfilei("ChArchiveJSON_Pendulum.json");
     ChArchiveInJSON marchivein(mfilei);
 
     ChSystemNSC system;

@@ -17,7 +17,7 @@
 #include <sstream>
 #include <vector>
 #include <list>
-#include <typeinfo>
+#include <typeindex>
 #include <type_traits>
 #include <unordered_set>
 #include <memory>
@@ -438,7 +438,7 @@ public:
     virtual const char* GetTypeidName() =0;
 
         /// Get platform-dependent typeid of referenced data
-    virtual const std::type_info* GetTypeid() =0;
+    virtual const std::type_index GetTypeid() =0;
 
         /// Tell if it is a null pointer    
     virtual bool IsNull()=0;
@@ -544,23 +544,19 @@ public:
           if (!_ptr_to_val) {
               return nostring;
           }
-          try {
-              return ChClassFactory::GetClassTagName(typeid(*_ptr_to_val));
-          }catch (const ChException &) {
-              return nostring;
-          }
+          return ChClassFactory::IsClassRegistered(std::type_index(typeid(*_ptr_to_val))) ? ChClassFactory::GetClassTagName(std::type_index(typeid(*_ptr_to_val))) : nostring;
         }
 
       virtual int GetClassRegisteredVersion() {
           return chrono::class_factory::ChClassVersion<TClass>::version;
         }
 
-      virtual const std::type_info* GetTypeid() {
-          return &typeid(TClass);
+      virtual const std::type_index GetTypeid() {
+          return std::type_index(typeid(TClass));
       }
 
       virtual const char* GetTypeidName() {
-          return GetTypeid()->name();
+          return GetTypeid().name();
       }
 
       virtual bool IsNull()
@@ -1177,32 +1173,26 @@ class  ChArchiveOut : public ChArchive {
               return;
           if (this->cluster_class_versions) {
               if (this->class_versions.find(std::type_index(typeid(T))) == this->class_versions.end()) {
-                this->out_version(chrono::class_factory::ChClassVersion<T>::version, typeid(T));
+                this->out_version(chrono::class_factory::ChClassVersion<T>::version, std::type_index(typeid(T)));
                 this->class_versions[std::type_index(typeid(T))] = chrono::class_factory::ChClassVersion<T>::version;
               } 
           } 
           else {
-              this->out_version(chrono::class_factory::ChClassVersion<T>::version, typeid(T));
+              this->out_version(chrono::class_factory::ChClassVersion<T>::version, std::type_index(typeid(T)));
           }
       }
 
       
   protected:
 
-      virtual void out_version(int mver, const std::type_info& mtype) {
+      virtual void out_version(int mver, const std::type_index mtypeid) {
           if (use_versions) {
-              const char* class_name = "";
-                  try {
-                      class_name = ChClassFactory::GetClassTagName(mtype).c_str(); // registered
-                  } catch(const ChException &) {   
-                      class_name = mtype.name();
-                  }
-				  std::string class_name_polished = class_name;
-				  // to avoid troubles in xml archives
-				  std::replace(class_name_polished.begin(), class_name_polished.end(), '<', '[');
-				  std::replace(class_name_polished.begin(), class_name_polished.end(), '>', ']');
-				  std::replace(class_name_polished.begin(), class_name_polished.end(), ' ', '_');
-              this->out(ChNameValue<int>(("_version_" + class_name_polished).c_str(), mver));
+              std::string class_name = ChClassFactory::IsClassRegistered(mtypeid) ? ChClassFactory::GetClassTagName(mtypeid) : std::string(mtypeid.name());
+			  // to avoid troubles in xml archives
+			  std::replace(class_name.begin(), class_name.end(), '<', '[');
+			  std::replace(class_name.begin(), class_name.end(), '>', ']');
+			  std::replace(class_name.begin(), class_name.end(), ' ', '_');
+              this->out(ChNameValue<int>(("_version_" + class_name).c_str(), mver));
           }
       }
       
@@ -1493,20 +1483,14 @@ class  ChArchiveIn : public ChArchive {
       }
 
   protected:
-      virtual int in_version(const std::type_info& mtype) {
-            int mver;
-            const char* class_name = "";
-            try {
-                class_name = ChClassFactory::GetClassTagName(mtype).c_str(); // registered
-            } catch(const ChException &) {   
-                class_name = mtype.name();
-            }
-			std::string class_name_polished = class_name;
-			// to avoid troubles in xml archives
-			std::replace(class_name_polished.begin(), class_name_polished.end(), '<', '[');
-			std::replace(class_name_polished.begin(), class_name_polished.end(), '>', ']');
-			std::replace(class_name_polished.begin(), class_name_polished.end(), ' ', '_');
-          this->in(ChNameValue<int>(("_version_" + class_name_polished).c_str(), mver));
+      virtual int in_version(const std::type_index mtypeid) {
+          int mver;
+          std::string class_name = ChClassFactory::IsClassRegistered(mtypeid) ? ChClassFactory::GetClassTagName(mtypeid) : std::string(mtypeid.name());
+		  // to avoid troubles in xml archives
+		  std::replace(class_name.begin(), class_name.end(), '<', '[');
+		  std::replace(class_name.begin(), class_name.end(), '>', ']');
+		  std::replace(class_name.begin(), class_name.end(), ' ', '_');
+          this->in(ChNameValue<int>(("_version_" + class_name).c_str(), mver));
           return mver;
       }
 };
