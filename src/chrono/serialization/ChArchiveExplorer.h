@@ -14,6 +14,7 @@
 #define CHARCHIVEEXPLORER_H
 
 #include "chrono/serialization/ChArchive.h"
+#include <typeindex>
 
 namespace chrono {
 
@@ -56,13 +57,13 @@ class  ChArchiveExplorer : public ChArchiveOut {
       /// In case of multiple matching properties it returns at the first found property.
       template<class T, class P>
       bool FetchValue(P& val, const T& root, const std::string& property_name) {
-
+          // TODO: update this method to use getVoidPointer so to avoid PointerUpCast
           this->PrepareSearch(property_name);
           
           this->operator<<( CHNVP(root,"") ); // SCAN! 
 
           if (found) {
-              if (*this->results[0]->GetTypeid() == typeid(P)) { 
+              if (this->results[0]->GetTypeid() == std::type_index(typeid(P))) { 
                   val = *(static_cast<P*> (this->results[0]->GetRawPtr()));
                   return true;
               }
