@@ -73,7 +73,7 @@ public:
 
     /// Call the ArchiveINconstructor(ChArchiveIn&) function if available (deserializes constructor params and return new()),
     /// otherwise just call new().
-    virtual void* create(ChArchiveIn& marchive) = 0;
+    virtual void* archive_in_create(ChArchiveIn& marchive) = 0;
 
     /// Call the ArchiveIN(ChArchiveIn&) function if available, populating an already existing object
     virtual void archive_in(ChArchiveIn& marchive, void* ptr) = 0;
@@ -191,7 +191,7 @@ class ChApi ChClassFactory {
     template <class T>
     static void create(const std::string& keyName, T** ptr) {
         ChClassFactory* global_factory = GetGlobalClassFactory();
-        *ptr = reinterpret_cast<T*>(global_factory->_create(keyName));
+        *ptr = reinterpret_cast<T*>(ChCastingMap::Convert(keyName, std::type_index(typeid(T*)), global_factory->_create(keyName)));
     }
 
     /// Create from class name, for registered classes. Name is the mnemonic tag given at registration.
@@ -200,7 +200,7 @@ class ChApi ChClassFactory {
     template <class T>
     static void create(const std::string& keyName, ChArchiveIn& marchive, T** ptr) {
         ChClassFactory* global_factory = GetGlobalClassFactory();
-        *ptr = reinterpret_cast<T*>(global_factory->_archive_in_create(keyName, marchive));
+        *ptr = reinterpret_cast<T*>(ChCastingMap::Convert(keyName, std::type_index(typeid(T*)), global_factory->_archive_in_create(keyName, marchive)));
     }
 
     /// Populate an already existing object with its ArchiveIn
@@ -284,7 +284,7 @@ private:
     void* _archive_in_create(const std::string& keyName, ChArchiveIn& marchive) {
         const auto &it = class_map.find(keyName);
         if (it != class_map.end()) {
-            return it->second->create(marchive);
+            return it->second->archive_in_create(marchive);
         }
         throw ( ChException("ChClassFactory::create() cannot find the class with name " + keyName + ". Please register it.\n") );
     }
@@ -345,7 +345,6 @@ CH_CREATE_MEMBER_DETECTOR(ArchiveContainerName)
 /// Class for registration data of classes 
 /// whose objects can be created via a class factory.
 
-//TODO: DARIOM move up close to ChClassRegistrationBase
 template <class t>
 class ChClassRegistration : public ChClassRegistrationBase {
   protected:
@@ -387,7 +386,7 @@ class ChClassRegistration : public ChClassRegistrationBase {
         return _create();
     }
 
-    virtual void* create(ChArchiveIn& marchive) override {
+    virtual void* archive_in_create(ChArchiveIn& marchive) override {
         return _archive_in_create(marchive);
     }
 

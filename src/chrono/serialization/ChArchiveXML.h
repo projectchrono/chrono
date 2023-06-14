@@ -516,8 +516,6 @@ class  ChArchiveInXML : public ChArchiveIn {
 					// See ChArchiveJSON for detailed explanation
 					bVal.value().CallConstructor(*this, cls_name.c_str());
 
-                    bVal.value().SetRawPtr(ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), bVal.value().GetRawPtr()));
-
                     void* new_ptr_void = bVal.value().GetRawPtr();
 
 					if (new_ptr_void) {

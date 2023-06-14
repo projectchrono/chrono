@@ -219,8 +219,6 @@ class  ChArchiveInBinary : public ChArchiveIn {
             // see ChArchiveJSON for further details
             bVal.value().CallConstructor(*this, cls_name.c_str());
 
-            bVal.value().SetRawPtr(ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), bVal.value().GetRawPtr()));
-
             void* new_ptr_void = bVal.value().GetRawPtr();
 
             if (new_ptr_void) {

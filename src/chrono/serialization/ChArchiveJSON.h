@@ -468,31 +468,18 @@ class  ChArchiveInJSON : public ChArchiveIn {
 
             if (!is_reference) {
                 // 2) Dynamically create: call new(), or deserialize constructor params+call new()
-                // However, two cases might happen:
-                // a) the creation of a Derived object is triggered by a Derived*
-                // b) the creation of a Derived object is triggered by a Base*
-
-                // The object will *always* be created with the *true* type, given by 'cls_name', however:
-                // a) the cls_name will     coincide with the type of bVal._value.*pt2object
-                // b) the cls_name will NOT coincide with the type of bVal._value.*pt2object,
-                //    thus corrupting the value of the pointer itself
+                // The constructor to be called will be the one specified by cls_name (i.e. the true type of the object),
+                // not by the type of bVal.value() which is just the type of the pointer
                 bVal.value().CallConstructor(*this, cls_name.c_str());
             
-
-                // if b), at this point the bVal._value.*pt2object (of type Base*) is thinking to point to an object of a Base type;
-                // but that might not be true.
-                // The ChCastingMap::Convert will take the bVal.value().GetRawPtr() pointer, reinterpret it like a Derived* (i.e. "cls_name"*),
-                // and once it has been given the Derived* type, will be converted to a Base* (i.e. bVal.value().GetObjectPtrTypeindex()) in the proper way.
-                bVal.value().SetRawPtr(ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), bVal.value().GetRawPtr()));
-
-                // Calling bVal.value().GetRawPtr() will now correctly point to the true derived object in the proper way 
+                // Calling bVal.value().GetRawPtr() will retrieve the true address of the object
                 void* new_ptr_void = bVal.value().GetRawPtr();
 
                 if (new_ptr_void) {
                     bool already_stored; size_t obj_ID;
                     PutPointer(new_ptr_void, already_stored, obj_ID);
                     // 3) Deserialize
-                    // It is required to tell the "cls_name" since the bValue.value() might be of a different type compared to the true object,
+                    // It is required to specify the "cls_name" since the bValue.value() might be of a different type compared to the true object,
                     // while we need to call the ArchiveIN of the proper derived class.
                     bVal.value().CallArchiveIn(*this, cls_name.c_str());
                 } else {

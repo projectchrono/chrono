@@ -40,23 +40,23 @@ class ChArchiveOut;
 class ChArchiveIn;
 
 
-/// Macro to create a  ChDetect_ArchiveINconstructor that can be used in 
+/// Macro to create a ChDetect_ArchiveINconstructor that can be used in 
 /// templates, to select which specialized template to use
 //CH_CREATE_MEMBER_DETECTOR(ArchiveINconstructor) already defined in ChClassFactory
 
-/// Macro to create a  ChDetect_ArchiveOUTconstructor that can be used in 
+/// Macro to create a ChDetect_ArchiveOUTconstructor that can be used in 
 /// templates, to select which specialized template to use
 //CH_CREATE_MEMBER_DETECTOR(ArchiveOUTconstructor) already defined in ChClassFactory
 
-/// Macro to create a  ChDetect_ArchiveOUT that can be used in 
+/// Macro to create a ChDetect_ArchiveOUT that can be used in 
 /// templates, to select which specialized template to use
 //CH_CREATE_MEMBER_DETECTOR(ArchiveOUT) already defined in ChClassFactory
 
-/// Macro to create a  ChDetect_ArchiveIN that can be used in 
+/// Macro to create a ChDetect_ArchiveIN that can be used in 
 /// templates, to select which specialized template to use
 //CH_CREATE_MEMBER_DETECTOR(ArchiveIN) already defined in ChClassFactory
 
-/// Macro to create a  ChDetect_ArchiveContainerName that can be used in 
+/// Macro to create a ChDetect_ArchiveContainerName that can be used in 
 /// templates, to select which specialized template to use
 //CH_CREATE_MEMBER_DETECTOR(ArchiveContainerName) already defined in ChClassFactory
 
@@ -715,10 +715,10 @@ template <class Te>
 class ChEnumMapper : public ChEnumMapperBase {
   public:
     ChEnumMapper() : value_ptr(0) {
-        enummap = std::shared_ptr<std::vector<ChEnumNamePair<Te> > >(new std::vector<ChEnumNamePair<Te> >);
+        enummap = std::shared_ptr<std::vector<ChEnumNamePair<Te>>>(new std::vector<ChEnumNamePair<Te> >);
     }
 
-    ChEnumMapper(std::shared_ptr<std::vector<ChEnumNamePair<Te> > > mmap) : value_ptr(0), enummap(mmap) {}
+    ChEnumMapper(std::shared_ptr<std::vector<ChEnumNamePair<Te>>> mmap) : value_ptr(0), enummap(mmap) {}
 
     virtual ~ChEnumMapper() {}
 
@@ -744,7 +744,7 @@ class ChEnumMapper : public ChEnumMapperBase {
     };
 
     virtual std::string GetValueAsString() override {
-        for (auto i = 0; i < enummap->size(); ++i)
+        for (std::vector<chrono::ChEnumNamePair<Te>>::size_type i = 0; i < enummap->size(); ++i)
         {
             if(enummap->at(i).enumid == *value_ptr)
                 return enummap->at(i).name;
@@ -756,7 +756,7 @@ class ChEnumMapper : public ChEnumMapperBase {
     };
 
     virtual bool SetValueAsString(const std::string& mname) override {
-        for (auto i = 0; i < enummap->size(); ++i) {
+        for (std::vector<chrono::ChEnumNamePair<Te>>::size_type i = 0; i < enummap->size(); ++i) {
             if (enummap->at(i).name == mname) {
                 *value_ptr = enummap->at(i).enumid;
                 return true;
