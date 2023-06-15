@@ -744,7 +744,7 @@ class ChEnumMapper : public ChEnumMapperBase {
     };
 
     virtual std::string GetValueAsString() override {
-        for (std::vector<chrono::ChEnumNamePair<Te>>::size_type i = 0; i < enummap->size(); ++i)
+        for (size_t i = 0; i < enummap->size(); ++i)
         {
             if(enummap->at(i).enumid == *value_ptr)
                 return enummap->at(i).name;
@@ -756,7 +756,7 @@ class ChEnumMapper : public ChEnumMapperBase {
     };
 
     virtual bool SetValueAsString(const std::string& mname) override {
-        for (std::vector<chrono::ChEnumNamePair<Te>>::size_type i = 0; i < enummap->size(); ++i) {
+        for (size_t i = 0; i < enummap->size(); ++i) {
             if (enummap->at(i).name == mname) {
                 *value_ptr = enummap->at(i).enumid;
                 return true;

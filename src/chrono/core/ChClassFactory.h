@@ -112,6 +112,64 @@ public:
 };
 
 
+/// \class ChCastingMap
+/// \brief Stores type-casting functions between different type pairs, allowing to pick them at runtime from std::type_index or classname
+/// Converting pointers between different classes is usually possible by standard type casting, given that the source and destination class types are known *at compile time*.
+/// This class allows to typecast between class types that are known *only at runtime*.
+/// The requirement is that the typecasting function has to be prepared in advance (i.e. *at compile time*), when the types are still known.
+/// For each potential conversion an instance of ChCastingMap has to be declared, together with its typecasting function.
+/// This procedure is simplified by the macros #CH_UPCASTING(FROM, TO) and #CH_UPCASTING_SANITIZED(FROM, TO, UNIQUETAG)
+/// When the conversion should take place the following can be called:
+/// `ConversionMap::convert(std::string("source_classname"), std::string("destination_classname"), <void* to object>)`
+
+
+class ChApi ChCastingMap {
+private:
+    struct PairHash {
+    template <typename T1, typename T2>
+    std::size_t operator()(const std::pair<T1, T2>& p) const {
+        return std::hash<T1>()(p.first) ^ std::hash<T2>()(p.second);
+    }
+};
+
+struct EqualHash {
+    template <typename T1, typename T2>
+    bool operator()(const std::pair<T1, T2>& p, const std::pair<T1, T2>& q) const {
+        return (p.first.compare(q.first) == 0) && (p.second.compare(q.second) == 0);
+    }
+};
+
+    using conv_fun_pair_type = std::pair<std::function<void*(void*)>, std::function<std::shared_ptr<void>(std::shared_ptr<void>)>>;
+    using conv_key_pair_type = std::pair<std::string, std::string>;
+    using conv_map_type = std::unordered_map<conv_key_pair_type, conv_fun_pair_type, PairHash, EqualHash>;
+    using ti_map_type = std::unordered_map<std::type_index, std::string>;
+public:
+    ChCastingMap(const std::string& from, const std::type_index& from_ti, const std::string& to, const std::type_index& to_ti, std::function<void*(void*)> conv_ptr_fun, std::function<std::shared_ptr<void>(std::shared_ptr<void>)> conv_shptr_fun);
+
+    static void AddCastingFunction(const std::string& from, const std::type_index& from_ti, const std::string& to, const std::type_index& to_ti, std::function<void*(void*)> conv_ptr_fun, std::function<std::shared_ptr<void>(std::shared_ptr<void>)> conv_shptr_fun);
+
+    static void PrintCastingFunctions();
+
+    static void* Convert(const std::string& from, const std::string& to, void* vptr);
+    static void* Convert(const std::type_index& from_it, const std::type_index& to_it, void* vptr);
+    static void* Convert(const std::string& from, const std::type_index& to_it, void* vptr);
+    static void* Convert(const std::type_index& from_it, const std::string& to, void* vptr);
+
+    static std::shared_ptr<void> Convert(const std::string& from, const std::string& to, std::shared_ptr<void> vptr);
+    static std::shared_ptr<void> Convert(const std::type_index& from_it, const std::type_index& to_it, std::shared_ptr<void> vptr);
+    static std::shared_ptr<void> Convert(const std::string& from, const std::type_index& to_it, std::shared_ptr<void> vptr);
+    static std::shared_ptr<void> Convert(const std::type_index& from_it, const std::string& to, std::shared_ptr<void> vptr);
+
+    static std::string GetClassnameFromPtrTypeindex(std::type_index typeindex);
+
+private:
+    static void* _convert(const std::string& from, const std::string& to, void* vptr, bool& success);
+    static std::shared_ptr<void> _convert(const std::string& from, const std::string& to, std::shared_ptr<void> vptr, bool& success);
+
+    static conv_map_type& getCastingMap();
+    static ti_map_type& getTypeIndexMap();
+};
+
 
 /// A class factory. 
 /// It can create C++ objects from their string name.
@@ -563,63 +621,7 @@ namespace class_factory {                                                       
 }  
 
 
-/// \class ChCastingMap
-/// \brief Stores type-casting functions between different type pairs, allowing to pick them at runtime from std::type_index or classname
-/// Converting pointers between different classes is usually possible by standard type casting, given that the source and destination class types are known *at compile time*.
-/// This class allows to typecast between class types that are known *only at runtime*.
-/// The requirement is that the typecasting function has to be prepared in advance (i.e. *at compile time*), when the types are still known.
-/// For each potential conversion an instance of ChCastingMap has to be declared, together with its typecasting function.
-/// This procedure is simplified by the macros #CH_UPCASTING(FROM, TO) and #CH_UPCASTING_SANITIZED(FROM, TO, UNIQUETAG)
-/// When the conversion should take place the following can be called:
-/// `ConversionMap::convert(std::string("source_classname"), std::string("destination_classname"), <void* to object>)`
 
-
-class ChApi ChCastingMap {
-private:
-    struct PairHash {
-    template <typename T1, typename T2>
-    std::size_t operator()(const std::pair<T1, T2>& p) const {
-        return std::hash<T1>()(p.first) ^ std::hash<T2>()(p.second);
-    }
-};
-
-struct EqualHash {
-    template <typename T1, typename T2>
-    bool operator()(const std::pair<T1, T2>& p, const std::pair<T1, T2>& q) const {
-        return (p.first.compare(q.first) == 0) && (p.second.compare(q.second) == 0);
-    }
-};
-
-    using conv_fun_pair_type = std::pair<std::function<void*(void*)>, std::function<std::shared_ptr<void>(std::shared_ptr<void>)>>;
-    using conv_key_pair_type = std::pair<std::string, std::string>;
-    using conv_map_type = std::unordered_map<conv_key_pair_type, conv_fun_pair_type, PairHash, EqualHash>;
-    using ti_map_type = std::unordered_map<std::type_index, std::string>;
-public:
-    ChCastingMap(const std::string& from, const std::type_index& from_ti, const std::string& to, const std::type_index& to_ti, std::function<void*(void*)> conv_ptr_fun, std::function<std::shared_ptr<void>(std::shared_ptr<void>)> conv_shptr_fun);
-
-    static void AddCastingFunction(const std::string& from, const std::type_index& from_ti, const std::string& to, const std::type_index& to_ti, std::function<void*(void*)> conv_ptr_fun, std::function<std::shared_ptr<void>(std::shared_ptr<void>)> conv_shptr_fun);
-
-    static void PrintCastingFunctions();
-
-    static void* Convert(const std::string& from, const std::string& to, void* vptr);
-    static void* Convert(const std::type_index& from_it, const std::type_index& to_it, void* vptr);
-    static void* Convert(const std::string& from, const std::type_index& to_it, void* vptr);
-    static void* Convert(const std::type_index& from_it, const std::string& to, void* vptr);
-
-    static std::shared_ptr<void> Convert(const std::string& from, const std::string& to, std::shared_ptr<void> vptr);
-    static std::shared_ptr<void> Convert(const std::type_index& from_it, const std::type_index& to_it, std::shared_ptr<void> vptr);
-    static std::shared_ptr<void> Convert(const std::string& from, const std::type_index& to_it, std::shared_ptr<void> vptr);
-    static std::shared_ptr<void> Convert(const std::type_index& from_it, const std::string& to, std::shared_ptr<void> vptr);
-
-    static std::string GetClassnameFromPtrTypeindex(std::type_index typeindex);
-
-private:
-    static void* _convert(const std::string& from, const std::string& to, void* vptr, bool& success);
-    static std::shared_ptr<void> _convert(const std::string& from, const std::string& to, std::shared_ptr<void> vptr, bool& success);
-
-    static conv_map_type& getCastingMap();
-    static ti_map_type& getTypeIndexMap();
-};
 
 /// \brief Initialization of pointer up-casting functions
 /// A pointer of a parent-class type can safely points to an object of derived class;
