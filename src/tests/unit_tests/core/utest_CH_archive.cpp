@@ -443,7 +443,8 @@ TEST(ChArchiveBinary, Fourbar){
 
 TEST(ChArchiveJSON, Solver){
 std::string outputfile = std::string(::testing::UnitTest::GetInstance()->current_test_suite()->name()) + "_" + std::string(::testing::UnitTest::GetInstance()->current_test_info()->name());
-
+//int main(){
+//std::string outputfile = "ChArchiveJSON_Solver";
     {
         ChSolverPSOR* solverPSOR_ptr = new ChSolverPSOR();
         //ChIterativeSolverVI* solverISVI_ptr = solverPSOR_ptr;
@@ -635,19 +636,19 @@ TEST(ChArchiveJSON, ChVectorDynamicTest){
 
 }
 
-
 //
-//TEST(ChArchiveJSON, gears){
-////int main(){
 //
-//    std::string jsonfile;
+////TEST(ChArchiveJSON, gears){
+//int main(){
+//
+//    std::string jsonfile = "ChArchiveJSON_gears.json";
 //    // Create a material that will be shared among all collision shapes
 //    {
 //
 //        ChSystemNSC sys;
 //        
 //        //assemble_pendulum_visual(sys);
-//        jsonfile = assemble_gear_and_pulleys(sys);
+//        assemble_gear_and_pulleys(sys);
 //        
 //
 //        ChStreamOutAsciiFile mfileo(jsonfile.c_str());
