@@ -31,31 +31,30 @@ namespace fea {
 /// @{
 
 /// Base class for contact surfaces in FEA meshes.
-/// Use children classes like ChContactSurfaceNodeCloud or ChContactSurfaceMesh that implement practical
-/// functionalities.
+/// Actual collision geometry is provided by derived classes (ChContactSurfaceNodeCloud or ChContactSurfaceMesh).
 class ChApi ChContactSurface {
   public:
-    ChContactSurface(std::shared_ptr<ChMaterialSurface> material, ChMesh* mesh = nullptr);
+    ChContactSurface(std::shared_ptr<ChMaterialSurface> material, ChPhysicsItem* mesh = nullptr);
 
     virtual ~ChContactSurface() {}
 
-    /// Get owner mesh
-    ChMesh* GetMesh() { return m_mesh; }
+    /// Get the owner physics item (e.g., an FEA mesh).
+    ChPhysicsItem* GetPhysicsItem() { return m_physics_item; }
 
-    /// Set owner mesh
-    void SetMesh(ChMesh* mesh) { m_mesh = mesh; }
+    /// Set the owner physics item (e.g., an FEA mesh).
+    void SetPhysicsItem(ChPhysicsItem* physics_item) { m_physics_item = physics_item; }
 
     /// Get the surface contact material
     std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() { return m_material; }
 
-    /// Functions to interface this with ChPhysicsItem container
+    // Functions to interface this with ChPhysicsItem container
     virtual void SurfaceSyncCollisionModels() = 0;
     virtual void SurfaceAddCollisionModelsToSystem(ChSystem* msys) = 0;
     virtual void SurfaceRemoveCollisionModelsFromSystem(ChSystem* msys) = 0;
 
   protected:
     std::shared_ptr<ChMaterialSurface> m_material;  ///< contact material properties
-    ChMesh* m_mesh;                                 ///< associated mesh
+    ChPhysicsItem* m_physics_item;                  ///< associated physics item (e.g., an FEA mesh)
 };
 
 /// @} fea_contact

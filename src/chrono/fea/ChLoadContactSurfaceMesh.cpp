@@ -159,7 +159,7 @@ void ChLoadContactSurfaceMesh::InputSimpleForces(const std::vector<ChVector<>> v
     }
 
     // Force an update of the system containing the associated mesh
-    contactmesh->GetMesh()->GetSystem()->ForceUpdate();
+    contactmesh->GetPhysicsItem()->GetSystem()->ForceUpdate();
 }
 
 void ChLoadContactSurfaceMesh::SetContactMesh(std::shared_ptr<ChContactSurfaceMesh> mmesh) {

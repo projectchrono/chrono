@@ -15,8 +15,8 @@
 namespace chrono {
 namespace fea {
 
-ChContactSurface::ChContactSurface(std::shared_ptr<ChMaterialSurface> material, ChMesh* mesh)
-    : m_material(material), m_mesh(mesh) {}
+ChContactSurface::ChContactSurface(std::shared_ptr<ChMaterialSurface> material, ChPhysicsItem* physics_item)
+    : m_material(material), m_physics_item(physics_item) {}
 
 }  // end namespace fea
 }  // end namespace chrono
