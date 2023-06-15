@@ -4,7 +4,7 @@ Tire models {#wheeled_tire}
 
 \tableofcontents
 
-Chrono::Vehicle currently supports three different classes of tire models: rigid, semi-empirical, and finite element. 
+Chrono::Vehicle currently supports three different classes of tire models: rigid, handling, and finite element. 
 
 ## Rigid tire model  {#wheeled_tire_rigid}
 
@@ -15,7 +15,7 @@ See [ChRigidTire](@ref chrono::vehicle::ChRigidTire) and [RigidTire](@ref chrono
 The following is an example of a rigid tire with mesh geometry provided through a Wavefront OBJ file: 
 \include "../../data/vehicle/hmmwv/tire/HMMWV_RigidMeshTire.json"
 
-## Semi-empirical tire models {#vehicle_tire_empirical}
+## Handling (semi-empirical) tire models {#vehicle_tire_empirical}
 
 The second class of tires models offered are the semi-empirical ones commonly used for vehicle handling.  Chrono::Vehicle currently has implementations for Pacejka (89 and 2002), TMeasy, and Fiala tire models. Handling tire models are designed for flat road surfaces and they normally use single point contact or four point contact (TMeasy). For ride tests on ondulated roads or for obstacle crossing a special contact algorithm called "envelope" has been implemented. It is based on a paper of Sui & Hershey and can be used with all handling tire models that are included in Chrono. Validation tests with a technology demonstrator show good results compared to measured real vehicle test data with low numerical effort. If an even better accuracy is needed the user should think about considering FEA based tire models for non-handling tests.
 
@@ -27,7 +27,9 @@ See [ChPac89Tire](@ref chrono::vehicle::ChPac89Tire) and [Pac89Tire](@ref chrono
 
 ### Pacejka 2002 (Pac02) tire model  {#wheeled_tire_pac02}
 
-This model is an extension of Pacejka's earlier Magic Formula tire model with additional equations and coefficients.  Since a large number of vehicle dynamics maneuvers do not occur under steady-state slip conditions, the contact patch slip state equations are included to provide more accurate results under transient conditions (TBD!). Due to the lack of reference data sets the inflation pressure dependence terms and the large camber terms are actually not implemented.
+This model is an extension of Pacejka's earlier Magic Formula tire model with additional equations and coefficients.  Since a large number of vehicle dynamics maneuvers do not occur under steady-state slip conditions, the contact patch slip state equations are included to provide more accurate results under transient conditions. Due to the lack of reference data sets the inflation pressure dependence terms and the large camber terms are actually not implemented.
+
+This Chrono tire model can also be specified using Adams/Car-compatible TIR files.
 
 See [ChPac02Tire](@ref chrono::vehicle::ChPac02Tire) and [Pac02Tire](@ref chrono::vehicle::Pac02Tire).
 
@@ -53,6 +55,23 @@ A sample JSON file with a TMeasy tire specification is provided below:
 The vertical load curve embedded in the above JSON file is show below:
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/curves/FialaTire_vertical_load.png" width="500" />
+
+## Validation of handling tire models {#handling_tire_validation}
+
+We show below a validation study for 3 of the Chrono::Vehicle handling tire models done against experimental data provided for the FED-alpha vehicle by the Keweenah Research Center (KRC) in Michigan. 
+
+In this test, called `Steady State Cornering` (SSC), the vehicle drives along a circle beginning with the so-called "Ackermann-Speed". This value is around 3 m/s, and as such the slip values are pretty small and the vehicle follows the circle kinematically. The real test continues by increasing the vehicle speed in steps and holding it constant. These successive speed increase steps are repeated until the maximal possible lateral acceleration is reached, or the engine power is exhausted. The KRC test was conducted in left turn and right turns, to highlight any asymmetry of the vehicle (if present).
+
+The goal of the SSC test is to infer if a vehicle is safe for an average driver. The vehicle should understeer, meaning the driver must provide more and more turning angle of the steering wheel with increasing lateral acceleration to keep the vehicle on the circle and maintain vehicle stability. Vehicles which are "oversteering" tend to turn toward the circle origin and become unstable, because there is not enough lateral slip reserve at the rear wheels. This oversteering behavior should be avoided for standard vehicles used in public traffic by normal drivers, although professional rally drivers prefer the oversteerers. 
+
+For the FED-alpha, the SSC test has been defined as a quasi-steady-state run, where the speed changes continuously but very slowly, so that there are no noticeable dynamics effects. The simulation results are therefore shown as continuous lines. The signs of the data are chosen in a way that shows the right turn on the right side and the left turn on the left side.  Experimental KRC data is represented with dots.  The plots below show SSC simulation results for the Chrono Pac02, TMsimple, and TMeasy tire models superimposed over the KRC experimental data.
+
+<img src="http://www.projectchrono.org/assets/manual/vehicle/tire/Pac02_SSC.png" width="650" />
+
+<img src="http://www.projectchrono.org/assets/manual/vehicle/tire/TMsimple_SSC.png" width="650" />
+
+<img src="http://www.projectchrono.org/assets/manual/vehicle/tire/TMeasy_SSC.png" width="650" />
+
 
 ## FEA-based tire models  {#wheeled_tire_fea}
 
