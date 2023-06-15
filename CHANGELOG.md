@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [Serialization expanded and improved](#changed-serialization-expanded-and-improved)
   - [Rewrite of Pac02 handling tire model](#changed-rewrite-of-pac02-handling-tire-model)
   - [New URDF parser](#added-new-urdf-parser)
   - [Support for STL 3D file format](#added-support-for-stl-3d-file-format)
@@ -83,6 +84,32 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Changed] Serialization expanded and improved
+Serialization is now capable of storing and loading back entire `ChSystem`s consistently. Available classes include rigid bodies along with their visual assets (excluding ChVisualShapeFEA), links (both ChLinkMate and ChLinkLock families), shafts and system solvers. More classes will become available in the next future.
+
+An additional macro called `CH_UPCASTING` now allows to properly handle those classes with multiple inheritance: if a class, *or any of its parent classes*, shows multiple inheritance it is strongly recommended to specify its inheritance scheme with the new `CH_UPCASTING` macro:
+```
+CH_UPCASTING(Derived, Base1)
+CH_UPCASTING(Derived, Base2)
+```
+Assuming a more complex scheme, e.g.
+     C1->D1
+    /
+A->B
+    \
+     C2->D2->E
+```
+CH_UPCASTING(A, B)
+CH_UPCASTING(B, C1)
+CH_UPCASTING(C1, D1)
+CH_UPCASTING(B, C2)
+CH_UPCASTING(C2, D2)
+CH_UPCASTING(D2, E)
+```
+Further insights can be found in the documentation of the `CH_UPCASTING` macro. An additional `CH_UPCASTING_SANITIZED` macro is offered for those classes whose type contains characters not valid for a class name. For example `ChContactable_1vars<6>` is handled through the following:  
+`CH_UPCASTING_SANITIZED(ChBody, ChContactable_1vars<6>, ChBody_ChContactable_1vars_6)`
+ 
 
 ### [Changed] Rewrite of Pac02 handling tire model
 
