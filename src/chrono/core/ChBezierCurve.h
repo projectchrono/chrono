@@ -150,10 +150,10 @@ class ChApi ChBezierCurve {
     // SERIALIZATION
 
     /// Method to allow serialization of transient data to archives.
-    void ArchiveOUT(ChArchiveOut& marchive);
+    void ArchiveOut(ChArchiveOut& marchive);
 
     /// Method to allow de-serialization of transient data from archives.
-    void ArchiveIN(ChArchiveIn& marchive);
+    void ArchiveIn(ChArchiveIn& marchive);
 
   private:
     /// Utility function to solve for the outCV control points.

@@ -62,20 +62,20 @@ double ChSolverMatlab::Solve(ChSystemDescriptor& sysd) {
     return 0;
 }
 
-void ChSolverMatlab::ArchiveOUT(ChArchiveOut& marchive) {
+void ChSolverMatlab::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChSolverMatlab>();
     // serialize parent class
-    ChSolver::ArchiveOUT(marchive);
+    ChSolver::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(mengine);
 }
 
-void ChSolverMatlab::ArchiveIN(ChArchiveIn& marchive) {
+void ChSolverMatlab::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChSolverMatlab>();
     // deserialize parent class
-    ChSolver::ArchiveIN(marchive);
+    ChSolver::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(mengine);
 }

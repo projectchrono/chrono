@@ -132,11 +132,11 @@ void ChTriangleMeshShape::SetMesh(std::shared_ptr<geometry::ChTriangleMeshConnec
     }
 }
 
-void ChTriangleMeshShape::ArchiveOUT(ChArchiveOut& marchive) {
+void ChTriangleMeshShape::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChTriangleMeshShape>();
     // serialize parent class
-    ChVisualShape::ArchiveOUT(marchive);
+    ChVisualShape::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(trimesh);
     marchive << CHNVP(wireframe);
@@ -145,11 +145,11 @@ void ChTriangleMeshShape::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(scale);
 }
 
-void ChTriangleMeshShape::ArchiveIN(ChArchiveIn& marchive) {
+void ChTriangleMeshShape::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/marchive.VersionRead<ChTriangleMeshShape>();
     // deserialize parent class
-    ChVisualShape::ArchiveIN(marchive);
+    ChVisualShape::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(trimesh);
     marchive >> CHNVP(wireframe);

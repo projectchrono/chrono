@@ -104,23 +104,23 @@ void ChLinkMotorRotation::Update(double mytime, bool update_assets) {
     this->mrot_dtdt = aframe12.GetWacc_loc().z();
 }
 
-void ChLinkMotorRotation::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLinkMotorRotation::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLinkMotorRotation>();
 
     // serialize parent class
-    ChLinkMotor::ArchiveOUT(marchive);
+    ChLinkMotor::ArchiveOut(marchive);
 
     // serialize all member data:
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMotorRotation::ArchiveIN(ChArchiveIn& marchive) {
+void ChLinkMotorRotation::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChLinkMotorRotation>();
 
     // deserialize parent class
-    ChLinkMotor::ArchiveIN(marchive);
+    ChLinkMotor::ArchiveIn(marchive);
 
     // deserialize all member data:
 }

@@ -165,11 +165,11 @@ void ChFunctionRotation_spline::SetClosed(bool mc) {
 }
 
 
-void ChFunctionRotation_spline::ArchiveOUT(ChArchiveOut& marchive) {
+void ChFunctionRotation_spline::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChFunctionRotation_spline>();
 	// serialize parent class
-    ChFunctionRotation::ArchiveOUT(marchive);
+    ChFunctionRotation::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(rotations);
     ////marchive << CHNVP(knots);  //**TODO MATRIX DESERIALIZATION
@@ -179,11 +179,11 @@ void ChFunctionRotation_spline::ArchiveOUT(ChArchiveOut& marchive) {
 
 }
 
-void ChFunctionRotation_spline::ArchiveIN(ChArchiveIn& marchive) {
+void ChFunctionRotation_spline::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChFunctionRotation_spline>();
 	// deserialize parent class
-    ChFunctionRotation::ArchiveIN(marchive);
+    ChFunctionRotation::ArchiveIn(marchive);
     // deserialize all member data:
     marchive >> CHNVP(rotations);
     ////marchive >> CHNVP(knots);  //**TODO MATRIX DESERIALIZATION

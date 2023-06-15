@@ -22,7 +22,7 @@
 // -----------------------------------------------------------------------------
 
 namespace chrono {
-// A collective tag for storing version in ArchiveIN / ArchiveOUT:
+// A collective tag for storing version in ArchiveIn / ArchiveOut:
 class ChMatrix_dense_version_tag {};
 CH_CLASS_VERSION(ChMatrix_dense_version_tag, 1)
 }  // end namespace chrono
@@ -173,7 +173,7 @@ using ChSparseMatrix = Eigen::SparseMatrix<double, Eigen::RowMajor, int>;
 // -----------------------------------------------------------------------------
 
 /// Serialization of a dense matrix or vector into an ASCII stream (e.g. a file) in Matlab format.
-inline void StreamOUTdenseMatlabFormat(ChMatrixConstRef A, ChStreamOutAscii& stream) {
+inline void StreamOutDenseMatlabFormat(ChMatrixConstRef A, ChStreamOutAscii& stream) {
     for (int ii = 0; ii < A.rows(); ii++) {
         for (int jj = 0; jj < A.cols(); jj++) {
             stream << A(ii, jj);
@@ -222,7 +222,7 @@ inline void PasteMatrix(ChSparseMatrix& matrTo,
 
 /// Serialization of a sparse matrix to an ASCI stream (e.g., a file) in Matlab sparse matrix format.
 /// Note that row and column indices start at 1.
-inline void StreamOUTsparseMatlabFormat(ChSparseMatrix& matr, ChStreamOutAscii& mstream) {
+inline void StreamOutSparseMatlabFormat(ChSparseMatrix& matr, ChStreamOutAscii& mstream) {
     for (int ii = 0; ii < matr.rows(); ii++) {
         for (int jj = 0; jj < matr.cols(); jj++) {
             double elVal = matr.coeff(ii, jj);
@@ -234,7 +234,7 @@ inline void StreamOUTsparseMatlabFormat(ChSparseMatrix& matr, ChStreamOutAscii& 
 }
 
 /// Serialization of a sparse matrix to an ASCII stream (for debugging; only the top-left 8x8 corner is printed).
-inline void StreamOUT(ChSparseMatrix& matr, ChStreamOutAscii& stream) {
+inline void StreamOut(ChSparseMatrix& matr, ChStreamOutAscii& stream) {
     int mrows = static_cast<int>(matr.rows());
     int mcols = static_cast<int>(matr.cols());
     stream << "\n"

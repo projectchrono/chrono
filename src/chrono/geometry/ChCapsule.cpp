@@ -36,21 +36,21 @@ double ChCapsule::GetBoundingSphereRadius() const {
     return r + h / 2;
 }
 
-void ChCapsule::ArchiveOUT(ChArchiveOut& marchive) {
+void ChCapsule::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChCapsule>();
     // serialize parent class
-    ChGeometry::ArchiveOUT(marchive);
+    ChGeometry::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(r);
     marchive << CHNVP(h);
 }
 
-void ChCapsule::ArchiveIN(ChArchiveIn& marchive) {
+void ChCapsule::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/marchive.VersionRead<ChCapsule>();
     // deserialize parent class
-    ChGeometry::ArchiveIN(marchive);
+    ChGeometry::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(r);
     marchive >> CHNVP(h);

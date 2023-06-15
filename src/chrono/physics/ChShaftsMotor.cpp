@@ -19,24 +19,24 @@
 namespace chrono {
 
 
-void ChShaftsMotorBase::ArchiveOUT(ChArchiveOut& marchive) {
+void ChShaftsMotorBase::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChShaftsMotorBase>();
 
     // serialize parent class
-    ChShaftsCouple::ArchiveOUT(marchive);
+    ChShaftsCouple::ArchiveOut(marchive);
 
     // serialize all member data:
 
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaftsMotorBase::ArchiveIN(ChArchiveIn& marchive) {
+void ChShaftsMotorBase::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChShaftsMotorBase>();
 
     // deserialize parent class:
-    ChShaftsCouple::ArchiveIN(marchive);
+    ChShaftsCouple::ArchiveIn(marchive);
 
     // deserialize all member data:
 
@@ -242,12 +242,12 @@ class my_enum_mappers : public ChShaftsMotor {
     CH_ENUM_MAPPER_END(eCh_shaftsmotor_mode);
 };
 
-void ChShaftsMotor::ArchiveOUT(ChArchiveOut& marchive) {
+void ChShaftsMotor::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChShaftsMotor>();
 
     // serialize parent class
-    ChShaftsMotorBase::ArchiveOUT(marchive);
+    ChShaftsMotorBase::ArchiveOut(marchive);
 
     // serialize all member data:
     my_enum_mappers::eCh_shaftsmotor_mode_mapper mmapper;
@@ -258,12 +258,12 @@ void ChShaftsMotor::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaftsMotor::ArchiveIN(ChArchiveIn& marchive) {
+void ChShaftsMotor::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChShaftsMotor>();
 
     // deserialize parent class:
-    ChShaftsMotorBase::ArchiveIN(marchive);
+    ChShaftsMotorBase::ArchiveIn(marchive);
 
     // deserialize all member data:
     my_enum_mappers::eCh_shaftsmotor_mode_mapper mmapper;

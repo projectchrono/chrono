@@ -79,13 +79,13 @@ class ChApi ChMaterialSurfaceSMC : public ChMaterialSurface {
     float GetGt() const { return gt; }
 
     /// Method to allow serialization transient data into ASCII.
-    virtual void StreamOUT(ChStreamOutAscii& mstream) { mstream << "Material SMC \n"; }
+    virtual void StreamOut(ChStreamOutAscii& mstream) { mstream << "Material SMC \n"; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
     float young_modulus;      ///< Young's modulus (elastic modulus)
     float poisson_ratio;      ///< Poisson ratio

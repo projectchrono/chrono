@@ -554,7 +554,7 @@ ChVector<> ChBezierCurve::calcClosestPoint(const ChVector<>& loc, size_t i, doub
 
 // -----------------------------------------------------------------------------
 
-void ChBezierCurve::ArchiveOUT(ChArchiveOut& marchive)
+void ChBezierCurve::ArchiveOut(ChArchiveOut& marchive)
 {
     // version number
     marchive.VersionWrite<ChBezierCurve>();
@@ -569,7 +569,7 @@ void ChBezierCurve::ArchiveOUT(ChArchiveOut& marchive)
     marchive << CHNVP(m_paramTol);
 }
 
-void ChBezierCurve::ArchiveIN(ChArchiveIn& marchive)
+void ChBezierCurve::ArchiveIn(ChArchiveIn& marchive)
 {
     // version number
     /*int version =*/ marchive.VersionRead<ChBezierCurve>();

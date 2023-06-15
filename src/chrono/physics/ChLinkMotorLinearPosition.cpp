@@ -60,24 +60,24 @@ void ChLinkMotorLinearPosition::ConstraintsBiLoad_Ct(double factor) {
     }
 }
 
-void ChLinkMotorLinearPosition::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLinkMotorLinearPosition::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLinkMotorLinearPosition>();
 
     // serialize parent class
-    ChLinkMotorLinear::ArchiveOUT(marchive);
+    ChLinkMotorLinear::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(pos_offset);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMotorLinearPosition::ArchiveIN(ChArchiveIn& marchive) {
+void ChLinkMotorLinearPosition::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChLinkMotorLinearPosition>();
 
     // deserialize parent class
-    ChLinkMotorLinear::ArchiveIN(marchive);
+    ChLinkMotorLinear::ArchiveIn(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(pos_offset);

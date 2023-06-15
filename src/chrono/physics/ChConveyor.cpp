@@ -313,12 +313,12 @@ void ChConveyor::RemoveCollisionModelsFromSystem() {
 
 // FILE I/O
 
-void ChConveyor::ArchiveOUT(ChArchiveOut& marchive) {
+void ChConveyor::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChConveyor>();
 
     // serialize parent class
-    ChPhysicsItem::ArchiveOUT(marchive);
+    ChPhysicsItem::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(conveyor_speed);
@@ -328,12 +328,12 @@ void ChConveyor::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChConveyor::ArchiveIN(ChArchiveIn& marchive) {
+void ChConveyor::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChConveyor>();
 
     // deserialize parent class
-    ChPhysicsItem::ArchiveIN(marchive);
+    ChPhysicsItem::ArchiveIn(marchive);
 
     // stream in all member data:
     marchive >> CHNVP(conveyor_speed);

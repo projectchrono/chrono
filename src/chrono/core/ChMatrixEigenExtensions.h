@@ -63,7 +63,7 @@ friend const CwiseBinaryOp<internal::scalar_sum_op<Scalar>, const ConstantReturn
         mat.derived().Constant(mat.rows(), mat.cols(), val), mat.derived());
 }
 
-void ArchiveOUT(chrono::ChArchiveOut& marchive) {
+void ArchiveOut(chrono::ChArchiveOut& marchive) {
     // suggested: use versioning
 	marchive.VersionWrite<chrono::ChMatrix_dense_version_tag>(); // btw use the ChMatrixDynamic version tag also for all other templates.
 
@@ -105,7 +105,7 @@ void ArchiveOUT(chrono::ChArchiveOut& marchive) {
     }
 }
 
-void ArchiveIN(chrono::ChArchiveIn& marchive) {
+void ArchiveIn(chrono::ChArchiveIn& marchive) {
     // suggested: use versioning
     /*int version =*/ marchive.VersionRead<chrono::ChMatrix_dense_version_tag>(); // btw use the ChMatrixDynamic version tag also for all other templates.
 	

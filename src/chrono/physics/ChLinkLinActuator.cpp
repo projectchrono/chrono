@@ -89,12 +89,12 @@ void ChLinkLinActuator::UpdateTime(double mytime) {
     deltaC_dtdt.rot = QNULL;
 }
 
-void ChLinkLinActuator::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLinkLinActuator::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLinkLinActuator>();
 
     // serialize parent class
-    ChLinkLockLock::ArchiveOUT(marchive);
+    ChLinkLockLock::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(offset);
@@ -102,12 +102,12 @@ void ChLinkLinActuator::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkLinActuator::ArchiveIN(ChArchiveIn& marchive) {
+void ChLinkLinActuator::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/marchive.VersionRead<ChLinkLinActuator>();
 
     // deserialize parent class
-    ChLinkLockLock::ArchiveIN(marchive);
+    ChLinkLockLock::ArchiveIn(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(offset);

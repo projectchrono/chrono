@@ -31,19 +31,19 @@ ChGeometry::AABB ChTriangleMesh::GetBoundingBox(const ChMatrix33<>& rot) const {
     return bbox;
 }
 
-void ChTriangleMesh::ArchiveOUT(ChArchiveOut& marchive) {
+void ChTriangleMesh::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChTriangleMesh>();
     // serialize parent class
-    ChGeometry::ArchiveOUT(marchive);
+    ChGeometry::ArchiveOut(marchive);
     // serialize all member data:
 }
 
-void ChTriangleMesh::ArchiveIN(ChArchiveIn& marchive) {
+void ChTriangleMesh::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/marchive.VersionRead<ChTriangleMesh>();
     // deserialize parent class
-    ChGeometry::ArchiveIN(marchive);
+    ChGeometry::ArchiveIn(marchive);
     // stream in all member data:
 }
 

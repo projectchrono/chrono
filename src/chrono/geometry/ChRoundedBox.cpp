@@ -67,22 +67,22 @@ ChGeometry::AABB ChRoundedBox::GetBoundingBox(const ChMatrix33<>& rot) const {
     return bbox;
 }
 
-void ChRoundedBox::ArchiveOUT(ChArchiveOut& marchive) {
+void ChRoundedBox::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChRoundedBox>();
     // serialize parent class
-    ChVolume::ArchiveOUT(marchive);
+    ChVolume::ArchiveOut(marchive);
     // serialize all member data:
     ChVector<> lengths = GetLengths();
     marchive << CHNVP(lengths);
     marchive << CHNVP(srad);
 }
 
-void ChRoundedBox::ArchiveIN(ChArchiveIn& marchive) {
+void ChRoundedBox::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/marchive.VersionRead<ChRoundedBox>();
     // deserialize parent class
-    ChVolume::ArchiveIN(marchive);
+    ChVolume::ArchiveIn(marchive);
     // stream in all member data:
     ChVector<> lengths;
     marchive >> CHNVP(lengths);

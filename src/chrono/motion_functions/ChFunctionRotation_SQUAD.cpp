@@ -203,11 +203,11 @@ void ChFunctionRotation_SQUAD::SetClosed(bool mc) {
 }
 
 
-void ChFunctionRotation_SQUAD::ArchiveOUT(ChArchiveOut& marchive) {
+void ChFunctionRotation_SQUAD::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChFunctionRotation_SQUAD>();
 	// serialize parent class
-    ChFunctionRotation::ArchiveOUT(marchive);
+    ChFunctionRotation::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(rotations);
     ////marchive << CHNVP(knots);  //**TODO MATRIX DESERIALIZATION
@@ -217,11 +217,11 @@ void ChFunctionRotation_SQUAD::ArchiveOUT(ChArchiveOut& marchive) {
 
 }
 
-void ChFunctionRotation_SQUAD::ArchiveIN(ChArchiveIn& marchive) {
+void ChFunctionRotation_SQUAD::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChFunctionRotation_SQUAD>();
 	// deserialize parent class
-    ChFunctionRotation::ArchiveIN(marchive);
+    ChFunctionRotation::ArchiveIn(marchive);
     // deserialize all member data:
     marchive >> CHNVP(rotations);
     ////marchive >> CHNVP(knots);  //**TODO MATRIX DESERIALIZATION

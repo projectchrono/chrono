@@ -178,12 +178,12 @@ void ChLinkMotorLinearSpeed::VariablesQbSetSpeed(double step) {
     // Compute accel. by BDF (approximate by differentiation); not needed
 }
 
-void ChLinkMotorLinearSpeed::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLinkMotorLinearSpeed::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLinkMotorLinearSpeed>();
 
     // serialize parent class
-    ChLinkMotorLinear::ArchiveOUT(marchive);
+    ChLinkMotorLinear::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(pos_offset);
@@ -191,12 +191,12 @@ void ChLinkMotorLinearSpeed::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMotorLinearSpeed::ArchiveIN(ChArchiveIn& marchive) {
+void ChLinkMotorLinearSpeed::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChLinkMotorLinearSpeed>();
 
     // deserialize parent class
-    ChLinkMotorLinear::ArchiveIN(marchive);
+    ChLinkMotorLinear::ArchiveIn(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(pos_offset);

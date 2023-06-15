@@ -64,21 +64,21 @@ ChGeometry::AABB ChBox::GetBoundingBox(const ChMatrix33<>& rot) const {
     return bbox;
 }
 
-void ChBox::ArchiveOUT(ChArchiveOut& marchive) {
+void ChBox::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChBox>();
     // serialize parent class
-    ChVolume::ArchiveOUT(marchive);
+    ChVolume::ArchiveOut(marchive);
     // serialize all member data:
     ChVector<> lengths = GetLengths(); //TODO: DARIOM why this intermediate step?
     marchive << CHNVP(lengths);
 }
 
-void ChBox::ArchiveIN(ChArchiveIn& marchive) {
+void ChBox::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/marchive.VersionRead<ChBox>();
     // deserialize parent class
-    ChVolume::ArchiveIN(marchive);
+    ChVolume::ArchiveIn(marchive);
     // stream in all member data:
     ChVector<> lengths;
     marchive >> CHNVP(lengths);

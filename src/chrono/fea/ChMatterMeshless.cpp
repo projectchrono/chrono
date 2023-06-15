@@ -711,23 +711,23 @@ void ChMatterMeshless::UpdateParticleCollisionModels() {
 
 //////// FILE I/O
 
-void ChMatterMeshless::ArchiveOUT(ChArchiveOut& marchive) {
+void ChMatterMeshless::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChMatterMeshless>();
 
     // serialize the parent class data too
-    ChIndexedNodes::ArchiveOUT(marchive);
+    ChIndexedNodes::ArchiveOut(marchive);
 
     // serialize all member data:
     //***TODO
 }
 
-void ChMatterMeshless::ArchiveIN(ChArchiveIn& marchive) {
+void ChMatterMeshless::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChMatterMeshless>();
 
     // deserialize the parent class data too
-    ChIndexedNodes::ArchiveIN(marchive);
+    ChIndexedNodes::ArchiveIn(marchive);
 
     // deserialize all member data:
     //***TODO

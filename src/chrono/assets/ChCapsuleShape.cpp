@@ -33,21 +33,21 @@ ChCapsuleShape::ChCapsuleShape(const geometry::ChCapsule& cap) : gcapsule(cap) {
     SetMutable(false);
 }
 
-void ChCapsuleShape::ArchiveOUT(ChArchiveOut& marchive) {
+void ChCapsuleShape::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChCapsuleShape>();
     // serialize parent class
-    ChVisualShape::ArchiveOUT(marchive);
+    ChVisualShape::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(gcapsule);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChCapsuleShape::ArchiveIN(ChArchiveIn& marchive) {
+void ChCapsuleShape::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChCapsuleShape>();
     // deserialize parent class
-    ChVisualShape::ArchiveIN(marchive);
+    ChVisualShape::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(gcapsule);
 }

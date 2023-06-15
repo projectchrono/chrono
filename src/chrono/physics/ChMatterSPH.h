@@ -152,8 +152,8 @@ class ChApi ChNodeSPH : public ChNodeXYZ, public ChContactable_1vars<3> {
 
     // SERIALIZATION
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
-    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
     //
     // DATA
@@ -214,8 +214,8 @@ class ChApi ChContinuumSPH : public fea::ChContinuumMaterial {
 
     // SERIALIZATION
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
-    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& marchive) override;
 };
 
 /// Class for clusters of point nodes that can simulate a fluid or an elastic/plastic
@@ -395,8 +395,8 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
 
     // SERIALIZATION
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
-    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& marchive) override;
 };
 
 }  // end namespace chrono

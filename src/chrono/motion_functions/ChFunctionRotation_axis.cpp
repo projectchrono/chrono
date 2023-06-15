@@ -59,21 +59,21 @@ ChVector<> ChFunctionRotation_axis::Get_a_loc(double s) const {
 
 
 
-void ChFunctionRotation_axis::ArchiveOUT(ChArchiveOut& marchive) {
+void ChFunctionRotation_axis::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChFunctionRotation_axis>();
 	// serialize parent class
-    ChFunctionRotation::ArchiveOUT(marchive);
+    ChFunctionRotation::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(fangle);
 	marchive << CHNVP(axis);
 }
 
-void ChFunctionRotation_axis::ArchiveIN(ChArchiveIn& marchive) {
+void ChFunctionRotation_axis::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChFunctionRotation_axis>();
 	// deserialize parent class
-    ChFunctionRotation::ArchiveIN(marchive);
+    ChFunctionRotation::ArchiveIn(marchive);
     // deserialize all member data:
     marchive >> CHNVP(fangle);
 	marchive >> CHNVP(axis);

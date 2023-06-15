@@ -111,12 +111,12 @@ void ChPhysicsItem::Update(double mytime, bool update_assets) {
     }
 }
 
-void ChPhysicsItem::ArchiveOUT(ChArchiveOut& marchive) {
+void ChPhysicsItem::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChPhysicsItem>();
 
     // serialize parent class
-    ChObj::ArchiveOUT(marchive);
+    ChObj::ArchiveOut(marchive);
 
     // serialize all member data:
     // marchive << CHNVP(system); ***TODO***
@@ -128,12 +128,12 @@ void ChPhysicsItem::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChPhysicsItem::ArchiveIN(ChArchiveIn& marchive) {
+void ChPhysicsItem::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/marchive.VersionRead<ChPhysicsItem>();
 
     // deserialize parent class
-    ChObj::ArchiveIN(marchive);
+    ChObj::ArchiveIn(marchive);
 
     // stream in all member data:
     // marchive >> CHNVP(system); ***TODO***

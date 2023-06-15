@@ -458,12 +458,12 @@ void ChLinkMotorLinearDriveline::VariablesQbIncrementPosition(double step) {
 
 
 
-void ChLinkMotorLinearDriveline::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLinkMotorLinearDriveline::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLinkMotorLinearDriveline>();
 
     // serialize parent class
-    ChLinkMotorLinear::ArchiveOUT(marchive);
+    ChLinkMotorLinear::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(innershaft1lin);
@@ -476,12 +476,12 @@ void ChLinkMotorLinearDriveline::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMotorLinearDriveline::ArchiveIN(ChArchiveIn& marchive) {
+void ChLinkMotorLinearDriveline::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChLinkMotorLinearDriveline>();
 
     // deserialize parent class
-    ChLinkMotorLinear::ArchiveIN(marchive);
+    ChLinkMotorLinear::ArchiveIn(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(innershaft1lin);

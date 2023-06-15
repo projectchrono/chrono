@@ -59,11 +59,11 @@ ChQuaternion<> ChFunctionRotation_ABCfunctions::Get_q(double s) const {
 
 
 
-void ChFunctionRotation_ABCfunctions::ArchiveOUT(ChArchiveOut& marchive) {
+void ChFunctionRotation_ABCfunctions::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChFunctionRotation_ABCfunctions>();
 	// serialize parent class
-    ChFunctionRotation::ArchiveOUT(marchive);
+    ChFunctionRotation::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(angleA);
 	marchive << CHNVP(angleB);
@@ -71,11 +71,11 @@ void ChFunctionRotation_ABCfunctions::ArchiveOUT(ChArchiveOut& marchive) {
 	marchive << CHNVP((int)angleset); //***TODO: use CH_ENUM_MAPPER_BEGIN ... END to serialize enum with readable names
 }
 
-void ChFunctionRotation_ABCfunctions::ArchiveIN(ChArchiveIn& marchive) {
+void ChFunctionRotation_ABCfunctions::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChFunctionRotation_ABCfunctions>();
 	// deserialize parent class
-    ChFunctionRotation::ArchiveIN(marchive);
+    ChFunctionRotation::ArchiveIn(marchive);
     // deserialize all member data:
     marchive >> CHNVP(angleA);
 	marchive >> CHNVP(angleB);

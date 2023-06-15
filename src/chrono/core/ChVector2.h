@@ -181,10 +181,10 @@ class ChVector2 {
     ChVector2<Real> GetOrthogonalVector() const;
 
     /// Method to allow serialization of transient m_data to archives.
-    void ArchiveOUT(ChArchiveOut& marchive);
+    void ArchiveOut(ChArchiveOut& marchive);
 
     /// Method to allow de-serialization of transient m_data from archives.
-    void ArchiveIN(ChArchiveIn& marchive);
+    void ArchiveIn(ChArchiveIn& marchive);
 
   private:
     Real m_data[2];
@@ -630,7 +630,7 @@ inline ChVector2<Real> ChVector2<Real>::GetOrthogonalVector() const {
 // Streaming operations
 
 template <class Real>
-inline void ChVector2<Real>::ArchiveOUT(ChArchiveOut& marchive) {
+inline void ChVector2<Real>::ArchiveOut(ChArchiveOut& marchive) {
     // suggested: use versioning
     marchive.VersionWrite<ChVector2<double>>();  // must use specialized template (any)
     // stream out all member m_data
@@ -639,7 +639,7 @@ inline void ChVector2<Real>::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 template <class Real>
-inline void ChVector2<Real>::ArchiveIN(ChArchiveIn& marchive) {
+inline void ChVector2<Real>::ArchiveIn(ChArchiveIn& marchive) {
     // suggested: use versioning
     /*int version =*/ marchive.VersionRead<ChVector2<double>>();  // must use specialized template (any)
     // stream in all member m_data

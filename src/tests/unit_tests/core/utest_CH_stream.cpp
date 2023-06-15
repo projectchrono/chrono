@@ -44,9 +44,9 @@ class myEmployee {
     // MEMBER FUNCTIONS FOR BINARY I/O
     // NOTE!!!In order to allow serialization with Chrono approach,
     // at least implement these two functions, with the exact names
-    // StreamIN() and StreamOUT():
+    // StreamIn() and StreamOut():
 
-    virtual void StreamOUT(ChStreamOutBinary& mstream)  //##### for Chrono serialization
+    virtual void StreamOut(ChStreamOutBinary& mstream)  //##### for Chrono serialization
     {
         // suggested: use versioning
         mstream.VersionWrite(1);
@@ -54,7 +54,7 @@ class myEmployee {
         mstream << age;
         mstream << wages;
     }
-    virtual void StreamIN(ChStreamInBinary& mstream)  //##### for Chrono serialization
+    virtual void StreamIn(ChStreamInBinary& mstream)  //##### for Chrono serialization
     {
         // suggested: use versioning
         int version = mstream.VersionRead();
@@ -65,7 +65,7 @@ class myEmployee {
 
     // Optional: stream of data into readable ASCII format, if you later want
     // (ex) to output to console using chrono::GetLog() << my_object;
-    virtual void StreamOUT(ChStreamOutAscii& mstream) {
+    virtual void StreamOut(ChStreamOutAscii& mstream) {
         mstream << "Age is:  " << age << "\n";
         mstream << "Wage is: " << wages << "\n";
     }
@@ -86,23 +86,23 @@ class myEmployeeBoss : public myEmployee {
 
     // MEMBER FUNCTIONS FOR BINARY I/O
 
-    virtual void StreamOUT(ChStreamOutBinary& mstream)  //##### for Chrono serialization
+    virtual void StreamOut(ChStreamOutBinary& mstream)  //##### for Chrono serialization
     {
         // suggested: use versioning
         mstream.VersionWrite(2);
         // remember to serialize the parent class data too!!!
-        myEmployee::StreamOUT(mstream);
+        myEmployee::StreamOut(mstream);
 
         // stream out member data
         mstream << is_dumb;
         mstream << slave;  // this added only from version >1
     }
-    virtual void StreamIN(ChStreamInBinary& mstream)  //##### for Chrono serialization
+    virtual void StreamIn(ChStreamInBinary& mstream)  //##### for Chrono serialization
     {
         // suggested: use versioning
         int version = mstream.VersionRead();
         // remember to deserialize the parent class data too!!!
-        myEmployee::StreamIN(mstream);
+        myEmployee::StreamIn(mstream);
 
         // stream in member data
         mstream >> is_dumb;
@@ -111,8 +111,8 @@ class myEmployeeBoss : public myEmployee {
     }
 
     // Optional: stream of data into readable ASCII format:
-    virtual void StreamOUT(ChStreamOutAscii& mstream) {
-        myEmployee::StreamOUT(mstream);
+    virtual void StreamOut(ChStreamOutAscii& mstream) {
+        myEmployee::StreamOut(mstream);
 
         mstream << "is dumb? =" << is_dumb << "\n";
         mstream << "..the boss has a slave employee: \n" << slave << "\n";
@@ -186,8 +186,8 @@ int main(int argc, char* argv[]) {
     // operator can be streamed into ChStreamOutBinary streams like in the
     // following example.
     //  In order to use << operator also on objects from your classes,
-    // just remember to add the method StreamOUT() in your class!
-    //  Viceversa, you should implement also the StreamIN() method
+    // just remember to add the method StreamOut() in your class!
+    //  Viceversa, you should implement also the StreamIn() method
     // to allow using the >> operator to get the object back from a
     // ChStreamInBinary archive.
     try {

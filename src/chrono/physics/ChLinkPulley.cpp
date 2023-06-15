@@ -217,12 +217,12 @@ void ChLinkPulley::UpdateTime(double mytime) {
     deltaC_dtdt.rot = QNULL;
 }
 
-void ChLinkPulley::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLinkPulley::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLinkPulley>();
 
     // serialize parent class
-    ChLinkLockLock::ArchiveOUT(marchive);
+    ChLinkLockLock::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(tau);
@@ -237,12 +237,12 @@ void ChLinkPulley::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkPulley::ArchiveIN(ChArchiveIn& marchive) {
+void ChLinkPulley::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChLinkPulley>();
 
     // deserialize parent class
-    ChLinkLockLock::ArchiveIN(marchive);
+    ChLinkLockLock::ArchiveIn(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(tau);

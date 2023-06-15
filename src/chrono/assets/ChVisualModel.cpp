@@ -51,7 +51,7 @@ void ChVisualModel::Update(ChPhysicsItem* owner, const ChFrame<>& frame) {
 }
 
 
-void ChVisualModel::ArchiveOUT(ChArchiveOut& marchive) {
+void ChVisualModel::ArchiveOut(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChVisualModel>();
 
     marchive << CHNVP(m_shapes);
@@ -59,7 +59,7 @@ void ChVisualModel::ArchiveOUT(ChArchiveOut& marchive) {
 
 }
 
-void ChVisualModel::ArchiveIN(ChArchiveIn& marchive) {
+void ChVisualModel::ArchiveIn(ChArchiveIn& marchive) {
     /*int version =*/marchive.VersionRead<ChVisualModel>();
 
     marchive >> CHNVP(m_shapes);

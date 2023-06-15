@@ -232,12 +232,12 @@ void ChLinkRSDA::ConstraintsFbLoadForces(double factor) {
     Body2->Variables().Get_fb().segment(3, 3) += factor * Body2->TransformDirectionParentToLocal(torque).eigen();
 }
 
-void ChLinkRSDA::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLinkRSDA::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLinkRSDA>();
 
     // serialize parent class
-    ChLink::ArchiveOUT(marchive);
+    ChLink::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(m_csys1);
@@ -245,12 +245,12 @@ void ChLinkRSDA::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkRSDA::ArchiveIN(ChArchiveIn& marchive) {
+void ChLinkRSDA::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/marchive.VersionRead<ChLinkRSDA>();
 
     // deserialize parent class
-    ChLink::ArchiveIN(marchive);
+    ChLink::ArchiveIn(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(m_csys1);

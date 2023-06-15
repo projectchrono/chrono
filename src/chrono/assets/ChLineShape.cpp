@@ -23,22 +23,22 @@ ChLineShape::ChLineShape() : npoints(200), thickness(10.0) {
 
 ChLineShape::ChLineShape(std::shared_ptr<geometry::ChLine>& mline) : npoints(200), thickness(10.0), gline(mline) {}
 
-void ChLineShape::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLineShape::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLineShape>();
     // serialize parent class
-    ChVisualShape::ArchiveOUT(marchive);
+    ChVisualShape::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(gline);
     marchive << CHNVP(npoints);
     marchive << CHNVP(thickness);
 }
 
-void ChLineShape::ArchiveIN(ChArchiveIn& marchive) {
+void ChLineShape::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChLineShape>();
     // deserialize parent class
-    ChVisualShape::ArchiveIN(marchive);
+    ChVisualShape::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(gline);
     marchive >> CHNVP(npoints);

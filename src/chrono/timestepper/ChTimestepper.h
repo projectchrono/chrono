@@ -87,10 +87,10 @@ class ChApi ChTimestepper {
     void SetQcClamping(double cl) { Qc_clamping = cl; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& archive);
+    virtual void ArchiveOut(ChArchiveOut& archive);
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& archive);
+    virtual void ArchiveIn(ChArchiveIn& archive);
 
   protected:
     ChIntegrable* integrable;
@@ -229,7 +229,7 @@ class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
     int GetNumSolveCalls() const { return numsolves; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& archive) {
+    virtual void ArchiveOut(ChArchiveOut& archive) {
         // version number
         archive.VersionWrite(1);
         // serialize all member data:
@@ -240,7 +240,7 @@ class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
     }
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& archive) {
+    virtual void ArchiveIn(ChArchiveIn& archive) {
         // version number
         /*int version =*/ archive.VersionRead();
         // stream in all member data:
@@ -378,10 +378,10 @@ class ChApi ChTimestepperEulerImplicit : public ChTimestepperIIorder, public ChI
                          ) override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& archive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& archive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive) override;
 };
 
 /// Performs a step of Euler implicit for II order systems using the Anitescu/Stewart/Trinkle
@@ -460,10 +460,10 @@ class ChApi ChTimestepperTrapezoidal : public ChTimestepperIIorder, public ChImp
                          ) override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& archive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& archive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive) override;
 };
 
 /// Performs a step of trapezoidal implicit linearized for II order systems.
@@ -489,10 +489,10 @@ class ChApi ChTimestepperTrapezoidalLinearized : public ChTimestepperIIorder, pu
                          ) override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& archive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& archive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive) override;
 };
 
 /// Performs a step of trapezoidal implicit linearized for II order systems.
@@ -515,10 +515,10 @@ class ChApi ChTimestepperTrapezoidalLinearized2 : public ChTimestepperIIorder, p
     ) override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& archive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& archive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive) override;
 };
 
 /// Performs a step of Newmark constrained implicit for II order DAE systems.
@@ -572,10 +572,10 @@ class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChImplici
                          ) override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& archive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& archive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive) override;
 };
 
 /// @} chrono_timestepper

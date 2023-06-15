@@ -445,12 +445,12 @@ void ChLinkRevolute::ConstraintsFetch_react(double factor) {
     react_torque = -(m_frame2.GetA().transpose() * T2);
 }
 
-void ChLinkRevolute::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLinkRevolute::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLinkRevolute>();
 
     // serialize parent class
-    ChLink::ArchiveOUT(marchive);
+    ChLink::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(m_frame1);
@@ -458,12 +458,12 @@ void ChLinkRevolute::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkRevolute::ArchiveIN(ChArchiveIn& marchive) {
+void ChLinkRevolute::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChLinkRevolute>();
 
     // deserialize parent class
-    ChLink::ArchiveIN(marchive);
+    ChLink::ArchiveIn(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(m_frame1);

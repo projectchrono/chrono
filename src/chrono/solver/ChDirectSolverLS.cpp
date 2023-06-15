@@ -234,12 +234,12 @@ void ChDirectSolverLS::WriteVector(const std::string& filename, const ChVectorDy
 
 // ---------------------------------------------------------------------------
 
-void ChDirectSolverLS::ArchiveOUT(ChArchiveOut& marchive) {
+void ChDirectSolverLS::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChDirectSolverLS>();
 
     // serialize parent class
-    ChSolver::ArchiveOUT(marchive);
+    ChSolver::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(m_lock);
@@ -248,12 +248,12 @@ void ChDirectSolverLS::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(m_use_rhs_sparsity);
 }
 
-void ChDirectSolverLS::ArchiveIN(ChArchiveIn& marchive) {
+void ChDirectSolverLS::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/marchive.VersionRead<ChDirectSolverLS>();
 
     // deserialize parent class
-    ChSolver::ArchiveIN(marchive);
+    ChSolver::ArchiveIn(marchive);
 
     // stream in all member data:
     marchive >> CHNVP(m_lock);

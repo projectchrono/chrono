@@ -82,22 +82,22 @@ ChVector<> ChFunctionPosition_line::Get_p_dsds(double s) const {
 
 
 
-void ChFunctionPosition_line::ArchiveOUT(ChArchiveOut& marchive) {
+void ChFunctionPosition_line::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChFunctionPosition>();
 	// serialize parent class
-    ChFunctionPosition::ArchiveOUT(marchive);
+    ChFunctionPosition::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(trajectory_line);
 	marchive << CHNVP(space_fx);
 
 }
 
-void ChFunctionPosition_line::ArchiveIN(ChArchiveIn& marchive) {
+void ChFunctionPosition_line::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChFunctionPosition_line>();
 	// deserialize parent class
-    ChFunctionPosition::ArchiveIN(marchive);
+    ChFunctionPosition::ArchiveIn(marchive);
     // deserialize all member data:
     marchive >> CHNVP(trajectory_line);
 	marchive >> CHNVP(space_fx);

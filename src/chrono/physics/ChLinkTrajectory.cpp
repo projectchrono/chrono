@@ -101,12 +101,12 @@ void ChLinkTrajectory::Initialize(std::shared_ptr<ChBody> mbody1,
     this->Set_trajectory_line(mline);
 }
 
-void ChLinkTrajectory::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLinkTrajectory::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLinkTrajectory>();
 
     // serialize parent class
-    ChLinkLockLock::ArchiveOUT(marchive);
+    ChLinkLockLock::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(space_fx);
@@ -114,12 +114,12 @@ void ChLinkTrajectory::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(modulo_s);
 }
 
-void ChLinkTrajectory::ArchiveIN(ChArchiveIn& marchive) {
+void ChLinkTrajectory::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChLinkTrajectory>();
 
     // deserialize parent class
-    ChLinkLockLock::ArchiveIN(marchive);
+    ChLinkLockLock::ArchiveIn(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(space_fx);

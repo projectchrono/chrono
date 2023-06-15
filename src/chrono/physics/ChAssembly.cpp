@@ -1481,12 +1481,12 @@ void ChAssembly::ShowHierarchy(ChStreamOutAscii& m_file, int level) const {
     m_file << "\n\n";
 }
 
-void ChAssembly::ArchiveOUT(ChArchiveOut& marchive) {
+void ChAssembly::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChAssembly>();
 
     // serialize parent class
-    ChPhysicsItem::ArchiveOUT(marchive);
+    ChPhysicsItem::ArchiveOut(marchive);
 
     // serialize all member data:
 
@@ -1497,12 +1497,12 @@ void ChAssembly::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(otherphysicslist, "other_physics_items");
 }
 
-void ChAssembly::ArchiveIN(ChArchiveIn& marchive) {
+void ChAssembly::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChAssembly>();
 
     // deserialize parent class
-    ChPhysicsItem::ArchiveIN(marchive);
+    ChPhysicsItem::ArchiveIn(marchive);
 
     // stream in all member data:
     std::vector<std::shared_ptr<ChBody>> tempbodies;

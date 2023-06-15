@@ -119,8 +119,8 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase, public ChLoadableUVW {
     virtual double GetDensity() override { return 1; }
 
     // SERIALIZATION
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
-    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
     // DATA
     ChVector<> pos;

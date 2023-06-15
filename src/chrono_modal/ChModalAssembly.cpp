@@ -267,16 +267,16 @@ void ChModalAssembly::SwitchModalReductionON(ChSparseMatrix& full_M, ChSparseMat
     if (true) {
         ChStreamOutAsciiFile fileP("dump_modal_Psi.dat");
         fileP.SetNumFormat("%.12g");
-        StreamOUTdenseMatlabFormat(Psi, fileP);
+        StreamOutDenseMatlabFormat(Psi, fileP);
         ChStreamOutAsciiFile fileM("dump_modal_M.dat");
         fileM.SetNumFormat("%.12g");
-        StreamOUTdenseMatlabFormat(this->modal_M, fileM);
+        StreamOutDenseMatlabFormat(this->modal_M, fileM);
         ChStreamOutAsciiFile fileK("dump_modal_K.dat");
         fileK.SetNumFormat("%.12g");
-        StreamOUTdenseMatlabFormat(this->modal_K, fileK);
+        StreamOutDenseMatlabFormat(this->modal_K, fileK);
         ChStreamOutAsciiFile fileR("dump_modal_R.dat");
         fileR.SetNumFormat("%.12g");
-        StreamOUTdenseMatlabFormat(this->modal_R, fileR);
+        StreamOutDenseMatlabFormat(this->modal_R, fileR);
     }
 }
 
@@ -861,7 +861,7 @@ void ChModalAssembly::DumpSubassemblyMatrices(bool save_M, bool save_K, bool sav
         sprintf(filename, "%s%s", path, "_M.dat");
         ChStreamOutAsciiFile file_M(filename);
         file_M.SetNumFormat(numformat);
-        StreamOUTsparseMatlabFormat(mM, file_M);
+        StreamOutSparseMatlabFormat(mM, file_M);
     }
     if (save_K) {
         ChSparseMatrix mK;
@@ -869,7 +869,7 @@ void ChModalAssembly::DumpSubassemblyMatrices(bool save_M, bool save_K, bool sav
         sprintf(filename, "%s%s", path, "_K.dat");
         ChStreamOutAsciiFile file_K(filename);
         file_K.SetNumFormat(numformat);
-        StreamOUTsparseMatlabFormat(mK, file_K);
+        StreamOutSparseMatlabFormat(mK, file_K);
     }
     if (save_R) {
         ChSparseMatrix mR;
@@ -877,7 +877,7 @@ void ChModalAssembly::DumpSubassemblyMatrices(bool save_M, bool save_K, bool sav
         sprintf(filename, "%s%s", path, "_R.dat");
         ChStreamOutAsciiFile file_R(filename);
         file_R.SetNumFormat(numformat);
-        StreamOUTsparseMatlabFormat(mR, file_R);
+        StreamOutSparseMatlabFormat(mR, file_R);
     }
     if (save_Cq) {
         ChSparseMatrix mCq;
@@ -885,7 +885,7 @@ void ChModalAssembly::DumpSubassemblyMatrices(bool save_M, bool save_K, bool sav
         sprintf(filename, "%s%s", path, "_Cq.dat");
         ChStreamOutAsciiFile file_Cq(filename);
         file_Cq.SetNumFormat(numformat);
-        StreamOUTsparseMatlabFormat(mCq, file_Cq);
+        StreamOutSparseMatlabFormat(mCq, file_Cq);
     }
 }
 
@@ -1829,12 +1829,12 @@ void ChModalAssembly::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfa
 //  STREAMING - FILE HANDLING
 
 
-void ChModalAssembly::ArchiveOUT(ChArchiveOut& marchive) {
+void ChModalAssembly::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChModalAssembly>();
 
     // serialize parent class
-    ChAssembly::ArchiveOUT(marchive);
+    ChAssembly::ArchiveOut(marchive);
 
     // serialize all member data:
 
@@ -1851,12 +1851,12 @@ void ChModalAssembly::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(internal_nodes_update, "internal_nodes_update");
 }
 
-void ChModalAssembly::ArchiveIN(ChArchiveIn& marchive) {
+void ChModalAssembly::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChModalAssembly>();
 
     // deserialize parent class
-    ChAssembly::ArchiveIN(marchive);
+    ChAssembly::ArchiveIn(marchive);
 
     // stream in all member data:
     

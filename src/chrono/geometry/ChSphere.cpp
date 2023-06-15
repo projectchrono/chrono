@@ -34,20 +34,20 @@ double ChSphere::GetBoundingSphereRadius() const {
     return rad;
 }
 
-void ChSphere::ArchiveOUT(ChArchiveOut& marchive) {
+void ChSphere::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChSphere>();
     // serialize parent class
-    ChGeometry::ArchiveOUT(marchive);
+    ChGeometry::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(rad);
 }
 
-void ChSphere::ArchiveIN(ChArchiveIn& marchive) {
+void ChSphere::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/marchive.VersionRead();
     // deserialize parent class
-    ChGeometry::ArchiveIN(marchive);
+    ChGeometry::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(rad);
 }

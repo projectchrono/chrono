@@ -32,20 +32,20 @@ ChSphereShape::ChSphereShape(const geometry::ChSphere& sphere) : gsphere(sphere)
     SetMutable(false);
 }
 
-void ChSphereShape::ArchiveOUT(ChArchiveOut& marchive) {
+void ChSphereShape::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChSphereShape>();
     // serialize parent class
-    ChVisualShape::ArchiveOUT(marchive);
+    ChVisualShape::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(gsphere);
 }
 
-void ChSphereShape::ArchiveIN(ChArchiveIn& marchive) {
+void ChSphereShape::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChSphereShape>();
     // deserialize parent class
-    ChVisualShape::ArchiveIN(marchive);
+    ChVisualShape::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(gsphere);
 }

@@ -31,21 +31,21 @@ ChGeometry::AABB ChCone::GetBoundingBox(const ChMatrix33<>& rot) const {
     return AABB(ChVector<>(-r, -r, 0), ChVector<>(+r, +r, h));
 }
 
-void ChCone::ArchiveOUT(ChArchiveOut& marchive) {
+void ChCone::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChCone>();
     // serialize parent class
-    ChGeometry::ArchiveOUT(marchive);
+    ChGeometry::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(r);
     marchive << CHNVP(h);
 }
 
-void ChCone::ArchiveIN(ChArchiveIn& marchive) {
+void ChCone::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChCone>();
     // deserialize parent class
-    ChGeometry::ArchiveIN(marchive);
+    ChGeometry::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(r);
     marchive >> CHNVP(h);

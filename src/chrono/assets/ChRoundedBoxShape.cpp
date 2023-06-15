@@ -39,20 +39,20 @@ ChRoundedBoxShape::ChRoundedBoxShape(const geometry::ChRoundedBox& box) : gbox(b
     SetMutable(false);
 }
 
-void ChRoundedBoxShape::ArchiveOUT(ChArchiveOut& marchive) {
+void ChRoundedBoxShape::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChRoundedBoxShape>();
     // serialize parent class
-    ChVisualShape::ArchiveOUT(marchive);
+    ChVisualShape::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(gbox);
 }
 
-void ChRoundedBoxShape::ArchiveIN(ChArchiveIn& marchive) {
+void ChRoundedBoxShape::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChRoundedBoxShape>();
     // deserialize parent class
-    ChVisualShape::ArchiveIN(marchive);
+    ChVisualShape::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(gbox);
 }

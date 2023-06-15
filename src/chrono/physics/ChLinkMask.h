@@ -95,10 +95,10 @@ class ChApi ChLinkMask {
     int SetAllBroken(bool mdis);
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOut(ChArchiveOut& marchive);
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIn(ChArchiveIn& marchive);
 };
 
 CH_CLASS_VERSION(ChLinkMask, 0)
@@ -131,10 +131,10 @@ class ChApi ChLinkMaskLF : public ChLinkMask {
     ChConstraintTwoBodies& Constr_E3() { return *constraints[6]; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& marchive) override;
 };
 
 CH_CLASS_VERSION(ChLinkMaskLF, 0)

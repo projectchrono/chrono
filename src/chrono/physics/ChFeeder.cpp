@@ -152,12 +152,12 @@ void ChFeeder::Update(double mytime, bool update_assets) {
 
 // FILE I/O
 
-void ChFeeder::ArchiveOUT(ChArchiveOut& marchive) {
+void ChFeeder::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChFeeder>();
 
     // serialize parent class
-    ChPhysicsItem::ArchiveOUT(marchive);
+    ChPhysicsItem::ArchiveOut(marchive);
 
     // serialize all member data:
     //marchive << CHNVP(feeder);
@@ -171,12 +171,12 @@ void ChFeeder::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChFeeder::ArchiveIN(ChArchiveIn& marchive) {
+void ChFeeder::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChFeeder>();
 
     // deserialize parent class
-    ChPhysicsItem::ArchiveIN(marchive);
+    ChPhysicsItem::ArchiveIn(marchive);
 
     // stream in all member data:
     //marchive >> CHNVP(feeder);

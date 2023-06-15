@@ -105,7 +105,7 @@ void ChLinkLimit::SetMinCushion(double val) {
 }
 
 // file parsing / dumping
-void ChLinkLimit::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLinkLimit::ArchiveOut(ChArchiveOut& marchive) {
     // class version number
     marchive.VersionWrite<ChLinkLimit>();
 
@@ -131,7 +131,7 @@ void ChLinkLimit::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(m_polarMax_funct);
 }
 
-void ChLinkLimit::ArchiveIN(ChArchiveIn& marchive) {
+void ChLinkLimit::ArchiveIn(ChArchiveIn& marchive) {
     // class version number
     /*int version =*/ marchive.VersionRead<ChLinkLimit>();
 

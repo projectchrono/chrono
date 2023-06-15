@@ -137,10 +137,10 @@ class ChApi ChLinkGear : public ChLinkLock {
     ChVector<> Get_shaft_pos2() const;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& marchive) override;
 };
 
 CH_CLASS_VERSION(ChLinkGear,0)

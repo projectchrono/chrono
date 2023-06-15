@@ -118,12 +118,12 @@ ChPhysicsItem* ChNodeSPH::GetPhysicsItem() {
     return container;
 }
 
-void ChNodeSPH::ArchiveOUT(ChArchiveOut& marchive) {
+void ChNodeSPH::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChNodeSPH>();
 
     // serialize parent class
-    ChNodeXYZ::ArchiveOUT(marchive);
+    ChNodeXYZ::ArchiveOut(marchive);
 
     // serialize all member data:
     // marchive << CHNVP(container);
@@ -137,12 +137,12 @@ void ChNodeSPH::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 // Method to allow de serialization of transient data from archives.
-void ChNodeSPH::ArchiveIN(ChArchiveIn& marchive) {
+void ChNodeSPH::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChNodeSPH>();
 
     // deserialize parent class
-    ChNodeXYZ::ArchiveIN(marchive);
+    ChNodeXYZ::ArchiveIn(marchive);
 
     // deserialize all member data:
     // marchive >> CHNVP(container);
@@ -168,12 +168,12 @@ ChContinuumSPH::ChContinuumSPH(const ChContinuumSPH& other) : fea::ChContinuumMa
     pressure_stiffness = other.pressure_stiffness;
 }
 
-void ChContinuumSPH::ArchiveOUT(ChArchiveOut& marchive) {
+void ChContinuumSPH::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChContinuumSPH>();
 
     // serialize parent class
-    ChContinuumMaterial::ArchiveOUT(marchive);
+    ChContinuumMaterial::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(viscosity);
@@ -182,12 +182,12 @@ void ChContinuumSPH::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 // Method to allow de serialization of transient data from archives.
-void ChContinuumSPH::ArchiveIN(ChArchiveIn& marchive) {
+void ChContinuumSPH::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChContinuumSPH>();
 
     // deserialize parent class
-    ChContinuumMaterial::ArchiveIN(marchive);
+    ChContinuumMaterial::ArchiveIn(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(viscosity);
@@ -650,12 +650,12 @@ void ChMatterSPH::UpdateParticleCollisionModels() {
 
 // FILE I/O
 
-void ChMatterSPH::ArchiveOUT(ChArchiveOut& marchive) {
+void ChMatterSPH::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChMatterSPH>();
 
     // serialize parent class
-    ChIndexedNodes::ArchiveOUT(marchive);
+    ChIndexedNodes::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(material);
@@ -665,12 +665,12 @@ void ChMatterSPH::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChMatterSPH::ArchiveIN(ChArchiveIn& marchive) {
+void ChMatterSPH::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChMatterSPH>();
 
     // deserialize parent class
-    ChIndexedNodes::ArchiveIN(marchive);
+    ChIndexedNodes::ArchiveIn(marchive);
 
     // deserialize all member data:
     RemoveCollisionModelsFromSystem();

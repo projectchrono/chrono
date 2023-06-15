@@ -27,20 +27,20 @@ namespace geometry {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 // CH_FACTORY_REGISTER(ChVolume)  // NO! abstract class!
 
-void ChVolume::ArchiveOUT(ChArchiveOut& marchive) {
+void ChVolume::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChVolume>();
     // serialize parent class
-    ChGeometry::ArchiveOUT(marchive);
+    ChGeometry::ArchiveOut(marchive);
     // serialize all member data:
     // marchive << CHNVP(closed);
 }
 
-void ChVolume::ArchiveIN(ChArchiveIn& marchive) {
+void ChVolume::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChVolume>();
     // deserialize parent class
-    ChGeometry::ArchiveIN(marchive);
+    ChGeometry::ArchiveIn(marchive);
     // stream in all member data:
     // marchive >> CHNVP(closed);
 }

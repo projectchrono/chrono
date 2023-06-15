@@ -23,8 +23,8 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChMarker)
-CH_CASTING_PARENT(ChMarker, ChObj)
-CH_CASTING_PARENT_SANITIZED(ChMarker, ChFrameMoving<double>, ChMarker_ChFrameMoving_double)
+CH_UPCASTING(ChMarker, ChObj)
+CH_UPCASTING_SANITIZED(ChMarker, ChFrameMoving<double>, ChMarker_ChFrameMoving_double)
 
 ChMarker::ChMarker()
     : Body(NULL),
@@ -301,14 +301,14 @@ void ChMarker::UpdatedExternalTime(double prevtime, double mtime) {
 
 //  FILE I/O
 
-void ChMarker::ArchiveOUT(ChArchiveOut& marchive) {
+void ChMarker::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChMarker>();
 
     // serialize parent class
-    ChObj::ArchiveOUT(marchive);
+    ChObj::ArchiveOut(marchive);
     // serialize parent class
-    ChFrameMoving<double>::ArchiveOUT(marchive);
+    ChFrameMoving<double>::ArchiveOut(marchive);
 
     // serialize all member data:
     eChMarkerMotion_mapper mmapper;
@@ -322,14 +322,14 @@ void ChMarker::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChMarker::ArchiveIN(ChArchiveIn& marchive) {
+void ChMarker::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChMarker>();
 
     // deserialize parent class
-    ChObj::ArchiveIN(marchive);
+    ChObj::ArchiveIn(marchive);
     // deserialize parent class
-    ChFrameMoving<double>::ArchiveIN(marchive);
+    ChFrameMoving<double>::ArchiveIn(marchive);
 
     // stream in all member data:
     eChMarkerMotion_mapper mmapper;

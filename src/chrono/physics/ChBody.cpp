@@ -34,10 +34,10 @@ using namespace geometry;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChBody)
-CH_CASTING_PARENT(ChBody, ChPhysicsItem)
-CH_CASTING_PARENT(ChBody, ChBodyFrame)
-CH_CASTING_PARENT_SANITIZED(ChBody, ChContactable_1vars<6>, ChBody_ChContactable_1vars_6)
-CH_CASTING_PARENT(ChBody, ChLoadableUVW)
+CH_UPCASTING(ChBody, ChPhysicsItem)
+CH_UPCASTING(ChBody, ChBodyFrame)
+CH_UPCASTING_SANITIZED(ChBody, ChContactable_1vars<6>, ChBody_ChContactable_1vars_6)
+CH_UPCASTING(ChBody, ChLoadableUVW)
 
 
 ChBody::ChBody(collision::ChCollisionSystemType collision_type) {
@@ -1076,14 +1076,14 @@ void ChBody::ComputeNF(
 // ---------------------------------------------------------------------------
 // FILE I/O
 
-void ChBody::ArchiveOUT(ChArchiveOut& marchive) {
+void ChBody::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChBody>();
 
     // serialize parent class
-    ChPhysicsItem::ArchiveOUT(marchive);
+    ChPhysicsItem::ArchiveOut(marchive);
     // serialize parent class
-    ChBodyFrame::ArchiveOUT(marchive);
+    ChBodyFrame::ArchiveOut(marchive);
 
     // serialize all member data:
 
@@ -1123,14 +1123,14 @@ void ChBody::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChBody::ArchiveIN(ChArchiveIn& marchive) {
+void ChBody::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChBody>();
 
     // deserialize parent class
-    ChPhysicsItem::ArchiveIN(marchive);
+    ChPhysicsItem::ArchiveIn(marchive);
     // deserialize parent class
-    ChBodyFrame::ArchiveIN(marchive);
+    ChBodyFrame::ArchiveIn(marchive);
 
     // stream in all member data:
 
@@ -1181,7 +1181,7 @@ void ChBody::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(sleep_starttime);
 }
 
-void ChBody::StreamOUTstate(ChStreamOutBinary& mstream) {
+void ChBody::StreamOutstate(ChStreamOutBinary& mstream) {
     // Do not serialize parent classes and do not
     // implement versioning, because this must be efficient
     // and will be used just for domain decomposition.
@@ -1201,7 +1201,7 @@ void ChBody::StreamOUTstate(ChStreamOutBinary& mstream) {
     mstream << this->coord_dt.rot.e3();
 }
 
-void ChBody::StreamINstate(ChStreamInBinary& mstream) {
+void ChBody::StreamInstate(ChStreamInBinary& mstream) {
     // Do not serialize parent classes and do not
     // implement versioning, because this must be efficient
     // and will be used just for domain decomposition.

@@ -99,12 +99,12 @@ class my_enum_mappers : public ChSystemSMC {
     CH_ENUM_MAPPER_END(TangentialDisplacementModel);
 };
 
-void ChSystemSMC::ArchiveOUT(ChArchiveOut& marchive) {
+void ChSystemSMC::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChSystemSMC>();
 
     // serialize parent class
-    ChSystem::ArchiveOUT(marchive);
+    ChSystem::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(m_use_mat_props);
@@ -120,12 +120,12 @@ void ChSystemSMC::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChSystemSMC::ArchiveIN(ChArchiveIn& marchive) {
+void ChSystemSMC::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/marchive.VersionRead<ChSystemSMC>();
 
     // deserialize parent class
-    ChSystem::ArchiveIN(marchive);
+    ChSystem::ArchiveIn(marchive);
 
     // stream in all member data:
     marchive >> CHNVP(m_use_mat_props);

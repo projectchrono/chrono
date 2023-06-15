@@ -159,12 +159,12 @@ void ChShaftsBody::ConstraintsFetch_react(double factor) {
 
 //////// FILE I/O
 
-void ChShaftsBody::ArchiveOUT(ChArchiveOut& marchive) {
+void ChShaftsBody::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChShaftsBody>();
 
     // serialize parent class
-    ChPhysicsItem::ArchiveOUT(marchive);
+    ChPhysicsItem::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(shaft_dir);
@@ -173,12 +173,12 @@ void ChShaftsBody::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaftsBody::ArchiveIN(ChArchiveIn& marchive) {
+void ChShaftsBody::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChShaftsBody>();
 
     // deserialize parent class:
-    ChPhysicsItem::ArchiveIN(marchive);
+    ChPhysicsItem::ArchiveIn(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(shaft_dir);
@@ -336,12 +336,12 @@ void ChShaftsBodyTranslation::ConstraintsFetch_react(double factor) {
 
 //////// FILE I/O
 
-void ChShaftsBodyTranslation::ArchiveOUT(ChArchiveOut& marchive) {
+void ChShaftsBodyTranslation::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChShaftsBody>();
 
     // serialize parent class
-    ChPhysicsItem::ArchiveOUT(marchive);
+    ChPhysicsItem::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(shaft_dir);
@@ -352,12 +352,12 @@ void ChShaftsBodyTranslation::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaftsBodyTranslation::ArchiveIN(ChArchiveIn& marchive) {
+void ChShaftsBodyTranslation::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChShaftsBody>();
 
     // deserialize parent class:
-    ChPhysicsItem::ArchiveIN(marchive);
+    ChPhysicsItem::ArchiveIn(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(shaft_dir);

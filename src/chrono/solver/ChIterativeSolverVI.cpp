@@ -16,9 +16,9 @@
 
 namespace chrono {
 
-CH_CASTING_PARENT(ChIterativeSolverVI, ChIterativeSolver)
-CH_CASTING_PARENT(ChIterativeSolverVI, ChSolverVI)
-CH_CASTING_PARENT(ChSolverVI, ChSolver) // placed here since ChSolver is missing the .cpp
+CH_UPCASTING(ChIterativeSolverVI, ChIterativeSolver)
+CH_UPCASTING(ChIterativeSolverVI, ChSolverVI)
+CH_UPCASTING(ChSolverVI, ChSolver) // placed here since ChSolver is missing the .cpp
 
 
 ChIterativeSolverVI::ChIterativeSolverVI()
@@ -53,11 +53,11 @@ void ChIterativeSolverVI::AtIterationEnd(double mmaxviolation, double mdeltalamb
     dlambda_history.push_back(mdeltalambda);
 }
 
-void ChIterativeSolverVI::ArchiveOUT(ChArchiveOut& marchive) {
+void ChIterativeSolverVI::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChIterativeSolverVI>();
     // serialize parent class
-    ChSolver::ArchiveOUT(marchive);
+    ChSolver::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(m_max_iterations);
     marchive << CHNVP(m_warm_start);
@@ -66,11 +66,11 @@ void ChIterativeSolverVI::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(m_shlambda);
 }
 
-void ChIterativeSolverVI::ArchiveIN(ChArchiveIn& marchive) {
+void ChIterativeSolverVI::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChIterativeSolverVI>();
     // deserialize parent class
-    ChSolver::ArchiveIN(marchive);
+    ChSolver::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(m_max_iterations);
     marchive >> CHNVP(m_warm_start);

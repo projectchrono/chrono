@@ -107,13 +107,13 @@ double ChFunction::Compute_int(double xmin, double xmax, double sampling_step, i
     return mret;
 }
 
-void ChFunction::ArchiveOUT(ChArchiveOut& marchive) {
+void ChFunction::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChFunction>();
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChFunction::ArchiveIN(ChArchiveIn& marchive) {
+void ChFunction::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChFunction>();
 }

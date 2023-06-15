@@ -238,11 +238,11 @@ void ChGlyphs::SetGlyphTensor(unsigned int id, ChVector<> mpoint, ChQuaternion<>
     (*this->eigenvalues)[id] = meigenvalues;
 }
 
-void ChGlyphs::ArchiveOUT(ChArchiveOut& marchive) {
+void ChGlyphs::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChGlyphs>();
     // serialize parent class
-    ChVisualShape::ArchiveOUT(marchive);
+    ChVisualShape::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(points);
     eCh_GlyphType_mapper mmapper;
@@ -251,11 +251,11 @@ void ChGlyphs::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(m_properties);
 }
 
-void ChGlyphs::ArchiveIN(ChArchiveIn& marchive) {
+void ChGlyphs::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChGlyphs>();
     // deserialize parent class
-    ChVisualShape::ArchiveIN(marchive);
+    ChVisualShape::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(points);
     eCh_GlyphType_mapper mmapper;

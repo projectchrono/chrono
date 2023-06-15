@@ -38,22 +38,22 @@ double ChFunction_Sine::Get_y_dxdx(double x) const {
     return amp * -w * w * (sin(phase + w * x));
 }
 
-void ChFunction_Sine::ArchiveOUT(ChArchiveOut& marchive) {
+void ChFunction_Sine::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChFunction_Sine>();
     // serialize parent class
-    ChFunction::ArchiveOUT(marchive);
+    ChFunction::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(amp);
     marchive << CHNVP(phase);
     marchive << CHNVP(freq);
 }
 
-void ChFunction_Sine::ArchiveIN(ChArchiveIn& marchive) {
+void ChFunction_Sine::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChFunction_Sine>();
     // deserialize parent class
-    ChFunction::ArchiveIN(marchive);
+    ChFunction::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(amp);
     marchive >> CHNVP(phase);

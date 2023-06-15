@@ -142,7 +142,7 @@ ChColor ChColor::ComputeFalseColor(double v, double vmin, double vmax, bool out_
     return c;
 }
 
-void ChColor::ArchiveOUT(ChArchiveOut& marchive) {
+void ChColor::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChColor>();
 
@@ -152,7 +152,7 @@ void ChColor::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(B);
 }
 
-void ChColor::ArchiveIN(ChArchiveIn& marchive) {
+void ChColor::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/marchive.VersionRead<ChColor>();
 

@@ -20,8 +20,8 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTimestepperHHT)
-CH_CASTING_PARENT(ChTimestepperHHT, ChTimestepperIIorder)
-CH_CASTING_PARENT(ChTimestepperHHT, ChImplicitIterativeTimestepper)
+CH_UPCASTING(ChTimestepperHHT, ChTimestepperIIorder)
+CH_UPCASTING(ChTimestepperHHT, ChImplicitIterativeTimestepper)
 
 ChTimestepperHHT::ChTimestepperHHT(ChIntegrableIIorder* intgr)
     : ChTimestepperIIorder(intgr),
@@ -443,12 +443,12 @@ class my_enum_mappers : public ChTimestepperHHT {
     CH_ENUM_MAPPER_END(HHT_Mode);
 };
 
-void ChTimestepperHHT::ArchiveOUT(ChArchiveOut& archive) {
+void ChTimestepperHHT::ArchiveOut(ChArchiveOut& archive) {
     // version number
     archive.VersionWrite<ChTimestepperHHT>();
     // serialize parent class:
-    ChTimestepperIIorder::ArchiveOUT(archive);
-    ChImplicitIterativeTimestepper::ArchiveOUT(archive);
+    ChTimestepperIIorder::ArchiveOut(archive);
+    ChImplicitIterativeTimestepper::ArchiveOut(archive);
     // serialize all member data:
     archive << CHNVP(alpha);
     archive << CHNVP(beta);
@@ -458,12 +458,12 @@ void ChTimestepperHHT::ArchiveOUT(ChArchiveOut& archive) {
     archive << CHNVP(modemapper(mode), "mode");
 }
 
-void ChTimestepperHHT::ArchiveIN(ChArchiveIn& archive) {
+void ChTimestepperHHT::ArchiveIn(ChArchiveIn& archive) {
     // version number
     /*int version =*/ archive.VersionRead<ChTimestepperHHT>();
     // deserialize parent class:
-    ChTimestepperIIorder::ArchiveIN(archive);
-    ChImplicitIterativeTimestepper::ArchiveIN(archive);
+    ChTimestepperIIorder::ArchiveIn(archive);
+    ChImplicitIterativeTimestepper::ArchiveIn(archive);
     // stream in all member data:
     archive >> CHNVP(alpha);
     archive >> CHNVP(beta);

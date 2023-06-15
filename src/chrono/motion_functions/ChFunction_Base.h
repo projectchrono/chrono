@@ -153,10 +153,10 @@ class ChApi ChFunction {
     virtual bool HandleAccess(int handle_id, double mx, double my, bool set_mode) { return true; }
 
     /// Method to allow serialization of transient data to archives
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOut(ChArchiveOut& marchive);
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIn(ChArchiveIn& marchive);
 
     /// Plot function in graph space of the ChFile_ps postscript file
     /// where zoom factor, centering, color, thickness etc. are already defined.

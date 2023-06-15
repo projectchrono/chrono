@@ -200,10 +200,10 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     virtual void GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax) override;
 
     /// Method to deserialize only the state (position, speed)
-    virtual void StreamINstate(ChStreamInBinary& mstream) override;
+    virtual void StreamInstate(ChStreamInBinary& mstream) override;
 
     /// Method to serialize only the state (position, speed)
-    virtual void StreamOUTstate(ChStreamOutBinary& mstream) override;
+    virtual void StreamOutstate(ChStreamOutBinary& mstream) override;
 
     /// The density of the rigid body, as [mass]/[unit volume]. Used just if
     /// the inertia tensor and mass are automatically recomputed from the
@@ -438,10 +438,10 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     // SERIALIZATION
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   public:
     // Public functions for ADVANCED use.

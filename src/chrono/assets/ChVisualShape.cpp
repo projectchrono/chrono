@@ -94,7 +94,7 @@ std::string ChVisualShape::GetTexture() const {
     return material_list[0]->GetKdTexture();
 }
 
-void ChVisualShape::ArchiveOUT(ChArchiveOut& marchive) {
+void ChVisualShape::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChVisualShape>();
     // serialize all member data:
@@ -103,7 +103,7 @@ void ChVisualShape::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(material_list);
 }
 
-void ChVisualShape::ArchiveIN(ChArchiveIn& marchive) {
+void ChVisualShape::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChVisualShape>();
     // stream in all member data:

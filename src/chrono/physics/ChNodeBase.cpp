@@ -53,13 +53,13 @@ void ChNodeBase::NodeIntStateGetIncrement(const unsigned int off_x,
     }
 }
 
-void ChNodeBase::ArchiveOUT(ChArchiveOut& marchive) {
+void ChNodeBase::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChNodeBase>();
     // serialize all member data:
 }
 
-void ChNodeBase::ArchiveIN(ChArchiveIn& marchive) {
+void ChNodeBase::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/marchive.VersionRead<ChNodeBase>();
     // deserialize all member data:

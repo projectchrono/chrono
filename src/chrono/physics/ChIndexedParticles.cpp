@@ -49,22 +49,22 @@ ChFrame<> ChIndexedParticles::GetVisualModelFrame(unsigned int nclone) {
     return res;
 }
 
-void ChIndexedParticles::ArchiveOUT(ChArchiveOut& marchive) {
+void ChIndexedParticles::ArchiveOut(ChArchiveOut& marchive) {
     // class version number
     marchive.VersionWrite<ChIndexedParticles>();
 
     // serialize parent class too
-    ChPhysicsItem::ArchiveOUT(marchive);
+    ChPhysicsItem::ArchiveOut(marchive);
 
     // stream out all member data
 }
 
-void ChIndexedParticles::ArchiveIN(ChArchiveIn& marchive) {
+void ChIndexedParticles::ArchiveIn(ChArchiveIn& marchive) {
     // class version number
     /*int version =*/ marchive.VersionRead<ChIndexedParticles>();
 
     // deserialize parent class too
-    ChPhysicsItem::ArchiveIN(marchive);
+    ChPhysicsItem::ArchiveIn(marchive);
 
     // stream in all member data
 }

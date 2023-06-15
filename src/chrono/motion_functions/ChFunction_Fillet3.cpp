@@ -92,11 +92,11 @@ void ChFunction_Fillet3::SetupCoefficients() {
     c4 = mx(3, 0);
 }
 
-void ChFunction_Fillet3::ArchiveOUT(ChArchiveOut& marchive) {
+void ChFunction_Fillet3::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChFunction_Fillet3>();
     // serialize parent class
-    ChFunction::ArchiveOUT(marchive);
+    ChFunction::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(end);
     marchive << CHNVP(y1);
@@ -105,11 +105,11 @@ void ChFunction_Fillet3::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(dy2);
 }
 
-void ChFunction_Fillet3::ArchiveIN(ChArchiveIn& marchive) {
+void ChFunction_Fillet3::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChFunction_Fillet3>();
     // deserialize parent class
-    ChFunction::ArchiveIN(marchive);
+    ChFunction::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(end);
     marchive >> CHNVP(y1);

@@ -59,7 +59,7 @@ double ChLinkForce::GetForce(double x, double x_dt, double t) const {
     return m_F * m_F_modul->Get_y(t) - (m_K * m_K_modul->Get_y(x)) * x - (m_R * m_R_modul->Get_y(x)) * x_dt;
 }
 
-void ChLinkForce::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLinkForce::ArchiveOut(ChArchiveOut& marchive) {
     // class version number
     marchive.VersionWrite<ChLinkForce>();
 
@@ -73,7 +73,7 @@ void ChLinkForce::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(m_R_modul);
 }
 
-void ChLinkForce::ArchiveIN(ChArchiveIn& marchive) {
+void ChLinkForce::ArchiveIn(ChArchiveIn& marchive) {
     // class version number
     /*int version =*/ marchive.VersionRead<ChLinkForce>();
 

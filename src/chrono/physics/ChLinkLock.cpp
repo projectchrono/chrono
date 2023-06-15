@@ -1851,12 +1851,12 @@ class my_enum_mappers_types : public ChLinkLock {
     CH_ENUM_MAPPER_END(LinkType);
 };
 
-void ChLinkLock::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLinkLock::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLinkLock>();
 
     // serialize parent class
-    ChLinkMarkers::ArchiveOUT(marchive);
+    ChLinkMarkers::ArchiveOut(marchive);
 
     // serialize all member data
     my_enum_mappers_types::LinkType_mapper typemapper;
@@ -1887,12 +1887,12 @@ void ChLinkLock::ArchiveOUT(ChArchiveOut& marchive) {
     ////marchive << CHNVP(limit_D);
 }
 
-void ChLinkLock::ArchiveIN(ChArchiveIn& marchive) {
+void ChLinkLock::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChLinkLock>();
 
     // deserialize parent class
-    ChLinkMarkers::ArchiveIN(marchive);
+    ChLinkMarkers::ArchiveIn(marchive);
 
     // deserialize all member data
     my_enum_mappers_types::LinkType_mapper typemapper;
@@ -2422,12 +2422,12 @@ class my_enum_mappers_angles : public ChLinkLockLock {
     CH_ENUM_MAPPER_END(AngleSet);
 };
 
-void ChLinkLockLock::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLinkLockLock::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLinkLockLock>();
 
     // serialize parent class
-    ChLinkMarkers::ArchiveOUT(marchive);
+    ChLinkMarkers::ArchiveOut(marchive);
 
     // serialize all member data
     ////marchive << CHNVP(mask); //// TODO: needed?
@@ -2464,12 +2464,12 @@ void ChLinkLockLock::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(setmapper(angleset), "angle_set");
 }
 
-void ChLinkLockLock::ArchiveIN(ChArchiveIn& marchive) {
+void ChLinkLockLock::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChLinkLockLock>();
 
     // deserialize parent class
-    ChLinkMarkers::ArchiveIN(marchive);
+    ChLinkMarkers::ArchiveIn(marchive);
 
     // deserialize all member data
     ////if (mask) delete (mask); marchive >> CHNVP(mask); //// TODO: needed?

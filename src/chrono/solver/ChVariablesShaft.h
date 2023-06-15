@@ -84,21 +84,21 @@ class ChApi ChVariablesShaft : public ChVariables {
     virtual void Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
+    virtual void ArchiveOut(ChArchiveOut& marchive) override {
         // version number
         marchive.VersionWrite<ChVariablesShaft>();
         // serialize parent class
-        ChVariables::ArchiveOUT(marchive);
+        ChVariables::ArchiveOut(marchive);
         // serialize all member data:
         marchive << CHNVP(m_inertia);
     }
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
+    virtual void ArchiveIn(ChArchiveIn& marchive) override {
         // version number
         /*int version =*/ marchive.VersionRead<ChVariablesShaft>();
         // deserialize parent class
-        ChVariables::ArchiveIN(marchive);
+        ChVariables::ArchiveIn(marchive);
         // stream in all member data:
         marchive >> CHNVP(m_inertia);
         SetInertia(m_inertia);

@@ -8,14 +8,14 @@ using namespace chrono;
 %}
 
 // Trick to disable a macro that stops SWIG
-#define CH_CREATE_MEMBER_DETECTOR(ArchiveINconstructor)
-#define CH_CREATE_MEMBER_DETECTOR(ArchiveOUTconstructor)
-#define CH_CREATE_MEMBER_DETECTOR(ArchiveOUT)
-#define CH_CREATE_MEMBER_DETECTOR(ArchiveIN)
+#define CH_CREATE_MEMBER_DETECTOR(ArchiveInConstructor)
+#define CH_CREATE_MEMBER_DETECTOR(ArchiveOutConstructor)
+#define CH_CREATE_MEMBER_DETECTOR(ArchiveOut)
+#define CH_CREATE_MEMBER_DETECTOR(ArchiveIn)
 #define CH_CREATE_MEMBER_DETECTOR(ArchiveContainerName)
 
-%ignore CH_CASTING_PARENT;
-%ignore CH_CASTING_PARENT_SANITIZED;
+%ignore CH_UPCASTING;
+%ignore CH_UPCASTING_SANITIZED;
 %ignore chrono::ChClassRegistrationBase;
 %ignore chrono::ChCastingMap;
 

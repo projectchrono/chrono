@@ -480,7 +480,7 @@ class  ChArchiveInJSON : public ChArchiveIn {
                     PutPointer(new_ptr_void, already_stored, obj_ID);
                     // 3) Deserialize
                     // It is required to specify the "cls_name" since the bValue.value() might be of a different type compared to the true object,
-                    // while we need to call the ArchiveIN of the proper derived class.
+                    // while we need to call the ArchiveIn of the proper derived class.
                     bVal.value().CallArchiveIn(*this, cls_name.c_str());
                 } else {
                     throw(ChExceptionArchive("Archive cannot create object " + std::string(bVal.name()) +"\n"));

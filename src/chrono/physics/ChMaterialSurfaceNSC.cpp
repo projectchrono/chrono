@@ -42,12 +42,12 @@ ChMaterialSurfaceNSC::ChMaterialSurfaceNSC(const ChMaterialSurfaceNSC& other) : 
     complianceSpin = other.complianceSpin;
 }
 
-void ChMaterialSurfaceNSC::ArchiveOUT(ChArchiveOut& marchive) {
+void ChMaterialSurfaceNSC::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChMaterialSurfaceNSC>();
 
     // serialize parent class
-    ChMaterialSurface::ArchiveOUT(marchive);
+    ChMaterialSurface::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(cohesion);
@@ -58,12 +58,12 @@ void ChMaterialSurfaceNSC::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(complianceSpin);
 }
 
-void ChMaterialSurfaceNSC::ArchiveIN(ChArchiveIn& marchive) {
+void ChMaterialSurfaceNSC::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChMaterialSurfaceNSC>();
 
     // deserialize parent class
-    ChMaterialSurface::ArchiveIN(marchive);
+    ChMaterialSurface::ArchiveIn(marchive);
 
     // stream in all member data:
     marchive >> CHNVP(cohesion);

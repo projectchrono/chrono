@@ -184,12 +184,12 @@ ChPhysicsItem* ChAparticle::GetPhysicsItem() {
     return container;
 }
 
-void ChAparticle::ArchiveOUT(ChArchiveOut& marchive) {
+void ChAparticle::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChAparticle>();
 
     // serialize parent class
-    ChParticleBase::ArchiveOUT(marchive);
+    ChParticleBase::ArchiveOut(marchive);
 
     // serialize all member data:
     // marchive << CHNVP(container);
@@ -199,12 +199,12 @@ void ChAparticle::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChAparticle::ArchiveIN(ChArchiveIn& marchive) {
+void ChAparticle::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/marchive.VersionRead<ChAparticle>();
 
     // deserialize parent class:
-    ChParticleBase::ArchiveIN(marchive);
+    ChParticleBase::ArchiveIn(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(collision_model);
@@ -690,12 +690,12 @@ void ChParticleCloud::UpdateParticleCollisionModels() {
 
 // FILE I/O
 
-void ChParticleCloud::ArchiveOUT(ChArchiveOut& marchive) {
+void ChParticleCloud::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChParticleCloud>();
 
     // serialize parent class
-    ChIndexedParticles::ArchiveOUT(marchive);
+    ChIndexedParticles::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(particles);
@@ -712,12 +712,12 @@ void ChParticleCloud::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(sleep_starttime);
 }
 
-void ChParticleCloud::ArchiveIN(ChArchiveIn& marchive) {
+void ChParticleCloud::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/marchive.VersionRead<ChParticleCloud>();
 
     // deserialize parent class:
-    ChIndexedParticles::ArchiveIN(marchive);
+    ChIndexedParticles::ArchiveIn(marchive);
 
     // deserialize all member data:
 

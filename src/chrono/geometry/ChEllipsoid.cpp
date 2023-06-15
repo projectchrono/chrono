@@ -36,20 +36,20 @@ double ChEllipsoid::GetBoundingSphereRadius() const {
     return ChMax(rad.x(), ChMax(rad.y(), rad.z()));
 }
 
-void ChEllipsoid::ArchiveOUT(ChArchiveOut& marchive) {
+void ChEllipsoid::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChEllipsoid>();
     // serialize parent class
-    ChGeometry::ArchiveOUT(marchive);
+    ChGeometry::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(rad);
 }
 
-void ChEllipsoid::ArchiveIN(ChArchiveIn& marchive) {
+void ChEllipsoid::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/marchive.VersionRead<ChEllipsoid>();
     // deserialize parent class
-    ChGeometry::ArchiveIN(marchive);
+    ChGeometry::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(rad);
 }

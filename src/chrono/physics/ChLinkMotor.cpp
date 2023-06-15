@@ -34,23 +34,23 @@ void ChLinkMotor::Update(double mytime, bool update_assets) {
     m_func->Update(mytime);
 }
 
-void ChLinkMotor::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLinkMotor::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLinkMotor>();
 
     // serialize parent class
-    ChLinkMateGeneric::ArchiveOUT(marchive);
+    ChLinkMateGeneric::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(m_func);
 }
 
-void ChLinkMotor::ArchiveIN(ChArchiveIn& marchive) {
+void ChLinkMotor::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChLinkMotor>();
 
     // deserialize parent class
-    ChLinkMateGeneric::ArchiveIN(marchive);
+    ChLinkMateGeneric::ArchiveIn(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(m_func);

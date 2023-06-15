@@ -62,8 +62,8 @@ class ChApi ChMaterialSurface {
     void SetRestitution(float val) { restitution = val; }
     float GetRestitution() const { return restitution; }
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveOut(ChArchiveOut& marchive);
+    virtual void ArchiveIn(ChArchiveIn& marchive);
 
     /// Construct and return a contact material of the specified type with default properties.
     static std::shared_ptr<ChMaterialSurface> DefaultMaterial(ChContactMethod contact_method);

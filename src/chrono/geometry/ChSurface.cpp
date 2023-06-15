@@ -57,20 +57,20 @@ void ChSurface::Normal(ChVector<>& dir, const double parU, const double parV) co
     dir = Vnorm(Vcross((Vu - V0), (Vv - V0)));
 }
 
-void ChSurface::ArchiveOUT(ChArchiveOut& marchive) {
+void ChSurface::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChSurface>();
     // serialize parent class
-    ChGeometry::ArchiveOUT(marchive);
+    ChGeometry::ArchiveOut(marchive);
     // serialize all member data:
     // marchive << CHNVP(closed);
 }
 
-void ChSurface::ArchiveIN(ChArchiveIn& marchive) {
+void ChSurface::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChSurface>();
     // deserialize parent class
-    ChGeometry::ArchiveIN(marchive);
+    ChGeometry::ArchiveIn(marchive);
     // stream in all member data:
     // marchive >> CHNVP(closed);
 }

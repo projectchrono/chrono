@@ -302,22 +302,22 @@ void ChNodeFEAxyzDDD::ComputeNF(
 
 // -----------------------------------------------------------------------------
 
-void ChNodeFEAxyzDDD::ArchiveOUT(ChArchiveOut& archive) {
+void ChNodeFEAxyzDDD::ArchiveOut(ChArchiveOut& archive) {
     // version number
     archive.VersionWrite<ChNodeFEAxyzDDD>();
     // serialize parent class
-    ChNodeFEAxyzDD::ArchiveOUT(archive);
+    ChNodeFEAxyzDD::ArchiveOut(archive);
     // serialize all member data:
     archive << CHNVP(DDD);
     archive << CHNVP(DDD_dt);
     archive << CHNVP(DDD_dtdt);
 }
 
-void ChNodeFEAxyzDDD::ArchiveIN(ChArchiveIn& archive) {
+void ChNodeFEAxyzDDD::ArchiveIn(ChArchiveIn& archive) {
     // version number
     /*int version = */ archive.VersionRead<ChNodeFEAxyzDDD>();
     // deserialize parent class
-    ChNodeFEAxyzDD::ArchiveIN(archive);
+    ChNodeFEAxyzDD::ArchiveIn(archive);
     // stream in all member data:
     archive >> CHNVP(DDD);
     archive >> CHNVP(DDD_dt);

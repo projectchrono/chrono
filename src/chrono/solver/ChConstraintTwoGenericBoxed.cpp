@@ -60,24 +60,24 @@ void ChConstraintTwoGenericBoxed::SetBoxedMinMax(double mmin, double mmax) {
     l_max = mmax;
 }
 
-void ChConstraintTwoGenericBoxed::ArchiveOUT(ChArchiveOut& marchive) {
+void ChConstraintTwoGenericBoxed::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChConstraintTwoGenericBoxed>();
 
     // serialize the parent class data too
-    ChConstraintTwoGeneric::ArchiveOUT(marchive);
+    ChConstraintTwoGeneric::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(l_min);
     marchive << CHNVP(l_max);
 }
 
-void ChConstraintTwoGenericBoxed::ArchiveIN(ChArchiveIn& marchive) {
+void ChConstraintTwoGenericBoxed::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChConstraintTwoGenericBoxed>();
 
     // deserialize the parent class data too
-    ChConstraintTwoGeneric::ArchiveIN(marchive);
+    ChConstraintTwoGeneric::ArchiveIn(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(l_min);

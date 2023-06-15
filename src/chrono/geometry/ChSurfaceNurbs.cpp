@@ -121,11 +121,11 @@ void ChSurfaceNurbs::SetupData(
         this->weights.setConstant(n_u, n_v, 1.0);
 }
 
-void ChSurfaceNurbs::ArchiveOUT(ChArchiveOut& marchive) {
+void ChSurfaceNurbs::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChSurfaceNurbs>();
     // serialize parent class
-    ChSurface::ArchiveOUT(marchive);
+    ChSurface::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(points);
     marchive << CHNVP(weights);
@@ -135,11 +135,11 @@ void ChSurfaceNurbs::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(p_v);
 }
 
-void ChSurfaceNurbs::ArchiveIN(ChArchiveIn& marchive) {
+void ChSurfaceNurbs::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChSurfaceNurbs>();
     // deserialize parent class
-    ChSurface::ArchiveIN(marchive);
+    ChSurface::ArchiveIn(marchive);
     // stream in all member data:
     ////marchive >> CHNVP(points);
     ////marchive >> CHNVP(weights);

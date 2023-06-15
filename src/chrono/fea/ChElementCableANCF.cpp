@@ -339,7 +339,7 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
     m_section->E << " I=" << m_section->Izz << "\n";
     GetLog() << StiffnessMatrix;
     ChStreamOutAsciiFile mdump("dump_stiff.txt");
-    StiffnessMatrix.StreamOUTdenseMatlabFormat(mdump);
+    StiffnessMatrix.StreamOutDenseMatlabFormat(mdump);
     */
 }
 

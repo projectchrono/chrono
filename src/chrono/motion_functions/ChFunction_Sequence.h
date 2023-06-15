@@ -52,10 +52,10 @@ class ChApi ChFseqNode {
     ~ChFseqNode() {}
 
     /// Method to allow serialization of transient data to archives.
-    void ArchiveOUT(ChArchiveOut& marchive);
+    void ArchiveOut(ChArchiveOut& marchive);
 
     /// Method to allow de-serialization of transient data from archives.
-    void ArchiveIN(ChArchiveIn& marchive);
+    void ArchiveIn(ChArchiveIn& marchive);
 };
 
 CH_CLASS_VERSION(ChFseqNode, 0)
@@ -146,10 +146,10 @@ class ChApi ChFunction_Sequence : public ChFunction {
     virtual bool HandleAccess(int handle_id, double mx, double my, bool set_mode) override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& marchive) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& marchive) override;
 };
 
 /// @} chrono_functions

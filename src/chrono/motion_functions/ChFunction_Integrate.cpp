@@ -80,11 +80,11 @@ void ChFunction_Integrate::Estimate_x_range(double& xmin, double& xmax) const {
     xmax = x_end;
 }
 
-void ChFunction_Integrate::ArchiveOUT(ChArchiveOut& marchive) {
+void ChFunction_Integrate::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChFunction_Integrate>();
     // serialize parent class
-    ChFunction::ArchiveOUT(marchive);
+    ChFunction::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(fa);
     marchive << CHNVP(order);
@@ -94,11 +94,11 @@ void ChFunction_Integrate::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(num_samples);
 }
 
-void ChFunction_Integrate::ArchiveIN(ChArchiveIn& marchive) {
+void ChFunction_Integrate::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChFunction_Integrate>();
     // deserialize parent class
-    ChFunction::ArchiveIN(marchive);
+    ChFunction::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(fa);
     marchive >> CHNVP(order);

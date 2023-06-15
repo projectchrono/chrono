@@ -52,20 +52,20 @@ void ChLineBezier::Evaluate(ChVector<>& pos, const double parU) const {
     pos = m_path->eval(i, t);
 }
 
-void ChLineBezier::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLineBezier::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLineBezier>();
     // serialize parent class
-    ChLine::ArchiveOUT(marchive);
+    ChLine::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(m_path);
 }
 
-void ChLineBezier::ArchiveIN(ChArchiveIn& marchive) {
+void ChLineBezier::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChLineBezier>();
     // deserialize parent class
-    ChLine::ArchiveIN(marchive);
+    ChLine::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(m_path);
 }

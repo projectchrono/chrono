@@ -125,10 +125,10 @@ class ChApi ChContactContainer : public ChPhysicsItem {
     virtual ChVector<> GetContactableTorque(ChContactable* contactable) = 0;
 
     /// Method for serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOut(ChArchiveOut& marchive);
 
     /// Method for de-serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIn(ChArchiveIn& marchive);
 
   protected:
     struct ForceTorque {

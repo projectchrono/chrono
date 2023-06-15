@@ -182,7 +182,7 @@ void ChCollisionModel::SetAllShapesMaterial(std::shared_ptr<ChMaterialSurface> m
         shape->m_material = mat;
 }
 
-void ChCollisionModel::ArchiveOUT(ChArchiveOut& marchive) {
+void ChCollisionModel::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChCollisionModel>();
 
@@ -191,7 +191,7 @@ void ChCollisionModel::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(model_safe_margin);
 }
 
-void ChCollisionModel::ArchiveIN(ChArchiveIn& marchive) {
+void ChCollisionModel::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChCollisionModel>();
 

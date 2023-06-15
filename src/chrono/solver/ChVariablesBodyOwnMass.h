@@ -83,10 +83,10 @@ class ChApi ChVariablesBodyOwnMass : public ChVariablesBody {
     virtual void Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& marchive) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& marchive) override;
 };
 
 }  // end namespace chrono

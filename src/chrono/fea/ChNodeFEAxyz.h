@@ -120,8 +120,8 @@ class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVari
 
     // SERIALIZATION
 
-    virtual void ArchiveOUT(ChArchiveOut& archive) override;
-    virtual void ArchiveIN(ChArchiveIn& archive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive) override;
 
   protected:
     ChVariablesNode variables;  ///< 3D node variables, with x,y,z

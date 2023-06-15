@@ -62,23 +62,23 @@ void ChSystemNSC::SetContactContainer(std::shared_ptr<ChContactContainer> contai
         ChSystem::SetContactContainer(container);
 }
 
-void ChSystemNSC::ArchiveOUT(ChArchiveOut& marchive) {
+void ChSystemNSC::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChSystemNSC>();
 
     // serialize parent class
-    ChSystem::ArchiveOUT(marchive);
+    ChSystem::ArchiveOut(marchive);
 
     // serialize all member data:
 }
 
 // Method to allow de serialization of transient data from archives.
-void ChSystemNSC::ArchiveIN(ChArchiveIn& marchive) {
+void ChSystemNSC::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChSystemNSC>();
 
     // deserialize parent class
-    ChSystem::ArchiveIN(marchive);
+    ChSystem::ArchiveIn(marchive);
 
     // stream in all member data:
 }

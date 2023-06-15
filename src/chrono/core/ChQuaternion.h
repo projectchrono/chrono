@@ -402,10 +402,10 @@ class ChQuaternion {
                             const ChVector<Real>& qimm_dtdt);
 
     /// Method to allow serialization of transient m_data to archives.
-    void ArchiveOUT(ChArchiveOut& marchive);
+    void ArchiveOut(ChArchiveOut& marchive);
 
     /// Method to allow de-serialization of transient m_data from archives.
-    void ArchiveIN(ChArchiveIn& marchive);
+    void ArchiveIn(ChArchiveIn& marchive);
 
   private:
     /// Data in the order e0, e1, e2, e3
@@ -1332,7 +1332,7 @@ inline void ChQuaternion<Real>::ImmQ_dtdt_complete(const ChQuaternion<Real>& q,
 // Streaming operations
 
 template <class Real>
-inline void ChQuaternion<Real>::ArchiveOUT(ChArchiveOut& marchive) {
+inline void ChQuaternion<Real>::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChQuaternion<double>>();  // must use specialized template (any)
     // stream out all member m_data
@@ -1343,7 +1343,7 @@ inline void ChQuaternion<Real>::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 template <class Real>
-inline void ChQuaternion<Real>::ArchiveIN(ChArchiveIn& marchive) {
+inline void ChQuaternion<Real>::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChQuaternion<double>>();  // must use specialized template (any)
     // stream in all member m_data

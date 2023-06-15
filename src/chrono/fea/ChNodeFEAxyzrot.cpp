@@ -287,26 +287,26 @@ void ChNodeFEAxyzrot::ComputeNF(
 
 // -----------------------------------------------------------------------------
 
-void ChNodeFEAxyzrot::ArchiveOUT(ChArchiveOut& marchive) {
+void ChNodeFEAxyzrot::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChNodeFEAxyzrot>();
     // serialize parent class
-    ChNodeFEAbase::ArchiveOUT(marchive);
+    ChNodeFEAbase::ArchiveOut(marchive);
     // serialize parent class
-    ChBodyFrame::ArchiveOUT(marchive);
+    ChBodyFrame::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(X0);
     marchive << CHNVP(Force);
     marchive << CHNVP(Torque);
 }
 
-void ChNodeFEAxyzrot::ArchiveIN(ChArchiveIn& marchive) {
+void ChNodeFEAxyzrot::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChNodeFEAxyzrot>();
     // deserialize parent class
-    ChNodeFEAbase::ArchiveIN(marchive);
+    ChNodeFEAbase::ArchiveIn(marchive);
     // serialize parent class
-    ChBodyFrame::ArchiveIN(marchive);
+    ChBodyFrame::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(X0);
     marchive >> CHNVP(Force);

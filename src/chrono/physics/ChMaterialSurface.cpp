@@ -44,7 +44,7 @@ void ChMaterialSurface::SetFriction(float val) {
     SetKfriction(val);
 }
 
-void ChMaterialSurface::ArchiveOUT(ChArchiveOut& marchive) {
+void ChMaterialSurface::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChMaterialSurface>();
 
@@ -56,7 +56,7 @@ void ChMaterialSurface::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(restitution);
 }
 
-void ChMaterialSurface::ArchiveIN(ChArchiveIn& marchive) {
+void ChMaterialSurface::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChMaterialSurface>();
 

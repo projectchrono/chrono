@@ -29,7 +29,7 @@
 
 namespace chrono {
 CH_FACTORY_REGISTER(ChBodyEasySphere)
-CH_CASTING_PARENT(ChBodyEasySphere, ChBody)
+CH_UPCASTING(ChBodyEasySphere, ChBody)
 
 
 ChBodyEasySphere::ChBodyEasySphere(double radius,
@@ -77,12 +77,12 @@ void ChBodyEasySphere::SetupBody(double radius,
     }
 }
 
-void ChBodyEasySphere::ArchiveOUTconstructor(ChArchiveOut& marchive) {
+void ChBodyEasySphere::ArchiveOutConstructor(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChBodyEasySphere>();
 
 }
 
-void* ChBodyEasySphere::ArchiveINconstructor(ChArchiveIn& marchive  ) {
+void* ChBodyEasySphere::ArchiveInConstructor(ChArchiveIn& marchive  ) {
     /*int version =*/marchive.VersionRead<ChBodyEasySphere>();
 
     ChBodyEasySphere* new_obj = new ChBodyEasySphere();
@@ -92,7 +92,7 @@ void* ChBodyEasySphere::ArchiveINconstructor(ChArchiveIn& marchive  ) {
 
 // -----------------------------------------------------------------------------
 CH_FACTORY_REGISTER(ChBodyEasyEllipsoid)
-CH_CASTING_PARENT(ChBodyEasyEllipsoid, ChBody)
+CH_UPCASTING(ChBodyEasyEllipsoid, ChBody)
 
 ChBodyEasyEllipsoid::ChBodyEasyEllipsoid(ChVector<> axes,
                                          double density,
@@ -141,12 +141,12 @@ void ChBodyEasyEllipsoid::SetupBody(ChVector<> axes,
     }
 }
 
-void ChBodyEasyEllipsoid::ArchiveOUTconstructor(ChArchiveOut& marchive) {
+void ChBodyEasyEllipsoid::ArchiveOutConstructor(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChBodyEasyEllipsoid>();
 
 }
 
-void* ChBodyEasyEllipsoid::ArchiveINconstructor(ChArchiveIn& marchive  ) {
+void* ChBodyEasyEllipsoid::ArchiveInConstructor(ChArchiveIn& marchive  ) {
     /*int version =*/marchive.VersionRead<ChBodyEasyEllipsoid>();
 
     ChBodyEasyEllipsoid* new_obj = new ChBodyEasyEllipsoid();
@@ -156,7 +156,7 @@ void* ChBodyEasyEllipsoid::ArchiveINconstructor(ChArchiveIn& marchive  ) {
 
 // -----------------------------------------------------------------------------
 CH_FACTORY_REGISTER(ChBodyEasyCylinder)
-CH_CASTING_PARENT(ChBodyEasyCylinder, ChBody)
+CH_UPCASTING(ChBodyEasyCylinder, ChBody)
 
 ChBodyEasyCylinder::ChBodyEasyCylinder(geometry::ChAxis direction,
                                        double radius,
@@ -226,12 +226,12 @@ void ChBodyEasyCylinder::SetupBody(geometry::ChAxis direction,
     }
 }
 
-void ChBodyEasyCylinder::ArchiveOUTconstructor(ChArchiveOut& marchive) {
+void ChBodyEasyCylinder::ArchiveOutConstructor(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChBodyEasyCylinder>();
 
 }
 
-void* ChBodyEasyCylinder::ArchiveINconstructor(ChArchiveIn& marchive  ) {
+void* ChBodyEasyCylinder::ArchiveInConstructor(ChArchiveIn& marchive  ) {
     /*int version =*/marchive.VersionRead<ChBodyEasyCylinder>();
 
     ChBodyEasyCylinder* new_obj = new ChBodyEasyCylinder();
@@ -242,7 +242,7 @@ void* ChBodyEasyCylinder::ArchiveINconstructor(ChArchiveIn& marchive  ) {
 // -----------------------------------------------------------------------------
 
 CH_FACTORY_REGISTER(ChBodyEasyBox)
-CH_CASTING_PARENT(ChBodyEasyBox, ChBody)
+CH_UPCASTING(ChBodyEasyBox, ChBody)
 
 ChBodyEasyBox::ChBodyEasyBox(double Xsize,
                              double Ysize,
@@ -295,7 +295,7 @@ void ChBodyEasyBox::SetupBody(double Xsize,
     }
 }
 
-void ChBodyEasyBox::ArchiveOUTconstructor(ChArchiveOut& marchive) {
+void ChBodyEasyBox::ArchiveOutConstructor(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChBodyEasyBox>();
 
     // ChBodyEasy do not hold any variables; only parent classes have.
@@ -304,7 +304,7 @@ void ChBodyEasyBox::ArchiveOUTconstructor(ChArchiveOut& marchive) {
 
 }
 
-void* ChBodyEasyBox::ArchiveINconstructor(ChArchiveIn& marchive  ) {
+void* ChBodyEasyBox::ArchiveInConstructor(ChArchiveIn& marchive  ) {
     /*int version =*/marchive.VersionRead<ChBodyEasyBox>();
 
     ChBodyEasyBox* new_obj = new ChBodyEasyBox();
@@ -315,7 +315,7 @@ void* ChBodyEasyBox::ArchiveINconstructor(ChArchiveIn& marchive  ) {
 // -----------------------------------------------------------------------------
 
 CH_FACTORY_REGISTER(ChBodyEasyConvexHull)
-CH_CASTING_PARENT(ChBodyEasyConvexHull, ChBody)
+CH_UPCASTING(ChBodyEasyConvexHull, ChBody)
 
 
 ChBodyEasyConvexHull::ChBodyEasyConvexHull(std::vector<ChVector<>>& points,
@@ -383,14 +383,14 @@ void ChBodyEasyConvexHull::SetupBody(std::vector<ChVector<>>& points,
     m_mesh = vshape->GetMesh();
 }
 
-void ChBodyEasyConvexHull::ArchiveOUTconstructor(ChArchiveOut& marchive) {
+void ChBodyEasyConvexHull::ArchiveOutConstructor(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChBodyEasyConvexHull>();
 
     marchive << CHNVP(m_mesh);
 
 }
 
-void* ChBodyEasyConvexHull::ArchiveINconstructor(ChArchiveIn& marchive  ) {
+void* ChBodyEasyConvexHull::ArchiveInConstructor(ChArchiveIn& marchive  ) {
     /*int version =*/marchive.VersionRead<ChBodyEasyConvexHull>();
 
     std::shared_ptr<geometry::ChTriangleMeshConnected> mesh;
@@ -404,7 +404,7 @@ void* ChBodyEasyConvexHull::ArchiveINconstructor(ChArchiveIn& marchive  ) {
 // -----------------------------------------------------------------------------
 
 CH_FACTORY_REGISTER(ChBodyEasyConvexHullAuxRef)
-CH_CASTING_PARENT(ChBodyEasyConvexHullAuxRef, ChBodyAuxRef)
+CH_UPCASTING(ChBodyEasyConvexHullAuxRef, ChBodyAuxRef)
 
 
 ChBodyEasyConvexHullAuxRef::ChBodyEasyConvexHullAuxRef(std::vector<ChVector<>>& points,
@@ -478,14 +478,14 @@ void ChBodyEasyConvexHullAuxRef::SetupBody(std::vector<ChVector<>>& points,
     m_mesh = vshape->GetMesh();
 }
 
-void ChBodyEasyConvexHullAuxRef::ArchiveOUTconstructor(ChArchiveOut& marchive) {
+void ChBodyEasyConvexHullAuxRef::ArchiveOutConstructor(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChBodyEasyConvexHullAuxRef>();
 
     marchive << CHNVP(m_mesh);
 
 }
 
-void* ChBodyEasyConvexHullAuxRef::ArchiveINconstructor(ChArchiveIn& marchive  ) {
+void* ChBodyEasyConvexHullAuxRef::ArchiveInConstructor(ChArchiveIn& marchive  ) {
     /*int version =*/marchive.VersionRead<ChBodyEasyConvexHullAuxRef>();
 
     std::shared_ptr<geometry::ChTriangleMeshConnected> mesh;
@@ -499,7 +499,7 @@ void* ChBodyEasyConvexHullAuxRef::ArchiveINconstructor(ChArchiveIn& marchive  ) 
 // -----------------------------------------------------------------------------
 
 CH_FACTORY_REGISTER(ChBodyEasyMesh)
-CH_CASTING_PARENT(ChBodyEasyMesh, ChBodyAuxRef)
+CH_UPCASTING(ChBodyEasyMesh, ChBodyAuxRef)
 
 
 ChBodyEasyMesh::ChBodyEasyMesh(const std::string& filename,
@@ -594,7 +594,7 @@ void ChBodyEasyMesh::SetupBody(std::shared_ptr<geometry::ChTriangleMeshConnected
     }
 }
 
-void ChBodyEasyMesh::ArchiveOUTconstructor(ChArchiveOut& marchive) {
+void ChBodyEasyMesh::ArchiveOutConstructor(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChBodyEasyMesh>();
 
     // ChBodyEasy do not hold any variables; only parent classes have.
@@ -603,7 +603,7 @@ void ChBodyEasyMesh::ArchiveOUTconstructor(ChArchiveOut& marchive) {
 
 }
 
-void* ChBodyEasyMesh::ArchiveINconstructor(ChArchiveIn& marchive  ) {
+void* ChBodyEasyMesh::ArchiveInConstructor(ChArchiveIn& marchive  ) {
     /*int version =*/marchive.VersionRead<ChBodyEasyMesh>();
 
     ChBodyEasyMesh* new_obj = new ChBodyEasyMesh();
@@ -614,7 +614,7 @@ void* ChBodyEasyMesh::ArchiveINconstructor(ChArchiveIn& marchive  ) {
 // -----------------------------------------------------------------------------
 
 CH_FACTORY_REGISTER(ChBodyEasyClusterOfSpheres)
-CH_CASTING_PARENT(ChBodyEasyClusterOfSpheres, ChBody)
+CH_UPCASTING(ChBodyEasyClusterOfSpheres, ChBody)
 
 
 ChBodyEasyClusterOfSpheres::ChBodyEasyClusterOfSpheres(std::vector<ChVector<>>& positions,
@@ -699,7 +699,7 @@ void ChBodyEasyClusterOfSpheres::SetupBody(std::vector<ChVector<>>& positions,
     }
 }
 
-void ChBodyEasyClusterOfSpheres::ArchiveOUTconstructor(ChArchiveOut& marchive) {
+void ChBodyEasyClusterOfSpheres::ArchiveOutConstructor(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChBodyEasyClusterOfSpheres>();
 
     // ChBodyEasy do not hold any variables; only parent classes have.
@@ -708,7 +708,7 @@ void ChBodyEasyClusterOfSpheres::ArchiveOUTconstructor(ChArchiveOut& marchive) {
 
 }
 
-void* ChBodyEasyClusterOfSpheres::ArchiveINconstructor(ChArchiveIn& marchive  ) {
+void* ChBodyEasyClusterOfSpheres::ArchiveInConstructor(ChArchiveIn& marchive  ) {
     /*int version =*/marchive.VersionRead<ChBodyEasyClusterOfSpheres>();
 
     ChBodyEasyClusterOfSpheres* new_obj = new ChBodyEasyClusterOfSpheres();

@@ -305,21 +305,21 @@ bool ChLine::DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpol
     return true;
 }
 
-void ChLine::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLine::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLine>();
     // serialize parent class
-    ChGeometry::ArchiveOUT(marchive);
+    ChGeometry::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(closed);
     marchive << CHNVP(complexityU);
 }
 
-void ChLine::ArchiveIN(ChArchiveIn& marchive) {
+void ChLine::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChLine>();
     // deserialize parent class
-    ChGeometry::ArchiveIN(marchive);
+    ChGeometry::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(closed);
     marchive >> CHNVP(complexityU);

@@ -29,7 +29,7 @@ ChCamera::ChCamera()
       hvratio(4.0 / 3),
       isometric(false){};
 
-void ChCamera::ArchiveOUT(ChArchiveOut& archive) {
+void ChCamera::ArchiveOut(ChArchiveOut& archive) {
     // version number
     archive.VersionWrite<ChCamera>();
     // serialize all member data:
@@ -42,7 +42,7 @@ void ChCamera::ArchiveOUT(ChArchiveOut& archive) {
     archive << CHNVP(isometric);
 }
 
-void ChCamera::ArchiveIN(ChArchiveIn& archive) {
+void ChCamera::ArchiveIn(ChArchiveIn& archive) {
     // version number
     /*int version =*/ archive.VersionRead<ChCamera>();
     // stream in all member data:

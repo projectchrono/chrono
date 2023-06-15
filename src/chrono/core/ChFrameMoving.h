@@ -488,12 +488,12 @@ class ChFrameMoving : public ChFrame<Real> {
         return tmp;
     }
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
+    virtual void ArchiveOut(ChArchiveOut& marchive) override {
         // version number
         marchive.VersionWrite<ChFrameMoving>();
 
         // serialize parent class
-        ChFrame<Real>::ArchiveOUT(marchive);
+        ChFrame<Real>::ArchiveOut(marchive);
 
         // serialize all member data
         marchive << CHNVP(coord_dt);
@@ -501,12 +501,12 @@ class ChFrameMoving : public ChFrame<Real> {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
+    virtual void ArchiveIn(ChArchiveIn& marchive) override {
         // version number
         /*int version =*/marchive.VersionRead<ChFrameMoving>();
 
         // deserialize parent class
-        ChFrame<Real>::ArchiveIN(marchive);
+        ChFrame<Real>::ArchiveIn(marchive);
 
         // stream in all member data
         marchive >> CHNVP(coord_dt);

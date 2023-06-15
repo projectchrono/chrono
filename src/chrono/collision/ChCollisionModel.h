@@ -362,10 +362,10 @@ class ChApi ChCollisionModel {
     virtual void GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const = 0;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOut(ChArchiveOut& marchive);
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIn(ChArchiveIn& marchive);
 
     /// Return the number of collision shapes in this model.
     int GetNumShapes() const { return (int)m_shapes.size(); }

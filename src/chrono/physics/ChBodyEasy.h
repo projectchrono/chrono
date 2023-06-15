@@ -53,10 +53,10 @@ class ChApi ChBodyEasySphere : public ChBody {
     );
 
     /// Deserialization for non-default constructor classes.
-    virtual void ArchiveOUTconstructor(ChArchiveOut& marchive);
+    virtual void ArchiveOutConstructor(ChArchiveOut& marchive);
 
     /// Serialization for non-default constructor classes.
-    static void* ArchiveINconstructor(ChArchiveIn& marchive);
+    static void* ArchiveInConstructor(ChArchiveIn& marchive);
 
   private:
     void SetupBody(double radius,
@@ -94,10 +94,10 @@ class ChApi ChBodyEasyEllipsoid : public ChBody {
     );
 
     /// Deserialization for non-default constructor classes.
-    virtual void ArchiveOUTconstructor(ChArchiveOut& marchive);
+    virtual void ArchiveOutConstructor(ChArchiveOut& marchive);
 
     /// Serialization for non-default constructor classes.
-    static void* ArchiveINconstructor(ChArchiveIn& marchive);
+    static void* ArchiveInConstructor(ChArchiveIn& marchive);
 
   private:
     void SetupBody(ChVector<> axes,
@@ -140,10 +140,10 @@ class ChApi ChBodyEasyCylinder : public ChBody {
     );
 
     /// Deserialization for non-default constructor classes.
-    virtual void ArchiveOUTconstructor(ChArchiveOut& marchive);
+    virtual void ArchiveOutConstructor(ChArchiveOut& marchive);
 
     /// Serialization for non-default constructor classes.
-    static void* ArchiveINconstructor(ChArchiveIn& marchive);
+    static void* ArchiveInConstructor(ChArchiveIn& marchive);
 
   private:
     void SetupBody(geometry::ChAxis direction,
@@ -186,10 +186,10 @@ class ChApi ChBodyEasyBox : public ChBody {
     );
 
     /// Deserialization for non-default constructor classes.
-    virtual void ArchiveOUTconstructor(ChArchiveOut& marchive);
+    virtual void ArchiveOutConstructor(ChArchiveOut& marchive);
 
     /// Serialization for non-default constructor classes.
-    static void* ArchiveINconstructor(ChArchiveIn& marchive);
+    static void* ArchiveInConstructor(ChArchiveIn& marchive);
 
 private:
     void SetupBody(double Xsize,
@@ -234,10 +234,10 @@ class ChApi ChBodyEasyConvexHull : public ChBody {
     std::shared_ptr<geometry::ChTriangleMeshConnected> GetMesh() const { return m_mesh; }
 
     /// Deserialization for non-default constructor classes.
-    virtual void ArchiveOUTconstructor(ChArchiveOut& marchive);
+    virtual void ArchiveOutConstructor(ChArchiveOut& marchive);
 
     /// Serialization for non-default constructor classes.
-    static void* ArchiveINconstructor(ChArchiveIn& marchive);
+    static void* ArchiveInConstructor(ChArchiveIn& marchive);
 
   private:
     void SetupBody(std::vector<ChVector<>>& points,
@@ -280,10 +280,10 @@ class ChApi ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
     std::shared_ptr<geometry::ChTriangleMeshConnected> GetMesh() const { return m_mesh; }
 
     /// Deserialization for non-default constructor classes.
-    virtual void ArchiveOUTconstructor(ChArchiveOut& marchive);
+    virtual void ArchiveOutConstructor(ChArchiveOut& marchive);
 
     /// Serialization for non-default constructor classes.
-    static void* ArchiveINconstructor(ChArchiveIn& marchive);
+    static void* ArchiveInConstructor(ChArchiveIn& marchive);
 
   private:
     void SetupBody(std::vector<ChVector<>>& points,
@@ -350,10 +350,10 @@ class ChApi ChBodyEasyMesh : public ChBodyAuxRef {
     );
 
     /// Deserialization for non-default constructor classes.
-    virtual void ArchiveOUTconstructor(ChArchiveOut& marchive);
+    virtual void ArchiveOutConstructor(ChArchiveOut& marchive);
 
     /// Serialization for non-default constructor classes.
-    static void* ArchiveINconstructor(ChArchiveIn& marchive);
+    static void* ArchiveInConstructor(ChArchiveIn& marchive);
 
   private:
     void SetupBody(std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh,
@@ -400,10 +400,10 @@ class ChApi ChBodyEasyClusterOfSpheres : public ChBody {
     );
 
     /// Deserialization for non-default constructor classes.
-    virtual void ArchiveOUTconstructor(ChArchiveOut& marchive);
+    virtual void ArchiveOutConstructor(ChArchiveOut& marchive);
 
     /// Serialization for non-default constructor classes.
-    static void* ArchiveINconstructor(ChArchiveIn& marchive);
+    static void* ArchiveInConstructor(ChArchiveIn& marchive);
 
   private:
     void SetupBody(std::vector<ChVector<>>& positions,

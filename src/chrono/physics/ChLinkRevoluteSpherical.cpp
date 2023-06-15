@@ -414,12 +414,12 @@ ChVector<> ChLinkRevoluteSpherical::Get_react_torque_body2() {
     return VNULL;
 }
 
-void ChLinkRevoluteSpherical::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLinkRevoluteSpherical::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLinkRevoluteSpherical>();
 
     // serialize parent class
-    ChLink::ArchiveOUT(marchive);
+    ChLink::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(m_pos1);
@@ -429,12 +429,12 @@ void ChLinkRevoluteSpherical::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkRevoluteSpherical::ArchiveIN(ChArchiveIn& marchive) {
+void ChLinkRevoluteSpherical::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChLinkRevoluteSpherical>();
 
     // deserialize parent class
-    ChLink::ArchiveIN(marchive);
+    ChLink::ArchiveIn(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(m_pos1);

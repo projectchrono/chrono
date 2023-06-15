@@ -499,21 +499,21 @@ void ChContactContainerSMC::ConstraintsFbLoadForces(double factor) {
     GetLog() << "ChContactContainerSMC::ConstraintsFbLoadForces OBSOLETE - use new bookkeeping! \n";
 }
 
-void ChContactContainerSMC::ArchiveOUT(ChArchiveOut& marchive) {
+void ChContactContainerSMC::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChContactContainerSMC>();
     // serialize parent class
-    ChContactContainer::ArchiveOUT(marchive);
+    ChContactContainer::ArchiveOut(marchive);
     // serialize all member data:
     // NO SERIALIZATION of contact list because assume it is volatile and generated when needed
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChContactContainerSMC::ArchiveIN(ChArchiveIn& marchive) {
+void ChContactContainerSMC::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChContactContainerSMC>();
     // deserialize parent class
-    ChContactContainer::ArchiveIN(marchive);
+    ChContactContainer::ArchiveIn(marchive);
     // stream in all member data:
     RemoveAllContacts();
     // NO SERIALIZATION of contact list because assume it is volatile and generated when needed

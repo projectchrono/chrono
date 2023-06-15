@@ -24,21 +24,21 @@ ChFunction_Ramp::ChFunction_Ramp(const ChFunction_Ramp& other) {
     ang = other.ang;
 }
 
-void ChFunction_Ramp::ArchiveOUT(ChArchiveOut& marchive) {
+void ChFunction_Ramp::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChFunction_Ramp>();
     // serialize parent class
-    ChFunction::ArchiveOUT(marchive);
+    ChFunction::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(y0);
     marchive << CHNVP(ang);
 }
 
-void ChFunction_Ramp::ArchiveIN(ChArchiveIn& marchive) {
+void ChFunction_Ramp::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChFunction_Ramp>();
     // deserialize parent class
-    ChFunction::ArchiveIN(marchive);
+    ChFunction::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(y0);
     marchive >> CHNVP(ang);

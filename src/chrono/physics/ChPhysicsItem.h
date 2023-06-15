@@ -133,10 +133,10 @@ class ChApi ChPhysicsItem : public ChObj {
 
     /// Method to deserialize only the state (position, speed)
     /// Must be implemented by child classes.
-    virtual void StreamINstate(ChStreamInBinary& mstream) {}
+    virtual void StreamInstate(ChStreamInBinary& mstream) {}
     /// Method to serialize only the state (position, speed)
     /// Must be implemented by child classes.
-    virtual void StreamOUTstate(ChStreamOutBinary& mstream) {}
+    virtual void StreamOutstate(ChStreamOutBinary& mstream) {}
 
     // UPDATING  - child classes may implement these functions
 
@@ -423,10 +423,10 @@ class ChApi ChPhysicsItem : public ChObj {
     // SERIALIZATION
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   protected:
     ChSystem* system;  ///< parent system

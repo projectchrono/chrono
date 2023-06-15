@@ -177,11 +177,11 @@ void ChLineCam::Evaluate(ChVector<>& pos, const double parU) const {
     EvaluateCamPoint(parU, pos, gtmp, qtmp);
 }
 
-void ChLineCam::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLineCam::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLineCam>();
     // serialize parent class
-    ChLine::ArchiveOUT(marchive);
+    ChLine::ArchiveOut(marchive);
     // serialize all member data:
 
     eChCamType_mapper mmapper;
@@ -200,11 +200,11 @@ void ChLineCam::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(center);
 }
 
-void ChLineCam::ArchiveIN(ChArchiveIn& marchive) {
+void ChLineCam::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChLineCam>();
     // deserialize parent class
-    ChLine::ArchiveIN(marchive);
+    ChLine::ArchiveIn(marchive);
     // stream in all member data:
     eChCamType_mapper mmapper;
     marchive >> CHNVP(mmapper(type), "type");

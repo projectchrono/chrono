@@ -884,10 +884,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOut(ChArchiveOut& marchive);
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIn(ChArchiveIn& marchive);
 
     /// Process a ".chr" binary file containing the full system object
     /// hierarchy as exported -for example- by the R3D modeler, with chrono plug-in version,

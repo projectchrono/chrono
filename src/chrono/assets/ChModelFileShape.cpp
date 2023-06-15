@@ -27,20 +27,20 @@ ChModelFileShape::ChModelFileShape(const std::string& fname) : filename(fname) {
     SetMutable(false);
 }
 
-void ChModelFileShape::ArchiveOUT(ChArchiveOut& marchive) {
+void ChModelFileShape::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChModelFileShape>();
     // serialize parent class
-    ChVisualShape::ArchiveOUT(marchive);
+    ChVisualShape::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(filename);
 }
 
-void ChModelFileShape::ArchiveIN(ChArchiveIn& marchive) {
+void ChModelFileShape::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChModelFileShape>();
     // deserialize parent class
-    ChVisualShape::ArchiveIN(marchive);
+    ChVisualShape::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(filename);
 }

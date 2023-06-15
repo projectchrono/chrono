@@ -106,11 +106,11 @@ ChVector<> ChFunctionRotation_setpoint::Get_a_loc(double s) const {
     return A;
 }
 
-void ChFunctionRotation_setpoint::ArchiveOUT(ChArchiveOut& marchive) {
+void ChFunctionRotation_setpoint::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChFunctionRotation_setpoint>();
     // serialize parent class
-    ChFunctionRotation::ArchiveOUT(marchive);
+    ChFunctionRotation::ArchiveOut(marchive);
     // serialize all member data:
     eChSetpointMode_mapper mmapper;
     marchive << CHNVP(mmapper(mode), "mode");
@@ -119,11 +119,11 @@ void ChFunctionRotation_setpoint::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(A);
 }
 
-void ChFunctionRotation_setpoint::ArchiveIN(ChArchiveIn& marchive) {
+void ChFunctionRotation_setpoint::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChFunctionRotation_setpoint>();
     // deserialize parent class
-    ChFunctionRotation::ArchiveIN(marchive);
+    ChFunctionRotation::ArchiveIn(marchive);
     // deserialize all member data:
     eChSetpointMode_mapper mmapper;
     marchive >> CHNVP(mmapper(mode), "mode");

@@ -1084,11 +1084,11 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
 
         chrono::ChStreamOutAsciiFile file_x((output_dir + "/" + prefix + "_x_pre.dat").c_str());
         file_x.SetNumFormat(numformat);
-        StreamOUTdenseMatlabFormat(x, file_x);
+        StreamOutDenseMatlabFormat(x, file_x);
 
         chrono::ChStreamOutAsciiFile file_v((output_dir + "/" + prefix + "_v_pre.dat").c_str());
         file_v.SetNumFormat(numformat);
-        StreamOUTdenseMatlabFormat(v, file_v);
+        StreamOutDenseMatlabFormat(v, file_v);
     }
 
     GetSolver()->EnableWrite(write_matrix, std::to_string(stepcount) + "_" + std::to_string(solvecount), output_dir);
@@ -1120,11 +1120,11 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
 
         chrono::ChStreamOutAsciiFile file_Dv((output_dir + "/" + prefix + "Dv.dat").c_str());
         file_Dv.SetNumFormat(numformat);
-        StreamOUTdenseMatlabFormat(Dv, file_Dv);
+        StreamOutDenseMatlabFormat(Dv, file_Dv);
 
         chrono::ChStreamOutAsciiFile file_L((output_dir + "/" + prefix + "L.dat").c_str());
         file_L.SetNumFormat(numformat);
-        StreamOUTdenseMatlabFormat(L, file_L);
+        StreamOutDenseMatlabFormat(L, file_L);
 
         // Just for diagnostic, dump also unscaled loads (forces,torques),
         // since the .._f.dat vector dumped in WriteMatrixBlocks() might contain scaled loads, and also +M*v
@@ -1133,7 +1133,7 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
         LoadResidual_F(tempF, 1.0);
         chrono::ChStreamOutAsciiFile file_F((output_dir + "/" + prefix + "F_pre.dat").c_str());
         file_F.SetNumFormat(numformat);
-        StreamOUTdenseMatlabFormat(tempF, file_F);
+        StreamOutDenseMatlabFormat(tempF, file_F);
     }
 
     solvecount++;
@@ -1356,7 +1356,7 @@ void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool sa
         sprintf(filename, "%s%s", path, "_M.dat");
         ChStreamOutAsciiFile file_M(filename);
         file_M.SetNumFormat(numformat);
-        StreamOUTsparseMatlabFormat(mM, file_M);
+        StreamOutSparseMatlabFormat(mM, file_M);
     }
     if (save_K) {
         ChSparseMatrix mK;
@@ -1364,7 +1364,7 @@ void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool sa
         sprintf(filename, "%s%s", path, "_K.dat");
         ChStreamOutAsciiFile file_K(filename);
         file_K.SetNumFormat(numformat);
-        StreamOUTsparseMatlabFormat(mK, file_K);
+        StreamOutSparseMatlabFormat(mK, file_K);
     }
     if (save_R) {
         ChSparseMatrix mR;
@@ -1372,7 +1372,7 @@ void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool sa
         sprintf(filename, "%s%s", path, "_R.dat");
         ChStreamOutAsciiFile file_R(filename);
         file_R.SetNumFormat(numformat);
-        StreamOUTsparseMatlabFormat(mR, file_R);
+        StreamOutSparseMatlabFormat(mR, file_R);
     }
     if (save_Cq) {
         ChSparseMatrix mCq;
@@ -1380,7 +1380,7 @@ void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool sa
         sprintf(filename, "%s%s", path, "_Cq.dat");
         ChStreamOutAsciiFile file_Cq(filename);
         file_Cq.SetNumFormat(numformat);
-        StreamOUTsparseMatlabFormat(mCq, file_Cq);
+        StreamOutSparseMatlabFormat(mCq, file_Cq);
     }
 }
 
@@ -1580,7 +1580,7 @@ bool ChSystem::DoStaticLinear() {
         chrono::ChVectorDynamic<double> mx;
         GetSystemDescriptor()->FromUnknownsToVector(mx, true);  // x ={q,-l}
         chrono::ChStreamOutAsciiFile file_x("solve_x.dat");
-        StreamOUTdenseMatlabFormat(mx, file_x);
+        StreamOutDenseMatlabFormat(mx, file_x);
 
         chrono::ChVectorDynamic<double> mZx;
         GetSystemDescriptor()->SystemProduct(mZx, mx);  // Zx = Z*x
@@ -1978,12 +1978,12 @@ bool ChSystem::DoFullAssembly() {
 // -----------------------------------------------------------------------------
 //  STREAMING - FILE HANDLING
 
-void ChSystem::ArchiveOUT(ChArchiveOut& marchive) {
+void ChSystem::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChSystem>();
 
     // serialize underlying assembly
-    assembly.ArchiveOUT(marchive);
+    assembly.ArchiveOut(marchive);
 
     // serialize all member data:
 
@@ -2013,12 +2013,12 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 // Method to allow de serialization of transient data from archives.
-void ChSystem::ArchiveIN(ChArchiveIn& marchive) {
+void ChSystem::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/marchive.VersionRead<ChSystem>();
 
     // deserialize unerlying assembly
-    assembly.ArchiveIN(marchive);
+    assembly.ArchiveIn(marchive);
 
     // stream in all member data:
 
@@ -2061,7 +2061,7 @@ int ChSystem::FileProcessChR(ChStreamInBinary& m_file) {
     if (mchunk != CH_CHUNK_START)
         throw ChException("Not a ChR data file.");
 
-    // StreamINall(m_file);
+    // StreamInall(m_file);
 
     m_file >> mchunk;
     if (mchunk != CH_CHUNK_END)
@@ -2073,7 +2073,7 @@ int ChSystem::FileProcessChR(ChStreamInBinary& m_file) {
 int ChSystem::FileWriteChR(ChStreamOutBinary& m_file) {
     m_file << CH_CHUNK_START;
 
-    // StreamOUTall(m_file);
+    // StreamOutall(m_file);
 
     m_file << CH_CHUNK_END;
 

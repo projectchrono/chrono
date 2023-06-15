@@ -26,12 +26,12 @@ ChLinkBase::ChLinkBase(const ChLinkBase& other) : ChPhysicsItem(other) {
     broken = other.broken;
 }
 
-void ChLinkBase::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLinkBase::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLinkBase>();
 
     // serialize parent class
-    ChPhysicsItem::ArchiveOUT(marchive);
+    ChPhysicsItem::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(disabled);
@@ -39,12 +39,12 @@ void ChLinkBase::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(broken);
 }
 
-void ChLinkBase::ArchiveIN(ChArchiveIn& marchive) {
+void ChLinkBase::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChLinkBase>();
 
     // deserialize parent class
-    ChPhysicsItem::ArchiveIN(marchive);
+    ChPhysicsItem::ArchiveIn(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(disabled);

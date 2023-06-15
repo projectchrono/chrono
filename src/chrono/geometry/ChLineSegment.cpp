@@ -37,21 +37,21 @@ void ChLineSegment::Evaluate(ChVector<>& pos, const double parU) const {
     pos = pA * (1 - parU) + pB * parU;
 }
 
-void ChLineSegment::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLineSegment::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLineSegment>();
     // serialize parent class
-    ChLine::ArchiveOUT(marchive);
+    ChLine::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(pA);
     marchive << CHNVP(pB);
 }
 
-void ChLineSegment::ArchiveIN(ChArchiveIn& marchive) {
+void ChLineSegment::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChLineSegment>();
     // deserialize parent class
-    ChLine::ArchiveIN(marchive);
+    ChLine::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(pA);
     marchive >> CHNVP(pB);

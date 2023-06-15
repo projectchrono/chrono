@@ -916,11 +916,11 @@ std::vector<double> ChCollisionModelBullet::GetShapeDimensions(int index) const 
     return dims;
 }
 
-void ChCollisionModelBullet::ArchiveOUT(ChArchiveOut& marchive) {
+void ChCollisionModelBullet::ArchiveOut(ChArchiveOut& marchive) {
     //// RADU TODO
 }
 
-void ChCollisionModelBullet::ArchiveIN(ChArchiveIn& marchive) {
+void ChCollisionModelBullet::ArchiveIn(ChArchiveIn& marchive) {
     //// RADU TODO
 }
 
@@ -938,11 +938,11 @@ void __recurse_add_newcollshapes(cbtCollisionShape* ashape, std::vector<std::sha
     }
 }
 
-void ChCollisionModelBullet::ArchiveOUT(ChArchiveOut& marchive) {
+void ChCollisionModelBullet::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChCollisionModelBullet>();
     // serialize parent class
-    ChCollisionModel::ArchiveOUT(marchive);
+    ChCollisionModel::ArchiveOut(marchive);
 
     // serialize all member data:
     std::vector<char> serialized(0);
@@ -968,11 +968,11 @@ void ChCollisionModelBullet::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(serialized, "bullet_serialized_bytes");
 }
 
-void ChCollisionModelBullet::ArchiveIN(ChArchiveIn& marchive) {
+void ChCollisionModelBullet::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead<ChCollisionModelBullet>();
     // deserialize parent class
-    ChCollisionModel::ArchiveIN(marchive);
+    ChCollisionModel::ArchiveIn(marchive);
 
     // stream in all member data:
 

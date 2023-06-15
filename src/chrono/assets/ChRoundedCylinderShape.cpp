@@ -34,20 +34,20 @@ ChRoundedCylinderShape::ChRoundedCylinderShape(const geometry::ChRoundedCylinder
     SetMutable(false);
 }
 
-void ChRoundedCylinderShape::ArchiveOUT(ChArchiveOut& marchive) {
+void ChRoundedCylinderShape::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChRoundedCylinderShape>();
     // serialize parent class
-    ChVisualShape::ArchiveOUT(marchive);
+    ChVisualShape::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(groundedcyl);
 }
 
-void ChRoundedCylinderShape::ArchiveIN(ChArchiveIn& marchive) {
+void ChRoundedCylinderShape::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChRoundedCylinderShape>();
     // deserialize parent class
-    ChVisualShape::ArchiveIN(marchive);
+    ChVisualShape::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(groundedcyl);
 }

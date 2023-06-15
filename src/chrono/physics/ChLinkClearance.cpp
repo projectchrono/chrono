@@ -182,12 +182,12 @@ void ChLinkClearance::UpdateTime(double mytime) {
     deltaC_dtdt.rot = QNULL;
 }
 
-void ChLinkClearance::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLinkClearance::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLinkClearance>();
 
     // serialize parent class
-    ChLinkLockLock::ArchiveOUT(marchive);
+    ChLinkLockLock::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(clearance);
@@ -199,12 +199,12 @@ void ChLinkClearance::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkClearance::ArchiveIN(ChArchiveIn& marchive) {
+void ChLinkClearance::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChLinkClearance>();
 
     // deserialize parent class
-    ChLinkLockLock::ArchiveIN(marchive);
+    ChLinkLockLock::ArchiveIn(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(clearance);

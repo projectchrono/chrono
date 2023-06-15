@@ -127,7 +127,7 @@ class ChApi ChStreamOutAscii : public ChStreamOut {
     //  Operators
 
     /// Generic << operator for all classes which implement serialization
-    /// by means of a method named  'void StreamOUT(ChStreamOutAscii&)'
+    /// by means of a method named  'void StreamOut(ChStreamOutAscii&)'
 
     ChStreamOutAscii& operator<<(bool bVal);
     ChStreamOutAscii& operator<<(char tch);
@@ -141,10 +141,10 @@ class ChApi ChStreamOutAscii : public ChStreamOut {
     ChStreamOutAscii& operator<<(unsigned long unVal);
     ChStreamOutAscii& operator<<(unsigned long long unVal);
 
-    ///***OBSOLETE*** use ChArchive << operator and ArchiveOUT()
+    ///***OBSOLETE*** use ChArchive << operator and ArchiveOut()
     template <class T>
     ChStreamOutAscii& operator<(T obj) {
-        obj.StreamOUT(*this);
+        obj.StreamOut(*this);
         return *this;
     }
 
@@ -304,11 +304,11 @@ class ChApi ChStreamOutBinary : public ChStreamOut, public ChBinaryArchive {
     //  Operators
 
     /// Generic << operator for all classes which implement serialization
-    /// by means of a method named  'void StreamOUT(ChStreamOutBinary&)'
-    ///***OBSOLETE*** use ChArchive << operator and ArchiveOUT()
+    /// by means of a method named  'void StreamOut(ChStreamOutBinary&)'
+    ///***OBSOLETE*** use ChArchive << operator and ArchiveOut()
     template <class T>
     ChStreamOutBinary& operator<(T& obj) {
-        obj.StreamOUT(*this);
+        obj.StreamOut(*this);
         return *this;
     }
 
@@ -348,7 +348,7 @@ class ChApi ChStreamOutBinary : public ChStreamOut, public ChBinaryArchive {
     /// Note: the object must be load with ChStreamInBinary::AbstractReadCreate()
     /// Also, the AbstractWrite()-AbstractReadCreate() mechanism avoids
     /// storing/creating multiple times the shared objects.
-    /// Supports only objects with Chrono RTTI and serializer member StreamOUT().
+    /// Supports only objects with Chrono RTTI and serializer member StreamOut().
     ///***OBSOLETE*** use ChArchive << operator
     template <class t>
     t* AbstractWrite(t* pObj) {
@@ -376,7 +376,7 @@ class ChApi ChStreamOutBinary : public ChStreamOut, public ChBinaryArchive {
     /// Note: the object must be load with ChStreamInBinary::AbstractReadCreate()
     /// Also, the AbstractWrite()-AbstractReadCreate() mechanism avoids
     /// storing/creating multiple times the shared objects.
-    /// Supports only objects with Chrono RTTI and serializer member StreamOUT().
+    /// Supports only objects with Chrono RTTI and serializer member StreamOut().
     ///***OBSOLETE*** use ChArchive << operator
     template <class t>
     t* AbstractWriteAll(t* pObj) {
@@ -386,7 +386,7 @@ class ChApi ChStreamOutBinary : public ChStreamOut, public ChBinaryArchive {
             // New Object, we have to full serialize it
             std::string str = pObj->FactoryNameTag();
             *this << str;               // serialize class type
-            pObj->StreamOUTall(*this);  // serialize data
+            pObj->StreamOutall(*this);  // serialize data
         } else {
             // Object already in list. Only store position
             std::string str = "NULL";
@@ -422,10 +422,10 @@ class ChApi ChStreamInBinary : public ChStreamIn, public ChBinaryArchive {
     //  Operators
 
     /// Generic >> operator for all classes which implement serialization
-    /// by means of a method named  'void StreamIN(ChStreamInBinary&)'
+    /// by means of a method named  'void StreamIn(ChStreamInBinary&)'
     template <class T>
     ChStreamInBinary& operator>>(T& obj) {
-        obj.StreamIN(*this);
+        obj.StreamIn(*this);
         return *this;
     }
 
@@ -465,7 +465,7 @@ class ChApi ChStreamInBinary : public ChStreamIn, public ChBinaryArchive {
     /// Note: the object must be saved with ChStreamOutBinary::AbstractWrite()
     /// Also, the AbstractWrite()-AbstractReadCreate() mechanism avoids
     /// storing/creating multiple times the shared objects.
-    /// Supports only objects with Chrono RTTI and serializer member StreamIN().
+    /// Supports only objects with Chrono RTTI and serializer member StreamIn().
     template <class t>
     t* AbstractReadCreate(t** mObj) {
         std::string cls_name;
@@ -504,7 +504,7 @@ class ChApi ChStreamInBinary : public ChStreamIn, public ChBinaryArchive {
     /// Note: the object must be saved with ChStreamOutBinary::AbstractWrite()
     /// Also, the AbstractWrite()-AbstractReadCreate() mechanism avoids
     /// storing/creating multiple times the shared objects.
-    /// Supports only objects with Chrono RTTI and serializer member StreamIN().
+    /// Supports only objects with Chrono RTTI and serializer member StreamIn().
     template <class t>
     t* AbstractReadAllCreate(t** mObj) {
         std::string cls_name;
@@ -520,7 +520,7 @@ class ChApi ChStreamInBinary : public ChStreamIn, public ChBinaryArchive {
             if ((*mObj) != NULL) {
                 objects_pointers.push_back(*mObj);
                 // 3) Deserialize
-                (*mObj)->StreamINall(*this);
+                (*mObj)->StreamInall(*this);
                 //*this >> **mObj;
             } else {
                 throw(ChException("Stream cannot create object"));

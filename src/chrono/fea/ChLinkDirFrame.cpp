@@ -237,11 +237,11 @@ void ChLinkDirFrame::ConstraintsFetch_react(double factor) {
 
 // FILE I/O
 
-void ChLinkDirFrame::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLinkDirFrame::ArchiveOut(ChArchiveOut& marchive) {
     //// TODO
 }
 
-void ChLinkDirFrame::ArchiveIN(ChArchiveIn& marchive) {
+void ChLinkDirFrame::ArchiveIn(ChArchiveIn& marchive) {
     //// TODO
 }
 

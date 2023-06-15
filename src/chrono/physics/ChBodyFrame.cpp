@@ -30,20 +30,20 @@ void ChBodyFrame::To_abs_forcetorque(const ChVector<>& force,
     }
 }
 
-void ChBodyFrame::ArchiveOUT(ChArchiveOut& marchive) {
+void ChBodyFrame::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChBodyFrame>();
 
     // serialize parent class
-    ChFrameMoving<double>::ArchiveOUT(marchive);
+    ChFrameMoving<double>::ArchiveOut(marchive);
 }
 
-void ChBodyFrame::ArchiveIN(ChArchiveIn& marchive) {
+void ChBodyFrame::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChBodyFrame>();
 
     // deserialize parent class
-    ChFrameMoving<double>::ArchiveIN(marchive);
+    ChFrameMoving<double>::ArchiveIn(marchive);
 }
 
 }  // end namespace chrono

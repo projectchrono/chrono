@@ -26,22 +26,22 @@ using namespace geometry;
 // Register into the object factory, to enable run-time dynamic creation and persistence
 //CH_FACTORY_REGISTER(ChIndexedNodes) // NO! abstract class!
 
-void ChIndexedNodes::ArchiveOUT(ChArchiveOut& marchive) {
+void ChIndexedNodes::ArchiveOut(ChArchiveOut& marchive) {
     // class version number
     marchive.VersionWrite<ChIndexedNodes>();
 
     // serialize parent class too
-    ChPhysicsItem::ArchiveOUT(marchive);
+    ChPhysicsItem::ArchiveOut(marchive);
 
     // stream out all member data
 }
 
-void ChIndexedNodes::ArchiveIN(ChArchiveIn& marchive) {
+void ChIndexedNodes::ArchiveIn(ChArchiveIn& marchive) {
     // class version number
     /*int version =*/ marchive.VersionRead<ChIndexedNodes>();
 
     // deserialize parent class too
-    ChPhysicsItem::ArchiveIN(marchive);
+    ChPhysicsItem::ArchiveIn(marchive);
 
     // stream in all member data
 }

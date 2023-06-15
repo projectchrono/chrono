@@ -34,13 +34,13 @@ class ChApi ChRecPoint {
     ChRecPoint() {}
     ChRecPoint(double mx, double my, double mw) : x(mx), y(my), w(mw) {}
 
-    void ArchiveOUT(ChArchiveOut& marchive) {
+    void ArchiveOut(ChArchiveOut& marchive) {
         marchive << CHNVP(x);
         marchive << CHNVP(y);
         marchive << CHNVP(w);
     }
 
-    void ArchiveIN(ChArchiveIn& marchive) {
+    void ArchiveIn(ChArchiveIn& marchive) {
         marchive >> CHNVP(x);
         marchive >> CHNVP(y);
         marchive >> CHNVP(w);
@@ -83,10 +83,10 @@ class ChApi ChFunction_Recorder : public ChFunction {
     virtual void Estimate_x_range(double& xmin, double& xmax) const override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& marchive) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& marchive) override;
 };
 
 /// @} chrono_functions

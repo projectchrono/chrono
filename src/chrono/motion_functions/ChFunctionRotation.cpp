@@ -45,12 +45,12 @@ ChVector<> ChFunctionRotation::Get_a_loc(double s) const {
         return Gl * qdtdt;
 }
 
-void ChFunctionRotation::ArchiveOUT(ChArchiveOut& marchive) {
+void ChFunctionRotation::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChFunctionRotation>();
 }
 
-void ChFunctionRotation::ArchiveIN(ChArchiveIn& marchive) {
+void ChFunctionRotation::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChFunctionRotation>();
 }

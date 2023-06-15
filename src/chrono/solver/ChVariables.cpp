@@ -44,7 +44,7 @@ ChVariables& ChVariables::operator=(const ChVariables& other) {
 }
 
 
-void ChVariables::ArchiveOUT(ChArchiveOut& marchive) {
+void ChVariables::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChVariables>();
     // serialize all member data:
@@ -53,7 +53,7 @@ void ChVariables::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(offset); // TODO: check_if_serialize_needed
 }
 
-void ChVariables::ArchiveIN(ChArchiveIn& marchive) {
+void ChVariables::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChVariables>();
     // stream in all member data:

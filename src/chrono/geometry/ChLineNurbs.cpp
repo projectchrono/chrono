@@ -107,11 +107,11 @@ void ChLineNurbs::SetupData(
         this->weights.setConstant(n, 1.0);
 }
 
-void ChLineNurbs::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLineNurbs::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLineNurbs>();
     // serialize parent class
-    ChLine::ArchiveOUT(marchive);
+    ChLine::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(points);
     ////marchive << CHNVP(weights); //**TODO MATRIX DESERIALIZATION
@@ -119,11 +119,11 @@ void ChLineNurbs::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(p);
 }
 
-void ChLineNurbs::ArchiveIN(ChArchiveIn& marchive) {
+void ChLineNurbs::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChLineNurbs>();
     // deserialize parent class
-    ChLine::ArchiveIN(marchive);
+    ChLine::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(points);
     ////marchive >> CHNVP(weights); //**TODO MATRIX DESERIALIZATION

@@ -101,11 +101,11 @@ double ChFunction_ConstAcc::Get_Cv() const {
     return 2 * (end) / (end - av * end + aw * end);
 }
 
-void ChFunction_ConstAcc::ArchiveOUT(ChArchiveOut& marchive) {
+void ChFunction_ConstAcc::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChFunction_ConstAcc>();
     // serialize parent class
-    ChFunction::ArchiveOUT(marchive);
+    ChFunction::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(h);
     marchive << CHNVP(end);
@@ -113,11 +113,11 @@ void ChFunction_ConstAcc::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(av);
 }
 
-void ChFunction_ConstAcc::ArchiveIN(ChArchiveIn& marchive) {
+void ChFunction_ConstAcc::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChFunction_ConstAcc>();
     // deserialize parent class
-    ChFunction::ArchiveIN(marchive);
+    ChFunction::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(h);
     marchive >> CHNVP(end);

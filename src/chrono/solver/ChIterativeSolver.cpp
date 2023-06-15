@@ -39,12 +39,12 @@ void ChIterativeSolver::SaveMatrix(ChSystemDescriptor& sysd) {
     {
         ChStreamOutAsciiFile file("Z1.dat");
         file.SetNumFormat("%.12g");
-        StreamOUTsparseMatlabFormat(Z1, file);
+        StreamOutSparseMatlabFormat(Z1, file);
     }
     {
         ChStreamOutAsciiFile file("Z2.dat");
         file.SetNumFormat("%.12g");
-        StreamOUTdenseMatlabFormat(Z2, file);
+        StreamOutDenseMatlabFormat(Z2, file);
     }
 
     // Assemble RHS
@@ -59,12 +59,12 @@ void ChIterativeSolver::SaveMatrix(ChSystemDescriptor& sysd) {
     {
         ChStreamOutAsciiFile file("rhs1.dat");
         file.SetNumFormat("%.12g");
-        StreamOUTdenseMatlabFormat(rhs1, file);
+        StreamOutDenseMatlabFormat(rhs1, file);
     }
     {
         ChStreamOutAsciiFile file("rhs2.dat");
         file.SetNumFormat("%.12g");
-        StreamOUTdenseMatlabFormat(rhs2, file);
+        StreamOutDenseMatlabFormat(rhs2, file);
     }
 }
 

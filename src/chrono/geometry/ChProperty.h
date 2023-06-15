@@ -53,9 +53,9 @@ public:
     std::string name;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) { marchive << CHNVP(name); };
+    virtual void ArchiveOut(ChArchiveOut& marchive) { marchive << CHNVP(name); };
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) {  marchive >> CHNVP(name); };
+    virtual void ArchiveIn(ChArchiveIn& marchive) {  marchive >> CHNVP(name); };
 };
 
 /// Templated property: a generic array of items of type T.
@@ -83,14 +83,14 @@ public:
     double min;
     double max;
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override { 
-        ChProperty::ArchiveOUT(marchive);
+    virtual void ArchiveOut(ChArchiveOut& marchive) override { 
+        ChProperty::ArchiveOut(marchive);
         marchive << CHNVP(data);
         marchive << CHNVP(min);
         marchive << CHNVP(max);
     };
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        ChProperty::ArchiveIN(marchive);
+    virtual void ArchiveIn(ChArchiveIn& marchive) override {
+        ChProperty::ArchiveIn(marchive);
         marchive >> CHNVP(data);
         marchive >> CHNVP(min);
         marchive >> CHNVP(max);

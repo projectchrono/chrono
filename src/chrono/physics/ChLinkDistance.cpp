@@ -213,12 +213,12 @@ void ChLinkDistance::ConstraintsFetch_react(double factor) {
     react_torque = VNULL;
 }
 
-void ChLinkDistance::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLinkDistance::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLinkDistance>();
 
     // serialize parent class
-    ChLink::ArchiveOUT(marchive);
+    ChLink::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(distance);
@@ -227,12 +227,12 @@ void ChLinkDistance::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkDistance::ArchiveIN(ChArchiveIn& marchive) {
+void ChLinkDistance::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChLinkDistance>();
 
     // deserialize parent class
-    ChLink::ArchiveIN(marchive);
+    ChLink::ArchiveIn(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(distance);

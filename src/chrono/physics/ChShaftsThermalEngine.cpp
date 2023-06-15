@@ -50,12 +50,12 @@ double ChShaftsThermalEngine::ComputeTorque() {
     return modulated_T;
 }
 
-void ChShaftsThermalEngine::ArchiveOUT(ChArchiveOut& marchive) {
+void ChShaftsThermalEngine::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChShaftsThermalEngine>();
 
     // serialize parent class
-    ChShaftsTorqueBase::ArchiveOUT(marchive);
+    ChShaftsTorqueBase::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(Tw);
@@ -63,12 +63,12 @@ void ChShaftsThermalEngine::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaftsThermalEngine::ArchiveIN(ChArchiveIn& marchive) {
+void ChShaftsThermalEngine::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChShaftsThermalEngine>();
 
     // deserialize parent class:
-    ChShaftsTorqueBase::ArchiveIN(marchive);
+    ChShaftsTorqueBase::ArchiveIn(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(Tw);

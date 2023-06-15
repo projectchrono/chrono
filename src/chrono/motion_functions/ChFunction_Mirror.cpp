@@ -38,21 +38,21 @@ void ChFunction_Mirror::Estimate_x_range(double& xmin, double& xmax) const {
     fa->Estimate_x_range(xmin, xmax);
 }
 
-void ChFunction_Mirror::ArchiveOUT(ChArchiveOut& marchive) {
+void ChFunction_Mirror::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChFunction_Mirror>();
     // serialize parent class
-    ChFunction::ArchiveOUT(marchive);
+    ChFunction::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(fa);
     marchive << CHNVP(mirror_axis);
 }
 
-void ChFunction_Mirror::ArchiveIN(ChArchiveIn& marchive) {
+void ChFunction_Mirror::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChFunction_Mirror>();
     // deserialize parent class
-    ChFunction::ArchiveIN(marchive);
+    ChFunction::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(fa);
     marchive >> CHNVP(mirror_axis);

@@ -473,23 +473,23 @@ void ChLinkTSDA::ConstraintsFbLoadForces(double factor) {
 
 // -----------------------------------------------------------------------------
 
-void ChLinkTSDA::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLinkTSDA::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLinkTSDA>();
 
     // serialize parent class
-    ChLink::ArchiveOUT(marchive);
+    ChLink::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(m_rest_length);
 }
 
-void ChLinkTSDA::ArchiveIN(ChArchiveIn& marchive) {
+void ChLinkTSDA::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChLinkTSDA>();
 
     // deserialize parent class
-    ChLink::ArchiveIN(marchive);
+    ChLink::ArchiveIn(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(m_rest_length);

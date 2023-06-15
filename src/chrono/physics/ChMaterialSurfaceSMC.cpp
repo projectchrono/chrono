@@ -49,12 +49,12 @@ ChMaterialSurfaceSMC::ChMaterialSurfaceSMC(const ChMaterialSurfaceSMC& other) : 
     gt = other.gt;
 }
 
-void ChMaterialSurfaceSMC::ArchiveOUT(ChArchiveOut& marchive) {
+void ChMaterialSurfaceSMC::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChMaterialSurfaceSMC>();
 
     // serialize parent class
-    ChMaterialSurface::ArchiveOUT(marchive);
+    ChMaterialSurface::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(young_modulus);
@@ -68,12 +68,12 @@ void ChMaterialSurfaceSMC::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(gt);
 }
 
-void ChMaterialSurfaceSMC::ArchiveIN(ChArchiveIn& marchive) {
+void ChMaterialSurfaceSMC::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChMaterialSurfaceSMC>();
 
     // deserialize parent class
-    ChMaterialSurface::ArchiveIN(marchive);
+    ChMaterialSurface::ArchiveIn(marchive);
 
     // stream in all member data:
     marchive >> CHNVP(young_modulus);

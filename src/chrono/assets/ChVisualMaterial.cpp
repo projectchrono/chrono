@@ -148,7 +148,7 @@ void ChVisualMaterial::SetMetallic(float m) {
     metallic = std::max(0.001f, std::min(m, 1.f));
 }
 
-void ChVisualMaterial::ArchiveOUT(ChArchiveOut& marchive) {
+void ChVisualMaterial::ArchiveOut(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChVisualMaterial>();
 
     marchive << CHNVP(Ka);
@@ -177,7 +177,7 @@ void ChVisualMaterial::ArchiveOUT(ChArchiveOut& marchive) {
 
 }
 
-void ChVisualMaterial::ArchiveIN(ChArchiveIn& marchive) {
+void ChVisualMaterial::ArchiveIn(ChArchiveIn& marchive) {
     /*int version =*/marchive.VersionRead<ChVisualMaterial>();
 
     marchive >> CHNVP(Ka);

@@ -71,22 +71,22 @@ void ChFunctionPosition_XYZfunctions::Estimate_s_domain(double& smin, double& sm
 
 
 
-void ChFunctionPosition_XYZfunctions::ArchiveOUT(ChArchiveOut& marchive) {
+void ChFunctionPosition_XYZfunctions::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChFunctionPosition>();
 	// serialize parent class
-    ChFunctionPosition::ArchiveOUT(marchive);
+    ChFunctionPosition::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(px);
 	marchive << CHNVP(py);
 	marchive << CHNVP(pz);
 }
 
-void ChFunctionPosition_XYZfunctions::ArchiveIN(ChArchiveIn& marchive) {
+void ChFunctionPosition_XYZfunctions::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChFunctionPosition_XYZfunctions>();
 	// deserialize parent class
-    ChFunctionPosition::ArchiveIN(marchive);
+    ChFunctionPosition::ArchiveIn(marchive);
     // deserialize all member data:
     marchive >> CHNVP(px);
 	marchive >> CHNVP(py);

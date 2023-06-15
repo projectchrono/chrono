@@ -36,7 +36,7 @@ void ChTexture::SetScale(const ChVector2<float>& scale) {
     m_scale = scale;
 }
 
-void ChTexture::ArchiveOUT(ChArchiveOut& marchive) {
+void ChTexture::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChTexture>();
     // serialize all member data:
@@ -44,7 +44,7 @@ void ChTexture::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(m_scale);
 }
 
-void ChTexture::ArchiveIN(ChArchiveIn& marchive) {
+void ChTexture::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/marchive.VersionRead<ChTexture>();
     // stream in all member data:

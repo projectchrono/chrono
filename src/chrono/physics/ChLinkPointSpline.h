@@ -46,10 +46,10 @@ class ChApi ChLinkPointSpline : public ChLinkLockLock {
     virtual void UpdateTime(double mytime) override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
     std::shared_ptr<geometry::ChLine> trajectory_line;  ///< line for the trajectory

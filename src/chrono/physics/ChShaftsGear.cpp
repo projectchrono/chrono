@@ -147,12 +147,12 @@ void ChShaftsGear::ConstraintsFetch_react(double factor) {
 
 //////// FILE I/O
 
-void ChShaftsGear::ArchiveOUT(ChArchiveOut& marchive) {
+void ChShaftsGear::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChShaftsGear>();
 
     // serialize parent class
-    ChShaftsCouple::ArchiveOUT(marchive);
+    ChShaftsCouple::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(ratio);
@@ -162,12 +162,12 @@ void ChShaftsGear::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaftsGear::ArchiveIN(ChArchiveIn& marchive) {
+void ChShaftsGear::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChShaftsGear>();
 
     // deserialize parent class:
-    ChShaftsCouple::ArchiveIN(marchive);
+    ChShaftsCouple::ArchiveIn(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(ratio);

@@ -304,11 +304,11 @@ void ChLinkBeamIGAslider::ConstraintsFetch_react(double factor) {
 
 // FILE I/O
 
-void ChLinkBeamIGAslider::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLinkBeamIGAslider::ArchiveOut(ChArchiveOut& marchive) {
     //// TODO
 }
 
-void ChLinkBeamIGAslider::ArchiveIN(ChArchiveIn& marchive) {
+void ChLinkBeamIGAslider::ArchiveIn(ChArchiveIn& marchive) {
     //// TODO
 }
 

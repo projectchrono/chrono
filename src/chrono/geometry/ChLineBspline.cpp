@@ -145,11 +145,11 @@ void ChLineBspline::SetClosed(bool mc) {
 	this->closed = mc;
 }
 
-void ChLineBspline::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLineBspline::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLineBspline>();
     // serialize parent class
-    ChLine::ArchiveOUT(marchive);
+    ChLine::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(points);
     marchive << CHNVP(knots);
@@ -157,11 +157,11 @@ void ChLineBspline::ArchiveOUT(ChArchiveOut& marchive) {
 	marchive << CHNVP(closed);
 }
 
-void ChLineBspline::ArchiveIN(ChArchiveIn& marchive) {
+void ChLineBspline::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChLineBspline>();
     // deserialize parent class
-    ChLine::ArchiveIN(marchive);
+    ChLine::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(points);
     marchive >> CHNVP(knots);

@@ -172,10 +172,10 @@ bool ChGeneralizedEigenvalueSolverKrylovSchur::Solve(const ChSparseMatrix& M,  /
 	{
 		ChStreamOutAsciiFile fileA("dump_modal_A.dat");
 		fileA.SetNumFormat("%.12g");
-		StreamOUTdenseMatlabFormat(ChMatrixDynamic<>(A), fileA);
+		StreamOutDenseMatlabFormat(ChMatrixDynamic<>(A), fileA);
 		ChStreamOutAsciiFile fileB("dump_modal_B.dat");
 		fileB.SetNumFormat("%.12g");
-		StreamOUTdenseMatlabFormat(ChMatrixDynamic<>(B), fileB);
+		StreamOutDenseMatlabFormat(ChMatrixDynamic<>(B), fileB);
 	}
 
 	// The Krylov-Schur solver, using the shift and invert mode:
@@ -674,19 +674,19 @@ bool ChQuadraticEigenvalueSolverKrylovSchur::Solve(const ChSparseMatrix& M, cons
 	//std::cout << "eigen_vectors: " << eigen_vectors.rows() << ", " << eigen_vectors.cols() << std::endl;
 	//ChStreamOutAsciiFile file_eigvect_real("D:/workspace/chrono_build/bin/data/testing/modal/windturbine/eigen_vectors_real.dat");
 	//file_eigvect_real.SetNumFormat("%.12g");
-	//StreamOUTdenseMatlabFormat(ChMatrixDynamic<>(eigen_vectors.real()), file_eigvect_real);
+	//StreamOutDenseMatlabFormat(ChMatrixDynamic<>(eigen_vectors.real()), file_eigvect_real);
 	//file_eigvect_real.Flush();
 	//ChStreamOutAsciiFile file_eigvect_imag("D:/workspace/chrono_build/bin/data/testing/modal/windturbine/eigen_vectors_imag.dat");
 	//file_eigvect_imag.SetNumFormat("%.12g");
-	//StreamOUTdenseMatlabFormat(ChMatrixDynamic<>(eigen_vectors.imag()), file_eigvect_imag);
+	//StreamOutDenseMatlabFormat(ChMatrixDynamic<>(eigen_vectors.imag()), file_eigvect_imag);
 	//file_eigvect_imag.Flush();
 	//ChStreamOutAsciiFile file_eigval_real("D:/workspace/chrono_build/bin/data/testing/modal/windturbine/eigen_values_real.dat");
 	//file_eigval_real.SetNumFormat("%.12g");
-	//StreamOUTdenseMatlabFormat(eigen_values.real(), file_eigval_real);
+	//StreamOutDenseMatlabFormat(eigen_values.real(), file_eigval_real);
 	//file_eigval_real.Flush();
 	//ChStreamOutAsciiFile file_eigval_imag("D:/workspace/chrono_build/bin/data/testing/modal/windturbine/eigen_values_imag.dat");
 	//file_eigval_imag.SetNumFormat("%.12g");
-	//StreamOUTdenseMatlabFormat(eigen_values.imag(), file_eigval_imag);
+	//StreamOutDenseMatlabFormat(eigen_values.imag(), file_eigval_imag);
 	//file_eigval_imag.Flush();
 	//GetLog() << "Export completed\n";
 

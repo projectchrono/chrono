@@ -84,7 +84,7 @@ CH_ENUM_VAL(eChConstraintMode::CONSTRAINT_UNILATERAL);
 CH_ENUM_MAPPER_END(eChConstraintMode);
 //};
 
-void ChConstraint::ArchiveOUT(ChArchiveOut& marchive) {
+void ChConstraint::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChConstraint>();
 
@@ -98,7 +98,7 @@ void ChConstraint::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(typemapper(this->mode), "mode");
 }
 
-void ChConstraint::ArchiveIN(ChArchiveIn& marchive) {
+void ChConstraint::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChConstraint>();
 

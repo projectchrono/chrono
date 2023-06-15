@@ -274,12 +274,12 @@ void ChForce::Update(double mytime) {
 
 // File  I/O
 
-void ChForce::ArchiveOUT(ChArchiveOut& marchive) {
+void ChForce::ArchiveOut(ChArchiveOut& marchive) {
     // class version number
     marchive.VersionWrite<ChForce>();
 
     // serialize parent class too
-    ChObj::ArchiveOUT(marchive);
+    ChObj::ArchiveOut(marchive);
 
     // stream out all member data
 
@@ -305,12 +305,12 @@ void ChForce::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(vdir);
 }
 
-void ChForce::ArchiveIN(ChArchiveIn& marchive) {
+void ChForce::ArchiveIn(ChArchiveIn& marchive) {
     // class version number
     /*int version =*/ marchive.VersionRead<ChForce>();
 
     // deserialize parent class too
-    ChObj::ArchiveIN(marchive);
+    ChObj::ArchiveIn(marchive);
 
     // stream in all member data
 

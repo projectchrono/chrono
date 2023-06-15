@@ -172,8 +172,8 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
 
     // SERIALIZATION
 
-    virtual void ArchiveOUT(ChArchiveOut& archive) override;
-    virtual void ArchiveIN(ChArchiveIn& archive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive) override;
 
   protected:
     /// Initial setup. Set number of degrees of freedom for this node.

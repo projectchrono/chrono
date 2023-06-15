@@ -37,7 +37,7 @@ ChObj::ChObj(const ChObj& other) {
     ChTime = other.ChTime;
 }
 
-void ChObj::ArchiveOUT(ChArchiveOut& marchive) {
+void ChObj::ArchiveOut(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChObj>();
 
     // stream out all member data
@@ -46,7 +46,7 @@ void ChObj::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(ChTime);
 }
 
-void ChObj::ArchiveIN(ChArchiveIn& marchive) {
+void ChObj::ArchiveIn(ChArchiveIn& marchive) {
     /*int version =*/ marchive.VersionRead<ChObj>();
 
     // stream out all member data

@@ -349,22 +349,22 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 
-void ChSolverBB::ArchiveOUT(ChArchiveOut& marchive) {
+void ChSolverBB::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChSolverBB>();
     // serialize parent class
-    ChIterativeSolverVI::ArchiveOUT(marchive);
+    ChIterativeSolverVI::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(n_armijo);
     marchive << CHNVP(max_armijo_backtrace);
     marchive << CHNVP(m_use_precond);
 }
 
-void ChSolverBB::ArchiveIN(ChArchiveIn& marchive) {
+void ChSolverBB::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChSolverBB>();
     // deserialize parent class
-    ChIterativeSolverVI::ArchiveIN(marchive);
+    ChIterativeSolverVI::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(n_armijo);
     marchive >> CHNVP(max_armijo_backtrace);

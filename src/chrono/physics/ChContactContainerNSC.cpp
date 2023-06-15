@@ -790,21 +790,21 @@ void ChContactContainerNSC::ConstraintsFetch_react(double factor) {
     _ConstraintsFetch_react(contactlist_6_6_rolling, factor);
 }
 
-void ChContactContainerNSC::ArchiveOUT(ChArchiveOut& marchive) {
+void ChContactContainerNSC::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChContactContainerNSC>();
     // serialize parent class
-    ChContactContainer::ArchiveOUT(marchive);
+    ChContactContainer::ArchiveOut(marchive);
     // serialize all member data:
     // NO SERIALIZATION of contact list because assume it is volatile and generated when needed
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChContactContainerNSC::ArchiveIN(ChArchiveIn& marchive) {
+void ChContactContainerNSC::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChContactContainerNSC>();
     // deserialize parent class
-    ChContactContainer::ArchiveIN(marchive);
+    ChContactContainer::ArchiveIn(marchive);
     // stream in all member data:
     RemoveAllContacts();
     // NO SERIALIZATION of contact list because assume it is volatile and generated when needed

@@ -117,24 +117,24 @@ void ChLinkPointSpline::UpdateTime(double time) {
     }
 }
 
-void ChLinkPointSpline::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLinkPointSpline::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLinkPointSpline>();
 
     // serialize parent class
-    ChLinkLockLock::ArchiveOUT(marchive);
+    ChLinkLockLock::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(trajectory_line);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkPointSpline::ArchiveIN(ChArchiveIn& marchive) {
+void ChLinkPointSpline::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChLinkPointSpline>();
 
     // deserialize parent class
-    ChLinkLockLock::ArchiveIN(marchive);
+    ChLinkLockLock::ArchiveIn(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(trajectory_line);

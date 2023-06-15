@@ -29,11 +29,11 @@ ChBarrelShape::ChBarrelShape(double Y_low, double Y_high, double axis_vert, doub
     SetMutable(false);
 }
 
-void ChBarrelShape::ArchiveOUT(ChArchiveOut& marchive) {
+void ChBarrelShape::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChBarrelShape>();
     // serialize parent class
-    ChVisualShape::ArchiveOUT(marchive);
+    ChVisualShape::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(Hlow);
     marchive << CHNVP(Hsup);
@@ -43,11 +43,11 @@ void ChBarrelShape::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChBarrelShape::ArchiveIN(ChArchiveIn& marchive) {
+void ChBarrelShape::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/marchive.VersionRead<ChBarrelShape>();
     // deserialize parent class
-    ChVisualShape::ArchiveIN(marchive);
+    ChVisualShape::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(Hlow);
     marchive >> CHNVP(Hsup);

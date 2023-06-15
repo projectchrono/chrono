@@ -193,24 +193,24 @@ void ChLinkMotorRotationAngle::ConstraintsBiLoad_Ct(double factor) {
     }
 }
 
-void ChLinkMotorRotationAngle::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLinkMotorRotationAngle::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLinkMotorRotationAngle>();
 
     // serialize parent class
-    ChLinkMotorRotation::ArchiveOUT(marchive);
+    ChLinkMotorRotation::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(rot_offset);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMotorRotationAngle::ArchiveIN(ChArchiveIn& marchive) {
+void ChLinkMotorRotationAngle::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChLinkMotorRotationAngle>();
 
     // deserialize parent class
-    ChLinkMotorRotation::ArchiveIN(marchive);
+    ChLinkMotorRotation::ArchiveIn(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(rot_offset);

@@ -211,20 +211,20 @@ void ChProximityContainerSPH::AccumulateStep2() {
     }
 }
 
-void ChProximityContainerSPH::ArchiveOUT(ChArchiveOut& marchive) {
+void ChProximityContainerSPH::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChProximityContainerSPH>();
     // serialize parent class
-    ChProximityContainer::ArchiveOUT(marchive);
+    ChProximityContainer::ArchiveOut(marchive);
     // serialize all member data:
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChProximityContainerSPH::ArchiveIN(ChArchiveIn& marchive) {
+void ChProximityContainerSPH::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChProximityContainerSPH>();
     // deserialize parent class
-    ChProximityContainer::ArchiveIN(marchive);
+    ChProximityContainer::ArchiveIn(marchive);
     // stream in all member data:
 }
 

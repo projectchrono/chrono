@@ -196,8 +196,8 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
 
     // SERIALIZATION
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
-    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
     ChVariablesBodyOwnMass variables;  ///< 3D node variables, with x,y,z displ. and 3D rot.

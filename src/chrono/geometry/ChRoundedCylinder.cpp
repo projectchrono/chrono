@@ -31,22 +31,22 @@ ChRoundedCylinder::ChRoundedCylinder(const ChRoundedCylinder& source) {
     sr = source.sr;
 }
 
-void ChRoundedCylinder::ArchiveOUT(ChArchiveOut& marchive) {
+void ChRoundedCylinder::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChRoundedCylinder>();
     // serialize parent class
-    ChGeometry::ArchiveOUT(marchive);
+    ChGeometry::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(r);
     marchive << CHNVP(h);
     marchive << CHNVP(sr);
 }
 
-void ChRoundedCylinder::ArchiveIN(ChArchiveIn& marchive) {
+void ChRoundedCylinder::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/marchive.VersionRead<ChRoundedCylinder>();
     // deserialize parent class
-    ChGeometry::ArchiveIN(marchive);
+    ChGeometry::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(r);
     marchive >> CHNVP(h);

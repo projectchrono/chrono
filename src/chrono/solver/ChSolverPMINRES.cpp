@@ -488,22 +488,22 @@ double ChSolverPMINRES::Solve_SupportingStiffness(ChSystemDescriptor& sysd) {
     return r_proj_resid;
 }
 
-void ChSolverPMINRES::ArchiveOUT(ChArchiveOut& marchive) {
+void ChSolverPMINRES::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChSolverPMINRES>();
     // serialize parent class
-    ChIterativeSolverVI::ArchiveOUT(marchive);
+    ChIterativeSolverVI::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(grad_diffstep);
     marchive << CHNVP(rel_tolerance);
     marchive << CHNVP(m_use_precond);
 }
 
-void ChSolverPMINRES::ArchiveIN(ChArchiveIn& marchive) {
+void ChSolverPMINRES::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChSolverPMINRES>();
     // deserialize parent class
-    ChIterativeSolverVI::ArchiveIN(marchive);
+    ChIterativeSolverVI::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(grad_diffstep);
     marchive >> CHNVP(rel_tolerance);

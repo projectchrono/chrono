@@ -13,7 +13,7 @@
 // =============================================================================
 
 //// TODO
-//// - implement ArchiveIN & ArchiveOUT
+//// - implement ArchiveIn & ArchiveOut
 
 #ifndef CH_COLLISION_MODEL_BULLET_H
 #define CH_COLLISION_MODEL_BULLET_H
@@ -325,10 +325,10 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
     virtual std::vector<double> GetShapeDimensions(int index) const override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
     void injectShape(const ChVector<>& pos, const ChMatrix33<>& rot, ChCollisionShapeBullet* shape);

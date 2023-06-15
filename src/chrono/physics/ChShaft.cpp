@@ -19,8 +19,8 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChShaft)
-CH_CASTING_PARENT(ChShaft, ChPhysicsItem)
-CH_CASTING_PARENT(ChShaft, ChLoadable)
+CH_UPCASTING(ChShaft, ChPhysicsItem)
+CH_UPCASTING(ChShaft, ChLoadable)
 
 ChShaft::ChShaft()
     : torque(0),
@@ -232,12 +232,12 @@ void ChShaft::Update(double mytime, bool update_assets) {
 
 //////// FILE I/O
 
-void ChShaft::ArchiveOUT(ChArchiveOut& marchive) {
+void ChShaft::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChShaft>();
 
     // serialize parent class
-    ChPhysicsItem::ArchiveOUT(marchive);
+    ChPhysicsItem::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(torque);
@@ -257,12 +257,12 @@ void ChShaft::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaft::ArchiveIN(ChArchiveIn& marchive) {
+void ChShaft::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChShaft>();
 
     // deserialize parent class:
-    ChPhysicsItem::ArchiveIN(marchive);
+    ChPhysicsItem::ArchiveIn(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(torque);

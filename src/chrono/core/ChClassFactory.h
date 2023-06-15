@@ -71,11 +71,11 @@ public:
     /// The signature of create method for derived classes. Calls new().
     virtual void* create() = 0;
 
-    /// Call the ArchiveINconstructor(ChArchiveIn&) function if available (deserializes constructor params and return new()),
+    /// Call the ArchiveInConstructor(ChArchiveIn&) function if available (deserializes constructor params and return new()),
     /// otherwise just call new().
     virtual void* archive_in_create(ChArchiveIn& marchive) = 0;
 
-    /// Call the ArchiveIN(ChArchiveIn&) function if available, populating an already existing object
+    /// Call the ArchiveIn(ChArchiveIn&) function if available, populating an already existing object
     virtual void archive_in(ChArchiveIn& marchive, void* ptr) = 0;
 
     virtual void archive_out_constructor(ChArchiveOut& marchive, void* ptr) = 0;
@@ -98,16 +98,16 @@ public:
     virtual bool is_abstract() = 0;
 
     /// Tells if it implements the function
-    virtual bool has_ArchiveINconstructor() = 0;
+    virtual bool has_ArchiveInConstructor() = 0;
 
     /// Tells if it implements the function
-    virtual bool has_ArchiveIN() = 0;
+    virtual bool has_ArchiveIn() = 0;
 
     /// Tells if it implements the function
-    virtual bool has_ArchiveOUTconstructor() = 0;
+    virtual bool has_ArchiveOutConstructor() = 0;
 
     /// Tells if it implements the function
-    virtual bool has_ArchiveOUT() = 0;
+    virtual bool has_ArchiveOut() = 0;
 
 };
 
@@ -195,7 +195,7 @@ class ChApi ChClassFactory {
     }
 
     /// Create from class name, for registered classes. Name is the mnemonic tag given at registration.
-    /// If a static T* ArchiveINconstructor(ChArchiveIn&) function is available, call it instead.
+    /// If a static T* ArchiveInConstructor(ChArchiveIn&) function is available, call it instead.
     /// The created object is returned in "ptr"
     template <class T>
     static void create(const std::string& keyName, ChArchiveIn& marchive, T** ptr) {
@@ -322,20 +322,20 @@ private:
 };
 
 
-/// Macro to create a  ChDetect_ArchiveINconstructor  
-CH_CREATE_MEMBER_DETECTOR(ArchiveINconstructor)
+/// Macro to create a  ChDetect_ArchiveInConstructor  
+CH_CREATE_MEMBER_DETECTOR(ArchiveInConstructor)
 
-/// Macro to create a  ChDetect_ArchiveOUTconstructor that can be used in 
+/// Macro to create a  ChDetect_ArchiveOutConstructor that can be used in 
 /// templates, to select which specialized template to use
-CH_CREATE_MEMBER_DETECTOR(ArchiveOUTconstructor)
+CH_CREATE_MEMBER_DETECTOR(ArchiveOutConstructor)
 
-/// Macro to create a  ChDetect_ArchiveOUT that can be used in 
+/// Macro to create a  ChDetect_ArchiveOut that can be used in 
 /// templates, to select which specialized template to use
-CH_CREATE_MEMBER_DETECTOR(ArchiveOUT)
+CH_CREATE_MEMBER_DETECTOR(ArchiveOut)
 
-/// Macro to create a  ChDetect_ArchiveIN that can be used in 
+/// Macro to create a  ChDetect_ArchiveIn that can be used in 
 /// templates, to select which specialized template to use
-CH_CREATE_MEMBER_DETECTOR(ArchiveIN)
+CH_CREATE_MEMBER_DETECTOR(ArchiveIn)
 
 /// Macro to create a  ChDetect_ArchiveContainerName that can be used in 
 /// templates, to select which specialized template to use
@@ -419,17 +419,17 @@ class ChClassRegistration : public ChClassRegistrationBase {
     virtual bool is_abstract() override {
         return std::is_abstract<t>::value;
     }
-    virtual bool has_ArchiveINconstructor() override {
-        return _has_ArchiveINconstructor();
+    virtual bool has_ArchiveInConstructor() override {
+        return _has_ArchiveInConstructor();
     }
-    virtual bool has_ArchiveIN() override {
-        return _has_ArchiveIN();
+    virtual bool has_ArchiveIn() override {
+        return _has_ArchiveIn();
     }
-    virtual bool has_ArchiveOUTconstructor() override {
-        return _has_ArchiveOUTconstructor();
+    virtual bool has_ArchiveOutConstructor() override {
+        return _has_ArchiveOutConstructor();
     }
-    virtual bool has_ArchiveOUT() override {
-        return _has_ArchiveOUT();
+    virtual bool has_ArchiveOut() override {
+        return _has_ArchiveOut();
     }
 
 protected:
@@ -446,90 +446,90 @@ protected:
     }
 
     template <class Tc=t>
-    typename enable_if< ChDetect_ArchiveINconstructor<Tc>::value, void* >::type
+    typename enable_if< ChDetect_ArchiveInConstructor<Tc>::value, void* >::type
     _archive_in_create(ChArchiveIn& marchive) {
-        return reinterpret_cast<void*>(Tc::ArchiveINconstructor(marchive));
+        return reinterpret_cast<void*>(Tc::ArchiveInConstructor(marchive));
     }
     template <class Tc=t>
-    typename enable_if< !ChDetect_ArchiveINconstructor<Tc>::value, void* >::type 
+    typename enable_if< !ChDetect_ArchiveInConstructor<Tc>::value, void* >::type 
     _archive_in_create(ChArchiveIn& marchive) {
         // rolling back to simple creation
         return _create();
     }
 
     template <class Tc=t>
-    typename enable_if<ChDetect_ArchiveIN<Tc>::value, void >::type
+    typename enable_if<ChDetect_ArchiveIn<Tc>::value, void >::type
     _archive_in(ChArchiveIn& marchive, void* ptr) {
-        reinterpret_cast<Tc*>(ptr)->ArchiveIN(marchive);
+        reinterpret_cast<Tc*>(ptr)->ArchiveIn(marchive);
     }
     template <class Tc=t>
-    typename enable_if<!ChDetect_ArchiveIN<Tc>::value, void >::type 
+    typename enable_if<!ChDetect_ArchiveIn<Tc>::value, void >::type 
     _archive_in(ChArchiveIn& marchive, void* ptr) {
         // do nothing, ArchiveIn does not esist for this type
     }
 
     template <class Tc=t>
-    typename enable_if<ChDetect_ArchiveOUT<Tc>::value, void >::type
+    typename enable_if<ChDetect_ArchiveOut<Tc>::value, void >::type
     _archive_out(ChArchiveOut& marchive, void* ptr) {
-        reinterpret_cast<Tc*>(ptr)->ArchiveOUT(marchive);
+        reinterpret_cast<Tc*>(ptr)->ArchiveOut(marchive);
     }
     template <class Tc=t>
-    typename enable_if<!ChDetect_ArchiveOUT<Tc>::value, void >::type 
+    typename enable_if<!ChDetect_ArchiveOut<Tc>::value, void >::type 
     _archive_out(ChArchiveOut& marchive, void* ptr) {
         // do nothing, ArchiveIn does not esist for this type
     }
 
     template <class Tc=t>
-    typename enable_if<ChDetect_ArchiveOUTconstructor<Tc>::value, void >::type
+    typename enable_if<ChDetect_ArchiveOutConstructor<Tc>::value, void >::type
     _archive_out_constructor(ChArchiveOut& marchive, void* ptr) {
-        reinterpret_cast<Tc*>(ptr)->ArchiveOUTconstructor(marchive);
+        reinterpret_cast<Tc*>(ptr)->ArchiveOutConstructor(marchive);
     }
     template <class Tc=t>
-    typename enable_if<!ChDetect_ArchiveOUTconstructor<Tc>::value, void >::type 
+    typename enable_if<!ChDetect_ArchiveOutConstructor<Tc>::value, void >::type 
     _archive_out_constructor(ChArchiveOut& marchive, void* ptr) {
-        // do nothing, ArchiveOUTconstructor does not esist for this type
+        // do nothing, ArchiveOutConstructor does not esist for this type
     }
 
     template <class Tc=t>
-    typename enable_if< ChDetect_ArchiveINconstructor<Tc>::value, bool >::type
-    _has_ArchiveINconstructor() {
+    typename enable_if< ChDetect_ArchiveInConstructor<Tc>::value, bool >::type
+    _has_ArchiveInConstructor() {
         return true;
     }
     template <class Tc=t>
-    typename enable_if< !ChDetect_ArchiveINconstructor<Tc>::value, bool >::type 
-    _has_ArchiveINconstructor() {
+    typename enable_if< !ChDetect_ArchiveInConstructor<Tc>::value, bool >::type 
+    _has_ArchiveInConstructor() {
         return false;
     }
     template <class Tc=t>
-    typename enable_if< ChDetect_ArchiveIN<Tc>::value, bool >::type
-    _has_ArchiveIN() {
+    typename enable_if< ChDetect_ArchiveIn<Tc>::value, bool >::type
+    _has_ArchiveIn() {
         return true;
     }
     template <class Tc=t>
-    typename enable_if< !ChDetect_ArchiveIN<Tc>::value, bool >::type 
-    _has_ArchiveIN() {
+    typename enable_if< !ChDetect_ArchiveIn<Tc>::value, bool >::type 
+    _has_ArchiveIn() {
         return false;
     }
 
 
     template <class Tc=t>
-    typename enable_if< ChDetect_ArchiveOUTconstructor<Tc>::value, bool >::type
-    _has_ArchiveOUTconstructor() {
+    typename enable_if< ChDetect_ArchiveOutConstructor<Tc>::value, bool >::type
+    _has_ArchiveOutConstructor() {
         return true;
     }
     template <class Tc=t>
-    typename enable_if< !ChDetect_ArchiveOUTconstructor<Tc>::value, bool >::type 
-    _has_ArchiveOUTconstructor() {
+    typename enable_if< !ChDetect_ArchiveOutConstructor<Tc>::value, bool >::type 
+    _has_ArchiveOutConstructor() {
         return false;
     }
     template <class Tc=t>
-    typename enable_if< ChDetect_ArchiveOUT<Tc>::value, bool >::type
-    _has_ArchiveOUT() {
+    typename enable_if< ChDetect_ArchiveOut<Tc>::value, bool >::type
+    _has_ArchiveOut() {
         return true;
     }
     template <class Tc=t>
-    typename enable_if< !ChDetect_ArchiveOUT<Tc>::value, bool >::type 
-    _has_ArchiveOUT() {
+    typename enable_if< !ChDetect_ArchiveOut<Tc>::value, bool >::type 
+    _has_ArchiveOut() {
         return false;
     }
 
@@ -569,7 +569,7 @@ namespace class_factory {                                                       
 /// This class allows to typecast between class types that are known *only at runtime*.
 /// The requirement is that the typecasting function has to be prepared in advance (i.e. *at compile time*), when the types are still known.
 /// For each potential conversion an instance of ChCastingMap has to be declared, together with its typecasting function.
-/// This procedure is simplified by the macros #CH_CASTING_PARENT(FROM, TO) and #CH_CASTING_PARENT_SANITIZED(FROM, TO, UNIQUETAG)
+/// This procedure is simplified by the macros #CH_UPCASTING(FROM, TO) and #CH_UPCASTING_SANITIZED(FROM, TO, UNIQUETAG)
 /// When the conversion should take place the following can be called:
 /// `ConversionMap::convert(std::string("source_classname"), std::string("destination_classname"), <void* to object>)`
 
@@ -637,19 +637,19 @@ private:
 /// - however, assigning the type-erased pointer (e.g. `b_ptr = v_ptr) will not trigger any automatic conversion, thus leading to wrong results;
 /// The following macro allows the creation of an auxiliary class that can take care of this conversion manually.
 /// This macro should be used in any class with inheritance, in this way:
-///     `CH_CASTING_PARENT(DerivedType, BaseType)`
+///     `CH_UPCASTING(DerivedType, BaseType)`
 /// or, in case of template parent classes
-///     `CH_CASTING_PARENT_SANITIZED(DerivedType, BaseType<6>, DerivedType_BaseType_6)`
+///     `CH_UPCASTING_SANITIZED(DerivedType, BaseType<6>, DerivedType_BaseType_6)`
 /// and repeated for each base class, e.g.
-///     `CH_CASTING_PARENT(DerivedType, BaseType1)`
-///     `CH_CASTING_PARENT(DerivedType, BaseType2)`
+///     `CH_UPCASTING(DerivedType, BaseType1)`
+///     `CH_UPCASTING(DerivedType, BaseType2)`
 /// Whenever a conversion is needed, it suffices to call `ConversionMap::convert(std::string("source_classname"), std::string("destination_classname"), <void* to object>)`
 /// or `ConversionMap::convert(std::type_index(typeid(SourceClassType)), std::type_index(typeid(DestinationClassType)), <void* to object>)`
 /// e.g.
 /// \code{.cpp}
-/// CH_CASTING_PARENT(ChBody, ChBodyFrame)
-/// CH_CASTING_PARENT(ChBody, ChPhysicsItem)
-/// CH_CASTING_PARENT(ChBody, etc....)
+/// CH_UPCASTING(ChBody, ChBodyFrame)
+/// CH_UPCASTING(ChBody, ChPhysicsItem)
+/// CH_UPCASTING(ChBody, etc....)
 /// \endcode
 /// then, assuming that:
 /// \code{.cpp}
@@ -664,7 +664,7 @@ private:
 /// in fact, this would have been wrong:
 ///     `ChBodyFrame* bframe_ptr = vptr; // WRONG`
 /// Refer to \ref ConversionMap for further details.
-#define CH_CASTING_PARENT(FROM, TO) \
+#define CH_UPCASTING(FROM, TO) \
 namespace class_factory { \
     ChCastingMap convfun_from_##FROM##_##TO( \
         std::string(#FROM), std::type_index(typeid(FROM*)), \
@@ -673,7 +673,7 @@ namespace class_factory { \
         [](std::shared_ptr<void> vptr) { return std::static_pointer_cast<void>(std::static_pointer_cast<TO>(std::static_pointer_cast<FROM>(vptr))); });\
 }
 
-#define CH_CASTING_PARENT_SANITIZED(FROM, TO, UNIQUETAG) \
+#define CH_UPCASTING_SANITIZED(FROM, TO, UNIQUETAG) \
 namespace class_factory { \
     ChCastingMap convfun_from_##UNIQUETAG( \
         std::string(#FROM), std::type_index(typeid(FROM*)), \

@@ -1231,11 +1231,11 @@ const std::vector<ChVector<>>& ChTriangleMeshConnected::getAverageNormals() {
     return m_tmp_vectors;
 }
 
-void ChTriangleMeshConnected::ArchiveOUT(ChArchiveOut& marchive) {
+void ChTriangleMeshConnected::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChTriangleMeshConnected>();
     // serialize parent class
-    ChTriangleMesh::ArchiveOUT(marchive);
+    ChTriangleMesh::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(m_vertices);
     marchive << CHNVP(m_normals);
@@ -1251,11 +1251,11 @@ void ChTriangleMeshConnected::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(m_properties_per_face);
 }
 
-void ChTriangleMeshConnected::ArchiveIN(ChArchiveIn& marchive) {
+void ChTriangleMeshConnected::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/marchive.VersionRead<ChTriangleMeshConnected>();
     // deserialize parent class
-    ChTriangleMesh::ArchiveIN(marchive);
+    ChTriangleMesh::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(m_vertices);
     marchive >> CHNVP(m_normals);

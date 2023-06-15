@@ -30,8 +30,8 @@
 
 using namespace chrono;
 
-// NOTE: the old serialization method, based on ChStream and StreamIN and StreamOUT methods 
-// has been replaced with the new serialization based on ChArchive and ArchiveIN and ArchiveOUT methods,
+// NOTE: the old serialization method, based on ChStream and StreamIn and StreamOut methods 
+// has been replaced with the new serialization based on ChArchive and ArchiveIn and ArchiveOut methods,
 // so if you are interested on object serialization look rather at 
 //   demo_archive.cpp 
 

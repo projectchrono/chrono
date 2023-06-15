@@ -134,23 +134,23 @@ void ChConstraintNgeneric::Build_CqT(ChSparseMatrix& storage, int inscol) {
     }
 }
 
-void ChConstraintNgeneric::ArchiveOUT(ChArchiveOut& marchive) {
+void ChConstraintNgeneric::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChConstraintNgeneric>();
 
     // serialize the parent class data too
-    ChConstraint::ArchiveOUT(marchive);
+    ChConstraint::ArchiveOut(marchive);
 
     // serialize all member data:
     // NOTHING INTERESTING TO SERIALIZE
 }
 
-void ChConstraintNgeneric::ArchiveIN(ChArchiveIn& marchive) {
+void ChConstraintNgeneric::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChConstraintNgeneric>();
 
     // deserialize the parent class data too
-    ChConstraint::ArchiveIN(marchive);
+    ChConstraint::ArchiveIn(marchive);
 
     // deserialize all member data:
     // NOTHING INTERESTING TO SERIALIZE

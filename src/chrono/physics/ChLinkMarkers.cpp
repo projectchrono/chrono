@@ -391,12 +391,12 @@ void ChLinkMarkers::ConstraintsFbLoadForces(double factor) {
     }
 }
 
-void ChLinkMarkers::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLinkMarkers::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLinkMarkers>();
 
     // serialize parent class
-    ChLink::ArchiveOUT(marchive);
+    ChLink::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(marker1);
@@ -404,12 +404,12 @@ void ChLinkMarkers::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMarkers::ArchiveIN(ChArchiveIn& marchive) {
+void ChLinkMarkers::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChLinkMarkers>();
 
     // deserialize parent class
-    ChLink::ArchiveIN(marchive);
+    ChLink::ArchiveIn(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(marker1);

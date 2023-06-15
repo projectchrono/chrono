@@ -44,12 +44,12 @@ void ChLink::Update(bool update_assets) {
     Update(ChTime, update_assets);  // use the same time
 }
 
-void ChLink::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLink::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLink>();
 
     // serialize parent class
-    ChLinkBase::ArchiveOUT(marchive);
+    ChLinkBase::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(Body1);
@@ -58,12 +58,12 @@ void ChLink::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(react_torque);
 }
 
-void ChLink::ArchiveIN(ChArchiveIn& marchive) {
+void ChLink::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChLink>();
 
     // deserialize parent class
-    ChLinkBase::ArchiveIN(marchive);
+    ChLinkBase::ArchiveIn(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(Body1);

@@ -110,11 +110,11 @@ ChVector<> ChFunctionPosition_setpoint::Get_p_dsds(double s) const {
 
 
 
-void ChFunctionPosition_setpoint::ArchiveOUT(ChArchiveOut& marchive) {
+void ChFunctionPosition_setpoint::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChFunctionPosition_setpoint>();
 	// serialize parent class
-    ChFunctionPosition::ArchiveOUT(marchive);
+    ChFunctionPosition::ArchiveOut(marchive);
     // serialize all member data:
 	eChSetpointMode_mapper mmapper;
 	marchive << CHNVP(mmapper(mode), "mode");
@@ -124,11 +124,11 @@ void ChFunctionPosition_setpoint::ArchiveOUT(ChArchiveOut& marchive) {
 
 }
 
-void ChFunctionPosition_setpoint::ArchiveIN(ChArchiveIn& marchive) {
+void ChFunctionPosition_setpoint::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChFunctionPosition_setpoint>();
 	// deserialize parent class
-    ChFunctionPosition::ArchiveIN(marchive);
+    ChFunctionPosition::ArchiveIn(marchive);
     // deserialize all member data:
 	eChSetpointMode_mapper mmapper;
 	marchive >> CHNVP(mmapper(mode), "mode");

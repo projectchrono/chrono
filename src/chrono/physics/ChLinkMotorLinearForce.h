@@ -59,10 +59,10 @@ class ChApi ChLinkMotorLinearForce : public ChLinkMotorLinear {
     virtual void ConstraintsFbLoadForces(double factor = 1) override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& marchive) override;
 };
 
 CH_CLASS_VERSION(ChLinkMotorLinearForce, 0)

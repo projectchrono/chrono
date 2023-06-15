@@ -44,7 +44,7 @@ void ChSolver::EnableWrite(bool val, const std::string& frame, const std::string
     frame_id = frame;
 }
 
-void ChSolver::ArchiveOUT(ChArchiveOut& marchive) {
+void ChSolver::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChSolver>();
     // solver type:
@@ -55,7 +55,7 @@ void ChSolver::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(verbose);
 }
 
-void ChSolver::ArchiveIN(ChArchiveIn& marchive) {
+void ChSolver::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/marchive.VersionRead<ChSolver>();
     // solver type:

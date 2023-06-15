@@ -169,28 +169,28 @@ void ChModalDampingFactorAssembly::ComputeR(ChModalAssembly& assembly,
     if (true) {
         ChStreamOutAsciiFile fileM("dump_modald_M.dat");
         fileM.SetNumFormat("%.12g");
-        StreamOUTdenseMatlabFormat(M_reduced.toDense(), fileM);
+        StreamOutDenseMatlabFormat(M_reduced.toDense(), fileM);
         ChStreamOutAsciiFile fileK("dump_modald_K.dat");
         fileK.SetNumFormat("%.12g");
-        StreamOUTdenseMatlabFormat(K_reduced.toDense(), fileK);
+        StreamOutDenseMatlabFormat(K_reduced.toDense(), fileK);
         ChStreamOutAsciiFile fileCq("dump_modald_Cq.dat");
         fileCq.SetNumFormat("%.12g");
-        StreamOUTdenseMatlabFormat(Cq_reduced.toDense(), fileCq);
+        StreamOutDenseMatlabFormat(Cq_reduced.toDense(), fileCq);
         ChStreamOutAsciiFile fileV("dump_modald_V.dat");
         fileV.SetNumFormat("%.12g");
-        StreamOUTdenseMatlabFormat(V, fileV);
+        StreamOutDenseMatlabFormat(V, fileV);
         ChStreamOutAsciiFile fileF("dump_modald_f.dat");
         fileF.SetNumFormat("%.12g");
-        StreamOUTdenseMatlabFormat(freq_reduced, fileF);
+        StreamOutDenseMatlabFormat(freq_reduced, fileF);
         ChStreamOutAsciiFile fileRnz("dump_modald_Rnz.dat");
         fileRnz.SetNumFormat("%.12g");
-        StreamOUTdenseMatlabFormat(modal_R_nonzero, fileRnz);
+        StreamOutDenseMatlabFormat(modal_R_nonzero, fileRnz);
         ChStreamOutAsciiFile fileMm("dump_modald_Mm.dat");
         fileMm.SetNumFormat("%.12g");
-        StreamOUTdenseMatlabFormat(Mmodal, fileMm);
+        StreamOutDenseMatlabFormat(Mmodal, fileMm);
         ChStreamOutAsciiFile fileMm_matr("dump_modald_Mm_matr.dat");
         fileMm_matr.SetNumFormat("%.12g");
-        StreamOUTdenseMatlabFormat(Mmodal_matr, fileMm_matr);
+        StreamOutDenseMatlabFormat(Mmodal_matr, fileMm_matr);
     }
 }
 

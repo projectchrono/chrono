@@ -103,22 +103,22 @@ double ChTriangle::PointTriangleDistance(ChVector<> B,           // point to be 
     return collision::utils::PointTriangleDistance(B, p1, p2, p3, mu, mv, is_into, Bprojected);
 }
 
-void ChTriangle::ArchiveOUT(ChArchiveOut& marchive) {
+void ChTriangle::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChTriangle>();
     // serialize parent class
-    ChGeometry::ArchiveOUT(marchive);
+    ChGeometry::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(p1);
     marchive << CHNVP(p2);
     marchive << CHNVP(p3);
 }
 
-void ChTriangle::ArchiveIN(ChArchiveIn& marchive) {
+void ChTriangle::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChTriangle>();
     // deserialize parent class
-    ChGeometry::ArchiveIN(marchive);
+    ChGeometry::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(p1);
     marchive >> CHNVP(p2);

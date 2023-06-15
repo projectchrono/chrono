@@ -139,12 +139,12 @@ void ChLinkRackpinion::UpdateTime(double mytime) {
     ((ChFrame<double>*)Body2)->TransformParentToLocal(abs_contact, this->frame2);
 }
 
-void ChLinkRackpinion::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLinkRackpinion::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLinkRackpinion>();
 
     // serialize parent class
-    ChLinkMateGeneric::ArchiveOUT(marchive);
+    ChLinkMateGeneric::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(R);
@@ -158,12 +158,12 @@ void ChLinkRackpinion::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkRackpinion::ArchiveIN(ChArchiveIn& marchive) {
+void ChLinkRackpinion::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChLinkRackpinion>();
 
     // deserialize parent class
-    ChLinkMateGeneric::ArchiveIN(marchive);
+    ChLinkMateGeneric::ArchiveIn(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(R);

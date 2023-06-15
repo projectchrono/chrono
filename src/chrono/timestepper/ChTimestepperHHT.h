@@ -142,10 +142,10 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     double GetThreshold_R() const { return threshold_R; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& archive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& archive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive) override;
 
   private:
     void Prepare(ChIntegrableIIorder* integrable, double scaling_factor);

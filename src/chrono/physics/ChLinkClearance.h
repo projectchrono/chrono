@@ -83,10 +83,10 @@ class ChApi ChLinkClearance : public ChLinkLockLock {
     int Get_is_in_contact();  // returns: 1= is sliding contact, 0= is flying
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& marchive) override;
 };
 
 CH_CLASS_VERSION(ChLinkClearance,0)

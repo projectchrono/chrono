@@ -24,19 +24,19 @@ ChContactContainer::ChContactContainer(const ChContactContainer& other) : ChPhys
     report_contact_callback = other.report_contact_callback;
 }
 
-void ChContactContainer::ArchiveOUT(ChArchiveOut& marchive) {
+void ChContactContainer::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChContactContainer>();
     // serialize parent class
-    ChPhysicsItem::ArchiveOUT(marchive);
+    ChPhysicsItem::ArchiveOut(marchive);
     // serialize all member data:
 }
 
-void ChContactContainer::ArchiveIN(ChArchiveIn& marchive) {
+void ChContactContainer::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChContactContainer>();
     // deserialize parent class
-    ChPhysicsItem::ArchiveIN(marchive);
+    ChPhysicsItem::ArchiveIn(marchive);
     // stream in all member data:
 }
 

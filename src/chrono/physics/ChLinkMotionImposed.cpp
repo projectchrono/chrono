@@ -268,12 +268,12 @@ void ChLinkMotionImposed::ConstraintsBiLoad_Ct(double factor) {
     }
 }
 
-void ChLinkMotionImposed::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLinkMotionImposed::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLinkMotionImposed>();
 
     // serialize parent class
-    ChLinkMateGeneric::ArchiveOUT(marchive);
+    ChLinkMateGeneric::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(position_function);
@@ -281,12 +281,12 @@ void ChLinkMotionImposed::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMotionImposed::ArchiveIN(ChArchiveIn& marchive) {
+void ChLinkMotionImposed::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChLinkMotionImposed>();
 
     // deserialize parent class
-    ChLinkMateGeneric::ArchiveIN(marchive);
+    ChLinkMateGeneric::ArchiveIn(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(position_function);

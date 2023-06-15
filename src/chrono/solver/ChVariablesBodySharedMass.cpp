@@ -33,7 +33,7 @@ void ChSharedMassBody::SetBodyMass(const double mmass) {
     inv_mass = 1.0 / mass;
 }
 
-void ChSharedMassBody::ArchiveOUT(ChArchiveOut& marchive) {
+void ChSharedMassBody::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChSharedMassBody>();
 
@@ -42,7 +42,7 @@ void ChSharedMassBody::ArchiveOUT(ChArchiveOut& marchive) {
     ////marchive << CHNVP(inertia);
 }
 
-void ChSharedMassBody::ArchiveIN(ChArchiveIn& marchive) {
+void ChSharedMassBody::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChSharedMassBody>();
 
@@ -169,20 +169,20 @@ void ChVariablesBodySharedMass::Build_M(ChSparseMatrix& storage, int insrow, int
     PasteMatrix(storage, scaledJ, insrow + 3, inscol + 3);
 }
 
-void ChVariablesBodySharedMass::ArchiveOUT(ChArchiveOut& marchive) {
+void ChVariablesBodySharedMass::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChVariablesBodySharedMass>();
     // serialize parent class
-    ChVariablesBody::ArchiveOUT(marchive);
+    ChVariablesBody::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(sharedmass);
 }
 
-void ChVariablesBodySharedMass::ArchiveIN(ChArchiveIn& marchive) {
+void ChVariablesBodySharedMass::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChVariablesBodySharedMass>();
     // deserialize parent class
-    ChVariablesBody::ArchiveIN(marchive);
+    ChVariablesBody::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(sharedmass);
 }

@@ -83,12 +83,12 @@ class ChApi ChShaftsCouple : public ChPhysicsItem {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
+    virtual void ArchiveOut(ChArchiveOut& marchive) override {
         // version number
         marchive.VersionWrite<ChShaftsCouple>();
 
         // serialize parent class
-        ChPhysicsItem::ArchiveOUT(marchive);
+        ChPhysicsItem::ArchiveOut(marchive);
 
         // serialize all member data:
         marchive << CHNVP(shaft1);  //***TODO*** serialize, with shared ptr
@@ -96,12 +96,12 @@ class ChApi ChShaftsCouple : public ChPhysicsItem {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
+    virtual void ArchiveIn(ChArchiveIn& marchive) override {
         // version number
         /*int version =*/ marchive.VersionRead<ChShaftsCouple>();
 
         // deserialize parent class:
-        ChPhysicsItem::ArchiveIN(marchive);
+        ChPhysicsItem::ArchiveIn(marchive);
 
         // deserialize all member data:
         marchive >> CHNVP(shaft1);  //***TODO*** serialize, with shared ptr

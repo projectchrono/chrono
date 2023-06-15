@@ -50,10 +50,10 @@ class ChApi ChCylinder : public ChGeometry {
     virtual int GetManifoldDimension() const override { return 3; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& marchive) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
     /// Utility function for calculating the length and frame of a segment between two given points.
     /// The resulting frame is centered at the midpoint and has the Z axis along the segment.

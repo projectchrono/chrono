@@ -152,12 +152,12 @@ void ChShaftsMotorAngle::ConstraintsFetch_react(double factor) {
 
 //////// FILE I/O
 
-void ChShaftsMotorAngle::ArchiveOUT(ChArchiveOut& marchive) {
+void ChShaftsMotorAngle::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChShaftsMotorAngle>();
 
     // serialize parent class
-    ChShaftsMotorBase::ArchiveOUT(marchive);
+    ChShaftsMotorBase::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(motor_torque);
@@ -167,12 +167,12 @@ void ChShaftsMotorAngle::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaftsMotorAngle::ArchiveIN(ChArchiveIn& marchive) {
+void ChShaftsMotorAngle::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChShaftsMotorAngle>();
 
     // deserialize parent class:
-    ChShaftsMotorBase::ArchiveIN(marchive);
+    ChShaftsMotorBase::ArchiveIn(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(motor_torque);

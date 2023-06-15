@@ -69,10 +69,10 @@ class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
     virtual Type GetClassType() const override { return Type::TRIANGLEMESH_SOUP; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& marchive) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& marchive) override;
 };
 
 }  // end namespace geometry

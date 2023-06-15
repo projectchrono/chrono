@@ -136,8 +136,8 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     virtual ChPhysicsItem* GetPhysicsItem() override;
 
     // SERIALIZATION
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
-    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
     // DATA
     ChParticleCloud* container;
@@ -374,8 +374,8 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     virtual void Update(bool update_assets = true) override;
 
     // SERIALIZATION
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
-    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
     std::vector<ChAparticle*> particles;  ///< the particles

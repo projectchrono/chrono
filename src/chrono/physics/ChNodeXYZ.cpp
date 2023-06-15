@@ -76,12 +76,12 @@ void ChNodeXYZ::ComputeNF(
     detJ = 1;  // not needed because not used in quadrature.
 }
 
-void ChNodeXYZ::ArchiveOUT(ChArchiveOut& marchive) {
+void ChNodeXYZ::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChNodeXYZ>();
 
     // serialize parent class
-    ChNodeBase::ArchiveOUT(marchive);
+    ChNodeBase::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(pos);
@@ -90,12 +90,12 @@ void ChNodeXYZ::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChNodeXYZ::ArchiveIN(ChArchiveIn& marchive) {
+void ChNodeXYZ::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/marchive.VersionRead<ChNodeXYZ>();
 
     // deserialize parent class:
-    ChNodeBase::ArchiveIN(marchive);
+    ChNodeBase::ArchiveIn(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(pos);

@@ -79,10 +79,10 @@ class ChApi ChCamera {
     virtual void Update() {}
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& archive);
+    virtual void ArchiveOut(ChArchiveOut& archive);
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& archive);
+    virtual void ArchiveIn(ChArchiveIn& archive);
 
   private:
     ChVector<> position;

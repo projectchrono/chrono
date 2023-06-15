@@ -84,21 +84,21 @@ void ChLinkBushing::Initialize(std::shared_ptr<ChBody> mbody1,
     }
     return;
 }
-void ChLinkBushing::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLinkBushing::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLinkBushing>();
 
     // serialize parent class
-    ChLinkLock::ArchiveOUT(marchive);
+    ChLinkLock::ArchiveOut(marchive);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkBushing::ArchiveIN(ChArchiveIn& marchive) {
+void ChLinkBushing::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     marchive.VersionRead<ChLinkBushing>();
 
     // deserialize parent class
-    ChLinkLock::ArchiveIN(marchive);
+    ChLinkLock::ArchiveIn(marchive);
 }
 
 }  // end namespace chrono

@@ -63,7 +63,7 @@ double ChGeometry::GetBoundingSphereRadius() const {
     return bbox.Size().Length() / 2;
 }
 
-void ChGeometry::ArchiveOUT(ChArchiveOut& marchive) {
+void ChGeometry::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChGeometry>();
     my_enum_mappers::Type_mapper typemapper;
@@ -71,7 +71,7 @@ void ChGeometry::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(typemapper(type), "ChGeometry__Type");
 }
 
-void ChGeometry::ArchiveIN(ChArchiveIn& marchive) {
+void ChGeometry::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChGeometry>();
     my_enum_mappers::Type_mapper typemapper;

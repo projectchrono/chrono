@@ -155,12 +155,12 @@ void ChConstraintTwoBodies::Build_CqT(ChSparseMatrix& storage, int inscol) {
         PasteMatrix(storage, Cq_b.transpose(), variables_b->GetOffset(), inscol);
 }
 
-void ChConstraintTwoBodies::ArchiveOUT(ChArchiveOut& marchive) {
+void ChConstraintTwoBodies::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChConstraintTwoBodies>();
 
     // serialize the parent class data too
-    ChConstraintTwo::ArchiveOUT(marchive);
+    ChConstraintTwo::ArchiveOut(marchive);
 
     // serialize all member data:
     // NOTHING INTERESTING TO SERIALIZE (the Cq jacobians are not so
@@ -170,12 +170,12 @@ void ChConstraintTwoBodies::ArchiveOUT(ChArchiveOut& marchive) {
     // mstream << Cq_b;
 }
 
-void ChConstraintTwoBodies::ArchiveIN(ChArchiveIn& marchive) {
+void ChConstraintTwoBodies::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChConstraintTwoBodies>();
 
     // deserialize the parent class data too
-    ChConstraintTwo::ArchiveIN(marchive);
+    ChConstraintTwo::ArchiveIn(marchive);
 
     // deserialize all member data:
     // NOTHING INTERESTING TO SERIALIZE (the Cq jacobians are not so

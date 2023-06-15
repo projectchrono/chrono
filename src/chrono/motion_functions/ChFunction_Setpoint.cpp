@@ -31,22 +31,22 @@ void ChFunction_Setpoint::SetSetpoint(double setpoint, double x) {
     last_Y_dx = Y_dx;
 }
 
-void ChFunction_Setpoint::ArchiveOUT(ChArchiveOut& marchive) {
+void ChFunction_Setpoint::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChFunction_Setpoint>();
     // serialize parent class
-    ChFunction::ArchiveOUT(marchive);
+    ChFunction::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(Y);
     marchive << CHNVP(Y_dx);
     marchive << CHNVP(Y_dxdx);
 }
 
-void ChFunction_Setpoint::ArchiveIN(ChArchiveIn& marchive) {
+void ChFunction_Setpoint::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChFunction_Setpoint>();
     // deserialize parent class
-    ChFunction::ArchiveIN(marchive);
+    ChFunction::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(Y);
     marchive >> CHNVP(Y_dx);

@@ -195,12 +195,12 @@ void ChShaftsPlanetary::ConstraintsFetch_react(double factor) {
 
 //////// FILE I/O
 
-void ChShaftsPlanetary::ArchiveOUT(ChArchiveOut& marchive) {
+void ChShaftsPlanetary::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChShaftsPlanetary>();
 
     // serialize parent class
-    ChPhysicsItem::ArchiveOUT(marchive);
+    ChPhysicsItem::ArchiveOut(marchive);
 
     // serialize all member data:
     marchive << CHNVP(r1);
@@ -216,12 +216,12 @@ void ChShaftsPlanetary::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaftsPlanetary::ArchiveIN(ChArchiveIn& marchive) {
+void ChShaftsPlanetary::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     /*int version =*/ marchive.VersionRead<ChShaftsPlanetary>();
 
     // deserialize parent class:
-    ChPhysicsItem::ArchiveIN(marchive);
+    ChPhysicsItem::ArchiveIn(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(r1);
