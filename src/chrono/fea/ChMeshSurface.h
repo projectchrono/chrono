@@ -28,7 +28,7 @@ namespace fea {
 class ChMesh;
 
 /// Class which defines a surface for a mesh FEA elements.
-/// The contact surface is a collection of pointers to  ChLoadableUV objects, which can be shells in the mesh or proxies
+/// The surface is a collection of pointers to  ChLoadableUV objects, which can be shells in the mesh or proxies
 /// to faces of solid elements (such as ChTetrahedronFace or ChHexahedronFace).
 class ChApi ChMeshSurface {
   public:
@@ -62,7 +62,6 @@ class ChApi ChMeshSurface {
 
   private:
     std::vector<std::shared_ptr<ChLoadableUV> > faces;  ///< mesh faces
-    std::shared_ptr<ChMaterialSurface> matsurface;      ///< contact material
     ChMesh* mmesh;                                      ///< parent mesh
 };
 

@@ -59,7 +59,7 @@ using namespace chrono::vehicle;
 // -----------------------------------------------------------------------------
 
 // Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
 
 // Tire model
 enum class TireType { RIGID, TMEASY, FIALA, PAC89, PAC02, ANCF4, ANCF8, ANCF_TOROIDAL, REISSNER };

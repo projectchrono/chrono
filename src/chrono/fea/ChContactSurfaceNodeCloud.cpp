@@ -47,7 +47,7 @@ void ChContactNodeXYZ::ComputeJacobianForContactPart(const ChVector<>& abs_point
 }
 
 ChPhysicsItem* ChContactNodeXYZ::GetPhysicsItem() {
-    return (ChPhysicsItem*)container->GetMesh();
+    return container->GetPhysicsItem();
 }
 
 // -----------------------------------------------------------------------------
@@ -84,7 +84,7 @@ void ChContactNodeXYZROT::ComputeJacobianForContactPart(const ChVector<>& abs_po
 }
 
 ChPhysicsItem* ChContactNodeXYZROT::GetPhysicsItem() {
-    return (ChPhysicsItem*)container->GetMesh();
+    return container->GetPhysicsItem();
 }
 
 // -----------------------------------------------------------------------------
@@ -128,20 +128,28 @@ void ChContactSurfaceNodeCloud::AddNode(std::shared_ptr<ChNodeFEAxyzrot> mnode, 
 
 /// Add all nodes of the mesh to this collision cloud
 void ChContactSurfaceNodeCloud::AddAllNodes(const double point_radius) {
-    if (!m_mesh)
+    if (!m_physics_item)
         return;
-    for (unsigned int i = 0; i < m_mesh->GetNnodes(); ++i)
-        if (auto mnodeFEA = std::dynamic_pointer_cast<ChNodeFEAxyz>(m_mesh->GetNode(i)))
+    auto mesh = dynamic_cast<ChMesh*>(m_physics_item);
+    if (!mesh)
+        return;
+
+    for (unsigned int i = 0; i < mesh->GetNnodes(); ++i)
+        if (auto mnodeFEA = std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(i)))
             this->AddNode(mnodeFEA, point_radius);
-        else if (auto mnodeFEArot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(m_mesh->GetNode(i)))
+        else if (auto mnodeFEArot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(mesh->GetNode(i)))
             this->AddNode(mnodeFEArot, point_radius);
 }
 
 /// Add nodes of the mesh, belonging to the node_set, to this collision cloud
-void ChContactSurfaceNodeCloud::AddFacesFromNodeSet(std::vector<std::shared_ptr<ChNodeFEAbase> >& node_set,
+void ChContactSurfaceNodeCloud::AddNodesFromNodeSet(std::vector<std::shared_ptr<ChNodeFEAbase> >& node_set,
                                                     const double point_radius) {
-    if (!m_mesh)
+    if (!m_physics_item)
         return;
+    auto mesh = dynamic_cast<ChMesh*>(m_physics_item);
+    if (!mesh)
+        return;
+
     for (unsigned int i = 0; i < node_set.size(); ++i)
         if (auto mnodeFEA = std::dynamic_pointer_cast<ChNodeFEAxyz>(node_set[i]))
             this->AddNode(mnodeFEA, point_radius);

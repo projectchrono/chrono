@@ -126,7 +126,7 @@ void ChMesh::ClearNodes() {
 }
 
 void ChMesh::AddContactSurface(std::shared_ptr<ChContactSurface> m_surf) {
-    m_surf->SetMesh(this);
+    m_surf->SetPhysicsItem(this);
     vcontactsurfaces.push_back(m_surf);
 }
 

@@ -218,63 +218,64 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
 
     ChVector<> direction1(0, 1, 0);
     ChVector<> direction2(0, -1, 0);
-    auto my_meshes_1 = chrono_types::make_shared<ChMesh>();
-    auto my_meshes_2 = chrono_types::make_shared<ChMesh>();
+    auto my_mesh_1 = chrono_types::make_shared<ChMesh>();
+    auto my_mesh_2 = chrono_types::make_shared<ChMesh>();
 
     // Note that two elements are added in two different meshes
     for (int i = 0; i < 4; i++) {
         auto node = chrono_types::make_shared<ChNodeFEAxyzD>(N1[i], direction1);
         node->SetMass(0);
-        my_meshes_1->AddNode(node);
+        my_mesh_1->AddNode(node);
     }
     for (int i = 0; i < 4; i++) {
         auto node = chrono_types::make_shared<ChNodeFEAxyzD>(N2[i], direction2);
         node->SetMass(0);
-        my_meshes_2->AddNode(node);
+        my_mesh_2->AddNode(node);
     }
 
     // Create the element 1 and 2 and add them to their relevant mesh.
     auto Element1 = chrono_types::make_shared<ChElementShellANCF_3423>();  // To add nodes of the first element
-    Element1->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_meshes_1->GetNode(0)),
-                       std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_meshes_1->GetNode(1)),
-                       std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_meshes_1->GetNode(2)),
-                       std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_meshes_1->GetNode(3)));
+    Element1->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh_1->GetNode(0)),
+                       std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh_1->GetNode(1)),
+                       std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh_1->GetNode(2)),
+                       std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh_1->GetNode(3)));
 
     Element1->SetDimensions(L_x, L_z);
     Element1->AddLayer(L_y, 0 * CH_C_DEG_TO_RAD, material);
     Element1->SetAlphaDamp(0.02);  // Structural damping for this element
-    my_meshes_1->AddElement(Element1);
+    my_mesh_1->AddElement(Element1);
 
     auto Element2 = chrono_types::make_shared<ChElementShellANCF_3423>();  // To add nodes of the first element
 
-    Element2->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_meshes_2->GetNode(0)),
-                       std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_meshes_2->GetNode(1)),
-                       std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_meshes_2->GetNode(2)),
-                       std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_meshes_2->GetNode(3)));
+    Element2->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh_2->GetNode(0)),
+                       std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh_2->GetNode(1)),
+                       std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh_2->GetNode(2)),
+                       std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh_2->GetNode(3)));
     Element2->SetDimensions(L_x, L_z);
     Element2->AddLayer(L_y, 0 * CH_C_DEG_TO_RAD, material);
     Element2->SetAlphaDamp(0.02);  // Structural damping for this element
-    my_meshes_2->AddElement(Element2);
-    std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_meshes_1->GetNode(0))->SetFixed(true);
+    my_mesh_2->AddElement(Element2);
+    std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh_1->GetNode(0))->SetFixed(true);
 
     auto mcontactsurf_1 = chrono_types::make_shared<ChContactSurfaceMesh>(mysurfmaterial);
+    my_mesh_1->AddContactSurface(mcontactsurf_1);
+    mcontactsurf_1->AddFacesFromBoundary(sphere_swept_thickness);
+
     auto mcontactsurf_2 = chrono_types::make_shared<ChContactSurfaceMesh>(mysurfmaterial);
-    my_meshes_1->AddContactSurface(mcontactsurf_1);
-    my_meshes_2->AddContactSurface(mcontactsurf_2);
-    mcontactsurf_1->AddFacesFromBoundary(sphere_swept_thickness);  // do this after my_mesh->AddContactSurface
-    mcontactsurf_2->AddFacesFromBoundary(sphere_swept_thickness);  // do this after my_mesh->AddContactSurface
+    my_mesh_2->AddContactSurface(mcontactsurf_2);
+    mcontactsurf_2->AddFacesFromBoundary(sphere_swept_thickness);
 
     // use the SMC penalty contacts
-    my_meshes_1->SetAutomaticGravity(addGravity);
-    my_meshes_2->SetAutomaticGravity(addGravity);
+    my_mesh_1->SetAutomaticGravity(addGravity);
+    my_mesh_2->SetAutomaticGravity(addGravity);
 
     if (addGravity) {
         sys.Set_G_acc(ChVector<>(0, -1, 0));
     } else {
         sys.Set_G_acc(ChVector<>(0, 0, 0));
     }
-    sys.Add(my_meshes_1);
-    sys.Add(my_meshes_2);
+    sys.Add(my_mesh_1);
+    sys.Add(my_mesh_2);
 
     // ---------------
 
@@ -302,7 +303,7 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
 
     sys.SetContactContainer(container);
     bool thereIsContact;
-    auto myANCF = std::dynamic_pointer_cast<ChElementBase>(my_meshes_2->GetElement(0));
+    auto myANCF = std::dynamic_pointer_cast<ChElementBase>(my_mesh_2->GetElement(0));
     sys.DoStepDynamics(time_step);
     thereIsContact = container->isThereContacts(myANCF, AlsoPrint);
     return thereIsContact;
