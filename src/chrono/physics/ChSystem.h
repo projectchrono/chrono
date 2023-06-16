@@ -216,6 +216,13 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Set (overwrite) the simulation time of this system.
     void SetChTime(double time) { ch_time = time; }
 
+    /// Remove redundant constraints present in ChSystem through QR decomposition of constraints Jacobian matrix.
+    int RemoveRedundantConstraints(
+        bool remove_zero_constr = false,    ///< false: just DEACTIVATE redundant links; true: actually REMOVE redundant from system link list
+        double qr_tol = 1e-6,               ///< tolerance in QR decomposition to identify linearly dependent constraint
+        bool verbose = false                ///< set verbose output from method
+    );
+
     /// Set the number of OpenMP threads used by Chrono itself, Eigen, and the collision detection system.
     /// <pre>
     ///   num_threads_chrono    - used in FEA (parallel evaluation of internal forces and Jacobians) and
