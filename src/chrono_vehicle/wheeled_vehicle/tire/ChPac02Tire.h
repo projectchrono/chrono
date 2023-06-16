@@ -101,6 +101,8 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
                    double Fz,
                    double gamma,
                    bool combined = false);
+    double CalcSigmaK(double Fz);   // relaxation length longitudinal
+    double CalcSigmaA(double Fz);   // relaxation length lateral
     void CombinedCoulombForces(double& fx, double& fy, double fz);
 
     // TIR file (ADAMS compatible) loader routines
