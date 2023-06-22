@@ -303,7 +303,8 @@ class ChArchiveInXML : public ChArchiveIn {
         levels.push(level);
         is_array.push(false);
 
-        tolerate_missing_tokens = false;
+        can_tolerate_missing_tokens = true;
+        try_tolerate_missing_tokens = false;
     }
 
     virtual ~ChArchiveInXML(){};
@@ -327,90 +328,121 @@ class ChArchiveInXML : public ChArchiveIn {
         */
     }
 
-    virtual void in(ChNameValue<bool> bVal) {
+    virtual bool in(ChNameValue<bool> bVal) override {
         rapidxml::xml_node<>* mval = GetValueFromNameOrArray(bVal.name());
+        if (!mval)
+            return false;
         if (!strncmp(mval->value(), "true", mval->value_size())) {
             bVal.value() = true;
-            return;
+            return true;
         }
         if (!strncmp(mval->value(), "false", mval->value_size())) {
             bVal.value() = false;
-            return;
+            return true;
         }
         throw(ChExceptionArchive("Invalid true/false flag after '" + std::string(bVal.name()) + "'"));
     }
-    virtual void in(ChNameValue<int> bVal) {
+    virtual bool in(ChNameValue<int> bVal) override {
         rapidxml::xml_node<>* mval = GetValueFromNameOrArray(bVal.name());
+        if (!mval)
+            return false;
         try {
             bVal.value() = std::stoi(mval->value());
         } catch (...) {
             throw(ChExceptionArchive("Invalid integer number after '" + std::string(bVal.name()) + "'"));
         }
+        return true;
     }
-    virtual void in(ChNameValue<double> bVal) {
+    virtual bool in(ChNameValue<double> bVal) override {
         rapidxml::xml_node<>* mval = GetValueFromNameOrArray(bVal.name());
+        if (!mval)
+            return false;
         try {
             bVal.value() = std::stod(mval->value());
         } catch (...) {
             throw(ChExceptionArchive("Invalid number after '" + std::string(bVal.name()) + "'"));
         }
+        return true;
     }
-    virtual void in(ChNameValue<float> bVal) {
+    virtual bool in(ChNameValue<float> bVal) override {
         rapidxml::xml_node<>* mval = GetValueFromNameOrArray(bVal.name());
+        if (!mval)
+            return false;
         try {
             bVal.value() = std::stof(mval->value());
         } catch (...) {
             throw(ChExceptionArchive("Invalid number after '" + std::string(bVal.name()) + "'"));
         }
+        return true;
     }
-    virtual void in(ChNameValue<char> bVal) {
+    virtual bool in(ChNameValue<char> bVal) override {
         rapidxml::xml_node<>* mval = GetValueFromNameOrArray(bVal.name());
+        if (!mval)
+            return false;
         try {
             bVal.value() = (char)std::stoi(mval->value());
         } catch (...) {
             throw(ChExceptionArchive("Invalid char code after '" + std::string(bVal.name()) + "'"));
         }
+        return true;
     }
-    virtual void in(ChNameValue<unsigned int> bVal) {
+    virtual bool in(ChNameValue<unsigned int> bVal) override {
         rapidxml::xml_node<>* mval = GetValueFromNameOrArray(bVal.name());
+        if (!mval)
+            return false;
         try {
             bVal.value() = std::stoul(mval->value());
         } catch (...) {
             throw(ChExceptionArchive("Invalid unsigned integer number after '" + std::string(bVal.name()) + "'"));
         }
+        return true;
     }
-    virtual void in(ChNameValue<std::string> bVal) {
+    virtual bool in(ChNameValue<std::string> bVal) override {
         rapidxml::xml_node<>* mval = GetValueFromNameOrArray(bVal.name());
+        if (!mval)
+            return false;
         bVal.value() = mval->value();
+        return true;
     }
-    virtual void in(ChNameValue<unsigned long> bVal) {
+    virtual bool in(ChNameValue<unsigned long> bVal) override {
         rapidxml::xml_node<>* mval = GetValueFromNameOrArray(bVal.name());
+        if (!mval)
+            return false;
         try {
             bVal.value() = std::stoul(mval->value());
         } catch (...) {
             throw(ChExceptionArchive("Invalid unsigned long integer number after '" + std::string(bVal.name()) + "'"));
         }
+        return true;
     }
-    virtual void in(ChNameValue<unsigned long long> bVal) {
-        rapidxml::xml_node<>* mval = GetValueFromNameOrArray(bVal.name());
+    virtual bool in(ChNameValue<unsigned long long> bVal) override {
+        rapidxml::xml_node<>* mval = GetValueFromNameOrArray(bVal.name());     
+        if (!mval)
+            return false;
         try {
             bVal.value() = std::stoull(mval->value());
         } catch (...) {
             throw(ChExceptionArchive("Invalid unsigned long long integer number after '" + std::string(bVal.name()) +
                                      "'"));
         }
+        return true;
     }
-    virtual void in(ChNameValue<ChEnumMapperBase> bVal) {
+    virtual bool in(ChNameValue<ChEnumMapperBase> bVal) override {
         rapidxml::xml_node<>* mval = GetValueFromNameOrArray(bVal.name());
+        if (!mval)
+            return false;
         std::string mstr = mval->value();
         if (!bVal.value().SetValueAsString(mstr)) {
             throw(ChExceptionArchive("Not recognized enum type '" + mstr + "'"));
         }
+        return true;
     }
 
     // for wrapping arrays and lists
-    virtual void in_array_pre(const char* name, size_t& msize) {
+    virtual bool in_array_pre(const char* name, size_t& msize) override {
         rapidxml::xml_node<>* mval = GetValueFromNameOrArray(name);
+        if (!mval)
+            return false;
         msize = 0;
         for (rapidxml::xml_node<>* countnode = mval->first_node(); countnode; countnode = countnode->next_sibling()) {
             ++msize;
@@ -420,9 +452,11 @@ class ChArchiveInXML : public ChArchiveIn {
         this->level = this->levels.top();
         this->is_array.push(true);
         this->array_index.push(0);
+        return true;
     }
-    virtual void in_array_between(const char* name) { ++this->array_index.top(); }
-    virtual void in_array_end(const char* name) {
+    virtual void in_array_between(const char* name) override { ++this->array_index.top(); }
+
+    virtual void in_array_end(const char* name) override {
         this->levels.pop();
         this->level = this->levels.top();
         this->is_array.pop();
@@ -430,9 +464,10 @@ class ChArchiveInXML : public ChArchiveIn {
     }
 
     //  for custom c++ objects:
-    virtual void in(ChNameValue<ChFunctorArchiveIn> bVal) {
+    virtual bool in(ChNameValue<ChFunctorArchiveIn> bVal) override {
         rapidxml::xml_node<>* mval = GetValueFromNameOrArray(bVal.name());
-
+        if (!mval)
+            return false;
         if (bVal.flags() & NVP_TRACK_OBJECT) {
             bool already_stored;
             size_t obj_ID;
@@ -448,22 +483,25 @@ class ChArchiveInXML : public ChArchiveIn {
         this->levels.pop();
         this->level = this->levels.top();
         this->is_array.pop();
+        return true;
     }
 
     // for objects to construct, return non-null ptr if new object, return null ptr if just reused obj
-    virtual void* in_ref(ChNameValue<ChFunctorArchiveIn> bVal) {
+    virtual bool in_ref(ChNameValue<ChFunctorArchiveIn> bVal, void** ptr, std::string& true_classname) override {
         void* new_ptr = nullptr;
 
         rapidxml::xml_node<>* mval = GetValueFromNameOrArray(bVal.name());
+        if (!mval)
+            return false;
+
         if (mval) {
             this->levels.push(mval);
             this->level = this->levels.top();
             this->is_array.push(false);
 
-            std::string cls_name = "";
             if (bVal.value().IsPolymorphic()) {
                 if (rapidxml::xml_attribute<>* mtypeval = level->first_attribute("_type")) {
-                    cls_name = mtypeval->value();
+                    true_classname = mtypeval->value();
                 }
             }
             bool is_reference = false;
@@ -488,7 +526,7 @@ class ChArchiveInXML : public ChArchiveIn {
 
             if (!is_reference) {
                 // See ChArchiveJSON for detailed explanation
-                bVal.value().CallConstructor(*this, cls_name.c_str());
+                bVal.value().CallConstructor(*this, true_classname.c_str());
 
                 void* new_ptr_void = bVal.value().GetRawPtr();
 
@@ -497,7 +535,7 @@ class ChArchiveInXML : public ChArchiveIn {
                     size_t obj_ID;
                     PutPointer(new_ptr_void, already_stored, obj_ID);
                     // 3) Deserialize
-                    bVal.value().CallArchiveIn(*this, cls_name.c_str());
+                    bVal.value().CallArchiveIn(*this, true_classname.c_str());
                 } else {
                     throw(ChExceptionArchive("Archive cannot create object " + std::string(bVal.name()) + "\n"));
                 }
@@ -510,14 +548,14 @@ class ChArchiveInXML : public ChArchiveIn {
                     }
 
                     bVal.value().SetRawPtr(
-                        ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), internal_id_ptr[ref_ID]));
+                        ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(), internal_id_ptr[ref_ID]));
                 } else if (ext_ID) {
                     if (this->external_id_ptr.find(ext_ID) == this->external_id_ptr.end()) {
                         throw(ChExceptionArchive("In object '" + std::string(bVal.name()) + "' the external_refID " +
                                                  std::to_string((int)ext_ID) + " is not valid."));
                     }
                     bVal.value().SetRawPtr(
-                        ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), external_id_ptr[ext_ID]));
+                        ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(), external_id_ptr[ext_ID]));
                 } else
                     bVal.value().SetRawPtr(nullptr);
             }
@@ -525,17 +563,19 @@ class ChArchiveInXML : public ChArchiveIn {
             this->level = this->levels.top();
             this->is_array.pop();
         }
-        return new_ptr;
+
+        *ptr = new_ptr;
+        return true;
     }
 
-    /// By default, if a token is missing (respect to those required by << deserialization in c++)
-    /// an exception is thrown. This function can deactivate the exception throwing, so
-    /// the default c++ variables values are left, if no token is found.
-    void SetTolerateMissingTokens(bool mtol) { tolerate_missing_tokens = mtol; }
+    virtual bool TryTolerateMissingTokens(bool try_tolerate) override {
+        try_tolerate_missing_tokens = try_tolerate;
+        return try_tolerate_missing_tokens;
+    }
 
   protected:
     void token_notfound(const char* mname) {
-        if (!tolerate_missing_tokens)
+        if (!try_tolerate_missing_tokens)
             throw(ChExceptionArchive("Cannot find '" + std::string(mname) + "'"));
     }
 
@@ -545,7 +585,6 @@ class ChArchiveInXML : public ChArchiveIn {
     std::stack<rapidxml::xml_node<>*> levels;
     std::stack<bool> is_array;
     std::stack<int> array_index;
-    bool tolerate_missing_tokens;
 
     std::vector<char> buffer;  // needed: rapidxml is a in-place parser
 };

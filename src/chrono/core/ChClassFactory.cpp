@@ -143,21 +143,18 @@ void* ChCastingMap::_convert(const std::string& from, const std::string& to, voi
     } else {
         // since a *direct* conversion does not exist, it might be that a multi-step conversion is viable:
         // from --> intermediate --> to
-        // look for a conversion from 'intermediate' to 'to'; if exists, convert from 'from' to 'intermediate' and from
-        // 'intermediate' to 'to'
-        for (ChCastingMap::conv_map_type::iterator from_it = casting_map.begin(); from_it != casting_map.end();
-             ++from_it) {
+        // look for a conversion from 'from' to 'intermediate'; if exists, convert from 'intermediate' to 'to'
+        for (ChCastingMap::conv_map_type::iterator from_it = casting_map.begin(); from_it != casting_map.end(); ++from_it) {
             if (from_it->first.first.compare(from) == 0) {
-                bool intermediate_to_success = false;
-                void* casted_to_intermediate_vptr =
-                    ChCastingMap::_convert(from_it->first.second, to, vptr, intermediate_to_success);
-                if (intermediate_to_success) {
-                    void* casted_vptr =
-                        ChCastingMap::_convert(from, from_it->first.second, casted_to_intermediate_vptr, success);
-                    assert(success &&
-                           "Developer error: the conversion was expected to successfully execute but something went "
-                           "wrong.");
-                    return casted_vptr;
+                bool from_intermediate_success = false;
+                std::string intermediate = from_it->first.second;
+                // convert from 'from' to 'intermediate': it should be trivial
+                void* intermediate_ptr = ChCastingMap::_convert(from, intermediate, vptr, from_intermediate_success);
+                assert(from_intermediate_success && "Developer error: the conversion was expected to successfully execute but something went wrong.");
+                // the intermediate_ptr is now of type intermediate; let's see if it can cast from 'intermediate' to 'to'
+                void* to_vptr = ChCastingMap::_convert(intermediate, to, intermediate_ptr, success);
+                if (success) {
+                    return to_vptr;
                 }
             }
         }
@@ -167,15 +164,12 @@ void* ChCastingMap::_convert(const std::string& from, const std::string& to, voi
     return vptr;
 }
 
-std::shared_ptr<void> ChCastingMap::_convert(const std::string& from,
-                                             const std::string& to,
-                                             std::shared_ptr<void> vptr,
-                                             bool& success) {
-    if (from.compare(to) == 0) {
-        success = true;
-        return vptr;
-    }
 
+
+// TODO: DARIOM this function is completely identical to the other _conver except for:
+// - 'void*' replaced by 'std::shared_ptr<void>'
+// - 'return conv_it->second.first(vptr)' replaced by 'return conv_it->second.second(vptr)'
+std::shared_ptr<void> ChCastingMap::_convert(const std::string& from, const std::string& to, std::shared_ptr<void> vptr, bool& success) {
     ChCastingMap::conv_map_type& casting_map = ChCastingMap::getCastingMap();
 
     // look for a direct conversion from 'from' to 'to'
@@ -186,16 +180,19 @@ std::shared_ptr<void> ChCastingMap::_convert(const std::string& from,
     } else {
         // since a *direct* conversion does not exist, it might be that a multi-step conversion is viable:
         // from --> intermediate --> to
-        // look for a conversion from 'intermediate' to 'to'; if exists, convert from 'from' to 'intermediate' and from
-        // 'intermediate' to 'to'
-        for (ChCastingMap::conv_map_type::iterator from_it = casting_map.begin(); from_it != casting_map.end();
-             ++from_it) {
+        // look for a conversion from 'from' to 'intermediate'; if exists, convert from 'intermediate' to 'to'
+        for (ChCastingMap::conv_map_type::iterator from_it = casting_map.begin(); from_it != casting_map.end(); ++from_it) {
             if (from_it->first.first.compare(from) == 0) {
-                bool intermediate_success = false;
-                std::shared_ptr<void> casted_vptr =
-                    ChCastingMap::_convert(from_it->first.second, to, vptr, intermediate_success);
-                if (intermediate_success)
-                    return casted_vptr;
+                bool from_intermediate_success = false;
+                std::string intermediate = from_it->first.second;
+                // convert from 'from' to 'intermediate': it should be trivial
+                std::shared_ptr<void> intermediate_ptr = ChCastingMap::_convert(from, intermediate, vptr, from_intermediate_success);
+                assert(from_intermediate_success && "Developer error: the conversion was expected to successfully execute but something went wrong.");
+                // the intermediate_ptr is now of type intermediate; let's see if it can cast from 'intermediate' to 'to'
+                std::shared_ptr<void> to_vptr = ChCastingMap::_convert(intermediate, to, intermediate_ptr, success);
+                if (success) {
+                    return to_vptr;
+                }
             }
         }
     }

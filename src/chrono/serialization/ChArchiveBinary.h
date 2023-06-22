@@ -87,62 +87,68 @@ class ChArchiveOutBinary : public ChArchiveOut {
 
 class ChArchiveInBinary : public ChArchiveIn {
   public:
-    ChArchiveInBinary(ChStreamInBinary& mistream) { istream = &mistream; };
+    ChArchiveInBinary(ChStreamInBinary& mistream) {
+        istream = &mistream;
+        can_tolerate_missing_tokens = false;
+    };
 
     virtual ~ChArchiveInBinary(){};
 
-    virtual void in(ChNameValue<bool> bVal) { (*istream) >> bVal.value(); }
-    virtual void in(ChNameValue<int> bVal) { (*istream) >> bVal.value(); }
-    virtual void in(ChNameValue<double> bVal) { (*istream) >> bVal.value(); }
-    virtual void in(ChNameValue<float> bVal) { (*istream) >> bVal.value(); }
-    virtual void in(ChNameValue<char> bVal) { (*istream) >> bVal.value(); }
-    virtual void in(ChNameValue<unsigned int> bVal) { (*istream) >> bVal.value(); }
-    virtual void in(ChNameValue<std::string> bVal) { (*istream) >> bVal.value(); }
-    virtual void in(ChNameValue<unsigned long> bVal) { (*istream) >> bVal.value(); }
-    virtual void in(ChNameValue<unsigned long long> bVal) { (*istream) >> bVal.value(); }
-    virtual void in(ChNameValue<ChEnumMapperBase> bVal) {
+    virtual bool in(ChNameValue<bool> bVal) override { (*istream) >> bVal.value(); return true; }
+    virtual bool in(ChNameValue<int> bVal) override { (*istream) >> bVal.value(); return true; }
+    virtual bool in(ChNameValue<double> bVal) override { (*istream) >> bVal.value(); return true; }
+    virtual bool in(ChNameValue<float> bVal) override { (*istream) >> bVal.value(); return true; }
+    virtual bool in(ChNameValue<char> bVal) override { (*istream) >> bVal.value(); return true; }
+    virtual bool in(ChNameValue<unsigned int> bVal) override { (*istream) >> bVal.value(); return true; }
+    virtual bool in(ChNameValue<std::string> bVal) override { (*istream) >> bVal.value(); return true; }
+    virtual bool in(ChNameValue<unsigned long> bVal) override { (*istream) >> bVal.value(); return true; }
+    virtual bool in(ChNameValue<unsigned long long> bVal) override { (*istream) >> bVal.value(); return true; }
+    virtual bool in(ChNameValue<ChEnumMapperBase> bVal) override {
         int foo;
         (*istream) >> foo;
         bVal.value().SetValueAsInt(foo);
+        return true;
     }
     // for wrapping arrays and lists
-    virtual void in_array_pre(const char* name, size_t& msize) { (*istream) >> msize; }
-    virtual void in_array_between(const char* name) {}
-    virtual void in_array_end(const char* name) {}
+    virtual bool in_array_pre(const char* name, size_t& msize) override { (*istream) >> msize; return true; }
+    virtual void in_array_between(const char* name) override {}
+    virtual void in_array_end(const char* name) override {}
 
     //  for custom c++ objects:
-    virtual void in(ChNameValue<ChFunctorArchiveIn> bVal) {
+    virtual bool in(ChNameValue<ChFunctorArchiveIn> bVal) {
         if (bVal.flags() & NVP_TRACK_OBJECT) {
             bool already_stored;
             size_t obj_ID;
             PutPointer(bVal.value().GetRawPtr(), already_stored, obj_ID);
         }
         bVal.value().CallArchiveIn(*this);
+        return true;
     }
 
-    virtual void* in_ref(ChNameValue<ChFunctorArchiveIn> bVal) {
+    virtual bool in_ref(ChNameValue<ChFunctorArchiveIn> bVal, void** ptr, std::string& true_classname) {
         void* new_ptr = nullptr;
 
         std::string entry;
         (*istream) >> entry;
 
-        std::string cls_name;
         if (entry == "typ") {
-            (*istream) >> cls_name;
+            (*istream) >> true_classname;
             (*istream) >> entry;
         }
 
-        if (entry == "rID") {
-            size_t obj_ID = 0;
-            //  Was a shared object: just get the pointer to already-retrieved
-            (*istream) >> obj_ID;
+        // TODO: DARIOM check when things are not found like in JSON and XML
 
-            if (this->internal_id_ptr.find(obj_ID) == this->internal_id_ptr.end())
+        if (entry == "rID") {
+            size_t ref_ID = 0;
+            //  Was a shared object: just get the pointer to already-retrieved
+            (*istream) >> ref_ID;
+
+            if (this->internal_id_ptr.find(ref_ID) == this->internal_id_ptr.end())
                 throw(ChExceptionArchive("In object '" + std::string(bVal.name()) + "' the reference ID " +
-                                         std::to_string((int)obj_ID) + " is not a valid number."));
+                                         std::to_string((int)ref_ID) + " is not a valid number."));
 
             bVal.value().SetRawPtr(
-                ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), internal_id_ptr[obj_ID]));
+                ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(), internal_id_ptr[ref_ID]));
         } else if (entry == "eID") {
             size_t ext_ID = 0;
             // Was an external object: just get the pointer to external
@@ -152,13 +158,13 @@ class ChArchiveInBinary : public ChArchiveIn {
                 throw(ChExceptionArchive("In object '" + std::string(bVal.name()) + "' the external reference ID " + std::to_string((int)ext_ID) + " cannot be rebuilt."));
 
             bVal.value().SetRawPtr(
-                ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), external_id_ptr[ext_ID]));
+                ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(), external_id_ptr[ext_ID]));
         } else if (entry == "oID") {
             size_t oID_temp = 0;
             (*istream) >> oID_temp;
 
             // see ChArchiveJSON for further details
-            bVal.value().CallConstructor(*this, cls_name.c_str());
+            bVal.value().CallConstructor(*this, true_classname.c_str());
 
             void* new_ptr_void = bVal.value().GetRawPtr();
 
@@ -167,14 +173,15 @@ class ChArchiveInBinary : public ChArchiveIn {
                 size_t obj_ID;
                 PutPointer(new_ptr_void, already_stored, obj_ID);
                 // 3) Deserialize
-                bVal.value().CallArchiveIn(*this, cls_name.c_str());
+                bVal.value().CallArchiveIn(*this, true_classname.c_str());
             } else {
-                throw(ChExceptionArchive("Archive cannot create object" + cls_name + "\n"));
+                throw(ChExceptionArchive("Archive cannot create object" + true_classname + "\n"));
             }
             new_ptr = bVal.value().GetRawPtr();
         }
 
-        return new_ptr;
+        *ptr = new_ptr;
+        return true;
     }
 
   protected:

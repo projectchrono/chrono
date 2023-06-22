@@ -325,7 +325,8 @@ class ChArchiveInJSON : public ChArchiveIn {
         levels.push(level);
         is_array.push(false);
 
-        tolerate_missing_tokens = false;
+        can_tolerate_missing_tokens = true;
+        try_tolerate_missing_tokens = false;
     }
 
     virtual ~ChArchiveInJSON() {}
@@ -347,91 +348,100 @@ class ChArchiveInJSON : public ChArchiveIn {
         return mval;
     }
 
-    virtual void in(ChNameValue<bool> bVal) {
+    virtual bool in(ChNameValue<bool> bVal) override {
         rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
         if (!mval)
-            return;  // if not tolerate_missing_tokens, an exception would have been already thrown
+            return false;  // if not try_tolerate_missing_tokens, an exception would have been already thrown
         if (!mval->IsBool()) {
             throw(ChExceptionArchive("Invalid true/false flag after '" + std::string(bVal.name()) + "'"));
         }
         bVal.value() = mval->GetBool();
+        return true;
     }
-    virtual void in(ChNameValue<int> bVal) {
+    virtual bool in(ChNameValue<int> bVal) override {
         rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
         if (!mval)
-            return;  // if not tolerate_missing_tokens, an exception would have been already thrown
+            return false;  // if not try_tolerate_missing_tokens, an exception would have been already thrown
         if (!mval->IsInt()) {
             throw(ChExceptionArchive("Invalid integer number after '" + std::string(bVal.name()) + "'"));
         }
         bVal.value() = mval->GetInt();
+        return true;
     }
-    virtual void in(ChNameValue<double> bVal) {
+    virtual bool in(ChNameValue<double> bVal) override {
         rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
         if (!mval)
-            return;  // if not tolerate_missing_tokens, an exception would have been already thrown
+            return false;  // if not try_tolerate_missing_tokens, an exception would have been already thrown
         if (!mval->IsNumber()) {
             throw(ChExceptionArchive("Invalid number after '" + std::string(bVal.name()) + "'"));
         }
         bVal.value() = mval->GetDouble();
+        return true;
     }
-    virtual void in(ChNameValue<float> bVal) {
+    virtual bool in(ChNameValue<float> bVal) override {
         rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
         if (!mval)
-            return;  // if not tolerate_missing_tokens, an exception would have been already thrown
+            return false;  // if not try_tolerate_missing_tokens, an exception would have been already thrown
         if (!mval->IsNumber()) {
             throw(ChExceptionArchive("Invalid number after '" + std::string(bVal.name()) + "'"));
         }
         bVal.value() = (float)mval->GetDouble();
+        return true;
     }
-    virtual void in(ChNameValue<char> bVal) {
+    virtual bool in(ChNameValue<char> bVal) override {
         rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
         if (!mval)
-            return;  // if not tolerate_missing_tokens, an exception would have been already thrown
+            return false;  // if not try_tolerate_missing_tokens, an exception would have been already thrown
         if (!mval->IsInt()) {
             throw(ChExceptionArchive("Invalid char code after '" + std::string(bVal.name()) + "'"));
         }
         bVal.value() = (char)mval->GetInt();
+        return true;
     }
-    virtual void in(ChNameValue<unsigned int> bVal) {
+    virtual bool in(ChNameValue<unsigned int> bVal) override {
         rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
         if (!mval)
-            return;  // if not tolerate_missing_tokens, an exception would have been already thrown
+            return false;  // if not try_tolerate_missing_tokens, an exception would have been already thrown
         if (!mval->IsUint()) {
             throw(ChExceptionArchive("Invalid unsigned integer number after '" + std::string(bVal.name()) + "'"));
         }
         bVal.value() = mval->GetUint();
+        return true;
     }
-    virtual void in(ChNameValue<std::string> bVal) {
+    virtual bool in(ChNameValue<std::string> bVal) override {
         rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
         if (!mval)
-            return;  // if not tolerate_missing_tokens, an exception would have been already thrown
+            return false;  // if not try_tolerate_missing_tokens, an exception would have been already thrown
         if (!mval->IsString()) {
             throw(ChExceptionArchive("Invalid string after '" + std::string(bVal.name()) + "'"));
         }
         bVal.value() = mval->GetString();
+        return true;
     }
-    virtual void in(ChNameValue<unsigned long> bVal) {
+    virtual bool in(ChNameValue<unsigned long> bVal) override {
         rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
         if (!mval)
-            return;  // if not tolerate_missing_tokens, an exception would have been already thrown
+            return false;  // if not try_tolerate_missing_tokens, an exception would have been already thrown
         if (!mval->IsUint64()) {
             throw(ChExceptionArchive("Invalid unsigned long number after '" + std::string(bVal.name()) + "'"));
         }
         bVal.value() = (unsigned long)mval->GetUint64();
+        return true;
     }
-    virtual void in(ChNameValue<unsigned long long> bVal) {
+    virtual bool in(ChNameValue<unsigned long long> bVal) override {
         rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
         if (!mval)
-            return;  // if not tolerate_missing_tokens, an exception would have been already thrown
+            return false;  // if not try_tolerate_missing_tokens, an exception would have been already thrown
         if (!mval->IsUint64()) {
             throw(ChExceptionArchive("Invalid unsigned long long number after '" + std::string(bVal.name()) + "'"));
         }
         bVal.value() = mval->GetUint64();
+        return true;
     }
-    virtual void in(ChNameValue<ChEnumMapperBase> bVal) {
+    virtual bool in(ChNameValue<ChEnumMapperBase> bVal) override {
         rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
         if (!mval)
-            return;  // if not tolerate_missing_tokens, an exception would have been already thrown
+            return false;  // if not try_tolerate_missing_tokens, an exception would have been already thrown
         if (!mval->IsString()) {
             throw(ChExceptionArchive("Invalid string after '" + std::string(bVal.name()) + "'"));
         }
@@ -439,26 +449,30 @@ class ChArchiveInJSON : public ChArchiveIn {
         if (!bVal.value().SetValueAsString(mstr)) {
             throw(ChExceptionArchive("Not recognized enum type '" + mstr + "'"));
         }
+        return true;
     }
 
     // for wrapping arrays and lists
-    virtual void in_array_pre(const char* name, size_t& msize) {
+    virtual bool in_array_pre(const char* name, size_t& msize) override {
         rapidjson::Value* mval = GetValueFromNameOrArray(name);
         if (!mval) {
             msize = 0;
+            return false;
         } else {
             if (!mval->IsArray()) {
                 throw(ChExceptionArchive("Invalid array [...] after '" + std::string(name) + "'"));
             }
             msize = mval->Size();
             this->levels.push(mval);
+            this->level = this->levels.top();
+            this->is_array.push(true);
+            this->array_index.push(0);
+            return true;
         }
-        this->level = this->levels.top();
-        this->is_array.push(true);
-        this->array_index.push(0);
     }
-    virtual void in_array_between(const char* name) { ++this->array_index.top(); }
-    virtual void in_array_end(const char* name) {
+    virtual void in_array_between(const char* name) override { ++this->array_index.top(); }
+
+    virtual void in_array_end(const char* name) override {
         this->levels.pop();
         this->level = this->levels.top();
         this->is_array.pop();
@@ -466,10 +480,10 @@ class ChArchiveInJSON : public ChArchiveIn {
     }
 
     //  for custom c++ objects:
-    virtual void in(ChNameValue<ChFunctorArchiveIn> bVal) {
+    virtual bool in(ChNameValue<ChFunctorArchiveIn> bVal) override {
         rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
         if (!mval)
-            return;  // if not tolerate_missing_tokens, an exception would have been already thrown
+            return false;  // if not try_tolerate_missing_tokens, an exception would have been already thrown
         if (!mval->IsObject()) {
             throw(ChExceptionArchive("Invalid object {...} after '" + std::string(bVal.name()) + "'"));
         }
@@ -489,15 +503,16 @@ class ChArchiveInJSON : public ChArchiveIn {
         this->levels.pop();
         this->level = this->levels.top();
         this->is_array.pop();
+        return true;
     }
 
     // for objects to construct, return non-null ptr if new object, return null ptr if just reused obj
-    virtual void* in_ref(ChNameValue<ChFunctorArchiveIn> bVal) {
+    virtual bool in_ref(ChNameValue<ChFunctorArchiveIn> bVal, void** ptr, std::string& true_classname) override {
         void* new_ptr = nullptr;
 
         rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
         if (!mval)
-            return nullptr;
+            return false;
         if (!mval->IsObject()) {
             throw(ChExceptionArchive("Invalid object {...} after '" + std::string(bVal.name()) + "'"));
         }
@@ -505,20 +520,19 @@ class ChArchiveInJSON : public ChArchiveIn {
         this->level = this->levels.top();
         this->is_array.push(false);
 
-        std::string cls_name = "";
         if (bVal.value().IsPolymorphic()) {
             if (level->HasMember("_type")) {
                 if (!(*level)["_type"].IsString()) {
                     throw(ChExceptionArchive("Invalid string after '" + std::string(bVal.name()) + "'"));
                 }
-                cls_name = (*level)["_type"].GetString();
+                true_classname = (*level)["_type"].GetString();
             }
         }
         bool is_reference = false;
         size_t ref_ID = 0;
         if (level->HasMember("_reference_ID")) {
             if (!(*level)["_reference_ID"].IsUint64()) {
-                throw(ChExceptionArchive("Invalid number after '" + std::string(bVal.name()) + "'"));
+                throw(ChExceptionArchive("Wrong _reference_ID for entry: '" + std::string(bVal.name()) + "'"));
             }
             ref_ID = (*level)["_reference_ID"].GetUint64();
             is_reference = true;
@@ -526,7 +540,7 @@ class ChArchiveInJSON : public ChArchiveIn {
         size_t ext_ID = 0;
         if (level->HasMember("_external_ID")) {
             if (!(*level)["_external_ID"].IsUint64()) {
-                throw(ChExceptionArchive("Invalid number after '" + std::string(bVal.name()) + "'"));
+                throw(ChExceptionArchive("Wrong _external_ID for entry: '" + std::string(bVal.name()) + "'"));
             }
             ext_ID = (*level)["_external_ID"].GetUint64();
             is_reference = true;
@@ -534,21 +548,21 @@ class ChArchiveInJSON : public ChArchiveIn {
 
         if (!is_reference) {
             // 2) Dynamically create: call new(), or deserialize constructor params+call new()
-            // The constructor to be called will be the one specified by cls_name (i.e. the true type of the object),
+            // The constructor to be called will be the one specified by true_classname (i.e. the true type of the object),
             // not by the type of bVal.value() which is just the type of the pointer
-            bVal.value().CallConstructor(*this, cls_name.c_str());
+            bVal.value().CallConstructor(*this, true_classname.c_str());
 
             // Calling bVal.value().GetRawPtr() will retrieve the true address of the object
-            void* new_ptr_void = bVal.value().GetRawPtr();
+            void* true_ptr = bVal.value().GetRawPtr();
 
-            if (new_ptr_void) {
+            if (true_ptr) {
                 bool already_stored;
                 size_t obj_ID;
-                PutPointer(new_ptr_void, already_stored, obj_ID);
+                PutPointer(true_ptr, already_stored, obj_ID);
                 // 3) Deserialize
-                // It is required to specify the "cls_name" since the bValue.value() might be of a different type
+                // It is required to specify the "true_classname" since the bValue.value() might be of a different type
                 // compared to the true object, while we need to call the ArchiveIn of the proper derived class.
-                bVal.value().CallArchiveIn(*this, cls_name.c_str());
+                bVal.value().CallArchiveIn(*this, true_classname.c_str());
             } else {
                 throw(ChExceptionArchive("Archive cannot create object " + std::string(bVal.name()) + "\n"));
             }
@@ -561,7 +575,7 @@ class ChArchiveInJSON : public ChArchiveIn {
                                              std::to_string((int)ref_ID) + " is not a valid number."));
                 }
                 bVal.value().SetRawPtr(
-                    ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), internal_id_ptr[ref_ID]));
+                    ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(), internal_id_ptr[ref_ID]));
 
             } else if (ext_ID) {
                 if (this->external_id_ptr.find(ext_ID) == this->external_id_ptr.end()) {
@@ -569,7 +583,7 @@ class ChArchiveInJSON : public ChArchiveIn {
                                              std::to_string((int)ext_ID) + " is not valid."));
                 }
                 bVal.value().SetRawPtr(
-                    ChCastingMap::Convert(cls_name, bVal.value().GetObjectPtrTypeindex(), external_id_ptr[ext_ID]));
+                    ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(), external_id_ptr[ext_ID]));
 
             } else
                 bVal.value().SetRawPtr(nullptr);
@@ -578,17 +592,19 @@ class ChArchiveInJSON : public ChArchiveIn {
         this->level = this->levels.top();
         this->is_array.pop();
 
-        return new_ptr;
+        *ptr = new_ptr;
+        return true;
     }
 
-    /// By default, if a token is missing (respect to those required by << deserialization in c++)
-    /// an exception is thrown. This function can deactivate the exception throwing, so
-    /// the default c++ variables values are left, if no token is found.
-    void SetTolerateMissingTokens(bool mtol) { tolerate_missing_tokens = mtol; }
+
+    virtual bool TryTolerateMissingTokens(bool try_tolerate) override {
+        try_tolerate_missing_tokens = try_tolerate;
+        return try_tolerate_missing_tokens;
+    }
 
   protected:
     void token_notfound(const char* mname) {
-        if (!tolerate_missing_tokens)
+        if (!try_tolerate_missing_tokens)
             throw(ChExceptionArchive("Cannot find '" + std::string(mname) + "'"));
     }
 
@@ -598,7 +614,6 @@ class ChArchiveInJSON : public ChArchiveIn {
     std::stack<rapidjson::Value*> levels;
     std::stack<bool> is_array;
     std::stack<int> array_index;
-    bool tolerate_missing_tokens;
 };
 
 }  // end namespace chrono

@@ -118,7 +118,7 @@ class ChApi ChClassRegistrationBase {
 /// to be prepared in advance (i.e. *at compile time*), when the types are still known. For each potential conversion an
 /// instance of ChCastingMap has to be declared, together with its typecasting function. This procedure is simplified by
 /// the macros #CH_UPCASTING(FROM, TO) and #CH_UPCASTING_SANITIZED(FROM, TO, UNIQUETAG) When the conversion should take
-/// place the following can be called: `ConversionMap::convert(std::string("source_classname"),
+/// place the following can be called: `ConversionMap::Convert(std::string("source_classname"),
 /// std::string("destination_classname"), <void* to object>)`
 
 class ChApi ChCastingMap {
@@ -606,9 +606,9 @@ class ChClassRegistration : public ChClassRegistrationBase {
 /// and repeated for each base class, e.g.
 ///     `CH_UPCASTING(DerivedType, BaseType1)`
 ///     `CH_UPCASTING(DerivedType, BaseType2)`
-/// Whenever a conversion is needed, it suffices to call `ConversionMap::convert(std::string("source_classname"),
+/// Whenever a conversion is needed, it suffices to call `ConversionMap::Convert(std::string("source_classname"),
 /// std::string("destination_classname"), <void* to object>)` or
-/// `ConversionMap::convert(std::type_index(typeid(SourceClassType)), std::type_index(typeid(DestinationClassType)),
+/// `ConversionMap::Convert(std::type_index(typeid(SourceClassType)), std::type_index(typeid(DestinationClassType)),
 /// <void* to object>)` e.g. \code{.cpp} CH_UPCASTING(ChBody, ChBodyFrame) CH_UPCASTING(ChBody, ChPhysicsItem)
 /// CH_UPCASTING(ChBody, etc....)
 /// \endcode
@@ -619,7 +619,7 @@ class ChClassRegistration : public ChClassRegistrationBase {
 /// \endcode
 /// then
 /// \code{.cpp}
-/// void* bf_ptr ConversionMap::convert("ChBody", "ChBodyFrame", vptr);
+/// void* bf_ptr ConversionMap::Convert("ChBody", "ChBodyFrame", vptr);
 /// ChBodyFrame* bframe_ptr = bf_ptr; // CORRECT
 /// \endcode
 /// in fact, this would have been wrong:

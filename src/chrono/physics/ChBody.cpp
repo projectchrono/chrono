@@ -1136,18 +1136,18 @@ void ChBody::ArchiveIn(ChArchiveIn& marchive) {
 
     marchive >> CHNVP(bflags);
     bool mflag;  // more readable flag output in case of ASCII in/out
-    marchive >> CHNVP(mflag, "is_fixed");
-    BFlagSet(BodyFlag::FIXED, mflag);
-    marchive >> CHNVP(mflag, "collide");
-    BFlagSet(BodyFlag::COLLIDE, mflag);
-    marchive >> CHNVP(mflag, "limit_speed");
-    BFlagSet(BodyFlag::LIMITSPEED, mflag);
-    marchive >> CHNVP(mflag, "no_gyro_torque");
-    BFlagSet(BodyFlag::NOGYROTORQUE, mflag);
-    marchive >> CHNVP(mflag, "use_sleeping");
-    BFlagSet(BodyFlag::USESLEEPING, mflag);
-    marchive >> CHNVP(mflag, "is_sleeping");
-    BFlagSet(BodyFlag::SLEEPING, mflag);
+    if (marchive.in(CHNVP(mflag, "is_fixed")))
+        BFlagSet(BodyFlag::FIXED, mflag);
+    if (marchive.in(CHNVP(mflag, "collide")))
+        BFlagSet(BodyFlag::COLLIDE, mflag);
+    if (marchive.in(CHNVP(mflag, "limit_speed")))
+        BFlagSet(BodyFlag::LIMITSPEED, mflag);
+    if (marchive.in(CHNVP(mflag, "no_gyro_torque")))
+        BFlagSet(BodyFlag::NOGYROTORQUE, mflag);
+    if (marchive.in(CHNVP(mflag, "use_sleeping")))
+        BFlagSet(BodyFlag::USESLEEPING, mflag);
+    if (marchive.in(CHNVP(mflag, "is_sleeping")))
+        BFlagSet(BodyFlag::SLEEPING, mflag);
 
     std::vector<std::shared_ptr<ChMarker>> tempmarkers;
     std::vector<std::shared_ptr<ChForce>> tempforces;
@@ -1179,6 +1179,38 @@ void ChBody::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(sleep_minspeed);
     marchive >> CHNVP(sleep_minwvel);
     marchive >> CHNVP(sleep_starttime);
+
+
+    // INITIALIZATION-BY-METHODS
+    if (marchive.CanTolerateMissingTokens()){
+        bool temp_tolerate_missing_tokens = marchive.GetTolerateMissingTokens();
+        marchive.TryTolerateMissingTokens(true);
+
+        bool _c_SetBodyFixed;
+        if (marchive.in(CHNVP(_c_SetBodyFixed)))
+            this->SetBodyFixed(_c_SetBodyFixed);
+
+        double _c_SetMass;
+        if (marchive.in(CHNVP(_c_SetMass)))
+            this->SetMass(_c_SetMass);
+
+        ChVector<> _c_SetInertiaXX;
+        if (marchive.in(CHNVP(_c_SetInertiaXX)))
+            this->SetInertiaXX(_c_SetInertiaXX);
+
+        ChVector<> _c_SetInertiaXY;
+        if (marchive.in(CHNVP(_c_SetInertiaXY)))
+            this->SetInertiaXY(_c_SetInertiaXY);
+
+        //std::vector<std::shared_ptr<ChMarker>> _c_AddMarker;
+        //if (marchive.in(CHNVP(_c_AddMarker))){
+        //    for (std::vector<std::shared_ptr<ChMarker>>::iterator it = _c_AddMarker.begin(); it!=_c_AddMarker.end(); ++it)
+        //        this->AddMarker(*it);
+        //}
+
+        marchive.TryTolerateMissingTokens(temp_tolerate_missing_tokens);
+    }
+
 }
 
 void ChBody::StreamOutstate(ChStreamOutBinary& mstream) {

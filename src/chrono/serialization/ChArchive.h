@@ -782,7 +782,7 @@ class ChArchiveOut : public ChArchive {
         cut_all_pointers = false;
 
         internal_ptr_id.clear();
-        internal_ptr_id[0] = (0);  // ID=0 -> null pointer.
+        internal_ptr_id[nullptr] = (0);  // ID=0 -> null pointer.
         currentID = 0;
     };
 
@@ -902,7 +902,7 @@ class ChArchiveOut : public ChArchive {
         }
         this->out_array_end(specVal, bVal.value().size());
     }
-    // trick to wrap st::list container
+    // trick to wrap std::list container
     template <class T>
     void out(ChNameValue<std::list<T>> bVal) {
         ChValueSpecific<std::list<T>> specVal(bVal.value(), bVal.name(), bVal.flags());
@@ -918,14 +918,14 @@ class ChArchiveOut : public ChArchive {
         }
         this->out_array_end(specVal, bVal.value().size());
     }
-    // trick to wrap st::pair container
+    // trick to wrap std::pair container
     template <class T, class Tv>
     void out(ChNameValue<std::pair<T, Tv>> bVal) {
         _wrap_pair<T, Tv> mpair(bVal.value());
         ChNameValue<_wrap_pair<T, Tv>> pair_val(bVal.name(), mpair);
         this->out(pair_val);
     }
-    // trick to wrap st::unordered_map container
+    // trick to wrap std::unordered_map container
     template <class T, class Tv>
     void out(ChNameValue<std::unordered_map<T, Tv>> bVal) {
         ChValueSpecific<std::unordered_map<T, Tv>> specVal(bVal.value(), bVal.name(), bVal.flags());
@@ -942,7 +942,7 @@ class ChArchiveOut : public ChArchive {
         this->out_array_end(specVal, bVal.value().size());
     }
 
-    // trick to call out_ref on ChSharedPointer
+    // trick to call out_ref on std::shared_ptr
     template <class T>
     void out(ChNameValue<std::shared_ptr<T>> bVal) {
         T* mptr = bVal.value().get();
@@ -1063,18 +1063,22 @@ class ChArchiveIn : public ChArchive {
     std::unordered_map<void*, size_t> internal_ptr_id;
     std::unordered_map<size_t, void*> internal_id_ptr;
     size_t currentID;
-    using shared_pair_type = std::pair<std::shared_ptr<void>, std::type_index>;
+    using shared_pair_type = std::pair<std::shared_ptr<void>, std::string>;
     std::unordered_map<void*, shared_pair_type> shared_ptr_map;
 
     /// container of pointers marker with external IDs to re-bind instead of de-serializing
     std::unordered_map<size_t, void*> external_id_ptr;
 
+    bool can_tolerate_missing_tokens;
+    bool try_tolerate_missing_tokens;
+
+
   public:
-    ChArchiveIn() {
+    ChArchiveIn() : can_tolerate_missing_tokens(false), currentID(0){
         internal_ptr_id.clear();
-        internal_ptr_id[0] = (0);  // null pointer -> ID=0.
+        internal_ptr_id[nullptr] = 0;  // null pointer -> ID=0.
         internal_id_ptr.clear();
-        internal_id_ptr[0] = (0);  // ID=0 -> null pointer.
+        internal_id_ptr[0] = nullptr;  // ID=0 -> null pointer.
         currentID = 0;
     };
 
@@ -1094,8 +1098,20 @@ class ChArchiveIn : public ChArchive {
     void RebindExternalPointer(std::shared_ptr<void> mptr, size_t ID) {
         external_id_ptr[ID] = mptr.get();
         // shared_ptr_map[mptr.get()] = shared_pair_type(mptr, std::type_index(typeid(void)));
-        shared_ptr_map.emplace(std::make_pair(mptr.get(), shared_pair_type(mptr, std::type_index(typeid(void)))));
+        shared_ptr_map.emplace(std::make_pair(mptr.get(), shared_pair_type(mptr, "")));
     }
+
+    /// Returns true if the class can tolerate missing tokes;
+    /// on the contrary the archive must contain a complete set of info about the object that is going to be loaded
+    bool CanTolerateMissingTokens() const {return can_tolerate_missing_tokens; };
+
+    /// Suggest the archive to tolerate missing tokens/properties in the archive file;
+    /// The function returns the new settings: for those classes for which CanTolerateMissingTokens returns false
+    /// this function does not have any effect and will trivially return false.
+    virtual bool TryTolerateMissingTokens(bool try_tolerate) { return try_tolerate_missing_tokens; };
+
+    /// Returns true if the archive is currently tolerating missing tokens.
+    bool GetTolerateMissingTokens() const { return try_tolerate_missing_tokens; };
 
   protected:
     /// Find a pointer in pointer map: eventually add it to map if it
@@ -1124,25 +1140,25 @@ class ChArchiveIn : public ChArchive {
     //
 
     // for integral types:
-    virtual void in(ChNameValue<bool> bVal) = 0;
-    virtual void in(ChNameValue<int> bVal) = 0;
-    virtual void in(ChNameValue<double> bVal) = 0;
-    virtual void in(ChNameValue<float> bVal) = 0;
-    virtual void in(ChNameValue<char> bVal) = 0;
-    virtual void in(ChNameValue<unsigned int> bVal) = 0;
-    virtual void in(ChNameValue<std::string> bVal) = 0;
-    virtual void in(ChNameValue<unsigned long> bVal) = 0;
-    virtual void in(ChNameValue<unsigned long long> bVal) = 0;
-    virtual void in(ChNameValue<ChEnumMapperBase> bVal) = 0;
+    virtual bool in(ChNameValue<bool> bVal) = 0;
+    virtual bool in(ChNameValue<int> bVal) = 0;
+    virtual bool in(ChNameValue<double> bVal) = 0;
+    virtual bool in(ChNameValue<float> bVal) = 0;
+    virtual bool in(ChNameValue<char> bVal) = 0;
+    virtual bool in(ChNameValue<unsigned int> bVal) = 0;
+    virtual bool in(ChNameValue<std::string> bVal) = 0;
+    virtual bool in(ChNameValue<unsigned long> bVal) = 0;
+    virtual bool in(ChNameValue<unsigned long long> bVal) = 0;
+    virtual bool in(ChNameValue<ChEnumMapperBase> bVal) = 0;
 
     // for custom C++ objects - see 'wrapping' trick below
-    virtual void in(ChNameValue<ChFunctorArchiveIn> bVal) = 0;
+    virtual bool in(ChNameValue<ChFunctorArchiveIn> bVal) = 0;
 
     // for pointed objects (return pointer of created object if new allocation, if reused just return null)
-    virtual void* in_ref(ChNameValue<ChFunctorArchiveIn> bVal) = 0;
+    virtual bool in_ref(ChNameValue<ChFunctorArchiveIn> bVal, void** ptr, std::string& true_classname) = 0;
 
     // for wrapping arrays and lists
-    virtual void in_array_pre(const char* name, size_t& msize) = 0;
+    virtual bool in_array_pre(const char* name, size_t& msize) = 0;
     virtual void in_array_between(const char* name) = 0;
     virtual void in_array_end(const char* name) = 0;
 
@@ -1150,16 +1166,17 @@ class ChArchiveIn : public ChArchive {
 
     // trick to wrap enum mappers:
     template <class T>
-    void in(ChNameValue<ChEnumMapper<T>> bVal) {
+    bool in(ChNameValue<ChEnumMapper<T>> bVal) {
         ChNameValue<ChEnumMapperBase> tmpnv(bVal.name(), bVal.value(), bVal.flags());
-        this->in(tmpnv);
+        return this->in(tmpnv);
     }
 
     // trick to wrap C++ fixed-size arrays:
     template <class T, size_t N>
-    void in(ChNameValue<T[N]> bVal) {
+    bool in(ChNameValue<T[N]> bVal) {
         size_t arraysize;
-        this->in_array_pre(bVal.name(), arraysize);
+        if (!this->in_array_pre(bVal.name(), arraysize))
+            return false;
         if (arraysize != sizeof(bVal.value()) / sizeof(T)) {
             throw(ChExceptionArchive("Size of [] saved array does not match size of receiver array " +
                                      std::string(bVal.name()) + "."));
@@ -1174,14 +1191,16 @@ class ChArchiveIn : public ChArchive {
             this->in_array_between(bVal.name());
         }
         this->in_array_end(bVal.name());
+        return true;
     }
 
-    // trick to wrap st::vector container
+    // trick to wrap std::vector container
     template <class T>
-    void in(ChNameValue<std::vector<T>> bVal) {
+    bool in(ChNameValue<std::vector<T>> bVal) {
         bVal.value().clear();
         size_t arraysize;
-        // this->in_array_pre(bVal.name(), arraysize);
+        if (!this->in_array_pre(bVal.name(), arraysize)) // TODO: DARIOM check why it was commented out
+            return false;
         bVal.value().resize(arraysize);
         for (size_t i = 0; i < arraysize; ++i) {
             char idname[20];
@@ -1193,13 +1212,15 @@ class ChArchiveIn : public ChArchive {
             this->in_array_between(bVal.name());
         }
         this->in_array_end(bVal.name());
+        return true;
     }
-    // trick to wrap st::list container
+    // trick to wrap std::list container
     template <class T>
-    void in(ChNameValue<std::list<T>> bVal) {
+    bool in(ChNameValue<std::list<T>> bVal) {
         bVal.value().clear();
         size_t arraysize;
-        this->in_array_pre(bVal.name(), arraysize);
+        if (!this->in_array_pre(bVal.name(), arraysize))
+            return false;
         for (size_t i = 0; i < arraysize; ++i) {
             char idname[20];
             sprintf(idname, "%lu", (unsigned long)i);
@@ -1210,20 +1231,23 @@ class ChArchiveIn : public ChArchive {
             this->in_array_between(bVal.name());
         }
         this->in_array_end(bVal.name());
+        return true;
     }
-    // trick to wrap st::pair container
+    // trick to wrap std::pair container
     template <class T, class Tv>
-    void in(ChNameValue<std::pair<T, Tv>> bVal) {
+    bool in(ChNameValue<std::pair<T, Tv>> bVal) {
         _wrap_pair<T, Tv> mpair(bVal.value());
         ChNameValue<_wrap_pair<T, Tv>> pair_val(bVal.name(), mpair);
-        this->in(pair_val);
+        return this->in(pair_val);
     }
+
     // trick to wrap std::unordered_map container
     template <class T, class Tv>
-    void in(ChNameValue<std::unordered_map<T, Tv>> bVal) {
+    bool in(ChNameValue<std::unordered_map<T, Tv>> bVal) {
         bVal.value().clear();
         size_t arraysize;
-        this->in_array_pre(bVal.name(), arraysize);
+        if (!this->in_array_pre(bVal.name(), arraysize))
+            return false;
         for (size_t i = 0; i < arraysize; ++i) {
             char idname[20];
             sprintf(idname, "%lu", (unsigned long)i);
@@ -1235,15 +1259,21 @@ class ChArchiveIn : public ChArchive {
             this->in_array_between(bVal.name());
         }
         this->in_array_end(bVal.name());
+        return true;
     }
 
     // trick to call in_ref on ChSharedPointer:
     template <class T>
-    void in(ChNameValue<std::shared_ptr<T>> bVal) {
+    bool in(ChNameValue<std::shared_ptr<T>> bVal) {
         T* mptr;
         ChFunctorArchiveInSpecificPtr<T> specFuncA(&mptr);
         ChNameValue<ChFunctorArchiveIn> mtmp(bVal.name(), specFuncA, bVal.flags());
-        void* newptr = this->in_ref(mtmp);
+        void* newptr;
+        std::string true_classname;
+        bool success = this->in_ref(mtmp, &newptr, true_classname);
+
+        if (!success)
+            return false;
 
         // 'mtmp' might contain a pointer to:
         // I) an object of type T
@@ -1254,7 +1284,7 @@ class ChArchiveIn : public ChArchive {
         // III) Get rid of nullptr immediately; no need to update shared_ptr_map
         if (!mptr) {
             bVal.value() = std::shared_ptr<T>(nullptr);
-            return;
+            return true;
         }
 
         // bVal must now be updated (in_ref just modified mtmp!)
@@ -1270,9 +1300,10 @@ class ChArchiveIn : public ChArchive {
             // shared_ptr_map, on the contrary, needs to know the *true* address of the referred object
             // i.e. the address of the most derived type
             // and it holds a copy of a shared_prt so to be able to add to it if anyone else is going to refer to it
-            std::shared_ptr<void> temp_shptr = std::static_pointer_cast<void>(bVal.value());
-            shared_ptr_map.emplace(std::make_pair(
-                true_ptr, std::make_pair(std::static_pointer_cast<void>(bVal.value()), std::type_index(typeid(T*)))));
+            shared_ptr_map.emplace(
+                std::make_pair(true_ptr, std::make_pair(
+                    std::static_pointer_cast<void>(bVal.value()),
+                    true_classname)));
         } else {
             // case B: existing object already referenced by a shared_ptr, so increment ref count
             std::shared_ptr<void> converted_shptr =
@@ -1280,20 +1311,24 @@ class ChArchiveIn : public ChArchive {
                                       existing_sh_ptr->second.first);  // TODO: DARIOM compact
             bVal.value() = std::static_pointer_cast<T>(converted_shptr);
         }
+
+        return true;
     }
 
     // trick to call in_ref on raw pointers:
     template <class T>
-    void in(ChNameValue<T*> bVal) {
+    bool in(ChNameValue<T*> bVal) {
         ChFunctorArchiveInSpecificPtr<T> specFuncA(&bVal.value());
-        /*void* newptr =*/this->in_ref(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA, bVal.flags()));
+        void* newptr;
+        std::string true_classname;
+        return this->in_ref(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA, bVal.flags()), &newptr, true_classname);
     }
 
     // trick to apply 'virtual in..' on C++ objects that has a function "ArchiveIn":
     template <class T>
-    void in(ChNameValue<T> bVal) {
+    bool in(ChNameValue<T> bVal) {
         ChFunctorArchiveInSpecific<T> specFuncA(&bVal.value());
-        this->in(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA, bVal.flags()));
+        return this->in(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA, bVal.flags()));
     }
 
     /// Operator to allow easy serialization as   myarchive << mydata;
