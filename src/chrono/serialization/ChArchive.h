@@ -1276,7 +1276,7 @@ class ChArchiveIn : public ChArchive {
         } else {
             // case B: existing object already referenced by a shared_ptr, so increment ref count
             std::shared_ptr<void> converted_shptr =
-                ChCastingMap::Convert(existing_sh_ptr->second.second, std::type_index(typeid(bVal.value())),
+                ChCastingMap::Convert(existing_sh_ptr->second.second, std::type_index(typeid(bVal.value().get())),
                                       existing_sh_ptr->second.first);  // TODO: DARIOM compact
             bVal.value() = std::static_pointer_cast<T>(converted_shptr);
         }
