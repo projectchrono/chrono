@@ -45,7 +45,18 @@ class ChArchiveOutBinary : public ChArchiveOut {
     virtual void out_array_end(ChValue& bVal, size_t msize) {}
 
     // for custom c++ objects:
-    virtual void out(ChValue& bVal, bool tracked, size_t obj_ID) { bVal.CallArchiveOut(*this); }
+    virtual void out(ChValue& bVal, bool tracked, size_t obj_ID) {
+        if (tracked)
+        {
+            std::string classname = bVal.GetClassRegisteredName();
+            *ostream << "typ" << classname;
+
+            std::string str("oID");
+            *ostream << str << obj_ID;
+
+        }
+        bVal.CallArchiveOut(*this);
+    }
 
     virtual void out_ref(ChValue& bVal, bool already_inserted, size_t obj_ID, size_t ext_ID) {
         std::string classname = bVal.GetClassRegisteredName();
@@ -117,9 +128,20 @@ class ChArchiveInBinary : public ChArchiveIn {
     //  for custom c++ objects:
     virtual bool in(ChNameValue<ChFunctorArchiveIn> bVal) {
         if (bVal.flags() & NVP_TRACK_OBJECT) {
-            bool already_stored;
-            size_t obj_ID;
-            PutPointer(bVal.value().GetRawPtr(), already_stored, obj_ID);
+            std::string entry;
+            size_t obj_ID = 0;
+
+            // TODO: DARIOM check if it works this way
+            (*istream) >> entry;
+            if (entry == "typ") {
+                (*istream) >> entry;
+                (*istream) >> entry;
+            }
+            if (entry == "oID") {
+                (*istream) >> obj_ID;
+            }
+
+            PutNewPointer(bVal.value().GetRawPtr(), obj_ID);
         }
         bVal.value().CallArchiveIn(*this);
         return true;
@@ -160,8 +182,8 @@ class ChArchiveInBinary : public ChArchiveIn {
             bVal.value().SetRawPtr(
                 ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(), external_id_ptr[ext_ID]));
         } else if (entry == "oID") {
-            size_t oID_temp = 0;
-            (*istream) >> oID_temp;
+            size_t obj_ID = 0;
+            (*istream) >> obj_ID;
 
             // see ChArchiveJSON for further details
             bVal.value().CallConstructor(*this, true_classname.c_str());
@@ -169,9 +191,7 @@ class ChArchiveInBinary : public ChArchiveIn {
             void* new_ptr_void = bVal.value().GetRawPtr();
 
             if (new_ptr_void) {
-                bool already_stored;
-                size_t obj_ID;
-                PutPointer(new_ptr_void, already_stored, obj_ID);
+                PutNewPointer(new_ptr_void, obj_ID);
                 // 3) Deserialize
                 bVal.value().CallArchiveIn(*this, true_classname.c_str());
             } else {

@@ -488,15 +488,25 @@ class ChArchiveInJSON : public ChArchiveIn {
             throw(ChExceptionArchive("Invalid object {...} after '" + std::string(bVal.name()) + "'"));
         }
 
-        if (bVal.flags() & NVP_TRACK_OBJECT) {
-            bool already_stored;
-            size_t obj_ID;
-            PutPointer(bVal.value().GetRawPtr(), already_stored, obj_ID);
-        }
-
         this->levels.push(mval);
         this->level = this->levels.top();
         this->is_array.push(false);
+
+        if (bVal.flags() & NVP_TRACK_OBJECT) {
+            size_t obj_ID = 0;
+            if (level->HasMember("_object_ID")) {
+                if (!(*level)["_object_ID"].IsUint64()) {
+                    throw(ChExceptionArchive("Wrong _object_ID for entry: '" + std::string(bVal.name()) + "'"));
+                }
+                obj_ID = (*level)["_object_ID"].GetUint64();
+            }
+            else
+                throw(ChExceptionArchive("Missing _object_ID for entry: '" + std::string(bVal.name()) + "'"));
+
+            PutNewPointer(bVal.value().GetRawPtr(), obj_ID);
+        }
+
+
 
         bVal.value().CallArchiveIn(*this);
 
@@ -552,13 +562,21 @@ class ChArchiveInJSON : public ChArchiveIn {
             // not by the type of bVal.value() which is just the type of the pointer
             bVal.value().CallConstructor(*this, true_classname.c_str());
 
+            size_t obj_ID = 0;
+            if (level->HasMember("_object_ID")) {
+                if (!(*level)["_object_ID"].IsUint64()) {
+                    throw(ChExceptionArchive("Wrong _object_ID for entry: '" + std::string(bVal.name()) + "'"));
+                }
+                obj_ID = (*level)["_object_ID"].GetUint64();
+            }
+            else
+                throw(ChExceptionArchive("Missing _object_ID for entry: '" + std::string(bVal.name()) + "'"));
+
             // Calling bVal.value().GetRawPtr() will retrieve the true address of the object
             void* true_ptr = bVal.value().GetRawPtr();
 
             if (true_ptr) {
-                bool already_stored;
-                size_t obj_ID;
-                PutPointer(true_ptr, already_stored, obj_ID);
+                PutNewPointer(true_ptr, obj_ID);
                 // 3) Deserialize
                 // It is required to specify the "true_classname" since the bValue.value() might be of a different type
                 // compared to the true object, while we need to call the ArchiveIn of the proper derived class.

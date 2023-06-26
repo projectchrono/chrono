@@ -195,7 +195,7 @@ class ChArchiveOutXML : public ChArchiveOut {
         (*ostream) << "<" << bVal.name();
 
         if (tracked) {
-            (*ostream) << " id =\"" << obj_ID << "\"";
+            (*ostream) << " _object_ID=\"" << obj_ID << "\"";
         }
 
         (*ostream) << ">\n";
@@ -233,14 +233,14 @@ class ChArchiveOutXML : public ChArchiveOut {
         }
 
         if (!already_inserted) {
-            (*ostream) << " id=\"" << obj_ID << "\"";
+            (*ostream) << " _object_ID=\"" << obj_ID << "\"";
         }
         if (already_inserted) {
             if (obj_ID || bVal.IsNull()) {
-                (*ostream) << " refID=\"" << obj_ID << "\"";
+                (*ostream) << " _reference_ID=\"" << obj_ID << "\"";
             }
             if (ext_ID) {
-                (*ostream) << " external_refID=\"" << ext_ID << "\"";
+                (*ostream) << " _external_ID=\"" << ext_ID << "\"";
             }
         }
 
@@ -468,15 +468,25 @@ class ChArchiveInXML : public ChArchiveIn {
         rapidxml::xml_node<>* mval = GetValueFromNameOrArray(bVal.name());
         if (!mval)
             return false;
-        if (bVal.flags() & NVP_TRACK_OBJECT) {
-            bool already_stored;
-            size_t obj_ID;
-            PutPointer(bVal.value().GetRawPtr(), already_stored, obj_ID);
-        }
 
+        
         this->levels.push(mval);
         this->level = this->levels.top();
         this->is_array.push(false);
+
+        size_t obj_ID = 0;
+        if (rapidxml::xml_attribute<>* midval = level->first_attribute("_object_ID")) {
+            try {
+                obj_ID = std::stoull(midval->value());
+            } catch (...) {
+                throw(ChExceptionArchive("Invalid _object_ID in '" + std::string(bVal.name()) + "'"));
+            }
+        }
+
+        if (bVal.flags() & NVP_TRACK_OBJECT) {
+            PutNewPointer(bVal.value().GetRawPtr(), obj_ID);
+        }
+
 
         bVal.value().CallArchiveIn(*this);
 
@@ -506,20 +516,20 @@ class ChArchiveInXML : public ChArchiveIn {
             }
             bool is_reference = false;
             size_t ref_ID = 0;
-            if (rapidxml::xml_attribute<>* midval = level->first_attribute("refID")) {
+            if (rapidxml::xml_attribute<>* midval = level->first_attribute("_reference_ID")) {
                 try {
                     ref_ID = std::stoull(midval->value());
                 } catch (...) {
-                    throw(ChExceptionArchive("Invalid refID in '" + std::string(bVal.name()) + "'"));
+                    throw(ChExceptionArchive("Invalid _reference_ID in '" + std::string(bVal.name()) + "'"));
                 }
                 is_reference = true;
             }
             size_t ext_ID = 0;
-            if (rapidxml::xml_attribute<>* midval = level->first_attribute("external_refID")) {
+            if (rapidxml::xml_attribute<>* midval = level->first_attribute("_external_ID")) {
                 try {
                     ext_ID = std::stoull(midval->value());
                 } catch (...) {
-                    throw(ChExceptionArchive("Invalid external_refID in '" + std::string(bVal.name()) + "'"));
+                    throw(ChExceptionArchive("Invalid _external_ID in '" + std::string(bVal.name()) + "'"));
                 }
                 is_reference = true;
             }
@@ -530,10 +540,17 @@ class ChArchiveInXML : public ChArchiveIn {
 
                 void* new_ptr_void = bVal.value().GetRawPtr();
 
+                size_t obj_ID = 0;
+                if (rapidxml::xml_attribute<>* midval = level->first_attribute("_object_ID")) {
+                    try {
+                        obj_ID = std::stoull(midval->value());
+                    } catch (...) {
+                        throw(ChExceptionArchive("Invalid _object_ID in '" + std::string(bVal.name()) + "'"));
+                    }
+                }
+
                 if (new_ptr_void) {
-                    bool already_stored;
-                    size_t obj_ID;
-                    PutPointer(new_ptr_void, already_stored, obj_ID);
+                    PutNewPointer(new_ptr_void, obj_ID);
                     // 3) Deserialize
                     bVal.value().CallArchiveIn(*this, true_classname.c_str());
                 } else {
@@ -543,7 +560,7 @@ class ChArchiveInXML : public ChArchiveIn {
             } else {
                 if (ref_ID) {
                     if (this->internal_id_ptr.find(ref_ID) == this->internal_id_ptr.end()) {
-                        throw(ChExceptionArchive("In object '" + std::string(bVal.name()) + "' the refID " +
+                        throw(ChExceptionArchive("In object '" + std::string(bVal.name()) + "' the _reference_ID " +
                                                  std::to_string((int)ref_ID) + " is not a valid number."));
                     }
 
@@ -551,7 +568,7 @@ class ChArchiveInXML : public ChArchiveIn {
                         ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(), internal_id_ptr[ref_ID]));
                 } else if (ext_ID) {
                     if (this->external_id_ptr.find(ext_ID) == this->external_id_ptr.end()) {
-                        throw(ChExceptionArchive("In object '" + std::string(bVal.name()) + "' the external_refID " +
+                        throw(ChExceptionArchive("In object '" + std::string(bVal.name()) + "' the _external_ID " +
                                                  std::to_string((int)ext_ID) + " is not valid."));
                     }
                     bVal.value().SetRawPtr(

@@ -1062,7 +1062,6 @@ class ChArchiveIn : public ChArchive {
   protected:
     std::unordered_map<void*, size_t> internal_ptr_id;
     std::unordered_map<size_t, void*> internal_id_ptr;
-    size_t currentID;
     using shared_pair_type = std::pair<std::shared_ptr<void>, std::string>;
     std::unordered_map<void*, shared_pair_type> shared_ptr_map;
 
@@ -1074,12 +1073,11 @@ class ChArchiveIn : public ChArchive {
 
 
   public:
-    ChArchiveIn() : can_tolerate_missing_tokens(false), currentID(0){
+    ChArchiveIn() : can_tolerate_missing_tokens(false){
         internal_ptr_id.clear();
         internal_ptr_id[nullptr] = 0;  // null pointer -> ID=0.
         internal_id_ptr.clear();
         internal_id_ptr[0] = nullptr;  // ID=0 -> null pointer.
-        currentID = 0;
     };
 
     virtual ~ChArchiveIn(){};
@@ -1114,24 +1112,18 @@ class ChArchiveIn : public ChArchive {
     bool GetTolerateMissingTokens() const { return try_tolerate_missing_tokens; };
 
   protected:
-    /// Find a pointer in pointer map: eventually add it to map if it
+    /// Find a pointer in pointer map: eventually add it to map i f it
     /// was not previously inserted. Returns already_stored=false if was
     /// already inserted. Return 'obj_ID' offset in vector in any case.
     /// For null pointers, always return 'already_stored'=true, and 'obj_ID'=0.
-    void PutPointer(void* object, bool& already_stored, size_t& obj_ID) {
-        if (this->internal_ptr_id.find(static_cast<void*>(object)) != this->internal_ptr_id.end()) {
-            already_stored = true;
-            obj_ID = internal_ptr_id[static_cast<void*>(object)];
-            return;
-        }
+    void PutNewPointer(void* object, size_t obj_ID) {
+        if (internal_ptr_id.find(object) != internal_ptr_id.end() || internal_id_ptr.find(obj_ID) != internal_id_ptr.end())
+            throw(ChExceptionArchive("Expected to create a new object from pointer, but was already created."));
 
-        // wasn't in list.. add to it
-        ++currentID;
-        obj_ID = currentID;
-        internal_ptr_id[static_cast<void*>(object)] = obj_ID;
-        internal_id_ptr[obj_ID] = static_cast<void*>(object);
-        already_stored = false;
-        return;
+        auto it = this->internal_ptr_id.find(object);
+
+        internal_ptr_id[object] = obj_ID;
+        internal_id_ptr[obj_ID] = object;
     }
 
   public:
