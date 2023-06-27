@@ -43,10 +43,13 @@
 #include "chrono/utils/ChUtilsValidation.h"
 
 
+
+
 #ifdef CHRONO_IRRLICHT
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
+#include "chrono/core/ChRealtimeStep.h"
 
 
 // Use the namespaces of Chrono
@@ -61,6 +64,24 @@ using namespace irr::scene;
 using namespace irr::video;
 using namespace irr::io;
 using namespace irr::gui;
+
+class PauseEventReceiver : public irr::IEventReceiver {
+public:
+    PauseEventReceiver(bool start_paused = false) : is_paused(start_paused) {}
+    virtual ~PauseEventReceiver() {}
+    bool OnEvent(const irr::SEvent& event) {
+        if (event.EventType == irr::EET_KEY_INPUT_EVENT && !event.KeyInput.PressedDown && event.KeyInput.Key == irr::KEY_SPACE) {
+            is_paused = !is_paused;
+            return true;
+        }
+        return false;
+    }
+    bool IsNotPaused() const { return !is_paused; }
+
+private:
+    bool is_paused = false;
+};
+
 
 #endif
 
@@ -723,12 +744,13 @@ TEST(ChArchiveJSON, ChVectorDynamicTest){
 //}
 
 
-//TEST(ChArchiveJSON, Solidworks){
-int main(){
+TEST(ChArchiveJSON, Solidworks){
+//int main(){
 
 
-    //std::string jsonfile = utils::GetValidationDataFile("testing/core/ChArchiveJSON_MinimalForSolidworks.json");
-    std::string jsonfile = "D:/users/Downloads/Pendulum.json";
+    std::string jsonfile = utils::GetValidationDataFile("testing/core/SliderCrank.json");
+    //std::string jsonfile = "D:/users/Downloads/Pendulum.json";
+    //std::string jsonfile = "D:/users/Downloads/SliderCrank.json";
 
     ChSystemNSC system;
 
@@ -739,30 +761,56 @@ int main(){
 
     system.Setup();
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->AttachSystem(&system);
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle(jsonfile);
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(12, 15, -20));
-    vis->AddTypicalLights();
-
-
-
     double timestep = 0.001;
-    while (vis->Run()) {
-        vis->BeginScene();
-        vis->Render();
+    int step_num = 2000;
+
+
+
+    //// Create the Irrlicht visualization system
+    //auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+    //vis->AttachSystem(&system);
+    //vis->SetWindowSize(800, 600);
+    //vis->SetWindowTitle(jsonfile);
+    //vis->Initialize();
+    //vis->AddLogo();
+    //vis->AddSkyBox();
+    //vis->AddCamera(ChVector<>(1.2, 1.5, -2.0));
+    //vis->AddTypicalLights();
+    //vis->SetSymbolScale(1);
+    //vis->EnableBodyFrameDrawing(true);
+
+    //ChRealtimeStepTimer realtime_timer;
+
+    //PauseEventReceiver pause_ER(false);
+    //vis->AddUserEventReceiver(&pause_ER);
+
+
+    //int step = 0;
+    //while (vis->Run() && step<step_num) {
+    //while (vis->Run() && step<step_num) {
+    //    vis->BeginScene();
+    //    vis->Render();
+
+    //    if (pause_ER.IsNotPaused()) {
+
+    //        system.DoStepDynamics(timestep);
+    //        realtime_timer.Spin(timestep);
+    //        step++;
+    //    }
+
+
+    //    //tools::drawCoordsys(vis.get(), CSYSNORM, 5);
+
+    //    vis->EndScene();
+
+    //}
+
+    // Simulation loop
+    for (int step = 0; step<step_num; ++step) {
         system.DoStepDynamics(timestep);
-
-        tools::drawCoordsys(vis.get(), CSYSNORM, 5);
-
-        vis->EndScene();
-
     }
+
+
 
 
 }
