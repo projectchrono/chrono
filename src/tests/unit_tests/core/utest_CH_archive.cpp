@@ -757,14 +757,15 @@ TEST(ChArchiveJSON, Solidworks){
     //std::string jsonfile = "D:/users/Downloads/Pendulum.json";
     //std::string jsonfile = "D:/users/Downloads/SliderCrank.json";
 
-
-    ChStreamInAsciiFile mfilei(jsonfile.c_str());
-    ChArchiveInJSON marchivein(mfilei);
-    marchivein.TryTolerateMissingTokens(true);
-
     ChSystemNSC system;
 
-    marchivein >> CHNVP(system);
+    {
+        ChStreamInAsciiFile mfilei(jsonfile.c_str());
+        ChArchiveInJSON marchivein(mfilei);
+        marchivein.TryTolerateMissingTokens(true);
+
+        marchivein >> CHNVP(system);
+    }
 
     system.Setup();
 
