@@ -31,6 +31,7 @@
 #include "chrono/solver/ChDirectSolverLS.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/utils/ChProfiler.h"
+#include "chrono/physics/ChLinkMate.h"
 
 using namespace chrono::collision;
 
@@ -1382,6 +1383,133 @@ void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool sa
         file_Cq.SetNumFormat(numformat);
         StreamOutSparseMatlabFormat(mCq, file_Cq);
     }
+}
+
+/// Remove redundant constraints present in ChSystem through QR decomposition of constraints Jacobian matrix.
+int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol, bool verbose) {
+    // Setup system descriptor
+    Setup();
+    Update();
+    DescriptorPrepareInject(*descriptor);
+
+    ChSparseMatrix Cq;
+    GetSystemDescriptor()->ConvertToMatrixForm(&Cq, nullptr, nullptr, nullptr, nullptr, nullptr, true, true);
+    int Cq_rows = Cq.rows();
+    int Cq_cols = Cq.cols();
+
+    ChSparseMatrix CqT = Cq.transpose();
+    CqT.makeCompressed();
+
+    // Perform QR decomposition on Cq to identify linearly-dependant rows (ie. redundant scalar constraint equations)
+    Eigen::SparseQR<ChSparseMatrix, Eigen::COLAMDOrdering<int>> QR_dec;
+    QR_dec.compute(CqT);
+
+    double diag_val;
+    int independent_row_count = 0;
+    int max_diag = std::min(QR_dec.matrixR().rows(), QR_dec.matrixR().cols());
+    for (int diag_sel = 0; diag_sel < max_diag; diag_sel++) {
+        diag_val = QR_dec.matrixR().coeff(diag_sel, diag_sel);
+        if (std::abs(diag_val) > qr_tol)
+            independent_row_count++;
+    }
+    int dependent_row_count = Cq_rows - independent_row_count;
+    ChVectorDynamic<int> redundant_constraints_idx = QR_dec.colsPermutation().indices().tail(dependent_row_count);
+
+    if (verbose) {
+        std::cout << "Removing redundant constraints." << std::endl;
+        std::cout << "   QR decomposition rank: " << QR_dec.rank() << std::endl;
+        std::cout << "   Number of starting constraints: " << GetSystemDescriptor()->CountActiveConstraints() << std::endl;
+        std::cout << "   Number of indipendent constraints: " << independent_row_count << std::endl;
+        std::cout << "   Number of dependent constraints: " << Cq_rows - independent_row_count << std::endl;
+        std::cout << "   Number of total variables: " << GetSystemDescriptor()->CountActiveVariables() << std::endl;
+        std::cout << "   Index of redundant constraints: " << redundant_constraints_idx.transpose() << std::endl;
+        std::cout << "   Link offset in lagrangian multiplier:" << std::endl;
+        for (auto& link : Get_linklist())
+            std::cout << "      " << link->GetName() << "->GetOffset_L(): " << link->GetOffset_L() << std::endl;
+    }
+
+    // Remove identified redundant constraints
+    std::vector<ChConstraint*>& constrList = GetSystemDescriptor()->GetConstraintsList();
+    for (auto c_sel = 0; c_sel < redundant_constraints_idx.size(); c_sel++)
+        constrList[redundant_constraints_idx[c_sel]]->SetRedundant(true);
+    GetSystemDescriptor()->UpdateCountsAndOffsets();
+
+    // Remove Degrees of Constraint to ChLinkMate constraints
+    std::map<int, std::shared_ptr<ChLinkBase>> constr_map; // store an ordered list of constraints offsets
+    for (int i = 0; i < Get_linklist().size(); ++i) {
+        // store the link offset
+        auto link = Get_linklist()[i];
+        constr_map[link->GetOffset_L()] = link;
+    }
+
+    std::map<int, std::array<bool, 6>> constrnewmask_map; // store the mask of ChLinkMate constraints (only if they are ChLinkMate!) that have redundant equations
+    for (auto r_sel = 0; r_sel < redundant_constraints_idx.size(); ++r_sel) {
+        // pick the constraint with redundant degrees of constraints
+        auto constr_pair_mod = constr_map.upper_bound(redundant_constraints_idx[r_sel]);
+        --constr_pair_mod;
+
+        // if is of type ChLinkMate then *plan* to modify its mask
+        if (auto constr_mod = std::dynamic_pointer_cast<ChLinkMateGeneric>(constr_pair_mod->second)) {
+            auto sel_constr_offset = constr_mod->GetOffset_L();
+
+            std::array<bool, 6> original_mask = {
+                constr_mod->IsConstrainedX(), constr_mod->IsConstrainedY(), constr_mod->IsConstrainedZ(),
+                constr_mod->IsConstrainedRx(), constr_mod->IsConstrainedRy(), constr_mod->IsConstrainedRz() };
+
+            if (constrnewmask_map.find(sel_constr_offset) == constrnewmask_map.end())
+                constrnewmask_map[sel_constr_offset] = original_mask;
+
+            // find which degree of constraint is redundant within the link
+            auto redundant_offset = redundant_constraints_idx[r_sel] - sel_constr_offset;
+            int active_constraints = -1;
+            for (int m_sel = 0; m_sel < original_mask.size(); ++m_sel) {
+                if (original_mask[m_sel] == true) {
+                    ++active_constraints;
+                }
+                if (active_constraints == redundant_offset) {
+                    constrnewmask_map[sel_constr_offset][m_sel] = false;
+                    break;
+                }
+            }
+        }
+    }
+
+    // Modify ChLinkMate constaints based on new mask
+    for (auto constrnewmask_it = constrnewmask_map.begin(); constrnewmask_it != constrnewmask_map.end(); ++constrnewmask_it) {
+        std::dynamic_pointer_cast<ChLinkMateGeneric>(constr_map[constrnewmask_it->first])->SetConstrainedCoords(
+            constrnewmask_it->second[0], constrnewmask_it->second[1], constrnewmask_it->second[2],
+            constrnewmask_it->second[3], constrnewmask_it->second[4], constrnewmask_it->second[5]);
+    }
+
+    // IMPORTANT: by modifying the mask of ChLinkMate, the underlying ChConstraints get deleted and offsets get scrambled.
+    // Therefore, repopulate ChSystemDescriptor with updated scenario
+    Setup();
+    Update();
+    DescriptorPrepareInject(*descriptor);
+
+    ChSparseMatrix Cq_check;
+    GetSystemDescriptor()->ConvertToMatrixForm(&Cq_check, nullptr, nullptr, nullptr, nullptr, nullptr, true, true);
+
+    if (verbose) {
+        std::cout << "   New number of constraints: " << GetSystemDescriptor()->CountActiveConstraints() << std::endl;
+        std::cout << "   Cq size before redundancy removal: " << Cq_rows << " X " << Cq_cols << std::endl;
+        std::cout << "   Cq size after redundancy removal: " << Cq_check.rows() << " X " << Cq_check.cols() << std::endl;
+    }
+
+    // Actually REMOVE links now having DoC = 0 from system link list
+    if (remove_zero_constr) {
+        int i = 0;
+        while (i < Get_linklist().size()) {
+            if (Get_linklist()[i]->GetDOC() == 0)
+                RemoveLink(Get_linklist()[i]);
+            else
+                ++i;
+        }
+    }
+
+    // Return number of deactivated constraints
+    int reduced_rows = Cq_rows - Cq_check.rows();
+    return reduced_rows;
 }
 
 // -----------------------------------------------------------------------------

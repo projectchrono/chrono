@@ -56,6 +56,9 @@ bool ChIrrEventReceiver::OnEvent(const irr::SEvent& event) {
             case irr::KEY_KEY_U:
                 m_gui->show_explorer = !m_gui->show_explorer;
                 return true;
+            case irr::KEY_SPACE:
+                m_gui->m_vis->SetUtilityFlag(!m_gui->m_vis->GetUtilityFlag());
+                return true;
             case irr::KEY_F8: {
                 GetLog() << "Saving system in JSON format to dump.json file \n";
                 ChStreamOutAsciiFile mfileo("dump.json");

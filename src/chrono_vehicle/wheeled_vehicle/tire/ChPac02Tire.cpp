@@ -94,18 +94,18 @@ void ChPac02Tire::CombinedCoulombForces(double& fx, double& fy, double fz) {
 }
 
 void ChPac02Tire::CalcFxyMz(double& Fx,
-                         double& Fy,
-                         double& Mz,
-                         double kappa,
-                         double alpha,
-                         double Fz,
-                         double gamma,
-                         bool combined) {
+                            double& Fy,
+                            double& Mz,
+                            double kappa,
+                            double alpha,
+                            double Fz,
+                            double gamma,
+                            bool combined) {
     double Fx0 = 0;
     double Cx = m_par.PCX1 * m_par.LCX;
-    ////double Shx = (m_par.PHX1 + m_par.PHX2 * m_states.dfz0) * m_par.LHX;
+    double Shx = (m_par.PHX1 + m_par.PHX2 * m_states.dfz0) * m_par.LHX;
     double Svx = Fz * (m_par.PVX1 + m_par.PVX2 * m_states.dfz0) * m_par.LVX * m_par.LMUX;
-    double kappa_x = kappa + Svx;
+    double kappa_x = kappa + Shx;
     double gamma_x = gamma * m_par.LGAX;
     double Ex = (m_par.PEX1 + m_par.PEX2 * m_states.dfz0 + m_par.PEX3 * pow(m_states.dfz0, 2)) *
                 (1.0 - m_par.PEX4 * ChSignum(kappa_x)) * m_par.LEX;
@@ -205,6 +205,18 @@ void ChPac02Tire::CalcFxyMz(double& Fx,
         Fy = Fy0;
         Mz = -t * Fy0 + Mzr;
     }
+}
+
+double ChPac02Tire::CalcSigmaK(double Fz) {
+    double R0 = m_par.UNLOADED_RADIUS;
+    return Fz * (m_par.PTX1 + m_par.PTX2 * m_states.dfz0) * exp(m_par.PTX3 * m_states.dfz0) *
+           (R0 / m_states.Fz0_prime) * m_par.LSGKP;
+}
+
+double ChPac02Tire::CalcSigmaA(double Fz) {
+    double R0 = m_par.UNLOADED_RADIUS;
+    return m_par.PTY1 * sin(2.0 * atan(Fz / (m_par.PTY2 * m_par.FNOMIN * m_par.LFZO))) *
+           (1.0 - m_par.PKY3 * fabs(m_states.gamma)) * (R0 * m_par.LFZO) * m_par.LSGAL;
 }
 
 double ChPac02Tire::CalcMx(double Fy, double Fz, double gamma) {
