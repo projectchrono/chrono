@@ -42,7 +42,20 @@
 
 #include "chrono/utils/ChUtilsValidation.h"
 
+const double ABS_ERR = 1e-5;
 
+enum class ArchiveType {
+    BINARY,
+    JSON,
+    XML
+};
+
+
+// Use the namespaces of Chrono
+using namespace chrono;
+
+
+#undef CHRONO_IRRLICHT
 
 
 #ifdef CHRONO_IRRLICHT
@@ -53,8 +66,7 @@
 
 
 // Use the namespaces of Chrono
-// Use the namespaces of Chrono
-using namespace chrono;
+
 using namespace chrono::irrlicht;
 
 // Use the main namespaces of Irrlicht
@@ -85,13 +97,6 @@ private:
 
 #endif
 
-const double ABS_ERR = 1e-5;
-
-enum class ArchiveType {
-    BINARY,
-    JSON,
-    XML
-};
 
 
 
@@ -752,11 +757,13 @@ TEST(ChArchiveJSON, Solidworks){
     //std::string jsonfile = "D:/users/Downloads/Pendulum.json";
     //std::string jsonfile = "D:/users/Downloads/SliderCrank.json";
 
-    ChSystemNSC system;
 
     ChStreamInAsciiFile mfilei(jsonfile.c_str());
     ChArchiveInJSON marchivein(mfilei);
     marchivein.TryTolerateMissingTokens(true);
+
+    ChSystemNSC system;
+
     marchivein >> CHNVP(system);
 
     system.Setup();
