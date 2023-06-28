@@ -50,7 +50,6 @@ namespace vehicle {
 ChPac02Tire::ChPac02Tire(const std::string& name)
     : ChForceElementTire(name),
       m_gamma_limit(3.0 * CH_C_DEG_TO_RAD),
-      m_use_friction_ellipsis(true),
       m_mu0(0.8),
       m_measured_side(LEFT),
       m_allow_mirroring(false),
@@ -1626,7 +1625,8 @@ void ChPac02Tire::Synchronize(double time, const ChTerrain& terrain) {
     ChClampValue(mu_road, 0.1f, 1.0f);
 
     m_states.mu_scale = mu_road / m_mu0;  // can change with terrain conditions
-
+    m_states.mu_road = mu_road; // needed for access method
+    
     // Calculate tire kinematics
     CalculateKinematics(wheel_state, m_data.frame);
 
@@ -1755,6 +1755,14 @@ void ChPac02Tire::Advance(double step) {
     // Convert from SAE to ISO Coordinates at the contact patch.
     m_tireforce.force = ChVector<>(Fx, -Fy, m_data.normal_force);
     m_tireforce.moment = ChVector<>(Mx, -My, -Mz);
+}
+
+double ChPac02Tire::GetLongitudinalGripSaturation() {
+    return 0;
+}
+
+double ChPac02Tire::GetLateralGripSaturation() {
+    return 0;
 }
 
 // -----------------------------------------------------------------------------

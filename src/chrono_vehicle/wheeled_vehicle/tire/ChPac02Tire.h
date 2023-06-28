@@ -78,8 +78,8 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
     /// Get visualization width.
     virtual double GetVisualizationWidth() const { return m_par.WIDTH; }
 
-    /// Get the slip angle used in Pac89 (expressed in radians).
-    /// The reported value will have opposite sign to that reported by ChTire::GetSlipAngle because ChPac89 uses
+    /// Get the slip angle used in Pac02 (expressed in radians).
+    /// The reported value will have opposite sign to that reported by ChTire::GetSlipAngle because ChPac02 uses
     /// internally a different frame convention.
     double GetSlipAngle_internal() const { return m_states.alpha; }
 
@@ -90,6 +90,13 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
     virtual double GetNormalStiffnessForce(double depth) const override;
     virtual double GetNormalDampingForce(double depth, double velocity) const override;
 
+    // retrieve the road friction value the tire 'sees'
+    double GetMuRoad() { return m_states.mu_road; }
+    
+    // experimental for tire sound support
+    double GetLongitudinalGripSaturation();
+    double GetLateralGripSaturation();
+    
   protected:
     double CalcMx(double Fy, double Fz, double gamma);  // get overturning couple
     double CalcMy(double Fx, double Fz, double gamma);  // get rolling resistance moment
@@ -129,8 +136,6 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
     virtual void SetMFParams() = 0;
 
     double m_gamma_limit;  ///< limit camber angle
-
-    bool m_use_friction_ellipsis;
 
     /// Road friction at tire test conditions
     double m_mu0;
@@ -383,7 +388,8 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
     };
 
     struct TireStates {
-        double mu_scale;
+        double mu_scale;         // scaling factor for tire patch forces
+        double mu_road;          // actual road friction coefficient
         double kappa;            // slip ratio [-1:+1]
         double alpha;            // slip angle [-PI/2:+PI/2]
         double gamma;            // inclination angle
