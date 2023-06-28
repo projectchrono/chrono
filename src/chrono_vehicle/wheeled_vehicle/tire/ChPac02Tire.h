@@ -390,6 +390,8 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
     struct TireStates {
         double mu_scale;         // scaling factor for tire patch forces
         double mu_road;          // actual road friction coefficient
+        double grip_sat_x;       // tire grip saturation
+        double grip_sat_y;       // tire grip saturation
         double kappa;            // slip ratio [-1:+1]
         double alpha;            // slip angle [-PI/2:+PI/2]
         double gamma;            // inclination angle
