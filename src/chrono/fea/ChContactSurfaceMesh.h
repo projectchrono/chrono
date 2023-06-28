@@ -425,7 +425,23 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
 
     virtual ~ChContactSurfaceMesh() {}
 
-    /// Utility gunction to add all boundary faces of the associated FEA mesh to this collision surface.
+    /// Add the face specified by the three specified nodes to this collision mesh.
+    void AddFace(std::shared_ptr<ChNodeFEAxyz> node1,       ///< face node1
+                 std::shared_ptr<ChNodeFEAxyz> node2,       ///< face node2
+                 std::shared_ptr<ChNodeFEAxyz> node3,       ///< face node3
+                 std::shared_ptr<ChNodeFEAxyz> edge_node1,  ///< edge node 1 (nullptr if no wing node)
+                 std::shared_ptr<ChNodeFEAxyz> edge_node2,  ///< edge node 2 (nullptr if no wing node)
+                 std::shared_ptr<ChNodeFEAxyz> edge_node3,  ///< edge node 3 (nullptr if no wing node)
+                 bool owns_node1,                           ///< this collision face owns node1
+                 bool owns_node2,                           ///< this collision face owns node2
+                 bool owns_node3,                           ///< this collision face owns node3
+                 bool owns_edge1,                           ///< this collision face owns edge1
+                 bool owns_edge2,                           ///< this collision face owns edge2
+                 bool owns_edge3,                           ///< this collision face owns edge3
+                 double sphere_swept = 0.0                  ///< thickness (radius of sweeping sphere)
+    );
+
+    /// Utility function to add all boundary faces of the associated FEA mesh to this collision surface.
     /// This function does nothing if the contact surface was not yet associated with an FEA mesh.
     /// The function scans all the finite elements already added in the parent ChMesh and adds the faces
     /// that are not shared (ie. the faces on the boundary 'skin').
@@ -447,7 +463,7 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
                               bool ccw = true             ///< indicate clockwise or counterclockwise vertex ordering
     );
 
-    /// As AddFacesFromBoundary, but only for faces containing selected nodes in node_set.
+    // Same as AddFacesFromBoundary, but only for faces containing selected nodes in node_set.
     // void AddFacesFromNodeSet(std::vector<std::shared_ptr<ChNodeFEAbase> >& node_set); ***TODO***
 
     /// Get the list of triangles.
