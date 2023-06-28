@@ -101,6 +101,7 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     std::shared_ptr<ChLoadContainer> GetLoadContainer() const { return m_load_container; }
 
     /// Get the rim radius (inner tire radius).
+    //// TODO: consider removing
     virtual double GetRimRadius() const = 0;
 
     /// Report the tire force and moment.
@@ -115,16 +116,24 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     virtual TerrainForce ReportTireForce(ChTerrain* terrain, ChCoordsys<>& tire_frame) const override;
 
     /// Add visualization assets for the rigid tire subsystem.
-    virtual void AddVisualizationAssets(VisualizationType vis) override final;
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
 
     /// Remove visualization assets for the rigid tire subsystem.
-    virtual void RemoveVisualizationAssets() override final;
+    virtual void RemoveVisualizationAssets() override;
 
   protected:
+    /// Tire profile definition.
+    struct Profile {
+        std::vector<double> t;  ///< independent parameter
+        std::vector<double> x;  ///< x coordinate (radial direction)
+        std::vector<double> y;  ///< y coordinate (transversal direction)
+    };
+
     /// Return the default tire pressure.
     virtual double GetDefaultPressure() const = 0;
 
     /// Return list of nodes connected to the rim.
+    //// TODO Consider moving down to derived classes (CHANCFTire, CHReissnerTire, etc)
     virtual std::vector<std::shared_ptr<fea::ChNodeFEAbase>> GetConnectedNodes() const = 0;
 
     /// Create the FEA nodes and elements.
@@ -172,11 +181,11 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     virtual double GetAddedMass() const override final { return 0; }
     virtual ChVector<> GetAddedInertia() const override final { return ChVector<>(0, 0, 0); }
 
-     /// Return the tire mass.
-    virtual void InitializeInertiaProperties() override final;
+    /// Return the tire mass.
+    virtual void InitializeInertiaProperties() override;
 
     /// Return the tire moments of inertia (in the tire centroidal frame).
-    virtual void UpdateInertiaProperties() override final;
+    virtual void UpdateInertiaProperties() override;
 
     /// Initialize this tire by associating it to the specified wheel.
     virtual void Initialize(std::shared_ptr<ChWheel> wheel) override;

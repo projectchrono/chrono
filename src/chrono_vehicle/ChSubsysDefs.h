@@ -420,7 +420,8 @@ enum class TireModelType {
     PAC89,       ///< Pacejka 89 (magic formula) tire, version 1989
     TMEASY,      ///< Tire Model Made Easy tire (G. Rill)
     PAC02,       ///< Pacejka 02 (magic formula) tire, version 2002 or later
-    TMSIMPLE     ///< Tire Model Simple (W. Hirschberg)
+    TMSIMPLE,    ///< Tire Model Simple (W. Hirschberg)
+    LUT          ///< simplified deformable tire
 };
 
 /// Enum for available engine model templates.

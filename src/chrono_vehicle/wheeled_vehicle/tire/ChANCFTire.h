@@ -40,13 +40,6 @@ class CH_VEHICLE_API ChANCFTire : public ChDeformableTire {
     virtual std::string GetTemplateName() const override { return "ANCFTire"; }
 
   protected:
-    /// Tire profile.
-    struct Profile {
-        std::vector<double> t;  ///< independent parameter
-        std::vector<double> x;  ///< x coordinate (radial direction)
-        std::vector<double> y;  ///< y coordinate (transversal direction)
-    };
-
     /// Tire section.
     struct Section {
         int num_divs;                                                ///< number of section divisions
