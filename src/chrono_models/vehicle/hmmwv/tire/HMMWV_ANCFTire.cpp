@@ -78,7 +78,7 @@ const float HMMWV_ANCFTire::m_kt = 1.0e6f;
 const float HMMWV_ANCFTire::m_gt = 0;
 
 const unsigned int HMMWV_ANCFTire::m_num_points = 71;
-const double HMMWV_ANCFTire::m_profile[71][3] = {
+const double HMMWV_ANCFTire::m_profile_data[71][3] = {
     {0.000000E+00, 0.000000E+00, -1.150000E-01}, {1.428571E-02, 1.166670E-02, -1.164180E-01},
     {2.857143E-02, 2.333330E-02, -1.192300E-01}, {4.285714E-02, 3.500000E-02, -1.230200E-01},
     {5.714286E-02, 4.666670E-02, -1.273710E-01}, {7.142857E-02, 5.833330E-02, -1.318700E-01},
@@ -129,13 +129,13 @@ HMMWV_ANCFTire::HMMWV_ANCFTire(const std::string& name, ElementType element_type
     m_materials[2] = chrono_types::make_shared<ChMaterialShellANCF>(m_rho_2, m_E_2, m_nu_2, m_G_2);
 
     // Set the profile
-    m_profile_t.resize(m_num_points);
-    m_profile_x.resize(m_num_points);
-    m_profile_y.resize(m_num_points);
+    m_profile.t.resize(m_num_points);
+    m_profile.x.resize(m_num_points);
+    m_profile.y.resize(m_num_points);
     for (unsigned int i = 0; i < m_num_points; i++) {
-        m_profile_t[i] = m_profile[i][0];
-        m_profile_x[i] = m_profile[i][1];
-        m_profile_y[i] = m_profile[i][2];
+        m_profile.t[i] = m_profile_data[i][0];
+        m_profile.x[i] = m_profile_data[i][1];
+        m_profile.y[i] = m_profile_data[i][2];
     }
 }
 
@@ -154,7 +154,7 @@ void HMMWV_ANCFTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide 
     switch (m_element_type) {
         case ElementType::ANCF_4:
             m_rim_nodes = CreateMeshANCF4(                                                      //
-                {m_profile_t, m_profile_x, m_profile_y},                                        //
+                m_profile,                                                                      //
                 {m_num_elements_b, m_num_layers_b, m_layer_thickness_b, m_ply_angle_b, mat_b},  //
                 {m_num_elements_s, m_num_layers_s, m_layer_thickness_s, m_ply_angle_s, mat_s},  //
                 {m_num_elements_t, m_num_layers_t, m_layer_thickness_t, m_ply_angle_t, mat_t},  //
@@ -167,7 +167,7 @@ void HMMWV_ANCFTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide 
             break;
         case ElementType::ANCF_8:
             m_rim_nodes = CreateMeshANCF8(                                                          //
-                {m_profile_t, m_profile_x, m_profile_y},                                            //
+                m_profile,                                                                          //
                 {m_num_elements_b / 2, m_num_layers_b, m_layer_thickness_b, m_ply_angle_b, mat_b},  //
                 {m_num_elements_s / 2, m_num_layers_s, m_layer_thickness_s, m_ply_angle_s, mat_s},  //
                 {m_num_elements_t / 2, m_num_layers_t, m_layer_thickness_t, m_ply_angle_t, mat_t},  //

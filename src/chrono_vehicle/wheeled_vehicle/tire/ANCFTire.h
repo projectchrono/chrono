@@ -80,9 +80,7 @@ class CH_VEHICLE_API ANCFTire : public ChANCFTire {
     std::vector<std::shared_ptr<fea::ChNodeFEAbase>> m_rim_nodes;
 
     unsigned int m_num_points;
-    std::vector<double> m_profile_t;
-    std::vector<double> m_profile_x;
-    std::vector<double> m_profile_y;
+    Profile m_profile;
 
     ChContactMaterialData m_mat_info;
 };

@@ -138,37 +138,37 @@ void ANCFTire::ProcessJSON(const rapidjson::Document& d) {
 
     // Read profile specification
     m_num_points = d["Profile"].Size();
-    m_profile_t.resize(m_num_points);
-    m_profile_x.resize(m_num_points);
-    m_profile_y.resize(m_num_points);
+    m_profile.t.resize(m_num_points);
+    m_profile.x.resize(m_num_points);
+    m_profile.y.resize(m_num_points);
     for (unsigned int i = 0; i < m_num_points; i++) {
-        m_profile_t[i] = d["Profile"][i][0u].GetDouble();
-        m_profile_x[i] = d["Profile"][i][1u].GetDouble();
-        m_profile_y[i] = d["Profile"][i][2u].GetDouble();
+        m_profile.t[i] = d["Profile"][i][0u].GetDouble();
+        m_profile.x[i] = d["Profile"][i][1u].GetDouble();
+        m_profile.y[i] = d["Profile"][i][2u].GetDouble();
     }
 }
 
 // Create the FEA mesh
 void ANCFTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) {
     if (m_ANCF8)
-        m_rim_nodes = CreateMeshANCF8(                //
-            {m_profile_t, m_profile_x, m_profile_y},  //
-            m_bead, m_sidewall, m_tread,              //
-            m_div_circumference,                      //
-            m_rim_radius,                             //
-            m_alpha,                                  //
-            m_mesh,                                   //
-            wheel_frame                               //
+        m_rim_nodes = CreateMeshANCF8(    //
+            m_profile,                    //
+            m_bead, m_sidewall, m_tread,  //
+            m_div_circumference,          //
+            m_rim_radius,                 //
+            m_alpha,                      //
+            m_mesh,                       //
+            wheel_frame                   //
         );
     else
-        m_rim_nodes = CreateMeshANCF4(                //
-            {m_profile_t, m_profile_x, m_profile_y},  //
-            m_bead, m_sidewall, m_tread,              //
-            m_div_circumference,                      //
-            m_rim_radius,                             //
-            m_alpha,                                  //
-            m_mesh,                                   //
-            wheel_frame                               //
+        m_rim_nodes = CreateMeshANCF4(    //
+            m_profile,                    //
+            m_bead, m_sidewall, m_tread,  //
+            m_div_circumference,          //
+            m_rim_radius,                 //
+            m_alpha,                      //
+            m_mesh,                       //
+            wheel_frame                   //
         );
 }
 

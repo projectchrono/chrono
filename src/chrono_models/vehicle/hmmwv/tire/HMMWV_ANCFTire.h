@@ -116,10 +116,9 @@ class CH_MODELS_API HMMWV_ANCFTire : public ChANCFTire {
     static const float m_gt;
 
     static const unsigned int m_num_points;
-    static const double m_profile[71][3];
-    std::vector<double> m_profile_t;
-    std::vector<double> m_profile_x;
-    std::vector<double> m_profile_y;
+    static const double m_profile_data[71][3];
+
+    Profile m_profile;
 
     std::vector<std::shared_ptr<fea::ChNodeFEAbase>> m_rim_nodes;
 };
