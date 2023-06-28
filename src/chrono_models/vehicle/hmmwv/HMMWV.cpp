@@ -31,6 +31,7 @@
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_RigidTire.h"
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_TMeasyTire.h"
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_TMsimpleTire.h"
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_LUTTire.h"
 
 #include "chrono_vehicle/ChPowertrainAssembly.h"
 #include "chrono_models/vehicle/hmmwv/powertrain/HMMWV_EngineShafts.h"
@@ -161,6 +162,7 @@ void HMMWV::Initialize() {
 
             break;
         }
+
         case TireModelType::FIALA: {
             auto tire_FL = chrono_types::make_shared<HMMWV_FialaTire>("FL");
             auto tire_FR = chrono_types::make_shared<HMMWV_FialaTire>("FR");
@@ -258,11 +260,28 @@ void HMMWV::Initialize() {
 
             break;
         }
+
         case TireModelType::REISSNER: {
             auto tire_FL = chrono_types::make_shared<HMMWV_ReissnerTire>("FL");
             auto tire_FR = chrono_types::make_shared<HMMWV_ReissnerTire>("FR");
             auto tire_RL = chrono_types::make_shared<HMMWV_ReissnerTire>("RL");
             auto tire_RR = chrono_types::make_shared<HMMWV_ReissnerTire>("RR");
+
+            m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
+
+            m_tire_mass = tire_FL->GetMass();
+
+            break;
+        }
+
+        case TireModelType::LUT: {
+            auto tire_FL = chrono_types::make_shared<HMMWV_LUTTire>("FL");
+            auto tire_FR = chrono_types::make_shared<HMMWV_LUTTire>("FR");
+            auto tire_RL = chrono_types::make_shared<HMMWV_LUTTire>("RL");
+            auto tire_RR = chrono_types::make_shared<HMMWV_LUTTire>("RR");
 
             m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);

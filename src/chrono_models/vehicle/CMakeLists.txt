@@ -73,6 +73,8 @@ set(CVM_HMMWV_TIRE_FILES
     hmmwv/tire/HMMWV_ANCFTire.h
     hmmwv/tire/HMMWV_ReissnerTire.cpp
     hmmwv/tire/HMMWV_ReissnerTire.h
+    hmmwv/tire/HMMWV_LUTTire.cpp
+    hmmwv/tire/HMMWV_LUTTire.h
 )
 set(CVM_HMMWV_VEHICLE_FILES
     hmmwv/HMMWV.cpp
