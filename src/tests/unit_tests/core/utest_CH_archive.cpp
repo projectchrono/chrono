@@ -35,11 +35,9 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
-#include "chrono/serialization/ChArchive.h"
 
 //#include "chrono/assets/ChBoxShape.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
-
 #include "chrono/utils/ChUtilsValidation.h"
 
 const double ABS_ERR = 1e-5;
@@ -53,50 +51,6 @@ enum class ArchiveType {
 
 // Use the namespaces of Chrono
 using namespace chrono;
-
-//#define RUN_MAIN
-
-
-#ifdef CHRONO_IRRLICHT
-#ifdef RUN_MAIN
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
-
-#include "chrono/core/ChRealtimeStep.h"
-
-
-// Use the namespaces of Chrono
-
-using namespace chrono::irrlicht;
-
-// Use the main namespaces of Irrlicht
-using namespace irr;
-using namespace irr::core;
-using namespace irr::scene;
-using namespace irr::video;
-using namespace irr::io;
-using namespace irr::gui;
-
-class PauseEventReceiver : public irr::IEventReceiver {
-public:
-    PauseEventReceiver(bool start_paused = false) : is_paused(start_paused) {}
-    virtual ~PauseEventReceiver() {}
-    bool OnEvent(const irr::SEvent& event) {
-        if (event.EventType == irr::EET_KEY_INPUT_EVENT && !event.KeyInput.PressedDown && event.KeyInput.Key == irr::KEY_SPACE) {
-            is_paused = !is_paused;
-            return true;
-        }
-        return false;
-    }
-    bool IsNotPaused() const { return !is_paused; }
-
-private:
-    bool is_paused = false;
-};
-
-#endif
-#endif
-
-
 
 
 void assemble_fourbar(ChSystemNSC& system){
@@ -665,164 +619,25 @@ TEST(ChArchiveJSON, ChVectorDynamicTest){
 }
 
 
-//
-////TEST(ChArchiveJSON, gears){
-//int main(){
-//
-//    std::string jsonfile = "ChArchiveJSON_gears.json";
-//    // Create a material that will be shared among all collision shapes
-//    {
-//
-//        ChSystemNSC sys;
-//        
-//        //assemble_pendulum_visual(sys);
-//        assemble_gear_and_pulleys(sys);
-//        
-//
-//        ChStreamOutAsciiFile mfileo(jsonfile.c_str());
-//        ChArchiveOutJSON marchiveout(mfileo);
-//        marchiveout << CHNVP(sys);
-//
-//
-//        
-//        // Create the Irrlicht visualization system
-//        auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-//        vis->AttachSystem(&sys);
-//        vis->SetWindowSize(800, 600);
-//        vis->SetWindowTitle(jsonfile);
-//        vis->Initialize();
-//        vis->AddLogo();
-//        vis->AddSkyBox();
-//        vis->AddCamera(ChVector<>(12, 15, -20));
-//        vis->AddTypicalLights();
-//
-//
-//
-//        double timestep = 0.001;
-//        while (vis->Run()) {
-//            vis->BeginScene();
-//            vis->Render();
-//            sys.DoStepDynamics(timestep);
-//
-//            vis->EndScene();
-//
-//        }
-//
-//    }
-//
-//    ChSystemNSC sys;
-//
-//    ChStreamInAsciiFile mfilei(jsonfile.c_str());
-//    ChArchiveInJSON marchivein(mfilei);
-//    marchivein.SetTolerateMissingTokens(true);
-//    marchivein >> CHNVP(sys);
-//
-//
-//
-//    // Create the Irrlicht visualization system
-//    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-//    vis->AttachSystem(&sys);
-//    vis->SetWindowSize(800, 600);
-//    vis->SetWindowTitle(jsonfile);
-//    vis->Initialize();
-//    vis->AddLogo();
-//    vis->AddSkyBox();
-//    vis->AddCamera(ChVector<>(12, 15, -20));
-//    vis->AddTypicalLights();
-//
-//
-//
-//    double timestep = 0.001;
-//    while (vis->Run()) {
-//        vis->BeginScene();
-//        vis->Render();
-//        sys.DoStepDynamics(timestep);
-//
-//        tools::drawCoordsys(vis.get(), CSYSNORM, 5);
-//
-//        vis->EndScene();
-//
-//    }
-//
-//
-//}
-
-
-#ifdef RUN_MAIN
-int main(){
-#else
 TEST(ChArchiveJSON, Solidworks){
-#endif
 
+    std::string jsonfile = utils::GetValidationDataFile("solidworks/SliderCrank.json");
 
-
-    //std::string jsonfile = utils::GetValidationDataFile("testing/core/SliderCrank.json");
-    std::string jsonfile = utils::GetValidationDataFile("testing/joints/revolute_joint/Revolute_Case01_ADAMS_Pos.txt");
-    //joints/revolute_joint/Revolute_Case01_ADAMS_Pos.txt
     ChStreamInAsciiFile mfilei(jsonfile.c_str());
-
-//
-//    ChSystemNSC system;
-//
-//    {
-//        ChStreamInAsciiFile mfilei(jsonfile.c_str());
-//        ChArchiveInJSON marchivein(mfilei);
-//        marchivein.TryTolerateMissingTokens(true);
-//
-//        marchivein >> CHNVP(system);
-//    }
-//
-//    system.Setup();
-//
-//    double timestep = 0.001;
-//    int step_num = 2000;
-//
-//
-//#ifdef RUN_MAIN
-//    // Create the Irrlicht visualization system
-//    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-//    vis->AttachSystem(&system);
-//    vis->SetWindowSize(800, 600);
-//    vis->SetWindowTitle(jsonfile);
-//    vis->Initialize();
-//    vis->AddLogo();
-//    vis->AddSkyBox();
-//    vis->AddCamera(ChVector<>(0.25, 0.25, 0.25));
-//    vis->AddTypicalLights();
-//    vis->SetSymbolScale(1);
-//    vis->EnableBodyFrameDrawing(true);
-//
-//    ChRealtimeStepTimer realtime_timer;
-//
-//    PauseEventReceiver pause_ER(false);
-//    vis->AddUserEventReceiver(&pause_ER);
-//
-//
-//    int step = 0;
-//    while (vis->Run() && step<step_num) {
-//        vis->BeginScene();
-//        vis->Render();
-//
-//        if (pause_ER.IsNotPaused()) {
-//
-//            system.DoStepDynamics(timestep);
-//            realtime_timer.Spin(timestep);
-//            step++;
-//        }
-//
-//
-//        vis->EndScene();
-//
-//    }
-//#else
-//
-//    // Simulation loop
-//    for (int step = 0; step<step_num; ++step) {
-//        system.DoStepDynamics(timestep);
-//    }
-//
-//#endif
+    ChArchiveInJSON marchivein(mfilei);
+    marchivein.TryTolerateMissingTokens(true);
 
 
+    ChSystemNSC system;
+    marchivein >> CHNVP(system);
 
+
+    system.Setup();
+
+    double timestep = 0.001;
+    int step_num = 2000;
+
+    for (int step = 0; step < step_num; ++step){
+        system.DoStepDynamics(timestep);
+    }
 }
