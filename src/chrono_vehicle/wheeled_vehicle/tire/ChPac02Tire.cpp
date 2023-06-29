@@ -116,9 +116,11 @@ void ChPac02Tire::CalcFxyMz(double& Fx,
                 (1.0 + m_par.PPX1 * m_states.dpi + m_par.PPX2 * pow(m_states.dpi, 2)) * m_par.LKX;
     double Bx = Kx / (Cx * Dx + 0.1);
     Fx0 = Dx * sin(Cx * atan(Bx * kappa_x - Ex * (Bx * kappa_x - atan(Bx * kappa_x)))) + Svx;
-    
-    m_states.grip_sat_x = mu_x*Fz/Dx;
+
+    // not Pacejka: grip saturation longitudinal ------------------------
+    m_states.grip_sat_x = std::abs((Fx0 - Svx) / Fz) / std::abs(Dx / Fz);
     ChClampValue(m_states.grip_sat_x, 0.0, 1.0);
+    //-------------------------------------------------------------------
     
     double Fy0 = 0;
     double gamma_y = gamma * m_par.LGAY;
@@ -142,8 +144,10 @@ void ChPac02Tire::CalcFxyMz(double& Fx,
     double By = Ky / (Cy * Dy + 0.1);
     Fy0 = Dy * sin(Cy * atan(By * alpha_y - Ey * (By * alpha_y - atan(By * alpha_y)))) + Svy;
 
-    m_states.grip_sat_y = mu_y*Fz/Dy;
+    // not Pacejka: grip saturation lateral -----------------------------
+    m_states.grip_sat_y = std::abs((Fy0 - Svy) / Fz) / std::abs(Dy / Fz);
     ChClampValue(m_states.grip_sat_y, 0.0, 1.0);
+    //-------------------------------------------------------------------
 
     double Shxa = m_par.RHX1;
     double Cxa = m_par.RCX1;
@@ -1631,8 +1635,8 @@ void ChPac02Tire::Synchronize(double time, const ChTerrain& terrain) {
     ChClampValue(mu_road, 0.1f, 1.0f);
 
     m_states.mu_scale = mu_road / m_mu0;  // can change with terrain conditions
-    m_states.mu_road = mu_road; // needed for access method
-    
+    m_states.mu_road = mu_road;           // needed for access method
+
     // Calculate tire kinematics
     CalculateKinematics(wheel_state, m_data.frame);
 
