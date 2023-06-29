@@ -54,12 +54,11 @@ enum class ArchiveType {
 // Use the namespaces of Chrono
 using namespace chrono;
 
-
-#undef CHRONO_IRRLICHT
+//#define RUN_MAIN
 
 
 #ifdef CHRONO_IRRLICHT
-
+#ifdef RUN_MAIN
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 #include "chrono/core/ChRealtimeStep.h"
@@ -94,7 +93,7 @@ private:
     bool is_paused = false;
 };
 
-
+#endif
 #endif
 
 
@@ -749,75 +748,80 @@ TEST(ChArchiveJSON, ChVectorDynamicTest){
 //}
 
 
+#ifdef RUN_MAIN
+int main(){
+#else
 TEST(ChArchiveJSON, Solidworks){
-//int main(){
-
-
-    std::string jsonfile = utils::GetValidationDataFile("testing/core/SliderCrank.json");
-    //std::string jsonfile = "D:/users/Downloads/Pendulum.json";
-    //std::string jsonfile = "D:/users/Downloads/SliderCrank.json";
-
-    ChSystemNSC system;
-
-    {
-        ChStreamInAsciiFile mfilei(jsonfile.c_str());
-        ChArchiveInJSON marchivein(mfilei);
-        marchivein.TryTolerateMissingTokens(true);
-
-        marchivein >> CHNVP(system);
-    }
-
-    system.Setup();
-
-    double timestep = 0.001;
-    int step_num = 2000;
+#endif
 
 
 
-    //// Create the Irrlicht visualization system
-    //auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    //vis->AttachSystem(&system);
-    //vis->SetWindowSize(800, 600);
-    //vis->SetWindowTitle(jsonfile);
-    //vis->Initialize();
-    //vis->AddLogo();
-    //vis->AddSkyBox();
-    //vis->AddCamera(ChVector<>(1.2, 1.5, -2.0));
-    //vis->AddTypicalLights();
-    //vis->SetSymbolScale(1);
-    //vis->EnableBodyFrameDrawing(true);
+    //std::string jsonfile = utils::GetValidationDataFile("testing/core/SliderCrank.json");
+    std::string jsonfile = utils::GetValidationDataFile("testing/joints/revolute_joint/Revolute_Case01_ADAMS_Pos.txt");
+    //joints/revolute_joint/Revolute_Case01_ADAMS_Pos.txt
+    ChStreamInAsciiFile mfilei(jsonfile.c_str());
 
-    //ChRealtimeStepTimer realtime_timer;
-
-    //PauseEventReceiver pause_ER(false);
-    //vis->AddUserEventReceiver(&pause_ER);
-
-
-    //int step = 0;
-    //while (vis->Run() && step<step_num) {
-    //while (vis->Run() && step<step_num) {
-    //    vis->BeginScene();
-    //    vis->Render();
-
-    //    if (pause_ER.IsNotPaused()) {
-
-    //        system.DoStepDynamics(timestep);
-    //        realtime_timer.Spin(timestep);
-    //        step++;
-    //    }
-
-
-    //    //tools::drawCoordsys(vis.get(), CSYSNORM, 5);
-
-    //    vis->EndScene();
-
-    //}
-
-    // Simulation loop
-    for (int step = 0; step<step_num; ++step) {
-        system.DoStepDynamics(timestep);
-    }
-
+//
+//    ChSystemNSC system;
+//
+//    {
+//        ChStreamInAsciiFile mfilei(jsonfile.c_str());
+//        ChArchiveInJSON marchivein(mfilei);
+//        marchivein.TryTolerateMissingTokens(true);
+//
+//        marchivein >> CHNVP(system);
+//    }
+//
+//    system.Setup();
+//
+//    double timestep = 0.001;
+//    int step_num = 2000;
+//
+//
+//#ifdef RUN_MAIN
+//    // Create the Irrlicht visualization system
+//    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+//    vis->AttachSystem(&system);
+//    vis->SetWindowSize(800, 600);
+//    vis->SetWindowTitle(jsonfile);
+//    vis->Initialize();
+//    vis->AddLogo();
+//    vis->AddSkyBox();
+//    vis->AddCamera(ChVector<>(0.25, 0.25, 0.25));
+//    vis->AddTypicalLights();
+//    vis->SetSymbolScale(1);
+//    vis->EnableBodyFrameDrawing(true);
+//
+//    ChRealtimeStepTimer realtime_timer;
+//
+//    PauseEventReceiver pause_ER(false);
+//    vis->AddUserEventReceiver(&pause_ER);
+//
+//
+//    int step = 0;
+//    while (vis->Run() && step<step_num) {
+//        vis->BeginScene();
+//        vis->Render();
+//
+//        if (pause_ER.IsNotPaused()) {
+//
+//            system.DoStepDynamics(timestep);
+//            realtime_timer.Spin(timestep);
+//            step++;
+//        }
+//
+//
+//        vis->EndScene();
+//
+//    }
+//#else
+//
+//    // Simulation loop
+//    for (int step = 0; step<step_num; ++step) {
+//        system.DoStepDynamics(timestep);
+//    }
+//
+//#endif
 
 
 
