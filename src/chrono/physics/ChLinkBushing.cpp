@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Antonio Recuero
+// Authors: Antonio Recuero, Radu Serban
 // =============================================================================
 // Class that inherits from ChLinkLock as a free joint. Compliances are added
 // to the relative motion between two rigid bodies. Out of the 6 possible dofs
@@ -26,19 +26,18 @@ namespace chrono {
 // persistence
 CH_FACTORY_REGISTER(ChLinkBushing)
 
-ChLinkBushing::ChLinkBushing(bushing_joint bushing_joint_type) {
-    m_bushing_joint = bushing_joint_type;
-    ChangeLinkType(LinkType::FREE);  // Our bushing element will be a free joint
+ChLinkBushing::ChLinkBushing(Type bushing_type) : m_type(bushing_type) {
+    ChangeLinkType(LinkType::FREE);
 }
 
 ChLinkBushing::~ChLinkBushing() {}
 
-void ChLinkBushing::Initialize(std::shared_ptr<ChBody> mbody1,
-                               std::shared_ptr<ChBody> mbody2,
-                               const ChCoordsys<>& mpos,
+void ChLinkBushing::Initialize(std::shared_ptr<ChBody> body1,
+                               std::shared_ptr<ChBody> body2,
+                               const ChCoordsys<>& pos,
                                const ChMatrixNM<double, 6, 6>& K,
                                const ChMatrixNM<double, 6, 6>& R) {
-    ChLinkMarkers::Initialize(mbody1, mbody2, mpos);
+    ChLinkMarkers::Initialize(body1, body2, pos);
     m_constants_K = K;  // K_x, K_y, K_z, KTheta_x, KTheta_y, KTheta_z
     m_constants_R = R;  // R_x, R_y, R_z, RTheta_x, RTheta_y, RTheta_z
 
@@ -61,29 +60,54 @@ void ChLinkBushing::Initialize(std::shared_ptr<ChBody> mbody1,
     force_Z->SetR(m_constants_R(2, 2));
 
     // Apply compliance in rotational dofs depending on bushing type selected
-    switch (m_bushing_joint) {
-        case ChLinkBushing::Mount:
-            force_Rx = chrono_types::make_unique<ChLinkForce>();
-            force_Rx->SetActive(true);
-            force_Rx->SetK(m_constants_K(3, 3));
-            force_Rx->SetR(m_constants_R(3, 3));
+    if (m_type == Type::Mount) {
+        force_Rx = chrono_types::make_unique<ChLinkForce>();
+        force_Rx->SetActive(true);
+        force_Rx->SetK(m_constants_K(3, 3));
+        force_Rx->SetR(m_constants_R(3, 3));
 
-            force_Ry = chrono_types::make_unique<ChLinkForce>();
-            force_Ry->SetActive(true);
-            force_Ry->SetK(m_constants_K(4, 4));
-            force_Ry->SetR(m_constants_R(4, 4));
+        force_Ry = chrono_types::make_unique<ChLinkForce>();
+        force_Ry->SetActive(true);
+        force_Ry->SetK(m_constants_K(4, 4));
+        force_Ry->SetR(m_constants_R(4, 4));
 
-            force_Rz = chrono_types::make_unique<ChLinkForce>();
-            force_Rz->SetActive(true);
-            force_Rz->SetK(m_constants_K(5, 5));
-            force_Rz->SetR(m_constants_R(5, 5));
-
-            break;
-        case ChLinkBushing::Spherical:
-            break;
+        force_Rz = chrono_types::make_unique<ChLinkForce>();
+        force_Rz->SetActive(true);
+        force_Rz->SetK(m_constants_K(5, 5));
+        force_Rz->SetR(m_constants_R(5, 5));
     }
-    return;
 }
+
+ChVector<> ChLinkBushing::GetForce() const {
+    ChVector<> force(0.0);
+
+    if (force_X && force_X->IsActive())
+        force.x() = force_X->GetForce(relM.pos.x(), relM_dt.pos.x(), ChTime);
+
+    if (force_Y && force_Y->IsActive())
+        force.y() = force_Y->GetForce(relM.pos.y(), relM_dt.pos.y(), ChTime);
+
+    if (force_Z && force_Z->IsActive())
+        force.z() = force_Z->GetForce(relM.pos.z(), relM_dt.pos.z(), ChTime);
+
+    return force;
+}
+
+ChVector<> ChLinkBushing::GetTorque() const {
+    ChVector<> torque(0.0);
+
+    if (force_Rx && force_Rx->IsActive())
+        torque.x() = force_Rx->GetForce(relRotaxis.x(), relWvel.x(), ChTime);
+
+    if (force_Ry && force_Ry->IsActive())
+        torque.y() = force_Ry->GetForce(relRotaxis.y(), relWvel.y(), ChTime);
+
+    if (force_Rz && force_Rz->IsActive())
+        torque.z() = force_Rz->GetForce(relRotaxis.z(), relWvel.z(), ChTime);
+
+    return torque;
+}
+
 void ChLinkBushing::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLinkBushing>();
@@ -92,7 +116,6 @@ void ChLinkBushing::ArchiveOut(ChArchiveOut& marchive) {
     ChLinkLock::ArchiveOut(marchive);
 }
 
-/// Method to allow de serialization of transient data from archives.
 void ChLinkBushing::ArchiveIn(ChArchiveIn& marchive) {
     // version number
     marchive.VersionRead<ChLinkBushing>();
