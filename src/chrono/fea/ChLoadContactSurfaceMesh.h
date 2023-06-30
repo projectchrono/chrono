@@ -25,27 +25,19 @@ namespace fea {
 /// @addtogroup chrono_fea
 /// @{
 
-/// Class for applying loads to a contact mesh as a cluster of forces
-/// operating on the nodes of the underlying finite elements.
-/// It is useful for doing cosimulation: one can pass this object's vertex & faces
-/// to an external software (ex. CFD) that in turn will perform collision detection
-/// with its entities, compute forces, send forces back to Chrono via this object.
-/// Note, this is based on a cluster of  std::vector< std::shared_ptr<ChLoadXYZnode> >, but
-/// the class itself could bypass all methods of ChLoadXYZnode and directly implement
-/// a more efficient LoadIntLoadResidual_F, however this is left in this way for didactical reasons.
-
+/// Class for applying loads to a contact mesh as a cluster of forces on the nodes of the underlying finite elements.
+/// Useful for cosimulation: one can pass this object's vertex & faces to an external software (e.g., CFD) that in turn
+/// will perform collision detection with its entities, compute forces, send forces back to Chrono via this object.
+/// Note that this is based on a cluster of ChLoadXYZnode, but the class itself could bypass all methods of
+/// ChLoadXYZnode and directly implement a more efficient LoadIntLoadResidual_F.
 class ChApi ChLoadContactSurfaceMesh : public ChLoadBase {
   public:
-    ChLoadContactSurfaceMesh(std::shared_ptr<ChContactSurfaceMesh> cmesh);
+    ChLoadContactSurfaceMesh(std::shared_ptr<ChContactSurfaceMesh> contact_mesh);
 
     virtual ~ChLoadContactSurfaceMesh() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLoadContactSurfaceMesh* Clone() const override { return new ChLoadContactSurfaceMesh(*this); }
-
-    //
-    // FUNCTIONS
-    //
 
     // Functions that can be used
     // for cosimulation  A <----> B
@@ -63,24 +55,22 @@ class ChApi ChLoadContactSurfaceMesh : public ChLoadBase {
     /// to the referenced vertex, as obtained by OutputSimpleMesh.
     /// NOTE: do not insert/remove nodes from the collision mesh between the OutputSimpleMesh-InputSimpleForces pair!
     void InputSimpleForces(
-        const std::vector<ChVector<>> vert_forces,  ///< array of forces (absolute xyz forces in [N])
-        const std::vector<int> vert_ind             ///< array of indexes to vertexes to which forces are applied
+        const std::vector<ChVector<>>& vert_forces,  ///< array of forces (absolute xyz forces in [N])
+        const std::vector<int>& vert_ind             ///< array of indexes to vertexes to which forces are applied
     );
 
     /// Set the contact mesh (also resets the applied nodes)
-    void SetContactMesh(std::shared_ptr<ChContactSurfaceMesh> mmesh);
+    void SetContactMesh(std::shared_ptr<ChContactSurfaceMesh> contact_mesh);
 
     /// Get the contact mesh
-    std::shared_ptr<ChContactSurfaceMesh> GetContactMesh() const { return contactmesh; }
+    std::shared_ptr<ChContactSurfaceMesh> GetContactMesh() const { return m_contact_mesh; }
 
     /// Access the list of applied forces, so you can add new ones by using push_back(),
     /// remove them, count them, etc.
     /// Note that if you add nodes, these should belong to the referenced mesh.
-    std::vector<std::shared_ptr<ChLoadXYZnode>>& GetForceList() { return forces; }
+    std::vector<std::shared_ptr<ChLoadXYZnode>>& GetForceList() { return m_forces; }
 
-    //
     // ChLoadBase interface
-    //
 
     virtual int LoadGet_ndof_x() override;
     virtual int LoadGet_ndof_w() override;
@@ -114,9 +104,9 @@ class ChApi ChLoadContactSurfaceMesh : public ChLoadBase {
     virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
 
   private:
-    std::shared_ptr<ChContactSurfaceMesh> contactmesh;
-    std::vector<std::shared_ptr<ChLoadXYZnode>> forces;
-    std::vector<std::shared_ptr<ChLoadXYZROTnodeForceAbsolute>> forces_rot;
+    std::shared_ptr<ChContactSurfaceMesh> m_contact_mesh;
+    std::vector<std::shared_ptr<ChLoadXYZnode>> m_forces;
+    std::vector<std::shared_ptr<ChLoadXYZROTnodeForceAbsolute>> m_forces_rot;
 };
 
 /// @} chrono_fea
