@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
         // This is the instruction that loads the .py (as saved from SolidWorks) and
         // fills the system:
 
-        my_python.ImportSolidWorksSystem(GetChronoDataFile("solid_works/swiss_escapement").c_str(), 
+        my_python.ImportSolidWorksSystem(GetChronoDataFile("solidworks/swiss_escapement").c_str(), 
                                          sys);  // note, don't type the .py suffic in filename..
 
         sys.ShowHierarchy(GetLog());

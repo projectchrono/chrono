@@ -1120,8 +1120,6 @@ class ChArchiveIn : public ChArchive {
         if (internal_ptr_id.find(object) != internal_ptr_id.end() || internal_id_ptr.find(obj_ID) != internal_id_ptr.end())
             throw(ChExceptionArchive("Expected to create a new object from pointer, but was already created."));
 
-        auto it = this->internal_ptr_id.find(object);
-
         internal_ptr_id[object] = obj_ID;
         internal_id_ptr[obj_ID] = object;
     }

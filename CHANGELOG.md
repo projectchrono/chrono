@@ -5,6 +5,8 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [Redundant constraints remover](#added-redundant-constraints-remover)
+  - [Create models through JSON/XML](#added-create-models-through-jsonxml)
   - [Serialization expanded and improved](#changed-serialization-expanded-and-improved)
   - [Rewrite of Pac02 handling tire model](#changed-rewrite-of-pac02-handling-tire-model)
   - [New URDF parser](#added-new-urdf-parser)
@@ -84,6 +86,67 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Added] Redundant constraints remover
+It is quite common to spot models, even in Chrono demos, where the number of constraints are even greater than the number of variables. While this is allowed in Chrono systems, it should be considered a bad practice. Redundant constraints unusefully increase the size of the problem, lead to noisy measurements of the link reactions, cause instability to direct solvers.  
+Taking care of adding _only_ the required number of constraints is - and always will be - the best option for the user. However, whenever this approach might be too tedious or impractical, it is now possible to ask the system to get rid of those redundant constraints by calling:
+
+`system.RemoveRedundantConstraints()`
+
+It is recommended to:
+- set the model to a generic configuration before the call, since there might be cases in which the redundancy of the constraints is due to a particular system configuration;
+- initially set the `verbose` to `true` to double check which constraints have been removed.
+
+
+### [Added] Create models through JSON/XML
+While the traditional serialization allows to store and load _existing_ models to/from file, it is rather difficult to create such files manually: the amount of internal variables, together with the inherent complexity of initializing their values coherently, would easily lead to an overwhelming task. A task that is usually delegated to the methods of the various classes.
+Because of this, an alternative approach is now offered: instead of simply providing the values to the class variables (data members) through the JSON/XML file, it is now possible to provide *the arguments* to some selected class methods. When a _function-calling tag_ beginning with `_c_` is found, the relative function/method is called.
+For example:
+```
+"_c_SetRot": {
+  "e0": 0.986,
+  "e1": 0.0,
+  "e2": 0.0,
+  "e3": -0.166
+}
+```
+will call `SetRot(ChQuaternion(0.986, 0.0, 0.0, -0.166))` on that object. Multiple-arguments methods are otherwise referred with the syntax `_c_<functionname>_<arg1name>[_<arg2name>]`.
+A JSON example is offerend in the _data/solidworks/*.json_ files.
+
+Clearly, since C++ has a limited reflection/reification capability, this process is NOT automatic, but relies on some hard-coded chunk of code, thus restricting the usage to this limited set of functions:
++ `ChVisualShape::SetColor`
++ `ChFrame::SetPos`
++ `ChFrame::SetRot`
++ `ChBody::SetBodyFixed`
++ `ChBody::SetMass`
++ `ChBody::SetInertiaXX`
++ `ChBody::SetInertiaXY`
++ `ChBodyAuxRef::SetFrame_COG_to_REF` (arguments: ChVector<> and ChQuaternion)
++ `ChLinkMateGeneric::SetConstrainedCoords`
++ `ChLinkMateGeneric::Initialize(std::shared_ptr<ChBodyFrame>, std::shared_ptr<ChBodyFrame>, ChVector<>, ChVector<>, ChVector<>, ChVector<>)`
++ `ChLinkMatePlane::SetFlipped`
++ `ChLinkMateXdistance::Initialize(std::shared_ptr<ChBodyFrame>, std::shared_ptr<ChBodyFrame>, bool, ChVector<>, ChVector<>, ChVector<>)`
++ `ChLinkMateParallel::SetFlipped`
++ `ChMarker::Impose_Abs_Coord` (arguments: ChVector<> and ChQuaternion)
++ `ChPhysicsItem::AddVisualShape` (arguments: std::vector<std::shared_ptr<ChVisualShape>> std::vector<ChFrame<>>)
+
+These methods are available also for any of the derived classes.
+
+While this seems to be a rather limited set of functions, it allows to load any system created by the Chrono Solidworks add-in! Please check [Chrono Solidworks](https://api.projectchrono.org/introduction_chrono_solidworks.html).
+
+This option is available only for JSON/XML files and is enabled by calling, on `ChArchiveInJSON` or `ChArchiveInXML`:  
+`myarchivein.TryTolerateMissingTokens(true);`
+and then loading the system as usual e.g. 
+```
+    std::string jsonfile = "SliderCrank.json";
+    ChStreamInAsciiFile mfilein(jsonfile.c_str());
+    ChArchiveInJSON marchivein(mfilein);
+    myarchivein.TryTolerateMissingTokens(true);
+    ChSystemNSC system;
+    marchivein >> CHNVP(system);
+```
+Please refer to _demo_CH_user_serialize_ for additional info.
+
 
 ### [Changed] Serialization expanded and improved
 Serialization is now capable of storing and loading back entire `ChSystem`s consistently. Available classes include rigid bodies along with their visual assets (excluding ChVisualShapeFEA), links (both ChLinkMate and ChLinkLock families), shafts and system solvers. More classes will become available in the next future.

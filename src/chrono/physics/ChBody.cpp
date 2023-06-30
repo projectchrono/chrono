@@ -1202,12 +1202,6 @@ void ChBody::ArchiveIn(ChArchiveIn& marchive) {
         if (marchive.in(CHNVP(_c_SetInertiaXY)))
             this->SetInertiaXY(_c_SetInertiaXY);
 
-        //std::vector<std::shared_ptr<ChMarker>> _c_AddMarker;
-        //if (marchive.in(CHNVP(_c_AddMarker))){
-        //    for (std::vector<std::shared_ptr<ChMarker>>::iterator it = _c_AddMarker.begin(); it!=_c_AddMarker.end(); ++it)
-        //        this->AddMarker(*it);
-        //}
-
         marchive.TryTolerateMissingTokens(temp_tolerate_missing_tokens);
     }
 

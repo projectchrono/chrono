@@ -146,7 +146,7 @@ void ChPhysicsItem::ArchiveIn(ChArchiveIn& marchive) {
     // marchive >> CHNVP(offset_w);
     // marchive >> CHNVP(offset_L);
 
-        // INITIALIZATION-BY-METHODS
+    // INITIALIZATION-BY-METHODS
     if (marchive.CanTolerateMissingTokens()){
         bool temp_tolerate_missing_tokens = marchive.GetTolerateMissingTokens();
         marchive.TryTolerateMissingTokens(true);

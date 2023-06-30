@@ -1109,15 +1109,13 @@ void ChLinkMateXdistance::ArchiveIn(ChArchiveIn& marchive) {
         std::shared_ptr<ChBodyFrame> _c_Initialize_Body1;
         std::shared_ptr<ChBodyFrame> _c_Initialize_Body2;
 
-        bool _c_Initialize_Body1_OK = marchive.in(CHNVP(_c_Initialize_Body1));
-        bool _c_Initialize_Body2_OK= marchive.in(CHNVP(_c_Initialize_Body2));
         bool _c_Initialize_pos_are_relative;
         ChVector<> _c_Initialize_pt1;
         ChVector<> _c_Initialize_pt2;
         ChVector<> _c_Initialize_norm1; // ATTENTION: this must be missing!
         ChVector<> _c_Initialize_norm2;
-        if (_c_Initialize_Body1_OK &&
-            _c_Initialize_Body2_OK &&
+        if (marchive.in(CHNVP(_c_Initialize_Body1)) &&
+            marchive.in(CHNVP(_c_Initialize_Body2)) &&
             marchive.in(CHNVP(_c_Initialize_pos_are_relative)) &&
             marchive.in(CHNVP(_c_Initialize_pt1)) &&
             marchive.in(CHNVP(_c_Initialize_pt2)) &&

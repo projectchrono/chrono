@@ -578,7 +578,6 @@ class ChClassRegistration : public ChClassRegistrationBase {
     static ChClassRegistration<classname> classname##_factory_registration(#classname); \
     }
 
-// TODO: DARIOM check if needed
 #define CH_FACTORY_REGISTER_CUSTOMNAME(classname, customname)                            \
     namespace class_factory {                                                            \
     static ChClassRegistration<classname> customname##_factory_registration(#classname); \
