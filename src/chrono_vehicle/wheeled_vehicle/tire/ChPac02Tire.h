@@ -379,14 +379,6 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
     /// Advance the state of this tire by the specified time step.
     virtual void Advance(double step) override;
 
-    struct ContactData {
-        bool in_contact;      // true if disc in contact with terrain
-        ChCoordsys<> frame;   // contact frame (x: long, y: lat, z: normal)
-        ChVector<> vel;       // relative velocity expressed in contact frame
-        double normal_force;  // magnitude of normal contact force
-        double depth;         // penetration depth
-    };
-
     struct TireStates {
         double mu_scale;         // scaling factor for tire patch forces
         double mu_road;          // actual road friction coefficient
