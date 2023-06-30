@@ -50,7 +50,6 @@ namespace vehicle {
 ChPac02Tire::ChPac02Tire(const std::string& name)
     : ChForceElementTire(name),
       m_gamma_limit(3.0 * CH_C_DEG_TO_RAD),
-      m_use_friction_ellipsis(true),
       m_mu0(0.8),
       m_measured_side(LEFT),
       m_allow_mirroring(false),
@@ -118,6 +117,11 @@ void ChPac02Tire::CalcFxyMz(double& Fx,
     double Bx = Kx / (Cx * Dx + 0.1);
     Fx0 = Dx * sin(Cx * atan(Bx * kappa_x - Ex * (Bx * kappa_x - atan(Bx * kappa_x)))) + Svx;
 
+    // not Pacejka: grip saturation longitudinal ------------------------
+    m_states.grip_sat_x = std::abs((Fx0 - Svx) / Fz) / std::abs(Dx / Fz);
+    ChClampValue(m_states.grip_sat_x, 0.0, 1.0);
+    //-------------------------------------------------------------------
+    
     double Fy0 = 0;
     double gamma_y = gamma * m_par.LGAY;
     double Cy = m_par.PCY1 * m_par.LCY;
@@ -139,6 +143,11 @@ void ChPac02Tire::CalcFxyMz(double& Fx,
     double Dy = mu_y * Fz;
     double By = Ky / (Cy * Dy + 0.1);
     Fy0 = Dy * sin(Cy * atan(By * alpha_y - Ey * (By * alpha_y - atan(By * alpha_y)))) + Svy;
+
+    // not Pacejka: grip saturation lateral -----------------------------
+    m_states.grip_sat_y = std::abs((Fy0 - Svy) / Fz) / std::abs(Dy / Fz);
+    ChClampValue(m_states.grip_sat_y, 0.0, 1.0);
+    //-------------------------------------------------------------------
 
     double Shxa = m_par.RHX1;
     double Cxa = m_par.RCX1;
@@ -1626,6 +1635,7 @@ void ChPac02Tire::Synchronize(double time, const ChTerrain& terrain) {
     ChClampValue(mu_road, 0.1f, 1.0f);
 
     m_states.mu_scale = mu_road / m_mu0;  // can change with terrain conditions
+    m_states.mu_road = mu_road;           // needed for access method
 
     // Calculate tire kinematics
     CalculateKinematics(wheel_state, m_data.frame);
@@ -1676,6 +1686,8 @@ void ChPac02Tire::Synchronize(double time, const ChTerrain& terrain) {
         // Reset all states if the tire comes off the ground.
         m_data.normal_force = 0;
         m_states.R_eff = m_par.UNLOADED_RADIUS;
+        m_states.grip_sat_x = 0;
+        m_states.grip_sat_y = 0;
         m_states.kappa = 0;
         m_states.alpha = 0;
         m_states.gamma = 0;
@@ -1755,6 +1767,14 @@ void ChPac02Tire::Advance(double step) {
     // Convert from SAE to ISO Coordinates at the contact patch.
     m_tireforce.force = ChVector<>(Fx, -Fy, m_data.normal_force);
     m_tireforce.moment = ChVector<>(Mx, -My, -Mz);
+}
+
+double ChPac02Tire::GetLongitudinalGripSaturation() {
+    return m_states.grip_sat_x;
+}
+
+double ChPac02Tire::GetLateralGripSaturation() {
+    return m_states.grip_sat_y;
 }
 
 // -----------------------------------------------------------------------------

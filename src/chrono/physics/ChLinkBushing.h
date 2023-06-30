@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Antonio Recuero
+// Authors: Antonio Recuero, Radu Serban
 // =============================================================================
 // Class that inherits from ChLinkLock as a free joint. Compliances are added
 // to the relative motion between two rigid bodies. Out of the 6 possible dofs
@@ -24,33 +24,35 @@
 
 namespace chrono {
 
-/// ChLinkBushing class. This class allows imposing up to 6-degree-of-freedom
-/// linear compliance between rigid bodies. In case a spherical or revolute joint is
-/// selected upon construction of the joint, the compliance will only be applied
-/// to the 3 or 5 degrees of freedom, respectively, which are constrained for
-/// the case of an ideal constraint.
-
+/// Link with up to 6-degree-of-freedom linear compliance between rigid bodies.
+/// In case a spherical or revolute joint is selected upon construction of the joint,
+/// the compliance will only be applied to the 3 or 5 degrees of freedom, respectively,
+/// which are constrained for the case of an ideal constraint.
 class ChApi ChLinkBushing : public ChLinkLock {
   public:
-    enum bushing_joint {
+    enum class Type {
         Mount,      ///< Mount bushing: 6 compliant degrees of freedom
         Spherical,  ///< Spherical bushing: 3 compliant degrees of freedom
     };
 
-    /// Default bushing 'joint' is Mount: six applied compliances.
-    ChLinkBushing(bushing_joint m_bushing_joint = ChLinkBushing::Mount);
+    /// Construct a bushing link (default: 6 compliant degrees of freedom).
+    ChLinkBushing(Type bushing_type = Type::Mount);
 
     virtual ~ChLinkBushing();
 
     virtual ChLinkBushing* Clone() const override { return new ChLinkBushing(*this); }
 
-    void Initialize(std::shared_ptr<ChBody> mbody1,
-                    std::shared_ptr<ChBody> mbody2,
-                    const ChCoordsys<>& mpos,
+    void Initialize(std::shared_ptr<ChBody> body1,
+                    std::shared_ptr<ChBody> body2,
+                    const ChCoordsys<>& pos,
                     const ChMatrixNM<double, 6, 6>& K,
                     const ChMatrixNM<double, 6, 6>& R);
 
-    bushing_joint m_bushing_joint;  ///< Enum for bushing joint type
+    /// Return the current bushing force vector.
+    ChVector<> GetForce() const;
+
+    /// Return the current bushing torque vector (if rotational compliance).
+    ChVector<> GetTorque() const;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;
@@ -60,6 +62,8 @@ class ChApi ChLinkBushing : public ChLinkLock {
 
   private:
     using ChLinkMarkers::Initialize;
+
+    Type m_type;  ///< bushing link type
 
     ChMatrixNM<double, 6, 6> m_constants_K;  ///< 6x6 matrices for linear stiffness- TODO, coupling terms
     ChMatrixNM<double, 6, 6> m_constants_R;  ///< 6x6 matrices for linear damping- TODO, coupling terms

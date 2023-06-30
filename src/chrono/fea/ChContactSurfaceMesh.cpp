@@ -567,6 +567,41 @@ void ChContactTriangleXYZROT::ComputeUVfromP(const ChVector<> P, double& u, doub
 ChContactSurfaceMesh::ChContactSurfaceMesh(std::shared_ptr<ChMaterialSurface> material, ChMesh* mesh)
     : ChContactSurface(material, mesh) {}
 
+void ChContactSurfaceMesh::AddFace(std::shared_ptr<ChNodeFEAxyz> node1,
+                                   std::shared_ptr<ChNodeFEAxyz> node2,
+                                   std::shared_ptr<ChNodeFEAxyz> node3,
+                                   std::shared_ptr<ChNodeFEAxyz> edge_node1,
+                                   std::shared_ptr<ChNodeFEAxyz> edge_node2,
+                                   std::shared_ptr<ChNodeFEAxyz> edge_node3,
+                                   bool owns_node1,
+                                   bool owns_node2,
+                                   bool owns_node3,
+                                   bool owns_edge1,
+                                   bool owns_edge2,
+                                   bool owns_edge3,
+                                   double sphere_swept) {
+    assert(node1);
+    assert(node2);
+    assert(node3);
+
+    auto contact_triangle = chrono_types::make_shared<ChContactTriangleXYZ>(node1, node2, node3, this);
+
+    auto collision_model = static_cast<collision::ChCollisionModelBullet*>(contact_triangle->GetCollisionModel());
+    collision_model->ClearModel();
+    collision_model->AddTriangleProxy(m_material,                                   // contact material
+                                      &node1->pos, &node2->pos, &node3->pos,        // face nodes
+                                      edge_node1 ? &edge_node1->pos : &node1->pos,  // edge node 1
+                                      edge_node2 ? &edge_node2->pos : &node2->pos,  // edge node 2
+                                      edge_node3 ? &edge_node3->pos : &node3->pos,  // edge node 3
+                                      owns_node1, owns_node2, owns_node3,           // face owns nodes?
+                                      owns_edge1, owns_edge2, owns_edge3,           // face owns edges?
+                                      sphere_swept                                  // thickness
+    );
+    contact_triangle->GetCollisionModel()->BuildModel();
+
+    vfaces.push_back(contact_triangle);
+}
+
 void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     if (!m_physics_item)
         return;
