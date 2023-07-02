@@ -107,14 +107,6 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
                    double alpha,
                    double Fz,
                    double gamma);
-    void CalcFxyMzOld(double& Fx,
-                   double& Fy,
-                   double& Mz,
-                   double kappa,
-                   double alpha,
-                   double Fz,
-                   double gamma,
-                   bool combined = false);
     double CalcSigmaK(double Fz);   // relaxation length longitudinal
     double CalcSigmaA(double Fz);   // relaxation length lateral
     void CombinedCoulombForces(double& fx, double& fy, double fz);
