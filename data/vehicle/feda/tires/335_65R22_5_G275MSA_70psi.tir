@@ -44,7 +44,8 @@ $------------------------------------------------model
 !------------------------------------------------
 [MODEL]
 PROPERTY_FILE_FORMAT  =        'MF_05'
-USE_MODE              =              3        $Tyre use switch (IUSED)
+USE_MODE              =              4        $Tyre use switch (IUSED)
+FE_METHOD             =          'YES'        $ use friction ellipsis method for combined forces
 FITTYP                =              5        $typarr(   2)
 MFSAFE1               =          -7128        $typarr(   3)
 MFSAFE2               =              0        $typarr(   4)

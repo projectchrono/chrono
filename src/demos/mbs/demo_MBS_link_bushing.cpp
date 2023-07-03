@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
     // - ChLinkBushing::Revolute: One rotational dof is free, rest of dofs defined by stiffness/damping matrices
     // - ChLinkBushing::Mount: All six dofs defined by stiffness/damping matrices
 
-    auto bushing_link = chrono_types::make_shared<ChLinkBushing>(ChLinkBushing::Mount);
+    auto bushing_link = chrono_types::make_shared<ChLinkBushing>(ChLinkBushing::Type::Mount);
     bushing_link->Initialize(
         body,                                                                 // body A
         ground,                                                               // body B
