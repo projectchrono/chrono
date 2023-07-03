@@ -290,7 +290,7 @@ double ChPac02Tire::CalcMx(double Fy, double Fz, double gamma) {
 
 double ChPac02Tire::CalcMy(double Fx, double Fz, double gamma) {
     // in most cases only QSY1 is used.
-    double V0 = sqrt(9.81 * m_par.UNLOADED_RADIUS);
+    double V0 = sqrt(m_g * m_par.UNLOADED_RADIUS);
     double My = Fz * m_par.UNLOADED_RADIUS *
                 (m_par.QSY1 + m_par.QSY2 * Fx / m_par.FNOMIN + m_par.QSY3 * fabs(m_states.vx / V0) +
                  m_par.QSY4 * pow(m_states.vx / V0, 4) + m_par.QSY5 * pow(gamma, 2) +
@@ -1797,7 +1797,7 @@ void ChPac02Tire::Advance(double step) {
         case 2:
             // steady state pure lateral slip
             CalcFxyMz(Fx, Fy, Mz, 0.0, alpha, Fz, gamma);
-            Mx = CalcMx(Fy, Fx, gamma);
+            Mx = CalcMx(Fy, Fz, gamma);
             break;
         case 3:
         case 4: {
@@ -1808,7 +1808,7 @@ void ChPac02Tire::Advance(double step) {
             Fx = (1.0 - frblend) * Fx0 + frblend * Fx_ss;
             Fy = (1.0 - frblend) * Fy0 + frblend * Fy_ss;
             My = CalcMy(Fx, Fz, gamma);
-            Mx = CalcMx(Fy, Fx, gamma);
+            Mx = CalcMx(Fy, Fz, gamma);
         } break;
     }
 
