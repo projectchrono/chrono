@@ -50,7 +50,7 @@ class ChFsiForceI2SPH : public ChFsiForce {
     thrust::device_vector<uint> csrColInd;
     thrust::device_vector<Real> csrValLaplacian;
     thrust::device_vector<Real3> csrValGradient;
-    thrust::device_vector<Real> csrValFunciton;
+    thrust::device_vector<Real> csrValFunction;
     thrust::device_vector<Real> AMatrix;
     thrust::device_vector<Real3> Normals;
     thrust::device_vector<Real3> V_star_new;

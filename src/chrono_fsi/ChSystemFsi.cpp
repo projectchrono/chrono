@@ -62,7 +62,7 @@ ChSystemFsi::ChSystemFsi(ChSystem* sysMBS)
       m_is_initialized(false),
       m_integrate_SPH(true),
       m_time(0),
-      m_write_mode(OutpuMode::NONE) {
+      m_write_mode(OutputMode::NONE) {
     m_paramsH = chrono_types::make_shared<SimParams>();
     m_sysFSI = chrono_types::make_unique<ChSystemFsi_impl>(m_paramsH);
     InitParams();
@@ -973,11 +973,11 @@ void ChSystemFsi::DoStepDynamics_FSI() {
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChSystemFsi::WriteParticleFile(const std::string& outfilename) const {
-    if (m_write_mode == OutpuMode::CSV) {
+    if (m_write_mode == OutputMode::CSV) {
         utils::WriteCsvParticlesToFile(m_sysFSI->sphMarkersD2->posRadD, m_sysFSI->sphMarkersD2->velMasD,
                                        m_sysFSI->sphMarkersD2->rhoPresMuD, m_sysFSI->fsiGeneralData->referenceArray,
                                        outfilename);
-    } else if (m_write_mode == OutpuMode::CHPF) {
+    } else if (m_write_mode == OutputMode::CHPF) {
         utils::WriteChPFParticlesToFile(m_sysFSI->sphMarkersD2->posRadD, m_sysFSI->fsiGeneralData->referenceArray,
                                         outfilename);
     }

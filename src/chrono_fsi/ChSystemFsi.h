@@ -60,7 +60,7 @@ struct ChCounters;
 class CH_FSI_API ChSystemFsi {
   public:
     /// Output mode.
-    enum class OutpuMode {
+    enum class OutputMode {
         CSV,   ///< comma-separated value
         CHPF,  ///< binary
         NONE   ///< none
@@ -185,7 +185,7 @@ class CH_FSI_API ChSystemFsi {
     void SetOutputLength(int OutputLength);
 
     /// Set the FSI system output mode (default: NONE).
-    void SetParticleOutputMode(OutpuMode mode) { m_write_mode = mode; }
+    void SetParticleOutputMode(OutputMode mode) { m_write_mode = mode; }
 
     /// Return the SPH kernel length of kernel function.
     double GetKernelLength() const;
@@ -535,9 +535,9 @@ class CH_FSI_API ChSystemFsi {
     std::shared_ptr<SimParams> m_paramsH;  ///< pointer to the simulation parameters
     TimeIntegrator fluidIntegrator;        ///< IISPH by default
 
-    bool m_verbose;          ///< enable/disable m_verbose terminal output (default: true)
-    std::string m_outdir;    ///< output directory
-    OutpuMode m_write_mode;  ///< FSI particle output type (CSV, ChPF, or NONE)
+    bool m_verbose;           ///< enable/disable m_verbose terminal output (default: true)
+    std::string m_outdir;     ///< output directory
+    OutputMode m_write_mode;  ///< FSI particle output type (CSV, ChPF, or NONE)
 
     std::unique_ptr<ChSystemFsi_impl> m_sysFSI;         ///< underlying system implementation
     std::unique_ptr<ChFluidDynamics> m_fluid_dynamics;  ///< fluid system
