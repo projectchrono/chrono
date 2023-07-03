@@ -68,9 +68,8 @@ class ChFsiInterface : public ChFsiGeneral {
     void Copy_FsiNodes_ChSystem_to_FsiSystem(std::shared_ptr<FsiMeshDataD> FsiMeshD);
 
   private:
-    ChSystemFsi_impl& m_sysFSI;            ///< FSI system
-    std::shared_ptr<SimParams> m_paramsH;  ///< simulation parameters
-    bool m_verbose;                        ///< enable/disable m_verbose terminal output (default: true)
+    ChSystemFsi_impl& m_sysFSI;  ///< FSI system
+    bool m_verbose;              ///< enable/disable m_verbose terminal output (default: true)
 
     std::shared_ptr<fea::ChMesh> m_fsi_mesh;
     std::vector<std::shared_ptr<ChBody>> m_fsi_bodies;             ///< bodies handled by the FSI system

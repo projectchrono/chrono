@@ -587,9 +587,8 @@ ChFluidDynamics::ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
                                  std::shared_ptr<ChCounters> otherNumObjects,
                                  TimeIntegrator type,
                                  bool verb)
-    : fsiSystem(otherFsiSystem),
-      paramsH(otherParamsH),
-      numObjectsH(otherNumObjects),
+    : ChFsiGeneral(otherParamsH, otherNumObjects),
+      fsiSystem(otherFsiSystem),
       integrator_type(type),
       verbose(verb) {
     switch (integrator_type) {

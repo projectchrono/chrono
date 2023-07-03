@@ -66,7 +66,6 @@ ChSystemFsi::ChSystemFsi(ChSystem* sysMBS)
     m_paramsH = chrono_types::make_shared<SimParams>();
     m_sysFSI = chrono_types::make_unique<ChSystemFsi_impl>(m_paramsH);
     InitParams();
-    m_num_objectsH = m_sysFSI->numObjects;
 
     m_num_cable_elements = 0;
     m_num_shell_elements = 0;
@@ -807,19 +806,19 @@ void ChSystemFsi::Initialize() {
 
     if (m_verbose) {
         cout << "Counters" << endl;
-        cout << "  numRigidBodies: " << m_sysFSI->numObjects->numRigidBodies << endl;
-        cout << "  numFlexNodes: " << m_sysFSI->numObjects->numFlexNodes << endl;
-        cout << "  numFlexBodies1D: " << m_sysFSI->numObjects->numFlexBodies1D << endl;
-        cout << "  numFlexBodies2D: " << m_sysFSI->numObjects->numFlexBodies2D << endl;
-        cout << "  numGhostMarkers: " << m_sysFSI->numObjects->numGhostMarkers << endl;
-        cout << "  numHelperMarkers: " << m_sysFSI->numObjects->numHelperMarkers << endl;
-        cout << "  numFluidMarkers: " << m_sysFSI->numObjects->numFluidMarkers << endl;
-        cout << "  numBoundaryMarkers: " << m_sysFSI->numObjects->numBoundaryMarkers << endl;
-        cout << "  numRigidMarkers: " << m_sysFSI->numObjects->numRigidMarkers << endl;
-        cout << "  numFlexMarkers: " << m_sysFSI->numObjects->numFlexMarkers << endl;
-        cout << "  numAllMarkers: " << m_sysFSI->numObjects->numAllMarkers << endl;
-        cout << "  startRigidMarkers: " << m_sysFSI->numObjects->startRigidMarkers << endl;
-        cout << "  startFlexMarkers: " << m_sysFSI->numObjects->startFlexMarkers << endl;
+        cout << "  numRigidBodies: " << m_sysFSI->numObjectsH->numRigidBodies << endl;
+        cout << "  numFlexNodes: " << m_sysFSI->numObjectsH->numFlexNodes << endl;
+        cout << "  numFlexBodies1D: " << m_sysFSI->numObjectsH->numFlexBodies1D << endl;
+        cout << "  numFlexBodies2D: " << m_sysFSI->numObjectsH->numFlexBodies2D << endl;
+        cout << "  numGhostMarkers: " << m_sysFSI->numObjectsH->numGhostMarkers << endl;
+        cout << "  numHelperMarkers: " << m_sysFSI->numObjectsH->numHelperMarkers << endl;
+        cout << "  numFluidMarkers: " << m_sysFSI->numObjectsH->numFluidMarkers << endl;
+        cout << "  numBoundaryMarkers: " << m_sysFSI->numObjectsH->numBoundaryMarkers << endl;
+        cout << "  numRigidMarkers: " << m_sysFSI->numObjectsH->numRigidMarkers << endl;
+        cout << "  numFlexMarkers: " << m_sysFSI->numObjectsH->numFlexMarkers << endl;
+        cout << "  numAllMarkers: " << m_sysFSI->numObjectsH->numAllMarkers << endl;
+        cout << "  startRigidMarkers: " << m_sysFSI->numObjectsH->startRigidMarkers << endl;
+        cout << "  startFlexMarkers: " << m_sysFSI->numObjectsH->startFlexMarkers << endl;
 
         cout << "Reference array (size: " << m_sysFSI->fsiGeneralData->referenceArray.size() << ")" << endl;
         for (size_t i = 0; i < m_sysFSI->fsiGeneralData->referenceArray.size(); i++) {
@@ -840,8 +839,9 @@ void ChSystemFsi::Initialize() {
     m_sysFSI->fsiBodiesD2 = m_sysFSI->fsiBodiesD1;
 
     // Create BCE and SPH worker objects
-    m_bce_manager = chrono_types::make_shared<ChBce>(m_sysFSI->sortedSphMarkersD, m_sysFSI->markersProximityD,
-                                                     m_sysFSI->fsiGeneralData, m_paramsH, m_num_objectsH, m_verbose);
+    m_bce_manager =
+        chrono_types::make_shared<ChBce>(m_sysFSI->sortedSphMarkersD, m_sysFSI->markersProximityD,
+                                         m_sysFSI->fsiGeneralData, m_paramsH, m_sysFSI->numObjectsH, m_verbose);
 
     switch (m_paramsH->fluid_dynamic_type) {
         case FluidDynamics::IISPH:
@@ -854,8 +854,8 @@ void ChSystemFsi::Initialize() {
             fluidIntegrator = TimeIntegrator::I2SPH;
             break;
     }
-    m_fluid_dynamics = chrono_types::make_unique<ChFluidDynamics>(m_bce_manager, *m_sysFSI, m_paramsH, m_num_objectsH,
-                                                                  fluidIntegrator, m_verbose);
+    m_fluid_dynamics = chrono_types::make_unique<ChFluidDynamics>(m_bce_manager, *m_sysFSI, m_paramsH,
+                                                                  m_sysFSI->numObjectsH, fluidIntegrator, m_verbose);
     m_fluid_dynamics->GetForceSystem()->SetLinearSolver(m_paramsH->LinearSolver);
 
     // Initialize worker objects
@@ -2118,19 +2118,19 @@ bool ChSystemFsi::GetAdaptiveTimeStepping() const {
 }
 
 size_t ChSystemFsi::GetNumFluidMarkers() const {
-    return m_sysFSI->numObjects->numFluidMarkers;
+    return m_sysFSI->numObjectsH->numFluidMarkers;
 }
 
 size_t ChSystemFsi::GetNumRigidBodyMarkers() const {
-    return m_sysFSI->numObjects->numRigidMarkers;
+    return m_sysFSI->numObjectsH->numRigidMarkers;
 }
 
 size_t ChSystemFsi::GetNumFlexBodyMarkers() const {
-    return m_sysFSI->numObjects->numFlexMarkers;
+    return m_sysFSI->numObjectsH->numFlexMarkers;
 }
 
 size_t ChSystemFsi::GetNumBoundaryMarkers() const {
-    return m_sysFSI->numObjects->numBoundaryMarkers;
+    return m_sysFSI->numObjectsH->numBoundaryMarkers;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

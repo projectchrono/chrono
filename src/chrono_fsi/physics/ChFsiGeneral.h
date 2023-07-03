@@ -77,7 +77,6 @@ class ChFsiGeneral {
     /// Return a/b or a/b + 1
     uint iDivUp(uint a, uint b);
 
-  private:
     std::shared_ptr<SimParams> paramsH;       ///< Simulation parameters on host.
     std::shared_ptr<ChCounters> numObjectsH;  ///< NUmber of objects on host.
 };

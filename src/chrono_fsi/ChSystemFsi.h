@@ -544,7 +544,6 @@ class CH_FSI_API ChSystemFsi {
     std::unique_ptr<ChFsiInterface> m_fsi_interface;    ///< FSI interface system
     std::shared_ptr<ChBce> m_bce_manager;               ///< BCE manager
 
-    std::shared_ptr<ChCounters> m_num_objectsH;       ///< number of objects, fluid, bce, and boundary markers
     std::vector<std::vector<int>> m_fea_shell_nodes;  ///< indices of nodes of each shell element
     std::vector<std::vector<int>> m_fea_cable_nodes;  ///< indices of nodes of each cable element
 

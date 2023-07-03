@@ -93,8 +93,6 @@ class ChFluidDynamics : public ChFsiGeneral {
 
   protected:
     ChSystemFsi_impl& fsiSystem;              ///< FSI data; values are maintained externally
-    std::shared_ptr<SimParams> paramsH;       ///< FSI parameters; values are mainained externally
-    std::shared_ptr<ChCounters> numObjectsH;  ///< counters (fluid particles, number of rigids, boundaries)
     std::shared_ptr<ChFsiForce> forceSystem;  ///< Force system object; calculates the force between particles
     TimeIntegrator integrator_type;           ///< Integrator type
 
