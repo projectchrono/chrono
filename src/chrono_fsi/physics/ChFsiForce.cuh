@@ -90,7 +90,7 @@ __device__ inline void clearRow3(uint i_idx, uint csrStartIdx, uint csrEndIdx, R
 /// data of SPH particles, proximity data, parameters, and numbers.
 /// Child class must implement Initialize and ForceSPH methods.
 
-class ChFsiForce : public ChFsiGeneral {
+class ChFsiForce : public ChFsiBase {
   public:
     /// Base constructor for the ChFsiForce class.
     /// The constructor instantiates the force system

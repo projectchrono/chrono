@@ -42,7 +42,7 @@ namespace fsi {
 /// to data, which is hold somewhere else. It also include a forceSystem,
 /// which takes care of the computation of force between particles. The
 /// forceSystem is owned by the class ChFsiForce.
-class ChFluidDynamics : public ChFsiGeneral {
+class ChFluidDynamics : public ChFsiBase {
   public:
     /// Constructor of the fluid/granular dynamics class.
     /// - Instantiate ChFsiForce, i.e. force system;

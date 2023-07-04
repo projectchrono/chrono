@@ -658,7 +658,7 @@ ChBce::ChBce(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD,
              std::shared_ptr<SimParams> paramsH,
              std::shared_ptr<ChCounters> numObjects,
              bool verbose)
-    : ChFsiGeneral(paramsH, numObjects),
+    : ChFsiBase(paramsH, numObjects),
       m_sortedSphMarkersD(sortedSphMarkersD),
       m_markersProximityD(markersProximityD),
       m_fsiGeneralData(fsiData),

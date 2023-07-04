@@ -290,7 +290,7 @@ void ChronoMeshDataH::resize(size_t s) {
 
 //---------------------------------------------------------------------------------------
 
-ChSystemFsi_impl::ChSystemFsi_impl(std::shared_ptr<SimParams> params) : ChFsiGeneral(params, nullptr) {
+ChSystemFsi_impl::ChSystemFsi_impl(std::shared_ptr<SimParams> params) : ChFsiBase(params, nullptr) {
     numObjectsH = chrono_types::make_shared<ChCounters>();
     InitNumObjects();
     sphMarkersD1 = chrono_types::make_shared<SphMarkerDataD>();

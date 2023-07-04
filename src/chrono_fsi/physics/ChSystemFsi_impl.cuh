@@ -29,7 +29,7 @@
 #include <thrust/iterator/zip_iterator.h>
 #include <thrust/tuple.h>
 
-#include "chrono_fsi/physics/ChFsiGeneral.h"
+#include "chrono_fsi/physics/ChFsiBase.h"
 #include "chrono_fsi/math/custom_math.h"
 #include "chrono_fsi/utils/ChUtilsDevice.cuh"
 
@@ -271,7 +271,7 @@ struct FsiData {
 };
 
 /// Underlying implementation of an FSI system.
-class ChSystemFsi_impl : public ChFsiGeneral {
+class ChSystemFsi_impl : public ChFsiBase {
   public:
     ChSystemFsi_impl(std::shared_ptr<SimParams> params);
     virtual ~ChSystemFsi_impl();

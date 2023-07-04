@@ -21,7 +21,7 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/physics/ChSystemFsi_impl.cuh"
-#include "chrono_fsi/physics/ChFsiGeneral.h"
+#include "chrono_fsi/physics/ChFsiBase.h"
 
 namespace chrono {
 
@@ -39,7 +39,7 @@ namespace fsi {
 /// @{
 
 /// Base class for processing the interface between Chrono and FSI modules.
-class ChFsiInterface : public ChFsiGeneral {
+class ChFsiInterface : public ChFsiBase {
   public:
     /// Constructor of the FSI interface class.
     ChFsiInterface(ChSystemFsi_impl& fsi,

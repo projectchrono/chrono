@@ -303,7 +303,7 @@ ChCollisionSystemFsi::ChCollisionSystemFsi(std::shared_ptr<SphMarkerDataD> sorte
                                            std::shared_ptr<FsiData> fsiData,
                                            std::shared_ptr<SimParams> paramsH,
                                            std::shared_ptr<ChCounters> numObjects)
-    : ChFsiGeneral(paramsH, numObjects),
+    : ChFsiBase(paramsH, numObjects),
       m_sortedSphMarkersD(sortedSphMarkersD),
       m_markersProximityD(markersProximityD),
       m_fsiGeneralData(fsiData),

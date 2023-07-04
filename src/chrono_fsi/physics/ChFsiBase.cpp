@@ -15,17 +15,17 @@
 // Class for FSI properties and functions.
 // =============================================================================
 
-#include "chrono_fsi/physics/ChFsiGeneral.h"
+#include "chrono_fsi/physics/ChFsiBase.h"
 
 namespace chrono {
 namespace fsi {
 
-ChFsiGeneral::ChFsiGeneral() : paramsH(NULL), numObjectsH(NULL) {}
+ChFsiBase::ChFsiBase() : paramsH(NULL), numObjectsH(NULL) {}
 
-ChFsiGeneral::ChFsiGeneral(std::shared_ptr<SimParams> params, std::shared_ptr<ChCounters> numObjects)
+ChFsiBase::ChFsiBase(std::shared_ptr<SimParams> params, std::shared_ptr<ChCounters> numObjects)
     : paramsH(params), numObjectsH(numObjects) {}
 
-void ChFsiGeneral::computeGridSize(uint n, uint blockSize, uint& numBlocks, uint& numThreads) {
+void ChFsiBase::computeGridSize(uint n, uint blockSize, uint& numBlocks, uint& numThreads) {
     uint n2 = (n == 0) ? 1 : n;
     numThreads = min(blockSize, n2);
     numBlocks = (n2 % numThreads != 0) ? (n2 / numThreads + 1) : (n2 / numThreads);

@@ -19,7 +19,7 @@
 #define CH_COLLISIONSYSTEM_FSI_H_
 
 #include "chrono_fsi/ChApiFsi.h"
-#include "chrono_fsi/physics/ChFsiGeneral.h"
+#include "chrono_fsi/physics/ChFsiBase.h"
 #include "chrono_fsi/physics/ChSystemFsi_impl.cuh"
 
 namespace chrono {
@@ -29,7 +29,7 @@ namespace fsi {
 /// @{
 
 /// Base class for processing proximity computation in an FSI system.
-class ChCollisionSystemFsi : public ChFsiGeneral {
+class ChCollisionSystemFsi : public ChFsiBase {
   public:
     /// Constructor of the ChCollisionSystemFsi class
     ChCollisionSystemFsi(

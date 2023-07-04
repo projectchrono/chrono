@@ -38,6 +38,7 @@ struct ChCounters {
     size_t numFlexNodes;        ///< Number of Nodes in a flexible mesh; each FE is made up of nodes
     size_t numFlexBodies1D;     ///< Number of 1D-Flexible bodies; each FE is one body
     size_t numFlexBodies2D;     ///< Number of 2D-Flexible bodies; each FE is one body
+
     size_t numGhostMarkers;     ///< Number of Ghost SPH particles that comes into play with Variable Resolution methods
     size_t numHelperMarkers;    ///< Number of helper SPH particles that is used for merging particles
     size_t numFluidMarkers;     ///< Number of fluid SPH particles
@@ -45,22 +46,24 @@ struct ChCounters {
     size_t numRigidMarkers;     ///< Number of BCE markers on rigid bodies
     size_t numFlexMarkers;      ///< Number of BCE markers on flexible bodies
     size_t numAllMarkers;       ///< Total number of particles in the simulation
+    
     size_t startRigidMarkers;   ///< Index of the first BCE marker that covers the first rigid body.
     size_t startFlexMarkers;    ///< Index of the first BCE marker that covers the first flexible body.
 };
 
-/// Class for FSI properties and functions.
-class ChFsiGeneral {
+/// Base class for various FSI classes.
+/// Provides access to the FSI simulation parameters and counters.
+class ChFsiBase {
   public:
-    ChFsiGeneral();
+    ChFsiBase();
 
-    /// Constructor for the ChFsiGeneral class.
-    ChFsiGeneral(std::shared_ptr<SimParams> params,      ///< Simulation parameters on host
+    /// Constructor for the ChFsiBase class.
+    ChFsiBase(std::shared_ptr<SimParams> params,      ///< Simulation parameters on host
                  std::shared_ptr<ChCounters> numObjects  ///< Counters of objects and markers
     );
 
-    /// Destructor of the ChFsiGeneral class.
-    virtual ~ChFsiGeneral() {}
+    /// Destructor of the ChFsiBase class.
+    virtual ~ChFsiBase() {}
 
     /// Compute number of blocks and threads for calculation on GPU.
     /// This function calculates the number of blocks and threads for a given number of elements based on the blockSize.
