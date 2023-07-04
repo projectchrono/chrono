@@ -36,8 +36,8 @@ ChFsiInterface::~ChFsiInterface() {}
 void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
     size_t numRigids = m_fsi_bodies.size();
 
-    thrust::host_vector<Real3> forcesH = m_sysFSI.fsiGeneralData->rigid_FSI_ForcesD;
-    thrust::host_vector<Real3> torquesH = m_sysFSI.fsiGeneralData->rigid_FSI_TorquesD;
+    thrust::host_vector<Real3> forcesH = m_sysFSI.fsiData->rigid_FSI_ForcesD;
+    thrust::host_vector<Real3> torquesH = m_sysFSI.fsiData->rigid_FSI_TorquesD;
 
     for (size_t i = 0; i < numRigids; i++) {
         ChVector<> mforce = utils::ToChVector(forcesH[i]);
@@ -73,7 +73,7 @@ void ChFsiInterface::Copy_FsiBodies_ChSystem_to_FsiSystem(std::shared_ptr<FsiBod
 void ChFsiInterface::Add_Flex_Forces_To_ChSystem() {
     size_t num_nodes = m_fsi_nodes.size();
 
-    thrust::host_vector<Real3> forcesH = m_sysFSI.fsiGeneralData->Flex_FSI_ForcesD;
+    thrust::host_vector<Real3> forcesH = m_sysFSI.fsiData->Flex_FSI_ForcesD;
 
     for (size_t i = 0; i < num_nodes; i++) {
         ChVector<> force = utils::ToChVector(forcesH[i]);
@@ -120,10 +120,10 @@ void ChFsiInterface::ResizeChronoCablesData(const std::vector<std::vector<int>>&
     // CableElementsNodesH is the elements connectivity
     // Important: in CableElementsNodesH[i][j] j index starts from 1 not zero
     // This is because of how the GMF files are read in Chrono
-    m_sysFSI.fsiGeneralData->CableElementsNodesH.resize(numCables);
+    m_sysFSI.fsiData->CableElementsNodesH.resize(numCables);
     for (size_t i = 0; i < numCables; i++) {
-        m_sysFSI.fsiGeneralData->CableElementsNodesH[i].x = CableElementsNodesSTDVector[i][0];
-        m_sysFSI.fsiGeneralData->CableElementsNodesH[i].y = CableElementsNodesSTDVector[i][1];
+        m_sysFSI.fsiData->CableElementsNodesH[i].x = CableElementsNodesSTDVector[i][0];
+        m_sysFSI.fsiData->CableElementsNodesH[i].y = CableElementsNodesSTDVector[i][1];
     }
 }
  
@@ -151,12 +151,12 @@ void ChFsiInterface::ResizeChronoShellsData(const std::vector<std::vector<int>>&
     }
 
     // ShellElementsNodesH is the elements connectivity
-    m_sysFSI.fsiGeneralData->ShellElementsNodesH.resize(numShells);
+    m_sysFSI.fsiData->ShellElementsNodesH.resize(numShells);
     for (size_t i = 0; i < numShells; i++) {
-        m_sysFSI.fsiGeneralData->ShellElementsNodesH[i].x = ShellElementsNodesSTDVector[i][0];
-        m_sysFSI.fsiGeneralData->ShellElementsNodesH[i].y = ShellElementsNodesSTDVector[i][1];
-        m_sysFSI.fsiGeneralData->ShellElementsNodesH[i].z = ShellElementsNodesSTDVector[i][2];
-        m_sysFSI.fsiGeneralData->ShellElementsNodesH[i].w = ShellElementsNodesSTDVector[i][3];
+        m_sysFSI.fsiData->ShellElementsNodesH[i].x = ShellElementsNodesSTDVector[i][0];
+        m_sysFSI.fsiData->ShellElementsNodesH[i].y = ShellElementsNodesSTDVector[i][1];
+        m_sysFSI.fsiData->ShellElementsNodesH[i].z = ShellElementsNodesSTDVector[i][2];
+        m_sysFSI.fsiData->ShellElementsNodesH[i].w = ShellElementsNodesSTDVector[i][3];
     }
 }
 

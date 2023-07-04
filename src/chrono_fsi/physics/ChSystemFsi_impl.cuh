@@ -231,18 +231,12 @@ struct ProximityDataD {
 };
 
 /// FDI system information information exchanged with the Chrono system.
-struct FsiGeneralData {
-    // ----------------
-    //  host
-    // ----------------
-    // fluidfsiBodiesIndex
+struct FsiData {
+    // fluidfsiBodiesIndex (host)
     thrust::host_vector<int4> referenceArray;      ///< phases in the array of SPH particles
     thrust::host_vector<int4> referenceArray_FEA;  ///< phases in the array of SPH particles for flexible elements
 
-    // ----------------
-    //  device
-    // ----------------
-    // fluid
+    // Fluid data (device)
     thrust::device_vector<Real4> derivVelRhoD;      ///< dv/dt and d(rho)/dt for particles
     thrust::device_vector<Real4> derivVelRhoD_old;  ///< dv/dt and d(rho)/dt for particles
     thrust::device_vector<Real3> derivTauXxYyZzD;   ///< d(tau)/dt for particles
@@ -257,22 +251,22 @@ struct FsiGeneralData {
     thrust::device_vector<uint> freeSurfaceIdD;  ///< Identifies if a particle is close to free surface
 
     // BCE
-    thrust::device_vector<Real3> rigidSPH_MeshPos_LRF_D;  ///< Position of a particle attached to a rigid body in a local
-    thrust::device_vector<Real3> FlexSPH_MeshPos_LRF_D;  ///< Position of a particle attached to a mesh in a local on device
-    thrust::host_vector<Real3> FlexSPH_MeshPos_LRF_H;  ///< Position of a particle attached to a mesh in a local on host
+    thrust::device_vector<Real3> rigidSPH_MeshPos_LRF_D;  ///< Rigid body BCE position (local reference frame)
+    thrust::device_vector<Real3> FlexSPH_MeshPos_LRF_D;   ///< Flex body BCE position (local coordinates) - device
+    thrust::host_vector<Real3> FlexSPH_MeshPos_LRF_H;     ///< Flex body BCE position (local coordinates) - host
 
     thrust::device_vector<uint> rigidIdentifierD;  ///< Identifies which rigid body a particle belongs to
     thrust::device_vector<uint> FlexIdentifierD;   ///< Identifies which flexible body a particle belongs to
 
-    // fsi bodies
+    // FSI bodies
     thrust::device_vector<Real3> rigid_FSI_ForcesD;   ///< Vector of the surface-integrated forces to rigid bodies
     thrust::device_vector<Real3> rigid_FSI_TorquesD;  ///< Vector of the surface-integrated torques to rigid bodies
     thrust::device_vector<Real3> Flex_FSI_ForcesD;    ///< Vector of the surface-integrated force on FEA nodes
 
-    thrust::host_vector<int2> CableElementsNodesH;   ///< Vector of the cable elements nodes on host
+    thrust::host_vector<int2> CableElementsNodesH;    ///< Vector of the cable elements nodes on host
     thrust::device_vector<int2> CableElementsNodesD;  ///< Vector of the cable elements nodes on device
 
-    thrust::host_vector<int4> ShellElementsNodesH;   ///< Vector of the shell elements nodes on host
+    thrust::host_vector<int4> ShellElementsNodesH;    ///< Vector of the shell elements nodes on host
     thrust::device_vector<int4> ShellElementsNodesD;  ///< Vector of the shell elements nodes on device
 };
 
@@ -334,7 +328,7 @@ class ChSystemFsi_impl : public ChFsiGeneral {
     std::shared_ptr<FsiMeshDataD> fsiMeshD;       ///< Information of mesh on device
     std::shared_ptr<FsiMeshDataH> fsiMeshH;       ///< Information of mesh on host
 
-    std::shared_ptr<FsiGeneralData> fsiGeneralData;  ///< General FSI data needed in the simulation
+    std::shared_ptr<FsiData> fsiData;  ///< General FSI data needed in the simulation
 
     std::shared_ptr<ProximityDataD> markersProximityD;  ///< Information of neighbor search on the device
 

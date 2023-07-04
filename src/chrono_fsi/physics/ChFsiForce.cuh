@@ -99,7 +99,7 @@ class ChFsiForce : public ChFsiGeneral {
         std::shared_ptr<ChBce> otherBceWorker,                   ///< object that handles BCE particles
         std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,  ///< information of particle in the sorted device array
         std::shared_ptr<ProximityDataD> otherMarkersProximityD,  ///< object that holds device proximity info
-        std::shared_ptr<FsiGeneralData> otherFsiGeneralData,     ///< SPH general data
+        std::shared_ptr<FsiData> otherFsiGeneralData,     ///< SPH general data
         std::shared_ptr<SimParams> otherParamsH,                 ///< simulation parameters on host
         std::shared_ptr<ChCounters> otherNumObjects,             ///< size of different objects in the system
         bool verb                                                ///< verbose terminal output
@@ -170,7 +170,7 @@ class ChFsiForce : public ChFsiGeneral {
     std::shared_ptr<SphMarkerDataD> sphMarkersD;        ///< device copy of the SPH particles data
     std::shared_ptr<SphMarkerDataD> sortedSphMarkersD;  ///< device copy of the sorted sph particles data
     std::shared_ptr<ProximityDataD> markersProximityD;  ///< pointer object that holds the proximity of the particles
-    std::shared_ptr<FsiGeneralData> fsiGeneralData;     ///< pointer to sph general data
+    std::shared_ptr<FsiData> fsiData;     ///< pointer to sph general data
 
     std::shared_ptr<SimParams> paramsH;            ///< pointer to simulation parameters
     std::shared_ptr<ChCounters> numObjectsH;  ///< pointer to number of objects, fluid and boundary particles

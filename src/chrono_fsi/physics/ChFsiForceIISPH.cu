@@ -10,16 +10,17 @@
 //
 // =============================================================================
 // Author: Milad Rakhsha
-// =============================================================================
+// ============================================================================
+
 #include <thrust/extrema.h>
 #include <thrust/sort.h>
 #include "chrono_fsi/physics/ChFsiForceIISPH.cuh"
 #include "chrono_fsi/physics/ChSphGeneral.cuh"
 #define RESOLUTION_LENGTH_MULT_IISPH 2.0
 
-//==========================================================================================================================================
 namespace chrono {
 namespace fsi {
+
 // double precision atomic add function
 __device__ inline double datomicAdd(double* address, double val) {
     unsigned long long int* address_as_ull = (unsigned long long int*)address;
@@ -37,7 +38,7 @@ __device__ inline double datomicAdd(double* address, double val) {
 ChFsiForceIISPH::ChFsiForceIISPH(std::shared_ptr<ChBce> otherBceWorker,
                                  std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
                                  std::shared_ptr<ProximityDataD> otherMarkersProximityD,
-                                 std::shared_ptr<FsiGeneralData> otherFsiGeneralData,
+                                 std::shared_ptr<FsiData> otherFsiGeneralData,
                                  std::shared_ptr<SimParams> otherParamsH,
                                  std::shared_ptr<ChCounters> otherNumObjects,
                                  bool verb)
@@ -159,7 +160,7 @@ __global__ void V_i_np__AND__d_ii_kernel(Real4* sortedPosRad,  // input: sorted 
     d_ii[i_idx] = My_d_ii;
     V_i_np[i_idx] = (My_F_i_np * dT + Veli);  // This does not contain m_0?
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void Rho_np_AND_a_ii_AND_sum_m_GradW(Real4* sortedPosRad,
                                                 Real4* sortedRhoPreMu,
@@ -1487,14 +1488,14 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodiesDataD> otherFsi
             mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(V_new), R1CAST(p_old),
             mR3CAST(Normals), R1CAST(G_i), R1CAST(sumWij_inv), R1CAST(rho_np),
 
-            mR4CAST(otherFsiBodiesD->q_fsiBodies_D), mR3CAST(fsiGeneralData->rigidSPH_MeshPos_LRF_D),
+            mR4CAST(otherFsiBodiesD->q_fsiBodies_D), mR3CAST(fsiData->rigidSPH_MeshPos_LRF_D),
             mR3CAST(otherFsiBodiesD->posRigid_fsiBodies_D), mR4CAST(otherFsiBodiesD->velMassRigid_fsiBodies_D),
             mR3CAST(otherFsiBodiesD->omegaVelLRF_fsiBodies_D), mR3CAST(otherFsiBodiesD->accRigid_fsiBodies_D),
-            mR3CAST(otherFsiBodiesD->omegaAccLRF_fsiBodies_D), U1CAST(fsiGeneralData->rigidIdentifierD),
+            mR3CAST(otherFsiBodiesD->omegaAccLRF_fsiBodies_D), U1CAST(fsiData->rigidIdentifierD),
 
             mR3CAST(pos_fsi_fea_D), mR3CAST(vel_fsi_fea_D), mR3CAST(acc_fsi_fea_D),
-            U1CAST(fsiGeneralData->FlexIdentifierD), (int)numObjectsH->numFlexBodies1D,
-            U2CAST(fsiGeneralData->CableElementsNodesD), U4CAST(fsiGeneralData->ShellElementsNodesD),
+            U1CAST(fsiData->FlexIdentifierD), (int)numObjectsH->numFlexBodies1D,
+            U2CAST(fsiData->CableElementsNodesD), U4CAST(fsiData->ShellElementsNodesD),
 
             updatePortion, U1CAST(markersProximityD->gridMarkerIndexD), U1CAST(markersProximityD->cellStartD),
             U1CAST(markersProximityD->cellEndD), paramsH->dT, numAllMarkers, SPARSE_FLAG, isErrorD);
@@ -1578,14 +1579,14 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodiesDataD> otherFsi
                     mR3CAST(F_p), mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
                     mR4CAST(sortedSphMarkersD->rhoPresMuD),
 
-                    mR4CAST(otherFsiBodiesD->q_fsiBodies_D), mR3CAST(fsiGeneralData->rigidSPH_MeshPos_LRF_D),
+                    mR4CAST(otherFsiBodiesD->q_fsiBodies_D), mR3CAST(fsiData->rigidSPH_MeshPos_LRF_D),
                     mR3CAST(otherFsiBodiesD->posRigid_fsiBodies_D), mR4CAST(otherFsiBodiesD->velMassRigid_fsiBodies_D),
                     mR3CAST(otherFsiBodiesD->omegaVelLRF_fsiBodies_D), mR3CAST(otherFsiBodiesD->accRigid_fsiBodies_D),
-                    mR3CAST(otherFsiBodiesD->omegaAccLRF_fsiBodies_D), U1CAST(fsiGeneralData->rigidIdentifierD),
+                    mR3CAST(otherFsiBodiesD->omegaAccLRF_fsiBodies_D), U1CAST(fsiData->rigidIdentifierD),
 
                     mR3CAST(pos_fsi_fea_D), mR3CAST(vel_fsi_fea_D), mR3CAST(acc_fsi_fea_D),
-                    U1CAST(fsiGeneralData->FlexIdentifierD), (int)numObjectsH->numFlexBodies1D,
-                    U2CAST(fsiGeneralData->CableElementsNodesD), U4CAST(fsiGeneralData->ShellElementsNodesD),
+                    U1CAST(fsiData->FlexIdentifierD), (int)numObjectsH->numFlexBodies1D,
+                    U2CAST(fsiData->CableElementsNodesD), U4CAST(fsiData->ShellElementsNodesD),
                     updatePortion, U1CAST(markersProximityD->gridMarkerIndexD), R1CAST(p_old), mR3CAST(V_new),
                     U1CAST(markersProximityD->cellStartD), U1CAST(markersProximityD->cellEndD), paramsH->dT,
                     numAllMarkers, isErrorD);
@@ -1817,9 +1818,9 @@ void ChFsiForceIISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     if (*isErrorH == true) {
         throw std::runtime_error("Error! program crashed in CalcForces!\n");
     }
-    CopySortedToOriginal_NonInvasive_R3(fsiGeneralData->vel_XSPH_D, vel_XSPH_Sorted_D,
+    CopySortedToOriginal_NonInvasive_R3(fsiData->vel_XSPH_D, vel_XSPH_Sorted_D,
                                         markersProximityD->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R3(fsiGeneralData->vis_vel_SPH_D, vel_vis_Sorted_D,
+    CopySortedToOriginal_NonInvasive_R3(fsiData->vis_vel_SPH_D, vel_vis_Sorted_D,
                                         markersProximityD->gridMarkerIndexD);
     CopySortedToOriginal_NonInvasive_R3(sphMarkersD->velMasD, sortedSphMarkersD->velMasD,
                                         markersProximityD->gridMarkerIndexD);
@@ -1828,7 +1829,7 @@ void ChFsiForceIISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
 
     CopySortedToOriginal_NonInvasive_R4(sphMarkersD->rhoPresMuD, sortedSphMarkersD->rhoPresMuD,
                                         markersProximityD->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R4(fsiGeneralData->derivVelRhoD, derivVelRhoD_Sorted_D,
+    CopySortedToOriginal_NonInvasive_R4(fsiData->derivVelRhoD, derivVelRhoD_Sorted_D,
                                         markersProximityD->gridMarkerIndexD);
     printf(" Update information: %f \n", (clock() - UpdateClock) / (double)CLOCKS_PER_SEC);
     printf("----------------------------------------------\n");

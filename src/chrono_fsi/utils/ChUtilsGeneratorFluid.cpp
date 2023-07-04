@@ -67,7 +67,7 @@ Real IniNeiNum(Real Kernel_h, Real InitialSpacing) {
 
 // Create fluid/granular SPH particles for the simulation.
 int2 CreateFluidMarkers(std::shared_ptr<SphMarkerDataH> sphMarkersH,
-                        std::shared_ptr<FsiGeneralData> fsiGeneralData,
+                        std::shared_ptr<FsiData> fsiData,
                         std::shared_ptr<SimParams> paramsH) {
     /* Number of fluid particles */
     int num_FluidMarkers = 0;

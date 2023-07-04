@@ -51,7 +51,7 @@ class ChBce : public ChFsiGeneral {
     /// Constructor of the ChBce class
     ChBce(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD,  ///< data for SPH particles
           std::shared_ptr<ProximityDataD> markersProximityD,  ///< information for neighbor search
-          std::shared_ptr<FsiGeneralData> fsiGeneralData,     ///< general information, e.g, ordering of the phases
+          std::shared_ptr<FsiData> fsiData,     ///< general information, e.g, ordering of the phases
           std::shared_ptr<SimParams> paramsH,                 ///< simulation parameters
           std::shared_ptr<ChCounters> numObjects,             ///< number of sph particles on each phase
           bool verbose                                        ///< verbose terminal output
@@ -105,7 +105,7 @@ class ChBce : public ChFsiGeneral {
                     std::vector<int> fsiCableBceNum);
 
   private:
-    std::shared_ptr<FsiGeneralData> m_fsiGeneralData;     ///< General information of the simulation
+    std::shared_ptr<FsiData> m_fsiGeneralData;     ///< General information of the simulation
     std::shared_ptr<SphMarkerDataD> m_sortedSphMarkersD;  ///< Particle state, properties, type
     std::shared_ptr<ProximityDataD> m_markersProximityD;  ///< Information for neighbor search
     thrust::device_vector<Real3> m_totalForceRigid;       ///< Total forces from fluid to bodies

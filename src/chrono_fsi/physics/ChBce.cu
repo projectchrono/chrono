@@ -654,14 +654,14 @@ __global__ void UpdateFlexMarkersPositionVelocityD(Real4* posRadD,
 //--------------------------------------------------------------------------------------------------------------------------------
 ChBce::ChBce(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD,
              std::shared_ptr<ProximityDataD> markersProximityD,
-             std::shared_ptr<FsiGeneralData> fsiGeneralData,
+             std::shared_ptr<FsiData> fsiData,
              std::shared_ptr<SimParams> paramsH,
              std::shared_ptr<ChCounters> numObjects,
              bool verbose)
     : ChFsiGeneral(paramsH, numObjects),
       m_sortedSphMarkersD(sortedSphMarkersD),
       m_markersProximityD(markersProximityD),
-      m_fsiGeneralData(fsiGeneralData),
+      m_fsiGeneralData(fsiData),
       m_verbose(verbose) {
     m_totalForceRigid.resize(0);
     m_totalTorqueRigid.resize(0);

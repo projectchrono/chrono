@@ -820,14 +820,14 @@ void ChSystemFsi::Initialize() {
         cout << "  startRigidMarkers: " << m_sysFSI->numObjectsH->startRigidMarkers << endl;
         cout << "  startFlexMarkers: " << m_sysFSI->numObjectsH->startFlexMarkers << endl;
 
-        cout << "Reference array (size: " << m_sysFSI->fsiGeneralData->referenceArray.size() << ")" << endl;
-        for (size_t i = 0; i < m_sysFSI->fsiGeneralData->referenceArray.size(); i++) {
-            const int4& num = m_sysFSI->fsiGeneralData->referenceArray[i];
+        cout << "Reference array (size: " << m_sysFSI->fsiData->referenceArray.size() << ")" << endl;
+        for (size_t i = 0; i < m_sysFSI->fsiData->referenceArray.size(); i++) {
+            const int4& num = m_sysFSI->fsiData->referenceArray[i];
             cout << "  " << i << ": " << num.x << " " << num.y << " " << num.z << " " << num.w << endl;
         }
-        cout << "Reference array FEA (size: " << m_sysFSI->fsiGeneralData->referenceArray_FEA.size() << ")" << endl;
-        for (size_t i = 0; i < m_sysFSI->fsiGeneralData->referenceArray_FEA.size(); i++) {
-            const int4& num = m_sysFSI->fsiGeneralData->referenceArray_FEA[i];
+        cout << "Reference array FEA (size: " << m_sysFSI->fsiData->referenceArray_FEA.size() << ")" << endl;
+        for (size_t i = 0; i < m_sysFSI->fsiData->referenceArray_FEA.size(); i++) {
+            const int4& num = m_sysFSI->fsiData->referenceArray_FEA[i];
             cout << "  " << i << ": " << num.x << " " << num.y << " " << num.z << " " << num.w << endl;
         }
     }
@@ -839,9 +839,8 @@ void ChSystemFsi::Initialize() {
     m_sysFSI->fsiBodiesD2 = m_sysFSI->fsiBodiesD1;
 
     // Create BCE and SPH worker objects
-    m_bce_manager =
-        chrono_types::make_shared<ChBce>(m_sysFSI->sortedSphMarkersD, m_sysFSI->markersProximityD,
-                                         m_sysFSI->fsiGeneralData, m_paramsH, m_sysFSI->numObjectsH, m_verbose);
+    m_bce_manager = chrono_types::make_shared<ChBce>(m_sysFSI->sortedSphMarkersD, m_sysFSI->markersProximityD,
+                                                     m_sysFSI->fsiData, m_paramsH, m_sysFSI->numObjectsH, m_verbose);
 
     switch (m_paramsH->fluid_dynamic_type) {
         case FluidDynamics::IISPH:
@@ -896,9 +895,9 @@ void ChSystemFsi::DoStepDynamics_FSI() {
     if (m_fluid_dynamics->GetIntegratorType() == TimeIntegrator::EXPLICITSPH) {
         // The following is used to execute the Explicit WCSPH
         CopyDeviceDataToHalfStep();
-        thrust::copy(m_sysFSI->fsiGeneralData->derivVelRhoD.begin(), m_sysFSI->fsiGeneralData->derivVelRhoD.end(),
-                     m_sysFSI->fsiGeneralData->derivVelRhoD_old.begin());
-        ChUtilsDevice::FillVector(m_sysFSI->fsiGeneralData->derivVelRhoD, mR4(0));
+        thrust::copy(m_sysFSI->fsiData->derivVelRhoD.begin(), m_sysFSI->fsiData->derivVelRhoD.end(),
+                     m_sysFSI->fsiData->derivVelRhoD_old.begin());
+        ChUtilsDevice::FillVector(m_sysFSI->fsiData->derivVelRhoD, mR4(0));
 
         if (m_integrate_SPH) {
             m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkersD2, m_sysFSI->sphMarkersD1, m_sysFSI->fsiBodiesD2,
@@ -975,27 +974,27 @@ void ChSystemFsi::DoStepDynamics_FSI() {
 void ChSystemFsi::WriteParticleFile(const std::string& outfilename) const {
     if (m_write_mode == OutputMode::CSV) {
         utils::WriteCsvParticlesToFile(m_sysFSI->sphMarkersD2->posRadD, m_sysFSI->sphMarkersD2->velMasD,
-                                       m_sysFSI->sphMarkersD2->rhoPresMuD, m_sysFSI->fsiGeneralData->referenceArray,
+                                       m_sysFSI->sphMarkersD2->rhoPresMuD, m_sysFSI->fsiData->referenceArray,
                                        outfilename);
     } else if (m_write_mode == OutputMode::CHPF) {
-        utils::WriteChPFParticlesToFile(m_sysFSI->sphMarkersD2->posRadD, m_sysFSI->fsiGeneralData->referenceArray,
+        utils::WriteChPFParticlesToFile(m_sysFSI->sphMarkersD2->posRadD, m_sysFSI->fsiData->referenceArray,
                                         outfilename);
     }
 }
 
 void ChSystemFsi::PrintParticleToFile(const std::string& dir) const {
     utils::PrintParticleToFile(m_sysFSI->sphMarkersD2->posRadD, m_sysFSI->sphMarkersD2->velMasD,
-                               m_sysFSI->sphMarkersD2->rhoPresMuD, m_sysFSI->fsiGeneralData->sr_tau_I_mu_i,
-                               m_sysFSI->fsiGeneralData->derivVelRhoD, m_sysFSI->fsiGeneralData->referenceArray,
-                               m_sysFSI->fsiGeneralData->referenceArray_FEA, dir, m_paramsH);
+                               m_sysFSI->sphMarkersD2->rhoPresMuD, m_sysFSI->fsiData->sr_tau_I_mu_i,
+                               m_sysFSI->fsiData->derivVelRhoD, m_sysFSI->fsiData->referenceArray,
+                               m_sysFSI->fsiData->referenceArray_FEA, dir, m_paramsH);
 }
 
 void ChSystemFsi::PrintFsiInfoToFile(const std::string& dir, double time) const {
     utils::PrintFsiInfoToFile(m_sysFSI->fsiBodiesD2->posRigid_fsiBodies_D,
                               m_sysFSI->fsiBodiesD2->velMassRigid_fsiBodies_D, m_sysFSI->fsiBodiesD2->q_fsiBodies_D,
                               m_sysFSI->fsiMeshD->pos_fsi_fea_D, m_sysFSI->fsiMeshD->vel_fsi_fea_D,
-                              m_sysFSI->fsiGeneralData->rigid_FSI_ForcesD, m_sysFSI->fsiGeneralData->rigid_FSI_TorquesD,
-                              m_sysFSI->fsiGeneralData->Flex_FSI_ForcesD, dir, time);
+                              m_sysFSI->fsiData->rigid_FSI_ForcesD, m_sysFSI->fsiData->rigid_FSI_TorquesD,
+                              m_sysFSI->fsiData->Flex_FSI_ForcesD, dir, time);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -1882,7 +1881,7 @@ void ChSystemFsi::AddBCE_cable(const thrust::host_vector<Real4>& posRadBCE,
 
         if (addthis) {
             m_sysFSI->sphMarkersH->posRadH.push_back(mR4(utils::ToReal3(Correct_Pos), posRadBCE[i].w));
-            m_sysFSI->fsiGeneralData->FlexSPH_MeshPos_LRF_H.push_back(utils::ToReal3(pos_natural));
+            m_sysFSI->fsiData->FlexSPH_MeshPos_LRF_H.push_back(utils::ToReal3(pos_natural));
             ChVector<> Correct_Vel = N(0) * nAv + N(1) * nAdirv + N(2) * nBv + N(3) * nBdirv + ChVector<double>(1e-20);
             Real3 v3 = utils::ToReal3(Correct_Vel);
             m_sysFSI->sphMarkersH->velMasH.push_back(v3);
@@ -1958,7 +1957,7 @@ void ChSystemFsi::AddBCE_shell(const thrust::host_vector<Real4>& posRadBCE,
 
         if (addthis) {
             m_sysFSI->sphMarkersH->posRadH.push_back(mR4(utils::ToReal3(Correct_Pos), posRadBCE[i].w));
-            m_sysFSI->fsiGeneralData->FlexSPH_MeshPos_LRF_H.push_back(utils::ToReal3(pos_natural));
+            m_sysFSI->fsiData->FlexSPH_MeshPos_LRF_H.push_back(utils::ToReal3(pos_natural));
 
             ChVector<> Correct_Vel = N(0) * nAv + N(2) * nBv + N(4) * nCv + N(6) * nDv;
             Real3 v3 = utils::ToReal3(Correct_Vel);

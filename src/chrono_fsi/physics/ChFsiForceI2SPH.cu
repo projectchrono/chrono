@@ -26,14 +26,15 @@
 #include "chrono_fsi/physics/ChFsiForceI2SPH.cuh"
 #include "chrono_fsi/physics/ChSphGeneral.cuh"
 
-//==========================================================================================================================================
 namespace chrono {
 namespace fsi {
+
 struct my_Functor {
     Real ave;
     my_Functor(Real s) { ave = s; }
     __host__ __device__ void operator()(Real& i) { i -= ave; }
 };
+
 struct my_Functor_real4y {
     Real ave;
     my_Functor_real4y(Real s) { ave = s; }
@@ -803,7 +804,7 @@ __global__ void Shifting(Real4* sortedPosRad,
 ChFsiForceI2SPH::ChFsiForceI2SPH(std::shared_ptr<ChBce> otherBceWorker,
                                  std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
                                  std::shared_ptr<ProximityDataD> otherMarkersProximityD,
-                                 std::shared_ptr<FsiGeneralData> otherFsiGeneralData,
+                                 std::shared_ptr<FsiData> otherFsiGeneralData,
                                  std::shared_ptr<SimParams> otherParamsH,
                                  std::shared_ptr<ChCounters> otherNumObjects,
                                  bool verb)
@@ -1012,16 +1013,16 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
         R1CAST(csrValLaplacian), mR3CAST(csrValGradient), R1CAST(csrValFunction), R1CAST(_sumWij_inv), mR3CAST(Normals),
         U1CAST(csrColInd), U1CAST(Contact_i),
 
-        mR4CAST(otherFsiBodiesD->q_fsiBodies_D), mR3CAST(fsiGeneralData->rigidSPH_MeshPos_LRF_D),
+        mR4CAST(otherFsiBodiesD->q_fsiBodies_D), mR3CAST(fsiData->rigidSPH_MeshPos_LRF_D),
         mR3CAST(otherFsiBodiesD->posRigid_fsiBodies_D), mR4CAST(otherFsiBodiesD->velMassRigid_fsiBodies_D),
         mR3CAST(otherFsiBodiesD->omegaVelLRF_fsiBodies_D), mR3CAST(otherFsiBodiesD->accRigid_fsiBodies_D),
-        mR3CAST(otherFsiBodiesD->omegaAccLRF_fsiBodies_D), U1CAST(fsiGeneralData->rigidIdentifierD),
+        mR3CAST(otherFsiBodiesD->omegaAccLRF_fsiBodies_D), U1CAST(fsiData->rigidIdentifierD),
 
         mR3CAST(otherFsiMeshD->pos_fsi_fea_D), mR3CAST(otherFsiMeshD->vel_fsi_fea_D),
-        mR3CAST(otherFsiMeshD->acc_fsi_fea_D), U1CAST(fsiGeneralData->FlexIdentifierD),
+        mR3CAST(otherFsiMeshD->acc_fsi_fea_D), U1CAST(fsiData->FlexIdentifierD),
 
-        numObjectsH->numFlexBodies1D, U2CAST(fsiGeneralData->CableElementsNodesD),
-        U4CAST(fsiGeneralData->ShellElementsNodesD), updatePortion, U1CAST(markersProximityD->gridMarkerIndexD),
+        numObjectsH->numFlexBodies1D, U2CAST(fsiData->CableElementsNodesD),
+        U4CAST(fsiData->ShellElementsNodesD), updatePortion, U1CAST(markersProximityD->gridMarkerIndexD),
         numAllMarkers, paramsH->dT, isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "V_star_Predictor");
 
@@ -1087,16 +1088,16 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
         R1CAST(csrValFunction), R1CAST(csrValLaplacian), mR3CAST(csrValGradient), R1CAST(_sumWij_inv), mR3CAST(Normals),
         U1CAST(csrColInd), U1CAST(Contact_i),
 
-        mR4CAST(otherFsiBodiesD->q_fsiBodies_D), mR3CAST(fsiGeneralData->rigidSPH_MeshPos_LRF_D),
+        mR4CAST(otherFsiBodiesD->q_fsiBodies_D), mR3CAST(fsiData->rigidSPH_MeshPos_LRF_D),
         mR3CAST(otherFsiBodiesD->posRigid_fsiBodies_D), mR4CAST(otherFsiBodiesD->velMassRigid_fsiBodies_D),
         mR3CAST(otherFsiBodiesD->omegaVelLRF_fsiBodies_D), mR3CAST(otherFsiBodiesD->accRigid_fsiBodies_D),
-        mR3CAST(otherFsiBodiesD->omegaAccLRF_fsiBodies_D), U1CAST(fsiGeneralData->rigidIdentifierD),
+        mR3CAST(otherFsiBodiesD->omegaAccLRF_fsiBodies_D), U1CAST(fsiData->rigidIdentifierD),
 
         mR3CAST(otherFsiMeshD->pos_fsi_fea_D), mR3CAST(otherFsiMeshD->vel_fsi_fea_D),
-        mR3CAST(otherFsiMeshD->acc_fsi_fea_D), U1CAST(fsiGeneralData->FlexIdentifierD),
+        mR3CAST(otherFsiMeshD->acc_fsi_fea_D), U1CAST(fsiData->FlexIdentifierD),
 
-        numObjectsH->numFlexBodies1D, U2CAST(fsiGeneralData->CableElementsNodesD),
-        U4CAST(fsiGeneralData->ShellElementsNodesD), updatePortion, U1CAST(markersProximityD->gridMarkerIndexD),
+        numObjectsH->numFlexBodies1D, U2CAST(fsiData->CableElementsNodesD),
+        U4CAST(fsiData->ShellElementsNodesD), updatePortion, U1CAST(markersProximityD->gridMarkerIndexD),
         numAllMarkers, numObjectsH->numFluidMarkers, paramsH->dT, isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Pressure_Equation");
 
@@ -1228,9 +1229,9 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
         numAllMarkers, MaxVel, paramsH->dT, isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Velocity_Correction_and_update");
 
-    CopySortedToOriginal_NonInvasive_R3(fsiGeneralData->vis_vel_SPH_D, vel_vis_Sorted_D,
+    CopySortedToOriginal_NonInvasive_R3(fsiData->vis_vel_SPH_D, vel_vis_Sorted_D,
                                         markersProximityD->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R4(fsiGeneralData->derivVelRhoD, derivVelRhoD_Sorted_D,
+    CopySortedToOriginal_NonInvasive_R4(fsiData->derivVelRhoD, derivVelRhoD_Sorted_D,
                                         markersProximityD->gridMarkerIndexD);
     CopySortedToOriginal_NonInvasive_R3(sphMarkersD->velMasD, sortedSphMarkersD->velMasD,
                                         markersProximityD->gridMarkerIndexD);
@@ -1276,7 +1277,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
         printf("Shifting min pressure of %.3e to 0\n", minP);
     }
     //============================================================================================================
-    CopySortedToOriginal_NonInvasive_R4(fsiGeneralData->sr_tau_I_mu_i, sr_tau_I_mu_i,
+    CopySortedToOriginal_NonInvasive_R4(fsiData->sr_tau_I_mu_i, sr_tau_I_mu_i,
                                         markersProximityD->gridMarkerIndexD);
     CopySortedToOriginal_NonInvasive_R3(sphMarkersD->velMasD, sortedSphMarkersD->velMasD,
                                         markersProximityD->gridMarkerIndexD);

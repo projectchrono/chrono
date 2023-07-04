@@ -32,7 +32,7 @@ class ChFsiForceI2SPH : public ChFsiForce {
         std::shared_ptr<ChBce> otherBceWorker,                   ///< object that handles BCE particles
         std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,  ///< information of particle in the sorted device array
         std::shared_ptr<ProximityDataD> otherMarkersProximityD,  ///< object that holds device proximity info
-        std::shared_ptr<FsiGeneralData> otherFsiGeneralData,     ///< SPH general data
+        std::shared_ptr<FsiData> otherFsiGeneralData,     ///< SPH general data
         std::shared_ptr<SimParams> otherParamsH,                 ///< simulation parameters on host
         std::shared_ptr<ChCounters> otherNumObjects,        ///< counters
         bool verb                                                ///< verbose terminal output

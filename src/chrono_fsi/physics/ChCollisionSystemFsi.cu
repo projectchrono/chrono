@@ -300,13 +300,13 @@ __global__ void OriginalToSortedD(uint* mapOriginalToSorted,
 // ------------------------------------------------------------------------------
 ChCollisionSystemFsi::ChCollisionSystemFsi(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD,
                                            std::shared_ptr<ProximityDataD> markersProximityD,
-                                           std::shared_ptr<FsiGeneralData> fsiGeneralData,
+                                           std::shared_ptr<FsiData> fsiData,
                                            std::shared_ptr<SimParams> paramsH,
                                            std::shared_ptr<ChCounters> numObjects)
     : ChFsiGeneral(paramsH, numObjects),
       m_sortedSphMarkersD(sortedSphMarkersD),
       m_markersProximityD(markersProximityD),
-      m_fsiGeneralData(fsiGeneralData),
+      m_fsiGeneralData(fsiData),
       m_sphMarkersD(nullptr) {}
 
 ChCollisionSystemFsi::~ChCollisionSystemFsi() {}

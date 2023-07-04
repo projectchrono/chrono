@@ -19,7 +19,6 @@
 #include "chrono_fsi/physics/ChFsiForceExplicitSPH.cuh"
 #include "chrono_fsi/physics/ChSphGeneral.cuh"
 
-//================================================================================================================================
 namespace chrono {
 namespace fsi {
 
@@ -1587,7 +1586,7 @@ __global__ void CopySortedToOriginal_XSPH_D(Real3* sortedXSPH,
 ChFsiForceExplicitSPH::ChFsiForceExplicitSPH(std::shared_ptr<ChBce> otherBceWorker,
                                              std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
                                              std::shared_ptr<ProximityDataD> otherMarkersProximityD,
-                                             std::shared_ptr<FsiGeneralData> otherFsiGeneralData,
+                                             std::shared_ptr<FsiData> otherFsiGeneralData,
                                              std::shared_ptr<SimParams> otherParamsH,
                                              std::shared_ptr<ChCounters> otherNumObjects,
                                              bool verb)
@@ -1678,7 +1677,7 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
 
         // execute the kernel Navier_Stokes and Shear_Stress_Rate in one kernel
         NS_SSR<<<numBlocks, numThreads>>>(
-            U1CAST(fsiGeneralData->activityIdentifierD), mR4CAST(sortedDerivVelRho), 
+            U1CAST(fsiData->activityIdentifierD), mR4CAST(sortedDerivVelRho), 
             mR3CAST(sortedDerivTauXxYyZz), mR3CAST(sortedDerivTauXyXzYz), mR3CAST(sortedXSPHandShift), 
             mR3CAST(sortedKernelSupport), mR4CAST(sortedSphMarkersD->posRadD), 
             mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
@@ -1715,10 +1714,10 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
     // This is faster than using thrust::sort_by_key()
     CopySortedToOriginal_D<<<numBlocks, numThreads>>>(
         mR4CAST(sortedDerivVelRho), mR3CAST(sortedDerivTauXxYyZz), mR3CAST(sortedDerivTauXyXzYz),
-        mR4CAST(fsiGeneralData->derivVelRhoD), mR3CAST(fsiGeneralData->derivTauXxYyZzD),
-        mR3CAST(fsiGeneralData->derivTauXyXzYzD), U1CAST(markersProximityD->gridMarkerIndexD),
-        U1CAST(fsiGeneralData->activityIdentifierD), U1CAST(markersProximityD->mapOriginalToSorted),
-        U1CAST(fsiGeneralData->freeSurfaceIdD), U1CAST(sortedFreeSurfaceId));
+        mR4CAST(fsiData->derivVelRhoD), mR3CAST(fsiData->derivTauXxYyZzD),
+        mR3CAST(fsiData->derivTauXyXzYzD), U1CAST(markersProximityD->gridMarkerIndexD),
+        U1CAST(fsiData->activityIdentifierD), U1CAST(markersProximityD->mapOriginalToSorted),
+        U1CAST(fsiData->freeSurfaceIdD), U1CAST(sortedFreeSurfaceId));
 
     sortedDerivVelRho.clear();
     sortedDerivTauXxYyZz.clear();
@@ -1754,9 +1753,9 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
     if (paramsH->elastic_SPH) {
         // The XSPH vector already included in the shifting vector
         CopySortedToOriginal_XSPH_D<<<numBlocks, numThreads>>>(
-            mR3CAST(sortedXSPHandShift), mR3CAST(fsiGeneralData->vel_XSPH_D),
+            mR3CAST(sortedXSPHandShift), mR3CAST(fsiData->vel_XSPH_D),
             U1CAST(markersProximityD->gridMarkerIndexD), 
-            U1CAST(fsiGeneralData->activityIdentifierD),
+            U1CAST(fsiData->activityIdentifierD),
             U1CAST(markersProximityD->mapOriginalToSorted));
     } else {
         uint numBlocks1, numThreads1;
@@ -1784,9 +1783,9 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "CalcVel_XSPH_D");
 
         CopySortedToOriginal_XSPH_D<<<numBlocks, numThreads>>>(
-            mR3CAST(vel_XSPH_Sorted_D), mR3CAST(fsiGeneralData->vel_XSPH_D),
+            mR3CAST(vel_XSPH_Sorted_D), mR3CAST(fsiData->vel_XSPH_D),
             U1CAST(markersProximityD->gridMarkerIndexD), 
-            U1CAST(fsiGeneralData->activityIdentifierD),
+            U1CAST(fsiData->activityIdentifierD),
             U1CAST(markersProximityD->mapOriginalToSorted));
     }
 
@@ -1806,9 +1805,9 @@ void ChFsiForceExplicitSPH::AddGravityToFluid() {
     thrust::device_vector<Real4> bodyForceD(numObjectsH->numAllMarkers);
     thrust::fill(bodyForceD.begin(), bodyForceD.end(), mR4(totalFluidBodyForce3));
     thrust::transform(
-        fsiGeneralData->derivVelRhoD.begin() + fsiGeneralData->referenceArray[0].x,
-        fsiGeneralData->derivVelRhoD.begin() + fsiGeneralData->referenceArray[0].y, bodyForceD.begin(),
-        fsiGeneralData->derivVelRhoD.begin() + fsiGeneralData->referenceArray[0].x, thrust::plus<Real4>());
+        fsiData->derivVelRhoD.begin() + fsiData->referenceArray[0].x,
+        fsiData->derivVelRhoD.begin() + fsiData->referenceArray[0].y, bodyForceD.begin(),
+        fsiData->derivVelRhoD.begin() + fsiData->referenceArray[0].x, thrust::plus<Real4>());
     bodyForceD.clear();
 }
 
