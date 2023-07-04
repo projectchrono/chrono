@@ -1627,6 +1627,8 @@ void ChPac02Tire::LoadSectionAligning(FILE* fp) {
 void ChPac02Tire::Initialize(std::shared_ptr<ChWheel> wheel) {
     ChTire::Initialize(wheel);
 
+    m_g = wheel->GetSpindle()->GetSystem()->Get_G_acc().Length();
+    
     // Let derived class set the MF tire parameters
     SetMFParams();
 

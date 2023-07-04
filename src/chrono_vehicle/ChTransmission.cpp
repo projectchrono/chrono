@@ -55,7 +55,7 @@ void ChTransmission::SetGear(int gear) {
     assert(gear >= 0);
     assert(gear < m_gear_ratios.size());
 
-    if (m_current_gear == gear)
+    if (m_current_gear == gear && m_current_gear_ratio == m_gear_ratios[m_current_gear])
         return;
 
     m_current_gear = gear;

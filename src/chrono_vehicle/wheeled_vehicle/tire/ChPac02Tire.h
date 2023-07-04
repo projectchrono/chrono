@@ -96,7 +96,6 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
     // experimental for tire sound support
     double GetLongitudinalGripSaturation();
     double GetLateralGripSaturation();
-    double SetG(double g) { m_g = ChClamp(g, 0.1, 100.0); }
     
   protected:
     double CalcMx(double Fy, double Fz, double gamma);  // get overturning couple
