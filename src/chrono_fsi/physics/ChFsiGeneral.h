@@ -18,8 +18,6 @@
 #ifndef CH_FSI_GENERAL_H
 #define CH_FSI_GENERAL_H
 
-#include <memory>
-#include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/physics/ChParams.h"
 
 namespace chrono {
@@ -28,14 +26,13 @@ namespace fsi {
 /// @addtogroup fsi_physics
 /// @{
 
-/**
- * @brief Number of rigid and flexible solid bodies, fluid SPH particles, solid SPH particles, boundary SPH particles
- * @details
- * 		This structure holds the number of SPH particles and rigid/flexible bodies. Note that the order of makers in
- * 		the memory is as follows: i) fluid particles (type = -1), ii) particles attached to fixed objects (boundary
- * 		particles with type = 0), iii) particles attached to rigid bodies (type = 1), and iv) particles attached to
- *    flexible bodies (type = 2).
- */
+/// Number of rigid and flexible solid bodies, fluid SPH particles, solid SPH particles, boundary SPH particles.
+/// This structure holds the number of SPH particles and rigid/flexible bodies.
+///  Note that the order of makers in the memory is as follows:
+///  -  (1) fluid particles (type = -1)
+///  -  (2) particles attached to fixed objects (boundary particles with type = 0)
+///  -  (3) particles attached to rigid bodies (type = 1)
+///  -  (4) particles attached to flexible bodies (type = 2)
 struct ChCounters {
     size_t numRigidBodies;      ///< Number of rigid bodies
     size_t numFlexNodes;        ///< Number of Nodes in a flexible mesh; each FE is made up of nodes
@@ -58,15 +55,15 @@ class ChFsiGeneral {
     ChFsiGeneral();
 
     /// Constructor for the ChFsiGeneral class.
-    ChFsiGeneral(std::shared_ptr<SimParams> hostParams,      ///< Simulation parameters on host
-                 std::shared_ptr<ChCounters> hostNumObjects  ///< Counters of objects and markers
+    ChFsiGeneral(std::shared_ptr<SimParams> params,      ///< Simulation parameters on host
+                 std::shared_ptr<ChCounters> numObjects  ///< Counters of objects and markers
     );
 
     /// Destructor of the ChFsiGeneral class.
     virtual ~ChFsiGeneral() {}
 
     /// Compute number of blocks and threads for calculation on GPU.
-    /// This function calculates the number of blocks and threads for a given number of elements based on the blockSize
+    /// This function calculates the number of blocks and threads for a given number of elements based on the blockSize.
     void computeGridSize(uint n,           ///< Total num elements
                          uint blockSize,   ///< BlockSize Number of threads per block
                          uint& numBlocks,  ///< numBlocks (output)
@@ -74,11 +71,8 @@ class ChFsiGeneral {
     );
 
   protected:
-    /// Return a/b or a/b + 1
-    uint iDivUp(uint a, uint b);
-
-    std::shared_ptr<SimParams> paramsH;       ///< Simulation parameters on host.
-    std::shared_ptr<ChCounters> numObjectsH;  ///< NUmber of objects on host.
+    std::shared_ptr<SimParams> paramsH;       ///< Simulation parameters on host
+    std::shared_ptr<ChCounters> numObjectsH;  ///< NUmber of objects on host
 };
 
 /// @} fsi_physics

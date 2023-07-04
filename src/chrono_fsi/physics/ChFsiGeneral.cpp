@@ -22,17 +22,13 @@ namespace fsi {
 
 ChFsiGeneral::ChFsiGeneral() : paramsH(NULL), numObjectsH(NULL) {}
 
-ChFsiGeneral::ChFsiGeneral(std::shared_ptr<SimParams> other_paramsH, std::shared_ptr<ChCounters> other_numObjects)
-    : paramsH(other_paramsH), numObjectsH(other_numObjects) {}
-
-uint ChFsiGeneral::iDivUp(uint a, uint b) {
-    return (a % b != 0) ? (a / b + 1) : (a / b);
-}
+ChFsiGeneral::ChFsiGeneral(std::shared_ptr<SimParams> params, std::shared_ptr<ChCounters> numObjects)
+    : paramsH(params), numObjectsH(numObjects) {}
 
 void ChFsiGeneral::computeGridSize(uint n, uint blockSize, uint& numBlocks, uint& numThreads) {
     uint n2 = (n == 0) ? 1 : n;
     numThreads = min(blockSize, n2);
-    numBlocks = iDivUp(n2, numThreads);
+    numBlocks = (n2 % numThreads != 0) ? (n2 / numThreads + 1) : (n2 / numThreads);
 }
 
 }  // end namespace fsi
