@@ -29,6 +29,7 @@
 #include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChNodeFEAxyzD.h"
+#include "chrono/fea/ChContactSurfaceMesh.h"
 
 #include "chrono_fsi/ChSystemFsi.h"
 #include "chrono_fsi/physics/ChParams.h"
@@ -666,6 +667,59 @@ void ChSystemFsi::AddFsiBody(std::shared_ptr<ChBody> body) {
     m_fsi_interface->m_fsi_bodies.push_back(body);
 }
 
+void ChSystemFsi::AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh, bool centered) {
+    std::shared_ptr<fea::ChContactSurfaceMesh> contact_surface;
+
+    // Search for a contact surface mesh associated with the FEA mesh
+    for (const auto& surface : mesh->GetContactSurfaces()) {
+        if (auto surface_mesh = std::dynamic_pointer_cast<fea::ChContactSurfaceMesh>(surface)) {
+            contact_surface = surface_mesh;
+            break;
+        }
+    }
+
+    // If none found, create one with a default contact material and extract the boundary faces of the FEA mesh
+    if (!contact_surface) {
+        ChContactMaterialData contact_material_data;  // default contact material
+        contact_surface = chrono_types::make_shared<fea::ChContactSurfaceMesh>(
+            contact_material_data.CreateMaterial(ChContactMethod::SMC));
+        mesh->AddContactSurface(contact_surface);
+        contact_surface->AddFacesFromBoundary(0.1);
+    }
+
+    ChFsiInterface::FsiMesh fsi_mesh;
+    fsi_mesh.contact_surface = contact_surface;
+
+    // Create maps from pointer-based to index-based for the nodes in the mesh contact surface.
+    // These maps index only the nodes that are in the contact surface (and not all nodes in the given FEA mesh).
+    int vertex_index = 0;
+    for (const auto& tri : contact_surface->GetTriangleList()) {
+        if (fsi_mesh.ptr2ind_map.insert({tri->GetNode(0), vertex_index}).second) {
+            fsi_mesh.ind2ptr_map.insert({vertex_index, tri->GetNode(0)});
+            ++vertex_index;
+        }
+        if (fsi_mesh.ptr2ind_map.insert({tri->GetNode(1), vertex_index}).second) {
+            fsi_mesh.ind2ptr_map.insert({vertex_index, tri->GetNode(1)});
+            ++vertex_index;
+        }
+        if (fsi_mesh.ptr2ind_map.insert({tri->GetNode(2), vertex_index}).second) {
+            fsi_mesh.ind2ptr_map.insert({vertex_index, tri->GetNode(2)});
+            ++vertex_index;
+        }
+    }
+
+    assert(fsi_mesh.ptr2ind_map.size() == contact_surface->GetNumVertices());
+    assert(fsi_mesh.ind2ptr_map.size() == contact_surface->GetNumVertices());
+
+    // Create the BCE markers based on the mesh contact surface
+    fsi_mesh.num_bce = AddBCE_mesh(contact_surface, centered);
+
+    // Store the mesh contact surface
+    m_fsi_interface->m_fsi_meshes.push_back(fsi_mesh);
+
+    //// TODO - load necessary structures and arrays
+}
+
 void ChSystemFsi::AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh,
                              const std::vector<std::vector<int>>& beam_elements,
                              const std::vector<std::vector<int>>& shell_elements) {
@@ -1038,7 +1092,7 @@ void ChSystemFsi::AddBoxSPH(const ChVector<>& boxCenter, const ChVector<>& boxHa
 void ChSystemFsi::AddWallBCE(std::shared_ptr<ChBody> body, const ChFrame<>& frame, const ChVector2<> size) {
     thrust::host_vector<Real4> bce;
     CreateBCE_wall(mR2(size.x(), size.y()), bce);
-    AddBCE(body, bce, frame, false, false, false);
+    AddBCE_body(body, bce, frame, false, false, false);
 }
 
 void ChSystemFsi::AddBoxContainerBCE(std::shared_ptr<ChBody> body,
@@ -1086,7 +1140,7 @@ size_t ChSystemFsi::AddBoxBCE(std::shared_ptr<ChBody> body,
                               bool solid) {
     thrust::host_vector<Real4> bce;
     CreateBCE_box(utils::ToReal3(size), solid, bce);
-    AddBCE(body, bce, frame, solid, false, false);
+    AddBCE_body(body, bce, frame, solid, false, false);
     return bce.size();
 }
 
@@ -1097,7 +1151,7 @@ size_t ChSystemFsi::AddSphereBCE(std::shared_ptr<ChBody> body,
                                  bool polar) {
     thrust::host_vector<Real4> bce;
     CreateBCE_sphere(radius, solid, polar, bce);
-    AddBCE(body, bce, frame, solid, false, false);
+    AddBCE_body(body, bce, frame, solid, false, false);
     return bce.size();
 }
 
@@ -1110,7 +1164,7 @@ size_t ChSystemFsi::AddCylinderBCE(std::shared_ptr<ChBody> body,
                                    bool polar) {
     thrust::host_vector<Real4> bce;
     CreateBCE_cylinder(radius, height, solid, capped, polar, bce);
-    AddBCE(body, bce, frame, solid, false, false);
+    AddBCE_body(body, bce, frame, solid, false, false);
     return bce.size();
 }
 
@@ -1122,7 +1176,7 @@ size_t ChSystemFsi::AddCylinderAnnulusBCE(std::shared_ptr<ChBody> body,
                                           bool polar) {
     thrust::host_vector<Real4> bce;
     CreateBCE_cylinder_annulus(radius_inner, radius_outer, height, polar, bce);
-    AddBCE(body, bce, frame, true, false, false);
+    AddBCE_body(body, bce, frame, true, false, false);
     return bce.size();
 }
 
@@ -1135,7 +1189,7 @@ size_t ChSystemFsi::AddConeBCE(std::shared_ptr<ChBody> body,
                                bool polar) {
     thrust::host_vector<Real4> bce;
     CreateBCE_cone(radius, height, solid, capped, polar, bce);
-    AddBCE(body, bce, frame, solid, false, false);
+    AddBCE_body(body, bce, frame, solid, false, false);
     return bce.size();
 }
 
@@ -1146,7 +1200,7 @@ size_t ChSystemFsi::AddPointsBCE(std::shared_ptr<ChBody> body,
     thrust::host_vector<Real4> bce;
     for (const auto& p : points)
         bce.push_back(mR4(p.x(), p.y(), p.z(), m_paramsH->HSML));
-    AddBCE(body, bce, frame, solid, false, false);
+    AddBCE_body(body, bce, frame, solid, false, false);
     return bce.size();
 }
 
@@ -1636,7 +1690,7 @@ void ChSystemFsi::CreateBCE_cone(Real rad,
     }
 }
 
-//// RADU TODO
+//// RADU - obsolete
 void ChSystemFsi::CreateBCE_cable(thrust::host_vector<Real4>& posRadBCE,
                                   std::shared_ptr<chrono::fea::ChElementCableANCF> cable,
                                   std::vector<int> remove,
@@ -1689,7 +1743,7 @@ void ChSystemFsi::CreateBCE_cable(thrust::host_vector<Real4>& posRadBCE,
     }
 }
 
-//// RADU TODO
+//// RADU - obsolete
 void ChSystemFsi::CreateBCE_shell(thrust::host_vector<Real4>& posRadBCE,
                                   std::shared_ptr<chrono::fea::ChElementShellANCF_3423> shell,
                                   std::vector<int> remove,
@@ -1782,12 +1836,12 @@ void ChSystemFsi::CreateBCE_shell(thrust::host_vector<Real4>& posRadBCE,
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChSystemFsi::AddBCE(std::shared_ptr<ChBody> body,
-                         const thrust::host_vector<Real4>& bce,
-                         const ChFrame<>& rel_frame,
-                         bool solid,
-                         bool add_to_fluid_helpers,
-                         bool add_to_previous) {
+void ChSystemFsi::AddBCE_body(std::shared_ptr<ChBody> body,
+                              const thrust::host_vector<Real4>& bce,
+                              const ChFrame<>& rel_frame,
+                              bool solid,
+                              bool add_to_fluid_helpers,
+                              bool add_to_previous) {
     // Set BCE marker type
     int type = 0;
     if (solid)
@@ -1814,7 +1868,105 @@ void ChSystemFsi::AddBCE(std::shared_ptr<ChBody> body,
         m_fsi_bodies_bce_num.push_back((int)bce.size());
 }
 
-//// RADU TODO
+int ChSystemFsi::AddBCE_mesh(std::shared_ptr<fea::ChContactSurfaceMesh> mesh, bool centered) {
+    Real kernel_h = m_paramsH->HSML;
+    Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
+    Real4 rhoPresMuH = {m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, 3};
+    int num_layers = m_paramsH->NUM_BOUNDARY_LAYERS;
+
+    ////std::ofstream ofile("mesh.txt");
+    ////ofile << mesh->GetNumTriangles() << endl;
+    ////ofile << endl;
+
+    // Traverse the contact surface faces:
+    // - calculate their discretization number n
+    //   (largest number that results in a discretization no coarser than the initial spacing on each edge)
+    // - generate barycentric coordinates for a uniform grid over the triangular face
+    // - generate locations of BCE points on triangular face
+
+    int num_bce = 0;
+    for (const auto& tri : mesh->GetTriangleList()) {
+        const auto& P0 = tri->GetNode(0)->GetPos();  // vertex 0 position (absolute coordinates)
+        const auto& P1 = tri->GetNode(1)->GetPos();  // vertex 1 position (absolute coordinates)
+        const auto& P2 = tri->GetNode(2)->GetPos();  // vertex 2 position (absolute coordinates)
+
+        const auto& V0 = tri->GetNode(0)->GetPos_dt();  // vertex 0 velocity (absolute coordinates)
+        const auto& V1 = tri->GetNode(1)->GetPos_dt();  // vertex 1 velocity (absolute coordinates)
+        const auto& V2 = tri->GetNode(2)->GetPos_dt();  // vertex 2 velocity (absolute coordinates)
+
+        auto normal = Vcross(P1 - P0, P2 - P1);  // triangle normal
+        normal.Normalize();
+
+        int n0 = (int)std::ceil((P2 - P1).Length() / spacing);  // required divisions on edge 0
+        int n1 = (int)std::ceil((P0 - P2).Length() / spacing);  // required divisions on edge 1
+        int n2 = (int)std::ceil((P1 - P0).Length() / spacing);  // required divisions on edge 2
+        int n = std::max(n0, std::max(n1, n2));                 // number of divisions on each edge
+
+        ////ofile << P0 << endl;
+        ////ofile << P1 << endl;
+        ////ofile << P2 << endl;
+        ////ofile << tri->OwnsNode(0) << " " << tri->OwnsNode(1) << " " << tri->OwnsNode(2) << endl;
+        ////ofile << tri->OwnsEdge(0) << " " << tri->OwnsEdge(1) << " " << tri->OwnsEdge(2) << endl;
+        ////ofile << n << endl;
+
+        double z_start = centered ? (num_layers - 1) * spacing / 2 : 0;  // start layer z (along normal)
+
+        int n_bce = 0;  // number of BCE markers on triangle
+        for (int i = 0; i <= n; i++) {
+            if (i == n && !tri->OwnsNode(0))  // triangle does not own vertex v0
+                continue;
+            if (i == 0 && !tri->OwnsEdge(1))  // triangle does not own edge v1-v2 = e1
+                continue;
+
+            for (int j = 0; j <= n - i; j++) {
+                int k = n - i - j;
+                auto lambda = ChVector<>(i, j, k) / n;  // barycentric coordinates of BCE marker
+
+                if (j == n && !tri->OwnsNode(1))  // triangle does not own vertex v1
+                    continue;
+                if (j == 0 && !tri->OwnsEdge(2))  // triangle does not own edge v2-v0 = e2
+                    continue;
+
+                if (k == n && !tri->OwnsNode(2))  // triangle does not own vertex v2
+                    continue;
+                if (k == 0 && !tri->OwnsEdge(0))  // triangle does not own edge v0-v1 = e0
+                    continue;
+
+                auto P = lambda[0] * P0 + lambda[1] * P1 + lambda[2] * P2;  // absolute coordinates of BCE marker
+                auto V = lambda[0] * V0 + lambda[1] * V1 + lambda[2] * V2;  // absolute velocity of BCE marker
+
+                // Create layers in negative normal direction
+                for (int m = 0; m < num_layers; m++) {
+                    auto Q = P + (z_start - m * spacing) * normal;
+                    m_sysFSI->sphMarkersH->posRadH.push_back(mR4(utils::ToReal3(Q), kernel_h));
+                    m_sysFSI->sphMarkersH->velMasH.push_back(utils::ToReal3(V));
+                    m_sysFSI->sphMarkersH->rhoPresMuH.push_back(rhoPresMuH);
+                    m_sysFSI->fsiData->FlexSPH_MeshPos_LRF_H.push_back(utils::ToReal3(lambda));
+                    n_bce++;
+
+                    ////ofile << Q << endl;
+                }
+            }
+        }
+
+        ////ofile << n_bce << endl;
+        ////ofile << endl;
+
+        // Set the number of BCE markers for this triangle.
+        // The maximum value on each layer is (n+1)*(n+2)/2.
+        m_fsi_shells_bce_num.push_back(n_bce);
+        num_bce += n_bce;
+
+        //// TODO - load necessary structures and arrays
+    }
+
+    ////ofile.close();
+
+    return num_bce;
+}
+
+
+//// RADU - obsolete
 void ChSystemFsi::AddBCE_cable(const thrust::host_vector<Real4>& posRadBCE,
                                std::shared_ptr<fea::ChElementCableANCF> cable) {
     int type = 2;
@@ -1893,7 +2045,7 @@ void ChSystemFsi::AddBCE_cable(const thrust::host_vector<Real4>& posRadBCE,
     m_fsi_cables_bce_num.push_back(posRadSizeModified);
 }
 
-//// RADU TODO
+//// RADU - obsolete
 void ChSystemFsi::AddBCE_shell(const thrust::host_vector<Real4>& posRadBCE,
                                std::shared_ptr<fea::ChElementShellANCF_3423> shell) {
     int type = 3;

@@ -69,12 +69,20 @@ class ChFsiInterface : public ChFsiBase {
     void ApplyMeshForce_Fsi2Chrono();
 
   private:
+    struct FsiMesh {
+        std::shared_ptr<fea::ChContactSurfaceMesh> contact_surface;     // FEA mesh skin
+        std::map<std::shared_ptr<fea::ChNodeFEAxyz>, int> ptr2ind_map;  // pointer-based index-based mapping
+        std::map<int, std::shared_ptr<fea::ChNodeFEAxyz>> ind2ptr_map;  // index-based to pointer-based mapping
+        int num_bce;                                                    // number of BCE markers for this mesh
+    };
+
     ChSystemFsi_impl& m_sysFSI;  ///< FSI system
     bool m_verbose;              ///< enable/disable m_verbose terminal output (default: true)
 
-    std::vector<std::shared_ptr<ChBody>> m_fsi_bodies;                     ///< rigid bodies exposed to the FSI system
-    std::vector<std::shared_ptr<fea::ChContactSurfaceMesh>> m_fsi_meshes;  ///< FEA meshes exposed to the FSI system
+    std::vector<std::shared_ptr<ChBody>> m_fsi_bodies;  ///< rigid bodies exposed to the FSI system
+    std::vector<FsiMesh> m_fsi_meshes;                  ///< FEA meshes exposed to the FSI system
 
+    //// RADU - obsolete
     std::shared_ptr<fea::ChMesh> m_fsi_mesh;
     std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>> m_fsi_nodes;  ///< FEA nodes available in FSI system
 

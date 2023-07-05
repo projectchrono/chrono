@@ -36,6 +36,7 @@ namespace chrono {
 namespace fea {
 class ChNodeFEAxyzD;
 class ChMesh;
+class ChContactSurfaceMesh;
 class ChElementCableANCF;
 class ChElementShellANCF_3423;
 }  // namespace fea
@@ -274,8 +275,11 @@ class CH_FSI_API ChSystemFsi {
     /// FSI ChNodeFEAxyzD are the ones seen by the fluid dynamics system.
     std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& GetFsiNodes() const;
 
-    /// Add a rigid body to the FsiSystem.
+    /// Add a rigid body to the FSI system.
     void AddFsiBody(std::shared_ptr<ChBody> body);
+
+    /// Add an FEA mesh to the FSI system.
+    void AddFsiMesh(std::shared_ptr<fea::ChMesh> my_mesh, bool centered = false);
 
     /// Add an FEA mesh to the FSI system.
     void AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh,
@@ -401,7 +405,7 @@ class CH_FSI_API ChSystemFsi {
                         bool solid);
 
     /// Add BCE markers from mesh.
-    //// RADU TODO
+    //// RADU - obsolete
     void AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
                        const std::vector<std::vector<int>>& NodeNeighborElement,
                        const std::vector<std::vector<int>>& _1D_elementsNodes,
@@ -486,7 +490,7 @@ class CH_FSI_API ChSystemFsi {
     void CreateBCE_cone(Real rad, Real height, bool solid, bool capped, bool polar, thrust::host_vector<Real4>& bce);
 
     /// Create BCE particles from a cable element.
-    //// RADU TODO
+    //// RADU - obsolete
     void CreateBCE_cable(thrust::host_vector<Real4>& posRadBCE,
                          std::shared_ptr<chrono::fea::ChElementCableANCF> cable,
                          std::vector<int> remove,
@@ -495,7 +499,7 @@ class CH_FSI_API ChSystemFsi {
                          int SIDE);
 
     /// Create BCE particles from a shell element.
-    //// RADU TODO
+    //// RADU - obsolete
     void CreateBCE_shell(thrust::host_vector<Real4>& posRadBCE,
                          std::shared_ptr<chrono::fea::ChElementShellANCF_3423> shell,
                          std::vector<int> remove,
@@ -514,17 +518,22 @@ class CH_FSI_API ChSystemFsi {
     /// Initialize simulation parameters with default values.
     void InitParams();
 
-    /// Add the provided BCE markers, expressed in the global frame, to the system.
-    /// The BCE markers are assumed to be given in a frame relative to the body reference frame.
-    void AddBCE(std::shared_ptr<ChBody> body,
-                const thrust::host_vector<Real4>& bce,
-                const ChFrame<>& rel_frame,
-                bool solid,
-                bool add_to_fluid_helpers,
-                bool add_to_previous);
+    /// Create and add BCE markers associated with the given rigid body, expressed in the global frame.
+    /// The input positions are assumed to be given in a frame relative to the body reference frame.
+    /// The BCE markers are created in the absolute coordinate frame.
+    void AddBCE_body(std::shared_ptr<ChBody> body,
+                     const thrust::host_vector<Real4>& bce,
+                     const ChFrame<>& rel_frame,
+                     bool solid,
+                     bool add_to_fluid_helpers,
+                     bool add_to_previous);
 
+    /// Create and add BCE markers associated with the given mesh contact surface.
+    /// The BCE markers are created in the absolute coordinate frame.
+    int AddBCE_mesh(std::shared_ptr<fea::ChContactSurfaceMesh> mesh, bool centered);
+
+    //// RADU - obsolete
     void AddBCE_cable(const thrust::host_vector<Real4>& posRadBCE, std::shared_ptr<fea::ChElementCableANCF> cable);
-
     void AddBCE_shell(const thrust::host_vector<Real4>& posRadBCE, std::shared_ptr<fea::ChElementShellANCF_3423> shell);
 
     /// Function to initialize the midpoint device data of the fluid system by copying from the full step.

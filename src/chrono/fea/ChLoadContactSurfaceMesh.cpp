@@ -13,7 +13,6 @@
 // =============================================================================
 
 #include "chrono/fea/ChLoadContactSurfaceMesh.h"
-#include "chrono/fea/ChMesh.h"
 #include "chrono/physics/ChSystem.h"
 
 namespace chrono {
