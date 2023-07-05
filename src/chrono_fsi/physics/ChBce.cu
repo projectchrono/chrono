@@ -518,14 +518,14 @@ __global__ void CalcFlexBceAccelerationD(Real3* bceAcc,
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-__global__ void UpdateRigidMarkersPositionVelocityD(Real4* posRadD,
-                                                    Real3* velMasD,
-                                                    Real3* rigidSPH_MeshPos_LRF_D,
-                                                    uint* rigidIdentifierD,
-                                                    Real3* posRigidD,
-                                                    Real4* velMassRigidD,
-                                                    Real3* omegaLRF_D,
-                                                    Real4* qD) {
+__global__ void UpdateBodyMarkerStateD(Real4* posRadD,
+                                       Real3* velMasD,
+                                       Real3* rigidSPH_MeshPos_LRF_D,
+                                       uint* rigidIdentifierD,
+                                       Real3* posRigidD,
+                                       Real4* velMassRigidD,
+                                       Real3* omegaLRF_D,
+                                       Real4* qD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numObjectsD.numRigidMarkers)
         return;
@@ -554,15 +554,15 @@ __global__ void UpdateRigidMarkersPositionVelocityD(Real4* posRadD,
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-__global__ void UpdateFlexMarkersPositionVelocityD(Real4* posRadD,
-                                                   Real3* FlexSPH_MeshPos_LRF_D,
-                                                   Real3* velMasD,
-                                                   const uint* FlexIdentifierD,
-                                                   uint2* CableElementsNodesD,
-                                                   uint4* ShellElementsNodesD,
-                                                   Real3* pos_fsi_fea_D,
-                                                   Real3* vel_fsi_fea_D,
-                                                   Real3* dir_fsi_fea_D) {
+__global__ void UpdateMeshMarkerStateD(Real4* posRadD,
+                                       Real3* FlexSPH_MeshPos_LRF_D,
+                                       Real3* velMasD,
+                                       const uint* FlexIdentifierD,
+                                       uint2* CableElementsNodesD,
+                                       uint4* ShellElementsNodesD,
+                                       Real3* pos_fsi_fea_D,
+                                       Real3* vel_fsi_fea_D,
+                                       Real3* dir_fsi_fea_D) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numObjectsD.numFlexMarkers)
         return;
@@ -750,7 +750,7 @@ void ChBce::Populate_RigidSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMar
     cudaDeviceSynchronize();
     cudaCheckError();
 
-    UpdateRigidMarkersPositionVelocity(sphMarkersD, fsiBodiesD);
+    UpdateBodyMarkerState(sphMarkersD, fsiBodiesD);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -786,7 +786,7 @@ void ChBce::Populate_FlexSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMark
     cudaDeviceSynchronize();
     cudaCheckError();
 
-    UpdateFlexMarkersPositionVelocity(sphMarkersD, fsiMeshStateD);
+    UpdateMeshMarkerState(sphMarkersD, fsiMeshStateD);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -1023,34 +1023,34 @@ void ChBce::Flex_Forces(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::shared
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChBce::UpdateRigidMarkersPositionVelocity(std::shared_ptr<SphMarkerDataD> sphMarkersD,
-                                               std::shared_ptr<FsiBodyStateD> fsiBodiesD) {
+void ChBce::UpdateBodyMarkerState(std::shared_ptr<SphMarkerDataD> sphMarkersD,
+                                  std::shared_ptr<FsiBodyStateD> fsiBodyStateD) {
     if (numObjectsH->numRigidBodies == 0)
         return;
 
     uint nBlocks, nThreads;
     computeGridSize((int)numObjectsH->numRigidMarkers, 256, nBlocks, nThreads);
 
-    UpdateRigidMarkersPositionVelocityD<<<nBlocks, nThreads>>>(
+    UpdateBodyMarkerStateD<<<nBlocks, nThreads>>>(
         mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR3CAST(m_fsiGeneralData->rigidSPH_MeshPos_LRF_D),
-        U1CAST(m_fsiGeneralData->rigidIdentifierD), mR3CAST(fsiBodiesD->posRigid_fsiBodies_D),
-        mR4CAST(fsiBodiesD->velMassRigid_fsiBodies_D), mR3CAST(fsiBodiesD->omegaVelLRF_fsiBodies_D),
-        mR4CAST(fsiBodiesD->q_fsiBodies_D));
+        U1CAST(m_fsiGeneralData->rigidIdentifierD), mR3CAST(fsiBodyStateD->posRigid_fsiBodies_D),
+        mR4CAST(fsiBodyStateD->velMassRigid_fsiBodies_D), mR3CAST(fsiBodyStateD->omegaVelLRF_fsiBodies_D),
+        mR4CAST(fsiBodyStateD->q_fsiBodies_D));
 
     cudaDeviceSynchronize();
     cudaCheckError();
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChBce::UpdateFlexMarkersPositionVelocity(std::shared_ptr<SphMarkerDataD> sphMarkersD,
-                                              std::shared_ptr<FsiMeshStateD> fsiMeshStateD) {
+void ChBce::UpdateMeshMarkerState(std::shared_ptr<SphMarkerDataD> sphMarkersD,
+                                  std::shared_ptr<FsiMeshStateD> fsiMeshStateD) {
     if ((numObjectsH->numFlexBodies1D + numObjectsH->numFlexBodies2D) == 0)
         return;
 
     uint nBlocks, nThreads;
     computeGridSize((int)numObjectsH->numFlexMarkers, 256, nBlocks, nThreads);
 
-    UpdateFlexMarkersPositionVelocityD<<<nBlocks, nThreads>>>(
+    UpdateMeshMarkerStateD<<<nBlocks, nThreads>>>(
         mR4CAST(sphMarkersD->posRadD), mR3CAST(m_fsiGeneralData->FlexSPH_MeshPos_LRF_D), mR3CAST(sphMarkersD->velMasD),
         U1CAST(m_fsiGeneralData->FlexIdentifierD), U2CAST(m_fsiGeneralData->CableElementsNodesD),
         U4CAST(m_fsiGeneralData->ShellElementsNodesD), mR3CAST(fsiMeshStateD->pos_fsi_fea_D),

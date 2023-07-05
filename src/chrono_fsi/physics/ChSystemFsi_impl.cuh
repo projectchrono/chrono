@@ -250,11 +250,11 @@ class ChSystemFsi_impl : public ChFsiBase {
     std::shared_ptr<SphMarkerDataD> sortedSphMarkersD;  ///< Sorted information of SPH particles at state 1 on device
     std::shared_ptr<SphMarkerDataH> sphMarkersH;        ///< Information of SPH particles on host
 
+    std::shared_ptr<FsiBodyStateH> fsiBodyStateH;   ///< Rigid body state (host)
     std::shared_ptr<FsiBodyStateD> fsiBodyState1D;  ///< Rigid body state 1 (device)
     std::shared_ptr<FsiBodyStateD> fsiBodyState2D;  ///< Rigid body state 2 (device)
-    std::shared_ptr<FsiBodyStateH> fsiBodyStateH;   ///< Rigid body state (host)
-    std::shared_ptr<FsiMeshStateD> fsiMeshStateD;   ///< FEA mesh state (device)
     std::shared_ptr<FsiMeshStateH> fsiMeshStateH;   ///< FEA mesh state (host)
+    std::shared_ptr<FsiMeshStateD> fsiMeshStateD;   ///< FEA mesh state (device)
 
     std::shared_ptr<FsiData> fsiData;  ///< General FSI data needed in the simulation
 

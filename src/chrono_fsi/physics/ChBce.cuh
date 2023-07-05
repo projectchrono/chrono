@@ -61,12 +61,12 @@ class ChBce : public ChFsiBase {
     ~ChBce();
 
     /// Updates the position and velocity of the particles on the rigid bodies based on the state of the body.
-    void UpdateRigidMarkersPositionVelocity(std::shared_ptr<SphMarkerDataD> sphMarkersD,
-                                            std::shared_ptr<FsiBodyStateD> fsiBodiesD);
+    void UpdateBodyMarkerState(std::shared_ptr<SphMarkerDataD> sphMarkersD,
+                               std::shared_ptr<FsiBodyStateD> fsiBodyStateD);
 
     /// Updates the position and velocity of the particles on the flexible bodies based on the state of the body.
-    void UpdateFlexMarkersPositionVelocity(std::shared_ptr<SphMarkerDataD> sphMarkersD,
-                                           std::shared_ptr<FsiMeshStateD> fsiMeshStateD);
+    void UpdateMeshMarkerState(std::shared_ptr<SphMarkerDataD> sphMarkersD,
+                               std::shared_ptr<FsiMeshStateD> fsiMeshStateD);
 
     /// Calculates the forces from the fluid/granular dynamics system to the FSI system on rigid bodies.
     void Rigid_Forces_Torques(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::shared_ptr<FsiBodyStateD> fsiBodiesD);

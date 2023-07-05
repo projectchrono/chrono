@@ -832,8 +832,8 @@ void ChSystemFsi::Initialize() {
         }
     }
 
-    m_fsi_interface->Copy_FsiBodies_ChSystem_to_FsiSystem(m_sysFSI->fsiBodyState1D);
-    m_fsi_interface->Copy_FsiNodes_ChSystem_to_FsiSystem(m_sysFSI->fsiMeshStateD);
+    m_fsi_interface->LoadBodyState_Chrono2Fsi(m_sysFSI->fsiBodyState1D);
+    m_fsi_interface->LoadMeshState_Chrono2Fsi(m_sysFSI->fsiMeshStateD);
 
     // Construct midpoint rigid data
     m_sysFSI->fsiBodyState2D = m_sysFSI->fsiBodyState1D;
@@ -911,8 +911,8 @@ void ChSystemFsi::DoStepDynamics_FSI() {
 
         // Advance dynamics of the associated MBS system (if provided)
         if (m_sysMBS) {
-            m_fsi_interface->Add_Rigid_ForceTorques_To_ChSystem();
-            m_fsi_interface->Add_Flex_Forces_To_ChSystem();
+            m_fsi_interface->ApplyBodyForce_Fsi2Chrono();
+            m_fsi_interface->ApplyMeshForce_Fsi2Chrono();
 
             if (m_paramsH->dT_Flex == 0)
                 m_paramsH->dT_Flex = m_paramsH->dT;
@@ -924,11 +924,11 @@ void ChSystemFsi::DoStepDynamics_FSI() {
             }
         }
 
-        m_fsi_interface->Copy_FsiBodies_ChSystem_to_FsiSystem(m_sysFSI->fsiBodyState2D);
-        m_bce_manager->UpdateRigidMarkersPositionVelocity(m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodyState2D);
+        m_fsi_interface->LoadBodyState_Chrono2Fsi(m_sysFSI->fsiBodyState2D);
+        m_bce_manager->UpdateBodyMarkerState(m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodyState2D);
 
-        m_fsi_interface->Copy_FsiNodes_ChSystem_to_FsiSystem(m_sysFSI->fsiMeshStateD);
-        m_bce_manager->UpdateFlexMarkersPositionVelocity(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMeshStateD);
+        m_fsi_interface->LoadMeshState_Chrono2Fsi(m_sysFSI->fsiMeshStateD);
+        m_bce_manager->UpdateMeshMarkerState(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMeshStateD);
     } else {
         // A different coupling scheme is used for implicit SPH formulations
         if (m_integrate_SPH) {
@@ -941,8 +941,8 @@ void ChSystemFsi::DoStepDynamics_FSI() {
 
         // Advance dynamics of the associated MBS system (if provided)
         if (m_sysMBS) {
-            m_fsi_interface->Add_Rigid_ForceTorques_To_ChSystem();
-            m_fsi_interface->Add_Flex_Forces_To_ChSystem();
+            m_fsi_interface->ApplyBodyForce_Fsi2Chrono();
+            m_fsi_interface->ApplyMeshForce_Fsi2Chrono();
 
             if (m_paramsH->dT_Flex == 0)
                 m_paramsH->dT_Flex = m_paramsH->dT;
@@ -956,11 +956,11 @@ void ChSystemFsi::DoStepDynamics_FSI() {
             }
         }
 
-        m_fsi_interface->Copy_FsiBodies_ChSystem_to_FsiSystem(m_sysFSI->fsiBodyState2D);
-        m_bce_manager->UpdateRigidMarkersPositionVelocity(m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodyState2D);
+        m_fsi_interface->LoadBodyState_Chrono2Fsi(m_sysFSI->fsiBodyState2D);
+        m_bce_manager->UpdateBodyMarkerState(m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodyState2D);
 
-        m_fsi_interface->Copy_FsiNodes_ChSystem_to_FsiSystem(m_sysFSI->fsiMeshStateD);
-        m_bce_manager->UpdateFlexMarkersPositionVelocity(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMeshStateD);
+        m_fsi_interface->LoadMeshState_Chrono2Fsi(m_sysFSI->fsiMeshStateD);
+        m_bce_manager->UpdateMeshMarkerState(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMeshStateD);
     }
 
     m_time += m_paramsH->dT;

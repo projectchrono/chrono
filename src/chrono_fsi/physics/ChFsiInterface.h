@@ -27,6 +27,7 @@ namespace chrono {
 
 // Forward declarations
 namespace fea {
+class ChContactSurfaceMesh;
 class ChNodeFEAxyzD;
 class ChMesh;
 class ChElementCableANCF;
@@ -48,31 +49,33 @@ class ChFsiInterface : public ChFsiBase {
     /// Destructor of the FSI interface class.
     ~ChFsiInterface();
 
-    /// Read the surface-integrated pressure and viscous forces form the fluid/granular dynamics system,
-    /// and add these forces and torques as external forces to the ChSystem rigid bodies.
-    void Add_Rigid_ForceTorques_To_ChSystem();
-
-    /// Copy rigid bodies' information from ChSystem to FsiSystem, then to the GPU memory.
-    void Copy_FsiBodies_ChSystem_to_FsiSystem(std::shared_ptr<FsiBodyStateD> fsiBodiesD);
-
-    /// Add forces and torques as external forces to the ChSystem flexible bodies.
-    void Add_Flex_Forces_To_ChSystem();
-
     /// Resize number of cable elements used in the flexible elements.
     void ResizeChronoCablesData(const std::vector<std::vector<int>>& CableElementsNodesSTDVector);
 
     /// Resize number of shell elements used in the flexible elements.
     void ResizeChronoShellsData(const std::vector<std::vector<int>>& ShellElementsNodesSTDVector);
 
-    /// Copy flexible nodes' information from ChSystem to FsiSystem, then to the GPU memory.
-    void Copy_FsiNodes_ChSystem_to_FsiSystem(std::shared_ptr<FsiMeshStateD> FsiMeshD);
+    /// Copy rigid body states from ChSystem to FsiSystem, then to the GPU memory.
+    void LoadBodyState_Chrono2Fsi(std::shared_ptr<FsiBodyStateD> fsiBodyStateD);
+
+    /// Copy FEA mesh states from ChSystem to FsiSystem, then to the GPU memory.
+    void LoadMeshState_Chrono2Fsi(std::shared_ptr<FsiMeshStateD> fsiMeshStateD);
+
+    /// Read the surface-integrated pressure and viscous forces form the fluid/granular dynamics system,
+    /// and add these forces and torques as external forces to the ChSystem rigid bodies.
+    void ApplyBodyForce_Fsi2Chrono();
+
+    /// Add forces and torques as external forces to the ChSystem flexible bodies.
+    void ApplyMeshForce_Fsi2Chrono();
 
   private:
     ChSystemFsi_impl& m_sysFSI;  ///< FSI system
     bool m_verbose;              ///< enable/disable m_verbose terminal output (default: true)
 
+    std::vector<std::shared_ptr<ChBody>> m_fsi_bodies;                     ///< rigid bodies exposed to the FSI system
+    std::vector<std::shared_ptr<fea::ChContactSurfaceMesh>> m_fsi_meshes;  ///< FEA meshes exposed to the FSI system
+
     std::shared_ptr<fea::ChMesh> m_fsi_mesh;
-    std::vector<std::shared_ptr<ChBody>> m_fsi_bodies;             ///< bodies handled by the FSI system
     std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>> m_fsi_nodes;  ///< FEA nodes available in FSI system
 
     friend class ChSystemFsi;
