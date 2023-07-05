@@ -21,8 +21,10 @@
 namespace chrono {
 namespace vehicle {
 
+#define CHRONO_NEUTRAL_GEAR_RATIO 1e-20
+
 ChTransmission::ChTransmission(const std::string& name)
-    : ChPart(name), m_current_gear(-1), m_current_gear_ratio(1e20) {}
+    : ChPart(name), m_current_gear(-1), m_current_gear_ratio(CHRONO_NEUTRAL_GEAR_RATIO) {}
 
 void ChTransmission::Initialize(std::shared_ptr<ChChassis> chassis) {
     // Let the derived class specify the gear ratios
@@ -68,7 +70,7 @@ void ChTransmission::SetGear(int gear) {
         OnGearShift();
     }
     else {
-        m_current_gear_ratio = 1e20;
+        m_current_gear_ratio = CHRONO_NEUTRAL_GEAR_RATIO;
         OnNeutralShift();
     }
 }
