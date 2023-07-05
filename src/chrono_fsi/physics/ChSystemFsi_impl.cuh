@@ -93,8 +93,8 @@ struct SphMarkerDataH {
     void resize(size_t s);
 };
 
-/// Struct to store the information of rigid bodies on the host.
-struct FsiBodiesDataH {
+/// Rigid body states on host.
+struct FsiBodyStateH {
     thrust::host_vector<Real3> posRigid_fsiBodies_H;      ///< body linear positions
     thrust::host_vector<Real4> velMassRigid_fsiBodies_H;  ///< body linear velocities
     thrust::host_vector<Real3> accRigid_fsiBodies_H;      ///< body linear accelerations
@@ -106,8 +106,8 @@ struct FsiBodiesDataH {
     void resize(size_t s);
 };
 
-/// Struct to store the information of rigid bodies on the device.
-struct FsiBodiesDataD {
+///  Rigid body states on device.
+struct FsiBodyStateD {
     thrust::device_vector<Real3> posRigid_fsiBodies_D;      ///< body linear positions
     thrust::device_vector<Real4> velMassRigid_fsiBodies_D;  ///< body linear velocities
     thrust::device_vector<Real3> accRigid_fsiBodies_D;      ///< body linear accelerations
@@ -116,12 +116,12 @@ struct FsiBodiesDataD {
     thrust::device_vector<Real3> omegaAccLRF_fsiBodies_D;   ///< body angular accelerations
 
     zipIterRigidD iterator();
-    void CopyFromH(const FsiBodiesDataH& other);
-    FsiBodiesDataD& operator=(const FsiBodiesDataD& other);
+    void CopyFromH(const FsiBodyStateH& other);
+    FsiBodyStateD& operator=(const FsiBodyStateD& other);
     void resize(size_t s);
 };
 
-/// FEA mesh state on host.
+/// FEA mesh states on host.
 struct FsiMeshStateH {
     thrust::host_vector<Real3> pos_fsi_fea_H;  ///< Vector of the mesh position
     thrust::host_vector<Real3> vel_fsi_fea_H;  ///< Vector of the mesh velocity
@@ -141,7 +141,7 @@ struct FsiMeshStateD {
     thrust::device_vector<Real3> dir_fsi_fea_D;  ///< Vector of the mesh direction
 
     // zipIterFlexD iterator();
-    void CopyFromH(const FsiMeshStateH& other);
+    void CopyFromH(const FsiMeshStateH& meshStateH);
     FsiMeshStateD& operator=(const FsiMeshStateD& other);
     void resize(size_t s);
 };
@@ -250,11 +250,11 @@ class ChSystemFsi_impl : public ChFsiBase {
     std::shared_ptr<SphMarkerDataD> sortedSphMarkersD;  ///< Sorted information of SPH particles at state 1 on device
     std::shared_ptr<SphMarkerDataH> sphMarkersH;        ///< Information of SPH particles on host
 
-    std::shared_ptr<FsiBodiesDataD> fsiBodiesD1;   ///< Information of rigid bodies at state 1 on device
-    std::shared_ptr<FsiBodiesDataD> fsiBodiesD2;   ///< Information of rigid bodies at state 2 on device
-    std::shared_ptr<FsiBodiesDataH> fsiBodiesH;    ///< Information of rigid bodies at state 1 on host
-    std::shared_ptr<FsiMeshStateD> fsiMeshStateD;  ///< FEA mesh state (device)
-    std::shared_ptr<FsiMeshStateH> fsiMeshStateH;  ///< FEA mesh state (host)
+    std::shared_ptr<FsiBodyStateD> fsiBodyState1D;  ///< Rigid body state 1 (device)
+    std::shared_ptr<FsiBodyStateD> fsiBodyState2D;  ///< Rigid body state 2 (device)
+    std::shared_ptr<FsiBodyStateH> fsiBodyStateH;   ///< Rigid body state (host)
+    std::shared_ptr<FsiMeshStateD> fsiMeshStateD;   ///< FEA mesh state (device)
+    std::shared_ptr<FsiMeshStateH> fsiMeshStateH;   ///< FEA mesh state (host)
 
     std::shared_ptr<FsiData> fsiData;  ///< General FSI data needed in the simulation
 

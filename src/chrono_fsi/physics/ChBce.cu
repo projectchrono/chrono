@@ -671,7 +671,7 @@ ChBce::~ChBce() {}
 
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChBce::Initialize(std::shared_ptr<SphMarkerDataD> sphMarkersD,
-                       std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
+                       std::shared_ptr<FsiBodyStateD> fsiBodiesD,
                        std::shared_ptr<FsiMeshStateD> fsiMeshStateD,
                        std::vector<int> fsiBodyBceNum,
                        std::vector<int> fsiShellBceNum,
@@ -728,7 +728,7 @@ void ChBce::Initialize(std::shared_ptr<SphMarkerDataD> sphMarkersD,
 
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChBce::Populate_RigidSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMarkersD,
-                                          std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
+                                          std::shared_ptr<FsiBodyStateD> fsiBodiesD,
                                           std::vector<int> fsiBodyBceNum) {
     // Create map between a BCE on a rigid body and the associated body ID
     uint start_bce = 0;
@@ -880,7 +880,7 @@ void ChBce::CalcFlexBceAcceleration(thrust::device_vector<Real3>& bceAcc,
 
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChBce::ModifyBceVelocityPressureStress(std::shared_ptr<SphMarkerDataD> sphMarkersD,
-                                            std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
+                                            std::shared_ptr<FsiBodyStateD> fsiBodiesD,
                                             std::shared_ptr<FsiMeshStateD> fsiMeshStateD) {
     auto size_ref = m_fsiGeneralData->referenceArray.size();
     auto numBceMarkers = m_fsiGeneralData->referenceArray[size_ref - 1].y - m_fsiGeneralData->referenceArray[0].y;
@@ -982,7 +982,7 @@ void ChBce::ModifyBceVelocityPressureStress(std::shared_ptr<SphMarkerDataD> sphM
 
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChBce::Rigid_Forces_Torques(std::shared_ptr<SphMarkerDataD> sphMarkersD,
-                                 std::shared_ptr<FsiBodiesDataD> fsiBodiesD) {
+                                 std::shared_ptr<FsiBodyStateD> fsiBodiesD) {
     if (numObjectsH->numRigidBodies == 0)
         return;
 
@@ -1024,7 +1024,7 @@ void ChBce::Flex_Forces(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::shared
 
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChBce::UpdateRigidMarkersPositionVelocity(std::shared_ptr<SphMarkerDataD> sphMarkersD,
-                                               std::shared_ptr<FsiBodiesDataD> fsiBodiesD) {
+                                               std::shared_ptr<FsiBodyStateD> fsiBodiesD) {
     if (numObjectsH->numRigidBodies == 0)
         return;
 

@@ -642,7 +642,7 @@ void ChFluidDynamics::Initialize() {
 // -----------------------------------------------------------------------------
 void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sphMarkersD2,
                                    std::shared_ptr<SphMarkerDataD> sphMarkersD1,
-                                   std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
+                                   std::shared_ptr<FsiBodyStateD> fsiBodiesD,
                                    std::shared_ptr<FsiMeshStateD> fsiMeshStateD,
                                    Real dT,
                                    Real Time) {
@@ -663,7 +663,7 @@ void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sphMarkersD2,
 // -----------------------------------------------------------------------------
 void ChFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD1,
                                      std::shared_ptr<SphMarkerDataD> sphMarkersD2,
-                                     std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
+                                     std::shared_ptr<FsiBodyStateD> fsiBodiesD,
                                      std::shared_ptr<FsiMeshStateD> fsiMeshStateD,
                                      Real Time) {
     // Update portion of the SPH particles (should be all particles here)

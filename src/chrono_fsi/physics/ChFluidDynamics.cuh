@@ -69,7 +69,7 @@ class ChFluidDynamics : public ChFsiBase {
     void IntegrateSPH(
         std::shared_ptr<SphMarkerDataD> sphMarkersD2,  ///< Pointer SPH particle information at the second half step
         std::shared_ptr<SphMarkerDataD> sphMarkersD1,  ///< Pointer SPH particle information at the first half step
-        std::shared_ptr<FsiBodiesDataD> fsiBodiesD,    ///< Pointer information of rigid bodies
+        std::shared_ptr<FsiBodyStateD> fsiBodiesD,    ///< Pointer information of rigid bodies
         std::shared_ptr<FsiMeshStateD> fsiMeshStateD,        ///< Pointer information of flexible mesh
         Real dT,                                       ///< Simulation stepsize
         Real Time                                      ///< Simulation time
@@ -103,7 +103,7 @@ class ChFluidDynamics : public ChFsiBase {
     /// For example, particles close to a rigid body.
     void UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD1,
                         std::shared_ptr<SphMarkerDataD> sphMarkersD2,
-                        std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
+                        std::shared_ptr<FsiBodyStateD> fsiBodiesD,
                         std::shared_ptr<FsiMeshStateD> fsiMeshStateD,
                         Real Time);
 

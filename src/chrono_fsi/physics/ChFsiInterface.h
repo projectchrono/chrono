@@ -53,7 +53,7 @@ class ChFsiInterface : public ChFsiBase {
     void Add_Rigid_ForceTorques_To_ChSystem();
 
     /// Copy rigid bodies' information from ChSystem to FsiSystem, then to the GPU memory.
-    void Copy_FsiBodies_ChSystem_to_FsiSystem(std::shared_ptr<FsiBodiesDataD> fsiBodiesD);
+    void Copy_FsiBodies_ChSystem_to_FsiSystem(std::shared_ptr<FsiBodyStateD> fsiBodiesD);
 
     /// Add forces and torques as external forces to the ChSystem flexible bodies.
     void Add_Flex_Forces_To_ChSystem();

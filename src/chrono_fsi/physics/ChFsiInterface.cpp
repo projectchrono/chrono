@@ -53,19 +53,19 @@ void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
     }
 }
 
-void ChFsiInterface::Copy_FsiBodies_ChSystem_to_FsiSystem(std::shared_ptr<FsiBodiesDataD> fsiBodiesD) {
+void ChFsiInterface::Copy_FsiBodies_ChSystem_to_FsiSystem(std::shared_ptr<FsiBodyStateD> fsiBodiesD) {
     size_t num_fsiBodies_Rigids = m_fsi_bodies.size();
     for (size_t i = 0; i < num_fsiBodies_Rigids; i++) {
         std::shared_ptr<ChBody> bodyPtr = m_fsi_bodies[i];
-        m_sysFSI.fsiBodiesH->posRigid_fsiBodies_H[i] = utils::ToReal3(bodyPtr->GetPos());
-        m_sysFSI.fsiBodiesH->velMassRigid_fsiBodies_H[i] =
+        m_sysFSI.fsiBodyStateH->posRigid_fsiBodies_H[i] = utils::ToReal3(bodyPtr->GetPos());
+        m_sysFSI.fsiBodyStateH->velMassRigid_fsiBodies_H[i] =
             utils::ToReal4(bodyPtr->GetPos_dt(), bodyPtr->GetMass());
-        m_sysFSI.fsiBodiesH->accRigid_fsiBodies_H[i] = utils::ToReal3(bodyPtr->GetPos_dtdt());
-        m_sysFSI.fsiBodiesH->q_fsiBodies_H[i] = utils::ToReal4(bodyPtr->GetRot());
-        m_sysFSI.fsiBodiesH->omegaVelLRF_fsiBodies_H[i] = utils::ToReal3(bodyPtr->GetWvel_loc());
-        m_sysFSI.fsiBodiesH->omegaAccLRF_fsiBodies_H[i] = utils::ToReal3(bodyPtr->GetWacc_loc());
+        m_sysFSI.fsiBodyStateH->accRigid_fsiBodies_H[i] = utils::ToReal3(bodyPtr->GetPos_dtdt());
+        m_sysFSI.fsiBodyStateH->q_fsiBodies_H[i] = utils::ToReal4(bodyPtr->GetRot());
+        m_sysFSI.fsiBodyStateH->omegaVelLRF_fsiBodies_H[i] = utils::ToReal3(bodyPtr->GetWvel_loc());
+        m_sysFSI.fsiBodyStateH->omegaAccLRF_fsiBodies_H[i] = utils::ToReal3(bodyPtr->GetWacc_loc());
     }
-    fsiBodiesD->CopyFromH(*m_sysFSI.fsiBodiesH);
+    fsiBodiesD->CopyFromH(*m_sysFSI.fsiBodyStateH);
 }
 
 //-----------------------Chrono FEA Specifics-----------------------------------------

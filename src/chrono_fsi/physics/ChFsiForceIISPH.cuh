@@ -43,10 +43,10 @@ class ChFsiForceIISPH : public ChFsiForce {
 
   private:
     void ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
-                  std::shared_ptr<FsiBodiesDataD> otherFsiBodiesD,
+                  std::shared_ptr<FsiBodyStateD> otherFsiBodiesD,
                   std::shared_ptr<FsiMeshStateD> otherFsiMeshD) override;
 
-    void calcPressureIISPH(std::shared_ptr<FsiBodiesDataD> otherFsiBodiesD,
+    void calcPressureIISPH(std::shared_ptr<FsiBodyStateD> otherFsiBodiesD,
                            thrust::device_vector<Real3> pos_fsi_fea_D,
                            thrust::device_vector<Real3> vel_fsi_fea_D,
                            thrust::device_vector<Real3> acc_fsi_fea_D,

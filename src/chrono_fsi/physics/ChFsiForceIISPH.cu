@@ -1346,7 +1346,7 @@ __global__ void FinalizePressure(Real4* sortedPosRad,  // Read
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodiesDataD> otherFsiBodiesD,
+void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> otherFsiBodiesD,
                                         thrust::device_vector<Real3> pos_fsi_fea_D,
                                         thrust::device_vector<Real3> vel_fsi_fea_D,
                                         thrust::device_vector<Real3> acc_fsi_fea_D,
@@ -1696,7 +1696,7 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodiesDataD> otherFsi
 }
 
 void ChFsiForceIISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
-                               std::shared_ptr<FsiBodiesDataD> otherFsiBodiesD,
+                               std::shared_ptr<FsiBodyStateD> otherFsiBodiesD,
                                std::shared_ptr<FsiMeshStateD> otherFsiMeshD) {
     sphMarkersD = otherSphMarkersD;
     int numAllMarkers = (int)numObjectsH->numAllMarkers;

@@ -1614,7 +1614,7 @@ void ChFsiForceExplicitSPH::Initialize() {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChFsiForceExplicitSPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
-                                     std::shared_ptr<FsiBodiesDataD> otherFsiBodiesD,
+                                     std::shared_ptr<FsiBodyStateD> otherFsiBodiesD,
                                      std::shared_ptr<FsiMeshStateD> otherFsiMeshD) {
     sphMarkersD = otherSphMarkersD;
     fsiCollisionSystem->ArrangeData(sphMarkersD);
