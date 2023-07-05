@@ -680,7 +680,7 @@ void ChFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD
     computeGridSize(updatePortion.y - updatePortion.x, 256, numBlocks, numThreads);
     UpdateActivityD<<<numBlocks, numThreads>>>(
         mR4CAST(sphMarkersD2->posRadD), mR3CAST(sphMarkersD1->velMasD), 
-        mR3CAST(fsiBodiesD->posRigid_fsiBodies_D),
+        mR3CAST(fsiBodiesD->pos),
         mR3CAST(fsiMeshStateD->pos_fsi_fea_D),
         U1CAST(fsiSystem.fsiData->activityIdentifierD), 
         U1CAST(fsiSystem.fsiData->extendedActivityIdD),

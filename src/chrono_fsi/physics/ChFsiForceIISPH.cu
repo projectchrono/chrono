@@ -1488,10 +1488,10 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> otherFsiB
             mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(V_new), R1CAST(p_old),
             mR3CAST(Normals), R1CAST(G_i), R1CAST(sumWij_inv), R1CAST(rho_np),
 
-            mR4CAST(otherFsiBodiesD->q_fsiBodies_D), mR3CAST(fsiData->rigidSPH_MeshPos_LRF_D),
-            mR3CAST(otherFsiBodiesD->posRigid_fsiBodies_D), mR4CAST(otherFsiBodiesD->velMassRigid_fsiBodies_D),
-            mR3CAST(otherFsiBodiesD->omegaVelLRF_fsiBodies_D), mR3CAST(otherFsiBodiesD->accRigid_fsiBodies_D),
-            mR3CAST(otherFsiBodiesD->omegaAccLRF_fsiBodies_D), U1CAST(fsiData->rigidIdentifierD),
+            mR4CAST(otherFsiBodiesD->rot), mR3CAST(fsiData->rigidSPH_MeshPos_LRF_D),
+            mR3CAST(otherFsiBodiesD->pos), mR4CAST(otherFsiBodiesD->lin_vel),
+            mR3CAST(otherFsiBodiesD->ang_vel), mR3CAST(otherFsiBodiesD->lin_acc),
+            mR3CAST(otherFsiBodiesD->ang_acc), U1CAST(fsiData->rigidIdentifierD),
 
             mR3CAST(pos_fsi_fea_D), mR3CAST(vel_fsi_fea_D), mR3CAST(acc_fsi_fea_D),
             U1CAST(fsiData->FlexIdentifierD), (int)numObjectsH->numFlexBodies1D,
@@ -1579,10 +1579,10 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> otherFsiB
                     mR3CAST(F_p), mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
                     mR4CAST(sortedSphMarkersD->rhoPresMuD),
 
-                    mR4CAST(otherFsiBodiesD->q_fsiBodies_D), mR3CAST(fsiData->rigidSPH_MeshPos_LRF_D),
-                    mR3CAST(otherFsiBodiesD->posRigid_fsiBodies_D), mR4CAST(otherFsiBodiesD->velMassRigid_fsiBodies_D),
-                    mR3CAST(otherFsiBodiesD->omegaVelLRF_fsiBodies_D), mR3CAST(otherFsiBodiesD->accRigid_fsiBodies_D),
-                    mR3CAST(otherFsiBodiesD->omegaAccLRF_fsiBodies_D), U1CAST(fsiData->rigidIdentifierD),
+                    mR4CAST(otherFsiBodiesD->rot), mR3CAST(fsiData->rigidSPH_MeshPos_LRF_D),
+                    mR3CAST(otherFsiBodiesD->pos), mR4CAST(otherFsiBodiesD->lin_vel),
+                    mR3CAST(otherFsiBodiesD->ang_vel), mR3CAST(otherFsiBodiesD->lin_acc),
+                    mR3CAST(otherFsiBodiesD->ang_acc), U1CAST(fsiData->rigidIdentifierD),
 
                     mR3CAST(pos_fsi_fea_D), mR3CAST(vel_fsi_fea_D), mR3CAST(acc_fsi_fea_D),
                     U1CAST(fsiData->FlexIdentifierD), (int)numObjectsH->numFlexBodies1D,

@@ -57,13 +57,12 @@ void ChFsiInterface::LoadBodyState_Chrono2Fsi(std::shared_ptr<FsiBodyStateD> fsi
     size_t num_fsiBodies_Rigids = m_fsi_bodies.size();
     for (size_t i = 0; i < num_fsiBodies_Rigids; i++) {
         std::shared_ptr<ChBody> bodyPtr = m_fsi_bodies[i];
-        m_sysFSI.fsiBodyStateH->posRigid_fsiBodies_H[i] = utils::ToReal3(bodyPtr->GetPos());
-        m_sysFSI.fsiBodyStateH->velMassRigid_fsiBodies_H[i] =
-            utils::ToReal4(bodyPtr->GetPos_dt(), bodyPtr->GetMass());
-        m_sysFSI.fsiBodyStateH->accRigid_fsiBodies_H[i] = utils::ToReal3(bodyPtr->GetPos_dtdt());
-        m_sysFSI.fsiBodyStateH->q_fsiBodies_H[i] = utils::ToReal4(bodyPtr->GetRot());
-        m_sysFSI.fsiBodyStateH->omegaVelLRF_fsiBodies_H[i] = utils::ToReal3(bodyPtr->GetWvel_loc());
-        m_sysFSI.fsiBodyStateH->omegaAccLRF_fsiBodies_H[i] = utils::ToReal3(bodyPtr->GetWacc_loc());
+        m_sysFSI.fsiBodyStateH->pos[i] = utils::ToReal3(bodyPtr->GetPos());
+        m_sysFSI.fsiBodyStateH->lin_vel[i] = utils::ToReal4(bodyPtr->GetPos_dt(), bodyPtr->GetMass());
+        m_sysFSI.fsiBodyStateH->lin_acc[i] = utils::ToReal3(bodyPtr->GetPos_dtdt());
+        m_sysFSI.fsiBodyStateH->rot[i] = utils::ToReal4(bodyPtr->GetRot());
+        m_sysFSI.fsiBodyStateH->ang_vel[i] = utils::ToReal3(bodyPtr->GetWvel_loc());
+        m_sysFSI.fsiBodyStateH->ang_acc[i] = utils::ToReal3(bodyPtr->GetWacc_loc());
     }
     fsiBodyStateD->CopyFromH(*m_sysFSI.fsiBodyStateH);
 }
@@ -126,7 +125,7 @@ void ChFsiInterface::ResizeChronoCablesData(const std::vector<std::vector<int>>&
         m_sysFSI.fsiData->CableElementsNodesH[i].y = CableElementsNodesSTDVector[i][1];
     }
 }
- 
+
 void ChFsiInterface::ResizeChronoShellsData(const std::vector<std::vector<int>>& ShellElementsNodesSTDVector) {
     if (ShellElementsNodesSTDVector.empty())
         return;

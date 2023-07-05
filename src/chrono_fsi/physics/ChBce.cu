@@ -744,8 +744,7 @@ void ChBce::Populate_RigidSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMar
 
     Populate_RigidSPH_MeshPos_LRF_D<<<nBlocks, nThreads>>>(
         mR3CAST(m_fsiGeneralData->rigidSPH_MeshPos_LRF_D), mR4CAST(sphMarkersD->posRadD),
-        U1CAST(m_fsiGeneralData->rigidIdentifierD), mR3CAST(fsiBodiesD->posRigid_fsiBodies_D),
-        mR4CAST(fsiBodiesD->q_fsiBodies_D));
+        U1CAST(m_fsiGeneralData->rigidIdentifierD), mR3CAST(fsiBodiesD->pos), mR4CAST(fsiBodiesD->rot));
 
     cudaDeviceSynchronize();
     cudaCheckError();
@@ -921,9 +920,9 @@ void ChBce::ModifyBceVelocityPressureStress(std::shared_ptr<SphMarkerDataD> sphM
 
         // Acceleration of rigid BCE particles
         if (numObjectsH->numRigidMarkers > 0) {
-            CalcRigidBceAcceleration(bceAcc, fsiBodiesD->q_fsiBodies_D, fsiBodiesD->accRigid_fsiBodies_D,
-                                     fsiBodiesD->omegaVelLRF_fsiBodies_D, fsiBodiesD->omegaAccLRF_fsiBodies_D,
-                                     m_fsiGeneralData->rigidSPH_MeshPos_LRF_D, m_fsiGeneralData->rigidIdentifierD);
+            CalcRigidBceAcceleration(bceAcc, fsiBodiesD->rot, fsiBodiesD->lin_acc, fsiBodiesD->ang_vel,
+                                     fsiBodiesD->ang_acc, m_fsiGeneralData->rigidSPH_MeshPos_LRF_D,
+                                     m_fsiGeneralData->rigidIdentifierD);
         }
         // Acceleration of flexible BCE particles
         if (numObjectsH->numFlexMarkers > 0) {
@@ -995,8 +994,8 @@ void ChBce::Rigid_Forces_Torques(std::shared_ptr<SphMarkerDataD> sphMarkersD,
     Calc_Rigid_FSI_Forces_Torques_D<<<nBlocks, nThreads>>>(
         mR3CAST(m_fsiGeneralData->rigid_FSI_ForcesD), mR3CAST(m_fsiGeneralData->rigid_FSI_TorquesD),
         mR4CAST(m_fsiGeneralData->derivVelRhoD), mR4CAST(m_fsiGeneralData->derivVelRhoD_old),
-        mR4CAST(sphMarkersD->posRadD), U1CAST(m_fsiGeneralData->rigidIdentifierD),
-        mR3CAST(fsiBodiesD->posRigid_fsiBodies_D), mR3CAST(m_fsiGeneralData->rigidSPH_MeshPos_LRF_D));
+        mR4CAST(sphMarkersD->posRadD), U1CAST(m_fsiGeneralData->rigidIdentifierD), mR3CAST(fsiBodiesD->pos),
+        mR3CAST(m_fsiGeneralData->rigidSPH_MeshPos_LRF_D));
 
     cudaDeviceSynchronize();
     cudaCheckError();
@@ -1033,9 +1032,8 @@ void ChBce::UpdateBodyMarkerState(std::shared_ptr<SphMarkerDataD> sphMarkersD,
 
     UpdateBodyMarkerStateD<<<nBlocks, nThreads>>>(
         mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR3CAST(m_fsiGeneralData->rigidSPH_MeshPos_LRF_D),
-        U1CAST(m_fsiGeneralData->rigidIdentifierD), mR3CAST(fsiBodyStateD->posRigid_fsiBodies_D),
-        mR4CAST(fsiBodyStateD->velMassRigid_fsiBodies_D), mR3CAST(fsiBodyStateD->omegaVelLRF_fsiBodies_D),
-        mR4CAST(fsiBodyStateD->q_fsiBodies_D));
+        U1CAST(m_fsiGeneralData->rigidIdentifierD), mR3CAST(fsiBodyStateD->pos), mR4CAST(fsiBodyStateD->lin_vel),
+        mR3CAST(fsiBodyStateD->ang_vel), mR4CAST(fsiBodyStateD->rot));
 
     cudaDeviceSynchronize();
     cudaCheckError();

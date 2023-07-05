@@ -990,9 +990,8 @@ void ChSystemFsi::PrintParticleToFile(const std::string& dir) const {
 }
 
 void ChSystemFsi::PrintFsiInfoToFile(const std::string& dir, double time) const {
-    utils::PrintFsiInfoToFile(m_sysFSI->fsiBodyState2D->posRigid_fsiBodies_D,
-                              m_sysFSI->fsiBodyState2D->velMassRigid_fsiBodies_D,
-                              m_sysFSI->fsiBodyState2D->q_fsiBodies_D,
+    utils::PrintFsiInfoToFile(m_sysFSI->fsiBodyState2D->pos, m_sysFSI->fsiBodyState2D->lin_vel,
+                              m_sysFSI->fsiBodyState2D->rot,
                               m_sysFSI->fsiMeshStateD->pos_fsi_fea_D, m_sysFSI->fsiMeshStateD->vel_fsi_fea_D,
                               m_sysFSI->fsiData->rigid_FSI_ForcesD, m_sysFSI->fsiData->rigid_FSI_TorquesD,
                               m_sysFSI->fsiData->Flex_FSI_ForcesD, dir, time);

@@ -66,18 +66,17 @@ void SphMarkerDataH::resize(size_t s) {
 //---------------------------------------------------------------------------------------
 
 zipIterRigidD FsiBodyStateD::iterator() {
-    return thrust::make_zip_iterator(
-        thrust::make_tuple(posRigid_fsiBodies_D.begin(), velMassRigid_fsiBodies_D.begin(), accRigid_fsiBodies_D.begin(),
-                           q_fsiBodies_D.begin(), omegaVelLRF_fsiBodies_D.begin(), omegaAccLRF_fsiBodies_D.begin()));
+    return thrust::make_zip_iterator(thrust::make_tuple(pos.begin(), lin_vel.begin(), lin_acc.begin(),  //
+                                                        rot.begin(), ang_vel.begin(), ang_acc.begin()));
 }
 
 void FsiBodyStateD::resize(size_t s) {
-    posRigid_fsiBodies_D.resize(s);
-    velMassRigid_fsiBodies_D.resize(s);
-    accRigid_fsiBodies_D.resize(s);
-    q_fsiBodies_D.resize(s);
-    omegaVelLRF_fsiBodies_D.resize(s);
-    omegaAccLRF_fsiBodies_D.resize(s);
+    pos.resize(s);
+    lin_vel.resize(s);
+    lin_acc.resize(s);
+    rot.resize(s);
+    ang_vel.resize(s);
+    ang_acc.resize(s);
 }
 
 void FsiMeshStateH::resize(size_t s) {
@@ -94,16 +93,13 @@ void FsiMeshStateD::resize(size_t s) {
     dir_fsi_fea_D.resize(s);
 }
 
-void FsiBodyStateD::CopyFromH(const FsiBodyStateH& other) {
-    thrust::copy(other.posRigid_fsiBodies_H.begin(), other.posRigid_fsiBodies_H.end(), posRigid_fsiBodies_D.begin());
-    thrust::copy(other.velMassRigid_fsiBodies_H.begin(), other.velMassRigid_fsiBodies_H.end(),
-                 velMassRigid_fsiBodies_D.begin());
-    thrust::copy(other.accRigid_fsiBodies_H.begin(), other.accRigid_fsiBodies_H.end(), accRigid_fsiBodies_D.begin());
-    thrust::copy(other.q_fsiBodies_H.begin(), other.q_fsiBodies_H.end(), q_fsiBodies_D.begin());
-    thrust::copy(other.omegaVelLRF_fsiBodies_H.begin(), other.omegaVelLRF_fsiBodies_H.end(),
-                 omegaVelLRF_fsiBodies_D.begin());
-    thrust::copy(other.omegaAccLRF_fsiBodies_H.begin(), other.omegaAccLRF_fsiBodies_H.end(),
-                 omegaAccLRF_fsiBodies_D.begin());
+void FsiBodyStateD::CopyFromH(const FsiBodyStateH& bodyStateH) {
+    thrust::copy(bodyStateH.pos.begin(), bodyStateH.pos.end(), pos.begin());
+    thrust::copy(bodyStateH.lin_vel.begin(), bodyStateH.lin_vel.end(), lin_vel.begin());
+    thrust::copy(bodyStateH.lin_acc.begin(), bodyStateH.lin_acc.end(), lin_acc.begin());
+    thrust::copy(bodyStateH.rot.begin(), bodyStateH.rot.end(), rot.begin());
+    thrust::copy(bodyStateH.ang_vel.begin(), bodyStateH.ang_vel.end(), ang_vel.begin());
+    thrust::copy(bodyStateH.ang_acc.begin(), bodyStateH.ang_acc.end(), ang_acc.begin());
 }
 
 void FsiMeshStateD::CopyFromH(const FsiMeshStateH& meshStateH) {
@@ -117,15 +113,12 @@ FsiBodyStateD& FsiBodyStateD::operator=(const FsiBodyStateD& other) {
     if (this == &other) {
         return *this;
     }
-    thrust::copy(other.posRigid_fsiBodies_D.begin(), other.posRigid_fsiBodies_D.end(), posRigid_fsiBodies_D.begin());
-    thrust::copy(other.velMassRigid_fsiBodies_D.begin(), other.velMassRigid_fsiBodies_D.end(),
-                 velMassRigid_fsiBodies_D.begin());
-    thrust::copy(other.accRigid_fsiBodies_D.begin(), other.accRigid_fsiBodies_D.end(), accRigid_fsiBodies_D.begin());
-    thrust::copy(other.q_fsiBodies_D.begin(), other.q_fsiBodies_D.end(), q_fsiBodies_D.begin());
-    thrust::copy(other.omegaVelLRF_fsiBodies_D.begin(), other.omegaVelLRF_fsiBodies_D.end(),
-                 omegaVelLRF_fsiBodies_D.begin());
-    thrust::copy(other.omegaAccLRF_fsiBodies_D.begin(), other.omegaAccLRF_fsiBodies_D.end(),
-                 omegaAccLRF_fsiBodies_D.begin());
+    thrust::copy(other.pos.begin(), other.pos.end(), pos.begin());
+    thrust::copy(other.lin_vel.begin(), other.lin_vel.end(), lin_vel.begin());
+    thrust::copy(other.lin_acc.begin(), other.lin_acc.end(), lin_acc.begin());
+    thrust::copy(other.rot.begin(), other.rot.end(), rot.begin());
+    thrust::copy(other.ang_vel.begin(), other.ang_vel.end(), ang_vel.begin());
+    thrust::copy(other.ang_acc.begin(), other.ang_acc.end(), ang_acc.begin());
     return *this;
 }
 
@@ -142,18 +135,17 @@ FsiMeshStateD& FsiMeshStateD::operator=(const FsiMeshStateD& other) {
 
 //---------------------------------------------------------------------------------------
 zipIterRigidH FsiBodyStateH::iterator() {
-    return thrust::make_zip_iterator(
-        thrust::make_tuple(posRigid_fsiBodies_H.begin(), velMassRigid_fsiBodies_H.begin(), accRigid_fsiBodies_H.begin(),
-                           q_fsiBodies_H.begin(), omegaVelLRF_fsiBodies_H.begin(), omegaAccLRF_fsiBodies_H.begin()));
+    return thrust::make_zip_iterator(thrust::make_tuple(pos.begin(), lin_vel.begin(), lin_acc.begin(),  //
+                                                        rot.begin(), ang_vel.begin(), ang_acc.begin()));
 }
 
 void FsiBodyStateH::resize(size_t s) {
-    posRigid_fsiBodies_H.resize(s);
-    velMassRigid_fsiBodies_H.resize(s);
-    accRigid_fsiBodies_H.resize(s);
-    q_fsiBodies_H.resize(s);
-    omegaVelLRF_fsiBodies_H.resize(s);
-    omegaAccLRF_fsiBodies_H.resize(s);
+    pos.resize(s);
+    lin_vel.resize(s);
+    lin_acc.resize(s);
+    rot.resize(s);
+    ang_vel.resize(s);
+    ang_acc.resize(s);
 }
 
 //---------------------------------------------------------------------------------------

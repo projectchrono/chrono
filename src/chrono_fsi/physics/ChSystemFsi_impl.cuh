@@ -95,12 +95,12 @@ struct SphMarkerDataH {
 
 /// Rigid body states on host.
 struct FsiBodyStateH {
-    thrust::host_vector<Real3> posRigid_fsiBodies_H;      ///< body linear positions
-    thrust::host_vector<Real4> velMassRigid_fsiBodies_H;  ///< body linear velocities
-    thrust::host_vector<Real3> accRigid_fsiBodies_H;      ///< body linear accelerations
-    thrust::host_vector<Real4> q_fsiBodies_H;             ///< body orientations (quaternions)
-    thrust::host_vector<Real3> omegaVelLRF_fsiBodies_H;   ///< body angular velocities
-    thrust::host_vector<Real3> omegaAccLRF_fsiBodies_H;   ///< body angular accelerations
+    thrust::host_vector<Real3> pos;      ///< body positions
+    thrust::host_vector<Real4> lin_vel;  ///< body linear velocities
+    thrust::host_vector<Real3> lin_acc;  ///< body linear accelerations
+    thrust::host_vector<Real4> rot;      ///< body orientations (quaternions)
+    thrust::host_vector<Real3> ang_vel;  ///< body angular velocities (local frame)
+    thrust::host_vector<Real3> ang_acc;  ///< body angular accelerations (local frame)
 
     zipIterRigidH iterator();
     void resize(size_t s);
@@ -108,15 +108,15 @@ struct FsiBodyStateH {
 
 ///  Rigid body states on device.
 struct FsiBodyStateD {
-    thrust::device_vector<Real3> posRigid_fsiBodies_D;      ///< body linear positions
-    thrust::device_vector<Real4> velMassRigid_fsiBodies_D;  ///< body linear velocities
-    thrust::device_vector<Real3> accRigid_fsiBodies_D;      ///< body linear accelerations
-    thrust::device_vector<Real4> q_fsiBodies_D;             ///< body orientations (quaternions)
-    thrust::device_vector<Real3> omegaVelLRF_fsiBodies_D;   ///< body angular velocities
-    thrust::device_vector<Real3> omegaAccLRF_fsiBodies_D;   ///< body angular accelerations
+    thrust::device_vector<Real3> pos;      ///< body linear positions
+    thrust::device_vector<Real4> lin_vel;  ///< body linear velocities
+    thrust::device_vector<Real3> lin_acc;  ///< body linear accelerations
+    thrust::device_vector<Real4> rot;      ///< body orientations (quaternions)
+    thrust::device_vector<Real3> ang_vel;  ///< body angular velocities (local frame)
+    thrust::device_vector<Real3> ang_acc;  ///< body angular accelerations (local frame)
 
     zipIterRigidD iterator();
-    void CopyFromH(const FsiBodyStateH& other);
+    void CopyFromH(const FsiBodyStateH& bodyStateH);
     FsiBodyStateD& operator=(const FsiBodyStateD& other);
     void resize(size_t s);
 };
