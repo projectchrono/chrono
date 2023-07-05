@@ -93,21 +93,6 @@ struct SphMarkerDataH {
     void resize(size_t s);
 };
 
-/// Struct to store Chrono rigid bodies information on the host.
-struct ChronoBodiesDataH {
-    ChronoBodiesDataH() {}
-    ChronoBodiesDataH(size_t s);
-    thrust::host_vector<Real3> pos_ChSystemH;          ///< body linear positions
-    thrust::host_vector<Real3> vel_ChSystemH;          ///< body linear velocities
-    thrust::host_vector<Real3> acc_ChSystemH;          ///< body linear accelerations
-    thrust::host_vector<Real4> quat_ChSystemH;         ///< body orientations (quaternions)
-    thrust::host_vector<Real3> omegaVelGRF_ChSystemH;  ///< body angular velocities
-    thrust::host_vector<Real3> omegaAccGRF_ChSystemH;  ///< body angular accelerations
-
-    zipIterChronoBodiesH iterator();
-    void resize(size_t s);
-};
-
 /// Struct to store the information of rigid bodies on the host.
 struct FsiBodiesDataH {
     thrust::host_vector<Real3> posRigid_fsiBodies_H;      ///< body linear positions
@@ -133,19 +118,6 @@ struct FsiBodiesDataD {
     zipIterRigidD iterator();
     void CopyFromH(const FsiBodiesDataH& other);
     FsiBodiesDataD& operator=(const FsiBodiesDataD& other);
-    void resize(size_t s);
-};
-
-/// Struct to store Chrono mesh information on the host.
-struct ChronoMeshDataH {
-    ChronoMeshDataH() {}
-    ChronoMeshDataH(size_t s);
-
-    thrust::host_vector<Real3> posFlex_ChSystemH_H;  ///< Vector of the mesh position
-    thrust::host_vector<Real3> velFlex_ChSystemH_H;  ///< Vector of the mesh velocity
-    thrust::host_vector<Real3> accFlex_ChSystemH_H;  ///< Vector of the mesh acceleration
-    thrust::host_vector<Real3> dirFlex_ChSystemH_H;  ///< Vector of the mesh direction
-
     void resize(size_t s);
 };
 

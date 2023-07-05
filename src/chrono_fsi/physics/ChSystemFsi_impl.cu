@@ -258,37 +258,6 @@ void ProximityDataD::resize(size_t s) {
 }
 
 //---------------------------------------------------------------------------------------
-ChronoBodiesDataH::ChronoBodiesDataH(size_t s) {
-    resize(s);
-}
-
-ChronoMeshDataH::ChronoMeshDataH(size_t s) {
-    resize(s);
-}
-
-zipIterChronoBodiesH ChronoBodiesDataH::iterator() {
-    return thrust::make_zip_iterator(thrust::make_tuple(pos_ChSystemH.begin(), vel_ChSystemH.begin(),
-                                                        acc_ChSystemH.begin(), quat_ChSystemH.begin(),
-                                                        omegaVelGRF_ChSystemH.begin(), omegaAccGRF_ChSystemH.begin()));
-}
-
-void ChronoBodiesDataH::resize(size_t s) {
-    pos_ChSystemH.resize(s);
-    vel_ChSystemH.resize(s);
-    acc_ChSystemH.resize(s);
-    quat_ChSystemH.resize(s);
-    omegaVelGRF_ChSystemH.resize(s);
-    omegaAccGRF_ChSystemH.resize(s);
-}
-
-void ChronoMeshDataH::resize(size_t s) {
-    posFlex_ChSystemH_H.resize(s);
-    velFlex_ChSystemH_H.resize(s);
-    accFlex_ChSystemH_H.resize(s);
-    dirFlex_ChSystemH_H.resize(s);
-}
-
-//---------------------------------------------------------------------------------------
 
 ChSystemFsi_impl::ChSystemFsi_impl(std::shared_ptr<SimParams> params) : ChFsiBase(params, nullptr) {
     numObjectsH = chrono_types::make_shared<ChCounters>();
