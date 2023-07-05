@@ -34,7 +34,7 @@ class ChFsiForceExplicitSPH : public ChFsiForce {
         std::shared_ptr<ChBce> otherBceWorker,                   ///< object that handles BCE particles
         std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,  ///< information of particle in the sorted device array
         std::shared_ptr<ProximityDataD> otherMarkersProximityD,  ///< object that holds device proximity info
-        std::shared_ptr<FsiData> otherFsiGeneralData,     ///< SPH general data
+        std::shared_ptr<FsiData> otherFsiGeneralData,            ///< SPH general data
         std::shared_ptr<SimParams> otherParamsH,                 ///< simulation parameters on host
         std::shared_ptr<ChCounters> otherNumObjects,             ///< size of different objects in the system
         bool verb                                                ///< verbose terminal output
@@ -51,15 +51,15 @@ class ChFsiForceExplicitSPH : public ChFsiForce {
 
     /// Function to find neighbor particles and calculate the interactions between SPH particles
     void ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
-                  std::shared_ptr<FsiBodyStateD> otherFsiBodiesD,
-                  std::shared_ptr<FsiMeshStateD> otherFsiMeshD) override;
-    
+                  std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
+                  std::shared_ptr<FsiMeshStateD> fsiMeshStateD) override;
+
     /// Function to calculate the XSPH velocity of the particles.
     /// XSPH velocity is a compromise between Eulerian and Lagrangian velocities, used
     /// to regularize the particles velocity and reduce noise.
     void CalculateXSPH_velocity();
 
-    /// A wrapper around collide function. 
+    /// A wrapper around collide function.
     /// Calculates the force on particles, and copies the sorted XSPH velocities to the original.
     /// The latter is needed later for position update.
     void CollideWrapper();

@@ -849,8 +849,7 @@ void ChFsiForceI2SPH::Initialize() {
     cudaMemcpy(isErrorD2, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
 }
 
-void ChFsiForceI2SPH::PreProcessor(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
-                                   bool calcLaplacianOperator) {
+void ChFsiForceI2SPH::PreProcessor(std::shared_ptr<SphMarkerDataD> otherSphMarkersD, bool calcLaplacianOperator) {
     numAllMarkers = numObjectsH->numAllMarkers;
     Contact_i.resize(numAllMarkers);
     uint numThreads, numBlocks;
@@ -922,8 +921,8 @@ void ChFsiForceI2SPH::PreProcessor(std::shared_ptr<SphMarkerDataD> otherSphMarke
 //==========================================================================================================================================
 //==========================================================================================================================================
 void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
-                               std::shared_ptr<FsiBodyStateD> otherFsiBodiesD,
-                               std::shared_ptr<FsiMeshStateD> otherFsiMeshD) {
+                               std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
+                               std::shared_ptr<FsiMeshStateD> fsiMeshStateD) {
     if (paramsH->bceType == BceVersion::ADAMI && !paramsH->USE_NonIncrementalProjection) {
         throw std::runtime_error(
             "\nADAMI boundary condition is only applicable to non-incremental Projection method. Please "
@@ -1013,17 +1012,15 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
         R1CAST(csrValLaplacian), mR3CAST(csrValGradient), R1CAST(csrValFunction), R1CAST(_sumWij_inv), mR3CAST(Normals),
         U1CAST(csrColInd), U1CAST(Contact_i),
 
-        mR4CAST(otherFsiBodiesD->rot), mR3CAST(fsiData->rigidSPH_MeshPos_LRF_D),
-        mR3CAST(otherFsiBodiesD->pos), mR4CAST(otherFsiBodiesD->lin_vel),
-        mR3CAST(otherFsiBodiesD->ang_vel), mR3CAST(otherFsiBodiesD->lin_acc),
-        mR3CAST(otherFsiBodiesD->ang_acc), U1CAST(fsiData->rigidIdentifierD),
+        mR4CAST(fsiBodyStateD->rot), mR3CAST(fsiData->rigidSPH_MeshPos_LRF_D), mR3CAST(fsiBodyStateD->pos),
+        mR4CAST(fsiBodyStateD->lin_vel), mR3CAST(fsiBodyStateD->ang_vel), mR3CAST(fsiBodyStateD->lin_acc),
+        mR3CAST(fsiBodyStateD->ang_acc), U1CAST(fsiData->rigidIdentifierD),
 
-        mR3CAST(otherFsiMeshD->pos_fsi_fea_D), mR3CAST(otherFsiMeshD->vel_fsi_fea_D),
-        mR3CAST(otherFsiMeshD->acc_fsi_fea_D), U1CAST(fsiData->FlexIdentifierD),
+        mR3CAST(fsiMeshStateD->pos_fsi_fea_D), mR3CAST(fsiMeshStateD->vel_fsi_fea_D),
+        mR3CAST(fsiMeshStateD->acc_fsi_fea_D), U1CAST(fsiData->FlexIdentifierD),
 
-        numObjectsH->numFlexBodies1D, U2CAST(fsiData->CableElementsNodesD),
-        U4CAST(fsiData->ShellElementsNodesD), updatePortion, U1CAST(markersProximityD->gridMarkerIndexD),
-        numAllMarkers, paramsH->dT, isErrorD);
+        numObjectsH->numFlexBodies1D, U2CAST(fsiData->CableElementsNodesD), U4CAST(fsiData->ShellElementsNodesD),
+        updatePortion, U1CAST(markersProximityD->gridMarkerIndexD), numAllMarkers, paramsH->dT, isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "V_star_Predictor");
 
     int Iteration = 0;
@@ -1088,17 +1085,16 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
         R1CAST(csrValFunction), R1CAST(csrValLaplacian), mR3CAST(csrValGradient), R1CAST(_sumWij_inv), mR3CAST(Normals),
         U1CAST(csrColInd), U1CAST(Contact_i),
 
-        mR4CAST(otherFsiBodiesD->rot), mR3CAST(fsiData->rigidSPH_MeshPos_LRF_D),
-        mR3CAST(otherFsiBodiesD->pos), mR4CAST(otherFsiBodiesD->lin_vel),
-        mR3CAST(otherFsiBodiesD->ang_vel), mR3CAST(otherFsiBodiesD->lin_acc),
-        mR3CAST(otherFsiBodiesD->ang_acc), U1CAST(fsiData->rigidIdentifierD),
+        mR4CAST(fsiBodyStateD->rot), mR3CAST(fsiData->rigidSPH_MeshPos_LRF_D), mR3CAST(fsiBodyStateD->pos),
+        mR4CAST(fsiBodyStateD->lin_vel), mR3CAST(fsiBodyStateD->ang_vel), mR3CAST(fsiBodyStateD->lin_acc),
+        mR3CAST(fsiBodyStateD->ang_acc), U1CAST(fsiData->rigidIdentifierD),
 
-        mR3CAST(otherFsiMeshD->pos_fsi_fea_D), mR3CAST(otherFsiMeshD->vel_fsi_fea_D),
-        mR3CAST(otherFsiMeshD->acc_fsi_fea_D), U1CAST(fsiData->FlexIdentifierD),
+        mR3CAST(fsiMeshStateD->pos_fsi_fea_D), mR3CAST(fsiMeshStateD->vel_fsi_fea_D),
+        mR3CAST(fsiMeshStateD->acc_fsi_fea_D), U1CAST(fsiData->FlexIdentifierD),
 
-        numObjectsH->numFlexBodies1D, U2CAST(fsiData->CableElementsNodesD),
-        U4CAST(fsiData->ShellElementsNodesD), updatePortion, U1CAST(markersProximityD->gridMarkerIndexD),
-        numAllMarkers, numObjectsH->numFluidMarkers, paramsH->dT, isErrorD);
+        numObjectsH->numFlexBodies1D, U2CAST(fsiData->CableElementsNodesD), U4CAST(fsiData->ShellElementsNodesD),
+        updatePortion, U1CAST(markersProximityD->gridMarkerIndexD), numAllMarkers, numObjectsH->numFluidMarkers,
+        paramsH->dT, isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Pressure_Equation");
 
     Real Ave_RHS = thrust::reduce(b1Vector.begin(), b1Vector.end(), 0.0) / numAllMarkers;
@@ -1229,8 +1225,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
         numAllMarkers, MaxVel, paramsH->dT, isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Velocity_Correction_and_update");
 
-    CopySortedToOriginal_NonInvasive_R3(fsiData->vis_vel_SPH_D, vel_vis_Sorted_D,
-                                        markersProximityD->gridMarkerIndexD);
+    CopySortedToOriginal_NonInvasive_R3(fsiData->vis_vel_SPH_D, vel_vis_Sorted_D, markersProximityD->gridMarkerIndexD);
     CopySortedToOriginal_NonInvasive_R4(fsiData->derivVelRhoD, derivVelRhoD_Sorted_D,
                                         markersProximityD->gridMarkerIndexD);
     CopySortedToOriginal_NonInvasive_R3(sphMarkersD->velMasD, sortedSphMarkersD->velMasD,
@@ -1277,8 +1272,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
         printf("Shifting min pressure of %.3e to 0\n", minP);
     }
     //============================================================================================================
-    CopySortedToOriginal_NonInvasive_R4(fsiData->sr_tau_I_mu_i, sr_tau_I_mu_i,
-                                        markersProximityD->gridMarkerIndexD);
+    CopySortedToOriginal_NonInvasive_R4(fsiData->sr_tau_I_mu_i, sr_tau_I_mu_i, markersProximityD->gridMarkerIndexD);
     CopySortedToOriginal_NonInvasive_R3(sphMarkersD->velMasD, sortedSphMarkersD->velMasD,
                                         markersProximityD->gridMarkerIndexD);
     CopySortedToOriginal_NonInvasive_R4(sphMarkersD->rhoPresMuD, sortedSphMarkersD->rhoPresMuD,

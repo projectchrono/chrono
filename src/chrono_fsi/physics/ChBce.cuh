@@ -69,14 +69,14 @@ class ChBce : public ChFsiBase {
                                std::shared_ptr<FsiMeshStateD> fsiMeshStateD);
 
     /// Calculates the forces from the fluid/granular dynamics system to the FSI system on rigid bodies.
-    void Rigid_Forces_Torques(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::shared_ptr<FsiBodyStateD> fsiBodiesD);
+    void Rigid_Forces_Torques(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::shared_ptr<FsiBodyStateD> fsiBodyStateD);
 
     /// Calculates the forces from the fluid/granular dynamics system to the FSI system on flexible bodies.
     void Flex_Forces(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::shared_ptr<FsiMeshStateD> fsiMeshStateD);
 
     /// Modify the velocity, pressure, stress of BCE particles according to the SPH particles around.
     void ModifyBceVelocityPressureStress(std::shared_ptr<SphMarkerDataD> sphMarkersD,
-                                         std::shared_ptr<FsiBodyStateD> fsiBodiesD,
+                                         std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
                                          std::shared_ptr<FsiMeshStateD> fsiMeshStateD);
 
     /// Populates the BCE particles on the rigid bodies at the initial configuration of the system.
@@ -84,7 +84,7 @@ class ChBce : public ChFsiBase {
     /// during the update stage. In such a condition the position and orientation of the body is
     /// enough to update the position of all the particles attached to it.
     void Populate_RigidSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMarkersD,
-                                       std::shared_ptr<FsiBodyStateD> fsiBodiesD,
+                                       std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
                                        std::vector<int> fsiBodyBceNum);
 
     /// Populates the BCE particles on the flexible bodies at the initial configuration of the system.
@@ -98,7 +98,7 @@ class ChBce : public ChFsiBase {
 
     /// Complete construction of the BCE at the intial configuration of the system.
     void Initialize(std::shared_ptr<SphMarkerDataD> sphMarkersD,
-                    std::shared_ptr<FsiBodyStateD> fsiBodiesD,
+                    std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
                     std::shared_ptr<FsiMeshStateD> fsiMeshStateD,
                     std::vector<int> fsiBodyBceNum,
                     std::vector<int> fsiShellBceNum,

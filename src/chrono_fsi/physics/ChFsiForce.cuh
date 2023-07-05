@@ -88,8 +88,6 @@ __device__ inline void clearRow3(uint i_idx, uint csrStartIdx, uint csrEndIdx, R
 /// should implement. The class owns a collision system fsi which takes care of GPU based
 /// proximity computation of the particles. It also holds a pointer to external
 /// data of SPH particles, proximity data, parameters, and numbers.
-/// Child class must implement Initialize and ForceSPH methods.
-
 class ChFsiForce : public ChFsiBase {
   public:
     /// Base constructor for the ChFsiForce class.
@@ -99,7 +97,7 @@ class ChFsiForce : public ChFsiBase {
         std::shared_ptr<ChBce> otherBceWorker,                   ///< object that handles BCE particles
         std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,  ///< information of particle in the sorted device array
         std::shared_ptr<ProximityDataD> otherMarkersProximityD,  ///< object that holds device proximity info
-        std::shared_ptr<FsiData> otherFsiGeneralData,     ///< SPH general data
+        std::shared_ptr<FsiData> otherFsiGeneralData,            ///< SPH general data
         std::shared_ptr<SimParams> otherParamsH,                 ///< simulation parameters on host
         std::shared_ptr<ChCounters> otherNumObjects,             ///< size of different objects in the system
         bool verb                                                ///< verbose terminal output
@@ -114,7 +112,7 @@ class ChFsiForce : public ChFsiBase {
     /// using ISPH method (see ChFsiForceI2SPH and ChFsiForceIISPH) or an
     /// explicit integrator using WCPSH method (see ChFsiForceExplicitSPH).
     virtual void ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
-                          std::shared_ptr<FsiBodyStateD> otherFsiBodiesD,
+                          std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
                           std::shared_ptr<FsiMeshStateD> fsiMeshStateD) = 0;
 
     /// Synchronize the copy of the data (parameters and number of objects)
@@ -170,9 +168,9 @@ class ChFsiForce : public ChFsiBase {
     std::shared_ptr<SphMarkerDataD> sphMarkersD;        ///< device copy of the SPH particles data
     std::shared_ptr<SphMarkerDataD> sortedSphMarkersD;  ///< device copy of the sorted sph particles data
     std::shared_ptr<ProximityDataD> markersProximityD;  ///< pointer object that holds the proximity of the particles
-    std::shared_ptr<FsiData> fsiData;     ///< pointer to sph general data
+    std::shared_ptr<FsiData> fsiData;                   ///< pointer to sph general data
 
-    std::shared_ptr<SimParams> paramsH;            ///< pointer to simulation parameters
+    std::shared_ptr<SimParams> paramsH;       ///< pointer to simulation parameters
     std::shared_ptr<ChCounters> numObjectsH;  ///< pointer to number of objects, fluid and boundary particles
 
     thrust::device_vector<Real3> vel_vis_Sorted_D;       ///< sorted visualization velocity data

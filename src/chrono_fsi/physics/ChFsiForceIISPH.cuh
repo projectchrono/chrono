@@ -32,9 +32,9 @@ class ChFsiForceIISPH : public ChFsiForce {
         std::shared_ptr<ChBce> otherBceWorker,                   ///< object that handles BCE particles
         std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,  ///< information of particle in the sorted device array
         std::shared_ptr<ProximityDataD> otherMarkersProximityD,  ///< object that holds device proximity info
-        std::shared_ptr<FsiData> otherFsiGeneralData,     ///< SPH general data
+        std::shared_ptr<FsiData> otherFsiGeneralData,            ///< SPH general data
         std::shared_ptr<SimParams> otherParamsH,                 ///< simulation parameters on host
-        std::shared_ptr<ChCounters> otherNumObjects,        ///< counters
+        std::shared_ptr<ChCounters> otherNumObjects,             ///< counters
         bool verb                                                ///< verbose terminal output
     );
 
@@ -43,10 +43,10 @@ class ChFsiForceIISPH : public ChFsiForce {
 
   private:
     void ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
-                  std::shared_ptr<FsiBodyStateD> otherFsiBodiesD,
-                  std::shared_ptr<FsiMeshStateD> otherFsiMeshD) override;
+                  std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
+                  std::shared_ptr<FsiMeshStateD> fsiMeshStateD) override;
 
-    void calcPressureIISPH(std::shared_ptr<FsiBodyStateD> otherFsiBodiesD,
+    void calcPressureIISPH(std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
                            thrust::device_vector<Real3> pos_fsi_fea_D,
                            thrust::device_vector<Real3> vel_fsi_fea_D,
                            thrust::device_vector<Real3> acc_fsi_fea_D,

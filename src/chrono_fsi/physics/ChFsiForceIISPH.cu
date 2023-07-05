@@ -1346,7 +1346,7 @@ __global__ void FinalizePressure(Real4* sortedPosRad,  // Read
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> otherFsiBodiesD,
+void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
                                         thrust::device_vector<Real3> pos_fsi_fea_D,
                                         thrust::device_vector<Real3> vel_fsi_fea_D,
                                         thrust::device_vector<Real3> acc_fsi_fea_D,
@@ -1488,14 +1488,13 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> otherFsiB
             mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(V_new), R1CAST(p_old),
             mR3CAST(Normals), R1CAST(G_i), R1CAST(sumWij_inv), R1CAST(rho_np),
 
-            mR4CAST(otherFsiBodiesD->rot), mR3CAST(fsiData->rigidSPH_MeshPos_LRF_D),
-            mR3CAST(otherFsiBodiesD->pos), mR4CAST(otherFsiBodiesD->lin_vel),
-            mR3CAST(otherFsiBodiesD->ang_vel), mR3CAST(otherFsiBodiesD->lin_acc),
-            mR3CAST(otherFsiBodiesD->ang_acc), U1CAST(fsiData->rigidIdentifierD),
+            mR4CAST(fsiBodyStateD->rot), mR3CAST(fsiData->rigidSPH_MeshPos_LRF_D), mR3CAST(fsiBodyStateD->pos),
+            mR4CAST(fsiBodyStateD->lin_vel), mR3CAST(fsiBodyStateD->ang_vel), mR3CAST(fsiBodyStateD->lin_acc),
+            mR3CAST(fsiBodyStateD->ang_acc), U1CAST(fsiData->rigidIdentifierD),
 
-            mR3CAST(pos_fsi_fea_D), mR3CAST(vel_fsi_fea_D), mR3CAST(acc_fsi_fea_D),
-            U1CAST(fsiData->FlexIdentifierD), (int)numObjectsH->numFlexBodies1D,
-            U2CAST(fsiData->CableElementsNodesD), U4CAST(fsiData->ShellElementsNodesD),
+            mR3CAST(pos_fsi_fea_D), mR3CAST(vel_fsi_fea_D), mR3CAST(acc_fsi_fea_D), U1CAST(fsiData->FlexIdentifierD),
+            (int)numObjectsH->numFlexBodies1D, U2CAST(fsiData->CableElementsNodesD),
+            U4CAST(fsiData->ShellElementsNodesD),
 
             updatePortion, U1CAST(markersProximityD->gridMarkerIndexD), U1CAST(markersProximityD->cellStartD),
             U1CAST(markersProximityD->cellEndD), paramsH->dT, numAllMarkers, SPARSE_FLAG, isErrorD);
@@ -1579,15 +1578,14 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> otherFsiB
                     mR3CAST(F_p), mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
                     mR4CAST(sortedSphMarkersD->rhoPresMuD),
 
-                    mR4CAST(otherFsiBodiesD->rot), mR3CAST(fsiData->rigidSPH_MeshPos_LRF_D),
-                    mR3CAST(otherFsiBodiesD->pos), mR4CAST(otherFsiBodiesD->lin_vel),
-                    mR3CAST(otherFsiBodiesD->ang_vel), mR3CAST(otherFsiBodiesD->lin_acc),
-                    mR3CAST(otherFsiBodiesD->ang_acc), U1CAST(fsiData->rigidIdentifierD),
+                    mR4CAST(fsiBodyStateD->rot), mR3CAST(fsiData->rigidSPH_MeshPos_LRF_D), mR3CAST(fsiBodyStateD->pos),
+                    mR4CAST(fsiBodyStateD->lin_vel), mR3CAST(fsiBodyStateD->ang_vel), mR3CAST(fsiBodyStateD->lin_acc),
+                    mR3CAST(fsiBodyStateD->ang_acc), U1CAST(fsiData->rigidIdentifierD),
 
                     mR3CAST(pos_fsi_fea_D), mR3CAST(vel_fsi_fea_D), mR3CAST(acc_fsi_fea_D),
                     U1CAST(fsiData->FlexIdentifierD), (int)numObjectsH->numFlexBodies1D,
-                    U2CAST(fsiData->CableElementsNodesD), U4CAST(fsiData->ShellElementsNodesD),
-                    updatePortion, U1CAST(markersProximityD->gridMarkerIndexD), R1CAST(p_old), mR3CAST(V_new),
+                    U2CAST(fsiData->CableElementsNodesD), U4CAST(fsiData->ShellElementsNodesD), updatePortion,
+                    U1CAST(markersProximityD->gridMarkerIndexD), R1CAST(p_old), mR3CAST(V_new),
                     U1CAST(markersProximityD->cellStartD), U1CAST(markersProximityD->cellEndD), paramsH->dT,
                     numAllMarkers, isErrorD);
 
@@ -1696,8 +1694,8 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> otherFsiB
 }
 
 void ChFsiForceIISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
-                               std::shared_ptr<FsiBodyStateD> otherFsiBodiesD,
-                               std::shared_ptr<FsiMeshStateD> otherFsiMeshD) {
+                               std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
+                               std::shared_ptr<FsiMeshStateD> fsiMeshStateD) {
     sphMarkersD = otherSphMarkersD;
     int numAllMarkers = (int)numObjectsH->numAllMarkers;
     int numHelperMarkers = (int)numObjectsH->numHelperMarkers;
@@ -1773,8 +1771,8 @@ void ChFsiForceIISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     }
 
     thrust::device_vector<Real> p_old(numAllMarkers, 0.0);
-    calcPressureIISPH(otherFsiBodiesD, otherFsiMeshD->pos_fsi_fea_D, otherFsiMeshD->vel_fsi_fea_D,
-                      otherFsiMeshD->acc_fsi_fea_D, _sumWij_inv, p_old, Normals, G_i, Color);
+    calcPressureIISPH(fsiBodyStateD, fsiMeshStateD->pos_fsi_fea_D, fsiMeshStateD->vel_fsi_fea_D,
+                      fsiMeshStateD->acc_fsi_fea_D, _sumWij_inv, p_old, Normals, G_i, Color);
 
     //------------------------------------------------------------------------
     // thread per particle
@@ -1818,10 +1816,8 @@ void ChFsiForceIISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     if (*isErrorH == true) {
         throw std::runtime_error("Error! program crashed in CalcForces!\n");
     }
-    CopySortedToOriginal_NonInvasive_R3(fsiData->vel_XSPH_D, vel_XSPH_Sorted_D,
-                                        markersProximityD->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R3(fsiData->vis_vel_SPH_D, vel_vis_Sorted_D,
-                                        markersProximityD->gridMarkerIndexD);
+    CopySortedToOriginal_NonInvasive_R3(fsiData->vel_XSPH_D, vel_XSPH_Sorted_D, markersProximityD->gridMarkerIndexD);
+    CopySortedToOriginal_NonInvasive_R3(fsiData->vis_vel_SPH_D, vel_vis_Sorted_D, markersProximityD->gridMarkerIndexD);
     CopySortedToOriginal_NonInvasive_R3(sphMarkersD->velMasD, sortedSphMarkersD->velMasD,
                                         markersProximityD->gridMarkerIndexD);
     CopySortedToOriginal_NonInvasive_R4(sphMarkersD->posRadD, sortedSphMarkersD->posRadD,
