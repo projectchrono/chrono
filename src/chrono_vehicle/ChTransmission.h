@@ -43,13 +43,6 @@ class CH_VEHICLE_API ChTransmission : public ChPart {
         MANUAL      ///< manual transmission (clutch + gearbox)
     };
 
-    /// Driving modes.
-    enum class DriveMode {
-        FORWARD,  ///< vehicle moving forward
-        NEUTRAL,  ///< vehicle in neutral
-        REVERSE   ///< vehicle moving backward
-    };
-
     virtual ~ChTransmission() {}
 
     /// Get transmission type.
@@ -62,17 +55,14 @@ class CH_VEHICLE_API ChTransmission : public ChPart {
     bool IsManual() const { return GetType() == Type::MANUAL; }
 
     /// Return the current transmission gear.
-    /// A return value of 0 indicates reverse; a positive value indicates a forward gear.
+    /// A return value of -1 indicates reverse, 0 indicates neutral and a positive value indicates a forward gear.
     int GetCurrentGear() const { return m_current_gear; }
 
-    /// Set the drive mode.
-    void SetDriveMode(DriveMode mode);
-
-    /// Return the current drive mode.
-    DriveMode GetDriveMode() const { return m_drive_mode; }
+    /// Return the highest available gear.
+    int GetMaxGear() const { return((int) m_gear_ratios.size() - 1); }
 
     /// Shift to the specified gear.
-    /// Note that reverse gear is index 0 and forward gears are index > 0.
+    /// Reverse gear is -1, neutral is 0, forward gears are 1, 2, ..., Gmax.
     void SetGear(int gear);
 
     /// Return the transmission output torque on the driveshaft.
@@ -128,7 +118,6 @@ class CH_VEHICLE_API ChTransmission : public ChPart {
     /// Advance the state of this powertrain system by the specified time step.
     virtual void Advance(double step) {}
 
-    DriveMode m_drive_mode;  ///< drive mode (neutral, forward, or reverse)
 
     std::vector<double> m_gear_ratios;  ///< gear ratios (0: reverse, 1+: forward)
     int m_current_gear;                 ///< current transmission gear (0: reverse, 1+: forward)
@@ -146,6 +135,13 @@ class CH_VEHICLE_API ChTransmission : public ChPart {
 
 class CH_VEHICLE_API ChAutomaticTransmission : public ChTransmission {
   public:
+    /// Driving modes.
+    enum class DriveMode {
+        FORWARD,  ///< vehicle moving forward
+        NEUTRAL,  ///< vehicle in neutral
+        REVERSE   ///< vehicle moving backward
+    };
+
     /// Transmission shift mode.
     enum class ShiftMode {
         AUTOMATIC,  ///< automatic transmission
@@ -154,6 +150,12 @@ class CH_VEHICLE_API ChAutomaticTransmission : public ChTransmission {
 
     /// Get transmission type.
     virtual Type GetType() const override final { return Type::AUTOMATIC; }
+
+    /// Set the drive mode.
+    void SetDriveMode(DriveMode mode);
+
+    /// Return the current drive mode.
+    DriveMode GetDriveMode() const { return m_drive_mode; }
 
     /// Return true if a torque converter model is included.
     virtual bool HasTorqueConverter() const = 0;
@@ -184,6 +186,7 @@ class CH_VEHICLE_API ChAutomaticTransmission : public ChTransmission {
   protected:
     ChAutomaticTransmission(const std::string& name);
 
+    DriveMode m_drive_mode;  ///< drive mode (neutral, forward, or reverse)
     ShiftMode m_shift_mode;  ///< transmission shift mode (automatic or manual)
 
   private:

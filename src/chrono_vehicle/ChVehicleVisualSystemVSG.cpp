@@ -113,13 +113,13 @@ class ChVehicleKeyboardHandlerVSG : public vsg3d::ChEventHandlerVSG {
         if (m_transmission_auto) {
             switch (keyPress.keyBase) {
                 case vsg::KEY_z:
-                    if (m_transmission_auto->GetDriveMode() != ChTransmission::DriveMode::FORWARD)
-                        m_transmission_auto->SetDriveMode(ChTransmission::DriveMode::FORWARD);
+                    if (m_transmission_auto->GetDriveMode() != ChAutomaticTransmission::DriveMode::FORWARD)
+                        m_transmission_auto->SetDriveMode(ChAutomaticTransmission::DriveMode::FORWARD);
                     else
-                        m_transmission_auto->SetDriveMode(ChTransmission::DriveMode::REVERSE);
+                        m_transmission_auto->SetDriveMode(ChAutomaticTransmission::DriveMode::REVERSE);
                     return;
                 case vsg::KEY_x:
-                    m_transmission_auto->SetDriveMode(ChTransmission::DriveMode::NEUTRAL);
+                    m_transmission_auto->SetDriveMode(ChAutomaticTransmission::DriveMode::NEUTRAL);
                     return;
                 case vsg::KEY_t:
                     if (m_transmission_auto->GetShiftMode() == ChAutomaticTransmission::ShiftMode::MANUAL)
@@ -319,26 +319,33 @@ void ChVehicleGuiComponentVSG::render() {
 
             ImGui::TableNextColumn();
             char shift_mode = 'M';
-            if (transmission->IsAutomatic() &&
-                transmission_auto->GetShiftMode() == ChAutomaticTransmission::ShiftMode::AUTOMATIC)
-                shift_mode = 'A';
-            switch (transmission->GetDriveMode()) {
-                case ChTransmission::DriveMode::FORWARD:
-                    snprintf(label, nstr, "[%c] Gear forward:", shift_mode);
-                    break;
-                case ChTransmission::DriveMode::NEUTRAL:
-                    snprintf(label, nstr, "[%c] Gear neutral", shift_mode);
-                    break;
-                case ChTransmission::DriveMode::REVERSE:
-                    snprintf(label, nstr, "[%c] Gear reverse", shift_mode);
-                    break;
+            if (transmission->IsAutomatic()) {
+                if (transmission_auto->GetShiftMode() == ChAutomaticTransmission::ShiftMode::AUTOMATIC) {
+                    shift_mode = 'A';
+                }
+                switch (transmission_auto->GetDriveMode()) {
+                    case ChAutomaticTransmission::DriveMode::FORWARD:
+                        snprintf(label, nstr, "[%c] Gear forward:", shift_mode);
+                        break;
+                    case ChAutomaticTransmission::DriveMode::NEUTRAL:
+                        snprintf(label, nstr, "[%c] Gear neutral", shift_mode);
+                        break;
+                    case ChAutomaticTransmission::DriveMode::REVERSE:
+                        snprintf(label, nstr, "[%c] Gear reverse", shift_mode);
+                        break;
+                }
+            }
+            else if (transmission->IsManual()) {
+                snprintf(label, nstr, "[M] Gear:");
             }
             ImGui::Text(label);
             ImGui::TableNextColumn();
-            if (transmission->GetDriveMode() == ChTransmission::DriveMode::FORWARD)
+            if (transmission->IsManual() || (transmission->IsAutomatic() && transmission_auto->GetDriveMode() == ChAutomaticTransmission::DriveMode::FORWARD)) {
                 snprintf(label, nstr, "%d", transmission->GetCurrentGear());
-            else
+            }
+            else {
                 snprintf(label, nstr, "");
+            }
             ImGui::Text(label);
             ImGui::TableNextRow();
             ImGui::EndTable();
