@@ -79,45 +79,13 @@ void FsiBodiesDataD::resize(size_t s) {
     omegaAccLRF_fsiBodies_D.resize(s);
 }
 
-void FsiShellsDataH::resize(size_t s) {
-    posFlex_fsiBodies_nA_H.resize(s);
-    posFlex_fsiBodies_nB_H.resize(s);
-    posFlex_fsiBodies_nC_H.resize(s);
-    posFlex_fsiBodies_nD_H.resize(s);
-
-    velFlex_fsiBodies_nA_H.resize(s);
-    velFlex_fsiBodies_nB_H.resize(s);
-    velFlex_fsiBodies_nC_H.resize(s);
-    velFlex_fsiBodies_nD_H.resize(s);
-
-    accFlex_fsiBodies_nA_H.resize(s);
-    accFlex_fsiBodies_nB_H.resize(s);
-    accFlex_fsiBodies_nC_H.resize(s);
-    accFlex_fsiBodies_nD_H.resize(s);
-}
-
-void FsiShellsDataD::resize(size_t s) {
-    posFlex_fsiBodies_nA_D.resize(s);
-    posFlex_fsiBodies_nB_D.resize(s);
-    posFlex_fsiBodies_nC_D.resize(s);
-    posFlex_fsiBodies_nD_D.resize(s);
-
-    velFlex_fsiBodies_nA_D.resize(s);
-    velFlex_fsiBodies_nB_D.resize(s);
-    velFlex_fsiBodies_nC_D.resize(s);
-    velFlex_fsiBodies_nD_D.resize(s);
-
-    accFlex_fsiBodies_nA_D.resize(s);
-    accFlex_fsiBodies_nB_D.resize(s);
-    accFlex_fsiBodies_nC_D.resize(s);
-    accFlex_fsiBodies_nD_D.resize(s);
-}
 void FsiMeshStateH::resize(size_t s) {
     pos_fsi_fea_H.resize(s);
     vel_fsi_fea_H.resize(s);
     acc_fsi_fea_H.resize(s);
     dir_fsi_fea_H.resize(s);
 }
+
 void FsiMeshStateD::resize(size_t s) {
     pos_fsi_fea_D.resize(s);
     vel_fsi_fea_D.resize(s);
@@ -135,35 +103,6 @@ void FsiBodiesDataD::CopyFromH(const FsiBodiesDataH& other) {
                  omegaVelLRF_fsiBodies_D.begin());
     thrust::copy(other.omegaAccLRF_fsiBodies_H.begin(), other.omegaAccLRF_fsiBodies_H.end(),
                  omegaAccLRF_fsiBodies_D.begin());
-}
-
-void FsiShellsDataD::CopyFromH(const FsiShellsDataH& other) {
-    thrust::copy(other.posFlex_fsiBodies_nA_H.begin(), other.posFlex_fsiBodies_nA_H.end(),
-                 posFlex_fsiBodies_nA_D.begin());
-    thrust::copy(other.posFlex_fsiBodies_nB_H.begin(), other.posFlex_fsiBodies_nB_H.end(),
-                 posFlex_fsiBodies_nB_D.begin());
-    thrust::copy(other.posFlex_fsiBodies_nC_H.begin(), other.posFlex_fsiBodies_nC_H.end(),
-                 posFlex_fsiBodies_nC_D.begin());
-    thrust::copy(other.posFlex_fsiBodies_nD_H.begin(), other.posFlex_fsiBodies_nD_H.end(),
-                 posFlex_fsiBodies_nD_D.begin());
-
-    thrust::copy(other.velFlex_fsiBodies_nA_H.begin(), other.velFlex_fsiBodies_nA_H.end(),
-                 velFlex_fsiBodies_nA_D.begin());
-    thrust::copy(other.velFlex_fsiBodies_nB_H.begin(), other.velFlex_fsiBodies_nB_H.end(),
-                 velFlex_fsiBodies_nB_D.begin());
-    thrust::copy(other.velFlex_fsiBodies_nC_H.begin(), other.velFlex_fsiBodies_nC_H.end(),
-                 velFlex_fsiBodies_nC_D.begin());
-    thrust::copy(other.velFlex_fsiBodies_nD_H.begin(), other.velFlex_fsiBodies_nD_H.end(),
-                 velFlex_fsiBodies_nD_D.begin());
-
-    thrust::copy(other.accFlex_fsiBodies_nA_H.begin(), other.accFlex_fsiBodies_nA_H.end(),
-                 accFlex_fsiBodies_nA_D.begin());
-    thrust::copy(other.accFlex_fsiBodies_nB_H.begin(), other.accFlex_fsiBodies_nB_H.end(),
-                 accFlex_fsiBodies_nB_D.begin());
-    thrust::copy(other.accFlex_fsiBodies_nC_H.begin(), other.accFlex_fsiBodies_nC_H.end(),
-                 accFlex_fsiBodies_nC_D.begin());
-    thrust::copy(other.accFlex_fsiBodies_nD_H.begin(), other.accFlex_fsiBodies_nD_H.end(),
-                 accFlex_fsiBodies_nD_D.begin());
 }
 
 void FsiMeshStateD::CopyFromH(const FsiMeshStateH& other) {
@@ -186,40 +125,6 @@ FsiBodiesDataD& FsiBodiesDataD::operator=(const FsiBodiesDataD& other) {
                  omegaVelLRF_fsiBodies_D.begin());
     thrust::copy(other.omegaAccLRF_fsiBodies_D.begin(), other.omegaAccLRF_fsiBodies_D.end(),
                  omegaAccLRF_fsiBodies_D.begin());
-    return *this;
-}
-
-FsiShellsDataD& FsiShellsDataD::operator=(const FsiShellsDataD& other) {
-    if (this == &other) {
-        return *this;
-    }
-    thrust::copy(other.posFlex_fsiBodies_nA_D.begin(), other.posFlex_fsiBodies_nA_D.end(),
-                 posFlex_fsiBodies_nA_D.begin());
-
-    thrust::copy(other.posFlex_fsiBodies_nB_D.begin(), other.posFlex_fsiBodies_nB_D.end(),
-                 posFlex_fsiBodies_nB_D.begin());
-    thrust::copy(other.posFlex_fsiBodies_nC_D.begin(), other.posFlex_fsiBodies_nC_D.end(),
-                 posFlex_fsiBodies_nC_D.begin());
-    thrust::copy(other.posFlex_fsiBodies_nD_D.begin(), other.posFlex_fsiBodies_nD_D.end(),
-                 posFlex_fsiBodies_nD_D.begin());
-
-    thrust::copy(other.velFlex_fsiBodies_nA_D.begin(), other.velFlex_fsiBodies_nA_D.end(),
-                 velFlex_fsiBodies_nA_D.begin());
-    thrust::copy(other.velFlex_fsiBodies_nB_D.begin(), other.velFlex_fsiBodies_nB_D.end(),
-                 velFlex_fsiBodies_nB_D.begin());
-    thrust::copy(other.velFlex_fsiBodies_nC_D.begin(), other.velFlex_fsiBodies_nC_D.end(),
-                 velFlex_fsiBodies_nC_D.begin());
-    thrust::copy(other.velFlex_fsiBodies_nD_D.begin(), other.velFlex_fsiBodies_nD_D.end(),
-                 velFlex_fsiBodies_nD_D.begin());
-
-    thrust::copy(other.accFlex_fsiBodies_nA_D.begin(), other.accFlex_fsiBodies_nA_D.end(),
-                 posFlex_fsiBodies_nA_D.begin());
-    thrust::copy(other.accFlex_fsiBodies_nB_D.begin(), other.accFlex_fsiBodies_nB_D.end(),
-                 accFlex_fsiBodies_nB_D.begin());
-    thrust::copy(other.accFlex_fsiBodies_nC_D.begin(), other.accFlex_fsiBodies_nC_D.end(),
-                 accFlex_fsiBodies_nC_D.begin());
-    thrust::copy(other.accFlex_fsiBodies_nD_D.begin(), other.accFlex_fsiBodies_nD_D.end(),
-                 accFlex_fsiBodies_nD_D.begin());
     return *this;
 }
 

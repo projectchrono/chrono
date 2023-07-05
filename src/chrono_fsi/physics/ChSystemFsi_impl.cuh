@@ -146,50 +146,6 @@ struct FsiMeshStateD {
     void resize(size_t s);
 };
 
-/// Struct to store the information of shell elements on the host.
-struct FsiShellsDataH {
-    thrust::host_vector<Real3> posFlex_fsiBodies_nA_H;  ///< Vector of the node A position
-    thrust::host_vector<Real3> posFlex_fsiBodies_nB_H;  ///< Vector of the node B position
-    thrust::host_vector<Real3> posFlex_fsiBodies_nC_H;  ///< Vector of the node C position
-    thrust::host_vector<Real3> posFlex_fsiBodies_nD_H;  ///< Vector of the node D position
-
-    thrust::host_vector<Real3> velFlex_fsiBodies_nA_H;  ///< Vector of the node A velocity
-    thrust::host_vector<Real3> velFlex_fsiBodies_nB_H;  ///< Vector of the node B velocity
-    thrust::host_vector<Real3> velFlex_fsiBodies_nC_H;  ///< Vector of the node C velocity
-    thrust::host_vector<Real3> velFlex_fsiBodies_nD_H;  ///< Vector of the node D velocity
-
-    thrust::host_vector<Real3> accFlex_fsiBodies_nA_H;  ///< Vector of the node A acceleration
-    thrust::host_vector<Real3> accFlex_fsiBodies_nB_H;  ///< Vector of the node B acceleration
-    thrust::host_vector<Real3> accFlex_fsiBodies_nC_H;  ///< Vector of the node C acceleration
-    thrust::host_vector<Real3> accFlex_fsiBodies_nD_H;  ///< Vector of the node D acceleration
-
-    // zipIterFlexH iterator();
-    void resize(size_t s);
-};
-
-/// Struct to store the information of shell elements on the device.
-struct FsiShellsDataD {
-    thrust::device_vector<Real3> posFlex_fsiBodies_nA_D;  ///< Vector of the node A position
-    thrust::device_vector<Real3> posFlex_fsiBodies_nB_D;  ///< Vector of the node B position
-    thrust::device_vector<Real3> posFlex_fsiBodies_nC_D;  ///< Vector of the node C position
-    thrust::device_vector<Real3> posFlex_fsiBodies_nD_D;  ///< Vector of the node D position
-
-    thrust::device_vector<Real3> velFlex_fsiBodies_nA_D;  ///< Vector of the node A velocity
-    thrust::device_vector<Real3> velFlex_fsiBodies_nB_D;  ///< Vector of the node B velocity
-    thrust::device_vector<Real3> velFlex_fsiBodies_nC_D;  ///< Vector of the node C velocity
-    thrust::device_vector<Real3> velFlex_fsiBodies_nD_D;  ///< Vector of the node D velocity
-
-    thrust::device_vector<Real3> accFlex_fsiBodies_nA_D;  ///< Vector of the node A acceleration
-    thrust::device_vector<Real3> accFlex_fsiBodies_nB_D;  ///< Vector of the node B acceleration
-    thrust::device_vector<Real3> accFlex_fsiBodies_nC_D;  ///< Vector of the node C acceleration
-    thrust::device_vector<Real3> accFlex_fsiBodies_nD_D;  ///< Vector of the node D acceleration
-
-    // zipIterFlexD iterator();
-    void CopyFromH(const FsiShellsDataH& other);
-    FsiShellsDataD& operator=(const FsiShellsDataD& other);
-    void resize(size_t s);
-};
-
 /// Struct to store neighbor search information on the device.
 struct ProximityDataD {
     thrust::device_vector<uint> gridMarkerHashD;   ///< gridMarkerHash=s(i,j,k)= k*n_x*n_y + j*n_x + i (numAllMarkers);
