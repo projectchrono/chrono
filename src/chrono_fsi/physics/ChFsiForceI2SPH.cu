@@ -923,7 +923,7 @@ void ChFsiForceI2SPH::PreProcessor(std::shared_ptr<SphMarkerDataD> otherSphMarke
 //==========================================================================================================================================
 void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
                                std::shared_ptr<FsiBodiesDataD> otherFsiBodiesD,
-                               std::shared_ptr<FsiMeshDataD> otherFsiMeshD) {
+                               std::shared_ptr<FsiMeshStateD> otherFsiMeshD) {
     if (paramsH->bceType == BceVersion::ADAMI && !paramsH->USE_NonIncrementalProjection) {
         throw std::runtime_error(
             "\nADAMI boundary condition is only applicable to non-incremental Projection method. Please "

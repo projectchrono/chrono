@@ -1697,7 +1697,7 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodiesDataD> otherFsi
 
 void ChFsiForceIISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
                                std::shared_ptr<FsiBodiesDataD> otherFsiBodiesD,
-                               std::shared_ptr<FsiMeshDataD> otherFsiMeshD) {
+                               std::shared_ptr<FsiMeshStateD> otherFsiMeshD) {
     sphMarkersD = otherSphMarkersD;
     int numAllMarkers = (int)numObjectsH->numAllMarkers;
     int numHelperMarkers = (int)numObjectsH->numHelperMarkers;

@@ -82,17 +82,17 @@ void ChFsiInterface::Add_Flex_Forces_To_ChSystem() {
     }
 }
 
-void ChFsiInterface::Copy_FsiNodes_ChSystem_to_FsiSystem(std::shared_ptr<FsiMeshDataD> FsiMeshD) {
+void ChFsiInterface::Copy_FsiNodes_ChSystem_to_FsiSystem(std::shared_ptr<FsiMeshStateD> FsiMeshD) {
     size_t num_nodes = m_fsi_nodes.size();
 
     for (size_t i = 0; i < num_nodes; i++) {
         const auto& node = m_fsi_nodes[i];
-        m_sysFSI.fsiMeshH->pos_fsi_fea_H[i] = utils::ToReal3(node->GetPos());
-        m_sysFSI.fsiMeshH->vel_fsi_fea_H[i] = utils::ToReal3(node->GetPos_dt());
-        m_sysFSI.fsiMeshH->acc_fsi_fea_H[i] = utils::ToReal3(node->GetPos_dtdt());
-        m_sysFSI.fsiMeshH->dir_fsi_fea_H[i] = utils::ToReal3(node->GetD());
+        m_sysFSI.fsiMeshStateH->pos_fsi_fea_H[i] = utils::ToReal3(node->GetPos());
+        m_sysFSI.fsiMeshStateH->vel_fsi_fea_H[i] = utils::ToReal3(node->GetPos_dt());
+        m_sysFSI.fsiMeshStateH->acc_fsi_fea_H[i] = utils::ToReal3(node->GetPos_dtdt());
+        m_sysFSI.fsiMeshStateH->dir_fsi_fea_H[i] = utils::ToReal3(node->GetD());
     }
-    FsiMeshD->CopyFromH(*m_sysFSI.fsiMeshH);
+    FsiMeshD->CopyFromH(*m_sysFSI.fsiMeshStateH);
 }
 
 void ChFsiInterface::ResizeChronoCablesData(const std::vector<std::vector<int>>& CableElementsNodesSTDVector) {

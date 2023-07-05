@@ -833,7 +833,7 @@ void ChSystemFsi::Initialize() {
     }
 
     m_fsi_interface->Copy_FsiBodies_ChSystem_to_FsiSystem(m_sysFSI->fsiBodiesD1);
-    m_fsi_interface->Copy_FsiNodes_ChSystem_to_FsiSystem(m_sysFSI->fsiMeshD);
+    m_fsi_interface->Copy_FsiNodes_ChSystem_to_FsiSystem(m_sysFSI->fsiMeshStateD);
 
     // Construct midpoint rigid data
     m_sysFSI->fsiBodiesD2 = m_sysFSI->fsiBodiesD1;
@@ -858,7 +858,7 @@ void ChSystemFsi::Initialize() {
     m_fluid_dynamics->GetForceSystem()->SetLinearSolver(m_paramsH->LinearSolver);
 
     // Initialize worker objects
-    m_bce_manager->Initialize(m_sysFSI->sphMarkersD1, m_sysFSI->fsiBodiesD1, m_sysFSI->fsiMeshD, m_fsi_bodies_bce_num,
+    m_bce_manager->Initialize(m_sysFSI->sphMarkersD1, m_sysFSI->fsiBodiesD1, m_sysFSI->fsiMeshStateD, m_fsi_bodies_bce_num,
                               m_fsi_shells_bce_num, m_fsi_cables_bce_num);
     m_fluid_dynamics->Initialize();
 
@@ -901,13 +901,13 @@ void ChSystemFsi::DoStepDynamics_FSI() {
 
         if (m_integrate_SPH) {
             m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkersD2, m_sysFSI->sphMarkersD1, m_sysFSI->fsiBodiesD2,
-                                           m_sysFSI->fsiMeshD, 0.5 * m_paramsH->dT, m_time);
+                                           m_sysFSI->fsiMeshStateD, 0.5 * m_paramsH->dT, m_time);
             m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkersD1, m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodiesD2,
-                                           m_sysFSI->fsiMeshD, 1.0 * m_paramsH->dT, m_time);
+                                           m_sysFSI->fsiMeshStateD, 1.0 * m_paramsH->dT, m_time);
         }
 
         m_bce_manager->Rigid_Forces_Torques(m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodiesD2);
-        m_bce_manager->Flex_Forces(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMeshD);
+        m_bce_manager->Flex_Forces(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMeshStateD);
 
         // Advance dynamics of the associated MBS system (if provided)
         if (m_sysMBS) {
@@ -927,17 +927,17 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         m_fsi_interface->Copy_FsiBodies_ChSystem_to_FsiSystem(m_sysFSI->fsiBodiesD2);
         m_bce_manager->UpdateRigidMarkersPositionVelocity(m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodiesD2);
 
-        m_fsi_interface->Copy_FsiNodes_ChSystem_to_FsiSystem(m_sysFSI->fsiMeshD);
-        m_bce_manager->UpdateFlexMarkersPositionVelocity(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMeshD);
+        m_fsi_interface->Copy_FsiNodes_ChSystem_to_FsiSystem(m_sysFSI->fsiMeshStateD);
+        m_bce_manager->UpdateFlexMarkersPositionVelocity(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMeshStateD);
     } else {
         // A different coupling scheme is used for implicit SPH formulations
         if (m_integrate_SPH) {
             m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkersD2, m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodiesD2,
-                                           m_sysFSI->fsiMeshD, 0.0, m_time);
+                                           m_sysFSI->fsiMeshStateD, 0.0, m_time);
         }
 
         m_bce_manager->Rigid_Forces_Torques(m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodiesD2);
-        m_bce_manager->Flex_Forces(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMeshD);
+        m_bce_manager->Flex_Forces(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMeshStateD);
 
         // Advance dynamics of the associated MBS system (if provided)
         if (m_sysMBS) {
@@ -959,8 +959,8 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         m_fsi_interface->Copy_FsiBodies_ChSystem_to_FsiSystem(m_sysFSI->fsiBodiesD2);
         m_bce_manager->UpdateRigidMarkersPositionVelocity(m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodiesD2);
 
-        m_fsi_interface->Copy_FsiNodes_ChSystem_to_FsiSystem(m_sysFSI->fsiMeshD);
-        m_bce_manager->UpdateFlexMarkersPositionVelocity(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMeshD);
+        m_fsi_interface->Copy_FsiNodes_ChSystem_to_FsiSystem(m_sysFSI->fsiMeshStateD);
+        m_bce_manager->UpdateFlexMarkersPositionVelocity(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMeshStateD);
     }
 
     m_time += m_paramsH->dT;
@@ -992,7 +992,7 @@ void ChSystemFsi::PrintParticleToFile(const std::string& dir) const {
 void ChSystemFsi::PrintFsiInfoToFile(const std::string& dir, double time) const {
     utils::PrintFsiInfoToFile(m_sysFSI->fsiBodiesD2->posRigid_fsiBodies_D,
                               m_sysFSI->fsiBodiesD2->velMassRigid_fsiBodies_D, m_sysFSI->fsiBodiesD2->q_fsiBodies_D,
-                              m_sysFSI->fsiMeshD->pos_fsi_fea_D, m_sysFSI->fsiMeshD->vel_fsi_fea_D,
+                              m_sysFSI->fsiMeshStateD->pos_fsi_fea_D, m_sysFSI->fsiMeshStateD->vel_fsi_fea_D,
                               m_sysFSI->fsiData->rigid_FSI_ForcesD, m_sysFSI->fsiData->rigid_FSI_TorquesD,
                               m_sysFSI->fsiData->Flex_FSI_ForcesD, dir, time);
 }

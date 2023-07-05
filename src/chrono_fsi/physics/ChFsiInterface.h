@@ -65,7 +65,7 @@ class ChFsiInterface : public ChFsiBase {
     void ResizeChronoShellsData(const std::vector<std::vector<int>>& ShellElementsNodesSTDVector);
 
     /// Copy flexible nodes' information from ChSystem to FsiSystem, then to the GPU memory.
-    void Copy_FsiNodes_ChSystem_to_FsiSystem(std::shared_ptr<FsiMeshDataD> FsiMeshD);
+    void Copy_FsiNodes_ChSystem_to_FsiSystem(std::shared_ptr<FsiMeshStateD> FsiMeshD);
 
   private:
     ChSystemFsi_impl& m_sysFSI;  ///< FSI system

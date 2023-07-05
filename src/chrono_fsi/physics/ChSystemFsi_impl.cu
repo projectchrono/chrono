@@ -112,13 +112,13 @@ void FsiShellsDataD::resize(size_t s) {
     accFlex_fsiBodies_nC_D.resize(s);
     accFlex_fsiBodies_nD_D.resize(s);
 }
-void FsiMeshDataH::resize(size_t s) {
+void FsiMeshStateH::resize(size_t s) {
     pos_fsi_fea_H.resize(s);
     vel_fsi_fea_H.resize(s);
     acc_fsi_fea_H.resize(s);
     dir_fsi_fea_H.resize(s);
 }
-void FsiMeshDataD::resize(size_t s) {
+void FsiMeshStateD::resize(size_t s) {
     pos_fsi_fea_D.resize(s);
     vel_fsi_fea_D.resize(s);
     acc_fsi_fea_D.resize(s);
@@ -166,7 +166,7 @@ void FsiShellsDataD::CopyFromH(const FsiShellsDataH& other) {
                  accFlex_fsiBodies_nD_D.begin());
 }
 
-void FsiMeshDataD::CopyFromH(const FsiMeshDataH& other) {
+void FsiMeshStateD::CopyFromH(const FsiMeshStateH& other) {
     thrust::copy(other.pos_fsi_fea_H.begin(), other.pos_fsi_fea_H.end(), pos_fsi_fea_D.begin());
     thrust::copy(other.vel_fsi_fea_H.begin(), other.vel_fsi_fea_H.end(), vel_fsi_fea_D.begin());
     thrust::copy(other.acc_fsi_fea_H.begin(), other.acc_fsi_fea_H.end(), acc_fsi_fea_D.begin());
@@ -223,7 +223,7 @@ FsiShellsDataD& FsiShellsDataD::operator=(const FsiShellsDataD& other) {
     return *this;
 }
 
-FsiMeshDataD& FsiMeshDataD::operator=(const FsiMeshDataD& other) {
+FsiMeshStateD& FsiMeshStateD::operator=(const FsiMeshStateD& other) {
     if (this == &other) {
         return *this;
     }
@@ -269,8 +269,8 @@ ChSystemFsi_impl::ChSystemFsi_impl(std::shared_ptr<SimParams> params) : ChFsiBas
     fsiBodiesD1 = chrono_types::make_shared<FsiBodiesDataD>();
     fsiBodiesD2 = chrono_types::make_shared<FsiBodiesDataD>();
     fsiBodiesH = chrono_types::make_shared<FsiBodiesDataH>();
-    fsiMeshD = chrono_types::make_shared<FsiMeshDataD>();
-    fsiMeshH = chrono_types::make_shared<FsiMeshDataH>();
+    fsiMeshStateD = chrono_types::make_shared<FsiMeshStateD>();
+    fsiMeshStateH = chrono_types::make_shared<FsiMeshStateH>();
     fsiData = chrono_types::make_shared<FsiData>();
     markersProximityD = chrono_types::make_shared<ProximityDataD>();
 }
@@ -481,8 +481,8 @@ void ChSystemFsi_impl::ResizeData(size_t numRigidBodies,
     thrust::copy(fsiData->ShellElementsNodesH.begin(), fsiData->ShellElementsNodesH.end(),
                  fsiData->ShellElementsNodesD.begin());
 
-    fsiMeshD->resize(numObjectsH->numFlexNodes);
-    fsiMeshH->resize(numObjectsH->numFlexNodes);
+    fsiMeshStateD->resize(numObjectsH->numFlexNodes);
+    fsiMeshStateH->resize(numObjectsH->numFlexNodes);
     fsiData->Flex_FSI_ForcesD.resize(numObjectsH->numFlexNodes);
 }
 

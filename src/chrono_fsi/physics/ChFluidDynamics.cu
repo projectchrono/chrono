@@ -643,14 +643,14 @@ void ChFluidDynamics::Initialize() {
 void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sphMarkersD2,
                                    std::shared_ptr<SphMarkerDataD> sphMarkersD1,
                                    std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
-                                   std::shared_ptr<FsiMeshDataD> fsiMeshD,
+                                   std::shared_ptr<FsiMeshStateD> fsiMeshStateD,
                                    Real dT,
                                    Real Time) {
     if (GetIntegratorType() == TimeIntegrator::EXPLICITSPH) {
-        this->UpdateActivity(sphMarkersD1, sphMarkersD2, fsiBodiesD, fsiMeshD, Time);
-        forceSystem->ForceSPH(sphMarkersD2, fsiBodiesD, fsiMeshD);
+        this->UpdateActivity(sphMarkersD1, sphMarkersD2, fsiBodiesD, fsiMeshStateD, Time);
+        forceSystem->ForceSPH(sphMarkersD2, fsiBodiesD, fsiMeshStateD);
     } else
-        forceSystem->ForceSPH(sphMarkersD1, fsiBodiesD, fsiMeshD);
+        forceSystem->ForceSPH(sphMarkersD1, fsiBodiesD, fsiMeshStateD);
 
     if (integrator_type == TimeIntegrator::IISPH)
         this->UpdateFluid_Implicit(sphMarkersD2);
@@ -664,7 +664,7 @@ void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sphMarkersD2,
 void ChFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD1,
                                      std::shared_ptr<SphMarkerDataD> sphMarkersD2,
                                      std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
-                                     std::shared_ptr<FsiMeshDataD> fsiMeshD,
+                                     std::shared_ptr<FsiMeshStateD> fsiMeshStateD,
                                      Real Time) {
     // Update portion of the SPH particles (should be all particles here)
     int2 updatePortion = mI2(0, (int)numObjectsH->numAllMarkers);
@@ -681,7 +681,7 @@ void ChFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD
     UpdateActivityD<<<numBlocks, numThreads>>>(
         mR4CAST(sphMarkersD2->posRadD), mR3CAST(sphMarkersD1->velMasD), 
         mR3CAST(fsiBodiesD->posRigid_fsiBodies_D),
-        mR3CAST(fsiMeshD->pos_fsi_fea_D),
+        mR3CAST(fsiMeshStateD->pos_fsi_fea_D),
         U1CAST(fsiSystem.fsiData->activityIdentifierD), 
         U1CAST(fsiSystem.fsiData->extendedActivityIdD),
         updatePortion, Time, isErrorD);
