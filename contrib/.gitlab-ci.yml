@@ -286,7 +286,7 @@ linux:ubuntu22.04:deploy-python3.10:
   tags:
     - linux
   image:
-    name: uwsbel/packages:alma
+    name: uwsbel/packages:alma-test
   before_script:
     # Defining configuration variables
     - export C_COMPILER="/usr/bin/gcc"
@@ -302,7 +302,7 @@ linux:ubuntu22.04:deploy-python3.10:
     - dnf install -y epel-release
     - yum config-manager --add-repo http://developer.download.nvidia.com/compute/cuda/repos/rhel8/x86_64/cuda-rhel8.repo
     - dnf install -y vulkan-devel libXmu-devel libXi-devel fontconfig-devel
-    - dnf install -y doxygen cmake irrlicht-devel glm-devel glfw-devel glew-devel libXrandr ninja-build freeglut-devel swig python3-devel platform-python-devel intel-oneapi-mkl-devel openmpi cuda
+    - dnf install -y doxygen cmake irrlicht-devel glm-devel glfw-devel glew-devel libXrandr ninja-build freeglut-devel swig python3-devel platform-python-devel intel-oneapi-mkl-devel openmpi
     - ldconfig
     - nvidia-smi
     - git submodule init
