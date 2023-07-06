@@ -203,11 +203,9 @@ bool ChInteractiveDriverIRR::ProcessJoystickEvents(const SEvent& event) {
 
                 if (reverseGearEngaged) {
                     /// Gear is set to reverse
-                    m_vsys.m_vehicle->GetTransmission()->SetDriveMode(ChTransmission::DriveMode::REVERSE);
-                    m_vsys.m_vehicle->GetTransmission()->SetGear(0);
+                    m_vsys.m_vehicle->GetTransmission()->SetGear(-1);
                 } else if (forwardGearEngaged > 0) {
                     // All 'forward' gears set drive mode to forward, regardless of gear
-                    m_vsys.m_vehicle->GetTransmission()->SetDriveMode(ChTransmission::DriveMode::FORWARD);
                     m_vsys.m_vehicle->GetTransmission()->SetGear(forwardGearEngaged);
                 }
             }
@@ -287,13 +285,13 @@ bool ChInteractiveDriverIRR::ProcessKeyboardEvents(const SEvent& event) {
         if (transmission_auto) {
             switch (event.KeyInput.Key) {
                 case KEY_KEY_Z:
-                    if (transmission_auto->GetDriveMode() != ChTransmission::DriveMode::FORWARD)
-                        transmission_auto->SetDriveMode(ChTransmission::DriveMode::FORWARD);
+                    if (transmission_auto->GetDriveMode() != ChAutomaticTransmission::DriveMode::FORWARD)
+                        transmission_auto->SetDriveMode(ChAutomaticTransmission::DriveMode::FORWARD);
                     else
-                        transmission_auto->SetDriveMode(ChTransmission::DriveMode::REVERSE);
+                        transmission_auto->SetDriveMode(ChAutomaticTransmission::DriveMode::REVERSE);
                     return true;
                 case KEY_KEY_X:
-                    transmission_auto->SetDriveMode(ChTransmission::DriveMode::NEUTRAL);
+                    transmission_auto->SetDriveMode(ChAutomaticTransmission::DriveMode::NEUTRAL);
                     return true;
                 case KEY_KEY_T:
                     if (transmission_auto->GetShiftMode() == ChAutomaticTransmission::ShiftMode::MANUAL)

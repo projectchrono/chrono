@@ -5,6 +5,8 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [Moved drive mode to automatic transmissions](#changed-moved-drive-mode-to-automatic-transmissions)
+  - [Changed gear numbering](#changed-changed-gear-numbering)
   - [Redundant constraints remover](#added-redundant-constraints-remover)
   - [Create models through JSON/XML](#added-create-models-through-jsonxml)
   - [Serialization expanded and improved](#changed-serialization-expanded-and-improved)
@@ -86,6 +88,14 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Changed] Moved drive mode to automatic transmissions
+
+The concept of a drive mode was moved from `ChTransmission` to `ChAutomaticTransmission` as it is something that only exists for automatic transmissions. This is an API change.
+
+### [Changed] Changed gear numbering
+
+Reverse gear is now indicated as -1, making room for a neutral gear as 0. Positive numbers are still forward gears. This is a semantic change to the existing API so please review your code as your IDE will most likely not pick up on it. Added to the API is a method to return the highest (forward) gear that is available.
 
 ### [Added] Redundant constraints remover
 It is quite common to spot models, even in Chrono demos, where the number of constraints are even greater than the number of variables. While this is allowed in Chrono systems, it should be considered a bad practice. Redundant constraints unusefully increase the size of the problem, lead to noisy measurements of the link reactions, cause instability to direct solvers.  

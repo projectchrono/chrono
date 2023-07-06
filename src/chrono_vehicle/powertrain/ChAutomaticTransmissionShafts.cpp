@@ -134,7 +134,7 @@ void ChAutomaticTransmissionShafts::Synchronize(double time,
         double gearshaft_speed = m_shaft_ingear->GetPos_dt();
         if (gearshaft_speed > m_upshift_speed) {
             // upshift if possible
-            if (m_current_gear < m_gear_ratios.size() - 1) {
+            if (m_current_gear < GetMaxGear()) {
                 SetGear(m_current_gear + 1);
                 m_last_time_gearshift = time;
             }
