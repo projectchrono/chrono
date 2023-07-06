@@ -34,17 +34,25 @@
 
 #include "chrono_fsi/ChSystemFsi.h"
 
+#include "chrono_fsi/visualization/ChFsiVisualization.h"
 #ifdef CHRONO_OPENGL
     #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
+#endif
+#ifdef CHRONO_VSG
+    #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-// Chrono namespaces
 using namespace chrono;
 using namespace chrono::fea;
 using namespace chrono::collision;
 using namespace chrono::fsi;
+
+// -----------------------------------------------------------------
+
+// Run-time visualization system (OpenGL or VSG)
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Set the output directory
 const std::string out_dir = GetChronoOutputPath() + "FSI_Flexible_Flat_Plate/";
@@ -70,11 +78,15 @@ double t_end = 10.0;
 
 // Enable/disable run-time visualization (if Chrono::OpenGL is available)
 bool render = true;
-float render_fps = 100;
+float render_fps = 500;
 
 std::vector<std::vector<int>> NodeNeighborElement_mesh;
 
+// -----------------------------------------------------------------
+
 void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI);
+
+// -----------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
     // Create oputput directories
@@ -144,17 +156,48 @@ int main(int argc, char* argv[]) {
     sysFSI.Initialize();
     auto my_mesh = sysFSI.GetFsiMesh();
 
-#ifdef CHRONO_OPENGL
     // Create a run-tme visualizer
-    ChFsiVisualizationGL fsi_vis(&sysFSI);
-    if (render) {
-        fsi_vis.SetTitle("Chrono::FSI Flexible Flat Plate Demo");
-        fsi_vis.UpdateCamera(ChVector<>(bxDim / 8, -3, 0.25), ChVector<>(bxDim / 8, 0.0, 0.25));
-        fsi_vis.SetCameraMoveScale(1.0f);
-        fsi_vis.EnableBoundaryMarkers(true);
-        fsi_vis.Initialize();
-    }
+#ifndef CHRONO_OPENGL
+    if (vis_type == ChVisualSystem::Type::OpenGL)
+        vis_type = ChVisualSystem::Type::VSG;
 #endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::OpenGL;
+#endif
+#if !defined(CHRONO_OPENGL) && !defined(CHRONO_VSG)
+    render = false;
+#endif
+
+    std::shared_ptr<ChFsiVisualization> visFSI;
+    if (render) {
+        switch (vis_type) {
+            case ChVisualSystem::Type::OpenGL:
+#ifdef CHRONO_OPENGL
+                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
+                visFSI->AddCamera(ChVector<>(0, -2, 0.25), ChVector<>(0, 0, 0.25));
+#endif
+                break;
+            case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+                visFSI->AddCamera(ChVector<>(0, -4, 0.25), ChVector<>(0, 0, 0.25));
+#endif
+                break;
+            }
+        }
+
+        visFSI->SetTitle("Chrono::FSI flexible plate");
+        visFSI->SetSize(1280, 720);
+        visFSI->SetCameraMoveScale(1.0f);
+        visFSI->EnableBoundaryMarkers(true);
+        visFSI->EnableFlexBodyMarkers(true);
+        visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
+        visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
+        visFSI->SetSPHColorCallback(chrono_types::make_shared<HeightColorCallback>(0, 1.2));
+        visFSI->AttachSystem(&sysMBS);
+        visFSI->Initialize();
+    }
 
 // Set MBS solver
 #ifdef CHRONO_PARDISO_MKL
@@ -194,13 +237,10 @@ int main(int argc, char* argv[]) {
             fea::ChMeshExporter::WriteFrame(my_mesh, MESH_CONNECTIVITY, filename);
         }
 
-#ifdef CHRONO_OPENGL
-        // Render SPH particles
         if (render && current_step % render_steps == 0) {
-            if (!fsi_vis.Render())
+            if (!visFSI->Render())
                 break;
         }
-#endif
 
         sysFSI.DoStepDynamics_FSI();
 
@@ -243,6 +283,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     double plate_lenght_y = byDim;
     double plate_lenght_z = initSpace0 * 40;
     ChVector<> center_plate(0.0, 0.0, plate_lenght_z / 2 + 1 * initSpace0);
+    ////ChVector<> center_plate(-0.25, 0.0, plate_lenght_z / 2 + 1 * initSpace0);
 
     // Specification of the mesh
     int numDiv_x = 1;
@@ -335,13 +376,14 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     }
     // Add the mesh to the system
     sysMBS.Add(my_mesh);
+    fea::ChMeshExporter::WriteMesh(my_mesh, MESH_CONNECTIVITY);
 
     // fluid representation of flexible bodies
     bool multilayer = true;
     bool removeMiddleLayer = true;
+    sysFSI.AddFsiMesh(my_mesh, std::vector<std::vector<int>>(), _2D_elementsNodes_mesh);
     sysFSI.AddFEAmeshBCE(my_mesh, NodeNeighborElement_mesh, std::vector<std::vector<int>>(), _2D_elementsNodes_mesh,
                          false, true, multilayer, removeMiddleLayer, 0, 0);
 
-    sysFSI.AddFsiMesh(my_mesh, std::vector<std::vector<int>>(), _2D_elementsNodes_mesh);
-    fea::ChMeshExporter::WriteMesh(my_mesh, MESH_CONNECTIVITY);
+    ////sysFSI.AddFsiMesh(my_mesh, false);
 }
