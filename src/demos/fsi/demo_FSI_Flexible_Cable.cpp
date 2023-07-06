@@ -35,17 +35,25 @@
 
 #include "chrono_fsi/ChSystemFsi.h"
 
+#include "chrono_fsi/visualization/ChFsiVisualization.h"
 #ifdef CHRONO_OPENGL
     #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
+#endif
+#ifdef CHRONO_VSG
+    #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-// Chrono namespaces
 using namespace chrono;
 using namespace chrono::fea;
 using namespace chrono::collision;
 using namespace chrono::fsi;
+
+// -----------------------------------------------------------------
+
+// Run-time visualization system (OpenGL or VSG)
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Set the output directory
 const std::string out_dir = GetChronoOutputPath() + "FSI_Flexible_Cable/";
@@ -155,17 +163,49 @@ int main(int argc, char* argv[]) {
     sysFSI.Initialize();
     auto my_mesh = sysFSI.GetFsiMesh();
 
-#ifdef CHRONO_OPENGL
     // Create a run-tme visualizer
-    ChFsiVisualizationGL fsi_vis(&sysFSI);
-    if (render) {
-        fsi_vis.SetTitle("Chrono::FSI Flexible Flat Plate Demo");
-        fsi_vis.AddCamera(ChVector<>(bxDim / 8, -3, 0.25), ChVector<>(bxDim / 8, 0.0, 0.25));
-        fsi_vis.SetCameraMoveScale(1.0f);
-        fsi_vis.EnableBoundaryMarkers(true);
-        fsi_vis.Initialize();
-    }
+#ifndef CHRONO_OPENGL
+    if (vis_type == ChVisualSystem::Type::OpenGL)
+        vis_type = ChVisualSystem::Type::VSG;
 #endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::OpenGL;
+#endif
+#if !defined(CHRONO_OPENGL) && !defined(CHRONO_VSG)
+    render = false;
+#endif
+
+    std::shared_ptr<ChFsiVisualization> visFSI;
+    if (render) {
+        switch (vis_type) {
+            case ChVisualSystem::Type::OpenGL:
+#ifdef CHRONO_OPENGL
+                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
+                visFSI->AddCamera(ChVector<>(0, -2, 0.25), ChVector<>(0, 0, 0.25));
+#endif
+                break;
+            case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+                visFSI->AddCamera(ChVector<>(0, -4, 0.25), ChVector<>(0, 0, 0.25));
+#endif
+                break;
+            }
+        }
+
+        visFSI->SetTitle("Chrono::FSI flexible cable");
+        visFSI->SetSize(1280, 720);
+        visFSI->SetCameraMoveScale(1.0f);
+        visFSI->EnableBoundaryMarkers(true);
+        visFSI->EnableFlexBodyMarkers(true);
+        visFSI->SetColorFlexBodyMarkers(ChColor(1, 1, 1));
+        visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
+        visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
+        visFSI->SetSPHColorCallback(chrono_types::make_shared<HeightColorCallback>(0, 1.2));
+        visFSI->AttachSystem(&sysMBS);
+        visFSI->Initialize();
+    }
 
 // Set MBS solver
 #ifdef CHRONO_PARDISO_MKL
@@ -205,13 +245,10 @@ int main(int argc, char* argv[]) {
             fea::ChMeshExporter::WriteFrame(my_mesh, MESH_CONNECTIVITY, filename);
         }
 
-#ifdef CHRONO_OPENGL
-        // Render SPH particles
         if (render && current_step % render_steps == 0) {
-            if (!fsi_vis.Render())
+            if (!visFSI->Render())
                 break;
         }
-#endif
 
         sysFSI.DoStepDynamics_FSI();
 
