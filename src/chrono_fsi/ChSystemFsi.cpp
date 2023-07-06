@@ -2290,10 +2290,6 @@ std::vector<std::shared_ptr<ChBody>>& ChSystemFsi::GetFsiBodies() const {
     return m_fsi_interface->m_fsi_bodies;
 }
 
-std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& ChSystemFsi::GetFsiNodes() const {
-    return m_fsi_interface->m_fsi_nodes;
-}
-
 std::shared_ptr<fea::ChMesh> ChSystemFsi::GetFsiMesh() const {
     return m_fsi_interface->m_fsi_mesh;
 }

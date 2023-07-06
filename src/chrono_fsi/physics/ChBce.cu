@@ -173,26 +173,31 @@ __global__ void Calc_Rigid_FSI_Forces_Torques_D(Real3* rigid_FSI_ForcesD,
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-__global__ void Calc_Flex_FSI_ForcesD(Real3* FlexSPH_MeshPos_LRF_D,
-                                      uint* FlexIdentifierD,
-                                      uint2* CableElementsNodesD,
-                                      uint4* ShellElementsNodesD,
-                                      Real4* derivVelRhoD,
-                                      Real4* derivVelRhoD_old,
-                                      Real3* pos_fsi_fea_D,
-                                      Real3* Flex_FSI_ForcesD) {
+// Accumulate force acting on FEA nodes in Flex_FSI_ForcesD.
+__global__ void Calc_Flex_FSI_ForcesD(
+    Real3* FlexSPH_MeshPos_LRF_D,  // local (normalized) coordinates for flex BCE markers
+    uint* FlexIdentifierD,         // association of a flex BCE with a mesh element
+    uint2* CableElementsNodesD,    // indices of 2 FEA mesh nodes for each cable element
+    uint4* ShellElementsNodesD,    // indices of 4 FEA mesh nodes for each shell element
+    Real4* derivVelRhoD,           // dv/dt
+    Real4* derivVelRhoD_old,       // dv/dt
+    Real3* pos_fsi_fea_D,          // positions of FEA nodes
+    Real3* Flex_FSI_ForcesD        // forces acting on FEA nodes
+) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numObjectsD.numFlexMarkers)
         return;
 
-    int FlexIndex = FlexIdentifierD[index];
-    uint FlexMarkerIndex = index + numObjectsD.startFlexMarkers;
+    uint FlexMarkerIndex = index + numObjectsD.startFlexMarkers;  // index of entry for this flex BCE marker
+    uint FlexIndex = FlexIdentifierD[index];                      // index of associated FEA mesh element
+    int numFlex1D = numObjectsD.numFlexBodies1D;                  // number of cable elements (from static memory)
+
+    // Fluid force on BCE marker
     Real3 Force = (mR3(derivVelRhoD[FlexMarkerIndex]) * paramsD.Beta +
                    mR3(derivVelRhoD_old[FlexMarkerIndex]) * (1 - paramsD.Beta)) *
                   paramsD.markerMass;
 
-    int numFlex1D = numObjectsD.numFlexBodies1D;
-
+    // First numFlex1D elements are ANCF cable elements
     if (FlexIndex < numFlex1D) {
         // Real2 N_cable = Cables_ShapeFunctions(FlexSPH_MeshPos_LRF_D[index].x);
         // Real NA = N_cable.x;
@@ -203,6 +208,7 @@ __global__ void Calc_Flex_FSI_ForcesD(Real3* FlexSPH_MeshPos_LRF_D,
         int nA = CableElementsNodesD[FlexIndex].x;
         int nB = CableElementsNodesD[FlexIndex].y;
 
+        // Split BCE marker force to the 2 nodes of the FEA cable element and accumulate
         if (std::is_same<Real, double>::value) {
             atomicAdd_double((double*)&(Flex_FSI_ForcesD[nA].x), NA * Force.x);
             atomicAdd_double((double*)&(Flex_FSI_ForcesD[nA].y), NA * Force.y);
@@ -221,6 +227,8 @@ __global__ void Calc_Flex_FSI_ForcesD(Real3* FlexSPH_MeshPos_LRF_D,
             atomicAdd((float*)&(Flex_FSI_ForcesD[nB].z), NB * Force.z);
         }
     }
+
+    // All other elements are ANCF shell elements
     if (FlexIndex >= numFlex1D) {
         Real4 N_shell = Shells_ShapeFunctions(FlexSPH_MeshPos_LRF_D[index].x, FlexSPH_MeshPos_LRF_D[index].y);
 
@@ -234,6 +242,7 @@ __global__ void Calc_Flex_FSI_ForcesD(Real3* FlexSPH_MeshPos_LRF_D,
         int nC = ShellElementsNodesD[FlexIndex - numFlex1D].z;
         int nD = ShellElementsNodesD[FlexIndex - numFlex1D].w;
 
+        // Split BCE marker force to the 2 nodes of the FEA cable element and accumulate
         if (std::is_same<Real, double>::value) {
             atomicAdd_double((double*)&(Flex_FSI_ForcesD[nA].x), NA * Force.x);
             atomicAdd_double((double*)&(Flex_FSI_ForcesD[nA].y), NA * Force.y);
@@ -497,6 +506,7 @@ __global__ void CalcFlexBceAccelerationD(Real3* bceAcc,
 
         bceAcc[bceIndex + numObjectsD.numRigidMarkers] = NA * acc_fsi_fea_D_nA + NB * acc_fsi_fea_D_nB;
     }
+
     // BCE acc on shell elements
     if (FlexIndex >= numFlex1D && FlexIndex < numFlex2D) {
         uint4 shellNodes = ShellElementsNodesD[FlexIndex - numFlex1D];
@@ -554,38 +564,43 @@ __global__ void UpdateBodyMarkerStateD(Real4* posRadD,
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-__global__ void UpdateMeshMarkerStateD(Real4* posRadD,
-                                       Real3* FlexSPH_MeshPos_LRF_D,
-                                       Real3* velMasD,
-                                       const uint* FlexIdentifierD,
-                                       uint2* CableElementsNodesD,
-                                       uint4* ShellElementsNodesD,
-                                       Real3* pos_fsi_fea_D,
-                                       Real3* vel_fsi_fea_D,
-                                       Real3* dir_fsi_fea_D) {
+// Set the entries corresponding to BCE markers for FEA mesh elements in posRadD and velMasD.
+__global__ void UpdateMeshMarkerStateD(
+    Real4* posRadD,                // marker positions (output)
+    Real3* FlexSPH_MeshPos_LRF_D,  // local (normalized) coordinates for flex BCE markers
+    Real3* velMasD,                // marker velocities (output)
+    const uint* FlexIdentifierD,   // association of a flex BCE with a mesh element
+    uint2* CableElementsNodesD,    // indices of 2 FEA mesh nodes for each cable element
+    uint4* ShellElementsNodesD,    // indices of 4 FEA mesh nodes for each shell element
+    Real3* pos_fsi_fea_D,          // positions of FEA nodes
+    Real3* vel_fsi_fea_D,          // velocities of FEA nodes
+    Real3* dir_fsi_fea_D           // directions of FEA nodes (on ANCF elements)
+) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numObjectsD.numFlexMarkers)
         return;
 
-    uint FlexMarkerIndex = index + numObjectsD.startFlexMarkers;
-    uint FlexIndex = FlexIdentifierD[index];
-    uint numFlex1D = numObjectsD.numFlexBodies1D;
+    uint FlexMarkerIndex = index + numObjectsD.startFlexMarkers;  // index of entry for this flex BCE marker
+    uint FlexIndex = FlexIdentifierD[index];                      // index of associated FEA mesh element
+    uint numFlex1D = numObjectsD.numFlexBodies1D;                 // number of cable elements (from static memory)
 
     Real Spacing = paramsD.HSML * paramsD.MULT_INITSPACE_Shells;
 
+    // First numFlex1D elements are ANCF cable elements
     if (FlexIndex < numFlex1D) {
-        uint2 CableNodes = CableElementsNodesD[FlexIndex];
-        Real3 pos_fsi_fea_D_nA = pos_fsi_fea_D[CableNodes.x];
-        Real3 pos_fsi_fea_D_nB = pos_fsi_fea_D[CableNodes.y];
+        uint2 CableNodes = CableElementsNodesD[FlexIndex];     // indices of the 2 nodes on associated element
+        Real3 pos_fsi_fea_D_nA = pos_fsi_fea_D[CableNodes.x];  // (absolute) position of node 1
+        Real3 pos_fsi_fea_D_nB = pos_fsi_fea_D[CableNodes.y];  // (absolute) position of node 2
 
-        Real3 dir_fsi_fea_D_nA = dir_fsi_fea_D[CableNodes.x];
-        Real3 dir_fsi_fea_D_nB = dir_fsi_fea_D[CableNodes.y];
+        Real3 dir_fsi_fea_D_nA = dir_fsi_fea_D[CableNodes.x];  // ANCF direction of node 1
+        Real3 dir_fsi_fea_D_nB = dir_fsi_fea_D[CableNodes.y];  // ANCF direction of node 2
 
         //// TODO, the direction should be calculated based on node direction and shape function
         // Real3 x_dir = pos_fsi_fea_D_nB - pos_fsi_fea_D_nA;
         // x_dir = x_dir / length(x_dir);
-        Real l = length(pos_fsi_fea_D_nB - pos_fsi_fea_D_nA);
+        Real l = length(pos_fsi_fea_D_nB - pos_fsi_fea_D_nA);  // current length of asociated cable element
 
+        // Derivative of shape functions derivatives at (local) BCE marker position
         Real4 N_dir = Cables_ShapeFunctionsDerivatives(l, FlexSPH_MeshPos_LRF_D[index].x);
 
         Real3 x_dir = normalize(N_dir.x * pos_fsi_fea_D_nA + N_dir.y * dir_fsi_fea_D_nA + N_dir.z * pos_fsi_fea_D_nB +
@@ -595,6 +610,7 @@ __global__ void UpdateMeshMarkerStateD(Real4* posRadD,
         y_dir = y_dir / length(y_dir);
         Real3 z_dir = cross(x_dir, y_dir);
 
+        // Shape functions at (local, normalized) BCE marker position
         Real4 N_cable = Cables_ShapeFunctions(l, FlexSPH_MeshPos_LRF_D[index].x);
 
         Real NA = N_cable.x;
@@ -602,30 +618,35 @@ __global__ void UpdateMeshMarkerStateD(Real4* posRadD,
         Real NB = N_cable.z;
         Real NBdir = N_cable.w;
 
-        Real3 vel_fsi_fea_D_nA = vel_fsi_fea_D[CableNodes.x];
-        Real3 vel_fsi_fea_D_nB = vel_fsi_fea_D[CableNodes.y];
+        Real3 vel_fsi_fea_D_nA = vel_fsi_fea_D[CableNodes.x];  // (absolute) velocity of node 1
+        Real3 vel_fsi_fea_D_nB = vel_fsi_fea_D[CableNodes.y];  // (absolute) velocity of node 2
 
-        Real h = posRadD[FlexMarkerIndex].w;
+        Real h = posRadD[FlexMarkerIndex].w;  // SPH kernel h
+
+        // Current position of the flex BCE marker
         Real3 tempPos = NA * pos_fsi_fea_D_nA + NAdir * dir_fsi_fea_D_nA + NB * pos_fsi_fea_D_nB +
                         NBdir * dir_fsi_fea_D_nB + FlexSPH_MeshPos_LRF_D[index].y * y_dir +
                         FlexSPH_MeshPos_LRF_D[index].z * z_dir;
 
+        // Set postion and velocity of flex BCE marker
         posRadD[FlexMarkerIndex] = mR4(tempPos, h);
         velMasD[FlexMarkerIndex] = NA * vel_fsi_fea_D_nA + NB * vel_fsi_fea_D_nB;
     }
 
+    // All other elements are ANCF shell elements
     if (FlexIndex >= numFlex1D) {
-        uint4 shellNodes = ShellElementsNodesD[FlexIndex - numFlex1D];
-        Real3 pos_fsi_fea_D_nA = pos_fsi_fea_D[shellNodes.x];
-        Real3 pos_fsi_fea_D_nB = pos_fsi_fea_D[shellNodes.y];
-        Real3 pos_fsi_fea_D_nC = pos_fsi_fea_D[shellNodes.z];
-        Real3 pos_fsi_fea_D_nD = pos_fsi_fea_D[shellNodes.w];
+        uint4 shellNodes = ShellElementsNodesD[FlexIndex - numFlex1D];  // indices of the 4 nodes on associated element
+        Real3 pos_fsi_fea_D_nA = pos_fsi_fea_D[shellNodes.x];           // (absolute) position of node A
+        Real3 pos_fsi_fea_D_nB = pos_fsi_fea_D[shellNodes.y];           // (absolute) position of node B
+        Real3 pos_fsi_fea_D_nC = pos_fsi_fea_D[shellNodes.z];           // (absolute) position of node C
+        Real3 pos_fsi_fea_D_nD = pos_fsi_fea_D[shellNodes.w];           // (absolute) position of node D
 
-        Real3 dir_fsi_fea_D_nA = dir_fsi_fea_D[shellNodes.x];
-        Real3 dir_fsi_fea_D_nB = dir_fsi_fea_D[shellNodes.y];
-        Real3 dir_fsi_fea_D_nC = dir_fsi_fea_D[shellNodes.z];
-        Real3 dir_fsi_fea_D_nD = dir_fsi_fea_D[shellNodes.w];
+        Real3 dir_fsi_fea_D_nA = dir_fsi_fea_D[shellNodes.x];  // ANCF direction of node A
+        Real3 dir_fsi_fea_D_nB = dir_fsi_fea_D[shellNodes.y];  // ANCF direction of node B
+        Real3 dir_fsi_fea_D_nC = dir_fsi_fea_D[shellNodes.z];  // ANCF direction of node C
+        Real3 dir_fsi_fea_D_nD = dir_fsi_fea_D[shellNodes.w];  // ANCF direction of node D
 
+        // Shape functions at (local, normalized) BCE marker position (x,y)
         Real4 N_shell = Shells_ShapeFunctions(FlexSPH_MeshPos_LRF_D[index].x, FlexSPH_MeshPos_LRF_D[index].y);
 
         Real NA = N_shell.x;
@@ -633,18 +654,22 @@ __global__ void UpdateMeshMarkerStateD(Real4* posRadD,
         Real NC = N_shell.z;
         Real ND = N_shell.w;
 
+        // Element normal direction
         Real3 Normal =
             normalize(NA * dir_fsi_fea_D_nA + NB * dir_fsi_fea_D_nB + NC * dir_fsi_fea_D_nC + ND * dir_fsi_fea_D_nD);
 
-        Real3 vel_fsi_fea_D_nA = vel_fsi_fea_D[shellNodes.x];
-        Real3 vel_fsi_fea_D_nB = vel_fsi_fea_D[shellNodes.y];
-        Real3 vel_fsi_fea_D_nC = vel_fsi_fea_D[shellNodes.z];
-        Real3 vel_fsi_fea_D_nD = vel_fsi_fea_D[shellNodes.w];
+        Real3 vel_fsi_fea_D_nA = vel_fsi_fea_D[shellNodes.x];  // (absolute) velocity of node A
+        Real3 vel_fsi_fea_D_nB = vel_fsi_fea_D[shellNodes.y];  // (absolute) velocity of node B
+        Real3 vel_fsi_fea_D_nC = vel_fsi_fea_D[shellNodes.z];  // (absolute) velocity of node C
+        Real3 vel_fsi_fea_D_nD = vel_fsi_fea_D[shellNodes.w];  // (absolute) velocity of node D
 
-        Real h = posRadD[FlexMarkerIndex].w;
+        Real h = posRadD[FlexMarkerIndex].w;  // SPH kernel h
+
+        // Current position of the flex BCE marker
         Real3 tempPos = NA * pos_fsi_fea_D_nA + NB * pos_fsi_fea_D_nB + NC * pos_fsi_fea_D_nC + ND * pos_fsi_fea_D_nD +
                         Normal * FlexSPH_MeshPos_LRF_D[index].z * Spacing;
 
+        // Set postion and velocity of flex BCE marker
         posRadD[FlexMarkerIndex] = mR4(tempPos, h);
         velMasD[FlexMarkerIndex] =
             NA * vel_fsi_fea_D_nA + NB * vel_fsi_fea_D_nB + NC * vel_fsi_fea_D_nC + ND * vel_fsi_fea_D_nD;

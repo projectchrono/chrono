@@ -269,22 +269,8 @@ class CH_FSI_API ChSystemFsi {
     std::vector<std::shared_ptr<ChBody>>& GetFsiBodies() const;
 
     /// Return the FSI mesh for flexible elements.
+    //// RADU - obsolete
     std::shared_ptr<fea::ChMesh> GetFsiMesh() const;
-
-    /// Get a reference to the FSI ChNodeFEAxyzD.
-    /// FSI ChNodeFEAxyzD are the ones seen by the fluid dynamics system.
-    std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& GetFsiNodes() const;
-
-    /// Add a rigid body to the FSI system.
-    void AddFsiBody(std::shared_ptr<ChBody> body);
-
-    /// Add an FEA mesh to the FSI system.
-    void AddFsiMesh(std::shared_ptr<fea::ChMesh> my_mesh, bool centered = false);
-
-    /// Add an FEA mesh to the FSI system.
-    void AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh,
-                    const std::vector<std::vector<int>>& beam_elements,
-                    const std::vector<std::vector<int>>& shell_elements);
 
     /// Complete construction of the FSI system (fluid and BDE objects).
     /// Use parameters read from JSON file and/or specified through various Set functions.
@@ -322,12 +308,15 @@ class CH_FSI_API ChSystemFsi {
     /// The SPH particles are created on a uniform grid with resolution equal to the FSI initial separation.
     void AddBoxSPH(const ChVector<>& boxCenter, const ChVector<>& boxHalfDim);
 
-    // ----------- Functions for adding BCE markers in various volumes
+    // ----------- Functions for adding bodies and associated BCE markers for different shapes
+
+    /// Add a rigid body to the FSI system.
+    void AddFsiBody(std::shared_ptr<ChBody> body);
 
     /// Add BCE markers for a rectangular plate of specified X-Y dimensions and associate them with the given body.
     /// BCE markers are created in a number of layers corresponding to system parameters.
     /// X-Y BCE layers are created in the negative Z direction of the plate orientation frame.
-    /// Such a plate is assumed to be used as boundary.
+    /// Such a plate is assumed to be used as a fixed boundary and the associated body is not tracked in FSI.
     void AddWallBCE(std::shared_ptr<ChBody> body, const ChFrame<>& frame, const ChVector2<> size);
 
     /// Add BCE markers for a box container of specified dimensions and associate them with the given body.
@@ -337,6 +326,7 @@ class CH_FSI_API ChSystemFsi {
     /// of -1 indicates the face in the negative direction, a value of +1 indicates the face in the positive direction,
     /// and a value of 2 indicates both faces. Setting a value of 0 does not create container faces in that direction.
     /// BCE markers are created in a number of layers corresponding to system parameters.
+    /// Such a container is assumed to be used as a fixed boundary and the associated body is not tracked in FSI.
     void AddBoxContainerBCE(std::shared_ptr<ChBody> body,
                             const ChFrame<>& frame,
                             const ChVector<>& size,
@@ -403,6 +393,17 @@ class CH_FSI_API ChSystemFsi {
                         const std::vector<ChVector<>>& points,
                         const ChFrame<>& frame,
                         bool solid);
+
+    // ----------- Functions for adding FEA meshes and associated BCE markers
+
+    /// Add an FEA mesh to the FSI system.
+    void AddFsiMesh(std::shared_ptr<fea::ChMesh> my_mesh, bool centered = false);
+
+    /// Add an FEA mesh to the FSI system.
+    //// RADU - obsolete
+    void AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh,
+                    const std::vector<std::vector<int>>& beam_elements,
+                    const std::vector<std::vector<int>>& shell_elements);
 
     /// Add BCE markers from mesh.
     //// RADU - obsolete
