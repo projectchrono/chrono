@@ -801,11 +801,15 @@ void ChBce::Populate_FlexSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMark
     uint nBlocks, nThreads;
     computeGridSize((uint)numObjectsH->numFlexMarkers, 256, nBlocks, nThreads);
 
+    m_fsiGeneralData->FlexSPH_MeshPos_LRF_D = m_fsiGeneralData->FlexSPH_MeshPos_LRF_H;
+
+    /*
     thrust::device_vector<Real3> FlexSPH_MeshPos_LRF_H = m_fsiGeneralData->FlexSPH_MeshPos_LRF_H;
     Populate_FlexSPH_MeshPos_LRF_D<<<nBlocks, nThreads>>>(
         mR3CAST(m_fsiGeneralData->FlexSPH_MeshPos_LRF_D), mR3CAST(FlexSPH_MeshPos_LRF_H), mR4CAST(sphMarkersD->posRadD),
         U1CAST(m_fsiGeneralData->FlexIdentifierD), U2CAST(m_fsiGeneralData->CableElementsNodesD),
         U4CAST(m_fsiGeneralData->ShellElementsNodesD), mR3CAST(fsiMeshStateD->pos_fsi_fea_D));
+    */
 
     cudaDeviceSynchronize();
     cudaCheckError();

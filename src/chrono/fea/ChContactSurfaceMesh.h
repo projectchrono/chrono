@@ -420,6 +420,33 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
 
 // -----------------------------------------------------------------------------
 
+/// Contact element of segment type.
+/// Used to 'tessellate' FEA meshes with 1-D elements for collision purposes.
+class ChApi ChContactSegmentXYZ {
+  public:
+    ChContactSegmentXYZ() : m_owns_node({true, true}) {}
+    ChContactSegmentXYZ(const std::array<std::shared_ptr<ChNodeFEAxyz>, 2>& nodes)
+        : m_nodes(nodes), m_owns_node({true, true}) {}
+
+    /// Set the FEA nodes for which this is a proxy.
+    void SetNodes(const std::array<std::shared_ptr<ChNodeFEAxyz>, 2>& nodes) { m_nodes = nodes; }
+
+    /// Set node ownership.
+    void SetNodeOwnership(const ChVector2<bool>& owns_node) { m_owns_node = owns_node; }
+
+    /// Acccess the specified FEA node for which this is a proxy.
+    std::shared_ptr<ChNodeFEAxyz> GetNode(int i) const { return m_nodes[i]; }
+
+    /// Returns true if the specified node is owned by this segment.
+    bool OwnsNode(int i) const { return m_owns_node[i]; }
+
+  private:
+    std::array<std::shared_ptr<ChNodeFEAxyz>, 2> m_nodes;
+    ChVector2<bool> m_owns_node;
+};
+
+// -----------------------------------------------------------------------------
+
 /// Class which defines a contact surface for FEA elements, using a mesh of triangles.
 /// Differently from ChContactSurfaceNodeCloud, this also captures the node-vs-face and edge-vs-edge cases, but has a
 /// higher computational overhead.

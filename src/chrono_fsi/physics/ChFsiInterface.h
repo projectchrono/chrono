@@ -28,6 +28,7 @@ namespace chrono {
 // Forward declarations
 namespace fea {
 class ChContactSurfaceMesh;
+class ChContactSegmentXYZ;
 class ChNodeFEAxyzD;
 class ChMesh;
 class ChElementCableANCF;
@@ -69,18 +70,28 @@ class ChFsiInterface : public ChFsiBase {
     void ApplyMeshForce_Fsi2Chrono();
 
   private:
-    struct FsiMesh {
-        std::shared_ptr<fea::ChContactSurfaceMesh> contact_surface;     // FEA mesh skin
-        std::map<std::shared_ptr<fea::ChNodeFEAxyz>, int> ptr2ind_map;  // pointer-based index-based mapping
-        std::map<int, std::shared_ptr<fea::ChNodeFEAxyz>> ind2ptr_map;  // index-based to pointer-based mapping
-        int num_bce;                                                    // number of BCE markers for this mesh
+    /// Description of an FEA mesh with 1-D segments exposed to the FSI system.
+    struct FsiMesh1D {
+        std::vector<std::shared_ptr<fea::ChContactSegmentXYZ>> segments;  ///< contact segments (pairs of FEA nodes)
+        std::map<std::shared_ptr<fea::ChNodeFEAxyz>, int> ptr2ind_map;    ///< pointer-based index-based mapping
+        std::map<int, std::shared_ptr<fea::ChNodeFEAxyz>> ind2ptr_map;    ///< index-based to pointer-based mapping
+        int num_bce;                                                      ///< number of BCE markers for this mesh
+    };
+
+    /// Description of an FEA mesh with 2-D faces exposed to the FSI system.
+    struct FsiMesh2D {
+        std::shared_ptr<fea::ChContactSurfaceMesh> contact_surface;     ///< FEA mesh skin
+        std::map<std::shared_ptr<fea::ChNodeFEAxyz>, int> ptr2ind_map;  ///< pointer-based index-based mapping
+        std::map<int, std::shared_ptr<fea::ChNodeFEAxyz>> ind2ptr_map;  ///< index-based to pointer-based mapping
+        int num_bce;                                                    ///< number of BCE markers for this mesh
     };
 
     ChSystemFsi_impl& m_sysFSI;  ///< FSI system
     bool m_verbose;              ///< enable/disable m_verbose terminal output (default: true)
 
     std::vector<std::shared_ptr<ChBody>> m_fsi_bodies;  ///< rigid bodies exposed to the FSI system
-    std::vector<FsiMesh> m_fsi_meshes;                  ///< FEA meshes exposed to the FSI system
+    std::vector<FsiMesh1D> m_fsi_meshes1D;              ///< FEA meshes with 1-D segments exposed to the FSI system
+    std::vector<FsiMesh2D> m_fsi_meshes2D;              ///< FEA meshes with 2-D faces exposed to the FSI system
 
     //// RADU - obsolete
     std::shared_ptr<fea::ChMesh> m_fsi_mesh;

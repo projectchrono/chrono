@@ -385,5 +385,5 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     sysFSI.AddFEAmeshBCE(my_mesh, NodeNeighborElement_mesh, std::vector<std::vector<int>>(), _2D_elementsNodes_mesh,
                          false, true, multilayer, removeMiddleLayer, 0, 0);
 
-    ////sysFSI.AddFsiMesh(my_mesh, false);
+    ////sysFSI.AddFsiMesh2D(my_mesh, false);
 }

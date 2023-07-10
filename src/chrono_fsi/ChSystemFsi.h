@@ -28,6 +28,7 @@
 
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/ChDefinitionsFsi.h"
+#include "chrono_fsi/physics/ChFsiInterface.h"
 #include "chrono_fsi/math/custom_math.h"
 
 namespace chrono {
@@ -37,6 +38,7 @@ namespace fea {
 class ChNodeFEAxyzD;
 class ChMesh;
 class ChContactSurfaceMesh;
+class ChContactSegmentXYZ;
 class ChElementCableANCF;
 class ChElementShellANCF_3423;
 }  // namespace fea
@@ -396,8 +398,11 @@ class CH_FSI_API ChSystemFsi {
 
     // ----------- Functions for adding FEA meshes and associated BCE markers
 
-    /// Add an FEA mesh to the FSI system.
-    void AddFsiMesh(std::shared_ptr<fea::ChMesh> my_mesh, bool centered = false);
+    /// Add an FEA mesh with segment contact to the FSI system.
+    void AddFsiMesh1D(std::shared_ptr<fea::ChMesh> mesh);
+
+    /// Add an FEA mesh with surface contact to the FSI system.
+    void AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, bool centered = false);
 
     /// Add an FEA mesh to the FSI system.
     //// RADU - obsolete
@@ -529,9 +534,13 @@ class CH_FSI_API ChSystemFsi {
                      bool add_to_fluid_helpers,
                      bool add_to_previous);
 
+    /// Create and add BCE markers associated with the given set of contact segments.
+    /// The BCE markers are created in the absolute coordinate frame.
+    int AddBCE_mesh1D(int meshID, const ChFsiInterface::FsiMesh1D& fsi_mesh);
+
     /// Create and add BCE markers associated with the given mesh contact surface.
     /// The BCE markers are created in the absolute coordinate frame.
-    int AddBCE_mesh(std::shared_ptr<fea::ChContactSurfaceMesh> mesh, bool centered);
+    int AddBCE_mesh2D(int meshID, const ChFsiInterface::FsiMesh2D& fsi_mesh, bool centered);
 
     //// RADU - obsolete
     void AddBCE_cable(const thrust::host_vector<Real4>& posRadBCE, std::shared_ptr<fea::ChElementCableANCF> cable);

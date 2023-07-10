@@ -180,11 +180,20 @@ struct FsiData {
 
     // BCE
     thrust::device_vector<Real3> rigidSPH_MeshPos_LRF_D;  ///< Rigid body BCE position (local reference frame)
-    thrust::device_vector<Real3> FlexSPH_MeshPos_LRF_D;   ///< Flex body BCE position (local coordinates) - device
-    thrust::host_vector<Real3> FlexSPH_MeshPos_LRF_H;     ///< Flex body BCE position (local coordinates) - host
+    thrust::host_vector<Real3> flexSPH_MeshPos1D_LRF_H; 
+    thrust::device_vector<Real3> flexSPH_MeshPos1D_LRF_D; 
+    thrust::host_vector<Real3> flexSPH_MeshPos2D_LRF_H;
+    thrust::device_vector<Real3> flexSPH_MeshPos2D_LRF_D; 
+    thrust::device_vector<Real3> FlexSPH_MeshPos_LRF_D;   ///< Flex body BCE position (local coordinates) - device //// OBSOLETE
+    thrust::host_vector<Real3> FlexSPH_MeshPos_LRF_H;     ///< Flex body BCE position (local coordinates) - host //// OBSOLETE
 
     thrust::device_vector<uint> rigidIdentifierD;  ///< Identifies which rigid body a particle belongs to
-    thrust::device_vector<uint> FlexIdentifierD;   ///< Identifies which flexible body a particle belongs to
+    thrust::host_vector<int2> flexIdentifier1D_H;
+    thrust::device_vector<int2> flexIdentifier1D_D;
+    thrust::host_vector<int2> flexIdentifier2D_H;
+    thrust::device_vector<int2> flexIdentifier2D_D;
+    thrust::device_vector<uint>
+        FlexIdentifierD;  ///< Identifies which flexible body a particle belongs to //// OBSOLETE
 
     // FSI bodies
     thrust::device_vector<Real3> rigid_FSI_ForcesD;   ///< Vector of the surface-integrated forces to rigid bodies
