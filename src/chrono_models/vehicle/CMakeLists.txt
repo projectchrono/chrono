@@ -362,6 +362,8 @@ set(CVM_UNIMOG_FILES
 source_group("unimog" FILES ${CVM_UNIMOG_FILES})
 
 set(CVM_DURO_FILES
+    duro/Duro.h
+    duro/Duro.cpp
     duro/Duro_BrakeShafts.h
     duro/Duro_BrakeShafts.cpp
     duro/Duro_Chassis.h
@@ -384,6 +386,8 @@ set(CVM_DURO_FILES
     duro/Duro_ToeBarDeDionAxle.cpp
     duro/Duro_RigidTire.h
     duro/Duro_RigidTire.cpp
+    duro/Duro_Vehicle.h
+    duro/Duro_Vehicle.cpp
     duro/Duro_Wheel.h
     duro/Duro_Wheel.cpp
 )

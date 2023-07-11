@@ -13,6 +13,7 @@ endif()
 set(DEMOS
     demo_VEH_CityBus
     demo_VEH_FEDA_SSC
+    demo_VEH_Duro
     demo_VEH_Gator
     demo_VEH_HMMWV
     demo_VEH_HMMWV_Accel

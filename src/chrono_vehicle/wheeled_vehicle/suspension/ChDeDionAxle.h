@@ -228,6 +228,8 @@ class CH_VEHICLE_API ChDeDionAxle : public ChSuspension {
     // Points for axle tube visualization
     ChVector<> m_axleOuterL;
     ChVector<> m_axleOuterR;
+    ChVector<> m_axleCenter;
+    ChVector<> m_axleChassis;
 
     // Points for tierod visualization
     ChVector<> m_tierodOuterL;
