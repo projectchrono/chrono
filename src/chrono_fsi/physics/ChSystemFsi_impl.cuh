@@ -187,17 +187,20 @@ struct FsiData {
     thrust::device_vector<Real3> FlexSPH_MeshPos_LRF_D;  // Flex body BCE position (local coordinates) - device //// OBSOLETE
     thrust::host_vector<Real3> FlexSPH_MeshPos_LRF_H;    // Flex body BCE position (local coordinates) - host //// OBSOLETE
 
-    thrust::device_vector<uint> rigid_BCEsolids_D;  ///< Identifies which rigid body a particle belongs to
-    thrust::host_vector<uint3> flex1D_BCEsolids_H;
-    thrust::device_vector<uint3> flex1D_BCEsolids_D;
-    thrust::host_vector<uint3> flex2D_BCEsolids_H;
-    thrust::device_vector<uint3> flex2D_BCEsolids_D;
+    thrust::device_vector<uint> rigid_BCEsolids_D;    ///< Identifies which rigid body a particle belongs to
+    thrust::host_vector<uint3> flex1D_BCEsolids_H;    ///< associated mesh and segment for BCE markers on 1-D segments
+    thrust::device_vector<uint3> flex1D_BCEsolids_D;  ///< associated mesh and segment for BCE markers on 1-D segments
+    thrust::host_vector<uint3> flex2D_BCEsolids_H;    ///< associated mesh and face for BCE markers on 2-D faces
+    thrust::device_vector<uint3> flex2D_BCEsolids_D;  ///< associated mesh and face for BCE markers on 2-D faces
     thrust::device_vector<uint> FlexIdentifierD;  // Identifies which flexible body a particle belongs to //// OBSOLETE
 
     // FSI bodies
     thrust::device_vector<Real3> rigid_FSI_ForcesD;   ///< Vector of the surface-integrated forces to rigid bodies
     thrust::device_vector<Real3> rigid_FSI_TorquesD;  ///< Vector of the surface-integrated torques to rigid bodies
-    thrust::device_vector<Real3> Flex_FSI_ForcesD;    ///< Vector of the surface-integrated force on FEA nodes
+
+    thrust::device_vector<Real3> flex1D_FSIforces_D;  ///< surface-integrated forces on FEA 1-D segment nodes
+    thrust::device_vector<Real3> flex2D_FSIforces_D;  ///< surface-integrated forces on FEA 2-D face nodes
+    thrust::device_vector<Real3> Flex_FSI_ForcesD;  // Vector of the surface-integrated force on FEA nodes //// OBSOLETE
 
     thrust::host_vector<int2> flex1D_Nodes_H;  ///< node indices for each 1-D flex segment (host)
     thrust::host_vector<int2> flex1D_Nodes_D;  ///< node indices for each 1-D flex segment (device)

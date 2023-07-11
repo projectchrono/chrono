@@ -77,6 +77,9 @@ class ChBce : public ChFsiBase {
     void Rigid_Forces_Torques(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::shared_ptr<FsiBodyStateD> fsiBodyStateD);
 
     /// Calculates the forces from the fluid/granular dynamics system to the FSI system on flexible bodies.
+    void Flex1D_Forces(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::shared_ptr<FsiMeshStateD> fsiMeshStateD);
+    void Flex2D_Forces(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::shared_ptr<FsiMeshStateD> fsiMeshStateD);
+    //// OBSOLETE
     void Flex_Forces(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::shared_ptr<FsiMeshStateD> fsiMeshStateD);
 
     /// Modify the velocity, pressure, stress of BCE particles according to the SPH particles around.
