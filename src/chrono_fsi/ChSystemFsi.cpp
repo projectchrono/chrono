@@ -1974,8 +1974,8 @@ int ChSystemFsi::AddBCE_mesh1D(int meshID, const ChFsiInterface::FsiMesh1D& fsi_
                     m_sysFSI->sphMarkersH->posRadH.push_back(mR4(utils::ToReal3(Q), kernel_h));
                     m_sysFSI->sphMarkersH->velMasH.push_back(utils::ToReal3(V));
                     m_sysFSI->sphMarkersH->rhoPresMuH.push_back(rhoPresMuH);
-                    m_sysFSI->fsiData->flexSPH_MeshPos1D_LRF_H.push_back(utils::ToReal3({lambda[0], y_val, z_val}));
-                    m_sysFSI->fsiData->flexIdentifier1D_H.push_back(mI2(meshID, segID));
+                    m_sysFSI->fsiData->flex1D_BCEcoords_H.push_back(utils::ToReal3({lambda[0], y_val, z_val}));
+                    m_sysFSI->fsiData->flex1D_BCEsolids_H.push_back(mI2(meshID, segID));
                     n_bce++;
                 }
             }
@@ -2070,8 +2070,8 @@ int ChSystemFsi::AddBCE_mesh2D(int meshID, const ChFsiInterface::FsiMesh2D& fsi_
                     m_sysFSI->sphMarkersH->posRadH.push_back(mR4(utils::ToReal3(Q), kernel_h));
                     m_sysFSI->sphMarkersH->velMasH.push_back(utils::ToReal3(V));
                     m_sysFSI->sphMarkersH->rhoPresMuH.push_back(rhoPresMuH);
-                    m_sysFSI->fsiData->flexSPH_MeshPos2D_LRF_H.push_back(utils::ToReal3({lambda[0], lambda[1], z_val}));
-                    m_sysFSI->fsiData->flexIdentifier2D_H.push_back(mI2(meshID, triID));
+                    m_sysFSI->fsiData->flex2D_BCEcoords_H.push_back(utils::ToReal3({lambda[0], lambda[1], z_val}));
+                    m_sysFSI->fsiData->flex2D_BCEsolids_H.push_back(mI2(meshID, triID));
                     n_bce++;
 
                     ////ofile << Q << endl;

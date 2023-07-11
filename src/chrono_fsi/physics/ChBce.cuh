@@ -64,7 +64,7 @@ class ChBce : public ChFsiBase {
     void UpdateBodyMarkerState(std::shared_ptr<SphMarkerDataD> sphMarkersD,
                                std::shared_ptr<FsiBodyStateD> fsiBodyStateD);
 
-    /// Updates the position and velocity of the particles on the flexible bodies based on the state of the body.
+    /// Updates the position and velocity of the particles on the flexible solids based on the state of the mesh.
     void UpdateMeshMarkerState(std::shared_ptr<SphMarkerDataD> sphMarkersD,
                                std::shared_ptr<FsiMeshStateD> fsiMeshStateD);
 
@@ -120,8 +120,8 @@ class ChBce : public ChFsiBase {
         const thrust::device_vector<Real3>& accRigid_fsiBodies_D,     ///< acceleration of rigid bodies
         const thrust::device_vector<Real3>& omegaVelLRF_fsiBodies_D,  ///< body ang. vel. in local reference frame
         const thrust::device_vector<Real3>& omegaAccLRF_fsiBodies_D,  ///< body ang. acc. in local reference frame
-        const thrust::device_vector<Real3>& rigidSPH_MeshPos_LRF_D,   ///< position of BCE in body local ref.
-        const thrust::device_vector<uint>& rigidIdentifierD           ///< ID of associated body
+        const thrust::device_vector<Real3>& rigid_BCEcoords_D,        ///< position of BCE in body local ref.
+        const thrust::device_vector<uint>& rigid_BCEsolids_D          ///< ID of associated body
     );
 
     /// Calculates the acceleration of the flexible BCE particles based on the information of the ChSystem.

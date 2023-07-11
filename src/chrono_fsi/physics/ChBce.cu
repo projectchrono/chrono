@@ -37,24 +37,25 @@ __device__ double atomicAdd_double(double* address, double val) {
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-__global__ void Populate_RigidSPH_MeshPos_LRF_D(Real3* rigidSPH_MeshPos_LRF_D,
+__global__ void Populate_RigidSPH_MeshPos_LRF_D(Real3* rigid_BCEcoords_D,
                                                 Real4* posRadD,
-                                                uint* rigidIdentifierD,
+                                                uint* rigid_BCEsolids_D,
                                                 Real3* posRigidD,
                                                 Real4* qD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numObjectsD.numRigidMarkers)
         return;
 
-    int rigidIndex = rigidIdentifierD[index];
+    int rigidIndex = rigid_BCEsolids_D[index];
     uint rigidMarkerIndex = index + numObjectsD.startRigidMarkers;
     Real4 q4 = qD[rigidIndex];
     Real3 a1, a2, a3;
     RotationMatirixFromQuaternion(a1, a2, a3, q4);
     Real3 dist3 = mR3(posRadD[rigidMarkerIndex]) - posRigidD[rigidIndex];
     Real3 dist3LF = InverseRotate_By_RotationMatrix_DeviceHost(a1, a2, a3, dist3);
+
     // Save the coordinates in the local reference of a rigid body
-    rigidSPH_MeshPos_LRF_D[index] = dist3LF;
+    rigid_BCEcoords_D[index] = dist3LF;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -136,14 +137,14 @@ __global__ void Calc_Rigid_FSI_Forces_Torques_D(Real3* rigid_FSI_ForcesD,
                                                 Real4* derivVelRhoD,
                                                 Real4* derivVelRhoD_old,
                                                 Real4* posRadD,
-                                                uint* rigidIdentifierD,
+                                                uint* rigid_BCEsolids_D,
                                                 Real3* posRigidD,
-                                                Real3* rigidSPH_MeshPos_LRF_D) {
+                                                Real3* rigid_BCEcoords_D) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numObjectsD.numRigidMarkers)
         return;
 
-    int RigidIndex = rigidIdentifierD[index];
+    int RigidIndex = rigid_BCEsolids_D[index];
     uint rigidMarkerIndex = index + numObjectsD.startRigidMarkers;
     Real3 Force = (mR3(derivVelRhoD[rigidMarkerIndex]) * paramsD.Beta +
                    mR3(derivVelRhoD_old[rigidMarkerIndex]) * (1 - paramsD.Beta)) *
@@ -446,13 +447,13 @@ __global__ void CalcRigidBceAccelerationD(Real3* bceAcc,
                                           Real3* accRigid_fsiBodies_D,
                                           Real3* omegaVelLRF_fsiBodies_D,
                                           Real3* omegaAccLRF_fsiBodies_D,
-                                          Real3* rigidSPH_MeshPos_LRF_D,
-                                          const uint* rigidIdentifierD) {
+                                          Real3* rigid_BCEcoords_D,
+                                          const uint* rigid_BCEsolids_D) {
     uint bceIndex = blockIdx.x * blockDim.x + threadIdx.x;
     if (bceIndex >= numObjectsD.numRigidMarkers)
         return;
 
-    int rigidBodyIndex = rigidIdentifierD[bceIndex];
+    int rigidBodyIndex = rigid_BCEsolids_D[bceIndex];
 
     // linear acceleration (CM)
     Real3 acc3 = accRigid_fsiBodies_D[rigidBodyIndex];
@@ -461,7 +462,7 @@ __global__ void CalcRigidBceAccelerationD(Real3* bceAcc,
     Real3 a1, a2, a3;
     RotationMatirixFromQuaternion(a1, a2, a3, q4);
     Real3 wVel3 = omegaVelLRF_fsiBodies_D[rigidBodyIndex];
-    Real3 rigidSPH_MeshPos_LRF = rigidSPH_MeshPos_LRF_D[bceIndex];
+    Real3 rigidSPH_MeshPos_LRF = rigid_BCEcoords_D[bceIndex];
     Real3 wVelCrossS = cross(wVel3, rigidSPH_MeshPos_LRF);
     Real3 wVelCrossWVelCrossS = cross(wVel3, wVelCrossS);
 
@@ -530,8 +531,8 @@ __global__ void CalcFlexBceAccelerationD(Real3* bceAcc,
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void UpdateBodyMarkerStateD(Real4* posRadD,
                                        Real3* velMasD,
-                                       Real3* rigidSPH_MeshPos_LRF_D,
-                                       uint* rigidIdentifierD,
+                                       Real3* rigid_BCEcoords_D,
+                                       uint* rigid_BCEsolids_D,
                                        Real3* posRigidD,
                                        Real4* velMassRigidD,
                                        Real3* omegaLRF_D,
@@ -541,13 +542,13 @@ __global__ void UpdateBodyMarkerStateD(Real4* posRadD,
         return;
 
     uint rigidMarkerIndex = index + numObjectsD.startRigidMarkers;
-    int rigidBodyIndex = rigidIdentifierD[index];
+    int rigidBodyIndex = rigid_BCEsolids_D[index];
 
     Real4 q4 = qD[rigidBodyIndex];
     Real3 a1, a2, a3;
     RotationMatirixFromQuaternion(a1, a2, a3, q4);
 
-    Real3 rigidSPH_MeshPos_LRF = rigidSPH_MeshPos_LRF_D[index];
+    Real3 rigidSPH_MeshPos_LRF = rigid_BCEcoords_D[index];
 
     // position
     Real h = posRadD[rigidMarkerIndex].w;
@@ -759,8 +760,8 @@ void ChBce::Populate_RigidSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMar
     uint start_bce = 0;
     for (int irigid = 0; irigid < fsiBodyBceNum.size(); irigid++) {
         uint end_bce = start_bce + fsiBodyBceNum[irigid];
-        thrust::fill(m_fsiGeneralData->rigidIdentifierD.begin() + start_bce,
-                     m_fsiGeneralData->rigidIdentifierD.begin() + end_bce, irigid);
+        thrust::fill(m_fsiGeneralData->rigid_BCEsolids_D.begin() + start_bce,
+                     m_fsiGeneralData->rigid_BCEsolids_D.begin() + end_bce, irigid);
         start_bce = end_bce;
     }
 
@@ -768,8 +769,8 @@ void ChBce::Populate_RigidSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMar
     computeGridSize((uint)numObjectsH->numRigidMarkers, 256, nBlocks, nThreads);
 
     Populate_RigidSPH_MeshPos_LRF_D<<<nBlocks, nThreads>>>(
-        mR3CAST(m_fsiGeneralData->rigidSPH_MeshPos_LRF_D), mR4CAST(sphMarkersD->posRadD),
-        U1CAST(m_fsiGeneralData->rigidIdentifierD), mR3CAST(fsiBodyStateD->pos), mR4CAST(fsiBodyStateD->rot));
+        mR3CAST(m_fsiGeneralData->rigid_BCEcoords_D), mR4CAST(sphMarkersD->posRadD),
+        U1CAST(m_fsiGeneralData->rigid_BCEsolids_D), mR3CAST(fsiBodyStateD->pos), mR4CAST(fsiBodyStateD->rot));
 
     cudaDeviceSynchronize();
     cudaCheckError();
@@ -873,15 +874,15 @@ void ChBce::CalcRigidBceAcceleration(thrust::device_vector<Real3>& bceAcc,
                                      const thrust::device_vector<Real3>& accRigid_fsiBodies_D,
                                      const thrust::device_vector<Real3>& omegaVelLRF_fsiBodies_D,
                                      const thrust::device_vector<Real3>& omegaAccLRF_fsiBodies_D,
-                                     const thrust::device_vector<Real3>& rigidSPH_MeshPos_LRF_D,
-                                     const thrust::device_vector<uint>& rigidIdentifierD) {
+                                     const thrust::device_vector<Real3>& rigid_BCEcoords_D,
+                                     const thrust::device_vector<uint>& rigid_BCEsolids_D) {
     // thread per particle
     uint numThreads, numBlocks;
     computeGridSize((uint)numObjectsH->numRigidMarkers, 256, numBlocks, numThreads);
 
     CalcRigidBceAccelerationD<<<numBlocks, numThreads>>>(
         mR3CAST(bceAcc), mR4CAST(q_fsiBodies_D), mR3CAST(accRigid_fsiBodies_D), mR3CAST(omegaVelLRF_fsiBodies_D),
-        mR3CAST(omegaAccLRF_fsiBodies_D), mR3CAST(rigidSPH_MeshPos_LRF_D), U1CAST(rigidIdentifierD));
+        mR3CAST(omegaAccLRF_fsiBodies_D), mR3CAST(rigid_BCEcoords_D), U1CAST(rigid_BCEsolids_D));
 
     cudaDeviceSynchronize();
     cudaCheckError();
@@ -950,8 +951,8 @@ void ChBce::ModifyBceVelocityPressureStress(std::shared_ptr<SphMarkerDataD> sphM
         // Acceleration of rigid BCE particles
         if (numObjectsH->numRigidMarkers > 0) {
             CalcRigidBceAcceleration(bceAcc, fsiBodyStateD->rot, fsiBodyStateD->lin_acc, fsiBodyStateD->ang_vel,
-                                     fsiBodyStateD->ang_acc, m_fsiGeneralData->rigidSPH_MeshPos_LRF_D,
-                                     m_fsiGeneralData->rigidIdentifierD);
+                                     fsiBodyStateD->ang_acc, m_fsiGeneralData->rigid_BCEcoords_D,
+                                     m_fsiGeneralData->rigid_BCEsolids_D);
         }
         // Acceleration of flexible BCE particles
         if (numObjectsH->numFlexMarkers > 0) {
@@ -1023,8 +1024,8 @@ void ChBce::Rigid_Forces_Torques(std::shared_ptr<SphMarkerDataD> sphMarkersD,
     Calc_Rigid_FSI_Forces_Torques_D<<<nBlocks, nThreads>>>(
         mR3CAST(m_fsiGeneralData->rigid_FSI_ForcesD), mR3CAST(m_fsiGeneralData->rigid_FSI_TorquesD),
         mR4CAST(m_fsiGeneralData->derivVelRhoD), mR4CAST(m_fsiGeneralData->derivVelRhoD_old),
-        mR4CAST(sphMarkersD->posRadD), U1CAST(m_fsiGeneralData->rigidIdentifierD), mR3CAST(fsiBodyStateD->pos),
-        mR3CAST(m_fsiGeneralData->rigidSPH_MeshPos_LRF_D));
+        mR4CAST(sphMarkersD->posRadD), U1CAST(m_fsiGeneralData->rigid_BCEsolids_D), mR3CAST(fsiBodyStateD->pos),
+        mR3CAST(m_fsiGeneralData->rigid_BCEcoords_D));
 
     cudaDeviceSynchronize();
     cudaCheckError();
@@ -1060,8 +1061,8 @@ void ChBce::UpdateBodyMarkerState(std::shared_ptr<SphMarkerDataD> sphMarkersD,
     computeGridSize((int)numObjectsH->numRigidMarkers, 256, nBlocks, nThreads);
 
     UpdateBodyMarkerStateD<<<nBlocks, nThreads>>>(
-        mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR3CAST(m_fsiGeneralData->rigidSPH_MeshPos_LRF_D),
-        U1CAST(m_fsiGeneralData->rigidIdentifierD), mR3CAST(fsiBodyStateD->pos), mR4CAST(fsiBodyStateD->lin_vel),
+        mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR3CAST(m_fsiGeneralData->rigid_BCEcoords_D),
+        U1CAST(m_fsiGeneralData->rigid_BCEsolids_D), mR3CAST(fsiBodyStateD->pos), mR4CAST(fsiBodyStateD->lin_vel),
         mR3CAST(fsiBodyStateD->ang_vel), mR4CAST(fsiBodyStateD->rot));
 
     cudaDeviceSynchronize();

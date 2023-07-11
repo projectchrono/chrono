@@ -299,13 +299,13 @@ inline __device__ void BCE_Vel_Acc(int i_idx,
                                    int4 updatePortion,
                                    uint* gridMarkerIndexD,
                                    Real4* qD,
-                                   Real3* rigidSPH_MeshPos_LRF_D,
+                                   Real3* rigid_BCEcoords_D,
                                    Real3* posRigid_fsiBodies_D,
                                    Real4* velMassRigid_fsiBodies_D,
                                    Real3* omegaVelLRF_fsiBodies_D,
                                    Real3* accRigid_fsiBodies_D,
                                    Real3* omegaAccLRF_fsiBodies_D,
-                                   uint* rigidIdentifierD,
+                                   uint* rigid_BCEsolids_D,
                                    Real3* pos_fsi_fea_D,
                                    Real3* vel_fsi_fea_D,
                                    Real3* acc_fsi_fea_D,
@@ -322,12 +322,12 @@ inline __device__ void BCE_Vel_Acc(int i_idx,
         if (paramsD.Apply_BC_U)
             V_prescribed = user_BC_U(mR3(sortedPosRad[i_idx]));
     } else if (Original_idx >= updatePortion.y && Original_idx < updatePortion.z) {
-        int rigidIndex = rigidIdentifierD[Original_idx - updatePortion.y];
+        int rigidIndex = rigid_BCEsolids_D[Original_idx - updatePortion.y];
 
         Real4 q4 = qD[rigidIndex];
         Real3 a1, a2, a3;
         RotationMatirixFromQuaternion(a1, a2, a3, q4);
-        Real3 rigidSPH_MeshPos_LRF__ = rigidSPH_MeshPos_LRF_D[Original_idx - updatePortion.y];
+        Real3 rigidSPH_MeshPos_LRF__ = rigid_BCEcoords_D[Original_idx - updatePortion.y];
 
         // Real3 p_com = mR3(posRigid_fsiBodies_D[rigidIndex]);
         Real3 v_com = mR3(velMassRigid_fsiBodies_D[rigidIndex]);

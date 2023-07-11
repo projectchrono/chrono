@@ -145,13 +145,13 @@ __global__ void V_star_Predictor(Real4* sortedPosRad,  // input: sorted position
                                  const uint* numContacts,
 
                                  Real4* qD,
-                                 Real3* rigidSPH_MeshPos_LRF_D,
+                                 Real3* rigid_BCEcoords_D,
                                  Real3* posRigid_fsiBodies_D,
                                  Real4* velMassRigid_fsiBodies_D,
                                  Real3* omegaVelLRF_fsiBodies_D,
                                  Real3* accRigid_fsiBodies_D,
                                  Real3* omegaAccLRF_fsiBodies_D,
-                                 uint* rigidIdentifierD,
+                                 uint* rigid_BCEsolids_D,
 
                                  Real3* pos_fsi_fea_D,
                                  Real3* vel_fsi_fea_D,
@@ -296,9 +296,9 @@ __global__ void V_star_Predictor(Real4* sortedPosRad,  // input: sorted position
         Real3 myAcc = mR3(0);
         Real3 V_prescribed = mR3(0);
 
-        BCE_Vel_Acc(i_idx, myAcc, V_prescribed, sortedPosRad, updatePortion, gridMarkerIndexD, qD,
-                    rigidSPH_MeshPos_LRF_D, posRigid_fsiBodies_D, velMassRigid_fsiBodies_D, omegaVelLRF_fsiBodies_D,
-                    accRigid_fsiBodies_D, omegaAccLRF_fsiBodies_D, rigidIdentifierD, pos_fsi_fea_D, vel_fsi_fea_D,
+        BCE_Vel_Acc(i_idx, myAcc, V_prescribed, sortedPosRad, updatePortion, gridMarkerIndexD, qD, rigid_BCEcoords_D,
+                    posRigid_fsiBodies_D, velMassRigid_fsiBodies_D, omegaVelLRF_fsiBodies_D, accRigid_fsiBodies_D,
+                    omegaAccLRF_fsiBodies_D, rigid_BCEsolids_D, pos_fsi_fea_D, vel_fsi_fea_D,
                     acc_fsi_fea_D, FlexIdentifierD, numFlex1D, CableElementsNodesD, ShellElementsNodesD);
 
         if (den < EPSILON) {
@@ -337,13 +337,13 @@ __global__ void Pressure_Equation(Real4* sortedPosRad,  // input: sorted positio
                                   const uint* numContacts,
 
                                   Real4* qD,
-                                  Real3* rigidSPH_MeshPos_LRF_D,
+                                  Real3* rigid_BCEcoords_D,
                                   Real3* posRigid_fsiBodies_D,
                                   Real4* velMassRigid_fsiBodies_D,
                                   Real3* omegaVelLRF_fsiBodies_D,
                                   Real3* accRigid_fsiBodies_D,
                                   Real3* omegaAccLRF_fsiBodies_D,
-                                  uint* rigidIdentifierD,
+                                  uint* rigid_BCEsolids_D,
 
                                   Real3* pos_fsi_fea_D,
                                   Real3* vel_fsi_fea_D,
@@ -458,9 +458,9 @@ __global__ void Pressure_Equation(Real4* sortedPosRad,  // input: sorted positio
         Real3 posRadA = mR3(sortedPosRad[i_idx]);
         Real3 myAcc = mR3(0);
         Real3 V_prescribed = mR3(0);
-        BCE_Vel_Acc(i_idx, myAcc, V_prescribed, sortedPosRad, updatePortion, gridMarkerIndexD, qD,
-                    rigidSPH_MeshPos_LRF_D, posRigid_fsiBodies_D, velMassRigid_fsiBodies_D, omegaVelLRF_fsiBodies_D,
-                    accRigid_fsiBodies_D, omegaAccLRF_fsiBodies_D, rigidIdentifierD, pos_fsi_fea_D, vel_fsi_fea_D,
+        BCE_Vel_Acc(i_idx, myAcc, V_prescribed, sortedPosRad, updatePortion, gridMarkerIndexD, qD, rigid_BCEcoords_D,
+                    posRigid_fsiBodies_D, velMassRigid_fsiBodies_D, omegaVelLRF_fsiBodies_D, accRigid_fsiBodies_D,
+                    omegaAccLRF_fsiBodies_D, rigid_BCEsolids_D, pos_fsi_fea_D, vel_fsi_fea_D,
                     acc_fsi_fea_D, FlexIdentifierD, numFlex1D, CableElementsNodesD, ShellElementsNodesD);
         Real pRHS = 0.0;
         Real den = 0.0;
@@ -1012,9 +1012,9 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
         R1CAST(csrValLaplacian), mR3CAST(csrValGradient), R1CAST(csrValFunction), R1CAST(_sumWij_inv), mR3CAST(Normals),
         U1CAST(csrColInd), U1CAST(Contact_i),
 
-        mR4CAST(fsiBodyStateD->rot), mR3CAST(fsiData->rigidSPH_MeshPos_LRF_D), mR3CAST(fsiBodyStateD->pos),
+        mR4CAST(fsiBodyStateD->rot), mR3CAST(fsiData->rigid_BCEcoords_D), mR3CAST(fsiBodyStateD->pos),
         mR4CAST(fsiBodyStateD->lin_vel), mR3CAST(fsiBodyStateD->ang_vel), mR3CAST(fsiBodyStateD->lin_acc),
-        mR3CAST(fsiBodyStateD->ang_acc), U1CAST(fsiData->rigidIdentifierD),
+        mR3CAST(fsiBodyStateD->ang_acc), U1CAST(fsiData->rigid_BCEsolids_D),
 
         mR3CAST(fsiMeshStateD->pos_fsi_fea_D), mR3CAST(fsiMeshStateD->vel_fsi_fea_D),
         mR3CAST(fsiMeshStateD->acc_fsi_fea_D), U1CAST(fsiData->FlexIdentifierD),
@@ -1085,9 +1085,9 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
         R1CAST(csrValFunction), R1CAST(csrValLaplacian), mR3CAST(csrValGradient), R1CAST(_sumWij_inv), mR3CAST(Normals),
         U1CAST(csrColInd), U1CAST(Contact_i),
 
-        mR4CAST(fsiBodyStateD->rot), mR3CAST(fsiData->rigidSPH_MeshPos_LRF_D), mR3CAST(fsiBodyStateD->pos),
+        mR4CAST(fsiBodyStateD->rot), mR3CAST(fsiData->rigid_BCEcoords_D), mR3CAST(fsiBodyStateD->pos),
         mR4CAST(fsiBodyStateD->lin_vel), mR3CAST(fsiBodyStateD->ang_vel), mR3CAST(fsiBodyStateD->lin_acc),
-        mR3CAST(fsiBodyStateD->ang_acc), U1CAST(fsiData->rigidIdentifierD),
+        mR3CAST(fsiBodyStateD->ang_acc), U1CAST(fsiData->rigid_BCEsolids_D),
 
         mR3CAST(fsiMeshStateD->pos_fsi_fea_D), mR3CAST(fsiMeshStateD->vel_fsi_fea_D),
         mR3CAST(fsiMeshStateD->acc_fsi_fea_D), U1CAST(fsiData->FlexIdentifierD),

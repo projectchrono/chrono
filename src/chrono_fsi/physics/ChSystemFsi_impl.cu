@@ -364,8 +364,8 @@ void ChSystemFsi_impl::ResizeData(size_t numRigidBodies,
     fsiData->rigid_FSI_ForcesD.resize(numObjectsH->numRigidBodies);
     fsiData->rigid_FSI_TorquesD.resize(numObjectsH->numRigidBodies);
 
-    fsiData->rigidIdentifierD.resize(numObjectsH->numRigidMarkers);
-    fsiData->rigidSPH_MeshPos_LRF_D.resize(numObjectsH->numRigidMarkers);
+    fsiData->rigid_BCEsolids_D.resize(numObjectsH->numRigidMarkers);
+    fsiData->rigid_BCEcoords_D.resize(numObjectsH->numRigidMarkers);
 
     fsiData->FlexIdentifierD.resize(numObjectsH->numFlexMarkers);
     fsiData->FlexSPH_MeshPos_LRF_D.resize(numObjectsH->numFlexMarkers);

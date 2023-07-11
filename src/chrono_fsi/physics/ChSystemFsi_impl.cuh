@@ -126,7 +126,7 @@ struct FsiMeshStateH {
     thrust::host_vector<Real3> pos_fsi_fea_H;  ///< Vector of the mesh position
     thrust::host_vector<Real3> vel_fsi_fea_H;  ///< Vector of the mesh velocity
     thrust::host_vector<Real3> acc_fsi_fea_H;  ///< Vector of the mesh acceleration
-    thrust::host_vector<Real3> dir_fsi_fea_H;  ///< Vector of the mesh direction
+    thrust::host_vector<Real3> dir_fsi_fea_H;  ///< Vector of the mesh direction  //// OBSOLETE
 
     // zipIterFlexH iterator();
     void resize(size_t s);
@@ -138,7 +138,7 @@ struct FsiMeshStateD {
     thrust::device_vector<Real3> pos_fsi_fea_D;  ///< Vector of the mesh position
     thrust::device_vector<Real3> vel_fsi_fea_D;  ///< Vector of the mesh velocity
     thrust::device_vector<Real3> acc_fsi_fea_D;  ///< Vector of the mesh acceleration
-    thrust::device_vector<Real3> dir_fsi_fea_D;  ///< Vector of the mesh direction
+    thrust::device_vector<Real3> dir_fsi_fea_D;  ///< Vector of the mesh direction //// OBSOLETE
 
     // zipIterFlexD iterator();
     void CopyFromH(const FsiMeshStateH& meshStateH);
@@ -179,21 +179,20 @@ struct FsiData {
     thrust::device_vector<uint> freeSurfaceIdD;  ///< Identifies if a particle is close to free surface
 
     // BCE
-    thrust::device_vector<Real3> rigidSPH_MeshPos_LRF_D;  ///< Rigid body BCE position (local reference frame)
-    thrust::host_vector<Real3> flexSPH_MeshPos1D_LRF_H; 
-    thrust::device_vector<Real3> flexSPH_MeshPos1D_LRF_D; 
-    thrust::host_vector<Real3> flexSPH_MeshPos2D_LRF_H;
-    thrust::device_vector<Real3> flexSPH_MeshPos2D_LRF_D; 
-    thrust::device_vector<Real3> FlexSPH_MeshPos_LRF_D;   ///< Flex body BCE position (local coordinates) - device //// OBSOLETE
-    thrust::host_vector<Real3> FlexSPH_MeshPos_LRF_H;     ///< Flex body BCE position (local coordinates) - host //// OBSOLETE
+    thrust::device_vector<Real3> rigid_BCEcoords_D;  ///< Rigid body BCE position (local reference frame)
+    thrust::host_vector<Real3> flex1D_BCEcoords_H;
+    thrust::device_vector<Real3> flex1D_BCEcoords_D; 
+    thrust::host_vector<Real3> flex2D_BCEcoords_H;
+    thrust::device_vector<Real3> flex2D_BCEcoords_D; 
+    thrust::device_vector<Real3> FlexSPH_MeshPos_LRF_D;  // Flex body BCE position (local coordinates) - device //// OBSOLETE
+    thrust::host_vector<Real3> FlexSPH_MeshPos_LRF_H;    // Flex body BCE position (local coordinates) - host //// OBSOLETE
 
-    thrust::device_vector<uint> rigidIdentifierD;  ///< Identifies which rigid body a particle belongs to
-    thrust::host_vector<int2> flexIdentifier1D_H;
-    thrust::device_vector<int2> flexIdentifier1D_D;
-    thrust::host_vector<int2> flexIdentifier2D_H;
-    thrust::device_vector<int2> flexIdentifier2D_D;
-    thrust::device_vector<uint>
-        FlexIdentifierD;  ///< Identifies which flexible body a particle belongs to //// OBSOLETE
+    thrust::device_vector<uint> rigid_BCEsolids_D;  ///< Identifies which rigid body a particle belongs to
+    thrust::host_vector<int2> flex1D_BCEsolids_H;
+    thrust::device_vector<int2> flex1D_BCEsolids_D;
+    thrust::host_vector<int2> flex2D_BCEsolids_H;
+    thrust::device_vector<int2> flex2D_BCEsolids_D;
+    thrust::device_vector<uint> FlexIdentifierD;  // Identifies which flexible body a particle belongs to //// OBSOLETE
 
     // FSI bodies
     thrust::device_vector<Real3> rigid_FSI_ForcesD;   ///< Vector of the surface-integrated forces to rigid bodies
@@ -262,8 +261,13 @@ class ChSystemFsi_impl : public ChFsiBase {
     std::shared_ptr<FsiBodyStateH> fsiBodyStateH;   ///< Rigid body state (host)
     std::shared_ptr<FsiBodyStateD> fsiBodyState1D;  ///< Rigid body state 1 (device)
     std::shared_ptr<FsiBodyStateD> fsiBodyState2D;  ///< Rigid body state 2 (device)
-    std::shared_ptr<FsiMeshStateH> fsiMeshStateH;   ///< FEA mesh state (host)
-    std::shared_ptr<FsiMeshStateD> fsiMeshStateD;   ///< FEA mesh state (device)
+
+    std::shared_ptr<FsiMeshStateH> fsiMesh1DStateH;  ///< 1-D FEA mesh state (host)
+    std::shared_ptr<FsiMeshStateD> fsiMesh1DStateD;  ///< 1-D FEA mesh state (device)
+    std::shared_ptr<FsiMeshStateH> fsiMesh2DStateH;  ///< 2-D FEA mesh state (host)
+    std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD;  ///< 2-D FEA mesh state (device)
+    std::shared_ptr<FsiMeshStateH> fsiMeshStateH;    ///< FEA mesh state (host) //// OBSOLETE
+    std::shared_ptr<FsiMeshStateD> fsiMeshStateD;    ///< FEA mesh state (device) //// OBSOLETE
 
     std::shared_ptr<FsiData> fsiData;  ///< General FSI data needed in the simulation
 
