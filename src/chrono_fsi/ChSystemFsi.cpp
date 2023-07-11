@@ -68,8 +68,8 @@ ChSystemFsi::ChSystemFsi(ChSystem* sysMBS)
     m_sysFSI = chrono_types::make_unique<ChSystemFsi_impl>(m_paramsH);
     InitParams();
 
-    m_num_cable_elements = 0;
-    m_num_shell_elements = 0;
+    m_num_flex1D_elements = 0;
+    m_num_flex2D_elements = 0;
 
     m_fsi_interface = chrono_types::make_unique<ChFsiInterface>(*m_sysFSI, m_paramsH);
 }
@@ -707,9 +707,19 @@ void ChSystemFsi::AddFsiMesh1D(std::shared_ptr<fea::ChMesh> mesh) {
         }
     }
 
+    // Load index-based mesh connectivity (append to global list of 1-D flex segments)
+    for (const auto& seg : fsi_mesh.segments) {
+        auto node0_index = fsi_mesh.ptr2ind_map[seg->GetNode(0)];
+        auto node1_index = fsi_mesh.ptr2ind_map[seg->GetNode(1)];
+        m_sysFSI->fsiData->flex1D_Nodes_H.push_back(mI2(node0_index, node1_index));
+    }
+
     // Create the BCE markers based on the mesh contact segments
-    int meshID = (int)m_fsi_interface->m_fsi_meshes1D.size();
+    unsigned int meshID = (unsigned int)m_fsi_interface->m_fsi_meshes1D.size();
     fsi_mesh.num_bce = AddBCE_mesh1D(meshID, fsi_mesh);
+
+    // Update total number of flex 1-D segments
+    m_num_flex1D_elements += fsi_mesh.segments.size();
 
     // Store the mesh contact surface
     m_fsi_interface->m_fsi_meshes1D.push_back(fsi_mesh);
@@ -759,9 +769,20 @@ void ChSystemFsi::AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, bool centered)
     assert(fsi_mesh.ptr2ind_map.size() == contact_surface->GetNumVertices());
     assert(fsi_mesh.ind2ptr_map.size() == contact_surface->GetNumVertices());
 
+    // Load index-based mesh connectivity (append to global list of 1-D flex segments)
+    for (const auto& tri : contact_surface->GetTriangleList()) {
+        auto node0_index = fsi_mesh.ptr2ind_map[tri->GetNode(0)];
+        auto node1_index = fsi_mesh.ptr2ind_map[tri->GetNode(1)];
+        auto node2_index = fsi_mesh.ptr2ind_map[tri->GetNode(2)];
+        m_sysFSI->fsiData->flex2D_Nodes_H.push_back(mI3(node0_index, node1_index, node2_index));
+    }
+
     // Create the BCE markers based on the mesh contact surface
-    int meshID = (int)m_fsi_interface->m_fsi_meshes2D.size();
+    unsigned int meshID = (unsigned int)m_fsi_interface->m_fsi_meshes2D.size();
     fsi_mesh.num_bce = AddBCE_mesh2D(meshID, fsi_mesh, centered);
+
+    // Update total number of flex 2-D faces
+    m_num_flex1D_elements += fsi_mesh.contact_surface->GetNumTriangles();
 
     // Store the mesh contact surface
     m_fsi_interface->m_fsi_meshes2D.push_back(fsi_mesh);
@@ -905,7 +926,8 @@ void ChSystemFsi::Initialize() {
 
     // This also sets the referenceArray and counts numbers of various objects
     size_t n_flexnodes = m_fsi_interface->m_fsi_mesh ? (size_t)m_fsi_interface->m_fsi_mesh->GetNnodes() : 0;
-    m_sysFSI->ResizeData(m_fsi_interface->m_fsi_bodies.size(), m_num_cable_elements, m_num_shell_elements, n_flexnodes);
+    m_sysFSI->ResizeData(m_fsi_interface->m_fsi_bodies.size(), m_num_flex1D_elements, m_num_flex2D_elements,
+                         n_flexnodes);
 
     if (m_verbose) {
         cout << "Counters" << endl;
@@ -1280,7 +1302,7 @@ void ChSystemFsi::AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
         if (_1D_elementsNodes.size() > 0) {
             if (auto thisCable =
                     std::dynamic_pointer_cast<fea::ChElementCableANCF>(my_mesh->GetElement((unsigned int)i))) {
-                m_num_cable_elements++;
+                m_num_flex1D_elements++;
 
                 remove1D.resize(2);
                 std::fill(remove1D.begin(), remove1D.end(), 0);
@@ -1311,7 +1333,7 @@ void ChSystemFsi::AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
         if (_2D_elementsNodes.size() > 0) {
             if (auto thisShell =
                     std::dynamic_pointer_cast<fea::ChElementShellANCF_3423>(my_mesh->GetElement((unsigned int)i))) {
-                m_num_shell_elements++;
+                m_num_flex2D_elements++;
 
                 remove2D.resize(4);
                 remove2D_s.resize(4);
@@ -1917,7 +1939,7 @@ void ChSystemFsi::AddBCE_body(std::shared_ptr<ChBody> body,
         m_fsi_bodies_bce_num.push_back((int)bce.size());
 }
 
-int ChSystemFsi::AddBCE_mesh1D(int meshID, const ChFsiInterface::FsiMesh1D& fsi_mesh) {
+unsigned int ChSystemFsi::AddBCE_mesh1D(unsigned int meshID, const ChFsiInterface::FsiMesh1D& fsi_mesh) {
     const auto& segments = fsi_mesh.segments;
 
     Real kernel_h = m_paramsH->HSML;
@@ -1930,9 +1952,9 @@ int ChSystemFsi::AddBCE_mesh1D(int meshID, const ChFsiInterface::FsiMesh1D& fsi_
     //   (largest number that results in a discretization no coarser than the initial spacing)
     // - generate segment coordinates for a uniform grid over the segment
     // - generate locations of BCE points on segment
-    int num_seg = (int)segments.size();
-    int num_bce = 0;
-    for (int segID = 0; segID < num_seg; segID++) {
+    unsigned int num_seg = (unsigned int)segments.size();
+    unsigned int num_bce = 0;
+    for (unsigned int segID = 0; segID < num_seg; segID++) {
         const auto& seg = segments[segID];
 
         const auto& P0 = seg->GetNode(0)->GetPos();  // vertex 0 position (absolute coordinates)
@@ -1954,7 +1976,7 @@ int ChSystemFsi::AddBCE_mesh1D(int meshID, const ChFsiInterface::FsiMesh1D& fsi_
 
         double yz_start = (num_layers - 1) * spacing / 2;
 
-        int n_bce = 0;  // number of BCE markers on segment
+        unsigned int n_bce = 0;  // number of BCE markers on segment
         for (int i = 0; i <= n; i++) {
             if (i == 0 && !seg->OwnsNode(0))  // segment does not own vertex 0
                 continue;
@@ -1975,7 +1997,7 @@ int ChSystemFsi::AddBCE_mesh1D(int meshID, const ChFsiInterface::FsiMesh1D& fsi_
                     m_sysFSI->sphMarkersH->velMasH.push_back(utils::ToReal3(V));
                     m_sysFSI->sphMarkersH->rhoPresMuH.push_back(rhoPresMuH);
                     m_sysFSI->fsiData->flex1D_BCEcoords_H.push_back(utils::ToReal3({lambda[0], y_val, z_val}));
-                    m_sysFSI->fsiData->flex1D_BCEsolids_H.push_back(mI2(meshID, segID));
+                    m_sysFSI->fsiData->flex1D_BCEsolids_H.push_back(mU3(meshID, segID, m_num_flex1D_elements + segID));
                     n_bce++;
                 }
             }
@@ -1992,7 +2014,7 @@ int ChSystemFsi::AddBCE_mesh1D(int meshID, const ChFsiInterface::FsiMesh1D& fsi_
     return num_bce;
 }
 
-int ChSystemFsi::AddBCE_mesh2D(int meshID, const ChFsiInterface::FsiMesh2D& fsi_mesh, bool centered) {
+unsigned int ChSystemFsi::AddBCE_mesh2D(unsigned int meshID, const ChFsiInterface::FsiMesh2D& fsi_mesh, bool centered) {
     const auto& surface = fsi_mesh.contact_surface;
 
     Real kernel_h = m_paramsH->HSML;
@@ -2009,9 +2031,9 @@ int ChSystemFsi::AddBCE_mesh2D(int meshID, const ChFsiInterface::FsiMesh2D& fsi_
     //   (largest number that results in a discretization no coarser than the initial spacing on each edge)
     // - generate barycentric coordinates for a uniform grid over the triangular face
     // - generate locations of BCE points on triangular face
-    int num_tri = (int)surface->GetTriangleList().size();
-    int num_bce = 0;
-    for (int triID = 0; triID < num_tri; triID++) {
+    unsigned int num_tri = (int)surface->GetTriangleList().size();
+    unsigned int num_bce = 0;
+    for (unsigned int triID = 0; triID < num_tri; triID++) {
         const auto& tri = surface->GetTriangleList()[triID];
 
         const auto& P0 = tri->GetNode(0)->GetPos();  // vertex 0 position (absolute coordinates)
@@ -2039,7 +2061,7 @@ int ChSystemFsi::AddBCE_mesh2D(int meshID, const ChFsiInterface::FsiMesh2D& fsi_
 
         double z_start = centered ? (num_layers - 1) * spacing / 2 : 0;  // start layer z (along normal)
 
-        int n_bce = 0;  // number of BCE markers on triangle
+        unsigned int n_bce = 0;  // number of BCE markers on triangle
         for (int i = 0; i <= n; i++) {
             if (i == n && !tri->OwnsNode(0))  // triangle does not own vertex v0
                 continue;
@@ -2071,7 +2093,7 @@ int ChSystemFsi::AddBCE_mesh2D(int meshID, const ChFsiInterface::FsiMesh2D& fsi_
                     m_sysFSI->sphMarkersH->velMasH.push_back(utils::ToReal3(V));
                     m_sysFSI->sphMarkersH->rhoPresMuH.push_back(rhoPresMuH);
                     m_sysFSI->fsiData->flex2D_BCEcoords_H.push_back(utils::ToReal3({lambda[0], lambda[1], z_val}));
-                    m_sysFSI->fsiData->flex2D_BCEsolids_H.push_back(mI2(meshID, triID));
+                    m_sysFSI->fsiData->flex2D_BCEsolids_H.push_back(mU3(meshID, triID, m_num_flex2D_elements + triID));
                     n_bce++;
 
                     ////ofile << Q << endl;

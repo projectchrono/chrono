@@ -188,10 +188,10 @@ struct FsiData {
     thrust::host_vector<Real3> FlexSPH_MeshPos_LRF_H;    // Flex body BCE position (local coordinates) - host //// OBSOLETE
 
     thrust::device_vector<uint> rigid_BCEsolids_D;  ///< Identifies which rigid body a particle belongs to
-    thrust::host_vector<int2> flex1D_BCEsolids_H;
-    thrust::device_vector<int2> flex1D_BCEsolids_D;
-    thrust::host_vector<int2> flex2D_BCEsolids_H;
-    thrust::device_vector<int2> flex2D_BCEsolids_D;
+    thrust::host_vector<uint3> flex1D_BCEsolids_H;
+    thrust::device_vector<uint3> flex1D_BCEsolids_D;
+    thrust::host_vector<uint3> flex2D_BCEsolids_H;
+    thrust::device_vector<uint3> flex2D_BCEsolids_D;
     thrust::device_vector<uint> FlexIdentifierD;  // Identifies which flexible body a particle belongs to //// OBSOLETE
 
     // FSI bodies
@@ -199,9 +199,14 @@ struct FsiData {
     thrust::device_vector<Real3> rigid_FSI_TorquesD;  ///< Vector of the surface-integrated torques to rigid bodies
     thrust::device_vector<Real3> Flex_FSI_ForcesD;    ///< Vector of the surface-integrated force on FEA nodes
 
+    thrust::host_vector<int2> flex1D_Nodes_H;  ///< node indices for each 1-D flex segment (host)
+    thrust::host_vector<int2> flex1D_Nodes_D;  ///< node indices for each 1-D flex segment (device)
+    thrust::host_vector<int3> flex2D_Nodes_H;  ///< node indices for each 2-D flex face (host)
+    thrust::host_vector<int3> flex2D_Nodes_D;  ///< node indices for each 2-D flex face (device)
+
+    //// OBSOLETE
     thrust::host_vector<int2> CableElementsNodesH;    ///< Vector of the cable elements nodes on host
     thrust::device_vector<int2> CableElementsNodesD;  ///< Vector of the cable elements nodes on device
-
     thrust::host_vector<int4> ShellElementsNodesH;    ///< Vector of the shell elements nodes on host
     thrust::device_vector<int4> ShellElementsNodesD;  ///< Vector of the shell elements nodes on device
 };
@@ -262,12 +267,12 @@ class ChSystemFsi_impl : public ChFsiBase {
     std::shared_ptr<FsiBodyStateD> fsiBodyState1D;  ///< Rigid body state 1 (device)
     std::shared_ptr<FsiBodyStateD> fsiBodyState2D;  ///< Rigid body state 2 (device)
 
-    std::shared_ptr<FsiMeshStateH> fsiMesh1DStateH;  ///< 1-D FEA mesh state (host)
-    std::shared_ptr<FsiMeshStateD> fsiMesh1DStateD;  ///< 1-D FEA mesh state (device)
-    std::shared_ptr<FsiMeshStateH> fsiMesh2DStateH;  ///< 2-D FEA mesh state (host)
-    std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD;  ///< 2-D FEA mesh state (device)
-    std::shared_ptr<FsiMeshStateH> fsiMeshStateH;    ///< FEA mesh state (host) //// OBSOLETE
-    std::shared_ptr<FsiMeshStateD> fsiMeshStateD;    ///< FEA mesh state (device) //// OBSOLETE
+    std::shared_ptr<FsiMeshStateH> fsiMesh1DState_H;  ///< 1-D FEA mesh state (host)
+    std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D;  ///< 1-D FEA mesh state (device)
+    std::shared_ptr<FsiMeshStateH> fsiMesh2DState_H;  ///< 2-D FEA mesh state (host)
+    std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D;  ///< 2-D FEA mesh state (device)
+    std::shared_ptr<FsiMeshStateH> fsiMeshStateH;     ///< FEA mesh state (host) //// OBSOLETE
+    std::shared_ptr<FsiMeshStateD> fsiMeshStateD;     ///< FEA mesh state (device) //// OBSOLETE
 
     std::shared_ptr<FsiData> fsiData;  ///< General FSI data needed in the simulation
 

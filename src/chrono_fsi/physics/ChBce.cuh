@@ -65,6 +65,11 @@ class ChBce : public ChFsiBase {
                                std::shared_ptr<FsiBodyStateD> fsiBodyStateD);
 
     /// Updates the position and velocity of the particles on the flexible solids based on the state of the mesh.
+    void UpdateMeshMarker1DState(std::shared_ptr<SphMarkerDataD> sphMarkersD,
+                               std::shared_ptr<FsiMeshStateD> fsiMeshStateD);
+    void UpdateMeshMarker2DState(std::shared_ptr<SphMarkerDataD> sphMarkersD,
+                                 std::shared_ptr<FsiMeshStateD> fsiMeshStateD);
+    //// OBSOLETE
     void UpdateMeshMarkerState(std::shared_ptr<SphMarkerDataD> sphMarkersD,
                                std::shared_ptr<FsiMeshStateD> fsiMeshStateD);
 

@@ -61,6 +61,7 @@ typedef unsigned int uint;
 #define mI4CAST(x) (int4*)thrust::raw_pointer_cast(&x[0])
 #define U1CAST(x) (uint*)thrust::raw_pointer_cast(&x[0])
 #define U2CAST(x) (uint2*)thrust::raw_pointer_cast(&x[0])
+#define U3CAST(x) (uint3*)thrust::raw_pointer_cast(&x[0])
 #define U4CAST(x) (uint4*)thrust::raw_pointer_cast(&x[0])
 
 #define LU1CAST(x) (unsigned long int*)thrust::raw_pointer_cast(&x[0])

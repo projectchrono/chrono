@@ -34,21 +34,27 @@ namespace fsi {
 ///  -  (3) particles attached to rigid bodies (type = 1)
 ///  -  (4) particles attached to flexible bodies (type = 2)
 struct ChCounters {
-    size_t numRigidBodies;      ///< Number of rigid bodies
-    size_t numFlexNodes;        ///< Number of Nodes in a flexible mesh; each FE is made up of nodes
-    size_t numFlexBodies1D;     ///< Number of 1D-Flexible bodies; each FE is one body
-    size_t numFlexBodies2D;     ///< Number of 2D-Flexible bodies; each FE is one body
+    size_t numRigidBodies;   ///< Number of rigid bodies
+    size_t numFlexNodes1D;   ///< Number of nodes in 1-D FEA mesh segments
+    size_t numFlexNodes2D;   ///< Number of nodes in 2-D flexible mesh faces
+    size_t numFlexNodes;     ///< Number of Nodes in a flexible mesh; each FE is made up of nodes
+    size_t numFlexBodies1D;  ///< Number of 1-D flexible bodies; each FE segment is one body
+    size_t numFlexBodies2D;  ///< Number of 2-D flexible bodies; each FE face is one body
 
-    size_t numGhostMarkers;     ///< Number of Ghost SPH particles that comes into play with Variable Resolution methods
-    size_t numHelperMarkers;    ///< Number of helper SPH particles that is used for merging particles
+    size_t numGhostMarkers;     ///< Number of Ghost SPH particles for Variable Resolution methods
+    size_t numHelperMarkers;    ///< Number of helper SPH particles used for merging particles
     size_t numFluidMarkers;     ///< Number of fluid SPH particles
     size_t numBoundaryMarkers;  ///< Number of BCE markers on boundaries
     size_t numRigidMarkers;     ///< Number of BCE markers on rigid bodies
-    size_t numFlexMarkers;      ///< Number of BCE markers on flexible bodies
+    size_t numFlexMarkers1D;    ///< Number of BCE markers on flexible segments
+    size_t numFlexMarkers2D;    ///< Number of BCE markers on flexible faces
+    size_t numFlexMarkers;      ///< Number of BCE markers on flexible bodies //// OBSOLETE
     size_t numAllMarkers;       ///< Total number of particles in the simulation
     
     size_t startRigidMarkers;   ///< Index of the first BCE marker that covers the first rigid body.
-    size_t startFlexMarkers;    ///< Index of the first BCE marker that covers the first flexible body.
+    size_t startFlexMarkers1D;  //// TODO
+    size_t startFlexMarkers2D;  //// TODO
+    size_t startFlexMarkers;    ///< Index of the first BCE marker that covers the first flexible body //// OBSOLETE
 };
 
 /// Base class for various FSI classes.

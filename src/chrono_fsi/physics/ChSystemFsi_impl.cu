@@ -164,11 +164,19 @@ ChSystemFsi_impl::ChSystemFsi_impl(std::shared_ptr<SimParams> params) : ChFsiBas
     sphMarkersD2 = chrono_types::make_shared<SphMarkerDataD>();
     sortedSphMarkersD = chrono_types::make_shared<SphMarkerDataD>();
     sphMarkersH = chrono_types::make_shared<SphMarkerDataH>();
+
     fsiBodyState1D = chrono_types::make_shared<FsiBodyStateD>();
     fsiBodyState2D = chrono_types::make_shared<FsiBodyStateD>();
     fsiBodyStateH = chrono_types::make_shared<FsiBodyStateH>();
+
+    fsiMesh1DState_D = chrono_types::make_shared<FsiMeshStateD>();
+    fsiMesh1DState_H = chrono_types::make_shared<FsiMeshStateH>();
+    fsiMesh2DState_D = chrono_types::make_shared<FsiMeshStateD>();
+    fsiMesh2DState_H = chrono_types::make_shared<FsiMeshStateH>();
+
     fsiMeshStateD = chrono_types::make_shared<FsiMeshStateD>();
     fsiMeshStateH = chrono_types::make_shared<FsiMeshStateH>();
+    
     fsiData = chrono_types::make_shared<FsiData>();
     markersProximityD = chrono_types::make_shared<ProximityDataD>();
 }
@@ -199,6 +207,8 @@ void ChSystemFsi_impl::InitNumObjects() {
     numObjectsH->startRigidMarkers = 0;   // Start index of the rigid SPH particles
     numObjectsH->startFlexMarkers = 0;    // Start index of the flexible SPH particles
     numObjectsH->numRigidMarkers = 0;     // Number of rigid SPH particles
+    numObjectsH->numFlexMarkers1D = 0;    // Number of flexible 1-D segment SPH particles
+    numObjectsH->numFlexMarkers2D = 0;    // Number of flexible 2-D face SPH particles
     numObjectsH->numFlexMarkers = 0;      // Number of flexible SPH particles
     numObjectsH->numAllMarkers = 0;       // Total number of SPH particles
 }
@@ -229,10 +239,12 @@ void ChSystemFsi_impl::CalcNumObjects() {
                 numObjectsH->numRigidBodies++;
                 break;
             case 2:
+                numObjectsH->numFlexMarkers1D += numMarkers;
                 numObjectsH->numFlexMarkers += numMarkers;
                 numObjectsH->numFlexBodies1D++;
                 break;
             case 3:
+                numObjectsH->numFlexMarkers2D += numMarkers;
                 numObjectsH->numFlexMarkers += numMarkers;
                 numObjectsH->numFlexBodies2D++;
                 break;
@@ -244,12 +256,12 @@ void ChSystemFsi_impl::CalcNumObjects() {
     }
 
     numObjectsH->numFluidMarkers += numObjectsH->numGhostMarkers + numObjectsH->numHelperMarkers;
-    numObjectsH->numAllMarkers = numObjectsH->numFluidMarkers + numObjectsH->numBoundaryMarkers +
-                                 numObjectsH->numRigidMarkers + numObjectsH->numFlexMarkers;
+    numObjectsH->numAllMarkers = numObjectsH->numFluidMarkers +                                    //
+                                 numObjectsH->numBoundaryMarkers + numObjectsH->numRigidMarkers +  //
+                                 numObjectsH->numFlexMarkers1D + numObjectsH->numFlexMarkers2D;
 
     numObjectsH->startRigidMarkers = numObjectsH->numFluidMarkers + numObjectsH->numBoundaryMarkers;
-    numObjectsH->startFlexMarkers =
-        numObjectsH->numFluidMarkers + numObjectsH->numBoundaryMarkers + numObjectsH->numRigidMarkers;
+    numObjectsH->startFlexMarkers = numObjectsH->startRigidMarkers + numObjectsH->numRigidMarkers;
 }
 
 void ChSystemFsi_impl::ConstructReferenceArray() {
@@ -379,8 +391,13 @@ void ChSystemFsi_impl::ResizeData(size_t numRigidBodies,
     thrust::copy(fsiData->ShellElementsNodesH.begin(), fsiData->ShellElementsNodesH.end(),
                  fsiData->ShellElementsNodesD.begin());
 
-    fsiMeshStateD->resize(numObjectsH->numFlexNodes);
-    fsiMeshStateH->resize(numObjectsH->numFlexNodes);
+    fsiMesh1DState_D->resize(numObjectsH->numFlexNodes1D);
+    fsiMesh1DState_H->resize(numObjectsH->numFlexNodes1D);
+    fsiMesh2DState_D->resize(numObjectsH->numFlexNodes2D);
+    fsiMesh2DState_H->resize(numObjectsH->numFlexNodes2D);
+    fsiMeshStateD->resize(numObjectsH->numFlexNodes); //// OBSOLETE
+    fsiMeshStateH->resize(numObjectsH->numFlexNodes); //// OBSOLETE
+
     fsiData->Flex_FSI_ForcesD.resize(numObjectsH->numFlexNodes);
 }
 

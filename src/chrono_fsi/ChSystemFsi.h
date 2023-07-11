@@ -536,11 +536,11 @@ class CH_FSI_API ChSystemFsi {
 
     /// Create and add BCE markers associated with the given set of contact segments.
     /// The BCE markers are created in the absolute coordinate frame.
-    int AddBCE_mesh1D(int meshID, const ChFsiInterface::FsiMesh1D& fsi_mesh);
+    unsigned int AddBCE_mesh1D(unsigned int meshID, const ChFsiInterface::FsiMesh1D& fsi_mesh);
 
     /// Create and add BCE markers associated with the given mesh contact surface.
     /// The BCE markers are created in the absolute coordinate frame.
-    int AddBCE_mesh2D(int meshID, const ChFsiInterface::FsiMesh2D& fsi_mesh, bool centered);
+    unsigned int AddBCE_mesh2D(unsigned int meshID, const ChFsiInterface::FsiMesh2D& fsi_mesh, bool centered);
 
     //// RADU - obsolete
     void AddBCE_cable(const thrust::host_vector<Real4>& posRadBCE, std::shared_ptr<fea::ChElementCableANCF> cable);
@@ -566,8 +566,8 @@ class CH_FSI_API ChSystemFsi {
     std::vector<std::vector<int>> m_fea_shell_nodes;  ///< indices of nodes of each shell element
     std::vector<std::vector<int>> m_fea_cable_nodes;  ///< indices of nodes of each cable element
 
-    size_t m_num_cable_elements;
-    size_t m_num_shell_elements;
+    unsigned int m_num_flex1D_elements;  ///< number of 1-D flexible segments (across all meshes)
+    unsigned int m_num_flex2D_elements;  ///< number of 2-D flexible faces (across all meshes)
 
     std::vector<int> m_fsi_bodies_bce_num;  ///< number of BCE particles of each fsi body
     std::vector<int> m_fsi_cables_bce_num;  ///< number of BCE particles of each fsi cable
