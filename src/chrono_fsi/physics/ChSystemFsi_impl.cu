@@ -199,13 +199,17 @@ void ChSystemFsi_impl::InitNumObjects() {
     numObjectsH->numRigidBodies = 0;      // Number of rigid bodies
     numObjectsH->numFlexBodies1D = 0;     // Number of 1D Flexible bodies
     numObjectsH->numFlexBodies2D = 0;     // Number of 2D Flexible bodies
-    numObjectsH->numFlexNodes = 0;        // Number of FE nodes
+    numObjectsH->numFlexNodes1D = 0;      // Number of 1D Flexible nodes
+    numObjectsH->numFlexNodes2D = 0;      // Number of 2D Flexible nodes
+    numObjectsH->numFlexNodes = 0;        // Number of FE nodes //// OBSOLETE
     numObjectsH->numGhostMarkers = 0;     // Number of ghost particles
     numObjectsH->numHelperMarkers = 0;    // Number of helper particles
     numObjectsH->numFluidMarkers = 0;     // Number of fluid SPH particles
     numObjectsH->numBoundaryMarkers = 0;  // Number of boundary SPH particles
-    numObjectsH->startRigidMarkers = 0;   // Start index of the rigid SPH particles
-    numObjectsH->startFlexMarkers = 0;    // Start index of the flexible SPH particles
+    numObjectsH->startRigidMarkers = 0;   // Start index of the rigid BCE markers
+    numObjectsH->startFlexMarkers1D = 0;  // Start index of the 1-D flexible BCE markers
+    numObjectsH->startFlexMarkers2D = 0;  // Start index of the 2-D flexible BCE markers
+    numObjectsH->startFlexMarkers = 0;    // Start index of the flexible SPH particles //// OBSOLETE
     numObjectsH->numRigidMarkers = 0;     // Number of rigid SPH particles
     numObjectsH->numFlexMarkers1D = 0;    // Number of flexible 1-D segment SPH particles
     numObjectsH->numFlexMarkers2D = 0;    // Number of flexible 2-D face SPH particles
@@ -261,6 +265,9 @@ void ChSystemFsi_impl::CalcNumObjects() {
                                  numObjectsH->numFlexMarkers1D + numObjectsH->numFlexMarkers2D;
 
     numObjectsH->startRigidMarkers = numObjectsH->numFluidMarkers + numObjectsH->numBoundaryMarkers;
+    numObjectsH->startFlexMarkers1D = numObjectsH->startRigidMarkers + numObjectsH->numRigidMarkers;
+    numObjectsH->startFlexMarkers2D = numObjectsH->startFlexMarkers1D + numObjectsH->numFlexMarkers1D;
+    //// OBSOLETE
     numObjectsH->startFlexMarkers = numObjectsH->startRigidMarkers + numObjectsH->numRigidMarkers;
 }
 
@@ -318,15 +325,17 @@ void ChSystemFsi_impl::ConstructReferenceArray() {
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChSystemFsi_impl::ResizeData(size_t numRigidBodies,
+void ChSystemFsi_impl::Initialize(size_t numRigidBodies,
                                   size_t numFlexBodies1D,
                                   size_t numFlexBodies2D,
+                                  size_t numFlexNodes1D,
+                                  size_t numFlexNodes2D,
                                   size_t numFlexNodes) {
     ConstructReferenceArray();
     CalcNumObjects();
 
     if (numObjectsH->numAllMarkers != sphMarkersH->rhoPresMuH.size()) {
-        std::cerr << "ERROR (ResizeData): mismatch in total number of markers." << std::endl;
+        std::cerr << "ERROR (Initialize): mismatch in total number of markers." << std::endl;
         throw std::runtime_error("Mismatch in total number of markers.");
     }
 
@@ -334,7 +343,9 @@ void ChSystemFsi_impl::ResizeData(size_t numRigidBodies,
     numObjectsH->numRigidBodies = numRigidBodies;
     numObjectsH->numFlexBodies1D = numFlexBodies1D;
     numObjectsH->numFlexBodies2D = numFlexBodies2D;
-    numObjectsH->numFlexNodes = numFlexNodes;
+    numObjectsH->numFlexNodes1D = numFlexNodes1D;
+    numObjectsH->numFlexNodes2D = numFlexNodes2D;
+    numObjectsH->numFlexNodes = numFlexNodes; //// OBSOLETE
 
     sphMarkersD1->resize(numObjectsH->numAllMarkers);
     sphMarkersD2->resize(numObjectsH->numAllMarkers);
@@ -398,7 +409,9 @@ void ChSystemFsi_impl::ResizeData(size_t numRigidBodies,
     fsiMeshStateD->resize(numObjectsH->numFlexNodes); //// OBSOLETE
     fsiMeshStateH->resize(numObjectsH->numFlexNodes); //// OBSOLETE
 
-    fsiData->Flex_FSI_ForcesD.resize(numObjectsH->numFlexNodes);
+    fsiData->flex1D_FSIforces_D.resize(numObjectsH->numFlexNodes1D);
+    fsiData->flex2D_FSIforces_D.resize(numObjectsH->numFlexNodes2D);
+    fsiData->Flex_FSI_ForcesD.resize(numObjectsH->numFlexNodes); //// OBSOLETE
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

@@ -1002,8 +1002,14 @@ void ChBce::Initialize(std::shared_ptr<SphMarkerDataD> sphMarkersD,
         Populate_RigidSPH_MeshPos_LRF(sphMarkersD, fsiBodyStateD, fsiBodyBceNum);
 
     // Populate local position of BCE markers - on flexible bodies
+    //// OBSOLETE
     if (haveFlex1D || haveFlex2D)
         Populate_FlexSPH_MeshPos_LRF(sphMarkersD, fsiMeshStateD, fsiShellBceNum, fsiCableBceNum);
+    //// REPLACE WITH:
+    if (haveFlex1D)
+        m_fsiGeneralData->flex1D_BCEcoords_D = m_fsiGeneralData->flex1D_BCEcoords_H;
+    if (haveFlex2D)
+        m_fsiGeneralData->flex2D_BCEcoords_D = m_fsiGeneralData->flex2D_BCEcoords_H;
 }
 
 // -----------------------------------------------------------------------------

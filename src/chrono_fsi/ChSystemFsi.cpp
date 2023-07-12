@@ -71,6 +71,9 @@ ChSystemFsi::ChSystemFsi(ChSystem* sysMBS)
     m_num_flex1D_elements = 0;
     m_num_flex2D_elements = 0;
 
+    m_num_flex1D_nodes = 0;
+    m_num_flex2D_nodes = 0;
+
     m_fsi_interface = chrono_types::make_unique<ChFsiInterface>(*m_sysFSI, m_paramsH);
 }
 
@@ -718,8 +721,9 @@ void ChSystemFsi::AddFsiMesh1D(std::shared_ptr<fea::ChMesh> mesh) {
     unsigned int meshID = (unsigned int)m_fsi_interface->m_fsi_meshes1D.size();
     fsi_mesh.num_bce = AddBCE_mesh1D(meshID, fsi_mesh);
 
-    // Update total number of flex 1-D segments
+    // Update total number of flex 1-D segments and associated nodes
     m_num_flex1D_elements += fsi_mesh.segments.size();
+    m_num_flex1D_nodes += fsi_mesh.ind2ptr_map.size();
 
     // Store the mesh contact surface
     m_fsi_interface->m_fsi_meshes1D.push_back(fsi_mesh);
@@ -781,8 +785,9 @@ void ChSystemFsi::AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, bool centered)
     unsigned int meshID = (unsigned int)m_fsi_interface->m_fsi_meshes2D.size();
     fsi_mesh.num_bce = AddBCE_mesh2D(meshID, fsi_mesh, centered);
 
-    // Update total number of flex 2-D faces
-    m_num_flex1D_elements += fsi_mesh.contact_surface->GetNumTriangles();
+    // Update total number of flex 2-D faces and associated nodes
+    m_num_flex2D_elements += fsi_mesh.contact_surface->GetNumTriangles();
+    m_num_flex2D_nodes += fsi_mesh.ind2ptr_map.size();
 
     // Store the mesh contact surface
     m_fsi_interface->m_fsi_meshes2D.push_back(fsi_mesh);
@@ -790,6 +795,7 @@ void ChSystemFsi::AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, bool centered)
     //// TODO - load necessary structures and arrays
 }
 
+//// OBSOLETE
 void ChSystemFsi::AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh,
                              const std::vector<std::vector<int>>& beam_elements,
                              const std::vector<std::vector<int>>& shell_elements) {
@@ -924,26 +930,31 @@ void ChSystemFsi::Initialize() {
     m_fsi_interface->ResizeChronoCablesData(m_fea_cable_nodes);
     m_fsi_interface->ResizeChronoShellsData(m_fea_shell_nodes);
 
-    // This also sets the referenceArray and counts numbers of various objects
+    // Initialize the underlying FSU system: set reference arrays, set counters, and resize simulation arrays
     size_t n_flexnodes = m_fsi_interface->m_fsi_mesh ? (size_t)m_fsi_interface->m_fsi_mesh->GetNnodes() : 0;
-    m_sysFSI->ResizeData(m_fsi_interface->m_fsi_bodies.size(), m_num_flex1D_elements, m_num_flex2D_elements,
-                         n_flexnodes);
+    m_sysFSI->Initialize(m_fsi_interface->m_fsi_bodies.size(), m_num_flex1D_elements, m_num_flex2D_elements,
+                         m_num_flex1D_nodes, m_num_flex2D_nodes,
+                         n_flexnodes  //// OBSOLETE
+    );
 
     if (m_verbose) {
         cout << "Counters" << endl;
-        cout << "  numRigidBodies: " << m_sysFSI->numObjectsH->numRigidBodies << endl;
-        cout << "  numFlexNodes: " << m_sysFSI->numObjectsH->numFlexNodes << endl;
-        cout << "  numFlexBodies1D: " << m_sysFSI->numObjectsH->numFlexBodies1D << endl;
-        cout << "  numFlexBodies2D: " << m_sysFSI->numObjectsH->numFlexBodies2D << endl;
-        cout << "  numGhostMarkers: " << m_sysFSI->numObjectsH->numGhostMarkers << endl;
-        cout << "  numHelperMarkers: " << m_sysFSI->numObjectsH->numHelperMarkers << endl;
-        cout << "  numFluidMarkers: " << m_sysFSI->numObjectsH->numFluidMarkers << endl;
+        cout << "  numRigidBodies:     " << m_sysFSI->numObjectsH->numRigidBodies << endl;
+        cout << "  numFlexBodies1D:    " << m_sysFSI->numObjectsH->numFlexBodies1D << endl;
+        cout << "  numFlexBodies2D:    " << m_sysFSI->numObjectsH->numFlexBodies2D << endl;
+        cout << "  numFlexNodes1D:     " << m_sysFSI->numObjectsH->numFlexNodes1D << endl;
+        cout << "  numFlexNodes2D:     " << m_sysFSI->numObjectsH->numFlexNodes2D << endl;
+        cout << "  numGhostMarkers:    " << m_sysFSI->numObjectsH->numGhostMarkers << endl;
+        cout << "  numHelperMarkers:   " << m_sysFSI->numObjectsH->numHelperMarkers << endl;
+        cout << "  numFluidMarkers:    " << m_sysFSI->numObjectsH->numFluidMarkers << endl;
         cout << "  numBoundaryMarkers: " << m_sysFSI->numObjectsH->numBoundaryMarkers << endl;
-        cout << "  numRigidMarkers: " << m_sysFSI->numObjectsH->numRigidMarkers << endl;
-        cout << "  numFlexMarkers: " << m_sysFSI->numObjectsH->numFlexMarkers << endl;
-        cout << "  numAllMarkers: " << m_sysFSI->numObjectsH->numAllMarkers << endl;
-        cout << "  startRigidMarkers: " << m_sysFSI->numObjectsH->startRigidMarkers << endl;
-        cout << "  startFlexMarkers: " << m_sysFSI->numObjectsH->startFlexMarkers << endl;
+        cout << "  numRigidMarkers:    " << m_sysFSI->numObjectsH->numRigidMarkers << endl;
+        cout << "  numFlexMarkers1D:   " << m_sysFSI->numObjectsH->numFlexMarkers1D << endl;
+        cout << "  numFlexMarkers2D:   " << m_sysFSI->numObjectsH->numFlexMarkers2D << endl;
+        cout << "  numAllMarkers:      " << m_sysFSI->numObjectsH->numAllMarkers << endl;
+        cout << "  startRigidMarkers:  " << m_sysFSI->numObjectsH->startRigidMarkers << endl;
+        cout << "  startFlexMarkers1D: " << m_sysFSI->numObjectsH->startFlexMarkers1D << endl;
+        cout << "  startFlexMarkers2D: " << m_sysFSI->numObjectsH->startFlexMarkers2D << endl;
 
         cout << "Reference array (size: " << m_sysFSI->fsiData->referenceArray.size() << ")" << endl;
         for (size_t i = 0; i < m_sysFSI->fsiData->referenceArray.size(); i++) {
@@ -958,7 +969,11 @@ void ChSystemFsi::Initialize() {
     }
 
     m_fsi_interface->LoadBodyState_Chrono2Fsi(m_sysFSI->fsiBodyState1D);
+    //// OBSOLETE
     m_fsi_interface->LoadMeshState_Chrono2Fsi(m_sysFSI->fsiMeshStateD);
+    //// REPLACE WITH:
+    m_fsi_interface->LoadMesh1DState_Chrono2Fsi(m_sysFSI->fsiMesh1DState_D);
+    m_fsi_interface->LoadMesh2DState_Chrono2Fsi(m_sysFSI->fsiMesh2DState_D);
 
     // Construct midpoint rigid data
     m_sysFSI->fsiBodyState2D = m_sysFSI->fsiBodyState1D;

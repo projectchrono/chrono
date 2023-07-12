@@ -179,15 +179,15 @@ struct FsiData {
     thrust::device_vector<uint> freeSurfaceIdD;  ///< Identifies if a particle is close to free surface
 
     // BCE
-    thrust::device_vector<Real3> rigid_BCEcoords_D;  ///< Rigid body BCE position (local reference frame)
-    thrust::host_vector<Real3> flex1D_BCEcoords_H;
-    thrust::device_vector<Real3> flex1D_BCEcoords_D; 
-    thrust::host_vector<Real3> flex2D_BCEcoords_H;
-    thrust::device_vector<Real3> flex2D_BCEcoords_D; 
+    thrust::device_vector<Real3> rigid_BCEcoords_D;   ///< Rigid body BCE position (local reference frame)
+    thrust::host_vector<Real3> flex1D_BCEcoords_H;    ///< local coords for BCE markers on 1-D flex segments (host)
+    thrust::device_vector<Real3> flex1D_BCEcoords_D;  ///< local coords for BCE markers on 1-D flex segments (device)
+    thrust::host_vector<Real3> flex2D_BCEcoords_H;    ///< local coords for BCE markers on 2-D flex faces (host)
+    thrust::device_vector<Real3> flex2D_BCEcoords_D;  ///< local coors for BCE markers on 2-D flex faces (device)
     thrust::device_vector<Real3> FlexSPH_MeshPos_LRF_D;  // Flex body BCE position (local coordinates) - device //// OBSOLETE
     thrust::host_vector<Real3> FlexSPH_MeshPos_LRF_H;    // Flex body BCE position (local coordinates) - host //// OBSOLETE
 
-    thrust::device_vector<uint> rigid_BCEsolids_D;    ///< Identifies which rigid body a particle belongs to
+    thrust::device_vector<uint> rigid_BCEsolids_D;    ///< associated body ID for BCE markers on rigid bodies
     thrust::host_vector<uint3> flex1D_BCEsolids_H;    ///< associated mesh and segment for BCE markers on 1-D segments
     thrust::device_vector<uint3> flex1D_BCEsolids_D;  ///< associated mesh and segment for BCE markers on 1-D segments
     thrust::host_vector<uint3> flex2D_BCEsolids_H;    ///< associated mesh and face for BCE markers on 2-D faces
@@ -227,8 +227,15 @@ class ChSystemFsi_impl : public ChFsiBase {
                         Real3 tauXxYyZz = mR3(0.0),
                         Real3 tauXyXzYz = mR3(0.0));
 
-    /// Resize the simulation data based on the FSI system constructed.
-    void ResizeData(size_t numRigidBodies, size_t numFlexBodies1D, size_t numFlexBodies2D, size_t numFlexNodes);
+    /// Initialize the underlying FSU system.
+    /// Set reference arrays, set counters, and resize simulation arrays.
+    void Initialize(size_t numRigidBodies,
+                    size_t numFlexBodies1D,
+                    size_t numFlexBodies2D,
+                    size_t numFlexNodes1D,
+                    size_t numFlexNodes2D,
+                    size_t numFlexNodes  //// OBSOLETE
+    );
 
     /// Extract forces applied on all SPH particles.
     thrust::device_vector<Real4> GetParticleForces();

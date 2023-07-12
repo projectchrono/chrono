@@ -405,13 +405,13 @@ class CH_FSI_API ChSystemFsi {
     void AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, bool centered = false);
 
     /// Add an FEA mesh to the FSI system.
-    //// RADU - obsolete
+    //// RADU - OBSOLETE
     void AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh,
                     const std::vector<std::vector<int>>& beam_elements,
                     const std::vector<std::vector<int>>& shell_elements);
 
     /// Add BCE markers from mesh.
-    //// RADU - obsolete
+    //// RADU - OBSOLETE
     void AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
                        const std::vector<std::vector<int>>& NodeNeighborElement,
                        const std::vector<std::vector<int>>& _1D_elementsNodes,
@@ -563,11 +563,14 @@ class CH_FSI_API ChSystemFsi {
     std::unique_ptr<ChFsiInterface> m_fsi_interface;    ///< FSI interface system
     std::shared_ptr<ChBce> m_bce_manager;               ///< BCE manager
 
-    std::vector<std::vector<int>> m_fea_shell_nodes;  ///< indices of nodes of each shell element
-    std::vector<std::vector<int>> m_fea_cable_nodes;  ///< indices of nodes of each cable element
+    std::vector<std::vector<int>> m_fea_shell_nodes;  ///< indices of nodes of each shell element //// OBSOLETE
+    std::vector<std::vector<int>> m_fea_cable_nodes;  ///< indices of nodes of each cable element //// OBSOLETE
 
     unsigned int m_num_flex1D_elements;  ///< number of 1-D flexible segments (across all meshes)
     unsigned int m_num_flex2D_elements;  ///< number of 2-D flexible faces (across all meshes)
+
+    unsigned int m_num_flex1D_nodes;  ///< number of 1-D flexible segments (across all meshes)
+    unsigned int m_num_flex2D_nodes;  ///< number of 2-D flexible faces (across all meshes)
 
     std::vector<int> m_fsi_bodies_bce_num;  ///< number of BCE particles of each fsi body
     std::vector<int> m_fsi_cables_bce_num;  ///< number of BCE particles of each fsi cable
