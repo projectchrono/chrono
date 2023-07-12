@@ -66,7 +66,7 @@ class ChBce : public ChFsiBase {
 
     /// Updates the position and velocity of the particles on the flexible solids based on the state of the mesh.
     void UpdateMeshMarker1DState(std::shared_ptr<SphMarkerDataD> sphMarkersD,
-                               std::shared_ptr<FsiMeshStateD> fsiMeshStateD);
+                                 std::shared_ptr<FsiMeshStateD> fsiMeshStateD);
     void UpdateMeshMarker2DState(std::shared_ptr<SphMarkerDataD> sphMarkersD,
                                  std::shared_ptr<FsiMeshStateD> fsiMeshStateD);
     //// OBSOLETE
@@ -74,13 +74,19 @@ class ChBce : public ChFsiBase {
                                std::shared_ptr<FsiMeshStateD> fsiMeshStateD);
 
     /// Calculates the forces from the fluid/granular dynamics system to the FSI system on rigid bodies.
-    void Rigid_Forces_Torques(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::shared_ptr<FsiBodyStateD> fsiBodyStateD);
+    void Rigid_Forces_Torques(std::shared_ptr<SphMarkerDataD> sphMarkersD,
+                              std::shared_ptr<FsiBodyStateD> fsiBodyStateD);
 
     /// Calculates the forces from the fluid/granular dynamics system to the FSI system on flexible bodies.
     void Flex1D_Forces(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::shared_ptr<FsiMeshStateD> fsiMeshStateD);
     void Flex2D_Forces(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::shared_ptr<FsiMeshStateD> fsiMeshStateD);
     //// OBSOLETE
     void Flex_Forces(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::shared_ptr<FsiMeshStateD> fsiMeshStateD);
+
+    void CalcMeshMarker1DAcceleration(thrust::device_vector<Real3>& bceAcc,
+                                      std::shared_ptr<FsiMeshStateD> fsiMeshStateD);
+    void CalcMeshMarker2DAcceleration(thrust::device_vector<Real3>& bceAcc,
+                                      std::shared_ptr<FsiMeshStateD> fsiMeshStateD);
 
     /// Modify the velocity, pressure, stress of BCE particles according to the SPH particles around.
     void ModifyBceVelocityPressureStress(std::shared_ptr<SphMarkerDataD> sphMarkersD,
