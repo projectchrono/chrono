@@ -194,6 +194,8 @@ const ChVector<> Duro_DeDionAxle::getLocation(PointId which) {
             return ChVector<>(0.0, 0.84, 0.0);
         case AXLE_C:
             return ChVector<>(1.905, 0, 0.1);
+        case STABI_CON:
+            return ChVector<>(1.905, 0.42, 0.1);
         case WATT_CNT_LE:
             return ChVector<>(-0.2, 0, 0.25);
         case WATT_CNT_RI:

@@ -142,6 +142,9 @@ class CH_VEHICLE_API ChToeBarDeDionAxle : public ChSuspension {
 
     void LogHardpointLocations(const ChVector<>& ref, bool inches = false);
 
+    const ChVector<> GetConnectorLocation(VehicleSide side);
+    const std::shared_ptr<ChBody> GetConnectorBody() { return m_axleTube; }
+    
    protected:
     /// Identifiers for the various hardpoints.
     enum PointId {
@@ -157,8 +160,9 @@ class CH_VEHICLE_API ChToeBarDeDionAxle : public ChSuspension {
         KNUCKLE_CM,   ///< knuckle, center of mass
         DRAGLINK_C,   ///< draglink, chassis
         AXLE_C,       ///< sphere link location
-        WATT_CNT_LE,  ///<  spherical link location of center link to left link
-        WATT_CNT_RI,  ///<  spherical link location of center link to right link
+        STABI_CON,    ///< location of stabilizer connection
+        WATT_CNT_LE,  ///< spherical link location of center link to left link
+        WATT_CNT_RI,  ///< spherical link location of center link to right link
         WATT_LE_CH,   ///< spherical link location of left link (center link to chassis)
         WATT_RI_CH,   ///< spherical link location of right link (center link to chassis)
         NUM_POINTS
@@ -272,6 +276,8 @@ class CH_VEHICLE_API ChToeBarDeDionAxle : public ChSuspension {
     ChVector<> m_axleOuterR;
     ChVector<> m_axleCenter;
     ChVector<> m_axleChassis;
+    ChVector<> m_stabiConnectorL;
+    ChVector<> m_stabiConnectorR;
 
     // Points for tierod visualization
     ChVector<> m_tierodOuterL;

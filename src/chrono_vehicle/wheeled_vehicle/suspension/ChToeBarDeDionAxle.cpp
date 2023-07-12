@@ -113,6 +113,11 @@ void ChToeBarDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     outer_local.y() = -outer_local.y();
     m_axleOuterR = suspension_to_abs.TransformPointLocalToParent(outer_local);
 
+    ChVector<> conn_local(getLocation(STABI_CON));
+    m_stabiConnectorL = suspension_to_abs.TransformPointLocalToParent(conn_local);
+    conn_local.y() = -conn_local.y();
+    m_stabiConnectorR = suspension_to_abs.TransformPointLocalToParent(conn_local);
+
     m_wattLower = suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_CNT_LE));
     m_wattUpper = suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_CNT_RI));
     m_wattOuterL = suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_LE_CH));
@@ -299,6 +304,14 @@ void ChToeBarDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
         m_sphericalDraglinkKnuckle->SetNameString(m_name + "_sphericalDraglinkKnuckle" + "_R");
         m_sphericalDraglinkKnuckle->Initialize(m_draglink, m_knuckle[RIGHT],ChCoordsys<>(m_pointsL[KNUCKLE_DRL], QUNIT));
         chassis->GetBody()->GetSystem()->AddLink(m_sphericalDraglinkKnuckle);
+    }
+}
+
+const ChVector<> ChToeBarDeDionAxle::GetConnectorLocation(VehicleSide side) {
+    if (side == RIGHT) {
+        return m_stabiConnectorR;
+    } else {
+        return m_stabiConnectorL;
     }
 }
 
@@ -526,6 +539,7 @@ void ChToeBarDeDionAxle::AddVisualizationAssets(VisualizationType vis) {
 
     AddVisualizationLink(m_axleTube, m_axleOuterL, m_axleOuterR, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
     AddVisualizationLink(m_axleTube, m_axleCenter, m_axleChassis, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
+    AddVisualizationLink(m_axleTube, m_stabiConnectorL, m_stabiConnectorR, getAxleTubeRadius()/2, ChColor(0.7f, 0.7f, 0.7f));
     AddVisualizationLink(m_wattCenterLinkBody, m_wattLower, m_wattUpper, getWattLinkRadius(),
                          ChColor(0.5f, 0.7f, 0.8f));
     AddVisualizationLink(m_wattLeftLinkBody, m_wattLower, m_wattOuterL, getWattLinkRadius(), ChColor(0.8f, 0.5f, 0.5f));

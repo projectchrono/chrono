@@ -137,6 +137,9 @@ class CH_VEHICLE_API ChDeDionAxle : public ChSuspension {
 
     void LogHardpointLocations(const ChVector<>& ref, bool inches = false);
 
+    const ChVector<> GetConnectorLocation(VehicleSide side);
+    const std::shared_ptr<ChBody> GetConnectorBody() { return m_axleTube; }
+
    protected:
     /// Identifiers for the various hardpoints.
     enum PointId {
@@ -146,9 +149,10 @@ class CH_VEHICLE_API ChDeDionAxle : public ChSuspension {
         SPRING_C,     ///< spring, chassis
         SPINDLE,      ///< spindle location
         AXLE_C,       ///< sphere link location
-        WATT_CNT_LE,  ///<  spherical link location of center link to left link
-        WATT_CNT_RI,  ///<  spherical link location of center link to right link
-        WATT_LE_CH,    ///< spherical link location of left link (center link to chassis)
+        STABI_CON,    ///< location of stabilizer connection
+        WATT_CNT_LE,  ///< spherical link location of center link to left link
+        WATT_CNT_RI,  ///< spherical link location of center link to right link
+        WATT_LE_CH,   ///< spherical link location of left link (center link to chassis)
         WATT_RI_CH,   ///< spherical link location of right link (center link to chassis)
         NUM_POINTS
     };
@@ -205,7 +209,7 @@ class CH_VEHICLE_API ChDeDionAxle : public ChSuspension {
     /// Return the functor object for shock force.
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const = 0;
 
-    std::shared_ptr<ChBody> m_axleTube;        ///< handles to the axle tube body
+    std::shared_ptr<ChBody> m_axleTube;            ///< handles to the axle tube body
     std::shared_ptr<ChBody> m_wattCenterLinkBody;  ///< handle to the Watt center link
     std::shared_ptr<ChBody> m_wattLeftLinkBody;    ///< handle to the Watt left link
     std::shared_ptr<ChBody> m_wattRightLinkBody;   ///< handle to the Watt right link
@@ -230,6 +234,8 @@ class CH_VEHICLE_API ChDeDionAxle : public ChSuspension {
     ChVector<> m_axleOuterR;
     ChVector<> m_axleCenter;
     ChVector<> m_axleChassis;
+    ChVector<> m_stabiConnectorL;
+    ChVector<> m_stabiConnectorR;
 
     // Points for tierod visualization
     ChVector<> m_tierodOuterL;

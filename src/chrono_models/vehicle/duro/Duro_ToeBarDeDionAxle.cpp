@@ -216,6 +216,8 @@ const ChVector<> Duro_ToeBarDeDionAxle::getLocation(PointId which) {
             return ChVector<>(0.22, 0.635 - 0.2 + 0.155, 0.1);
         case AXLE_C:
             return ChVector<>(-1.675, 0.0, 0.1);
+        case STABI_CON:
+            return ChVector<>(-1.675, 0.42, 0.1);
         case WATT_CNT_LE:
             return ChVector<>(0.15, 0, 0.25);
         case WATT_CNT_RI:
