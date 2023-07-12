@@ -69,6 +69,39 @@ void ChFsiInterface::LoadBodyState_Chrono2Fsi(std::shared_ptr<FsiBodyStateD> fsi
 
 //-----------------------Chrono FEA Specifics-----------------------------------------
 
+void ChFsiInterface::ApplyMesh1DForce_Fsi2Chrono() {
+    // Transfer to host
+    thrust::host_vector<Real3> forces_H = m_sysFSI.fsiData->flex1D_FSIforces_D;
+
+    // Apply to FEA nodes
+    int counter = 0;
+    for (const auto& fsi_mesh : m_fsi_meshes1D) {
+        int num_nodes = (int)fsi_mesh.ind2ptr_map.size();
+        for (int i = 0; i < num_nodes; i++) {
+            const auto& node = fsi_mesh.ind2ptr_map.at(i);
+            node->SetForce(utils::ToChVector(forces_H[counter]));
+            counter++;
+        }
+    }
+}
+
+void ChFsiInterface::ApplyMesh2DForce_Fsi2Chrono() {
+    // Transfer to host
+    thrust::host_vector<Real3> forces_H = m_sysFSI.fsiData->flex2D_FSIforces_D;
+
+    // Apply to FEA nodes
+    int counter = 0;
+    for (const auto& fsi_mesh : m_fsi_meshes2D) {
+        int num_nodes = (int)fsi_mesh.ind2ptr_map.size();
+        for (int i = 0; i < num_nodes; i++) {
+            const auto& node = fsi_mesh.ind2ptr_map.at(i);
+            node->SetForce(utils::ToChVector(forces_H[counter]));
+            counter++;
+        }
+    }
+}
+
+//// OBSOLETE
 void ChFsiInterface::ApplyMeshForce_Fsi2Chrono() {
     size_t num_nodes = m_fsi_nodes.size();
 
@@ -81,6 +114,43 @@ void ChFsiInterface::ApplyMeshForce_Fsi2Chrono() {
     }
 }
 
+void ChFsiInterface::LoadMesh1DState_Chrono2Fsi(std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D) {
+    // Load from FEA nodes on host
+    int counter = 0;
+    for (const auto& fsi_mesh : m_fsi_meshes1D) {
+        int num_nodes = (int)fsi_mesh.ind2ptr_map.size();
+        for (int i = 0; i < num_nodes; i++) {
+            const auto& node = fsi_mesh.ind2ptr_map.at(i);
+            m_sysFSI.fsiMesh1DState_H->pos_fsi_fea_H[counter] = utils::ToReal3(node->GetPos());
+            m_sysFSI.fsiMesh1DState_H->vel_fsi_fea_H[counter] = utils::ToReal3(node->GetPos_dt());
+            m_sysFSI.fsiMesh1DState_H->acc_fsi_fea_H[counter] = utils::ToReal3(node->GetPos_dtdt());
+            counter++;
+        }
+    }
+
+    // Transfer to device
+    fsiMesh1DState_D->CopyFromH(*m_sysFSI.fsiMesh1DState_H);
+}
+
+void ChFsiInterface::LoadMesh2DState_Chrono2Fsi(std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D) {
+    // Load from FEA nodes on host
+    int counter = 0;
+    for (const auto& fsi_mesh : m_fsi_meshes2D) {
+        int num_nodes = (int)fsi_mesh.ind2ptr_map.size();
+        for (int i = 0; i < num_nodes; i++) {
+            const auto& node = fsi_mesh.ind2ptr_map.at(i);
+            m_sysFSI.fsiMesh2DState_H->pos_fsi_fea_H[counter] = utils::ToReal3(node->GetPos());
+            m_sysFSI.fsiMesh2DState_H->vel_fsi_fea_H[counter] = utils::ToReal3(node->GetPos_dt());
+            m_sysFSI.fsiMesh2DState_H->acc_fsi_fea_H[counter] = utils::ToReal3(node->GetPos_dtdt());
+            counter++;
+        }
+    }
+
+    // Transfer to device
+    fsiMesh2DState_D->CopyFromH(*m_sysFSI.fsiMesh2DState_H);
+}
+
+//// OBSOLETE
 void ChFsiInterface::LoadMeshState_Chrono2Fsi(std::shared_ptr<FsiMeshStateD> fsiMeshStateD) {
     size_t num_nodes = m_fsi_nodes.size();
 
@@ -94,6 +164,7 @@ void ChFsiInterface::LoadMeshState_Chrono2Fsi(std::shared_ptr<FsiMeshStateD> fsi
     fsiMeshStateD->CopyFromH(*m_sysFSI.fsiMeshStateH);
 }
 
+//// OBSOLETE
 void ChFsiInterface::ResizeChronoCablesData(const std::vector<std::vector<int>>& CableElementsNodesSTDVector) {
     if (CableElementsNodesSTDVector.empty())
         return;
@@ -126,6 +197,7 @@ void ChFsiInterface::ResizeChronoCablesData(const std::vector<std::vector<int>>&
     }
 }
 
+//// OBSOLETE
 void ChFsiInterface::ResizeChronoShellsData(const std::vector<std::vector<int>>& ShellElementsNodesSTDVector) {
     if (ShellElementsNodesSTDVector.empty())
         return;
