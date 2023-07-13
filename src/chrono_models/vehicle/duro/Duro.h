@@ -42,7 +42,7 @@ namespace duro {
 /// This class encapsulates a concrete wheeled vehicle model with parameters
 /// corresponding to a UAZ vehicle, the powertrain model, and the 4 tires.
 class CH_MODELS_API Duro {
-   public:
+  public:
     Duro();
     Duro(ChSystem* system);
 
@@ -92,7 +92,7 @@ class CH_MODELS_API Duro {
     void LogHardpointLocations() { m_vehicle->LogHardpointLocations(); }
     void DebugLog(int what) { m_vehicle->DebugLog(what); }
 
-   protected:
+  protected:
     ChSystem* m_system;
     Duro_Vehicle* m_vehicle;
 

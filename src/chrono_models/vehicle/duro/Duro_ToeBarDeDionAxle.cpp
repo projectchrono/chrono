@@ -104,10 +104,10 @@ Duro_FPPSpringForceFront::Duro_FPPSpringForceFront(double spring_constant, doubl
 }
 
 double Duro_FPPSpringForceFront::evaluate(double time,
-                                             double rest_length,
-                                             double length,
-                                             double vel,
-                                             const ChLinkTSDA& link) {
+                                          double rest_length,
+                                          double length,
+                                          double vel,
+                                          const ChLinkTSDA& link) {
     double force = 0;
 
     double defl_spring = rest_length - length;
@@ -133,9 +133,9 @@ double Duro_FPPSpringForceFront::evaluate(double time,
 class Duro_FPPShockForceFront : public ChLinkTSDA::ForceFunctor {
   public:
     Duro_FPPShockForceFront(double compression_slope,
-                               double compression_degressivity,
-                               double expansion_slope,
-                               double expansion_degressivity);
+                            double compression_degressivity,
+                            double expansion_slope,
+                            double expansion_degressivity);
 
     virtual double evaluate(double time,
                             double rest_length,
@@ -151,19 +151,19 @@ class Duro_FPPShockForceFront : public ChLinkTSDA::ForceFunctor {
 };
 
 Duro_FPPShockForceFront::Duro_FPPShockForceFront(double compression_slope,
-                                                       double compression_degressivity,
-                                                       double expansion_slope,
-                                                       double expansion_degressivity)
+                                                 double compression_degressivity,
+                                                 double expansion_slope,
+                                                 double expansion_degressivity)
     : m_slope_compr(compression_slope),
       m_degres_compr(compression_degressivity),
       m_slope_expand(expansion_slope),
       m_degres_expand(expansion_degressivity) {}
 
 double Duro_FPPShockForceFront::evaluate(double time,
-                                            double rest_length,
-                                            double length,
-                                            double vel,
-                                            const ChLinkTSDA& link) {
+                                         double rest_length,
+                                         double length,
+                                         double vel,
+                                         const ChLinkTSDA& link) {
     // Simple model of a degressive damping characteristic
     double force = 0;
 
@@ -178,8 +178,8 @@ double Duro_FPPShockForceFront::evaluate(double time,
 }
 
 Duro_ToeBarDeDionAxle::Duro_ToeBarDeDionAxle(const std::string& name) : ChToeBarDeDionAxle(name) {
-    m_springForceCB = chrono_types::make_shared<Duro_FPPSpringForceFront>(m_springCoefficient, m_springMinLength,
-                                                                             m_springMaxLength);
+    m_springForceCB =
+        chrono_types::make_shared<Duro_FPPSpringForceFront>(m_springCoefficient, m_springMinLength, m_springMaxLength);
 
     m_shockForceCB = chrono_types::make_shared<Duro_FPPShockForceFront>(
         m_damperCoefficient, m_damperDegressivityCompression, m_damperCoefficient, m_damperDegressivityExpansion);
@@ -201,7 +201,7 @@ const ChVector<> Duro_ToeBarDeDionAxle::getLocation(PointId which) {
         case SHOCK_C:
             return ChVector<>(-0.12, 0.52, 0.468);
         case SPINDLE:
-            return ChVector<>(0.0, 0.84, 0.0); // 0.84 - 0.635 = 0.205
+            return ChVector<>(0.0, 0.84, 0.0);  // 0.84 - 0.635 = 0.205
         case KNUCKLE_CM:
             return ChVector<>(0.0, 0.635 - 0.07 + 0.155, 0.0);
         case KNUCKLE_L:
@@ -231,7 +231,6 @@ const ChVector<> Duro_ToeBarDeDionAxle::getLocation(PointId which) {
     }
 }
 
-}  // namespace unimog
+}  // namespace duro
 }  // end namespace vehicle
 }  // end namespace chrono
-

@@ -62,7 +62,6 @@ const ChVector<> Duro_RotaryArm::getDirection(DirectionId which) {
     }
 }
 
-}  // namespace unimog
+}  // namespace duro
 }  // end namespace vehicle
 }  // end namespace chrono
-

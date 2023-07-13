@@ -125,8 +125,8 @@ void ChToeBarDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // longitudinal guide, modeled as a pushbar
     m_axleChassis = suspension_to_abs.TransformPointLocalToParent(getLocation(AXLE_C));
-    m_axleCenter = (m_axleOuterR+m_axleOuterL)/2.0;
-    
+    m_axleCenter = (m_axleOuterR + m_axleOuterL) / 2.0;
+
     // Create and initialize the axle body.
     m_axleTube = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
     m_axleTube->SetNameString(m_name + "_axleTube");
@@ -271,7 +271,8 @@ void ChToeBarDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
         // Create and initialize the universal joint between draglink and knuckle
         m_sphericalDraglinkKnuckle = chrono_types::make_shared<ChLinkLockSpherical>();
         m_sphericalDraglinkKnuckle->SetNameString(m_name + "_sphericalDraglinkKnuckle" + "_L");
-        m_sphericalDraglinkKnuckle->Initialize(m_draglink, m_knuckle[LEFT],ChCoordsys<>(m_pointsL[KNUCKLE_DRL], QUNIT));
+        m_sphericalDraglinkKnuckle->Initialize(m_draglink, m_knuckle[LEFT],
+                                               ChCoordsys<>(m_pointsL[KNUCKLE_DRL], QUNIT));
         chassis->GetBody()->GetSystem()->AddLink(m_sphericalDraglinkKnuckle);
     } else {
         // Create and initialize the draglink body (one side only).
@@ -302,7 +303,8 @@ void ChToeBarDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
         // Create and initialize the universal joint between draglink and knuckle
         m_sphericalDraglinkKnuckle = chrono_types::make_shared<ChLinkLockSpherical>();
         m_sphericalDraglinkKnuckle->SetNameString(m_name + "_sphericalDraglinkKnuckle" + "_R");
-        m_sphericalDraglinkKnuckle->Initialize(m_draglink, m_knuckle[RIGHT],ChCoordsys<>(m_pointsL[KNUCKLE_DRL], QUNIT));
+        m_sphericalDraglinkKnuckle->Initialize(m_draglink, m_knuckle[RIGHT],
+                                               ChCoordsys<>(m_pointsL[KNUCKLE_DRL], QUNIT));
         chassis->GetBody()->GetSystem()->AddLink(m_sphericalDraglinkKnuckle);
     }
 }
@@ -539,7 +541,8 @@ void ChToeBarDeDionAxle::AddVisualizationAssets(VisualizationType vis) {
 
     AddVisualizationLink(m_axleTube, m_axleOuterL, m_axleOuterR, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
     AddVisualizationLink(m_axleTube, m_axleCenter, m_axleChassis, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
-    AddVisualizationLink(m_axleTube, m_stabiConnectorL, m_stabiConnectorR, getAxleTubeRadius()/2, ChColor(0.7f, 0.7f, 0.7f));
+    AddVisualizationLink(m_axleTube, m_stabiConnectorL, m_stabiConnectorR, getAxleTubeRadius() / 2,
+                         ChColor(0.7f, 0.7f, 0.7f));
     AddVisualizationLink(m_wattCenterLinkBody, m_wattLower, m_wattUpper, getWattLinkRadius(),
                          ChColor(0.5f, 0.7f, 0.8f));
     AddVisualizationLink(m_wattLeftLinkBody, m_wattLower, m_wattOuterL, getWattLinkRadius(), ChColor(0.8f, 0.5f, 0.5f));

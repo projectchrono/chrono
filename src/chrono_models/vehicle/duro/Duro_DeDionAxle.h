@@ -31,11 +31,11 @@ namespace duro {
 /// @{
 
 class CH_MODELS_API Duro_DeDionAxle : public ChDeDionAxle {
-   public:
+  public:
     Duro_DeDionAxle(const std::string& name);
     ~Duro_DeDionAxle();
 
-   protected:
+  protected:
     virtual const ChVector<> getLocation(PointId which) override;
 
     virtual double getCamberAngle() const override { return 0; }
@@ -66,7 +66,7 @@ class CH_MODELS_API Duro_DeDionAxle : public ChDeDionAxle {
     /// Return the functor object for shock force.
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
 
-   private:
+  private:
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_springForceCB;
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
 

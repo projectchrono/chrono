@@ -94,10 +94,10 @@ Duro_PPSpringForceRear::Duro_PPSpringForceRear(double spring_constant, double mi
 }
 
 double Duro_PPSpringForceRear::evaluate(double time,
-                                           double rest_length,
-                                           double length,
-                                           double vel,
-                                           const ChLinkTSDA& link) {
+                                        double rest_length,
+                                        double length,
+                                        double vel,
+                                        const ChLinkTSDA& link) {
     double force = 0;
 
     double defl_spring = rest_length - length;
@@ -123,9 +123,9 @@ double Duro_PPSpringForceRear::evaluate(double time,
 class Duro_PPShockForceRear : public ChLinkTSDA::ForceFunctor {
   public:
     Duro_PPShockForceRear(double compression_slope,
-                             double compression_degressivity,
-                             double expansion_slope,
-                             double expansion_degressivity);
+                          double compression_degressivity,
+                          double expansion_slope,
+                          double expansion_degressivity);
 
     virtual double evaluate(double time,
                             double rest_length,
@@ -141,19 +141,19 @@ class Duro_PPShockForceRear : public ChLinkTSDA::ForceFunctor {
 };
 
 Duro_PPShockForceRear::Duro_PPShockForceRear(double compression_slope,
-                                                   double compression_degressivity,
-                                                   double expansion_slope,
-                                                   double expansion_degressivity)
+                                             double compression_degressivity,
+                                             double expansion_slope,
+                                             double expansion_degressivity)
     : m_slope_compr(compression_slope),
       m_degres_compr(compression_degressivity),
       m_slope_expand(expansion_slope),
       m_degres_expand(expansion_degressivity) {}
 
 double Duro_PPShockForceRear::evaluate(double time,
-                                          double rest_length,
-                                          double length,
-                                          double vel,
-                                          const ChLinkTSDA& link) {
+                                       double rest_length,
+                                       double length,
+                                       double vel,
+                                       const ChLinkTSDA& link) {
     // Simple model of a degressive damping characteristic
     double force = 0;
 
@@ -209,8 +209,6 @@ const ChVector<> Duro_DeDionAxle::getLocation(PointId which) {
     }
 }
 
-}  // namespace unimog
+}  // namespace duro
 }  // end namespace vehicle
 }  // end namespace chrono
-
-

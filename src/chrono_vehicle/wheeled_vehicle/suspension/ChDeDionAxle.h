@@ -64,7 +64,7 @@ namespace vehicle {
 /// suspension and will be mirrored (reflecting the y coordinates) to construct
 /// the right side.
 class CH_VEHICLE_API ChDeDionAxle : public ChSuspension {
-   public:
+  public:
     ChDeDionAxle(const std::string& name  ///< [in] name of the subsystem
     );
 
@@ -140,7 +140,7 @@ class CH_VEHICLE_API ChDeDionAxle : public ChSuspension {
     const ChVector<> GetConnectorLocation(VehicleSide side);
     const std::shared_ptr<ChBody> GetConnectorBody() { return m_axleTube; }
 
-   protected:
+  protected:
     /// Identifiers for the various hardpoints.
     enum PointId {
         SHOCK_A,      ///< shock, axle
@@ -224,7 +224,7 @@ class CH_VEHICLE_API ChDeDionAxle : public ChSuspension {
     std::shared_ptr<ChLinkTSDA> m_shock[2];   ///< handles to the spring links (L/R)
     std::shared_ptr<ChLinkTSDA> m_spring[2];  ///< handles to the shock links (L/R)
 
-   private:
+  private:
     // Hardpoint absolute locations
     std::vector<ChVector<>> m_pointsL;
     std::vector<ChVector<>> m_pointsR;

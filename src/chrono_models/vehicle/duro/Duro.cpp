@@ -34,8 +34,8 @@ Duro::Duro()
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
-m_engineType(EngineModelType::SIMPLE_MAP),
-m_transmissionType(TransmissionModelType::SIMPLE_MAP),
+      m_engineType(EngineModelType::SIMPLE_MAP),
+      m_transmissionType(TransmissionModelType::SIMPLE_MAP),
       m_brake_locking(false),
       m_brake_type(BrakeType::SIMPLE),
       m_tireType(TireModelType::RIGID),
@@ -52,8 +52,8 @@ Duro::Duro(ChSystem* system)
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
-m_engineType(EngineModelType::SIMPLE_MAP),
-m_transmissionType(TransmissionModelType::SIMPLE_MAP),
+      m_engineType(EngineModelType::SIMPLE_MAP),
+      m_transmissionType(TransmissionModelType::SIMPLE_MAP),
       m_brake_locking(false),
       m_brake_type(BrakeType::SIMPLE),
       m_tireType(TireModelType::RIGID),
@@ -103,7 +103,7 @@ void Duro::Initialize() {
             // engine = chrono_types::make_shared<Duro_EngineSimpleMap>("Engine");
             break;
         case EngineModelType::SIMPLE:
-            //engine = chrono_types::make_shared<Duro_EngineSimple>("Engine");
+            // engine = chrono_types::make_shared<Duro_EngineSimple>("Engine");
             break;
     }
 
@@ -120,7 +120,6 @@ void Duro::Initialize() {
         auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
         m_vehicle->InitializePowertrain(powertrain);
     }
-
 
     // Create the tires and set parameters depending on type.
     switch (m_tireType) {
@@ -176,7 +175,6 @@ void Duro::Initialize() {
 
             break;
         }
-
     }
 
     for (auto& axle : m_vehicle->GetAxles()) {
@@ -201,7 +199,6 @@ void Duro::Advance(double step) {
     m_vehicle->Advance(step);
 }
 
-}  // namespace unimog
+}  // namespace duro
 }  // end namespace vehicle
 }  // end namespace chrono
-

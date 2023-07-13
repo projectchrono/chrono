@@ -69,7 +69,6 @@ void Duro_AutomaticTransmissionShafts::SetTorqeConverterTorqueRatioMap(std::shar
     map->AddPoint(1.00, 1.00);
 }
 
-}  // end namespace Duro
+}  // namespace duro
 }  // end namespace vehicle
 }  // end namespace chrono
-

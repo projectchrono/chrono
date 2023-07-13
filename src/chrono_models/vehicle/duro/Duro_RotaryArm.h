@@ -32,7 +32,7 @@ namespace duro {
 
 /// RotaryArm steering subsystem for the uaz vehicle.
 class CH_MODELS_API Duro_RotaryArm : public ChRotaryArm {
-   public:
+  public:
     Duro_RotaryArm(const std::string& name);
     ~Duro_RotaryArm() {}
 
@@ -48,7 +48,7 @@ class CH_MODELS_API Duro_RotaryArm : public ChRotaryArm {
     virtual const ChVector<> getLocation(PointId which) override;
     virtual const ChVector<> getDirection(DirectionId which) override;
 
-   private:
+  private:
     static const double m_pitmanArmMass;
 
     static const double m_pitmanArmRadius;

@@ -52,9 +52,8 @@ class CH_MODELS_API Duro_EngineShafts : public ChEngineShafts {
 
 /// @} vehicle_models_Duro
 
-}  // end namespace Duro
+}  // namespace duro
 }  // end namespace vehicle
 }  // end namespace chrono
 
 #endif
-

@@ -33,7 +33,7 @@ namespace duro {
 
 /// UAZ vehicle system.
 class CH_MODELS_API Duro_Vehicle : public ChWheeledVehicle {
-   public:
+  public:
     Duro_Vehicle(const bool fixed,
                  BrakeType brake_type,
                  SteeringTypeWV steering_model,
@@ -73,7 +73,7 @@ class CH_MODELS_API Duro_Vehicle : public ChWheeledVehicle {
     void LogHardpointLocations();  /// suspension hardpoints at design
     void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
-   private:
+  private:
     void Create(bool fixed, BrakeType brake_type, SteeringTypeWV steering_model, CollisionType chassis_collision_type);
     static void AddVisualizationLink(std::shared_ptr<ChBody> body,
                                      const ChVector<> pt_1,
