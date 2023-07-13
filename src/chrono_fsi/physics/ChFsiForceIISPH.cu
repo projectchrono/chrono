@@ -1384,9 +1384,9 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> fsiBodySt
     *isErrorH = false;
     cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
     V_i_np__AND__d_ii_kernel<<<numBlocks, numThreads>>>(
-        mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
-        mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(d_ii), mR3CAST(V_np), R1CAST(sumWij_inv), R1CAST(G_i),
-        U1CAST(markersProximityD->cellStartD), U1CAST(markersProximityD->cellEndD), paramsH->dT, numAllMarkers,
+        mR4CAST(sortedSphMarkers_D->posRadD), mR3CAST(sortedSphMarkers_D->velMasD),
+        mR4CAST(sortedSphMarkers_D->rhoPresMuD), mR3CAST(d_ii), mR3CAST(V_np), R1CAST(sumWij_inv), R1CAST(G_i),
+        U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD), paramsH->dT, numAllMarkers,
         isErrorD);
 
     cudaDeviceSynchronize();
@@ -1406,9 +1406,9 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> fsiBodySt
     *isErrorH = false;
     cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
     Rho_np_AND_a_ii_AND_sum_m_GradW<<<numBlocks, numThreads>>>(
-        mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD), R1CAST(rho_np), R1CAST(a_ii),
-        R1CAST(p_old), mR3CAST(V_np), mR3CAST(d_ii), mR3CAST(summGradW), U1CAST(markersProximityD->cellStartD),
-        U1CAST(markersProximityD->cellEndD), paramsH->dT, numAllMarkers, isErrorD);
+        mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(sortedSphMarkers_D->rhoPresMuD), R1CAST(rho_np), R1CAST(a_ii),
+        R1CAST(p_old), mR3CAST(V_np), mR3CAST(d_ii), mR3CAST(summGradW), U1CAST(markersProximity_D->cellStartD),
+        U1CAST(markersProximity_D->cellEndD), paramsH->dT, numAllMarkers, isErrorD);
 
     cudaDeviceSynchronize();
     cudaCheckError();
@@ -1454,8 +1454,8 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> fsiBodySt
         *isErrorH = false;
         cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
         CalcNumber_Contacts<<<numBlocks, numThreads>>>(
-            U1CAST(numContacts), mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
-            U1CAST(markersProximityD->cellStartD), U1CAST(markersProximityD->cellEndD), numAllMarkers, isErrorD);
+            U1CAST(numContacts), mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(sortedSphMarkers_D->rhoPresMuD),
+            U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD), numAllMarkers, isErrorD);
 
         cudaDeviceSynchronize();
         cudaCheckError();
@@ -1486,8 +1486,8 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> fsiBodySt
 
         FormAXB<<<numBlocks, numThreads>>>(
             R1CAST(csrValA), U1CAST(csrColIndA), LU1CAST(GlobalcsrColIndA), U1CAST(numContacts), R1CAST(a_ij),
-            R1CAST(B_i), mR3CAST(d_ii), R1CAST(a_ii), mR3CAST(summGradW), mR4CAST(sortedSphMarkersD->posRadD),
-            mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(V_new), R1CAST(p_old),
+            R1CAST(B_i), mR3CAST(d_ii), R1CAST(a_ii), mR3CAST(summGradW), mR4CAST(sortedSphMarkers_D->posRadD),
+            mR3CAST(sortedSphMarkers_D->velMasD), mR4CAST(sortedSphMarkers_D->rhoPresMuD), mR3CAST(V_new), R1CAST(p_old),
             mR3CAST(Normals), R1CAST(G_i), R1CAST(sumWij_inv), R1CAST(rho_np),
 
             mR4CAST(fsiBodyStateD->rot), mR3CAST(fsiData->rigid_BCEcoords_D), mR3CAST(fsiBodyStateD->pos),
@@ -1498,8 +1498,8 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> fsiBodySt
             (int)numObjectsH->numFlexBodies1D, U2CAST(fsiData->CableElementsNodesD),
             U4CAST(fsiData->ShellElementsNodesD),
 
-            updatePortion, U1CAST(markersProximityD->gridMarkerIndexD), U1CAST(markersProximityD->cellStartD),
-            U1CAST(markersProximityD->cellEndD), paramsH->dT, numAllMarkers, SPARSE_FLAG, isErrorD);
+            updatePortion, U1CAST(markersProximity_D->gridMarkerIndexD), U1CAST(markersProximity_D->cellStartD),
+            U1CAST(markersProximity_D->cellEndD), paramsH->dT, numAllMarkers, SPARSE_FLAG, isErrorD);
 
         cudaDeviceSynchronize();
         cudaCheckError();
@@ -1548,8 +1548,8 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> fsiBodySt
                Iteration < paramsH->LinearSolver_Max_Iter) {
             *isErrorH = false;
             cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
-            Initialize_Variables<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->rhoPresMuD), R1CAST(p_old),
-                                                            mR3CAST(sortedSphMarkersD->velMasD), mR3CAST(V_new),
+            Initialize_Variables<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkers_D->rhoPresMuD), R1CAST(p_old),
+                                                            mR3CAST(sortedSphMarkers_D->velMasD), mR3CAST(V_new),
                                                             numAllMarkers, isErrorD);
             cudaDeviceSynchronize();
             cudaCheckError();
@@ -1562,9 +1562,9 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> fsiBodySt
                 *isErrorH = false;
                 cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
                 Calc_dij_pj<<<numBlocks, numThreads>>>(
-                    mR3CAST(dij_pj), mR3CAST(F_p), mR3CAST(d_ii), mR4CAST(sortedSphMarkersD->posRadD),
-                    mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD), R1CAST(p_old),
-                    U1CAST(markersProximityD->cellStartD), U1CAST(markersProximityD->cellEndD), paramsH->dT,
+                    mR3CAST(dij_pj), mR3CAST(F_p), mR3CAST(d_ii), mR4CAST(sortedSphMarkers_D->posRadD),
+                    mR3CAST(sortedSphMarkers_D->velMasD), mR4CAST(sortedSphMarkers_D->rhoPresMuD), R1CAST(p_old),
+                    U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD), paramsH->dT,
                     numAllMarkers, isErrorD);
                 cudaDeviceSynchronize();
                 cudaCheckError();
@@ -1577,8 +1577,8 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> fsiBodySt
                 cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
                 Calc_Pressure<<<numBlocks, numThreads>>>(
                     R1CAST(a_ii), mR3CAST(d_ii), mR3CAST(dij_pj), R1CAST(rho_np), R1CAST(rho_p), R1CAST(Residuals),
-                    mR3CAST(F_p), mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
-                    mR4CAST(sortedSphMarkersD->rhoPresMuD),
+                    mR3CAST(F_p), mR4CAST(sortedSphMarkers_D->posRadD), mR3CAST(sortedSphMarkers_D->velMasD),
+                    mR4CAST(sortedSphMarkers_D->rhoPresMuD),
 
                     mR4CAST(fsiBodyStateD->rot), mR3CAST(fsiData->rigid_BCEcoords_D), mR3CAST(fsiBodyStateD->pos),
                     mR4CAST(fsiBodyStateD->lin_vel), mR3CAST(fsiBodyStateD->ang_vel), mR3CAST(fsiBodyStateD->lin_acc),
@@ -1587,8 +1587,8 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> fsiBodySt
                     mR3CAST(pos_fsi_fea_D), mR3CAST(vel_fsi_fea_D), mR3CAST(acc_fsi_fea_D),
                     U1CAST(fsiData->FlexIdentifierD), (int)numObjectsH->numFlexBodies1D,
                     U2CAST(fsiData->CableElementsNodesD), U4CAST(fsiData->ShellElementsNodesD), updatePortion,
-                    U1CAST(markersProximityD->gridMarkerIndexD), R1CAST(p_old), mR3CAST(V_new),
-                    U1CAST(markersProximityD->cellStartD), U1CAST(markersProximityD->cellEndD), paramsH->dT,
+                    U1CAST(markersProximity_D->gridMarkerIndexD), R1CAST(p_old), mR3CAST(V_new),
+                    U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD), paramsH->dT,
                     numAllMarkers, isErrorD);
 
                 cudaDeviceSynchronize();
@@ -1604,7 +1604,7 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> fsiBodySt
                 cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
                 Calc_Pressure_AXB_USING_CSR<<<numBlocks, numThreads>>>(
                     R1CAST(csrValA), R1CAST(a_ii), U1CAST(csrColIndA), U1CAST(numContacts),
-                    mR4CAST(sortedSphMarkersD->rhoPresMuD), R1CAST(sumWij_inv), mR3CAST(sortedSphMarkersD->velMasD),
+                    mR4CAST(sortedSphMarkers_D->rhoPresMuD), R1CAST(sumWij_inv), mR3CAST(sortedSphMarkers_D->velMasD),
                     mR3CAST(V_new), R1CAST(p_old), R1CAST(B_i), R1CAST(Residuals), numAllMarkers, isErrorD);
                 cudaDeviceSynchronize();
                 cudaCheckError();
@@ -1617,7 +1617,7 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> fsiBodySt
             cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
 
             Update_AND_Calc_Res<<<numBlocks, numThreads>>>(
-                mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD), R1CAST(p_old),
+                mR3CAST(sortedSphMarkers_D->velMasD), mR4CAST(sortedSphMarkers_D->rhoPresMuD), R1CAST(p_old),
                 mR3CAST(V_new), R1CAST(rho_p), R1CAST(rho_np), R1CAST(Residuals), numAllMarkers, Iteration,
                 paramsH->PPE_relaxation, false, isErrorD);
             cudaDeviceSynchronize();
@@ -1662,8 +1662,8 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> fsiBodySt
         *isErrorH = false;
         cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
         FinalizePressure<<<numBlocks, numThreads>>>(
-            mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD), R1CAST(p_old), mR3CAST(F_p),
-            U1CAST(markersProximityD->cellStartD), U1CAST(markersProximityD->cellEndD), numAllMarkers, shift_p,
+            mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(sortedSphMarkers_D->rhoPresMuD), R1CAST(p_old), mR3CAST(F_p),
+            U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD), numAllMarkers, shift_p,
             isErrorD);
         cudaDeviceSynchronize();
         cudaCheckError();
@@ -1710,7 +1710,7 @@ void ChFsiForceIISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     fsiCollisionSystem->ArrangeData(sphMarkersD);
 
     thrust::device_vector<Real3>::iterator iter =
-        thrust::max_element(sortedSphMarkersD->velMasD.begin(), sortedSphMarkersD->velMasD.end(), compare_Real3_mag());
+        thrust::max_element(sortedSphMarkers_D->velMasD.begin(), sortedSphMarkers_D->velMasD.end(), compare_Real3_mag());
     Real MaxVel = length(*iter);
 
     if (paramsH->Adaptive_time_stepping) {
@@ -1755,8 +1755,8 @@ void ChFsiForceIISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     thrust::device_vector<uint> Contact_i(numAllMarkers);
     thrust::fill(Contact_i.begin(), Contact_i.end(), 0);
     calcRho_kernel<<<numBlocks, numThreads>>>(
-        mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD), R1CAST(_sumWij_inv),
-        U1CAST(markersProximityD->cellStartD), U1CAST(markersProximityD->cellEndD), U1CAST(Contact_i), numAllMarkers,
+        mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(sortedSphMarkers_D->rhoPresMuD), R1CAST(_sumWij_inv),
+        U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD), U1CAST(Contact_i), numAllMarkers,
         isErrorD);
     cudaDeviceSynchronize();
     cudaCheckError();
@@ -1768,9 +1768,9 @@ void ChFsiForceIISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     thrust::device_vector<Real3> Normals(numAllMarkers);
 
     calcNormalizedRho_kernel<<<numBlocks, numThreads>>>(
-        mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
-        mR4CAST(sortedSphMarkersD->rhoPresMuD), R1CAST(_sumWij_inv), R1CAST(G_i), mR3CAST(Normals), R1CAST(Color),
-        U1CAST(markersProximityD->cellStartD), U1CAST(markersProximityD->cellEndD), numAllMarkers, isErrorD);
+        mR4CAST(sortedSphMarkers_D->posRadD), mR3CAST(sortedSphMarkers_D->velMasD),
+        mR4CAST(sortedSphMarkers_D->rhoPresMuD), R1CAST(_sumWij_inv), R1CAST(G_i), mR3CAST(Normals), R1CAST(Color),
+        U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD), numAllMarkers, isErrorD);
     cudaDeviceSynchronize();
     cudaCheckError();
     cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
@@ -1796,10 +1796,10 @@ void ChFsiForceIISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     thrust::device_vector<Real3> NEW_Vel(numAllMarkers, mR3(0.0));
 
     CalcForces<<<numBlocks, numThreads>>>(mR3CAST(NEW_Vel), mR4CAST(derivVelRhoD_Sorted_D),
-                                          mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
-                                          mR4CAST(sortedSphMarkersD->rhoPresMuD), R1CAST(_sumWij_inv), R1CAST(p_old),
-                                          mR3CAST(dr_shift), U1CAST(markersProximityD->cellStartD),
-                                          U1CAST(markersProximityD->cellEndD), paramsH->dT, numAllMarkers, isErrorD);
+                                          mR4CAST(sortedSphMarkers_D->posRadD), mR3CAST(sortedSphMarkers_D->velMasD),
+                                          mR4CAST(sortedSphMarkers_D->rhoPresMuD), R1CAST(_sumWij_inv), R1CAST(p_old),
+                                          mR3CAST(dr_shift), U1CAST(markersProximity_D->cellStartD),
+                                          U1CAST(markersProximity_D->cellEndD), paramsH->dT, numAllMarkers, isErrorD);
     cudaDeviceSynchronize();
     cudaCheckError();
 
@@ -1811,11 +1811,11 @@ void ChFsiForceIISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     printf(" Force Computation: %f \n", calcforce);
     double UpdateClock = clock();
 
-    sortedSphMarkersD->velMasD = NEW_Vel;
+    sortedSphMarkers_D->velMasD = NEW_Vel;
     UpdateDensity<<<numBlocks, numThreads>>>(
-        mR3CAST(vel_vis_Sorted_D), mR3CAST(vel_XSPH_Sorted_D), mR3CAST(sortedSphMarkersD->velMasD),
-        mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD), R1CAST(_sumWij_inv),
-        U1CAST(markersProximityD->cellStartD), U1CAST(markersProximityD->cellEndD), numAllMarkers, isErrorD);
+        mR3CAST(vel_vis_Sorted_D), mR3CAST(vel_XSPH_Sorted_D), mR3CAST(sortedSphMarkers_D->velMasD),
+        mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(sortedSphMarkers_D->rhoPresMuD), R1CAST(_sumWij_inv),
+        U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD), numAllMarkers, isErrorD);
 
     cudaDeviceSynchronize();
     cudaCheckError();
@@ -1824,17 +1824,17 @@ void ChFsiForceIISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     if (*isErrorH == true) {
         throw std::runtime_error("Error! program crashed in CalcForces!\n");
     }
-    CopySortedToOriginal_NonInvasive_R3(fsiData->vel_XSPH_D, vel_XSPH_Sorted_D, markersProximityD->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R3(fsiData->vis_vel_SPH_D, vel_vis_Sorted_D, markersProximityD->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R3(sphMarkersD->velMasD, sortedSphMarkersD->velMasD,
-                                        markersProximityD->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R4(sphMarkersD->posRadD, sortedSphMarkersD->posRadD,
-                                        markersProximityD->gridMarkerIndexD);
+    CopySortedToOriginal_NonInvasive_R3(fsiData->vel_XSPH_D, vel_XSPH_Sorted_D, markersProximity_D->gridMarkerIndexD);
+    CopySortedToOriginal_NonInvasive_R3(fsiData->vis_vel_SPH_D, vel_vis_Sorted_D, markersProximity_D->gridMarkerIndexD);
+    CopySortedToOriginal_NonInvasive_R3(sphMarkersD->velMasD, sortedSphMarkers_D->velMasD,
+                                        markersProximity_D->gridMarkerIndexD);
+    CopySortedToOriginal_NonInvasive_R4(sphMarkersD->posRadD, sortedSphMarkers_D->posRadD,
+                                        markersProximity_D->gridMarkerIndexD);
 
-    CopySortedToOriginal_NonInvasive_R4(sphMarkersD->rhoPresMuD, sortedSphMarkersD->rhoPresMuD,
-                                        markersProximityD->gridMarkerIndexD);
+    CopySortedToOriginal_NonInvasive_R4(sphMarkersD->rhoPresMuD, sortedSphMarkers_D->rhoPresMuD,
+                                        markersProximity_D->gridMarkerIndexD);
     CopySortedToOriginal_NonInvasive_R4(fsiData->derivVelRhoD, derivVelRhoD_Sorted_D,
-                                        markersProximityD->gridMarkerIndexD);
+                                        markersProximity_D->gridMarkerIndexD);
     printf(" Update information: %f \n", (clock() - UpdateClock) / (double)CLOCKS_PER_SEC);
     printf("----------------------------------------------\n");
     */

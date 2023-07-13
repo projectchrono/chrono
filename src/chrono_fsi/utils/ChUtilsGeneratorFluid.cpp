@@ -66,7 +66,7 @@ Real IniNeiNum(Real Kernel_h, Real InitialSpacing) {
 }
 
 // Create fluid/granular SPH particles for the simulation.
-int2 CreateFluidMarkers(std::shared_ptr<SphMarkerDataH> sphMarkersH,
+int2 CreateFluidMarkers(std::shared_ptr<SphMarkerDataH> sphMarkers_H,
                         std::shared_ptr<FsiData> fsiData,
                         std::shared_ptr<SimParams> paramsH) {
     /* Number of fluid particles */
@@ -113,9 +113,9 @@ int2 CreateFluidMarkers(std::shared_ptr<SphMarkerDataH> sphMarkersH,
                      posRad.z < paramsH->straightChannelBoundaryMax.z)) {
                     if (i < nFX) {
                         num_FluidMarkers++;
-                        sphMarkersH->posRadH.push_back(mR4(posRad, initSpace0));
-                        sphMarkersH->velMasH.push_back(mR3(0));
-                        sphMarkersH->rhoPresMuH.push_back(mR4(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, -1));
+                        sphMarkers_H->posRadH.push_back(mR4(posRad, initSpace0));
+                        sphMarkers_H->velMasH.push_back(mR3(0));
+                        sphMarkers_H->rhoPresMuH.push_back(mR4(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, -1));
                     }
                 } else {
                     //					num_BoundaryMarkers++;
@@ -132,9 +132,9 @@ int2 CreateFluidMarkers(std::shared_ptr<SphMarkerDataH> sphMarkersH,
     }
     int2 num_fluidOrBoundaryMarkers = mI2(num_FluidMarkers, num_BoundaryMarkers);
     // *** copy boundary markers to the end of the markers arrays
-    sphMarkersH->posRadH.resize(num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
-    sphMarkersH->velMasH.resize(num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
-    sphMarkersH->rhoPresMuH.resize(num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
+    sphMarkers_H->posRadH.resize(num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
+    sphMarkers_H->velMasH.resize(num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
+    sphMarkers_H->rhoPresMuH.resize(num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
 
     //    int numAllMarkers = num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y;
     return num_fluidOrBoundaryMarkers;

@@ -34,25 +34,25 @@ namespace fsi {
 ///  -  (3) particles attached to rigid bodies (type = 1)
 ///  -  (4) particles attached to flexible bodies (type = 2)
 struct ChCounters {
-    size_t numRigidBodies;   ///< Number of rigid bodies
-    size_t numFlexNodes1D;   ///< Number of nodes in 1-D FEA mesh segments
-    size_t numFlexNodes2D;   ///< Number of nodes in 2-D flexible mesh faces
-    size_t numFlexBodies1D;  ///< Number of 1-D flexible bodies; each FE segment is one body
-    size_t numFlexBodies2D;  ///< Number of 2-D flexible bodies; each FE face is one body
+    size_t numRigidBodies;   ///< number of rigid bodies
+    size_t numFlexNodes1D;   ///< number of nodes in 1-D FEA mesh segments
+    size_t numFlexNodes2D;   ///< number of nodes in 2-D flexible mesh faces
+    size_t numFlexBodies1D;  ///< number of 1-D flexible bodies; each FE segment is one body
+    size_t numFlexBodies2D;  ///< number of 2-D flexible bodies; each FE face is one body
 
-    size_t numGhostMarkers;     ///< Number of Ghost SPH particles for Variable Resolution methods
-    size_t numHelperMarkers;    ///< Number of helper SPH particles used for merging particles
-    size_t numFluidMarkers;     ///< Number of fluid SPH particles
-    size_t numBoundaryMarkers;  ///< Number of BCE markers on boundaries
-    size_t numRigidMarkers;     ///< Number of BCE markers on rigid bodies
-    size_t numFlexMarkers1D;    ///< Number of BCE markers on flexible segments
-    size_t numFlexMarkers2D;    ///< Number of BCE markers on flexible faces
-    size_t numBceMarkers;       ///< Total number of BCE markers
-    size_t numAllMarkers;       ///< Total number of particles in the simulation
+    size_t numGhostMarkers;     ///< number of Ghost SPH particles for Variable Resolution methods
+    size_t numHelperMarkers;    ///< number of helper SPH particles used for merging particles
+    size_t numFluidMarkers;     ///< number of fluid SPH particles
+    size_t numBoundaryMarkers;  ///< number of BCE markers on boundaries
+    size_t numRigidMarkers;     ///< number of BCE markers on rigid bodies
+    size_t numFlexMarkers1D;    ///< number of BCE markers on flexible segments
+    size_t numFlexMarkers2D;    ///< number of BCE markers on flexible faces
+    size_t numBceMarkers;       ///< total number of BCE markers
+    size_t numAllMarkers;       ///< total number of particles in the simulation
 
-    size_t startRigidMarkers;   ///< Index of first BCE marker on first rigid body
-    size_t startFlexMarkers1D;  ///< Index of first BCE marker on first flex segment
-    size_t startFlexMarkers2D;  ///< Index of first BCE marker on first flex face
+    size_t startRigidMarkers;   ///< index of first BCE marker on first rigid body
+    size_t startFlexMarkers1D;  ///< index of first BCE marker on first flex segment
+    size_t startFlexMarkers2D;  ///< index of first BCE marker on first flex face
 };
 
 /// Base class for various FSI classes.
@@ -62,8 +62,8 @@ class ChFsiBase {
     ChFsiBase();
 
     /// Constructor for the ChFsiBase class.
-    ChFsiBase(std::shared_ptr<SimParams> params,      ///< Simulation parameters on host
-              std::shared_ptr<ChCounters> numObjects  ///< Counters of objects and markers
+    ChFsiBase(std::shared_ptr<SimParams> params,      ///< simulation parameters
+              std::shared_ptr<ChCounters> numObjects  ///< problem counters
     );
 
     /// Destructor of the ChFsiBase class.
@@ -71,15 +71,15 @@ class ChFsiBase {
 
     /// Compute number of blocks and threads for calculation on GPU.
     /// This function calculates the number of blocks and threads for a given number of elements based on the blockSize.
-    void computeGridSize(uint n,           ///< Total num elements
-                         uint blockSize,   ///< BlockSize Number of threads per block
-                         uint& numBlocks,  ///< numBlocks (output)
-                         uint& numThreads  ///< numThreads (output)
+    static void computeGridSize(uint n,           ///< total number of elements
+                                uint blockSize,   ///< block size (threads per block)
+                                uint& numBlocks,  ///< number of blocks [output]
+                                uint& numThreads  ///< number of threads [output]
     );
 
   protected:
-    std::shared_ptr<SimParams> paramsH;       ///< Simulation parameters on host
-    std::shared_ptr<ChCounters> numObjectsH;  ///< NUmber of objects on host
+    std::shared_ptr<SimParams> paramsH;       ///< simulation parameters (host)
+    std::shared_ptr<ChCounters> numObjectsH;  ///< problem counters (host)
 };
 
 /// @} fsi_physics

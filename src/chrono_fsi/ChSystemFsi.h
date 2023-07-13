@@ -55,7 +55,7 @@ struct ChCounters;
 /// @addtogroup fsi_physics
 /// @{
 
-/// @brief Physical system for fluid-solid interaction problems.
+/// Physical system for fluid-solid interaction problems.
 ///
 /// This class is used to represent fluid-solid interaction problems consisting of fluid dynamics and multibody system.
 /// Each of the two underlying physics is an independent object owned and instantiated by this class. The FSI system

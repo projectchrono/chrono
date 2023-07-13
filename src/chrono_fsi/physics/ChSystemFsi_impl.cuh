@@ -156,7 +156,7 @@ struct ProximityDataD {
     void resize(size_t s);
 };
 
-/// FDI system information information exchanged with the Chrono system.
+/// FSI system information information exchanged with the Chrono system.
 struct FsiData {
     // fluidfsiBodiesIndex (host)
     thrust::host_vector<int4> referenceArray;      ///< phases in the array of SPH particles
@@ -254,23 +254,23 @@ class ChSystemFsi_impl : public ChFsiBase {
 
     std::shared_ptr<SimParams> paramsH;  ///< Parameters of the simulation
 
-    std::shared_ptr<SphMarkerDataD> sphMarkersD1;       ///< Information of SPH particles at state 1 on device
-    std::shared_ptr<SphMarkerDataD> sphMarkersD2;       ///< Information of SPH particles at state 2 on device
-    std::shared_ptr<SphMarkerDataD> sortedSphMarkersD;  ///< Sorted information of SPH particles at state 1 on device
-    std::shared_ptr<SphMarkerDataH> sphMarkersH;        ///< Information of SPH particles on host
+    std::shared_ptr<SphMarkerDataD> sphMarkers1_D;       ///< Information of SPH particles at state 1 on device
+    std::shared_ptr<SphMarkerDataD> sphMarkers2_D;       ///< Information of SPH particles at state 2 on device
+    std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D;  ///< Sorted information of SPH particles at state 1 on device
+    std::shared_ptr<SphMarkerDataH> sphMarkers_H;        ///< Information of SPH particles on host
 
-    std::shared_ptr<FsiBodyStateH> fsiBodyStateH;   ///< Rigid body state (host)
-    std::shared_ptr<FsiBodyStateD> fsiBodyState1D;  ///< Rigid body state 1 (device)
-    std::shared_ptr<FsiBodyStateD> fsiBodyState2D;  ///< Rigid body state 2 (device)
+    std::shared_ptr<FsiBodyStateH> fsiBodyState_H;   ///< Rigid body state (host)
+    std::shared_ptr<FsiBodyStateD> fsiBodyState1_D;  ///< Rigid body state 1 (device)
+    std::shared_ptr<FsiBodyStateD> fsiBodyState2_D;  ///< Rigid body state 2 (device)
 
     std::shared_ptr<FsiMeshStateH> fsiMesh1DState_H;  ///< 1-D FEA mesh state (host)
     std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D;  ///< 1-D FEA mesh state (device)
     std::shared_ptr<FsiMeshStateH> fsiMesh2DState_H;  ///< 2-D FEA mesh state (host)
     std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D;  ///< 2-D FEA mesh state (device)
 
-    std::shared_ptr<FsiData> fsiData;  ///< General FSI data needed in the simulation
+    std::shared_ptr<FsiData> fsiData;  ///< simulation FSI data
 
-    std::shared_ptr<ProximityDataD> markersProximityD;  ///< Information of neighbor search on the device
+    std::shared_ptr<ProximityDataD> markersProximity_D;  ///< Information of neighbor search on the device
 
   private:
     void ArrangeDataManager();

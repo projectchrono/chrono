@@ -194,7 +194,7 @@ bool ChFsiVisualizationVSG::Render() {
 
     if (m_vsys->Run()) {
         // Copy SPH particle positions from device to host
-        thrust::host_vector<Real4> posH = m_systemFSI->m_sysFSI->sphMarkersD2->posRadD;
+        thrust::host_vector<Real4> posH = m_systemFSI->m_sysFSI->sphMarkers2_D->posRadD;
 
         // List of proxy bodies
         const auto& blist = m_system->Get_bodylist();

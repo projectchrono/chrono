@@ -33,8 +33,8 @@ class ChCollisionSystemFsi : public ChFsiBase {
   public:
     /// Constructor of the ChCollisionSystemFsi class
     ChCollisionSystemFsi(
-        std::shared_ptr<SphMarkerDataD> sortedSphMarkersD,  ///< Information of the particles in the sorted array
-        std::shared_ptr<ProximityDataD> markersProximityD,  ///< Proximity information of the system
+        std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D,  ///< Information of the particles in the sorted array
+        std::shared_ptr<ProximityDataD> markersProximity_D,  ///< Proximity information of the system
         std::shared_ptr<FsiData> fsiData,                   ///< Pointer to the SPH general data
         std::shared_ptr<SimParams> paramsH,                 ///< Parameters of the simulation
         std::shared_ptr<ChCounters> numObjects              ///< Size of different objects in the system

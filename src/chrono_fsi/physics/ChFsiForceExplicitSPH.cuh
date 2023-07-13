@@ -24,7 +24,7 @@ namespace fsi {
 /// @addtogroup fsi_physics
 /// @{
 
-/// @brief Child class of ChFsiForce.
+/// Inter-particle force calculation for explicit schemes.
 class ChFsiForceExplicitSPH : public ChFsiForce {
   public:
     /// Constructor of the ChFsiForceExplicitSPH class.

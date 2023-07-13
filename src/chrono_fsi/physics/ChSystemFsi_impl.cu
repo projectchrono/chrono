@@ -156,14 +156,14 @@ void ProximityDataD::resize(size_t s) {
 ChSystemFsi_impl::ChSystemFsi_impl(std::shared_ptr<SimParams> params) : ChFsiBase(params, nullptr) {
     numObjectsH = chrono_types::make_shared<ChCounters>();
     InitNumObjects();
-    sphMarkersD1 = chrono_types::make_shared<SphMarkerDataD>();
-    sphMarkersD2 = chrono_types::make_shared<SphMarkerDataD>();
-    sortedSphMarkersD = chrono_types::make_shared<SphMarkerDataD>();
-    sphMarkersH = chrono_types::make_shared<SphMarkerDataH>();
+    sphMarkers1_D = chrono_types::make_shared<SphMarkerDataD>();
+    sphMarkers2_D = chrono_types::make_shared<SphMarkerDataD>();
+    sortedSphMarkers_D = chrono_types::make_shared<SphMarkerDataD>();
+    sphMarkers_H = chrono_types::make_shared<SphMarkerDataH>();
 
-    fsiBodyState1D = chrono_types::make_shared<FsiBodyStateD>();
-    fsiBodyState2D = chrono_types::make_shared<FsiBodyStateD>();
-    fsiBodyStateH = chrono_types::make_shared<FsiBodyStateH>();
+    fsiBodyState1_D = chrono_types::make_shared<FsiBodyStateD>();
+    fsiBodyState2_D = chrono_types::make_shared<FsiBodyStateD>();
+    fsiBodyState_H = chrono_types::make_shared<FsiBodyStateH>();
 
     fsiMesh1DState_D = chrono_types::make_shared<FsiMeshStateD>();
     fsiMesh1DState_H = chrono_types::make_shared<FsiMeshStateH>();
@@ -171,20 +171,20 @@ ChSystemFsi_impl::ChSystemFsi_impl(std::shared_ptr<SimParams> params) : ChFsiBas
     fsiMesh2DState_H = chrono_types::make_shared<FsiMeshStateH>();
 
     fsiData = chrono_types::make_shared<FsiData>();
-    markersProximityD = chrono_types::make_shared<ProximityDataD>();
+    markersProximity_D = chrono_types::make_shared<ProximityDataD>();
 }
 
 ChSystemFsi_impl::~ChSystemFsi_impl() {}
 
 void ChSystemFsi_impl::AddSPHParticle(Real4 pos, Real4 rhoPresMu, Real3 vel, Real3 tauXxYyZz, Real3 tauXyXzYz) {
-    sphMarkersH->posRadH.push_back(pos);
-    sphMarkersH->velMasH.push_back(vel);
-    sphMarkersH->rhoPresMuH.push_back(rhoPresMu);
-    sphMarkersH->tauXyXzYzH.push_back(tauXyXzYz);
-    sphMarkersH->tauXxYyZzH.push_back(tauXxYyZz);
+    sphMarkers_H->posRadH.push_back(pos);
+    sphMarkers_H->velMasH.push_back(vel);
+    sphMarkers_H->rhoPresMuH.push_back(rhoPresMu);
+    sphMarkers_H->tauXyXzYzH.push_back(tauXyXzYz);
+    sphMarkers_H->tauXxYyZzH.push_back(tauXxYyZz);
 }
 void ChSystemFsi_impl::ArrangeDataManager() {
-    thrust::host_vector<Real4> dummyRhoPresMuH = sphMarkersH->rhoPresMuH;
+    thrust::host_vector<Real4> dummyRhoPresMuH = sphMarkers_H->rhoPresMuH;
     dummyRhoPresMuH.clear();
 }
 
@@ -259,12 +259,12 @@ void ChSystemFsi_impl::CalcNumObjects() {
 }
 
 void ChSystemFsi_impl::ConstructReferenceArray() {
-    auto numAllMarkers = sphMarkersH->rhoPresMuH.size();
+    auto numAllMarkers = sphMarkers_H->rhoPresMuH.size();
 
     thrust::host_vector<int> numComponentMarkers(numAllMarkers);
     thrust::fill(numComponentMarkers.begin(), numComponentMarkers.end(), 1);
-    thrust::host_vector<Real4> dummyRhoPresMuH = sphMarkersH->rhoPresMuH;
-    thrust::copy(sphMarkersH->rhoPresMuH.begin(), sphMarkersH->rhoPresMuH.end(), dummyRhoPresMuH.begin());
+    thrust::host_vector<Real4> dummyRhoPresMuH = sphMarkers_H->rhoPresMuH;
+    thrust::copy(sphMarkers_H->rhoPresMuH.begin(), sphMarkers_H->rhoPresMuH.end(), dummyRhoPresMuH.begin());
     size_t numberOfComponents =
         (thrust::reduce_by_key(dummyRhoPresMuH.begin(), dummyRhoPresMuH.end(), numComponentMarkers.begin(),
                                dummyRhoPresMuH.begin(), numComponentMarkers.begin(), sphTypeCompEqual()))
@@ -320,7 +320,7 @@ void ChSystemFsi_impl::Initialize(size_t numRigidBodies,
     ConstructReferenceArray();
     CalcNumObjects();
 
-    if (numObjectsH->numAllMarkers != sphMarkersH->rhoPresMuH.size()) {
+    if (numObjectsH->numAllMarkers != sphMarkers_H->rhoPresMuH.size()) {
         std::cerr << "ERROR (Initialize): mismatch in total number of markers." << std::endl;
         throw std::runtime_error("Mismatch in total number of markers.");
     }
@@ -332,11 +332,11 @@ void ChSystemFsi_impl::Initialize(size_t numRigidBodies,
     numObjectsH->numFlexNodes1D = numFlexNodes1D;
     numObjectsH->numFlexNodes2D = numFlexNodes2D;
 
-    sphMarkersD1->resize(numObjectsH->numAllMarkers);
-    sphMarkersD2->resize(numObjectsH->numAllMarkers);
-    sortedSphMarkersD->resize(numObjectsH->numAllMarkers);
-    sphMarkersH->resize(numObjectsH->numAllMarkers);
-    markersProximityD->resize(numObjectsH->numAllMarkers);
+    sphMarkers1_D->resize(numObjectsH->numAllMarkers);
+    sphMarkers2_D->resize(numObjectsH->numAllMarkers);
+    sortedSphMarkers_D->resize(numObjectsH->numAllMarkers);
+    sphMarkers_H->resize(numObjectsH->numAllMarkers);
+    markersProximity_D->resize(numObjectsH->numAllMarkers);
 
     fsiData->derivVelRhoD.resize(numObjectsH->numAllMarkers);
     fsiData->derivVelRhoD_old.resize(numObjectsH->numAllMarkers);
@@ -353,21 +353,21 @@ void ChSystemFsi_impl::Initialize(size_t numRigidBodies,
 
     fsiData->freeSurfaceIdD.resize(numObjectsH->numAllMarkers, 0);
 
-    thrust::copy(sphMarkersH->posRadH.begin(), sphMarkersH->posRadH.end(), sphMarkersD1->posRadD.begin());
-    thrust::copy(sphMarkersH->velMasH.begin(), sphMarkersH->velMasH.end(), sphMarkersD1->velMasD.begin());
-    thrust::copy(sphMarkersH->rhoPresMuH.begin(), sphMarkersH->rhoPresMuH.end(), sphMarkersD1->rhoPresMuD.begin());
-    thrust::copy(sphMarkersH->tauXxYyZzH.begin(), sphMarkersH->tauXxYyZzH.end(), sphMarkersD1->tauXxYyZzD.begin());
-    thrust::copy(sphMarkersH->tauXyXzYzH.begin(), sphMarkersH->tauXyXzYzH.end(), sphMarkersD1->tauXyXzYzD.begin());
+    thrust::copy(sphMarkers_H->posRadH.begin(), sphMarkers_H->posRadH.end(), sphMarkers1_D->posRadD.begin());
+    thrust::copy(sphMarkers_H->velMasH.begin(), sphMarkers_H->velMasH.end(), sphMarkers1_D->velMasD.begin());
+    thrust::copy(sphMarkers_H->rhoPresMuH.begin(), sphMarkers_H->rhoPresMuH.end(), sphMarkers1_D->rhoPresMuD.begin());
+    thrust::copy(sphMarkers_H->tauXxYyZzH.begin(), sphMarkers_H->tauXxYyZzH.end(), sphMarkers1_D->tauXxYyZzD.begin());
+    thrust::copy(sphMarkers_H->tauXyXzYzH.begin(), sphMarkers_H->tauXyXzYzH.end(), sphMarkers1_D->tauXyXzYzD.begin());
 
-    thrust::copy(sphMarkersD1->posRadD.begin(), sphMarkersD1->posRadD.end(), sphMarkersD2->posRadD.begin());
-    thrust::copy(sphMarkersD1->velMasD.begin(), sphMarkersD1->velMasD.end(), sphMarkersD2->velMasD.begin());
-    thrust::copy(sphMarkersD1->rhoPresMuD.begin(), sphMarkersD1->rhoPresMuD.end(), sphMarkersD2->rhoPresMuD.begin());
-    thrust::copy(sphMarkersD1->tauXxYyZzD.begin(), sphMarkersD1->tauXxYyZzD.end(), sphMarkersD2->tauXxYyZzD.begin());
-    thrust::copy(sphMarkersD1->tauXyXzYzD.begin(), sphMarkersD1->tauXyXzYzD.end(), sphMarkersD2->tauXyXzYzD.begin());
+    thrust::copy(sphMarkers1_D->posRadD.begin(), sphMarkers1_D->posRadD.end(), sphMarkers2_D->posRadD.begin());
+    thrust::copy(sphMarkers1_D->velMasD.begin(), sphMarkers1_D->velMasD.end(), sphMarkers2_D->velMasD.begin());
+    thrust::copy(sphMarkers1_D->rhoPresMuD.begin(), sphMarkers1_D->rhoPresMuD.end(), sphMarkers2_D->rhoPresMuD.begin());
+    thrust::copy(sphMarkers1_D->tauXxYyZzD.begin(), sphMarkers1_D->tauXxYyZzD.end(), sphMarkers2_D->tauXxYyZzD.begin());
+    thrust::copy(sphMarkers1_D->tauXyXzYzD.begin(), sphMarkers1_D->tauXyXzYzD.end(), sphMarkers2_D->tauXyXzYzD.begin());
 
-    fsiBodyState1D->resize(numObjectsH->numRigidBodies);
-    fsiBodyState2D->resize(numObjectsH->numRigidBodies);
-    fsiBodyStateH->resize(numObjectsH->numRigidBodies);
+    fsiBodyState1_D->resize(numObjectsH->numRigidBodies);
+    fsiBodyState2_D->resize(numObjectsH->numRigidBodies);
+    fsiBodyState_H->resize(numObjectsH->numRigidBodies);
 
     fsiData->rigid_FSI_ForcesD.resize(numObjectsH->numRigidBodies);
     fsiData->rigid_FSI_TorquesD.resize(numObjectsH->numRigidBodies);
@@ -441,7 +441,7 @@ thrust::device_vector<int> ChSystemFsi_impl::FindParticlesInBox(const Real3& hsi
                                                                 const Real3& az) {
     // Extract indices of SPH particles contained in the OBB
     auto& ref = fsiData->referenceArray;
-    auto& pos_D = sphMarkersD2->posRadD;
+    auto& pos_D = sphMarkers2_D->posRadD;
 
     // Find start and end locations for SPH particles (exclude ghost and BCE markers)
     int haveHelper = (ref[0].z == -3) ? 1 : 0;
@@ -478,7 +478,7 @@ thrust::device_vector<int> ChSystemFsi_impl::FindParticlesInBox(const Real3& hsi
 
 // Gather positions from particles with specified indices
 thrust::device_vector<Real4> ChSystemFsi_impl::GetParticlePositions(const thrust::device_vector<int>& indices) {
-    const auto& allpos = sphMarkersD2->posRadD;
+    const auto& allpos = sphMarkers2_D->posRadD;
 
     thrust::device_vector<Real4> pos(allpos.size());
 
@@ -498,7 +498,7 @@ thrust::device_vector<Real4> ChSystemFsi_impl::GetParticlePositions(const thrust
 
 // Gather velocities from particles with specified indices
 thrust::device_vector<Real3> ChSystemFsi_impl::GetParticleVelocities(const thrust::device_vector<int>& indices) {
-    auto allvel = sphMarkersD2->velMasD;
+    auto allvel = sphMarkers2_D->velMasD;
 
     thrust::device_vector<Real3> vel(allvel.size());
 

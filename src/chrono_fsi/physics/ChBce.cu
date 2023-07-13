@@ -598,16 +598,16 @@ __global__ void UpdateMeshMarker2DState_D(
 
 // =============================================================================
 
-ChBce::ChBce(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD,
-             std::shared_ptr<ProximityDataD> markersProximityD,
+ChBce::ChBce(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D,
+             std::shared_ptr<ProximityDataD> markersProximity_D,
              std::shared_ptr<FsiData> fsiData,
              std::shared_ptr<SimParams> paramsH,
              std::shared_ptr<ChCounters> numObjects,
              bool verbose)
     : ChFsiBase(paramsH, numObjects),
-      m_sortedSphMarkersD(sortedSphMarkersD),
-      m_markersProximityD(markersProximityD),
-      m_fsiGeneralData(fsiData),
+      m_sortedSphMarkersD(sortedSphMarkers_D),
+      m_markersProximityD(markersProximity_D),
+      m_fsiData(fsiData),
       m_verbose(verbose) {
     m_totalForceRigid.resize(0);
     m_totalTorqueRigid.resize(0);
@@ -617,8 +617,8 @@ ChBce::~ChBce() {}
 
 // -----------------------------------------------------------------------------
 
-void ChBce::Initialize(std::shared_ptr<SphMarkerDataD> sphMarkersD,
-                       std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
+void ChBce::Initialize(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
+                       std::shared_ptr<FsiBodyStateD> fsiBodyState_D,
                        std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D,
                        std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D,
                        std::vector<int> fsiBodyBceNum) {
@@ -638,7 +638,7 @@ void ChBce::Initialize(std::shared_ptr<SphMarkerDataD> sphMarkersD,
 
     int num = haveHelper + haveGhost + haveRigid + haveFlex1D + haveFlex2D + 1;
     int numFlexRigidBoundaryMarkers =
-        m_fsiGeneralData->referenceArray[num].y - m_fsiGeneralData->referenceArray[haveHelper + haveGhost].y;
+        m_fsiData->referenceArray[num].y - m_fsiData->referenceArray[haveHelper + haveGhost].y;
 
     if (m_verbose) {
         printf("Total number of BCE particles = %d\n", numFlexRigidBoundaryMarkers);
@@ -666,30 +666,30 @@ void ChBce::Initialize(std::shared_ptr<SphMarkerDataD> sphMarkersD,
 
     // Populate local position of BCE markers - on rigid bodies
     if (haveRigid)
-        Populate_RigidSPH_MeshPos_LRF(sphMarkersD, fsiBodyStateD, fsiBodyBceNum);
+        Populate_RigidSPH_MeshPos_LRF(sphMarkers_D, fsiBodyState_D, fsiBodyBceNum);
 
     // Populate local position of BCE markers - on flexible bodies
     if (haveFlex1D) {
-        m_fsiGeneralData->flex1D_BCEcoords_D = m_fsiGeneralData->flex1D_BCEcoords_H;
-        UpdateMeshMarker1DState(sphMarkersD, fsiMesh1DState_D);
+        m_fsiData->flex1D_BCEcoords_D = m_fsiData->flex1D_BCEcoords_H;
+        UpdateMeshMarker1DState(sphMarkers_D, fsiMesh1DState_D);
     }
     if (haveFlex2D) {
-        m_fsiGeneralData->flex2D_BCEcoords_D = m_fsiGeneralData->flex2D_BCEcoords_H;
-        UpdateMeshMarker2DState(sphMarkersD, fsiMesh2DState_D);
+        m_fsiData->flex2D_BCEcoords_D = m_fsiData->flex2D_BCEcoords_H;
+        UpdateMeshMarker2DState(sphMarkers_D, fsiMesh2DState_D);
     }
 }
 
 // -----------------------------------------------------------------------------
 
-void ChBce::Populate_RigidSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMarkersD,
-                                          std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
+void ChBce::Populate_RigidSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
+                                          std::shared_ptr<FsiBodyStateD> fsiBodyState_D,
                                           std::vector<int> fsiBodyBceNum) {
     // Create map between a BCE on a rigid body and the associated body ID
     uint start_bce = 0;
     for (int irigid = 0; irigid < fsiBodyBceNum.size(); irigid++) {
         uint end_bce = start_bce + fsiBodyBceNum[irigid];
-        thrust::fill(m_fsiGeneralData->rigid_BCEsolids_D.begin() + start_bce,
-                     m_fsiGeneralData->rigid_BCEsolids_D.begin() + end_bce, irigid);
+        thrust::fill(m_fsiData->rigid_BCEsolids_D.begin() + start_bce, m_fsiData->rigid_BCEsolids_D.begin() + end_bce,
+                     irigid);
         start_bce = end_bce;
     }
 
@@ -697,13 +697,13 @@ void ChBce::Populate_RigidSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMar
     computeGridSize((uint)numObjectsH->numRigidMarkers, 256, nBlocks, nThreads);
 
     Populate_RigidSPH_MeshPos_LRF_D<<<nBlocks, nThreads>>>(
-        mR3CAST(m_fsiGeneralData->rigid_BCEcoords_D), mR4CAST(sphMarkersD->posRadD),
-        U1CAST(m_fsiGeneralData->rigid_BCEsolids_D), mR3CAST(fsiBodyStateD->pos), mR4CAST(fsiBodyStateD->rot));
+        mR3CAST(m_fsiData->rigid_BCEcoords_D), mR4CAST(sphMarkers_D->posRadD), U1CAST(m_fsiData->rigid_BCEsolids_D),
+        mR3CAST(fsiBodyState_D->pos), mR4CAST(fsiBodyState_D->rot));
 
     cudaDeviceSynchronize();
     cudaCheckError();
 
-    UpdateBodyMarkerState(sphMarkersD, fsiBodyStateD);
+    UpdateBodyMarkerState(sphMarkers_D, fsiBodyState_D);
 }
 
 // -----------------------------------------------------------------------------
@@ -789,9 +789,9 @@ void ChBce::CalcMeshMarker1DAcceleration(thrust::device_vector<Real3>& bceAcc,
     CalcMeshMarker1DAcceleration_D<<<nBlocks, nThreads>>>(  //
         mR3CAST(bceAcc),                                    //
         mR3CAST(fsiMesh1DState_D->acc_fsi_fea_D),           //
-        U2CAST(m_fsiGeneralData->flex1D_Nodes_D),           //
-        U3CAST(m_fsiGeneralData->flex1D_BCEsolids_D),       //
-        mR3CAST(m_fsiGeneralData->flex1D_BCEcoords_D)       //
+        U2CAST(m_fsiData->flex1D_Nodes_D),                  //
+        U3CAST(m_fsiData->flex1D_BCEsolids_D),              //
+        mR3CAST(m_fsiData->flex1D_BCEcoords_D)              //
     );
 }
 
@@ -806,20 +806,20 @@ void ChBce::CalcMeshMarker2DAcceleration(thrust::device_vector<Real3>& bceAcc,
     CalcMeshMarker2DAcceleration_D<<<nBlocks, nThreads>>>(  //
         mR3CAST(bceAcc),                                    //
         mR3CAST(fsiMesh2DState_D->acc_fsi_fea_D),           //
-        U3CAST(m_fsiGeneralData->flex2D_Nodes_D),           //
-        U3CAST(m_fsiGeneralData->flex2D_BCEsolids_D),       //
-        mR3CAST(m_fsiGeneralData->flex2D_BCEcoords_D)       //
+        U3CAST(m_fsiData->flex2D_Nodes_D),                  //
+        U3CAST(m_fsiData->flex2D_BCEsolids_D),              //
+        mR3CAST(m_fsiData->flex2D_BCEcoords_D)              //
     );
 }
 
 // -----------------------------------------------------------------------------
 
-void ChBce::ModifyBceVelocityPressureStress(std::shared_ptr<SphMarkerDataD> sphMarkersD,
-                                            std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
+void ChBce::ModifyBceVelocityPressureStress(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
+                                            std::shared_ptr<FsiBodyStateD> fsiBodyState_D,
                                             std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D,
                                             std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D) {
-    auto size_ref = m_fsiGeneralData->referenceArray.size();
-    auto numBceMarkers = m_fsiGeneralData->referenceArray[size_ref - 1].y - m_fsiGeneralData->referenceArray[0].y;
+    auto size_ref = m_fsiData->referenceArray.size();
+    auto numBceMarkers = m_fsiData->referenceArray[size_ref - 1].y - m_fsiData->referenceArray[0].y;
 
     auto N_solid = numObjectsH->numRigidMarkers + numObjectsH->numFlexMarkers1D + numObjectsH->numFlexMarkers2D;
     auto N_all = N_solid + numObjectsH->numBoundaryMarkers;
@@ -839,18 +839,18 @@ void ChBce::ModifyBceVelocityPressureStress(std::shared_ptr<SphMarkerDataD> sphM
     }
 
     // Update portion set to boundary, rigid, and flexible BCE particles
-    int4 updatePortion = mI4(m_fsiGeneralData->referenceArray[0].y, m_fsiGeneralData->referenceArray[1].y,
-                             m_fsiGeneralData->referenceArray[2].y, m_fsiGeneralData->referenceArray[3].y);
+    int4 updatePortion = mI4(m_fsiData->referenceArray[0].y, m_fsiData->referenceArray[1].y,
+                             m_fsiData->referenceArray[2].y, m_fsiData->referenceArray[3].y);
 
     // Only update boundary BCE particles if no rigid/flexible particles
     if (size_ref == 2) {
-        updatePortion.z = m_fsiGeneralData->referenceArray[1].y;
-        updatePortion.w = m_fsiGeneralData->referenceArray[1].y;
+        updatePortion.z = m_fsiData->referenceArray[1].y;
+        updatePortion.w = m_fsiData->referenceArray[1].y;
     }
 
     // Update boundary and rigid/flexible BCE particles
     if (size_ref == 3)
-        updatePortion.w = m_fsiGeneralData->referenceArray[2].y;
+        updatePortion.w = m_fsiData->referenceArray[2].y;
 
     if (paramsH->bceType == BceVersion::ADAMI) {
         // ADAMI boundary condition (wall, rigid, flexible)
@@ -860,9 +860,9 @@ void ChBce::ModifyBceVelocityPressureStress(std::shared_ptr<SphMarkerDataD> sphM
 
         // Acceleration of rigid BCE particles
         if (numObjectsH->numRigidMarkers > 0) {
-            CalcRigidBceAcceleration(bceAcc, fsiBodyStateD->rot, fsiBodyStateD->lin_acc, fsiBodyStateD->ang_vel,
-                                     fsiBodyStateD->ang_acc, m_fsiGeneralData->rigid_BCEcoords_D,
-                                     m_fsiGeneralData->rigid_BCEsolids_D);
+            CalcRigidBceAcceleration(bceAcc, fsiBodyState_D->rot, fsiBodyState_D->lin_acc, fsiBodyState_D->ang_vel,
+                                     fsiBodyState_D->ang_acc, m_fsiData->rigid_BCEcoords_D,
+                                     m_fsiData->rigid_BCEsolids_D);
         }
         // Acceleration of flexible BCE particles
         if (numObjectsH->numFlexMarkers1D > 0) {
@@ -874,15 +874,15 @@ void ChBce::ModifyBceVelocityPressureStress(std::shared_ptr<SphMarkerDataD> sphM
 
         if (paramsH->bceTypeWall == BceVersion::ORIGINAL) {
             // ADAMI BC for rigid/flexible body, ORIGINAL BC for fixed wall
-            thrust::copy(sphMarkersD->velMasD.begin() + updatePortion.x, sphMarkersD->velMasD.begin() + updatePortion.y,
-                         velMas_ModifiedBCE.begin());
-            thrust::copy(sphMarkersD->rhoPresMuD.begin() + updatePortion.x,
-                         sphMarkersD->rhoPresMuD.begin() + updatePortion.y, rhoPreMu_ModifiedBCE.begin());
+            thrust::copy(sphMarkers_D->velMasD.begin() + updatePortion.x,
+                         sphMarkers_D->velMasD.begin() + updatePortion.y, velMas_ModifiedBCE.begin());
+            thrust::copy(sphMarkers_D->rhoPresMuD.begin() + updatePortion.x,
+                         sphMarkers_D->rhoPresMuD.begin() + updatePortion.y, rhoPreMu_ModifiedBCE.begin());
             if (paramsH->elastic_SPH) {
-                thrust::copy(sphMarkersD->tauXxYyZzD.begin() + updatePortion.x,
-                             sphMarkersD->tauXxYyZzD.begin() + updatePortion.y, tauXxYyZz_ModifiedBCE.begin());
-                thrust::copy(sphMarkersD->tauXyXzYzD.begin() + updatePortion.x,
-                             sphMarkersD->tauXyXzYzD.begin() + updatePortion.y, tauXyXzYz_ModifiedBCE.begin());
+                thrust::copy(sphMarkers_D->tauXxYyZzD.begin() + updatePortion.x,
+                             sphMarkers_D->tauXxYyZzD.begin() + updatePortion.y, tauXxYyZz_ModifiedBCE.begin());
+                thrust::copy(sphMarkers_D->tauXyXzYzD.begin() + updatePortion.x,
+                             sphMarkers_D->tauXyXzYzD.begin() + updatePortion.y, tauXyXzYz_ModifiedBCE.begin());
             }
             if (N_solid > 0) {
                 ReCalcVelocityPressureStress_BCE(
@@ -890,7 +890,7 @@ void ChBce::ModifyBceVelocityPressureStress(std::shared_ptr<SphMarkerDataD> sphM
                     m_sortedSphMarkersD->posRadD, m_sortedSphMarkersD->velMasD, m_sortedSphMarkersD->rhoPresMuD,
                     m_sortedSphMarkersD->tauXxYyZzD, m_sortedSphMarkersD->tauXyXzYzD, m_markersProximityD->cellStartD,
                     m_markersProximityD->cellEndD, m_markersProximityD->mapOriginalToSorted,
-                    m_fsiGeneralData->extendedActivityIdD, bceAcc, updatePortion);
+                    m_fsiData->extendedActivityIdD, bceAcc, updatePortion);
             }
         } else if (paramsH->bceTypeWall == BceVersion::ADAMI) {
             // ADAMI BC for both rigid/flexible body and fixed wall
@@ -899,90 +899,89 @@ void ChBce::ModifyBceVelocityPressureStress(std::shared_ptr<SphMarkerDataD> sphM
                 velMas_ModifiedBCE, rhoPreMu_ModifiedBCE, tauXxYyZz_ModifiedBCE, tauXyXzYz_ModifiedBCE,
                 m_sortedSphMarkersD->posRadD, m_sortedSphMarkersD->velMasD, m_sortedSphMarkersD->rhoPresMuD,
                 m_sortedSphMarkersD->tauXxYyZzD, m_sortedSphMarkersD->tauXyXzYzD, m_markersProximityD->cellStartD,
-                m_markersProximityD->cellEndD, m_markersProximityD->mapOriginalToSorted,
-                m_fsiGeneralData->extendedActivityIdD, bceAcc, updatePortion);
+                m_markersProximityD->cellEndD, m_markersProximityD->mapOriginalToSorted, m_fsiData->extendedActivityIdD,
+                bceAcc, updatePortion);
         }
 
         bceAcc.clear();
     } else {
         // ORIGINAL boundary condition for all boundaries (wall, rigid, flexible)
 
-        thrust::copy(sphMarkersD->velMasD.begin() + updatePortion.x, sphMarkersD->velMasD.begin() + updatePortion.w,
+        thrust::copy(sphMarkers_D->velMasD.begin() + updatePortion.x, sphMarkers_D->velMasD.begin() + updatePortion.w,
                      velMas_ModifiedBCE.begin());
-        thrust::copy(sphMarkersD->rhoPresMuD.begin() + updatePortion.x,
-                     sphMarkersD->rhoPresMuD.begin() + updatePortion.w, rhoPreMu_ModifiedBCE.begin());
+        thrust::copy(sphMarkers_D->rhoPresMuD.begin() + updatePortion.x,
+                     sphMarkers_D->rhoPresMuD.begin() + updatePortion.w, rhoPreMu_ModifiedBCE.begin());
         if (paramsH->elastic_SPH) {
-            thrust::copy(sphMarkersD->tauXxYyZzD.begin() + updatePortion.x,
-                         sphMarkersD->tauXxYyZzD.begin() + updatePortion.w, tauXxYyZz_ModifiedBCE.begin());
-            thrust::copy(sphMarkersD->tauXyXzYzD.begin() + updatePortion.x,
-                         sphMarkersD->tauXyXzYzD.begin() + updatePortion.w, tauXyXzYz_ModifiedBCE.begin());
+            thrust::copy(sphMarkers_D->tauXxYyZzD.begin() + updatePortion.x,
+                         sphMarkers_D->tauXxYyZzD.begin() + updatePortion.w, tauXxYyZz_ModifiedBCE.begin());
+            thrust::copy(sphMarkers_D->tauXyXzYzD.begin() + updatePortion.x,
+                         sphMarkers_D->tauXyXzYzD.begin() + updatePortion.w, tauXyXzYz_ModifiedBCE.begin());
         }
     }
 }
 
 // -----------------------------------------------------------------------------
 
-void ChBce::Rigid_Forces_Torques(std::shared_ptr<SphMarkerDataD> sphMarkersD,
-                                 std::shared_ptr<FsiBodyStateD> fsiBodyStateD) {
+void ChBce::Rigid_Forces_Torques(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
+                                 std::shared_ptr<FsiBodyStateD> fsiBodyState_D) {
     if (numObjectsH->numRigidBodies == 0)
         return;
 
-    thrust::fill(m_fsiGeneralData->rigid_FSI_ForcesD.begin(), m_fsiGeneralData->rigid_FSI_ForcesD.end(), mR3(0));
-    thrust::fill(m_fsiGeneralData->rigid_FSI_TorquesD.begin(), m_fsiGeneralData->rigid_FSI_TorquesD.end(), mR3(0));
+    thrust::fill(m_fsiData->rigid_FSI_ForcesD.begin(), m_fsiData->rigid_FSI_ForcesD.end(), mR3(0));
+    thrust::fill(m_fsiData->rigid_FSI_TorquesD.begin(), m_fsiData->rigid_FSI_TorquesD.end(), mR3(0));
 
     uint nBlocks, nThreads;
     computeGridSize((uint)numObjectsH->numRigidMarkers, 256, nBlocks, nThreads);
 
     CalcRigidForces_D<<<nBlocks, nThreads>>>(
-        mR3CAST(m_fsiGeneralData->rigid_FSI_ForcesD), mR3CAST(m_fsiGeneralData->rigid_FSI_TorquesD),
-        mR4CAST(m_fsiGeneralData->derivVelRhoD), mR4CAST(m_fsiGeneralData->derivVelRhoD_old),
-        mR4CAST(sphMarkersD->posRadD), U1CAST(m_fsiGeneralData->rigid_BCEsolids_D), mR3CAST(fsiBodyStateD->pos),
-        mR3CAST(m_fsiGeneralData->rigid_BCEcoords_D));
+        mR3CAST(m_fsiData->rigid_FSI_ForcesD), mR3CAST(m_fsiData->rigid_FSI_TorquesD), mR4CAST(m_fsiData->derivVelRhoD),
+        mR4CAST(m_fsiData->derivVelRhoD_old), mR4CAST(sphMarkers_D->posRadD), U1CAST(m_fsiData->rigid_BCEsolids_D),
+        mR3CAST(fsiBodyState_D->pos), mR3CAST(m_fsiData->rigid_BCEcoords_D));
 
     cudaDeviceSynchronize();
     cudaCheckError();
 }
 
-void ChBce::Flex1D_Forces(std::shared_ptr<SphMarkerDataD> sphMarkersD,
+void ChBce::Flex1D_Forces(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
                           std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D) {
     if (numObjectsH->numFlexBodies1D == 0)
         return;
 
     // Initialize accumulator to zero
-    thrust::fill(m_fsiGeneralData->flex1D_FSIforces_D.begin(), m_fsiGeneralData->flex1D_FSIforces_D.end(), mR3(0));
+    thrust::fill(m_fsiData->flex1D_FSIforces_D.begin(), m_fsiData->flex1D_FSIforces_D.end(), mR3(0));
 
     uint nBlocks, nThreads;
     computeGridSize((int)numObjectsH->numFlexMarkers1D, 256, nBlocks, nThreads);
 
-    CalcFlex1DForces_D<<<nBlocks, nThreads>>>(                                                 //
-        mR3CAST(m_fsiGeneralData->flex1D_FSIforces_D),                                         //
-        mR4CAST(m_fsiGeneralData->derivVelRhoD), mR4CAST(m_fsiGeneralData->derivVelRhoD_old),  //
-        U2CAST(m_fsiGeneralData->flex1D_Nodes_D),                                              //
-        U3CAST(m_fsiGeneralData->flex1D_BCEsolids_D),                                          //
-        mR3CAST(m_fsiGeneralData->flex1D_BCEcoords_D)                                          //
+    CalcFlex1DForces_D<<<nBlocks, nThreads>>>(                                   //
+        mR3CAST(m_fsiData->flex1D_FSIforces_D),                                  //
+        mR4CAST(m_fsiData->derivVelRhoD), mR4CAST(m_fsiData->derivVelRhoD_old),  //
+        U2CAST(m_fsiData->flex1D_Nodes_D),                                       //
+        U3CAST(m_fsiData->flex1D_BCEsolids_D),                                   //
+        mR3CAST(m_fsiData->flex1D_BCEcoords_D)                                   //
     );
 
     cudaDeviceSynchronize();
     cudaCheckError();
 }
 
-void ChBce::Flex2D_Forces(std::shared_ptr<SphMarkerDataD> sphMarkersD,
+void ChBce::Flex2D_Forces(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
                           std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D) {
     if (numObjectsH->numFlexBodies2D == 0)
         return;
 
     // Initialize accumulator to zero
-    thrust::fill(m_fsiGeneralData->flex2D_FSIforces_D.begin(), m_fsiGeneralData->flex2D_FSIforces_D.end(), mR3(0));
+    thrust::fill(m_fsiData->flex2D_FSIforces_D.begin(), m_fsiData->flex2D_FSIforces_D.end(), mR3(0));
 
     uint nBlocks, nThreads;
     computeGridSize((int)numObjectsH->numFlexMarkers2D, 256, nBlocks, nThreads);
 
-    CalcFlex2DForces_D<<<nBlocks, nThreads>>>(                                                 //
-        mR3CAST(m_fsiGeneralData->flex2D_FSIforces_D),                                         //
-        mR4CAST(m_fsiGeneralData->derivVelRhoD), mR4CAST(m_fsiGeneralData->derivVelRhoD_old),  //
-        U3CAST(m_fsiGeneralData->flex2D_Nodes_D),                                              //
-        U3CAST(m_fsiGeneralData->flex2D_BCEsolids_D),                                          //
-        mR3CAST(m_fsiGeneralData->flex2D_BCEcoords_D)                                          //
+    CalcFlex2DForces_D<<<nBlocks, nThreads>>>(                                   //
+        mR3CAST(m_fsiData->flex2D_FSIforces_D),                                  //
+        mR4CAST(m_fsiData->derivVelRhoD), mR4CAST(m_fsiData->derivVelRhoD_old),  //
+        U3CAST(m_fsiData->flex2D_Nodes_D),                                       //
+        U3CAST(m_fsiData->flex2D_BCEsolids_D),                                   //
+        mR3CAST(m_fsiData->flex2D_BCEcoords_D)                                   //
     );
 
     cudaDeviceSynchronize();
@@ -991,8 +990,8 @@ void ChBce::Flex2D_Forces(std::shared_ptr<SphMarkerDataD> sphMarkersD,
 
 // -----------------------------------------------------------------------------
 
-void ChBce::UpdateBodyMarkerState(std::shared_ptr<SphMarkerDataD> sphMarkersD,
-                                  std::shared_ptr<FsiBodyStateD> fsiBodyStateD) {
+void ChBce::UpdateBodyMarkerState(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
+                                  std::shared_ptr<FsiBodyStateD> fsiBodyState_D) {
     if (numObjectsH->numRigidBodies == 0)
         return;
 
@@ -1000,15 +999,15 @@ void ChBce::UpdateBodyMarkerState(std::shared_ptr<SphMarkerDataD> sphMarkersD,
     computeGridSize((int)numObjectsH->numRigidMarkers, 256, nBlocks, nThreads);
 
     UpdateBodyMarkerStateD<<<nBlocks, nThreads>>>(
-        mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR3CAST(m_fsiGeneralData->rigid_BCEcoords_D),
-        U1CAST(m_fsiGeneralData->rigid_BCEsolids_D), mR3CAST(fsiBodyStateD->pos), mR4CAST(fsiBodyStateD->lin_vel),
-        mR3CAST(fsiBodyStateD->ang_vel), mR4CAST(fsiBodyStateD->rot));
+        mR4CAST(sphMarkers_D->posRadD), mR3CAST(sphMarkers_D->velMasD), mR3CAST(m_fsiData->rigid_BCEcoords_D),
+        U1CAST(m_fsiData->rigid_BCEsolids_D), mR3CAST(fsiBodyState_D->pos), mR4CAST(fsiBodyState_D->lin_vel),
+        mR3CAST(fsiBodyState_D->ang_vel), mR4CAST(fsiBodyState_D->rot));
 
     cudaDeviceSynchronize();
     cudaCheckError();
 }
 
-void ChBce::UpdateMeshMarker1DState(std::shared_ptr<SphMarkerDataD> sphMarkersD,
+void ChBce::UpdateMeshMarker1DState(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
                                     std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D) {
     if (numObjectsH->numFlexBodies1D == 0)
         return;
@@ -1017,18 +1016,18 @@ void ChBce::UpdateMeshMarker1DState(std::shared_ptr<SphMarkerDataD> sphMarkersD,
     computeGridSize((int)numObjectsH->numFlexMarkers1D, 256, nBlocks, nThreads);
 
     UpdateMeshMarker1DState_D<<<nBlocks, nThreads>>>(                                        //
-        mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD),                        //
+        mR4CAST(sphMarkers_D->posRadD), mR3CAST(sphMarkers_D->velMasD),                      //
         mR3CAST(fsiMesh1DState_D->pos_fsi_fea_D), mR3CAST(fsiMesh1DState_D->vel_fsi_fea_D),  //
-        U2CAST(m_fsiGeneralData->flex1D_Nodes_D),                                            //
-        U3CAST(m_fsiGeneralData->flex1D_BCEsolids_D),                                        //
-        mR3CAST(m_fsiGeneralData->flex1D_BCEcoords_D)                                        //
+        U2CAST(m_fsiData->flex1D_Nodes_D),                                                   //
+        U3CAST(m_fsiData->flex1D_BCEsolids_D),                                               //
+        mR3CAST(m_fsiData->flex1D_BCEcoords_D)                                               //
     );
 
     cudaDeviceSynchronize();
     cudaCheckError();
 }
 
-void ChBce::UpdateMeshMarker2DState(std::shared_ptr<SphMarkerDataD> sphMarkersD,
+void ChBce::UpdateMeshMarker2DState(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
                                     std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D) {
     if (numObjectsH->numFlexBodies2D == 0)
         return;
@@ -1037,11 +1036,11 @@ void ChBce::UpdateMeshMarker2DState(std::shared_ptr<SphMarkerDataD> sphMarkersD,
     computeGridSize((int)numObjectsH->numFlexMarkers2D, 256, nBlocks, nThreads);
 
     UpdateMeshMarker2DState_D<<<nBlocks, nThreads>>>(                                        //
-        mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD),                        //
+        mR4CAST(sphMarkers_D->posRadD), mR3CAST(sphMarkers_D->velMasD),                      //
         mR3CAST(fsiMesh2DState_D->pos_fsi_fea_D), mR3CAST(fsiMesh2DState_D->vel_fsi_fea_D),  //
-        U3CAST(m_fsiGeneralData->flex2D_Nodes_D),                                            //
-        U3CAST(m_fsiGeneralData->flex2D_BCEsolids_D),                                        //
-        mR3CAST(m_fsiGeneralData->flex2D_BCEcoords_D)                                        //
+        U3CAST(m_fsiData->flex2D_Nodes_D),                                                   //
+        U3CAST(m_fsiData->flex2D_BCEsolids_D),                                               //
+        mR3CAST(m_fsiData->flex2D_BCEcoords_D)                                               //
     );
 
     cudaDeviceSynchronize();

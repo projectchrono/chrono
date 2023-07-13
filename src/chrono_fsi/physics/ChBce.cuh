@@ -49,34 +49,34 @@ class ChBce : public ChFsiBase {
     thrust::device_vector<Real3> tauXyXzYz_ModifiedBCE;
 
     /// Constructor of the ChBce class
-    ChBce(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD,  ///< data for SPH particles
-          std::shared_ptr<ProximityDataD> markersProximityD,  ///< information for neighbor search
-          std::shared_ptr<FsiData> fsiData,                   ///< general information, e.g, ordering of the phases
-          std::shared_ptr<SimParams> paramsH,                 ///< simulation parameters
-          std::shared_ptr<ChCounters> numObjects,             ///< number of sph particles on each phase
-          bool verbose                                        ///< verbose terminal output
+    ChBce(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D,  ///< data for SPH particles
+          std::shared_ptr<ProximityDataD> markersProximity_D,  ///< information for neighbor search
+          std::shared_ptr<FsiData> fsiData,                    ///< general information, e.g, ordering of the phases
+          std::shared_ptr<SimParams> paramsH,                  ///< simulation parameters
+          std::shared_ptr<ChCounters> numObjects,              ///< number of sph particles on each phase
+          bool verbose                                         ///< verbose terminal output
     );
 
     /// Destructor of the ChBce class
     ~ChBce();
 
     /// Updates the position and velocity of the particles on the rigid bodies based on the state of the body.
-    void UpdateBodyMarkerState(std::shared_ptr<SphMarkerDataD> sphMarkersD,
-                               std::shared_ptr<FsiBodyStateD> fsiBodyStateD);
+    void UpdateBodyMarkerState(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
+                               std::shared_ptr<FsiBodyStateD> fsiBodyState_D);
 
     /// Updates the position and velocity of the particles on the flexible solids based on the state of the mesh.
-    void UpdateMeshMarker1DState(std::shared_ptr<SphMarkerDataD> sphMarkersD,
+    void UpdateMeshMarker1DState(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
                                  std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D);
-    void UpdateMeshMarker2DState(std::shared_ptr<SphMarkerDataD> sphMarkersD,
+    void UpdateMeshMarker2DState(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
                                  std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D);
 
     /// Calculates the forces from the fluid/granular dynamics system to the FSI system on rigid bodies.
-    void Rigid_Forces_Torques(std::shared_ptr<SphMarkerDataD> sphMarkersD,
-                              std::shared_ptr<FsiBodyStateD> fsiBodyStateD);
+    void Rigid_Forces_Torques(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
+                              std::shared_ptr<FsiBodyStateD> fsiBodyState_D);
 
     /// Calculates the forces from the fluid/granular dynamics system to the FSI system on flexible bodies.
-    void Flex1D_Forces(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D);
-    void Flex2D_Forces(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D);
+    void Flex1D_Forces(std::shared_ptr<SphMarkerDataD> sphMarkers_D, std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D);
+    void Flex2D_Forces(std::shared_ptr<SphMarkerDataD> sphMarkers_D, std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D);
 
     void CalcMeshMarker1DAcceleration(thrust::device_vector<Real3>& bceAcc,
                                       std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D);
@@ -84,8 +84,8 @@ class ChBce : public ChFsiBase {
                                       std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D);
 
     /// Modify the velocity, pressure, stress of BCE particles according to the SPH particles around.
-    void ModifyBceVelocityPressureStress(std::shared_ptr<SphMarkerDataD> sphMarkersD,
-                                         std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
+    void ModifyBceVelocityPressureStress(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
+                                         std::shared_ptr<FsiBodyStateD> fsiBodyState_D,
                                          std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D,
                                          std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D);
 
@@ -93,19 +93,19 @@ class ChBce : public ChFsiBase {
     /// The local coordinates w.r.t to the coordinate system of the rigid bodies is saved and is used
     /// during the update stage. In such a condition the position and orientation of the body is
     /// enough to update the position of all the particles attached to it.
-    void Populate_RigidSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMarkersD,
-                                       std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
+    void Populate_RigidSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
+                                       std::shared_ptr<FsiBodyStateD> fsiBodyState_D,
                                        std::vector<int> fsiBodyBceNum);
 
     /// Complete construction of the BCE at the intial configuration of the system.
-    void Initialize(std::shared_ptr<SphMarkerDataD> sphMarkersD,
-                    std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
+    void Initialize(std::shared_ptr<SphMarkerDataD> sphMarkers_D,
+                    std::shared_ptr<FsiBodyStateD> fsiBodyState_D,
                     std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D,
                     std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D,
                     std::vector<int> fsiBodyBceNum);
 
   private:
-    std::shared_ptr<FsiData> m_fsiGeneralData;            ///< General information of the simulation
+    std::shared_ptr<FsiData> m_fsiData;                   ///< General information of the simulation
     std::shared_ptr<SphMarkerDataD> m_sortedSphMarkersD;  ///< Particle state, properties, type
     std::shared_ptr<ProximityDataD> m_markersProximityD;  ///< Information for neighbor search
     thrust::device_vector<Real3> m_totalForceRigid;       ///< Total forces from fluid to bodies

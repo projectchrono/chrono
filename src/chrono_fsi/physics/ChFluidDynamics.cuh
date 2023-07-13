@@ -34,26 +34,24 @@ namespace fsi {
 /// @addtogroup fsi_physics
 /// @{
 
-/// @brief Class to represent the fluid/granular dynamics system.
+/// Class to represent the fluid/granular dynamics system.
 ///
-/// This class is used to represent a fluid/granular system and take
-/// care of the time integration of the fluid/granular dynamics. This
-/// is a class designed for base SPH simulation. The class holds pointer
-/// to data, which is hold somewhere else. It also include a forceSystem,
-/// which takes care of the computation of force between particles. The
-/// forceSystem is owned by the class ChFsiForce.
+/// This class is used to represent a fluid/granular system and take care of the time integration of the fluid/granular
+/// dynamics. This is a class designed for base SPH simulation. The class holds pointer to data, which is hold somewhere
+/// else. It also include a forceSystem, which takes care of the computation of force between particles. The forceSystem
+/// is owned by the class ChFsiForce.
 class ChFluidDynamics : public ChFsiBase {
   public:
     /// Constructor of the fluid/granular dynamics class.
     /// - Instantiate ChFsiForce, i.e. force system;
     /// - Copy the pointer to SPH particle data, parameters,
     ///   and number of objects to member variables.
-    ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,        ///< Pointer to the information of BCE particles
-                    ChSystemFsi_impl& otherFsiSystem,             ///< Pointer to the FSI system
-                    std::shared_ptr<SimParams> otherParamsH,      ///< Pointer to the simulation parameters
-                    std::shared_ptr<ChCounters> otherNumObjects,  ///< Pointer to the number of objects
-                    TimeIntegrator otherIntegrator,               ///< Integration type (only for ISPH)
-                    bool verb                                     ///< verbose terminal output
+    ChFluidDynamics(std::shared_ptr<ChBce> bce_manager,      ///< information on BCE particles
+                    ChSystemFsi_impl& sysFSI,                ///< implementatin FSI system
+                    std::shared_ptr<SimParams> params,       ///< simulation parameters
+                    std::shared_ptr<ChCounters> numObjects,  ///< problem counters
+                    TimeIntegrator otherIntegrator,          ///< integration type (only for ISPH)
+                    bool verb                                ///< verbose output
     );
 
     /// Destructor of the fluid/granular dynamics class.
@@ -67,13 +65,13 @@ class ChFluidDynamics : public ChFsiBase {
     /// time, the latter is used to update the pressure from an equation of
     /// state. In the implicit scheme, the pressures are updated instead of density.
     void IntegrateSPH(
-        std::shared_ptr<SphMarkerDataD> sphMarkersD2,    ///< Pointer SPH particle information at the second half step
-        std::shared_ptr<SphMarkerDataD> sphMarkersD1,    ///< Pointer SPH particle information at the first half step
-        std::shared_ptr<FsiBodyStateD> fsiBodyStateD,    ///< Pointer information of rigid bodies
-        std::shared_ptr<FsiMeshStateD> fsiMesh1DStateD,  ///< Pointer information of flexible mesh
-        std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD,  ///< Pointer information of flexible mesh
-        Real dT,                                         ///< Simulation stepsize
-        Real Time                                        ///< Simulation time
+        std::shared_ptr<SphMarkerDataD> sphMarkers2_D,    ///< SPH particle information at the second half step
+        std::shared_ptr<SphMarkerDataD> sphMarkers1_D,    ///< SPH particle information at the first half step
+        std::shared_ptr<FsiBodyStateD> fsiBodyState_D,    ///< nformation on rigid bodies
+        std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D,  ///< information of 1-D flexible mesh
+        std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D,  ///< information of 2-D flexible mesh
+        Real dT,                                          ///< simulation stepsize
+        Real time                                         ///< simulation time
     );
 
     /// Function to Shepard Filtering.
@@ -94,33 +92,30 @@ class ChFluidDynamics : public ChFsiBase {
 
   protected:
     ChSystemFsi_impl& fsiSystem;              ///< FSI data; values are maintained externally
-    std::shared_ptr<ChFsiForce> forceSystem;  ///< Force system object; calculates the force between particles
-    TimeIntegrator integrator_type;           ///< Integrator type
+    std::shared_ptr<ChFsiForce> forceSystem;  ///< force system object; calculates the force between particles
+    TimeIntegrator integrator_type;           ///< integrator type
 
     bool verbose;
 
     /// Update activity of SPH particles.
-    /// SPH particles which are in an active domain are set as active particles.
-    /// For example, particles close to a rigid body.
-    void UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD1,
-                        std::shared_ptr<SphMarkerDataD> sphMarkersD2,
-                        std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
-                        std::shared_ptr<FsiMeshStateD> fsiMesh1DStateD,
-                        std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD,
-                        Real Time);
+    /// SPH particles which are in an active domain (e.g., close to a solid) are set as active particles.
+    void UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkers1_D,
+                        std::shared_ptr<SphMarkerDataD> sphMarkers2_D,
+                        std::shared_ptr<FsiBodyStateD> fsiBodyState_D,
+                        std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D,
+                        std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D,
+                        Real time);
 
-    /// Update SPH particles data.
-    /// In an explicit formulation, the function relies on the explicit integration scheme.
+    /// Update SPH particles data for explicit integration.
     void UpdateFluid(std::shared_ptr<SphMarkerDataD> sphMarkersD, Real dT);
 
-    /// Update SPH particles data.
-    /// In an implicit formulation, the function relies on the implicit integration scheme.
+    /// Update SPH particles data for implicit integration.
     void UpdateFluid_Implicit(std::shared_ptr<SphMarkerDataD> sphMarkersD);
 
-    /// The function applies periodic boundary to the normal SPH particles.
+    /// Apply periodic boundary to the normal SPH particles.
     void ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sphMarkersD);
 
-    /// The function modify the velocity of BCE particles.
+    /// Mpodify the velocity of BCE particles.
     void ApplyModifiedBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sphMarkersD);
 };
 

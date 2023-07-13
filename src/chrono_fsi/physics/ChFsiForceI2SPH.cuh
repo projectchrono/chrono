@@ -24,7 +24,7 @@ namespace fsi {
 /// @addtogroup fsi_physics
 /// @{
 
-/// @brief Derived class of ChFsiForce that implements the I2SPH method.
+/// Inter-particle force calculation for the I2SPH method.
 class ChFsiForceI2SPH : public ChFsiForce {
   public:
     /// Force class implemented using incompressible SPH method with implicit integrator

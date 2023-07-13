@@ -864,8 +864,8 @@ void ChFsiForceI2SPH::PreProcessor(std::shared_ptr<SphMarkerDataD> otherSphMarke
     *isErrorH = false;
     cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
     calcRho_kernel<<<numBlocks, numThreads>>>(
-        mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD), R1CAST(_sumWij_inv),
-        U1CAST(markersProximityD->cellStartD), U1CAST(markersProximityD->cellEndD), U1CAST(Contact_i), numAllMarkers,
+        mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(sortedSphMarkers_D->rhoPresMuD), R1CAST(_sumWij_inv),
+        U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD), U1CAST(Contact_i), numAllMarkers,
         isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "calcRho_kernel");
     uint LastVal = Contact_i[numAllMarkers - 1];
@@ -887,9 +887,9 @@ void ChFsiForceI2SPH::PreProcessor(std::shared_ptr<SphMarkerDataD> otherSphMarke
     thrust::fill(csrColInd.begin(), csrColInd.end(), 0.0);
 
     calcNormalizedRho_Gi_fillInMatrixIndices<<<numBlocks, numThreads>>>(
-        mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
-        mR4CAST(sortedSphMarkersD->rhoPresMuD), R1CAST(_sumWij_inv), R1CAST(G_i), mR3CAST(Normals), U1CAST(csrColInd),
-        U1CAST(Contact_i), U1CAST(markersProximityD->cellStartD), U1CAST(markersProximityD->cellEndD), numAllMarkers,
+        mR4CAST(sortedSphMarkers_D->posRadD), mR3CAST(sortedSphMarkers_D->velMasD),
+        mR4CAST(sortedSphMarkers_D->rhoPresMuD), R1CAST(_sumWij_inv), R1CAST(G_i), mR3CAST(Normals), U1CAST(csrColInd),
+        U1CAST(Contact_i), U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD), numAllMarkers,
         isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "calcNormalizedRho_Gi_fillInMatrixIndices");
 
@@ -898,20 +898,20 @@ void ChFsiForceI2SPH::PreProcessor(std::shared_ptr<SphMarkerDataD> otherSphMarke
 
     if (calcLaplacianOperator && !paramsH->Conservative_Form) {
         printf("| calc_A_tensor+");
-        calc_A_tensor<<<numBlocks, numThreads>>>(R1CAST(A_i), R1CAST(G_i), mR4CAST(sortedSphMarkersD->posRadD),
-                                                 mR4CAST(sortedSphMarkersD->rhoPresMuD), R1CAST(_sumWij_inv),
+        calc_A_tensor<<<numBlocks, numThreads>>>(R1CAST(A_i), R1CAST(G_i), mR4CAST(sortedSphMarkers_D->posRadD),
+                                                 mR4CAST(sortedSphMarkers_D->rhoPresMuD), R1CAST(_sumWij_inv),
                                                  U1CAST(csrColInd), U1CAST(Contact_i), numAllMarkers, isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "calc_A_tensor");
         calc_L_tensor<<<numBlocks, numThreads>>>(R1CAST(A_i), R1CAST(L_i), R1CAST(G_i),
-                                                 mR4CAST(sortedSphMarkersD->posRadD),
-                                                 mR4CAST(sortedSphMarkersD->rhoPresMuD), R1CAST(_sumWij_inv),
+                                                 mR4CAST(sortedSphMarkers_D->posRadD),
+                                                 mR4CAST(sortedSphMarkers_D->rhoPresMuD), R1CAST(_sumWij_inv),
                                                  U1CAST(csrColInd), U1CAST(Contact_i), numAllMarkers, isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "calc_L_tensor");
     }
 
     Function_Gradient_Laplacian_Operator<<<numBlocks, numThreads>>>(
-        mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
-        mR4CAST(sortedSphMarkersD->rhoPresMuD), R1CAST(_sumWij_inv), R1CAST(G_i), R1CAST(L_i), R1CAST(csrValLaplacian),
+        mR4CAST(sortedSphMarkers_D->posRadD), mR3CAST(sortedSphMarkers_D->velMasD),
+        mR4CAST(sortedSphMarkers_D->rhoPresMuD), R1CAST(_sumWij_inv), R1CAST(G_i), R1CAST(L_i), R1CAST(csrValLaplacian),
         mR3CAST(csrValGradient), R1CAST(csrValFunction), U1CAST(csrColInd), U1CAST(Contact_i), numAllMarkers, isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Gradient_Laplacian_Operator");
     double Gradient_Laplacian_Operator = (clock() - A_L_Tensor_GradLaplacian) / (double)CLOCKS_PER_SEC;
@@ -939,11 +939,11 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     fsiCollisionSystem->ArrangeData(sphMarkersD);
 
     thrust::device_vector<Real3>::iterator iter =
-        thrust::max_element(sortedSphMarkersD->velMasD.begin(), sortedSphMarkersD->velMasD.end(), compare_Real3_mag());
+        thrust::max_element(sortedSphMarkers_D->velMasD.begin(), sortedSphMarkers_D->velMasD.end(), compare_Real3_mag());
     Real MaxVel = length(*iter);
 
     thrust::device_vector<Real4>::iterator iter_mu = thrust::max_element(
-        sortedSphMarkersD->rhoPresMuD.begin(), sortedSphMarkersD->rhoPresMuD.end(), compare_Real4_z());
+        sortedSphMarkers_D->rhoPresMuD.begin(), sortedSphMarkers_D->rhoPresMuD.end(), compare_Real4_z());
     Real Maxmu = length(*iter_mu);
 
     Real dt_CFL = paramsH->Co_number * paramsH->HSML / 2.0 / MaxVel;
@@ -979,14 +979,14 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
                   << updatePortion.w << std::endl;
 
     //=====calcRho_kernel=== calc_A_tensor==calc_L_tensor==Function_Gradient_Laplacian_Operator=================
-    ChFsiForceI2SPH::PreProcessor(sortedSphMarkersD);
+    ChFsiForceI2SPH::PreProcessor(sortedSphMarkers_D);
 
     //==========================================================================================================
     uint numThreads, numBlocks;
     computeGridSize((int)numAllMarkers + 1, 256, numBlocks, numThreads);
-    thrust::device_vector<Real4> rhoPresMuD_old = sortedSphMarkersD->rhoPresMuD;
-    thrust::device_vector<Real4> posRadD_old = sortedSphMarkersD->posRadD;
-    thrust::device_vector<Real3> velMasD_old = sortedSphMarkersD->velMasD;
+    thrust::device_vector<Real4> rhoPresMuD_old = sortedSphMarkers_D->rhoPresMuD;
+    thrust::device_vector<Real4> posRadD_old = sortedSphMarkers_D->posRadD;
+    thrust::device_vector<Real3> velMasD_old = sortedSphMarkers_D->velMasD;
     thrust::device_vector<Real4> sr_tau_I_mu_i(numAllMarkers, mR4(0.0));
 
     thrust::fill(V_star_old.begin(), V_star_old.end(), mR3(0.0));
@@ -997,12 +997,12 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
 
     if (paramsH->non_newtonian) {
         Viscosity_correction<<<numBlocks, numThreads>>>(
-            mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
-            mR4CAST(sortedSphMarkersD->rhoPresMuD), mR4CAST(rhoPresMuD_old), mR3CAST(sortedSphMarkersD->tauXxYyZzD),
-            mR3CAST(sortedSphMarkersD->tauXyXzYzD), mR4CAST(sr_tau_I_mu_i), R1CAST(csrValLaplacian),
+            mR4CAST(sortedSphMarkers_D->posRadD), mR3CAST(sortedSphMarkers_D->velMasD),
+            mR4CAST(sortedSphMarkers_D->rhoPresMuD), mR4CAST(rhoPresMuD_old), mR3CAST(sortedSphMarkers_D->tauXxYyZzD),
+            mR3CAST(sortedSphMarkers_D->tauXyXzYzD), mR4CAST(sr_tau_I_mu_i), R1CAST(csrValLaplacian),
             mR3CAST(csrValGradient), R1CAST(csrValFunction), R1CAST(_sumWij_inv), U1CAST(csrColInd), U1CAST(Contact_i),
 
-            updatePortion, U1CAST(markersProximityD->gridMarkerIndexD), numAllMarkers, paramsH->dT, yeild_strain,
+            updatePortion, U1CAST(markersProximity_D->gridMarkerIndexD), numAllMarkers, paramsH->dT, yeild_strain,
             isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Viscosity_correction");
     }
@@ -1010,9 +1010,9 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     //============================================V_star_Predictor===============================================
     double LinearSystemClock_V = clock();
     V_star_Predictor<<<numBlocks, numThreads>>>(
-        mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
-        mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->tauXxYyZzD),
-        mR3CAST(sortedSphMarkersD->tauXyXzYzD), R1CAST(AMatrix), mR3CAST(b3Vector), mR3CAST(V_star_old),
+        mR4CAST(sortedSphMarkers_D->posRadD), mR3CAST(sortedSphMarkers_D->velMasD),
+        mR4CAST(sortedSphMarkers_D->rhoPresMuD), mR3CAST(sortedSphMarkers_D->tauXxYyZzD),
+        mR3CAST(sortedSphMarkers_D->tauXyXzYzD), R1CAST(AMatrix), mR3CAST(b3Vector), mR3CAST(V_star_old),
         R1CAST(csrValLaplacian), mR3CAST(csrValGradient), R1CAST(csrValFunction), R1CAST(_sumWij_inv), mR3CAST(Normals),
         U1CAST(csrColInd), U1CAST(Contact_i),
 
@@ -1024,18 +1024,18 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
         mR3CAST(fsiMeshStateD->acc_fsi_fea_D), U1CAST(fsiData->FlexIdentifierD),
 
         numObjectsH->numFlexBodies1D, U2CAST(fsiData->CableElementsNodesD), U4CAST(fsiData->ShellElementsNodesD),
-        updatePortion, U1CAST(markersProximityD->gridMarkerIndexD), numAllMarkers, paramsH->dT, isErrorD);
+        updatePortion, U1CAST(markersProximity_D->gridMarkerIndexD), numAllMarkers, paramsH->dT, isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "V_star_Predictor");
 
     int Iteration = 0;
     Real MaxRes = 100;
     while ((MaxRes > 1e-10 || Iteration < 3) && Iteration < paramsH->LinearSolver_Max_Iter) {
-        Jacobi_SOR_Iter<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->rhoPresMuD), R1CAST(AMatrix),
+        Jacobi_SOR_Iter<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkers_D->rhoPresMuD), R1CAST(AMatrix),
                                                    mR3CAST(V_star_old), mR3CAST(V_star_new), mR3CAST(b3Vector),
                                                    R1CAST(q_old), R1CAST(q_new), R1CAST(b1Vector), U1CAST(csrColInd),
                                                    U1CAST(Contact_i), numAllMarkers, true, isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Jacobi_SOR_Iter");
-        Update_AND_Calc_Res<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(V_star_old),
+        Update_AND_Calc_Res<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkers_D->rhoPresMuD), mR3CAST(V_star_old),
                                                        mR3CAST(V_star_new), R1CAST(q_old), R1CAST(q_new),
                                                        R1CAST(Residuals), numAllMarkers, true, isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Update_AND_Calc_Res");
@@ -1084,8 +1084,8 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     thrust::fill(q_new.begin(), q_new.end(), paramsH->Pressure_Constraint * paramsH->BASEPRES);
 
     Pressure_Equation<<<numBlocks, numThreads>>>(
-        mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
-        mR4CAST(sortedSphMarkersD->rhoPresMuD), R1CAST(AMatrix), R1CAST(b1Vector), mR3CAST(V_star_new), R1CAST(q_new),
+        mR4CAST(sortedSphMarkers_D->posRadD), mR3CAST(sortedSphMarkers_D->velMasD),
+        mR4CAST(sortedSphMarkers_D->rhoPresMuD), R1CAST(AMatrix), R1CAST(b1Vector), mR3CAST(V_star_new), R1CAST(q_new),
         R1CAST(csrValFunction), R1CAST(csrValLaplacian), mR3CAST(csrValGradient), R1CAST(_sumWij_inv), mR3CAST(Normals),
         U1CAST(csrColInd), U1CAST(Contact_i),
 
@@ -1097,7 +1097,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
         mR3CAST(fsiMeshStateD->acc_fsi_fea_D), U1CAST(fsiData->FlexIdentifierD),
 
         numObjectsH->numFlexBodies1D, U2CAST(fsiData->CableElementsNodesD), U4CAST(fsiData->ShellElementsNodesD),
-        updatePortion, U1CAST(markersProximityD->gridMarkerIndexD), numAllMarkers, numObjectsH->numFluidMarkers,
+        updatePortion, U1CAST(markersProximity_D->gridMarkerIndexD), numAllMarkers, numObjectsH->numFluidMarkers,
         paramsH->dT, isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Pressure_Equation");
 
@@ -1163,7 +1163,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
         while ((MaxRes > paramsH->LinearSolver_Abs_Tol || Iteration < 3) &&
                Iteration < paramsH->LinearSolver_Max_Iter) {
             Jacobi_SOR_Iter<<<numBlocks, numThreads>>>(
-                mR4CAST(sortedSphMarkersD->rhoPresMuD), R1CAST(AMatrix), mR3CAST(V_star_old), mR3CAST(V_star_new),
+                mR4CAST(sortedSphMarkers_D->rhoPresMuD), R1CAST(AMatrix), mR3CAST(V_star_old), mR3CAST(V_star_new),
                 mR3CAST(b3Vector), R1CAST(q_old), R1CAST(q_new), R1CAST(b1Vector), U1CAST(csrColInd), U1CAST(Contact_i),
                 numAllMarkers, false, isErrorD);
             ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Jacobi_SOR_Iter");
@@ -1180,7 +1180,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
             //                                       q_new[numAllMarkers] * AMatrix[Contact_i[numAllMarkers + 1] - 1];
             //            }mu_s_
             Update_AND_Calc_Res<<<numBlocks, numThreads>>>(
-                mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(V_star_old), mR3CAST(V_star_new), R1CAST(q_old),
+                mR4CAST(sortedSphMarkers_D->rhoPresMuD), mR3CAST(V_star_old), mR3CAST(V_star_new), R1CAST(q_old),
                 R1CAST(q_new), R1CAST(Residuals), numAllMarkers + 0 * uint(paramsH->Pressure_Constraint), false,
                 isErrorD);
             ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Update_AND_Calc_Res");
@@ -1195,8 +1195,8 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     }
     //    Real4_y unary_op_p;
     //    thrust::plus<Real> binary_op;
-    //    Real Ave_pressure = thrust::transform_reduce(sortedSphMarkersD->rhoPresMuD.begin(),
-    //                                                 sortedSphMarkersD->rhoPresMuD.end(), unary_op_p, 0.0, binary_op)
+    //    Real Ave_pressure = thrust::transform_reduce(sortedSphMarkers_D->rhoPresMuD.begin(),
+    //                                                 sortedSphMarkers_D->rhoPresMuD.end(), unary_op_p, 0.0, binary_op)
     //                                                 /
     //                        (numObjectsH->numFluidMarkers);
 
@@ -1211,9 +1211,9 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
            MaxRes, Iteration, Ave_pressure);
     //==================================Velocity_Correction_and_update============================================
     double updateClock = clock();
-    rhoPresMuD_old = sortedSphMarkersD->rhoPresMuD;
-    posRadD_old = sortedSphMarkersD->posRadD;
-    velMasD_old = sortedSphMarkersD->velMasD;
+    rhoPresMuD_old = sortedSphMarkers_D->rhoPresMuD;
+    posRadD_old = sortedSphMarkers_D->posRadD;
+    velMasD_old = sortedSphMarkers_D->velMasD;
 
     thrust::fill(vel_vis_Sorted_D.begin(), vel_vis_Sorted_D.end(), mR3(0.0));
 
@@ -1221,44 +1221,44 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     thrust::fill(derivVelRhoD_Sorted_D.begin(), derivVelRhoD_Sorted_D.end(), mR4(0.0));
 
     Velocity_Correction_and_update<<<numBlocks, numThreads>>>(
-        mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(posRadD_old), mR4CAST(sortedSphMarkersD->rhoPresMuD),
-        mR4CAST(rhoPresMuD_old), mR3CAST(sortedSphMarkersD->velMasD), mR3CAST(velMasD_old),
-        mR3CAST(sortedSphMarkersD->tauXxYyZzD), mR3CAST(sortedSphMarkersD->tauXyXzYzD), mR4CAST(sr_tau_I_mu_i),
+        mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(posRadD_old), mR4CAST(sortedSphMarkers_D->rhoPresMuD),
+        mR4CAST(rhoPresMuD_old), mR3CAST(sortedSphMarkers_D->velMasD), mR3CAST(velMasD_old),
+        mR3CAST(sortedSphMarkers_D->tauXxYyZzD), mR3CAST(sortedSphMarkers_D->tauXyXzYzD), mR4CAST(sr_tau_I_mu_i),
         mR3CAST(vel_vis_Sorted_D), mR4CAST(derivVelRhoD_Sorted_D), mR3CAST(V_star_new), R1CAST(q_new),
         R1CAST(csrValFunction), mR3CAST(csrValGradient), R1CAST(csrValLaplacian), U1CAST(csrColInd), U1CAST(Contact_i),
         numAllMarkers, MaxVel, paramsH->dT, isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Velocity_Correction_and_update");
 
-    CopySortedToOriginal_NonInvasive_R3(fsiData->vis_vel_SPH_D, vel_vis_Sorted_D, markersProximityD->gridMarkerIndexD);
+    CopySortedToOriginal_NonInvasive_R3(fsiData->vis_vel_SPH_D, vel_vis_Sorted_D, markersProximity_D->gridMarkerIndexD);
     CopySortedToOriginal_NonInvasive_R4(fsiData->derivVelRhoD, derivVelRhoD_Sorted_D,
-                                        markersProximityD->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R3(sphMarkersD->velMasD, sortedSphMarkersD->velMasD,
-                                        markersProximityD->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R4(sphMarkersD->rhoPresMuD, sortedSphMarkersD->rhoPresMuD,
-                                        markersProximityD->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R4(sphMarkersD->posRadD, sortedSphMarkersD->posRadD,
-                                        markersProximityD->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R3(sphMarkersD->tauXxYyZzD, sortedSphMarkersD->tauXxYyZzD,
-                                        markersProximityD->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R3(sphMarkersD->tauXyXzYzD, sortedSphMarkersD->tauXyXzYzD,
-                                        markersProximityD->gridMarkerIndexD);
+                                        markersProximity_D->gridMarkerIndexD);
+    CopySortedToOriginal_NonInvasive_R3(sphMarkersD->velMasD, sortedSphMarkers_D->velMasD,
+                                        markersProximity_D->gridMarkerIndexD);
+    CopySortedToOriginal_NonInvasive_R4(sphMarkersD->rhoPresMuD, sortedSphMarkers_D->rhoPresMuD,
+                                        markersProximity_D->gridMarkerIndexD);
+    CopySortedToOriginal_NonInvasive_R4(sphMarkersD->posRadD, sortedSphMarkers_D->posRadD,
+                                        markersProximity_D->gridMarkerIndexD);
+    CopySortedToOriginal_NonInvasive_R3(sphMarkersD->tauXxYyZzD, sortedSphMarkers_D->tauXxYyZzD,
+                                        markersProximity_D->gridMarkerIndexD);
+    CopySortedToOriginal_NonInvasive_R3(sphMarkersD->tauXyXzYzD, sortedSphMarkers_D->tauXyXzYzD,
+                                        markersProximity_D->gridMarkerIndexD);
     fsiCollisionSystem->ArrangeData(sphMarkersD);
-    ChFsiForceI2SPH::PreProcessor(sortedSphMarkersD, false);
+    ChFsiForceI2SPH::PreProcessor(sortedSphMarkers_D, false);
 
-    rhoPresMuD_old = sortedSphMarkersD->rhoPresMuD;
-    posRadD_old = sortedSphMarkersD->posRadD;
-    velMasD_old = sortedSphMarkersD->velMasD;
+    rhoPresMuD_old = sortedSphMarkers_D->rhoPresMuD;
+    posRadD_old = sortedSphMarkers_D->posRadD;
+    velMasD_old = sortedSphMarkers_D->velMasD;
     //
     Shifting<<<numBlocks, numThreads>>>(
-        mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(posRadD_old), mR4CAST(sortedSphMarkersD->rhoPresMuD),
-        mR4CAST(rhoPresMuD_old), mR3CAST(sortedSphMarkersD->velMasD), mR3CAST(velMasD_old), mR3CAST(vel_vis_Sorted_D),
+        mR4CAST(sortedSphMarkers_D->posRadD), mR4CAST(posRadD_old), mR4CAST(sortedSphMarkers_D->rhoPresMuD),
+        mR4CAST(rhoPresMuD_old), mR3CAST(sortedSphMarkers_D->velMasD), mR3CAST(velMasD_old), mR3CAST(vel_vis_Sorted_D),
         R1CAST(csrValFunction), mR3CAST(csrValGradient), U1CAST(csrColInd), U1CAST(Contact_i), numAllMarkers, MaxVel,
         paramsH->dT, isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Shifting");
     Real4_x unary_op(paramsH->rho0);
     thrust::plus<Real> binary_op;
-    Real Ave_density_Err = thrust::transform_reduce(sortedSphMarkersD->rhoPresMuD.begin(),
-                                                    sortedSphMarkersD->rhoPresMuD.end(), unary_op, 0.0, binary_op) /
+    Real Ave_density_Err = thrust::transform_reduce(sortedSphMarkers_D->rhoPresMuD.begin(),
+                                                    sortedSphMarkers_D->rhoPresMuD.end(), unary_op, 0.0, binary_op) /
                            (numObjectsH->numFluidMarkers * paramsH->rho0);
 
     double updateComputation = (clock() - updateClock) / (double)CLOCKS_PER_SEC;
@@ -1272,21 +1272,21 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
         Real minP = thrust::transform_reduce(sphMarkersD->rhoPresMuD.begin(), sphMarkersD->rhoPresMuD.end(),
                                              Real4_y_min(), 1e9, thrust::minimum<Real>());
         my_Functor_real4y negate(minP);
-        thrust::for_each(sortedSphMarkersD->rhoPresMuD.begin(), sortedSphMarkersD->rhoPresMuD.end(), negate);
+        thrust::for_each(sortedSphMarkers_D->rhoPresMuD.begin(), sortedSphMarkers_D->rhoPresMuD.end(), negate);
         printf("Shifting min pressure of %.3e to 0\n", minP);
     }
     //============================================================================================================
-    CopySortedToOriginal_NonInvasive_R4(fsiData->sr_tau_I_mu_i, sr_tau_I_mu_i, markersProximityD->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R3(sphMarkersD->velMasD, sortedSphMarkersD->velMasD,
-                                        markersProximityD->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R4(sphMarkersD->rhoPresMuD, sortedSphMarkersD->rhoPresMuD,
-                                        markersProximityD->gridMarkerIndexD);
-    CopySortedToOriginal_NonInvasive_R4(sphMarkersD->posRadD, sortedSphMarkersD->posRadD,
-                                        markersProximityD->gridMarkerIndexD);
-    //    CopySortedToOriginal_NonInvasive_R3(sphMarkersD->tauXxYyZzD, sortedSphMarkersD->tauXxYyZzD,
-    //                                        markersProximityD->gridMarkerIndexD);
-    //    CopySortedToOriginal_NonInvasive_R3(sphMarkersD->tauXyXzYzD, sortedSphMarkersD->tauXyXzYzD,
-    //                                        markersProximityD->gridMarkerIndexD);
+    CopySortedToOriginal_NonInvasive_R4(fsiData->sr_tau_I_mu_i, sr_tau_I_mu_i, markersProximity_D->gridMarkerIndexD);
+    CopySortedToOriginal_NonInvasive_R3(sphMarkersD->velMasD, sortedSphMarkers_D->velMasD,
+                                        markersProximity_D->gridMarkerIndexD);
+    CopySortedToOriginal_NonInvasive_R4(sphMarkersD->rhoPresMuD, sortedSphMarkers_D->rhoPresMuD,
+                                        markersProximity_D->gridMarkerIndexD);
+    CopySortedToOriginal_NonInvasive_R4(sphMarkersD->posRadD, sortedSphMarkers_D->posRadD,
+                                        markersProximity_D->gridMarkerIndexD);
+    //    CopySortedToOriginal_NonInvasive_R3(sphMarkersD->tauXxYyZzD, sortedSphMarkers_D->tauXxYyZzD,
+    //                                        markersProximity_D->gridMarkerIndexD);
+    //    CopySortedToOriginal_NonInvasive_R3(sphMarkersD->tauXyXzYzD, sortedSphMarkers_D->tauXyXzYzD,
+    //                                        markersProximity_D->gridMarkerIndexD);
 
     csrValGradient.clear();
     csrValLaplacian.clear();

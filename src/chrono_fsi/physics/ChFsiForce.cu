@@ -32,13 +32,13 @@ ChFsiForce::ChFsiForce(std::shared_ptr<ChBce> otherBceWorker,
                        std::shared_ptr<ChCounters> otherNumObjects,
                        bool verb)
     : bceWorker(otherBceWorker),
-      sortedSphMarkersD(otherSortedSphMarkersD),
-      markersProximityD(otherMarkersProximityD),
+      sortedSphMarkers_D(otherSortedSphMarkersD),
+      markersProximity_D(otherMarkersProximityD),
       fsiData(otherFsiGeneralData),
       numObjectsH(otherNumObjects),
       paramsH(otherParamsH),
       verbose(verb) {
-    fsiCollisionSystem = chrono_types::make_shared<ChCollisionSystemFsi>(sortedSphMarkersD, markersProximityD, fsiData,
+    fsiCollisionSystem = chrono_types::make_shared<ChCollisionSystemFsi>(sortedSphMarkers_D, markersProximity_D, fsiData,
                                                                          paramsH, numObjectsH);
     sphMarkersD = NULL;
 }

@@ -82,12 +82,11 @@ __device__ inline void clearRow3(uint i_idx, uint csrStartIdx, uint csrEndIdx, R
 /// @addtogroup fsi_physics
 /// @{
 
-/// @brief Base class to calculate force between SPH particles.
+/// Base class to calculate force between SPH particles.
 ///
-/// This is an abstract class that defines an interface that various SPH method
-/// should implement. The class owns a collision system fsi which takes care of GPU based
-/// proximity computation of the particles. It also holds a pointer to external
-/// data of SPH particles, proximity data, parameters, and numbers.
+/// This is an abstract class that defines an interface that various SPH methods should implement. The class owns a
+/// collision system fsi which takes care of GPU based proximity computation of the particles. It also holds a pointer
+/// to external data of SPH particles, proximity data, parameters, and numbers.
 class ChFsiForce : public ChFsiBase {
   public:
     /// Base constructor for the ChFsiForce class.
@@ -167,8 +166,8 @@ class ChFsiForce : public ChFsiBase {
     std::shared_ptr<ChCollisionSystemFsi> fsiCollisionSystem;  ///< collision system for building neighbors list
 
     std::shared_ptr<SphMarkerDataD> sphMarkersD;        ///< device copy of the SPH particles data
-    std::shared_ptr<SphMarkerDataD> sortedSphMarkersD;  ///< device copy of the sorted sph particles data
-    std::shared_ptr<ProximityDataD> markersProximityD;  ///< pointer object that holds the proximity of the particles
+    std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D;  ///< device copy of the sorted sph particles data
+    std::shared_ptr<ProximityDataD> markersProximity_D;  ///< pointer object that holds the proximity of the particles
     std::shared_ptr<FsiData> fsiData;                   ///< pointer to sph general data
 
     std::shared_ptr<SimParams> paramsH;       ///< pointer to simulation parameters

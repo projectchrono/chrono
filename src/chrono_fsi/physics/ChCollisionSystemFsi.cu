@@ -295,14 +295,14 @@ __global__ void OriginalToSortedD(uint* mapOriginalToSorted, uint* gridMarkerInd
     mapOriginalToSorted[index] = id;
 }
 // ------------------------------------------------------------------------------
-ChCollisionSystemFsi::ChCollisionSystemFsi(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD,
-                                           std::shared_ptr<ProximityDataD> markersProximityD,
+ChCollisionSystemFsi::ChCollisionSystemFsi(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D,
+                                           std::shared_ptr<ProximityDataD> markersProximity_D,
                                            std::shared_ptr<FsiData> fsiData,
                                            std::shared_ptr<SimParams> paramsH,
                                            std::shared_ptr<ChCounters> numObjects)
     : ChFsiBase(paramsH, numObjects),
-      m_sortedSphMarkersD(sortedSphMarkersD),
-      m_markersProximityD(markersProximityD),
+      m_sortedSphMarkersD(sortedSphMarkers_D),
+      m_markersProximityD(markersProximity_D),
       m_fsiData(fsiData),
       m_sphMarkersD(nullptr) {}
 
