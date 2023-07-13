@@ -795,16 +795,6 @@ void ChSystemFsi::AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, bool centered)
     //// TODO - load necessary structures and arrays
 }
 
-//// OBSOLETE
-void ChSystemFsi::AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh,
-                             const std::vector<std::vector<int>>& beam_elements,
-                             const std::vector<std::vector<int>>& shell_elements) {
-    m_fsi_interface->m_fsi_mesh = mesh;
-
-    m_fea_cable_nodes = beam_elements;
-    m_fea_shell_nodes = shell_elements;
-}
-
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChSystemFsi::Initialize() {
@@ -927,7 +917,6 @@ void ChSystemFsi::Initialize() {
     }
 
     // Initialize the underlying FSU system: set reference arrays, set counters, and resize simulation arrays
-    size_t n_flexnodes = m_fsi_interface->m_fsi_mesh ? (size_t)m_fsi_interface->m_fsi_mesh->GetNnodes() : 0;
     m_sysFSI->Initialize(m_fsi_interface->m_fsi_bodies.size(),          //
                          m_num_flex1D_elements, m_num_flex2D_elements,  //
                          m_num_flex1D_nodes, m_num_flex2D_nodes);
@@ -1140,11 +1129,14 @@ void ChSystemFsi::PrintParticleToFile(const std::string& dir) const {
 }
 
 void ChSystemFsi::PrintFsiInfoToFile(const std::string& dir, double time) const {
-    utils::PrintFsiInfoToFile(m_sysFSI->fsiBodyState2D->pos, m_sysFSI->fsiBodyState2D->lin_vel,
-                              m_sysFSI->fsiBodyState2D->rot,
-                              m_sysFSI->fsiMeshStateD->pos_fsi_fea_D, m_sysFSI->fsiMeshStateD->vel_fsi_fea_D,
-                              m_sysFSI->fsiData->rigid_FSI_ForcesD, m_sysFSI->fsiData->rigid_FSI_TorquesD,
-                              m_sysFSI->fsiData->Flex_FSI_ForcesD, dir, time);
+    utils::PrintFsiInfoToFile(                                                                 //
+        m_sysFSI->fsiBodyState2D->pos, m_sysFSI->fsiBodyState2D->rot,                          //
+        m_sysFSI->fsiBodyState2D->lin_vel,                                                     //
+        m_sysFSI->fsiMesh1DState_D->pos_fsi_fea_D, m_sysFSI->fsiMesh2DState_D->pos_fsi_fea_D,  //
+        m_sysFSI->fsiMesh1DState_D->vel_fsi_fea_D, m_sysFSI->fsiMesh2DState_D->vel_fsi_fea_D,  //
+        m_sysFSI->fsiData->rigid_FSI_ForcesD, m_sysFSI->fsiData->rigid_FSI_TorquesD,           //
+        m_sysFSI->fsiData->flex1D_FSIforces_D, m_sysFSI->fsiData->flex2D_FSIforces_D,          //
+        dir, time);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -1298,118 +1290,6 @@ size_t ChSystemFsi::AddPointsBCE(std::shared_ptr<ChBody> body,
         bce.push_back(mR4(p.x(), p.y(), p.z(), m_paramsH->HSML));
     AddBCE_body(body, bce, frame, solid, false, false);
     return bce.size();
-}
-
-//// RADU TODO
-void ChSystemFsi::AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
-                                const std::vector<std::vector<int>>& NodeNeighborElement,
-                                const std::vector<std::vector<int>>& _1D_elementsNodes,
-                                const std::vector<std::vector<int>>& _2D_elementsNodes,
-                                bool add1DElem,
-                                bool add2DElem,
-                                bool multiLayer,
-                                bool removeMiddleLayer,
-                                int SIDE,
-                                int SIDE2D) {
-    thrust::host_vector<Real4> posRadBCE;
-    int numElems = my_mesh->GetNelements();
-    std::vector<int> remove2D;
-    std::vector<int> remove2D_s;
-    std::vector<int> remove1D;
-
-    for (size_t i = 0; i < my_mesh->GetNnodes(); i++) {
-        auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(my_mesh->GetNode((unsigned int)i));
-        m_fsi_interface->m_fsi_nodes.push_back(node);
-    }
-
-    for (size_t i = 0; i < numElems; i++) {
-        // Check for Cable Elements
-        if (_1D_elementsNodes.size() > 0) {
-            if (auto thisCable =
-                    std::dynamic_pointer_cast<fea::ChElementCableANCF>(my_mesh->GetElement((unsigned int)i))) {
-                m_num_flex1D_elements++;
-
-                remove1D.resize(2);
-                std::fill(remove1D.begin(), remove1D.end(), 0);
-
-                size_t myNumNodes = (_1D_elementsNodes[i].size() > 2) ? 2 : _1D_elementsNodes[i].size();
-                for (size_t j = 0; j < myNumNodes; j++) {
-                    int thisNode = _1D_elementsNodes[i][j];
-
-                    // Look into the elements attached to thisNode
-                    for (size_t k = 0; k < NodeNeighborElement[thisNode].size(); k++) {
-                        int neighborElement = NodeNeighborElement[thisNode][k];
-                        if (neighborElement >= i)
-                            continue;
-                        remove1D[j] = 1;
-                    }
-                }
-
-                if (add1DElem) {
-                    CreateBCE_cable(posRadBCE, thisCable, remove1D, multiLayer, removeMiddleLayer, SIDE);
-                    AddBCE_cable(posRadBCE, thisCable);
-                }
-                posRadBCE.clear();
-            }
-        }
-        size_t Curr_size = _1D_elementsNodes.size();
-
-        // Check for Shell Elements
-        if (_2D_elementsNodes.size() > 0) {
-            if (auto thisShell =
-                    std::dynamic_pointer_cast<fea::ChElementShellANCF_3423>(my_mesh->GetElement((unsigned int)i))) {
-                m_num_flex2D_elements++;
-
-                remove2D.resize(4);
-                remove2D_s.resize(4);
-                std::fill(remove2D.begin(), remove2D.begin() + 4, 0);
-                std::fill(remove2D_s.begin(), remove2D_s.begin() + 4, 0);
-
-                // Look into the nodes of this element
-                size_t myNumNodes =
-                    (_2D_elementsNodes[i - Curr_size].size() > 4) ? 4 : _2D_elementsNodes[i - Curr_size].size();
-
-                for (size_t j = 0; j < myNumNodes; j++) {
-                    int thisNode = _2D_elementsNodes[i - Curr_size][j];
-                    // Look into the elements attached to thisNode
-                    for (size_t k = 0; k < NodeNeighborElement[thisNode].size(); k++) {
-                        // If this neighbor element has more than one common node with the previous
-                        // node this means that we must not add BCEs to this edge anymore. Because
-                        // that edge has already been given BCE particles.
-                        // The kth element of this node:
-                        size_t neighborElement = NodeNeighborElement[thisNode][k] - Curr_size;
-                        if (neighborElement >= i - Curr_size)
-                            continue;
-
-                        size_t JNumNodes = (_2D_elementsNodes[neighborElement].size() > 4)
-                                               ? 4
-                                               : _2D_elementsNodes[neighborElement].size();
-
-                        for (size_t inode = 0; inode < myNumNodes; inode++) {
-                            for (size_t jnode = 0; jnode < JNumNodes; jnode++) {
-                                if (_2D_elementsNodes[i - Curr_size][inode] ==
-                                        _2D_elementsNodes[neighborElement][jnode] &&
-                                    thisNode != _2D_elementsNodes[i - Curr_size][inode] && i > neighborElement) {
-                                    remove2D[inode] = 1;
-                                    if (inode == j + 1 || j > inode + 1) {
-                                        remove2D_s[j] = 1;
-                                    } else {
-                                        remove2D_s[inode] = 1;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (add2DElem) {
-                    CreateBCE_shell(posRadBCE, thisShell, remove2D, remove2D_s, multiLayer, removeMiddleLayer, SIDE2D);
-                    AddBCE_shell(posRadBCE, thisShell);
-                }
-                posRadBCE.clear();
-            }
-        }
-    }
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -1786,150 +1666,6 @@ void ChSystemFsi::CreateBCE_cone(Real rad,
     }
 }
 
-//// RADU - obsolete
-void ChSystemFsi::CreateBCE_cable(thrust::host_vector<Real4>& posRadBCE,
-                                  std::shared_ptr<chrono::fea::ChElementCableANCF> cable,
-                                  std::vector<int> remove,
-                                  bool multiLayer,
-                                  bool removeMiddleLayer,
-                                  int SIDE) {
-    Real kernel_h = m_paramsH->HSML;
-    Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
-
-    double dx = (cable->GetNodeB()->GetX0() - cable->GetNodeA()->GetX0()).Length();
-    double nX = dx / spacing - std::floor(dx / spacing);
-    int nFX = (int)std::floor(dx / spacing);
-    if (nX > 0.5)
-        nFX++;
-
-    Real initSpaceX;
-    if (nFX != 0)
-        initSpaceX = dx / nFX;
-    else
-        initSpaceX = dx;
-
-    Real initSpaceZ = spacing;
-    int2 iBound = mI2(0, nFX);
-
-    for (int i = iBound.x; i <= iBound.y; i++) {
-        bool con1 = (remove[1] && (i == iBound.y));
-        bool con2 = (remove[0] && (i == iBound.x));
-        if (con1 || con2)
-            continue;
-
-        Real3 relMarkerPos;
-        double CONSTANT = 1.0;
-        if (multiLayer) {
-            for (int j = 1; j <= SIDE; j++) {
-                relMarkerPos = mR3(i * initSpaceX, j * initSpaceZ, 0) * CONSTANT;
-                posRadBCE.push_back(mR4(relMarkerPos, kernel_h));
-                relMarkerPos = mR3(i * initSpaceX, -j * initSpaceZ, 0) * CONSTANT;
-                posRadBCE.push_back(mR4(relMarkerPos, kernel_h));
-                relMarkerPos = mR3(i * initSpaceX, 0, j * initSpaceZ) * CONSTANT;
-                posRadBCE.push_back(mR4(relMarkerPos, kernel_h));
-                relMarkerPos = mR3(i * initSpaceX, 0, -j * initSpaceZ) * CONSTANT;
-                posRadBCE.push_back(mR4(relMarkerPos, kernel_h));
-            }
-        }
-
-        if (!removeMiddleLayer) {
-            relMarkerPos = mR3(i * initSpaceX, 0, 0);
-            posRadBCE.push_back(mR4(relMarkerPos, kernel_h));
-        }
-    }
-}
-
-//// RADU - obsolete
-void ChSystemFsi::CreateBCE_shell(thrust::host_vector<Real4>& posRadBCE,
-                                  std::shared_ptr<chrono::fea::ChElementShellANCF_3423> shell,
-                                  std::vector<int> remove,
-                                  std::vector<int> remove_s,
-                                  bool multiLayer,
-                                  bool removeMiddleLayer,
-                                  int SIDE) {
-    Real kernel_h = m_paramsH->HSML;
-    Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
-
-    double dx = shell->GetLengthX() / 2;
-    double dy = shell->GetLengthY() / 2;
-
-    double nX = dx / spacing - std::floor(dx / spacing);
-    double nY = dy / spacing - std::floor(dy / spacing);
-    int nFX = (int)std::floor(dx / spacing);
-    int nFY = (int)std::floor(dy / spacing);
-    if (nX > 0.5)
-        nFX++;
-    if (nY > 0.5)
-        nFY++;
-
-    Real initSpaceX;
-    Real initSpaceY;
-    int2 iBound;
-    int2 jBound;
-
-    if (dx < nFX * spacing) {
-        iBound = mI2(-nFX * 2, nFX * 2);
-        initSpaceX = dx / nFX;
-    } else {
-        iBound = mI2(-nFX * 2 - 1, nFX * 2 + 1);
-        initSpaceX = dx / (0.5 + nFX);
-    }
-
-    if (dy < nFY * spacing) {
-        jBound = mI2(-nFY * 2, nFY * 2);
-        initSpaceY = dy / nFY;
-    } else {
-        jBound = mI2(-nFY * 2 - 1, nFY * 2 + 1);
-        initSpaceY = dy / (0.5 + nFY);
-    }
-
-    int2 kBound;
-    // If multi-layer BCE is required
-    if (SIDE > 0 && multiLayer)  // Do SIDE number layers in one side
-        kBound = mI2(0, SIDE);
-    else if (SIDE < 0 && multiLayer)  // Do SIDE number layers in the other side
-        kBound = mI2(SIDE, 0);
-    else if (SIDE == 0 && multiLayer)  // Do 1 layer on each side. Note that there would be 3 layers in total
-        kBound = mI2(-1, 1);           // The middle layer would be on the shell
-    else                               // IF you do not want multi-layer just use one layer on the shell
-        kBound = mI2(0, 0);            // This will create some marker deficiency and reduce the accuracy but look nicer
-
-    for (int k = kBound.x; k <= kBound.y; k++) {
-        //// RADU TODO
-        ////    There should be no side-effect in this function!!!!!
-        ////if (k == 0 && SIDE == 0 && multiLayer && removeMiddleLayer) {
-        ////    // skip the middle layer for this specific case
-        ////    // change value of paramsH->MULT_INITSPACE_Shells
-        ////    m_paramsH->MULT_INITSPACE_Shells = 0.5;
-        ////    continue;
-        ////}
-        for (int j = jBound.x; j <= jBound.y; j = j + 2) {
-            for (int i = iBound.x; i <= iBound.y; i = i + 2) {
-                Real3 relMarkerPos = mR3(i * initSpaceX / 2.0, j * initSpaceY / 2.0, k);
-
-                // It has to skip puting BCE on the nodes if one of the following conditions is true
-                bool con1 = (remove_s[0] && j == jBound.x);
-                bool con2 = (remove_s[2] && j == jBound.y);
-                bool con3 = (remove_s[1] && i == iBound.y);
-                bool con4 = (remove_s[3] && i == iBound.x);
-                bool con5 =
-                    (remove[0] && remove[1] && (!remove_s[0]) && j == jBound.x && (i == iBound.x || i == iBound.y));
-                bool con6 =
-                    (remove[2] && remove[3] && (!remove_s[2]) && j == jBound.y && (i == iBound.x || i == iBound.y));
-                bool con7 =
-                    (remove[1] && remove[2] && (!remove_s[1]) && i == iBound.y && (j == jBound.x || j == jBound.y));
-                bool con8 =
-                    (remove[3] && remove[0] && (!remove_s[3]) && i == iBound.x && (j == jBound.x || j == jBound.y));
-
-                if (con1 || con2 || con3 || con4 || con5 || con6 || con7 || con8)
-                    continue;
-
-                posRadBCE.push_back(mR4(relMarkerPos, kernel_h));
-            }
-        }
-    }
-}
-
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChSystemFsi::AddBCE_body(std::shared_ptr<ChBody> body,
@@ -1969,7 +1705,7 @@ unsigned int ChSystemFsi::AddBCE_mesh1D(unsigned int meshID, const ChFsiInterfac
 
     Real kernel_h = m_paramsH->HSML;
     Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
-    Real4 rhoPresMuH = {m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, 3};
+    Real4 rhoPresMuH = {m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, 2};  // BCE markers of type 2
     int num_layers = m_paramsH->NUM_BOUNDARY_LAYERS;
 
     // Traverse the contact segments:
@@ -2043,7 +1779,7 @@ unsigned int ChSystemFsi::AddBCE_mesh2D(unsigned int meshID, const ChFsiInterfac
 
     Real kernel_h = m_paramsH->HSML;
     Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
-    Real4 rhoPresMuH = {m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, 3};
+    Real4 rhoPresMuH = {m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, 3};  // BCE markers of type 3
     int num_layers = m_paramsH->NUM_BOUNDARY_LAYERS;
 
     ////std::ofstream ofile("mesh2D.txt");
@@ -2138,163 +1874,6 @@ unsigned int ChSystemFsi::AddBCE_mesh2D(unsigned int meshID, const ChFsiInterfac
     ////ofile.close();
 
     return num_bce;
-}
-
-
-//// RADU - obsolete
-void ChSystemFsi::AddBCE_cable(const thrust::host_vector<Real4>& posRadBCE,
-                               std::shared_ptr<fea::ChElementCableANCF> cable) {
-    int type = 2;
-
-    fea::ChElementCableANCF::ShapeVector N;
-    fea::ChElementCableANCF::ShapeVector Nd;
-
-    double dx = (cable->GetNodeB()->GetX0() - cable->GetNodeA()->GetX0()).Length();
-    ChVector<> physic_to_natural(1 / dx, 1, 1);
-
-    ChVector<> nAp = cable->GetNodeA()->GetPos();
-    ChVector<> nBp = cable->GetNodeB()->GetPos();
-
-    ChVector<> nAv = cable->GetNodeA()->GetPos_dt();
-    ChVector<> nBv = cable->GetNodeB()->GetPos_dt();
-
-    ChVector<> nAdir = cable->GetNodeA()->GetD();
-    ChVector<> nBdir = cable->GetNodeB()->GetD();
-
-    ChVector<> nAdirv = cable->GetNodeA()->GetD_dt();
-    ChVector<> nBdirv = cable->GetNodeB()->GetD_dt();
-
-    int posRadSizeModified = 0;
-    if (m_verbose)
-        printf(" posRadBCE.size()= :%zd\n", posRadBCE.size());
-
-    for (size_t i = 0; i < posRadBCE.size(); i++) {
-        ChVector<> pos_physical = utils::ToChVector(mR3(posRadBCE[i]));
-        ChVector<> pos_natural = pos_physical * physic_to_natural;
-
-        cable->ShapeFunctionsDerivatives(Nd, pos_natural.x());
-        ChVector<> Element_Axis = Nd(0) * nAp + Nd(1) * nAdir + Nd(2) * nBp + Nd(3) * nBdir;
-        Element_Axis.Normalize();
-
-        ChVector<> new_y_axis = ChVector<>(-Element_Axis.y(), Element_Axis.x(), 0) +
-                                ChVector<>(-Element_Axis.z(), 0, Element_Axis.x()) +
-                                ChVector<>(0, -Element_Axis.z(), Element_Axis.y());
-        new_y_axis.Normalize();
-        ChVector<> new_z_axis = Vcross(Element_Axis, new_y_axis);
-
-        cable->ShapeFunctions(N, pos_natural.x());
-        ChVector<> Correct_Pos = N(0) * nAp + N(1) * nAdir + N(2) * nBp + N(3) * nBdir + new_y_axis * pos_physical.y() +
-                                 new_z_axis * pos_physical.z();
-
-        if ((Correct_Pos.x() < m_paramsH->cMin.x || Correct_Pos.x() > m_paramsH->cMax.x) ||
-            (Correct_Pos.y() < m_paramsH->cMin.y || Correct_Pos.y() > m_paramsH->cMax.y) ||
-            (Correct_Pos.z() < m_paramsH->cMin.z || Correct_Pos.z() > m_paramsH->cMax.z))
-            continue;
-
-        // Note that the fluid particles are removed differently
-        bool addthis = true;
-        for (size_t p = 0; p < m_sysFSI->sphMarkersH->posRadH.size() - 1; p++) {
-            // Only compare to rigid and flexible BCE particles added previously
-            if (m_sysFSI->sphMarkersH->rhoPresMuH[p].w > 0.5) {
-                double dis = length(mR3(m_sysFSI->sphMarkersH->posRadH[p]) - utils::ToReal3(Correct_Pos));
-                if (dis < 1e-8) {
-                    addthis = false;
-                    if (m_verbose)
-                        printf(" Already added a BCE particle here! Skip this one!\n");
-                    break;
-                }
-            }
-        }
-
-        if (addthis) {
-            m_sysFSI->sphMarkersH->posRadH.push_back(mR4(utils::ToReal3(Correct_Pos), posRadBCE[i].w));
-            m_sysFSI->fsiData->FlexSPH_MeshPos_LRF_H.push_back(utils::ToReal3(pos_natural));
-            ChVector<> Correct_Vel = N(0) * nAv + N(1) * nAdirv + N(2) * nBv + N(3) * nBdirv + ChVector<double>(1e-20);
-            Real3 v3 = utils::ToReal3(Correct_Vel);
-            m_sysFSI->sphMarkersH->velMasH.push_back(v3);
-            m_sysFSI->sphMarkersH->rhoPresMuH.push_back(
-                mR4(m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, type));
-            posRadSizeModified++;
-        }
-    }
-    m_fsi_cables_bce_num.push_back(posRadSizeModified);
-}
-
-//// RADU - obsolete
-void ChSystemFsi::AddBCE_shell(const thrust::host_vector<Real4>& posRadBCE,
-                               std::shared_ptr<fea::ChElementShellANCF_3423> shell) {
-    int type = 3;
-    fea::ChElementShellANCF_3423::ShapeVector N;
-    int posRadSizeModified = 0;
-
-    double my_h = m_paramsH->HSML;
-
-    Real dx = shell->GetLengthX();
-    Real dy = shell->GetLengthY();
-    ChVector<> physic_to_natural(2 / dx, 2 / dy, 1);
-    ChVector<> nAp = shell->GetNodeA()->GetPos();
-    ChVector<> nBp = shell->GetNodeB()->GetPos();
-    ChVector<> nCp = shell->GetNodeC()->GetPos();
-    ChVector<> nDp = shell->GetNodeD()->GetPos();
-
-    ChVector<> nAdir = shell->GetNodeA()->GetD();
-    ChVector<> nBdir = shell->GetNodeB()->GetD();
-    ChVector<> nCdir = shell->GetNodeC()->GetD();
-    ChVector<> nDdir = shell->GetNodeD()->GetD();
-
-    ChVector<> nAv = shell->GetNodeA()->GetPos_dt();
-    ChVector<> nBv = shell->GetNodeB()->GetPos_dt();
-    ChVector<> nCv = shell->GetNodeC()->GetPos_dt();
-    ChVector<> nDv = shell->GetNodeD()->GetPos_dt();
-
-    if (m_verbose)
-        printf(" posRadBCE.size()= :%zd\n", posRadBCE.size());
-
-    for (size_t i = 0; i < posRadBCE.size(); i++) {
-        ChVector<> pos_physical = utils::ToChVector(mR3(posRadBCE[i]));
-        ChVector<> pos_natural = pos_physical * physic_to_natural;
-
-        shell->ShapeFunctions(N, pos_natural.x(), pos_natural.y(), pos_natural.z());
-
-        ChVector<> Normal = N(0) * nAdir + N(2) * nBdir + N(4) * nCdir + N(6) * nDdir;
-        Normal.Normalize();
-
-        ChVector<> Correct_Pos = N(0) * nAp + N(2) * nBp + N(4) * nCp + N(6) * nDp +
-                                 Normal * pos_physical.z() * my_h * m_paramsH->MULT_INITSPACE_Shells;
-
-        if ((Correct_Pos.x() < m_paramsH->cMin.x || Correct_Pos.x() > m_paramsH->cMax.x) ||
-            (Correct_Pos.y() < m_paramsH->cMin.y || Correct_Pos.y() > m_paramsH->cMax.y) ||
-            (Correct_Pos.z() < m_paramsH->cMin.z || Correct_Pos.z() > m_paramsH->cMax.z))
-            continue;
-
-        // Note that the fluid particles are removed differently
-        bool addthis = true;
-        for (size_t p = 0; p < m_sysFSI->sphMarkersH->posRadH.size() - 1; p++) {
-            // Only compare to rigid and flexible BCE particles added previously
-            if (m_sysFSI->sphMarkersH->rhoPresMuH[p].w > 0.5) {
-                double dis = length(mR3(m_sysFSI->sphMarkersH->posRadH[p]) - utils::ToReal3(Correct_Pos));
-                if (dis < 1e-8) {
-                    addthis = false;
-                    if (m_verbose)
-                        printf(" Already added a BCE particle here! Skip this one!\n");
-                    break;
-                }
-            }
-        }
-
-        if (addthis) {
-            m_sysFSI->sphMarkersH->posRadH.push_back(mR4(utils::ToReal3(Correct_Pos), posRadBCE[i].w));
-            m_sysFSI->fsiData->FlexSPH_MeshPos_LRF_H.push_back(utils::ToReal3(pos_natural));
-
-            ChVector<> Correct_Vel = N(0) * nAv + N(2) * nBv + N(4) * nCv + N(6) * nDv;
-            Real3 v3 = utils::ToReal3(Correct_Vel);
-            m_sysFSI->sphMarkersH->velMasH.push_back(v3);
-            m_sysFSI->sphMarkersH->rhoPresMuH.push_back(
-                mR4(m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, type));
-            posRadSizeModified++;
-        }
-    }
-    m_fsi_shells_bce_num.push_back(posRadSizeModified);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -2452,7 +2031,7 @@ size_t ChSystemFsi::GetNumRigidBodyMarkers() const {
 }
 
 size_t ChSystemFsi::GetNumFlexBodyMarkers() const {
-    return m_sysFSI->numObjectsH->numFlexMarkers;
+    return m_sysFSI->numObjectsH->numFlexMarkers1D + m_sysFSI->numObjectsH->numFlexMarkers2D;
 }
 
 size_t ChSystemFsi::GetNumBoundaryMarkers() const {
@@ -2463,10 +2042,6 @@ size_t ChSystemFsi::GetNumBoundaryMarkers() const {
 
 std::vector<std::shared_ptr<ChBody>>& ChSystemFsi::GetFsiBodies() const {
     return m_fsi_interface->m_fsi_bodies;
-}
-
-std::shared_ptr<fea::ChMesh> ChSystemFsi::GetFsiMesh() const {
-    return m_fsi_interface->m_fsi_mesh;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

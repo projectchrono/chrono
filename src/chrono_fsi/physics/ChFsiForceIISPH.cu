@@ -1356,8 +1356,9 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> fsiBodySt
                                         thrust::device_vector<Real3> Normals,
                                         thrust::device_vector<Real> G_i,
                                         thrust::device_vector<Real>& Color) {
-    //    Real RES = paramsH->PPE_res;
+    //// RADU TODO - Update to use mesh data for 1D and 2D
 
+    /*
     PPESolutionType mySolutionType = paramsH->PPE_Solution_type;
     std::cout << "time step in calcPressureIISPH " << paramsH->dT << std::endl;
 
@@ -1692,13 +1693,15 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> fsiBodySt
     //------------------------------------------------------------------------
     cudaFree(isErrorD);
     free(isErrorH);
+
+    */
 }
 
 void ChFsiForceIISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
                                std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
                                std::shared_ptr<FsiMeshStateD> fsiMesh1DStateD,
                                std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD) {
-    //// RADU TODO
+    //// RADU TODO - Update to use mesh data for 1D and 2D
 
     /*
     sphMarkersD = otherSphMarkersD;

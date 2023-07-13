@@ -126,7 +126,6 @@ struct FsiMeshStateH {
     thrust::host_vector<Real3> pos_fsi_fea_H;  ///< mesh node positions
     thrust::host_vector<Real3> vel_fsi_fea_H;  ///< mesh node velocities
     thrust::host_vector<Real3> acc_fsi_fea_H;  ///< mesh node accelerations
-    thrust::host_vector<Real3> dir_fsi_fea_H;  ///< Vector of the mesh direction  //// OBSOLETE
 
     // zipIterFlexH iterator();
     void resize(size_t s);
@@ -138,7 +137,6 @@ struct FsiMeshStateD {
     thrust::device_vector<Real3> pos_fsi_fea_D;  ///< mesh node positions
     thrust::device_vector<Real3> vel_fsi_fea_D;  ///< mesh node velocities
     thrust::device_vector<Real3> acc_fsi_fea_D;  ///< mesh node accelerations
-    thrust::device_vector<Real3> dir_fsi_fea_D;  ///< Vector of the mesh direction //// OBSOLETE
 
     // zipIterFlexD iterator();
     void CopyFromH(const FsiMeshStateH& meshStateH);
@@ -184,15 +182,12 @@ struct FsiData {
     thrust::device_vector<Real3> flex1D_BCEcoords_D;  ///< local coords for BCE markers on 1-D flex segments (device)
     thrust::host_vector<Real3> flex2D_BCEcoords_H;    ///< local coords for BCE markers on 2-D flex faces (host)
     thrust::device_vector<Real3> flex2D_BCEcoords_D;  ///< local coors for BCE markers on 2-D flex faces (device)
-    thrust::device_vector<Real3> FlexSPH_MeshPos_LRF_D;  // Flex body BCE position (local coordinates) - device //// OBSOLETE
-    thrust::host_vector<Real3> FlexSPH_MeshPos_LRF_H;    // Flex body BCE position (local coordinates) - host //// OBSOLETE
 
     thrust::device_vector<uint> rigid_BCEsolids_D;    ///< associated body ID for BCE markers on rigid bodies
     thrust::host_vector<uint3> flex1D_BCEsolids_H;    ///< associated mesh and segment for BCE markers on 1-D segments
     thrust::device_vector<uint3> flex1D_BCEsolids_D;  ///< associated mesh and segment for BCE markers on 1-D segments
     thrust::host_vector<uint3> flex2D_BCEsolids_H;    ///< associated mesh and face for BCE markers on 2-D faces
     thrust::device_vector<uint3> flex2D_BCEsolids_D;  ///< associated mesh and face for BCE markers on 2-D faces
-    thrust::device_vector<uint> FlexIdentifierD;  // Identifies which flexible body a particle belongs to //// OBSOLETE
 
     // FSI bodies
     thrust::device_vector<Real3> rigid_FSI_ForcesD;   ///< Vector of the surface-integrated forces to rigid bodies
@@ -200,18 +195,11 @@ struct FsiData {
 
     thrust::device_vector<Real3> flex1D_FSIforces_D;  ///< surface-integrated forces on FEA 1-D segment nodes
     thrust::device_vector<Real3> flex2D_FSIforces_D;  ///< surface-integrated forces on FEA 2-D face nodes
-    thrust::device_vector<Real3> Flex_FSI_ForcesD;  // Vector of the surface-integrated force on FEA nodes //// OBSOLETE
 
     thrust::host_vector<int2> flex1D_Nodes_H;  ///< node indices for each 1-D flex segment (host)
     thrust::host_vector<int2> flex1D_Nodes_D;  ///< node indices for each 1-D flex segment (device)
     thrust::host_vector<int3> flex2D_Nodes_H;  ///< node indices for each 2-D flex face (host)
     thrust::host_vector<int3> flex2D_Nodes_D;  ///< node indices for each 2-D flex face (device)
-
-    //// OBSOLETE
-    thrust::host_vector<int2> CableElementsNodesH;    ///< Vector of the cable elements nodes on host
-    thrust::device_vector<int2> CableElementsNodesD;  ///< Vector of the cable elements nodes on device
-    thrust::host_vector<int4> ShellElementsNodesH;    ///< Vector of the shell elements nodes on host
-    thrust::device_vector<int4> ShellElementsNodesD;  ///< Vector of the shell elements nodes on device
 };
 
 /// Underlying implementation of an FSI system.
@@ -279,8 +267,6 @@ class ChSystemFsi_impl : public ChFsiBase {
     std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D;  ///< 1-D FEA mesh state (device)
     std::shared_ptr<FsiMeshStateH> fsiMesh2DState_H;  ///< 2-D FEA mesh state (host)
     std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D;  ///< 2-D FEA mesh state (device)
-    std::shared_ptr<FsiMeshStateH> fsiMeshStateH;     ///< FEA mesh state (host) //// OBSOLETE
-    std::shared_ptr<FsiMeshStateD> fsiMeshStateD;     ///< FEA mesh state (device) //// OBSOLETE
 
     std::shared_ptr<FsiData> fsiData;  ///< General FSI data needed in the simulation
 

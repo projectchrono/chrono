@@ -83,14 +83,12 @@ void FsiMeshStateH::resize(size_t s) {
     pos_fsi_fea_H.resize(s);
     vel_fsi_fea_H.resize(s);
     acc_fsi_fea_H.resize(s);
-    dir_fsi_fea_H.resize(s);
 }
 
 void FsiMeshStateD::resize(size_t s) {
     pos_fsi_fea_D.resize(s);
     vel_fsi_fea_D.resize(s);
     acc_fsi_fea_D.resize(s);
-    dir_fsi_fea_D.resize(s);
 }
 
 void FsiBodyStateD::CopyFromH(const FsiBodyStateH& bodyStateH) {
@@ -106,7 +104,6 @@ void FsiMeshStateD::CopyFromH(const FsiMeshStateH& meshStateH) {
     thrust::copy(meshStateH.pos_fsi_fea_H.begin(), meshStateH.pos_fsi_fea_H.end(), pos_fsi_fea_D.begin());
     thrust::copy(meshStateH.vel_fsi_fea_H.begin(), meshStateH.vel_fsi_fea_H.end(), vel_fsi_fea_D.begin());
     thrust::copy(meshStateH.acc_fsi_fea_H.begin(), meshStateH.acc_fsi_fea_H.end(), acc_fsi_fea_D.begin());
-    thrust::copy(meshStateH.dir_fsi_fea_H.begin(), meshStateH.dir_fsi_fea_H.end(), dir_fsi_fea_D.begin());
 }
 
 FsiBodyStateD& FsiBodyStateD::operator=(const FsiBodyStateD& other) {
@@ -129,7 +126,6 @@ FsiMeshStateD& FsiMeshStateD::operator=(const FsiMeshStateD& other) {
     thrust::copy(other.pos_fsi_fea_D.begin(), other.pos_fsi_fea_D.end(), pos_fsi_fea_D.begin());
     thrust::copy(other.vel_fsi_fea_D.begin(), other.vel_fsi_fea_D.end(), vel_fsi_fea_D.begin());
     thrust::copy(other.acc_fsi_fea_D.begin(), other.acc_fsi_fea_D.end(), acc_fsi_fea_D.begin());
-    thrust::copy(other.dir_fsi_fea_D.begin(), other.dir_fsi_fea_D.end(), dir_fsi_fea_D.begin());
     return *this;
 }
 
@@ -174,9 +170,6 @@ ChSystemFsi_impl::ChSystemFsi_impl(std::shared_ptr<SimParams> params) : ChFsiBas
     fsiMesh2DState_D = chrono_types::make_shared<FsiMeshStateD>();
     fsiMesh2DState_H = chrono_types::make_shared<FsiMeshStateH>();
 
-    fsiMeshStateD = chrono_types::make_shared<FsiMeshStateD>();
-    fsiMeshStateH = chrono_types::make_shared<FsiMeshStateH>();
-    
     fsiData = chrono_types::make_shared<FsiData>();
     markersProximityD = chrono_types::make_shared<ProximityDataD>();
 }
@@ -201,20 +194,18 @@ void ChSystemFsi_impl::InitNumObjects() {
     numObjectsH->numFlexBodies2D = 0;     // Number of 2D Flexible bodies
     numObjectsH->numFlexNodes1D = 0;      // Number of 1D Flexible nodes
     numObjectsH->numFlexNodes2D = 0;      // Number of 2D Flexible nodes
-    numObjectsH->numFlexNodes = 0;        // Number of FE nodes //// OBSOLETE
     numObjectsH->numGhostMarkers = 0;     // Number of ghost particles
     numObjectsH->numHelperMarkers = 0;    // Number of helper particles
     numObjectsH->numFluidMarkers = 0;     // Number of fluid SPH particles
-    numObjectsH->numBoundaryMarkers = 0;  // Number of boundary SPH particles
+    numObjectsH->numBoundaryMarkers = 0;  // Number of boundary BCE markers
+    numObjectsH->numRigidMarkers = 0;     // Number of rigid BCE markers
+    numObjectsH->numFlexMarkers1D = 0;    // Number of flexible 1-D segment BCE markers
+    numObjectsH->numFlexMarkers2D = 0;    // Number of flexible 2-D face BCE markers
+    numObjectsH->numBceMarkers = 0;       // Total number of BCE markers
+    numObjectsH->numAllMarkers = 0;       // Total number of SPH + BCE particles
     numObjectsH->startRigidMarkers = 0;   // Start index of the rigid BCE markers
     numObjectsH->startFlexMarkers1D = 0;  // Start index of the 1-D flexible BCE markers
     numObjectsH->startFlexMarkers2D = 0;  // Start index of the 2-D flexible BCE markers
-    numObjectsH->startFlexMarkers = 0;    // Start index of the flexible SPH particles //// OBSOLETE
-    numObjectsH->numRigidMarkers = 0;     // Number of rigid SPH particles
-    numObjectsH->numFlexMarkers1D = 0;    // Number of flexible 1-D segment SPH particles
-    numObjectsH->numFlexMarkers2D = 0;    // Number of flexible 2-D face SPH particles
-    numObjectsH->numFlexMarkers = 0;      // Number of flexible SPH particles
-    numObjectsH->numAllMarkers = 0;       // Total number of SPH particles
 }
 
 void ChSystemFsi_impl::CalcNumObjects() {
@@ -244,12 +235,10 @@ void ChSystemFsi_impl::CalcNumObjects() {
                 break;
             case 2:
                 numObjectsH->numFlexMarkers1D += numMarkers;
-                numObjectsH->numFlexMarkers += numMarkers;
                 numObjectsH->numFlexBodies1D++;
                 break;
             case 3:
                 numObjectsH->numFlexMarkers2D += numMarkers;
-                numObjectsH->numFlexMarkers += numMarkers;
                 numObjectsH->numFlexBodies2D++;
                 break;
             default:
@@ -260,15 +249,13 @@ void ChSystemFsi_impl::CalcNumObjects() {
     }
 
     numObjectsH->numFluidMarkers += numObjectsH->numGhostMarkers + numObjectsH->numHelperMarkers;
-    numObjectsH->numAllMarkers = numObjectsH->numFluidMarkers +                                    //
-                                 numObjectsH->numBoundaryMarkers + numObjectsH->numRigidMarkers +  //
+    numObjectsH->numBceMarkers = numObjectsH->numBoundaryMarkers + numObjectsH->numRigidMarkers +  //
                                  numObjectsH->numFlexMarkers1D + numObjectsH->numFlexMarkers2D;
+    numObjectsH->numAllMarkers = numObjectsH->numFluidMarkers + numObjectsH->numBceMarkers;
 
     numObjectsH->startRigidMarkers = numObjectsH->numFluidMarkers + numObjectsH->numBoundaryMarkers;
     numObjectsH->startFlexMarkers1D = numObjectsH->startRigidMarkers + numObjectsH->numRigidMarkers;
     numObjectsH->startFlexMarkers2D = numObjectsH->startFlexMarkers1D + numObjectsH->numFlexMarkers1D;
-    //// OBSOLETE
-    numObjectsH->startFlexMarkers = numObjectsH->startRigidMarkers + numObjectsH->numRigidMarkers;
 }
 
 void ChSystemFsi_impl::ConstructReferenceArray() {
@@ -387,18 +374,6 @@ void ChSystemFsi_impl::Initialize(size_t numRigidBodies,
 
     fsiData->rigid_BCEsolids_D.resize(numObjectsH->numRigidMarkers);
     fsiData->rigid_BCEcoords_D.resize(numObjectsH->numRigidMarkers);
-
-    fsiData->FlexIdentifierD.resize(numObjectsH->numFlexMarkers);
-    fsiData->FlexSPH_MeshPos_LRF_D.resize(numObjectsH->numFlexMarkers);
-    fsiData->FlexSPH_MeshPos_LRF_H.resize(numObjectsH->numFlexMarkers);
-
-    fsiData->CableElementsNodesD.resize(fsiData->CableElementsNodesH.size());
-    fsiData->ShellElementsNodesD.resize(fsiData->ShellElementsNodesH.size());
-
-    thrust::copy(fsiData->CableElementsNodesH.begin(), fsiData->CableElementsNodesH.end(),
-                 fsiData->CableElementsNodesD.begin());
-    thrust::copy(fsiData->ShellElementsNodesH.begin(), fsiData->ShellElementsNodesH.end(),
-                 fsiData->ShellElementsNodesD.begin());
 
     fsiMesh1DState_D->resize(numObjectsH->numFlexNodes1D);
     fsiMesh1DState_H->resize(numObjectsH->numFlexNodes1D);

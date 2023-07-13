@@ -44,8 +44,7 @@ namespace fsi {
 class ChFsiInterface : public ChFsiBase {
   public:
     /// Constructor of the FSI interface class.
-    ChFsiInterface(ChSystemFsi_impl& fsi,
-                   std::shared_ptr<SimParams> params);
+    ChFsiInterface(ChSystemFsi_impl& fsi, std::shared_ptr<SimParams> params);
 
     /// Destructor of the FSI interface class.
     ~ChFsiInterface();
@@ -88,10 +87,6 @@ class ChFsiInterface : public ChFsiBase {
     std::vector<std::shared_ptr<ChBody>> m_fsi_bodies;  ///< rigid bodies exposed to the FSI system
     std::vector<FsiMesh1D> m_fsi_meshes1D;              ///< FEA meshes with 1-D segments exposed to the FSI system
     std::vector<FsiMesh2D> m_fsi_meshes2D;              ///< FEA meshes with 2-D faces exposed to the FSI system
-
-    //// OBSOLETE
-    std::shared_ptr<fea::ChMesh> m_fsi_mesh;
-    std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>> m_fsi_nodes;  ///< FEA nodes available in FSI system
 
     friend class ChSystemFsi;
 };

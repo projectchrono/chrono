@@ -282,15 +282,21 @@ void PrintParticleToFile(const thrust::device_vector<Real4>& posRadD,
 }
 
 void PrintFsiInfoToFile(const thrust::device_vector<Real3>& posRigidD,
-                        const thrust::device_vector<Real4>& velRigidD,
                         const thrust::device_vector<Real4>& qRigidD,
-                        const thrust::device_vector<Real3>& posNodeD,
-                        const thrust::device_vector<Real3>& velNodeD,
+                        const thrust::device_vector<Real4>& velRigidD,
+                        const thrust::device_vector<Real3>& pos1DNodeD,
+                        const thrust::device_vector<Real3>& pos2DNodeD,
+                        const thrust::device_vector<Real3>& vel1DNodeD,
+                        const thrust::device_vector<Real3>& vel2DNodeD,
                         const thrust::host_vector<Real3>& forceRigid,
                         const thrust::host_vector<Real3>& torqueRigid,
-                        const thrust::host_vector<Real3>& forceNode,
+                        const thrust::host_vector<Real3>& force1DNode,
+                        const thrust::host_vector<Real3>& force2DNode,
                         const std::string& dir,
                         const double time) {
+    //// RADU TODO - Update to use mesh data for 1D and 2D
+
+    /*
     thrust::host_vector<Real3> posRigidH = posRigidD;
     thrust::host_vector<Real4> velRigidH = velRigidD;
     thrust::host_vector<Real4> qRigidH = qRigidD;
@@ -358,7 +364,7 @@ void PrintFsiInfoToFile(const thrust::device_vector<Real3>& posRigidD,
             file.close();
         }
     }
-
+    */
 }
 
 void WriteCsvParticlesToFile(thrust::device_vector<Real4>& posRadD,

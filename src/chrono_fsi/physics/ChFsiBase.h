@@ -37,7 +37,6 @@ struct ChCounters {
     size_t numRigidBodies;   ///< Number of rigid bodies
     size_t numFlexNodes1D;   ///< Number of nodes in 1-D FEA mesh segments
     size_t numFlexNodes2D;   ///< Number of nodes in 2-D flexible mesh faces
-    size_t numFlexNodes;     ///< Number of Nodes in a flexible mesh; each FE is made up of nodes //// OBSOLETE
     size_t numFlexBodies1D;  ///< Number of 1-D flexible bodies; each FE segment is one body
     size_t numFlexBodies2D;  ///< Number of 2-D flexible bodies; each FE face is one body
 
@@ -48,13 +47,12 @@ struct ChCounters {
     size_t numRigidMarkers;     ///< Number of BCE markers on rigid bodies
     size_t numFlexMarkers1D;    ///< Number of BCE markers on flexible segments
     size_t numFlexMarkers2D;    ///< Number of BCE markers on flexible faces
-    size_t numFlexMarkers;      ///< Number of BCE markers on flexible bodies //// OBSOLETE
+    size_t numBceMarkers;       ///< Total number of BCE markers
     size_t numAllMarkers;       ///< Total number of particles in the simulation
-    
+
     size_t startRigidMarkers;   ///< Index of first BCE marker on first rigid body
     size_t startFlexMarkers1D;  ///< Index of first BCE marker on first flex segment
     size_t startFlexMarkers2D;  ///< Index of first BCE marker on first flex face
-    size_t startFlexMarkers;    ///< Index of the first BCE marker that covers the first flexible body //// OBSOLETE
 };
 
 /// Base class for various FSI classes.
@@ -65,7 +63,7 @@ class ChFsiBase {
 
     /// Constructor for the ChFsiBase class.
     ChFsiBase(std::shared_ptr<SimParams> params,      ///< Simulation parameters on host
-                 std::shared_ptr<ChCounters> numObjects  ///< Counters of objects and markers
+              std::shared_ptr<ChCounters> numObjects  ///< Counters of objects and markers
     );
 
     /// Destructor of the ChFsiBase class.

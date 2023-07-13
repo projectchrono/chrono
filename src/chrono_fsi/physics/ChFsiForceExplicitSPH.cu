@@ -398,10 +398,8 @@ __global__ void Shear_Stress_Rate(uint* indexOfIndex,
                         Real4 rhoPresMuB = sortedRhoPreMu[j];
                         if (rhoPresMuB.w > -0.5) {
                             int bceIndexB = gridMarkerIndex[j] - numObjectsD.numFluidMarkers;
-                            if (!(bceIndexB >= 0 && bceIndexB < numObjectsD.numBoundaryMarkers +
-                                                                    numObjectsD.numRigidMarkers +
-                                                                    numObjectsD.numFlexMarkers)) {
-                                printf("Error! bceIndex out of bound, collideCell !\n");
+                            if (bceIndexB < 0 || bceIndexB >= numObjectsD.numBceMarkers) {
+                                printf("Error! bceIndex out of bound, Shear_Stress_Rate !\n");
                             }
                             rhoPresMuB = rhoPreMu_ModifiedBCE[bceIndexB];
                             velMasB = velMas_ModifiedBCE[bceIndexB];
@@ -1060,9 +1058,8 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
                         Real3 velMasB = sortedVelMas[j];
                         if (rhoPresMuB.w > -0.5) {
                             int bceIndexB = gridMarkerIndex[j] - numObjectsD.numFluidMarkers;
-                            if (!(bceIndexB >= 0 &&
-                                  bceIndexB < numObjectsD.numAllMarkers - numObjectsD.numFluidMarkers)) {
-                                printf("Error! bceIndex out of bound, collideCell !\n");
+                            if (bceIndexB < 0 || bceIndexB >= numObjectsD.numBceMarkers) {
+                                printf("Error! bceIndex out of bound, Navier_Stokes !\n");
                             }
                             rhoPresMuB = rhoPreMu_ModifiedBCE[bceIndexB];
                             velMasB = velMas_ModifiedBCE[bceIndexB];

@@ -270,9 +270,8 @@ class CH_FSI_API ChSystemFsi {
     /// FSI bodies are the ones seen by the fluid dynamics system.
     std::vector<std::shared_ptr<ChBody>>& GetFsiBodies() const;
 
-    /// Return the FSI mesh for flexible elements.
-    //// RADU - obsolete
-    std::shared_ptr<fea::ChMesh> GetFsiMesh() const;
+    //// OBSOLETE
+    std::shared_ptr<fea::ChMesh> GetFsiMesh() const { return nullptr; }
 
     /// Complete construction of the FSI system (fluid and BDE objects).
     /// Use parameters read from JSON file and/or specified through various Set functions.
@@ -405,13 +404,13 @@ class CH_FSI_API ChSystemFsi {
     void AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, bool centered = false);
 
     /// Add an FEA mesh to the FSI system.
-    //// RADU - OBSOLETE
+    //// OBSOLETE
     void AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh,
                     const std::vector<std::vector<int>>& beam_elements,
-                    const std::vector<std::vector<int>>& shell_elements);
+                    const std::vector<std::vector<int>>& shell_elements) {}
 
     /// Add BCE markers from mesh.
-    //// RADU - OBSOLETE
+    //// OBSOLETE
     void AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
                        const std::vector<std::vector<int>>& NodeNeighborElement,
                        const std::vector<std::vector<int>>& _1D_elementsNodes,
@@ -421,7 +420,7 @@ class CH_FSI_API ChSystemFsi {
                        bool multiLayer,
                        bool removeMiddleLayer,
                        int SIDE,
-                       int SIZE2D);
+                       int SIZE2D) {}
 
     // ----------- Utility functions for extracting information at specific SPH particles
 
@@ -495,25 +494,6 @@ class CH_FSI_API ChSystemFsi {
     /// BCE markers are created using cylinderical coordinates (polar=true), or else on a uniform Cartesian grid.
     void CreateBCE_cone(Real rad, Real height, bool solid, bool capped, bool polar, thrust::host_vector<Real4>& bce);
 
-    /// Create BCE particles from a cable element.
-    //// RADU - obsolete
-    void CreateBCE_cable(thrust::host_vector<Real4>& posRadBCE,
-                         std::shared_ptr<chrono::fea::ChElementCableANCF> cable,
-                         std::vector<int> remove,
-                         bool multiLayer,
-                         bool removeMiddleLayer,
-                         int SIDE);
-
-    /// Create BCE particles from a shell element.
-    //// RADU - obsolete
-    void CreateBCE_shell(thrust::host_vector<Real4>& posRadBCE,
-                         std::shared_ptr<chrono::fea::ChElementShellANCF_3423> shell,
-                         std::vector<int> remove,
-                         std::vector<int> remove_s,
-                         bool multiLayer,
-                         bool removeMiddleLayer,
-                         int SIDE);
-
     /// Utility function for creating points filling a closed mesh.
     //// RADU TODO eliminate delta (use initspacing)
     static void CreateMeshPoints(geometry::ChTriangleMeshConnected& mesh,
@@ -542,10 +522,6 @@ class CH_FSI_API ChSystemFsi {
     /// The BCE markers are created in the absolute coordinate frame.
     unsigned int AddBCE_mesh2D(unsigned int meshID, const ChFsiInterface::FsiMesh2D& fsi_mesh, bool centered);
 
-    //// RADU - obsolete
-    void AddBCE_cable(const thrust::host_vector<Real4>& posRadBCE, std::shared_ptr<fea::ChElementCableANCF> cable);
-    void AddBCE_shell(const thrust::host_vector<Real4>& posRadBCE, std::shared_ptr<fea::ChElementShellANCF_3423> shell);
-
     /// Function to initialize the midpoint device data of the fluid system by copying from the full step.
     void CopyDeviceDataToHalfStep();
 
@@ -563,9 +539,6 @@ class CH_FSI_API ChSystemFsi {
     std::unique_ptr<ChFsiInterface> m_fsi_interface;    ///< FSI interface system
     std::shared_ptr<ChBce> m_bce_manager;               ///< BCE manager
 
-    std::vector<std::vector<int>> m_fea_shell_nodes;  ///< indices of nodes of each shell element //// OBSOLETE
-    std::vector<std::vector<int>> m_fea_cable_nodes;  ///< indices of nodes of each cable element //// OBSOLETE
-
     unsigned int m_num_flex1D_elements;  ///< number of 1-D flexible segments (across all meshes)
     unsigned int m_num_flex2D_elements;  ///< number of 2-D flexible faces (across all meshes)
 
@@ -573,8 +546,6 @@ class CH_FSI_API ChSystemFsi {
     unsigned int m_num_flex2D_nodes;  ///< number of 2-D flexible faces (across all meshes)
 
     std::vector<int> m_fsi_bodies_bce_num;  ///< number of BCE particles of each fsi body
-    std::vector<int> m_fsi_cables_bce_num;  ///< number of BCE particles of each fsi cable //// OBSOLETE
-    std::vector<int> m_fsi_shells_bce_num;  ///< number of BCE particles of each fsi shell //// OBSOLETE
 
     bool m_is_initialized;  ///< set to true once the Initialize function is called
     bool m_integrate_SPH;   ///< set to true if needs to integrate the fsi solver
