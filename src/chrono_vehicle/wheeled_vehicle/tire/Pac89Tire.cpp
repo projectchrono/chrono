@@ -121,8 +121,8 @@ void Pac89Tire::Create(const rapidjson::Document& d) {  // Invoke base class met
         m_PacCoeff.C17 = d["Aligning Coefficients"]["c17"].GetDouble();
     }
 
-    m_visualization_width = m_width;
-    // Check how to visualize this tire.
+    m_visualization_width = ChPac89Tire::GetVisualizationWidth();
+
     if (d.HasMember("Visualization")) {
         if (d["Visualization"].HasMember("Mesh Filename Left") && d["Visualization"].HasMember("Mesh Filename Right")) {
             m_meshFile_left = d["Visualization"]["Mesh Filename Left"].GetString();

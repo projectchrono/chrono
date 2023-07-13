@@ -178,12 +178,17 @@ void TMsimpleTire::Create(const rapidjson::Document& d) {
     m_par.mu_0 = d["Coefficient of Friction"].GetDouble();
     m_rolling_resistance = d["Rolling Resistance Coefficient"].GetDouble();
 
-    // Check how to visualize this tire.
+    m_visualization_width = ChTMsimpleTire::GetVisualizationWidth();
+
     if (d.HasMember("Visualization")) {
         if (d["Visualization"].HasMember("Mesh Filename Left") && d["Visualization"].HasMember("Mesh Filename Right")) {
             m_meshFile_left = d["Visualization"]["Mesh Filename Left"].GetString();
             m_meshFile_right = d["Visualization"]["Mesh Filename Right"].GetString();
             m_has_mesh = true;
+        }
+
+        if (d["Visualization"].HasMember("Width")) {
+            m_visualization_width = d["Visualization"]["Width"].GetDouble();
         }
     }
 }

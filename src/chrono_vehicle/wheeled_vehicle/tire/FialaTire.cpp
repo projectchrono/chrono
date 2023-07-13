@@ -85,8 +85,7 @@ void FialaTire::Create(const rapidjson::Document& d) {
         m_dynamic_mode = false;
     }
 
-    // Check how to visualize this tire.
-    m_visualization_width = m_width;
+    m_visualization_width = ChFialaTire::GetVisualizationWidth();
 
     if (d.HasMember("Visualization")) {
         if (d["Visualization"].HasMember("Mesh Filename Left") && d["Visualization"].HasMember("Mesh Filename Right")) {
