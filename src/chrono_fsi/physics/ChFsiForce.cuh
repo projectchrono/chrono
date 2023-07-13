@@ -97,9 +97,9 @@ class ChFsiForce : public ChFsiBase {
         std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,  ///< information of particle in the sorted device array
         std::shared_ptr<ProximityDataD> otherMarkersProximityD,  ///< object that holds device proximity info
         std::shared_ptr<FsiData> otherFsiGeneralData,            ///< SPH general data
-        std::shared_ptr<SimParams> otherParamsH,                 ///< simulation parameters on host
-        std::shared_ptr<ChCounters> otherNumObjects,             ///< size of different objects in the system
-        bool verb                                                ///< verbose terminal output
+        std::shared_ptr<SimParams> params,                       ///< simulation parameters
+        std::shared_ptr<ChCounters> numObjects,                  ///< problem counters
+        bool verb                                                ///< verbose output
     );
 
     /// Destructor of the ChFsiForce.
@@ -165,13 +165,10 @@ class ChFsiForce : public ChFsiBase {
 
     std::shared_ptr<ChCollisionSystemFsi> fsiCollisionSystem;  ///< collision system for building neighbors list
 
-    std::shared_ptr<SphMarkerDataD> sphMarkersD;        ///< device copy of the SPH particles data
+    std::shared_ptr<SphMarkerDataD> sphMarkersD;         ///< device copy of the SPH particles data
     std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D;  ///< device copy of the sorted sph particles data
     std::shared_ptr<ProximityDataD> markersProximity_D;  ///< pointer object that holds the proximity of the particles
-    std::shared_ptr<FsiData> fsiData;                   ///< pointer to sph general data
-
-    std::shared_ptr<SimParams> paramsH;       ///< pointer to simulation parameters
-    std::shared_ptr<ChCounters> numObjectsH;  ///< pointer to number of objects, fluid and boundary particles
+    std::shared_ptr<FsiData> fsiData;                    ///< pointer to sph general data
 
     thrust::device_vector<Real3> vel_vis_Sorted_D;       ///< sorted visualization velocity data
     thrust::device_vector<Real3> vel_XSPH_Sorted_D;      ///< sorted xsph velocity data

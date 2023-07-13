@@ -1551,15 +1551,15 @@ ChFsiForceExplicitSPH::ChFsiForceExplicitSPH(std::shared_ptr<ChBce> otherBceWork
                                              std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
                                              std::shared_ptr<ProximityDataD> otherMarkersProximityD,
                                              std::shared_ptr<FsiData> otherFsiGeneralData,
-                                             std::shared_ptr<SimParams> otherParamsH,
-                                             std::shared_ptr<ChCounters> otherNumObjects,
+                                             std::shared_ptr<SimParams> params,
+                                             std::shared_ptr<ChCounters> numObjects,
                                              bool verb)
     : ChFsiForce(otherBceWorker,
                  otherSortedSphMarkersD,
                  otherMarkersProximityD,
                  otherFsiGeneralData,
-                 otherParamsH,
-                 otherNumObjects,
+                 params,
+                 numObjects,
                  verb) {
     CopyParams_NumberOfObjects(paramsH, numObjectsH);
     density_initialization = 0;
