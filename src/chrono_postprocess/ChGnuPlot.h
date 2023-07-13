@@ -240,6 +240,35 @@ class ChGnuPlot {
         Plot(mx, my, title, customsettings);
     }
 
+    /// Shortcut to easy 2D plot of x,y data
+    /// from a generic ChFunction's (zeroth), first or second derivative
+    void Plot(ChFunction& mfunct,
+        int der_order,
+        double xmin,
+        double xmax,
+        double dx,
+        const std::string& title = "",
+        const std::string& customsettings = " with lines ") {
+        int samples = (int)floor((xmax - xmin) / dx);
+        ChVectorDynamic<> mx(samples);
+        ChVectorDynamic<> my(samples);
+
+        double x = xmin;
+        for (int i = 0; i < samples; ++i) {
+            mx(i) = x;
+            if (der_order == 0)
+                my(i) = mfunct.Get_y(x);
+            else if (der_order == 1)
+                my(i) = mfunct.Get_y_dx(x);
+            else if (der_order == 2)
+                my(i) = mfunct.Get_y_dxdx(x);
+            else
+                my(i) = 0;
+            x += dx;
+        }
+        Plot(mx, my, title, customsettings);
+    }
+
     /// Replot last plots (since the last time you used Output...() functions, if any).
     void Replot() { commandfile += "replot \n"; }
 
