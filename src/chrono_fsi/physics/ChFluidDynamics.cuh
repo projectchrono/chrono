@@ -67,12 +67,13 @@ class ChFluidDynamics : public ChFsiBase {
     /// time, the latter is used to update the pressure from an equation of
     /// state. In the implicit scheme, the pressures are updated instead of density.
     void IntegrateSPH(
-        std::shared_ptr<SphMarkerDataD> sphMarkersD2,  ///< Pointer SPH particle information at the second half step
-        std::shared_ptr<SphMarkerDataD> sphMarkersD1,  ///< Pointer SPH particle information at the first half step
-        std::shared_ptr<FsiBodyStateD> fsiBodyStateD,  ///< Pointer information of rigid bodies
-        std::shared_ptr<FsiMeshStateD> fsiMeshStateD,  ///< Pointer information of flexible mesh
-        Real dT,                                       ///< Simulation stepsize
-        Real Time                                      ///< Simulation time
+        std::shared_ptr<SphMarkerDataD> sphMarkersD2,    ///< Pointer SPH particle information at the second half step
+        std::shared_ptr<SphMarkerDataD> sphMarkersD1,    ///< Pointer SPH particle information at the first half step
+        std::shared_ptr<FsiBodyStateD> fsiBodyStateD,    ///< Pointer information of rigid bodies
+        std::shared_ptr<FsiMeshStateD> fsiMesh1DStateD,  ///< Pointer information of flexible mesh
+        std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD,  ///< Pointer information of flexible mesh
+        Real dT,                                         ///< Simulation stepsize
+        Real Time                                        ///< Simulation time
     );
 
     /// Function to Shepard Filtering.
@@ -104,7 +105,8 @@ class ChFluidDynamics : public ChFsiBase {
     void UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD1,
                         std::shared_ptr<SphMarkerDataD> sphMarkersD2,
                         std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
-                        std::shared_ptr<FsiMeshStateD> fsiMeshStateD,
+                        std::shared_ptr<FsiMeshStateD> fsiMesh1DStateD,
+                        std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD,
                         Real Time);
 
     /// Update SPH particles data.

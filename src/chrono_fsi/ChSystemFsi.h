@@ -573,8 +573,8 @@ class CH_FSI_API ChSystemFsi {
     unsigned int m_num_flex2D_nodes;  ///< number of 2-D flexible faces (across all meshes)
 
     std::vector<int> m_fsi_bodies_bce_num;  ///< number of BCE particles of each fsi body
-    std::vector<int> m_fsi_cables_bce_num;  ///< number of BCE particles of each fsi cable
-    std::vector<int> m_fsi_shells_bce_num;  ///< number of BCE particles of each fsi shell
+    std::vector<int> m_fsi_cables_bce_num;  ///< number of BCE particles of each fsi cable //// OBSOLETE
+    std::vector<int> m_fsi_shells_bce_num;  ///< number of BCE particles of each fsi shell //// OBSOLETE
 
     bool m_is_initialized;  ///< set to true once the Initialize function is called
     bool m_integrate_SPH;   ///< set to true if needs to integrate the fsi solver

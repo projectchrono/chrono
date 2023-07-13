@@ -69,9 +69,6 @@ class ChBce : public ChFsiBase {
                                  std::shared_ptr<FsiMeshStateD> fsiMeshStateD);
     void UpdateMeshMarker2DState(std::shared_ptr<SphMarkerDataD> sphMarkersD,
                                  std::shared_ptr<FsiMeshStateD> fsiMeshStateD);
-    //// OBSOLETE
-    void UpdateMeshMarkerState(std::shared_ptr<SphMarkerDataD> sphMarkersD,
-                               std::shared_ptr<FsiMeshStateD> fsiMeshStateD);
 
     /// Calculates the forces from the fluid/granular dynamics system to the FSI system on rigid bodies.
     void Rigid_Forces_Torques(std::shared_ptr<SphMarkerDataD> sphMarkersD,
@@ -80,8 +77,6 @@ class ChBce : public ChFsiBase {
     /// Calculates the forces from the fluid/granular dynamics system to the FSI system on flexible bodies.
     void Flex1D_Forces(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::shared_ptr<FsiMeshStateD> fsiMeshStateD);
     void Flex2D_Forces(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::shared_ptr<FsiMeshStateD> fsiMeshStateD);
-    //// OBSOLETE
-    void Flex_Forces(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::shared_ptr<FsiMeshStateD> fsiMeshStateD);
 
     void CalcMeshMarker1DAcceleration(thrust::device_vector<Real3>& bceAcc,
                                       std::shared_ptr<FsiMeshStateD> fsiMeshStateD);
@@ -91,7 +86,8 @@ class ChBce : public ChFsiBase {
     /// Modify the velocity, pressure, stress of BCE particles according to the SPH particles around.
     void ModifyBceVelocityPressureStress(std::shared_ptr<SphMarkerDataD> sphMarkersD,
                                          std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
-                                         std::shared_ptr<FsiMeshStateD> fsiMeshStateD);
+                                         std::shared_ptr<FsiMeshStateD> fsiMesh1DStateD,
+                                         std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD);
 
     /// Populates the BCE particles on the rigid bodies at the initial configuration of the system.
     /// The local coordinates w.r.t to the coordinate system of the rigid bodies is saved and is used
@@ -101,22 +97,12 @@ class ChBce : public ChFsiBase {
                                        std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
                                        std::vector<int> fsiBodyBceNum);
 
-    /// Populates the BCE particles on the flexible bodies at the initial configuration of the system.
-    /// The local coordinates w.r.t to the coordinate system of the flexible bodies is saved and is used
-    /// during the update stage. In such a condition the position and orientation of the body is enough
-    /// to update the position of all the particles attached to it.
-    void Populate_FlexSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMarkersD,
-                                      std::shared_ptr<FsiMeshStateD> fsiMeshStateD,
-                                      std::vector<int> fsiShellBceNum,
-                                      std::vector<int> fsiCableBceNum);
-
     /// Complete construction of the BCE at the intial configuration of the system.
     void Initialize(std::shared_ptr<SphMarkerDataD> sphMarkersD,
                     std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
-                    std::shared_ptr<FsiMeshStateD> fsiMeshStateD,
-                    std::vector<int> fsiBodyBceNum,
-                    std::vector<int> fsiShellBceNum,
-                    std::vector<int> fsiCableBceNum);
+                    std::shared_ptr<FsiMeshStateD> fsiMesh1DStateD,
+                    std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD,
+                    std::vector<int> fsiBodyBceNum);
 
   private:
     std::shared_ptr<FsiData> m_fsiGeneralData;            ///< General information of the simulation
@@ -136,16 +122,6 @@ class ChBce : public ChFsiBase {
         const thrust::device_vector<Real3>& omegaAccLRF_fsiBodies_D,  ///< body ang. acc. in local reference frame
         const thrust::device_vector<Real3>& rigid_BCEcoords_D,        ///< position of BCE in body local ref.
         const thrust::device_vector<uint>& rigid_BCEsolids_D          ///< ID of associated body
-    );
-
-    /// Calculates the acceleration of the flexible BCE particles based on the information of the ChSystem.
-    void CalcFlexBceAcceleration(
-        thrust::device_vector<Real3>& bceAcc,                       ///< acceleration of BCE particles
-        const thrust::device_vector<Real3>& acc_fsi_fea_D,          ///< acceleration of all FEM nodes
-        const thrust::device_vector<Real3>& FlexSPH_MeshPos_LRF_D,  ///< BCE pos in element local reference
-        const thrust::device_vector<int2>& CableElementsNodesD,     ///< node ID in cable element
-        const thrust::device_vector<int4>& ShellElementsNodesD,     ///< node ID in shell element
-        const thrust::device_vector<uint>& FlexIdentifierD          ///< ID of associated FE
     );
 
     /// Calculates pressure and velocity of the BCE particles.

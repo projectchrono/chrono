@@ -501,8 +501,9 @@ __global__ void ReCalcDensityD_F1(Real4* dummySortedRhoPreMu,
 // Kernel for updating the activity of all particles.
 __global__ void UpdateActivityD(Real4* posRadD,
                                 Real3* velMasD,
-                                Real3* posRigidBodiesD,
-                                Real3* pos_fsi_fea_D,
+                                Real3* posBodies_D,
+                                Real3* pos1DNodes_D,
+                                Real3* pos2DNodes_D,
                                 uint* activityIdentifierD,
                                 uint* extendedActivityIdD,
                                 int2 updatePortion,
@@ -522,10 +523,13 @@ __global__ void UpdateActivityD(Real4* posRadD,
         return;
 
     size_t numRigidBodies = numObjectsD.numRigidBodies;
-    size_t numFlexNodes = numObjectsD.numFlexNodes;
-    size_t numTotal = numRigidBodies + numFlexNodes;
+    size_t numFlexNodes1D = numObjectsD.numFlexNodes1D;
+    size_t numFlexNodes2D = numObjectsD.numFlexNodes2D;
+    size_t numTotal = numRigidBodies + numFlexNodes1D + numFlexNodes2D;
 
     // Check the activity of this particle
+    //// RADU TODO - use boolean flags and change logic below to allow for a quick break,
+    ////             as soon as we figure out a particle is active
     uint isNotActive = 0;
     uint isNotExtended = 0;
 
@@ -534,15 +538,23 @@ __global__ void UpdateActivityD(Real4* posRadD,
 
     Real3 posRadA = mR3(posRadD[index]);
     for (uint num = 0; num < numRigidBodies; num++) {
-        Real3 detPos = posRadA - posRigidBodiesD[num];
+        Real3 detPos = posRadA - posBodies_D[num];
         if (abs(detPos.x) > Acdomain.x || abs(detPos.y) > Acdomain.y || abs(detPos.z) > Acdomain.z)
             isNotActive = isNotActive + 1;
         if (abs(detPos.x) > ExAcdomain.x || abs(detPos.y) > ExAcdomain.y || abs(detPos.z) > ExAcdomain.z)
             isNotExtended = isNotExtended + 1;
     }
 
-    for (uint num = 0; num < numFlexNodes; num++) {
-        Real3 detPos = posRadA - pos_fsi_fea_D[num];
+    for (uint num = 0; num < numFlexNodes1D; num++) {
+        Real3 detPos = posRadA - pos1DNodes_D[num];
+        if (abs(detPos.x) > Acdomain.x || abs(detPos.y) > Acdomain.y || abs(detPos.z) > Acdomain.z)
+            isNotActive = isNotActive + 1;
+        if (abs(detPos.x) > ExAcdomain.x || abs(detPos.y) > ExAcdomain.y || abs(detPos.z) > ExAcdomain.z)
+            isNotExtended = isNotExtended + 1;
+    }
+
+    for (uint num = 0; num < numFlexNodes2D; num++) {
+        Real3 detPos = posRadA - pos2DNodes_D[num];
         if (abs(detPos.x) > Acdomain.x || abs(detPos.y) > Acdomain.y || abs(detPos.z) > Acdomain.z)
             isNotActive = isNotActive + 1;
         if (abs(detPos.x) > ExAcdomain.x || abs(detPos.y) > ExAcdomain.y || abs(detPos.z) > ExAcdomain.z)
@@ -622,19 +634,20 @@ void ChFluidDynamics::Initialize() {
 void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sphMarkersD2,
                                    std::shared_ptr<SphMarkerDataD> sphMarkersD1,
                                    std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
-                                   std::shared_ptr<FsiMeshStateD> fsiMeshStateD,
+                                   std::shared_ptr<FsiMeshStateD> fsiMesh1DStateD,
+                                   std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD,
                                    Real dT,
                                    Real Time) {
     if (GetIntegratorType() == TimeIntegrator::EXPLICITSPH) {
-        this->UpdateActivity(sphMarkersD1, sphMarkersD2, fsiBodyStateD, fsiMeshStateD, Time);
-        forceSystem->ForceSPH(sphMarkersD2, fsiBodyStateD, fsiMeshStateD);
+        UpdateActivity(sphMarkersD1, sphMarkersD2, fsiBodyStateD, fsiMesh1DStateD, fsiMesh2DStateD, Time);
+        forceSystem->ForceSPH(sphMarkersD2, fsiBodyStateD, fsiMesh1DStateD, fsiMesh2DStateD);
     } else
-        forceSystem->ForceSPH(sphMarkersD1, fsiBodyStateD, fsiMeshStateD);
+        forceSystem->ForceSPH(sphMarkersD1, fsiBodyStateD, fsiMesh1DStateD, fsiMesh2DStateD);
 
     if (integrator_type == TimeIntegrator::IISPH)
-        this->UpdateFluid_Implicit(sphMarkersD2);
+        UpdateFluid_Implicit(sphMarkersD2);
     else if (GetIntegratorType() == TimeIntegrator::EXPLICITSPH)
-        this->UpdateFluid(sphMarkersD1, dT);
+        UpdateFluid(sphMarkersD1, dT);
 
     this->ApplyBoundarySPH_Markers(sphMarkersD2);
 }
@@ -643,7 +656,8 @@ void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sphMarkersD2,
 void ChFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD1,
                                      std::shared_ptr<SphMarkerDataD> sphMarkersD2,
                                      std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
-                                     std::shared_ptr<FsiMeshStateD> fsiMeshStateD,
+                                     std::shared_ptr<FsiMeshStateD> fsiMesh1DStateD,
+                                     std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD,
                                      Real Time) {
     // Update portion of the SPH particles (should be all particles here)
     int2 updatePortion = mI2(0, (int)numObjectsH->numAllMarkers);
@@ -657,10 +671,15 @@ void ChFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD
     //------------------------
     uint numBlocks, numThreads;
     computeGridSize(updatePortion.y - updatePortion.x, 256, numBlocks, numThreads);
-    UpdateActivityD<<<numBlocks, numThreads>>>(
-        mR4CAST(sphMarkersD2->posRadD), mR3CAST(sphMarkersD1->velMasD), mR3CAST(fsiBodyStateD->pos),
-        mR3CAST(fsiMeshStateD->pos_fsi_fea_D), U1CAST(fsiSystem.fsiData->activityIdentifierD),
-        U1CAST(fsiSystem.fsiData->extendedActivityIdD), updatePortion, Time, isErrorD);
+
+    UpdateActivityD<<<numBlocks, numThreads>>>(                                                          //
+        mR4CAST(sphMarkersD2->posRadD), mR3CAST(sphMarkersD1->velMasD),                                  //
+        mR3CAST(fsiBodyStateD->pos),                                                                     //
+        mR3CAST(fsiMesh1DStateD->pos_fsi_fea_D), mR3CAST(fsiMesh2DStateD->pos_fsi_fea_D),                //
+        U1CAST(fsiSystem.fsiData->activityIdentifierD), U1CAST(fsiSystem.fsiData->extendedActivityIdD),  //
+        updatePortion, Time, isErrorD                                                                    //
+    );
+
     cudaDeviceSynchronize();
     cudaCheckError();
     //------------------------

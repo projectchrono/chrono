@@ -113,7 +113,8 @@ class ChFsiForce : public ChFsiBase {
     /// explicit integrator using WCPSH method (see ChFsiForceExplicitSPH).
     virtual void ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
                           std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
-                          std::shared_ptr<FsiMeshStateD> fsiMeshStateD) = 0;
+                          std::shared_ptr<FsiMeshStateD> fsiMesh1DStateD,
+                          std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD) = 0;
 
     /// Synchronize the copy of the data (parameters and number of objects)
     /// between device (GPU) and host (CPU).

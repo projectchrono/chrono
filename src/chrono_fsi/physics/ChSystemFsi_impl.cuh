@@ -123,9 +123,9 @@ struct FsiBodyStateD {
 
 /// FEA mesh states on host.
 struct FsiMeshStateH {
-    thrust::host_vector<Real3> pos_fsi_fea_H;  ///< Vector of the mesh position
-    thrust::host_vector<Real3> vel_fsi_fea_H;  ///< Vector of the mesh velocity
-    thrust::host_vector<Real3> acc_fsi_fea_H;  ///< Vector of the mesh acceleration
+    thrust::host_vector<Real3> pos_fsi_fea_H;  ///< mesh node positions
+    thrust::host_vector<Real3> vel_fsi_fea_H;  ///< mesh node velocities
+    thrust::host_vector<Real3> acc_fsi_fea_H;  ///< mesh node accelerations
     thrust::host_vector<Real3> dir_fsi_fea_H;  ///< Vector of the mesh direction  //// OBSOLETE
 
     // zipIterFlexH iterator();
@@ -135,9 +135,9 @@ struct FsiMeshStateH {
 
 /// FEA mesh state on device.
 struct FsiMeshStateD {
-    thrust::device_vector<Real3> pos_fsi_fea_D;  ///< Vector of the mesh position
-    thrust::device_vector<Real3> vel_fsi_fea_D;  ///< Vector of the mesh velocity
-    thrust::device_vector<Real3> acc_fsi_fea_D;  ///< Vector of the mesh acceleration
+    thrust::device_vector<Real3> pos_fsi_fea_D;  ///< mesh node positions
+    thrust::device_vector<Real3> vel_fsi_fea_D;  ///< mesh node velocities
+    thrust::device_vector<Real3> acc_fsi_fea_D;  ///< mesh node accelerations
     thrust::device_vector<Real3> dir_fsi_fea_D;  ///< Vector of the mesh direction //// OBSOLETE
 
     // zipIterFlexD iterator();
@@ -233,9 +233,7 @@ class ChSystemFsi_impl : public ChFsiBase {
                     size_t numFlexBodies1D,
                     size_t numFlexBodies2D,
                     size_t numFlexNodes1D,
-                    size_t numFlexNodes2D,
-                    size_t numFlexNodes  //// OBSOLETE
-    );
+                    size_t numFlexNodes2D);
 
     /// Extract forces applied on all SPH particles.
     thrust::device_vector<Real4> GetParticleForces();

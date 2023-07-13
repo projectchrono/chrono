@@ -101,19 +101,6 @@ void ChFsiInterface::ApplyMesh2DForce_Fsi2Chrono() {
     }
 }
 
-//// OBSOLETE
-void ChFsiInterface::ApplyMeshForce_Fsi2Chrono() {
-    size_t num_nodes = m_fsi_nodes.size();
-
-    thrust::host_vector<Real3> forcesH = m_sysFSI.fsiData->Flex_FSI_ForcesD;
-
-    for (size_t i = 0; i < num_nodes; i++) {
-        ChVector<> force = utils::ToChVector(forcesH[i]);
-        auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(m_fsi_mesh->GetNode((unsigned int)i));
-        node->SetForce(force);
-    }
-}
-
 void ChFsiInterface::LoadMesh1DState_Chrono2Fsi(std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D) {
     // Load from FEA nodes on host
     int counter = 0;
@@ -148,87 +135,6 @@ void ChFsiInterface::LoadMesh2DState_Chrono2Fsi(std::shared_ptr<FsiMeshStateD> f
 
     // Transfer to device
     fsiMesh2DState_D->CopyFromH(*m_sysFSI.fsiMesh2DState_H);
-}
-
-//// OBSOLETE
-void ChFsiInterface::LoadMeshState_Chrono2Fsi(std::shared_ptr<FsiMeshStateD> fsiMeshStateD) {
-    size_t num_nodes = m_fsi_nodes.size();
-
-    for (size_t i = 0; i < num_nodes; i++) {
-        const auto& node = m_fsi_nodes[i];
-        m_sysFSI.fsiMeshStateH->pos_fsi_fea_H[i] = utils::ToReal3(node->GetPos());
-        m_sysFSI.fsiMeshStateH->vel_fsi_fea_H[i] = utils::ToReal3(node->GetPos_dt());
-        m_sysFSI.fsiMeshStateH->acc_fsi_fea_H[i] = utils::ToReal3(node->GetPos_dtdt());
-        m_sysFSI.fsiMeshStateH->dir_fsi_fea_H[i] = utils::ToReal3(node->GetD());
-    }
-    fsiMeshStateD->CopyFromH(*m_sysFSI.fsiMeshStateH);
-}
-
-//// OBSOLETE
-void ChFsiInterface::ResizeChronoCablesData(const std::vector<std::vector<int>>& CableElementsNodesSTDVector) {
-    if (CableElementsNodesSTDVector.empty())
-        return;
-
-    size_t numCables = 0;
-    for (size_t i = 0; i < m_fsi_mesh->GetNelements(); i++) {
-        if (std::dynamic_pointer_cast<fea::ChElementCableANCF>(m_fsi_mesh->GetElement((unsigned int)i)))
-            numCables++;
-    }
-    if (m_verbose) {
-        printf("numCables in ResizeChronoCablesData  %zd\n", numCables);
-        printf("CableElementsNodesSTDVector.size() in ResizeChronoCablesData  %zd\n",
-               CableElementsNodesSTDVector.size());
-    }
-
-    if (CableElementsNodesSTDVector.size() != numCables) {
-        throw std::runtime_error(
-            "Size of the external data does not match the "
-            "ChSystem; thrown from ChFsiInterface::ResizeChronoCableData "
-            "!\n");
-    }
-
-    // CableElementsNodesH is the elements connectivity
-    // Important: in CableElementsNodesH[i][j] j index starts from 1 not zero
-    // This is because of how the GMF files are read in Chrono
-    m_sysFSI.fsiData->CableElementsNodesH.resize(numCables);
-    for (size_t i = 0; i < numCables; i++) {
-        m_sysFSI.fsiData->CableElementsNodesH[i].x = CableElementsNodesSTDVector[i][0];
-        m_sysFSI.fsiData->CableElementsNodesH[i].y = CableElementsNodesSTDVector[i][1];
-    }
-}
-
-//// OBSOLETE
-void ChFsiInterface::ResizeChronoShellsData(const std::vector<std::vector<int>>& ShellElementsNodesSTDVector) {
-    if (ShellElementsNodesSTDVector.empty())
-        return;
-
-    size_t numShells = 0;
-    for (unsigned int i = 0; i < m_fsi_mesh->GetNelements(); i++) {
-        if (std::dynamic_pointer_cast<fea::ChElementShellANCF_3423>(m_fsi_mesh->GetElement(i)))
-            numShells++;
-    }
-
-    if (m_verbose) {
-        printf("numShells in ResizeChronoShellsData  %zd\n", numShells);
-        printf("ShellElementsNodesSTDVector.size() in ResizeChronoShellsData  %zd\n",
-               ShellElementsNodesSTDVector.size());
-    }
-
-    if (ShellElementsNodesSTDVector.size() != numShells) {
-        throw std::runtime_error(
-            "Size of the external data does not match the "
-            "ChSystem; thrown from ChFsiInterface::ResizeChronoShellsData "
-            "!\n");
-    }
-
-    // ShellElementsNodesH is the elements connectivity
-    m_sysFSI.fsiData->ShellElementsNodesH.resize(numShells);
-    for (size_t i = 0; i < numShells; i++) {
-        m_sysFSI.fsiData->ShellElementsNodesH[i].x = ShellElementsNodesSTDVector[i][0];
-        m_sysFSI.fsiData->ShellElementsNodesH[i].y = ShellElementsNodesSTDVector[i][1];
-        m_sysFSI.fsiData->ShellElementsNodesH[i].z = ShellElementsNodesSTDVector[i][2];
-        m_sysFSI.fsiData->ShellElementsNodesH[i].w = ShellElementsNodesSTDVector[i][3];
-    }
 }
 
 }  // end namespace fsi

@@ -52,7 +52,8 @@ class ChFsiForceExplicitSPH : public ChFsiForce {
     /// Function to find neighbor particles and calculate the interactions between SPH particles
     void ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
                   std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
-                  std::shared_ptr<FsiMeshStateD> fsiMeshStateD) override;
+                  std::shared_ptr<FsiMeshStateD> fsiMesh1DStateD,
+                  std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD) override;
 
     /// Function to calculate the XSPH velocity of the particles.
     /// XSPH velocity is a compromise between Eulerian and Lagrangian velocities, used

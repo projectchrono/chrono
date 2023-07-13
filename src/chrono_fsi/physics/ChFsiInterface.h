@@ -50,22 +50,12 @@ class ChFsiInterface : public ChFsiBase {
     /// Destructor of the FSI interface class.
     ~ChFsiInterface();
 
-    //// OBSOLETE
-    /// Resize number of cable elements used in the flexible elements.
-    void ResizeChronoCablesData(const std::vector<std::vector<int>>& CableElementsNodesSTDVector);
-
-    //// OBSOLETE
-    /// Resize number of shell elements used in the flexible elements.
-    void ResizeChronoShellsData(const std::vector<std::vector<int>>& ShellElementsNodesSTDVector);
-
     /// Copy rigid body states from ChSystem to FsiSystem, then to the GPU memory.
     void LoadBodyState_Chrono2Fsi(std::shared_ptr<FsiBodyStateD> fsiBodyStateD);
 
     /// Copy FEA mesh states from ChSystem to FsiSystem, then to the GPU memory.
     void LoadMesh1DState_Chrono2Fsi(std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D);
     void LoadMesh2DState_Chrono2Fsi(std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D);
-    //// OBSOLETE
-    void LoadMeshState_Chrono2Fsi(std::shared_ptr<FsiMeshStateD> fsiMeshStateD);
 
     /// Read the surface-integrated pressure and viscous forces form the fluid/granular dynamics system,
     /// and add these forces and torques as external forces to the ChSystem rigid bodies.
@@ -74,8 +64,6 @@ class ChFsiInterface : public ChFsiBase {
     /// Add forces and torques as external forces to the ChSystem flexible bodies.
     void ApplyMesh1DForce_Fsi2Chrono();
     void ApplyMesh2DForce_Fsi2Chrono();
-    //// OBSOLETE
-    void ApplyMeshForce_Fsi2Chrono();
 
   private:
     /// Description of an FEA mesh with 1-D segments exposed to the FSI system.

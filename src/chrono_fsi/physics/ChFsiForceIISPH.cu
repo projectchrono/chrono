@@ -1696,7 +1696,11 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> fsiBodySt
 
 void ChFsiForceIISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
                                std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
-                               std::shared_ptr<FsiMeshStateD> fsiMeshStateD) {
+                               std::shared_ptr<FsiMeshStateD> fsiMesh1DStateD,
+                               std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD) {
+    //// RADU TODO
+
+    /*
     sphMarkersD = otherSphMarkersD;
     int numAllMarkers = (int)numObjectsH->numAllMarkers;
     int numHelperMarkers = (int)numObjectsH->numHelperMarkers;
@@ -1830,6 +1834,7 @@ void ChFsiForceIISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
                                         markersProximityD->gridMarkerIndexD);
     printf(" Update information: %f \n", (clock() - UpdateClock) / (double)CLOCKS_PER_SEC);
     printf("----------------------------------------------\n");
+    */
 }
 
 }  // namespace fsi

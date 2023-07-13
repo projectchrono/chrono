@@ -329,8 +329,7 @@ void ChSystemFsi_impl::Initialize(size_t numRigidBodies,
                                   size_t numFlexBodies1D,
                                   size_t numFlexBodies2D,
                                   size_t numFlexNodes1D,
-                                  size_t numFlexNodes2D,
-                                  size_t numFlexNodes) {
+                                  size_t numFlexNodes2D) {
     ConstructReferenceArray();
     CalcNumObjects();
 
@@ -345,7 +344,6 @@ void ChSystemFsi_impl::Initialize(size_t numRigidBodies,
     numObjectsH->numFlexBodies2D = numFlexBodies2D;
     numObjectsH->numFlexNodes1D = numFlexNodes1D;
     numObjectsH->numFlexNodes2D = numFlexNodes2D;
-    numObjectsH->numFlexNodes = numFlexNodes; //// OBSOLETE
 
     sphMarkersD1->resize(numObjectsH->numAllMarkers);
     sphMarkersD2->resize(numObjectsH->numAllMarkers);
@@ -406,12 +404,9 @@ void ChSystemFsi_impl::Initialize(size_t numRigidBodies,
     fsiMesh1DState_H->resize(numObjectsH->numFlexNodes1D);
     fsiMesh2DState_D->resize(numObjectsH->numFlexNodes2D);
     fsiMesh2DState_H->resize(numObjectsH->numFlexNodes2D);
-    fsiMeshStateD->resize(numObjectsH->numFlexNodes); //// OBSOLETE
-    fsiMeshStateH->resize(numObjectsH->numFlexNodes); //// OBSOLETE
 
     fsiData->flex1D_FSIforces_D.resize(numObjectsH->numFlexNodes1D);
     fsiData->flex2D_FSIforces_D.resize(numObjectsH->numFlexNodes2D);
-    fsiData->Flex_FSI_ForcesD.resize(numObjectsH->numFlexNodes); //// OBSOLETE
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

@@ -922,7 +922,11 @@ void ChFsiForceI2SPH::PreProcessor(std::shared_ptr<SphMarkerDataD> otherSphMarke
 //==========================================================================================================================================
 void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
                                std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
-                               std::shared_ptr<FsiMeshStateD> fsiMeshStateD) {
+                               std::shared_ptr<FsiMeshStateD> fsiMesh1DStateD,
+                               std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD) {
+    //// RADU TODO
+
+    /*
     if (paramsH->bceType == BceVersion::ADAMI && !paramsH->USE_NonIncrementalProjection) {
         throw std::runtime_error(
             "\nADAMI boundary condition is only applicable to non-incremental Projection method. Please "
@@ -1290,6 +1294,9 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     AMatrix.clear();
     Contact_i.clear();
     csrColInd.clear();
-}  // namespace fsi
+    */
+}
+
+
 }  // namespace fsi
 }  // namespace chrono

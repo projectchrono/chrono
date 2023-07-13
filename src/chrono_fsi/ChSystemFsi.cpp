@@ -926,16 +926,11 @@ void ChSystemFsi::Initialize() {
         cout << "  cMax: " << m_paramsH->cMax.x << " " << m_paramsH->cMax.y << " " << m_paramsH->cMax.z << endl;
     }
 
-    // Resize worker data
-    m_fsi_interface->ResizeChronoCablesData(m_fea_cable_nodes);
-    m_fsi_interface->ResizeChronoShellsData(m_fea_shell_nodes);
-
     // Initialize the underlying FSU system: set reference arrays, set counters, and resize simulation arrays
     size_t n_flexnodes = m_fsi_interface->m_fsi_mesh ? (size_t)m_fsi_interface->m_fsi_mesh->GetNnodes() : 0;
-    m_sysFSI->Initialize(m_fsi_interface->m_fsi_bodies.size(), m_num_flex1D_elements, m_num_flex2D_elements,
-                         m_num_flex1D_nodes, m_num_flex2D_nodes,
-                         n_flexnodes  //// OBSOLETE
-    );
+    m_sysFSI->Initialize(m_fsi_interface->m_fsi_bodies.size(),          //
+                         m_num_flex1D_elements, m_num_flex2D_elements,  //
+                         m_num_flex1D_nodes, m_num_flex2D_nodes);
 
     if (m_verbose) {
         cout << "Counters" << endl;
@@ -969,9 +964,6 @@ void ChSystemFsi::Initialize() {
     }
 
     m_fsi_interface->LoadBodyState_Chrono2Fsi(m_sysFSI->fsiBodyState1D);
-    //// OBSOLETE
-    m_fsi_interface->LoadMeshState_Chrono2Fsi(m_sysFSI->fsiMeshStateD);
-    //// REPLACE WITH:
     m_fsi_interface->LoadMesh1DState_Chrono2Fsi(m_sysFSI->fsiMesh1DState_D);
     m_fsi_interface->LoadMesh2DState_Chrono2Fsi(m_sysFSI->fsiMesh2DState_D);
 
@@ -998,8 +990,10 @@ void ChSystemFsi::Initialize() {
     m_fluid_dynamics->GetForceSystem()->SetLinearSolver(m_paramsH->LinearSolver);
 
     // Initialize worker objects
-    m_bce_manager->Initialize(m_sysFSI->sphMarkersD1, m_sysFSI->fsiBodyState1D, m_sysFSI->fsiMeshStateD,
-                              m_fsi_bodies_bce_num, m_fsi_shells_bce_num, m_fsi_cables_bce_num);
+    m_bce_manager->Initialize(m_sysFSI->sphMarkersD1,                                  //
+                              m_sysFSI->fsiBodyState1D,                                //
+                              m_sysFSI->fsiMesh1DState_D, m_sysFSI->fsiMesh2DState_D,  //
+                              m_fsi_bodies_bce_num);
     m_fluid_dynamics->Initialize();
 
     // Mark system as initialized
@@ -1040,19 +1034,25 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         ChUtilsDevice::FillVector(m_sysFSI->fsiData->derivVelRhoD, mR4(0));
 
         if (m_integrate_SPH) {
-            m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkersD2, m_sysFSI->sphMarkersD1, m_sysFSI->fsiBodyState2D,
-                                           m_sysFSI->fsiMeshStateD, 0.5 * m_paramsH->dT, m_time);
-            m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkersD1, m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodyState2D,
-                                           m_sysFSI->fsiMeshStateD, 1.0 * m_paramsH->dT, m_time);
+            m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkersD2, m_sysFSI->sphMarkersD1,          //
+                                           m_sysFSI->fsiBodyState2D,                                //
+                                           m_sysFSI->fsiMesh1DState_D, m_sysFSI->fsiMesh2DState_D,  //
+                                           0.5 * m_paramsH->dT, m_time);
+            m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkersD1, m_sysFSI->sphMarkersD2,          //
+                                           m_sysFSI->fsiBodyState2D,                                //
+                                           m_sysFSI->fsiMesh1DState_D, m_sysFSI->fsiMesh2DState_D,  //
+                                           1.0 * m_paramsH->dT, m_time);
         }
 
         m_bce_manager->Rigid_Forces_Torques(m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodyState2D);
-        m_bce_manager->Flex_Forces(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMeshStateD);
+        m_bce_manager->Flex1D_Forces(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMesh1DState_D);
+        m_bce_manager->Flex2D_Forces(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMesh2DState_D);
 
         // Advance dynamics of the associated MBS system (if provided)
         if (m_sysMBS) {
             m_fsi_interface->ApplyBodyForce_Fsi2Chrono();
-            m_fsi_interface->ApplyMeshForce_Fsi2Chrono();
+            m_fsi_interface->ApplyMesh1DForce_Fsi2Chrono();
+            m_fsi_interface->ApplyMesh2DForce_Fsi2Chrono();
 
             if (m_paramsH->dT_Flex == 0)
                 m_paramsH->dT_Flex = m_paramsH->dT;
@@ -1067,22 +1067,29 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         m_fsi_interface->LoadBodyState_Chrono2Fsi(m_sysFSI->fsiBodyState2D);
         m_bce_manager->UpdateBodyMarkerState(m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodyState2D);
 
-        m_fsi_interface->LoadMeshState_Chrono2Fsi(m_sysFSI->fsiMeshStateD);
-        m_bce_manager->UpdateMeshMarkerState(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMeshStateD);
+        m_fsi_interface->LoadMesh1DState_Chrono2Fsi(m_sysFSI->fsiMesh1DState_D);
+        m_bce_manager->UpdateMeshMarker1DState(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMesh1DState_D);
+
+        m_fsi_interface->LoadMesh2DState_Chrono2Fsi(m_sysFSI->fsiMesh2DState_D);
+        m_bce_manager->UpdateMeshMarker2DState(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMesh2DState_D);
     } else {
         // A different coupling scheme is used for implicit SPH formulations
         if (m_integrate_SPH) {
-            m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkersD2, m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodyState2D,
-                                           m_sysFSI->fsiMeshStateD, 0.0, m_time);
+            m_fluid_dynamics->IntegrateSPH(m_sysFSI->sphMarkersD2, m_sysFSI->sphMarkersD2,          //
+                                           m_sysFSI->fsiBodyState2D,                                //
+                                           m_sysFSI->fsiMesh1DState_D, m_sysFSI->fsiMesh2DState_D,  //
+                                           0.0, m_time);
         }
 
         m_bce_manager->Rigid_Forces_Torques(m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodyState2D);
-        m_bce_manager->Flex_Forces(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMeshStateD);
+        m_bce_manager->Flex1D_Forces(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMesh1DState_D);
+        m_bce_manager->Flex2D_Forces(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMesh2DState_D);
 
         // Advance dynamics of the associated MBS system (if provided)
         if (m_sysMBS) {
             m_fsi_interface->ApplyBodyForce_Fsi2Chrono();
-            m_fsi_interface->ApplyMeshForce_Fsi2Chrono();
+            m_fsi_interface->ApplyMesh1DForce_Fsi2Chrono();
+            m_fsi_interface->ApplyMesh2DForce_Fsi2Chrono();
 
             if (m_paramsH->dT_Flex == 0)
                 m_paramsH->dT_Flex = m_paramsH->dT;
@@ -1099,8 +1106,11 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         m_fsi_interface->LoadBodyState_Chrono2Fsi(m_sysFSI->fsiBodyState2D);
         m_bce_manager->UpdateBodyMarkerState(m_sysFSI->sphMarkersD2, m_sysFSI->fsiBodyState2D);
 
-        m_fsi_interface->LoadMeshState_Chrono2Fsi(m_sysFSI->fsiMeshStateD);
-        m_bce_manager->UpdateMeshMarkerState(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMeshStateD);
+        m_fsi_interface->LoadMesh1DState_Chrono2Fsi(m_sysFSI->fsiMesh1DState_D);
+        m_bce_manager->UpdateMeshMarker1DState(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMesh1DState_D);
+
+        m_fsi_interface->LoadMesh2DState_Chrono2Fsi(m_sysFSI->fsiMesh2DState_D);
+        m_bce_manager->UpdateMeshMarker2DState(m_sysFSI->sphMarkersD2, m_sysFSI->fsiMesh2DState_D);
     }
 
     m_time += m_paramsH->dT;
@@ -2018,9 +2028,8 @@ unsigned int ChSystemFsi::AddBCE_mesh1D(unsigned int meshID, const ChFsiInterfac
             }
         }
 
-        // Set the number of BCE markers for this segment.
+        // Add the number of BCE markers for this segment.
         // The maximum value on each layer is (n+1).
-        m_fsi_cables_bce_num.push_back(n_bce);
         num_bce += n_bce;
 
         //// TODO - load necessary structures and arrays
@@ -2119,9 +2128,8 @@ unsigned int ChSystemFsi::AddBCE_mesh2D(unsigned int meshID, const ChFsiInterfac
         ////ofile << n_bce << endl;
         ////ofile << endl;
 
-        // Set the number of BCE markers for this triangle.
+        // Add the number of BCE markers for this triangle.
         // The maximum value on each layer is (n+1)*(n+2)/2.
-        m_fsi_shells_bce_num.push_back(n_bce);
         num_bce += n_bce;
 
         //// TODO - load necessary structures and arrays
