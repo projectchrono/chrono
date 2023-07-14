@@ -385,7 +385,7 @@ void ChVehicleCosimTerrainNode::SynchronizeWheeledMesh(int step_number, double t
                      MPI_COMM_WORLD);
 
             double* force_data = new double[3 * m_mesh_contact[i].nv];
-            for (int iv = 0; iv < m_mesh_contact[i].nv; i++) {
+            for (int iv = 0; iv < m_mesh_contact[i].nv; iv++) {
                 force_data[3 * iv + 0] = m_mesh_contact[i].vforce[iv].x();
                 force_data[3 * iv + 1] = m_mesh_contact[i].vforce[iv].y();
                 force_data[3 * iv + 2] = m_mesh_contact[i].vforce[iv].z();
