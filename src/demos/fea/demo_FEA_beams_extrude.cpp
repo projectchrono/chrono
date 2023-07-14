@@ -40,9 +40,7 @@ using namespace chrono;
 using namespace chrono::fea;
 using namespace chrono::irrlicht;
 
-// A helper function that creates a'lobed gear', almost a macro user in main()
-// to quickly create one or two rotating obstacles for the extruding beam
-
+// A helper function that creates a'lobed gear', to quickly create one or two rotating obstacles for the extruding beam
 std::shared_ptr<ChBody> CreateLobedGear(ChVector<> gear_center,
                                         int lobe_copies,
                                         double lobe_width,
@@ -56,23 +54,20 @@ std::shared_ptr<ChBody> CreateLobedGear(ChVector<> gear_center,
     mgear->SetPos(gear_center);
     sys.Add(mgear);
 
-    // add cylindrical lobes
     mgear->GetCollisionModel()->ClearModel();
+    // cylindrical lobes
     for (int i = 0; i < lobe_copies; ++i) {
         double phase = CH_C_2PI * ((double)i / (double)lobe_copies);
-        // this is a quick shortcut from ChUtilsCreators.h,
-        // it both adds the collision shape and the visualization asset:
-
-        utils::AddCylinderGeometry(
-            mgear.get(), mysurfmaterial,                                                      //
-            lobe_width * 0.5, lobe_thickness * 0.5,                                           //
-            ChVector<>(lobe_primitive_rad * sin(phase), lobe_primitive_rad * cos(phase), 0),  //
-            Q_from_AngAxis(CH_C_PI_2, VECT_X),  // rotate cylinder axis: from default on Y axis, to Z axis
-            true);
+        ChVector<> loc(lobe_primitive_rad * sin(phase), lobe_primitive_rad * cos(phase), 0);
+        // shortcut from ChUtilsCreators.h: adds both collision shape and visualization asset
+        utils::AddCylinderGeometry(mgear.get(), mysurfmaterial,             //
+                                   lobe_width * 0.5, lobe_thickness * 0.5,  //
+                                   loc,                                     //
+                                   QUNIT,                                   // cylinder axis along Z
+                                   true);
     }
-
-    utils::AddCylinderGeometry(mgear.get(), mysurfmaterial, lobe_inner_rad, lobe_thickness * 0.5, ChVector<>(0, 0, 0),
-                               Q_from_AngAxis(CH_C_PI_2, VECT_X), true);
+    // central hub
+    utils::AddCylinderGeometry(mgear.get(), mysurfmaterial, lobe_inner_rad, lobe_thickness * 0.5, VNULL, QUNIT, true);
     mgear->GetCollisionModel()->BuildModel();
     mgear->SetCollide(true);
 
@@ -82,7 +77,7 @@ std::shared_ptr<ChBody> CreateLobedGear(ChVector<> gear_center,
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system
     ChSystemSMC sys;
 
     // Here set the inward-outward margins for collision shapes: should make sense in the scale of the model
@@ -151,10 +146,7 @@ int main(int argc, char* argv[]) {
     mysurfmaterial->SetGt(25);   // contact tangential damping
     mysurfmaterial->SetFriction(0.2f);
 
-    //
     // Add the EXTRUDER
-    //
-
     auto extruder = chrono_types::make_shared<ChExtruderBeamIGA>(
         &sys,      // the physical system
         my_mesh,   // the mesh where to add the beams
@@ -173,10 +165,7 @@ int main(int argc, char* argv[]) {
     // Do we want gravity effect on FEA elements in this demo?
     my_mesh->SetAutomaticGravity(false);
 
-    //
-    // Attach a visualization of the FEM mesh.
-    //
-
+    // Attach visualization of the FEM mesh.
     auto mvisualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
     mvisualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
     mvisualizebeamA->SetColorscaleMinMax(-0.4, 0.4);
@@ -192,14 +181,12 @@ int main(int argc, char* argv[]) {
     mvisualizebeamC->SetZbufferHide(false);
     my_mesh->AddVisualShapeFEA(mvisualizebeamC);
 
-    //
-    // Add some obstacles. two rotating lobed gears.
+    // Add some obstacles: two rotating lobed gears.
     //
     // Here create two rotating lobed gears, just for fun, that wil trap the
     // extruded beam. To quickly create them, use the CreateLobedGear() function
     // implemented at the top of this file.
     // Also, create two simple constant speed motors to rotate the lobed gears.
-
     int lobe_copies = 8;
     double lobe_width = 0.03;
     double lobe_primitive_rad = 0.3;
@@ -238,7 +225,7 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(-0.1, 0.2, -0.2));
+    vis->AddCamera(ChVector<>(-0.2, 0, 0.3));
     vis->AttachSystem(&sys);
 
     // SIMULATION LOOP

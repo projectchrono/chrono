@@ -119,7 +119,7 @@ class ChGnuPlot {
     /// from two column vectors
     void Plot(ChVectorDynamic<>& mx,
               ChVectorDynamic<>& my,
-              const std::string& title,
+              const std::string& title = "",
               const std::string& customsettings = " with lines ") {
         assert(mx.size() == my.size());
 
@@ -130,8 +130,13 @@ class ChGnuPlot {
 
         mdataplot.command += " \"-\" using 1:2 ";
         mdataplot.command += customsettings;
-        mdataplot.command += " title \"";
-        mdataplot.command += title;
+        if (title != "") {
+            mdataplot.command += " title \"";
+            mdataplot.command += title;
+        }
+        else {
+            mdataplot.command += " notitle ";
+        }
         mdataplot.command += "\" ";
 
         this->plots.push_back(mdataplot);
@@ -141,7 +146,7 @@ class ChGnuPlot {
     void Plot(ChMatrixConstRef mdata,
               int colX,
               int colY,
-              const std::string& title,
+              const std::string& title = "",
               const std::string& customsettings = " with lines ") {
         ChVectorDynamic<> mx(mdata.rows());
         ChVectorDynamic<> my(mdata.rows());
@@ -153,7 +158,7 @@ class ChGnuPlot {
     /// Shortcut to easy 2D plot of x,y data
     /// from a ChFunction_recorder
     void Plot(ChFunction_Recorder& mrecorder,
-              const std::string& title,
+              const std::string& title = "",
               const std::string& customsettings = " with lines ") {
         ChVectorDynamic<> mx(mrecorder.GetPoints().size());
         ChVectorDynamic<> my(mrecorder.GetPoints().size());
@@ -171,7 +176,7 @@ class ChGnuPlot {
     /// from two std::vector<double>
     void Plot(const std::vector<double>& vals_x,
               const std::vector<double>& vals_y,
-              const std::string& title,
+              const std::string& title = "",
               const std::string& customsettings = " with lines ") {
         ChVectorDynamic<> mx(vals_x.size());
         ChVectorDynamic<> my(vals_y.size());
@@ -192,7 +197,7 @@ class ChGnuPlot {
     /// Shortcut to easy 2D plot of x,y data
     /// from a ChFunction_recorder
     void Plot(ChFunction_Oscilloscope& mrecorder,
-              const std::string& title,
+              const std::string& title = "",
               const std::string& customsettings = " with lines ") {
         ChVectorDynamic<> mx(mrecorder.GetPointList().size());
         ChVectorDynamic<> my(mrecorder.GetPointList().size());
@@ -220,7 +225,7 @@ class ChGnuPlot {
               double xmin,
               double xmax,
               double dx,
-              const std::string& title,
+              const std::string& title = "",
               const std::string& customsettings = " with lines ") {
         int samples = (int)floor((xmax - xmin) / dx);
         ChVectorDynamic<> mx(samples);
@@ -230,6 +235,35 @@ class ChGnuPlot {
         for (int i = 0; i < samples; ++i) {
             mx(i) = x;
             my(i) = mfunct.Get_y(x);
+            x += dx;
+        }
+        Plot(mx, my, title, customsettings);
+    }
+
+    /// Shortcut to easy 2D plot of x,y data
+    /// from a generic ChFunction's (zeroth), first or second derivative
+    void Plot(ChFunction& mfunct,
+        int der_order,
+        double xmin,
+        double xmax,
+        double dx,
+        const std::string& title = "",
+        const std::string& customsettings = " with lines ") {
+        int samples = (int)floor((xmax - xmin) / dx);
+        ChVectorDynamic<> mx(samples);
+        ChVectorDynamic<> my(samples);
+
+        double x = xmin;
+        for (int i = 0; i < samples; ++i) {
+            mx(i) = x;
+            if (der_order == 0)
+                my(i) = mfunct.Get_y(x);
+            else if (der_order == 1)
+                my(i) = mfunct.Get_y_dx(x);
+            else if (der_order == 2)
+                my(i) = mfunct.Get_y_dxdx(x);
+            else
+                my(i) = 0;
             x += dx;
         }
         Plot(mx, my, title, customsettings);

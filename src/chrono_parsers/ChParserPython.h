@@ -70,6 +70,14 @@ class ChApiParsers ChPythonEngine {
     /// name is existing, it is overwritten, otherwise it is created (in __main__ namespace)
     void SetString(const char* variable, std::string& val);
 
+    /// Set a value of a numeric list variable. If a variable with the same
+    /// name is existing, it is overwritten, otherwise it is created (in __main__ namespace)
+    void SetList(const char* variable, const std::vector<double>& val);
+
+    /// Retrieve a value of an existing numeric list variable.
+    /// Returns false if unsuccesfull.
+    bool GetList(const char* variable, std::vector<double>& return_val);
+
     /// Load a .py file as it is saved by the SolidWorks add-in exporter.
     /// You can pass a path too, ex "mydir/myotherdir/mysystem", but do NOT add .py
     /// at the end!

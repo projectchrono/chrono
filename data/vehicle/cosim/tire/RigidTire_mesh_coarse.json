@@ -28,13 +28,13 @@
 
   "Contact Mesh":
   {
-    "Mesh Filename":            "cosim/tire/tire_coarse_closed.obj",
+    "Mesh Filename":            "cosim/tire/tire_coarse.obj",
     "Sweep Sphere Radius":      0.005
   },
 
   "Visualization":
   {
-    "Mesh Filename Left":       "cosim/tire/tire_coarse_closed.obj",
-    "Mesh Filename Right":      "cosim/tire/tire_coarse_closed.obj"
+    "Mesh Filename Left":       "cosim/tire/tire_coarse.obj",
+    "Mesh Filename Right":      "cosim/tire/tire_coarse.obj"
   }
 }

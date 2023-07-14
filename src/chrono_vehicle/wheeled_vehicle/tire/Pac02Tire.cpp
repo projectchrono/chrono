@@ -467,8 +467,8 @@ void Pac02Tire::Create(const rapidjson::Document& d) {
         //// TODO
     }
 
-    m_visualization_width = 0;
-    // Check how to visualize this tire.
+    m_visualization_width = ChPac02Tire::GetVisualizationWidth();
+
     if (d.HasMember("Visualization")) {
         if (d["Visualization"].HasMember("Mesh Filename Left") && d["Visualization"].HasMember("Mesh Filename Right")) {
             m_meshFile_left = d["Visualization"]["Mesh Filename Left"].GetString();

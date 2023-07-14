@@ -477,7 +477,7 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
     /// The function scans all the finite elements already added in the parent ChMesh and adds the faces
     /// that are not shared (ie. the faces on the boundary 'skin').
     /// For shells, the argument 'ccw' indicates whether the face vertices are provided in a counter-clockwise (default)
-    /// or clockwise order, this has a reason: shells collisions are oriented and might work only from the "outer" side.
+    /// or clockwise order(because shells collisions are oriented and might work only from the "outer" side).
     /// Currently supported elements that generate boundary skin:
     /// - solids:
     ///     - ChElementTetrahedron: all solid tetrahedrons
@@ -494,8 +494,9 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
                               bool ccw = true             ///< indicate clockwise or counterclockwise vertex ordering
     );
 
-    // Same as AddFacesFromBoundary, but only for faces containing selected nodes in node_set.
-    // void AddFacesFromNodeSet(std::vector<std::shared_ptr<ChNodeFEAbase> >& node_set); ***TODO***
+    /// Construct a contact surface from a triangular mesh.
+    /// FEA nodes are created at the mesh vertex locations.
+    void ConstructFromTrimesh(std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh, double sphere_swept = 0.0);
 
     /// Get the list of triangles.
     std::vector<std::shared_ptr<ChContactTriangleXYZ>>& GetTriangleList() { return vfaces; }
@@ -526,6 +527,11 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
     ) const;
 
   private:
+    typedef std::array<std::shared_ptr<ChNodeFEAxyz>, 3> NodeTripletXYZ;
+    typedef std::array<std::shared_ptr<ChNodeFEAxyzrot>, 3> NodeTripletXYZrot;
+    void AddFacesFromTripletsXYZ(const std::vector<NodeTripletXYZ>& triangles_ptrs, double sphere_swept);
+    void AddFacesFromTripletsXYZrot(const std::vector<NodeTripletXYZrot>& triangles_ptrs, double sphere_swept);
+
     std::vector<std::shared_ptr<ChContactTriangleXYZ>> vfaces;         ///< XYZ-node collision faces
     std::vector<std::shared_ptr<ChContactTriangleXYZROT>> vfaces_rot;  ///< XYWROT-node collision faces
 };

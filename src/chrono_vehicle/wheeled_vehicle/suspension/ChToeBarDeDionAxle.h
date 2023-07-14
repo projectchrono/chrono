@@ -142,6 +142,9 @@ class CH_VEHICLE_API ChToeBarDeDionAxle : public ChSuspension {
 
     void LogHardpointLocations(const ChVector<>& ref, bool inches = false);
 
+    const ChVector<> GetConnectorLocation(VehicleSide side);
+    const std::shared_ptr<ChBody> GetConnectorBody() { return m_axleTube; }
+
   protected:
     /// Identifiers for the various hardpoints.
     enum PointId {
@@ -157,11 +160,12 @@ class CH_VEHICLE_API ChToeBarDeDionAxle : public ChSuspension {
         KNUCKLE_CM,   ///< knuckle, center of mass
         DRAGLINK_C,   ///< draglink, chassis
         AXLE_C,       ///< sphere link location
-        WATT_CNT_LE,  ///<  spherical link location of center link to left link
-        WATT_CNT_RI,  ///<  spherical link location of center link to right link
-        WATT_LE_CH,    ///< spherical link location of left link (center link to chassis)
+        STABI_CON,    ///< location of stabilizer connection
+        WATT_CNT_LE,  ///< spherical link location of center link to left link
+        WATT_CNT_RI,  ///< spherical link location of center link to right link
+        WATT_LE_CH,   ///< spherical link location of left link (center link to chassis)
         WATT_RI_CH,   ///< spherical link location of right link (center link to chassis)
-      NUM_POINTS
+        NUM_POINTS
     };
 
     virtual void InitializeInertiaProperties() override;
@@ -237,21 +241,21 @@ class CH_VEHICLE_API ChToeBarDeDionAxle : public ChSuspension {
     /// Returns toplology flag for knuckle/draglink connection
     virtual bool isLeftKnuckleActuated() { return true; }
 
-    std::shared_ptr<ChBody> m_axleTube;    ///< handles to the axle tube body
-    std::shared_ptr<ChBody> m_tierod;      ///< handles to the tierod body
-    std::shared_ptr<ChBody> m_draglink;    ///< handles to the draglink body
-    std::shared_ptr<ChBody> m_knuckle[2];  ///< handles to the knuckle bodies (L/R)
+    std::shared_ptr<ChBody> m_axleTube;            ///< handles to the axle tube body
+    std::shared_ptr<ChBody> m_tierod;              ///< handles to the tierod body
+    std::shared_ptr<ChBody> m_draglink;            ///< handles to the draglink body
+    std::shared_ptr<ChBody> m_knuckle[2];          ///< handles to the knuckle bodies (L/R)
     std::shared_ptr<ChBody> m_wattCenterLinkBody;  ///< handle to the Watt center link
     std::shared_ptr<ChBody> m_wattLeftLinkBody;    ///< handle to the Watt left link
     std::shared_ptr<ChBody> m_wattRightLinkBody;   ///< handle to the Watt right link
 
     std::shared_ptr<ChLinkLockSpherical>
         m_axleTubeGuideLong;  ///< longitudinal guidance, forbids translations, allows rotations
-    std::shared_ptr<ChLinkLockSpherical> m_sphericalTierod;    ///< knuckle-tierod spherical joint (left)
-    std::shared_ptr<ChLinkLockSpherical> m_sphericalDraglink;  ///< draglink-chassis spherical joint (left)
-    std::shared_ptr<ChLinkUniversal> m_universalDraglink;      ///< draglink-bellCrank universal joint (left)
-    std::shared_ptr<ChLinkUniversal> m_universalTierod;        ///< knuckle-tierod universal joint (right)
-    std::shared_ptr<ChLinkLockRevolute> m_revoluteKingpin[2];  ///< knuckle-axle tube revolute joints (L/R)
+    std::shared_ptr<ChLinkLockSpherical> m_sphericalKnuckleTierod;    ///< knuckle-tierod spherical joint (left)
+    std::shared_ptr<ChLinkLockSpherical> m_sphericalDraglinkPitman;   ///< draglink-chassis spherical joint (left)
+    std::shared_ptr<ChLinkLockSpherical> m_sphericalDraglinkKnuckle;  ///< draglink-bellCrank spherical joint (left)
+    std::shared_ptr<ChLinkUniversal> m_universalTierod;               ///< knuckle-tierod universal joint (right)
+    std::shared_ptr<ChLinkLockRevolute> m_revoluteKingpin[2];         ///< knuckle-axle tube revolute joints (L/R)
 
     std::shared_ptr<ChLinkLockRevolute> m_wattCenterRev;
     std::shared_ptr<ChLinkLockSpherical> m_wattLeftToCenterSph;
@@ -270,6 +274,10 @@ class CH_VEHICLE_API ChToeBarDeDionAxle : public ChSuspension {
     // Points for axle tube visualization
     ChVector<> m_axleOuterL;
     ChVector<> m_axleOuterR;
+    ChVector<> m_axleCenter;
+    ChVector<> m_axleChassis;
+    ChVector<> m_stabiConnectorL;
+    ChVector<> m_stabiConnectorR;
 
     // Points for tierod visualization
     ChVector<> m_tierodOuterL;

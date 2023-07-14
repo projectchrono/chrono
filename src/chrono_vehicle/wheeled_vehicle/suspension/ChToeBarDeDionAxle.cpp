@@ -62,9 +62,9 @@ ChToeBarDeDionAxle::~ChToeBarDeDionAxle() {
         sys->Remove(m_axleTube);
         sys->Remove(m_tierod);
         sys->Remove(m_draglink);
-        sys->Remove(m_sphericalTierod);
-        sys->Remove(m_sphericalDraglink);
-        sys->Remove(m_universalDraglink);
+        sys->Remove(m_sphericalKnuckleTierod);
+        sys->Remove(m_sphericalDraglinkPitman);
+        sys->Remove(m_sphericalDraglinkKnuckle);
         sys->Remove(m_universalTierod);
 
         for (int i = 0; i < 2; i++) {
@@ -113,10 +113,19 @@ void ChToeBarDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     outer_local.y() = -outer_local.y();
     m_axleOuterR = suspension_to_abs.TransformPointLocalToParent(outer_local);
 
+    ChVector<> conn_local(getLocation(STABI_CON));
+    m_stabiConnectorL = suspension_to_abs.TransformPointLocalToParent(conn_local);
+    conn_local.y() = -conn_local.y();
+    m_stabiConnectorR = suspension_to_abs.TransformPointLocalToParent(conn_local);
+
     m_wattLower = suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_CNT_LE));
     m_wattUpper = suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_CNT_RI));
     m_wattOuterL = suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_LE_CH));
     m_wattOuterR = suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_RI_CH));
+
+    // longitudinal guide, modeled as a pushbar
+    m_axleChassis = suspension_to_abs.TransformPointLocalToParent(getLocation(AXLE_C));
+    m_axleCenter = (m_axleOuterR + m_axleOuterL) / 2.0;
 
     // Create and initialize the axle body.
     m_axleTube = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
@@ -254,17 +263,17 @@ void ChToeBarDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 
         // Create and initialize the spherical joint between steering mechanism and
         // draglink.
-        m_sphericalDraglink = chrono_types::make_shared<ChLinkLockSpherical>();
-        m_sphericalDraglink->SetNameString(m_name + "_sphericalDraglink" + "_L");
-        m_sphericalDraglink->Initialize(m_draglink, tierod_body, ChCoordsys<>(m_pointsL[DRAGLINK_C], QUNIT));
-        chassis->GetBody()->GetSystem()->AddLink(m_sphericalDraglink);
+        m_sphericalDraglinkPitman = chrono_types::make_shared<ChLinkLockSpherical>();
+        m_sphericalDraglinkPitman->SetNameString(m_name + "_sphericalDraglinkPitman" + "_L");
+        m_sphericalDraglinkPitman->Initialize(m_draglink, tierod_body, ChCoordsys<>(m_pointsL[DRAGLINK_C], QUNIT));
+        chassis->GetBody()->GetSystem()->AddLink(m_sphericalDraglinkPitman);
 
         // Create and initialize the universal joint between draglink and knuckle
-        m_universalDraglink = chrono_types::make_shared<ChLinkUniversal>();
-        m_universalDraglink->SetNameString(m_name + "_universalDraglink" + "_L");
-        m_universalDraglink->Initialize(m_draglink, m_knuckle[LEFT],
-                                        ChFrame<>(m_pointsL[KNUCKLE_DRL], rot.Get_A_quaternion()));
-        chassis->GetBody()->GetSystem()->AddLink(m_universalDraglink);
+        m_sphericalDraglinkKnuckle = chrono_types::make_shared<ChLinkLockSpherical>();
+        m_sphericalDraglinkKnuckle->SetNameString(m_name + "_sphericalDraglinkKnuckle" + "_L");
+        m_sphericalDraglinkKnuckle->Initialize(m_draglink, m_knuckle[LEFT],
+                                               ChCoordsys<>(m_pointsL[KNUCKLE_DRL], QUNIT));
+        chassis->GetBody()->GetSystem()->AddLink(m_sphericalDraglinkKnuckle);
     } else {
         // Create and initialize the draglink body (one side only).
         // Determine the rotation matrix of the draglink based on the plane of the
@@ -286,17 +295,25 @@ void ChToeBarDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 
         // Create and initialize the spherical joint between steering mechanism and
         // draglink.
-        m_sphericalDraglink = chrono_types::make_shared<ChLinkLockSpherical>();
-        m_sphericalDraglink->SetNameString(m_name + "_sphericalDraglink" + "_L");
-        m_sphericalDraglink->Initialize(m_draglink, tierod_body, ChCoordsys<>(m_pointsL[DRAGLINK_C], QUNIT));
-        chassis->GetBody()->GetSystem()->AddLink(m_sphericalDraglink);
+        m_sphericalDraglinkPitman = chrono_types::make_shared<ChLinkLockSpherical>();
+        m_sphericalDraglinkPitman->SetNameString(m_name + "_sphericalDraglinkPitman" + "_L");
+        m_sphericalDraglinkPitman->Initialize(m_draglink, tierod_body, ChCoordsys<>(m_pointsL[DRAGLINK_C], QUNIT));
+        chassis->GetBody()->GetSystem()->AddLink(m_sphericalDraglinkPitman);
 
         // Create and initialize the universal joint between draglink and knuckle
-        m_universalDraglink = chrono_types::make_shared<ChLinkUniversal>();
-        m_universalDraglink->SetNameString(m_name + "_universalDraglink" + "_R");
-        m_universalDraglink->Initialize(m_draglink, m_knuckle[RIGHT],
-                                        ChFrame<>(m_pointsR[KNUCKLE_DRL], rot.Get_A_quaternion()));
-        chassis->GetBody()->GetSystem()->AddLink(m_universalDraglink);
+        m_sphericalDraglinkKnuckle = chrono_types::make_shared<ChLinkLockSpherical>();
+        m_sphericalDraglinkKnuckle->SetNameString(m_name + "_sphericalDraglinkKnuckle" + "_R");
+        m_sphericalDraglinkKnuckle->Initialize(m_draglink, m_knuckle[RIGHT],
+                                               ChCoordsys<>(m_pointsL[KNUCKLE_DRL], QUNIT));
+        chassis->GetBody()->GetSystem()->AddLink(m_sphericalDraglinkKnuckle);
+    }
+}
+
+const ChVector<> ChToeBarDeDionAxle::GetConnectorLocation(VehicleSide side) {
+    if (side == RIGHT) {
+        return m_stabiConnectorR;
+    } else {
+        return m_stabiConnectorL;
     }
 }
 
@@ -342,10 +359,10 @@ void ChToeBarDeDionAxle::InitializeSide(VehicleSide side,
     // Create and initialize the joint between knuckle and tierod (one side has
     // universal, the other has spherical).
     if (side == LEFT) {
-        m_sphericalTierod = chrono_types::make_shared<ChLinkLockSpherical>();
-        m_sphericalTierod->SetNameString(m_name + "_sphericalTierod" + suffix);
-        m_sphericalTierod->Initialize(m_tierod, m_knuckle[side], ChCoordsys<>(points[TIEROD_K], QUNIT));
-        chassis->GetSystem()->AddLink(m_sphericalTierod);
+        m_sphericalKnuckleTierod = chrono_types::make_shared<ChLinkLockSpherical>();
+        m_sphericalKnuckleTierod->SetNameString(m_name + "_sphericalTierod" + suffix);
+        m_sphericalKnuckleTierod->Initialize(m_tierod, m_knuckle[side], ChCoordsys<>(points[TIEROD_K], QUNIT));
+        chassis->GetSystem()->AddLink(m_sphericalKnuckleTierod);
     } else {
         m_universalTierod = chrono_types::make_shared<ChLinkUniversal>();
         m_universalTierod->SetNameString(m_name + "_universalTierod" + suffix);
@@ -482,14 +499,14 @@ void ChToeBarDeDionAxle::LogConstraintViolations(VehicleSide side) {
     }
 
     {
-        ChVectorDynamic<> C = m_sphericalTierod->GetConstraintViolation();
+        ChVectorDynamic<> C = m_sphericalKnuckleTierod->GetConstraintViolation();
         GetLog() << "Tierod spherical          ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
         GetLog() << "  " << C(2) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_sphericalDraglink->GetConstraintViolation();
+        ChVectorDynamic<> C = m_sphericalDraglinkPitman->GetConstraintViolation();
         GetLog() << "Draglink spherical          ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -505,7 +522,7 @@ void ChToeBarDeDionAxle::LogConstraintViolations(VehicleSide side) {
         GetLog() << "  " << C(3) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_universalDraglink->GetConstraintViolation();
+        ChVectorDynamic<> C = m_sphericalDraglinkKnuckle->GetConstraintViolation();
         GetLog() << "Draglink universal          ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -523,6 +540,9 @@ void ChToeBarDeDionAxle::AddVisualizationAssets(VisualizationType vis) {
         return;
 
     AddVisualizationLink(m_axleTube, m_axleOuterL, m_axleOuterR, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
+    AddVisualizationLink(m_axleTube, m_axleCenter, m_axleChassis, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
+    AddVisualizationLink(m_axleTube, m_stabiConnectorL, m_stabiConnectorR, getAxleTubeRadius() / 2,
+                         ChColor(0.7f, 0.7f, 0.7f));
     AddVisualizationLink(m_wattCenterLinkBody, m_wattLower, m_wattUpper, getWattLinkRadius(),
                          ChColor(0.5f, 0.7f, 0.8f));
     AddVisualizationLink(m_wattLeftLinkBody, m_wattLower, m_wattOuterL, getWattLinkRadius(), ChColor(0.8f, 0.5f, 0.5f));
@@ -582,7 +602,8 @@ void ChToeBarDeDionAxle::AddVisualizationLink(std::shared_ptr<ChBody> body,
     ChVector<> p_1 = body->TransformPointParentToLocal(pt_1);
     ChVector<> p_2 = body->TransformPointParentToLocal(pt_2);
 
-    ChVehicleGeometry::AddVisualizationCylinder(body, p_1, p_2, radius);
+    auto cyl = ChVehicleGeometry::AddVisualizationCylinder(body, p_1, p_2, radius);
+    cyl->SetColor(color);
 }
 
 void ChToeBarDeDionAxle::AddVisualizationKnuckle(std::shared_ptr<ChBody> knuckle,
@@ -633,9 +654,9 @@ void ChToeBarDeDionAxle::ExportComponentList(rapidjson::Document& jsonDocument) 
     std::vector<std::shared_ptr<ChLink>> joints;
     joints.push_back(m_revolute[0]);
     joints.push_back(m_revolute[1]);
-    joints.push_back(m_sphericalTierod);
-    joints.push_back(m_sphericalDraglink);
-    joints.push_back(m_universalDraglink);
+    joints.push_back(m_sphericalKnuckleTierod);
+    joints.push_back(m_sphericalDraglinkPitman);
+    joints.push_back(m_sphericalDraglinkKnuckle);
     joints.push_back(m_universalTierod);
     joints.push_back(m_revoluteKingpin[0]);
     joints.push_back(m_revoluteKingpin[1]);
@@ -671,9 +692,9 @@ void ChToeBarDeDionAxle::Output(ChVehicleOutput& database) const {
     std::vector<std::shared_ptr<ChLink>> joints;
     joints.push_back(m_revolute[0]);
     joints.push_back(m_revolute[1]);
-    joints.push_back(m_sphericalTierod);
-    joints.push_back(m_sphericalDraglink);
-    joints.push_back(m_universalDraglink);
+    joints.push_back(m_sphericalKnuckleTierod);
+    joints.push_back(m_sphericalDraglinkPitman);
+    joints.push_back(m_sphericalDraglinkKnuckle);
     joints.push_back(m_universalTierod);
     joints.push_back(m_revoluteKingpin[0]);
     joints.push_back(m_revoluteKingpin[1]);

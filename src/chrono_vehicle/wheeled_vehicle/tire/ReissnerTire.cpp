@@ -162,39 +162,44 @@ void ReissnerTire::ProcessJSON(const rapidjson::Document& d) {
     }
 
     // Number of lugs in the circumferential direction ('v' direction) for radial pattern
-    m_num_lugs_copies = d["Number Lugs Copies"].GetInt();
+    m_num_lugs_copies = 0;
+    if (d.HasMember("Number Lugs Copies"))
+        m_num_lugs_copies = d["Number Lugs Copies"].GetInt();
 
-    // Read lugs specification
-    m_num_lugs = d["Lugs"].Size();
-    m_lugs_ua.resize(m_num_lugs);
-    m_lugs_ub.resize(m_num_lugs);
-    m_lugs_vb.resize(m_num_lugs);
-    m_lugs_va.resize(m_num_lugs);
-    m_lugs_hb.resize(m_num_lugs);
-    m_lugs_ha.resize(m_num_lugs);
-    for (unsigned int i = 0; i < m_num_lugs; i++) {
-        unsigned int m_num_couplepoints_lugs;
-        m_num_couplepoints_lugs = d["Lugs"][i].Size();
-        m_lugs_ua[i].resize(m_num_couplepoints_lugs);
-        m_lugs_ub[i].resize(m_num_couplepoints_lugs);
-        m_lugs_vb[i].resize(m_num_couplepoints_lugs);
-        m_lugs_va[i].resize(m_num_couplepoints_lugs);
-        m_lugs_hb[i].resize(m_num_couplepoints_lugs);
-        m_lugs_ha[i].resize(m_num_couplepoints_lugs);
-        for (unsigned int j = 0; j < m_num_couplepoints_lugs; j++) {
-            m_lugs_ua[i][j] = d["Lugs"][i][j][0u].GetDouble();
-            m_lugs_ub[i][j] = d["Lugs"][i][j][1u].GetDouble();
-            m_lugs_va[i][j] = d["Lugs"][i][j][2u].GetDouble();
-            m_lugs_vb[i][j] = d["Lugs"][i][j][3u].GetDouble();
-            m_lugs_ha[i][j] = d["Lugs"][i][j][4u].GetDouble();
-            m_lugs_hb[i][j] = d["Lugs"][i][j][5u].GetDouble();
+    if (m_num_lugs_copies > 0) {
+        // Read lugs specification
+        m_num_lugs = d["Lugs"].Size();
+        m_lugs_ua.resize(m_num_lugs);
+        m_lugs_ub.resize(m_num_lugs);
+        m_lugs_vb.resize(m_num_lugs);
+        m_lugs_va.resize(m_num_lugs);
+        m_lugs_hb.resize(m_num_lugs);
+        m_lugs_ha.resize(m_num_lugs);
+        for (unsigned int i = 0; i < m_num_lugs; i++) {
+            unsigned int m_num_couplepoints_lugs;
+            m_num_couplepoints_lugs = d["Lugs"][i].Size();
+            m_lugs_ua[i].resize(m_num_couplepoints_lugs);
+            m_lugs_ub[i].resize(m_num_couplepoints_lugs);
+            m_lugs_vb[i].resize(m_num_couplepoints_lugs);
+            m_lugs_va[i].resize(m_num_couplepoints_lugs);
+            m_lugs_hb[i].resize(m_num_couplepoints_lugs);
+            m_lugs_ha[i].resize(m_num_couplepoints_lugs);
+            for (unsigned int j = 0; j < m_num_couplepoints_lugs; j++) {
+                m_lugs_ua[i][j] = d["Lugs"][i][j][0u].GetDouble();
+                m_lugs_ub[i][j] = d["Lugs"][i][j][1u].GetDouble();
+                m_lugs_va[i][j] = d["Lugs"][i][j][2u].GetDouble();
+                m_lugs_vb[i][j] = d["Lugs"][i][j][3u].GetDouble();
+                m_lugs_ha[i][j] = d["Lugs"][i][j][4u].GetDouble();
+                m_lugs_hb[i][j] = d["Lugs"][i][j][5u].GetDouble();
+            }
         }
+
+        // read lugs material
+        m_lugs_young = d["Lugs Material"]["Young Modulus"].GetDouble();
+        m_lugs_poisson = d["Lugs Material"]["Poisson Ratio"].GetDouble();
+        m_lugs_density = d["Lugs Material"]["Density"].GetDouble();
+        m_lugs_damping = d["Lugs Material"]["Structural Damping Coefficient"].GetDouble();
     }
-    // read lugs material
-    lugs_young = d["Lugs Material"]["Young Modulus"].GetDouble();
-    lugs_poisson = d["Lugs Material"]["Poisson Ratio"].GetDouble();
-    lugs_density = d["Lugs Material"]["Density"].GetDouble();
-    lugs_damping = d["Lugs Material"]["Structural Damping Coefficient"].GetDouble();
 }
 
 // Create the 'best fit' stitching constraint between a node and shells in a mesh
@@ -349,112 +354,111 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
         }
     }
 
-    //
     // Create lugs
-    //
+    if (m_num_lugs_copies > 0) {
+        // Create a material for lugs
+        auto lugs_material = chrono_types::make_shared<ChContinuumElastic>();
+        lugs_material->Set_E(m_lugs_young);
+        lugs_material->Set_v(m_lugs_poisson);
+        lugs_material->Set_RayleighDampingK(m_lugs_damping);
+        lugs_material->Set_density(m_lugs_density);
 
-    // Create a material for lugs
-    auto m_lugs_material = chrono_types::make_shared<ChContinuumElastic>();
-    m_lugs_material->Set_E(lugs_young);
-    m_lugs_material->Set_v(lugs_poisson);
-    m_lugs_material->Set_RayleighDampingK(lugs_damping);
-    m_lugs_material->Set_density(lugs_density);
+        // repeat slices:
+        for (unsigned int p = 0; p < m_num_lugs_copies; ++p) {
+            double phi = (CH_C_2PI * p) / m_num_lugs_copies;
+            // maybe each slice has more than one lug geometry;
+            // double pre_ua, pre_ub, pre_
+            for (unsigned int il = 0; il < m_num_lugs; ++il) {
+                // scan through all lug a,b points (lug as a ribbon)
+                std::shared_ptr<ChNodeFEAxyz> n1;
+                std::shared_ptr<ChNodeFEAxyz> n2;
+                std::shared_ptr<ChNodeFEAxyz> n3;
+                std::shared_ptr<ChNodeFEAxyz> n4;
+                for (unsigned int is = 0; is < m_lugs_ua[il].size(); ++is) {
+                    double t_prf, alpha;
+                    double x_prf, xp_prf, xpp_prf;
+                    double y_prf, yp_prf, ypp_prf;
+                    double x, y, z;
 
-    // repeat slices:
-    for (unsigned int p = 0; p < m_num_lugs_copies; ++p) {
-        double phi = (CH_C_2PI * p) / m_num_lugs_copies;
-        // maybe each slice has more than one lug geometry;
-        // double pre_ua, pre_ub, pre_
-        for (unsigned int il = 0; il < m_num_lugs; ++il) {
-            // scan through all lug a,b points (lug as a ribbon)
-            std::shared_ptr<ChNodeFEAxyz> n1;
-            std::shared_ptr<ChNodeFEAxyz> n2;
-            std::shared_ptr<ChNodeFEAxyz> n3;
-            std::shared_ptr<ChNodeFEAxyz> n4;
-            for (unsigned int is = 0; is < m_lugs_ua[il].size(); ++is) {
-                double t_prf, alpha;
-                double x_prf, xp_prf, xpp_prf;
-                double y_prf, yp_prf, ypp_prf;
-                double x, y, z;
+                    // Create the 4 nodes of a slice of the lug as  'ribbon' of quadrilateral section
 
-                // Create the 4 nodes of a slice of the lug as  'ribbon' of quadrilateral section
+                    t_prf = m_lugs_ua[il][is];
+                    splineX.Evaluate(t_prf, x_prf, xp_prf, xpp_prf);
+                    splineY.Evaluate(t_prf, y_prf, yp_prf, ypp_prf);
+                    alpha = phi + m_lugs_va[il][is] * (CH_C_2PI / m_num_lugs_copies);
+                    // Node position with respect to rim center
+                    x = (m_rim_radius + x_prf) * std::cos(alpha);
+                    y = y_prf;
+                    z = (m_rim_radius + x_prf) * std::sin(alpha);
+                    // Node position in global frame (actual coordinate values)
+                    ChVector<> loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
+                    ChVector<> vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
+                    auto node1 = chrono_types::make_shared<ChNodeFEAxyz>(loc);
+                    node1->SetPos_dt(vel);
+                    m_mesh->AddNode(node1);
+                    // attach to underlying shells
+                    AttachNodeToShell(m_mesh, node1);
 
-                t_prf = m_lugs_ua[il][is];
-                splineX.Evaluate(t_prf, x_prf, xp_prf, xpp_prf);
-                splineY.Evaluate(t_prf, y_prf, yp_prf, ypp_prf);
-                alpha = phi + m_lugs_va[il][is] * (CH_C_2PI / m_num_lugs_copies);
-                // Node position with respect to rim center
-                x = (m_rim_radius + x_prf) * std::cos(alpha);
-                y = y_prf;
-                z = (m_rim_radius + x_prf) * std::sin(alpha);
-                // Node position in global frame (actual coordinate values)
-                ChVector<> loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
-                ChVector<> vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
-                auto node1 = chrono_types::make_shared<ChNodeFEAxyz>(loc);
-                node1->SetPos_dt(vel);
-                m_mesh->AddNode(node1);
-                // attach to underlying shells
-                AttachNodeToShell(m_mesh, node1);
+                    t_prf = m_lugs_ub[il][is];
+                    splineX.Evaluate(t_prf, x_prf, xp_prf, xpp_prf);
+                    splineY.Evaluate(t_prf, y_prf, yp_prf, ypp_prf);
+                    alpha = phi + m_lugs_vb[il][is] * (CH_C_2PI / m_num_lugs_copies);
+                    // Node position with respect to rim center
+                    x = (m_rim_radius + x_prf) * std::cos(alpha);
+                    y = y_prf;
+                    z = (m_rim_radius + x_prf) * std::sin(alpha);
+                    // Node position in global frame (actual coordinate values)
+                    loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
+                    vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
+                    auto node2 = chrono_types::make_shared<ChNodeFEAxyz>(loc);
+                    node2->SetPos_dt(vel);
+                    m_mesh->AddNode(node2);
+                    // attach to underlying shells
+                    AttachNodeToShell(m_mesh, node2);
 
-                t_prf = m_lugs_ub[il][is];
-                splineX.Evaluate(t_prf, x_prf, xp_prf, xpp_prf);
-                splineY.Evaluate(t_prf, y_prf, yp_prf, ypp_prf);
-                alpha = phi + m_lugs_vb[il][is] * (CH_C_2PI / m_num_lugs_copies);
-                // Node position with respect to rim center
-                x = (m_rim_radius + x_prf) * std::cos(alpha);
-                y = y_prf;
-                z = (m_rim_radius + x_prf) * std::sin(alpha);
-                // Node position in global frame (actual coordinate values)
-                loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
-                vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
-                auto node2 = chrono_types::make_shared<ChNodeFEAxyz>(loc);
-                node2->SetPos_dt(vel);
-                m_mesh->AddNode(node2);
-                // attach to underlying shells
-                AttachNodeToShell(m_mesh, node2);
+                    t_prf = m_lugs_ub[il][is];
+                    splineX.Evaluate(t_prf, x_prf, xp_prf, xpp_prf);
+                    splineY.Evaluate(t_prf, y_prf, yp_prf, ypp_prf);
+                    alpha = phi + m_lugs_vb[il][is] * (CH_C_2PI / m_num_lugs_copies);
+                    // Node position with respect to rim center
+                    x = (m_rim_radius + x_prf + m_lugs_hb[il][is]) * std::cos(alpha);
+                    y = y_prf;
+                    z = (m_rim_radius + x_prf + m_lugs_hb[il][is]) * std::sin(alpha);
+                    // Node position in global frame (actual coordinate values)
+                    loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
+                    vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
+                    auto node3 = chrono_types::make_shared<ChNodeFEAxyz>(loc);
+                    node3->SetPos_dt(vel);
+                    m_mesh->AddNode(node3);
 
-                t_prf = m_lugs_ub[il][is];
-                splineX.Evaluate(t_prf, x_prf, xp_prf, xpp_prf);
-                splineY.Evaluate(t_prf, y_prf, yp_prf, ypp_prf);
-                alpha = phi + m_lugs_vb[il][is] * (CH_C_2PI / m_num_lugs_copies);
-                // Node position with respect to rim center
-                x = (m_rim_radius + x_prf + m_lugs_hb[il][is]) * std::cos(alpha);
-                y = y_prf;
-                z = (m_rim_radius + x_prf + m_lugs_hb[il][is]) * std::sin(alpha);
-                // Node position in global frame (actual coordinate values)
-                loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
-                vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
-                auto node3 = chrono_types::make_shared<ChNodeFEAxyz>(loc);
-                node3->SetPos_dt(vel);
-                m_mesh->AddNode(node3);
+                    t_prf = m_lugs_ua[il][is];
+                    splineX.Evaluate(t_prf, x_prf, xp_prf, xpp_prf);
+                    splineY.Evaluate(t_prf, y_prf, yp_prf, ypp_prf);
+                    alpha = phi + m_lugs_va[il][is] * (CH_C_2PI / m_num_lugs_copies);
+                    // Node position with respect to rim center
+                    x = (m_rim_radius + x_prf + m_lugs_ha[il][is]) * std::cos(alpha);
+                    y = y_prf;
+                    z = (m_rim_radius + x_prf + m_lugs_ha[il][is]) * std::sin(alpha);
+                    // Node position in global frame (actual coordinate values)
+                    loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
+                    vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
+                    auto node4 = chrono_types::make_shared<ChNodeFEAxyz>(loc);
+                    node4->SetPos_dt(vel);
+                    m_mesh->AddNode(node4);
 
-                t_prf = m_lugs_ua[il][is];
-                splineX.Evaluate(t_prf, x_prf, xp_prf, xpp_prf);
-                splineY.Evaluate(t_prf, y_prf, yp_prf, ypp_prf);
-                alpha = phi + m_lugs_va[il][is] * (CH_C_2PI / m_num_lugs_copies);
-                // Node position with respect to rim center
-                x = (m_rim_radius + x_prf + m_lugs_ha[il][is]) * std::cos(alpha);
-                y = y_prf;
-                z = (m_rim_radius + x_prf + m_lugs_ha[il][is]) * std::sin(alpha);
-                // Node position in global frame (actual coordinate values)
-                loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
-                vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
-                auto node4 = chrono_types::make_shared<ChNodeFEAxyz>(loc);
-                node4->SetPos_dt(vel);
-                m_mesh->AddNode(node4);
-
-                // create the hexahedron element
-                if (is > 0) {
-                    auto helement1 = chrono_types::make_shared<ChElementHexaCorot_8>();
-                    helement1->SetNodes(n1, n2, n3, n4, node1, node2, node3, node4);
-                    helement1->SetMaterial(m_lugs_material);
-                    m_mesh->AddElement(helement1);
+                    // create the hexahedron element
+                    if (is > 0) {
+                        auto helement1 = chrono_types::make_shared<ChElementHexaCorot_8>();
+                        helement1->SetNodes(n1, n2, n3, n4, node1, node2, node3, node4);
+                        helement1->SetMaterial(lugs_material);
+                        m_mesh->AddElement(helement1);
+                    }
+                    // store nodes of last slice for connecting next hexahedron
+                    n1 = node1;
+                    n2 = node2;
+                    n3 = node3;
+                    n4 = node4;
                 }
-                // store nodes of last slice for connecting next hexahedron
-                n1 = node1;
-                n2 = node2;
-                n3 = node3;
-                n4 = node4;
             }
         }
     }

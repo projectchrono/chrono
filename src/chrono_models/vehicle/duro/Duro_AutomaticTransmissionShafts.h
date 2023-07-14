@@ -64,9 +64,8 @@ class CH_MODELS_API Duro_AutomaticTransmissionShafts : public ChAutomaticTransmi
 
 /// @} vehicle_models_Duro
 
-}  // end namespace Duro
+}  // namespace duro
 }  // end namespace vehicle
 }  // end namespace chrono
 
 #endif
-
