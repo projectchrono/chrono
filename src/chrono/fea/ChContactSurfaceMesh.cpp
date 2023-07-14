@@ -41,42 +41,36 @@ namespace fea {
 
 // =============================================================================
 
-ChContactTriangleXYZ::ChContactTriangleXYZ() {
-    collision_model = new collision::ChCollisionModelBullet;
-    collision_model->SetContactable(this);
+ChContactTriangleXYZ::ChContactTriangleXYZ() : m_owns_node({true, true, true}), m_owns_edge({true, true, true}) {
+    m_collision_model = new collision::ChCollisionModelBullet;
+    m_collision_model->SetContactable(this);
 }
 
-ChContactTriangleXYZ::ChContactTriangleXYZ(std::shared_ptr<ChNodeFEAxyz> n1,
-                                           std::shared_ptr<ChNodeFEAxyz> n2,
-                                           std::shared_ptr<ChNodeFEAxyz> n3,
-                                           ChContactSurface* acontainer) {
-    mnode1 = n1;
-    mnode1 = n2;
-    mnode1 = n3;
-    container = acontainer;
-
-    collision_model = new collision::ChCollisionModelBullet;
-    collision_model->SetContactable(this);
+ChContactTriangleXYZ::ChContactTriangleXYZ(const std::array<std::shared_ptr<ChNodeFEAxyz>, 3>& nodes,
+                                           ChContactSurface* container)
+    : m_nodes(nodes), m_container(container), m_owns_node({true, true, true}), m_owns_edge({true, true, true}) {
+    m_collision_model = new collision::ChCollisionModelBullet;
+    m_collision_model->SetContactable(this);
 }
 
 ChPhysicsItem* ChContactTriangleXYZ::GetPhysicsItem() {
-    return container->GetPhysicsItem();
+    return m_container->GetPhysicsItem();
 }
 
 // interface to ChLoadableUV
 
 // Gets all the DOFs packed in a single vector (position part).
 void ChContactTriangleXYZ::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
-    mD.segment(block_offset + 0, 3) = mnode1->GetPos().eigen();
-    mD.segment(block_offset + 3, 3) = mnode2->GetPos().eigen();
-    mD.segment(block_offset + 6, 3) = mnode3->GetPos().eigen();
+    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos().eigen();
+    mD.segment(block_offset + 3, 3) = m_nodes[1]->GetPos().eigen();
+    mD.segment(block_offset + 6, 3) = m_nodes[2]->GetPos().eigen();
 }
 
 // Gets all the DOFs packed in a single vector (velocity part).
 void ChContactTriangleXYZ::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = mnode1->GetPos_dt().eigen();
-    mD.segment(block_offset + 3, 3) = mnode2->GetPos_dt().eigen();
-    mD.segment(block_offset + 6, 3) = mnode3->GetPos_dt().eigen();
+    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos_dt().eigen();
+    mD.segment(block_offset + 3, 3) = m_nodes[1]->GetPos_dt().eigen();
+    mD.segment(block_offset + 6, 3) = m_nodes[2]->GetPos_dt().eigen();
 }
 
 /// Increment all DOFs using a delta.
@@ -85,33 +79,33 @@ void ChContactTriangleXYZ::LoadableStateIncrement(const unsigned int off_x,
                                                   const ChState& x,
                                                   const unsigned int off_v,
                                                   const ChStateDelta& Dv) {
-    mnode1->NodeIntStateIncrement(off_x, x_new, x, off_v, Dv);
-    mnode2->NodeIntStateIncrement(off_x + 3, x_new, x, off_v + 3, Dv);
-    mnode3->NodeIntStateIncrement(off_x + 6, x_new, x, off_v + 6, Dv);
+    m_nodes[0]->NodeIntStateIncrement(off_x + 0, x_new, x, off_v, Dv);
+    m_nodes[1]->NodeIntStateIncrement(off_x + 3, x_new, x, off_v + 3, Dv);
+    m_nodes[2]->NodeIntStateIncrement(off_x + 6, x_new, x, off_v + 6, Dv);
 }
 // Get the pointers to the contained ChVariables, appending to the mvars vector.
 void ChContactTriangleXYZ::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
-    mvars.push_back(&mnode1->Variables());
-    mvars.push_back(&mnode2->Variables());
-    mvars.push_back(&mnode3->Variables());
+    mvars.push_back(&m_nodes[0]->Variables());
+    mvars.push_back(&m_nodes[1]->Variables());
+    mvars.push_back(&m_nodes[2]->Variables());
 }
 
 void ChContactTriangleXYZ::ContactableGetStateBlock_x(ChState& x) {
-    x.segment(0, 3) = mnode1->pos.eigen();
-    x.segment(3, 3) = mnode2->pos.eigen();
-    x.segment(6, 3) = mnode3->pos.eigen();
+    x.segment(0, 3) = m_nodes[0]->pos.eigen();
+    x.segment(3, 3) = m_nodes[1]->pos.eigen();
+    x.segment(6, 3) = m_nodes[2]->pos.eigen();
 }
 
 void ChContactTriangleXYZ::ContactableGetStateBlock_w(ChStateDelta& w) {
-    w.segment(0, 3) = mnode1->pos_dt.eigen();
-    w.segment(3, 3) = mnode2->pos_dt.eigen();
-    w.segment(6, 3) = mnode3->pos_dt.eigen();
+    w.segment(0, 3) = m_nodes[0]->pos_dt.eigen();
+    w.segment(3, 3) = m_nodes[1]->pos_dt.eigen();
+    w.segment(6, 3) = m_nodes[2]->pos_dt.eigen();
 }
 
 void ChContactTriangleXYZ::ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) {
-    mnode1->NodeIntStateIncrement(0, x_new, x, 0, dw);
-    mnode2->NodeIntStateIncrement(3, x_new, x, 3, dw);
-    mnode3->NodeIntStateIncrement(6, x_new, x, 6, dw);
+    m_nodes[0]->NodeIntStateIncrement(0, x_new, x, 0, dw);
+    m_nodes[1]->NodeIntStateIncrement(3, x_new, x, 3, dw);
+    m_nodes[2]->NodeIntStateIncrement(6, x_new, x, 6, dw);
 }
 
 ChVector<> ChContactTriangleXYZ::GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) {
@@ -152,7 +146,7 @@ ChVector<> ChContactTriangleXYZ::GetContactPointSpeed(const ChVector<>& abs_poin
     double s2, s3;
     ComputeUVfromP(abs_point, s2, s3);
     double s1 = 1 - s2 - s3;
-    return (s1 * mnode1->pos_dt + s2 * mnode2->pos_dt + s3 * mnode3->pos_dt);
+    return (s1 * m_nodes[0]->pos_dt + s2 * m_nodes[1]->pos_dt + s3 * m_nodes[2]->pos_dt);
 }
 
 void ChContactTriangleXYZ::ContactForceLoadResidual_F(const ChVector<>& F,
@@ -161,9 +155,9 @@ void ChContactTriangleXYZ::ContactForceLoadResidual_F(const ChVector<>& F,
     double s2, s3;
     ComputeUVfromP(abs_point, s2, s3);
     double s1 = 1 - s2 - s3;
-    R.segment(mnode1->NodeGetOffsetW(), 3) += F.eigen() * s1;
-    R.segment(mnode2->NodeGetOffsetW(), 3) += F.eigen() * s2;
-    R.segment(mnode3->NodeGetOffsetW(), 3) += F.eigen() * s3;
+    R.segment(m_nodes[0]->NodeGetOffsetW(), 3) += F.eigen() * s1;
+    R.segment(m_nodes[1]->NodeGetOffsetW(), 3) += F.eigen() * s2;
+    R.segment(m_nodes[2]->NodeGetOffsetW(), 3) += F.eigen() * s3;
 }
 
 void ChContactTriangleXYZ::ContactForceLoadQ(const ChVector<>& F,
@@ -196,8 +190,8 @@ void ChContactTriangleXYZ::ComputeJacobianForContactPart(const ChVector<>& abs_p
     double s2, s3;
     bool is_into;
     ChVector<> p_projected;
-    /*double dist =*/collision::utils::PointTriangleDistance(abs_point, GetNode1()->pos, GetNode2()->pos,
-                                                             GetNode3()->pos, s2, s3, is_into, p_projected);
+    /*double dist =*/collision::utils::PointTriangleDistance(abs_point, GetNode(0)->pos, GetNode(1)->pos,
+                                                             GetNode(2)->pos, s2, s3, is_into, p_projected);
     double s1 = 1 - s2 - s3;
 
     ChMatrix33<> Jx1 = contact_plane.transpose();
@@ -226,21 +220,21 @@ void ChContactTriangleXYZ::ComputeJacobianForContactPart(const ChVector<>& abs_p
 
 unsigned int ChContactTriangleXYZ::GetSubBlockOffset(int nblock) {
     if (nblock == 0)
-        return GetNode1()->NodeGetOffsetW();
+        return GetNode(0)->NodeGetOffsetW();
     if (nblock == 1)
-        return GetNode2()->NodeGetOffsetW();
+        return GetNode(1)->NodeGetOffsetW();
     if (nblock == 2)
-        return GetNode3()->NodeGetOffsetW();
+        return GetNode(2)->NodeGetOffsetW();
     return 0;
 }
 
 bool ChContactTriangleXYZ::IsSubBlockActive(int nblock) const {
     if (nblock == 0)
-        return !GetNode1()->IsFixed();
+        return !GetNode(0)->IsFixed();
     if (nblock == 1)
-        return !GetNode2()->IsFixed();
+        return !GetNode(1)->IsFixed();
     if (nblock == 2)
-        return !GetNode3()->IsFixed();
+        return !GetNode(2)->IsFixed();
 
     return false;
 }
@@ -262,9 +256,9 @@ void ChContactTriangleXYZ::ComputeNF(
     N(2) = V;
 
     // determinant of jacobian is also =2*areaoftriangle, also length of cross product of sides
-    ChVector<> p0 = GetNode1()->GetPos();
-    ChVector<> p1 = GetNode2()->GetPos();
-    ChVector<> p2 = GetNode3()->GetPos();
+    ChVector<> p0 = GetNode(0)->GetPos();
+    ChVector<> p1 = GetNode(1)->GetPos();
+    ChVector<> p2 = GetNode(2)->GetPos();
     detJ = (Vcross(p2 - p0, p1 - p0)).Length();
 
     Qi.segment(0, 3) = N(0) * F.segment(0, 3);
@@ -273,67 +267,62 @@ void ChContactTriangleXYZ::ComputeNF(
 }
 
 ChVector<> ChContactTriangleXYZ::ComputeNormal(const double U, const double V) {
-    ChVector<> p0 = GetNode1()->GetPos();
-    ChVector<> p1 = GetNode2()->GetPos();
-    ChVector<> p2 = GetNode3()->GetPos();
+    ChVector<> p0 = GetNode(0)->GetPos();
+    ChVector<> p1 = GetNode(1)->GetPos();
+    ChVector<> p2 = GetNode(2)->GetPos();
     return Vcross(p1 - p0, p2 - p0).GetNormalized();
 }
 
 void ChContactTriangleXYZ::ComputeUVfromP(const ChVector<> P, double& u, double& v) {
     bool is_into;
     ChVector<> p_projected;
-    /*double dist =*/collision::utils::PointTriangleDistance(P, mnode1->pos, mnode2->pos, mnode3->pos, u, v, is_into,
+    /*double dist =*/collision::utils::PointTriangleDistance(P, m_nodes[0]->pos, m_nodes[1]->pos, m_nodes[2]->pos, u, v,
+                                                             is_into,
                                                              p_projected);
 }
 
 // =============================================================================
 
-ChContactTriangleXYZROT::ChContactTriangleXYZROT() {
-    collision_model = new collision::ChCollisionModelBullet;
-    collision_model->SetContactable(this);
+ChContactTriangleXYZROT::ChContactTriangleXYZROT() : m_owns_node({true, true, true}), m_owns_edge({true, true, true}) {
+    m_collision_model = new collision::ChCollisionModelBullet;
+    m_collision_model->SetContactable(this);
 }
 
-ChContactTriangleXYZROT::ChContactTriangleXYZROT(std::shared_ptr<ChNodeFEAxyzrot> n1,
-                                                 std::shared_ptr<ChNodeFEAxyzrot> n2,
-                                                 std::shared_ptr<ChNodeFEAxyzrot> n3,
-                                                 ChContactSurface* acontainer) {
-    mnode1 = n1;
-    mnode1 = n2;
-    mnode1 = n3;
-    container = acontainer;
-
-    collision_model = new collision::ChCollisionModelBullet;
-    collision_model->SetContactable(this);
+ChContactTriangleXYZROT::ChContactTriangleXYZROT(const std::array<std::shared_ptr<ChNodeFEAxyzrot>, 3>& nodes,
+                                                 ChContactSurface* container)
+    : m_nodes(nodes), m_container(container), m_owns_node({true, true, true}), m_owns_edge({true, true, true}) {
+    m_collision_model = new collision::ChCollisionModelBullet;
+    m_collision_model->SetContactable(this);
 }
 
 ChPhysicsItem* ChContactTriangleXYZROT::GetPhysicsItem() {
-    return container->GetPhysicsItem();
+    return m_container->GetPhysicsItem();
 }
 
 // interface to ChLoadableUV
 
 // Gets all the DOFs packed in a single vector (position part).
 void ChContactTriangleXYZROT::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
-    mD.segment(block_offset + 0, 3) = mnode1->GetPos().eigen();
-    mD.segment(block_offset + 3, 4) = mnode1->GetRot().eigen();
+    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos().eigen();
+    mD.segment(block_offset + 3, 4) = m_nodes[0]->GetRot().eigen();
 
-    mD.segment(block_offset + 7, 3) = mnode2->GetPos().eigen();
-    mD.segment(block_offset + 10, 4) = mnode2->GetRot().eigen();
+    mD.segment(block_offset + 7, 3) = m_nodes[1]->GetPos().eigen();
+    mD.segment(block_offset + 10, 4) = m_nodes[1]->GetRot().eigen();
 
-    mD.segment(block_offset + 14, 3) = mnode3->GetPos().eigen();
-    mD.segment(block_offset + 17, 4) = mnode3->GetRot().eigen();
+    mD.segment(block_offset + 14, 3) = m_nodes[2]->GetPos().eigen();
+    mD.segment(block_offset + 17, 4) = m_nodes[2]->GetRot().eigen();
 }
 
 // Gets all the DOFs packed in a single vector (velocity part).
 void ChContactTriangleXYZROT::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = mnode1->GetPos_dt().eigen();
-    mD.segment(block_offset + 3, 3) = mnode1->GetWvel_loc().eigen();
+    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos_dt().eigen();
+    mD.segment(block_offset + 3, 3) = m_nodes[0]->GetWvel_loc().eigen();
 
-    mD.segment(block_offset + 6, 3) = mnode2->GetPos_dt().eigen();
-    mD.segment(block_offset + 9, 3) = mnode2->GetWvel_loc().eigen();
+    mD.segment(block_offset + 6, 3) = m_nodes[1]->GetPos_dt().eigen();
+    mD.segment(block_offset + 9, 3) = m_nodes[1]->GetWvel_loc().eigen();
 
-    mD.segment(block_offset + 12, 3) = mnode3->GetPos_dt().eigen();
-    mD.segment(block_offset + 15, 3) = mnode3->GetWvel_loc().eigen();
+    mD.segment(block_offset + 12, 3) = m_nodes[2]->GetPos_dt().eigen();
+    mD.segment(block_offset + 15, 3) = m_nodes[2]->GetWvel_loc().eigen();
 }
 
 // Increment all DOFs using a delta.
@@ -342,44 +331,44 @@ void ChContactTriangleXYZROT::LoadableStateIncrement(const unsigned int off_x,
                                                      const ChState& x,
                                                      const unsigned int off_v,
                                                      const ChStateDelta& Dv) {
-    mnode1->NodeIntStateIncrement(off_x, x_new, x, off_v, Dv);
-    mnode2->NodeIntStateIncrement(off_x + 7, x_new, x, off_v + 6, Dv);
-    mnode3->NodeIntStateIncrement(off_x + 14, x_new, x, off_v + 12, Dv);
+    m_nodes[0]->NodeIntStateIncrement(off_x, x_new, x, off_v, Dv);
+    m_nodes[1]->NodeIntStateIncrement(off_x + 7, x_new, x, off_v + 6, Dv);
+    m_nodes[2]->NodeIntStateIncrement(off_x + 14, x_new, x, off_v + 12, Dv);
 }
 
 // Get the pointers to the contained ChVariables, appending to the mvars vector.
 void ChContactTriangleXYZROT::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
-    mvars.push_back(&mnode1->Variables());
-    mvars.push_back(&mnode2->Variables());
-    mvars.push_back(&mnode3->Variables());
+    mvars.push_back(&m_nodes[0]->Variables());
+    mvars.push_back(&m_nodes[1]->Variables());
+    mvars.push_back(&m_nodes[2]->Variables());
 }
 
 void ChContactTriangleXYZROT::ContactableGetStateBlock_x(ChState& x) {
-    x.segment(0, 3) = mnode1->GetPos().eigen();
-    x.segment(3, 4) = mnode1->GetRot().eigen();
+    x.segment(0, 3) = m_nodes[0]->GetPos().eigen();
+    x.segment(3, 4) = m_nodes[0]->GetRot().eigen();
 
-    x.segment(7, 3) = mnode2->GetPos().eigen();
-    x.segment(10, 4) = mnode2->GetRot().eigen();
+    x.segment(7, 3) = m_nodes[1]->GetPos().eigen();
+    x.segment(10, 4) = m_nodes[1]->GetRot().eigen();
 
-    x.segment(14, 3) = mnode3->GetPos().eigen();
-    x.segment(17, 4) = mnode3->GetRot().eigen();
+    x.segment(14, 3) = m_nodes[2]->GetPos().eigen();
+    x.segment(17, 4) = m_nodes[2]->GetRot().eigen();
 }
 
 void ChContactTriangleXYZROT::ContactableGetStateBlock_w(ChStateDelta& w) {
-    w.segment(0, 3) = mnode1->GetPos_dt().eigen();
-    w.segment(3, 3) = mnode1->GetWvel_loc().eigen();
+    w.segment(0, 3) = m_nodes[0]->GetPos_dt().eigen();
+    w.segment(3, 3) = m_nodes[0]->GetWvel_loc().eigen();
 
-    w.segment(6, 3) = mnode2->GetPos_dt().eigen();
-    w.segment(9, 3) = mnode2->GetWvel_loc().eigen();
+    w.segment(6, 3) = m_nodes[1]->GetPos_dt().eigen();
+    w.segment(9, 3) = m_nodes[1]->GetWvel_loc().eigen();
 
-    w.segment(12, 3) = mnode3->GetPos_dt().eigen();
-    w.segment(15, 3) = mnode3->GetWvel_loc().eigen();
+    w.segment(12, 3) = m_nodes[2]->GetPos_dt().eigen();
+    w.segment(15, 3) = m_nodes[2]->GetWvel_loc().eigen();
 }
 
 void ChContactTriangleXYZROT::ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) {
-    mnode1->NodeIntStateIncrement(0, x_new, x, 0, dw);
-    mnode2->NodeIntStateIncrement(7, x_new, x, 6, dw);
-    mnode3->NodeIntStateIncrement(14, x_new, x, 12, dw);
+    m_nodes[0]->NodeIntStateIncrement(0, x_new, x, 0, dw);
+    m_nodes[1]->NodeIntStateIncrement(7, x_new, x, 6, dw);
+    m_nodes[2]->NodeIntStateIncrement(14, x_new, x, 12, dw);
 }
 
 ChVector<> ChContactTriangleXYZROT::GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) {
@@ -420,7 +409,7 @@ ChVector<> ChContactTriangleXYZROT::GetContactPointSpeed(const ChVector<>& abs_p
     double s2, s3;
     ComputeUVfromP(abs_point, s2, s3);
     double s1 = 1 - s2 - s3;
-    return (s1 * mnode1->GetPos_dt() + s2 * mnode2->GetPos_dt() + s3 * mnode3->GetPos_dt());
+    return (s1 * m_nodes[0]->GetPos_dt() + s2 * m_nodes[1]->GetPos_dt() + s3 * m_nodes[2]->GetPos_dt());
 }
 
 void ChContactTriangleXYZROT::ContactForceLoadResidual_F(const ChVector<>& F,
@@ -429,9 +418,9 @@ void ChContactTriangleXYZROT::ContactForceLoadResidual_F(const ChVector<>& F,
     double s2, s3;
     ComputeUVfromP(abs_point, s2, s3);
     double s1 = 1 - s2 - s3;
-    R.segment(mnode1->NodeGetOffsetW(), 3) += F.eigen() * s1;
-    R.segment(mnode2->NodeGetOffsetW(), 3) += F.eigen() * s2;
-    R.segment(mnode3->NodeGetOffsetW(), 3) += F.eigen() * s3;
+    R.segment(m_nodes[0]->NodeGetOffsetW(), 3) += F.eigen() * s1;
+    R.segment(m_nodes[1]->NodeGetOffsetW(), 3) += F.eigen() * s2;
+    R.segment(m_nodes[2]->NodeGetOffsetW(), 3) += F.eigen() * s3;
 }
 
 void ChContactTriangleXYZROT::ContactForceLoadQ(const ChVector<>& F,
@@ -464,8 +453,8 @@ void ChContactTriangleXYZROT::ComputeJacobianForContactPart(const ChVector<>& ab
     double s2, s3;
     bool is_into;
     ChVector<> p_projected;
-    /*double dist =*/collision::utils::PointTriangleDistance(abs_point, GetNode1()->coord.pos, GetNode2()->coord.pos,
-                                                             GetNode3()->coord.pos, s2, s3, is_into, p_projected);
+    /*double dist =*/collision::utils::PointTriangleDistance(abs_point, GetNode(0)->coord.pos, GetNode(1)->coord.pos,
+                                                             GetNode(2)->coord.pos, s2, s3, is_into, p_projected);
     double s1 = 1 - s2 - s3;
 
     ChMatrix33<> Jx1 = contact_plane.transpose();
@@ -494,21 +483,21 @@ void ChContactTriangleXYZROT::ComputeJacobianForContactPart(const ChVector<>& ab
 
 unsigned int ChContactTriangleXYZROT::GetSubBlockOffset(int nblock) {
     if (nblock == 0)
-        return GetNode1()->NodeGetOffsetW();
+        return GetNode(0)->NodeGetOffsetW();
     if (nblock == 1)
-        return GetNode2()->NodeGetOffsetW();
+        return GetNode(1)->NodeGetOffsetW();
     if (nblock == 2)
-        return GetNode3()->NodeGetOffsetW();
+        return GetNode(2)->NodeGetOffsetW();
     return 0;
 }
 
 bool ChContactTriangleXYZROT::IsSubBlockActive(int nblock) const {
     if (nblock == 0)
-        return !GetNode1()->IsFixed();
+        return !GetNode(0)->IsFixed();
     if (nblock == 1)
-        return !GetNode2()->IsFixed();
+        return !GetNode(1)->IsFixed();
     if (nblock == 2)
-        return !GetNode3()->IsFixed();
+        return !GetNode(2)->IsFixed();
 
     return false;
 }
@@ -530,9 +519,9 @@ void ChContactTriangleXYZROT::ComputeNF(
     N(2) = V;
 
     // determinant of jacobian is also =2*areaoftriangle, also length of cross product of sides
-    ChVector<> p0 = GetNode1()->GetPos();
-    ChVector<> p1 = GetNode2()->GetPos();
-    ChVector<> p2 = GetNode3()->GetPos();
+    ChVector<> p0 = GetNode(0)->GetPos();
+    ChVector<> p1 = GetNode(1)->GetPos();
+    ChVector<> p2 = GetNode(2)->GetPos();
     detJ = (Vcross(p2 - p0, p1 - p0)).Length();
 
     Qi.segment(0, 3) = N(0) * F.segment(0, 3);
@@ -546,17 +535,17 @@ void ChContactTriangleXYZROT::ComputeNF(
 }
 
 ChVector<> ChContactTriangleXYZROT::ComputeNormal(const double U, const double V) {
-    ChVector<> p0 = GetNode1()->GetPos();
-    ChVector<> p1 = GetNode2()->GetPos();
-    ChVector<> p2 = GetNode3()->GetPos();
+    ChVector<> p0 = GetNode(0)->GetPos();
+    ChVector<> p1 = GetNode(1)->GetPos();
+    ChVector<> p2 = GetNode(2)->GetPos();
     return Vcross(p1 - p0, p2 - p0).GetNormalized();
 }
 
 void ChContactTriangleXYZROT::ComputeUVfromP(const ChVector<> P, double& u, double& v) {
     bool is_into;
     ChVector<> p_projected;
-    /*double dist =*/collision::utils::PointTriangleDistance(P, mnode1->GetPos(), mnode2->GetPos(), mnode3->GetPos(), u,
-                                                             v, is_into, p_projected);
+    /*double dist =*/collision::utils::PointTriangleDistance(P, m_nodes[0]->GetPos(), m_nodes[1]->GetPos(),
+                                                             m_nodes[2]->GetPos(), u, v, is_into, p_projected);
 }
 
 // =============================================================================
@@ -581,7 +570,11 @@ void ChContactSurfaceMesh::AddFace(std::shared_ptr<ChNodeFEAxyz> node1,
     assert(node2);
     assert(node3);
 
-    auto contact_triangle = chrono_types::make_shared<ChContactTriangleXYZ>(node1, node2, node3, this);
+    auto contact_triangle = chrono_types::make_shared<ChContactTriangleXYZ>();
+    contact_triangle->SetNodes({{node1, node2, node3}});
+    contact_triangle->SetNodeOwnership({owns_node1, owns_node2, owns_node3});
+    contact_triangle->SetEdgeOwnership({owns_edge1, owns_edge2, owns_edge3});
+    contact_triangle->SetContactSurface(this);
 
     auto collision_model = static_cast<collision::ChCollisionModelBullet*>(contact_triangle->GetCollisionModel());
     collision_model->ClearModel();
@@ -785,11 +778,11 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
             std::shared_ptr<ChNodeFEAxyzrot> nB = mbeam->GetNodeB();
 
             auto contact_triangle = chrono_types::make_shared<ChContactTriangleXYZROT>();
-            contact_triangle->SetNode1(nA);
-            contact_triangle->SetNode2(nB);
-            contact_triangle->SetNode3(nB);
-            vfaces_rot.push_back(contact_triangle);
+            contact_triangle->SetNodes({{nA, nB, nB}});
+            contact_triangle->SetNodeOwnership({false, false, false});
+            contact_triangle->SetEdgeOwnership({true, false, true});
             contact_triangle->SetContactSurface(this);
+            vfaces_rot.push_back(contact_triangle);
 
             double capsule_radius =
                 collision::ChCollisionModel::GetDefaultSuggestedMargin();  // fallback for no draw profile
@@ -818,11 +811,11 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
             std::shared_ptr<ChNodeFEAxyzD> nB = cableANCF->GetNodeB();
 
             auto contact_triangle = chrono_types::make_shared<ChContactTriangleXYZ>();
-            contact_triangle->SetNode1(nA);
-            contact_triangle->SetNode2(nB);
-            contact_triangle->SetNode3(nB);
-            vfaces.push_back(contact_triangle);
+            contact_triangle->SetNodes({{nA, nB, nB}});
+            contact_triangle->SetNodeOwnership({false, false, false});
+            contact_triangle->SetEdgeOwnership({true, false, true});
             contact_triangle->SetContactSurface(this);
+            vfaces.push_back(contact_triangle);
 
             double capsule_radius =
                 collision::ChCollisionModel::GetDefaultSuggestedMargin();  // fallback for no draw profile
@@ -846,11 +839,11 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
             std::shared_ptr<ChNodeFEAxyzD> nB = beam3243->GetNodeB();
 
             auto contact_triangle = chrono_types::make_shared<ChContactTriangleXYZ>();
-            contact_triangle->SetNode1(nA);
-            contact_triangle->SetNode2(nB);
-            contact_triangle->SetNode3(nB);
-            vfaces.push_back(contact_triangle);
+            contact_triangle->SetNodes({{nA, nB, nB}});
+            contact_triangle->SetNodeOwnership({false, false, false});
+            contact_triangle->SetEdgeOwnership({true, false, true});
             contact_triangle->SetContactSurface(this);
+            vfaces.push_back(contact_triangle);
 
             double capsule_radius = 0.5 * sqrt(pow(beam3243->GetThicknessY(), 2) + pow(beam3243->GetThicknessZ(), 2));
 
@@ -868,11 +861,11 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
             std::shared_ptr<ChNodeFEAxyzD> nB = beam3333->GetNodeB();
 
             auto contact_triangle = chrono_types::make_shared<ChContactTriangleXYZ>();
-            contact_triangle->SetNode1(nA);
-            contact_triangle->SetNode2(nB);
-            contact_triangle->SetNode3(nB);
-            vfaces.push_back(contact_triangle);
+            contact_triangle->SetNodes({{nA, nB, nB}});
+            contact_triangle->SetNodeOwnership({false, false, false});
+            contact_triangle->SetEdgeOwnership({true, false, true});
             contact_triangle->SetContactSurface(this);
+            vfaces.push_back(contact_triangle);
 
             double capsule_radius = 0.5 * sqrt(pow(beam3333->GetThicknessY(), 2) + pow(beam3333->GetThicknessZ(), 2));
 
@@ -1048,28 +1041,32 @@ void ChContactSurfaceMesh::AddFacesFromTripletsXYZ(const std::vector<NodeTriplet
                 i_wingvertex_C = triangles[tri_map[it][3]][2];
         }
 
+        bool owns_node1 = (added_vertexes.find(triangles[it][0]) == added_vertexes.end());
+        bool owns_node2 = (added_vertexes.find(triangles[it][1]) == added_vertexes.end());
+        bool owns_node3 = (added_vertexes.find(triangles[it][2]) == added_vertexes.end());
+        
+        bool owns_edge1 = (wingedgeA->second.first != -1);
+        bool owns_edge2 = (wingedgeB->second.first != -1);
+        bool owns_edge3 = (wingedgeC->second.first != -1);
+
         auto contact_triangle = chrono_types::make_shared<ChContactTriangleXYZ>();
-        contact_triangle->SetNode1(triangles_ptrs[it][0]);
-        contact_triangle->SetNode2(triangles_ptrs[it][1]);
-        contact_triangle->SetNode3(triangles_ptrs[it][2]);
-        vfaces.push_back(contact_triangle);
+        contact_triangle->SetNodes({{triangles_ptrs[it][0], triangles_ptrs[it][1], triangles_ptrs[it][2]}});
+        contact_triangle->SetNodeOwnership({owns_node1, owns_node2, owns_node3});
+        contact_triangle->SetEdgeOwnership({owns_edge1, owns_edge2, owns_edge3});
         contact_triangle->SetContactSurface(this);
+        vfaces.push_back(contact_triangle);
 
         contact_triangle->GetCollisionModel()->ClearModel();
         ((collision::ChCollisionModelBullet*)contact_triangle->GetCollisionModel())
             ->AddTriangleProxy(m_material,  // contact material
                                &triangles[it][0]->pos, &triangles[it][1]->pos, &triangles[it][2]->pos,
-                               // if no wing vertex (ie. 'free' edge), point to opposite vertex, ie vertex in triangle
-                               // not belonging to edge
+                               // if no wing vertex (ie. 'free' edge), point to vertex opposite to the edge
                                wingedgeA->second.second != -1 ? &i_wingvertex_A->pos : &triangles[it][2]->pos,
                                wingedgeB->second.second != -1 ? &i_wingvertex_B->pos : &triangles[it][0]->pos,
                                wingedgeC->second.second != -1 ? &i_wingvertex_C->pos : &triangles[it][1]->pos,
-                               (added_vertexes.find(triangles[it][0]) == added_vertexes.end()),
-                               (added_vertexes.find(triangles[it][1]) == added_vertexes.end()),
-                               (added_vertexes.find(triangles[it][2]) == added_vertexes.end()),
+                               owns_node1, owns_node2, owns_node3,
                                // are edges owned by this triangle? (if not, they belong to a neighboring triangle)
-                               wingedgeA->second.first != -1, wingedgeB->second.first != -1,
-                               wingedgeC->second.first != -1, sphere_swept);
+                               owns_edge1, owns_edge2, owns_edge3, sphere_swept);
         contact_triangle->GetCollisionModel()->BuildModel();
 
         // Mark added vertexes
@@ -1241,29 +1238,33 @@ void ChContactSurfaceMesh::AddFacesFromTripletsXYZrot(const std::vector<NodeTrip
                 i_wingvertex_C = triangles[tri_map_rot[it][3]][2];
         }
 
+        bool owns_node1 = (added_vertexes_rot.find(triangles[it][0]) == added_vertexes_rot.end());
+        bool owns_node2 = (added_vertexes_rot.find(triangles[it][1]) == added_vertexes_rot.end());
+        bool owns_node3 = (added_vertexes_rot.find(triangles[it][2]) == added_vertexes_rot.end());
+
+        bool owns_edge1 = (wingedgeA->second.first != -1);
+        bool owns_edge2 = (wingedgeB->second.first != -1);
+        bool owns_edge3 = (wingedgeC->second.first != -1);
+
         auto contact_triangle_rot = chrono_types::make_shared<ChContactTriangleXYZROT>();
-        contact_triangle_rot->SetNode1(triangles_ptrs[it][0]);
-        contact_triangle_rot->SetNode2(triangles_ptrs[it][1]);
-        contact_triangle_rot->SetNode3(triangles_ptrs[it][2]);
-        vfaces_rot.push_back(contact_triangle_rot);
+        contact_triangle_rot->SetNodes({{triangles_ptrs[it][0], triangles_ptrs[it][1], triangles_ptrs[it][2]}});
+        contact_triangle_rot->SetNodeOwnership({owns_node1, owns_node2, owns_node3});
+        contact_triangle_rot->SetEdgeOwnership({owns_edge1, owns_edge2, owns_edge3});
         contact_triangle_rot->SetContactSurface(this);
+        vfaces_rot.push_back(contact_triangle_rot);
 
         contact_triangle_rot->GetCollisionModel()->ClearModel();
         ((collision::ChCollisionModelBullet*)contact_triangle_rot->GetCollisionModel())
             ->AddTriangleProxy(
                 m_material,  // contact material
                 &triangles[it][0]->coord.pos, &triangles[it][1]->coord.pos, &triangles[it][2]->coord.pos,
-                // if no wing vertex (ie. 'free' edge), point to opposite vertex, ie vertex in triangle not belonging to
-                // edge
+                // if no wing vertex (ie. 'free' edge), point to vertex opposite to the edge
                 wingedgeA->second.second != -1 ? &i_wingvertex_A->coord.pos : &triangles[it][2]->coord.pos,
                 wingedgeB->second.second != -1 ? &i_wingvertex_B->coord.pos : &triangles[it][0]->coord.pos,
                 wingedgeC->second.second != -1 ? &i_wingvertex_C->coord.pos : &triangles[it][1]->coord.pos,
-                (added_vertexes_rot.find(triangles[it][0]) == added_vertexes_rot.end()),
-                (added_vertexes_rot.find(triangles[it][1]) == added_vertexes_rot.end()),
-                (added_vertexes_rot.find(triangles[it][2]) == added_vertexes_rot.end()),
+                owns_node1, owns_node2, owns_node3,
                 // are edges owned by this triangle? (if not, they belong to a neighboring triangle)
-                wingedgeA->second.first != -1, wingedgeB->second.first != -1, wingedgeC->second.first != -1,
-                sphere_swept);
+                owns_edge1, owns_edge2, owns_edge3, sphere_swept);
         contact_triangle_rot->GetCollisionModel()->BuildModel();
 
         // Mark added vertexes
@@ -1282,16 +1283,16 @@ unsigned int ChContactSurfaceMesh::GetNumVertices() const {
     std::map<ChNodeFEAxyz*, size_t> ptr_ind_map;
     size_t count = 0;
     for (size_t i = 0; i < vfaces.size(); ++i) {
-        if (!ptr_ind_map.count(vfaces[i]->GetNode1().get())) {
-            ptr_ind_map.insert({vfaces[i]->GetNode1().get(), count});
+        if (!ptr_ind_map.count(vfaces[i]->GetNode(0).get())) {
+            ptr_ind_map.insert({vfaces[i]->GetNode(0).get(), count});
             count++;
         }
-        if (!ptr_ind_map.count(vfaces[i]->GetNode2().get())) {
-            ptr_ind_map.insert({vfaces[i]->GetNode2().get(), count});
+        if (!ptr_ind_map.count(vfaces[i]->GetNode(1).get())) {
+            ptr_ind_map.insert({vfaces[i]->GetNode(1).get(), count});
             count++;
         }
-        if (!ptr_ind_map.count(vfaces[i]->GetNode3().get())) {
-            ptr_ind_map.insert({vfaces[i]->GetNode3().get(), count});
+        if (!ptr_ind_map.count(vfaces[i]->GetNode(2).get())) {
+            ptr_ind_map.insert({vfaces[i]->GetNode(2).get(), count});
             count++;
         }
     }
@@ -1299,16 +1300,16 @@ unsigned int ChContactSurfaceMesh::GetNumVertices() const {
     std::map<ChNodeFEAxyzrot*, size_t> ptr_ind_map_rot;
     size_t count_rot = 0;
     for (size_t i = 0; i < vfaces_rot.size(); ++i) {
-        if (!ptr_ind_map_rot.count(vfaces_rot[i]->GetNode1().get())) {
-            ptr_ind_map_rot.insert({vfaces_rot[i]->GetNode1().get(), count_rot});
+        if (!ptr_ind_map_rot.count(vfaces_rot[i]->GetNode(0).get())) {
+            ptr_ind_map_rot.insert({vfaces_rot[i]->GetNode(0).get(), count_rot});
             count_rot++;
         }
-        if (!ptr_ind_map_rot.count(vfaces_rot[i]->GetNode2().get())) {
-            ptr_ind_map_rot.insert({vfaces_rot[i]->GetNode2().get(), count_rot});
+        if (!ptr_ind_map_rot.count(vfaces_rot[i]->GetNode(1).get())) {
+            ptr_ind_map_rot.insert({vfaces_rot[i]->GetNode(1).get(), count_rot});
             count_rot++;
         }
-        if (!ptr_ind_map_rot.count(vfaces_rot[i]->GetNode3().get())) {
-            ptr_ind_map_rot.insert({vfaces_rot[i]->GetNode3().get(), count_rot});
+        if (!ptr_ind_map_rot.count(vfaces_rot[i]->GetNode(2).get())) {
+            ptr_ind_map_rot.insert({vfaces_rot[i]->GetNode(2).get(), count_rot});
             count_rot++;
         }
     }
@@ -1343,6 +1344,82 @@ void ChContactSurfaceMesh::SurfaceRemoveCollisionModelsFromSystem(ChSystem* msys
     }
     for (unsigned int j = 0; j < vfaces_rot.size(); j++) {
         msys->GetCollisionSystem()->Remove(vfaces_rot[j]->GetCollisionModel());
+    }
+}
+
+void ChContactSurfaceMesh::OutputSimpleMesh(std::vector<ChVector<>>& vert_pos,
+                                            std::vector<ChVector<>>& vert_vel,
+                                            std::vector<ChVector<int>>& triangles,
+                                            std::vector<ChVector<bool>>& owns_node,
+                                            std::vector<ChVector<bool>>& owns_edge) const {
+    vert_pos.clear();
+    vert_vel.clear();
+    triangles.clear();
+    owns_node.clear();
+    owns_edge.clear();
+
+    int vertex_index = 0;
+
+    // FEA nodes with position DOFs
+    {
+        std::map<ChNodeFEAxyz*, int> ptr_ind_map;  // map from pointer-based mesh to index-based mesh
+
+        for (const auto& tri : vfaces) {
+            if (ptr_ind_map.insert({tri->GetNode(0).get(), vertex_index}).second) {
+                vert_pos.push_back(tri->GetNode(0)->GetPos());
+                vert_vel.push_back(tri->GetNode(0)->GetPos_dt());
+                ++vertex_index;
+            }
+            if (ptr_ind_map.insert({tri->GetNode(1).get(), vertex_index}).second) {
+                vert_pos.push_back(tri->GetNode(1)->GetPos());
+                vert_vel.push_back(tri->GetNode(1)->GetPos_dt());
+                ++vertex_index;
+            }
+            if (ptr_ind_map.insert({tri->GetNode(2).get(), vertex_index}).second) {
+                vert_pos.push_back(tri->GetNode(2)->GetPos());
+                vert_vel.push_back(tri->GetNode(2)->GetPos_dt());
+                ++vertex_index;
+            }
+        }
+
+        for (const auto& tri : vfaces) {
+            triangles.push_back({ptr_ind_map.at(tri->GetNode(0).get()),  //
+                                 ptr_ind_map.at(tri->GetNode(1).get()),  //
+                                 ptr_ind_map.at(tri->GetNode(2).get())});
+            owns_node.push_back({tri->OwnsNode(0), tri->OwnsNode(1), tri->OwnsNode(2)});
+            owns_edge.push_back({tri->OwnsEdge(0), tri->OwnsEdge(1), tri->OwnsEdge(2)});
+        }
+    }
+
+    // FEA nodes with position and rotation DOFs
+    {
+        std::map<ChNodeFEAxyzrot*, int> ptr_ind_map;  // map from pointer-based mesh to index-based mesh
+
+        for (const auto& tri : vfaces_rot) {
+            if (ptr_ind_map.insert({tri->GetNode(0).get(), vertex_index}).second) {
+                vert_pos.push_back(tri->GetNode(0)->GetPos());
+                vert_vel.push_back(tri->GetNode(0)->GetPos_dt());
+                ++vertex_index;
+            }
+            if (ptr_ind_map.insert({tri->GetNode(1).get(), vertex_index}).second) {
+                vert_pos.push_back(tri->GetNode(1)->GetPos());
+                vert_vel.push_back(tri->GetNode(1)->GetPos_dt());
+                ++vertex_index;
+            }
+            if (ptr_ind_map.insert({tri->GetNode(2).get(), vertex_index}).second) {
+                vert_pos.push_back(tri->GetNode(2)->GetPos());
+                vert_vel.push_back(tri->GetNode(2)->GetPos_dt());
+                ++vertex_index;
+            }
+        }
+
+        for (const auto& tri : vfaces_rot) {
+            triangles.push_back({ptr_ind_map.at(tri->GetNode(0).get()),  //
+                                 ptr_ind_map.at(tri->GetNode(1).get()),  //
+                                 ptr_ind_map.at(tri->GetNode(2).get())});
+            owns_node.push_back({tri->OwnsNode(0), tri->OwnsNode(1), tri->OwnsNode(2)});
+            owns_edge.push_back({tri->OwnsEdge(0), tri->OwnsEdge(1), tri->OwnsEdge(2)});
+        }
     }
 }
 

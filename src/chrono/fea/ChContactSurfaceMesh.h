@@ -33,58 +33,61 @@ namespace fea {
 class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public ChLoadableUV {
   public:
     ChContactTriangleXYZ();
-    ChContactTriangleXYZ(std::shared_ptr<ChNodeFEAxyz> n1,
-                         std::shared_ptr<ChNodeFEAxyz> n2,
-                         std::shared_ptr<ChNodeFEAxyz> n3,
-                         ChContactSurface* acontainer = 0);
+    ChContactTriangleXYZ(const std::array<std::shared_ptr<ChNodeFEAxyz>, 3>& nodes,
+                         ChContactSurface* container = nullptr);
 
-    virtual ~ChContactTriangleXYZ() { delete collision_model; }
+    virtual ~ChContactTriangleXYZ() { delete m_collision_model; }
 
-    collision::ChCollisionModel* GetCollisionModel() { return collision_model; }
+    collision::ChCollisionModel* GetCollisionModel() { return m_collision_model; }
 
-    /// Access the FEA node to whom this is a proxy as triangle vertex
-    std::shared_ptr<ChNodeFEAxyz> GetNode1() const { return mnode1; }
-    /// Access the FEA node to whom this is a proxy as triangle vertex
-    std::shared_ptr<ChNodeFEAxyz> GetNode2() const { return mnode2; }
-    /// Access the FEA node to whom this is a proxy as triangle vertex
-    std::shared_ptr<ChNodeFEAxyz> GetNode3() const { return mnode3; }
+    /// Set the FEA nodes for which this is a proxy.
+    void SetNodes(const std::array<std::shared_ptr<ChNodeFEAxyz>, 3>& nodes) { m_nodes = nodes; }
 
-    /// Set the FEA node to whom this is a proxy
-    void SetNode1(std::shared_ptr<ChNodeFEAxyz> mn) { mnode1 = mn; }
-    /// Set the FEA node to whom this is a proxy
-    void SetNode2(std::shared_ptr<ChNodeFEAxyz> mn) { mnode2 = mn; }
-    /// Set the FEA node to whom this is a proxy
-    void SetNode3(std::shared_ptr<ChNodeFEAxyz> mn) { mnode3 = mn; }
+    /// Set the contact surface container.
+    void SetContactSurface(ChContactSurface* container) { m_container = container; }
 
-    /// Get the contact surface container
-    ChContactSurface* GetContactSurface() const { return container; }
-    /// Set the contact surface container
-    void SetContactSurface(ChContactSurface* mc) { container = mc; }
+    /// Set node ownership.
+    void SetNodeOwnership(const ChVector<bool>& owns_node) { m_owns_node = owns_node; }
 
-    // INTERFACE TO ChContactable
+    /// Set edge ownership.
+    void SetEdgeOwnership(const ChVector<bool>& owns_edge) { m_owns_edge = owns_edge; }
+
+    /// Acccess the specified FEA node for which this is a proxy.
+    std::shared_ptr<ChNodeFEAxyz> GetNode(int i) const { return m_nodes[i]; }
+
+    /// Get the contact surface container.
+    ChContactSurface* GetContactSurface() const { return m_container; }
+
+    /// Returns true if the specified node is owned by this triangle.
+    bool OwnsNode(int i) const { return m_owns_node[i]; }
+
+    /// Returns true if the specified edge is owned by this triangle.
+    bool OwnsEdge(int i) const { return m_owns_edge[i]; }
+
+    // Interface to ChContactable
 
     virtual ChContactable::eChContactableType GetContactableType() const override { return CONTACTABLE_333; }
 
-    /// Access variables for node 1
-    virtual ChVariables* GetVariables1() override { return &mnode1->Variables(); }
-    /// Access variables for node 2
-    virtual ChVariables* GetVariables2() override { return &mnode2->Variables(); }
-    /// Access variables for node 3
-    virtual ChVariables* GetVariables3() override { return &mnode3->Variables(); }
+    /// Access variables for node 1.
+    virtual ChVariables* GetVariables1() override { return &m_nodes[0]->Variables(); }
+    /// Access variables for node 2.
+    virtual ChVariables* GetVariables2() override { return &m_nodes[1]->Variables(); }
+    /// Access variables for node 3.
+    virtual ChVariables* GetVariables3() override { return &m_nodes[2]->Variables(); }
 
-    /// Tell if the object must be considered in collision detection
+    /// Tell if the object must be considered in collision detection.
     virtual bool IsContactActive() override { return true; }
 
-    /// Get the number of DOFs affected by this object (position part)
+    /// Get the number of DOFs affected by this object (position part).
     virtual int ContactableGet_ndof_x() override { return 9; }
 
-    /// Get the number of DOFs affected by this object (speed part)
+    /// Get the number of DOFs affected by this object (speed part).
     virtual int ContactableGet_ndof_w() override { return 9; }
 
-    /// Get all the DOFs packed in a single vector (position part)
+    /// Get all the DOFs packed in a single vector (position part).
     virtual void ContactableGetStateBlock_x(ChState& x) override;
 
-    /// Get all the DOFs packed in a single vector (speed part)
+    /// Get all the DOFs packed in a single vector (speed part).
     virtual void ContactableGetStateBlock_w(ChStateDelta& w) override;
 
     /// Increment the provided state of this object by the given state-delta increment.
@@ -137,11 +140,11 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
 
     /// Return mass of contactable object.
     virtual double GetContactableMass() override {
-        //***TODO***!!!!!!!!!!!!!!!!!!!!
+        //// TODO
         return 1;
     }
 
-    /// This is only for backward compatibility
+    /// This is only for backward compatibility.
     virtual ChPhysicsItem* GetPhysicsItem() override;
 
     // INTERFACE TO ChLoadable
@@ -201,22 +204,22 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
     /// Each coordinate ranging in -1..+1.
     virtual ChVector<> ComputeNormal(const double U, const double V) override;
 
-    /// If true, use quadrature over u,v in [0..1] range as triangle volumetric coords
+    /// If true, use quadrature over u,v in [0..1] range as triangle volumetric coords.
     virtual bool IsTriangleIntegrationNeeded() override { return true; }
 
   private:
     /// Compute u,v of contact point respect to triangle.
-    /// u is node1->node2 direction,
-    /// v is node1->node3 direction
+    /// - u is in the node1->node2 direction.
+    /// - v is in the node1->node3 direction.
     void ComputeUVfromP(const ChVector<> P, double& u, double& v);
 
-    collision::ChCollisionModel* collision_model;
+    collision::ChCollisionModel* m_collision_model;
 
-    std::shared_ptr<ChNodeFEAxyz> mnode1;
-    std::shared_ptr<ChNodeFEAxyz> mnode2;
-    std::shared_ptr<ChNodeFEAxyz> mnode3;
+    std::array<std::shared_ptr<ChNodeFEAxyz>, 3> m_nodes;
+    ChVector<bool> m_owns_node;
+    ChVector<bool> m_owns_edge;
 
-    ChContactSurface* container;
+    ChContactSurface* m_container;
 };
 
 // -----------------------------------------------------------------------------
@@ -226,60 +229,61 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
 class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, public ChLoadableUV {
   public:
     ChContactTriangleXYZROT();
-    ChContactTriangleXYZROT(std::shared_ptr<ChNodeFEAxyzrot> n1,
-                            std::shared_ptr<ChNodeFEAxyzrot> n2,
-                            std::shared_ptr<ChNodeFEAxyzrot> n3,
-                            ChContactSurface* acontainer = 0);
+    ChContactTriangleXYZROT(const std::array<std::shared_ptr<ChNodeFEAxyzrot>, 3>& nodes,
+                            ChContactSurface* container = nullptr);
 
-    virtual ~ChContactTriangleXYZROT() { delete collision_model; }
+    virtual ~ChContactTriangleXYZROT() { delete m_collision_model; }
 
-    collision::ChCollisionModel* GetCollisionModel() { return collision_model; }
+    collision::ChCollisionModel* GetCollisionModel() { return m_collision_model; }
 
-    // FUNCTIONS
+    /// Set the FEA nodes for which this is a proxy.
+    void SetNodes(const std::array<std::shared_ptr<ChNodeFEAxyzrot>, 3>& nodes) { m_nodes = nodes; }
 
-    /// Access the FEA node to whom this is a proxy as triangle vertex
-    std::shared_ptr<ChNodeFEAxyzrot> GetNode1() const { return mnode1; }
-    /// Access the FEA node to whom this is a proxy as triangle vertex
-    std::shared_ptr<ChNodeFEAxyzrot> GetNode2() const { return mnode2; }
-    /// Access the FEA node to whom this is a proxy as triangle vertex
-    std::shared_ptr<ChNodeFEAxyzrot> GetNode3() const { return mnode3; }
+    /// Set the contact surface container.
+    void SetContactSurface(ChContactSurface* container) { m_container = container; }
 
-    /// Set the FEA node to whom this is a proxy
-    void SetNode1(std::shared_ptr<ChNodeFEAxyzrot> mn) { mnode1 = mn; }
-    /// Set the FEA node to whom this is a proxy
-    void SetNode2(std::shared_ptr<ChNodeFEAxyzrot> mn) { mnode2 = mn; }
-    /// Set the FEA node to whom this is a proxy
-    void SetNode3(std::shared_ptr<ChNodeFEAxyzrot> mn) { mnode3 = mn; }
+    /// Set node ownership.
+    void SetNodeOwnership(const ChVector<bool>& owns_node) { m_owns_node = owns_node; }
 
-    /// Get the contact surface container
-    ChContactSurface* GetContactSurface() const { return container; }
-    /// Set the contact surface container
-    void SetContactSurface(ChContactSurface* mc) { container = mc; }
+    /// Set edge ownership.
+    void SetEdgeOwnership(const ChVector<bool>& owns_edge) { m_owns_edge = owns_edge; }
 
-    // INTERFACE TO ChContactable
+    /// Acccess the specified FEA node for which this is a proxy.
+    std::shared_ptr<ChNodeFEAxyzrot> GetNode(int i) const { return m_nodes[i]; }
+
+    /// Get the contact surface container.
+    ChContactSurface* GetContactSurface() const { return m_container; }
+
+    /// Returns true if the specified node is owned by this triangle.
+    bool OwnsNode(int i) const { return m_owns_node[i]; }
+
+    /// Returns true if the specified edge is owned by this triangle.
+    bool OwnsEdge(int i) const { return m_owns_edge[i]; }
+
+    // Interface to ChContactable
 
     virtual ChContactable::eChContactableType GetContactableType() const override { return CONTACTABLE_666; }
 
-    /// Access variables for node 1
-    virtual ChVariables* GetVariables1() override { return &mnode1->Variables(); }
-    /// Access variables for node 2
-    virtual ChVariables* GetVariables2() override { return &mnode2->Variables(); }
-    /// Access variables for node 3
-    virtual ChVariables* GetVariables3() override { return &mnode3->Variables(); }
+    /// Access variables for node 1.
+    virtual ChVariables* GetVariables1() override { return &m_nodes[0]->Variables(); }
+    /// Access variables for node 2.
+    virtual ChVariables* GetVariables2() override { return &m_nodes[1]->Variables(); }
+    /// Access variables for node 3.
+    virtual ChVariables* GetVariables3() override { return &m_nodes[2]->Variables(); }
 
-    /// Tell if the object must be considered in collision detection
+    /// Tell if the object must be considered in collision detection.
     virtual bool IsContactActive() override { return true; }
 
-    /// Get the number of DOFs affected by this object (position part)
+    /// Get the number of DOFs affected by this object (position part).
     virtual int ContactableGet_ndof_x() override { return 21; }
 
-    /// Get the number of DOFs affected by this object (speed part)
+    /// Get the number of DOFs affected by this object (speed part).
     virtual int ContactableGet_ndof_w() override { return 18; }
 
-    /// Get all the DOFs packed in a single vector (position part)
+    /// Get all the DOFs packed in a single vector (position part).
     virtual void ContactableGetStateBlock_x(ChState& x) override;
 
-    /// Get all the DOFs packed in a single vector (speed part)
+    /// Get all the DOFs packed in a single vector (speed part).
     virtual void ContactableGetStateBlock_w(ChStateDelta& w) override;
 
     /// Increment the provided state of this object by the given state-delta increment.
@@ -332,11 +336,11 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
 
     /// Return mass of contactable object.
     virtual double GetContactableMass() override {
-        //***TODO***!!!!!!!!!!!!!!!!!!!!
+        //// TODO
         return 1;
     }
 
-    /// This is only for backward compatibility
+    /// This is only for backward compatibility.
     virtual ChPhysicsItem* GetPhysicsItem() override;
 
     // INTERFACE TO ChLoadable
@@ -396,7 +400,7 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
     /// Each coordinate ranging in -1..+1.
     virtual ChVector<> ComputeNormal(const double U, const double V) override;
 
-    /// If true, use quadrature over u,v in [0..1] range as triangle volumetric coords
+    /// If true, use quadrature over u,v in [0..1] range as triangle volumetric coords.
     virtual bool IsTriangleIntegrationNeeded() override { return true; }
 
   private:
@@ -405,13 +409,40 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
     /// v is node1->node3 direction
     void ComputeUVfromP(const ChVector<> P, double& u, double& v);
 
-    collision::ChCollisionModel* collision_model;
+    collision::ChCollisionModel* m_collision_model;
 
-    std::shared_ptr<ChNodeFEAxyzrot> mnode1;
-    std::shared_ptr<ChNodeFEAxyzrot> mnode2;
-    std::shared_ptr<ChNodeFEAxyzrot> mnode3;
+    std::array<std::shared_ptr<ChNodeFEAxyzrot>, 3> m_nodes;
+    ChVector<bool> m_owns_node;
+    ChVector<bool> m_owns_edge;
 
-    ChContactSurface* container;
+    ChContactSurface* m_container;
+};
+
+// -----------------------------------------------------------------------------
+
+/// Contact element of segment type.
+/// Used to 'tessellate' FEA meshes with 1-D elements for collision purposes.
+class ChApi ChContactSegmentXYZ {
+  public:
+    ChContactSegmentXYZ() : m_owns_node({true, true}) {}
+    ChContactSegmentXYZ(const std::array<std::shared_ptr<ChNodeFEAxyz>, 2>& nodes)
+        : m_nodes(nodes), m_owns_node({true, true}) {}
+
+    /// Set the FEA nodes for which this is a proxy.
+    void SetNodes(const std::array<std::shared_ptr<ChNodeFEAxyz>, 2>& nodes) { m_nodes = nodes; }
+
+    /// Set node ownership.
+    void SetNodeOwnership(const ChVector2<bool>& owns_node) { m_owns_node = owns_node; }
+
+    /// Acccess the specified FEA node for which this is a proxy.
+    std::shared_ptr<ChNodeFEAxyz> GetNode(int i) const { return m_nodes[i]; }
+
+    /// Returns true if the specified node is owned by this segment.
+    bool OwnsNode(int i) const { return m_owns_node[i]; }
+
+  private:
+    std::array<std::shared_ptr<ChNodeFEAxyz>, 2> m_nodes;
+    ChVector2<bool> m_owns_node;
 };
 
 // -----------------------------------------------------------------------------
@@ -484,14 +515,25 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
     virtual void SurfaceAddCollisionModelsToSystem(ChSystem* msys) override;
     virtual void SurfaceRemoveCollisionModelsFromSystem(ChSystem* msys) override;
 
+    /// Utility function for exporting the contact mesh in a pointer-less manner.
+    /// The mesh is specified as a set of 3D vertex points (with associated velocities) and a set of faces (indices into
+    /// the vertex array). In addition, ownership of nodes and edges among the consitutent triangles is returned in
+    /// 'owns_node' and 'owns_edge'.
+    void OutputSimpleMesh(std::vector<ChVector<>>& vert_pos,       ///< mesh vertices (absolute xyz positions)
+                          std::vector<ChVector<>>& vert_vel,       ///< vertex velocities (absolute xyz velocities)
+                          std::vector<ChVector<int>>& triangles,   ///< triangle faces (indices in vertex array)
+                          std::vector<ChVector<bool>>& owns_node,  ///< node ownership for each triangular face
+                          std::vector<ChVector<bool>>& owns_edge   ///< edge ownership for each triangular face
+    ) const;
+
   private:
     typedef std::array<std::shared_ptr<ChNodeFEAxyz>, 3> NodeTripletXYZ;
     typedef std::array<std::shared_ptr<ChNodeFEAxyzrot>, 3> NodeTripletXYZrot;
     void AddFacesFromTripletsXYZ(const std::vector<NodeTripletXYZ>& triangles_ptrs, double sphere_swept);
     void AddFacesFromTripletsXYZrot(const std::vector<NodeTripletXYZrot>& triangles_ptrs, double sphere_swept);
 
-    std::vector<std::shared_ptr<ChContactTriangleXYZ>> vfaces;         ///< faces that collide
-    std::vector<std::shared_ptr<ChContactTriangleXYZROT>> vfaces_rot;  ///<  faces that collide
+    std::vector<std::shared_ptr<ChContactTriangleXYZ>> vfaces;         ///< XYZ-node collision faces
+    std::vector<std::shared_ptr<ChContactTriangleXYZROT>> vfaces_rot;  ///< XYWROT-node collision faces
 };
 
 /// @} fea_contact
