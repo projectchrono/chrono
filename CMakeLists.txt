@@ -179,11 +179,7 @@ endif()
 
 #-----------------------------------------------------------------------------
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    execute_process(COMMAND "date" "+%Y_%m_%d" OUTPUT_VARIABLE DATE)
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    execute_process(COMMAND "date" "+%Y_%m_%d" OUTPUT_VARIABLE DATE)
-endif()
+execute_process(COMMAND "date" "+%Y_%m_%d" OUTPUT_VARIABLE DATE)
 
 string(REGEX REPLACE "(\r?\n)+$" "" DATE "${DATE}")
 
