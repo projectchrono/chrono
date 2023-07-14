@@ -13,7 +13,7 @@ a triangle on the screen, you have to write around 1300 lines of code and you ha
 Fortunately the makers of OpenSceneGraph (OSG) decided to develop their VulkanSceneGraph (VSG) to ease the development
 of 3D graphics software based on Vulkan. It is still under development but constantly growing.
 
-Chrono::VSG is meant as a successor for Chrono::IRRLICHT and Chrono::OPENGL. It is aktually in an embrionic state.
+Chrono::VSG is meant as a successor for Chrono::IRRLICHT and Chrono::OPENGL. It is actually in an embrionic state.
 
 
 ## Features
