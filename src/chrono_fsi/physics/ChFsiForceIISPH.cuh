@@ -48,9 +48,8 @@ class ChFsiForceIISPH : public ChFsiForce {
                   std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD) override;
 
     void calcPressureIISPH(std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
-                           thrust::device_vector<Real3> pos_fsi_fea_D,
-                           thrust::device_vector<Real3> vel_fsi_fea_D,
-                           thrust::device_vector<Real3> acc_fsi_fea_D,
+                           std::shared_ptr<FsiMeshStateD> fsiMesh1DStateD,
+                           std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD,
                            thrust::device_vector<Real> sumWij_inv,
                            thrust::device_vector<Real>& p_old,
                            thrust::device_vector<Real3> Normals,

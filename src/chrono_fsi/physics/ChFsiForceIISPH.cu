@@ -462,6 +462,7 @@ __global__ void Calc_summGradW(Real3* summGradW,  // write
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
+// related to flexible bodies
 __device__ void Calc_BC_aij_Bi(const uint i_idx,
                                Real* csrValA,
                                uint* csrColIndA,
@@ -1347,10 +1348,10 @@ __global__ void FinalizePressure(Real4* sortedPosRad,  // Read
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
+// instead of using thrust and pass on pos, velo, acc of the mesh nodes, fsiMeshStateD is used for 1D and 2D
 void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> fsiBodyStateD,
-                                        thrust::device_vector<Real3> pos_fsi_fea_D,
-                                        thrust::device_vector<Real3> vel_fsi_fea_D,
-                                        thrust::device_vector<Real3> acc_fsi_fea_D,
+                                        std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D,
+                                        std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D,
                                         thrust::device_vector<Real> sumWij_inv,
                                         thrust::device_vector<Real>& p_old,
                                         thrust::device_vector<Real3> Normals,
@@ -1358,7 +1359,6 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> fsiBodySt
                                         thrust::device_vector<Real>& Color) {
     //// RADU TODO - Update to use mesh data for 1D and 2D
 
-    /*
     PPESolutionType mySolutionType = paramsH->PPE_Solution_type;
     std::cout << "time step in calcPressureIISPH " << paramsH->dT << std::endl;
 
@@ -1428,10 +1428,11 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> fsiBodySt
 
     double durationFormAXB;
 
+    // end location of fluid, boundary, rigid and flexible markers
     size_t end_fluid = numObjectsH->numGhostMarkers + numObjectsH->numHelperMarkers + numObjectsH->numFluidMarkers;
     size_t end_bndry = end_fluid + numObjectsH->numBoundaryMarkers;
     size_t end_rigid = end_bndry + numObjectsH->numRigidMarkers;
-    size_t end_flex = end_rigid + numObjectsH->numFlexMarkers;
+    size_t end_flex = end_rigid + numObjectsH->numFlexMarkers1D + numObjectsH->numFlexMarkers2D;
     int4 updatePortion = mI4((int)end_fluid, (int)end_bndry, (int)end_rigid, (int)end_flex);
 
     uint NNZ;
@@ -1694,7 +1695,6 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> fsiBodySt
     cudaFree(isErrorD);
     free(isErrorH);
 
-    */
 }
 
 void ChFsiForceIISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
@@ -1703,7 +1703,6 @@ void ChFsiForceIISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
                                std::shared_ptr<FsiMeshStateD> fsiMesh2DStateD) {
     //// RADU TODO - Update to use mesh data for 1D and 2D
 
-    /*
     sphMarkersD = otherSphMarkersD;
     int numAllMarkers = (int)numObjectsH->numAllMarkers;
     int numHelperMarkers = (int)numObjectsH->numHelperMarkers;
@@ -1779,8 +1778,14 @@ void ChFsiForceIISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     }
 
     thrust::device_vector<Real> p_old(numAllMarkers, 0.0);
-    calcPressureIISPH(fsiBodyStateD, fsiMeshStateD->pos_fsi_fea_D, fsiMeshStateD->vel_fsi_fea_D,
-                      fsiMeshStateD->acc_fsi_fea_D, _sumWij_inv, p_old, Normals, G_i, Color);
+    calcPressureIISPH(fsiBodyStateD, 
+                      fsiMesh1DStateD,
+                      fsiMesh2DStateD,
+                      _sumWij_inv, 
+                      p_old, 
+                      Normals, 
+                      G_i, 
+                      Color);
 
     //------------------------------------------------------------------------
     // thread per particle
@@ -1837,7 +1842,7 @@ void ChFsiForceIISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
                                         markersProximity_D->gridMarkerIndexD);
     printf(" Update information: %f \n", (clock() - UpdateClock) / (double)CLOCKS_PER_SEC);
     printf("----------------------------------------------\n");
-    */
+
 }
 
 }  // namespace fsi
