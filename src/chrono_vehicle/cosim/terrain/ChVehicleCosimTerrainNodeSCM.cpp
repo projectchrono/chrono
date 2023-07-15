@@ -61,7 +61,6 @@ ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(double length, double
     : ChVehicleCosimTerrainNodeChrono(Type::SCM, length, width, ChContactMethod::SMC),
       m_radius_p(5e-3),
       m_use_checkpoint(false) {
-
     // Create system and set default method-specific solver settings
     m_system = new ChSystemSMC;
 
@@ -74,7 +73,6 @@ ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(double length, double
 
 ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(const std::string& specfile)
     : ChVehicleCosimTerrainNodeChrono(Type::SCM, 0, 0, ChContactMethod::SMC), m_use_checkpoint(false) {
-
     // Create system and set default method-specific solver settings
     m_system = new ChSystemSMC;
 
@@ -269,6 +267,9 @@ void ChVehicleCosimTerrainNodeSCM::CreateRigidProxy(unsigned int i) {
     // Get shape associated with the given object
     int i_shape = m_obj_map[i];
 
+    // Create the proxy associated with the given object
+    auto proxy = chrono_types::make_shared<ProxyBodySet>();
+
     // Create wheel proxy body
     auto body = std::shared_ptr<ChBody>(m_system->NewBody());
     body->SetIdentifier(0);
@@ -288,7 +289,9 @@ void ChVehicleCosimTerrainNodeSCM::CreateRigidProxy(unsigned int i) {
     body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
 
     m_system->AddBody(body);
-    m_proxies[i].push_back(ProxyBody(body, 0));
+    proxy->AddBody(body, 0);
+
+    m_proxies[i] = proxy;
 
     // Add corresponding moving patch to SCM terrain
     //// RADU TODO: this may be overkill for tracked vehicles!
@@ -339,12 +342,11 @@ void ChVehicleCosimTerrainNodeSCM::UpdateMeshProxy(unsigned int i, MeshState& me
 
 // Set state of proxy rigid body.
 void ChVehicleCosimTerrainNodeSCM::UpdateRigidProxy(unsigned int i, BodyState& rigid_state) {
-    auto& proxies = m_proxies[i];  // proxies for the i-th rigid
-
-    proxies[0].m_body->SetPos(rigid_state.pos);
-    proxies[0].m_body->SetPos_dt(rigid_state.lin_vel);
-    proxies[0].m_body->SetRot(rigid_state.rot);
-    proxies[0].m_body->SetWvel_par(rigid_state.ang_vel);
+    auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
+    proxy->bodies[0]->SetPos(rigid_state.pos);
+    proxy->bodies[0]->SetPos_dt(rigid_state.lin_vel);
+    proxy->bodies[0]->SetRot(rigid_state.rot);
+    proxy->bodies[0]->SetWvel_par(rigid_state.ang_vel);
 }
 
 // Collect contact forces on the (face) proxy bodies that are in contact.
@@ -355,9 +357,8 @@ void ChVehicleCosimTerrainNodeSCM::GetForceMeshProxy(unsigned int i, MeshContact
 
 // Collect resultant contact force and torque on rigid proxy body.
 void ChVehicleCosimTerrainNodeSCM::GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) {
-    const auto& proxies = m_proxies[i];  // proxies for the i-th rigid
-
-    rigid_contact = m_terrain->GetContactForce(proxies[0].m_body);
+    auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
+    rigid_contact = m_terrain->GetContactForce(proxy->bodies[0]);
 }
 
 // -----------------------------------------------------------------------------
@@ -369,11 +370,11 @@ void ChVehicleCosimTerrainNodeSCM::OnRender() {
         MPI_Abort(MPI_COMM_WORLD, 1);
 
     if (m_track) {
-        const auto& proxies = m_proxies[0];  // proxies for first object
-        ChVector<> cam_point = proxies[0].m_body->GetPos();
+        auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[0]);  // proxy for first object
+        ChVector<> cam_point = proxy->bodies[0]->GetPos();                  // position of first body in proxy set
         m_vsys->UpdateCamera(m_cam_pos, cam_point);
     }
- 
+
     m_vsys->BeginScene();
     m_vsys->Render();
     m_vsys->EndScene();

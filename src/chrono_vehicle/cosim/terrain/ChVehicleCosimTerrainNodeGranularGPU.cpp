@@ -49,8 +49,7 @@ static const int body_id_obstacles = 100000;
 
 // -----------------------------------------------------------------------------
 
-ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU(double length,
-                                                                           double width)
+ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU(double length, double width)
     : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_GPU, length, width, ChContactMethod::SMC),
       m_sampling_type(utils::SamplingType::POISSON_DISK),
       m_init_depth(0.2),
@@ -402,10 +401,10 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
         trimesh_shape->SetName(filesystem::path(b.m_mesh_filename).stem());
         body->AddVisualShape(trimesh_shape, ChFrame<>());
 
-        m_system->AddBody(body);   
+        m_system->AddBody(body);
 
         // Set mesh for granular system
-        /*auto imesh =*/ m_systemGPU->AddMesh(trimesh, mass);
+        /*auto imesh =*/m_systemGPU->AddMesh(trimesh, mass);
     }
 
 #ifdef CHRONO_OPENGL
@@ -646,8 +645,11 @@ void ChVehicleCosimTerrainNodeGranularGPU::SetMatPropertiesExternal(unsigned int
 // -----------------------------------------------------------------------------
 
 void ChVehicleCosimTerrainNodeGranularGPU::CreateRigidProxy(unsigned int i) {
-    // Number of rigid obstacles
-    auto num_obstacles = m_obstacles.size();
+    // Get shape associated with the given object
+    int i_shape = m_obj_map[i];
+
+    // Create the proxy associated with the given object
+    auto proxy = chrono_types::make_shared<ProxyBodySet>();
 
     auto body = std::shared_ptr<ChBody>(m_system->NewBody());
     body->SetIdentifier(0);
@@ -656,13 +658,11 @@ void ChVehicleCosimTerrainNodeGranularGPU::CreateRigidProxy(unsigned int i) {
     body->SetBodyFixed(m_fixed_proxies);
     body->SetCollide(true);
 
-    // Get shape associated with the given object
-    int i_shape = m_obj_map[i];
-
     // Create visualization asset (use collision shapes)
     m_geometry[i_shape].CreateVisualizationAssets(body, VisualizationType::PRIMITIVES, true);
 
     // Create collision shapes (only if obstacles are present)
+    auto num_obstacles = m_obstacles.size();
     if (num_obstacles > 0) {
         for (auto& mesh : m_geometry[i_shape].m_coll_meshes)
             mesh.m_radius = m_radius_g;
@@ -672,8 +672,10 @@ void ChVehicleCosimTerrainNodeGranularGPU::CreateRigidProxy(unsigned int i) {
     }
 
     m_system->AddBody(body);
-    m_proxies[i].push_back(ProxyBody(body, 0));
-    
+    proxy->AddBody(body, 0);
+
+    m_proxies[i] = proxy;
+
     // Set mesh for granular system
     //// RADU TODO: what about other collision primitives?!?
     for (auto& mesh : m_geometry[i_shape].m_coll_meshes) {
@@ -692,12 +694,11 @@ void ChVehicleCosimTerrainNodeGranularGPU::CreateRigidProxy(unsigned int i) {
 
 // Set state of proxy rigid body.
 void ChVehicleCosimTerrainNodeGranularGPU::UpdateRigidProxy(unsigned int i, BodyState& rigid_state) {
-    auto& proxies = m_proxies[i];  // proxies for the i-th object
-
-    proxies[0].m_body->SetPos(rigid_state.pos);
-    proxies[0].m_body->SetPos_dt(rigid_state.lin_vel);
-    proxies[0].m_body->SetRot(rigid_state.rot);
-    proxies[0].m_body->SetWvel_par(rigid_state.ang_vel);
+    auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
+    proxy->bodies[0]->SetPos(rigid_state.pos);
+    proxy->bodies[0]->SetPos_dt(rigid_state.lin_vel);
+    proxy->bodies[0]->SetRot(rigid_state.rot);
+    proxy->bodies[0]->SetWvel_par(rigid_state.ang_vel);
 
     m_systemGPU->ApplyMeshMotion(i, rigid_state.pos, rigid_state.rot, rigid_state.lin_vel, rigid_state.ang_vel);
 }
@@ -738,11 +739,9 @@ void ChVehicleCosimTerrainNodeGranularGPU::OnRender() {
 
     if (m_track) {
         if (!m_proxies.empty()) {
-            const auto& proxies = m_proxies[0];  // proxies for first object
-            if (!proxies.empty()) {
-                ChVector<> cam_point = proxies[0].m_body->GetPos();
-                m_vsys->UpdateCamera(m_cam_pos, cam_point);
-            }
+            auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[0]);  // proxy for first object
+            ChVector<> cam_point = proxy->bodies[0]->GetPos();                  // position of first body in proxy set
+            m_vsys->UpdateCamera(m_cam_pos, cam_point);
         }
     }
 
