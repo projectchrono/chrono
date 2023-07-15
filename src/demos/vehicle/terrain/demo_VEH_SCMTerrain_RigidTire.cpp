@@ -296,8 +296,10 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         double time = sys.GetChTime();
         if (output) {
-            vehicle::TerrainForce frc = mterrain.GetContactForce(mrigidbody);
-            csv << time << frc.force << frc.moment << frc.point << std::endl;
+            ChVector<> force;
+            ChVector<> torque;
+            mterrain.GetContactForceBody(mrigidbody, force, torque);
+            csv << time << force << torque << std::endl;
         }
 
 #ifdef CHRONO_POSTPROCESS

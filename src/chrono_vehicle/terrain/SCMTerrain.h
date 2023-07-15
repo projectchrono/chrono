@@ -26,6 +26,7 @@
 
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/physics/ChBody.h"
+#include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChLoadsBody.h"
 #include "chrono/physics/ChSystem.h"
@@ -260,8 +261,14 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     /// Modify the level of grid nodes from the given list.
     void SetModifiedNodes(const std::vector<NodeLevel>& nodes);
 
-    /// Return the current cumulative contact force on the specified body (due to interaction with the SCM terrain).
-    TerrainForce GetContactForce(std::shared_ptr<ChBody> body) const;
+    /// Return the cummulative contact force on the specified body  (due to interaction with the SCM terrain).
+    /// The return value is true if the specified body experiences contact forces and false otherwise.
+    /// If contact forces are applied to the body, they are reduced to the body center of mass.
+    bool GetContactForceBody(std::shared_ptr<ChBody> body, ChVector<>& force, ChVector<>& torque) const;
+
+    /// Return the cummulative contact force on the specified mesh node (due to interaction with the SCM terrain).
+    /// The return value is true if the specified node experiences contact forces and false otherwise.
+    bool GetContactForceNode(std::shared_ptr<fea::ChNodeFEAbase> node, ChVector<>& force) const;
 
     /// Return the number of rays cast at last step.
     int GetNumRayCasts() const;
@@ -537,7 +544,8 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     std::shared_ptr<SCMTerrain::SoilParametersCallback> m_soil_fun;
 
     // Contact forces on contactable objects interacting with the SCM terrain
-    std::unordered_map<ChContactable*, TerrainForce> m_contact_forces;
+    std::unordered_map<ChBody*, std::pair<ChVector<>, ChVector<>>> m_body_forces;
+    std::unordered_map<fea::ChNodeFEAbase*, ChVector<>> m_node_forces;
 
     // Bulldozing effects
     bool m_bulldozing;

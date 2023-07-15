@@ -102,7 +102,7 @@ class DBPcontroller : public robosimian::RS_Driver::PhaseChangeCallback {
     double m_start_time;  // cached time at last location
     double m_avg_speed;   // average speed over last segment
 
-    utils::CSV_writer* m_csv;
+    chrono::utils::CSV_writer* m_csv;
     ChTimer m_timer;
 };
 
@@ -131,7 +131,7 @@ DBPcontroller::DBPcontroller(robosimian::RoboSimian* robot)
     m_timer.start();
 
     // Prepare CSV output
-    m_csv = new utils::CSV_writer(",");
+    m_csv = new chrono::utils::CSV_writer(",");
     *m_csv << "DBP_factor"
            << "DBP_force"
            << "Avg_speed" << endl;
@@ -479,7 +479,7 @@ int main(int argc, char* argv[]) {
             if (povray_output) {
                 char filename[100];
                 sprintf(filename, "%s/data_%04d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteVisualizationAssets(&my_sys, filename);
+                chrono::utils::WriteVisualizationAssets(&my_sys, filename);
             }
             if (render && image_output) {
                 char filename[100];

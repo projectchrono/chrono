@@ -358,7 +358,14 @@ void ChVehicleCosimTerrainNodeSCM::GetForceMeshProxy(unsigned int i, MeshContact
 // Collect resultant contact force and torque on rigid proxy body.
 void ChVehicleCosimTerrainNodeSCM::GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) {
     auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
-    rigid_contact = m_terrain->GetContactForce(proxy->bodies[0]);
+    
+    ChVector<> force;
+    ChVector<>torque;
+    m_terrain->GetContactForceBody(proxy->bodies[0], force, torque);
+
+    rigid_contact.point = proxy->bodies[0]->GetPos();
+    rigid_contact.force = force;
+    rigid_contact.moment = torque;
 }
 
 // -----------------------------------------------------------------------------
