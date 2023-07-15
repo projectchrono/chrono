@@ -260,7 +260,61 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
 // Add all proxy bodies to the same collision family and disable collision between any
 // two members of this family.
 void ChVehicleCosimTerrainNodeSCM::CreateMeshProxy(unsigned int i) {
-    //// TODO
+    // Get shape associated with the given object
+    int i_shape = m_obj_map[i];
+
+    // Create the proxy associated with the given object
+    auto proxy = chrono_types::make_shared<ProxyMesh>();
+
+    // Note: it is assumed that there is one and only one mesh defined!
+    auto trimesh_shape = m_geometry[i_shape].m_coll_meshes[0];
+    auto trimesh = trimesh_shape.m_trimesh;
+    auto nt = trimesh->getNumTriangles();
+    auto material = m_geometry[i_shape].m_materials[trimesh_shape.m_matID].CreateMaterial(m_method);
+
+    //// RADU TODO:  better approximation of mass / inertia?
+    double mass_p = m_load_mass[i_shape] / nt;
+
+    // Create a contact surface mesh constructed from the provided trimesh
+    auto surface = chrono_types::make_shared<fea::ChContactSurfaceMesh>(material);
+    surface->ConstructFromTrimesh(trimesh, m_radius_p);
+
+    // Create maps from pointer-based to index-based for the nodes in the mesh contact surface.
+    // Note that here, the contact surface includes all faces in the geometry trimesh..
+    int vertex_index = 0;
+    for (const auto& tri : surface->GetTriangleList()) {
+        if (proxy->ptr2ind_map.insert({tri->GetNode(0), vertex_index}).second) {
+            proxy->ind2ptr_map.insert({vertex_index, tri->GetNode(0)});
+            ++vertex_index;
+        }
+        if (proxy->ptr2ind_map.insert({tri->GetNode(1), vertex_index}).second) {
+            proxy->ind2ptr_map.insert({vertex_index, tri->GetNode(1)});
+            ++vertex_index;
+        }
+        if (proxy->ptr2ind_map.insert({tri->GetNode(2), vertex_index}).second) {
+            proxy->ind2ptr_map.insert({vertex_index, tri->GetNode(2)});
+            ++vertex_index;
+        }
+    }
+
+    assert(proxy->ptr2ind_map.size() == surface->GetNumVertices());
+    assert(proxy->ind2ptr_map.size() == surface->GetNumVertices());
+
+    // Construct the FEA mesh and add to it the contact surface
+    proxy->mesh = chrono_types::make_shared<fea::ChMesh>();
+    int num_nodes = (int)proxy->ind2ptr_map.size();
+    for (int in = 0; in < num_nodes; in++)
+        proxy->mesh->AddNode(proxy->ind2ptr_map[in]);
+    proxy->mesh->AddContactSurface(surface);
+
+    auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>(proxy->mesh);
+    vis_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::CONTACTSURFACES);
+    vis_mesh->SetWireframe(true);
+    proxy->mesh->AddVisualShapeFEA(vis_mesh);
+
+    m_system->AddMesh(proxy->mesh);
+
+    m_proxies[i] = proxy;
 }
 
 void ChVehicleCosimTerrainNodeSCM::CreateRigidProxy(unsigned int i) {
@@ -337,7 +391,16 @@ void ChVehicleCosimTerrainNodeSCM::OnInitialize(unsigned int num_objects) {
 
 // Set position, orientation, and velocity of proxy bodies based on mesh faces.
 void ChVehicleCosimTerrainNodeSCM::UpdateMeshProxy(unsigned int i, MeshState& mesh_state) {
-    //// TODO
+    // Get the proxy (contact surface) associated with this object
+    auto proxy = std::static_pointer_cast<ProxyMesh>(m_proxies[i]);
+
+    int num_vertices = (int)mesh_state.vpos.size();
+
+    for (int in = 0; in < num_vertices; in++) {
+        auto& node = proxy->ind2ptr_map[in];
+        node->SetPos(mesh_state.vpos[in]);
+        node->SetPos_dt(mesh_state.vvel[in]);
+    }
 }
 
 // Set state of proxy rigid body.
@@ -352,7 +415,18 @@ void ChVehicleCosimTerrainNodeSCM::UpdateRigidProxy(unsigned int i, BodyState& r
 // Collect contact forces on the (face) proxy bodies that are in contact.
 // Load mesh vertex forces and corresponding indices.
 void ChVehicleCosimTerrainNodeSCM::GetForceMeshProxy(unsigned int i, MeshContact& mesh_contact) {
-    //// TODO
+    auto proxy = std::static_pointer_cast<ProxyMesh>(m_proxies[i]);
+
+    ChVector<> force;
+    mesh_contact.nv = 0;
+    for (auto node : proxy->ptr2ind_map) {
+        bool in_contact = m_terrain->GetContactForceNode(node.first, force);
+        if (in_contact) {
+            mesh_contact.vidx.push_back(node.second);
+            mesh_contact.vforce.push_back(force);
+            mesh_contact.nv++;
+        }
+    }
 }
 
 // Collect resultant contact force and torque on rigid proxy body.

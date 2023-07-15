@@ -168,9 +168,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
 
     /// Proxy contact mesh surface associated with a co-simulation solid.
     /// Such a proxy can be associated with a flexible solid interacting with the terrain system.
-    struct MeshProxy : public Proxy {
-        MeshProxy() {}
-        std::shared_ptr<fea::ChContactSurfaceMesh> surface;             ///< collision surface
+    struct ProxyMesh : public Proxy {
+        ProxyMesh() {}
+        std::shared_ptr<fea::ChMesh> mesh;                              ///< proxy mesh
         std::map<std::shared_ptr<fea::ChNodeFEAxyz>, int> ptr2ind_map;  ///< pointer-based to index-based mapping
         std::map<int, std::shared_ptr<fea::ChNodeFEAxyz>> ind2ptr_map;  ///< index-based to pointer-based mapping
     };
