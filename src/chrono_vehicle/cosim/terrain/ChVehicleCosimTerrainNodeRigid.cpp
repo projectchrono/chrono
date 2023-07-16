@@ -392,10 +392,13 @@ void ChVehicleCosimTerrainNodeRigid::OnInitialize(unsigned int num_objects) {
         vsys_vsg->SetWindowTitle("Terrain Node (Rigid)");
         vsys_vsg->SetWindowSize(ChVector2<int>(1280, 720));
         vsys_vsg->SetWindowPosition(ChVector2<int>(100, 100));
-        vsys_vsg->SetUseSkyBox(true);
+        vsys_vsg->SetUseSkyBox(false);
+        vsys_vsg->SetClearColor(ChColor(0.455f, 0.525f, 0.640f));
         vsys_vsg->AddCamera(m_cam_pos, ChVector<>(0, 0, 0));
         vsys_vsg->SetCameraAngleDeg(40);
         vsys_vsg->SetLightIntensity(1.0f);
+        vsys_vsg->SetImageOutputDirectory(m_node_out_dir + "/images");
+        vsys_vsg->SetImageOutput(m_writeRT);
         vsys_vsg->Initialize();
 
         m_vsys = vsys_vsg;

@@ -184,6 +184,10 @@ void ChFsiVisualizationVSG::Initialize() {
 
     if (m_user_system)
         m_vsys->AttachSystem(m_user_system);
+
+    m_vsys->SetImageOutput(m_write_images);
+    m_vsys->SetImageOutputDirectory(m_image_dir);
+
     m_vsys->Initialize();
 }
 

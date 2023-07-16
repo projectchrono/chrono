@@ -268,7 +268,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateRigidProxy(unsigned int i) {
     body->SetCollide(false);
 
     // Create visualization asset (use collision shapes)
-    m_geometry[i_shape].CreateVisualizationAssets(body, VisualizationType::PRIMITIVES, true);
+    m_geometry[i_shape].CreateVisualizationAssets(body, VisualizationType::NONE, true);
 
     // Create collision shapes (only if obstacles are present)
     auto num_obstacles = m_obstacles.size();
@@ -328,6 +328,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
             m_vsys->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
             m_vsys->SetSPHColorCallback(chrono_types::make_shared<HeightColorCallback>(ChColor(0.10f, 0.40f, 0.65f),
                                                                                        m_aabb_min.z(), m_aabb_max.z()));
+            m_vsys->SetImageOutputDirectory(m_node_out_dir + "/images");
+            m_vsys->SetImageOutput(m_writeRT);
             m_vsys->AttachSystem(m_system);
             m_vsys->Initialize();
         }
