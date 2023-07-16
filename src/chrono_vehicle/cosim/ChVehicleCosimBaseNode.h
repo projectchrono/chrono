@@ -151,7 +151,7 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     /// Enable run-time visualization (default: false).
     /// If enabled, rendering is done with the specified frequency.
     /// Note that a concrete node may not support run-time visualization or may not render all physics elements.
-    void EnableRuntimeVisualization(double render_fps = 100);
+    void EnableRuntimeVisualization(double render_fps = 100, bool save_img = false);
 
     /// Set camera location and target point.
     void SetCameraPosition(const ChVector<>& cam_pos, const ChVector<>& cam_target = VNULL);
@@ -252,6 +252,7 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     bool m_renderRT;         ///< if true, perform run-time rendering
     bool m_renderRT_all;     ///< if true, render all frames
     double m_renderRT_step;  ///< time step between rendered frames
+    bool m_writeRT;          ///< if true, write images to file
 
     // Post-process visualization
     bool m_renderPP;                                    ///< if true, save data for post-processing

@@ -134,7 +134,8 @@ int main(int argc, char** argv) {
     bool settling_output = true;
     bool vis_output = true;
     bool renderRT = true;
-    bool renderPP = true;
+    bool renderPP = false;
+    bool writeRT = true;
     double total_mass = 500;
     double toe_angle = 0;
     double dbp_filter_window = 0.1;
@@ -269,7 +270,7 @@ int main(int argc, char** argv) {
                 tire->SetNumThreads(nthreads_tire);
                 tire->SetOutDir(out_dir, suffix);
                 if (renderRT)
-                    tire->EnableRuntimeVisualization(render_fps);
+                    tire->EnableRuntimeVisualization(render_fps, writeRT);
                 if (renderPP)
                     tire->EnablePostprocessVisualization(render_fps);
                 tire->SetCameraPosition(ChVector<>(0, 2 * terrain_width, 1.0));
@@ -296,7 +297,7 @@ int main(int argc, char** argv) {
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
                 if (renderRT)
-                    terrain->EnableRuntimeVisualization(render_fps);
+                    terrain->EnableRuntimeVisualization(render_fps, writeRT);
                 if (renderPP)
                     terrain->EnablePostprocessVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector<>(0, 2 * terrain_width, 1.0));
@@ -315,7 +316,7 @@ int main(int argc, char** argv) {
                 terrain->SetNumThreads(nthreads_terrain);
                 terrain->SetOutDir(out_dir, suffix);
                 if (renderRT)
-                    terrain->EnableRuntimeVisualization(render_fps);
+                    terrain->EnableRuntimeVisualization(render_fps, writeRT);
                 if (renderPP)
                     terrain->EnablePostprocessVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector<>(0, 2 * terrain_width, 1.0));
@@ -340,7 +341,7 @@ int main(int argc, char** argv) {
                 terrain->SetNumThreads(nthreads_terrain);
                 terrain->SetOutDir(out_dir, suffix);
                 if (renderRT)
-                    terrain->EnableRuntimeVisualization(render_fps);
+                    terrain->EnableRuntimeVisualization(render_fps, writeRT);
                 if (renderPP)
                     terrain->EnablePostprocessVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector<>(0, 2 * terrain_width, 1.0));
@@ -374,7 +375,7 @@ int main(int argc, char** argv) {
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
                 if (renderRT)
-                    terrain->EnableRuntimeVisualization(render_fps);
+                    terrain->EnableRuntimeVisualization(render_fps, writeRT);
                 if (renderPP)
                     terrain->EnablePostprocessVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector<>(0, 2 * terrain_width, 1.0));
@@ -407,7 +408,7 @@ int main(int argc, char** argv) {
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
                 if (renderRT)
-                    terrain->EnableRuntimeVisualization(render_fps);
+                    terrain->EnableRuntimeVisualization(render_fps, writeRT);
                 if (renderPP)
                     terrain->EnablePostprocessVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector<>(0, 2 * terrain_width, 1.0));

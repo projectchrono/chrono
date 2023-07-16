@@ -372,7 +372,9 @@ void ChVehicleCosimTerrainNodeSCM::OnInitialize(unsigned int num_objects) {
         vsys_vsg->AddCamera(m_cam_pos, ChVector<>(0, 0, 0));
         vsys_vsg->SetCameraAngleDeg(40);
         vsys_vsg->SetLightIntensity(1.0f);
-        vsys_vsg->AddGuiColorbar("Sinkage (m)", 0.0, 0.1);
+        ////vsys_vsg->AddGuiColorbar("Sinkage (m)", 0.0, 0.1);
+        vsys_vsg->SetImageOutputDirectory(m_node_out_dir + "/images");
+        vsys_vsg->SetImageOutput(m_writeRT);
         vsys_vsg->Initialize();
 
         m_vsys = vsys_vsg;

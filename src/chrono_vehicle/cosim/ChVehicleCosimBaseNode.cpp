@@ -84,6 +84,7 @@ ChVehicleCosimBaseNode::ChVehicleCosimBaseNode(const std::string& name)
       m_verbose(true),
       m_renderRT(false),
       m_renderRT_step(0.01),
+      m_writeRT(false),
       m_renderPP(false),
       m_renderPP_step(0.01),
       m_track(true),
@@ -205,6 +206,10 @@ void ChVehicleCosimBaseNode::SetOutDir(const std::string& dir_name, const std::s
         std::cout << "Error creating directory " << m_node_out_dir + "/visualization" << std::endl;
         return;
     }
+    if (!filesystem::create_directory(filesystem::path(m_node_out_dir + "/images"))) {
+        std::cout << "Error creating directory " << m_node_out_dir + "/images" << std::endl;
+        return;
+    }
 
     // Create results output file
     m_outf.open(m_node_out_dir + "/results.dat", std::ios::out);
@@ -251,8 +256,9 @@ std::string ChVehicleCosimBaseNode::GetNodeTypeString() const {
     }
 }
 
-void ChVehicleCosimBaseNode::EnableRuntimeVisualization(double render_fps) {
+void ChVehicleCosimBaseNode::EnableRuntimeVisualization(double render_fps, bool save_img) {
     m_renderRT = true;
+    m_writeRT = save_img;
     if (render_fps <= 0) {
         m_renderRT_all = true;
         m_renderRT_step = 0;

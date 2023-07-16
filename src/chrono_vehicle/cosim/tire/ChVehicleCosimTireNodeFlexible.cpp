@@ -160,6 +160,8 @@ void ChVehicleCosimTireNodeFlexible::InitializeTire(std::shared_ptr<ChWheel> whe
         vsys_vsg->SetLightIntensity(1.0f);
         vsys_vsg->AddGrid(0.1, 0.1, 40, 20, ChCoordsys<>(init_loc, Q_from_AngX(CH_C_PI_2)),
                          ChColor(0.1f, 0.1f, 0.1f));
+        vsys_vsg->SetImageOutputDirectory(m_node_out_dir + "/images");
+        vsys_vsg->SetImageOutput(m_writeRT);
         vsys_vsg->Initialize();
 
         vsys_vsg->ToggleCOGFrameVisibility();
