@@ -167,7 +167,7 @@ int main(int argc, char** argv) {
     // Terrain dimensions and spindle initial location
     double terrain_length = 10;
     double terrain_width = 2;
-    ChVector<> init_loc(-4, 0, 0.5);
+    ChVector<> init_loc(-4, 0, 0.425);
 
 // Check if required modules are enabled
 #ifndef CHRONO_MULTICORE

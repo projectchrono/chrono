@@ -128,6 +128,11 @@ void SCMTerrain::WriteMesh(const std::string& filename) const {
     trimesh->WriteWavefront(filename, meshes);
 }
 
+// Enable/disable co-simulation mode.
+void SCMTerrain::SetCosimulationMode(bool val) {
+    m_loader->m_cosim_mode = val;
+}
+
 // Set properties of the SCM soil model.
 void SCMTerrain::SetSoilParameters(
     double Bekker_Kphi,    // Kphi, frictional modulus in Bekker model
@@ -377,6 +382,8 @@ SCMLoader::SCMLoader(ChSystem* system, bool visualization_mesh) : m_soil_fun(nul
     m_test_offset_down = 0.5;
 
     m_moving_patch = false;
+
+    m_cosim_mode = false;
 }
 
 // Initialize the terrain as a flat grid
@@ -1398,37 +1405,43 @@ void SCMLoader::ComputeInternalForces() {
             Ft = T * m_area * nr.tau;
         }
 
-        if (ChBody* rigidbody = dynamic_cast<ChBody*>(contactable)) {
+        if (ChBody* body = dynamic_cast<ChBody*>(contactable)) {
             // [](){} Trick: no deletion for this shared ptr, since 'rigidbody' was not a new ChBody()
             // object, but an already used pointer because mrayhit_result.hitModel->GetPhysicsItem()
             // cannot return it as shared_ptr, as needed by the ChLoadBodyForce:
-            std::shared_ptr<ChBody> srigidbody(rigidbody, [](ChBody*) {});
-            std::shared_ptr<ChLoadBodyForce> mload(new ChLoadBodyForce(srigidbody, Fn + Ft, false, point_abs, false));
-            this->Add(mload);
+            std::shared_ptr<ChBody> sbody(body, [](ChBody*) {});
+
+            if (!m_cosim_mode) {
+                std::shared_ptr<ChLoadBodyForce> mload(
+                    new ChLoadBodyForce(sbody, Fn + Ft, false, point_abs, false));
+                this->Add(mload);
+            }
 
             // Accumulate contact force for this rigid body.
             // The resultant force is assumed to be applied at the body COM.
             // All components of the generalized terrain force are expressed in the global frame.
             ChVector<> force = Fn + Ft;
-            ChVector<> moment = Vcross(point_abs - srigidbody->GetPos(), force);
+            ChVector<> moment = Vcross(point_abs - sbody->GetPos(), force);
 
-            auto itr = m_body_forces.find(rigidbody);
+            auto itr = m_body_forces.find(body);
             if (itr == m_body_forces.end()) {
                 // Create new entry and initialize generalized force
                 auto frc = std::make_pair(force, moment);
-                m_body_forces.insert(std::make_pair(rigidbody, frc));
+                m_body_forces.insert(std::make_pair(body, frc));
             } else {
                 // Update generalized force
                 itr->second.first += force;
                 itr->second.second += moment;
             }
         } else if (fea::ChContactTriangleXYZ* tri = dynamic_cast<fea::ChContactTriangleXYZ*>(contactable)) {
-            // [](){} Trick: no deletion for this shared ptr
-            std::shared_ptr<ChLoadableUV> ssurf(tri, [](ChLoadableUV*) {});
-            std::shared_ptr<ChLoad<ChLoaderForceOnSurface>> mload(new ChLoad<ChLoaderForceOnSurface>(ssurf));
-            mload->loader.SetForce(Fn + Ft);
-            mload->loader.SetApplication(0.5, 0.5);  //// TODO set UV, now just in middle
-            this->Add(mload);
+            if (!m_cosim_mode) {
+                // [](){} Trick: no deletion for this shared ptr
+                std::shared_ptr<ChLoadableUV> stri(tri, [](ChLoadableUV*) {});
+                std::shared_ptr<ChLoad<ChLoaderForceOnSurface>> mload(new ChLoad<ChLoaderForceOnSurface>(stri));
+                mload->loader.SetForce(Fn + Ft);
+                mload->loader.SetApplication(0.5, 0.5);  //// TODO set UV, now just in middle
+                this->Add(mload);
+            }
 
             // Accumulate contact forces for the nodes of this contact triangle.
             ChVector<> force = Fn + Ft;
@@ -1450,12 +1463,14 @@ void SCMLoader::ComputeInternalForces() {
                 }
             }
         }  else if (ChLoadableUV* surf = dynamic_cast<ChLoadableUV*>(contactable)) {
-            // [](){} Trick: no deletion for this shared ptr
-            std::shared_ptr<ChLoadableUV> ssurf(surf, [](ChLoadableUV*) {});
-            std::shared_ptr<ChLoad<ChLoaderForceOnSurface>> mload(new ChLoad<ChLoaderForceOnSurface>(ssurf));
-            mload->loader.SetForce(Fn + Ft);
-            mload->loader.SetApplication(0.5, 0.5);  //// TODO set UV, now just in middle
-            this->Add(mload);
+            if (!m_cosim_mode) {
+                // [](){} Trick: no deletion for this shared ptr
+                std::shared_ptr<ChLoadableUV> ssurf(surf, [](ChLoadableUV*) {});
+                std::shared_ptr<ChLoad<ChLoaderForceOnSurface>> mload(new ChLoad<ChLoaderForceOnSurface>(ssurf));
+                mload->loader.SetForce(Fn + Ft);
+                mload->loader.SetApplication(0.5, 0.5);  //// TODO set UV, now just in middle
+                this->Add(mload);
+            }
 
             // Accumulate contact forces for this surface.
             //// TODO

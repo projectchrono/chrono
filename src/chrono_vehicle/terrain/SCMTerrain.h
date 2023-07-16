@@ -215,6 +215,11 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     /// Save the visualization mesh as a Wavefront OBJ file.
     void WriteMesh(const std::string& filename) const;
 
+    /// Enable/disable co-simulation mode (default: false).
+    /// In co-simulation mode, the underlying SCM loader does not apply loads to interacting objects.
+    /// Instead, contact forces are accumulated and available for extraction using GetContactForceBody and GetContactForceNode for rigid bodies and FEA nodes, respectively.
+    void SetCosimulationMode(bool val);
+
     /// Initialize the terrain system (flat).
     /// This version creates a flat array of points.
     void Initialize(double sizeX,  ///< [in] terrain dimension in the X direction
@@ -508,26 +513,28 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     // Modify the level of grid nodes from the given list.
     void SetModifiedNodes(const std::vector<SCMTerrain::NodeLevel>& nodes);
 
-    PatchType m_type;      // type of SCM patch
-    ChCoordsys<> m_plane;  // SCM frame (deformation occurs along the z axis of this frame)
-    ChVector<> m_Z;        // SCM plane vertical direction (in absolute frame)
-    double m_delta;        // grid spacing
-    double m_area;         // area of a grid cell
-    int m_nx;              // range for grid indices in X direction: [-m_nx, +m_nx]
-    int m_ny;              // range for grid indices in Y direction: [-m_ny, +m_ny]
+    PatchType m_type;      ///< type of SCM patch
+    ChCoordsys<> m_plane;  ///< SCM frame (deformation occurs along the z axis of this frame)
+    ChVector<> m_Z;        ///< SCM plane vertical direction (in absolute frame)
+    double m_delta;        ///< grid spacing
+    double m_area;         ///< area of a grid cell
+    int m_nx;              ///< range for grid indices in X direction: [-m_nx, +m_nx]
+    int m_ny;              ///< range for grid indices in Y direction: [-m_ny, +m_ny]
 
-    ChMatrixDynamic<> m_heights;  // (base) grid heights (when initializing from height-field map)
+    ChMatrixDynamic<> m_heights;  ///< (base) grid heights (when initializing from height-field map)
 
-    std::unordered_map<ChVector2<int>, NodeRecord, CoordHash> m_grid_map;  // modified grid nodes (persistent)
-    std::vector<ChVector2<int>> m_modified_nodes;                          // modified grid nodes (current)
+    std::unordered_map<ChVector2<int>, NodeRecord, CoordHash> m_grid_map;  ///< modified grid nodes (persistent)
+    std::vector<ChVector2<int>> m_modified_nodes;                          ///< modified grid nodes (current)
 
-    std::vector<MovingPatchInfo> m_patches;  // set of active moving patches
-    bool m_moving_patch;                     // user-specified moving patches?
+    std::vector<MovingPatchInfo> m_patches;  ///< set of active moving patches
+    bool m_moving_patch;                     ///< user-specified moving patches?
 
-    double m_test_offset_down;  // offset for ray start
-    double m_test_offset_up;    // offset for ray end
+    double m_test_offset_down;  ///< offset for ray start
+    double m_test_offset_up;    ///< offset for ray end
 
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;  // mesh visualization asset
+    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;  ///< mesh visualization asset
+
+    bool m_cosim_mode;  ///< co-simulation mode
 
     // SCM parameters
     double m_Bekker_Kphi;    ///< frictional modulus in Bekker model

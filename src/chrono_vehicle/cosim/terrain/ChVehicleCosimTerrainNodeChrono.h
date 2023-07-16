@@ -149,7 +149,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
     /// rigid solid, or a set with multiple bodies as a proxy for a flexible solid). Alternatively, for flexible solids,
     /// a derived terrain class may use a contact surface mesh as a proxy for a flexible solid.
     struct Proxy {
-        ~Proxy() {}
+        virtual ~Proxy() {}
     };
 
     /// Proxy bodies associated with a co-simulation solid.
@@ -168,6 +168,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
 
     /// Proxy contact mesh surface associated with a co-simulation solid.
     /// Such a proxy can be associated with a flexible solid interacting with the terrain system.
+    /// The underlying FEA mesh is used simply as a container for collision shapes and carrier of visualization.
     struct ProxyMesh : public Proxy {
         ProxyMesh() {}
         std::shared_ptr<fea::ChMesh> mesh;                              ///< proxy mesh

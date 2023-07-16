@@ -162,6 +162,8 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
                                  m_Mohr_cohesion, m_Mohr_friction, m_Janosi_shear,  //
                                  m_elastic_K, m_damping_R);
     m_terrain->SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, max_sinkage);
+    m_terrain->SetMeshWireframe(false);
+    m_terrain->SetCosimulationMode(true);
     m_terrain->Initialize(m_dimX, m_dimY, m_spacing);
 
     // If indicated, set node heights from checkpoint file
@@ -300,11 +302,9 @@ void ChVehicleCosimTerrainNodeSCM::CreateMeshProxy(unsigned int i) {
     assert(proxy->ptr2ind_map.size() == surface->GetNumVertices());
     assert(proxy->ind2ptr_map.size() == surface->GetNumVertices());
 
-    // Construct the FEA mesh and add to it the contact surface
+    // Construct the FEA mesh and add to it the contact surface.
+    // Do not add nodes to the mesh, else they will be polluted during integration
     proxy->mesh = chrono_types::make_shared<fea::ChMesh>();
-    int num_nodes = (int)proxy->ind2ptr_map.size();
-    for (int in = 0; in < num_nodes; in++)
-        proxy->mesh->AddNode(proxy->ind2ptr_map[in]);
     proxy->mesh->AddContactSurface(surface);
 
     auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>(proxy->mesh);
@@ -315,6 +315,9 @@ void ChVehicleCosimTerrainNodeSCM::CreateMeshProxy(unsigned int i) {
     m_system->AddMesh(proxy->mesh);
 
     m_proxies[i] = proxy;
+
+    ////auto aabb_center = m_aabb[i_shape].m_center;
+    ////auto aabb_dims = m_aabb[i_shape].m_dims;
 }
 
 void ChVehicleCosimTerrainNodeSCM::CreateRigidProxy(unsigned int i) {
@@ -364,7 +367,8 @@ void ChVehicleCosimTerrainNodeSCM::OnInitialize(unsigned int num_objects) {
         vsys_vsg->SetWindowTitle("Terrain Node (SCM)");
         vsys_vsg->SetWindowSize(ChVector2<int>(1280, 720));
         vsys_vsg->SetWindowPosition(ChVector2<int>(100, 100));
-        vsys_vsg->SetUseSkyBox(true);
+        vsys_vsg->SetUseSkyBox(false);
+        vsys_vsg->SetClearColor(ChColor(0.455f, 0.525f, 0.640f));
         vsys_vsg->AddCamera(m_cam_pos, ChVector<>(0, 0, 0));
         vsys_vsg->SetCameraAngleDeg(40);
         vsys_vsg->SetLightIntensity(1.0f);
@@ -451,8 +455,13 @@ void ChVehicleCosimTerrainNodeSCM::OnRender() {
         MPI_Abort(MPI_COMM_WORLD, 1);
 
     if (m_track) {
-        auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[0]);  // proxy for first object
-        ChVector<> cam_point = proxy->bodies[0]->GetPos();                  // position of first body in proxy set
+        ChVector<> cam_point;
+        if (auto proxy_b = std::dynamic_pointer_cast<ProxyBodySet>(m_proxies[0])) {
+            cam_point = proxy_b->bodies[0]->GetPos();
+        } else if (auto proxy_m = std::dynamic_pointer_cast<ProxyMesh>(m_proxies[0])) {
+            cam_point = proxy_m->ind2ptr_map[0]->GetPos();
+        }
+
         m_vsys->UpdateCamera(m_cam_pos, cam_point);
     }
 
