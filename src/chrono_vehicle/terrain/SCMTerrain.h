@@ -26,7 +26,6 @@
 
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/physics/ChBody.h"
-#include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChLoadsBody.h"
 #include "chrono/physics/ChSystem.h"

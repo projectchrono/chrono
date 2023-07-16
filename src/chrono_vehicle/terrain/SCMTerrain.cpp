@@ -29,6 +29,7 @@
 
 #include "chrono/physics/ChMaterialSurfaceNSC.h"
 #include "chrono/physics/ChMaterialSurfaceSMC.h"
+#include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/utils/ChConvexHull.h"
