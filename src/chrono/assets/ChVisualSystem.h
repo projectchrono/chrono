@@ -135,6 +135,12 @@ class ChApi ChVisualSystem {
     /// The file extension determines the image format.
     virtual void WriteImageToFile(const std::string& filename) {}
 
+    /// Set output directory for saving frame snapshots (default: ".").
+    void SetImageOutputDirectory(const std::string& dir) { m_image_dir = dir; }
+
+    /// Enable/disable writing of frame snapshots to file.
+    void SetImageOutput(bool val) { m_write_images = val; }
+
     /// Enable modal analysis visualization.
     /// If supported, visualize an oscillatory motion of the n-th mode (if the associated system contains a
     /// ChModalAssembly).
@@ -156,7 +162,7 @@ class ChApi ChVisualSystem {
     ChSystem& GetSystem(int i) const { return *m_systems[i]; }
 
   protected:
-    ChVisualSystem() {}
+    ChVisualSystem();
 
     /// Perform any necessary setup operations at the beginning of a time step.
     /// Called by an associated ChSystem.
@@ -171,6 +177,9 @@ class ChApi ChVisualSystem {
     virtual void OnClear(ChSystem* sys) {}
 
     std::vector<ChSystem*> m_systems;  ///< associated Chrono system(s)
+
+    bool m_write_images;      ///< if true, save snapshots
+    std::string m_image_dir;  ///< directory for image files
 
     friend class ChSystem;
 };
