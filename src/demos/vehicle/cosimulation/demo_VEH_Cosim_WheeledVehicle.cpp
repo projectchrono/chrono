@@ -150,13 +150,14 @@ int main(int argc, char** argv) {
     // Simulation parameters
     double step_size = 1e-3;
     int nthreads_terrain = 4;
-    double sim_time = 20;
+    double sim_time = 8.0;
     double output_fps = 100;
     double render_fps = 100;
     bool renderRT = true;
     bool renderPP = false;
+    bool writeRT = true;
     std::string suffix = "";
-    bool verbose = true;
+    bool verbose = false;
 
     // If use_DBP_rig=true, attach a drawbar pull rig to the vehicle
     bool use_DBP_rig = false;
@@ -229,7 +230,7 @@ int main(int argc, char** argv) {
         vehicle->SetNumThreads(1);
         vehicle->SetOutDir(out_dir, suffix);
         if (renderRT)
-            vehicle->EnableRuntimeVisualization(render_fps);
+            vehicle->EnableRuntimeVisualization(render_fps, writeRT);
         if (renderPP)
             vehicle->EnablePostprocessVisualization(render_fps);
         vehicle->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
@@ -271,7 +272,7 @@ int main(int argc, char** argv) {
                 terrain->SetNumThreads(nthreads_terrain);
                 terrain->SetOutDir(out_dir, suffix);
                 if (renderRT)
-                    terrain->EnableRuntimeVisualization(render_fps);
+                    terrain->EnableRuntimeVisualization(render_fps, writeRT);
                 if (renderPP)
                     terrain->EnablePostprocessVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
