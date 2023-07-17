@@ -151,7 +151,7 @@ __global__ void Calc_Rigid_FSI_Forces_Torques_D(Real3* rigid_FSI_ForcesD,
     if (std::is_same<Real, double>::value) {
         atomicAdd_double((double*)&(rigid_FSI_ForcesD[RigidIndex].x), Force.x);
         atomicAdd_double((double*)&(rigid_FSI_ForcesD[RigidIndex].y), Force.y);
-        atomicAdd_double((double*)&(rigid_FSI_ForcesD[RigidIndex].z), derivVelRhoD[rigidMarkerIndex].z);
+        atomicAdd_double((double*)&(rigid_FSI_ForcesD[RigidIndex].z), Force.z);
     } else {
         atomicAdd((float*)&(rigid_FSI_ForcesD[RigidIndex].x), Force.x);
         atomicAdd((float*)&(rigid_FSI_ForcesD[RigidIndex].y), Force.y);
