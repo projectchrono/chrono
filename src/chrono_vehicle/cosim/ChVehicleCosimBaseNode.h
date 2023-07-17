@@ -236,8 +236,16 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     /// Get the Chrono system that holds the visualization shapes *used only for post-processing export).
     virtual ChSystem* GetSystemPostprocess() const = 0;
 
+    /// Utility function to pack and send a struct with geometry information.
     void SendGeometry(const ChVehicleGeometry& geom, int dest) const;
+
+    /// Utility function to receive and unpack a struct with geometry information.
     void RecvGeometry(ChVehicleGeometry& geom, int source) const;
+
+    /// Utility function to display a progress bar to the terminal.
+    /// Displays an ASCII progress bar for the quantity x which must be a value between 0 and n.
+    /// The width 'w' represents the number of '=' characters corresponding to 100%.
+    void ProgressBar(unsigned int x, unsigned int n, unsigned int w = 50);
 
     int m_rank;  ///< MPI rank of this node (in MPI_COMM_WORLD)
 

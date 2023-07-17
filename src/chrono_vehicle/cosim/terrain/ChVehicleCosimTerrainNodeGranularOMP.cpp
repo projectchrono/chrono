@@ -39,6 +39,13 @@
 
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularOMP.h"
 
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+#endif
+#ifdef CHRONO_OPENGL
+    #include "chrono_opengl/ChVisualSystemOpenGL.h"
+#endif
+
 using std::cout;
 using std::endl;
 
@@ -116,11 +123,6 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(doubl
 
     // Set default number of threads
     m_system->SetNumThreads(1);
-
-    // Create OpenGL visualization system
-#ifdef CHRONO_OPENGL
-    m_vsys = new opengl::ChVisualSystemOpenGL;
-#endif
 }
 
 ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method,
@@ -171,19 +173,9 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChCon
 
     // Read granular OMP terrain parameters from provided specfile
     SetFromSpecfile(specfile);
-
-    // Create OpenGL visualization system
-#ifdef CHRONO_OPENGL
-    m_vsys = new opengl::ChVisualSystemOpenGL;
-#endif
 }
 
-ChVehicleCosimTerrainNodeGranularOMP::~ChVehicleCosimTerrainNodeGranularOMP() {
-    delete m_system;
-#ifdef CHRONO_OPENGL
-    delete m_vsys;
-#endif
-}
+ChVehicleCosimTerrainNodeGranularOMP::~ChVehicleCosimTerrainNodeGranularOMP() {}
 
 // -----------------------------------------------------------------------------
 
@@ -552,20 +544,6 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
         m_system->AddBody(body);
     }
 
-#ifdef CHRONO_OPENGL
-    // Create the visualization window
-    if (m_renderRT) {
-        m_vsys->AttachSystem(m_system);
-        m_vsys->SetWindowTitle("Terrain Node (GranularOMP)");
-        m_vsys->SetWindowSize(1280, 720);
-        m_vsys->SetRenderMode(opengl::WIREFRAME);
-        m_vsys->Initialize();
-        m_vsys->AddCamera(m_cam_pos, ChVector<>(0, 0, 0));
-        m_vsys->SetCameraProperties(0.05f);
-        m_vsys->SetCameraVertical(CameraVerticalDir::Z);
-    }
-#endif
-
     // Write file with terrain node settings
     std::ofstream outf;
     outf.open(m_node_out_dir + "/settings.info", std::ios::out);
@@ -634,10 +612,13 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
 
     // Simulate settling of granular terrain
     int output_steps = (int)std::ceil(1 / (m_settling_fps * m_step_size));
+    int total_steps = (int)std::ceil(m_time_settling / m_step_size);
     int output_frame = 0;
     int n_contacts;
     int max_contacts = 0;
     int cum_contacts = 0;
+
+    std::cout << "[Terrain node] START settling" << endl;
 
     int steps = 0;
     double time = 0;
@@ -675,6 +656,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
 
         // Stopping criteria
         if (m_fixed_settling_duration) {
+            ProgressBar(steps, total_steps);
             if (time >= m_time_settling) {
                 KE = CalcTotalKineticEnergy();
                 break;
@@ -686,10 +668,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
         }
     }
 
-    if (m_verbose) {
-        cout << endl;
-        cout << "[Terrain node] settling time = " << m_cum_sim_time << endl;
-    }
+    cout << endl;
+    cout << "[Terrain node] settling time = " << m_cum_sim_time << endl;
 
     // Find "height" of granular material after settling
     m_init_height = CalcCurrentHeight() + m_radius_g;
@@ -847,6 +827,44 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateRigidProxy(unsigned int i) {
     proxy->AddBody(body, 0);
 
     m_proxies[i] = proxy;
+}
+
+// Once all proxy bodies are created, complete construction of the underlying system.
+void ChVehicleCosimTerrainNodeGranularOMP::OnInitialize(unsigned int num_objects) {
+    ChVehicleCosimTerrainNodeChrono::OnInitialize(num_objects);
+
+    // Create the visualization window
+    if (m_renderRT) {
+#if defined(CHRONO_VSG)
+        auto vsys_vsg = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+        vsys_vsg->AttachSystem(m_system);
+        vsys_vsg->SetWindowTitle("Terrain Node (GranularOMP)");
+        vsys_vsg->SetWindowSize(ChVector2<int>(1280, 720));
+        vsys_vsg->SetWindowPosition(ChVector2<int>(100, 100));
+        vsys_vsg->SetUseSkyBox(false);
+        vsys_vsg->SetClearColor(ChColor(0.455f, 0.525f, 0.640f));
+        vsys_vsg->AddCamera(m_cam_pos, ChVector<>(0, 0, 0));
+        vsys_vsg->SetCameraAngleDeg(40);
+        vsys_vsg->SetLightIntensity(1.0f);
+        vsys_vsg->SetImageOutputDirectory(m_node_out_dir + "/images");
+        vsys_vsg->SetImageOutput(m_writeRT);
+        vsys_vsg->Initialize();
+
+        m_vsys = vsys_vsg;
+#elif defined(CHRONO_OPENGL)
+        auto vsys_gl = chrono_types::make_shared<opengl::ChVisualSystemOpenGL>();
+        vsys_gl->AttachSystem(m_system);
+        vsys_gl->SetWindowTitle("Terrain Node (GranularOMP)");
+        vsys_gl->SetWindowSize(1280, 720);
+        vsys_gl->SetRenderMode(opengl::WIREFRAME);
+        vsys_gl->Initialize();
+        vsys_gl->AddCamera(m_cam_pos, ChVector<>(0, 0, 0));
+        vsys_gl->SetCameraProperties(0.05f);
+        vsys_gl->SetCameraVertical(CameraVerticalDir::Z);
+
+        m_vsys = vsys_gl;
+#endif
+    }
 }
 
 // Set position, orientation, and velocity of proxy bodies based on mesh faces.
@@ -1024,13 +1042,12 @@ void ChVehicleCosimTerrainNodeGranularOMP::OnAdvance(double step_size) {
 }
 
 void ChVehicleCosimTerrainNodeGranularOMP::OnRender() {
-#ifdef CHRONO_OPENGL
     if (!m_vsys)
         return;
     if (!m_vsys->Run())
         MPI_Abort(MPI_COMM_WORLD, 1);
 
-    if (m_track) {
+    if (m_track && !m_proxies.empty()) {
         auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[0]);  // proxy for first object
         ChVector<> cam_point = proxy->bodies[0]->GetPos();                  // position of first body in proxy set
         m_vsys->UpdateCamera(m_cam_pos, cam_point);
@@ -1039,7 +1056,6 @@ void ChVehicleCosimTerrainNodeGranularOMP::OnRender() {
     m_vsys->BeginScene();
     m_vsys->Render();
     m_vsys->EndScene();
-#endif
 }
 
 // -----------------------------------------------------------------------------

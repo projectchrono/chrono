@@ -19,6 +19,8 @@
 //
 // =============================================================================
 
+#include <iomanip>
+
 #include "chrono_vehicle/cosim/ChVehicleCosimBaseNode.h"
 
 using std::cout;
@@ -542,6 +544,21 @@ void ChVehicleCosimBaseNode::RecvGeometry(ChVehicleGeometry& geom, int source) c
 
         geom.m_coll_meshes.push_back(ChVehicleGeometry::TrimeshShape(pos, trimesh, 0.0, matID));
     }
+}
+
+void ChVehicleCosimBaseNode::ProgressBar(unsigned int x, unsigned int n, unsigned int w) {
+    if ((x != n) && (x % (n / 100 + 1) != 0))
+        return;
+
+    float ratio = x / (float)n;
+    unsigned int c = (unsigned int)(ratio * w);
+
+    std::cout << std::setw(3) << (int)(ratio * 100) << "% [";
+    for (unsigned int ix = 0; ix < c; ix++)
+        std::cout << "=";
+    for (unsigned int ix = c; ix < w; ix++)
+        std::cout << " ";
+    std::cout << "]\r" << std::flush;
 }
 
 }  // end namespace vehicle
