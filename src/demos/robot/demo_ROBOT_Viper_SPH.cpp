@@ -27,7 +27,7 @@
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
 #include "chrono_fsi/ChSystemFsi.h"
-
+#include "chrono_fsi/visualization/ChFsiVisualization.h"
 #include "chrono/assets/ChVisualSystem.h"
 #ifdef CHRONO_OPENGL
     #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
@@ -70,7 +70,7 @@ double total_time = 20.0;
 double dT = 2.5e-4;
 
 // Save data as csv files to see the results off-line using Paraview
-bool output = false;
+bool output = true;
 int out_fps = 20;
 
 // Enable/disable run-time visualization (if Chrono::OpenGL is available)
@@ -84,7 +84,7 @@ std::shared_ptr<Viper> rover;
 ViperWheelType wheel_type = ViperWheelType::RealWheel;
 
 // Use below mesh file if the wheel type is real VIPER wheel
-std::string wheel_obj = "robot/viper/obj/viper_wheel.obj";
+std::string wheel_obj = "robot/viper/obj/viper_simplewheel.obj";
 
 std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_method) {
     float mu = 0.4f;   // coefficient of friction
@@ -239,6 +239,11 @@ int main(int argc, char* argv[]) {
         vis_type = ChVisualSystem::Type::OpenGL;
 #endif
 
+#if !defined(CHRONO_OPENGL) && !defined(CHRONO_VSG)
+    render = false;
+#endif
+
+
     std::shared_ptr<ChFsiVisualization> visFSI;
     if (render) {
         switch (vis_type) {
@@ -255,13 +260,15 @@ int main(int argc, char* argv[]) {
             }
         }
 
+
         visFSI->SetTitle("Viper on SPH terrain");
+        visFSI->SetSize(1280, 720);        
         visFSI->AddCamera(ChVector<>(0, -3 * byDim, bzDim), ChVector<>(0, 0, 0));
         visFSI->SetCameraMoveScale(1.0f);
         visFSI->EnableBoundaryMarkers(true);
         visFSI->EnableRigidBodyMarkers(false);
-        visFSI->SetRenderMode(ChFsiVisualizationGL::RenderMode::SOLID);
-        visFSI->SetParticleRenderMode(ChFsiVisualizationGL::RenderMode::SOLID);
+        visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
+        visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetSPHColorCallback(
             chrono_types::make_shared<HeightColorCallback>(ChColor(0.10f, 0.40f, 0.65f), 0, bzDim));
         visFSI->AttachSystem(&sysMBS);
