@@ -2,15 +2,14 @@
 {
     "Type": "GRANULAR_SPH",
 
-    "Patch dimensions": {
-        "Length": 4,
-        "Width": 2
+    "Patch data files": {
+        "SPH particles file": "terrain/sph/S-lane_RMS/sph_particles.txt",
+        "BCE markers file": "terrain/sph/S-lane_RMS/bce_markers.txt"
     },
 
     "Granular material": {
-        "Radius": 0.03,
-        "Density": 1700,
-        "Depth": 0.5
+        "Radius": 0.01,
+        "Density": 1700
     },
 
     "Output Folder": "demo_tire_rig",
@@ -25,13 +24,13 @@
     "Elastic SPH": {
         "Poisson ratio": 0.3,
         "Young modulus": 2.0e6,
-        "cohesion coefficient": 1e1,
+        "cohesion coefficient": 5e3,
         "Artificial viscosity alpha": 0.5,
         "Artificial viscosity beta": 0.0,
         "I0": 0.04,
-        "mu_s": 0.7,
-        "mu_2": 0.7,
-        "particle diameter": 0.02,
+        "mu_s": 0.8,
+        "mu_2": 0.8,
+        "particle diameter": 0.01,
         "kernel threshold": 0.8
     },
 

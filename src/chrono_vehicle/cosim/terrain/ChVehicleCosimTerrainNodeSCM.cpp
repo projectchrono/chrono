@@ -59,6 +59,7 @@ static const double max_sinkage = 0.15;
 // -----------------------------------------------------------------------------
 ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(double length, double width)
     : ChVehicleCosimTerrainNodeChrono(Type::SCM, length, width, ChContactMethod::SMC),
+      m_terrain(nullptr),
       m_radius_p(5e-3),
       m_use_checkpoint(false) {
     // Create system and set default method-specific solver settings
@@ -72,12 +73,17 @@ ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(double length, double
 }
 
 ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(const std::string& specfile)
-    : ChVehicleCosimTerrainNodeChrono(Type::SCM, 0, 0, ChContactMethod::SMC), m_use_checkpoint(false) {
+    : ChVehicleCosimTerrainNodeChrono(Type::SCM, 0, 0, ChContactMethod::SMC),
+      m_terrain(nullptr),
+      m_use_checkpoint(false) {
     // Create system and set default method-specific solver settings
     m_system = new ChSystemSMC;
 
     // Solver settings independent of method type
     m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
+
+    // Set default number of threads
+    m_system->SetNumThreads(1, 1, 1);
 
     // Read SCM parameters from provided specfile
     SetFromSpecfile(specfile);

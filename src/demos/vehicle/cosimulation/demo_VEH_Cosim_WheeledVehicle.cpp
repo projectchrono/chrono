@@ -34,6 +34,9 @@
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeRigid.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeRigid.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeSCM.h"
+#ifdef CHRONO_FSI
+    #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularSPH.h"
+#endif
 
 using std::cout;
 using std::cin;
@@ -81,8 +84,9 @@ auto vehicle_model = Polaris_Model();
 // =============================================================================
 // Specification of a terrain model from JSON file
 
-std::string terrain_specfile = "cosim/terrain/scm_soft.json";
 ////std::string terrain_specfile = "cosim/terrain/rigid.json";
+std::string terrain_specfile = "cosim/terrain/scm_soft.json";
+////std::string terrain_specfile = "cosim/terrain/granular_sph.json";
 
 // =============================================================================
 
@@ -164,7 +168,7 @@ int main(int argc, char** argv) {
 
     double terrain_length = 40;
     double terrain_width = 20;
-    ChVector<> init_loc(-15, -8, 0.5);
+    ChVector<> init_loc(-terrain_length / 2 + 5, -terrain_width / 2 + 2, 0.5);
     if (use_DBP_rig) {
         terrain_length = 20;
         terrain_width = 5;
@@ -191,12 +195,7 @@ int main(int argc, char** argv) {
 
     // Peek in spec file and extract terrain type
     auto terrain_type = ChVehicleCosimTerrainNodeChrono::GetTypeFromSpecfile(vehicle::GetDataFile(terrain_specfile));
-    if (terrain_type != ChVehicleCosimTerrainNodeChrono::Type::RIGID &&
-        terrain_type != ChVehicleCosimTerrainNodeChrono::Type::SCM) {
-        if (rank == 0)
-            cout << "\n\nTerrain type " << ChVehicleCosimTerrainNodeChrono::GetTypeAsString(terrain_type)
-                 << " NOT supported.\nUse Rigid or SCM.\n\n " << endl;
-
+    if (terrain_type == ChVehicleCosimTerrainNodeChrono::Type::UNKNOWN) {
         MPI_Finalize();
         return 1;
     }
@@ -204,6 +203,7 @@ int main(int argc, char** argv) {
     // Create the node (vehicle, terrain, or tire node, depending on rank).
     ChVehicleCosimBaseNode* node = nullptr;
 
+    // VEHICLE node
     if (rank == MBS_NODE_RANK) {
         if (verbose)
             cout << "[Vehicle node] rank = " << rank << " running on: " << procname << endl;
@@ -238,13 +238,18 @@ int main(int argc, char** argv) {
             cout << "[Vehicle node] output directory: " << vehicle->GetOutDirName() << endl;
 
         node = vehicle;
-
-    } else if (rank == TERRAIN_NODE_RANK) {
+    } 
+    
+    // TERRAIN node
+    if (rank == TERRAIN_NODE_RANK) {
         if (verbose)
             cout << "[Terrain node] rank = " << rank << " running on: " << procname << endl;
 
         switch (terrain_type) {
             default:
+                cout << "TERRAIN TYPE NOT SUPPORTED!\n" << endl;
+                break;
+
             case ChVehicleCosimTerrainNodeChrono::Type::RIGID: {
                 auto method = ChContactMethod::SMC;
                 auto terrain = new ChVehicleCosimTerrainNodeRigid(method, vehicle::GetDataFile(terrain_specfile));
@@ -282,8 +287,31 @@ int main(int argc, char** argv) {
                 node = terrain;
                 break;
             }
+
+            case ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_SPH: {
+#ifdef CHRONO_FSI
+                auto terrain = new ChVehicleCosimTerrainNodeGranularSPH(vehicle::GetDataFile(terrain_specfile));
+                terrain->SetDimensions(terrain_length, terrain_width);
+                terrain->SetVerbose(verbose);
+                terrain->SetStepSize(step_size);
+                terrain->SetOutDir(out_dir, suffix);
+                if (renderRT)
+                    terrain->EnableRuntimeVisualization(render_fps, writeRT);
+                if (renderPP)
+                    terrain->EnablePostprocessVisualization(render_fps);
+                terrain->SetCameraPosition(ChVector<>(0, 2 * terrain_width, 1.0));
+                if (verbose)
+                    cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
+
+                node = terrain;
+#endif
+                break;
+            }
         }
-    } else {
+    }
+
+    // TIRE nodes
+    if (rank > TERRAIN_NODE_RANK) {
         if (verbose)
             cout << "[Tire node   ] rank = " << rank << " running on: " << procname << endl;
 

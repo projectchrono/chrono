@@ -404,7 +404,6 @@ int main(int argc, char** argv) {
                 auto terrain = new ChVehicleCosimTerrainNodeGranularSPH(terrain_specfile);
                 terrain->SetDimensions(terrain_length, terrain_width);
                 terrain->SetVerbose(verbose);
-                std::string param_filename = GetChronoDataFile("fsi/input_json/demo_tire_rig.json");
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
                 if (renderRT)

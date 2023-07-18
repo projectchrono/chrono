@@ -242,6 +242,7 @@ void SPHTerrain::Construct(double length,
     }
 
     if (m_verbose) {
+        cout << "  Particle grid size: " << Nx << " " << Ny << " " << Nz << endl;
         cout << "  Num. SPH particles: " << m_sph.size() << endl;
         cout << "  Num. BCE markers: " << m_bce.size() << endl;
     }
