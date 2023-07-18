@@ -155,8 +155,11 @@ int main(int argc, char** argv) {
     double step_size = 1e-3;
     int nthreads_terrain = 4;
     double sim_time = 8.0;
+
     double output_fps = 100;
     double render_fps = 100;
+
+    bool output = false;
     bool renderRT = true;
     bool renderPP = false;
     bool writeRT = true;
@@ -345,7 +348,7 @@ int main(int argc, char** argv) {
             cout << "Node" << rank << " sim time = " << node->GetStepExecutionTime() << "  ["
                  << node->GetTotalExecutionTime() << "]" << endl;
 
-        if (is % output_steps == 0) {
+        if (output && is % output_steps == 0) {
             node->OutputData(output_frame);
             node->OutputVisualizationData(output_frame);
             output_frame++;

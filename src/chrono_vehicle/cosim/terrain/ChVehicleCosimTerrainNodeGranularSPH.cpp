@@ -77,8 +77,8 @@ ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(doubl
     m_system->SetNumThreads(1);
 
     // Default granular material properties
-    m_radius_g = 0.01;
-    m_rho_g = 2000;
+    m_radius = 0.01;
+    m_density = 2000;
     m_cohesion = 0;
 }
 
@@ -128,8 +128,9 @@ void ChVehicleCosimTerrainNodeGranularSPH::SetFromSpecfile(const std::string& sp
         m_terrain_type = SphTerrainType::PATCH;
     }
 
-    m_radius_g = d["Granular material"]["Radius"].GetDouble();
-    m_rho_g = d["Granular material"]["Density"].GetDouble();
+    m_radius = d["Granular material"]["Radius"].GetDouble();
+    m_density = d["Granular material"]["Density"].GetDouble();
+    m_cohesion = d["Granular material"]["Cohesion"].GetDouble();
     m_init_height = m_depth;
 
     // Cache the name of the specfile (used when the SPHTerrain is actually constructed)
@@ -137,8 +138,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::SetFromSpecfile(const std::string& sp
 }
 
 void ChVehicleCosimTerrainNodeGranularSPH::SetGranularMaterial(double radius, double density, double cohesion) {
-    m_radius_g = radius;
-    m_rho_g = density;
+    m_radius = radius;
+    m_density = density;
     m_cohesion = cohesion;
 }
 
@@ -163,7 +164,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         cout << "[Terrain node] GRANULAR_SPH " << endl;
 
     // Create the SPH terrain
-    double initSpace0 = 2 * m_radius_g;
+    double initSpace0 = 2 * m_radius;
     m_terrain = new SPHTerrain(*m_system, initSpace0);
     //////m_terrain->SetVerbose(true);
     ChSystemFsi& sysFSI = m_terrain->GetSystemFSI();
@@ -173,12 +174,13 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         sysFSI.ReadParametersFromFile(m_specfile);
 
     // Reload simulation parameters to FSI system
-    sysFSI.SetStepSize(m_step_size, m_step_size);
+    sysFSI.SetStepSize(m_step_size);
+    sysFSI.SetDiscreType(false, false);
+    sysFSI.SetOutputLength(0);
+
     sysFSI.Set_G_acc(ChVector<>(0, 0, m_gacc));
-    sysFSI.SetDensity(m_rho_g);
+    sysFSI.SetDensity(m_density);
     sysFSI.SetCohesionForce(m_cohesion);
-    sysFSI.SetInitialSpacing(initSpace0);
-    sysFSI.SetKernelLength(initSpace0);
 
     // Set the time integration type and the linear solver type (only for ISPH)
     sysFSI.SetSPHMethod(FluidDynamics::WCSPH);
@@ -279,7 +281,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateRigidProxy(unsigned int i) {
     auto num_obstacles = m_obstacles.size();
     if (num_obstacles > 0) {
         for (auto& mesh : m_geometry[i_shape].m_coll_meshes)
-            mesh.m_radius = m_radius_g;
+            mesh.m_radius = m_radius;
         m_geometry[i_shape].CreateCollisionShapes(body, 1, m_method);
         body->GetCollisionModel()->SetFamily(1);
         body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);

@@ -143,7 +143,7 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     /// Output files will be created in subdirectories named
     ///    dir_name/[NodeName]suffix/
     /// where [NodeName] is "MBS", "TIRE", or "TERRAIN".
-    void SetOutDir(const std::string& dir_name, const std::string& suffix);
+    void SetOutDir(const std::string& dir_name, const std::string& suffix = "");
 
     /// Enable/disable verbose messages during simulation (default: true).
     void SetVerbose(bool verbose) { m_verbose = verbose; }

@@ -41,7 +41,7 @@ namespace vehicle {
 /// Definition of the SPH continuum representation of granular terrain node (using Chrono::FSI).
 class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosimTerrainNodeChrono {
   public:
-    /// Create a Chrono::FSI granular SPH terrain node. 
+    /// Create a Chrono::FSI granular SPH terrain node.
     /// No SPH parameters are set.
     ChVehicleCosimTerrainNodeGranularSPH(double length, double width);
 
@@ -86,8 +86,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
     std::string m_sph_filename;     ///< name of file with SPH particle positions (FILES type)
     std::string m_bce_filename;     ///< name of file with BCE marker positions (FILES type)
 
-    double m_radius_g;  ///< radius of one particle of granular material
-    double m_rho_g;     ///< particle material density
+    double m_radius;    ///< radius of one particle of granular material
+    double m_density;   ///< particle material density
     double m_cohesion;  ///< granular material cohesion
 
     ChVector<> m_aabb_min;     ///< particles AABB corner

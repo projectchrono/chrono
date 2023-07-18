@@ -239,6 +239,8 @@ void ChVehicleCosimWheeledVehicleNode::PreAdvance(double step_size) {
 
 void ChVehicleCosimWheeledVehicleNode::PostAdvance(double step_size) {
     m_vehicle->Advance(step_size);
+    if (m_driver)
+        m_driver->Advance(step_size);
     if (m_vsys)
       m_vsys->Advance(step_size);
 }

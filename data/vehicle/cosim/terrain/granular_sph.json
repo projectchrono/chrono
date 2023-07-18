@@ -10,7 +10,8 @@
 
     "Granular material": {
         "Radius": 0.02,
-        "Density": 1700
+        "Density": 1700,
+        "Cohesion":  10
     },
 
     "Output Folder": "demo_tire_rig",
@@ -25,7 +26,6 @@
     "Elastic SPH": {
         "Poisson ratio": 0.3,
         "Young modulus": 2.0e6,
-        "cohesion coefficient": 1e1,
         "Artificial viscosity alpha": 0.5,
         "Artificial viscosity beta": 0.0,
         "I0": 0.04,
