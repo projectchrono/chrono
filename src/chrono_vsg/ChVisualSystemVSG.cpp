@@ -517,7 +517,7 @@ void ChVisualSystemVSG::SetGuiFontSize(float theSize) {
     m_guiFontSize = theSize;
 }
 
-void ChVisualSystemVSG::SetWindowSize(ChVector2<int> size) {
+void ChVisualSystemVSG::SetWindowSize(const ChVector2<int>& size) {
     if (m_initialized) {
         GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
         return;
@@ -535,7 +535,7 @@ void ChVisualSystemVSG::SetWindowSize(int width, int height) {
     m_windowHeight = height;
 }
 
-void ChVisualSystemVSG::SetWindowPosition(ChVector2<int> pos) {
+void ChVisualSystemVSG::SetWindowPosition(const ChVector2<int>& pos) {
     if (m_initialized) {
         GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
         return;
@@ -553,7 +553,7 @@ void ChVisualSystemVSG::SetWindowPosition(int from_left, int from_top) {
     m_windowY = from_top;
 }
 
-void ChVisualSystemVSG::SetWindowTitle(std::string title) {
+void ChVisualSystemVSG::SetWindowTitle(const std::string& title) {
     if (m_initialized) {
         GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
         return;
@@ -561,7 +561,7 @@ void ChVisualSystemVSG::SetWindowTitle(std::string title) {
     m_windowTitle = title;
 }
 
-void ChVisualSystemVSG::SetClearColor(ChColor color) {
+void ChVisualSystemVSG::SetClearColor(const ChColor& color) {
     if (m_initialized) {
         GetLog() << "Function '" << __func__ << "' must be used before initialization!\n";
         return;
