@@ -47,7 +47,8 @@ public:
         max_iterations(max_iters),
         tolerance(mtolerance),
         verbose(mverbose),
-        sigma(msigma)
+        sigma(msigma),
+        scaleCq(scaleCq)
     {};
 
     virtual ~ChEigenvalueSolverSettings() {};
