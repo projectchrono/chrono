@@ -384,6 +384,14 @@ void ChIrrGUI::SetModalSpeed(double val) {
     g_modal_speed->setText(irr::core::stringw(message).c_str());
 }
 
+void ChIrrGUI::SetModalModesMax(int maxModes)
+{
+    int newMaxModes = std::max(maxModes, 1);
+    g_modal_mode_n->setMax(newMaxModes);
+    modal_mode_n = std::min(modal_mode_n, newMaxModes);
+    modal_phi = 0.0;
+}
+
 // -----------------------------------------------------------------------------
 
 void ChIrrGUI::DumpSystemMatrices() {
