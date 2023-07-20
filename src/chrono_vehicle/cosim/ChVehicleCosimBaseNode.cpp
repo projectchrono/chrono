@@ -302,6 +302,7 @@ void ChVehicleCosimBaseNode::Render(double step_size) {
     }
 
     if (m_renderPP && GetSystemPostprocess()) {
+#ifdef CHRONO_POSTPROCESS
         if (!renderPP_initialized) {
             m_blender = chrono_types::make_shared<postprocess::ChBlender>(GetSystemPostprocess());
             m_blender->SetBlenderUp_is_ChronoZ();
@@ -317,6 +318,7 @@ void ChVehicleCosimBaseNode::Render(double step_size) {
             m_blender->ExportData();
             renderPP_time += m_renderPP_step;
         }
+#endif
     }
 }
 

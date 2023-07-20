@@ -33,7 +33,7 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChVehicleGeometry.h"
 
-#if defined(CHRONO_POSTPROCESS)
+#ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChBlender.h"
 #endif
 
@@ -263,11 +263,13 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     bool m_writeRT;          ///< if true, write images to file
 
     // Post-process visualization
-    bool m_renderPP;                                    ///< if true, save data for post-processing
-    bool m_renderPP_all;                                ///< if true, save data at all frames
-    double m_renderPP_step;                             ///< time step between post-processing save frames
+    bool m_renderPP;         ///< if true, save data for post-processing
+    bool m_renderPP_all;     ///< if true, save data at all frames
+    double m_renderPP_step;  ///< time step between post-processing save frames
+#ifdef CHRONO_POSTPROCESS
     std::shared_ptr<postprocess::ChBlender> m_blender;  ///< Blender exporter
-    
+#endif
+
     // Camera settings
     bool m_track;             ///< track objects
     ChVector<> m_cam_pos;     ///< camera location
