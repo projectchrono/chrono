@@ -64,8 +64,8 @@ set(CE_VSG_SHAPES_FILES
     shapes/GetConeShapeData.h
     shapes/GetCylinderShapeData.cpp
     shapes/GetCylinderShapeData.h
-    shapes/GetDiceShapeData.cpp
-    shapes/GetDiceShapeData.h
+    shapes/GetDieShapeData.cpp
+    shapes/GetDieShapeData.h
     shapes/GetSphereShapeData.cpp
     shapes/GetSphereShapeData.h
     shapes/GetSurfaceShapeData.cpp
