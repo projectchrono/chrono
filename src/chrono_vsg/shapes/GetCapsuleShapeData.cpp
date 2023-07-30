@@ -23,8 +23,7 @@ namespace vsg3d {
 void GetCapsuleShapeData(vsg::ref_ptr<vsg::vec3Array>& vertices,
                          vsg::ref_ptr<vsg::vec3Array>& normals,
                          vsg::ref_ptr<vsg::vec2Array>& texcoords,
-                         vsg::ref_ptr<vsg::ushortArray>& indices,
-                         float& boundingSphereRadius) {
+                         vsg::ref_ptr<vsg::ushortArray>& indices) {
     vertices = vsg::vec3Array::create({{0, 0, 2},
                                        {0, -0.258819, 1.96593},
                                        {0, -0.5, 1.86603},
@@ -1167,8 +1166,6 @@ void GetCapsuleShapeData(vsg::ref_ptr<vsg::vec3Array>& vertices,
          347, 333, 334, 348, 334, 335, 349, 322, 337, 336, 323, 338, 337, 324, 339, 338, 325, 340, 339, 326, 341, 340,
          327, 342, 341, 328, 343, 342, 329, 344, 343, 330, 345, 344, 331, 346, 345, 332, 347, 346, 333, 348, 347, 334,
          349, 348});
-
-    boundingSphereRadius = 1.1f * 2;
 }
 
 }  // namespace vsg3d

@@ -775,7 +775,6 @@ void ChVisualSystemVSG::Initialize() {
         GetLog() << "****************************************************\n";
     }
 
-    m_shapeBuilder->m_maxAnisotropy = limits.maxSamplerAnisotropy;
     m_window->clearColor() = VkClearColorValue{{m_clearColor.R, m_clearColor.G, m_clearColor.B, 1}};
     m_viewer->addWindow(m_window);
 

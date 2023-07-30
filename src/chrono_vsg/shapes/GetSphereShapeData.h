@@ -33,8 +33,7 @@ namespace vsg3d {
 void GetSphereShapeData(vsg::ref_ptr<vsg::vec3Array>& vertices,
                         vsg::ref_ptr<vsg::vec3Array>& normals,
                         vsg::ref_ptr<vsg::vec2Array>& texcoords,
-                        vsg::ref_ptr<vsg::ushortArray>& indices,
-                        float& boundingSphereRadius);
+                        vsg::ref_ptr<vsg::ushortArray>& indices);
 
 }  // namespace vsg3d
 }  // namespace chrono

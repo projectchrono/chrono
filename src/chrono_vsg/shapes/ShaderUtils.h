@@ -12,27 +12,22 @@
 // Rainer Gericke
 // =============================================================================
 
-#ifndef CH_BOX_SHAPE_DATA_H
-#define CH_BOX_SHAPE_DATA_H
-
-#include <iostream>
-#include <string>
-#include "chrono_vsg/ChApiVSG.h"
-
 #include <vsg/all.h>
 #include <vsgXchange/all.h>
 
-#include "chrono/assets/ChVisualSystem.h"
+#ifndef CH_SHADER_UTILS_H
+#define CH_SHADER_UTILS_H
+
 #include "chrono/assets/ChVisualModel.h"
 
 namespace chrono {
 namespace vsg3d {
-void GetBoxShapeData(vsg::ref_ptr<vsg::vec3Array>& vertices,
-                     vsg::ref_ptr<vsg::vec3Array>& normals,
-                     vsg::ref_ptr<vsg::vec2Array>& texcoords,
-                     vsg::ref_ptr<vsg::ushortArray>& indices);
+
+vsg::ref_ptr<vsg::ShaderSet> createPbrShaderSet(vsg::ref_ptr<const vsg::Options> options, std::shared_ptr<ChVisualMaterial> material);
+vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Options> options,
+                                                  std::shared_ptr<ChVisualMaterial> material);
+vsg::ref_ptr<vsg::PbrMaterialValue> createPbrMaterialFromChronoMaterial(std::shared_ptr<ChVisualMaterial> chronoMat);
 
 }  // namespace vsg3d
 }  // namespace chrono
-
 #endif

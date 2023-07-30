@@ -24,8 +24,7 @@ namespace vsg3d {
 void GetConeShapeData(vsg::ref_ptr<vsg::vec3Array>& vertices,
                       vsg::ref_ptr<vsg::vec3Array>& normals,
                       vsg::ref_ptr<vsg::vec2Array>& texcoords,
-                      vsg::ref_ptr<vsg::ushortArray>& indices,
-                      float& boundingSphereRadius) {
+                      vsg::ref_ptr<vsg::ushortArray>& indices) {
     vertices = vsg::vec3Array::create({{0, 0, 1},
                                        {0, -1, 0},
                                        {0, -1, 0},
@@ -348,9 +347,6 @@ void GetConeShapeData(vsg::ref_ptr<vsg::vec3Array>& vertices,
          76, 81, 80, 77, 82, 81, 78, 83, 82, 80, 81, 85, 81, 82, 86, 82, 83, 87, 80, 85, 84, 81, 86, 85, 82, 87, 86,
          84, 85, 89, 85, 86, 90, 86, 87, 91, 84, 89, 88, 85, 90, 89, 86, 91, 90, 88, 89, 93, 89, 90, 94, 90, 91, 95,
          88, 93, 92, 89, 94, 93, 90, 95, 94, 92, 93, 97, 93, 94, 98, 94, 95, 99, 92, 97, 96, 93, 98, 97, 94, 99, 98});
-
-    // bounding sphere radius > sqrt(a^2+a^2+a^2)
-    boundingSphereRadius = 1.1f * sqrt(3.0);
 }
 
 }  // namespace vsg3d

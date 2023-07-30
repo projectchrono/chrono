@@ -20,8 +20,7 @@ namespace vsg3d {
 void GetSphereShapeData(vsg::ref_ptr<vsg::vec3Array>& vertices,
                         vsg::ref_ptr<vsg::vec3Array>& normals,
                         vsg::ref_ptr<vsg::vec2Array>& texcoords,
-                        vsg::ref_ptr<vsg::ushortArray>& indices,
-                        float& boundingSphereRadius) {
+                        vsg::ref_ptr<vsg::ushortArray>& indices) {
     vertices = vsg::vec3Array::create({{0, 0, 1},
                                        {0.258819, 0, 0.965926},
                                        {0.5, 0, 0.866025},
@@ -1077,9 +1076,6 @@ void GetSphereShapeData(vsg::ref_ptr<vsg::vec3Array>& vertices,
          306, 319, 306, 307, 320, 307, 308, 321, 308, 309, 322, 309, 310, 323, 310, 311, 324, 300, 314, 313, 301, 315,
          314, 302, 316, 315, 303, 317, 316, 304, 318, 317, 305, 319, 318, 306, 320, 319, 307, 321, 320, 308, 322, 321,
          309, 323, 322, 310, 324, 323});
-
-    // bounding sphere radius > 1.0
-    boundingSphereRadius = 1.1f;
 }
 
 }  // namespace vsg3d

@@ -48,7 +48,6 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
 
     vsg::ref_ptr<vsg::Options> m_options;
     vsg::ref_ptr<vsg::SharedObjects> m_sharedObjects;
-    float m_maxAnisotropy = 0.0f;
 
     vsg::ref_ptr<vsg::Group> createPhongShape(BasicShape theShape,
                                               std::shared_ptr<ChVisualMaterial> material,
@@ -131,9 +130,6 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                     vsg::ref_ptr<vsg::GraphicsPipelineConfigurator> pipeConfig,
                                     vsg::Descriptors& descriptors,
                                     std::string& uniformName);
-
-    vsg::ref_ptr<vsg::PbrMaterialValue> createPbrMaterialFromChronoMaterial(
-        std::shared_ptr<ChVisualMaterial> chronoMat);
 
     vsg::ref_ptr<vsg::PhongMaterialValue> createPhongMaterialFromChronoMaterial(
         std::shared_ptr<ChVisualMaterial> chronoMat);

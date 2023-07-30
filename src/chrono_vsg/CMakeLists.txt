@@ -70,6 +70,8 @@ set(CE_VSG_SHAPES_FILES
     shapes/GetSphereShapeData.h
     shapes/GetSurfaceShapeData.cpp
     shapes/GetSurfaceShapeData.h
+    shapes/ShaderUtils.cpp
+    shapes/ShaderUtils.h
     shapes/ShapeBuilder.cpp
     shapes/ShapeBuilder.h
 )

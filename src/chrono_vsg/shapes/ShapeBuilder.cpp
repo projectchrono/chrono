@@ -13,8 +13,9 @@
 // =============================================================================
 
 #include "chrono_vsg/shapes/ShapeBuilder.h"
+#include "chrono_vsg/shapes/ShaderUtils.h"
 #include "chrono_vsg/shapes/GetBoxShapeData.h"
-#include "chrono_vsg/shapes/GetDiceShapeData.h"
+#include "chrono_vsg/shapes/GetDieShapeData.h"
 #include "chrono_vsg/shapes/GetSphereShapeData.h"
 #include "chrono_vsg/shapes/GetCylinderShapeData.h"
 #include "chrono_vsg/shapes/GetCapsuleShapeData.h"
@@ -42,190 +43,6 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createPhongShape(BasicShape theShape,
                                                         std::shared_ptr<ChSurfaceShape> surface) {
     auto scenegraph = vsg::Group::create();
 
-    vsg::ref_ptr<vsg::ShaderSet> shaderSet;
-
-    auto repeatValues = vsg::vec3Value::create();
-    repeatValues->set(vsg::vec3(material->GetTextureScale().x(), material->GetTextureScale().y(), 1.0f));
-    shaderSet = createTilingPhongShaderSet(m_options);
-
-    auto rasterizationState = vsg::RasterizationState::create();
-    if (wireframe)
-        rasterizationState->polygonMode = VK_POLYGON_MODE_LINE;
-
-    shaderSet->defaultGraphicsPipelineStates.push_back(rasterizationState);
-    auto graphicsPipelineConfig = vsg::GraphicsPipelineConfigurator::create(shaderSet);
-    ////auto& defines = graphicsPipelineConfig->shaderHints->defines;
-
-    // set up graphics pipeline
-    vsg::Descriptors descriptors;
-
-    // set up pass of material
-    auto phongMat = createPhongMaterialFromChronoMaterial(material);
-
-    if (!material->GetKdTexture().empty()) {
-        vsg::Path diffusePath(material->GetKdTexture());
-        std::string uniName("diffuseMap");
-        bool ok = applyTexture(diffusePath, graphicsPipelineConfig, descriptors, uniName);
-        if (!ok)
-            GetLog() << "Could not read texture file: " << diffusePath << "\n";
-        phongMat->value().diffuse.set(1.0, 1.0, 1.0, phongMat->value().alphaMask);
-    }
-
-    if (!material->GetNormalMapTexture().empty()) {
-        vsg::Path normalPath(material->GetNormalMapTexture());
-        std::string uniName("normalMap");
-        bool ok = applyTexture(normalPath, graphicsPipelineConfig, descriptors, uniName);
-        if (!ok)
-            GetLog() << "Could not read texture file: " << normalPath.string() << "\n";
-    }
-
-    if (!material->GetKsTexture().empty()) {
-        vsg::Path specularPath(material->GetKsTexture());
-        std::string uniName("specularMap");
-        bool ok = applyTexture(specularPath, graphicsPipelineConfig, descriptors, uniName);
-        if (!ok)
-            GetLog() << "Could not read texture file: " << specularPath.string() << "\n";
-    }
-
-    {
-        // read ambient occlusion map not considered in Chrono!
-    }
-
-    {
-        // read emissive map not considered in Chrono!
-    }
-
-    {
-        // read displacement map not considered in Chrono
-    }
-
-    // set transparency, if needed
-    vsg::ColorBlendState::ColorBlendAttachments colorBlendAttachments;
-    VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
-    colorBlendAttachment.blendEnable = VK_FALSE;  // default
-    colorBlendAttachment.colorWriteMask =
-        VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-    if (phongMat->value().alphaMask < 1.0) {
-        colorBlendAttachment.blendEnable = VK_TRUE;
-        colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-        colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-        colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-        colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-        colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-        colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
-    }
-    colorBlendAttachments.push_back(colorBlendAttachment);
-    graphicsPipelineConfig->colorBlendState = vsg::ColorBlendState::create(colorBlendAttachments);
-    graphicsPipelineConfig->assignUniform(descriptors, "texrepeat", repeatValues);
-    graphicsPipelineConfig->assignUniform(descriptors, "material", phongMat);
-
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(descriptors);
-
-    vsg::ref_ptr<vsg::vec3Array> vertices;
-    vsg::ref_ptr<vsg::vec3Array> normals;
-    vsg::ref_ptr<vsg::vec2Array> texcoords;
-    vsg::ref_ptr<vsg::ushortArray> indices;
-    float boundingSphereRadius;
-    switch (theShape) {
-        case BOX_SHAPE:
-            GetBoxShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
-            break;
-        case DIE_SHAPE:
-            GetDiceShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
-            break;
-        case SPHERE_SHAPE:
-            GetSphereShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
-            break;
-        case CYLINDER_SHAPE:
-            GetCylinderShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
-            break;
-        case CAPSULE_SHAPE:
-            GetCapsuleShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
-            break;
-        case CONE_SHAPE:
-            GetConeShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
-            break;
-        case SURFACE_SHAPE:
-            GetSurfaceShapeData(surface, vertices, normals, texcoords, indices, boundingSphereRadius);
-            break;
-    }
-    auto colors = vsg::vec4Value::create(vsg::vec4{1.0f, 1.0f, 1.0f, 1.0f});
-
-    vsg::DataList vertexArrays;
-
-    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Vertex", VK_VERTEX_INPUT_RATE_VERTEX, vertices);
-    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Normal", VK_VERTEX_INPUT_RATE_VERTEX, normals);
-    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_TexCoord0", VK_VERTEX_INPUT_RATE_VERTEX, texcoords);
-    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Color", VK_VERTEX_INPUT_RATE_INSTANCE, colors);
-
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(vertexArrays);
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(indices);
-
-    // setup geometry
-    auto drawCommands = vsg::Commands::create();
-    drawCommands->addChild(vsg::BindVertexBuffers::create(graphicsPipelineConfig->baseAttributeBinding, vertexArrays));
-    drawCommands->addChild(vsg::BindIndexBuffer::create(indices));
-    drawCommands->addChild(vsg::DrawIndexed::create(indices->size(), 1, 0, 0, 0));
-
-    if (m_options->sharedObjects) {
-        m_options->sharedObjects->share(drawCommands->children);
-        m_options->sharedObjects->share(drawCommands);
-    }
-
-    // register the ViewDescriptorSetLayout.
-    vsg::ref_ptr<vsg::ViewDescriptorSetLayout> vdsl;
-    if (m_options->sharedObjects)
-        vdsl = m_options->sharedObjects->shared_default<vsg::ViewDescriptorSetLayout>();
-    else
-        vdsl = vsg::ViewDescriptorSetLayout::create();
-    graphicsPipelineConfig->additionalDescriptorSetLayout = vdsl;
-
-    // share the pipeline config and initialize if it's unique
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(graphicsPipelineConfig, [](auto gpc) { gpc->init(); });
-    else
-        graphicsPipelineConfig->init();
-
-    auto descriptorSet = vsg::DescriptorSet::create(graphicsPipelineConfig->descriptorSetLayout, descriptors);
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(descriptorSet);
-
-    auto bindDescriptorSet = vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                                            graphicsPipelineConfig->layout, 0, descriptorSet);
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(bindDescriptorSet);
-
-    auto bindViewDescriptorSets =
-        vsg::BindViewDescriptorSets::create(VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineConfig->layout, 1);
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(bindViewDescriptorSets);
-
-    // create StateGroup as the root of the scene/command graph to hold the GraphicsProgram, and binding of Descriptors
-    // to decorate the whole graph
-    auto stateGroup = vsg::StateGroup::create();
-    stateGroup->add(graphicsPipelineConfig->bindGraphicsPipeline);
-    stateGroup->add(bindDescriptorSet);
-    stateGroup->add(bindViewDescriptorSets);
-
-    // set up model transformation node
-    transform->subgraphRequiresLocalFrustum = false;
-
-    // add drawCommands to StateGroup
-    stateGroup->addChild(drawCommands);
-    if (m_options->sharedObjects) {
-        m_options->sharedObjects->share(stateGroup);
-    }
-    transform->addChild(stateGroup);
-
-    if (m_options->sharedObjects) {
-        m_options->sharedObjects->share(transform);
-    }
-
-    scenegraph->addChild(transform);
-
     if (compileTraversal)
         compileTraversal->compile(scenegraph);
 
@@ -238,209 +55,73 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createPbrShape(BasicShape theShape,
                                                       bool wireframe,
                                                       std::shared_ptr<ChSurfaceShape> surface) {
     auto scenegraph = vsg::Group::create();
+    auto subgraph = createPbrStateGroup(m_options, material);
+    transform->subgraphRequiresLocalFrustum = false;
 
-    vsg::ref_ptr<vsg::ShaderSet> shaderSet;
-
-    auto repeatValues = vsg::vec3Value::create();
-    repeatValues->set(vsg::vec3(material->GetTextureScale().x(), material->GetTextureScale().y(), 1.0f));
-    shaderSet = createTilingPbrShaderSet(m_options);
-
-    auto rasterizationState = vsg::RasterizationState::create();
-    if (wireframe)
-        rasterizationState->polygonMode = VK_POLYGON_MODE_LINE;
-
-    shaderSet->defaultGraphicsPipelineStates.push_back(rasterizationState);
-    auto graphicsPipelineConfig = vsg::GraphicsPipelineConfigurator::create(shaderSet);
-    ////auto& defines = graphicsPipelineConfig->shaderHints->defines;
-
-    // set up graphics pipeline
-    vsg::Descriptors descriptors;
-
-    // set up pass of material
-    auto pbrMat = createPbrMaterialFromChronoMaterial(material);
-
-    if (!material->GetKdTexture().empty()) {
-        vsg::Path diffusePath(material->GetKdTexture());
-        std::string uniName("diffuseMap");
-        bool ok = applyTexture(diffusePath, graphicsPipelineConfig, descriptors, uniName);
-        if (!ok)
-            GetLog() << "Could not read texture file: " << diffusePath << "\n";
-        pbrMat->value().diffuseFactor.set(1.0, 1.0, 1.0, pbrMat->value().alphaMask);
-    }
-
-    if (!material->GetNormalMapTexture().empty()) {
-        vsg::Path normalPath(material->GetNormalMapTexture());
-        std::string uniName("normalMap");
-        bool ok = applyTexture(normalPath, graphicsPipelineConfig, descriptors, uniName);
-        if (!ok)
-            GetLog() << "Could not read texture file: " << normalPath.string() << "\n";
-    }
-
-    if (!material->GetKsTexture().empty()) {
-        vsg::Path specularPath(material->GetKsTexture());
-        std::string uniName("specularMap");
-        bool ok = applyTexture(specularPath, graphicsPipelineConfig, descriptors, uniName);
-        if (!ok)
-            GetLog() << "Could not read texture file: " << specularPath.string() << "\n";
-    }
-
-    if (!material->GetKeTexture().empty()) {
-        vsg::Path emissivePath(material->GetKeTexture());
-        std::string uniName("emissiveMap");
-        bool ok = applyTexture(emissivePath, graphicsPipelineConfig, descriptors, uniName);
-        if (!ok)
-            GetLog() << "Could not read texture file: " << emissivePath.string() << "\n";
-    }
-
-    if (!material->GetDisplacementTexture().empty()) {
-        vsg::Path displacementPath(material->GetDisplacementTexture());
-        std::string uniName("displacementMap");
-        bool ok = applyTexture(displacementPath, graphicsPipelineConfig, descriptors, uniName);
-        if (!ok)
-            GetLog() << "Could not read texture file: " << displacementPath.string() << "\n";
-    }
-
-    if (!material->GetAmbientOcclusionTexture().empty()) {
-        vsg::Path aoPath(material->GetAmbientOcclusionTexture());
-        std::string uniName("aoMap");
-        bool ok = applyTexture(aoPath, graphicsPipelineConfig, descriptors, uniName);
-        if (!ok)
-            GetLog() << "Could not read texture file: " << aoPath.string() << "\n";
-    }
-
-    //  special case: metallic and roughness must be converted to a single texture
-    //  blue  = metallic
-    //  green = roughness
-    vsg::Path metallicPath(material->GetMetallicTexture());
-    vsg::Path roughnessPath(material->GetRoughnessTexture());
-    std::string uniName("mrMap");
-    bool mrok = applyMetalRoughnessTexture(metallicPath, roughnessPath, graphicsPipelineConfig, descriptors, uniName);
-
-    // set transparency, if needed
-    vsg::ColorBlendState::ColorBlendAttachments colorBlendAttachments;
-    VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
-    colorBlendAttachment.blendEnable = VK_FALSE;  // default
-    colorBlendAttachment.colorWriteMask =
-        VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-    if (pbrMat->value().alphaMask < 1.0) {
-        colorBlendAttachment.blendEnable = VK_TRUE;
-        colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-        colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-        colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-        colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-        colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-        colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
-    }
-    colorBlendAttachments.push_back(colorBlendAttachment);
-    graphicsPipelineConfig->colorBlendState = vsg::ColorBlendState::create(colorBlendAttachments);
-    graphicsPipelineConfig->assignUniform(descriptors, "texrepeat", repeatValues);
-    graphicsPipelineConfig->assignUniform(descriptors, "PbrData", pbrMat);
-
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(descriptors);
+    uint32_t instanceCount = 1;
 
     vsg::ref_ptr<vsg::vec3Array> vertices;
     vsg::ref_ptr<vsg::vec3Array> normals;
     vsg::ref_ptr<vsg::vec2Array> texcoords;
     vsg::ref_ptr<vsg::ushortArray> indices;
-    float boundingSphereRadius;
+    vsg::ref_ptr<vsg::vec4Value> colors;
+
     switch (theShape) {
         case BOX_SHAPE:
-            GetBoxShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
+            GetBoxShapeData(vertices, normals, texcoords, indices);
             break;
         case DIE_SHAPE:
-            GetDiceShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
+            GetDieShapeData(vertices, normals, texcoords, indices);
             break;
         case SPHERE_SHAPE:
-            GetSphereShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
+            GetSphereShapeData(vertices, normals, texcoords, indices);
             break;
         case CYLINDER_SHAPE:
-            GetCylinderShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
+            GetCylinderShapeData(vertices, normals, texcoords, indices);
             break;
         case CAPSULE_SHAPE:
-            GetCapsuleShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
+            GetCapsuleShapeData(vertices, normals, texcoords, indices);
             break;
         case CONE_SHAPE:
-            GetConeShapeData(vertices, normals, texcoords, indices, boundingSphereRadius);
+            GetConeShapeData(vertices, normals, texcoords, indices);
             break;
         case SURFACE_SHAPE:
-            GetSurfaceShapeData(surface, vertices, normals, texcoords, indices, boundingSphereRadius);
+            GetSurfaceShapeData(surface, vertices, normals, texcoords, indices);
             break;
     }
-    auto colors = vsg::vec4Value::create(vsg::vec4{1.0f, 1.0f, 1.0f, 1.0f});
+    // apply texture scaling
+    for (size_t i = 0; i < texcoords->size(); i++) {
+        vsg::vec2 tx = texcoords->at(i);
+        tx = vsg::vec2(tx.x * material->GetTextureScale().x(), tx.y * material->GetTextureScale().y());
+        texcoords->set(i, tx);
+    }
 
-    vsg::DataList vertexArrays;
-
-    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Vertex", VK_VERTEX_INPUT_RATE_VERTEX, vertices);
-    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Normal", VK_VERTEX_INPUT_RATE_VERTEX, normals);
-    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_TexCoord0", VK_VERTEX_INPUT_RATE_VERTEX, texcoords);
-    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Color", VK_VERTEX_INPUT_RATE_INSTANCE, colors);
-
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(vertexArrays);
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(indices);
+    // auto colors = vsg::vec4Value::create(vsg::vec4(1, 0, 1, 1)); instance color, good here for small objects
+    // auto colors = vsg::vec4Array::create(vertices->size(),vsg::vec4(1,1,1,1)); vertex color, needed for false color
+    // display
+    // set color value from material information
+    colors = vsg::vec4Value::create(vsg::vec4(material->GetDiffuseColor().R, material->GetDiffuseColor().G,
+                                              material->GetDiffuseColor().B, material->GetOpacity()));
 
     // setup geometry
-    auto drawCommands = vsg::Commands::create();
-    drawCommands->addChild(vsg::BindVertexBuffers::create(graphicsPipelineConfig->baseAttributeBinding, vertexArrays));
-    drawCommands->addChild(vsg::BindIndexBuffer::create(indices));
-    drawCommands->addChild(vsg::DrawIndexed::create(indices->size(), 1, 0, 0, 0));
+    auto vid = vsg::VertexIndexDraw::create();
 
-    if (m_options->sharedObjects) {
-        m_options->sharedObjects->share(drawCommands->children);
-        m_options->sharedObjects->share(drawCommands);
-    }
+    vsg::DataList arrays;
+    arrays.push_back(vertices);
+    if (normals)
+        arrays.push_back(normals);
+    if (texcoords)
+        arrays.push_back(texcoords);
+    if (colors)
+        arrays.push_back(colors);
+    vid->assignArrays(arrays);
 
-    // register the ViewDescriptorSetLayout.
-    vsg::ref_ptr<vsg::ViewDescriptorSetLayout> vdsl;
-    if (m_options->sharedObjects)
-        vdsl = m_options->sharedObjects->shared_default<vsg::ViewDescriptorSetLayout>();
-    else
-        vdsl = vsg::ViewDescriptorSetLayout::create();
-    graphicsPipelineConfig->additionalDescriptorSetLayout = vdsl;
+    vid->assignIndices(indices);
+    vid->indexCount = static_cast<uint32_t>(indices->size());
+    vid->instanceCount = instanceCount;
 
-    // share the pipeline config and initialize if it's unique
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(graphicsPipelineConfig, [](auto gpc) { gpc->init(); });
-    else
-        graphicsPipelineConfig->init();
-
-    auto descriptorSet = vsg::DescriptorSet::create(graphicsPipelineConfig->descriptorSetLayout, descriptors);
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(descriptorSet);
-
-    auto bindDescriptorSet = vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                                            graphicsPipelineConfig->layout, 0, descriptorSet);
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(bindDescriptorSet);
-
-    auto bindViewDescriptorSets =
-        vsg::BindViewDescriptorSets::create(VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineConfig->layout, 1);
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(bindViewDescriptorSets);
-
-    // create StateGroup as the root of the scene/command graph to hold the GraphicsProgram, and binding of Descriptors
-    // to decorate the whole graph
-    auto stateGroup = vsg::StateGroup::create();
-    stateGroup->add(graphicsPipelineConfig->bindGraphicsPipeline);
-    stateGroup->add(bindDescriptorSet);
-    stateGroup->add(bindViewDescriptorSets);
-
-    // set up model transformation node
-    transform->subgraphRequiresLocalFrustum = false;
-
-    // add drawCommands to StateGroup
-    stateGroup->addChild(drawCommands);
-    if (m_options->sharedObjects) {
-        m_options->sharedObjects->share(stateGroup);
-    }
-    transform->addChild(stateGroup);
-
-    if (m_options->sharedObjects) {
-        m_options->sharedObjects->share(transform);
-    }
-
+    subgraph->addChild(vid);
+    transform->addChild(subgraph);
     scenegraph->addChild(transform);
 
     if (compileTraversal)
@@ -454,194 +135,6 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColShape(std::shared_ptr<ChT
                                                              bool wireframe) {
     auto scenegraph = vsg::Group::create();
 
-    const auto& mesh = tms->GetMesh();
-
-    const auto& vertices = mesh->getCoordsVertices();
-    const auto& normals = mesh->getCoordsNormals();
-    const auto& uvs = mesh->getCoordsUV();
-    const auto& colors = mesh->getCoordsColors();
-
-    const auto& v_indices = mesh->getIndicesVertexes();
-    const auto& n_indices = mesh->getIndicesNormals();
-    const auto& uv_indices = mesh->getIndicesUV();
-    const auto& c_indices = mesh->getIndicesColors();
-
-    unsigned int ntriangles = (unsigned int)v_indices.size();
-
-    // Set the Irrlicht vertex and index buffers for the mesh buffer
-    ChVector<> t[3];    // positions of triangle vertices
-    ChVector<> n[3];    // normals at the triangle vertices
-    ChVector2<> uv[3];  // UV coordinates at the triangle vertices
-    ChColor col[3];     // color coordinates at the triangle vertices
-
-    auto default_color = tms->GetColor();
-
-    std::vector<ChVector<>> tmp_vertices;
-    std::vector<ChVector<>> tmp_normals;
-    std::vector<ChVector2<>> tmp_texcoords;
-    std::vector<ChColor> tmp_colors;
-
-    for (unsigned int itri = 0; itri < ntriangles; itri++) {
-        for (int iv = 0; iv < 3; iv++)
-            t[iv] = vertices[v_indices[itri][iv]];
-
-        if (n_indices.size() == ntriangles) {
-            for (int iv = 0; iv < 3; iv++)
-                n[iv] = normals[n_indices[itri][iv]];
-        } else {
-            n[0] = Vcross(t[1] - t[0], t[2] - t[0]).GetNormalized();
-            n[1] = n[0];
-            n[2] = n[0];
-        }
-
-        if (uv_indices.size() == ntriangles) {
-            for (int iv = 0; iv < 3; iv++)
-                uv[iv] = uvs[uv_indices[itri][iv]];
-        } else if (uv_indices.size() == 0 && uvs.size() == vertices.size()) {
-            for (int iv = 0; iv < 3; iv++)
-                uv[iv] = uvs[v_indices[itri][iv]];
-        }
-
-        if (c_indices.size() == ntriangles) {
-            for (int iv = 0; iv < 3; iv++)
-                col[iv] = colors[c_indices[itri][iv]];
-        } else if (c_indices.size() == 0 && colors.size() == vertices.size()) {
-            for (int iv = 0; iv < 3; iv++)
-                col[iv] = colors[v_indices[itri][iv]];
-        } else {
-            for (int iv = 0; iv < 3; iv++)
-                col[iv] = default_color;
-        }
-
-        for (int iv = 0; iv < 3; iv++) {
-            tmp_vertices.push_back(t[iv]);
-            tmp_normals.push_back(n[iv]);
-            tmp_texcoords.push_back(uv[iv]);
-            tmp_colors.push_back(col[iv]);
-        }
-    }
-    // create and fill the vsg buffers
-    size_t nVert = tmp_vertices.size();
-    vsg::ref_ptr<vsg::vec3Array> vsg_vertices = vsg::vec3Array::create(nVert);
-    vsg::ref_ptr<vsg::vec3Array> vsg_normals = vsg::vec3Array::create(nVert);
-    vsg::ref_ptr<vsg::vec2Array> vsg_texcoords = vsg::vec2Array::create(nVert);
-    vsg::ref_ptr<vsg::uintArray> vsg_indices = vsg::uintArray::create(nVert);
-    vsg::ref_ptr<vsg::vec4Array> vsg_colors = vsg::vec4Array::create(nVert);
-    for (size_t k = 0; k < nVert; k++) {
-        vsg_vertices->set(k, vsg::vec3CH(tmp_vertices[k]));
-        vsg_normals->set(k, vsg::vec3CH(tmp_normals[k]));
-        // seems to work with v-coordinate flipped on VSG
-        vsg_texcoords->set(k, vsg::vec2(tmp_texcoords[k].x(), 1 - tmp_texcoords[k].y()));
-        vsg_colors->set(k, vsg::vec4CH(tmp_colors[k]));
-        vsg_indices->set(k, k);
-    }
-
-    auto shaderSet = wireframe ? createFlatShadedShaderSet(m_options) : createPhongShaderSet(m_options);
-
-    auto rasterizationState = vsg::RasterizationState::create();
-    if (wireframe)
-        rasterizationState->polygonMode = VK_POLYGON_MODE_LINE;
-
-    shaderSet->defaultGraphicsPipelineStates.push_back(rasterizationState);
-    auto graphicsPipelineConfig = vsg::GraphicsPipelineConfigurator::create(shaderSet);
-    ////auto& defines = graphicsPipelineConfig->shaderHints->defines;
-
-    // set up graphics pipeline
-    vsg::Descriptors descriptors;
-
-    // set up pass of material
-    auto phongMat = vsg::PhongMaterialValue::create();
-    phongMat->value().ambient = vsg::vec4(0.2f, 0.2f, 0.2f, 1.0f);
-    // set transparency, if needed
-    vsg::ColorBlendState::ColorBlendAttachments colorBlendAttachments;
-    VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
-    colorBlendAttachment.blendEnable = VK_FALSE;  // default
-    colorBlendAttachment.colorWriteMask =
-        VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-    if (phongMat->value().alphaMask < 1.0) {
-        colorBlendAttachment.blendEnable = VK_TRUE;
-        colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-        colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-        colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-        colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-        colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-        colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
-    }
-    colorBlendAttachments.push_back(colorBlendAttachment);
-    graphicsPipelineConfig->colorBlendState = vsg::ColorBlendState::create(colorBlendAttachments);
-    graphicsPipelineConfig->assignUniform(descriptors, "material", phongMat);
-
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(descriptors);
-
-    vsg::DataList vertexArrays;
-
-    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Vertex", VK_VERTEX_INPUT_RATE_VERTEX, vsg_vertices);
-    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Normal", VK_VERTEX_INPUT_RATE_VERTEX, vsg_normals);
-    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_TexCoord0", VK_VERTEX_INPUT_RATE_VERTEX, vsg_texcoords);
-    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Color", VK_VERTEX_INPUT_RATE_VERTEX, vsg_colors);
-
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(vertexArrays);
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(vsg_indices);
-
-    // setup geometry
-    auto drawCommands = vsg::Commands::create();
-    drawCommands->addChild(vsg::BindVertexBuffers::create(graphicsPipelineConfig->baseAttributeBinding, vertexArrays));
-    drawCommands->addChild(vsg::BindIndexBuffer::create(vsg_indices));
-    drawCommands->addChild(vsg::DrawIndexed::create(vsg_indices->size(), 1, 0, 0, 0));
-
-    if (m_options->sharedObjects) {
-        m_options->sharedObjects->share(drawCommands->children);
-        m_options->sharedObjects->share(drawCommands);
-    }
-
-    // register the ViewDescriptorSetLayout.
-    vsg::ref_ptr<vsg::ViewDescriptorSetLayout> vdsl;
-    if (m_options->sharedObjects)
-        vdsl = m_options->sharedObjects->shared_default<vsg::ViewDescriptorSetLayout>();
-    else
-        vdsl = vsg::ViewDescriptorSetLayout::create();
-    graphicsPipelineConfig->additionalDescriptorSetLayout = vdsl;
-
-    // share the pipeline config and initialize if it's unique
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(graphicsPipelineConfig, [](auto gpc) { gpc->init(); });
-    else
-        graphicsPipelineConfig->init();
-
-    auto descriptorSet = vsg::DescriptorSet::create(graphicsPipelineConfig->descriptorSetLayout, descriptors);
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(descriptorSet);
-
-    auto bindDescriptorSet = vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                                            graphicsPipelineConfig->layout, 0, descriptorSet);
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(bindDescriptorSet);
-
-    auto bindViewDescriptorSets =
-        vsg::BindViewDescriptorSets::create(VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineConfig->layout, 1);
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(bindViewDescriptorSets);
-
-    // create StateGroup as the root of the scene/command graph to hold the GraphicsProgram, and binding of
-    // Descriptors to decorate the whole graph
-    auto stateGroup = vsg::StateGroup::create();
-    stateGroup->add(graphicsPipelineConfig->bindGraphicsPipeline);
-    stateGroup->add(bindDescriptorSet);
-    stateGroup->add(bindViewDescriptorSets);
-
-    // set up model transformation node
-    transform->subgraphRequiresLocalFrustum = false;
-
-    // add drawCommands to StateGroup
-    stateGroup->addChild(drawCommands);
-    if (m_options->sharedObjects) {
-        m_options->sharedObjects->share(stateGroup);
-    }
-    transform->addChild(stateGroup);
-    scenegraph->addChild(transform);
     return scenegraph;
 }
 
@@ -650,159 +143,6 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColAvgShape(std::shared_ptr<
                                                                 bool wireframe) {
     auto scenegraph = vsg::Group::create();
 
-    const auto& mesh = tms->GetMesh();
-
-    const auto& vertices = mesh->getCoordsVertices();
-    const auto& normals = mesh->getCoordsNormals();
-    const auto& uvs = mesh->getCoordsUV();
-    const auto& colors = mesh->getCoordsColors();
-
-    size_t nvertices = vertices.size();
-    bool normals_ok = true;
-    std::vector<ChVector<>> avg_normals;
-    if (nvertices != normals.size()) {
-        avg_normals = mesh->getAverageNormals();
-        normals_ok = false;
-    }
-    bool texcoords_ok = true;
-    if (nvertices != uvs.size()) {
-        texcoords_ok = false;
-    }
-    bool colors_ok = true;
-    if (nvertices != colors.size()) {
-        colors_ok = false;
-    }
-
-    const auto& v_indices = mesh->getIndicesVertexes();
-    auto default_color = tms->GetColor();
-
-    // create and fill the vsg buffers
-    vsg::ref_ptr<vsg::vec3Array> vsg_vertices = vsg::vec3Array::create(nvertices);
-    vsg::ref_ptr<vsg::vec3Array> vsg_normals = vsg::vec3Array::create(nvertices);
-    vsg::ref_ptr<vsg::vec2Array> vsg_texcoords = vsg::vec2Array::create(nvertices);
-    vsg::ref_ptr<vsg::uintArray> vsg_indices = vsg::uintArray::create(v_indices.size() * 3);
-    vsg::ref_ptr<vsg::vec4Array> vsg_colors = vsg::vec4Array::create(nvertices);
-    for (size_t k = 0; k < nvertices; k++) {
-        vsg_vertices->set(k, vsg::vec3CH(vertices[k]));
-        vsg_normals->set(k, normals_ok ? vsg::vec3CH(normals[k]) : vsg::vec3CH(avg_normals[k]));
-        // seems to work with v-coordinate flipped on VSG (??)
-        vsg_texcoords->set(k, texcoords_ok ? vsg::vec2(uvs[k].x(), 1 - uvs[k].y()) : vsg::vec2CH({0, 0}));
-        vsg_colors->set(k, colors_ok ? vsg::vec4CH(colors[k]) : vsg::vec4CH(default_color));
-    }
-    size_t kk = 0;
-    for (size_t k = 0; k < v_indices.size() * 3; k += 3) {
-        vsg_indices->set(k, v_indices[kk][0]);
-        vsg_indices->set(k + 1, v_indices[kk][1]);
-        vsg_indices->set(k + 2, v_indices[kk++][2]);
-    }
-    vsg::ref_ptr<vsg::ShaderSet> shaderSet;
-
-    shaderSet = createPhongShaderSet(m_options);
-
-    auto rasterizationState = vsg::RasterizationState::create();
-    if (wireframe)
-        rasterizationState->polygonMode = VK_POLYGON_MODE_LINE;
-
-    shaderSet->defaultGraphicsPipelineStates.push_back(rasterizationState);
-    auto graphicsPipelineConfig = vsg::GraphicsPipelineConfigurator::create(shaderSet);
-    ////auto& defines = graphicsPipelineConfig->shaderHints->defines;
-
-    // set up graphics pipeline
-    vsg::Descriptors descriptors;
-
-    // set up pass of material
-    auto phongMat = vsg::PhongMaterialValue::create();
-    phongMat->value().ambient = vsg::vec4(0.2f, 0.2f, 0.2f, 1.0f);
-    // set transparency, if needed
-    vsg::ColorBlendState::ColorBlendAttachments colorBlendAttachments;
-    VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
-    colorBlendAttachment.blendEnable = VK_FALSE;  // default
-    colorBlendAttachment.colorWriteMask =
-        VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-    if (phongMat->value().alphaMask < 1.0) {
-        colorBlendAttachment.blendEnable = VK_TRUE;
-        colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-        colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-        colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-        colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-        colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-        colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
-    }
-    colorBlendAttachments.push_back(colorBlendAttachment);
-    graphicsPipelineConfig->colorBlendState = vsg::ColorBlendState::create(colorBlendAttachments);
-    graphicsPipelineConfig->assignUniform(descriptors, "material", phongMat);
-
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(descriptors);
-
-    vsg::DataList vertexArrays;
-
-    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Vertex", VK_VERTEX_INPUT_RATE_VERTEX, vsg_vertices);
-    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Normal", VK_VERTEX_INPUT_RATE_VERTEX, vsg_normals);
-    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_TexCoord0", VK_VERTEX_INPUT_RATE_VERTEX, vsg_texcoords);
-    graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Color", VK_VERTEX_INPUT_RATE_VERTEX, vsg_colors);
-
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(vertexArrays);
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(vsg_indices);
-
-    // setup geometry
-    auto drawCommands = vsg::Commands::create();
-    drawCommands->addChild(vsg::BindVertexBuffers::create(graphicsPipelineConfig->baseAttributeBinding, vertexArrays));
-    drawCommands->addChild(vsg::BindIndexBuffer::create(vsg_indices));
-    drawCommands->addChild(vsg::DrawIndexed::create(vsg_indices->size(), 1, 0, 0, 0));
-
-    if (m_options->sharedObjects) {
-        m_options->sharedObjects->share(drawCommands->children);
-        m_options->sharedObjects->share(drawCommands);
-    }
-
-    // register the ViewDescriptorSetLayout.
-    vsg::ref_ptr<vsg::ViewDescriptorSetLayout> vdsl;
-    if (m_options->sharedObjects)
-        vdsl = m_options->sharedObjects->shared_default<vsg::ViewDescriptorSetLayout>();
-    else
-        vdsl = vsg::ViewDescriptorSetLayout::create();
-    graphicsPipelineConfig->additionalDescriptorSetLayout = vdsl;
-
-    // share the pipeline config and initialize if it's unique
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(graphicsPipelineConfig, [](auto gpc) { gpc->init(); });
-    else
-        graphicsPipelineConfig->init();
-
-    auto descriptorSet = vsg::DescriptorSet::create(graphicsPipelineConfig->descriptorSetLayout, descriptors);
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(descriptorSet);
-
-    auto bindDescriptorSet = vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                                            graphicsPipelineConfig->layout, 0, descriptorSet);
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(bindDescriptorSet);
-
-    auto bindViewDescriptorSets =
-        vsg::BindViewDescriptorSets::create(VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineConfig->layout, 1);
-    if (m_options->sharedObjects)
-        m_options->sharedObjects->share(bindViewDescriptorSets);
-
-    // create StateGroup as the root of the scene/command graph to hold the GraphicsProgram, and binding of
-    // Descriptors to decorate the whole graph
-    auto stateGroup = vsg::StateGroup::create();
-    stateGroup->add(graphicsPipelineConfig->bindGraphicsPipeline);
-    stateGroup->add(bindDescriptorSet);
-    stateGroup->add(bindViewDescriptorSets);
-
-    // set up model transformation node
-    transform->subgraphRequiresLocalFrustum = false;
-
-    // add drawCommands to StateGroup
-    stateGroup->addChild(drawCommands);
-    if (m_options->sharedObjects) {
-        m_options->sharedObjects->share(stateGroup);
-    }
-    transform->addChild(stateGroup);
-    scenegraph->addChild(transform);
     return scenegraph;
 }
 
@@ -811,240 +151,6 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshPhongMatShape(std::shared_pt
                                                                   bool wireframe) {
     auto scenegraph = vsg::Group::create();
 
-    // set up model transformation node
-    transform->subgraphRequiresLocalFrustum = false;
-    scenegraph->addChild(transform);
-
-    const auto& mesh = tms->GetMesh();
-    const auto& materials = tms->GetMaterials();
-    int nmaterials = (int)materials.size();
-
-    const auto& vertices = mesh->getCoordsVertices();
-    const auto& normals = mesh->getCoordsNormals();
-    const auto& uvs = mesh->getCoordsUV();
-
-    const auto& v_indices = mesh->getIndicesVertexes();
-    const auto& n_indices = mesh->getIndicesNormals();
-    const auto& uv_indices = mesh->getIndicesUV();
-    const auto& m_indices = mesh->getIndicesMaterials();
-
-    size_t ntriangles_all = (unsigned int)v_indices.size();
-
-    // Count number of faces assigned to each material (buffer)
-    std::vector<size_t> nfaces_per_buffer;
-    if (m_indices.empty()) {
-        assert(nmaterials == 1);
-        nfaces_per_buffer.push_back(ntriangles_all);
-    } else {
-        for (size_t imat = 0; imat < nmaterials; imat++) {
-            auto count = std::count(m_indices.begin(), m_indices.end(), imat);
-            nfaces_per_buffer.push_back(count);
-        }
-    }
-
-    for (size_t imat = 0; imat < nmaterials; imat++) {
-        auto chronoMat = materials[imat];
-        // translate to vsgMat here
-        vsg::ref_ptr<vsg::ShaderSet> shaderSet;
-
-        auto repeatValues = vsg::vec3Value::create();
-        repeatValues->set(vsg::vec3(chronoMat->GetTextureScale().x(), chronoMat->GetTextureScale().y(), 1.0f));
-        shaderSet = createTilingPhongShaderSet(m_options);
-
-        auto rasterizationState = vsg::RasterizationState::create();
-        if (wireframe)
-            rasterizationState->polygonMode = VK_POLYGON_MODE_LINE;
-
-        shaderSet->defaultGraphicsPipelineStates.push_back(rasterizationState);
-        auto graphicsPipelineConfig = vsg::GraphicsPipelineConfigurator::create(shaderSet);
-        auto& defines = graphicsPipelineConfig->shaderHints->defines;
-
-        // two-sided polygons? -> cannot be used together with transparency!
-        if (!tms->IsBackfaceCull() && chronoMat->GetOpacity() == 1.0) {
-            graphicsPipelineConfig->rasterizationState->cullMode = VK_CULL_MODE_NONE;
-            defines.insert("VSG_TWO_SIDED_LIGHTING");
-        }
-
-        // set up graphics pipeline
-        vsg::Descriptors descriptors;
-
-        auto phongMat = createPhongMaterialFromChronoMaterial(chronoMat);
-
-        if (!chronoMat->GetKdTexture().empty()) {
-            vsg::Path diffusePath(chronoMat->GetKdTexture());
-            std::string uniName("diffuseMap");
-            bool ok = applyTexture(diffusePath, graphicsPipelineConfig, descriptors, uniName);
-            if (!ok)
-                GetLog() << "Could not read texture file: " << diffusePath << "\n";
-            phongMat->value().diffuse.set(1.0, 1.0, 1.0, phongMat->value().alphaMask);
-        }
-
-        if (!chronoMat->GetNormalMapTexture().empty()) {
-            vsg::Path normalPath(chronoMat->GetNormalMapTexture());
-            std::string uniName("normalMap");
-            bool ok = applyTexture(normalPath, graphicsPipelineConfig, descriptors, uniName);
-            if (!ok)
-                GetLog() << "Could not read texture file: " << normalPath.string() << "\n";
-        }
-
-        if (!chronoMat->GetKsTexture().empty()) {
-            vsg::Path specularPath(chronoMat->GetKsTexture());
-            std::string uniName("specularMap");
-            bool ok = applyTexture(specularPath, graphicsPipelineConfig, descriptors, uniName);
-            if (!ok)
-                GetLog() << "Could not read texture file: " << specularPath.string() << "\n";
-        }
-
-        // set transparency, if needed
-        vsg::ColorBlendState::ColorBlendAttachments colorBlendAttachments;
-        VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
-        colorBlendAttachment.blendEnable = VK_FALSE;  // default
-        colorBlendAttachment.colorWriteMask =
-            VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-        if (phongMat->value().alphaMask < 1.0) {
-            colorBlendAttachment.blendEnable = VK_TRUE;
-            colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-            colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-            colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-            colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-            colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-            colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
-        }
-        colorBlendAttachments.push_back(colorBlendAttachment);
-        graphicsPipelineConfig->colorBlendState = vsg::ColorBlendState::create(colorBlendAttachments);
-        graphicsPipelineConfig->assignUniform(descriptors, "texrepeat", repeatValues);
-        graphicsPipelineConfig->assignUniform(descriptors, "material", phongMat);
-
-        if (m_options->sharedObjects)
-            m_options->sharedObjects->share(descriptors);
-
-        std::vector<ChVector<>> tmp_vertices;
-        std::vector<ChVector<>> tmp_normals;
-        std::vector<ChVector2<>> tmp_texcoords;
-        // Set the VSG vertex and index buffers for this material
-        ChVector<> t[3];    // positions of triangle vertices
-        ChVector<> n[3];    // normals at the triangle vertices
-        ChVector2<> uv[3];  // UV coordinates at the triangle vertices
-        for (size_t itri = 0; itri < ntriangles_all; itri++) {
-            if (!m_indices.empty() && m_indices[itri] != imat)
-                continue;
-
-            for (int iv = 0; iv < 3; iv++)
-                t[iv] = vertices[v_indices[itri][iv]];
-
-            if (n_indices.size() == ntriangles_all) {
-                for (int iv = 0; iv < 3; iv++)
-                    n[iv] = normals[n_indices[itri][iv]];
-            } else {
-                n[0] = Vcross(t[1] - t[0], t[2] - t[0]).GetNormalized();
-                n[1] = n[0];
-                n[2] = n[0];
-            }
-
-            if (uv_indices.size() == ntriangles_all) {
-                for (int iv = 0; iv < 3; iv++)
-                    uv[iv] = uvs[uv_indices[itri][iv]];
-            } else {
-                for (int iv = 0; iv < 3; iv++)
-                    uv[iv] = 0.0;
-            }
-            for (int j = 0; j < 3; j++) {
-                tmp_vertices.push_back(t[j]);
-                tmp_normals.push_back(n[j]);
-                tmp_texcoords.push_back(uv[j]);
-            }
-        }  // itri
-        // create and fill the vsg buffers
-        size_t nVert = tmp_vertices.size();
-        vsg::ref_ptr<vsg::vec3Array> vsg_vertices = vsg::vec3Array::create(nVert);
-        vsg::ref_ptr<vsg::vec3Array> vsg_normals = vsg::vec3Array::create(nVert);
-        vsg::ref_ptr<vsg::vec2Array> vsg_texcoords = vsg::vec2Array::create(nVert);
-        vsg::ref_ptr<vsg::uintArray> vsg_indices = vsg::uintArray::create(nVert);
-        for (size_t k = 0; k < nVert; k++) {
-            vsg_vertices->set(k, vsg::vec3CH(tmp_vertices[k]));
-            vsg_normals->set(k, vsg::vec3CH(tmp_normals[k]));
-            vsg_texcoords->set(k, vsg::vec2(tmp_texcoords[k].x(), 1 - tmp_texcoords[k].y()));
-            vsg_indices->set(k, k);
-        }
-        auto colors = vsg::vec4Value::create(vsg::vec4{1.0f, 1.0f, 1.0f, 1.0f});
-
-        vsg::DataList vertexArrays;
-
-        graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Vertex", VK_VERTEX_INPUT_RATE_VERTEX, vsg_vertices);
-        graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Normal", VK_VERTEX_INPUT_RATE_VERTEX, vsg_normals);
-        graphicsPipelineConfig->assignArray(vertexArrays, "vsg_TexCoord0", VK_VERTEX_INPUT_RATE_VERTEX, vsg_texcoords);
-        graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Color", VK_VERTEX_INPUT_RATE_INSTANCE, colors);
-
-        if (m_options->sharedObjects)
-            m_options->sharedObjects->share(vertexArrays);
-        if (m_options->sharedObjects)
-            m_options->sharedObjects->share(vsg_indices);
-
-        // setup geometry
-        auto drawCommands = vsg::Commands::create();
-        drawCommands->addChild(
-            vsg::BindVertexBuffers::create(graphicsPipelineConfig->baseAttributeBinding, vertexArrays));
-        drawCommands->addChild(vsg::BindIndexBuffer::create(vsg_indices));
-        drawCommands->addChild(vsg::DrawIndexed::create(vsg_indices->size(), 1, 0, 0, 0));
-
-        if (m_options->sharedObjects) {
-            m_options->sharedObjects->share(drawCommands->children);
-            m_options->sharedObjects->share(drawCommands);
-        }
-
-        // register the ViewDescriptorSetLayout.
-        vsg::ref_ptr<vsg::ViewDescriptorSetLayout> vdsl;
-        if (m_options->sharedObjects)
-            vdsl = m_options->sharedObjects->shared_default<vsg::ViewDescriptorSetLayout>();
-        else
-            vdsl = vsg::ViewDescriptorSetLayout::create();
-        graphicsPipelineConfig->additionalDescriptorSetLayout = vdsl;
-
-        // share the pipeline config and initialize if it's unique
-        if (m_options->sharedObjects)
-            m_options->sharedObjects->share(graphicsPipelineConfig, [](auto gpc) { gpc->init(); });
-        else
-            graphicsPipelineConfig->init();
-
-        auto descriptorSet = vsg::DescriptorSet::create(graphicsPipelineConfig->descriptorSetLayout, descriptors);
-        if (m_options->sharedObjects)
-            m_options->sharedObjects->share(descriptorSet);
-
-        auto bindDescriptorSet = vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                                                graphicsPipelineConfig->layout, 0, descriptorSet);
-        if (m_options->sharedObjects)
-            m_options->sharedObjects->share(bindDescriptorSet);
-
-        auto bindViewDescriptorSets =
-            vsg::BindViewDescriptorSets::create(VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineConfig->layout, 1);
-        if (m_options->sharedObjects)
-            m_options->sharedObjects->share(bindViewDescriptorSets);
-
-        // create StateGroup as the root of the scene/command graph to hold the GraphicsProgram, and binding of
-        // Descriptors to decorate the whole graph
-        auto stateGroup = vsg::StateGroup::create();
-        stateGroup->add(graphicsPipelineConfig->bindGraphicsPipeline);
-        stateGroup->add(bindDescriptorSet);
-        stateGroup->add(bindViewDescriptorSets);
-
-        // set up model transformation node
-        transform->subgraphRequiresLocalFrustum = false;
-
-        // add drawCommands to StateGroup
-        stateGroup->addChild(drawCommands);
-        if (m_options->sharedObjects) {
-            m_options->sharedObjects->share(stateGroup);
-        }
-        transform->addChild(stateGroup);
-    }  // imat
-
-    if (m_options->sharedObjects) {
-        m_options->sharedObjects->share(transform);
-    }
-
-    if (compileTraversal)
-        compileTraversal->compile(scenegraph);
-
     return scenegraph;
 }
 
@@ -1052,286 +158,6 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshPbrMatShape(std::shared_ptr<
                                                                 vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                                 bool wireframe) {
     auto scenegraph = vsg::Group::create();
-
-    // set up model transformation node
-    transform->subgraphRequiresLocalFrustum = false;
-    scenegraph->addChild(transform);
-
-    const auto& mesh = tms->GetMesh();
-    const auto& materials = tms->GetMaterials();
-    int nmaterials = (int)materials.size();
-
-    const auto& vertices = mesh->getCoordsVertices();
-    const auto& normals = mesh->getCoordsNormals();
-    const auto& uvs = mesh->getCoordsUV();
-
-    const auto& v_indices = mesh->getIndicesVertexes();
-    const auto& n_indices = mesh->getIndicesNormals();
-    const auto& uv_indices = mesh->getIndicesUV();
-    const auto& m_indices = mesh->getIndicesMaterials();
-
-    size_t ntriangles_all = (unsigned int)v_indices.size();
-
-    // Count number of faces assigned to each material (buffer)
-    std::vector<size_t> nfaces_per_buffer;
-    if (m_indices.empty()) {
-        assert(nmaterials == 1);
-        nfaces_per_buffer.push_back(ntriangles_all);
-    } else {
-        for (size_t imat = 0; imat < nmaterials; imat++) {
-            auto count = std::count(m_indices.begin(), m_indices.end(), imat);
-            nfaces_per_buffer.push_back(count);
-        }
-    }
-
-    for (size_t imat = 0; imat < nmaterials; imat++) {
-        auto chronoMat = materials[imat];
-        // translate to vsgMat here
-        vsg::ref_ptr<vsg::ShaderSet> shaderSet;
-
-        auto repeatValues = vsg::vec3Value::create();
-        repeatValues->set(vsg::vec3(chronoMat->GetTextureScale().x(), chronoMat->GetTextureScale().y(), 1.0f));
-        shaderSet = createTilingPbrShaderSet(m_options);
-
-        auto rasterizationState = vsg::RasterizationState::create();
-        if (wireframe)
-            rasterizationState->polygonMode = VK_POLYGON_MODE_LINE;
-
-        shaderSet->defaultGraphicsPipelineStates.push_back(rasterizationState);
-        auto graphicsPipelineConfig = vsg::GraphicsPipelineConfigurator::create(shaderSet);
-        auto& defines = graphicsPipelineConfig->shaderHints->defines;
-
-        // two-sided polygons? -> cannot be used together with transparency!
-        if (!tms->IsBackfaceCull() && chronoMat->GetOpacity() == 1.0) {
-            graphicsPipelineConfig->rasterizationState->cullMode = VK_CULL_MODE_NONE;
-            defines.insert("VSG_TWO_SIDED_LIGHTING");
-        }
-
-        // set up graphics pipeline
-        vsg::Descriptors descriptors;
-
-        auto pbrMat = createPbrMaterialFromChronoMaterial(chronoMat);
-
-        if (!chronoMat->GetKdTexture().empty()) {
-            vsg::Path diffusePath(chronoMat->GetKdTexture());
-            std::string uniName("diffuseMap");
-            bool ok = applyTexture(diffusePath, graphicsPipelineConfig, descriptors, uniName);
-            if (!ok)
-                GetLog() << "Could not read texture file: " << diffusePath << "\n";
-            pbrMat->value().diffuseFactor.set(1.0, 1.0, 1.0, pbrMat->value().alphaMask);
-            pbrMat->value().baseColorFactor.set(1.0, 1.0, 1.0, pbrMat->value().alphaMask);
-        }
-
-        if (!chronoMat->GetNormalMapTexture().empty()) {
-            vsg::Path normalPath(chronoMat->GetNormalMapTexture());
-            std::string uniName("normalMap");
-            bool ok = applyTexture(normalPath, graphicsPipelineConfig, descriptors, uniName);
-            if (!ok)
-                GetLog() << "Could not read texture file: " << normalPath.string() << "\n";
-        }
-
-        //  special case: metalness and roughness must be converted to a single texture
-        //  blue  = metalness
-        //  green = roughness
-        {
-            vsg::Path metalnessPath(chronoMat->GetMetallicTexture());
-            vsg::Path roughnessPath(chronoMat->GetRoughnessTexture());
-            std::string uniName("mrMap");
-            bool mrok =
-                applyMetalRoughnessTexture(metalnessPath, roughnessPath, graphicsPipelineConfig, descriptors, uniName);
-        }
-
-        if (!chronoMat->GetKsTexture().empty()) {
-            vsg::Path specularPath(chronoMat->GetKsTexture());
-            std::string uniName("specularMap");
-            bool ok = applyTexture(specularPath, graphicsPipelineConfig, descriptors, uniName);
-            if (!ok)
-                GetLog() << "Could not read texture file: " << specularPath.string() << "\n";
-        }
-
-        if (!chronoMat->GetKeTexture().empty()) {
-            vsg::Path specularPath(chronoMat->GetKeTexture());
-            std::string uniName("emissiveMap");
-            bool ok = applyTexture(specularPath, graphicsPipelineConfig, descriptors, uniName);
-            if (!ok)
-                GetLog() << "Could not read texture file: " << specularPath.string() << "\n";
-        }
-
-        if (!chronoMat->GetDisplacementTexture().empty()) {
-            vsg::Path displacementPath(chronoMat->GetDisplacementTexture());
-            std::string uniName("displacementMap");
-            bool ok = applyTexture(displacementPath, graphicsPipelineConfig, descriptors, uniName);
-            if (!ok)
-                GetLog() << "Could not read texture file: " << displacementPath.string() << "\n";
-        }
-
-        if (!chronoMat->GetAmbientOcclusionTexture().empty()) {
-            vsg::Path aoPath(chronoMat->GetAmbientOcclusionTexture());
-            std::string uniName("aoMap");
-            bool ok = applyTexture(aoPath, graphicsPipelineConfig, descriptors, uniName);
-            if (!ok)
-                GetLog() << "Could not read texture file: " << aoPath.string() << "\n";
-        }
-
-        bool mappedOpacity = false;
-        if (!chronoMat->GetOpacityTexture().empty()) {
-            vsg::Path opacityPath(chronoMat->GetOpacityTexture());
-            std::string uniName("opacityMap");
-            mappedOpacity = applyTexture(opacityPath, graphicsPipelineConfig, descriptors, uniName);
-            if (!mappedOpacity)
-                GetLog() << "Could not read texture file: " << opacityPath.string() << "\n";
-        }
-
-        // set transparency, if needed
-        vsg::ColorBlendState::ColorBlendAttachments colorBlendAttachments;
-        VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
-        colorBlendAttachment.blendEnable = VK_FALSE;  // default
-        colorBlendAttachment.colorWriteMask =
-            VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-        if (pbrMat->value().alphaMask < 1.0 || mappedOpacity) {
-            colorBlendAttachment.blendEnable = VK_TRUE;
-            colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-            colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-            colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-            colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-            colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-            colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
-        }
-        colorBlendAttachments.push_back(colorBlendAttachment);
-        graphicsPipelineConfig->colorBlendState = vsg::ColorBlendState::create(colorBlendAttachments);
-        graphicsPipelineConfig->assignUniform(descriptors, "texrepeat", repeatValues);
-        graphicsPipelineConfig->assignUniform(descriptors, "PbrData", pbrMat);
-
-        if (m_options->sharedObjects)
-            m_options->sharedObjects->share(descriptors);
-
-        std::vector<ChVector<>> tmp_vertices;
-        std::vector<ChVector<>> tmp_normals;
-        std::vector<ChVector2<>> tmp_texcoords;
-        // Set the VSG vertex and index buffers for this material
-        ChVector<> t[3];    // positions of triangle vertices
-        ChVector<> n[3];    // normals at the triangle vertices
-        ChVector2<> uv[3];  // UV coordinates at the triangle vertices
-        for (size_t itri = 0; itri < ntriangles_all; itri++) {
-            if (!m_indices.empty() && m_indices[itri] != imat)
-                continue;
-
-            for (int iv = 0; iv < 3; iv++)
-                t[iv] = vertices[v_indices[itri][iv]];
-
-            if (n_indices.size() == ntriangles_all) {
-                for (int iv = 0; iv < 3; iv++)
-                    n[iv] = normals[n_indices[itri][iv]];
-            } else {
-                n[0] = Vcross(t[1] - t[0], t[2] - t[0]).GetNormalized();
-                n[1] = n[0];
-                n[2] = n[0];
-            }
-
-            if (uv_indices.size() == ntriangles_all) {
-                for (int iv = 0; iv < 3; iv++)
-                    uv[iv] = uvs[uv_indices[itri][iv]];
-            } else {
-                for (int iv = 0; iv < 3; iv++)
-                    uv[iv] = 0.0;
-            }
-            for (int j = 0; j < 3; j++) {
-                tmp_vertices.push_back(t[j]);
-                tmp_normals.push_back(n[j]);
-                tmp_texcoords.push_back(uv[j]);
-            }
-        }
-
-        // create and fill the vsg buffers
-        size_t nVert = tmp_vertices.size();
-        vsg::ref_ptr<vsg::vec3Array> vsg_vertices = vsg::vec3Array::create(nVert);
-        vsg::ref_ptr<vsg::vec3Array> vsg_normals = vsg::vec3Array::create(nVert);
-        vsg::ref_ptr<vsg::vec2Array> vsg_texcoords = vsg::vec2Array::create(nVert);
-        vsg::ref_ptr<vsg::uintArray> vsg_indices = vsg::uintArray::create(nVert);
-        for (size_t k = 0; k < nVert; k++) {
-            vsg_vertices->set(k, vsg::vec3CH(tmp_vertices[k]));
-            vsg_normals->set(k, vsg::vec3CH(tmp_normals[k]));
-            vsg_texcoords->set(k, vsg::vec2(tmp_texcoords[k].x(), 1 - tmp_texcoords[k].y()));
-            vsg_indices->set(k, k);
-        }
-        auto colors = vsg::vec4Value::create(vsg::vec4{1.0f, 1.0f, 1.0f, 1.0f});
-
-        vsg::DataList vertexArrays;
-
-        graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Vertex", VK_VERTEX_INPUT_RATE_VERTEX, vsg_vertices);
-        graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Normal", VK_VERTEX_INPUT_RATE_VERTEX, vsg_normals);
-        graphicsPipelineConfig->assignArray(vertexArrays, "vsg_TexCoord0", VK_VERTEX_INPUT_RATE_VERTEX, vsg_texcoords);
-        graphicsPipelineConfig->assignArray(vertexArrays, "vsg_Color", VK_VERTEX_INPUT_RATE_INSTANCE, colors);
-
-        if (m_options->sharedObjects)
-            m_options->sharedObjects->share(vertexArrays);
-        if (m_options->sharedObjects)
-            m_options->sharedObjects->share(vsg_indices);
-
-        // setup geometry
-        auto drawCommands = vsg::Commands::create();
-        drawCommands->addChild(
-            vsg::BindVertexBuffers::create(graphicsPipelineConfig->baseAttributeBinding, vertexArrays));
-        drawCommands->addChild(vsg::BindIndexBuffer::create(vsg_indices));
-        drawCommands->addChild(vsg::DrawIndexed::create(vsg_indices->size(), 1, 0, 0, 0));
-
-        if (m_options->sharedObjects) {
-            m_options->sharedObjects->share(drawCommands->children);
-            m_options->sharedObjects->share(drawCommands);
-        }
-
-        // register the ViewDescriptorSetLayout.
-        vsg::ref_ptr<vsg::ViewDescriptorSetLayout> vdsl;
-        if (m_options->sharedObjects)
-            vdsl = m_options->sharedObjects->shared_default<vsg::ViewDescriptorSetLayout>();
-        else
-            vdsl = vsg::ViewDescriptorSetLayout::create();
-        graphicsPipelineConfig->additionalDescriptorSetLayout = vdsl;
-
-        // share the pipeline config and initialize if it's unique
-        if (m_options->sharedObjects)
-            m_options->sharedObjects->share(graphicsPipelineConfig, [](auto gpc) { gpc->init(); });
-        else
-            graphicsPipelineConfig->init();
-
-        auto descriptorSet = vsg::DescriptorSet::create(graphicsPipelineConfig->descriptorSetLayout, descriptors);
-        if (m_options->sharedObjects)
-            m_options->sharedObjects->share(descriptorSet);
-
-        auto bindDescriptorSet = vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                                                graphicsPipelineConfig->layout, 0, descriptorSet);
-        if (m_options->sharedObjects)
-            m_options->sharedObjects->share(bindDescriptorSet);
-
-        auto bindViewDescriptorSets =
-            vsg::BindViewDescriptorSets::create(VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineConfig->layout, 1);
-        if (m_options->sharedObjects)
-            m_options->sharedObjects->share(bindViewDescriptorSets);
-
-        // create StateGroup as the root of the scene/command graph to hold the GraphicsProgram, and binding of
-        // Descriptors to decorate the whole graph
-        auto stateGroup = vsg::StateGroup::create();
-        stateGroup->add(graphicsPipelineConfig->bindGraphicsPipeline);
-        stateGroup->add(bindDescriptorSet);
-        stateGroup->add(bindViewDescriptorSets);
-
-        // set up model transformation node
-        transform->subgraphRequiresLocalFrustum = false;
-
-        // add drawCommands to StateGroup
-        stateGroup->addChild(drawCommands);
-        if (m_options->sharedObjects) {
-            m_options->sharedObjects->share(stateGroup);
-        }
-        transform->addChild(stateGroup);
-    }  // imat
-
-    if (m_options->sharedObjects) {
-        m_options->sharedObjects->share(transform);
-    }
-
-    if (compileTraversal)
-        compileTraversal->compile(scenegraph);
 
     return scenegraph;
 }
@@ -2063,7 +889,7 @@ bool ShapeBuilder::applyTexture(vsg::Path& path,
             sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
             sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
             sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-            pipeConfig->assignTexture(descriptors, uniformName, texData, sampler);
+            pipeConfig->assignTexture(uniformName, texData, sampler);
             return true;
         }
     }
@@ -2122,33 +948,12 @@ bool ShapeBuilder::applyMetalRoughnessTexture(vsg::Path& metalPath,
     sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // default yet, just an example how to set
     sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     sampler->addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    pipeConfig->assignTexture(descriptors, uniformName, texData, sampler);
+    pipeConfig->assignTexture(uniformName, texData, sampler);
     if (roughData)
         stbi_image_free(roughData);
     if (metalData)
         stbi_image_free(metalData);
     return true;
-}
-
-vsg::ref_ptr<vsg::PbrMaterialValue> ShapeBuilder::createPbrMaterialFromChronoMaterial(
-    std::shared_ptr<chrono::ChVisualMaterial> chronoMat) {
-    auto pbrMat = vsg::PbrMaterialValue::create();
-    float alpha = chronoMat->GetOpacity();
-    float dim = 0.5f;
-    pbrMat->value().baseColorFactor.set(dim * chronoMat->GetDiffuseColor().R, dim * chronoMat->GetDiffuseColor().G,
-                                        dim * chronoMat->GetDiffuseColor().B, alpha);
-    pbrMat->value().emissiveFactor.set(chronoMat->GetEmissiveColor().R, chronoMat->GetEmissiveColor().G,
-                                       chronoMat->GetEmissiveColor().B, alpha);
-    pbrMat->value().specularFactor.set(chronoMat->GetSpecularColor().R, chronoMat->GetSpecularColor().G,
-                                       chronoMat->GetSpecularColor().B, alpha);
-    pbrMat->value().roughnessFactor = chronoMat->GetRoughness();
-    pbrMat->value().metallicFactor = chronoMat->GetMetallic();
-    pbrMat->value().diffuseFactor.set(chronoMat->GetDiffuseColor().R, chronoMat->GetDiffuseColor().G,
-                                      chronoMat->GetDiffuseColor().B, alpha);
-    pbrMat->value().alphaMask = alpha;
-    pbrMat->value().alphaMaskCutoff = 0.3f;
-
-    return pbrMat;
 }
 
 vsg::ref_ptr<vsg::PhongMaterialValue> ShapeBuilder::createPhongMaterialFromChronoMaterial(

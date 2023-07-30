@@ -25,8 +25,7 @@ namespace vsg3d {
 void GetCylinderShapeData(vsg::ref_ptr<vsg::vec3Array>& vertices,
                           vsg::ref_ptr<vsg::vec3Array>& normals,
                           vsg::ref_ptr<vsg::vec2Array>& texcoords,
-                          vsg::ref_ptr<vsg::ushortArray>& indices,
-                          float& boundingSphereRadius) {
+                          vsg::ref_ptr<vsg::ushortArray>& indices) {
     vertices = vsg::vec3Array::create({{1, 0, -0.5},
                                        {0.965926, -0.258819, -0.5},
                                        {0.866025, -0.5, -0.5},
@@ -344,8 +343,6 @@ void GetCylinderShapeData(vsg::ref_ptr<vsg::vec3Array>& vertices,
          72, 73, 50, 73, 74, 75, 77, 76, 75, 78, 77, 75, 79, 78, 75, 80, 79, 75, 81, 80, 75, 82, 81, 75, 83, 82,
          75, 84, 83, 75, 85, 84, 75, 86, 85, 75, 87, 86, 75, 88, 87, 75, 89, 88, 75, 90, 89, 75, 91, 90, 75, 92,
          91, 75, 93, 92, 75, 94, 93, 75, 95, 94, 75, 96, 95, 75, 97, 96, 75, 98, 97, 75, 99, 98});
-
-    boundingSphereRadius = 1.8;
 }
 
 }  // namespace vsg3d
