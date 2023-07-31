@@ -54,17 +54,14 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createPbrShape(BasicShape theShape,
                                                       vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                       bool wireframe,
                                                       std::shared_ptr<ChSurfaceShape> surface) {
-    auto scenegraph = vsg::Group::create();
-    auto subgraph = createPbrStateGroup(m_options, material);
-    transform->subgraphRequiresLocalFrustum = false;
+    const uint32_t instanceCount = 1;
 
-    uint32_t instanceCount = 1;
-
+    // set geometry
     vsg::ref_ptr<vsg::vec3Array> vertices;
     vsg::ref_ptr<vsg::vec3Array> normals;
     vsg::ref_ptr<vsg::vec2Array> texcoords;
     vsg::ref_ptr<vsg::ushortArray> indices;
-    vsg::ref_ptr<vsg::vec4Value> colors;
+    vsg::ref_ptr<vsg::vec4Array> colors;
 
     switch (theShape) {
         case BOX_SHAPE:
@@ -96,12 +93,12 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createPbrShape(BasicShape theShape,
         texcoords->set(i, tx);
     }
 
-    // auto colors = vsg::vec4Value::create(vsg::vec4(1, 0, 1, 1)); instance color, good here for small objects
-    // auto colors = vsg::vec4Array::create(vertices->size(),vsg::vec4(1,1,1,1)); vertex color, needed for false color
-    // display
-    // set color value from material information
-    colors = vsg::vec4Value::create(vsg::vec4(material->GetDiffuseColor().R, material->GetDiffuseColor().G,
-                                              material->GetDiffuseColor().B, material->GetOpacity()));
+    colors =
+        vsg::vec4Array::create(vertices->size(), vsg::vec4(material->GetDiffuseColor().R, material->GetDiffuseColor().G,
+                                                           material->GetDiffuseColor().B, material->GetOpacity()));
+    auto scenegraph = vsg::Group::create();
+    auto stategraph = createPbrStateGroup(m_options, material, wireframe);
+    transform->subgraphRequiresLocalFrustum = false;
 
     // setup geometry
     auto vid = vsg::VertexIndexDraw::create();
@@ -120,8 +117,8 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createPbrShape(BasicShape theShape,
     vid->indexCount = static_cast<uint32_t>(indices->size());
     vid->instanceCount = instanceCount;
 
-    subgraph->addChild(vid);
-    transform->addChild(subgraph);
+    stategraph->addChild(vid);
+    transform->addChild(stategraph);
     scenegraph->addChild(transform);
 
     if (compileTraversal)
@@ -157,7 +154,115 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshPhongMatShape(std::shared_pt
 vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshPbrMatShape(std::shared_ptr<ChTriangleMeshShape> tms,
                                                                 vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                                 bool wireframe) {
+    const auto& mesh = tms->GetMesh();
+    const auto& materials = tms->GetMaterials();
+    int nmaterials = (int)materials.size();
+
+    const auto& vertices = mesh->getCoordsVertices();
+    const auto& normals = mesh->getCoordsNormals();
+    const auto& uvs = mesh->getCoordsUV();
+
+    const auto& v_indices = mesh->getIndicesVertexes();
+    const auto& n_indices = mesh->getIndicesNormals();
+    const auto& uv_indices = mesh->getIndicesUV();
+    const auto& m_indices = mesh->getIndicesMaterials();
+
+    size_t ntriangles_all = (unsigned int)v_indices.size();
+
+    // Count number of faces assigned to each material (buffer)
+    std::vector<size_t> nfaces_per_buffer;
+    if (m_indices.empty()) {
+        assert(nmaterials == 1);
+        nfaces_per_buffer.push_back(ntriangles_all);
+    } else {
+        for (size_t imat = 0; imat < nmaterials; imat++) {
+            auto count = std::count(m_indices.begin(), m_indices.end(), imat);
+            nfaces_per_buffer.push_back(count);
+        }
+    }
+
     auto scenegraph = vsg::Group::create();
+    // set up model transformation node
+    transform->subgraphRequiresLocalFrustum = false;
+    scenegraph->addChild(transform);
+
+    for (size_t imat = 0; imat < nmaterials; imat++) {
+        auto chronoMat = materials[imat];
+        vsg::ref_ptr<vsg::ShaderSet> shaderSet = createPbrShaderSet(m_options, chronoMat);
+
+        std::vector<ChVector<>> tmp_vertices;
+        std::vector<ChVector<>> tmp_normals;
+        std::vector<ChVector2<>> tmp_texcoords;
+        // Set the VSG vertex and index buffers for this material
+        ChVector<> t[3];    // positions of triangle vertices
+        ChVector<> n[3];    // normals at the triangle vertices
+        ChVector2<> uv[3];  // UV coordinates at the triangle vertices
+        for (size_t itri = 0; itri < ntriangles_all; itri++) {
+            if (!m_indices.empty() && m_indices[itri] != imat)
+                continue;
+
+            for (int iv = 0; iv < 3; iv++)
+                t[iv] = vertices[v_indices[itri][iv]];
+
+            if (n_indices.size() == ntriangles_all) {
+                for (int iv = 0; iv < 3; iv++)
+                    n[iv] = normals[n_indices[itri][iv]];
+            } else {
+                n[0] = Vcross(t[1] - t[0], t[2] - t[0]).GetNormalized();
+                n[1] = n[0];
+                n[2] = n[0];
+            }
+
+            if (uv_indices.size() == ntriangles_all) {
+                for (int iv = 0; iv < 3; iv++)
+                    uv[iv] = uvs[uv_indices[itri][iv]];
+            } else {
+                for (int iv = 0; iv < 3; iv++)
+                    uv[iv] = 0.0;
+            }
+            for (int j = 0; j < 3; j++) {
+                tmp_vertices.push_back(t[j]);
+                tmp_normals.push_back(n[j]);
+                tmp_texcoords.push_back(uv[j]);
+            }
+        }
+
+        // create and fill the vsg buffers
+        size_t nVert = tmp_vertices.size();
+        vsg::ref_ptr<vsg::vec3Array> vsg_vertices = vsg::vec3Array::create(nVert);
+        vsg::ref_ptr<vsg::vec3Array> vsg_normals = vsg::vec3Array::create(nVert);
+        vsg::ref_ptr<vsg::vec2Array> vsg_texcoords = vsg::vec2Array::create(nVert);
+        vsg::ref_ptr<vsg::uintArray> vsg_indices = vsg::uintArray::create(nVert);
+        for (size_t k = 0; k < nVert; k++) {
+            vsg_vertices->set(k, vsg::vec3CH(tmp_vertices[k]));
+            vsg_normals->set(k, vsg::vec3CH(tmp_normals[k]));
+            // apply texture scale
+            vsg_texcoords->set(k, vsg::vec2(tmp_texcoords[k].x()*chronoMat->GetTextureScale().x(), (1.0 - tmp_texcoords[k].y())*chronoMat->GetTextureScale().y()));
+            vsg_indices->set(k, k);
+        }
+        auto colors = vsg::vec4Array::create(vsg_vertices->size(), vsg::vec4{1.0f, 1.0f, 1.0f, 1.0f});
+
+        vsg::DataList arrays;
+        // setup geometry
+        auto vid = vsg::VertexIndexDraw::create();
+
+        arrays.push_back(vsg_vertices);
+        if (vsg_normals)
+            arrays.push_back(vsg_normals);
+        if (vsg_texcoords)
+            arrays.push_back(vsg_texcoords);
+        if (colors)
+            arrays.push_back(colors);
+        vid->assignArrays(arrays);
+
+        vid->assignIndices(vsg_indices);
+        vid->indexCount = static_cast<uint32_t>(vsg_indices->size());
+        vid->instanceCount = 1;
+
+        auto stategraph = createPbrStateGroup(m_options, chronoMat, wireframe);
+        stategraph->addChild(vid);
+        transform->addChild(stategraph);
+    }  // imat
 
     return scenegraph;
 }

@@ -13,13 +13,14 @@
 // =============================================================================
 
 #include "chrono_vsg/shapes/ShaderUtils.h"
+#include "chrono_thirdparty/stb/stb_image.h"
 
 namespace chrono {
 namespace vsg3d {
 
 vsg::ref_ptr<vsg::ShaderSet> createPbrShaderSet(vsg::ref_ptr<const vsg::Options> options,
                                                 std::shared_ptr<ChVisualMaterial> material) {
-    vsg::info("Local pbr_ShaderSet(", options, ")");
+    // vsg::info("Local pbr_ShaderSet(", options, ")");
 
     auto vertexShader = vsg::read_cast<vsg::ShaderStage>("vsg/shaders/_tmp_.vert", options);
     auto fragmentShader = vsg::read_cast<vsg::ShaderStage>("vsg/shaders/_tmp__pbr.frag", options);
@@ -37,45 +38,67 @@ vsg::ref_ptr<vsg::ShaderSet> createPbrShaderSet(vsg::ref_ptr<const vsg::Options>
     shaderSet->addAttributeBinding("vsg_TexCoord0", "", 2, VK_FORMAT_R32G32_SFLOAT, vsg::vec2Array::create(1));
     shaderSet->addAttributeBinding("vsg_Color", "", 3, VK_FORMAT_R32G32B32A32_SFLOAT, vsg::vec4Array::create(1));
 
-    if (!material->GetKdTexture().empty()) {
-        shaderSet->addUniformBinding(
-            "diffuseMap", "VSG_DIFFUSE_MAP", 0, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
-            VK_SHADER_STAGE_FRAGMENT_BIT,
-            vsg::vec4Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32G32B32A32_SFLOAT}));
-    }
+    shaderSet->addUniformBinding("diffuseMap", "VSG_DIFFUSE_MAP", 0, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
+                                 VK_SHADER_STAGE_FRAGMENT_BIT,
+                                 vsg::vec4Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32G32B32A32_SFLOAT}));
+
+    shaderSet->addUniformBinding("mrMap", "VSG_METALLROUGHNESS_MAP", 0, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
+                                 VK_SHADER_STAGE_FRAGMENT_BIT,
+                                 vsg::vec4Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32G32B32A32_SFLOAT}));
+
+    shaderSet->addUniformBinding("normalMap", "VSG_NORMAL_MAP", 0, 2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
+                                 VK_SHADER_STAGE_FRAGMENT_BIT,
+                                 vsg::vec3Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32G32B32_SFLOAT}));
+
+    shaderSet->addUniformBinding("aoMap", "VSG_LIGHTMAP_MAP", 0, 3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
+                                 VK_SHADER_STAGE_FRAGMENT_BIT,
+                                 vsg::vec3Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32G32B32_SFLOAT}));
+
+    shaderSet->addUniformBinding("emissiveMap", "VSG_EMISSIVE_MAP", 0, 4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
+                                 VK_SHADER_STAGE_FRAGMENT_BIT,
+                                 vsg::vec4Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32G32B32A32_SFLOAT}));
+
+    shaderSet->addUniformBinding("specularMap", "VSG_SPECULAR_MAP", 0, 5, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
+                                 VK_SHADER_STAGE_FRAGMENT_BIT,
+                                 vsg::vec4Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32G32B32A32_SFLOAT}));
+
+    shaderSet->addUniformBinding("opacityMap", "VSG_OPACITY_MAP", 0, 7, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
+                                 VK_SHADER_STAGE_FRAGMENT_BIT,
+                                 vsg::vec4Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32G32B32A32_SFLOAT}));
 
     /* optional shader data
 
-        shaderSet->addAttributeBinding("vsg_position", "VSG_INSTANCE_POSITIONS", 4, VK_FORMAT_R32G32B32_SFLOAT,
-                                       vsg::vec3Array::create(1));
-        shaderSet->addAttributeBinding("vsg_position_scaleDistance", "VSG_BILLBOARD", 4, VK_FORMAT_R32G32B32A32_SFLOAT,
-                                       vsg::vec4Array::create(1));
+          shaderSet->addAttributeBinding("vsg_position", "VSG_INSTANCE_POSITIONS", 4, VK_FORMAT_R32G32B32_SFLOAT,
+                                         vsg::vec3Array::create(1));
+          shaderSet->addAttributeBinding("vsg_position_scaleDistance", "VSG_BILLBOARD", 4,
+       VK_FORMAT_R32G32B32A32_SFLOAT, vsg::vec4Array::create(1));
 
-        shaderSet->addUniformBinding("displacementMap", "VSG_DISPLACEMENT_MAP", 0, 6,
-                                     VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_VERTEX_BIT,
-                                     vsg::floatArray2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32_SFLOAT}));
-        shaderSet->addUniformBinding("diffuseMap", "VSG_DIFFUSE_MAP", 0, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-       1, VK_SHADER_STAGE_FRAGMENT_BIT, vsg::ubvec4Array2D::create(1, 1,
-       vsg::Data::Properties{VK_FORMAT_R8G8B8A8_UNORM})); shaderSet->addUniformBinding("mrMap",
-       "VSG_METALLROUGHNESS_MAP", 0, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
-                                     vsg::vec2Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32G32_SFLOAT}));
-        shaderSet->addUniformBinding("normalMap", "VSG_NORMAL_MAP", 0, 2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
-                                     VK_SHADER_STAGE_FRAGMENT_BIT,
-                                     vsg::vec3Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32G32B32_SFLOAT}));
-        shaderSet->addUniformBinding("aoMap", "VSG_LIGHTMAP_MAP", 0, 3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1,
-                                     VK_SHADER_STAGE_FRAGMENT_BIT,
-                                     vsg::floatArray2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32_SFLOAT}));
-        shaderSet->addUniformBinding("emissiveMap", "VSG_EMISSIVE_MAP", 0, 4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-       1, VK_SHADER_STAGE_FRAGMENT_BIT, vsg::ubvec4Array2D::create(1, 1,
-       vsg::Data::Properties{VK_FORMAT_R8G8B8A8_UNORM})); shaderSet->addUniformBinding("specularMap",
-       "VSG_SPECULAR_MAP", 0, 5, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
-                                     vsg::ubvec4Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R8G8B8A8_UNORM}));
-        shaderSet->addUniformBinding("lightData", "", 1, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
-                                     VK_SHADER_STAGE_FRAGMENT_BIT, vsg::vec4Array::create(64));
-    */
+          shaderSet->addUniformBinding("displacementMap", "VSG_DISPLACEMENT_MAP", 0, 6,
+                                       VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_VERTEX_BIT,
+                                       vsg::floatArray2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32_SFLOAT}));
+          shaderSet->addUniformBinding("diffuseMap", "VSG_DIFFUSE_MAP", 0, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+         1, VK_SHADER_STAGE_FRAGMENT_BIT, vsg::ubvec4Array2D::create(1, 1,
+         vsg::Data::Properties{VK_FORMAT_R8G8B8A8_UNORM})); shaderSet->addUniformBinding("mrMap",
+         "VSG_METALLROUGHNESS_MAP", 0, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
+                                       vsg::vec2Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32G32_SFLOAT}));
+          shaderSet->addUniformBinding("normalMap", "VSG_NORMAL_MAP", 0, 2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+       1, VK_SHADER_STAGE_FRAGMENT_BIT, vsg::vec3Array2D::create(1, 1,
+       vsg::Data::Properties{VK_FORMAT_R32G32B32_SFLOAT})); shaderSet->addUniformBinding("aoMap", "VSG_LIGHTMAP_MAP", 0,
+       3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, vsg::floatArray2D::create(1, 1,
+       vsg::Data::Properties{VK_FORMAT_R32_SFLOAT})); shaderSet->addUniformBinding("emissiveMap", "VSG_EMISSIVE_MAP", 0,
+       4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, vsg::ubvec4Array2D::create(1, 1,
+         vsg::Data::Properties{VK_FORMAT_R8G8B8A8_UNORM}));
+          shaderSet->addUniformBinding("specularMap",
+         "VSG_SPECULAR_MAP", 0, 5, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
+                                       vsg::ubvec4Array2D::create(1, 1,
+       vsg::Data::Properties{VK_FORMAT_R8G8B8A8_UNORM})); shaderSet->addUniformBinding("lightData", "", 1, 0,
+       VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, vsg::vec4Array::create(64));
+      */
     // always needed
-    shaderSet->addUniformBinding("pbr", "", 0, 10, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
-                                 vsg::PbrMaterialValue::create());
+    shaderSet->addUniformBinding("lightData", "", 1, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
+                                 VK_SHADER_STAGE_FRAGMENT_BIT, vsg::vec4Array::create(64));
+    shaderSet->addUniformBinding("PbrData", "", 0, 10, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
+                                 VK_SHADER_STAGE_FRAGMENT_BIT, vsg::PbrMaterialValue::create());
     shaderSet->addPushConstantRange("pc", "", VK_SHADER_STAGE_VERTEX_BIT, 0, 128);
 
     // additional defines
@@ -96,8 +119,11 @@ vsg::ref_ptr<vsg::ShaderSet> createPbrShaderSet(vsg::ref_ptr<const vsg::Options>
 }
 
 vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Options> options,
-                                                  std::shared_ptr<ChVisualMaterial> material) {
+                                                  std::shared_ptr<ChVisualMaterial> material,
+                                                  bool wireframe) {
     vsg::ref_ptr<vsg::SharedObjects> sharedObjects;
+
+    bool use_blending = (material->GetOpacity() < 1.0) || (!material->GetOpacityTexture().empty());
 
     if (!sharedObjects) {
         if (options)
@@ -116,13 +142,17 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
     vsg::DescriptorSetLayoutBindings descriptorBindings;
 
     auto theScale = material->GetTextureScale();
-
-    graphicsPipelineConfig->assignUniform("pbr", createPbrMaterialFromChronoMaterial(material));
+    auto pbrMat = createPbrMaterialFromChronoMaterial(material);
+    graphicsPipelineConfig->assignUniform("PbrData", pbrMat);
 
     graphicsPipelineConfig->enableArray("vsg_Vertex", VK_VERTEX_INPUT_RATE_VERTEX, 12);
     graphicsPipelineConfig->enableArray("vsg_Normal", VK_VERTEX_INPUT_RATE_VERTEX, 12);
     graphicsPipelineConfig->enableArray("vsg_TexCoord0", VK_VERTEX_INPUT_RATE_VERTEX, 8);
-    graphicsPipelineConfig->enableArray("vsg_Color", VK_VERTEX_INPUT_RATE_INSTANCE, 16);
+    graphicsPipelineConfig->enableArray("vsg_Color", VK_VERTEX_INPUT_RATE_VERTEX, 16);
+
+    if (wireframe) {
+        graphicsPipelineConfig->rasterizationState->polygonMode = VK_POLYGON_MODE_LINE;
+    }
 
     if (!material->GetKdTexture().empty()) {
         auto image = vsg::read_cast<vsg::Data>(material->GetKdTexture(), options);
@@ -137,12 +167,153 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
                 sharedObjects->share(sampler);
 
             graphicsPipelineConfig->assignTexture("diffuseMap", image, sampler);
+            pbrMat->value().diffuseFactor.set(1.0, 1.0, 1.0, pbrMat->value().alphaMask);
+            pbrMat->value().baseColorFactor.set(1.0, 1.0, 1.0, pbrMat->value().alphaMask);
         } else {
             GetLog() << __func__ << ": could not read diffuse texture file <" << material->GetKdTexture() << ">!\n";
         }
     }
 
-    bool use_blending = material->GetOpacity() < 1.0;
+    if (!material->GetKeTexture().empty()) {
+        auto image = vsg::read_cast<vsg::Data>(material->GetKeTexture(), options);
+        if (image) {
+            auto sampler = vsg::Sampler::create();
+            sampler->maxLod =
+                static_cast<uint32_t>(std::floor(std::log2(std::max(image->width(), image->height())))) + 1;
+            sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+
+            if (sharedObjects)
+                sharedObjects->share(sampler);
+
+            graphicsPipelineConfig->assignTexture("emissiveMap", image, sampler);
+        } else {
+            GetLog() << __func__ << ": could not read emissive texture file <" << material->GetKeTexture() << ">!\n";
+        }
+    }
+
+    if (!material->GetKsTexture().empty()) {
+        auto image = vsg::read_cast<vsg::Data>(material->GetKsTexture(), options);
+        if (image) {
+            auto sampler = vsg::Sampler::create();
+            sampler->maxLod =
+                static_cast<uint32_t>(std::floor(std::log2(std::max(image->width(), image->height())))) + 1;
+            sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+
+            if (sharedObjects)
+                sharedObjects->share(sampler);
+
+            graphicsPipelineConfig->assignTexture("specularMap", image, sampler);
+        } else {
+            GetLog() << __func__ << ": could not read specular texture file <" << material->GetKsTexture() << ">!\n";
+        }
+    }
+
+    if (!material->GetOpacityTexture().empty()) {
+        auto image = vsg::read_cast<vsg::Data>(material->GetOpacityTexture(), options);
+        if (image) {
+            auto sampler = vsg::Sampler::create();
+            sampler->maxLod =
+                static_cast<uint32_t>(std::floor(std::log2(std::max(image->width(), image->height())))) + 1;
+            sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+
+            if (sharedObjects)
+                sharedObjects->share(sampler);
+
+            graphicsPipelineConfig->assignTexture("opacityMap", image, sampler);
+        } else {
+            GetLog() << __func__ << ": could not read opacity texture file <" << material->GetOpacityTexture()
+                     << ">!\n";
+        }
+    }
+
+    if (!material->GetNormalMapTexture().empty()) {
+        auto image = vsg::read_cast<vsg::Data>(material->GetNormalMapTexture(), options);
+        if (image) {
+            auto sampler = vsg::Sampler::create();
+            sampler->maxLod =
+                static_cast<uint32_t>(std::floor(std::log2(std::max(image->width(), image->height())))) + 1;
+            sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+
+            if (sharedObjects)
+                sharedObjects->share(sampler);
+
+            graphicsPipelineConfig->assignTexture("normalMap", image, sampler);
+        } else {
+            GetLog() << __func__ << ": could not read normal map file <" << material->GetNormalMapTexture() << ">!\n";
+        }
+    }
+
+    if (!material->GetAmbientOcclusionTexture().empty()) {
+        auto image = vsg::read_cast<vsg::Data>(material->GetAmbientOcclusionTexture(), options);
+        if (image) {
+            auto sampler = vsg::Sampler::create();
+            sampler->maxLod =
+                static_cast<uint32_t>(std::floor(std::log2(std::max(image->width(), image->height())))) + 1;
+            sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+
+            if (sharedObjects)
+                sharedObjects->share(sampler);
+
+            graphicsPipelineConfig->assignTexture("aoMap", image, sampler);
+        } else {
+            GetLog() << __func__ << ": could not read ambient occlusion map file <"
+                     << material->GetAmbientOcclusionTexture() << ">!\n";
+        }
+    }
+
+    if (!material->GetMetallicTexture().empty() && !material->GetRoughnessTexture().empty()) {
+        int wM, hM, nM;
+        unsigned char* metalData = stbi_load(material->GetMetallicTexture().c_str(), &wM, &hM, &nM, 1);
+        int wR, hR, nR;
+        unsigned char* roughData = stbi_load(material->GetRoughnessTexture().c_str(), &wR, &hR, &nR, 1);
+        if (metalData && roughData) {
+            if ((wM != wR) || (hM != hR)) {
+                vsg::error("Metalness and Roughness Textures must have the same size!");
+                return {};
+            }
+        }
+
+        auto texData = vsg::vec3Array2D::create(wR, hR, vsg::Data::Layout{VK_FORMAT_R32G32B32_SFLOAT});
+        if (!texData) {
+            vsg::error("Could not create texture data!");
+            return {};
+        }
+        int k = 0;
+        for (int j = 0; j < hR; j++) {
+            for (int i = 0; i < wR; i++) {
+                vsg::vec3 color(0.0f, 0.0f, 0.0f);
+                float red = 0.0f;
+                float green = 0.0f;
+                float blue = 0.0f;
+                if (roughData) {
+                    green = float(roughData[k]) / 255.0f;
+                }
+                if (metalData) {
+                    blue = float(metalData[k]) / 255.0f;
+                }
+                texData->set(i, j, vsg::vec3(0.0f, green, blue));
+                k++;
+            }
+        }
+        if (texData) {
+            auto sampler = vsg::Sampler::create();
+            sampler->maxLod =
+                static_cast<uint32_t>(std::floor(std::log2(std::max(texData->width(), texData->height())))) + 1;
+            sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+
+            if (sharedObjects)
+                sharedObjects->share(sampler);
+
+            graphicsPipelineConfig->assignTexture("mrMap", texData, sampler);
+        }
+    }
+
     graphicsPipelineConfig->colorBlendState->attachments = vsg::ColorBlendState::ColorBlendAttachments{
         {use_blending, VK_BLEND_FACTOR_SRC_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, VK_BLEND_OP_ADD,
          VK_BLEND_FACTOR_SRC_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, VK_BLEND_OP_SUBTRACT,
@@ -165,7 +336,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
 vsg::ref_ptr<vsg::PbrMaterialValue> createPbrMaterialFromChronoMaterial(std::shared_ptr<ChVisualMaterial> chronoMat) {
     auto pbrMat = vsg::PbrMaterialValue::create();
     float alpha = chronoMat->GetOpacity();
-    float dim = 0.5f;
+    float dim = 1.0f;
     pbrMat->value().baseColorFactor.set(dim * chronoMat->GetDiffuseColor().R, dim * chronoMat->GetDiffuseColor().G,
                                         dim * chronoMat->GetDiffuseColor().B, alpha);
     pbrMat->value().emissiveFactor.set(chronoMat->GetEmissiveColor().R, chronoMat->GetEmissiveColor().G,
