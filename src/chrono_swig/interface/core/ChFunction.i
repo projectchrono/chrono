@@ -1,7 +1,9 @@
 %{
 #include "chrono/motion_functions/ChFunction_Base.h"
+#include "chrono/motion_functions/ChFunction_BSpline.h"
 #include "chrono/motion_functions/ChFunction_Const.h"
 #include "chrono/motion_functions/ChFunction_ConstAcc.h"
+#include "chrono/motion_functions/ChFunction_Cycloidal.h"
 #include "chrono/motion_functions/ChFunction_Derive.h"
 #include "chrono/motion_functions/ChFunction_Fillet3.h"
 #include "chrono/motion_functions/ChFunction_Integrate.h"
@@ -40,10 +42,14 @@ SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 {
   if (out)
   {
-		if      ( typeid(*out)==typeid(chrono::ChFunction_Const) )
+		if      ( typeid(*out)==typeid(chrono::ChFunction_BSpline) )
+			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunction_BSpline, 0 |  0 );
+		else if ( typeid(*out)==typeid(chrono::ChFunction_Const) )
 			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunction_Const, 0 |  0 );
 		else if ( typeid(*out)==typeid(chrono::ChFunction_ConstAcc) )
 			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunction_ConstAcc, 0 |  0 );
+		else if ( typeid(*out)==typeid(chrono::ChFunction_Cycloidal) )
+			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunction_Cycloidal, 0 |  0 );
 		else if ( typeid(*out)==typeid(chrono::ChFunction_Derive) )
 			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunction_Derive, 0 |  0 );
 		else if ( typeid(*out)==typeid(chrono::ChFunction_Fillet3) )
@@ -88,8 +94,10 @@ SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 %}
 
 %shared_ptr(chrono::ChFunction)  
+%shared_ptr(chrono::ChFunction_BSpline)
 %shared_ptr(chrono::ChFunction_Const)
 %shared_ptr(chrono::ChFunction_ConstAcc)
+%shared_ptr(chrono::ChFunction_Cycloidal)
 %shared_ptr(chrono::ChFunction_Derive)
 %shared_ptr(chrono::ChFunction_Fillet3)
 %shared_ptr(chrono::ChFunction_Integrate)
@@ -135,9 +143,11 @@ SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 %ignore chrono::ChFunctionRotation::Clone;
 
 // Parse the header file to generate wrappers
-%include "../../../chrono/motion_functions/ChFunction_Base.h"  
+%include "../../../chrono/motion_functions/ChFunction_Base.h" 
+%include "../../../chrono/motion_functions/ChFunction_BSpline.h" 
 %include "../../../chrono/motion_functions/ChFunction_Const.h"
 %include "../../../chrono/motion_functions/ChFunction_ConstAcc.h"
+%include "../../../chrono/motion_functions/ChFunction_Cycloidal.h"
 %include "../../../chrono/motion_functions/ChFunction_Derive.h"
 %include "../../../chrono/motion_functions/ChFunction_Fillet3.h"
 %include "../../../chrono/motion_functions/ChFunction_Integrate.h"
