@@ -69,6 +69,49 @@ defines the Python function return ($result) from the C++ args ($1, $2...)
     delete($2);
 %}
 
+
+%typemap(in) (int* p, int len) %{
+    if(!PyLong_Check($input))
+        SWIG_exception(SWIG_TypeError, "expected integer");
+    $2 = PyLong_AsUnsignedLong($input);
+    $1 = new int[$2];
+%}
+
+%typemap(freearg) (int* p, int len) %{
+    delete($1);
+%}
+
+%typemap(argout) (int* p, int len) {
+    PyObject* list = PyList_New($2);
+    int i;
+    for(i = 0; i < $2; ++i)
+        PyList_SET_ITEM(list, i, PyLong_FromLong($1[i]));
+    $result = SWIG_Python_AppendOutput($result, list);
+}
+
+
+%typemap(in) (int numel, int* q) %{
+    if (PyList_Check($input)) {
+        $1 = PyList_Size($input);
+        $2 = new int[$1];
+        for (int i = 0; i < $1; i++) {
+            PyObject *o = PyList_GetItem($input, i);
+            double tmp = PyLong_AsLong(o);
+            if(PyErr_Occurred())
+                SWIG_fail;
+            $2[i] = PyLong_AsLong(o);
+        }
+    } else {
+        PyErr_SetString(PyExc_TypeError, "not a list");
+        return NULL;
+    }
+%}
+
+%typemap(freearg) (int numel, int* q) %{
+    delete($2);
+%}
+
+
 %typemap(in) (double *mat, int ros, int col) %{
     if (PyList_Check($input)) {
         $2 = PyList_Size($input);
@@ -89,7 +132,6 @@ defines the Python function return ($result) from the C++ args ($1, $2...)
         return NULL;
     }
 %}
-
 
 %typemap(freearg) (double *mat, int ros, int col) %{
     delete($1);
@@ -146,6 +188,35 @@ class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen
 						}
 				}
 		};
+		
+%template(ChVectorDynamicI) chrono::ChVectorDynamic<int>;
+
+%extend chrono::ChVectorDynamic<int>{
+		public:
+			int __getitem__(int i) {
+				return (*$self)(i,1);
+				}
+			void __setitem__(int i, int v) {
+				(*$self)(i, 1) = v;
+				}
+
+			const int Size() {
+				const int r = $self->rows();
+				return r;
+				}
+			void GetVectorData(int* p, int len) {
+				for (int i = 0; i < len; i++){
+					p[i] =  (int)(*$self)(i, 1);
+						}
+				}
+			void SetVect(int numel, int* q){
+				($self)->resize(numel);
+				for (int i = 0; i < numel; i++){
+					(*$self)(i, 1) = q[i];
+						}
+				}
+		};
+
 
 %extend chrono::ChMatrixDynamic<double>{
 		public:
