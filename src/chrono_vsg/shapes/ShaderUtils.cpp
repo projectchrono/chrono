@@ -18,6 +18,27 @@
 namespace chrono {
 namespace vsg3d {
 
+vsg::ref_ptr<vsg::ShaderSet> createLineShaderSet(vsg::ref_ptr<const vsg::Options> options) {
+    vsg::info("Local LineShaderSet(", options, ")");
+
+    auto vertexShader = vsg::read_cast<vsg::ShaderStage>("vsg/shaders/lineShader.vert", options);
+    auto fragmentShader = vsg::read_cast<vsg::ShaderStage>("vsg/shaders/lineShader.frag", options);
+
+    if (!vertexShader || !fragmentShader) {
+        vsg::error("LineShaderSet(...) could not find shaders.");
+        return {};
+    }
+
+    auto shaderSet = vsg::ShaderSet::create(vsg::ShaderStages{vertexShader, fragmentShader});
+
+    shaderSet->addAttributeBinding("inPosition", "", 0, VK_FORMAT_R32G32B32_SFLOAT, vsg::vec3Array::create(1));
+    shaderSet->addAttributeBinding("inColor", "", 1, VK_FORMAT_R32G32B32_SFLOAT, vsg::vec3Array::create(1));
+
+    shaderSet->addPushConstantRange("pc", "", VK_SHADER_STAGE_VERTEX_BIT, 0, 128);
+
+    return shaderSet;
+}
+
 vsg::ref_ptr<vsg::ShaderSet> createPbrShaderSet(vsg::ref_ptr<const vsg::Options> options,
                                                 std::shared_ptr<ChVisualMaterial> material) {
     // vsg::info("Local pbr_ShaderSet(", options, ")");
@@ -66,35 +87,6 @@ vsg::ref_ptr<vsg::ShaderSet> createPbrShaderSet(vsg::ref_ptr<const vsg::Options>
                                  VK_SHADER_STAGE_FRAGMENT_BIT,
                                  vsg::vec4Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32G32B32A32_SFLOAT}));
 
-    /* optional shader data
-
-          shaderSet->addAttributeBinding("vsg_position", "VSG_INSTANCE_POSITIONS", 4, VK_FORMAT_R32G32B32_SFLOAT,
-                                         vsg::vec3Array::create(1));
-          shaderSet->addAttributeBinding("vsg_position_scaleDistance", "VSG_BILLBOARD", 4,
-       VK_FORMAT_R32G32B32A32_SFLOAT, vsg::vec4Array::create(1));
-
-          shaderSet->addUniformBinding("displacementMap", "VSG_DISPLACEMENT_MAP", 0, 6,
-                                       VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_VERTEX_BIT,
-                                       vsg::floatArray2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32_SFLOAT}));
-          shaderSet->addUniformBinding("diffuseMap", "VSG_DIFFUSE_MAP", 0, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-         1, VK_SHADER_STAGE_FRAGMENT_BIT, vsg::ubvec4Array2D::create(1, 1,
-         vsg::Data::Properties{VK_FORMAT_R8G8B8A8_UNORM})); shaderSet->addUniformBinding("mrMap",
-         "VSG_METALLROUGHNESS_MAP", 0, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
-                                       vsg::vec2Array2D::create(1, 1, vsg::Data::Properties{VK_FORMAT_R32G32_SFLOAT}));
-          shaderSet->addUniformBinding("normalMap", "VSG_NORMAL_MAP", 0, 2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-       1, VK_SHADER_STAGE_FRAGMENT_BIT, vsg::vec3Array2D::create(1, 1,
-       vsg::Data::Properties{VK_FORMAT_R32G32B32_SFLOAT})); shaderSet->addUniformBinding("aoMap", "VSG_LIGHTMAP_MAP", 0,
-       3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, vsg::floatArray2D::create(1, 1,
-       vsg::Data::Properties{VK_FORMAT_R32_SFLOAT})); shaderSet->addUniformBinding("emissiveMap", "VSG_EMISSIVE_MAP", 0,
-       4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, vsg::ubvec4Array2D::create(1, 1,
-         vsg::Data::Properties{VK_FORMAT_R8G8B8A8_UNORM}));
-          shaderSet->addUniformBinding("specularMap",
-         "VSG_SPECULAR_MAP", 0, 5, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT,
-                                       vsg::ubvec4Array2D::create(1, 1,
-       vsg::Data::Properties{VK_FORMAT_R8G8B8A8_UNORM})); shaderSet->addUniformBinding("lightData", "", 1, 0,
-       VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, vsg::vec4Array::create(64));
-      */
-    // always needed
     shaderSet->addUniformBinding("lightData", "", 1, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
                                  VK_SHADER_STAGE_FRAGMENT_BIT, vsg::vec4Array::create(64));
     shaderSet->addUniformBinding("PbrData", "", 0, 10, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
@@ -116,6 +108,42 @@ vsg::ref_ptr<vsg::ShaderSet> createPbrShaderSet(vsg::ref_ptr<const vsg::Options>
     shaderSet->customDescriptorSetBindings.push_back(vsg::ViewDependentStateBinding::create(1));
 
     return shaderSet;
+}
+
+vsg::ref_ptr<vsg::StateGroup> createLineStateGroup(vsg::ref_ptr<const vsg::Options> options,
+                                                   VkPrimitiveTopology topology) {
+    vsg::ref_ptr<vsg::SharedObjects> sharedObjects;
+    if (!sharedObjects) {
+        if (options)
+            sharedObjects = options->sharedObjects;
+        else
+            sharedObjects = vsg::SharedObjects::create();
+    }
+
+    vsg::ref_ptr<vsg::ShaderSet> activeShaderSet = createLineShaderSet(options);
+    auto graphicsPipelineConfig = vsg::GraphicsPipelineConfigurator::create(activeShaderSet);
+
+    auto& defines = graphicsPipelineConfig->shaderHints->defines;
+
+    // set up graphics pipeline
+    vsg::DescriptorSetLayoutBindings descriptorBindings;
+
+    graphicsPipelineConfig->enableArray("inPosition", VK_VERTEX_INPUT_RATE_VERTEX, 12);
+    graphicsPipelineConfig->enableArray("inColor", VK_VERTEX_INPUT_RATE_VERTEX, 12);
+    graphicsPipelineConfig->inputAssemblyState->topology = topology;
+    graphicsPipelineConfig->rasterizationState->lineWidth = 1;
+
+    // if required initialize GraphicsPipeline/Layout etc.
+    if (sharedObjects)
+        sharedObjects->share(graphicsPipelineConfig, [](auto gpc) { gpc->init(); });
+    else
+        graphicsPipelineConfig->init();
+
+    // create StateGroup as the root of the scene/command graph to hold the GraphicsProgram, and binding of Descriptors
+    // to decorate the whole graph
+    auto stateGroup = vsg::StateGroup::create();
+    graphicsPipelineConfig->copyTo(stateGroup, sharedObjects);
+    return stateGroup;
 }
 
 vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Options> options,
@@ -351,6 +379,24 @@ vsg::ref_ptr<vsg::PbrMaterialValue> createPbrMaterialFromChronoMaterial(std::sha
     pbrMat->value().alphaMaskCutoff = 0.3f;
 
     return pbrMat;
+}
+
+vsg::ref_ptr<vsg::PhongMaterialValue> createPhongMaterialFromChronoMaterial(
+    std::shared_ptr<chrono::ChVisualMaterial> chronoMat) {
+    auto phongMat = vsg::PhongMaterialValue::create();
+    float alpha = chronoMat->GetOpacity();
+
+    phongMat->value().emissive.set(chronoMat->GetEmissiveColor().R, chronoMat->GetEmissiveColor().G,
+                                   chronoMat->GetEmissiveColor().B, alpha);
+    phongMat->value().specular.set(chronoMat->GetSpecularColor().R, chronoMat->GetSpecularColor().G,
+                                   chronoMat->GetSpecularColor().B, alpha);
+    phongMat->value().diffuse.set(chronoMat->GetDiffuseColor().R, chronoMat->GetDiffuseColor().G,
+                                  chronoMat->GetDiffuseColor().B, alpha);
+    phongMat->value().alphaMask = alpha;
+    phongMat->value().alphaMaskCutoff = 0.3f;
+    phongMat->value().ambient.set(chronoMat->GetAmbientColor().R, chronoMat->GetAmbientColor().G,
+                                  chronoMat->GetAmbientColor().B, alpha);
+    return phongMat;
 }
 
 }  // namespace vsg3d

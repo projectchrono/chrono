@@ -23,12 +23,21 @@
 namespace chrono {
 namespace vsg3d {
 
+vsg::ref_ptr<vsg::ShaderSet> createLineShaderSet(vsg::ref_ptr<const vsg::Options> options);
+
 vsg::ref_ptr<vsg::ShaderSet> createPbrShaderSet(vsg::ref_ptr<const vsg::Options> options,
                                                 std::shared_ptr<ChVisualMaterial> material);
+
+vsg::ref_ptr<vsg::StateGroup> createLineStateGroup(vsg::ref_ptr<const vsg::Options> options,
+                                                   VkPrimitiveTopology topology);
+
 vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Options> options,
                                                   std::shared_ptr<ChVisualMaterial> material,
                                                   bool wireframe);
+
 vsg::ref_ptr<vsg::PbrMaterialValue> createPbrMaterialFromChronoMaterial(std::shared_ptr<ChVisualMaterial> chronoMat);
+vsg::ref_ptr<vsg::PhongMaterialValue> createPhongMaterialFromChronoMaterial(
+    std::shared_ptr<ChVisualMaterial> chronoMat);
 
 }  // namespace vsg3d
 }  // namespace chrono

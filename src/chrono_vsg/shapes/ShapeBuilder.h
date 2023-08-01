@@ -35,7 +35,7 @@ namespace chrono {
 namespace vsg3d {
 
 class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
-  public:
+   public:
     typedef enum {
         BOX_SHAPE,
         DIE_SHAPE,
@@ -49,21 +49,11 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
     vsg::ref_ptr<vsg::Options> m_options;
     vsg::ref_ptr<vsg::SharedObjects> m_sharedObjects;
 
-    vsg::ref_ptr<vsg::Group> createPhongShape(BasicShape theShape,
-                                              std::shared_ptr<ChVisualMaterial> material,
-                                              vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                              bool wireframe,
-                                              std::shared_ptr<ChSurfaceShape> surface = nullptr);
-
     vsg::ref_ptr<vsg::Group> createPbrShape(BasicShape theShape,
                                             std::shared_ptr<ChVisualMaterial> material,
                                             vsg::ref_ptr<vsg::MatrixTransform> transform,
                                             bool wireframe,
                                             std::shared_ptr<ChSurfaceShape> surface = nullptr);
-
-    vsg::ref_ptr<vsg::Group> createTrimeshPhongMatShape(std::shared_ptr<ChTriangleMeshShape> tms,
-                                                        vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                                        bool wireframe);
 
     vsg::ref_ptr<vsg::Group> createTrimeshPbrMatShape(std::shared_ptr<ChTriangleMeshShape> tms,
                                                       vsg::ref_ptr<vsg::MatrixTransform> transform,
@@ -81,7 +71,7 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                                       vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                       bool wireframe);
 
-    /// Create a symbol to represent a refernce frame.
+    /// Create a symbol to represent a reference frame.
     /// These are 3 mututally orthogonal line segments, colored red, green, and blue.
     /// The color factor controls simultaneous darkening of the 3 colors (a value of 1 indicates pure colors).
     vsg::ref_ptr<vsg::Group> createFrameSymbol(vsg::ref_ptr<vsg::MatrixTransform> transform, float color_factor);
@@ -90,10 +80,11 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                              std::shared_ptr<ChVisualMaterial> material,
                                              vsg::ref_ptr<vsg::MatrixTransform> transform,
                                              std::shared_ptr<ChLineShape> ls);
+    
     vsg::ref_ptr<vsg::Group> createPathShape(ChVisualModel::ShapeInstance shapeInstance,
-                                             std::shared_ptr<ChVisualMaterial> material,
-                                             vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                             std::shared_ptr<ChPathShape> ps);
+                                                std::shared_ptr<ChVisualMaterial> material,
+                                                vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                                std::shared_ptr<ChPathShape> ps);
 
     vsg::ref_ptr<vsg::Group> createSpringShape(std::shared_ptr<ChLinkBase> link,
                                                ChVisualModel::ShapeInstance shapeInstance,
@@ -108,29 +99,12 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
 
     vsg::ref_ptr<vsg::Group> createDecoGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col);
 
-    /// Create a ShaderSet for Phong shaded rendering with tiled textures.
-    vsg::ref_ptr<vsg::ShaderSet> createTilingPhongShaderSet(vsg::ref_ptr<const vsg::Options> options = {});
-
-    /// Create a ShaderSet for PBR shaded rendering with tiled textures.
-    vsg::ref_ptr<vsg::ShaderSet> createTilingPbrShaderSet(vsg::ref_ptr<const vsg::Options> options = {});
-
     /// Assign compile traversal to enable compilation.
     void assignCompileTraversal(vsg::ref_ptr<vsg::CompileTraversal> ct);
 
     vsg::ref_ptr<vsg::CompileTraversal> compileTraversal;
 
-  private:
-    bool applyTexture(vsg::Path& path,
-                      vsg::ref_ptr<vsg::GraphicsPipelineConfigurator> pipeConfig,
-                      vsg::Descriptors& descriptors,
-                      std::string& uniformName);
-
-    bool applyMetalRoughnessTexture(vsg::Path& metalPath,
-                                    vsg::Path& roughPath,
-                                    vsg::ref_ptr<vsg::GraphicsPipelineConfigurator> pipeConfig,
-                                    vsg::Descriptors& descriptors,
-                                    std::string& uniformName);
-
+   private:
     vsg::ref_ptr<vsg::PhongMaterialValue> createPhongMaterialFromChronoMaterial(
         std::shared_ptr<ChVisualMaterial> chronoMat);
 };
