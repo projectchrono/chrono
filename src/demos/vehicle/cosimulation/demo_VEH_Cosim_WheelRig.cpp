@@ -435,6 +435,7 @@ int main(int argc, char** argv) {
     int output_frame = 0;
     int vis_output_frame = 0;
 
+    double t_start = MPI_Wtime();
     for (int is = 0; is < sim_steps; is++) {
         double time = is * step_size;
 
@@ -458,6 +459,9 @@ int main(int argc, char** argv) {
             vis_output_frame++;
         }
     }
+    double t_total = MPI_Wtime() - t_start;
+
+    cout << "Node" << rank << " sim time: " << node->GetTotalExecutionTime() << " total time: " << t_total << endl;
 
     node->WriteCheckpoint("checkpoint_end.dat");
 
