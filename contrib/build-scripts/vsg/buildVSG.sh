@@ -14,14 +14,12 @@
 #   project configuration scripts required to configure Chrono with the Chorno::VSG module enabled.
 #
 # Notes:
-# - This script uses the latest versions of the various codes from their respective repositories, with the
-#   only exception being assimp (set at version 5.2.5). This means that pushes to any of the VSG repositories
-#   may break the generation of the dependencies for Chrono::VSG.
-# - This was tested with the following versions of VSG libraries:
-#      VulkanSceneGraph (github.com/vsg-dev/VulkanSceneGraph.git): Commit #c87b4cca
-#      vsgXchange (github.com/vsg-dev/vsgXchange.git):             Commit #883f887
-#      vsgImGui (github.com/vsg-dev/vsgImGui.git):                 Commit #d9261b1
-#      vsgExamples (github.com/vsg-dev/vsgExamples.git):           Commit #7ac782b
+# - This script uses the following versions of the various codes from their respective repositories, with the
+#   only exception being vsgImGui which pulls the latest version.
+#      VulkanSceneGraph (github.com/vsg-dev/VulkanSceneGraph.git): Tag v1.0.7
+#      vsgXchange (github.com/vsg-dev/vsgXchange.git):             Tag v1.0.3
+#      vsgImGui (github.com/vsg-dev/vsgImGui.git):                 latest
+#      vsgExamples (github.com/vsg-dev/vsgExamples.git):           Tag v1.0.5
 #      assimp (github.com/assimp/assimp):                          Tag v5.2.5
 # - We suggest using Ninja (ninja-build.org/) and the "Ninja Multi-Config" CMake generator.
 #   (otherwise, you will need to explicitly set the CMAKE_BUILD_TYPE variable)
@@ -58,13 +56,13 @@ then
     mkdir download_vsg
 
     echo "  ... VulkanSceneGraph"
-    #git clone -c advice.detachedHead=false --depth 1 --branch VulkanSceneGraph-1.0.5 "https://github.com/vsg-dev/VulkanSceneGraph" "download_vsg/vsg"
-    git clone "https://github.com/vsg-dev/VulkanSceneGraph" "download_vsg/vsg"
+    git clone -c advice.detachedHead=false --depth 1 --branch v1.0.7 "https://github.com/vsg-dev/VulkanSceneGraph" "download_vsg/vsg"
+    #git clone "https://github.com/vsg-dev/VulkanSceneGraph" "download_vsg/vsg"
     VSG_SOURCE_DIR="download_vsg/vsg"
 
     echo "  ... vsgXchange"    
-    #git clone -c advice.detachedHead=false --depth 1 --branch vsgXchange-1.0.2 "https://github.com/vsg-dev/vsgXchange" "download_vsg/vsgXchange"
-    git clone "https://github.com/vsg-dev/vsgXchange" "download_vsg/vsgXchange"
+    git clone -c advice.detachedHead=false --depth 1 --branch v1.0.3 "https://github.com/vsg-dev/vsgXchange" "download_vsg/vsgXchange"
+    #git clone "https://github.com/vsg-dev/vsgXchange" "download_vsg/vsgXchange"
     VSGXCHANGE_SOURCE_DIR="download_vsg/vsgXchange"
 
     echo "  ... vsgImGui"
@@ -72,8 +70,8 @@ then
     VSGIMGUI_SOURCE_DIR="download_vsg/vsgImGui"
     
     echo "  ... vsgExamples"
-    #git clone -c advice.detachedHead=false --depth 1 --branch vsgExamples-1.0.3 "https://github.com/vsg-dev/vsgExamples" "download_vsg/vsgExamples"
-    git clone "https://github.com/vsg-dev/vsgExamples" "download_vsg/vsgExamples"
+    git clone -c advice.detachedHead=false --depth 1 --branch v1.0.5 "https://github.com/vsg-dev/vsgExamples" "download_vsg/vsgExamples"
+    #git clone "https://github.com/vsg-dev/vsgExamples" "download_vsg/vsgExamples"
     VSGEXAMPLES_SOURCE_DIR="download_vsg/vsgExamples"
 
     echo "  ... assimp"
