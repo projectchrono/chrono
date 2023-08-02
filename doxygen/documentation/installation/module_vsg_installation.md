@@ -75,12 +75,10 @@ These scripts (`buildVSG.bat` and `buildVSG.sh`, for Windows and Linux, respecti
 
 1. Copy the appropriate script and place in an arbitrary temporary directory.
 2. Edit the script copy to:
-   - Force a download of the VSG library codes
-   - Specify the install directory (set the variable `VSG_INSTALL_DIR`)
-   - Optionally set the path to the doxygen and dot executables
-   - Decide whether to build shared or static libraries, whether to also build debug libraries, and whether to build the VSG documentation.
-3. Run the script (`.\buildVSG.bat` or `sh buildVSG.sh`, as appropriate) from the location of the script copy.
-   This will create a temporary directory where all source repositories will be cloned and a set of directories where the individual VSG dependencies are built.
+   - Force a download of the VSG library codes.
+   - Specify the install directory (set the variable `VSG_INSTALL_DIR`).
+   - Decide whether to build shared or static libraries and whether to also build debug libraries.
+3. Run the script (`.\buildVSG.bat` or `sh buildVSG.sh`, as appropriate) from the location of the script copy. This will create a temporary directory where all source repositories will be cloned and a set of directories where the individual VSG dependencies are built.
 4. The install directory will contain (under subdirectories of `VSG_INSTALL_DIR/lib/shared`) all VSG CMake project configuration scripts required to configure Chrono with the Chrono::VSG module enabled.
 
 

@@ -6,9 +6,7 @@
 # - Place in an arbitrary temporary directory.
 # - Specify the locations for the VSG sources OR indicate that these should be downloaded.
 # - Specify the install directory.
-# - Optionally set the path to the doxygen and dot executables
-# - Decide whether to build shared or static libraries, whether to also build debug libraries,
-#   and whether to build the VSG documentation.
+# - Decide whether to build shared or static libraries and whether to also build debug libraries.
 # - Run the script (sh ./buildVSG.sh).
 # - The install directory will contain (under subdirectories of VSG_INSTALL_DIR/lib/shared) all VSG CMake
 #   project configuration scripts required to configure Chrono with the Chorno::VSG module enabled.
@@ -29,11 +27,7 @@ DOWNLOAD=ON
 
 VSG_INSTALL_DIR="$HOME/Packages/vsg"
 
-DOXYGEN_EXE="doxygen"
-DOT_EXE="dot"
-
 BUILDSHARED=ON
-BUILDDOCS=OFF
 BUILDDEBUG=ON
 BUILDSYSTEM="Ninja Multi-Config"
 
@@ -121,20 +115,10 @@ fi
 
 echo -e "\n------------------------ Configure vsg\n"
 rm -rf build_vsg
-if [ ${BUILDDOCS} = ON ]
-then
 cmake  -G "${BUILDSYSTEM}" -B build_vsg -S ${VSG_SOURCE_DIR}  \
       -DBUILD_SHARED_LIBS:BOOL=${BUILDSHARED} \
       -DCMAKE_DEBUG_POSTFIX=_d \
-      -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd
-else    
-cmake  -G "${BUILDSYSTEM}" -B build_vsg -S ${VSG_SOURCE_DIR}  \
-      -DBUILD_SHARED_LIBS:BOOL=${BUILDSHARED} \
-      -DCMAKE_DEBUG_POSTFIX=_d \
-      -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd \
-      -DDOXYGEN_EXECUTABLE:FILEPATH=${DOXYGEN_EXE} \
-      -DDOXYGEN_DOT_EXECUTABLE:FILEPATH=${DOT_EXE}
-fi      
+      -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd    
 
 echo -e "\n------------------------ Build and install vsg\n"
 cmake --build build_vsg --config Release
@@ -145,11 +129,6 @@ then
     cmake --install build_vsg --config Debug --prefix ${VSG_INSTALL_DIR}
 else
     echo "No Debug build of vsg"
-fi
-if [ ${BUILDDOCS} = ON ]
-then
-    cmake --build build_vsg --config Release --target docs
-    cp -r build_vsg/html ${VSG_INSTALL_DIR}/html
 fi
 
 # --- vsgXchange ---------------------------------------------------------
@@ -199,7 +178,9 @@ fi
 echo -e "\n------------------------ Configure vsgExamples\n"
 rm -rf  build_vsgExamples
 cmake -G "${BUILDSYSTEM}" -B build_vsgExamples -S ${VSGEXAMPLES_SOURCE_DIR} \
-      -Dvsg_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/vsg
+      -Dvsg_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/vsg \
+      -DvsgXchange_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/vsgXchange \
+      -DvsgImGui_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/vsgImGui
 
 echo -e "\n------------------------ Build and install vsgExamples\n"
 cmake --build build_vsgExamples --config Release
