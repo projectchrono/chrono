@@ -287,6 +287,7 @@ class ChBaseEventHandlerVSG : public ChEventHandlerVSG {
 // -----------------------------------------------------------------------------
 
 // Utility visitor class for accessing the vec3 data in the N-th vertex buffer of an object.
+// Note: since VSG v.1.0.8 VertexIndexDraw is used instead of BindVertexBuffers!
 template <int N>
 class FindVec3BufferData : public vsg::Visitor {
   public:
@@ -296,6 +297,11 @@ class FindVec3BufferData : public vsg::Visitor {
         if (bvd.arrays.empty())
             return;
         bvd.arrays[N]->data->accept(*this);
+    }
+    void apply(vsg::VertexIndexDraw& vid) override {
+        if (vid.arrays.empty())
+            return;
+        vid.arrays[N]->data->accept(*this);
     }
     void apply(vsg::vec3Array& vertices) override {
         if (!m_buffer)
@@ -310,6 +316,7 @@ class FindVec3BufferData : public vsg::Visitor {
 };
 
 // Utility visitor class for accessing the vec4 data in the N-th vertex buffer of an object.
+// Note: since VSG v.1.0.8 VertexIndexDraw is used instead of BindVertexBuffers!
 template <int N>
 class FindVec4BufferData : public vsg::Visitor {
   public:
@@ -319,6 +326,11 @@ class FindVec4BufferData : public vsg::Visitor {
         if (bvd.arrays.empty())
             return;
         bvd.arrays[N]->data->accept(*this);
+    }
+    void apply(vsg::VertexIndexDraw& vid) override {
+        if (vid.arrays.empty())
+            return;
+        vid.arrays[N]->data->accept(*this);
     }
     void apply(vsg::vec4Array& vertices) override {
         if (!m_buffer)

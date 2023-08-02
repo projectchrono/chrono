@@ -118,6 +118,115 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColShape(std::shared_ptr<ChT
                                                              vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                              bool wireframe) {
     auto scenegraph = vsg::Group::create();
+    auto chronoMat = chrono_types::make_shared<ChVisualMaterial>();
+
+    const auto& mesh = tms->GetMesh();
+
+    const auto& vertices = mesh->getCoordsVertices();
+    const auto& normals = mesh->getCoordsNormals();
+    const auto& uvs = mesh->getCoordsUV();
+    const auto& colors = mesh->getCoordsColors();
+
+    const auto& v_indices = mesh->getIndicesVertexes();
+    const auto& n_indices = mesh->getIndicesNormals();
+    const auto& uv_indices = mesh->getIndicesUV();
+    const auto& c_indices = mesh->getIndicesColors();
+
+    unsigned int ntriangles = (unsigned int)v_indices.size();
+
+    // Set the Irrlicht vertex and index buffers for the mesh buffer
+    ChVector<> t[3];    // positions of triangle vertices
+    ChVector<> n[3];    // normals at the triangle vertices
+    ChVector2<> uv[3];  // UV coordinates at the triangle vertices
+    ChColor col[3];     // color coordinates at the triangle vertices
+
+    auto default_color = tms->GetColor();
+
+    std::vector<ChVector<>> tmp_vertices;
+    std::vector<ChVector<>> tmp_normals;
+    std::vector<ChVector2<>> tmp_texcoords;
+    std::vector<ChColor> tmp_colors;
+
+    for (unsigned int itri = 0; itri < ntriangles; itri++) {
+        for (int iv = 0; iv < 3; iv++)
+            t[iv] = vertices[v_indices[itri][iv]];
+
+        if (n_indices.size() == ntriangles) {
+            for (int iv = 0; iv < 3; iv++)
+                n[iv] = normals[n_indices[itri][iv]];
+        } else {
+            n[0] = Vcross(t[1] - t[0], t[2] - t[0]).GetNormalized();
+            n[1] = n[0];
+            n[2] = n[0];
+        }
+
+        if (uv_indices.size() == ntriangles) {
+            for (int iv = 0; iv < 3; iv++)
+                uv[iv] = uvs[uv_indices[itri][iv]];
+        } else if (uv_indices.size() == 0 && uvs.size() == vertices.size()) {
+            for (int iv = 0; iv < 3; iv++)
+                uv[iv] = uvs[v_indices[itri][iv]];
+        }
+
+        if (c_indices.size() == ntriangles) {
+            for (int iv = 0; iv < 3; iv++)
+                col[iv] = colors[c_indices[itri][iv]];
+        } else if (c_indices.size() == 0 && colors.size() == vertices.size()) {
+            for (int iv = 0; iv < 3; iv++)
+                col[iv] = colors[v_indices[itri][iv]];
+        } else {
+            for (int iv = 0; iv < 3; iv++)
+                col[iv] = default_color;
+        }
+
+        for (int iv = 0; iv < 3; iv++) {
+            tmp_vertices.push_back(t[iv]);
+            tmp_normals.push_back(n[iv]);
+            tmp_texcoords.push_back(uv[iv]);
+            tmp_colors.push_back(col[iv]);
+        }
+    }
+    // create and fill the vsg buffers
+    size_t nVert = tmp_vertices.size();
+    vsg::ref_ptr<vsg::vec3Array> vsg_vertices = vsg::vec3Array::create(nVert);
+    vsg::ref_ptr<vsg::vec3Array> vsg_normals = vsg::vec3Array::create(nVert);
+    vsg::ref_ptr<vsg::vec2Array> vsg_texcoords = vsg::vec2Array::create(nVert);
+    vsg::ref_ptr<vsg::uintArray> vsg_indices = vsg::uintArray::create(nVert);
+    vsg::ref_ptr<vsg::vec4Array> vsg_colors = vsg::vec4Array::create(nVert);
+    for (size_t k = 0; k < nVert; k++) {
+        vsg_vertices->set(k, vsg::vec3CH(tmp_vertices[k]));
+        vsg_normals->set(k, vsg::vec3CH(tmp_normals[k]));
+        // seems to work with v-coordinate flipped on VSG
+        vsg_texcoords->set(k, vsg::vec2(tmp_texcoords[k].x(), 1 - tmp_texcoords[k].y()));
+        vsg_colors->set(k, vsg::vec4CH(tmp_colors[k]));
+        vsg_indices->set(k, k);
+    }
+
+    vsg::DataList arrays;
+    // setup geometry
+    auto vid = vsg::VertexIndexDraw::create();
+
+    arrays.push_back(vsg_vertices);
+    if (vsg_normals)
+        arrays.push_back(vsg_normals);
+    if (vsg_texcoords)
+        arrays.push_back(vsg_texcoords);
+    if (vsg_colors)
+        arrays.push_back(vsg_colors);
+    vid->assignArrays(arrays);
+
+    vid->assignIndices(vsg_indices);
+    vid->indexCount = static_cast<uint32_t>(vsg_indices->size());
+    vid->instanceCount = 1;
+
+    auto stategraph = createPbrStateGroup(m_options, chronoMat, wireframe);
+    stategraph->addChild(vid);
+    transform->addChild(stategraph);
+
+    scenegraph->addChild(transform);
+    
+    if (compileTraversal)
+        compileTraversal->compile(scenegraph);
 
     return scenegraph;
 }
@@ -126,6 +235,79 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColAvgShape(std::shared_ptr<
                                                                 vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                                 bool wireframe) {
     auto scenegraph = vsg::Group::create();
+    auto chronoMat = chrono_types::make_shared<ChVisualMaterial>();
+
+    const auto& mesh = tms->GetMesh();
+
+     const auto& vertices = mesh->getCoordsVertices();
+     const auto& normals = mesh->getCoordsNormals();
+     const auto& uvs = mesh->getCoordsUV();
+     const auto& colors = mesh->getCoordsColors();
+
+     size_t nvertices = vertices.size();
+     bool normals_ok = true;
+     std::vector<ChVector<>> avg_normals;
+     if (nvertices != normals.size()) {
+         avg_normals = mesh->getAverageNormals();
+         normals_ok = false;
+     }
+     bool texcoords_ok = true;
+     if (nvertices != uvs.size()) {
+         texcoords_ok = false;
+     }
+     bool colors_ok = true;
+     if (nvertices != colors.size()) {
+         colors_ok = false;
+     }
+
+     const auto& v_indices = mesh->getIndicesVertexes();
+     auto default_color = tms->GetColor();
+
+     // create and fill the vsg buffers
+     vsg::ref_ptr<vsg::vec3Array> vsg_vertices = vsg::vec3Array::create(nvertices);
+     vsg::ref_ptr<vsg::vec3Array> vsg_normals = vsg::vec3Array::create(nvertices);
+     vsg::ref_ptr<vsg::vec2Array> vsg_texcoords = vsg::vec2Array::create(nvertices);
+     vsg::ref_ptr<vsg::uintArray> vsg_indices = vsg::uintArray::create(v_indices.size() * 3);
+     vsg::ref_ptr<vsg::vec4Array> vsg_colors = vsg::vec4Array::create(nvertices);
+     for (size_t k = 0; k < nvertices; k++) {
+         vsg_vertices->set(k, vsg::vec3CH(vertices[k]));
+         vsg_normals->set(k, normals_ok ? vsg::vec3CH(normals[k]) : vsg::vec3CH(avg_normals[k]));
+         // seems to work with v-coordinate flipped on VSG (??)
+         vsg_texcoords->set(k, texcoords_ok ? vsg::vec2(uvs[k].x(), 1 - uvs[k].y()) : vsg::vec2CH({0, 0}));
+         vsg_colors->set(k, colors_ok ? vsg::vec4CH(colors[k]) : vsg::vec4CH(default_color));
+     }
+     size_t kk = 0;
+     for (size_t k = 0; k < v_indices.size() * 3; k += 3) {
+         vsg_indices->set(k, v_indices[kk][0]);
+         vsg_indices->set(k + 1, v_indices[kk][1]);
+         vsg_indices->set(k + 2, v_indices[kk++][2]);
+     }
+  
+    vsg::DataList arrays;
+    // setup geometry
+    auto vid = vsg::VertexIndexDraw::create();
+
+    arrays.push_back(vsg_vertices);
+    if (vsg_normals)
+        arrays.push_back(vsg_normals);
+    if (vsg_texcoords)
+        arrays.push_back(vsg_texcoords);
+    if (vsg_colors)
+        arrays.push_back(vsg_colors);
+    vid->assignArrays(arrays);
+
+    vid->assignIndices(vsg_indices);
+    vid->indexCount = static_cast<uint32_t>(vsg_indices->size());
+    vid->instanceCount = 1;
+
+    auto stategraph = createPbrStateGroup(m_options, chronoMat, wireframe);
+    stategraph->addChild(vid);
+    transform->addChild(stategraph);
+
+    scenegraph->addChild(transform);
+
+    if (compileTraversal)
+        compileTraversal->compile(scenegraph);
 
     return scenegraph;
 }
@@ -243,6 +425,9 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshPbrMatShape(std::shared_ptr<
         stategraph->addChild(vid);
         transform->addChild(stategraph);
     }  // imat
+
+    if (compileTraversal)
+        compileTraversal->compile(scenegraph);
 
     return scenegraph;
 }

@@ -19,7 +19,7 @@ namespace chrono {
 namespace vsg3d {
 
 vsg::ref_ptr<vsg::ShaderSet> createLineShaderSet(vsg::ref_ptr<const vsg::Options> options) {
-    vsg::info("Local LineShaderSet(", options, ")");
+    //vsg::info("Local LineShaderSet(", options, ")");
 
     auto vertexShader = vsg::read_cast<vsg::ShaderStage>("vsg/shaders/lineShader.vert", options);
     auto fragmentShader = vsg::read_cast<vsg::ShaderStage>("vsg/shaders/lineShader.frag", options);
