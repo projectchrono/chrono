@@ -77,11 +77,13 @@ set(CE_VSG_SHAPES_FILES
 )
 
 set(CE_VSG_RESOURCES_FILES
-    resources/lineShader_frag.h
-    resources/lineShader_vert.h
-    resources/cubemapShaders.h
+    resources/chronoLineShader_frag.h
+    resources/chronoLineShader_vert.h
+    resources/chronoPbrShader_frag.h
+    resources/chronoPbrShader_vert.h
     resources/pcShader_frag.h
     resources/pcShader_vert.h
+    resources/cubemapShaders.h
 )
 
 set(CE_VSG_UTILS_FILES

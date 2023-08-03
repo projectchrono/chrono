@@ -24,9 +24,6 @@
 
 #include "chrono_vsg/utils/ChConversionsVSG.h"
 
-#include "chrono_vsg/resources/lineShader_vert.h"
-#include "chrono_vsg/resources/lineShader_frag.h"
-
 #include "chrono_thirdparty/stb/stb_image.h"
 
 namespace chrono {

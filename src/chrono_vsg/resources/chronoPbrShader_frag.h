@@ -1,6 +1,22 @@
-#version 450
+#include <vsg/io/VSG.h>
+#include <vsg/io/mem_stream.h>
+static auto chronoPbrShader_frag = []() {
+static const char str[] = 
+R"(#vsga 1.0.8
+Root id=1 vsg::ShaderStage
+{
+  userObjects 0
+  stage 16
+  entryPointName "main"
+  module id=2 vsg::ShaderModule
+  {
+    userObjects 0
+    hints id=0
+    source "#version 450
 #extension GL_ARB_separate_shader_objects : enable
-#pragma import_defines (VSG_DIFFUSE_MAP, VSG_GREYSACLE_DIFFUSE_MAP, VSG_EMISSIVE_MAP, VSG_LIGHTMAP_MAP, VSG_NORMAL_MAP, VSG_METALLROUGHNESS_MAP, VSG_SPECULAR_MAP, VSG_OPACITY_MAP, VSG_TWO_SIDED_LIGHTING, VSG_WORKFLOW_SPECGLOSS)
+#pragma import_defines (VSG_DIFFUSE_MAP, VSG_GREYSACLE_DIFFUSE_MAP, VSG_EMISSIVE_MAP, VSG_LIGHTMAP_MAP, VSG_NORMAL_MAP, VSG_METALLROUGHNESS_MAP, VSG_SPECULAR_MAP, VSG_TWO_SIDED_LIGHTING, VSG_WORKFLOW_SPECGLOSS)
+
+// experimental pbr fragment shader program for chrono_vsg
 
 const float PI = 3.14159265359;
 const float RECIPROCAL_PI = 0.31830988618;
@@ -30,10 +46,6 @@ layout(binding = 4) uniform sampler2D emissiveMap;
 
 #ifdef VSG_SPECULAR_MAP
 layout(binding = 5) uniform sampler2D specularMap;
-#endif
-
-#ifdef VSG_OPACITY_MAP
-layout(binding = 7) uniform sampler2D opacityMap;
 #endif
 
 layout(binding = 10) uniform PbrData
@@ -150,7 +162,7 @@ vec3 BRDF_Diffuse_Custom_Lambert(PBRInfo pbrInputs)
     return pbrInputs.diffuseColor * RECIPROCAL_PI * pow(pbrInputs.NdotV, 0.5 + 0.3 * pbrInputs.perceptualRoughness);
 }
 
-// [Gotanda 2012, "Beyond a Simple Physically Based Blinn-Phong Model in Real-Time"]
+// [Gotanda 2012, \"Beyond a Simple Physically Based Blinn-Phong Model in Real-Time\"]
 vec3 BRDF_Diffuse_OrenNayar(PBRInfo pbrInputs)
 {
     float a = pbrInputs.alphaRoughness;
@@ -163,7 +175,7 @@ vec3 BRDF_Diffuse_OrenNayar(PBRInfo pbrInputs)
     return pbrInputs.diffuseColor / PI * ( C1 + C2 ) * ( 1 + pbrInputs.perceptualRoughness * 0.5 );
 }
 
-// [Gotanda 2014, "Designing Reflectance Models for New Consoles"]
+// [Gotanda 2014, \"Designing Reflectance Models for New Consoles\"]
 vec3 BRDF_Diffuse_Gotanda(PBRInfo pbrInputs)
 {
     float a = pbrInputs.alphaRoughness;
@@ -227,7 +239,7 @@ float geometricOcclusion(PBRInfo pbrInputs)
 }
 
 // The following equation(s) model the distribution of microfacet normals across the area being drawn (aka D())
-// Implementation from "Average Irregularity Representation of a Roughened Surface for Ray Reflection" by T. S. Trowbridge, and K. P. Reitz
+// Implementation from \"Average Irregularity Representation of a Roughened Surface for Ray Reflection\" by T. S. Trowbridge, and K. P. Reitz
 // Follows the distribution function recommended in the SIGGRAPH 2013 course notes from EPIC Games [1], Equation 3.
 float microfacetDistribution(PBRInfo pbrInputs)
 {
@@ -340,8 +352,9 @@ void main()
     #endif
 
     #ifdef VSG_SPECULAR_MAP
-        vec3 specular = SRGBtoLINEAR(texture(specularMap, texCoord0)).rgb;
-        perceptualRoughness = 1.0 - texture(specularMap, texCoord0).a;
+        vec4 specular_texel = texture(specularMap, texCoord0);
+        vec3 specular = SRGBtoLINEAR(specular_texel).rgb;
+        perceptualRoughness = 1.0 - specular_texel.a;
     #else
         vec3 specular = vec3(0.0);
         perceptualRoughness = 0.0;
@@ -419,7 +432,8 @@ void main()
             vec3 direction = -lightData.values[index++].xyz;
 
             vec3 l = direction;         // Vector from surface point to light
-            vec3 h = normalize(l+v);    // Half vector between both l and v
+)"
+R"(            vec3 h = normalize(l+v);    // Half vector between both l and v
             float scale = lightColor.a;
 
             color.rgb += BRDF(lightColor.rgb * scale, v, n, l, h, perceptualRoughness, metallic, specularEnvironmentR0, specularEnvironmentR90, alphaRoughness, diffuseColor, specularColor, ambientOcclusion);
@@ -467,13 +481,15 @@ void main()
         }
     }
 
-#ifdef VSG_OPACITY_MAP
-    vec4 a_map = texture(opacityMap, texCoord0);
-    float a_old = baseColor.a;
-    float at = (a_map.r + a_map.g + a_map.b + a_old)/4;
-    if (baseColor.a > pbr.alphaMaskCutoff)
-        baseColor.a = at;
-#endif
-
     outColor = LINEARtoSRGB(vec4(color, baseColor.a));
 }
+"
+    code 0
+    
+  }
+  NumSpecializationConstants 0
+}
+)";
+vsg::VSG io;
+return io.read_cast<vsg::ShaderStage>(reinterpret_cast<const uint8_t*>(str), sizeof(str));
+};
