@@ -130,13 +130,8 @@ class ChGnuPlot {
 
         mdataplot.command += " \"-\" using 1:2 ";
         mdataplot.command += customsettings;
-        if (title != "") {
-            mdataplot.command += " title \"";
-            mdataplot.command += title;
-        }
-        else {
-            mdataplot.command += " notitle ";
-        }
+        mdataplot.command += " title \"";
+        mdataplot.command += title;
         mdataplot.command += "\" ";
 
         this->plots.push_back(mdataplot);
@@ -355,6 +350,20 @@ class ChGnuPlot {
         commandfile += " lc ";
         commandfile += col_to_hex(mcolor);
         commandfile += "\n";
+    }
+
+    /// Hide or show (=default) plot legend
+    void SetLegend(bool flag) {
+        if (!flag)
+            commandfile += " unset key ";
+        else
+            commandfile += " set key ";
+        commandfile += "\n";
+    }
+
+    /// Set axes to equal size (ie. square box)
+    void SetAxesEqual() {
+        commandfile += " set size square \n";
     }
 
     /// Set plot in a window.

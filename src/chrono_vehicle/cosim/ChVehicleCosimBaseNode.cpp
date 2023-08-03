@@ -19,6 +19,8 @@
 //
 // =============================================================================
 
+#include <iomanip>
+
 #include "chrono_vehicle/cosim/ChVehicleCosimBaseNode.h"
 
 using std::cout;
@@ -84,6 +86,7 @@ ChVehicleCosimBaseNode::ChVehicleCosimBaseNode(const std::string& name)
       m_verbose(true),
       m_renderRT(false),
       m_renderRT_step(0.01),
+      m_writeRT(false),
       m_renderPP(false),
       m_renderPP_step(0.01),
       m_track(true),
@@ -205,6 +208,10 @@ void ChVehicleCosimBaseNode::SetOutDir(const std::string& dir_name, const std::s
         std::cout << "Error creating directory " << m_node_out_dir + "/visualization" << std::endl;
         return;
     }
+    if (!filesystem::create_directory(filesystem::path(m_node_out_dir + "/images"))) {
+        std::cout << "Error creating directory " << m_node_out_dir + "/images" << std::endl;
+        return;
+    }
 
     // Create results output file
     m_outf.open(m_node_out_dir + "/results.dat", std::ios::out);
@@ -251,8 +258,9 @@ std::string ChVehicleCosimBaseNode::GetNodeTypeString() const {
     }
 }
 
-void ChVehicleCosimBaseNode::EnableRuntimeVisualization(double render_fps) {
+void ChVehicleCosimBaseNode::EnableRuntimeVisualization(double render_fps, bool save_img) {
     m_renderRT = true;
+    m_writeRT = save_img;
     if (render_fps <= 0) {
         m_renderRT_all = true;
         m_renderRT_step = 0;
@@ -294,6 +302,7 @@ void ChVehicleCosimBaseNode::Render(double step_size) {
     }
 
     if (m_renderPP && GetSystemPostprocess()) {
+#ifdef CHRONO_POSTPROCESS
         if (!renderPP_initialized) {
             m_blender = chrono_types::make_shared<postprocess::ChBlender>(GetSystemPostprocess());
             m_blender->SetBlenderUp_is_ChronoZ();
@@ -309,6 +318,7 @@ void ChVehicleCosimBaseNode::Render(double step_size) {
             m_blender->ExportData();
             renderPP_time += m_renderPP_step;
         }
+#endif
     }
 }
 
@@ -536,6 +546,21 @@ void ChVehicleCosimBaseNode::RecvGeometry(ChVehicleGeometry& geom, int source) c
 
         geom.m_coll_meshes.push_back(ChVehicleGeometry::TrimeshShape(pos, trimesh, 0.0, matID));
     }
+}
+
+void ChVehicleCosimBaseNode::ProgressBar(unsigned int x, unsigned int n, unsigned int w) {
+    if ((x != n) && (x % (n / 100 + 1) != 0))
+        return;
+
+    float ratio = x / (float)n;
+    unsigned int c = (unsigned int)(ratio * w);
+
+    std::cout << std::setw(3) << (int)(ratio * 100) << "% [";
+    for (unsigned int ix = 0; ix < c; ix++)
+        std::cout << "=";
+    for (unsigned int ix = c; ix < w; ix++)
+        std::cout << " ";
+    std::cout << "]\r" << std::flush;
 }
 
 }  // end namespace vehicle

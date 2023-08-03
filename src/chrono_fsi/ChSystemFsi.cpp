@@ -894,6 +894,7 @@ void ChSystemFsi::Initialize() {
         cout << "  HB_k: " << m_paramsH->HB_k << endl;
         cout << "  HB_n: " << m_paramsH->HB_n << endl;
         cout << "  HB_tau0: " << m_paramsH->HB_tau0 << endl;
+        cout << "  Coh_coeff: " << m_paramsH->Coh_coeff << endl;
 
         cout << "  E_young: " << m_paramsH->E_young << endl;
         cout << "  G_shear: " << m_paramsH->G_shear << endl;

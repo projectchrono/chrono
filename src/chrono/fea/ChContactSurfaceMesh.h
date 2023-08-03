@@ -207,12 +207,12 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
     /// If true, use quadrature over u,v in [0..1] range as triangle volumetric coords.
     virtual bool IsTriangleIntegrationNeeded() override { return true; }
 
-  private:
     /// Compute u,v of contact point respect to triangle.
     /// - u is in the node1->node2 direction.
     /// - v is in the node1->node3 direction.
     void ComputeUVfromP(const ChVector<> P, double& u, double& v);
 
+  private:
     collision::ChCollisionModel* m_collision_model;
 
     std::array<std::shared_ptr<ChNodeFEAxyz>, 3> m_nodes;
@@ -403,12 +403,12 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
     /// If true, use quadrature over u,v in [0..1] range as triangle volumetric coords.
     virtual bool IsTriangleIntegrationNeeded() override { return true; }
 
-  private:
     /// Compute u,v of contact point respect to triangle.
     /// u is node1->node2 direction,
     /// v is node1->node3 direction
     void ComputeUVfromP(const ChVector<> P, double& u, double& v);
 
+  private:
     collision::ChCollisionModel* m_collision_model;
 
     std::array<std::shared_ptr<ChNodeFEAxyzrot>, 3> m_nodes;

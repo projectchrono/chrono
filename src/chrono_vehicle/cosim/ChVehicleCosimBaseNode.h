@@ -33,7 +33,7 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChVehicleGeometry.h"
 
-#if defined(CHRONO_POSTPROCESS)
+#ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChBlender.h"
 #endif
 
@@ -143,7 +143,7 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     /// Output files will be created in subdirectories named
     ///    dir_name/[NodeName]suffix/
     /// where [NodeName] is "MBS", "TIRE", or "TERRAIN".
-    void SetOutDir(const std::string& dir_name, const std::string& suffix);
+    void SetOutDir(const std::string& dir_name, const std::string& suffix = "");
 
     /// Enable/disable verbose messages during simulation (default: true).
     void SetVerbose(bool verbose) { m_verbose = verbose; }
@@ -151,7 +151,7 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     /// Enable run-time visualization (default: false).
     /// If enabled, rendering is done with the specified frequency.
     /// Note that a concrete node may not support run-time visualization or may not render all physics elements.
-    void EnableRuntimeVisualization(double render_fps = 100);
+    void EnableRuntimeVisualization(double render_fps = 100, bool save_img = false);
 
     /// Set camera location and target point.
     void SetCameraPosition(const ChVector<>& cam_pos, const ChVector<>& cam_target = VNULL);
@@ -236,8 +236,16 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     /// Get the Chrono system that holds the visualization shapes *used only for post-processing export).
     virtual ChSystem* GetSystemPostprocess() const = 0;
 
+    /// Utility function to pack and send a struct with geometry information.
     void SendGeometry(const ChVehicleGeometry& geom, int dest) const;
+
+    /// Utility function to receive and unpack a struct with geometry information.
     void RecvGeometry(ChVehicleGeometry& geom, int source) const;
+
+    /// Utility function to display a progress bar to the terminal.
+    /// Displays an ASCII progress bar for the quantity x which must be a value between 0 and n.
+    /// The width 'w' represents the number of '=' characters corresponding to 100%.
+    void ProgressBar(unsigned int x, unsigned int n, unsigned int w = 50);
 
     int m_rank;  ///< MPI rank of this node (in MPI_COMM_WORLD)
 
@@ -252,13 +260,16 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     bool m_renderRT;         ///< if true, perform run-time rendering
     bool m_renderRT_all;     ///< if true, render all frames
     double m_renderRT_step;  ///< time step between rendered frames
+    bool m_writeRT;          ///< if true, write images to file
 
     // Post-process visualization
-    bool m_renderPP;                                    ///< if true, save data for post-processing
-    bool m_renderPP_all;                                ///< if true, save data at all frames
-    double m_renderPP_step;                             ///< time step between post-processing save frames
+    bool m_renderPP;         ///< if true, save data for post-processing
+    bool m_renderPP_all;     ///< if true, save data at all frames
+    double m_renderPP_step;  ///< time step between post-processing save frames
+#ifdef CHRONO_POSTPROCESS
     std::shared_ptr<postprocess::ChBlender> m_blender;  ///< Blender exporter
-    
+#endif
+
     // Camera settings
     bool m_track;             ///< track objects
     ChVector<> m_cam_pos;     ///< camera location

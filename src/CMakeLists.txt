@@ -498,7 +498,7 @@ if(ENABLE_HDF5)
         if (HDF5_FOUND)
             set(HDF5_INCLUDE_DIRS ${HDF5_INCLUDE_DIR})
             set(HDF5_C_LIBRARIES ${HDF5_C_${LIB_TYPE}_LIBRARY})
-            set(HDF5_CXX_LIBRARIES ${HDF5_CXX_${LIB_TYPE}_LIBRARY)
+            set(HDF5_CXX_LIBRARIES ${HDF5_CXX_${LIB_TYPE}_LIBRARY})
         endif()
     endif()
 

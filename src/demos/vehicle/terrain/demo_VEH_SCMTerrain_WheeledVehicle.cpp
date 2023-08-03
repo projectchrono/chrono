@@ -149,7 +149,7 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
     std::string lugged_file("hmmwv/lugged_wheel_section.obj");
     geometry::ChTriangleMeshConnected lugged_mesh;
     ChConvexDecompositionHACDv2 lugged_convex;
-    utils::LoadConvexMesh(vehicle::GetDataFile(lugged_file), lugged_mesh, lugged_convex);
+    chrono::utils::LoadConvexMesh(vehicle::GetDataFile(lugged_file), lugged_mesh, lugged_convex);
     int num_hulls = lugged_convex.GetHullCount();
 
     auto coll_model = wheel_body->GetCollisionModel();

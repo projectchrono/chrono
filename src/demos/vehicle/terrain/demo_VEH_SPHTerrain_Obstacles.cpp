@@ -65,11 +65,11 @@ int main(int argc, char* argv[]) {
     double step_size = 5e-4;
     double active_box_dim = 0.5;
 
-    bool run_time_vis = true;               // run-time visualization?
-    double run_time_vis_fps = 0;            // render frequency (0: every simulation frame)
-    bool run_time_vis_terrain_sph = true;   // render terrain SPH particles?
-    bool run_time_vis_terrain_bce = false;  // render terrain BCE markers?
-    bool run_time_vis_bce = false;          // render moving BCE markers?
+    bool run_time_vis = true;              // run-time visualization?
+    double run_time_vis_fps = 0;           // render frequency (0: every simulation frame)
+    bool run_time_vis_terrain_sph = true;  // render terrain SPH particles?
+    bool run_time_vis_terrain_bce = true;  // render terrain BCE markers?
+    bool run_time_vis_bce = false;         // render moving BCE markers?
 
     bool verbose = true;
 
@@ -121,6 +121,7 @@ int main(int argc, char* argv[]) {
     terrain.AddRigidObstacle(GetChronoDataFile("models/sphere.obj"), 0.25, 5000, ChContactMaterialData(),
                              ChFrame<>(ChVector<>(0, 0, 0.35)));
 
+    // Terrain constructed from height map
     terrain.Construct(vehicle::GetDataFile("terrain/height_maps/bump64.bmp"),  // height map image file
                       2, 1,                                                    // length (X) and width (Y)
                       {0, 0.3},                                                // height range
@@ -130,6 +131,16 @@ int main(int argc, char* argv[]) {
                       0.0,                                                     // patch yaw rotation
                       false                                                    // side walls?
     );
+
+    // Rectangular terrain patch
+    ////terrain.Construct(2, 1,                 // length (X) and width (Y)
+    ////                  0.3,                  // depth
+    ////                  3,                    // number of BCE layers
+    ////                  ChVector<>(0, 0, 0),  // patch center
+    ////                  0.0,                  // patch yaw rotation
+    ////                  true                  // side walls?
+    ////);
+
     terrain.SaveMarkers(out_dir);
 
     terrain.Initialize();
