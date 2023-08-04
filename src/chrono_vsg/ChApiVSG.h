@@ -26,9 +26,9 @@
 // undefined so that symbols are imported.
 
 #if defined(CH_API_COMPILE_VSG)
-#define CH_VSG_API ChApiEXPORT
+    #define CH_VSG_API ChApiEXPORT
 #else
-#define CH_VSG_API ChApiIMPORT
+    #define CH_VSG_API ChApiIMPORT
 #endif
 
 /**
@@ -50,6 +50,6 @@ namespace chrono {
 /// Namespace with classes for the VSG module.
 namespace vsg3d {}
 
-}
+}  // namespace chrono
 
 #endif

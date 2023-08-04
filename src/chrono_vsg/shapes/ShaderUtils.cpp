@@ -23,14 +23,14 @@ namespace chrono {
 namespace vsg3d {
 
 vsg::ref_ptr<vsg::ShaderSet> createLineShaderSet(vsg::ref_ptr<const vsg::Options> options) {
-    //vsg::info("Local LineShaderSet(", options, ")");
+    // vsg::info("Local LineShaderSet(", options, ")");
 
     bool use_embedded_shaders = true;
 
     vsg::ref_ptr<vsg::ShaderStage> vertexShader;
     vsg::ref_ptr<vsg::ShaderStage> fragmentShader;
 
-    if(use_embedded_shaders) {
+    if (use_embedded_shaders) {
         // read shader programs from embedded source code
         vertexShader = chronoLineShader_vert();
         fragmentShader = chronoLineShader_frag();
@@ -62,7 +62,7 @@ vsg::ref_ptr<vsg::ShaderSet> createPbrShaderSet(vsg::ref_ptr<const vsg::Options>
     vsg::ref_ptr<vsg::ShaderStage> vertexShader;
     vsg::ref_ptr<vsg::ShaderStage> fragmentShader;
 
-    if(use_embedded_shaders) {
+    if (use_embedded_shaders) {
         vertexShader = chronoPbrShader_vert();
         fragmentShader = chronoPbrShader_frag();
     } else {
@@ -203,6 +203,12 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
 
     if (wireframe) {
         graphicsPipelineConfig->rasterizationState->polygonMode = VK_POLYGON_MODE_LINE;
+    }
+
+    if (!use_blending) {
+        // combination of color blending and two sided lighting leeds to strange effects
+        graphicsPipelineConfig->rasterizationState->cullMode = VK_CULL_MODE_NONE;
+        defines.insert("VSG_TWO_SIDED_LIGHTING");
     }
 
     if (!material->GetKdTexture().empty()) {

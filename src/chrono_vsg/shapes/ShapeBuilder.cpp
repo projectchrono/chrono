@@ -221,7 +221,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColShape(std::shared_ptr<ChT
     transform->addChild(stategraph);
 
     scenegraph->addChild(transform);
-    
+
     if (compileTraversal)
         compileTraversal->compile(scenegraph);
 
@@ -236,50 +236,50 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createTrimeshColAvgShape(std::shared_ptr<
 
     const auto& mesh = tms->GetMesh();
 
-     const auto& vertices = mesh->getCoordsVertices();
-     const auto& normals = mesh->getCoordsNormals();
-     const auto& uvs = mesh->getCoordsUV();
-     const auto& colors = mesh->getCoordsColors();
+    const auto& vertices = mesh->getCoordsVertices();
+    const auto& normals = mesh->getCoordsNormals();
+    const auto& uvs = mesh->getCoordsUV();
+    const auto& colors = mesh->getCoordsColors();
 
-     size_t nvertices = vertices.size();
-     bool normals_ok = true;
-     std::vector<ChVector<>> avg_normals;
-     if (nvertices != normals.size()) {
-         avg_normals = mesh->getAverageNormals();
-         normals_ok = false;
-     }
-     bool texcoords_ok = true;
-     if (nvertices != uvs.size()) {
-         texcoords_ok = false;
-     }
-     bool colors_ok = true;
-     if (nvertices != colors.size()) {
-         colors_ok = false;
-     }
+    size_t nvertices = vertices.size();
+    bool normals_ok = true;
+    std::vector<ChVector<>> avg_normals;
+    if (nvertices != normals.size()) {
+        avg_normals = mesh->getAverageNormals();
+        normals_ok = false;
+    }
+    bool texcoords_ok = true;
+    if (nvertices != uvs.size()) {
+        texcoords_ok = false;
+    }
+    bool colors_ok = true;
+    if (nvertices != colors.size()) {
+        colors_ok = false;
+    }
 
-     const auto& v_indices = mesh->getIndicesVertexes();
-     auto default_color = tms->GetColor();
+    const auto& v_indices = mesh->getIndicesVertexes();
+    auto default_color = tms->GetColor();
 
-     // create and fill the vsg buffers
-     vsg::ref_ptr<vsg::vec3Array> vsg_vertices = vsg::vec3Array::create(nvertices);
-     vsg::ref_ptr<vsg::vec3Array> vsg_normals = vsg::vec3Array::create(nvertices);
-     vsg::ref_ptr<vsg::vec2Array> vsg_texcoords = vsg::vec2Array::create(nvertices);
-     vsg::ref_ptr<vsg::uintArray> vsg_indices = vsg::uintArray::create(v_indices.size() * 3);
-     vsg::ref_ptr<vsg::vec4Array> vsg_colors = vsg::vec4Array::create(nvertices);
-     for (size_t k = 0; k < nvertices; k++) {
-         vsg_vertices->set(k, vsg::vec3CH(vertices[k]));
-         vsg_normals->set(k, normals_ok ? vsg::vec3CH(normals[k]) : vsg::vec3CH(avg_normals[k]));
-         // seems to work with v-coordinate flipped on VSG (??)
-         vsg_texcoords->set(k, texcoords_ok ? vsg::vec2(uvs[k].x(), 1 - uvs[k].y()) : vsg::vec2CH({0, 0}));
-         vsg_colors->set(k, colors_ok ? vsg::vec4CH(colors[k]) : vsg::vec4CH(default_color));
-     }
-     size_t kk = 0;
-     for (size_t k = 0; k < v_indices.size() * 3; k += 3) {
-         vsg_indices->set(k, v_indices[kk][0]);
-         vsg_indices->set(k + 1, v_indices[kk][1]);
-         vsg_indices->set(k + 2, v_indices[kk++][2]);
-     }
-  
+    // create and fill the vsg buffers
+    vsg::ref_ptr<vsg::vec3Array> vsg_vertices = vsg::vec3Array::create(nvertices);
+    vsg::ref_ptr<vsg::vec3Array> vsg_normals = vsg::vec3Array::create(nvertices);
+    vsg::ref_ptr<vsg::vec2Array> vsg_texcoords = vsg::vec2Array::create(nvertices);
+    vsg::ref_ptr<vsg::uintArray> vsg_indices = vsg::uintArray::create(v_indices.size() * 3);
+    vsg::ref_ptr<vsg::vec4Array> vsg_colors = vsg::vec4Array::create(nvertices);
+    for (size_t k = 0; k < nvertices; k++) {
+        vsg_vertices->set(k, vsg::vec3CH(vertices[k]));
+        vsg_normals->set(k, normals_ok ? vsg::vec3CH(normals[k]) : vsg::vec3CH(avg_normals[k]));
+        // seems to work with v-coordinate flipped on VSG (??)
+        vsg_texcoords->set(k, texcoords_ok ? vsg::vec2(uvs[k].x(), 1 - uvs[k].y()) : vsg::vec2CH({0, 0}));
+        vsg_colors->set(k, colors_ok ? vsg::vec4CH(colors[k]) : vsg::vec4CH(default_color));
+    }
+    size_t kk = 0;
+    for (size_t k = 0; k < v_indices.size() * 3; k += 3) {
+        vsg_indices->set(k, v_indices[kk][0]);
+        vsg_indices->set(k + 1, v_indices[kk][1]);
+        vsg_indices->set(k + 2, v_indices[kk++][2]);
+    }
+
     vsg::DataList arrays;
     // setup geometry
     auto vid = vsg::VertexIndexDraw::create();
@@ -435,24 +435,24 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createFrameSymbol(vsg::ref_ptr<vsg::Matri
     ChColor R(1, 0, 0);
     ChColor G(0, 1, 0);
     ChColor B(0, 0, 1);
-    
+
     auto hsvR = ChColor::RGB2HSV(R);
     hsvR[2] *= color_factor;
     R = ChColor::HSV2RGB(hsvR);
-    
+
     auto hsvG = ChColor::RGB2HSV(G);
     hsvG[2] *= color_factor;
     G = ChColor::HSV2RGB(hsvG);
-    
+
     auto hsvB = ChColor::RGB2HSV(B);
     hsvB[2] *= color_factor;
     B = ChColor::HSV2RGB(hsvB);
-    
+
     //
     auto scenegraph = vsg::Group::create();
     // add transform to root of the scene graph
     scenegraph->addChild(transform);
-    
+
     // calculate vertices
     const int numPoints = 6;
     auto vertices = vsg::vec3Array::create(numPoints);
@@ -471,7 +471,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createFrameSymbol(vsg::ref_ptr<vsg::Matri
     colors->set(3, vsg::vec3CH(G));
     colors->set(4, vsg::vec3CH(B));
     colors->set(5, vsg::vec3CH(B));
-    
+
     auto stategraph = createLineStateGroup(m_options, VK_PRIMITIVE_TOPOLOGY_LINE_LIST);
 
     // setup vertex index draw
@@ -487,16 +487,16 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createFrameSymbol(vsg::ref_ptr<vsg::Matri
 
     stategraph->addChild(vd);
     transform->addChild(stategraph);
-    
+
     if (compileTraversal)
         compileTraversal->compile(scenegraph);
     return scenegraph;
 }
 
 vsg::ref_ptr<vsg::Group> ShapeBuilder::createLineShape(ChVisualModel::ShapeInstance shapeInstance,
-                                                          std::shared_ptr<ChVisualMaterial> material,
-                                                          vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                                          std::shared_ptr<ChLineShape> ls) {
+                                                       std::shared_ptr<ChVisualMaterial> material,
+                                                       vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                                       std::shared_ptr<ChLineShape> ls) {
     auto scenegraph = vsg::Group::create();
     transform->subgraphRequiresLocalFrustum = false;
     scenegraph->addChild(transform);
@@ -600,7 +600,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createSpringShape(std::shared_ptr<ChLinkB
     scenegraph->setValue("Link", link);
     scenegraph->setValue("ShapeInstance", shapeInstance);
     scenegraph->setValue("Transform", transform);
-    
+
     // add transform to root of the scene graph
     scenegraph->addChild(transform);
 
@@ -624,7 +624,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createSpringShape(std::shared_ptr<ChLinkB
             vsg::vec3(material->GetDiffuseColor().R, material->GetDiffuseColor().G, material->GetDiffuseColor().B);
         colors->set(iu, cv);
     }
-    
+
     auto stategraph = createLineStateGroup(m_options, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP);
 
     // setup vertex index draw
@@ -656,9 +656,9 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createUnitSegment(std::shared_ptr<ChLinkB
     scenegraph->setValue("Link", link);
     scenegraph->setValue("ShapeInstance", shapeInstance);
     scenegraph->setValue("Transform", transform);
-    
+
     scenegraph->addChild(transform);
-    
+
     // calculate vertices
     const int numPoints = 2;
     auto vertices = vsg::vec3Array::create(numPoints);
@@ -669,7 +669,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createUnitSegment(std::shared_ptr<ChLinkB
     auto cv = vsg::vec3(material->GetDiffuseColor().R, material->GetDiffuseColor().G, material->GetDiffuseColor().B);
     colors->set(0, cv);
     colors->set(1, cv);
-    
+
     auto stategraph = createLineStateGroup(m_options, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP);
 
     // setup vertex index draw
@@ -737,7 +737,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createDecoGrid(double ustep,
         vertices->set(i, vsg::vec3CH(v[i]));
         colors->set(i, cv);
     }
- 
+
     auto stategraph = createLineStateGroup(m_options, VK_PRIMITIVE_TOPOLOGY_LINE_LIST);
 
     // setup vertex index draw

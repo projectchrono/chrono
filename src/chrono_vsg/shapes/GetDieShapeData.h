@@ -29,9 +29,9 @@ namespace chrono {
 namespace vsg3d {
 
 void GetDieShapeData(vsg::ref_ptr<vsg::vec3Array>& vertices,
-                      vsg::ref_ptr<vsg::vec3Array>& normals,
-                      vsg::ref_ptr<vsg::vec2Array>& texcoords,
-                      vsg::ref_ptr<vsg::ushortArray>& indices);
+                     vsg::ref_ptr<vsg::vec3Array>& normals,
+                     vsg::ref_ptr<vsg::vec2Array>& texcoords,
+                     vsg::ref_ptr<vsg::ushortArray>& indices);
 
 }  // namespace vsg3d
 }  // namespace chrono

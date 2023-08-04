@@ -16,9 +16,9 @@
 #include <vsgXchange/all.h>
 
 #ifndef CH_SHADER_UTILS_H
-#define CH_SHADER_UTILS_H
+    #define CH_SHADER_UTILS_H
 
-#include "chrono/assets/ChVisualModel.h"
+    #include "chrono/assets/ChVisualModel.h"
 
 namespace chrono {
 namespace vsg3d {

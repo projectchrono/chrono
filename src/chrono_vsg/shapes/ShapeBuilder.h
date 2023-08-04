@@ -35,7 +35,7 @@ namespace chrono {
 namespace vsg3d {
 
 class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
-   public:
+  public:
     typedef enum {
         BOX_SHAPE,
         DIE_SHAPE,
@@ -80,11 +80,11 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                              std::shared_ptr<ChVisualMaterial> material,
                                              vsg::ref_ptr<vsg::MatrixTransform> transform,
                                              std::shared_ptr<ChLineShape> ls);
-    
+
     vsg::ref_ptr<vsg::Group> createPathShape(ChVisualModel::ShapeInstance shapeInstance,
-                                                std::shared_ptr<ChVisualMaterial> material,
-                                                vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                                std::shared_ptr<ChPathShape> ps);
+                                             std::shared_ptr<ChVisualMaterial> material,
+                                             vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                             std::shared_ptr<ChPathShape> ps);
 
     vsg::ref_ptr<vsg::Group> createSpringShape(std::shared_ptr<ChLinkBase> link,
                                                ChVisualModel::ShapeInstance shapeInstance,
@@ -104,7 +104,7 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
 
     vsg::ref_ptr<vsg::CompileTraversal> compileTraversal;
 
-   private:
+  private:
     vsg::ref_ptr<vsg::PhongMaterialValue> createPhongMaterialFromChronoMaterial(
         std::shared_ptr<ChVisualMaterial> chronoMat);
 };

@@ -1047,7 +1047,6 @@ void ChVisualSystemVSG::ToggleJointFrameVisibility() {
     }
 }
 
-
 void ChVisualSystemVSG::WriteImageToFile(const string& filename) {
     m_imageFilename = filename;
     m_capture_image = true;
@@ -1603,7 +1602,7 @@ void ChVisualSystemVSG::UpdateFromMBS() {
             std::shared_ptr<ChLinkBase> link;
             vsg::ref_ptr<vsg::MatrixTransform> transform;
             if (!child.node->getValue("Joint", link))
-              continue;
+                continue;
             if (!child.node->getValue("Transform", transform))
                 continue;
 
