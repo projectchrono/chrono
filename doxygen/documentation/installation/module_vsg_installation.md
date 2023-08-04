@@ -21,10 +21,9 @@ Here are the main features:
 	- press arrows to have x z camera motion, press page up & down for y vertical motion
 
 
-## Requirements
+## Dependencies
 
-- To **run** applications based on this module you need the Vulkan and VSG libraries 
-- To **build** applications applications based on this module you must have the Vulkan SDK and the VSG libraries installed.
+- This module you requires the Vulkan SDK and the VSG libraries.
 
 
 ## Building and installing prerequisistes
@@ -79,7 +78,7 @@ These scripts (`buildVSG.bat` and `buildVSG.sh`, for Windows and Linux, respecti
    - Specify the install directory (set the variable `VSG_INSTALL_DIR`).
    - Decide whether to build shared or static libraries and whether to also build debug libraries.
 3. Run the script (`.\buildVSG.bat` or `sh buildVSG.sh`, as appropriate) from the location of the script copy. This will create a temporary directory where all source repositories will be cloned and a set of directories where the individual VSG dependencies are built.
-4. The install directory will contain (under subdirectories of `VSG_INSTALL_DIR/lib/shared`) all VSG CMake project configuration scripts required to configure Chrono with the Chrono::VSG module enabled.
+4. The install directory will contain (under subdirectories of `VSG_INSTALL_DIR/lib/cmake`) all VSG CMake project configuration scripts required to configure Chrono with the Chrono::VSG module enabled.
 
 
 ## Building instructions
@@ -90,12 +89,17 @@ Once the necessary dependencies are installed, perform the following steps to co
    
 2. During CMake configuration, set `ENABLE_MODULE_VSG` to 'on', then press 'Configure'
 
-3. When prompted, provide the paths to the various VSG project configuration scripts (`vsg_DIR`, `vsgImGui_DIR`, and `vsgXchange_DIR`). For example, assuming you used the provided [build scripts](#vsg_scripts), these should be `<VSG>/lib/cmake/vsg`, `<VSG>/lib/cmake/vsgImGui`, and `<VSG>/lib/cmake/vsgXchange`, respectively.
+3. When prompted, provide the paths to the various VSG project configuration scripts (`vsg_DIR`, `vsgImGui_DIR`, and `vsgXchange_DIR`). For example, assuming you used the provided [build scripts](#vsg_scripts), these should be `<VSG_INSTALL_DIR>/lib/cmake/vsg`, `<VSG_INSTALL_DIR>/lib/cmake/vsgImGui`, and `<VSG_INSTALL_DIR>/lib/cmake/vsgXchange`, respectively.
 
 4. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 
+<div class="ce-warning">
+When using shared libraries for third-party dependencies, you must ensure that these are found at run time.<br>
+On Windows, you can either copy the dependency DLLs to the same directory as the executables or else add the path to these shared libraries to the `PATH` environment variable.<br>
+On Linux, you may need to append to the `LD_LIBRARY_PATH` environment variable.
+</div>
 
-## How to use it
+## Usage
 
 - Consult the [API section](group__vsg__module.html) of this module for documentation about classes and functions.
 

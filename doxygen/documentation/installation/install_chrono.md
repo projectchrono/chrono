@@ -1,14 +1,25 @@
 Install Chrono {#tutorial_install_chrono}
 ==========================
-<div class="ce-info">
-Looking for Linux installation instructions?<br>
-A detailed install guide may be found [here](@ref tutorial_install_chrono_linux).
-</div>
+
+## Prerequisites
+
+In order to download, configure, and build the Chrono libraries from source, the following packages and libraries are required:
+- git to clone the GitHub repository
+- CMake to configure the build
+- a C++ compiler
+- the Eigen library
+
+These are the minimal requirements, sufficient for building the core Chrono module. Optional Chrono modules may have additional dependencies; please consult the corresponding installation guides.
+
 
 ## 1) Check/Install a C++ compiler
 
 Recommended compilers:
 - Microsoft Visual C++: Visual Studio 2019 or newer. The [community edition of the latest Visual Studio](https://visualstudio.microsoft.com/downloads/) is available for free. 
+- GNU C++ compiler for Linux-based platforms (version 4.9 or newer).<br>
+Install the latest version of GCC through your package manger: `gcc`.
+- LLVM Clang C and C++ compiler (version 1.6 or newer).<br>
+Install the latest version of Clang through your package manger: `clang`.
 - Xcode Package for MacOS: Download via App Store for free - it contains the clang++ compiler.
 
 Other compilers were also tested (e.g. Intel C++, PGI) but they are not officially supported and maintained.
@@ -17,9 +28,7 @@ While it is likely possible to build Chrono with other toolchains, this might re
 <div class="ce-warning"> 
 The Microsoft Visual C++ compiler is included in the Visual Studio package, but it is **not** installed by default.<br>
 Make sure to install the C++ toolchain during the setup!<br>
-</div> 
-
-<div class="ce-danger">
+<br>
 Visual Studio 2017 has problems with the heavy use of inlining in recent version of Eigen. 
 For the latest version of Chrono (specifically due to the reimplemented ANCF elements), this can result in very long compilation times or even hang ups.
 We recommend using VS 2019 or newer.
@@ -27,7 +36,11 @@ We recommend using VS 2019 or newer.
 
 ## 2) Download and install the Eigen library
 
-Chrono now uses [Eigen3](http://eigen.tuxfamily.org/) for all of its internal dense linear algebra needs. Chrono requires Eigen version 3.3.0 or newer, but we strongly encourage using the **latest stable release, Eigen 3.4.0**. On the Mac you should install it via homebrew: <tt>brew install eigen</tt>. Homebrew installs into /opt/homebrew since MacOS 12 Monterey and the new Apple Silicon (arm46, M1, M2...) hardware. If Eigen is not found automatically, you can search its folder with:<br>
+Chrono now uses [Eigen3](http://eigen.tuxfamily.org/) for all of its internal dense linear algebra needs. Chrono requires Eigen version 3.3.0 or newer, but we strongly encourage using the **latest stable release, Eigen 3.4.0**. 
+
+On Linux, Eigen is available through your system package manager as: `eigen`, `eigen3-dev`, `eigen3-devel`.
+
+On the Mac you should install it via homebrew: <tt>brew install eigen</tt>. Homebrew installs into /opt/homebrew since MacOS 12 Monterey and the new Apple Silicon (arm46, M1, M2...) hardware. If Eigen is not found automatically, you can search its folder with:<br>
 <tt>find /opt/homebrew -name Eigen</tt><br>
 The response is actually:<br>
 <tt>/opt/homebrew/Cellar/eigen/3.4.0_1/include/eigen3/unsupported/Eigen</tt><br>
@@ -41,42 +54,31 @@ Most Chrono modules will build and work with Eigen 3.3.0 or newer.<br>
 However, if you are building the Chrono::FSI or Chrono::Granular modules, note that CUDA 9.1 removed a header file (math_functions.hpp) which was referenced in older versions of Eigen; this issue was addressed as of Eigen 3.3.6. 
 </div>
 
-## 3) Download the Irrlicht library
+## 3) Install CMake
 
-While Chrono::Irrlicht is an optional module and not required to begin modeling with Chrono, it is suggested you enable this module to get access to many Chrono demos which rely on Irrlicht for their run-time visualization.
+[CMake](https://cmake.org/) is required to configure the build before compiling Chrono. 
 
-- **download** [Irrlicht Engine](http://irrlicht.sourceforge.net/downloads.html); the newest tested version is [1.8.4](http://downloads.sourceforge.net/irrlicht/irrlicht-1.8.4.zip)
-- **unzip** it in a directory of your choice. For example, here we suppose that you unzipped it in <tt>C:/workspace/libraries/irrlicht-1.8.4</tt>.
+CMake will configure and create the necessary solution files (Windows) or make files (Linux) necessary to compile and build Chrono from sources.
 
-<div class="ce-info">
-Some Windows users may experience issues (black rendering window) when using shadow lights, as done in a few Chrono demos.<br>
-In such situations, we recommend either disabling use of shadows, or else installing the appropriate legacy DirectX SDK from [Microsoft](https://www.microsoft.com/en-gb/download/details.aspx?id=35).<br>
-Irrlicht 1.8.4 requires the June 2010 DirectX SDK.
-</div>
+For Windows users: make sure to put the CMake executable in your `Path` environmental variable (the installer can do this for you). <br>
 
-<div class="ce-info">
-Release v.1.8.4 should work perfectly. The best way to install irrlicht on the Mac is: <tt>brew install irrlicht</tt> (release v.1.8.5). On MacOS 12 (Monterey) you have to set IRRLICHT_INSTALL_DIR to <tt>/opt/homebrew</tt>.<br>
+On Linux, if not already installed, use the package manager to install `cmake`.  Some distributions may need to install the package `cmake-curses-gui` along with `cmake` to use terminal based GUI for CMake.
 
-If you encounter any problem with version 1.8.4 please try to roll back to [release 1.8.2](http://downloads.sourceforge.net/irrlicht/irrlicht-1.8.2.zip).<br>
-Release v.1.8.3 does not contain the precompiled 64bit DLL.<br>
-Release v.1.8.0 has issues with soft shadows.<br>
-</div>
+For Xcode users: the CMake.app bundle also contains command line tools, you must set appropriate links to use it from the terminal. It is better to install a pure command line version via homebrew (https://brew.sh). After installing the home brew package manager type: <tt>brew install cmake</tt> in the terminal.
 
-## 4) Install CMake
+## 4) Install a GIT client
 
-[CMake](https://cmake.org/) is used to manage the building process. It creates a project/solution for your specific compiler/IDE that will allow the user to compile the Chrono source code with minimal effort.<br>
-For Visual Studio users: make sure to put the CMake executable in your *Path* environmental variable (the installer can do this for you). <br>
-For Xcode users: the CMake.app bundle also contains command line tools, you must set appropriate links to use it from the terminal. It is
-better to install a pure command line version via homebrew (https://brew.sh). After installing the home brew package manager type: <tt>brew install cmake</tt> in the terminal.
+Optionally, you may want to use a git client.<br>
 
-## 5) Install a GIT client
+On Windows and MacOS, we suggest [SourceTree](http://www.sourcetreeapp.com/).
+On MacOS you will find an Application Bundle under /Applications.<br>
 
-On Windows and MacOS, you might want to **download and install** [SourceTree](http://www.sourcetreeapp.com/). <br>
-On MacOS you will find an Application Bundle under /Applications<br>
+Various git clients are available for Linux as well. Consult the documentation for your distribution.
 
-## 6) Download the project by cloning the Git repository
+## 5) Download the project by cloning the Git repository
 
 Download the Chrono SDK by performing a **clone** of the Git repository in a directory on your machine. 
+
 Assuming you are using [SourceTree](http://www.sourcetreeapp.com/):
 
 -  in the menu bar press **File** and then **Clone / New** button in SourceTree  
@@ -89,17 +91,21 @@ Assuming you are using [SourceTree](http://www.sourcetreeapp.com/):
 
 -  leave the **Local Folder** field as it is
   
--  under *Advanced Options* set *Checkout branch* to `master`
+-  under *Advanced Options* set *Checkout branch* to `main`
   
 -  press **Clone** and the source code will be downloaded into the folder you specified
 
+If using `git` from the command line, `git clone -b main git@github.com:projectchrono/chrono.git` will create a copy of the Github repository in the current directory and checkout the `main` (development) branch.
+
 <div class="ce-info">
-The `master` branch contains the various Chrono releases and contains the most stable code. If you are interested in using the latest features as they are developed and before the next official release, you can checkout the `develop` branch at any time after the initial cloning. <br>
+The `release` branches contain the various Chrono releases and contain the most stable code. If you are interested in using the latest features as they are developed and before the next official release, you can checkout the `main` branch at any time after the initial cloning: <code>git checkout main</code>.
 </div>
 
-## 7) Run CMake
+## 6) Run CMake
 
-Start CMake to configure the build. We assume that you are using the graphical interface.
+#### Using the GUI interface to CMake
+
+Start `cmake-gui` to configure the build.
 -  In the field "Where is the source code" set the path to your Chrono directory. <br>
    This is the directory where you created your Git repository, in our example is <tt>C:/workspace/chrono</tt>. 
 -  In the field "Where to build the binaries" set the path to *another* directory on your system, 
@@ -145,15 +151,51 @@ For Makefile-based solutions, on the contrary, you should set `CMAKE_CONFIGURATI
 
 <div class="ce-warning"> 
 CMake uses the slash `/` character for paths. Unix users are already used to this convention.<br>
-Windows users should take care to convert the backslash `\` (the default in Win OS) to slash `/`!
+Windows users should take care to convert the default separator `\` to `/`!
 </div>
 
 At this point you just created a project that will be later used to build Chrono. You can close CMake.
 
+#### Using the CMake curses intrerface
 
-## 8) Compile the project
+Create a new directory **outside** of the Chrono SDK source directory. This will be used to build Chrono: `mkdir build_chrono`. Next, change your current directory to it: `cd build_chrono`.
 
-For Visual Studio:
+-  We recommend using the terminal based GUI for CMake to configure the Chrono build, however the following process may be replicated through a single command line.
+
+-  Run `ccmake /path/to/chrono` from the build directory. A text based GUI will appear in the terminal.
+
+-  Enter `c` to **Configure** and continue. The interface will reload to a new screen with more options.
+  
+-  Specify the location of the Eigen installation.
+   If this is not detected automatically, you may need to manually set the CMake variable `EIGEN3_INCLUDE_DIR`.<br>
+
+<img src="http://www.projectchrono.org/assets/Images/install_ccmake_1.png" class="img-responsive" width="400">
+
+<div class="ce-warning">
+The Eigen directory field should be correctly filled in already, assuming the Eigen library was installed through a package manager. If the library was built from the source verify the path to the library is correct before continuing.
+</div>
+
+   - The following instructions are optional but highly **recommended**.
+
+      - Enter `c` to **Configure** and continue to the next screen.
+
+      - Enable the recommended optional modules: at least tick `ENABLE_MODULE_IRRLICHT` and `ENABLE_MODULE_POSTPROCESS`.<br>
+     Other modules might require additional settings and dependencies.
+
+      -  Enter `c` to **Configure** and continue to the next screen.
+     
+      - Verify the path to the Irrlicht include directory and the Irrlicht library are automatically filled in the `IRRLICHT_INCLUDE_DIR` and `IRRLICHT_LIBRARY` fields respectively. If this is not the case, update to match the example below.
+
+<img src="http://www.projectchrono.org/assets/Images/install_ccmake_2.png" class="img-responsive" width="400">
+ 
+- Enter `c` to **Configure** and continue until you reach the final screen. At which point enter `g` to **Generate**, CCMake will close on completion.
+
+<img src="http://www.projectchrono.org/assets/Images/install_ccmake_3.png" class="img-responsive" width="400">
+
+
+## 7) Compile the project
+
+#### Visual Studio
 
 1. Go to the directory that you set in "Where to build the binaries". You will find the file **Chrono.sln**.
 
@@ -168,7 +210,15 @@ For Visual Studio:
 
 5. Repeat step 3 and 4, but choosing **Debug** as configuration type. This will generate the binaries with debugging symbols: they will be placed under the bin/Debug subfolder.
 
-For MacOS/clang:
+#### Linux/make
+
+Run command `make`, optionally followed by `make install` while in the same build directory as the newly created Makefile. 
+
+<div class="ce-info">
+<code>make install</code> will copy the Chrono libraries, data files, and demo executable to the install directory specified during CMake configuration.
+</div>
+
+#### MacOS/clang
 
 - CMake generates a hierarchy of makefiles in the directory specified in "Where to build the binaries".
 
@@ -188,17 +238,19 @@ and the C++ compiler, otherwise the OpenMP configuration will fail.
 </div> 
 
 
-## 9) Test the demos
+## 8) Test the demos
 
-Go to the directory that you set in "Where to build the binaries", 
-in our case <tt>C:/workspace/chrono_build</tt>, then go to <tt>bin/Release</tt> or <tt>bin/Debug</tt> (Windows).
+For Windows users, executables for the various demos distributed with Chrono will be available in the `bin/Release` or `bin/Debug` subdirectory, depending on the configuration selected to build the Chrono libraries and executables.
 
-<div class="ce-info">
-**Windows**: If demos using 3D visualization do not start, this may indicate that the **Irrlicht.dll** is not found.  
-You have to manually copy the Irrlicht.dll from your Irrlicht `/bin/Win64-visualStudio` directory into your `chrono_build/bin/Debug` and/or `chrono_build/bin/Release` directory.
-</div>
+For Linux users, these will be available in the subdirectory `bin`.
 
-<div class="ce-danger">
-IMPORTANT: never mix 64-bit and 32-bit binaries and libraries! 
+## Notes
+
+- IMPORTANT: never mix 64-bit and 32-bit binaries and libraries! <br>
 For example, you must link the 64-bit Irrlicht library. Beginning with MacOS 10.15 Catalina there is no 32-bit support anymore.
-</div>
+
+- Currently, the only dependency of the core Chrono module is the Eigen library. Since Eigen is a headers-only library, no additional steps must be taken to be able to run demos and programs that only link to the core Chrono library. <br>
+Other Chrono module (e.g., the run-time visualization Chrono modules) have additional dependencies. If using shared libraries for these dependencies, you must ensure that these are found at run time.
+  - On Windows, you can either copy the corresponding DLLs (e.g., Irrlicht.dll) to the same directory as the executables or else add the path to these shared libraries to the `PATH` environment variable.
+  - On Linux, you may need to append to the `LD_LIBRARY_PATH` environment variable.
+
