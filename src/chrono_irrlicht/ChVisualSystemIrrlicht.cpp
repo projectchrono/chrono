@@ -766,8 +766,8 @@ static void SetVisualMaterial(ISceneNode* node, std::shared_ptr<ChVisualShape> s
         // Use default material
         node->getMaterial(0) = *default_material;
     } else {
-        assert((irr::u32)shape->GetNumMaterials() == node->getMaterialCount());
-        for (int i = 0; i < shape->GetNumMaterials(); i++)
+        assert((irr::u32)shape->GetNumMaterials() >= node->getMaterialCount());
+        for (int i = 0; i < node->getMaterialCount(); i++)
             node->getMaterial(i) =
                 tools::ToIrrlichtMaterial(shape->GetMaterial(i), node->getSceneManager()->getVideoDriver());
     }

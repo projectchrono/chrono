@@ -349,6 +349,12 @@ void ChParserURDF::attachCollision(std::shared_ptr<ChBody> body,
                     else if (ext == "stl" || ext == "STL")
                         trimesh = geometry::ChTriangleMeshConnected::CreateFromSTLFile(mesh_filename, true);
 
+                    if (!trimesh) {
+                        cout << "Warning: Unsupported format for collision mesh file <" << mesh_filename << ">." << endl;
+                        cout << "Warning: No collision shape was generated for body <" << link_name << ">.\n" << endl;
+                        break;
+                    }
+
                     MeshCollisionType coll_type = m_coll_type.find(link_name) != m_coll_type.end()
                                                       ? m_coll_type.find(link_name)->second
                                                       : MeshCollisionType::TRIANGLE_MESH;

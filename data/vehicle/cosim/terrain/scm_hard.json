@@ -7,7 +7,7 @@
         "Width": 1
     },
 
-    "Grid spacing": 0.05,
+    "Grid spacing": 0.1,
 
     "Soil parameters": {
         "Bekker Kphi": 2e7,

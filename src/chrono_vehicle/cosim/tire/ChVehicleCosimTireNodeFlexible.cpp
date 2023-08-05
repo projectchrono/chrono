@@ -81,7 +81,7 @@ void ChVehicleCosimTireNodeFlexible::OnRender() {
 
     if (m_track) {
         ChVector<> cam_point = m_spindle->GetPos();
-        m_vsys->UpdateCamera(cam_point + ChVector<>(1, 2, 0), cam_point);
+        m_vsys->UpdateCamera(cam_point + ChVector<>(1, 2, -0.6), cam_point);
     }
 
     m_vsys->BeginScene();
@@ -153,11 +153,18 @@ void ChVehicleCosimTireNodeFlexible::InitializeTire(std::shared_ptr<ChWheel> whe
         vsys_vsg->SetWindowTitle("Tire 0 Node");
         vsys_vsg->SetWindowSize(ChVector2<int>(1280, 720));
         vsys_vsg->SetWindowPosition(ChVector2<int>(100, 100));
-        vsys_vsg->SetUseSkyBox(true);
+        vsys_vsg->SetUseSkyBox(false);
+        vsys_vsg->SetClearColor(ChColor(0.455f, 0.525f, 0.640f));
         vsys_vsg->AddCamera(m_cam_pos, ChVector<>(0, 0, 0));
         vsys_vsg->SetCameraAngleDeg(40);
         vsys_vsg->SetLightIntensity(1.0f);
+        vsys_vsg->AddGrid(0.1, 0.1, 40, 20, ChCoordsys<>(init_loc, Q_from_AngX(CH_C_PI_2)),
+                         ChColor(0.1f, 0.1f, 0.1f));
+        vsys_vsg->SetImageOutputDirectory(m_node_out_dir + "/images");
+        vsys_vsg->SetImageOutput(m_writeRT);
         vsys_vsg->Initialize();
+
+        vsys_vsg->ToggleCOGFrameVisibility();
 
         m_vsys = vsys_vsg;
 #elif defined(CHRONO_IRRLICHT)

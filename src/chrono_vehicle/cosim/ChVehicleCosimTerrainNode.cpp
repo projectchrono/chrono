@@ -374,6 +374,9 @@ void ChVehicleCosimTerrainNode::SynchronizeWheeledMesh(int step_number, double t
 
         // Collect contact forces on subset of mesh vertices and load in m_mesh_contact.
         // Note that no forces are collected at the first step.
+        m_mesh_contact[i].vidx.clear();
+        m_mesh_contact[i].vforce.clear();
+
         if (step_number == 0)
             m_mesh_contact[i].nv = 0;
         else
@@ -385,7 +388,7 @@ void ChVehicleCosimTerrainNode::SynchronizeWheeledMesh(int step_number, double t
                      MPI_COMM_WORLD);
 
             double* force_data = new double[3 * m_mesh_contact[i].nv];
-            for (int iv = 0; iv < m_mesh_contact[i].nv; i++) {
+            for (int iv = 0; iv < m_mesh_contact[i].nv; iv++) {
                 force_data[3 * iv + 0] = m_mesh_contact[i].vforce[iv].x();
                 force_data[3 * iv + 1] = m_mesh_contact[i].vforce[iv].y();
                 force_data[3 * iv + 2] = m_mesh_contact[i].vforce[iv].z();

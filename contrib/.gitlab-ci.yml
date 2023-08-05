@@ -3,7 +3,6 @@
 ## ProjectChrono Default CI Config ##
 #####################################
 
-
 #TODO: Move all clean-up operations to after_script sections
 # This will ensure that the clean-up happens even if the build/deployment fails
 
@@ -18,123 +17,6 @@ stages:
   - build
   - test
   - deploy
-
-
-#---------------------#
-# Arch Linux Builders #
-#---------------------#
-
-.archlinux:
-  tags:
-  - linux
-  image:
-    name: uwsbel/packages:arch
-    entrypoint: ["/usr/bin/bash", "-c"]
-  before_script:
-  - uname -a
-  - export LIB_DIR="lib"
-  - export IOMP5_DIR=""
-  - pacman -Sy --noconfirm git eigen cmake glfw glm glew glut irrlicht ninja wget python python-pip openmpi openssh swig hdf5 intel-oneapi-mkl doxygen fontconfig libxmu
-  # Clean up the package cache to make more space for the build
-  - pacman -Scc --noconfirm
-  - ldconfig
-  # Initializing git repository
-  - cd $CI_PROJECT_DIR
-  - git submodule init
-  - git submodule update
-  - mkdir -p build
-
-linux:arch-gcc:build:
-  stage: build
-  extends: .archlinux
-  script:
-    # Defining compiler variables
-    - export C_COMPILER="/usr/bin/gcc"
-    - export CXX_COMPILER="/usr/bin/g++"
-    # Building chrono
-    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR --preset=linuxci
-    # Making chrono
-    - cd $CI_PROJECT_DIR/build
-    - ninja -j 8
-  artifacts:
-    expire_in: 60m
-    paths:
-    - build/
-
-linux:arch-gcc:test:
-  stage: test
-  needs: ["linux:arch-gcc:build"]
-  extends: .archlinux
-  script:
-  - cd build
-  - export OMP_NUM_THREADS=8
-  - export CTEST_OUTPUT_ON_FAILURE=1
-  - ninja -j 8 test
-  dependencies: ["linux:arch-gcc:build"]
-
-linux:arch-llvm:build:
-  stage: build
-  extends: .archlinux
-  script:
-    - pacman -S --noconfirm llvm clang openmp
-    # Defining compiler variables
-    - export C_COMPILER="/usr/bin/clang"
-    - export CXX_COMPILER="/usr/bin/clang++"
-    # Building chrono
-    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR --preset=linuxci -DCUDA_HOST_COMPILER=/usr/bin/gcc
-    # Making chrono
-    - cd $CI_PROJECT_DIR/build
-    - ninja -j 8
-  artifacts:
-    expire_in: 60m
-    paths:
-    - build/
-
-linux:arch-llvm:test:
-  stage: test
-  needs: ["linux:arch-llvm:build"]
-  extends: .archlinux
-  script:
-  - pacman -S --noconfirm llvm clang openmp
-  - cd build
-  - export OMP_NUM_THREADS=8
-  - export CTEST_OUTPUT_ON_FAILURE=1
-  - ninja -j 8 test
-  dependencies: ["linux:arch-llvm:build"]
-
-
-#----------------#
-# Ubuntu Builder #
-#----------------#
-
-.ubuntu:
-  tags:
-    - linux
-  image:
-      name: uwsbel/packages:ubuntu
-  before_script:
-    # Defining configuration variables
-    - export LIB_DIR="lib"
-    - export IOMP5_DIR=""
-    # Obtain dependencies
-    - apt-get update; apt-get -y install unzip wget python3 python3-pip
-      git cmake ninja-build doxygen libvulkan-dev pkg-config libirrlicht-dev 
-      freeglut3-dev mpich libasio-dev libboost-dev libglfw3-dev libglm-dev 
-      libglew-dev libtinyxml2-dev swig python3-dev libhdf5-dev libnvidia-gl-530
-    - nvidia-smi
-    - wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | 
-      gpg --dearmor | tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
-    - echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] 
-      https://apt.repos.intel.com/oneapi all main" | tee /etc/apt/sources.list.d/oneAPI.list
-    - apt update
-    - apt -y install intel-basekit libxcb-randr0-dev libxcb-xtest0-dev libxcb-xinerama0-dev
-      libxcb-shape0-dev libxcb-xkb-dev xorg-dev
-    - ldconfig
-    # Initialize git repository
-    - cd $CI_PROJECT_DIR
-    - git submodule init
-    - git submodule update
-    - mkdir -p build
 
 linux:doxygen:deploy:
   tags:
@@ -168,8 +50,6 @@ linux:doxygen:deploy:
     - rsync /tmp/chrono_doxygen/searchdata.xml $API_SEARCH_ENDPOINT
     - ssh $API_REINDEX_ENDPOINT /usr/bin/doxyindexer -o $API_CGI_DIR $API_CGI_DIR/searchdata.xml
   needs:
-    - job: linux:arch-gcc:test
-      artifacts: false
     - job: macos-intel:monterey:test
       artifacts: false
     - job: macos-apple:monterey:test
@@ -183,8 +63,39 @@ linux:doxygen:deploy:
     - if: '$CI_COMMIT_REF_NAME == "main"'
       when: always
 
-# Build uses custom ubuntu image committed from nvidia/cuda:12.1.1-devel-ubuntu22.04 with dependencies pre-downloaded
-linux:ubuntu22.04:build:
+#----------------#
+# Ubuntu Builder #
+#----------------#
+
+.ubuntu:
+  tags:
+    - linux
+  image:
+      name: uwsbel/packages:ubuntu
+  before_script:
+    # Defining configuration variables
+    - export LIB_DIR="lib"
+    - export IOMP5_DIR=""
+    # Obtain dependencies
+    - apt-get update; apt-get -y install unzip wget python3 python3-pip
+      git cmake ninja-build doxygen libvulkan-dev pkg-config libirrlicht-dev 
+      freeglut3-dev mpich libasio-dev libboost-dev libglfw3-dev libglm-dev 
+      libglew-dev libtinyxml2-dev swig python3-dev libhdf5-dev libnvidia-gl-530
+    - wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | 
+      gpg --dearmor | tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
+    - echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] 
+      https://apt.repos.intel.com/oneapi all main" | tee /etc/apt/sources.list.d/oneAPI.list
+    - apt update
+    - apt -y install intel-basekit libxcb-randr0-dev libxcb-xtest0-dev libxcb-xinerama0-dev
+      libxcb-shape0-dev libxcb-xkb-dev xorg-dev
+    - ldconfig
+    # Initialize git repository
+    - cd $CI_PROJECT_DIR
+    - git submodule init
+    - git submodule update
+    - mkdir -p build
+
+linux:ubuntu22.04-gcc:build:
   extends: .ubuntu
   stage: build
   script:
@@ -195,22 +106,50 @@ linux:ubuntu22.04:build:
     - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR --preset=linuxci
     # Making chrono
     - cd $CI_PROJECT_DIR/build
-    - ninja -j 8
+    - ninja
   artifacts:
     expire_in: 60m
     paths:
       - build/
 
-linux:ubuntu22.04:test:
+linux:ubuntu22.04-gcc:test:
   stage: test
-  needs: ["linux:ubuntu22.04:build"]
+  needs: ["linux:ubuntu22.04-gcc:build"]
   extends: .ubuntu
   script:
     - cd build
     - export OMP_NUM_THREADS=8
     - export CTEST_OUTPUT_ON_FAILURE=1
-    - ninja -j 8 test
-  dependencies: ["linux:ubuntu22.04:build"]
+    - ninja test
+  dependencies: ["linux:ubuntu22.04-gcc:build"]
+
+linux:ubuntu22.04-clang:build:
+  extends: .ubuntu
+  stage: build
+  script:
+    # Defining compiler variables
+    - export C_COMPILER="/usr/bin/clang"
+    - export CXX_COMPILER="/usr/bin/clang++"
+    # Building chrono
+    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR --preset=linuxci -DCUDA_HOST_COMPILER=/usr/bin/gcc
+    # Making chrono
+    - cd $CI_PROJECT_DIR/build
+    - ninja
+  artifacts:
+    expire_in: 60m
+    paths:
+      - build/
+
+linux:ubuntu22.04-clang:test:
+  stage: test
+  needs: ["linux:ubuntu22.04-clang:build"]
+  extends: .ubuntu
+  script:
+    - cd build
+    - export OMP_NUM_THREADS=8
+    - export CTEST_OUTPUT_ON_FAILURE=1
+    - ninja test
+  dependencies: ["linux:ubuntu22.04-clang:build"]
 
 .ubuntu-deploy-base:
   tags:
@@ -279,62 +218,6 @@ linux:ubuntu22.04:deploy-python3.10:
   when: manual
 
 #------------------#
-#   EL8 Builder    #
-#------------------#
-
-.almalinux:
-  tags:
-    - linux
-  image:
-    name: uwsbel/packages:alma
-  before_script:
-    # Defining configuration variables
-    - export C_COMPILER="/usr/bin/gcc"
-    - export CXX_COMPILER="/usr/bin/g++"
-    - export LIB_DIR="lib64"
-    - export IOMP5_DIR="/opt/intel/oneapi/compiler/latest/linux/compiler/lib/intel64_lin/libiomp5.so"
-    # Resuming build configuration
-    - uname -a
-    - printf "[oneAPI]\nname=Intel® oneAPI repository\nbaseurl=https://yum.repos.intel.com/oneapi\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB\n" > /etc/yum.repos.d/oneAPI.repo
-    - dnf -y upgrade
-    - dnf groupinstall -y 'Development Tools'
-    - dnf config-manager --set-enabled powertools
-    - dnf install -y epel-release
-    - yum config-manager --add-repo http://developer.download.nvidia.com/compute/cuda/repos/rhel8/x86_64/cuda-rhel8.repo
-    - dnf install -y vulkan-devel libXmu-devel libXi-devel fontconfig-devel
-    - dnf install -y doxygen cmake irrlicht-devel glm-devel glfw-devel glew-devel libXrandr ninja-build freeglut-devel swig python3-devel platform-python-devel intel-oneapi-mkl-devel openmpi cuda
-    - ldconfig
-    - nvidia-smi
-    - git submodule init
-    - git submodule update
-    - mkdir -p build
-
-linux:almalinux:build:
-  stage: build
-  extends: .almalinux
-  script:
-    # Building chrono
-    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR --preset=almaci
-    # Making chrono
-    - cd $CI_PROJECT_DIR/build
-    - ninja -j 8
-  artifacts:
-    expire_in: 60m
-    paths:
-      - build/
-
-linux:almalinux:test:
-  stage: test
-  needs: ["linux:almalinux:build"]
-  extends: .almalinux
-  script:
-    - cd build
-    - export OMP_NUM_THREADS=8
-    - export CTEST_OUTPUT_ON_FAILURE=1
-    - ninja -j 8 test 
-  dependencies: ["linux:almalinux:build"]
-
-#------------------#
 # Windows Builders #
 #------------------#
 
@@ -374,30 +257,7 @@ windows:vs2022:test:
   - ctest --extra-verbose --output-on-failure
   dependencies: ["windows:vs2022:build"]
 
-windows:vs2019:build:
-  stage: build
-  extends: .windows
-  script:
-   # Configuring chrono
-  - cmake -B "$CI_PROJECT_DIR\build" -S "$CI_PROJECT_DIR" --preset=windowsci-vs2019
-  - cd build
-  # Building chrono
-  - cmake --build . -j 8 --config Release
-  artifacts:
-    expire_in: 60m
-    paths:
-      - build/
-
-windows:vs2019:test:
-  stage: test
-  needs: ["windows:vs2019:build"]
-  extends: .windows
-  script:
-  - cd build
-  - ctest --extra-verbose --output-on-failure
-  dependencies: ["windows:vs2019:build"]
-
-.windows-vs2019-deploy-base:
+.windows-deploy-base:
   tags:
     - windows11
   before_script:
@@ -436,10 +296,10 @@ windows:vs2019:test:
     name: pychrono-win64
     url: https://anaconda.org/projectchrono/pychrono
 
-windows:vs2019:deploy-python3.8:
+windows:deploy-python3.8:
   stage: deploy
   needs: []
-  extends: .windows-vs2019-deploy-base
+  extends: .windows-deploy-base
   script:
     # Building pyChrono for python v3.8
     - conda build .\contrib\packaging-python\conda -c conda-forge -c dlr-sc -c intel --python=3.8 --no-remove-work-dir
@@ -459,10 +319,10 @@ windows:vs2019:deploy-python3.8:
     paths:
       - ./logs/
 
-windows:vs2019:deploy-python3.9:
+windows:deploy-python3.9:
   stage: deploy
   needs: []
-  extends: .windows-vs2019-deploy-base
+  extends: .windows-deploy-base
   script:
     # Building pyChrono for python v3.9
     - conda build .\contrib\packaging-python\conda -c conda-forge -c dlr-sc -c intel --python=3.9 --no-remove-work-dir
@@ -482,10 +342,10 @@ windows:vs2019:deploy-python3.9:
     paths:
       - ./logs/
 
-windows:vs2019:deploy-python3.10:
+windows:deploy-python3.10:
   stage: deploy
   needs: []
-  extends: .windows-vs2019-deploy-base
+  extends: .windows-deploy-base
   script:
     # Building pyChrono for python v3.10
     - conda build .\contrib\packaging-python\conda -c conda-forge -c dlr-sc -c intel --python=3.10 --no-remove-work-dir

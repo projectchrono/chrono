@@ -168,6 +168,50 @@ void ChPythonEngine::SetString(const char* variable, std::string& val) {
     this->Run(sstream.str().c_str());
 }
 
+
+void ChPythonEngine::SetList(const char* variable, const std::vector<double>& val) {
+    std::ostringstream sstream;
+    sstream << variable << "=" << "[";
+    for (int i = 0; i < val.size(); ++i)
+        sstream << (double)val[i] << ",";
+    sstream << "]" << "\n";
+    this->Run(sstream.str().c_str());
+}
+
+bool ChPythonEngine::GetList(const char* variable, std::vector<double>& return_val) {
+    PyObject* module = PyImport_AddModule("__main__");  // borrowed reference
+    assert(module);                                     // __main__ should always exist
+
+    PyObject* dictionary = PyModule_GetDict(module);  // borrowed reference
+    assert(dictionary);                               // __main__ should have a dictionary
+
+    PyObject* result = PyDict_GetItemString(dictionary, variable);  // borrowed reference
+    if (!result)
+        return false;
+
+    if (PyList_Check(result)) {
+        int length = (int)PyObject_Length(result);
+        return_val.clear(); // initially clear for safety
+        for (int i = 0; i < length; ++i) {
+            auto item = PyList_GetItem(result, i);
+            if (PyLong_Check(item)) {
+                double tmp = PyLong_AsDouble(item); // whether list item is a py integer or a number like 3.0, interpret it as a double
+                return_val.push_back(tmp);
+            }
+            else if (PyFloat_Check(item)) {
+                double tmp = PyFloat_AS_DOUBLE(item);
+                return_val.push_back(tmp);
+            }
+        }
+        return true;
+    }
+
+
+    return false;
+}
+
+
+
 /*
 typedef struct {
   PyObject ob_base;

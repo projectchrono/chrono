@@ -6,22 +6,18 @@
 # - Place in an arbitrary temporary directory.
 # - Specify the locations for the VSG sources OR indicate that these should be downloaded.
 # - Specify the install directory.
-# - Optionally set the path to the doxygen and dot executables
-# - Decide whether to build shared or static libraries, whether to also build debug libraries,
-#   and whether to build the VSG documentation.
+# - Decide whether to build shared or static libraries and whether to also build debug libraries.
 # - Run the script (sh ./buildVSG.sh).
 # - The install directory will contain (under subdirectories of VSG_INSTALL_DIR/lib/shared) all VSG CMake
 #   project configuration scripts required to configure Chrono with the Chorno::VSG module enabled.
 #
 # Notes:
-# - This script uses the latest versions of the various codes from their respective repositories, with the
-#   only exception being assimp (set at version 5.2.5). This means that pushes to any of the VSG repositories
-#   may break the generation of the dependencies for Chrono::VSG.
-# - This was tested with the following versions of VSG libraries:
-#      VulkanSceneGraph (github.com/vsg-dev/VulkanSceneGraph.git): Commit #c87b4cca
-#      vsgXchange (github.com/vsg-dev/vsgXchange.git):             Commit #883f887
-#      vsgImGui (github.com/vsg-dev/vsgImGui.git):                 Commit #d9261b1
-#      vsgExamples (github.com/vsg-dev/vsgExamples.git):           Commit #7ac782b
+# - This script uses the following versions of the various codes from their respective repositories, with the
+#   only exception being vsgImGui which pulls the latest version.
+#      VulkanSceneGraph (github.com/vsg-dev/VulkanSceneGraph.git): Tag v1.0.7
+#      vsgXchange (github.com/vsg-dev/vsgXchange.git):             Tag v1.0.3
+#      vsgImGui (github.com/vsg-dev/vsgImGui.git):                 latest
+#      vsgExamples (github.com/vsg-dev/vsgExamples.git):           Tag v1.0.5
 #      assimp (github.com/assimp/assimp):                          Tag v5.2.5
 # - We suggest using Ninja (ninja-build.org/) and the "Ninja Multi-Config" CMake generator.
 #   (otherwise, you will need to explicitly set the CMAKE_BUILD_TYPE variable)
@@ -31,11 +27,7 @@ DOWNLOAD=ON
 
 VSG_INSTALL_DIR="$HOME/Packages/vsg"
 
-DOXYGEN_EXE="doxygen"
-DOT_EXE="dot"
-
 BUILDSHARED=ON
-BUILDDOCS=OFF
 BUILDDEBUG=ON
 BUILDSYSTEM="Ninja Multi-Config"
 
@@ -58,13 +50,13 @@ then
     mkdir download_vsg
 
     echo "  ... VulkanSceneGraph"
-    #git clone -c advice.detachedHead=false --depth 1 --branch VulkanSceneGraph-1.0.5 "https://github.com/vsg-dev/VulkanSceneGraph" "download_vsg/vsg"
-    git clone "https://github.com/vsg-dev/VulkanSceneGraph" "download_vsg/vsg"
+    git clone -c advice.detachedHead=false --depth 1 --branch v1.0.7 "https://github.com/vsg-dev/VulkanSceneGraph" "download_vsg/vsg"
+    #git clone "https://github.com/vsg-dev/VulkanSceneGraph" "download_vsg/vsg"
     VSG_SOURCE_DIR="download_vsg/vsg"
 
     echo "  ... vsgXchange"    
-    #git clone -c advice.detachedHead=false --depth 1 --branch vsgXchange-1.0.2 "https://github.com/vsg-dev/vsgXchange" "download_vsg/vsgXchange"
-    git clone "https://github.com/vsg-dev/vsgXchange" "download_vsg/vsgXchange"
+    git clone -c advice.detachedHead=false --depth 1 --branch v1.0.3 "https://github.com/vsg-dev/vsgXchange" "download_vsg/vsgXchange"
+    #git clone "https://github.com/vsg-dev/vsgXchange" "download_vsg/vsgXchange"
     VSGXCHANGE_SOURCE_DIR="download_vsg/vsgXchange"
 
     echo "  ... vsgImGui"
@@ -72,8 +64,8 @@ then
     VSGIMGUI_SOURCE_DIR="download_vsg/vsgImGui"
     
     echo "  ... vsgExamples"
-    #git clone -c advice.detachedHead=false --depth 1 --branch vsgExamples-1.0.3 "https://github.com/vsg-dev/vsgExamples" "download_vsg/vsgExamples"
-    git clone "https://github.com/vsg-dev/vsgExamples" "download_vsg/vsgExamples"
+    git clone -c advice.detachedHead=false --depth 1 --branch v1.0.5 "https://github.com/vsg-dev/vsgExamples" "download_vsg/vsgExamples"
+    #git clone "https://github.com/vsg-dev/vsgExamples" "download_vsg/vsgExamples"
     VSGEXAMPLES_SOURCE_DIR="download_vsg/vsgExamples"
 
     echo "  ... assimp"
@@ -123,20 +115,10 @@ fi
 
 echo -e "\n------------------------ Configure vsg\n"
 rm -rf build_vsg
-if [ ${BUILDDOCS} = ON ]
-then
 cmake  -G "${BUILDSYSTEM}" -B build_vsg -S ${VSG_SOURCE_DIR}  \
       -DBUILD_SHARED_LIBS:BOOL=${BUILDSHARED} \
       -DCMAKE_DEBUG_POSTFIX=_d \
-      -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd
-else    
-cmake  -G "${BUILDSYSTEM}" -B build_vsg -S ${VSG_SOURCE_DIR}  \
-      -DBUILD_SHARED_LIBS:BOOL=${BUILDSHARED} \
-      -DCMAKE_DEBUG_POSTFIX=_d \
-      -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd \
-      -DDOXYGEN_EXECUTABLE:FILEPATH=${DOXYGEN_EXE} \
-      -DDOXYGEN_DOT_EXECUTABLE:FILEPATH=${DOT_EXE}
-fi      
+      -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd    
 
 echo -e "\n------------------------ Build and install vsg\n"
 cmake --build build_vsg --config Release
@@ -147,11 +129,6 @@ then
     cmake --install build_vsg --config Debug --prefix ${VSG_INSTALL_DIR}
 else
     echo "No Debug build of vsg"
-fi
-if [ ${BUILDDOCS} = ON ]
-then
-    cmake --build build_vsg --config Release --target docs
-    cp -r build_vsg/html ${VSG_INSTALL_DIR}/html
 fi
 
 # --- vsgXchange ---------------------------------------------------------
@@ -201,7 +178,9 @@ fi
 echo -e "\n------------------------ Configure vsgExamples\n"
 rm -rf  build_vsgExamples
 cmake -G "${BUILDSYSTEM}" -B build_vsgExamples -S ${VSGEXAMPLES_SOURCE_DIR} \
-      -Dvsg_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/vsg
+      -Dvsg_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/vsg \
+      -DvsgXchange_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/vsgXchange \
+      -DvsgImGui_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/vsgImGui
 
 echo -e "\n------------------------ Build and install vsgExamples\n"
 cmake --build build_vsgExamples --config Release

@@ -47,8 +47,8 @@ namespace vehicle {
 // Static variables
 // -----------------------------------------------------------------------------
 const std::string ChDeDionAxle::m_pointNames[] = {"SHOCK_A    ", "SHOCK_C    ", "SPRING_A   ", "SPRING_C   ",
-                                                  "SPINDLE    ", "AXLE_C     ", "WATT_CNT_LE", "WATT_CNT_RI",
-                                                  "WATT_LE_CH ", "WATT_RI_CH "};
+                                                  "SPINDLE    ", "AXLE_C     ", "STABI_CON  ", "WATT_CNT_LE",
+                                                  "WATT_CNT_RI", "WATT_LE_CH ", "WATT_RI_CH "};
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -102,10 +102,19 @@ void ChDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     outer_local.y() = -outer_local.y();
     m_axleOuterR = suspension_to_abs.TransformPointLocalToParent(outer_local);
 
+    ChVector<> conn_local(getLocation(STABI_CON));
+    m_stabiConnectorL = suspension_to_abs.TransformPointLocalToParent(conn_local);
+    conn_local.y() = -conn_local.y();
+    m_stabiConnectorR = suspension_to_abs.TransformPointLocalToParent(conn_local);
+
     m_wattLower = suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_CNT_LE));
     m_wattUpper = suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_CNT_RI));
     m_wattOuterL = suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_LE_CH));
     m_wattOuterR = suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_RI_CH));
+
+    // longitudinal guide, modeled as a pushbar
+    m_axleChassis = suspension_to_abs.TransformPointLocalToParent(getLocation(AXLE_C));
+    m_axleCenter = (m_axleOuterR + m_axleOuterL) / 2.0;
 
     // Create and initialize the axle body.
     m_axleTube = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
@@ -273,6 +282,14 @@ void ChDeDionAxle::InitializeSide(VehicleSide side,
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
 
+const ChVector<> ChDeDionAxle::GetConnectorLocation(VehicleSide side) {
+    if (side == RIGHT) {
+        return m_stabiConnectorR;
+    } else {
+        return m_stabiConnectorL;
+    }
+}
+
 void ChDeDionAxle::InitializeInertiaProperties() {
     m_mass = getAxleTubeMass() + 2 * (getSpindleMass() + getWattCenterMass() + 2 * getWattSideMass());
 }
@@ -289,9 +306,11 @@ void ChDeDionAxle::UpdateInertiaProperties() {
     composite.AddComponent(m_spindle[LEFT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
     composite.AddComponent(m_spindle[RIGHT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
     composite.AddComponent(m_axleTube->GetFrame_COG_to_abs(), getAxleTubeMass(), ChMatrix33<>(getAxleInertia()));
-    composite.AddComponent(m_wattCenterLinkBody->GetFrame_COG_to_abs(), getWattCenterMass(), ChMatrix33<>(inertiaWattCenter));
+    composite.AddComponent(m_wattCenterLinkBody->GetFrame_COG_to_abs(), getWattCenterMass(),
+                           ChMatrix33<>(inertiaWattCenter));
     composite.AddComponent(m_wattLeftLinkBody->GetFrame_COG_to_abs(), getWattSideMass(), ChMatrix33<>(inertiaWattSide));
-    composite.AddComponent(m_wattRightLinkBody->GetFrame_COG_to_abs(), getWattSideMass(), ChMatrix33<>(inertiaWattSide));
+    composite.AddComponent(m_wattRightLinkBody->GetFrame_COG_to_abs(), getWattSideMass(),
+                           ChMatrix33<>(inertiaWattSide));
 
     // Express COM and inertia in subsystem reference frame
     m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
@@ -356,9 +375,14 @@ void ChDeDionAxle::AddVisualizationAssets(VisualizationType vis) {
         return;
 
     AddVisualizationLink(m_axleTube, m_axleOuterL, m_axleOuterR, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
-    AddVisualizationLink(m_wattCenterLinkBody, m_wattLower, m_wattUpper, getWattLinkRadius(), ChColor(0.5f, 0.7f, 0.8f));
+    AddVisualizationLink(m_axleTube, m_axleCenter, m_axleChassis, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
+    AddVisualizationLink(m_axleTube, m_stabiConnectorL, m_stabiConnectorR, getAxleTubeRadius() / 2,
+                         ChColor(0.7f, 0.7f, 0.7f));
+    AddVisualizationLink(m_wattCenterLinkBody, m_wattLower, m_wattUpper, getWattLinkRadius(),
+                         ChColor(0.5f, 0.7f, 0.8f));
     AddVisualizationLink(m_wattLeftLinkBody, m_wattLower, m_wattOuterL, getWattLinkRadius(), ChColor(0.8f, 0.5f, 0.5f));
-    AddVisualizationLink(m_wattRightLinkBody, m_wattUpper, m_wattOuterR, getWattLinkRadius(), ChColor(0.5f, 0.8f, 0.5f));
+    AddVisualizationLink(m_wattRightLinkBody, m_wattUpper, m_wattOuterR, getWattLinkRadius(),
+                         ChColor(0.5f, 0.8f, 0.5f));
 
     // Add visualization for the springs and shocks
     m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));

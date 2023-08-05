@@ -35,32 +35,10 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
-#include "chrono/serialization/ChArchive.h"
 
 //#include "chrono/assets/ChBoxShape.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
-
-
-#ifdef CHRONO_IRRLICHT
-
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
-
-
-
-// Use the namespaces of Chrono
-// Use the namespaces of Chrono
-using namespace chrono;
-using namespace chrono::irrlicht;
-
-// Use the main namespaces of Irrlicht
-using namespace irr;
-using namespace irr::core;
-using namespace irr::scene;
-using namespace irr::video;
-using namespace irr::io;
-using namespace irr::gui;
-
-#endif
+#include "chrono/utils/ChUtilsValidation.h"
 
 const double ABS_ERR = 1e-5;
 
@@ -70,6 +48,9 @@ enum class ArchiveType {
     XML
 };
 
+
+// Use the namespaces of Chrono
+using namespace chrono;
 
 
 void assemble_fourbar(ChSystemNSC& system){
@@ -398,6 +379,7 @@ TEST(ChArchiveJSON, Pendulum){
 
     ChStreamInAsciiFile mfilei("ChArchiveJSON_Pendulum.json");
     ChArchiveInJSON marchivein(mfilei);
+    marchivein.TryTolerateMissingTokens(true);
 
     ChSystemNSC system;
     marchivein >> CHNVP(system);
@@ -636,84 +618,28 @@ TEST(ChArchiveJSON, ChVectorDynamicTest){
 
 }
 
+
+//TEST(ChArchiveJSON, Solidworks){
+//
+//    std::string jsonfile = utils::GetValidationDataFile("solidworks/SliderCrank.json");
 //
 //
-////TEST(ChArchiveJSON, gears){
-//int main(){
-//
-//    std::string jsonfile = "ChArchiveJSON_gears.json";
-//    // Create a material that will be shared among all collision shapes
-//    {
-//
-//        ChSystemNSC sys;
-//        
-//        //assemble_pendulum_visual(sys);
-//        assemble_gear_and_pulleys(sys);
-//        
-//
-//        ChStreamOutAsciiFile mfileo(jsonfile.c_str());
-//        ChArchiveOutJSON marchiveout(mfileo);
-//        marchiveout << CHNVP(sys);
-//
-//
-//        
-//        // Create the Irrlicht visualization system
-//        auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-//        vis->AttachSystem(&sys);
-//        vis->SetWindowSize(800, 600);
-//        vis->SetWindowTitle(jsonfile);
-//        vis->Initialize();
-//        vis->AddLogo();
-//        vis->AddSkyBox();
-//        vis->AddCamera(ChVector<>(12, 15, -20));
-//        vis->AddTypicalLights();
-//
-//
-//
-//        double timestep = 0.001;
-//        while (vis->Run()) {
-//            vis->BeginScene();
-//            vis->Render();
-//            sys.DoStepDynamics(timestep);
-//
-//            vis->EndScene();
-//
-//        }
-//
-//    }
-//
-//    ChSystemNSC sys;
-//
+//    // TODO: in the CI machines the ChStreamInAsciiFile constructor is unable to find the file thus throwing an exception
 //    ChStreamInAsciiFile mfilei(jsonfile.c_str());
 //    ChArchiveInJSON marchivein(mfilei);
-//    marchivein >> CHNVP(sys);
+//    marchivein.TryTolerateMissingTokens(true);
 //
 //
-//
-//    // Create the Irrlicht visualization system
-//    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-//    vis->AttachSystem(&sys);
-//    vis->SetWindowSize(800, 600);
-//    vis->SetWindowTitle(jsonfile);
-//    vis->Initialize();
-//    vis->AddLogo();
-//    vis->AddSkyBox();
-//    vis->AddCamera(ChVector<>(12, 15, -20));
-//    vis->AddTypicalLights();
+//    ChSystemNSC system;
+//    marchivein >> CHNVP(system);
 //
 //
+//    system.Setup();
 //
-//    double timestep = 0.001;
-//    while (vis->Run()) {
-//        vis->BeginScene();
-//        vis->Render();
-//        sys.DoStepDynamics(timestep);
+//    double timestep = 0.01;
+//    int step_num = 2000;
 //
-//        tools::drawCoordsys(vis.get(), CSYSNORM, 5);
-//
-//        vis->EndScene();
-//
+//    for (int step = 0; step < step_num; ++step){
+//        system.DoStepDynamics(timestep);
 //    }
-//
-//
 //}

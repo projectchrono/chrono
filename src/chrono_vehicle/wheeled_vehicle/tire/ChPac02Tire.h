@@ -18,10 +18,10 @@
 // Hans B. Pacejka's "Tire and Vehicle Dynamics" Third Edition, Elsevier 2012
 // ISBN: 978-0-08-097016-5
 //
-// This implementation is a subset of the commercial product MFtire:
+// This implementation is a small subset of the commercial product MFtire:
 //  - only steady state force/torque calculations
 //  - uncombined (use_mode = 3)
-//  - combined (use_mode = 4) via Pacejka method
+//  - combined (use_mode = 4) via Friction Ellipsis (default) or Pacejka method
 //  - parametration is given by a TIR file (Tiem Orbit Format,
 //    ADAMS/Car compatible)
 //  - unit conversion is implemented but only tested for SI units
@@ -78,8 +78,8 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
     /// Get visualization width.
     virtual double GetVisualizationWidth() const { return m_par.WIDTH; }
 
-    /// Get the slip angle used in Pac89 (expressed in radians).
-    /// The reported value will have opposite sign to that reported by ChTire::GetSlipAngle because ChPac89 uses
+    /// Get the slip angle used in Pac02 (expressed in radians).
+    /// The reported value will have opposite sign to that reported by ChTire::GetSlipAngle because ChPac02 uses
     /// internally a different frame convention.
     double GetSlipAngle_internal() const { return m_states.alpha; }
 
@@ -90,6 +90,13 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
     virtual double GetNormalStiffnessForce(double depth) const override;
     virtual double GetNormalDampingForce(double depth, double velocity) const override;
 
+    // retrieve the road friction value the tire 'sees'
+    double GetMuRoad() { return m_states.mu_road; }
+    
+    // experimental for tire sound support
+    double GetLongitudinalGripSaturation();
+    double GetLateralGripSaturation();
+    
   protected:
     double CalcMx(double Fy, double Fz, double gamma);  // get overturning couple
     double CalcMy(double Fx, double Fz, double gamma);  // get rolling resistance moment
@@ -99,8 +106,7 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
                    double kappa,
                    double alpha,
                    double Fz,
-                   double gamma,
-                   bool combined = false);
+                   double gamma);
     double CalcSigmaK(double Fz);   // relaxation length longitudinal
     double CalcSigmaA(double Fz);   // relaxation length lateral
     void CombinedCoulombForces(double& fx, double& fy, double fz);
@@ -125,12 +131,10 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
 
     ChFunction_Recorder m_bott_map;
 
-    /// Set the parameters in the Pac89 model.
+    /// Set the parameters in the Pac02 model.
     virtual void SetMFParams() = 0;
 
     double m_gamma_limit;  ///< limit camber angle
-
-    bool m_use_friction_ellipsis;
 
     /// Road friction at tire test conditions
     double m_mu0;
@@ -144,6 +148,10 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
     bool m_tire_conditions_found = false;
     bool m_vertical_table_found = false;
     bool m_bottoming_table_found = false;
+    
+    bool m_use_friction_ellipsis = true;
+    
+    double m_g = 9.81;  // gravitational constant on earth m/s
 
     unsigned int m_use_mode;
 
@@ -374,16 +382,11 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
     /// Advance the state of this tire by the specified time step.
     virtual void Advance(double step) override;
 
-    struct ContactData {
-        bool in_contact;      // true if disc in contact with terrain
-        ChCoordsys<> frame;   // contact frame (x: long, y: lat, z: normal)
-        ChVector<> vel;       // relative velocity expressed in contact frame
-        double normal_force;  // magnitude of normal contact force
-        double depth;         // penetration depth
-    };
-
     struct TireStates {
-        double mu_scale;
+        double mu_scale;         // scaling factor for tire patch forces
+        double mu_road;          // actual road friction coefficient
+        double grip_sat_x;       // tire grip saturation
+        double grip_sat_y;       // tire grip saturation
         double kappa;            // slip ratio [-1:+1]
         double alpha;            // slip angle [-PI/2:+PI/2]
         double gamma;            // inclination angle

@@ -63,7 +63,6 @@ void Duro_EngineShafts::SetEngineLossesMap(std::shared_ptr<ChFunction_Recorder>&
     map->AddPoint(4000 * rpm_to_radsec, -120);
 }
 
-}  // end namespace Duro
+}  // namespace duro
 }  // end namespace vehicle
 }  // end namespace chrono
-

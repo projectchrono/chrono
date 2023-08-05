@@ -215,7 +215,7 @@ int main(int argc, char* argv[]) {
             vis_irr->AttachSystem(&sys);
             vis_irr->SetCameraVertical(CameraVerticalDir::Z);
             vis_irr->SetWindowSize(1200, 800);
-            vis_irr->SetWindowTitle("NSC callbacks");
+            vis_irr->SetWindowTitle("RoboSimian URDF demo");
             vis_irr->Initialize();
             vis_irr->AddLogo();
             vis_irr->AddSkyBox();
@@ -232,7 +232,7 @@ int main(int argc, char* argv[]) {
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(&sys);
             vis_vsg->SetCameraVertical(CameraVerticalDir::Z);
-            vis_vsg->SetWindowTitle("NSC callbacks");
+            vis_vsg->SetWindowTitle("RoboSimian URDF demo");
             vis_vsg->AddCamera(camera_loc, camera_lookat);
             vis_vsg->SetWindowSize(ChVector2<int>(1200, 800));
             vis_vsg->SetWindowPosition(ChVector2<int>(400, 100));

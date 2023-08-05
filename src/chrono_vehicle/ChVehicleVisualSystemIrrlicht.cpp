@@ -305,6 +305,8 @@ void ChVehicleVisualSystemIrrlicht::renderStats() {
         renderLinGauge(std::string(msg), engine_torque / 600, false, m_HUD_x, m_HUD_y + 70, 170, 15);
 
         char msgT[5];
+        int ngear = transmission->GetCurrentGear();
+        int maxgear = transmission->GetMaxGear();
         if (transmission->IsAutomatic()) {
             auto transmission_auto = transmission->asAutomatic();
 
@@ -334,28 +336,27 @@ void ChVehicleVisualSystemIrrlicht::renderStats() {
                     sprintf(msgT, "  ");
                     break;
             }
+            ChAutomaticTransmission::DriveMode drivemode = transmission_auto->GetDriveMode();
+            switch (drivemode) {
+                case ChAutomaticTransmission::DriveMode::FORWARD:
+                    sprintf(msg, "%s Gear: Forward %d", msgT, ngear);
+                    break;
+                case ChAutomaticTransmission::DriveMode::NEUTRAL:
+                    sprintf(msg, "%s Gear: Neutral", msgT);
+                    break;
+                case ChAutomaticTransmission::DriveMode::REVERSE:
+                    sprintf(msg, "%s Gear: Reverse", msgT);
+                    break;
+                default:
+                    sprintf(msg, "Gear:");
+                    break;
+            }
         } else if (transmission->IsManual()) {
-            sprintf(msgT, "[M]");
+            sprintf(msg, "[M] Gear: %d", ngear);
         } else {
-            sprintf(msgT, "  ");
+            sprintf(msgT, "[?]");
         }
-        int ngear = transmission->GetCurrentGear();
-        ChTransmission::DriveMode drivemode = transmission->GetDriveMode();
-        switch (drivemode) {
-            case ChTransmission::DriveMode::FORWARD:
-                sprintf(msg, "%s Gear: Forward %d", msgT, ngear);
-                break;
-            case ChTransmission::DriveMode::NEUTRAL:
-                sprintf(msg, "%s Gear: Neutral", msgT);
-                break;
-            case ChTransmission::DriveMode::REVERSE:
-                sprintf(msg, "%s Gear: Reverse", msgT);
-                break;
-            default:
-                sprintf(msg, "Gear:");
-                break;
-        }
-        renderLinGauge(std::string(msg), (double)ngear / 4.0, false, m_HUD_x, m_HUD_y + 170, 170, 15);
+        renderLinGauge(std::string(msg), (double)ngear / (double)maxgear, false, m_HUD_x, m_HUD_y + 170, 170, 15);
     }
 
     // Display information from driver system.

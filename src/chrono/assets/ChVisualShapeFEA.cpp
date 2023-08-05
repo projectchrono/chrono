@@ -793,9 +793,9 @@ void ChVisualShapeFEA::UpdateBuffers_ContactSurfaceMesh(std::shared_ptr<ChContac
         unsigned int inorm_el = i_vnorms;
 
         // vertexes
-        ChVector<> p0 = face->GetNode1()->pos;
-        ChVector<> p1 = face->GetNode2()->pos;
-        ChVector<> p2 = face->GetNode3()->pos;
+        ChVector<> p0 = face->GetNode(0)->pos;
+        ChVector<> p1 = face->GetNode(1)->pos;
+        ChVector<> p2 = face->GetNode(2)->pos;
 
         trianglemesh.getCoordsVertices()[i_verts] = p0;
         ++i_verts;

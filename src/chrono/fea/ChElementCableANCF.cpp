@@ -144,32 +144,32 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
             for (int inode = 0; inode < 2; ++inode) {
                 pos_dt[inode].x() += diff;
                 ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1], F1);
-                m_JacobianMatrix.col(0 + inode * 6) = (F0 - F1) * (1.0 / diff) * Rfactor;
+                m_JacobianMatrix.col(0 + inode * 6) += (F0 - F1) * (1.0 / diff) * Rfactor;
                 pos_dt[inode].x() -= diff;
 
                 pos_dt[inode].y() += diff;
                 ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1], F1);
-                m_JacobianMatrix.col(1 + inode * 6) = (F0 - F1) * (1.0 / diff) * Rfactor;
+                m_JacobianMatrix.col(1 + inode * 6) += (F0 - F1) * (1.0 / diff) * Rfactor;
                 pos_dt[inode].y() -= diff;
 
                 pos_dt[inode].z() += diff;
                 ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1], F1);
-                m_JacobianMatrix.col(2 + inode * 6) = (F0 - F1) * (1.0 / diff) * Rfactor;
+                m_JacobianMatrix.col(2 + inode * 6) += (F0 - F1) * (1.0 / diff) * Rfactor;
                 pos_dt[inode].z() -= diff;
 
                 D_dt[inode].x() += diff;
                 ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1], F1);
-                m_JacobianMatrix.col(3 + inode * 6) = (F0 - F1) * (1.0 / diff) * Rfactor;
+                m_JacobianMatrix.col(3 + inode * 6) += (F0 - F1) * (1.0 / diff) * Rfactor;
                 D_dt[inode].x() -= diff;
 
                 D_dt[inode].y() += diff;
                 ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1], F1);
-                m_JacobianMatrix.col(4 + inode * 6) = (F0 - F1) * (1.0 / diff) * Rfactor;
+                m_JacobianMatrix.col(4 + inode * 6) += (F0 - F1) * (1.0 / diff) * Rfactor;
                 D_dt[inode].y() -= diff;
 
                 D_dt[inode].z() += diff;
                 ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1], F1);
-                m_JacobianMatrix.col(5 + inode * 6) = (F0 - F1) * (1.0 / diff) * Rfactor;
+                m_JacobianMatrix.col(5 + inode * 6) += (F0 - F1) * (1.0 / diff) * Rfactor;
                 D_dt[inode].z() -= diff;
             }
         }

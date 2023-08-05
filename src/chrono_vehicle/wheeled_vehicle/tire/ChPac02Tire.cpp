@@ -18,10 +18,10 @@
 // Hans B. Pacejka's "Tire and Vehicle Dynamics" Third Edition, Elsevier 2012
 // ISBN: 978-0-08-097016-5
 //
-// This implementation is a subset of the commercial product MFtire:
+// This implementation is a small subset of the commercial product MFtire:
 //  - only steady state force/torque calculations
 //  - uncombined (use_mode = 3)
-//  - combined (use_mode = 4) via Pacejka method
+//  - combined (use_mode = 4) via Friction Ellipsis (default) or Pacejka method
 //  - parametration is given by a TIR file (Tiem Orbit Format,
 //    ADAMS/Car compatible)
 //  - unit conversion is implemented but only tested for SI units
@@ -50,7 +50,6 @@ namespace vehicle {
 ChPac02Tire::ChPac02Tire(const std::string& name)
     : ChForceElementTire(name),
       m_gamma_limit(3.0 * CH_C_DEG_TO_RAD),
-      m_use_friction_ellipsis(true),
       m_mu0(0.8),
       m_measured_side(LEFT),
       m_allow_mirroring(false),
@@ -93,15 +92,9 @@ void ChPac02Tire::CombinedCoulombForces(double& fx, double& fy, double fz) {
     fy = F.y();
 }
 
-void ChPac02Tire::CalcFxyMz(double& Fx,
-                            double& Fy,
-                            double& Mz,
-                            double kappa,
-                            double alpha,
-                            double Fz,
-                            double gamma,
-                            bool combined) {
-    double Fx0 = 0;
+void ChPac02Tire::CalcFxyMz(double& Fx, double& Fy, double& Mz, double kappa, double alpha, double Fz, double gamma) {
+    // steady state calculation
+    double Fx0 = 0;  // longitudinal steady stae force
     double Cx = m_par.PCX1 * m_par.LCX;
     double Shx = (m_par.PHX1 + m_par.PHX2 * m_states.dfz0) * m_par.LHX;
     double Svx = Fz * (m_par.PVX1 + m_par.PVX2 * m_states.dfz0) * m_par.LVX * m_par.LMUX;
@@ -109,16 +102,21 @@ void ChPac02Tire::CalcFxyMz(double& Fx,
     double gamma_x = gamma * m_par.LGAX;
     double Ex = (m_par.PEX1 + m_par.PEX2 * m_states.dfz0 + m_par.PEX3 * pow(m_states.dfz0, 2)) *
                 (1.0 - m_par.PEX4 * ChSignum(kappa_x)) * m_par.LEX;
-    double mu_x = m_states.mu_scale * (m_par.PDX1 + m_par.PDX2 * m_states.dfz0) *
-                  (1.0 + m_par.PPX3 * m_states.dpi + m_par.PPX4 * pow(m_states.dpi, 2)) *
-                  (1.0 - m_par.PDX3 * pow(gamma_x, 2)) * m_par.LMUX;
+    if (Ex > 1.0)
+        Ex = 1.0;
+    double mu_x = std::abs(m_states.mu_scale * (m_par.PDX1 + m_par.PDX2 * m_states.dfz0) *
+                           (1.0 + m_par.PPX3 * m_states.dpi + m_par.PPX4 * pow(m_states.dpi, 2)) *
+                           (1.0 - m_par.PDX3 * pow(gamma_x, 2)) * m_par.LMUX);
     double Dx = mu_x * Fz;
     double Kx = Fz * (m_par.PKX1 + m_par.PKX2 * m_states.dfz0) * exp(m_par.PKX3 * m_states.dfz0) *
                 (1.0 + m_par.PPX1 * m_states.dpi + m_par.PPX2 * pow(m_states.dpi, 2)) * m_par.LKX;
     double Bx = Kx / (Cx * Dx + 0.1);
-    Fx0 = Dx * sin(Cx * atan(Bx * kappa_x - Ex * (Bx * kappa_x - atan(Bx * kappa_x)))) + Svx;
+    double X1 = Bx * kappa_x;
+    ChClampValue(X1, -CH_C_PI_2 + 0.01, CH_C_PI_2 - 0.01);
+    // Fx0 = Dx * sin(Cx * atan(Bx * kappa_x - Ex * (Bx * kappa_x - atan(Bx * kappa_x)))) + Svx;
+    Fx0 = Dx * sin(Cx * atan(X1 - Ex * (X1 - atan(X1)))) + Svx;
 
-    double Fy0 = 0;
+    double Fy0 = 0;  // lateral steady state force
     double gamma_y = gamma * m_par.LGAY;
     double Cy = m_par.PCY1 * m_par.LCY;
     double Ky0 = m_par.PKY1 * m_par.FNOMIN * (1 + m_par.PPY1 * m_states.dpi) *
@@ -133,77 +131,135 @@ void ChPac02Tire::CalcFxyMz(double& Fx,
                  m_par.LMUY;
     double Ey = (m_par.PEY1 + m_par.PEY2 * m_states.dfz0) *
                 (1.0 - (m_par.PEY3 + m_par.PEY4 * gamma_y) * ChSignum(alpha_y)) * m_par.LEY;
-    double mu_y = m_states.mu_scale * (m_par.PDY1 + m_par.PDY2 * m_states.dfz0) *
-                  (1.0 + m_par.PPY3 * m_states.dpi + m_par.PPY4 * pow(m_states.dpi, 2)) *
-                  (1.0 - m_par.PDY3 * pow(gamma_y, 2)) * m_par.LMUY;
+    if (Ey > 1.0)
+        Ey = 1.0;
+    double mu_y = std::abs(m_states.mu_scale * (m_par.PDY1 + m_par.PDY2 * m_states.dfz0) *
+                           (1.0 + m_par.PPY3 * m_states.dpi + m_par.PPY4 * pow(m_states.dpi, 2)) *
+                           (1.0 + m_par.PDY3 * pow(gamma_y, 2)) * m_par.LMUY);
     double Dy = mu_y * Fz;
     double By = Ky / (Cy * Dy + 0.1);
-    Fy0 = Dy * sin(Cy * atan(By * alpha_y - Ey * (By * alpha_y - atan(By * alpha_y)))) + Svy;
+    double Y1 = By * alpha_y;
+    ChClampValue(Y1, -CH_C_PI_2 + 0.01, CH_C_PI_2 - 0.01);
+    // Fy0 = Dy * sin(Cy * atan(By * alpha_y - Ey * (By * alpha_y - atan(By * alpha_y)))) + Svy;
+    Fy0 = Dy * sin(Cy * atan(Y1 - Ey * (Y1 - atan(Y1)))) + Svy;
 
-    double Shxa = m_par.RHX1;
-    double Cxa = m_par.RCX1;
-    double alpha_s = alpha + Shxa;
-    double Exa = m_par.REX1 + m_par.REX2 * m_states.dfz0;
-    double Bxa = m_par.RBX1 * cos(atan(m_par.RBX2 * kappa)) * m_par.LXAL;
-    ////double Dxa = Fx0 / cos(Cxa * atan(Bxa * Shxa - Exa * (Bxa * Shxa - atan(Bxa * Shxa))));
-    double Gxa = cos(Cxa * atan(Bxa * alpha_s - Exa * (Bxa * alpha_s - atan(Bxa * alpha_s)))) /
-                 cos(Cxa * atan(Bxa * Shxa - Exa * (Bxa * Shxa - atan(Bxa * Shxa))));
-    Fx = Fx0 * Gxa;
+    // not Pacejka: grip saturation longitudinal ------------------------
+    m_states.grip_sat_x = std::abs((Fx0 - Svx) / Fz) / std::abs(Dx / Fz);
+    ChClampValue(m_states.grip_sat_x, 0.0, 1.0);
+    //-------------------------------------------------------------------
+    // not Pacejka: grip saturation lateral -----------------------------
+    m_states.grip_sat_y = std::abs((Fy0 - Svy) / Fz) / std::abs(Dy / Fz);
+    ChClampValue(m_states.grip_sat_y, 0.0, 1.0);
+    //-------------------------------------------------------------------
 
-    double Shyk = m_par.RHY1 + m_par.RHY2 * m_states.dfz0;
-    double kappa_s = kappa + Shyk;
-    double Cyk = m_par.RCY1;
-    double Eyk = m_par.REY1 + m_par.REY2 * m_states.dfz0;
-    double Byk = m_par.RBY1 * cos(atan(m_par.RBY2 * (alpha - m_par.RBY3))) * m_par.LYKA;
-    ////double Dyk = Fy0 / cos(Cyk * atan(Byk * Shyk - Eyk * (Byk * Shyk - atan(Byk * Shyk))));
-    double Dvyk =
-        mu_y * Fz * (m_par.RVY1 + m_par.RVY2 * m_states.dfz0 + m_par.RVY3 * gamma) * cos(atan(m_par.RVY4 * alpha));
-    double Svyk = Dvyk * sin(m_par.RVY5 * atan(m_par.RVY6 * kappa)) * m_par.LVYKA;
-    double Gyk = cos(Cyk * atan(Byk * kappa_s - Eyk * (Byk * kappa_s - atan(Byk * alpha_s)))) /
-                 cos(Cyk * atan(Byk * Shyk - Eyk * (Byk * Shyk - atan(Byk * Shyk))));
-    Fy = Fy0 * Gyk + Svyk;
-
-    // alignment torque
-    // pneumatic trail
     double R0 = m_par.UNLOADED_RADIUS;
+    // steady state alignment torque / pneumatic trail
     double gamma_z = gamma * m_par.LGAZ;
     double Sht = m_par.QHZ1 + m_par.QHZ2 * m_states.dfz0 + (m_par.QHZ3 + m_par.QHZ4 * m_states.dfz0) * gamma_z;
     double Shf = Shy + Svy / Ky;
     double alpha_r = alpha + Shf;
     double alpha_t = alpha + Sht;
-    double alpha_teq = atan(sqrt(pow(tan(alpha_t), 2) + pow(Kx / Ky, 2) * pow(kappa, 2))) * ChSignum(kappa);
-    double alpha_req = atan(sqrt(pow(tan(alpha_r), 2) + pow(Kx / Ky, 2) * pow(kappa, 2))) * ChSignum(alpha_r);
     double Ct = m_par.QCZ1;
-    double Bt = (m_par.QBZ1 + m_par.QBZ2 * m_states.dfz0 + m_par.QBZ3 * pow(m_states.dfz0, 2)) *
-                (1.0 + m_par.QBZ4 * gamma_z + m_par.QBZ5 * std::abs(gamma_z)) * m_par.LKY / m_par.LMUY;
+    double Bt = std::abs((m_par.QBZ1 + m_par.QBZ2 * m_states.dfz0 + m_par.QBZ3 * pow(m_states.dfz0, 2)) *
+                         (1.0 + m_par.QBZ4 * gamma_z + m_par.QBZ5 * std::abs(gamma_z)) * m_par.LKY / m_par.LMUY);
     double Et = (m_par.QEZ1 + m_par.QEZ2 * m_states.dfz0 + m_par.QEZ3 * pow(m_states.dfz0, 2)) *
                 (1.0 + (m_par.QEZ4 + m_par.QEZ5 * gamma_z) * ((2.0 / CH_C_PI) * atan(Bt * Ct * alpha_t)));
+    if (Et > 1.0)
+        Et = 1.0;
     double Dt = Fz * (m_par.QDZ1 + m_par.QDZ2 * m_states.dfz0) * (1.0 - m_par.QPZ1 * m_states.dpi) *
                 (1.0 + m_par.QDZ3 * gamma_z + m_par.QDZ4 * pow(gamma_z, 2)) * R0 / m_states.Fz0_prime * m_par.LTR;
     // trail, uncombined forces
     double t = Dt * (cos(Ct * atan(Bt * alpha_t - Et * (Bt * alpha_t - atan(Bt * alpha_t))))) * cos(alpha);
-    // trail combined forces
-    double tc = Dt * (cos(Ct * atan(Bt * alpha_teq - Et * (Bt * alpha_teq - atan(Bt * alpha_teq))))) * cos(alpha);
     // residual moment
-    ////double Cr = 1.0;
     double Br = (m_par.QBZ9 * m_par.LKY / m_par.LMUY + m_par.QBZ10 * By * Cy);
     double Dr = Fz *
                 ((m_par.QDZ6 + m_par.QDZ7 * m_states.dfz0) * m_par.LRES +
                  (m_par.QDZ8 + m_par.QDZ9 * m_states.dfz0) * (1.0 + m_par.QPZ2 * m_states.dpi) * gamma_z) *
                 R0 * m_par.LMUY;
-    double s = (m_par.SSZ1 + m_par.SSZ2 * Fy / m_states.Fz0_prime + (m_par.SSZ3 + m_par.SSZ4 * m_states.dfz0) * gamma) *
-               R0 * m_par.LS;
     // residual moment, uncombined forces
-    double Mzr = Dr * cos(Ct * atan(Br * alpha_r)) * cos(alpha);
-    // residual moment, combined forces
-    double Mzrc = Dr * cos(Ct * atan(Br * alpha_req)) * cos(alpha);
-    double Fy_prime = Fy - Svyk;
-    if (combined) {
-        Mz = -tc * Fy_prime + Mzrc + s * Fx;
-    } else {
-        Fx = Fx0;
-        Fy = Fy0;
-        Mz = -t * Fy0 + Mzr;
+    const double Cr = 1.0;
+    double Mzr = Dr * cos(Cr * atan(Br * alpha_r)) * cos(alpha);
+
+    switch (m_use_mode) {
+        case 1:
+            // Fx only
+            Fx = Fx0;
+            Fy = 0;
+            Mz = 0;
+            break;
+        case 2: {
+            // Fy and Mz only
+            Fx = 0;
+            Fy = Fy0;
+            Mz = -t * Fy0 + Mzr;
+        } break;
+        case 3: {
+            // uncombined Fx, Fy, Mz calculation
+            Fx = Fx0;
+            Fy = Fy0;
+            Mz = -t * Fy0 + Mzr;
+        } break;
+        case 4: {
+            // combined Fx, Fy, Mz calculation
+            if (m_use_friction_ellipsis) {
+                // combining without rsp. Pacejka coefficients, ADAMs
+                double kappa_c = kappa + Shx + Svx / Kx;
+                double alpha_c = alpha + Shy + Svy / Ky;
+                double alpha_s = sin(alpha_c);
+                double beta = acos(std::abs(kappa_c) / hypot(kappa_c, alpha_s));
+                double mu_x_act = std::abs((Fx0 - Svx) / Fz);
+                double mu_y_act = std::abs((Fy0 - Svy) / Fz);
+                double mu_x_max = Dx / Fz;
+                double mu_y_max = Dy / Fz;
+                double mu_x_c = 1.0 / hypot(1.0 / mu_x_act, tan(beta) / mu_y_max);
+                double mu_y_c = tan(beta) / hypot(1.0 / mu_x_max, tan(beta) / mu_y_act);
+                Fx = Fx0 * mu_x_c / mu_x_act;
+                Fy = Fy0 * mu_y_c / mu_y_act;
+                Mz = -t * Fy + Mzr;
+            } else {
+                // use rsp. Pacejka coefficients for combining
+                double Shxa = m_par.RHX1;
+                double Cxa = m_par.RCX1;
+                double alpha_s = alpha + Shxa;
+                double Exa = m_par.REX1 + m_par.REX2 * m_states.dfz0;
+                if (Exa > 1.0)
+                    Exa = 1.0;
+                double Bxa = std::abs(m_par.RBX1 * cos(atan(m_par.RBX2 * kappa)) * m_par.LXAL);
+                ////double Dxa = Fx0 / cos(Cxa * atan(Bxa * Shxa - Exa * (Bxa * Shxa - atan(Bxa * Shxa))));
+                double Gxa = cos(Cxa * atan(Bxa * alpha_s - Exa * (Bxa * alpha_s - atan(Bxa * alpha_s)))) /
+                             cos(Cxa * atan(Bxa * Shxa - Exa * (Bxa * Shxa - atan(Bxa * Shxa))));
+                Fx = Fx0 * Gxa;
+
+                double Shyk = m_par.RHY1 + m_par.RHY2 * m_states.dfz0;
+                double kappa_s = kappa + Shyk;
+                double Cyk = m_par.RCY1;
+                double Eyk = m_par.REY1 + m_par.REY2 * m_states.dfz0;
+                if (Eyk > 1.0)
+                    Eyk = 1.0;
+                double Byk = m_par.RBY1 * cos(atan(m_par.RBY2 * (alpha - m_par.RBY3))) * m_par.LYKA;
+                double Dvyk = mu_y * Fz * (m_par.RVY1 + m_par.RVY2 * m_states.dfz0 + m_par.RVY3 * gamma) *
+                              cos(atan(m_par.RVY4 * alpha));
+                double Svyk = Dvyk * sin(m_par.RVY5 * atan(m_par.RVY6 * kappa)) * m_par.LVYKA;
+                double Gyk = cos(Cyk * atan(Byk * kappa_s - Eyk * (Byk * kappa_s - atan(Byk * kappa_s)))) /
+                             cos(Cyk * atan(Byk * Shyk - Eyk * (Byk * Shyk - atan(Byk * Shyk))));
+                Fy = Fy0 * Gyk + Svyk;
+
+                double alpha_teq = atan(sqrt(pow(tan(alpha_t), 2) + pow(Kx / Ky, 2) * pow(kappa, 2))) * ChSignum(kappa);
+                double alpha_req =
+                    atan(sqrt(pow(tan(alpha_r), 2) + pow(Kx / Ky, 2) * pow(kappa, 2))) * ChSignum(alpha_r);
+                // trail combined forces
+                double tc =
+                    Dt * (cos(Ct * atan(Bt * alpha_teq - Et * (Bt * alpha_teq - atan(Bt * alpha_teq))))) * cos(alpha);
+                // residual moment
+                double s = (m_par.SSZ1 + m_par.SSZ2 * Fy / m_states.Fz0_prime +
+                            (m_par.SSZ3 + m_par.SSZ4 * m_states.dfz0) * gamma) *
+                           R0 * m_par.LS;
+                // residual moment, combined forces
+                double Mzrc = Dr * cos(Cr * atan(Br * alpha_req)) * cos(alpha);
+                double Fy_prime = Fy - Svyk;
+                Mz = -tc * Fy_prime + Mzrc + s * Fx;
+            }
+        } break;
     }
 }
 
@@ -234,7 +290,7 @@ double ChPac02Tire::CalcMx(double Fy, double Fz, double gamma) {
 
 double ChPac02Tire::CalcMy(double Fx, double Fz, double gamma) {
     // in most cases only QSY1 is used.
-    double V0 = sqrt(9.81 * m_par.UNLOADED_RADIUS);
+    double V0 = sqrt(m_g * m_par.UNLOADED_RADIUS);
     double My = Fz * m_par.UNLOADED_RADIUS *
                 (m_par.QSY1 + m_par.QSY2 * Fx / m_par.FNOMIN + m_par.QSY3 * fabs(m_states.vx / V0) +
                  m_par.QSY4 * pow(m_states.vx / V0, 4) + m_par.QSY5 * pow(gamma, 2) +
@@ -520,10 +576,20 @@ void ChPac02Tire::LoadSectionModel(FILE* fp) {
             size_t a2pos = sval.find_last_of("'");
             sval = sval.substr(a1pos, a2pos - a1pos + 1);
             // GetLog() << ">>Key=" << skey << "|" << sval << "|\n";
-            if (sval.compare("'LEFT'") != 0 || sval.compare("'UNKNOWN'") == 0) {
+            if (sval.compare("'LEFT'") == 0 || sval.compare("'UNKNOWN'") == 0) {
                 m_measured_side = LEFT;
             } else {
                 m_measured_side = RIGHT;
+            }
+        }
+        if (skey.compare("FE_METHOD") == 0) {
+            size_t a1pos = sval.find_first_of("'");
+            size_t a2pos = sval.find_last_of("'");
+            sval = sval.substr(a1pos, a2pos - a1pos + 1);
+            // GetLog() << ">>Key=" << skey << "|" << sval << "|\n";
+            if (sval.compare("'NO'") == 0 || sval.compare("'no'") == 0) {
+                m_use_friction_ellipsis = false;
+                GetLog() << "Friction Ellipsis Method switched off, relying on Pac02 parameters!\n";
             }
         }
         if (skey.compare("USE_MODE") == 0) {
@@ -1561,6 +1627,8 @@ void ChPac02Tire::LoadSectionAligning(FILE* fp) {
 void ChPac02Tire::Initialize(std::shared_ptr<ChWheel> wheel) {
     ChTire::Initialize(wheel);
 
+    m_g = wheel->GetSpindle()->GetSystem()->Get_G_acc().Length();
+    
     // Let derived class set the MF tire parameters
     SetMFParams();
 
@@ -1626,6 +1694,7 @@ void ChPac02Tire::Synchronize(double time, const ChTerrain& terrain) {
     ChClampValue(mu_road, 0.1f, 1.0f);
 
     m_states.mu_scale = mu_road / m_mu0;  // can change with terrain conditions
+    m_states.mu_road = mu_road;           // needed for access method
 
     // Calculate tire kinematics
     CalculateKinematics(wheel_state, m_data.frame);
@@ -1668,7 +1737,7 @@ void ChPac02Tire::Synchronize(double time, const ChTerrain& terrain) {
         // Ensure that kappa stays between -1 & 1
         ChClampValue(m_states.kappa, -1.0, 1.0);
         // Ensure that alpha stays between -pi()/2 & pi()/2 (a little less to prevent tan from going to infinity)
-        ChClampValue(m_states.alpha, -CH_C_PI_2 + 0.001, CH_C_PI_2 - 0.001);
+        ChClampValue(m_states.alpha, -CH_C_PI_2 + 0.01, CH_C_PI_2 - 0.01);
         // Clamp |gamma| to specified value: Limit due to tire testing, avoids erratic extrapolation. m_gamma_limit is
         // in rad too.
         ChClampValue(m_states.gamma, -m_gamma_limit, m_gamma_limit);
@@ -1676,6 +1745,8 @@ void ChPac02Tire::Synchronize(double time, const ChTerrain& terrain) {
         // Reset all states if the tire comes off the ground.
         m_data.normal_force = 0;
         m_states.R_eff = m_par.UNLOADED_RADIUS;
+        m_states.grip_sat_x = 0;
+        m_states.grip_sat_y = 0;
         m_states.kappa = 0;
         m_states.alpha = 0;
         m_states.gamma = 0;
@@ -1714,7 +1785,7 @@ void ChPac02Tire::Advance(double step) {
     double kappa = m_states.kappa;
     double alpha = m_states.alpha;
     double gamma = m_states.gamma;
-    double frblend = ChSineStep(m_data.vel.x(), m_frblend_begin, 0.0, m_frblend_end, 1.0);
+    double frblend = ChSineStep(std::abs(m_data.vel.x()), m_frblend_begin, 0.0, m_frblend_end, 1.0);
 
     switch (m_use_mode) {
         case 0:
@@ -1722,32 +1793,25 @@ void ChPac02Tire::Advance(double step) {
             break;
         case 1:
             // steady state pure longitudinal slip
-            CalcFxyMz(Fx, Fy, Mz, kappa, 0.0, Fz, gamma, false);
+            CalcFxyMz(Fx, Fy, Mz, kappa, 0.0, Fz, gamma);
             My = CalcMy(Fx, Fz, gamma);
             break;
         case 2:
             // steady state pure lateral slip
-            CalcFxyMz(Fx, Fy, Mz, 0.0, alpha, Fz, gamma, false);
-            Mx = CalcMx(Fy, Fx, gamma);
+            CalcFxyMz(Fx, Fy, Mz, 0.0, alpha, Fz, gamma);
+            Mx = CalcMx(Fy, Fz, gamma);
             break;
         case 3:
-            // steady state pure lateral slip uncombined
+        case 4: {
+            // steady state (un)combined slip
             CombinedCoulombForces(Fx0, Fy0, Fz);
-            CalcFxyMz(Fx, Fy, Mz, kappa, alpha, Fz, gamma, false);
-            Fx = (1.0 - frblend) * Fx0 + frblend * Fx;
-            Fy = (1.0 - frblend) * Fy0 + frblend * Fy;
+            double Fx_ss = 0, Fy_ss = 0;
+            CalcFxyMz(Fx_ss, Fy_ss, Mz, kappa, alpha, Fz, gamma);
+            Fx = (1.0 - frblend) * Fx0 + frblend * Fx_ss;
+            Fy = (1.0 - frblend) * Fy0 + frblend * Fy_ss;
             My = CalcMy(Fx, Fz, gamma);
-            Mx = CalcMx(Fy, Fx, gamma);
-            break;
-        case 4:
-            // steady state combined slip
-            CombinedCoulombForces(Fx0, Fy0, Fz);
-            CalcFxyMz(Fx, Fy, Mz, kappa, alpha, Fz, gamma, true);
-            Fx = (1.0 - frblend) * Fx0 + frblend * Fx;
-            Fy = (1.0 - frblend) * Fy0 + frblend * Fy;
-            My = CalcMy(Fx, Fz, gamma);
-            Mx = CalcMx(Fy, Fx, gamma);
-            break;
+            Mx = CalcMx(Fy, Fz, gamma);
+        } break;
     }
 
     // Compile the force and moment vectors so that they can be
@@ -1755,6 +1819,14 @@ void ChPac02Tire::Advance(double step) {
     // Convert from SAE to ISO Coordinates at the contact patch.
     m_tireforce.force = ChVector<>(Fx, -Fy, m_data.normal_force);
     m_tireforce.moment = ChVector<>(Mx, -My, -Mz);
+}
+
+double ChPac02Tire::GetLongitudinalGripSaturation() {
+    return m_states.grip_sat_x;
+}
+
+double ChPac02Tire::GetLateralGripSaturation() {
+    return m_states.grip_sat_y;
 }
 
 // -----------------------------------------------------------------------------

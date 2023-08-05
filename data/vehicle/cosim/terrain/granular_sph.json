@@ -4,13 +4,14 @@
 
     "Patch dimensions": {
         "Length": 4,
-        "Width": 1
+        "Width": 1,
+        "Depth": 0.5
     },
 
     "Granular material": {
         "Radius": 0.02,
-        "Density": 2500,
-        "Depth": 0.5
+        "Density": 1700,
+        "Cohesion":  10
     },
 
     "Output Folder": "demo_tire_rig",
@@ -30,7 +31,7 @@
         "I0": 0.04,
         "mu_s": 0.7,
         "mu_2": 0.7,
-        "particle diameter": 0.001,
+        "particle diameter": 0.02,
         "kernel threshold": 0.8
     },
 

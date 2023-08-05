@@ -26,6 +26,7 @@
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChSystemSMC.h"
+#include "chrono/fea/ChContactSurfaceMesh.h"
 
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNode.h"
 
@@ -36,8 +37,8 @@ namespace vehicle {
  *
  * This module defines concrete terrain nodes using Chrono physics:
  * - ChVehicleCosimTerrainNodeChrono is a base class (itself derived from ChVehicleCosimTerrainNode).
- * - ChVehicleCosimTerrainNodeRigid wraps a rigid terrain rectangular patch which interacts with objects through friction
- * and contact.
+ * - ChVehicleCosimTerrainNodeRigid wraps a rigid terrain rectangular patch which interacts with objects through
+ * friction and contact.
  * - ChVehicleCosimTerrainNodeSCM wraps an SCM deformable terrain rectangular patch.
  * - ChVehicleCosimTerrainNodeGranularOMP wraps a deformable terrain rectangular patch modeled with granular material
  * (using the Chrono::Multicore module).
@@ -68,13 +69,13 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
 
     /// Specification of a rigid obstacle.
     struct RigidObstacle {
-        std::string m_mesh_filename;  ///< OBJ file with mesh specification
-        double m_density;             ///< material density
-        ChVector<> m_init_pos;        ///< initial position of obstacle
-        ChQuaternion<> m_init_rot;    ///< initial orientation of obstacle
-        ChVector<> m_oobb_center;     ///< center of bounding box
-        ChVector<> m_oobb_dims;       ///< dimensions of bounding box
-        ChContactMaterialData m_contact_mat;   ///< contact material parameters
+        std::string m_mesh_filename;          ///< OBJ file with mesh specification
+        double m_density;                     ///< material density
+        ChVector<> m_init_pos;                ///< initial position of obstacle
+        ChQuaternion<> m_init_rot;            ///< initial orientation of obstacle
+        ChVector<> m_oobb_center;             ///< center of bounding box
+        ChVector<> m_oobb_dims;               ///< dimensions of bounding box
+        ChContactMaterialData m_contact_mat;  ///< contact material parameters
     };
 
     virtual ~ChVehicleCosimTerrainNodeChrono() {}
@@ -143,15 +144,37 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
     }
 
   protected:
-    /// Association between a proxy body and a mesh index.
-    /// The body can be associated with either a mesh vertex or a mesh triangle.
-    struct ProxyBody {
-        ProxyBody(std::shared_ptr<ChBody> body, int index) : m_body(body), m_index(index) {}
-        std::shared_ptr<ChBody> m_body;
-        int m_index;
+    /// Base class for a proxy associated with a co-simulation solid.
+    /// A derived terrain class can use a set of rigid bodies as such a proxy (a set with a single body as a proxy for a
+    /// rigid solid, or a set with multiple bodies as a proxy for a flexible solid). Alternatively, for flexible solids,
+    /// a derived terrain class may use a contact surface mesh as a proxy for a flexible solid.
+    struct Proxy {
+        virtual ~Proxy() {}
     };
 
-    typedef std::vector<ProxyBody> Proxies;
+    /// Proxy bodies associated with a co-simulation solid.
+    /// Rigid solids are associated with a single proxy body (always with corresponding index = 0).
+    /// Flexible solids may be associated with a collection of proxy bodies, each corresponding to a mesh node
+    /// or mesh face; in this case, 'index' represents the mesh vertex index or the mesh face index, respectively.
+    struct ProxyBodySet : public Proxy {
+        ProxyBodySet() {}
+        void AddBody(std::shared_ptr<ChBody> body, int index) {
+            bodies.push_back(body);
+            indices.push_back(index);
+        }
+        std::vector<std::shared_ptr<ChBody>> bodies;  ///< bodies in the proxy set
+        std::vector<int> indices;                     ///< indices of corresponding flexible mesh solid
+    };
+
+    /// Proxy contact mesh surface associated with a co-simulation solid.
+    /// Such a proxy can be associated with a flexible solid interacting with the terrain system.
+    /// The underlying FEA mesh is used simply as a container for collision shapes and carrier of visualization.
+    struct ProxyMesh : public Proxy {
+        ProxyMesh() {}
+        std::shared_ptr<fea::ChMesh> mesh;                              ///< proxy mesh
+        std::map<std::shared_ptr<fea::ChNodeFEAxyz>, int> ptr2ind_map;  ///< pointer-based to index-based mapping
+        std::map<int, std::shared_ptr<fea::ChNodeFEAxyz>> ind2ptr_map;  ///< index-based to pointer-based mapping
+    };
 
     Type m_type;  ///< terrain type
 
@@ -160,8 +183,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
 
     double m_init_height;  ///< terrain initial height
 
-    std::vector<Proxies> m_proxies;  ///< proxy bodies for each object
-    bool m_fixed_proxies;            ///< are proxy bodies fixed to ground?
+    std::vector<std::shared_ptr<Proxy>> m_proxies;  ///< proxies for solid objects
+    bool m_fixed_proxies;                           ///< are proxies fixed to ground?
 
     std::vector<RigidObstacle> m_obstacles;  ///< list of rigid obstacles
 };
