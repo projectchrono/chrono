@@ -172,6 +172,87 @@ void SPHTerrain::Construct(const std::string& sph_file,
     CompleteConstruct();
 }
 
+void SPHTerrain::Construct(double length,
+                           double width,
+                           double depth,
+                           int bce_layers,
+                           const ChVector<>& pos,
+                           double yaw_angle,
+                           bool side_walls) {
+    if (m_verbose) {
+        cout << "Construct rectangular patch SPHTerrain" << endl;
+    }
+
+    // Number of particles in each direction
+    int Nx = (int)std::floor(length / m_spacing);
+    int Ny = (int)std::floor(width / m_spacing);
+    int Nz = (int)std::floor(depth / m_spacing);
+    double Dx = length / (Nx - 1);
+    double Dy = width / (Ny - 1);
+
+    // Number of SPH particles and BCE markers
+    int num_sph = Nx * Ny * Nz;
+    int num_bce = Nx * Ny * bce_layers + (Nx + Ny + 2 * bce_layers) * 2 * bce_layers * Nz;
+
+    // Reserve space for containers
+    std::vector<ChVector<int>> sph;
+    std::vector<ChVector<int>> bce;
+    sph.reserve(num_sph);
+    bce.reserve(num_bce);
+
+    // Generate SPH and bottom BCE points
+    for (int Ix = 0; Ix < Nx; Ix++) {
+        for (int Iy = 0; Iy < Ny; Iy++) {
+            for (int Iz = 0; Iz < Nz; Iz++) {
+                sph.push_back(ChVector<int>(Ix, Iy, Iz));  // SPH particles above 0
+            }
+            for (int Iz = 1; Iz <= bce_layers; Iz++) {
+                bce.push_back(ChVector<>(Ix, Iy, -Iz));  // BCE markers below 0
+            }
+        }
+    }
+
+    // Generate side BCE points
+    if (side_walls) {
+        for (int Ix = -bce_layers; Ix < Nx + bce_layers; Ix++) {
+            for (int Iy = -bce_layers; Iy < 0; Iy++) {
+                for (int Iz = -bce_layers; Iz < Nz; Iz++) {
+                    bce.push_back(ChVector<>(Ix, Iy, Iz));
+                    bce.push_back(ChVector<>(Ix, Ny - 1 - Iy, Iz));
+                }
+            }
+        }
+        for (int Iy = 0; Iy < Ny; Iy++) {
+            for (int Ix = -bce_layers; Ix < 0; Ix++) {
+                for (int Iz = -bce_layers; Iz < Nz; Iz++) {
+                    bce.push_back(ChVector<>(Ix, Iy, Iz));
+                    bce.push_back(ChVector<>(Nx - 1 - Ix, Iy, Iz));
+                }
+            }
+        }
+    }
+
+    // Insert in cached sets
+    for (auto& p : sph) {
+        m_sph.insert(p);
+    }
+    for (auto& p : bce) {
+        p.y() = (Ny - 1) - p.y();
+        m_bce.insert(p);
+    }
+
+    if (m_verbose) {
+        cout << "  Particle grid size: " << Nx << " " << Ny << " " << Nz << endl;
+        cout << "  Num. SPH particles: " << m_sph.size() << endl;
+        cout << "  Num. BCE markers: " << m_bce.size() << endl;
+    }
+
+    // Complete construction of SPH terrain and obstacles
+    m_offset = pos - ChVector<>(length / 2, width / 2, 0);
+    m_angle = yaw_angle;
+    CompleteConstruct();
+}
+
 void SPHTerrain::Construct(const std::string& heightmap_file,
                            double length,
                            double width,
@@ -260,7 +341,7 @@ void SPHTerrain::Construct(const std::string& heightmap_file,
             for (int Iy = -bce_layers; Iy < 0; Iy++) {
                 for (int k = 0; k < Nz; k++) {
                     bce.push_back(ChVector<>(Ix, Iy, Izmin + k));
-                    bce.push_back(ChVector<>(Ix, Ny - Iy, Izmin + k));
+                    bce.push_back(ChVector<>(Ix, Ny - 1 - Iy, Izmin + k));
                 }
             }
         }
@@ -268,7 +349,7 @@ void SPHTerrain::Construct(const std::string& heightmap_file,
             for (int Ix = -bce_layers; Ix < 0; Ix++) {
                 for (int k = 0; k < Nz; k++) {
                     bce.push_back(ChVector<>(Ix, Iy, Izmin + k));
-                    bce.push_back(ChVector<>(Nx - Ix, Iy, Izmin + k));
+                    bce.push_back(ChVector<>(Nx - 1 - Ix, Iy, Izmin + k));
                 }
             }
         }

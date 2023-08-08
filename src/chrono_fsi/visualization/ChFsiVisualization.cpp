@@ -28,7 +28,9 @@ ChFsiVisualization::ChFsiVisualization(ChSystemFsi* sysFSI)
       m_sph_color(ChColor(0.10f, 0.40f, 0.65f)),
       m_bndry_bce_color(ChColor(0.65f, 0.30f, 0.03f)),
       m_rigid_bce_color(ChColor(0.10f, 0.60f, 0.30f)),
-      m_flex_bce_color(ChColor(0.40f, 0.10f, 0.65f)) {
+      m_flex_bce_color(ChColor(0.40f, 0.10f, 0.65f)),
+      m_write_images(false),
+      m_image_dir(".") {
     m_system = new ChSystemSMC();
 }
 

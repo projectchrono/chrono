@@ -137,10 +137,11 @@ int main(int argc, char** argv) {
     // Simulation parameters
     std::string terrain_specfile;
     double step_size = 5e-4;
-    double sim_time = 14;
+    double sim_time = 20.0;
     double output_fps = 100;
     double render_fps = 100;
-    bool render = true;
+    bool renderRT = true;
+    bool writeRT = true;
     std::string suffix = "";
     bool verbose = true;
 
@@ -233,8 +234,8 @@ int main(int argc, char** argv) {
         vehicle->SetStepSize(step_size);
         vehicle->SetNumThreads(1);
         vehicle->SetOutDir(out_dir, suffix);
-        if (render)
-            vehicle->EnableRuntimeVisualization(render_fps);
+        if (renderRT)
+            vehicle->EnableRuntimeVisualization(render_fps, writeRT);
         vehicle->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
         if (verbose)
             cout << "[Vehicle node] output directory: " << vehicle->GetOutDirName() << endl;
@@ -253,7 +254,7 @@ int main(int argc, char** argv) {
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
-                if (render)
+                if (renderRT)
                     terrain->EnableRuntimeVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
                 if (verbose)
@@ -270,8 +271,8 @@ int main(int argc, char** argv) {
                 terrain->SetStepSize(step_size);
                 terrain->SetNumThreads(2);
                 terrain->SetOutDir(out_dir, suffix);
-                if (render)
-                    terrain->EnableRuntimeVisualization(render_fps);
+                if (renderRT)
+                    terrain->EnableRuntimeVisualization(render_fps, writeRT);
                 terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;

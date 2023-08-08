@@ -145,8 +145,8 @@ void ChVehicleCosimTerrainNodeRigid::SetFromSpecfile(const std::string& specfile
     }
 
     if (m_system->GetContactMethod() == ChContactMethod::SMC) {
-        auto sysSMC = static_cast<ChSystemSMC*>(m_system);  
-      std::string n_model = d["Simulation settings"]["Normal contact model"].GetString();
+        auto sysSMC = static_cast<ChSystemSMC*>(m_system);
+        std::string n_model = d["Simulation settings"]["Normal contact model"].GetString();
         if (n_model.compare("Hertz") == 0)
             sysSMC->SetContactForceModel(ChSystemSMC::ContactForceModel::Hertz);
         else if (n_model.compare("Hooke") == 0)
@@ -315,6 +315,9 @@ void ChVehicleCosimTerrainNodeRigid::CreateMeshProxy(unsigned int i) {
     // Get shape associated with the given object
     int i_shape = m_obj_map[i];
 
+    // Create the proxy associated with the given object
+    auto proxy = chrono_types::make_shared<ProxyBodySet>();
+
     // Note: it is assumed that there is one and only one mesh defined!
     auto nv = m_geometry[i_shape].m_coll_meshes[0].m_trimesh->getNumVertices();
     auto i_mat = m_geometry[i_shape].m_coll_meshes[0].m_matID;
@@ -339,13 +342,18 @@ void ChVehicleCosimTerrainNodeRigid::CreateMeshProxy(unsigned int i) {
         body->GetCollisionModel()->BuildModel();
 
         m_system->AddBody(body);
-        m_proxies[i].push_back(ProxyBody(body, iv));
+        proxy->AddBody(body, iv);
     }
+
+    m_proxies[i] = proxy;
 }
 
 void ChVehicleCosimTerrainNodeRigid::CreateRigidProxy(unsigned int i) {
     // Get shape associated with the given object
     int i_shape = m_obj_map[i];
+
+    // Create the proxy associated with the given object
+    auto proxy = chrono_types::make_shared<ProxyBodySet>();
 
     // Create wheel proxy body
     auto body = std::shared_ptr<ChBody>(m_system->NewBody());
@@ -367,7 +375,9 @@ void ChVehicleCosimTerrainNodeRigid::CreateRigidProxy(unsigned int i) {
     body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
 
     m_system->AddBody(body);
-    m_proxies[i].push_back(ProxyBody(body, 0));
+    proxy->AddBody(body, 0);
+
+    m_proxies[i] = proxy;
 }
 
 // Once all proxy bodies are created, complete construction of the underlying system.
@@ -382,10 +392,13 @@ void ChVehicleCosimTerrainNodeRigid::OnInitialize(unsigned int num_objects) {
         vsys_vsg->SetWindowTitle("Terrain Node (Rigid)");
         vsys_vsg->SetWindowSize(ChVector2<int>(1280, 720));
         vsys_vsg->SetWindowPosition(ChVector2<int>(100, 100));
-        vsys_vsg->SetUseSkyBox(true);
+        vsys_vsg->SetUseSkyBox(false);
+        vsys_vsg->SetClearColor(ChColor(0.455f, 0.525f, 0.640f));
         vsys_vsg->AddCamera(m_cam_pos, ChVector<>(0, 0, 0));
         vsys_vsg->SetCameraAngleDeg(40);
         vsys_vsg->SetLightIntensity(1.0f);
+        vsys_vsg->SetImageOutputDirectory(m_node_out_dir + "/images");
+        vsys_vsg->SetImageOutput(m_writeRT);
         vsys_vsg->Initialize();
 
         m_vsys = vsys_vsg;
@@ -421,13 +434,15 @@ void ChVehicleCosimTerrainNodeRigid::OnInitialize(unsigned int num_objects) {
 // Set position and velocity of proxy bodies based on mesh vertices.
 // Set orientation to identity and angular velocity to zero.
 void ChVehicleCosimTerrainNodeRigid::UpdateMeshProxy(unsigned int i, MeshState& mesh_state) {
-    auto& proxies = m_proxies[i];  // proxies for the i-th object
+    // Get the proxy (body set) associated with this object
+    auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
+    auto num_bodies = proxy->bodies.size();
 
-    for (size_t iv = 0; iv < proxies.size(); iv++) {
-        proxies[iv].m_body->SetPos(mesh_state.vpos[iv]);
-        proxies[iv].m_body->SetPos_dt(mesh_state.vvel[iv]);
-        proxies[iv].m_body->SetRot(ChQuaternion<>(1, 0, 0, 0));
-        proxies[iv].m_body->SetRot_dt(ChQuaternion<>(0, 0, 0, 0));
+    for (size_t iv = 0; iv < num_bodies; iv++) {
+        proxy->bodies[iv]->SetPos(mesh_state.vpos[iv]);
+        proxy->bodies[iv]->SetPos_dt(mesh_state.vvel[iv]);
+        proxy->bodies[iv]->SetRot(ChQuaternion<>(1, 0, 0, 0));
+        proxy->bodies[iv]->SetRot_dt(ChQuaternion<>(0, 0, 0, 0));
     }
 
     ////if (m_verbose)
@@ -436,25 +451,26 @@ void ChVehicleCosimTerrainNodeRigid::UpdateMeshProxy(unsigned int i, MeshState& 
 
 // Set state of wheel proxy body.
 void ChVehicleCosimTerrainNodeRigid::UpdateRigidProxy(unsigned int i, BodyState& rigid_state) {
-    auto& proxies = m_proxies[i];  // proxies for the i-th rigid
-
-    proxies[0].m_body->SetPos(rigid_state.pos);
-    proxies[0].m_body->SetPos_dt(rigid_state.lin_vel);
-    proxies[0].m_body->SetRot(rigid_state.rot);
-    proxies[0].m_body->SetWvel_par(rigid_state.ang_vel);
+    auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
+    proxy->bodies[0]->SetPos(rigid_state.pos);
+    proxy->bodies[0]->SetPos_dt(rigid_state.lin_vel);
+    proxy->bodies[0]->SetRot(rigid_state.rot);
+    proxy->bodies[0]->SetWvel_par(rigid_state.ang_vel);
 }
 
 // Collect contact forces on the (node) proxy bodies that are in contact.
 // Load mesh vertex forces and corresponding indices.
 void ChVehicleCosimTerrainNodeRigid::GetForceMeshProxy(unsigned int i, MeshContact& mesh_contact) {
-    const auto& proxies = m_proxies[i];  // proxies for the i-th mesh
+    // Get the proxy (body set) associated with this object
+    auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
+    auto num_bodies = proxy->bodies.size();
 
     mesh_contact.nv = 0;
-    for (size_t iv = 0; iv < proxies.size(); iv++) {
-        ChVector<> force = proxies[iv].m_body->GetContactForce();
+    for (size_t iv = 0; iv < num_bodies; iv++) {
+        ChVector<> force = proxy->bodies[iv]->GetContactForce();
         if (force.Length() > 1e-15) {
             mesh_contact.vforce.push_back(force);
-            mesh_contact.vidx.push_back(proxies[iv].m_index);
+            mesh_contact.vidx.push_back(proxy->indices[iv]);
             mesh_contact.nv++;
         }
     }
@@ -462,11 +478,10 @@ void ChVehicleCosimTerrainNodeRigid::GetForceMeshProxy(unsigned int i, MeshConta
 
 // Collect resultant contact force and torque on rigid proxy body.
 void ChVehicleCosimTerrainNodeRigid::GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) {
-    const auto& proxies = m_proxies[i];  // proxies for the i-th rigid
-
+    auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
     rigid_contact.point = ChVector<>(0, 0, 0);
-    rigid_contact.force = proxies[0].m_body->GetContactForce();
-    rigid_contact.moment = proxies[0].m_body->GetContactTorque();
+    rigid_contact.force = proxy->bodies[0]->GetContactForce();
+    rigid_contact.moment = proxy->bodies[0]->GetContactTorque();
 }
 
 // -----------------------------------------------------------------------------
@@ -478,8 +493,8 @@ void ChVehicleCosimTerrainNodeRigid::OnRender() {
         MPI_Abort(MPI_COMM_WORLD, 1);
 
     if (m_track) {
-        const auto& proxies = m_proxies[0];  // proxies for first object
-        ChVector<> cam_point = proxies[0].m_body->GetPos();
+        auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[0]);  // proxy for first object
+        ChVector<> cam_point = proxy->bodies[0]->GetPos();                  // position of first body in proxy set
         m_vsys->UpdateCamera(m_cam_pos, cam_point);
     }
 
@@ -498,13 +513,14 @@ void ChVehicleCosimTerrainNodeRigid::OutputVisualizationData(int frame) {
 }
 
 void ChVehicleCosimTerrainNodeRigid::PrintMeshProxiesUpdateData(unsigned int i, const MeshState& mesh_state) {
+    auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
+
     auto lowest = std::min_element(
-        m_proxies[i].begin(), m_proxies[i].end(),
-        [](const ProxyBody& a, const ProxyBody& b) { return a.m_body->GetPos().z() < b.m_body->GetPos().z(); });
-    const ChVector<>& vel = (*lowest).m_body->GetPos_dt();
-    double height = (*lowest).m_body->GetPos().z();
-    cout << "[Terrain node] object: " << i << "  lowest proxy:  index = " << (*lowest).m_index
-         << "  height = " << height << "  velocity = " << vel.x() << "  " << vel.y() << "  " << vel.z() << endl;
+        proxy->bodies.begin(), proxy->bodies.end(),
+        [](std::shared_ptr<ChBody> a, std::shared_ptr<ChBody> b) { return a->GetPos().z() < b->GetPos().z(); });
+    double height = (*lowest)->GetPos().z();
+    const ChVector<>& vel = (*lowest)->GetPos_dt();
+    cout << "[Terrain node] object: " << i << "  lowest proxy:  height = " << height << "  velocity = " << vel << endl;
 }
 
 }  // end namespace vehicle

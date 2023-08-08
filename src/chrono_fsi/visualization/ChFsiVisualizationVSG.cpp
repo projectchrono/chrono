@@ -129,6 +129,14 @@ void ChFsiVisualizationVSG::EnableInfoOverlay(bool val) {
     ////m_vsys->EnableStats(val);
 }
 
+void ChFsiVisualizationVSG::SetUseSkyBox(bool val) {
+    m_vsys->SetUseSkyBox(val);
+}
+
+void ChFsiVisualizationVSG::SetClearColor(const ChColor& color) {
+    m_vsys->SetClearColor(color);
+}
+
 void ChFsiVisualizationVSG::Initialize() {
     if (m_sph_markers) {
         m_sph_cloud = chrono_types::make_shared<ChParticleCloud>();
@@ -184,6 +192,10 @@ void ChFsiVisualizationVSG::Initialize() {
 
     if (m_user_system)
         m_vsys->AttachSystem(m_user_system);
+
+    m_vsys->SetImageOutput(m_write_images);
+    m_vsys->SetImageOutputDirectory(m_image_dir);
+
     m_vsys->Initialize();
 }
 

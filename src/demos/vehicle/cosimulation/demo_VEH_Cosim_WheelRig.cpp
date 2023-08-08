@@ -134,7 +134,8 @@ int main(int argc, char** argv) {
     bool settling_output = true;
     bool vis_output = true;
     bool renderRT = true;
-    bool renderPP = true;
+    bool renderPP = false;
+    bool writeRT = true;
     double total_mass = 500;
     double toe_angle = 0;
     double dbp_filter_window = 0.1;
@@ -165,9 +166,9 @@ int main(int argc, char** argv) {
     }
 
     // Terrain dimensions and spindle initial location
-    double terrain_length = 10;
+    double terrain_length = 6;
     double terrain_width = 2;
-    ChVector<> init_loc(-4, 0, 0.5);
+    ChVector<> init_loc(-terrain_length / 2 + 1, 0, 0.425);
 
 // Check if required modules are enabled
 #ifndef CHRONO_MULTICORE
@@ -269,7 +270,7 @@ int main(int argc, char** argv) {
                 tire->SetNumThreads(nthreads_tire);
                 tire->SetOutDir(out_dir, suffix);
                 if (renderRT)
-                    tire->EnableRuntimeVisualization(render_fps);
+                    tire->EnableRuntimeVisualization(render_fps, writeRT);
                 if (renderPP)
                     tire->EnablePostprocessVisualization(render_fps);
                 tire->SetCameraPosition(ChVector<>(0, 2 * terrain_width, 1.0));
@@ -296,7 +297,7 @@ int main(int argc, char** argv) {
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
                 if (renderRT)
-                    terrain->EnableRuntimeVisualization(render_fps);
+                    terrain->EnableRuntimeVisualization(render_fps, writeRT);
                 if (renderPP)
                     terrain->EnablePostprocessVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector<>(0, 2 * terrain_width, 1.0));
@@ -315,7 +316,7 @@ int main(int argc, char** argv) {
                 terrain->SetNumThreads(nthreads_terrain);
                 terrain->SetOutDir(out_dir, suffix);
                 if (renderRT)
-                    terrain->EnableRuntimeVisualization(render_fps);
+                    terrain->EnableRuntimeVisualization(render_fps, writeRT);
                 if (renderPP)
                     terrain->EnablePostprocessVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector<>(0, 2 * terrain_width, 1.0));
@@ -340,7 +341,7 @@ int main(int argc, char** argv) {
                 terrain->SetNumThreads(nthreads_terrain);
                 terrain->SetOutDir(out_dir, suffix);
                 if (renderRT)
-                    terrain->EnableRuntimeVisualization(render_fps);
+                    terrain->EnableRuntimeVisualization(render_fps, writeRT);
                 if (renderPP)
                     terrain->EnablePostprocessVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector<>(0, 2 * terrain_width, 1.0));
@@ -374,7 +375,7 @@ int main(int argc, char** argv) {
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
                 if (renderRT)
-                    terrain->EnableRuntimeVisualization(render_fps);
+                    terrain->EnableRuntimeVisualization(render_fps, writeRT);
                 if (renderPP)
                     terrain->EnablePostprocessVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector<>(0, 2 * terrain_width, 1.0));
@@ -403,11 +404,10 @@ int main(int argc, char** argv) {
                 auto terrain = new ChVehicleCosimTerrainNodeGranularSPH(terrain_specfile);
                 terrain->SetDimensions(terrain_length, terrain_width);
                 terrain->SetVerbose(verbose);
-                std::string param_filename = GetChronoDataFile("fsi/input_json/demo_tire_rig.json");
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
                 if (renderRT)
-                    terrain->EnableRuntimeVisualization(render_fps);
+                    terrain->EnableRuntimeVisualization(render_fps, writeRT);
                 if (renderPP)
                     terrain->EnablePostprocessVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector<>(0, 2 * terrain_width, 1.0));
@@ -435,6 +435,7 @@ int main(int argc, char** argv) {
     int output_frame = 0;
     int vis_output_frame = 0;
 
+    double t_start = MPI_Wtime();
     for (int is = 0; is < sim_steps; is++) {
         double time = is * step_size;
 
@@ -458,6 +459,9 @@ int main(int argc, char** argv) {
             vis_output_frame++;
         }
     }
+    double t_total = MPI_Wtime() - t_start;
+
+    cout << "Node" << rank << " sim time: " << node->GetTotalExecutionTime() << " total time: " << t_total << endl;
 
     node->WriteCheckpoint("checkpoint_end.dat");
 

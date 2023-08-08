@@ -34,6 +34,9 @@
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeRigid.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeRigid.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeSCM.h"
+#ifdef CHRONO_FSI
+    #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularSPH.h"
+#endif
 
 using std::cout;
 using std::cin;
@@ -81,8 +84,9 @@ auto vehicle_model = Polaris_Model();
 // =============================================================================
 // Specification of a terrain model from JSON file
 
-std::string terrain_specfile = "cosim/terrain/scm_soft.json";
 ////std::string terrain_specfile = "cosim/terrain/rigid.json";
+std::string terrain_specfile = "cosim/terrain/scm_soft.json";
+////std::string terrain_specfile = "cosim/terrain/granular_sph.json";
 
 // =============================================================================
 
@@ -150,20 +154,24 @@ int main(int argc, char** argv) {
     // Simulation parameters
     double step_size = 1e-3;
     int nthreads_terrain = 4;
-    double sim_time = 20;
+    double sim_time = 8.0;
+
     double output_fps = 100;
     double render_fps = 100;
+
+    bool output = false;
     bool renderRT = true;
     bool renderPP = false;
+    bool writeRT = true;
     std::string suffix = "";
-    bool verbose = true;
+    bool verbose = false;
 
     // If use_DBP_rig=true, attach a drawbar pull rig to the vehicle
     bool use_DBP_rig = false;
 
     double terrain_length = 40;
     double terrain_width = 20;
-    ChVector<> init_loc(-15, -8, 0.5);
+    ChVector<> init_loc(-terrain_length / 2 + 5, -terrain_width / 2 + 2, 0.5);
     if (use_DBP_rig) {
         terrain_length = 20;
         terrain_width = 5;
@@ -190,12 +198,7 @@ int main(int argc, char** argv) {
 
     // Peek in spec file and extract terrain type
     auto terrain_type = ChVehicleCosimTerrainNodeChrono::GetTypeFromSpecfile(vehicle::GetDataFile(terrain_specfile));
-    if (terrain_type != ChVehicleCosimTerrainNodeChrono::Type::RIGID &&
-        terrain_type != ChVehicleCosimTerrainNodeChrono::Type::SCM) {
-        if (rank == 0)
-            cout << "\n\nTerrain type " << ChVehicleCosimTerrainNodeChrono::GetTypeAsString(terrain_type)
-                 << " NOT supported.\nUse Rigid or SCM.\n\n " << endl;
-
+    if (terrain_type == ChVehicleCosimTerrainNodeChrono::Type::UNKNOWN) {
         MPI_Finalize();
         return 1;
     }
@@ -203,6 +206,7 @@ int main(int argc, char** argv) {
     // Create the node (vehicle, terrain, or tire node, depending on rank).
     ChVehicleCosimBaseNode* node = nullptr;
 
+    // VEHICLE node
     if (rank == MBS_NODE_RANK) {
         if (verbose)
             cout << "[Vehicle node] rank = " << rank << " running on: " << procname << endl;
@@ -229,7 +233,7 @@ int main(int argc, char** argv) {
         vehicle->SetNumThreads(1);
         vehicle->SetOutDir(out_dir, suffix);
         if (renderRT)
-            vehicle->EnableRuntimeVisualization(render_fps);
+            vehicle->EnableRuntimeVisualization(render_fps, writeRT);
         if (renderPP)
             vehicle->EnablePostprocessVisualization(render_fps);
         vehicle->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
@@ -237,13 +241,18 @@ int main(int argc, char** argv) {
             cout << "[Vehicle node] output directory: " << vehicle->GetOutDirName() << endl;
 
         node = vehicle;
-
-    } else if (rank == TERRAIN_NODE_RANK) {
+    } 
+    
+    // TERRAIN node
+    if (rank == TERRAIN_NODE_RANK) {
         if (verbose)
             cout << "[Terrain node] rank = " << rank << " running on: " << procname << endl;
 
         switch (terrain_type) {
             default:
+                cout << "TERRAIN TYPE NOT SUPPORTED!\n" << endl;
+                break;
+
             case ChVehicleCosimTerrainNodeChrono::Type::RIGID: {
                 auto method = ChContactMethod::SMC;
                 auto terrain = new ChVehicleCosimTerrainNodeRigid(method, vehicle::GetDataFile(terrain_specfile));
@@ -271,7 +280,7 @@ int main(int argc, char** argv) {
                 terrain->SetNumThreads(nthreads_terrain);
                 terrain->SetOutDir(out_dir, suffix);
                 if (renderRT)
-                    terrain->EnableRuntimeVisualization(render_fps);
+                    terrain->EnableRuntimeVisualization(render_fps, writeRT);
                 if (renderPP)
                     terrain->EnablePostprocessVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector<>(terrain_length / 2, 0, 2));
@@ -281,8 +290,31 @@ int main(int argc, char** argv) {
                 node = terrain;
                 break;
             }
+
+            case ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_SPH: {
+#ifdef CHRONO_FSI
+                auto terrain = new ChVehicleCosimTerrainNodeGranularSPH(vehicle::GetDataFile(terrain_specfile));
+                terrain->SetDimensions(terrain_length, terrain_width);
+                terrain->SetVerbose(verbose);
+                terrain->SetStepSize(step_size);
+                terrain->SetOutDir(out_dir, suffix);
+                if (renderRT)
+                    terrain->EnableRuntimeVisualization(render_fps, writeRT);
+                if (renderPP)
+                    terrain->EnablePostprocessVisualization(render_fps);
+                terrain->SetCameraPosition(ChVector<>(0, 2 * terrain_width, 1.0));
+                if (verbose)
+                    cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
+
+                node = terrain;
+#endif
+                break;
+            }
         }
-    } else {
+    }
+
+    // TIRE nodes
+    if (rank > TERRAIN_NODE_RANK) {
         if (verbose)
             cout << "[Tire node   ] rank = " << rank << " running on: " << procname << endl;
 
@@ -303,6 +335,7 @@ int main(int argc, char** argv) {
     // (perform synchronization inter-node data exchange)
     int output_frame = 0;
 
+    double t_start = MPI_Wtime();
     for (int is = 0; is < sim_steps; is++) {
         double time = is * step_size;
 
@@ -316,12 +349,15 @@ int main(int argc, char** argv) {
             cout << "Node" << rank << " sim time = " << node->GetStepExecutionTime() << "  ["
                  << node->GetTotalExecutionTime() << "]" << endl;
 
-        if (is % output_steps == 0) {
+        if (output && is % output_steps == 0) {
             node->OutputData(output_frame);
             node->OutputVisualizationData(output_frame);
             output_frame++;
         }
     }
+    double t_total = MPI_Wtime() - t_start;
+
+    cout << "Node" << rank << " sim time: " << node->GetTotalExecutionTime() << " total time: " << t_total << endl;
 
     // Cleanup.
     delete node;

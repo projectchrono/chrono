@@ -111,7 +111,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrain
 
     virtual ChSystem* GetSystemPostprocess() const override { return m_system; }
 
-    virtual bool SupportsMeshInterface() const override { return false; }  //// TODO
+    virtual bool SupportsMeshInterface() const override { return true; }
 
     virtual void Construct() override;
 

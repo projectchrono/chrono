@@ -135,12 +135,15 @@ void ChVehicleCosimWheeledVehicleNode::InitializeMBS(const ChVector2<>& terrain_
         vsys_vsg->SetChaseCamera(ChVector<>(0, 0, 1.5), 6.0, 0.5);
         vsys_vsg->SetChaseCameraState(utils::ChChaseCamera::Track);
         vsys_vsg->SetChaseCameraPosition(m_cam_pos);
-        vsys_vsg->SetUseSkyBox(true);
+        vsys_vsg->SetUseSkyBox(false);
+        vsys_vsg->SetClearColor(ChColor(0.455f, 0.525f, 0.640f));
         vsys_vsg->SetCameraAngleDeg(40);
         vsys_vsg->SetLightIntensity(1.0f);
         vsys_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
         vsys_vsg->AddGrid(1.0, 1.0, (int)(terrain_size.x() / 1.0), (int)(terrain_size.y() / 1.0), CSYSNORM,
-                          ChColor(0.1f, 0.3f, 0.1f));
+                          ChColor(0.4f, 0.4f, 0.4f));
+        vsys_vsg->SetImageOutputDirectory(m_node_out_dir + "/images");
+        vsys_vsg->SetImageOutput(m_writeRT);
         vsys_vsg->Initialize();
 
         m_vsys = vsys_vsg;
@@ -236,6 +239,8 @@ void ChVehicleCosimWheeledVehicleNode::PreAdvance(double step_size) {
 
 void ChVehicleCosimWheeledVehicleNode::PostAdvance(double step_size) {
     m_vehicle->Advance(step_size);
+    if (m_driver)
+        m_driver->Advance(step_size);
     if (m_vsys)
       m_vsys->Advance(step_size);
 }

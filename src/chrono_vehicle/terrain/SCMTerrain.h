@@ -215,6 +215,11 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     /// Save the visualization mesh as a Wavefront OBJ file.
     void WriteMesh(const std::string& filename) const;
 
+    /// Enable/disable co-simulation mode (default: false).
+    /// In co-simulation mode, the underlying SCM loader does not apply loads to interacting objects.
+    /// Instead, contact forces are accumulated and available for extraction using GetContactForceBody and GetContactForceNode for rigid bodies and FEA nodes, respectively.
+    void SetCosimulationMode(bool val);
+
     /// Initialize the terrain system (flat).
     /// This version creates a flat array of points.
     void Initialize(double sizeX,  ///< [in] terrain dimension in the X direction
@@ -260,8 +265,14 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     /// Modify the level of grid nodes from the given list.
     void SetModifiedNodes(const std::vector<NodeLevel>& nodes);
 
-    /// Return the current cumulative contact force on the specified body (due to interaction with the SCM terrain).
-    TerrainForce GetContactForce(std::shared_ptr<ChBody> body) const;
+    /// Return the cummulative contact force on the specified body  (due to interaction with the SCM terrain).
+    /// The return value is true if the specified body experiences contact forces and false otherwise.
+    /// If contact forces are applied to the body, they are reduced to the body center of mass.
+    bool GetContactForceBody(std::shared_ptr<ChBody> body, ChVector<>& force, ChVector<>& torque) const;
+
+    /// Return the cummulative contact force on the specified mesh node (due to interaction with the SCM terrain).
+    /// The return value is true if the specified node experiences contact forces and false otherwise.
+    bool GetContactForceNode(std::shared_ptr<fea::ChNodeFEAbase> node, ChVector<>& force) const;
 
     /// Return the number of rays cast at last step.
     int GetNumRayCasts() const;
@@ -502,26 +513,28 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     // Modify the level of grid nodes from the given list.
     void SetModifiedNodes(const std::vector<SCMTerrain::NodeLevel>& nodes);
 
-    PatchType m_type;      // type of SCM patch
-    ChCoordsys<> m_plane;  // SCM frame (deformation occurs along the z axis of this frame)
-    ChVector<> m_Z;        // SCM plane vertical direction (in absolute frame)
-    double m_delta;        // grid spacing
-    double m_area;         // area of a grid cell
-    int m_nx;              // range for grid indices in X direction: [-m_nx, +m_nx]
-    int m_ny;              // range for grid indices in Y direction: [-m_ny, +m_ny]
+    PatchType m_type;      ///< type of SCM patch
+    ChCoordsys<> m_plane;  ///< SCM frame (deformation occurs along the z axis of this frame)
+    ChVector<> m_Z;        ///< SCM plane vertical direction (in absolute frame)
+    double m_delta;        ///< grid spacing
+    double m_area;         ///< area of a grid cell
+    int m_nx;              ///< range for grid indices in X direction: [-m_nx, +m_nx]
+    int m_ny;              ///< range for grid indices in Y direction: [-m_ny, +m_ny]
 
-    ChMatrixDynamic<> m_heights;  // (base) grid heights (when initializing from height-field map)
+    ChMatrixDynamic<> m_heights;  ///< (base) grid heights (when initializing from height-field map)
 
-    std::unordered_map<ChVector2<int>, NodeRecord, CoordHash> m_grid_map;  // modified grid nodes (persistent)
-    std::vector<ChVector2<int>> m_modified_nodes;                          // modified grid nodes (current)
+    std::unordered_map<ChVector2<int>, NodeRecord, CoordHash> m_grid_map;  ///< modified grid nodes (persistent)
+    std::vector<ChVector2<int>> m_modified_nodes;                          ///< modified grid nodes (current)
 
-    std::vector<MovingPatchInfo> m_patches;  // set of active moving patches
-    bool m_moving_patch;                     // user-specified moving patches?
+    std::vector<MovingPatchInfo> m_patches;  ///< set of active moving patches
+    bool m_moving_patch;                     ///< user-specified moving patches?
 
-    double m_test_offset_down;  // offset for ray start
-    double m_test_offset_up;    // offset for ray end
+    double m_test_offset_down;  ///< offset for ray start
+    double m_test_offset_up;    ///< offset for ray end
 
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;  // mesh visualization asset
+    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;  ///< mesh visualization asset
+
+    bool m_cosim_mode;  ///< co-simulation mode
 
     // SCM parameters
     double m_Bekker_Kphi;    ///< frictional modulus in Bekker model
@@ -537,7 +550,8 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     std::shared_ptr<SCMTerrain::SoilParametersCallback> m_soil_fun;
 
     // Contact forces on contactable objects interacting with the SCM terrain
-    std::unordered_map<ChContactable*, TerrainForce> m_contact_forces;
+    std::unordered_map<ChBody*, std::pair<ChVector<>, ChVector<>>> m_body_forces;
+    std::unordered_map<fea::ChNodeFEAbase*, ChVector<>> m_node_forces;
 
     // Bulldozing effects
     bool m_bulldozing;

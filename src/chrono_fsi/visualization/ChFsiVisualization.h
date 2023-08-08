@@ -84,6 +84,12 @@ class CH_FSI_API ChFsiVisualization {
     /// If none provided, SPH particles are rendered with a default color.
     void SetSPHColorCallback(std::shared_ptr<ChParticleCloud::ColorCallback> functor) { m_color_fun = functor; }
 
+    /// Set output directory for saving frame snapshots (default: ".").
+    void SetImageOutputDirectory(const std::string& dir) { m_image_dir = dir; }
+
+    /// Enable/disable writing of frame snapshots to file.
+    void SetImageOutput(bool val) { m_write_images = val; }
+
     /// Enable/disable information overlay (default: true).
     virtual void EnableInfoOverlay(bool val);
 
@@ -144,6 +150,9 @@ class CH_FSI_API ChFsiVisualization {
     ChColor m_flex_bce_color;   ///< color for BCE markers on flex bodies
 
     std::shared_ptr<ChParticleCloud::ColorCallback> m_color_fun;  ///< dynamic color functor for SPH particles
+
+    bool m_write_images;      ///< if true, save snapshots
+    std::string m_image_dir;  ///< directory for image files
 };
 
 /// @} fsi_utils

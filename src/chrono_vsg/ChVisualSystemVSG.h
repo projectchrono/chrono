@@ -112,12 +112,12 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     // Terminate the VSG visualization.
     void Quit();
 
-    void SetWindowSize(ChVector2<int> size);
+    void SetWindowSize(const ChVector2<int>& size);
     void SetWindowSize(int width, int height);
-    void SetWindowPosition(ChVector2<int> pos);
+    void SetWindowPosition(const ChVector2<int>& pos);
     void SetWindowPosition(int from_left, int from_top);
-    void SetWindowTitle(std::string title);
-    void SetClearColor(ChColor color);
+    void SetWindowTitle(const std::string& title);
+    void SetClearColor(const ChColor& color);
     void SetOutputScreen(int screenNum = 0);
     void SetFullscreen(bool yesno = false);
     void SetUseSkyBox(bool yesno);

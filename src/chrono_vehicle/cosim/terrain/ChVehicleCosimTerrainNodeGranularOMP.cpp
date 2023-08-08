@@ -39,6 +39,13 @@
 
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularOMP.h"
 
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+#endif
+#ifdef CHRONO_OPENGL
+    #include "chrono_opengl/ChVisualSystemOpenGL.h"
+#endif
+
 using std::cout;
 using std::endl;
 
@@ -116,11 +123,6 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(doubl
 
     // Set default number of threads
     m_system->SetNumThreads(1);
-
-    // Create OpenGL visualization system
-#ifdef CHRONO_OPENGL
-    m_vsys = new opengl::ChVisualSystemOpenGL;
-#endif
 }
 
 ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method,
@@ -171,19 +173,9 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChCon
 
     // Read granular OMP terrain parameters from provided specfile
     SetFromSpecfile(specfile);
-
-    // Create OpenGL visualization system
-#ifdef CHRONO_OPENGL
-    m_vsys = new opengl::ChVisualSystemOpenGL;
-#endif
 }
 
-ChVehicleCosimTerrainNodeGranularOMP::~ChVehicleCosimTerrainNodeGranularOMP() {
-    delete m_system;
-#ifdef CHRONO_OPENGL
-    delete m_vsys;
-#endif
-}
+ChVehicleCosimTerrainNodeGranularOMP::~ChVehicleCosimTerrainNodeGranularOMP() {}
 
 // -----------------------------------------------------------------------------
 
@@ -384,7 +376,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     container->GetCollisionModel()->ClearModel();
     // Bottom box
     utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_dimX, m_dimY, m_thick),
-                          ChVector<>(0, 0, -m_thick/2), ChQuaternion<>(1, 0, 0, 0), true);
+                          ChVector<>(0, 0, -m_thick / 2), ChQuaternion<>(1, 0, 0, 0), true);
     // Front box
     utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_thick, m_dimY, m_init_depth + m_thick),
                           ChVector<>(hdimX + hthick, 0, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), false);
@@ -552,20 +544,6 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
         m_system->AddBody(body);
     }
 
-#ifdef CHRONO_OPENGL
-    // Create the visualization window
-    if (m_renderRT) {
-        m_vsys->AttachSystem(m_system);
-        m_vsys->SetWindowTitle("Terrain Node (GranularOMP)");
-        m_vsys->SetWindowSize(1280, 720);
-        m_vsys->SetRenderMode(opengl::WIREFRAME);
-        m_vsys->Initialize();
-        m_vsys->AddCamera(m_cam_pos, ChVector<>(0, 0, 0));
-        m_vsys->SetCameraProperties(0.05f);
-        m_vsys->SetCameraVertical(CameraVerticalDir::Z);
-    }
-#endif
-
     // Write file with terrain node settings
     std::ofstream outf;
     outf.open(m_node_out_dir + "/settings.info", std::ios::out);
@@ -634,10 +612,13 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
 
     // Simulate settling of granular terrain
     int output_steps = (int)std::ceil(1 / (m_settling_fps * m_step_size));
+    int total_steps = (int)std::ceil(m_time_settling / m_step_size);
     int output_frame = 0;
     int n_contacts;
     int max_contacts = 0;
     int cum_contacts = 0;
+
+    std::cout << "[Terrain node] START settling" << endl;
 
     int steps = 0;
     double time = 0;
@@ -675,6 +656,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
 
         // Stopping criteria
         if (m_fixed_settling_duration) {
+            ProgressBar(steps, total_steps);
             if (time >= m_time_settling) {
                 KE = CalcTotalKineticEnergy();
                 break;
@@ -686,10 +668,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
         }
     }
 
-    if (m_verbose) {
-        cout << endl;
-        cout << "[Terrain node] settling time = " << m_cum_sim_time << endl;
-    }
+    cout << endl;
+    cout << "[Terrain node] settling time = " << m_cum_sim_time << endl;
 
     // Find "height" of granular material after settling
     m_init_height = CalcCurrentHeight() + m_radius_g;
@@ -780,6 +760,9 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateMeshProxy(unsigned int i) {
     // Get shape associated with the given object
     int i_shape = m_obj_map[i];
 
+    // Create the proxy associated with the given object
+    auto proxy = chrono_types::make_shared<ProxyBodySet>();
+
     // Note: it is assumed that there is one and only one mesh defined!
     auto nt = m_geometry[i_shape].m_coll_meshes[0].m_trimesh->getNumTriangles();
     auto i_mat = m_geometry[i_shape].m_coll_meshes[0].m_matID;
@@ -810,13 +793,18 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateMeshProxy(unsigned int i) {
         body->GetCollisionModel()->BuildModel();
 
         m_system->AddBody(body);
-        m_proxies[i].push_back(ProxyBody(body, it));
+        proxy->AddBody(body, it);
     }
+
+    m_proxies[i] = proxy;
 }
 
 void ChVehicleCosimTerrainNodeGranularOMP::CreateRigidProxy(unsigned int i) {
     // Get shape associated with the given object
     int i_shape = m_obj_map[i];
+
+    // Create the proxy associated with the given object
+    auto proxy = chrono_types::make_shared<ProxyBodySet>();
 
     auto body = std::shared_ptr<ChBody>(m_system->NewBody());
     body->SetIdentifier(0);
@@ -836,7 +824,47 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateRigidProxy(unsigned int i) {
     body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
 
     m_system->AddBody(body);
-    m_proxies[i].push_back(ProxyBody(body, 0));
+    proxy->AddBody(body, 0);
+
+    m_proxies[i] = proxy;
+}
+
+// Once all proxy bodies are created, complete construction of the underlying system.
+void ChVehicleCosimTerrainNodeGranularOMP::OnInitialize(unsigned int num_objects) {
+    ChVehicleCosimTerrainNodeChrono::OnInitialize(num_objects);
+
+    // Create the visualization window
+    if (m_renderRT) {
+#if defined(CHRONO_VSG)
+        auto vsys_vsg = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+        vsys_vsg->AttachSystem(m_system);
+        vsys_vsg->SetWindowTitle("Terrain Node (GranularOMP)");
+        vsys_vsg->SetWindowSize(ChVector2<int>(1280, 720));
+        vsys_vsg->SetWindowPosition(ChVector2<int>(100, 100));
+        vsys_vsg->SetUseSkyBox(false);
+        vsys_vsg->SetClearColor(ChColor(0.455f, 0.525f, 0.640f));
+        vsys_vsg->AddCamera(m_cam_pos, ChVector<>(0, 0, 0));
+        vsys_vsg->SetCameraAngleDeg(40);
+        vsys_vsg->SetLightIntensity(1.0f);
+        vsys_vsg->SetImageOutputDirectory(m_node_out_dir + "/images");
+        vsys_vsg->SetImageOutput(m_writeRT);
+        vsys_vsg->Initialize();
+
+        m_vsys = vsys_vsg;
+#elif defined(CHRONO_OPENGL)
+        auto vsys_gl = chrono_types::make_shared<opengl::ChVisualSystemOpenGL>();
+        vsys_gl->AttachSystem(m_system);
+        vsys_gl->SetWindowTitle("Terrain Node (GranularOMP)");
+        vsys_gl->SetWindowSize(1280, 720);
+        vsys_gl->SetRenderMode(opengl::WIREFRAME);
+        vsys_gl->Initialize();
+        vsys_gl->AddCamera(m_cam_pos, ChVector<>(0, 0, 0));
+        vsys_gl->SetCameraProperties(0.05f);
+        vsys_gl->SetCameraVertical(CameraVerticalDir::Z);
+
+        m_vsys = vsys_gl;
+#endif
+    }
 }
 
 // Set position, orientation, and velocity of proxy bodies based on mesh faces.
@@ -849,12 +877,13 @@ void ChVehicleCosimTerrainNodeGranularOMP::UpdateMeshProxy(unsigned int i, MeshS
     // Get shape associated with the given object
     int i_shape = m_obj_map[i];
 
+    // Get the proxy (body set) associated with this object
+    auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
+
     // Note: it is assumed that there is one and only one mesh defined!
     const auto& trimesh = m_geometry[i_shape].m_coll_meshes[0].m_trimesh;
     const auto& idx_verts = trimesh->getIndicesVertexes();
     int nt = trimesh->getNumTriangles();
-
-    auto& proxies = m_proxies[i];  // proxies for the i-th mesh
 
     // shape_data contains all triangle vertex locations, in groups of three real3, one group for each triangle.
     auto& shape_data = m_system->data_manager->cd_data->shape_data.triangle_rigid;
@@ -867,8 +896,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::UpdateMeshProxy(unsigned int i, MeshS
 
         // Position and orientation of proxy body
         ChVector<> pos = (pA + pB + pC) / 3;
-        proxies[it].m_body->SetPos(pos);
-        proxies[it].m_body->SetRot(ChQuaternion<>(1, 0, 0, 0));
+        proxy->bodies[it]->SetPos(pos);
+        proxy->bodies[it]->SetRot(ChQuaternion<>(1, 0, 0, 0));
 
         // Velocity (absolute) and angular velocity (local)
         // These are the solution of an over-determined 9x6 linear system. However, for a centroidal
@@ -880,10 +909,10 @@ void ChVehicleCosimTerrainNodeGranularOMP::UpdateMeshProxy(unsigned int i, MeshS
         const ChVector<>& vC = mesh_state.vvel[idx_verts[it].z()];
 
         ChVector<> vel = (vA + vB + vC) / 3;
-        proxies[it].m_body->SetPos_dt(vel);
+        proxy->bodies[it]->SetPos_dt(vel);
 
         //// RADU TODO: angular velocity
-        proxies[it].m_body->SetWvel_loc(ChVector<>(0, 0, 0));
+        proxy->bodies[it]->SetWvel_loc(ChVector<>(0, 0, 0));
 
         // Update triangle contact shape (expressed in local frame) by writting directly
         // into the Chrono::Multicore data structures.
@@ -899,12 +928,11 @@ void ChVehicleCosimTerrainNodeGranularOMP::UpdateMeshProxy(unsigned int i, MeshS
 
 // Set state of proxy rigid body.
 void ChVehicleCosimTerrainNodeGranularOMP::UpdateRigidProxy(unsigned int i, BodyState& rigid_state) {
-    auto& proxies = m_proxies[i];  // proxies for the i-th rigid
-
-    proxies[0].m_body->SetPos(rigid_state.pos);
-    proxies[0].m_body->SetPos_dt(rigid_state.lin_vel);
-    proxies[0].m_body->SetRot(rigid_state.rot);
-    proxies[0].m_body->SetWvel_par(rigid_state.ang_vel);
+    auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
+    proxy->bodies[0]->SetPos(rigid_state.pos);
+    proxy->bodies[0]->SetPos_dt(rigid_state.lin_vel);
+    proxy->bodies[0]->SetRot(rigid_state.rot);
+    proxy->bodies[0]->SetWvel_par(rigid_state.ang_vel);
 }
 
 // Calculate barycentric coordinates (a1, a2, a3) for a given point P
@@ -938,12 +966,13 @@ void ChVehicleCosimTerrainNodeGranularOMP::GetForceMeshProxy(unsigned int i, Mes
     // Get shape associated with the given object
     int i_shape = m_obj_map[i];
 
+    // Get the proxy (body set) associated with this object
+    auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
+
     // Note: it is assumed that there is one and only one mesh defined!
     const auto& trimesh = m_geometry[i_shape].m_coll_meshes[0].m_trimesh;
     const auto& idx_verts = trimesh->getIndicesVertexes();
     int nt = trimesh->getNumTriangles();
-
-    const auto& proxies = m_proxies[i];  // proxies for the i-th object
 
     // Maintain an unordered map of vertex indices and associated contact forces.
     std::unordered_map<int, ChVector<>> my_map;
@@ -951,7 +980,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::GetForceMeshProxy(unsigned int i, Mes
     for (int it = 0; it < nt; it++) {
         // Get cumulative contact force at triangle centroid.
         // Do nothing if zero force.
-        real3 rforce = m_system->GetBodyContactForce(proxies[it].m_body);
+        real3 rforce = m_system->GetBodyContactForce(proxy->bodies[it]);
         if (IsZero(rforce))
             continue;
 
@@ -996,11 +1025,10 @@ void ChVehicleCosimTerrainNodeGranularOMP::GetForceMeshProxy(unsigned int i, Mes
 
 // Collect resultant contact force and torque on rigid proxy body.
 void ChVehicleCosimTerrainNodeGranularOMP::GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) {
-    const auto& proxies = m_proxies[i];  // proxies for the i-th rigid
-
+    auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
     rigid_contact.point = ChVector<>(0, 0, 0);
-    rigid_contact.force = proxies[0].m_body->GetContactForce();
-    rigid_contact.moment = proxies[0].m_body->GetContactTorque();
+    rigid_contact.force = proxy->bodies[0]->GetContactForce();
+    rigid_contact.moment = proxy->bodies[0]->GetContactTorque();
 }
 
 // -----------------------------------------------------------------------------
@@ -1014,22 +1042,20 @@ void ChVehicleCosimTerrainNodeGranularOMP::OnAdvance(double step_size) {
 }
 
 void ChVehicleCosimTerrainNodeGranularOMP::OnRender() {
-#ifdef CHRONO_OPENGL
     if (!m_vsys)
         return;
     if (!m_vsys->Run())
         MPI_Abort(MPI_COMM_WORLD, 1);
 
-    if (m_track) {
-        const auto& proxies = m_proxies[0];  // proxies for first object
-        ChVector<> cam_point = proxies[0].m_body->GetPos();
+    if (m_track && !m_proxies.empty()) {
+        auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[0]);  // proxy for first object
+        ChVector<> cam_point = proxy->bodies[0]->GetPos();                  // position of first body in proxy set
         m_vsys->UpdateCamera(m_cam_pos, cam_point);
     }
 
     m_vsys->BeginScene();
     m_vsys->Render();
     m_vsys->EndScene();
-#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -1092,13 +1118,15 @@ void ChVehicleCosimTerrainNodeGranularOMP::OutputVisualizationData(int frame) {
 
 void ChVehicleCosimTerrainNodeGranularOMP::PrintMeshProxiesUpdateData(unsigned int i, const MeshState& mesh_state) {
     {
+        auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
+
         auto lowest = std::min_element(
-            m_proxies[i].begin(), m_proxies[i].end(),
-            [](const ProxyBody& a, const ProxyBody& b) { return a.m_body->GetPos().z() < b.m_body->GetPos().z(); });
-        const ChVector<>& vel = (*lowest).m_body->GetPos_dt();
-        double height = (*lowest).m_body->GetPos().z();
-        cout << "[Terrain node] object: " << i << "  lowest proxy:  index = " << (*lowest).m_index
-             << "  height = " << height << "  velocity = " << vel.x() << "  " << vel.y() << "  " << vel.z() << endl;
+            proxy->bodies.begin(), proxy->bodies.end(),
+            [](std::shared_ptr<ChBody> a, std::shared_ptr<ChBody> b) { return a->GetPos().z() < b->GetPos().z(); });
+        double height = (*lowest)->GetPos().z();
+        const ChVector<>& vel = (*lowest)->GetPos_dt();
+        cout << "[Terrain node] object: " << i << "  lowest proxy:  height = " << height << "  velocity = " << vel
+             << endl;
     }
 
     {

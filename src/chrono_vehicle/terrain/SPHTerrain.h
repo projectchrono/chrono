@@ -73,6 +73,16 @@ class CH_VEHICLE_API SPHTerrain : public ChTerrain {
                    double yaw_angle = 0                    ///< patch yaw rotation
     );
 
+    /// Construct a rectangular patch granular SPH terrain object of given dimensions.
+    void Construct(double length,                          ///< patch length (X direction)
+                   double width,                           ///< patch width (Y direction)
+                   double depth,                           ///< patch width (Y direction)
+                   int bce_layers = 3,                     ///< number of BCE layers
+                   const ChVector<>& pos = ChVector<>(0),  ///< patch center
+                   double yaw_angle = 0,                   ///< patch yaw rotation
+                   bool side_walls = true                  ///< create side boundaries
+    );
+
     /// Construct a granular SPH terrain object from a given heightmap.
     /// The image file is read with STB, using the number of channels defined in the input file and reading
     /// the image as 16-bit (8-bit images are automatically converted). Supported image formats: JPEG, PNG,
@@ -84,8 +94,8 @@ class CH_VEHICLE_API SPHTerrain : public ChTerrain {
     /// depth under each grid point. BCE marker layers are created below the bottom-most layer of SPH particles
     /// and (optionally) on the sides of the terrain patch.
     void Construct(const std::string& heightmap_file,      ///< filename for the heightmap image
-                   double length,                          ///< patch length
-                   double width,                           ///< patch width
+                   double length,                          ///< patch length (X direction)
+                   double width,                           ///< patch width (Y direction)
                    const ChVector2<>& height_range,        ///< height range (black to white level)
                    double depth,                           ///< soil depth
                    int bce_layers = 3,                     ///< number of BCE layers

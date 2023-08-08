@@ -29,7 +29,7 @@
         "Sampling method": "POISSON_DISK",
         // Radius inflation factor for initial separation (must be larger than 1)
         "Separation factor": 1.001,
-        "Initial height": 0.5,
+        "Initial height": 0.3,
         "Initialize in layers": true
     },
 

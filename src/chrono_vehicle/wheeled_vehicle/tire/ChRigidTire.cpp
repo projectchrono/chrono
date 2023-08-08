@@ -190,7 +190,14 @@ TerrainForce ChRigidTire::ReportTireForce(ChTerrain* terrain) const {
     // If interacting with an SCM terrain, interrogate the terrain system
     // for the cumulative force on the associated rigid body.
     if (auto scm = dynamic_cast<SCMTerrain*>(terrain)) {
-        return scm->GetContactForce(m_wheel->GetSpindle());
+        ChVector<> force;
+        ChVector<> torque;
+        scm->GetContactForceBody(m_wheel->GetSpindle(), force, torque);
+
+        TerrainForce tire_force;
+        tire_force.point = m_wheel->GetSpindle()->GetPos();
+        tire_force.force = force;
+        tire_force.moment = torque;
     }
 
     // Otherwise, calculate and return the resultant of the contact forces acting on the tire.

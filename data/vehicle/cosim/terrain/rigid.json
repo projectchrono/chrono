@@ -25,7 +25,7 @@
         // MultiStep / OneStep / None
         "Tangential displacement model": "OneStep",
         "Use material properties": true,
-        "Proxy contact radius": 0.002,
+        "Proxy contact radius": 0.01,
         "Fix proxies": true
     }
 }
