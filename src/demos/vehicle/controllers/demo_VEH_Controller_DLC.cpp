@@ -112,7 +112,7 @@ class ISO3888_Wrapper {
 // =============================================================================
 
 // Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
 VisualizationType chassis_vis_type = VisualizationType::NONE;
@@ -262,6 +262,16 @@ int main(int argc, char* argv[]) {
     // -------------------------------------------
     // Create the run-time visualization interface
     // -------------------------------------------
+
+#ifndef CHRONO_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::IRRLICHT)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
+
     int sentinelID = -1;
     int targetID = -1;
     std::shared_ptr<ChVehicleVisualSystem> vis;

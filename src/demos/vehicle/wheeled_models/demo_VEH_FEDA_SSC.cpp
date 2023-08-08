@@ -54,7 +54,7 @@ using namespace chrono::vehicle::feda;
 // =============================================================================
 
 // Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Initial vehicle location and orientation
 ChVector<> initLoc(0, 0, 1.6);

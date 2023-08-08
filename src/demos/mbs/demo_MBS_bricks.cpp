@@ -35,7 +35,7 @@ using namespace chrono::vsg3d;
 
 using namespace chrono;
 
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Create a bunch of rigid bodies that represent bricks in a large wall.
 void create_wall_bodies(ChSystemNSC& sys) {
@@ -165,6 +165,15 @@ int main(int argc, char* argv[]) {
     ////create_jengatower_bodies (sys);
 
     // Create the run-time visualization system
+#ifndef CHRONO_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::IRRLICHT)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
+
     std::shared_ptr<ChVisualSystem> vis;
     switch (vis_type) {
         case ChVisualSystem::Type::IRRLICHT: {
