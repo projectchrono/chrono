@@ -25,9 +25,13 @@ if(VULKAN_SDK)
     set(ENV{VULKAN_SDK} ${VULKAN_SDK})
 endif()
 
-find_package(vsg REQUIRED)
+find_package(vsg 1.0.8 REQUIRED)
+find_package(vsgXchange 1.0.4 REQUIRED)
 find_package(vsgImGui REQUIRED)
-find_package(vsgXchange REQUIRED)
+
+message(STATUS "vsg version:        ${vsg_VERSION}")
+message(STATUS "vsgXchange version: ${vsgXchange_VERSION}")
+message(STATUS "vsgImGui version:   ${vsgImGui_VERSION}")
 
 # Check if vsgXchange is a static library. 
 # If yes, we assume it includes STB and we do not add those files in the the Chrono library
