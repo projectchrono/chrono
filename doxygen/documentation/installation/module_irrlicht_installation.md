@@ -25,19 +25,18 @@ Here are the main features:
 - Link coordinate systems can be plotted on the 3D view
 
 
-## Requirements
+## Dependencies
 
-- To **run** applications based on this module you need the Irrlicht library (i.e. the Irrlicht.dll on Windows) 
-- To **build** applications applications based on this module you must have the Irrlicht SDK installed.
+- To Chrono::Irrlicht requires the Irrlicht SDK 
 
 
 ## Installing prerequisistes
 
-1. **download** [Irrlicht Engine](http://irrlicht.sourceforge.net/downloads.html); the newest tested version is [1.8.4](http://downloads.sourceforge.net/irrlicht/irrlicht-1.8.4.zip)
+1. **Download** [Irrlicht Engine](http://irrlicht.sourceforge.net/downloads.html); the newest tested version is [1.8.4](http://downloads.sourceforge.net/irrlicht/irrlicht-1.8.4.zip)
 
-2. **unzip** it in a directory of your choice. For example, here we suppose that you unzipped it in <tt>C:/workspace/libraries/irrlicht-1.8.4</tt>.
+2. **Unzip** it in a directory of your choice. For example, here we suppose that you unzipped it in <tt>C:/workspace/libraries/irrlicht-1.8.4</tt>.
 
-<div class="ce-info">
+
 Some Windows users may experience issues (black rendering window) when using shadow lights, as done in a few Chrono demos.<br>
 In such situations, we recommend either disabling use of shadows, or else installing the appropriate legacy DirectX SDK from [Microsoft](https://www.microsoft.com/en-gb/download/details.aspx?id=35).<br>
 Irrlicht 1.8.4 requires the June 2010 DirectX SDK.
@@ -50,7 +49,7 @@ If you encounter any problem with version 1.8.4 please try to roll back to [rele
 Previous versions must be built from source.<br>
 Release v.1.8.3 does not contain the precompiled 64bit DLL.<br>
 Release v.1.8.0 has issues with soft shadows.<br>
-</div>
+
 
 ## Building instructions
 

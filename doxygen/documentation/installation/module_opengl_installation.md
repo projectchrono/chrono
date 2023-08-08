@@ -15,7 +15,7 @@ Compared to the [VSG](group__vsg__module.html) or [IRRLICHT module](group__irrli
 
 ## Dependencies
 
-- The Chrono::openGL mopdule depends on:
+- The Chrono::OpenGL module depends on:
     - the [GLM](http://glm.g-truc.net/0.9.6/index.html) library
     - the [GLFW](http://www.glfw.org/) library
     - the [GLEW](http://glew.sourceforge.net/) library
