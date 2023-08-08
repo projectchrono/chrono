@@ -306,13 +306,21 @@ inline __device__ void BCE_Vel_Acc(int i_idx,
                                    Real3* accRigid_fsiBodies_D,
                                    Real3* omegaAccLRF_fsiBodies_D,
                                    uint* rigid_BCEsolids_D,
-                                   Real3* pos_fsi_fea_D,
-                                   Real3* vel_fsi_fea_D,
-                                   Real3* acc_fsi_fea_D,
-                                   uint* FlexIdentifierD,
+
+                                   Real3* flex1D_vel_fsi_fea_D,  // velo of fea 1d element
+                                   Real3* flex1D_acc_fsi_fea_D,  //  acc of fea 1d element
+                                   Real3* flex2D_vel_fsi_fea_D,  // velo of fea 2d element
+                                   Real3* flex2D_acc_fsi_fea_D,  //  acc of fea 2d element
+
                                    const int numFlex1D,
-                                   uint2* CableElementsNodesD,
-                                   uint4* ShellElementsNodesD) {
+
+                                   uint2* flex1D_Nodes_D,      // segment node indices
+                                   uint3* flex1D_BCEsolids_D,  // association of flex BCEs with a mesh and segment
+                                   Real3* flex1D_BCEcoords_D,   // local coordinates of BCE markers on FEA 1-D segments
+                                   uint3* flex2D_Nodes_D,      // triangle node indices
+                                   uint3* flex2D_BCEsolids_D,  // association of flex BCEs with a mesh and face
+                                   Real3* flex2D_BCEcoords_D  // local coordinates of BCE markers on FEA 2-D faces
+) {
     int Original_idx = gridMarkerIndexD[i_idx];
 
     // See if this belongs to a fixed boundary
@@ -349,80 +357,58 @@ inline __device__ void BCE_Vel_Acc(int i_idx,
 
         // Or not, Flexible bodies for sure
     } else if (Original_idx >= updatePortion.z && Original_idx < updatePortion.w) {
-        int FlexIndex = FlexIdentifierD[Original_idx - updatePortion.z];
+        int FlexIndex = Original_idx - updatePortion.z; // offset index for bce markers on flex bodies
 
+        // FlexIndex iterates through both 1D and 2D ones
         if (FlexIndex < numFlex1D) {
-            int nA = CableElementsNodesD[FlexIndex].x;
-            int nB = CableElementsNodesD[FlexIndex].y;
+            // 1D element case
+            uint3 flex_solid = flex1D_BCEsolids_D[FlexIndex];  // associated flex mesh and segment
+            // Luning TODO: do we need flex_mesh and flex_mesh_seg?
+            uint flex_mesh = flex_solid.x;                 // index of associated mesh
+            uint flex_mesh_seg = flex_solid.y;             // index of segment in associated mesh
+            uint flex_seg = flex_solid.z;                  // index of segment in global list
 
-            Real3 pos_fsi_fea_D_nA = pos_fsi_fea_D[nA];
-            Real3 pos_fsi_fea_D_nB = pos_fsi_fea_D[nB];
+            uint2 seg_nodes = flex1D_Nodes_D[flex_seg];  // indices of the 2 nodes on associated segment
+            Real3 A0 = flex1D_acc_fsi_fea_D[seg_nodes.x];  // (absolute) acceleration of node 0
+            Real3 A1 = flex1D_acc_fsi_fea_D[seg_nodes.y];  // (absolute) acceleration of node 1
 
-            Real3 vel_fsi_fea_D_nA = vel_fsi_fea_D[nA];
-            Real3 vel_fsi_fea_D_nB = vel_fsi_fea_D[nB];
+            Real3 V0 = flex1D_vel_fsi_fea_D[seg_nodes.x];  // (absolute) acceleration of node 0
+            Real3 V1 = flex1D_vel_fsi_fea_D[seg_nodes.y];  // (absolute) acceleration of node 1
 
-            Real3 acc_fsi_fea_D_nA = acc_fsi_fea_D[nA];
-            Real3 acc_fsi_fea_D_nB = acc_fsi_fea_D[nB];
 
-            Real3 dist3 = mR3(sortedPosRad[i_idx]) - pos_fsi_fea_D_nA;
-            Real3 x_dir = (pos_fsi_fea_D_nB - pos_fsi_fea_D_nA);
-            Real Cable_x = length(x_dir);
-            x_dir = x_dir / length(x_dir);
-            Real dx = dot(dist3, x_dir);
+            Real lambda0 = flex1D_BCEcoords_D[FlexIndex].x;  // segment coordinate
+            Real lambda1 = 1 - lambda0;                  // segment coordinate
 
-            // Real2 N_cable = Cables_ShapeFunctions(dx / Cable_x);
-            // Real NA = N_cable.x;
-            // Real NB = N_cable.y;
-            Real NA = 1 - dx / Cable_x;
-            Real NB = dx / Cable_x;
-
-            V_prescribed = NA * vel_fsi_fea_D_nA + NB * vel_fsi_fea_D_nB;
-            myAcc = NA * acc_fsi_fea_D_nA + NB * acc_fsi_fea_D_nB;
+            V_prescribed = V0 * lambda0 + V1 * lambda1;
+            myAcc =        A0 * lambda0 + A1 * lambda1;
 
         }
         if (FlexIndex >= numFlex1D) {
-            int nA = ShellElementsNodesD[FlexIndex - numFlex1D].x;
-            int nB = ShellElementsNodesD[FlexIndex - numFlex1D].y;
-            int nC = ShellElementsNodesD[FlexIndex - numFlex1D].z;
-            int nD = ShellElementsNodesD[FlexIndex - numFlex1D].w;
+            int flex2d_index = FlexIndex - numFlex1D;
 
-            Real3 pos_fsi_fea_D_nA = pos_fsi_fea_D[nA];
-            Real3 pos_fsi_fea_D_nB = pos_fsi_fea_D[nB];
-            Real3 pos_fsi_fea_D_nC = pos_fsi_fea_D[nC];
-            Real3 pos_fsi_fea_D_nD = pos_fsi_fea_D[nD];
+            uint3 flex_solid = flex2D_BCEsolids_D[flex2d_index];  // associated flex mesh and face
+            uint flex_mesh = flex_solid.x;                 // index of associated mesh
+            uint flex_mesh_tri = flex_solid.y;             // index of triangle in associated mesh
+            uint flex_tri = flex_solid.z;                  // index of triangle in global list
 
-            Real3 vel_fsi_fea_D_nA = vel_fsi_fea_D[nA];
-            Real3 vel_fsi_fea_D_nB = vel_fsi_fea_D[nB];
-            Real3 vel_fsi_fea_D_nC = vel_fsi_fea_D[nC];
-            Real3 vel_fsi_fea_D_nD = vel_fsi_fea_D[nD];
+            auto tri_nodes = flex2D_Nodes_D[flex_tri];  // indices of the 3 nodes on associated face
+            Real3 A0 = flex2D_acc_fsi_fea_D[tri_nodes.x];  // (absolute) acceleration of node 0
+            Real3 A1 = flex2D_acc_fsi_fea_D[tri_nodes.y];  // (absolute) acceleration of node 1
+            Real3 A2 = flex2D_acc_fsi_fea_D[tri_nodes.z];  // (absolute) acceleration of node 2
 
-            Real3 acc_fsi_fea_D_nA = acc_fsi_fea_D[nA];
-            Real3 acc_fsi_fea_D_nB = acc_fsi_fea_D[nB];
-            Real3 acc_fsi_fea_D_nC = acc_fsi_fea_D[nC];
-            Real3 acc_fsi_fea_D_nD = acc_fsi_fea_D[nD];
+            Real3 V0 = flex2D_vel_fsi_fea_D[tri_nodes.x];  // (absolute) acceleration of node 0
+            Real3 V1 = flex2D_vel_fsi_fea_D[tri_nodes.y];  // (absolute) acceleration of node 1
+            Real3 V2 = flex2D_vel_fsi_fea_D[tri_nodes.z];  // (absolute) acceleration of node 2
 
-            Real3 Shell_center = 0.25 * (pos_fsi_fea_D_nA + pos_fsi_fea_D_nB + pos_fsi_fea_D_nC + pos_fsi_fea_D_nD);
+            Real lambda0 = flex2D_BCEcoords_D[flex2d_index].x;  // barycentric coordinate
+            Real lambda1 = flex2D_BCEcoords_D[flex2d_index].y;  // barycentric coordinate
+            Real lambda2 = 1 - lambda0 - lambda1;        // barycentric coordinate
 
-            // Note that this must be the i_idx itself not the Original_idx
-            Real3 dist3 = mR3(sortedPosRad[i_idx]) - Shell_center;
-
-            Real Shell_x =
-                0.25 * (length(pos_fsi_fea_D_nB - pos_fsi_fea_D_nA) + length(pos_fsi_fea_D_nC - pos_fsi_fea_D_nD));
-            Real Shell_y =
-                0.25 * (length(pos_fsi_fea_D_nD - pos_fsi_fea_D_nA) + length(pos_fsi_fea_D_nC - pos_fsi_fea_D_nB));
-
-            Real2 FlexSPH_MeshPos_Natural = mR2(dist3.x / Shell_x, dist3.y / Shell_y);
-
-            Real4 N_shell = Shells_ShapeFunctions(FlexSPH_MeshPos_Natural.x, FlexSPH_MeshPos_Natural.y);
-            Real NA = N_shell.x;
-            Real NB = N_shell.y;
-            Real NC = N_shell.z;
-            Real ND = N_shell.w;
-            V_prescribed =
-                NA * vel_fsi_fea_D_nA + NB * vel_fsi_fea_D_nB + NC * vel_fsi_fea_D_nC + ND * vel_fsi_fea_D_nD;
-            myAcc = NA * acc_fsi_fea_D_nA + NB * acc_fsi_fea_D_nB + NC * acc_fsi_fea_D_nC + ND * acc_fsi_fea_D_nD;
-
+            V_prescribed =  V0 * lambda0 + V1 * lambda1 + V2 * lambda2;
+            myAcc =         A0 * lambda0 + A1 * lambda1 + A2 * lambda2;
         }
+
+        
     } else {
         printf("i_idx=%d, Original_idx:%d was not found \n\n", i_idx, Original_idx);
     }

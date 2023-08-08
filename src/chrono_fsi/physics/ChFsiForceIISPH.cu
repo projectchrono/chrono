@@ -489,13 +489,17 @@ __device__ void Calc_BC_aij_Bi(const uint i_idx,
                                Real3* omegaAccLRF_fsiBodies_D,
                                uint* rigid_BCEsolids_D,
 
-                               Real3* pos_fsi_fea_D,
-                               Real3* vel_fsi_fea_D,
-                               Real3* acc_fsi_fea_D,
-                               uint* FlexIdentifierD,
+                               Real3* flex1D_vel_fsi_fea_D,
+                               Real3* flex1D_acc_fsi_fea_D,
+                               Real3* flex2D_vel_fsi_fea_D,
+                               Real3* flex2D_acc_fsi_fea_D,
                                const int numFlex1D,
-                               uint2* CableElementsNodesD,
-                               uint4* ShellElementsNodesD,
+                               uint2* flex1D_Nodes_D,
+                               uint3* flex1D_BCEsolids_D,
+                               Real3* flex1D_BCEcoords_D,
+                               uint3* flex2D_Nodes_D,
+                               uint3* flex2D_BCEsolids_D,
+                               Real3* flex2D_BCEcoords_D,
 
                                int4 updatePortion,
                                uint* gridMarkerIndexD,
@@ -524,9 +528,12 @@ __device__ void Calc_BC_aij_Bi(const uint i_idx,
 
     BCE_Vel_Acc(i_idx, myAcc, V_prescribed, sortedPosRad, updatePortion, gridMarkerIndexD, qD, rigid_BCEcoords_D,
                 posRigid_fsiBodies_D, velMassRigid_fsiBodies_D, omegaVelLRF_fsiBodies_D, accRigid_fsiBodies_D,
-                omegaAccLRF_fsiBodies_D, rigid_BCEsolids_D, pos_fsi_fea_D, vel_fsi_fea_D, acc_fsi_fea_D,
-                FlexIdentifierD,
-                numFlex1D, CableElementsNodesD, ShellElementsNodesD);
+                omegaAccLRF_fsiBodies_D, rigid_BCEsolids_D, 
+                flex1D_vel_fsi_fea_D, flex1D_acc_fsi_fea_D, 
+                flex2D_vel_fsi_fea_D, flex2D_acc_fsi_fea_D,
+                numFlex1D, 
+                flex1D_Nodes_D, flex1D_BCEsolids_D, flex1D_BCEcoords_D, 
+                flex2D_Nodes_D, flex2D_BCEsolids_D, flex2D_BCEcoords_D);
 
     for (int c = csrStartIdx; c < csrEndIdx; c++) {
         csrValA[c] = 0;
@@ -839,13 +846,18 @@ __global__ void FormAXB(Real* csrValA,
                         Real3* omegaAccLRF_fsiBodies_D,
                         uint* rigid_BCEsolids_D,
 
-                        Real3* pos_fsi_fea_D,
-                        Real3* vel_fsi_fea_D,
-                        Real3* acc_fsi_fea_D,
-                        uint* FlexIdentifierD,
+                        Real3* flex1D_vel_fsi_fea_D,  // velo of fea 1d element
+                        Real3* flex1D_acc_fsi_fea_D,  //  acc of fea 1d element
+                        Real3* flex2D_vel_fsi_fea_D,  // velo of fea 2d element
+                        Real3* flex2D_acc_fsi_fea_D,  //  acc of fea 2d element
+
                         const int numFlex1D,
-                        uint2* CableElementsNodesD,
-                        uint4* ShellElementsNodesD,
+                        uint2* flex1D_Nodes_D,
+                        uint3* flex1D_BCEsolids_D,
+                        Real3* flex1D_BCEcoords_D,
+                        uint3* flex2D_Nodes_D,
+                        uint3* flex2D_BCEsolids_D,
+                        Real3* flex2D_BCEcoords_D,
 
                         int4 updatePortion,
                         uint* gridMarkerIndexD,
@@ -879,6 +891,7 @@ __global__ void FormAXB(Real* csrValA,
                           sortedPosRad, sortedRhoPreMu, cellStart, cellEnd, delta_t, numAllMarkers, true);
 
     } else if (TYPE_OF_NARKER > -1)
+        // markers for flexible body
         Calc_BC_aij_Bi(i_idx, csrValA, csrColIndA, GlobalcsrColIndA, numContacts, a_ii, B_i, sortedPosRad, sortedVelMas,
 
                        sortedRhoPreMu, V_new, p_old, Normals, G_i, sumWij_inv,
@@ -886,9 +899,10 @@ __global__ void FormAXB(Real* csrValA,
                        qD, rigid_BCEcoords_D, posRigid_fsiBodies_D, velMassRigid_fsiBodies_D, omegaVelLRF_fsiBodies_D,
                        accRigid_fsiBodies_D, omegaAccLRF_fsiBodies_D, rigid_BCEsolids_D,
 
-                       pos_fsi_fea_D, vel_fsi_fea_D, acc_fsi_fea_D, FlexIdentifierD, numFlex1D, CableElementsNodesD,
-                       ShellElementsNodesD,
-
+                       flex1D_vel_fsi_fea_D, flex1D_acc_fsi_fea_D, 
+                       flex2D_vel_fsi_fea_D, flex2D_acc_fsi_fea_D, 
+                       numFlex1D, 
+                       flex1D_Nodes_D, flex1D_BCEsolids_D, flex1D_BCEcoords_D, flex2D_Nodes_D, flex2D_BCEsolids_D, flex2D_BCEcoords_D,
                        updatePortion, gridMarkerIndexD, cellStart, cellEnd, numAllMarkers, true);
 }
 
@@ -960,13 +974,18 @@ __global__ void Calc_Pressure(Real* a_ii,     // Read
                               Real3* omegaAccLRF_fsiBodies_D,
                               uint* rigid_BCEsolids_D,
 
-                              Real3* pos_fsi_fea_D,
-                              Real3* vel_fsi_fea_D,
-                              Real3* acc_fsi_fea_D,
-                              uint* FlexIdentifierD,
+                              Real3* flex1D_vel_fsi_fea_D,
+                              Real3* flex1D_acc_fsi_fea_D,
+                              Real3* flex2D_vel_fsi_fea_D,
+                              Real3* flex2D_acc_fsi_fea_D,
+
                               const int numFlex1D,
-                              uint2* CableElementsNodesD,
-                              uint4* ShellElementsNodesD,
+                              uint2* flex1D_Nodes_D,
+                              uint3* flex1D_BCEsolids_D,
+                              Real3* flex1D_BCEcoords_D,
+                              uint3* flex2D_Nodes_D,
+                              uint3* flex2D_BCEsolids_D,
+                              Real3* flex2D_BCEcoords_D,
 
                               int4 updatePortion,
                               uint* gridMarkerIndexD,
@@ -1066,9 +1085,12 @@ __global__ void Calc_Pressure(Real* a_ii,     // Read
         Real3 V_prescribed = mR3(0);
         BCE_Vel_Acc(i_idx, myAcc, V_prescribed, sortedPosRad, updatePortion, gridMarkerIndexD, qD, rigid_BCEcoords_D,
                     posRigid_fsiBodies_D, velMassRigid_fsiBodies_D, omegaVelLRF_fsiBodies_D, accRigid_fsiBodies_D,
-                    omegaAccLRF_fsiBodies_D, rigid_BCEsolids_D, pos_fsi_fea_D, vel_fsi_fea_D,
-                    acc_fsi_fea_D, FlexIdentifierD, numFlex1D, CableElementsNodesD, ShellElementsNodesD);
-
+                    omegaAccLRF_fsiBodies_D, rigid_BCEsolids_D, 
+                    flex1D_vel_fsi_fea_D, flex1D_acc_fsi_fea_D, 
+                    flex2D_vel_fsi_fea_D, flex2D_acc_fsi_fea_D,
+                    numFlex1D, 
+                    flex1D_Nodes_D, flex1D_BCEsolids_D, flex1D_BCEcoords_D, flex2D_Nodes_D,
+                    flex2D_BCEsolids_D, flex2D_BCEcoords_D);
         Real3 numeratorv = mR3(0);
         Real denumenator = 0;
         Real numeratorp = 0;
@@ -1357,8 +1379,9 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> fsiBodySt
                                         thrust::device_vector<Real3> Normals,
                                         thrust::device_vector<Real> G_i,
                                         thrust::device_vector<Real>& Color) {
-    //// RADU TODO - Update to use mesh data for 1D and 2D
+    
 
+    //// RADU TODO - Update to use mesh data for 1D and 2D
     PPESolutionType mySolutionType = paramsH->PPE_Solution_type;
     std::cout << "time step in calcPressureIISPH " << paramsH->dT << std::endl;
 
@@ -1495,9 +1518,10 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> fsiBodySt
             mR4CAST(fsiBodyStateD->lin_vel), mR3CAST(fsiBodyStateD->ang_vel), mR3CAST(fsiBodyStateD->lin_acc),
             mR3CAST(fsiBodyStateD->ang_acc), U1CAST(fsiData->rigid_BCEsolids_D),
 
-            mR3CAST(pos_fsi_fea_D), mR3CAST(vel_fsi_fea_D), mR3CAST(acc_fsi_fea_D), U1CAST(fsiData->FlexIdentifierD),
-            (int)numObjectsH->numFlexBodies1D, U2CAST(fsiData->CableElementsNodesD),
-            U4CAST(fsiData->ShellElementsNodesD),
+            mR3CAST(fsiMesh1DState_D->vel_fsi_fea_D), mR3CAST(fsiMesh1DState_D->acc_fsi_fea_D), mR3CAST(fsiMesh2DState_D->vel_fsi_fea_D), mR3CAST(fsiMesh2DState_D->acc_fsi_fea_D), 
+            (int)(numObjectsD.startFlexMarkers2D - numObjectsD.startFlexMarkers1D), U2CAST(fsiData->flex1D_Nodes_D),
+            U3CAST(fsiData->flex1D_BCEsolids_D), mR3CAST(fsiData->flex1D_BCEcoords_D),
+            U3CAST(fsiData->flex2D_BCEcoords_D), U3CAST(fsiData->flex2D_BCEsolids_D), mR3CAST(fsiData->flex2D_Nodes_D),
 
             updatePortion, U1CAST(markersProximity_D->gridMarkerIndexD), U1CAST(markersProximity_D->cellStartD),
             U1CAST(markersProximity_D->cellEndD), paramsH->dT, numAllMarkers, SPARSE_FLAG, isErrorD);
@@ -1585,9 +1609,12 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodyStateD> fsiBodySt
                     mR4CAST(fsiBodyStateD->lin_vel), mR3CAST(fsiBodyStateD->ang_vel), mR3CAST(fsiBodyStateD->lin_acc),
                     mR3CAST(fsiBodyStateD->ang_acc), U1CAST(fsiData->rigid_BCEsolids_D),
 
-                    mR3CAST(pos_fsi_fea_D), mR3CAST(vel_fsi_fea_D), mR3CAST(acc_fsi_fea_D),
-                    U1CAST(fsiData->FlexIdentifierD), (int)numObjectsH->numFlexBodies1D,
-                    U2CAST(fsiData->CableElementsNodesD), U4CAST(fsiData->ShellElementsNodesD), updatePortion,
+                    mR3CAST(fsiMesh1DState_D->vel_fsi_fea_D), mR3CAST(fsiMesh1DState_D->acc_fsi_fea_D),
+                    mR3CAST(fsiMesh2DState_D->vel_fsi_fea_D), mR3CAST(fsiMesh2DState_D->acc_fsi_fea_D),
+                    (int)(numObjectsD.startFlexMarkers2D - numObjectsD.startFlexMarkers1D),
+                    U2CAST(fsiData->flex1D_Nodes_D), U3CAST(fsiData->flex1D_BCEsolids_D),
+                    mR3CAST(fsiData->flex1D_BCEcoords_D), U3CAST(fsiData->flex2D_BCEcoords_D),
+                    U3CAST(fsiData->flex2D_BCEsolids_D), mR3CAST(fsiData->flex2D_Nodes_D), updatePortion,
                     U1CAST(markersProximity_D->gridMarkerIndexD), R1CAST(p_old), mR3CAST(V_new),
                     U1CAST(markersProximity_D->cellStartD), U1CAST(markersProximity_D->cellEndD), paramsH->dT,
                     numAllMarkers, isErrorD);

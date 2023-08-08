@@ -153,13 +153,19 @@ __global__ void V_star_Predictor(Real4* sortedPosRad,  // input: sorted position
                                  Real3* omegaAccLRF_fsiBodies_D,
                                  uint* rigid_BCEsolids_D,
 
-                                 Real3* pos_fsi_fea_D,
-                                 Real3* vel_fsi_fea_D,
-                                 Real3* acc_fsi_fea_D,
-                                 uint* FlexIdentifierD,
+                                 Real3* flex1D_vel_fsi_fea_D,
+                                 Real3* flex1D_acc_fsi_fea_D,
+                                 Real3* flex2D_vel_fsi_fea_D,
+                                 Real3* flex2D_acc_fsi_fea_D,
+
                                  size_t numFlex1D,
-                                 uint2* CableElementsNodesD,
-                                 uint4* ShellElementsNodesD,
+
+                                 uint2* flex1D_Nodes_D,
+                                 uint3* flex1D_BCEsolids_D,
+                                 Real3* flex1D_BCEcoords_D,
+                                 uint3* flex2D_Nodes_D,
+                                 uint3* flex2D_BCEsolids_D,
+                                 Real3* flex2D_BCEcoords_D,
 
                                  int4 updatePortion,
                                  uint* gridMarkerIndexD,
@@ -297,9 +303,13 @@ __global__ void V_star_Predictor(Real4* sortedPosRad,  // input: sorted position
         Real3 V_prescribed = mR3(0);
 
         BCE_Vel_Acc(i_idx, myAcc, V_prescribed, sortedPosRad, updatePortion, gridMarkerIndexD, qD, rigid_BCEcoords_D,
-                    posRigid_fsiBodies_D, velMassRigid_fsiBodies_D, omegaVelLRF_fsiBodies_D, accRigid_fsiBodies_D,
-                    omegaAccLRF_fsiBodies_D, rigid_BCEsolids_D, pos_fsi_fea_D, vel_fsi_fea_D,
-                    acc_fsi_fea_D, FlexIdentifierD, numFlex1D, CableElementsNodesD, ShellElementsNodesD);
+                    posRigid_fsiBodies_D, velMassRigid_fsiBodies_D,omegaVelLRF_fsiBodies_D, accRigid_fsiBodies_D,
+                    omegaAccLRF_fsiBodies_D, rigid_BCEsolids_D, 
+                    flex1D_vel_fsi_fea_D, flex1D_acc_fsi_fea_D, 
+                    flex2D_vel_fsi_fea_D, flex2D_acc_fsi_fea_D, 
+                    numFlex1D, 
+                    flex1D_Nodes_D, flex1D_BCEsolids_D, flex1D_BCEcoords_D, 
+                    flex2D_Nodes_D, flex2D_BCEsolids_D, flex2D_BCEcoords_D);
 
         if (den < EPSILON) {
             A_Matrix[csrStartIdx] = 1.0;
@@ -345,13 +355,18 @@ __global__ void Pressure_Equation(Real4* sortedPosRad,  // input: sorted positio
                                   Real3* omegaAccLRF_fsiBodies_D,
                                   uint* rigid_BCEsolids_D,
 
-                                  Real3* pos_fsi_fea_D,
-                                  Real3* vel_fsi_fea_D,
-                                  Real3* acc_fsi_fea_D,
-                                  uint* FlexIdentifierD,
+                                  Real3* flex1D_vel_fsi_fea_D,
+                                  Real3* flex1D_acc_fsi_fea_D,
+                                  Real3* flex2D_vel_fsi_fea_D,
+                                  Real3* flex2D_acc_fsi_fea_D,
+
                                   size_t numFlex1D,
-                                  uint2* CableElementsNodesD,
-                                  uint4* ShellElementsNodesD,
+                                  uint2* flex1D_Nodes_D,
+                                  uint3* flex1D_BCEsolids_D,
+                                  Real3* flex1D_BCEcoords_D,
+                                  uint3* flex2D_Nodes_D,
+                                  uint3* flex2D_BCEsolids_D,
+                                  Real3* flex2D_BCEcoords_D,
 
                                   int4 updatePortion,
                                   uint* gridMarkerIndexD,
@@ -460,8 +475,13 @@ __global__ void Pressure_Equation(Real4* sortedPosRad,  // input: sorted positio
         Real3 V_prescribed = mR3(0);
         BCE_Vel_Acc(i_idx, myAcc, V_prescribed, sortedPosRad, updatePortion, gridMarkerIndexD, qD, rigid_BCEcoords_D,
                     posRigid_fsiBodies_D, velMassRigid_fsiBodies_D, omegaVelLRF_fsiBodies_D, accRigid_fsiBodies_D,
-                    omegaAccLRF_fsiBodies_D, rigid_BCEsolids_D, pos_fsi_fea_D, vel_fsi_fea_D,
-                    acc_fsi_fea_D, FlexIdentifierD, numFlex1D, CableElementsNodesD, ShellElementsNodesD);
+                    omegaAccLRF_fsiBodies_D, rigid_BCEsolids_D, 
+                    flex1D_vel_fsi_fea_D, flex1D_acc_fsi_fea_D, 
+                    flex2D_vel_fsi_fea_D, flex2D_acc_fsi_fea_D, 
+                    numFlex1D, 
+                    flex1D_Nodes_D, flex1D_BCEsolids_D, flex1D_BCEcoords_D, 
+                    flex2D_Nodes_D, flex2D_BCEsolids_D, flex2D_BCEcoords_D);
+
         Real pRHS = 0.0;
         Real den = 0.0;
 
