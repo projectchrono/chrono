@@ -156,8 +156,10 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChVisualSystem)
 
 %shared_ptr(chrono::ChFunction)  
+%shared_ptr(chrono::ChFunction_BSpline)
 %shared_ptr(chrono::ChFunction_Const)
 %shared_ptr(chrono::ChFunction_ConstAcc)
+%shared_ptr(chrono::ChFunction_Cycloidal)
 %shared_ptr(chrono::ChFunction_Derive)
 %shared_ptr(chrono::ChFunction_Fillet3)
 %shared_ptr(chrono::ChFunction_Integrate)
@@ -564,8 +566,10 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkPointSpline) 
 %DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkTrajectory)
 
+%DefSharedPtrDynamicDowncast(chrono,ChFunction, ChFunction_BSpline)
 %DefSharedPtrDynamicDowncast(chrono,ChFunction, ChFunction_Const)
 %DefSharedPtrDynamicDowncast(chrono,ChFunction, ChFunction_ConstAcc)
+%DefSharedPtrDynamicDowncast(chrono,ChFunction, ChFunction_Cycloidal)
 %DefSharedPtrDynamicDowncast(chrono,ChFunction, ChFunction_Derive)
 %DefSharedPtrDynamicDowncast(chrono,ChFunction, ChFunction_Fillet3)
 %DefSharedPtrDynamicDowncast(chrono,ChFunction, ChFunction_Integrate)

@@ -194,7 +194,9 @@
 
 // If CUDA is not available, force Thrust to always use the OMP backend
 #ifndef CHRONO_HAS_CUDA
-  #define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_OMP
+  #ifndef THRUST_DEVICE_SYSTEM
+    #define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_OMP
+  #endif
 #endif
 
 // -----------------------------------------------------------------------------

@@ -8,6 +8,7 @@
 @rem - Run the script (.\buildGL.bat) from a *VS developer console*.
 @rem
 @rem Notes:
+@rem - The script accepts 1 optional argument to override the install directory.
 @rem - Do *not* use GLEW from its GitHub repository. It is not properly set up to work with CMake. Use instead
 @rem   the source archive available on SourceForge.
 @rem - The sources for GLM and GLFW can be obtained either from GitHub or from SourceForge.
@@ -29,6 +30,13 @@ set BUILDDEBUG=ON
     set GLEW_SOURCE_DIR="C:/Sources/glew"
     set GLFW_SOURCE_DIR="C:/Sources/glfw"
 )    
+
+@rem ------------------------------------------------------------------------
+@rem Allow overriding installation directory through command line argument
+
+if "%~1" NEQ "" (
+   set GL_INSTALL_DIR=%1
+)
 
 @rem ------------------------------------------------------------------------
 

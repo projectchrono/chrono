@@ -14,7 +14,9 @@
 #define CHFUNCT_H
 
 #include "chrono/motion_functions/ChFunction_Const.h"
+#include "chrono/motion_functions/ChFunction_BSpline.h"
 #include "chrono/motion_functions/ChFunction_ConstAcc.h"
+#include "chrono/motion_functions/ChFunction_Cycloidal.h"
 #include "chrono/motion_functions/ChFunction_Derive.h"
 #include "chrono/motion_functions/ChFunction_Fillet3.h"
 #include "chrono/motion_functions/ChFunction_Integrate.h"
