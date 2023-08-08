@@ -12,6 +12,7 @@
 #   project configuration scripts required to configure Chrono with the Chorno::VSG module enabled.
 #
 # Notes:
+# - The script accepts 1 optional argument to override the install directory.
 # - This script uses the following versions of the various codes from their respective repositories, with the
 #   only exception being vsgImGui which pulls the latest version.
 #      VulkanSceneGraph (github.com/vsg-dev/VulkanSceneGraph.git): Tag v1.0.7
@@ -38,6 +39,14 @@ then
     VSGIMGUI_SOURCE_DIR="$HOME/Sources/vsgImGui"
     VSGEXAMPLES_SOURCE_DIR="$HOME/Sources/vsgExamples"
     ASSIMP_SOURCE_DIR="$HOME/Sources/assimp"
+fi
+
+# ------------------------------------------------------------------------
+# Allow overriding installation directory through command line argument
+
+if [ $# -eq 1 ]
+then
+    VSG_INSTALL_DIR=$1
 fi
 
 # ------------------------------------------------------------------------

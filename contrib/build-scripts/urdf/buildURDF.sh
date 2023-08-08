@@ -7,6 +7,9 @@
 # - Specify the install directory.
 # - Run the script (sh ./buildURDF.sh).
 # - The install directory will contain subdirectories for all necessary dependencies.
+#
+# Notes:
+# - The script accepts 1 optional argument to override the install directory.
 # -------------------------------------------------------------------------------------------------------
 
 DOWNLOAD=ON
@@ -22,6 +25,14 @@ then
     CONSOLE_BRIDGE_SOURCE_DIR="$HOME/Sources/console_bridge"
     URDFDOM_HEADERS_SOURCE_DIR="$HOME/Sources/urdfdom_headers"
     URDFDOM_SOURCE_DIR="$HOME/Sources/urdfdom"
+fi
+
+# ------------------------------------------------------------------------
+# Allow overriding installation directory through command line argument
+
+if [ $# -eq 1 ]
+then
+    URDF_INSTALL_DIR=$1
 fi
 
 # ------------------------------------------------------------------------

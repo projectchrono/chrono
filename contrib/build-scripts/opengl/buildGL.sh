@@ -10,6 +10,7 @@
 # - Run the script (sh ./buildGL.sh)
 #
 # Notes:
+# - The script accepts 1 optional argument to override the install directory.
 # - Do *not* use GLEW from its GitHub repository. It is not properly set up to work with CMake. Use instead
 #   the source archive available on SourceForge.
 # - The sources for GLM and GLFW can be obtained either from GitHub or from SourceForge.
@@ -34,6 +35,14 @@ then
     GLM_SOURCE_DIR="$HOME/Sources/glm"
     GLEW_SOURCE_DIR="$HOME/Sources/glew"
     GLFW_SOURCE_DIR="$HOME/Sources/glfw"
+fi
+
+# ------------------------------------------------------------------------
+# Allow overriding installation directory through command line argument
+
+if [ $# -eq 1 ]
+then
+    GL_INSTALL_DIR=$1
 fi
 
 # ------------------------------------------------------------------------

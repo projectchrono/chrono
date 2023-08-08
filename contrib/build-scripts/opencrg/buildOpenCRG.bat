@@ -7,6 +7,9 @@
 @rem - Run the script (.\buildOpenCRG.bat) from a *VS developer console*.
 @rem - As provided, this script generates the OpenCRG libraries for 
 @rem   Release, Debug, RelWithDebInfo, and MinSizeRel configurations.
+@rem
+@rem Notes:
+@rem - The script accepts 1 optional argument to override the install directory.
 @rem ---------------------------------------------------------------------------------------------------------
 
 set DOWNLOAD=ON
@@ -16,6 +19,13 @@ set CRG_INSTALL_DIR="C:\Packages\openCRG"
 @if %DOWNLOAD% EQU OFF (
     set CRG_SOURCE_DIR="C:\Sources\OpenCRG-1.1.2"
     set REV=1.1.2
+)
+
+@rem ------------------------------------------------------------------------
+@rem Allow overriding installation directory through command line argument
+
+if "%~1" NEQ "" (
+   set CRG_INSTALL_DIR=%1
 )
 
 @rem ------------------------------------------------------------------------
