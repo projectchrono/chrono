@@ -102,6 +102,13 @@ class ChApi ChFunction {
     /// is known, it may be better to implement a custom method).
     virtual double Get_y_dxdx(double x) const { return ((Get_y_dx(x + BDF_STEP_LOW) - Get_y_dx(x)) / BDF_STEP_LOW); };
 
+    /// Return the dddy/dxdxdx triple derivative of the function, at position x.
+    /// Note that inherited classes may also avoid overriding this method,
+    /// because this base method already provide a general-purpose numerical differentiation
+    /// to get dddy/dxdxdx only from the Get_y() function. (however, if the analytical derivative
+    /// is known, it may be better to implement a custom method).
+    virtual double Get_y_dxdxdx(double x) const { return ((Get_y_dxdx(x + BDF_STEP_LOW) - Get_y_dxdx(x)) / BDF_STEP_LOW); };
+
     /// Return the weight of the function (useful for
     /// applications where you need to mix different weighted ChFunctions)
     virtual double Get_weight(double x) const { return 1.0; };
@@ -118,7 +125,7 @@ class ChApi ChFunction {
     virtual void Estimate_y_range(double xmin, double xmax, double& ymin, double& ymax, int derivate) const;
 
     /// Return the function derivative of specified order at the given point.
-    /// Note that only order = 0, 1, or 2 is supported.
+    /// Note that only order = 0, 1, 2, or 3 is supported.
     virtual double Get_y_dN(double x, int derivate) const;
 
     /// Update could be implemented by children classes, ex. to launch callbacks
@@ -169,6 +176,10 @@ class ChApi ChFunction {
     /// The output file can be later loaded into Excel, GnuPlot or other tools.
     /// The function is 'sampled' for nsteps times, from xmin to xmax.
     virtual int FileAsciiPairsSave(ChStreamOutAscii& m_file, double xmin = 0, double xmax = 1, int msamples = 200);
+
+    /// Sample function on entire interval, up to Nth derivative (der = 0: y, 1: y_dx, 2: y_dxdx, 3: y_dxdxdx).
+    /// Store interval x=[xmin:step:xmax] and function evaluations as columns into (resized) matrix.
+    virtual void EvaluateIntervaldN(ChMatrixDynamic<>& data, double xmin, double xmax, double step, int der = 0);
 };
 
 /// @} chrono_functions
