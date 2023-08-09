@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Template for a simplified deformable tire.
+// Template for a multibody deformable tire.
 //
 // =============================================================================
 
@@ -26,16 +26,16 @@
 namespace chrono {
 namespace vehicle {
 
-class LUTTireModel;
+class MBTireModel;
 
 /// @addtogroup vehicle_wheeled_tire
 /// @{
 
-/// Template for a simplified deformable tire.
-class CH_VEHICLE_API ChLUTTire : public ChDeformableTire {
+/// Template for a multibody deformable tire.
+class CH_VEHICLE_API ChMBTire : public ChDeformableTire {
   public:
-    ChLUTTire(const std::string& name);
-    virtual ~ChLUTTire() {}
+    ChMBTire(const std::string& name);
+    virtual ~ChMBTire() {}
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "LUTTire"; }
@@ -43,19 +43,20 @@ class CH_VEHICLE_API ChLUTTire : public ChDeformableTire {
     /// Set the tire geometry.
     void SetTireGeometry(const std::vector<double>& ring_radii,    ///<
                          const std::vector<double>& ring_offsets,  ///<
-                         int num_divs                              ///< number of divisions in circumferential direction
+                         int num_divs,                             ///< number of divisions in circumferential direction
+                         double rim_radius                         ///< radius of wheel rim
     );
 
     /// Set the total tire mass.
     void SetTireMass(double mass);
 
     /// Set tire material properties.
-    void SetTireProperties(double eR,  ///< radial elastic coefficient
-                           double dR,  ///< radial damping coefficient
-                           double eC,  ///< circumferential elastic coefficient
-                           double dC,  ///< circumferential damping coefficient
-                           double eT,  ///< transversal elastic coefficient
-                           double dT   ///< transversal damping coefficient
+    void SetTireProperties(double kR,  ///< radial elastic coefficient
+                           double cR,  ///< radial damping coefficient
+                           double kC,  ///< circumferential elastic coefficient
+                           double cC,  ///< circumferential damping coefficient
+                           double kT,  ///< transversal elastic coefficient
+                           double cT   ///< transversal damping coefficient
     );
 
     /// Set contact material properties.
@@ -77,10 +78,10 @@ class CH_VEHICLE_API ChLUTTire : public ChDeformableTire {
     /// Currently *NOT IMPLEMENTED*.
     virtual TerrainForce ReportTireForce(ChTerrain* terrain, ChCoordsys<>& tire_frame) const override;
 
-    /// Add visualization assets for the rigid tire subsystem.
+    /// Add visualization assets for the tire subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
-    /// Remove visualization assets for the rigid tire subsystem.
+    /// Remove visualization assets for the tire subsystem.
     virtual void RemoveVisualizationAssets() override;
 
     /// Initialize this tire by associating it to the specified wheel.
@@ -112,14 +113,14 @@ class CH_VEHICLE_API ChLUTTire : public ChDeformableTire {
     virtual std::vector<std::shared_ptr<fea::ChNodeFEAbase>> GetConnectedNodes() const final { return {}; }
 
   private:
-    std::shared_ptr<LUTTireModel> m_model;
+    std::shared_ptr<MBTireModel> m_model;
     ChContactMaterialData m_contact_mat_data;
 };
 
 // =============================================================================
 
-// Underlying implementation of the LUT tire model.
-class LUTTireModel : public ChPhysicsItem {
+// Underlying (private) implementation of the LUT tire model.
+class MBTireModel : public ChPhysicsItem {
   private:
     // Construct the LUT tire relative to the specified frame (frame of associated wheel).
     void Construct(const ChFrameMoving<>& wheel_frame);
@@ -140,6 +141,9 @@ class LUTTireModel : public ChPhysicsItem {
     virtual void SetupInitial() override;
     virtual void Setup() override;
     virtual void Update(double t, bool update_assets = true) override;
+
+    // Add visualization assets for the tire subsystem.
+    void AddVisualizationAssets(VisualizationType vis);
 
     // State functions
     virtual void IntStateGather(const unsigned int off_x,
@@ -185,34 +189,60 @@ class LUTTireModel : public ChPhysicsItem {
     // Return -1 if out-of-bounds ring and use a cyclic index for divisions on the ring.
     int NodeIndex(int ir, int id);
 
+    // Get the rim node index from the ring index and division index.
+    // Return -1 if out-of-bounds ring and use a cyclic index for divisions on the ring.
+    int RimNodeIndex(int ir, int id);
+
     int m_dofs;    // total degrees of freedom
     int m_dofs_w;  // total degrees of freedom, derivative (Lie algebra)
 
-    int m_num_rings;  // number of rings
-    int m_num_divs;   // number of nodes per ring
-    int m_num_nodes;  // number of nodes and visualization vertices
-    int m_num_faces;  // number of visualization triangles
+    int m_num_rings;      // number of rings
+    int m_num_divs;       // number of nodes per ring
+    int m_num_rim_nodes;  // number of nodes attached to rim
+    int m_num_nodes;      // number of nodes and visualization vertices
+    int m_num_faces;      // number of visualization triangles
 
     double m_node_mass;  // nodal mass
 
     std::vector<double> m_radii;    // ring radii (initial values)
     std::vector<double> m_offsets;  // ring offsets
 
-    double m_eR;  // radial elastic coefficient
-    double m_dR;  // radial damping coefficient
-    double m_eC;  // circumferential elastic coefficient
-    double m_dC;  // circumferential damping coefficient
-    double m_eT;  // transversal elastic coefficient
-    double m_dT;  // transversal damping coefficient
+    double m_rim_radius;  // rim radius
 
-    std::vector<std::shared_ptr<fea::ChNodeFEAxyz>> m_nodes;  // FEA nodes
-    std::shared_ptr<fea::ChContactSurface> m_contact_surf;    // contact surface
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;     // mesh visualization asset
+    double m_kR;  // radial elastic coefficient
+    double m_cR;  // radial damping coefficient
+    double m_kC;  // circumferential elastic coefficient
+    double m_cC;  // circumferential damping coefficient
+    double m_kT;  // transversal elastic coefficient
+    double m_cT;  // transversal damping coefficient
 
-    ChLUTTire* m_tire;  // owner ChLUTTire object
-    ChBody* m_wheel;    // associate wheel body
+    std::vector<std::shared_ptr<fea::ChNodeFEAxyz>> m_rim_nodes;  // FEA nodes fixed to the rim
+    std::vector<std::shared_ptr<fea::ChNodeFEAxyz>> m_nodes;      // FEA nodes
+    std::shared_ptr<fea::ChContactSurface> m_contact_surf;        // contact surface
+    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;         // mesh visualization asset
 
-    friend class ChLUTTire;
+    enum class SpringType { RADIAL, CIRCUMFERENTIAL_1, CIRCUMFERENTIAL_2, TRANSVERSAL_1, TRANSVERSAL_2 };
+
+    struct Spring {
+        SpringType type;  // spring type
+        int node1;        // index of first attachment node (rim node for a RADIAL spring)
+        int node2;        // index of second attachment node
+        double l0;        // spring free length
+        double k;         // spring coefficient
+        double c;         // damping coefficient
+        ChVector<> dir;   // current spring direction
+        double force;     // current spring force
+    };
+
+    std::vector<Spring> m_radial_springs;
+    std::vector<Spring> m_mesh_springs;
+
+    ChVector<> m_wheel_force;  // applied wheel spindle force
+
+    ChMBTire* m_tire;  // owner ChLUTTire object
+    ChBody* m_wheel;   // associated wheel body
+
+    friend class ChMBTire;
 };
 
 /// @} vehicle_wheeled_tire

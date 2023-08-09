@@ -558,8 +558,8 @@ set(CV_WV_TIRE_FILES
     wheeled_vehicle/tire/ChFEATire.cpp
     wheeled_vehicle/tire/ChPac02Tire.h
     wheeled_vehicle/tire/ChPac02Tire.cpp
-    wheeled_vehicle/tire/ChLUTTire.h
-    wheeled_vehicle/tire/ChLUTTire.cpp
+    wheeled_vehicle/tire/ChMBTire.h
+    wheeled_vehicle/tire/ChMBTire.cpp
 
     wheeled_vehicle/tire/RigidTire.h
     wheeled_vehicle/tire/RigidTire.cpp

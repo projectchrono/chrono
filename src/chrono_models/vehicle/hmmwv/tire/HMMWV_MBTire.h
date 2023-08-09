@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// HMMWV LUT tire subsystem
+// HMMWV multibody tire subsystem
 //
 // =============================================================================
 
@@ -20,7 +20,7 @@
 #define HMMWV_LUT_TIRE_H
 
 #include "chrono_models/ChApiModels.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/ChLUTTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChMBTire.h"
 
 namespace chrono {
 namespace vehicle {
@@ -29,11 +29,11 @@ namespace hmmwv {
 /// @addtogroup vehicle_models_hmmwv
 /// @{
 
-/// Deformable LUT tire model for the HMMWV vehicle.
-class CH_MODELS_API HMMWV_LUTTire : public ChLUTTire {
+/// Deformable multibody tire model for the HMMWV vehicle.
+class CH_MODELS_API HMMWV_MBTire : public ChMBTire {
   public:
-    HMMWV_LUTTire(const std::string& name);
-    ~HMMWV_LUTTire() {}
+    HMMWV_MBTire(const std::string& name);
+    ~HMMWV_MBTire() {}
 
     /// Get the default tire pressure.
     virtual double GetDefaultPressure() const override { return m_default_pressure; }
@@ -42,6 +42,8 @@ class CH_MODELS_API HMMWV_LUTTire : public ChLUTTire {
     static const int m_num_divs;
     static const std::vector<double> m_radius;
     static const std::vector<double> m_offset;
+
+    static const double m_rim_radius;
 
     static const double m_tire_mass;
     static const double m_default_pressure;

@@ -31,7 +31,7 @@
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_RigidTire.h"
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_TMeasyTire.h"
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_TMsimpleTire.h"
-#include "chrono_models/vehicle/hmmwv/tire/HMMWV_LUTTire.h"
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_MBTire.h"
 
 #include "chrono_vehicle/ChPowertrainAssembly.h"
 #include "chrono_models/vehicle/hmmwv/powertrain/HMMWV_EngineShafts.h"
@@ -277,11 +277,11 @@ void HMMWV::Initialize() {
             break;
         }
 
-        case TireModelType::LUT: {
-            auto tire_FL = chrono_types::make_shared<HMMWV_LUTTire>("FL");
-            auto tire_FR = chrono_types::make_shared<HMMWV_LUTTire>("FR");
-            auto tire_RL = chrono_types::make_shared<HMMWV_LUTTire>("RL");
-            auto tire_RR = chrono_types::make_shared<HMMWV_LUTTire>("RR");
+        case TireModelType::MB: {
+            auto tire_FL = chrono_types::make_shared<HMMWV_MBTire>("FL");
+            auto tire_FR = chrono_types::make_shared<HMMWV_MBTire>("FR");
+            auto tire_RL = chrono_types::make_shared<HMMWV_MBTire>("RL");
+            auto tire_RR = chrono_types::make_shared<HMMWV_MBTire>("RR");
 
             m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);

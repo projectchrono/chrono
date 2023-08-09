@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Template for a simplified deformable tire.
+// Template for a multibody deformable tire.
 //
 // =============================================================================
 
@@ -24,19 +24,21 @@
 
 #include <algorithm>
 
-#include "chrono_vehicle/wheeled_vehicle/tire/ChLUTTire.h"
+#include "chrono/assets/ChSphereShape.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChMBTire.h"
 
 namespace chrono {
 namespace vehicle {
 
-ChLUTTire::ChLUTTire(const std::string& name) : ChDeformableTire(name) {
-    m_model = chrono_types::make_shared<LUTTireModel>();
+ChMBTire::ChMBTire(const std::string& name) : ChDeformableTire(name) {
+    m_model = chrono_types::make_shared<MBTireModel>();
     m_model->m_tire = this;
 }
 
-void ChLUTTire::SetTireGeometry(const std::vector<double>& ring_radii,
-                                const std::vector<double>& ring_offsets,
-                                int num_divs) {
+void ChMBTire::SetTireGeometry(const std::vector<double>& ring_radii,
+                               const std::vector<double>& ring_offsets,
+                               int num_divs,
+                               double rim_radius) {
     assert(ring_radii.size() > 1);
     assert(ring_radii.size() == ring_offsets.size());
 
@@ -45,43 +47,45 @@ void ChLUTTire::SetTireGeometry(const std::vector<double>& ring_radii,
 
     m_model->m_num_rings = (int)ring_radii.size();
     m_model->m_num_divs = num_divs;
+
+    m_model->m_rim_radius = rim_radius;
 }
 
-void ChLUTTire::SetTireMass(double mass) {
+void ChMBTire::SetTireMass(double mass) {
     m_mass = mass;
 }
 
-void ChLUTTire::SetTireProperties(double eR, double dR, double eC, double dC, double eT, double dT) {
-    m_model->m_eR = eR;
-    m_model->m_dR = dR;
-    m_model->m_eC = eC;
-    m_model->m_dC = dC;
-    m_model->m_eT = eT;
-    m_model->m_dT = dT;
+void ChMBTire::SetTireProperties(double kR, double cR, double kC, double cC, double kT, double cT) {
+    m_model->m_kR = kR;
+    m_model->m_cR = cR;
+    m_model->m_kC = kC;
+    m_model->m_cC = cC;
+    m_model->m_kT = kT;
+    m_model->m_cT = cT;
 }
 
-void ChLUTTire::SetTireContactMaterial(const ChContactMaterialData& mat_data) {
+void ChMBTire::SetTireContactMaterial(const ChContactMaterialData& mat_data) {
     m_contact_mat_data = mat_data;
 }
 
-double ChLUTTire::GetRadius() const {
+double ChMBTire::GetRadius() const {
     return *std::max_element(m_model->m_radii.begin(), m_model->m_radii.end());
 }
 
-double ChLUTTire::GetRimRadius() const {
-    return 0;  // not needed
+double ChMBTire::GetRimRadius() const {
+    return m_model->m_rim_radius;
 }
 
-double ChLUTTire::GetWidth() const {
+double ChMBTire::GetWidth() const {
     return m_model->m_offsets.back() - m_model->m_offsets.front();
 }
 
-void ChLUTTire::CreateContactMaterial() {
+void ChMBTire::CreateContactMaterial() {
     m_contact_mat =
         std::static_pointer_cast<ChMaterialSurfaceSMC>(m_contact_mat_data.CreateMaterial(ChContactMethod::SMC));
 }
 
-void ChLUTTire::Initialize(std::shared_ptr<ChWheel> wheel) {
+void ChMBTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     ChTire::Initialize(wheel);
 
     ChSystem* system = wheel->GetSpindle()->GetSystem();
@@ -99,37 +103,34 @@ void ChLUTTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     system->Add(m_model);
 }
 
-void ChLUTTire::Synchronize(double time, const ChTerrain& terrain) {
+void ChMBTire::Synchronize(double time, const ChTerrain& terrain) {
     //// TODO
 }
 
-void ChLUTTire::Advance(double step) {
+void ChMBTire::Advance(double step) {
     //// TODO
 }
 
-TerrainForce ChLUTTire::ReportTireForce(ChTerrain* terrain) const {
+TerrainForce ChMBTire::ReportTireForce(ChTerrain* terrain) const {
     TerrainForce terrain_force;
     //// TODO
     return terrain_force;
 }
 
-TerrainForce ChLUTTire::ReportTireForce(ChTerrain* terrain, ChCoordsys<>& tire_frame) const {
+TerrainForce ChMBTire::ReportTireForce(ChTerrain* terrain, ChCoordsys<>& tire_frame) const {
     std::cerr << "ChLUTTire::ReportTireForce for local frame not implemented." << std::endl;
     throw ChException("ChLUTTire::ReportTireForce for local frame not implemented.");
 }
 
-void ChLUTTire::AddVisualizationAssets(VisualizationType vis) {
-    if (vis == VisualizationType::NONE)
-        return;
-
-    m_model->AddVisualShape(m_model->m_trimesh_shape);
+void ChMBTire::AddVisualizationAssets(VisualizationType vis) {
+    m_model->AddVisualizationAssets(vis);
 }
 
-void ChLUTTire::RemoveVisualizationAssets() {
+void ChMBTire::RemoveVisualizationAssets() {
     ChPart::RemoveVisualizationAssets(m_model);
 }
 
-void ChLUTTire::InitializeInertiaProperties() {
+void ChMBTire::InitializeInertiaProperties() {
     if (!IsInitialized())
         return;
 
@@ -138,7 +139,7 @@ void ChLUTTire::InitializeInertiaProperties() {
     m_com = ChFrame<>(com, QUNIT);
 }
 
-void ChLUTTire::UpdateInertiaProperties() {
+void ChMBTire::UpdateInertiaProperties() {
     if (!IsInitialized())
         return;
 
@@ -149,7 +150,7 @@ void ChLUTTire::UpdateInertiaProperties() {
 
 // =============================================================================
 
-int LUTTireModel::NodeIndex(int ir, int id) {
+int MBTireModel::NodeIndex(int ir, int id) {
     // If ring index out-of-bounds, return -1
     if (ir < 0 || ir >= m_num_rings)
         return -1;
@@ -162,7 +163,22 @@ int LUTTireModel::NodeIndex(int ir, int id) {
     return ir * m_num_divs + (id % m_num_divs);
 }
 
-void LUTTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
+int MBTireModel::RimNodeIndex(int ir, int id) {
+    // If ring index out-of-bounds, return -1
+    if (ir != 0 && ir != m_num_rings - 1)
+        return -1;
+
+    // Make sure to use a positive value of the division index
+    while (id < 0)
+        id += m_num_divs;
+
+    // Wrap around circumference if needed
+    int ir_local = (ir == 0) ? 0 : 1;
+    return ir_local * m_num_divs + (id % m_num_divs);
+}
+
+void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
+    m_num_rim_nodes = 2 * m_num_divs;
     m_num_nodes = m_num_rings * m_num_divs;
     m_num_faces = 2 * (m_num_rings - 1) * m_num_divs;
 
@@ -194,6 +210,126 @@ void LUTTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
             m_nodes[k] = chrono_types::make_shared<fea::ChNodeFEAxyz>(vertices[k]);
             m_nodes[k]->SetMass(m_node_mass);
             k++;
+        }
+    }
+
+    // Create the FEA nodes attached to the rim
+    m_rim_nodes.resize(m_num_rim_nodes);
+    k = 0;
+    {
+        double y = m_offsets[0];
+        for (int id = 0; id < m_num_divs; id++) {
+            double phi = id * dphi;
+            double x = m_rim_radius * std::cos(phi);
+            double z = m_rim_radius * std::sin(phi);
+            auto loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
+            m_rim_nodes[k] = chrono_types::make_shared<fea::ChNodeFEAxyz>(loc);
+            m_rim_nodes[k]->SetMass(m_node_mass);
+            k++;
+        }
+    }
+    {
+        double y = m_offsets[m_num_rings - 1];
+        for (int id = 0; id < m_num_divs; id++) {
+            double phi = id * dphi;
+            double x = m_rim_radius * std::cos(phi);
+            double z = m_rim_radius * std::sin(phi);
+            auto loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
+            m_rim_nodes[k] = chrono_types::make_shared<fea::ChNodeFEAxyz>(loc);
+            m_rim_nodes[k]->SetMass(m_node_mass);
+            k++;
+        }
+    }
+
+    // Set up radial springs
+    for (int id = 0; id < m_num_divs; id++) {
+        int node1 = RimNodeIndex(0, id);
+        int node2 = NodeIndex(0, id);
+        const auto& pos1 = m_rim_nodes[node1]->GetPos();
+        const auto& pos2 = m_nodes[node2]->GetPos();
+
+        Spring spring;
+        spring.type = SpringType::RADIAL;
+        spring.node1 = node1;
+        spring.node2 = node2;
+        spring.l0 = (pos2 - pos1).Length();
+        spring.k = m_kR;
+        spring.c = m_cR;
+        m_radial_springs.push_back(spring);
+    }
+    for (int id = 0; id < m_num_divs; id++) {
+        int node1 = RimNodeIndex(m_num_rings - 1, id);
+        int node2 = NodeIndex(m_num_rings - 1, id);
+        const auto& pos1 = m_rim_nodes[node1]->GetPos();
+        const auto& pos2 = m_nodes[node2]->GetPos();
+
+        Spring spring;
+        spring.type = SpringType::RADIAL;
+        spring.node1 = node1;
+        spring.node2 = node2;
+        spring.l0 = (pos2 - pos1).Length();
+        spring.k = m_kR;
+        spring.c = m_cR;
+        m_radial_springs.push_back(spring);
+    }
+
+    // Set up circumferential springs
+    for (int ir = 0; ir < m_num_rings; ir++) {
+        for (int id = 0; id < m_num_divs; id++) {
+            int node1 = NodeIndex(ir, id);
+            int node2 = NodeIndex(ir, id + 1);
+            int node3 = NodeIndex(ir, id + 2);
+            const auto& pos1 = m_nodes[node1]->GetPos();
+            {
+                Spring spring;
+                spring.type = SpringType::CIRCUMFERENTIAL_1;
+                spring.node1 = node1;
+                spring.node2 = node2;
+                spring.l0 = (m_nodes[node2]->GetPos() - pos1).Length();
+                spring.k = m_kC;
+                spring.c = m_cC;
+                m_mesh_springs.push_back(spring);
+            }
+            {
+                Spring spring;
+                spring.type = SpringType::CIRCUMFERENTIAL_2;
+                spring.node1 = node1;
+                spring.node2 = node3;
+                spring.l0 = (m_nodes[node3]->GetPos() - pos1).Length();
+                spring.k = m_kC;
+                spring.c = m_cC;
+                m_mesh_springs.push_back(spring);
+            }
+        }
+    }
+
+    // Set up transversal springs
+    for (int ir = 0; ir < m_num_rings - 1; ir++) {
+        for (int id = 0; id < m_num_divs; id++) {
+            int node1 = NodeIndex(ir, id);
+            int node2 = NodeIndex(ir + 1, id);
+            int node3 = NodeIndex(ir + 2, id);
+            const auto& pos1 = m_nodes[node1]->GetPos();
+            {
+                Spring spring;
+                spring.type = SpringType::TRANSVERSAL_1;
+                spring.node1 = node1;
+                spring.node2 = node2;
+                spring.l0 = (m_nodes[node2]->GetPos() - pos1).Length();
+                spring.k = m_kT;
+                spring.c = m_cT;
+                m_mesh_springs.push_back(spring);
+            }
+            if (node3 != -1) {
+                Spring spring;
+                spring.type = SpringType::TRANSVERSAL_2;
+                spring.node1 = node1;
+                spring.node2 = node3;
+                spring.l0 = (m_nodes[node3]->GetPos() - pos1).Length();
+                spring.k = m_kT;
+                spring.c = m_cT;
+                m_mesh_springs.push_back(spring);
+            }
         }
     }
 
@@ -288,31 +424,78 @@ void LUTTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
         accumulators[idx_normals[it][2]] += 1;
     }
 
-    // Set vertex normals to avergave values over all adjacent faces
+    // Set vertex normals to average values over all adjacent faces
     for (int in = 0; in < m_num_nodes; in++) {
         normals[in] /= (double)accumulators[in];
     }
 }
 
-void LUTTireModel::CalculateInertiaProperties(const ChFrameMoving<>& wheel_frame,
-                                              ChVector<>& com,
-                                              ChMatrix33<>& inertia) {
+void MBTireModel::CalculateInertiaProperties(const ChFrameMoving<>& wheel_frame,
+                                             ChVector<>& com,
+                                             ChMatrix33<>& inertia) {
     //// TODO
 }
 
-void LUTTireModel::CalculateForces(const ChFrameMoving<>& wheel_frame) {
-    //// TODO: This is where the actual tire model is implemented
-    ////       Calculate forces at each vertex, then use ChNodeFEAxyz::SetForce
+// Calculate forces at each vertex, then use ChNodeFEAxyz::SetForce
+void MBTireModel::CalculateForces(const ChFrameMoving<>& wheel_frame) {
+    // Initialize nodal force accumulators
+    std::vector<ChVector<>> nodal_forces(m_num_nodes, VNULL);
+
+    // Initialize wheel force accumulator
+    m_wheel_force = VNULL;
+
+    // Wheel center position and velocity (expressed in absolute frame)
+    const auto& w_pos = wheel_frame.GetPos();
+    const auto& w_vel = wheel_frame.GetPos_dt();
+
+    // Forces in radial springs
+    for (const auto& spring : m_radial_springs) {
+        const auto& pos1 = m_rim_nodes[spring.node1]->GetPos();
+        const auto& vel1 = m_rim_nodes[spring.node1]->GetPos_dt();
+        const auto& pos2 = m_nodes[spring.node2]->GetPos();
+        const auto& vel2 = m_nodes[spring.node2]->GetPos_dt();
+
+        auto dir = pos2 - pos1;
+        double length = dir.Length();
+        dir /= length;
+        double speed = Vdot(vel2 - vel1, dir);
+        double force = spring.k * (length - spring.l0) - spring.c * speed;
+        //// TODO
+        // m_wheel_force += ...
+        // m_nodal_forces[spring.node2] += ...
+    }
+
+    // Forces in mesh springs
+    for (const auto& spring : m_mesh_springs) {
+        const auto& pos1 = m_nodes[spring.node1]->GetPos();
+        const auto& vel1 = m_nodes[spring.node1]->GetPos_dt();
+        const auto& pos2 = m_nodes[spring.node2]->GetPos();
+        const auto& vel2 = m_nodes[spring.node2]->GetPos_dt();
+
+        auto dir = pos2 - pos1;
+        double length = dir.Length();
+        dir /= length;
+        double speed = Vdot(vel2 - vel1, dir);
+        double force = spring.k * (length - spring.l0) - spring.c * speed;
+        //// TODO
+        // m_nodal_forces[spring.node1] += ...
+        // m_nodal_forces[spring.node2] += ...
+    }
+
+    // Apply loads on FEA ndes
+    for (int k = 0; k < m_num_nodes; k++) {
+        m_nodes[k]->SetForce(nodal_forces[k]);
+    }
 }
 
 // -----------------------------------------------------------------------------
 
-void LUTTireModel::SyncCollisionModels() {
+void MBTireModel::SyncCollisionModels() {
     if (m_contact_surf)
         m_contact_surf->SurfaceSyncCollisionModels();
 }
 
-void LUTTireModel::AddCollisionModelsToSystem() {
+void MBTireModel::AddCollisionModelsToSystem() {
     assert(GetSystem());
     if (m_contact_surf) {
         m_contact_surf->SurfaceSyncCollisionModels();
@@ -320,7 +503,7 @@ void LUTTireModel::AddCollisionModelsToSystem() {
     }
 }
 
-void LUTTireModel::RemoveCollisionModelsFromSystem() {
+void MBTireModel::RemoveCollisionModelsFromSystem() {
     assert(GetSystem());
     if (m_contact_surf)
         m_contact_surf->SurfaceRemoveCollisionModelsFromSystem(GetSystem());
@@ -332,7 +515,7 @@ void LUTTireModel::RemoveCollisionModelsFromSystem() {
 // The implementation of these functions is similar to those in ChMesh.
 // It is assumed that none of the FEA nodes is fixed.
 
-void LUTTireModel::SetupInitial() {
+void MBTireModel::SetupInitial() {
     // Calculate DOFs and state offsets
     m_dofs = 0;
     m_dofs_w = 0;
@@ -343,7 +526,7 @@ void LUTTireModel::SetupInitial() {
     }
 }
 
-void LUTTireModel::Setup() {
+void MBTireModel::Setup() {
     // Recompute DOFs and state offsets
     m_dofs = 0;
     m_dofs_w = 0;
@@ -357,6 +540,34 @@ void LUTTireModel::Setup() {
         m_dofs_w += node->GetNdofW_active();
     }
 
+    // Impose position and velocity of rim nodes
+    double dphi = CH_C_2PI / m_num_divs;
+    int k = 0;
+    {
+        double y = m_offsets[0];
+        for (int id = 0; id < m_num_divs; id++) {
+            double phi = id * dphi;
+            double x = m_rim_radius * std::cos(phi);
+            double z = m_rim_radius * std::sin(phi);
+            auto pos_loc = ChVector<>(x, y, z);
+            m_rim_nodes[k]->SetPos(m_wheel->TransformPointLocalToParent(pos_loc));
+            m_rim_nodes[k]->SetPos_dt(m_wheel->PointSpeedLocalToParent(pos_loc));
+            k++;
+        }
+    }
+    {
+        double y = m_offsets[m_num_rings - 1];
+        for (int id = 0; id < m_num_divs; id++) {
+            double phi = id * dphi;
+            double x = m_rim_radius * std::cos(phi);
+            double z = m_rim_radius * std::sin(phi);
+            auto pos_loc = ChVector<>(x, y, z);
+            m_rim_nodes[k]->SetPos(m_wheel->TransformPointLocalToParent(pos_loc));
+            m_rim_nodes[k]->SetPos_dt(m_wheel->PointSpeedLocalToParent(pos_loc));
+            k++;
+        }
+    }
+
     // Calculate nodal forces
     CalculateForces(*m_wheel);
 
@@ -366,14 +577,14 @@ void LUTTireModel::Setup() {
     auto& normals = trimesh->getCoordsNormals();
     auto& colors = trimesh->getCoordsColors();
 
-    for (int k = 0; k < m_num_nodes; k++) {
+    for (k = 0; k < m_num_nodes; k++) {
         vertices[k] = m_nodes[k]->GetPos();
     }
 
     //// TODO: update vertex normals and colors
 }
 
-void LUTTireModel::Update(double t, bool update_assets) {
+void MBTireModel::Update(double t, bool update_assets) {
     // Parent class update
     ChPhysicsItem::Update(t, update_assets);
 
@@ -382,11 +593,30 @@ void LUTTireModel::Update(double t, bool update_assets) {
 
 // -----------------------------------------------------------------------------
 
-void LUTTireModel::IntStateGather(const unsigned int off_x,
-                                  ChState& x,
-                                  const unsigned int off_v,
-                                  ChStateDelta& v,
-                                  double& T) {
+void MBTireModel::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::NONE)
+        return;
+
+    m_trimesh_shape->SetWireframe(true);
+    AddVisualShape(m_trimesh_shape);
+
+    for (const auto& node : m_rim_nodes) {
+        auto sph = chrono_types::make_shared<ChSphereShape>(0.01);
+        auto loc = m_wheel->TransformPointParentToLocal(node->GetPos());
+        m_wheel->AddVisualShape(sph, ChFrame<>(loc));
+    }
+
+    //// TODO
+    //// properly remove visualization assets added to the wheel body (requires caching the visual shapes)
+}
+
+// -----------------------------------------------------------------------------
+
+void MBTireModel::IntStateGather(const unsigned int off_x,
+                                 ChState& x,
+                                 const unsigned int off_v,
+                                 ChStateDelta& v,
+                                 double& T) {
     unsigned int local_off_x = 0;
     unsigned int local_off_v = 0;
     for (auto& node : m_nodes) {
@@ -398,12 +628,12 @@ void LUTTireModel::IntStateGather(const unsigned int off_x,
     T = GetChTime();
 }
 
-void LUTTireModel::IntStateScatter(const unsigned int off_x,
-                                   const ChState& x,
-                                   const unsigned int off_v,
-                                   const ChStateDelta& v,
-                                   const double T,
-                                   bool full_update) {
+void MBTireModel::IntStateScatter(const unsigned int off_x,
+                                  const ChState& x,
+                                  const unsigned int off_v,
+                                  const ChStateDelta& v,
+                                  const double T,
+                                  bool full_update) {
     unsigned int local_off_x = 0;
     unsigned int local_off_v = 0;
     for (auto& node : m_nodes) {
@@ -415,7 +645,7 @@ void LUTTireModel::IntStateScatter(const unsigned int off_x,
     Update(T, full_update);
 }
 
-void LUTTireModel::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
+void MBTireModel::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
     unsigned int local_off_a = 0;
     for (auto& node : m_nodes) {
         node->NodeIntStateGatherAcceleration(off_a + local_off_a, a);
@@ -423,7 +653,7 @@ void LUTTireModel::IntStateGatherAcceleration(const unsigned int off_a, ChStateD
     }
 }
 
-void LUTTireModel::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
+void MBTireModel::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
     unsigned int local_off_a = 0;
     for (auto& node : m_nodes) {
         node->NodeIntStateScatterAcceleration(off_a + local_off_a, a);
@@ -431,11 +661,11 @@ void LUTTireModel::IntStateScatterAcceleration(const unsigned int off_a, const C
     }
 }
 
-void LUTTireModel::IntStateIncrement(const unsigned int off_x,
-                                     ChState& x_new,
-                                     const ChState& x,
-                                     const unsigned int off_v,
-                                     const ChStateDelta& Dv) {
+void MBTireModel::IntStateIncrement(const unsigned int off_x,
+                                    ChState& x_new,
+                                    const ChState& x,
+                                    const unsigned int off_v,
+                                    const ChStateDelta& Dv) {
     unsigned int local_off_x = 0;
     unsigned int local_off_v = 0;
     for (auto& node : m_nodes) {
@@ -445,11 +675,11 @@ void LUTTireModel::IntStateIncrement(const unsigned int off_x,
     }
 }
 
-void LUTTireModel::IntStateGetIncrement(const unsigned int off_x,
-                                        const ChState& x_new,
-                                        const ChState& x,
-                                        const unsigned int off_v,
-                                        ChStateDelta& Dv) {
+void MBTireModel::IntStateGetIncrement(const unsigned int off_x,
+                                       const ChState& x_new,
+                                       const ChState& x,
+                                       const unsigned int off_v,
+                                       ChStateDelta& Dv) {
     unsigned int local_off_x = 0;
     unsigned int local_off_v = 0;
     for (auto& node : m_nodes) {
@@ -459,7 +689,7 @@ void LUTTireModel::IntStateGetIncrement(const unsigned int off_x,
     }
 }
 
-void LUTTireModel::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
+void MBTireModel::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
     // Applied nodal forces (calculated in CalculateForces)
     unsigned int local_off_v = 0;
     for (auto& node : m_nodes) {
@@ -478,10 +708,10 @@ void LUTTireModel::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& 
     }
 }
 
-void LUTTireModel::IntLoadResidual_Mv(const unsigned int off,
-                                      ChVectorDynamic<>& R,
-                                      const ChVectorDynamic<>& w,
-                                      const double c) {
+void MBTireModel::IntLoadResidual_Mv(const unsigned int off,
+                                     ChVectorDynamic<>& R,
+                                     const ChVectorDynamic<>& w,
+                                     const double c) {
     unsigned int local_off_v = 0;
     for (auto& node : m_nodes) {
         node->NodeIntLoadResidual_Mv(off + local_off_v, R, w, c);
@@ -489,12 +719,12 @@ void LUTTireModel::IntLoadResidual_Mv(const unsigned int off,
     }
 }
 
-void LUTTireModel::IntToDescriptor(const unsigned int off_v,
-                                   const ChStateDelta& v,
-                                   const ChVectorDynamic<>& R,
-                                   const unsigned int off_L,
-                                   const ChVectorDynamic<>& L,
-                                   const ChVectorDynamic<>& Qc) {
+void MBTireModel::IntToDescriptor(const unsigned int off_v,
+                                  const ChStateDelta& v,
+                                  const ChVectorDynamic<>& R,
+                                  const unsigned int off_L,
+                                  const ChVectorDynamic<>& L,
+                                  const ChVectorDynamic<>& Qc) {
     unsigned int local_off_v = 0;
     for (auto& node : m_nodes) {
         node->NodeIntToDescriptor(off_v + local_off_v, v, R);
@@ -502,10 +732,10 @@ void LUTTireModel::IntToDescriptor(const unsigned int off_v,
     }
 }
 
-void LUTTireModel::IntFromDescriptor(const unsigned int off_v,
-                                     ChStateDelta& v,
-                                     const unsigned int off_L,
-                                     ChVectorDynamic<>& L) {
+void MBTireModel::IntFromDescriptor(const unsigned int off_v,
+                                    ChStateDelta& v,
+                                    const unsigned int off_L,
+                                    ChVectorDynamic<>& L) {
     unsigned int local_off_v = 0;
     for (auto& node : m_nodes) {
         node->NodeIntFromDescriptor(off_v + local_off_v, v);

@@ -27,7 +27,7 @@
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_RigidTire.h"
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_TMeasyTire.h"
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_Pac89Tire.h"
-#include "chrono_models/vehicle/hmmwv/tire/HMMWV_LUTTire.h"
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_MBTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Wheel.h"
 
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
@@ -59,11 +59,11 @@ using namespace chrono::vehicle;
 // -----------------------------------------------------------------------------
 
 // Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
 
 // Tire model
-enum class TireType { RIGID, TMEASY, FIALA, PAC89, PAC02, ANCF4, ANCF8, ANCF_TOROIDAL, REISSNER, LUT };
-TireType tire_type = TireType::LUT;
+enum class TireType { RIGID, TMEASY, FIALA, PAC89, PAC02, ANCF4, ANCF8, ANCF_TOROIDAL, REISSNER, MB };
+TireType tire_type = TireType::MB;
 
 // Read from JSON specification file?
 bool use_JSON = false;
@@ -145,8 +145,9 @@ int main() {
             case TireType::REISSNER:
                 tire = chrono_types::make_shared<hmmwv::HMMWV_ReissnerTire>("Reissner tire");
                 break;
-            case TireType::LUT:
-                tire = chrono_types::make_shared<hmmwv::HMMWV_LUTTire>("LUT Tire");
+            case TireType::MB:
+                tire = chrono_types::make_shared<hmmwv::HMMWV_MBTire>("Multibody Tire");
+                break;
         }
     }
 
