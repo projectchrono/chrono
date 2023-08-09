@@ -125,6 +125,17 @@ double ChFunction_BSpline::Get_y_dxdx(double x) const {
     return ydd;
 }
 
+double ChFunction_BSpline::Get_y_dxdxdx(double x) const {
+    double yddd = 0;
+    int spanU = m_basis_tool->FindSpan(m_p, x, m_knots);
+    ChMatrixDynamic<> DN(4, m_p + 1);
+    m_basis_tool->BasisEvaluateDeriv(m_p, spanU, x, m_knots, DN);
+    int uind = spanU - m_p;
+    for (int i = 0; i <= m_p; ++i)
+        yddd += DN(3, i) * m_cpoints(uind + i);
+    return yddd;
+}
+
 void ChFunction_BSpline::Recompute_Constrained(
     int p,                                  ///< order
     const ChVectorDynamic<>& x_interp,      ///< parameters (eg. times) at which perform interpolation
