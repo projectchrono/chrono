@@ -72,6 +72,10 @@ int main(int argc, char* argv[]) {
     ////mat.kn = 2.5e6;
     ////parser.SetBodyContactMaterial("head", mat);  // hardcoded for R2D2 model
 
+    // Display raw XML string
+    std::cout << "\nURDF input\n" << std::endl;
+    std::cout << parser.GetXMLstring() << std::endl;
+
     // Report parsed elements
     parser.PrintModelBodyTree();
     parser.PrintModelBodies();
@@ -79,6 +83,17 @@ int main(int argc, char* argv[]) {
 
     // Create the Chrono model
     parser.PopulateSystem(sys);
+
+    // Optional custom processing
+    std::cout << "\nCustom processing example - scan elements \"link\"\n" << std::endl;
+    class MyCustomProcessor : public ChParserURDF::CustomProcessor {
+        virtual void Process(const tinyxml2::XMLElement& element, ChSystem& system) override {
+            std::cout << "Process element: " << element.Name() << std::endl;
+            std::cout << "   First child name: " << element.FirstChildElement()->Name() << std::endl;
+        }
+    };
+    parser.CustomProcess("link", chrono_types::make_shared<MyCustomProcessor>());
+    std::cout << std::endl;
 
     // Get location of the root body
     auto root_loc = parser.GetRootChBody()->GetPos();
