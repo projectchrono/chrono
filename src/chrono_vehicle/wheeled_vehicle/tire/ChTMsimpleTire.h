@@ -137,7 +137,7 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
     /// Set the tire reference coefficient of friction.
     void SetFrictionCoefficient(double coeff);
 
-    /// Set rolling resistance coefficients.
+    /// Set rolling resistance coefficient (default: 0.01).
     void SetRollingResistanceCoefficient(double rr_coeff);
 
     /// Generate basic tire plots.

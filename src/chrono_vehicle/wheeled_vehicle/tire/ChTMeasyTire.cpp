@@ -67,7 +67,8 @@ ChTMeasyTire::ChTMeasyTire(const std::string& name)
       m_frblend_begin(1.0),
       m_frblend_end(3.0),
       m_bottom_radius(0.0),
-      m_bottom_stiffness(0.0) {
+      m_bottom_stiffness(0.0),
+      m_rolling_resistance(0.01) {
     m_tireforce.force = ChVector<>(0, 0, 0);
     m_tireforce.point = ChVector<>(0, 0, 0);
     m_tireforce.moment = ChVector<>(0, 0, 0);
