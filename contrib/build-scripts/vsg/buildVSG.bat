@@ -9,6 +9,7 @@
 @rem   project configuration scripts required to configure Chrono with the Chrono::VSG module enabled.
 @rem
 @rem Notes:
+@rem - The script accepts 1 optional argument to override the install directory.
 @rem - This script uses the following versions of the various codes from their respective repositories, with the
 @rem   only exception being vsgImGui which pulls the latest version.
 @rem      VulkanSceneGraph (github.com/vsg-dev/VulkanSceneGraph.git): Tag v1.0.7
@@ -34,6 +35,14 @@ set BUILDDEBUG=ON
 )
 
 @rem ------------------------------------------------------------------------
+@rem Allow overriding installation directory through command line argument
+
+if "%~1" NEQ "" (
+   set VSG_INSTALL_DIR=%1
+)
+
+@rem ------------------------------------------------------------------------
+
 
 @if %DOWNLOAD% EQU ON (
     echo "Downloading sources from GitHub"

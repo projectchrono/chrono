@@ -48,7 +48,7 @@ using namespace chrono::viper;
 // -----------------------------------------------------------------------------
 
 // Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 bool output = false;
 const std::string out_dir = GetChronoOutputPath() + "SCM_DEF_SOIL";
@@ -235,6 +235,15 @@ int main(int argc, char* argv[]) {
     terrain.SetMeshWireframe(true);
 
     // Create the run-time visualization interface
+#ifndef CHRONO_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::IRRLICHT)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
+
     std::shared_ptr<ChVisualSystem> vis;
     switch (vis_type) {
         case ChVisualSystem::Type::IRRLICHT: {

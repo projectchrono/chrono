@@ -5,6 +5,9 @@
 @rem - Specify the install directory.
 @rem - Run the script (.\buildURDF.bat).
 @rem - The install directory will contain subdirectories for all necessary dependencies.
+@rem
+@rem Notes:
+@rem - The script accepts 1 optional argument to override the install directory.
 @rem ---------------------------------------------------------------------------------------------------------
 
 set DOWNLOAD=ON
@@ -18,6 +21,13 @@ set BUILDDEBUG=ON
     set CONSOLE_BRIDGE_SOURCE_DIR="C:/Sources/console_bridge"
     set URDFDOM_HEADERS_SOURCE_DIR="C:/Sources/urdfdom_headers"
     set URDFDOM_SOURCE_DIR="C:/Sources/urdfdom"
+)
+
+@rem ------------------------------------------------------------------------
+@rem Allow overriding installation directory through command line argument
+
+if "%~1" NEQ "" (
+   set URDF_INSTALL_DIR=%1
 )
 
 @rem ------------------------------------------------------------------------

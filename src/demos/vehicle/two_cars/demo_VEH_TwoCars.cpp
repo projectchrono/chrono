@@ -41,7 +41,7 @@ using namespace chrono::vehicle::hmmwv;
 // =============================================================================
 
 // Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Simulation step sizes
 double step_size = 0.005;
@@ -119,6 +119,16 @@ int main(int argc, char* argv[]) {
     driver_2.Initialize();
 
     // Create the vehicle run-time visualization interface and the interactive driver
+
+#ifndef CHRONO_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::IRRLICHT)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
+
     std::shared_ptr<ChVehicleVisualSystem> vis;
     switch (vis_type) {
         case ChVisualSystem::Type::IRRLICHT: {
@@ -164,6 +174,9 @@ int main(int argc, char* argv[]) {
     // ---------------
     // Simulation loop
     // ---------------
+
+    hmmwv_1.GetVehicle().EnableRealtime(true);
+    hmmwv_2.GetVehicle().EnableRealtime(true);
 
     while (vis->Run()) {
         double time = sys.GetChTime();

@@ -51,7 +51,7 @@ using namespace chrono::vehicle::hmmwv;
 // =============================================================================
 
 // Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Initial vehicle location and orientation
 ChVector<> initLoc(0, 0, 1.0);
@@ -133,6 +133,15 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create the vehicle run-time visualization interface and the interactive driver
+
+#ifndef CHRONO_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::IRRLICHT)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
 
     // Set the time response for steering and throttle keyboard inputs.
     double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)

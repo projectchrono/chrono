@@ -35,14 +35,14 @@
 #include "chrono_postprocess/ChGnuPlot.h"
 
 #ifdef CHRONO_IRRLICHT
-#include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
-#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
+    #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
 #endif
 
 #ifdef CHRONO_VSG
-#include "chrono_vehicle/driver/ChInteractiveDriverVSG.h"
-#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
+    #include "chrono_vehicle/driver/ChInteractiveDriverVSG.h"
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 using namespace chrono::vsg3d;
 #endif
 
@@ -158,33 +158,28 @@ int main(int argc, char* argv[]) {
     // ------------------
 
     RigidTerrain terrain(u401.GetSystem());
+
     auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     patch_mat->SetFriction(0.9f);
     patch_mat->SetRestitution(0.01f);
-    switch (vis_type) {
-        case ChVisualSystem::Type::IRRLICHT: {
-#ifdef CHRONO_IRRLICHT
-#endif
-            auto patch = terrain.AddPatch(patch_mat, CSYSNORM, 300, 300);
-            patch->SetColor(ChColor(0.8f, 0.8f, 1.0f));
-            patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 1200, 1200);
-            terrain.Initialize();
-            break;
-        }
-        case ChVisualSystem::Type::VSG: {
-#ifdef CHRONO_VSG
-#endif
-            auto patch = terrain.AddPatch(patch_mat, CSYSNORM, 300, 300);
-            patch->SetColor(ChColor(0.8f, 0.8f, 1.0f));
-            patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 100, 100);
-            terrain.Initialize();
-            break;
-        }
-    }
+
+    auto patch = terrain.AddPatch(patch_mat, CSYSNORM, 300, 300);
+    patch->SetColor(ChColor(0.8f, 0.8f, 1.0f));
+    patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 1200, 1200);
+    terrain.Initialize();
 
     // ------------------------------------------------------------------------------
     // Create the vehicle run-time visualization interface and the interactive driver
     // ------------------------------------------------------------------------------
+
+#ifndef CHRONO_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::IRRLICHT)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
 
     // Set the time response for steering and throttle keyboard inputs.
     double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
