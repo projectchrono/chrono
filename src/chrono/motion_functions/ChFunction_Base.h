@@ -68,7 +68,8 @@ class ChApi ChFunction {
         FUNCT_SINE,
         FUNCT_LAMBDA,
         FUNCT_CYCLOIDAL,
-        FUNCT_BSPLINE
+        FUNCT_BSPLINE,
+        FUNCT_DOUBLES
     };
 
   public:

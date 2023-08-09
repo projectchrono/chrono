@@ -196,7 +196,7 @@ int ChFunction::FileAsciiPairsSave(ChStreamOutAscii& m_file, double mxmin, doubl
     return 1;
 }
 
-void ChFunction::EvaluateIntervaldN(ChMatrixDynamic<>& data, double xmin, double xmax, double step, int der = 0) {
+void ChFunction::EvaluateIntervaldN(ChMatrixDynamic<>& data, double xmin, double xmax, double step, int der) {
     int num_samples = (xmax - xmin) / step;
     data.resize(num_samples, der + 2); // data = [x, y(x), y_dx(x), ...]
     double x = xmin;
