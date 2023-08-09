@@ -56,7 +56,7 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
     virtual bool IsFixed() const override;
 
     /// Get atomic mass of the node.
-    double GetMass() { return variables.GetBodyMass(); }
+    double GetMass() const { return variables.GetBodyMass(); }
     /// Set atomic mass of the node.
     void SetMass(double mm) { variables.SetBodyMass(mm); }
 
@@ -64,19 +64,19 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
     ChMatrix33<>& GetInertia() { return variables.GetBodyInertia(); }
 
     /// Set the initial (reference) frame
-    void SetX0(ChFrame<> mx) { X0 = mx; }
+    void SetX0(const ChFrame<>& mx) { X0 = mx; }
     /// Get the initial (reference) frame
     const ChFrame<>& GetX0() const { return X0; }
     /// Access  the initial (reference) frame
     ChFrame<>& GetX0ref() { return X0; }
 
     /// Set the 3d applied force, in absolute reference
-    void SetForce(ChVector<> mf) { Force = mf; }
+    void SetForce(const ChVector<>& mf) { Force = mf; }
     /// Get the 3d applied force, in absolute reference
     const ChVector<>& GetForce() const { return Force; }
 
     /// Set the 3d applied torque, in node reference
-    void SetTorque(ChVector<> mf) { Torque = mf; }
+    void SetTorque(const ChVector<>& mf) { Torque = mf; }
     /// Get the 3d applied torque, in node reference
     const ChVector<>& GetTorque() const { return Torque; }
 
