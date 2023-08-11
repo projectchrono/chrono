@@ -110,6 +110,10 @@ if(ENABLE_MODULE_OPENGL)
     list(APPEND LIBS "ChronoEngine_opengl")
 endif()
 
+if(ENABLE_MODULE_POSTPROCESS)
+    list(APPEND LIBS "ChronoEngine_postprocess")
+endif()
+
 #--------------------------------------------------------------
 # Create the executables
 
