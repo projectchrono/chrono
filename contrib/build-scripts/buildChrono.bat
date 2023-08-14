@@ -94,6 +94,7 @@ cmake -G %BUILDSYSTEM% -B %BUILD_DIR% -S %SOURCE_DIR% ^
       -Durdfdom_DIR:PATH=%URDF_INSTALL_DIR%/CMake ^
       -Durdfdom_headers_DIR:PATH=%URDF_INSTALL_DIR%/CMake ^
       -Dconsole_bridge_DIR:PATH=%URDF_INSTALL_DIR%/CMake ^
+      -Dtinyxml2_DIR:PATH=%URDF_INSTALL_DIR%/CMake ^
       -DSWIG_EXECUTABLE:FILEPATH=%SWIG_INSTALL_DIR%/swig.exe ^
       -DPYTHON_EXECUTABLE:PATH=%PYTHON_EXECUTABLE_DIR%
 
