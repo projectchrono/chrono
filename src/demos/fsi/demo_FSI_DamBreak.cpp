@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
         // Calculate the pressure of a steady state (p = rho*g*h)
         auto pre_ini = sysFSI.GetDensity() * gz * (-points[i].z() + fzDim);
         auto rho_ini = sysFSI.GetDensity() + pre_ini / (sysFSI.GetSoundSpeed() * sysFSI.GetSoundSpeed());
-        sysFSI.AddSPHParticle(points[i], rho_ini, pre_ini, sysFSI.GetViscosity(), sysFSI.GetKernelLength());
+        sysFSI.AddSPHParticle(points[i], rho_ini, pre_ini, sysFSI.GetViscosity());
     }
 
     // Create Solid region and attach BCE SPH particles
