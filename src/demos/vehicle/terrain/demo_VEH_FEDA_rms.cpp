@@ -68,10 +68,6 @@ bool useMesh = true;
 // Desired vehicle speed (m/s)
 double target_speed = 12;
 
-// Minimum / maximum speed (m/s) for Human driver type
-double minimum_speed = 12;
-double maximum_speed = 12;
-
 // Simulation step size
 double step_size = 1e-3;
 double tire_step_size = 1e-3;
@@ -82,20 +78,16 @@ double fps = 60;
 const std::string out_dir = GetChronoOutputPath() + "OPENCRG_DEMO";
 
 DriverModelType DriverModelFromString(const std::string& str) {
-    if (str == "HUMAN")
-        return DriverModelType::HUMAN;
     if (str == "PID")
         return DriverModelType::PID;
     if (str == "STANLEY")
         return DriverModelType::STANLEY;
     if (str == "SR")
         return DriverModelType::SR;
-    if (str == "XT")
-        return DriverModelType::XT;
     std::cerr << "String \"" + str +
-                     "\" does not represent a valid DriverModelType (HUMAN/PID/SR/XT) - returned DriverModelType::HUMAN"
+                     "\" does not represent a valid DriverModelType (PID/SR/STANLEY) - returned DriverModelType::PID"
               << std::endl;
-    return DriverModelType::HUMAN;
+    return DriverModelType::PID;
 }
 
 // =============================================================================
@@ -132,19 +124,6 @@ class MyDriver {
                 m_steering_controller = &driverStanley->GetSteeringController();
                 break;
             }
-            case DriverModelType::XT: {
-                m_driver_type = "XT";
-
-                auto driverXT = chrono_types::make_shared<ChPathFollowerDriverXT>(
-                    vehicle, path, "my_path", target_speed, vehicle.GetMaxSteeringAngle());
-                driverXT->GetSteeringController().SetLookAheadDistance(5);
-                driverXT->GetSteeringController().SetGains(0.4, 1, 1, 1);
-                driverXT->GetSpeedController().SetGains(0.4, 0, 0);
-
-                m_driver = driverXT;
-                m_steering_controller = &driverXT->GetSteeringController();
-                break;
-            }
             case DriverModelType::SR: {
                 m_driver_type = "SR";
 
@@ -158,31 +137,7 @@ class MyDriver {
                 m_steering_controller = &driverSR->GetSteeringController();
                 break;
             }
-            case DriverModelType::HUMAN: {
-                m_driver_type = "HUMAN";
-
-                // Driver model read from JSON file
-                ////auto driverHUMAN = chrono_types::make_shared<ChHumanDriver>(
-                ////    vehicle::GetDataFile("hmmwv/driver/HumanController.json"), vehicle, path, "my_path",
-                ////    road_width, vehicle.GetMaxSteeringAngle(), 3.2);
-
-                auto driverHUMAN = chrono_types::make_shared<ChHumanDriver>(vehicle, path, "my_path", road_width,
-                                                                            vehicle.GetMaxSteeringAngle(), 3.2);
-                driverHUMAN->SetPreviewTime(0.5);
-                driverHUMAN->SetLateralGains(0.1, 2);
-                driverHUMAN->SetLongitudinalGains(0.1, 0.1, 0.2);
-                driverHUMAN->SetSpeedRange(minimum_speed, maximum_speed);
-
-                m_driver = driverHUMAN;
-                break;
-            }
         }
-    }
-    double GetTraveledDistance() {
-        if (m_type == DriverModelType::HUMAN)
-            return std::static_pointer_cast<ChHumanDriver>(m_driver)->GetTraveledDistance();
-        else
-            return -99;
     }
     DriverInputs GetInputs() { return m_driver->GetInputs(); }
     void Initialize() { m_driver->Initialize(); }
@@ -192,31 +147,11 @@ class MyDriver {
     const std::string& GetDriverType() { return m_driver_type; }
 
     ChVector<> GetTargetLocation() {
-        if (m_type == DriverModelType::HUMAN)
-            return std::static_pointer_cast<ChHumanDriver>(m_driver)->GetTargetLocation();
-        else
             return m_steering_controller->GetTargetLocation();
     }
 
     ChVector<> GetSentinelLocation() {
-        if (m_type == DriverModelType::HUMAN)
-            return std::static_pointer_cast<ChHumanDriver>(m_driver)->GetSentinelLocation();
-        else
             return m_steering_controller->GetSentinelLocation();
-    }
-
-    void PrintStats() {
-        if (m_type != DriverModelType::HUMAN)
-            return;
-
-        auto driverHUMAN = std::static_pointer_cast<ChHumanDriver>(m_driver);
-        std::cout << std::endl;
-        std::cout << "Traveled Distance    = " << driverHUMAN->GetTraveledDistance() << " m" << std::endl;
-        std::cout << "Average Speed        = " << driverHUMAN->GetAverageSpeed() << " m/s" << std::endl;
-        std::cout << "Maximum Speed        = " << driverHUMAN->GetMaxSpeed() << " m/s" << std::endl;
-        std::cout << "Minimum Speed        = " << driverHUMAN->GetMinSpeed() << " m/s" << std::endl;
-        std::cout << "Maximum Lateral Acc. = " << driverHUMAN->GetMaxLatAcc() << " m^2/s" << std::endl;
-        std::cout << "Minimum Lateral Acc. = " << driverHUMAN->GetMinLatAcc() << " m^2/s" << std::endl;
     }
 
   private:
@@ -231,22 +166,27 @@ class MyDriver {
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
+    const double mph_to_mps = 0.44704;
+    const double mps_to_mph = 1.0/mph_to_mps;
     ChCLI cli(argv[0]);
 
     // Set up parameter defaults and command-line arguments
     DriverModelType driver_type = DriverModelType::PID;
-    std::string crg_road_file = "terrain/crg_roads/RoadCourse.crg";
+    std::string crg_road_file = "terrain/crg_roads/detrended_rms_course_1in.crg";
     bool yup = false;
 
-    cli.AddOption<std::string>("Demo", "m,model", "Controller model type - PID, STANLEY, XT, SR, HUMAN", "HUMAN");
+    cli.AddOption<std::string>("Demo", "m,model", "Controller model type - PID, STANLEY, SR", "PID");
     cli.AddOption<std::string>("Demo", "f,roadfile", "CRG road filename", crg_road_file);
+    cli.AddOption<std::string>("Demo", "s,speed", "Desired speed (mph)", "1.0");
     cli.AddOption<bool>("Demo", "y,yup", "Use YUP world frame", std::to_string(yup));
-
     if (!cli.Parse(argc, argv, true))
         return 1;
 
     driver_type = DriverModelFromString(cli.GetAsType<std::string>("model"));
     crg_road_file = vehicle::GetDataFile(cli.GetAsType<std::string>("roadfile"));
+    std::string speed_s = cli.GetAsType<std::string>("speed");
+    GetLog() << "Got speed = " << speed_s << "\n";
+    target_speed = mph_to_mps * std::stod(speed_s);
     yup = cli.GetAsType<bool>("yup");
 
     // ----------------
@@ -318,12 +258,13 @@ int main(int argc, char* argv[]) {
     // ------------------
 
     // Initial location and orientation from CRG terrain (create vehicle 0.5 m above road)
-    double xofs = -100.0;
-    init_csys.pos += 0.5 * ChWorldFrame::Vertical()+ChVector<>(xofs,0,0);
+    init_csys.pos += 0.5 * ChWorldFrame::Vertical()+ChVector<>(1,0,0);
 
     // Create the HMMWV vehicle, set parameters, and initialize
     FEDA my_feda(&sys);
     my_feda.SetContactMethod(ChContactMethod::SMC);
+    my_feda.SetTireCollisionType(ChTire::CollisionType::ENVELOPE);
+    my_feda.SetTirePressure(60 * 6894.76); // 60 psi -> pascal
     my_feda.SetChassisFixed(false);
     my_feda.SetInitPosition(init_csys);
     my_feda.SetEngineType(EngineModelType::SIMPLE_MAP);
@@ -347,7 +288,6 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Driver model: " << driver.GetDriverType() << std::endl << std::endl;
 
-    chrono::utils::ChRunningAverage velAvg(1000);
     double vel = 0;
     // -------------------------------
     // Create the visualization system
@@ -380,12 +320,18 @@ int main(int argc, char* argv[]) {
     int sim_frame = 0;
     int render_frame = 0;
 
-    double max_travel = 7000.0;
+    double max_travel = 404.0;
 
+    chrono::utils::ChISO2631_Vibration_SeatCushionLogger cushion(step_size);
+    
     while (vis->Run()) {
         double time = my_feda.GetSystem()->GetChTime();
         ChVector<> xpos = my_feda.GetVehicle().GetPos();
+        ChVector<> sacc = my_feda.GetVehicle().GetPointAcceleration(ChVector<>(-1.0,1.0,0.5));
         vel = my_feda.GetVehicle().GetSpeed();
+        if(xpos.x() > 100.0) {
+            cushion.AddData(vel, sacc);
+        }
         // Driver inputs
         DriverInputs driver_inputs = driver.GetInputs();
 
@@ -419,21 +365,18 @@ int main(int argc, char* argv[]) {
         vis->Advance(step_size);
         sys.DoStepDynamics(step_size);
 
-        if (DriverModelType::HUMAN == driver_type) {
-            if (driver.GetTraveledDistance() > max_travel)
-                break;
-        }
         // Increment simulation frame number
         sim_frame++;
-        if(xpos.x() > 304.0) {
+        if(xpos.x() > max_travel) {
             GetLog() << "Front wheels at x = " << xpos.x() << " m\n";
             GetLog() << "End of rms surface reached. Regular simulation end.\n";
             break;
         }
     }
 
-    GetLog() << "Average Speed = " << vel << " m/s\n";
-    //driver.PrintStats();
-
+    double velAvg = mps_to_mph * cushion.GetAVGSpeed();
+    double absPow = cushion.GetAbsorbedPowerVertical();
+    GetLog() << "Average Velocity = " << velAvg << " miles/h\n";
+    GetLog() << "Absorbed Power = " << absPow << " W\n";
     return 0;
 }
