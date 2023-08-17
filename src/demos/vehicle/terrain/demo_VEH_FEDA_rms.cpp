@@ -168,6 +168,8 @@ int main(int argc, char* argv[]) {
 
     const double mph_to_mps = 0.44704;
     const double mps_to_mph = 1.0/mph_to_mps;
+    const double psi_to_pascal = 6894.76;
+    
     ChCLI cli(argv[0]);
 
     // Set up parameter defaults and command-line arguments
@@ -185,7 +187,6 @@ int main(int argc, char* argv[]) {
     driver_type = DriverModelFromString(cli.GetAsType<std::string>("model"));
     crg_road_file = vehicle::GetDataFile(cli.GetAsType<std::string>("roadfile"));
     std::string speed_s = cli.GetAsType<std::string>("speed");
-    GetLog() << "Got speed = " << speed_s << "\n";
     target_speed = mph_to_mps * std::stod(speed_s);
     yup = cli.GetAsType<bool>("yup");
 
@@ -260,17 +261,21 @@ int main(int argc, char* argv[]) {
     // Initial location and orientation from CRG terrain (create vehicle 0.5 m above road)
     init_csys.pos += 0.5 * ChWorldFrame::Vertical()+ChVector<>(1,0,0);
 
+    double tire_pressure_psi = 35.0;
+    
     // Create the HMMWV vehicle, set parameters, and initialize
     FEDA my_feda(&sys);
     my_feda.SetContactMethod(ChContactMethod::SMC);
     my_feda.SetTireCollisionType(ChTire::CollisionType::ENVELOPE);
-    my_feda.SetTirePressure(60 * 6894.76); // 60 psi -> pascal
+    my_feda.SetTirePressure(tire_pressure_psi * psi_to_pascal); // CDT / KRC Test conditions
+    my_feda.SetTireType(tire_model);
+    my_feda.SetTireStepSize(tire_step_size);
     my_feda.SetChassisFixed(false);
     my_feda.SetInitPosition(init_csys);
     my_feda.SetEngineType(EngineModelType::SIMPLE_MAP);
     my_feda.SetTransmissionType(TransmissionModelType::SIMPLE_MAP);
-    my_feda.SetTireType(tire_model);
-    my_feda.SetTireStepSize(tire_step_size);
+    my_feda.SetDamperMode(FEDA::DamperMode::PASSIVE_LOW);   // use semiactive dampers
+    my_feda.SetRideHeight_ObstacleCrossing(); // high static height
     my_feda.Initialize();
 
     my_feda.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
@@ -294,7 +299,7 @@ int main(int argc, char* argv[]) {
     // -------------------------------
 
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
-    vis->SetWindowTitle("OpenCRG Steering");
+    vis->SetWindowTitle("FEDA RMS Test");
     vis->SetWindowSize(1200, 800);
     vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
     vis->AttachVehicle(&my_feda.GetVehicle());
