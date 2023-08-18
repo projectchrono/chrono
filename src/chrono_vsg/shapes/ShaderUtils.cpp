@@ -153,8 +153,18 @@ vsg::ref_ptr<vsg::StateGroup> createLineStateGroup(vsg::ref_ptr<const vsg::Optio
 
     graphicsPipelineConfig->enableArray("inPosition", VK_VERTEX_INPUT_RATE_VERTEX, 12);
     graphicsPipelineConfig->enableArray("inColor", VK_VERTEX_INPUT_RATE_VERTEX, 12);
-    graphicsPipelineConfig->inputAssemblyState->topology = topology;
-    graphicsPipelineConfig->rasterizationState->lineWidth = 1;
+
+    struct SetPipelineStates : public vsg::Visitor {
+        VkPrimitiveTopology topology;
+        SetPipelineStates(VkPrimitiveTopology in) : topology(in) {}
+
+        void apply(vsg::Object& object) { object.traverse(*this); }
+        void apply(vsg::RasterizationState& rs) { rs.lineWidth = 1; }
+        void apply(vsg::InputAssemblyState& ias) { ias.topology = topology; }
+        void apply(vsg::ColorBlendState& cbs) { cbs.configureAttachments(false); }
+    } sps(topology);
+
+    graphicsPipelineConfig->accept(sps);
 
     // if required initialize GraphicsPipeline/Layout etc.
     if (sharedObjects)
@@ -201,13 +211,14 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
     graphicsPipelineConfig->enableArray("vsg_TexCoord0", VK_VERTEX_INPUT_RATE_VERTEX, 8);
     graphicsPipelineConfig->enableArray("vsg_Color", VK_VERTEX_INPUT_RATE_VERTEX, 16);
 
+    /*
     if (wireframe) {
         graphicsPipelineConfig->rasterizationState->polygonMode = VK_POLYGON_MODE_LINE;
     }
-
+     */
     if (!use_blending) {
-        // combination of color blending and two sided lighting leeds to strange effects
-        graphicsPipelineConfig->rasterizationState->cullMode = VK_CULL_MODE_NONE;
+        // combination of color blending and two sided lighting leads to strange effects
+        // graphicsPipelineConfig->rasterizationState->cullMode = VK_CULL_MODE_NONE;
         defines.insert("VSG_TWO_SIDED_LIGHTING");
     }
 
@@ -371,10 +382,35 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
         }
     }
 
+    /*
     graphicsPipelineConfig->colorBlendState->attachments = vsg::ColorBlendState::ColorBlendAttachments{
         {use_blending, VK_BLEND_FACTOR_SRC_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, VK_BLEND_OP_ADD,
          VK_BLEND_FACTOR_SRC_ALPHA, VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, VK_BLEND_OP_SUBTRACT,
          VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT}};
+     */
+    struct SetPipelineStates : public vsg::Visitor {
+        bool wireframe;
+        bool blending;
+        SetPipelineStates(bool inWire, bool inBlend) : wireframe(inWire), blending(inBlend) {}
+
+        void apply(vsg::Object& object) { object.traverse(*this); }
+        void apply(vsg::RasterizationState& rs) {
+            if (!blending) {
+                // combination of color blending and two sided lighting leads to strange effects
+                rs.cullMode = VK_CULL_MODE_NONE;
+            }
+            if (wireframe)
+                rs.polygonMode = VK_POLYGON_MODE_LINE;
+            else
+                rs.polygonMode = VK_POLYGON_MODE_FILL;
+        }
+        void apply(vsg::InputAssemblyState& ias) {
+            // if (wireframe) ias.topology = VK_POLYGON_MODE_LINE;
+        }
+        void apply(vsg::ColorBlendState& cbs) { cbs.configureAttachments(blending); }
+    } sps(wireframe, use_blending);
+
+    graphicsPipelineConfig->accept(sps);
 
     // if required initialize GraphicsPipeline/Layout etc.
     if (sharedObjects)

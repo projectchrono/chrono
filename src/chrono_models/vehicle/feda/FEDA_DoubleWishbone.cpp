@@ -407,13 +407,17 @@ FEDA_DoubleWishboneRear::FEDA_DoubleWishboneRear(const std::string& name, int ri
 // Destructors
 // -----------------------------------------------------------------------------
 FEDA_DoubleWishboneFront::~FEDA_DoubleWishboneFront() {
+    /* what happens here?
     if (m_shockODE)
         delete m_shockODE;
+     */
 }
 
 FEDA_DoubleWishboneRear::~FEDA_DoubleWishboneRear() {
+    /* what happens here?
     if (m_shockODE)
         delete m_shockODE;
+     */
 }
 
 void FEDA_DoubleWishboneFront::Initialize(std::shared_ptr<ChChassis> chassis,
