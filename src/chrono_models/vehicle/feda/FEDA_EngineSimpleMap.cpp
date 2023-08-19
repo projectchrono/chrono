@@ -61,8 +61,9 @@ void FEDA_EngineSimpleMap::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunc
     map0.AddPoint(2525 * rpm2rads, -95.9);
     map0.AddPoint(2850 * rpm2rads, -99.9);
 
-    mapF.AddPoint(-10.472, 300.0 * limit_factor);
-    mapF.AddPoint(0, 300.0 * limit_factor);
+    mapF.AddPoint(-10.472, 400.0 * limit_factor);
+    mapF.AddPoint(0, 400.0 * limit_factor);
+    mapF.AddPoint(100 * rpm2rads, 400 * limit_factor);
     mapF.AddPoint(700 * rpm2rads, 400 * limit_factor);
     mapF.AddPoint(800 * rpm2rads, 410 * limit_factor);
     mapF.AddPoint(900 * rpm2rads, 450 * limit_factor);
@@ -84,6 +85,7 @@ void FEDA_EngineSimpleMap::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunc
     mapF.AddPoint(2500 * rpm2rads, 520 * limit_factor);
     mapF.AddPoint(2525 * rpm2rads, 505 * limit_factor);
     mapF.AddPoint(2550 * rpm2rads, 0);
+    mapF.AddPoint(2600 * rpm2rads, -500);
 }
 
 }  // namespace feda
