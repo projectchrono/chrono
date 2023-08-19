@@ -301,7 +301,7 @@ int main(int argc, char* argv[]) {
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
     vis->SetWindowTitle("FEDA RMS Test");
     vis->SetWindowSize(1200, 800);
-    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 10.0, 0.5);
     vis->AttachVehicle(&my_feda.GetVehicle());
 
     auto sentinel = chrono_types::make_shared<ChSphereShape>(0.1);
