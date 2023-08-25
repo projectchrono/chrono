@@ -37,7 +37,7 @@ namespace chrono {
 ///     free/locked translational/rotational DOF by default;
 /// In ChLinkMate class, the X axis is considered as the
 ///     free/locked translational/rotational DOF by default,
-///     except ChLinkMateRotation where the Z axis is set as 
+///     except ChLinkMateRevolute where the Z axis is set as 
 ///     the default rotation axis again.
 
 class ChApi ChLinkMate : public ChLink {
