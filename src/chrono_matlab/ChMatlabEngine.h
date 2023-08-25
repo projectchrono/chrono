@@ -81,6 +81,9 @@ class ChApiMatlab ChMatlabEngine {
     /// it might undergo resizing.
     bool GetVariable(ChMatrixDynamic<double>& mmatr, std::string varname);
 
+    /// Fetch a string from Matlab environment, specifying its name as variable.
+    bool ChMatlabEngine::GetString(std::string& str, std::string varname);
+
     /// Keep matlab engine open even after termination of C++ program.
     /// Useful to skip initial time to reload engine (NB: thus, it must be closed manually).
     void KeepEngineOpen(bool open);
