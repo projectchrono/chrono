@@ -206,9 +206,9 @@ void ChVehicleVisualSystemIrrlicht::Advance(double step) {
     static int stepsbetweensound = 0;
 
     // Update sound pitch
-    if (m_car_sound && m_vehicle->GetPowertrainA()) {
+    if (m_car_sound && m_vehicle->GetPowertrainAssembly()) {
         stepsbetweensound++;
-        double engine_rpm = m_vehicle->GetPowertrainA()->GetEngine()->GetMotorSpeed() * 60 / CH_C_2PI;
+        double engine_rpm = m_vehicle->GetPowertrainAssembly()->GetEngine()->GetMotorSpeed() * 60 / CH_C_2PI;
         double soundspeed = engine_rpm / (4000.);  // denominator: to guess
         if (soundspeed < 0.1)
             soundspeed = 0.1;
