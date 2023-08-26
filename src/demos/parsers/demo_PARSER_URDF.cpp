@@ -89,7 +89,9 @@ int main(int argc, char* argv[]) {
     class MyCustomProcessor : public ChParserURDF::CustomProcessor {
         virtual void Process(const tinyxml2::XMLElement& element, ChSystem& system) override {
             std::cout << "Process element: " << element.Name() << std::endl;
-            std::cout << "   First child name: " << element.FirstChildElement()->Name() << std::endl;
+            if (element.FirstChildElement()) {
+                std::cout << "   First child name: " << element.FirstChildElement()->Name() << std::endl;
+            }
         }
     };
     parser.CustomProcess("link", chrono_types::make_shared<MyCustomProcessor>());
