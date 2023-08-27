@@ -152,7 +152,7 @@ cmake  -G "${BUILDSYSTEM}" -B build_vsgXchange -S ${VSGXCHANGE_SOURCE_DIR}  \
       -Dassimp_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/assimp-5.2
 
 echo -e "\n------------------------ Build and install vsgXchange\n"
-cmake --build build_vxsgXchange --config Release
+cmake --build build_vsgXchange --config Release
 cmake --install build_vsgXchange --config Release --prefix ${VSG_INSTALL_DIR}
 if [ ${BUILDDEBUG} = ON ]
 then
