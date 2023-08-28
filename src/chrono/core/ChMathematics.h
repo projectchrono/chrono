@@ -85,7 +85,7 @@ inline double ChMin(double a, double b) {
 }
 
 /// Root-Mean-Square of given array
-double ChRMS(double* y_array, int y_size);
+ChApi double ChRMS(double* y_array, int y_size);
 
 /// Clamp and modify the specified value to lie within the given limits.
 template <typename T>
