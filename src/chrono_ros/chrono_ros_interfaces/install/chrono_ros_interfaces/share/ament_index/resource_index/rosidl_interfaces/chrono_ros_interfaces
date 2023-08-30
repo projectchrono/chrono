@@ -1,0 +1,12 @@
+msg/ChDriverInputs.idl
+msg/ChDriverInputs.msg
+msg/ChVehicle.idl
+msg/ChVehicle.msg
+srv/ChStartSimulation.idl
+srv/ChStartSimulation.srv
+srv/ChStartSimulation_Request.msg
+srv/ChStartSimulation_Response.msg
+srv/ChStopSimulation.idl
+srv/ChStopSimulation.srv
+srv/ChStopSimulation_Request.msg
+srv/ChStopSimulation_Response.msg

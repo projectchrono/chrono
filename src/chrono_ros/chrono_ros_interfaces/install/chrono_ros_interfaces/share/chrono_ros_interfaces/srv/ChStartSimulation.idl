@@ -1,0 +1,15 @@
+// generated from rosidl_adapter/resource/srv.idl.em
+// with input from chrono_ros_interfaces/srv/ChStartSimulation.srv
+// generated code does not contain a copyright notice
+
+
+module chrono_ros_interfaces {
+  module srv {
+    struct ChStartSimulation_Request {
+      uint8 structure_needs_at_least_one_member;
+    };
+    struct ChStartSimulation_Response {
+      boolean success;
+    };
+  };
+};

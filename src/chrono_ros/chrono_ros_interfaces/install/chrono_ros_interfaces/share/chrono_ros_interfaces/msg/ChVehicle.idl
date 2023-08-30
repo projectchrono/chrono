@@ -1,0 +1,23 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from chrono_ros_interfaces/msg/ChVehicle.msg
+// generated code does not contain a copyright notice
+
+#include "geometry_msgs/msg/Accel.idl"
+#include "geometry_msgs/msg/Pose.idl"
+#include "geometry_msgs/msg/Twist.idl"
+
+module chrono_ros_interfaces {
+  module msg {
+    @verbatim (language="comment", text=
+      "Chrono ROS message with information coming from a ChVehicle")
+    struct ChVehicle {
+      @verbatim (language="comment", text=
+        "Position/orientation, velocity, and acceleration information")
+      geometry_msgs::msg::Pose pose;
+
+      geometry_msgs::msg::Twist twist;
+
+      geometry_msgs::msg::Accel accel;
+    };
+  };
+};
