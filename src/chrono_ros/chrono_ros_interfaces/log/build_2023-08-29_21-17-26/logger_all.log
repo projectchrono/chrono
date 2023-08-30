@@ -1,0 +1,136 @@
+[0.193s] DEBUG:colcon:Command line arguments: ['/usr/bin/colcon', 'build', '--build-base', '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces', '--install-base', '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/']
+[0.193s] DEBUG:colcon:Parsed command line arguments: Namespace(log_base=None, log_level=None, verb_name='build', build_base='/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces', install_base='/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/', merge_install=False, symlink_install=False, test_result_base=None, continue_on_error=False, executor='parallel', parallel_workers=12, event_handlers=None, ignore_user_meta=False, metas=['./colcon.meta'], base_paths=['.'], packages_ignore=None, packages_ignore_regex=None, paths=None, packages_up_to=None, packages_up_to_regex=None, packages_above=None, packages_above_and_dependencies=None, packages_above_depth=None, packages_select_by_dep=None, packages_skip_by_dep=None, packages_skip_up_to=None, packages_select_build_failed=False, packages_skip_build_finished=False, packages_select_test_failures=False, packages_skip_test_passed=False, packages_select=None, packages_skip=None, packages_select_regex=None, packages_skip_regex=None, packages_start=None, packages_end=None, allow_overriding=[], cmake_args=None, cmake_target=None, cmake_target_skip_unavailable=False, cmake_clean_cache=False, cmake_clean_first=False, cmake_force_configure=False, ament_cmake_args=None, catkin_cmake_args=None, catkin_skip_building_tests=False, verb_parser=<colcon_defaults.argument_parser.defaults.DefaultArgumentsDecorator object at 0x7f93c3a2a830>, verb_extension=<colcon_core.verb.build.BuildVerb object at 0x7f93c4229ff0>, main=<bound method BuildVerb.main of <colcon_core.verb.build.BuildVerb object at 0x7f93c4229ff0>>)
+[0.217s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) check parameters
+[0.218s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) check parameters
+[0.218s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) check parameters
+[0.218s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) check parameters
+[0.218s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) discover
+[0.218s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) discover
+[0.218s] INFO:colcon.colcon_core.package_discovery:Crawling recursively for packages in '/home/ros/ros/src/chrono_ros/chrono_ros_interfaces'
+[0.218s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ignore', 'ignore_ament_install']
+[0.218s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore'
+[0.218s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore_ament_install'
+[0.218s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_pkg']
+[0.218s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_pkg'
+[0.218s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_meta']
+[0.218s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_meta'
+[0.218s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ros']
+[0.218s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ros'
+[0.228s] DEBUG:colcon.colcon_core.package_identification:Package '.' with type 'ros.ament_cmake' and name 'chrono_ros_interfaces'
+[0.228s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) using defaults
+[0.229s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) discover
+[0.229s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) using defaults
+[0.229s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) discover
+[0.229s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) using defaults
+[0.247s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) check parameters
+[0.247s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) discover
+[0.248s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 1 installed packages in /home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces
+[0.250s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 192 installed packages in /opt/ros/iron
+[0.251s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) using defaults
+[0.278s] Level 5:colcon.colcon_core.verb:set package 'chrono_ros_interfaces' build argument 'cmake_args' from command line to 'None'
+[0.278s] Level 5:colcon.colcon_core.verb:set package 'chrono_ros_interfaces' build argument 'cmake_target' from command line to 'None'
+[0.278s] Level 5:colcon.colcon_core.verb:set package 'chrono_ros_interfaces' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.278s] Level 5:colcon.colcon_core.verb:set package 'chrono_ros_interfaces' build argument 'cmake_clean_cache' from command line to 'False'
+[0.278s] Level 5:colcon.colcon_core.verb:set package 'chrono_ros_interfaces' build argument 'cmake_clean_first' from command line to 'False'
+[0.278s] Level 5:colcon.colcon_core.verb:set package 'chrono_ros_interfaces' build argument 'cmake_force_configure' from command line to 'False'
+[0.278s] Level 5:colcon.colcon_core.verb:set package 'chrono_ros_interfaces' build argument 'ament_cmake_args' from command line to 'None'
+[0.278s] Level 5:colcon.colcon_core.verb:set package 'chrono_ros_interfaces' build argument 'catkin_cmake_args' from command line to 'None'
+[0.278s] Level 5:colcon.colcon_core.verb:set package 'chrono_ros_interfaces' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.278s] DEBUG:colcon.colcon_core.verb:Building package 'chrono_ros_interfaces' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces', 'merge_install': False, 'path': '/home/ros/ros/src/chrono_ros/chrono_ros_interfaces', 'symlink_install': False, 'test_result_base': None}
+[0.279s] INFO:colcon.colcon_core.executor:Executing jobs using 'parallel' executor
+[0.282s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete
+[0.282s] INFO:colcon.colcon_ros.task.ament_cmake.build:Building ROS package in '/home/ros/ros/src/chrono_ros/chrono_ros_interfaces' with build type 'ament_cmake'
+[0.282s] INFO:colcon.colcon_cmake.task.cmake.build:Building CMake package in '/home/ros/ros/src/chrono_ros/chrono_ros_interfaces'
+[0.287s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_core.shell.bat': Not used on non-Windows systems
+[0.287s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.287s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.297s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/iron /usr/bin/cmake --build /home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces -- -j12 -l12
+[5.355s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/iron /usr/bin/cmake --build /home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces -- -j12 -l12
+[5.448s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/iron /usr/bin/cmake --install /home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces
+[5.512s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(chrono_ros_interfaces)
+[5.513s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/iron /usr/bin/cmake --install /home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces
+[5.518s] Level 1:colcon.colcon_core.environment:checking '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces' for CMake module files
+[5.519s] Level 1:colcon.colcon_core.environment:checking '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces' for CMake config files
+[5.520s] Level 1:colcon.colcon_core.shell:create_environment_hook('chrono_ros_interfaces', 'cmake_prefix_path')
+[5.521s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/share/chrono_ros_interfaces/hook/cmake_prefix_path.ps1'
+[5.522s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/share/chrono_ros_interfaces/hook/cmake_prefix_path.dsv'
+[5.523s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/share/chrono_ros_interfaces/hook/cmake_prefix_path.sh'
+[5.524s] Level 1:colcon.colcon_core.environment:checking '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/libchrono_ros_interfaces__rosidl_typesupport_c.so'
+[5.525s] Level 1:colcon.colcon_core.environment:checking '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/libchrono_ros_interfaces__rosidl_generator_c.so'
+[5.525s] Level 1:colcon.colcon_core.environment:checking '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/libchrono_ros_interfaces__rosidl_typesupport_fastrtps_cpp.so'
+[5.525s] Level 1:colcon.colcon_core.environment:checking '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/libchrono_ros_interfaces__rosidl_typesupport_introspection_c.so'
+[5.525s] Level 1:colcon.colcon_core.environment:checking '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/libchrono_ros_interfaces__rosidl_typesupport_fastrtps_c.so'
+[5.525s] Level 1:colcon.colcon_core.environment:checking '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/lib'
+[5.525s] Level 1:colcon.colcon_core.shell:create_environment_hook('chrono_ros_interfaces', 'ld_library_path_lib')
+[5.526s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/share/chrono_ros_interfaces/hook/ld_library_path_lib.ps1'
+[5.527s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/share/chrono_ros_interfaces/hook/ld_library_path_lib.dsv'
+[5.527s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/share/chrono_ros_interfaces/hook/ld_library_path_lib.sh'
+[5.528s] Level 1:colcon.colcon_core.environment:checking '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/libchrono_ros_interfaces__rosidl_typesupport_introspection_cpp.so'
+[5.528s] Level 1:colcon.colcon_core.environment:checking '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/libchrono_ros_interfaces__rosidl_typesupport_cpp.so'
+[5.528s] Level 1:colcon.colcon_core.environment:checking '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/bin'
+[5.528s] Level 1:colcon.colcon_core.environment:checking '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/lib/pkgconfig/chrono_ros_interfaces.pc'
+[5.528s] Level 1:colcon.colcon_core.environment:checking '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/lib/python3.10/site-packages'
+[5.528s] Level 1:colcon.colcon_core.shell:create_environment_hook('chrono_ros_interfaces', 'pythonpath')
+[5.530s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/share/chrono_ros_interfaces/hook/pythonpath.ps1'
+[5.530s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/share/chrono_ros_interfaces/hook/pythonpath.dsv'
+[5.531s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/share/chrono_ros_interfaces/hook/pythonpath.sh'
+[5.531s] Level 1:colcon.colcon_core.environment:checking '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/bin'
+[5.533s] INFO:colcon.colcon_core.shell:Creating package script '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/share/chrono_ros_interfaces/package.ps1'
+[5.534s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/share/chrono_ros_interfaces/package.dsv'
+[5.535s] INFO:colcon.colcon_core.shell:Creating package script '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/share/chrono_ros_interfaces/package.sh'
+[5.536s] INFO:colcon.colcon_core.shell:Creating package script '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/share/chrono_ros_interfaces/package.bash'
+[5.537s] INFO:colcon.colcon_core.shell:Creating package script '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/share/chrono_ros_interfaces/package.zsh'
+[5.538s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/share/colcon-core/packages/chrono_ros_interfaces)
+[5.622s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(chrono_ros_interfaces)
+[5.623s] Level 1:colcon.colcon_core.environment:checking '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces' for CMake module files
+[5.624s] Level 1:colcon.colcon_core.environment:checking '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces' for CMake config files
+[5.624s] Level 1:colcon.colcon_core.shell:create_environment_hook('chrono_ros_interfaces', 'cmake_prefix_path')
+[5.625s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/share/chrono_ros_interfaces/hook/cmake_prefix_path.ps1'
+[5.625s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/share/chrono_ros_interfaces/hook/cmake_prefix_path.dsv'
+[5.625s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/share/chrono_ros_interfaces/hook/cmake_prefix_path.sh'
+[5.626s] Level 1:colcon.colcon_core.environment:checking '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/libchrono_ros_interfaces__rosidl_typesupport_c.so'
+[5.626s] Level 1:colcon.colcon_core.environment:checking '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/libchrono_ros_interfaces__rosidl_generator_c.so'
+[5.626s] Level 1:colcon.colcon_core.environment:checking '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/libchrono_ros_interfaces__rosidl_typesupport_fastrtps_cpp.so'
+[5.626s] Level 1:colcon.colcon_core.environment:checking '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/libchrono_ros_interfaces__rosidl_typesupport_introspection_c.so'
+[5.626s] Level 1:colcon.colcon_core.environment:checking '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/libchrono_ros_interfaces__rosidl_typesupport_fastrtps_c.so'
+[5.626s] Level 1:colcon.colcon_core.environment:checking '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/lib'
+[5.626s] Level 1:colcon.colcon_core.shell:create_environment_hook('chrono_ros_interfaces', 'ld_library_path_lib')
+[5.627s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/share/chrono_ros_interfaces/hook/ld_library_path_lib.ps1'
+[5.627s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/share/chrono_ros_interfaces/hook/ld_library_path_lib.dsv'
+[5.627s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/share/chrono_ros_interfaces/hook/ld_library_path_lib.sh'
+[5.628s] Level 1:colcon.colcon_core.environment:checking '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/libchrono_ros_interfaces__rosidl_typesupport_introspection_cpp.so'
+[5.628s] Level 1:colcon.colcon_core.environment:checking '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/libchrono_ros_interfaces__rosidl_typesupport_cpp.so'
+[5.628s] Level 1:colcon.colcon_core.environment:checking '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/bin'
+[5.628s] Level 1:colcon.colcon_core.environment:checking '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/lib/pkgconfig/chrono_ros_interfaces.pc'
+[5.628s] Level 1:colcon.colcon_core.environment:checking '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/lib/python3.10/site-packages'
+[5.628s] Level 1:colcon.colcon_core.shell:create_environment_hook('chrono_ros_interfaces', 'pythonpath')
+[5.629s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/share/chrono_ros_interfaces/hook/pythonpath.ps1'
+[5.629s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/share/chrono_ros_interfaces/hook/pythonpath.dsv'
+[5.629s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/share/chrono_ros_interfaces/hook/pythonpath.sh'
+[5.630s] Level 1:colcon.colcon_core.environment:checking '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/bin'
+[5.630s] INFO:colcon.colcon_core.shell:Creating package script '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/share/chrono_ros_interfaces/package.ps1'
+[5.631s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/share/chrono_ros_interfaces/package.dsv'
+[5.631s] INFO:colcon.colcon_core.shell:Creating package script '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/share/chrono_ros_interfaces/package.sh'
+[5.631s] INFO:colcon.colcon_core.shell:Creating package script '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/share/chrono_ros_interfaces/package.bash'
+[5.632s] INFO:colcon.colcon_core.shell:Creating package script '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/share/chrono_ros_interfaces/package.zsh'
+[5.632s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/share/colcon-core/packages/chrono_ros_interfaces)
+[5.632s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:closing loop
+[5.632s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:loop closed
+[5.632s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete finished with '0'
+[5.632s] DEBUG:colcon.colcon_core.event_reactor:joining thread
+[5.636s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.notify_send': Could not find 'notify-send'
+[5.636s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.terminal_notifier': Not used on non-Darwin systems
+[5.636s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.win32': Not used on non-Windows systems
+[5.636s] INFO:colcon.colcon_notification.desktop_notification:Sending desktop notification using 'notify2'
+[5.636s] DEBUG:colcon.colcon_notification.desktop_notification.notify2:Failed to initialize notify2: org.freedesktop.DBus.Error.NotSupported: Unable to autolaunch a dbus-daemon without a $DISPLAY for X11
+[5.636s] DEBUG:colcon.colcon_core.event_reactor:joined thread
+[5.637s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/local_setup.ps1'
+[5.638s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/_local_setup_util_ps1.py'
+[5.639s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/setup.ps1'
+[5.640s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/local_setup.sh'
+[5.640s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/_local_setup_util_sh.py'
+[5.641s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/setup.sh'
+[5.642s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/local_setup.bash'
+[5.642s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/setup.bash'
+[5.643s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/local_setup.zsh'
+[5.643s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/ros/ros/build/src/chrono_ros/chrono_ros_interfaces/setup.zsh'
