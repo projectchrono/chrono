@@ -136,4 +136,6 @@ install(TARGETS ChronoEngine_vsg
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
 
-install(FILES ${ChronoEngine_VSG_HEADERS} DESTINATION include/chrono_vsg)
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+        DESTINATION include/chrono_vsg
+        FILES_MATCHING PATTERN "*.h")
