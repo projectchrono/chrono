@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Yan Xiao
+// Authors: Yan Xiao, Jason Zhou
 // =============================================================================
 //
 // Demo of several vehicles driving on a highway, vehicles follow paths to stay
@@ -36,11 +36,11 @@
 #include "chrono_synchrono/utils/SynLog.h"
 
 #ifdef CHRONO_SENSOR
-#include "chrono_sensor/ChSensorManager.h"
-#include "chrono_sensor/sensors/ChCameraSensor.h"
-#include "chrono_sensor/filters/ChFilterAccess.h"
-#include "chrono_sensor/filters/ChFilterSave.h"
-#include "chrono_sensor/filters/ChFilterVisualize.h"
+    #include "chrono_sensor/ChSensorManager.h"
+    #include "chrono_sensor/sensors/ChCameraSensor.h"
+    #include "chrono_sensor/filters/ChFilterAccess.h"
+    #include "chrono_sensor/filters/ChFilterSave.h"
+    #include "chrono_sensor/filters/ChFilterVisualize.h"
 using namespace chrono::sensor;
 #endif
 
@@ -67,7 +67,7 @@ ChContactMethod contact_method = ChContactMethod::SMC;
 ChVector<> trackPoint(0.0, 0.0, 1.75);
 
 // Simulation step sizes
-double step_size = 3e-3;
+double step_size = 5e-4;
 
 // Simulation end time
 double end_time = 1000;
@@ -148,8 +148,8 @@ int main(int argc, char* argv[]) {
     vehicle.SetWheelVisualizationType(wheel_vis_type);
 
     // Create and initialize the powertrain system
-    auto engine = ReadEngineJSON(vehicle::GetDataFile(engine_filename));
-    auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(transmission_filename));
+    auto engine = ReadEngineJSON(engine_filename);
+    auto transmission = ReadTransmissionJSON(transmission_filename);
     auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
     vehicle.InitializePowertrain(powertrain);
 
@@ -274,7 +274,7 @@ int main(int argc, char* argv[]) {
             cam_res_height,                                 // image height
             (float)CH_C_PI / 3,                             // FOV
             1,                                              // samples per pixel for antialiasing
-            CameraLensModelType::PINHOLE);                                       // camera type
+            CameraLensModelType::PINHOLE);                  // camera type
 
         intersection_camera->SetName("Intersection Cam");
         intersection_camera->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
