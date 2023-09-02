@@ -117,9 +117,9 @@ TerrainForce ChMBTire::ReportTireForce(ChTerrain* terrain) const {
     return terrain_force;
 }
 
-TerrainForce ChMBTire::ReportTireForce(ChTerrain* terrain, ChCoordsys<>& tire_frame) const {
-    std::cerr << "ChLUTTire::ReportTireForce for local frame not implemented." << std::endl;
-    throw ChException("ChLUTTire::ReportTireForce for local frame not implemented.");
+TerrainForce ChMBTire::ReportTireForceLocal(ChTerrain* terrain, ChCoordsys<>& tire_frame) const {
+    std::cerr << "ChLUTTire::ReportTireForceLocal not implemented." << std::endl;
+    throw ChException("ChLUTTire::ReportTireForceLocal not implemented.");
 }
 
 void ChMBTire::AddVisualizationAssets(VisualizationType vis) {
