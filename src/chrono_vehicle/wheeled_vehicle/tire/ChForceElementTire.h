@@ -27,29 +27,38 @@ namespace vehicle {
 /// @addtogroup vehicle_wheeled_tire
 /// @{
 
-/// Base class for a force lement tire model.
+/// Base class for a force element (handling) tire model.
 class CH_VEHICLE_API ChForceElementTire : public ChTire {
   public:
+    /// Tire contact information.
+    /// A ChForceElementTire performs its own collision detection to evaluate the normal tire load.
+    /// This structure stores information on the current tire-terrain contact state.
+    struct ContactData {
+        ContactData() : in_contact(false), normal_force(0), depth(0) {}
+        bool in_contact;      ///< true if tire in contact with terrain
+        ChCoordsys<> frame;   ///< contact frame (x: long, y: lat, z: normal)
+        ChVector<> vel;       ///< relative velocity expressed in contact frame
+        double normal_force;  ///< magnitude of normal contact force
+        double depth;         ///< penetration depth
+    };
+
     virtual ~ChForceElementTire() {}
 
     /// Report the tire force and moment.
+    /// The return application point, force, and moment are assumed to be expressed in the global reference frame.
     virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override;
 
-    /// Get the tire forces expressed in the tire frame.
+    /// Report the tire forces expressed in the tire frame.
     /// The tire frame has its origin in the contact patch, the X axis in the tire heading direction and the Z axis in
     /// the terrain normal at the contact point.
     /// If the tire is not in contact, the tire frame is not set and the function returns zero force and moment.
     virtual TerrainForce ReportTireForce(ChTerrain* terrain, ChCoordsys<>& tire_frame) const override;
 
-  protected:
-    struct ContactData {
-        bool in_contact;      // true if disc in contact with terrain
-        ChCoordsys<> frame;   // contact frame (x: long, y: lat, z: normal)
-        ChVector<> vel;       // relative velocity expressed in contact frame
-        double normal_force;  // magnitude of normal contact force
-        double depth;         // penetration depth
-    };
+    /// Report current tire-terrain contact information.
+    /// If the tire is not in contact, all information is set to zero.
+    const ContactData& ReportTireContactData() const { return m_data; }
 
+  protected:
     /// Construct a tire with the specified name.
     ChForceElementTire(const std::string& name);
 
@@ -67,7 +76,7 @@ class CH_VEHICLE_API ChForceElementTire : public ChTire {
 
     ContactData m_data;             ///< tire-terrain collision information
     TerrainForce m_tireforce;       ///< tire forces (in tire contact frame)
-    ChFunction_Recorder m_areaDep;  // lookup table for estimation of penetration depth from intersection area
+    ChFunction_Recorder m_areaDep;  ///< lookup table for estimation of penetration depth from intersection area
 
   private:
     virtual void InitializeInertiaProperties() override final;
