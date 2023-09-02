@@ -269,27 +269,6 @@ double ChTMsimpleTire::GetNormalDampingForce(double depth, double velocity) cons
 
 // -----------------------------------------------------------------------------
 
-void ChTMsimpleTire::AddVisualizationAssets(VisualizationType vis) {
-    if (vis == VisualizationType::NONE)
-        return;
-
-    m_cyl_shape =
-        ChVehicleGeometry::AddVisualizationCylinder(m_wheel->GetSpindle(),                                        //
-                                                    ChVector<>(0, GetOffset() + GetVisualizationWidth() / 2, 0),  //
-                                                    ChVector<>(0, GetOffset() - GetVisualizationWidth() / 2, 0),  //
-                                                    GetRadius());
-    m_cyl_shape->SetTexture(GetChronoDataFile("textures/greenwhite.png"));
-}
-
-void ChTMsimpleTire::RemoveVisualizationAssets() {
-    // Make sure we only remove the assets added by ChTMsimpleTire::AddVisualizationAssets.
-    // This is important for the ChTire object because a wheel may add its own assets to the same body (the
-    // spindle/wheel).
-    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_cyl_shape);
-}
-
-// -----------------------------------------------------------------------------
-
 void ChTMsimpleTire::SetVerticalStiffness(std::vector<double>& defl, std::vector<double>& frc) {
     // calculate coefficients from test data
     Eigen::MatrixXd A(defl.size(), 2);

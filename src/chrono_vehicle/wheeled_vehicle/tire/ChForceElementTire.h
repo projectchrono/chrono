@@ -74,9 +74,20 @@ class CH_VEHICLE_API ChForceElementTire : public ChTire {
     /// one the wheel body.
     virtual TerrainForce GetTireForce() const override;
 
+    /// Get visualization width.
+    virtual double GetVisualizationWidth() const = 0;
+
+    /// Add visualization assets for the rigid tire subsystem.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+
+    /// Remove visualization assets for the rigid tire subsystem.
+    virtual void RemoveVisualizationAssets() override;
+
     ContactData m_data;             ///< tire-terrain collision information
     TerrainForce m_tireforce;       ///< tire forces (in tire contact frame)
     ChFunction_Recorder m_areaDep;  ///< lookup table for estimation of penetration depth from intersection area
+
+    std::shared_ptr<ChVisualShape> m_cyl_shape;  ///< visualization cylinder asset
 
   private:
     virtual void InitializeInertiaProperties() override final;
