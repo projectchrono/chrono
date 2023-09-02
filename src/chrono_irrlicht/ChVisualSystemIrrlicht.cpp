@@ -429,6 +429,11 @@ void ChVisualSystemIrrlicht::SetModalSpeed(double val) {
         m_gui->SetModalSpeed(val);
 }
 
+void ChVisualSystemIrrlicht::SetModalModesMax(int maxModes) {
+    if (m_gui->initialized)
+        m_gui->SetModalModesMax(maxModes);
+}
+
 // -----------------------------------------------------------------------------
 
 void ChVisualSystemIrrlicht::EnableShadows(std::shared_ptr<ChPhysicsItem> item) {

@@ -236,7 +236,7 @@ class ChGnuPlot {
     }
 
     /// Shortcut to easy 2D plot of x,y data
-    /// from a generic ChFunction's (zeroth), first or second derivative
+    /// from a generic ChFunction's 0th, 1st, 2nd, or 3rd derivative
     void Plot(ChFunction& mfunct,
         int der_order,
         double xmin,
@@ -257,6 +257,8 @@ class ChGnuPlot {
                 my(i) = mfunct.Get_y_dx(x);
             else if (der_order == 2)
                 my(i) = mfunct.Get_y_dxdx(x);
+            else if (der_order == 3)
+                my(i) = mfunct.Get_y_dxdxdx(x);
             else
                 my(i) = 0;
             x += dx;

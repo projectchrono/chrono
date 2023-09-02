@@ -29,6 +29,8 @@
 
 #include <urdf_parser/urdf_parser.h>
 
+#include <tinyxml2.h>
+
 namespace chrono {
 namespace parsers {
 
@@ -54,6 +56,9 @@ class ChApiParsers ChParserURDF {
 
     /// Construct a Chrono parser for the specified URDF file.
     ChParserURDF(const std::string& filename);
+
+    /// Get access to the raw XML string in the provided URDF file.
+    const std::string& GetXMLstring() const { return m_xml_string; }
 
     /// Get the URDF model name.
     const std::string& GetModelName() const { return m_model->getName(); }
@@ -128,6 +133,19 @@ class ChApiParsers ChParserURDF {
     /// This function must be called after PopulateSystem.
     void SetMotorFunction(const std::string& motor_name, const std::shared_ptr<ChFunction> function);
 
+    /// Class to be used as a callback interface for custom processing of the URDF XML string.
+    class ChApiParsers CustomProcessor {
+      public:
+        virtual ~CustomProcessor() {}
+
+        /// Callback function for user processing of specific XML elements.
+        virtual void Process(const tinyxml2::XMLElement& element, ChSystem& system) = 0;
+    };
+
+    /// Scan the URDF XML for all objects of the specified key and execute the Process() function of the provided callback object.
+    /// Only direct children of the "robot" element in the input URDF are processed. 
+    void CustomProcess(const std::string& key, std::shared_ptr<CustomProcessor> callback);
+
   private:
     ChColor toChColor(const urdf::Color& color);
     ChVector<> toChVector(const urdf::Vector3& vec);
@@ -148,6 +166,7 @@ class ChApiParsers ChParserURDF {
 
     std::string m_filename;                                   ///< URDF file name
     std::string m_filepath;                                   ///< path of URDF file
+    std::string m_xml_string;                                 ///< raw model XML string
     urdf::ModelInterfaceSharedPtr m_model;                    ///< parsed URDF model
     ChSystem* m_sys;                                          ///< containing Chrono system
     ChFrame<> m_init_pose;                                    ///< root body initial pose

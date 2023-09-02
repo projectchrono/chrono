@@ -113,7 +113,7 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
 
     /// Get the tire force and moment expressed in the tire frame.
     /// Currently *NOT IMPLEMENTED*.
-    virtual TerrainForce ReportTireForce(ChTerrain* terrain, ChCoordsys<>& tire_frame) const override;
+    virtual TerrainForce ReportTireForceLocal(ChTerrain* terrain, ChCoordsys<>& tire_frame) const override;
 
     /// Add visualization assets for the rigid tire subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;

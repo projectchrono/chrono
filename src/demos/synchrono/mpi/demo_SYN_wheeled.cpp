@@ -201,8 +201,8 @@ int main(int argc, char* argv[]) {
     vehicle.SetWheelVisualizationType(wheel_vis_type);
 
     // Create and initialize the powertrain system
-    auto engine = ReadEngineJSON(vehicle::GetDataFile(engine_filename));
-    auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(transmission_filename));
+    auto engine = ReadEngineJSON(engine_filename);
+    auto transmission = ReadTransmissionJSON(transmission_filename);
     auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
     vehicle.InitializePowertrain(powertrain);
 

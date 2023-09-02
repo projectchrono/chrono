@@ -67,7 +67,8 @@ ChTMeasyTire::ChTMeasyTire(const std::string& name)
       m_frblend_begin(1.0),
       m_frblend_end(3.0),
       m_bottom_radius(0.0),
-      m_bottom_stiffness(0.0) {
+      m_bottom_stiffness(0.0),
+      m_rolling_resistance(0.01) {
     m_tireforce.force = ChVector<>(0, 0, 0);
     m_tireforce.point = ChVector<>(0, 0, 0);
     m_tireforce.moment = ChVector<>(0, 0, 0);
@@ -375,27 +376,6 @@ double ChTMeasyTire::GetNormalStiffnessForce(double depth) const {
 
 double ChTMeasyTire::GetNormalDampingForce(double depth, double velocity) const {
     return m_par.dz * velocity;
-}
-
-// -----------------------------------------------------------------------------
-
-void ChTMeasyTire::AddVisualizationAssets(VisualizationType vis) {
-    if (vis == VisualizationType::NONE)
-        return;
-
-    m_cyl_shape =
-        ChVehicleGeometry::AddVisualizationCylinder(m_wheel->GetSpindle(),                                        //
-                                                    ChVector<>(0, GetOffset() + GetVisualizationWidth() / 2, 0),  //
-                                                    ChVector<>(0, GetOffset() - GetVisualizationWidth() / 2, 0),  //
-                                                    GetRadius());
-    m_cyl_shape->SetTexture(GetChronoDataFile("textures/greenwhite.png"));
-}
-
-void ChTMeasyTire::RemoveVisualizationAssets() {
-    // Make sure we only remove the assets added by ChTMeasyTire::AddVisualizationAssets.
-    // This is important for the ChTire object because a wheel may add its own assets to the same body (the
-    // spindle/wheel).
-    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_cyl_shape);
 }
 
 // -----------------------------------------------------------------------------

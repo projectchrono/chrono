@@ -26,7 +26,6 @@
 
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 
-
 #include "chrono_synchrono/SynConfig.h"
 #include "chrono_synchrono/SynChronoManager.h"
 #include "chrono_synchrono/agent/SynWheeledVehicleAgent.h"
@@ -44,7 +43,7 @@
 
 using namespace chrono;
 #ifdef CHRONO_IRRLICHT
-    using namespace chrono::irrlicht;
+using namespace chrono::irrlicht;
 #endif
 using namespace chrono::synchrono;
 using namespace chrono::vehicle;
@@ -247,7 +246,8 @@ int main(int argc, char* argv[]) {
     // Get the vehicle JSON filenames
     const std::string vehicle_filename = vehicle::GetDataFile("sedan/vehicle/Sedan_Vehicle.json");
     const std::string engine_filename = vehicle::GetDataFile("sedan/powertrain/Sedan_EngineSimpleMap.json");
-    const std::string transmission_filename = vehicle::GetDataFile("sedan/powertrain/Sedan_AutomaticTransmissionSimpleMap.json");
+    const std::string transmission_filename =
+        vehicle::GetDataFile("sedan/powertrain/Sedan_AutomaticTransmissionSimpleMap.json");
     const std::string tire_filename = vehicle::GetDataFile("sedan/tire/Sedan_TMeasyTire.json");
     const std::string zombie_filename = synchrono::GetDataFile("vehicle/Sedan.json");
 
@@ -261,8 +261,8 @@ int main(int argc, char* argv[]) {
     vehicle.SetWheelVisualizationType(wheel_vis_type);
 
     // Create and initialize the powertrain system
-    auto engine = ReadEngineJSON(vehicle::GetDataFile(engine_filename));
-    auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(transmission_filename));
+    auto engine = ReadEngineJSON((engine_filename));
+    auto transmission = ReadTransmissionJSON((transmission_filename));
     auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
     vehicle.InitializePowertrain(powertrain);
 
@@ -355,7 +355,7 @@ int main(int argc, char* argv[]) {
         if (time >= end_time)
             break;
 
-        // Render scene
+            // Render scene
 #ifdef CHRONO_IRRLICHT
         if (step_number % render_steps == 0)
             app.Render();
@@ -365,7 +365,7 @@ int main(int argc, char* argv[]) {
         DriverInputs driver_inputs = driver.GetInputs();
 
         // Update modules (process inputs from other modules)
-        //std::async(&syn_manager.Synchronize, time);  // Synchronize between nodes
+        // std::async(&syn_manager.Synchronize, time);  // Synchronize between nodes
         std::async(std::launch::async, &SynChronoManager::Synchronize, &syn_manager, time);
         terrain.Synchronize(time);
         vehicle.Synchronize(time, driver_inputs, terrain);
@@ -384,7 +384,7 @@ int main(int argc, char* argv[]) {
         step_number++;
 
         // Log clock time
-        if (step_number % 100 == 0 ) {
+        if (step_number % 100 == 0) {
             std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
             auto time_span = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
@@ -392,11 +392,11 @@ int main(int argc, char* argv[]) {
             std::cout << std::flush;
         }
 
-        #ifdef CHRONO_IRRLICHT
+#ifdef CHRONO_IRRLICHT
         appok = app.IsOk();
-        #else
+#else
         appok = true;
-        #endif
+#endif
     }
 
     return 0;

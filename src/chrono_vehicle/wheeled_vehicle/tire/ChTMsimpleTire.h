@@ -50,12 +50,6 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "TMsimpleTire"; }
 
-    /// Add visualization assets for the rigid tire subsystem.
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
-
-    /// Remove visualization assets for the rigid tire subsystem.
-    virtual void RemoveVisualizationAssets() override;
-
     /// Get the tire radius.
     virtual double GetRadius() const override { return m_states.R_eff; }
 
@@ -66,7 +60,7 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
     virtual double GetWidth() const override { return m_width; }
 
     /// Get visualization width.
-    virtual double GetVisualizationWidth() const { return m_width; }
+    virtual double GetVisualizationWidth() const override { return m_width; }
 
     /// Get the tire slip angle computed internally by the TMsimple model (in radians).
     /// The reported value will be similar to that reported by ChTire::GetSlipAngle.
@@ -137,7 +131,7 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
     /// Set the tire reference coefficient of friction.
     void SetFrictionCoefficient(double coeff);
 
-    /// Set rolling resistance coefficients.
+    /// Set rolling resistance coefficient (default: 0.01).
     void SetRollingResistanceCoefficient(double rr_coeff);
 
     /// Generate basic tire plots.
@@ -249,7 +243,6 @@ class CH_VEHICLE_API ChTMsimpleTire : public ChForceElementTire {
     };
 
     TireStates m_states;
-    std::shared_ptr<ChVisualShape> m_cyl_shape;  ///< visualization cylinder asset
 };
 
 }  // end namespace vehicle

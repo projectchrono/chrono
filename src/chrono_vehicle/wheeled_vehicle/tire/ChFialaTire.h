@@ -43,12 +43,6 @@ class CH_VEHICLE_API ChFialaTire : public ChForceElementTire {
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "FialaTire"; }
 
-    /// Add visualization assets for the rigid tire subsystem.
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
-
-    /// Remove visualization assets for the rigid tire subsystem.
-    virtual void RemoveVisualizationAssets() override;
-
     /// Get the tire width.
     /// For a Fiala tire, this is the unloaded tire radius.
     virtual double GetRadius() const override { return m_unloaded_radius; }
@@ -57,7 +51,7 @@ class CH_VEHICLE_API ChFialaTire : public ChForceElementTire {
     virtual double GetWidth() const override { return m_width; }
 
     /// Get visualization width.
-    virtual double GetVisualizationWidth() const { return m_width; }
+    virtual double GetVisualizationWidth() const override { return m_width; }
 
     /// Get the tire slip angle computed internally by the Fiala model (in radians).
     /// The reported value will be similar to that reported by ChTire::GetSlipAngle.
@@ -142,7 +136,6 @@ class CH_VEHICLE_API ChFialaTire : public ChForceElementTire {
     };
 
     TireStates m_states;
-    std::shared_ptr<ChVisualShape> m_cyl_shape;  ///< visualization cylinder asset
 };
 
 /// @} vehicle_wheeled_tire

@@ -46,6 +46,8 @@ public:
 
     virtual double Get_y_dxdx(double x) const override;
 
+    virtual double Get_y_dxdxdx(double x) const override;
+
     void Set_end(double m_end);
 
     void Set_h(double m_h) { h = m_h; }

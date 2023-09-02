@@ -57,6 +57,15 @@ double ChFunction_Cycloidal::Get_y_dxdx(double x) const {
     return ret;
 }
 
+double ChFunction_Cycloidal::Get_y_dxdxdx(double x) const {
+    if (x <= 0)
+        return 0;
+    else if (x >= end)
+        return 0;
+    double ret = pow(CH_C_2PI, 2) * h / pow(end, 3) * cos(CH_C_2PI * x / end);
+    return ret;
+}
+
 void ChFunction_Cycloidal::Set_end(double m_end) {
     if (m_end < 0)
         m_end = 0;

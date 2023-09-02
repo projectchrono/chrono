@@ -30,7 +30,7 @@ public:
     /// If knot vector is not provided, initialize it as equally spaced and clamped at both ends.
     ChFunction_BSpline(
         int p,                              ///< order
-        const ChVectorDynamic<>& cpoints,   ///< conrol points
+        const ChVectorDynamic<>& cpoints,   ///< control points
         ChVectorDynamic<>* knots = 0        ///< knot vector
     );
 
@@ -84,6 +84,9 @@ public:
 
     /// B-Spline 2nd derivative: y(x)'' = = SUM_i Ni,p(x)'' b_i
     virtual double Get_y_dxdx(double x) const override;
+
+    /// B-Spline 3rd derivative: y(x)''' = = SUM_i Ni,p(x)''' b_i
+    virtual double Get_y_dxdxdx(double x) const override;
 
     /// Recompute B-Spline control points to exactly interpolate given waypoints and derivatives
     /// (eg. satisfy position, velocity, acceleration constraints)

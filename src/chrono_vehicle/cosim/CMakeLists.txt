@@ -142,6 +142,10 @@ if(ENABLE_MODULE_OPENGL)
   endif()
 endif()
 
+if(ENABLE_MODULE_POSTPROCESS)
+    list(APPEND LIBRARIES ChronoEngine_postprocess)
+endif()
+
 # ------------------------------------------------------------------------------
 # Make some variables visible from parent directory (for use in demo CMakeLists files)
 

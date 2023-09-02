@@ -139,6 +139,16 @@ bool ChMatlabEngine::GetVariable(ChMatrixDynamic<double>& mmatr, std::string var
         return true;
     }
     matlabengine::mxDestroyArray(T);
+    return false;    
+}
+
+// Fetch a string from Matlab environment, specifying its name as variable.
+bool ChMatlabEngine::GetString(std::string& str, std::string varname) {
+    matlabengine::mxArray* T = matlabengine::engGetVariable(ep, varname.c_str());
+    if (T) {
+        str = matlabengine::mxArrayToUTF8String_800(T);
+        return true;
+    }
     return false;
 }
 

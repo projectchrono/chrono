@@ -45,6 +45,7 @@ class ChApi ChFunction_Poly345 : public ChFunction {
     virtual double Get_y(double x) const override;
     virtual double Get_y_dx(double x) const override;
     virtual double Get_y_dxdx(double x) const override;
+    virtual double Get_y_dxdxdx(double x) const override;
 
     void Set_end(double m_end) {
         if (m_end < 0)
