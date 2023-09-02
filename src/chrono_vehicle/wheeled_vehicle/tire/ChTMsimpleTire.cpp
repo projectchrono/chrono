@@ -191,8 +191,6 @@ void ChTMsimpleTire::Advance(double step) {
     double cg = std::pow(m_width, 2.0) * (m_d1 + 2.0 * m_d2 * m_data.depth) / 12.0;
     Mx = -cg * m_states.gamma;
 
-    double Ms = 0.0;
-
     double startup = 1;
     if (m_use_startup_transition) {
         startup = ChSineStep(m_time, m_begin_start_transition, 0.0, m_end_start_transition, 1.0);

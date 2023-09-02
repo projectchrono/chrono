@@ -66,7 +66,7 @@ TerrainForce ChForceElementTire::GetTireForce() const {
     return tireforce;
 }
 
-TerrainForce ChForceElementTire::ReportTireForce(ChTerrain* terrain, ChCoordsys<>& tire_frame) const {
+TerrainForce ChForceElementTire::ReportTireForceLocal(ChTerrain* terrain, ChCoordsys<>& tire_frame) const {
     if (!m_data.in_contact) {
         return TerrainForce();
     }

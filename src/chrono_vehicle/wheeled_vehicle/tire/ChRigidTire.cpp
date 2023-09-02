@@ -223,9 +223,9 @@ TerrainForce ChRigidTire::ReportTireForce(ChTerrain* terrain) const {
     return tire_force;
 }
 
-TerrainForce ChRigidTire::ReportTireForce(ChTerrain* terrain, ChCoordsys<>& tire_frame) const {
-    std::cerr << "ChRigidTire::ReportTireForce for local frame not implemented." << std::endl;
-    throw ChException("ChRigidTire::ReportTireForce for local frame not implemented.");
+TerrainForce ChRigidTire::ReportTireForceLocal(ChTerrain* terrain, ChCoordsys<>& tire_frame) const {
+    std::cerr << "ChRigidTire::ReportTireForceLocal not implemented." << std::endl;
+    throw ChException("ChRigidTire::ReportTireForceLocal not implemented.");
 }
 
 // -----------------------------------------------------------------------------

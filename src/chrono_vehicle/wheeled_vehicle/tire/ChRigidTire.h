@@ -65,7 +65,7 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
 
     /// Get the tire force and moment expressed in the tire frame.
     /// Currently *NOT IMPLEMENTED*.
-    virtual TerrainForce ReportTireForce(ChTerrain* terrain, ChCoordsys<>& tire_frame) const override;
+    virtual TerrainForce ReportTireForceLocal(ChTerrain* terrain, ChCoordsys<>& tire_frame) const override;
 
     /// Get the tire contact material.
     /// Note that this is not set until after tire initialization.

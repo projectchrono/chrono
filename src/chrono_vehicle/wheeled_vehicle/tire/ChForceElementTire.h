@@ -52,7 +52,7 @@ class CH_VEHICLE_API ChForceElementTire : public ChTire {
     /// The tire frame has its origin in the contact patch, the X axis in the tire heading direction and the Z axis in
     /// the terrain normal at the contact point.
     /// If the tire is not in contact, the tire frame is not set and the function returns zero force and moment.
-    virtual TerrainForce ReportTireForce(ChTerrain* terrain, ChCoordsys<>& tire_frame) const override;
+    virtual TerrainForce ReportTireForceLocal(ChTerrain* terrain, ChCoordsys<>& tire_frame) const override;
 
     /// Report current tire-terrain contact information.
     /// If the tire is not in contact, all information is set to zero.
