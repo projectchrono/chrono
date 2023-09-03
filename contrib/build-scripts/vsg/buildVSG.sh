@@ -15,10 +15,10 @@
 # - The script accepts 1 optional argument to override the install directory.
 # - This script uses the following versions of the various codes from their respective repositories, with the
 #   only exception being vsgImGui which pulls the latest version.
-#      VulkanSceneGraph (github.com/vsg-dev/VulkanSceneGraph.git): Tag v1.0.9-rc1
-#      vsgXchange (github.com/vsg-dev/vsgXchange.git):             Tag v1.0.5-rc1
+#      VulkanSceneGraph (github.com/vsg-dev/VulkanSceneGraph.git): Tag v1.0.9
+#      vsgXchange (github.com/vsg-dev/vsgXchange.git):             Tag v1.0.5
 #      vsgImGui (github.com/vsg-dev/vsgImGui.git):                 latest
-#      vsgExamples (github.com/vsg-dev/vsgExamples.git):           Tag v1.0.6-rc1
+#      vsgExamples (github.com/vsg-dev/vsgExamples.git):           Tag v1.0.7
 #      assimp (github.com/assimp/assimp):                          Tag v5.2.5
 # - We suggest using Ninja (ninja-build.org/) and the "Ninja Multi-Config" CMake generator.
 #   (otherwise, you will need to explicitly set the CMAKE_BUILD_TYPE variable)
@@ -59,12 +59,12 @@ then
     mkdir download_vsg
 
     echo "  ... VulkanSceneGraph"
-    git clone -c advice.detachedHead=false --depth 1 --branch v1.0.9-rc1 "https://github.com/vsg-dev/VulkanSceneGraph" "download_vsg/vsg"
+    git clone -c advice.detachedHead=false --depth 1 --branch v1.0.9 "https://github.com/vsg-dev/VulkanSceneGraph" "download_vsg/vsg"
     #git clone "https://github.com/vsg-dev/VulkanSceneGraph" "download_vsg/vsg"
     VSG_SOURCE_DIR="download_vsg/vsg"
 
     echo "  ... vsgXchange"    
-    git clone -c advice.detachedHead=false --depth 1 --branch v1.0.5-rc1 "https://github.com/vsg-dev/vsgXchange" "download_vsg/vsgXchange"
+    git clone -c advice.detachedHead=false --depth 1 --branch v1.0.5 "https://github.com/vsg-dev/vsgXchange" "download_vsg/vsgXchange"
     #git clone "https://github.com/vsg-dev/vsgXchange" "download_vsg/vsgXchange"
     VSGXCHANGE_SOURCE_DIR="download_vsg/vsgXchange"
 
@@ -73,7 +73,7 @@ then
     VSGIMGUI_SOURCE_DIR="download_vsg/vsgImGui"
     
     echo "  ... vsgExamples"
-    git clone -c advice.detachedHead=false --depth 1 --branch v1.0.7-rc1 "https://github.com/vsg-dev/vsgExamples" "download_vsg/vsgExamples"
+    git clone -c advice.detachedHead=false --depth 1 --branch v1.0.7 "https://github.com/vsg-dev/vsgExamples" "download_vsg/vsgExamples"
     #git clone "https://github.com/vsg-dev/vsgExamples" "download_vsg/vsgExamples"
     VSGEXAMPLES_SOURCE_DIR="download_vsg/vsgExamples"
 
@@ -144,19 +144,19 @@ fi
 
 echo -e "\n------------------------ Configure vsgXchange\n"
 rm -rf build_vsgXchange
-cmake  -G "${BUILDSYSTEM}" -B build_vxgXchange -S ${VSGXCHANGE_SOURCE_DIR}  \
+cmake  -G "${BUILDSYSTEM}" -B build_vsgXchange -S ${VSGXCHANGE_SOURCE_DIR}  \
       -DBUILD_SHARED_LIBS:BOOL=${BUILDSHARED} \
       -DCMAKE_DEBUG_POSTFIX=_d \
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd \
       -Dvsg_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/vsg
 
 echo -e "\n------------------------ Build and install vsgXchange\n"
-cmake --build build_vxgXchange --config Release
-cmake --install build_vxgXchange --config Release --prefix ${VSG_INSTALL_DIR}
+cmake --build build_vsgXchange --config Release
+cmake --install build_vsgXchange --config Release --prefix ${VSG_INSTALL_DIR}
 if [ ${BUILDDEBUG} = ON ]
 then
-    cmake --build build_vxgXchange --config Debug
-    cmake --install build_vxgXchange --config Debug --prefix ${VSG_INSTALL_DIR}
+    cmake --build build_vsgXchange --config Debug
+    cmake --install build_vsgXchange --config Debug --prefix ${VSG_INSTALL_DIR}
 else
     echo "No Debug build of vsgXchange"
 fi
