@@ -46,10 +46,12 @@ class CH_VEHICLE_API Balancer : public ChBalancer {
 
   private:
     virtual const ChVector<> GetLocation(PointId which) override { return m_points[which]; }
+    virtual const ChVector<> GetDirection() override { return m_dir; }
 
     virtual void Create(const rapidjson::Document& d) override;
 
     ChVector<> m_points[NUM_POINTS];
+    ChVector<> m_dir;
     double m_beam_max_pitch;
     double m_beam_mass;
     ChVector<> m_beam_inertia;
