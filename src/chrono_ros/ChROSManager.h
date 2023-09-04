@@ -15,15 +15,20 @@ class ChROSManager {
   public:
     ChROSManager();
 
+    /// Initialize the ROS system. Prior to this, rclcpp::init() has not been called.
+    void Initialize();
+
     /// Advance all handlers
     void Advance(double step);
 
     /// Register a new handler
-    void RegisterHandler(std::shared_ptr<ChROSHandler> handler);
+    void RegisterHandler(std::shared_ptr<ChROSHandler> handler) { RegisterHandler(0u, handler); }
+    void RegisterHandler(uint64_t frequency, std::shared_ptr<ChROSHandler> handler);
 
   private:
     std::shared_ptr<ChROSInterface> m_interface;
-    std::vector<std::shared_ptr<ChROSHandler>> m_registered_handlers;
+
+    std::vector<std::shared_ptr<ChROSHandler>> m_handlers;
 };
 
 }  // namespace ros
