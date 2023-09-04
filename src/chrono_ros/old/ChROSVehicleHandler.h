@@ -10,6 +10,7 @@
 
 namespace chrono {
 namespace ros {
+
 class ChROSVehicleHandler : public ChROSHandler {
   public:
     ChROSVehicleHandler(double update_rate, chrono::vehicle::ChVehicle& vehicle);
@@ -25,6 +26,7 @@ class ChROSVehicleHandler : public ChROSHandler {
 
     rclcpp::Publisher<chrono_ros_interfaces::msg::ChVehicle>::SharedPtr m_publisher;
 };
+
 }  // namespace ros
 }  // namespace chrono
 

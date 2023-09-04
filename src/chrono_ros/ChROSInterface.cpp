@@ -17,7 +17,7 @@ void ChROSInterface::Initialize() {
     GetLog() << "Initialized ChROSInterface. \n";
 }
 
-void ChROSInterface::Advance() {
+void ChROSInterface::SpinSome() {
     if (rclcpp::ok()) {
         m_executor->spin_some();
     }
