@@ -13,17 +13,20 @@ namespace ros {
 /// rclcpp::Node which is accessible through GetNode().
 class ChROSInterface {
   public:
-    ChROSInterface(const std::string node_name = "chrono_ros_node");
+    ChROSInterface(const std::string node_name = "/chrono_ros_node");
 
     /// Initialize the underlying ROS 2 node.
     void Initialize();
 
     /// Tick once. Will basically just call rclcpp::spin_some()
-    void Advance();
+    void SpinSome();
 
     /// Retrieve the ROS node. Use this API to create a publisher or subscriber or any
     /// other ROS component.
     rclcpp::Node::SharedPtr GetNode() { return m_node; }
+
+    /// Get the namespace to append to topic/node names
+    const std::string& GetNamespace() { return m_node_name; }
 
   private:
     const std::string m_node_name;

@@ -5,11 +5,11 @@
 namespace chrono {
 namespace ros {
 
-ChROSHandler::ChROSHandler(double update_rate) : m_update_rate(update_rate), m_time_elapsed_since_last_tick(0) {}
+ChROSHandler::ChROSHandler() : m_frequency(0u), m_time_elapsed_since_last_tick(0) {}
 
-void ChROSHandler::Advance(double step) {
+void ChROSHandler::Update(double time, double step) {
     // NOTE: If update_rate == 0, tick is called each time
-    double frame_time = m_update_rate == 0 ? 0 : 1 / m_update_rate;
+    double frame_time = m_frequency == 0 ? 0 : 1 / m_frequency;
 
     m_time_elapsed_since_last_tick += step;
     if (m_time_elapsed_since_last_tick < frame_time)
@@ -17,8 +17,9 @@ void ChROSHandler::Advance(double step) {
 
     m_time_elapsed_since_last_tick -= frame_time;
 
-    Tick();
+    Tick(time);
 }
 
+}
 }  // namespace ros
 }  // namespace chrono
