@@ -1,34 +1,25 @@
 #include "chrono_ros/handlers/ChROSClockHandler.h"
 
-#include "chrono_ros/ChROSInterface.h"
+#include "chrono_ros/utils/ChROSConversions.h"
 
 namespace chrono {
 namespace ros {
 
-ChROSClockHandler::ChROSClockHandler(ChSystem* system) : ChROSHandler(0), m_system(system) {}
+ChROSClockHandler::ChROSClockHandler() : ChROSHandler() {}
 
 bool ChROSClockHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
     auto node = interface->GetNode();
 
     rclcpp::ClockQoS qos;
-    m_publisher = node->create_publisher<rosgraph_msgs::msg::Clock>("/clock", qos);
+    m_publisher = node->create_publisher<rosgraph_msgs::msg::Clock>(ResolveROSName("clock"), qos);
 
     return true;
 }
 
-void ChROSClockHandler::Tick() {
+void ChROSClockHandler::Tick(double time) {
     rosgraph_msgs::msg::Clock msg;
-    msg.clock = GetTimestamp();
+    msg.clock = GetROSTimestamp(time);
     m_publisher->publish(msg);
-}
-
-builtin_interfaces::msg::Time ChROSClockHandler::GetTimestamp() {
-    const auto elapsed_time_s = m_system->GetChTime();
-
-    builtin_interfaces::msg::Time timestamp;
-    timestamp.sec = static_cast<int32_t>(elapsed_time_s);
-    timestamp.nanosec = static_cast<uint32_t>((elapsed_time_s - timestamp.sec) * 1e9);
-    return timestamp;
 }
 
 }  // namespace ros

@@ -107,12 +107,38 @@ set(CH_ROS_HANDLER_FILES
 
   handlers/ChROSClockHandler.h
   handlers/ChROSClockHandler.cpp
-  handlers/ChROSBodyHandler.h
-  handlers/ChROSBodyHandler.cpp
-  handlers/ChROSVehicleHandler.h
-  handlers/ChROSVehicleHandler.cpp
 )
 source_group("handler" FILES ${CH_ROS_HANDLER_FILES})
+
+if (ENABLE_MODULE_VEHICLE)
+  set(CH_ROS_VEHICLE_HANDLER_FILES
+    handlers/vehicle/ChROSDriverInputsHandler.h
+    handlers/vehicle/ChROSDriverInputsHandler.cpp
+  )
+else()
+  set(CH_ROS_VEHICLE_HANDLER_FILES "")
+endif()
+source_group("vehicle_handler" FILES ${CH_ROS_VEHICLE_HANDLER_FILES})
+
+if (ENABLE_MODULE_SENSOR)
+  set(CH_ROS_SENSOR_HANDLER_FILES
+    handlers/ChROSCameraHandler.h
+    handlers/ChROSCameraHandler.cpp
+    handlers/ChROSLidarHandler.h
+    handlers/ChROSLidarHandler.cpp
+    handlers/ChROSAccelerometerHandler.h
+    handlers/ChROSAccelerometerHandler.cpp
+    handlers/ChROSGyroscopeHandler.h
+    handlers/ChROSGyroscopeHandler.cpp
+    handlers/ChROSMagnetometerHandler.h
+    handlers/ChROSMagnetometerHandler.cpp
+    handlers/ChROSGPSHandler.h
+    handlers/ChROSGPSHandler.cpp
+  )
+else()
+  set(CH_ROS_SENSOR_HANDLER_FILES "")
+endif()
+source_group("sensor_handler" FILES ${CH_ROS_SENSOR_HANDLER_FILES})
 
 #-----------------------------------------------------------------------------
 # Create the ChronoEngine_ros library
@@ -146,6 +172,8 @@ set(CH_ROS_LIBRARIES  "${CH_ROS_LIBRARIES}"  PARENT_SCOPE)
 add_library(ChronoEngine_ros SHARED
 	${CH_ROS_BASE_FILES}
 	${CH_ROS_HANDLER_FILES}
+	${CH_ROS_VEHICLE_HANDLER_FILES}
+	${CH_ROS_SENSOR_HANDLER_FILES}
 )
 
 # windows builds should disable warning 4661 and 4005

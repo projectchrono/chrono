@@ -1,7 +1,5 @@
 #include "chrono_ros/handlers/ChROSVehicleHandler.h"
 
-#include "chrono_ros/ChROSInterface.h"
-
 using namespace chrono::vehicle;
 
 namespace chrono {
