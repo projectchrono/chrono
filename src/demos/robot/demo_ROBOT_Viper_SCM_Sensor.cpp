@@ -24,8 +24,6 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/physics/ChInertiaUtils.h"
 
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
-
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 
@@ -44,6 +42,16 @@
 #include "chrono_sensor/filters/ChFilterRadarXYZVisualize.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
+
+#include "chrono/assets/ChVisualSystem.h"
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+using namespace chrono::irrlicht;
+#endif
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+using namespace chrono::vsg3d;
+#endif
 
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -70,6 +78,9 @@ bool var_params = true;
 
 // Define Viper rover wheel type
 ViperWheelType wheel_type = ViperWheelType::RealWheel;
+
+// Run-time visualization system (IRRLICHT or VSG)
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Custom callback for setting location-dependent soil properties.
 // Note that the location is given in the SCM reference frame.
@@ -336,20 +347,53 @@ int main(int argc, char* argv[]) {
 
     terrain.SetMeshWireframe(true);
 
-    // Create the Irrlicht visualization sys
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->AttachSystem(&sys);
-    vis->SetCameraVertical(CameraVerticalDir::Z);
-    vis->SetWindowSize(960, 600);
-    vis->SetWindowTitle("Viper Rover on SCM");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(2.0, 0.0, 1.4), ChVector<>(0, 0, wheel_range));
-    vis->AddTypicalLights();
-    vis->AddLightWithShadow(ChVector<>(-5.0, -0.5, 8.0), ChVector<>(-1, 0, 0), 100, 1, 35, 85, 512,
-                            ChColor(0.8f, 0.8f, 0.8f));
-    vis->EnableShadows();
+    // Create the run-time visualization interface
+#ifndef CHRONO_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::IRRLICHT)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
+
+    std::shared_ptr<ChVisualSystem> vis;
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
+            auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+            vis_irr->AttachSystem(&sys);
+            vis_irr->SetCameraVertical(CameraVerticalDir::Z);
+            vis_irr->SetWindowSize(800, 600);
+            vis_irr->SetWindowTitle("Viper Rover on SCM");
+            vis_irr->Initialize();
+            vis_irr->AddLogo();
+            vis_irr->AddSkyBox();
+            vis_irr->AddCamera(ChVector<>(1.0, 2.0, 1.4), ChVector<>(0, 0, wheel_range));
+            vis_irr->AddTypicalLights();
+            vis_irr->AddLightWithShadow(ChVector<>(-5.0, -0.5, 8.0), ChVector<>(-1, 0, 0), 100, 1, 35, 85, 512,
+                                        ChColor(0.8f, 0.8f, 0.8f));
+            vis_irr->EnableShadows();
+
+            vis = vis_irr;
+#endif
+            break;
+        }
+        default:
+        case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+            auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
+            vis_vsg->AttachSystem(&sys);
+            vis_vsg->SetWindowSize(800, 600);
+            vis_vsg->SetWindowTitle("Viper Rover on SCM");
+            vis_vsg->AddCamera(ChVector<>(1.0, 2.0, 1.4), ChVector<>(0, 0, wheel_range));
+            vis_vsg->Initialize();
+
+            vis = vis_vsg;
+#endif
+            break;
+        }
+    }
 
     //
     // SENSOR SIMULATION
@@ -366,8 +410,8 @@ int main(int argc, char* argv[]) {
     auto lidar = chrono_types::make_shared<ChLidarSensor>(viper.GetChassis()->GetBody(),  // body lidar is attached to
                                                           50,                             // scanning rate in Hz
                                                           offset_pose,                    // offset pose
-                                                          960,                   // number of horizontal samples
-                                                          600,                   // number of vertical channels
+                                                          480,                   // number of horizontal samples
+                                                          300,                   // number of vertical channels
                                                           (float)(2 * CH_C_PI),  // horizontal field of view
                                                           (float)CH_C_PI / 12, (float)-CH_C_PI / 3,
                                                           140.0f  // vertical field of view
@@ -406,11 +450,13 @@ int main(int argc, char* argv[]) {
     manager->AddSensor(radar);
 
     while (vis->Run()) {
+#if defined(CHRONO_IRRLICHT) || defined(CHRONO_VSG)
         vis->BeginScene();
-        vis->GetActiveCamera()->setTarget(core::vector3dfCH(Body_1->GetPos()));
+        vis->SetCameraTarget(Body_1->GetPos());
         vis->Render();
-        tools::drawColorbar(vis.get(), 0, 20000, "Pressure yield [Pa]", 1180);
+        ////tools::drawColorbar(vis.get(), 0, 20000, "Pressure yield [Pa]", 1180);
         vis->EndScene();
+#endif
 
         // update sensor manager
         manager->Update();
