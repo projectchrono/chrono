@@ -4,25 +4,29 @@
 #include <string>
 #include <memory>
 
+#include "chrono_ros/ChROSInterface.h"
+#include "chrono_ros/ChROSTopicConfiguration.h"
+
 namespace chrono {
 namespace ros {
 
-class ChROSInterface;
-
 class ChROSHandler {
   public:
-    ChROSHandler(double update_rate);
+    explicit ChROSHandler();
 
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) = 0;
-    virtual void Advance(double step) final;
 
-    virtual const std::string GetNamespace() const = 0;
+    virtual void Update(double time, double step) final;
+
+    void SetFrequency(uint64_t frequency) { m_frequency = frequency; }
+    uint64_t GetFrequency() { return m_frequency; }
 
   protected:
-    virtual void Tick() = 0;
+    virtual void Tick(double time) = 0;
 
   private:
-    double m_update_rate;
+    uint64_t m_frequency;  ///< Hz
+
     double m_time_elapsed_since_last_tick;
 };
 

@@ -70,12 +70,11 @@ endif()
 find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
-  msg/ChVehicle.msg
 	msg/ChDriverInputs.msg
-	msg/ChBody.msg
 
   srv/ChStartSimulation.srv
   srv/ChStopSimulation.srv
+  srv/ChResetSimulation.srv
 
   DEPENDENCIES geometry_msgs std_msgs
 )
