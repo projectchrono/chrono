@@ -1327,8 +1327,17 @@ double ChSystemGpuMesh::AdvanceSimulation(float duration) {
 }
 
 double ChSystemGpu::AdvanceSimulation(float duration) {
-    return m_sys->AdvanceSimulation(duration);
+    m_timer.reset();
+    m_timer.start();
+
+    float dt = m_sys->AdvanceSimulation(duration);
+    
+    m_timer.stop();
+    m_RTF = m_timer() / dt;
+
+    return dt;
 }
+
 
 // -----------------------------------------------------------------------------
 

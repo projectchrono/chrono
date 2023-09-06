@@ -35,13 +35,13 @@ const double FMTV_RigidTire::m_width = 0.395;
 const double FMTV_RigidTire::m_mass = 110.0;
 const ChVector<> FMTV_RigidTire::m_inertia(13.0, 22.0, 13.0);
 
-const std::string FMTV_RigidTire::m_meshFile = "mtv/meshes/fmtv_tire_fine.obj";
+const std::string FMTV_RigidTire::m_meshFile = "mtv/meshes/MTV_tire.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 FMTV_RigidTire::FMTV_RigidTire(const std::string& name, bool use_mesh) : ChRigidTire(name) {
     if (use_mesh) {
-        SetMeshFilename(GetDataFile("mtv/meshes/mtv_tire_fine.obj"), 0.005);
+        SetMeshFilename(GetDataFile("mtv/meshes/MTV_tire.obj"), 0.005);
     }
 }
 
