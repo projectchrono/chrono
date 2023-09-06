@@ -812,6 +812,7 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(ISceneNode* node,
                 mchildnode->setPosition(shape_m4.getTranslation());
                 mchildnode->setRotation(shape_m4.getRotationDegrees());
 
+                SetVisualMaterial(mchildnode, shape);
                 mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, true);
             }
         } else if (auto trimesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape)) {
