@@ -173,7 +173,7 @@
 				"EIGEN3_INCLUDE_DIR": "C:/Users/builder/Documents/Eigen3",
 				"IRRLICHT_INSTALL_DIR": "C:/Users/builder/Documents/irrlicht-1.8.5",
 				"BLAZE_INSTALL_DIR": "C:/Users/builder/Documents/blaze-3.8.1",
-				"OptiX_INSTALL_DIR": "C:/Program Files/NVIDIA Corporation/OptiX SDK 7.7.0",
+				"OptiX_INSTALL_DIR": "C:/ProgramData/NVIDIA Corporation/OptiX SDK 7.7.0",
 				"fastrtps_INSTALL_DIR": "C:/Program Files/eProsima/fastrtps 2.4.0",
 				"GLEW_DIR": "C:/Users/builder/Documents/gl/lib/cmake/glew",
 				"glfw3_DIR": "C:/Users/builder/Documents/gl/lib/cmake/glfw3",
