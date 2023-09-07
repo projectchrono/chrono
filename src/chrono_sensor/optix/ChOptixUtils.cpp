@@ -45,7 +45,7 @@ std::string SensorConfig::ptx_pre = "ChronoEngine_sensor_generated_";
 std::string SensorConfig::ptx_suff = ".cu.ptx";
 std::string SensorConfig::SENSOR_SHADER_DIR = std::string(CMAKE_SHADER_OUTPUT_PATH);
 
-void SetSensorShaderDir(const std::string& path){
+void SetSensorShaderDir(const std::string& path) {
     SensorConfig::SENSOR_SHADER_DIR = path;
 }
 
@@ -116,8 +116,8 @@ void GetShaderFromFile(OptixDeviceContext context,
     // std::chrono::high_resolution_clock::time_point end_compile = std::chrono::high_resolution_clock::now();
 
     // std::cout << "Rebuilt root acceleration structure, addr = " << m_root << std::endl;
-    // std::chrono::duration<double> wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(end_compile - start_compile);
-    // std::cout << "NVRTC Compilation: " << file_name << " | " << wall_time.count() << std::endl;
+    // std::chrono::duration<double> wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(end_compile -
+    // start_compile); std::cout << "NVRTC Compilation: " << file_name << " | " << wall_time.count() << std::endl;
     // wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
 
 #else
@@ -136,8 +136,8 @@ void GetShaderFromFile(OptixDeviceContext context,
 
     char log[2048];
     size_t sizeof_log = sizeof(log);
-    OPTIX_ERROR_CHECK(optixModuleCreateFromPTX(context, &module_compile_options, &pipeline_compile_options, ptx.c_str(),
-                                               ptx.size(), log, &sizeof_log, &module));
+    OPTIX_ERROR_CHECK(optixModuleCreate(context, &module_compile_options, &pipeline_compile_options, ptx.c_str(),
+                                        ptx.size(), log, &sizeof_log, &module));
 }
 
 void optix_log_callback(unsigned int level, const char* tag, const char* message, void*) {
