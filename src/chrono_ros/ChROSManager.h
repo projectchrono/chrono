@@ -19,11 +19,11 @@ class ChROSManager {
     void Initialize();
 
     /// Advance all handlers
-    void Advance(double step);
+    /// Returns false if rclcpp::ok() returns false
+    bool Update(double time, double step);
 
     /// Register a new handler
-    void RegisterHandler(std::shared_ptr<ChROSHandler> handler) { RegisterHandler(0u, handler); }
-    void RegisterHandler(uint64_t frequency, std::shared_ptr<ChROSHandler> handler);
+    void RegisterHandler(std::shared_ptr<ChROSHandler> handler);
 
   private:
     std::shared_ptr<ChROSInterface> m_interface;
