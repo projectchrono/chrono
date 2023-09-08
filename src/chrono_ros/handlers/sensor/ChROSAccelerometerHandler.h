@@ -23,6 +23,7 @@ class ChROSAccelerometerHandler : public ChROSHandler {
   private:
     std::shared_ptr<chrono::sensor::ChAccelerometerSensor> m_imu;
 
+    sensor_msgs::msg::Imu m_imu_msg;
     rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr m_publisher;
 };
 

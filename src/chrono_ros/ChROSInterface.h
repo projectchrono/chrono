@@ -13,7 +13,7 @@ namespace ros {
 /// rclcpp::Node which is accessible through GetNode().
 class ChROSInterface {
   public:
-    ChROSInterface(const std::string node_name = "/chrono_ros_node");
+    ChROSInterface(const std::string node_name = "chrono_ros_node");
 
     /// Initialize the underlying ROS 2 node.
     void Initialize();
