@@ -17,6 +17,9 @@ set(LINKER_FLAGS "${CH_LINKERFLAG_SHARED}")
 set(CH_ROS_INCLUDES "")
 set(CH_ROS_LIBRARIES "ChronoEngine")
 
+# Force C++17, required by ROS Humble
+set(CMAKE_CXX_STANDARD 17)
+
 #-----------------------------------------------------------------------------
 # Find ROS
 #-----------------------------------------------------------------------------
@@ -27,53 +30,18 @@ if (NOT ROS2_FOUND)
   return()
 endif()
 
-#-----------------------------------------------------------------------------
-# Build the chrono_ros_interfaces
-#-----------------------------------------------------------------------------
-if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/chrono_ros_interfaces/.git)
-  message("The chrono_ros_interfaces submodule can't be found. Ensure you have initialized it using `git submodule update --init`.")
-  return()
-endif()
-
-# Helper function to link to ros dependencies
-function(target_depends_on_ros2_packages)
-    find_package(ROS2 MODULE)
-    if (NOT ROS2_FOUND)
-        return()
-    endif()
-    message(DEBUG "Building ROS2 Gem with ros2 $ENV{ROS_DISTRO}")
-    #TODO - compare to previous env since we need to rerun cmake if we source a different ros2 env!
-    #TODO - can be done with a file that is in CONFIGURE_DEPENDS so that a change triggers build
-    set(_ament_prefix_path "$ENV{AMENT_PREFIX_PATH}")
-
-    # ros2 directories with libraries, e.g. /opt/ros/galactic/lib, locally built custom packages etc.
-    set(_ros2_library_directories)
-    set(_ros2_include_directories)
-    set(_ros2_package_libraries)
-    foreach(_ros2_packages_path IN LISTS _ament_prefix_path)
-        string(REPLACE ":" ";" _ros2_packages_path ${_ros2_packages_path})
-        list(APPEND _ros2_library_directories "${_ros2_packages_path}/lib")
-        list(APPEND _ros2_include_directories "${_ros2_packages_path}/include")
-    endforeach()
-    foreach(_package IN LISTS ARGN)
-        message(DEBUG "Processing package: ${_package}")
-        find_package(${_package} REQUIRED)
-        list(APPEND _ros2_package_libraries "${${_package}_LIBRARIES}")
-        list(APPEND _ros2_include_directories "${${_package}_INCLUDE_DIRS}")
-    endforeach()
-    set(CH_ROS_INCLUDES ${CH_ROS_INCLUDES} ${_ros2_include_directories} PARENT_SCOPE)
-    set(CH_ROS_LIBRARIES ${CH_ROS_LIBRARIES} ${_ros2_package_libraries} PARENT_SCOPE)
-endfunction()
-
-# TODO: Is there a better way to do this?
-execute_process(
-    COMMAND colcon build --build-base ${CMAKE_BINARY_DIR}/src/chrono_ros/chrono_ros_interfaces --install-base ${CMAKE_BINARY_DIR}/src/chrono_ros/chrono_ros_interfaces/
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/chrono_ros_interfaces
-)
-set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${CMAKE_BINARY_DIR}/src/chrono_ros/chrono_ros_interfaces/chrono_ros_interfaces/share/chrono_ros_interfaces/cmake)
-
-# Find our required dependencies
-target_depends_on_ros2_packages(rclcpp chrono_ros_interfaces)
+# Update the includes directories to point to ROS includes
+set(_ament_prefix_path "$ENV{AMENT_PREFIX_PATH}")
+foreach(_ros2_packages_path IN LISTS _ament_prefix_path)
+    string(REPLACE ":" ";" _ros2_packages_path ${_ros2_packages_path})
+    list(APPEND CH_ROS_INCLUDES "${_ros2_packages_path}/include")
+endforeach()
+set(_ros_packages rclcpp std_msgs geometry_msgs sensor_msgs chrono_ros_interfaces)
+foreach(_package IN LISTS _ros_packages)
+  find_package(${_package} REQUIRED)
+  list(APPEND CH_ROS_LIBRARIES "${${_package}_LIBRARIES}")
+  list(APPEND CH_ROS_INCLUDES "${${_package}_INCLUDE_DIRS}")
+endforeach()
 
 # ----------------------------------------------------------------------------
 # Generate and install configuration file
@@ -107,6 +75,12 @@ set(CH_ROS_HANDLER_FILES
 
   handlers/ChROSClockHandler.h
   handlers/ChROSClockHandler.cpp
+
+  handlers/ChROSCommandHandler.h
+  handlers/ChROSCommandHandler.cpp
+
+  handlers/ChROSHandlerUtilities.h
+  handlers/ChROSHandlerUtilities.cpp
 )
 source_group("handler" FILES ${CH_ROS_HANDLER_FILES})
 
@@ -122,18 +96,21 @@ source_group("vehicle_handler" FILES ${CH_ROS_VEHICLE_HANDLER_FILES})
 
 if (ENABLE_MODULE_SENSOR)
   set(CH_ROS_SENSOR_HANDLER_FILES
-    handlers/ChROSCameraHandler.h
-    handlers/ChROSCameraHandler.cpp
-    handlers/ChROSLidarHandler.h
-    handlers/ChROSLidarHandler.cpp
-    handlers/ChROSAccelerometerHandler.h
-    handlers/ChROSAccelerometerHandler.cpp
-    handlers/ChROSGyroscopeHandler.h
-    handlers/ChROSGyroscopeHandler.cpp
-    handlers/ChROSMagnetometerHandler.h
-    handlers/ChROSMagnetometerHandler.cpp
-    handlers/ChROSGPSHandler.h
-    handlers/ChROSGPSHandler.cpp
+    handlers/sensor/ChROSCameraHandler.h
+    handlers/sensor/ChROSCameraHandler.cpp
+    handlers/sensor/ChROSLidarHandler.h
+    handlers/sensor/ChROSLidarHandler.cpp
+    handlers/sensor/ChROSAccelerometerHandler.h
+    handlers/sensor/ChROSAccelerometerHandler.cpp
+    handlers/sensor/ChROSGyroscopeHandler.h
+    handlers/sensor/ChROSGyroscopeHandler.cpp
+    handlers/sensor/ChROSMagnetometerHandler.h
+    handlers/sensor/ChROSMagnetometerHandler.cpp
+    handlers/sensor/ChROSGPSHandler.h
+    handlers/sensor/ChROSGPSHandler.cpp
+
+    handlers/sensor/ChROSSensorHandlerUtilities.h
+    handlers/sensor/ChROSSensorHandlerUtilities.cpp
   )
 else()
   set(CH_ROS_SENSOR_HANDLER_FILES "")

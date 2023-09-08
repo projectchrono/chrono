@@ -1,12 +1,12 @@
-# Demo programs for simulations for the Chrono::ROS library
+# Demo programs for simulations with the viper model with the Chrono::ROS library
 # ------------------------------------------------------------------------------
 
-message(STATUS "Demo programs for Chrono::ROS...")
+message(STATUS "Demo programs for Chrono::ROS and Viper...")
 
 # ------------------------------------------------------------------------------
 
 set(DEMOS
-    demo_ROS_vehicle
+    demo_ROS_viper
 )
 
 # ------------------------------------------------------------------------------
@@ -16,6 +16,7 @@ set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
 set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
 list(APPEND LIBS "ChronoEngine")
 list(APPEND LIBS "ChronoEngine_ros")
+list(APPEND LIBS "ChronoModels_robot")
 
 # Force C++17, required by ROS Humble
 set(CMAKE_CXX_STANDARD 17)
@@ -45,12 +46,34 @@ if(ENABLE_MODULE_SENSOR)
   list(APPEND LIBS "ChronoEngine_sensor")
 endif()
 
+# ------------------------------------------------------------------------------
+# Find the custom viper_msgs
+# NOTE: run colcon build and source the setup files to have this work
+
+find_package(viper_msgs)
+if (NOT viper_msgs_FOUND)
+    message(WARNING "viper_msgs package wasn't found. Make sure you have run colcon build and sourced the setup file.")
+    return()
+endif()
+include_directories(${viper_msgs_INCLUDE_DIRS})
+list(APPEND LIBS "${viper_msgs_LIBRARIES}")
+
 #--------------------------------------------------------------
 # OS-specific settings
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   set(CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
 endif()
+
+#--------------------------------------------------------------
+# Set the handler files to include
+
+set(HANDLER_FILES
+  ViperDCMotorControlHandler.h
+  ViperDCMotorControlHandler.cpp
+  ViperHandler.h
+  ViperHandler.cpp
+)
 
 # ------------------------------------------------------------------------------
 # Add all executables
@@ -59,8 +82,8 @@ endif()
 foreach(PROGRAM ${DEMOS})
     message(STATUS "...add ${PROGRAM}")
 
-    add_executable(${PROGRAM} ${PROGRAM}.cpp)
-    source_group("" FILES ${PROGRAM}.cpp)
+    add_executable(${PROGRAM} ${PROGRAM}.cpp ${HANDLER_FILES})
+    source_group("" FILES ${PROGRAM}.cpp ${HANDLER_FILES})
 
     set_target_properties(${PROGRAM} PROPERTIES COMPILE_FLAGS "${COMPILER_FLAGS}" LINK_FLAGS "${LINKER_FLAGS}")
     if(APPLE)
@@ -72,9 +95,3 @@ foreach(PROGRAM ${DEMOS})
 
     install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 endforeach()
-
-# ------------------------------------------------------------------------------
-# Add subdirectories
-# ------------------------------------------------------------------------------
-
-add_subdirectory(viper)
