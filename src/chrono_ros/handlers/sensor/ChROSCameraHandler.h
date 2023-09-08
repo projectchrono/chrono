@@ -23,6 +23,7 @@ class ChROSCameraHandler : public ChROSHandler {
   private:
     std::shared_ptr<chrono::sensor::ChCameraSensor> m_camera;
 
+    sensor_msgs::msg::Image m_image;
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr m_publisher;
 };
 

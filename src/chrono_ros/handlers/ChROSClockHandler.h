@@ -12,7 +12,7 @@ namespace ros {
 
 class ChROSClockHandler : public ChROSHandler {
   public:
-    ChROSClockHandler();
+    ChROSClockHandler(uint64_t frequency = 0);
 
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
 

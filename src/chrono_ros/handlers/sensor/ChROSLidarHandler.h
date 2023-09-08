@@ -23,6 +23,7 @@ class ChROSLidarHandler : public ChROSHandler {
   private:
     std::shared_ptr<chrono::sensor::ChLidarSensor> m_lidar;
 
+    sensor_msgs::msg::PointCloud2 m_lidar_msg;
     rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr m_publisher;
 };
 

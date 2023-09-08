@@ -13,10 +13,10 @@ void ChROSManager::Initialize() {
     m_interface->Initialize();
 
     // Initialize the handlers. Print wanning and remove the handler if it fails to initialize.
-    for (auto itr = m_handlers.begin(); itr != m_handlers.end()) {
+    for (auto itr = m_handlers.begin(); itr != m_handlers.end();) {
+        auto handler = *itr;
         if (!handler->Initialize(m_interface)) {
-            GetLog() << "Failed to initialize ROS handler with namespace " << handler->GetNamespace().c_str()
-                     << ". Will remove handler and continue.\n";
+            GetLog() << "Failed to initialize ROS handler. Will remove handler and continue.\n";
             itr = m_handlers.erase(itr);
         } else {
             itr++;
@@ -24,15 +24,16 @@ void ChROSManager::Initialize() {
     }
 }
 
-void ChROSManager::Update(double time, double step) {
+bool ChROSManager::Update(double time, double step) {
     for (auto handler : m_handlers)
         handler->Update(time, step);
 
     m_interface->SpinSome();
+
+    return rclcpp::ok();
 }
 
-void ChROSManager::RegisterHandler(uint64_t frequency, std::shared_ptr<ChROSHandler> handler) {
-    handler->SetFrequency(frequency);
+void ChROSManager::RegisterHandler(std::shared_ptr<ChROSHandler> handler) {
     m_handlers.push_back(handler);
 }
 

@@ -2,7 +2,7 @@
 #define CH_ROS_MAGNETOMETER_HANDLER
 
 #include "rclcpp/publisher.hpp"
-#include "sensor_msgs/msg/imu.hpp"
+#include "sensor_msgs/msg/magnetic_field.hpp"
 
 #include "chrono_ros/ChROSHandler.h"
 
@@ -23,7 +23,8 @@ class ChROSMagnetometerHandler : public ChROSHandler {
   private:
     std::shared_ptr<chrono::sensor::ChMagnetometerSensor> m_imu;
 
-    rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr m_publisher;
+    sensor_msgs::msg::MagneticField m_mag_msg;
+    rclcpp::Publisher<sensor_msgs::msg::MagneticField>::SharedPtr m_publisher;
 };
 
 }  // namespace ros

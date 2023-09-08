@@ -1,36 +1,45 @@
 #include "chrono_ros/handlers/sensor/ChROSCameraHandler.h"
 
-#include "chrono_ros/utils/ChROSConversions.h"
+#include "chrono_ros/handlers/ChROSHandlerUtilities.h"
+#include "chrono_ros/handlers/sensor/ChROSSensorHandlerUtilities.h"
 
 #include "chrono_sensor/sensors/ChCameraSensor.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
+
+#include <sstream>
 
 using namespace chrono::sensor;
 
 namespace chrono {
 namespace ros {
 
-ChROSCameraHandler::ChROSCameraHandler(std::shared_ptr<ChCameraSensor> camera) : ChROSHandler(), m_camera(camera) {}
+ChROSCameraHandler::ChROSCameraHandler(std::shared_ptr<ChCameraSensor> camera)
+    : ChROSHandler(camera->GetUpdateRate()), m_camera(camera) {}
 
 bool ChROSCameraHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
-    // Check that the camera's filter list contains an access filter.
-    auto it = std::find_if(m_filters.rbegin(), m_filters.rend(), [](std::shared_ptr<ChFilter> p) {
-        return std::dynamic_pointer_cast<ChFilterRGBA8Access>(p) != nullptr;
-    });
-    if (it == m_filters.rend()) {
-        GetLog() << "Camera sensor must have a ChFilterRGBA8Access filter. Can't initialize handler.\n";
+    if (!ChROSSensorHandlerUtilities::CheckFilterList<ChFilterRGBA8Access, ChFilterRGBA8AccessName>(m_camera)) {
         return false;
     }
 
-    auto node = interface->GetNode();
-    m_publisher = node->create_publisher<sensor_msgs::msg::Image>(ResolveROSName("image"), 1);
+    auto topic_name = ChROSHandlerUtilities::BuildRelativeTopicName("output", m_camera->GetName(), "image");
+
+    if (!ChROSHandlerUtilities::CheckROSTopicName(interface, topic_name)) {
+        return false;
+    }
+
+    m_publisher = interface->GetNode()->create_publisher<sensor_msgs::msg::Image>(topic_name, 1);
+
+    m_image.header.frame_id = m_camera->GetParent()->GetName();
+    m_image.width = m_camera->GetWidth();
+    m_image.height = m_camera->GetHeight();
+    m_image.encoding = "rgba8";
+    m_image.step = sizeof(PixelRGBA8) * m_image.width;
+    m_image.data.resize(m_image.step * m_image.height);
 
     return true;
 }
 
 void ChROSCameraHandler::Tick(double time) {
-    sensor_msgs::msg::Image image;
-
     auto rgba8_ptr = m_camera->GetMostRecentBuffer<UserRGBA8BufferPtr>();
     if (!rgba8_ptr->Buffer) {
         // TODO: Is this supposed to happen?
@@ -38,15 +47,12 @@ void ChROSCameraHandler::Tick(double time) {
         return;
     }
 
-    image.header.time = GetROSTimestamp(time);
-    image.width = rgba8_ptr->Width;
-    image.height = rgba8_ptr->Height;
-    image.size = sizeof(PixelRGBA8);
-    image.encoding = "rgba8";
-    image.data = rgba8->Buffer.get();
-    image.step = image.size * image.width;
+    m_image.header.stamp = ChROSHandlerUtilities::GetROSTimestamp(time);
+    const uint8_t* ptr = reinterpret_cast<const uint8_t*>(rgba8_ptr->Buffer.get());
+    m_image.data.assign(ptr, ptr + m_image.step * m_image.height);
 
-    m_publisher->publish(image);
+    // TODO: The buffer above may be released (?) after this call. Is this a problem? Guess is no.
+    m_publisher->publish(m_image);
 }
 
 }  // namespace ros

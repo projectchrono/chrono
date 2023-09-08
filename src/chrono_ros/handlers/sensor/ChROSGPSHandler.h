@@ -2,7 +2,7 @@
 #define CH_ROS_GPS_HANDLER
 
 #include "rclcpp/publisher.hpp"
-#include "sensor_msgs/msg/nat_sav_fix.hpp"
+#include "sensor_msgs/msg/nav_sat_fix.hpp"
 
 #include "chrono_ros/ChROSHandler.h"
 
@@ -23,7 +23,8 @@ class ChROSGPSHandler : public ChROSHandler {
   private:
     std::shared_ptr<chrono::sensor::ChGPSSensor> m_gps;
 
-    rclcpp::Publisher<sensor_msgs::msg::NatSavFix>::SharedPtr m_publisher;
+    sensor_msgs::msg::NavSatFix m_gps_msg;
+    rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr m_publisher;
 };
 
 }  // namespace ros
