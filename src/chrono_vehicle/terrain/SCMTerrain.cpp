@@ -309,6 +309,10 @@ double SCMTerrain::GetTimerVisUpdate() const {
     return 1e3 * m_loader->m_timer_visualization();
 }
 
+void SCMTerrain::SetBaseMeshLevel(double level) {
+    m_loader->m_base_height = level;
+}
+
 // Print timing and counter information for last step.
 void SCMTerrain::PrintStepStatistics(std::ostream& os) const {
     os << " Timers (ms):" << std::endl;
@@ -348,7 +352,7 @@ SCMContactableData::SCMContactableData(double area_ratio,
 // -----------------------------------------------------------------------------
 
 // Constructor.
-SCMLoader::SCMLoader(ChSystem* system, bool visualization_mesh) : m_soil_fun(nullptr) {
+SCMLoader::SCMLoader(ChSystem* system, bool visualization_mesh) : m_soil_fun(nullptr), m_base_height(-1000) {
     this->SetSystem(system);
 
     if (visualization_mesh) {
@@ -545,7 +549,8 @@ void SCMLoader::Initialize(const geometry::ChTriangleMeshConnected& trimesh, dou
     int nvy = 2 * m_ny + 1;                                   // number of grid vertices in Y direction
 
     // Loop over all mesh faces, project onto the x-y plane and set the height for all covered grid nodes.
-    m_heights = ChMatrixDynamic<>::Zero(nvx, nvy);
+    ////m_heights = ChMatrixDynamic<>::Zero(nvx, nvy);
+    m_heights = (minZ + m_base_height) * ChMatrixDynamic<>::Ones(nvx, nvy);
 
     int num_h_set = 0;
     double a1, a2, a3;
