@@ -63,15 +63,26 @@ using std::endl;
 // =============================================================================
 
 // Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
 
 // -----------------------------------------------------------------------------
 // Terrain parameters
 // -----------------------------------------------------------------------------
 
+// If true, set the SCM terrain profile from a mesh (bump.obj).
+// Otherwise, create a flat SCM terrain patch of given dimensions.
+bool initialize_from_mesh = false;
+
+// Dimensions of flat SCM terrain patch
 double terrainLength = 16.0;  // size in X direction
 double terrainWidth = 8.0;    // size in Y direction
-double delta = 0.05;          // SCM grid spacing
+
+double delta = 0.05;  // SCM grid spacing
+
+// SCM terrain visualization options
+bool render_wireframe = true;  // render wireframe (flat otherwise)
+bool apply_texture = false;    // add texture
+bool render_sinkage = true;    // use false coloring for sinkage visualization
 
 // -----------------------------------------------------------------------------
 // Vehicle parameters
@@ -85,10 +96,6 @@ TireType tire_type = TireType::LUGGED;
 float Y_t = 1.0e6f;
 float cr_t = 0.1f;
 float mu_t = 0.8f;
-
-// Initial vehicle position and orientation
-ChVector<> initLoc(-5, -2, 0.6);
-ChQuaternion<> initRot(1, 0, 0, 0);
 
 // -----------------------------------------------------------------------------
 // Simulation parameters
@@ -187,13 +194,16 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
+    // Set initial vehicle location
+    ChVector<> initLoc = initialize_from_mesh ? ChVector<>(-12, -12, 1.6) : ChVector<>(-5, -2, 0.6);
+
     // --------------------
     // Create HMMWV vehicle
     // --------------------
     HMMWV_Full my_hmmwv;
     my_hmmwv.SetContactMethod(ChContactMethod::SMC);
     my_hmmwv.SetChassisFixed(false);
-    my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
+    my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, QUNIT));
     my_hmmwv.SetEngineType(EngineModelType::SHAFTS);
     my_hmmwv.SetTransmissionType(TransmissionModelType::SHAFTS);
     my_hmmwv.SetDriveType(DrivelineTypeWV::AWD);
@@ -267,11 +277,22 @@ int main(int argc, char* argv[]) {
     ////    terrain.AddMovingPatch(axle->m_wheels[1]->GetSpindle(), ChVector<>(0, 0, 0), ChVector<>(1, 0.5, 1));
     ////}
 
-    ////terrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 80, 16);
-    ////terrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
-    terrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.1);
+    if (initialize_from_mesh) {
+        terrain.Initialize(vehicle::GetDataFile("terrain/meshes/bump.obj"), delta);
+    } else {
+        terrain.Initialize(terrainLength, terrainWidth, delta);
+    }
 
-    terrain.Initialize(terrainLength, terrainWidth, delta);
+    // Control visualization of SCM terrain
+    terrain.GetMesh()->SetWireframe(render_wireframe);
+
+    if (apply_texture)
+        terrain.GetMesh()->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"));
+
+    if (render_sinkage) {
+        terrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.1);
+        ////terrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
+    }
 
     // -------------------------------------------
     // Create the run-time visualization interface
