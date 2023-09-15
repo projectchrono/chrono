@@ -9,23 +9,25 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
+// Author: Aaron Young
+// =============================================================================
 
-#ifndef SYN_API_H
-#define SYN_API_H
+#ifndef CH_ROS_API_H
+#define CH_ROS_API_H
 
 #include "chrono/ChVersion.h"
 #include "chrono/core/ChPlatform.h"
 
-// When compiling the Synchrono library, remember to define SYN_API_COMPILE
-// (so that the symbols with 'SYN_API' in front of them will be marked as
+// When compiling this library, remember to define CH_API_COMPILE_ROS
+// (so that the symbols with 'CH_ROS_API' in front of them will be marked as
 // exported). Otherwise, just do not define it if you link the library to your
 // code, and the symbols will be imported.
 // Note: For header-only classes, do NOT put SYN_API in front of the class definition
 
-#if defined(SYN_API_COMPILE)
-#define SYN_API ChApiEXPORT
+#if defined(CH_API_COMPILE_ROS)
+#define CH_ROS_API ChApiEXPORT
 #else
-#define SYN_API ChApiIMPORT
+#define CH_ROS_API ChApiIMPORT
 #endif
 
 /**
