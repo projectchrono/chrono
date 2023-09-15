@@ -98,7 +98,7 @@ if %BUILDDEBUG% EQU ON (
     cmake --build build_assimp --config Debug
     cmake --install build_assimp --config Debug --prefix %VSG_INSTALL_DIR%
 ) else (
-    echo "No Debug build"
+    echo "No Debug build of assimp"
 )
 
 rem --- vsg ----------------------------------------------------------------
@@ -115,24 +115,26 @@ if %BUILDDEBUG% EQU ON (
     cmake --build build_vsg --config Debug
     cmake --install build_vsg --config Debug --prefix %VSG_INSTALL_DIR%
 ) else (
-    echo "No Debug build"
+    echo "No Debug build of vsg"
 )
 
 rem --- vsgXchange ---------------------------------------------------------
 
 rmdir /S/Q build_vsgXchange 2>null
-cmake -B build_vxgXchange -S %VSGXCHANGE_SOURCE_DIR%  ^
+cmake -B build_vsgXchange -S %VSGXCHANGE_SOURCE_DIR%  ^
       -DBUILD_SHARED_LIBS:BOOL=%BUILDSHARED% ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd ^
-      -Dvsg_DIR:PATH=%VSG_INSTALL_DIR%/lib/cmake/vsg
-cmake --build build_vxgXchange --config Release
-cmake --install build_vxgXchange --config Release --prefix %VSG_INSTALL_DIR%
+      -Dvsg_DIR:PATH=%VSG_INSTALL_DIR%/lib/cmake/vsg ^
+      -Dassimp_DIR:PATH=%VSG_INSTALL_DIR%/lib/cmake/assimp-5.2
+
+cmake --build build_vsgXchange --config Release
+cmake --install build_vsgXchange --config Release --prefix %VSG_INSTALL_DIR%
 if %BUILDDEBUG% EQU ON (
-    cmake --build build_vxgXchange --config Debug
-    cmake --install build_vxgXchange --config Debug --prefix %VSG_INSTALL_DIR%
+    cmake --build build_vsgXchange --config Debug
+    cmake --install build_vsgXchange --config Debug --prefix %VSG_INSTALL_DIR%
 ) else (
-    echo "No Debug build"
+    echo "No Debug build of vsgXchange"
 )
 
 @rem del /S/Q red_teapot.vsgt
@@ -155,7 +157,7 @@ if %BUILDDEBUG% EQU ON (
     cmake --build build_vsgImGui --config Debug
     cmake --install build_vsgImGui --config Debug --prefix %VSG_INSTALL_DIR%
 ) else (
-    echo "No Debug build"
+    echo "No Debug build of vsgImGui"
 )
 
 rem --- vsgExamples --------------------------------------------------------

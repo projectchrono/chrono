@@ -8,7 +8,8 @@
         "COM": [ 0.0, 0.529, 0.0 ],
         "Inertia": [ 0.052, 8.177, 8.208 ],
         "Size": [ 1.4, 0.1, 0.05 ],
-        "Pin Location": [ 0.0, 0.529, 0.0 ]
+        "Pin Location": [ 0.0, 0.529, 0.0 ],
+        "Pin Direction":  [0, 1, 0]
     },
 
     "Maximum Pitch": 0.14 // radians

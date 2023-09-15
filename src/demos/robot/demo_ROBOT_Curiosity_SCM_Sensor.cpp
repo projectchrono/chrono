@@ -32,8 +32,6 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/assets/ChBoxShape.h"
 
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
-
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 
@@ -54,6 +52,15 @@
 #include "chrono_thirdparty/filesystem/path.h"
 
 #include <chrono>
+
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+using namespace chrono::irrlicht;
+#endif
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+using namespace chrono::vsg3d;
+#endif
 
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -88,6 +95,9 @@ CuriosityWheelType wheel_type = CuriosityWheelType::RealWheel;
 
 // Simulation time step
 double time_step = 5e-4;
+
+// Run-time visualization system (IRRLICHT or VSG)
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // -----------------------------------------------------------------------------
 
@@ -397,20 +407,54 @@ int main(int argc, char* argv[]) {
 
     terrain.GetMesh()->SetWireframe(true);
 
-    // Create the Irrlicht visualization sys
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->AttachSystem(&sys);
-    vis->SetCameraVertical(CameraVerticalDir::Y);
-    vis->SetWindowSize(960, 600);
-    vis->SetWindowTitle("Curiosity Obstacle Crossing on SCM");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(2.0, 1.4, 0.0), ChVector<>(0, wheel_range, 0));
-    vis->AddTypicalLights();
-    vis->AddLightWithShadow(ChVector<>(-10.0, 16.0, -0.5), ChVector<>(-1, 0, 0), 100, 1, 35, 85, 512,
-                            ChColor(0.8f, 0.8f, 0.8f));
-    vis->EnableShadows();
+    // Create the run-time visualization interface
+#ifndef CHRONO_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::IRRLICHT)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
+    std::shared_ptr<ChVisualSystem> vis;
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
+            auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+            vis_irr->AttachSystem(&sys);
+            vis_irr->SetCameraVertical(CameraVerticalDir::Y);
+            vis_irr->SetWindowSize(800, 600);
+            vis_irr->SetWindowTitle("Curiosity Obstacle Crossing on SCM");
+            vis_irr->Initialize();
+            vis_irr->AddLogo();
+            vis_irr->AddSkyBox();
+            vis_irr->AddCamera(ChVector<>(-1.0, 1.0, 3.0), ChVector<>(-5.0, 0.0, 0.0));
+            vis_irr->AddTypicalLights();
+            vis_irr->AddLightWithShadow(ChVector<>(-5.0, 8.0, -0.5), ChVector<>(-1, 0, 0), 100, 1, 35, 85, 512,
+                                        ChColor(0.8f, 0.8f, 0.8f));
+            vis_irr->EnableShadows();
+
+            vis = vis_irr;
+#endif
+            break;
+        }
+        default:
+        case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+            auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
+            vis_vsg->AttachSystem(&sys);
+            vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
+            vis_vsg->SetWindowSize(800, 600);
+            vis_vsg->SetWindowTitle("Curiosity Obstacle Crossing on SCM");
+            vis_vsg->AddCamera(ChVector<>(-1.0, 1.0, 3.0), ChVector<>(-5.0, 0.0, 0.0));
+            vis_vsg->AddGuiColorbar("Pressure yield [kPa]", 0.0, 20.0);
+            vis_vsg->Initialize();
+
+            vis = vis_vsg;
+#endif
+            break;
+        }
+    }
 
     //
     // SENSOR SIMULATION
@@ -427,8 +471,8 @@ int main(int argc, char* argv[]) {
     auto lidar = chrono_types::make_shared<ChLidarSensor>(rover.GetChassis()->GetBody(),  // body lidar is attached to
                                                           25,                             // scanning rate in Hz
                                                           offset_pose,                    // offset pose
-                                                          960,                   // number of horizontal samples
-                                                          600,                   // number of vertical channels
+                                                          480,                   // number of horizontal samples
+                                                          300,                   // number of vertical channels
                                                           (float)(2 * CH_C_PI),  // horizontal field of view
                                                           (float)CH_C_PI / 12, (float)-CH_C_PI / 6,
                                                           120.0f  // vertical field of view
@@ -473,12 +517,12 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     while (vis->Run()) {
+#if defined(CHRONO_IRRLICHT) || defined(CHRONO_VSG)
         vis->BeginScene();
-        vis->GetSceneManager()->getActiveCamera()->setTarget(
-            core::vector3dfCH(rover.GetChassis()->GetBody()->GetPos()));
         vis->Render();
-        tools::drawColorbar(vis.get(), 0, 20000, "Pressure yield [Pa]", 1600);
+        ////tools::drawColorbar(vis.get(), 0, 20000, "Pressure yield [Pa]", 1600);
         vis->EndScene();
+#endif
 
         if (output) {
             // write drive torques of all six wheels into file

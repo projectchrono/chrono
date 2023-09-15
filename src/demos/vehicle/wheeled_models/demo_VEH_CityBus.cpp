@@ -50,7 +50,7 @@ using namespace chrono::vehicle::citybus;
 // =============================================================================
 
 // Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 enum DriverMode { DEFAULT, RECORD, PLAYBACK };
 DriverMode driver_mode = DEFAULT;
@@ -176,6 +176,16 @@ int main(int argc, char* argv[]) {
     utils::CSV_writer driver_csv(" ");
 
     // Create the vehicle run-time visualization interface and the interactive driver
+
+#ifndef CHRONO_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::IRRLICHT)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
+
     std::shared_ptr<ChVehicleVisualSystem> vis;
     std::shared_ptr<ChDriver> driver;
 

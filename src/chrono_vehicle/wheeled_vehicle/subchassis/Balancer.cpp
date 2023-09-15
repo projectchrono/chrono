@@ -65,8 +65,13 @@ void Balancer::Create(const rapidjson::Document& d) {
         // Read pitch limits
         m_beam_max_pitch = d["Maximum Pitch"].GetDouble();
     }
-}
 
+    if (d["Beam"].HasMember("Pin Direction")) {
+        m_dir = ReadVectorJSON(d["Beam"]["Pin Direction"]);
+    } else {
+        m_dir = ChVector<>(0, 1, 0);
+    }
+}
 
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Jay Taves
+// Authors: Jay Taves, Jason Zhou
 // =============================================================================
 //
 // Demo code illustrating synchronization of the SCM semi-empirical model for

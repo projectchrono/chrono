@@ -792,6 +792,7 @@ set(ChronoEngine_motion_functions_SOURCES
     motion_functions/ChFunction_ConstAcc.cpp
 	motion_functions/ChFunction_Cycloidal.cpp
     motion_functions/ChFunction_Derive.cpp
+    motion_functions/ChFunction_DoubleS.cpp
     motion_functions/ChFunction_Fillet3.cpp
     motion_functions/ChFunction_Integrate.cpp
     motion_functions/ChFunction_Matlab.cpp
@@ -829,6 +830,7 @@ set(ChronoEngine_motion_functions_HEADERS
     motion_functions/ChFunction_ConstAcc.h
 	motion_functions/ChFunction_Cycloidal.h
     motion_functions/ChFunction_Derive.h
+    motion_functions/ChFunction_DoubleS.h
     motion_functions/ChFunction_Fillet3.h
     motion_functions/ChFunction_Integrate.h
     motion_functions/ChFunction_Matlab.h

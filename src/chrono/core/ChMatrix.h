@@ -184,6 +184,29 @@ inline void StreamOutDenseMatlabFormat(ChMatrixConstRef A, ChStreamOutAscii& str
     }
 }
 
+/// Parse numeric data from a file (eg. csv) and store into dense matrix.
+inline void StreamInDenseMatlabFormat(const std::string& filename, ChMatrixDynamic<>& matr, char delim = ',') {
+    std::ifstream file_input(filename);
+    std::vector<std::vector<double>> tmp_data;
+    std::string line;
+    while (std::getline(file_input, line, '\n')) { // get line up to 'newline'
+        std::stringstream line_ss(line); // tmp
+        std::string subline; // tmp
+        std::vector<double> data_row; // tmp
+        while (std::getline(line_ss, subline, delim)) // split line at delimiter (eg. ',')
+            data_row.push_back(std::stod(subline)); // store sub parts in double vector
+        tmp_data.push_back(data_row); // add new numerical row in temporary data container
+    }
+    size_t num_rows = tmp_data.size(); // get number of rows in file
+    size_t num_cols = tmp_data[0].size(); // get number of columns in file (assume all equal)
+    // Store parsed data in output ChMatrixDynamic<>
+    matr.resize(num_rows, num_cols);
+    for (int i = 0; i < num_rows; ++i)
+        for (int j = 0; j < num_cols; ++j)
+            matr(i, j) = tmp_data[i][j];
+    file_input.close();
+}
+
 //// RADU
 //// TODO: serialization of matrix classes
 

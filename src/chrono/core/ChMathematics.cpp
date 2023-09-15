@@ -32,6 +32,15 @@ double ChAtan2(double mcos, double msin) {
     return ret;
 }
 
+/// Root-Mean-Square of given array
+double ChRMS(double* y_array, int y_size) {
+    double rms = 0.0;
+    for (int i = 0; i < y_size; ++i)
+        rms += y_array[i] * y_array[i];
+    rms = sqrt(rms / y_size);
+    return rms;
+}
+
 // OTHER
 
 // Park-Miller hi-quality random generator

@@ -96,6 +96,9 @@ class ChApiIrr ChIrrGUI {
     /// Set the speed of the shown mode (only if some ChModalAssembly is found).
     void SetModalSpeed(double val);
 
+    /// Set the total number of modes available from the scrollbar
+    void SetModalModesMax(int maxModes);
+
     /// Set the label mode for contacts
     void SetContactsLabelMode(ContactsLabelMode mm) { g_labelcontacts->setSelected((int)mm); }
     /// Set the draw mode for contacts

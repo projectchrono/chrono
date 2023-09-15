@@ -325,6 +325,7 @@ int main(int argc, char* argv[]) {
     vehicle.GetChassis()->SetFixed(false);
     vehicle.SetChassisVisualizationType(VisualizationType::MESH);
     vehicle.SetChassisRearVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetSubchassisVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetWheelVisualizationType(VisualizationType::MESH);

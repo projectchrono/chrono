@@ -63,6 +63,10 @@ if(ENABLE_MODULE_MUMPS)
     list(APPEND LIBS "ChronoEngine_mumps")
 endif()
 
+if(ENABLE_MODULE_POSTPROCESS)
+    list(APPEND LIBS "ChronoEngine_postprocess")
+endif()
+
 #--------------------------------------------------------------
 # Create the executables
 

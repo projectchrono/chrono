@@ -30,7 +30,7 @@ The dependencies for the Python parser are satisfied by a Python 3 installation.
 The URDF parser relies on features of `urdfdom` that are not yet available in the main branch of its official repository. As such, we currently rely on a fork of `urdfdom` which implements features that will eventually be incorporated in the upstream repository.  
 
 The simplest way to build and install all requirements for the Chrono URDF parser is to use the utility scripts provided with the Chrono distribution. 
-These scripts (`buildURDF.bat` and `buildURDF.sh`, for Windows and Linux, respectively) are available in the `contrib/build-scripts/vsg` directory of the [Chrono repository](https://github.com/projectchrono/chrono/tree/main/contrib/build-scripts/urdf). 
+These scripts (`buildURDF.bat` and `buildURDF.sh`, for Windows and Linux, respectively) are available in the `contrib/build-scripts/urdf` directory of the [Chrono repository](https://github.com/projectchrono/chrono/tree/main/contrib/build-scripts/urdf). 
 
 1. Copy the appropriate script and place in an arbitrary temporary directory.
 2. Edit the script copy to:
@@ -38,7 +38,7 @@ These scripts (`buildURDF.bat` and `buildURDF.sh`, for Windows and Linux, respec
    - Specify the install directory (set the variable `URDF_INSTALL_DIR`).
    - Decide whether to also build debug libraries.
 3. Run the script (`.\buildURDF.bat` or `sh buildURDF.sh`, as appropriate) from the location of the script copy. This will create a temporary directory where all source repositories will be cloned and a set of directories where the individual URDF dependencies are built.
-4. The install directory will contain (under `URDF_INSTALL_DIR/CMake`) all URDF CMake project configuration scripts required to configure Chrono with the Chrono::Parser module enabled.
+4. The install directory will contain, under `URDF_INSTALL_DIR/CMake` (on Windows) and under subdirectories `URDF_INSTALL_DIR/***/cmake` (on Linux)) all URDF CMake project configuration scripts required to configure Chrono with the Chrono::Parser module enabled.
 
 
 ## Building instructions
@@ -49,7 +49,7 @@ Once the necessary dependencies are installed, perform the following steps to co
    
 2. During CMake configuration, set `ENABLE_MODULE_PARSERS` to 'on', then press 'Configure'
 
-3. When prompted, provide the paths to the various URDF project configuration scripts (`urdfdom_DIR`, `urdfdom_headers_DIR`, and `console_bridge_DIR`). Assuming the dependencies were installed as described above, all these CMake variables should be set to `<URDF_INSTALL_DIR>/CMake`
+3. When prompted, provide the paths to the various URDF project configuration scripts (`urdfdom_DIR`, `urdfdom_headers_DIR`, and `console_bridge_DIR`). Assuming the dependencies were installed as described above, all these CMake variables should be set to `<URDF_INSATALL_DIR>/CMake` on Windows, while on Linux they should be `<URDF_INSTALL_DIR>/lib/urdfdom/cmake`, `<URDF_INSTALL_DIR>/lib/urdfdom_headers/cmake`, and `<URDF_INSTALL_DIR>/lib/console_bridge/cmake`, respectively.
 
 4. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 

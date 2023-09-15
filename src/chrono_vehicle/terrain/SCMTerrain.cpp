@@ -189,8 +189,8 @@ void SCMTerrain::SetPlotType(DataPlotType plot_type, double min_val, double max_
 
 // Enable moving patch.
 void SCMTerrain::AddMovingPatch(std::shared_ptr<ChBody> body,
-                                          const ChVector<>& OOBB_center,
-                                          const ChVector<>& OOBB_dims) {
+                                const ChVector<>& OOBB_center,
+                                const ChVector<>& OOBB_dims) {
     SCMLoader::MovingPatchInfo pinfo;
     pinfo.m_body = body;
     pinfo.m_center = OOBB_center;
@@ -214,17 +214,22 @@ void SCMTerrain::Initialize(double sizeX, double sizeY, double delta) {
 
 // Initialize the terrain from a specified height map.
 void SCMTerrain::Initialize(const std::string& heightmap_file,
-                                      double sizeX,
-                                      double sizeY,
-                                      double hMin,
-                                      double hMax,
-                                      double delta) {
+                            double sizeX,
+                            double sizeY,
+                            double hMin,
+                            double hMax,
+                            double delta) {
     m_loader->Initialize(heightmap_file, sizeX, sizeY, hMin, hMax, delta);
 }
 
 // Initialize the terrain from a specified OBJ mesh file.
 void SCMTerrain::Initialize(const std::string& mesh_file, double delta) {
     m_loader->Initialize(mesh_file, delta);
+}
+
+// Initialize the terrain from a specified triangular mesh file.
+void SCMTerrain::Initialize(const geometry::ChTriangleMeshConnected& trimesh, double delta) {
+    m_loader->Initialize(trimesh, delta);
 }
 
 // Get the heights of modified grid nodes.
@@ -304,6 +309,10 @@ double SCMTerrain::GetTimerVisUpdate() const {
     return 1e3 * m_loader->m_timer_visualization();
 }
 
+void SCMTerrain::SetBaseMeshLevel(double level) {
+    m_loader->m_base_height = level;
+}
+
 // Print timing and counter information for last step.
 void SCMTerrain::PrintStepStatistics(std::ostream& os) const {
     os << " Timers (ms):" << std::endl;
@@ -343,7 +352,7 @@ SCMContactableData::SCMContactableData(double area_ratio,
 // -----------------------------------------------------------------------------
 
 // Constructor.
-SCMLoader::SCMLoader(ChSystem* system, bool visualization_mesh) : m_soil_fun(nullptr) {
+SCMLoader::SCMLoader(ChSystem* system, bool visualization_mesh) : m_soil_fun(nullptr), m_base_height(-1000) {
     this->SetSystem(system);
 
     if (visualization_mesh) {
@@ -406,11 +415,11 @@ void SCMLoader::Initialize(double sizeX, double sizeY, double delta) {
 
 // Initialize the terrain from a specified height map.
 void SCMLoader::Initialize(const std::string& heightmap_file,
-                                   double sizeX,
-                                   double sizeY,
-                                   double hMin,
-                                   double hMax,
-                                   double delta) {
+                           double sizeX,
+                           double sizeY,
+                           double hMin,
+                           double hMax,
+                           double delta) {
     m_type = PatchType::HEIGHT_MAP;
 
     // Read the image file (request only 1 channel) and extract number of pixels.
@@ -500,12 +509,18 @@ bool calcBarycentricCoordinates(const ChVector<>& v1,
 }
 
 void SCMLoader::Initialize(const std::string& mesh_file, double delta) {
+    // Load triangular mesh
+    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(mesh_file, true, true);
+
+    Initialize(*trimesh, delta);
+}
+
+void SCMLoader::Initialize(const geometry::ChTriangleMeshConnected& trimesh, double delta) {
     m_type = PatchType::TRI_MESH;
 
     // Load triangular mesh
-    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(mesh_file, true, true);
-    const auto& vertices = trimesh->getCoordsVertices();
-    const auto& faces = trimesh->getIndicesVertexes();
+    const auto& vertices = trimesh.getCoordsVertices();
+    const auto& faces = trimesh.getIndicesVertexes();
 
     // Find x, y, and z ranges of vertex data
     auto minmaxX = std::minmax_element(begin(vertices), end(vertices),
@@ -534,7 +549,8 @@ void SCMLoader::Initialize(const std::string& mesh_file, double delta) {
     int nvy = 2 * m_ny + 1;                                   // number of grid vertices in Y direction
 
     // Loop over all mesh faces, project onto the x-y plane and set the height for all covered grid nodes.
-    m_heights = ChMatrixDynamic<>::Zero(nvx, nvy);
+    ////m_heights = ChMatrixDynamic<>::Zero(nvx, nvy);
+    m_heights = (minZ + m_base_height) * ChMatrixDynamic<>::Ones(nvx, nvy);
 
     int num_h_set = 0;
     double a1, a2, a3;
@@ -1412,8 +1428,7 @@ void SCMLoader::ComputeInternalForces() {
             std::shared_ptr<ChBody> sbody(body, [](ChBody*) {});
 
             if (!m_cosim_mode) {
-                std::shared_ptr<ChLoadBodyForce> mload(
-                    new ChLoadBodyForce(sbody, Fn + Ft, false, point_abs, false));
+                std::shared_ptr<ChLoadBodyForce> mload(new ChLoadBodyForce(sbody, Fn + Ft, false, point_abs, false));
                 this->Add(mload);
             }
 
@@ -1462,7 +1477,7 @@ void SCMLoader::ComputeInternalForces() {
                     itr->second += node_force;
                 }
             }
-        }  else if (ChLoadableUV* surf = dynamic_cast<ChLoadableUV*>(contactable)) {
+        } else if (ChLoadableUV* surf = dynamic_cast<ChLoadableUV*>(contactable)) {
             if (!m_cosim_mode) {
                 // [](){} Trick: no deletion for this shared ptr
                 std::shared_ptr<ChLoadableUV> ssurf(surf, [](ChLoadableUV*) {});

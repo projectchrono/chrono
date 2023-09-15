@@ -255,26 +255,5 @@ void ChPac89Tire::Advance(double step) {
     m_tireforce.moment = ChVector<>(Mx, -My, -Mz);
 }
 
-// -----------------------------------------------------------------------------
-
-void ChPac89Tire::AddVisualizationAssets(VisualizationType vis) {
-    if (vis == VisualizationType::NONE)
-        return;
-
-    m_cyl_shape =
-        ChVehicleGeometry::AddVisualizationCylinder(m_wheel->GetSpindle(),                                        //
-                                                    ChVector<>(0, GetOffset() + GetVisualizationWidth() / 2, 0),  //
-                                                    ChVector<>(0, GetOffset() - GetVisualizationWidth() / 2, 0),  //
-                                                    GetRadius());
-    m_cyl_shape->SetTexture(GetChronoDataFile("textures/greenwhite.png"));
-}
-
-void ChPac89Tire::RemoveVisualizationAssets() {
-    // Make sure we only remove the assets added by ChPac89Tire::AddVisualizationAssets.
-    // This is important for the ChTire object because a wheel may add its own assets to the same body (the
-    // spindle/wheel).
-    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_cyl_shape);
-}
-
 }  // end namespace vehicle
 }  // end namespace chrono

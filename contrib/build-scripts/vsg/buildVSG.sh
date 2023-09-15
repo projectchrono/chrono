@@ -148,7 +148,8 @@ cmake  -G "${BUILDSYSTEM}" -B build_vsgXchange -S ${VSGXCHANGE_SOURCE_DIR}  \
       -DBUILD_SHARED_LIBS:BOOL=${BUILDSHARED} \
       -DCMAKE_DEBUG_POSTFIX=_d \
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd \
-      -Dvsg_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/vsg
+      -Dvsg_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/vsg \
+      -Dassimp_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/assimp-5.2
 
 echo -e "\n------------------------ Build and install vsgXchange\n"
 cmake --build build_vsgXchange --config Release

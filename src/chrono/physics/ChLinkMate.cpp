@@ -918,25 +918,6 @@ void ChLinkMateRevolute::SetFlipped(bool doflip) {
     }
 }
 
-void ChLinkMateRevolute::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
-                                   std::shared_ptr<ChBodyFrame> mbody2,
-                                   bool pos_are_relative,
-                                   ChVector<> mpt1,
-                                   ChVector<> mpt2,
-                                   ChVector<> mnorm1,
-                                   ChVector<> mnorm2) {
-    // set the two frames so that they have the X axis aligned when the
-    // two normals are opposed (default behavior, otherwise is considered 'flipped')
-
-    ChVector<> mnorm1_reversed;
-    if (!flipped)
-        mnorm1_reversed = mnorm1;
-    else
-        mnorm1_reversed = -mnorm1;
-
-    ChLinkMateGeneric::Initialize(mbody1, mbody2, pos_are_relative, mpt1, mpt2, mnorm1_reversed, mnorm2);
-}
-
 void ChLinkMateRevolute::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLinkMateRevolute>();

@@ -437,9 +437,9 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
         case PipelineType::SEGMENTATION: {
             program_groups.push_back(m_segmentation_raygen_group);
             OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_segmentation_raygen_group, raygen_record.get()));
-            raygen_record->data.specific.segmentation.hFOV = 3.14f / 4;   // default value
-            raygen_record->data.specific.segmentation.frame_buffer = {};  // default value
-            raygen_record->data.specific.segmentation.lens_model = PINHOLE;     // default value
+            raygen_record->data.specific.segmentation.hFOV = 3.14f / 4;      // default value
+            raygen_record->data.specific.segmentation.frame_buffer = {};     // default value
+            raygen_record->data.specific.segmentation.lens_model = PINHOLE;  // default value
             raygen_record->data.specific.segmentation.lens_parameters = {};
             break;
         }
@@ -504,7 +504,7 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
     program_groups.push_back(m_hit_mesh_group);
     program_groups.push_back(m_miss_group);
 
-    OptixPipelineLinkOptions pipeline_link_options = {m_trace_depth, OPTIX_COMPILE_DEBUG_LEVEL_FULL};
+    OptixPipelineLinkOptions pipeline_link_options = {m_trace_depth};
 
     char log[2048];
     size_t sizeof_log = sizeof(log);
@@ -516,7 +516,7 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
                                           &sizeof_log, &m_pipelines[id]));
     OptixStackSizes stack_sizes = {};
     for (auto& prog_group : program_groups) {
-        OPTIX_ERROR_CHECK(optixUtilAccumulateStackSizes(prog_group, &stack_sizes));
+        OPTIX_ERROR_CHECK(optixUtilAccumulateStackSizes(prog_group, &stack_sizes, m_pipelines[id]));
     }
     uint32_t direct_callable_stack_size_from_traversal;
     uint32_t direct_callable_stack_size_from_state;

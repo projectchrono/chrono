@@ -94,9 +94,10 @@ cmake -G ${BUILDSYSTEM} -B ${BUILD_DIR} -S ${SOURCE_DIR} \
       -Dvsg_DIR:PATH=${VSG_INSTALL_DIR}/${LIB_DIR}/cmake/vsg \
       -DvsgImGui_DIR:PATH=${VSG_INSTALL_DIR}/${LIB_DIR}/cmake/vsgImGui \
       -DvsgXchange_DIR:PATH=${VSG_INSTALL_DIR}/${LIB_DIR}/cmake/vsgXchange \
-      -Durdfdom_DIR:PATH=${URDF_INSTALL_DIR}/CMake \
-      -Durdfdom_headers_DIR:PATH=${URDF_INSTALL_DIR}/CMake \
-      -Dconsole_bridge_DIR:PATH=${URDF_INSTALL_DIR}/CMake \
+      -Durdfdom_DIR:PATH=${URDF_INSTALL_DIR}/lib/urdfdom/cmake \
+      -Durdfdom_headers_DIR:PATH=${URDF_INSTALL_DIR}/lib/urdfdom_heders/cmake \
+      -Dconsole_bridge_DIR:PATH=${URDF_INSTALL_DIR}/lib/console_bridge/cmake \
+      -Dtinyxml2_DIR:PATH=${URDF_INSTALL_DIR}/CMake \
       -DSWIG_EXECUTABLE:FILEPATH=${SWIG_EXE} \
       -DCMAKE_BUILD_TYPE="Release"
 

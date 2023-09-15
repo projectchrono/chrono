@@ -51,8 +51,6 @@ void TMsimpleTire::Create(const rapidjson::Document& d) {
 
     // Read design parameters (required)
     assert(d.HasMember("Design"));
-    assert(d.HasMember("Coefficient of Friction"));
-    assert(d.HasMember("Rolling Resistance Coefficient"));
 
     m_mass = d["Design"]["Mass [kg]"].GetDouble();
     m_inertia = ReadVectorJSON(d["Design"]["Inertia [kg.m2]"]);
@@ -175,8 +173,10 @@ void TMsimpleTire::Create(const rapidjson::Document& d) {
 
     // Coefficient of friction and rolling resistance coefficients.
     // These must be set here to ensure they are not overwritten.
-    m_par.mu_0 = d["Coefficient of Friction"].GetDouble();
-    m_rolling_resistance = d["Rolling Resistance Coefficient"].GetDouble();
+    if (d.HasMember("Coefficient of Friction"))
+        m_par.mu_0 = d["Coefficient of Friction"].GetDouble();
+    if (d.HasMember("Rolling Resistance Coefficient"))
+        m_rolling_resistance = d["Rolling Resistance Coefficient"].GetDouble();
 
     m_visualization_width = ChTMsimpleTire::GetVisualizationWidth();
 
