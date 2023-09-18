@@ -942,20 +942,22 @@ void ChVisualSystemVSG::Render() {
     // Dynamic data transfer CPU->GPU for deformable meshes
     for (auto& def_mesh : m_def_meshes) {
         if (def_mesh.dynamic_vertices) {
+            const auto& new_vertices =
+                def_mesh.mesh_soup ? def_mesh.trimesh->getFaceVertices() : def_mesh.trimesh->getCoordsVertices();
+            assert(def_mesh.vertices->size() == new_vertices.size());
             size_t k = 0;
-            const auto& face_vertices = def_mesh.trimesh->getFaceVertices();
-            assert(def_mesh.vertices->size() == face_vertices.size());
             for (auto& v : *def_mesh.vertices)
-                v = vsg::vec3CH(face_vertices[k++]);
+                v = vsg::vec3CH(new_vertices[k++]);
             def_mesh.vertices->dirty();
         }
 
         if (def_mesh.dynamic_normals) {
+            const auto& new_normals =
+                def_mesh.mesh_soup ? def_mesh.trimesh->getFaceNormals() : def_mesh.trimesh->getAverageNormals();
+            assert(def_mesh.normals->size() == new_normals.size());
             size_t k = 0;
-            const auto& face_normals = def_mesh.trimesh->getFaceNormals();
-            assert(def_mesh.normals->size() == face_normals.size());
-            for (auto& v : *def_mesh.normals)
-                v = vsg::vec3CH(face_normals[k++]);
+            for (auto& n : *def_mesh.normals)
+                n = vsg::vec3CH(new_normals[k++]);
             def_mesh.normals->dirty();
         }
 
@@ -1395,10 +1397,8 @@ void ChVisualSystemVSG::BindLoadContainer(const std::shared_ptr<ChLoadContainer>
     m_deformableScene->addChild(child);
 
     def_mesh.mesh_soup = false;
-    auto num_vertices = 3 * trimesh->GetMesh()->getIndicesVertexes().size();  // expected
 
     def_mesh.vertices = vsg::visit<FindVec3BufferData<0>>(child).getBufferData();
-    assert(def_mesh.vertices->size() == num_vertices);
     def_mesh.vertices->properties.dataVariance = vsg::DYNAMIC_DATA;
     def_mesh.dynamic_vertices = true;
 
