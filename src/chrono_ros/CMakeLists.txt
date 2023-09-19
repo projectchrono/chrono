@@ -76,9 +76,6 @@ set(CH_ROS_HANDLER_FILES
   handlers/ChROSClockHandler.h
   handlers/ChROSClockHandler.cpp
 
-  handlers/ChROSCommandHandler.h
-  handlers/ChROSCommandHandler.cpp
-
   handlers/ChROSHandlerUtilities.h
   handlers/ChROSHandlerUtilities.cpp
 )
@@ -117,6 +114,19 @@ else()
 endif()
 source_group("sensor_handler" FILES ${CH_ROS_SENSOR_HANDLER_FILES})
 
+if (ENABLE_MODULE_ROBOT_MODELS)
+  set(CH_ROS_ROBOT_HANDLER_FILES
+    # viper
+    handlers/robot/viper/ViperHandler.h
+    handlers/robot/viper/ViperHandler.cpp
+    handlers/robot/viper/ViperDCMotorControlHandler.h
+    handlers/robot/viper/ViperDCMotorControlHandler.cpp
+  )
+else()
+  set(CH_ROS_ROBOT_HANDLER_FILES "")
+endif()
+source_group("robot_handler" FILES ${CH_ROS_ROBOT_HANDLER_FILES})
+
 #-----------------------------------------------------------------------------
 # Create the ChronoEngine_ros library
 #-----------------------------------------------------------------------------
@@ -126,6 +136,10 @@ if (ENABLE_MODULE_VEHICLE)
   if (ENABLE_MODULE_VEHICLE_MODELS)
     list(APPEND CH_ROS_LIBRARIES ChronoModels_vehicle)
   endif()
+endif()
+
+if (ENABLE_MODULE_ROBOT_MODELS)
+  list(APPEND CH_ROS_LIBRARIES ChronoModels_robot)
 endif()
 
 if (ENABLE_MODULE_SENSOR)
@@ -151,6 +165,7 @@ add_library(ChronoEngine_ros SHARED
 	${CH_ROS_HANDLER_FILES}
 	${CH_ROS_VEHICLE_HANDLER_FILES}
 	${CH_ROS_SENSOR_HANDLER_FILES}
+	${CH_ROS_ROBOT_HANDLER_FILES}
 )
 
 # windows builds should disable warning 4661 and 4005

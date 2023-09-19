@@ -21,7 +21,7 @@ bool ChROSCameraHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
         return false;
     }
 
-    auto topic_name = ChROSHandlerUtilities::BuildRelativeTopicName("output", m_camera->GetName(), "image");
+    auto topic_name = ChROSHandlerUtilities::BuildRelativeTopicName("output", "camera", m_camera->GetName(), "image");
 
     if (!ChROSHandlerUtilities::CheckROSTopicName(interface, topic_name)) {
         return false;

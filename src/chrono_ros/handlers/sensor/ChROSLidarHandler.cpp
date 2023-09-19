@@ -19,7 +19,7 @@ bool ChROSLidarHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
         return false;
     }
 
-    auto topic_name = ChROSHandlerUtilities::BuildRelativeTopicName("output", m_lidar->GetName(), "data");
+    auto topic_name = ChROSHandlerUtilities::BuildRelativeTopicName("output", "lidar", m_lidar->GetName(), "data");
 
     if (!ChROSHandlerUtilities::CheckROSTopicName(interface, topic_name)) {
         return false;

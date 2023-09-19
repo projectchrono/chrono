@@ -18,7 +18,7 @@ bool ChROSAccelerometerHandler::Initialize(std::shared_ptr<ChROSInterface> inter
         return false;
     }
 
-    auto topic_name = ChROSHandlerUtilities::BuildRelativeTopicName("output", m_imu->GetName(), "data");
+    auto topic_name = ChROSHandlerUtilities::BuildRelativeTopicName("output", "accelerometer", m_imu->GetName(), "data");
 
     if (!ChROSHandlerUtilities::CheckROSTopicName(interface, topic_name)) {
         return false;

@@ -18,7 +18,7 @@ bool ChROSMagnetometerHandler::Initialize(std::shared_ptr<ChROSInterface> interf
         return false;
     }
 
-    auto topic_name = ChROSHandlerUtilities::BuildRelativeTopicName("output", m_imu->GetName(), "data");
+    auto topic_name = ChROSHandlerUtilities::BuildRelativeTopicName("output", "magnetometer", m_imu->GetName(), "data");
 
     if (!ChROSHandlerUtilities::CheckROSTopicName(interface, topic_name)) {
         return false;
