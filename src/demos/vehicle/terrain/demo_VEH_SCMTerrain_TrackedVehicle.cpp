@@ -20,14 +20,24 @@
 #include "chrono/solver/ChSolverBB.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
-#include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/m113/M113.h"
 
 #ifdef CHRONO_PARDISO_MKL
     #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+#endif
+
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
+    #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
+using namespace chrono::irrlicht;
+#endif
+
+#ifdef CHRONO_VSG
+    #include "chrono_vehicle/driver/ChInteractiveDriverVSG.h"
+    #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h"
+using namespace chrono::vsg3d;
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -40,6 +50,9 @@ using namespace chrono::vehicle::m113;
 // USER SETTINGS
 // =============================================================================
 
+// Run-time visualization system (IRRLICHT or VSG)
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
+
 // Initial vehicle position
 ChVector<> initLoc(-5, 0, 1.1);
 
@@ -51,8 +64,8 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 // ChQuaternion<> initRot(0, 0, 0, 1);
 
 // Terrain dimensions
-double terrainLength = 20.0;  // size in X direction
-double terrainWidth = 4.0;    // size in Y direction
+double terrain_length = 20.0;  // size in X direction
+double terrain_width = 4.0;    // size in Y direction
 double delta = 0.05;          // SCM grid spacing
 
 // Simulation step size
@@ -149,46 +162,95 @@ int main(int argc, char* argv[]) {
     terrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
     ////terrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.15);
 
-    terrain.Initialize(terrainLength, terrainWidth, delta);
+    terrain.Initialize(terrain_length, terrain_width, delta);
 
     // Add obstacles
     AddFixedObstacles(system);
     ////AddMovingObstacles(system);
 
-    // ---------------------------------
-    // Create the run-time visualization
-    // ---------------------------------
+    // ------------------------------------------------------------------------------
+    // Create the vehicle run-time visualization interface and the interactive driver
+    // ------------------------------------------------------------------------------
 
-    auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
-    vis->SetWindowTitle("Tracked vehicle on SCM deformable terrain");
-    vis->SetChaseCamera(trackPoint, 4.0, 1.0);
-    vis->SetChaseCameraPosition(ChVector<>(-3, 4, 1.5));
-    vis->SetChaseCameraMultipliers(1e-4, 10);
-    vis->Initialize();
-    vis->AddLightDirectional();
-    vis->AddSkyBox();
-    vis->AddLogo();
-    vis->AttachVehicle(&m113.GetVehicle());
+#ifndef CHRONO_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::IRRLICHT)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
 
-    // ------------------------
-    // Create the driver system
-    // ------------------------
-
-    ChInteractiveDriverIRR driver(*vis);
-
-    // Set the time response for keyboard inputs.
+    // Set the time response for steering and throttle keyboard inputs.
     double steering_time = 0.5;  // time to go from 0 to +1 (or from 0 to -1)
     double throttle_time = 1.0;  // time to go from 0 to +1
     double braking_time = 0.3;   // time to go from 0 to +1
-    driver.SetSteeringDelta(render_step_size / steering_time);
-    driver.SetThrottleDelta(render_step_size / throttle_time);
-    driver.SetBrakingDelta(render_step_size / braking_time);
 
-    // Set file with driver input time series
-    driver.SetInputDataFile(vehicle::GetDataFile("M113/driver/Acceleration.txt"));
-    driver.SetInputMode(ChInteractiveDriverIRR::InputMode::DATAFILE);
+    std::shared_ptr<ChVehicleVisualSystem> vis;
+    std::shared_ptr<ChDriver> driver;
 
-    driver.Initialize();
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
+            // Create the vehicle Irrlicht interface
+            auto vis_irr = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
+            vis_irr->SetWindowTitle("Tracked vehicle on SCM deformable terrain");
+            vis_irr->SetChaseCamera(trackPoint, 4.0, 1.0);
+            vis_irr->SetChaseCameraPosition(ChVector<>(-3, 4, 1.5));
+            vis_irr->SetChaseCameraMultipliers(1e-4, 10);
+            vis_irr->Initialize();
+            vis_irr->AddLightDirectional();
+            vis_irr->AddSkyBox();
+            vis_irr->AddLogo();
+            vis_irr->AttachVehicle(&m113.GetVehicle());
+
+            // Create the interactive Irrlicht driver system
+            auto driver_irr = chrono_types::make_shared<ChInteractiveDriverIRR>(*vis_irr);
+            driver_irr->SetSteeringDelta(render_step_size / steering_time);
+            driver_irr->SetThrottleDelta(render_step_size / throttle_time);
+            driver_irr->SetBrakingDelta(render_step_size / braking_time);
+            driver_irr->SetInputDataFile(vehicle::GetDataFile("M113/driver/Acceleration.txt"));
+            driver_irr->SetInputMode(ChInteractiveDriverIRR::InputMode::DATAFILE);
+            driver_irr->Initialize();
+
+            vis = vis_irr;
+            driver = driver_irr;
+#endif
+            break;
+        }
+        default:
+        case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+            // Create the vehicle VSG interface
+            auto vis_vsg = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
+            vis_vsg->SetWindowTitle("Tracked vehicle on SCM deformable terrain");
+            vis_vsg->SetWindowSize(ChVector2<int>(1000, 800));
+            vis_vsg->SetWindowPosition(ChVector2<int>(100, 100));
+            vis_vsg->SetUseSkyBox(true);
+            vis_vsg->SetCameraAngleDeg(40);
+            vis_vsg->SetLightIntensity(1.0f);
+            vis_vsg->SetChaseCamera(trackPoint, 7.0, 2.0);
+            vis_vsg->SetChaseCameraPosition(ChVector<>(-3, 4, 1.5));
+            vis_vsg->SetChaseCameraMultipliers(1e-4, 10);
+            vis_vsg->AttachVehicle(&m113.GetVehicle());
+            vis_vsg->AddGuiColorbar("Sinkage (m)", 0.0, 0.1);
+            vis_vsg->Initialize();
+
+            // Create the interactive VSG driver system
+            auto driver_vsg = chrono_types::make_shared<ChInteractiveDriverVSG>(*vis_vsg);
+            driver_vsg->SetSteeringDelta(render_step_size / steering_time);
+            driver_vsg->SetThrottleDelta(render_step_size / throttle_time);
+            driver_vsg->SetBrakingDelta(render_step_size / braking_time);
+            driver_vsg->SetInputDataFile(vehicle::GetDataFile("M113/driver/Acceleration.txt"));
+            driver_vsg->SetInputMode(ChInteractiveDriverVSG::InputMode::DATAFILE);
+            driver_vsg->Initialize();
+
+            vis = vis_vsg;
+            driver = driver_vsg;
+#endif
+            break;
+        }
+    }
 
     // -----------------
     // Initialize output
@@ -281,19 +343,19 @@ int main(int argc, char* argv[]) {
         }
 
         // Collect output data from modules
-        DriverInputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver->GetInputs();
         m113.GetVehicle().GetTrackShoeStates(LEFT, shoe_states_left);
         m113.GetVehicle().GetTrackShoeStates(RIGHT, shoe_states_right);
 
         // Update modules (process inputs from other modules)
         double time = m113.GetVehicle().GetChTime();
-        driver.Synchronize(time);
+        driver->Synchronize(time);
         terrain.Synchronize(time);
         m113.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
         vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
-        driver.Advance(step_size);
+        driver->Advance(step_size);
         terrain.Advance(step_size);
         m113.Advance(step_size);
         vis->Advance(step_size);
@@ -323,9 +385,13 @@ void AddFixedObstacles(ChSystem* system) {
     obstacle->SetCollide(true);
 
     // Visualization
-    auto shape = chrono_types::make_shared<ChCylinderShape>(radius, length);
-    shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"));
-    obstacle->AddVisualShape(shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+    auto cyl_shape = chrono_types::make_shared<ChCylinderShape>(radius, length);
+    cyl_shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"));
+    obstacle->AddVisualShape(cyl_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+
+    auto box_shape = chrono_types::make_shared<ChBoxShape>(terrain_length, 2*length, 0.1);
+    box_shape->SetColor(ChColor(0.2f, 0.2f, 0.2f));
+    obstacle->AddVisualShape(box_shape, ChFrame<>(ChVector<>(0, 0, 1.5), QUNIT));
 
     // Contact
     ChContactMaterialData minfo;

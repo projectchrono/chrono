@@ -63,7 +63,7 @@ using std::endl;
 // =============================================================================
 
 // Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // -----------------------------------------------------------------------------
 // Terrain parameters
@@ -328,7 +328,7 @@ int main(int argc, char* argv[]) {
         case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
-            vis_vsg->SetWindowTitle("HMMWV Deformable Soil Demo");
+            vis_vsg->SetWindowTitle("Wheeled vehicle on SCM deformable terrain");
             vis_vsg->SetWindowSize(ChVector2<int>(1000, 800));
             vis_vsg->SetWindowPosition(ChVector2<int>(100, 100));
             vis_vsg->SetUseSkyBox(true);
