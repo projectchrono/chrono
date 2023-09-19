@@ -17,7 +17,7 @@ bool ChROSGPSHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
         return false;
     }
 
-    auto topic_name = ChROSHandlerUtilities::BuildRelativeTopicName("output", m_gps->GetName(), "data");
+    auto topic_name = ChROSHandlerUtilities::BuildRelativeTopicName("output", "gps", m_gps->GetName(), "data");
 
     if (!ChROSHandlerUtilities::CheckROSTopicName(interface, topic_name)) {
         return false;
