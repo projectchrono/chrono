@@ -21,13 +21,13 @@ bool ChROSDriverInputsHandler::Initialize(std::shared_ptr<ChROSInterface> interf
         return false;
     }
 
-    m_subscription = node->create_subscription<chrono_ros_interfaces::msg::ChDriverInputs>(
+    m_subscription = node->create_subscription<chrono_ros_interfaces::msg::DriverInputs>(
         topic_name, 1, std::bind(&ChROSDriverInputsHandler::Callback, this, _1));
 
     return true;
 }
 
-void ChROSDriverInputsHandler::Callback(const chrono_ros_interfaces::msg::ChDriverInputs& msg) {
+void ChROSDriverInputsHandler::Callback(const chrono_ros_interfaces::msg::DriverInputs& msg) {
     std::lock_guard<std::mutex> lock(m_mutex);
 
     m_inputs.m_steering = msg.steering;
