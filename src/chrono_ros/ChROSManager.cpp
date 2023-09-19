@@ -1,5 +1,8 @@
 #include "chrono_ros/ChROSManager.h"
 
+#include "chrono_ros/ChROSInterface.h"
+#include "chrono_ros/ChROSHandler.h"
+
 #include "chrono/core/ChLog.h"
 #include "chrono/core/ChTypes.h"
 
