@@ -56,7 +56,7 @@ class CH_ROS_API ChROSInterface {
   private:
     const std::string m_node_name;
 
-    static bool m_has_initialized = false
+    static bool m_has_initialized;
 
     rclcpp::Node::SharedPtr m_node;
     static rclcpp::Executor::SharedPtr m_executor;

@@ -1,3 +1,21 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2023 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// Handler responsible for publishing information about a ChBody
+//
+// =============================================================================
+
 #ifndef CH_ROS_BODY_HANDLER_H
 #define CH_ROS_BODY_HANDLER_H
 
@@ -31,7 +49,7 @@ class ChROSBodyHandler : public ChROSHandler {
 
     chrono_ros_interfaces::msg::Body m_msg;
 
-    rclcpp::Publisher<viper_msgs::msg::Body>::SharedPtr m_publisher;
+    rclcpp::Publisher<chrono_ros_interfaces::msg::Body>::SharedPtr m_publisher;
 };
 
 /// @} ros_handlers

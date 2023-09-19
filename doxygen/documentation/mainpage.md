@@ -52,6 +52,10 @@ Instructions on how to set up a project that uses Chrono.
 
   Chrono support for run-time and off-line visualization
 
+- [Chrono::ROS](@ref manual_ros)
+
+  Integration with external autonomy stacks developed with the Robot Operating System (ROS)
+
 ---
 
 @subpage tutorial_root
