@@ -6,11 +6,14 @@
 namespace chrono {
 namespace ros {
 
+bool ChROSInterface::m_has_initialized = false;
+rclcpp::Executor::SharedPtr ChROSInterface::m_executor = nullptr;
+
 ChROSInterface::ChROSInterface(const std::string node_name) : m_node_name(node_name) {}
 
 void ChROSInterface::Initialize() {
     if (!m_has_initialized) {
-        GetLog() << "Initializing rclcpp. \n"
+        GetLog() << "Initializing rclcpp. \n";
         rclcpp::init(0, 0);
         m_executor = chrono_types::make_shared<rclcpp::executors::SingleThreadedExecutor>();
         m_has_initialized = true;

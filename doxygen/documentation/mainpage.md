@@ -59,6 +59,10 @@ Instructions on **how to set up a project** that uses Chrono.
 
 
 
+- [Chrono::ROS](@ref manual_ros)
+
+  Integration with external autonomy stacks developed with the Robot Operating System (ROS)
+
 ---
 
 <h3><a href="classes.html">API Reference</a></h3>
