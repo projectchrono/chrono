@@ -15,7 +15,7 @@ ChROSLidarHandler::ChROSLidarHandler(std::shared_ptr<ChLidarSensor> lidar)
     : ChROSHandler(lidar->GetUpdateRate()), m_lidar(lidar) {}
 
 bool ChROSLidarHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
-    if (!ChROSSensorHandlerUtilities::CheckFilterList<ChFilterXYZIAccess, ChFilterXYZIAccessName>(m_lidar)) {
+    if (!ChROSSensorHandlerUtilities::CheckSensorHasFilter<ChFilterXYZIAccess, ChFilterXYZIAccessName>(m_lidar)) {
         return false;
     }
 

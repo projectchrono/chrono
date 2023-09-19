@@ -14,7 +14,7 @@ ChROSAccelerometerHandler::ChROSAccelerometerHandler(std::shared_ptr<ChAccelerom
     : ChROSHandler(imu->GetUpdateRate()), m_imu(imu) {}
 
 bool ChROSAccelerometerHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
-    if (!ChROSSensorHandlerUtilities::CheckFilterList<ChFilterAccelAccess, ChFilterAccelAccessName>(m_imu)) {
+    if (!ChROSSensorHandlerUtilities::CheckSensorHasFilter<ChFilterAccelAccess, ChFilterAccelAccessName>(m_imu)) {
         return false;
     }
 

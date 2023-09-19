@@ -31,6 +31,7 @@ if (NOT ROS2_FOUND)
 endif()
 
 # Update the includes directories to point to ROS includes
+# TODO: Mark as advanced all of the ROS 2 inherited variables
 set(_ament_prefix_path "$ENV{AMENT_PREFIX_PATH}")
 foreach(_ros2_packages_path IN LISTS _ament_prefix_path)
     string(REPLACE ":" ";" _ros2_packages_path ${_ros2_packages_path})
@@ -75,6 +76,8 @@ set(CH_ROS_HANDLER_FILES
 
   handlers/ChROSClockHandler.h
   handlers/ChROSClockHandler.cpp
+  handlers/ChROSBodyHandler.h
+  handlers/ChROSBodyHandler.cpp
 
   handlers/ChROSHandlerUtilities.h
   handlers/ChROSHandlerUtilities.cpp
@@ -114,32 +117,24 @@ else()
 endif()
 source_group("sensor_handler" FILES ${CH_ROS_SENSOR_HANDLER_FILES})
 
-if (ENABLE_MODULE_ROBOT_MODELS)
-  set(CH_ROS_ROBOT_HANDLER_FILES
-    # viper
-    handlers/robot/viper/ViperHandler.h
-    handlers/robot/viper/ViperHandler.cpp
-    handlers/robot/viper/ViperDCMotorControlHandler.h
-    handlers/robot/viper/ViperDCMotorControlHandler.cpp
-  )
-else()
-  set(CH_ROS_ROBOT_HANDLER_FILES "")
-endif()
+set(CH_ROS_ROBOT_HANDLER_FILES
+  # viper
+  handlers/robot/viper/ChROSViperDCMotorControlHandler.h
+  handlers/robot/viper/ChROSViperDCMotorControlHandler.cpp
+)
 source_group("robot_handler" FILES ${CH_ROS_ROBOT_HANDLER_FILES})
 
 #-----------------------------------------------------------------------------
 # Create the ChronoEngine_ros library
 #-----------------------------------------------------------------------------
 
+list(APPEND CH_ROS_LIBRARIES ChronoModels_robot)
+
 if (ENABLE_MODULE_VEHICLE)
 	list(APPEND CH_ROS_LIBRARIES ChronoEngine_vehicle)
   if (ENABLE_MODULE_VEHICLE_MODELS)
     list(APPEND CH_ROS_LIBRARIES ChronoModels_vehicle)
   endif()
-endif()
-
-if (ENABLE_MODULE_ROBOT_MODELS)
-  list(APPEND CH_ROS_LIBRARIES ChronoModels_robot)
 endif()
 
 if (ENABLE_MODULE_SENSOR)

@@ -14,7 +14,7 @@ ChROSMagnetometerHandler::ChROSMagnetometerHandler(std::shared_ptr<ChMagnetomete
     : ChROSHandler(imu->GetUpdateRate()), m_imu(imu) {}
 
 bool ChROSMagnetometerHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
-    if (!ChROSSensorHandlerUtilities::CheckFilterList<ChFilterMagnetAccess, ChFilterMagnetAccessName>(m_imu)) {
+    if (!ChROSSensorHandlerUtilities::CheckSensorHasFilter<ChFilterMagnetAccess, ChFilterMagnetAccessName>(m_imu)) {
         return false;
     }
 

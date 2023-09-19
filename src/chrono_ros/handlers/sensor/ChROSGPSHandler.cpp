@@ -13,7 +13,7 @@ namespace ros {
 ChROSGPSHandler::ChROSGPSHandler(std::shared_ptr<ChGPSSensor> gps) : ChROSHandler(gps->GetUpdateRate()), m_gps(gps) {}
 
 bool ChROSGPSHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
-    if (!ChROSSensorHandlerUtilities::CheckFilterList<ChFilterGPSAccess, ChFilterGPSAccessName>(m_gps)) {
+    if (!ChROSSensorHandlerUtilities::CheckSensorHasFilter<ChFilterGPSAccess, ChFilterGPSAccessName>(m_gps)) {
         return false;
     }
 

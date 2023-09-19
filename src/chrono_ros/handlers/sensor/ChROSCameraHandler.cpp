@@ -17,7 +17,7 @@ ChROSCameraHandler::ChROSCameraHandler(std::shared_ptr<ChCameraSensor> camera)
     : ChROSHandler(camera->GetUpdateRate()), m_camera(camera) {}
 
 bool ChROSCameraHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
-    if (!ChROSSensorHandlerUtilities::CheckFilterList<ChFilterRGBA8Access, ChFilterRGBA8AccessName>(m_camera)) {
+    if (!ChROSSensorHandlerUtilities::CheckSensorHasFilter<ChFilterRGBA8Access, ChFilterRGBA8AccessName>(m_camera)) {
         return false;
     }
 

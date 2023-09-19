@@ -14,7 +14,7 @@ ChROSGyroscopeHandler::ChROSGyroscopeHandler(std::shared_ptr<ChGyroscopeSensor> 
     : ChROSHandler(imu->GetUpdateRate()), m_imu(imu) {}
 
 bool ChROSGyroscopeHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
-    if (!ChROSSensorHandlerUtilities::CheckFilterList<ChFilterGyroAccess, ChFilterGyroAccessName>(m_imu)) {
+    if (!ChROSSensorHandlerUtilities::CheckSensorHasFilter<ChFilterGyroAccess, ChFilterGyroAccessName>(m_imu)) {
         return false;
     }
 

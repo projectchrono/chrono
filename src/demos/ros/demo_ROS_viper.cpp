@@ -1,3 +1,21 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2021 projectchrono.org
+// All right reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// Demo showing the integration of ROS with the Viper rover model
+//
+// =============================================================================
+
 #include "chrono_models/robot/viper/Viper.h"
 
 #include "chrono/physics/ChSystemNSC.h"
@@ -19,8 +37,8 @@ using namespace chrono::vsg3d;
 
 #include "chrono_ros/ChROSManager.h"
 #include "chrono_ros/handlers/ChROSClockHandler.h"
-#include "ViperDCMotorControlHandler.h"
-#include "ViperHandler.h"
+#include "chrono_ros/handlers/ChROSBodyHandler.h"
+#include "chrono_ros/handlers/robot/viper/ChROSViperDCMotorControlHandler.h"
 
 using namespace chrono;
 using namespace chrono::viper;
@@ -168,9 +186,9 @@ int main(int argc, char* argv[]) {
     // Create ROS manager
     auto ros_manager = chrono_types::make_shared<ChROSManager>();
     ros_manager->RegisterHandler(chrono_types::make_shared<ChROSClockHandler>());
-    ros_manager->RegisterHandler(chrono_types::make_shared<ViperDCMotorControlHandler>(25,  // send at 25 hz
+    ros_manager->RegisterHandler(chrono_types::make_shared<ChROSViperDCMotorControlHandler>(25,  // send at 25 hz
                                                                                        driver));
-    ros_manager->RegisterHandler(chrono_types::make_shared<ViperHandler>(25, viper));
+    ros_manager->RegisterHandler(chrono_types::make_shared<ChROSBodyHandler>(25, viper.GetChassis()->GetBody()));
     ros_manager->Initialize();
 
     double t_end = 30;
