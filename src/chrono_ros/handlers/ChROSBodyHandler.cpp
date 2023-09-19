@@ -58,7 +58,7 @@ void ChROSBodyHandler::Tick(double time) {
     m_msg.accel.angular.y = ang_acc[1];
     m_msg.accel.angular.z = ang_acc[2];
 
-    m_publisher->publish(msg);
+    m_publisher->publish(m_msg);
 }
 
 }  // namespace ros
