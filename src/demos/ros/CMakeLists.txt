@@ -6,8 +6,14 @@ message(STATUS "Demo programs for Chrono::ROS...")
 # ------------------------------------------------------------------------------
 
 set(DEMOS
-    demo_ROS_vehicle
+    demo_ROS_viper
 )
+
+if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
+  set(DEMOS ${DEMOS}
+    demo_ROS_vehicle
+  )
+endif()
 
 # ------------------------------------------------------------------------------
 # Include directories, compiler flags, libraries
@@ -16,6 +22,7 @@ set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
 set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
 list(APPEND LIBS "ChronoEngine")
 list(APPEND LIBS "ChronoEngine_ros")
+list(APPEND LIBS "ChronoModels_robot")
 
 # Force C++17, required by ROS Humble
 set(CMAKE_CXX_STANDARD 17)
@@ -72,9 +79,3 @@ foreach(PROGRAM ${DEMOS})
 
     install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 endforeach()
-
-# ------------------------------------------------------------------------------
-# Add subdirectories
-# ------------------------------------------------------------------------------
-
-add_subdirectory(viper)
