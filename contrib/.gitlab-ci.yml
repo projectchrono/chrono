@@ -236,6 +236,8 @@ windows:vs2022:build:
   stage: build
   extends: .windows
   script:
+  # Build vsg with buildVSG script
+  - '& $CI_PROJECT_DIR\contrib\build-scripts\vsg\buildVSG.bat $CI_PROJECT_DIR\contrib\build-scripts\vsg_build'
   # Configuring chrono
   - cmake -B "$CI_PROJECT_DIR\build" -S "$CI_PROJECT_DIR" --preset=windowsci-vs2022
   - cd build
