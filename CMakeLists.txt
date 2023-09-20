@@ -8,7 +8,7 @@
 # Check backward compatibility
 #-----------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.15)
 
 #-----------------------------------------------------------------------------
 # Prevent in-source builds.
@@ -24,12 +24,8 @@ endif(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 if(COMMAND cmake_policy)
     cmake_policy(SET CMP0003 NEW)
     cmake_policy(SET CMP0048 NEW)
+    cmake_policy(SET CMP0091 NEW)
 endif(COMMAND cmake_policy)
-
-# Get rid of cmake RPATH warning on OSX
-if(APPLE)
-    set(CMAKE_MACOSX_RPATH OFF)
-endif()
 
 #-----------------------------------------------------------------------------
 # Disable solution folders because not supported in VC Express
@@ -64,6 +60,22 @@ message(STATUS "We are on a ${CMAKE_HOST_SYSTEM_NAME} system")
 message(STATUS "The host processor is ${CMAKE_HOST_SYSTEM_PROCESSOR}")
 message(STATUS "Building for a ${CMAKE_SYSTEM_NAME} system")
 message(STATUS "The target processor is ${CMAKE_SYSTEM_PROCESSOR}")
+
+# On Windows, decide what runtime library to use (default multi-threaded DLL, /MD)
+if(MSVC)
+    option(USE_MSVC_STATIC_RUNTIME "Compile with a multi-threaded statically-linked runtime library" OFF)
+    if(USE_MSVC_STATIC_RUNTIME)
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+        message(STATUS "Using a multi-threaded statically-linked runtime library")
+    else()
+        message(STATUS "Using a multi-threaded dynamically-linked runtime library")
+    endif()
+endif()
+
+# Get rid of cmake RPATH warning on OSX
+if(APPLE)
+    set(CMAKE_MACOSX_RPATH OFF)
+endif()
 
 #-----------------------------------------------------------------------------
 # Location of additional CMake scripts
