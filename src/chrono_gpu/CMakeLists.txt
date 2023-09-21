@@ -16,14 +16,14 @@ message(STATUS "\n==== Chrono GPU module ====\n")
 
 # Return now if Eigen version < 3.3.6
 if(EIGEN3_VERSION VERSION_LESS "3.3.6")
-    message(WARNING "Eigen version (${EIGEN3_VERSION}) is less than the required version (3.3.6); disabling Chrono::GPU")
+    message("Eigen version (${EIGEN3_VERSION}) is less than the required version (3.3.6); disabling Chrono::GPU")
     set(ENABLE_MODULE_GPU OFF CACHE BOOL "Enable the Chrono::GPU module" FORCE)
     return()
 endif()
 
 # Return now if CUDA is not available
 if(NOT CUDA_FOUND)
-    message(WARNING "Chrono::GPU requires CUDA, but CUDA was not found; disabling Chrono::GPU")
+    message("Chrono::GPU requires CUDA, but CUDA was not found; disabling Chrono::GPU")
     set(ENABLE_MODULE_GPU OFF CACHE BOOL "Enable the Chrono::GPU module" FORCE)
     return()
 endif()
