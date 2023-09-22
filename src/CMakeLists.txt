@@ -19,6 +19,36 @@ if (POLICY CMP0074)
 endif()
 
 #-----------------------------------------------------------------------------
+# Optionally use static runtime library (MSVC only)
+#-----------------------------------------------------------------------------
+if (MSVC)
+    option(USE_MSVC_STATIC_RUNTIME "Compile with a multi-threaded statically-linked runtime library" OFF)
+    if (USE_MSVC_STATIC_RUNTIME)
+        message(STATUS "Enabling STATIC run-time library")
+        message(STATUS "  CMAKE_CXX_FLAGS (IN):          ${CMAKE_CXX_FLAGS}")
+        message(STATUS "  CMAKE_CXX_FLAGS_RELEASE (IN):  ${CMAKE_CXX_FLAGS_RELEASE}")
+        message(STATUS "  CMAKE_CXX_FLAGS_DEBUG (IN):    ${CMAKE_CXX_FLAGS_DEBUG}")
+
+        foreach(flag_var
+                CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
+                CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO
+                CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+                CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+          if(${flag_var} MATCHES "/MD")
+            string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
+          endif()
+          if(${flag_var} MATCHES "/MDd")
+            string(REGEX REPLACE "/MDd" "/MTd" ${flag_var} "${${flag_var}}")
+          endif()
+        endforeach(flag_var)
+
+        message(STATUS "  CMAKE_CXX_FLAGS (OUT):         ${CMAKE_CXX_FLAGS}")
+        message(STATUS "  CMAKE_CXX_FLAGS_RELEASE (OUT): ${CMAKE_CXX_FLAGS_RELEASE}")
+        message(STATUS "  CMAKE_CXX_FLAGS_DEBUG (OUT):   ${CMAKE_CXX_FLAGS_DEBUG}")
+    endif()
+endif()
+
+#-----------------------------------------------------------------------------
 # Collect compiler flags required to build the Chrono libraries
 #-----------------------------------------------------------------------------
 
@@ -28,7 +58,7 @@ set(CH_LINKERFLAG_EXE "${CMAKE_EXE_LINKER_FLAGS}")
 set(CH_LINKERFLAG_SHARED "")
 
 #-----------------------------------------------------------------------------
-# Enable C++11 support.  Check for C++14 support
+# Check for C++14 and C++17 support
 #-----------------------------------------------------------------------------
 
 # Allow user to enforce strict C++11 standard
@@ -547,14 +577,19 @@ endif()
 # Set the base compilation flags
 #-----------------------------------------------------------------------------
 
-message(STATUS "Compiler and linker flags:")
-message(STATUS "  C++ compiler flags: ${CH_CXX_FLAGS}")
-message(STATUS "  C compiler flags:   ${CH_C_FLAGS}")
-message(STATUS "  Linker flags:       ${CH_LINKERFLAG_EXE}")
-
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CH_CXX_FLAGS}")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${CH_CXX_FLAGS} -D_DEBUG -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${CH_CXX_FLAGS} -DNDEBUG")
+
+message(STATUS "Compiler and linker flags:")
+message(STATUS "  CMAKE_CXX_FLAGS:         ${CMAKE_CXX_FLAGS}")
+message(STATUS "  CMAKE_CXX_FLAGS_DEBUG:   ${CMAKE_CXX_FLAGS_DEBUG}")
+message(STATUS "  CMAKE_CXX_FLAGS_RELEASE: ${CMAKE_CXX_FLAGS_RELEASE}")
+message(STATUS "  Linke flags SHARED:      ${CH_LINKERFLAG_SHARED}")
+message(STATUS "  Linke flags EXE:         ${CH_LINKERFLAG_EXE}")
+if(CUDA_FOUND)
+    message(STATUS "  CUDA flags:              ${CUDA_NVCC_FLAGS}")
+endif()
 
 # For Bullet to use 32 bit math
 add_definitions( "-DBP_USE_FIXEDPOINT_INT_32" )
