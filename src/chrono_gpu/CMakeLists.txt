@@ -38,12 +38,12 @@ endif()
 # be found at compile time.
 
 configure_file(
-	${CMAKE_CURRENT_SOURCE_DIR}/ChConfigGpu.h.in
-	${PROJECT_BINARY_DIR}/chrono_gpu/ChConfigGpu.h
-	)
+    ${CMAKE_CURRENT_SOURCE_DIR}/ChConfigGpu.h.in
+    ${PROJECT_BINARY_DIR}/chrono_gpu/ChConfigGpu.h
+    )
 
 install(FILES "${PROJECT_BINARY_DIR}/chrono_gpu/ChConfigGpu.h"
-				DESTINATION include/chrono_gpu)
+        DESTINATION include/chrono_gpu)
 
 # ------------------------------------------------------------------------------
 # Collect all additional include directories necessary for the GPU module
@@ -235,8 +235,8 @@ endif()
 message(STATUS "NVCC Flags: ${CUDA_NVCC_FLAGS}")
 
 # Install required chrono_thirdparty headers
-if (DEFINED ${CUB_INCLUDE_DIR})
-	install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/cub
-    	    DESTINATION include/chrono_thirdparty
-	        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+if(DEFINED ${CUB_INCLUDE_DIR})
+   install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/cub
+           DESTINATION include/chrono_thirdparty
+           FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
 endif()
