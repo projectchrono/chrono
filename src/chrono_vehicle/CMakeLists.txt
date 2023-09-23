@@ -149,9 +149,6 @@ if(ENABLE_MODULE_VSG)
     find_package(vsg REQUIRED)
     find_package(vsgImGui REQUIRED)
     find_package(vsgXchange REQUIRED)
-    
-    # set the use of C++17 here as VSG requires it
-    set(CMAKE_CXX_STANDARD 17)
 endif()
 
 # ----------------------------------------------------------------------------
