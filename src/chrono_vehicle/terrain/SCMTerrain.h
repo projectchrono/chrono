@@ -315,6 +315,8 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
 
     std::shared_ptr<SCMLoader> GetSCMLoader() const { return m_loader; }
 
+    void SetBaseMeshLevel(double level);
+
   private:
     std::shared_ptr<SCMLoader> m_loader;  ///< underlying load container for contact force generation
 };
@@ -540,6 +542,7 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     int m_ny;              ///< range for grid indices in Y direction: [-m_ny, +m_ny]
 
     ChMatrixDynamic<> m_heights;  ///< (base) grid heights (when initializing from height-field map)
+    double m_base_height;         ///< default height for vertices outside the projection of input mesh
 
     std::unordered_map<ChVector2<int>, NodeRecord, CoordHash> m_grid_map;  ///< modified grid nodes (persistent)
     std::vector<ChVector2<int>> m_modified_nodes;                          ///< modified grid nodes (current)

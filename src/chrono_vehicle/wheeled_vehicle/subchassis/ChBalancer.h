@@ -68,6 +68,9 @@ class CH_VEHICLE_API ChBalancer : public ChSubchassis {
     /// The returned location must be expressed in the subchassis reference frame.
     virtual const ChVector<> GetLocation(PointId which) = 0;
 
+    /// Return the direction of the pin joint (default: Y axis).
+    virtual const ChVector<> GetDirection() { return ChVector<>(0, 1, 0); }
+
     /// Get the balancer mass.
     virtual double GetBalancerBeamMass() const = 0;
 
@@ -88,6 +91,11 @@ class CH_VEHICLE_API ChBalancer : public ChSubchassis {
     std::shared_ptr<ChVehicleJoint> m_balancer_joint[2];  ///< balancer pivot joints
 
   private:
+    void InitializeSide(VehicleSide sid,
+                        std::shared_ptr<ChChassis> chassis,
+                        const std::vector<ChVector<>>& points,
+                        const ChVector<>& dir);
+
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
     virtual void Output(ChVehicleOutput& database) const override;
@@ -95,6 +103,10 @@ class CH_VEHICLE_API ChBalancer : public ChSubchassis {
     // Hardpoint absolute locations
     std::vector<ChVector<>> m_pointsL;
     std::vector<ChVector<>> m_pointsR;
+
+    // Pin directions
+    ChVector<> m_dirL;
+    ChVector<> m_dirR;
 };
 
 /// @} vehicle_wheeled_subchassis

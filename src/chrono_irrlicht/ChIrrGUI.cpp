@@ -252,9 +252,9 @@ void ChIrrGUI::Initialize(ChVisualSystemIrrlicht* vis) {
     auto g_tab2 = g_tabbed->addTab(L"Modal");
     auto g_tab3 = g_tabbed->addTab(L"Help");
 
-    g_textFPS = guienv->addStaticText(L"FPS", irr::core::rect<irr::s32>(10, 10, 200, 200), true, true, g_tab1);
+    g_textFPS = guienv->addStaticText(L"FPS", irr::core::rect<irr::s32>(10, 10, 200, 230), true, true, g_tab1);
 
-    g_labelcontacts = guienv->addComboBox(irr::core::rect<irr::s32>(10, 210, 200, 210 + 20), g_tab1, 9901);
+    g_labelcontacts = guienv->addComboBox(irr::core::rect<irr::s32>(10, 240, 200, 240 + 20), g_tab1, 9901);
     g_labelcontacts->addItem(L"Contact distances");
     g_labelcontacts->addItem(L"Contact force modulus");
     g_labelcontacts->addItem(L"Contact force (normal)");
@@ -265,7 +265,7 @@ void ChIrrGUI::Initialize(ChVisualSystemIrrlicht* vis) {
     g_labelcontacts->addItem(L"Do not print contact values");
     g_labelcontacts->setSelected(7);
 
-    g_drawcontacts = guienv->addComboBox(irr::core::rect<irr::s32>(10, 230, 200, 230 + 20), g_tab1, 9901);
+    g_drawcontacts = guienv->addComboBox(irr::core::rect<irr::s32>(10, 260, 200, 260 + 20), g_tab1, 9901);
     g_drawcontacts->addItem(L"Contact normals");
     g_drawcontacts->addItem(L"Contact distances");
     g_drawcontacts->addItem(L"Contact N forces");
@@ -273,7 +273,7 @@ void ChIrrGUI::Initialize(ChVisualSystemIrrlicht* vis) {
     g_drawcontacts->addItem(L"Do not draw contacts");
     g_drawcontacts->setSelected(4);
 
-    g_labellinks = guienv->addComboBox(irr::core::rect<irr::s32>(10, 250, 200, 250 + 20), g_tab1, 9923);
+    g_labellinks = guienv->addComboBox(irr::core::rect<irr::s32>(10, 280, 200, 280 + 20), g_tab1, 9923);
     g_labellinks->addItem(L"Link react.force modulus");
     g_labellinks->addItem(L"Link react.force X");
     g_labellinks->addItem(L"Link react.force Y");
@@ -285,29 +285,29 @@ void ChIrrGUI::Initialize(ChVisualSystemIrrlicht* vis) {
     g_labellinks->addItem(L"Do not print link values");
     g_labellinks->setSelected(8);
 
-    g_drawlinks = guienv->addComboBox(irr::core::rect<irr::s32>(10, 270, 200, 270 + 20), g_tab1, 9924);
+    g_drawlinks = guienv->addComboBox(irr::core::rect<irr::s32>(10, 300, 200, 300 + 20), g_tab1, 9924);
     g_drawlinks->addItem(L"Link reaction forces");
     g_drawlinks->addItem(L"Link reaction torques");
     g_drawlinks->addItem(L"Do not draw link vectors");
     g_drawlinks->setSelected(2);
 
     g_plot_aabb =
-        guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 300, 200, 300 + 15), g_tab1, 9914, L"Draw AABB");
+        guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 330, 200, 330 + 15), g_tab1, 9914, L"Draw AABB");
 
     g_plot_cogs =
-        guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 315, 200, 315 + 15), g_tab1, 9915, L"Draw COGs");
+        guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 345, 200, 345 + 15), g_tab1, 9915, L"Draw COGs");
 
-    g_plot_linkframes = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 330, 200, 330 + 15), g_tab1, 9920,
+    g_plot_linkframes = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 360, 200, 360 + 15), g_tab1, 9920,
                                             L"Draw link frames");
 
-    g_plot_collisionshapes = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 345, 200, 345 + 15), g_tab1, 9902,
+    g_plot_collisionshapes = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 375, 200, 375 + 15), g_tab1, 9902,
                                                  L"Draw collision shapes");
 
-    g_plot_convergence = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 360, 200, 360 + 15), g_tab1, 9902,
+    g_plot_convergence = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 390, 200, 390 + 15), g_tab1, 9902,
                                              L"Plot convergence");
 
-    guienv->addStaticText(L"Symbols scale", irr::core::rect<irr::s32>(130, 300, 200, 300 + 15), false, false, g_tab1);
-    g_symbolscale = guienv->addEditBox(L"", irr::core::rect<irr::s32>(170, 315, 200, 315 + 15), true, g_tab1, 9921);
+    guienv->addStaticText(L"Symbols scale", irr::core::rect<irr::s32>(130, 330, 200, 330 + 15), false, false, g_tab1);
+    g_symbolscale = guienv->addEditBox(L"", irr::core::rect<irr::s32>(170, 345, 200, 345 + 15), true, g_tab1, 9921);
     SetSymbolscale(symbolscale);
 
     // -- g_tab2
@@ -497,6 +497,8 @@ void ChIrrGUI::Render() {
     str += "\n  CPU Update time:  ";
     str += (int)(1000 * m_system->GetTimerUpdate());
     str += " ms";
+    str += "\n\nReal Time Factor: ";
+    str += m_system->GetRTF();
     str += "\n\nNum. active bodies:  ";
     str += m_system->GetNbodies();
     str += "\nNum. sleeping bodies:  ";
