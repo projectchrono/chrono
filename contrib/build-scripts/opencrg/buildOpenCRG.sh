@@ -7,6 +7,9 @@
 #   source and the desired install directory.
 # - Run the script (sh ./buildOpenCRG.sh).
 # - As provided, this script generates both Release and Debug libraries.
+#
+# Notes:
+# - The script accepts 1 optional argument to override the install directory.
 # ------------------------------------------------------------------------
 
 DOWNLOAD=ON
@@ -17,6 +20,14 @@ if [ ${DOWNLOAD} = OFF ]
 then    
     CRG_SOURCE_DIR="$HOME/Sources/OpenCRG-1.1.2"
     REV=1.1.2
+fi
+
+# ------------------------------------------------------------------------
+# Allow overriding installation directory through command line argument
+
+if [ $# -eq 1 ]
+then
+    CRG_INSTALL_DIR=$1
 fi
 
 # ------------------------------------------------------------------------

@@ -32,7 +32,10 @@ ChMatlabEngine::ChMatlabEngine() {
 
 ChMatlabEngine::~ChMatlabEngine() {
     if (ep)
-        matlabengine::engClose(ep);
+        if (!m_persist)
+            matlabengine::engClose(ep);
+        else
+            matlabengine::engSetVisible(ep, true); // set engine as 'visible', for safety
     ep = nullptr;
 }
 
@@ -42,17 +45,23 @@ matlabengine::Engine* ChMatlabEngine::GetEngine() {
     return ep;
 }
 
-// Evaluate a Matlab instruction (as a string). If error happens while executing, returns false.
-bool ChMatlabEngine::Eval(std::string mstring) {
-    if (matlabengine::engEvalString(ep, mstring.c_str()) == 0)
+// Set visibility of GUI matlab window.
+bool ChMatlabEngine::SetVisible(bool mvis) {
+    if (matlabengine::engSetVisible(ep, mvis) == 0)
         return true;
     else
         return false;
 }
 
-// Set visibility of GUI matlab window.
-bool ChMatlabEngine::SetVisible(bool mvis) {
-    if (matlabengine::engSetVisible(ep, mvis) == 0)
+// Keep matlab engine open even after termination of C++ program.
+void ChMatlabEngine::KeepEngineOpen(bool persist) {
+    m_persist = persist;
+    matlabengine::engSetVisible(ep, true); // set engine as 'visible', for safety
+}
+
+// Evaluate a Matlab instruction (as a string). If error happens while executing, returns false.
+bool ChMatlabEngine::Eval(std::string mstring) {
+    if (matlabengine::engEvalString(ep, mstring.c_str()) == 0)
         return true;
     else
         return false;
@@ -130,6 +139,16 @@ bool ChMatlabEngine::GetVariable(ChMatrixDynamic<double>& mmatr, std::string var
         return true;
     }
     matlabengine::mxDestroyArray(T);
+    return false;    
+}
+
+// Fetch a string from Matlab environment, specifying its name as variable.
+bool ChMatlabEngine::GetString(std::string& str, std::string varname) {
+    matlabengine::mxArray* T = matlabengine::engGetVariable(ep, varname.c_str());
+    if (T) {
+        str = matlabengine::mxArrayToUTF8String_800(T);
+        return true;
+    }
     return false;
 }
 

@@ -1397,10 +1397,8 @@ void ChVisualSystemVSG::BindLoadContainer(const std::shared_ptr<ChLoadContainer>
     m_deformableScene->addChild(child);
 
     def_mesh.mesh_soup = false;
-    auto num_vertices = trimesh->GetMesh()->getCoordsVertices().size();  // expected
 
     def_mesh.vertices = vsg::visit<FindVec3BufferData<0>>(child).getBufferData();
-    assert(def_mesh.vertices->size() == num_vertices);
     def_mesh.vertices->properties.dataVariance = vsg::DYNAMIC_DATA;
     def_mesh.dynamic_vertices = true;
 

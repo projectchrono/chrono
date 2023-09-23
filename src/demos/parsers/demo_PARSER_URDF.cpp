@@ -23,6 +23,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/core/ChRealtimeStep.h"
+#include "chrono/assets/ChBoxShape.h"
 
 #include "chrono_parsers/ChParserURDF.h"
 
@@ -72,6 +73,10 @@ int main(int argc, char* argv[]) {
     ////mat.kn = 2.5e6;
     ////parser.SetBodyContactMaterial("head", mat);  // hardcoded for R2D2 model
 
+    // Display raw XML string
+    std::cout << "\nURDF input\n" << std::endl;
+    std::cout << parser.GetXMLstring() << std::endl;
+
     // Report parsed elements
     parser.PrintModelBodyTree();
     parser.PrintModelBodies();
@@ -79,6 +84,19 @@ int main(int argc, char* argv[]) {
 
     // Create the Chrono model
     parser.PopulateSystem(sys);
+
+    // Optional custom processing
+    std::cout << "\nCustom processing example - scan elements \"link\"\n" << std::endl;
+    class MyCustomProcessor : public ChParserURDF::CustomProcessor {
+        virtual void Process(const tinyxml2::XMLElement& element, ChSystem& system) override {
+            std::cout << "Process element: " << element.Name() << std::endl;
+            if (element.FirstChildElement()) {
+                std::cout << "   First child name: " << element.FirstChildElement()->Name() << std::endl;
+            }
+        }
+    };
+    parser.CustomProcess("link", chrono_types::make_shared<MyCustomProcessor>());
+    std::cout << std::endl;
 
     // Get location of the root body
     auto root_loc = parser.GetRootChBody()->GetPos();
@@ -108,7 +126,7 @@ int main(int argc, char* argv[]) {
             vis_irr->AttachSystem(&sys);
             vis_irr->SetCameraVertical(CameraVerticalDir::Z);
             vis_irr->SetWindowSize(1200, 800);
-            vis_irr->SetWindowTitle("NSC callbacks");
+            vis_irr->SetWindowTitle("URDF parser demo");
             vis_irr->Initialize();
             vis_irr->AddLogo();
             vis_irr->AddSkyBox();
@@ -125,7 +143,7 @@ int main(int argc, char* argv[]) {
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(&sys);
             vis_vsg->SetCameraVertical(CameraVerticalDir::Z);
-            vis_vsg->SetWindowTitle("NSC callbacks");
+            vis_vsg->SetWindowTitle("URDF parser demo");
             vis_vsg->AddCamera(root_loc + ChVector<>(3, 3, 0), root_loc);
             vis_vsg->SetWindowSize(ChVector2<int>(1200, 800));
             vis_vsg->SetWindowPosition(ChVector2<int>(500, 100));

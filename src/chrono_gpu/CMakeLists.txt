@@ -16,14 +16,14 @@ message(STATUS "\n==== Chrono GPU module ====\n")
 
 # Return now if Eigen version < 3.3.6
 if(EIGEN3_VERSION VERSION_LESS "3.3.6")
-    message(WARNING "Eigen version (${EIGEN3_VERSION}) is less than the required version (3.3.6); disabling Chrono::GPU")
+    message("Eigen version (${EIGEN3_VERSION}) is less than the required version (3.3.6); disabling Chrono::GPU")
     set(ENABLE_MODULE_GPU OFF CACHE BOOL "Enable the Chrono::GPU module" FORCE)
     return()
 endif()
 
 # Return now if CUDA is not available
 if(NOT CUDA_FOUND)
-    message(WARNING "Chrono::GPU requires CUDA, but CUDA was not found; disabling Chrono::GPU")
+    message("Chrono::GPU requires CUDA, but CUDA was not found; disabling Chrono::GPU")
     set(ENABLE_MODULE_GPU OFF CACHE BOOL "Enable the Chrono::GPU module" FORCE)
     return()
 endif()
@@ -38,12 +38,12 @@ endif()
 # be found at compile time.
 
 configure_file(
-	${CMAKE_CURRENT_SOURCE_DIR}/ChConfigGpu.h.in
-	${PROJECT_BINARY_DIR}/chrono_gpu/ChConfigGpu.h
-	)
+    ${CMAKE_CURRENT_SOURCE_DIR}/ChConfigGpu.h.in
+    ${PROJECT_BINARY_DIR}/chrono_gpu/ChConfigGpu.h
+    )
 
 install(FILES "${PROJECT_BINARY_DIR}/chrono_gpu/ChConfigGpu.h"
-				DESTINATION include/chrono_gpu)
+        DESTINATION include/chrono_gpu)
 
 # ------------------------------------------------------------------------------
 # Collect all additional include directories necessary for the GPU module
@@ -235,8 +235,8 @@ endif()
 message(STATUS "NVCC Flags: ${CUDA_NVCC_FLAGS}")
 
 # Install required chrono_thirdparty headers
-if (DEFINED ${CUB_INCLUDE_DIR})
-	install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/cub
-    	    DESTINATION include/chrono_thirdparty
-	        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+if(DEFINED ${CUB_INCLUDE_DIR})
+   install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/cub
+           DESTINATION include/chrono_thirdparty
+           FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
 endif()

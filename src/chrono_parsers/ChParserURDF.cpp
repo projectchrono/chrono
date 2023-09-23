@@ -51,17 +51,16 @@ const double inertia_threshold = 1e-6;
 
 ChParserURDF::ChParserURDF(const std::string& filename) : m_filename(filename), m_vis_collision(false), m_sys(nullptr) {
     // Read input file into XML string
-    std::string xml_string;
     std::fstream xml_file(filename, std::fstream::in);
     while (xml_file.good()) {
         std::string line;
         std::getline(xml_file, line);
-        xml_string += (line + "\n");
+        m_xml_string += (line + "\n");
     }
     xml_file.close();
 
     // Parse XML string
-    m_model = urdf::parseURDF(xml_string);
+    m_model = urdf::parseURDF(m_xml_string);
     if (!m_model) {
         cerr << "ERROR: parsing the URDF file " << filename << " failed." << endl;
         return;
@@ -590,7 +589,7 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
 
 std::shared_ptr<ChBodyAuxRef> ChParserURDF::GetRootChBody() const {
     if (!m_sys) {
-        cerr << "WARNING: GetRootChBody: The Chrono model was not yet populated." << endl;
+        cerr << "\nWARNING: GetRootChBody: The Chrono model was not yet populated." << endl;
         return nullptr;
     }
 
@@ -599,7 +598,7 @@ std::shared_ptr<ChBodyAuxRef> ChParserURDF::GetRootChBody() const {
 
 std::shared_ptr<ChBody> ChParserURDF::GetChBody(const std::string& name) const {
     if (!m_sys) {
-        cerr << "WARNING: GetChBody: The Chrono model was not yet populated." << endl;
+        cerr << "\nWARNING: GetChBody: The Chrono model was not yet populated." << endl;
         return nullptr;
     }
 
@@ -608,7 +607,7 @@ std::shared_ptr<ChBody> ChParserURDF::GetChBody(const std::string& name) const {
 
 std::shared_ptr<ChLinkBase> ChParserURDF::GetChLink(const std::string& name) const {
     if (!m_sys) {
-        cerr << "WARNING: GetChLink: The Chrono model was not yet populated." << endl;
+        cerr << "\nWARNING: GetChLink: The Chrono model was not yet populated." << endl;
         return nullptr;
     }
 
@@ -617,12 +616,12 @@ std::shared_ptr<ChLinkBase> ChParserURDF::GetChLink(const std::string& name) con
 
 std::shared_ptr<ChLinkMotor> ChParserURDF::GetChMotor(const std::string& name) const {
     if (!m_sys) {
-        cerr << "WARNING: GetChMotor: The Chrono model was not yet populated." << endl;
+        cerr << "\nWARNING: GetChMotor: The Chrono model was not yet populated." << endl;
         return nullptr;
     }
 
     if (m_actuated_joints.find(name) == m_actuated_joints.end()) {
-        cerr << "WARNING: GetChMotor: The joint \"" << name << "\" was not marked as actuated." << endl;
+        cerr << "\nWARNING: GetChMotor: The joint \"" << name << "\" was not marked as actuated." << endl;
         return nullptr;
     }
 
@@ -631,17 +630,17 @@ std::shared_ptr<ChLinkMotor> ChParserURDF::GetChMotor(const std::string& name) c
 
 void ChParserURDF::SetMotorFunction(const std::string& motor_name, const std::shared_ptr<ChFunction> function) {
     if (!m_sys) {
-        cerr << "WARNING: SetMotorFunction: The Chrono model was not yet populated." << endl;
+        cerr << "\nWARNING: SetMotorFunction: The Chrono model was not yet populated." << endl;
         return;
     }
 
     if (!m_model->getJoint(motor_name)) {
-        cerr << "WARNING: SetMotorFunction: No joint named \"" << motor_name << "\"." << endl;
+        cerr << "\nWARNING: SetMotorFunction: No joint named \"" << motor_name << "\"." << endl;
         return;
     }
 
     if (m_actuated_joints.find(motor_name) == m_actuated_joints.end()) {
-        cerr << "WARNING: SetMotorFunction: The joint \"" << motor_name << "\" was not marked as actuated." << endl;
+        cerr << "\nWARNING: SetMotorFunction: The joint \"" << motor_name << "\" was not marked as actuated." << endl;
         return;
     }
 
@@ -734,6 +733,29 @@ void ChParserURDF::PrintModelJoints() {
 }
 
 // -----------------------------------------------------------------------------
+
+void ChParserURDF::CustomProcess(const std::string& key, std::shared_ptr<CustomProcessor> callback) {
+    tinyxml2::XMLDocument xml_doc;
+    xml_doc.Parse(m_xml_string.c_str());
+    if (xml_doc.Error()) {
+        std::cerr << xml_doc.ErrorStr() << std::endl;
+        xml_doc.Clear();
+        return;
+    }
+
+    tinyxml2::XMLElement* robot_xml = xml_doc.FirstChildElement("robot");
+    if (!robot_xml) {
+        std::cerr << "Could not find the 'robot' element in the xml file" << std::endl;
+        return;
+    }
+
+    for (tinyxml2::XMLElement* xml_element = robot_xml->FirstChildElement(key.c_str());  //
+         xml_element;                                                                    //
+         xml_element = xml_element->NextSiblingElement(key.c_str())                      //
+    ) {
+        callback->Process(*xml_element, *m_sys);
+    }
+}
 
 }  // end namespace parsers
 }  // end namespace chrono

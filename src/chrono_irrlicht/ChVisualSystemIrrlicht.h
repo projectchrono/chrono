@@ -210,6 +210,9 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// Set the speed of the shown mode (only if some ChModalAssembly is found).
     virtual void SetModalSpeed(double val) override;
 
+    /// Set the maximum number of modes selectable (only if some ChModalAssembly is found).
+    virtual void SetModalModesMax(int maxModes) override;
+
     /// Show the realtime profiler in the 3D view.
     void ShowProfiler(bool val);
 

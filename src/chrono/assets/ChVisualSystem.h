@@ -155,6 +155,9 @@ class ChApi ChVisualSystem {
     /// Set the speed of the shown mode (only if some ChModalAssembly is found).
     virtual void SetModalSpeed(double val) {}
 
+    /// Set the maximum number of modes selectable (only if some ChModalAssembly is found).
+    virtual void SetModalModesMax(int maxModes) {}
+
     /// Get the list of associated Chrono systems.
     std::vector<ChSystem*> GetSystems() const { return m_systems; }
 

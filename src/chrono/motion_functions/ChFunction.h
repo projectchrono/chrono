@@ -18,6 +18,7 @@
 #include "chrono/motion_functions/ChFunction_ConstAcc.h"
 #include "chrono/motion_functions/ChFunction_Cycloidal.h"
 #include "chrono/motion_functions/ChFunction_Derive.h"
+#include "chrono/motion_functions/ChFunction_DoubleS.h"
 #include "chrono/motion_functions/ChFunction_Fillet3.h"
 #include "chrono/motion_functions/ChFunction_Integrate.h"
 #include "chrono/motion_functions/ChFunction_Matlab.h"

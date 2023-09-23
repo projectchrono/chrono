@@ -231,27 +231,6 @@ void ChFialaTire::CombinedCoulombForces(double& fx, double& fy, double fz, doubl
 
 // -----------------------------------------------------------------------------
 
-void ChFialaTire::AddVisualizationAssets(VisualizationType vis) {
-    if (vis == VisualizationType::NONE)
-        return;
-
-    m_cyl_shape =
-        ChVehicleGeometry::AddVisualizationCylinder(m_wheel->GetSpindle(),                                        //
-                                                    ChVector<>(0, GetOffset() + GetVisualizationWidth() / 2, 0),  //
-                                                    ChVector<>(0, GetOffset() - GetVisualizationWidth() / 2, 0),  //
-                                                    GetRadius());
-    m_cyl_shape->SetTexture(GetChronoDataFile("textures/greenwhite.png"));
-}
-
-void ChFialaTire::RemoveVisualizationAssets() {
-    // Make sure we only remove the assets added by ChFialaTire::AddVisualizationAssets.
-    // This is important for the ChTire object because a wheel may add its own assets to the same body (the
-    // spindle/wheel).
-    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_cyl_shape);
-}
-
-// -----------------------------------------------------------------------------
-
 void ChFialaTire::FialaPatchForces(double& fx, double& fy, double& mz, double kappa, double alpha, double fz) {
     double SsA = std::min<>(1.0, std::sqrt(std::pow(kappa, 2) + std::pow(std::tan(alpha), 2)));
     double U = m_u_max - (m_u_max - m_u_min) * SsA;

@@ -59,7 +59,7 @@ VisualizationType tire_vis_type = VisualizationType::MESH;
 
 RandomSurfaceTerrain::VisualisationType visType = RandomSurfaceTerrain::VisualisationType::MESH;
 
-// Type of tire model (RIGID, TMEASY)
+// Type of tire model (TMEASY)
 TireModelType tire_model = TireModelType::TMEASY;
 
 // Point on chassis tracked by the camera

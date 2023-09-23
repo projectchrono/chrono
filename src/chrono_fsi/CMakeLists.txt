@@ -22,7 +22,7 @@ endif()
 
 # Return now if CUDA is not available
 if(NOT CUDA_FOUND)
-    message(WARNING "Chrono::FSI requires CUDA, but CUDA was not found; disabling Chrono::FSI")
+    message("Chrono::FSI requires CUDA, but CUDA was not found; disabling Chrono::FSI")
     set(ENABLE_MODULE_FSI OFF CACHE BOOL "Enable the Chrono FSI module" FORCE)
     return()
 endif()
@@ -80,7 +80,7 @@ if(ENABLE_MODULE_OPENGL)
 endif()
 
 if(ENABLE_MODULE_VSG)
-  set(CMAKE_CXX_STANDARD 17)
+  include_directories(${CH_VSG_INCLUDES})
   list(APPEND CH_FSI_LINKED_LIBRARIES ChronoEngine_vsg)
 endif()
 

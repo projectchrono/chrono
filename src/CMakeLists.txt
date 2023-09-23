@@ -19,6 +19,36 @@ if (POLICY CMP0074)
 endif()
 
 #-----------------------------------------------------------------------------
+# Optionally use static runtime library (MSVC only)
+#-----------------------------------------------------------------------------
+if (MSVC)
+    option(USE_MSVC_STATIC_RUNTIME "Compile with a multi-threaded statically-linked runtime library" OFF)
+    if (USE_MSVC_STATIC_RUNTIME)
+        message(STATUS "Enabling STATIC run-time library")
+        message(STATUS "  CMAKE_CXX_FLAGS (IN):          ${CMAKE_CXX_FLAGS}")
+        message(STATUS "  CMAKE_CXX_FLAGS_RELEASE (IN):  ${CMAKE_CXX_FLAGS_RELEASE}")
+        message(STATUS "  CMAKE_CXX_FLAGS_DEBUG (IN):    ${CMAKE_CXX_FLAGS_DEBUG}")
+
+        foreach(flag_var
+                CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
+                CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO
+                CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+                CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+          if(${flag_var} MATCHES "/MD")
+            string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
+          endif()
+          if(${flag_var} MATCHES "/MDd")
+            string(REGEX REPLACE "/MDd" "/MTd" ${flag_var} "${${flag_var}}")
+          endif()
+        endforeach(flag_var)
+
+        message(STATUS "  CMAKE_CXX_FLAGS (OUT):         ${CMAKE_CXX_FLAGS}")
+        message(STATUS "  CMAKE_CXX_FLAGS_RELEASE (OUT): ${CMAKE_CXX_FLAGS_RELEASE}")
+        message(STATUS "  CMAKE_CXX_FLAGS_DEBUG (OUT):   ${CMAKE_CXX_FLAGS_DEBUG}")
+    endif()
+endif()
+
+#-----------------------------------------------------------------------------
 # Collect compiler flags required to build the Chrono libraries
 #-----------------------------------------------------------------------------
 
@@ -28,54 +58,69 @@ set(CH_LINKERFLAG_EXE "${CMAKE_EXE_LINKER_FLAGS}")
 set(CH_LINKERFLAG_SHARED "")
 
 #-----------------------------------------------------------------------------
-# Enable C++11 support.  Check for C++14 support
+# Check for C++14 and C++17 support
 #-----------------------------------------------------------------------------
 
 # Allow user to enforce strict C++11 standard
 option(CH_ENFORCE_CXX11 "Enforce strict C++11 standard" OFF)
 
-
-if (CH_ENFORCE_CXX11)
-	#  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_CXX11_STANDARD_COMPILE_OPTION}")
-	set(CMAKE_CXX_STANDARD 11)
-else()
-	#  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_CXX14_STANDARD_COMPILE_OPTION}")
-	set(CMAKE_CXX_STANDARD 14)
-endif()
-
 # This is a hack -- look for a more robust solution
 set(CH_CXX14 FALSE)
+set(CH_CXX17 FALSE)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-  message(STATUS "GCC version:  ${CMAKE_CXX_COMPILER_VERSION}")
-  if(NOT CH_ENFORCE_CXX11 AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9.9)
-    set(CH_CXX14 TRUE)
-  endif()
+    message(STATUS "GCC version:  ${CMAKE_CXX_COMPILER_VERSION}")
+    if(NOT CH_ENFORCE_CXX11 AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9.9)
+      set(CH_CXX14 TRUE)
+    endif()
+    if(NOT CH_ENFORCE_CXX11 AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 7.0.0)
+      set(CH_CXX17 TRUE)
+    endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  message(STATUS "Clang version:  ${CMAKE_CXX_COMPILER_VERSION}")
-  if(NOT CH_ENFORCE_Cxx11 AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 3.4)
-    set(CH_CXX14 TRUE)
-  endif()
+    message(STATUS "Clang version:  ${CMAKE_CXX_COMPILER_VERSION}")
+    if(NOT CH_ENFORCE_CXX11 AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 3.4)
+      set(CH_CXX14 TRUE)
+    endif()
+    if(NOT CH_ENFORCE_CXX11 AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 7.0)
+      set(CH_CXX17 TRUE)
+    endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-  message(STATUS "Visual Studio version:  ${MSVC_VERSION}")
-  if(NOT CH_ENFORCE_CXX11 AND MSVC_VERSION GREATER 1800)
-    set(CH_CXX14 TRUE)
-  endif()
+    message(STATUS "Visual Studio version:  ${MSVC_VERSION}")
+    if(NOT CH_ENFORCE_CXX11 AND MSVC_VERSION GREATER 1800)
+      set(CH_CXX14 TRUE)
+    endif()
+    if(NOT CH_ENFORCE_CXX11 AND MSVC_VERSION GREATER 1914)
+      set(CH_CXX17 TRUE)
+    endif()
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "PGI")
+    # CMake's standard support flags behave strangely with PGI compilers, don't trust them
+    set(CH_CXX_FLAGS "")
+    message(STATUS "PGI version: ${CMAKE_CXX_COMPILER_VERSION}")
+    if(NOT CH_ENFORCE_CXX11 AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 17.4)
+      message(STATUS "CMAKE_CXX14_STANDARD_COMPILE_OPTION can't be trusted for PGI, manually adding C++14 support")
+      set(CH_CXX_FLAGS "-std=c++14")
+      set(CH_CXX14 TRUE)
+    endif()
 endif()
-message(STATUS "Compiler supports C++14:  ${CH_CXX14}")
 
-# CMake's standard support flags behave strangely with PGI compilers, don't trust them
-if (CMAKE_CXX_COMPILER_ID MATCHES "PGI")
-  set(CH_CXX_FLAGS "")
-  message(STATUS "PGI version: ${CMAKE_CXX_COMPILER_VERSION}")
-  if(NOT CH_ENFORCE_CXX11 AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 17.4)
-    message(STATUS "CMAKE_CXX14_STANDARD_COMPILE_OPTION can't be trusted for PGI, manually adding C++14 support")
-    set(CH_CXX14 TRUE)
-    set(CH_CXX_FLAGS "-std=c++14")
-  endif()
+if(CH_ENFORCE_CXX11)
+    message(STATUS "Enforce C++11")
+	  set(CMAKE_CXX_STANDARD 11)
+else()
+    message(STATUS "C++14 compiler support:  ${CH_CXX14}")
+    message(STATUS "C++17 compiler support:  ${CH_CXX17}")
+
+    if(CH_CXX17)
+        set(CMAKE_CXX_STANDARD 17)
+    elseif(CH_CXX14)
+        set(CMAKE_CXX_STANDARD 14)
+    endif()
 endif()
 
+#-----------------------------------------------------------------------------
 # Allow user to enable whole program optimization (MSVC only)
+#-----------------------------------------------------------------------------
+
 if (MSVC)
   option(CH_WHOLE_PROG_OPT "Enable whole program optimization" OFF)
 
@@ -334,7 +379,10 @@ if(CUDA_FOUND)
     set(CUDA_SEPARABLE_COMPILATION OFF)
   elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set(CUDA_PROPAGATE_HOST_FLAGS OFF)
-    if(${CH_CXX14})
+    if(${CH_CXX17})
+      		set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std c++17")
+      		set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler -std=c++17")
+    elseif(${CH_CXX14})
       		set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std c++14")
       		set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler -std=c++14")
     else()
@@ -529,14 +577,19 @@ endif()
 # Set the base compilation flags
 #-----------------------------------------------------------------------------
 
-message(STATUS "Compiler and linker flags:")
-message(STATUS "  C++ compiler flags: ${CH_CXX_FLAGS}")
-message(STATUS "  C compiler flags:   ${CH_C_FLAGS}")
-message(STATUS "  Linker flags:       ${CH_LINKERFLAG_EXE}")
-
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CH_CXX_FLAGS}")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${CH_CXX_FLAGS} -D_DEBUG -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${CH_CXX_FLAGS} -DNDEBUG")
+
+message(STATUS "Compiler and linker flags:")
+message(STATUS "  CMAKE_CXX_FLAGS:         ${CMAKE_CXX_FLAGS}")
+message(STATUS "  CMAKE_CXX_FLAGS_DEBUG:   ${CMAKE_CXX_FLAGS_DEBUG}")
+message(STATUS "  CMAKE_CXX_FLAGS_RELEASE: ${CMAKE_CXX_FLAGS_RELEASE}")
+message(STATUS "  Linke flags SHARED:      ${CH_LINKERFLAG_SHARED}")
+message(STATUS "  Linke flags EXE:         ${CH_LINKERFLAG_EXE}")
+if(CUDA_FOUND)
+    message(STATUS "  CUDA flags:              ${CUDA_NVCC_FLAGS}")
+endif()
 
 # For Bullet to use 32 bit math
 add_definitions( "-DBP_USE_FIXEDPOINT_INT_32" )

@@ -3219,17 +3219,16 @@ namespace Swig {
     }
 
   public:
-    
+#if (__cplusplus < 201703L)  // older than C++17
     std::unexpected_handler old;
-    UnknownExceptionHandler(std::unexpected_handler nh = handler)
-    {
-      old = std::set_unexpected(nh);
-    }
+    UnknownExceptionHandler(std::unexpected_handler nh = handler) { old = std::set_unexpected(nh); }
+    ~UnknownExceptionHandler() { std::set_unexpected(old); }
+#else  // C++17 and newer
+    std::terminate_handler old;
+    UnknownExceptionHandler(std::terminate_handler nh = handler) { old = std::set_terminate(nh); }
+    ~UnknownExceptionHandler() { std::set_terminate(old); }
+#endif
 
-    ~UnknownExceptionHandler()
-    {
-      std::set_unexpected(old);
-    }
 #endif
   };
 

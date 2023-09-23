@@ -46,8 +46,8 @@ endif()
 set(HAVE_PYTHON FALSE)
 
 set(Python_ADDITIONAL_VERSIONS 3.4)
-find_package(PythonInterp REQUIRED)
-find_package(PythonLibs ${PYTHON_VERSION_STRING} EXACT)
+find_package(PythonInterp QUIET)
+find_package(PythonLibs QUIET)
 
 if(PythonInterp_FOUND AND PythonLibs_FOUND)
     set(HAVE_PYTHON TRUE)

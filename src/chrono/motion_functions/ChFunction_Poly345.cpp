@@ -61,6 +61,17 @@ double ChFunction_Poly345::Get_y_dxdx(double x) const {
     return ret;
 }
 
+double ChFunction_Poly345::Get_y_dxdxdx(double x) const {
+    double ret = 0;
+    if (x <= 0)
+        return 0;
+    if (x >= end)
+        return 0;
+    double a = x / end;
+    ret = h / pow(end, 3) * (60 - 360 * a + 360 * pow(a, 2));
+    return ret;
+}
+
 void ChFunction_Poly345::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChFunction_Poly345>();

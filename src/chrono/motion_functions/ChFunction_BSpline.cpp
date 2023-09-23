@@ -75,20 +75,31 @@ void ChFunction_BSpline::Setup_Data(int p, ChVectorDynamic<> cpoints, ChVectorDy
         m_knots = *knots;
     else {
         m_knots.resize(m_n + 1);
-        m_basis_tool->ComputeKnotUniformMultipleEnds(m_knots, m_p); //, ti, tf
+        m_basis_tool->ComputeKnotUniformMultipleEnds(m_knots, m_p);
     }
 }
 
-double ChFunction_BSpline::Get_y(double x) const {
+ChVectorDynamic<> ChFunction_BSpline::Get_Control_Points_Abscissae() const {
+    int m = m_cpoints.size(); // number of control points
+    ChVectorDynamic<> cpoints_x(m);
+    cpoints_x.setZero();
+    // Averaging knots
+    for (int j = 0; j < m; ++j) {
+        for (int i = 1; i <= m_p; ++i)
+            cpoints_x(j) += m_knots(j + i);
+        cpoints_x(j) /= m_p;
+    }
+    return cpoints_x;
+}
 
+double ChFunction_BSpline::Get_y(double x) const {
     double y = 0;
     int spanU = m_basis_tool->FindSpan(m_p, x, m_knots);
     ChVectorDynamic<> N(m_p + 1);
     m_basis_tool->BasisEvaluate(m_p, spanU, x, m_knots, N);
     int uind = spanU - m_p;
-    for (int i = 0; i <= m_p; i++) {
+    for (int i = 0; i <= m_p; i++)
         y += N(i) * m_cpoints(uind + i);
-    }
     return y;
 }
 
@@ -98,9 +109,8 @@ double ChFunction_BSpline::Get_y_dx(double x) const {
     ChMatrixDynamic<> DN(2, m_p + 1);
     m_basis_tool->BasisEvaluateDeriv(m_p, spanU, x, m_knots, DN);
     int uind = spanU - m_p;
-    for (int i = 0; i <= m_p; ++i) {
+    for (int i = 0; i <= m_p; ++i)
         yd += DN(1, i) * m_cpoints(uind + i);
-    }
     return yd;
 }
 
@@ -110,10 +120,20 @@ double ChFunction_BSpline::Get_y_dxdx(double x) const {
     ChMatrixDynamic<> DN(3, m_p + 1);
     m_basis_tool->BasisEvaluateDeriv(m_p, spanU, x, m_knots, DN);
     int uind = spanU - m_p;
-    for (int i = 0; i <= m_p; ++i) {
+    for (int i = 0; i <= m_p; ++i)
         ydd += DN(2, i) * m_cpoints(uind + i);
-    }
     return ydd;
+}
+
+double ChFunction_BSpline::Get_y_dxdxdx(double x) const {
+    double yddd = 0;
+    int spanU = m_basis_tool->FindSpan(m_p, x, m_knots);
+    ChMatrixDynamic<> DN(4, m_p + 1);
+    m_basis_tool->BasisEvaluateDeriv(m_p, spanU, x, m_knots, DN);
+    int uind = spanU - m_p;
+    for (int i = 0; i <= m_p; ++i)
+        yddd += DN(3, i) * m_cpoints(uind + i);
+    return yddd;
 }
 
 void ChFunction_BSpline::Recompute_Constrained(

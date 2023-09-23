@@ -12,6 +12,7 @@
 #   project configuration scripts required to configure Chrono with the Chorno::VSG module enabled.
 #
 # Notes:
+# - The script accepts 1 optional argument to override the install directory.
 # - This script uses the following versions of the various codes from their respective repositories, with the
 #   only exception being vsgImGui which pulls the latest version.
 #      VulkanSceneGraph (github.com/vsg-dev/VulkanSceneGraph.git): Tag v1.0.7
@@ -38,6 +39,14 @@ then
     VSGIMGUI_SOURCE_DIR="$HOME/Sources/vsgImGui"
     VSGEXAMPLES_SOURCE_DIR="$HOME/Sources/vsgExamples"
     ASSIMP_SOURCE_DIR="$HOME/Sources/assimp"
+fi
+
+# ------------------------------------------------------------------------
+# Allow overriding installation directory through command line argument
+
+if [ $# -eq 1 ]
+then
+    VSG_INSTALL_DIR=$1
 fi
 
 # ------------------------------------------------------------------------
@@ -135,19 +144,20 @@ fi
 
 echo -e "\n------------------------ Configure vsgXchange\n"
 rm -rf build_vsgXchange
-cmake  -G "${BUILDSYSTEM}" -B build_vxgXchange -S ${VSGXCHANGE_SOURCE_DIR}  \
+cmake  -G "${BUILDSYSTEM}" -B build_vsgXchange -S ${VSGXCHANGE_SOURCE_DIR}  \
       -DBUILD_SHARED_LIBS:BOOL=${BUILDSHARED} \
       -DCMAKE_DEBUG_POSTFIX=_d \
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd \
-      -Dvsg_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/vsg
+      -Dvsg_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/vsg \
+      -Dassimp_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/assimp-5.2
 
 echo -e "\n------------------------ Build and install vsgXchange\n"
-cmake --build build_vxgXchange --config Release
-cmake --install build_vxgXchange --config Release --prefix ${VSG_INSTALL_DIR}
+cmake --build build_vsgXchange --config Release
+cmake --install build_vsgXchange --config Release --prefix ${VSG_INSTALL_DIR}
 if [ ${BUILDDEBUG} = ON ]
 then
-    cmake --build build_vxgXchange --config Debug
-    cmake --install build_vxgXchange --config Debug --prefix ${VSG_INSTALL_DIR}
+    cmake --build build_vsgXchange --config Debug
+    cmake --install build_vsgXchange --config Debug --prefix ${VSG_INSTALL_DIR}
 else
     echo "No Debug build of vsgXchange"
 fi

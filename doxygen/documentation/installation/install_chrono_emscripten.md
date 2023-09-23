@@ -1,30 +1,28 @@
 Build Chrono for WASM {#tutorial_install_chrono_emscripten}
 ==========================
-<div class="ce-info">
+
 The following instructions detail the process of building Chrono for WebAssembly using [Emscripten](https://emscripten.org/) on a Linux host. 
 
 These instructions may also work for a Windows or macOS host with minimal modification. 
 
-<br />
-See [Install Chrono for Linux](@ref tutorial_install_chrono_linux) for native build instructions. 
-Native Windows and Mac instructions can be found [here](@ref tutorial_install_chrono).
-</div>
+See [Install Chrono](@ref tutorial_install_chrono) for native build instructions. 
 
 
-## 1) Install Emscripten 
+
+#### 1) Install Emscripten 
 
 Download and install Emscripten using [one of the documented methods](https://emscripten.org/docs/getting_started/downloads.html). 
 
 
-## 2) Download and install the Eigen library
+#### 2) Download and install the Eigen library
 
 Chrono uses [Eigen3](http://eigen.tuxfamily.org/) for all of its internal dense linear algebra needs. Chrono requires Eigen version 3.3.0 or newer, but we strongly encourage using the **latest stable release family, Eigen 3.4.0 (or newer)**. Eigen is a header-only library, so a version installed by your system package manager or downloaded from the upstream source will work with emscripten. 
 
-## 3) Download and install GLM (OPTIONAL)
+#### 3) Download and install GLM (OPTIONAL)
 
 If you intend to make use of Chrono's built-in WebGL visualization capability, the [OpenGL Mathematics](https://github.com/g-truc/glm) library will be needed during build. As it is a header-only library, it may be available through your system package manager, or the source code can be [downloaded from GitHub](https://github.com/g-truc/glm/releases) and used as-is. 
 
-## 4) Download and Install CMake
+#### 4) Download and Install CMake
 
 [CMake](https://cmake.org/) is required to configure the build before compiling Chrono. It is also widely used among the Linux community to build many other software units. If it isn't already installed, use your system's package manager to install it. On most systems, the package is simply called `cmake`.
 
@@ -34,11 +32,11 @@ Debian-based distributions may need to install the package `cmake-curses-gui` al
 > Note: The Qt GUI for CMake (`cmake-gui` on some systems) will not work nicely with emscripten. Use the command line or the curses terminal GUI instead.  
 </div>
 
-## 5) Download and install Ninja
+#### 5) Download and install Ninja
 
 [Ninja](https://ninja-build.org/) is recommended to facilitate a faster and more portable build process. It is typically available from your system package manager as `ninja-build` or just `ninja`. 
 
-## 6) Download the Project Chrono source code using Git 
+#### 6) Download the Project Chrono source code using Git 
 
 Download the Chrono SDK by performing a **clone** of the Git repository on your machine. `git clone -b master git@github.com:projectchrono/chrono.git` will create a copy of the Github repository in the current directory.
 
@@ -48,7 +46,7 @@ Checking out the [latest release tag](https://github.com/projectchrono/chrono/ta
 If you are interested in using the latest features as they are developed and before the next official release, you can switch to the `develop` branch with `git switch develop`.
 </div>
 
-## 6) Run CMake using the Emscripten Wrapper 
+#### 6) Run CMake using the Emscripten Wrapper 
 
 Create a new _empty_ directory inside of the Chrono SDK source directory. This will be used to build Chrono: `mkdir build`. Next, change your current directory to it: `cd build`.
 
@@ -92,7 +90,7 @@ Similar to the Eigen directory field set earlier, the GLM include directory may 
 
 <img src="http://www.projectchrono.org/assets/Images/install_ccmake_3.png" class="img-responsive" width="400">
 
-## 7) Compile the project
+#### 7) Compile the project
 
 Run command `ninja` while in the same build directory as the newly created Makefile. Be prepared to wait 15 - 25 minutes for the build to complete. On systems with an excess of CPU cores, up to _N_ build steps can be run simultaneously by using `ninja -j N` to speed up the process. This is the final step of the Chrono build process. Congratulations!
 
@@ -100,7 +98,7 @@ Run command `ninja` while in the same build directory as the newly created Makef
 `ninja install` would normally copy the Chrono libraries, data files, and demo executables to the install directory specified during CMake configuration, however this is not practical when targeting WebAssembly as the generated files will usually be embedded into a webpage instead. 
 </div>
 
-## 8) Test the demos
+#### 8) Test the demos
 
 Navigate to the directory that you used to build Chrono earlier. Change the current directory to the subdirectory, `bin`. Demo example files are stored here, they are great resource to **demo**nstrate the capacities of Project Chrono.
 

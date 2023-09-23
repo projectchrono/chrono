@@ -309,7 +309,7 @@ void ChBlender::ExportScript(const std::string& filename) {
                     << "chrono_view_link_csys_size = " << this->frames_links_size << "\n"
                     << "\n";
         std::string abspath_pic_output =
-            filesystem::path(base_path + pic_path + "/" + pic_filename + "_######").make_absolute().str();
+            filesystem::path(base_path + pic_path).make_absolute().str() + "/" + pic_filename + "_######";
         std::replace(abspath_pic_output.begin(), abspath_pic_output.end(), '\\', '/');
         assets_file << "bpy.context.scene.render.filepath = '" << abspath_pic_output << "'\n"
                     << "bpy.context.scene.render.resolution_x = " << this->picture_width << "\n"

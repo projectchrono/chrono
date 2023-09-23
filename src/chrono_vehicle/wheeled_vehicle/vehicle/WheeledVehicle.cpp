@@ -368,11 +368,13 @@ void WheeledVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
         std::shared_ptr<ChSteering> steering = (str_index == -1) ? nullptr : m_steerings[str_index];
         m_axles[i]->Initialize(chassis, subchassis, steering, m_susp_locations[i], m_arb_locations[i],
                                m_wheel_separations[i]);
-        // Initialize tires (if present)
-        for (auto& wheel : m_axles[i]->GetWheels()) {
-            if (wheel->GetTire()) {
+    }
+
+    // Loop again over all axles and initialize tires (if present)
+    for (auto& axle : m_axles) {
+        for (auto& wheel : axle->GetWheels()) {
+            if (wheel->GetTire())
                 InitializeTire(wheel->GetTire(), wheel);
-            }
         }
     }
 

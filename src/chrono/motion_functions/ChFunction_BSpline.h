@@ -30,7 +30,7 @@ public:
     /// If knot vector is not provided, initialize it as equally spaced and clamped at both ends.
     ChFunction_BSpline(
         int p,                              ///< order
-        const ChVectorDynamic<>& cpoints,   ///< conrol points
+        const ChVectorDynamic<>& cpoints,   ///< control points
         ChVectorDynamic<>* knots = 0        ///< knot vector
     );
 
@@ -68,6 +68,11 @@ public:
     /// Get B-Spline knots.
     ChVectorDynamic<> Get_Knots() const { return m_knots; }
 
+    /// Get B-Spline averaged control points abscissae (Greville abscissae) as in [De Boor, chapt. XI] averaging formula.
+    /// Useful, in univariate B-Spline functions, to get csi(x) abscissae associated to control points y(x),
+    /// ie. b_i = [cpointx_i, cpointy_i] = [csi(x)_i, y(x)_i]
+    ChVectorDynamic<> Get_Control_Points_Abscissae() const;
+
     /// Get B-Spline internal tool to evaluate basis functions.
     std::shared_ptr<geometry::ChBasisToolsBspline> Get_Basis_Tool() { return m_basis_tool; }
 
@@ -79,6 +84,9 @@ public:
 
     /// B-Spline 2nd derivative: y(x)'' = = SUM_i Ni,p(x)'' b_i
     virtual double Get_y_dxdx(double x) const override;
+
+    /// B-Spline 3rd derivative: y(x)''' = = SUM_i Ni,p(x)''' b_i
+    virtual double Get_y_dxdxdx(double x) const override;
 
     /// Recompute B-Spline control points to exactly interpolate given waypoints and derivatives
     /// (eg. satisfy position, velocity, acceleration constraints)
