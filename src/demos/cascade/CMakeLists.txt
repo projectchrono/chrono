@@ -11,7 +11,7 @@ endif()
 # Additional paths and settings
 
 include_directories(${OpenCASCADE_INCLUDE_DIR})
-set(COMPILER_FLAGS "${CH_CXX_FLAGS} ${OpenCASCADE_CXX_FLAGS}")
+set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
 set(LINKER_FLAGS "${CH_LINKERFLAG_EXE} ${OpenCASCADE_LINKER_FLAGS}")
 list(APPEND LIBS "ChronoEngine")
 list(APPEND LIBS "ChronoEngine_cascade")
