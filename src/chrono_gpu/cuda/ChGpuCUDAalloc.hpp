@@ -26,12 +26,12 @@
 #include <type_traits>
 #include <utility>
 
-#if (__cplusplus >= 201703L)  // C++17 or newer
-template <class T>
-struct cudallocator {
-  public:
-    std::true_type is_always_equal;
-#else  // C++14 or older
+////#if (__cplusplus >= 201703L)  // C++17 or newer
+////template <class T>
+////struct cudallocator {
+////  public:
+////    std::true_type is_always_equal;
+////#else  // C++14 or older
 template <class T>
 class cudallocator {
   public:
@@ -50,27 +50,27 @@ class cudallocator {
     std::false_type propagate_on_container_move_assignment;
     std::false_type propagate_on_container_swap;
 #endif
-#endif
+////#endif
+
     typedef T value_type;
     typedef std::size_t size_type;
     typedef std::ptrdiff_t difference_type;
 
-#if (__cplusplus > 201703L)  // newer than (but not including) C++17
-    constexpr cudallocator() noexcept {};
-    constexpr cudallocator(const cudallocator& other) noexcept {}
-
-    template <class U>
-    constexpr cudallocator(const cudallocator<U>& other) noexcept {}
-
-#else  // C++17 or older
+////#if (__cplusplus > 201703L)  // newer than (but not including) C++17
+////    constexpr cudallocator() noexcept {};
+////    constexpr cudallocator(const cudallocator& other) noexcept {}
+////
+////    template <class U>
+////    constexpr cudallocator(const cudallocator<U>& other) noexcept {}
+////#else  // C++17 or older
     cudallocator() noexcept {}
     cudallocator(const cudallocator& other) noexcept {}
 
     template <class U>
     cudallocator(const cudallocator<U>& other) noexcept {}
-#endif
+////#endif
 
-#if (__cplusplus < 201703L)  // before C++17
+////#if (__cplusplus < 201703L)  // before C++17
     pointer address(reference x) const noexcept { return &x; }
 
     size_type max_size() const noexcept { return ULLONG_MAX / sizeof(T); }
@@ -80,7 +80,7 @@ class cudallocator {
         ::new ((void*)p) T(std::forward<Args>(args)...);
     }
     void destroy(T* p) { p->~T(); }
-#endif
+////#endif
 
     pointer allocate(size_type n, std::allocator<void>::const_pointer hint = 0) {
         void* vptr;

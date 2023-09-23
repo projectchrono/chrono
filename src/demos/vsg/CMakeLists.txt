@@ -10,8 +10,6 @@ set(DEMOS
     demo_VSG_visualize_FEA
 )
 
-set(CMAKE_CXX_STANDARD 17)
-
 #--- maybe it is not necessary to build app bundles with vsg
 if(APPLE)
     set(CMAKE_MACOSX_BUNDLE OFF)

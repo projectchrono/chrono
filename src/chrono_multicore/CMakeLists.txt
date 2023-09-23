@@ -9,7 +9,7 @@
 # If TBB is defined, thrust will use TBB but the rest of the code will be single
 # threaded
 
-option(ENABLE_MODULE_MULTICORE "Enable the Chrono::Multicore module" OFF)
+option(ENABLE_MODULE_MULTICORE "Enable the Chrono Multicore module" OFF)
 
 # Return now if this module is not enabled
 
@@ -25,8 +25,8 @@ message(STATUS "\n==== Chrono Multicore module ====\n")
 
 # Return now if Thrust not available
 if (NOT THRUST_FOUND)
-  message(WARNING "Chrono::Multicore requires Thrust, but Thrust was not found; disabling Chrono::Multicore")
-  set(ENABLE_MODULE_MULTICORE OFF CACHE BOOL "Enable the Chrono::multicore module" FORCE)
+  message("Chrono::Multicore requires Thrust, but Thrust was not found; disabling Chrono::Multicore")
+  set(ENABLE_MODULE_MULTICORE OFF CACHE BOOL "Enable the Chrono Multicore module" FORCE)
   return()
 endif()
 
