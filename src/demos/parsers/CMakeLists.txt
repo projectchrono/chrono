@@ -52,8 +52,6 @@ if(ENABLE_MODULE_IRRLICHT)
 endif()
 
 if(ENABLE_MODULE_VSG)
-  set(CMAKE_CXX_STANDARD 17)
-
   include_directories(${CH_VSG_INCLUDES})
   list(APPEND LIBS "ChronoEngine_vsg")
 endif()
