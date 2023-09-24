@@ -221,6 +221,10 @@ bool ChVisualSystemIrrlicht::Run() {
     return m_device->run();
 }
 
+void ChVisualSystemIrrlicht::Quit() {
+    m_device->closeDevice();
+}
+
 void ChVisualSystemIrrlicht::OnSetup(ChSystem* sys) {
     PurgeIrrNodes();
 }

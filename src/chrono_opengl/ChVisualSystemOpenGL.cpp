@@ -331,6 +331,10 @@ bool ChVisualSystemOpenGL::Run() {
     return !glfwWindowShouldClose(window);
 }
 
+void ChVisualSystemOpenGL::Quit() {
+    glfwSetWindowShouldClose(window, GL_TRUE);
+}
+
 // -----------------------------------------------------------------------------
 
 void ChVisualSystemOpenGL::Render() {
