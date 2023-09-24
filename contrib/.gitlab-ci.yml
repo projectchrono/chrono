@@ -242,7 +242,7 @@ windows:vs2022:build:
   # Build vsg with buildVSG script
   - '& $CI_PROJECT_DIR\contrib\build-scripts\vsg\buildVSG.bat $CI_PROJECT_DIR\contrib\build-scripts\vsg_build'
   # Configuring chrono
-  - cmake -B "$CI_PROJECT_DIR\build" -S "$CI_PROJECT_DIR" --preset=windowsci-vs2022
+  - cmake -B "$CI_PROJECT_DIR\build" -S "$CI_PROJECT_DIR" -DCMAKE_CXX_FLAGS="/MP4" --preset=windowsci-vs2022
   - cd build
   # Building chrono
   - cmake --build . -j 8 --config Release
