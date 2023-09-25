@@ -24,6 +24,7 @@
 
 #include <string>
 #include <memory>
+#include <chrono>
 
 namespace chrono {
 namespace ros {
@@ -38,9 +39,9 @@ namespace ros {
 class CH_ROS_API ChROSHandler {
   public:
     /// Constructor for the ChROSHandler
-    /// @param frequency Frequency with which the handler should tick relative to the simulation clock. NOTE: A
-    ///         frequency of 0 indicates tick should be called on each update of the simulation.
-    explicit ChROSHandler(uint64_t frequency);
+    /// @param update_rate Update rate with which the handler should tick relative to the simulation clock. NOTE: A
+    /// update_rate of 0 indicates tick should be called on each update of the simulation.
+    explicit ChROSHandler(double update_rate);
 
     /// Initializes the handler. Must be implemented by derived classes. This is called after rclcpp::init().
     ///         Here the underlying ROS objects (e.g. publisher, subscription) should be created.
@@ -52,8 +53,8 @@ class CH_ROS_API ChROSHandler {
     /// @param step the step size used since the last Update call
     virtual void Update(double time, double step) final;
 
-    /// Get the frequency which this handler operates at
-    uint64_t GetFrequency() const { return m_frequency; }
+    /// Get the period which this handler operates at
+    const double GetUpdateRate() const { return m_update_rate; }
 
   protected:
     /// Derived class must implement this function.
@@ -61,9 +62,9 @@ class CH_ROS_API ChROSHandler {
     virtual void Tick(double time) = 0;
 
   private:
-    const uint64_t m_frequency;  ///< Hz
+    const double m_update_rate;  ///< Update rate of the handler
 
-    double m_time_elapsed_since_last_tick;
+    double m_time_elapsed_since_last_tick;  ///< Time elapsed since last tick
 };
 
 /// @} ros_handlers

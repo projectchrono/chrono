@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2021 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All right reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -49,53 +49,10 @@ using namespace chrono::ros;
 // Run-time visualization system (IRRLICHT or VSG)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
-// Use custom material for the Viper Wheel
-bool use_custom_mat = false;
-
-// Define Viper rover wheel type
-ViperWheelType wheel_type = ViperWheelType::RealWheel;
-
-// Simulation time step
-double time_step = 1e-3;
-
 // -----------------------------------------------------------------------------
 
-std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_method) {
-    float mu = 0.4f;   // coefficient of friction
-    float cr = 0.2f;   // coefficient of restitution
-    float Y = 2e7f;    // Young's modulus
-    float nu = 0.3f;   // Poisson ratio
-    float kn = 2e5f;   // normal stiffness
-    float gn = 40.0f;  // normal viscous damping
-    float kt = 2e5f;   // tangential stiffness
-    float gt = 20.0f;  // tangential viscous damping
-
-    switch (contact_method) {
-        case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-            matNSC->SetFriction(mu);
-            matNSC->SetRestitution(cr);
-            return matNSC;
-        }
-        case ChContactMethod::SMC: {
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-            matSMC->SetFriction(mu);
-            matSMC->SetRestitution(cr);
-            matSMC->SetYoungModulus(Y);
-            matSMC->SetPoissonRatio(nu);
-            matSMC->SetKn(kn);
-            matSMC->SetGn(gn);
-            matSMC->SetKt(kt);
-            matSMC->SetGt(gt);
-            return matSMC;
-        }
-        default:
-            return std::shared_ptr<ChMaterialSurface>();
-    }
-}
-
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    GetLog() << "Copyright (c) 2023 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create the Chrono system with gravity in the negative Z direction
     ChSystemNSC sys;
@@ -116,25 +73,9 @@ int main(int argc, char* argv[]) {
     ////auto driver = chrono_types::make_shared<ViperSpeedDriver>(1.0, 5.0);
     auto driver = chrono_types::make_shared<ViperDCMotorControl>();
 
-    Viper viper(&sys, wheel_type);
+    Viper viper(&sys, ViperWheelType::RealWheel);
     viper.SetDriver(driver);
-    if (use_custom_mat)
-        viper.SetWheelContactMaterial(CustomWheelMaterial(ChContactMethod::NSC));
-
-    ////viper.SetChassisFixed(true);
-
-    ////viper.SetChassisVisualization(false);
-    ////viper.SetSuspensionVisualization(false);
-
     viper.Initialize(ChFrame<>(ChVector<>(0, 0, 0.5), QUNIT));
-
-    std::cout << "Viper total mass: " << viper.GetRoverMass() << std::endl;
-    std::cout << "  chassis:        " << viper.GetChassis()->GetBody()->GetMass() << std::endl;
-    std::cout << "  upper arm:      " << viper.GetUpperArm(ViperWheelID::V_LF)->GetBody()->GetMass() << std::endl;
-    std::cout << "  lower arm:      " << viper.GetLowerArm(ViperWheelID::V_LF)->GetBody()->GetMass() << std::endl;
-    std::cout << "  upright:        " << viper.GetUpright(ViperWheelID::V_LF)->GetBody()->GetMass() << std::endl;
-    std::cout << "  wheel:          " << viper.GetWheel(ViperWheelID::V_LF)->GetBody()->GetMass() << std::endl;
-    std::cout << std::endl;
 
     // Create the run-time visualization interface
 #ifndef CHRONO_IRRLICHT
@@ -183,20 +124,42 @@ int main(int argc, char* argv[]) {
             throw ChException("Failed to initialize a visualization method.");
     }
 
+    // ------------
+
     // Create ROS manager
     auto ros_manager = chrono_types::make_shared<ChROSManager>();
-    ros_manager->RegisterHandler(chrono_types::make_shared<ChROSClockHandler>());
-    ros_manager->RegisterHandler(chrono_types::make_shared<ChROSViperDCMotorControlHandler>(25,  // send at 25 hz
-                                                                                       driver));
-    ros_manager->RegisterHandler(chrono_types::make_shared<ChROSBodyHandler>(25, viper.GetChassis()->GetBody()));
+
+    // Create a publisher for the simulation clock
+    // The clock automatically publishes on every tick and on topic /clock
+    auto clock_handler = chrono_types::make_shared<ChROSClockHandler>();
+    ros_manager->RegisterHandler(clock_handler);
+
+    // Create a subscriber to the driver inputs
+    auto driver_inputs_rate = 25;
+    auto driver_inputs_topic_name = "~/input/driver_inputs";
+    auto driver_inputs_handler = chrono_types::make_shared<ChROSViperDCMotorControlHandler>(driver_inputs_rate, driver,
+                                                                                            driver_inputs_topic_name);
+    ros_manager->RegisterHandler(driver_inputs_handler);
+
+    // Create a publisher for the rover state
+    auto rover_state_rate = 25;
+    auto rover_state_topic_name = "~/output/rover/state";
+    auto rover_state_handler = chrono_types::make_shared<ChROSBodyHandler>(
+        rover_state_rate, viper.GetChassis()->GetBody(), rover_state_topic_name);
+    ros_manager->RegisterHandler(rover_state_handler);
+
+    // Finally, initialize the ros manager
     ros_manager->Initialize();
 
-    double t_end = 30;
+    // ------------
+
     double time = 0;
+    double time_step = 1e-3;
+    double time_end = 30;
 
     // Simulation loop
 #if !defined(CHRONO_IRRLICHT) && !defined(CHRONO_VSG)
-    while (time < t_end) {
+    while (time < time_end) {
 #else
     while (vis->Run()) {
         vis->BeginScene();
@@ -204,7 +167,7 @@ int main(int argc, char* argv[]) {
         vis->EndScene();
 #endif
         // Set current steering angle
-        double time = viper.GetSystem()->GetChTime();
+        double time = sys.GetChTime();
 
         // Updates
         viper.Update();

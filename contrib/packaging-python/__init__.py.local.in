@@ -54,6 +54,11 @@ try:
     import _robot
 except:
     pass
+try:
+    # TODO: How to print error message about ROS not being sourced if importing doesn't succeed
+    import _ros
+except:
+    pass
 
 # The following allows the package "pychrono" to be directly
 # used as C++ namespace chrono:: ie. you just need to type

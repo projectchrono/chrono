@@ -25,10 +25,6 @@ set(CMAKE_CXX_STANDARD 17)
 #-----------------------------------------------------------------------------
 
 find_package(ROS2 REQUIRED)
-if (NOT ROS2_FOUND)
-	message("Chrono::ROS depends on ROS 2, which can't be found. You may need to source the installation.")
-  return()
-endif()
 
 # Update the includes directories to point to ROS includes
 # TODO: Mark as advanced all of the ROS 2 inherited variables
