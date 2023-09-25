@@ -35,20 +35,27 @@ namespace ros {
 /// This handler is responsible for interfacing a ChGyroscopeSensor to ROS. Will publish sensor_msgs::msg::Imu.
 class ChROSGyroscopeHandler : public ChROSHandler {
   public:
-    /// Constructor
-    ChROSGyroscopeHandler(std::shared_ptr<chrono::sensor::ChGyroscopeSensor> imu);
+    /// Constructor. The update rate is set to imu->GetUpdateRate().
+    /// The update rate corresponds to the sensor's update rate.
+    ChROSGyroscopeHandler(std::shared_ptr<chrono::sensor::ChGyroscopeSensor> imu, const std::string& topic_name);
 
-    /// Initializes the handler. Creates a publisher for the gyroscope data on the topic "~/output/gyroscope/imu.GetName()/data"
+    /// Full constructor. Takes a ChGyroscopeSensor, update rate, and topic name.
+    ChROSGyroscopeHandler(double update_rate,
+                          std::shared_ptr<chrono::sensor::ChGyroscopeSensor> imu,
+                          const std::string& topic_name);
+
+    /// Initializes the handler.
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
 
   protected:
     virtual void Tick(double time) override;
 
   private:
-    std::shared_ptr<chrono::sensor::ChGyroscopeSensor> m_imu;
+    std::shared_ptr<chrono::sensor::ChGyroscopeSensor> m_imu;  ///< handle to the imu sensor
 
-    sensor_msgs::msg::Imu m_imu_msg;
-    rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr m_publisher;
+    const std::string m_topic_name;                                   ///< name of the topic to publish to
+    sensor_msgs::msg::Imu m_imu_msg;                                  ///< message to publish
+    rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr m_publisher;  ///< the publisher for the imu message
 };
 
 /// @} ros_sensor_handlers

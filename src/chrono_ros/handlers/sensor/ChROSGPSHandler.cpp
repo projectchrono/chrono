@@ -1,3 +1,21 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2023 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// ROS Handler for communicating gps information
+//
+// =============================================================================
+
 #include "chrono_ros/handlers/sensor/ChROSGPSHandler.h"
 
 #include "chrono_ros/handlers/ChROSHandlerUtilities.h"
@@ -10,22 +28,24 @@ using namespace chrono::sensor;
 namespace chrono {
 namespace ros {
 
-ChROSGPSHandler::ChROSGPSHandler(std::shared_ptr<ChGPSSensor> gps) : ChROSHandler(gps->GetUpdateRate()), m_gps(gps) {}
+ChROSGPSHandler::ChROSGPSHandler(std::shared_ptr<ChGPSSensor> gps, const std::string& topic_name)
+    : ChROSGPSHandler(gps->GetUpdateRate(), gps, topic_name) {}
+
+ChROSGPSHandler::ChROSGPSHandler(double update_rate, std::shared_ptr<ChGPSSensor> gps, const std::string& topic_name)
+    : ChROSHandler(update_rate), m_gps(gps), m_topic_name(topic_name) {}
 
 bool ChROSGPSHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
     if (!ChROSSensorHandlerUtilities::CheckSensorHasFilter<ChFilterGPSAccess, ChFilterGPSAccessName>(m_gps)) {
         return false;
     }
 
-    auto topic_name = ChROSHandlerUtilities::BuildRelativeTopicName("output", "gps", m_gps->GetName(), "data");
-
-    if (!ChROSHandlerUtilities::CheckROSTopicName(interface, topic_name)) {
+    if (!ChROSHandlerUtilities::CheckROSTopicName(interface, m_topic_name)) {
         return false;
     }
 
-    m_publisher = interface->GetNode()->create_publisher<sensor_msgs::msg::NavSatFix>(topic_name, 1);
+    m_publisher = interface->GetNode()->create_publisher<sensor_msgs::msg::NavSatFix>(m_topic_name, 1);
 
-    m_gps_msg.header.frame_id = m_gps->GetParent()->GetName();
+    // m_gps_msg.header.frame_id = ; // TODO
 
     return true;
 }

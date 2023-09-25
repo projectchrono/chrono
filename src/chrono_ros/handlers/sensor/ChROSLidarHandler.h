@@ -35,20 +35,26 @@ namespace ros {
 /// This handler interfaces a ChLidarSensor to ROS. Will publish sensor_msgs::msg::PointCloud2.
 class ChROSLidarHandler : public ChROSHandler {
   public:
-    /// Constructor
-    ChROSLidarHandler(std::shared_ptr<chrono::sensor::ChLidarSensor> lidar);
+    /// Constructor. The update rate is set to lidar->GetUpdateRate().
+    ChROSLidarHandler(std::shared_ptr<chrono::sensor::ChLidarSensor> lidar, const std::string& topic_name);
 
-    /// Initializes the handler. Creates a publisher for point cloud data on the topic "~/output/lidar/lidar.GetName()/data".
+    /// Full constructor. Takes a ChLidarSensor, update rate, and topic name.
+    ChROSLidarHandler(double update_rate,
+                      std::shared_ptr<chrono::sensor::ChLidarSensor> lidar,
+                      const std::string& topic_name);
+
+    /// Initializes the handler.
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
 
   protected:
     virtual void Tick(double time) override;
 
   private:
-    std::shared_ptr<chrono::sensor::ChLidarSensor> m_lidar;
+    std::shared_ptr<chrono::sensor::ChLidarSensor> m_lidar;  ///< handle to the lidar sensor
 
-    sensor_msgs::msg::PointCloud2 m_lidar_msg;
-    rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr m_publisher;
+    const std::string m_topic_name;                                           ///< name of the topic to publish to
+    sensor_msgs::msg::PointCloud2 m_lidar_msg;                                ///< message to publish
+    rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr m_publisher;  ///< the publisher for the lidar message
 };
 
 /// @} ros_sensor_handlers

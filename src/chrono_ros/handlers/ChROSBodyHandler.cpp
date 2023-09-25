@@ -1,3 +1,21 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2023 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// Handler responsible for publishing information about a ChBody
+//
+// =============================================================================
+
 #include "chrono_ros/handlers/ChROSBodyHandler.h"
 
 #include "chrono_ros/handlers/ChROSHandlerUtilities.h"
@@ -5,20 +23,19 @@
 namespace chrono {
 namespace ros {
 
-ChROSBodyHandler::ChROSBodyHandler(uint64_t frequency, std::shared_ptr<ChBody> body) : ChROSHandler(frequency), m_body(body) {}
+ChROSBodyHandler::ChROSBodyHandler(double update_rate, std::shared_ptr<ChBody> body, const std::string& topic_name)
+    : ChROSHandler(update_rate), m_body(body), m_topic_name(topic_name) {}
 
 bool ChROSBodyHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
     auto node = interface->GetNode();
 
-    auto topic_name = ChROSHandlerUtilities::BuildRelativeTopicName("output", m_body->GetName(), "state");
-
-    if (!ChROSHandlerUtilities::CheckROSTopicName(interface, topic_name)) {
+    if (!ChROSHandlerUtilities::CheckROSTopicName(interface, m_topic_name)) {
         return false;
     }
 
-    m_publisher = node->create_publisher<chrono_ros_interfaces::msg::Body>(topic_name, 1);
+    m_publisher = node->create_publisher<chrono_ros_interfaces::msg::Body>(m_topic_name, 1);
 
-    m_msg.header.frame_id = m_body->GetName();
+    // m_msg.header.frame_id = ; TODO
 
     return true;
 }

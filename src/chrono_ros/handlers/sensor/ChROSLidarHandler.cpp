@@ -1,3 +1,21 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2023 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// ROS Handler for communicating lidar information
+//
+// =============================================================================
+
 #include "chrono_ros/handlers/sensor/ChROSLidarHandler.h"
 
 #include "chrono_ros/handlers/ChROSHandlerUtilities.h"
@@ -11,23 +29,26 @@ using namespace chrono::sensor;
 namespace chrono {
 namespace ros {
 
-ChROSLidarHandler::ChROSLidarHandler(std::shared_ptr<ChLidarSensor> lidar)
-    : ChROSHandler(lidar->GetUpdateRate()), m_lidar(lidar) {}
+ChROSLidarHandler::ChROSLidarHandler(std::shared_ptr<ChLidarSensor> lidar, const std::string& topic_name)
+    : ChROSLidarHandler(lidar->GetUpdateRate(), lidar, topic_name) {}
+
+ChROSLidarHandler::ChROSLidarHandler(double update_rate,
+                                     std::shared_ptr<ChLidarSensor> lidar,
+                                     const std::string& topic_name)
+    : ChROSHandler(update_rate), m_lidar(lidar), m_topic_name(topic_name) {}
 
 bool ChROSLidarHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
     if (!ChROSSensorHandlerUtilities::CheckSensorHasFilter<ChFilterXYZIAccess, ChFilterXYZIAccessName>(m_lidar)) {
         return false;
     }
 
-    auto topic_name = ChROSHandlerUtilities::BuildRelativeTopicName("output", "lidar", m_lidar->GetName(), "data");
-
-    if (!ChROSHandlerUtilities::CheckROSTopicName(interface, topic_name)) {
+    if (!ChROSHandlerUtilities::CheckROSTopicName(interface, m_topic_name)) {
         return false;
     }
 
-    m_publisher = interface->GetNode()->create_publisher<sensor_msgs::msg::PointCloud2>(topic_name, 1);
+    m_publisher = interface->GetNode()->create_publisher<sensor_msgs::msg::PointCloud2>(m_topic_name, 1);
 
-    m_lidar_msg.header.frame_id = "map";  // m_lidar->GetParent()->GetName();
+    // m_lidar_msg.header.frame_id = ; // TODO
     m_lidar_msg.width = m_lidar->GetWidth();
     m_lidar_msg.height = m_lidar->GetHeight();
     m_lidar_msg.is_bigendian = false;
