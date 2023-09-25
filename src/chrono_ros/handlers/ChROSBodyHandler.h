@@ -20,11 +20,11 @@
 #define CH_ROS_BODY_HANDLER_H
 
 #include "chrono_ros/ChROSHandler.h"
+#include "chrono_ros/handlers/ChROSHandlerUtilities.h"
+
+#include "chrono_ros_interfaces/msg/body.hpp"
 
 #include "chrono/physics/ChBody.h"
-
-#include "rclcpp/publisher.hpp"
-#include "chrono_ros_interfaces/msg/body.hpp"
 
 namespace chrono {
 namespace ros {
@@ -35,8 +35,8 @@ namespace ros {
 /// This handler is responsible for publishing state information about a ChBody
 class ChROSBodyHandler : public ChROSHandler {
   public:
-    /// Constructor. body_name is used as the prefix to in the ROS topic. The topic defaults to "~/output/<body_name>/state"
-    ChROSBodyHandler(uint64_t frequency, std::shared_ptr<ChBody> body);
+    /// Constructor. body_name is used as the prefix to in the ROS topic.
+    ChROSBodyHandler(double update_rate, std::shared_ptr<ChBody> body, const std::string& topic_name);
 
     /// Initializes the handler. Creates a publisher for the body data on the topic "~/output/<body_name>/state"
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
@@ -45,11 +45,12 @@ class ChROSBodyHandler : public ChROSHandler {
     virtual void Tick(double time) override;
 
   private:
-    std::shared_ptr<ChBody> m_body;
+    std::shared_ptr<ChBody> m_body;  ///< The body to publish information about
 
-    chrono_ros_interfaces::msg::Body m_msg;
-
-    rclcpp::Publisher<chrono_ros_interfaces::msg::Body>::SharedPtr m_publisher;
+    const std::string m_topic_name;          ///< The topic name to publish the body information to
+    chrono_ros_interfaces::msg::Body m_msg;  ///< The message to publish
+    rclcpp::Publisher<chrono_ros_interfaces::msg::Body>::SharedPtr
+        m_publisher;  ///< The publisher which data is published through
 };
 
 /// @} ros_handlers

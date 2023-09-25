@@ -35,13 +35,16 @@ namespace ros {
 /// @addtogroup ros_handlers
 /// @{
 
-/// This handler is responsible for interfacing a ViperDCMotorControl driver to ROS. Will instantiate a subscriber to chrono_ros_interfaces::msg::ViperDCMotorControl on "~/input/driver_inputs".
+/// This handler is responsible for interfacing a ViperDCMotorControl driver to ROS. Will instantiate a subscriber to
+/// chrono_ros_interfaces::msg::ViperDCMotorControl.
 class ChROSViperDCMotorControlHandler : public ChROSHandler {
   public:
     /// Constructor. Takes a ViperDCMotorControl driver
-    ChROSViperDCMotorControlHandler(uint64_t frequency, std::shared_ptr<chrono::viper::ViperDCMotorControl> driver);
+    ChROSViperDCMotorControlHandler(double update_rate,
+                                    std::shared_ptr<chrono::viper::ViperDCMotorControl> driver,
+                                    const std::string& topic_name);
 
-    /// Initializes the handler. Creates a subscriber of chrono_ros_interfaces::msg::ViperDCMotorControl on topic "~/input/driver_inputs".
+    /// Initializes the handler.
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
 
   protected:
@@ -54,10 +57,12 @@ class ChROSViperDCMotorControlHandler : public ChROSHandler {
     void Callback(const chrono_ros_interfaces::msg::ViperDCMotorControl& msg);
 
   private:
-    chrono_ros_interfaces::msg::ViperDCMotorControl m_msg;
-    std::shared_ptr<chrono::viper::ViperDCMotorControl> m_driver;
+    std::shared_ptr<chrono::viper::ViperDCMotorControl> m_driver;  ///< handle to the driver
 
-    rclcpp::Subscription<chrono_ros_interfaces::msg::ViperDCMotorControl>::SharedPtr m_subscription;
+    const std::string m_topic_name;                         ///< name of the topic to publish to
+    chrono_ros_interfaces::msg::ViperDCMotorControl m_msg;  ///< message to publish
+    rclcpp::Subscription<chrono_ros_interfaces::msg::ViperDCMotorControl>::SharedPtr
+        m_subscription;  ///< the publisher for the imu message
 
     std::mutex m_mutex;
 };

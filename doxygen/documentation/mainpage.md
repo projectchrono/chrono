@@ -46,22 +46,23 @@ Instructions on **how to set up a project** that uses Chrono.
   Distributed agent simulation with the SynChrono module
 
 - [DEM-Engine](@ref manual_deme)
- 
+
   External GPU solver for DEM simulations
 
 - [Chrono::SolidWorks](@ref manual_chrono_solidworks)
 
   SolidWorks plugin for exporting CAD data to Chrono
-  
+
 - [Chrono::Blender](@ref introduction_chrono_blender)
 
   Add-on for importing Chrono simulations in Blender for rigging, editing and rendering
 
+- [Visualization](@ref manual_visualization)
 
 
 - [Chrono::ROS](@ref manual_ros)
 
-  Integration with external autonomy stacks developed with the Robot Operating System (ROS)
+  Integration with an external autonomy stack based on the Robot Operating System (ROS)
 
 ---
 

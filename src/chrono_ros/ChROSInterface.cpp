@@ -1,3 +1,21 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2023 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// The API interface between ROS/rclcpp and Chrono
+//
+// =============================================================================
+
 #include "chrono_ros/ChROSInterface.h"
 
 #include "chrono/core/ChTypes.h"
@@ -6,29 +24,30 @@
 namespace chrono {
 namespace ros {
 
-bool ChROSInterface::m_has_initialized = false;
-rclcpp::Executor::SharedPtr ChROSInterface::m_executor = nullptr;
-
 ChROSInterface::ChROSInterface(const std::string node_name) : m_node_name(node_name) {}
 
-void ChROSInterface::Initialize() {
-    if (!m_has_initialized) {
+void ChROSInterface::Initialize(rclcpp::NodeOptions options) {
+    // Initialize only once
+    // TODO: Is there any use case for argc and argv as parameters to rclcpp::init?
+    if (!rclcpp::ok()) {
         GetLog() << "Initializing rclcpp. \n";
         rclcpp::init(0, 0);
-        m_executor = chrono_types::make_shared<rclcpp::executors::SingleThreadedExecutor>();
-        m_has_initialized = true;
     }
 
+    // TODO: make options available to the user?
+    m_executor = chrono_types::make_unique<rclcpp::executors::SingleThreadedExecutor>();
+
     // TODO: Should we change the SignalHandlerOptions to None?
-    m_node = std::make_shared<rclcpp::Node>(m_node_name);
+    m_node = std::make_shared<rclcpp::Node>(m_node_name, options);
     m_executor->add_node(m_node);
 
     GetLog() << "Initialized ChROSInterface: " << m_node_name.c_str() << ". \n";
 }
 
-void ChROSInterface::SpinSome() {
+void ChROSInterface::SpinSome(std::chrono::nanoseconds max_duration) {
+    // TODO: Should we use spin_all instead?
     if (rclcpp::ok()) {
-        m_executor->spin_some();
+        m_executor->spin_some(max_duration);
     }
 }
 

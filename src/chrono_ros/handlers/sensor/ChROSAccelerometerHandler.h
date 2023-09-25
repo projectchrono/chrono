@@ -23,7 +23,6 @@
 
 #include "chrono_sensor/sensors/ChIMUSensor.h"
 
-#include "rclcpp/publisher.hpp"
 #include "sensor_msgs/msg/imu.hpp"
 
 namespace chrono {
@@ -35,20 +34,28 @@ namespace ros {
 /// This handler is responsible for interfacing a ChAccelerometerSensor to ROS. Will publish sensor_msgs::msg::Imu.
 class ChROSAccelerometerHandler : public ChROSHandler {
   public:
-    /// Constructor. Takes a ChAccelerometerSensor.
-    ChROSAccelerometerHandler(std::shared_ptr<chrono::sensor::ChAccelerometerSensor> imu);
+    /// Constructor. The update rate is set to imu->GetUpdateRate().
+    /// The update rate corresponds to the sensor's update rate.
+    ChROSAccelerometerHandler(std::shared_ptr<chrono::sensor::ChAccelerometerSensor> imu,
+                              const std::string& topic_name);
 
-    /// Initializes the handler. Creates a publisher for the imu data on the topic "~/output/accelerometer/imu.GetName()/data"
+    /// Full constructor. Takes a ChAccelerometerSensor, update rate, and topic name.
+    ChROSAccelerometerHandler(double update_rate,
+                              std::shared_ptr<chrono::sensor::ChAccelerometerSensor> imu,
+                              const std::string& topic_name);
+
+    /// Initializes the handler. 
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
 
   protected:
     virtual void Tick(double time) override;
 
   private:
-    std::shared_ptr<chrono::sensor::ChAccelerometerSensor> m_imu;
+    std::shared_ptr<chrono::sensor::ChAccelerometerSensor> m_imu;  ///< handle to the imu sensor
 
-    sensor_msgs::msg::Imu m_imu_msg;
-    rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr m_publisher;
+    const std::string m_topic_name;                                   ///< name of the topic to publish to
+    sensor_msgs::msg::Imu m_imu_msg;                                  ///< message to publish
+    rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr m_publisher;  ///< the publisher for the imu message
 };
 
 /// @} ros_sensor_handlers
