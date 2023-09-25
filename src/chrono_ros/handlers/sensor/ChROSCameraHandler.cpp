@@ -1,3 +1,21 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2023 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Aaron Young
+// =============================================================================
+//
+// ROS Handler for communicating camera information
+//
+// =============================================================================
+
 #include "chrono_ros/handlers/sensor/ChROSCameraHandler.h"
 
 #include "chrono_ros/handlers/ChROSHandlerUtilities.h"
@@ -13,23 +31,26 @@ using namespace chrono::sensor;
 namespace chrono {
 namespace ros {
 
-ChROSCameraHandler::ChROSCameraHandler(std::shared_ptr<ChCameraSensor> camera)
-    : ChROSHandler(camera->GetUpdateRate()), m_camera(camera) {}
+ChROSCameraHandler::ChROSCameraHandler(std::shared_ptr<ChCameraSensor> camera, const std::string& topic_name)
+    : ChROSCameraHandler(camera->GetUpdateRate(), camera, topic_name) {}
+
+ChROSCameraHandler::ChROSCameraHandler(double update_rate,
+                                       std::shared_ptr<ChCameraSensor> camera,
+                                       const std::string& topic_name)
+    : ChROSHandler(update_rate), m_camera(camera), m_topic_name(topic_name) {}
 
 bool ChROSCameraHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
     if (!ChROSSensorHandlerUtilities::CheckSensorHasFilter<ChFilterRGBA8Access, ChFilterRGBA8AccessName>(m_camera)) {
         return false;
     }
 
-    auto topic_name = ChROSHandlerUtilities::BuildRelativeTopicName("output", "camera", m_camera->GetName(), "image");
-
-    if (!ChROSHandlerUtilities::CheckROSTopicName(interface, topic_name)) {
+    if (!ChROSHandlerUtilities::CheckROSTopicName(interface, m_topic_name)) {
         return false;
     }
 
-    m_publisher = interface->GetNode()->create_publisher<sensor_msgs::msg::Image>(topic_name, 1);
+    m_publisher = interface->GetNode()->create_publisher<sensor_msgs::msg::Image>(m_topic_name, 1);
 
-    m_image.header.frame_id = m_camera->GetParent()->GetName();
+    // m_image.header.frame_id = ; // TODO
     m_image.width = m_camera->GetWidth();
     m_image.height = m_camera->GetHeight();
     m_image.encoding = "rgba8";

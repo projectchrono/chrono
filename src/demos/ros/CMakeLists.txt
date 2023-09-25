@@ -15,6 +15,12 @@ if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
   )
 endif()
 
+if(ENABLE_MODULE_SENSOR)
+  set(DEMOS ${DEMOS}
+    demo_ROS_sensor
+  )
+endif()
+
 # ------------------------------------------------------------------------------
 # Include directories, compiler flags, libraries
 

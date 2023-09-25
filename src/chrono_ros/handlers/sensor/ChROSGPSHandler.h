@@ -35,20 +35,27 @@ namespace ros {
 /// This handler is responsible for interfacing a ChGPSSensor to ROS. Will publish sensor_msgs::msg::NavSatFix.
 class ChROSGPSHandler : public ChROSHandler {
   public:
-    /// Constructor
-    ChROSGPSHandler(std::shared_ptr<chrono::sensor::ChGPSSensor> gps);
+    /// Constructor. The update rate is set to gps->GetUpdateRate().
+    /// The update rate corresponds to the sensor's update rate.
+    ChROSGPSHandler(std::shared_ptr<chrono::sensor::ChGPSSensor> gps, const std::string& topic_name);
 
-    /// Initializes the handler. Creates a publisher for the gps data on the topic "~/output/gps/gps.GetName()/data"
+    /// Full constructor. Takes a ChGPSSensor, update rate, and topic name.
+    ChROSGPSHandler(double update_rate,
+                    std::shared_ptr<chrono::sensor::ChGPSSensor> gps,
+                    const std::string& topic_name);
+
+    /// Initializes the handler.
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
 
   protected:
     virtual void Tick(double time) override;
 
   private:
-    std::shared_ptr<chrono::sensor::ChGPSSensor> m_gps;
+    std::shared_ptr<chrono::sensor::ChGPSSensor> m_gps;  ///< handle to the gps sensor
 
-    sensor_msgs::msg::NavSatFix m_gps_msg;
-    rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr m_publisher;
+    const std::string m_topic_name;                                         ///< name of the topic to publish to
+    sensor_msgs::msg::NavSatFix m_gps_msg;                                  ///< message to publish
+    rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr m_publisher;  ///< the publisher for the gps message
 };
 
 /// @} ros_sensor_handlers

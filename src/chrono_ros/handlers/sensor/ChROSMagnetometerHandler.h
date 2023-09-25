@@ -32,23 +32,30 @@ namespace ros {
 /// @addtogroup ros_sensor_handlers
 /// @{
 
-/// This handler is responsible for interfacing a ChMagnetometerSensor to ROS. Will publish sensor_msgs::msg::MagneticField.
+/// This handler is responsible for interfacing a ChMagnetometerSensor to ROS. Will publish
+/// sensor_msgs::msg::MagneticField.
 class ChROSMagnetometerHandler : public ChROSHandler {
   public:
-    /// Constructor. Takes a ChMagnetometerSensor.
-    ChROSMagnetometerHandler(std::shared_ptr<chrono::sensor::ChMagnetometerSensor> imu);
+    /// Constructor. The update rate is set to imu->GetUpdateRate().
+    ChROSMagnetometerHandler(std::shared_ptr<chrono::sensor::ChMagnetometerSensor> imu, const std::string& topic_name);
 
-    /// Initializes the handler. Creates a publisher for the magnetic field data on the topic "~/output/magnetometer/imu.GetName()/data"
+    /// Full constructor. Takes a ChMagnetometerSensor, update rate, and topic name.
+    ChROSMagnetometerHandler(double update_rate,
+                             std::shared_ptr<chrono::sensor::ChMagnetometerSensor> imu,
+                             const std::string& topic_name);
+
+    /// Initializes the handler.
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
 
   protected:
     virtual void Tick(double time) override;
 
   private:
-    std::shared_ptr<chrono::sensor::ChMagnetometerSensor> m_imu;
+    std::shared_ptr<chrono::sensor::ChMagnetometerSensor> m_imu;  ///< handle to the imu sensor
 
-    sensor_msgs::msg::MagneticField m_mag_msg;
-    rclcpp::Publisher<sensor_msgs::msg::MagneticField>::SharedPtr m_publisher;
+    const std::string m_topic_name;                                             ///< name of the topic to publish to
+    sensor_msgs::msg::MagneticField m_mag_msg;                                  ///< message to publish
+    rclcpp::Publisher<sensor_msgs::msg::MagneticField>::SharedPtr m_publisher;  ///< the publisher for the imu message
 };
 
 /// @} ros_sensor_handlers

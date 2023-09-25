@@ -20,11 +20,10 @@
 #define CH_ROS_DRIVER_INPUTS_HANDLER
 
 #include "chrono_ros/ChROSHandler.h"
+
 #include "chrono_ros_interfaces/msg/driver_inputs.hpp"
 
 #include "chrono_vehicle/ChDriver.h"
-
-#include "rclcpp/subscription.hpp"
 
 #include <mutex>
 
@@ -34,13 +33,18 @@ namespace ros {
 /// @addtogroup ros_vehicle_handlers
 /// @{
 
-/// This handler is responsible for interfacing a ChDriver to ROS. Will instantiate a subscriber to chrono_ros_interfaces::msg::DriverInputs on "~/input/driver_inputs".
+/// This handler is responsible for interfacing a ChDriver to ROS. Will instantiate a subscriber to
+/// chrono_ros_interfaces::msg::DriverInputs on "~/input/driver_inputs".
 class ChROSDriverInputsHandler : public ChROSHandler {
   public:
-    /// Constructor for the ChROSDriverInputsHandler class. Takes a ChDriver. A subscriber will listen for data, store received data, and update the driver only during the Ticks.
-    ChROSDriverInputsHandler(uint64_t frequency, std::shared_ptr<chrono::vehicle::ChDriver> driver);
+    /// Constructor for the ChROSDriverInputsHandler class. Takes a ChDriver. A subscriber will listen for data, store
+    /// received data, and update the driver only during the Ticks.
+    ChROSDriverInputsHandler(double update_rate,
+                             std::shared_ptr<chrono::vehicle::ChDriver> driver,
+                             const std::string& topic_name);
 
-    /// Initializes the handler. Creates a subscriber of chrono_ros_interfaces::msg::DriverInputs on topic "~/input/driver_inputs".
+    /// Initializes the handler. Creates a subscriber of chrono_ros_interfaces::msg::DriverInputs on topic
+    /// "~/input/driver_inputs".
     virtual bool Initialize(std::shared_ptr<ChROSInterface> interface) override;
 
   protected:
@@ -53,12 +57,14 @@ class ChROSDriverInputsHandler : public ChROSHandler {
     void Callback(const chrono_ros_interfaces::msg::DriverInputs& msg);
 
   private:
-    chrono::vehicle::DriverInputs m_inputs;
-    std::shared_ptr<chrono::vehicle::ChDriver> m_driver;
+    std::shared_ptr<chrono::vehicle::ChDriver> m_driver;  ///< the driver to update
 
-    rclcpp::Subscription<chrono_ros_interfaces::msg::DriverInputs>::SharedPtr m_subscription;
+    const std::string m_topic_name;          ///< name of the topic to publish to
+    chrono::vehicle::DriverInputs m_inputs;  ///< stores the most recent inputs
+    rclcpp::Subscription<chrono_ros_interfaces::msg::DriverInputs>::SharedPtr
+        m_subscription;  ///< subscriber to the chrono_ros_interfaces::msg::DriverInputs
 
-    std::mutex m_mutex; ///< used to control access to m_inputs
+    std::mutex m_mutex;  ///< used to control access to m_inputs
 };
 
 }  // namespace ros
