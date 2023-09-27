@@ -67,13 +67,15 @@ class MyTerrain : public ChVehicleCosimTerrainNode {
     virtual void OnAdvance(double step_size) override;
 
     // Render simulation.
-    virtual void Render(double time) override;
+    virtual void OnRender() override;
 
     /// Update the state of the i-th proxy rigid.
     virtual void UpdateRigidProxy(unsigned int i, BodyState& rigid_state) override;
 
     /// Collect cumulative contact force and torque on the i-th proxy rigid.
     virtual void GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) override;
+
+    virtual ChSystem* GetSystemPostprocess() const override { return m_system; }
 
   private:
     ChSystemSMC* m_system;                          // containing Chrono system
@@ -161,7 +163,7 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
 
     // Create the Irrlicht visualization system
 #ifdef CHRONO_IRRLICHT
-    if (m_render) {
+    if (m_renderRT) {
         m_vis = new irrlicht::ChVisualSystemIrrlicht;
         m_vis->SetWindowSize(1280, 720);
         m_vis->SetWindowTitle("Custom terrain node");
@@ -185,7 +187,7 @@ void MyTerrain::OnAdvance(double step_size) {
     }
 }
 
-void MyTerrain::Render(double time) {
+void MyTerrain::OnRender() {
 #ifdef CHRONO_IRRLICHT
     if (!m_vis->Run()) {
         MPI_Abort(MPI_COMM_WORLD, 1);

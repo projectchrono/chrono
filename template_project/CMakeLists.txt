@@ -13,7 +13,7 @@ cmake_minimum_required(VERSION 3.10)
 
 #--------------------------------------------------------------
 # === 1 === 
-# Modify the project name if you want: 
+# Set the project name
 #--------------------------------------------------------------
 
 project(my_project)
@@ -74,6 +74,14 @@ if (NOT Chrono_FOUND)
   message("Could not find Chrono or one of its required modules")
   return()
 endif()
+
+#--------------------------------------------------------------
+# Important! To ensure ABI compatibility, use the same C++ standard
+# as the one used to build the Chrono libraries.
+#--------------------------------------------------------------
+
+set(CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD ${CHRONO_CXX_STANDARD})
 
 #--------------------------------------------------------------
 # Enable creation of "application bundles" on MacOSX.

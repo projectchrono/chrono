@@ -86,6 +86,8 @@ list(APPEND CHRONO_DLL_NAMES "ChronoEngine.dll")
 list(PREPEND CHRONO_LIB_NAMES "ChronoModels_robot")
 list(APPEND CHRONO_DLL_NAMES "ChronoModels_robot.dll")
 
+set(CHRONO_CXX_STANDARD "@CHRONO_CXX_STANDARD@")
+
 set(CHRONO_DATA_DIR "@CH_DATA_DIR@")
 set(CHRONO_VEHICLE_DATA_DIR "@CH_DATA_DIR@vehicle/")
 set(CHRONO_FSI_DATA_DIR "@CH_DATA_DIR@fsi/")
