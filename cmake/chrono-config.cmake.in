@@ -8,7 +8,7 @@
 #
 # In the call to find_package(), the following Chrono components can be
 # requested (case insensitive): 
-#   Cascade, Cosimulation, Fsi, Irrlicht, OpenGL, Matlab, Multicore, Gpu,
+#   Cascade, Cosimulation, Fsi, Irrlicht, OpenGL, VSG, Matlab, Multicore, Gpu,
 #   PardisoMKL, PardisoProject, Parsers, Postprocess, Sensor, Synchrono,
 #   Vehicle, VehicleCosim, Modal.
 # A component can be requested either as required or optional
@@ -121,6 +121,7 @@ set(Chrono_HAS_pardisoproject @ENABLE_MODULE_PARDISO_PROJECT@)
 set(Chrono_HAS_synchrono @ENABLE_MODULE_SYNCHRONO@)
 set(Chrono_HAS_modal @ENABLE_MODULE_MODAL@)
 set(Chrono_HAS_distributed @ENABLE_MODULE_DISTRIBUTED@)
+set(Chrono_HAS_vsg @ENABLE_MODULE_VSG@)
 
 #-------------------------------------------------------------------------------
 # Vehicle cosimulation module
@@ -175,6 +176,9 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
            endif()
            if(Chrono_HAS_opengl)
               set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};OpenGL")
+           endif()
+           if(Chrono_HAS_vsg)
+              set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};VSG")
            endif()
        endif()
     endif()
@@ -275,6 +279,17 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
           list(APPEND CHRONO_DLL_NAMES "ChronoEngine_modal.dll")
       endif()
 
+    elseif(${COMPONENT_UPPER} MATCHES "VSG")
+
+      list(APPEND CHRONO_INCLUDE_DIRS "@CH_VSG_INCLUDES@")
+      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_vsg")
+      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vsg.dll")
+
+      find_package(vsg REQUIRED)
+      find_package(vsgImGui REQUIRED)
+      find_package(vsgXchange REQUIRED)
+      list(APPEND CHRONO_LIBRARIES "vsg::vsg;vsgImGui::vsgImGui;vsgXchange::vsgXchange")
+
     elseif(${COMPONENT_UPPER} MATCHES "DISTRIBUTED")
       
       separate_arguments(MPI_CXX_COMPILE_FLAGS NATIVE_COMMAND "@MPI_CXX_COMPILE_FLAGS@")
@@ -298,6 +313,11 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       if(${Chrono_HAS_irrlicht})
         list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_vehicle_irrlicht")
         list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vehicle_irrlicht.dll")
+      endif()
+
+      if(${Chrono_HAS_vsg})
+        list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_vehicle_vsg")
+        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vehicle_vsg.dll")
       endif()
 
       if(${VehicleCosim_REQUESTED} AND ${Chrono_HAS_vehiclecosim})
