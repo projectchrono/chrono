@@ -27,7 +27,6 @@ set(CMAKE_CXX_STANDARD 17)
 find_package(ROS2 REQUIRED)
 
 # Update the includes directories to point to ROS includes
-# TODO: Mark as advanced all of the ROS 2 inherited variables
 set(_ament_prefix_path "$ENV{AMENT_PREFIX_PATH}")
 foreach(_ros2_packages_path IN LISTS _ament_prefix_path)
     string(REPLACE ":" ";" _ros2_packages_path ${_ros2_packages_path})
