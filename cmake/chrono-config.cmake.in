@@ -15,7 +15,7 @@
 # (see the CMake documentation for find_package).
 # 
 # Variables set by this script:
-# CHRONO_FOUND
+# Chrono_FOUND
 #       set to true if Chrono and all required components were found
 # CHRONO_C_FLAGS
 # CHRONO_CXX_FLAGS
@@ -26,8 +26,6 @@
 #       list of required libraries (with full path)
 # CHRONO_LINKER_FLAGS
 #       additional linker flags
-# CHRONO_DLLS
-#       list of all DLL dependencies (with full path)
 # CHRONO_DATA_DIR
 #       path to the Chrono data directory
 # CHRONO_VEHICLE_DATA_DIR
@@ -81,10 +79,10 @@ list(APPEND CHRONO_INCLUDE_DIRS "@CH_INCLUDE_DIRS@")
 list(APPEND CHRONO_LIBRARIES "@OPENMP_LIBRARIES@")
 list(APPEND CHRONO_LIBRARIES "@CH_SOCKET_LIB@")
 list(PREPEND CHRONO_LIB_NAMES "ChronoEngine")
-list(APPEND CHRONO_DLLS "")
-list(APPEND CHRONO_DLL_NAMES "ChronoEngine.dll")
 list(PREPEND CHRONO_LIB_NAMES "ChronoModels_robot")
+list(APPEND CHRONO_DLL_NAMES "ChronoEngine.dll")
 list(APPEND CHRONO_DLL_NAMES "ChronoModels_robot.dll")
+list(APPEND CHRONO_DEPENDENCY_DLLS "")
 
 set(CHRONO_CXX_STANDARD "@CHRONO_CXX_STANDARD@")
 
@@ -122,6 +120,9 @@ set(Chrono_HAS_synchrono @ENABLE_MODULE_SYNCHRONO@)
 set(Chrono_HAS_modal @ENABLE_MODULE_MODAL@)
 set(Chrono_HAS_distributed @ENABLE_MODULE_DISTRIBUTED@)
 set(Chrono_HAS_vsg @ENABLE_MODULE_VSG@)
+
+set(Chrono_USE_irrklang @ENABLE_IRRKLANG@)
+set(Chrono_USE_opencrg @HAVE_OPENCRG@)
 
 #-------------------------------------------------------------------------------
 # Vehicle cosimulation module
@@ -248,8 +249,8 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_OPENGL_INCLUDES@")
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_opengl")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_opengl.dll")
-      list(APPEND CHRONO_DLLS "@GLEW_DLL@")
-      list(APPEND CHRONO_DLLS "@GLFW_DLL@")
+      list(APPEND CHRONO_DEPENDENCY_DLLS "@GLEW_DLL@")
+      list(APPEND CHRONO_DEPENDENCY_DLLS "@GLFW_DLL@")
       if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
         list(APPEND CHRONO_LINKER_FLAGS "-s" "FULL_ES3=1" "-s" "USE_GLFW=3")
       else()
@@ -268,7 +269,7 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_IRRLICHT_INCLUDES@")
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_irrlicht")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_irrlicht.dll")
-      list(APPEND CHRONO_DLLS "@CH_IRRLICHT_DLL@")
+      list(APPEND CHRONO_DEPENDENCY_DLLS "@CH_IRRLICHT_DLL@")
 
       if(Chrono_HAS_postprocess)
           list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_postprocess")
@@ -320,6 +321,11 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
         list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vehicle_vsg.dll")
       endif()
 
+      if(Chrono_USE_irrklang)
+        list(APPEND CHRONO_INCLUDE_DIRS "@CH_IRRKLANG_INCLUDES@")
+        list(APPEND CHRONO_DEPENDENCY_DLLS "@CH_IRRKLANG_DLL@")
+      endif()
+
       if(${VehicleCosim_REQUESTED} AND ${Chrono_HAS_vehiclecosim})
         separate_arguments(MPI_CXX_COMPILE_FLAGS NATIVE_COMMAND "@MPI_CXX_COMPILE_FLAGS@")
         separate_arguments(MPI_CXX_LINK_FLAGS NATIVE_COMMAND "@MPI_CXX_LINK_FLAGS@")
@@ -350,9 +356,9 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_sensor")
       list(APPEND CHRONO_LIBRARIES "@SENSOR_LIBRARIES@")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_sensor.dll")
-      #list(APPEND CHRONO_DLLS "@optix_DLL@")
-      list(APPEND CHRONO_DLLS "@GLEW_DLL@")
-      list(APPEND CHRONO_DLLS "@GLFW_DLL@")
+      #list(APPEND CHRONO_DEPENDENCY_DLLS "@optix_DLL@")
+      list(APPEND CHRONO_DEPENDENCY_DLLS "@GLEW_DLL@")
+      list(APPEND CHRONO_DEPENDENCY_DLLS "@GLFW_DLL@")
 
     elseif(${COMPONENT_UPPER} MATCHES "SYNCHRONO")
 
@@ -403,7 +409,7 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_mumps")
       list(APPEND CHRONO_LIBRARIES "@MUMPS_LIBRARY@")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_mumps.dll")
-      list(APPEND CHRONO_DLLS "@MUMPS_SHARED_LIBRARIES@")
+      list(APPEND CHRONO_DEPENDENCY_DLLS "@MUMPS_SHARED_LIBRARIES@")
 
     elseif(${COMPONENT_UPPER} MATCHES "POSTPROCESS")
 
@@ -452,6 +458,8 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
 endforeach()
 
+set(Chrono_FOUND ON)
+
 #-------------------------------------------------------------------------------
 # Loop over list of Chrono library names and find the actual libraries.
 #-------------------------------------------------------------------------------
@@ -473,41 +481,16 @@ foreach(lib ${CHRONO_LIB_NAMES})
     list(APPEND CHRONO_LIBRARIES "${onelib}")
   endif()
 endforeach()
+mark_as_advanced(FORCE onelib)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
     set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 endif()
 
-mark_as_advanced(FORCE onelib)
-
-#-------------------------------------------------------------------------------
-# Loop over list of Chrono DLL names and find the actual DLLs
-#-------------------------------------------------------------------------------
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-
-  foreach(dll ${CHRONO_DLL_NAMES})
-    set(onedll "${dll}-NOTFOUND")
-    find_file(onedll ${dll}
-      PATHS "@CH_BINARY_DIR@/bin"
-      PATH_SUFFIXES "Release"
-      NO_DEFAULT_PATH
-    )
-    if(NOT onedll)
-      message("DLL '${dll}' in package Chrono is not installed properly")
-    else()
-      list(APPEND CHRONO_DLLS "${onedll}")
-    endif()
-  endforeach()
-
-  mark_as_advanced(FORCE onedll)
-
-else()
-
-  # If not on Windows, clear the lists of DLLs
+# If not on Windows, clear the lists of DLLs
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   set(CHRONO_DLL_NAMES "")
-  set(CHRONO_DLLS "")
-
+  set(CHRONO_DEPENDENCY_DLLS "")
 endif()
 
 #-------------------------------------------------------------------------------
@@ -520,11 +503,14 @@ message(STATUS "   CHRONO_LINKER_FLAGS      (Linker flags): ${CHRONO_LINKER_FLAG
 message(STATUS "   CHRONO_INCLUDE_DIRS      (Chrono include directories): ${CHRONO_INCLUDE_DIRS}")
 message(STATUS "   CHRONO_LIB_NAMES         (Chrono library names): ${CHRONO_LIB_NAMES}")
 message(STATUS "   CHRONO_LIBRARIES         (Chrono libraries): ${CHRONO_LIBRARIES}")
-message(STATUS "   CHRONO_DLL_NAMES         (Chrono DLL names): ${CHRONO_DLL_NAMES}")
-message(STATUS "   CHRONO_DLLS              (Chrono DLLs): ${CHRONO_DLLS}")
 message(STATUS "   CHRONO_DATA_DIR          (Path to Chrono data folder): ${CHRONO_DATA_DIR}")
 message(STATUS "   CHRONO_VEHICLE_DATA_DIR  (Path to Chrono::Vehicle data folder): ${CHRONO_VEHICLE_DATA_DIR}")
 message(STATUS "   CHRONO_FSI_DATA_DIR      (Path to Chrono::FSI data folder): ${CHRONO_FSI_DATA_DIR}")
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  message(STATUS "   CHRONO_DLL_NAMES         (Chrono DLL names): ${CHRONO_DLL_NAMES}")
+  message(STATUS "   CHRONO_DEPENDENCY_DLLS   (Dependency DLLs): ${CHRONO_DEPENDENCY_DLLS}")
+endif()
 
 #===============================================================================
 # Provide a CMake function which adds a custom command (COPY_DLLS), invoked
@@ -538,32 +524,66 @@ message(STATUS "   CHRONO_FSI_DATA_DIR      (Path to Chrono::FSI data folder): $
 # CMAKE_BINARY_DIR or PROJECT_BINARY_DIR)
 #===============================================================================
 
-function(add_DLL_copy_command DLL_LIST)
+# Create custom commands, invoked pre-build to copy DLLs to the appropriate
+# directory (depending on the configuration selected at build time in VS)
+
+function(add_DLL_copy_command)
 
     # Return now if not windows
     if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
       return()
     endif()
 
-    # Remove duplicates in the input list
-    list(REMOVE_DUPLICATES DLL_LIST)
-
     message(STATUS "==== Add custom commands for copying DLLs ====")
-    message(STATUS "DLL list...")
+    
+    if(${ARGC} GREATER 0)
+      message(STATUS "User-provided lists")
+      set(DLL_NAMES ${ARGV0})
+      set(DEPENDENCY_DLLS ${ARGV1})
+    else()
+      message(STATUS "Default lists")
+      set(DLL_NAMES ${CHRONO_DLL_NAMES})
+      set(DEPENDENCY_DLLS ${CHRONO_DEPENDENCY_DLLS})
+    endif()
+
+    # Remove duplicates in lists
+    list(REMOVE_DUPLICATES DLL_NAMES)
+    list(REMOVE_DUPLICATES DEPENDENCY_DLLS)
+
+    # Find actual Chrono DLLs (Release and Debug)
+    set(build_configurations Release Debug)
+    list(APPEND DLLS_Release "")
+    list(APPEND DLLS_Debug "")
+
+    foreach(config ${build_configurations}) 
+      foreach(dll ${DLL_NAMES})
+        set(onedll "${dll}-NOTFOUND")
+        find_file(onedll ${dll}
+          PATHS "E:/Build/chrono/bin"
+          PATH_SUFFIXES "${config}"
+          NO_DEFAULT_PATH
+        )
+        if(NOT onedll)
+          message("DLL '${dll}' in package Chrono is not installed properly")
+        else()
+          list(APPEND DLLS_${config} "${onedll}")
+        endif()
+      endforeach()
+    endforeach()  
+    mark_as_advanced(FORCE onedll)
 
     # Create custom target for copying DLLs; add it to the default build target
     add_custom_target(COPY_DLLS ALL)
 
     # Add custom command to create the destination folder
     add_custom_command(TARGET COPY_DLLS PRE_BUILD
-      COMMAND ${CMAKE_COMMAND} -E make_directory "${EXECUTABLE_OUTPUT_PATH}/$<CONFIGURATION>/")
+      COMMENT "Create DLL output directory"
+      COMMAND ${CMAKE_COMMAND} -E make_directory "${EXECUTABLE_OUTPUT_PATH}/$<CONFIGURATION>/"
+    )
 
-    # Loop over the list of all DLLs and create a custom command
-    foreach(DLL ${DLL_LIST})
+    # Add a custom command for each Chrono dependency DLL
+    foreach(DLL ${DEPENDENCY_DLLS})
         message(STATUS "...${DLL}")
-
-        # Create custom commands, invoked pre-build to copy DLLs to the appropriate
-        # directory (depending on the configuration selected at build time in VS)
         add_custom_command(
             TARGET COPY_DLLS PRE_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -572,6 +592,30 @@ function(add_DLL_copy_command DLL_LIST)
         )
     endforeach()
 
-    message("Attention: Only RELEASE DLLs are copied automatically.")
-    message("           You must manually copy the DLLs for other configurations.")
+    # Add custom command for each Chrono Release DLL (runs only in Release mode)
+    foreach(DLL ${DLLS_Release})
+        message(STATUS "...${DLL}")
+        add_custom_command(
+            TARGET COPY_DLLS PRE_BUILD
+            COMMAND "$<$<CONFIG:Release>:${CMAKE_COMMAND}>"
+                "$<$<CONFIG:Release>:-E>"
+                "$<$<CONFIG:Release>:copy_if_different>"
+                "$<$<CONFIG:Release>:${DLL}>"
+                "$<$<CONFIG:Release>:${EXECUTABLE_OUTPUT_PATH}/$<CONFIGURATION>>/"
+        )
+    endforeach()
+
+    # Add custom command for each Chrono Debug DLL (runs only in Debug mode)
+    foreach(DLL ${DLLS_Debug})
+        message(STATUS "...${DLL}")
+        add_custom_command(
+            TARGET COPY_DLLS PRE_BUILD
+            COMMAND "$<$<CONFIG:Debug>:${CMAKE_COMMAND}>"
+                "$<$<CONFIG:Debug>:-E>"
+                "$<$<CONFIG:Debug>:copy_if_different>"
+                "$<$<CONFIG:Debug>:${DLL}>"
+                "$<$<CONFIG:Debug>:${EXECUTABLE_OUTPUT_PATH}/$<CONFIGURATION>>/"
+        )
+    endforeach()
+
 endfunction()
