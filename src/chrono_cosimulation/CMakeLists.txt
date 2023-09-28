@@ -30,12 +30,12 @@ source_group("" FILES
 
 # Add the COSIMULATION library
 
-add_library(ChronoEngine_cosimulation SHARED
+add_library(ChronoEngine_cosimulation
             ${ChronoEngine_COSIMULATION_SOURCES}
             ${ChronoEngine_COSIMULATION_HEADERS})
 
 set_target_properties(ChronoEngine_cosimulation PROPERTIES 
-                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+                      LINK_FLAGS "${CH_LINKERFLAG_LIB}")
 
 target_compile_definitions(ChronoEngine_cosimulation PRIVATE "CH_API_COMPILE_COSIMULATION")
 target_compile_definitions(ChronoEngine_cosimulation PRIVATE "CH_IGNORE_DEPRECATED")

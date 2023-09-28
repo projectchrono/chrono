@@ -876,7 +876,7 @@ source_group("utils\\stb" FILES ${CV_STB_FILES})
 
 set(CXX_FLAGS ${CH_CXX_FLAGS})
 set(COMPILE_DEFS "CH_API_COMPILE_VEHICLE")
-set(LINK_FLAGS ${CH_LINKERFLAG_SHARED})
+set(LINK_FLAGS ${CH_LINKERFLAG_LIB})
 set(LIBRARIES "ChronoEngine")
 
 if(HDF5_FOUND)
@@ -896,7 +896,7 @@ if(ENABLE_MODULE_FSI)
   list(APPEND LIBRARIES ChronoEngine_fsi)
 endif()
 
-add_library(ChronoEngine_vehicle SHARED
+add_library(ChronoEngine_vehicle
 #
     ${CV_BASE_FILES}
     ${CV_CHASSIS_FILES}
@@ -939,7 +939,7 @@ message(STATUS "Add ChronoEngine_vehicle library")
 
 set_target_properties(ChronoEngine_vehicle PROPERTIES
                       COMPILE_FLAGS "${CXX_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+                      LINK_FLAGS "${CH_LINKERFLAG_LIB}")
 
 target_compile_definitions(ChronoEngine_vehicle PRIVATE "CH_API_COMPILE_VEHICLE")
 target_compile_definitions(ChronoEngine_vehicle PRIVATE "CH_IGNORE_DEPRECATED")
@@ -966,7 +966,7 @@ if(ENABLE_MODULE_IRRLICHT)
     list(APPEND LIBRARIES ChronoEngine_vehicle)
     list(APPEND LIBRARIES ChronoEngine_irrlicht) 
 
-    add_library(ChronoEngine_vehicle_irrlicht SHARED
+    add_library(ChronoEngine_vehicle_irrlicht
         ${CVIRR_FILES}
         ${CVIRR_WV_FILES}
         ${CVIRR_TV_FILES}
@@ -981,7 +981,7 @@ if(ENABLE_MODULE_IRRLICHT)
     
     set_target_properties(ChronoEngine_vehicle_irrlicht PROPERTIES
                           COMPILE_FLAGS "${CXX_FLAGS}"
-                          LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+                          LINK_FLAGS "${CH_LINKERFLAG_LIB}")
     
     target_compile_definitions(ChronoEngine_vehicle_irrlicht PRIVATE "CH_API_COMPILE_VEHICLE")
     target_compile_definitions(ChronoEngine_vehicle_irrlicht PRIVATE "CH_IGNORE_DEPRECATED")
@@ -1005,7 +1005,7 @@ if(ENABLE_MODULE_VSG)
     list(APPEND LIBRARIES ChronoEngine_vehicle)
     list(APPEND LIBRARIES ChronoEngine_vsg) 
     
-    add_library(ChronoEngine_vehicle_vsg SHARED
+    add_library(ChronoEngine_vehicle_vsg
         ${CVVSG_FILES}
         ${CVVSG_WV_FILES}
         ${CVVSG_TV_FILES}
@@ -1013,7 +1013,7 @@ if(ENABLE_MODULE_VSG)
     
     set_target_properties(ChronoEngine_vehicle_vsg PROPERTIES
                           COMPILE_FLAGS "${CXX_FLAGS}"
-                          LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+                          LINK_FLAGS "${CH_LINKERFLAG_LIB}")
     
     target_compile_definitions(ChronoEngine_vehicle_vsg PRIVATE "CH_API_COMPILE_VEHICLE")
     target_compile_definitions(ChronoEngine_vehicle_vsg PRIVATE "CH_IGNORE_DEPRECATED")
@@ -1037,13 +1037,13 @@ if(ENABLE_MODULE_OPENGL)
     list(APPEND LIBRARIES ChronoEngine_vehicle)
     list(APPEND LIBRARIES ChronoEngine_opengl) 
     
-    add_library(ChronoEngine_vehicle_opengl SHARED
+    add_library(ChronoEngine_vehicle_opengl
         ${CVGL_FILES}
     )
     
     set_target_properties(ChronoEngine_vehicle_opengl PROPERTIES
                           COMPILE_FLAGS "${CXX_FLAGS}"
-                          LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+                          LINK_FLAGS "${CH_LINKERFLAG_LIB}")
     
     target_compile_definitions(ChronoEngine_vehicle_opengl PRIVATE "CH_API_COMPILE_VEHICLE")
     target_compile_definitions(ChronoEngine_vehicle_opengl PRIVATE "CH_IGNORE_DEPRECATED")

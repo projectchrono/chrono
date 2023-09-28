@@ -19,6 +19,11 @@ if (POLICY CMP0074)
 endif()
 
 #-----------------------------------------------------------------------------
+# Choose to build either shared or static libraries as default
+#-----------------------------------------------------------------------------
+option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
+
+#-----------------------------------------------------------------------------
 # Optionally use static runtime library (MSVC only)
 #-----------------------------------------------------------------------------
 if (MSVC)
@@ -55,7 +60,15 @@ endif()
 set(CH_C_FLAGS "${CMAKE_C_FLAGS}")
 set(CH_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 set(CH_LINKERFLAG_EXE "${CMAKE_EXE_LINKER_FLAGS}")
-set(CH_LINKERFLAG_SHARED "")
+set(CH_LINKERFLAG_LIB "")
+
+#-----------------------------------------------------------------------------
+# Collect compiler flags required to build the Chrono libraries
+#-----------------------------------------------------------------------------
+if (NOT BUILD_SHARED_LIBS)
+  add_compile_definitions(CH_STATIC)
+endif()
+
 
 #-----------------------------------------------------------------------------
 # Check for C++14 and C++17 support
@@ -131,7 +144,7 @@ if (MSVC)
      set(CH_CXX_FLAGS "${CH_CXX_FLAGS} /GL")
      set(CH_C_FLAGS "${CH_C_FLAGS} /GL")
      set(CH_LINKERFLAG_EXE "${CH_LINKERFLAG_EXE} /LTCG")
-     set(CH_LINKERFLAG_SHARED "${CH_LINKERFLAG_SHARED} /LTCG")
+     set(CH_LINKERFLAG_LIB "${CH_LINKERFLAG_LIB} /LTCG")
      message(STATUS "Enabling whole program optimization...")
      message(STATUS "  Compiler flag: /GL")
      message(STATUS "  Linker flag: /LTGL")
@@ -471,7 +484,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
         set(CH_CXX_FLAGS "${CH_CXX_FLAGS} -D_MINGW -D_WINDOWS")
         set(CH_C_FLAGS "${CH_C_FLAGS} -D_MINGW -D_WINDOWS")
         set(CH_LINKERFLAG_EXE "${CH_LINKERFLAG_EXE} -Wl,--enable-runtime-pseudo-reloc")
-        set(CH_LINKERFLAG_SHARED "${CH_LINKERFLAG_SHARED} -Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc")
+        set(CH_LINKERFLAG_LIB "${CH_LINKERFLAG_LIB} -Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc")
 
         if(CMAKE_SIZEOF_VOID_P MATCHES 8)
             set(CH_CXX_FLAGS "${CH_CXX_FLAGS} -m64")
@@ -482,7 +495,7 @@ endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(CH_LINKERFLAG_EXE "${CH_LINKERFLAG_EXE} -Wl,-no_compact_unwind")
-    set(CH_LINKERFLAG_SHARED "${CH_LINKERFLAG_SHARED} -Wl,-no_compact_unwind")
+    set(CH_LINKERFLAG_LIB "${CH_LINKERFLAG_LIB} -Wl,-no_compact_unwind")
 endif()
 
 # Compiler warning level and disbaled warnings
@@ -588,7 +601,7 @@ message(STATUS "Compiler and linker flags:")
 message(STATUS "  CMAKE_CXX_FLAGS:         ${CMAKE_CXX_FLAGS}")
 message(STATUS "  CMAKE_CXX_FLAGS_DEBUG:   ${CMAKE_CXX_FLAGS_DEBUG}")
 message(STATUS "  CMAKE_CXX_FLAGS_RELEASE: ${CMAKE_CXX_FLAGS_RELEASE}")
-message(STATUS "  Linke flags SHARED:      ${CH_LINKERFLAG_SHARED}")
+message(STATUS "  Linke flags LIB:         ${CH_LINKERFLAG_LIB}")
 message(STATUS "  Linke flags EXE:         ${CH_LINKERFLAG_EXE}")
 if(CUDA_FOUND)
     message(STATUS "  CUDA flags:              ${CUDA_NVCC_FLAGS}")
