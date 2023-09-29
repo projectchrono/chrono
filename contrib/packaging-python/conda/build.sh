@@ -18,6 +18,7 @@ fi
 # set MKL vars
 export MKL_INTERFACE_LAYER=LP64
 export MKL_THREADING_LAYER=INTEL
+
 CONFIGURATION=Release
 # Configure step
 cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
@@ -50,9 +51,9 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DENABLE_MODULE_PARDISO_MKL=ON \
  -DMKL_INCLUDE_DIR=$BUILD_PREFIX/include \
  -DMKL_RT_LIBRARY=$BUILD_PREFIX/lib/libmkl_rt.so \
- -DEIGEN3_INCLUDE_DIR=$PREFIX/include/eigen3 \
- -DIRRLICHT_INSTALL_DIR=$PREFIX/include/irrlicht \
- -DOptiX_INSTALL_DIR=/opt/optix/7.5.0 \
+ -DEIGEN3_INCLUDE_DIR=$HOME/Packages/eigen-3.4.0 \
+ -DIRRLICHT_INSTALL_DIR=$HOME/Packages/irrlicht-1.8.5 \
+ -DOptiX_INSTALL_DIR=$HOME/Packages/optix-7.7.0 \
  -DNUMPY_INCLUDE_DIR=$NP_INCL \
  ./..
 

@@ -43,8 +43,8 @@ cmake -G "Visual Studio 17 2022" -T "v142" ^
  -DENABLE_MODULE_PYTHON=ON ^
  -DENABLE_MODULE_SENSOR=ON ^
  -DNUMPY_INCLUDE_DIR="C:/Users/builder/miniconda3/pkgs/numpy-base/Lib/site-packages/numpy/core/include/" ^
- -DOptiX_INSTALL_DIR="C:/Program Files/NVIDIA Corporation/OptiX SDK 7.5.0" ^
- -DCUDA_TOOLKIT_ROOT_DIR="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.7" ^
+ -DOptiX_INSTALL_DIR="C:/ProgramData/NVIDIA Corporation/OptiX SDK 7.7.0" ^
+ -DCUDA_TOOLKIT_ROOT_DIR="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.2" ^
  -DGLFW_DLL="C:/Users/builder/Documents/glfw-3.3.5/lib-vc2019/glfw3.dll" ^
  -DGLFW_INCLUDE_DIR="C:/Users/builder/Documents/glfw-3.3.5/include" ^
  -DGLFW_LIBRARY="C:/Users/builder/Documents/glfw-3.3.5/lib-vc2019/glfw3dll.lib" ^
@@ -65,6 +65,7 @@ cmake -G "Visual Studio 17 2022" -T "v142" ^
  -DMKL_RT_LIBRARY="%PREFIX%"/Library/lib/mkl_rt.lib ^
  -DIOMP5_LIBRARY="C:/Program Files (x86)/Intel/oneAPI/compiler/latest/windows/compiler/lib/intel64_win/libiomp5md.lib" ^
  ..
+
 if errorlevel 1 exit 1
 mkdir cmake_ended
 
