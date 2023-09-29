@@ -21,7 +21,7 @@ export MKL_THREADING_LAYER=INTEL
 
 CONFIGURATION=Release
 # Configure step
-cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
+cmake -G "Ninja" -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DCMAKE_PREFIX_PATH=$PREFIX \
  -DCMAKE_SYSTEM_PREFIX_PATH=$PREFIX \
  -DCH_CONDA_INSTALL=ON \
@@ -57,9 +57,6 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DNUMPY_INCLUDE_DIR=$NP_INCL \
  ./..
 
-# Build step
-# on linux travis, limit the number of concurrent jobs otherwise
-# gcc gets out of memory
-cmake --build . --config "$CONFIGURATION"
-
-cmake --build . --config "$CONFIGURATION" --target install
+# Build & Install
+ninja
+ninja install
