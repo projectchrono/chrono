@@ -14,6 +14,7 @@ set(DEMOS
   demo_MBS_earthquake
   demo_MBS_friction
   demo_MBS_spring  
+  demo_MBS_external_dynamics
 )
 
 # Add demos that can only work with Irrlicht
