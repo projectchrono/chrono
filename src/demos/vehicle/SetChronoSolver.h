@@ -126,7 +126,6 @@ void SetChronoSolver(chrono::ChSystem& sys,
             integrator->SetAlpha(-0.2);
             integrator->SetMaxiters(50);
             integrator->SetAbsTolerances(1e-4, 1e2);
-            integrator->SetMode(chrono::ChTimestepperHHT::ACCELERATION);
             integrator->SetStepControl(false);
             integrator->SetModifiedNewton(false);
             integrator->SetScaling(false);

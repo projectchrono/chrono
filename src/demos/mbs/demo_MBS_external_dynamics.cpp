@@ -149,7 +149,6 @@ int main(int argc, char* argv[]) {
         mystepper->SetAlpha(-0.2);
         mystepper->SetMaxiters(100);
         mystepper->SetAbsTolerances(1e-5);
-        mystepper->SetMode(ChTimestepperHHT::ACCELERATION);
         mystepper->SetScaling(true);
 
         double t_end = 300;

@@ -213,8 +213,7 @@ int main(int argc, char* argv[]) {
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(200);
-    mystepper->SetAbsTolerances(1e-06);
-    mystepper->SetMode(ChTimestepperHHT::POSITION);
+    mystepper->SetAbsTolerances(1e-04);
     mystepper->SetScaling(true);
     mystepper->SetVerbose(false);
     ////sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise

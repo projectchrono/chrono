@@ -191,8 +191,7 @@ int main(int argc, char* argv[]) {
 
     stepper->SetAlpha(-0.2);
     stepper->SetMaxiters(5);
-    stepper->SetAbsTolerances(1e-5);
-    stepper->SetMode(ChTimestepperHHT::POSITION);
+    stepper->SetAbsTolerances(1e-2);
     stepper->SetScaling(true);
     stepper->SetStepControl(true);
     stepper->SetMinStepSize(1e-4);

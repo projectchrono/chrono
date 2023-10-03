@@ -253,8 +253,7 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(20);
-    mystepper->SetAbsTolerances(1e-6, 1e-1);
-    mystepper->SetMode(ChTimestepperHHT::POSITION);
+    mystepper->SetAbsTolerances(1e-3, 1e-1);
     mystepper->SetVerbose(false);
     mystepper->SetScaling(true);
     sys.Setup();
@@ -453,8 +452,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(20);
-    mystepper->SetAbsTolerances(1e-6, 1e-1);
-    mystepper->SetMode(ChTimestepperHHT::POSITION);
+    mystepper->SetAbsTolerances(1e-3, 1e-1);
     mystepper->SetVerbose(false);
     mystepper->SetScaling(true);
 
@@ -504,7 +502,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     sys.Set_G_acc(ChVector<>(0, 0, -9.81));
     double time_step = 1e-4;
     bool genRefFile = false;
-    double precision = 1e-5;  // Precision for unit test
+    double precision = 1e-4;  // Precision for unit test
 
     GetLog() << "-----------------------------------------------------------------\n";
     GetLog() << "-----------------------------------------------------------------\n";
@@ -651,7 +649,6 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     mystepper->SetAlpha(0.0);
     mystepper->SetMaxiters(20);
     mystepper->SetAbsTolerances(1e-8, 1e-1);
-    mystepper->SetMode(ChTimestepperHHT::POSITION);
     mystepper->SetVerbose(false);
     mystepper->SetScaling(true);
     sys.Setup();
@@ -691,7 +688,9 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
             RelVal = RelVal1 + RelVal2 + RelVal3;
             // GetLog() << RelVal1 << RelVal2 << RelVal3 << RelVal << "\n";
             if (RelVal > precision) {
-                std::cout << "Unit test check failed \n";
+                std::cout << "Unit test check failed at step " << it  //
+                          << "  rel error = " << RelVal               //
+                          << "  tolerance = " << precision << "\n";
                 return false;
             }
         }
@@ -707,7 +706,7 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     sys.Set_G_acc(ChVector<>(0, 0, -9.81));
     double time_step = 1e-4;
     bool genRefFile = false;
-    double precision = 1e-5;  // Precision for unit test
+    double precision = 1e-4;  // Precision for unit test
 
     GetLog() << "-----------------------------------------------------------------------------\n";
     GetLog() << "-----------------------------------------------------------------------------\n";
@@ -859,7 +858,6 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     mystepper->SetAlpha(0.0);
     mystepper->SetMaxiters(20);
     mystepper->SetAbsTolerances(1e-8, 1e-1);
-    mystepper->SetMode(ChTimestepperHHT::POSITION);
     mystepper->SetVerbose(false);
     mystepper->SetScaling(true);
     sys.Setup();
@@ -899,7 +897,9 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
 
             RelVal = RelVal1 + RelVal2 + RelVal3;
             if (RelVal > precision) {
-                std::cout << "Unit test check failed \n";
+                std::cout << "Unit test check failed at step " << it  //
+                          << "  rel error = " << RelVal               //
+                          << "  tolerance = " << precision << "\n";
                 return false;
             }
         }

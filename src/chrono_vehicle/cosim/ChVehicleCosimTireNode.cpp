@@ -281,7 +281,6 @@ void ChVehicleCosimTireNode::InitializeSystem() {
             m_integrator->SetAlpha(-0.2);
             m_integrator->SetMaxiters(50);
             m_integrator->SetAbsTolerances(1e-04, 1e2);
-            m_integrator->SetMode(ChTimestepperHHT::ACCELERATION);
             m_integrator->SetStepControl(false);
             m_integrator->SetModifiedNewton(false);
             m_integrator->SetScaling(false);
