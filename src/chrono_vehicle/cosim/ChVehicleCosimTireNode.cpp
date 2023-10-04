@@ -283,7 +283,6 @@ void ChVehicleCosimTireNode::InitializeSystem() {
             m_integrator->SetAbsTolerances(1e-04, 1e2);
             m_integrator->SetStepControl(false);
             m_integrator->SetModifiedNewton(false);
-            m_integrator->SetScaling(false);
             m_integrator->SetVerbose(false);
             break;
 

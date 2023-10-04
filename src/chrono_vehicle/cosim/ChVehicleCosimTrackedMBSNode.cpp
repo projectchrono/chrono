@@ -224,7 +224,6 @@ void ChVehicleCosimTrackedMBSNode::InitializeSystem() {
             m_integrator->SetAlpha(-0.2);
             m_integrator->SetMaxiters(50);
             m_integrator->SetAbsTolerances(1e-1, 10);
-            m_integrator->SetScaling(true);
             m_integrator->SetVerbose(false);
             m_integrator->SetMaxItersSuccess(5);
             break;

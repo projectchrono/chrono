@@ -349,7 +349,6 @@ int main(int argc, char* argv[]) {
     integrator->SetAbsTolerances(1e-4, 1e2);
     integrator->SetStepControl(false);
     integrator->SetModifiedNewton(true);
-    integrator->SetScaling(false);
     integrator->SetVerbose(verbose_integrator);
 
     // OpenMP threads

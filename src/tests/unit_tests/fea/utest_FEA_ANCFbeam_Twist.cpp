@@ -56,7 +56,6 @@ int main(int argc, char* argv[]) {
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(100);
     integrator->SetAbsTolerances(1e-5);
-    integrator->SetScaling(true);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
 

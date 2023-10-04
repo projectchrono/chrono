@@ -244,7 +244,6 @@ int main(int argc, char* argv[]) {
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(100);
     mystepper->SetAbsTolerances(1e-3);
-    mystepper->SetScaling(true);
 
     while (vis->Run()) {
         vis->BeginScene();

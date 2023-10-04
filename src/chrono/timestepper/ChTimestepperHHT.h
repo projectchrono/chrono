@@ -29,51 +29,53 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
   public:
     ChTimestepperHHT(ChIntegrableIIorder* intgr = nullptr);
 
+    /// Return type of the integration method.
     virtual Type GetType() const override { return Type::HHT; }
 
-    /// Set the numerical damping parameter.
-    /// It must be in the [-1/3, 0] interval. The closer to -1/3, the more damping.
+    /// Set the numerical damping parameter (in the [-1/3, 0] range).
+    /// The closer to -1/3, the more damping.
     /// The closer to 0, the less damping (for 0, it is the trapezoidal method).
     /// The method coefficients gamma and beta are set automatically, based on alpha.
-    void SetAlpha(double malpha);
+    /// Default: -0.2.
+    void SetAlpha(double val);
 
     /// Return the current value of the method parameter alpha.
     double GetAlpha() { return alpha; }
 
-    /// Turn scaling on/off.
-    void SetScaling(bool mscaling) { scaling = mscaling; }
-
-    /// Turn step size control on/off.
-    /// Step size control is enabled by default.
-    void SetStepControl(bool val) { step_control = val; }
+    /// Turn on/off the internal step size control.
+    /// Default: true.
+    void SetStepControl(bool enable) { step_control = enable; }
 
     /// Set the minimum step size.
     /// An exception is thrown if the internal step size decreases below this limit.
-    void SetMinStepSize(double min_step) { h_min = min_step; }
+    /// Default: 1e-10.
+    void SetMinStepSize(double step) { h_min = step; }
 
     /// Set the maximum allowable number of iterations for counting a step towards a stepsize increase.
+    /// Default: 3.
     void SetMaxItersSuccess(int iters) { maxiters_success = iters; }
 
-    /// Set the minimum number of (internal) steps that require at most maxiters_success
+    /// Set the minimum number of (internal) steps that use at most maxiters_success
     /// before considering a stepsize increase.
+    /// Default: 5.
     void SetRequiredSuccessfulSteps(int num_steps) { req_successful_steps = num_steps; }
 
-    /// Set the multiplicative factor for a stepsize increase.
-    /// Must be a value larger than 1.
+    /// Set the multiplicative factor for a stepsize increase (must be larger than 1).
+    /// Default: 2.
     void SetStepIncreaseFactor(double factor) { step_increase_factor = factor; }
 
-    /// Set the multiplicative factor for a stepsize decrease.
-    /// Must be a value smaller than 1.
+    /// Set the multiplicative factor for a stepsize decrease (must be smaller than 1).
+    /// Default: 0.5.
     void SetStepDecreaseFactor(double factor) { step_decrease_factor = factor; }
 
     /// Enable/disable modified Newton.
     /// If enabled, the Newton matrix is evaluated, assembled, and factorized only once
     /// per step or if the Newton iteration does not converge with an out-of-date matrix.
     /// If disabled, the Newton matrix is evaluated at every iteration of the nonlinear solver.
-    /// Modified Newton iteration is enabled by default.
-    void SetModifiedNewton(bool val) { modified_Newton = val; }
+    /// Default: true.
+    void SetModifiedNewton(bool enable) { modified_Newton = enable; }
 
-    /// Perform an integration timestep.
+    /// Perform an integration timestep, by advancing the state by tehe specified time step.
     virtual void Advance(const double dt) override;
 
     /// Get an indicator to tell whether the iteration in current step tends to convergence or divergence.
@@ -99,16 +101,15 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     virtual void ArchiveIn(ChArchiveIn& archive) override;
 
   private:
-    void Prepare(ChIntegrableIIorder* integrable, double scaling_factor);
-    void Increment(ChIntegrableIIorder* integrable, double scaling_factor);
-    bool CheckConvergence(double scaling_factor);
+    void Prepare(ChIntegrableIIorder* integrable);
+    void Increment(ChIntegrableIIorder* integrable);
+    bool CheckConvergence();
     void CalcErrorWeights(const ChVectorDynamic<>& x, double rtol, double atol, ChVectorDynamic<>& ewt);
 
   private:
     double alpha;  ///< HHT method parameter:  -1/3 <= alpha <= 0
     double gamma;  ///< HHT method parameter:   gamma = 1/2 - alpha
     double beta;   ///< HHT method parameter:   beta = (1 - alpha)^2 / 4
-    bool scaling;  ///< include scaling by beta * h * h (POSITION only)
 
     ChStateDelta Da;         ///< state update
     ChVectorDynamic<> Dl;    ///< Lagrange multiplier update

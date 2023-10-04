@@ -255,7 +255,6 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     mystepper->SetMaxiters(20);
     mystepper->SetAbsTolerances(1e-3, 1e-1);
     mystepper->SetVerbose(false);
-    mystepper->SetScaling(true);
     sys.Setup();
     sys.Update();
 
@@ -454,7 +453,6 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     mystepper->SetMaxiters(20);
     mystepper->SetAbsTolerances(1e-3, 1e-1);
     mystepper->SetVerbose(false);
-    mystepper->SetScaling(true);
 
     sys.Setup();
     sys.Update();
@@ -650,7 +648,6 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     mystepper->SetMaxiters(20);
     mystepper->SetAbsTolerances(1e-8, 1e-1);
     mystepper->SetVerbose(false);
-    mystepper->SetScaling(true);
     sys.Setup();
     sys.Update();
 
@@ -859,7 +856,6 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     mystepper->SetMaxiters(20);
     mystepper->SetAbsTolerances(1e-8, 1e-1);
     mystepper->SetVerbose(false);
-    mystepper->SetScaling(true);
     sys.Setup();
     sys.Update();
 

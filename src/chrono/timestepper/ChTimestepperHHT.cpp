@@ -26,7 +26,6 @@ CH_UPCASTING(ChTimestepperHHT, ChImplicitIterativeTimestepper)
 ChTimestepperHHT::ChTimestepperHHT(ChIntegrableIIorder* intgr)
     : ChTimestepperIIorder(intgr),
       ChImplicitIterativeTimestepper(),
-      scaling(false),
       step_control(true),
       maxiters_success(3),
       req_successful_steps(5),
@@ -39,8 +38,8 @@ ChTimestepperHHT::ChTimestepperHHT(ChIntegrableIIorder* intgr)
     SetAlpha(-0.2);  // default: some dissipation
 }
 
-void ChTimestepperHHT::SetAlpha(double malpha) {
-    alpha = malpha;
+void ChTimestepperHHT::SetAlpha(double val) {
+    alpha = val;
     if (alpha < -1.0 / 3.0)
         alpha = -1.0 / 3.0;
     if (alpha > 0)
@@ -109,8 +108,7 @@ void ChTimestepperHHT::Advance(const double dt) {
 
     // Loop until reaching final time
     while (true) {
-        double scaling_factor = scaling ? beta * h * h : 1;
-        Prepare(mintegrable, scaling_factor);
+        Prepare(mintegrable);
 
         // Newton-Raphson for state at T+h
         bool converged = false;
@@ -121,7 +119,7 @@ void ChTimestepperHHT::Advance(const double dt) {
                 GetLog() << " HHT call Setup.\n";
 
             // Solve linear system and increment state
-            Increment(mintegrable, scaling_factor);
+            Increment(mintegrable);
 
             // Increment counters
             numiters++;
@@ -142,7 +140,7 @@ void ChTimestepperHHT::Advance(const double dt) {
             }
 
             // Check convergence
-            converged = CheckConvergence(scaling_factor);
+            converged = CheckConvergence();
             if (converged)
                 break;
         }
@@ -259,7 +257,7 @@ void ChTimestepperHHT::Advance(const double dt) {
 // - For ACCELERATION mode, if not using step size control, start with zero acceleration
 //   guess (previous step not guaranteed to have converged)
 // - Set the error weight vectors (using solution at current time)
-void ChTimestepperHHT::Prepare(ChIntegrableIIorder* integrable, double scaling_factor) {
+void ChTimestepperHHT::Prepare(ChIntegrableIIorder* integrable) {
     if (step_control)
         Anew = A;
     Vnew = V + Anew * h;
@@ -281,12 +279,12 @@ void ChTimestepperHHT::Prepare(ChIntegrableIIorder* integrable, double scaling_f
 //
 // This is one iteration of Newton-Raphson to solve for a_new
 //
-// [ M - dt*gamma*dF/dv - dt^2*beta*dF/dx    Cq' ] [ Da ] =
-// [ Cq                                      0   ] [ Dl ]
+// [ M - h*gamma*dF/dv - h^2*beta*dF/dx    Cq' ] [ Da ] =
+// [ Cq                                    0   ] [ Dl ]
 //                [ -1/(1+alpha)*M*(a_new) + (f_new +Cq*l_new) - (alpha/(1+alpha))(f_old +Cq*l_old)]
-//                [  1/(beta*dt^2)*C                                                               ]
+//                [  1/(beta*h^2)*C                                                                ]
 //
-void ChTimestepperHHT::Increment(ChIntegrableIIorder* integrable, double scaling_factor) {
+void ChTimestepperHHT::Increment(ChIntegrableIIorder* integrable) {
     // Scatter the current estimate of state at time T+h
     integrable->StateScatter(Xnew, Vnew, T + h, false);
 
@@ -298,7 +296,7 @@ void ChTimestepperHHT::Increment(ChIntegrableIIorder* integrable, double scaling
     integrable->LoadResidual_F(R, 1.0);                                              //  f_new
     integrable->LoadResidual_CqL(R, Lnew, 1.0);                                      //  Cq'*l_new
     integrable->LoadResidual_Mv(R, Anew, -1 / (1 + alpha));                          // -1/(1+alpha)*M*a_new
-    integrable->LoadConstraint_C(Qc, 1 / (beta * h * h), Qc_do_clamp, Qc_clamping);  //  1/(beta*dt^2)*C
+    integrable->LoadConstraint_C(Qc, 1 / (beta * h * h), Qc_do_clamp, Qc_clamping);  //  1/(beta*h^2)*C
 
     // Solve linear system
     integrable->StateSolveCorrection(Da, Dl, R, Qc,
@@ -322,7 +320,7 @@ void ChTimestepperHHT::Increment(ChIntegrableIIorder* integrable, double scaling
 }
 
 // Convergence test
-bool ChTimestepperHHT::CheckConvergence(double scaling_factor) {
+bool ChTimestepperHHT::CheckConvergence() {
     bool converged = false;
 
     // Declare convergence when either the residual is below the absolute tolerance or
@@ -362,7 +360,6 @@ void ChTimestepperHHT::ArchiveOut(ChArchiveOut& archive) {
     archive << CHNVP(alpha);
     archive << CHNVP(beta);
     archive << CHNVP(gamma);
-    archive << CHNVP(scaling);
 }
 
 void ChTimestepperHHT::ArchiveIn(ChArchiveIn& archive) {
@@ -375,7 +372,6 @@ void ChTimestepperHHT::ArchiveIn(ChArchiveIn& archive) {
     archive >> CHNVP(alpha);
     archive >> CHNVP(beta);
     archive >> CHNVP(gamma);
-    archive >> CHNVP(scaling);
 }
 
 }  // end namespace chrono

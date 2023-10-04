@@ -305,7 +305,6 @@ int main(int argc, char* argv[]) {
         integrator->SetAbsTolerances(1e-4, 1e2);
         integrator->SetStepControl(false);
         integrator->SetModifiedNewton(false);
-        integrator->SetScaling(true);
         ////integrator->SetVerbose(true);
 #endif
     } else {

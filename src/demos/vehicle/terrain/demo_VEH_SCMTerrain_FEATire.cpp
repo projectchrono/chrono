@@ -152,7 +152,6 @@ int main(int argc, char* argv[]) {
     integrator->SetMaxiters(8);
     integrator->SetAbsTolerances(1e-1, 10);
     integrator->SetModifiedNewton(false);
-    integrator->SetScaling(true);
     integrator->SetVerbose(true);
 
     while (vis->Run()) {

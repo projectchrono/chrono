@@ -151,7 +151,6 @@ ANCFShellTest::ANCFShellTest(bool useContInt) {
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(100);
     integrator->SetAbsTolerances(1e-5);
-    integrator->SetScaling(true);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(false);
 
@@ -1254,7 +1253,6 @@ bool ANCFShellTest::AxialDisplacementCheck(int msglvl) {
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(100);
     integrator->SetAbsTolerances(1e-5);
-    integrator->SetScaling(true);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
 
@@ -1442,7 +1440,6 @@ bool ANCFShellTest::CantileverTipLoadCheck(int msglvl) {
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(100);
     integrator->SetAbsTolerances(1e-5);
-    integrator->SetScaling(true);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
 
@@ -1634,7 +1631,6 @@ bool ANCFShellTest::CantileverGravityCheck(int msglvl) {
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(100);
     integrator->SetAbsTolerances(1e-5);
-    integrator->SetScaling(true);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
 
@@ -1784,7 +1780,6 @@ bool ANCFShellTest::AxialTwistCheck(int msglvl) {
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(100);
     integrator->SetAbsTolerances(1e-5);
-    integrator->SetScaling(true);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
 
@@ -1976,7 +1971,6 @@ bool ANCFShellTest::MLCantileverCheck1A(int msglvl) {
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(100);
     integrator->SetAbsTolerances(1e-5);
-    integrator->SetScaling(true);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
 
@@ -2139,7 +2133,6 @@ bool ANCFShellTest::MLCantileverCheck1B(int msglvl) {
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(100);
     integrator->SetAbsTolerances(1e-5);
-    integrator->SetScaling(true);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
 
@@ -2301,7 +2294,6 @@ bool ANCFShellTest::MLCantileverCheck2A(int msglvl) {
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(100);
     integrator->SetAbsTolerances(1e-5);
-    integrator->SetScaling(true);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
 
@@ -2464,7 +2456,6 @@ bool ANCFShellTest::MLCantileverCheck2B(int msglvl) {
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(100);
     integrator->SetAbsTolerances(1e-5);
-    integrator->SetScaling(true);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
 

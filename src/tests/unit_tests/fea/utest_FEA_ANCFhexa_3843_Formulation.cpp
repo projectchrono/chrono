@@ -143,7 +143,6 @@ ANCFBrickTest::ANCFBrickTest(bool useContInt) {
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(100);
     integrator->SetAbsTolerances(1e-5);
-    integrator->SetScaling(true);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(false);
 
@@ -1242,7 +1241,6 @@ bool ANCFBrickTest::AxialDisplacementCheck(int msglvl) {
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(100);
     integrator->SetAbsTolerances(1e-5);
-    integrator->SetScaling(true);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
 
@@ -1439,7 +1437,6 @@ bool ANCFBrickTest::CantileverTipLoadCheck(int msglvl) {
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(100);
     integrator->SetAbsTolerances(1e-5);
-    integrator->SetScaling(true);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
 
@@ -1641,7 +1638,6 @@ bool ANCFBrickTest::CantileverGravityCheck(int msglvl) {
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(100);
     integrator->SetAbsTolerances(1e-5);
-    integrator->SetScaling(true);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
 
@@ -1799,7 +1795,6 @@ bool ANCFBrickTest::AxialTwistCheck(int msglvl) {
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(100);
     integrator->SetAbsTolerances(1e-5);
-    integrator->SetScaling(true);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
 

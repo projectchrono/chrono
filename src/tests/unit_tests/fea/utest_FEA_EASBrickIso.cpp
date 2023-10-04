@@ -239,7 +239,6 @@ int main(int argc, char* argv[]) {
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(10000);
     mystepper->SetAbsTolerances(1e-5);
-    mystepper->SetScaling(true);
 
     // Simulation loop
     double T_F = 10;

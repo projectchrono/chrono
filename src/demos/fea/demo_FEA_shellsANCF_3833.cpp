@@ -279,7 +279,6 @@ int main(int argc, char* argv[]) {
     mystepper->SetAbsTolerances(1e-4, 1e2);
     mystepper->SetStepControl(false);
     mystepper->SetModifiedNewton(true);
-    mystepper->SetScaling(false);
 
     while (vis->Run()) {
         std::cout << "Time: " << sys.GetChTime() << "s. \n";

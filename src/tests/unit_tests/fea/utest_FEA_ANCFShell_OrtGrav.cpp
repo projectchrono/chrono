@@ -188,7 +188,6 @@ int main(int argc, char* argv[]) {
     mystepper->SetAlpha(0.0);
     mystepper->SetMaxiters(100);
     mystepper->SetAbsTolerances(1e-2);
-    mystepper->SetScaling(false);
     mystepper->SetVerbose(true);
 
     /*utils::Data m_data;

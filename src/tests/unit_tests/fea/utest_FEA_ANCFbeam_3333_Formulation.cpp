@@ -143,7 +143,6 @@ ANCFBeamTest::ANCFBeamTest(bool useContInt) {
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(100);
     integrator->SetAbsTolerances(1e-5);
-    integrator->SetScaling(true);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(false);
 
@@ -1235,7 +1234,6 @@ bool ANCFBeamTest::AxialDisplacementCheck(int msglvl) {
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(100);
     integrator->SetAbsTolerances(1e-5);
-    integrator->SetScaling(true);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
 
@@ -1409,7 +1407,6 @@ bool ANCFBeamTest::CantileverTipLoadCheck(int msglvl) {
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(100);
     integrator->SetAbsTolerances(1e-5);
-    integrator->SetScaling(true);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
 
@@ -1587,7 +1584,6 @@ bool ANCFBeamTest::CantileverGravityCheck(int msglvl) {
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(100);
     integrator->SetAbsTolerances(1e-5);
-    integrator->SetScaling(true);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
 
@@ -1724,7 +1720,6 @@ bool ANCFBeamTest::AxialTwistCheck(int msglvl) {
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(100);
     integrator->SetAbsTolerances(1e-5);
-    integrator->SetScaling(true);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
 

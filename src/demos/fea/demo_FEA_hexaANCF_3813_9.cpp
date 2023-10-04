@@ -341,7 +341,6 @@ void DPCapPress() {
     mystepper->SetMaxiters(25);
     mystepper->SetAbsTolerances(1e-4, 1e-2);
     mystepper->SetVerbose(true);
-    mystepper->SetScaling(true);
 
     sys.Update();
 
@@ -723,7 +722,6 @@ void ShellBrickContact() {
     mystepper->SetMaxiters(20);
     mystepper->SetAbsTolerances(1e-4, 1e-2);
     mystepper->SetVerbose(true);
-    mystepper->SetScaling(true);
 
     sys.Update();
 
@@ -1024,7 +1022,6 @@ void SimpleBoxContact() {
     mystepper->SetMaxiters(20);
     mystepper->SetAbsTolerances(1e-3, 1e-2);
     mystepper->SetVerbose(true);
-    mystepper->SetScaling(true);
 
     sys.Update();
 
@@ -1341,7 +1338,6 @@ void SoilBin() {
     mystepper->SetMaxiters(20);
     mystepper->SetAbsTolerances(1e-4, 1e-2);
     mystepper->SetVerbose(true);
-    mystepper->SetScaling(true);
 
     sys.Update();
 
@@ -1611,8 +1607,6 @@ void AxialDynamics() {
     mystepper->SetMaxiters(20);
     mystepper->SetAbsTolerances(1e-4, 1e-2);
     mystepper->SetVerbose(false);
-    mystepper->SetScaling(true);
-    // application.SetTimestep(timestep);
 
     sys.Update();
 
@@ -1841,7 +1835,6 @@ void BendingQuasiStatic() {
     mystepper->SetMaxiters(2000);
     mystepper->SetAbsTolerances(1e-3, 1e-1);
     mystepper->SetVerbose(true);
-    mystepper->SetScaling(true);
 
     sys.Update();
 
@@ -2069,7 +2062,6 @@ void SwingingShell() {
     mystepper->SetMaxiters(20);
     mystepper->SetAbsTolerances(1e-3, 1e-1);
     mystepper->SetVerbose(true);
-    mystepper->SetScaling(true);
 
     sys.Update();
 

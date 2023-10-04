@@ -214,7 +214,6 @@ int main(int argc, char* argv[]) {
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(200);
     mystepper->SetAbsTolerances(1e-04);
-    mystepper->SetScaling(true);
     mystepper->SetVerbose(false);
     ////sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
 
