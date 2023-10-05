@@ -559,7 +559,7 @@ function(add_DLL_copy_command)
       foreach(dll ${DLL_NAMES})
         set(onedll "${dll}-NOTFOUND")
         find_file(onedll ${dll}
-          PATHS "E:/Build/chrono/bin"
+          PATHS "@CH_BINARY_DIR@/bin"
           PATH_SUFFIXES "${config}"
           NO_DEFAULT_PATH
         )
