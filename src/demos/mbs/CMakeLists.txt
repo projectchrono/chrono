@@ -15,6 +15,7 @@ set(DEMOS
   demo_MBS_friction
   demo_MBS_spring  
   demo_MBS_external_dynamics
+  demo_MBS_hydraulic_actuator
 )
 
 # Add demos that can only work with Irrlicht

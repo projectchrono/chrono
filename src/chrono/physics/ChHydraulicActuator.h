@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Hydraulic actuator model based on the paper:
-//   Rahikainen, J., González, F., Naya, M.Á., Sopanen, J. and Mikkola, A.,
+//   Rahikainen, J., Gonzalez, F., Naya, M.A., Sopanen, J. and Mikkola, A.,
 //   "On the cosimulation of multibody systems and hydraulic dynamics."
 //   Multibody System Dynamics, 50(2), pp.143-167, 2020.
 //
