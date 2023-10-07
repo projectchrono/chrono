@@ -88,12 +88,12 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamics {
     /// Load generalized forces.
     void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c);
 
-    bool m_is_attached;
+    bool m_is_attached;  ///< true if actuator attached to bodies
 
-    ChBody* m_body1;
-    ChBody* m_body2;
-    ChVector<> m_body1_loc;
-    ChVector<> m_body2_loc;
+    ChBody* m_body1;             ///< first conected body
+    ChBody* m_body2;             ///< second connected body
+    ChVector<> m_body1_loc;      ///< location on body 1
+    ChVector<> m_body2_loc;      ///< location on body 2
     ChVectorDynamic<> m_Qforce;  ///< generalized forcing terms
 
     ChHydraulicCylinder cyl;  ///< hydraulic cylinder
@@ -107,18 +107,45 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamics {
 // -----------------------------------------------------------------------------
 
 /// Hydraulic actuator using a circuit with 2 volumes.
+/// Schematic:
+/// <pre>
+///
+///                  piston      rod
+///                   side      side
+///                 ___________________
+///                |   1     |     2   |
+///  cylinder      |         |----------------
+///                |___^_____|_____^___|
+///                    |           |
+///                    |           |
+///                    | hose1     | hose2
+///                    |           |
+///                   _|___________|_
+///  directional     |       X       |
+///     valve        |___|____ __|___|
+///                      |       |
+///                    pump     tank
+///
+/// </pre>
 /// Components:
-///   1 pump and 1 tank, modeled as constant pressures
-///   2 hoses
-///   1 cylinder
-///   1 directional valve 4x3
+///   - 1 pump and 1 tank, modeled as constant pressures
+///   - 2 hoses
+///   - 1 cylinder
+///   - 1 directional valve 4x3
 /// States:
-///   y(0): U -- spool position
-///   y(1): p1 -- cylinder pressure 1
-///   y(2): p2 -- cylinder pressure 2
+///   - y(0): U -- dvalve spool position
+///   - y(1): p1 -- cylinder pressure 1 (piston-side)
+///   - y(2): p2 -- cylinder pressure 2 (rod-side)
 class ChApi ChHydraulicActuator2 : public ChHydraulicActuatorBase {
   public:
     ChHydraulicActuator2() {}
+
+    void SetPressures(double pump_pressure, double tank_pressure);
+    void SetBulkModuli(double oil_bulk_modulus, double hose_bulk_modulus, double cyl_bulk_modulus);
+    void SetHoseVolumes(double hose_dvalve_piston, double hose_dvalve_rod);
+
+    ChHydraulicCylinder& Cylinder() { return cyl; }
+    ChHydraulicDirectionalValve4x3& DirectionalValve() { return dvalve; }
 
   private:
     typedef ChVectorN<double, 2> Vec2;
@@ -159,20 +186,50 @@ class ChApi ChHydraulicActuator2 : public ChHydraulicActuatorBase {
 // -----------------------------------------------------------------------------
 
 /// Hydraulic actuator using a circuit with 3 volumes.
+/// Schematic:
+/// <pre>
+///
+///                   piston      rod
+///                    side      side
+///                 ___________________
+///                |   1     |     2   |
+///  cylinder      |         |----------------
+///                |___^_____|_____^___|
+///                    |           |
+///                    | hose1     |
+///                    |           | hose2
+///  throttle         )|(          |
+///   valve            |           |
+///                    | hose3     |
+///                   _|___________|_
+///  directional     |       X       |
+///     valve        |___|____ __|___|
+///                      |       |
+///                    pump     tank
+///
+/// </pre>
 /// Components:
-///   1 pump and 1 tank, modeled as constant pressures
-///   3 hoses
-///   1 cylinder
-///   1 directional valve 4x3
-///   1 throttle valve
+///   - 1 pump and 1 tank, modeled as constant pressures
+///   - 3 hoses
+///   - 1 cylinder
+///   - 1 directional valve 4x3
+///   - 1 throttle valve
 /// States:
-///   y(0): U -- spool position
-///   y(1): p1 -- cylinder pressure 1
-///   y(2): p2 -- cylinder pressure 2
-///   y(3): p3 -- hose pressure
+///   - y(0): U -- spool position
+///   - y(1): p1 -- cylinder pressure 1
+///   - y(2): p2 -- cylinder pressure 2
+///   - y(3): p3 -- hose pressure
 class ChApi ChHydraulicActuator3 : public ChHydraulicActuatorBase {
   public:
     ChHydraulicActuator3() {}
+
+    void SetPressures(double pump_pressure, double tank_pressure);
+    void SetBulkModuli(double oil_bulk_modulus, double hose_bulk_modulus, double cyl_bulk_modulus);
+    void SetHoseVolumes(double hose_tvalve_piston, double hose_dvalve_rod, double hose_dvalve_tvalve);
+
+    ChHydraulicCylinder& Cylinder() { return cyl; }
+    ChHydraulicDirectionalValve4x3& DirectionalValve() { return dvalve; }
+    ChHydraulicThrottleValve& ThrottleValve() { return tvalve; }
 
   private:
     typedef ChVectorN<double, 3> Vec3;

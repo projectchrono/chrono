@@ -54,12 +54,22 @@ class ChHydraulicCylinder {
   public:
     ChHydraulicCylinder();
 
+    /// Set the piston and rod diameters.
+    void SetDimensions(double piston_diameter, double rod_diameter);
+
+    /// Set the initial location of the piston in the cylinder chamber.
+    void SetInitialChamberLengths(double piston_side, double rod_side);
+
+    /// Get the cross-section areas of the two chambers.
     const double2& GetAreas() const { return A; }
 
+    /// Calculate current chamber lengths.
     double2 ComputeChamberLengths(double Delta_s) const;
 
+    /// Calculate current chamber volumes.
     double2 ComputeChamberVolumes(const double2& L) const;
 
+    /// Evaluate the force at the rod.
     double EvalForce(const double2& p, double Delta_s, double sd);
 
   private:
@@ -68,40 +78,47 @@ class ChHydraulicCylinder {
     double pistonL = 0.3;   ///< piston length [m]
 
     double2 L0 = {0.05, 0.25};  ///< initial lengths (piston-side and rod-side) [m]
+    double2 A;                  ///< areas (piston-side and rod-side) [m^2]
 
-    double2 A;  ///< areas (piston-side and rod-side) [m^2]
-
-    bool length_exceeded;
+    bool length_exceeded;  ///< flag indicating whether piston past limits
 };
 
 /// ChHydraulicDirectionalValve4x3 - a computational model of 4 / 3 directional valve
 /// Schematic:
 /// <pre>
 ///
-///                        p4 p3
-///                ______ ______ ______
+///                      p4   p3
+///                ________|_|__ ______
 ///               | |  ^ | T T | ^  / |
 ///            _ _| |  | |         X  |_ _
 ///  <-U+>    |_/_|_v__|_|_T_T_|_v__\_|_/_|
-///                        p1 p2
-///
+///                        | |
+///                      p1   p2
+///                  (tank)   (pump)
 /// </pre>
 class ChHydraulicDirectionalValve4x3 {
   public:
     ChHydraulicDirectionalValve4x3();
 
-    // Ud = Ud(t, U)
+    /// Set valve parameters.
+    void SetParameters(double linear_limit,  ///< laminar flow rate limit of 2 bar [N/m^2]
+                       double dead_zone,     ///< limit for shut valve [m]
+                       double fm45           ///< -45 degree phase shift frequency [Hz]
+    );
+
+    /// Evaluate righ-hand side of spool position ODE: Ud = Ud(t, U).
     double EvaluateSpoolPositionRate(double t, double U, double Uref);
 
+    /// Compute volume flows through the valve.
     double2 ComputeVolumeFlows(double p1, double p2, double p3, double p4, double U);
 
   private:
     double linear_limit = 2e5;  ///< laminar flow rate limit of 2 bar [N/m^2]
     double dead_zone = 0.1e-5;  ///< limit for shut valve [m]
     double fm45 = 35.0;         ///< -45 degree phase shift frequency [Hz]
-    double Cv;                  ///< semi-empirical flow rate coefficionet
 
-    double time_constant;
+    double Cv;             ///< semi-empirical flow rate coefficient
+    double time_constant;  ///< time-constant based on fm45 [s]
 };
 
 /// ChHydraulicThrottleValve - a semi-empirical model of a throttle valve
@@ -119,15 +136,23 @@ class ChHydraulicThrottleValve {
   public:
     ChHydraulicThrottleValve();
 
+    /// Set valve parameters.
+    void SetParameters(double valve_diameter,  ///< valve orifice diameter [m]
+                       double oil_density,     ///< oil density [kg/m^3]
+                       double lin_limit,       ///< laminar flow rate limit of 2 bar [N/m^2]
+                       double Cd               ///< flow discharge coefficient of the orifice
+    );
+
+    /// Compute volume flow through the valve.
     double ComputeVolumeFlow(double p1, double p2);
 
   private:
-    double Do = 850;  ///< oil density [kg/m^3]
-
-    double Cd = 0.8;         ///< flow discharge coefficient of the orifice
+    double Do = 850;         ///< oil density [kg/m^3]
     double valveD = 0.006;   ///< valve orifice diameter [m]
     double lin_limit = 2e5;  ///< laminar flow rate limit of 2 bar [N/m^2]
-    double Cv;               ///< semi-empirical flow rate coefficient
+
+    double Cd = 0.8;  ///< flow discharge coefficient of the orifice
+    double Cv;        ///< semi-empirical flow rate coefficient
 };
 
 }  // end namespace chrono

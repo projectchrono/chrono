@@ -23,6 +23,20 @@ ChHydraulicCylinder::ChHydraulicCylinder() : length_exceeded(false) {
     A.second = A.first - CH_C_PI * rodD * rodD / 4;
 }
 
+void ChHydraulicCylinder::SetDimensions(double piston_diameter, double rod_diameter) {
+    pistonD = piston_diameter;
+    rodD = rod_diameter;
+
+    A.first = CH_C_PI * pistonD * pistonD / 4;
+    A.second = A.first - CH_C_PI * rodD * rodD / 4;
+}
+
+void ChHydraulicCylinder::SetInitialChamberLengths(double piston_side, double rod_side) {
+    L0.first = piston_side;
+    L0.second = rod_side;
+    pistonL = piston_side + rod_side;
+}
+
 double2 ChHydraulicCylinder::ComputeChamberLengths(double Delta_s) const {
     return double2(L0.first + Delta_s, L0.second - Delta_s);
 }
@@ -59,6 +73,14 @@ double ChHydraulicCylinder::EvalForce(const double2& p, double Delta_s, double s
 
 ChHydraulicDirectionalValve4x3::ChHydraulicDirectionalValve4x3() {
     Cv = (12.0 / 6e4) / (10 * std::sqrt(35e5));
+    time_constant = 1 / (CH_C_2PI * fm45);
+}
+
+void ChHydraulicDirectionalValve4x3::SetParameters(double linear_limit, double dead_zone, double fm45) {
+    this->linear_limit = linear_limit;
+    this->dead_zone = dead_zone;
+    this->fm45 = fm45;
+
     time_constant = 1 / (CH_C_2PI * fm45);
 }
 
@@ -122,6 +144,16 @@ double2 ChHydraulicDirectionalValve4x3::ComputeVolumeFlows(double p1, double p2,
 // ---------------------------------------------------------------------------------------------------------------------
 
 ChHydraulicThrottleValve::ChHydraulicThrottleValve() {
+    double A = CH_C_PI * valveD * valveD / 4;
+    Cv = Cd * A * std::sqrt(2 / Do);
+}
+
+void ChHydraulicThrottleValve::SetParameters(double valve_diameter, double oil_density, double lin_limit, double Cd) {
+    this->valveD = valve_diameter;
+    this->Do = oil_density;
+    this->lin_limit = lin_limit;
+    this->Cd = Cd;
+
     double A = CH_C_PI * valveD * valveD / 4;
     Cv = Cd * A * std::sqrt(2 / Do);
 }

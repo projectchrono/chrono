@@ -136,6 +136,22 @@ void ChHydraulicActuatorBase::IntLoadResidual_F(const unsigned int off, ChVector
 
 // ---------------------------------------------------------------------------------------------------------------------
 
+void ChHydraulicActuator2::SetPressures(double pump_pressure, double tank_pressure) {
+    pP = pump_pressure;
+    pT = tank_pressure;
+}
+
+void ChHydraulicActuator2::SetBulkModuli(double oil_bulk_modulus, double hose_bulk_modulus, double cyl_bulk_modulus) {
+    Bo = oil_bulk_modulus;
+    Bh = hose_bulk_modulus;
+    Bc = cyl_bulk_modulus;
+}
+
+void ChHydraulicActuator2::SetHoseVolumes(double hose_dvalve_piston, double hose_dvalve_rod) {
+    hose1V = hose_dvalve_piston;
+    hose2V = hose_dvalve_rod;
+}
+
 void ChHydraulicActuator2::SetInitialConditions(ChVectorDynamic<>& y0) {
     y0(0) = 0.0;  // valve initially shut
     y0(1) = 0.0;
@@ -210,6 +226,25 @@ ChHydraulicActuator2::Vec2 ChHydraulicActuator2::EvaluatePressureRates(double t,
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
+
+void ChHydraulicActuator3::SetPressures(double pump_pressure, double tank_pressure) {
+    pP = pump_pressure;
+    pT = tank_pressure;
+}
+
+void ChHydraulicActuator3::SetBulkModuli(double oil_bulk_modulus, double hose_bulk_modulus, double cyl_bulk_modulus) {
+    Bo = oil_bulk_modulus;
+    Bh = hose_bulk_modulus;
+    Bc = cyl_bulk_modulus;
+}
+
+void ChHydraulicActuator3::SetHoseVolumes(double hose_tvalve_piston,
+                                          double hose_dvalve_rod,
+                                          double hose_dvalve_tvalve) {
+    hose1V = hose_tvalve_piston;
+    hose2V = hose_dvalve_rod;
+    hose3V = hose_dvalve_tvalve;
+}
 
 void ChHydraulicActuator3::SetInitialConditions(ChVectorDynamic<>& y0) {
     y0(0) = 0.0;  // valve initially shut
