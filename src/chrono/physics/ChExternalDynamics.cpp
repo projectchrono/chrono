@@ -19,17 +19,22 @@ namespace chrono {
 // Perturbation for finite-difference Jacobian approximation
 const double ChExternalDynamics::m_FD_delta = 1e-8;
 
-ChExternalDynamics::ChExternalDynamics(std::shared_ptr<ODE> ode) : m_ode(ode) {
-    m_nstates = ode->GetNumStates();
+ChExternalDynamics::ChExternalDynamics() {}
+ChExternalDynamics::~ChExternalDynamics() {
+    delete m_variables;
+}
+
+void ChExternalDynamics::Initialize() {
+    m_nstates = GetNumStates();
     m_states.resize(m_nstates);
     m_rhs.resize(m_nstates);
 
-    ode->SetInitialConditions(m_states, *this);
+    SetInitialConditions(m_states);
 
     m_variables = new ChVariablesGenericDiagonalMass(m_nstates);
     m_variables->GetMassDiagonal().Constant(m_nstates, 1);
 
-    if (ode->IsStiff()) {
+    if (IsStiff()) {
         m_jac.resize(m_nstates, m_nstates);
 
         std::vector<ChVariables*> vars;
@@ -38,25 +43,23 @@ ChExternalDynamics::ChExternalDynamics(std::shared_ptr<ODE> ode) : m_ode(ode) {
     }
 }
 
-ChExternalDynamics::~ChExternalDynamics() {
-    delete m_variables;
-}
-
 ChExternalDynamics* ChExternalDynamics::Clone() const {
     return new ChExternalDynamics(*this);
 }
 
-// -----------------------------------------------------------------------------
-
-void ChExternalDynamics::ComputeQ(double time, ChVectorDynamic<>& rhs) {
-    m_ode->CalculateRHS(time, m_states, rhs, *this);
+ChVectorDynamic<> ChExternalDynamics::GetInitialStates() {
+    ChVectorDynamic<> y0(m_nstates);
+    SetInitialConditions(y0);
+    return y0;
 }
+
+// -----------------------------------------------------------------------------
 
 void ChExternalDynamics::ComputeJac(double time) {
     m_jac.setZero();
 
-    // Invoke user-provided Jacobian function
-    bool has_jac = m_ode->CalculateJac(time, m_states, m_rhs, m_jac, *this);
+    // Invoke Jacobian function
+    bool has_jac = CalculateJac(time, m_states, m_rhs, m_jac);
 
     // If Jacobian not provided, estimate with finite differences
     if (!has_jac) {
@@ -64,7 +67,7 @@ void ChExternalDynamics::ComputeJac(double time) {
         ChVectorDynamic<> Jcolumn(m_nstates);
         for (int i = 0; i < m_nstates; i++) {
             m_states(i) += m_FD_delta;
-            ComputeQ(time, rhs1);
+            CalculateRHS(time, m_states, rhs1);
             Jcolumn = (rhs1 - m_rhs) * (1 / m_FD_delta);
             m_jac.col(i) = Jcolumn;
             m_states(i) -= m_FD_delta;
@@ -76,10 +79,10 @@ void ChExternalDynamics::Update(double time, bool update_assets) {
     ChTime = time;
 
     // Compute forcing terms at current states
-    ComputeQ(time, m_rhs);
+    CalculateRHS(time, m_states, m_rhs);
 
     // Compute Jacobian (if needed)
-    if (m_ode->IsStiff()) {
+    if (IsStiff()) {
         ComputeJac(time);
     }
 
@@ -101,7 +104,7 @@ void ChExternalDynamics::InjectKRMmatrices(ChSystemDescriptor& descriptor) {
     // The base class does nothing
     ChPhysicsItem::InjectVariables(descriptor);
 
-    if (m_ode->IsStiff()) {
+    if (IsStiff()) {
         descriptor.InsertKblock(&m_KRM);
     }
 }
@@ -195,7 +198,7 @@ void ChExternalDynamics::IntFromDescriptor(const unsigned int off_v,  // offset 
 // -----------------------------------------------------------------------------
 
 void ChExternalDynamics::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
-    if (m_ode->IsStiff()) {
+    if (IsStiff()) {
         // Recall to flip sign to load K = -dQ/dx and R = -dQ/dv
         m_KRM.Get_K() = -Rfactor * m_jac;
     }

@@ -25,65 +25,66 @@
 
 namespace chrono {
 
+/// Physics element that carries its own dynamics, described as a system of ODEs.
+/// The internal states are integrated simultaneous with the containing system and they can be accessed and used coupled
+/// with other physics elements.
 class ChApi ChExternalDynamics : public ChPhysicsItem {
   public:
-    /// Class to be used as a callback interface for specifying the ODE, y' = f(t,y); y(0) = y0.
-    class ChApi ODE {
-      public:
-        virtual ~ODE() {}
-
-        /// Declare as stiff (default: false).
-        /// If stiff, Jacobian information will be generated.
-        virtual bool IsStiff() const { return false; }
-
-        /// Specify number of states (dimension of y).
-        virtual int GetNumStates() const = 0;
-
-        /// Set initial conditions.
-        /// Must load y0 = y(0).
-        virtual void SetInitialConditions(ChVectorDynamic<>& y0,          ///< output initial conditions vector
-                                          const ChExternalDynamics& item  ///< associated physics item
-                                          ) = 0;
-
-        /// Calculate and return the ODE right-hand side at the provided time and states.
-        /// Must load rhs = f(t,y).
-        virtual void CalculateRHS(double time,                    ///< current time
-                                  const ChVectorDynamic<>& y,     ///< current ODE states
-                                  ChVectorDynamic<>& rhs,         ///< output ODE right-hand side vector
-                                  const ChExternalDynamics& item  ///< associated physics item
-                                  ) = 0;
-
-        /// Calculate the Jacobian of the ODE right-hand side with respect to the ODE states.
-        /// Must load J = df/dy.
-        /// Only used if the physics item is declared as stiff.  If provided, load df/dy into the provided matrix 'jac'
-        /// (already set to zero before the call) and return 'true'. In that case, the user-provided Jacobian will
-        /// overwrite the default finite-difference approximation.
-        virtual bool CalculateJac(double time,                    ///< current time
-                                  const ChVectorDynamic<>& y,     ///< current ODE states
-                                  const ChVectorDynamic<>& rhs,   ///< current ODE right-hand side vector
-                                  ChMatrixDynamic<>& J,           ///< output Jacobian matrix
-                                  const ChExternalDynamics& item  ///< associated physics item
-        ) {
-            return false;
-        }
-    };
-
-    ChExternalDynamics(std::shared_ptr<ODE> ode);
-    ~ChExternalDynamics();
+    virtual ~ChExternalDynamics();
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChExternalDynamics* Clone() const override;
 
+    /// Initialize the physics item.
+    void Initialize();
+
+    /// Get the initial values (state at initial time).
+    ChVectorDynamic<> GetInitialStates();
+
     /// Get current states.
     const ChVectorDynamic<>& GetStates() const { return m_states; }
 
-  private:
-    virtual void Update(double mytime, bool update_assets = true) override;
+  protected:
+    ChExternalDynamics();
+
+    /// Declare as stiff (default: false).
+    /// If stiff, Jacobian information will be generated.
+    virtual bool IsStiff() const { return false; }
+
+    /// Specify number of states (dimension of y).
+    virtual int GetNumStates() const { return 0; }
+
+    /// Set initial conditions.
+    /// Must load y0 = y(0).
+    virtual void SetInitialConditions(ChVectorDynamic<>& y0) {}
+
+    /// Calculate and return the ODE right-hand side at the provided time and states.
+    /// Must load rhs = f(t,y).
+    virtual void CalculateRHS(double time,                 ///< current time
+                              const ChVectorDynamic<>& y,  ///< current ODE states
+                              ChVectorDynamic<>& rhs       ///< output ODE right-hand side vector
+    ) {}
+
+    /// Calculate the Jacobian of the ODE right-hand side with respect to the ODE states.
+    /// Must load J = df/dy.
+    /// Only used if the physics item is declared as stiff.  If provided, load df/dy into the provided matrix 'jac'
+    /// (already set to zero before the call) and return 'true'. In that case, the user-provided Jacobian will
+    /// overwrite the default finite-difference approximation.
+    virtual bool CalculateJac(double time,                   ///< current time
+                              const ChVectorDynamic<>& y,    ///< current ODE states
+                              const ChVectorDynamic<>& rhs,  ///< current ODE right-hand side vector
+                              ChMatrixDynamic<>& J           ///< output Jacobian matrix
+    ) {
+        return false;
+    }
+
+    virtual void Update(double time, bool update_assets = true) override;
 
     virtual int GetDOF() override { return m_nstates; }
 
-    // Interface to solver
     ChVariables& Variables() { return *m_variables; }
+
+    // Interface to solver
     virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
     virtual void InjectKRMmatrices(ChSystemDescriptor& descriptor) override;
 
@@ -127,16 +128,11 @@ class ChApi ChExternalDynamics : public ChPhysicsItem {
     virtual void VariablesQbIncrementPosition(double step) override;
     virtual void ConstraintsFbLoadForces(double factor = 1) override;
 
-    /// Compute generalized forces Q at the current time and state.
-    void ComputeQ(double time,            ///< current time
-                  ChVectorDynamic<>& rhs  ///< output forcing vector (ODE RHS)
-    );
-
     /// Compute the Jacobian at the current time and state.
     void ComputeJac(double time);
 
+  private:
     int m_nstates;                                ///< number of internal ODE states
-    std::shared_ptr<ODE> m_ode;                   ///< callback for ODE specification
     ChVectorDynamic<> m_states;                   ///< vector of internal ODE states
     ChVariablesGenericDiagonalMass* m_variables;  ///< carrier for internal dynamics states
 

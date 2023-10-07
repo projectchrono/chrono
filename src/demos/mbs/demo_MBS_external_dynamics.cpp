@@ -36,7 +36,7 @@ using namespace chrono;
 
 std::string out_dir = GetChronoOutputPath() + "DEMO_EXTERNAL_DYNAMICS";
 
-class VanDerPolODE : public ChExternalDynamics::ODE {
+class VanDerPolODE : public ChExternalDynamics {
   public:
     VanDerPolODE(double mu) : m_mu(mu) {}
 
@@ -44,27 +44,23 @@ class VanDerPolODE : public ChExternalDynamics::ODE {
 
     virtual bool IsStiff() const override { return m_mu > 10; }
 
-    virtual void SetInitialConditions(ChVectorDynamic<>& y0,          // output initial conditions vector
-                                      const ChExternalDynamics& item  // associated physics item
-                                      ) override {
+    virtual void SetInitialConditions(ChVectorDynamic<>& y0) override {
         y0(0) = 2.0;
         y0(1) = 0.0;
     }
 
-    virtual void CalculateRHS(double time,                    // current time
-                              const ChVectorDynamic<>& y,     // current ODE states
-                              ChVectorDynamic<>& rhs,         // output ODE right-hand side vector
-                              const ChExternalDynamics& item  // associated physics item
+    virtual void CalculateRHS(double time,                 // current time
+                              const ChVectorDynamic<>& y,  // current ODE states
+                              ChVectorDynamic<>& rhs       // output ODE right-hand side vector
                               ) override {
         rhs(0) = y(1);
         rhs(1) = m_mu * (1 - y(0) * y(0)) * y(1) - y(0);
     }
 
-    virtual bool CalculateJac(double time,                    // current time
-                              const ChVectorDynamic<>& y,     // current ODE states
-                              const ChVectorDynamic<>& rhs,   // current ODE right-hand side vector
-                              ChMatrixDynamic<>& J,           // output Jacobian matrix
-                              const ChExternalDynamics& item  // associated physics item
+    virtual bool CalculateJac(double time,                   // current time
+                              const ChVectorDynamic<>& y,    // current ODE states
+                              const ChVectorDynamic<>& rhs,  // current ODE right-hand side vector
+                              ChMatrixDynamic<>& J           // output Jacobian matrix
                               ) override {
         // Do not provide Jacobian information if problem not stiff
         if (!IsStiff())
@@ -95,9 +91,9 @@ int main(int argc, char* argv[]) {
     {
         ChSystemSMC sys;
 
-        auto ode = chrono_types::make_shared<VanDerPolODE>(1.0);
-        auto container = chrono_types::make_shared<ChExternalDynamics>(ode);
-        sys.Add(container);
+        auto vdp = chrono_types::make_shared<VanDerPolODE>(1.0);
+        vdp->Initialize();
+        sys.Add(vdp);
 
         double t_end = 10;
         double t_step = 1e-2;
@@ -106,12 +102,12 @@ int main(int argc, char* argv[]) {
 
         Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, "  ", "  ", "", "", "", "");
         utils::CSV_writer csv(" ");
-        ode->SetInitialConditions(y, *container);
+        y = vdp->GetInitialStates();
         csv << t << y.format(rowFmt) << std::endl;
 
         while (t < t_end) {
             sys.DoStepDynamics(t_step);
-            y = container->GetStates();
+            y = vdp->GetStates();
             csv << t << y.format(rowFmt) << std::endl;
             t += t_step;
         }
@@ -134,9 +130,9 @@ int main(int argc, char* argv[]) {
     {
         ChSystemSMC sys;
 
-        auto ode = chrono_types::make_shared<VanDerPolODE>(300.0);
-        auto container = chrono_types::make_shared<ChExternalDynamics>(ode);
-        sys.Add(container);
+        auto vdp = chrono_types::make_shared<VanDerPolODE>(300.0);
+        vdp->Initialize();
+        sys.Add(vdp);
 
         auto solver = chrono_types::make_shared<ChSolverSparseQR>();
         sys.SetSolver(solver);
@@ -157,12 +153,12 @@ int main(int argc, char* argv[]) {
 
         Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, "  ", "  ", "", "", "", "");
         utils::CSV_writer csv(" ");
-        ode->SetInitialConditions(y, *container);
+        y = vdp->GetInitialStates();
         csv << t << y.format(rowFmt) << std::endl;
 
         while (t < t_end) {
             sys.DoStepDynamics(t_step);
-            y = container->GetStates();
+            y = vdp->GetStates();
             csv << t << y.format(rowFmt) << std::endl;
             t += t_step;
         }
