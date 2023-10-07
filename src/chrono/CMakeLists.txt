@@ -312,6 +312,20 @@ source_group(physics\\loads FILES
     ${ChronoEngine_physics_loads_SOURCES}
     ${ChronoEngine_physics_loads_HEADERS})
 
+set(ChronoEngine_physics_hydraulics_SOURCES
+    physics/ChHydraulicCircuit.cpp
+    physics/ChHydraulicActuator.cpp
+)
+
+set(ChronoEngine_physics_hydraulics_HEADERS
+    physics/ChHydraulicCircuit.h
+    physics/ChHydraulicActuator.h
+)
+
+source_group(physics\\hydraulics FILES
+    ${ChronoEngine_physics_hydraulics_SOURCES}
+    ${ChronoEngine_physics_hydraulics_HEADERS})
+
 set(ChronoEngine_physics_shafts_SOURCES
     physics/ChShaft.cpp
     physics/ChShaftsGear.cpp
@@ -1299,6 +1313,8 @@ set(ChronoEngine_FILES
     ${ChronoEngine_physics_links_HEADERS}
     ${ChronoEngine_physics_loads_SOURCES}
     ${ChronoEngine_physics_loads_HEADERS}
+    ${ChronoEngine_physics_hydraulics_SOURCES}
+    ${ChronoEngine_physics_hydraulics_HEADERS}
     ${ChronoEngine_physics_shafts_SOURCES}
     ${ChronoEngine_physics_shafts_HEADERS}
     ${ChronoEngine_fea_SOURCES}
