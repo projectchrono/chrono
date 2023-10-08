@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#ifndef CH_LUT_TIRE_H
-#define CH_LUT_TIRE_H
+#ifndef CH_MB_TIRE_H
+#define CH_MB_TIRE_H
 
 #include "chrono/fea/ChNodeFEAxyz.h"
 
@@ -38,11 +38,11 @@ class CH_VEHICLE_API ChMBTire : public ChDeformableTire {
     virtual ~ChMBTire() {}
 
     /// Get the name of the vehicle subsystem template.
-    virtual std::string GetTemplateName() const override { return "LUTTire"; }
+    virtual std::string GetTemplateName() const override { return "MBTire"; }
 
     /// Set the tire geometry.
-    void SetTireGeometry(const std::vector<double>& ring_radii,    ///<
-                         const std::vector<double>& ring_offsets,  ///<
+    void SetTireGeometry(const std::vector<double>& ring_radii,    ///< radii of node rings
+                         const std::vector<double>& ring_offsets,  ///< transversal offsets of node rings
                          int num_divs,                             ///< number of divisions in circumferential direction
                          double rim_radius                         ///< radius of wheel rim
     );
@@ -51,12 +51,16 @@ class CH_VEHICLE_API ChMBTire : public ChDeformableTire {
     void SetTireMass(double mass);
 
     /// Set tire material properties.
-    void SetTireProperties(double kR,  ///< radial elastic coefficient
-                           double cR,  ///< radial damping coefficient
-                           double kC,  ///< circumferential elastic coefficient
-                           double cC,  ///< circumferential damping coefficient
-                           double kT,  ///< transversal elastic coefficient
-                           double cT   ///< transversal damping coefficient
+    void SetTireProperties(double kR,  ///< radial spring elastic coefficient
+                           double cR,  ///< radial spring damping coefficient
+                           double kW,  ///< wall spring elastic coefficient
+                           double cW,  ///< wall spring damping coefficient
+                           double kC,  ///< circumferential spring elastic coefficient
+                           double cC,  ///< circumferential spring damping coefficient
+                           double kT,  ///< transversal spring elastic coefficient
+                           double cT,  ///< transversal spring damping coefficient
+                           double kB,  ///< bending spring elastic coefficient
+                           double cB   ///< bending spring damping coefficient
     );
 
     /// Set contact material properties.
@@ -105,7 +109,7 @@ class CH_VEHICLE_API ChMBTire : public ChDeformableTire {
     // Overrides of ChDeformableTire functions
     virtual void CreateContactMaterial() override final;
 
-    // Overrides of ChDeformableTire functions not implemented (used) by ChLUTTire
+    // Overrides of ChDeformableTire functions not implemented (used) by ChMBTire
     virtual void CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) override final {}
     virtual void CreatePressureLoad() override final {}
     virtual void CreateContactSurface() override final {}
@@ -119,10 +123,10 @@ class CH_VEHICLE_API ChMBTire : public ChDeformableTire {
 
 // =============================================================================
 
-// Underlying (private) implementation of the LUT tire model.
+// Underlying (private) implementation of the MB tire model.
 class MBTireModel : public ChPhysicsItem {
   private:
-    // Construct the LUT tire relative to the specified frame (frame of associated wheel).
+    // Construct the MB tire relative to the specified frame (frame of associated wheel).
     void Construct(const ChFrameMoving<>& wheel_frame);
 
     // Calculate COG and inertia, expressed relative to the specified frame.
@@ -146,6 +150,8 @@ class MBTireModel : public ChPhysicsItem {
     void AddVisualizationAssets(VisualizationType vis);
 
     // State functions
+    virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
+
     virtual void IntStateGather(const unsigned int off_x,
                                 ChState& x,
                                 const unsigned int off_v,
@@ -196,11 +202,12 @@ class MBTireModel : public ChPhysicsItem {
     int m_dofs;    // total degrees of freedom
     int m_dofs_w;  // total degrees of freedom, derivative (Lie algebra)
 
-    int m_num_rings;      // number of rings
-    int m_num_divs;       // number of nodes per ring
-    int m_num_rim_nodes;  // number of nodes attached to rim
-    int m_num_nodes;      // number of nodes and visualization vertices
-    int m_num_faces;      // number of visualization triangles
+    int m_num_rings;       // number of rings
+    int m_num_divs;        // number of nodes per ring
+    int m_num_rim_nodes;   // number of nodes attached to rim
+    int m_num_wall_nodes;  // number of nodes attached to wall
+    int m_num_nodes;       // number of nodes and visualization vertices
+    int m_num_faces;       // number of visualization triangles
 
     double m_node_mass;  // nodal mass
 
@@ -211,35 +218,51 @@ class MBTireModel : public ChPhysicsItem {
 
     double m_kR;  // radial elastic coefficient
     double m_cR;  // radial damping coefficient
+    double m_kW;  // wall elastic coefficient
+    double m_cW;  // wall damping coefficient
     double m_kC;  // circumferential elastic coefficient
     double m_cC;  // circumferential damping coefficient
     double m_kT;  // transversal elastic coefficient
     double m_cT;  // transversal damping coefficient
+    double m_kB;  // bending elastic coefficient
+    double m_cB;  // bending damping coefficient
 
-    std::vector<std::shared_ptr<fea::ChNodeFEAxyz>> m_rim_nodes;  // FEA nodes fixed to the rim
-    std::vector<std::shared_ptr<fea::ChNodeFEAxyz>> m_nodes;      // FEA nodes
-    std::shared_ptr<fea::ChContactSurface> m_contact_surf;        // contact surface
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;         // mesh visualization asset
+    std::vector<std::shared_ptr<fea::ChNodeFEAxyz>> m_rim_nodes;   // FEA nodes fixed to the rim
+    std::vector<std::shared_ptr<fea::ChNodeFEAxyz>> m_wall_nodes;  // FEA nodes fixed to the wall
+    std::vector<std::shared_ptr<fea::ChNodeFEAxyz>> m_nodes;       // FEA nodes
+    std::shared_ptr<fea::ChContactSurface> m_contact_surf;         // contact surface
+    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;          // mesh visualization asset
 
-    enum class SpringType { RADIAL, CIRCUMFERENTIAL_1, CIRCUMFERENTIAL_2, TRANSVERSAL_1, TRANSVERSAL_2 };
+    enum class SpringType { RADIAL, CIRCUMFERENTIAL, TRANSVERSAL, WALL };
 
-    struct Spring {
+    struct Spring2 {
         SpringType type;  // spring type
-        int node1;        // index of first attachment node (rim node for a RADIAL spring)
+        int node1;        // index of first attachment node
         int node2;        // index of second attachment node
         double l0;        // spring free length
         double k;         // spring coefficient
         double c;         // damping coefficient
-        ChVector<> dir;   // current spring direction
-        double force;     // current spring force
+        ////ChVector<> dir;   // current spring direction
+        ////double force;     // current spring force
     };
 
-    std::vector<Spring> m_radial_springs;
-    std::vector<Spring> m_mesh_springs;
+    struct Spring3 {
+        int node;         // index of central node
+        int node_p;       // index of previous node
+        int node_n;       // index of next node
+        double k;         // spring coefficient
+        double c;         // damping coefficient
+    };
+    
+
+    std::vector<Spring2> m_radial_springs;
+    std::vector<Spring2> m_wall_springs;
+    std::vector<Spring2> m_mesh_springs;
+    std::vector<Spring3> m_bending_springs;
 
     ChVector<> m_wheel_force;  // applied wheel spindle force
 
-    ChMBTire* m_tire;  // owner ChLUTTire object
+    ChMBTire* m_tire;  // owner ChMBTire object
     ChBody* m_wheel;   // associated wheel body
 
     friend class ChMBTire;

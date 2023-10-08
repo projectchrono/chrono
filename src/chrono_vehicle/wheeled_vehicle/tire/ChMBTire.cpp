@@ -55,13 +55,26 @@ void ChMBTire::SetTireMass(double mass) {
     m_mass = mass;
 }
 
-void ChMBTire::SetTireProperties(double kR, double cR, double kC, double cC, double kT, double cT) {
+void ChMBTire::SetTireProperties(double kR,
+                                 double cR,
+                                 double kW,
+                                 double cW,
+                                 double kC,
+                                 double cC,
+                                 double kT,
+                                 double cT,
+                                 double kB,
+                                 double cB) {
     m_model->m_kR = kR;
     m_model->m_cR = cR;
+    m_model->m_kW = kW;
+    m_model->m_cW = cW;
     m_model->m_kC = kC;
     m_model->m_cC = cC;
     m_model->m_kT = kT;
     m_model->m_cT = cT;
+    m_model->m_kB = kB;
+    m_model->m_cB = cB;
 }
 
 void ChMBTire::SetTireContactMaterial(const ChContactMaterialData& mat_data) {
@@ -118,8 +131,8 @@ TerrainForce ChMBTire::ReportTireForce(ChTerrain* terrain) const {
 }
 
 TerrainForce ChMBTire::ReportTireForceLocal(ChTerrain* terrain, ChCoordsys<>& tire_frame) const {
-    std::cerr << "ChLUTTire::ReportTireForceLocal not implemented." << std::endl;
-    throw ChException("ChLUTTire::ReportTireForceLocal not implemented.");
+    std::cerr << "ChMBTire::ReportTireForceLocal not implemented." << std::endl;
+    throw ChException("ChMBTire::ReportTireForceLocal not implemented.");
 }
 
 void ChMBTire::AddVisualizationAssets(VisualizationType vis) {
@@ -179,12 +192,13 @@ int MBTireModel::RimNodeIndex(int ir, int id) {
 
 void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
     m_num_rim_nodes = 2 * m_num_divs;
+    m_num_wall_nodes = 2 * m_num_divs;
     m_num_nodes = m_num_rings * m_num_divs;
     m_num_faces = 2 * (m_num_rings - 1) * m_num_divs;
 
     m_node_mass = m_tire->GetMass() / m_num_nodes;
 
-    // Create the visualization shape and access the underling trimesh
+    // Create the visualization shape and get accessors to the underling trimesh
     m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     auto trimesh = m_trimesh_shape->GetMesh();
     auto& vertices = trimesh->getCoordsVertices();
@@ -193,6 +207,8 @@ void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
     auto& idx_normals = trimesh->getIndicesNormals();
     ////auto& uv_coords = trimesh->getCoordsUV();
     auto& colors = trimesh->getCoordsColors();
+
+    // ------------ Nodes
 
     // Create the FEA nodes (with positions expressed in the global frame) and load the mesh vertices.
     m_nodes.resize(m_num_nodes);
@@ -213,18 +229,27 @@ void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
         }
     }
 
-    // Create the FEA nodes attached to the rim
+    // Create the FEA nodes attached to the rim and to the wall
     m_rim_nodes.resize(m_num_rim_nodes);
+    m_wall_nodes.resize(m_num_wall_nodes);
     k = 0;
     {
         double y = m_offsets[0];
         for (int id = 0; id < m_num_divs; id++) {
             double phi = id * dphi;
+            
             double x = m_rim_radius * std::cos(phi);
             double z = m_rim_radius * std::sin(phi);
             auto loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
             m_rim_nodes[k] = chrono_types::make_shared<fea::ChNodeFEAxyz>(loc);
             m_rim_nodes[k]->SetMass(m_node_mass);
+
+            x = m_radii[0] * std::cos(phi);
+            z = m_radii[0] * std::sin(phi);
+            loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
+            m_wall_nodes[k] = chrono_types::make_shared<fea::ChNodeFEAxyz>(loc);
+            m_wall_nodes[k]->SetMass(m_node_mass);
+
             k++;
         }
     }
@@ -232,14 +257,24 @@ void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
         double y = m_offsets[m_num_rings - 1];
         for (int id = 0; id < m_num_divs; id++) {
             double phi = id * dphi;
+
             double x = m_rim_radius * std::cos(phi);
             double z = m_rim_radius * std::sin(phi);
             auto loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
             m_rim_nodes[k] = chrono_types::make_shared<fea::ChNodeFEAxyz>(loc);
             m_rim_nodes[k]->SetMass(m_node_mass);
+
+            x = m_radii[m_num_rings - 1] * std::cos(phi);
+            z = m_radii[m_num_rings - 1] * std::sin(phi);
+            loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
+            m_wall_nodes[k] = chrono_types::make_shared<fea::ChNodeFEAxyz>(loc);
+            m_wall_nodes[k]->SetMass(m_node_mass);
+
             k++;
         }
     }
+
+    // ------------ Springs
 
     // Set up radial springs
     for (int id = 0; id < m_num_divs; id++) {
@@ -248,7 +283,7 @@ void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
         const auto& pos1 = m_rim_nodes[node1]->GetPos();
         const auto& pos2 = m_nodes[node2]->GetPos();
 
-        Spring spring;
+        Spring2 spring;
         spring.type = SpringType::RADIAL;
         spring.node1 = node1;
         spring.node2 = node2;
@@ -263,7 +298,7 @@ void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
         const auto& pos1 = m_rim_nodes[node1]->GetPos();
         const auto& pos2 = m_nodes[node2]->GetPos();
 
-        Spring spring;
+        Spring2 spring;
         spring.type = SpringType::RADIAL;
         spring.node1 = node1;
         spring.node2 = node2;
@@ -273,33 +308,66 @@ void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
         m_radial_springs.push_back(spring);
     }
 
+    // Set up wall springs
+    for (int id = 0; id < m_num_divs; id++) {
+        int node1 = RimNodeIndex(0, id);
+        int node2 = NodeIndex(0, id);
+        const auto& pos1 = m_wall_nodes[node1]->GetPos();
+        const auto& pos2 = m_nodes[node2]->GetPos();
+   
+        Spring2 spring;
+        spring.type = SpringType::WALL;
+        spring.node1 = node1;
+        spring.node2 = node2;
+        spring.l0 = (pos2 - pos1).Length();
+        spring.k = m_kW;
+        spring.c = m_cW;
+        m_wall_springs.push_back(spring);
+    }
+    for (int id = 0; id < m_num_divs; id++) {
+        int node1 = RimNodeIndex(m_num_rings - 1, id);
+        int node2 = NodeIndex(m_num_rings - 1, id);
+        const auto& pos1 = m_wall_nodes[node1]->GetPos();
+        const auto& pos2 = m_nodes[node2]->GetPos();
+   
+        Spring2 spring;
+        spring.type = SpringType::WALL;
+        spring.node1 = node1;
+        spring.node2 = node2;
+        spring.l0 = (pos2 - pos1).Length();
+        spring.k = m_kW;
+        spring.c = m_cW;
+        m_wall_springs.push_back(spring);
+    }
+
     // Set up circumferential springs
     for (int ir = 0; ir < m_num_rings; ir++) {
         for (int id = 0; id < m_num_divs; id++) {
             int node1 = NodeIndex(ir, id);
             int node2 = NodeIndex(ir, id + 1);
-            int node3 = NodeIndex(ir, id + 2);
             const auto& pos1 = m_nodes[node1]->GetPos();
-            {
-                Spring spring;
-                spring.type = SpringType::CIRCUMFERENTIAL_1;
-                spring.node1 = node1;
-                spring.node2 = node2;
-                spring.l0 = (m_nodes[node2]->GetPos() - pos1).Length();
-                spring.k = m_kC;
-                spring.c = m_cC;
-                m_mesh_springs.push_back(spring);
-            }
-            {
-                Spring spring;
-                spring.type = SpringType::CIRCUMFERENTIAL_2;
-                spring.node1 = node1;
-                spring.node2 = node3;
-                spring.l0 = (m_nodes[node3]->GetPos() - pos1).Length();
-                spring.k = m_kC;
-                spring.c = m_cC;
-                m_mesh_springs.push_back(spring);
-            }
+
+            Spring2 spring;
+            spring.type = SpringType::CIRCUMFERENTIAL;
+            spring.node1 = node1;
+            spring.node2 = node2;
+            spring.l0 = (m_nodes[node2]->GetPos() - pos1).Length();
+            spring.k = m_kC;
+            spring.c = m_cC;
+            m_mesh_springs.push_back(spring);
+        }
+    }
+
+    // Set up bending springs
+    for (int ir = 0; ir < m_num_rings; ir++) {
+        for (int id = 0; id < m_num_divs; id++) {       
+            Spring3 spring;
+            spring.node = NodeIndex(ir, id);
+            spring.node_p = NodeIndex(ir, id - 1);
+            spring.node_n = NodeIndex(ir, id + 1);
+            spring.k = m_kB;
+            spring.c = m_cB;
+            m_bending_springs.push_back(spring);
         }
     }
 
@@ -308,30 +376,20 @@ void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
         for (int id = 0; id < m_num_divs; id++) {
             int node1 = NodeIndex(ir, id);
             int node2 = NodeIndex(ir + 1, id);
-            int node3 = NodeIndex(ir + 2, id);
             const auto& pos1 = m_nodes[node1]->GetPos();
-            {
-                Spring spring;
-                spring.type = SpringType::TRANSVERSAL_1;
-                spring.node1 = node1;
-                spring.node2 = node2;
-                spring.l0 = (m_nodes[node2]->GetPos() - pos1).Length();
-                spring.k = m_kT;
-                spring.c = m_cT;
-                m_mesh_springs.push_back(spring);
-            }
-            if (node3 != -1) {
-                Spring spring;
-                spring.type = SpringType::TRANSVERSAL_2;
-                spring.node1 = node1;
-                spring.node2 = node3;
-                spring.l0 = (m_nodes[node3]->GetPos() - pos1).Length();
-                spring.k = m_kT;
-                spring.c = m_cT;
-                m_mesh_springs.push_back(spring);
-            }
+
+            Spring2 spring;
+            spring.type = SpringType::TRANSVERSAL;
+            spring.node1 = node1;
+            spring.node2 = node2;
+            spring.l0 = (m_nodes[node2]->GetPos() - pos1).Length();
+            spring.k = m_kT;
+            spring.c = m_cT;
+            m_mesh_springs.push_back(spring);
         }
     }
+
+    // ------------ Collision and visualization meshes
 
     // Auxiliary face information (for possible collision mesh)
     struct FaceAuxData {
@@ -448,7 +506,7 @@ void MBTireModel::CalculateForces(const ChFrameMoving<>& wheel_frame) {
     const auto& w_pos = wheel_frame.GetPos();
     const auto& w_vel = wheel_frame.GetPos_dt();
 
-    // Forces in radial springs
+    // Forces in radial springs (node1: rim node)
     for (const auto& spring : m_radial_springs) {
         const auto& pos1 = m_rim_nodes[spring.node1]->GetPos();
         const auto& vel1 = m_rim_nodes[spring.node1]->GetPos_dt();
@@ -462,6 +520,23 @@ void MBTireModel::CalculateForces(const ChFrameMoving<>& wheel_frame) {
         double force = spring.k * (length - spring.l0) - spring.c * speed;
         //// TODO
         // m_wheel_force += ...
+        // m_nodal_forces[spring.node2] += ...
+    }
+
+    // Forces in wall springs (node1: wall node)
+    for (const auto& spring : m_wall_springs) {
+        const auto& pos1 = m_wall_nodes[spring.node1]->GetPos();
+        const auto& vel1 = m_wall_nodes[spring.node1]->GetPos_dt();
+        const auto& pos2 = m_nodes[spring.node2]->GetPos();
+        const auto& vel2 = m_nodes[spring.node2]->GetPos_dt();
+
+        auto dir = pos2 - pos1;
+        double length = dir.Length();
+        dir /= length;
+        double speed = Vdot(vel2 - vel1, dir);
+        double force = spring.k * (length - spring.l0) - spring.c * speed;
+        //// TODO
+        // m_wheel_force += ...   //// TODO : do we need to include these?!?!
         // m_nodal_forces[spring.node2] += ...
     }
 
@@ -482,7 +557,22 @@ void MBTireModel::CalculateForces(const ChFrameMoving<>& wheel_frame) {
         // m_nodal_forces[spring.node2] += ...
     }
 
-    // Apply loads on FEA ndes
+    // Forces in bending springs
+    for (const auto& spring : m_bending_springs) {
+        const auto& pos = m_nodes[spring.node]->GetPos();
+        const auto& vel = m_nodes[spring.node]->GetPos_dt();
+        const auto& pos_p = m_nodes[spring.node_p]->GetPos();
+        const auto& vel_p = m_nodes[spring.node_p]->GetPos_dt();
+        const auto& pos_n = m_nodes[spring.node_n]->GetPos();
+        const auto& vel_n = m_nodes[spring.node_n]->GetPos_dt();
+
+        //// TODO
+        // m_nodal_forces[spring.node] += ...
+        // m_nodal_forces[spring.node_p] += ...
+        // m_nodal_forces[spring.node_n] += ...
+    }
+
+    // Apply loads on FEA nodes
     for (int k = 0; k < m_num_nodes; k++) {
         m_nodes[k]->SetForce(nodal_forces[k]);
     }
@@ -526,7 +616,10 @@ void MBTireModel::SetupInitial() {
     }
 }
 
+//// TODO: Cache (normalized) locations around the rim to save sin/cos evaluations
 void MBTireModel::Setup() {
+    std::cout << m_nodes[0]->GetPos_dtdt() << std::endl;
+
     // Recompute DOFs and state offsets
     m_dofs = 0;
     m_dofs_w = 0;
@@ -540,18 +633,26 @@ void MBTireModel::Setup() {
         m_dofs_w += node->GetNdofW_active();
     }
 
-    // Impose position and velocity of rim nodes
+    // Impose position and velocity of rim and wall nodes
     double dphi = CH_C_2PI / m_num_divs;
     int k = 0;
     {
         double y = m_offsets[0];
         for (int id = 0; id < m_num_divs; id++) {
             double phi = id * dphi;
+
             double x = m_rim_radius * std::cos(phi);
             double z = m_rim_radius * std::sin(phi);
             auto pos_loc = ChVector<>(x, y, z);
             m_rim_nodes[k]->SetPos(m_wheel->TransformPointLocalToParent(pos_loc));
             m_rim_nodes[k]->SetPos_dt(m_wheel->PointSpeedLocalToParent(pos_loc));
+
+            x = m_radii[0] * std::cos(phi);
+            z = m_radii[0] * std::sin(phi);
+            pos_loc = ChVector<>(x, y, z);
+            m_wall_nodes[k]->SetPos(m_wheel->TransformPointLocalToParent(pos_loc));
+            m_wall_nodes[k]->SetPos_dt(m_wheel->PointSpeedLocalToParent(pos_loc));
+
             k++;
         }
     }
@@ -559,11 +660,19 @@ void MBTireModel::Setup() {
         double y = m_offsets[m_num_rings - 1];
         for (int id = 0; id < m_num_divs; id++) {
             double phi = id * dphi;
+
             double x = m_rim_radius * std::cos(phi);
             double z = m_rim_radius * std::sin(phi);
             auto pos_loc = ChVector<>(x, y, z);
             m_rim_nodes[k]->SetPos(m_wheel->TransformPointLocalToParent(pos_loc));
             m_rim_nodes[k]->SetPos_dt(m_wheel->PointSpeedLocalToParent(pos_loc));
+
+            x = m_radii[m_num_rings - 1] * std::cos(phi);
+            z = m_radii[m_num_rings - 1] * std::sin(phi);
+            pos_loc = ChVector<>(x, y, z);
+            m_wall_nodes[k]->SetPos(m_wheel->TransformPointLocalToParent(pos_loc));
+            m_wall_nodes[k]->SetPos_dt(m_wheel->PointSpeedLocalToParent(pos_loc));
+
             k++;
         }
     }
@@ -602,6 +711,14 @@ void MBTireModel::AddVisualizationAssets(VisualizationType vis) {
 
     for (const auto& node : m_rim_nodes) {
         auto sph = chrono_types::make_shared<ChSphereShape>(0.01);
+        sph->SetColor(ChColor(1.0f, 0.0f, 0.0f));
+        auto loc = m_wheel->TransformPointParentToLocal(node->GetPos());
+        m_wheel->AddVisualShape(sph, ChFrame<>(loc));
+    }
+
+    for (const auto& node : m_wall_nodes) {
+        auto sph = chrono_types::make_shared<ChSphereShape>(0.01);
+        sph->SetColor(ChColor(0.0f, 0.0f, 1.0f));
         auto loc = m_wheel->TransformPointParentToLocal(node->GetPos());
         m_wheel->AddVisualShape(sph, ChFrame<>(loc));
     }
@@ -611,6 +728,11 @@ void MBTireModel::AddVisualizationAssets(VisualizationType vis) {
 }
 
 // -----------------------------------------------------------------------------
+
+void MBTireModel::InjectVariables(ChSystemDescriptor& descriptor) {
+    for (auto& node : m_nodes)
+        node->InjectVariables(descriptor);
+}
 
 void MBTireModel::IntStateGather(const unsigned int off_x,
                                  ChState& x,
