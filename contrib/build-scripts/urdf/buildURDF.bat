@@ -14,7 +14,7 @@ set DOWNLOAD=ON
 
 set URDF_INSTALL_DIR="C:/Packages/urdf"
 
-set BUILDDEBUG=ON
+set BUILDDEBUG=OFF
 
 @if %DOWNLOAD% EQU OFF (
     set TINYXML2_SOURCE_DIR="C:/Sources/tinyxml2"

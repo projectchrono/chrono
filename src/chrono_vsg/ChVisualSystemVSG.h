@@ -80,6 +80,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Returns `false` if the viewer was closed.
     virtual bool Run() override;
 
+    // Terminate the VSG visualization.
+    virtual void Quit() override;
+
     /// Perform any necessary operations at the beginning of each rendering frame.
     virtual void BeginScene() override {}
 
@@ -108,9 +111,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Create a snapshot of the frame to be rendered and save it to the provided file.
     /// The file extension determines the image format.
     virtual void WriteImageToFile(const std::string& filename) override;
-
-    // Terminate the VSG visualization.
-    void Quit();
 
     void SetWindowSize(const ChVector2<int>& size);
     void SetWindowSize(int width, int height);

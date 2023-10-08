@@ -51,6 +51,10 @@ namespace irrlicht {
 class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
   public:
     ChVisualSystemIrrlicht();
+
+    /// Auto-initialized run-time visualization system, with default settings.
+    ChVisualSystemIrrlicht(ChSystem* sys, const ChVector<>& camera_pos = ChVector<>(2, 2, 2), const ChVector<>& camera_targ = ChVector<>(0, 0, 0));
+
     virtual ~ChVisualSystemIrrlicht();
 
     /// Attach another Chrono system to the run-time visualization system.
@@ -257,6 +261,9 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// Run the Irrlicht device.
     /// Returns `false` if the device wants to be deleted.
     virtual bool Run() override;
+
+    // Terminate the Irrlicht visualization.
+    virtual void Quit() override;
 
     /// Perform any necessary operations at the beginning of each rendering frame.
     virtual void BeginScene() override;

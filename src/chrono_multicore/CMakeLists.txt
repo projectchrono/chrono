@@ -395,7 +395,7 @@ ENDIF()
 # ------------------------------------------------------------------------------
 
 IF(USE_MULTICORE_CUDA)
-    CUDA_ADD_LIBRARY(ChronoEngine_multicore SHARED
+    CUDA_ADD_LIBRARY(ChronoEngine_multicore
             ${ChronoEngine_Multicore_BASE}
             ${ChronoEngine_Multicore_PHYSICS}
             ${ChronoEngine_Multicore_CUDA}
@@ -405,7 +405,7 @@ IF(USE_MULTICORE_CUDA)
             ) 
     SET(CHRONO_MULTICORE_LINKED_LIBRARIES ChronoEngine ${CUDA_FRAMEWORK} ${OPENMP_LIBRARIES} ${TBB_LIBRARIES})
 ELSE()
-    ADD_LIBRARY(ChronoEngine_multicore SHARED
+    ADD_LIBRARY(ChronoEngine_multicore
             ${ChronoEngine_Multicore_BASE}
             ${ChronoEngine_Multicore_PHYSICS}
             ${ChronoEngine_Multicore_COLLISION}
@@ -431,7 +431,7 @@ else()
 endif()
 
 SET_TARGET_PROPERTIES(ChronoEngine_multicore PROPERTIES
-                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+                      LINK_FLAGS "${CH_LINKERFLAG_LIB}")
 
 target_compile_definitions(ChronoEngine_multicore PRIVATE "CH_API_COMPILE_MULTICORE")
 target_compile_definitions(ChronoEngine_multicore PRIVATE "CH_IGNORE_DEPRECATED")

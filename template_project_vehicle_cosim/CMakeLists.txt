@@ -12,7 +12,7 @@ cmake_minimum_required(VERSION 3.10)
 
 #--------------------------------------------------------------
 # === 1 === 
-# Modify the project name if you want: 
+# Set the project name
 #--------------------------------------------------------------
 
 project(vehicle_cosim)
@@ -22,12 +22,13 @@ project(vehicle_cosim)
 # Find the Chrono package and any REQUIRED or OPTIONAL modules
 # by invoking the find_package function in CONFIG mode:
 #    find_package(Chrono
-#	              COMPONENTS req_module1 req_module1 ...
-#	              OPTIONAL opt_module1 opt_module2 ...
+#	                COMPONENTS req_module1 req_module1 ...
+#	                OPTIONAL_COMPONENTS opt_module1 opt_module2 ...
 #                 CONFIG)
 # The following Chrono components can be requested (case insensitive): 
 #   Cascade, Cosimulation, Irrlicht, OpenGL, Matlab, Multicore, Gpu,
-#   PardisoMKL, PardisoProject, Postprocess, Python, Vehicle, VehicleCosim.  
+#   PardisoMKL, PardisoProject, Postprocess, Python, Vehicle,
+#   VehicleCosimm, VSG.
 # A component can be requested either as required or optional
 # (see the CMake documentation for find_package).
 # 
@@ -49,6 +50,14 @@ if (NOT Chrono_FOUND)
   message("Could not find Chrono or one of its required modules")
   return()
 endif()
+
+#--------------------------------------------------------------
+# Important! To ensure ABI compatibility, use the same C++ standard
+# as the one used to build the Chrono libraries.
+#--------------------------------------------------------------
+
+set(CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD ${CHRONO_CXX_STANDARD})
 
 #--------------------------------------------------------------
 # Add path to Chrono headers and to headers of all dependencies
@@ -117,4 +126,4 @@ target_link_libraries(vehicle_cosim ${CHRONO_LIBRARIES})
 #--------------------------------------------------------------
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
-add_DLL_copy_command("${CHRONO_DLLS}")
+add_DLL_copy_command()

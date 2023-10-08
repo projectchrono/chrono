@@ -84,6 +84,20 @@ ChVisualSystemIrrlicht::ChVisualSystemIrrlicht()
         capsuleMesh->grab();
 }
 
+ChVisualSystemIrrlicht::ChVisualSystemIrrlicht(ChSystem* sys, const ChVector<>& camera_pos, const ChVector<>& camera_targ)
+    : ChVisualSystemIrrlicht()
+{
+    AttachSystem(sys);
+    SetWindowSize(800, 600);
+    SetWindowTitle("Chrono::Engine");
+    Initialize();
+
+    AddLogo();
+    AddSkyBox();
+    AddTypicalLights();
+    AddCamera(camera_pos, camera_targ);
+}
+
 ChVisualSystemIrrlicht::~ChVisualSystemIrrlicht() {
     if (sphereMesh)
         sphereMesh->drop();
@@ -219,6 +233,10 @@ void ChVisualSystemIrrlicht::Initialize() {
 bool ChVisualSystemIrrlicht::Run() {
     assert(!m_systems.empty());
     return m_device->run();
+}
+
+void ChVisualSystemIrrlicht::Quit() {
+    m_device->closeDevice();
 }
 
 void ChVisualSystemIrrlicht::OnSetup(ChSystem* sys) {

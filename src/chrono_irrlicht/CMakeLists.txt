@@ -115,7 +115,7 @@ message(STATUS "Library:           ${IRRLICHT_LIBRARY}")
 include_directories(${IRRLICHT_INCLUDE_DIR})
 
 set(COMPILER_FLAGS "${CH_CXX_FLAGS} ${IRRLICHT_CXX_FLAGS}")
-set(LINKER_FLAGS "${CH_LINKERFLAG_SHARED}")
+set(LINKER_FLAGS "${CH_LINKERFLAG_LIB}")
 set(LIBRARIES 
     ChronoEngine
     ${IRRLICHT_LIBRARY}
@@ -128,7 +128,7 @@ if (ENABLE_MODULE_MODAL)
     set(LIBRARIES ${LIBRARIES} ChronoEngine_modal)
 endif()
 
-ADD_LIBRARY(ChronoEngine_irrlicht SHARED
+ADD_LIBRARY(ChronoEngine_irrlicht
   ${ChronoEngine_IRRLICHT_SOURCES}
   ${ChronoEngine_IRRLICHT_HEADERS}
 )

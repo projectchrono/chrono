@@ -255,7 +255,7 @@ source_group("utils" FILES ${CE_OpenGL_STB_FILES} ${CE_OpenGL_TINYOBJLOADER_FILE
 # Add the ChronoEngine_opengl library
 # ------------------------------------------------------------------------------
 
-add_library(ChronoEngine_opengl SHARED 
+add_library(ChronoEngine_opengl 
             ${CE_OpenGL_BASE_FILES}
             ${CE_OpenGL_CORE_FILES}
             ${CE_OpenGL_SHAPES_FILES}
@@ -279,7 +279,7 @@ endif()
 
 set_target_properties(ChronoEngine_opengl PROPERTIES 
                       COMPILE_FLAGS "${CE_OpenGL_FLAGS}"
-                      LINK_FLAGS "${CE_OpenGL_LINK_FLAGS} ${CH_LINKERFLAG_SHARED}")
+                      LINK_FLAGS "${CE_OpenGL_LINK_FLAGS} ${CH_LINKERFLAG_LIB}")
 
 target_compile_definitions(ChronoEngine_opengl PRIVATE "CH_API_COMPILE_OPENGL")
 target_compile_definitions(ChronoEngine_opengl PRIVATE "GLM_ENABLE_EXPERIMENTAL")

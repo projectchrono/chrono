@@ -97,6 +97,9 @@ class ChApi ChVisualSystem {
     /// Returns `false` if the system must shut down.
     virtual bool Run() = 0;
 
+    /// Terminate the visualization system.
+    virtual void Quit() = 0;
+
     /// Perform any necessary operations at the beginning of each rendering frame.
     virtual void BeginScene() = 0;
 

@@ -1376,7 +1376,7 @@ else()
 endif()
 
 # Add the ChronoEngine library to the project
-add_library(ChronoEngine SHARED ${ChronoEngine_FILES})
+add_library(ChronoEngine ${ChronoEngine_FILES})
 
 target_link_libraries(ChronoEngine ${OPENMP_LIBRARIES} ${CH_SOCKET_LIB})
 if (UNIX)
@@ -1384,7 +1384,7 @@ if (UNIX)
 endif()
 
 # Set some custom properties of this target
-set_target_properties(ChronoEngine PROPERTIES LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+set_target_properties(ChronoEngine PROPERTIES LINK_FLAGS "${CH_LINKERFLAG_LIB}")
 
 target_compile_definitions(ChronoEngine PRIVATE "CH_API_COMPILE")
 target_compile_definitions(ChronoEngine PRIVATE "CH_IGNORE_DEPRECATED")

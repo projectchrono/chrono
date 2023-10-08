@@ -34,7 +34,7 @@ if(NOT ENABLE_MODULE_VEHICLE_MODELS)
 endif()
 
 set(SYN_CXX_FLAGS "${CH_CXX_FLAGS}")
-set(SYN_LINKER_FLAGS "${CH_LINKERFLAG_SHARED}")
+set(SYN_LINKER_FLAGS "${CH_LINKERFLAG_LIB}")
 set(SYN_LIBRARIES "")
 set(SYN_LIB_NAMES "ChronoEngine")
 
@@ -255,7 +255,7 @@ set(SYN_CXX_FLAGS "${SYN_CXX_FLAGS}" PARENT_SCOPE)
 include_directories("${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/flatbuffers/include")
 include_directories(${SYN_INCLUDES})
 
-add_library(ChronoEngine_synchrono SHARED
+add_library(ChronoEngine_synchrono
 	${SYN_BASE_FILES}
 	${SYN_CONTROLLER_FILES}
     ${SYN_AGENT_FILES}

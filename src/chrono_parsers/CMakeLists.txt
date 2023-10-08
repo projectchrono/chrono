@@ -108,11 +108,11 @@ set(HAVE_URDF "${HAVE_URDF}" PARENT_SCOPE)
 set(HAVE_PYTHON "${HAVE_PYTHON}" PARENT_SCOPE)
 set(CH_PARSERS_INCLUDES "${CH_PARSERS_INCLUDES}" PARENT_SCOPE)
 
-add_library(ChronoEngine_parsers SHARED ${ChronoEngine_PARSERS_SOURCES} ${ChronoEngine_PARSERS_HEADERS})
+add_library(ChronoEngine_parsers ${ChronoEngine_PARSERS_SOURCES} ${ChronoEngine_PARSERS_HEADERS})
 
 set_target_properties(ChronoEngine_parsers PROPERTIES
                       COMPILE_FLAGS "${CH_CXX_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+                      LINK_FLAGS "${CH_LINKERFLAG_LIB}")
 
 target_compile_definitions(ChronoEngine_parsers PRIVATE "CH_API_COMPILE_PARSERS")
 target_compile_definitions(ChronoEngine_parsers PRIVATE "CH_IGNORE_DEPRECATED")

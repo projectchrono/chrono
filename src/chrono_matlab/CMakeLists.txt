@@ -63,13 +63,13 @@ SET (CH_MATLABLIB "${CH_MATLABLIB}" PARENT_SCOPE )
 
 INCLUDE_DIRECTORIES(${MATLAB_SDK_ROOT}/include)
 
-ADD_LIBRARY(ChronoEngine_matlab SHARED 
+ADD_LIBRARY(ChronoEngine_matlab 
             ${ChronoEngine_MATLAB_SOURCES}
             ${ChronoEngine_MATLAB_HEADERS})
             
 SET_TARGET_PROPERTIES(ChronoEngine_matlab PROPERTIES
             COMPILE_FLAGS "${CH_CXX_FLAGS}"
-            LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+            LINK_FLAGS "${CH_LINKERFLAG_LIB}")
                           
 target_compile_definitions(ChronoEngine_matlab PRIVATE "CH_API_COMPILE_MATLAB")
 target_compile_definitions(ChronoEngine_matlab PRIVATE "CH_IGNORE_DEPRECATED")

@@ -51,6 +51,9 @@ class ChVehicleCosimOtherNode : public ChVehicleCosimBaseNode {
 
     /// Output post-processing visualization data.
     virtual void OutputVisualizationData(int frame) override final {}
+
+    /// No Chrono system for post-processing export.
+    virtual ChSystem* GetSystemPostprocess() const override { return nullptr; }
 };
 
 /// @} vehicle_cosim

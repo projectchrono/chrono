@@ -122,7 +122,7 @@ SOURCE_GROUP(solver FILES ${ChronoEngine_distributed_SOLVER})
 include_directories(${CH_MULTICORE_INCLUDES})
 include_directories(${CH_DISTRIBUTED_INCLUDES})
 
-ADD_LIBRARY(ChronoEngine_distributed SHARED
+ADD_LIBRARY(ChronoEngine_distributed
 			${ChronoEngine_distributed_BASE}
 			${ChronoEngine_distributed_PHYSICS}
 			${ChronoEngine_distributed_COLLISION}
@@ -133,7 +133,7 @@ ADD_LIBRARY(ChronoEngine_distributed SHARED
 
 SET_TARGET_PROPERTIES(ChronoEngine_distributed PROPERTIES
 	                  COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_MULTICORE_CXX_FLAGS} ${CH_DISTRIBUTED_CXX_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_SHARED} ${CH_DISTRIBUTED_LINK_FLAGS}")
+                      LINK_FLAGS "${CH_LINKERFLAG_LIB} ${CH_DISTRIBUTED_LINK_FLAGS}")
 
 target_compile_definitions(ChronoEngine_distributed PRIVATE "CH_API_COMPILE_DISTRIBUTED")
 target_compile_definitions(ChronoEngine_distributed PRIVATE "CH_IGNORE_DEPRECATED")

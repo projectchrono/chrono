@@ -2,8 +2,8 @@
 echo Started build.sh
 mkdir ./build
 cd ./build
-echo $CI_PROJECT_DIR
-export NP_INCL=$(python $CI_PROJECT_DIR/contrib/packaging-python/conda/setvarnumpy.py )
+export NP_INCL=$(python3 -c "import numpy; print(numpy.get_include())")
+echo $NP_INCL
 
 # Python libraries are different file types for MacOS and linux
 # TODO: Check if this is needed since MacOS has its own deployment script
@@ -14,13 +14,13 @@ else
     PY_LIB="libpython${PY_VER}.so"
 fi
 
-
 # set MKL vars
 export MKL_INTERFACE_LAYER=LP64
 export MKL_THREADING_LAYER=INTEL
+
 CONFIGURATION=Release
 # Configure step
-cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
+cmake -G "Ninja" -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DCMAKE_PREFIX_PATH=$PREFIX \
  -DCMAKE_SYSTEM_PREFIX_PATH=$PREFIX \
  -DCH_CONDA_INSTALL=ON \
@@ -45,20 +45,19 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DBUILD_BENCHMARKING=OFF \
  -DBUILD_GMOCK=OFF \
  -DENABLE_MODULE_CASCADE=ON \
- -DCASCADE_INCLUDE_DIR=$HOME/miniconda3/include/opencascade \
- -DCASCADE_LIBDIR=$HOME/miniconda3/lib \
+ -DOpenCASCADE_DIR=$HOME/Packages/opencascade-7.4.0/adm \
  -DENABLE_MODULE_PARDISO_MKL=ON \
  -DMKL_INCLUDE_DIR=$BUILD_PREFIX/include \
  -DMKL_RT_LIBRARY=$BUILD_PREFIX/lib/libmkl_rt.so \
- -DEIGEN3_INCLUDE_DIR=$PREFIX/include/eigen3 \
- -DIRRLICHT_INSTALL_DIR=$PREFIX/include/irrlicht \
- -DOptiX_INSTALL_DIR=/opt/optix/7.5.0 \
+ -DEIGEN3_INCLUDE_DIR=$HOME/Packages/eigen-3.4.0 \
+ -DIRRLICHT_INSTALL_DIR=$HOME/Packages/irrlicht-1.8.5 \
+ -DOptiX_INSTALL_DIR=$HOME/Packages/optix-7.7.0 \
  -DNUMPY_INCLUDE_DIR=$NP_INCL \
  ./..
 
-# Build step
-# on linux travis, limit the number of concurrent jobs otherwise
-# gcc gets out of memory
-cmake --build . --config "$CONFIGURATION"
+#  -DCASCADE_INCLUDE_DIR=$HOME/miniconda3/include/opencascade \
+#  -DCASCADE_LIBDIR=$HOME/miniconda3/lib \
 
-cmake --build . --config "$CONFIGURATION" --target install
+# Build & Install
+ninja
+ninja install
