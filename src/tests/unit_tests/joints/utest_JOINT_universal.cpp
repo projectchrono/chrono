@@ -334,20 +334,20 @@ bool TestUniversal(const ChVector<>& jointLoc,      // absolute location of join
     }
 
     // Write output files
-    out_pos.write_to_file(out_dir + testName + "_CHRONO_Pos.txt", testName + "\n\n");
-    out_vel.write_to_file(out_dir + testName + "_CHRONO_Vel.txt", testName + "\n\n");
-    out_acc.write_to_file(out_dir + testName + "_CHRONO_Acc.txt", testName + "\n\n");
+    out_pos.write_to_file(out_dir + testName + "_CHRONO_Pos.txt", testName + "\n");
+    out_vel.write_to_file(out_dir + testName + "_CHRONO_Vel.txt", testName + "\n");
+    out_acc.write_to_file(out_dir + testName + "_CHRONO_Acc.txt", testName + "\n");
 
-    out_quat.write_to_file(out_dir + testName + "_CHRONO_Quat.txt", testName + "\n\n");
-    out_avel.write_to_file(out_dir + testName + "_CHRONO_Avel.txt", testName + "\n\n");
-    out_aacc.write_to_file(out_dir + testName + "_CHRONO_Aacc.txt", testName + "\n\n");
+    out_quat.write_to_file(out_dir + testName + "_CHRONO_Quat.txt", testName + "\n");
+    out_avel.write_to_file(out_dir + testName + "_CHRONO_Avel.txt", testName + "\n");
+    out_aacc.write_to_file(out_dir + testName + "_CHRONO_Aacc.txt", testName + "\n");
 
-    out_rfrc.write_to_file(out_dir + testName + "_CHRONO_Rforce.txt", testName + "\n\n");
-    out_rtrq.write_to_file(out_dir + testName + "_CHRONO_Rtorque.txt", testName + "\n\n");
+    out_rfrc.write_to_file(out_dir + testName + "_CHRONO_Rforce.txt", testName + "\n");
+    out_rtrq.write_to_file(out_dir + testName + "_CHRONO_Rtorque.txt", testName + "\n");
 
-    out_energy.write_to_file(out_dir + testName + "_CHRONO_Energy.txt", testName + "\n\n");
+    out_energy.write_to_file(out_dir + testName + "_CHRONO_Energy.txt", testName + "\n");
 
-    out_cnstr.write_to_file(out_dir + testName + "_CHRONO_Constraints.txt", testName + "\n\n");
+    out_cnstr.write_to_file(out_dir + testName + "_CHRONO_Constraints.txt", testName + "\n");
 
     return true;
 }
