@@ -38,8 +38,7 @@ ChTireTestRig::ChTireTestRig(std::shared_ptr<ChWheel> wheel, std::shared_ptr<ChT
       m_wheel(wheel),
       m_tire(tire),
       m_camber_angle(0),
-      m_normal_load(0),
-      m_applied_load(0),
+      m_normal_load(1000),
       m_total_mass(0),
       m_time_delay(0),
       m_ls_actuated(false),
@@ -142,13 +141,26 @@ void ChTireTestRig::SetTerrainGranular(double radius,
 void ChTireTestRig::Initialize() {
     CreateMechanism();
 
+    struct DelayedFun : public ChFunction {
+        DelayedFun() : m_fun(nullptr), m_delay(0) {}
+        DelayedFun(std::shared_ptr<ChFunction> fun, double delay) : m_fun(fun), m_delay(delay) {}
+        virtual DelayedFun* Clone() const override { return new DelayedFun(); }
+        virtual double Get_y(double x) const override {
+            if (x < m_delay)
+                return 0;
+            return m_fun->Get_y(x - m_delay);
+        }
+        std::shared_ptr<ChFunction> m_fun;
+        double m_delay;
+    };
+
     if (m_ls_actuated)
-        m_lin_motor->SetSpeedFunction(m_ls_fun);
+        m_lin_motor->SetSpeedFunction(chrono_types::make_shared<DelayedFun>(m_ls_fun, m_time_delay));
 
     if (m_rs_actuated)
-        m_rot_motor->SetSpeedFunction(m_rs_fun);
+        m_rot_motor->SetSpeedFunction(chrono_types::make_shared<DelayedFun>(m_rs_fun, m_time_delay));
 
-    m_slip_lock->SetMotion_ang(m_sa_fun);
+    m_slip_lock->SetMotion_ang(chrono_types::make_shared<DelayedFun>(m_sa_fun, m_time_delay));
 
     CreateTerrain();
 }
@@ -212,14 +224,6 @@ void ChTireTestRig::Initialize(double long_slip, double base_speed) {
 void ChTireTestRig::Advance(double step) {
     double time = m_system->GetChTime();
 
-    // Apply load on chassis body
-    double external_force = m_total_mass * m_grav;
-    if (time > m_time_delay)
-        external_force = m_applied_load;
-
-    m_chassis_body->Empty_forces_accumulators();
-    m_chassis_body->Accumulate_force(ChVector<>(0, 0, external_force), ChVector<>(0, 0, 0), true);
-
     // Synchronize subsystems
     m_terrain->Synchronize(time);
     m_tire->Synchronize(time, *m_terrain.get());
@@ -238,7 +242,7 @@ void ChTireTestRig::CreateMechanism() {
     m_system->Set_G_acc(ChVector<>(0, 0, -m_grav));
 
     // Create bodies.
-    // Rig bodies are constructed with mass and inertia commensurate with thopse of the wheel-tire system.
+    // Rig bodies are constructed with mass and inertia commensurate with those of the wheel-tire system.
     // The spindle body is constructed with zero mass and inertia (these will be increased by at least the wheel mass and inertia).
     const double dim = 0.1;
     const double mass = m_wheel->GetWheelMass() + m_tire->GetTireMass();
@@ -371,19 +375,15 @@ void ChTireTestRig::CreateMechanism() {
     m_tire->Initialize(m_wheel);
     m_tire->SetVisualizationType(m_tire_vis);
 
-    // Calculate required body force on chassis (to enforce given normal load)
-    m_total_mass = m_chassis_body->GetMass() + m_slip_body->GetMass() + m_spindle_body->GetMass() + m_wheel->GetMass() +
-                   m_tire->GetMass();
-    m_applied_load = m_total_mass * m_grav - m_normal_load;
-
-    // Approach using ChLoad does not work with Chrono::Multicore (loads currently not supported).
-    // Instead use a force accumulator (updated in ChTireTestRig::Advance)
-
-    ////auto load = chrono_types::make_shared<ChLoadBodyForce>(m_chassis_body, ChVector<>(0, 0, m_applied_load), false,
-    ////                                                       VNULL, true);
-    ////auto load_container = chrono_types::make_shared<ChLoadContainer>();
-    ////load_container->Add(load);
-    ////m_system->Add(load_container);
+    // Update chassis mass to satisfy requested normal load
+    m_total_mass = m_normal_load / m_grav;
+    double other_mass = m_slip_body->GetMass() + m_spindle_body->GetMass() + m_wheel->GetMass() + m_tire->GetMass();
+    double chassis_mass = m_total_mass - other_mass;
+    if (chassis_mass > mass) {
+        m_chassis_body->SetMass(chassis_mass);
+    } else {
+        std::cout << "\nWARNING!  Prescribed normal load too small. Discarded.\n" << std::endl;
+    }
 
     // Set terrain offset (based on wheel center) and terrain height (below tire)
     m_terrain_offset = 3 * dim;

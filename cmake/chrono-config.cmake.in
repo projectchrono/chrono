@@ -20,12 +20,16 @@
 # CHRONO_C_FLAGS
 # CHRONO_CXX_FLAGS
 #       C and C++ compilation flags
+# CHRONO_LINKER_FLAGS
+#       additional linker flags
+# CHRONO_STATIC
+#       set to ON if Chrono has been built as static library, OFF if shared library
 # CHRONO_INCLUDE_DIRS
 #       additional paths for included headers
 # CHRONO_LIBRARIES
-#       list of required libraries (with full path)
-# CHRONO_LINKER_FLAGS
-#       additional linker flags
+#       list of required libraries (with full path) of both Chrono and its dependencies
+# CHRONO_DLL_NAMES
+#       
 # CHRONO_DATA_DIR
 #       path to the Chrono data directory
 # CHRONO_VEHICLE_DATA_DIR
@@ -75,13 +79,32 @@ if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   list(APPEND CHRONO_LINKER_FLAGS "-L@CH_BINARY_DIR@/lib")
 endif()
 
+set(CHRONO_STATIC @CH_STATIC@)
+if (CHRONO_STATIC)
+  add_compile_definitions(CH_STATIC)
+endif()
+
+set(CMAKE_C_FLAGS "@CMAKE_C_FLAGS@")
+set(CMAKE_C_FLAGS_DEBUG "@CMAKE_C_FLAGS_DEBUG@")
+set(CMAKE_C_FLAGS_RELEASE "@CMAKE_C_FLAGS_RELEASE@")
+set(CMAKE_C_FLAGS_MINSIZEREL "@CMAKE_C_FLAGS_MINSIZEREL@")
+set(CMAKE_C_FLAGS_RELWITHDEBINFO "@CMAKE_C_FLAGS_RELWITHDEBINFO@")
+set(CMAKE_CXX_FLAGS "@CMAKE_CXX_FLAGS@")
+set(CMAKE_CXX_FLAGS_DEBUG "@CMAKE_CXX_FLAGS_DEBUG@")
+set(CMAKE_CXX_FLAGS_RELEASE "@CMAKE_CXX_FLAGS_RELEASE@")
+set(CMAKE_CXX_FLAGS_MINSIZEREL "@CMAKE_CXX_FLAGS_MINSIZEREL@")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "@CMAKE_CXX_FLAGS_RELWITHDEBINFO@")
+
+
 list(APPEND CHRONO_INCLUDE_DIRS "@CH_INCLUDE_DIRS@")
 list(APPEND CHRONO_LIBRARIES "@OPENMP_LIBRARIES@")
 list(APPEND CHRONO_LIBRARIES "@CH_SOCKET_LIB@")
 list(PREPEND CHRONO_LIB_NAMES "ChronoEngine")
 list(PREPEND CHRONO_LIB_NAMES "ChronoModels_robot")
-list(APPEND CHRONO_DLL_NAMES "ChronoEngine.dll")
-list(APPEND CHRONO_DLL_NAMES "ChronoModels_robot.dll")
+if (NOT CHRONO_STATIC)
+  list(APPEND CHRONO_DLL_NAMES "ChronoEngine.dll")
+  list(APPEND CHRONO_DLL_NAMES "ChronoModels_robot.dll")
+endif()
 list(APPEND CHRONO_DEPENDENCY_DLLS "")
 
 set(CHRONO_CXX_STANDARD "@CHRONO_CXX_STANDARD@")
@@ -231,13 +254,17 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_MULTICORE_INCLUDES@")
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_multicore")
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_multicore.dll")
+      if (NOT CHRONO_STATIC)
+        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_multicore.dll")
+      endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "MODAL")
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_MODAL_INCLUDES@")
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_modal")
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_modal.dll")
+      if (NOT CHRONO_STATIC)
+        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_modal.dll")
+      endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "OPENGL")
 
@@ -248,7 +275,9 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_OPENGL_INCLUDES@")
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_opengl")
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_opengl.dll")
+      if (NOT CHRONO_STATIC)
+        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_opengl.dll")
+      endif()
       list(APPEND CHRONO_DEPENDENCY_DLLS "@GLEW_DLL@")
       list(APPEND CHRONO_DEPENDENCY_DLLS "@GLFW_DLL@")
       if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
@@ -268,23 +297,35 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_IRRLICHT_INCLUDES@")
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_irrlicht")
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_irrlicht.dll")
+      if (NOT CHRONO_STATIC)
+        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_irrlicht.dll")
+      else()
+        # when a library is static does not link against the dependencies;
+        # the child project thus needs to link itself
+        list(APPEND CHRONO_LIBRARIES "@CH_IRRLICHT_LIB@")
+      endif()
       list(APPEND CHRONO_DEPENDENCY_DLLS "@CH_IRRLICHT_DLL@")
 
       if(Chrono_HAS_postprocess)
           list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_postprocess")
-          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_postprocess.dll")
+          if (NOT CHRONO_STATIC)
+            list(APPEND CHRONO_DLL_NAMES "ChronoEngine_postprocess.dll")
+          endif()
       endif()
       if(Chrono_HAS_modal)
           list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_modal")
-          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_modal.dll")
+          if (NOT CHRONO_STATIC)
+            list(APPEND CHRONO_DLL_NAMES "ChronoEngine_modal.dll")
+          endif()
       endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "VSG")
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_VSG_INCLUDES@")
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_vsg")
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vsg.dll")
+      if (NOT CHRONO_STATIC)
+        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vsg.dll")
+      endif()
 
       find_package(vsg REQUIRED)
       find_package(vsgImGui REQUIRED)
@@ -302,23 +343,33 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(APPEND CHRONO_LIBRARIES "@MPI_CXX_LIBRARIES@")
 
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_distributed")
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_distributed.dll")
+      if (NOT CHRONO_STATIC)
+        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_distributed.dll")
+      endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "VEHICLE")
 
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_vehicle")
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vehicle.dll")
+      if (NOT CHRONO_STATIC)
+        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vehicle.dll")
+      endif()
       list(PREPEND CHRONO_LIB_NAMES "ChronoModels_vehicle")
-      list(APPEND CHRONO_DLL_NAMES "ChronoModels_vehicle.dll")
+      if (NOT CHRONO_STATIC)
+        list(APPEND CHRONO_DLL_NAMES "ChronoModels_vehicle.dll")
+      endif()
 
       if(${Chrono_HAS_irrlicht})
         list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_vehicle_irrlicht")
-        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vehicle_irrlicht.dll")
+        if (NOT CHRONO_STATIC)
+          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vehicle_irrlicht.dll")
+        endif()
       endif()
 
       if(${Chrono_HAS_vsg})
         list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_vehicle_vsg")
-        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vehicle_vsg.dll")
+        if (NOT CHRONO_STATIC)
+          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vehicle_vsg.dll")
+        endif()
       endif()
 
       if(Chrono_USE_irrklang)
@@ -336,14 +387,18 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
         list(APPEND CHRONO_LIBRARIES "@MPI_CXX_LIBRARIES@")
 
         list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_vehicle_cosim")
-        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vehicle_cosim.dll")
+        if (NOT CHRONO_STATIC)
+          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vehicle_cosim.dll")
+        endif()
       endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "FSI")
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_FSI_INCLUDES@")
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_fsi")
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_fsi.dll")
+      if (NOT CHRONO_STATIC)
+        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_fsi.dll")
+      endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "SENSOR")
 
@@ -355,7 +410,9 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_SENSOR_INCLUDES@")
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_sensor")
       list(APPEND CHRONO_LIBRARIES "@SENSOR_LIBRARIES@")
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_sensor.dll")
+      if (NOT CHRONO_STATIC)
+        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_sensor.dll")
+      endif()
       #list(APPEND CHRONO_DEPENDENCY_DLLS "@optix_DLL@")
       list(APPEND CHRONO_DEPENDENCY_DLLS "@GLEW_DLL@")
       list(APPEND CHRONO_DEPENDENCY_DLLS "@GLFW_DLL@")
@@ -379,7 +436,9 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(APPEND CHRONO_LIBRARIES "@SYN_LIBRARIES@")
 
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_synchrono")
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_synchrono.dll")
+      if (NOT CHRONO_STATIC)
+        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_synchrono.dll")
+      endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "GPU")
 
@@ -388,7 +447,9 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_GPU_INCLUDES@")
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_gpu")
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_gpu.dll")
+      if (NOT CHRONO_STATIC)
+        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_gpu.dll")
+      endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "PARDISOMKL")
 
@@ -398,7 +459,9 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_MKL_INCLUDES@")      
       list(APPEND CHRONO_LIBRARIES "@CH_MKL_LIBRARIES@")
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_pardisomkl")
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_pardisomkl.dll")
+      if (NOT CHRONO_STATIC)
+        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_pardisomkl.dll")
+      endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "MUMPS")
 
@@ -408,13 +471,17 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_MUMPS_INCLUDES@")
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_mumps")
       list(APPEND CHRONO_LIBRARIES "@MUMPS_LIBRARY@")
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_mumps.dll")
+      if (NOT CHRONO_STATIC)
+        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_mumps.dll")
+      endif()
       list(APPEND CHRONO_DEPENDENCY_DLLS "@MUMPS_SHARED_LIBRARIES@")
 
     elseif(${COMPONENT_UPPER} MATCHES "POSTPROCESS")
 
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_postprocess")
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_postprocess.dll")
+      if (NOT CHRONO_STATIC)
+        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_postprocess.dll")
+      endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "CASCADE")
 
@@ -426,31 +493,41 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(APPEND CHRONO_INCLUDE_DIRS "@OpenCASCADE_INCLUDE_DIR@")
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_cascade")
       list(APPEND CHRONO_LIBRARIES "@OpenCASCADE_LIBRARIES@")
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_cascade.dll")
+      if (NOT CHRONO_STATIC)
+        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_cascade.dll")
+      endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "COSIMULATION")
 
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_cosimulation")
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_cosimulation.dll")
+      if (NOT CHRONO_STATIC)
+        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_cosimulation.dll")
+      endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "PARSERS")
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_PARSERS_INCLUDES@")
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_parsers")
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_parsers.dll")
+      if (NOT CHRONO_STATIC)
+        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_parsers.dll")
+      endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "MATLAB")
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_MATLABINC@")
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_matlab")
       list(APPEND CHRONO_LIBRARIES "@CH_MATLABLIB@")
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_matlab.dll")
+      if (NOT CHRONO_STATIC)
+        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_matlab.dll")
+      endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "PARDISOPROJECT")
 
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_pardisoproject")
       list(APPEND CHRONO_LIBRARIES "@PARDISOPROJECT_LIBRARIES@")
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_pardisoproject.dll")
+      if (NOT CHRONO_STATIC)
+        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_pardisoproject.dll")
+      endif()
 
     endif()
 
@@ -463,25 +540,103 @@ set(Chrono_FOUND ON)
 #-------------------------------------------------------------------------------
 # Loop over list of Chrono library names and find the actual libraries.
 #-------------------------------------------------------------------------------
+if(NOT CHRONO_CONFIGURATION_TYPES)
+  if(CMAKE_CONFIGURATION_TYPES)
+    set(CHRONO_CONFIGURATION_TYPES ${CMAKE_CONFIGURATION_TYPES}) # system has multi-config IDE
+  else()
+    set(CHRONO_CONFIGURATION_TYPES "")
+  endif()
+endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
     set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY NEVER)
 endif()
 
-foreach(lib ${CHRONO_LIB_NAMES})
-  set(onelib "${lib}-NOTFOUND")
-  find_library(onelib ${lib}
-    PATHS "@CH_BINARY_DIR@/lib"
-    PATH_SUFFIXES "Release"
-    NO_DEFAULT_PATH
-  )
-  if(NOT onelib)
-    message("Library '${lib}' in package Chrono is not installed properly")
-  else()
-    list(APPEND CHRONO_LIBRARIES "${onelib}")
-  endif()
+foreach(config ${CHRONO_CONFIGURATION_TYPES})
+  string(TOUPPER config config_upper)
+  foreach(lib ${CHRONO_LIB_NAMES})
+    set(onelib "${lib}-NOTFOUND")
+    find_library(onelib ${lib}
+      PATHS "@CH_BINARY_DIR@/lib"
+      PATH_SUFFIXES ${config}
+      NO_DEFAULT_PATH
+    )
+    if(NOT onelib)
+      list(APPEND CHRONO_MISSING_LIB_CONFIG_${config} ${lib})
+    else()
+      if(CMAKE_CONFIGURATION_TYPES)
+        list(APPEND CHRONO_LIBRARIES_${config} "${onelib}")
+      else()
+        list(APPEND CHRONO_LIBRARIES "${onelib}")
+      endif()
+    endif()
+  endforeach()
 endforeach()
-mark_as_advanced(FORCE onelib)
+
+unset(onelib CACHE)
+
+
+if (CMAKE_CONFIGURATION_TYPES)
+  foreach(config ${CHRONO_CONFIGURATION_TYPES})
+    # if the given configuration does not have a proper Chrono built library then link to Chrono Release, but only for non-static
+    if (CHRONO_MISSING_LIB_CONFIG_${config})
+      MESSAGE(STATUS "Configuration ${config} will not work properly since some Chrono libraries are missing for this configuration:\n  missing: ${CHRONO_MISSING_LIB_CONFIG_${config}}")
+    else()
+      message(STATUS "Chrono libraries for configuration ${config} have been succesfully found.")
+      foreach(onelib ${CHRONO_LIBRARIES_${config}})
+        list(APPEND CHRONO_LIBRARIES "$<$<CONFIG:${config}>:${onelib}>")
+      endforeach()
+    endif()
+  endforeach()
+else()
+  if (CHRONO_MISSING_LIB_CONFIG_)
+    message(NOTICE "Some Chrono libraries are not installed properly: ${CHRONO_MISSING_LIB_CONFIG_}")
+  endif()
+endif() 
+
+# list(LENGTH CHRONO_CONFIGURATION_TYPES CHRONO_VALID_CONFIGURATIONS)
+# foreach(config ${CHRONO_CONFIGURATION_TYPES})
+#   if (CHRONO_MISSING_LIB_CONFIG_${config})
+#     math(EXPR CHRONO_VALID_CONFIGURATIONS "${CHRONO_VALID_CONFIGURATIONS} - 1")
+#     if (CMAKE_CONFIGURATION_TYPES)
+#       message(NOTICE "Libraries not installed properly for configuration ${config}: ${CHRONO_MISSING_LIB_CONFIG_${config}}")
+#     else()
+#       message(NOTICE "Libraries not installed properly: ${CHRONO_MISSING_LIB_CONFIG_${config}}")
+#     endif()
+#   else()
+#     if (CMAKE_CONFIGURATION_TYPES)
+#       message(STATUS "Chrono libraries for configuration ${config} have been succesfully found.")
+#     else()
+#       message(STATUS "Chrono libraries have been succesfully found.")
+#     endif()
+#   endif()
+# endforeach()
+
+# if(${CHRONO_VALID_CONFIGURATIONS} EQUAL 0)
+#   message(ERROR "No valid Chrono installations have been found. Aborting...")
+#   return()
+# else()
+#   # if single-config environment then there is nothing else to do
+#   if(CMAKE_CONFIGURATION_TYPES)
+#     # loop over configurations...
+#     foreach(config ${CHRONO_CONFIGURATION_TYPES})
+#       # if the given configuration does not have a proper Chrono built library then link to Chrono Release, but only for non-static
+#       if (CHRONO_MISSING_LIB_CONFIG_${config})
+#         MESSAGE(STATUS "Configuration ${config} will not work properly since Chrono libraries are missing for this configuration:\n${CHRONO_MISSING_LIB_CONFIG_${config}}")
+#       else()
+#         foreach(onelib ${CHRONO_LIBRARIES_${config}})
+#           list(APPEND CHRONO_LIBRARIES "$<$<CONFIG:${config}>:${onelib}>")
+#         endforeach()
+#       endif()
+
+#     endforeach()
+#   endif()
+# endif()
+
+# unset(onelib CACHE)
+
+
+
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
     set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
@@ -519,9 +674,6 @@ endif()
 #
 # The input list must contain a list of DLLs with full paths, such as that
 # returned by the chrono-config script.
-#
-# Note that EXECUTABLE_OUTPUT_PATH must be defined (even if it's simply
-# CMAKE_BINARY_DIR or PROJECT_BINARY_DIR)
 #===============================================================================
 
 # Create custom commands, invoked pre-build to copy DLLs to the appropriate
@@ -537,25 +689,38 @@ function(add_DLL_copy_command)
     message(STATUS "==== Add custom commands for copying DLLs ====")
     
     if(${ARGC} GREATER 0)
-      message(STATUS "User-provided lists")
+      message(STATUS "DLLs that will be copied (user-provided lists):")
       set(DLL_NAMES ${ARGV0})
       set(DEPENDENCY_DLLS ${ARGV1})
     else()
-      message(STATUS "Default lists")
+      message(STATUS "DLLs that will be copied (default lists):")
       set(DLL_NAMES ${CHRONO_DLL_NAMES})
       set(DEPENDENCY_DLLS ${CHRONO_DEPENDENCY_DLLS})
+    endif()
+
+    if(NOT CHRONO_CONFIGURATION_TYPES)
+      if(CMAKE_CONFIGURATION_TYPES)
+        set(CHRONO_CONFIGURATION_TYPES ${CMAKE_CONFIGURATION_TYPES}) # system has multi-config IDE
+      else()
+        set(CHRONO_CONFIGURATION_TYPES "")
+      endif()
     endif()
 
     # Remove duplicates in lists
     list(REMOVE_DUPLICATES DLL_NAMES)
     list(REMOVE_DUPLICATES DEPENDENCY_DLLS)
 
-    # Find actual Chrono DLLs (Release and Debug)
-    set(build_configurations Release Debug)
-    list(APPEND DLLS_Release "")
-    list(APPEND DLLS_Debug "")
+    # Find actual Chrono DLLs
+    foreach(config ${CHRONO_CONFIGURATION_TYPES})
+      unset(DLLS_${config})
+      unset(DLL_MISSING_${config})
+    endforeach()
 
-    foreach(config ${build_configurations}) 
+    foreach(dep_dll ${DEPENDENCY_DLLS})
+      message(STATUS "...${dep_dll}")
+    endforeach()
+
+    foreach(config ${CHRONO_CONFIGURATION_TYPES}) 
       foreach(dll ${DLL_NAMES})
         set(onedll "${dll}-NOTFOUND")
         find_file(onedll ${dll}
@@ -564,58 +729,86 @@ function(add_DLL_copy_command)
           NO_DEFAULT_PATH
         )
         if(NOT onedll)
-          message("DLL '${dll}' in package Chrono is not installed properly")
+          list(APPEND DLL_MISSING_${config} ${dll})
+          # message("DLL '${dll}' in package Chrono is not installed properly")
         else()
           list(APPEND DLLS_${config} "${onedll}")
+          # message(STATUS "...${DLL}")
         endif()
       endforeach()
     endforeach()  
-    mark_as_advanced(FORCE onedll)
+    unset(onedll CACHE)
+    
+    # # if a given configuration is missing then the Release DLLs will be used as rollback for that given config
+    # foreach(config ${CHRONO_CONFIGURATION_TYPES})
+    #   if (DLL_MISSING_${config} AND NOT DLL_MISSING_Release)
+    #     set(DLLS_${config} ${DLLS_Release})
+    #   endif()
+    # endforeach()
 
     # Create custom target for copying DLLs; add it to the default build target
     add_custom_target(COPY_DLLS ALL)
 
-    # Add custom command to create the destination folder
-    add_custom_command(TARGET COPY_DLLS PRE_BUILD
-      COMMENT "Create DLL output directory"
-      COMMAND ${CMAKE_COMMAND} -E make_directory "${EXECUTABLE_OUTPUT_PATH}/$<CONFIGURATION>/"
-    )
+    # Grab the folder in which the given configuration will generate the files
+    # this is not a per-target folder, but it assumed a commond folder for all the runtime artifacts for the entire project
+    # unless otherwise specified through the CMAKE_RUNTIME_OUTPUT_DIRECTORY and CMAKE_RUNTIME_OUTPUT_DIRECTORY_<CONFIG> variables
+    foreach(config ${CHRONO_CONFIGURATION_TYPES})
+      string(TOUPPER ${config} config_upper)
+      if(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${config_upper})
+        set(TEMP_RUNTIME_OUTPUT_DIRECTORY_${config_upper} "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_${config_upper}}")
+      else()
+        if(CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+          set(TEMP_RUNTIME_OUTPUT_DIRECTORY_${config_upper} "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${config}/")
+        else()
+          set(TEMP_RUNTIME_OUTPUT_DIRECTORY_${config_upper} "${PROJECT_BINARY_DIR}/${config}/")
+        endif()
+      endif()
 
-    # Add a custom command for each Chrono dependency DLL
-    foreach(DLL ${DEPENDENCY_DLLS})
-        message(STATUS "...${DLL}")
-        add_custom_command(
-            TARGET COPY_DLLS PRE_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${DLL}"
-                "${EXECUTABLE_OUTPUT_PATH}/$<CONFIGURATION>/"
-        )
+      # Add custom command to create the destination folder
+      add_custom_command(
+        TARGET COPY_DLLS PRE_BUILD
+        COMMENT "Creating DLL output directory ${TEMP_RUNTIME_OUTPUT_DIRECTORY_${config_upper}}"
+        COMMAND "$<$<CONFIG:${config}>:${CMAKE_COMMAND}>"
+            "$<$<CONFIG:${config}>:-E>"
+            "$<$<CONFIG:${config}>:make_directory>"
+            "$<$<CONFIG:${config}>:${TEMP_RUNTIME_OUTPUT_DIRECTORY_${config_upper}}>"
+      )
     endforeach()
 
-    # Add custom command for each Chrono Release DLL (runs only in Release mode)
-    foreach(DLL ${DLLS_Release})
-        message(STATUS "...${DLL}")
-        add_custom_command(
-            TARGET COPY_DLLS PRE_BUILD
-            COMMAND "$<$<CONFIG:Release>:${CMAKE_COMMAND}>"
-                "$<$<CONFIG:Release>:-E>"
-                "$<$<CONFIG:Release>:copy_if_different>"
-                "$<$<CONFIG:Release>:${DLL}>"
-                "$<$<CONFIG:Release>:${EXECUTABLE_OUTPUT_PATH}/$<CONFIGURATION>>/"
-        )
-    endforeach()
+    # Add custom command for each Chrono DLL
+    foreach(config ${CHRONO_CONFIGURATION_TYPES})
+      string(TOUPPER ${config} config_upper)
 
-    # Add custom command for each Chrono Debug DLL (runs only in Debug mode)
-    foreach(DLL ${DLLS_Debug})
-        message(STATUS "...${DLL}")
-        add_custom_command(
-            TARGET COPY_DLLS PRE_BUILD
-            COMMAND "$<$<CONFIG:Debug>:${CMAKE_COMMAND}>"
-                "$<$<CONFIG:Debug>:-E>"
-                "$<$<CONFIG:Debug>:copy_if_different>"
-                "$<$<CONFIG:Debug>:${DLL}>"
-                "$<$<CONFIG:Debug>:${EXECUTABLE_OUTPUT_PATH}/$<CONFIGURATION>>/"
-        )
+      # copy Chrono DLLs in configuration-specific folder
+      foreach(DLL ${DLLS_${config}})
+          add_custom_command(
+              TARGET COPY_DLLS POST_BUILD
+              COMMENT "Copying Chrono DLL ${DLL} in ${TEMP_RUNTIME_OUTPUT_DIRECTORY_${config_upper}}"  
+              COMMAND "$<$<CONFIG:${config}>:${CMAKE_COMMAND}>"
+                  "$<$<CONFIG:${config}>:-E>"
+                  "$<$<CONFIG:${config}>:copy_if_different>"
+                  "$<$<CONFIG:${config}>:${DLL}>"
+                  "$<$<CONFIG:${config}>:${TEMP_RUNTIME_OUTPUT_DIRECTORY_${config_upper}}>"
+          )
+          message(STATUS "...${DLL}")
+      endforeach()
+
+      # copy dependecies DLLs in configuration-specific folder
+      foreach(DLL ${DEPENDENCY_DLLS})
+          add_custom_command(
+              TARGET COPY_DLLS POST_BUILD
+              COMMENT "Copying DLL dependency ${DLL} in ${TEMP_RUNTIME_OUTPUT_DIRECTORY_${config_upper}}"
+              COMMAND "$<$<CONFIG:${config}>:${CMAKE_COMMAND}>"
+              "$<$<CONFIG:${config}>:-E>"
+              "$<$<CONFIG:${config}>:copy_if_different>"
+              "$<$<CONFIG:${config}>:${DLL}>"
+              "$<$<CONFIG:${config}>:${TEMP_RUNTIME_OUTPUT_DIRECTORY_${config_upper}}>"
+          )
+      endforeach()
+
+
     endforeach()
+    unset(TEMP_RUNTIME_OUTPUT_DIRECTORY_CONFIG)
+    unset(config_upper)
 
 endfunction()

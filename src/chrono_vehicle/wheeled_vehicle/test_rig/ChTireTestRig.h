@@ -53,8 +53,11 @@ class CH_VEHICLE_API ChTireTestRig {
     /// Set gravitational acceleration (default: 9.81 m/s2).
     void SetGravitationalAcceleration(double grav) { m_grav = grav; }
 
-    /// Set desired normal load (default: 0 N).
+    /// Set desired normal load (default: 1000 N).
     void SetNormalLoad(double load) { m_normal_load = load; }
+
+    /// Get the normal load.
+    double GetNormalLoad(double load) const { return m_normal_load; }
 
     /// Set camber angle (default: 0 rad).
     void SetCamberAngle(double camber) { m_camber_angle = camber; }
@@ -107,7 +110,7 @@ class CH_VEHICLE_API ChTireTestRig {
                             double Young_modulus      ///< particle contact material Young's modulus [Pa]
     );
 
-    /// Set time delay before releasing the wheel (default: 0s).
+    /// Set time delay before applying motion functions (default: 0 s).
     void SetTimeDelay(double delay) { m_time_delay = delay; }
 
     /// Initialize the rig system. This version uses all motion functions as specified by the user. It is the user's
@@ -132,10 +135,6 @@ class CH_VEHICLE_API ChTireTestRig {
 
     /// Get total rig mass.
     double GetMass() const { return m_total_mass; }
-
-    /// Get applied load on rig
-    /// (to enforce specified normal load, taking into account the masses of all components).
-    double GetAppliedLoad() const { return m_applied_load; }
 
     /// Get a handle to the underlying terrain subsystem.
     std::shared_ptr<ChTerrain> GetTerrain() const { return m_terrain; }
@@ -201,7 +200,6 @@ class CH_VEHICLE_API ChTireTestRig {
 
     double m_grav;          ///< gravitational acceleration
     double m_normal_load;   ///< desired normal load
-    double m_applied_load;  ///< applied load on chassis body
     double m_total_mass;    ///< total sprung mass
     double m_time_delay;    ///< time delay before applying external load 
 
