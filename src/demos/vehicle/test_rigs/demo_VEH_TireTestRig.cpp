@@ -57,6 +57,9 @@ using namespace chrono::vehicle;
 
 // -----------------------------------------------------------------------------
 
+// Contact formulation type (SMC or NSC)
+ChContactMethod contact_method = ChContactMethod::NSC;
+
 // Run-time visualization system (IRRLICHT or VSG)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
@@ -65,7 +68,7 @@ enum class TireType { RIGID, TMEASY, FIALA, PAC89, PAC02, ANCF4, ANCF8, ANCF_TOR
 TireType tire_type = TireType::TMEASY;
 
 // Read from JSON specification file?
-bool use_JSON = true;
+bool use_JSON = false;
 
 // Output directory
 const std::string out_dir = GetChronoOutputPath() + "TIRE_TEST_RIG";
@@ -151,20 +154,30 @@ int main() {
     ChSystem* sys = nullptr;
     ChSolver::Type solver_type;
     ChTimestepper::Type integrator_type;
-    double step_size;
+    double step_size = 1e-3;
 
     if (tire_type == TireType::ANCF4 || tire_type == TireType::ANCF8 || tire_type == TireType::ANCF_TOROIDAL ||
-        tire_type == TireType::REISSNER || tire_type == TireType::RIGID) {
-        sys = new ChSystemSMC;
-        step_size = 4e-5;
-        solver_type = ChSolver::Type::PARDISO_MKL;
-        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
-        std::static_pointer_cast<ChDeformableTire>(tire)->SetContactFaceThickness(0.02);
-    } else {
-        sys = new ChSystemNSC;
-        step_size = 1e-3;
-        solver_type = ChSolver::Type::BARZILAIBORWEIN;
-        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+        tire_type == TireType::REISSNER) {
+        if (contact_method != ChContactMethod::SMC)
+            std::cout << "\nWarning! Contact formulation changed to SMC.\n" << std::endl;
+        contact_method = ChContactMethod::SMC;
+    }
+
+    switch (contact_method) {
+        case ChContactMethod::SMC:
+            sys = new ChSystemSMC;
+            step_size = 1e-4;
+            solver_type = ChSolver::Type::PARDISO_MKL;
+            integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
+            std::static_pointer_cast<ChDeformableTire>(tire)->SetContactFaceThickness(0.02);
+            break;
+
+        case ChContactMethod::NSC:
+            sys = new ChSystemNSC;
+            step_size = 1e-3;
+            solver_type = ChSolver::Type::BARZILAIBORWEIN;
+            integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+            break;
     }
 
     SetChronoSolver(*sys, solver_type, integrator_type);
@@ -202,10 +215,11 @@ int main() {
 
     // Scenario: prescribe all motion functions
     //   longitudinal speed: 0.2 m/s
-    //   angular speed: 20 RPM
+    //   angular speed: 10 RPM
     //   slip angle: sinusoidal +- 5 deg with 5 s period
+    rig.SetTimeDelay(2);
     rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunction_Const>(0.2));
-    rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunction_Const>(20 * CH_C_RPM_TO_RPS));
+    rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunction_Const>(10 * CH_C_RPM_TO_RPS));
     rig.SetSlipAngleFunction(chrono_types::make_shared<ChFunction_Sine>(0, 0.2, 5 * CH_C_DEG_TO_RAD));
     rig.Initialize();
 
@@ -214,7 +228,8 @@ int main() {
 
     // Optionally, modify tire visualization (can be done only after initialization)
     if (auto tire_def = std::dynamic_pointer_cast<ChDeformableTire>(tire)) {
-        tire_def->GetMeshVisualization()->SetColorscaleMinMax(0.0, 5.0);  // range for nodal speed norm
+        if (tire_def->GetMeshVisualization())
+            tire_def->GetMeshVisualization()->SetColorscaleMinMax(0.0, 5.0);  // range for nodal speed norm
     }
 
     // Initialize output
