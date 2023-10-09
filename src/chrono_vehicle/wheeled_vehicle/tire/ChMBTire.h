@@ -197,9 +197,13 @@ class MBTireModel : public ChPhysicsItem {
     // Return -1 if out-of-bounds ring and use a cyclic index for divisions on the ring.
     int NodeIndex(int ir, int id);
 
-    // Get the rim node index from the ring index and division index.
+    // Get the wheel node index from the ring index and division index.
+    // Used to identify rim and wall nodes.
     // Return -1 if out-of-bounds ring and use a cyclic index for divisions on the ring.
-    int RimNodeIndex(int ir, int id);
+    int WheelNodeIndex(int ir, int id);
+
+    // Get normal and elemental area for the node with current ring and division indices.
+    void CalcNormal(int ir, int id, ChVector<>& normal, double& area);
 
     int m_dofs;    // total degrees of freedom
     int m_dofs_w;  // total degrees of freedom, derivative (Lie algebra)

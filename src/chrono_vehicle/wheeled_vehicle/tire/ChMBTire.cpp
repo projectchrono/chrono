@@ -178,7 +178,7 @@ int MBTireModel::NodeIndex(int ir, int id) {
     return ir * m_num_divs + (id % m_num_divs);
 }
 
-int MBTireModel::RimNodeIndex(int ir, int id) {
+int MBTireModel::WheelNodeIndex(int ir, int id) {
     // If ring index out-of-bounds, return -1
     if (ir != 0 && ir != m_num_rings - 1)
         return -1;
@@ -191,6 +191,25 @@ int MBTireModel::RimNodeIndex(int ir, int id) {
     int ir_local = (ir == 0) ? 0 : 1;
     return ir_local * m_num_divs + (id % m_num_divs);
 }
+
+void MBTireModel::CalcNormal(int ir, int id, ChVector<>& normal, double& area) {
+    // Get locations of previous and next nodes in the two directions
+    const auto& posS = m_nodes[NodeIndex(ir, id - 1)]->GetPos();
+    const auto& posN = m_nodes[NodeIndex(ir, id + 1)]->GetPos();
+    const auto& posE = (ir == 0) ? m_rim_nodes[WheelNodeIndex(0, id)]->GetPos()  //
+                                 : m_nodes[NodeIndex(ir - 1, id)]->GetPos();
+    const auto& posW = (ir == m_num_rings - 1) ? m_rim_nodes[WheelNodeIndex(m_num_rings - 1, id)]->GetPos()  //
+                                               : m_nodes[NodeIndex(ir + 1, id)]->GetPos();
+
+    // Notes:
+    // 1. normal could be approximated better, by averaging the normals of the 4 incident triangular faces
+    // 2. if using the current approximation, might as well return the scaled direction (if only used for pressure
+    // forces)
+    ChVector<> dir = Vcross(posW - posS, posE - posS);
+    area = dir.Length();
+    normal = dir / area;
+}
+
 
 void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
     m_num_rim_nodes = 2 * m_num_divs;
@@ -280,7 +299,7 @@ void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
 
     // Set up radial springs
     for (int id = 0; id < m_num_divs; id++) {
-        int node1 = RimNodeIndex(0, id);
+        int node1 = WheelNodeIndex(0, id);
         int node2 = NodeIndex(0, id);
         const auto& pos1 = m_rim_nodes[node1]->GetPos();
         const auto& pos2 = m_nodes[node2]->GetPos();
@@ -295,7 +314,7 @@ void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
         m_radial_springs.push_back(spring);
     }
     for (int id = 0; id < m_num_divs; id++) {
-        int node1 = RimNodeIndex(m_num_rings - 1, id);
+        int node1 = WheelNodeIndex(m_num_rings - 1, id);
         int node2 = NodeIndex(m_num_rings - 1, id);
         const auto& pos1 = m_rim_nodes[node1]->GetPos();
         const auto& pos2 = m_nodes[node2]->GetPos();
@@ -312,7 +331,7 @@ void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
 
     // Set up wall springs
     for (int id = 0; id < m_num_divs; id++) {
-        int node1 = RimNodeIndex(0, id);
+        int node1 = WheelNodeIndex(0, id);
         int node2 = NodeIndex(0, id);
         const auto& pos1 = m_wall_nodes[node1]->GetPos();
         const auto& pos2 = m_nodes[node2]->GetPos();
@@ -327,7 +346,7 @@ void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
         m_wall_springs.push_back(spring);
     }
     for (int id = 0; id < m_num_divs; id++) {
-        int node1 = RimNodeIndex(m_num_rings - 1, id);
+        int node1 = WheelNodeIndex(m_num_rings - 1, id);
         int node2 = NodeIndex(m_num_rings - 1, id);
         const auto& pos1 = m_wall_nodes[node1]->GetPos();
         const auto& pos2 = m_nodes[node2]->GetPos();
@@ -508,6 +527,30 @@ void MBTireModel::CalculateForces(const ChFrameMoving<>& wheel_frame) {
     const auto& w_pos = wheel_frame.GetPos();
     const auto& w_vel = wheel_frame.GetPos_dt();
 
+    // ------------ Gravitational and pressure forces
+
+    ChVector<> gforce = m_node_mass * GetSystem()->Get_G_acc();
+    double pressure = m_tire->GetPressure();
+    ChVector<> normal;
+    double area;
+    for (int ir = 0; ir < m_num_rings; ir++) {
+        for (int id = 0; id < m_num_divs; id++) {
+            int k = NodeIndex(ir, id);
+            nodal_forces[k] = gforce;
+
+            //// TODO: revisit pressure forces when springs are in place (to hold the mesh together)
+            
+            ////CalcNormal(ir, id, normal, area);
+            ////assert(Vdot(m_nodes[k]->GetPos() - w_pos, normal) > 0);  // sanity check
+            ////nodal_forces[k] += (pressure * area) * normal;
+            
+            ////normal = (m_nodes[k]->GetPos() - w_pos).GetNormalized();
+            ////nodal_forces[k] += (pressure * area) * normal;
+        }
+    }
+
+    // ------------ Spring forces
+
     // Forces in radial springs (node1: rim node)
     for (const auto& spring : m_radial_springs) {
         const auto& pos1 = m_rim_nodes[spring.node1]->GetPos();
@@ -574,7 +617,8 @@ void MBTireModel::CalculateForces(const ChFrameMoving<>& wheel_frame) {
         // m_nodal_forces[spring.node_n] += ...
     }
 
-    // Apply loads on FEA nodes
+    // ------------ Apply loads on FEA nodes
+
     for (int k = 0; k < m_num_nodes; k++) {
         m_nodes[k]->SetForce(nodal_forces[k]);
     }
@@ -817,16 +861,6 @@ void MBTireModel::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R
     for (auto& node : m_nodes) {
         node->NodeIntLoadResidual_F(off + local_off_v, R, c);
         local_off_v += node->GetNdofW_active();
-    }
-
-    // Gravitational nodal forces
-    local_off_v = 0;
-    if (system) {
-        for (auto& node : m_nodes) {
-            ChVector<> fg = c * node->GetMass() * system->Get_G_acc();
-            R.segment(off + local_off_v, 3) += fg.eigen();
-            local_off_v += node->GetNdofW_active();
-        }
     }
 }
 

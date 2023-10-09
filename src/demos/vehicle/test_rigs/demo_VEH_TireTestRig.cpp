@@ -59,7 +59,7 @@ using namespace chrono::vehicle;
 // -----------------------------------------------------------------------------
 
 // Contact formulation type (SMC or NSC)
-ChContactMethod contact_method = ChContactMethod::NSC;
+ChContactMethod contact_method = ChContactMethod::SMC;
 
 // Run-time visualization system (IRRLICHT or VSG)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
@@ -170,7 +170,7 @@ int main() {
     switch (contact_method) {
         case ChContactMethod::SMC:
             sys = new ChSystemSMC;
-            step_size = 1e-4;
+            step_size = 1e-3;
             solver_type = ChSolver::Type::PARDISO_MKL;
             integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
             std::static_pointer_cast<ChDeformableTire>(tire)->SetContactFaceThickness(0.02);
@@ -221,7 +221,6 @@ int main() {
     //   longitudinal speed: 0.2 m/s
     //   angular speed: 10 RPM
     //   slip angle: sinusoidal +- 5 deg with 5 s period
-    rig.SetTimeDelay(2);
     rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunction_Const>(0.2));
     rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunction_Const>(10 * CH_C_RPM_TO_RPS));
     rig.SetSlipAngleFunction(chrono_types::make_shared<ChFunction_Sine>(0, 0.2, 5 * CH_C_DEG_TO_RAD));
