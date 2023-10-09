@@ -104,6 +104,10 @@ void ChMBTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     ChSystem* system = wheel->GetSpindle()->GetSystem();
     assert(system);
 
+    // Add the underlying MB tire model (as a PhysicsItem) to the system before its construction!
+    // This way, all its components will have an associated system during construction.
+    system->Add(m_model);
+
     if (IsPressureEnabled() && m_pressure <= 0)
         m_pressure = GetDefaultPressure();
 
@@ -112,8 +116,6 @@ void ChMBTire::Initialize(std::shared_ptr<ChWheel> wheel) {
 
     m_model->m_wheel = wheel->GetSpindle().get();
     m_model->Construct(*(wheel->GetSpindle().get()));
-
-    system->Add(m_model);
 }
 
 void ChMBTire::Synchronize(double time, const ChTerrain& terrain) {
@@ -618,8 +620,6 @@ void MBTireModel::SetupInitial() {
 
 //// TODO: Cache (normalized) locations around the rim to save sin/cos evaluations
 void MBTireModel::Setup() {
-    std::cout << m_nodes[0]->GetPos_dtdt() << std::endl;
-
     // Recompute DOFs and state offsets
     m_dofs = 0;
     m_dofs_w = 0;

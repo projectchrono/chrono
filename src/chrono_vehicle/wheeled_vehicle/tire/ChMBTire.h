@@ -136,6 +136,8 @@ class MBTireModel : public ChPhysicsItem {
     void CalculateForces(const ChFrameMoving<>& wheel_frame);
 
     // ChPhysicsItem overrides
+    virtual bool GetCollide() const override { return true; }
+
     virtual void SyncCollisionModels() override;
     virtual void AddCollisionModelsToSystem() override;
     virtual void RemoveCollisionModelsFromSystem() override;
