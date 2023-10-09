@@ -2111,7 +2111,8 @@ void ChSystem::ArchiveOut(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChSystem>();
 
     // serialize underlying assembly
-    assembly.ArchiveOut(marchive);
+    //assembly.ArchiveOut(marchive);
+    marchive << CHNVP(assembly);
 
     // serialize all member data:
 
