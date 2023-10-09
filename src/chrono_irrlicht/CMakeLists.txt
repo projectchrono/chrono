@@ -196,6 +196,11 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 ENDIF()
 
+if(CH_STATIC)
+  SET(CH_IRRLICHT_LIB "${IRRLICHT_LIBRARY}" PARENT_SCOPE)
+endif()
+
+
 #-------------------------------------------------------------------------------
 # Install the ChronoEngine_irrlicht library
 

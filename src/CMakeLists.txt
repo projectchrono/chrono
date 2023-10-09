@@ -66,7 +66,10 @@ set(CH_LINKERFLAG_LIB "")
 # Collect compiler flags required to build the Chrono libraries
 #-----------------------------------------------------------------------------
 if (NOT BUILD_SHARED_LIBS)
+  set(CH_STATIC ON)
   add_compile_definitions(CH_STATIC)
+else()
+  set(CH_STATIC OFF)
 endif()
 
 
@@ -478,6 +481,18 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
         add_definitions( "-MP" ) # perform parallel builds
 
         set(CH_CXX_FLAGS "${CH_CXX_FLAGS} /Zc:__cplusplus")
+        set(CH_CXX_FLAGS "${CH_CXX_FLAGS} /EHsc") # Resolve C4530: https://learn.microsoft.com/en-us/cpp/build/reference/eh-exception-handling-model
+        
+
+        # excluding wrong runtime libraries from the link (LNK4098): https://learn.microsoft.com/en-us/cpp/error-messages/tool-errors/linker-tools-warning-lnk4098
+        if(USE_MSVC_STATIC_RUNTIME)
+          set(CH_LINKERFLAG_LIB "${CH_LINKERFLAG_LIB} /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:msvcrtd.lib /NODEFAULTLIB:libcmt$<$<NOT:$<CONFIG:Debug>>:d>.lib")
+          set(CH_LINKERFLAG_EXE "${CH_LINKERFLAG_EXE} /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:msvcrtd.lib /NODEFAULTLIB:libcmt$<$<NOT:$<CONFIG:Debug>>:d>.lib")
+        else()
+          set(CH_LINKERFLAG_LIB "${CH_LINKERFLAG_LIB} /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrt$<$<NOT:$<CONFIG:Debug>>:d>.lib")
+          set(CH_LINKERFLAG_EXE "${CH_LINKERFLAG_EXE} /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrt$<$<NOT:$<CONFIG:Debug>>:d>.lib")
+        endif()
+
     endif(MSVC)
 
     if(MINGW OR CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
@@ -533,6 +548,7 @@ else()
     add_compile_options(-Wno-sign-compare)
     add_compile_options(-Wno-reorder)
     add_compile_options(-Wno-unused-function)
+    add_compile_options(-Wno-unused-parameter)
 endif()
 
 #-----------------------------------------------------------------------------
