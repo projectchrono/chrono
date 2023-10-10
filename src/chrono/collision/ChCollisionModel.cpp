@@ -113,10 +113,6 @@ bool ChCollisionModel::AddCylinder(std::shared_ptr<ChMaterialSurface> material,
     auto height = seg.GetLength();
     auto frame = seg.GetFrame();
 
-    std::cout << height << std::endl;
-    std::cout << frame.GetPos() << std::endl;
-    std::cout << frame.GetA() << std::endl;
-
     return AddCylinder(material, radius, height, frame.GetPos(), frame.GetA());
 }
 

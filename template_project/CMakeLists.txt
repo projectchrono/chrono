@@ -163,9 +163,11 @@ target_link_libraries(my_demo ${CHRONO_LIBRARIES})
 # dependency DLLs to the appropriate binary output folder.
 # This function has effect only on Windows.
 # 
-# Note that you must first set EXECUTABLE_OUTPUT_PATH
-# (this can simply be ${CMAKE_BINARY_DIR}, like in this example)
+# DLLs will be copied into ${PROJECT_BINARY_DIR}/${config} by default
+# or in ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${config} if only CMAKE_RUNTIME_OUTPUT_DIRECTORY is set
+# or to ${CMAKE_RUNTIME_OUTPUT_DIRECTORY_<CONFIG>} if the specific CMAKE_RUNTIME_OUTPUT_DIRECTORY_<CONFIG> has been set
 #--------------------------------------------------------------
 
-set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
+# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")
+# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "<mycustompathforrelease>")
 add_DLL_copy_command()

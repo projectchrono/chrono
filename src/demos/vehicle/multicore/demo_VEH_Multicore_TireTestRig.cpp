@@ -131,7 +131,6 @@ int main() {
     // ----------------
 
     std::cout << "Total rig mass: " << rig.GetMass() << std::endl;
-    std::cout << "Applied load:   " << rig.GetAppliedLoad() << std::endl;
 
     // Initialize OpenGL
     // -----------------
