@@ -18,6 +18,7 @@
 
 #include "chrono/core/ChTypes.h"
 
+#include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyEasy.h"
@@ -108,8 +109,15 @@ int main(int argc, char* argv[]) {
     lidar->PushFilter(chrono_types::make_shared<ChFilterDIAccess>());
     lidar->PushFilter(chrono_types::make_shared<ChFilterPCfromDepth>());
     lidar->PushFilter(chrono_types::make_shared<ChFilterXYZIAccess>());
-    lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(640, 480, 1));
+    lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(640, 480, 0.50, "3D Lidar"));
     sensor_manager->AddSensor(lidar);
+
+    // Create a 2d lidar and add it to the sensor manager
+    auto lidar_2d =
+        chrono_types::make_shared<ChLidarSensor>(ground_body, 5.f, offset_pose, 480, 1, 2 * CH_C_PI, 0.0, 0.0, 100.0f);
+    lidar_2d->PushFilter(chrono_types::make_shared<ChFilterDIAccess>());
+    lidar_2d->PushFilter(chrono_types::make_shared<ChFilterVisualize>(640, 480, "2D Lidar"));
+    sensor_manager->AddSensor(lidar_2d);
 
     // add an accelerometer, gyroscope, and magnetometer
     ChVector<> gps_reference(-89.400, 43.070, 260.0);
@@ -156,6 +164,12 @@ int main(int argc, char* argv[]) {
     auto lidar_handler = chrono_types::make_shared<ChROSLidarHandler>(lidar, lidar_topic_name);
     ros_manager->RegisterHandler(lidar_handler);
 
+    // Create the publisher for the lidar
+    auto lidar_2d_topic_name = "~/output/lidar_2d/data/laser_scan";
+    auto lidar_2d_handler = chrono_types::make_shared<ChROSLidarHandler>(
+        lidar_2d, lidar_2d_topic_name, false);  // last parameter indicates whether to use LaserScan or PointCloud2
+    ros_manager->RegisterHandler(lidar_2d_handler);
+
     // Create the publisher for the accelerometer
     // Let's say I want to only publish the imu data at half the rate specified in the simulation
     // Override that with the constructor that takes a rate
@@ -188,13 +202,14 @@ int main(int argc, char* argv[]) {
     // Simulation
     double time = 0;
     double step_size = 2e-3;
-    double time_end = 30;
+    double time_end = 1000;
 
     // Give the ground body some rotational velocity so that the sensors attached to it appear to be moving
     // Note how the gyroscopes angular velocity in ROS will read 0.1 on the z-axis
     ground_body->SetWvel_par({0, 0, 0.1});
 
     // Simulation loop
+    ChRealtimeStepTimer realtime_timer;
     while (time < time_end) {
         time = sys.GetChTime();
 
@@ -204,6 +219,8 @@ int main(int argc, char* argv[]) {
             break;
 
         sys.DoStepDynamics(step_size);
+
+        realtime_timer.Spin(step_size);
     }
 
     return 0;
