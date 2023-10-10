@@ -209,7 +209,6 @@ int main(int argc, char* argv[]) {
     ground_body->SetWvel_par({0, 0, 0.1});
 
     // Simulation loop
-    ChRealtimeStepTimer realtime_timer;
     while (time < time_end) {
         time = sys.GetChTime();
 
@@ -219,8 +218,6 @@ int main(int argc, char* argv[]) {
             break;
 
         sys.DoStepDynamics(step_size);
-
-        realtime_timer.Spin(step_size);
     }
 
     return 0;
