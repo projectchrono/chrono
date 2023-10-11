@@ -16,6 +16,7 @@ set(CXX_FLAGS "${CH_CXX_FLAGS}")
 set(LINKER_FLAGS "${CH_LINKERFLAG_SHARED}")
 set(CH_ROS_INCLUDES "")
 set(CH_ROS_LIBRARIES "ChronoEngine")
+set(CH_ROS_LINKED_LIBRARIES "")
 
 # Force C++17, required by ROS Humble
 set(CMAKE_CXX_STANDARD 17)
@@ -32,10 +33,10 @@ foreach(_ros2_packages_path IN LISTS _ament_prefix_path)
     string(REPLACE ":" ";" _ros2_packages_path ${_ros2_packages_path})
     list(APPEND CH_ROS_INCLUDES "${_ros2_packages_path}/include")
 endforeach()
-set(_ros_packages rclcpp std_msgs geometry_msgs sensor_msgs chrono_ros_interfaces)
+set(_ros_packages rclcpp std_msgs geometry_msgs sensor_msgs chrono_ros_interfaces rcl_interfaces)
 foreach(_package IN LISTS _ros_packages)
   find_package(${_package} REQUIRED)
-  list(APPEND CH_ROS_LIBRARIES "${${_package}_LIBRARIES}")
+  list(APPEND CH_ROS_LINKED_LIBRARIES "${${_package}_LIBRARIES}")
   list(APPEND CH_ROS_INCLUDES "${${_package}_INCLUDE_DIRS}")
 endforeach()
 
@@ -172,7 +173,7 @@ target_compile_definitions(ChronoEngine_ros PRIVATE "CH_API_COMPILE_ROS")
 
 target_include_directories(ChronoEngine_ros PUBLIC ${CH_ROS_INCLUDES})
 
-target_link_libraries(ChronoEngine_ros ${CH_ROS_LIBRARIES})
+target_link_libraries(ChronoEngine_ros ${CH_ROS_LIBRARIES} ${CH_ROS_LINKED_LIBRARIES})
 
 install(TARGETS ChronoEngine_ros
         RUNTIME DESTINATION bin
@@ -186,3 +187,11 @@ install(TARGETS ChronoEngine_ros
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_ros
         FILES_MATCHING PATTERN "*.h" PATTERN "fbs" EXCLUDE)
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set(CH_CONFIG_INSTALL_PATH "cmake")
+else()
+    set(CH_CONFIG_INSTALL_PATH "lib/cmake/Chrono")
+endif()
+
+install(FILES ${CMAKE_SOURCE_DIR}/cmake/FindROS2.cmake DESTINATION ${CH_CONFIG_INSTALL_PATH} RENAME ros2-config.cmake)
