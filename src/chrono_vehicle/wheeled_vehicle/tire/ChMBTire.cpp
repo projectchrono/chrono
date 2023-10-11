@@ -55,6 +55,7 @@ void ChMBTire::SetTireMass(double mass) {
     m_mass = mass;
 }
 
+//// TODO: consider splitting this in multiple functions (for each type of spring)
 void ChMBTire::SetTireProperties(double kR,
                                  double cR,
                                  double kW,
@@ -104,18 +105,21 @@ void ChMBTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     ChSystem* system = wheel->GetSpindle()->GetSystem();
     assert(system);
 
-    // Add the underlying MB tire model (as a PhysicsItem) to the system before its construction!
+    // Add the underlying MB tire model (as a PhysicsItem) to the system *before* its construction.
     // This way, all its components will have an associated system during construction.
     system->Add(m_model);
 
+    // Set internal tire pressure (if enabled)
     if (IsPressureEnabled() && m_pressure <= 0)
         m_pressure = GetDefaultPressure();
 
+    // Set contact material properties (if enabled)
     if (IsContactEnabled())
         CreateContactMaterial();
 
+    // Construct the underlying tire model, attached to the wheel spindle body
     m_model->m_wheel = wheel->GetSpindle().get();
-    m_model->Construct(*(wheel->GetSpindle().get()));
+    m_model->Construct(*wheel->GetSpindle());
 }
 
 void ChMBTire::Synchronize(double time, const ChTerrain& terrain) {
@@ -515,13 +519,18 @@ void MBTireModel::CalculateInertiaProperties(const ChFrameMoving<>& wheel_frame,
     //// TODO
 }
 
+// Constant threshold for checking zero length vectors
+static const double zero_length = 1e-6;
+
 // Calculate forces at each vertex, then use ChNodeFEAxyz::SetForce
 void MBTireModel::CalculateForces(const ChFrameMoving<>& wheel_frame) {
     // Initialize nodal force accumulators
     std::vector<ChVector<>> nodal_forces(m_num_nodes, VNULL);
 
-    // Initialize wheel force accumulator
+    // Initialize wheel force and moment accumulators
+    //// TODO: update wheel torque
     m_wheel_force = VNULL;
+    m_wheel_torque = VNULL;
 
     // Wheel center position and velocity (expressed in absolute frame)
     const auto& w_pos = wheel_frame.GetPos();
@@ -540,16 +549,21 @@ void MBTireModel::CalculateForces(const ChFrameMoving<>& wheel_frame) {
 
             //// TODO: revisit pressure forces when springs are in place (to hold the mesh together)
             
+            // Option 1
             ////CalcNormal(ir, id, normal, area);
             ////assert(Vdot(m_nodes[k]->GetPos() - w_pos, normal) > 0);  // sanity check
             ////nodal_forces[k] += (pressure * area) * normal;
             
+            // Option 2
             ////normal = (m_nodes[k]->GetPos() - w_pos).GetNormalized();
             ////nodal_forces[k] += (pressure * area) * normal;
         }
     }
 
     // ------------ Spring forces
+
+    //// TODO: check spring force calculations
+    ////       uncomment asserts (once forces are active)
 
     // Forces in radial springs (node1: rim node)
     for (const auto& spring : m_radial_springs) {
@@ -560,12 +574,14 @@ void MBTireModel::CalculateForces(const ChFrameMoving<>& wheel_frame) {
 
         auto dir = pos2 - pos1;
         double length = dir.Length();
+        ////assert(length > zero_length);
         dir /= length;
         double speed = Vdot(vel2 - vel1, dir);
         double force = spring.k * (length - spring.l0) - spring.c * speed;
-        //// TODO
-        // m_wheel_force += ...
-        // m_nodal_forces[spring.node2] += ...
+        ChVector<> vforce = force * dir;
+
+        m_wheel_force += -vforce;
+        nodal_forces[spring.node2] += vforce;
     }
 
     // Forces in wall springs (node1: wall node)
@@ -577,12 +593,15 @@ void MBTireModel::CalculateForces(const ChFrameMoving<>& wheel_frame) {
 
         auto dir = pos2 - pos1;
         double length = dir.Length();
-        dir /= length;
-        double speed = Vdot(vel2 - vel1, dir);
-        double force = spring.k * (length - spring.l0) - spring.c * speed;
-        //// TODO
-        // m_wheel_force += ...   //// TODO : do we need to include these?!?!
-        // m_nodal_forces[spring.node2] += ...
+        if (length > zero_length) {
+            dir /= length;
+            double speed = Vdot(vel2 - vel1, dir);
+            double force = spring.k * (length - spring.l0) - spring.c * speed;
+            ChVector<> vforce = force * dir;
+
+            m_wheel_force += -vforce;
+            nodal_forces[spring.node2] += vforce;
+        }
     }
 
     // Forces in mesh springs
@@ -594,12 +613,14 @@ void MBTireModel::CalculateForces(const ChFrameMoving<>& wheel_frame) {
 
         auto dir = pos2 - pos1;
         double length = dir.Length();
+        ////assert(length > zero_length);
         dir /= length;
         double speed = Vdot(vel2 - vel1, dir);
         double force = spring.k * (length - spring.l0) - spring.c * speed;
-        //// TODO
-        // m_nodal_forces[spring.node1] += ...
-        // m_nodal_forces[spring.node2] += ...
+        ChVector<> vforce = force * dir;
+
+        nodal_forces[spring.node1] += -vforce;
+        nodal_forces[spring.node2] += vforce;
     }
 
     // Forces in bending springs
@@ -611,10 +632,25 @@ void MBTireModel::CalculateForces(const ChFrameMoving<>& wheel_frame) {
         const auto& pos_n = m_nodes[spring.node_n]->GetPos();
         const auto& vel_n = m_nodes[spring.node_n]->GetPos_dt();
 
-        //// TODO
-        // m_nodal_forces[spring.node] += ...
-        // m_nodal_forces[spring.node_p] += ...
-        // m_nodal_forces[spring.node_n] += ...
+        auto dir_p = pos - pos_p;
+        auto dir_n = pos_n - pos;
+        double length_p = dir_p.Length();
+        ////assert(length_p > zero_length);
+        double length_n = dir_n.Length();
+        ////assert(length_n > zero_length);
+        auto cross = Vcross(dir_p, dir_n);
+        double length_cross = cross.Length();
+        ////assert(length_cross > zero_length);
+        double angle = std::asin(length_cross);
+        dir_p /= length_p;
+        dir_n /= length_n;
+        cross /= length_cross;
+        ChVector<> F_p = m_kB * (angle / length_p) * Vcross(cross, dir_p);
+        ChVector<> F_n = m_kB * (angle / length_n) * Vcross(cross, dir_n);
+
+        nodal_forces[spring.node] += F_p + F_n;
+        nodal_forces[spring.node_p] += -F_p;
+        nodal_forces[spring.node_n] += -F_n;
     }
 
     // ------------ Apply loads on FEA nodes
@@ -724,6 +760,9 @@ void MBTireModel::Setup() {
     // Calculate nodal forces
     CalculateForces(*m_wheel);
 
+    // Apply tire force and moment to wheel (spindle) body
+    //// TODO
+
     // Update visualization mesh
     auto trimesh = m_trimesh_shape->GetMesh();
     auto& vertices = trimesh->getCoordsVertices();
@@ -771,7 +810,7 @@ void MBTireModel::AddVisualizationAssets(VisualizationType vis) {
     //// properly remove visualization assets added to the wheel body (requires caching the visual shapes)
 }
 
-// -----------------------------------------------------------------------------
+// =============================================================================
 
 void MBTireModel::InjectVariables(ChSystemDescriptor& descriptor) {
     for (auto& node : m_nodes)

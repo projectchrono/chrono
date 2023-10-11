@@ -266,7 +266,8 @@ class MBTireModel : public ChPhysicsItem {
     std::vector<Spring2> m_mesh_springs;
     std::vector<Spring3> m_bending_springs;
 
-    ChVector<> m_wheel_force;  // applied wheel spindle force
+    ChVector<> m_wheel_force;   // applied wheel spindle force
+    ChVector<> m_wheel_torque;  // applied wheel spindle torque
 
     ChMBTire* m_tire;  // owner ChMBTire object
     ChBody* m_wheel;   // associated wheel body
