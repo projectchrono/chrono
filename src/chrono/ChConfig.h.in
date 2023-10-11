@@ -76,6 +76,9 @@
 // If module SENSOR was enabled, define CHRONO_SENSOR
 @CHRONO_SENSOR@
 
+// If module ROS was enabled, define CHRONO_ROS
+@CHRONO_ROS@
+
 // If module PARDISOPROJECT was enabled, define CHRONO_PARDISOPROJECT
 @CHRONO_PARDISOPROJECT@
 
