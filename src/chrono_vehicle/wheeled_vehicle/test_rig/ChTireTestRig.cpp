@@ -43,6 +43,7 @@ ChTireTestRig::ChTireTestRig(std::shared_ptr<ChWheel> wheel, std::shared_ptr<ChT
       m_time_delay(0),
       m_ls_actuated(false),
       m_rs_actuated(false),
+      m_long_slip_constant(false),
       m_terrain_type(TerrainType::NONE),
       m_terrain_offset(0),
       m_terrain_height(0),
@@ -78,6 +79,14 @@ void ChTireTestRig::SetLongSpeedFunction(std::shared_ptr<ChFunction> funct) {
 void ChTireTestRig::SetAngSpeedFunction(std::shared_ptr<ChFunction> funct) {
     m_rs_fun = funct;
     m_rs_actuated = true;
+}
+
+void ChTireTestRig::SetConstantLongitudinalSlip(double long_slip, double base_speed) {
+    m_ls_actuated = true;
+    m_rs_actuated = true;
+    m_long_slip_constant = true;
+    m_long_slip = long_slip;
+    m_base_speed = base_speed;
 }
 
 void ChTireTestRig::SetTireCollisionType(ChTire::CollisionType coll_type) {
@@ -138,35 +147,6 @@ void ChTireTestRig::SetTerrainGranular(double radius,
 
 // -----------------------------------------------------------------------------
 
-void ChTireTestRig::Initialize() {
-    CreateMechanism();
-
-    struct DelayedFun : public ChFunction {
-        DelayedFun() : m_fun(nullptr), m_delay(0) {}
-        DelayedFun(std::shared_ptr<ChFunction> fun, double delay) : m_fun(fun), m_delay(delay) {}
-        virtual DelayedFun* Clone() const override { return new DelayedFun(); }
-        virtual double Get_y(double x) const override {
-            if (x < m_delay)
-                return 0;
-            return m_fun->Get_y(x - m_delay);
-        }
-        std::shared_ptr<ChFunction> m_fun;
-        double m_delay;
-    };
-
-    if (m_ls_actuated)
-        m_lin_motor->SetSpeedFunction(chrono_types::make_shared<DelayedFun>(m_ls_fun, m_time_delay));
-
-    if (m_rs_actuated)
-        m_rot_motor->SetSpeedFunction(chrono_types::make_shared<DelayedFun>(m_rs_fun, m_time_delay));
-
-    m_slip_lock->SetMotion_ang(chrono_types::make_shared<DelayedFun>(m_sa_fun, m_time_delay));
-
-    CreateTerrain();
-}
-
-// -----------------------------------------------------------------------------
-
 class BaseFunction {
   protected:
     BaseFunction(double speed) : m_speed(speed) {}
@@ -203,20 +183,39 @@ class RotSpeedFunction : public BaseFunction, public ChFunction {
     double m_radius;
 };
 
-void ChTireTestRig::Initialize(double long_slip, double base_speed) {
-    m_ls_actuated = true;
-    m_rs_actuated = true;
-
-    CreateMechanism();
-
-    m_ls_fun = chrono_types::make_shared<LinSpeedFunction>(base_speed);
-    m_rs_fun = chrono_types::make_shared<RotSpeedFunction>(long_slip, base_speed, m_tire->GetRadius());
-
-    m_lin_motor->SetSpeedFunction(m_ls_fun);
-    m_rot_motor->SetSpeedFunction(m_rs_fun);
-    m_slip_lock->SetMotion_ang(m_sa_fun);
-
+void ChTireTestRig::Initialize(Mode mode) {
+    CreateMechanism(mode);
     CreateTerrain();
+
+    if (mode != Mode::TEST)
+        return;
+
+    if (m_long_slip_constant) {
+        // Override motion functions to enforce specified constant longitudinal slip
+        m_ls_fun = chrono_types::make_shared<LinSpeedFunction>(m_base_speed);
+        m_rs_fun = chrono_types::make_shared<RotSpeedFunction>(m_long_slip, m_base_speed, m_tire->GetRadius());
+    }
+
+    struct DelayedFun : public ChFunction {
+        DelayedFun() : m_fun(nullptr), m_delay(0) {}
+        DelayedFun(std::shared_ptr<ChFunction> fun, double delay) : m_fun(fun), m_delay(delay) {}
+        virtual DelayedFun* Clone() const override { return new DelayedFun(); }
+        virtual double Get_y(double x) const override {
+            if (x < m_delay)
+                return 0;
+            return m_fun->Get_y(x - m_delay);
+        }
+        std::shared_ptr<ChFunction> m_fun;
+        double m_delay;
+    };
+
+    if (m_ls_actuated)
+        m_lin_motor->SetSpeedFunction(chrono_types::make_shared<DelayedFun>(m_ls_fun, m_time_delay));
+
+    if (m_rs_actuated)
+        m_rot_motor->SetSpeedFunction(chrono_types::make_shared<DelayedFun>(m_rs_fun, m_time_delay));
+
+    m_slip_lock->SetMotion_ang(chrono_types::make_shared<DelayedFun>(m_sa_fun, m_time_delay));
 }
 
 // -----------------------------------------------------------------------------
@@ -238,7 +237,7 @@ void ChTireTestRig::Advance(double step) {
 
 // -----------------------------------------------------------------------------
 
-void ChTireTestRig::CreateMechanism() {
+void ChTireTestRig::CreateMechanism(Mode mode) {
     m_system->Set_G_acc(ChVector<>(0, 0, -m_grav));
 
     // Create bodies.
@@ -319,6 +318,7 @@ void ChTireTestRig::CreateMechanism() {
     }
 
     m_spindle_body = std::shared_ptr<ChBody>(m_system->NewBody());
+    m_spindle_body->SetBodyFixed(mode == Mode::SUSPEND);
     ChQuaternion<> qc;
     qc.Q_from_AngX(-m_camber_angle);
     m_system->AddBody(m_spindle_body);
@@ -334,7 +334,7 @@ void ChTireTestRig::CreateMechanism() {
                                                 dim / 2);
 
     // Create joints and motors
-    if (m_ls_actuated) {
+    if (mode == Mode::TEST && m_ls_actuated) {
         m_lin_motor = chrono_types::make_shared<ChLinkMotorLinearSpeed>();
         m_system->AddLink(m_lin_motor);
         m_lin_motor->Initialize(m_carrier_body, m_ground_body, ChFrame<>(ChVector<>(0, 0, 0), QUNIT));
@@ -357,7 +357,7 @@ void ChTireTestRig::CreateMechanism() {
 
     ChQuaternion<> z2y;
     z2y.Q_from_AngAxis(-CH_C_PI / 2 - m_camber_angle, ChVector<>(1, 0, 0));
-    if (m_rs_actuated) {
+    if (mode == Mode::TEST && m_rs_actuated) {
         m_rot_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
         m_system->AddLink(m_rot_motor);
         m_rot_motor->Initialize(m_spindle_body, m_slip_body, ChFrame<>(ChVector<>(0, 3 * dim, -4 * dim), z2y));
@@ -376,13 +376,15 @@ void ChTireTestRig::CreateMechanism() {
     m_tire->SetVisualizationType(m_tire_vis);
 
     // Update chassis mass to satisfy requested normal load
-    m_total_mass = m_normal_load / m_grav;
-    double other_mass = m_slip_body->GetMass() + m_spindle_body->GetMass() + m_wheel->GetMass() + m_tire->GetMass();
-    double chassis_mass = m_total_mass - other_mass;
-    if (chassis_mass > mass) {
-        m_chassis_body->SetMass(chassis_mass);
-    } else {
-        std::cout << "\nWARNING!  Prescribed normal load too small. Discarded.\n" << std::endl;
+    if (m_grav > 0) {
+        m_total_mass = m_normal_load / m_grav;
+        double other_mass = m_slip_body->GetMass() + m_spindle_body->GetMass() + m_wheel->GetMass() + m_tire->GetMass();
+        double chassis_mass = m_total_mass - other_mass;
+        if (chassis_mass > mass) {
+            m_chassis_body->SetMass(chassis_mass);
+        } else {
+            std::cout << "\nWARNING!  Prescribed normal load too small. Discarded.\n" << std::endl;
+        }
     }
 
     // Set terrain offset (based on wheel center) and terrain height (below tire)
