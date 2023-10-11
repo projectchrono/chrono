@@ -574,10 +574,10 @@ void MBTireModel::CalculateForces(const ChFrameMoving<>& wheel_frame) {
 
         auto dir = pos2 - pos1;
         double length = dir.Length();
-        ////assert(length > zero_length);
+        assert(length > zero_length);
         dir /= length;
         double speed = Vdot(vel2 - vel1, dir);
-        double force = spring.k * (length - spring.l0) - spring.c * speed;
+        double force = -spring.k * (length - spring.l0) - spring.c * speed;
         ChVector<> vforce = force * dir;
 
         m_wheel_force += -vforce;
@@ -596,7 +596,7 @@ void MBTireModel::CalculateForces(const ChFrameMoving<>& wheel_frame) {
         if (length > zero_length) {
             dir /= length;
             double speed = Vdot(vel2 - vel1, dir);
-            double force = spring.k * (length - spring.l0) - spring.c * speed;
+            double force = -spring.k * (length - spring.l0) - spring.c * speed;
             ChVector<> vforce = force * dir;
 
             m_wheel_force += -vforce;
@@ -613,14 +613,14 @@ void MBTireModel::CalculateForces(const ChFrameMoving<>& wheel_frame) {
 
         auto dir = pos2 - pos1;
         double length = dir.Length();
-        ////assert(length > zero_length);
+        assert(length > zero_length);
         dir /= length;
         double speed = Vdot(vel2 - vel1, dir);
-        double force = spring.k * (length - spring.l0) - spring.c * speed;
+        double force = -spring.k * (length - spring.l0) - spring.c * speed;
         ChVector<> vforce = force * dir;
 
-        nodal_forces[spring.node1] += -vforce;
-        nodal_forces[spring.node2] += vforce;
+        ////nodal_forces[spring.node1] += -vforce;
+        ////nodal_forces[spring.node2] += vforce;
     }
 
     // Forces in bending springs
@@ -648,9 +648,9 @@ void MBTireModel::CalculateForces(const ChFrameMoving<>& wheel_frame) {
         ChVector<> F_p = m_kB * (angle / length_p) * Vcross(cross, dir_p);
         ChVector<> F_n = m_kB * (angle / length_n) * Vcross(cross, dir_n);
 
-        nodal_forces[spring.node] += F_p + F_n;
-        nodal_forces[spring.node_p] += -F_p;
-        nodal_forces[spring.node_n] += -F_n;
+        ////nodal_forces[spring.node] += F_p + F_n;
+        ////nodal_forces[spring.node_p] += -F_p;
+        ////nodal_forces[spring.node_n] += -F_n;
     }
 
     // ------------ Apply loads on FEA nodes
