@@ -458,7 +458,7 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
     elseif(${COMPONENT_UPPER} MATCHES ROS)
 
-      find_package(ROS REQUIRED)
+      find_package(ROS2 REQUIRED)
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_ROS_INCLUDES@")
       list(APPEND CHRONO_LIBRARIES "@CH_ROS_LIBRARIES@")
