@@ -56,10 +56,9 @@ FetchContent_Declare(
     SOURCE_DIR ${FMU_TOOLS_DIR}
 )
 
-set(FMU_MODEL_IDENTIFIER "myChronoFmuIdentifier" CACHE STRING "FMU Model Identifier: should fulfill operating system and C-function naming standards.")
+set(FMU_MODEL_IDENTIFIER "FmuComponentChrono" CACHE STRING "FMU Model Identifier: should fulfill operating system and C-function naming standards.")
 set(BUILD_TESTING ON CACHE BOOL "Enable testing.")
 set(USE_EXTERNAL_FMU_COMPONENT_SOURCES ON CACHE INTERNAL "")
-set(ENABLE_GUID_CHECK ON)
 
 FetchContent_MakeAvailable(PACK_FMU)
 
@@ -80,11 +79,11 @@ MESSAGE(STATUS "---------------------------------------------------------")
 
 
 
-target_sources(FmuComponent PRIVATE FmuComponentChrono.h FmuComponentChrono.cpp) ## FMU_ACTION: put your source code here
-target_compile_definitions(FmuComponent PUBLIC "CHRONO_DATA_DIR=\"${CHRONO_DATA_DIR}\"") 
-target_compile_options(FmuComponent PUBLIC ${CHRONO_CXX_FLAGS})
-target_link_options(FmuComponent PUBLIC ${CHRONO_LINKER_FLAGS})
-target_link_libraries(FmuComponent ${CHRONO_LIBRARIES})
+target_sources(${FMU_MODEL_IDENTIFIER} PRIVATE FmuComponentChrono.h FmuComponentChrono.cpp) ## FMU_ACTION: put your source code here
+target_compile_definitions(${FMU_MODEL_IDENTIFIER} PUBLIC "CHRONO_DATA_DIR=\"${CHRONO_DATA_DIR}\"") 
+target_compile_options(${FMU_MODEL_IDENTIFIER} PUBLIC ${CHRONO_CXX_FLAGS})
+target_link_options(${FMU_MODEL_IDENTIFIER} PUBLIC ${CHRONO_LINKER_FLAGS})
+target_link_libraries(${FMU_MODEL_IDENTIFIER} ${CHRONO_LIBRARIES})
 
 
 
@@ -93,16 +92,7 @@ IF (NOT EXISTS "${CMAKE_SOURCE_DIR}/fmu_host.cpp")
 endif()
 target_sources(fmu_host PRIVATE fmu_host.cpp)
 
-# # Copy dependencies
-# string(REPLACE ";" "\" \"" CHRONO_DLLS_SPACEDELIM "${CHRONO_DLLS}")
-# SET(CHRONO_DLLS_SPACEDELIM "\"${CHRONO_DLLS_SPACEDELIM}\"")
-# add_custom_target(COPY_DEPENDENCIES
-#   COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CHRONO_DLLS_SPACEDELIM}" "${FMU_RUNTIME_OUTPUT_DIRECTORY}"
-#   COMMENT "Creating FMU file: ${FMU_MODEL_IDENTIFIER}.fmu"
-# )
-
-add_dependencies(fmu_modeldescription_generator COPY_DLLS)
-add_dependencies(PACK_FMU COPY_DLLS)
+add_dependencies(${FMU_MODEL_IDENTIFIER} COPY_DLLS)
 
 # Enable testing
 if(TESTING_ENABLED)
