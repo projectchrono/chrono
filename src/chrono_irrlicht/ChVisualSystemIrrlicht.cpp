@@ -787,16 +787,28 @@ static void mflipSurfacesOnX(IMesh* mesh) {
 static void SetVisualMaterial(ISceneNode* node, std::shared_ptr<ChVisualShape> shape) {
     if (shape->GetMaterials().empty()) {
         // Use default material
-        node->getMaterial(0) = *default_material;
-    } else {
-        assert((irr::u32)shape->GetNumMaterials() >= node->getMaterialCount());
-        for (int i = 0; i < node->getMaterialCount(); i++)
+        for (u32 i = 0; i < node->getMaterialCount(); i++)
+            node->getMaterial(i) = *default_material;
+    } 
+    else {
+        // ChVisualShape might have one or many materials associated
+        // a) associate ChVisualShape material to Irrlicht node material until ChVisualShape are consumed
+        for (u32 i = 0; i < std::min(node->getMaterialCount(), (irr::u32)shape->GetNumMaterials()); i++)
             node->getMaterial(i) =
                 tools::ToIrrlichtMaterial(shape->GetMaterial(i), node->getSceneManager()->getVideoDriver());
+
+        // b) if more materials are required by Irrlicht node it will rollback to ChVisualShape::GetMaterial(0)
+        //    in this way the user can set just one material and it will be propagated to all Irrlicht nodes
+        //    (e.g. each OBJ files might have many materials indeed) 
+        if ((irr::u32)shape->GetNumMaterials() < node->getMaterialCount()){
+            for (u32 i = (irr::u32)shape->GetNumMaterials(); i < node->getMaterialCount(); i++)
+               node->getMaterial(i) =
+                    tools::ToIrrlichtMaterial(shape->GetMaterial(0), node->getSceneManager()->getVideoDriver());
+        }
     }
 
-    // Do not use vertex coloring
-    node->getMaterial(0).ColorMaterial = video::ECM_NONE;
+    for (int i = 0; i < node->getMaterialCount(); i++)
+        node->getMaterial(i).ColorMaterial = video::ECM_NONE;
 }
 
 void ChVisualSystemIrrlicht::PopulateIrrNode(ISceneNode* node,
