@@ -170,6 +170,12 @@ void ChElementBeamEuler::GetField_dt(ChVectorDynamic<>& mD_dt) {
     mD_dt.segment(9, 3) = q_element_abs_rot.RotateBack(nodes[1]->Frame().GetWvel_par()).eigen();
 }
 
+// This class computes and adds corresponding masses to ElementGeneric member m_TotalMass
+void ChElementBeamEuler::ComputeNodalMass() {
+    for (int i = 0; i < nodes.size(); ++i)
+        nodes[i]->m_TotalMass += this->mass / nodes.size();
+}
+
 void ChElementBeamEuler::ComputeStiffnessMatrix() {
     assert(section);
 

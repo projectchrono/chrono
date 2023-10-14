@@ -50,6 +50,9 @@ class ChApi ChElementBar : public ChElementGeneric {
     /// If the D vector size is not this->GetNdofs(), it will be resized.
     virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
+    /// Add contribution of element inertia to total nodal masses
+    virtual void ComputeNodalMass() override;
+
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
     /// (For the spring matrix there is no need to corotate local matrices: we already know a closed form expression.)

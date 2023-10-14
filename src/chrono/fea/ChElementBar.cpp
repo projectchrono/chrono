@@ -38,6 +38,12 @@ void ChElementBar::GetStateBlock(ChVectorDynamic<>& mD) {
     mD.segment(3, 3) = this->nodes[1]->GetPos().eigen();
 }
 
+// This class computes and adds corresponding masses to ElementGeneric member m_TotalMass
+void ChElementBar::ComputeNodalMass() {
+    for (int i = 0; i < nodes.size(); ++i)
+        nodes[i]->m_TotalMass += this->mass / nodes.size();
+}
+
 void ChElementBar::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
     assert((H.rows() == 6) && (H.cols() == 6));
 
