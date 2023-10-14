@@ -76,7 +76,7 @@ class CH_VEHICLE_API SPHTerrain : public ChTerrain {
     /// Construct a rectangular patch granular SPH terrain object of given dimensions.
     void Construct(double length,                          ///< patch length (X direction)
                    double width,                           ///< patch width (Y direction)
-                   double depth,                           ///< patch width (Y direction)
+                   double depth,                           ///< patch depth (Z direction)
                    int bce_layers = 3,                     ///< number of BCE layers
                    const ChVector<>& pos = ChVector<>(0),  ///< patch center
                    double yaw_angle = 0,                   ///< patch yaw rotation

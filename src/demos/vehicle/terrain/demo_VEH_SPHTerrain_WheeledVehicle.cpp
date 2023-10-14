@@ -56,6 +56,10 @@ using std::endl;
 // Run-time visualization system (OpenGL or VSG)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
+// SPH terrain patch type
+enum class PatchType {RECTANGULAR, MARKER_DATA, HEIGHT_MAP};
+PatchType patch_type = PatchType::HEIGHT_MAP;
+
 // ===================================================================================================================
 
 std::shared_ptr<WheeledVehicle> CreateVehicle(ChSystem& sys, const ChCoordsys<>& init_pos);
@@ -88,11 +92,14 @@ int main(int argc, char* argv[]) {
 
     bool verbose = true;
 
+    // Set SPH spacing
+    double spacing = (patch_type == PatchType::MARKER_DATA) ? 0.02 : 0.04;
+
     // Create the Chrono system
     ChSystemNSC sys;
 
     // Create the SPH terrain system
-    SPHTerrain terrain(sys, 0.02);
+    SPHTerrain terrain(sys, spacing);
     terrain.SetVerbose(verbose);
     ChSystemFsi& sysFSI = terrain.GetSystemFSI();
 
@@ -128,14 +135,42 @@ int main(int argc, char* argv[]) {
 
     sysFSI.SetOutputLength(0);
 
-    // Construct the terrain using SPH particles and BCE markers from files
+    // Construct the terrain
     cout << "Create terrain..." << endl;
-    terrain.Construct(vehicle::GetDataFile(terrain_dir + "/sph_particles.txt"),
-                      vehicle::GetDataFile(terrain_dir + "/bce_markers.txt"));
+    switch (patch_type) {
+        case PatchType::RECTANGULAR:
+            // Create a rectangular terrain patch
+            terrain.Construct(10.0, 3.0,            // length X width
+                              0.25,                 // depth
+                              3,                    // number BCE layers
+                              ChVector<>(5, 0, 0),  // patch center
+                              0.0,                  // patch orientation angle
+                              true                  // create side boundaries
+            );
+            break;
+        case PatchType::MARKER_DATA:
+            // Create a patch using SPH particles and BCE markers from files
+            terrain.Construct(vehicle::GetDataFile(terrain_dir + "/sph_particles.txt"),  // SPH marker locations
+                              vehicle::GetDataFile(terrain_dir + "/bce_markers.txt")     // BCE marker locations
+            );
+            break;
+        case PatchType::HEIGHT_MAP:
+            // Create a patch from a heigh field map image
+            terrain.Construct(vehicle::GetDataFile("terrain/height_maps/bump64.bmp"),  // height map image file
+                              10.0, 3.0,                                               // length (X) and width (Y)
+                              {0, 0.3},                                                // height range
+                              0.25,                                                    // depth
+                              3,                                                       // number of BCE layers
+                              ChVector<>(5, 0, 0),                                     // patch center
+                              0.0,                                                     // patch yaw rotation
+                              false                                                    // side walls?
+            );
+            break;
+    }
 
     // Create vehicle
     cout << "Create vehicle..." << endl;
-    ChVector<> veh_init_pos(4.0, 0, 0.25);
+    ChVector<> veh_init_pos(3.0, 0, 0.25);
     auto vehicle = CreateVehicle(sys, ChCoordsys<>(veh_init_pos, QUNIT));
 
     // Create the wheel BCE markers
@@ -150,10 +185,12 @@ int main(int argc, char* argv[]) {
     cout << "  Bndry BCE markers: " << sysFSI.GetNumBoundaryMarkers() << endl;
     cout << "  AABB:              " << aabb_min << "   " << aabb_max << endl;
 
+    // Set maximum vehicle X location (based on SPH patch size) 
+    double x_max = aabb_max.x() - 3.0;
+
     // Create driver
     cout << "Create path..." << endl;
     auto path = CreatePath(terrain_dir + "/path.txt");
-    double x_max = path->getPoint(path->getNumPoints() - 2).x() - 3.0;
     ChPathFollowerDriver driver(*vehicle, path, "my_path", target_speed);
     driver.GetSteeringController().SetLookAheadDistance(2.0);
     driver.GetSteeringController().SetGains(1.0, 0, 0);
@@ -188,7 +225,7 @@ int main(int argc, char* argv[]) {
 
         visFSI->SetTitle("Wheeled vehicle SPH deformable terrain");
         visFSI->SetSize(1280, 720);
-        visFSI->AddCamera(ChVector<>(0, 8, 0.5), ChVector<>(0, -1, 0));
+        visFSI->AddCamera(ChVector<>(0, 8, 1.5), ChVector<>(0, -1, 0));
         visFSI->SetCameraMoveScale(0.2f);
         visFSI->EnableFluidMarkers(visualization_sph);
         visFSI->EnableBoundaryMarkers(visualization_bndry_bce);
@@ -207,21 +244,15 @@ int main(int argc, char* argv[]) {
     double t = 0;
     int frame = 0;
 
-    if (x_max < veh_init_pos.x())
-        x_max = veh_init_pos.x() + 0.25;
-
     cout << "Start simulation..." << endl;
 
     while (t < tend) {
         const auto& veh_loc = vehicle->GetPos();
 
-        // Stop before end of patch
-        if (veh_loc.x() > x_max)
-            break;
-
         // Set current driver inputs
         driver_inputs = driver.GetInputs();
 
+        // Ramp up throttle to value requested by the cruise controller
         if (t < 0.5) {
             driver_inputs.m_throttle = 0;
             driver_inputs.m_braking = 1;
@@ -229,10 +260,16 @@ int main(int argc, char* argv[]) {
             ChClampValue(driver_inputs.m_throttle, driver_inputs.m_throttle, (t - 0.5) / 0.5);
         }
 
+        // Stop vehicle before reaching end of terrain patch
+        if (veh_loc.x() > x_max) {
+            driver_inputs.m_throttle = 0;
+            driver_inputs.m_braking = 1;
+        }
+
         // Run-time visualization
         if (visualization && frame % render_steps == 0) {
             if (chase_cam) {
-                ChVector<> cam_loc = veh_loc + ChVector<>(-6, 6, 0.5);
+                ChVector<> cam_loc = veh_loc + ChVector<>(-6, 6, 1.5);
                 ChVector<> cam_point = veh_loc;
                 visFSI->UpdateCamera(cam_loc, cam_point);
             }
