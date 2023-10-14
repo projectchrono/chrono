@@ -116,8 +116,8 @@ class ChState : public ChVectorDynamic<double> {
 
 /// Class for incremental form of state of time-integrable objects.
 /// Note that for many cases, this would be superfluous, because one could
-/// do y_new = y_old + dydt*td, where dydt is a ChState just like y and y_new, but there
-/// are cases where such simple "+" operations between vectors is not practical, for instance
+/// do y_new = y_old + dydt*dt, where dydt is a ChState just like y and y_new, but there
+/// are cases where such simple "+" operation between vectors is not practical, for instance
 /// when integrating rotations in 3D space, where it is better to work with quaternions in y
 /// and y_new, but with spinors/angular velocities/etc. in dydt; so dim(y) is not dim(dydt);
 /// hence the need of this specific class for increments in states.

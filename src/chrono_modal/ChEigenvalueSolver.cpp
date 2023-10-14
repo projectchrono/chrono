@@ -89,30 +89,12 @@ public:
     {}
 };
 
-
-
-
 void placeMatrix(Eigen::SparseMatrix<double, Eigen::ColMajor, int>& HCQ, const ChSparseMatrix& H, int row_start, int col_start) {
-
-	//int insertion = 0;
-
 	for (int k=0; k<H.outerSize(); ++k)
 		for (ChSparseMatrix::InnerIterator it(H,k); it; ++it) {
-
-
-
-
-
 			HCQ.coeffRef(it.row()+row_start,it.col()+col_start) = it.value();
-
-
-			//HCQ.coeffRef(it.row()+row_start,it.col()+col_start) = it.value();
 		}
-
-	//std::cout << "Requested " << insertion << " insertions" << std::endl;
-
 }
-
 
 bool ChGeneralizedEigenvalueSolverKrylovSchur::Solve(const ChSparseMatrix& M,  ///< input M matrix, n_v x n_v
         const ChSparseMatrix& K,  ///< input K matrix, n_v x n_v  
@@ -228,7 +210,8 @@ bool ChGeneralizedEigenvalueSolverKrylovSchur::Solve(const ChSparseMatrix& M,  /
 
     for (int i = 0; i < settings.n_modes; i++) {
         V.col(i) = eigen_vectors.col(i).head(n_vars);  // store only displacement part of eigenvector, no constraint part
-        V.col(i).normalize(); // check if necessary or already normalized
+        // TODO: normalize w.r.t. mass matrix
+		V.col(i).normalize(); // check if necessary or already normalized
         eig(i) = eigen_values(i);
 		freq(i) = (1.0 / CH_C_2PI) * sqrt(-eig(i).real());
     }
@@ -319,6 +302,7 @@ bool ChGeneralizedEigenvalueSolverLanczos::Solve(const ChSparseMatrix& M,  ///< 
 
     for (int i = 0; i < settings.n_modes; i++) {
         V.col(i) = eigen_vectors.col(i).head(n_vars);  // store only displacement part of eigenvector, no constraint part
+		// TODO: normalize w.r.t. mass matrix
         V.col(i).normalize(); // check if necessary or already normalized
         eig(i) = eigen_values(i);
 		freq(i) = (1.0 / CH_C_2PI) * sqrt(-eig(i).real());
@@ -392,6 +376,8 @@ int ChModalSolveUndamped::Solve(
 			V.conservativeResize(M.rows(), V.cols() + i_nodes_notoverlap);
 			eig.conservativeResize(eig.size() + i_nodes_notoverlap);
 			freq.conservativeResize(freq.size() + i_nodes_notoverlap);
+			// TODO: seems a bug in below three lines 
+			// because we might have i_nodes_notoverlap < nmodes_out_i when there are overlap modes
 			V.rightCols(i_nodes_notoverlap) = V_i;
 			eig.tail(i_nodes_notoverlap) = eig_i;
 			freq.tail(i_nodes_notoverlap) = freq_i;
@@ -487,6 +473,7 @@ bool ChQuadraticEigenvalueSolverNullspaceDirect::Solve(const ChSparseMatrix& M, 
         auto mvhns = Cq_null_space * mv;
 
         V.col(i) = mvhns; 
+		// TODO: normalize w.r.t. mass matrix
         V.col(i).normalize(); // check if necessary or already normalized
         eig(i) = all_eigen_values_and_vectors.at(i_half).eigen_val;
 		freq(i) = (1.0 / CH_C_2PI) * (std::abs(eig(i))); // undamped freq.
@@ -550,6 +537,8 @@ bool ChQuadraticEigenvalueSolverKrylovSchur::Solve(const ChSparseMatrix& M, cons
 	for (int k = 0; k < R.outerSize(); ++k)
 		for (ChSparseMatrix::InnerIterator it(R, k); it; ++it)
 			As_resSize[it.col() + n_vars]++;
+
+	// TODO: possible bug, since Cq as an instance of ChSparseMatrix(), is row-major 
 	for (auto col_i = 0; col_i < Cq.outerSize(); col_i++) {
 		As_resSize[col_i+2*n_vars] += Cq.isCompressed() ? Cq.outerIndexPtr()[col_i+1]-Cq.outerIndexPtr()[col_i] : Cq.innerNonZeroPtr()[col_i];
 	}
@@ -740,7 +729,8 @@ bool ChQuadraticEigenvalueSolverKrylovSchur::Solve(const ChSparseMatrix& M, cons
         int i_half = middle_number + i; // because the n.of eigenvalues is double (conjugate pairs), so just use the 2nd half after sorting
 
         V.col(i) = all_eigen_values_and_vectors.at(i_half).eigen_vect.head(n_vars);  // store only displacement part of eigenvector, no speed part, no constraint part
-        V.col(i).normalize(); // check if necessary or already normalized
+        // TODO: normalize w.r.t. mass matrix
+		V.col(i).normalize(); // check if necessary or already normalized
         eig(i) = all_eigen_values_and_vectors.at(i_half).eigen_val;
 		freq(i) = (1.0 / CH_C_2PI) * (std::abs(eig(i))); // undamped freq.
 		damping_ratio(i) = -eig(i).real() / std::abs(eig(i));
@@ -827,6 +817,8 @@ int ChModalSolveDamped::Solve(
 			eig.conservativeResize(eig.size() + i_nodes_notoverlap);
 			freq.conservativeResize(freq.size() + i_nodes_notoverlap);
 			damp_ratios.conservativeResize(damp_ratios.size() + i_nodes_notoverlap);
+            // TODO: seems a bug in below three lines
+            // because we might have i_nodes_notoverlap < nmodes_out_i when there are overlap modes
 			V.rightCols(i_nodes_notoverlap) = V_i;
 			eig.tail(i_nodes_notoverlap) = eig_i;
 			freq.tail(i_nodes_notoverlap) = freq_i;

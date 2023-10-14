@@ -89,14 +89,34 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// - in Chrono, only boundary nodes are added to a ChModalAssembly
     /// - in Chrono, run this function passing such M and K matrices: a modal analysis will be done on K and M
     /// Note that the size of M (and K) must be at least > n_boundary_coords_w. 
-    void SwitchModalReductionON(ChSparseMatrix& full_M, ChSparseMatrix& full_K, ChSparseMatrix& full_Cq, 
+    void SwitchModalReductionON_backup(ChSparseMatrix& full_M, ChSparseMatrix& full_K, ChSparseMatrix& full_Cq, 
         const ChModalSolveUndamped& n_modes_settings,  ///< int as the n. of lower modes to keep, or a full ChModalSolveUndamped
         const ChModalDamping& damping_model = ChModalDampingNone());    ///< a damping model to use for the reduced model
 
+    void SwitchModalReductionON(
+        ChSparseMatrix& full_M,
+        ChSparseMatrix& full_K,
+        ChSparseMatrix& full_Cq,
+        const ChModalSolveUndamped&
+            n_modes_settings,  ///< int as the n. of lower modes to keep, or a full ChModalSolveUndamped
+        const ChModalDamping& damping_model = ChModalDampingNone());  ///< a damping model to use for the reduced model
+
+    void ComputeMassCenter();
+    void CpmputeSelectionMatrix();
+    void UpdateFloatingFrameOfReference();
+    void UpdateTransformationMatrix();
+
+    void ComputeLocalFullKRMmatrix();
+    void DoModalReduction(const ChModalDamping& damping_model = ChModalDampingNone());
+
+    void ComputeInertialKRMmatrix();
+    void ComputeStiffnessMatrix();
+    void ComputeDampingMatrix();
+    void ComputeModalKRMmatrix();
 
     /// For displaying modes, you can use the following function. It sets the state of this subassembly
     /// (both boundary and inner items) using the n-th eigenvector multiplied by a "amplitude" factor * sin(phase). 
-    /// If you increment the phase during an animation, you will see the n-ht mode 
+    /// If you increment the phase during an animation, you will see the n-th mode 
     /// oscillating on the screen. 
     /// It works also if in IsModalMode(). The mode shape is added to the state snapshot that was taken when doing the
     /// last ComputeModes() or ComputeModesDamped().
@@ -115,10 +135,10 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     void SetFullStateReset();
 
 
-    /// Computes the 'local' increment of the subassembly (increment of configuration respect 
-    /// to the x0 snapshot configuration, in local reference),
-    /// and also gets the speed in local reference.
-    void GetStateLocal(ChStateDelta& Dx_local, ChStateDelta& v_local);
+    /// Computes the increment of the subassembly (increment of configuration respect 
+    /// to the snapshot configuration in previous time step), and also gets the current speed.
+    /// Dx = [qB-qB_old; eta],  v = [qB_dt; eta_dt]
+    void GetStateIncrement(ChStateDelta& Dx, ChStateDelta& v);
 
 
     /// Optimization flag. Default true: when in modal reduced mode, during simulations the internal (discarded) 
@@ -195,8 +215,8 @@ public:
     /// Hence Psi contains the "static modes" and the selected "dynamic modes", as in
     /// Psi = [I, 0; Psi_s, Psi_d]  where Psi_d is the matrix of the selected eigenvectors after SwitchModalReductionON().
     const ChMatrixDynamic<>& Get_modal_Psi() const { return Psi; }
-    /// Access the snapshot of initial state of the full assembly just at the beginning of SwitchModalReductionON()
-    const ChVectorDynamic<>& Get_assembly_x0() const { return assembly_x0; }
+    /// Access the snapshot of the old state of the full assembly at the previous time step
+    const ChVectorDynamic<>& Get_full_assembly_x_old() const { return full_assembly_x_old; }
 
 
     // Use the following function to access results of ComputeModeDamped() or ComputeModes(): 
@@ -344,34 +364,34 @@ public:
     /// Dump the  M mass matrix, K damping matrix, R damping matrix, Cq constraint jacobian
     /// matrix (at the current configuration) for this subassembly,
     /// Assumes the rows/columns of the matrices are ordered as the ChVariable objects used in this assembly, 
-    /// first the all the "boundary" variables then all the "inner" variables (or modal variables if switched to modal assembly).
+    /// first all the "boundary" variables then all the "inner" variables (or modal variables if switched to modal assembly).
     /// The name of the files will be [path]_M.dat [path]_K.dat [path]_R.dat [path]_Cq.dat 
     /// Might throw ChException if file can't be saved.
     void DumpSubassemblyMatrices(bool save_M, bool save_K, bool save_R, bool save_Cq, const char* path);
 
     /// Compute the mass matrix of the subassembly. 
     /// Assumes the rows/columns of the matrix are ordered as the ChVariable objects used in this assembly, 
-    /// first the all the "boundary" itvariablesems then all the "inner" variables (or modal variables if switched to modal assembly).
+    /// first all the "boundary" itvariablesems then all the "inner" variables (or modal variables if switched to modal assembly).
     void GetSubassemblyMassMatrix(ChSparseMatrix* M);    ///< fill this system mass matrix
 
     /// Compute the stiffness matrix of the subassembly, i.e. the jacobian -dF/dq where F are stiff loads.
     /// Assumes the rows/columns of the matrix are ordered as the ChVariable objects used in this assembly, 
-    /// first the all the "boundary" variables then all the "inner" variables (or modal variables if switched to modal assembly).
+    /// first all the "boundary" variables then all the "inner" variables (or modal variables if switched to modal assembly).
     /// Note that not all loads provide a jacobian, as this is optional in their implementation.
     void GetSubassemblyStiffnessMatrix(ChSparseMatrix* K);    ///< fill this system stiffness matrix
 
-    /// Compute the stiffness matrix of the subassembly, i.e. the jacobian -dF/dv where F are stiff loads.
+    /// Compute the damping matrix of the subassembly, i.e. the jacobian -dF/dv where F are damping loads.
     /// Assumes the rows/columns of the matrix are ordered as the ChVariable objects used in this assembly, 
-    /// first the all the "boundary" variables then all the "inner" variables (or modal variables if switched to modal assembly).
+    /// first all the "boundary" variables then all the "inner" variables (or modal variables if switched to modal assembly).
     /// Note that not all loads provide a jacobian, as this is optional in their implementation.
     void GetSubassemblyDampingMatrix(ChSparseMatrix* R);    ///< fill this system damping matrix
 
     /// Compute the constraint jacobian matrix of the subassembly, i.e. the jacobian
     /// Cq=-dC/dq where C are constraints (the lower left part of the KKT matrix).
     /// Assumes the columns of the matrix are ordered as the ChVariable objects used in this assembly, 
-    /// i.e. first the all the "boundary" variables then all the "inner" variables (or modal variables if switched to modal assembly),
+    /// i.e. first all the "boundary" variables then all the "inner" variables (or modal variables if switched to modal assembly),
     /// and assumes the rows of the matrix are ordered as the constraints used in this assembly, i.e. first the boundary and then the inner.
-    void GetSubassemblyConstraintJacobianMatrix(ChSparseMatrix* Cq);  ///< fill this system damping matrix
+    void GetSubassemblyConstraintJacobianMatrix(ChSparseMatrix* Cq);  ///< fill this system constraint jacobian matrix
 
 
     //
@@ -535,11 +555,73 @@ public:
     std::shared_ptr<CustomForceFullCallback> m_custom_F_full_callback;
 
     ChKblockGeneric   modal_Hblock;
-    ChMatrixDynamic<> modal_M;
-    ChMatrixDynamic<> modal_K;
-    ChMatrixDynamic<> modal_R;
+    ChMatrixDynamic<> modal_M;//corresponding to boundary and modal accelerations
+    ChMatrixDynamic<> modal_K;//corresponding to boundary and modal coordinates
+    ChMatrixDynamic<> modal_R;//corresponding to boundary and modal velocites
+    ChMatrixDynamic<> modal_Cq;//corresponding to boundary and modal lagrange multipliers
     ChMatrixDynamic<> Psi; //***TODO*** maybe prefer sparse Psi matrix, especially for upper blocks...
-    ChState           assembly_x0;      // state snapshot of full not reduced assembly at the time of SwitchModalReductionON()
+    ChState           full_assembly_x_old;      // state snapshot of full not reduced assembly at the previous time step
+    ChFrameMoving<>   floating_frame_F0;// floating frame of reference F at the time of SwitchModalReductionON()
+
+    // a series of new variables for the new formulas to support rotating subassembly
+    //***** todo *****: 
+    //need to clean the redundant local variables at the end of the code development
+    ChVector<> com_x;     // the position of center of mass of the subassembly at current deformed configuration
+    ChMatrixDynamic<> S;  // selection matrix to determine the position and orientation of the floating frame F
+    ChFrameMoving<> floating_frame_F; // the floating frame of reference F of the subassembly. Can be at one node or mass center
+    ChMatrix33<> R_F; // rotation matrix of the floating frame F
+    ChVector<> wloc_F; // local angular velocity of the floating frame F
+       
+    ChMatrixDynamic<> Psi_S;// static mode transformation matrix in the mode acceleration method
+    ChMatrixDynamic<> Psi_D;// dynamic mode transformation matrix in the mode acceleration method
+
+    ChMatrixDynamic<> P_B1;//transformation matrix for the part from the coordinate of F to the coordinate of boundary nodes B
+    ChMatrixDynamic<> P_B2;//transformation matrix for the part from the relative coordinate(elastic deformation) of B to the coordinate of boundary nodes B
+    ChMatrixDynamic<> P_I1;//transformation matrix for the part from the coordinate of F to the coordinate of internal nodes I
+    ChMatrixDynamic<> P_I2;//transformation matrix for the part from the relative coordinate(elastic deformation) of I to the coordinate of internal nodes I
+   
+    ChMatrixDynamic<> Y;//transformation matrix for the linear part from the reduced modal stiffness matrix to tangent stiffness matrix
+    ChMatrixDynamic<> Xi_F;//the first geometrical nonlinear part of the tangent stiffness matrix
+    ChMatrixDynamic<> Xi_H;//the second geometrical nonlinear part of the tangent stiffness matrix
+    ChMatrixDynamic<> Xi_V;//the third geometrical nonlinear part of the tangent stiffness matrix
+
+    ChVectorDynamic<> g_loc;//the local internal forces of the reduced superelement in the floating frame F
+    ChVectorDynamic<> g_iner;//the complete inertial forces of the reduced superelement
+    ChVectorDynamic<> g_quad;// the quadratic velocity term of the reduced superelement
+
+    ChMatrixDynamic<> P_W;//extended transformation matrix, = diag[P_B2,I]
+    ChMatrixDynamic<> U;//extended selection matrix, = diag[S,I]
+    ChMatrixDynamic<> O_B;//matrix associated with the local angular velocities of boundary nodes B
+    ChMatrixDynamic<> V;//matrix associated with the local translational velocities of boundary nodes B
+    ChMatrixDynamic<> O_F;  //matrix associated with the local angular velocities of floating frame F
+    ChMatrixDynamic<> V_acc;//matrix associated with the local translational accelerations of boundary nodes B
+    ChMatrixDynamic<> V_rmom;//matrix associated with the local translational momenta of boundary nodes B
+    ChMatrixDynamic<> O_thetamom;//matrix associated with the local angular momenta of boundary nodes B
+    ChMatrixDynamic<> V_F1;//matrix associated with the local inertial forces of boundary nodes B
+    ChMatrixDynamic<> V_F2;//matrix associated with the local centrifugal forces of boundary nodes B
+    ChMatrixDynamic<> V_F3;//matrix associated with the local Coriolis forces of boundary nodes B
+
+    // full system matrices in the local floating frame of reference F
+    ChSparseMatrix full_M_loc;
+    ChSparseMatrix full_K_loc;
+    ChSparseMatrix full_R_loc;
+    ChSparseMatrix full_Cq_loc;
+    // reduced system matrices in the local floating frame of reference F
+    ChMatrixDynamic<> M_red;
+    ChMatrixDynamic<> K_red;
+    ChMatrixDynamic<> R_red;
+    ChMatrixDynamic<> Cq_red;
+
+    ChMatrixDynamic<> Km_sup;//linear material stiffness matrix of the reduced superelement
+    ChMatrixDynamic<> Kg_sup;//nonlinear geometrical stiffness matrix of the reduced superelement due to the internal forces at boundary nodes B
+    
+    ChMatrixDynamic<> Rm_sup;//linear material damping matrix of the reduced superelement
+
+    // linearzed inertial system matrices of the reduced superelement
+    ChMatrixDynamic<> M_sup;//tangent mass matrix of the reduced superelement
+    ChMatrixDynamic<> Ri_sup;  // inertial damping (including gyroscopic damping) matrix of the reduced superelement
+    ChMatrixDynamic<> Ki_sup;  // inertial stiffness matrix of the reduced superelement
+
 
     // Results of eigenvalue analysis like ComputeModes() or ComputeModesDamped(): 
     ChMatrixDynamic<std::complex<double>> modes_V;             // eigenvectors

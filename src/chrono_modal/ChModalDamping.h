@@ -82,7 +82,7 @@ public:
 class ChApiModal ChModalDampingFactorRmm : public ChModalDamping {
 public:
     /// Construct from the z_i in coefficients in  Rmm=diag { 2 z_1 w_1, 2 z_2 w_2, ..., 2 z_i w_i } 
-    ChModalDampingFactorRmm(ChVectorDynamic<> factors) : damping_factors(factors) {};
+    ChModalDampingFactorRmm(const ChVectorDynamic<>& factors) : damping_factors(factors) {};
     
     ChVectorDynamic<> damping_factors;
 
@@ -103,7 +103,7 @@ class ChApiModal ChModalDampingFactorRayleigh : public ChModalDampingFactorRmm {
 public:
     /// Construct from the z_i in coefficients in  Rmm=diag { 2 z_1 w_1, 2 z_2 w_2, ..., 2 z_i w_i } 
     /// for modes, and from alpha-beta Rayleight coefficients for boundary nodes
-    ChModalDampingFactorRayleigh(ChVectorDynamic<> factors, double malpha, double mbeta) : 
+    ChModalDampingFactorRayleigh(const ChVectorDynamic<>& factors, double malpha, double mbeta) : 
         ChModalDampingFactorRmm(factors), alpha(malpha), beta(mbeta) {};
 
     virtual void ComputeR(ChModalAssembly& assembly,
@@ -126,7 +126,7 @@ class ChApiModal ChModalDampingFactorAssembly : public ChModalDamping {
 public:
     /// Construct from the z_i in coefficients in  Rmm=diag { 2 z_1 w_1, 2 z_2 w_2, ..., 2 z_i w_i } 
     /// for modes, and from alpha-beta Rayleight coefficients for boundary nodes
-    ChModalDampingFactorAssembly(ChVectorDynamic<> factors) : damping_factors(factors) {}
+    ChModalDampingFactorAssembly(const ChVectorDynamic<>& factors) : damping_factors(factors) {}
 
     virtual void ComputeR(ChModalAssembly& assembly,
         const ChMatrixDynamic<>& modal_M,

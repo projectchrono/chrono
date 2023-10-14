@@ -221,7 +221,7 @@ public:
 
 
 /// Base interface class for eigensolvers for the damped dynamic problem 
-/// ie. the quadratic eigenvalue problem  (lambda^2*M + lambda*R + K)*x = 0
+/// ie. the quadratic eigenvalue problem  (lambda^2*M + lambda*R + K)*x = 0 s.t. Cq*x = 0
 /// also (-w^2*M + i*w*R + K)*x = 0,  with complex w (where w.length() = undamped nat.freq)
 /// Children classes can implement this in different ways, overridding Solve()
 class ChApiModal ChQuadraticEigenvalueSolver {

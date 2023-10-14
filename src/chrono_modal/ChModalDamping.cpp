@@ -80,21 +80,38 @@ void ChModalDampingFactorAssembly::ComputeR(ChModalAssembly& assembly,
                                             const ChMatrixDynamic<>& modal_K,
                                             const ChMatrixDynamic<>& Psi,
                                             ChMatrixDynamic<>& modal_R) const {
-    assert(false);  // this damping model is not ready and must be validated
+    //assert(false);  // this damping model is not ready and must be validated
 
     int n_mod_coords = assembly.Get_n_modes_coords_w();
     int n_bou_coords = assembly.GetN_boundary_coords_w();
     int n_bou_mod_coords = n_bou_coords + n_mod_coords;
+    int n_constrs = assembly.GetNdoc_w();
+    int n_eff_modes = n_bou_mod_coords - n_constrs;
 
-    ChMatrixDynamic<std::complex<double>> modes_V_reduced(n_bou_mod_coords, n_bou_mod_coords);
-    ChVectorDynamic<std::complex<double>> eig_reduced(n_bou_mod_coords);
-    ChVectorDynamic<> freq_reduced(n_bou_mod_coords);
-    ChSparseMatrix Cq_reduced;
-    assembly.GetSubassemblyConstraintJacobianMatrix(&Cq_reduced);
+    ChMatrixDynamic<std::complex<double>> modes_V_reduced(n_bou_mod_coords, n_eff_modes);
+    ChVectorDynamic<std::complex<double>> eig_reduced(n_eff_modes);
+    ChVectorDynamic<> freq_reduced(n_eff_modes);
     ChSparseMatrix M_reduced;
     assembly.GetSubassemblyMassMatrix(&M_reduced);
     ChSparseMatrix K_reduced;
     assembly.GetSubassemblyStiffnessMatrix(&K_reduced);
+    ChSparseMatrix Cq_reduced;
+    assembly.GetSubassemblyConstraintJacobianMatrix(&Cq_reduced);
+
+
+    if (true) {    
+    ChStreamOutAsciiFile fileM("dump_modalreduced_M.dat");
+    fileM.SetNumFormat("%.12g");
+    StreamOutSparseMatlabFormat(M_reduced, fileM);
+    ChStreamOutAsciiFile fileK("dump_modalreduced_K.dat");
+    fileK.SetNumFormat("%.12g");
+    StreamOutSparseMatlabFormat(K_reduced, fileK);
+    ChStreamOutAsciiFile fileCq("dump_modalreduced_Cq.dat");
+    fileCq.SetNumFormat("%.12g");
+    StreamOutSparseMatlabFormat(Cq_reduced, fileCq);
+    }
+
+
 
     /* old
     ChGeneralizedEigenvalueSolverLanczos     eigsolver;
@@ -104,16 +121,15 @@ void ChModalDampingFactorAssembly::ComputeR(ChModalAssembly& assembly,
     be all modes n_bou_mod_coords-Cq_reduced.rows(), not only first ones, but Krylov and Lanczos do not allow it..;
     */
 
-    ChModalSolveUndamped eigsolver(
-        6,      // n of lower modes (***TODO*** make parametric)
-        0.01,   // lower freq, for shift&invert. (***TODO*** lower value of sigma working in Debug but not in Release!?)
-        500,    // upper limit for the number of iterations, if iterative solver
-        1e-10,  // tolerance for the iterative solver.
-        false,  // turn to true to see some diagnostic.
-        ChGeneralizedEigenvalueSolverLanczos()  // solver to use (default Lanczos)
-    );
-    eigsolver.Solve(M_reduced, K_reduced, Cq_reduced, modes_V_reduced, eig_reduced, freq_reduced);
-
+    //ChModalSolveUndamped eigsolver(
+    //    6,      // n of lower modes (***TODO*** make parametric)
+    //    0.01,   // lower freq, for shift&invert. (***TODO*** lower value of sigma working in Debug but not in Release!?)
+    //    500,    // upper limit for the number of iterations, if iterative solver
+    //    1e-10,  // tolerance for the iterative solver.
+    //    false,  // turn to true to see some diagnostic.
+    //    ChGeneralizedEigenvalueSolverLanczos()  // solver to use (default Lanczos)
+    //);
+   
     /*
     // The iterative solver above does not work well. Since the size of the M_reduced K_reduced is already small (as
     // this is a modal assembly that already went through modal reduction) we can just use a direct solver for finding
@@ -122,18 +138,30 @@ void ChModalDampingFactorAssembly::ComputeR(ChModalAssembly& assembly,
     // Note that we might enforce symmetry of M_reduced and K_reduced via 0.5*(M+M.transpose()) bacause even small
     unsymmetry causes modes_V_reduced to have some imaginary part. eigsolver.Solve(M_reduced, R_null, K_reduced,
     Cq_reduced, modes_V_reduced, eig_reduced, freq_reduced, damp_factors, n_bou_mod_coords-Cq_reduced.rows());
-    */
+*/
+
+    // TODO: implement an eigensolver using Eigen::Dense matrix directly, without Nullspace transformation,
+    // because the null space transforamtion is not safe in general.
+    ChQuadraticEigenvalueSolverNullspaceDirect eigsolver;
+    ChSparseMatrix R_null;
+    R_null.resize(M_reduced.rows(), M_reduced.rows());
+    R_null.setZero();
+    ChVectorDynamic<> damp_factors(M_reduced.rows());
+    eigsolver.Solve(M_reduced, R_null, K_reduced, Cq_reduced, modes_V_reduced, eig_reduced, freq_reduced, damp_factors,
+                    n_eff_modes);
+
+
     ChVectorDynamic<> omegas = CH_C_2PI * freq_reduced;
     ChVectorDynamic<> zetas;
-    zetas.setZero(n_bou_mod_coords);
+    zetas.setZero(n_eff_modes);
 
-    if (this->damping_factors.size() == n_bou_mod_coords)
+    if (this->damping_factors.size() == n_eff_modes)
         zetas = this->damping_factors;
-    if (this->damping_factors.size() > n_bou_mod_coords)
-        zetas = this->damping_factors.segment(0, n_bou_mod_coords);
-    if (this->damping_factors.size() < n_bou_mod_coords) {
+    if (this->damping_factors.size() > n_eff_modes)
+        zetas = this->damping_factors.segment(0, n_eff_modes);
+    if (this->damping_factors.size() < n_eff_modes) {
         zetas.segment(0, this->damping_factors.size()) = this->damping_factors;
-        for (int i = this->damping_factors.size(); i < n_bou_mod_coords; ++i) {
+        for (int i = this->damping_factors.size(); i < n_eff_modes; ++i) {
             zetas(i) = zetas(this->damping_factors.size() - 1);  // repeat last of user provided factors
         }
     }
@@ -167,28 +195,19 @@ void ChModalDampingFactorAssembly::ComputeR(ChModalAssembly& assembly,
     modal_R.block(0, 0, modal_R_nonzero.rows(), modal_R_nonzero.cols()) = modal_R_nonzero;
 
     if (true) {
-        ChStreamOutAsciiFile fileM("dump_modald_M.dat");
-        fileM.SetNumFormat("%.12g");
-        StreamOutDenseMatlabFormat(M_reduced.toDense(), fileM);
-        ChStreamOutAsciiFile fileK("dump_modald_K.dat");
-        fileK.SetNumFormat("%.12g");
-        StreamOutDenseMatlabFormat(K_reduced.toDense(), fileK);
-        ChStreamOutAsciiFile fileCq("dump_modald_Cq.dat");
-        fileCq.SetNumFormat("%.12g");
-        StreamOutDenseMatlabFormat(Cq_reduced.toDense(), fileCq);
-        ChStreamOutAsciiFile fileV("dump_modald_V.dat");
+        ChStreamOutAsciiFile fileV("dump_modalxxx_V.dat");
         fileV.SetNumFormat("%.12g");
         StreamOutDenseMatlabFormat(V, fileV);
-        ChStreamOutAsciiFile fileF("dump_modald_f.dat");
+        ChStreamOutAsciiFile fileF("dump_modalxxx_f.dat");
         fileF.SetNumFormat("%.12g");
         StreamOutDenseMatlabFormat(freq_reduced, fileF);
-        ChStreamOutAsciiFile fileRnz("dump_modald_Rnz.dat");
+        ChStreamOutAsciiFile fileRnz("dump_modalxxx_Rnz.dat");
         fileRnz.SetNumFormat("%.12g");
         StreamOutDenseMatlabFormat(modal_R_nonzero, fileRnz);
-        ChStreamOutAsciiFile fileMm("dump_modald_Mm.dat");
+        ChStreamOutAsciiFile fileMm("dump_modalxxx_Mm.dat");
         fileMm.SetNumFormat("%.12g");
         StreamOutDenseMatlabFormat(Mmodal, fileMm);
-        ChStreamOutAsciiFile fileMm_matr("dump_modald_Mm_matr.dat");
+        ChStreamOutAsciiFile fileMm_matr("dump_modalxxx_Mm_matr.dat");
         fileMm_matr.SetNumFormat("%.12g");
         StreamOutDenseMatlabFormat(Mmodal_matr, fileMm_matr);
     }
