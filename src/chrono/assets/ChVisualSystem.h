@@ -57,6 +57,15 @@ class ChApi ChVisualSystem {
     /// A concrete visualization system may or may not support multiuple cameras.
     virtual int AddCamera(const ChVector<>& pos, ChVector<> targ = VNULL) { return -1; }
 
+    /// Add a grid with specified parameters in the x-y plane of the given frame.
+    virtual void AddGrid(double x_step,                           ///< grid cell size in X direction
+                         double y_step,                           ///< grid cell size in Y direction
+                         int nx,                                  ///< number of cells in X direction
+                         int ny,                                  ///< number of cells in Y direction
+                         ChCoordsys<> pos = CSYSNORM,             ///< grid reference frame
+                         ChColor col = ChColor(0.1f, 0.1f, 0.1f)  ///< grid line color
+    ) {}
+
     /// Set the location of the specified camera.
     virtual void SetCameraPosition(int id, const ChVector<>& pos) {}
 
@@ -113,9 +122,6 @@ class ChApi ChVisualSystem {
     ///    }
     /// </pre>
     virtual void Render() = 0;
-
-    /// Render a grid with specified parameters in the x-y plane of the given frame.
-    virtual void RenderGrid(const ChFrame<>& frame, int num_div, double delta) {}
 
     /// Render the specified reference frame.
     virtual void RenderFrame(const ChFrame<>& frame, double axis_length = 1) {}

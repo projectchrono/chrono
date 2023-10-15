@@ -114,6 +114,15 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// Has no effect, unles called after Initialize().
     virtual int AddCamera(const ChVector<>& pos, ChVector<> targ = VNULL) override;
 
+    /// Add a grid with specified parameters in the x-y plane of the given frame.
+    virtual void AddGrid(double x_step,                           ///< grid cell size in X direction
+                         double y_step,                           ///< grid cell size in Y direction
+                         int nx,                                  ///< number of cells in X direction
+                         int ny,                                  ///< number of cells in Y direction
+                         ChCoordsys<> pos = CSYSNORM,             ///< grid reference frame
+                         ChColor col = ChColor(0.1f, 0.1f, 0.1f)  ///< grid line color
+                         ) override;
+
     /// Set the location of the specified camera.
     virtual void SetCameraPosition(int id, const ChVector<>& pos) override;
 
@@ -278,9 +287,6 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// </pre>
     virtual void Render() override;
 
-    /// Render a horizontal grid at the specified location.
-    virtual void RenderGrid(const ChFrame<>& frame, int num_divs, double delta) override;
-
     /// Render the specified reference frame.
     virtual void RenderFrame(const ChFrame<>& frame, double axis_length = 1) override;
 
@@ -340,7 +346,17 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// Remove all visualization objects from this visualization system.
     virtual void OnClear(ChSystem* sys) override;
 
+    struct GridData {
+        double x_step;
+        double y_step;
+        int nx;
+        int ny;
+        ChCoordsys<> pos;
+        ChColor col;
+    };
+
     std::vector<std::shared_ptr<RTSCamera>> m_cameras;  ///< list of cameras defined for the scene
+    std::vector<GridData> m_grids;                      ///< list of visualization grids
 
     std::unordered_map<ChPhysicsItem*, std::shared_ptr<ChIrrNodeModel>> m_nodes;  ///< scene nodes for physics items
     std::vector<std::shared_ptr<ChIrrNodeVisual>> m_vis_nodes;                    ///< scene nodes for vis-only models
