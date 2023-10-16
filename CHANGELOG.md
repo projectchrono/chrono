@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [Renamed SCMTerrain and RCCar vehicle classes](#changed-renamed-scmterrain-and-rccar-vehicle-classes)
   - [Moved drive mode to automatic transmissions](#changed-moved-drive-mode-to-automatic-transmissions)
   - [Changed gear numbering](#changed-changed-gear-numbering)
   - [Redundant constraints remover](#added-redundant-constraints-remover)
@@ -88,6 +89,12 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Changed] Renamed SCMTerrain and RCCar vehicle classes
+
+For consistency, better suited names were given to the following classes:
+- SCMTerrain was renamed to `CRMTerrain` (deformable terrain using the Continuous Representation Model, an SPH-based granular formulation)
+- RCCar was renamed to `ARTcar` (the Autonomy Research Testbed car)
 
 ### [Changed] Moved drive mode to automatic transmissions
 

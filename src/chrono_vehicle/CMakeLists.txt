@@ -290,8 +290,8 @@ if(HAVE_OPENCRG)
 endif()
 if(ENABLE_MODULE_FSI)
     set(CV_TERRAIN_FILES ${CV_TERRAIN_FILES}
-        terrain/SPHTerrain.h
-        terrain/SPHTerrain.cpp    
+        terrain/CRMTerrain.h
+        terrain/CRMTerrain.cpp    
     )
 endif()
 source_group("terrain" FILES ${CV_TERRAIN_FILES})
