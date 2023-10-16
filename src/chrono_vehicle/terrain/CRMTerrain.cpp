@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Continuum representation SPH deformable terrain model.
+// Continuum representation (SPH-based) deformable terrain model.
 //
 // Reference frame is ISO (X forward, Y left, Z up).
 // All units SI.
@@ -24,7 +24,7 @@
 #include <sstream>
 #include <queue>
 
-#include "chrono_vehicle/terrain/SPHTerrain.h"
+#include "chrono_vehicle/terrain/CRMTerrain.h"
 
 #include "chrono_thirdparty/stb/stb.h"
 #include "chrono_thirdparty/filesystem/path.h"
@@ -35,7 +35,7 @@ using std::endl;
 namespace chrono {
 namespace vehicle {
 
-SPHTerrain::SPHTerrain(ChSystem& sys, double spacing)
+CRMTerrain::CRMTerrain(ChSystem& sys, double spacing)
     : m_sys(sys),
       m_spacing(spacing),
       m_initialized(false),
@@ -56,12 +56,12 @@ SPHTerrain::SPHTerrain(ChSystem& sys, double spacing)
     m_sysFSI.SetKernelLength(spacing);
 }
 
-void SPHTerrain::SetVerbose(bool verbose) {
+void CRMTerrain::SetVerbose(bool verbose) {
     m_sysFSI.SetVerbose(verbose);
     m_verbose = verbose;
 }
 
-void SPHTerrain::AddRigidObstacle(const std::string& obj_file,
+void CRMTerrain::AddRigidObstacle(const std::string& obj_file,
                                   double scale,
                                   double density,
                                   const ChContactMaterialData& cmat,
@@ -70,7 +70,7 @@ void SPHTerrain::AddRigidObstacle(const std::string& obj_file,
     //// TODO: calculate OOBB (for possible use with "moving patch")
 
     if (m_initialized)
-        throw ChException("SPHTerrain: obstacles cannot be added after initialization");
+        throw ChException("CRMTerrain: obstacles cannot be added after initialization");
 
     if (m_verbose) {
         cout << "Add obstacle" << endl;
@@ -136,12 +136,12 @@ void SPHTerrain::AddRigidObstacle(const std::string& obj_file,
     }
 }
 
-void SPHTerrain::Construct(const std::string& sph_file,
+void CRMTerrain::Construct(const std::string& sph_file,
                            const std::string& bce_file,
                            const ChVector<>& pos,
                            double yaw_angle) {
     if (m_verbose) {
-        cout << "Construct SPHTerrain from data files" << endl;
+        cout << "Construct CRMTerrain from data files" << endl;
     }
 
     std::string line;
@@ -166,13 +166,13 @@ void SPHTerrain::Construct(const std::string& sph_file,
         cout << "  BCE markers filename: " << bce_file << "  [" << m_bce.size() << "]" << endl;
     }
 
-    // Complete construction of SPH terrain and obstacles
+    // Complete construction of CRM terrain and obstacles
     m_offset = pos;
     m_angle = yaw_angle;
     CompleteConstruct();
 }
 
-void SPHTerrain::Construct(double length,
+void CRMTerrain::Construct(double length,
                            double width,
                            double depth,
                            int bce_layers,
@@ -180,15 +180,15 @@ void SPHTerrain::Construct(double length,
                            double yaw_angle,
                            bool side_walls) {
     if (m_verbose) {
-        cout << "Construct rectangular patch SPHTerrain" << endl;
+        cout << "Construct rectangular patch CRMTerrain" << endl;
     }
 
     // Number of particles in each direction
     int Nx = (int)std::floor(length / m_spacing);
     int Ny = (int)std::floor(width / m_spacing);
     int Nz = (int)std::floor(depth / m_spacing);
-    double Dx = length / (Nx - 1);
-    double Dy = width / (Ny - 1);
+    ////double Dx = length / (Nx - 1);
+    ////double Dy = width / (Ny - 1);
 
     // Number of SPH particles and BCE markers
     int num_sph = Nx * Ny * Nz;
@@ -247,13 +247,13 @@ void SPHTerrain::Construct(double length,
         cout << "  Num. BCE markers: " << m_bce.size() << endl;
     }
 
-    // Complete construction of SPH terrain and obstacles
+    // Complete construction of CRM terrain and obstacles
     m_offset = pos - ChVector<>(length / 2, width / 2, 0);
     m_angle = yaw_angle;
     CompleteConstruct();
 }
 
-void SPHTerrain::Construct(const std::string& heightmap_file,
+void CRMTerrain::Construct(const std::string& heightmap_file,
                            double length,
                            double width,
                            const ChVector2<>& height_range,
@@ -269,7 +269,7 @@ void SPHTerrain::Construct(const std::string& heightmap_file,
     }
 
     if (m_verbose) {
-        cout << "Construct SPHTerrain from heightmap file" << endl;
+        cout << "Construct CRMTerrain from heightmap file" << endl;
     }
 
     int nx = hmap.GetWidth();   // number of pixels in x direction
@@ -372,13 +372,13 @@ void SPHTerrain::Construct(const std::string& heightmap_file,
         cout << "  Num. BCE markers: " << m_bce.size() << endl;
     }
 
-    // Complete construction of SPH terrain and obstacles
+    // Complete construction of CRM terrain and obstacles
     m_offset = pos - ChVector<>(length / 2, width / 2, 0);
     m_angle = yaw_angle;
     CompleteConstruct();
 }
 
-void SPHTerrain::CompleteConstruct() {
+void CRMTerrain::CompleteConstruct() {
     // Prune SPH particles at grid locations that overlap with obstacles
     if (!m_obstacles.empty()) {
         if (m_verbose)
@@ -438,7 +438,7 @@ void SPHTerrain::CompleteConstruct() {
     }
 }
 
-void SPHTerrain::Initialize() {
+void CRMTerrain::Initialize() {
     m_sysFSI.Initialize();
     m_initialized = true;
 }
@@ -462,29 +462,29 @@ static const std::vector<ChVector<int>> nbr3D{
 //// TODO:
 ////  - Include yaw angle
 
-void SPHTerrain::ProcessObstacleMesh(RigidObstacle& o) {
+void CRMTerrain::ProcessObstacleMesh(RigidObstacle& o) {
     // Create BCE markers for the *transformed* obstacle mesh
     // (to address any roundoff issues that may result in a set of BCE markers that are not watertight)
     auto trimesh = *o.trimesh;
     for (auto& v : trimesh.getCoordsVertices()) {
         auto v_abs = o.body->TransformPointLocalToParent(v);  // vertex in absolute frame
-        v = v_abs - m_offset;                                 // vertex in SPHTerrain frame
+        v = v_abs - m_offset;                                 // vertex in CRMTerrain frame
     }
 
-    // BCE marker locations (in SPHTerrain frame)
+    // BCE marker locations (in CRMTerrain frame)
     std::vector<ChVector<>> point_cloud;
     m_sysFSI.CreateMeshPoints(trimesh, m_spacing, point_cloud);
 
-    // Express the points in the obstacle BCE point cloud in SPHTerrain grid coordinates
+    // Express the points in the obstacle BCE point cloud in CRMTerrain grid coordinates
     o.bce.reserve(point_cloud.size());
     for (const auto& p : point_cloud) {
-        o.bce.insert(Snap2Grid(p, m_spacing));  // point in SPHTerrain grid coordinates
+        o.bce.insert(Snap2Grid(p, m_spacing));  // point in CRMTerrain grid coordinates
     }
 
-    // Express the provided interior point in SPHTerrain grid coordinates
+    // Express the provided interior point in CRMTerrain grid coordinates
     auto c_abs = o.body->TransformPointLocalToParent(o.point);  // point in absolute frame
-    auto c_sph = c_abs - m_offset;                              // point in SPHTerrain frame
-    auto c = Snap2Grid(c_sph, m_spacing);                       // point in SPHTerrain grid coordinates
+    auto c_sph = c_abs - m_offset;                              // point in CRMTerrain frame
+    auto c = Snap2Grid(c_sph, m_spacing);                       // point in CRMTerrain grid coordinates
 
     // Calculate the (integer) obstacle AABB
     ChVector<int> aabb_min(+std::numeric_limits<int>::max());
@@ -541,12 +541,12 @@ void SPHTerrain::ProcessObstacleMesh(RigidObstacle& o) {
     }
 }
 
-void SPHTerrain::GetAABB(ChVector<>& aabb_min, ChVector<>& aabb_max) const {
+void CRMTerrain::GetAABB(ChVector<>& aabb_min, ChVector<>& aabb_max) const {
     aabb_min = m_aabb_min;
     aabb_max = m_aabb_max;
 }
 
-void SPHTerrain::SaveMarkers(const std::string& out_dir) const {
+void CRMTerrain::SaveMarkers(const std::string& out_dir) const {
     // SPH particle grid locations
     std::ofstream sph_grid(out_dir + "/sph_grid.txt", std::ios_base::out);
     for (const auto& p : m_sph)

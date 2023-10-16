@@ -12,15 +12,15 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Continuum representation SPH deformable terrain model.
+// Continuum representation (SPH-based) deformable terrain model.
 //
 // Reference frame is ISO (X forward, Y left, Z up).
 // All units SI.
 //
 // =============================================================================
 
-#ifndef SPH_TERRAIN_H
-#define SPH_TERRAIN_H
+#ifndef CRM_SPH_TERRAIN_H
+#define CRM_SPH_TERRAIN_H
 
 #include <unordered_set>
 
@@ -37,14 +37,14 @@ namespace vehicle {
 /// @addtogroup vehicle_terrain
 /// @{
 
-/// Continuum representation SPH deformable terrain model.
-class CH_VEHICLE_API SPHTerrain : public ChTerrain {
+/// Continuum representation (CRM) deformable terrain model using SPH.
+class CH_VEHICLE_API CRMTerrain : public ChTerrain {
   public:
-    /// Create a granular SPH terrain object.
+    /// Create a CRM terrain object.
     /// No SPH parameters are set.
-    SPHTerrain(ChSystem& sys, double spacing);
+    CRMTerrain(ChSystem& sys, double spacing);
 
-    /// Enable verbose output during construction of SPHTerrain (default: false).
+    /// Enable verbose output during construction of CRMTerrain (default: false).
     void SetVerbose(bool verbose);
 
     /// Access the underlying FSI system.
@@ -63,7 +63,7 @@ class CH_VEHICLE_API SPHTerrain : public ChTerrain {
                           const ChVector<>& interior_point = ChVector<>(0)  ///< point inside obstacle volume
     );
 
-    /// Construct a granular SPH terrain object using information from the specified files.
+    /// Construct a CRM terrain object using information from the specified files.
     /// The SPH particle and BCE marker locations are assumed to be provided on an integer grid.
     /// Locations in real space are generated using the specified grid separation value and the
     /// terrain patch translated and rotated aboutn the vertical.
@@ -73,7 +73,7 @@ class CH_VEHICLE_API SPHTerrain : public ChTerrain {
                    double yaw_angle = 0                    ///< patch yaw rotation
     );
 
-    /// Construct a rectangular patch granular SPH terrain object of given dimensions.
+    /// Construct a rectangular patch granular CRM terrain object of given dimensions.
     void Construct(double length,                          ///< patch length (X direction)
                    double width,                           ///< patch width (Y direction)
                    double depth,                           ///< patch depth (Z direction)
@@ -83,7 +83,7 @@ class CH_VEHICLE_API SPHTerrain : public ChTerrain {
                    bool side_walls = true                  ///< create side boundaries
     );
 
-    /// Construct a granular SPH terrain object from a given heightmap.
+    /// Construct a CRM terrain object from a given heightmap.
     /// The image file is read with STB, using the number of channels defined in the input file and reading
     /// the image as 16-bit (8-bit images are automatically converted). Supported image formats: JPEG, PNG,
     /// BMP, GIF, PSD, PIC, PNM.
@@ -150,7 +150,7 @@ class CH_VEHICLE_API SPHTerrain : public ChTerrain {
         ChVector<> oobb_dims;                                        ///< dimensions of bounding box
     };
 
-    /// Complete construction of the SPHTerrain.
+    /// Complete construction of the CRMTerrain.
     /// - Prune SPH particle locations that overlap with obstacles
     /// - Convert grid locations to real coordinates
     /// - Create the SPH particles

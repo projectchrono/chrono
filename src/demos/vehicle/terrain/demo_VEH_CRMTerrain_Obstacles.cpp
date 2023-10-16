@@ -12,7 +12,7 @@
 // Author: Radu Serban
 // =============================================================================
 //
-// Demonstration of the granular SPH terrain sys in Chrono::Vehicle.
+// Demonstration of the CRM terrain system in Chrono::Vehicle.
 //
 // =============================================================================
 
@@ -21,7 +21,7 @@
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/terrain/SPHTerrain.h"
+#include "chrono_vehicle/terrain/CRMTerrain.h"
 
 #include "chrono_fsi/ChSystemFsi.h"
 
@@ -63,7 +63,6 @@ int main(int argc, char* argv[]) {
 
     double tend = 30;
     double step_size = 5e-4;
-    double active_box_dim = 0.5;
 
     bool run_time_vis = true;              // run-time visualization?
     double run_time_vis_fps = 0;           // render frequency (0: every simulation frame)
@@ -83,7 +82,7 @@ int main(int argc, char* argv[]) {
     ChSystemNSC sys;
 
     // Create the terrain system
-    SPHTerrain terrain(sys, 0.02);
+    CRMTerrain terrain(sys, 0.02);
     terrain.SetVerbose(verbose);
     ChSystemFsi& sysFSI = terrain.GetSystemFSI();
 
@@ -111,7 +110,6 @@ int main(int argc, char* argv[]) {
     sysFSI.SetDensity(density);
     sysFSI.SetCohesionForce(cohesion);
 
-    // sysFSI.SetActiveDomain(ChVector<>(active_box_dim, active_box_dim, 1));
     sysFSI.SetDiscreType(false, false);
     sysFSI.SetWallBC(BceVersion::ORIGINAL);
     sysFSI.SetSPHMethod(FluidDynamics::WCSPH);
@@ -171,7 +169,7 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        visFSI->SetTitle("SPH deformable terrain");
+        visFSI->SetTitle("CRM deformable terrain");
         visFSI->SetSize(1280, 720);
         visFSI->AddCamera(ChVector<>(2, 1, 0.5), ChVector<>(0, 0, 0));
         visFSI->SetCameraMoveScale(0.2f);

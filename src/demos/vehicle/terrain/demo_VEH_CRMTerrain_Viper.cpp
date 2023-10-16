@@ -12,7 +12,7 @@
 // Author: Radu Serban
 // =============================================================================
 //
-// Viper rover on SPH terrain (initialized from heightmap image)
+// Viper rover on CRM terrain (initialized from heightmap image)
 //
 // =============================================================================
 
@@ -25,7 +25,7 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_models/robot/viper/Viper.h"
 
-#include "chrono_vehicle/terrain/SPHTerrain.h"
+#include "chrono_vehicle/terrain/CRMTerrain.h"
 
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
@@ -65,7 +65,6 @@ int main(int argc, char* argv[]) {
     double youngs_modulus = 1e6;
     double poisson_ratio = 0.3;
 
-    double target_speed = 7.0;
     double tend = 30;
     double step_size = 5e-4;
     ChVector<> active_box_hdim(0.4, 0.3, 0.5);
@@ -75,15 +74,14 @@ int main(int argc, char* argv[]) {
     bool visualization_sph = true;         // render SPH particles
     bool visualization_bndry_bce = false;  // render boundary BCE markers
     bool visualization_rigid_bce = false;  // render wheel BCE markers
-    bool chase_cam = true;                 // chase-cam or fixed camera
 
     bool verbose = true;
 
     // Create the Chrono system
     ChSystemNSC sys;
 
-    // Create the SPH terrain system
-    SPHTerrain terrain(sys, 0.01);
+    // Create the CRM terrain system
+    CRMTerrain terrain(sys, 0.03);
     terrain.SetVerbose(verbose);
     ChSystemFsi& sysFSI = terrain.GetSystemFSI();
 
@@ -175,7 +173,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Initialize the terrain system
-    cout << "Initialize SPH terrain..." << endl;
+    cout << "Initialize CRM terrain..." << endl;
     terrain.Initialize();
 
     ChVector<> aabb_min, aabb_max;
@@ -210,7 +208,7 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        visFSI->SetTitle("Viper rover on SPH deformable terrain");
+        visFSI->SetTitle("Viper rover on CRM deformable terrain");
         visFSI->SetSize(1280, 720);
         visFSI->AddCamera(init_loc + ChVector<>(0, 6, 0.5), init_loc);
         visFSI->SetCameraMoveScale(0.2f);
