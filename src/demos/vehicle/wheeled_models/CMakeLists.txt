@@ -38,7 +38,7 @@ if(ENABLE_MODULE_IRRLICHT)
        demo_VEH_MAN_10t
        demo_VEH_MROLE
        demo_VEH_MTV_ride
-       demo_VEH_RCCar
+       demo_VEH_ARTcar
        demo_VEH_Sedan
        demo_VEH_Sedan_Lockable_Diff
        demo_VEH_UAZBUS_SAE

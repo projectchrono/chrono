@@ -38,8 +38,8 @@
 #include "chrono_models/vehicle/gator/Gator.h"
 #include "chrono_models/vehicle/gator/Gator_Vehicle.h"
 
-#include "chrono_models/vehicle/rccar/RCCar.h"
-#include "chrono_models/vehicle/rccar/RCCar_Vehicle.h"
+#include "chrono_models/vehicle/artcar/ARTcar.h"
+#include "chrono_models/vehicle/artcar/ARTcar_Vehicle.h"
 
 #include "chrono_models/vehicle/feda/FEDA.h"
 #include "chrono_models/vehicle/feda/FEDA_Vehicle.h"
@@ -77,8 +77,8 @@
 %shared_ptr(chrono::vehicle::gator::Gator)
 %shared_ptr(chrono::vehicle::gator::Gator_Vehicle)
 
-%shared_ptr(chrono::vehicle::rccar::RCCar)
-%shared_ptr(chrono::vehicle::rccar::RCCar_Vehicle)
+%shared_ptr(chrono::vehicle::artcar::ARTcar)
+%shared_ptr(chrono::vehicle::artcar::ARTcar_Vehicle)
 
 %shared_ptr(chrono::vehicle::feda::FEDA)
 %shared_ptr(chrono::vehicle::feda::FEDA_Vehicle)
@@ -140,8 +140,8 @@
 %include "../../../chrono_models/vehicle/gator/Gator.h"
 %include "../../../chrono_models/vehicle/gator/Gator_Vehicle.h"
 
-%include "../../../chrono_models/vehicle/rccar/RCCar.h"
-%include "../../../chrono_models/vehicle/rccar/RCCar_Vehicle.h"
+%include "../../../chrono_models/vehicle/artcar/ARTcar.h"
+%include "../../../chrono_models/vehicle/artcar/ARTcar_Vehicle.h"
 
 %include "../../../chrono_models/vehicle/feda/FEDA.h"
 %include "../../../chrono_models/vehicle/feda/FEDA_Vehicle.h"
