@@ -42,6 +42,13 @@ namespace vehicle {
 /// Definition of a single-tire test rig.
 class CH_VEHICLE_API ChTireTestRig {
   public:
+    /// Tire test rig operation mode.
+    enum class Mode {
+        SUSPEND,  ///< suspended tire (locked spindle)
+        DROP,     ///< tire drop test
+        TEST      ///< normal tire test
+    };
+
     /// Construct a tire test rig within the specified system.
     ChTireTestRig(std::shared_ptr<ChWheel> wheel,  ///< wheel subsystem
                   std::shared_ptr<ChTire> tire,    ///< tire subsystem
@@ -72,6 +79,12 @@ class CH_VEHICLE_API ChTireTestRig {
 
     /// Specify wheel slip angle as function of time (default: constant value 0 rad).
     void SetSlipAngleFunction(std::shared_ptr<ChFunction> funct) { m_sa_fun = funct; }
+
+    /// Specify a constant given longitudinal slip. This version overrides the motion functions for the carrier
+    /// longitudinal slip and for the wheel angular speed to enfore the specified longitudinalslip value. A positive
+    /// slip value indicates that the wheel is spinning. A negative slip value indicates that the wheel is sliding
+    /// (skidding); in particular, s=-1 indicates sliding without rotation.
+    void SetConstantLongitudinalSlip(double long_slip, double base_speed = 1);
 
     /// Set collision type for tire-terrain interaction (default: SINGLE_POINT).
     void SetTireCollisionType(ChTire::CollisionType coll_type);
@@ -113,15 +126,9 @@ class CH_VEHICLE_API ChTireTestRig {
     /// Set time delay before applying motion functions (default: 0 s).
     void SetTimeDelay(double delay) { m_time_delay = delay; }
 
-    /// Initialize the rig system. This version uses all motion functions as specified by the user. It is the user's
-    /// responsibility to set these up for a meaningful test.
-    void Initialize();
-
-    /// Initialize the rig system for a simulation with given longitudinal slip. This version overrides the motion
-    /// functions for the carrier longitudinal slip and for the wheel angular speed to enfore the specified longitudinal
-    /// slip value. A positive slip value indicates that the wheel is spinning. A negative slip value indicates that the
-    /// wheel is sliding (skidding); in particular, s=-1 indicates sliding without rotation.
-    void Initialize(double long_slip, double base_speed = 1);
+    /// Initialize the rig system.
+    /// It is the user's responsibility to set the operation mode and motion functions in a consistent way.
+    void Initialize(Mode mode);
 
     /// Get suggested collision settings.
     /// These values are meaningful only when using granular terrain and Chrono::Multicore.
@@ -182,7 +189,7 @@ class CH_VEHICLE_API ChTireTestRig {
         double width;
     };
 
-    void CreateMechanism();
+    void CreateMechanism(Mode mode);
 
     void CreateTerrain();
     void CreateTerrainSCM();
@@ -198,10 +205,10 @@ class CH_VEHICLE_API ChTireTestRig {
     double m_tire_step;                    ///< step size for tire integration
     double m_camber_angle;                 ///< camber angle
 
-    double m_grav;          ///< gravitational acceleration
-    double m_normal_load;   ///< desired normal load
-    double m_total_mass;    ///< total sprung mass
-    double m_time_delay;    ///< time delay before applying external load 
+    double m_grav;         ///< gravitational acceleration
+    double m_normal_load;  ///< desired normal load
+    double m_total_mass;   ///< total sprung mass
+    double m_time_delay;   ///< time delay before applying external load
 
     TerrainType m_terrain_type;               ///< terrain type
     TerrainParamsSCM m_params_SCM;            ///< SCM soil parameters
@@ -222,6 +229,10 @@ class CH_VEHICLE_API ChTireTestRig {
     std::shared_ptr<ChFunction> m_ls_fun;  ///< longitudinal speed function of time
     std::shared_ptr<ChFunction> m_rs_fun;  ///< angular speed function of time
     std::shared_ptr<ChFunction> m_sa_fun;  ///< slip angle function of time
+
+    bool m_long_slip_constant;  ///< true if constant longitudinal slip was specified
+    double m_long_slip;         ///< user-specified longitudinal slip
+    double m_base_speed;        ///< base speed for long slip calculation
 
     std::shared_ptr<ChLinkMotorLinearSpeed> m_lin_motor;    ///< carrier actuator
     std::shared_ptr<ChLinkMotorRotationSpeed> m_rot_motor;  ///< wheel actuator

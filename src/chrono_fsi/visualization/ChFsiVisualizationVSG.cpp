@@ -98,7 +98,7 @@ void ChFsiVisualizationVSG::SetSize(int width, int height) {
 }
 
 void ChFsiVisualizationVSG::SetTitle(const std::string& title) {
-    m_vsys->SetWindowTitle("");
+    m_vsys->SetWindowTitle(title);
 }
 
 void ChFsiVisualizationVSG::AddCamera(const ChVector<>& pos, const ChVector<>& target) {

@@ -789,33 +789,33 @@ source_group("m113/track_shoe" FILES ${CVM_M113_TRACKSHOE_FILES})
 source_group("m113/driveline" FILES ${CVM_M113_DRIVELINE_FILES})
 source_group("m113/powertrain" FILES ${CVM_M113_POWERTRAIN_FILES})
 
-set(CVM_RCCAR_FILES
-    rccar/RCCar_BrakeSimple.cpp
-    rccar/RCCar_BrakeSimple.h
-    rccar/RCCar_Chassis.cpp
-    rccar/RCCar_Chassis.h
-    rccar/RCCar_DoubleWishbone.cpp
-    rccar/RCCar_DoubleWishbone.h
-    rccar/RCCar_Driveline4WD.cpp
-    rccar/RCCar_Driveline4WD.h
-    rccar/RCCar_PitmanArm.cpp
-    rccar/RCCar_PitmanArm.h
-    rccar/RCCar_RigidTire.cpp
-    rccar/RCCar_RigidTire.h
-    rccar/RCCar_TMeasyTire.cpp
-    rccar/RCCar_TMeasyTire.h
-    rccar/RCCar_AutomaticTransmissionSimpleMap.cpp
-    rccar/RCCar_AutomaticTransmissionSimpleMap.h
-    rccar/RCCar_EngineSimpleMap.cpp
-    rccar/RCCar_EngineSimpleMap.h
-    rccar/RCCar_Vehicle.cpp
-    rccar/RCCar_Vehicle.h
-    rccar/RCCar_Wheel.cpp
-    rccar/RCCar_Wheel.h
-    rccar/RCCar.cpp
-    rccar/RCCar.h
+set(CVM_ARTCAR_FILES
+    artcar/ARTcar_BrakeSimple.cpp
+    artcar/ARTcar_BrakeSimple.h
+    artcar/ARTcar_Chassis.cpp
+    artcar/ARTcar_Chassis.h
+    artcar/ARTcar_DoubleWishbone.cpp
+    artcar/ARTcar_DoubleWishbone.h
+    artcar/ARTcar_Driveline4WD.cpp
+    artcar/ARTcar_Driveline4WD.h
+    artcar/ARTcar_PitmanArm.cpp
+    artcar/ARTcar_PitmanArm.h
+    artcar/ARTcar_RigidTire.cpp
+    artcar/ARTcar_RigidTire.h
+    artcar/ARTcar_TMeasyTire.cpp
+    artcar/ARTcar_TMeasyTire.h
+    artcar/ARTcar_AutomaticTransmissionSimpleMap.cpp
+    artcar/ARTcar_AutomaticTransmissionSimpleMap.h
+    artcar/ARTcar_EngineSimpleMap.cpp
+    artcar/ARTcar_EngineSimpleMap.h
+    artcar/ARTcar_Vehicle.cpp
+    artcar/ARTcar_Vehicle.h
+    artcar/ARTcar_Wheel.cpp
+    artcar/ARTcar_Wheel.h
+    artcar/ARTcar.cpp
+    artcar/ARTcar.h
 )
-source_group("rccar" FILES ${CVM_RCCAR_FILES})
+source_group("artcar" FILES ${CVM_ARTCAR_FILES})
 
 set(CVM_KRAZ_FILES
     kraz/Kraz.cpp
@@ -880,7 +880,7 @@ add_library(ChronoModels_vehicle
     ${CVM_M113_FILES}
     ${CVM_MARDER_FILES}
     ${CVM_MAN_FILES}
-    ${CVM_RCCAR_FILES}
+    ${CVM_ARTCAR_FILES}
     ${CVM_KRAZ_FILES}
  )
 

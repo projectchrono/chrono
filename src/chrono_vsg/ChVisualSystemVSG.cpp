@@ -1716,8 +1716,8 @@ void ChVisualSystemVSG::UpdateVisualModel(int id, const ChFrame<>& frame) {
 
 // -----------------------------------------------------------------------------
 
-void ChVisualSystemVSG::AddGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col) {
-    m_decoScene->addChild(m_shapeBuilder->createDecoGrid(ustep, vstep, nu, nv, pos, col));
+void ChVisualSystemVSG::AddGrid(double x_step, double y_step, int nx, int ny, ChCoordsys<> pos, ChColor col) {
+    m_decoScene->addChild(m_shapeBuilder->createDecoGrid(x_step, y_step, nx, ny, pos, col));
 }
 
 }  // namespace vsg3d

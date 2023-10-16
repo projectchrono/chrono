@@ -217,14 +217,16 @@ int main() {
     //   longitudinal speed: 0.2 m/s
     //   angular speed: 10 RPM
     //   slip angle: sinusoidal +- 5 deg with 5 s period
-    rig.SetTimeDelay(2);
     rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunction_Const>(0.2));
     rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunction_Const>(10 * CH_C_RPM_TO_RPS));
     rig.SetSlipAngleFunction(chrono_types::make_shared<ChFunction_Sine>(0, 0.2, 5 * CH_C_DEG_TO_RAD));
-    rig.Initialize();
 
-    // Scenario: specified longitudinal slip
-    ////rig.Initialize(0.2, 0.1);
+    // Scenario: specified longitudinal slip (overrrides other definitons of motion functions)
+    ////rig.SetConstantLongitudinalSlip(0.2, 0.1);
+
+    // Initialize the tire test rig
+    rig.SetTimeDelay(1.0);
+    rig.Initialize(ChTireTestRig::Mode::TEST);
 
     // Optionally, modify tire visualization (can be done only after initialization)
     if (auto tire_def = std::dynamic_pointer_cast<ChDeformableTire>(tire)) {
@@ -255,7 +257,7 @@ int main() {
             auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
             vis_irr->AttachSystem(sys);
             vis_irr->SetCameraVertical(CameraVerticalDir::Z);
-            vis_irr->SetWindowSize(800, 600);
+            vis_irr->SetWindowSize(1200, 600);
             vis_irr->SetWindowTitle("Tire Test Rig");
             vis_irr->Initialize();
             vis_irr->AddLogo();

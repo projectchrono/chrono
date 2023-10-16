@@ -12,11 +12,10 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 //
-// FEA advanced demo:
-//     - loading an Abaqus tetrahedron mesh
-//     - apply a load to the mesh using an external tool,
-//       say CFD or SPH (here simulated as a function in this .cpp file)
-//       that is perform a cosimulation.
+// FEA force-displacement co-simulation 
+//   - loading an Abaqus tetrahedron mesh
+//   - apply a load to the mesh using an external tool, e.g. CFD.
+//     (here simulated as a function in this .cpp file)
 //
 // =============================================================================
 
@@ -253,12 +252,11 @@ int main(int argc, char* argv[]) {
         // -------------------------------------------------------------------------
         // Here do the cosimulation
         // A <--> B
-        // For example, A is this main program, and B can be an external
-        // program, ex. a CFD or SPH simulation tool.
+        // For example, A is this main program, and B can be an external program,
+        // e.g. a CFD simulation tool.
         // The idea is that A --> B communicates the mesh position,
         // then A <-- B receives the computed forces to be applied at nodes.
-        // In this example, to keep things simple, B is just a simple C function
-        // in this .cpp file.
+        // In this example, to keep things simple, B is just a simple local function
 
         std::vector<ChVector<>> vert_pos;
         std::vector<ChVector<>> vert_vel;

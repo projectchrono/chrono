@@ -297,6 +297,10 @@ int ChVisualSystemIrrlicht::AddCamera(const ChVector<>& pos, ChVector<> targ) {
     return (int)m_cameras.size() - 1;
 }
 
+void ChVisualSystemIrrlicht::AddGrid(double x_step, double y_step, int nx, int ny, ChCoordsys<> pos, ChColor col) {
+    m_grids.push_back({x_step, y_step, nx, ny, pos, col});
+}
+
 void ChVisualSystemIrrlicht::SetCameraPosition(int id, const ChVector<>& pos) {
     m_cameras[id]->setPosition(core::vector3dfCH(pos));
 }
@@ -611,12 +615,11 @@ void ChVisualSystemIrrlicht::Render() {
     else
         GetSceneManager()->drawAll();  // draw 3D scene the usual way, if no shadow maps
 
-    m_gui->Render();
-}
+    for (auto& g : m_grids) {
+        irrlicht::tools::drawGrid(this, g.x_step, g.y_step, g.nx, g.ny, g.pos, g.col, true);
+    }
 
-void ChVisualSystemIrrlicht::RenderGrid(const ChFrame<>& frame, int num_divs, double delta) {
-    irrlicht::tools::drawGrid(this, delta, delta, num_divs, num_divs, ChCoordsys<>(frame.GetPos(), frame.GetRot()),
-                              ChColor(1.00f, 0.78f, 0.00f), true);
+    m_gui->Render();
 }
 
 void ChVisualSystemIrrlicht::RenderFrame(const ChFrame<>& frame, double axis_length) {
