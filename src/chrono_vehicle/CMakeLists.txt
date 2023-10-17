@@ -107,13 +107,19 @@ if(ENABLE_IRRKLANG)
 
   message(STATUS "IrrKlang include dir: ${IRRKLANG_INSTALL_DIR}")
   message(STATUS "IrrKlang library:     ${IRRKLANG_LIBRARY}")
+  
+  set(HAVE_IRRKLANG TRUE)
 
 else()
 
   mark_as_advanced(FORCE IRRKLANG_INSTALL_DIR)
   mark_as_advanced(FORCE IRRKLANG_LIBRARY)
 
+  set(HAVE_IRRKLANG FALSE)
+
 endif()
+
+SET(HAVE_IRRKLANG "${HAVE_IRRKLANG}" PARENT_SCOPE)
 
 # ----------------------------------------------------------------------------
 # Generate and install configuration file
