@@ -209,7 +209,7 @@ void MBTireModel::CalcNormal(int ir, int id, ChVector<>& normal, double& area) {
     // 1. normal could be approximated better, by averaging the normals of the 4 incident triangular faces
     // 2. if using the current approximation, might as well return the scaled direction (if only used for pressure
     // forces)
-    ChVector<> dir = Vcross(posW - posS, posE - posS);
+    ChVector<> dir = Vcross(posN - posS, posE - posW);
     area = dir.Length();
     normal = dir / area;
 }
@@ -487,7 +487,7 @@ void MBTireModel::Construct(const ChFrameMoving<>& wheel_frame) {
     }
 
     // Initialize mesh colors and vertex normals
-    colors.resize(m_num_nodes, ChColor(1, 1, 1));
+    colors.resize(m_num_nodes, ChColor(1, 0, 0));
     normals.resize(m_num_nodes, ChVector<>(0, 0, 0));
 
     // Calculate face normals, accumulate vertex normals, and count number of faces adjacent to each vertex
@@ -619,8 +619,8 @@ void MBTireModel::CalculateForces(const ChFrameMoving<>& wheel_frame) {
         double force = -spring.k * (length - spring.l0) - spring.c * speed;
         ChVector<> vforce = force * dir;
 
-        ////nodal_forces[spring.node1] += -vforce;
-        ////nodal_forces[spring.node2] += vforce;
+        nodal_forces[spring.node1] += -vforce;
+        nodal_forces[spring.node2] += vforce;
     }
 
     // Forces in bending springs
@@ -635,12 +635,12 @@ void MBTireModel::CalculateForces(const ChFrameMoving<>& wheel_frame) {
         auto dir_p = pos - pos_p;
         auto dir_n = pos_n - pos;
         double length_p = dir_p.Length();
-        ////assert(length_p > zero_length);
+        assert(length_p > zero_length);
         double length_n = dir_n.Length();
-        ////assert(length_n > zero_length);
+        assert(length_n > zero_length);
         auto cross = Vcross(dir_p, dir_n);
         double length_cross = cross.Length();
-        ////assert(length_cross > zero_length);
+        assert(length_cross > zero_length);
         double angle = std::asin(length_cross);
         dir_p /= length_p;
         dir_n /= length_n;
@@ -648,9 +648,9 @@ void MBTireModel::CalculateForces(const ChFrameMoving<>& wheel_frame) {
         ChVector<> F_p = m_kB * (angle / length_p) * Vcross(cross, dir_p);
         ChVector<> F_n = m_kB * (angle / length_n) * Vcross(cross, dir_n);
 
-        ////nodal_forces[spring.node] += F_p + F_n;
-        ////nodal_forces[spring.node_p] += -F_p;
-        ////nodal_forces[spring.node_n] += -F_n;
+        nodal_forces[spring.node] += F_p + F_n;
+        nodal_forces[spring.node_p] += -F_p;
+        nodal_forces[spring.node_n] += -F_n;
     }
 
     // ------------ Apply loads on FEA nodes

@@ -170,7 +170,7 @@ int main() {
     switch (contact_method) {
         case ChContactMethod::SMC:
             sys = new ChSystemSMC;
-            step_size = 1e-4;
+            step_size = 5e-5;
             solver_type = ChSolver::Type::PARDISO_MKL;
             integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
             std::static_pointer_cast<ChDeformableTire>(tire)->SetContactFaceThickness(0.02);
@@ -231,6 +231,8 @@ int main() {
     // Initialize the tire test rig
     rig.SetTimeDelay(1.0);
     rig.Initialize(ChTireTestRig::Mode::SUSPEND);
+    ////rig.Initialize(ChTireTestRig::Mode::DROP);
+    ////rig.Initialize(ChTireTestRig::Mode::TEST);
 
     // Optionally, modify tire visualization (can be done only after initialization)
     if (auto tire_def = std::dynamic_pointer_cast<ChDeformableTire>(tire)) {
