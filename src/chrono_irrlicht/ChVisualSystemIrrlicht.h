@@ -85,6 +85,10 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// Must be called before Initialize().
     void SetWindowTitle(const std::string& win_title);
 
+    /// Set the window ID.
+    /// Must be called before Initialize().
+    void SetWindowId(void* window_id);
+
     /// Use Y-up camera rendering (default CameraVerticalDir::Y).
     /// Must be called before Initialize().
     void SetCameraVertical(CameraVerticalDir vert);
@@ -245,6 +249,9 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     irr::scene::ICameraSceneNode* GetActiveCamera() { return m_device->getSceneManager()->getActiveCamera(); }
     irr::gui::IGUIEnvironment* GetGUIEnvironment() { return m_device->getGUIEnvironment(); }
 
+    /// Get the window ID.
+    void* GetWindowId() const { return m_device_params.WindowId; };
+
     /// Process all visual assets in the associated ChSystem.
     /// This function is called by default by Initialize(), but can also be called later if further modifications to
     /// visualization assets occur.
@@ -309,8 +316,14 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// Set internal utility flag value.
     void SetUtilityFlag(bool flag) { m_utility_flag = flag; }
 
+    /// Get device creation parameters.
+    irr::SIrrlichtCreationParameters GetCreationParameters() const { return m_device_params; }
+
+    /// Set device creation parameters.
+    void SetCreationParameters(const irr::SIrrlichtCreationParameters& device_params) { m_device_params = device_params; }
+
   private:
-    /// /// Irrlicht scene node for a visual model not associated with a physics item.
+    /// Irrlicht scene node for a visual model not associated with a physics item.
     class ChIrrNodeVisual : public irr::scene::ISceneNode {
       public:
         ChIrrNodeVisual(irr::scene::ISceneNode* parent, irr::scene::ISceneManager* mgr)
