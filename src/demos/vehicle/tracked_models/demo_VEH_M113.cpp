@@ -32,7 +32,7 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "demos/vehicle/SetChronoSolver.h"
+#include "demos/SetChronoSolver.h"
 
 #ifdef CHRONO_IRRLICHT
     #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"

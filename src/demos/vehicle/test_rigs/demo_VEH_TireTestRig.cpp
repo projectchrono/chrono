@@ -41,7 +41,7 @@
     #include "chrono_postprocess/ChBlender.h"
 #endif
 
-#include "demos/vehicle/SetChronoSolver.h"
+#include "demos/SetChronoSolver.h"
 
 #ifdef CHRONO_IRRLICHT
     #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"

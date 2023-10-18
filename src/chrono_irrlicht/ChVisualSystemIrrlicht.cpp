@@ -138,6 +138,10 @@ void ChVisualSystemIrrlicht::SetWindowTitle(const std::string& win_title) {
     m_win_title = win_title;
 }
 
+void ChVisualSystemIrrlicht::SetWindowId(void* window_id) { 
+    m_device_params.WindowId = window_id; 
+};
+
 void ChVisualSystemIrrlicht::SetLogLevel(irr::ELOG_LEVEL log_level) {
     m_device_params.LoggingLevel = log_level;
 }

@@ -43,7 +43,7 @@
     #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
 #endif
 
-#include "demos/vehicle/SetChronoSolver.h"
+#include "demos/SetChronoSolver.h"
 
 using namespace chrono;
 using namespace chrono::fsi;
