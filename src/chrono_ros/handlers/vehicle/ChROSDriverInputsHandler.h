@@ -37,6 +37,10 @@ namespace ros {
 /// chrono_ros_interfaces::msg::DriverInputs on "~/input/driver_inputs".
 class ChROSDriverInputsHandler : public ChROSHandler {
   public:
+    /// Convenience constructor. Will set the update rate to 0, which means the Tick()
+    /// function will update on each update call.
+    ChROSDriverInputsHandler(std::shared_ptr<chrono::vehicle::ChDriver> driver, const std::string& topic_name);
+
     /// Constructor for the ChROSDriverInputsHandler class. Takes a ChDriver. A subscriber will listen for data, store
     /// received data, and update the driver only during the Ticks.
     ChROSDriverInputsHandler(double update_rate,
