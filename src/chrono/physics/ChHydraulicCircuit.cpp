@@ -78,7 +78,8 @@ double ChHydraulicCylinder::EvalForce(const double2& p, double Delta_s, double s
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-ChHydraulicDirectionalValve4x3::ChHydraulicDirectionalValve4x3() : U0(0) {
+ChHydraulicDirectionalValve4x3::ChHydraulicDirectionalValve4x3()
+    : linear_limit(2e5), dead_zone(0.1e-5), fm45(35), U0(0) {
     Cv = (12.0 / 6e4) / (10 * std::sqrt(35e5));  //// TODO: magic number!?!
     time_constant = 1 / (CH_C_2PI * fm45);
 }
@@ -154,15 +155,18 @@ double2 ChHydraulicDirectionalValve4x3::ComputeVolumeFlows(double p1, double p2,
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-ChHydraulicThrottleValve::ChHydraulicThrottleValve() {
+ChHydraulicThrottleValve::ChHydraulicThrottleValve() : valveD(0.006), Do(850), linear_limit(2e5), Cd(0.8) {
     double A = CH_C_PI * valveD * valveD / 4;
     Cv = Cd * A * std::sqrt(2 / Do);
 }
 
-void ChHydraulicThrottleValve::SetParameters(double valve_diameter, double oil_density, double lin_limit, double Cd) {
+void ChHydraulicThrottleValve::SetParameters(double valve_diameter,
+                                             double oil_density,
+                                             double linear_limit,
+                                             double Cd) {
     this->valveD = valve_diameter;
     this->Do = oil_density;
-    this->lin_limit = lin_limit;
+    this->linear_limit = linear_limit;
     this->Cd = Cd;
 
     double A = CH_C_PI * valveD * valveD / 4;
@@ -172,13 +176,13 @@ void ChHydraulicThrottleValve::SetParameters(double valve_diameter, double oil_d
 double ChHydraulicThrottleValve::ComputeVolumeFlow(double p1, double p2) {
     double Q = 0;
 
-    if (std::abs(p1 - p2) > lin_limit) {
+    if (std::abs(p1 - p2) > linear_limit) {
         Q = Cv * std::copysign(1.0, p1 - p2) * std::sqrt(std::abs(p1 - p2));
     } else {
         // Linearized model for laminar flow.
         // Compute flow at the limit between laminar and tubulent models. Assume positive sign.
-        double Qat2bar = Cv * std::sqrt(lin_limit);
-        Q = Qat2bar * (p1 - p2) / lin_limit;
+        double Qat2bar = Cv * std::sqrt(linear_limit);
+        Q = Qat2bar * (p1 - p2) / linear_limit;
     }
 
     return Q;

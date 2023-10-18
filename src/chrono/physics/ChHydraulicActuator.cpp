@@ -110,13 +110,13 @@ void ChHydraulicActuatorBase::Update(double time, bool update_assets) {
         ChVector<> force = f * dir;
 
         // Force and moment acting on body 1
-        auto atorque1 = Vcross(m_aloc1 - m_body1->coord.pos, force);           // applied torque (absolute frame)
+        auto atorque1 = Vcross(m_aloc1 - m_body1->coord.pos, force);         // applied torque (absolute frame)
         auto ltorque1 = m_body1->TransformDirectionParentToLocal(atorque1);  // applied torque (local frame)
         m_Qforce.segment(0, 3) = force.eigen();
         m_Qforce.segment(3, 3) = ltorque1.eigen();
 
         // Force and moment acting on body 2
-        auto atorque2 = Vcross(m_aloc2 - m_body2->coord.pos, -force);          // applied torque (absolute frame)
+        auto atorque2 = Vcross(m_aloc2 - m_body2->coord.pos, -force);        // applied torque (absolute frame)
         auto ltorque2 = m_body2->TransformDirectionParentToLocal(atorque2);  // applied torque (local frame)
         m_Qforce.segment(6, 3) = -force.eigen();
         m_Qforce.segment(9, 3) = ltorque2.eigen();
@@ -144,6 +144,8 @@ void ChHydraulicActuatorBase::IntLoadResidual_F(const unsigned int off, ChVector
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
+
+ChHydraulicActuator2::ChHydraulicActuator2() : hose1V(3.14e-5), hose2V(7.85e-5), Bo(1500e6), Bh(150e6), Bc(31500e6) {}
 
 void ChHydraulicActuator2::SetBulkModuli(double oil_bulk_modulus, double hose_bulk_modulus, double cyl_bulk_modulus) {
     Bo = oil_bulk_modulus;
@@ -236,6 +238,9 @@ ChHydraulicActuator2::Vec2 ChHydraulicActuator2::EvaluatePressureRates(double t,
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
+
+ChHydraulicActuator3::ChHydraulicActuator3()
+    : hose1V(3.14e-5), hose2V(7.85e-5), hose3V(4.71e-5), Bo(1500e6), Bh(150e6), Bc(31500e6) {}
 
 void ChHydraulicActuator3::SetBulkModuli(double oil_bulk_modulus, double hose_bulk_modulus, double cyl_bulk_modulus) {
     Bo = oil_bulk_modulus;

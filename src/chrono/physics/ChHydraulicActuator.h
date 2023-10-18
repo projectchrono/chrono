@@ -68,7 +68,10 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamics {
                     ChVector<> loc2                 ///< location of connection point on body 2
     );
 
+    /// Access the hydraulic cylinder in this circuit.
     ChHydraulicCylinder& Cylinder() { return cyl; }
+
+    /// Access the directoinal valve in this circuit.
     ChHydraulicDirectionalValve4x3& DirectionalValve() { return dvalve; }
 
     /// Get the endpoint location on 1st body (expressed in absolute coordinate system).
@@ -111,16 +114,17 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamics {
     bool m_is_attached;          ///< true if actuator attached to bodies
     ChBody* m_body1;             ///< first conected body
     ChBody* m_body2;             ///< second connected body
-    ChVector<> m_loc1;      ///< point on body 1 (local frame)
-    ChVector<> m_loc2;      ///< point on body 2 (local frame)
-    ChVector<> m_aloc1;      ///< point on body 1 (global frame)
-    ChVector<> m_aloc2;      ///< point on body 2 (global frame)
+    ChVector<> m_loc1;           ///< point on body 1 (local frame)
+    ChVector<> m_loc2;           ///< point on body 2 (local frame)
+    ChVector<> m_aloc1;          ///< point on body 1 (global frame)
+    ChVector<> m_aloc2;          ///< point on body 2 (global frame)
     ChVectorDynamic<> m_Qforce;  ///< generalized forcing terms
 
     ChHydraulicCylinder cyl;                ///< hydraulic cylinder
     ChHydraulicDirectionalValve4x3 dvalve;  ///< directional valve
 
-    std::shared_ptr<ChFunction> ref_fun;
+    std::shared_ptr<ChFunction> ref_fun;  ///< actuation function (spool displacement reference)
+
     double s_0;  ///< initial actuator length [m]
     double s;    ///< current actuator length [m]
     double sd;   ///< current actuator speed [m/s]
@@ -163,13 +167,18 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamics {
 ///   - y(2): p2 -- cylinder pressure 2 (rod-side)
 class ChApi ChHydraulicActuator2 : public ChHydraulicActuatorBase {
   public:
-    ChHydraulicActuator2() {}
+    ChHydraulicActuator2();
 
+    /// Set the bulk modulus for oil, hoses, and cylinder.
     void SetBulkModuli(double oil_bulk_modulus, double hose_bulk_modulus, double cyl_bulk_modulus);
+
+    /// Set the volumes of the two hoses in this circuit.
     void SetHoseVolumes(double hose_dvalve_piston, double hose_dvalve_rod);
 
   private:
     typedef ChVectorN<double, 2> Vec2;
+
+    // Interface to ChExternalDynamics
 
     virtual int GetNumStates() const override { return 1 + 2; }
 
@@ -189,20 +198,21 @@ class ChApi ChHydraulicActuator2 : public ChHydraulicActuatorBase {
     /// Process initial cylinder pressures and initial valve displacement.
     virtual void OnInitialize(const double2& cyl_p0, const double2& cyl_L0, double dvalve_U0) override;
 
-    // Extract cylinder pressures from current state.
+    /// Extract cylinder pressures from current state.
     virtual double2 GetCylinderPressure() const override;
 
+    /// Evaluate pressure rates at curent state.
     Vec2 EvaluatePressureRates(double t, const Vec2& p, double U);
 
-    double2 pc0;  // initial cylinder pressures
-    double U0;    // initial dvalve spool displacement
+    double2 pc0;  ///< initial cylinder pressures
+    double U0;    ///< initial dvalve spool displacement
 
-    double hose1V = 3.14e-5;  // hose 1 volume [m^3]
-    double hose2V = 7.85e-5;  // hose 2 volume [m^3]
+    double hose1V;  ///< hose 1 volume [m^3]
+    double hose2V;  ///< hose 2 volume [m^3]
 
-    double Bo = 1500e6;   // oil bulk modulus [Pa]
-    double Bh = 150e6;    // hose bulk modulus [Pa]
-    double Bc = 31500e6;  // cylinder bulk modulus [Pa]
+    double Bo;  ///< oil bulk modulus [Pa]
+    double Bh;  ///< hose bulk modulus [Pa]
+    double Bc;  ///< cylinder bulk modulus [Pa]
 };
 
 // -----------------------------------------------------------------------------
@@ -243,15 +253,21 @@ class ChApi ChHydraulicActuator2 : public ChHydraulicActuatorBase {
 ///   - y(3): p3 -- hose pressure
 class ChApi ChHydraulicActuator3 : public ChHydraulicActuatorBase {
   public:
-    ChHydraulicActuator3() {}
+    ChHydraulicActuator3();
 
+    /// Set the bulk modulus for oil, hoses, and cylinder.
     void SetBulkModuli(double oil_bulk_modulus, double hose_bulk_modulus, double cyl_bulk_modulus);
+
+    /// Set the volumes of the three hoses in this circuit.
     void SetHoseVolumes(double hose_tvalve_piston, double hose_dvalve_rod, double hose_dvalve_tvalve);
 
+    /// Access the throttle valve in this circuit.
     ChHydraulicThrottleValve& ThrottleValve() { return tvalve; }
 
   private:
     typedef ChVectorN<double, 3> Vec3;
+
+    // Interface to ChExternalDynamics
 
     virtual int GetNumStates() const override { return 1 + 3; }
 
@@ -271,23 +287,24 @@ class ChApi ChHydraulicActuator3 : public ChHydraulicActuatorBase {
     /// Process initial cylinder pressures and initial valve displacement.
     virtual void OnInitialize(const double2& cyl_p0, const double2& cyl_L0, double dvalve_U0) override;
 
-    // Extract cylinder pressures from current state.
+    /// Extract cylinder pressures from current state.
     virtual double2 GetCylinderPressure() const override;
 
+    /// Evaluate pressure rates at curent state.
     Vec3 EvaluatePressureRates(double t, const Vec3& p, double U);
 
     ChHydraulicThrottleValve tvalve;  ///< throttle valve
 
-    double2 pc0;  // initial cylinder pressures
-    double U0;    // initial dvalve spool displacement
+    double2 pc0;  ///< initial cylinder pressures
+    double U0;    ///< initial dvalve spool displacement
 
-    double hose1V = 3.14e-5;  // hose 1 volume [m^3]
-    double hose2V = 7.85e-5;  // hose 2 volume [m^3]
-    double hose3V = 4.71e-5;  // hose 3 volume [m^3]
+    double hose1V;  ///< hose 1 volume [m^3]
+    double hose2V;  ///< hose 2 volume [m^3]
+    double hose3V;  ///< hose 3 volume [m^3]
 
-    double Bo = 1500e6;   // oil bulk modulus [Pa]
-    double Bh = 150e6;    // hose bulk modulus [Pa]
-    double Bc = 31500e6;  // cylinder bulk modulus [Pa]
+    double Bo;  ///< oil bulk modulus [Pa]
+    double Bh;  ///< hose bulk modulus [Pa]
+    double Bc;  ///< cylinder bulk modulus [Pa]
 };
 
 }  // end namespace chrono

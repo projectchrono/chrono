@@ -63,10 +63,10 @@ int main(int argc, char* argv[]) {
     solver->SetVerbose(false);
 
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
-    auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
-    mystepper->SetAlpha(-0.2);
-    mystepper->SetMaxiters(100);
-    mystepper->SetAbsTolerances(1e-5);
+    auto integrator = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
+    integrator->SetAlpha(-0.2);
+    integrator->SetMaxiters(100);
+    integrator->SetAbsTolerances(1e-5);
 
     double t_end = 2;
     double t_step = 1e-3;

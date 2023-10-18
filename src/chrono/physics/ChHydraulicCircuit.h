@@ -122,14 +122,14 @@ class ChApi ChHydraulicDirectionalValve4x3 {
     double2 ComputeVolumeFlows(double p1, double p2, double p3, double p4, double U);
 
   private:
-    double linear_limit = 2e5;  ///< laminar flow rate limit of 2 bar [N/m^2]
-    double dead_zone = 0.1e-5;  ///< limit for shut valve [m]
-    double fm45 = 35.0;         ///< -45 degree phase shift frequency [Hz]
+    double linear_limit;  ///< laminar flow rate limit of 2 bar [N/m^2]
+    double dead_zone;     ///< limit for shut valve [m]
+    double fm45;          ///< -45 degree phase shift frequency [Hz]
 
     double Cv;             ///< semi-empirical flow rate coefficient
     double time_constant;  ///< time-constant based on fm45 [s]
 
-    double U0; ///< initial spool position [m]
+    double U0;  ///< initial spool position [m]
 
     friend class ChHydraulicActuatorBase;
 };
@@ -152,7 +152,7 @@ class ChApi ChHydraulicThrottleValve {
     /// Set valve parameters.
     void SetParameters(double valve_diameter,  ///< valve orifice diameter [m]
                        double oil_density,     ///< oil density [kg/m^3]
-                       double lin_limit,       ///< laminar flow rate limit of 2 bar [N/m^2]
+                       double linear_limit,    ///< laminar flow rate limit of 2 bar [N/m^2]
                        double Cd               ///< flow discharge coefficient of the orifice
     );
 
@@ -160,12 +160,12 @@ class ChApi ChHydraulicThrottleValve {
     double ComputeVolumeFlow(double p1, double p2);
 
   private:
-    double Do = 850;         ///< oil density [kg/m^3]
-    double valveD = 0.006;   ///< valve orifice diameter [m]
-    double lin_limit = 2e5;  ///< laminar flow rate limit of 2 bar [N/m^2]
+    double Do;            ///< oil density [kg/m^3]
+    double valveD;        ///< valve orifice diameter [m]
+    double linear_limit;  ///< laminar flow rate limit of 2 bar [N/m^2]
 
-    double Cd = 0.8;  ///< flow discharge coefficient of the orifice
-    double Cv;        ///< semi-empirical flow rate coefficient
+    double Cd;  ///< flow discharge coefficient of the orifice
+    double Cv;  ///< semi-empirical flow rate coefficient
 };
 
 }  // end namespace chrono
