@@ -29,7 +29,7 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "demos/vehicle/SetChronoSolver.h"
+#include "demos/SetChronoSolver.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;

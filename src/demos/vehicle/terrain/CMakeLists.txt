@@ -53,6 +53,10 @@ if(ENABLE_MODULE_PARDISO_MKL AND ENABLE_MODULE_IRRLICHT)
 endif()
 
 #--------------------------------------------------------------
+
+set(UTILS "../../SetChronoSolver.h")
+
+#--------------------------------------------------------------
 # Include directories, compiler flags, libraries
 
 set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
@@ -113,8 +117,8 @@ endif()
 foreach(PROGRAM ${DEMOS})
     message(STATUS "...add ${PROGRAM}")
 
-    add_executable(${PROGRAM} ${PROGRAM}.cpp)
-    source_group("" FILES ${PROGRAM}.cpp)
+    add_executable(${PROGRAM} ${PROGRAM}.cpp ${UTILS})
+    source_group("" FILES ${PROGRAM}.cpp ${UTILS})
 
     set_target_properties(${PROGRAM} PROPERTIES COMPILE_FLAGS "${COMPILER_FLAGS}" LINK_FLAGS "${LINKER_FLAGS}")
     if(APPLE)
