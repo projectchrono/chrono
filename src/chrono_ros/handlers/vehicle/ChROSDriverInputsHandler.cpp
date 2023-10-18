@@ -27,6 +27,9 @@ using std::placeholders::_1;
 namespace chrono {
 namespace ros {
 
+ChROSDriverInputsHandler::ChROSDriverInputsHandler(std::shared_ptr<ChDriver> driver, const std::string& topic_name)
+    : ChROSDriverInputsHandler(0, driver, topic_name) {}
+
 ChROSDriverInputsHandler::ChROSDriverInputsHandler(double update_rate,
                                                    std::shared_ptr<ChDriver> driver,
                                                    const std::string& topic_name)
