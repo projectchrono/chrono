@@ -16,10 +16,28 @@
 
 namespace chrono {
 
-ChHydraulicActuatorBase::ChHydraulicActuatorBase() : m_is_attached(false) {}
+ChHydraulicActuatorBase::ChHydraulicActuatorBase() : pP(7.6e6), pT(0.1e6), m_is_attached(false) {}
+
+void ChHydraulicActuatorBase::SetPressures(double pump_pressure, double tank_pressure) {
+    pP = pump_pressure;
+    pT = tank_pressure;
+}
+
+void ChHydraulicActuatorBase::SetActuatorInitialLength(double len) {
+    s_0 = len;
+}
+
+void ChHydraulicActuatorBase::SetActuatorLength(double t, double len, double vel) {
+    // Do nothing if not attached to bodies
+    if (m_is_attached)
+        return;
+
+    s = len;
+    sd = vel;
+}
 
 void ChHydraulicActuatorBase::Initialize() {
-    m_is_attached = false;
+    OnInitialize(cyl.p0, cyl.L0, dvalve.U0);
 
     // Initialize the external dynamics
     ChExternalDynamics::Initialize();
@@ -33,40 +51,29 @@ void ChHydraulicActuatorBase::Initialize(std::shared_ptr<ChBody> body1,  // firs
 ) {
     m_is_attached = true;
 
-    // Initialize the external dynamics
-    ChExternalDynamics::Initialize();
+    // Call base initialization
+    Initialize();
 
     // Cache connected bodies and body local connection points
     m_body1 = body1.get();
     m_body2 = body2.get();
 
     if (local) {
-        m_body1_loc = loc1;
-        m_body2_loc = loc2;
-        auto aloc1 = body1->TransformPointLocalToParent(loc1);
-        auto aloc2 = body2->TransformPointLocalToParent(loc2);
-        s_0 = (aloc1 - aloc2).Length();
+        m_loc1 = loc1;
+        m_loc2 = loc2;
+        m_aloc1 = body1->TransformPointLocalToParent(loc1);
+        m_aloc2 = body2->TransformPointLocalToParent(loc2);
     } else {
-        m_body1_loc = body1->TransformPointParentToLocal(loc1);
-        m_body2_loc = body2->TransformPointParentToLocal(loc2);
-        s_0 = (loc1 - loc2).Length();
+        m_loc1 = body1->TransformPointParentToLocal(loc1);
+        m_loc2 = body2->TransformPointParentToLocal(loc2);
+        m_aloc1 = loc1;
+        m_aloc2 = loc2;
     }
+
+    s_0 = (m_aloc1 - m_aloc2).Length();
 
     // Resize temporary vector of generalized body forces
     m_Qforce.resize(12);
-}
-
-void ChHydraulicActuatorBase::SetActuatorInitialLength(double len_0) {
-    s_0 = len_0;
-}
-
-void ChHydraulicActuatorBase::SetActuatorLength(double t, double len, double vel) {
-    // Do nothing if not attached to bodies
-    if (m_is_attached)
-        return;
-
-    s = len;
-    sd = vel;
 }
 
 double ChHydraulicActuatorBase::GetActuatorForce(double t) {
@@ -85,29 +92,31 @@ void ChHydraulicActuatorBase::Update(double time, bool update_assets) {
     // If the actuator is attached to bodies, update its length and rate from the body states
     // and calculate the generated force to the two bodies.
     if (m_is_attached) {
-        auto aloc1 = m_body1->TransformPointLocalToParent(m_body1_loc);
-        auto aloc2 = m_body2->TransformPointLocalToParent(m_body2_loc);
+        m_aloc1 = m_body1->TransformPointLocalToParent(m_loc1);
+        m_aloc2 = m_body2->TransformPointLocalToParent(m_loc2);
 
-        auto avel1 = m_body1->PointSpeedLocalToParent(m_body1_loc);
-        auto avel2 = m_body2->PointSpeedLocalToParent(m_body2_loc);
+        auto avel1 = m_body1->PointSpeedLocalToParent(m_loc1);
+        auto avel2 = m_body2->PointSpeedLocalToParent(m_loc2);
 
-        ChVector<> dir = (aloc1 - aloc2).GetNormalized();
+        ChVector<> dir = (m_aloc1 - m_aloc2).GetNormalized();
 
-        s = (aloc1 - aloc2).Length();
+        s = (m_aloc1 - m_aloc2).Length();
         sd = Vdot(dir, avel1 - avel2);
+
+        ////std::cout << "time = " << time << "    s=" << s << "   sd=" << sd << std::endl;
 
         // Actuator force
         auto f = GetActuatorForce(time);
         ChVector<> force = f * dir;
 
         // Force and moment acting on body 1
-        auto atorque1 = Vcross(aloc1 - m_body1->coord.pos, force);           // applied torque (absolute frame)
+        auto atorque1 = Vcross(m_aloc1 - m_body1->coord.pos, force);           // applied torque (absolute frame)
         auto ltorque1 = m_body1->TransformDirectionParentToLocal(atorque1);  // applied torque (local frame)
         m_Qforce.segment(0, 3) = force.eigen();
         m_Qforce.segment(3, 3) = ltorque1.eigen();
 
         // Force and moment acting on body 2
-        auto atorque2 = Vcross(aloc2 - m_body2->coord.pos, -force);          // applied torque (absolute frame)
+        auto atorque2 = Vcross(m_aloc2 - m_body2->coord.pos, -force);          // applied torque (absolute frame)
         auto ltorque2 = m_body2->TransformDirectionParentToLocal(atorque2);  // applied torque (local frame)
         m_Qforce.segment(6, 3) = -force.eigen();
         m_Qforce.segment(9, 3) = ltorque2.eigen();
@@ -136,11 +145,6 @@ void ChHydraulicActuatorBase::IntLoadResidual_F(const unsigned int off, ChVector
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void ChHydraulicActuator2::SetPressures(double pump_pressure, double tank_pressure) {
-    pP = pump_pressure;
-    pT = tank_pressure;
-}
-
 void ChHydraulicActuator2::SetBulkModuli(double oil_bulk_modulus, double hose_bulk_modulus, double cyl_bulk_modulus) {
     Bo = oil_bulk_modulus;
     Bh = hose_bulk_modulus;
@@ -153,9 +157,9 @@ void ChHydraulicActuator2::SetHoseVolumes(double hose_dvalve_piston, double hose
 }
 
 void ChHydraulicActuator2::SetInitialConditions(ChVectorDynamic<>& y0) {
-    y0(0) = 0.0;  // valve initially shut
-    y0(1) = 0.0;
-    y0(2) = 0.0;
+    y0(0) = U0;
+    y0(1) = pc0.first;
+    y0(2) = pc0.second;
 }
 
 void ChHydraulicActuator2::CalculateRHS(double time,                 // current time
@@ -164,12 +168,12 @@ void ChHydraulicActuator2::CalculateRHS(double time,                 // current 
 ) {
     // Extract state
     double U = y(0);
-    Vec2 p;
-    p(0) = y(1);
-    p(1) = y(2);
+    Vec2 p = y.segment(1, 2);
 
     // Get input signal
     double Uref = GetInput(time);
+
+    ////std::cout << "      t=" << time << "  U=" << U << "  Uref=" << Uref << std::endl;
 
     // Evaluate state derivatives
     auto Ud = dvalve.EvaluateSpoolPositionRate(time, U, Uref);
@@ -192,6 +196,12 @@ bool ChHydraulicActuator2::CalculateJac(double time,                   // curren
 
     //// TODO: analytical Jacobian
     return false;
+}
+
+void ChHydraulicActuator2::OnInitialize(const double2& cyl_p0, const double2& cyl_L0, double dvalve_U0) {
+    pc0 = cyl_p0;
+    U0 = dvalve_U0;
+    //// TODO: Change pc0 and U0 so that it is consistent with cylinder L_0?
 }
 
 double2 ChHydraulicActuator2::GetCylinderPressure() const {
@@ -227,11 +237,6 @@ ChHydraulicActuator2::Vec2 ChHydraulicActuator2::EvaluatePressureRates(double t,
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void ChHydraulicActuator3::SetPressures(double pump_pressure, double tank_pressure) {
-    pP = pump_pressure;
-    pT = tank_pressure;
-}
-
 void ChHydraulicActuator3::SetBulkModuli(double oil_bulk_modulus, double hose_bulk_modulus, double cyl_bulk_modulus) {
     Bo = oil_bulk_modulus;
     Bh = hose_bulk_modulus;
@@ -247,10 +252,10 @@ void ChHydraulicActuator3::SetHoseVolumes(double hose_tvalve_piston,
 }
 
 void ChHydraulicActuator3::SetInitialConditions(ChVectorDynamic<>& y0) {
-    y0(0) = 0.0;  // valve initially shut
-    y0(1) = 0.0;
-    y0(2) = 0.0;
-    y0(3) = 0.0;
+    y0(0) = U0;
+    y0(1) = pc0.first;
+    y0(2) = pc0.second;
+    y0(3) = 0.0;  //// TODO
 }
 
 void ChHydraulicActuator3::CalculateRHS(double time,                 // current time
@@ -259,10 +264,7 @@ void ChHydraulicActuator3::CalculateRHS(double time,                 // current 
 ) {
     // Extract state
     double U = y(0);
-    Vec3 p;
-    p(0) = y(1);
-    p(1) = y(2);
-    p(2) = y(3);
+    Vec3 p = y.segment(1, 3);
 
     // Get input signal
     double Uref = GetInput(time);
@@ -289,6 +291,12 @@ bool ChHydraulicActuator3::CalculateJac(double time,                   // curren
 
     //// TODO: analytical Jacobian
     return false;
+}
+
+void ChHydraulicActuator3::OnInitialize(const double2& cyl_p0, const double2& cyl_L0, double dvalve_U0) {
+    pc0 = cyl_p0;
+    U0 = dvalve_U0;
+    //// TODO: Change pc0 and U0 so that it is consistent with cylinder L_0?
 }
 
 double2 ChHydraulicActuator3::GetCylinderPressure() const {

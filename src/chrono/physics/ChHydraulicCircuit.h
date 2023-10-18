@@ -50,14 +50,17 @@ typedef std::pair<double, double> double2;
 ///   <------------------------>
 ///
 /// </pre>
-class ChHydraulicCylinder {
+class ChApi ChHydraulicCylinder {
   public:
     ChHydraulicCylinder();
 
     /// Set the piston and rod diameters.
     void SetDimensions(double piston_diameter, double rod_diameter);
 
-    /// Set the initial location of the piston in the cylinder chamber.
+    /// Set initial pressures in the cylinder chambers [N/m^2].
+    void SetInitialChamberPressures(double pison_side, double rod_side);
+
+    /// Set the initial location of the piston in the cylinder chamber [m].
     void SetInitialChamberLengths(double piston_side, double rod_side);
 
     /// Get the cross-section areas of the two chambers.
@@ -73,14 +76,17 @@ class ChHydraulicCylinder {
     double EvalForce(const double2& p, double Delta_s, double sd);
 
   private:
-    double pistonD = 0.08;  ///< piston diameter [m]
-    double rodD = 0.035;    ///< piston rod diameter [m]
-    double pistonL = 0.3;   ///< piston length [m]
+    double pistonD;  ///< piston diameter [m]
+    double rodD;     ///< piston rod diameter [m]
+    double pistonL;  ///< piston length [m]
 
-    double2 L0 = {0.05, 0.25};  ///< initial lengths (piston-side and rod-side) [m]
-    double2 A;                  ///< areas (piston-side and rod-side) [m^2]
+    double2 p0;  ///< initial pressures (piston-side and rod-side) [Pa]
+    double2 L0;  ///< initial lengths (piston-side and rod-side) [m]
+    double2 A;   ///< areas (piston-side and rod-side) [m^2]
 
     bool length_exceeded;  ///< flag indicating whether piston past limits
+
+    friend class ChHydraulicActuatorBase;
 };
 
 /// ChHydraulicDirectionalValve4x3 - a computational model of 4 / 3 directional valve
@@ -96,7 +102,7 @@ class ChHydraulicCylinder {
 ///                      p1   p2
 ///                  (tank)   (pump)
 /// </pre>
-class ChHydraulicDirectionalValve4x3 {
+class ChApi ChHydraulicDirectionalValve4x3 {
   public:
     ChHydraulicDirectionalValve4x3();
 
@@ -105,6 +111,9 @@ class ChHydraulicDirectionalValve4x3 {
                        double dead_zone,     ///< limit for shut valve [m]
                        double fm45           ///< -45 degree phase shift frequency [Hz]
     );
+
+    /// Set initial spool position: U0 = U(0).
+    void SetInitialSpoolPosition(double U);
 
     /// Evaluate righ-hand side of spool position ODE: Ud = Ud(t, U).
     double EvaluateSpoolPositionRate(double t, double U, double Uref);
@@ -119,6 +128,10 @@ class ChHydraulicDirectionalValve4x3 {
 
     double Cv;             ///< semi-empirical flow rate coefficient
     double time_constant;  ///< time-constant based on fm45 [s]
+
+    double U0; ///< initial spool position [m]
+
+    friend class ChHydraulicActuatorBase;
 };
 
 /// ChHydraulicThrottleValve - a semi-empirical model of a throttle valve
@@ -132,7 +145,7 @@ class ChHydraulicDirectionalValve4x3 {
 ///     p1
 ///
 /// </pre>
-class ChHydraulicThrottleValve {
+class ChApi ChHydraulicThrottleValve {
   public:
     ChHydraulicThrottleValve();
 

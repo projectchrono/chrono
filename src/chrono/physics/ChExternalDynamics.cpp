@@ -93,17 +93,11 @@ void ChExternalDynamics::Update(double time, bool update_assets) {
 // -----------------------------------------------------------------------------
 
 void ChExternalDynamics::InjectVariables(ChSystemDescriptor& descriptor) {
-    // The base class does not actually inject any variables
-    ChPhysicsItem::InjectVariables(descriptor);
-
     m_variables->SetDisabled(!IsActive());
     descriptor.InsertVariables(m_variables);
 }
 
 void ChExternalDynamics::InjectKRMmatrices(ChSystemDescriptor& descriptor) {
-    // The base class does nothing
-    ChPhysicsItem::InjectVariables(descriptor);
-
     if (IsStiff()) {
         descriptor.InsertKblock(&m_KRM);
     }

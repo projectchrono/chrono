@@ -18,7 +18,9 @@ namespace chrono {
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-ChHydraulicCylinder::ChHydraulicCylinder() : length_exceeded(false) {
+ChHydraulicCylinder::ChHydraulicCylinder()
+    : pistonD(0.08), rodD(0.035), p0({3.3e6, 4.4e6}), L0({0.15, 0.15}), length_exceeded(false) {
+    pistonL = L0.first + L0.second;
     A.first = CH_C_PI * pistonD * pistonD / 4;
     A.second = A.first - CH_C_PI * rodD * rodD / 4;
 }
@@ -35,6 +37,11 @@ void ChHydraulicCylinder::SetInitialChamberLengths(double piston_side, double ro
     L0.first = piston_side;
     L0.second = rod_side;
     pistonL = piston_side + rod_side;
+}
+
+void ChHydraulicCylinder::SetInitialChamberPressures(double pison_side, double rod_side) {
+    p0.first = pison_side;
+    p0.second = rod_side;
 }
 
 double2 ChHydraulicCylinder::ComputeChamberLengths(double Delta_s) const {
@@ -71,8 +78,8 @@ double ChHydraulicCylinder::EvalForce(const double2& p, double Delta_s, double s
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-ChHydraulicDirectionalValve4x3::ChHydraulicDirectionalValve4x3() {
-    Cv = (12.0 / 6e4) / (10 * std::sqrt(35e5));
+ChHydraulicDirectionalValve4x3::ChHydraulicDirectionalValve4x3() : U0(0) {
+    Cv = (12.0 / 6e4) / (10 * std::sqrt(35e5));  //// TODO: magic number!?!
     time_constant = 1 / (CH_C_2PI * fm45);
 }
 
@@ -82,6 +89,10 @@ void ChHydraulicDirectionalValve4x3::SetParameters(double linear_limit, double d
     this->fm45 = fm45;
 
     time_constant = 1 / (CH_C_2PI * fm45);
+}
+
+void ChHydraulicDirectionalValve4x3::SetInitialSpoolPosition(double U) {
+    U0 = U;
 }
 
 double ChHydraulicDirectionalValve4x3::EvaluateSpoolPositionRate(double t, double U, double Uref) {
