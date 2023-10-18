@@ -664,8 +664,7 @@ my_functsequence.InsertFunct(my_funcsigma1, 0.5, 1.0, True)  # fx, duration, wei
 my_functsequence.InsertFunct(my_funcpause1, 0.2, 1.0, True)  # fx, duration, weight, enforce C0 continuity
 my_functsequence.InsertFunct(my_funcsigma2, 0.3, 1.0, True)  # fx, duration, weight, enforce C0 continuity
 my_functsequence.InsertFunct(my_funcpause2, 0.2, 1.0, True)  # fx, duration, weight, enforce C0 continuity
-my_functangle = chrono.ChFunction_Repeat()
-my_functangle.Set_fa(my_functsequence)
+my_functangle = chrono.ChFunction_Repeat(my_functsequence)
 my_functangle.Set_window_length(0.5 + 0.2 + 0.3 + 0.2)
 my_driveli.SetAngleFunction(my_functangle)
 
