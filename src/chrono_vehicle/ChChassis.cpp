@@ -31,7 +31,7 @@ namespace vehicle {
 
 ChChassis::ChChassis(const std::string& name, bool fixed) : ChPart(name), m_fixed(fixed) {
     m_bushings = chrono_types::make_shared<ChLoadContainer>();
-    m_container_forces = chrono_types::make_shared<ChLoadContainer>();
+    m_external = chrono_types::make_shared<ChLoadContainer>();
 }
 
 ChChassis::~ChChassis() {
@@ -39,7 +39,7 @@ ChChassis::~ChChassis() {
     if (sys) {
         sys->Remove(m_body);
         sys->Remove(m_bushings);
-        sys->Remove(m_container_forces);
+        sys->Remove(m_external);
     }
 }
 
@@ -106,7 +106,7 @@ void ChChassis::Initialize(ChSystem* system,
 
     // Add containers for bushing elements and external forces.
     system->Add(m_bushings);
-    system->Add(m_container_forces);
+    system->Add(m_external);
 
     // Add pre-defined markers (driver position and COM) on the chassis body.
     AddMarker("driver position", GetLocalDriverCoordsys());
@@ -133,10 +133,12 @@ void ChChassis::AddMarker(const std::string& name, const ChCoordsys<>& pos) {
     m_markers.push_back(marker);
 }
 
-void ChChassis::AddExternalForce(std::shared_ptr<ExternalForce> force) {
-    m_forces.push_back(force);
-    auto load = chrono_types::make_shared<ChLoadBodyForce>(m_body, ChVector<>(0), true, ChVector<>(0), true);
-    m_container_forces->Add(load);
+void ChChassis::AddExternalForceTorque(std::shared_ptr<ExternalForceTorque> load) {
+    m_loads.push_back(load);
+    auto force_load = chrono_types::make_shared<ChLoadBodyForce>(m_body, ChVector<>(0), true, ChVector<>(0), true);
+    m_external->Add(force_load);
+    auto torque_load = chrono_types::make_shared<ChLoadBodyTorque>(m_body, ChVector<>(0), true);
+    m_external->Add(torque_load);
 }
 
 void ChChassis::AddJoint(std::shared_ptr<ChVehicleJoint> joint) {
@@ -173,19 +175,24 @@ void ChChassis::UpdateInertiaProperties() {
 // -----------------------------------------------------------------------------
 
 // Chassis drag force implemented as an external force.
-class ChassisDragForce : public ChChassis::ExternalForce {
+class ChassisDragForce : public ChChassis::ExternalForceTorque {
   public:
     ChassisDragForce(double Cd, double area, double air_density) : m_Cd(Cd), m_area(area), m_air_density(air_density) {}
 
     // The drag force, calculated based on the forward vehicle speed, is applied to
     // the center of mass of the chassis body.
-    virtual void Update(double time, const ChChassis& chassis, ChVector<>& force, ChVector<>& point) override {
+    virtual void Update(double time,
+                        const ChChassis& chassis,
+                        ChVector<>& force,
+                        ChVector<>& point,
+                        ChVector<>& torque) override {
         auto body = chassis.GetBody();
         auto V = body->TransformDirectionParentToLocal(body->GetPos_dt());
         double Vx = V.x();
         double Fx = 0.5 * m_Cd * m_area * m_air_density * Vx * Vx;
         point = ChVector<>(0, 0, 0);
         force = ChVector<>(-Fx * ChSignum(Vx), 0.0, 0.0);
+        torque = ChVector<>(0);
     }
 
   private:
@@ -196,19 +203,22 @@ class ChassisDragForce : public ChChassis::ExternalForce {
 
 void ChChassis::SetAerodynamicDrag(double Cd, double area, double air_density) {
     auto drag_force = chrono_types::make_shared<ChassisDragForce>(Cd, area, air_density);
-    AddExternalForce(drag_force);
+    AddExternalForceTorque(drag_force);
 }
 
 void ChChassis::Synchronize(double time) {
-    // Update all external forces
-    auto loads = m_container_forces->GetLoadList();
+    // Update all external forces (two ChLoad objects per external force/torque)
+    auto& loads = m_external->GetLoadList();
     ChVector<> force;
     ChVector<> point;
-    for (size_t i = 0; i < m_forces.size(); ++i) {
-        m_forces[i]->Update(time, *this, force, point);
-        auto body_load = std::static_pointer_cast<ChLoadBodyForce>(loads[i]);
-        body_load->SetForce(force, true);
-        body_load->SetApplicationPoint(point, true);
+    ChVector<> torque;
+    for (size_t i = 0; i < m_loads.size(); ++i) {
+        m_loads[i]->Update(time, *this, force, point, torque);
+        auto body_force = std::static_pointer_cast<ChLoadBodyForce>(loads[2 * i]);
+        body_force->SetForce(force, true);
+        body_force->SetApplicationPoint(point, true);
+        auto body_torque = std::static_pointer_cast<ChLoadBodyTorque>(loads[2 * i + 1]);
+        body_torque->SetTorque(torque, true);
     }
 }
 
@@ -242,7 +252,7 @@ void ChChassisRear::Initialize(std::shared_ptr<ChChassis> chassis, int collision
 
     // Add containers for bushing elements and external forces.
     system->Add(m_bushings);
-    system->Add(m_container_forces);
+    system->Add(m_external);
 
     // Add pre-defined marker (COM) on the chassis body.
     AddMarker("COM", ChCoordsys<>(GetBodyCOMFrame().GetPos(), GetBodyCOMFrame().GetRot()));
