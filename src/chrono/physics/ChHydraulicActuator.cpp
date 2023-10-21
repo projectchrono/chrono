@@ -25,6 +25,8 @@ void ChHydraulicActuatorBase::SetPressures(double pump_pressure, double tank_pre
 
 void ChHydraulicActuatorBase::SetActuatorInitialLength(double len) {
     s_0 = len;
+    s = len;
+    sd = 0;
 }
 
 void ChHydraulicActuatorBase::SetActuatorLength(double t, double len, double vel) {
