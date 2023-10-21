@@ -22,6 +22,7 @@
 #include "chrono/ChConfig.h"
 
 #include "chrono/physics/ChSystemSMC.h"
+#include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChLoadsBody.h"
 #include "chrono/physics/ChHydraulicActuator.h"
 
