@@ -12,8 +12,8 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Demo code for using a hydraulic actuator specified as an external physics
-// item with its own dynamics (described as a set of ODEs).
+// Demo code for using a hydraulic actuator in conjunction with a simple crane
+// multibody mechanical system.
 //
 // =============================================================================
 
@@ -52,7 +52,7 @@ using namespace chrono;
 
 // -----------------------------------------------------------------------------
 
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 std::string out_dir = GetChronoOutputPath() + "DEMO_HYDRAULIC_CRANE";
 
 // -----------------------------------------------------------------------------

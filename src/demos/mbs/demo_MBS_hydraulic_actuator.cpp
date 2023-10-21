@@ -52,6 +52,9 @@ int main(int argc, char* argv[]) {
 
     auto actuator = chrono_types::make_shared<ChHydraulicActuator3>();
     actuator->SetInputFunction(chrono_types::make_shared<ChFunction_Sine>(0.0, 17.5, 10.0));
+    actuator->Cylinder().SetInitialChamberLengths(0.221, 0.221);
+    actuator->Cylinder().SetInitialChamberPressures(3.3e6, 4.4e6);
+    actuator->DirectionalValve().SetInitialSpoolPosition(0);
     actuator->SetActuatorInitialLength(0.5);
     actuator->Initialize();
     sys.Add(actuator);
@@ -62,31 +65,35 @@ int main(int argc, char* argv[]) {
     solver->LockSparsityPattern(true);
     solver->SetVerbose(false);
 
-    sys.SetTimestepperType(ChTimestepper::Type::HHT);
-    auto integrator = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
-    integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
-    integrator->SetAbsTolerances(1e-5);
+    ////sys.SetTimestepperType(ChTimestepper::Type::HHT);
+    ////auto integrator = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
+    ////integrator->SetAlpha(-0.2);
+    ////integrator->SetMaxiters(100);
+    ////integrator->SetAbsTolerances(1e-5);
+
+    sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
+    auto integrator = std::static_pointer_cast<chrono::ChTimestepperEulerImplicit>(sys.GetTimestepper());
+    integrator->SetMaxiters(50);
+    integrator->SetAbsTolerances(1e-4, 1e2);
 
     double t_end = 2;
     double t_step = 1e-3;
     double t = 0;
-    ChVectorDynamic<> y(2);
 
     Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, "  ", "  ", "", "", "", "");
     utils::CSV_writer csv(" ");
-    y = actuator->GetInitialStates();
-    csv << t << 0 << y.format(rowFmt) << std::endl;
+    auto y0 = actuator->GetInitialStates();
+    csv << t << 0 << y0.format(rowFmt) << std::endl;
 
     while (t < t_end) {
         actuator->SetActuatorLength(t, 0.5, 0.0);
         sys.DoStepDynamics(t_step);
-        auto F = actuator->GetActuatorForce(t);
+        t += t_step;
 
-        y = actuator->GetStates();
+        auto F = actuator->GetActuatorForce(t);
+        auto y = actuator->GetStates();
         csv << t << F << y.format(rowFmt) << std::endl;
         std::cout << t << " " << F << " " << y.format(rowFmt) << std::endl;
-        t += t_step;
     }
 
     std::string out_file = out_dir + "/hydro.out";
