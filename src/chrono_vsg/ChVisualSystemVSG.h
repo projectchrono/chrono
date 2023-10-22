@@ -160,10 +160,16 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void SetLightDirection(double azimuth, double elevation);
     void SetCameraAngleDeg(double angleDeg) { m_cameraAngleDeg = angleDeg; }
     void SetGuiFontSize(float theSize);
-    void AddGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col);
-    int AddVisualModel(std::shared_ptr<ChVisualModel> model, const ChFrame<>& frame) override;
-    int AddVisualModel(std::shared_ptr<ChVisualShape> model, const ChFrame<>& frame) override;
-    void UpdateVisualModel(int id, const ChFrame<>& frame) override;
+
+    virtual void AddGrid(double x_step,
+                         double y_step,
+                         int nx,
+                         int ny,
+                         ChCoordsys<> pos = CSYSNORM,
+                         ChColor col = ChColor(0.1f, 0.1f, 0.1f)) override;
+    virtual int AddVisualModel(std::shared_ptr<ChVisualModel> model, const ChFrame<>& frame) override;
+    virtual int AddVisualModel(std::shared_ptr<ChVisualShape> model, const ChFrame<>& frame) override;
+    virtual void UpdateVisualModel(int id, const ChFrame<>& frame) override;
 
     /// Add a user-defined GUI component.
     /// Returns the index of the new component. This function must be called before Initialize().

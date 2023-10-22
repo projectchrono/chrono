@@ -202,6 +202,8 @@ int main(int argc, char* argv[]) {
             vis_irr->AddSkyBox();
             vis_irr->AddCamera(ChVector<>(4, 4, -6));
             vis_irr->AddTypicalLights();
+            vis_irr->AddGrid(0.5, 0.5, 12, 12, ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)),
+                             ChColor(1, 0, 0));
 
             vis = vis_irr;
 #endif
@@ -245,7 +247,6 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
-        vis->RenderGrid(ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)), 12, 0.5);
         vis->RenderCOGFrames(1.0);
         vis->EndScene();
 

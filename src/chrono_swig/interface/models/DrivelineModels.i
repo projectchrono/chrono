@@ -47,7 +47,7 @@
 #include "chrono_models/vehicle/gator/Gator_SimpleDriveline.h"
 #include "chrono_models/vehicle/gator/Gator_Driveline2WD.h"
 
-#include "chrono_models/vehicle/rccar/RCCar_Driveline4WD.h"
+#include "chrono_models/vehicle/artcar/ARTcar_Driveline4WD.h"
 
 #include "chrono_models/vehicle/feda/FEDA_Driveline4WD.h"
 
@@ -69,7 +69,7 @@
 %shared_ptr(chrono::vehicle::uaz::UAZBUS_Driveline4WD)
 %shared_ptr(chrono::vehicle::gator::Gator_SimpleDriveline)
 %shared_ptr(chrono::vehicle::gator::Gator_Driveline2WD)
-%shared_ptr(chrono::vehicle::rccar::RCCar_Driveline4WD)
+%shared_ptr(chrono::vehicle::artcar::ARTcar_Driveline4WD)
 %shared_ptr(chrono::vehicle::feda::FEDA_Driveline4WD)
 
 %shared_ptr(chrono::vehicle::m113::M113_SimpleDriveline)
@@ -99,7 +99,7 @@
 %include "../../../chrono_models/vehicle/gator/Gator_SimpleDriveline.h"
 %include "../../../chrono_models/vehicle/gator/Gator_Driveline2WD.h"
 
-%include "../../../chrono_models/vehicle/rccar/RCCar_Driveline4WD.h"
+%include "../../../chrono_models/vehicle/artcar/ARTcar_Driveline4WD.h"
 
 %include "../../../chrono_models/vehicle/feda/FEDA_Driveline4WD.h"
 
