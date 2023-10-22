@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
 
         // Get driver inputs
         DriverInputs driver_inputs = driver.GetInputs();
-        if (gator.GetVehicle().GetPos().x() > 4) {
+        if (time > 13) {
             driver_inputs.m_braking = 1;
             driver_inputs.m_throttle = 0;
         }
