@@ -1,0 +1,16 @@
+{
+  "Name": "G500 Rotary-Arm Steering",
+  "Type": "Steering",
+  "Template": "RotaryArm",
+
+  "Pitman Arm": {
+    "Mass": 1.605,
+    "Inertia": [ 0.00638, 0.00756, 0.00150 ],
+    "Inertia Products": [ 0, 0, 0 ],
+    "Radius": 0.02,
+    "Axis of Rotation": [ 0, 1, 0 ], // arm-chassis revolute joint
+    "Point of Rotation": [ 0.6, 0.5325, 0.4 ], // location of chassis connection
+    "Point to Draglink": [ 0.6, 0.5325, 0.2 ], // location of draglink connection
+    "Maximum Angle (deg)": 12.5
+  }
+}
