@@ -332,6 +332,13 @@ using namespace chrono::sensor;
 %include "chrono_sensor/ChSensorManager.h"
 %include "chrono_sensor/sensors/ChNoiseModel.h"
 
+%DefSharedPtrDynamicDowncast(chrono::sensor, ChSensor, ChCameraSensor)
+%DefSharedPtrDynamicDowncast(chrono::sensor, ChSensor, ChLidarSensor)
+%DefSharedPtrDynamicDowncast(chrono::sensor, ChSensor, ChAccelerometerSensor)
+%DefSharedPtrDynamicDowncast(chrono::sensor, ChSensor, ChGPSSensor)
+%DefSharedPtrDynamicDowncast(chrono::sensor, ChSensor, ChGyroscopeSensor)
+%DefSharedPtrDynamicDowncast(chrono::sensor, ChSensor, ChRadarSensor)
+%DefSharedPtrDynamicDowncast(chrono::sensor, ChSensor, ChMagnetometerSensor)
 
 /// Filter acces templates instances
 // camera
