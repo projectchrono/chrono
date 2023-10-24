@@ -114,9 +114,9 @@ void ChLoadBodyTorque::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
 
     // ChBody assumes F={force_abs, torque_abs}
     ChVectorDynamic<> mF(loadable->Get_field_ncoords());
+    mF(0) = 0;
     mF(1) = 0;
     mF(2) = 0;
-    mF(3) = 0;
     mF(3) = abs_torque.x();
     mF(4) = abs_torque.y();
     mF(5) = abs_torque.z();

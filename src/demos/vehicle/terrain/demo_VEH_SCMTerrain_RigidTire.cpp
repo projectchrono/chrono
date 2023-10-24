@@ -23,7 +23,14 @@
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChBlender.h"
 #endif
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
+using namespace chrono::irrlicht;
+#endif
+#ifdef CHRONO_VSG
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
+using namespace chrono::vsg3d;
+#endif
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
@@ -31,7 +38,11 @@
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
-using namespace chrono::irrlicht;
+
+// =============================================================================
+
+// Run-time visualization system (IRRLICHT or VSG)
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 bool output = false;
 bool blender_output = false;
@@ -252,16 +263,56 @@ int main(int argc, char* argv[]) {
     ////mterrain.SetPlotType(vehicle::SCMTerrain::PLOT_IS_TOUCHED, 0, 8);
     mterrain.SetMeshWireframe(true);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->AttachSystem(&sys);
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("SCM deformable terrain");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(2.0, 1.4, 0.0), ChVector<>(0, tire_rad, 0));
-    vis->AddLightDirectional();
+    // Create the run-time visualization system
+#ifndef CHRONO_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::IRRLICHT)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
+
+    std::shared_ptr<ChVisualSystem> vis;
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
+            auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+            vis_irr->SetWindowSize(800, 600);
+            vis_irr->SetWindowTitle("SCM deformable terrain");
+            vis_irr->Initialize();
+            vis_irr->AddLogo();
+            vis_irr->AddSkyBox();
+            vis_irr->AddLightDirectional();
+            vis_irr->AddCamera(ChVector<>(2.0, 1.4, 0.0), ChVector<>(0, tire_rad, 0));
+            vis_irr->AttachSystem(&sys);
+
+            vis = vis_irr;
+#endif
+            break;
+        }
+        default:
+        case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+            auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
+            vis_vsg->AttachSystem(&sys);
+            vis_vsg->SetWindowTitle("SCM deformable terrain");
+            vis_vsg->AddCamera(ChVector<>(3.0, 2.0, 0.0), ChVector<>(0, tire_rad, 0));
+            vis_vsg->SetWindowSize(ChVector2<int>(800, 600));
+            vis_vsg->SetWindowPosition(ChVector2<int>(100, 100));
+            vis_vsg->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
+            vis_vsg->SetUseSkyBox(true);
+            vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
+            vis_vsg->SetCameraAngleDeg(40.0);
+            vis_vsg->SetLightIntensity(1.0f);
+            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->Initialize();
+
+            vis = vis_vsg;
+#endif
+            break;
+        }
+    }
 
     // Create the Blender exporter
 #ifdef CHRONO_POSTPROCESS
@@ -315,7 +366,7 @@ int main(int argc, char* argv[]) {
         vis->BeginScene();
         vis->SetCameraTarget(mrigidbody->GetPos());
         vis->Render();
-        tools::drawColorbar(vis.get(), 0, 30000, "Pressure yield [Pa]", 1180);
+        ////tools::drawColorbar(vis.get(), 0, 30000, "Pressure yield [Pa]", 1180);
         vis->EndScene();
 
         sys.DoStepDynamics(0.002);

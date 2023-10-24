@@ -22,7 +22,7 @@ endif()
 
 # Return now if CUDA is not available
 if(NOT CUDA_FOUND)
-    message(WARNING "Chrono::FSI requires CUDA, but CUDA was not found; disabling Chrono::FSI")
+    message("Chrono::FSI requires CUDA, but CUDA was not found; disabling Chrono::FSI")
     set(ENABLE_MODULE_FSI OFF CACHE BOOL "Enable the Chrono FSI module" FORCE)
     return()
 endif()
@@ -54,7 +54,7 @@ endif()
 # ----------------------------------------------------------------------------
 
 set(CH_FSI_INCLUDES "${CUDA_TOOLKIT_ROOT_DIR}/include")
-set(CH_FSI_LINKER_FLAGS "${CH_LINKERFLAG_SHARED}")
+set(CH_FSI_LINKER_FLAGS "${CH_LINKERFLAG_LIB}")
 set(CH_FSI_LINKED_LIBRARIES ${CUDA_FRAMEWORK})
 
 list(APPEND CH_FSI_LINKED_LIBRARIES ${CUDA_cudadevrt_LIBRARY})
@@ -80,7 +80,7 @@ if(ENABLE_MODULE_OPENGL)
 endif()
 
 if(ENABLE_MODULE_VSG)
-  set(CMAKE_CXX_STANDARD 17)
+  include_directories(${CH_VSG_INCLUDES})
   list(APPEND CH_FSI_LINKED_LIBRARIES ChronoEngine_vsg)
 endif()
 
@@ -199,7 +199,7 @@ source_group(visualization FILES ${ChronoEngine_FSI_VIS_FILES})
 
 set(CXX_FLAGS ${CH_CXX_FLAGS})
 
-cuda_add_library(ChronoEngine_fsi SHARED
+cuda_add_library(ChronoEngine_fsi
     ${ChronoEngine_FSI_FILES}
     ${ChronoEngine_FSI_PHYSICS_FILES}
     ${ChronoEngine_FSI_MATH_FILES}

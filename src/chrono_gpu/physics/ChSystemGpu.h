@@ -20,6 +20,7 @@
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChMatrix33.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
+#include "chrono/core/ChTimer.h"
 
 #include "chrono_gpu/ChGpuDefines.h"
 
@@ -346,6 +347,10 @@ class CH_GPU_API ChSystemGpu {
     /// get index list of neighbors
     void getNeighbors(unsigned int ID, std::vector<unsigned int>& neighborList);
 
+    /// Get current estimated RTF (real time factor).
+    float GetRTF() const { return m_RTF; }
+
+
   protected:
     /// Protected default constructor.  Derived class must create m_sys.
     ChSystemGpu() : m_sys(nullptr) {}
@@ -390,6 +395,9 @@ class CH_GPU_API ChSystemGpu {
 
     /// Set gravitational acceleration as a float3 vector.
     void SetGravitationalAcceleration(const float3 g);
+
+    ChTimer m_timer; 
+    float m_RTF;  // real-time factor
 };
 
 // -----------------------------------------------------------------------------

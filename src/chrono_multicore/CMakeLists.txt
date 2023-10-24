@@ -9,7 +9,7 @@
 # If TBB is defined, thrust will use TBB but the rest of the code will be single
 # threaded
 
-option(ENABLE_MODULE_MULTICORE "Enable the Chrono::Multicore module" OFF)
+option(ENABLE_MODULE_MULTICORE "Enable the Chrono Multicore module" OFF)
 
 # Return now if this module is not enabled
 
@@ -25,8 +25,8 @@ message(STATUS "\n==== Chrono Multicore module ====\n")
 
 # Return now if Thrust not available
 if (NOT THRUST_FOUND)
-  message(WARNING "Chrono::Multicore requires Thrust, but Thrust was not found; disabling Chrono::Multicore")
-  set(ENABLE_MODULE_MULTICORE OFF CACHE BOOL "Enable the Chrono::multicore module" FORCE)
+  message("Chrono::Multicore requires Thrust, but Thrust was not found; disabling Chrono::Multicore")
+  set(ENABLE_MODULE_MULTICORE OFF CACHE BOOL "Enable the Chrono Multicore module" FORCE)
   return()
 endif()
 
@@ -395,7 +395,7 @@ ENDIF()
 # ------------------------------------------------------------------------------
 
 IF(USE_MULTICORE_CUDA)
-    CUDA_ADD_LIBRARY(ChronoEngine_multicore SHARED
+    CUDA_ADD_LIBRARY(ChronoEngine_multicore
             ${ChronoEngine_Multicore_BASE}
             ${ChronoEngine_Multicore_PHYSICS}
             ${ChronoEngine_Multicore_CUDA}
@@ -405,7 +405,7 @@ IF(USE_MULTICORE_CUDA)
             ) 
     SET(CHRONO_MULTICORE_LINKED_LIBRARIES ChronoEngine ${CUDA_FRAMEWORK} ${OPENMP_LIBRARIES} ${TBB_LIBRARIES})
 ELSE()
-    ADD_LIBRARY(ChronoEngine_multicore SHARED
+    ADD_LIBRARY(ChronoEngine_multicore
             ${ChronoEngine_Multicore_BASE}
             ${ChronoEngine_Multicore_PHYSICS}
             ${ChronoEngine_Multicore_COLLISION}
@@ -431,7 +431,7 @@ else()
 endif()
 
 SET_TARGET_PROPERTIES(ChronoEngine_multicore PROPERTIES
-                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+                      LINK_FLAGS "${CH_LINKERFLAG_LIB}")
 
 target_compile_definitions(ChronoEngine_multicore PRIVATE "CH_API_COMPILE_MULTICORE")
 target_compile_definitions(ChronoEngine_multicore PRIVATE "CH_IGNORE_DEPRECATED")

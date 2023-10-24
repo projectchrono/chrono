@@ -1,0 +1,27 @@
+{
+  "Name": "G500 Simple Map Transmission",
+  "Type": "Transmission",
+  "Template": "AutomaticTransmissionSimpleMap",
+
+  "Gear Box": {
+    "Reverse Gear Ratio": -0.125,
+    "Forward Gear Ratios": [
+      0.1121,
+      0.1852,
+      0.2667,
+      0.3663,
+      0.5950,
+      0.5988,
+      1.0000
+    ],
+    "Shift Points Map RPM": [
+      [ 1200, 4000 ],
+      [ 1200, 5500 ],
+      [ 1200, 5500 ],
+      [ 1200, 5500 ],
+      [ 1200, 5500 ],
+      [ 1200, 5500 ],
+      [ 1200, 5700 ]
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "Name":                       "G500 AWD Driveline",
+  "Type":                       "Driveline",
+  "Template":                   "ShaftsDriveline4WD",
+
+  "Shaft Direction":
+  {
+    "Motor Block":              [1, 0, 0],
+    "Axle":                     [0, 1, 0]
+  },
+
+  "Shaft Inertia":
+  {
+    "Driveshaft":               0.5,
+    "Front Driveshaft":         0.5,
+    "Rear Driveshaft":          0.5,
+    "Central Differential Box": 0.6,
+    "Front Differential Box":   0.6,
+    "Rear Differential Box":    0.6
+  },
+
+  "Gear Ratio":
+  {
+    "Front Conical Gear":       0.2162,
+    "Rear Conical Gear":        0.2162
+  },
+
+  "Axle Differential Locking Limit":    100,
+  "Central Differential Locking Limit": 100
+}

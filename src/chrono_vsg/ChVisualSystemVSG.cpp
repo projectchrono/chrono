@@ -1397,10 +1397,8 @@ void ChVisualSystemVSG::BindLoadContainer(const std::shared_ptr<ChLoadContainer>
     m_deformableScene->addChild(child);
 
     def_mesh.mesh_soup = false;
-    auto num_vertices = trimesh->GetMesh()->getCoordsVertices().size();  // expected
 
     def_mesh.vertices = vsg::visit<FindVec3BufferData<0>>(child).getBufferData();
-    assert(def_mesh.vertices->size() == num_vertices);
     def_mesh.vertices->properties.dataVariance = vsg::DYNAMIC_DATA;
     def_mesh.dynamic_vertices = true;
 
@@ -1718,8 +1716,8 @@ void ChVisualSystemVSG::UpdateVisualModel(int id, const ChFrame<>& frame) {
 
 // -----------------------------------------------------------------------------
 
-void ChVisualSystemVSG::AddGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col) {
-    m_decoScene->addChild(m_shapeBuilder->createDecoGrid(ustep, vstep, nu, nv, pos, col));
+void ChVisualSystemVSG::AddGrid(double x_step, double y_step, int nx, int ny, ChCoordsys<> pos, ChColor col) {
+    m_decoScene->addChild(m_shapeBuilder->createDecoGrid(x_step, y_step, nx, ny, pos, col));
 }
 
 }  // namespace vsg3d

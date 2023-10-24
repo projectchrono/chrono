@@ -67,7 +67,7 @@ set(CV_COSIM_TERRAIN_FILES
 list(APPEND LIBRARIES ChronoEngine_vehicle)
 list(APPEND LIBRARIES ChronoModels_robot)
 list(APPEND LIBRARIES "${MPI_CXX_LIBRARIES}")
-set(LINKER_FLAGS "${CH_LINKERFLAG_SHARED} ${MPI_CXX_LINK_FLAGS}")
+set(LINKER_FLAGS "${CH_LINKERFLAG_LIB} ${MPI_CXX_LINK_FLAGS}")
 set(INCLUDES "${CH_INCLUDES};${MPI_CXX_INCLUDE_PATH}")
 set(CXX_FLAGS "${CH_CXX_FLAGS} ${MPI_CXX_COMPILE_FLAGS}")
 
@@ -128,7 +128,6 @@ if(ENABLE_MODULE_IRRLICHT)
 endif()
 
 if(ENABLE_MODULE_VSG)
-  set(CMAKE_CXX_STANDARD 17)
   include_directories(${CH_VSG_INCLUDES})
   list(APPEND LIBRARIES ChronoEngine_vsg)
   list(APPEND LIBRARIES ChronoEngine_vehicle_vsg)
@@ -172,7 +171,7 @@ source_group("terrain" FILES ${CV_COSIM_TERRAIN_FILES})
 
 message(STATUS "Add ChronoEngine_vehicle_cosim library")
 
-add_library(ChronoEngine_vehicle_cosim SHARED
+add_library(ChronoEngine_vehicle_cosim
     ${CV_COSIM_FILES}
     ${CV_COSIM_MBS_FILES}
     ${CV_COSIM_TIRE_FILES}

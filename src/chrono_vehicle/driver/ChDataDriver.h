@@ -48,7 +48,7 @@ class CH_VEHICLE_API ChDataDriver : public ChDriver {
     /// Definition of driver inputs at a given time.
     struct Entry {
         Entry() {}
-        Entry(double time, double steering, double throttle, double braking, double clutch)
+        Entry(double time, double steering, double throttle, double braking, double clutch = 0)
             : m_time(time), m_steering(steering), m_throttle(throttle), m_braking(braking), m_clutch(clutch) {}
         double m_time;
         double m_steering;

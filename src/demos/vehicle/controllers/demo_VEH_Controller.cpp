@@ -116,7 +116,7 @@ const std::string pov_dir = out_dir + "/POVRAY";
 bool povray_output = false;
 
 // Vehicle state output (forced to true if povray output enabled)
-bool state_output = false;
+bool state_output = true;
 int filter_window_size = 20;
 
 // =============================================================================
@@ -320,7 +320,7 @@ int main(int argc, char* argv[]) {
 
         // End simulation
         if (time >= t_end)
-            break;
+            vis->Quit();
 
         // Driver inputs
         DriverInputs driver_inputs = driver.GetInputs();

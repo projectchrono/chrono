@@ -8,12 +8,23 @@ option(ENABLE_MODULE_VSG "Enable the Chrono VSG module" OFF)
 
 # Return now if this module is not enabled
 if(NOT ENABLE_MODULE_VSG)
-   mark_as_advanced(FORCE VSG_LIBRARY)
-   mark_as_advanced(FORCE VSG_ROOT)
+   mark_as_advanced(FORCE vsg_DIR)
+   mark_as_advanced(FORCE vsgXchange_DIR)
+   mark_as_advanced(FORCE vsgImGui_DIR)
    return()
 endif()
 
 message(STATUS "\n==== Chrono VSG module ====\n")
+
+# VSG requires C++17 support. Disable module if not available
+if(NOT CH_CXX17)
+   message("Chrono::VSG requires C++17 support which is not available; disabling Chrono::VSG")
+   set(ENABLE_MODULE_VSG OFF CACHE BOOL "Enable the Chrono VSG module" FORCE)
+   mark_as_advanced(FORCE vsg_DIR)
+   mark_as_advanced(FORCE vsgXchange_DIR)
+   mark_as_advanced(FORCE vsgImGui_DIR)
+   return()
+endif()
 
 mark_as_advanced(CLEAR VSG_LIBRARY)
 mark_as_advanced(CLEAR VSG_ROOT)
@@ -31,7 +42,7 @@ find_package(vsgXchange REQUIRED)
 
 # Check if vsgXchange is a static library. 
 # If yes, we assume it includes STB and we do not add those files in the the Chrono library
-# (else we'd get multiple dfeined symbols at link time).
+# (else we'd get multiple defined symbols at link time).
 get_target_property(vsg_type vsgXchange::vsgXchange TYPE)
 if (vsg_type STREQUAL STATIC_LIBRARY)
     set(INCLUDE_STB OFF)
@@ -40,9 +51,6 @@ else()
     set(INCLUDE_STB ON)
     message(STATUS "vsgXchange library: dynamic")
 endif()
-
-# Force C++17, required by VSG
-set(CMAKE_CXX_STANDARD 17)
 
 #-------------------------------------------------------------------------------
 # List all the files in the ChronoEngine_vsg lib
@@ -113,7 +121,7 @@ endif()
 #-------------------------------------------------------------------------------
 # Create the ChronoEngine_vsg library
 
-add_library(ChronoEngine_vsg SHARED
+add_library(ChronoEngine_vsg
             ${CE_VSG_BASE_FILES}
             ${CE_VSG_SHAPES_FILES}
             ${CE_VSG_RESOURCES_FILES}

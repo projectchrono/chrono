@@ -38,7 +38,7 @@ if(ENABLE_MODULE_IRRLICHT)
        demo_VEH_MAN_10t
        demo_VEH_MROLE
        demo_VEH_MTV_ride
-       demo_VEH_RCCar
+       demo_VEH_ARTcar
        demo_VEH_Sedan
        demo_VEH_Sedan_Lockable_Diff
        demo_VEH_UAZBUS_SAE
@@ -62,7 +62,6 @@ if(ENABLE_MODULE_IRRLICHT)
 endif()
 
 if(ENABLE_MODULE_VSG)
-    set(CMAKE_CXX_STANDARD 17)
     include_directories(${CH_VSG_INCLUDES})
     list(APPEND LIBS "ChronoEngine_vsg")
     list(APPEND LIBS "ChronoEngine_vehicle_vsg")

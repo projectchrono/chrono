@@ -27,6 +27,10 @@ if(ENABLE_MODULE_IRRLICHT)
 endif()
 
 #--------------------------------------------------------------
+
+set(UTILS "../../SetChronoSolver.h")
+
+#--------------------------------------------------------------
 # Include directories, compiler flags, libraries
 
 set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
@@ -43,8 +47,6 @@ if(ENABLE_MODULE_IRRLICHT)
 endif()
 
 if(ENABLE_MODULE_VSG)
-    set(CMAKE_CXX_STANDARD 17)
-
     include_directories(${CH_VSG_INCLUDES})
     list(APPEND LIBS "ChronoEngine_vsg")
     list(APPEND LIBS "ChronoEngine_vehicle_vsg")
@@ -73,8 +75,8 @@ endif()
 foreach(PROGRAM ${DEMOS})
     message(STATUS "...add ${PROGRAM}")
 
-    add_executable(${PROGRAM} ${PROGRAM}.cpp ../SetChronoSolver.h)
-    source_group("" FILES ${PROGRAM}.cpp ../SetChronoSolver.h)
+    add_executable(${PROGRAM} ${PROGRAM}.cpp ${UTILS})
+    source_group("" FILES ${PROGRAM}.cpp ${UTILS})
 
     set_target_properties(${PROGRAM} PROPERTIES COMPILE_FLAGS "${COMPILER_FLAGS}" LINK_FLAGS "${LINKER_FLAGS}")
     if(APPLE)

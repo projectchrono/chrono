@@ -24,7 +24,7 @@
 #include "chrono_models/vehicle/uaz/UAZBUS_BrakeShafts.h"
 #include "chrono_models/vehicle/gator/Gator_BrakeSimple.h"
 #include "chrono_models/vehicle/gator/Gator_BrakeShafts.h"
-#include "chrono_models/vehicle/rccar/RCCar_BrakeSimple.h"
+#include "chrono_models/vehicle/artcar/ARTcar_BrakeSimple.h"
 #include "chrono_models/vehicle/feda/FEDA_BrakeSimple.h"
 #include "chrono_models/vehicle/feda/FEDA_BrakeShafts.h"
 
@@ -52,7 +52,7 @@
 %shared_ptr(chrono::vehicle::uaz::UAZBUS_BrakeShaftsRear)
 %shared_ptr(chrono::vehicle::gator::Gator_BrakeSimple)
 %shared_ptr(chrono::vehicle::gator::Gator_BrakeShafts)
-%shared_ptr(chrono::vehicle::rccar::RCCar_BrakeSimple)
+%shared_ptr(chrono::vehicle::artcar::ARTcar_BrakeSimple)
 %shared_ptr(chrono::vehicle::feda::FEDA_BrakeSimple)
 %shared_ptr(chrono::vehicle::feda::FEDA_BrakeShafts)
 
@@ -73,7 +73,7 @@
 %include "../../../chrono_models/vehicle/uaz/UAZBUS_BrakeShafts.h"
 %include "../../../chrono_models/vehicle/gator/Gator_BrakeSimple.h"
 %include "../../../chrono_models/vehicle/gator/Gator_BrakeShafts.h"
-%include "../../../chrono_models/vehicle/rccar/RCCar_BrakeSimple.h"
+%include "../../../chrono_models/vehicle/artcar/ARTcar_BrakeSimple.h"
 %include "../../../chrono_models/vehicle/feda/FEDA_BrakeSimple.h"
 %include "../../../chrono_models/vehicle/feda/FEDA_BrakeShafts.h"
 

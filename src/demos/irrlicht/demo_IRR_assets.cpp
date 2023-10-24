@@ -255,14 +255,13 @@ int main(int argc, char* argv[]) {
     vis->AddSkyBox();
     vis->AddCamera(ChVector<>(-2, 3, -4));
     vis->AddTypicalLights();
+    vis->AddGrid(0.5, 0.5, 12, 12, ChCoordsys<>(ChVector<>(0, -0.5, 0), Q_from_AngX(CH_C_PI_2)),
+                 ChColor(0.31f, 0.43f, 0.43f));
 
     // Rendering loop
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
-        irrlicht::tools::drawGrid(vis.get(), 0.5, 0.5, 12, 12,
-                                  ChCoordsys<>(ChVector<>(0, -0.5, 0), Q_from_AngX(CH_C_PI_2)),
-                                  ChColor(0.31f, 0.43f, 0.43f), true);
         vis->EndScene();
         sys.DoStepDynamics(0.01);
     }

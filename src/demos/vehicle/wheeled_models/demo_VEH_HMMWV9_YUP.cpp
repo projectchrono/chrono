@@ -154,6 +154,7 @@ int main(int argc, char* argv[]) {
     vis->AddLightDirectional();
     vis->AddSkyBox();
     vis->AddLogo();
+    vis->AddGrid(1.0, 1.0, 20, 20, ChCoordsys<>(ChVector<>(0, 0.01, 0), ChWorldFrame::Quaternion()), ChColor(1, 0, 0));
     vis->AttachVehicle(&my_hmmwv.GetVehicle());
 
 #ifdef USE_PATH_FOLLOWER
@@ -195,7 +196,6 @@ int main(int argc, char* argv[]) {
             vis->BeginScene();
             vis->Render();
             vis->RenderFrame(ChFrame<>(), 10);
-            vis->RenderGrid(ChFrame<>(ChVector<>(0, 0.01, 0), ChWorldFrame::Quaternion()), 20, 1.0);
             vis->EndScene();
         }
 

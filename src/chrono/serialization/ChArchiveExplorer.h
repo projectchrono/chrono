@@ -132,7 +132,7 @@ class ChArchiveExplorer : public ChArchiveOut {
         if (this->tablevel != this->search_tokens.size())
             return;
         if (this->MatchName(search_tokens[this->tablevel], bVal.name())) {
-            this->results.push_back(new ChValueSpecific<bool>(bVal.value(), bVal.name(), bVal.flags()));
+            this->results.push_back(new ChValueSpecific<bool>(bVal.value(), bVal.name(), bVal.flags(), bVal.GetCausality(), bVal.GetVariability()));
             this->found = true;
         }
     }
@@ -142,7 +142,7 @@ class ChArchiveExplorer : public ChArchiveOut {
         if (this->tablevel != this->search_tokens.size() - 1)
             return;
         if (this->MatchName(search_tokens[this->tablevel], bVal.name())) {
-            this->results.push_back(new ChValueSpecific<int>(bVal.value(), bVal.name(), bVal.flags()));
+            this->results.push_back(new ChValueSpecific<int>(bVal.value(), bVal.name(), bVal.flags(), bVal.GetCausality(), bVal.GetVariability()));
             this->found = true;
         }
     }
@@ -152,7 +152,7 @@ class ChArchiveExplorer : public ChArchiveOut {
         if (this->tablevel != this->search_tokens.size() - 1)
             return;
         if (this->MatchName(search_tokens[this->tablevel], bVal.name())) {
-            this->results.push_back(new ChValueSpecific<double>(bVal.value(), bVal.name(), bVal.flags()));
+            this->results.push_back(new ChValueSpecific<double>(bVal.value(), bVal.name(), bVal.flags(), bVal.GetCausality(), bVal.GetVariability()));
             this->found = true;
         }
     }
@@ -162,7 +162,7 @@ class ChArchiveExplorer : public ChArchiveOut {
         if (this->tablevel != this->search_tokens.size() - 1)
             return;
         if (this->MatchName(search_tokens[this->tablevel], bVal.name())) {
-            this->results.push_back(new ChValueSpecific<float>(bVal.value(), bVal.name(), bVal.flags()));
+            this->results.push_back(new ChValueSpecific<float>(bVal.value(), bVal.name(), bVal.flags(), bVal.GetCausality(), bVal.GetVariability()));
             this->found = true;
         }
     }
@@ -172,7 +172,7 @@ class ChArchiveExplorer : public ChArchiveOut {
         if (this->tablevel != this->search_tokens.size() - 1)
             return;
         if (this->MatchName(search_tokens[this->tablevel], bVal.name())) {
-            this->results.push_back(new ChValueSpecific<char>(bVal.value(), bVal.name(), bVal.flags()));
+            this->results.push_back(new ChValueSpecific<char>(bVal.value(), bVal.name(), bVal.flags(), bVal.GetCausality(), bVal.GetVariability()));
             this->found = true;
         }
     }
@@ -182,7 +182,7 @@ class ChArchiveExplorer : public ChArchiveOut {
         if (this->tablevel != this->search_tokens.size() - 1)
             return;
         if (this->MatchName(search_tokens[this->tablevel], bVal.name())) {
-            this->results.push_back(new ChValueSpecific<unsigned int>(bVal.value(), bVal.name(), bVal.flags()));
+            this->results.push_back(new ChValueSpecific<unsigned int>(bVal.value(), bVal.name(), bVal.flags(), bVal.GetCausality(), bVal.GetVariability()));
             this->found = true;
         }
     }
@@ -192,7 +192,7 @@ class ChArchiveExplorer : public ChArchiveOut {
         if (this->tablevel != this->search_tokens.size() - 1)
             return;
         if (this->MatchName(search_tokens[this->tablevel], bVal.name())) {
-            this->results.push_back(new ChValueSpecific<std::string>(bVal.value(), bVal.name(), bVal.flags()));
+            this->results.push_back(new ChValueSpecific<std::string>(bVal.value(), bVal.name(), bVal.flags(), bVal.GetCausality(), bVal.GetVariability()));
             this->found = true;
         }
     }
@@ -202,7 +202,7 @@ class ChArchiveExplorer : public ChArchiveOut {
         if (this->tablevel != this->search_tokens.size() - 1)
             return;
         if (this->MatchName(search_tokens[this->tablevel], bVal.name())) {
-            this->results.push_back(new ChValueSpecific<unsigned long>(bVal.value(), bVal.name(), bVal.flags()));
+            this->results.push_back(new ChValueSpecific<unsigned long>(bVal.value(), bVal.name(), bVal.flags(), bVal.GetCausality(), bVal.GetVariability()));
             this->found = true;
         }
     }
@@ -212,7 +212,7 @@ class ChArchiveExplorer : public ChArchiveOut {
         if (this->tablevel != this->search_tokens.size() - 1)
             return;
         if (this->MatchName(search_tokens[this->tablevel], bVal.name())) {
-            this->results.push_back(new ChValueSpecific<unsigned long long>(bVal.value(), bVal.name(), bVal.flags()));
+            this->results.push_back(new ChValueSpecific<unsigned long long>(bVal.value(), bVal.name(), bVal.flags(), bVal.GetCausality(), bVal.GetVariability()));
             this->found = true;
         }
     }
@@ -223,7 +223,7 @@ class ChArchiveExplorer : public ChArchiveOut {
         if (this->tablevel != this->search_tokens.size() - 1)
             return;
         if (this->MatchName(search_tokens[this->tablevel], bVal.name())) {
-            this->results.push_back(new ChValueSpecific<std::string>(mstr, bVal.name(), bVal.flags()));
+            this->results.push_back(new ChValueSpecific<std::string>(mstr, bVal.name(), bVal.flags(), bVal.GetCausality(), bVal.GetVariability()));
             this->found = true;
         }
     }

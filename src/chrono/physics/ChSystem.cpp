@@ -205,6 +205,9 @@ void ChSystem::Add(std::shared_ptr<ChPhysicsItem> item) {
 }
 
 void ChSystem::Remove(std::shared_ptr<ChPhysicsItem> item) {
+    if (!item)
+        return;
+
     if (auto body = std::dynamic_pointer_cast<ChBody>(item)) {
         RemoveBody(body);
         return;

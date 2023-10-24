@@ -69,9 +69,17 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 // Terrain parameters
 // -----------------------------------------------------------------------------
 
-double terrainLength = 16.0;  // size in X direction
-double terrainWidth = 8.0;    // size in Y direction
-double delta = 0.05;          // SCM grid spacing
+// If true, set the SCM terrain profile from a mesh (bump.obj).
+// Otherwise, create a flat SCM terrain patch of given dimensions.
+enum class PatchType { FLAT, MESH, HEIGHMAP };
+PatchType patch_type = PatchType::HEIGHMAP;
+
+double delta = 0.05;  // SCM grid spacing
+
+// SCM terrain visualization options
+bool render_wireframe = true;  // render wireframe (flat otherwise)
+bool apply_texture = false;    // add texture
+bool render_sinkage = true;    // use false coloring for sinkage visualization
 
 // -----------------------------------------------------------------------------
 // Vehicle parameters
@@ -86,10 +94,6 @@ float Y_t = 1.0e6f;
 float cr_t = 0.1f;
 float mu_t = 0.8f;
 
-// Initial vehicle position and orientation
-ChVector<> initLoc(-5, -2, 0.6);
-ChQuaternion<> initRot(1, 0, 0, 0);
-
 // -----------------------------------------------------------------------------
 // Simulation parameters
 // -----------------------------------------------------------------------------
@@ -101,7 +105,7 @@ double step_size = 3e-3;
 double render_step_size = 1.0 / 100;
 
 // Point on chassis tracked by the camera
-ChVector<> trackPoint(0.0, 0.0, 1.75);
+ChVector<> track_point(0.0, 0.0, 1.75);
 
 // Output directories
 const std::string out_dir = GetChronoOutputPath() + "HMMWV_DEF_SOIL";
@@ -187,27 +191,44 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
+    // Set initial vehicle location
+    ChVector<> init_loc;
+    ChVector2<> patch_size;
+    switch (patch_type) {
+        case PatchType::FLAT:
+            init_loc = ChVector<>(-5.0, -2.0, 0.6);
+            patch_size = ChVector2<>(16.0, 8.0);
+            break;
+        case PatchType::MESH:
+            init_loc = ChVector<>(-12.0, -12.0, 1.6);
+            break;
+        case PatchType::HEIGHMAP:
+            init_loc = ChVector<>(-15.0, -15.0, 0.6);
+            patch_size = ChVector2<>(40.0, 40.0);
+            break;
+    }
+
     // --------------------
     // Create HMMWV vehicle
     // --------------------
-    HMMWV_Full my_hmmwv;
-    my_hmmwv.SetContactMethod(ChContactMethod::SMC);
-    my_hmmwv.SetChassisFixed(false);
-    my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
-    my_hmmwv.SetEngineType(EngineModelType::SHAFTS);
-    my_hmmwv.SetTransmissionType(TransmissionModelType::SHAFTS);
-    my_hmmwv.SetDriveType(DrivelineTypeWV::AWD);
+    HMMWV_Full hmmwv;
+    hmmwv.SetContactMethod(ChContactMethod::SMC);
+    hmmwv.SetChassisFixed(false);
+    hmmwv.SetInitPosition(ChCoordsys<>(init_loc, QUNIT));
+    hmmwv.SetEngineType(EngineModelType::SHAFTS);
+    hmmwv.SetTransmissionType(TransmissionModelType::SHAFTS);
+    hmmwv.SetDriveType(DrivelineTypeWV::AWD);
     switch (tire_type) {
         case TireType::CYLINDRICAL:
-            my_hmmwv.SetTireType(TireModelType::RIGID_MESH);
+            hmmwv.SetTireType(TireModelType::RIGID_MESH);
             break;
         case TireType::LUGGED:
-            my_hmmwv.SetTireType(TireModelType::RIGID);
+            hmmwv.SetTireType(TireModelType::RIGID);
             break;
     }
-    my_hmmwv.Initialize();
+    hmmwv.Initialize();
 
-    my_hmmwv.SetChassisVisualizationType(VisualizationType::NONE);
+    hmmwv.SetChassisVisualizationType(VisualizationType::NONE);
 
     // -----------------------------------------------------------
     // Set tire contact material, contact model, and visualization
@@ -219,11 +240,11 @@ int main(int argc, char* argv[]) {
 
     switch (tire_type) {
         case TireType::CYLINDRICAL:
-            my_hmmwv.SetTireVisualizationType(VisualizationType::MESH);
+            hmmwv.SetTireVisualizationType(VisualizationType::MESH);
             break;
         case TireType::LUGGED:
-            my_hmmwv.SetTireVisualizationType(VisualizationType::NONE);
-            for (auto& axle : my_hmmwv.GetVehicle().GetAxles()) {
+            hmmwv.SetTireVisualizationType(VisualizationType::NONE);
+            for (auto& axle : hmmwv.GetVehicle().GetAxles()) {
                 CreateLuggedGeometry(axle->m_wheels[0]->GetSpindle(), wheel_material);
                 CreateLuggedGeometry(axle->m_wheels[1]->GetSpindle(), wheel_material);
             }
@@ -232,13 +253,13 @@ int main(int argc, char* argv[]) {
     // --------------------
     // Create driver system
     // --------------------
-    MyDriver driver(my_hmmwv.GetVehicle(), 0.5);
+    MyDriver driver(hmmwv.GetVehicle(), 0.5);
     driver.Initialize();
 
     // ------------------
     // Create the terrain
     // ------------------
-    ChSystem* system = my_hmmwv.GetSystem();
+    ChSystem* system = hmmwv.GetSystem();
     system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()));
 
     SCMTerrain terrain(system);
@@ -252,6 +273,7 @@ int main(int argc, char* argv[]) {
                               3e4    // Damping (Pa s/m), proportional to negative vertical speed (optional)
     );
 
+    // Optionally, enable bulldozing effects.
     ////terrain.EnableBulldozing(true);      // inflate soil at the border of the rut
     ////terrain.SetBulldozingParameters(55,   // angle of friction for erosion of displaced material at rut border
     ////                                0.8,  // displaced material vs downward pressed material.
@@ -259,19 +281,37 @@ int main(int argc, char* argv[]) {
     ////                                10);  // number of concentric vertex selections subject to erosion
 
     // Optionally, enable moving patch feature (single patch around vehicle chassis)
-    terrain.AddMovingPatch(my_hmmwv.GetChassisBody(), ChVector<>(0, 0, 0), ChVector<>(5, 3, 1));
+    terrain.AddMovingPatch(hmmwv.GetChassisBody(), ChVector<>(0, 0, 0), ChVector<>(5, 3, 1));
 
     // Optionally, enable moving patch feature (multiple patches around each wheel)
-    ////for (auto& axle : my_hmmwv.GetVehicle().GetAxles()) {
+    ////for (auto& axle : hmmwv.GetVehicle().GetAxles()) {
     ////    terrain.AddMovingPatch(axle->m_wheels[0]->GetSpindle(), ChVector<>(0, 0, 0), ChVector<>(1, 0.5, 1));
     ////    terrain.AddMovingPatch(axle->m_wheels[1]->GetSpindle(), ChVector<>(0, 0, 0), ChVector<>(1, 0.5, 1));
     ////}
 
-    ////terrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 80, 16);
-    ////terrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
-    terrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.1);
+    switch (patch_type) {
+        case PatchType::FLAT:
+            terrain.Initialize(patch_size.x(), patch_size.y(), delta);
+            break;
+        case PatchType::MESH:
+            terrain.Initialize(vehicle::GetDataFile("terrain/meshes/bump.obj"), delta);
+            break;
+        case PatchType::HEIGHMAP:
+            terrain.Initialize(vehicle::GetDataFile("terrain/height_maps/bump64.bmp"), patch_size.x(), patch_size.y(),
+                               0.0, 1.0, delta);
+            break;
+    }
 
-    terrain.Initialize(terrainLength, terrainWidth, delta);
+    // Control visualization of SCM terrain
+    terrain.GetMesh()->SetWireframe(render_wireframe);
+
+    if (apply_texture)
+        terrain.GetMesh()->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"));
+
+    if (render_sinkage) {
+        terrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.1);
+        ////terrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
+    }
 
     // -------------------------------------------
     // Create the run-time visualization interface
@@ -292,12 +332,12 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_IRRLICHT
             auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
             vis_irr->SetWindowTitle("Wheeled vehicle on SCM deformable terrain");
-            vis_irr->SetChaseCamera(trackPoint, 6.0, 0.5);
+            vis_irr->SetChaseCamera(track_point, 6.0, 0.5);
             vis_irr->Initialize();
             vis_irr->AddLightDirectional();
             vis_irr->AddSkyBox();
             vis_irr->AddLogo();
-            vis_irr->AttachVehicle(&my_hmmwv.GetVehicle());
+            vis_irr->AttachVehicle(&hmmwv.GetVehicle());
 
             vis = vis_irr;
 #endif
@@ -307,14 +347,14 @@ int main(int argc, char* argv[]) {
         case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
-            vis_vsg->SetWindowTitle("HMMWV Deformable Soil Demo");
+            vis_vsg->SetWindowTitle("Wheeled vehicle on SCM deformable terrain");
             vis_vsg->SetWindowSize(ChVector2<int>(1000, 800));
             vis_vsg->SetWindowPosition(ChVector2<int>(100, 100));
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetChaseCamera(trackPoint, 10.0, 0.5);
-            vis_vsg->AttachVehicle(&my_hmmwv.GetVehicle());
+            vis_vsg->SetChaseCamera(track_point, 10.0, 0.5);
+            vis_vsg->AttachVehicle(&hmmwv.GetVehicle());
             vis_vsg->AddGuiColorbar("Sinkage (m)", 0.0, 0.1);
             vis_vsg->Initialize();
 
@@ -341,7 +381,7 @@ int main(int argc, char* argv[]) {
     // ---------------
     // Simulation loop
     // ---------------
-    std::cout << "Total vehicle mass: " << my_hmmwv.GetVehicle().GetMass() << std::endl;
+    std::cout << "Total vehicle mass: " << hmmwv.GetVehicle().GetMass() << std::endl;
 
     // Solver settings.
     system->SetSolverMaxIterations(50);
@@ -389,11 +429,11 @@ int main(int argc, char* argv[]) {
         // Update modules
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        my_hmmwv.Synchronize(time, driver_inputs, terrain);
+        hmmwv.Synchronize(time, driver_inputs, terrain);
         vis->Synchronize(time, driver_inputs);
 
         // Advance dynamics
-        my_hmmwv.Advance(step_size);
+        hmmwv.Advance(step_size);
         vis->Advance(step_size);
 
         // Increment frame number
