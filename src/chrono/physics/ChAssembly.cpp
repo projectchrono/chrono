@@ -844,16 +844,17 @@ void ChAssembly::IntStateScatterReactions(const unsigned int off_L, const ChVect
         if (shaft->IsActive())
             shaft->IntStateScatterReactions(displ_L + shaft->GetOffset_L(), L);
     }
-    for (auto& link : linklist) {
-        if (link->IsActive())
-            link->IntStateScatterReactions(displ_L + link->GetOffset_L(), L);
-    }
     for (auto& mesh : meshlist) {
         mesh->IntStateScatterReactions(displ_L + mesh->GetOffset_L(), L);
     }
     for (auto& item : otherphysicslist) {
         if (item->IsActive())
             item->IntStateScatterReactions(displ_L + item->GetOffset_L(), L);
+    }
+    // The state scatter of reactions of link depends on Body1 and Body2, thus it must be at the end.
+    for (auto& link : linklist) {
+        if (link->IsActive())
+            link->IntStateScatterReactions(displ_L + link->GetOffset_L(), L);
     }
 }
 
