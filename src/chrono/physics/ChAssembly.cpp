@@ -794,16 +794,16 @@ void ChAssembly::IntStateScatterAcceleration(const unsigned int off_a, const ChS
         if (shaft->IsActive())
             shaft->IntStateScatterAcceleration(displ_a + shaft->GetOffset_w(), a);
     }
-    for (auto& link : linklist) {
-        if (link->IsActive())
-            link->IntStateScatterAcceleration(displ_a + link->GetOffset_w(), a);
-    }
     for (auto& mesh : meshlist) {
         mesh->IntStateScatterAcceleration(displ_a + mesh->GetOffset_w(), a);
     }
     for (auto& item : otherphysicslist) {
         if (item->IsActive())
             item->IntStateScatterAcceleration(displ_a + item->GetOffset_w(), a);
+    }
+    for (auto& link : linklist) {
+        if (link->IsActive())
+            link->IntStateScatterAcceleration(displ_a + link->GetOffset_w(), a);
     }
 }
 
