@@ -42,7 +42,7 @@ using namespace chrono::fea;
 using namespace chrono::irrlicht;
 
 // Output directory
-const std::string out_dir = GetChronoOutputPath() + "MODAL_ASSEMBLY";
+const std::string out_dir = GetChronoOutputPath() + "REDUCED_MODAL_ASSEMBLY";
 
 int ID_current_example = 1;
 bool modal_analysis = true;
@@ -62,7 +62,7 @@ bool FIX_SUBASSEMBLY = false;
 bool DO_MODAL_REDUCTION = false;
 bool ADD_INTERNAL_BODY = false;
 bool ADD_BOUNDARY_BODY = false;
-bool ADD_FORCE = false;
+bool ADD_FORCE = true;
 bool ADD_OTHER_ASSEMBLY = false;
 
 void MakeAndRunDemoCantilever(ChSystem& sys,
@@ -224,7 +224,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
             ChFrame<>(my_body_D->GetPos(), Q_from_AngAxis(CH_C_PI_2, VECT_Y))  // motor frame, in abs. coords
         );
         auto mwspeed =
-            chrono_types::make_shared<ChFunction_Const>(CH_C_2PI);  // constant angular speed, in [rad/s], 2PI/s =360?s
+            chrono_types::make_shared<ChFunction_Const>(CH_C_2PI);  // constant angular speed, in [rad/s], 2PI/s =360�/s
         rotmotor1->SetSpeedFunction(mwspeed);
         assembly0->Add(rotmotor1);
     }
@@ -267,46 +267,26 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
 
     if (do_modal_reduction) {
         // HERE PERFORM THE MODAL REDUCTION!
-        GetLog() << "**** It is going to do modal reduction:\n";
 
         assembly->SwitchModalReductionON(
-            9,  // The number of modes to retain from modal reduction, or a ChModalSolveUndamped with more settings
+            6,  // The number of modes to retain from modal reduction, or a ChModalSolveUndamped with more settings
             ChModalDampingRayleigh(0.001,
                                    0.005)  // The damping model - Optional parameter: default is ChModalDampingNone().
         );
 
-        //ChVectorDynamic<> zetas(4);
-        //zetas << 0.001, 0.002, 0.002, 0.003;
-        //assembly->SwitchModalReductionON(
-        //    7,  // The number of modes to retain from modal reduction, or a ChModalSolveUndamped with more settings
-        //    ChModalDampingFactorAssembly(zetas)
-        //);
-        
         // Other types of damping that you can try, in SwitchModalReductionON:
-        //    
-        // ChModalDampingNone()                    // no damping (also default)
-        //    
-        // ChModalDampingReductionR(*assembly)  // transforms the original damping matrix of the full subassembly
-        //    
-        // ChModalDampingReductionR(full_R_ext)    // transforms an externally-provided damping matrix of the full
-        //    subassembly 
-        // 
-        // ChModalDampingCustom(reduced_R_ext)     // uses an externally-provided damping matrix of the
-        //    reduced subassembly 
-        // 
-        // ChModalDampingRayleigh(0.01, 0.05)      // generates a damping matrix from reduced M
-        //    ad K using Rayleygh alpha-beta 
-        // 
-        // ChModalDampingFactorRmm(zetas)          // generates a damping matrix from
-        //    damping factors zetas of dynamic modes 
-        // 
-        // ChModalDampingFactorRayleigh(zetas,a,b) // generates a damping
+        //    ChModalDampingNone()                    // no damping (also default)
+        //    ChModalDampingReductionR(*assembly)  // transforms the original damping matrix of the full subassembly
+        //    ChModalDampingReductionR(full_R_ext)    // transforms an externally-provided damping matrix of the full
+        //    subassembly ChModalDampingCustom(reduced_R_ext)     // uses an externally-provided damping matrix of the
+        //    reduced subassembly ChModalDampingRayleigh(0.01, 0.05)      // generates a damping matrix from reduced M
+        //    ad K using Rayleygh alpha-beta ChModalDampingFactorRmm(zetas)          // generates a damping matrix from
+        //    damping factors zetas of dynamic modes ChModalDampingFactorRayleigh(zetas,a,b) // generates a damping
         //    matrix from damping factors of dynamic modes and rayleigh a,b for boundary nodes
-        //   
-        // ChModalDampingFactorAssembly(zetas)     // (not ready) generates a damping matrix from damping factors of
-        //    the modes of the subassembly, including masses of boundary where for example
-        //    ChVectorDynamic<> zetas(4);  
-        //    zetas << 0.7, 0.5, 0.6, 0.7; // damping factors, other values assumed as last one.
+        //    ChModalDampingFactorAssembly(zetas)     // (not ready) generates a damping matrix from damping factors of
+        //    the modes of the subassembly, including masses of boundary
+        //      where for example         ChVectorDynamic<> zetas(4);  zetas << 0.7, 0.5, 0.6, 0.7; // damping factors,
+        //      other values assumed as last one.
 
         // OPTIONAL
 
@@ -319,7 +299,6 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         // Finally, log damped eigenvalue analysis to see the effect of the modal damping (0= search ALL damped modes)
         assembly->ComputeModesDamped(0);
 
-        GetLog() << "Run in the reduced state of the assembly.\n ";
         for (int i = 0; i < assembly->Get_modes_frequencies().rows(); ++i)
             GetLog() << " Damped mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i)
                      << "   damping factor z: " << assembly->Get_modes_damping_ratios()(i) << "\n";
@@ -356,7 +335,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
             ChGeneralizedEigenvalueSolverKrylovSchur()) //  solver type
         );
         */
-        GetLog() << "Run in the FULL state of the assembly.\n ";
+
         for (int i = 0; i < assembly->Get_modes_frequencies().rows(); ++i)
             GetLog() << " Mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i) << "\n";
     }
@@ -501,13 +480,16 @@ int main(int argc, char* argv[]) {
     sys.SetSolver(qr_solver);
 #endif
 
-    /*
+    
     // Use HHT second order integrator (but slower)
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
-    if (auto stepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper())) {
-        stepper->SetStepControl(false);
+    if (auto hht_stepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper())) {
+        hht_stepper->SetVerbose(false);
+        hht_stepper->SetStepControl(false);
+        hht_stepper->SetAlpha(-0.2);
+        hht_stepper->SetModifiedNewton(true);
     }
-    */
+    
 
     // Note, in order to have this modal visualization  working, a ChModalAssembly must have been added to the ChSystem,
     // where some modes must have been already computed.
