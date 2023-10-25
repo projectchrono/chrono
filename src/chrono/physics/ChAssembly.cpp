@@ -736,16 +736,23 @@ void ChAssembly::IntStateScatter(const unsigned int off_x,
     for (auto& mesh : meshlist) {
         mesh->IntStateScatter(displ_x + mesh->GetOffset_x(), x, displ_v + mesh->GetOffset_w(), v, T, full_update);
     }
+    for (auto& item : otherphysicslist) {
+        if (item->IsActive())
+            item->IntStateScatter(displ_x + item->GetOffset_x(), x, displ_v + item->GetOffset_w(), v, T, full_update);
+        else
+            item->Update(T, full_update);
+    }
+    // Because the Update() of ChLink() depends on the frames of Body1 and Body2, the state scatter of linklist
+    // must be behind of bodylist,shaftlist,meshlist,otherphysicslist; otherwise, the Update() of ChLink() would
+    // use the old (un-updated) status of bodylist,shaftlist,meshlist, resulting in a delay of Update() of ChLink()
+    // for one time step, then the simulation might diverge!
     for (auto& link : linklist) {
         if (link->IsActive())
             link->IntStateScatter(displ_x + link->GetOffset_x(), x, displ_v + link->GetOffset_w(), v, T, full_update);
         else
             link->Update(T, full_update);
     }
-    for (auto& item : otherphysicslist) {
-        if (item->IsActive())
-            item->IntStateScatter(displ_x + item->GetOffset_x(), x, displ_v + item->GetOffset_w(), v, T, full_update);
-    }
+
     SetChTime(T);
 }
 
