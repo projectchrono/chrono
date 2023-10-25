@@ -95,14 +95,19 @@ source_group("" FILES ${ChronoEngine_PARSERS_SOURCES} ${ChronoEngine_PARSERS_HEA
 
 #-----------------------------------------------------------------------------
 
+SET(HAVE_PYTHON "${HAVE_PYTHON}" PARENT_SCOPE)
+SET(HAVE_URDF "${HAVE_URDF}" PARENT_SCOPE)
+
+#-----------------------------------------------------------------------------
+
 set(CH_PARSERS_INCLUDES "")
 if(HAVE_URDF)
     include_directories(${urdfdom_INCLUDE_DIRS})
-    set(CH_PARSERS_INCLUDES "${CH_PARSERS_INCLUDES} ${urdfdom_INCLUDE_DIRS}")
+    set(CH_PARSERS_INCLUDES "${CH_PARSERS_INCLUDES};${urdfdom_INCLUDE_DIRS}")
 endif()
 if(HAVE_PYTHON)
     include_directories(${CH_PYTHONINC})
-    set(CH_PARSERS_INCLUDES "${CH_PARSERS_INCLUDES} ${CH_PYTHONINC}")
+    set(CH_PARSERS_INCLUDES "${CH_PARSERS_INCLUDES};${CH_PYTHONINC}")
 endif()
 set(HAVE_URDF "${HAVE_URDF}" PARENT_SCOPE)
 set(HAVE_PYTHON "${HAVE_PYTHON}" PARENT_SCOPE)

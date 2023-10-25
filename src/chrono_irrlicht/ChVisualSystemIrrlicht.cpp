@@ -84,9 +84,10 @@ ChVisualSystemIrrlicht::ChVisualSystemIrrlicht()
         capsuleMesh->grab();
 }
 
-ChVisualSystemIrrlicht::ChVisualSystemIrrlicht(ChSystem* sys, const ChVector<>& camera_pos, const ChVector<>& camera_targ)
-    : ChVisualSystemIrrlicht()
-{
+ChVisualSystemIrrlicht::ChVisualSystemIrrlicht(ChSystem* sys,
+                                               const ChVector<>& camera_pos,
+                                               const ChVector<>& camera_targ)
+    : ChVisualSystemIrrlicht() {
     AttachSystem(sys);
     SetWindowSize(800, 600);
     SetWindowTitle("Chrono::Engine");
@@ -138,6 +139,10 @@ void ChVisualSystemIrrlicht::SetWindowTitle(const std::string& win_title) {
     m_win_title = win_title;
 }
 
+void ChVisualSystemIrrlicht::SetWindowId(void* window_id) {
+    m_device_params.WindowId = window_id;
+};
+
 void ChVisualSystemIrrlicht::SetLogLevel(irr::ELOG_LEVEL log_level) {
     m_device_params.LoggingLevel = log_level;
 }
@@ -146,7 +151,7 @@ void ChVisualSystemIrrlicht::SetCameraVertical(CameraVerticalDir vert) {
     m_yup = (vert == CameraVerticalDir::Y);
 }
 CameraVerticalDir ChVisualSystemIrrlicht::GetCameraVertical() {
-    return (m_yup == true? CameraVerticalDir::Y :  CameraVerticalDir::Z);
+    return (m_yup == true ? CameraVerticalDir::Y : CameraVerticalDir::Z);
 }
 
 void ChVisualSystemIrrlicht::SetSymbolScale(double scale) {
@@ -295,6 +300,10 @@ int ChVisualSystemIrrlicht::AddCamera(const ChVector<>& pos, ChVector<> targ) {
 
     m_cameras.push_back(camera);
     return (int)m_cameras.size() - 1;
+}
+
+void ChVisualSystemIrrlicht::AddGrid(double x_step, double y_step, int nx, int ny, ChCoordsys<> pos, ChColor col) {
+    m_grids.push_back({x_step, y_step, nx, ny, pos, col});
 }
 
 void ChVisualSystemIrrlicht::SetCameraPosition(int id, const ChVector<>& pos) {
@@ -611,12 +620,11 @@ void ChVisualSystemIrrlicht::Render() {
     else
         GetSceneManager()->drawAll();  // draw 3D scene the usual way, if no shadow maps
 
-    m_gui->Render();
-}
+    for (auto& g : m_grids) {
+        irrlicht::tools::drawGrid(this, g.x_step, g.y_step, g.nx, g.ny, g.pos, g.col, true);
+    }
 
-void ChVisualSystemIrrlicht::RenderGrid(const ChFrame<>& frame, int num_divs, double delta) {
-    irrlicht::tools::drawGrid(this, delta, delta, num_divs, num_divs, ChCoordsys<>(frame.GetPos(), frame.GetRot()),
-                              ChColor(1.00f, 0.78f, 0.00f), true);
+    m_gui->Render();
 }
 
 void ChVisualSystemIrrlicht::RenderFrame(const ChFrame<>& frame, double axis_length) {
@@ -789,20 +797,19 @@ static void SetVisualMaterial(ISceneNode* node, std::shared_ptr<ChVisualShape> s
         // Use default material
         for (u32 i = 0; i < node->getMaterialCount(); i++)
             node->getMaterial(i) = *default_material;
-    } 
-    else {
+    } else {
         // ChVisualShape might have one or many materials associated
         // a) associate ChVisualShape material to Irrlicht node material until ChVisualShape are consumed
-        for (u32 i = 0; i < std::min(node->getMaterialCount(), (irr::u32)shape->GetNumMaterials()); i++)
+        for (u32 i = 0; i < std::min(node->getMaterialCount(), (u32)shape->GetNumMaterials()); i++)
             node->getMaterial(i) =
                 tools::ToIrrlichtMaterial(shape->GetMaterial(i), node->getSceneManager()->getVideoDriver());
 
         // b) if more materials are required by Irrlicht node it will rollback to ChVisualShape::GetMaterial(0)
         //    in this way the user can set just one material and it will be propagated to all Irrlicht nodes
-        //    (e.g. each OBJ files might have many materials indeed) 
-        if ((irr::u32)shape->GetNumMaterials() < node->getMaterialCount()){
-            for (u32 i = (irr::u32)shape->GetNumMaterials(); i < node->getMaterialCount(); i++)
-               node->getMaterial(i) =
+        //    (e.g. each OBJ files might have many materials indeed)
+        if ((u32)shape->GetNumMaterials() < node->getMaterialCount()) {
+            for (u32 i = (u32)shape->GetNumMaterials(); i < node->getMaterialCount(); i++)
+                node->getMaterial(i) =
                     tools::ToIrrlichtMaterial(shape->GetMaterial(0), node->getSceneManager()->getVideoDriver());
         }
     }

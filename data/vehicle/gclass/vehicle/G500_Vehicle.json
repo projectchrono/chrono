@@ -1,0 +1,47 @@
+{
+  "Name": "G500",
+  "Type": "Vehicle",
+  "Template": "WheeledVehicle",
+
+  "Chassis": {
+    "Input File": "gclass/chassis/G500_Chassis.json"
+  },
+
+  "Axles": [
+    {
+      "Suspension Input File": "gclass/suspension/G500_FrontAxle.json",
+      "Suspension Location": [ 0, 0, 0 ],
+      "Steering Index": 0,
+      "Left Wheel Input File": "gclass/wheel/G500_Wheel.json",
+      "Right Wheel Input File": "gclass/wheel/G500_Wheel.json",
+      "Left Brake Input File": "gclass/brake/G500_BrakeShafts_Front.json",
+      "Right Brake Input File": "gclass/brake/G500_BrakeShafts_Front.json"
+    },
+
+    {
+      "Suspension Input File": "gclass/suspension/G500_RearAxle.json",
+      "Suspension Location": [ -2.85, 0, 0 ],
+      "Left Wheel Input File": "gclass/wheel/G500_Wheel.json",
+      "Right Wheel Input File": "gclass/wheel/G500_Wheel.json",
+      "Left Brake Input File": "gclass/brake/G500_BrakeShafts_Rear.json",
+      "Right Brake Input File": "gclass/brake/G500_BrakeShafts_Rear.json"
+    }
+  ],
+
+  "Steering Subsystems": [
+    {
+      "Input File": "gclass/steering/G500_RotaryArm.json",
+      "Location": [ 0, 0, 0 ],
+      "Orientation": [ 1, 0, 0, 0 ]
+    }
+  ],
+
+  "Wheelbase": 2.3,
+  "Minimum Turning Radius": 5.8,
+  "Maximum Steering Angle (deg)": 27,
+
+  "Driveline": {
+    "Input File": "gclass/driveline/G500_Driveline4WD.json",
+    "Suspension Indexes": [ 0, 1 ]
+  }
+}

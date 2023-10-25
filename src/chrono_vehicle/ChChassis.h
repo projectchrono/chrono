@@ -141,19 +141,23 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     /// Utility function to remove a joint (kinematic or bushing) from the vehicle system.
     static void RemoveJoint(std::shared_ptr<ChVehicleJoint> joint);
 
-    /// Base class for a user-defined custom force acting on the chassis body.
-    class ExternalForce {
+    /// Base class for a user-defined custom force/torque acting on the chassis body.
+    class ExternalForceTorque {
       public:
-        virtual ~ExternalForce() {}
+        virtual ~ExternalForceTorque() {}
 
         /// The external load is updated at each vehicle synchronization.
         /// A derived class must load the current values for the external force and its application point on the chassis
         /// body, both assumed to be provided in the chassis body local frame.
-        virtual void Update(double time, const ChChassis& chassis, ChVector<>& force, ChVector<>& point) {}
+        virtual void Update(double time,
+                            const ChChassis& chassis,
+                            ChVector<>& force,
+                            ChVector<>& point,
+                            ChVector<>& torque) {}
     };
 
     /// Utility force to add an external load to the chassis body.
-    void AddExternalForce(std::shared_ptr<ExternalForce> force);
+    void AddExternalForceTorque(std::shared_ptr<ExternalForceTorque> load);
 
     virtual void InitializeInertiaProperties() override;
     virtual void UpdateInertiaProperties() override;
@@ -163,12 +167,12 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     virtual ChFrame<> GetBodyCOMFrame() const = 0;
     virtual ChMatrix33<> GetBodyInertia() const = 0;
 
-    std::shared_ptr<ChBodyAuxRef> m_body;                  ///< handle to the chassis body
-    std::shared_ptr<ChLoadContainer> m_bushings;           ///< load container for vehicle bushings
-    std::shared_ptr<ChLoadContainer> m_container_forces;   ///< load container for external forces
-    std::vector<std::shared_ptr<ExternalForce>> m_forces;  ///< external forces
-    std::vector<std::shared_ptr<ChMarker>> m_markers;      ///< list of user-defined markers
-    bool m_fixed;                                          ///< is the chassis body fixed to ground?
+    std::shared_ptr<ChBodyAuxRef> m_body;                       ///< handle to the chassis body
+    std::shared_ptr<ChLoadContainer> m_bushings;                ///< load container for vehicle bushings
+    std::shared_ptr<ChLoadContainer> m_external;                ///< load container for external forces
+    std::vector<std::shared_ptr<ExternalForceTorque>> m_loads;  ///< external loads
+    std::vector<std::shared_ptr<ChMarker>> m_markers;           ///< list of user-defined markers
+    bool m_fixed;                                               ///< is the chassis body fixed to ground?
 };
 
 // -----------------------------------------------------------------------------

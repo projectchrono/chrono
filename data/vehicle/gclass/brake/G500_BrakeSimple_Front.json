@@ -1,0 +1,7 @@
+{
+  "Name": "G500 Brake Front",
+  "Type": "Brake",
+  "Template": "BrakeSimple",
+
+  "Maximum Torque": 1600
+}

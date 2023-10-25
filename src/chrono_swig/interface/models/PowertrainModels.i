@@ -45,8 +45,8 @@
 #include "chrono_models/vehicle/gator/Gator_AutomaticTransmissionSimpleMap.h"
 #include "chrono_models/vehicle/gator/Gator_AutomaticTransmissionSimple.h"
 
-#include "chrono_models/vehicle/rccar/RCCar_EngineSimpleMap.h"
-#include "chrono_models/vehicle/rccar/RCCar_AutomaticTransmissionSimpleMap.h"
+#include "chrono_models/vehicle/artcar/ARTcar_EngineSimpleMap.h"
+#include "chrono_models/vehicle/artcar/ARTcar_AutomaticTransmissionSimpleMap.h"
 
 #include "chrono_models/vehicle/feda/FEDA_EngineSimpleMap.h"
 #include "chrono_models/vehicle/feda/FEDA_AutomaticTransmissionSimpleMap.h"
@@ -88,8 +88,8 @@
 %shared_ptr(chrono::vehicle::uaz::UAZBUS_EngineSimpleMap)
 %shared_ptr(chrono::vehicle::uaz::UAZBUS_AutomaticTransmissionSimpleMap)
 
-%shared_ptr(chrono::vehicle::rccar::RCCar_EngineSimpleMap)
-%shared_ptr(chrono::vehicle::rccar::RCCar_AutomaticTransmissionSimpleMap)
+%shared_ptr(chrono::vehicle::artcar::ARTcar_EngineSimpleMap)
+%shared_ptr(chrono::vehicle::artcar::ARTcar_AutomaticTransmissionSimpleMap)
 
 %shared_ptr(chrono::vehicle::gator::Gator_EngineSimpleMap)
 %shared_ptr(chrono::vehicle::gator::Gator_EngineSimple)
@@ -136,8 +136,8 @@
 %include "../../../chrono_models/vehicle/man/powertrain/MAN_7t_EngineSimpleMap.h"
 %include "../../../chrono_models/vehicle/man/powertrain/MAN_7t_AutomaticTransmissionSimpleMap.h"
 
-%include "../../../chrono_models/vehicle/rccar/RCCar_EngineSimpleMap.h"
-%include "../../../chrono_models/vehicle/rccar/RCCar_AutomaticTransmissionSimpleMap.h"
+%include "../../../chrono_models/vehicle/artcar/ARTcar_EngineSimpleMap.h"
+%include "../../../chrono_models/vehicle/artcar/ARTcar_AutomaticTransmissionSimpleMap.h"
 
 %include "../../../chrono_models/vehicle/uaz/UAZBUS_EngineSimpleMap.h"
 %include "../../../chrono_models/vehicle/uaz/UAZBUS_AutomaticTransmissionSimpleMap.h"

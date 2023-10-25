@@ -255,8 +255,8 @@ bool SCMTerrain::GetContactForceBody(std::shared_ptr<ChBody> body, ChVector<>& f
     return true;
 }
 
-bool SCMTerrain::GetContactForceNode(std::shared_ptr<fea::ChNodeFEAbase> node, ChVector<>& force) const {
-    auto itr = m_loader->m_node_forces.find(node.get());
+bool SCMTerrain::GetContactForceNode(std::shared_ptr<fea::ChNodeFEAxyz> node, ChVector<>& force) const {
+    auto itr = m_loader->m_node_forces.find(node);
     if (itr == m_loader->m_node_forces.end()) {
         force = VNULL;
         return false;
@@ -1422,21 +1422,10 @@ void SCMLoader::ComputeInternalForces() {
         }
 
         if (ChBody* body = dynamic_cast<ChBody*>(contactable)) {
-            // [](){} Trick: no deletion for this shared ptr, since 'rigidbody' was not a new ChBody()
-            // object, but an already used pointer because mrayhit_result.hitModel->GetPhysicsItem()
-            // cannot return it as shared_ptr, as needed by the ChLoadBodyForce:
-            std::shared_ptr<ChBody> sbody(body, [](ChBody*) {});
-
-            if (!m_cosim_mode) {
-                std::shared_ptr<ChLoadBodyForce> mload(new ChLoadBodyForce(sbody, Fn + Ft, false, point_abs, false));
-                this->Add(mload);
-            }
-
-            // Accumulate contact force for this rigid body.
+            // Accumulate resultant force and torque (expressed in global frame) for this rigid body.
             // The resultant force is assumed to be applied at the body COM.
-            // All components of the generalized terrain force are expressed in the global frame.
             ChVector<> force = Fn + Ft;
-            ChVector<> moment = Vcross(point_abs - sbody->GetPos(), force);
+            ChVector<> moment = Vcross(point_abs - body->GetPos(), force);
 
             auto itr = m_body_forces.find(body);
             if (itr == m_body_forces.end()) {
@@ -1449,16 +1438,7 @@ void SCMLoader::ComputeInternalForces() {
                 itr->second.second += moment;
             }
         } else if (fea::ChContactTriangleXYZ* tri = dynamic_cast<fea::ChContactTriangleXYZ*>(contactable)) {
-            if (!m_cosim_mode) {
-                // [](){} Trick: no deletion for this shared ptr
-                std::shared_ptr<ChLoadableUV> stri(tri, [](ChLoadableUV*) {});
-                std::shared_ptr<ChLoad<ChLoaderForceOnSurface>> mload(new ChLoad<ChLoaderForceOnSurface>(stri));
-                mload->loader.SetForce(Fn + Ft);
-                mload->loader.SetApplication(0.5, 0.5);  //// TODO set UV, now just in middle
-                this->Add(mload);
-            }
-
-            // Accumulate contact forces for the nodes of this contact triangle.
+            // Accumulate forces (expressed in global frame) for the nodes of this contact triangle.
             ChVector<> force = Fn + Ft;
 
             double s[3];
@@ -1468,10 +1448,10 @@ void SCMLoader::ComputeInternalForces() {
             for (int i = 0; i < 3; i++) {
                 auto node = tri->GetNode(i);
                 auto node_force = s[i] * force;
-                auto itr = m_node_forces.find(node.get());
+                auto itr = m_node_forces.find(node);
                 if (itr == m_node_forces.end()) {
                     // Create new entry and initialize force
-                    m_node_forces.insert(std::make_pair(node.get(), node_force));
+                    m_node_forces.insert(std::make_pair(node, node_force));
                 } else {
                     // Update force
                     itr->second += node_force;
@@ -1495,6 +1475,24 @@ void SCMLoader::ComputeInternalForces() {
         nr.level = nr.level_initial - nr.sinkage / ca;
 
     }  // end loop on ray hits
+
+    // Create loads for bodies and nodes to apply the accumulated terrain force/torque for each of them
+    if (!m_cosim_mode) {
+        for (const auto& f : m_body_forces) {
+            std::shared_ptr<ChBody> sbody(f.first, [](ChBody*) {});
+            auto force_load =
+                chrono_types::make_shared<ChLoadBodyForce>(sbody, f.second.first, false, sbody->GetPos(), false);
+            auto torque_load = chrono_types::make_shared<ChLoadBodyTorque>(sbody, f.second.second, false);
+            Add(force_load);
+            Add(torque_load);
+        }
+
+        for (const auto& f : m_node_forces) {
+            std::cout << f.second << std::endl;
+            auto force_load = chrono_types::make_shared<ChLoadXYZnode>(f.first, f.second);
+            Add(force_load);
+        }
+    }
 
     m_timer_contact_forces.stop();
 

@@ -57,6 +57,8 @@ set(SYN_LIBRARIES
 #-----------------------------------------------------------------------------
 option(USE_FAST_DDS "Enable the FastDDS interface for the SynChrono Module" OFF)
 
+set(FASTDDS_FOUND FALSE)
+
 if (USE_FAST_DDS)
 	set(fastrtps_INSTALL_DIR "" CACHE PATH "Path to FastDDS install dir")
 
