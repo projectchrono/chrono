@@ -645,14 +645,16 @@ void ChAssembly::Update(bool update_assets) {
     for (int ip = 0; ip < (int)shaftlist.size(); ++ip) {
         shaftlist[ip]->Update(ChTime, update_assets);
     }
+    for (int ip = 0; ip < (int)meshlist.size(); ++ip) {
+        meshlist[ip]->Update(ChTime, update_assets);
+    }
     for (int ip = 0; ip < (int)otherphysicslist.size(); ++ip) {
         otherphysicslist[ip]->Update(ChTime, update_assets);
     }
+    // The state of links depends on the bodylist,shaftlist,meshlist,otherphysicslist,
+    // thus the update of linklist must be at the end.
     for (int ip = 0; ip < (int)linklist.size(); ++ip) {
         linklist[ip]->Update(ChTime, update_assets);
-    }
-    for (int ip = 0; ip < (int)meshlist.size(); ++ip) {
-        meshlist[ip]->Update(ChTime, update_assets);
     }
 }
 
