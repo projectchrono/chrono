@@ -8,6 +8,7 @@ if(ENABLE_MODULE_IRRLICHT)
    set(DEMOS ${DEMOS}
        demo_MOD_analysis
        demo_MOD_assembly
+	   demo_MOD_assembly_hierarchy
    )
 endif()
 
