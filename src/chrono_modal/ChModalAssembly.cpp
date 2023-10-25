@@ -341,7 +341,7 @@ void ChModalAssembly::SwitchModalReductionON(ChSparseMatrix& full_M,
 
     // 4) do the Herting reduction as in Sonneville, 2021
     DoModalReduction(damping_model);
-    GetLog() << " * run in line:\t" << __LINE__ << "\n";
+    //GetLog() << " * run in line:\t" << __LINE__ << "\n";
 
     // compute the modal K R M matrices
     ComputeInertialKRMmatrix();  // inertial M K R
@@ -349,7 +349,7 @@ void ChModalAssembly::SwitchModalReductionON(ChSparseMatrix& full_M,
     ComputeDampingMatrix();      // material damping
     ComputeModalKRMmatrix();
 
-    GetLog() << "run in line:\t" << __LINE__ << "\n";
+    //GetLog() << "run in line:\t" << __LINE__ << "\n";
     GetLog() << "**** the new implemented modal reduction is done...\n";
 
     // Debug dump data. ***TODO*** remove
@@ -959,7 +959,7 @@ void ChModalAssembly::DoModalReduction(const ChModalDamping& damping_model) {
     // todo: maybe the Cq_red is necessary for specifying the suitable modal damping ratios.
     // ChModalDampingNone damping_model;
     damping_model.ComputeR(*this, this->M_red, this->K_red, Psi, this->R_red);
-    R_red.setZero(); // set zero for test temporarily
+    R_red.setZero();  // set zero for test temporarily
 
     // Invalidate results of the initial eigenvalue analysis because now the DOFs are different after reduction,
     // to avoid that one could be tempted to plot those eigenmodes, which now are not exactly the ones of the reduced
@@ -1567,11 +1567,12 @@ void ChModalAssembly::RemoveInternalMesh(std::shared_ptr<fea::ChMesh> mesh) {
 
 void ChModalAssembly::AddInternalOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item) {
     assert(!std::dynamic_pointer_cast<ChBody>(item));
+    assert(!std::dynamic_pointer_cast<ChShaft>(item));
     assert(!std::dynamic_pointer_cast<ChLinkBase>(item));
     assert(!std::dynamic_pointer_cast<ChMesh>(item));
     assert(std::find(std::begin(internal_otherphysicslist), std::end(internal_otherphysicslist), item) ==
            internal_otherphysicslist.end());
-    // assert(item->GetSystem()==nullptr); // should remove from other system before adding here
+    assert(item->GetSystem() == nullptr);  // should remove from other system before adding here
 
     // set system and also add collision models to system
     item->SetSystem(system);
@@ -2006,14 +2007,14 @@ void ChModalAssembly::Update(bool update_assets) {
         for (int ip = 0; ip < (int)internal_bodylist.size(); ++ip) {
             internal_bodylist[ip]->Update(ChTime, update_assets);
         }
+        for (int ip = 0; ip < (int)internal_meshlist.size(); ++ip) {
+            internal_meshlist[ip]->Update(ChTime, update_assets);
+        }
         for (int ip = 0; ip < (int)internal_otherphysicslist.size(); ++ip) {
             internal_otherphysicslist[ip]->Update(ChTime, update_assets);
         }
         for (int ip = 0; ip < (int)internal_linklist.size(); ++ip) {
             internal_linklist[ip]->Update(ChTime, update_assets);
-        }
-        for (int ip = 0; ip < (int)internal_meshlist.size(); ++ip) {
-            internal_meshlist[ip]->Update(ChTime, update_assets);
         }
 
         if (m_custom_F_full_callback)
@@ -2116,7 +2117,8 @@ void ChModalAssembly::IntStateGather(const unsigned int off_x,
             mesh->IntStateGather(displ_x + mesh->GetOffset_x(), x, displ_v + mesh->GetOffset_w(), v, T);
         }
         for (auto& item : internal_otherphysicslist) {
-            item->IntStateGather(displ_x + item->GetOffset_x(), x, displ_v + item->GetOffset_w(), v, T);
+            if (item->IsActive())
+                item->IntStateGather(displ_x + item->GetOffset_x(), x, displ_v + item->GetOffset_w(), v, T);
         }
     } else {
         x.segment(off_x + this->n_boundary_coords, this->n_modes_coords_w) = this->modal_q;
@@ -2148,15 +2150,19 @@ void ChModalAssembly::IntStateScatter(const unsigned int off_x,
         for (auto& mesh : internal_meshlist) {
             mesh->IntStateScatter(displ_x + mesh->GetOffset_x(), x, displ_v + mesh->GetOffset_w(), v, T, full_update);
         }
+        for (auto& item : internal_otherphysicslist) {
+            if (item->IsActive())
+                item->IntStateScatter(displ_x + item->GetOffset_x(), x, displ_v + item->GetOffset_w(), v, T,
+                                      full_update);
+            else
+                item->Update(T, full_update);
+        }
         for (auto& link : internal_linklist) {
             if (link->IsActive())
                 link->IntStateScatter(displ_x + link->GetOffset_x(), x, displ_v + link->GetOffset_w(), v, T,
                                       full_update);
             else
                 link->Update(T, full_update);
-        }
-        for (auto& item : internal_otherphysicslist) {
-            item->IntStateScatter(displ_x + item->GetOffset_x(), x, displ_v + item->GetOffset_w(), v, T, full_update);
         }
 
         if (m_custom_F_full_callback)
@@ -2197,7 +2203,8 @@ void ChModalAssembly::IntStateGatherAcceleration(const unsigned int off_a, ChSta
             mesh->IntStateGatherAcceleration(displ_a + mesh->GetOffset_w(), a);
         }
         for (auto& item : internal_otherphysicslist) {
-            item->IntStateGatherAcceleration(displ_a + item->GetOffset_w(), a);
+            if (item->IsActive())
+                item->IntStateGatherAcceleration(displ_a + item->GetOffset_w(), a);
         }
     } else {
         a.segment(off_a + this->n_boundary_coords_w, this->n_modes_coords_w) = this->modal_q_dtdt;
@@ -2215,15 +2222,16 @@ void ChModalAssembly::IntStateScatterAcceleration(const unsigned int off_a, cons
             if (body->IsActive())
                 body->IntStateScatterAcceleration(displ_a + body->GetOffset_w(), a);
         }
-        for (auto& link : internal_linklist) {
-            if (link->IsActive())
-                link->IntStateScatterAcceleration(displ_a + link->GetOffset_w(), a);
-        }
         for (auto& mesh : internal_meshlist) {
             mesh->IntStateScatterAcceleration(displ_a + mesh->GetOffset_w(), a);
         }
         for (auto& item : internal_otherphysicslist) {
-            item->IntStateScatterAcceleration(displ_a + item->GetOffset_w(), a);
+            if (item->IsActive())
+                item->IntStateScatterAcceleration(displ_a + item->GetOffset_w(), a);
+        }
+        for (auto& link : internal_linklist) {
+            if (link->IsActive())
+                link->IntStateScatterAcceleration(displ_a + link->GetOffset_w(), a);
         }
     } else {
         this->modal_q_dtdt = a.segment(off_a + this->n_boundary_coords_w, this->n_modes_coords_w);
@@ -2249,7 +2257,8 @@ void ChModalAssembly::IntStateGatherReactions(const unsigned int off_L, ChVector
             mesh->IntStateGatherReactions(displ_L + mesh->GetOffset_L(), L);
         }
         for (auto& item : internal_otherphysicslist) {
-            item->IntStateGatherReactions(displ_L + item->GetOffset_L(), L);
+            if (item->IsActive())
+                item->IntStateGatherReactions(displ_L + item->GetOffset_L(), L);
         }
     } else {
         // todo:
@@ -2268,15 +2277,16 @@ void ChModalAssembly::IntStateScatterReactions(const unsigned int off_L, const C
             if (body->IsActive())
                 body->IntStateScatterReactions(displ_L + body->GetOffset_L(), L);
         }
-        for (auto& link : internal_linklist) {
-            if (link->IsActive())
-                link->IntStateScatterReactions(displ_L + link->GetOffset_L(), L);
-        }
         for (auto& mesh : internal_meshlist) {
             mesh->IntStateScatterReactions(displ_L + mesh->GetOffset_L(), L);
         }
         for (auto& item : internal_otherphysicslist) {
-            item->IntStateScatterReactions(displ_L + item->GetOffset_L(), L);
+            if (item->IsActive())
+                item->IntStateScatterReactions(displ_L + item->GetOffset_L(), L);
+        }
+        for (auto& link : internal_linklist) {
+            if (link->IsActive())
+                link->IntStateScatterReactions(displ_L + link->GetOffset_L(), L);
         }
     } else {
         // todo:
@@ -2310,7 +2320,8 @@ void ChModalAssembly::IntStateIncrement(const unsigned int off_x,
         }
 
         for (auto& item : internal_otherphysicslist) {
-            item->IntStateIncrement(displ_x + item->GetOffset_x(), x_new, x, displ_v + item->GetOffset_w(), Dv);
+            if (item->IsActive())
+                item->IntStateIncrement(displ_x + item->GetOffset_x(), x_new, x, displ_v + item->GetOffset_w(), Dv);
         }
     } else {
         x_new.segment(off_x + this->n_boundary_coords, this->n_modes_coords_w) =
@@ -2345,7 +2356,8 @@ void ChModalAssembly::IntStateGetIncrement(const unsigned int off_x,
         }
 
         for (auto& item : internal_otherphysicslist) {
-            item->IntStateGetIncrement(displ_x + item->GetOffset_x(), x_new, x, displ_v + item->GetOffset_w(), Dv);
+            if (item->IsActive())
+                item->IntStateGetIncrement(displ_x + item->GetOffset_x(), x_new, x, displ_v + item->GetOffset_w(), Dv);
         }
     } else {
         Dv.segment(off_v + this->n_boundary_coords_w, this->n_modes_coords_w) =
@@ -2375,7 +2387,8 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
             mesh->IntLoadResidual_F(displ_v + mesh->GetOffset_w(), R, c);
         }
         for (auto& item : internal_otherphysicslist) {
-            item->IntLoadResidual_F(displ_v + item->GetOffset_w(), R, c);
+            if (item->IsActive())
+                item->IntLoadResidual_F(displ_v + item->GetOffset_w(), R, c);
         }
 
         // Add custom forces (applied to the original non reduced system)
@@ -2437,7 +2450,8 @@ void ChModalAssembly::IntLoadResidual_Mv(const unsigned int off,      ///< offse
             mesh->IntLoadResidual_Mv(displ_v + mesh->GetOffset_w(), R, w, c);
         }
         for (auto& item : internal_otherphysicslist) {
-            item->IntLoadResidual_Mv(displ_v + item->GetOffset_w(), R, w, c);
+            if (item->IsActive())
+                item->IntLoadResidual_Mv(displ_v + item->GetOffset_w(), R, w, c);
         }
     } else {
         ChVectorDynamic<> w_modal = w.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w);
@@ -2467,7 +2481,8 @@ void ChModalAssembly::IntLoadResidual_CqL(const unsigned int off_L,    ///< offs
             mesh->IntLoadResidual_CqL(displ_L + mesh->GetOffset_L(), R, L, c);
         }
         for (auto& item : internal_otherphysicslist) {
-            item->IntLoadResidual_CqL(displ_L + item->GetOffset_L(), R, L, c);
+            if (item->IsActive())
+                item->IntLoadResidual_CqL(displ_L + item->GetOffset_L(), R, L, c);
         }
     } else {
         // todo:
@@ -2498,7 +2513,8 @@ void ChModalAssembly::IntLoadConstraint_C(const unsigned int off_L,  ///< offset
             mesh->IntLoadConstraint_C(displ_L + mesh->GetOffset_L(), Qc, c, do_clamp, recovery_clamp);
         }
         for (auto& item : internal_otherphysicslist) {
-            item->IntLoadConstraint_C(displ_L + item->GetOffset_L(), Qc, c, do_clamp, recovery_clamp);
+            if (item->IsActive())
+                item->IntLoadConstraint_C(displ_L + item->GetOffset_L(), Qc, c, do_clamp, recovery_clamp);
         }
     } else {
         // todo:
@@ -2527,7 +2543,8 @@ void ChModalAssembly::IntLoadConstraint_Ct(const unsigned int off_L,  ///< offse
             mesh->IntLoadConstraint_Ct(displ_L + mesh->GetOffset_L(), Qc, c);
         }
         for (auto& item : internal_otherphysicslist) {
-            item->IntLoadConstraint_Ct(displ_L + item->GetOffset_L(), Qc, c);
+            if (item->IsActive())
+                item->IntLoadConstraint_Ct(displ_L + item->GetOffset_L(), Qc, c);
         }
     } else {
         // todo:
@@ -2562,7 +2579,8 @@ void ChModalAssembly::IntToDescriptor(const unsigned int off_v,
         }
 
         for (auto& item : internal_otherphysicslist) {
-            item->IntToDescriptor(displ_v + item->GetOffset_w(), v, R, displ_L + item->GetOffset_L(), L, Qc);
+            if (item->IsActive())
+                item->IntToDescriptor(displ_v + item->GetOffset_w(), v, R, displ_L + item->GetOffset_L(), L, Qc);
         }
     } else {
         this->modal_variables->Get_qb() = v.segment(off_v + this->n_boundary_coords_w, this->n_modes_coords_w);
@@ -2595,7 +2613,8 @@ void ChModalAssembly::IntFromDescriptor(const unsigned int off_v,
         }
 
         for (auto& item : internal_otherphysicslist) {
-            item->IntFromDescriptor(displ_v + item->GetOffset_w(), v, displ_L + item->GetOffset_L(), L);
+            if (item->IsActive())
+                item->IntFromDescriptor(displ_v + item->GetOffset_w(), v, displ_L + item->GetOffset_L(), L);
         }
     } else {
         v.segment(off_v + this->n_boundary_coords_w, this->n_modes_coords_w) = this->modal_variables->Get_qb();
