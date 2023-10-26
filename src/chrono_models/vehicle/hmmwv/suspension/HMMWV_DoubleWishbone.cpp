@@ -62,7 +62,6 @@ const ChVector<> HMMWV_DoubleWishboneFront::m_tierodInertia(0.05, 0.05, 0.5);
 
 const double HMMWV_DoubleWishboneFront::m_axleInertia = 0.4;
 
-const double HMMWV_DoubleWishboneFront::m_springCoefficient = 167062.000;
 const double HMMWV_DoubleWishboneFront::m_springRestLength = 0.339;
 
 // -----------------------------------------------------------------------------
@@ -92,7 +91,6 @@ const ChVector<> HMMWV_DoubleWishboneRear::m_tierodInertia(0.05, 0.05, 0.5);
 
 const double HMMWV_DoubleWishboneRear::m_axleInertia = 0.4;
 
-const double HMMWV_DoubleWishboneRear::m_springCoefficient = 369149.000;
 const double HMMWV_DoubleWishboneRear::m_springRestLength = 0.382;
 
 // -----------------------------------------------------------------------------
@@ -149,38 +147,52 @@ double HMMWV_ShockForce::evaluate(double time, double rest_length, double length
 
 HMMWV_DoubleWishboneFront::HMMWV_DoubleWishboneFront(const std::string& name, bool use_tierod_bodies)
     : ChDoubleWishbone(name), m_use_tierod_bodies(use_tierod_bodies) {
-    // Functor for a linear spring with bump stops
-    auto springCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient);
-    springCB->enable_stops(in2m * 12.76, in2m * 16.48);
+    // Table-based nonlinear spring
+    double def[] = {-0.2, -0.18, -0.16, -0.14, -0.12, -0.1, -0.08, -0.06, -0.04, -0.02, 0,
+                    0.02, 0.04,  0.06,  0.08,  0.1,   0.12, 0.14,  0.16,  0.18,  0.2};
+    double frc[] = {-322095.536, -240521.166, -174535.686, -122406.996, -82402.997, -52791.592, -31840.681,
+                    -17818.165,  -8991.945,   -3629.923,   0,           3629.923,   8991.945,   17818.165,
+                    31840.681,   52791.592,   82402.997,   122406.996,  174535.686, 240521.166, 322095.536};
+    auto springCB = chrono_types::make_shared<NonlinearSpringForce>(0);
+    for (int i = 0; i < 21; i++) {
+      springCB->add_pointK(def[i], frc[i]);
+    }
+    springCB->enable_stops(0.15, 0.3);
     m_springForceCB = springCB;
 
     // Functor for a piece-wise linear damper (with hydraulic bump stops)
-    auto shockCB = chrono_types::make_shared<HMMWV_ShockForce>(lbfpin2Npm * 71.50,   // midstroke compression rate
-                                                               lbfpin2Npm * 128.25,  // midstroke rebound rate
-                                                               lbfpin2Npm * 33.67,   // bumpstop compression rate
-                                                               lbfpin2Npm * 343.00,  // bumpstop rebound rate
-                                                               in2m * 12.76,         // bumpstop engagement min length
-                                                               in2m * 16.48          // bumpstop engagement max length
+    m_shockForceCB = chrono_types::make_shared<HMMWV_ShockForce>(lbfpin2Npm * 71.50,   // midstroke compression rate
+                                                                 lbfpin2Npm * 128.25,  // midstroke rebound rate
+                                                                 lbfpin2Npm * 33.67,   // bumpstop compression rate
+                                                                 lbfpin2Npm * 343.00,  // bumpstop rebound rate
+                                                                 in2m * 12.76,         // bumpstop engagement min length
+                                                                 in2m * 16.48          // bumpstop engagement max length
     );
-    m_shockForceCB = shockCB;
 }
 
 HMMWV_DoubleWishboneRear::HMMWV_DoubleWishboneRear(const std::string& name, bool use_tierod_bodies)
     : ChDoubleWishbone(name), m_use_tierod_bodies(use_tierod_bodies) {
-    // Functor for a linear spring with bump stops
-    auto springCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient);
-    springCB->enable_stops(in2m * 12.76, in2m * 16.48);
+    // Table-based nonlinear spring
+    double def[] = {-0.2, -0.18, -0.16, -0.14, -0.12, -0.1, -0.08, -0.06, -0.04, -0.02, 0,
+                    0.02, 0.04,  0.06,  0.08,  0.1,   0.12, 0.14,  0.16,  0.18,  0.2};
+    double frc[] = {-711719.272, -531468.245, -385663.250, -270476.949, -182082.006, -116651.084, -70356.846,
+                    -39371.956,  -19869.076,  -8020.869,   0,           8020.869,    19869.076,   39371.956,
+                    70356.846,   116651.084,  182082.006,  270476.949,  385663.250,  531468.245,  711719.272};
+    auto springCB = chrono_types::make_shared<NonlinearSpringForce>(0);
+    for (int i = 0; i < 21; i++) {
+      springCB->add_pointK(def[i], frc[i]);
+    }
+    springCB->enable_stops(0.15, 0.35);
     m_springForceCB = springCB;
 
     // Functor for a piece-wise linear damper (with hydraulic bump stops)
-    auto shockCB = chrono_types::make_shared<HMMWV_ShockForce>(lbfpin2Npm * 83.00,   // midstroke compression rate
-                                                               lbfpin2Npm * 200.00,  // midstroke rebound rate
-                                                               lbfpin2Npm * 48.75,   // bumpstop compression rate
-                                                               lbfpin2Npm * 365.00,  // bumpstop rebound rate
-                                                               in2m * 12.76,         // bumpstop engagement min length
-                                                               in2m * 16.48          // bumpstop engagement max length
+    m_shockForceCB = chrono_types::make_shared<HMMWV_ShockForce>(lbfpin2Npm * 83.00,   // midstroke compression rate
+                                                                 lbfpin2Npm * 200.00,  // midstroke rebound rate
+                                                                 lbfpin2Npm * 48.75,   // bumpstop compression rate
+                                                                 lbfpin2Npm * 365.00,  // bumpstop rebound rate
+                                                                 in2m * 12.76,         // bumpstop engagement min length
+                                                                 in2m * 16.48          // bumpstop engagement max length
     );
-    m_shockForceCB = shockCB;
 }
 
 HMMWV_DoubleWishboneFront::~HMMWV_DoubleWishboneFront() {}
