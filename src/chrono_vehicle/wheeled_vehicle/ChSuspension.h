@@ -165,7 +165,7 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
 };
 
 /// Vector of handles to suspension subsystems.
-typedef std::vector<std::shared_ptr<ChSuspension> > ChSuspensionList;
+typedef std::vector<std::shared_ptr<ChSuspension>> ChSuspensionList;
 
 /// @} vehicle_wheeled_suspension
 

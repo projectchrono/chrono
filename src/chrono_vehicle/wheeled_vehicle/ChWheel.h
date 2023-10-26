@@ -28,6 +28,7 @@
 #include "chrono/assets/ChTriangleMeshShape.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
+#include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/ChPart.h"
 
 namespace chrono {
@@ -63,9 +64,10 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     /// to an axle with a single tire. A positive offset corresponds to an "outer" wheel, while a negative offset
     /// corresponds to an "inner" wheel. The wheel mass and inertia are used to increment those of the associated
     /// spindle body.
-    virtual void Initialize(std::shared_ptr<ChBody> spindle,  ///< associated suspension spindle body
-                            VehicleSide side,                 ///< wheel mounted on left/right side
-                            double offset = 0                 ///< offset from associated spindle center
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< chassis vehicle (may be null)
+                            std::shared_ptr<ChBody> spindle,     ///< associated suspension spindle body
+                            VehicleSide side,                    ///< wheel mounted on left/right side
+                            double offset = 0                    ///< offset from associated spindle center
     );
 
     /// Enable/disable contact for the wheel.
@@ -128,13 +130,16 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;  ///< visualization mesh asset
     std::shared_ptr<ChVisualShape> m_cyl_shape;            ///< visualization cylinder asset
 
+    std::shared_ptr<ChLoadBodyForce> m_spindle_terrain_force;    ///< terrain force loads on the spindle
+    std::shared_ptr<ChLoadBodyTorque> m_spindle_terrain_torque;  ///< terrain torque loads on the spindle
+
     friend class ChTire;
     friend class ChWheeledVehicle;
     friend class ChTireTestRig;
 };
 
 /// Vector of handles to wheel subsystems.
-typedef std::vector<std::shared_ptr<ChWheel> > ChWheelList;
+typedef std::vector<std::shared_ptr<ChWheel>> ChWheelList;
 
 /// @} vehicle_wheeled_wheel
 
