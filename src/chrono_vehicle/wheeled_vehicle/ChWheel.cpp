@@ -93,12 +93,9 @@ void ChWheel::Synchronize() {
         return;
 
     auto tire_force = m_tire->GetTireForce();
-    ////m_spindle_terrain_force->SetForce(tire_force.force, false);
-    ////m_spindle_terrain_force->SetApplicationPoint(tire_force.point, false);
-    ////m_spindle_terrain_torque->SetTorque(tire_force.moment, false);
-
-    m_spindle->Accumulate_force(tire_force.force, tire_force.point, false);
-    m_spindle->Accumulate_torque(tire_force.moment, false);
+    m_spindle_terrain_force->SetForce(tire_force.force, false);
+    m_spindle_terrain_force->SetApplicationPoint(tire_force.point, false);
+    m_spindle_terrain_torque->SetTorque(tire_force.moment, false);
 }
 
 ChVector<> ChWheel::GetPos() const {
