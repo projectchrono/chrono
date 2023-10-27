@@ -67,6 +67,10 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 enum class TireType { RIGID, TMEASY, FIALA, PAC89, PAC02, ANCF4, ANCF8, ANCF_TOROIDAL, REISSNER };
 TireType tire_type = TireType::TMEASY;
 
+// Terrain type (RIGID or SCM)
+enum class TerrainType { RIGID, SCM };
+TerrainType terrain_type = TerrainType::RIGID;
+
 // Read from JSON specification file?
 bool use_JSON = false;
 
@@ -92,6 +96,8 @@ int main() {
         ancf_tire->SetDivWidth(8);
         ancf_tire->SetPressure(320e3);
         ancf_tire->SetAlpha(0.15);
+        if (terrain_type == TerrainType::SCM)
+            ancf_tire->SetContactSurfaceType(ChDeformableTire::ContactSurfaceType::TRIANGLE_MESH);
         tire = ancf_tire;
     } else if (use_JSON) {
         std::string tire_file;
@@ -136,17 +142,29 @@ int main() {
             case TireType::PAC89:
                 tire = chrono_types::make_shared<hmmwv::HMMWV_Pac89Tire>("Pac89 tire");
                 break;
-            case TireType::ANCF4:
-                tire = chrono_types::make_shared<hmmwv::HMMWV_ANCFTire>("ANCF tire",
-                                                                        hmmwv::HMMWV_ANCFTire::ElementType::ANCF_4);
+            case TireType::ANCF4: {
+                auto hmmwv_tire = chrono_types::make_shared<hmmwv::HMMWV_ANCFTire>(
+                    "ANCF tire", hmmwv::HMMWV_ANCFTire::ElementType::ANCF_4);
+                if (terrain_type == TerrainType::SCM)
+                    hmmwv_tire->SetContactSurfaceType(ChDeformableTire::ContactSurfaceType::TRIANGLE_MESH);
+                tire = hmmwv_tire;
                 break;
-            case TireType::ANCF8:
-                tire = chrono_types::make_shared<hmmwv::HMMWV_ANCFTire>("ANCF tire",
-                                                                        hmmwv::HMMWV_ANCFTire::ElementType::ANCF_8);
+            }
+            case TireType::ANCF8: {
+                auto hmmwv_tire = chrono_types::make_shared<hmmwv::HMMWV_ANCFTire>(
+                    "ANCF tire", hmmwv::HMMWV_ANCFTire::ElementType::ANCF_8);
+                if (terrain_type == TerrainType::SCM)
+                    hmmwv_tire->SetContactSurfaceType(ChDeformableTire::ContactSurfaceType::TRIANGLE_MESH);
+                tire = hmmwv_tire;
                 break;
-            case TireType::REISSNER:
-                tire = chrono_types::make_shared<hmmwv::HMMWV_ReissnerTire>("Reissner tire");
+            }
+            case TireType::REISSNER: {
+                auto hmmwv_tire = chrono_types::make_shared<hmmwv::HMMWV_ReissnerTire>("Reissner tire");
+                if (terrain_type == TerrainType::SCM)
+                    hmmwv_tire->SetContactSurfaceType(ChDeformableTire::ContactSurfaceType::TRIANGLE_MESH);
+                tire = hmmwv_tire;
                 break;
+            }
         }
     }
 
@@ -166,7 +184,7 @@ int main() {
     switch (contact_method) {
         case ChContactMethod::SMC:
             sys = new ChSystemSMC;
-            step_size = 1e-4;
+            step_size = 2e-4;
             solver_type = ChSolver::Type::PARDISO_MKL;
             integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
             std::static_pointer_cast<ChDeformableTire>(tire)->SetContactFaceThickness(0.02);
@@ -194,8 +212,10 @@ int main() {
     rig.SetTireCollisionType(ChTire::CollisionType::FOUR_POINTS);
     rig.SetTireVisualizationType(VisualizationType::MESH);
 
-    rig.SetTerrainRigid(0.8, 0, 2e7);
-    ////rig.SetTerrainSCM(6259.1e3, 5085.6e3, 1.42, 1.58e3, 34.1, 22.17e-3);
+    if (terrain_type == TerrainType::RIGID)
+        rig.SetTerrainRigid(0.8, 0, 2e7);
+    else
+        rig.SetTerrainSCM(6259.1e3, 5085.6e3, 1.42, 1.58e3, 34.1, 22.17e-3);
 
     // Set test scenario
     // -----------------

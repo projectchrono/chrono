@@ -1,0 +1,29 @@
+{
+  "Name": "G500 chassis",
+  "Type": "Chassis",
+  "Template": "RigidChassis",
+
+  "Components": [
+    {
+      "Centroidal Frame": {
+        "Location": [ -1.65, 0.0, 0.3 ],
+        "Orientation": [ 1, 0, 0, 0 ]
+      },
+      "Mass": 2354.0,
+      "Moments of Inertia": [ 785.0, 2612.0, 2761.0 ],
+      "Products of Inertia": [ 0, 0, 0 ],
+      "Void": false
+    }
+  ],
+
+  "Driver Position": {
+    "Location": [ -1.1, 0.7, 0.5 ],
+    "Orientation": [ 1, 0, 0, 0 ]
+  },
+
+  "Rear Connector Location": [ -3.95, 0, -0.05 ],
+
+  "Visualization": {
+    "Mesh": "gclass/G500long.obj"
+  }
+}
