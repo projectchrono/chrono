@@ -95,10 +95,8 @@ ChainTest<N>::ChainTest() : m_length(0.25), m_step(1e-3) {
             integrator->SetAlpha(-0.2);
             integrator->SetMaxiters(50);
             integrator->SetAbsTolerances(1e-4, 1e2);
-            integrator->SetMode(ChTimestepperHHT::ACCELERATION);
             integrator->SetStepControl(false);
             integrator->SetModifiedNewton(false);
-            integrator->SetScaling(true);
             integrator->SetVerbose(false);
             break;
         }

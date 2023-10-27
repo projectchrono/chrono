@@ -74,6 +74,7 @@ class ChApi CSV_writer {
         ofile.close();
     }
 
+    void set_delim(const std::string& delim) { m_delim = delim; }
     const std::string& delim() const { return m_delim; }
     std::ostringstream& stream() { return m_ss; }
 
