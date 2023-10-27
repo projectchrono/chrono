@@ -178,6 +178,12 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     void SetWheelCollisionType(bool roadwheel_as_cylinder, bool idler_as_cylinder, bool roller_as_cylinder);
 
     /// Update the state of this track assembly at the current time.
+    void Synchronize(double time,    ///< [in] current time
+                     double braking  ///< [in] braking driver input
+    );
+
+    /// Update the state of this track assembly at the current time.
+    /// This version is called if co-simulating with an external terain system.
     void Synchronize(double time,                      ///< [in] current time
                      double braking,                   ///< [in] braking driver input
                      const TerrainForces& shoe_forces  ///< [in] vector of tire force structures
