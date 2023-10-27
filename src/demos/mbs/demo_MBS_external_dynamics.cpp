@@ -28,6 +28,10 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
+#ifdef CHRONO_PARDISO_MKL
+    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+#endif
+
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChGnuPlot.h"
 #endif
@@ -140,14 +144,23 @@ int main(int argc, char* argv[]) {
         solver->LockSparsityPattern(true);
         solver->SetVerbose(false);
 
+#ifdef CHRONO_PARDISO_MKL
+        ////auto solver = chrono_types::make_shared<ChSolverPardisoMKL>();
+        ////sys.SetSolver(solver);
+        ////solver->UseSparsityPatternLearner(false);
+        ////solver->LockSparsityPattern(false);
+#endif
+
         sys.SetTimestepperType(ChTimestepper::Type::HHT);
         auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
         mystepper->SetAlpha(-0.2);
         mystepper->SetMaxiters(100);
         mystepper->SetAbsTolerances(1e-5);
+        mystepper->SetModifiedNewton(true);
+        mystepper->SetVerbose(false);
 
         double t_end = 300;
-        double t_step = 1e-3;
+        double t_step = 5e-3;
         double t = 0;
         ChVectorDynamic<> y(2);
 

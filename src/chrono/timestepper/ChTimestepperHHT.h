@@ -75,8 +75,13 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     /// Default: true.
     void SetModifiedNewton(bool enable) { modified_Newton = enable; }
 
-    /// Perform an integration timestep, by advancing the state by tehe specified time step.
+    /// Perform an integration timestep, by advancing the state by the specified time step.
     virtual void Advance(const double dt) override;
+
+    /// Get the last estimated convergence rate for the internal Newton solver.
+    /// Note that an estimate can only be calculated after the 3rd iteration. For the first 2 iterations, the
+    /// convergence rate estimate is set to 1.
+    double GetEstimatedConvergenceRate() const { return convergence_rate; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive) override;
@@ -87,7 +92,7 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
   private:
     void Prepare(ChIntegrableIIorder* integrable);
     void Increment(ChIntegrableIIorder* integrable);
-    bool CheckConvergence();
+    bool CheckConvergence(int it);
     void CalcErrorWeights(const ChVectorDynamic<>& x, double rtol, double atol, ChVectorDynamic<>& ewt);
 
   private:
@@ -104,6 +109,10 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     ChVectorDynamic<> R;     ///< residual of nonlinear system (dynamics portion)
     ChVectorDynamic<> Rold;  ///< residual terms depending on previous state
     ChVectorDynamic<> Qc;    ///< residual of nonlinear system (constranints portion)
+
+    std::array<double, 3> Da_nrm_hist;  ///< last 3 update norms
+    std::array<double, 3> Dl_nrm_hist;  ///< last 3 update norms
+    double convergence_rate;            ///< estimated Newton rate of convergence
 
     bool step_control;            ///< step size control enabled?
     int maxiters_success;         ///< maximum number of NR iterations to declare a step successful

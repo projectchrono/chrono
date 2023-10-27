@@ -110,7 +110,9 @@ void ChTimestepperHHT::Advance(const double dt) {
     while (true) {
         Prepare(mintegrable);
 
-        // Newton-Raphson for state at T+h
+        // Newton for state at T+h
+        Da_nrm_hist.fill(0.0);
+        Dl_nrm_hist.fill(0.0);
         bool converged = false;
         int it;
 
@@ -132,7 +134,7 @@ void ChTimestepperHHT::Advance(const double dt) {
             call_setup = !modified_Newton;
 
             // Check convergence
-            converged = CheckConvergence();
+            converged = CheckConvergence(it);
             if (converged)
                 break;
         }
@@ -265,7 +267,7 @@ void ChTimestepperHHT::Prepare(ChIntegrableIIorder* integrable) {
 // - Calculate solution increment
 // - Update the estimate of the new state (the state at time T+h)
 //
-// This is one iteration of Newton-Raphson to solve for a_new
+// This is one Newton iteration to solve for a_new
 //
 // [ M - h*gamma*dF/dv - h^2*beta*dF/dx    Cq' ] [ Da ] =
 // [ Cq                                    0   ] [ Dl ]
@@ -308,7 +310,7 @@ void ChTimestepperHHT::Increment(ChIntegrableIIorder* integrable) {
 }
 
 // Convergence test
-bool ChTimestepperHHT::CheckConvergence() {
+bool ChTimestepperHHT::CheckConvergence(int it) {
     bool converged = false;
 
     // Declare convergence when either the residual is below the absolute tolerance or
@@ -321,9 +323,23 @@ bool ChTimestepperHHT::CheckConvergence() {
     double Da_nrm = Da.wrmsNorm(ewtS);
     double Dl_nrm = Dl.wrmsNorm(ewtL);
 
+    // Estimate convergence rate
+    Da_nrm_hist[it % 3] = Da.norm();
+    Dl_nrm_hist[it % 3] = Dl.norm();
+    if (it < 2)
+        convergence_rate = 1;
+    else {
+        double r21 = Da_nrm_hist[it % 3] / Da_nrm_hist[(it - 1) % 3];
+        double r10 = Da_nrm_hist[(it - 1) % 3] / Da_nrm_hist[(it - 2) % 3];
+        convergence_rate = std::log(r21) / std::log(r10);
+    }
+
     if (verbose) {
-        GetLog() << " HHT iteration=" << numiters << "  |R|=" << R_nrm << "  |Qc|=" << Qc_nrm << "  |Da|=" << Da_nrm
-                 << "  |Dl|=" << Dl_nrm << "  N = " << (int)R.size() << "  M = " << (int)Qc.size() << "\n";
+        GetLog() << "   HHT iteration=" << numiters;
+        GetLog() << "  |R|=" << R_nrm << "  |Qc|=" << Qc_nrm << "  |Da|=" << Da_nrm << "  |Dl|=" << Dl_nrm;
+        if (it >= 2)
+            GetLog() << "  Conv. rate = " << convergence_rate;
+        GetLog() << "\n";
     }
 
     if ((R_nrm < abstolS && Qc_nrm < abstolL) || (Da_nrm < 1 && Dl_nrm < 1))
