@@ -137,10 +137,9 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     virtual const ChVector<> GetRollerLocation(int which) const { return ChVector<>(0, 0, 0); }
 
     /// Initialize this track assembly subsystem.
-    /// The subsystem is initialized by attaching it to the specified chassis
-    /// at the specified location (with respect to and expressed in the reference
-    /// frame of the chassis). It is assumed that the track assembly reference frame
-    /// is always aligned with the chassis reference frame.
+    /// The subsystem is initialized by attaching it to the specified chassis at the specified location (with respect to
+    /// and expressed in the reference frame of the chassis). It is assumed that the track assembly reference frame is
+    /// always aligned with the chassis reference frame.
     void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] chassis subsystem
                     const ChVector<>& location,          ///< [in] location relative to the chassis frame
                     bool create_shoes = true             ///< [in] control creation of the actual track
@@ -230,6 +229,10 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     bool m_roadwheel_as_cylinder;
     bool m_idler_as_cylinder;
     bool m_roller_as_cylinder;
+
+    // Used only in a co-simulation framework
+    std::vector<std::shared_ptr<ChLoadBodyForce>> m_spindle_terrain_forces;    ///< terrain force loads on track shoes
+    std::vector<std::shared_ptr<ChLoadBodyTorque>> m_spindle_terrain_torques;  ///< terrain torque loads on track shoes
 
     friend class ChTrackedVehicle;
     friend class ChTrackTestRig;

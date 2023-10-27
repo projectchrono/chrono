@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Demo for tracked vehicle cosimulation on SCM terrain.
+// Demo for tracked vehicle cosimulation on rigid or SCM terrain.
 // The vehicle (specified through a pair of JSON files, one for the vehicle
 // itself, the other for the powertrain) is co-simulated with an SCM terrain.
 //
