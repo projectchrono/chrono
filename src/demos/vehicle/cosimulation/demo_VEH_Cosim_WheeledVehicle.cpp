@@ -162,7 +162,7 @@ int main(int argc, char** argv) {
     bool output = false;
     bool renderRT = true;
     bool renderPP = false;
-    bool writeRT = true;
+    bool writeRT = false;
     std::string suffix = "";
     bool verbose = false;
 

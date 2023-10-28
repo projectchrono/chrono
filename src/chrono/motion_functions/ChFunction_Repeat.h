@@ -34,14 +34,8 @@ namespace chrono {
 /// Note: for infinite window_length and zero window_start, you can use
 /// window_phase to simply 'translate' the function on abscissa.
 class ChApi ChFunction_Repeat : public ChFunction {
-  private:
-    double window_start;   ///< window begin position
-    double window_length;  ///< window length
-    double window_phase;   ///< window phase
-    std::shared_ptr<ChFunction> fa;
-
   public:
-    ChFunction_Repeat();
+    ChFunction_Repeat(std::shared_ptr<ChFunction> func, double start = 0, double length = 1, double phase = 0);
     ChFunction_Repeat(const ChFunction_Repeat& other);
     ~ChFunction_Repeat() {}
 
@@ -52,25 +46,31 @@ class ChApi ChFunction_Repeat : public ChFunction {
 
     virtual double Get_y(double x) const override;
 
-    void Set_window_start(double m_v) { window_start = m_v; }
+    void Set_window_start(double start) { window_start = start; }
     double Get_window_start() const { return window_start; }
 
-    void Set_window_length(double m_v) { window_length = m_v; }
+    void Set_window_length(double length) { window_length = length; }
     double Get_window_length() const { return window_length; }
 
-    void Set_window_phase(double m_v) { window_phase = m_v; }
+    void Set_window_phase(double phase) { window_phase = phase; }
     double Get_window_phase() const { return window_phase; }
 
-    void Set_fa(std::shared_ptr<ChFunction> m_fa) { fa = m_fa; }
+    void Set_fa(std::shared_ptr<ChFunction> func) { fa = func; }
     std::shared_ptr<ChFunction> Get_fa() { return fa; }
 
     virtual void Estimate_x_range(double& xmin, double& xmax) const override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive) override;
+
+  private:
+    double window_start;   ///< window begin position
+    double window_length;  ///< window length
+    double window_phase;   ///< window phase
+    std::shared_ptr<ChFunction> fa;
 };
 
 /// @} chrono_functions

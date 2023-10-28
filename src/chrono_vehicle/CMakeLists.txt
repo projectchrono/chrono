@@ -107,13 +107,19 @@ if(ENABLE_IRRKLANG)
 
   message(STATUS "IrrKlang include dir: ${IRRKLANG_INSTALL_DIR}")
   message(STATUS "IrrKlang library:     ${IRRKLANG_LIBRARY}")
+  
+  set(HAVE_IRRKLANG TRUE)
 
 else()
 
   mark_as_advanced(FORCE IRRKLANG_INSTALL_DIR)
   mark_as_advanced(FORCE IRRKLANG_LIBRARY)
 
+  set(HAVE_IRRKLANG FALSE)
+
 endif()
+
+SET(HAVE_IRRKLANG "${HAVE_IRRKLANG}" PARENT_SCOPE)
 
 # ----------------------------------------------------------------------------
 # Generate and install configuration file
@@ -472,6 +478,10 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/ChToeBarPushPipeAxle.cpp
     wheeled_vehicle/suspension/ChGenericWheeledSuspension.h
     wheeled_vehicle/suspension/ChGenericWheeledSuspension.cpp
+    wheeled_vehicle/suspension/ChRigidPanhardAxle.cpp
+    wheeled_vehicle/suspension/ChRigidPanhardAxle.h
+    wheeled_vehicle/suspension/ChToeBarRigidPanhardAxle.cpp
+    wheeled_vehicle/suspension/ChToeBarRigidPanhardAxle.h
 
     wheeled_vehicle/suspension/DeDionAxle.h
     wheeled_vehicle/suspension/DeDionAxle.cpp
@@ -517,6 +527,10 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/ToeBarPushPipeAxle.cpp
     wheeled_vehicle/suspension/GenericWheeledSuspension.h
     wheeled_vehicle/suspension/GenericWheeledSuspension.cpp
+    wheeled_vehicle/suspension/RigidPanhardAxle.cpp
+    wheeled_vehicle/suspension/RigidPanhardAxle.h
+    wheeled_vehicle/suspension/ToeBarRigidPanhardAxle.cpp
+    wheeled_vehicle/suspension/ToeBarRigidPanhardAxle.h
 )
 source_group("wheeled_vehicle\\suspension" FILES ${CV_WV_SUSPENSION_FILES})
 

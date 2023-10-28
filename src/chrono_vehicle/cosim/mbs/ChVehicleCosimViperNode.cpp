@@ -26,6 +26,8 @@
 
 #include "chrono/ChConfig.h"
 
+#include "chrono/physics/ChLoadContainer.h"
+
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #ifdef CHRONO_IRRLICHT
@@ -106,7 +108,21 @@ void ChVehicleCosimViperNode::InitializeMBS(const ChVector2<>& terrain_size, dou
 
     auto total_mass = m_viper->GetRoverMass() - 4 * m_viper->GetWheelMass();
     for (int is = 0; is < 4; is++) {
-        m_spindle_loads.push_back(total_mass / 4);
+        m_spindle_vertical_loads.push_back(total_mass / 4);
+    }
+
+    // Create ChLoad objects to apply terrain forces on spindles
+    auto load_container = chrono_types::make_shared<ChLoadContainer>();
+    m_system->Add(load_container);
+
+    for (int is = 0; is < 4; is++) {
+        auto spindle = m_viper->GetWheel(wheel_id(is))->GetBody();
+        auto force = chrono_types::make_shared<ChLoadBodyForce>(spindle, VNULL, false, VNULL, false);
+        m_spindle_terrain_forces.push_back(force);
+        load_container->Add(force);
+        auto torque = chrono_types::make_shared<ChLoadBodyTorque>(spindle, VNULL, false);
+        m_spindle_terrain_torques.push_back(torque);
+        load_container->Add(torque);
     }
 
     // Initialize run-time visualization
@@ -152,7 +168,7 @@ std::shared_ptr<ChBody> ChVehicleCosimViperNode::GetSpindleBody(unsigned int i) 
 }
 
 double ChVehicleCosimViperNode::GetSpindleLoad(unsigned int i) const {
-    return m_spindle_loads[i];
+    return m_spindle_vertical_loads[i];
 }
 
 BodyState ChVehicleCosimViperNode::GetSpindleState(unsigned int i) const {
@@ -183,10 +199,9 @@ void ChVehicleCosimViperNode::PreAdvance(double step_size) {
 }
 
 void ChVehicleCosimViperNode::ApplySpindleForce(unsigned int i, const TerrainForce& spindle_force) {
-    auto spindle_body = m_viper->GetWheel(wheel_id(i))->GetBody();
-    spindle_body->Empty_forces_accumulators();
-    spindle_body->Accumulate_force(spindle_force.force, spindle_force.point, false);
-    spindle_body->Accumulate_torque(spindle_force.moment, false);
+    m_spindle_terrain_forces[i]->SetForce(spindle_force.force, false);
+    m_spindle_terrain_forces[i]->SetApplicationPoint(spindle_force.point, false);
+    m_spindle_terrain_torques[i]->SetTorque(spindle_force.moment, false);
 }
 
 // -----------------------------------------------------------------------------

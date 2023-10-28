@@ -59,7 +59,7 @@ using namespace chrono::vehicle::hmmwv;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Initial vehicle location and orientation
-ChVector<> initLoc(0, 0, 1.6);
+ChVector<> initLoc(0, 0, 0.5);
 ChQuaternion<> initRot(1, 0, 0, 0);
 // ChQuaternion<> initRot(0.866025, 0, 0, 0.5);
 // ChQuaternion<> initRot(0.7071068, 0, 0, 0.7071068);
@@ -114,7 +114,7 @@ ChContactMethod contact_method = ChContactMethod::SMC;
 bool contact_vis = false;
 
 // Simulation step sizes
-double step_size = 3e-3;
+double step_size = 2e-3;
 double tire_step_size = 1e-3;
 
 // Simulation end time
@@ -303,7 +303,7 @@ int main(int argc, char* argv[]) {
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("HMMWV Demo");
             vis_vsg->AttachVehicle(&my_hmmwv.GetVehicle());
-            vis_vsg->SetChaseCamera(trackPoint, 6.0, 0.5);
+            vis_vsg->SetChaseCamera(trackPoint, 8.0, 0.5);
             vis_vsg->SetWindowSize(ChVector2<int>(1200, 900));
             vis_vsg->SetWindowPosition(ChVector2<int>(100, 300));
             vis_vsg->SetUseSkyBox(true);

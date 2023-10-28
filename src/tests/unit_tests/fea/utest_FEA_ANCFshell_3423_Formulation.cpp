@@ -112,8 +112,6 @@ bool AxialDisplacementCheck(int msglvl) {
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(100);
     integrator->SetAbsTolerances(1e-5);
-    integrator->SetMode(ChTimestepperHHT::POSITION);
-    integrator->SetScaling(true);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
 
@@ -281,8 +279,6 @@ bool CantileverTipLoadCheck(int msglvl) {
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(100);
     integrator->SetAbsTolerances(1e-5);
-    integrator->SetMode(ChTimestepperHHT::POSITION);
-    integrator->SetScaling(true);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
 
@@ -456,8 +452,6 @@ bool CantileverGravityCheck(int msglvl) {
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(100);
     integrator->SetAbsTolerances(1e-5);
-    integrator->SetMode(ChTimestepperHHT::POSITION);
-    integrator->SetScaling(true);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
 
@@ -589,8 +583,6 @@ bool AxialTwistCheck(int msglvl) {
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(100);
     integrator->SetAbsTolerances(1e-5);
-    integrator->SetMode(ChTimestepperHHT::POSITION);
-    integrator->SetScaling(true);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
 
@@ -762,8 +754,6 @@ bool MLCantileverCheck1A(int msglvl) {
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(100);
     integrator->SetAbsTolerances(1e-5);
-    integrator->SetMode(ChTimestepperHHT::POSITION);
-    integrator->SetScaling(true);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
 
@@ -906,8 +896,6 @@ bool MLCantileverCheck1B(int msglvl) {
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(100);
     integrator->SetAbsTolerances(1e-5);
-    integrator->SetMode(ChTimestepperHHT::POSITION);
-    integrator->SetScaling(true);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
 
@@ -1053,8 +1041,6 @@ bool MLCantileverCheck2A(int msglvl) {
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(100);
     integrator->SetAbsTolerances(1e-5);
-    integrator->SetMode(ChTimestepperHHT::POSITION);
-    integrator->SetScaling(true);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
 
@@ -1200,8 +1186,6 @@ bool MLCantileverCheck2B(int msglvl) {
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(100);
     integrator->SetAbsTolerances(1e-5);
-    integrator->SetMode(ChTimestepperHHT::POSITION);
-    integrator->SetScaling(true);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
 

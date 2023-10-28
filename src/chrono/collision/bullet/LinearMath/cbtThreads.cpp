@@ -231,7 +231,8 @@ struct ThreadsafeCounter
 		mCounter++;
 		if (mCounter >= BT_MAX_THREAD_COUNT)
 		{
-			cbtAssert(!"thread counter exceeded");
+			/* ***CHRONO*** Comment out assertion */
+			////cbtAssert(!"thread counter exceeded");
 			// wrap back to the first worker index
 			mCounter = 1;
 		}

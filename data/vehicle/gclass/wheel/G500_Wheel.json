@@ -1,0 +1,14 @@
+{
+  "Name": "G500 Wheel",
+  "Type": "Wheel",
+  "Template": "Wheel",
+
+  "Mass": 12.0,
+  "Inertia": [ 0.24, 0.42, 0.24 ],
+
+  "Visualization": {
+    "Mesh Filename": "gclass/gd250_rim.obj",
+    "Radius": 0.2032,
+    "Width": 0.1524
+  }
+}

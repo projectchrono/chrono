@@ -162,8 +162,6 @@ int main(int argc, char* argv[]) {
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(10);
     mystepper->SetAbsTolerances(1e-10);
-    mystepper->SetMode(ChTimestepperHHT::POSITION);
-    mystepper->SetScaling(false);
     mystepper->SetVerbose(true);
     mystepper->SetModifiedNewton(false);
 

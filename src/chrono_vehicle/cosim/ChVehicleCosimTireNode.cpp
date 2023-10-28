@@ -177,7 +177,7 @@ void ChVehicleCosimTireNode::Initialize() {
 
     // Create the wheel subsystem, arbitrarily assuming LEFT side
     m_wheel = chrono_types::make_shared<DummyWheel>();
-    m_wheel->Initialize(m_spindle, LEFT);
+    m_wheel->Initialize(nullptr, m_spindle, LEFT);
     m_wheel->SetVisualizationType(VisualizationType::NONE);
 
     // Receive from the MBS node the initial location of this tire.
@@ -281,10 +281,8 @@ void ChVehicleCosimTireNode::InitializeSystem() {
             m_integrator->SetAlpha(-0.2);
             m_integrator->SetMaxiters(50);
             m_integrator->SetAbsTolerances(1e-04, 1e2);
-            m_integrator->SetMode(ChTimestepperHHT::ACCELERATION);
             m_integrator->SetStepControl(false);
             m_integrator->SetModifiedNewton(false);
-            m_integrator->SetScaling(false);
             m_integrator->SetVerbose(false);
             break;
 

@@ -53,7 +53,22 @@
 # CHRONO_MPI_FOUND
 #       set to true if MPI support is available;
 #       CHRONO_CXX_FLAGS, CHRONO_LINKER_FLAGS, and CHRONO_LIBRARIES include MPI.
-# CHRONO_FASTDDS_FOUND
+#
+# Certain Chrono modules can be configured with optional support. The following
+# variables (meaningful only if the corresponding Chrono module is requested)
+# can be used to check if these options are available:
+# * Chrono::Parsers module
+#     CHRONO_PARSERS_URDF
+#       set to true if URDF support is available.
+#     CHRONO_PARSERS_PYTHON
+#       set to true if Python support is available.
+# * Chrono::Vehicle module
+#     CHRONO_VEHICLE_OPENCRG
+#       set to true if OpenCRG support is vailable.
+#     CHRONO_VEHICLE_IRRKLANG
+#       set to true if Irrklang support is available.
+# * Chrono::Synchrono module
+#     CHRONO_SYNCHRONO_FASTDDS
 #       set to true if FastDDS support is available.
 #       CHRONO_INCLUDE_DIRS and CHRONO_LIBRARIES include FastDDS.
 #       However, the user must still invoke fast_package(fastrtps)!
@@ -118,8 +133,6 @@ set(CHRONO_SSE_FOUND "@SSE_FOUND@")
 set(CHRONO_AVX_FOUND "@AVX_FOUND@")
 set(CHRONO_MPI_FOUND "@MPI_CXX_FOUND@")
 
-set(CHRONO_FASTDDS_FOUND "@FASTDDS_FOUND@")
-
 #-------------------------------------------------------------------------------
 # Local variables specifying which Chrono modules are enabled
 #-------------------------------------------------------------------------------
@@ -143,9 +156,6 @@ set(Chrono_HAS_synchrono @ENABLE_MODULE_SYNCHRONO@)
 set(Chrono_HAS_modal @ENABLE_MODULE_MODAL@)
 set(Chrono_HAS_distributed @ENABLE_MODULE_DISTRIBUTED@)
 set(Chrono_HAS_vsg @ENABLE_MODULE_VSG@)
-
-set(Chrono_USE_irrklang @ENABLE_IRRKLANG@)
-set(Chrono_USE_opencrg @HAVE_OPENCRG@)
 
 #-------------------------------------------------------------------------------
 # Vehicle cosimulation module
@@ -372,7 +382,7 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
         endif()
       endif()
 
-      if(Chrono_USE_irrklang)
+      if(@HAVE_IRRKLANG@)
         list(APPEND CHRONO_INCLUDE_DIRS "@CH_IRRKLANG_INCLUDES@")
         list(APPEND CHRONO_DEPENDENCY_DLLS "@CH_IRRKLANG_DLL@")
       endif()
@@ -391,6 +401,9 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
           list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vehicle_cosim.dll")
         endif()
       endif()
+
+      set(CHRONO_VEHICLE_IRRKLANG @HAVE_IRRKLANG@)
+      set(CHRONO_VEHICLE_OPENCRG @HAVE_OPENCRG@)
 
     elseif(${COMPONENT_UPPER} MATCHES "FSI")
 
@@ -419,7 +432,7 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
     elseif(${COMPONENT_UPPER} MATCHES "SYNCHRONO")
 
-      if(CHRONO_FASTDDS_FOUND)
+      if(@FASTDDS_FOUND@)
          set(fastrtps_DIR "@fastrtps_DIR@")
          find_package(fastrtps REQUIRED)
       endif()
@@ -439,6 +452,8 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       if (NOT CHRONO_STATIC)
         list(APPEND CHRONO_DLL_NAMES "ChronoEngine_synchrono.dll")
       endif()
+
+      set(CHRONO_SYNCHRONO_FASTDDS @FASTDDS_FOUND@)
 
     elseif(${COMPONENT_UPPER} MATCHES "GPU")
 
@@ -511,6 +526,9 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       if (NOT CHRONO_STATIC)
         list(APPEND CHRONO_DLL_NAMES "ChronoEngine_parsers.dll")
       endif()
+
+      set(CHRONO_PARSERS_PYTHON @HAVE_PYTHON@)
+      set(CHRONO_PARSERS_URDF @HAVE_URDF@)
 
     elseif(${COMPONENT_UPPER} MATCHES "MATLAB")
 
