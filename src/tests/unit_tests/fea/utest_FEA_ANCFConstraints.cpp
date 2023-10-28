@@ -261,7 +261,6 @@ int main(int argc, char* argv[]) {
     integrator->SetMaxiters(100);
     integrator->SetRelTolerance(1e-3);
     integrator->SetAbsTolerances(1e-3);
-    integrator->SetMode(ChTimestepperHHT::ACCELERATION);
     integrator->SetVerbose(true);
 
     for (int it = 0; it < num_steps; it++) {

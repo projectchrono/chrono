@@ -148,7 +148,6 @@ bool SetChronoSolver(chrono::ChSystem& sys,
             integrator->SetAbsTolerances(1e-4, 1e2);
             integrator->SetStepControl(false);
             integrator->SetModifiedNewton(false);
-            integrator->SetScaling(false);
             break;
         }
         case chrono::ChTimestepper::Type::EULER_IMPLICIT: {

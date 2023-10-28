@@ -334,10 +334,8 @@ int main(int argc, char* argv[]) {
         auto integrator = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
         integrator->SetAlpha(-0.2);
         integrator->SetMaxiters(8);
-        integrator->SetAbsTolerances(1e-05, 1.8e00);
-        integrator->SetMode(ChTimestepperHHT::POSITION);
+        integrator->SetAbsTolerances(1e-1, 10);
         integrator->SetModifiedNewton(true);
-        integrator->SetScaling(true);
         integrator->SetVerbose(true);
     */
     /*

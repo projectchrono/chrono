@@ -66,13 +66,14 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    DPCapPress();
+    // DPCapPress();
     // ShellBrickContact();
     // SimpleBoxContact();
     // SoilBin();
     // AxialDynamics();
     // BendingQuasiStatic();
-    // SwingingShell();
+    SwingingShell();
+    
     return 0;
 }
 
@@ -337,11 +338,9 @@ void DPCapPress() {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(0.0);
-    mystepper->SetMaxiters(25);               // 20
-    mystepper->SetAbsTolerances(5e-5, 1e-2);  // 1e-5
-    mystepper->SetMode(ChTimestepperHHT::POSITION);
+    mystepper->SetMaxiters(25);
+    mystepper->SetAbsTolerances(1e-4, 1e-2);
     mystepper->SetVerbose(true);
-    mystepper->SetScaling(true);
 
     sys.Update();
 
@@ -721,10 +720,8 @@ void ShellBrickContact() {
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(0.0);
     mystepper->SetMaxiters(20);
-    mystepper->SetAbsTolerances(1e-8, 1e-2);
-    mystepper->SetMode(ChTimestepperHHT::POSITION);
+    mystepper->SetAbsTolerances(1e-4, 1e-2);
     mystepper->SetVerbose(true);
-    mystepper->SetScaling(true);
 
     sys.Update();
 
@@ -1023,10 +1020,8 @@ void SimpleBoxContact() {
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(0.0);
     mystepper->SetMaxiters(20);
-    mystepper->SetAbsTolerances(1e-8, 1e-2);
-    mystepper->SetMode(ChTimestepperHHT::POSITION);
+    mystepper->SetAbsTolerances(1e-3, 1e-2);
     mystepper->SetVerbose(true);
-    mystepper->SetScaling(true);
 
     sys.Update();
 
@@ -1341,10 +1336,8 @@ void SoilBin() {
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(0.0);
     mystepper->SetMaxiters(20);
-    mystepper->SetAbsTolerances(1e-8, 1e-2);
-    mystepper->SetMode(ChTimestepperHHT::POSITION);
+    mystepper->SetAbsTolerances(1e-4, 1e-2);
     mystepper->SetVerbose(true);
-    mystepper->SetScaling(true);
 
     sys.Update();
 
@@ -1612,11 +1605,8 @@ void AxialDynamics() {
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(0.0);
     mystepper->SetMaxiters(20);
-    mystepper->SetAbsTolerances(1e-8, 1e-2);
-    mystepper->SetMode(ChTimestepperHHT::POSITION);
+    mystepper->SetAbsTolerances(1e-4, 1e-2);
     mystepper->SetVerbose(false);
-    mystepper->SetScaling(true);
-    // application.SetTimestep(timestep);
 
     sys.Update();
 
@@ -1843,10 +1833,8 @@ void BendingQuasiStatic() {
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(2000);
-    mystepper->SetAbsTolerances(5e-5, 1e-1);
-    mystepper->SetMode(ChTimestepperHHT::POSITION);
+    mystepper->SetAbsTolerances(1e-3, 1e-1);
     mystepper->SetVerbose(true);
-    mystepper->SetScaling(true);
 
     sys.Update();
 
@@ -1892,6 +1880,10 @@ void SwingingShell() {
     FILE* outputfile;
     ChSystemSMC sys;
     sys.Set_G_acc(ChVector<>(0, 0, 0));
+
+    auto ground = chrono_types::make_shared<ChBody>();
+    ground->SetBodyFixed(true);
+    sys.AddBody(ground);
 
     GetLog() << "--------------------------------------------------------------------\n";
     GetLog() << "--------------------------------------------------------------------\n";
@@ -2051,7 +2043,7 @@ void SwingingShell() {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(-0.4, -0.3, 0.0), ChVector<>(0.0, 0.5, -0.1));
+    vis->AddCamera(ChVector<>(2, 1, -1), ChVector<>(0, 0, 0));
     vis->AttachSystem(&sys);
 
     // ----------------------------------
@@ -2068,10 +2060,8 @@ void SwingingShell() {
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(20);
-    mystepper->SetAbsTolerances(1e-6, 1e-1);
-    mystepper->SetMode(ChTimestepperHHT::POSITION);
+    mystepper->SetAbsTolerances(1e-3, 1e-1);
     mystepper->SetVerbose(true);
-    mystepper->SetScaling(true);
 
     sys.Update();
 

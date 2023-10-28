@@ -398,8 +398,7 @@ void MakeAndRunDemo3(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
     auto motfun = chrono_types::make_shared<ChFunction_Sequence>();
     motfun->InsertFunct(rampdo, 1, 0, true);
     motfun->InsertFunct(rampup, 1, 0, true);
-    auto motrepeat = chrono_types::make_shared<ChFunction_Repeat>();
-    motrepeat->Set_fa(motfun);
+    auto motrepeat = chrono_types::make_shared<ChFunction_Repeat>(motfun);
     motrepeat->Set_window_length(2);
     auto motfuntot = chrono_types::make_shared<ChFunction_Sequence>();
     motfuntot->InsertFunct(rampup, 0.5, 0, true);

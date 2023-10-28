@@ -19,9 +19,8 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChFunction_Repeat)
 
-ChFunction_Repeat::ChFunction_Repeat() : window_start(0), window_length(1), window_phase(0) {
-    fa = chrono_types::make_shared<ChFunction_Const>();  // default
-}
+ChFunction_Repeat::ChFunction_Repeat(std::shared_ptr<ChFunction> func, double start, double length, double phase)
+    : fa(func), window_start(start), window_length(length), window_phase(phase) {}
 
 ChFunction_Repeat::ChFunction_Repeat(const ChFunction_Repeat& other) {
     window_start = other.window_start;
@@ -38,28 +37,28 @@ void ChFunction_Repeat::Estimate_x_range(double& xmin, double& xmax) const {
     fa->Estimate_x_range(xmin, xmax);
 }
 
-void ChFunction_Repeat::ArchiveOut(ChArchiveOut& marchive) {
+void ChFunction_Repeat::ArchiveOut(ChArchiveOut& archive) {
     // version number
-    marchive.VersionWrite<ChFunction_Repeat>();
+    archive.VersionWrite<ChFunction_Repeat>();
     // serialize parent class
-    ChFunction::ArchiveOut(marchive);
+    ChFunction::ArchiveOut(archive);
     // serialize all member data:
-    marchive << CHNVP(fa);
-    marchive << CHNVP(window_start);
-    marchive << CHNVP(window_length);
-    marchive << CHNVP(window_phase);
+    archive << CHNVP(fa);
+    archive << CHNVP(window_start);
+    archive << CHNVP(window_length);
+    archive << CHNVP(window_phase);
 }
 
-void ChFunction_Repeat::ArchiveIn(ChArchiveIn& marchive) {
+void ChFunction_Repeat::ArchiveIn(ChArchiveIn& archive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChFunction_Repeat>();
+    /*int version =*/ archive.VersionRead<ChFunction_Repeat>();
     // deserialize parent class
-    ChFunction::ArchiveIn(marchive);
+    ChFunction::ArchiveIn(archive);
     // stream in all member data:
-    marchive >> CHNVP(fa);
-    marchive >> CHNVP(window_start);
-    marchive >> CHNVP(window_length);
-    marchive >> CHNVP(window_phase);
+    archive >> CHNVP(fa);
+    archive >> CHNVP(window_start);
+    archive >> CHNVP(window_length);
+    archive >> CHNVP(window_phase);
 }
 
 }  // end namespace chrono
