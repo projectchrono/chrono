@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
 
     // The wheel object:
     auto wheel = chrono_types::make_shared<Wheel>(vehicle::GetDataFile("hmmwv/wheel/HMMWV_Wheel.json"));
-    wheel->Initialize(mrim, LEFT);
+    wheel->Initialize(nullptr, mrim, LEFT);
 
     // The tire:
     auto tire_reissner =
@@ -150,10 +150,8 @@ int main(int argc, char* argv[]) {
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(8);
-    integrator->SetAbsTolerances(5e-05, 1.8e00);
-    integrator->SetMode(ChTimestepperHHT::POSITION);
+    integrator->SetAbsTolerances(1e-1, 10);
     integrator->SetModifiedNewton(false);
-    integrator->SetScaling(true);
     integrator->SetVerbose(true);
 
     while (vis->Run()) {

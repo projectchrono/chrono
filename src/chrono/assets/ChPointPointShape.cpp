@@ -17,6 +17,7 @@
 #include "chrono/physics/ChLinkRevoluteSpherical.h"
 #include "chrono/physics/ChLinkTSDA.h"
 #include "chrono/physics/ChLinkRSDA.h"
+#include "chrono/physics/ChHydraulicActuator.h"
 
 namespace chrono {
 
@@ -41,6 +42,9 @@ void ChPointPointShape::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
     } else if (auto link = dynamic_cast<ChLink*>(updater)) {
         UpdateLineGeometry(frame.TransformPointParentToLocal(link->GetBody1()->GetPos()),
                            frame.TransformPointParentToLocal(link->GetBody2()->GetPos()));
+    } else if (auto actuator = dynamic_cast<ChHydraulicActuatorBase*>(updater)) {
+        UpdateLineGeometry(frame.TransformPointParentToLocal(actuator->GetPoint1Abs()),
+                           frame.TransformPointParentToLocal(actuator->GetPoint2Abs()));
     }
 }
 

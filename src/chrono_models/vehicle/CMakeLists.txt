@@ -16,6 +16,38 @@ set(CVM_COMMON_FILES
 )
 source_group("" FILES ${CVM_COMMON_FILES})
 
+set(CVM_GCLASS_FILES
+    gclass/G500_AutomaticTransmissionSimpleMap.cpp
+    gclass/G500_AutomaticTransmissionSimpleMap.h
+    gclass/G500_BrakeShafts.cpp
+    gclass/G500_BrakeShafts.h
+    gclass/G500_BrakeSimple.cpp
+    gclass/G500_BrakeSimple.h
+    gclass/G500.cpp
+    gclass/G500.h
+    gclass/G500_Chassis.cpp
+    gclass/G500_Chassis.h
+    gclass/G500_Driveline4WD.cpp
+    gclass/G500_Driveline4WD.h
+    gclass/G500_EngineSimpleMap.cpp
+    gclass/G500_EngineSimpleMap.h
+    gclass/G500_FrontAxle.cpp
+    gclass/G500_FrontAxle.h
+    gclass/G500_RearAxle.cpp
+    gclass/G500_RearAxle.h
+    gclass/G500_RigidTire.cpp
+    gclass/G500_RigidTire.h
+    gclass/G500_RotaryArm.cpp
+    gclass/G500_RotaryArm.h
+    gclass/G500_TMeasyTire.cpp
+    gclass/G500_TMeasyTire.h
+    gclass/G500_Vehicle.cpp
+    gclass/G500_Vehicle.h
+    gclass/G500_Wheel.cpp
+    gclass/G500_Wheel.h
+)
+source_group("gclass" FILES ${CVM_GCLASS_FILES})
+
 set(CVM_HMMWV_SUSPENSION_FILES
     hmmwv/suspension/HMMWV_DoubleWishbone.cpp
     hmmwv/suspension/HMMWV_DoubleWishbone.h
@@ -866,6 +898,7 @@ set(LIBRARIES ChronoEngine ChronoEngine_vehicle)
 
 add_library(ChronoModels_vehicle
     ${CVM_COMMON_FILES}
+    ${CVM_GCLASS_FILES}     
     ${CVM_HMMWV_FILES}
     ${CVM_FEDA_FILES}
     ${CVM_FMTV_FILES}

@@ -30,16 +30,18 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 
 ChChassis::ChChassis(const std::string& name, bool fixed) : ChPart(name), m_fixed(fixed) {
-    m_bushings = chrono_types::make_shared<ChLoadContainer>();
-    m_external = chrono_types::make_shared<ChLoadContainer>();
+    m_container_bushings = chrono_types::make_shared<ChLoadContainer>();
+    m_container_external = chrono_types::make_shared<ChLoadContainer>();
+    m_container_terrain = chrono_types::make_shared<ChLoadContainer>();
 }
 
 ChChassis::~ChChassis() {
     auto sys = m_body->GetSystem();
     if (sys) {
         sys->Remove(m_body);
-        sys->Remove(m_bushings);
-        sys->Remove(m_external);
+        sys->Remove(m_container_bushings);
+        sys->Remove(m_container_external);
+        sys->Remove(m_container_terrain);
     }
 }
 
@@ -105,8 +107,9 @@ void ChChassis::Initialize(ChSystem* system,
     system->Add(m_body);
 
     // Add containers for bushing elements and external forces.
-    system->Add(m_bushings);
-    system->Add(m_external);
+    system->Add(m_container_bushings);
+    system->Add(m_container_external);
+    system->Add(m_container_terrain);
 
     // Add pre-defined markers (driver position and COM) on the chassis body.
     AddMarker("driver position", GetLocalDriverCoordsys());
@@ -134,18 +137,18 @@ void ChChassis::AddMarker(const std::string& name, const ChCoordsys<>& pos) {
 }
 
 void ChChassis::AddExternalForceTorque(std::shared_ptr<ExternalForceTorque> load) {
-    m_loads.push_back(load);
+    m_external_loads.push_back(load);
     auto force_load = chrono_types::make_shared<ChLoadBodyForce>(m_body, ChVector<>(0), true, ChVector<>(0), true);
-    m_external->Add(force_load);
+    m_container_external->Add(force_load);
     auto torque_load = chrono_types::make_shared<ChLoadBodyTorque>(m_body, ChVector<>(0), true);
-    m_external->Add(torque_load);
+    m_container_external->Add(torque_load);
 }
 
 void ChChassis::AddJoint(std::shared_ptr<ChVehicleJoint> joint) {
     if (joint->m_joint.index() == 0) {
         m_body->GetSystem()->AddLink(mpark::get<ChVehicleJoint::Link>(joint->m_joint));
     } else {
-        m_bushings->Add(mpark::get<ChVehicleJoint::Bushing>(joint->m_joint));
+        m_container_bushings->Add(mpark::get<ChVehicleJoint::Bushing>(joint->m_joint));
     }
 }
 
@@ -158,6 +161,10 @@ void ChChassis::RemoveJoint(std::shared_ptr<ChVehicleJoint> joint) {
         }
     }
     // Note: bushing are removed when the load container is removed
+}
+
+void ChChassis::AddTerrainLoad(std::shared_ptr<ChLoadBase> terrain_load) {
+    m_container_terrain->Add(terrain_load);
 }
 
 // -----------------------------------------------------------------------------
@@ -208,12 +215,12 @@ void ChChassis::SetAerodynamicDrag(double Cd, double area, double air_density) {
 
 void ChChassis::Synchronize(double time) {
     // Update all external forces (two ChLoad objects per external force/torque)
-    auto& loads = m_external->GetLoadList();
+    auto& loads = m_container_external->GetLoadList();
     ChVector<> force;
     ChVector<> point;
     ChVector<> torque;
-    for (size_t i = 0; i < m_loads.size(); ++i) {
-        m_loads[i]->Update(time, *this, force, point, torque);
+    for (size_t i = 0; i < m_external_loads.size(); ++i) {
+        m_external_loads[i]->Update(time, *this, force, point, torque);
         auto body_force = std::static_pointer_cast<ChLoadBodyForce>(loads[2 * i]);
         body_force->SetForce(force, true);
         body_force->SetApplicationPoint(point, true);
@@ -251,8 +258,9 @@ void ChChassisRear::Initialize(std::shared_ptr<ChChassis> chassis, int collision
     system->Add(m_body);
 
     // Add containers for bushing elements and external forces.
-    system->Add(m_bushings);
-    system->Add(m_external);
+    system->Add(m_container_bushings);
+    system->Add(m_container_external);
+    system->Add(m_container_terrain);
 
     // Add pre-defined marker (COM) on the chassis body.
     AddMarker("COM", ChCoordsys<>(GetBodyCOMFrame().GetPos(), GetBodyCOMFrame().GetRot()));

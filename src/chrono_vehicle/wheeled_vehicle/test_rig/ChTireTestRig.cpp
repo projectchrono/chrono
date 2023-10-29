@@ -226,7 +226,6 @@ void ChTireTestRig::Advance(double step) {
     // Synchronize subsystems
     m_terrain->Synchronize(time);
     m_tire->Synchronize(time, *m_terrain.get());
-    m_spindle_body->Empty_forces_accumulators();
     m_wheel->Synchronize();
 
     // Advance state
@@ -368,7 +367,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     }
 
     // Initialize subsystems
-    m_wheel->Initialize(m_spindle_body, LEFT);
+    m_wheel->Initialize(nullptr, m_spindle_body, LEFT);
     m_wheel->SetVisualizationType(VisualizationType::NONE);
     m_wheel->SetTire(m_tire);
     m_tire->SetStepsize(m_tire_step);

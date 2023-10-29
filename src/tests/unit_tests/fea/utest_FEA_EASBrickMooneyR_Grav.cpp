@@ -235,9 +235,7 @@ int main(int argc, char* argv[]) {
     auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(10000);
-    mystepper->SetAbsTolerances(1e-08);
-    mystepper->SetMode(ChTimestepperHHT::POSITION);
-    mystepper->SetScaling(true);
+    mystepper->SetAbsTolerances(1e-4);
 
     // Simulation loop
     if (output) {

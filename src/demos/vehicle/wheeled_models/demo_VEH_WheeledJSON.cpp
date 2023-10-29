@@ -54,6 +54,7 @@ using namespace chrono::vehicle;
 //    Audi        - Audia A4
 //    VW microbus - VW T2 microbus
 //    UAZ         - UAZ minibus
+//    G500        - Mercedes-Benz G500
 //    CityBus     - passenger bus
 //    MAN         - MAN 10t truck
 //    MTV         - MTV truck
@@ -169,6 +170,23 @@ class UAZ_Model : public Vehicle_Model {
         return "uaz/powertrain/UAZBUS_AutomaticTransmissionSimpleMap.json";
     }
     virtual double CameraDistance() const override { return 6.0; }
+    virtual ChContactMethod ContactMethod() const override { return ChContactMethod::SMC; }
+};
+
+class G500_Model : public Vehicle_Model {
+  public:
+    virtual std::string ModelName() const override { return "G500"; }
+    virtual std::string VehicleJSON() const override {
+        return "gclass/vehicle/G500_Vehicle.json";
+    }
+    virtual std::string TireJSON() const override {
+        return "gclass/tire/G500_TMeasyTire.json";
+    }
+    virtual std::string EngineJSON() const override { return "gclass/powertrain/G500_EngineSimpleMap.json"; }
+    virtual std::string TransmissionJSON() const override {
+        return "gclass/powertrain/G500_AutomaticTransmissionSimpleMap.json";
+    }
+    virtual double CameraDistance() const override { return 10.0; }
     virtual ChContactMethod ContactMethod() const override { return ChContactMethod::SMC; }
 };
 
@@ -288,6 +306,7 @@ auto vehicle_model = HMMWV_Model();
 // auto vehicle_model = Polaris_Model();
 // auto vehicle_model = VW_Microbus_Model();
 // auto vehicle_model = UAZ_Model();
+// auto vehicle_model = G500_Model();
 // auto vehicle_model = CityBus_Model();
 // auto vehicle_model = MAN_Model();
 // auto vehicle_model = MTV_Model();

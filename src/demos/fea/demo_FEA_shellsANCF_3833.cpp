@@ -277,10 +277,8 @@ int main(int argc, char* argv[]) {
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(50);
     mystepper->SetAbsTolerances(1e-4, 1e2);
-    mystepper->SetMode(ChTimestepperHHT::ACCELERATION);
     mystepper->SetStepControl(false);
     mystepper->SetModifiedNewton(true);
-    mystepper->SetScaling(false);
 
     while (vis->Run()) {
         std::cout << "Time: " << sys.GetChTime() << "s. \n";

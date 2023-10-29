@@ -266,18 +266,19 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    // Grab pointer to first track shoe
-    auto shoe_body = rig->GetTrackAssembly()->GetTrackShoe(0)->GetShoeBody();
+    // Add load on first track shoe to simulate detracking
+    if (apply_detracking_force) {
+        ChVector<> force(0, 20000, 0);
+        auto shoe_body = rig->GetTrackAssembly()->GetTrackShoe(0)->GetShoeBody();
+        auto load_container = chrono_types::make_shared<ChLoadContainer>();
+        load_container->Add(chrono_types::make_shared<ChLoadBodyForce>(shoe_body, force, true, VNULL, true));
+        rig->GetSystem()->Add(load_container);
+    }
 
     // Initialize simulation frame counter
     int step_number = 0;
 
     while (vis->Run()) {
-        if (apply_detracking_force) {
-            shoe_body->Empty_forces_accumulators();
-            shoe_body->Accumulate_force(ChVector<>(0, 20000, 0), ChVector<>(0, 0, 0), true);
-        }
-
         // Render scene
         vis->BeginScene();
         vis->Render();

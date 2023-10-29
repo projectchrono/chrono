@@ -227,9 +227,7 @@ mystepper = chrono.ChTimestepperHHT(sys)
 sys.SetTimestepper(mystepper)
 mystepper.SetAlpha(-0.2)
 mystepper.SetMaxiters(100)
-mystepper.SetAbsTolerances(1e-5)
-mystepper.SetMode(chrono.ChTimestepperHHT.POSITION)
-mystepper.SetScaling(True)
+mystepper.SetAbsTolerances(1e-2)
 
 # Simulation loop
 while vis.Run():
