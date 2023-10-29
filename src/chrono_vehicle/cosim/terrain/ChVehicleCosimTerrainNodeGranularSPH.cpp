@@ -119,13 +119,13 @@ void ChVehicleCosimTerrainNodeGranularSPH::SetFromSpecfile(const std::string& sp
         m_sph_filename = vehicle::GetDataFile(sph_filename);
         m_bce_filename = vehicle::GetDataFile(bce_filename);
         m_depth = 0;
-        m_terrain_type = SphTerrainType::FILES;
+        m_terrain_type = ConstructionMethod::FILES;
     } else {
         assert(d.HasMember("Patch dimensions"));
         m_dimX = d["Patch dimensions"]["Length"].GetDouble();
         m_dimY = d["Patch dimensions"]["Width"].GetDouble();
         m_depth = d["Patch dimensions"]["Depth"].GetDouble();
-        m_terrain_type = SphTerrainType::PATCH;
+        m_terrain_type = ConstructionMethod::PATCH;
     }
 
     m_radius = d["Granular material"]["Radius"].GetDouble();
@@ -133,7 +133,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::SetFromSpecfile(const std::string& sp
     m_cohesion = d["Granular material"]["Cohesion"].GetDouble();
     m_init_height = m_depth;
 
-    // Cache the name of the specfile (used when the SPHTerrain is actually constructed)
+    // Cache the name of the specfile (used when the CRMTerrain is actually constructed)
     m_specfile = specfile;
 }
 
@@ -147,7 +147,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::SetPropertiesSPH(const std::string& s
     m_depth = depth;
     m_init_height = m_depth;
 
-    // Cache the name of the specfile (used when the SPHTerrain is actually constructed)
+    // Cache the name of the specfile (used when the CRMTerrain is actually constructed)
     m_specfile = specfile;
 }
 
@@ -165,7 +165,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
 
     // Create the SPH terrain
     double initSpace0 = 2 * m_radius;
-    m_terrain = new SPHTerrain(*m_system, initSpace0);
+    m_terrain = new CRMTerrain(*m_system, initSpace0);
     //////m_terrain->SetVerbose(true);
     ChSystemFsi& sysFSI = m_terrain->GetSystemFSI();
 
@@ -188,12 +188,12 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     // Set boundary condition for the fixed wall
     sysFSI.SetWallBC(BceVersion::ORIGINAL);
 
-    // Construct the SPHTerrain (generate SPH particles and boundary BCE markers)
+    // Construct the CRMTerrain (generate SPH particles and boundary BCE markers)
     switch (m_terrain_type) {
-        case SphTerrainType::PATCH:
+        case ConstructionMethod::PATCH:
             m_terrain->Construct(m_dimX, m_dimY, m_depth);
             break;
-        case SphTerrainType::FILES:
+        case ConstructionMethod::FILES:
             m_terrain->Construct(m_sph_filename, m_bce_filename);
             break;
     }

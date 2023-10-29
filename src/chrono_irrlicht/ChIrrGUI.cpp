@@ -71,6 +71,8 @@ bool ChIrrEventReceiver::OnEvent(const irr::SEvent& event) {
                 ChArchiveAsciiDump marchiveout2(mfileo2);
                 marchiveout2.SetUseVersions(false);
                 marchiveout2 << CHNVP(m_gui->m_system, "System");
+
+                return true;
             }
             case irr::KEY_F6:
                 GetLog() << "Saving system vector and matrices to dump_xxyy.dat files.\n";

@@ -42,7 +42,7 @@
 #include "chrono_models/vehicle/gator/Gator_SingleWishbone.h"
 #include "chrono_models/vehicle/gator/Gator_RigidSuspension.h"
 
-#include "chrono_models/vehicle/rccar/RCCar_DoubleWishbone.h"
+#include "chrono_models/vehicle/artcar/ARTcar_DoubleWishbone.h"
 
 #include "chrono_models/vehicle/feda/FEDA_DoubleWishbone.h"
 %}
@@ -81,9 +81,9 @@
 %shared_ptr(chrono::vehicle::gator::Gator_SingleWishbone)
 %shared_ptr(chrono::vehicle::gator::Gator_RigidSuspension)
 
-%shared_ptr(chrono::vehicle::rccar::RCCar_DoubleWishbone)
-%shared_ptr(chrono::vehicle::rccar::RCCar_DoubleWishboneRear)
-%shared_ptr(chrono::vehicle::rccar::RCCar_DoubleWishboneFront)
+%shared_ptr(chrono::vehicle::artcar::ARTcar_DoubleWishbone)
+%shared_ptr(chrono::vehicle::artcar::ARTcar_DoubleWishboneRear)
+%shared_ptr(chrono::vehicle::artcar::ARTcar_DoubleWishboneFront)
 
 %shared_ptr(chrono::vehicle::feda::FEDA_DoubleWishbone)
 %shared_ptr(chrono::vehicle::feda::FEDA_DoubleWishboneRear)
@@ -119,6 +119,6 @@
 %include "../../../chrono_models/vehicle/gator/Gator_SingleWishbone.h"
 %include "../../../chrono_models/vehicle/gator/Gator_RigidSuspension.h"
 
-%include "../../../chrono_models/vehicle/rccar/RCCar_DoubleWishbone.h"
+%include "../../../chrono_models/vehicle/artcar/ARTcar_DoubleWishbone.h"
 
 %include "../../../chrono_models/vehicle/feda/FEDA_DoubleWishbone.h"

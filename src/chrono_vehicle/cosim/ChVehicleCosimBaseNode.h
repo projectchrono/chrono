@@ -233,7 +233,7 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
   protected:
     ChVehicleCosimBaseNode(const std::string& name);
 
-    /// Get the Chrono system that holds the visualization shapes *used only for post-processing export).
+    /// Get the Chrono system that holds the visualization shapes (used only for post-processing export).
     virtual ChSystem* GetSystemPostprocess() const = 0;
 
     /// Utility function to pack and send a struct with geometry information.

@@ -5,6 +5,11 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [Application of terrain forces to vehicle systems](#changed-application-of-terrain-forces-to-vehicle-systems)
+  - [Modifications to the HHT integrator](#changed-modifications-to-the-hht-integrator)
+  - [Modeling hydraulic circuit elements and hydraulic actuators](#added-modeling-hydraulic-circuit-elements-and-hydraulic-actuators)
+  - [Support for modeling components with own dynamics](#added-support-for-modeling-components-with-own-dynamics)
+  - [Renamed SCMTerrain and RCCar vehicle classes](#changed-renamed-scmterrain-and-rccar-vehicle-classes)
   - [Moved drive mode to automatic transmissions](#changed-moved-drive-mode-to-automatic-transmissions)
   - [Changed gear numbering](#changed-changed-gear-numbering)
   - [Redundant constraints remover](#added-redundant-constraints-remover)
@@ -89,6 +94,113 @@ Change Log
 
 ## Unreleased (development branch)
 
+### [Changed] Application of terrain forces to vehicle systems
+
+Chrono offers several mechanism for applying external forces to rigid bodies in a multibody system. The first one, and arguably the easiest to implement in user code, relies on so-called accumulators for an external force an moment (accumulated as a resultant wrench at the body center of mass). It is the responsibility of the user to clear the body accumulator before loading updated forces and torques that will be applied next (e.g., over the next dynamics step). While simple to use, this approach is also fragile and a potential source of mistakes; indeed, there is no way to control if the same body accumulators are not being used simultaneously in different parts of the code.  Other mechanisms for applying external forces and torques are (i) creating objects of type `ChForce` (which can represent either a force or a torque) and associating an arbitrary number with any rigid body; and (ii) using objects of type `ChLoad` which associate a so-called "loadable" (e.g., a rigid body or an FEA node) with a load (concentrated, surface-distributed, or volumetric) and managing them in so-called "load containers" in the underlying Chrono system.
+
+Because of the limitations and potential pitfalls of the accumulator approach, this is best left only for use in user code.  As such, all modeling elements in Chrono::Vehicle were switched to using loads and load containers. In the case of vehicle systems, these external loads represent the action of the terrain on the vehicle running gear (wheel spindles or track shoes, for wheeled and tracked vehicles, respectively).
+
+As part of this change, the API for synchronizing the dynamic simulation of tracked vehicles at the beginning of a time step was simplified. Indeed, when using any of the available Chrono terrain systems (rigid or deformable) in a monolithic simulation setting, the interaction between terrain and track shoes leverages the underlying Chrono collision and contact system. As such, there is no need for the user to explicitly pass null terrain interaction forces which were eliminated from the signature of `ChTrackedVehicle::Synchronize` function.  The version that takes lists of such terrain forces (one per track shoe) is still available, for use in co-simulation (such as the Chrono::Vehicle terrain-vehicle co-simulation framework).
+
+### [Changed] Modifications to the HHT integrator
+
+As part of an ongoing set of changes to the implicit integrator based on the Hilber-Hughes-Taylor (HHT) method, `ChTimestepperHHT` was modified to eliminate the so-called "position" formulation (which had no proper theoretical support and was anyway not appropriate for systems that included bodies or nodes with rotational degrees of freedom). The current implementation, only provides the acceleration-level formulation suitable for the 2nd order multibody equations of motion. 
+
+A numerical estimate of the rate of convergence for the underlying Newton solver is now evaluated internally (note that this convergence rate estimate can be calculated only after the third iterations; as such, a value of 1 is set for the first two iterations). The last convergence rate estimate is user-accessible through the `GetEstimatedConvergenceRate` function; together with the reported number of Newton iterations during the last integration step, this can be monitored in user code to provide an indicator of possible numerical difficulties in solving the system dynamics.
+
+### [Added] Modeling hydraulic circuit elements and hydraulic actuators
+
+Initial support was added for modeling elements of hydraulic circuits, including hydraulic pistons, directional valves, and throttle valves. These physics components are modeled with underlying dynamics described by ODEs based on the so-called lumped fluid approach. Two models of hydraulic actuators are also provided. The first one, `ChHydraulicActuator2` uses a hydraulic circuit with two volumes composed of a pump, a tank, a hydraulic cylinder, and a directional valve connected with two hoses. The second actuator, `ChHydraulicActuator3` models a hydraulic circuit with three volumes and also includes a throttle valve (as well as an additional hose). The hydraulic actuators are controlled by providing an actuation function which defines the desired (reference) spool position of the directional valve as a function of time; this reference, specified through a `ChFunction` object, can be either pre-defined for the time interval of interest or else adjusted interactively (for example, using a `ChFunction_Setpoint` that is updated externally from some user input). 
+
+The underlying dynamics of the hydraulic actuator models are described as ODEs (for the current valve spool position and for the relevant pressures in the hydraulic circuit) and are implemented based on the `ChExternalDynamics` functionality.
+
+Hydraulic modeling components can be used coupled with a Chrono mechanical system in a monolithic simulation, or else co-simulated. These two options are illustrated with a simple model of a hydraulically actuated crane in `demo_MBS_hydraulic_crane` and `demo_MBS_hydraulic_crane_cosim`, respectively.
+
+If used in a tight coupling with a Chrono multibody system, a `ChHydraulicActuator` is connected between two points on two different bodies, e.g.,
+```cpp
+  auto actuator = chrono_types::make_shared<ChHydraulicActuator2>();
+  actuator->SetInputFunction(actuation);
+  actuator->Cylinder().SetInitialChamberLengths(0.221, 0.221);
+  actuator->Cylinder().SetInitialChamberPressures(3.3e6, 4.4e6);
+  actuator->DirectionalValve().SetInitialSpoolPosition(0);
+  actuator->Initialize(ground, crane, true, attachment_ground, attachment_crane);  // connect two bodies
+  sys.Add(actuator);
+```
+In this case, the initial and current actuator length is inferred from the states of the connected bodies and the distance between the connection points, while the actuator forces are directly applied to the connected bodies.
+
+If used in a co-simulation setting, the actuator is initialized stand-alone:
+```cpp
+  auto actuator = chrono_types::make_shared<ChHydraulicActuator2>();
+  actuator->SetInputFunction(actuation);
+  actuator->Cylinder().SetInitialChamberLengths(0.221, 0.221);
+  actuator->Cylinder().SetInitialChamberPressures(3.3e6, 4.4e6);
+  actuator->DirectionalValve().SetInitialSpoolPosition(0);
+  actuator->SetActuatorInitialLength(s0);
+  actuator->Initialize();                                                        // initialize stand-alone
+  sys.Add(actuator);
+```
+In this case, the current actuator length is provided from the outside, while the force generated by the actuator can be extracted with the `ChHydraulicActuatorBase::GetActuatorForce` function, thus allowing a force-displacement co-simulation setup.
+
+### [Added] Support for modeling components with own dynamics
+
+The new base class `ChExternalDynamics` allows modeling and inclusion in a Chrono system of a physics item that carries its own dynamics, described as a set of Ordinary Differential Equations (ODE). The states of such components are appended to those of the containing system and are integrated simultaneously with the system's equations of motion. These states can be accessed and used coupled with other components.
+
+A user-provided modeling element inherits from `ChExternalDynamics` and defines the ODE initial value problem by implementing, at a minimum, the functions `SetInitialConditions` (to provide the ODE initial conditions) and `CalculateRHS` (to provide the ODE right-hand side function). Optionally, a derived class may also implement `CalculateJac` to provide the JAcobian of the right-hand side function with respect to the ODE states. The Jacobian is used only is the physics component is declared as stiff (by overriding the function `IsStiff`); if a Jacobian function is not provided, a finite-difference approximation is used.
+
+This mechanism can be used to include external, black-box dynamics components into a Chrono simulation (e.g., controllers, actuators, ADAS vehicle components, etc.) and will be extended in the future to also support components with dynamics described as Differential Algebraic Equation (DAE) systems.
+
+A simple illustration of using this new feature is provided in `demo_MBS_external_dynamics` for solving non-stiff and stiff versions of the Van der Pol oscillator.  The full definition of the user-provided derived class in that case is:
+```cpp
+class VanDerPolODE : public ChExternalDynamics {
+  public:
+    VanDerPolODE(double mu) : m_mu(mu) {}
+
+    virtual int GetNumStates() const override { return 2; }
+
+    virtual bool IsStiff() const override { return m_mu > 10; }
+
+    virtual void SetInitialConditions(ChVectorDynamic<>& y0) override {
+        y0(0) = 2.0;
+        y0(1) = 0.0;
+    }
+
+    virtual void CalculateRHS(double time,                 // current time
+                              const ChVectorDynamic<>& y,  // current ODE states
+                              ChVectorDynamic<>& rhs       // output ODE right-hand side vector
+                              ) override {
+        rhs(0) = y(1);
+        rhs(1) = m_mu * (1 - y(0) * y(0)) * y(1) - y(0);
+    }
+
+    virtual bool CalculateJac(double time,                   // current time
+                              const ChVectorDynamic<>& y,    // current ODE states
+                              const ChVectorDynamic<>& rhs,  // current ODE right-hand side vector
+                              ChMatrixDynamic<>& J           // output Jacobian matrix
+                              ) override {
+        // Do not provide Jacobian information if problem not stiff
+        if (!IsStiff())
+            return false;
+
+        // Generate analytical Jacobian
+        J(0, 0) = 0;
+        J(0, 1) = 1;
+        J(1, 0) = -2 * m_mu * y(0) * y(1) - 1;
+        J(1, 1) = m_mu * (1 - y(0) * y(0));
+        return true;
+    }
+
+  private:
+    double m_mu;
+};
+```
+
+
+### [Changed] Renamed SCMTerrain and RCCar vehicle classes
+
+For consistency, better suited names were given to the following classes:
+- SCMTerrain was renamed to `CRMTerrain` (deformable terrain using the Continuous Representation Model, an SPH-based granular formulation)
+- RCCar was renamed to `ARTcar` (the Autonomy Research Testbed car)
+
 ### [Changed] Moved drive mode to automatic transmissions
 
 The concept of a drive mode was moved from `ChTransmission` to `ChAutomaticTransmission` as it is something that only exists for automatic transmissions. This is an API change.
@@ -98,7 +210,7 @@ The concept of a drive mode was moved from `ChTransmission` to `ChAutomaticTrans
 Reverse gear is now indicated as -1, making room for a neutral gear as 0. Positive numbers are still forward gears. This is a semantic change to the existing API so please review your code as your IDE will most likely not pick up on it. Added to the API is a method to return the highest (forward) gear that is available.
 
 ### [Added] Redundant constraints remover
-It is quite common to spot models, even in Chrono demos, where the number of constraints are even greater than the number of variables. While this is allowed in Chrono systems, it should be considered a bad practice. Redundant constraints unusefully increase the size of the problem, lead to noisy measurements of the link reactions, cause instability to direct solvers.  
+It is quite common to spot models, even in Chrono demos, where the number of constraints are even greater than the number of variables. While this is allowed in Chrono systems, it should be considered a bad practice. Redundant constraints unnecessarily increase the size of the problem, lead to noisy measurements of the link reactions, cause instability to direct solvers.  
 Taking care of adding _only_ the required number of constraints is - and always will be - the best option for the user. However, whenever this approach might be too tedious or impractical, it is now possible to ask the system to get rid of those redundant constraints by calling:
 
 `system.RemoveRedundantConstraints()`
@@ -142,7 +254,7 @@ Clearly, since C++ has a limited reflection/reification capability, this process
 
 These methods are available also for any of the derived classes.
 
-While this seems to be a rather limited set of functions, it allows to load any system created by the Chrono Solidworks add-in! Please check [Chrono Solidworks](https://api.projectchrono.org/introduction_chrono_solidworks.html).
+While this seems to be a rather limited set of functions, it allows to load any system created by the Chrono Solidworks add-in. Please check [Chrono Solidworks](https://api.projectchrono.org/introduction_chrono_solidworks.html).
 
 This option is available only for JSON/XML files and is enabled by calling, on `ChArchiveInJSON` or `ChArchiveInXML`:  
 `myarchivein.TryTolerateMissingTokens(true);`
@@ -313,7 +425,7 @@ The concrete tire subsystem `Pac02Tire` class reads a full specification of a Ch
 Notes:
 - not all masses and inertia values are read from the `TIR` file and as such must be set separately. This is because the magic formula has seen numerous updates over the years and some specification files include inertia properties while other do not.
 - `TIR` files may include data in units other than SI. The Chrono parser in `Pac02Tire` applies the appropriate conversions.
-- when specifying tire parameters explicitly (option 2 above), all units **must** be SI (fortunately, most Pac02 parameters are adimensional).
+- when specifying tire parameters explicitly (option 2 above), all units **must** be SI (fortunately, most Pac02 parameters are non-dimensional).
 - if a parameter is not explicitly set in the JSON file, it is set to a default value of `0.0`; similarly, scaling factors not explicitly defined in the JSON file are set to a default value of `1.0`.
 
 ### [Added] New URDF parser
@@ -409,7 +521,7 @@ For convenience, the following mechanisms are provided to construct cylinders wh
   auto cyl_2 = chrono_types::make_shared<ChCylinderShape>(0.3, seg.GetLength());
   ground->AddVisualShape(cyl_2, seg.GetFrame());
   ```       
-  - collision cylinder shape defined through its endcaps -- use the alternative version of `ChCollisionModel::AddCylinder`:
+  - collision cylinder shape defined through its end-caps -- use the alternative version of `ChCollisionModel::AddCylinder`:
   ```cpp
   bool AddCylinder(                                   //
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
@@ -480,14 +592,14 @@ A new Chrono::Vehicle terrain class, SPHTerrain, was added to model deformable t
 
 ### [Added] TMSimple tire model
 
-A new tire model (`ChTMsimple`) was added to Chrono::Vehicle. This tire model is of "force element" type and shares part of its formulation with the TMeasy model (both of these tire models were developed by Wolfgang Hirscberg from TU Graz in Austria). The goal of TMsimple is to provide a simple handling tire model with fewer parameters than TMeasy while still providing realistic (albeit reduced) functionality.
+A new tire model (`ChTMsimple`) was added to Chrono::Vehicle. This tire model is of "force element" type and shares part of its formulation with the TMeasy model (both of these tire models were developed by Wolfgang Hirschberg from TU Graz in Austria). The goal of TMsimple is to provide a simple handling tire model with fewer parameters than TMeasy while still providing realistic (albeit reduced) functionality.
 
 The TMsimple model
 - calculated horizontal patch forces based on single functions (whereas TMeasy requires three piece-wise definitions)
 - considers degressive influence of the vertical force Fz
 - calculates rolling resistance
 
-TMeasy requires 5 parameters to define its basic function for Fx and Fy: (1) slope at zero, (2) slip at force maximum, (3) maximal force, (4) slip at sliding initiation, and (5) sliding force. In contrast, TMsimple needs only 3 parameters: (1) slope, (2) maximal force, and (3) force at infinite slip.  A complete parameter set for Fx(sx,Fz) and Fy(sy,Fz) has 20 items for TMeasy and only 12 for TMsimple. Chrono’s TMsimple implementation has a new stand-still/low speed algorithm for friction forces. It is not part of TMsimple itself, and could be adapted to other handling tire models as well.
+TMeasy requires 5 parameters to define its basic function for Fx and Fy: (1) slope at zero, (2) slip at force maximum, (3) maximal force, (4) slip at sliding initiation, and (5) sliding force. In contrast, TMsimple needs only 3 parameters: (1) slope, (2) maximal force, and (3) force at infinite slip.  A complete parameter set for Fx(sx,Fz) and Fy(sy,Fz) has 20 items for TMeasy and only 12 for TMsimple. Chrono's TMsimple implementation has a new stand-still/low speed algorithm for friction forces. It is not part of TMsimple itself, and could be adapted to other handling tire models as well.
 
 ### [Added] Blender plug-in for post-process visualization
 

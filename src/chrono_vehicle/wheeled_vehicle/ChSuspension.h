@@ -89,8 +89,7 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     double GetAxleSpeed(VehicleSide side) const { return m_axle[side]->GetPos_dt(); }
 
     /// Synchronize this suspension subsystem.
-    /// This function must be called before synchronizing any wheels associated with this suspension.
-    void Synchronize();
+    virtual void Synchronize() {}
 
     /// Apply the provided motor torque.
     /// The given torque is applied to the specified (left or right) axle. This
@@ -165,7 +164,7 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
 };
 
 /// Vector of handles to suspension subsystems.
-typedef std::vector<std::shared_ptr<ChSuspension> > ChSuspensionList;
+typedef std::vector<std::shared_ptr<ChSuspension>> ChSuspensionList;
 
 /// @} vehicle_wheeled_suspension
 

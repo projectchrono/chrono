@@ -80,6 +80,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Returns `false` if the viewer was closed.
     virtual bool Run() override;
 
+    // Terminate the VSG visualization.
+    virtual void Quit() override;
+
     /// Perform any necessary operations at the beginning of each rendering frame.
     virtual void BeginScene() override {}
 
@@ -108,9 +111,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Create a snapshot of the frame to be rendered and save it to the provided file.
     /// The file extension determines the image format.
     virtual void WriteImageToFile(const std::string& filename) override;
-
-    // Terminate the VSG visualization.
-    void Quit();
 
     void SetWindowSize(const ChVector2<int>& size);
     void SetWindowSize(int width, int height);
@@ -160,10 +160,16 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void SetLightDirection(double azimuth, double elevation);
     void SetCameraAngleDeg(double angleDeg) { m_cameraAngleDeg = angleDeg; }
     void SetGuiFontSize(float theSize);
-    void AddGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col);
-    int AddVisualModel(std::shared_ptr<ChVisualModel> model, const ChFrame<>& frame) override;
-    int AddVisualModel(std::shared_ptr<ChVisualShape> model, const ChFrame<>& frame) override;
-    void UpdateVisualModel(int id, const ChFrame<>& frame) override;
+
+    virtual void AddGrid(double x_step,
+                         double y_step,
+                         int nx,
+                         int ny,
+                         ChCoordsys<> pos = CSYSNORM,
+                         ChColor col = ChColor(0.1f, 0.1f, 0.1f)) override;
+    virtual int AddVisualModel(std::shared_ptr<ChVisualModel> model, const ChFrame<>& frame) override;
+    virtual int AddVisualModel(std::shared_ptr<ChVisualShape> model, const ChFrame<>& frame) override;
+    virtual void UpdateVisualModel(int id, const ChFrame<>& frame) override;
 
     /// Add a user-defined GUI component.
     /// Returns the index of the new component. This function must be called before Initialize().

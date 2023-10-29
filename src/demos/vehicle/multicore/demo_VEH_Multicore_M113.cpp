@@ -384,17 +384,9 @@ int main(int argc, char* argv[]) {
     double exec_time = 0;
     int num_contacts = 0;
 
-    // Inter-module communication data
-    BodyStates shoe_states_left(m113.GetVehicle().GetNumTrackShoes(LEFT));
-    BodyStates shoe_states_right(m113.GetVehicle().GetNumTrackShoes(RIGHT));
-    TerrainForces shoe_forces_left(m113.GetVehicle().GetNumTrackShoes(LEFT));
-    TerrainForces shoe_forces_right(m113.GetVehicle().GetNumTrackShoes(RIGHT));
-
     while (time < time_end) {
-        // Collect output data from modules
+        // Current driver inputs
         DriverInputs driver_inputs = driver.GetInputs();
-        m113.GetVehicle().GetTrackShoeStates(LEFT, shoe_states_left);
-        m113.GetVehicle().GetTrackShoeStates(RIGHT, shoe_states_right);
 
         // Output
         if (sim_frame == next_out_frame) {
@@ -427,7 +419,7 @@ int main(int argc, char* argv[]) {
 
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
-        m113.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
+        m113.Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(time_step);

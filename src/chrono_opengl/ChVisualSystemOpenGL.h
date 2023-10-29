@@ -143,6 +143,9 @@ class CH_OPENGL_API ChVisualSystemOpenGL : virtual public ChVisualSystem {
     /// Returns `false` if the device wants to be deleted.
     virtual bool Run() override;
 
+    // Terminate the OpenGL visualization.
+    virtual void Quit() override;
+
     /// Perform any necessary operations at the beginning of each rendering frame.
     virtual void BeginScene() override {}
 

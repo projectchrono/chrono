@@ -121,7 +121,7 @@ endif()
 #-------------------------------------------------------------------------------
 # Create the ChronoEngine_vsg library
 
-add_library(ChronoEngine_vsg SHARED
+add_library(ChronoEngine_vsg
             ${CE_VSG_BASE_FILES}
             ${CE_VSG_SHAPES_FILES}
             ${CE_VSG_RESOURCES_FILES}

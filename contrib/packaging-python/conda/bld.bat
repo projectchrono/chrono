@@ -35,7 +35,7 @@ cmake -G "Visual Studio 17 2022" -T "v142" ^
  -DPYTHON_EXECUTABLE:FILEPATH="%PYTHON%" ^
  -DPYTHON_INCLUDE_DIR:PATH="%PREFIX%"/include ^
  -DPYTHON_LIBRARY:FILEPATH="%PREFIX%"/libs/python%MY_PY_VER%.lib ^
- -DSWIG_EXECUTABLE="%PREFIX%"/Library/bin/swig.exe ^
+ -DSWIG_EXECUTABLE="C:/Users/builder/Documents/swigwin-4.0.2/swig.exe" ^
  -DCMAKE_BUILD_TYPE="%CONFIGURATION%" ^
  -DENABLE_MODULE_IRRLICHT=ON ^
  -DENABLE_MODULE_POSTPROCESS=ON ^
@@ -43,8 +43,8 @@ cmake -G "Visual Studio 17 2022" -T "v142" ^
  -DENABLE_MODULE_PYTHON=ON ^
  -DENABLE_MODULE_SENSOR=ON ^
  -DNUMPY_INCLUDE_DIR="C:/Users/builder/miniconda3/pkgs/numpy-base/Lib/site-packages/numpy/core/include/" ^
- -DOptiX_INSTALL_DIR="C:/Program Files/NVIDIA Corporation/OptiX SDK 7.5.0" ^
- -DCUDA_TOOLKIT_ROOT_DIR="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.7" ^
+ -DOptiX_INSTALL_DIR="C:/ProgramData/NVIDIA Corporation/OptiX SDK 7.7.0" ^
+ -DCUDA_TOOLKIT_ROOT_DIR="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.2" ^
  -DGLFW_DLL="C:/Users/builder/Documents/glfw-3.3.5/lib-vc2019/glfw3.dll" ^
  -DGLFW_INCLUDE_DIR="C:/Users/builder/Documents/glfw-3.3.5/include" ^
  -DGLFW_LIBRARY="C:/Users/builder/Documents/glfw-3.3.5/lib-vc2019/glfw3dll.lib" ^
@@ -58,13 +58,13 @@ cmake -G "Visual Studio 17 2022" -T "v142" ^
  -DBUILD_TESTING=OFF ^
  -DBUILD_BENCHMARKING=OFF ^
  -DENABLE_MODULE_CASCADE=ON ^
- -DCASCADE_INCLUDE_DIR="%PREFIX%"/Library/include/opencascade ^
- -DCASCADE_LIBDIR="%PREFIX%"/Library/lib ^
+ -DOpenCASCADE_DIR="C:/OpenCASCADE-7.4.0-vc14-64/opencascade-7.4.0/cmake" ^
  -DENABLE_MODULE_PARDISO_MKL=ON ^
  -DMKL_INCLUDE_DIR="%PREFIX%"/Library/include ^
  -DMKL_RT_LIBRARY="%PREFIX%"/Library/lib/mkl_rt.lib ^
  -DIOMP5_LIBRARY="C:/Program Files (x86)/Intel/oneAPI/compiler/latest/windows/compiler/lib/intel64_win/libiomp5md.lib" ^
  ..
+
 if errorlevel 1 exit 1
 mkdir cmake_ended
 

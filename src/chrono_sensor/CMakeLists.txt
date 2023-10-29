@@ -502,7 +502,7 @@ if(USE_TENSOR_RT)
     list(APPEND ALL_CH_SENSOR_FILES ${ChronoEngine_sensor_TENSORRT_HEADERS})
 endif()
 
-cuda_add_library(ChronoEngine_sensor SHARED ${ALL_CH_SENSOR_FILES})
+cuda_add_library(ChronoEngine_sensor ${ALL_CH_SENSOR_FILES})
 
 if(USE_CUDA_NVRTC)
   target_compile_definitions(ChronoEngine_sensor PUBLIC -DUSE_CUDA_NVRTC )
@@ -524,7 +524,7 @@ target_compile_definitions(ChronoEngine_sensor PUBLIC CH_API_COMPILE_SENSOR)
 
 set_target_properties(ChronoEngine_sensor PROPERTIES
                     COMPILE_FLAGS "${CH_CXX_FLAGS}"
-                    LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+                    LINK_FLAGS "${CH_LINKERFLAG_LIB}")
 
 target_include_directories(ChronoEngine_sensor PUBLIC ${CH_SENSOR_INCLUDES})
 

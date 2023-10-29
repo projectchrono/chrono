@@ -333,23 +333,23 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
     }
 
     // Write output files
-    out_pos.write_to_file(out_dir + testName + "_CHRONO_Pos.txt", testName + "\n\n");
-    out_vel.write_to_file(out_dir + testName + "_CHRONO_Vel.txt", testName + "\n\n");
-    out_acc.write_to_file(out_dir + testName + "_CHRONO_Acc.txt", testName + "\n\n");
+    out_pos.write_to_file(out_dir + testName + "_CHRONO_Pos.txt", testName + "\n");
+    out_vel.write_to_file(out_dir + testName + "_CHRONO_Vel.txt", testName + "\n");
+    out_acc.write_to_file(out_dir + testName + "_CHRONO_Acc.txt", testName + "\n");
 
-    out_quat.write_to_file(out_dir + testName + "_CHRONO_Quat.txt", testName + "\n\n");
-    out_avel.write_to_file(out_dir + testName + "_CHRONO_Avel.txt", testName + "\n\n");
-    out_aacc.write_to_file(out_dir + testName + "_CHRONO_Aacc.txt", testName + "\n\n");
+    out_quat.write_to_file(out_dir + testName + "_CHRONO_Quat.txt", testName + "\n");
+    out_avel.write_to_file(out_dir + testName + "_CHRONO_Avel.txt", testName + "\n");
+    out_aacc.write_to_file(out_dir + testName + "_CHRONO_Aacc.txt", testName + "\n");
 
-    out_rfrcP.write_to_file(out_dir + testName + "_CHRONO_RforceP.txt", testName + "\n\n");
-    out_rtrqP.write_to_file(out_dir + testName + "_CHRONO_RtorqueP.txt", testName + "\n\n");
+    out_rfrcP.write_to_file(out_dir + testName + "_CHRONO_RforceP.txt", testName + "\n");
+    out_rtrqP.write_to_file(out_dir + testName + "_CHRONO_RtorqueP.txt", testName + "\n");
 
-    out_rfrcA.write_to_file(out_dir + testName + "_CHRONO_RforceA.txt", testName + "\n\n");
-    out_rtrqA.write_to_file(out_dir + testName + "_CHRONO_RtorqueA.txt", testName + "\n\n");
+    out_rfrcA.write_to_file(out_dir + testName + "_CHRONO_RforceA.txt", testName + "\n");
+    out_rtrqA.write_to_file(out_dir + testName + "_CHRONO_RtorqueA.txt", testName + "\n");
 
-    out_cnstrP.write_to_file(out_dir + testName + "_CHRONO_ConstraintsP.txt", testName + "\n\n");
+    out_cnstrP.write_to_file(out_dir + testName + "_CHRONO_ConstraintsP.txt", testName + "\n");
 
-    out_cnstrA.write_to_file(out_dir + testName + "_CHRONO_ConstraintsA.txt", testName + "\n\n");
+    out_cnstrA.write_to_file(out_dir + testName + "_CHRONO_ConstraintsA.txt", testName + "\n");
 
     return true;
 }

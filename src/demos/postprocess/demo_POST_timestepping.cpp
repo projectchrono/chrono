@@ -699,7 +699,6 @@ void example5(const std::string& out_dir) {
     ChTimestepperHHT mystepper5(&mintegrable5);
     mystepper5.SetAlpha(-0.3);  // HHT with dissipation
     //mystepper5.SetVerbose(true);
-    ////mystepper5.SetMode(ChTimestepperHHT::POSITION);
     ChTimestepperNewmark mystepper6(&mintegrable6);
     mystepper6.SetGammaBeta(0.5, 0.25);  // Newmark, Gamma: in [1/2, 1] where 1/2 no damping, beta in [0,1]. For (0.5, 0.25) -> trapezoidal
     //mystepper6.SetVerbose(true);

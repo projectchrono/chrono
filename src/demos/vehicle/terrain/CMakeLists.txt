@@ -39,10 +39,10 @@ endif()
 
 if(ENABLE_MODULE_FSI AND (ENABLE_MODULE_OPENGL OR ENABLE_MODULE_VSG))
     set(DEMOS ${DEMOS}
-        demo_VEH_SPHTerrain_Obstacles
-        demo_VEH_SPHTerrain_WheeledVehicle
-        demo_VEH_SPHTerrain_TrackedVehicle
-        demo_VEH_SPHTerrain_Viper
+        demo_VEH_CRMTerrain_Obstacles
+        demo_VEH_CRMTerrain_WheeledVehicle
+        demo_VEH_CRMTerrain_TrackedVehicle
+        demo_VEH_CRMTerrain_Viper
     )
 endif()
 
@@ -51,6 +51,10 @@ if(ENABLE_MODULE_PARDISO_MKL AND ENABLE_MODULE_IRRLICHT)
         demo_VEH_SCMTerrain_FEATire
     )
 endif()
+
+#--------------------------------------------------------------
+
+set(UTILS "../../SetChronoSolver.h")
 
 #--------------------------------------------------------------
 # Include directories, compiler flags, libraries
@@ -113,8 +117,8 @@ endif()
 foreach(PROGRAM ${DEMOS})
     message(STATUS "...add ${PROGRAM}")
 
-    add_executable(${PROGRAM} ${PROGRAM}.cpp)
-    source_group("" FILES ${PROGRAM}.cpp)
+    add_executable(${PROGRAM} ${PROGRAM}.cpp ${UTILS})
+    source_group("" FILES ${PROGRAM}.cpp ${UTILS})
 
     set_target_properties(${PROGRAM} PROPERTIES COMPILE_FLAGS "${COMPILER_FLAGS}" LINK_FLAGS "${LINKER_FLAGS}")
     if(APPLE)

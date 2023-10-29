@@ -274,8 +274,6 @@ int main(int argc, char* argv[]) {
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(1000);
     mystepper->SetAbsTolerances(1e-6);
-    mystepper->SetMode(ChTimestepperHHT::ACCELERATION);
-    mystepper->SetScaling(true);
 
     // Create a run-tme visualizer
 #ifndef CHRONO_OPENGL

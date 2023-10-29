@@ -13,7 +13,7 @@ cmake_minimum_required(VERSION 3.10)
 
 #--------------------------------------------------------------
 # === 1 === 
-# Modify the project name if you want: 
+# Set the project name
 #--------------------------------------------------------------
 
 project(my_project)
@@ -26,9 +26,12 @@ project(my_project)
 #                 COMPONENTS req_module1 req_module1 ...
 #                 OPTIONAL_COMPONENTS opt_module1 opt_module2 ...
 #                 CONFIG)
-# The following Chrono modules can be requested (their names
-# are case insensitive): Cascade, Cosimulation, FEA, Irrlicht,
-# Matlab, Parallel, Postprocess, Python, Vehicle.
+# The following Chrono modules can be requested (case insensitive):
+#   Cascade, Cosimulation, Irrlicht, OpenGL, Matlab, Multicore, Gpu,
+#   PardisoMKL, PardisoProject, Postprocess, Python, Vehicle,
+#   VehicleCosimm, VSG.
+# A component can be requested either as required or optional
+# (see the CMake documentation for find_package).
 # 
 # Note that you will have to set the variable Chrono_DIR to 
 # specify the location of the chrono-config.cmake script, if
@@ -36,7 +39,7 @@ project(my_project)
 # Chrono_DIR can be either a Chrono build tree or a Chrono install tree.
 # 
 # The following variables are set and can be used further down:
-# CHRONO_FOUND
+# Chrono_FOUND
 #   set to true if Chrono and all required components were found
 # CHRONO_C_FLAGS
 # CHRONO_CXX_FLAGS
@@ -47,8 +50,6 @@ project(my_project)
 #   list of required libraries (with full path)
 # CHRONO_LINKER_FLAGS
 #   additional linker flags
-# CHRONO_DLLS
-#   list of all DLL dependencies (with full path)
 # CHRONO_DATA_DIR
 #   path to the Chrono data make_directory
 # 
@@ -74,6 +75,14 @@ if (NOT Chrono_FOUND)
   message("Could not find Chrono or one of its required modules")
   return()
 endif()
+
+#--------------------------------------------------------------
+# Important! To ensure ABI compatibility, use the same C++ standard
+# as the one used to build the Chrono libraries.
+#--------------------------------------------------------------
+
+set(CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD ${CHRONO_CXX_STANDARD})
 
 #--------------------------------------------------------------
 # Enable creation of "application bundles" on MacOSX.
@@ -154,9 +163,11 @@ target_link_libraries(my_demo ${CHRONO_LIBRARIES})
 # dependency DLLs to the appropriate binary output folder.
 # This function has effect only on Windows.
 # 
-# Note that you must first set EXECUTABLE_OUTPUT_PATH
-# (this can simply be ${CMAKE_BINARY_DIR}, like in this example)
+# DLLs will be copied into ${PROJECT_BINARY_DIR}/${config} by default
+# or in ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${config} if only CMAKE_RUNTIME_OUTPUT_DIRECTORY is set
+# or to ${CMAKE_RUNTIME_OUTPUT_DIRECTORY_<CONFIG>} if the specific CMAKE_RUNTIME_OUTPUT_DIRECTORY_<CONFIG> has been set
 #--------------------------------------------------------------
 
-set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
-add_DLL_copy_command("${CHRONO_DLLS}")
+# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")
+# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "<mycustompathforrelease>")
+add_DLL_copy_command()

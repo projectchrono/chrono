@@ -169,8 +169,7 @@ int main(int argc, char* argv[]) {
     f_seq->InsertFunct(f_part2, 1.0, 1., true);
     f_seq->InsertFunct(f_part3, 1.0, 1., true);
 
-    auto f_rep_seq = chrono_types::make_shared<ChFunction_Repeat>();
-    f_rep_seq->Set_fa(f_seq);
+    auto f_rep_seq = chrono_types::make_shared<ChFunction_Repeat>(f_seq);
     f_rep_seq->Set_window_length(3.0);
     f_rep_seq->Set_window_start(0.0);
     f_rep_seq->Set_window_phase(3.0);

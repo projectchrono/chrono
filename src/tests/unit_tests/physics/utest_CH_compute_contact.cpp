@@ -171,7 +171,6 @@ ContactForceTest::ContactForceTest() {
         integrator->SetAlpha(0.0);
         integrator->SetMaxiters(100);
         integrator->SetAbsTolerances(1e-08);
-        integrator->SetScaling(false);
     } else {
         std::cout << "Using default integrator." << std::endl;
     }

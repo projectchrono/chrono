@@ -137,6 +137,7 @@ set(ChronoEngine_physics_SOURCES
     physics/ChProximityContainerSPH.cpp
     physics/ChConveyor.cpp
     physics/ChFeeder.cpp
+    physics/ChExternalDynamics.cpp
     physics/ChAssembly.cpp
     )
 
@@ -163,6 +164,7 @@ set(ChronoEngine_physics_HEADERS
     physics/ChSystem.h
     physics/ChSystemNSC.h
     physics/ChSystemSMC.h
+    physics/ChExternalDynamics.h
     physics/ChAssembly.h
     physics/ChInertiaUtils.h
     )
@@ -309,6 +311,20 @@ set(ChronoEngine_physics_loads_HEADERS
 source_group(physics\\loads FILES
     ${ChronoEngine_physics_loads_SOURCES}
     ${ChronoEngine_physics_loads_HEADERS})
+
+set(ChronoEngine_physics_hydraulics_SOURCES
+    physics/ChHydraulicCircuit.cpp
+    physics/ChHydraulicActuator.cpp
+)
+
+set(ChronoEngine_physics_hydraulics_HEADERS
+    physics/ChHydraulicCircuit.h
+    physics/ChHydraulicActuator.h
+)
+
+source_group(physics\\hydraulics FILES
+    ${ChronoEngine_physics_hydraulics_SOURCES}
+    ${ChronoEngine_physics_hydraulics_HEADERS})
 
 set(ChronoEngine_physics_shafts_SOURCES
     physics/ChShaft.cpp
@@ -1297,6 +1313,8 @@ set(ChronoEngine_FILES
     ${ChronoEngine_physics_links_HEADERS}
     ${ChronoEngine_physics_loads_SOURCES}
     ${ChronoEngine_physics_loads_HEADERS}
+    ${ChronoEngine_physics_hydraulics_SOURCES}
+    ${ChronoEngine_physics_hydraulics_HEADERS}
     ${ChronoEngine_physics_shafts_SOURCES}
     ${ChronoEngine_physics_shafts_HEADERS}
     ${ChronoEngine_fea_SOURCES}
@@ -1376,7 +1394,7 @@ else()
 endif()
 
 # Add the ChronoEngine library to the project
-add_library(ChronoEngine SHARED ${ChronoEngine_FILES})
+add_library(ChronoEngine ${ChronoEngine_FILES})
 
 target_link_libraries(ChronoEngine ${OPENMP_LIBRARIES} ${CH_SOCKET_LIB})
 if (UNIX)
@@ -1384,7 +1402,7 @@ if (UNIX)
 endif()
 
 # Set some custom properties of this target
-set_target_properties(ChronoEngine PROPERTIES LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+set_target_properties(ChronoEngine PROPERTIES LINK_FLAGS "${CH_LINKERFLAG_LIB}")
 
 target_compile_definitions(ChronoEngine PRIVATE "CH_API_COMPILE")
 target_compile_definitions(ChronoEngine PRIVATE "CH_IGNORE_DEPRECATED")

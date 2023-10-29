@@ -64,12 +64,6 @@ ChLinkMateGeneric::ChLinkMateGeneric(const ChLinkMateGeneric& other) : ChLinkMat
     SetupLinkMask();
 }
 
-ChLinkMateGeneric::~ChLinkMateGeneric() {
-    if (this->Kmatr != nullptr) {
-        delete this->Kmatr;
-        this->Kmatr = nullptr;
-    }
-}
 
 void ChLinkMateGeneric::SetConstrainedCoords(bool mc_x, bool mc_y, bool mc_z, bool mc_rx, bool mc_ry, bool mc_rz) {
     c_x = mc_x;
@@ -308,12 +302,13 @@ void ChLinkMateGeneric::SetUseTangentStiffness(bool useKc) {
 
     if (useKc && this->Kmatr == nullptr) {
 
-        this->Kmatr = new ChKblockGeneric(&Body1->Variables(), &Body2->Variables());
+        this->Kmatr = chrono_types::make_unique<ChKblockGeneric>(&Body1->Variables(), &Body2->Variables());
+        this->Kmatr->Get_K().resize(12, 12);
+        this->Kmatr->Get_K().setZero();
 
     } else if (!useKc && this->Kmatr != nullptr) {
 
-        delete this->Kmatr;
-        this->Kmatr = nullptr;
+        this->Kmatr.reset();
     }
 }
 
@@ -322,7 +317,7 @@ void ChLinkMateGeneric::InjectKRMmatrices(ChSystemDescriptor& descriptor) {
         return;
 
     if (this->Kmatr)
-        descriptor.InsertKblock(Kmatr);
+        descriptor.InsertKblock(Kmatr.get());
 }
 
 void ChLinkMateGeneric::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
@@ -347,42 +342,42 @@ void ChLinkMateGeneric::KRMmatricesLoad(double Kfactor, double Rfactor, double M
         ChStarMatrix33<> rtilde_F1_B1(r_F1_B1);
         ChStarMatrix33<> rtilde_F2_B2(r_F2_B2);
 
-        // Main part
-        ChMatrixDynamic<> Kcm;
-        Kcm.setZero(12, 12);
-        Kcm.block<3, 3>(0, 9) = -R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B2_W;
-        Kcm.block<3, 3>(3, 3) =
-            rtilde_F1_B1 * R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B1_W +
-            R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(this->P * gamma_m) * R_F2_W.transpose() * R_B1_W;
-        Kcm.block<3, 3>(3, 9) =
-            -rtilde_F1_B1 * R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B2_W -
-            R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(this->P * gamma_m) * R_F2_W.transpose() * R_B2_W;
-        Kcm.block<3, 3>(6, 9) = R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B2_W;
-
-        Kcm.block<3, 3>(9, 0) = R_B2_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose();
-        Kcm.block<3, 3>(9, 3) =
-            -R_B2_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B1_W * rtilde_F1_B1;
-        Kcm.block<3, 3>(9, 6) = -R_B2_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose();
-        Kcm.block<3, 3>(9, 9) = R_B2_W.transpose() * R_F2_W * ChStarMatrix33<>(gamma_f) * R_F2_W.transpose() * R_B2_W *
-                                ChStarMatrix33<>(r12_B2 + r_F2_B2);
-
-        double s_F1_F2 = F1_wrt_F2.GetRot().e0();
+        // Precomupte utilities
+        ChMatrix33<> R_F2_W_cross_gamma_f = R_F2_W * ChStarMatrix33<>(gamma_f);
+        ChMatrix33<> R_W_F2 = R_F2_W.transpose();
         ChVector<> v_F1_F2 = F1_wrt_F2.GetRot().GetVector();
-        ChMatrix33<> I33;
-        I33.setIdentity();
-        ChMatrix33<> G = -0.25 * TensorProduct(gamma_m, v_F1_F2) -
-                         0.25 * ChStarMatrix33<>(gamma_m) * (s_F1_F2 * I33 + ChStarMatrix33<>(v_F1_F2));
+        ChMatrix33<> s_F1_F2_mat(F1_wrt_F2.GetRot().e0());
+        ChMatrix33<> R_F2_W_times_G_times_R_W_F1 = R_F2_W * (-0.25 * TensorProduct(gamma_m, v_F1_F2)
+                                                   - 0.25 * ChStarMatrix33<>(gamma_m) * (s_F1_F2_mat + ChStarMatrix33<>(v_F1_F2))) * R_F1_W.transpose();
+        ChMatrix33<> R_F2_W_cross_gamma_f_times_R_B2_F2 = R_F2_W_cross_gamma_f * R_W_F2 * R_B2_W;
 
-        // Stabilization part
-        ChMatrixDynamic<> Kcs;
-        Kcs.setZero(12, 12);
-        Kcs.block<3, 3>(3, 3) = R_B1_W.transpose() * R_F2_W * G * R_F1_W.transpose() * R_B1_W;
-        Kcs.block<3, 3>(3, 9) = -R_B1_W.transpose() * R_F2_W * G * R_F1_W.transpose() * R_B2_W;
-        Kcs.block<3, 3>(9, 3) = -R_B2_W.transpose() * R_F2_W * G * R_F1_W.transpose() * R_B1_W;
-        Kcs.block<3, 3>(9, 9) = R_B2_W.transpose() * R_F2_W * G * R_F1_W.transpose() * R_B2_W;
+        // Populate Kc
+        this->Kmatr->Get_K().block<3, 3>(0, 9) = -R_F2_W_cross_gamma_f * R_W_F2 * R_B2_W;
+
+        this->Kmatr->Get_K().block<3, 3>(3, 3) = rtilde_F1_B1 * R_B1_W.transpose() * R_F2_W_cross_gamma_f * R_W_F2 * R_B1_W + R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(this->P * gamma_m) * R_W_F2 * R_B1_W
+                                                 // stabilization part
+                                                 +R_B1_W.transpose() * R_F2_W_times_G_times_R_W_F1 * R_B1_W;
+
+        this->Kmatr->Get_K().block<3, 3>(3, 9) = -rtilde_F1_B1 * R_B1_W.transpose() * R_F2_W_cross_gamma_f * R_W_F2 * R_B2_W - R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(this->P * gamma_m) * R_W_F2 * R_B2_W 
+                                                 // stabilization part
+                                                 -R_B1_W.transpose() * R_F2_W_times_G_times_R_W_F1 * R_B2_W;
+
+        this->Kmatr->Get_K().block<3, 3>(6, 9) = R_F2_W_cross_gamma_f * R_W_F2 * R_B2_W;
+
+        this->Kmatr->Get_K().block<3, 3>(9, 0) = R_F2_W_cross_gamma_f_times_R_B2_F2;
+
+        this->Kmatr->Get_K().block<3, 3>(9, 3) = -R_F2_W_cross_gamma_f_times_R_B2_F2 * R_B1_W * rtilde_F1_B1 
+                                                 // stabilization part
+                                                 -R_B2_W.transpose() * R_F2_W_times_G_times_R_W_F1 * R_B1_W;
+        
+        this->Kmatr->Get_K().block<3, 3>(9, 6) = -R_F2_W_cross_gamma_f_times_R_B2_F2;
+
+        this->Kmatr->Get_K().block<3, 3>(9, 9) = R_F2_W_cross_gamma_f_times_R_B2_F2 * R_B2_W * ChStarMatrix33<>(r12_B2 + r_F2_B2)
+                                                 // stabilization part
+                                                 + R_B2_W.transpose() * R_F2_W_times_G_times_R_W_F1 * R_B2_W;
 
         // The complete tangent stiffness matrix
-        this->Kmatr->Get_K() = (Kcm + Kcs) * Kfactor;
+        this->Kmatr->Get_K() *= Kfactor;
     }
 }
 

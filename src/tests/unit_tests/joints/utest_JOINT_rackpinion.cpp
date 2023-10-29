@@ -338,23 +338,23 @@ bool TestRackPinion(const ChVector<>& jointLoc,      // absolute location of joi
     }
 
     // Write output files
-    out_posPinion.write_to_file(out_dir + testName + "_CHRONO_Pinion_Pos.txt", testName + "\n\n");
-    out_velPinion.write_to_file(out_dir + testName + "_CHRONO_Pinion_Vel.txt", testName + "\n\n");
-    out_accPinion.write_to_file(out_dir + testName + "_CHRONO_Pinion_Acc.txt", testName + "\n\n");
+    out_posPinion.write_to_file(out_dir + testName + "_CHRONO_Pinion_Pos.txt", testName + "\n");
+    out_velPinion.write_to_file(out_dir + testName + "_CHRONO_Pinion_Vel.txt", testName + "\n");
+    out_accPinion.write_to_file(out_dir + testName + "_CHRONO_Pinion_Acc.txt", testName + "\n");
 
-    out_posRack.write_to_file(out_dir + testName + "_CHRONO_Rack_Pos.txt", testName + "\n\n");
-    out_velRack.write_to_file(out_dir + testName + "_CHRONO_Rack_Vel.txt", testName + "\n\n");
-    out_accRack.write_to_file(out_dir + testName + "_CHRONO_Rack_Acc.txt", testName + "\n\n");
+    out_posRack.write_to_file(out_dir + testName + "_CHRONO_Rack_Pos.txt", testName + "\n");
+    out_velRack.write_to_file(out_dir + testName + "_CHRONO_Rack_Vel.txt", testName + "\n");
+    out_accRack.write_to_file(out_dir + testName + "_CHRONO_Rack_Acc.txt", testName + "\n");
 
-    out_quatPinion.write_to_file(out_dir + testName + "_CHRONO_Pinion_Quat.txt", testName + "\n\n");
-    out_avelPinion.write_to_file(out_dir + testName + "_CHRONO_Pinion_Avel.txt", testName + "\n\n");
-    out_aaccPinion.write_to_file(out_dir + testName + "_CHRONO_Pinion_Aacc.txt", testName + "\n\n");
+    out_quatPinion.write_to_file(out_dir + testName + "_CHRONO_Pinion_Quat.txt", testName + "\n");
+    out_avelPinion.write_to_file(out_dir + testName + "_CHRONO_Pinion_Avel.txt", testName + "\n");
+    out_aaccPinion.write_to_file(out_dir + testName + "_CHRONO_Pinion_Aacc.txt", testName + "\n");
 
-    out_quatRack.write_to_file(out_dir + testName + "_CHRONO_Rack_Quat.txt", testName + "\n\n");
-    out_avelRack.write_to_file(out_dir + testName + "_CHRONO_Rack_Avel.txt", testName + "\n\n");
-    out_aaccRack.write_to_file(out_dir + testName + "_CHRONO_Rack_Aacc.txt", testName + "\n\n");
+    out_quatRack.write_to_file(out_dir + testName + "_CHRONO_Rack_Quat.txt", testName + "\n");
+    out_avelRack.write_to_file(out_dir + testName + "_CHRONO_Rack_Avel.txt", testName + "\n");
+    out_aaccRack.write_to_file(out_dir + testName + "_CHRONO_Rack_Aacc.txt", testName + "\n");
 
-    out_energy.write_to_file(out_dir + testName + "_CHRONO_Energy.txt", testName + "\n\n");
+    out_energy.write_to_file(out_dir + testName + "_CHRONO_Energy.txt", testName + "\n");
 
     return true;
 }

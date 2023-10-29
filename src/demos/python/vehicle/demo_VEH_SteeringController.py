@@ -101,7 +101,7 @@ def main():
 
         # End simulation
         if (time >= t_end):
-            break
+            vis.Quit()
 
         # Update sentinel and target location markers for the path-follower controller.
         pS = driver.GetSteeringController().GetSentinelLocation()

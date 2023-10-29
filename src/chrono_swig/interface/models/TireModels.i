@@ -36,7 +36,7 @@
 #include "chrono_models/vehicle/gator/Gator_RigidTire.h"
 #include "chrono_models/vehicle/gator/Gator_TMeasyTire.h"
 
-#include "chrono_models/vehicle/rccar/RCCar_RigidTire.h"
+#include "chrono_models/vehicle/artcar/ARTcar_RigidTire.h"
 
 #include "chrono_models/vehicle/feda/FEDA_Pac02Tire.h"
 #include "chrono_models/vehicle/feda/FEDA_RigidTire.h"
@@ -66,7 +66,7 @@
 %shared_ptr(chrono::vehicle::gator::Gator_RigidTire_Rear)
 %shared_ptr(chrono::vehicle::gator::Gator_TMeasyTire_Front)
 %shared_ptr(chrono::vehicle::gator::Gator_TMeasyTire_Rear)
-%shared_ptr(chrono::vehicle::rccar::RCCar_RigidTire)
+%shared_ptr(chrono::vehicle::artcar::ARTcar_RigidTire)
 %shared_ptr(chrono::vehicle::feda::FEDA_Pac02Tire)
 %shared_ptr(chrono::vehicle::feda::FEDA_RigidTire)
 
@@ -98,7 +98,7 @@
 %include "../../../chrono_models/vehicle/gator/Gator_RigidTire.h"
 %include "../../../chrono_models/vehicle/gator/Gator_TMeasyTire.h"
 
-%include "../../../chrono_models/vehicle/rccar/RCCar_RigidTire.h"
+%include "../../../chrono_models/vehicle/artcar/ARTcar_RigidTire.h"
 
 %include "../../../chrono_models/vehicle/feda/FEDA_Pac02Tire.h"
 %include "../../../chrono_models/vehicle/feda/FEDA_RigidTire.h"

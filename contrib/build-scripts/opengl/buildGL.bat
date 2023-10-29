@@ -23,7 +23,7 @@ set DOWNLOAD=ON
 set GL_INSTALL_DIR="C:/Packages/gl"
 
 set BUILDSHARED=ON
-set BUILDDEBUG=ON
+set BUILDDEBUG=OFF
 
 @if %DOWNLOAD% EQU OFF (
     set GLM_SOURCE_DIR="C:/Sources/glm"
