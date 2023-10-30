@@ -310,12 +310,6 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    // Inter-module communication data
-    BodyStates shoe_states_left(m113.GetVehicle().GetNumTrackShoes(LEFT));
-    BodyStates shoe_states_right(m113.GetVehicle().GetNumTrackShoes(RIGHT));
-    TerrainForces shoe_forces_left(m113.GetVehicle().GetNumTrackShoes(LEFT));
-    TerrainForces shoe_forces_right(m113.GetVehicle().GetNumTrackShoes(RIGHT));
-
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);
 
@@ -340,16 +334,14 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        // Collect output data from modules
+        // Current driver inputs
         DriverInputs driver_inputs = driver->GetInputs();
-        m113.GetVehicle().GetTrackShoeStates(LEFT, shoe_states_left);
-        m113.GetVehicle().GetTrackShoeStates(RIGHT, shoe_states_right);
 
         // Update modules (process inputs from other modules)
         double time = m113.GetVehicle().GetChTime();
         driver->Synchronize(time);
         terrain.Synchronize(time);
-        m113.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
+        m113.Synchronize(time, driver_inputs);
         vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules

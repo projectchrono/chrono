@@ -48,11 +48,6 @@ void ChSuspension::ApplyAxleTorque(VehicleSide side, double torque) {
     m_axle[side]->SetAppliedTorque(torque);
 }
 
-void ChSuspension::Synchronize() {
-    m_spindle[LEFT]->Empty_forces_accumulators();
-    m_spindle[RIGHT]->Empty_forces_accumulators();
-}
-
 void ChSuspension::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;

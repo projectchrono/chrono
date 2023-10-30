@@ -102,7 +102,9 @@ class CH_VEHICLE_API ChVehicleCosimCuriosityNode : public ChVehicleCosimWheeledM
     ChVector<> m_init_loc;  ///< initial rover location (relative to center of terrain top surface)
     double m_init_yaw;      ///< initial rover yaw
 
-    std::vector<double> m_spindle_loads;  ///< vertical loads on each spindle
+    std::vector<double> m_spindle_vertical_loads;                              ///< vertical loads on each spindle
+    std::vector<std::shared_ptr<ChLoadBodyForce>> m_spindle_terrain_forces;    ///< terrain force loads on each spindle
+    std::vector<std::shared_ptr<ChLoadBodyTorque>> m_spindle_terrain_torques;  ///< terrain torque loads on each spindle
 };
 
 /// @} vehicle_cosim_mbs

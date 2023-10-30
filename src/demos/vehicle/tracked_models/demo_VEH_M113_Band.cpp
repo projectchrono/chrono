@@ -358,12 +358,6 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    // Inter-module communication data
-    BodyStates shoe_states_left(vehicle.GetNumTrackShoes(LEFT));
-    BodyStates shoe_states_right(vehicle.GetNumTrackShoes(RIGHT));
-    TerrainForces shoe_forces_left(vehicle.GetNumTrackShoes(LEFT));
-    TerrainForces shoe_forces_right(vehicle.GetNumTrackShoes(RIGHT));
-
     // Number of steps
     int sim_steps = (int)std::ceil(t_end / step_size);          // total number of simulation steps
     int img_steps = (int)std::ceil(1 / (img_FPS * step_size));  // interval between IMG output frames
@@ -443,15 +437,13 @@ int main(int argc, char* argv[]) {
             vtk_frame++;
         }
 
-        // Collect data from modules
+        // Current driver inputs
         DriverInputs driver_inputs = driver.GetInputs();
-        vehicle.GetTrackShoeStates(LEFT, shoe_states_left);
-        vehicle.GetTrackShoeStates(RIGHT, shoe_states_right);
 
         // Update modules (process data from other modules)
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        m113.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
+        m113.Synchronize(time, driver_inputs);
 #ifdef USE_IRRLICHT
         vis->Synchronize(time, driver_inputs);
 #endif

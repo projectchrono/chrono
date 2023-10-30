@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
 
     // The wheel object:
     auto wheel = chrono_types::make_shared<Wheel>(vehicle::GetDataFile("hmmwv/wheel/HMMWV_Wheel.json"));
-    wheel->Initialize(mrim, LEFT);
+    wheel->Initialize(nullptr, mrim, LEFT);
 
     // The tire:
     auto tire_reissner =

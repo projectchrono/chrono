@@ -92,9 +92,12 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimWheeledMBSNode
 
     ChVector<> m_init_loc;  ///< initial rig location (relative to center of terrain top surface)
     double m_total_mass;    ///< total equivalent wheel mass
-    double m_toe_angle;    ///< toe angle (controls tire slip angle)
+    double m_toe_angle;     ///< toe angle (controls tire slip angle)
 
     std::shared_ptr<ChLinkMotorRotationSpeed> m_rev_motor;  ///< motor to enforce spindle angular vel
+
+    std::shared_ptr<ChLoadBodyForce> m_spindle_terrain_force;    ///< terrain force loads on the spindle
+    std::shared_ptr<ChLoadBodyTorque> m_spindle_terrain_torque;  ///< terrain torque loads on the spindle
 };
 
 /// @} vehicle_cosim_mbs
