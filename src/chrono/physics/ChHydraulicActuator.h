@@ -48,6 +48,9 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamics {
     virtual ~ChHydraulicActuatorBase() {}
 
     /// Set the actuation function.
+    /// This function should return the directional valve input, normalized to the interval [-1,1]. The extreme values
+    /// correspond to the maximum input voltage (providing full opening of the valve) to the proportional magnet
+    /// controlling the valve spool position. Note that the provided input is automatically clamped to [-1,1].
     void SetInputFunction(std::shared_ptr<ChFunction> fun) { ref_fun = fun; }
 
     /// Set the tank and pump pressures.

@@ -93,7 +93,7 @@ double ChHydraulicActuatorBase::GetActuatorForce() {
 }
 
 double ChHydraulicActuatorBase::GetInput(double t) const {
-    return ref_fun->Get_y(t);
+    return ChClamp(ref_fun->Get_y(t), -1.0, +1.0);
 }
 
 void ChHydraulicActuatorBase::Update(double time, bool update_assets) {

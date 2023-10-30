@@ -78,18 +78,24 @@ double ChHydraulicCylinder::EvalForce(const double2& p, double Delta_s, double s
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-ChHydraulicDirectionalValve4x3::ChHydraulicDirectionalValve4x3()
-    : linear_limit(2e5), dead_zone(0.1e-5), fm45(35), U0(0) {
-    Cv = (12.0 / 6e4) / (10 * std::sqrt(35e5));  //// TODO: magic number!?!
+ChHydraulicDirectionalValve4x3::ChHydraulicDirectionalValve4x3() : linear_limit(2e5), dead_zone(0.1e-5), U0(0) {
+    // Flow rate constant corresponding to a nominal flow of 24 l/min with a pressure difference of 35 bar
+    Cv = (24e-3 / 60) / (1.0 * std::sqrt(35e5));
+    // Valve time constant corresponding to a -45 degree phase shift frequency of 35 Hz
+    time_constant = 1 / (CH_C_2PI * 35);
+}
+
+void ChHydraulicDirectionalValve4x3::SetCharacteristicParameters(double linear_limit, double Q, double dp) {
+    this->linear_limit = linear_limit;
+    Cv = Q / std::sqrt(dp);
+}
+
+void ChHydraulicDirectionalValve4x3::SetTimeConstantFrequency(double fm45) {
     time_constant = 1 / (CH_C_2PI * fm45);
 }
 
-void ChHydraulicDirectionalValve4x3::SetParameters(double linear_limit, double dead_zone, double fm45) {
-    this->linear_limit = linear_limit;
+void ChHydraulicDirectionalValve4x3::SetValveDeadZone(double dead_zone) {
     this->dead_zone = dead_zone;
-    this->fm45 = fm45;
-
-    time_constant = 1 / (CH_C_2PI * fm45);
 }
 
 void ChHydraulicDirectionalValve4x3::SetInitialSpoolPosition(double U) {
@@ -128,7 +134,7 @@ double2 ChHydraulicDirectionalValve4x3::ComputeVolumeFlows(double p1, double p2,
             Q2V = Cv * U * std::copysign(1.0, p3 - p2) * std::sqrt(std::abs(p3 - p2));
         }
 
-    } else if (-dead_zone < U && U < dead_zone) {  // -------- valve is shut, no volume flows are allowed
+    } else if (-dead_zone < U && U < dead_zone) {  // ------- valve is shut, no volume flows are allowed
 
         QV3 = 0;
         Q2V = 0;
