@@ -67,20 +67,28 @@ int main(int argc, char* argv[]) {
     }
 
     ChSystemSMC sys;
-    // sys.Set_G_acc(VNULL);
-    sys.Set_G_acc(ChVector<>(0, 0, -9.8));
+    ChVector<> Gacc(0, 0, -9.8);
+    sys.Set_G_acc(Gacc);
 
     ChVector<> attachment_ground(std::sqrt(3) / 2, 0, 0);
     ChVector<> attachment_crane(0, 0, 0);
 
+    double crane_mass = 500;
     double crane_length = 1.0;
     double crane_angle = CH_C_PI / 6;
     ChVector<> crane_pos(0.5 * crane_length * std::cos(crane_angle), 0, 0.5 * crane_length * std::sin(crane_angle));
 
     double pend_length = 0.3;
+    double pend_mass = 100;
+    ChVector<> pend_pos = 2.0 * crane_pos + ChVector<>(0, 0, -pend_length);
 
     auto connection_sph = chrono_types::make_shared<ChSphereShape>(0.02);
     connection_sph->SetColor(ChColor(0.7f, 0.3f, 0.3f));
+
+    // Estimate initial required force (moment balance about crane pivot)
+    auto Gtorque = Vcross(crane_mass * Gacc, crane_pos) + Vcross(pend_mass * Gacc, pend_pos);
+    auto dir = (crane_pos - attachment_ground).GetNormalized();
+    auto F0 = Gtorque.Length() / Vcross(dir, crane_pos).Length();
 
     // Create the mechanism
     auto ground = chrono_types::make_shared<ChBody>();
@@ -90,7 +98,7 @@ int main(int argc, char* argv[]) {
     sys.AddBody(ground);
 
     auto crane = chrono_types::make_shared<ChBody>();
-    crane->SetMass(500);
+    crane->SetMass(crane_mass);
     crane->SetPos(crane_pos);
     crane->SetRot(Q_from_AngY(-crane_angle));
     crane->AddVisualShape(connection_sph, ChFrame<>(attachment_crane, QUNIT));
@@ -100,8 +108,8 @@ int main(int argc, char* argv[]) {
     sys.AddBody(crane);
 
     auto ball = chrono_types::make_shared<ChBody>();
-    ball->SetMass(100);
-    ball->SetPos(2.0 * crane_pos + ChVector<>(0, 0, -pend_length));
+    ball->SetMass(pend_mass);
+    ball->SetPos(pend_pos);
     auto ball_sph = chrono_types::make_shared<ChSphereShape>(0.04);
     ball->AddVisualShape(ball_sph);
     auto ball_cyl = chrono_types::make_shared<ChCylinderShape>(0.005, pend_length);
@@ -128,8 +136,9 @@ int main(int argc, char* argv[]) {
     auto actuator = chrono_types::make_shared<ChHydraulicActuator2>();
     actuator->SetInputFunction(actuation);
     actuator->Cylinder().SetInitialChamberLengths(0.221, 0.221);
-    actuator->Cylinder().SetInitialChamberPressures(3.3e6, 4.4e6);
+    actuator->Cylinder().SetInitialChamberPressures(4.4e6, 3.3e6);
     actuator->DirectionalValve().SetInitialSpoolPosition(0);
+    actuator->SetInitialLoad(F0);
     actuator->Initialize(ground, crane, true, attachment_ground, attachment_crane);
     sys.Add(actuator);
 

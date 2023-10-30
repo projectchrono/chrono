@@ -61,6 +61,13 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamics {
     /// inferred from the initial body positions.
     void SetActuatorInitialLength(double len);
 
+    /// Set initial loading force.
+    /// If provided, this value is used in calculating consistent initial conditions, using the initial dircetional
+    /// valve spool position and the initial cylinder pressures as initial guesses. Otherwise, the initial actuator
+    /// state is set to the user specified values (which may be inconsistent with the configuration of the cylinder
+    /// piston).
+    void SetInitialLoad(double F0);
+
     /// Initialize the hydraulic actuator stand-alone.
     /// In this case, actuator position and rate are supposed to be provided from the outside.
     void Initialize();
@@ -105,6 +112,8 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamics {
     ChHydraulicActuatorBase();
 
     /// Process initial cylinder pressures and initial valve displacement.
+    /// Optionally, if the initial load F0 is provided, a derived class may calculate consistent initial conditions
+    /// using the provided values as an initial guess.
     virtual void OnInitialize(const double2& cyl_p0, const double2& cyl_L0, double dvalve_U0) = 0;
 
     /// Extract directional valve spool position from current state.
@@ -125,7 +134,7 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamics {
     /// Load generalized forces.
     void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c);
 
-    bool m_is_attached;          ///< true if actuator attached to bodies
+    bool is_attached;            ///< true if actuator attached to bodies
     ChBody* m_body1;             ///< first conected body
     ChBody* m_body2;             ///< second connected body
     ChVector<> m_loc1;           ///< point on body 1 (local frame)
@@ -143,8 +152,11 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamics {
     double s;    ///< current actuator length [m]
     double sd;   ///< current actuator speed [m/s]
 
-    double pP;  // pump pressure [Pa]
-    double pT;  // tank pressure [Pa]
+    double pP;  ///< pump pressure [Pa]
+    double pT;  ///< tank pressure [Pa]
+
+    bool calculate_consistent_IC;  ///< solve initialization nonlinear system
+    double F0;                     ///< estimated initial load
 };
 
 // -----------------------------------------------------------------------------

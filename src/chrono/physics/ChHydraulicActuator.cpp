@@ -16,7 +16,8 @@
 
 namespace chrono {
 
-ChHydraulicActuatorBase::ChHydraulicActuatorBase() : pP(7.6e6), pT(0.1e6), m_is_attached(false) {}
+ChHydraulicActuatorBase::ChHydraulicActuatorBase()
+    : pP(7.6e6), pT(0.1e6), is_attached(false), calculate_consistent_IC(false) {}
 
 void ChHydraulicActuatorBase::SetPressures(double pump_pressure, double tank_pressure) {
     pP = pump_pressure;
@@ -31,11 +32,16 @@ void ChHydraulicActuatorBase::SetActuatorInitialLength(double len) {
 
 void ChHydraulicActuatorBase::SetActuatorLength(double len, double vel) {
     // Do nothing if not attached to bodies
-    if (m_is_attached)
+    if (is_attached)
         return;
 
     s = len;
     sd = vel;
+}
+
+void ChHydraulicActuatorBase::SetInitialLoad(double F0) {
+    this->calculate_consistent_IC = true;
+    this->F0 = F0;
 }
 
 void ChHydraulicActuatorBase::Initialize() {
@@ -51,7 +57,7 @@ void ChHydraulicActuatorBase::Initialize(std::shared_ptr<ChBody> body1,  // firs
                                          ChVector<> loc1,                // location of connection point on body 1
                                          ChVector<> loc2                 // location of connection point on body 2
 ) {
-    m_is_attached = true;
+    is_attached = true;
 
     // Call base initialization
     Initialize();
@@ -102,7 +108,7 @@ void ChHydraulicActuatorBase::Update(double time, bool update_assets) {
 
     // If the actuator is attached to bodies, update its length and rate from the body states
     // and calculate the generated force to the two bodies.
-    if (m_is_attached) {
+    if (is_attached) {
         m_aloc1 = m_body1->TransformPointLocalToParent(m_loc1);
         m_aloc2 = m_body2->TransformPointLocalToParent(m_loc2);
 
@@ -141,7 +147,7 @@ void ChHydraulicActuatorBase::IntLoadResidual_F(const unsigned int off, ChVector
     // Load external dynamics
     ChExternalDynamics::IntLoadResidual_F(off, R, c);
 
-    if (m_is_attached) {
+    if (is_attached) {
         // Add forces to connected bodies (calculated in Update)
         if (m_body1->Variables().IsActive()) {
             R.segment(m_body1->Variables().GetOffset() + 0, 3) += c * m_Qforce.segment(0, 3);
@@ -214,7 +220,17 @@ bool ChHydraulicActuator2::CalculateJac(double time,                   // curren
 void ChHydraulicActuator2::OnInitialize(const double2& cyl_p0, const double2& cyl_L0, double dvalve_U0) {
     pc0 = cyl_p0;
     U0 = dvalve_U0;
-    //// TODO: Change pc0 and U0 so that it is consistent with cylinder L_0?
+
+    if (!calculate_consistent_IC)
+        return;
+
+    // Change pc0 and U0 so that it is consistent with cylinder L0.
+    // Solve for U0 and pc0 from the following non-linear system:
+    //   A * (p1 - p2) = F0
+    //   dp1/dt = 0
+    //   dp2/dt = 0
+
+    //// TODO
 }
 
 double ChHydraulicActuator2::ExtractValveSpoolPosition() const {
@@ -317,7 +333,11 @@ bool ChHydraulicActuator3::CalculateJac(double time,                   // curren
 void ChHydraulicActuator3::OnInitialize(const double2& cyl_p0, const double2& cyl_L0, double dvalve_U0) {
     pc0 = cyl_p0;
     U0 = dvalve_U0;
-    //// TODO: Change pc0 and U0 so that it is consistent with cylinder L_0?
+
+    if (!calculate_consistent_IC)
+        return;
+
+    //// TODO: Change pc0 and U0 so that it is consistent with cylinder L_0
 }
 
 double ChHydraulicActuator3::ExtractValveSpoolPosition() const {

@@ -65,14 +65,23 @@ class Crane {
         m_point_ground = ChVector<>(std::sqrt(3) / 2, 0, 0);
         m_point_crane = ChVector<>(0, 0, 0);
 
+        double crane_mass = 500;
         double crane_length = 1.0;
         double crane_angle = CH_C_PI / 6;
         ChVector<> crane_pos(0.5 * crane_length * std::cos(crane_angle), 0, 0.5 * crane_length * std::sin(crane_angle));
 
         double pend_length = 0.3;
+        double pend_mass = 100;
+        ChVector<> pend_pos = 2.0 * crane_pos + ChVector<>(0, 0, -pend_length);
 
         auto connection_sph = chrono_types::make_shared<ChSphereShape>(0.02);
         connection_sph->SetColor(ChColor(0.7f, 0.3f, 0.3f));
+
+        // Estimate initial required force (moment balance about crane pivot)
+        auto Gacc = sys.Get_G_acc();
+        auto Gtorque = Vcross(crane_mass * Gacc, crane_pos) + Vcross(pend_mass * Gacc, pend_pos);
+        auto dir = (crane_pos - m_point_ground).GetNormalized();
+        m_F0 = Gtorque.Length() / Vcross(dir, crane_pos).Length();
 
         // Create bodies
         auto ground = chrono_types::make_shared<ChBody>();
@@ -82,7 +91,7 @@ class Crane {
         sys.AddBody(ground);
 
         m_crane = chrono_types::make_shared<ChBody>();
-        m_crane->SetMass(500);
+        m_crane->SetMass(crane_mass);
         m_crane->SetPos(crane_pos);
         m_crane->SetRot(Q_from_AngY(-crane_angle));
         m_crane->AddVisualShape(connection_sph, ChFrame<>(m_point_crane, QUNIT));
@@ -92,8 +101,8 @@ class Crane {
         sys.AddBody(m_crane);
 
         auto ball = chrono_types::make_shared<ChBody>();
-        ball->SetMass(100);
-        ball->SetPos(2.0 * crane_pos + ChVector<>(0, 0, -pend_length));
+        ball->SetMass(pend_mass);
+        ball->SetPos(pend_pos);
         auto ball_sph = chrono_types::make_shared<ChSphereShape>(0.04);
         ball->AddVisualShape(ball_sph);
         auto ball_cyl = chrono_types::make_shared<ChCylinderShape>(0.005, pend_length);
@@ -133,6 +142,8 @@ class Crane {
         GetActuatorLength(s, sd);
         m_csv << 0 << s << sd << std::endl;
     }
+
+    double GetInitialLoad() const { return m_F0; }
 
     void GetActuatorLength(double& s, double& sd) const {
         const auto& P1 = m_point_ground;
@@ -174,12 +185,13 @@ class Crane {
     std::shared_ptr<ChLoadBodyForce> m_external_load;
     ChVector<> m_point_ground;
     ChVector<> m_point_crane;
+    double m_F0;
     utils::CSV_writer m_csv;
 };
 
 class Actuator {
     public:
-      Actuator(ChSystem& sys, double s0) : m_sys(sys) {
+      Actuator(ChSystem& sys, double s0, double F0) : m_sys(sys) {
         m_actuation = chrono_types::make_shared<ChFunction_Setpoint>();
 
         // Construct the hydraulic actuator
@@ -189,6 +201,7 @@ class Actuator {
         m_actuator->Cylinder().SetInitialChamberPressures(3.3e6, 4.4e6);
         m_actuator->DirectionalValve().SetInitialSpoolPosition(0);
         m_actuator->SetActuatorInitialLength(s0);
+        m_actuator->SetInitialLoad(F0);
         m_actuator->Initialize();
         sys.Add(m_actuator);
 
@@ -259,9 +272,10 @@ int main(int argc, char* argv[]) {
     Crane crane(sysMBS); 
     double s0, sd0;
     crane.GetActuatorLength(s0, sd0);
+    double F0 = crane.GetInitialLoad();
 
     // Construct the hydraulic actuator system
-    Actuator actuator(sysHYD, s0);
+    Actuator actuator(sysHYD, s0, F0);
 
     // Hydraulic actuation
     auto f_segment = chrono_types::make_shared<ChFunction_Sequence>();
