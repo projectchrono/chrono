@@ -130,11 +130,11 @@ class Crane {
         // Initialize output
         m_csv.set_delim(" ");
         double s, sd;
-        GetActuatorLength(0, s, sd);
+        GetActuatorLength(s, sd);
         m_csv << 0 << s << sd << std::endl;
     }
 
-    void GetActuatorLength(double time, double& s, double& sd) const {
+    void GetActuatorLength(double& s, double& sd) const {
         const auto& P1 = m_point_ground;
         const auto& V1 = VNULL;
 
@@ -147,7 +147,7 @@ class Crane {
         sd = Vdot(dir, V2 - V1);
     }
 
-    void SetActuatorForce(double time, double f) {
+    void SetActuatorForce(double f) {
         const auto& P1 = m_point_ground;
         auto P2 = m_crane->TransformPointLocalToParent(m_point_crane);
         ChVector<> dir = (P2 - P1).GetNormalized();
@@ -162,7 +162,7 @@ class Crane {
         double time = m_sys.GetChTime();
 
         double s, sd;
-        GetActuatorLength(time, s, sd);
+        GetActuatorLength(s, sd);
         m_csv << time << s << sd << std::endl;
     }
 
@@ -209,27 +209,24 @@ class Actuator {
 
         // Initialize output
         m_csv.set_delim(" ");
-        Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, "  ", "  ", "", "", "", "");
-        ChVectorDynamic<> y(2);
-        y = m_actuator->GetInitialStates();
-        m_csv << 0.0 << 0.0 << y.format(rowFmt) << std::endl;
       }
 
       void SetActuation(double time, double Uref) { m_actuation->SetSetpoint(Uref, time); }
 
-      double GetActuatorForce(double time) const { return m_actuator->GetActuatorForce(time); }
-      void SetActuatorLength(double time, double s, double sd) { m_actuator->SetActuatorLength(time, s, sd); }
+      void SetActuatorLength(double s, double sd) { m_actuator->SetActuatorLength(s, sd); }
+      double GetActuatorForce() const { return m_actuator->GetActuatorForce(); }
 
       void Advance(double step) {
         m_sys.DoStepDynamics(step);
         double time = m_sys.GetChTime();
 
         Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, "  ", "  ", "", "", "", "");
-        ChVectorDynamic<> y(2);
-        y = m_actuator->GetStates();
-        auto F = m_actuator->GetActuatorForce(time);
-        
-        m_csv << time << F << y.format(rowFmt) << std::endl;
+        auto Uref = m_actuation->Get_y(time);
+        auto U = m_actuator->GetValvePosition();
+        auto p = m_actuator->GetCylinderPressures();
+        auto F = m_actuator->GetActuatorForce();
+
+        m_csv << time << Uref << U << p[0] << p[1] << F << std::endl;
       }
 
       void WriteOutput(const std::string& filename) { m_csv.write_to_file(filename); }
@@ -261,7 +258,7 @@ int main(int argc, char* argv[]) {
     // Construct the crane multibody system
     Crane crane(sysMBS); 
     double s0, sd0;
-    crane.GetActuatorLength(0, s0, sd0);
+    crane.GetActuatorLength(s0, sd0);
 
     // Construct the hydraulic actuator system
     Actuator actuator(sysHYD, s0);
@@ -333,7 +330,6 @@ int main(int argc, char* argv[]) {
     double t_end = 100;
     double t_step = 5e-4;
     double t = 0;
-    ChVectorDynamic<> y(2);
 
     while (vis->Run()) {
         if (t > t_end)
@@ -349,10 +345,10 @@ int main(int argc, char* argv[]) {
 
         // Exchange information between systems
         double s, sd;
-        crane.GetActuatorLength(t, s, sd);
-        double f = actuator.GetActuatorForce(t);
-        crane.SetActuatorForce(t, f);
-        actuator.SetActuatorLength(t, s, sd);
+        crane.GetActuatorLength(s, sd);
+        double f = actuator.GetActuatorForce();
+        crane.SetActuatorForce(f);
+        actuator.SetActuatorLength(s, sd);
 
         // Advance dynamics of both systems
         crane.Advance(t_step);
@@ -385,7 +381,17 @@ int main(int argc, char* argv[]) {
         gplot.SetLabelX("time");
         gplot.SetLabelY("U");
         gplot.SetTitle("Hydro Input");
-        gplot.Plot(out_file_actuator, 1, 3, "U", " with lines lt -1 lw 2");
+        gplot.Plot(out_file_actuator, 1, 2, "ref", " with lines lt -1 lw 2");
+        gplot.Plot(out_file_actuator, 1, 3, "U", " with lines lt 1 lw 2");
+    }
+    {
+        postprocess::ChGnuPlot gplot(out_dir + "/hydro_pressure.gpl");
+        gplot.SetGrid();
+        gplot.SetLabelX("time");
+        gplot.SetLabelY("p");
+        gplot.SetTitle("Hydro Pressures");
+        gplot.Plot(out_file_actuator, 1, 4, "p0", " with lines lt 1 lw 2");
+        gplot.Plot(out_file_actuator, 1, 5, "p1", " with lines lt 2 lw 2");
     }
     {
         postprocess::ChGnuPlot gplot(out_dir + "/hydro_force.gpl");
@@ -393,7 +399,7 @@ int main(int argc, char* argv[]) {
         gplot.SetLabelX("time");
         gplot.SetLabelY("F");
         gplot.SetTitle("Hydro Force");
-        gplot.Plot(out_file_actuator, 1, 2, "F", " with lines lt -1 lw 2");
+        gplot.Plot(out_file_actuator, 1, 6, "F", " with lines lt -1 lw 2");
     }
 #endif
 

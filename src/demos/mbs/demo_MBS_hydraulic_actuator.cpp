@@ -86,11 +86,11 @@ int main(int argc, char* argv[]) {
     csv << t << 0 << y0.format(rowFmt) << std::endl;
 
     while (t < t_end) {
-        actuator->SetActuatorLength(t, 0.5, 0.0);
+        actuator->SetActuatorLength(0.5, 0.0);
         sys.DoStepDynamics(t_step);
         t += t_step;
 
-        auto F = actuator->GetActuatorForce(t);
+        auto F = actuator->GetActuatorForce();
         auto y = actuator->GetStates();
         csv << t << F << y.format(rowFmt) << std::endl;
         std::cout << t << " " << F << " " << y.format(rowFmt) << std::endl;

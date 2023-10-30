@@ -213,12 +213,9 @@ int main(int argc, char* argv[]) {
     double t_end = 100;
     double t_step = 5e-4;
     double t = 0;
-    ChVectorDynamic<> y(2);
 
     Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, "  ", "  ", "", "", "", "");
     utils::CSV_writer csv(" ");
-    y = actuator->GetInitialStates();
-    csv << t << 0 << y.format(rowFmt) << std::endl;
 
     while (vis->Run()) {
         if (t > t_end)
@@ -228,13 +225,13 @@ int main(int argc, char* argv[]) {
         vis->Render();
         vis->EndScene();
 
-        actuator->SetActuatorLength(t, 0.5, 0.0);
         sys.DoStepDynamics(t_step);
-        auto F = actuator->GetActuatorForce(t);
+        auto Uref = actuation->Get_y(t);
+        auto U = actuator->GetValvePosition();
+        auto p = actuator->GetCylinderPressures();
+        auto F = actuator->GetActuatorForce();
 
-        y = actuator->GetStates();
-        csv << t << F << y.format(rowFmt) << std::endl;
-        ////std::cout << t << " " << F << " " << y.format(rowFmt) << std::endl;
+        csv << t << Uref << U << p[0] << p[1] << F << std::endl;
         t += t_step;
     }
 
@@ -246,17 +243,27 @@ int main(int argc, char* argv[]) {
         postprocess::ChGnuPlot gplot(out_dir + "/hydro_input.gpl");
         gplot.SetGrid();
         gplot.SetLabelX("time");
-        gplot.SetLabelY("Y");
+        gplot.SetLabelY("U");
         gplot.SetTitle("Hydro Input");
-        gplot.Plot(out_file, 1, 3, "U", " with lines lt -1 lw 2");
+        gplot.Plot(out_file, 1, 2, "ref", " with lines lt -1 lw 2");
+        gplot.Plot(out_file, 1, 3, "U", " with lines lt 1 lw 2");
+    }
+    {
+        postprocess::ChGnuPlot gplot(out_dir + "/hydro_pressure.gpl");
+        gplot.SetGrid();
+        gplot.SetLabelX("time");
+        gplot.SetLabelY("p");
+        gplot.SetTitle("Hydro Pressures");
+        gplot.Plot(out_file, 1, 4, "p0", " with lines lt 1 lw 2");
+        gplot.Plot(out_file, 1, 5, "p1", " with lines lt 2 lw 2");
     }
     {
         postprocess::ChGnuPlot gplot(out_dir + "/hydro_force.gpl");
         gplot.SetGrid();
         gplot.SetLabelX("time");
-        gplot.SetLabelY("Y");
+        gplot.SetLabelY("F");
         gplot.SetTitle("Hydro Force");
-        gplot.Plot(out_file, 1, 2, "F", " with lines lt -1 lw 2");
+        gplot.Plot(out_file, 1, 6, "F", " with lines lt -1 lw 2");
     }
 #endif
 }

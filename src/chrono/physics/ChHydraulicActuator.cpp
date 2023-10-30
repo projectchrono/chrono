@@ -29,7 +29,7 @@ void ChHydraulicActuatorBase::SetActuatorInitialLength(double len) {
     sd = 0;
 }
 
-void ChHydraulicActuatorBase::SetActuatorLength(double t, double len, double vel) {
+void ChHydraulicActuatorBase::SetActuatorLength(double len, double vel) {
     // Do nothing if not attached to bodies
     if (m_is_attached)
         return;
@@ -78,8 +78,17 @@ void ChHydraulicActuatorBase::Initialize(std::shared_ptr<ChBody> body1,  // firs
     m_Qforce.resize(12);
 }
 
-double ChHydraulicActuatorBase::GetActuatorForce(double t) {
-    double2 p = GetCylinderPressure();
+double ChHydraulicActuatorBase::GetValvePosition() {
+    return ExtractValveSpoolPosition();
+}
+
+std::array<double, 2> ChHydraulicActuatorBase::GetCylinderPressures() {
+    double2 p = ExtractCylinderPressures();
+    return {p.first, p.second};
+}
+
+double ChHydraulicActuatorBase::GetActuatorForce() {
+    double2 p = ExtractCylinderPressures();
     return cyl.EvalForce(p, s - s_0, sd);
 }
 
@@ -108,7 +117,7 @@ void ChHydraulicActuatorBase::Update(double time, bool update_assets) {
         ////std::cout << "time = " << time << "    s=" << s << "   sd=" << sd << std::endl;
 
         // Actuator force
-        auto f = GetActuatorForce(time);
+        auto f = GetActuatorForce();
         ChVector<> force = f * dir;
 
         // Force and moment acting on body 1
@@ -208,7 +217,12 @@ void ChHydraulicActuator2::OnInitialize(const double2& cyl_p0, const double2& cy
     //// TODO: Change pc0 and U0 so that it is consistent with cylinder L_0?
 }
 
-double2 ChHydraulicActuator2::GetCylinderPressure() const {
+double ChHydraulicActuator2::ExtractValveSpoolPosition() const {
+    const auto& y = GetStates();
+    return y(0);
+}
+
+double2 ChHydraulicActuator2::ExtractCylinderPressures() const {
     const auto& y = GetStates();
     return double2(y(1), y(2));
 }
@@ -306,7 +320,12 @@ void ChHydraulicActuator3::OnInitialize(const double2& cyl_p0, const double2& cy
     //// TODO: Change pc0 and U0 so that it is consistent with cylinder L_0?
 }
 
-double2 ChHydraulicActuator3::GetCylinderPressure() const {
+double ChHydraulicActuator3::ExtractValveSpoolPosition() const {
+    const auto& y = GetStates();
+    return y(0);
+}
+
+double2 ChHydraulicActuator3::ExtractCylinderPressures() const {
     const auto& y = GetStates();
     return double2(y(1), y(2));
 }

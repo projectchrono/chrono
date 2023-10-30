@@ -89,7 +89,7 @@ class ChApi ChHydraulicCylinder {
     friend class ChHydraulicActuatorBase;
 };
 
-/// ChHydraulicDirectionalValve4x3 - a computational model of 4 / 3 directional valve
+/// ChHydraulicDirectionalValve4x3 - a computational model of 4/3 directional valve
 /// Schematic:
 /// <pre>
 ///
