@@ -20,39 +20,39 @@ namespace chrono {
 
 ChHydraulicCylinder::ChHydraulicCylinder()
     : pistonD(0.08), rodD(0.035), p0({3.3e6, 4.4e6}), L0({0.15, 0.15}), length_exceeded(false) {
-    pistonL = L0.first + L0.second;
-    A.first = CH_C_PI * pistonD * pistonD / 4;
-    A.second = A.first - CH_C_PI * rodD * rodD / 4;
+    pistonL = L0(0) + L0(1);
+    A(0) = CH_C_PI * pistonD * pistonD / 4;
+    A(1) = A(0) - CH_C_PI * rodD * rodD / 4;
 }
 
 void ChHydraulicCylinder::SetDimensions(double piston_diameter, double rod_diameter) {
     pistonD = piston_diameter;
     rodD = rod_diameter;
 
-    A.first = CH_C_PI * pistonD * pistonD / 4;
-    A.second = A.first - CH_C_PI * rodD * rodD / 4;
+    A(0) = CH_C_PI * pistonD * pistonD / 4;
+    A(1) = A(0) - CH_C_PI * rodD * rodD / 4;
 }
 
 void ChHydraulicCylinder::SetInitialChamberLengths(double piston_side, double rod_side) {
-    L0.first = piston_side;
-    L0.second = rod_side;
+    L0(0) = piston_side;
+    L0(1) = rod_side;
     pistonL = piston_side + rod_side;
 }
 
 void ChHydraulicCylinder::SetInitialChamberPressures(double pison_side, double rod_side) {
-    p0.first = pison_side;
-    p0.second = rod_side;
+    p0(0) = pison_side;
+    p0(1) = rod_side;
 }
 
-double2 ChHydraulicCylinder::ComputeChamberLengths(double Delta_s) const {
-    return double2(L0.first + Delta_s, L0.second - Delta_s);
+Vec2 ChHydraulicCylinder::ComputeChamberLengths(double Delta_s) const {
+    return Vec2(L0(0) + Delta_s, L0(1) - Delta_s);
 }
 
-double2 ChHydraulicCylinder::ComputeChamberVolumes(const double2& L) const {
-    return double2(A.first * L.first, A.second * L.second);
+Vec2 ChHydraulicCylinder::ComputeChamberVolumes(const Vec2& L) const {
+    return Vec2(A(0) * L(0), A(1) * L(1));
 }
 
-double ChHydraulicCylinder::EvalForce(const double2& p, double Delta_s, double sd) {
+double ChHydraulicCylinder::EvalForce(const Vec2& p, double Delta_s, double sd) {
     double c = 1e5;
     double k_end_damper = 1e7;
     double c_end_damper = 5e3;
@@ -62,34 +62,40 @@ double ChHydraulicCylinder::EvalForce(const double2& p, double Delta_s, double s
     length_exceeded = false;
     double force_end_damper = 0;
 
-    if (L.first <= length_end_damper) {
-        // When l1 is approaching zero, this end damper needs to increase the cylinder force, and,
+    if (L(0) <= length_end_damper) {
+        // When l(0) is approaching zero, this end damper needs to increase the cylinder force, and,
         // thus it needs to have a positive sign.
-        force_end_damper = k_end_damper * (length_end_damper - L.first) - c_end_damper * sd;
+        force_end_damper = k_end_damper * (length_end_damper - L(0)) - c_end_damper * sd;
         length_exceeded = true;
-    } else if (L.second <= length_end_damper) {
+    } else if (L(1) <= length_end_damper) {
         // Here, in turn, a negative force is required.
-        force_end_damper = -k_end_damper * (length_end_damper - L.second) - c_end_damper * sd;
+        force_end_damper = -k_end_damper * (length_end_damper - L(1)) - c_end_damper * sd;
         length_exceeded = true;
     }
 
-    return (p.first * A.first - p.second * A.second) - sd * c + force_end_damper;
+    return (p(0) * A(0) - p(1) * A(1)) - sd * c + force_end_damper;
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-ChHydraulicDirectionalValve4x3::ChHydraulicDirectionalValve4x3()
-    : linear_limit(2e5), dead_zone(0.1e-5), fm45(35), U0(0) {
-    Cv = (12.0 / 6e4) / (10 * std::sqrt(35e5));  //// TODO: magic number!?!
+ChHydraulicDirectionalValve4x3::ChHydraulicDirectionalValve4x3() : linear_limit(2e5), dead_zone(0.1e-5), U0(0) {
+    // Flow rate constant corresponding to a nominal flow of 24 l/min with a pressure difference of 35 bar
+    Cv = (24e-3 / 60) / (1.0 * std::sqrt(35e5));
+    // Valve time constant corresponding to a -45 degree phase shift frequency of 35 Hz
+    time_constant = 1 / (CH_C_2PI * 35);
+}
+
+void ChHydraulicDirectionalValve4x3::SetCharacteristicParameters(double linear_limit, double Q, double dp) {
+    this->linear_limit = linear_limit;
+    Cv = Q / std::sqrt(dp);
+}
+
+void ChHydraulicDirectionalValve4x3::SetTimeConstantFrequency(double fm45) {
     time_constant = 1 / (CH_C_2PI * fm45);
 }
 
-void ChHydraulicDirectionalValve4x3::SetParameters(double linear_limit, double dead_zone, double fm45) {
-    this->linear_limit = linear_limit;
+void ChHydraulicDirectionalValve4x3::SetValveDeadZone(double dead_zone) {
     this->dead_zone = dead_zone;
-    this->fm45 = fm45;
-
-    time_constant = 1 / (CH_C_2PI * fm45);
 }
 
 void ChHydraulicDirectionalValve4x3::SetInitialSpoolPosition(double U) {
@@ -100,57 +106,56 @@ double ChHydraulicDirectionalValve4x3::EvaluateSpoolPositionRate(double t, doubl
     return (Uref - U) / time_constant;
 }
 
-double2 ChHydraulicDirectionalValve4x3::ComputeVolumeFlows(double p1, double p2, double p3, double p4, double U) {
-    double QV3 = 0;
-    double Q2V = 0;
+Vec2 ChHydraulicDirectionalValve4x3::ComputeVolumeFlows(double U, const Vec2& p, double pP, double pT) {
+    double Q0 = 0;
+    double Q1 = 0;
 
-    if (U >= dead_zone) {  // -------------------------------- p1 & p4, and p2 & p3 connected
+    // In the linear regime:
+    //    1. Compute flow at the limit between laminar and tubulent models.
+    //       Assume positive sign.
+    //    2. Compute the actual flow as a factor of the flow at the limit.
+    //       Sign of Delta_p defines sign of the volume flow.
+    // In the turbulent regime:
+    //    1. Use quadratic characteristic. 
+    //       Sign of Delta_p defines sign of the volume flow.
 
-        if (std::abs(p1 - p4) < linear_limit) {
-            // Linearized model for laminar flow
-
-            // Step 1: Compute flow at the limit between laminar and tubulent models.
-            // Assume positive sign.
-            double QV3at2bar = Cv * std::abs(U) * std::sqrt(linear_limit);
-
-            // Step 2: Compute the actual flow as a factor of the flow at the limit.
-            // Sign of (p1 - p4) defines sign of the volume flow.
-            QV3 = QV3at2bar * (p1 - p4) / linear_limit;
+    if (U >= dead_zone) {
+        // pP <-> p(0) and pT <-> p(1) connected
+        if (std::abs(pP - p(0)) < linear_limit) {
+            double Q0limit = Cv * std::abs(U) * std::sqrt(linear_limit);
+            Q0 = Q0limit * (pP - p(0)) / linear_limit;
         } else {
-            // Turbulent volume flow
-            QV3 = Cv * U * std::copysign(1.0, p1 - p4) * std::sqrt(std::abs(p1 - p4));
+            Q0 = Cv * U * std::copysign(1.0, pP - p(0)) * std::sqrt(std::abs(pP - p(0)));
         }
 
-        if (std::abs(p3 - p2) < linear_limit) {
-            double Q2Vat2bar = Cv * std::abs(U) * std::sqrt(linear_limit);
-            Q2V = ((p3 - p2) / linear_limit) * Q2Vat2bar;
+        if (std::abs(p(1) - pT) < linear_limit) {
+            double Q1limit = Cv * std::abs(U) * std::sqrt(linear_limit);
+            Q1 = ((p(1) - pT) / linear_limit) * Q1limit;
         } else {
-            Q2V = Cv * U * std::copysign(1.0, p3 - p2) * std::sqrt(std::abs(p3 - p2));
+            Q1 = Cv * U * std::copysign(1.0, p(1) - pT) * std::sqrt(std::abs(p(1) - pT));
+        }
+    } else if (U <= -dead_zone) {
+        // pP <-> p(1) and pT <-> p(0) connected
+        if (std::abs(p(0) - pT) < linear_limit) {
+            double Q0limit = -Cv * std::abs(U) * std::sqrt(linear_limit);
+            Q0 = Q0limit * (p(0) - pT) / linear_limit;
+        } else {
+            Q0 = Cv * U * std::copysign(1.0, p(0) - pT) * std::sqrt(std::abs(p(0) - pT));
         }
 
-    } else if (-dead_zone < U && U < dead_zone) {  // -------- valve is shut, no volume flows are allowed
-
-        QV3 = 0;
-        Q2V = 0;
-
-    } else {  // (U <= -dead_zone) -------------------------- p1 & p3, and p2 & p4 connected
-
-        if (std::abs(p4 - p2) < linear_limit) {
-            double QV3at2bar = -Cv * std::abs(U) * std::sqrt(linear_limit);
-            QV3 = QV3at2bar * (p4 - p2) / linear_limit;
+        if (std::abs(pP - p(1)) < linear_limit) {
+            double Q1limit = -Cv * std::abs(U) * std::sqrt(linear_limit);
+            Q1 = Q1limit * (pP - p(1)) / linear_limit;
         } else {
-            QV3 = Cv * U * std::copysign(1.0, p4 - p2) * std::sqrt(std::abs(p4 - p2));
+            Q1 = Cv * U * std::copysign(1.0, pP - p(1)) * std::sqrt(std::abs(pP - p(1)));
         }
-
-        if (std::abs(p1 - p3) < linear_limit) {
-            double Q2Vat2bar = -Cv * std::abs(U) * std::sqrt(linear_limit);
-            Q2V = Q2Vat2bar * (p1 - p3) / linear_limit;
-        } else {
-            Q2V = Cv * U * std::copysign(1.0, p1 - p3) * std::sqrt(std::abs(p1 - p3));
-        }
+    } else {
+        // valve is shut, no volume flows are allowed
+        Q0 = 0;
+        Q1 = 0;
     }
 
-    return double2(QV3, Q2V);
+    return Vec2(Q0, Q1);
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
