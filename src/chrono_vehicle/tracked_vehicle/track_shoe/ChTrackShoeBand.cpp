@@ -18,8 +18,8 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/core/ChGlobal.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
@@ -168,17 +168,17 @@ ChColor ChTrackShoeBand::GetColor(size_t index) {
 void ChTrackShoeBand::AddShoeVisualization() {
     // Guide pin
     ChVector<> g_loc(GetGuideBoxOffsetX(), 0, GetWebThickness() / 2 + GetGuideBoxDimensions().z() / 2);
-    auto box_pin = chrono_types::make_shared<ChBoxShape>(GetGuideBoxDimensions());
+    auto box_pin = chrono_types::make_shared<ChVisualShapeBox>(GetGuideBoxDimensions());
     m_shoe->AddVisualShape(box_pin, ChFrame<>(g_loc));
 
     // Main box
     ChVector<> b_loc(0, 0, 0);
-    auto box_main = chrono_types::make_shared<ChBoxShape>(GetToothBaseLength(), GetBeltWidth(), GetWebThickness());
+    auto box_main = chrono_types::make_shared<ChVisualShapeBox>(GetToothBaseLength(), GetBeltWidth(), GetWebThickness());
     m_shoe->AddVisualShape(box_main, ChFrame<>(b_loc));
 
     // Pad box
     ChVector<> t_loc(0, 0, (-GetWebThickness() - GetTreadThickness()) / 2);
-    auto box_tread = chrono_types::make_shared<ChBoxShape>(GetTreadLength(), GetBeltWidth(), GetTreadThickness());
+    auto box_tread = chrono_types::make_shared<ChVisualShapeBox>(GetTreadLength(), GetBeltWidth(), GetTreadThickness());
     m_shoe->AddVisualShape(box_tread, ChFrame<>(t_loc));
 
     // Connection to first web segment
@@ -253,7 +253,7 @@ int ChTrackShoeBand::ProfilePoints(std::vector<ChVector2<>>& points, std::vector
     return (int)points.size();
 }
 
-std::shared_ptr<ChTriangleMeshShape> ChTrackShoeBand::ToothMesh(double y) {
+std::shared_ptr<ChVisualShapeTriangleMesh> ChTrackShoeBand::ToothMesh(double y) {
     // Obtain profile points.
     std::vector<ChVector2<>> points2;
     std::vector<ChVector2<>> normals2;
@@ -333,7 +333,7 @@ std::shared_ptr<ChTriangleMeshShape> ChTrackShoeBand::ToothMesh(double y) {
         it++;
     }
 
-    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+    auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName(GetTreadVisualizationMeshName());
     return trimesh_shape;

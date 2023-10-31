@@ -21,7 +21,7 @@
 #include <cstdio>
 #include <iomanip>
 
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/assets/ChVisualMaterial.h"
 #include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
     ChMatrix33<> principal_inertia_rot;
     ChVector<> principal_I;
     ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
-    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+    auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(mmesh);
     trimesh_shape->SetName("Mesh");
     trimesh_shape->SetMutable(false);

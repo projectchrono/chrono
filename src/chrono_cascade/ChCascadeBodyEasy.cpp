@@ -78,7 +78,7 @@ void ChCascadeBodyEasy::Init(TopoDS_Shape& shape,
         auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
         ChCascadeMeshTools::fillTriangleMeshFromCascade(*trimesh, topods_shape, *vis_params);
 
-        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         this->AddVisualShape(trimesh_shape);
 
@@ -163,7 +163,7 @@ void ChCascadeBodyEasyProfile::UpdateCollisionAndVisualizationShapes() {
             auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
             ChCascadeMeshTools::fillTriangleMeshFromCascade(*trimesh, prism, *face.visualization);
 
-            auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+            auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
             trimesh_shape->SetMesh(trimesh);
             this->AddVisualShape(trimesh_shape);
         }

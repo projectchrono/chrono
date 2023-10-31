@@ -201,7 +201,7 @@ void CreateMeshes(ChSystemSMC& sys) {
 
     auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/sphere.obj"));
     trimesh->Transform(ChVector<>(0), ChMatrix33<>(2));
-    std::shared_ptr<ChTriangleMeshShape> vismesh(new ChTriangleMeshShape);
+    std::shared_ptr<ChVisualShapeTriangleMesh> vismesh(new ChVisualShapeTriangleMesh);
     vismesh->SetMesh(trimesh);
     vismesh->SetColor(ChColor(0.4f, 0, 0));
 

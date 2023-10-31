@@ -21,11 +21,11 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/ChVehicleGeometry.h"
 
-#include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/assets/ChModelFileShape.h"
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
+#include "chrono/assets/ChVisualShapeModelFile.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -93,7 +93,7 @@ std::shared_ptr<ChVisualShape> ChVehicleGeometry::AddVisualizationCylinder(std::
                                                                            double radius,
                                                                            ChVisualMaterialSharedPtr mat) {
     geometry::ChLineSegment seg(p1, p2);
-    auto cyl = chrono_types::make_shared<ChCylinderShape>(radius, seg.GetLength());
+    auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(radius, seg.GetLength());
     if (mat)
         cyl->AddMaterial(mat);
     body->AddVisualShape(cyl, seg.GetFrame());
@@ -113,22 +113,22 @@ void ChVehicleGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body,
 
     if (visualize_collision) {
         for (auto& sphere : m_coll_spheres) {
-            auto sphere_shape = chrono_types::make_shared<ChSphereShape>(sphere.m_radius);
+            auto sphere_shape = chrono_types::make_shared<ChVisualShapeSphere>(sphere.m_radius);
             body->AddVisualShape(sphere_shape, ChFrame<>(sphere.m_pos));
         }
 
         for (auto& box : m_coll_boxes) {
-            auto box_shape = chrono_types::make_shared<ChBoxShape>(box.m_dims);
+            auto box_shape = chrono_types::make_shared<ChVisualShapeBox>(box.m_dims);
             body->AddVisualShape(box_shape, ChFrame<>(box.m_pos, box.m_rot));
         }
 
         for (auto& cyl : m_coll_cylinders) {
-            auto cyl_shape = chrono_types::make_shared<ChCylinderShape>(cyl.m_radius, cyl.m_length);
+            auto cyl_shape = chrono_types::make_shared<ChVisualShapeCylinder>(cyl.m_radius, cyl.m_length);
             body->AddVisualShape(cyl_shape, ChFrame<>(cyl.m_pos, cyl.m_rot));
         }
 
         for (auto& mesh : m_coll_meshes) {
-            auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+            auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
             trimesh_shape->SetMesh(mesh.m_trimesh);
             trimesh_shape->SetMutable(false);
             body->AddVisualShape(trimesh_shape, ChFrame<>());
@@ -138,7 +138,7 @@ void ChVehicleGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body,
     }
 
     if (vis == VisualizationType::MESH && m_has_obj) {
-        auto obj_shape = chrono_types::make_shared<ChModelFileShape>();
+        auto obj_shape = chrono_types::make_shared<ChVisualShapeModelFile>();
         obj_shape->SetFilename(vehicle::GetDataFile(m_vis_mesh_file));
         body->AddVisualShape(obj_shape, ChFrame<>());
         return;
@@ -147,7 +147,7 @@ void ChVehicleGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body,
     if (vis == VisualizationType::MESH && m_has_mesh) {
         auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_vis_mesh_file),
                                                                                   true, true);
-        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(m_vis_mesh_file).stem());
         trimesh_shape->SetMutable(false);
@@ -171,25 +171,25 @@ void ChVehicleGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body,
         cyl_mat->SetDiffuseColor({m_color_cylinders.R, m_color_cylinders.G, m_color_cylinders.B});
 
         for (auto& sphere : m_vis_spheres) {
-            auto sphere_shape = chrono_types::make_shared<ChSphereShape>(sphere.m_radius);
+            auto sphere_shape = chrono_types::make_shared<ChVisualShapeSphere>(sphere.m_radius);
             sphere_shape->AddMaterial(sph_mat);
             body->AddVisualShape(sphere_shape, ChFrame<>(sphere.m_pos));
         }
 
         for (auto& box : m_vis_boxes) {
-            auto box_shape = chrono_types::make_shared<ChBoxShape>(box.m_dims);
+            auto box_shape = chrono_types::make_shared<ChVisualShapeBox>(box.m_dims);
             box_shape->AddMaterial(box_mat);
             body->AddVisualShape(box_shape, ChFrame<>(box.m_pos, box.m_rot));
         }
 
         for (auto& cyl : m_vis_cylinders) {
-            auto cyl_shape = chrono_types::make_shared<ChCylinderShape>(cyl.m_radius, cyl.m_length);
+            auto cyl_shape = chrono_types::make_shared<ChVisualShapeCylinder>(cyl.m_radius, cyl.m_length);
             cyl_shape->AddMaterial(cyl_mat);
             body->AddVisualShape(cyl_shape, ChFrame<>(cyl.m_pos, cyl.m_rot));
         }
 
         for (auto& line : m_vis_lines) {
-            auto line_shape = chrono_types::make_shared<ChLineShape>();
+            auto line_shape = chrono_types::make_shared<ChVisualShapeLine>();
             line_shape->SetLineGeometry(line.m_line);
             body->AddVisualShape(line_shape, ChFrame<>(line.m_pos, line.m_rot));
         }
@@ -313,14 +313,14 @@ void ChTSDAGeometry::CreateVisualizationAssets(std::shared_ptr<ChLinkTSDA> tsda,
     mat->SetDiffuseColor(m_color);
 
     if (m_vis_spring) {
-        auto spring_shape = chrono_types::make_shared<ChSpringShape>(m_vis_spring->m_radius, m_vis_spring->m_resolution,
+        auto spring_shape = chrono_types::make_shared<ChVisualShapeSpring>(m_vis_spring->m_radius, m_vis_spring->m_resolution,
                                                                      m_vis_spring->m_turns);
         spring_shape->AddMaterial(mat);
         tsda->AddVisualShape(spring_shape);
     }
 
     if (m_vis_segment) {
-        auto segment_shape = chrono_types::make_shared<ChSegmentShape>();
+        auto segment_shape = chrono_types::make_shared<ChVisualShapeSegment>();
         segment_shape->AddMaterial(mat);
         tsda->AddVisualShape(segment_shape);
     }

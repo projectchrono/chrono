@@ -55,7 +55,7 @@ class CH_MODELS_API MAN_5t_TMsimpleTire : public ChTMsimpleTire {
 
     static const std::string m_meshFile_left;
     static const std::string m_meshFile_right;
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
+    std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
 };
 
 /// @} vehicle_models_man

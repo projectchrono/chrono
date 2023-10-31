@@ -25,16 +25,16 @@
 #include <random>
 #include <cmath>
 
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono_vehicle/terrain/RandomSurfaceTerrain.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono/geometry/ChLineSegment.h"
 
-#include "chrono/assets/ChLineShape.h"
+#include "chrono/assets/ChVisualShapeLine.h"
 
 namespace chrono {
 namespace vehicle {
@@ -488,14 +488,14 @@ void RandomSurfaceTerrain::SetupVisualization(RandomSurfaceTerrain::Visualisatio
             auto np = m_road_left->getNumPoints();
             unsigned int num_render_points = std::max<unsigned int>(static_cast<unsigned int>(3 * np), 400);
             auto bezier_line_left = chrono_types::make_shared<geometry::ChLineBezier>(m_road_left);
-            auto bezier_asset_left = chrono_types::make_shared<ChLineShape>();
+            auto bezier_asset_left = chrono_types::make_shared<ChVisualShapeLine>();
             bezier_asset_left->SetLineGeometry(bezier_line_left);
             bezier_asset_left->SetNumRenderPoints(num_render_points);
             bezier_asset_left->SetName(m_curve_left_name);
             m_ground->AddVisualShape(bezier_asset_left);
 
             auto bezier_line_right = chrono_types::make_shared<geometry::ChLineBezier>(m_road_right);
-            auto bezier_asset_right = chrono_types::make_shared<ChLineShape>();
+            auto bezier_asset_right = chrono_types::make_shared<ChVisualShapeLine>();
             bezier_asset_right->SetLineGeometry(bezier_line_right);
             bezier_asset_right->SetNumRenderPoints(num_render_points);
             bezier_asset_right->SetName(m_curve_right_name);
@@ -507,7 +507,7 @@ void RandomSurfaceTerrain::SetupVisualization(RandomSurfaceTerrain::Visualisatio
         case RandomSurfaceTerrain::VisualisationType::MESH: {
             GenerateMesh();
 
-            auto vmesh = chrono_types::make_shared<ChTriangleMeshShape>();
+            auto vmesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
             vmesh->SetMesh(m_mesh);
             vmesh->SetMutable(false);
             vmesh->SetName("ISO_track");
@@ -541,7 +541,7 @@ void RandomSurfaceTerrain::SetupCollision() {
         ChVector<> loc(-m_start_length / 2, 0, m_height - thickness / 2);
         m_ground->GetCollisionModel()->AddBox(m_material, m_start_length, m_width, thickness, loc);
 
-        auto box = chrono_types::make_shared<ChBoxShape>(m_start_length, m_width, thickness);
+        auto box = chrono_types::make_shared<ChVisualShapeBox>(m_start_length, m_width, thickness);
         m_ground->AddVisualShape(box, ChFrame<>(loc));
     }
 

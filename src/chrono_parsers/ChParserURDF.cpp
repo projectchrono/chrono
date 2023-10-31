@@ -24,10 +24,10 @@
 
 #include "chrono_parsers/ChParserURDF.h"
 
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChModelFileShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeModelFile.h"
 
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLinkMotorLinearPosition.h"
@@ -243,22 +243,22 @@ std::shared_ptr<ChVisualShape> ChParserURDF::toChVisualShape(const urdf::Geometr
     switch (geometry->type) {
         case urdf::Geometry::BOX: {
             auto box = std::static_pointer_cast<urdf::Box>(geometry);
-            vis_shape = chrono_types::make_shared<ChBoxShape>(box->dim.x, box->dim.y, box->dim.z);
+            vis_shape = chrono_types::make_shared<ChVisualShapeBox>(box->dim.x, box->dim.y, box->dim.z);
             break;
         }
         case urdf::Geometry::CYLINDER: {
             auto cylinder = std::static_pointer_cast<urdf::Cylinder>(geometry);
-            vis_shape = chrono_types::make_shared<ChCylinderShape>(cylinder->radius, cylinder->length);
+            vis_shape = chrono_types::make_shared<ChVisualShapeCylinder>(cylinder->radius, cylinder->length);
             break;
         }
         case urdf::Geometry::SPHERE: {
             auto sphere = std::static_pointer_cast<urdf::Sphere>(geometry);
-            vis_shape = chrono_types::make_shared<ChSphereShape>(sphere->radius);
+            vis_shape = chrono_types::make_shared<ChVisualShapeSphere>(sphere->radius);
             break;
         }
         case urdf::Geometry::MESH: {
             auto mesh = std::static_pointer_cast<urdf::Mesh>(geometry);
-            auto modelfile_shape = chrono_types::make_shared<ChModelFileShape>();
+            auto modelfile_shape = chrono_types::make_shared<ChVisualShapeModelFile>();
             modelfile_shape->SetFilename(m_filepath + "/" + mesh->filename);
             vis_shape = modelfile_shape;
             break;

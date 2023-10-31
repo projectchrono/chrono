@@ -21,7 +21,7 @@
 #ifndef CH_TRACK_SHOE_BAND_H
 #define CH_TRACK_SHOE_BAND_H
 
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
@@ -138,7 +138,7 @@ class CH_VEHICLE_API ChTrackShoeBand : public ChTrackShoe {
   private:
     /// Utilities for creating the tooth visualization mesh.
     int ProfilePoints(std::vector<ChVector2<>>& points, std::vector<ChVector2<>>& normals);
-    std::shared_ptr<ChTriangleMeshShape> ToothMesh(double y);
+    std::shared_ptr<ChVisualShapeTriangleMesh> ToothMesh(double y);
 
     ChVector2<> m_center_p;       ///< center of (+x) arc, in tread body x-z plane
     ChVector2<> m_center_m;       ///< center of (-x) arc, in tread body x-z plane

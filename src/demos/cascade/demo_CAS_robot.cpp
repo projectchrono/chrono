@@ -22,7 +22,7 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono_cascade/ChCascadeBodyEasy.h"
 #include "chrono_cascade/ChCascadeDoc.h"
-#include "chrono_cascade/ChCascadeVisualShape.h"
+#include "chrono_cascade/ChVisualShapeCascade.h"
 #include "chrono/solver/ChSolverADMM.h"
 
 #ifdef CHRONO_IRRLICHT

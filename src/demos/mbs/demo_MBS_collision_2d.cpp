@@ -68,8 +68,8 @@ int main(int argc, char* argv[]) {
     mcoin->GetCollisionModel()->Add2Dpath(mat, mpathcoin, VNULL, ChMatrix33<>(1), 0.03);  // 0.03 thickness
     mcoin->GetCollisionModel()->BuildModel();
 
-    // For visualization:create a ChLineShape, a visualization asset for lines.
-    auto mcoinasset = chrono_types::make_shared<ChLineShape>();
+    // For visualization:create a ChVisualShapeLine, a visualization asset for lines.
+    auto mcoinasset = chrono_types::make_shared<ChVisualShapeLine>();
     mcoinasset->SetLineGeometry(mpathcoin);
     mcoin->AddVisualShape(mcoinasset);
 
@@ -99,8 +99,8 @@ int main(int argc, char* argv[]) {
     mhole->GetCollisionModel()->Add2Dpath(mat, mpathhole, VNULL, ChMatrix33<>(1), 0.03);  // 0.01 thickness
     mhole->GetCollisionModel()->BuildModel();
 
-    // Create a ChLineShape, a visualization asset for lines.
-    auto mholeasset = chrono_types::make_shared<ChLineShape>();
+    // Create a ChVisualShapeLine, a visualization asset for lines.
+    auto mholeasset = chrono_types::make_shared<ChVisualShapeLine>();
     mholeasset->SetLineGeometry(mpathhole);
     mhole->AddVisualShape(mholeasset);
 
@@ -172,8 +172,8 @@ int main(int argc, char* argv[]) {
     mgenevawheel->GetCollisionModel()->Add2Dpath(mat, mpathwheel);
     mgenevawheel->GetCollisionModel()->BuildModel();
 
-    // Create a ChLineShape, a visualization asset for lines.
-    auto mwheelasset = chrono_types::make_shared<ChLineShape>();
+    // Create a ChVisualShapeLine, a visualization asset for lines.
+    auto mwheelasset = chrono_types::make_shared<ChVisualShapeLine>();
     mwheelasset->SetLineGeometry(mpathwheel);
     mgenevawheel->AddVisualShape(mwheelasset);
 
@@ -209,11 +209,11 @@ int main(int argc, char* argv[]) {
     mcrank->GetCollisionModel()->Add2Dpath(mat, mpathcrankstopper);
     mcrank->GetCollisionModel()->BuildModel();
 
-    // Create a ChLineShape, a visualization asset for lines.
-    auto mcrankasset = chrono_types::make_shared<ChLineShape>();
+    // Create a ChVisualShapeLine, a visualization asset for lines.
+    auto mcrankasset = chrono_types::make_shared<ChVisualShapeLine>();
     mcrankasset->SetLineGeometry(mpathcrankpin);
     mcrank->AddVisualShape(mcrankasset);
-    auto mcrankasset2 = chrono_types::make_shared<ChLineShape>();
+    auto mcrankasset2 = chrono_types::make_shared<ChVisualShapeLine>();
     mcrankasset2->SetLineGeometry(mpathcrankstopper);
     mcrank->AddVisualShape(mcrankasset2);
 

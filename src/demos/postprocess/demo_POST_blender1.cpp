@@ -21,14 +21,14 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChCamera.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChModelFileShape.h"
-#include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeModelFile.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChGlyphs.h"
-#include "chrono/assets/ChLineShape.h"
+#include "chrono/assets/ChVisualShapeLine.h"
 #include "chrono/geometry/ChLineArc.h"
 #include "chrono/physics/ChParticleCloud.h"
 #include "chrono/physics/ChSystemNSC.h"
@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
     sys.Add(floor);
 
     // ==Asset== attach a 'box' shape.
-    auto boxfloor = chrono_types::make_shared<ChBoxShape>(20, 1, 20);
+    auto boxfloor = chrono_types::make_shared<ChVisualShapeBox>(20, 1, 20);
     boxfloor->SetColor(ChColor(0.3f, 0.3f, 0.6f));
     floor->AddVisualShape(boxfloor, ChFrame<>(ChVector<>(0, -1, 0)));
 
@@ -108,19 +108,19 @@ int main(int argc, char* argv[]) {
     sys.Add(body);
 
     // ==Asset== Attach a 'box' shape
-    auto mbox = chrono_types::make_shared<ChBoxShape>(0.4, 1.0, 0.2);
+    auto mbox = chrono_types::make_shared<ChVisualShapeBox>(0.4, 1.0, 0.2);
     body->AddVisualShape(mbox, ChFrame<>(ChVector<>(1, 0, 0)));
 
     // ==Asset== Attach a 'cylinder' shape
-    auto cyl = chrono_types::make_shared<ChCylinderShape>(0.3, 0.7);
+    auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.3, 0.7);
     body->AddVisualShape(cyl, ChFrame<>(ChVector<>(2, 0.15, 0), Q_from_AngX(CH_C_PI_2)));
-    body->AddVisualShape(chrono_types::make_shared<ChSphereShape>(0.03), ChFrame<>(ChVector<>(2, -0.2, 0), QUNIT));
-    body->AddVisualShape(chrono_types::make_shared<ChSphereShape>(0.03), ChFrame<>(ChVector<>(2, +0.5, 0), QUNIT));
+    body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03), ChFrame<>(ChVector<>(2, -0.2, 0), QUNIT));
+    body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03), ChFrame<>(ChVector<>(2, +0.5, 0), QUNIT));
     // ...here is an example on how to change the color:
     cyl->SetColor(ChColor(1.f, 0.8f, 0.f));
 
     // ==Asset== Attach a 'sphere' shape
-    auto sphere = chrono_types::make_shared<ChSphereShape>(0.5);
+    auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(0.5);
     body->AddVisualShape(sphere, ChFrame<>(ChVector<>(-1, 0, 0)));
 
     // ...btw here is an example on how to setup a material:
@@ -130,14 +130,14 @@ int main(int argc, char* argv[]) {
     sphere->AddMaterial(visual_material);
 
     // ==Asset== Attach a 'Wavefront mesh' asset, referencing a .obj file:
-    auto objmesh = chrono_types::make_shared<ChModelFileShape>();
+    auto objmesh = chrono_types::make_shared<ChVisualShapeModelFile>();
     objmesh->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
     objmesh->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
     body->AddVisualShape(objmesh, ChFrame<>(ChVector<>(0, 0, 2)));
 
     // ==Asset== Attach an array of boxes, each rotated to make a spiral
     for (int j = 0; j < 20; j++) {
-        auto smallbox = chrono_types::make_shared<ChBoxShape>(0.2, 0.2, 0.02);
+        auto smallbox = chrono_types::make_shared<ChVisualShapeBox>(0.2, 0.2, 0.02);
         smallbox->SetColor(ChColor(j * 0.05f, 1 - j * 0.05f, 0.0f));
         ChMatrix33<> rot(Q_from_AngY(j * 21 * CH_C_DEG_TO_RAD));
         ChVector<> pos = rot * ChVector<>(0.4, 0, 0) + ChVector<>(0, j * 0.02, 0);
@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
     // Note that triangle mesh can contain float or scalar properties, per-face or per-vertex: these will be
     // rendered using falsecolor color scales in Blender, selecting the desired property via the Chrono add-on GUI.
 
-    auto trimesh = chrono_types::make_shared<ChTriangleMeshShape>();
+    auto trimesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
       // ...four vertices
     trimesh->GetMesh()->getCoordsVertices() = std::vector<chrono::ChVector<>>{
         {2,1,0},
@@ -262,7 +262,7 @@ int main(int argc, char* argv[]) {
     body->AddVisualShape(glyphs_tensors);
 
     // ==Asset== Attach a line or a path (will be drawn as a line in 3D)
-    auto line = chrono_types::make_shared<ChLineShape>();
+    auto line = chrono_types::make_shared<ChVisualShapeLine>();
     auto my_arc = chrono_types::make_shared<geometry::ChLineArc>(ChCoordsys<>(ChVector<>(1, 2, 1.6)), 0.5, 0, CH_C_PI, true); // origin, rad, angle start&end
     line->SetLineGeometry(my_arc);
     line->SetColor(ChColor(1, 0.3, 0));
@@ -313,7 +313,7 @@ int main(int argc, char* argv[]) {
     
     //  ==Asset== Attach a 'sphere' shape asset.. it will be used as a sample
     // shape to display all particles when rendering in 3D!
-    auto sphereparticle = chrono_types::make_shared<ChSphereShape>(0.05);
+    auto sphereparticle = chrono_types::make_shared<ChVisualShapeSphere>(0.05);
     particles->AddVisualShape(sphereparticle);
 
     /// [Example 3]

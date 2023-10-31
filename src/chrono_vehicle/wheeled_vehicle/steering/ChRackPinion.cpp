@@ -25,7 +25,7 @@
 
 #include <vector>
 
-#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChTexture.h"
 
 #include "chrono_vehicle/wheeled_vehicle/steering/ChRackPinion.h"

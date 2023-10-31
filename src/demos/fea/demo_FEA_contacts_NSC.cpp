@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
         mfloor->GetCollisionModel()->BuildModel();
         mfloor->SetCollide(true);
 
-        auto masset_meshbox = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto masset_meshbox = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         masset_meshbox->SetMesh(mmeshbox);
         masset_meshbox->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
         mfloor->AddVisualShape(masset_meshbox);
@@ -221,11 +221,11 @@ int main(int argc, char* argv[]) {
     //
 
     // Visualization of the FEM mesh.
-    // This will automatically update a triangle mesh (a ChTriangleMeshShape
+    // This will automatically update a triangle mesh (a ChVisualShapeTriangleMesh
     // asset that is internally managed) by setting  proper
     // coordinates and vertex colors as in the FEM elements.
     // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
-    // postprocessor that can handle a colored ChTriangleMeshShape).
+    // postprocessor that can handle a colored ChVisualShapeTriangleMesh).
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);

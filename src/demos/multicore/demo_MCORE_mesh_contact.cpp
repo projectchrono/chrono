@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "chrono/ChConfig.h"
-#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
 
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 #include "chrono_multicore/solver/ChIterativeSolverMulticore.h"
@@ -172,7 +172,7 @@ int main(int argc, char* argv[]) {
                                                  mesh_swept_sphere_radius);
     object->GetCollisionModel()->BuildModel();
 
-    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+    auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(trimesh);
     trimesh_shape->SetName("tire");
     object->AddVisualShape(trimesh_shape);
@@ -215,7 +215,7 @@ int main(int argc, char* argv[]) {
     ground->GetCollisionModel()->AddBox(ground_mat, width, length, thickness, ChVector<>(0, 0, -thickness / 2));
     ground->GetCollisionModel()->BuildModel();
 
-    auto box = chrono_types::make_shared<ChBoxShape>(width, length, thickness);
+    auto box = chrono_types::make_shared<ChVisualShapeBox>(width, length, thickness);
     ground->AddVisualShape(box, ChFrame<>(ChVector<>(0, 0, -thickness / 2)));
 
     // Create the visualization window

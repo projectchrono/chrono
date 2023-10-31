@@ -36,7 +36,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 
-//#include "chrono/assets/ChBoxShape.h"
+//#include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/utils/ChUtilsValidation.h"
 

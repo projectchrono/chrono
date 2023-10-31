@@ -22,7 +22,7 @@
 
 #include <algorithm>
 
-#include "chrono/assets/ChPointPointShape.h"
+#include "chrono/assets/ChVisualShapePointPoint.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
@@ -270,7 +270,7 @@ class SoilbinWheel {
         // Visualization mesh
         auto tireMesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
             GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"), true, true);
-        auto tireMesh_asset = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto tireMesh_asset = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         tireMesh_asset->SetMesh(tireMesh);
         wheel->AddVisualShape(tireMesh_asset);
 
@@ -429,7 +429,7 @@ class TestMech {
         spring->SetDampingCoefficient(springD);
         system->AddLink(spring);
 
-        spring->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.05, 80, 15));
+        spring->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.05, 80, 15));
 
         // create a prismatic constraint between the weight and the ground
         auto weightLink = chrono_types::make_shared<ChLinkLockOldham>();

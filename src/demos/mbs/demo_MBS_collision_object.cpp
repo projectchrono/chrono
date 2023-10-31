@@ -192,7 +192,7 @@ int main(int argc, char* argv[]) {
             object->GetCollisionModel()->AddSphere(object_mat, radius, ChVector<>(0));
             object->GetCollisionModel()->BuildModel();
 
-            auto sphere = chrono_types::make_shared<ChSphereShape>(radius);
+            auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(radius);
             object->AddVisualShape(sphere);
 
             break;
@@ -205,7 +205,7 @@ int main(int argc, char* argv[]) {
             ///+hlen, 0));
             object->GetCollisionModel()->BuildModel();
 
-            auto cyl = chrono_types::make_shared<ChCylinderShape>(radius, 2 * hlen);
+            auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(radius, 2 * hlen);
             object->AddVisualShape(cyl, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
             break;
@@ -215,7 +215,7 @@ int main(int argc, char* argv[]) {
             object->GetCollisionModel()->AddCapsule(object_mat, radius, 2 * hlen, ChVector<>(0), ChMatrix33<>(1));
             object->GetCollisionModel()->BuildModel();
 
-            auto cap = chrono_types::make_shared<ChCapsuleShape>(radius, 2 * hlen);
+            auto cap = chrono_types::make_shared<ChVisualShapeCapsule>(radius, 2 * hlen);
             object->AddVisualShape(cap);
 
             break;
@@ -226,7 +226,7 @@ int main(int argc, char* argv[]) {
                                                              Q_from_AngX(CH_C_PI_2));
             object->GetCollisionModel()->BuildModel();
 
-            auto cyl = chrono_types::make_shared<ChCylinderShape>(radius, 2 * hlen);
+            auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(radius, 2 * hlen);
             object->AddVisualShape(cyl, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
             break;
@@ -242,7 +242,7 @@ int main(int argc, char* argv[]) {
                                                          ChMatrix33<>(1), sphere_r);
             object->GetCollisionModel()->BuildModel();
 
-            auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+            auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
             trimesh_shape->SetMesh(trimesh);
             ////trimesh_shape->SetWireframe(true);
             object->AddVisualShape(trimesh_shape);
@@ -284,7 +284,7 @@ int main(int argc, char* argv[]) {
     ground->GetCollisionModel()->AddBox(ground_mat, size_x, size_y, size_z, ChVector<>(0, -size_y / 2, 0));
     ground->GetCollisionModel()->BuildModel();
 
-    auto box = chrono_types::make_shared<ChBoxShape>(size_x, size_y, size_z);
+    auto box = chrono_types::make_shared<ChVisualShapeBox>(size_x, size_y, size_z);
     box->SetTexture(GetChronoDataFile("textures/checker1.png"), 4, 2);
     ground->AddVisualShape(box, ChFrame<>(ChVector<>(0, -size_y / 2, 0), QUNIT));
 

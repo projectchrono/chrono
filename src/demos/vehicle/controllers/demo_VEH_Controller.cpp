@@ -252,8 +252,8 @@ int main(int argc, char* argv[]) {
     vis->AddLight(ChVector<>(+150, +150, 200), 300, ChColor(0.7f, 0.7f, 0.7f));
 
     // Visualization of controller points (sentinel & target)
-    auto ballS = chrono_types::make_shared<ChSphereShape>(0.1);
-    auto ballT = chrono_types::make_shared<ChSphereShape>(0.1);
+    auto ballS = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
+    auto ballT = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
     ballS->SetColor(ChColor(1, 0, 0));
     ballT->SetColor(ChColor(0, 1, 0));
     int iballS = vis->AddVisualModel(ballS, ChFrame<>());

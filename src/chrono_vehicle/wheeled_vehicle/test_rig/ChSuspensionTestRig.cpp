@@ -24,7 +24,7 @@
 #include <algorithm>
 #include <cstdio>
 
-#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"

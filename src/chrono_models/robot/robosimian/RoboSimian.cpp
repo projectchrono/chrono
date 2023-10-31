@@ -16,11 +16,11 @@
 
 #include <cmath>
 
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono/motion_functions/ChFunction_Setpoint.h"
 
@@ -880,7 +880,7 @@ void RS_Part::AddVisualizationAssets(VisualizationType vis) {
         auto vis_mesh_file = GetChronoDataFile("robot/robosimian/obj/" + m_mesh_name + ".obj");
         auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, true, false);
         //// HACK: a trimesh visual asset ignores transforms! Explicitly offset vertices.
-        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(m_mesh_name);
         ////trimesh_shape->Pos = m_offset;
@@ -891,19 +891,19 @@ void RS_Part::AddVisualizationAssets(VisualizationType vis) {
     }
 
     for (const auto& box : m_boxes) {
-        auto box_shape = chrono_types::make_shared<ChBoxShape>(box.m_dims);
+        auto box_shape = chrono_types::make_shared<ChVisualShapeBox>(box.m_dims);
         box_shape->SetColor(m_color);
         m_body->AddVisualShape(box_shape, ChFrame<>(box.m_pos, box.m_rot));
     }
 
     for (const auto& cyl : m_cylinders) {
-        auto cyl_shape = chrono_types::make_shared<ChCylinderShape>(cyl.m_radius, cyl.m_length);
+        auto cyl_shape = chrono_types::make_shared<ChVisualShapeCylinder>(cyl.m_radius, cyl.m_length);
         cyl_shape->SetColor(m_color);
         m_body->AddVisualShape(cyl_shape, ChFrame<>(cyl.m_pos, cyl.m_rot));
     }
 
     for (const auto& sphere : m_spheres) {
-        auto sphere_shape = chrono_types::make_shared<ChSphereShape>(sphere.m_radius);
+        auto sphere_shape = chrono_types::make_shared<ChVisualShapeSphere>(sphere.m_radius);
         sphere_shape->SetColor(m_color);
         m_body->AddVisualShape(sphere_shape, ChFrame<>(sphere.m_pos, QUNIT));
     }
@@ -911,7 +911,7 @@ void RS_Part::AddVisualizationAssets(VisualizationType vis) {
     for (const auto& mesh : m_meshes) {
         auto vis_mesh_file = GetChronoDataFile("robot/robosimian/obj/" + mesh.m_name + ".obj");
         auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, true, false);
-        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(mesh.m_name);
         ////trimesh_shape->Pos = m_offset;

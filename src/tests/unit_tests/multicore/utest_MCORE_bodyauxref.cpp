@@ -35,8 +35,8 @@
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 
 #include "chrono/ChConfig.h"
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
 #ifdef CHRONO_OPENGL
@@ -96,7 +96,7 @@ TEST(ChronoMulticore, bodyauxref) {
     sys->AddBody(ground);
 
     // Attach a visualization asset representing the Y axis.
-    auto box = chrono_types::make_shared<ChBoxShape>(0.04, 6, 0.04);
+    auto box = chrono_types::make_shared<ChVisualShapeBox>(0.04, 6, 0.04);
     ground->AddVisualShape(box);
 
     // Create a pendulum modeled using ChBody

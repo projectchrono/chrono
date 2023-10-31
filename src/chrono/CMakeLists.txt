@@ -617,57 +617,58 @@ source_group(geometry FILES
 # Asset group
 
 set(ChronoEngine_assets_SOURCES
-    assets/ChModelFileShape.cpp
-    assets/ChTriangleMeshShape.cpp
-    assets/ChSphereShape.cpp
-    assets/ChEllipsoidShape.cpp
-    assets/ChBoxShape.cpp
-    assets/ChBarrelShape.cpp
-    assets/ChConeShape.cpp
-    assets/ChCylinderShape.cpp
-    assets/ChCapsuleShape.cpp
     assets/ChTexture.cpp
     assets/ChCamera.cpp
     assets/ChColor.cpp
     assets/ChGlyphs.cpp
-    assets/ChRoundedCylinderShape.cpp
-    assets/ChRoundedBoxShape.cpp
-    assets/ChPathShape.cpp
-    assets/ChLineShape.cpp
-    assets/ChPointPointShape.cpp
-    assets/ChSurfaceShape.cpp
+    assets/ChVisualSystem.cpp
+    assets/ChVisualModel.cpp
     assets/ChVisualMaterial.cpp
     assets/ChVisualShape.cpp
+    assets/ChVisualShapeModelFile.cpp
+    assets/ChVisualShapeTriangleMesh.cpp
+    assets/ChVisualShapeSphere.cpp
+    assets/ChVisualShapeEllipsoid.cpp
+    assets/ChVisualShapeBox.cpp
+    assets/ChVisualShapeBarrel.cpp
+    assets/ChVisualShapeCone.cpp
+    assets/ChVisualShapeCylinder.cpp
+    assets/ChVisualShapeCapsule.cpp
+    assets/ChVisualShapeRoundedCylinder.cpp
+    assets/ChVisualShapeRoundedBox.cpp
+    assets/ChVisualShapePath.cpp
+    assets/ChVisualShapeLine.cpp
+    assets/ChVisualShapePointPoint.cpp
+    assets/ChVisualShapeSurface.cpp
     assets/ChVisualShapeFEA.cpp
-    assets/ChVisualModel.cpp
-    assets/ChVisualSystem.cpp
     )
 
 set(ChronoEngine_assets_HEADERS
-    assets/ChModelFileShape.h
-    assets/ChTriangleMeshShape.h
-    assets/ChSphereShape.h
-    assets/ChEllipsoidShape.h
-    assets/ChBarrelShape.h
-    assets/ChBoxShape.h
-    assets/ChConeShape.h
-    assets/ChCylinderShape.h
-    assets/ChCapsuleShape.h
     assets/ChTexture.h
     assets/ChCamera.h
     assets/ChColor.h
     assets/ChGlyphs.h
-    assets/ChRoundedCylinderShape.h
-    assets/ChRoundedBoxShape.h
-    assets/ChPathShape.h
-    assets/ChLineShape.h
-    assets/ChPointPointShape.h
-    assets/ChSurfaceShape.h
+    assets/ChVisualSystem.h
+    assets/ChVisualModel.h
     assets/ChVisualMaterial.h
     assets/ChVisualShape.h
+    assets/ChVisualShapes.h
+    assets/ChVisualShapeModelFile.h
+    assets/ChVisualShapeTriangleMesh.h
+    assets/ChVisualShapeSphere.h
+    assets/ChVisualShapeEllipsoid.h
+    assets/ChVisualShapeBarrel.h
+    assets/ChVisualShapeBox.h
+    assets/ChVisualShapeCone.h
+    assets/ChVisualShapeCylinder.h
+    assets/ChVisualShapeCapsule.h
+    assets/ChVisualShapeRoundedCylinder.h
+    assets/ChVisualShapeRoundedBox.h
+    assets/ChVisualShapePath.h
+    assets/ChVisualShapeLine.h
+    assets/ChVisualShapePointPoint.h
+    assets/ChVisualShapeSurface.h
     assets/ChVisualShapeFEA.h
-    assets/ChVisualModel.h
-    assets/ChVisualSystem.h
     )
 
 source_group(assets FILES

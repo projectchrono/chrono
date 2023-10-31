@@ -54,18 +54,18 @@ void ChIrrNodeShape::Update() {
             return;
     }
 
-    if (auto trianglemesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(m_shape)) {
+    if (auto trianglemesh = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(m_shape)) {
         if (trianglemesh->FixedConnectivity())
             UpdateTriangleMeshFixedConnectivity(trianglemesh);
         else
             UpdateTriangleMesh(trianglemesh);
     } else if (auto glyphs = std::dynamic_pointer_cast<ChGlyphs>(m_shape)) {
         UpdateGlyphs(glyphs);
-    } else if (auto surface = std::dynamic_pointer_cast<ChSurfaceShape>(m_shape)) {
+    } else if (auto surface = std::dynamic_pointer_cast<ChVisualShapeSurface>(m_shape)) {
         UpdateSurface(surface);
-    } else if (auto path_shape = std::dynamic_pointer_cast<ChPathShape>(m_shape)) {
+    } else if (auto path_shape = std::dynamic_pointer_cast<ChVisualShapePath>(m_shape)) {
         UpdateLine(path_shape->GetPathGeometry(), path_shape->GetNumRenderPoints());
-    } else if (auto line_shape = std::dynamic_pointer_cast<ChLineShape>(m_shape)) {
+    } else if (auto line_shape = std::dynamic_pointer_cast<ChVisualShapeLine>(m_shape)) {
         UpdateLine(line_shape->GetLineGeometry(), line_shape->GetNumRenderPoints());
     }
 
@@ -96,14 +96,14 @@ static video::S3DVertex ToIrrlichtVertex(const ChVector<>& pos,
     return vertex;
 }
 
-void ChIrrNodeShape::UpdateTriangleMesh(std::shared_ptr<ChTriangleMeshShape> trianglemesh) {
+void ChIrrNodeShape::UpdateTriangleMesh(std::shared_ptr<ChVisualShapeTriangleMesh> trianglemesh) {
     if (trianglemesh->GetNumMaterials() == 0)
         UpdateTriangleMesh_col(trianglemesh);
     else
         UpdateTriangleMesh_mat(trianglemesh);
 }
 
-void ChIrrNodeShape::UpdateTriangleMesh_col(std::shared_ptr<ChTriangleMeshShape> trianglemesh) {
+void ChIrrNodeShape::UpdateTriangleMesh_col(std::shared_ptr<ChVisualShapeTriangleMesh> trianglemesh) {
     // Fetch the 1st child, i.e. the mesh
     ISceneNode* irr_node = *(getChildren().begin());
     if (!irr_node || irr_node->getType() != scene::ESNT_MESH)
@@ -206,7 +206,7 @@ void ChIrrNodeShape::UpdateTriangleMesh_col(std::shared_ptr<ChTriangleMeshShape>
     meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);  // so color shading = vertexes  color
 }
 
-void ChIrrNodeShape::UpdateTriangleMesh_mat(std::shared_ptr<ChTriangleMeshShape> trianglemesh) {
+void ChIrrNodeShape::UpdateTriangleMesh_mat(std::shared_ptr<ChVisualShapeTriangleMesh> trianglemesh) {
     // Fetch the 1st child, i.e. the mesh
     ISceneNode* mchildnode = *(getChildren().begin());
     if (!mchildnode)
@@ -346,7 +346,7 @@ void ChIrrNodeShape::UpdateTriangleMesh_mat(std::shared_ptr<ChTriangleMeshShape>
 }
 
 // Update a trimesh by keeping fixed the connectivity and only touching the specified modified vertices.
-void ChIrrNodeShape::UpdateTriangleMeshFixedConnectivity(std::shared_ptr<ChTriangleMeshShape> trianglemesh) {
+void ChIrrNodeShape::UpdateTriangleMeshFixedConnectivity(std::shared_ptr<ChVisualShapeTriangleMesh> trianglemesh) {
     // Access the Irrlicht mesh (first child node)
     ISceneNode* childnode = *(getChildren().begin());
     if (!childnode)
@@ -645,7 +645,7 @@ void ChIrrNodeShape::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
     meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);  // so color shading = vertexes  color
 }
 
-void ChIrrNodeShape::UpdateSurface(std::shared_ptr<ChSurfaceShape> surface) {
+void ChIrrNodeShape::UpdateSurface(std::shared_ptr<ChVisualShapeSurface> surface) {
     std::shared_ptr<geometry::ChSurface> msurface = surface->GetSurfaceGeometry();
 
     // Set color.

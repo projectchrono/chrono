@@ -19,12 +19,12 @@
 
 #include "chrono/physics/ChBodyEasy.h"
 
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChEllipsoidShape.h"
-#include "chrono/assets/ChModelFileShape.h"
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeEllipsoid.h"
+#include "chrono/assets/ChVisualShapeModelFile.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/collision/ChCollisionUtilsBullet.h"
 
 namespace chrono {
@@ -70,7 +70,7 @@ void ChBodyEasySphere::SetupBody(double radius,
         SetCollide(true);
     }
     if (visualize) {
-        auto vshape = chrono_types::make_shared<ChSphereShape>(radius);
+        auto vshape = chrono_types::make_shared<ChVisualShapeSphere>(radius);
         auto vmodel = chrono_types::make_shared<ChVisualModel>();
         vmodel->AddShape(vshape);
         this->AddVisualModel(vmodel);
@@ -134,7 +134,7 @@ void ChBodyEasyEllipsoid::SetupBody(ChVector<> axes,
         SetCollide(true);
     }
     if (visualize) {
-        auto vshape = chrono_types::make_shared<ChEllipsoidShape>(axes);
+        auto vshape = chrono_types::make_shared<ChVisualShapeEllipsoid>(axes);
         auto vmodel = chrono_types::make_shared<ChVisualModel>();
         vmodel->AddShape(vshape);
         this->AddVisualModel(vmodel);
@@ -219,7 +219,7 @@ void ChBodyEasyCylinder::SetupBody(geometry::ChAxis direction,
     }
 
     if (visualize) {
-        auto vshape = chrono_types::make_shared<ChCylinderShape>(radius, height);
+        auto vshape = chrono_types::make_shared<ChVisualShapeCylinder>(radius, height);
         auto vmodel = chrono_types::make_shared<ChVisualModel>();
         vmodel->AddShape(vshape, ChFrame<>(VNULL, rot));
         this->AddVisualModel(vmodel);
@@ -288,7 +288,7 @@ void ChBodyEasyBox::SetupBody(double Xsize,
         SetCollide(true);
     }
     if (visualize) {
-        auto vshape = chrono_types::make_shared<ChBoxShape>(Xsize, Ysize, Zsize);
+        auto vshape = chrono_types::make_shared<ChVisualShapeBox>(Xsize, Ysize, Zsize);
         auto vmodel = chrono_types::make_shared<ChVisualModel>();
         vmodel->AddShape(vshape);
         this->AddVisualModel(vmodel);
@@ -341,7 +341,7 @@ void ChBodyEasyConvexHull::SetupBody(std::vector<ChVector<>>& points,
                                      bool visualize,
                                      bool collide,
                                      std::shared_ptr<ChMaterialSurface> material) {
-    auto vshape = chrono_types::make_shared<ChTriangleMeshShape>();
+    auto vshape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     vshape->SetMutable(false);
     collision::bt_utils::ChConvexHullLibraryWrapper lh;
     lh.ComputeHull(points, *vshape->GetMesh());
@@ -430,7 +430,7 @@ void ChBodyEasyConvexHullAuxRef::SetupBody(std::vector<ChVector<>>& points,
                                            bool visualize,
                                            bool collide,
                                            std::shared_ptr<ChMaterialSurface> material) {
-    auto vshape = chrono_types::make_shared<ChTriangleMeshShape>();
+    auto vshape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     vshape->SetMutable(false);
     collision::bt_utils::ChConvexHullLibraryWrapper lh;
     lh.ComputeHull(points, *vshape->GetMesh());
@@ -555,7 +555,7 @@ void ChBodyEasyMesh::SetupBody(std::shared_ptr<geometry::ChTriangleMeshConnected
                                std::shared_ptr<ChMaterialSurface> material,
                                double sphere_swept) {
     if (visualize) {
-        auto vshape = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto vshape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         vshape->SetMutable(false);
         vshape->SetMesh(trimesh);
         vshape->SetName(name);
@@ -692,7 +692,7 @@ void ChBodyEasyClusterOfSpheres::SetupBody(std::vector<ChVector<>>& positions,
     if (visualize) {
         auto vmodel = chrono_types::make_shared<ChVisualModel>();
         for (unsigned int i = 0; i < positions.size(); ++i) {
-            auto vshape = chrono_types::make_shared<ChSphereShape>(radii[i]);
+            auto vshape = chrono_types::make_shared<ChVisualShapeSphere>(radii[i]);
             vmodel->AddShape(vshape, ChFrame<>(offset_positions[i]));
         }
         this->AddVisualModel(vmodel);

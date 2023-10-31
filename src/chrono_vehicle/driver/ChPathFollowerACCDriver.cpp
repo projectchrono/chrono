@@ -22,7 +22,7 @@
 #include <algorithm>
 
 #include "chrono/core/ChMathematics.h"
-#include "chrono/assets/ChLineShape.h"
+#include "chrono/assets/ChVisualShapeLine.h"
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
@@ -82,7 +82,7 @@ void ChPathFollowerACCDriver::Create() {
 
     auto bezier_curve = m_steeringPID.GetPath();
     auto num_points = static_cast<unsigned int>(bezier_curve->getNumPoints());
-    auto path_asset = chrono_types::make_shared<ChLineShape>();
+    auto path_asset = chrono_types::make_shared<ChVisualShapeLine>();
     path_asset->SetLineGeometry(chrono_types::make_shared<geometry::ChLineBezier>(bezier_curve));
     path_asset->SetColor(ChColor(0.8f, 0.8f, 0.0f));
     path_asset->SetName(m_pathName);

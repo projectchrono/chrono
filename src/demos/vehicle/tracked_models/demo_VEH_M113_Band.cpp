@@ -507,7 +507,7 @@ void AddFixedObstacles(ChSystem* system) {
     obstacle->SetCollide(true);
 
     // Visualization
-    auto shape = chrono_types::make_shared<ChCylinderShape>(radius, length);
+    auto shape = chrono_types::make_shared<ChVisualShapeCylinder>(radius, length);
     shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 10, 10);
     obstacle->AddVisualShape(shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 

@@ -23,9 +23,9 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChPointPointShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapePointPoint.h"
 
 #include "chrono_vehicle/tracked_vehicle/idler/ChDistanceIdler.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
@@ -190,7 +190,7 @@ void ChDistanceIdler::AddVisualizationAssets(VisualizationType vis) {
     }
 
     // Visualization of the tensioner spring
-    auto seg = chrono_types::make_shared<ChSegmentShape>();
+    auto seg = chrono_types::make_shared<ChVisualShapeSegment>();
     seg->SetColor(carrier_col);
     m_tensioner->AddVisualShape(seg);
 }

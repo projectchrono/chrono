@@ -20,7 +20,7 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChLineShape.h"
+#include "chrono/assets/ChVisualShapeLine.h"
 #include "chrono/assets/ChColor.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChSprocket.h"
@@ -120,12 +120,12 @@ void ChSprocket::AddVisualizationAssets(VisualizationType vis) {
 
     //// RADU TODO: can use a single instance of the LineShape
 
-    auto asset_1 = chrono_types::make_shared<ChLineShape>();
+    auto asset_1 = chrono_types::make_shared<ChVisualShapeLine>();
     asset_1->SetLineGeometry(profile);
     asset_1->SetColor(ChColor(1, 0, 0));
     m_gear->AddVisualShape(asset_1, ChFrame<>(ChVector<>(0, sep / 2, 0), rot_y2z));
 
-    auto asset_2 = chrono_types::make_shared<ChLineShape>();
+    auto asset_2 = chrono_types::make_shared<ChVisualShapeLine>();
     asset_2->SetLineGeometry(profile);
     asset_2->SetColor(ChColor(1, 0, 0));
     m_gear->AddVisualShape(asset_2, ChFrame<>(ChVector<>(0, -sep / 2, 0), rot_y2z));

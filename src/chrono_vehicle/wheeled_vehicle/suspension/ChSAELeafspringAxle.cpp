@@ -61,8 +61,8 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChPointPointShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapePointPoint.h"
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChSAELeafspringAxle.h"
 
@@ -448,10 +448,10 @@ void ChSAELeafspringAxle::AddVisualizationAssets(VisualizationType vis) {
     AddVisualizationLink(m_axleTube, m_axleOuterL, m_axleOuterR, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
 
     // Add visualization for the springs and shocks
-    m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.03, 150, 10));
-    m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.03, 150, 10));
-    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
-    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.03, 150, 10));
+    m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.03, 150, 10));
+    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
+    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
 
     double rs = getAxleTubeRadius() / 10.0;
 

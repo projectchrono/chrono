@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/physics/ChParticleCloud.h"
 #include "chrono/physics/ChSystemNSC.h"
 
@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
             for (int iz = 0; iz < 3; iz++)
                 particles->AddParticle(ChCoordsys<>(ChVector<>(ix / 100.0, 0.1 + iy / 100.0, iz / 100.0)));
 
-    auto particle_shape = chrono_types::make_shared<ChSphereShape>(0.005);
+    auto particle_shape = chrono_types::make_shared<ChVisualShapeSphere>(0.005);
     particles->AddVisualShape(particle_shape);
 
     sys.Add(particles);
@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
     floor->GetCollisionModel()->BuildModel();
     floor->SetCollide(true);
 
-    auto floor_shape = chrono_types::make_shared<ChBoxShape>(0.2, 0.04, 0.2);
+    auto floor_shape = chrono_types::make_shared<ChVisualShapeBox>(0.2, 0.04, 0.2);
     floor_shape->SetColor(ChColor(0.5f, 0.5f, 0.5f));
     floor->AddVisualShape(floor_shape);
 
@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
             body->GetCollisionModel()->BuildModel();
             body->SetCollide(true);
 
-            auto body_shape = chrono_types::make_shared<ChBoxShape>(0.02, 0.02, 0.02);
+            auto body_shape = chrono_types::make_shared<ChVisualShapeBox>(0.02, 0.02, 0.02);
             body->AddVisualShape(body_shape);
 
             sys.Add(body);

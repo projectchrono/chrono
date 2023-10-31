@@ -26,7 +26,7 @@
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 
 #include "chrono/ChConfig.h"
-#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
 #ifdef CHRONO_OPENGL
@@ -99,7 +99,7 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         sled->SetBodyFixed(false);
         sled->SetCollide(false);
 
-        auto box_sled = chrono_types::make_shared<ChBoxShape>(2, 0.5, 0.5);
+        auto box_sled = chrono_types::make_shared<ChVisualShapeBox>(2, 0.5, 0.5);
         sled->AddVisualShape(box_sled, ChFrame<>());
 
         sys->AddBody(sled);

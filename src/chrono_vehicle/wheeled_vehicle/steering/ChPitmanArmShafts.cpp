@@ -19,8 +19,8 @@
 
 #include <vector>
 
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChPointPointShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapePointPoint.h"
 
 #include "chrono_vehicle/wheeled_vehicle/steering/ChPitmanArmShafts.h"
 
@@ -291,7 +291,7 @@ void ChPitmanArmShafts::AddVisualizationAssets(VisualizationType vis) {
     ChVehicleGeometry::AddVisualizationCylinder(m_arm, m_pC, m_pL, getPitmanArmRadius());
 
     // Visualization for rev-sph link
-    m_revsph->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    m_revsph->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
 }
 
 void ChPitmanArmShafts::RemoveVisualizationAssets() {

@@ -20,7 +20,7 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChInertiaUtils.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
     ChInertiaUtils::PrincipalInertia(inertia, principal_I, principal_inertia_rot);
 
     // Create a shared visual model containing a visualizatoin mesh
-    auto mesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+    auto mesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     mesh_shape->SetMesh(mesh);
     mesh_shape->SetMutable(false);
     mesh_shape->SetColor(ChColor(1.0f, 0.5f, 0.5f));

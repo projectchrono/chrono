@@ -19,7 +19,7 @@
 
 #include <cmath>
 
-#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChTexture.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"

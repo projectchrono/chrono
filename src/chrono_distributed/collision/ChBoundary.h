@@ -17,7 +17,7 @@
 #include <vector>
 
 #include "chrono/physics/ChBody.h"
-#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
 
 #include "chrono_distributed/ChApiDistributed.h"
 #include "chrono/collision/ChCollisionModelChrono.h"
@@ -76,7 +76,7 @@ class CH_DISTR_API ChBoundary : public ChSystem::CustomCollisionCallback {
         ChFrame<> m_frame;                      ///< plane coordinate frame, expressed in global (Z axis defines normal)
         ChVector2<> m_hlen;                     ///< half-extents in X and Y directions
         ChVector<> m_normal;                    ///< cached plane normal, expressed in global
-        std::shared_ptr<ChBoxShape> m_vis_box;  ///< visualization box
+        std::shared_ptr<ChVisualShapeBox> m_vis_box;  ///< visualization box
     };
 
     virtual void OnCustomCollision(ChSystem* system) override;

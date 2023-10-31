@@ -25,7 +25,7 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChInertiaUtils.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
         body->GetCollisionModel()->BuildModel();
         body->SetCollide(true);
 
-        auto mesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto mesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         mesh_shape->SetMesh(mesh);
         mesh_shape->SetBackfaceCull(true);
         body->AddVisualShape(mesh_shape);

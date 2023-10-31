@@ -19,7 +19,7 @@
 #ifndef CITYBUS_WHEEL_H
 #define CITYBUS_WHEEL_H
 
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChVehicleModelData.h"

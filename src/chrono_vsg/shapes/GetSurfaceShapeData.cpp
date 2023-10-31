@@ -17,7 +17,7 @@
 namespace chrono {
 namespace vsg3d {
 
-void GetSurfaceShapeData(std::shared_ptr<ChSurfaceShape> surface,
+void GetSurfaceShapeData(std::shared_ptr<ChVisualShapeSurface> surface,
                          vsg::ref_ptr<vsg::vec3Array>& vertices,
                          vsg::ref_ptr<vsg::vec3Array>& normals,
                          vsg::ref_ptr<vsg::vec2Array>& texcoords,

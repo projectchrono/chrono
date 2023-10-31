@@ -13,7 +13,7 @@
 // =============================================================================
 
 #include "chrono/assets/ChGlyphs.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
 
 #include "chrono/fea/ChMesh.h"
@@ -71,7 +71,7 @@ ChVisualShapeFEA::ChVisualShapeFEA(std::shared_ptr<fea::ChMesh> fea_mesh) {
 
     undeformed_reference = false;
 
-    m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+    m_trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     m_glyphs_shape = chrono_types::make_shared<ChGlyphs>();
 }
 

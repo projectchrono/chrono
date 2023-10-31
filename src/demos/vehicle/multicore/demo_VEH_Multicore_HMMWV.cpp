@@ -28,7 +28,7 @@
 #include <algorithm>
 
 #include "chrono/ChConfig.h"
-#include "chrono/assets/ChLineShape.h"
+#include "chrono/assets/ChVisualShapeLine.h"
 #include "chrono/core/ChMathematics.h"
 #include "chrono/core/ChStream.h"
 #include "chrono/geometry/ChLineBezier.h"
@@ -200,7 +200,7 @@ HMMWV_Driver::HMMWV_Driver(chrono::vehicle::ChVehicle& vehicle,
     road->SetBodyFixed(true);
     m_vehicle.GetSystem()->AddBody(road);
 
-    auto path_asset = chrono_types::make_shared<chrono::ChLineShape>();
+    auto path_asset = chrono_types::make_shared<chrono::ChVisualShapeLine>();
     path_asset->SetLineGeometry(chrono_types::make_shared<geometry::ChLineBezier>(m_steeringPID.GetPath()));
     path_asset->SetColor(chrono::ChColor(0.0f, 0.8f, 0.0f));
     path_asset->SetName("straight_path");

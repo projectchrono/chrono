@@ -16,15 +16,15 @@
 
 #include "chrono/utils/ChUtilsCreators.h"
 
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChCapsuleShape.h"
-#include "chrono/assets/ChConeShape.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChEllipsoidShape.h"
-#include "chrono/assets/ChRoundedBoxShape.h"
-#include "chrono/assets/ChRoundedCylinderShape.h"
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeCapsule.h"
+#include "chrono/assets/ChVisualShapeCone.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeEllipsoid.h"
+#include "chrono/assets/ChVisualShapeRoundedBox.h"
+#include "chrono/assets/ChVisualShapeRoundedCylinder.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono_thirdparty/tinyobjloader/tiny_obj_loader.h"
 
@@ -49,7 +49,7 @@ void AddSphereGeometry(ChBody* body,
             auto model = chrono_types::make_shared<ChVisualModel>();
             body->AddVisualModel(model);
         }
-        auto sphere = chrono_types::make_shared<ChSphereShape>(radius);
+        auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(radius);
         sphere->AddMaterial(vis_material);
         body->GetVisualModel()->AddShape(sphere, ChFrame<>(pos, rot));
     }
@@ -71,7 +71,7 @@ void AddEllipsoidGeometry(ChBody* body,
             auto model = chrono_types::make_shared<ChVisualModel>();
             body->AddVisualModel(model);
         }
-        auto ellipsoid = chrono_types::make_shared<ChEllipsoidShape>(axes);
+        auto ellipsoid = chrono_types::make_shared<ChVisualShapeEllipsoid>(axes);
         ellipsoid->AddMaterial(vis_material);
         body->GetVisualModel()->AddShape(ellipsoid, ChFrame<>(pos, rot));
     }
@@ -93,7 +93,7 @@ void AddBoxGeometry(ChBody* body,
             auto model = chrono_types::make_shared<ChVisualModel>();
             body->AddVisualModel(model);
         }
-        auto box = chrono_types::make_shared<ChBoxShape>(size);
+        auto box = chrono_types::make_shared<ChVisualShapeBox>(size);
         box->AddMaterial(vis_material);
         body->GetVisualModel()->AddShape(box, ChFrame<>(pos, rot));
     }
@@ -139,7 +139,7 @@ void AddCapsuleGeometry(ChBody* body,
             auto model = chrono_types::make_shared<ChVisualModel>();
             body->AddVisualModel(model);
         }
-        auto capsule = chrono_types::make_shared<ChCapsuleShape>(radius, height);
+        auto capsule = chrono_types::make_shared<ChVisualShapeCapsule>(radius, height);
         capsule->AddMaterial(vis_material);
         body->GetVisualModel()->AddShape(capsule, ChFrame<>(pos, rot));
     }
@@ -162,7 +162,7 @@ void AddCylinderGeometry(ChBody* body,
             auto model = chrono_types::make_shared<ChVisualModel>();
             body->AddVisualModel(model);
         }
-        auto cylinder = chrono_types::make_shared<ChCylinderShape>(radius, height);
+        auto cylinder = chrono_types::make_shared<ChVisualShapeCylinder>(radius, height);
         cylinder->AddMaterial(vis_material);
         body->GetVisualModel()->AddShape(cylinder, ChFrame<>(pos, rot));
     }
@@ -186,7 +186,7 @@ void AddCylinderGeometry(ChBody* body,
             auto model = chrono_types::make_shared<ChVisualModel>();
             body->AddVisualModel(model);
         }
-        auto cylinder = chrono_types::make_shared<ChCylinderShape>(radius, height);
+        auto cylinder = chrono_types::make_shared<ChVisualShapeCylinder>(radius, height);
         cylinder->AddMaterial(vis_material);
         body->GetVisualModel()->AddShape(cylinder, frame);
     }
@@ -209,7 +209,7 @@ void AddConeGeometry(ChBody* body,
             auto model = chrono_types::make_shared<ChVisualModel>();
             body->AddVisualModel(model);
         }
-        auto cone = chrono_types::make_shared<ChConeShape>(radius, height);
+        auto cone = chrono_types::make_shared<ChVisualShapeCone>(radius, height);
         cone->AddMaterial(vis_material);
         body->GetVisualModel()->AddShape(cone, ChFrame<>(pos, rot));
     }
@@ -239,7 +239,7 @@ bool AddTriangleMeshGeometry(ChBody* body,
             auto model = chrono_types::make_shared<ChVisualModel>();
             body->AddVisualModel(model);
         }
-        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(name);
         trimesh_shape->AddMaterial(vis_material);
@@ -301,7 +301,7 @@ bool AddTriangleMeshConvexDecomposition(ChBody* body,
             if (!decomposition.GetConvexHullResult(c, *trimesh_convex))
                 return false;
 
-            auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+            auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
             trimesh_shape->SetMesh(trimesh_convex);
             trimesh_shape->SetName(ss.str());
             trimesh_shape->AddMaterial(vis_material);
@@ -310,7 +310,7 @@ bool AddTriangleMeshConvexDecomposition(ChBody* body,
     }
 
     if (use_original_asset) {
-        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(name);
         trimesh_shape->AddMaterial(vis_material);
@@ -375,7 +375,7 @@ bool AddTriangleMeshConvexDecompositionV2(ChBody* body,
             if (!used_decomposition->GetConvexHullResult(c, *trimesh_convex))
                 return false;
 
-            auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+            auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
             trimesh_shape->SetMesh(trimesh_convex);
             trimesh_shape->SetName(ss.str());
             trimesh_shape->AddMaterial(vis_material);
@@ -383,7 +383,7 @@ bool AddTriangleMeshConvexDecompositionV2(ChBody* body,
         }
     }
     if (use_original_asset) {
-        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(name);
         trimesh_shape->AddMaterial(vis_material);
@@ -480,7 +480,7 @@ bool AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
         auto model = chrono_types::make_shared<ChVisualModel>();
         body->AddVisualModel(model);
 
-        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh_convex);
         trimesh_shape->SetName(ss.str());
         body->GetVisualModel()->AddShape(trimesh_shape, ChFrame<>());
@@ -526,7 +526,7 @@ void AddTriangleGeometry(ChBody* body,
             auto model = chrono_types::make_shared<ChVisualModel>();
             body->AddVisualModel(model);
         }
-        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(name);
         trimesh_shape->AddMaterial(vis_material);
@@ -551,7 +551,7 @@ void AddRoundedBoxGeometry(ChBody* body,
             auto model = chrono_types::make_shared<ChVisualModel>();
             body->AddVisualModel(model);
         }
-        auto box = chrono_types::make_shared<ChRoundedBoxShape>(size, srad);
+        auto box = chrono_types::make_shared<ChVisualShapeRoundedBox>(size, srad);
         box->AddMaterial(vis_material);
         body->GetVisualModel()->AddShape(box, ChFrame<>(pos, rot));
     }
@@ -575,7 +575,7 @@ void AddRoundedCylinderGeometry(ChBody* body,
             auto model = chrono_types::make_shared<ChVisualModel>();
             body->AddVisualModel(model);
         }
-        auto rcyl = chrono_types::make_shared<ChRoundedCylinderShape>(radius, height, srad);
+        auto rcyl = chrono_types::make_shared<ChVisualShapeRoundedCylinder>(radius, height, srad);
         rcyl->AddMaterial(vis_material);
         body->GetVisualModel()->AddShape(rcyl, ChFrame<>(pos, rot));
     }
@@ -904,7 +904,7 @@ void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
             auto trimesh_convex = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
             used_decomposition->GetConvexHullResult(c, *trimesh_convex);
 
-            auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+            auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
             trimesh_shape->SetMesh(trimesh_convex);
             trimesh_shape->SetName(ss.str());
             trimesh_shape->AddMaterial(vis_material);
@@ -913,7 +913,7 @@ void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
     }
     // Add the original triangle mesh as asset
     if (use_original_asset) {
-        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(convex_mesh);
         trimesh_shape->SetName(convex_mesh->GetFileName());
         trimesh_shape->AddMaterial(vis_material);
@@ -940,7 +940,7 @@ void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
     }
 
     // Add the original triangle mesh as asset
-    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+    auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(convex_mesh);
     trimesh_shape->SetName(convex_mesh->GetFileName());
     trimesh_shape->AddMaterial(vis_material);

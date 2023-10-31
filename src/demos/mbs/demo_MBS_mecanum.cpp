@@ -24,7 +24,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/utils/ChUtilsGeometry.h"
-#include "chrono/assets/ChBarrelShape.h"
+#include "chrono/assets/ChVisualShapeBarrel.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
@@ -162,7 +162,7 @@ std::shared_ptr<ChBody> create_mecanum_wheel(ChSystemNSC& sys,
 
         // add visualization shape
         auto rollershape =
-            chrono_types::make_shared<ChBarrelShape>(-half_length_roller, +half_length_roller,                       //
+            chrono_types::make_shared<ChVisualShapeBarrel>(-half_length_roller, +half_length_roller,                       //
                                                      2 * roller_elliptical_rad_Vert, 2 * roller_elliptical_rad_Hor,  //
                                                      Roffset);
         roller->AddVisualShape(rollershape);

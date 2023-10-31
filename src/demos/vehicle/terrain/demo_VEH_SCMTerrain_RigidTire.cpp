@@ -152,7 +152,7 @@ int main(int argc, char* argv[]) {
             auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
                 GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"));
 
-            std::shared_ptr<ChTriangleMeshShape> mrigidmesh(new ChTriangleMeshShape);
+            std::shared_ptr<ChVisualShapeTriangleMesh> mrigidmesh(new ChVisualShapeTriangleMesh);
             mrigidmesh->SetMesh(trimesh);
             mrigidmesh->SetColor(ChColor(0.3f, 0.3f, 0.3f));
             mrigidbody->AddVisualShape(mrigidmesh);
@@ -167,7 +167,7 @@ int main(int argc, char* argv[]) {
             mrigidbody->GetCollisionModel()->AddCylinder(material, radius, width, ChVector<>(0),
                                                          Q_from_AngY(CH_C_PI_2));
 
-            auto cyl_shape = chrono_types::make_shared<ChCylinderShape>(radius, width);
+            auto cyl_shape = chrono_types::make_shared<ChVisualShapeCylinder>(radius, width);
             cyl_shape->SetColor(ChColor(0.3f, 0.3f, 0.3f));
             mrigidbody->AddVisualShape(cyl_shape, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
 

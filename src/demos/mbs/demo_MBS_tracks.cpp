@@ -269,14 +269,14 @@ class MySimpleTank {
         auto shoe_trimesh =
             ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/bulldozer/shoe_view.obj"));
         ////shoe_trimesh->Transform(-mesh_displacement, ChMatrix33<>(1));
-        auto shoe_mesh = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto shoe_mesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         shoe_mesh->SetMesh(shoe_trimesh);
         shoe_mesh->SetVisible(true);
 
         auto shoe_coll_trimesh =
             ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/bulldozer/shoe_collision.obj"));
         ////shoe_coll_trimesh->Transform(-mesh_displacement, ChMatrix33<>(1));
-        auto shoe_coll_mesh = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto shoe_coll_mesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         shoe_coll_mesh->SetMesh(shoe_coll_trimesh);
         shoe_coll_mesh->SetVisible(false);
 

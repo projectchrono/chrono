@@ -25,12 +25,12 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChInertiaUtils.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
-#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
@@ -207,7 +207,7 @@ int main(int argc, char* argv[]) {
         rock1_Body->GetCollisionModel()->BuildModel();
         rock1_Body->SetCollide(true);
 
-        auto rock1_mesh = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto rock1_mesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         rock1_mesh->SetMesh(rock_1_mmesh);
         rock1_mesh->SetBackfaceCull(true);
         rock1_Body->AddVisualShape(rock1_mesh);
@@ -262,7 +262,7 @@ int main(int argc, char* argv[]) {
         rock2_Body->GetCollisionModel()->BuildModel();
         rock2_Body->SetCollide(true);
 
-        auto rock2_mesh = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto rock2_mesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         rock2_mesh->SetMesh(rock_2_mmesh);
         rock2_mesh->SetBackfaceCull(true);
         rock2_Body->AddVisualShape(rock2_mesh);
@@ -317,7 +317,7 @@ int main(int argc, char* argv[]) {
         rock3_Body->GetCollisionModel()->BuildModel();
         rock3_Body->SetCollide(true);
 
-        auto rock3_mesh = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto rock3_mesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         rock3_mesh->SetMesh(rock_3_mmesh);
         rock3_mesh->SetBackfaceCull(true);
         rock3_Body->AddVisualShape(rock3_mesh);

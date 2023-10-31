@@ -31,7 +31,7 @@
 #include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/utils/ChConvexHull.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -113,7 +113,7 @@ void SCMTerrain::SetMeshWireframe(bool val) {
 }
 
 // Get the trimesh that defines the ground shape.
-std::shared_ptr<ChTriangleMeshShape> SCMTerrain::GetMesh() const {
+std::shared_ptr<ChVisualShapeTriangleMesh> SCMTerrain::GetMesh() const {
     return m_loader->m_trimesh_shape;
 }
 
@@ -357,7 +357,7 @@ SCMLoader::SCMLoader(ChSystem* system, bool visualization_mesh) : m_soil_fun(nul
 
     if (visualization_mesh) {
         // Create the visualization mesh and asset
-        m_trimesh_shape = std::shared_ptr<ChTriangleMeshShape>(new ChTriangleMeshShape);
+        m_trimesh_shape = std::shared_ptr<ChVisualShapeTriangleMesh>(new ChVisualShapeTriangleMesh);
         m_trimesh_shape->SetWireframe(true);
         m_trimesh_shape->SetFixedConnectivity();
     }

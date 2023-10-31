@@ -51,9 +51,9 @@ int main(int argc, char* argv[]) {
     sys.Add(mesh);
 
     // Visualization of the FEM mesh.
-    // This will automatically update a triangle mesh (a ChTriangleMeshShape asset that is internally managed) by
+    // This will automatically update a triangle mesh (a ChVisualShapeTriangleMesh asset that is internally managed) by
     // setting  proper coordinates and vertex colors as in the FEM elements. Such triangle mesh can be rendered by
-    // Irrlicht or POVray or whatever postprocessor that can handle a colored ChTriangleMeshShape).
+    // Irrlicht or POVray or whatever postprocessor that can handle a colored ChVisualShapeTriangleMesh).
     auto vis_beam_A = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
     vis_beam_A->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
     vis_beam_A->SetColorscaleMinMax(-0.4, 0.4);

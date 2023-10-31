@@ -23,7 +23,6 @@
 
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
 
 #include "chrono/fea/ChElementCableANCF.h"
 #include "chrono/fea/ChElementShellANCF_3423.h"

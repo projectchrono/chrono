@@ -27,8 +27,8 @@
 
 #include <algorithm>
 
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChPointPointShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapePointPoint.h"
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChSemiTrailingArm.h"
 
@@ -284,10 +284,10 @@ void ChSemiTrailingArm::AddVisualizationAssets(VisualizationType vis) {
                         getArmRadius());
 
     // Add visualization for the springs and shocks
-    m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
-    m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.06, 150, 15));
-    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
-    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChSegmentShape>());
+    m_spring[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.06, 150, 15));
+    m_spring[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.06, 150, 15));
+    m_shock[LEFT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
+    m_shock[RIGHT]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
 }
 
 void ChSemiTrailingArm::RemoveVisualizationAssets() {

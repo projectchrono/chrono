@@ -21,7 +21,7 @@
 #include <cstdio>
 #include <iomanip>
 
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/assets/ChVisualMaterial.h"
 #include "chrono/assets/ChVisualShape.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
                                                                   false, true);
     mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(2));  // scale to a different size
 
-    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+    auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(mmesh);
     trimesh_shape->SetName("HMMWV Chassis Mesh");
     trimesh_shape->SetMutable(false);

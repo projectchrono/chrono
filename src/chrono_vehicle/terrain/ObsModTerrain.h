@@ -26,8 +26,8 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChSystem.h"
 
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChTerrain.h"

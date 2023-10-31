@@ -27,7 +27,6 @@
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/utils/ChUtilsGeometry.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/core/ChTimer.h"
 
 #include "chrono_fsi/ChSystemFsi.h"

@@ -21,9 +21,9 @@
 #include <cmath>
 #include <cstdio>
 
-#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/physics/ChMaterialSurfaceNSC.h"
 #include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
@@ -528,7 +528,7 @@ void RigidTerrain::Initialize() {
 void RigidTerrain::BoxPatch::Initialize() {
     if (m_visualize) {
         m_body->AddVisualModel(chrono_types::make_shared<ChVisualModel>());
-        auto box = chrono_types::make_shared<ChBoxShape>(2 * m_hlength, 2 * m_hwidth, 2 * m_hthickness);
+        auto box = chrono_types::make_shared<ChVisualShapeBox>(2 * m_hlength, 2 * m_hwidth, 2 * m_hthickness);
         box->AddMaterial(m_vis_mat);
         m_body->AddVisualShape(box, ChFrame<>(ChVector<>(0, 0, -m_hthickness)));
     }
@@ -537,7 +537,7 @@ void RigidTerrain::BoxPatch::Initialize() {
 void RigidTerrain::MeshPatch::Initialize() {
     if (m_visualize) {
         m_body->AddVisualModel(chrono_types::make_shared<ChVisualModel>());
-        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->AddMaterial(m_vis_mat);
         trimesh_shape->SetName(m_mesh_name);
         trimesh_shape->SetMutable(false);

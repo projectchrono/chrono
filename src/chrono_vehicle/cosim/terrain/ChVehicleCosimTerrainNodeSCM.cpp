@@ -27,7 +27,7 @@
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChSystemNSC.h"
@@ -232,7 +232,7 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
         body->GetCollisionModel()->SetFamily(2);
         body->GetCollisionModel()->BuildModel();
 
-        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         body->AddVisualShape(trimesh_shape, ChFrame<>());
 

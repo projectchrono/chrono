@@ -31,7 +31,7 @@
 #include <algorithm>
 
 #include "chrono/core/ChMathematics.h"
-#include "chrono/assets/ChLineShape.h"
+#include "chrono/assets/ChVisualShapeLine.h"
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
@@ -200,7 +200,7 @@ void ChHumanDriver::Create() {
     m_vehicle.GetSystem()->AddBody(road);
 
     auto num_points = static_cast<unsigned int>(m_path->getNumPoints());
-    auto path_asset = chrono_types::make_shared<ChLineShape>();
+    auto path_asset = chrono_types::make_shared<ChVisualShapeLine>();
     path_asset->SetLineGeometry(chrono_types::make_shared<geometry::ChLineBezier>(m_path));
     path_asset->SetColor(ChColor(0.8f, 0.8f, 0.0f));
     path_asset->SetName(m_pathName);

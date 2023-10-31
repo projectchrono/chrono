@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
     auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
         GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"));
 
-    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+    auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(trimesh);
     body->AddVisualShape(trimesh_shape);
 

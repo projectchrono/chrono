@@ -275,7 +275,7 @@ int main(int argc, char* argv[]) {
         rock_Body->GetCollisionModel()->BuildModel();
         rock_Body->SetCollide(true);
 
-        auto rock_mesh = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto rock_mesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         rock_mesh->SetMesh(rock_mmesh);
         rock_mesh->SetBackfaceCull(true);
         rock_Body->AddVisualShape(rock_mesh);
