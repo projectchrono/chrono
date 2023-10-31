@@ -1,6 +1,10 @@
 %{
 #include "chrono/assets/ChVisualShape.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeModelFile.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
 
 using namespace chrono;
 %}
@@ -21,3 +25,7 @@ class ChElementBase;
 
 %include "../../../chrono/assets/ChVisualShape.h"    
 %include "../../../chrono/assets/ChVisualShapeFEA.h"    
+%include "../../../chrono/assets/ChVisualShapeBox.h"    
+%include "../../../chrono/assets/ChVisualShapeModelFile.h"  
+%include "../../../chrono/assets/ChVisualShapeSphere.h" 
+%include "../../../chrono/assets/ChVisualShapeCylinder.h"  

@@ -62,13 +62,8 @@
 #include "chrono/physics/ChLoadsXYZnode.h"
 #include "chrono/physics/ChIndexedNodes.h"
 
-#include "chrono/assets/ChLineShape.h"
-#include "chrono/assets/ChPathShape.h"
-#include "chrono/assets/ChPointPointShape.h"
-#include "chrono/assets/ChSurfaceShape.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/assets/ChEllipsoidShape.h"
 #include "chrono/assets/ChVisualMaterial.h"
+#include "chrono/assets/ChVisualShapes.h"
 #include "chrono/assets/ChGlyphs.h"
 #include "chrono/assets/ChVisualSystem.h"
 
@@ -136,24 +131,25 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChFrameMoving<double>)
 
 //%shared_ptr(chrono::ChColor)
-%shared_ptr(chrono::ChModelFileShape)
-%shared_ptr(chrono::ChBoxShape) 
-%shared_ptr(chrono::ChSphereShape)
-%shared_ptr(chrono::ChEllipsoidShape)
-%shared_ptr(chrono::ChVisualMaterial)
-%shared_ptr(chrono::ChCylinderShape)
-%shared_ptr(chrono::ChCamera) 
-%shared_ptr(chrono::ChLineShape)
-%shared_ptr(chrono::ChSurfaceShape)
-%shared_ptr(chrono::ChPathShape)
-%shared_ptr(chrono::ChPointPointShape)
-%shared_ptr(chrono::ChSegmentShape)
-%shared_ptr(chrono::ChSpringShape)
-%shared_ptr(chrono::ChRotSpringShape)
-%shared_ptr(chrono::ChTriangleMeshShape)
 %shared_ptr(chrono::ChBezierCurve)
 %shared_ptr(chrono::ChGlyphs)
+%shared_ptr(chrono::ChCamera) 
+%shared_ptr(chrono::ChVisualMaterial)
 %shared_ptr(chrono::ChVisualSystem)
+
+%shared_ptr(chrono::ChVisualShapeModelFile)
+%shared_ptr(chrono::ChVisualShapeBox) 
+%shared_ptr(chrono::ChVisualShapeSphere)
+%shared_ptr(chrono::ChVisualShapeEllipsoid)
+%shared_ptr(chrono::ChVisualShapeCylinder)
+%shared_ptr(chrono::ChVisualShapeLine)
+%shared_ptr(chrono::ChVisualShapeSurface)
+%shared_ptr(chrono::ChVisualShapePath)
+%shared_ptr(chrono::ChVisualShapePointPoint)
+%shared_ptr(chrono::ChVisualShapeSegment)
+%shared_ptr(chrono::ChVisualShapeSpring)
+%shared_ptr(chrono::ChVisualShapeRotSpring)
+%shared_ptr(chrono::ChVisualShapeTriangleMesh)
 
 %shared_ptr(chrono::ChFunction)  
 %shared_ptr(chrono::ChFunction_BSpline)
@@ -360,18 +356,9 @@ using namespace chrono::fea;
 %include "../chrono/assets/ChVisualMaterial.h"
 %include "ChVisualShape.i"
 %include "ChVisualModel.i"
-%include "ChModelFileShape.i"
-%include "ChBoxShape.i"
-%include "ChSphereShape.i"
-%include "ChCylinderShape.i"
 %include "ChTexture.i"
 %include "ChCamera.i"
-%include "../../../chrono/assets/ChLineShape.h"
-%include "../../../chrono/assets/ChPathShape.h"
-%include "../../../chrono/assets/ChPointPointShape.h"
-%include "../../../chrono/assets/ChSurfaceShape.h"
-%include "../../../chrono/assets/ChTriangleMeshShape.h"
-%include "../../../chrono/assets/ChEllipsoidShape.h"
+%include "../../../chrono/assets/ChVisualShapes.h"
 %include "../../../chrono/assets/ChGlyphs.h"
 %include "../../../chrono/assets/ChVisualSystem.h"
 
@@ -451,27 +438,27 @@ using namespace chrono::fea;
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
 
 // enable _automatic_ downcasting from ChVisualShape to derived classes (shared pointers versions)
-%downcast_output_sharedptr(chrono::ChVisualShape, chrono::ChModelFileShape, chrono::ChBoxShape, chrono::ChSphereShape, chrono::ChCylinderShape)
+%downcast_output_sharedptr(chrono::ChVisualShape, chrono::ChVisualShapeModelFile, chrono::ChVisualShapeBox, chrono::ChVisualShapeSphere, chrono::ChVisualShapeCylinder)
 
 %DefSharedPtrDynamicDowncast(chrono,ChContactable, ChBody)
 
 %DefSharedPtrDynamicDowncast(chrono,ChLoadable, ChBody)
 %DefSharedPtrDynamicDowncast(chrono,ChLoadable, ChNodeBase)
 
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChModelFileShape)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChBoxShape)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChSphereShape)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChCylinderShape)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChTexture)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChLineShape)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChSurfaceShape)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChPathShape)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChPointPointShape)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChSegmentShape)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChSpringShape)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChRotSpringShape)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChTriangleMeshShape)
-%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChEllipsoidShape)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeBox)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeModelFile)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeSphere)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeCylinder)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeLine)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeSurface)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapePath)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeTriangleMesh)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeEllipsoid)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapePointPoint)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeSegment)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeSpring)
+%DefSharedPtrDynamicDowncast(chrono,ChVisualShape,ChVisualShapeRotSpring)
+
 
 %DefSharedPtrDynamicDowncast(chrono,ChBodyFrame, ChBody)
 %DefSharedPtrDynamicDowncast(chrono,ChBodyFrame, ChBodyAuxRef)

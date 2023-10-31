@@ -193,7 +193,7 @@ using namespace chrono::vehicle::m113;
 %shared_ptr(chrono::ChPhysicsItem)
 %shared_ptr(chrono::ChNodeBase) 
 %shared_ptr(chrono::ChNodeXYZ) 
-%shared_ptr(chrono::ChTriangleMeshShape)
+%shared_ptr(chrono::ChVisualShapeTriangleMesh)
 %shared_ptr(chrono::geometry::ChTriangleMeshConnected)
 %shared_ptr(chrono::ChFunction_Recorder)
 %shared_ptr(chrono::ChBezierCurve)
@@ -322,7 +322,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
   %import  "../../../chrono/physics/ChBodyFrame.h"
   %import  "../../../chrono/physics/ChLinkBase.h"
   %import  "chrono_swig/interface/core/ChTexture.i"
-  %import  "../../../chrono/assets/ChTriangleMeshShape.h"
+  %import  "../../../chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #endif  // ----- end CSHARP
 
@@ -361,7 +361,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
   %import(module = "pychrono.core")  "../../../chrono/physics/ChBodyFrame.h"
   %import(module = "pychrono.core")  "../../../chrono/physics/ChLinkBase.h"
   %import(module = "pychrono.core")  "chrono_swig/interface/core/ChTexture.i"
-  %import(module = "pychrono.core")  "../../../chrono/assets/ChTriangleMeshShape.h"
+  %import(module = "pychrono.core")  "../../../chrono/assets/ChVisualShapeTriangleMesh.h"
   
   #ifdef CHRONO_IRRLICHT
     #define ChApiIrr 
