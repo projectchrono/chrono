@@ -31,7 +31,8 @@
 
 namespace chrono {
 
-typedef std::pair<double, double> double2;
+typedef ChVectorN<double, 2> Vec2;
+typedef ChVectorN<double, 3> Vec3;
 
 /// ChHydraulicCylinder - a simple hydraulic cylinder
 /// Schematic:
@@ -64,25 +65,25 @@ class ChApi ChHydraulicCylinder {
     void SetInitialChamberLengths(double piston_side, double rod_side);
 
     /// Get the cross-section areas of the two chambers.
-    const double2& GetAreas() const { return A; }
+    const Vec2& GetAreas() const { return A; }
 
     /// Calculate current chamber lengths.
-    double2 ComputeChamberLengths(double Delta_s) const;
+    Vec2 ComputeChamberLengths(double Delta_s) const;
 
     /// Calculate current chamber volumes.
-    double2 ComputeChamberVolumes(const double2& L) const;
+    Vec2 ComputeChamberVolumes(const Vec2& L) const;
 
     /// Evaluate the force at the rod.
-    double EvalForce(const double2& p, double Delta_s, double sd);
+    double EvalForce(const Vec2& p, double Delta_s, double sd);
 
   private:
     double pistonD;  ///< piston diameter [m]
     double rodD;     ///< piston rod diameter [m]
     double pistonL;  ///< piston length [m]
 
-    double2 p0;  ///< initial pressures (piston-side and rod-side) [Pa]
-    double2 L0;  ///< initial lengths (piston-side and rod-side) [m]
-    double2 A;   ///< areas (piston-side and rod-side) [m^2]
+    Vec2 p0;  ///< initial pressures (piston-side and rod-side) [Pa]
+    Vec2 L0;  ///< initial lengths (piston-side and rod-side) [m]
+    Vec2 A;   ///< areas (piston-side and rod-side) [m^2]
 
     bool length_exceeded;  ///< flag indicating whether piston past limits
 
@@ -144,7 +145,7 @@ class ChApi ChHydraulicDirectionalValve4x3 {
     double EvaluateSpoolPositionRate(double t, double U, double Uref);
 
     /// Compute volume flows through the valve.
-    double2 ComputeVolumeFlows(double p1, double p2, double p3, double p4, double U);
+    Vec2 ComputeVolumeFlows(double U, const Vec2& p, double pP, double pT);
 
   private:
     double linear_limit;  ///< laminar flow rate limit of 2 bar [N/m^2]

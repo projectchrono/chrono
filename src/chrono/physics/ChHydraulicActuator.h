@@ -114,13 +114,13 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamics {
     /// Process initial cylinder pressures and initial valve displacement.
     /// Optionally, if the initial load F0 is provided, a derived class may calculate consistent initial conditions
     /// using the provided values as an initial guess.
-    virtual void OnInitialize(const double2& cyl_p0, const double2& cyl_L0, double dvalve_U0) = 0;
+    virtual void OnInitialize(const Vec2& cyl_p0, const Vec2& cyl_L0, double dvalve_U0) = 0;
 
     /// Extract directional valve spool position from current state.
     virtual double ExtractValveSpoolPosition() const = 0;
 
     /// Extract cylinder pressures from current state.
-    virtual double2 ExtractCylinderPressures() const = 0;
+    virtual Vec2 ExtractCylinderPressures() const = 0;
 
     /// Get current actuator input.
     double GetInput(double t) const;
@@ -202,8 +202,6 @@ class ChApi ChHydraulicActuator2 : public ChHydraulicActuatorBase {
     void SetHoseVolumes(double hose_dvalve_piston, double hose_dvalve_rod);
 
   private:
-    typedef ChVectorN<double, 2> Vec2;
-
     // Interface to ChExternalDynamics
 
     virtual int GetNumStates() const override { return 1 + 2; }
@@ -222,19 +220,19 @@ class ChApi ChHydraulicActuator2 : public ChHydraulicActuatorBase {
                               ) override;
 
     /// Process initial cylinder pressures and initial valve displacement.
-    virtual void OnInitialize(const double2& cyl_p0, const double2& cyl_L0, double dvalve_U0) override;
+    virtual void OnInitialize(const Vec2& cyl_p0, const Vec2& cyl_L0, double dvalve_U0) override;
 
     /// Extract directional valve spool position from current state.
     virtual double ExtractValveSpoolPosition() const override;
 
     /// Extract cylinder pressures from current state.
-    virtual double2 ExtractCylinderPressures() const override;
+    virtual Vec2 ExtractCylinderPressures() const override;
 
     /// Evaluate pressure rates at curent state.
     Vec2 EvaluatePressureRates(double t, const Vec2& p, double U);
 
-    double2 pc0;  ///< initial cylinder pressures
-    double U0;    ///< initial dvalve spool displacement
+    Vec2 pc0;   ///< initial cylinder pressures
+    double U0;  ///< initial dvalve spool displacement
 
     double hose1V;  ///< hose 1 volume [m^3]
     double hose2V;  ///< hose 2 volume [m^3]
@@ -294,8 +292,6 @@ class ChApi ChHydraulicActuator3 : public ChHydraulicActuatorBase {
     ChHydraulicThrottleValve& ThrottleValve() { return tvalve; }
 
   private:
-    typedef ChVectorN<double, 3> Vec3;
-
     // Interface to ChExternalDynamics
 
     virtual int GetNumStates() const override { return 1 + 3; }
@@ -314,21 +310,21 @@ class ChApi ChHydraulicActuator3 : public ChHydraulicActuatorBase {
                               ) override;
 
     /// Process initial cylinder pressures and initial valve displacement.
-    virtual void OnInitialize(const double2& cyl_p0, const double2& cyl_L0, double dvalve_U0) override;
+    virtual void OnInitialize(const Vec2& cyl_p0, const Vec2& cyl_L0, double dvalve_U0) override;
 
     /// Extract directional valve spool position from current state.
     virtual double ExtractValveSpoolPosition() const override;
 
     /// Extract cylinder pressures from current state.
-    virtual double2 ExtractCylinderPressures() const override;
+    virtual Vec2 ExtractCylinderPressures() const override;
 
     /// Evaluate pressure rates at curent state.
     Vec3 EvaluatePressureRates(double t, const Vec3& p, double U);
 
     ChHydraulicThrottleValve tvalve;  ///< throttle valve
 
-    double2 pc0;  ///< initial cylinder pressures
-    double U0;    ///< initial dvalve spool displacement
+    Vec2 pc0;   ///< initial cylinder pressures
+    double U0;  ///< initial dvalve spool displacement
 
     double hose1V;  ///< hose 1 volume [m^3]
     double hose2V;  ///< hose 2 volume [m^3]
