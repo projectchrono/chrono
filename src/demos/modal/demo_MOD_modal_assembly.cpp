@@ -42,7 +42,7 @@ using namespace chrono::fea;
 using namespace chrono::irrlicht;
 
 // Output directory
-const std::string out_dir = GetChronoOutputPath() + "REDUCED_MODAL_ASSEMBLY";
+const std::string out_dir = GetChronoOutputPath() + "MODAL_ASSEMBLY";
 
 int ID_current_example = 1;
 bool modal_analysis = true;
