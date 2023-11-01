@@ -51,8 +51,8 @@ bool ChROSCameraHandler::Initialize(std::shared_ptr<ChROSInterface> interface) {
     m_publisher = interface->GetNode()->create_publisher<sensor_msgs::msg::Image>(m_topic_name, 1);
 
     // m_image.header.frame_id = ; // TODO
-    m_image.width = m_camera->GetWidth();
-    m_image.height = m_camera->GetHeight();
+    m_image.width = m_camera->GetWidth() / m_camera->GetSampleFactor();
+    m_image.height = m_camera->GetHeight() / m_camera->GetSampleFactor();
     m_image.encoding = "rgba8";
     m_image.step = sizeof(PixelRGBA8) * m_image.width;
     m_image.data.resize(m_image.step * m_image.height);
