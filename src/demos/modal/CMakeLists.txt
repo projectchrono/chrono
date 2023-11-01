@@ -9,6 +9,7 @@ if(ENABLE_MODULE_IRRLICHT)
        demo_MOD_analysis
 	   demo_MOD_assembly_hierarchy
        demo_MOD_modal_assembly
+	   demo_MOD_slewing_beam
    )
 endif()
 
