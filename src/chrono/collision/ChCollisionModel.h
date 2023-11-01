@@ -23,8 +23,7 @@
 
 #include "chrono/ChConfig.h"
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChCoordsys.h"
-#include "chrono/core/ChMatrix33.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/geometry/ChLinePath.h"
 #include "chrono/geometry/ChTriangleMesh.h"
 #include "chrono/physics/ChContactable.h"
@@ -51,6 +50,9 @@ enum class ChCollisionSystemType {
 /// A ChCollisionModel contains all geometric shapes on a rigid body, for collision purposes.
 class ChApi ChCollisionModel {
   public:
+    /// A ShapeInstance is a pair of a collision shape and its position in the model.
+    typedef std::pair<std::shared_ptr<ChCollisionShape>, ChFrame<>> ShapeInstance;
+
     ChCollisionModel();
     virtual ~ChCollisionModel() {}
 
@@ -67,7 +69,18 @@ class ChApi ChCollisionModel {
     /// This function must be invoked after all geometric collision shapes have been added.
     virtual int BuildModel() = 0;
 
-    //
+    /// Add a collision shape with specified position within the model.
+    void AddShape(std::shared_ptr<ChCollisionShape> shape,  ///< visualization shape
+                  const ChFrame<>& frame = ChFrame<>()      ///< shape frame in model
+    );
+
+    /// Convenience function to add a cylinder specified through a radius and end points.
+    bool AddCylinder(std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
+                     double radius,                                ///< radius
+                     const ChVector<>& p1,                         ///< first end point
+                     const ChVector<>& p2                          ///< second end point
+    );
+
     // GEOMETRY DESCRIPTION
     //
     // The following functions must be called in between calls to ClearModel() and BuildModel().
@@ -110,14 +123,6 @@ class ChApi ChCollisionModel {
         const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
         ) = 0;
-
-    /// Add a cylinder specified through a radius and end points.
-    bool AddCylinder(                                 //
-        std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
-        double radius,                                ///< radius
-        const ChVector<>& p1,                         ///< first end point
-        const ChVector<>& p2                          ///< second end point
-    );
 
     /// Add a cylindrical shell to this collision model (axis in Z direction).
     virtual bool AddCylindricalShell(                 //
@@ -414,6 +419,7 @@ class ChApi ChCollisionModel {
     short int family_mask;   ///< Collision family mask
 
     std::vector<std::shared_ptr<ChCollisionShape>> m_shapes;  ///< list of collision shapes in model
+    std::vector<ShapeInstance> m_coll_shapes;  ///< list of collision shapes in model
 };
 
 /// @} chrono_collision

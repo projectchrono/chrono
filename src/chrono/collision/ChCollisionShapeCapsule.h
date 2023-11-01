@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,25 +9,27 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Radu Serban
 // =============================================================================
 
-#ifndef CHVISUAL_SHAPE_CAPSULE_H
-#define CHVISUAL_SHAPE_CAPSULE_H
+#ifndef CH_COLLISION_SHAPE_CAPSULE_H
+#define CH_COLLISION_SHAPE_CAPSULE_H
 
-#include "chrono/assets/ChVisualShape.h"
+#include "chrono/collision/ChCollisionShape.h"
 #include "chrono/geometry/ChCapsule.h"
 
 namespace chrono {
+namespace collision {
 
-/// Class for referencing a capsule shape that can be visualized in some way.
-class ChApi ChVisualShapeCapsule : public ChVisualShape {
+/// Collision capsule shape.
+/// When added to a collision model, the capsule is defined with its axis along the Z direction of the shape frame.
+class ChApi ChCollisionShapeCapsule : public ChCollisionShape {
   public:
-    ChVisualShapeCapsule();
-    ChVisualShapeCapsule(double radius, double height);
-    ChVisualShapeCapsule(const geometry::ChCapsule& cap);
+    ChCollisionShapeCapsule();
+    ChCollisionShapeCapsule(std::shared_ptr<ChMaterialSurface> material, double radius, double height);
+    ChCollisionShapeCapsule(std::shared_ptr<ChMaterialSurface> material, const geometry::ChCapsule& cap);
 
-    ~ChVisualShapeCapsule() {}
+    ~ChCollisionShapeCapsule() {}
 
     /// Access the capsule geometry.
     geometry::ChCapsule& GetGeometry() { return gcapsule; }
@@ -51,8 +53,7 @@ class ChApi ChVisualShapeCapsule : public ChVisualShape {
     geometry::ChCapsule gcapsule;
 };
 
-CH_CLASS_VERSION(ChVisualShapeCapsule, 0)
-
+}  // end namespace collision
 }  // end namespace chrono
 
 #endif

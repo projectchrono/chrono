@@ -714,6 +714,21 @@ set(ChronoEngine_collision_SOURCES
     collision/ChConvexDecomposition.cpp
     collision/ChCollisionUtils.cpp
     collision/ChCollisionShape.cpp
+    collision/ChCollisionShapeBarrel.cpp
+    collision/ChCollisionShapeBox.cpp
+    collision/ChCollisionShapeCapsule.cpp
+    collision/ChCollisionShapeCone.cpp
+    collision/ChCollisionShapeConvexHull.cpp
+    collision/ChCollisionShapeCylinder.cpp
+    collision/ChCollisionShapeCylindricalShell.cpp
+    collision/ChCollisionShapeEllipsoid.cpp
+    collision/ChCollisionShapePath2D.cpp
+    collision/ChCollisionShapePoint.cpp
+    collision/ChCollisionShapeRoundedBox.cpp
+    collision/ChCollisionShapeRoundedCylinder.cpp
+    collision/ChCollisionShapeSphere.cpp
+    collision/ChCollisionShapeTriangle.cpp
+    collision/ChCollisionShapeTriangleMesh.cpp
     )
 
 set(ChronoEngine_collision_HEADERS
@@ -723,7 +738,23 @@ set(ChronoEngine_collision_HEADERS
     collision/ChCollisionSystem.h
     collision/ChConvexDecomposition.h
     collision/ChCollisionUtils.h
+    collision/ChCollisionShapes.h
     collision/ChCollisionShape.h
+    collision/ChCollisionShapeBarrel.h
+    collision/ChCollisionShapeBox.h
+    collision/ChCollisionShapeCapsule.h
+    collision/ChCollisionShapeCone.h
+    collision/ChCollisionShapeConvexHull.h
+    collision/ChCollisionShapeCylinder.h
+    collision/ChCollisionShapeCylindricalShell.h
+    collision/ChCollisionShapeEllipsoid.h
+    collision/ChCollisionShapePath2D.h
+    collision/ChCollisionShapePoint.h
+    collision/ChCollisionShapeRoundedBox.h
+    collision/ChCollisionShapeRoundedCylinder.h
+    collision/ChCollisionShapeSphere.h
+    collision/ChCollisionShapeTriangle.h
+    collision/ChCollisionShapeTriangleMesh.h
     )
 
 source_group(collision FILES

@@ -332,7 +332,7 @@ bool ChTriangleMeshConnected::LoadSTLMesh(const std::string& filename, bool load
     vertex_t nverts;
     float* verts;
     triangle_t ntris;
-    triangle_t *tris;
+    triangle_t* tris;
     uint16_t* attrs;
 
     fp = fopen(filename.c_str(), "rb");
@@ -354,7 +354,7 @@ bool ChTriangleMeshConnected::LoadSTLMesh(const std::string& filename, bool load
 
     m_face_v_indices.resize(ntris);
     for (triangle_t i = 0, j = 0; i < ntris; i++) {
-        m_face_v_indices[i] = ChVector<int>(tris[j], tris[j + 1], tris[j+2]);
+        m_face_v_indices[i] = ChVector<int>(tris[j], tris[j + 1], tris[j + 2]);
         j += 3;
     }
 
@@ -365,12 +365,12 @@ bool ChTriangleMeshConnected::LoadSTLMesh(const std::string& filename, bool load
             const auto& v0 = m_vertices[m_face_v_indices[i][0]];
             const auto& v1 = m_vertices[m_face_v_indices[i][1]];
             const auto& v2 = m_vertices[m_face_v_indices[i][2]];
-            m_normals[i] = Vcross(v1 - v0, v2 - v0).GetNormalized();            
+            m_normals[i] = Vcross(v1 - v0, v2 - v0).GetNormalized();
             m_face_n_indices[i] = ChVector<int>(i, i, i);
         }
     }
 
-		free(tris);
+    free(tris);
     free(verts);
     free(attrs);
     return true;

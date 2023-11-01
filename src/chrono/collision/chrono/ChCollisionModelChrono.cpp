@@ -283,7 +283,7 @@ bool ChCollisionModelChrono::AddConvexHull(std::shared_ptr<ChMaterialSurface> ma
     const ChVector<>& position = frame.GetPos();
     const ChQuaternion<>& rotation = frame.GetRot();
 
-    auto shape = new ChCollisionShapeChrono(ChCollisionShape::Type::CONVEX, material);
+    auto shape = new ChCollisionShapeChrono(ChCollisionShape::Type::CONVEXHULL, material);
     shape->A = real3(position.x(), position.y(), position.z());
     shape->B = real3((chrono::real)pointlist.size(), (chrono::real)local_convex_data.size(), 0);
     shape->C = real3(0, 0, 0);

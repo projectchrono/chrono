@@ -103,6 +103,12 @@ double ChTriangle::PointTriangleDistance(ChVector<> B,           // point to be 
     return collision::utils::PointTriangleDistance(B, p1, p2, p3, mu, mv, is_into, Bprojected);
 }
 
+void ChTriangle::SetPoints(const ChVector<>& p1, const ChVector<>& p2, const ChVector<>& p3) {
+    this->p1 = p1;
+    this->p2 = p2;
+    this->p3 = p3;
+}
+
 void ChTriangle::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChTriangle>();

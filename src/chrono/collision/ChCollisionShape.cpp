@@ -20,10 +20,24 @@ namespace collision {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChCollisionShape)
 
-ChCollisionShape::ChCollisionShape() : m_type(Type::UNKNOWN_SHAPE) {}
+ChCollisionShape::ChCollisionShape(Type type) : m_type(type), m_material(nullptr) {}
 
 ChCollisionShape::ChCollisionShape(Type type, std::shared_ptr<ChMaterialSurface> material)
     : m_type(type), m_material(material) {}
+
+void ChCollisionShape::ArchiveOut(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChCollisionShape>();
+    // serialize all member data:
+    marchive << CHNVP(m_material);
+}
+
+void ChCollisionShape::ArchiveIn(ChArchiveIn& marchive) {
+    // version number
+    /*int version =*/marchive.VersionRead<ChCollisionShape>();
+    // stream in all member data:
+    marchive >> CHNVP(m_material);
+}
 
 }  // namespace collision
 }  // namespace chrono

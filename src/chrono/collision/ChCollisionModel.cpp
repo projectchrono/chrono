@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include "chrono/collision/ChCollisionModel.h"
+#include "chrono/collision/ChCollisionShapeCylinder.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/geometry/ChLineSegment.h"
 
@@ -105,6 +106,10 @@ void ChCollisionModel::SetFamilyMask(short int mask) {
     family_mask = mask;
 }
 
+void ChCollisionModel::AddShape(std::shared_ptr<ChCollisionShape> shape, const ChFrame<>& frame) {
+    m_coll_shapes.push_back({shape, frame});
+}
+
 bool ChCollisionModel::AddCylinder(std::shared_ptr<ChMaterialSurface> material,
                                    double radius,
                                    const ChVector<>& p1,
@@ -114,6 +119,10 @@ bool ChCollisionModel::AddCylinder(std::shared_ptr<ChMaterialSurface> material,
     auto frame = seg.GetFrame();
 
     return AddCylinder(material, radius, height, frame.GetPos(), frame.GetA());
+
+    ////auto cylinder_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(material, radius, height);
+    ////AddShape(cylinder_shape, frame);
+    ////return true;
 }
 
 bool ChCollisionModel::AddConvexHullsFromFile(std::shared_ptr<ChMaterialSurface> material,

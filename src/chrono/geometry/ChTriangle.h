@@ -64,6 +64,9 @@ class ChApi ChTriangle : public ChGeometry {
                                  ChVector<>& Bprojected  ///< returns the position of the projected point
     );
 
+    /// Set the triangle vertices.
+    void SetPoints(const ChVector<>& p1, const ChVector<>& p2, const ChVector<>& p3);
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;
 

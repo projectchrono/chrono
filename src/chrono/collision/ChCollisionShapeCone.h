@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,23 +9,27 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
+// Authors: Radu Serban
+// =============================================================================
 
-#ifndef CH_VISUAL_SHAPE_CONE_H
-#define CH_VISUAL_SHAPE_CONE_H
+#ifndef CH_COLLISION_SHAPE_CONE_H
+#define CH_COLLISION_SHAPE_CONE_H
 
-#include "chrono/assets/ChVisualShape.h"
+#include "chrono/collision/ChCollisionShape.h"
 #include "chrono/geometry/ChCone.h"
 
 namespace chrono {
+namespace collision {
 
-/// Class for referencing a cone shape that can be visualized in some way.
-class ChApi ChVisualShapeCone : public ChVisualShape {
+/// Collision cone shape.
+/// When added to a collision model, the cone is defined with its axis along the Z direction of the shape frame.
+class ChApi ChCollisionShapeCone : public ChCollisionShape {
   public:
-    ChVisualShapeCone();
-    ChVisualShapeCone(double radius, double height);
-    ChVisualShapeCone(const geometry::ChCone& cone);
+    ChCollisionShapeCone();
+    ChCollisionShapeCone(std::shared_ptr<ChMaterialSurface> material, double radius, double height);
+    ChCollisionShapeCone(std::shared_ptr<ChMaterialSurface> material, const geometry::ChCone& cone);
 
-    ~ChVisualShapeCone() {}
+    ~ChCollisionShapeCone() {}
 
     /// Access the cone geometry.
     geometry::ChCone& GetGeometry() { return gcone; }
@@ -46,8 +50,7 @@ class ChApi ChVisualShapeCone : public ChVisualShape {
     geometry::ChCone gcone;
 };
 
-CH_CLASS_VERSION(ChVisualShapeCone, 0)
-
+}  // end namespace collision
 }  // end namespace chrono
 
 #endif

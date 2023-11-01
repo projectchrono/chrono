@@ -43,7 +43,7 @@ real3 GetCenter(const ConvexBase* Shape) {
         case ChCollisionShape::Type::TRIANGLE:
             return GetCenter_Triangle(Shape->Triangles());  // triangle center
             break;
-        case ChCollisionShape::Type::CONVEX:
+        case ChCollisionShape::Type::CONVEXHULL:
             return GetCenter_Convex(Shape->Size(), Shape->Convex()) + Shape->A();  // convex center
             break;
         case ChCollisionShape::Type::TETRAHEDRON:
