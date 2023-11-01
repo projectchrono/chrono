@@ -43,7 +43,7 @@ using namespace filesystem;
 // using namespace chrono::irrlicht;
 
 // Output directory
-const std::string out_dir = GetChronoOutputPath() + "SLEWING_BEAMS";
+const std::string out_dir = GetChronoOutputPath() + "SLEWING_BEAM";
 
 double time_step = 0.002;
 double time_length = 5.6;
@@ -51,7 +51,7 @@ double time_length = 5.6;
 
 bool RUN_ORIGIN = true;
 bool RUN_MODAL = true;
-bool ROTATING_BEAM = false;
+bool ROTATING_BEAM = true;
 
 void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdeflection) {
     GetLog() << "\n\nRUN TEST\n";
