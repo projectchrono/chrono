@@ -341,7 +341,7 @@ void ChModalAssembly::SwitchModalReductionON(ChSparseMatrix& full_M,
 
     // 4) do the Herting reduction as in Sonneville, 2021
     DoModalReduction(damping_model);
-    //GetLog() << " * run in line:\t" << __LINE__ << "\n";
+    // GetLog() << " * run in line:\t" << __LINE__ << "\n";
 
     // compute the modal K R M matrices
     ComputeInertialKRMmatrix();  // inertial M K R
@@ -349,7 +349,7 @@ void ChModalAssembly::SwitchModalReductionON(ChSparseMatrix& full_M,
     ComputeDampingMatrix();      // material damping
     ComputeModalKRMmatrix();
 
-    //GetLog() << "run in line:\t" << __LINE__ << "\n";
+    // GetLog() << "run in line:\t" << __LINE__ << "\n";
     GetLog() << "**** the new implemented modal reduction is done...\n";
 
     // Debug dump data. ***TODO*** remove
@@ -472,140 +472,148 @@ void ChModalAssembly::CpmputeSelectionMatrix() {
     // it is expected the below is true.
     // unsigned int n_bou = n_boundary_coords_w/6;
 
-    ChMatrixDynamic<> pos_bou;
-    pos_bou.setZero(3, n_bou);
-    unsigned int icol = 0;
+    // ChMatrixDynamic<> pos_bou;
+    // pos_bou.setZero(3, n_bou);
+    // unsigned int icol = 0;
 
     // for boundary bodies and nodes
-    for (auto& body : bodylist) {
-        if (body->IsActive()) {
-            pos_bou.col(icol) = body->GetPos().eigen();
-            icol++;
-        }
-    }
-    for (auto& item : meshlist) {
-        if (auto mesh = std::dynamic_pointer_cast<ChMesh>(item)) {
-            for (auto& node : mesh->GetNodes()) {
-                if (auto xyz = std::dynamic_pointer_cast<ChNodeFEAxyz>(node)) {
-                    // SHOULD NOT HIT HERE since boundary nodes should have 6 DOFs to be able to link with outside
-                    pos_bou.col(icol) = xyz->GetPos().eigen();
-                    icol++;
-                }
-                if (auto xyzrot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(node)) {
-                    pos_bou.col(icol) = xyzrot->GetPos().eigen();
-                    icol++;
-                }
-            }
-        }
-    }
+    // for (auto& body : bodylist) {
+    //     if (body->IsActive()) {
+    //         pos_bou.col(icol) = body->GetPos().eigen();
+    //         icol++;
+    //     }
+    // }
+    // for (auto& item : meshlist) {
+    //     if (auto mesh = std::dynamic_pointer_cast<ChMesh>(item)) {
+    //         for (auto& node : mesh->GetNodes()) {
+    //             if (auto xyz = std::dynamic_pointer_cast<ChNodeFEAxyz>(node)) {
+    //                  //SHOULD NOT HIT HERE since boundary nodes should have 6 DOFs to be able to link with outside
+    //                 pos_bou.col(icol) = xyz->GetPos().eigen();
+    //                 icol++;
+    //             }
+    //             if (auto xyzrot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(node)) {
+    //                 pos_bou.col(icol) = xyzrot->GetPos().eigen();
+    //                 icol++;
+    //             }
+    //         }
+    //     }
+    // }
 
-    ChMatrixDynamic<> A;
-    A.setZero(n_bou + 1, n_bou);
-    A.topRows(n_bou) = pos_bou.transpose() * pos_bou;
-    A.bottomRows(1).setOnes();
+    // ChMatrixDynamic<> A;
+    // A.setZero(n_bou + 1, n_bou);
+    // A.topRows(n_bou) = pos_bou.transpose() * pos_bou;
+    // A.bottomRows(1).setOnes();
 
-    ChVectorDynamic<> v;
-    v.setZero(n_bou + 1);
-    v.head(n_bou) = pos_bou.transpose() * com_x.eigen();
-    v.tail(1).setOnes();
+    // ChVectorDynamic<> v;
+    // v.setZero(n_bou + 1);
+    // v.head(n_bou) = pos_bou.transpose() * com_x.eigen();
+    // v.tail(1).setOnes();
 
-    // The below algorithm is equivalent but whether it is better (more robust) than previous one?
-    bool test_second_method = false;
-    if (test_second_method) {
-        ChMatrixDynamic<> diff_bou;
-        diff_bou.setZero(3, n_bou);
-        for (int i = 0; i < n_bou; i++) {
-            diff_bou.col(i) = pos_bou.col(i) - com_x.eigen();
-        }
+    // //The below algorithm is equivalent but whether it is better (more robust) than previous one?
+    // bool test_second_method = false;
+    // if (test_second_method) {
+    //    ChMatrixDynamic<> diff_bou;
+    //    diff_bou.setZero(3, n_bou);
+    //    for (int i = 0; i < n_bou; i++) {
+    //        diff_bou.col(i) = pos_bou.col(i) - com_x.eigen();
+    //    }
 
-        A.topRows(n_bou) = diff_bou.transpose() * diff_bou;
-        A.bottomRows(1).setOnes();
+    //    A.topRows(n_bou) = diff_bou.transpose() * diff_bou;
+    //    A.bottomRows(1).setOnes();
 
-        v.setZero(n_bou + 1);
-        v.tail(1).setOnes();
-    }
+    //    v.setZero(n_bou + 1);
+    //    v.tail(1).setOnes();
+    //}
 
-    // The floating frame of reference F is placed approximately at the mass center of the subsystem.
-    // The position of the mass center is determined from both boundary and internal bodies/nodes,
-    // but the coefficient vector 'alpha' here is evaluated from only boundary bodies/nodes.
-    ChVectorDynamic<> alpha;
-    alpha.setZero(n_bou);
-    alpha = A.colPivHouseholderQr().solve(v);
+    // //The floating frame of reference F is placed approximately at the mass center of the subsystem.
+    // //The position of the mass center is determined from both boundary and internal bodies/nodes,
+    // //but the coefficient vector 'alpha' here is evaluated from only boundary bodies/nodes.
+    // ChVectorDynamic<> alpha;
+    // alpha.setZero(n_bou);
+    // alpha = A.colPivHouseholderQr().solve(v);
 
+    // this->S.setZero(6, 6 * n_bou);
+    // for (int i = 0; i < n_bou; i++) {
+    //     S.block(0, 6 * i, 3, 3).diagonal().setConstant(alpha(i));      // translation part
+    //     S.block(3, 6 * i + 3, 3, 3).diagonal().setConstant(alpha(i));  // rotation part
+    //      S.block(0, 6 * i, 6, 6).diagonal().setConstant(alpha(i));
+    // }
+
+    // temporarily use the first boundary node as the reference frame
     this->S.setZero(6, 6 * n_bou);
-    for (int i = 0; i < n_bou; i++) {
-        S.block(0, 6 * i, 3, 3).diagonal().setConstant(alpha(i));      // translation part
-        S.block(3, 6 * i + 3, 3, 3).diagonal().setConstant(alpha(i));  // rotation part
-        // S.block(0, 6 * i, 6, 6).diagonal().setConstant(alpha(i));
-    }
+    S.leftCols(6).diagonal().setConstant(0.5);
 }
 
 void ChModalAssembly::UpdateFloatingFrameOfReference() {
-    ChVectorDynamic<> pos_bou;
-    pos_bou.setZero(S.cols());
-    ChVectorDynamic<> vel_bou;
-    vel_bou.setZero(S.cols());
-    ChVectorDynamic<> acc_bou;
-    acc_bou.setZero(S.cols());
+    // ChVectorDynamic<> pos_bou;
+    // pos_bou.setZero(S.cols());
+    // ChVectorDynamic<> vel_bou;
+    // vel_bou.setZero(S.cols());
+    // ChVectorDynamic<> acc_bou;
+    // acc_bou.setZero(S.cols());
 
-    unsigned int i_bou = 0;
+    // unsigned int i_bou = 0;
 
-    // todo:
-    // it is better (faster, safer) to retrieve pos_bou,vel_bou,acc_bou
-    // from the integrator via IntStateGather(), IntStateGatherAcceleration()
-    // for the sake of computation efficiency.
-    //
-    // for boundary bodies and nodes
-    for (auto& body : bodylist) {
-        if (body->IsActive()) {
-            pos_bou.segment(6 * i_bou, 3) = body->GetPos().eigen();
-            pos_bou.segment(6 * i_bou + 3, 3) = body->GetRot().Q_to_Rotv().eigen();
-            vel_bou.segment(6 * i_bou, 3) = body->GetPos_dt().eigen();
-            vel_bou.segment(6 * i_bou + 3, 3) = body->GetWvel_loc().eigen();
-            acc_bou.segment(6 * i_bou, 3) = body->GetPos_dtdt().eigen();
-            acc_bou.segment(6 * i_bou + 3, 3) = body->GetWacc_loc().eigen();
-            i_bou++;
-        }
-    }
-    for (auto& item : meshlist) {
-        if (auto mesh = std::dynamic_pointer_cast<ChMesh>(item)) {
-            for (auto& node : mesh->GetNodes()) {
-                if (auto xyz = std::dynamic_pointer_cast<ChNodeFEAxyz>(node)) {
-                    // SHOULD NOT HIT HERE since boundary nodes should have 6 DOFs to be able to link with outside
-                    pos_bou.segment(6 * i_bou, 3) = xyz->GetPos().eigen();
-                    vel_bou.segment(6 * i_bou, 3) = xyz->GetPos_dt().eigen();
-                    acc_bou.segment(6 * i_bou, 3) = xyz->GetPos_dtdt().eigen();
-                    i_bou++;
-                }
-                if (auto xyzrot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(node)) {
-                    pos_bou.segment(6 * i_bou, 3) = xyzrot->GetPos().eigen();
-                    pos_bou.segment(6 * i_bou + 3, 3) = xyzrot->GetRot().Q_to_Rotv().eigen();
-                    vel_bou.segment(6 * i_bou, 3) = xyzrot->GetPos_dt().eigen();
-                    vel_bou.segment(6 * i_bou + 3, 3) = xyzrot->GetWvel_loc().eigen();
-                    acc_bou.segment(6 * i_bou, 3) = xyzrot->GetPos_dtdt().eigen();
-                    acc_bou.segment(6 * i_bou + 3, 3) = xyzrot->GetWacc_loc().eigen();
-                    i_bou++;
-                }
-            }
-        }
-    }
+    //// todo:
+    //// it is better (faster, safer) to retrieve pos_bou,vel_bou,acc_bou
+    //// from the integrator via IntStateGather(), IntStateGatherAcceleration()
+    //// for the sake of computation efficiency.
+    ////
+    //// for boundary bodies and nodes
+    // for (auto& body : bodylist) {
+    //     if (body->IsActive()) {
+    //         pos_bou.segment(6 * i_bou, 3) = body->GetPos().eigen();
+    //         pos_bou.segment(6 * i_bou + 3, 3) = body->GetRot().Q_to_Rotv().eigen();
+    //         vel_bou.segment(6 * i_bou, 3) = body->GetPos_dt().eigen();
+    //         vel_bou.segment(6 * i_bou + 3, 3) = body->GetWvel_loc().eigen();
+    //         acc_bou.segment(6 * i_bou, 3) = body->GetPos_dtdt().eigen();
+    //         acc_bou.segment(6 * i_bou + 3, 3) = body->GetWacc_loc().eigen();
+    //         i_bou++;
+    //     }
+    // }
+    // for (auto& item : meshlist) {
+    //     if (auto mesh = std::dynamic_pointer_cast<ChMesh>(item)) {
+    //         for (auto& node : mesh->GetNodes()) {
+    //             if (auto xyz = std::dynamic_pointer_cast<ChNodeFEAxyz>(node)) {
+    //                 // SHOULD NOT HIT HERE since boundary nodes should have 6 DOFs to be able to link with outside
+    //                 pos_bou.segment(6 * i_bou, 3) = xyz->GetPos().eigen();
+    //                 vel_bou.segment(6 * i_bou, 3) = xyz->GetPos_dt().eigen();
+    //                 acc_bou.segment(6 * i_bou, 3) = xyz->GetPos_dtdt().eigen();
+    //                 i_bou++;
+    //             }
+    //             if (auto xyzrot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(node)) {
+    //                 pos_bou.segment(6 * i_bou, 3) = xyzrot->GetPos().eigen();
+    //                 pos_bou.segment(6 * i_bou + 3, 3) = xyzrot->GetRot().Q_to_Rotv().eigen();
+    //                 vel_bou.segment(6 * i_bou, 3) = xyzrot->GetPos_dt().eigen();
+    //                 vel_bou.segment(6 * i_bou + 3, 3) = xyzrot->GetWvel_loc().eigen();
+    //                 acc_bou.segment(6 * i_bou, 3) = xyzrot->GetPos_dtdt().eigen();
+    //                 acc_bou.segment(6 * i_bou + 3, 3) = xyzrot->GetWacc_loc().eigen();
+    //                 i_bou++;
+    //             }
+    //         }
+    //     }
+    // }
 
-    ChVectorDynamic<> pos_F(6);
-    pos_F = S * pos_bou;
-    floating_frame_F.SetPos(pos_F.head(3));
-    ChQuaternion<> rot_F;
-    rot_F.Q_from_Rotv(pos_F.tail(3));
-    floating_frame_F.SetRot(rot_F);
+    // ChVectorDynamic<> pos_F(6);
+    // pos_F = S * pos_bou;
+    // floating_frame_F.SetPos(pos_F.head(3));
+    // ChQuaternion<> rot_F;
+    // rot_F.Q_from_Rotv(pos_F.tail(3));
+    // floating_frame_F.SetRot(rot_F);
 
-    ChVectorDynamic<> vel_F(6);
-    vel_F = S * vel_bou;
-    floating_frame_F.SetPos_dt(vel_F.head(3));
-    floating_frame_F.SetWvel_loc(vel_F.tail(3));
+    // ChVectorDynamic<> vel_F(6);
+    // vel_F = S * vel_bou;
+    // floating_frame_F.SetPos_dt(vel_F.head(3));
+    // floating_frame_F.SetWvel_loc(vel_F.tail(3));
 
-    ChVectorDynamic<> acc_F(6);
-    acc_F = S * acc_bou;
-    floating_frame_F.SetPos_dtdt(acc_F.head(3));
-    floating_frame_F.SetWacc_loc(acc_F.tail(3));
+    // ChVectorDynamic<> acc_F(6);
+    // acc_F = S * acc_bou;
+    // floating_frame_F.SetPos_dtdt(acc_F.head(3));
+    // floating_frame_F.SetWacc_loc(acc_F.tail(3));
+
+    // temporarily use the frame of the first boundary node
+    auto mesh = std::dynamic_pointer_cast<ChMesh>(meshlist[0]);
+    floating_frame_F = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(mesh->GetNodes()[0])->Frame();
 
     R_F = floating_frame_F.GetA();
     wloc_F = floating_frame_F.GetWvel_loc();
@@ -613,7 +621,7 @@ void ChModalAssembly::UpdateFloatingFrameOfReference() {
 
 void ChModalAssembly::UpdateTransformationMatrix() {
     // update P_B1, P_B2, P_I1, P_I2, P_W, Y
-    GetLog() << " * run in line:\t" << __LINE__ << "\n";
+    // GetLog() << " * run UpdateTransformationMatrix() in line:\t" << __LINE__ << "\n";
 
     //  for boudnary bodies and nodes
     P_B1.setZero(n_boundary_coords_w, 6);
@@ -625,13 +633,11 @@ void ChModalAssembly::UpdateTransformationMatrix() {
         ChQuaternion<> quat_bou = full_assembly_x_old.segment(7 * i_bou + 3, 4);
         ChMatrix33<> R_B(quat_bou);
         P_B1.block(6 * i_bou + 3, 3, 3, 3) = R_B.transpose() * R_F;
-        i_bou++;
     }
 
     P_B2.setIdentity(n_boundary_coords_w, n_boundary_coords_w);
     for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; i_bou++) {
         P_B2.block(6 * i_bou, 6 * i_bou, 3, 3) = R_F;
-        i_bou++;
     }
 
     // for internal bodies and nodes
@@ -646,13 +652,11 @@ void ChModalAssembly::UpdateTransformationMatrix() {
         ChQuaternion<> quat_int = full_assembly_x_old.segment(n_boundary_coords + 7 * i_int + 3, 4);
         ChMatrix33<> R_I(quat_int);
         P_I1.block(6 * i_int + 3, 3, 3, 3) = R_I.transpose() * R_F;
-        i_int++;
     }
 
     P_I2.setIdentity(n_internal_coords_w, n_internal_coords_w);
     for (int i_int = 0; i_int < n_internal_coords_w / 6; i_int++) {
         P_I2.block(6 * i_int, 6 * i_int, 3, 3) = R_F;
-        i_int++;
     }
 
     P_W.setIdentity(n_boundary_coords_w + n_modes_coords_w, n_boundary_coords_w + n_modes_coords_w);
@@ -718,11 +722,9 @@ void ChModalAssembly::ComputeLocalFullKRMmatrix() {
     P_BI.setIdentity(n_boundary_coords_w + n_internal_coords_w, n_boundary_coords_w + n_internal_coords_w);
     for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; i_bou++) {
         P_BI.block(6 * i_bou, 6 * i_bou, 3, 3) = R_F;
-        i_bou++;
     }
     for (int i_int = 0; i_int < n_internal_coords_w / 6; i_int++) {
         P_BI.block(n_boundary_coords_w + 6 * i_int, n_boundary_coords_w + 6 * i_int, 3, 3) = R_F;
-        i_int++;
     }
     ChSparseMatrix P_BI_sp = P_BI.sparseView();
 
@@ -845,10 +847,14 @@ void ChModalAssembly::DoModalReduction(const ChModalDamping& damping_model) {
     //         [ Cq_II     0    ]
     ChSparseMatrix K_II_loc = full_K_loc.block(this->n_boundary_coords_w, this->n_boundary_coords_w,
                                                this->n_internal_coords_w, this->n_internal_coords_w);
-    ChSparseMatrix Cq_II_loc = full_Cq_loc.block(this->n_boundary_doc_w, this->n_boundary_coords_w,
-                                                 this->n_internal_doc_w, this->n_internal_coords_w);
+
     Eigen::SparseMatrix<double> K_IIc_loc;
-    util_sparse_assembly_2x2symm(K_IIc_loc, K_II_loc, Cq_II_loc);
+    if (this->n_internal_doc_w) {
+        ChSparseMatrix Cq_II_loc = full_Cq_loc.block(this->n_boundary_doc_w, this->n_boundary_coords_w,
+                                                     this->n_internal_doc_w, this->n_internal_coords_w);
+        util_sparse_assembly_2x2symm(K_IIc_loc, K_II_loc, Cq_II_loc);
+    } else
+        K_IIc_loc = K_II_loc;
     K_IIc_loc.makeCompressed();
 
     // Matrix of static modes (constrained, so use K_IIc instead of K_II,
@@ -935,9 +941,9 @@ void ChModalAssembly::DoModalReduction(const ChModalDamping& damping_model) {
     // Initialize the reduced damping matrix
     this->R_red.setZero(this->M_red.rows(), this->M_red.cols());  // default R=0 , zero damping
 
-    // Reset to zero all the atomic masses of the boundary nodes because now their mass is represented by  this->modal_M
-    // NOTE! this should be made more generic and future-proof by implementing a virtual method ex. RemoveMass() in all
-    // ChPhysicsItem
+    // Reset to zero all the atomic masses of the boundary nodes because now their mass is represented by
+    // this->modal_M NOTE! this should be made more generic and future-proof by implementing a virtual method ex.
+    // RemoveMass() in all ChPhysicsItem
     for (auto& body : bodylist) {
         body->SetMass(0);
         body->SetInertia(VNULL);
@@ -959,12 +965,11 @@ void ChModalAssembly::DoModalReduction(const ChModalDamping& damping_model) {
     // todo: maybe the Cq_red is necessary for specifying the suitable modal damping ratios.
     // ChModalDampingNone damping_model;
     damping_model.ComputeR(*this, this->M_red, this->K_red, Psi, this->R_red);
-    R_red.setZero();  // set zero for test temporarily
+    R_red.setZero();  // todo:set zero for test temporarily
 
     // Invalidate results of the initial eigenvalue analysis because now the DOFs are different after reduction,
-    // to avoid that one could be tempted to plot those eigenmodes, which now are not exactly the ones of the reduced
-    // assembly.
-    // this->modes_assembly_x0.resize(0);
+    // to avoid that one could be tempted to plot those eigenmodes, which now are not exactly the ones of the
+    // reduced assembly. this->modes_assembly_x0.resize(0);
     this->modes_damping_ratio.resize(0);
     this->modes_eig.resize(0);
     this->modes_freq.resize(0);
@@ -1037,7 +1042,7 @@ void ChModalAssembly::ComputeInertialKRMmatrix() {
 }
 
 void ChModalAssembly::ComputeStiffnessMatrix() {
-    GetLog() << "run in line:\t" << __LINE__ << "\n";
+    // GetLog() << "run in line:\t" << __LINE__ << "\n";
 
     int bou_mod_coords = this->n_boundary_coords + this->n_modes_coords_w;
     int bou_mod_coords_w = this->n_boundary_coords_w + this->n_modes_coords_w;
@@ -1117,11 +1122,11 @@ void ChModalAssembly::ComputeModalKRMmatrix() {
     this->modal_R = Rm_sup + Ri_sup;
     this->modal_Cq = Cq_red * P_W.transpose();
 
-    GetLog() << "run in line:\t" << __LINE__ << "\n";
-    GetLog() << "modal_M.norm:\t" << modal_M.norm() << "\n";
-    GetLog() << "modal_K.norm:\t" << modal_K.norm() << "\n";
-    GetLog() << "modal_R.norm:\t" << modal_R.norm() << "\n";
-    GetLog() << "modal_Cq.norm:\t" << modal_Cq.norm() << "\n";
+    // GetLog() << "run in line:\t" << __LINE__ << "\n";
+    // GetLog() << "modal_M.norm:\t" << modal_M.norm() << "\n";
+    // GetLog() << "modal_K.norm:\t" << modal_K.norm() << "\n";
+    // GetLog() << "modal_R.norm:\t" << modal_R.norm() << "\n";
+    // GetLog() << "modal_Cq.norm:\t" << modal_Cq.norm() << "\n";
 }
 
 void ChModalAssembly::SetupModalData(int nmodes_reduction) {
@@ -1189,8 +1194,8 @@ void ChModalAssembly::SetupModalData(int nmodes_reduction) {
 
         // NOTE! Purge the not active variables, so that there is a  1-to-1 mapping
         // between the assembly's matrices this->modal_M, modal_K, modal_R and the modal_Hblock->Get_K() block.
-        // In fact the ChKblockGeneric modal_Hblock could also handle the not active vars, but the modal_M, K etc are
-        // computed for the active-only variables for simplicity in the Herting transformation.
+        // In fact the ChKblockGeneric modal_Hblock could also handle the not active vars, but the modal_M, K etc
+        // are computed for the active-only variables for simplicity in the Herting transformation.
         std::vector<ChVariables*> mvars_active;
         for (auto mvar : mvars) {
             if (mvar->IsActive())
@@ -1205,6 +1210,8 @@ void ChModalAssembly::SetupModalData(int nmodes_reduction) {
         this->modal_q_dtdt.setZero(this->n_modes_coords_w);
         this->custom_F_modal.setZero(this->n_modes_coords_w);
         this->custom_F_full.setZero(this->n_boundary_coords_w + this->n_internal_coords_w);
+
+        this->modal_q_old.setZero(this->n_modes_coords_w);
     }
 }
 
@@ -1384,30 +1391,65 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
     // the old state snapshot (modal reduced)
     ChState x0_mod;  // =[qB_old; 0]
     x0_mod.setZero(bou_mod_coords, nullptr);
-    x0_mod.segment(0, this->n_boundary_coords) = this->full_assembly_x_old.segment(0, this->n_boundary_coords);
+    x0_mod.segment(0, this->n_boundary_coords) = this->modes_assembly_x0.segment(0, this->n_boundary_coords);
+    // x0_mod.segment(this->n_boundary_coords, this->n_modes_coords_w) = modal_q_old.segment(0, this->n_modes_coords_w);
 
     ChStateDelta assembly_Dx_reduced;  // = [delta_qB; delta_eta]. Note: delta_qB=qB-qB_old, delta_eta=eta-0
     assembly_Dx_reduced.setZero(bou_mod_coords_w, nullptr);
     this->IntStateGetIncrement(0, x_mod, x0_mod, 0, assembly_Dx_reduced);
 
-    // ChStateDelta Dx_local; // =[delta_qB^bar; delta_eta]
-    // Dx_local.setZero(bou_mod_coords_w, nullptr);
-    // Dx_local = assembly_Dx_reduced;
-    // Dx_local.segment(0, n_boundary_coords_w) =
-    //     Y.topLeftCorner(n_boundary_coords_w, n_boundary_coords_w) * assembly_Dx_reduced.segment(0,
-    //     n_boundary_coords_w);
+    ChVectorDynamic<> displ_loc;
+    displ_loc.setZero(n_boundary_coords_w + n_modes_coords_w);
+    displ_loc.tail(n_modes_coords_w) = this->modal_q;
+    for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; i_bou++) {
+        ChVector<> r_B = x_mod.segment(7 * i_bou, 3);
+        ChVector<> r_BF0 = floating_frame_F0.GetA().transpose() *
+                           (modes_assembly_x0.segment(7 * i_bou, 3) - floating_frame_F0.GetPos().eigen());
+        displ_loc.segment(6 * i_bou, 3) = (R_F.transpose() * (r_B - floating_frame_F.GetPos()) - r_BF0).eigen();
 
-    //// recover the increment of full state (for both boundary and internal nodes)
-    // ChStateDelta assembly_Dx_local; // =[delta_qB^bar; delta_qI^bar]
-    // assembly_Dx_local.setZero(bou_int_coords_w, nullptr);
-    // assembly_Dx_local = this->Psi * Dx_local;
+        ChQuaternion<> quat_bou = x_mod.segment(7 * i_bou + 3, 4);
+        ChMatrix33<> R_B(quat_bou);
+        displ_loc.segment(6 * i_bou + 3, 3) =
+            (quat_bou.Q_to_Rotv() - R_B.transpose() * (R_F * floating_frame_F.GetRot().Q_to_Rotv().eigen())).eigen();
+    }
 
-    ChStateDelta assembly_Dx;  // =[delta_qB; delta_qI]
-    assembly_Dx.setZero(bou_int_coords_w, nullptr);
-    assembly_Dx.segment(0, n_boundary_coords_w) = assembly_Dx_reduced.segment(0, n_boundary_coords_w);
-    assembly_Dx.segment(n_boundary_coords_w, n_internal_coords_w) =
-        P_I2 * Psi_S * P_B2.transpose() * assembly_Dx_reduced.segment(0, n_boundary_coords_w) +
-        P_I2 * Psi_D * assembly_Dx_reduced.segment(n_boundary_coords_w, n_modes_coords_w);
+    ChStateDelta Dx_internal_local;  // =[delta_qI^bar]
+    Dx_internal_local.setZero(this->n_internal_coords_w, nullptr);
+    Dx_internal_local.segment(0, this->n_internal_coords_w) =
+        Psi_S * displ_loc.segment(0, n_boundary_coords_w) +
+        Psi_D * displ_loc.segment(n_boundary_coords_w, n_modes_coords_w);
+
+    ChState assembly_x_new;  // =[qB_new; qI_new]
+    assembly_x_new.setZero(bou_int_coords, nullptr);
+    assembly_x_new.head(n_boundary_coords) = x_mod.head(n_boundary_coords);
+
+    for (int i_int = 0; i_int < n_internal_coords_w / 6; i_int++) {
+        int offset_x = n_boundary_coords + 7 * i_int;
+        ChVector<> r_IF0 = floating_frame_F0.GetA().transpose() *
+                           (modes_assembly_x0.segment(offset_x, 3) - floating_frame_F0.GetPos().eigen());
+        ChVector<> r_I = floating_frame_F.GetPos() + R_F * (r_IF0 + Dx_internal_local.segment(6 * i_int, 3));
+        assembly_x_new.segment(offset_x, 3) = r_I.eigen();
+
+        ChQuaternion<> quat_int_old = full_assembly_x_old.segment(offset_x + 3, 4);
+        ChMatrix33<> R_I_old(quat_int_old);
+        ChVector<> theta_I = R_I_old.transpose() * (R_F * floating_frame_F.GetRot().Q_to_Rotv().eigen()) +
+                             Dx_internal_local.segment(6 * i_int + 3, 3);
+        ChQuaternion<> quat_int;
+        quat_int.Q_from_Rotv(theta_I);
+        assembly_x_new.segment(offset_x + 3, 4) = quat_int.eigen();
+        
+        //ChQuaternion<> quat_increment;
+        //quat_increment.Q_from_Rotv(Dx_internal_local.segment(6 * i_int + 3, 3));
+        //assembly_x_new.segment(offset_x + 3, 4) = (quat_int_old * quat_increment).eigen();
+    }
+
+    // recover the increment of full state (for both boundary and internal nodes)
+    // ChStateDelta assembly_Dx;  // =[delta_qB; delta_qI]
+    // assembly_Dx.setZero(bou_int_coords_w, nullptr);
+    // assembly_Dx.segment(0, n_boundary_coords_w) = assembly_Dx_reduced.segment(0, n_boundary_coords_w);
+    // assembly_Dx.segment(n_boundary_coords_w, n_internal_coords_w) =
+    //    P_I2 * Psi_S * P_B2.transpose() * assembly_Dx_reduced.segment(0, n_boundary_coords_w) +
+    //    P_I2 * Psi_D * assembly_Dx_reduced.segment(n_boundary_coords_w, n_modes_coords_w);
 
     ChStateDelta assembly_v;  // =[qB_dt; qI_dt]
     assembly_v.setZero(bou_int_coords_w, nullptr);
@@ -1417,7 +1459,7 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
         P_I2 * Psi_D * v_mod.segment(n_boundary_coords_w, n_modes_coords_w);
 
     // check: K_IB*P_B1+K_II*P_I1==0. Should be valid, otherwise the modal method is totally wrong!
-    bool rigidbody_mode_test = true;
+    bool rigidbody_mode_test = false;
     if (rigidbody_mode_test) {
         ChSparseMatrix K_II_loc = full_K_loc.block(this->n_boundary_coords_w, this->n_boundary_coords_w,
                                                    this->n_internal_coords_w, this->n_internal_coords_w);
@@ -1435,17 +1477,22 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
 
         ChSparseMatrix check = K_IB_loc * P_B1_sp + K_II_loc * P_I1_sp;
 
-        GetLog() << "run in line:\t" << __LINE__ << "\n";
+        // GetLog() << "run in line:\t" << __LINE__ << "\n";
+        GetLog() << "Time: " << GetChTime() << "\t";
         GetLog() << "check: K_IB*P_B1+K_II*P_I1==0?\t" << check.norm() << "\n";
+        // GetLog() << "K_IB_loc.norm(): " << K_IB_loc.norm() << "\t";
+        // GetLog() << "P_B1_sp.norm(): " << P_B1_sp.norm() << "\t";
+        // GetLog() << "K_II_loc.norm(): " << K_II_loc.norm() << "\t";
+        // GetLog() << "P_I1_sp.norm(): " << P_I1_sp.norm() << "\t";
     }
 
     bool needs_temporary_bou_int = this->is_modal;
     if (needs_temporary_bou_int)
         this->is_modal = false;
 
-    ChState assembly_x_new;  // =[qB_new; qI_new]
-    assembly_x_new.setZero(bou_int_coords, nullptr);
-    this->IntStateIncrement(0, assembly_x_new, this->full_assembly_x_old, 0, assembly_Dx);
+    // ChState assembly_x_new;  // =[qB_new; qI_new]
+    // assembly_x_new.setZero(bou_int_coords, nullptr);
+    // this->IntStateIncrement(0, assembly_x_new, this->modes_assembly_x0, 0, assembly_Dx);
 
     // scatter to internal nodes only and update them
     unsigned int displ_x = 0 - this->offset_x;
@@ -1470,8 +1517,9 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
             link->Update(T, full_update);
     }
     for (auto& item : internal_otherphysicslist) {
-        item->IntStateScatter(displ_x + item->GetOffset_x(), assembly_x_new, displ_v + item->GetOffset_w(), assembly_v,
-                              T, full_update);
+        if (item->IsActive())
+            item->IntStateScatter(displ_x + item->GetOffset_x(), assembly_x_new, displ_v + item->GetOffset_w(),
+                                  assembly_v, T, full_update);
     }
 
     if (needs_temporary_bou_int)
@@ -1479,6 +1527,7 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
 
     // store the full state for the computation in next time step
     full_assembly_x_old = assembly_x_new;
+    modal_q_old = modal_q;
 }
 
 void ChModalAssembly::SetFullStateReset() {
@@ -2020,8 +2069,8 @@ void ChModalAssembly::Update(bool update_assets) {
         if (m_custom_F_full_callback)
             m_custom_F_full_callback->evaluate(this->custom_F_full, *this);
     } else {
-        // If in modal reduction mode, the internal parts would not be updated (actually, these could even be removed)
-        // However one still might want to see the internal nodes "moving" during animations,
+        // If in modal reduction mode, the internal parts would not be updated (actually, these could even be
+        // removed) However one still might want to see the internal nodes "moving" during animations,
         //
         // todo:
         // maybe here we can call the original update to consider the geometrical nonlinearity,
@@ -2063,34 +2112,63 @@ void ChModalAssembly::SetNoSpeedNoAcceleration() {
     }
 }
 
-void ChModalAssembly::GetStateIncrement(ChStateDelta& Dx, ChStateDelta& v) {
+void ChModalAssembly::GetStateLocal(ChStateDelta& Dx_local, ChStateDelta& v) {
     if (is_modal == false) {
         // to do? not useful for the moment.
         return;
     } else {
-        Dx.setZero(this->n_boundary_coords_w + this->n_modes_coords_w, nullptr);
-
-        // fetch the state snapshot (modal reduced)
         int bou_mod_coords = this->n_boundary_coords + this->n_modes_coords_w;
         int bou_mod_coords_w = this->n_boundary_coords_w + this->n_modes_coords_w;
+
+        Dx_local.setZero(bou_mod_coords_w, nullptr);  // =[delta_qB^bar; delta_eta]
+        v.setZero(bou_mod_coords_w, nullptr);         // =[qB_dt; eta_dt]
+
+        // fetch the state snapshot (modal reduced)
         double fooT;
-        ChState x_mod;       // =[qB; eta]
-        ChStateDelta v_mod;  // =[qB_dt; eta_dt]
+        ChState x_mod;  // =[qB; eta]
+        // ChStateDelta v_mod;  // =[qB_dt; eta_dt]
         x_mod.setZero(bou_mod_coords, nullptr);
-        v_mod.setZero(bou_mod_coords_w, nullptr);
-        this->IntStateGather(0, x_mod, 0, v_mod, fooT);
+        // v_mod.setZero(bou_mod_coords_w, nullptr);
+        this->IntStateGather(0, x_mod, 0, v, fooT);
 
         // the old state snapshot (modal reduced)
-        ChState x0_mod;  // =[qB_old; 0]
-        x0_mod.setZero(bou_mod_coords, nullptr);
-        x0_mod.segment(0, this->n_boundary_coords) = this->full_assembly_x_old.segment(0, this->n_boundary_coords);
+        //ChState x0_mod;  // =[qB_old; 0]
+        //x0_mod.setZero(bou_mod_coords, nullptr);
+        //x0_mod.segment(0, this->n_boundary_coords) = this->modes_assembly_x0.segment(0, this->n_boundary_coords);
 
-        ChStateDelta assembly_Dx_reduced;  // = [delta_qB; delta_eta]. Note: delta_qB=qB-qB_old, delta_eta=eta-0
-        assembly_Dx_reduced.setZero(bou_mod_coords_w, nullptr);
-        this->IntStateGetIncrement(0, x_mod, x0_mod, 0, assembly_Dx_reduced);
+        //ChStateDelta Dx_reduced;  // = [delta_qB; delta_eta]. Note: delta_qB=qB-qB_old, delta_eta=eta-0
+        //Dx_reduced.setZero(bou_mod_coords_w, nullptr);
+        //this->IntStateGetIncrement(0, x_mod, x0_mod, 0, Dx_reduced);
 
-        Dx = assembly_Dx_reduced;
-        v = v_mod;
+        // //ChStateDelta Dx_local; // =[delta_qB^bar; delta_eta]
+        // Dx_local.setZero(bou_mod_coords_w, nullptr);
+        // Dx_local = Dx_reduced;
+        // Dx_local.segment(0, n_boundary_coords_w) =
+        //    Y.topLeftCorner(n_boundary_coords_w, n_boundary_coords_w) * Dx_reduced.segment(0, n_boundary_coords_w);
+
+        ChVectorDynamic<> displ_loc;
+        displ_loc.setZero(n_boundary_coords_w + n_modes_coords_w);
+        displ_loc.tail(n_modes_coords_w) = this->modal_q;
+        for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; i_bou++) {
+            ChVector<> r_B = x_mod.segment(7 * i_bou, 3);
+            ChVector<> r_BF0 = floating_frame_F0.GetA().transpose() *
+                               (modes_assembly_x0.segment(7 * i_bou, 3) - floating_frame_F0.GetPos().eigen());
+            displ_loc.segment(6 * i_bou, 3) = (R_F.transpose() * (r_B - floating_frame_F.GetPos()) - r_BF0).eigen();
+
+            ChQuaternion<> quat_bou = x_mod.segment(7 * i_bou + 3, 4);
+            ChMatrix33<> R_B(quat_bou);
+            displ_loc.segment(6 * i_bou + 3, 3) =
+                (quat_bou.Q_to_Rotv() - R_B.transpose() * (R_F * floating_frame_F.GetRot().Q_to_Rotv().eigen()))
+                    .eigen();
+        }
+
+        Dx_local = displ_loc;
+
+        // if (ChTime > 1.0 && ChTime<1.01) {
+        //     GetLog() << "Time: \t" << ChTime << "\n";
+        //     GetLog() << "Dx_local:\n" << Dx_local << "\n";
+        //     GetLog() << "displ_loc:\n" << displ_loc << "\n";
+        // }
     }
 }
 
@@ -2171,17 +2249,19 @@ void ChModalAssembly::IntStateScatter(const unsigned int off_x,
         this->modal_q = x.segment(off_x + this->n_boundary_coords, this->n_modes_coords_w);
         this->modal_q_dt = v.segment(off_v + this->n_boundary_coords_w, this->n_modes_coords_w);
 
-        // Update:
-        // If in modal reduction mode, the internal parts would not be updated (actually, these could even be removed)
-        // However one still might want to see the internal nodes "moving" during animations,
-        if (this->internal_nodes_update)
-            this->SetInternalStateWithModes(full_update);
+        //// Update:
+        //// If in modal reduction mode, the internal parts would not be updated (actually, these could even be
+        //// removed) However one still might want to see the internal nodes "moving" during animations,
+        // if (this->internal_nodes_update)
+        //     this->SetInternalStateWithModes(full_update);
 
-        if (m_custom_F_modal_callback)
-            m_custom_F_modal_callback->evaluate(this->custom_F_modal, *this);
+        // if (m_custom_F_modal_callback)
+        //     m_custom_F_modal_callback->evaluate(this->custom_F_modal, *this);
 
-        if (m_custom_F_full_callback)
-            m_custom_F_full_callback->evaluate(this->custom_F_full, *this);
+        // if (m_custom_F_full_callback)
+        //     m_custom_F_full_callback->evaluate(this->custom_F_full, *this);
+
+        this->Update(full_update);
     }
 }
 
@@ -2398,14 +2478,17 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
     } else {
         // 1-
         // Add elastic forces from current modal deformations
-        ChStateDelta Dx_reduced(this->n_boundary_coords_w + this->n_modes_coords_w, nullptr);
+        ChStateDelta Dx_reduced_local(this->n_boundary_coords_w + this->n_modes_coords_w, nullptr);
         ChStateDelta v_reduced(this->n_boundary_coords_w + this->n_modes_coords_w, nullptr);
-        this->GetStateIncrement(Dx_reduced, v_reduced);
+        this->GetStateLocal(Dx_reduced_local, v_reduced);
 
         // todo:
         // shall we add the quadratic velocity term here?
         R.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w) -=
-            c * (this->modal_K * Dx_reduced + this->modal_R * v_reduced + g_quad);  //  note -= sign
+            c * (Y.transpose() * this->K_red * Dx_reduced_local + this->modal_R * v_reduced +
+                 g_quad*0);  //  note -= sign
+        // R.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w) -= c *
+        //(Y.transpose() * this->modal_K * Dx_reduced_local + this->modal_R * v_reduced + g_quad);  //  note -= sign
 
         // 2-
         // Add custom forces (in modal coordinates)

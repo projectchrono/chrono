@@ -135,10 +135,11 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     void SetFullStateReset();
 
 
-    /// Computes the increment of the subassembly (increment of configuration respect 
-    /// to the snapshot configuration in previous time step), and also gets the current speed.
-    /// Dx = [qB-qB_old; eta],  v = [qB_dt; eta_dt]
-    void GetStateIncrement(ChStateDelta& Dx, ChStateDelta& v);
+    /// Computes the increment of the subassembly (the increment of the current configuration respect 
+    /// to the initial undeformed snapshot configuration), and also gets the current speed.
+    /// Dx = [qB-qB_0; eta],  v = [qB_dt; eta_dt]
+    /// Both Dx and v are expressed in the local frame of reference F
+    void GetStateLocal(ChStateDelta& Dx, ChStateDelta& v);
 
 
     /// Optimization flag. Default true: when in modal reduced mode, during simulations the internal (discarded) 
@@ -561,6 +562,7 @@ public:
     ChMatrixDynamic<> modal_Cq;//corresponding to boundary and modal lagrange multipliers
     ChMatrixDynamic<> Psi; //***TODO*** maybe prefer sparse Psi matrix, especially for upper blocks...
     ChState           full_assembly_x_old;      // state snapshot of full not reduced assembly at the previous time step
+    ChVectorDynamic<> modal_q_old; // state snapshot of the modal coordinates at the previous time step
     ChFrameMoving<>   floating_frame_F0;// floating frame of reference F at the time of SwitchModalReductionON()
 
     // a series of new variables for the new formulas to support rotating subassembly
