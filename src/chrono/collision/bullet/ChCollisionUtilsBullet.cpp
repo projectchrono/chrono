@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 
-#include "chrono/collision/ChCollisionUtilsBullet.h"
+#include "chrono/collision/bullet/ChCollisionUtilsBullet.h"
 #include "chrono/collision/bullet/LinearMath/cbtConvexHull.h"
 
 namespace chrono {

@@ -14,9 +14,9 @@
 
 #include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChProximityContainer.h"
-#include "chrono/collision/ChCollisionSystemBullet.h"
-#include "chrono/collision/ChCollisionModelBullet.h"
-#include "chrono/collision/ChCollisionAlgorithmsBullet.h"
+#include "chrono/collision/bullet/ChCollisionSystemBullet.h"
+#include "chrono/collision/bullet/ChCollisionModelBullet.h"
+#include "chrono/collision/bullet/ChCollisionAlgorithmsBullet.h"
 #include "chrono/collision/gimpact/GIMPACT/Bullet/cbtGImpactCollisionAlgorithm.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtCollisionDispatcherMt.h"
 #include "chrono/collision/bullet/LinearMath/cbtIDebugDraw.h"

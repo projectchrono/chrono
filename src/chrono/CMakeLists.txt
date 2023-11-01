@@ -706,56 +706,288 @@ elseif()
     set(ChronoEngine_MulticoreMath_SOURCES "")
 endif()
 
-# Collision group
+# Collision group --------------------------------------------------------------
 
 set(ChronoEngine_collision_SOURCES
     collision/ChCollisionInfo.cpp
-    collision/ChCollisionShape.cpp
     collision/ChCollisionModel.cpp
-    collision/ChCollisionModelBullet.cpp
-    collision/ChCollisionAlgorithmsBullet.cpp
-    collision/ChCollisionSystemBullet.cpp
     collision/ChConvexDecomposition.cpp
     collision/ChCollisionUtils.cpp
-    collision/ChCollisionUtilsBullet.cpp
+    collision/ChCollisionShape.cpp
     )
 
 set(ChronoEngine_collision_HEADERS
     collision/ChCollisionInfo.h
-    collision/ChCollisionShape.h
     collision/ChCollisionModel.h
     collision/ChCollisionPair.h
     collision/ChCollisionSystem.h
-    collision/ChCollisionShapeBullet.h
-    collision/ChCollisionModelBullet.h
-    collision/ChCollisionAlgorithmsBullet.h
-    collision/ChCollisionSystemBullet.h
     collision/ChConvexDecomposition.h
     collision/ChCollisionUtils.h
-    collision/ChCollisionUtilsBullet.h
+    collision/ChCollisionShape.h
     )
-
-if (THRUST_FOUND)
-   set (ChronoEngine_collision_SOURCES ${ChronoEngine_collision_SOURCES}
-       collision/ChCollisionModelChrono.cpp
-       collision/ChCollisionSystemChrono.cpp
-       )
-
-   set (ChronoEngine_collision_HEADERS ${ChronoEngine_collision_HEADERS}
-       collision/ChCollisionShapeChrono.h
-       collision/ChCollisionModelChrono.h
-       collision/ChCollisionSystemChrono.h
-       )
-
-   message(STATUS "Adding internal multicore collision detection library.")       
-endif()
 
 source_group(collision FILES
     ${ChronoEngine_collision_SOURCES}
     ${ChronoEngine_collision_HEADERS})
 
+# Chrono collision group
 
-# Particle factory group
+if (THRUST_FOUND)
+   message(STATUS "Adding internal multicore collision detection library.")       
+
+   set(ChronoEngine_collision_chrono_SOURCES
+       collision/chrono/ChCollisionSystemChrono.h
+       collision/chrono/ChCollisionSystemChrono.cpp
+       collision/chrono/ChCollisionModelChrono.h
+       collision/chrono/ChCollisionModelChrono.cpp
+       collision/chrono/ChCollisionShapeChrono.h
+#
+       collision/chrono/ChCollisionData.h
+       collision/chrono/ChConvexShape.h
+       collision/chrono/ChBroadphase.h
+       collision/chrono/ChBroadphase.cpp
+       collision/chrono/ChNarrowphase.h
+       collision/chrono/ChNarrowphase.cpp
+       collision/chrono/ChNarrowphaseMPR.cpp
+       collision/chrono/ChNarrowphasePRIMS.cpp
+       collision/chrono/ChRayTest.h
+       collision/chrono/ChRayTest.cpp
+       collision/chrono/ChCollisionUtils.h
+       collision/chrono/ChCollisionUtilsBroadphase.cpp
+       collision/chrono/ChCollisionUtilsMPR.cpp
+       collision/chrono/ChCollisionUtilsPRIMS.cpp
+   )
+
+   source_group("collision\\chrono" FILES
+       ${ChronoEngine_collision_chrono_SOURCES})
+endif()
+
+# Bullet collision group
+
+set(ChronoEngine_collision_bullet_SOURCES
+    collision/bullet/ChCollisionSystemBullet.h
+    collision/bullet/ChCollisionSystemBullet.cpp
+    collision/bullet/ChCollisionModelBullet.h
+    collision/bullet/ChCollisionModelBullet.cpp
+    collision/bullet/ChCollisionShapeBullet.h
+    collision/bullet/ChCollisionAlgorithmsBullet.h
+    collision/bullet/ChCollisionAlgorithmsBullet.cpp
+    collision/bullet/ChCollisionUtilsBullet.h
+    collision/bullet/ChCollisionUtilsBullet.cpp
+#
+    collision/bullet/BulletCollision/BroadphaseCollision/cbtAxisSweep3.cpp
+    collision/bullet/BulletCollision/BroadphaseCollision/cbtSimpleBroadphase.cpp
+    collision/bullet/BulletCollision/BroadphaseCollision/cbtOverlappingPairCache.cpp
+    collision/bullet/BulletCollision/BroadphaseCollision/cbtBroadphaseProxy.cpp
+    collision/bullet/BulletCollision/BroadphaseCollision/cbtDispatcher.cpp
+    collision/bullet/BulletCollision/BroadphaseCollision/cbtCollisionAlgorithm.cpp
+    collision/bullet/BulletCollision/BroadphaseCollision/cbtDbvt.cpp
+    collision/bullet/BulletCollision/BroadphaseCollision/cbtDbvtBroadphase.cpp
+    collision/bullet/BulletCollision/BroadphaseCollision/cbtQuantizedBvh.cpp
+    collision/bullet/BulletCollision/CollisionDispatch/cbtUnionFind.cpp
+    collision/bullet/BulletCollision/CollisionDispatch/cbtCollisionDispatcher.cpp
+    collision/bullet/BulletCollision/CollisionDispatch/cbtCollisionDispatcherMt.cpp
+    collision/bullet/BulletCollision/CollisionDispatch/cbtSphereSphereCollisionAlgorithm.cpp
+    collision/bullet/BulletCollision/CollisionDispatch/cbtCollisionObject.cpp
+    collision/bullet/BulletCollision/CollisionDispatch/cbtSphereBoxCollisionAlgorithm.cpp
+    collision/bullet/BulletCollision/CollisionDispatch/cbtCollisionWorld.cpp
+    collision/bullet/BulletCollision/CollisionDispatch/cbtCollisionWorldImporter.cpp
+    collision/bullet/BulletCollision/CollisionDispatch/cbtSimulationIslandManager.cpp
+    collision/bullet/BulletCollision/CollisionDispatch/cbtCompoundCollisionAlgorithm.cpp
+    collision/bullet/BulletCollision/CollisionDispatch/cbtCompoundCompoundCollisionAlgorithm.cpp
+    collision/bullet/BulletCollision/CollisionDispatch/cbtManifoldResult.cpp
+    collision/bullet/BulletCollision/CollisionDispatch/cbtConvexConcaveCollisionAlgorithm.cpp
+    collision/bullet/BulletCollision/CollisionDispatch/cbtEmptyCollisionAlgorithm.cpp
+    collision/bullet/BulletCollision/CollisionDispatch/cbtSphereTriangleCollisionAlgorithm.cpp
+    collision/bullet/BulletCollision/CollisionDispatch/cbtConvexConvexAlgorithm.cpp
+    collision/bullet/BulletCollision/CollisionDispatch/SphereTriangleDetector.cpp
+    collision/bullet/BulletCollision/CollisionDispatch/cbtDefaultCollisionConfiguration.cpp
+    collision/bullet/BulletCollision/CollisionDispatch/cbtConvexPlaneCollisionAlgorithm.cpp
+    collision/bullet/BulletCollision/CollisionDispatch/cbtActivatingCollisionAlgorithm.cpp
+    collision/bullet/BulletCollision/CollisionDispatch/cbtBox2dBox2dCollisionAlgorithm.cpp
+    collision/bullet/BulletCollision/CollisionDispatch/cbtBoxBoxCollisionAlgorithm.cpp
+    collision/bullet/BulletCollision/CollisionDispatch/cbtBoxBoxDetector.cpp
+    collision/bullet/BulletCollision/CollisionDispatch/cbtGhostObject.cpp
+    collision/bullet/BulletCollision/CollisionDispatch/cbtConvex2dConvex2dAlgorithm.cpp
+    collision/bullet/BulletCollision/CollisionDispatch/cbtInternalEdgeUtility.cpp
+    collision/bullet/BulletCollision/CollisionDispatch/cbtHashedSimplePairCache.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtBarrelShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbt2DShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtCEtriangleShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtBoxShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtTriangleMeshShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtBvhTriangleMeshShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtTriangleMesh.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtTriangleIndexVertexArray.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtCollisionShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtTriangleCallback.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtCompoundShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtTetrahedronShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtConcaveShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtStridingMeshInterface.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtConeShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtStaticPlaneShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtConvexHullShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtSphereShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtConvexShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtPolyhedralConvexShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtConvexTriangleMeshShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtOptimizedBvh.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtCylinderShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtCylindricalShellShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtMultiSphereShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtEmptyShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtMinkowskiSumShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtTriangleBuffer.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtHeightfieldTerrainShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtCapsuleShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtConvexInternalShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtUniformScalingShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtBox2dShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtConvex2dShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtConvexPointCloudShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtMultimaterialTriangleMeshShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtScaledBvhTriangleMeshShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtShapeHull.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtTriangleIndexVertexMaterialArray.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtSdfCollisionShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtMiniSDF.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtConvexPolyhedron.cpp
+    collision/bullet/BulletCollision/NarrowPhaseCollision/cbtContinuousConvexCollision.cpp
+    collision/bullet/BulletCollision/NarrowPhaseCollision/cbtSubSimplexConvexCast.cpp
+    collision/bullet/BulletCollision/NarrowPhaseCollision/cbtConvexCast.cpp
+    collision/bullet/BulletCollision/NarrowPhaseCollision/cbtRaycastCallback.cpp
+    collision/bullet/BulletCollision/NarrowPhaseCollision/cbtPersistentManifold.cpp
+    collision/bullet/BulletCollision/NarrowPhaseCollision/cbtMinkowskiPenetrationDepthSolver.cpp
+    collision/bullet/BulletCollision/NarrowPhaseCollision/cbtGjkConvexCast.cpp
+    collision/bullet/BulletCollision/NarrowPhaseCollision/cbtGjkEpaPenetrationDepthSolver.cpp
+    collision/bullet/BulletCollision/NarrowPhaseCollision/cbtVoronoiSimplexSolver.cpp
+    collision/bullet/BulletCollision/NarrowPhaseCollision/cbtGjkPairDetector.cpp
+    collision/bullet/BulletCollision/NarrowPhaseCollision/cbtGjkEpa2.cpp
+    collision/bullet/BulletCollision/NarrowPhaseCollision/cbtPolyhedralContactClipping.cpp
+    collision/bullet/LinearMath/cbtQuickprof.cpp
+    collision/bullet/LinearMath/cbtAlignedAllocator.cpp
+    collision/bullet/LinearMath/cbtGeometryUtil.cpp
+    collision/bullet/LinearMath/cbtConvexHull.cpp
+    collision/bullet/LinearMath/cbtConvexHullComputer.cpp
+    collision/bullet/LinearMath/cbtSerializer.cpp
+    collision/bullet/LinearMath/cbtSerializer64.cpp
+    collision/bullet/LinearMath/cbtPolarDecomposition.cpp
+    collision/bullet/LinearMath/cbtThreads.cpp
+    collision/bullet/LinearMath/cbtVector3.cpp
+    collision/bullet/LinearMath/TaskScheduler/cbtTaskScheduler.cpp
+    collision/bullet/LinearMath/TaskScheduler/cbtThreadSupportPosix.cpp
+    collision/bullet/LinearMath/TaskScheduler/cbtThreadSupportWin32.cpp
+    )
+
+source_group("collision\\bullet" FILES
+    ${ChronoEngine_collision_bullet_SOURCES})
+
+# Gimpact group
+
+set(ChronoEngine_collision_gimpact_SOURCES
+    collision/gimpact/GIMPACT/core/gim_box_set.cpp
+    collision/gimpact/GIMPACT/core/gim_contact.cpp
+    collision/gimpact/GIMPACT/core/gim_memory.cpp
+    collision/gimpact/GIMPACT/core/gim_tri_collision.cpp
+    collision/gimpact/GIMPACT/Bullet/cbtContactProcessing.cpp
+    collision/gimpact/GIMPACT/Bullet/cbtGenericPoolAllocator.cpp
+    collision/gimpact/GIMPACT/Bullet/cbtGImpactBvh.cpp
+    collision/gimpact/GIMPACT/Bullet/cbtGImpactCollisionAlgorithm.cpp
+    collision/gimpact/GIMPACT/Bullet/cbtGImpactQuantizedBvh.cpp
+    collision/gimpact/GIMPACT/Bullet/cbtGImpactShape.cpp
+    collision/gimpact/GIMPACT/Bullet/cbtTriangleShapeEx.cpp
+    #collision/gimpact/GIMPACTUtils/cbtGImpactConvexDecompositionShape.cpp
+    collision/gimpact/ConvexDecomposition/bestfit.cpp
+    collision/gimpact/ConvexDecomposition/bestfitobb.cpp
+    collision/gimpact/ConvexDecomposition/cd_hull.cpp
+    collision/gimpact/ConvexDecomposition/concavity.cpp
+    collision/gimpact/ConvexDecomposition/ConvexBuilder.cpp
+    collision/gimpact/ConvexDecomposition/ConvexDecomposition.cpp
+    collision/gimpact/ConvexDecomposition/fitsphere.cpp
+    collision/gimpact/ConvexDecomposition/float_math.cpp
+    collision/gimpact/ConvexDecomposition/meshvolume.cpp
+    collision/gimpact/ConvexDecomposition/planetri.cpp
+    collision/gimpact/ConvexDecomposition/raytri.cpp
+    collision/gimpact/ConvexDecomposition/splitplane.cpp
+    collision/gimpact/ConvexDecomposition/vlookup.cpp
+    )
+
+source_group(collision\\gimpact FILES
+    ${ChronoEngine_collision_gimpact_SOURCES})
+
+# HACD group
+
+set(ChronoEngine_collision_convexdecompHACD_SOURCES
+    ../chrono_thirdparty/HACD/hacdRaycastMesh.h
+    ../chrono_thirdparty/HACD/hacdMicroAllocator.h
+    ../chrono_thirdparty/HACD/hacdGraph.h
+    ../chrono_thirdparty/HACD/hacdMeshDecimator.h
+    ../chrono_thirdparty/HACD/hacdHACD.h
+    ../chrono_thirdparty/HACD/hacdManifoldMesh.h
+    ../chrono_thirdparty/HACD/hacdICHull.h
+    ../chrono_thirdparty/HACD/hacdSArray.h
+    ../chrono_thirdparty/HACD/hacdVector.h
+    ../chrono_thirdparty/HACD/hacdVersion.h
+    ../chrono_thirdparty/HACD/hacdRaycastMesh.cpp
+    ../chrono_thirdparty/HACD/hacdMicroAllocator.cpp
+    ../chrono_thirdparty/HACD/hacdGraph.cpp
+    ../chrono_thirdparty/HACD/hacdMeshDecimator.cpp
+    ../chrono_thirdparty/HACD/hacdHACD.cpp
+    ../chrono_thirdparty/HACD/hacdManifoldMesh.cpp
+    ../chrono_thirdparty/HACD/hacdICHull.cpp
+    )
+
+source_group(collision\\convexdecomp\\HACD FILES
+    ${ChronoEngine_collision_convexdecompHACD_SOURCES})
+
+# HACDv2 group
+
+set(ChronoEngine_collision_convexdecompHACDv2_SOURCES
+    ../chrono_thirdparty/HACDv2/AutoGeometry.h
+    ../chrono_thirdparty/HACDv2/HACD.h
+    ../chrono_thirdparty/HACDv2/ConvexHull.h
+    ../chrono_thirdparty/HACDv2/WuQuantizer.h
+    ../chrono_thirdparty/HACDv2/dgTypes.h
+    ../chrono_thirdparty/HACDv2/dgRefCounter.h
+    ../chrono_thirdparty/HACDv2/dgConvexHull3d.h
+    ../chrono_thirdparty/HACDv2/dgHeap.h
+    ../chrono_thirdparty/HACDv2/dgStack.h
+    ../chrono_thirdparty/HACDv2/dgList.h
+    ../chrono_thirdparty/HACDv2/dgTree.h
+    ../chrono_thirdparty/HACDv2/dgGoogol.h
+    ../chrono_thirdparty/HACDv2/dgSphere.h
+    ../chrono_thirdparty/HACDv2/dgSmallDeterminant.h
+    ../chrono_thirdparty/HACDv2/dgQuaternion.h
+    ../chrono_thirdparty/HACDv2/dgArray.h
+    ../chrono_thirdparty/HACDv2/dgVector.h
+    ../chrono_thirdparty/HACDv2/dgMatrix.h
+    ../chrono_thirdparty/HACDv2/dgPolyhedra.h
+    ../chrono_thirdparty/HACDv2/dgMeshEffect.h
+    ../chrono_thirdparty/HACDv2/MergeHulls.h
+    ../chrono_thirdparty/HACDv2/wavefront.h
+    ../chrono_thirdparty/HACDv2/AutoGeometry.cpp
+    ../chrono_thirdparty/HACDv2/HACD.cpp
+    ../chrono_thirdparty/HACDv2/ConvexHull.cpp
+    ../chrono_thirdparty/HACDv2/WuQuantizer.cpp
+    ../chrono_thirdparty/HACDv2/dgTypes.cpp
+    ../chrono_thirdparty/HACDv2/dgConvexHull3d.cpp
+    ../chrono_thirdparty/HACDv2/dgTree.cpp
+    ../chrono_thirdparty/HACDv2/dgGoogol.cpp
+    ../chrono_thirdparty/HACDv2/dgSphere.cpp
+    ../chrono_thirdparty/HACDv2/dgSmallDeterminant.cpp
+    ../chrono_thirdparty/HACDv2/dgQuaternion.cpp
+    ../chrono_thirdparty/HACDv2/dgMatrix.cpp
+    ../chrono_thirdparty/HACDv2/dgPolyhedra.cpp
+    ../chrono_thirdparty/HACDv2/dgMeshEffect.cpp
+    ../chrono_thirdparty/HACDv2/MergeHulls.cpp
+    ../chrono_thirdparty/HACDv2/wavefront.cpp
+    )
+
+source_group(collision\\convexdecomp\\HACDv2 FILES
+    ${ChronoEngine_collision_convexdecompHACDv2_SOURCES})
+
+# Particle factory group -------------------------------------------------------
 
 set(ChronoEngine_particlefactory_SOURCES
     )
@@ -996,247 +1228,6 @@ set(ChronoEngine_solver_constraints_HEADERS
 source_group(solver\\constraints FILES
     ${ChronoEngine_solver_constraints_SOURCES}
     ${ChronoEngine_solver_constraints_HEADERS})
-
-# Chrono collision group
-
-if (THRUST_FOUND)
-   set(ChronoEngine_collision_chrono_SOURCES
-       collision/chrono/ChCollisionData.h
-       collision/chrono/ChConvexShape.h
-       collision/chrono/ChBroadphase.h
-       collision/chrono/ChBroadphase.cpp
-       collision/chrono/ChNarrowphase.h
-       collision/chrono/ChNarrowphase.cpp
-       collision/chrono/ChNarrowphaseMPR.cpp
-       collision/chrono/ChNarrowphasePRIMS.cpp
-       collision/chrono/ChRayTest.h
-       collision/chrono/ChRayTest.cpp
-       collision/chrono/ChCollisionUtils.h
-       collision/chrono/ChCollisionUtilsBroadphase.cpp
-       collision/chrono/ChCollisionUtilsMPR.cpp
-       collision/chrono/ChCollisionUtilsPRIMS.cpp
-   )
-
-   source_group("collision\\chrono" FILES
-       ${ChronoEngine_collision_chrono_SOURCES})
-endif()
-
-# Bullet collision group
-
-set(ChronoEngine_collision_bullet_SOURCES
-    collision/bullet/BulletCollision/BroadphaseCollision/cbtAxisSweep3.cpp
-    collision/bullet/BulletCollision/BroadphaseCollision/cbtSimpleBroadphase.cpp
-    collision/bullet/BulletCollision/BroadphaseCollision/cbtOverlappingPairCache.cpp
-    collision/bullet/BulletCollision/BroadphaseCollision/cbtBroadphaseProxy.cpp
-    collision/bullet/BulletCollision/BroadphaseCollision/cbtDispatcher.cpp
-    collision/bullet/BulletCollision/BroadphaseCollision/cbtCollisionAlgorithm.cpp
-    collision/bullet/BulletCollision/BroadphaseCollision/cbtDbvt.cpp
-    collision/bullet/BulletCollision/BroadphaseCollision/cbtDbvtBroadphase.cpp
-    collision/bullet/BulletCollision/BroadphaseCollision/cbtQuantizedBvh.cpp
-    collision/bullet/BulletCollision/CollisionDispatch/cbtUnionFind.cpp
-    collision/bullet/BulletCollision/CollisionDispatch/cbtCollisionDispatcher.cpp
-    collision/bullet/BulletCollision/CollisionDispatch/cbtCollisionDispatcherMt.cpp
-    collision/bullet/BulletCollision/CollisionDispatch/cbtSphereSphereCollisionAlgorithm.cpp
-    collision/bullet/BulletCollision/CollisionDispatch/cbtCollisionObject.cpp
-    collision/bullet/BulletCollision/CollisionDispatch/cbtSphereBoxCollisionAlgorithm.cpp
-    collision/bullet/BulletCollision/CollisionDispatch/cbtCollisionWorld.cpp
-    collision/bullet/BulletCollision/CollisionDispatch/cbtCollisionWorldImporter.cpp
-    collision/bullet/BulletCollision/CollisionDispatch/cbtSimulationIslandManager.cpp
-    collision/bullet/BulletCollision/CollisionDispatch/cbtCompoundCollisionAlgorithm.cpp
-    collision/bullet/BulletCollision/CollisionDispatch/cbtCompoundCompoundCollisionAlgorithm.cpp
-    collision/bullet/BulletCollision/CollisionDispatch/cbtManifoldResult.cpp
-    collision/bullet/BulletCollision/CollisionDispatch/cbtConvexConcaveCollisionAlgorithm.cpp
-    collision/bullet/BulletCollision/CollisionDispatch/cbtEmptyCollisionAlgorithm.cpp
-    collision/bullet/BulletCollision/CollisionDispatch/cbtSphereTriangleCollisionAlgorithm.cpp
-    collision/bullet/BulletCollision/CollisionDispatch/cbtConvexConvexAlgorithm.cpp
-    collision/bullet/BulletCollision/CollisionDispatch/SphereTriangleDetector.cpp
-    collision/bullet/BulletCollision/CollisionDispatch/cbtDefaultCollisionConfiguration.cpp
-    collision/bullet/BulletCollision/CollisionDispatch/cbtConvexPlaneCollisionAlgorithm.cpp
-    collision/bullet/BulletCollision/CollisionDispatch/cbtActivatingCollisionAlgorithm.cpp
-    collision/bullet/BulletCollision/CollisionDispatch/cbtBox2dBox2dCollisionAlgorithm.cpp
-    collision/bullet/BulletCollision/CollisionDispatch/cbtBoxBoxCollisionAlgorithm.cpp
-    collision/bullet/BulletCollision/CollisionDispatch/cbtBoxBoxDetector.cpp
-    collision/bullet/BulletCollision/CollisionDispatch/cbtGhostObject.cpp
-    collision/bullet/BulletCollision/CollisionDispatch/cbtConvex2dConvex2dAlgorithm.cpp
-    collision/bullet/BulletCollision/CollisionDispatch/cbtInternalEdgeUtility.cpp
-    collision/bullet/BulletCollision/CollisionDispatch/cbtHashedSimplePairCache.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtBarrelShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbt2DShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtCEtriangleShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtBoxShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtTriangleMeshShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtBvhTriangleMeshShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtTriangleMesh.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtTriangleIndexVertexArray.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtCollisionShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtTriangleCallback.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtCompoundShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtTetrahedronShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtConcaveShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtStridingMeshInterface.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtConeShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtStaticPlaneShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtConvexHullShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtSphereShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtConvexShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtPolyhedralConvexShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtConvexTriangleMeshShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtOptimizedBvh.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtCylinderShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtCylindricalShellShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtMultiSphereShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtEmptyShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtMinkowskiSumShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtTriangleBuffer.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtHeightfieldTerrainShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtCapsuleShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtConvexInternalShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtUniformScalingShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtBox2dShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtConvex2dShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtConvexPointCloudShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtMultimaterialTriangleMeshShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtScaledBvhTriangleMeshShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtShapeHull.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtTriangleIndexVertexMaterialArray.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtSdfCollisionShape.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtMiniSDF.cpp
-    collision/bullet/BulletCollision/CollisionShapes/cbtConvexPolyhedron.cpp
-    collision/bullet/BulletCollision/NarrowPhaseCollision/cbtContinuousConvexCollision.cpp
-    collision/bullet/BulletCollision/NarrowPhaseCollision/cbtSubSimplexConvexCast.cpp
-    collision/bullet/BulletCollision/NarrowPhaseCollision/cbtConvexCast.cpp
-    collision/bullet/BulletCollision/NarrowPhaseCollision/cbtRaycastCallback.cpp
-    collision/bullet/BulletCollision/NarrowPhaseCollision/cbtPersistentManifold.cpp
-    collision/bullet/BulletCollision/NarrowPhaseCollision/cbtMinkowskiPenetrationDepthSolver.cpp
-    collision/bullet/BulletCollision/NarrowPhaseCollision/cbtGjkConvexCast.cpp
-    collision/bullet/BulletCollision/NarrowPhaseCollision/cbtGjkEpaPenetrationDepthSolver.cpp
-    collision/bullet/BulletCollision/NarrowPhaseCollision/cbtVoronoiSimplexSolver.cpp
-    collision/bullet/BulletCollision/NarrowPhaseCollision/cbtGjkPairDetector.cpp
-    collision/bullet/BulletCollision/NarrowPhaseCollision/cbtGjkEpa2.cpp
-    collision/bullet/BulletCollision/NarrowPhaseCollision/cbtPolyhedralContactClipping.cpp
-    collision/bullet/LinearMath/cbtQuickprof.cpp
-    collision/bullet/LinearMath/cbtAlignedAllocator.cpp
-    collision/bullet/LinearMath/cbtGeometryUtil.cpp
-    collision/bullet/LinearMath/cbtConvexHull.cpp
-    collision/bullet/LinearMath/cbtConvexHullComputer.cpp
-    collision/bullet/LinearMath/cbtSerializer.cpp
-    collision/bullet/LinearMath/cbtSerializer64.cpp
-    collision/bullet/LinearMath/cbtPolarDecomposition.cpp
-    collision/bullet/LinearMath/cbtThreads.cpp
-    collision/bullet/LinearMath/cbtVector3.cpp
-    collision/bullet/LinearMath/TaskScheduler/cbtTaskScheduler.cpp
-    collision/bullet/LinearMath/TaskScheduler/cbtThreadSupportPosix.cpp
-    collision/bullet/LinearMath/TaskScheduler/cbtThreadSupportWin32.cpp
-    )
-
-source_group("collision\\bullet" FILES
-    ${ChronoEngine_collision_bullet_SOURCES})
-
-# Gimpact group
-
-set(ChronoEngine_collision_gimpact_SOURCES
-    collision/gimpact/GIMPACT/core/gim_box_set.cpp
-    collision/gimpact/GIMPACT/core/gim_contact.cpp
-    collision/gimpact/GIMPACT/core/gim_memory.cpp
-    collision/gimpact/GIMPACT/core/gim_tri_collision.cpp
-    collision/gimpact/GIMPACT/Bullet/cbtContactProcessing.cpp
-    collision/gimpact/GIMPACT/Bullet/cbtGenericPoolAllocator.cpp
-    collision/gimpact/GIMPACT/Bullet/cbtGImpactBvh.cpp
-    collision/gimpact/GIMPACT/Bullet/cbtGImpactCollisionAlgorithm.cpp
-    collision/gimpact/GIMPACT/Bullet/cbtGImpactQuantizedBvh.cpp
-    collision/gimpact/GIMPACT/Bullet/cbtGImpactShape.cpp
-    collision/gimpact/GIMPACT/Bullet/cbtTriangleShapeEx.cpp
-    #collision/gimpact/GIMPACTUtils/cbtGImpactConvexDecompositionShape.cpp
-    collision/gimpact/ConvexDecomposition/bestfit.cpp
-    collision/gimpact/ConvexDecomposition/bestfitobb.cpp
-    collision/gimpact/ConvexDecomposition/cd_hull.cpp
-    collision/gimpact/ConvexDecomposition/concavity.cpp
-    collision/gimpact/ConvexDecomposition/ConvexBuilder.cpp
-    collision/gimpact/ConvexDecomposition/ConvexDecomposition.cpp
-    collision/gimpact/ConvexDecomposition/fitsphere.cpp
-    collision/gimpact/ConvexDecomposition/float_math.cpp
-    collision/gimpact/ConvexDecomposition/meshvolume.cpp
-    collision/gimpact/ConvexDecomposition/planetri.cpp
-    collision/gimpact/ConvexDecomposition/raytri.cpp
-    collision/gimpact/ConvexDecomposition/splitplane.cpp
-    collision/gimpact/ConvexDecomposition/vlookup.cpp
-    )
-
-source_group(collision\\gimpact FILES
-    ${ChronoEngine_collision_gimpact_SOURCES})
-
-# HACD group
-
-set(ChronoEngine_collision_convexdecompHACD_SOURCES
-    ../chrono_thirdparty/HACD/hacdRaycastMesh.h
-    ../chrono_thirdparty/HACD/hacdMicroAllocator.h
-    ../chrono_thirdparty/HACD/hacdGraph.h
-    ../chrono_thirdparty/HACD/hacdMeshDecimator.h
-    ../chrono_thirdparty/HACD/hacdHACD.h
-    ../chrono_thirdparty/HACD/hacdManifoldMesh.h
-    ../chrono_thirdparty/HACD/hacdICHull.h
-    ../chrono_thirdparty/HACD/hacdSArray.h
-    ../chrono_thirdparty/HACD/hacdVector.h
-    ../chrono_thirdparty/HACD/hacdVersion.h
-#
-    ../chrono_thirdparty/HACD/hacdRaycastMesh.cpp
-    ../chrono_thirdparty/HACD/hacdMicroAllocator.cpp
-    ../chrono_thirdparty/HACD/hacdGraph.cpp
-    ../chrono_thirdparty/HACD/hacdMeshDecimator.cpp
-    ../chrono_thirdparty/HACD/hacdHACD.cpp
-    ../chrono_thirdparty/HACD/hacdManifoldMesh.cpp
-    ../chrono_thirdparty/HACD/hacdICHull.cpp
-    )
-
-source_group(collision\\convexdecomp\\HACD FILES
-    ${ChronoEngine_collision_convexdecompHACD_SOURCES})
-
-# HACDv2 group
-
-set(ChronoEngine_collision_convexdecompHACDv2_SOURCES
-    ../chrono_thirdparty/HACDv2/AutoGeometry.h
-    ../chrono_thirdparty/HACDv2/HACD.h
-    ../chrono_thirdparty/HACDv2/ConvexHull.h
-    ../chrono_thirdparty/HACDv2/WuQuantizer.h
-    ../chrono_thirdparty/HACDv2/dgTypes.h
-    ../chrono_thirdparty/HACDv2/dgRefCounter.h
-    ../chrono_thirdparty/HACDv2/dgConvexHull3d.h
-    ../chrono_thirdparty/HACDv2/dgHeap.h
-    ../chrono_thirdparty/HACDv2/dgStack.h
-    ../chrono_thirdparty/HACDv2/dgList.h
-    ../chrono_thirdparty/HACDv2/dgTree.h
-    ../chrono_thirdparty/HACDv2/dgGoogol.h
-    ../chrono_thirdparty/HACDv2/dgSphere.h
-    ../chrono_thirdparty/HACDv2/dgSmallDeterminant.h
-    ../chrono_thirdparty/HACDv2/dgQuaternion.h
-    ../chrono_thirdparty/HACDv2/dgArray.h
-    ../chrono_thirdparty/HACDv2/dgVector.h
-    ../chrono_thirdparty/HACDv2/dgMatrix.h
-    ../chrono_thirdparty/HACDv2/dgPolyhedra.h
-    ../chrono_thirdparty/HACDv2/dgMeshEffect.h
-    ../chrono_thirdparty/HACDv2/MergeHulls.h
-    ../chrono_thirdparty/HACDv2/wavefront.h
-#
-    ../chrono_thirdparty/HACDv2/AutoGeometry.cpp
-    ../chrono_thirdparty/HACDv2/HACD.cpp
-    ../chrono_thirdparty/HACDv2/ConvexHull.cpp
-    ../chrono_thirdparty/HACDv2/WuQuantizer.cpp
-    ../chrono_thirdparty/HACDv2/dgTypes.cpp
-    ../chrono_thirdparty/HACDv2/dgConvexHull3d.cpp
-    ../chrono_thirdparty/HACDv2/dgTree.cpp
-    ../chrono_thirdparty/HACDv2/dgGoogol.cpp
-    ../chrono_thirdparty/HACDv2/dgSphere.cpp
-    ../chrono_thirdparty/HACDv2/dgSmallDeterminant.cpp
-    ../chrono_thirdparty/HACDv2/dgQuaternion.cpp
-    ../chrono_thirdparty/HACDv2/dgMatrix.cpp
-    ../chrono_thirdparty/HACDv2/dgPolyhedra.cpp
-    ../chrono_thirdparty/HACDv2/dgMeshEffect.cpp
-    ../chrono_thirdparty/HACDv2/MergeHulls.cpp
-    ../chrono_thirdparty/HACDv2/wavefront.cpp
-    )
-
-source_group(collision\\convexdecomp\\HACDv2 FILES
-    ${ChronoEngine_collision_convexdecompHACDv2_SOURCES})
 
 # Utility group
 

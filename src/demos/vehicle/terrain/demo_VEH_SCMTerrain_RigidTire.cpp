@@ -18,7 +18,7 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #ifdef CHRONO_COLLISION
-    #include "chrono/collision/ChCollisionSystemChrono.h"
+    #include "chrono/collision/chrono/ChCollisionSystemChrono.h"
 #endif
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChBlender.h"

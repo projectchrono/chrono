@@ -22,9 +22,9 @@
 #include "chrono/physics/ChMarker.h"
 #include "chrono/physics/ChSystem.h"
 
-#include "chrono/collision/ChCollisionModelBullet.h"
+#include "chrono/collision/bullet/ChCollisionModelBullet.h"
 #ifdef CHRONO_COLLISION
-    #include "chrono/collision/ChCollisionModelChrono.h"
+    #include "chrono/collision/chrono/ChCollisionModelChrono.h"
 #endif
 
 namespace chrono {

@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/collision/ChCollisionModelBullet.h"
+#include "chrono/collision/bullet/ChCollisionModelBullet.h"
 #include "chrono/core/ChMath.h"
 #include "chrono/physics/ChSystem.h"
 

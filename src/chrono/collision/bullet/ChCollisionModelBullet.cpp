@@ -15,16 +15,16 @@
 #include <memory>
 #include <array>
 
-#include "chrono/collision/ChCollisionSystemBullet.h"
-#include "chrono/collision/ChCollisionUtilsBullet.h"
-#include "chrono/collision/ChConvexDecomposition.h"
-#include "chrono/collision/ChCollisionModelBullet.h"
+#include "chrono/collision/bullet/ChCollisionSystemBullet.h"
+#include "chrono/collision/bullet/ChCollisionUtilsBullet.h"
+#include "chrono/collision/bullet/ChCollisionModelBullet.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbt2DShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtBarrelShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCEtriangleShape.h"
 #include "chrono/collision/bullet/cbtBulletCollisionCommon.h"
 #include "chrono/collision/gimpact/GIMPACT/Bullet/cbtGImpactCollisionAlgorithm.h"
 #include "chrono/collision/gimpact/GIMPACTUtils/cbtGImpactConvexDecompositionShape.h"
+#include "chrono/collision/ChConvexDecomposition.h"
 #include "chrono/geometry/ChLineArc.h"
 #include "chrono/geometry/ChLineSegment.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"

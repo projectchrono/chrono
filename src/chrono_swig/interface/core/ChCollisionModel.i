@@ -1,6 +1,6 @@
 %{
 #include "chrono/collision/ChCollisionModel.h"
-#include "chrono/collision/ChCollisionModelBullet.h"
+#include "chrono/collision/bullet/ChCollisionModelBullet.h"
 
 using namespace collision;
 %}
@@ -14,4 +14,4 @@ using namespace collision;
 
 // Parse the header file to generate wrappers
 %include "../../../chrono/collision/ChCollisionModel.h"
-%include "../../../chrono/collision/ChCollisionModelBullet.h"
+%include "../../../chrono/collision/bullet/ChCollisionModelBullet.h"

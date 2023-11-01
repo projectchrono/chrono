@@ -17,7 +17,7 @@
 //
 // =============================================================================
 
-#include "chrono/collision/ChCollisionModelBullet.h"
+#include "chrono/collision/bullet/ChCollisionModelBullet.h"
 
 #include "chrono_multicore/collision/ChCollisionSystemBulletMulticore.h"
 #include "chrono_multicore/ChDataManager.h"

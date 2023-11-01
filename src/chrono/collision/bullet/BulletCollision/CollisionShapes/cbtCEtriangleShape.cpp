@@ -19,7 +19,7 @@ subject to the following restrictions:
 #include "cbtCEtriangleShape.h"
 #include "BulletCollision/CollisionShapes/cbtCollisionMargin.h"
 #include "LinearMath/cbtQuaternion.h"
-#include "chrono/collision/ChCollisionModelBullet.h"
+#include "chrono/collision/bullet/ChCollisionModelBullet.h"
 #include <stdio.h>
 
 using namespace chrono;

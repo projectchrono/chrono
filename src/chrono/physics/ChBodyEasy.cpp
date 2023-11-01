@@ -25,7 +25,7 @@
 #include "chrono/assets/ChVisualShapeModelFile.h"
 #include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
-#include "chrono/collision/ChCollisionUtilsBullet.h"
+#include "chrono/collision/bullet/ChCollisionUtilsBullet.h"
 
 namespace chrono {
 CH_FACTORY_REGISTER(ChBodyEasySphere)

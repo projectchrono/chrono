@@ -20,7 +20,7 @@
 #include "chrono/assets/ChVisualShapeBox.h"
 
 #include "chrono_distributed/ChApiDistributed.h"
-#include "chrono/collision/ChCollisionModelChrono.h"
+#include "chrono/collision/chrono/ChCollisionModelChrono.h"
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 
 namespace chrono {

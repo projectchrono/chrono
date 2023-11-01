@@ -15,7 +15,7 @@
 // Unit test for Bullet collision utility functions
 // =============================================================================
 
-#include "chrono/collision/ChCollisionUtilsBullet.h"
+#include "chrono/collision/bullet/ChCollisionUtilsBullet.h"
 #include "chrono/collision/bullet/LinearMath/cbtTransform.h"
 
 #include "gtest/gtest.h"

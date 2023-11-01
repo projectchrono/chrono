@@ -22,6 +22,10 @@ class ChElementBase;
 
 %shared_ptr(chrono::ChVisualShape)
 %shared_ptr(chrono::ChVisualShapeFEA)
+%shared_ptr(chrono::ChVisualShapeBox)
+%shared_ptr(chrono::ChVisualShapeModelFile)
+%shared_ptr(chrono::ChVisualShapeSphere)
+%shared_ptr(chrono::ChVisualShapeCylinder)
 
 %include "../../../chrono/assets/ChVisualShape.h"    
 %include "../../../chrono/assets/ChVisualShapeFEA.h"    

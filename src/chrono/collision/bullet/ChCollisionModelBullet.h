@@ -21,9 +21,9 @@
 #include <memory>
 #include <vector>
 
-#include "chrono/collision/ChCollisionModel.h"
-#include "chrono/collision/ChCollisionShapeBullet.h"
 #include "chrono/geometry/ChLinePath.h"
+#include "chrono/collision/ChCollisionModel.h"
+#include "chrono/collision/bullet/ChCollisionShapeBullet.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCompoundShape.h"
 
 // forward references

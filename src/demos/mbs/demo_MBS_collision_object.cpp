@@ -18,7 +18,7 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/collision/ChCollisionSystemChrono.h"
+#include "chrono/collision/chrono/ChCollisionSystemChrono.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 

@@ -16,7 +16,7 @@
 
 #include "chrono_distributed/ChApiDistributed.h"
 
-#include "chrono/collision/ChCollisionModelChrono.h"
+#include "chrono/collision/chrono/ChCollisionModelChrono.h"
 
 namespace chrono {
 namespace collision {

@@ -22,7 +22,7 @@
 #include "chrono_multicore/ChApiMulticore.h"
 #include "chrono_multicore/ChDataManager.h"
 
-#include "chrono/collision/ChCollisionSystemChrono.h"
+#include "chrono/collision/chrono/ChCollisionSystemChrono.h"
 
 namespace chrono {
 

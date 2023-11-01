@@ -23,7 +23,7 @@
 #include "chrono/core/ChApiCE.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyAuxRef.h"
-#include "chrono/collision/ChCollisionModelBullet.h"
+#include "chrono/collision/bullet/ChCollisionModelBullet.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
 namespace chrono {

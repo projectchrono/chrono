@@ -19,7 +19,7 @@
 //       the associated body has a ChSystem (mbody->GetSystem())
 // =============================================================================
 
-#include "chrono/collision/ChCollisionModelChrono.h"
+#include "chrono/collision/chrono/ChCollisionModelChrono.h"
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyAuxRef.h"

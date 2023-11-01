@@ -57,10 +57,10 @@
 #include "chrono/physics/ChPhysicsItem.h"
 
 #include "chrono/collision/ChCollisionModel.h"
-#include "chrono/collision/ChCollisionModelBullet.h"
+#include "chrono/collision/bullet/ChCollisionModelBullet.h"
 
 #include "chrono/collision/ChCollisionSystem.h"
-#include "chrono/collision/ChCollisionSystemBullet.h"
+#include "chrono/collision/bullet/ChCollisionSystemBullet.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChVehicle.h"

@@ -1,7 +1,7 @@
 %{
 #include "chrono/collision/ChCollisionInfo.h"
 #include "chrono/collision/ChCollisionModel.h"
-#include "chrono/collision/ChCollisionModelBullet.h"
+#include "chrono/collision/bullet/ChCollisionModelBullet.h"
 
 using namespace collision;
 %}

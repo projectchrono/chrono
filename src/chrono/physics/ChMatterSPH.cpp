@@ -18,7 +18,7 @@
 #include "chrono/physics/ChMatterSPH.h"
 #include "chrono/physics/ChSystem.h"
 
-#include "chrono/collision/ChCollisionModelBullet.h"
+#include "chrono/collision/bullet/ChCollisionModelBullet.h"
 #include "chrono/physics/ChProximityContainerSPH.h"
 
 namespace chrono {

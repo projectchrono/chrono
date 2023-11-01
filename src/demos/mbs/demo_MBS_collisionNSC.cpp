@@ -25,7 +25,7 @@
 #include "chrono/core/ChRealtimeStep.h"
 
 #ifdef CHRONO_COLLISION
-    #include "chrono/collision/ChCollisionSystemChrono.h"
+    #include "chrono/collision/chrono/ChCollisionSystemChrono.h"
 #endif
 
 #ifdef CHRONO_IRRLICHT

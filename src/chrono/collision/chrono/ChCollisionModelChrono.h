@@ -18,7 +18,7 @@
 #define CH_COLLISION_MODEL_CHRONO_H
 
 #include "chrono/collision/ChCollisionModel.h"
-#include "chrono/collision/ChCollisionShapeChrono.h"
+#include "chrono/collision/chrono/ChCollisionShapeChrono.h"
 
 #include "chrono/multicore_math/ChMulticoreMath.h"
 

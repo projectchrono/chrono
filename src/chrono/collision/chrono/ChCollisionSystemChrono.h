@@ -23,7 +23,7 @@
 #include "chrono/core/ChTimer.h"
 
 #include "chrono/collision/ChCollisionSystem.h"
-#include "chrono/collision/ChCollisionModelChrono.h"
+#include "chrono/collision/chrono/ChCollisionModelChrono.h"
 #include "chrono/collision/chrono/ChCollisionData.h"
 #include "chrono/collision/chrono/ChBroadphase.h"
 #include "chrono/collision/chrono/ChNarrowphase.h"

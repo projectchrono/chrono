@@ -18,7 +18,7 @@
 #include "chrono_distributed/collision/ChCollisionModelDistributed.h"
 #include "chrono_distributed/collision/ChCollisionSystemDistributed.h"
 
-#include "chrono/collision/ChCollisionModelChrono.h"
+#include "chrono/collision/chrono/ChCollisionModelChrono.h"
 
 #include "chrono_multicore/ChDataManager.h"
 

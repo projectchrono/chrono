@@ -47,9 +47,9 @@
 %{
 
 #include "chrono/collision/ChCollisionModel.h"
-#include "chrono/collision/ChCollisionModelBullet.h"
+#include "chrono/collision/bullet/ChCollisionModelBullet.h"
 #include "chrono/collision/ChCollisionSystem.h"
-#include "chrono/collision/ChCollisionSystemBullet.h"
+#include "chrono/collision/bullet/ChCollisionSystemBullet.h"
 
 #include "chrono/fea/ChNodeFEAbase.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
@@ -375,9 +375,9 @@ using namespace chrono::fea;
 %include "../../../chrono/physics/ChPhysicsItem.h"
 
 %include "../../../chrono/collision/ChCollisionModel.h"
-%include "../../../chrono/collision/ChCollisionModelBullet.h"
+%include "../../../chrono/collision/bullet/ChCollisionModelBullet.h"
 %include "../../../chrono/collision/ChCollisionSystem.h"
-%include "../../../chrono/collision/ChCollisionSystemBullet.h"
+%include "../../../chrono/collision/bullet/ChCollisionSystemBullet.h"
 
 %include "../../../chrono/fea/ChContinuumMaterial.h"
 // TODO: if eigen::ref can be wrapped, unignore these,

@@ -18,7 +18,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystem.h"
-#include "chrono/collision/ChCollisionSystemChrono.h"
+#include "chrono/collision/chrono/ChCollisionSystemChrono.h"
 #include "chrono/collision/chrono/ChRayTest.h"
 
 namespace chrono {

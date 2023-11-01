@@ -69,7 +69,7 @@
 
 #include "chrono/collision/ChCollisionUtils.h"
 #include "chrono/collision/ChCollisionSystem.h"
-#include "chrono/collision/ChCollisionSystemBullet.h"
+#include "chrono/collision/bullet/ChCollisionSystemBullet.h"
 
 #include "chrono/geometry/ChTriangleMesh.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
@@ -343,7 +343,7 @@ using namespace chrono::fea;
 %include "ChCollisionModel.i"
 %include "../../../chrono/collision/ChCollisionUtils.h"
 %include "../../../chrono/collision/ChCollisionSystem.h"
-%include "../../../chrono/collision/ChCollisionSystemBullet.h"
+%include "../../../chrono/collision/bullet/ChCollisionSystemBullet.h"
 ////%include "ChCollisionChrono.i"
 %include "ChCollisionInfo.i"
 
