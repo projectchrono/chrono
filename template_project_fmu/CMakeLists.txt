@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 
 
-project(my_chrono_fmu)
+project(template_project_fmu)
 
 set(FMU_TOOLS_DIR "${CMAKE_SOURCE_DIR}/../../fmu_tools/" CACHE PATH "Path to fmu_tools.")
 
@@ -50,17 +50,17 @@ endif()
 #########################
 MESSAGE(STATUS "-------------- FetchContent(fmu_tools) --------------")
 
-include(FetchContent)
-FetchContent_Declare(
-    PACK_FMU
-    SOURCE_DIR ${FMU_TOOLS_DIR}
-)
-
-set(FMU_MODEL_IDENTIFIER "FmuComponentChrono" CACHE STRING "FMU Model Identifier: should fulfill operating system and C-function naming standards.")
+set(FMU_MODEL_IDENTIFIER "myFmuComponentChrono" CACHE STRING "FMU Model Identifier: should fulfill operating system and C-function naming standards.")
 set(BUILD_TESTING ON CACHE BOOL "Enable testing.")
 set(USE_EXTERNAL_FMU_COMPONENT_SOURCES ON CACHE INTERNAL "")
 
-FetchContent_MakeAvailable(PACK_FMU)
+include(FetchContent)
+FetchContent_Declare(
+    ${FMU_MODEL_IDENTIFIER}
+    SOURCE_DIR ${FMU_TOOLS_DIR}
+)
+
+FetchContent_MakeAvailable(${FMU_MODEL_IDENTIFIER})
 
 # MESSAGE(STATUS "FMI_PLATFORM: ${FMI_PLATFORM}")
 # MESSAGE(STATUS "FMU_RUNTIME_OUTPUT_DIRECTORY: ${FMU_RUNTIME_OUTPUT_DIRECTORY}")
@@ -68,9 +68,9 @@ FetchContent_MakeAvailable(PACK_FMU)
 MARK_AS_ADVANCED(FETCHCONTENT_BASE_DIR)
 MARK_AS_ADVANCED(FETCHCONTENT_FULLY_DISCONNECTED)
 MARK_AS_ADVANCED(FETCHCONTENT_QUIET)
-MARK_AS_ADVANCED(FETCHCONTENT_SOURCE_DIR_PACK_FMU)
+MARK_AS_ADVANCED(FETCHCONTENT_SOURCE_DIR_${FMU_MODEL_IDENTIFIER})
 MARK_AS_ADVANCED(FETCHCONTENT_UPDATES_DISCONNECTED)
-MARK_AS_ADVANCED(FETCHCONTENT_UPDATES_DISCONNECTED_PACK_FMU)
+MARK_AS_ADVANCED(FETCHCONTENT_UPDATES_DISCONNECTED_${FMU_MODEL_IDENTIFIER})
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${FMU_RUNTIME_OUTPUT_DIRECTORY})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${FMU_RUNTIME_OUTPUT_DIRECTORY})
@@ -79,12 +79,11 @@ MESSAGE(STATUS "---------------------------------------------------------")
 
 
 
-target_sources(${FMU_MODEL_IDENTIFIER} PRIVATE FmuComponentChrono.h FmuComponentChrono.cpp) ## FMU_ACTION: put your source code here
+target_sources(${FMU_MODEL_IDENTIFIER} PRIVATE myFmuComponentChrono.h myFmuComponentChrono.cpp) ## FMU_ACTION: put your source code here
 target_compile_definitions(${FMU_MODEL_IDENTIFIER} PUBLIC "CHRONO_DATA_DIR=\"${CHRONO_DATA_DIR}\"") 
 target_compile_options(${FMU_MODEL_IDENTIFIER} PUBLIC ${CHRONO_CXX_FLAGS})
 target_link_options(${FMU_MODEL_IDENTIFIER} PUBLIC ${CHRONO_LINKER_FLAGS})
 target_link_libraries(${FMU_MODEL_IDENTIFIER} ${CHRONO_LIBRARIES})
-
 
 
 IF (NOT EXISTS "${CMAKE_SOURCE_DIR}/fmu_host.cpp")
