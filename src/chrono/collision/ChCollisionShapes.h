@@ -15,24 +15,20 @@
 #ifndef CH_COLLISION_SHAPES_H
 #define CH_COLLISION_SHAPES_H
 
-#include "chrono/assets/ChVisualShapeBox.h"
-#include "chrono/assets/ChVisualShapeCapsule.h"
-#include "chrono/assets/ChVisualShapeCone.h"
-#include "chrono/assets/ChVisualShapeCylinder.h"
-#include "chrono/assets/ChVisualShapeEllipsoid.h"
-#include "chrono/assets/ChVisualShapeSphere.h"
-
-//#include "chrono/assets/ChVisualShapeTriangleMesh.h"
-//#include "chrono/assets/ChVisualShapeBarrel.h"
-//#include "chrono/assets/ChVisualShapeCylshell.h"
-//#include "chrono/assets/ChVisualShapeRoundedCylinder.h"
-//#include "chrono/assets/ChVisualShapeRoundedBox.h"
-//#include "chrono/assets/ChVisualShapeConvex.h"
-//#include "chrono/assets/ChVisualConvexHull.h"
-//#include "chrono/assets/ChVisualShapePoint.h"
-//#include "chrono/assets/ChVisualShapeTriangle.h"
-//#include "chrono/assets/ChVisualShapePath2D.h"
-//#include "chrono/assets/ChVisualShapeTetrahedron.h"
-
+#include "chrono/collision/ChCollisionShapeBarrel.h"
+#include "chrono/collision/ChCollisionShapeBox.h"
+#include "chrono/collision/ChCollisionShapeCapsule.h"
+#include "chrono/collision/ChCollisionShapeCone.h"
+#include "chrono/collision/ChCollisionShapeConvexHull.h"
+#include "chrono/collision/ChCollisionShapeCylinder.h"
+#include "chrono/collision/ChCollisionShapeCylindricalShell.h"
+#include "chrono/collision/ChCollisionShapeEllipsoid.h"
+#include "chrono/collision/ChCollisionShapePath2D.h"
+#include "chrono/collision/ChCollisionShapePoint.h"
+#include "chrono/collision/ChCollisionShapeRoundedBox.h"
+#include "chrono/collision/ChCollisionShapeRoundedCylinder.h"
+#include "chrono/collision/ChCollisionShapeSphere.h"
+#include "chrono/collision/ChCollisionShapeTriangle.h"
+#include "chrono/collision/ChCollisionShapeTriangleMesh.h"
 
 #endif
