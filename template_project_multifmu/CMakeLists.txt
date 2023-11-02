@@ -78,7 +78,6 @@ add_custom_target(COPY_DLLS_FMU)
 add_dependencies(COPY_DLLS_FMU COPY_DLLS)
 
 # TODO: copy_directory_if_different is available since 3.26
-message(STATUS "FMU_RUNTIME_OUTPUT_DIRECTORIES: ${FMU_RUNTIME_OUTPUT_DIRECTORIES}")
 foreach(FMU_RUNTIME_OUTPUT_DIR ${FMU_RUNTIME_OUTPUT_DIRECTORIES})
   add_custom_command(
     TARGET COPY_DLLS_FMU PRE_BUILD
