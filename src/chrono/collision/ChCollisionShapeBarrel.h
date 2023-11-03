@@ -46,7 +46,6 @@ class ChApi ChCollisionShapeBarrel : public ChCollisionShape {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
-  private:
     double Y_low;
     double Y_high;
     double axis_vert;

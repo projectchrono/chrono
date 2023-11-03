@@ -20,7 +20,7 @@ namespace collision {
 ChCollisionShapePath2D::ChCollisionShapePath2D() : ChCollisionShape(Type::PATH2D) {}
 
 ChCollisionShapePath2D::ChCollisionShapePath2D(std::shared_ptr<ChMaterialSurface> material,
-                                               const geometry::ChLinePath& path,
+                                               std::shared_ptr<geometry::ChLinePath> path,
                                                double radius)
     : ChCollisionShape(Type::PATH2D, material), gpath(path) {
     this->radius = radius;

@@ -32,13 +32,22 @@ class ChApi ChCollisionShapeTriangleMesh : public ChCollisionShape {
         std::shared_ptr<geometry::ChTriangleMesh> mesh,  ///< mesh geometry
         bool is_static,                                  ///< true if the model doesn't move. May improve performance.
         bool is_convex,                                  ///< if true, a convex hull is used. May improve robustness.
-        double thickness = 0                             ///< outward sphere-swept layer (when supported)
+        double radius = 0                                ///< outward sphere-swept layer (when supported)
     );
 
     ~ChCollisionShapeTriangleMesh() {}
 
     /// Access the mesh geometry.
     std::shared_ptr<geometry::ChTriangleMesh> GetMesh() { return trimesh; }
+
+    /// Return true if the mesh is model does not move.
+    bool IsStatic() const { return is_static; }
+
+    /// Return true if the mesh is convex.
+    bool IsConvex() const { return is_convex; }
+
+    /// Return the mesh thickness as the radius of a sphere-swept mesh.
+    double GetRadius() const { return radius; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;
@@ -50,7 +59,7 @@ class ChApi ChCollisionShapeTriangleMesh : public ChCollisionShape {
     std::shared_ptr<geometry::ChTriangleMesh> trimesh;
     bool is_static;
     bool is_convex;
-    double thickness;
+    double radius;
 };
 
 }  // end namespace collision

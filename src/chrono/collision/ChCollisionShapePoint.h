@@ -32,6 +32,9 @@ class ChApi ChCollisionShapePoint : public ChCollisionShape {
     /// Access the point.
     const ChVector<>& GetPoint() const { return point; }
 
+    /// Get the associated radius.
+    double GetRadius() const { return radius; }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;
 

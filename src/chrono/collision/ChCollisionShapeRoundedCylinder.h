@@ -45,6 +45,9 @@ class ChApi ChCollisionShapeRoundedCylinder : public ChCollisionShape {
     /// Get the cylinder height.
     double GetHeight() const { return gcylinder.GetHeight(); }
 
+    /// Get the radius of the sweeping sphere.
+    double GetSRadius() const { return radius; }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;
 

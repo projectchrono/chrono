@@ -23,11 +23,11 @@ ChCollisionShapeTriangleMesh::ChCollisionShapeTriangleMesh(std::shared_ptr<ChMat
                                                            std::shared_ptr<geometry::ChTriangleMesh> mesh,
                                                            bool is_static,
                                                            bool is_convex,
-                                                           double thickness)
+                                                           double radius)
     : ChCollisionShape(Type::TRIANGLEMESH, material), trimesh(mesh) {
     this->is_static = is_static;
     this->is_convex = is_convex;
-    this->thickness = thickness;
+    this->radius = radius;
 }
 
 void ChCollisionShapeTriangleMesh::ArchiveOut(ChArchiveOut& marchive) {
@@ -39,7 +39,7 @@ void ChCollisionShapeTriangleMesh::ArchiveOut(ChArchiveOut& marchive) {
     marchive << CHNVP(trimesh);
     marchive << CHNVP(is_static);
     marchive << CHNVP(is_convex);
-    marchive << CHNVP(thickness);
+    marchive << CHNVP(radius);
 }
 
 void ChCollisionShapeTriangleMesh::ArchiveIn(ChArchiveIn& marchive) {
@@ -51,7 +51,7 @@ void ChCollisionShapeTriangleMesh::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(trimesh);
     marchive >> CHNVP(is_static);
     marchive >> CHNVP(is_convex);
-    marchive >> CHNVP(thickness);
+    marchive >> CHNVP(radius);
 }
 
 }  // end namespace collision

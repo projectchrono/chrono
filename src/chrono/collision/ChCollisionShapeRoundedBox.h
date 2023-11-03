@@ -44,6 +44,9 @@ class ChApi ChCollisionShapeRoundedBox : public ChCollisionShape {
     /// Get the box dimensions.
     ChVector<> GetLengths() const { return gbox.GetLengths(); }
 
+    /// Get the radius of the sweeping sphere.
+    double GetSRadius() const { return radius; }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;
 
