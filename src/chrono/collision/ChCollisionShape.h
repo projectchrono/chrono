@@ -45,6 +45,8 @@ class ChApi ChCollisionShape {
         ROUNDEDCYL,   // Not implemented in Bullet collision system
         TETRAHEDRON,  // Not implemented in Bullet collision system
         PATH2D,
+        SEGMENT2D,
+        ARC2D,
         UNKNOWN_SHAPE
     };
 

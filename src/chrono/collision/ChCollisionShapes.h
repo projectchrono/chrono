@@ -15,6 +15,7 @@
 #ifndef CH_COLLISION_SHAPES_H
 #define CH_COLLISION_SHAPES_H
 
+#include "chrono/collision/ChCollisionShapeArc2D.h"
 #include "chrono/collision/ChCollisionShapeBarrel.h"
 #include "chrono/collision/ChCollisionShapeBox.h"
 #include "chrono/collision/ChCollisionShapeCapsule.h"
@@ -27,6 +28,7 @@
 #include "chrono/collision/ChCollisionShapePoint.h"
 #include "chrono/collision/ChCollisionShapeRoundedBox.h"
 #include "chrono/collision/ChCollisionShapeRoundedCylinder.h"
+#include "chrono/collision/ChCollisionShapeSegment2D.h"
 #include "chrono/collision/ChCollisionShapeSphere.h"
 #include "chrono/collision/ChCollisionShapeTriangle.h"
 #include "chrono/collision/ChCollisionShapeTriangleMesh.h"
