@@ -804,7 +804,6 @@ set(ChronoEngine_collision_bullet_SOURCES
     collision/bullet/ChCollisionSystemBullet.cpp
     collision/bullet/ChCollisionModelBullet.h
     collision/bullet/ChCollisionModelBullet.cpp
-    collision/bullet/ChCollisionShapeBullet.h
     collision/bullet/ChCollisionAlgorithmsBullet.h
     collision/bullet/ChCollisionAlgorithmsBullet.cpp
     collision/bullet/ChCollisionUtilsBullet.h
