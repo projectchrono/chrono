@@ -110,9 +110,11 @@ void ChCollisionSystemChrono::Add(ChCollisionModel* model) {
 
     int body_id = pmodel->GetBody()->GetId();
     short2 fam = S2(pmodel->GetFamilyGroup(), pmodel->GetFamilyMask());
+
     // The offset for this shape will the current total number of points in the convex data list
     auto& shape_data = cd_data->shape_data;
     int convex_data_offset = (int)shape_data.convex_rigid.size();
+
     // Insert the points into the global convex list
     shape_data.convex_rigid.insert(shape_data.convex_rigid.end(), pmodel->local_convex_data.begin(),
                                    pmodel->local_convex_data.end());
@@ -120,17 +122,22 @@ void ChCollisionSystemChrono::Add(ChCollisionModel* model) {
     // Shape index in the collision model
     int local_shape_index = 0;
 
-    for (auto s : pmodel->GetShapes()) {
-        auto shape = std::static_pointer_cast<ChCollisionShapeChrono>(s);
-        real3 obA = shape->A;
-        real3 obB = shape->B;
-        real3 obC = shape->C;
+    // Traverse all collision shapes in the model
+    auto num_shapes = pmodel->m_shapes.size();
+    assert(num_shapes == pmodel->m_ct_shapes.size());
+
+    for (size_t i = 0; i < num_shapes; i++) {
+        auto type = pmodel->m_shapes[i]->GetType();
+        const auto& ct_shape = pmodel->m_ct_shapes[i];
+        real3 obA = ct_shape->A;
+        real3 obB = ct_shape->B;
+        real3 obC = ct_shape->C;
+
+        // Compute the global offset of the convex data structure based on the number of points already present
         int length = 1;
         int start;
-        // Compute the global offset of the convex data structure based on the number of points
-        // already present
 
-        switch (shape->GetType()) {
+        switch (type) {
             case ChCollisionShape::Type::SPHERE:
                 start = (int)shape_data.sphere_rigid.size();
                 shape_data.sphere_rigid.push_back(obB.x);
@@ -183,12 +190,12 @@ void ChCollisionSystemChrono::Add(ChCollisionModel* model) {
         }
 
         shape_data.ObA_rigid.push_back(obA);
-        shape_data.ObR_rigid.push_back(shape->R);
+        shape_data.ObR_rigid.push_back(ct_shape->R);
         shape_data.start_rigid.push_back(start);
         shape_data.length_rigid.push_back(length);
 
         shape_data.fam_rigid.push_back(fam);
-        shape_data.typ_rigid.push_back(shape->GetType());
+        shape_data.typ_rigid.push_back(type);
         shape_data.id_rigid.push_back(body_id);
         shape_data.local_rigid.push_back(local_shape_index);
         cd_data->num_rigid_shapes++;

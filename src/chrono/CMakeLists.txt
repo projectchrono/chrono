@@ -775,7 +775,6 @@ if (THRUST_FOUND)
        collision/chrono/ChCollisionSystemChrono.cpp
        collision/chrono/ChCollisionModelChrono.h
        collision/chrono/ChCollisionModelChrono.cpp
-       collision/chrono/ChCollisionShapeChrono.h
 #
        collision/chrono/ChCollisionData.h
        collision/chrono/ChConvexShape.h
