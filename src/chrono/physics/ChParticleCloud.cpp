@@ -58,7 +58,7 @@ ChAparticle& ChAparticle::operator=(const ChAparticle& other) {
     // parent class copy
     ChParticleBase::operator=(other);
 
-    collision_model->ClearModel();
+    collision_model->Clear();
     collision_model->AddCopyOfAnotherModel(other.collision_model);
     collision_model->SetContactable(this);
 
@@ -251,7 +251,7 @@ ChParticleCloud::ChParticleCloud(const ChParticleCloud& other) : ChIndexedPartic
     SetInertiaXX(other.GetInertiaXX());
     SetInertiaXY(other.GetInertiaXY());
 
-    particle_collision_model->ClearModel();
+    particle_collision_model->Clear();
 
     matsurface = std::shared_ptr<ChMaterialSurface>(other.matsurface->Clone());  // deep copy
 
@@ -296,7 +296,7 @@ void ChParticleCloud::ResizeNparticles(int newsize) {
         particles[j]->collision_model->SetContactable(particles[j]);
         // articles[j]->collision_model->ClearModel();
         particles[j]->collision_model->AddCopyOfAnotherModel(particle_collision_model);
-        particles[j]->collision_model->BuildModel();
+        particles[j]->collision_model->Build();
     }
 
     SetCollide(oldcoll);  // this will also add particle coll.models to coll.engine, if already in a ChSystem
@@ -316,7 +316,7 @@ void ChParticleCloud::AddParticle(ChCoordsys<double> initial_state) {
     newp->collision_model->SetContactable(newp);
     // newp->collision_model->ClearModel(); // wasn't already added to system, no need to remove
     newp->collision_model->AddCopyOfAnotherModel(particle_collision_model);
-    newp->collision_model->BuildModel();  // will also add to system, if collision is on.
+    newp->collision_model->Build();  // will also add to system, if collision is on.
 }
 
 ChColor ChParticleCloud::GetVisualColor(unsigned int n) const {
@@ -682,9 +682,9 @@ void ChParticleCloud::RemoveCollisionModelsFromSystem() {
 
 void ChParticleCloud::UpdateParticleCollisionModels() {
     for (unsigned int j = 0; j < particles.size(); j++) {
-        particles[j]->collision_model->ClearModel();
+        particles[j]->collision_model->Clear();
         particles[j]->collision_model->AddCopyOfAnotherModel(particle_collision_model);
-        particles[j]->collision_model->BuildModel();
+        particles[j]->collision_model->Build();
     }
 }
 

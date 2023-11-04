@@ -48,7 +48,10 @@ ChNodeSPH::~ChNodeSPH() {
 ChNodeSPH::ChNodeSPH(const ChNodeSPH& other) : ChNodeXYZ(other) {
     collision_model = new ChCollisionModelBullet;
     collision_model->SetContactable(this);
-    collision_model->AddPoint(other.container->GetMaterialSurface(), other.coll_rad);
+    auto cshape = chrono_types::make_shared<collision::ChCollisionShapePoint>(other.container->GetMaterialSurface(),
+                                                                              VNULL, other.coll_rad);
+    collision_model->AddShape(cshape);
+
     container = other.container;
     UserForce = other.UserForce;
     SetKernelRadius(other.h_rad);
@@ -67,8 +70,11 @@ ChNodeSPH& ChNodeSPH::operator=(const ChNodeSPH& other) {
 
     ChNodeXYZ::operator=(other);
 
-    collision_model->ClearModel();
-    collision_model->AddPoint(other.container->GetMaterialSurface(), other.coll_rad);
+    collision_model->Clear();
+    auto cshape = chrono_types::make_shared<collision::ChCollisionShapePoint>(other.container->GetMaterialSurface(),
+                                                                              VNULL, other.coll_rad);
+    collision_model->AddShape(cshape);
+
     collision_model->SetContactable(this);
     container = other.container;
     UserForce = other.UserForce;
@@ -238,10 +244,12 @@ void ChMatterSPH::ResizeNnodes(int newsize) {
 
         nodes[j]->SetContainer(this);
 
-        nodes[j]->variables.SetUserData((void*)this);  // UserData unuseful in future cuda solver?
+        nodes[j]->variables.SetUserData((void*)this);
+
         //((ChCollisionModelBullet*)nodes[j]->collision_model)->SetContactable(nodes[j]);
-        nodes[j]->collision_model->AddPoint(matsurface, 0.001);  //***TEST***
-        nodes[j]->collision_model->BuildModel();
+        auto cshape = chrono_types::make_shared<collision::ChCollisionShapePoint>(matsurface, VNULL, 0.001);  //// TEST
+        nodes[j]->collision_model->AddShape(cshape);
+        nodes[j]->collision_model->Build();
     }
 
     SetCollide(oldcoll);  // this will also add particle coll.models to coll.engine, if already in a ChSystem
@@ -256,10 +264,11 @@ void ChMatterSPH::AddNode(ChVector<double> initial_state) {
 
     nodes.push_back(newp);
 
-    newp->variables.SetUserData((void*)this);  // UserData unuseful in future cuda solver?
+    newp->variables.SetUserData((void*)this);
 
-    newp->collision_model->AddPoint(matsurface, 0.1);  //***TEST***
-    newp->collision_model->BuildModel();   // will also add to system, if collision is on.
+    auto cshape = chrono_types::make_shared<collision::ChCollisionShapePoint>(matsurface, VNULL, 0.1);  //// TEST
+    newp->collision_model->AddShape(cshape);
+    newp->collision_model->Build();
 }
 
 void ChMatterSPH::FillBox(const ChVector<> size,
@@ -641,10 +650,10 @@ void ChMatterSPH::RemoveCollisionModelsFromSystem() {
 
 void ChMatterSPH::UpdateParticleCollisionModels() {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        nodes[j]->collision_model->ClearModel();
+        nodes[j]->collision_model->Clear();
         //***TO DO*** UPDATE RADIUS OF SPHERE?
         // nodes[j]->collision_model->AddCopyOfAnotherModel(particle_collision_model);
-        nodes[j]->collision_model->BuildModel();
+        nodes[j]->collision_model->Build();
     }
 }
 

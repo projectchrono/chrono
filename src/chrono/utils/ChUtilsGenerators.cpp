@@ -515,7 +515,7 @@ void Generator::createObjects(const PointVector& points, const ChVector<>& vel) 
         m_totalVolume += volume;
 
         // Add collision geometry
-        body->GetCollisionModel()->ClearModel();
+        body->GetCollisionModel()->Clear();
 
         switch (m_mixture[index]->m_type) {
             case MixtureType::SPHERE:
@@ -541,7 +541,7 @@ void Generator::createObjects(const PointVector& points, const ChVector<>& vel) 
                 break;
         }
 
-        body->GetCollisionModel()->BuildModel();
+        body->GetCollisionModel()->Build();
 
         // Attach the body to the system and append to list of generated bodies.
         std::shared_ptr<ChBody> bodyPtr(body);

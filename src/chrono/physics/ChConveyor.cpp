@@ -33,9 +33,9 @@ ChConveyor::ChConveyor(double xlength, double ythick, double zwidth) : conveyor_
 
     conveyor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-    conveyor_plate->GetCollisionModel()->ClearModel();
-    conveyor_plate->GetCollisionModel()->AddBox(conveyor_mat, xlength, ythick, zwidth);
-    conveyor_plate->GetCollisionModel()->BuildModel();
+    auto cshape = chrono_types::make_shared<collision::ChCollisionShapeBox>(conveyor_mat, xlength, ythick, zwidth);
+    conveyor_plate->GetCollisionModel()->AddShape(cshape);
+    conveyor_plate->GetCollisionModel()->Build();
     conveyor_plate->SetCollide(true);
 
     internal_link = new ChLinkLockLock;

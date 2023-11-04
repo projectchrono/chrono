@@ -31,7 +31,6 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChBodyEasySphere)
 CH_UPCASTING(ChBodyEasySphere, ChBody)
 
-
 ChBodyEasySphere::ChBodyEasySphere(double radius,
                                    double density,
                                    bool visualize,
@@ -64,9 +63,9 @@ void ChBodyEasySphere::SetupBody(double radius,
 
     if (collide) {
         assert(material);
-        GetCollisionModel()->ClearModel();
-        GetCollisionModel()->AddSphere(material, radius);
-        GetCollisionModel()->BuildModel();
+        auto cshape = chrono_types::make_shared<collision::ChCollisionShapeSphere>(material, radius);
+        GetCollisionModel()->AddShape(cshape);
+        GetCollisionModel()->Build();
         SetCollide(true);
     }
     if (visualize) {
@@ -79,10 +78,9 @@ void ChBodyEasySphere::SetupBody(double radius,
 
 void ChBodyEasySphere::ArchiveOutConstructor(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChBodyEasySphere>();
-
 }
 
-void* ChBodyEasySphere::ArchiveInConstructor(ChArchiveIn& marchive  ) {
+void* ChBodyEasySphere::ArchiveInConstructor(ChArchiveIn& marchive) {
     /*int version =*/marchive.VersionRead<ChBodyEasySphere>();
 
     ChBodyEasySphere* new_obj = new ChBodyEasySphere();
@@ -128,9 +126,9 @@ void ChBodyEasyEllipsoid::SetupBody(ChVector<> axes,
 
     if (collide) {
         assert(material);
-        GetCollisionModel()->ClearModel();
-        GetCollisionModel()->AddEllipsoid(material, axes.x(), axes.y(), axes.z());
-        GetCollisionModel()->BuildModel();
+        auto cshape = chrono_types::make_shared<collision::ChCollisionShapeEllipsoid>(material, axes);
+        GetCollisionModel()->AddShape(cshape);
+        GetCollisionModel()->Build();
         SetCollide(true);
     }
     if (visualize) {
@@ -143,10 +141,9 @@ void ChBodyEasyEllipsoid::SetupBody(ChVector<> axes,
 
 void ChBodyEasyEllipsoid::ArchiveOutConstructor(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChBodyEasyEllipsoid>();
-
 }
 
-void* ChBodyEasyEllipsoid::ArchiveInConstructor(ChArchiveIn& marchive  ) {
+void* ChBodyEasyEllipsoid::ArchiveInConstructor(ChArchiveIn& marchive) {
     /*int version =*/marchive.VersionRead<ChBodyEasyEllipsoid>();
 
     ChBodyEasyEllipsoid* new_obj = new ChBodyEasyEllipsoid();
@@ -212,9 +209,9 @@ void ChBodyEasyCylinder::SetupBody(geometry::ChAxis direction,
 
     if (collide) {
         assert(material);
-        GetCollisionModel()->ClearModel();
-        GetCollisionModel()->AddCylinder(material, radius, height, VNULL, rot);
-        GetCollisionModel()->BuildModel();
+        auto cshape = chrono_types::make_shared<collision::ChCollisionShapeCylinder>(material, radius, height);
+        GetCollisionModel()->AddShape(cshape, ChFrame<>(VNULL, rot));
+        GetCollisionModel()->Build();
         SetCollide(true);
     }
 
@@ -228,10 +225,9 @@ void ChBodyEasyCylinder::SetupBody(geometry::ChAxis direction,
 
 void ChBodyEasyCylinder::ArchiveOutConstructor(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChBodyEasyCylinder>();
-
 }
 
-void* ChBodyEasyCylinder::ArchiveInConstructor(ChArchiveIn& marchive  ) {
+void* ChBodyEasyCylinder::ArchiveInConstructor(ChArchiveIn& marchive) {
     /*int version =*/marchive.VersionRead<ChBodyEasyCylinder>();
 
     ChBodyEasyCylinder* new_obj = new ChBodyEasyCylinder();
@@ -282,9 +278,9 @@ void ChBodyEasyBox::SetupBody(double Xsize,
                                   (1.0 / 12.0) * mmass * (pow(Xsize, 2) + pow(Ysize, 2))));
     if (collide) {
         assert(material);
-        GetCollisionModel()->ClearModel();
-        GetCollisionModel()->AddBox(material, Xsize, Ysize, Zsize);
-        GetCollisionModel()->BuildModel();
+        auto cshape = chrono_types::make_shared<collision::ChCollisionShapeBox>(material, Xsize, Ysize, Zsize);
+        GetCollisionModel()->AddShape(cshape);
+        GetCollisionModel()->Build();
         SetCollide(true);
     }
     if (visualize) {
@@ -301,10 +297,9 @@ void ChBodyEasyBox::ArchiveOutConstructor(ChArchiveOut& marchive) {
     // ChBodyEasy do not hold any variables; only parent classes have.
     // by archiving the ChVariables, ChVisualModel and ChCollisionModel
     // all the properties will be retrieved
-
 }
 
-void* ChBodyEasyBox::ArchiveInConstructor(ChArchiveIn& marchive  ) {
+void* ChBodyEasyBox::ArchiveInConstructor(ChArchiveIn& marchive) {
     /*int version =*/marchive.VersionRead<ChBodyEasyBox>();
 
     ChBodyEasyBox* new_obj = new ChBodyEasyBox();
@@ -316,7 +311,6 @@ void* ChBodyEasyBox::ArchiveInConstructor(ChArchiveIn& marchive  ) {
 
 CH_FACTORY_REGISTER(ChBodyEasyConvexHull)
 CH_UPCASTING(ChBodyEasyConvexHull, ChBody)
-
 
 ChBodyEasyConvexHull::ChBodyEasyConvexHull(std::vector<ChVector<>>& points,
                                            double density,
@@ -374,9 +368,9 @@ void ChBodyEasyConvexHull::SetupBody(std::vector<ChVector<>>& points,
         for (unsigned int i = 0; i < vshape->GetMesh()->getCoordsVertices().size(); ++i)
             points_reduced[i] = vshape->GetMesh()->getCoordsVertices()[i];
 
-        GetCollisionModel()->ClearModel();
-        GetCollisionModel()->AddConvexHull(material, points_reduced);
-        GetCollisionModel()->BuildModel();
+        auto cshape = chrono_types::make_shared<collision::ChCollisionShapeConvexHull>(material, points_reduced);
+        GetCollisionModel()->AddShape(cshape);
+        GetCollisionModel()->Build();
         SetCollide(true);
     }
 
@@ -387,10 +381,9 @@ void ChBodyEasyConvexHull::ArchiveOutConstructor(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChBodyEasyConvexHull>();
 
     marchive << CHNVP(m_mesh);
-
 }
 
-void* ChBodyEasyConvexHull::ArchiveInConstructor(ChArchiveIn& marchive  ) {
+void* ChBodyEasyConvexHull::ArchiveInConstructor(ChArchiveIn& marchive) {
     /*int version =*/marchive.VersionRead<ChBodyEasyConvexHull>();
 
     std::shared_ptr<geometry::ChTriangleMeshConnected> mesh;
@@ -405,7 +398,6 @@ void* ChBodyEasyConvexHull::ArchiveInConstructor(ChArchiveIn& marchive  ) {
 
 CH_FACTORY_REGISTER(ChBodyEasyConvexHullAuxRef)
 CH_UPCASTING(ChBodyEasyConvexHullAuxRef, ChBodyAuxRef)
-
 
 ChBodyEasyConvexHullAuxRef::ChBodyEasyConvexHullAuxRef(std::vector<ChVector<>>& points,
                                                        double density,
@@ -469,9 +461,9 @@ void ChBodyEasyConvexHullAuxRef::SetupBody(std::vector<ChVector<>>& points,
         for (unsigned int i = 0; i < vshape->GetMesh()->getCoordsVertices().size(); ++i)
             points_reduced[i] = vshape->GetMesh()->getCoordsVertices()[i];
 
-        GetCollisionModel()->ClearModel();
-        GetCollisionModel()->AddConvexHull(material, points_reduced);
-        GetCollisionModel()->BuildModel();
+        auto cshape = chrono_types::make_shared<collision::ChCollisionShapeConvexHull>(material, points_reduced);
+        GetCollisionModel()->AddShape(cshape);
+        GetCollisionModel()->Build();
         SetCollide(true);
     }
 
@@ -482,10 +474,9 @@ void ChBodyEasyConvexHullAuxRef::ArchiveOutConstructor(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChBodyEasyConvexHullAuxRef>();
 
     marchive << CHNVP(m_mesh);
-
 }
 
-void* ChBodyEasyConvexHullAuxRef::ArchiveInConstructor(ChArchiveIn& marchive  ) {
+void* ChBodyEasyConvexHullAuxRef::ArchiveInConstructor(ChArchiveIn& marchive) {
     /*int version =*/marchive.VersionRead<ChBodyEasyConvexHullAuxRef>();
 
     std::shared_ptr<geometry::ChTriangleMeshConnected> mesh;
@@ -500,7 +491,6 @@ void* ChBodyEasyConvexHullAuxRef::ArchiveInConstructor(ChArchiveIn& marchive  ) 
 
 CH_FACTORY_REGISTER(ChBodyEasyMesh)
 CH_UPCASTING(ChBodyEasyMesh, ChBodyAuxRef)
-
 
 ChBodyEasyMesh::ChBodyEasyMesh(const std::string& filename,
                                double density,
@@ -587,9 +577,10 @@ void ChBodyEasyMesh::SetupBody(std::shared_ptr<geometry::ChTriangleMeshConnected
     if (collide) {
         assert(material);
         // coll.model is respect to REF c.sys
-        GetCollisionModel()->ClearModel();
-        GetCollisionModel()->AddTriangleMesh(material, trimesh, false, false, VNULL, ChMatrix33<>(1), sphere_swept);
-        GetCollisionModel()->BuildModel();
+        auto cshape = chrono_types::make_shared<collision::ChCollisionShapeTriangleMesh>(material, trimesh, false,
+                                                                                         false, sphere_swept);
+        GetCollisionModel()->AddShape(cshape);
+        GetCollisionModel()->Build();
         SetCollide(true);
     }
 }
@@ -600,10 +591,9 @@ void ChBodyEasyMesh::ArchiveOutConstructor(ChArchiveOut& marchive) {
     // ChBodyEasy do not hold any variables; only parent classes have.
     // by archiving the ChVariables, ChVisualModel and ChCollisionModel
     // all the properties will be retrieved
-
 }
 
-void* ChBodyEasyMesh::ArchiveInConstructor(ChArchiveIn& marchive  ) {
+void* ChBodyEasyMesh::ArchiveInConstructor(ChArchiveIn& marchive) {
     /*int version =*/marchive.VersionRead<ChBodyEasyMesh>();
 
     ChBodyEasyMesh* new_obj = new ChBodyEasyMesh();
@@ -615,7 +605,6 @@ void* ChBodyEasyMesh::ArchiveInConstructor(ChArchiveIn& marchive  ) {
 
 CH_FACTORY_REGISTER(ChBodyEasyClusterOfSpheres)
 CH_UPCASTING(ChBodyEasyClusterOfSpheres, ChBody)
-
 
 ChBodyEasyClusterOfSpheres::ChBodyEasyClusterOfSpheres(std::vector<ChVector<>>& positions,
                                                        std::vector<double>& radii,
@@ -682,11 +671,11 @@ void ChBodyEasyClusterOfSpheres::SetupBody(std::vector<ChVector<>>& positions,
 
     if (collide) {
         assert(material);
-        GetCollisionModel()->ClearModel();
         for (unsigned int i = 0; i < positions.size(); ++i) {
-            GetCollisionModel()->AddSphere(material, radii[i], offset_positions[i]);  // radius, radius, height on y
+            auto cshape = chrono_types::make_shared<collision::ChCollisionShapeSphere>(material, radii[i]);
+            GetCollisionModel()->AddShape(cshape, ChFrame<>(offset_positions[i], QUNIT));
         }
-        GetCollisionModel()->BuildModel();
+        GetCollisionModel()->Build();
         SetCollide(true);
     }
     if (visualize) {
@@ -705,10 +694,9 @@ void ChBodyEasyClusterOfSpheres::ArchiveOutConstructor(ChArchiveOut& marchive) {
     // ChBodyEasy do not hold any variables; only parent classes have.
     // by archiving the ChVariables, ChVisualModel and ChCollisionModel
     // all the properties will be retrieved
-
 }
 
-void* ChBodyEasyClusterOfSpheres::ArchiveInConstructor(ChArchiveIn& marchive  ) {
+void* ChBodyEasyClusterOfSpheres::ArchiveInConstructor(ChArchiveIn& marchive) {
     /*int version =*/marchive.VersionRead<ChBodyEasyClusterOfSpheres>();
 
     ChBodyEasyClusterOfSpheres* new_obj = new ChBodyEasyClusterOfSpheres();

@@ -205,8 +205,6 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
         iss3 >> n_shapes;
 
         // In a loop, read information about each shape and add geometry to the body
-        body->GetCollisionModel()->ClearModel();
-
         for (int j = 0; j < n_shapes; j++) {
             std::getline(ifile, line);
             std::istringstream iss(line);
@@ -290,7 +288,7 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
         body->GetCollisionModel()->SetFamilyMask(family_mask);
 
         // Complete construction of the collision model.
-        body->GetCollisionModel()->BuildModel();
+        body->GetCollisionModel()->Build();
     }
 }
 
