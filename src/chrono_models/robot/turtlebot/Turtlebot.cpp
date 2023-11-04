@@ -179,9 +179,10 @@ void Turtlebot_Part::AddCollisionShapes() {
     auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
     trimesh->Transform(m_offset, ChMatrix33<>(1));
 
-    m_body->GetCollisionModel()->ClearModel();
-    m_body->GetCollisionModel()->AddTriangleMesh(m_mat, trimesh, false, false, VNULL, ChMatrix33<>(1), 0.005);
-    m_body->GetCollisionModel()->BuildModel();
+    m_body->GetCollisionModel()->Clear();
+    auto shape = chrono_types::make_shared<collision::ChCollisionShapeTriangleMesh>(m_mat, trimesh, false, false, 0.005);
+    m_body->GetCollisionModel()->AddShape(shape);
+    m_body->GetCollisionModel()->Build();
     m_body->SetCollide(m_collide);
 }
 

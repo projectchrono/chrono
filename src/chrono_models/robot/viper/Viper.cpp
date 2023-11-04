@@ -234,9 +234,11 @@ void ViperPart::Construct(ChSystem* system) {
         trimesh_col->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetA());  // translate/rotate/scale mesh
         trimesh_col->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
 
-        m_body->GetCollisionModel()->ClearModel();
-        m_body->GetCollisionModel()->AddTriangleMesh(m_mat, trimesh_col, false, false, VNULL, ChMatrix33<>(1), 0.005);
-        m_body->GetCollisionModel()->BuildModel();
+        m_body->GetCollisionModel()->Clear();
+        auto shape =
+            chrono_types::make_shared<collision::ChCollisionShapeTriangleMesh>(m_mat, trimesh_col, false, false, 0.005);
+        m_body->GetCollisionModel()->AddShape(shape);
+        m_body->GetCollisionModel()->Build();
         m_body->SetCollide(m_collide);
     }
 
