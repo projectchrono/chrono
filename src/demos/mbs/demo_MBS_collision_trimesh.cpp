@@ -102,6 +102,8 @@ int main(int argc, char* argv[]) {
     auto vis_model = chrono_types::make_shared<ChVisualModel>();
     vis_model->AddShape(mesh_shape);
 
+    auto ct_shape = chrono_types::make_shared<collision::ChCollisionShapeTriangleMesh>(mesh_mat, mesh, false, false, 0.005);
+
     for (int j = 0; j < 15; ++j) {
         auto falling = chrono_types::make_shared<ChBodyAuxRef>();
 
@@ -118,9 +120,8 @@ int main(int argc, char* argv[]) {
             ChFrame<>(ChVector<>(-0.9 + ChRandom() * 1.4, 0.4 + j * 0.12, -0.9 + ChRandom() * 1.4)));
         sys.Add(falling);
 
-        falling->GetCollisionModel()->ClearModel();
-        falling->GetCollisionModel()->AddTriangleMesh(mesh_mat, mesh, false, false, VNULL, ChMatrix33<>(1), 0.005);
-        falling->GetCollisionModel()->BuildModel();
+        falling->GetCollisionModel()->AddShape(ct_shape);
+        falling->GetCollisionModel()->Build();
         falling->SetCollide(true);
 
         falling->AddVisualModel(vis_model);

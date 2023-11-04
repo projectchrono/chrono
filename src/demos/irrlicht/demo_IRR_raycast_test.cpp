@@ -207,9 +207,9 @@ void CreateMeshes(ChSystemSMC& sys) {
 
     auto m1 = chrono_types::make_shared<ChBody>(collision_type);
     m1->AddVisualShape(vismesh);
-    m1->GetCollisionModel()->ClearModel();
-    m1->GetCollisionModel()->AddTriangleMesh(mat, trimesh, false, false, VNULL, ChMatrix33<>(1), 0.01);
-    m1->GetCollisionModel()->BuildModel();
+    auto m1_shape = chrono_types::make_shared<collision::ChCollisionShapeTriangleMesh>(mat, trimesh, false, false, 0.01);
+    m1->GetCollisionModel()->AddShape(m1_shape);
+    m1->GetCollisionModel()->Build();
     m1->SetCollide(true);
     sys.Add(m1);
 }

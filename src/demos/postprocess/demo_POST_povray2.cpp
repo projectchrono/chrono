@@ -43,9 +43,9 @@ int main(int argc, char* argv[]) {
 
     auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-    particles->GetCollisionModel()->ClearModel();
-    particles->GetCollisionModel()->AddSphere(particle_mat, 0.005);
-    particles->GetCollisionModel()->BuildModel();
+    auto particle_ct_shape = chrono_types::make_shared<collision::ChCollisionShapeSphere>(particle_mat, 0.005);
+    particles->GetCollisionModel()->AddShape(particle_ct_shape);
+    particles->GetCollisionModel()->Build();
     particles->SetCollide(true);
 
     for (int ix = 0; ix < 5; ix++)
@@ -53,8 +53,8 @@ int main(int argc, char* argv[]) {
             for (int iz = 0; iz < 3; iz++)
                 particles->AddParticle(ChCoordsys<>(ChVector<>(ix / 100.0, 0.1 + iy / 100.0, iz / 100.0)));
 
-    auto particle_shape = chrono_types::make_shared<ChVisualShapeSphere>(0.005);
-    particles->AddVisualShape(particle_shape);
+    auto particle_vis_shape = chrono_types::make_shared<ChVisualShapeSphere>(0.005);
+    particles->AddVisualShape(particle_vis_shape);
 
     sys.Add(particles);
 
@@ -62,16 +62,15 @@ int main(int argc, char* argv[]) {
     auto floor = chrono_types::make_shared<ChBody>();
     floor->SetBodyFixed(true);
 
-    auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-
-    floor->GetCollisionModel()->ClearModel();
-    floor->GetCollisionModel()->AddBox(floor_mat, 0.2, 0.04, 0.2);
-    floor->GetCollisionModel()->BuildModel();
+    auto floor_ct_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto floor_ct_shape = chrono_types::make_shared<collision::ChCollisionShapeBox>(floor_ct_mat, 0.2, 0.04, 0.2);
+    floor->GetCollisionModel()->AddShape(floor_ct_shape);
+    floor->GetCollisionModel()->Build();
     floor->SetCollide(true);
 
-    auto floor_shape = chrono_types::make_shared<ChVisualShapeBox>(0.2, 0.04, 0.2);
-    floor_shape->SetColor(ChColor(0.5f, 0.5f, 0.5f));
-    floor->AddVisualShape(floor_shape);
+    auto floor_vis_shape = chrono_types::make_shared<ChVisualShapeBox>(0.2, 0.04, 0.2);
+    floor_vis_shape->SetColor(ChColor(0.5f, 0.5f, 0.5f));
+    floor->AddVisualShape(floor_vis_shape);
 
     sys.Add(floor);
 
@@ -83,13 +82,14 @@ int main(int argc, char* argv[]) {
             body->SetMass(0.02);
             body->SetInertiaXX(ChVector<>((2.0 / 5.0) * (0.01 * 0.01) * 0.02));
 
-            body->GetCollisionModel()->ClearModel();
-            body->GetCollisionModel()->AddBox(floor_mat, 0.02, 0.02, 0.02);
-            body->GetCollisionModel()->BuildModel();
+            auto body_ct_shape =
+                chrono_types::make_shared<collision::ChCollisionShapeBox>(floor_ct_mat, 0.02, 0.02, 0.02);
+            floor->GetCollisionModel()->AddShape(body_ct_shape);
+            floor->GetCollisionModel()->Build();
             body->SetCollide(true);
 
-            auto body_shape = chrono_types::make_shared<ChVisualShapeBox>(0.02, 0.02, 0.02);
-            body->AddVisualShape(body_shape);
+            auto body_vis_shape = chrono_types::make_shared<ChVisualShapeBox>(0.02, 0.02, 0.02);
+            body->AddVisualShape(body_vis_shape);
 
             sys.Add(body);
         }

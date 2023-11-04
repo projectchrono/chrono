@@ -93,9 +93,9 @@ int main(int argc, char* argv[]) {
     floor_body->SetBodyFixed(true);
     floor_body->GetVisualShape(0)->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom()));
 
-    floor_body->GetCollisionModel()->ClearModel();
-    floor_body->GetCollisionModel()->AddBox(floor_mat, 20, 1, 20);
-    floor_body->GetCollisionModel()->BuildModel();
+    auto floor_shape = chrono_types::make_shared<collision::ChCollisionShapeBox>(floor_mat, 20, 1, 20);
+    floor_body->GetCollisionModel()->AddShape(floor_shape);
+    floor_body->GetCollisionModel()->Build();
 
     // Custom rendering in POVray:
     pov_exporter.SetCustomCommands(floor_body, "texture{ pigment{ color rgb<1,1,1>}} \n\

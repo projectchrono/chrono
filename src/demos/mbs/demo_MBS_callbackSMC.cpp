@@ -202,9 +202,8 @@ int main(int argc, char* argv[]) {
     container->SetIdentifier(-1);
 
     container->SetCollide(true);
-    container->GetCollisionModel()->ClearModel();
     utils::AddBoxGeometry(container.get(), material, ChVector<>(8, 1, 8), ChVector<>(0, -0.5, 0));
-    container->GetCollisionModel()->BuildModel();
+    container->GetCollisionModel()->Build();
     container->GetVisualShape(0)->SetColor(ChColor(0.4f, 0.4f, 0.4f));
 
     auto box1 = std::shared_ptr<ChBody>(sys.NewBody());
@@ -214,9 +213,8 @@ int main(int argc, char* argv[]) {
     box1->SetPos_dt(ChVector<>(5, 0, 0));
 
     box1->SetCollide(true);
-    box1->GetCollisionModel()->ClearModel();
     utils::AddBoxGeometry(box1.get(), material, ChVector<>(0.8, 0.4, 0.2));
-    box1->GetCollisionModel()->BuildModel();
+    box1->GetCollisionModel()->Build();
     box1->GetVisualShape(0)->SetColor(ChColor(0.1f, 0.1f, 0.4f));
 
     sys.AddBody(box1);
@@ -228,9 +226,8 @@ int main(int argc, char* argv[]) {
     box2->SetPos_dt(ChVector<>(5, 0, 0));
 
     box2->SetCollide(true);
-    box2->GetCollisionModel()->ClearModel();
     utils::AddBoxGeometry(box2.get(), material, ChVector<>(0.8, 0.4, 0.2));
-    box2->GetCollisionModel()->BuildModel();
+    box2->GetCollisionModel()->Build();
     box2->GetVisualShape(0)->SetColor(ChColor(0.4f, 0.1f, 0.1f));
 
     sys.AddBody(box2);

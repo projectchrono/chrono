@@ -81,9 +81,9 @@ int main(int argc, char* argv[]) {
     // Define a collision shape
     auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-    floor->GetCollisionModel()->ClearModel();
-    floor->GetCollisionModel()->AddBox(floor_mat, 20, 1, 20, ChVector<>(0, -1, 0));
-    floor->GetCollisionModel()->BuildModel();
+    auto floor_ct_shape = chrono_types::make_shared<collision::ChCollisionShapeBox>(floor_mat, 20, 1, 20);
+    floor->GetCollisionModel()->AddShape(floor_ct_shape, ChFrame<>(ChVector<>(0, -1, 0), QUNIT));
+    floor->GetCollisionModel()->Build();
     floor->SetCollide(true);
 
     // Add body to system
@@ -298,10 +298,9 @@ int main(int argc, char* argv[]) {
 
     // Note: coll. shape, if needed, must be specified before creating particles
     auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-
-    particles->GetCollisionModel()->ClearModel();
-    particles->GetCollisionModel()->AddSphere(particle_mat, 0.05);
-    particles->GetCollisionModel()->BuildModel();
+    auto particle_shape = chrono_types::make_shared<collision::ChCollisionShapeSphere>(particle_mat, 0.05);
+    particles->GetCollisionModel()->AddShape(particle_shape);
+    particles->GetCollisionModel()->Build();
     particles->SetCollide(true);
 
     // Create the random particles

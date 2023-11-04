@@ -85,10 +85,10 @@ int main(int argc, char* argv[]) {
         mfloor->SetBodyFixed(true);
         sys.Add(mfloor);
 
-        mfloor->GetCollisionModel()->ClearModel();
-        mfloor->GetCollisionModel()->AddTriangleMesh(mysurfmaterial, mmeshbox, false, false, VNULL, ChMatrix33<>(1),
-                                                     sphere_swept_thickness);
-        mfloor->GetCollisionModel()->BuildModel();
+        auto floor_shape = chrono_types::make_shared<collision::ChCollisionShapeTriangleMesh>(
+            mysurfmaterial, mmeshbox, false, false, sphere_swept_thickness);
+        mfloor->GetCollisionModel()->AddShape(floor_shape);
+        mfloor->GetCollisionModel()->Build();
         mfloor->SetCollide(true);
 
         auto masset_meshbox = chrono_types::make_shared<ChVisualShapeTriangleMesh>();

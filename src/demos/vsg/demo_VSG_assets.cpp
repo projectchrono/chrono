@@ -60,9 +60,9 @@ int main(int argc, char* argv[]) {
     auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
     // Define a collision shape
-    floor->GetCollisionModel()->ClearModel();
-    floor->GetCollisionModel()->AddBox(floor_mat, 20, 1, 20, ChVector<>(0, -1, 0));
-    floor->GetCollisionModel()->BuildModel();
+    auto floor_shape = chrono_types::make_shared<collision::ChCollisionShapeBox>(floor_mat, 20, 1, 20);
+    floor->GetCollisionModel()->AddShape(floor_shape, ChFrame<>(ChVector<>(0, -1, 0), QUNIT));
+    floor->GetCollisionModel()->Build();
     floor->SetCollide(true);
 
     // Add body to system
@@ -144,8 +144,10 @@ int main(int argc, char* argv[]) {
     auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.3, 0.7);
     cyl->AddMaterial(orange_mat);
     body->AddVisualShape(cyl, ChFrame<>(ChVector<>(2, 0.15, 0), Q_from_AngX(CH_C_PI_2)));
-    body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03), ChFrame<>(ChVector<>(2, -0.2, 0), QUNIT));
-    body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03), ChFrame<>(ChVector<>(2, +0.5, 0), QUNIT));
+    body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
+                         ChFrame<>(ChVector<>(2, -0.2, 0), QUNIT));
+    body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
+                         ChFrame<>(ChVector<>(2, +0.5, 0), QUNIT));
 
     // Attach three instances of the same 'triangle mesh' shape
     auto mesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
@@ -199,9 +201,10 @@ int main(int argc, char* argv[]) {
 
         auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
         particle_mat->SetFriction(0.9f);
-        particles->GetCollisionModel()->ClearModel();
-        particles->GetCollisionModel()->AddSphere(particle_mat, particle_radius);
-        particles->GetCollisionModel()->BuildModel();
+        auto particle_shape =
+            chrono_types::make_shared<collision::ChCollisionShapeSphere>(particle_mat, particle_radius);
+        particles->GetCollisionModel()->AddShape(particle_shape);
+        particles->GetCollisionModel()->Build();
 
         for (int np = 0; np < 60; ++np)
             particles->AddParticle(ChCoordsys<>(ChVector<>(2 * ChRandom() - 2, 1.5, 2 * ChRandom() + 2)));
@@ -223,9 +226,10 @@ int main(int argc, char* argv[]) {
         particles->AddVisualShape(particle_vis);
 
         auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-        particles->GetCollisionModel()->ClearModel();
-        particles->GetCollisionModel()->AddBox(particle_mat, size_x, size_y, size_z);
-        particles->GetCollisionModel()->BuildModel();
+        auto particle_shape =
+            chrono_types::make_shared<collision::ChCollisionShapeBox>(particle_mat, size_x, size_y, size_z);
+        particles->GetCollisionModel()->AddShape(particle_shape);
+        particles->GetCollisionModel()->Build();
 
         for (int np = 0; np < 30; ++np)
             particles->AddParticle(ChCoordsys<>(ChVector<>(2 * ChRandom() + 4, 1.5, 2 * ChRandom() - 4)));
@@ -350,8 +354,10 @@ int main(int argc, char* argv[]) {
     auto capsShape = chrono_types::make_shared<ChVisualShapeCapsule>(0.5, 2);
     capsShape->SetMaterial(0, caps_mat);
     vis->AddVisualModel(capsShape, ChFrame<>(ChVector<>(-6, 1, -1), QUNIT));
-    body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03), ChFrame<>(ChVector<>(-6, 1, -2.5), QUNIT));
-    body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03), ChFrame<>(ChVector<>(-6, 1, +0.5), QUNIT));
+    body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
+                         ChFrame<>(ChVector<>(-6, 1, -2.5), QUNIT));
+    body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
+                         ChFrame<>(ChVector<>(-6, 1, +0.5), QUNIT));
 
     auto cone_mat = chrono_types::make_shared<ChVisualMaterial>();
     cone_mat->SetKdTexture(GetChronoDataFile("textures/pinkwhite.png"));
@@ -366,8 +372,10 @@ int main(int argc, char* argv[]) {
     auto cylShape = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 0.8);
     cylShape->SetMaterial(0, cyl_mat);
     vis->AddVisualModel(cylShape, ChFrame<>(ChVector<>(-6, 1, -5), QUNIT));
-    vis->AddVisualModel(chrono_types::make_shared<ChVisualShapeSphere>(0.03), ChFrame<>(ChVector<>(-6, 1, -5 - 0.4), QUNIT));
-    vis->AddVisualModel(chrono_types::make_shared<ChVisualShapeSphere>(0.03), ChFrame<>(ChVector<>(-6, 1, -5 + 0.4), QUNIT));
+    vis->AddVisualModel(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
+                        ChFrame<>(ChVector<>(-6, 1, -5 - 0.4), QUNIT));
+    vis->AddVisualModel(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
+                        ChFrame<>(ChVector<>(-6, 1, -5 + 0.4), QUNIT));
 
     vis->Initialize();
 

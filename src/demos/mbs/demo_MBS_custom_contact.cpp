@@ -170,7 +170,6 @@ int main(int argc, char* argv[]) {
     auto ground_vmat = chrono_types::make_shared<ChVisualMaterial>();
     ground_vmat->SetKdTexture(GetChronoDataFile("textures/blue.png"));
 
-    ground->GetCollisionModel()->ClearModel();
     utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(10, 2, 10), ChVector<>(0, -1, 0), QUNIT, true,
                           ground_vmat);
     utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(0.2, 2, 10.2), ChVector<>(-5, 0, 0), QUNIT, true,
@@ -181,7 +180,7 @@ int main(int argc, char* argv[]) {
                           ground_vmat);
     utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(10.2, 2, 0.2), ChVector<>(0, 0, +5), QUNIT, true,
                           ground_vmat);
-    ground->GetCollisionModel()->BuildModel();
+    ground->GetCollisionModel()->Build();
 
     obstacle.AddVisualization(ground);
 
@@ -197,9 +196,8 @@ int main(int argc, char* argv[]) {
     auto ball_vmat = chrono_types::make_shared<ChVisualMaterial>();
     ball_vmat->SetKdTexture(GetChronoDataFile("textures/bluewhite.png"));
 
-    ball->GetCollisionModel()->ClearModel();
     utils::AddSphereGeometry(ball.get(), ball_mat, ball_radius, VNULL, QUNIT, true, ball_vmat);
-    ball->GetCollisionModel()->BuildModel();
+    ball->GetCollisionModel()->Build();
 
     // Create a custom collision detection callback object and register it with the system
     auto collision =

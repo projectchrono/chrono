@@ -54,7 +54,6 @@ std::shared_ptr<ChBody> CreateLobedGear(ChVector<> gear_center,
     mgear->SetPos(gear_center);
     sys.Add(mgear);
 
-    mgear->GetCollisionModel()->ClearModel();
     // cylindrical lobes
     for (int i = 0; i < lobe_copies; ++i) {
         double phase = CH_C_2PI * ((double)i / (double)lobe_copies);
@@ -68,7 +67,7 @@ std::shared_ptr<ChBody> CreateLobedGear(ChVector<> gear_center,
     }
     // central hub
     utils::AddCylinderGeometry(mgear.get(), mysurfmaterial, lobe_inner_rad, lobe_thickness * 0.5, VNULL, QUNIT, true);
-    mgear->GetCollisionModel()->BuildModel();
+    mgear->GetCollisionModel()->Build();
     mgear->SetCollide(true);
 
     return mgear;

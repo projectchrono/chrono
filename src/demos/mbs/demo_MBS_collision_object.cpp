@@ -188,9 +188,9 @@ int main(int argc, char* argv[]) {
 
     switch (object_model) {
         case CollisionShape::SPHERE: {
-            object->GetCollisionModel()->ClearModel();
-            object->GetCollisionModel()->AddSphere(object_mat, radius, ChVector<>(0));
-            object->GetCollisionModel()->BuildModel();
+            auto shape = chrono_types::make_shared<collision::ChCollisionShapeSphere>(object_mat, radius);
+            object->GetCollisionModel()->AddShape(shape);
+            object->GetCollisionModel()->Build();
 
             auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(radius);
             object->AddVisualShape(sphere);
@@ -198,12 +198,10 @@ int main(int argc, char* argv[]) {
             break;
         }
         case CollisionShape::CYLINDER: {
-            object->GetCollisionModel()->ClearModel();
-            object->GetCollisionModel()->AddCylinder(object_mat, radius, 2 * hlen, ChVector<>(0),
-                                                     Q_from_AngX(CH_C_PI_2));
-            ////object->GetCollisionModel()->AddCylinder(object_mat, radius, ChVector<>(0, -hlen, 0), ChVector<>(0,
-            ///+hlen, 0));
-            object->GetCollisionModel()->BuildModel();
+            auto shape = chrono_types::make_shared<collision::ChCollisionShapeCylinder>(object_mat, radius, 2 * hlen);
+            object->GetCollisionModel()->AddShape(shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+            //object->GetCollisionModel()->AddCylinder(object_mat, radius, ChVector<>(0, -hlen, 0), ChVector<>(0, +hlen, 0));
+            object->GetCollisionModel()->Build();
 
             auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(radius, 2 * hlen);
             object->AddVisualShape(cyl, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
@@ -211,9 +209,9 @@ int main(int argc, char* argv[]) {
             break;
         }
         case CollisionShape::CAPSULE: {
-            object->GetCollisionModel()->ClearModel();
-            object->GetCollisionModel()->AddCapsule(object_mat, radius, 2 * hlen, ChVector<>(0), ChMatrix33<>(1));
-            object->GetCollisionModel()->BuildModel();
+            auto shape = chrono_types::make_shared<collision::ChCollisionShapeCapsule>(object_mat, radius, 2 * hlen);
+            object->GetCollisionModel()->AddShape(shape, ChFrame<>());
+            object->GetCollisionModel()->Build();
 
             auto cap = chrono_types::make_shared<ChVisualShapeCapsule>(radius, 2 * hlen);
             object->AddVisualShape(cap);
@@ -221,10 +219,9 @@ int main(int argc, char* argv[]) {
             break;
         }
         case CollisionShape::CYLSHELL: {
-            object->GetCollisionModel()->ClearModel();
-            object->GetCollisionModel()->AddCylindricalShell(object_mat, radius, 2 * hlen, ChVector<>(0),
-                                                             Q_from_AngX(CH_C_PI_2));
-            object->GetCollisionModel()->BuildModel();
+            auto shape = chrono_types::make_shared<collision::ChCollisionShapeCylindricalShell>(object_mat, radius, 2 * hlen);
+            object->GetCollisionModel()->AddShape(shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+            object->GetCollisionModel()->Build();
 
             auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(radius, 2 * hlen);
             object->AddVisualShape(cyl, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
@@ -237,10 +234,10 @@ int main(int argc, char* argv[]) {
             if (!trimesh)
                 return 1;
 
-            object->GetCollisionModel()->ClearModel();
-            object->GetCollisionModel()->AddTriangleMesh(object_mat, trimesh, false, false, ChVector<>(0),
-                                                         ChMatrix33<>(1), sphere_r);
-            object->GetCollisionModel()->BuildModel();
+            auto shape =
+                chrono_types::make_shared<collision::ChCollisionShapeTriangleMesh>(object_mat, trimesh, false, false, sphere_r);
+            object->GetCollisionModel()->AddShape(shape);
+            object->GetCollisionModel()->Build();
 
             auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
             trimesh_shape->SetMesh(trimesh);
@@ -280,9 +277,9 @@ int main(int argc, char* argv[]) {
     double size_y = 1;
     double size_z = 2;
 
-    ground->GetCollisionModel()->ClearModel();
-    ground->GetCollisionModel()->AddBox(ground_mat, size_x, size_y, size_z, ChVector<>(0, -size_y / 2, 0));
-    ground->GetCollisionModel()->BuildModel();
+    auto shape = chrono_types::make_shared<collision::ChCollisionShapeBox>(ground_mat, size_x, size_y, size_z);
+    ground->GetCollisionModel()->AddShape(shape, ChFrame<>(ChVector<>(0, -size_y / 2, 0), QUNIT));
+    ground->GetCollisionModel()->Build();
 
     auto box = chrono_types::make_shared<ChVisualShapeBox>(size_x, size_y, size_z);
     box->SetTexture(GetChronoDataFile("textures/checker1.png"), 4, 2);
