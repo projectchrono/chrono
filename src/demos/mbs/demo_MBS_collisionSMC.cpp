@@ -30,10 +30,11 @@ using namespace chrono::vsg3d;
 #endif
 
 using namespace chrono;
+using namespace chrono::collision;
 
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
-collision::ChCollisionSystemType collision_type = collision::ChCollisionSystemType::BULLET;
+ChCollisionSystemType collision_type = ChCollisionSystemType::BULLET;
 
 void AddFallingItems(ChSystemSMC& sys) {
     // Shared contact material for falling objects
@@ -50,7 +51,7 @@ void AddFallingItems(ChSystemSMC& sys) {
                 body->SetMass(mass);
                 body->SetPos(ChVector<>(4.0 * ix + 0.1, 4.0, 4.0 * iz));
 
-                auto shape = chrono_types::make_shared<collision::ChCollisionShapeSphere>(mat, radius);
+                auto shape = chrono_types::make_shared<ChCollisionShapeSphere>(mat, radius);
                 body->GetCollisionModel()->AddShape(shape);
                 body->GetCollisionModel()->Build();
                 body->SetCollide(true);
@@ -71,8 +72,7 @@ void AddFallingItems(ChSystemSMC& sys) {
                 body->SetMass(mass);
                 body->SetPos(ChVector<>(4.0 * ix, 6.0, 4.0 * iz));
 
-                auto shape =
-                    chrono_types::make_shared<collision::ChCollisionShapeBox>(mat, size.x(), size.y(), size.z());
+                auto shape = chrono_types::make_shared<ChCollisionShapeBox>(mat, size.x(), size.y(), size.z());
                 body->GetCollisionModel()->AddShape(shape);
                 body->GetCollisionModel()->Build();
                 body->SetCollide(true);
@@ -93,7 +93,7 @@ void AddContainerWall(std::shared_ptr<ChBody> body,
                       const ChVector<>& size,
                       const ChVector<>& pos,
                       bool visible = true) {
-    auto shape = chrono_types::make_shared<collision::ChCollisionShapeBox>(mat, size.x(), size.y(), size.z());
+    auto shape = chrono_types::make_shared<ChCollisionShapeBox>(mat, size.x(), size.y(), size.z());
     body->GetCollisionModel()->AddShape(shape, ChFrame<>(pos, QUNIT));
 
     if (visible) {
@@ -139,7 +139,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemSMC& sys) {
 
     ChVector<> size(10, 5.5, 1.0);
 
-    auto shape = chrono_types::make_shared<collision::ChCollisionShapeBox>(rot_mat, size.x(), size.y(), size.z());
+    auto shape = chrono_types::make_shared<ChCollisionShapeBox>(rot_mat, size.x(), size.y(), size.z());
     rotatingBody->GetCollisionModel()->AddShape(shape);
     rotatingBody->GetCollisionModel()->Build();
 

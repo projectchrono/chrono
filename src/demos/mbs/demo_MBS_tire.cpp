@@ -55,8 +55,8 @@ std::shared_ptr<ChBody> create_wheel(ChVector<> mposition, ChSystem& sys) {
     // now attach collision shape, as a compound of convex hulls (for each thread pair):
     std::string knobs_filename(GetChronoDataFile("models/tractor_wheel/tractor_wheel_knobs.chulls"));
     std::string slice_filename(GetChronoDataFile("models/tractor_wheel/tractor_wheel_slice.chulls"));
-    auto knobs_shapes = collision::ChCollisionShapeConvexHull::Read(mat, knobs_filename);
-    auto slice_shapes = collision::ChCollisionShapeConvexHull::Read(mat, slice_filename);
+    auto knobs_shapes = ChCollisionShapeConvexHull::Read(mat, knobs_filename);
+    auto slice_shapes = ChCollisionShapeConvexHull::Read(mat, slice_filename);
     for (double mangle = 0; mangle < 360.; mangle += (360. / 15.)) {
         auto q = Q_from_AngX(mangle * CH_C_DEG_TO_RAD);
         for (const auto& s : knobs_shapes)

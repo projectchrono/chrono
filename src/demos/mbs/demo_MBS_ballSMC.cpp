@@ -30,6 +30,7 @@ using namespace chrono::vsg3d;
 #endif
 
 using namespace chrono;
+using namespace chrono::collision;
 
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
@@ -57,7 +58,7 @@ int main(int argc, char* argv[]) {
     double thickness = 0.1;
 
     // Collision system type
-    auto collision_type = collision::ChCollisionSystemType::BULLET;
+    auto collision_type = ChCollisionSystemType::BULLET;
 
     // Create the system
     ChSystemSMC sys;
@@ -71,7 +72,7 @@ int main(int argc, char* argv[]) {
     sys.SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);
 
     // Change the default collision effective radius of curvature
-    collision::ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
+    ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
 
     // Create a material (will be used by both objects)
     auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
@@ -95,7 +96,7 @@ int main(int argc, char* argv[]) {
     ////ball->GetCollisionModel()->ClearModel();
     ////ball->GetCollisionModel()->AddSphere(material, radius);
     ////ball->GetCollisionModel()->BuildModel();
-    auto sphere_coll = chrono_types::make_shared<collision::ChCollisionShapeSphere>(material, radius);
+    auto sphere_coll = chrono_types::make_shared<ChCollisionShapeSphere>(material, radius);
     ball->GetCollisionModel()->AddShape(sphere_coll, ChFrame<>());
     ball->GetCollisionModel()->Build();
 
@@ -122,8 +123,7 @@ int main(int argc, char* argv[]) {
     ////bin->GetCollisionModel()->ClearModel();
     ////bin->GetCollisionModel()->AddBox(material, width * 2, thickness * 2, length * 2);
     ////bin->GetCollisionModel()->BuildModel();
-    auto box_coll =
-        chrono_types::make_shared<collision::ChCollisionShapeBox>(material, width * 2, thickness * 2, length * 2);
+    auto box_coll = chrono_types::make_shared<ChCollisionShapeBox>(material, width * 2, thickness * 2, length * 2);
     bin->GetCollisionModel()->AddShape(box_coll, ChFrame<>());
     bin->GetCollisionModel()->Build();
 

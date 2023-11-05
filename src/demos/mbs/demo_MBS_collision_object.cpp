@@ -23,6 +23,7 @@
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 using namespace chrono;
+using namespace chrono::collision;
 using namespace chrono::irrlicht;
 
 // ====================================================================================
@@ -45,10 +46,10 @@ class ContactManager : public ChContactContainer::ReportContactCallback {
 
 int main(int argc, char* argv[]) {
     // Collision detection sys
-    collision::ChCollisionSystemType collision_type = collision::ChCollisionSystemType::CHRONO;
+    ChCollisionSystemType collision_type = ChCollisionSystemType::CHRONO;
 
     // Narrowphase algorithm (only for the Chrono multicore collision sys)
-    collision::ChNarrowphase::Algorithm narrowphase_algorithm = collision::ChNarrowphase::Algorithm::HYBRID;
+    ChNarrowphase::Algorithm narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
 
     // Collision envelope (NSC only)
     double collision_envelope = 0.05;
@@ -147,9 +148,9 @@ int main(int argc, char* argv[]) {
     sys->Set_G_acc(ChVector<>(0, -9.81, 0));
 
     // Create and attach the collision detection sys (default BULLET)
-    if (collision_type == collision::ChCollisionSystemType::CHRONO) {
+    if (collision_type == ChCollisionSystemType::CHRONO) {
         ////sys->SetCollisionSystemType(collision_type);
-        auto cd_chrono = chrono_types::make_shared<collision::ChCollisionSystemChrono>();
+        auto cd_chrono = chrono_types::make_shared<ChCollisionSystemChrono>();
         cd_chrono->SetBroadphaseGridResolution(ChVector<int>(1, 1, 1));
         cd_chrono->SetNarrowphaseAlgorithm(narrowphase_algorithm);
         cd_chrono->SetEnvelope(collision_envelope);
@@ -188,7 +189,7 @@ int main(int argc, char* argv[]) {
 
     switch (object_model) {
         case CollisionShape::SPHERE: {
-            auto shape = chrono_types::make_shared<collision::ChCollisionShapeSphere>(object_mat, radius);
+            auto shape = chrono_types::make_shared<ChCollisionShapeSphere>(object_mat, radius);
             object->GetCollisionModel()->AddShape(shape);
             object->GetCollisionModel()->Build();
 
@@ -198,9 +199,9 @@ int main(int argc, char* argv[]) {
             break;
         }
         case CollisionShape::CYLINDER: {
-            auto shape = chrono_types::make_shared<collision::ChCollisionShapeCylinder>(object_mat, radius, 2 * hlen);
+            auto shape = chrono_types::make_shared<ChCollisionShapeCylinder>(object_mat, radius, 2 * hlen);
             object->GetCollisionModel()->AddShape(shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
-            //object->GetCollisionModel()->AddCylinder(object_mat, radius, ChVector<>(0, -hlen, 0), ChVector<>(0, +hlen, 0));
+            // object->GetCollisionModel()->AddCylinder(object_mat, radius, ChVector<>(0, -hlen, 0), ChVector<>(0, +hlen, 0));
             object->GetCollisionModel()->Build();
 
             auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(radius, 2 * hlen);
@@ -209,7 +210,7 @@ int main(int argc, char* argv[]) {
             break;
         }
         case CollisionShape::CAPSULE: {
-            auto shape = chrono_types::make_shared<collision::ChCollisionShapeCapsule>(object_mat, radius, 2 * hlen);
+            auto shape = chrono_types::make_shared<ChCollisionShapeCapsule>(object_mat, radius, 2 * hlen);
             object->GetCollisionModel()->AddShape(shape, ChFrame<>());
             object->GetCollisionModel()->Build();
 
@@ -219,7 +220,7 @@ int main(int argc, char* argv[]) {
             break;
         }
         case CollisionShape::CYLSHELL: {
-            auto shape = chrono_types::make_shared<collision::ChCollisionShapeCylindricalShell>(object_mat, radius, 2 * hlen);
+            auto shape = chrono_types::make_shared<ChCollisionShapeCylindricalShell>(object_mat, radius, 2 * hlen);
             object->GetCollisionModel()->AddShape(shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
             object->GetCollisionModel()->Build();
 
@@ -235,7 +236,7 @@ int main(int argc, char* argv[]) {
                 return 1;
 
             auto shape =
-                chrono_types::make_shared<collision::ChCollisionShapeTriangleMesh>(object_mat, trimesh, false, false, sphere_r);
+                chrono_types::make_shared<ChCollisionShapeTriangleMesh>(object_mat, trimesh, false, false, sphere_r);
             object->GetCollisionModel()->AddShape(shape);
             object->GetCollisionModel()->Build();
 
@@ -277,7 +278,7 @@ int main(int argc, char* argv[]) {
     double size_y = 1;
     double size_z = 2;
 
-    auto shape = chrono_types::make_shared<collision::ChCollisionShapeBox>(ground_mat, size_x, size_y, size_z);
+    auto shape = chrono_types::make_shared<ChCollisionShapeBox>(ground_mat, size_x, size_y, size_z);
     ground->GetCollisionModel()->AddShape(shape, ChFrame<>(ChVector<>(0, -size_y / 2, 0), QUNIT));
     ground->GetCollisionModel()->Build();
 

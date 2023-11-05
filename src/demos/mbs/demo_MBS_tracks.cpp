@@ -34,6 +34,7 @@
 
 // Use the namespaces of Chrono
 using namespace chrono;
+using namespace chrono::collision;
 using namespace chrono::geometry;
 using namespace chrono::irrlicht;
 
@@ -126,7 +127,7 @@ class MySimpleTank {
         // --- Wheel collision shape
 
         auto wheel_shape =
-            chrono_types::make_shared<collision::ChCollisionShapeCylinder>(wheel_mat, wheeldiameter / 2, cyl_thickness);
+            chrono_types::make_shared<ChCollisionShapeCylinder>(wheel_mat, wheeldiameter / 2, cyl_thickness);
 
         // --- Right Front suspension ---
 
@@ -313,7 +314,7 @@ class MySimpleTank {
             // Collision:
             firstBodyShoe->GetCollisionModel()->SetSafeMargin(0.004);  // inward safe margin
             firstBodyShoe->GetCollisionModel()->SetEnvelope(0.010);    // distance of the outward "collision envelope"
-            auto ct_shape = chrono_types::make_shared<collision::ChCollisionShapeTriangleMesh>(
+            auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(
                 chrono_types::make_shared<ChMaterialSurfaceNSC>(), trimesh, false, false, 0.005);
             firstBodyShoe->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(mesh_displacement, QUNIT));
             firstBodyShoe->GetCollisionModel()->Build();

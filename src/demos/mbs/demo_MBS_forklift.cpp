@@ -30,6 +30,7 @@
 
 // Use the namespaces of Chrono
 using namespace chrono;
+using namespace chrono::collision;
 using namespace chrono::irrlicht;
 
 // Use the main namespaces of Irrlicht
@@ -103,9 +104,9 @@ class MySimpleForklift {
         // collision properties:
         auto chassis_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-        auto cshape1 = chrono_types::make_shared<collision::ChCollisionShapeBox>(chassis_mat, 1.227, 1.621, 1.864);
-        auto cshape2 = chrono_types::make_shared<collision::ChCollisionShapeBox>(chassis_mat, 0.187, 0.773, 1.201);
-        auto cshape3 = chrono_types::make_shared<collision::ChCollisionShapeBox>(chassis_mat, 0.187, 0.773, 1.201);
+        auto cshape1 = chrono_types::make_shared<ChCollisionShapeBox>(chassis_mat, 1.227, 1.621, 1.864);
+        auto cshape2 = chrono_types::make_shared<ChCollisionShapeBox>(chassis_mat, 0.187, 0.773, 1.201);
+        auto cshape3 = chrono_types::make_shared<ChCollisionShapeBox>(chassis_mat, 0.187, 0.773, 1.201);
         chassis->GetCollisionModel()->AddShape(cshape1, ChFrame<>(ChVector<>(-0.003, 1.019, 0.192), QUNIT));
         chassis->GetCollisionModel()->AddShape(cshape2, ChFrame<>(ChVector<>(0.486, 0.153, -0.047), QUNIT));
         chassis->GetCollisionModel()->AddShape(cshape3, ChFrame<>(ChVector<>(-0.486, 0.153, -0.047), QUNIT));
@@ -125,8 +126,8 @@ class MySimpleForklift {
         wheel_mesh->SetFilename(GetChronoDataFile("models/forklift/wheel.obj"));
 
         // Front and back wheel collision shapes
-        auto wshapeF = chrono_types::make_shared<collision::ChCollisionShapeCylinder>(wheel_mat, RAD_front_wheel, 0.2);
-        auto wshapeB = chrono_types::make_shared<collision::ChCollisionShapeCylinder>(wheel_mat, RAD_back_wheel, 0.2);
+        auto wshapeF = chrono_types::make_shared<ChCollisionShapeCylinder>(wheel_mat, RAD_front_wheel, 0.2);
+        auto wshapeB = chrono_types::make_shared<ChCollisionShapeCylinder>(wheel_mat, RAD_back_wheel, 0.2);
 
         // ..the right-front wheel
         wheelRF = chrono_types::make_shared<ChBody>();
@@ -154,7 +155,7 @@ class MySimpleForklift {
         wheelLF->SetMass(20);
         wheelLF->SetInertiaXX(ChVector<>(2, 2, 2));
         // collision properties:
-        auto shapeLF = chrono_types::make_shared<collision::ChCollisionShapeCylinder>(wheel_mat, RAD_front_wheel, 0.2);
+        auto shapeLF = chrono_types::make_shared<ChCollisionShapeCylinder>(wheel_mat, RAD_front_wheel, 0.2);
         wheelLF->GetCollisionModel()->AddShape(wshapeF, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI / 2)));
         wheelLF->GetCollisionModel()->Build();
         wheelLF->SetCollide(true);
@@ -225,9 +226,9 @@ class MySimpleForklift {
         fork->SetMass(60);
         fork->SetInertiaXX(ChVector<>(15, 15, 15));
         // collision properties:
-        auto fshape1 = chrono_types::make_shared<collision::ChCollisionShapeBox>(fork_mat, 0.100, 0.032, 1.033);
-        auto fshape2 = chrono_types::make_shared<collision::ChCollisionShapeBox>(fork_mat, 0.100, 0.032, 1.033);
-        auto fshape3 = chrono_types::make_shared<collision::ChCollisionShapeBox>(fork_mat, 0.344, 1.134, 0.101);
+        auto fshape1 = chrono_types::make_shared<ChCollisionShapeBox>(fork_mat, 0.100, 0.032, 1.033);
+        auto fshape2 = chrono_types::make_shared<ChCollisionShapeBox>(fork_mat, 0.100, 0.032, 1.033);
+        auto fshape3 = chrono_types::make_shared<ChCollisionShapeBox>(fork_mat, 0.344, 1.134, 0.101);
         fork->GetCollisionModel()->AddShape(fshape1, ChFrame<>(ChVector<>(-0.352, -0.312, 0.613), QUNIT));
         fork->GetCollisionModel()->AddShape(fshape2, ChFrame<>(ChVector<>(0.352, -0.312, 0.613), QUNIT));
         fork->GetCollisionModel()->AddShape(fshape3, ChFrame<>(ChVector<>(0.000, 0.321, -0.009), QUNIT));

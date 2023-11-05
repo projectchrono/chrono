@@ -34,6 +34,7 @@
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 using namespace chrono;
+using namespace chrono::collision;
 using namespace chrono::geometry;
 using namespace chrono::fea;
 using namespace chrono::irrlicht;
@@ -51,11 +52,9 @@ int main(int argc, char* argv[]) {
     //
 
     // Set default effective radius of curvature for all SCM contacts.
-    collision::ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
+    ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
 
-    // collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0); // not needed, already 0 when using ChSystemSMC
-    collision::ChCollisionModel::SetDefaultSuggestedMargin(
-        0.006);  // max inside penetration - if not enough stiffness in material: troubles
+    ChCollisionModel::SetDefaultSuggestedMargin(0.006);
 
     // Use this value for an outward additional layer around meshes, that can improve
     // robustness of mesh-mesh collision detection (at the cost of having unnatural inflate effect)
@@ -85,8 +84,8 @@ int main(int argc, char* argv[]) {
         mfloor->SetBodyFixed(true);
         sys.Add(mfloor);
 
-        auto floor_shape = chrono_types::make_shared<collision::ChCollisionShapeTriangleMesh>(
-            mysurfmaterial, mmeshbox, false, false, sphere_swept_thickness);
+        auto floor_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mysurfmaterial, mmeshbox, false,
+                                                                                   false, sphere_swept_thickness);
         mfloor->GetCollisionModel()->AddShape(floor_shape);
         mfloor->GetCollisionModel()->Build();
         mfloor->SetCollide(true);

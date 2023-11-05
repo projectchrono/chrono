@@ -34,6 +34,7 @@
 
 // Use the namespaces of Chrono
 using namespace chrono;
+using namespace chrono::collision;
 using namespace chrono::irrlicht;
 
 // Use the main namespaces of Irrlicht
@@ -642,8 +643,7 @@ int main(int argc, char* argv[]) {
 
     class MyContactCallback : public ChContactContainer::AddContactCallback {
       public:
-        virtual void OnAddContact(const collision::ChCollisionInfo& contactinfo,
-                                  ChMaterialComposite* const material) override {
+        virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChMaterialComposite* const material) override {
             // Downcast to appropriate composite material type
             auto mat = static_cast<ChMaterialCompositeNSC* const>(material);
 

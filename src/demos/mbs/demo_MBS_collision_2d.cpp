@@ -25,6 +25,7 @@
 
 // Use the namespaces of Chrono
 using namespace chrono;
+using namespace chrono::collision;
 using namespace chrono::geometry;
 using namespace chrono::irrlicht;
 
@@ -67,7 +68,7 @@ int main(int argc, char* argv[]) {
     ////mcoin->GetCollisionModel()->ClearModel();
     ////mcoin->GetCollisionModel()->Add2Dpath(mat, mpathcoin, VNULL, ChMatrix33<>(1), 0.03);  // 0.03 thickness
     ////mcoin->GetCollisionModel()->BuildModel();
-    auto coin_coll = chrono_types::make_shared<collision::ChCollisionShapePath2D>(mat, mpathcoin);
+    auto coin_coll = chrono_types::make_shared<ChCollisionShapePath2D>(mat, mpathcoin);
     mcoin->GetCollisionModel()->AddShape(coin_coll, ChFrame<>());
     mcoin->GetCollisionModel()->Build();
 
@@ -101,7 +102,7 @@ int main(int argc, char* argv[]) {
     ////mhole->GetCollisionModel()->ClearModel();
     ////mhole->GetCollisionModel()->Add2Dpath(mat, mpathhole, VNULL, ChMatrix33<>(1), 0.03);  // 0.01 thickness
     ////mhole->GetCollisionModel()->BuildModel();
-    auto hole_coll = chrono_types::make_shared<collision::ChCollisionShapePath2D>(mat, mpathhole);
+    auto hole_coll = chrono_types::make_shared<ChCollisionShapePath2D>(mat, mpathhole);
     mhole->GetCollisionModel()->AddShape(hole_coll, ChFrame<>());
     mhole->GetCollisionModel()->Build();
 
@@ -178,7 +179,7 @@ int main(int argc, char* argv[]) {
     ////mgenevawheel->GetCollisionModel()->ClearModel();
     ////mgenevawheel->GetCollisionModel()->Add2Dpath(mat, mpathwheel);
     ////mgenevawheel->GetCollisionModel()->BuildModel();
-    auto genevawheel_coll = chrono_types::make_shared<collision::ChCollisionShapePath2D>(mat, mpathwheel);
+    auto genevawheel_coll = chrono_types::make_shared<ChCollisionShapePath2D>(mat, mpathwheel);
     mgenevawheel->GetCollisionModel()->AddShape(genevawheel_coll, ChFrame<>());
     mgenevawheel->GetCollisionModel()->Build();
 
@@ -218,8 +219,8 @@ int main(int argc, char* argv[]) {
     ////mcrank->GetCollisionModel()->Add2Dpath(mat, mpathcrankpin);
     ////mcrank->GetCollisionModel()->Add2Dpath(mat, mpathcrankstopper);
     ////mcrank->GetCollisionModel()->BuildModel();
-    auto crankpin_coll = chrono_types::make_shared<collision::ChCollisionShapePath2D>(mat, mpathcrankpin);
-    auto crankstopper_coll = chrono_types::make_shared<collision::ChCollisionShapePath2D>(mat, mpathcrankstopper);
+    auto crankpin_coll = chrono_types::make_shared<ChCollisionShapePath2D>(mat, mpathcrankpin);
+    auto crankstopper_coll = chrono_types::make_shared<ChCollisionShapePath2D>(mat, mpathcrankstopper);
     mcrank->GetCollisionModel()->AddShape(crankpin_coll, ChFrame<>());
     mcrank->GetCollisionModel()->AddShape(crankstopper_coll, ChFrame<>());
     mcrank->GetCollisionModel()->Build();

@@ -30,6 +30,7 @@
 
 // Use the namespaces of Chrono
 using namespace chrono;
+using namespace chrono::collision;
 using namespace chrono::irrlicht;
 
 // Use the main namespaces of Irrlicht
@@ -152,20 +153,20 @@ std::shared_ptr<ChBody> create_mecanum_wheel(ChSystemNSC& sys,
                            roller_density);
 
         // add collision shape
-        auto shape = chrono_types::make_shared<collision::ChCollisionShapeBarrel>(
-            wheel_mat,                                                      //
-            -half_length_roller, +half_length_roller,                       //
-            2 * roller_elliptical_rad_Vert, 2 * roller_elliptical_rad_Hor,  //
-            Roffset);
+        auto shape = chrono_types::make_shared<ChCollisionShapeBarrel>(wheel_mat,                                 //
+                                                                       -half_length_roller, +half_length_roller,  //
+                                                                       2 * roller_elliptical_rad_Vert,            //
+                                                                       2 * roller_elliptical_rad_Hor,             //
+                                                                       Roffset);
         roller->GetCollisionModel()->AddShape(shape);
         roller->GetCollisionModel()->Build();
         roller->SetCollide(true);
 
         // add visualization shape
-        auto rollershape =
-            chrono_types::make_shared<ChVisualShapeBarrel>(-half_length_roller, +half_length_roller,                       //
-                                                     2 * roller_elliptical_rad_Vert, 2 * roller_elliptical_rad_Hor,  //
-                                                     Roffset);
+        auto rollershape = chrono_types::make_shared<ChVisualShapeBarrel>(-half_length_roller, +half_length_roller,  //
+                                                                          2 * roller_elliptical_rad_Vert,
+                                                                          2 * roller_elliptical_rad_Hor,  //
+                                                                          Roffset);
         roller->AddVisualShape(rollershape);
 
         // Make the revolute joint between the roller and the central wheel

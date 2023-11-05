@@ -26,6 +26,7 @@
 
 // Use the namespaces of Chrono
 using namespace chrono;
+using namespace chrono::collision;
 using namespace chrono::irrlicht;
 
 // Use the main namespaces of Irrlicht
@@ -130,8 +131,8 @@ int main(int argc, char* argv[]) {
     ChSystemNSC sys;
 
     // Create all the rigid bodies.
-    collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.003);
-    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.003);
+    ChCollisionModel::SetDefaultSuggestedEnvelope(0.003);
+    ChCollisionModel::SetDefaultSuggestedMargin(0.003);
 
     create_some_falling_items(sys);
 

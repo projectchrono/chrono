@@ -27,6 +27,7 @@
 
 // Use the namespaces of Chrono
 using namespace chrono;
+using namespace chrono::collision;
 using namespace chrono::geometry;
 using namespace chrono::irrlicht;
 
@@ -38,8 +39,8 @@ int main(int argc, char* argv[]) {
 
     // Create all the rigid bodies.
 
-    collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
-    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
+    ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
+    ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
 
     // - Create a floor
 
@@ -102,7 +103,7 @@ int main(int argc, char* argv[]) {
     auto vis_model = chrono_types::make_shared<ChVisualModel>();
     vis_model->AddShape(mesh_shape);
 
-    auto ct_shape = chrono_types::make_shared<collision::ChCollisionShapeTriangleMesh>(mesh_mat, mesh, false, false, 0.005);
+    auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mesh_mat, mesh, false, false, 0.005);
 
     for (int j = 0; j < 15; ++j) {
         auto falling = chrono_types::make_shared<ChBodyAuxRef>();

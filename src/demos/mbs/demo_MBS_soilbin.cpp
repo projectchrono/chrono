@@ -283,8 +283,8 @@ class SoilbinWheel {
         // 'knobs'. Since these decompositions are only for 1/15th of the wheel, use for() to pattern them.
         std::string knobs_filename(GetChronoDataFile("models/tractor_wheel/tractor_wheel_knobs.chulls"));
         std::string slice_filename(GetChronoDataFile("models/tractor_wheel/tractor_wheel_slice.chulls"));
-        auto knobs_shapes = collision::ChCollisionShapeConvexHull::Read(wheel_mat, knobs_filename);
-        auto slice_shapes = collision::ChCollisionShapeConvexHull::Read(wheel_mat, slice_filename);
+        auto knobs_shapes = ChCollisionShapeConvexHull::Read(wheel_mat, knobs_filename);
+        auto slice_shapes = ChCollisionShapeConvexHull::Read(wheel_mat, slice_filename);
         for (double mangle = 0; mangle < 360.; mangle += (360. / 15.)) {
             auto q = Q_from_AngX(mangle * CH_C_DEG_TO_RAD);
             for (const auto& s : knobs_shapes)

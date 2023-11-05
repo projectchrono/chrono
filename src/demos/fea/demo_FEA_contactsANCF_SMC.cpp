@@ -51,6 +51,7 @@
 #include <functional>
 
 using namespace chrono;
+using namespace chrono::collision;
 using namespace chrono::geometry;
 using namespace chrono::fea;
 using namespace chrono::irrlicht;
@@ -72,9 +73,7 @@ int main(int argc, char* argv[]) {
 
     sys.SetNumThreads(ChOMP::GetNumProcs(), 0, 1);
 
-    // collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0); // not needed, already 0 when using
-    collision::ChCollisionModel::SetDefaultSuggestedMargin(
-        0.001);  // max inside penetration - if not enough stiffness in material: troubles
+    ChCollisionModel::SetDefaultSuggestedMargin(0.001);  // max inside penetration
     // Use this value for an outward additional layer around meshes, that can improve
     // robustness of mesh-mesh collision detection (at the cost of having unnatural inflate effect)
     double sphere_swept_thickness = 0.008;
