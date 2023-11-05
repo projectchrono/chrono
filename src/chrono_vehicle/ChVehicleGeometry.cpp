@@ -30,6 +30,8 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
+using namespace chrono::collision;
+
 namespace chrono {
 namespace vehicle {
 
@@ -208,39 +210,45 @@ void ChVehicleGeometry::CreateCollisionShapes(std::shared_ptr<ChBody> body,
 
     body->SetCollide(true);
 
-    body->GetCollisionModel()->ClearModel();
+    body->GetCollisionModel()->Clear();
 
     body->GetCollisionModel()->SetFamily(collision_family);
 
     for (auto& sphere : m_coll_spheres) {
         assert(materials[sphere.m_matID]);
-        body->GetCollisionModel()->AddSphere(materials[sphere.m_matID], sphere.m_radius, sphere.m_pos);
+        auto shape = chrono_types::make_shared<ChCollisionShapeSphere>(materials[sphere.m_matID], sphere.m_radius);
+        body->GetCollisionModel()->AddShape(shape, ChFrame<>(sphere.m_pos, QUNIT));
     }
     for (auto& box : m_coll_boxes) {
         assert(materials[box.m_matID]);
-        body->GetCollisionModel()->AddBox(materials[box.m_matID], box.m_dims.x(), box.m_dims.y(), box.m_dims.z(),
-                                          box.m_pos, box.m_rot);
+        auto shape = chrono_types::make_shared<ChCollisionShapeBox>(materials[box.m_matID], box.m_dims.x(),
+                                                                    box.m_dims.y(), box.m_dims.z());
+        body->GetCollisionModel()->AddShape(shape, ChFrame<>(box.m_pos, box.m_rot));
     }
     for (auto& cyl : m_coll_cylinders) {
         assert(materials[cyl.m_matID]);
-        body->GetCollisionModel()->AddCylinder(materials[cyl.m_matID], cyl.m_radius, cyl.m_length, cyl.m_pos,
-                                               cyl.m_rot);
+        auto shape =
+            chrono_types::make_shared<ChCollisionShapeCylinder>(materials[cyl.m_matID], cyl.m_radius, cyl.m_length);
+        body->GetCollisionModel()->AddShape(shape, ChFrame<>(cyl.m_pos, cyl.m_rot));
     }
     for (auto& hulls_group : m_coll_hulls) {
         assert(materials[hulls_group.m_matID]);
-        for (const auto& hull : hulls_group.m_hulls)
-            body->GetCollisionModel()->AddConvexHull(materials[hulls_group.m_matID], hull);
+        for (const auto& hull : hulls_group.m_hulls) {
+            auto shape = chrono_types::make_shared<ChCollisionShapeConvexHull>(materials[hulls_group.m_matID], hull);
+            body->GetCollisionModel()->AddShape(shape);
+        }
     }
     for (auto& mesh : m_coll_meshes) {
         assert(materials[mesh.m_matID]);
         // Hack: explicitly offset vertices
         for (auto& v : mesh.m_trimesh->m_vertices)
             v += mesh.m_pos;
-        body->GetCollisionModel()->AddTriangleMesh(materials[mesh.m_matID], mesh.m_trimesh, false, false, ChVector<>(0),
-                                                   ChMatrix33<>(1), mesh.m_radius);
+        auto shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(materials[mesh.m_matID], mesh.m_trimesh,
+                                                                             false, false, mesh.m_radius);
+        body->GetCollisionModel()->AddShape(shape);
     }
 
-    body->GetCollisionModel()->BuildModel();
+    body->GetCollisionModel()->Build();
 }
 
 ChVehicleGeometry::AABB ChVehicleGeometry::CalculateAABB() {
@@ -277,7 +285,7 @@ ChVehicleGeometry::AABB ChVehicleGeometry::CalculateAABB() {
             for (const auto& v : hull) {
                 amin = Vmin(amin, v);
                 amax = Vmax(amax, v);
-            }        
+            }
         }
     }
 
@@ -313,8 +321,8 @@ void ChTSDAGeometry::CreateVisualizationAssets(std::shared_ptr<ChLinkTSDA> tsda,
     mat->SetDiffuseColor(m_color);
 
     if (m_vis_spring) {
-        auto spring_shape = chrono_types::make_shared<ChVisualShapeSpring>(m_vis_spring->m_radius, m_vis_spring->m_resolution,
-                                                                     m_vis_spring->m_turns);
+        auto spring_shape = chrono_types::make_shared<ChVisualShapeSpring>(
+            m_vis_spring->m_radius, m_vis_spring->m_resolution, m_vis_spring->m_turns);
         spring_shape->AddMaterial(mat);
         tsda->AddVisualShape(spring_shape);
     }

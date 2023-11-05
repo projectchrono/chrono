@@ -211,10 +211,9 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
     vis_mat->SetKdTexture(GetChronoDataFile("textures/checker2.png"));
     vis_mat->SetTextureScale(m_dimX, m_dimY);
 
-    container->GetCollisionModel()->ClearModel();
     utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_dimX, m_dimY, 0.2), ChVector<>(0, 0, -0.1),
                           ChQuaternion<>(1, 0, 0, 0), true, vis_mat);
-    container->GetCollisionModel()->BuildModel();
+    container->GetCollisionModel()->Build();
 
     // If using RIGID terrain, the contact will be between the container and proxy bodies.
     // Since collision between two bodies fixed to ground is ignored, if the proxy bodies
@@ -253,13 +252,13 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
         body->SetMass(mass * b.m_density);
         body->SetInertia(inertia * b.m_density);
         body->SetBodyFixed(false);
-        body->SetCollide(true);
 
-        body->GetCollisionModel()->ClearModel();
-        body->GetCollisionModel()->AddTriangleMesh(mat, trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
-                                                   m_radius_p);
+        body->SetCollide(true);
+        auto ct_shape =
+            chrono_types::make_shared<collision::ChCollisionShapeTriangleMesh>(mat, trimesh, false, false, m_radius_p);
+        body->GetCollisionModel()->AddShape(ct_shape);
         body->GetCollisionModel()->SetFamily(2);
-        body->GetCollisionModel()->BuildModel();
+        body->GetCollisionModel()->Build();
 
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
@@ -334,12 +333,11 @@ void ChVehicleCosimTerrainNodeRigid::CreateMeshProxy(unsigned int i) {
         body->SetBodyFixed(m_fixed_proxies);
         body->SetCollide(true);
 
-        body->GetCollisionModel()->ClearModel();
         utils::AddSphereGeometry(body.get(), material, m_radius_p, ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0),
                                  true);
         body->GetCollisionModel()->SetFamily(1);
         body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
-        body->GetCollisionModel()->BuildModel();
+        body->GetCollisionModel()->Build();
 
         m_system->AddBody(body);
         proxy->AddBody(body, iv);

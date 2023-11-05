@@ -45,6 +45,7 @@
 #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
+using namespace chrono::collision;
 using namespace rapidjson;
 
 namespace chrono {
@@ -187,10 +188,9 @@ void ChTrackTestRig::Create(bool create_track, bool detracking_control) {
         post->SetCollide(true);
         m_system->Add(post);
 
-        post->GetCollisionModel()->ClearModel();
-        post->GetCollisionModel()->AddCylinder(post_mat, m_post_radius, m_post_height,
-                                               ChVector<>(0, 0, -m_post_height / 2));
-        post->GetCollisionModel()->BuildModel();
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(post_mat, m_post_radius, m_post_height);
+        post->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(ChVector<>(0, 0, -m_post_height / 2), QUNIT));
+        post->GetCollisionModel()->Build();
 
         AddPostVisualization(post, m_chassis->GetBody(), ChColor(0.1f, 0.8f, 0.15f));
 

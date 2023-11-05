@@ -25,6 +25,8 @@
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBandBushing.h"
 
+using namespace chrono::collision;
+
 namespace chrono {
 namespace vehicle {
 
@@ -112,14 +114,15 @@ void ChTrackShoeBandBushing::UpdateInertiaProperties() {
 // -----------------------------------------------------------------------------
 void ChTrackShoeBandBushing::AddWebContact(std::shared_ptr<ChBody> segment,
                                            std::shared_ptr<ChMaterialSurface> web_mat) {
-    segment->GetCollisionModel()->ClearModel();
+    segment->GetCollisionModel()->Clear();
 
     segment->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
     segment->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::SHOES);
+    auto shape =
+        chrono_types::make_shared<ChCollisionShapeBox>(web_mat, m_seg_length, GetBeltWidth(), GetWebThickness());
+    segment->GetCollisionModel()->AddShape(shape);
 
-    segment->GetCollisionModel()->AddBox(web_mat, m_seg_length, GetBeltWidth(), GetWebThickness());
-
-    segment->GetCollisionModel()->BuildModel();
+    segment->GetCollisionModel()->Build();
 }
 
 // -----------------------------------------------------------------------------

@@ -34,6 +34,7 @@
     #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
+using namespace chrono::collision;
 using namespace rapidjson;
 
 namespace chrono {
@@ -557,6 +558,9 @@ void ChSuspensionTestRigPlatform::InitializeRig() {
         const auto& suspension = axle->m_suspension;
         auto tire_radius = axle->m_wheels[0]->GetTire()->GetRadius();
 
+        // Post collision shape
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(post_mat, m_post_radius, m_post_height);
+
         // Create the left post body (green)
         ChVector<> spindle_L_pos = suspension->GetSpindlePos(LEFT);
         ChVector<> post_L_pos = spindle_L_pos - ChVector<>(0, 0, tire_radius);
@@ -568,10 +572,8 @@ void ChSuspensionTestRigPlatform::InitializeRig() {
         sys->Add(post_L);
         AddPostVisualization(post_L, ChColor(0.1f, 0.8f, 0.15f));
 
-        post_L->GetCollisionModel()->ClearModel();
-        post_L->GetCollisionModel()->AddCylinder(post_mat, m_post_radius, m_post_height,
-                                                 ChVector<>(0, 0, -m_post_height / 2));
-        post_L->GetCollisionModel()->BuildModel();
+        post_L->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(ChVector<>(0, 0, -m_post_height / 2), QUNIT));
+        post_L->GetCollisionModel()->Build();
 
         // Create the right post body (red)
         ChVector<> spindle_R_pos = suspension->GetSpindlePos(RIGHT);
@@ -584,10 +586,8 @@ void ChSuspensionTestRigPlatform::InitializeRig() {
         sys->Add(post_R);
         AddPostVisualization(post_R, ChColor(0.8f, 0.1f, 0.1f));
 
-        post_R->GetCollisionModel()->ClearModel();
-        post_R->GetCollisionModel()->AddCylinder(post_mat, m_post_radius, m_post_height,
-                                                 ChVector<>(0, 0, -m_post_height / 2));
-        post_R->GetCollisionModel()->BuildModel();
+        post_R->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(ChVector<>(0, 0, -m_post_height / 2), QUNIT));
+        post_R->GetCollisionModel()->Build();
 
         // Create and initialize actuators
         auto func_L = chrono_types::make_shared<ChFunction_Setpoint>();

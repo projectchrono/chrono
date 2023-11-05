@@ -27,6 +27,8 @@
 #include "chrono_vehicle/terrain/ObsModTerrain.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 
+using namespace chrono::collision;
+
 namespace chrono {
 namespace vehicle {
 
@@ -253,29 +255,32 @@ void ObsModTerrain::SetupCollision() {
     GenerateMesh();
 
     m_ground->SetCollide(true);
-    m_ground->GetCollisionModel()->ClearModel();
+    m_ground->GetCollisionModel()->Clear();
 
-    m_ground->GetCollisionModel()->AddTriangleMesh(m_material, m_mesh, true, false, VNULL, ChMatrix33<>(1),
-                                                   m_sweep_sphere_radius);
+    auto ct_shape =
+        chrono_types::make_shared<ChCollisionShapeTriangleMesh>(m_material, m_mesh, true, false, m_sweep_sphere_radius);
+    m_ground->GetCollisionModel()->AddShape(ct_shape);
 
     if (m_start_length > 0) {
         double thickness = 1;
         ChVector<> loc(-m_start_length / 2, 0, m_height - thickness / 2);
-        m_ground->GetCollisionModel()->AddBox(m_material, m_start_length, m_width, thickness, loc);
+        auto ct_box = chrono_types::make_shared<ChCollisionShapeBox>(m_material, m_start_length, m_width, thickness);
+        m_ground->GetCollisionModel()->AddShape(ct_box, ChFrame<>(loc, QUNIT));
 
-        auto box = chrono_types::make_shared<ChVisualShapeBox>(m_start_length, m_width, thickness);
-        m_ground->AddVisualShape(box, ChFrame<>(loc));
+        auto vis_box = chrono_types::make_shared<ChVisualShapeBox>(m_start_length, m_width, thickness);
+        m_ground->AddVisualShape(vis_box, ChFrame<>(loc));
 
         // we also need an end plate here
         double end_length = 10.0;
         ChVector<> loc2(GetXObstacleEnd() + end_length / 2, 0, m_height - thickness / 2);
-        m_ground->GetCollisionModel()->AddBox(m_material, end_length, m_width, thickness, loc2);
+        auto ct_box2 = chrono_types::make_shared<ChCollisionShapeBox>(m_material, end_length, m_width, thickness);
+        m_ground->GetCollisionModel()->AddShape(ct_box2, ChFrame<>(loc2, QUNIT));
 
-        auto box2 = chrono_types::make_shared<ChVisualShapeBox>(end_length, m_width, thickness);
-        m_ground->AddVisualShape(box2, ChFrame<>(loc2));
+        auto vis_box2 = chrono_types::make_shared<ChVisualShapeBox>(end_length, m_width, thickness);
+        m_ground->AddVisualShape(vis_box2, ChFrame<>(loc2));
     }
 
-    m_ground->GetCollisionModel()->BuildModel();
+    m_ground->GetCollisionModel()->Build();
 }
 
 }  // end namespace vehicle

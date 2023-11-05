@@ -25,6 +25,7 @@
 #include "chrono/core/ChLog.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyBandANCF.h"
 
+using namespace chrono::collision;
 using namespace chrono::fea;
 
 namespace chrono {
@@ -36,8 +37,7 @@ namespace vehicle {
 ChTrackAssemblyBandANCF::BroadphaseCulling::BroadphaseCulling(ChTrackAssemblyBandANCF* assembly)
     : m_assembly(assembly) {}
 
-bool ChTrackAssemblyBandANCF::BroadphaseCulling::OnBroadphase(collision::ChCollisionModel* modelA,
-                                                              collision::ChCollisionModel* modelB) {
+bool ChTrackAssemblyBandANCF::BroadphaseCulling::OnBroadphase(ChCollisionModel* modelA, ChCollisionModel* modelB) {
     auto contactableA = modelA->GetContactable();
     auto contactableB = modelB->GetContactable();
 

@@ -39,6 +39,8 @@
 
 #include "chrono_thirdparty/stb/stb.h"
 
+using namespace chrono::collision;
+
 namespace chrono {
 namespace vehicle {
 
@@ -1131,7 +1133,7 @@ void SCMLoader::ComputeInternalForces() {
             ChVector<> vertex_abs = m_plane.TransformPointLocalToParent(ChVector<>(x, y, z));
 
             // Create ray at current grid location
-            collision::ChCollisionSystem::ChRayhitResult mrayhit_result;
+            ChCollisionSystem::ChRayhitResult mrayhit_result;
             ChVector<> to = vertex_abs + m_Z * m_test_offset_up;
             ChVector<> from = to - m_Z * m_test_offset_down;
 
@@ -1187,7 +1189,7 @@ void SCMLoader::ComputeInternalForces() {
             ChVector<> vertex_abs = m_plane.TransformPointLocalToParent(ChVector<>(x, y, z));
 
             // Create ray at current grid location
-            collision::ChCollisionSystem::ChRayhitResult mrayhit_result;
+            ChCollisionSystem::ChRayhitResult mrayhit_result;
             ChVector<> to = vertex_abs + m_Z * m_test_offset_up;
             ChVector<> from = to - m_Z * m_test_offset_down;
 

@@ -33,6 +33,8 @@
     #include "chrono_vehicle/output/ChVehicleOutputHDF5.h"
 #endif
 
+using namespace chrono::collision;
+
 namespace chrono {
 namespace vehicle {
 
@@ -97,7 +99,7 @@ ChVehicle::~ChVehicle() {
 // Change the default collision system type
 // -----------------------------------------------------------------------------
 
-void ChVehicle::SetCollisionSystemType(collision::ChCollisionSystemType collsys_type) {
+void ChVehicle::SetCollisionSystemType(ChCollisionSystemType collsys_type) {
     if (m_ownsSystem)
         m_system->SetCollisionSystemType(collsys_type);
 }

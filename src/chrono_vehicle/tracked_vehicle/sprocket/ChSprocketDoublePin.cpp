@@ -23,6 +23,8 @@
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeDoublePin.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
+using namespace chrono::collision;
+
 namespace chrono {
 namespace vehicle {
 
@@ -336,7 +338,7 @@ void SprocketDoublePinContactCB::CheckCircleArc(std::shared_ptr<ChBody> connecto
 
     // Fill in contact information and add the contact to the system.
     // Express all vectors in the global frame
-    collision::ChCollisionInfo contact;
+    ChCollisionInfo contact;
     contact.modelA = m_sprocket->GetGearBody()->GetCollisionModel().get();
     contact.modelB = connector->GetCollisionModel().get();
     contact.shapeA = nullptr;
@@ -382,7 +384,7 @@ void SprocketDoublePinContactCB::CheckCircleSegment(
 
     // Fill in contact information and add the contact to the system.
     // Express all vectors in the global frame
-    collision::ChCollisionInfo contact;
+    ChCollisionInfo contact;
     contact.modelA = m_sprocket->GetGearBody()->GetCollisionModel().get();
     contact.modelB = connector->GetCollisionModel().get();
     contact.shapeA = nullptr;
@@ -413,7 +415,7 @@ void SprocketDoublePinContactCB::CheckPinSprocket(std::shared_ptr<ChTrackShoeDou
 
     // Fill in contact information and add the contact to the system.
     // Express all vectors in the global frame
-    collision::ChCollisionInfo contact;
+    ChCollisionInfo contact;
     contact.modelA = m_sprocket->GetGearBody()->GetCollisionModel().get();
     contact.modelB = shoe->GetShoeBody()->GetCollisionModel().get();
     contact.shapeA = nullptr;

@@ -27,6 +27,8 @@
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBand.h"
 
+using namespace chrono::collision;
+
 namespace chrono {
 namespace vehicle {
 
@@ -132,7 +134,7 @@ void ChTrackShoeBand::AddShoeContact(ChContactMethod contact_method) {
     auto body_material = m_body_matinfo.CreateMaterial(contact_method);
     auto guide_material = m_guide_matinfo.CreateMaterial(contact_method);
 
-    m_shoe->GetCollisionModel()->ClearModel();
+    m_shoe->GetCollisionModel()->Clear();
 
     m_shoe->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
     m_shoe->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::SHOES);
@@ -140,19 +142,22 @@ void ChTrackShoeBand::AddShoeContact(ChContactMethod contact_method) {
     // Guide pin
     ChVector<> g_dims = GetGuideBoxDimensions();
     ChVector<> g_loc(GetGuideBoxOffsetX(), 0, GetWebThickness() / 2 + g_dims.z() / 2);
-    m_shoe->GetCollisionModel()->AddBox(guide_material, g_dims.x(), g_dims.y(), g_dims.z(), g_loc);
+    auto g_shape = chrono_types::make_shared<ChCollisionShapeBox>(guide_material, g_dims.x(), g_dims.y(), g_dims.z());
+    m_shoe->GetCollisionModel()->AddShape(g_shape, ChFrame<>(g_loc, QUNIT));
 
     // Main box
     ChVector<> b_dims(GetToothBaseLength(), GetBeltWidth(), GetWebThickness());
     ChVector<> b_loc(0, 0, 0);
-    m_shoe->GetCollisionModel()->AddBox(body_material, b_dims.x(), b_dims.y(), b_dims.z(), b_loc);
+    auto b_shape = chrono_types::make_shared<ChCollisionShapeBox>(body_material, b_dims.x(), b_dims.y(), b_dims.z());
+    m_shoe->GetCollisionModel()->AddShape(b_shape, ChFrame<>(b_loc, QUNIT));
 
     // Pad box
     ChVector<> t_dims(GetTreadLength(), GetBeltWidth(), GetTreadThickness());
     ChVector<> t_loc(0, 0, (-GetWebThickness() - GetTreadThickness()) / 2);
-    m_shoe->GetCollisionModel()->AddBox(pad_material, t_dims.x(), t_dims.y(), t_dims.z(), t_loc);
+    auto t_shape = chrono_types::make_shared<ChCollisionShapeBox>(pad_material, t_dims.x(), t_dims.y(), t_dims.z());
+    m_shoe->GetCollisionModel()->AddShape(t_shape, ChFrame<>(t_loc, QUNIT));
 
-    m_shoe->GetCollisionModel()->BuildModel();
+    m_shoe->GetCollisionModel()->Build();
 }
 
 // -----------------------------------------------------------------------------

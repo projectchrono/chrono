@@ -40,6 +40,7 @@ namespace chrono {
 namespace vehicle {
 
 using namespace chrono::geometry;
+using namespace chrono::collision;
 using namespace Eigen;
 
 RandomSurfaceTerrain::RandomSurfaceTerrain(ChSystem* system, double length, double width, double height, float friction)
@@ -531,21 +532,23 @@ void RandomSurfaceTerrain::SetupCollision() {
     GenerateMesh();
 
     m_ground->SetCollide(true);
-    m_ground->GetCollisionModel()->ClearModel();
+    m_ground->GetCollisionModel()->Clear();
 
-    m_ground->GetCollisionModel()->AddTriangleMesh(m_material, m_mesh, true, false, VNULL, ChMatrix33<>(1),
-                                                   m_sweep_sphere_radius);
+    auto ct_shape =
+        chrono_types::make_shared<ChCollisionShapeTriangleMesh>(m_material, m_mesh, true, false, m_sweep_sphere_radius);
+    m_ground->GetCollisionModel()->AddShape(ct_shape);
 
     if (m_start_length > 0) {
         double thickness = 1;
         ChVector<> loc(-m_start_length / 2, 0, m_height - thickness / 2);
-        m_ground->GetCollisionModel()->AddBox(m_material, m_start_length, m_width, thickness, loc);
+        auto box_shape = chrono_types::make_shared<ChCollisionShapeBox>(m_material, m_start_length, m_width, thickness);
+        m_ground->GetCollisionModel()->AddShape(box_shape, ChFrame<>(loc, QUNIT));
 
         auto box = chrono_types::make_shared<ChVisualShapeBox>(m_start_length, m_width, thickness);
         m_ground->AddVisualShape(box, ChFrame<>(loc));
     }
 
-    m_ground->GetCollisionModel()->BuildModel();
+    m_ground->GetCollisionModel()->Build();
 }
 
 void RandomSurfaceTerrain::Initialize(RandomSurfaceTerrain::SurfaceType surfType,

@@ -23,6 +23,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/ReissnerTire.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
+using namespace chrono::collision;
 using namespace chrono::fea;
 using namespace rapidjson;
 
