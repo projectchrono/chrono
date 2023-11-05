@@ -48,6 +48,7 @@ ChCollisionModelBullet::ChCollisionModelBullet() {
 }
 
 ChCollisionModelBullet::~ChCollisionModelBullet() {
+    m_shapes.clear();
     m_bt_shapes.clear();
 }
 
@@ -62,6 +63,7 @@ void ChCollisionModelBullet::Dissociate() {
     bt_collision_object->setCollisionShape(nullptr);
     bt_compound_shape.reset();
 
+    m_shapes.clear();
     m_bt_shapes.clear();
 }
 

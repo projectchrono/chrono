@@ -55,7 +55,7 @@ class ChApi ChCollisionModel {
     typedef std::pair<std::shared_ptr<ChCollisionShape>, ChFrame<>> ShapeInstance;
 
     ChCollisionModel();
-    virtual ~ChCollisionModel() {}
+    virtual ~ChCollisionModel();
 
     /// Return the type of this collision model.
     virtual ChCollisionSystemType GetType() const = 0;
@@ -75,7 +75,7 @@ class ChApi ChCollisionModel {
     );
 
     /// Convenience function to add a cylinder specified through a radius and end points.
-    bool AddCylinder(std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
+    void AddCylinder(std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
                      double radius,                                ///< radius
                      const ChVector<>& p1,                         ///< first end point
                      const ChVector<>& p2                          ///< second end point

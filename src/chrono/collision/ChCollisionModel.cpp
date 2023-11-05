@@ -31,10 +31,13 @@ ChCollisionModel::ChCollisionModel() : mcontactable(nullptr), family_group(1), f
     model_safe_margin = (float)default_safe_margin;
 }
 
-void ChCollisionModel::Clear() {
-    // Delete all inserted collision shapes
+ChCollisionModel::~ChCollisionModel() {
     m_shape_instances.clear();
-    m_shapes.clear();
+}
+
+void ChCollisionModel::Clear() {
+    // Delete all inserted collision shape instances
+    m_shape_instances.clear();
 
     // Remove this model from the collsion system
     Dissociate();
@@ -130,7 +133,7 @@ void ChCollisionModel::AddShape(std::shared_ptr<ChCollisionShape> shape, const C
     m_shape_instances.push_back({shape, frame});
 }
 
-bool ChCollisionModel::AddCylinder(std::shared_ptr<ChMaterialSurface> material,
+void ChCollisionModel::AddCylinder(std::shared_ptr<ChMaterialSurface> material,
                                    double radius,
                                    const ChVector<>& p1,
                                    const ChVector<>& p2) {
@@ -140,7 +143,6 @@ bool ChCollisionModel::AddCylinder(std::shared_ptr<ChMaterialSurface> material,
 
     auto cylinder_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(material, radius, height);
     AddShape(cylinder_shape, frame);
-    return true;
 }
 
 void ChCollisionModel::SetShapeMaterial(int index, std::shared_ptr<ChMaterialSurface> mat) {

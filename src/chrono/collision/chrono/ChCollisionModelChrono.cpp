@@ -32,7 +32,10 @@ ChCollisionModelChrono::ChCollisionModelChrono() : aabb_min(C_REAL_MAX), aabb_ma
     model_safe_margin = 0;
 }
 
-ChCollisionModelChrono::~ChCollisionModelChrono() {}
+ChCollisionModelChrono::~ChCollisionModelChrono() {
+    m_shapes.clear();
+    m_ct_shapes.clear();
+}
 
 void ChCollisionModelChrono::Dissociate() {
     if (GetPhysicsItem()->GetSystem() && GetPhysicsItem()->GetCollide())
@@ -43,6 +46,9 @@ void ChCollisionModelChrono::Dissociate() {
     aabb_max = ChVector<>(-C_REAL_MAX);
     family_group = 1;
     family_mask = 0x7FFF;
+
+    m_shapes.clear();
+    m_ct_shapes.clear();
 }
 
 void ChCollisionModelChrono::Associate() {
