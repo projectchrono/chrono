@@ -19,6 +19,8 @@
 #include "chrono/fea/ChElementTetraCorot_4.h"
 #include "chrono/fea/ChMesh.h"
 
+using namespace chrono::collision;
+
 namespace chrono {
 namespace fea {
 
@@ -55,7 +57,7 @@ ChPhysicsItem* ChContactNodeXYZ::GetPhysicsItem() {
 
 ChContactNodeXYZsphere::ChContactNodeXYZsphere(ChNodeFEAxyz* anode, ChContactSurface* acontainer)
     : ChContactNodeXYZ(anode, acontainer) {
-    this->collision_model = new collision::ChCollisionModelBullet;
+    this->collision_model = new ChCollisionModelBullet;
     this->collision_model->SetContactable(this);
 }
 
@@ -92,7 +94,7 @@ ChPhysicsItem* ChContactNodeXYZROT::GetPhysicsItem() {
 
 ChContactNodeXYZROTsphere::ChContactNodeXYZROTsphere(ChNodeFEAxyzrot* anode, ChContactSurface* acontainer)
     : ChContactNodeXYZROT(anode, acontainer) {
-    this->collision_model = new collision::ChCollisionModelBullet;
+    this->collision_model = new ChCollisionModelBullet;
     this->collision_model->SetContactable(this);
 }
 
@@ -107,7 +109,7 @@ void ChContactSurfaceNodeCloud::AddNode(std::shared_ptr<ChNodeFEAxyz> mnode, con
         return;
 
     auto newp = chrono_types::make_shared<ChContactNodeXYZsphere>(mnode.get(), this);
-    auto point_shape = chrono_types::make_shared<collision::ChCollisionShapePoint>(m_material, VNULL, point_radius);
+    auto point_shape = chrono_types::make_shared<ChCollisionShapePoint>(m_material, VNULL, point_radius);
     newp->GetCollisionModel()->AddShape(point_shape);
     newp->GetCollisionModel()->Build();  // will also add to system, if collision is on.
 
@@ -119,7 +121,7 @@ void ChContactSurfaceNodeCloud::AddNode(std::shared_ptr<ChNodeFEAxyzrot> mnode, 
         return;
 
     auto newp = chrono_types::make_shared<ChContactNodeXYZROTsphere>(mnode.get(), this);
-    auto point_shape = chrono_types::make_shared<collision::ChCollisionShapePoint>(m_material, VNULL, point_radius);
+    auto point_shape = chrono_types::make_shared<ChCollisionShapePoint>(m_material, VNULL, point_radius);
     newp->GetCollisionModel()->AddShape(point_shape);
     newp->GetCollisionModel()->Build();  // will also add to system, if collision is on.
 

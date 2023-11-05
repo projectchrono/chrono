@@ -220,6 +220,11 @@ void ChCollisionModelBullet::Populate() {
                 injectTriangleMesh(shape_trimesh, frame);
                 break;
             }
+            case ChCollisionShape::Type::TRIANGLE: {
+                auto shape_triangle = std::static_pointer_cast<ChCollisionShapeTriangleProxy>(shape);
+                injectTriangleProxy(shape_triangle);
+                break;
+            }
             default:
                 // Shape type not supported
                 break;
@@ -517,25 +522,27 @@ void ChCollisionModelBullet::injectTriangleMesh(std::shared_ptr<ChCollisionShape
             // For a non-wing vertex (i.e. 'free' edge), point to opposite vertex, that is the vertex in triangle not
             // belonging to edge. Indicate is an edge is owned by this triangle. Otherwise, they belong to a neighboring
             // triangle.
-            auto shape_triangle = chrono_types::make_shared<ChCollisionShapeTriangle>(
-                shape_trimesh->GetMaterial(),                      //
-                mesh->m_vertices[mesh->m_face_v_indices[it].x()],  //
-                mesh->m_vertices[mesh->m_face_v_indices[it].y()],  //
-                mesh->m_vertices[mesh->m_face_v_indices[it].z()]);
-            injectTriangleProxy(shape_triangle,                                                                     //
-                                wingedgeA->second.second != -1 ? mesh->m_vertices[i_wingvertex_A]                   //
-                                                               : mesh->m_vertices[mesh->m_face_v_indices[it].z()],  //
-                                wingedgeB->second.second != -1 ? mesh->m_vertices[i_wingvertex_B]                   //
-                                                               : mesh->m_vertices[mesh->m_face_v_indices[it].x()],  //
-                                wingedgeC->second.second != -1 ? mesh->m_vertices[i_wingvertex_C]                   //
-                                                               : mesh->m_vertices[mesh->m_face_v_indices[it].y()],  //
-                                !added_vertexes[mesh->m_face_v_indices[it].x()],                                    //
-                                !added_vertexes[mesh->m_face_v_indices[it].y()],                                    //
-                                !added_vertexes[mesh->m_face_v_indices[it].z()],                                    //
-                                wingedgeA->second.first != -1,                                                      //
-                                wingedgeB->second.first != -1,                                                      //
-                                wingedgeC->second.first != -1,                                                      //
-                                radius);
+            auto shape_triangle =
+                chrono_types::make_shared<ChCollisionShapeTriangleProxy>(shape_trimesh->GetMaterial());
+
+            shape_triangle->V1 = &mesh->m_vertices[mesh->m_face_v_indices[it].x()];
+            shape_triangle->V2 = &mesh->m_vertices[mesh->m_face_v_indices[it].y()];
+            shape_triangle->V3 = &mesh->m_vertices[mesh->m_face_v_indices[it].z()];
+            shape_triangle->eP1 = wingedgeA->second.second != -1 ? &mesh->m_vertices[i_wingvertex_A]
+                                                                 : &mesh->m_vertices[mesh->m_face_v_indices[it].z()];
+            shape_triangle->eP2 = wingedgeB->second.second != -1 ? &mesh->m_vertices[i_wingvertex_B]
+                                                                 : &mesh->m_vertices[mesh->m_face_v_indices[it].x()];
+            shape_triangle->eP3 = wingedgeC->second.second != -1 ? &mesh->m_vertices[i_wingvertex_C]  //
+                                                                 : &mesh->m_vertices[mesh->m_face_v_indices[it].y()];
+            shape_triangle->ownsV1 = !added_vertexes[mesh->m_face_v_indices[it].x()];
+            shape_triangle->ownsV2 = !added_vertexes[mesh->m_face_v_indices[it].y()];
+            shape_triangle->ownsV3 = !added_vertexes[mesh->m_face_v_indices[it].z()];
+            shape_triangle->ownsE1 = wingedgeA->second.first != -1;
+            shape_triangle->ownsE2 = wingedgeB->second.first != -1;
+            shape_triangle->ownsE3 = wingedgeC->second.first != -1;
+            shape_triangle->sradius = radius;
+
+            injectTriangleProxy(shape_triangle);
 
             // Mark added vertexes
             added_vertexes[mesh->m_face_v_indices[it].x()] = true;
@@ -617,56 +624,50 @@ void ChCollisionModelBullet::injectTriangleMesh(std::shared_ptr<ChCollisionShape
     }
 }
 
-void ChCollisionModelBullet::injectTriangleProxy(std::shared_ptr<ChCollisionShapeTriangle> shape_triangle,
-                                                 ChVector<>& ep1,
-                                                 ChVector<>& ep2,
-                                                 ChVector<>& ep3,
-                                                 bool owns_vertex_1,
-                                                 bool owns_vertex_2,
-                                                 bool owns_vertex_3,
-                                                 bool owns_edge_1,
-                                                 bool owns_edge_2,
-                                                 bool owns_edge_3,
-                                                 double radius) {
-    SetSafeMargin(radius);
+void ChCollisionModelBullet::injectTriangleProxy(std::shared_ptr<ChCollisionShapeTriangleProxy> shape_triangle) {
+    SetSafeMargin(shape_triangle->sradius);
 
-    auto& P1 = shape_triangle->GetGeometry().p1;
-    auto& P2 = shape_triangle->GetGeometry().p2;
-    auto& P3 = shape_triangle->GetGeometry().p3;
-
-    auto bt_shape = chrono_types::make_shared<cbtCEtriangleShape>(&P1, &P2, &P3,                                //
-                                                                  &ep1, &ep2, &ep3,                             //
-                                                                  owns_vertex_1, owns_vertex_2, owns_vertex_3,  //
-                                                                  owns_edge_1, owns_edge_2, owns_edge_3,        //
-                                                                  radius);
+    auto bt_shape = chrono_types::make_shared<cbtCEtriangleShape>(
+        shape_triangle->V1, shape_triangle->V2, shape_triangle->V3,              //
+        shape_triangle->eP1, shape_triangle->eP2, shape_triangle->eP3,           //
+        shape_triangle->ownsV1, shape_triangle->ownsV2, shape_triangle->ownsV3,  //
+        shape_triangle->ownsE1, shape_triangle->ownsE2, shape_triangle->ownsE3,  //
+        shape_triangle->sradius);
     bt_shape->setMargin((cbtScalar)GetSuggestedFullMargin());
 
     injectShape(shape_triangle, bt_shape, ChFrame<>());
 }
 
-// Variant with no wing vertices
-void ChCollisionModelBullet::injectTriangleProxy(std::shared_ptr<ChCollisionShapeTriangle> shape_triangle,
-                                                 bool owns_vertex_1,
-                                                 bool owns_vertex_2,
-                                                 bool owns_vertex_3,
-                                                 bool owns_edge_1,
-                                                 bool owns_edge_2,
-                                                 bool owns_edge_3,
-                                                 double radius) {
-    SetSafeMargin(radius);
+void ChCollisionModelBullet::AddTriangleProxy(std::shared_ptr<ChMaterialSurface> material,
+                                              ChVector<>* V1,
+                                              ChVector<>* V2,
+                                              ChVector<>* V3,
+                                              ChVector<>* eP1,
+                                              ChVector<>* eP2,
+                                              ChVector<>* eP3,
+                                              bool ownsV1,
+                                              bool ownsV2,
+                                              bool ownsV3,
+                                              bool ownsE1,
+                                              bool ownsE2,
+                                              bool ownsE3,
+                                              double sphere_radius) {
+    auto shape = chrono_types::make_shared<ChCollisionShapeTriangleProxy>(material);
+    shape->V1 = V1;
+    shape->V2 = V2;
+    shape->V3 = V3;
+    shape->eP1 = eP1;
+    shape->eP2 = eP2;
+    shape->eP3 = eP3;
+    shape->ownsV1 = ownsV1;
+    shape->ownsV2 = ownsV2;
+    shape->ownsV3 = ownsV3;
+    shape->ownsE1 = ownsE1;
+    shape->ownsE2 = ownsE2;
+    shape->ownsE3 = ownsE3;
+    shape->sradius = sphere_radius;
 
-    auto& P1 = shape_triangle->GetGeometry().p1;
-    auto& P2 = shape_triangle->GetGeometry().p2;
-    auto& P3 = shape_triangle->GetGeometry().p3;
-
-    auto bt_shape = chrono_types::make_shared<cbtCEtriangleShape>(&P1, &P2, &P3,                                //
-                                                                  nullptr, nullptr, nullptr,                    //
-                                                                  owns_vertex_1, owns_vertex_2, owns_vertex_3,  //
-                                                                  owns_edge_1, owns_edge_2, owns_edge_3,        //
-                                                                  radius);
-    bt_shape->setMargin((cbtScalar)GetSuggestedFullMargin());
-
-    injectShape(shape_triangle, bt_shape, ChFrame<>());
+    AddShape(shape, ChFrame<>());
 }
 
 // -----------------------------------------------------------------------------

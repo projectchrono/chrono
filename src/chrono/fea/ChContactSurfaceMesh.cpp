@@ -36,20 +36,22 @@
 #include <array>
 #include <algorithm>
 
+using namespace chrono::collision;
+
 namespace chrono {
 namespace fea {
 
 // =============================================================================
 
 ChContactTriangleXYZ::ChContactTriangleXYZ() : m_owns_node({true, true, true}), m_owns_edge({true, true, true}) {
-    m_collision_model = new collision::ChCollisionModelBullet;
+    m_collision_model = new ChCollisionModelBullet;
     m_collision_model->SetContactable(this);
 }
 
 ChContactTriangleXYZ::ChContactTriangleXYZ(const std::array<std::shared_ptr<ChNodeFEAxyz>, 3>& nodes,
                                            ChContactSurface* container)
     : m_nodes(nodes), m_container(container), m_owns_node({true, true, true}), m_owns_edge({true, true, true}) {
-    m_collision_model = new collision::ChCollisionModelBullet;
+    m_collision_model = new ChCollisionModelBullet;
     m_collision_model->SetContactable(this);
 }
 
@@ -283,14 +285,14 @@ void ChContactTriangleXYZ::ComputeUVfromP(const ChVector<> P, double& u, double&
 // =============================================================================
 
 ChContactTriangleXYZROT::ChContactTriangleXYZROT() : m_owns_node({true, true, true}), m_owns_edge({true, true, true}) {
-    m_collision_model = new collision::ChCollisionModelBullet;
+    m_collision_model = new ChCollisionModelBullet;
     m_collision_model->SetContactable(this);
 }
 
 ChContactTriangleXYZROT::ChContactTriangleXYZROT(const std::array<std::shared_ptr<ChNodeFEAxyzrot>, 3>& nodes,
                                                  ChContactSurface* container)
     : m_nodes(nodes), m_container(container), m_owns_node({true, true, true}), m_owns_edge({true, true, true}) {
-    m_collision_model = new collision::ChCollisionModelBullet;
+    m_collision_model = new ChCollisionModelBullet;
     m_collision_model->SetContactable(this);
 }
 
@@ -575,18 +577,18 @@ void ChContactSurfaceMesh::AddFace(std::shared_ptr<ChNodeFEAxyz> node1,
     contact_triangle->SetEdgeOwnership({owns_edge1, owns_edge2, owns_edge3});
     contact_triangle->SetContactSurface(this);
 
-    auto collision_model = static_cast<collision::ChCollisionModelBullet*>(contact_triangle->GetCollisionModel());
-    auto collision_shape =
-        chrono_types::make_shared<collision::ChCollisionShapeTriangle>(m_material, node1->pos, node2->pos, node3->pos);
-    collision_model->injectTriangleProxy(collision_shape,                            //
-                                         edge_node1 ? edge_node1->pos : node1->pos,  // edge node 1
-                                         edge_node2 ? edge_node2->pos : node2->pos,  // edge node 2
-                                         edge_node3 ? edge_node3->pos : node3->pos,  // edge node 3
-                                         owns_node1, owns_node2, owns_node3,         // face owns nodes?
-                                         owns_edge1, owns_edge2, owns_edge3,         // face owns edges?
-                                         sphere_swept                                // thickness
+    auto collision_model = static_cast<ChCollisionModelBullet*>(contact_triangle->GetCollisionModel());
+    collision_model->Clear();
+    collision_model->AddTriangleProxy(m_material,                                   // contact material
+                                      &node1->pos, &node2->pos, &node3->pos,        // face nodes
+                                      edge_node1 ? &edge_node1->pos : &node1->pos,  // edge node 1
+                                      edge_node2 ? &edge_node2->pos : &node2->pos,  // edge node 2
+                                      edge_node3 ? &edge_node3->pos : &node3->pos,  // edge node 3
+                                      owns_node1, owns_node2, owns_node3,           // face owns nodes?
+                                      owns_edge1, owns_edge2, owns_edge3,           // face owns edges?
+                                      sphere_swept                                  // thickness
     );
-    contact_triangle->GetCollisionModel()->Build();
+    collision_model->Build();
 
     vfaces.push_back(contact_triangle);
 }
@@ -783,23 +785,22 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
             contact_triangle->SetContactSurface(this);
             vfaces_rot.push_back(contact_triangle);
 
-            double capsule_radius =
-                collision::ChCollisionModel::GetDefaultSuggestedMargin();  // fallback for no draw profile
+            double capsule_radius = ChCollisionModel::GetDefaultSuggestedMargin();  // fallback for no draw profile
             if (auto mdrawshape = mbeam->GetSection()->GetDrawShape()) {
                 double ymin, ymax, zmin, zmax;
                 mdrawshape->GetAABB(ymin, ymax, zmin, zmax);
                 capsule_radius = 0.5 * sqrt(pow(ymax - ymin, 2) + pow(zmax - zmin, 2));
             }
 
-            auto collision_model =
-                static_cast<collision::ChCollisionModelBullet*>(contact_triangle->GetCollisionModel());
-            auto collision_shape = chrono_types::make_shared<collision::ChCollisionShapeTriangle>(
-                m_material, nA->coord.pos, nB->coord.pos, nB->coord.pos);
-            collision_model->injectTriangleProxy(collision_shape,      //
-                                                 false, false, false,  // are vertexes owned by this triangle?
-                                                 true, false, true,    // are edges owned by this triangle?
-                                                 capsule_radius);
-            contact_triangle->GetCollisionModel()->Build();
+            auto collision_model = static_cast<ChCollisionModelBullet*>(contact_triangle->GetCollisionModel());
+            collision_model->Clear();
+            collision_model->AddTriangleProxy(m_material,                                      // contact material
+                                              &nA->coord.pos, &nB->coord.pos, &nB->coord.pos,  // vertices
+                                              0, 0, 0,                                         // no wing vertexes
+                                              false, false, false,  // are vertexes owned by this triangle?
+                                              true, false, true,    // are edges owned by this triangle?
+                                              capsule_radius);
+            collision_model->Build();
         }
     }
 
@@ -816,23 +817,22 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
             contact_triangle->SetContactSurface(this);
             vfaces.push_back(contact_triangle);
 
-            double capsule_radius =
-                collision::ChCollisionModel::GetDefaultSuggestedMargin();  // fallback for no draw profile
+            double capsule_radius = ChCollisionModel::GetDefaultSuggestedMargin();  // fallback for no draw profile
             if (auto mdrawshape = cableANCF->GetSection()->GetDrawShape()) {
                 double ymin, ymax, zmin, zmax;
                 mdrawshape->GetAABB(ymin, ymax, zmin, zmax);
                 capsule_radius = 0.5 * sqrt(pow(ymax - ymin, 2) + pow(zmax - zmin, 2));
             }
 
-            auto collision_model =
-                static_cast<collision::ChCollisionModelBullet*>(contact_triangle->GetCollisionModel());
-            auto collision_shape =
-                chrono_types::make_shared<collision::ChCollisionShapeTriangle>(m_material, nA->pos, nB->pos, nB->pos);
-            collision_model->injectTriangleProxy(collision_shape,      //
-                                                 false, false, false,  // are vertexes owned by this triangle?
-                                                 true, false, true,    // are edges owned by this triangle?
-                                                 capsule_radius);
-            contact_triangle->GetCollisionModel()->Build();
+            auto collision_model = static_cast<ChCollisionModelBullet*>(contact_triangle->GetCollisionModel());
+            collision_model->Clear();
+            collision_model->AddTriangleProxy(m_material,                    // contact materials
+                                              &nA->pos, &nB->pos, &nB->pos,  // vertices
+                                              0, 0, 0,                       // no wing vertexes
+                                              false, false, false,           // are vertexes owned by this triangle?
+                                              true, false, true,             // are edges owned by this triangle?
+                                              capsule_radius);
+            collision_model->Build();
         } else if (auto beam3243 = std::dynamic_pointer_cast<ChElementBeamANCF_3243>(mesh->GetElement(ie))) {
             std::shared_ptr<ChNodeFEAxyzD> nA = beam3243->GetNodeA();
             std::shared_ptr<ChNodeFEAxyzD> nB = beam3243->GetNodeB();
@@ -846,15 +846,15 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
 
             double capsule_radius = 0.5 * sqrt(pow(beam3243->GetThicknessY(), 2) + pow(beam3243->GetThicknessZ(), 2));
 
-            auto collision_model =
-                static_cast<collision::ChCollisionModelBullet*>(contact_triangle->GetCollisionModel());
-            auto collision_shape =
-                chrono_types::make_shared<collision::ChCollisionShapeTriangle>(m_material, nA->pos, nB->pos, nB->pos);
-            collision_model->injectTriangleProxy(collision_shape,      //
-                                                 false, false, false,  // are vertexes owned by this triangle?
-                                                 true, false, true,    // are edges owned by this triangle?
-                                                 capsule_radius);
-            contact_triangle->GetCollisionModel()->Build();
+            auto collision_model = static_cast<ChCollisionModelBullet*>(contact_triangle->GetCollisionModel());
+            collision_model->Clear();
+            collision_model->AddTriangleProxy(m_material,                    // contact materials
+                                              &nA->pos, &nB->pos, &nB->pos,  // vertices
+                                              0, 0, 0,                       // no wing vertexes
+                                              false, false, false,           // are vertexes owned by this triangle?
+                                              true, false, true,             // are edges owned by this triangle?
+                                              capsule_radius);
+            collision_model->Build();
         } else if (auto beam3333 = std::dynamic_pointer_cast<ChElementBeamANCF_3333>(mesh->GetElement(ie))) {
             std::shared_ptr<ChNodeFEAxyzD> nA = beam3333->GetNodeA();
             std::shared_ptr<ChNodeFEAxyzD> nB = beam3333->GetNodeB();
@@ -868,15 +868,15 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
 
             double capsule_radius = 0.5 * sqrt(pow(beam3333->GetThicknessY(), 2) + pow(beam3333->GetThicknessZ(), 2));
 
-            auto collision_model =
-                static_cast<collision::ChCollisionModelBullet*>(contact_triangle->GetCollisionModel());
-            auto collision_shape =
-                chrono_types::make_shared<collision::ChCollisionShapeTriangle>(m_material, nA->pos, nB->pos, nB->pos);
-            collision_model->injectTriangleProxy(collision_shape,      //
-                                                 false, false, false,  // are vertexes owned by this triangle?
-                                                 true, false, true,    // are edges owned by this triangle?
-                                                 capsule_radius);
-            contact_triangle->GetCollisionModel()->Build();
+            auto collision_model = static_cast<ChCollisionModelBullet*>(contact_triangle->GetCollisionModel());
+            collision_model->Clear();
+            collision_model->AddTriangleProxy(m_material,                    // contact materials
+                                              &nA->pos, &nB->pos, &nB->pos,  // vertices
+                                              0, 0, 0,                       // no wing vertexes
+                                              false, false, false,           // are vertexes owned by this triangle?
+                                              true, false, true,             // are edges owned by this triangle?
+                                              capsule_radius);
+            collision_model->Build();
         }
     }
 
@@ -1006,9 +1006,9 @@ void ChContactSurfaceMesh::AddFacesFromTripletsXYZ(const std::vector<NodeTriplet
         auto wingedgeB = winged_edges.find(medgeB);
         auto wingedgeC = winged_edges.find(medgeC);
 
-        ChNodeFEAxyz* i_wingvertex_A = 0;
-        ChNodeFEAxyz* i_wingvertex_B = 0;
-        ChNodeFEAxyz* i_wingvertex_C = 0;
+        ChNodeFEAxyz* i_wingvertex_A = nullptr;
+        ChNodeFEAxyz* i_wingvertex_B = nullptr;
+        ChNodeFEAxyz* i_wingvertex_C = nullptr;
 
         if (tri_map[it][1] != -1) {
             i_wingvertex_A = triangles[tri_map[it][1]][0];
@@ -1055,19 +1055,22 @@ void ChContactSurfaceMesh::AddFacesFromTripletsXYZ(const std::vector<NodeTriplet
         contact_triangle->SetContactSurface(this);
         vfaces.push_back(contact_triangle);
 
-        auto collision_model = static_cast<collision::ChCollisionModelBullet*>(contact_triangle->GetCollisionModel());
-        auto collision_shape = chrono_types::make_shared<collision::ChCollisionShapeTriangle>(
-            m_material, triangles[it][0]->pos, triangles[it][1]->pos, triangles[it][2]->pos);
-        // if no wing vertex (ie. 'free' edge), point to vertex opposite to the edge
-        collision_model->injectTriangleProxy(
-            collision_shape,                                                               //
-            wingedgeA->second.second != -1 ? i_wingvertex_A->pos : triangles[it][2]->pos,  //
-            wingedgeB->second.second != -1 ? i_wingvertex_B->pos : triangles[it][0]->pos,  //
-            wingedgeC->second.second != -1 ? i_wingvertex_C->pos : triangles[it][1]->pos,  //
-            owns_node1, owns_node2, owns_node3,                                            //
-            owns_edge1, owns_edge2, owns_edge3,                                            //
+        auto collision_model = static_cast<ChCollisionModelBullet*>(contact_triangle->GetCollisionModel());
+        collision_model->Clear();
+        collision_model->AddTriangleProxy(
+            m_material,  // contact material
+            &triangles[it][0]->pos, &triangles[it][1]->pos, &triangles[it][2]->pos,
+            // if no wing vertex (ie. 'free' edge), point to vertex opposite to the edge
+            wingedgeA->second.second != -1 ? &i_wingvertex_A->pos : &triangles[it][2]->pos,
+            wingedgeB->second.second != -1 ? &i_wingvertex_B->pos : &triangles[it][0]->pos,
+            wingedgeC->second.second != -1 ? &i_wingvertex_C->pos : &triangles[it][1]->pos,
+            // are vertices owned by this triangle?
+            owns_node1, owns_node2, owns_node3,
+            // are edges owned by this triangle? (if not, they belong to a neighboring triangle)
+            owns_edge1, owns_edge2, owns_edge3,
+            // triangle thickness
             sphere_swept);
-        contact_triangle->GetCollisionModel()->Build();
+        collision_model->Build();
 
         // Mark added vertexes
         added_vertexes.insert(triangles[it][0]);
@@ -1204,9 +1207,9 @@ void ChContactSurfaceMesh::AddFacesFromTripletsXYZrot(const std::vector<NodeTrip
         auto wingedgeB = winged_edges_rot.find(medgeB);
         auto wingedgeC = winged_edges_rot.find(medgeC);
 
-        ChNodeFEAxyzrot* i_wingvertex_A = 0;
-        ChNodeFEAxyzrot* i_wingvertex_B = 0;
-        ChNodeFEAxyzrot* i_wingvertex_C = 0;
+        ChNodeFEAxyzrot* i_wingvertex_A = nullptr;
+        ChNodeFEAxyzrot* i_wingvertex_B = nullptr;
+        ChNodeFEAxyzrot* i_wingvertex_C = nullptr;
 
         if (tri_map_rot[it][1] != -1) {
             i_wingvertex_A = triangles[tri_map_rot[it][1]][0];
@@ -1253,20 +1256,22 @@ void ChContactSurfaceMesh::AddFacesFromTripletsXYZrot(const std::vector<NodeTrip
         contact_triangle_rot->SetContactSurface(this);
         vfaces_rot.push_back(contact_triangle_rot);
 
-        auto collision_model =
-            static_cast<collision::ChCollisionModelBullet*>(contact_triangle_rot->GetCollisionModel());
-        auto collision_shape = chrono_types::make_shared<collision::ChCollisionShapeTriangle>(
-            m_material, triangles[it][0]->coord.pos, triangles[it][1]->coord.pos, triangles[it][2]->coord.pos);
-        // if no wing vertex (ie. 'free' edge), point to vertex opposite to the edge
-        collision_model->injectTriangleProxy(
-            collision_shape,                                                                           //
-            wingedgeA->second.second != -1 ? i_wingvertex_A->coord.pos : triangles[it][2]->coord.pos,  //
-            wingedgeB->second.second != -1 ? i_wingvertex_B->coord.pos : triangles[it][0]->coord.pos,  //
-            wingedgeC->second.second != -1 ? i_wingvertex_C->coord.pos : triangles[it][1]->coord.pos,  //
-            owns_node1, owns_node2, owns_node3,                                                        //
-            owns_edge1, owns_edge2, owns_edge3,                                                        //
+        auto collision_model = static_cast<ChCollisionModelBullet*>(contact_triangle_rot->GetCollisionModel());
+        collision_model->Clear();
+        collision_model->AddTriangleProxy(
+            m_material,  // contact material
+            &triangles[it][0]->coord.pos, &triangles[it][1]->coord.pos, &triangles[it][2]->coord.pos,
+            // if no wing vertex (ie. 'free' edge), point to vertex opposite to the edge
+            wingedgeA->second.second != -1 ? &i_wingvertex_A->coord.pos : &triangles[it][2]->coord.pos,
+            wingedgeB->second.second != -1 ? &i_wingvertex_B->coord.pos : &triangles[it][0]->coord.pos,
+            wingedgeC->second.second != -1 ? &i_wingvertex_C->coord.pos : &triangles[it][1]->coord.pos,
+            // are vertices owned by this triangle?
+            owns_node1, owns_node2, owns_node3,
+            // are edges owned by this triangle? (if not, they belong to a neighboring triangle)
+            owns_edge1, owns_edge2, owns_edge3,
+            // triangle thickness
             sphere_swept);
-        contact_triangle_rot->GetCollisionModel()->Build();
+        collision_model->Build();
 
         // Mark added vertexes
         added_vertexes_rot.insert(triangles[it][0]);

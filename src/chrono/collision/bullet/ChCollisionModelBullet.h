@@ -100,6 +100,45 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
+    // Private collision shape representing a triangle with neighbor connectivity.
+    // Created when processing a rigid collision mesh or an FEA contact surface mesh.
+    class ChCollisionShapeTriangleProxy : public ChCollisionShape {
+      public:
+        ChCollisionShapeTriangleProxy(std::shared_ptr<ChMaterialSurface> material)
+            : ChCollisionShape(Type::TRIANGLE, material) {}
+
+        ChVector<>* V1;
+        ChVector<>* V2;
+        ChVector<>* V3;
+        ChVector<>* eP1;
+        ChVector<>* eP2;
+        ChVector<>* eP3;
+        bool ownsV1;
+        bool ownsV2;
+        bool ownsV3;
+        bool ownsE1;
+        bool ownsE2;
+        bool ownsE3;
+        double sradius;
+    };
+
+    void AddTriangleProxy(std::shared_ptr<ChMaterialSurface> material,  // contact material
+                          ChVector<>* V1,                               // points to vertex1 coords
+                          ChVector<>* V2,                               // points to vertex2 coords
+                          ChVector<>* V3,                               // points to vertex3 coords
+                          ChVector<>* eP1,                              // points to neighbouring vertex at edge1 if any
+                          ChVector<>* eP2,                              // points to neighbouring vertex at edge1 if any
+                          ChVector<>* eP3,                              // points to neighbouring vertex at edge1 if any
+                          bool ownsV1,          // vertex is owned by this triangle (otherwise, owned by neighbour)
+                          bool ownsV2,          // vertex is owned by this triangle (otherwise, owned by neighbour)
+                          bool ownsV3,          // vertex is owned by this triangle (otherwise, owned by neighbour)
+                          bool ownsE1,          // edge is owned by this triangle (otherwise, owned by neighbour)
+                          bool ownsE2,          // edge is owned by this triangle (otherwise, owned by neighbour)
+                          bool ownsE3,          // edge is owned by this triangle (otherwise, owned by neighbour)
+                          double sphere_radius  // radius of swept sphere (a non-zero value improves robustness)
+    );
+
+  private:
     /// Remove this model from the collision system (if applicable).
     virtual void Dissociate() override;
 
@@ -109,30 +148,14 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
     /// Populate the collision system with the collision shapes defined in this model.
     virtual void Populate() override;
 
-    void injectShape(std::shared_ptr<ChCollisionShape> shape, std::shared_ptr<cbtCollisionShape> bt_shape, const ChFrame<>& frame);
+    void injectShape(std::shared_ptr<ChCollisionShape> shape,
+                     std::shared_ptr<cbtCollisionShape> bt_shape,
+                     const ChFrame<>& frame);
 
     void injectPath2D(std::shared_ptr<ChCollisionShapePath2D> shape_path, const ChFrame<>& frame);
     void injectConvexHull(std::shared_ptr<ChCollisionShapeConvexHull> shape_hull, const ChFrame<>& frame);
     void injectTriangleMesh(std::shared_ptr<ChCollisionShapeTriangleMesh> shape_trimesh, const ChFrame<>& frame);
-    void injectTriangleProxy(std::shared_ptr<ChCollisionShapeTriangle> shape_triangle,
-                             ChVector<>& ep1,
-                             ChVector<>& ep2,
-                             ChVector<>& ep3,
-                             bool owns_vertex_1,
-                             bool owns_vertex_2,
-                             bool owns_vertex_3,
-                             bool owns_edge_1,
-                             bool owns_edge_2,
-                             bool owns_edge_3,
-                             double radius);
-    void injectTriangleProxy(std::shared_ptr<ChCollisionShapeTriangle> shape_triangle,
-                             bool owns_vertex_1,
-                             bool owns_vertex_2,
-                             bool owns_vertex_3,
-                             bool owns_edge_1,
-                             bool owns_edge_2,
-                             bool owns_edge_3,
-                             double radius);
+    void injectTriangleProxy(std::shared_ptr<ChCollisionShapeTriangleProxy> shape_triangle);
 
     void onFamilyChange();
 
