@@ -263,7 +263,7 @@ void ChSystemDistributed::AddBodyExchange(std::shared_ptr<ChBody> newbody, distr
     // NOTE: Ensures that colsys::add isn't called until shapes are added
     newbody->SetCollide(false);
     // NOTE: Clears NEW model - Doesn't call colsys::remove because system isn't set yet
-    newbody->GetCollisionModel()->ClearModel();
+    newbody->GetCollisionModel()->Clear();
     newbody->SetSystem(this);
 
     // Actual data is set in UpdateBodies()
@@ -280,8 +280,8 @@ void ChSystemDistributed::AddBodyExchange(std::shared_ptr<ChBody> newbody, distr
 void ChSystemDistributed::RemoveBodyExchange(int index) {
     ddm->comm_status[index] = distributed::EMPTY;
     assembly.bodylist[index]->SetBodyFixed(true);
-    assembly.bodylist[index]->SetCollide(false);                  // NOTE: Calls collisionsystem::remove
-    assembly.bodylist[index]->GetCollisionModel()->ClearModel();  // NOTE: Ensures new model is clear
+    assembly.bodylist[index]->SetCollide(false);             // NOTE: Calls collisionsystem::remove
+    assembly.bodylist[index]->GetCollisionModel()->Clear();  // NOTE: Ensures new model is clear
     ddm->gid_to_localid.erase(ddm->global_id[index]);
 }
 

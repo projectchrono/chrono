@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2016 projectchrono.org
+// Copyright (c) 2023 projectchrono.org
 // All right reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Nic Olsen
+// Authors: Radu Serban
 // =============================================================================
 
 #include "chrono/physics/ChBody.h"
@@ -24,113 +24,98 @@ ChCollisionModelDistributed::ChCollisionModelDistributed() {
 
 ChCollisionModelDistributed::~ChCollisionModelDistributed() {}
 
-int ChCollisionModelDistributed::ClearModel() {
-    ChCollisionModelChrono::ClearModel();
+void ChCollisionModelDistributed::Dissociate() {
+    ChCollisionModelChrono::Dissociate();
     aabb_valid = false;
-    shape_aabb_max.clear();
-    shape_aabb_min.clear();
-    return 1;
 }
 
-bool ChCollisionModelDistributed::AddBox(std::shared_ptr<ChMaterialSurface> material,
-                                         double size_x,
-                                         double size_y,
-                                         double size_z,
-                                         const ChVector<>& pos,
-                                         const ChMatrix33<>& rot) {
-    // TODO pos is relative to body pos, add to body pos
-    // Generate 8 corners of the box
-    ChVector<> rx = rot * ChVector<>(size_x / 2, 0, 0);
-    ChVector<> ry = rot * ChVector<>(0, size_y / 2, 0);
-    ChVector<> rz = rot * ChVector<>(0, 0, size_z / 2);
+void ChCollisionModelDistributed::Associate() {
+    ChCollisionModelChrono::Associate();
+}
 
-    ChVector<> v[8];  // Vertices of collision box
-    v[0] = pos + rx + ry + rz;
-    v[1] = pos + rx + ry - rz;
-    v[2] = pos + rx - ry + rz;
-    v[3] = pos + rx - ry - rz;
-    v[4] = pos - rx + ry + rz;
-    v[5] = pos - rx + ry - rz;
-    v[6] = pos - rx - ry + rz;
-    v[7] = pos - rx - ry - rz;
+void ChCollisionModelDistributed::Populate() {
+    // Populate the base Chrono collision model
+    ChCollisionModelChrono::Populate();
 
-    // If this is the first shape being added to the model,
-    // set the first reference points
-    if (!aabb_valid) {
-        aabb_min.Set(v[0]);
-        aabb_max.Set(v[0]);
-        aabb_valid = true;
-    }
+    // Traverse all collision shapes and attach additional data.
+    // Curently, only support for spheres and boxes
+    for (size_t is = 0; is < m_shapes.size(); is++) {
+        const auto& shape = m_shapes[is];
+        auto& ct_shape = m_ct_shapes[is];
 
-    real3 box_aabb_min(v[0][0], v[0][1], v[0][2]);
-    real3 box_aabb_max(v[0][0], v[0][1], v[0][2]);
+        switch (shape->GetType()) {
+            case ChCollisionShape::Type::SPHERE: {
+                const auto& pos = ct_shape->A;
+                const auto& radius = ct_shape->B[0];
 
-    for (int i = 0; i < 8; i++) {
-        for (int j = 0; j < 3; j++) {
-            if (v[i][j] < aabb_min[j]) {
-                aabb_min[j] = v[i][j];
-            } else if (v[i][j] > aabb_max[j]) {
-                aabb_max[j] = v[i][j];
+                real3 shape_aabb_min(pos.x - radius, pos.y - radius, pos.z - radius);
+                real3 shape_aabb_max(pos.x + radius, pos.y + radius, pos.z + radius);
+
+                // If this is the first shape being added to the model, set the first reference points
+                if (!aabb_valid) {
+                    aabb_min = shape_aabb_min;
+                    aabb_max = shape_aabb_max;
+                    aabb_valid = true;
+                } else {
+                    aabb_min = Min(aabb_min, shape_aabb_min);
+                    aabb_max = Max(aabb_max, shape_aabb_max);
+                }
+
+                ct_shape->aabb_min = shape_aabb_min;
+                ct_shape->aabb_max = shape_aabb_max;
+
+                break;
             }
+            case ChCollisionShape::Type::BOX: {
+                const auto& pos = ct_shape->A;
+                const auto& hlen = ct_shape->B;
+                const auto& rot = ct_shape->R;
 
-            if (v[i][j] < box_aabb_min[j]) {
-                box_aabb_min[j] = v[i][j];
-            } else if (v[i][j] > box_aabb_max[j]) {
-                box_aabb_max[j] = v[i][j];
+                // Generate 8 corners of the box
+                auto rx = rot * real3(hlen.x, 0, 0);
+                auto ry = rot * real3(0, hlen.y, 0);
+                auto rz = rot * real3(0, 0, hlen.z);
+
+                // Vertices of collision box
+                real3 v[8];
+                v[0] = pos + rx + ry + rz;
+                v[1] = pos + rx + ry - rz;
+                v[2] = pos + rx - ry + rz;
+                v[3] = pos + rx - ry - rz;
+                v[4] = pos - rx + ry + rz;
+                v[5] = pos - rx + ry - rz;
+                v[6] = pos - rx - ry + rz;
+                v[7] = pos - rx - ry - rz;
+
+                // If this is the first shape being added to the model, set the first reference points
+                if (!aabb_valid) {
+                    aabb_min = v[0];
+                    aabb_max = v[0];
+                    aabb_valid = true;
+                }
+
+                real3 shape_aabb_min = v[0];
+                real3 shape_aabb_max = v[0];
+                for (int i = 0; i < 8; i++) {
+                    aabb_min = Min(aabb_min, v[i]);
+                    aabb_max = Max(aabb_max, v[i]);
+                    shape_aabb_min = Min(shape_aabb_min, v[i]);
+                    shape_aabb_max = Max(shape_aabb_max, v[i]);
+                }
+
+                ct_shape->aabb_min = shape_aabb_min;
+                ct_shape->aabb_max = shape_aabb_max;
+
+                break;
             }
+            default:
+                std::cout << "*** Collision shape type NOT SUPPORTED in Chrono::Distributed! ***" << std::endl;
+                break;
         }
     }
-
-    shape_aabb_min.push_back(box_aabb_min);
-    shape_aabb_max.push_back(box_aabb_max);
-
-    return this->ChCollisionModelChrono::AddBox(material, size_x, size_y, size_z, pos, rot);
 }
-
-bool ChCollisionModelDistributed::AddSphere(std::shared_ptr<ChMaterialSurface> material,
-                                            double radius,
-                                            const ChVector<>& pos) {
-    ChVector<double> body_pos(this->GetBody()->GetPos());
-
-    ChVector<double> max = pos + ChVector<double>(radius, radius, radius);
-    ChVector<double> min = pos - ChVector<double>(radius, radius, radius);
-
-    // If this is the first shape being added to the model,
-    // set the first reference points
-    if (!aabb_valid) {
-        aabb_min.Set(min);
-        aabb_max.Set(max);
-        aabb_valid = true;
-    } else {
-        for (int i = 0; i < 3; i++) {
-            if (min[i] < aabb_min[i]) {
-                aabb_min[i] = min[i];
-            }
-            if (max[i] > aabb_max[i]) {
-                aabb_max[i] = max[i];
-            }
-        }
-    }
-
-    shape_aabb_max.push_back(real3(max.x(), max.y(), max.z()));
-    shape_aabb_min.push_back(real3(min.x(), min.y(), min.z()));
-
-    return this->ChCollisionModelChrono::AddSphere(material, radius, pos);
-}
-
-bool ChCollisionModelDistributed::AddTriangle(std::shared_ptr<ChMaterialSurface> material,
-                                              ChVector<> A,
-                                              ChVector<> B,
-                                              ChVector<> C,
-                                              const ChVector<>& pos,
-                                              const ChMatrix33<>& rot) {
-    // TODO doesn't allow for global triangle bodies
-    return this->ChCollisionModelChrono::AddTriangle(material, A, B, C, pos, rot);
-}
-
-// TODO: Add other adds for shapes that can be global
 
 void ChCollisionModelDistributed::GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const {
-    bbmin.Set(aabb_min);
-    bbmax.Set(aabb_max);
+    bbmin = ChVector<>((double)aabb_min.x, (double)aabb_min.y, (double)aabb_min.z);
+    bbmax = ChVector<>((double)aabb_max.x, (double)aabb_max.y, (double)aabb_max.z);
 }

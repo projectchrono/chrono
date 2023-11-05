@@ -235,25 +235,18 @@ void ChCommDistributed::ProcessShapes(int num_recv, Shape* buf) {
             }
 
             switch ((buf + n)->type) {
-                case ChCollisionShape::Type::SPHERE:
-                    body->GetCollisionModel()->AddSphere(material, data[0], A);
+                case ChCollisionShape::Type::SPHERE: {
+                    auto ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(material, data[0]);
+                    body->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(A, QUNIT));
                     break;
-                case ChCollisionShape::Type::BOX:
-                    body->GetCollisionModel()->AddBox(material, 2 * data[0], 2 * data[1], 2 * data[2], A,
-                                                      ChMatrix33<>(ChQuaternion<>(rot[0], rot[1], rot[2], rot[3])));
+                }
+                case ChCollisionShape::Type::BOX: {
+                    auto ct_shape =
+                        chrono_types::make_shared<ChCollisionShapeBox>(material, 2 * data[0], 2 * data[1], 2 * data[2]);
+                    body->GetCollisionModel()->AddShape(ct_shape,
+                                                        ChFrame<>(A, ChQuaternion<>(rot[0], rot[1], rot[2], rot[3])));
                     break;
-                case ChCollisionShape::Type::TRIANGLEMESH:
-                    //// RADU:  why this cast here?
-                    std::static_pointer_cast<ChCollisionModelDistributed>(body->GetCollisionModel())
-                        ->AddTriangle(material, A, ChVector<>(data[0], data[1], data[2]),
-                                      ChVector<>(data[3], data[4], data[5]), ChVector<>(0, 0, 0),
-                                      ChQuaternion<>(rot[0], rot[1], rot[2], rot[3]));
-                    break;
-                case ChCollisionShape::Type::ELLIPSOID:
-                    body->GetCollisionModel()->AddEllipsoid(
-                        material, 2 * data[0], 2 * data[1], 2 * data[2], A,
-                        ChMatrix33<>(ChQuaternion<>(rot[0], rot[1], rot[2], rot[3])));
-                    break;
+                }
                 default:
                     GetLog() << "Error: gid " << gid << " rank " << my_sys->my_rank << " type " << (buf + n)->type
                              << "\n";
@@ -881,24 +874,6 @@ int ChCommDistributed::PackShapes(std::vector<Shape>* buf, int index) {
                 shape.data[1] = shape_data.box_like_rigid[start].y;
                 shape.data[2] = shape_data.box_like_rigid[start].z;
                 break;
-            case ChCollisionShape::Type::TRIANGLEMESH:
-                // Pack B
-                shape.data[0] = shape_data.triangle_rigid[start + 1].x;
-                shape.data[1] = shape_data.triangle_rigid[start + 1].y;
-                shape.data[2] = shape_data.triangle_rigid[start + 1].z;
-
-                // Pack C
-                shape.data[3] = shape_data.triangle_rigid[start + 2].x;
-                shape.data[4] = shape_data.triangle_rigid[start + 2].y;
-                shape.data[5] = shape_data.triangle_rigid[start + 2].z;
-                break;
-            case ChCollisionShape::Type::ELLIPSOID:
-                // Pack B
-                shape.data[0] = shape_data.box_like_rigid[start].x;
-                shape.data[1] = shape_data.box_like_rigid[start].y;
-                shape.data[2] = shape_data.box_like_rigid[start].z;
-                break;
-
             default:
                 my_sys->ErrorAbort("Invalid shape for transfer\n");
         }

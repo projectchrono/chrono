@@ -67,14 +67,18 @@ class ChApi ChCollisionModelChrono : public ChCollisionModel {
     ChVector<> aabb_min;
     ChVector<> aabb_max;
 
-  private:
+  protected:
     struct ctCollisionShape {
         ctCollisionShape() : convex(nullptr) {}
+
         real3 A;        // location
         real3 B;        // dimensions
         real3 C;        // extra
         quaternion R;   // rotation
         real3* convex;  // pointer to convex data;
+
+        real3 aabb_min;  // lower corner of shape AABB
+        real3 aabb_max;  // upper corner of shape AABB
     };
 
     /// Remove this model from the collision system (if applicable).

@@ -20,19 +20,20 @@
 #include "chrono/assets/ChVisualShapeBox.h"
 
 #include "chrono_distributed/ChApiDistributed.h"
-#include "chrono/collision/chrono/ChCollisionModelChrono.h"
+#include "chrono_distributed/collision/ChCollisionModelDistributed.h"
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 
 namespace chrono {
+namespace collision {
 
 /// @addtogroup distributed_collision
 /// @{
 
 /// Utility class for specifying a collision boundary composed of multiple semi-planes.
-class CH_DISTR_API ChBoundary : public ChSystem::CustomCollisionCallback {
+class CH_DISTR_API ChCollisionBoundaryDistributed : public ChSystem::CustomCollisionCallback {
   public:
-    ChBoundary(std::shared_ptr<ChBody> body, std::shared_ptr<ChMaterialSurfaceSMC> material);
-    ~ChBoundary() {}
+    ChCollisionBoundaryDistributed(std::shared_ptr<ChBody> body, std::shared_ptr<ChMaterialSurfaceSMC> material);
+    ~ChCollisionBoundaryDistributed() {}
 
     /// Add a collision plane with finite extent and return the plane ID.
     /// The plane normal is in the Z-direction of the given frame.
@@ -40,7 +41,7 @@ class CH_DISTR_API ChBoundary : public ChSystem::CustomCollisionCallback {
                   const ChVector2<>& lengths  ///< X-Y extent
     );
 
-    /// Update all collision planes.  
+    /// Update all collision planes.
     /// This function should be called if the position of the associated body is modified.
     void Update();
 
@@ -72,10 +73,10 @@ class CH_DISTR_API ChBoundary : public ChSystem::CustomCollisionCallback {
   private:
     struct Plane {
         Plane(const ChFrame<>& frame_loc, const ChFrame<>& frame, const ChVector2<>& lengths);
-        ChFrame<> m_frame_loc;                  ///< plane coordinate frame, relative to associated body
-        ChFrame<> m_frame;                      ///< plane coordinate frame, expressed in global (Z axis defines normal)
-        ChVector2<> m_hlen;                     ///< half-extents in X and Y directions
-        ChVector<> m_normal;                    ///< cached plane normal, expressed in global
+        ChFrame<> m_frame_loc;  ///< plane coordinate frame, relative to associated body
+        ChFrame<> m_frame;      ///< plane coordinate frame, expressed in global (Z axis defines normal)
+        ChVector2<> m_hlen;     ///< half-extents in X and Y directions
+        ChVector<> m_normal;    ///< cached plane normal, expressed in global
         std::shared_ptr<ChVisualShapeBox> m_vis_box;  ///< visualization box
     };
 
@@ -107,6 +108,8 @@ class CH_DISTR_API ChBoundary : public ChSystem::CustomCollisionCallback {
 
     int m_crt_count;
 };
+
 /// @} distributed_collision
 
+}  // end namespace collision
 }  // end namespace chrono

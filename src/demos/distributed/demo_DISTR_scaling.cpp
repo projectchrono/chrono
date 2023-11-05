@@ -23,7 +23,7 @@
 #include <memory>
 #include <vector>
 
-#include "chrono_distributed/collision/ChBoundary.h"
+#include "chrono_distributed/collision/ChCollisionBoundaryDistributed.h"
 #include "chrono_distributed/collision/ChCollisionModelDistributed.h"
 #include "chrono_distributed/physics/ChSystemDistributed.h"
 
@@ -112,7 +112,7 @@ void AddContainer(ChSystemDistributed* sys, double hx, double hy, double height)
     bin->SetBodyFixed(true);
     sys->AddBodyAllRanks(bin);
 
-    auto cb = new ChBoundary(bin, mat);
+    auto cb = new ChCollisionBoundaryDistributed(bin, mat);
     // Floor
     cb->AddPlane(ChFrame<>(ChVector<>(0, 0, 0), QUNIT), ChVector2<>(2.0 * hx, 2.0 * hy));
     // low x
@@ -141,9 +141,9 @@ inline std::shared_ptr<ChBody> CreateBall(const ChVector<>& pos,
     ball->SetBodyFixed(false);
     ball->SetCollide(true);
 
-    ball->GetCollisionModel()->ClearModel();
+    ball->GetCollisionModel()->Clear();
     utils::AddSphereGeometry(ball.get(), ballMat, radius);
-    ball->GetCollisionModel()->BuildModel();
+    ball->GetCollisionModel()->Build();
     return ball;
 }
 

@@ -58,7 +58,6 @@ void ChCollisionModelChrono::Associate() {
 }
 
 void ChCollisionModelChrono::Populate() {
-    //// TODO
     for (const auto& shape_instance : m_shape_instances) {
         const auto& shape = shape_instance.first;
 
