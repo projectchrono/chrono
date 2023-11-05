@@ -35,6 +35,7 @@
 
 // Use the namespace of Chrono
 using namespace chrono;
+using namespace chrono::collision;
 using namespace chrono::geometry;
 
 int main(int argc, char* argv[]) {
@@ -56,9 +57,9 @@ int main(int argc, char* argv[]) {
     auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
     // Define a collision shape
-    floor->GetCollisionModel()->ClearModel();
-    floor->GetCollisionModel()->AddBox(floor_mat, 20, 1, 20, ChVector<>(0, -1, 0));
-    floor->GetCollisionModel()->BuildModel();
+    auto floor_shape = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 20, 1, 20);
+    floor->GetCollisionModel()->AddShape(floor_shape, ChFrame<>(ChVector<>(0, -1, 0), QUNIT));
+    floor->GetCollisionModel()->Build();
     floor->SetCollide(true);
 
     sys.Add(floor);
@@ -139,15 +140,19 @@ int main(int argc, char* argv[]) {
     auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.3, 0.7);
     cyl->AddMaterial(orange_mat);
     body->AddVisualShape(cyl, ChFrame<>(ChVector<>(2, 0.15, 0), Q_from_AngX(CH_C_PI_2)));
-    body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03), ChFrame<>(ChVector<>(2, -0.2, 0), QUNIT));
-    body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03), ChFrame<>(ChVector<>(2, +0.5, 0), QUNIT));
+    body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
+                         ChFrame<>(ChVector<>(2, -0.2, 0), QUNIT));
+    body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
+                         ChFrame<>(ChVector<>(2, +0.5, 0), QUNIT));
 
     // Attach a capsule shape
     auto capsule = chrono_types::make_shared<ChVisualShapeCapsule>(0.4, 1);
     capsule->AddMaterial(orange_mat);
     body->AddVisualShape(capsule, ChFrame<>(ChVector<>(-2, 0, 1), QUNIT));
-    body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03), ChFrame<>(ChVector<>(-2, 0, 0.1), QUNIT));
-    body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03), ChFrame<>(ChVector<>(-2, 0, 1.9), QUNIT));
+    body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
+                         ChFrame<>(ChVector<>(-2, 0, 0.1), QUNIT));
+    body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
+                         ChFrame<>(ChVector<>(-2, 0, 1.9), QUNIT));
 
     // Attach a cone shape
     auto coneShape = chrono_types::make_shared<ChVisualShapeCone>(0.3, 1.0);
@@ -197,10 +202,9 @@ int main(int argc, char* argv[]) {
     // Note: the collision shape, if needed, must be specified before creating particles.
     // This will be shared among all particles in the ChParticleCloud.
     auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-
-    particles->GetCollisionModel()->ClearModel();
-    particles->GetCollisionModel()->AddSphere(particle_mat, particle_radius);
-    particles->GetCollisionModel()->BuildModel();
+    auto particle_shape = chrono_types::make_shared<ChCollisionShapeSphere>(particle_mat, particle_radius);
+    particles->GetCollisionModel()->AddShape(particle_shape);
+    particles->GetCollisionModel()->Build();
     particles->SetCollide(true);
 
     // Create the random particles

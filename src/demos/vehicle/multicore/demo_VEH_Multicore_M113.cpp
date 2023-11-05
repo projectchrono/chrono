@@ -279,7 +279,7 @@ int main(int argc, char* argv[]) {
     ground->SetBodyFixed(true);
     ground->SetCollide(true);
 
-    ground->GetCollisionModel()->ClearModel();
+    ground->GetCollisionModel()->Clear();
 
     // Bottom box
     utils::AddBoxGeometry(ground.get(),                                           //
@@ -314,7 +314,7 @@ int main(int argc, char* argv[]) {
                               visible_walls);
     }
 
-    ground->GetCollisionModel()->BuildModel();
+    ground->GetCollisionModel()->Build();
 
     sys->AddBody(ground);
 

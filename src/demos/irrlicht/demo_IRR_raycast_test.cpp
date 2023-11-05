@@ -24,6 +24,7 @@
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 using namespace chrono;
+using namespace chrono::collision;
 using namespace chrono::irrlicht;
 
 using std::cout;
@@ -32,7 +33,7 @@ using std::endl;
 // =============================================================================
 
 // Collision detection system
-collision::ChCollisionSystemType collision_type = collision::ChCollisionSystemType::CHRONO;
+ChCollisionSystemType collision_type = ChCollisionSystemType::CHRONO;
 
 // =============================================================================
 
@@ -80,7 +81,7 @@ void RayCaster::Update() {
             double y_local = -0.5 * m_dims.y() + iy * m_spacing;
             ChVector<> from = m_origin.TransformPointLocalToParent(ChVector<>(x_local, y_local, 0.0));
             ChVector<> to = from + dir * 100;
-            collision::ChCollisionSystem::ChRayhitResult result;
+            ChCollisionSystem::ChRayhitResult result;
             m_sys->GetCollisionSystem()->RayHit(from, to, result);
             if (result.hit)
                 m_points.push_back(result.abs_hitPoint);
@@ -207,7 +208,7 @@ void CreateMeshes(ChSystemSMC& sys) {
 
     auto m1 = chrono_types::make_shared<ChBody>(collision_type);
     m1->AddVisualShape(vismesh);
-    auto m1_shape = chrono_types::make_shared<collision::ChCollisionShapeTriangleMesh>(mat, trimesh, false, false, 0.01);
+    auto m1_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, trimesh, false, false, 0.01);
     m1->GetCollisionModel()->AddShape(m1_shape);
     m1->GetCollisionModel()->Build();
     m1->SetCollide(true);
@@ -233,14 +234,14 @@ void CreateTestSet(ChSystemSMC& sys) {
     */
 
     std::vector<ChVector<>> loc = {
-        ChVector<>(19, 1, 0),   //
+        ChVector<>(19, 1, 0),  //
         ChVector<>(8, 3, 0),   //
         ChVector<>(7, 7, 0),   //
         ChVector<>(13, 5, 0),  //
         ChVector<>(2, 7, 0),   //
         ChVector<>(3, 8, 0),   //
         ChVector<>(13, 8, 0),  //
-        ChVector<>(1, 14, 0)  //
+        ChVector<>(1, 14, 0)   //
     };
 
     for (int i = 0; i < 8; i++) {
@@ -265,8 +266,8 @@ int main(int argc, char* argv[]) {
     ChSystemSMC sys;
     sys.Set_G_acc(ChVector<>(0, 0, 0));
     sys.SetCollisionSystemType(collision_type);
-    if (collision_type == collision::ChCollisionSystemType::CHRONO) {
-        auto cd_chrono = std::static_pointer_cast<collision::ChCollisionSystemChrono>(sys.GetCollisionSystem());
+    if (collision_type == ChCollisionSystemType::CHRONO) {
+        auto cd_chrono = std::static_pointer_cast<ChCollisionSystemChrono>(sys.GetCollisionSystem());
         cd_chrono->SetBroadphaseGridResolution(ChVector<int>(3, 3, 3));
         ////cd_chrono->SetBroadphaseGridResolution(ChVector<int>(4, 3, 1));
     }

@@ -75,12 +75,11 @@ void AddContainer(ChSystemMulticoreSMC* sys) {
     bin->SetCollide(true);
     bin->SetBodyFixed(true);
 
-    bin->GetCollisionModel()->ClearModel();
     utils::AddBoxContainer(bin, mat,                                 //
                            ChFrame<>(ChVector<>(0, 0, 0.5), QUNIT),  //
                            ChVector<>(4, 4, 1), 0.2,                 //
                            ChVector<int>(2, 2, -1));
-    bin->GetCollisionModel()->BuildModel();
+    bin->GetCollisionModel()->Build();
 
     sys->AddBody(bin);
 }
@@ -115,9 +114,8 @@ void AddFallingBalls(ChSystemMulticore* sys) {
             ball->SetBodyFixed(false);
             ball->SetCollide(true);
 
-            ball->GetCollisionModel()->ClearModel();
             utils::AddSphereGeometry(ball.get(), ballMat, radius);
-            ball->GetCollisionModel()->BuildModel();
+            ball->GetCollisionModel()->Build();
 
             sys->AddBody(ball);
         }

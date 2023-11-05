@@ -152,10 +152,11 @@ int main(int argc, char* argv[]) {
 
     auto body_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-    body->GetCollisionModel()->ClearModel();
-    body->GetCollisionModel()->AddTriangleMesh(body_mat, trimesh, false, false, VNULL, ChMatrix33<>(1), 0.01);
+    body->GetCollisionModel()->Clear();
+    auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(body_mat, trimesh, false, false, 0.01);
+    body->GetCollisionModel()->AddShape(ct_shape);
     ////utils::AddSphereGeometry(body.get(), body_mat, tire_rad, ChVector<>(0, 0, 0));
-    body->GetCollisionModel()->BuildModel();
+    body->GetCollisionModel()->Build();
 
     body->SetCollide(true);
 

@@ -31,7 +31,8 @@
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
-using namespace postprocess;
+using namespace chrono::collision;
+using namespace chrono::postprocess;
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
@@ -95,7 +96,7 @@ int main(int argc, char* argv[]) {
     // Define a collision shape
     auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-    auto floor_shape = chrono_types::make_shared<collision::ChCollisionShapeBox>(floor_mat, 20, 1, 20);
+    auto floor_shape = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 20, 1, 20);
     floor->GetCollisionModel()->AddShape(floor_shape, ChFrame<>(ChVector<>(0, -1, 0), QUNIT));
     floor->GetCollisionModel()->Build();
     floor->SetCollide(true);
@@ -132,8 +133,10 @@ int main(int argc, char* argv[]) {
     // ==Asset== Attach also a 'cylinder' shape
     auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.3, 0.7);
     body->AddVisualShape(cyl, ChFrame<>(ChVector<>(2, 0.15, 0), Q_from_AngX(CH_C_PI_2)));
-    body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03), ChFrame<>(ChVector<>(2, -0.2, 0), QUNIT));
-    body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03), ChFrame<>(ChVector<>(2, +0.5, 0), QUNIT));
+    body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
+                         ChFrame<>(ChVector<>(2, -0.2, 0), QUNIT));
+    body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
+                         ChFrame<>(ChVector<>(2, +0.5, 0), QUNIT));
 
     // ==Asset== Attach a 'Wavefront mesh' asset, referencing a .obj file:
     auto objmesh = chrono_types::make_shared<ChVisualShapeModelFile>();
@@ -174,7 +177,7 @@ int main(int argc, char* argv[]) {
 
     // Note: coll. shape, if needed, must be specified before creating particles
     auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-    auto particle_shape = chrono_types::make_shared<collision::ChCollisionShapeSphere>(particle_mat, 0.05);
+    auto particle_shape = chrono_types::make_shared<ChCollisionShapeSphere>(particle_mat, 0.05);
     particles->GetCollisionModel()->AddShape(particle_shape);
     particles->GetCollisionModel()->Build();
     particles->SetCollide(true);

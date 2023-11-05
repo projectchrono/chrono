@@ -148,9 +148,9 @@ int main(int argc, char* argv[]) {
 
     auto body_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-    body->GetCollisionModel()->ClearModel();
+    body->GetCollisionModel()->Clear();
     utils::AddSphereGeometry(body.get(), body_mat, body_rad, ChVector<>(0, 0, 0));
-    body->GetCollisionModel()->BuildModel();
+    body->GetCollisionModel()->Build();
 
     auto joint = chrono_types::make_shared<ChLinkLockPrismatic>();
     joint->Initialize(terrain.GetGroundBody(), body, ChCoordsys<>(pos, Q_from_AngY(CH_C_PI_2)));

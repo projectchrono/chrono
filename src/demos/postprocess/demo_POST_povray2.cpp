@@ -26,15 +26,16 @@
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
-using namespace postprocess;
+using namespace chrono::collision;
+using namespace chrono::postprocess;
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create a Chrono::Engine physical system
     ChSystemNSC sys;
-    collision::ChCollisionModel::SetDefaultSuggestedEnvelope(1e-3);
-    collision::ChCollisionModel::SetDefaultSuggestedMargin(1e-3);
+    ChCollisionModel::SetDefaultSuggestedEnvelope(1e-3);
+    ChCollisionModel::SetDefaultSuggestedMargin(1e-3);
 
     // Create the ChParticleClones, populate it with some random particles, and add it to physical system
     auto particles = chrono_types::make_shared<ChParticleCloud>();
@@ -43,7 +44,7 @@ int main(int argc, char* argv[]) {
 
     auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-    auto particle_ct_shape = chrono_types::make_shared<collision::ChCollisionShapeSphere>(particle_mat, 0.005);
+    auto particle_ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(particle_mat, 0.005);
     particles->GetCollisionModel()->AddShape(particle_ct_shape);
     particles->GetCollisionModel()->Build();
     particles->SetCollide(true);
@@ -63,7 +64,7 @@ int main(int argc, char* argv[]) {
     floor->SetBodyFixed(true);
 
     auto floor_ct_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-    auto floor_ct_shape = chrono_types::make_shared<collision::ChCollisionShapeBox>(floor_ct_mat, 0.2, 0.04, 0.2);
+    auto floor_ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(floor_ct_mat, 0.2, 0.04, 0.2);
     floor->GetCollisionModel()->AddShape(floor_ct_shape);
     floor->GetCollisionModel()->Build();
     floor->SetCollide(true);
@@ -82,8 +83,7 @@ int main(int argc, char* argv[]) {
             body->SetMass(0.02);
             body->SetInertiaXX(ChVector<>((2.0 / 5.0) * (0.01 * 0.01) * 0.02));
 
-            auto body_ct_shape =
-                chrono_types::make_shared<collision::ChCollisionShapeBox>(floor_ct_mat, 0.02, 0.02, 0.02);
+            auto body_ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(floor_ct_mat, 0.02, 0.02, 0.02);
             floor->GetCollisionModel()->AddShape(body_ct_shape);
             floor->GetCollisionModel()->Build();
             body->SetCollide(true);

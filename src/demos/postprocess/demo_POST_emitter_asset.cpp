@@ -29,6 +29,7 @@
 
 // Use the main namespaces of Chrono, and other chrono namespaces
 using namespace chrono;
+using namespace chrono::collision;
 using namespace chrono::particlefactory;
 using namespace chrono::irrlicht;
 using namespace chrono::postprocess;
@@ -93,12 +94,13 @@ int main(int argc, char* argv[]) {
     floor_body->SetBodyFixed(true);
     floor_body->GetVisualShape(0)->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom()));
 
-    auto floor_shape = chrono_types::make_shared<collision::ChCollisionShapeBox>(floor_mat, 20, 1, 20);
+    auto floor_shape = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 20, 1, 20);
     floor_body->GetCollisionModel()->AddShape(floor_shape);
     floor_body->GetCollisionModel()->Build();
 
     // Custom rendering in POVray:
-    pov_exporter.SetCustomCommands(floor_body, "texture{ pigment{ color rgb<1,1,1>}} \n\
+    pov_exporter.SetCustomCommands(floor_body,
+                                   "texture{ pigment{ color rgb<1,1,1>}} \n\
                              texture{ Raster(4, 0.02, rgb<0.8,0.8,0.8>) } \n\
                              texture{ Raster(4, 0.02, rgb<0.8,0.8,0.8>) rotate<0,90,0> } \n\
                              texture{ Raster(4*0.2, 0.04, rgb<0.8,0.8,0.8>) } \n\

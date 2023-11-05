@@ -27,8 +27,8 @@ using namespace chrono;
 using namespace chrono::collision;
 using namespace chrono::irrlicht;
 
-auto csys_type = collision::ChCollisionSystemType::BULLET;
-////auto csys_type = collision::ChCollisionSystemType::CHRONO;
+auto csys_type = ChCollisionSystemType::BULLET;
+////auto csys_type = ChCollisionSystemType::CHRONO;
 
 class DebugDrawer : public ChCollisionSystem::VisualizationCallback {
   public:

@@ -30,6 +30,7 @@
 
 // Use the main namespace of Chrono, and other chrono namespaces
 using namespace chrono;
+using namespace chrono::collision;
 using namespace chrono::particlefactory;
 using namespace chrono::irrlicht;
 using namespace chrono::postprocess;
@@ -95,9 +96,9 @@ int main(int argc, char* argv[]) {
     floor_body->SetBodyFixed(true);
     floor_body->GetVisualShape(0)->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom()));
 
-    auto shape1 = chrono_types::make_shared<collision::ChCollisionShapeBox>(floor_mat, 20, 1, 20);
-    auto shape2 = chrono_types::make_shared<collision::ChCollisionShapeBox>(floor_mat, 2, 24, 40);
-    auto shape3 = chrono_types::make_shared<collision::ChCollisionShapeBox>(floor_mat, 20, 24, 2);
+    auto shape1 = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 20, 1, 20);
+    auto shape2 = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 2, 24, 40);
+    auto shape3 = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 20, 24, 2);
 
     floor_body->GetCollisionModel()->AddShape(shape1);
     floor_body->GetCollisionModel()->AddShape(shape2, ChFrame<>(ChVector<>(-5, 0, 0), QUNIT));

@@ -316,9 +316,9 @@ void CreateFallingBall(ChSystemMulticore* system, double z, double vz) {
     ball->SetCollide(true);
     ball->SetBodyFixed(false);
 
-    ball->GetCollisionModel()->ClearModel();
+    ball->GetCollisionModel()->Clear();
     utils::AddSphereGeometry(ball.get(), mat_b, R_b);
-    ball->GetCollisionModel()->BuildModel();
+    ball->GetCollisionModel()->Build();
 
     system->AddBody(ball);
 }

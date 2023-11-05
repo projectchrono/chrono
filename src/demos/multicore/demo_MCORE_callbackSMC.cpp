@@ -28,6 +28,7 @@
 #include "chrono_opengl/ChVisualSystemOpenGL.h"
 
 using namespace chrono;
+using namespace chrono::collision;
 
 // -----------------------------------------------------------------------------
 // Callback class for contact reporting
@@ -78,8 +79,7 @@ class ContactReporter : public ChContactContainer::ReportContactCallback {
 // -----------------------------------------------------------------------------
 class ContactMaterial : public ChContactContainer::AddContactCallback {
   public:
-    virtual void OnAddContact(const collision::ChCollisionInfo& contactinfo,
-                              ChMaterialComposite* const material) override {
+    virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChMaterialComposite* const material) override {
         // Downcast to appropriate composite material type
         auto mat = static_cast<ChMaterialCompositeSMC* const>(material);
 
@@ -111,9 +111,8 @@ int main(int argc, char* argv[]) {
     container->SetIdentifier(-1);
 
     container->SetCollide(true);
-    container->GetCollisionModel()->ClearModel();
     utils::AddBoxGeometry(container.get(), material, ChVector<>(8, 1, 8), ChVector<>(0, -0.5, 0));
-    container->GetCollisionModel()->BuildModel();
+    container->GetCollisionModel()->Build();
 
     auto obj1 = std::shared_ptr<ChBody>(sys.NewBody());
     obj1->SetMass(10);
@@ -122,9 +121,8 @@ int main(int argc, char* argv[]) {
     obj1->SetPos_dt(ChVector<>(5, 0, 0));
 
     obj1->SetCollide(true);
-    obj1->GetCollisionModel()->ClearModel();
     utils::AddCapsuleGeometry(obj1.get(), material, 0.2, 0.4, ChVector<>(0), Q_from_AngZ(CH_C_PI_2));
-    obj1->GetCollisionModel()->BuildModel();
+    obj1->GetCollisionModel()->Build();
 
     sys.AddBody(obj1);
 
@@ -135,9 +133,8 @@ int main(int argc, char* argv[]) {
     obj2->SetPos_dt(ChVector<>(5, 0, 0));
 
     obj2->SetCollide(true);
-    obj2->GetCollisionModel()->ClearModel();
     utils::AddCapsuleGeometry(obj2.get(), material, 0.2, 0.4, ChVector<>(0), Q_from_AngZ(CH_C_PI_2));
-    obj2->GetCollisionModel()->BuildModel();
+    obj2->GetCollisionModel()->Build();
 
     sys.AddBody(obj2);
 

@@ -38,6 +38,7 @@
 
 // Use the namespace of Chrono
 using namespace chrono;
+using namespace chrono::collision;
 using namespace chrono::geometry;
 using namespace chrono::vsg3d;
 
@@ -60,7 +61,7 @@ int main(int argc, char* argv[]) {
     auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
     // Define a collision shape
-    auto floor_shape = chrono_types::make_shared<collision::ChCollisionShapeBox>(floor_mat, 20, 1, 20);
+    auto floor_shape = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 20, 1, 20);
     floor->GetCollisionModel()->AddShape(floor_shape, ChFrame<>(ChVector<>(0, -1, 0), QUNIT));
     floor->GetCollisionModel()->Build();
     floor->SetCollide(true);
@@ -201,8 +202,7 @@ int main(int argc, char* argv[]) {
 
         auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
         particle_mat->SetFriction(0.9f);
-        auto particle_shape =
-            chrono_types::make_shared<collision::ChCollisionShapeSphere>(particle_mat, particle_radius);
+        auto particle_shape = chrono_types::make_shared<ChCollisionShapeSphere>(particle_mat, particle_radius);
         particles->GetCollisionModel()->AddShape(particle_shape);
         particles->GetCollisionModel()->Build();
 
@@ -226,8 +226,7 @@ int main(int argc, char* argv[]) {
         particles->AddVisualShape(particle_vis);
 
         auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-        auto particle_shape =
-            chrono_types::make_shared<collision::ChCollisionShapeBox>(particle_mat, size_x, size_y, size_z);
+        auto particle_shape = chrono_types::make_shared<ChCollisionShapeBox>(particle_mat, size_x, size_y, size_z);
         particles->GetCollisionModel()->AddShape(particle_shape);
         particles->GetCollisionModel()->Build();
 

@@ -177,13 +177,13 @@ int main(int argc, char* argv[]) {
     ground->SetCollide(true);
     ground->SetBodyFixed(true);
 
-    ground->GetCollisionModel()->ClearModel();
+    ground->GetCollisionModel()->Clear();
     utils::AddBoxContainer(ground, ground_mat,                     //
                            ChFrame<>(ChVector<>(0, 1, 0), QUNIT),  //
                            ChVector<>(10, 2, 10), 0.2,             //
                            ChVector<int>(2, -1, 2),                //
                            true, ground_mat_vis);
-    ground->GetCollisionModel()->BuildModel();
+    ground->GetCollisionModel()->Build();
 
     obstacle.AddVisualization(ground);
 
@@ -196,9 +196,9 @@ int main(int argc, char* argv[]) {
     ball->SetPos_dt(ChVector<>(5, 0, 5));
     ball->SetCollide(true);
 
-    ball->GetCollisionModel()->ClearModel();
+    ball->GetCollisionModel()->Clear();
     utils::AddSphereGeometry(ball.get(), ball_mat, ball_radius);
-    ball->GetCollisionModel()->BuildModel();
+    ball->GetCollisionModel()->Build();
 
     ball->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
 
