@@ -35,6 +35,7 @@
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
+using namespace chrono::collision;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::marder;
 
@@ -119,7 +120,7 @@ int main(int argc, char* argv[]) {
     ////marder.GetDriveline()->SetGyrationMode(true);
 
     // Change collision detection system
-    ////marder.SetCollisionSystemType(collision::ChCollisionSystemType::CHRONO);
+    ////marder.SetCollisionSystemType(ChCollisionSystemType::CHRONO);
 
     // Change collision shape for road wheels, idlers, and rollers (true: cylinder; false: cylshell)
     ////marder.SetWheelCollisionType(false, false, false);
@@ -428,9 +429,9 @@ void AddFixedObstacles(ChSystem* system) {
     obstacle->SetCollide(true);
 
     // Visualization
-    auto shape = chrono_types::make_shared<ChVisualShapeCylinder>(radius, length);
-    shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 10, 10);
-    obstacle->AddVisualShape(shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+    auto vis_shape = chrono_types::make_shared<ChVisualShapeCylinder>(radius, length);
+    vis_shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 10, 10);
+    obstacle->AddVisualShape(vis_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
 
     // Contact
     ChContactMaterialData minfo;
@@ -439,9 +440,9 @@ void AddFixedObstacles(ChSystem* system) {
     minfo.Y = 2e7f;
     auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
-    obstacle->GetCollisionModel()->ClearModel();
-    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, length, VNULL, Q_from_AngX(CH_C_PI_2));
-    obstacle->GetCollisionModel()->BuildModel();
+    auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(obst_mat, radius, length);
+    obstacle->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+    obstacle->GetCollisionModel()->Build();
 
     system->AddBody(obstacle);
 }
@@ -463,13 +464,13 @@ void AddFallingObjects(ChSystem* system) {
     auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
     ball->SetCollide(true);
-    ball->GetCollisionModel()->ClearModel();
-    ball->GetCollisionModel()->AddSphere(obst_mat, radius);
-    ball->GetCollisionModel()->BuildModel();
+    auto ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(obst_mat, radius);
+    ball->GetCollisionModel()->AddShape(ct_shape);
+    ball->GetCollisionModel()->Build();
 
-    auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(radius);
-    sphere->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
-    ball->AddVisualShape(sphere);
+    auto vis_shape = chrono_types::make_shared<ChVisualShapeSphere>(radius);
+    vis_shape->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
+    ball->AddVisualShape(vis_shape);
 
     system->AddBody(ball);
 }

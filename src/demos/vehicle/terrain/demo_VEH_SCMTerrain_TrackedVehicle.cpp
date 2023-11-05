@@ -43,6 +43,7 @@ using namespace chrono::vsg3d;
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
+using namespace chrono::collision;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::m113;
 
@@ -390,9 +391,9 @@ void AddFixedObstacles(ChSystem* system) {
     minfo.Y = 2e7f;
     auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
-    obstacle->GetCollisionModel()->ClearModel();
-    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, length, VNULL, Q_from_AngX(CH_C_PI_2));
-    obstacle->GetCollisionModel()->BuildModel();
+    auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(obst_mat, radius, length);
+    obstacle->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+    obstacle->GetCollisionModel()->Build();
 
     system->AddBody(obstacle);
 }
@@ -421,9 +422,9 @@ void AddMovingObstacles(ChSystem* system) {
     ball->SetBodyFixed(false);
     ball->SetCollide(true);
 
-    ball->GetCollisionModel()->ClearModel();
-    ball->GetCollisionModel()->AddSphere(material, radius);
-    ball->GetCollisionModel()->BuildModel();
+    auto ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(material, radius);
+    ball->GetCollisionModel()->AddShape(ct_shape);
+    ball->GetCollisionModel()->Build();
 
     ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
 

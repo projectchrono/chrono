@@ -47,6 +47,7 @@ using namespace chrono::vsg3d;
 #endif
 
 using namespace chrono;
+using namespace chrono::collision;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::m113;
 
@@ -234,7 +235,7 @@ int main(int argc, char* argv[]) {
     // Construct the M113 vehicle
     // --------------------------
 
-    collision::ChCollisionSystemType collsys_type = collision::ChCollisionSystemType::BULLET;
+    ChCollisionSystemType collsys_type = ChCollisionSystemType::BULLET;
     CollisionType chassis_collision_type = CollisionType::NONE;
 
     M113 m113;
@@ -334,21 +335,21 @@ int main(int argc, char* argv[]) {
         virtual bool OverridesWheelContact() const override { return true; }
         virtual bool OverridesGroundContact() const override { return false; }
 
-        virtual void ComputeIdlerContactForce(const collision::ChCollisionInfo& cinfo,
+        virtual void ComputeIdlerContactForce(const ChCollisionInfo& cinfo,
                                               std::shared_ptr<ChBody> wheelBody,
                                               std::shared_ptr<ChBody> shoeBody,
                                               ChVector<>& forceShoe) override {
             ComputeContactForce(cinfo, wheelBody, shoeBody, forceShoe);
         };
 
-        virtual void ComputeWheelContactForce(const collision::ChCollisionInfo& cinfo,
+        virtual void ComputeWheelContactForce(const ChCollisionInfo& cinfo,
                                               std::shared_ptr<ChBody> wheelBody,
                                               std::shared_ptr<ChBody> shoeBody,
                                               ChVector<>& forceShoe) override {
             ComputeContactForce(cinfo, wheelBody, shoeBody, forceShoe);
         };
 
-        virtual void ComputeGroundContactForce(const collision::ChCollisionInfo& cinfo,
+        virtual void ComputeGroundContactForce(const ChCollisionInfo& cinfo,
                                                std::shared_ptr<ChBody> groundBody,
                                                std::shared_ptr<ChBody> shoeBody,
                                                ChVector<>& forceShoe) override {
@@ -356,7 +357,7 @@ int main(int argc, char* argv[]) {
         };
 
       private:
-        void ComputeContactForce(const collision::ChCollisionInfo& cinfo,
+        void ComputeContactForce(const ChCollisionInfo& cinfo,
                                  std::shared_ptr<ChBody> other,
                                  std::shared_ptr<ChBody> shoe,
                                  ChVector<>& forceShoe) {
@@ -641,7 +642,7 @@ int main(int argc, char* argv[]) {
             if (povray_output) {
                 char filename[100];
                 sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteVisualizationAssets(m113.GetSystem(), filename);
+                chrono::utils::WriteVisualizationAssets(m113.GetSystem(), filename);
             }
             if (img_output && step_number > 200) {
                 char filename[100];
@@ -710,9 +711,9 @@ void AddFixedObstacles(ChSystem* system) {
     minfo.Y = 2e7f;
     auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
-    obstacle->GetCollisionModel()->ClearModel();
-    obstacle->GetCollisionModel()->AddCylinder(obst_mat, radius, length, VNULL, Q_from_AngX(CH_C_PI_2));
-    obstacle->GetCollisionModel()->BuildModel();
+    auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(obst_mat, radius, length);
+    obstacle->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+    obstacle->GetCollisionModel()->Build();
 
     system->AddBody(obstacle);
 }
@@ -734,13 +735,13 @@ void AddFallingObjects(ChSystem* system) {
     auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
     ball->SetCollide(true);
-    ball->GetCollisionModel()->ClearModel();
-    ball->GetCollisionModel()->AddSphere(obst_mat, radius);
-    ball->GetCollisionModel()->BuildModel();
+    auto ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(obst_mat, radius);
+    ball->GetCollisionModel()->AddShape(ct_shape);
+    ball->GetCollisionModel()->Build();
 
-    auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(radius);
-    sphere->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
-    ball->AddVisualShape(sphere);
+    auto vis_shape = chrono_types::make_shared<ChVisualShapeSphere>(radius);
+    vis_shape->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
+    ball->AddVisualShape(vis_shape);
 
     system->AddBody(ball);
 }

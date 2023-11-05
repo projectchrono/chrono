@@ -109,7 +109,7 @@ void RayCaster::Update() {
             double y_local = -0.5 * m_dims.y() + iy * m_spacing;
             ChVector<> from = m_origin.TransformPointLocalToParent(ChVector<>(x_local, y_local, 0.0));
             ChVector<> to = from + dir * 100;
-            collision::ChCollisionSystem::ChRayhitResult result;
+            ChCollisionSystem::ChRayhitResult result;
             m_sys->GetCollisionSystem()->RayHit(from, to, result);
             if (result.hit)
                 m_points.push_back(result.abs_hitPoint);
@@ -141,9 +141,9 @@ std::shared_ptr<ChBody> CreateTerrain(ChSystem* sys, double length, double width
     ground->SetBodyFixed(true);
     ground->SetCollide(true);
 
-    ground->GetCollisionModel()->ClearModel();
-    ground->GetCollisionModel()->AddBox(ground_mat, length, width, 0.2, ChVector<>(offset, 0, height - 0.1));
-    ground->GetCollisionModel()->BuildModel();
+    auto shape = chrono_types::make_shared<ChCollisionShapeBox>(ground_mat, length, width, 0.2);
+    ground->GetCollisionModel()->AddShape(shape, ChFrame<>(ChVector<>(offset, 0, height - 0.1), QUNIT));
+    ground->GetCollisionModel()->Build();
 
     auto box = chrono_types::make_shared<ChVisualShapeBox>(length, width, 0.2);
     box->SetTexture(GetChronoDataFile("textures/pinkwhite.png"), 10 * (float)length, 10 * (float)width);

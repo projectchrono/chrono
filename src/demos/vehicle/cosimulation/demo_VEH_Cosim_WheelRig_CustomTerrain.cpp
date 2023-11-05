@@ -119,10 +119,9 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
     mat_terrain->SetKt(4e5f);
     mat_terrain->SetGt(4e1f);
 
-    ground->GetCollisionModel()->ClearModel();
     utils::AddBoxGeometry(ground.get(), mat_terrain, ChVector<>(m_dimX, m_dimY, 0.2), ChVector<>(0, 0, -0.1),
                           ChQuaternion<>(1, 0, 0, 0), true);
-    ground->GetCollisionModel()->BuildModel();
+    ground->GetCollisionModel()->Build();
 
     // Shared proxy contact material
     auto mat_proxy = chrono_types::make_shared<ChMaterialSurfaceSMC>();
@@ -148,9 +147,8 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
         m_bodies[i]->SetInertiaXX(ChVector<>(0.1, 0.1, 0.1));
         m_bodies[i]->SetCollide(true);
 
-        m_bodies[i]->GetCollisionModel()->ClearModel();
         utils::AddCylinderGeometry(m_bodies[i].get(), mat_proxy, tire_radius, tire_width / 2);
-        m_bodies[i]->GetCollisionModel()->BuildModel();
+        m_bodies[i]->GetCollisionModel()->Build();
 
         m_system->AddBody(m_bodies[i]);
     }

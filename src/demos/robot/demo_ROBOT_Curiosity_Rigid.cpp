@@ -42,6 +42,7 @@ using namespace chrono::vsg3d;
 #endif
 
 using namespace chrono;
+using namespace chrono::collision;
 using namespace chrono::curiosity;
 
 // -----------------------------------------------------------------------------
@@ -70,8 +71,8 @@ int main(int argc, char* argv[]) {
     ChSystemNSC sys;
     sys.Set_G_acc(ChVector<>(0, 0, -9.81));
 
-    collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
-    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
+    ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
+    ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
 
     // Create terrain and obstacles
     CreateTerrain(sys);
