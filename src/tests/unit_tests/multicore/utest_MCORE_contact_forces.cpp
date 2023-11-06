@@ -33,6 +33,7 @@
 #include "unit_testing.h"
 
 using namespace chrono;
+using namespace chrono::collision;
 
 class ContactForceTest : public ::testing::TestWithParam<ChContactMethod> {
   protected:
@@ -134,9 +135,10 @@ ContactForceTest::ContactForceTest() : sys(nullptr) {
         ball->SetCollide(true);
         ball->SetBodyFixed(false);
 
-        ball->GetCollisionModel()->ClearModel();
-        ball->GetCollisionModel()->AddSphere(material, radius);
-        ball->GetCollisionModel()->BuildModel();
+        ball->GetCollisionModel()->Clear();
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(material, radius);
+        ball->GetCollisionModel()->AddShape(ct_shape);
+        ball->GetCollisionModel()->Build();
 
         auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(radius);
         sphere->SetColor(ChColor(1, 0, 1));

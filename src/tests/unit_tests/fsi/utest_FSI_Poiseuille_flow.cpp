@@ -81,7 +81,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     body->SetIdentifier(-1);
     body->SetBodyFixed(true);
     body->SetCollide(true);
-    body->GetCollisionModel()->ClearModel();
+    body->GetCollisionModel()->Clear();
 
     // Size and position of the bottom and top walls
     auto initSpace0 = sysFSI.GetInitialSpacing();
@@ -91,7 +91,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Add a geometry to the body and set the collision model
     chrono::utils::AddBoxGeometry(body.get(), mysurfmaterial, size_XY, pos_zn, QUNIT, true);
-    body->GetCollisionModel()->BuildModel();
+    body->GetCollisionModel()->Build();
     sysMBS.AddBody(body);
 
     // Add BCE particles to the bottom and top wall boundary

@@ -30,6 +30,7 @@
 #include "gtest/gtest.h"
 
 using namespace chrono;
+using namespace chrono::collision;
 
 // ====================================================================================
 
@@ -132,9 +133,10 @@ ContactForceTest::ContactForceTest() {
         ball->SetCollide(true);
         ball->SetBodyFixed(false);
 
-        ball->GetCollisionModel()->ClearModel();
-        ball->GetCollisionModel()->AddSphere(material, radius);
-        ball->GetCollisionModel()->BuildModel();
+        ball->GetCollisionModel()->Clear();
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(material, radius);
+        ball->GetCollisionModel()->AddShape(ct_shape);
+        ball->GetCollisionModel()->Build();
 
         system->AddBody(ball);
         balls[i] = ball;
