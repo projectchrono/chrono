@@ -56,6 +56,7 @@ using namespace chrono::vsg3d;
 using namespace chrono;
 using namespace chrono::irrlicht;
 using namespace chrono::geometry;
+using namespace chrono::collision;
 using namespace chrono::viper;
 using namespace chrono::sensor;
 
@@ -269,10 +270,11 @@ int main(int argc, char* argv[]) {
         sys.Add(rock_Body);
 
         rock_Body->SetBodyFixed(false);
-        rock_Body->GetCollisionModel()->ClearModel();
-        rock_Body->GetCollisionModel()->AddTriangleMesh(rockSufaceMaterial, rock_mmesh, false, false, VNULL,
-                                                        ChMatrix33<>(1), 0.005);
-        rock_Body->GetCollisionModel()->BuildModel();
+
+        auto rock_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rockSufaceMaterial, rock_mmesh,
+                                                                                      false, false, 0.005);
+        rock_Body->GetCollisionModel()->AddShape(rock_ct_shape);
+        rock_Body->GetCollisionModel()->Build();
         rock_Body->SetCollide(true);
 
         auto rock_mesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();

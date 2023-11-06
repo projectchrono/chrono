@@ -40,6 +40,7 @@ using namespace chrono::vsg3d;
 
 using namespace chrono;
 using namespace chrono::parsers;
+using namespace chrono::collision;
 
 // -----------------------------------------------------------------------------
 
@@ -69,9 +70,10 @@ std::shared_ptr<ChBody> CreateTerrain(ChSystem& sys, double length, double width
     ground->SetPos(ChVector<>(offset, 0, height - 0.1));
     ground->SetCollide(true);
 
-    ground->GetCollisionModel()->ClearModel();
-    ground->GetCollisionModel()->AddBox(ground_mat, length, width, 0.2);
-    ground->GetCollisionModel()->BuildModel();
+    ground->GetCollisionModel()->Clear();
+    auto ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(ground_mat, length, width, 0.2);
+    ground->GetCollisionModel()->AddShape(ct_shape);
+    ground->GetCollisionModel()->Build();
 
     auto box = chrono_types::make_shared<ChVisualShapeBox>(length, width, 0.2);
     box->SetTexture(GetChronoDataFile("textures/checker2.png"), (float)length, (float)width);

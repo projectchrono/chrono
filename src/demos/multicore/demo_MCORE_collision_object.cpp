@@ -241,6 +241,7 @@ int main(int argc, char* argv[]) {
         case CollisionShape::CYLSHELL: {
             auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylindricalShell>(object_mat, radius, 2 * hlen);
             object->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+            object->GetCollisionModel()->Build();
 
             auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(radius, 2 * hlen);
             cyl->SetTexture(GetChronoDataFile("textures/concrete.jpg"));

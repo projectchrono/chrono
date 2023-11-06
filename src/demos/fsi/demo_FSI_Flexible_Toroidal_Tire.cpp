@@ -259,13 +259,13 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     cmaterial->SetFriction(0.3f);
     cmaterial->SetRestitution(0.2f);
     cmaterial->SetAdhesion(0);
-    ground->GetCollisionModel()->ClearModel();
+    ground->GetCollisionModel()->Clear();
     chrono::utils::AddBoxContainer(ground, cmaterial,                              //
                                    ChFrame<>(ChVector<>(0, 0, bzDim / 2), QUNIT),  //
                                    ChVector<>(bxDim, byDim, bzDim), 0.1,           //
                                    ChVector<int>(0, 0, -1),                        //
                                    false);
-    ground->GetCollisionModel()->BuildModel();
+    ground->GetCollisionModel()->Build();
     ground->SetCollide(true);
 
     // Fluid representation of walls

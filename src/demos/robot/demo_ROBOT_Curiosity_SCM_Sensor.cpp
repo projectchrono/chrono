@@ -65,6 +65,7 @@ using namespace chrono::vsg3d;
 using namespace chrono;
 using namespace chrono::irrlicht;
 using namespace chrono::geometry;
+using namespace chrono::collision;
 using namespace chrono::curiosity;
 using namespace chrono::sensor;
 
@@ -201,10 +202,11 @@ int main(int argc, char* argv[]) {
         sys.Add(rock1_Body);
 
         rock1_Body->SetBodyFixed(false);
-        rock1_Body->GetCollisionModel()->ClearModel();
-        rock1_Body->GetCollisionModel()->AddTriangleMesh(rockSufaceMaterial, rock_1_mmesh, false, false, VNULL,
-                                                         ChMatrix33<>(1), 0.005);
-        rock1_Body->GetCollisionModel()->BuildModel();
+
+        auto rock1_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rockSufaceMaterial, rock_1_mmesh, false,
+                                                                                false, 0.005);
+        rock1_Body->GetCollisionModel()->AddShape(rock1_ct_shape);
+        rock1_Body->GetCollisionModel()->Build();
         rock1_Body->SetCollide(true);
 
         auto rock1_mesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
@@ -256,10 +258,11 @@ int main(int argc, char* argv[]) {
         sys.Add(rock2_Body);
 
         rock2_Body->SetBodyFixed(false);
-        rock2_Body->GetCollisionModel()->ClearModel();
-        rock2_Body->GetCollisionModel()->AddTriangleMesh(rockSufaceMaterial, rock_2_mmesh, false, false, VNULL,
-                                                         ChMatrix33<>(1), 0.005);
-        rock2_Body->GetCollisionModel()->BuildModel();
+
+        auto rock2_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rockSufaceMaterial, rock_2_mmesh,
+                                                                                      false, false, 0.005);
+        rock2_Body->GetCollisionModel()->AddShape(rock2_ct_shape);
+        rock2_Body->GetCollisionModel()->Build();
         rock2_Body->SetCollide(true);
 
         auto rock2_mesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
@@ -311,10 +314,11 @@ int main(int argc, char* argv[]) {
         sys.Add(rock3_Body);
 
         rock3_Body->SetBodyFixed(false);
-        rock3_Body->GetCollisionModel()->ClearModel();
-        rock3_Body->GetCollisionModel()->AddTriangleMesh(rockSufaceMaterial, rock_3_mmesh, false, false, VNULL,
-                                                         ChMatrix33<>(1), 0.005);
-        rock3_Body->GetCollisionModel()->BuildModel();
+
+        auto rock3_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rockSufaceMaterial, rock_3_mmesh,
+                                                                                      false, false, 0.005);
+        rock3_Body->GetCollisionModel()->AddShape(rock3_ct_shape);
+        rock3_Body->GetCollisionModel()->Build();
         rock3_Body->SetCollide(true);
 
         auto rock3_mesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();

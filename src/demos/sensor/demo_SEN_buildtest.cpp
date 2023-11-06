@@ -50,6 +50,7 @@
 
 using namespace chrono;
 using namespace chrono::geometry;
+using namespace chrono::collision;
 using namespace chrono::sensor;
 
 int num_cameras = 2 - 1;
@@ -281,9 +282,10 @@ int main(int argc, char* argv[]) {
         mesh_body->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(ChRandom(), ChRandom(), 2.0 + i)));
         sys.Add(mesh_body);
 
-        mesh_body->GetCollisionModel()->ClearModel();
-        mesh_body->GetCollisionModel()->AddTriangleMesh(phys_mat, mmesh, false, false, VNULL, ChMatrix33<>(1), 0.005);
-        mesh_body->GetCollisionModel()->BuildModel();
+        mesh_body->GetCollisionModel()->Clear();
+        auto mesh_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(phys_mat, mmesh, false, false, 0.005);
+        mesh_body->GetCollisionModel()->AddShape(mesh_ct_shape);
+        mesh_body->GetCollisionModel()->Build();
         mesh_body->SetCollide(true);
 
         mesh_body->AddVisualShape(trimesh_shape,ChFrame<>());
