@@ -60,6 +60,7 @@ void ChCollisionModelChrono::Associate() {
 void ChCollisionModelChrono::Populate() {
     for (const auto& shape_instance : m_shape_instances) {
         const auto& shape = shape_instance.first;
+        const auto& material = shape->GetMaterial();
 
         // Create collision shapes relative to the body COG frame
         auto frame = shape_instance.second;
@@ -241,16 +242,17 @@ void ChCollisionModelChrono::Populate() {
                 auto trimesh = shape_trimesh->GetMesh();
 
                 for (int i = 0; i < trimesh->getNumTriangles(); i++) {
-                    auto ct_shape = chrono_types::make_shared<ctCollisionShape>();
                     geometry::ChTriangle tri = trimesh->getTriangle(i);
-                    ct_shape->A =
-                        real3(tri.p1.x() + position.x(), tri.p1.y() + position.y(), tri.p1.z() + position.z());
-                    ct_shape->B =
-                        real3(tri.p2.x() + position.x(), tri.p2.y() + position.y(), tri.p2.z() + position.z());
-                    ct_shape->C =
-                        real3(tri.p3.x() + position.x(), tri.p3.y() + position.y(), tri.p3.z() + position.z());
+                    ChVector<> p1 = tri.p1 + position;
+                    ChVector<> p2 = tri.p2 + position;
+                    ChVector<> p3 = tri.p3 + position;
+                    auto shape_triangle = chrono_types::make_shared<ChCollisionShapeTriangle>(material, p1, p2, p3);
+                    auto ct_shape = chrono_types::make_shared<ctCollisionShape>();
+                    ct_shape->A = real3(p1.x(), p1.y(), p1.z());
+                    ct_shape->B = real3(p2.x(), p2.y(), p2.z());
+                    ct_shape->C = real3(p3.x(), p3.y(), p3.z());
                     ct_shape->R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
-                    m_shapes.push_back(shape);
+                    m_shapes.push_back(shape_triangle);
                     m_ct_shapes.push_back(ct_shape);
                 }
                 break;
