@@ -42,7 +42,7 @@ def AddFallingItems(sys):
             body.GetCollisionModel().BuildModel()
             body.SetCollide(True)
 
-            sphere = chrono.ChSphereShape(radius)
+            sphere = chrono.ChVisualShapeSphere(radius)
             sphere.SetTexture(chrono.GetChronoDataFile("textures/bluewhite.png"))
             body.AddVisualShape(sphere)
 
@@ -61,7 +61,7 @@ def AddFallingItems(sys):
             body.GetCollisionModel().BuildModel()
             body.SetCollide(True)
 
-            box = chrono.ChBoxShape(size)
+            box = chrono.ChVisualShapeBox(size)
             box.SetTexture(chrono.GetChronoDataFile("textures/pinkwhite.png"))
             body.AddVisualShape(box)
 
@@ -70,7 +70,7 @@ def AddFallingItems(sys):
 def AddContainerWall(body, mat, size, pos, visible=True):
     body.GetCollisionModel().AddBox(mat, size.x, size.y, size.z, pos)
     if visible:
-        box = chrono.ChBoxShape(size)
+        box = chrono.ChVisualShapeBox(size)
         box.SetTexture(chrono.GetChronoDataFile("textures/concrete.jpg"))
         body.AddVisualShape(box, chrono.ChFrameD(pos))
 
@@ -113,7 +113,7 @@ def AddContainer(sys):
     rotatingBody.GetCollisionModel().AddBox(rot_mat, hsize.x, hsize.y, hsize.z)
     rotatingBody.GetCollisionModel().BuildModel()
 
-    box = chrono.ChBoxShape(hsize * 2.0)
+    box = chrono.ChVisualShapeBox(hsize * 2.0)
     rotatingBody.AddVisualShape(box)
 
     sys.AddBody(rotatingBody)

@@ -63,7 +63,7 @@ for ix in range(0,5):
             body_particles.AddParticle(chrono.ChCoordsysD(chrono.ChVectorD(ix/100,0.1+iy/100, iz/100)))
 
 # Visualization shape (shared by all particle clones)
-body_particles_shape = chrono.ChSphereShape(0.005)
+body_particles_shape = chrono.ChVisualShapeSphere(0.005)
 body_particles.AddVisualShape(body_particles_shape)
 
 my_system.Add(body_particles)
@@ -86,7 +86,7 @@ body_floor.GetCollisionModel().BuildModel()
 body_floor.SetCollide(True)
 
 # Visualization shape
-body_floor_shape = chrono.ChBoxShape(0.2, 0.04, 0.2)
+body_floor_shape = chrono.ChVisualShapeBox(0.2, 0.04, 0.2)
 body_floor_shape.SetColor(chrono.ChColor(0.5,0.5,0.5))
 body_floor.AddVisualShape(body_floor_shape)
 
@@ -110,7 +110,7 @@ for ix in range(0,2):
         body_brick.SetCollide(True)
 
         # Visualization shape
-        body_brick_shape = chrono.ChBoxShape(0.02, 0.02, 0.02)
+        body_brick_shape = chrono.ChVisualShapeBox(0.02, 0.02, 0.02)
         body_brick.AddVisualShape(body_brick_shape)
 
         my_system.Add(body_brick)

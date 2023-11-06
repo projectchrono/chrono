@@ -66,7 +66,7 @@ mbody_gearA.SetRot(chrono.Q_from_AngX(m.pi / 2))
 mbody_gearA.GetVisualShape(0).SetMaterial(0, vis_mat)
 
 # for aesthetic reasons, also add a thin cylinder only as a visualization
-mshaft_shape = chrono.ChCylinderShape(radA * 0.4, 13)
+mshaft_shape = chrono.ChVisualShapeCylinder(radA * 0.4, 13)
 mbody_gearA.AddVisualShape(mshaft_shape, chrono.ChFrameD(chrono.ChVectorD(0, 3.5, 0), chrono.Q_from_AngX(chrono.CH_C_PI_2)))
 
 # ...impose rotation speed between the first gear and the fixed truss

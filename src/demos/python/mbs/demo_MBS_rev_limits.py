@@ -37,7 +37,7 @@ ground.SetBodyFixed(True)
 ground.SetCollide(False)
 
 # Visualization for revolute joint
-cyl_rev = chrono.ChCylinderShape(0.04, 0.4)
+cyl_rev = chrono.ChVisualShapeCylinder(0.04, 0.4)
 ground.AddVisualShape(cyl_rev)
 
 # Create a pendulum body
@@ -53,7 +53,7 @@ pend.SetInertiaXX(chrono.ChVectorD(0.2, 1, 1))
 pend.SetPos(chrono.ChVectorD(1.5, 0, 0))
 
 # Attach visualization assets.
-cyl_p = chrono.ChCylinderShape(0.2, 2.92)
+cyl_p = chrono.ChVisualShapeCylinder(0.2, 2.92)
 cyl_p.SetColor(chrono.ChColor(0.6, 0, 0))
 pend.AddVisualShape(cyl_p, chrono.ChFrameD(chrono.VNULL, chrono.Q_from_AngY(chrono.CH_C_PI_2)))
 

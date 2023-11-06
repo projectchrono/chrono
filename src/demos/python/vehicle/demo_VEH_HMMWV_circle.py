@@ -69,7 +69,7 @@ terrain.Initialize()
 path = veh.CirclePath(chrono.ChVectorD(-75, 0, 0.6), 20, 40, True, 10)
 npoints = path.getNumPoints()
 
-path_asset = chrono.ChLineShape()
+path_asset = chrono.ChVisualShapeLine()
 path_asset.SetLineGeometry(chrono.ChLineBezier(path))
 path_asset.SetName("test path")
 path_asset.SetNumRenderPoints(max(2 * npoints, 400))

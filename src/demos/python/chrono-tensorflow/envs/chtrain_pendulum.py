@@ -81,7 +81,7 @@ class Model(object):
       self.cyl_base1= chrono.ChVectorD(0, -self.size_rod_y/2, 0 )
       self.cyl_base2= chrono.ChVectorD(0, self.size_rod_y/2, 0 )
 
-      self.body_rod_shape = chrono.ChCylinderShape()
+      self.body_rod_shape = chrono.ChVisualShapeCylinder()
       self.body_rod_shape.GetCylinderGeometry().p1= self.cyl_base1
       self.body_rod_shape.GetCylinderGeometry().p2= self.cyl_base2
       self.body_rod_shape.GetCylinderGeometry().rad= self.radius_rod
@@ -97,7 +97,7 @@ class Model(object):
 
 
       if self.render:
-             self.body_floor_shape = chrono.ChBoxShape(6, 2, 6)
+             self.body_floor_shape = chrono.ChVisualShapeBox(6, 2, 6)
              self.body_floor_shape.SetTexture(chrono.GetChronoDataFile('textures/concrete.jpg'))
              self.body_floor.AddVisualShape(self.body_floor_shape)
 
@@ -110,7 +110,7 @@ class Model(object):
 
 
       if self.render:
-             self.body_table_shape = chrono.ChBoxShape(self.size_table_x, self.size_table_y, self.size_table_z)
+             self.body_table_shape = chrono.ChVisualShapeBox(self.size_table_x, self.size_table_y, self.size_table_z)
              self.body_table_shape.SetColor(chrono.ChColor(0.4,0.4,0.5))
              self.body_table_shape.SetTexture(chrono.GetChronoDataFile('textures/concrete.jpg'))
              self.body_table.AddVisualShape(self.body_table_shape)

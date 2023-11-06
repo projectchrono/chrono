@@ -29,7 +29,7 @@ class MyObstacle:
         self.radius = r
         self.center = pos
     def AddVisualization(self, body):
-        cyl = chrono.ChCylinderShape(self.radius, 1.1)
+        cyl = chrono.ChVisualShapeCylinder(self.radius, 1.1)
         cyl.SetColor(chrono.ChColor(0.6, 0.3, 0.0))
         body.AddVisualShape(cyl, chrono.ChFrameD(self.center + chrono.ChVectorD(0, 0.55, 0),
                                                  chrono.Q_from_AngX(chrono.CH_C_PI_2)))
@@ -158,23 +158,23 @@ ground.GetCollisionModel().BuildModel()
 ground_vis_mat = chrono.ChVisualMaterial()
 ground_vis_mat.SetKdTexture(chrono.GetChronoDataFile("textures/blue.png"))
 
-vshape_1 = chrono.ChBoxShape(10, 2, 10)
+vshape_1 = chrono.ChVisualShapeBox(10, 2, 10)
 vshape_1.SetMaterial(0, ground_vis_mat)
 ground.AddVisualShape(vshape_1, chrono.ChFrameD(chrono.ChVectorD(0, -1, 0)))
 
-vshape_2 = chrono.ChBoxShape(0.2, 2, 10.2)
+vshape_2 = chrono.ChVisualShapeBox(0.2, 2, 10.2)
 vshape_2.SetMaterial(0, ground_vis_mat)
 ground.AddVisualShape(vshape_2, chrono.ChFrameD(chrono.ChVectorD(-5, 0, 0)))
 
-vshape_3 = chrono.ChBoxShape(0.2, 2, 10.2)
+vshape_3 = chrono.ChVisualShapeBox(0.2, 2, 10.2)
 vshape_3.SetMaterial(0, ground_vis_mat)
 ground.AddVisualShape(vshape_3, chrono.ChFrameD(chrono.ChVectorD(5, 0, 0)))
 
-vshape_4 = chrono.ChBoxShape(10.2, 2, 0.2)
+vshape_4 = chrono.ChVisualShapeBox(10.2, 2, 0.2)
 vshape_4.SetMaterial(0, ground_vis_mat)
 ground.AddVisualShape(vshape_4, chrono.ChFrameD(chrono.ChVectorD(0, 0, -5)))
 
-vshape_5 = chrono.ChBoxShape(10.2, 2, 0.2)
+vshape_5 = chrono.ChVisualShapeBox(10.2, 2, 0.2)
 vshape_5.SetMaterial(0, ground_vis_mat)
 ground.AddVisualShape(vshape_5, chrono.ChFrameD(chrono.ChVectorD(0, 0, 5)))
 
@@ -195,7 +195,7 @@ ball.GetCollisionModel().ClearModel()
 ball.GetCollisionModel().AddSphere(ball_mat, ball_radius)
 ball.GetCollisionModel().BuildModel()
 
-vshape_s = chrono.ChSphereShape(ball_radius)
+vshape_s = chrono.ChVisualShapeSphere(ball_radius)
 vshape_s.SetTexture(chrono.GetChronoDataFile("textures/bluewhite.png"))
 ball.AddVisualShape(vshape_s)
 

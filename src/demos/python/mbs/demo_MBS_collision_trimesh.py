@@ -114,9 +114,9 @@ mesh_for_visualization = chrono.ChTriangleMeshConnected()
 mesh_for_visualization.LoadWavefrontMesh(chrono.GetChronoDataFile('models/bulldozer/shoe_view.obj'))
 # Optionally: you can scale/shrink/rotate the mesh using this:
 mesh_for_visualization.Transform(chrono.ChVectorD(0.01,0,0), chrono.ChMatrix33D(1))
-# Now the  triangle mesh is inserted in a ChTriangleMeshShape visualization asset, 
+# Now the  triangle mesh is inserted in a ChVisualShapeTriangleMesh visualization asset, 
 # and added to the body
-visualization_shape = chrono.ChTriangleMeshShape()
+visualization_shape = chrono.ChVisualShapeTriangleMesh()
 visualization_shape.SetMesh(mesh_for_visualization)
 visualization_shape.SetColor(chrono.ChColor(0.6, 0.2, 0.2))
 body_B.AddVisualShape(visualization_shape)

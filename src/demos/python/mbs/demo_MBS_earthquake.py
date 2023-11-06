@@ -86,7 +86,7 @@ for ix in range(0,nbricks_on_x):
         body_brick.SetCollide(True)
 
         # Visualization shape, for rendering animation
-        body_brick_shape = chrono.ChBoxShape(size_brick_x, size_brick_y, size_brick_z)
+        body_brick_shape = chrono.ChVisualShapeBox(size_brick_x, size_brick_y, size_brick_z)
         if iy%2==0 :
             body_brick_shape.SetColor(chrono.ChColor(0.65, 0.65, 0.6)) # set gray color only for odd bricks
         body_brick.AddVisualShape(body_brick_shape)
@@ -108,7 +108,7 @@ body_floor.GetCollisionModel().BuildModel()
 body_floor.SetCollide(True)
 
 # Visualization shape
-body_floor_shape = chrono.ChBoxShape(6, 2, 6)
+body_floor_shape = chrono.ChVisualShapeBox(6, 2, 6)
 body_floor_shape.SetTexture(chrono.GetChronoDataFile('textures/concrete.jpg'))
 body_floor.AddVisualShape(body_floor_shape)
 
@@ -132,7 +132,7 @@ body_table.GetCollisionModel().BuildModel()
 body_table.SetCollide(True)
 
 # Visualization shape
-body_table_shape = chrono.ChBoxShape(size_table_x, size_table_y, size_table_z)
+body_table_shape = chrono.ChVisualShapeBox(size_table_x, size_table_y, size_table_z)
 body_table_shape.SetColor(chrono.ChColor(0.4,0.4,0.5))
 body_table_shape.SetTexture(chrono.GetChronoDataFile('textures/concrete.jpg'))
 body_table.AddVisualShape(body_table_shape)

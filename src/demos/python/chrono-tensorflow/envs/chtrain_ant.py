@@ -100,11 +100,11 @@ class Model(object):
       self.leg_body = [chrono.ChBody() for i in range(len(leg_ang))]
       self.leg_pos= [chrono.ChVectorD() for i in range(len(leg_ang))]
       leg_cyl = chrono.ChCylinder(-chrono.ChVectorD( self.leg_length/2,  0  ,0),chrono.ChVectorD( self.leg_length/2,  0  ,0), self.leg_radius) 
-      self.leg_shape = chrono.ChCylinderShape(leg_cyl)
+      self.leg_shape = chrono.ChVisualShapeCylinder(leg_cyl)
       ankle_cyl = chrono.ChCylinder(-chrono.ChVectorD( self.ankle_length/2,  0  ,0),chrono.ChVectorD( self.ankle_length/2,  0  ,0), self.ankle_radius) 
-      self.ankle_shape = chrono.ChCylinderShape(ankle_cyl)
+      self.ankle_shape = chrono.ChVisualShapeCylinder(ankle_cyl)
       foot_sphere = chrono.ChSphere(chrono.ChVectorD(self.ankle_length/2, 0, 0 ), self.ankle_radius )
-      self.foot_shape = chrono.ChSphereShape(foot_sphere)
+      self.foot_shape = chrono.ChVisualShapeSphere(foot_sphere)
       Leg_qa = [ chrono.ChQuaternionD()  for i in range(len(leg_ang))]
       Leg_q = [ chrono.ChQuaternionD()  for i in range(len(leg_ang))]
       z2x_leg = [ chrono.ChQuaternionD() for i in range(len(leg_ang))]
@@ -191,7 +191,7 @@ class Model(object):
       self.body_floor.SetCollide(True)
 
     # Visualization shape
-      body_floor_shape = chrono.ChBoxShape(10, 2, 10)
+      body_floor_shape = chrono.ChVisualShapeBox(10, 2, 10)
       body_floor_shape.SetColor(chrono.ChColor(0.4,0.4,0.5))
       body_floor_shape.SetTexture(chrono.GetChronoDataFile('vehicle/terrain/textures/grass.jpg'))
       self.body_floor.AddVisualShape(body_floor_shape)   

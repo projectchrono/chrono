@@ -179,8 +179,8 @@ path.AddSubLine(a1)
 path.SetPathDuration(2)
 path.Set_closed(True)
 
-# Create a ChLineShape, a visualization asset for lines.
-pathasset = chrono.ChLineShape()
+# Create a ChVisualShapeLine, a visualization asset for lines.
+pathasset = chrono.ChVisualShapeLine()
 pathasset.SetLineGeometry(path)
 floor.AddVisualShape(pathasset)
 
