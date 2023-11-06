@@ -32,6 +32,8 @@
 using std::cout;
 using std::endl;
 
+using namespace chrono::collision;
+
 namespace chrono {
 namespace vehicle {
 
@@ -119,10 +121,11 @@ void CRMTerrain::AddRigidObstacle(const std::string& obj_file,
     // Create obstacle collision geometry
     auto mat = o.cmat.CreateMaterial(m_sys.GetContactMethod());
     auto thickness = m_spacing / 2;
-    o.body->GetCollisionModel()->ClearModel();
-    o.body->GetCollisionModel()->AddTriangleMesh(mat, o.trimesh, false, false, VNULL, ChMatrix33<>(1), thickness);
+    o.body->GetCollisionModel()->Clear();
+    auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, o.trimesh, false, false, thickness);
+    o.body->GetCollisionModel()->AddShape(ct_shape);
     o.body->GetCollisionModel()->SetFamily(2);
-    o.body->GetCollisionModel()->BuildModel();
+    o.body->GetCollisionModel()->Build();
 
     // Create the obstacle BCE points (relative coordinates)
     m_sysFSI.CreateMeshPoints(*o.trimesh, m_spacing, o.point_cloud);

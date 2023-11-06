@@ -42,6 +42,7 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
+using namespace chrono::collision;
 using namespace rapidjson;
 
 namespace chrono {
@@ -381,11 +382,11 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
         body->SetBodyFixed(false);
         body->SetCollide(true);
 
-        body->GetCollisionModel()->ClearModel();
-        body->GetCollisionModel()->AddTriangleMesh(mat, trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
-                                                   m_radius_g);
+        body->GetCollisionModel()->Clear();
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, trimesh, false, false, m_radius_g);
+        body->GetCollisionModel()->AddShape(ct_shape);
         body->GetCollisionModel()->SetFamily(2);
-        body->GetCollisionModel()->BuildModel();
+        body->GetCollisionModel()->Build();
 
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);

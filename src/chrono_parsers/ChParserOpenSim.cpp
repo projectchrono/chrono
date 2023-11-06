@@ -830,7 +830,7 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
 
         // Set collision shapes
         if (body_info.body->GetCollide()) {
-            body_info.body->GetCollisionModel()->ClearModel();
+            body_info.body->GetCollisionModel()->Clear();
 
             for (auto cyl_info : body_info.cylinders) {
                 utils::AddCylinderGeometry(body_info.body, mat, cyl_info.rad, cyl_info.hlen, cyl_info.pos, cyl_info.rot,
@@ -840,7 +840,7 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
             body_info.body->GetCollisionModel()->SetFamily(body_info.family);
             body_info.body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(body_info.family_mask_nocollide);
 
-            body_info.body->GetCollisionModel()->BuildModel();
+            body_info.body->GetCollisionModel()->Build();
         }
     }
 }

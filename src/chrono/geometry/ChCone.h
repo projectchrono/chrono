@@ -23,7 +23,7 @@ namespace geometry {
 /// A conical geometric object for collisions and visualization.
 class ChApi ChCone : public ChGeometry {
   public:
-    ChCone() : h(0), r(0) {}
+    ChCone() : r(0), h(0) {}
     ChCone(double radius, double height) : r(radius), h(height) {}
     ChCone(const ChCone& source);
     ~ChCone() {}
@@ -56,8 +56,8 @@ class ChApi ChCone : public ChGeometry {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
-    double h;
     double r;
+    double h;
 };
 
 }  // end namespace geometry
