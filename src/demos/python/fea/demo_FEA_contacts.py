@@ -62,10 +62,10 @@ if (do_mesh_collision_floor) :
     mfloor.SetBodyFixed(True)
     sys.Add(mfloor)
     
-    mfloor.GetCollisionModel().ClearModel()
-    mfloor.GetCollisionModel().AddTriangleMesh(mysurfmaterial, mmeshbox, False, False, chrono.VNULL, chrono.ChMatrix33D(1),
-                                     sphere_swept_thickness)
-    mfloor.GetCollisionModel().BuildModel()
+    mfloor.GetCollisionModel().Clear()
+    mfloor_ct_shape = chrono.ChCollisionShapeTriangleMesh(mysurfmaterial, mmeshbox, False, False, sphere_swept_thickness)
+    mfloor.GetCollisionModel().AddShape(mfloor_ct_shape)
+    mfloor.GetCollisionModel().Build()
     mfloor.SetCollide(True)
     
     masset_meshbox = chrono.ChVisualShapeTriangleMesh()

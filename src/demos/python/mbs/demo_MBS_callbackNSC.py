@@ -111,9 +111,9 @@ container.SetIdentifier(-1)
 
 container.SetCollide(True)
 container.GetCollisionModel().SetEnvelope(collision_envelope)
-container.GetCollisionModel().ClearModel()
+container.GetCollisionModel().Clear()
 chrono.AddBoxGeometry(container, material, chrono.ChVectorD(8, 1, 8), chrono.ChVectorD(0, -0.5, 0))
-container.GetCollisionModel().BuildModel()
+container.GetCollisionModel().Build()
 
 container.GetVisualShape(0).SetColor(chrono.ChColor(0.4, 0.4, 0.4))
 
@@ -125,9 +125,9 @@ box1.SetPos_dt(chrono.ChVectorD(5, 0, 0))
 
 box1.SetCollide(True)
 box1.GetCollisionModel().SetEnvelope(collision_envelope)
-box1.GetCollisionModel().ClearModel()
+box1.GetCollisionModel().Clear()
 chrono.AddBoxGeometry(box1, material, chrono.ChVectorD(0.4, 0.2, 0.1))
-box1.GetCollisionModel().BuildModel()
+box1.GetCollisionModel().Build()
 
 box1.GetVisualShape(0).SetColor(chrono.ChColor(0.1, 0.1, 0.4))
 
@@ -141,9 +141,9 @@ box2.SetPos_dt(chrono.ChVectorD(5, 0, 0))
 
 box2.SetCollide(True)
 box2.GetCollisionModel().SetEnvelope(collision_envelope)
-box2.GetCollisionModel().ClearModel()
+box2.GetCollisionModel().Clear()
 chrono.AddBoxGeometry(box2, material, chrono.ChVectorD(0.4, 0.2, 0.1))
-box2.GetCollisionModel().BuildModel()
+box2.GetCollisionModel().Build()
 
 box2.GetVisualShape(0).SetColor(chrono.ChColor(0.4, 0.1, 0.1))
 

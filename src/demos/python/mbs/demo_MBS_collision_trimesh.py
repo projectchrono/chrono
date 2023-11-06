@@ -132,15 +132,10 @@ mesh_for_collision = chrono.ChTriangleMeshConnected()
 mesh_for_collision.LoadWavefrontMesh(chrono.GetChronoDataFile('models/bulldozer/shoe_view.obj'))
 # Optionally: you can scale/shrink/rotate the mesh using this:
 mesh_for_collision.Transform(chrono.ChVectorD(0.01,0,0), chrono.ChMatrix33D(1))
-body_B.GetCollisionModel().ClearModel()
-body_B.GetCollisionModel().AddTriangleMesh(
-            contact_material, # contact material
-            mesh_for_collision, # the mesh 
-            False,  # is it static?
-            False)  # is it convex?
-            # , mpos, mr,  # pos of mesh respect to REF and rotation matr.respect to REF 
-            # 0.01) # 'inflating' radiust for triangles for increased robustness
-body_B.GetCollisionModel().BuildModel()
+body_B.GetCollisionModel().Clear()
+body_B_ct_shape = chrono.ChCollisionShapeTriangleMesh(contact_material, mesh_for_collision, False, False)
+body_B.GetCollisionModel().AddShape(body_B_ct_shape)
+body_B.GetCollisionModel().Build()
 body_B.SetCollide(True)
 
 sys.Add(body_B)

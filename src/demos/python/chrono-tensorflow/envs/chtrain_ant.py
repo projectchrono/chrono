@@ -89,9 +89,10 @@ class Model(object):
       self.abdomen_shape = chrono.ChEllipsoidShape(abdomen_ellipsoid)
       self.body_abdomen.AddVisualShape(self.abdomen_shape)
       self.body_abdomen.SetCollide(True)
-      self.body_abdomen.GetCollisionModel().ClearModel()
-      self.body_abdomen.GetCollisionModel().AddEllipsoid(self.ant_material, self.abdomen_x, self.abdomen_y, self.abdomen_z, chrono.ChVectorD(0, 0, 0 ) )
-      self.body_abdomen.GetCollisionModel().BuildModel()
+      self.body_abdomen.GetCollisionModel().Clear()
+      body_abdomen_ct_shape = chrono.ChCollisionShapeEllipsoid(self.ant_material, self.abdomen_x, self.abdomen_y, self.abdomen_z)
+      self.body_abdomen.GetCollisionModel().AddShape(body_abdomen_ct_shape)
+      self.body_abdomen.GetCollisionModel().Build()
       self.ant_sys.Add(self.body_abdomen)
       
       
@@ -162,9 +163,10 @@ class Model(object):
              self.ant_sys.Add(self.ankle_motor[i])
              # Feet collisions
              self.ankle_body[i].SetCollide(True)
-             self.ankle_body[i].GetCollisionModel().ClearModel()
-             self.ankle_body[i].GetCollisionModel().AddSphere(self.ant_material, self.ankle_radius, chrono.ChVectorD(self.ankle_length/2, 0, 0 ) )
-             self.ankle_body[i].GetCollisionModel().BuildModel()
+             self.ankle_body[i].GetCollisionModel().Clear()
+             ankle_ct_shape = chrono.ChCollisionShapeSphere(self.ant_material, self.ankle_radius)
+             self.ankle_body[i].GetCollisionModel().AddShape(ankle_ct_shape, chrono.ChFrameD(chrono.ChVectorD(self.ankle_length/2, 0, 0), chrono.QUNIT))
+             self.ankle_body[i].GetCollisionModel().Build()
              self.ankle_body[i].AddVisualShape(self.ankle_shape)
              
              self.ankle_body[i].AddVisualShape(self.foot_shape)
@@ -185,9 +187,10 @@ class Model(object):
       self.body_floor.SetPos(chrono.ChVectorD(0, -1, 0 ))
       
       # Floor Collision.
-      self.body_floor.GetCollisionModel().ClearModel()
-      self.body_floor.GetCollisionModel().AddBox(self.ant_material, 50, 1, 50, chrono.ChVectorD(0, 0, 0 ))
-      self.body_floor.GetCollisionModel().BuildModel()
+      self.body_floor.GetCollisionModel().Clear()
+      body_floor_ct_shape = chrono.ChCollisionShapeBox(self.ant_material, 50, 1, 50)
+      self.body_floor.GetCollisionModel().AddShape(body_floor_ct_shape)
+      self.body_floor.GetCollisionModel().Build()
       self.body_floor.SetCollide(True)
 
     # Visualization shape

@@ -43,9 +43,10 @@ floor_mat = chrono.ChMaterialSurfaceNSC()
 
 
 # Define a collision shape
-floor.GetCollisionModel().ClearModel()
-floor.GetCollisionModel().AddBox(floor_mat, 10, 0.5, 10, chrono.ChVectorD(0, -1, 0))
-floor.GetCollisionModel().BuildModel()
+floor.GetCollisionModel().Clear()
+floor_ct_shape = chrono.ChCollisionShapeBox(floor_mat, 10, 0.5, 10)
+floor.GetCollisionModel().AddShape(floor_ct_shape, chrono.ChFrameD(chrono.ChVectorD(0, -1, 0), chrono.QUNIT))
+floor.GetCollisionModel().Build()
 floor.SetCollide(True)
 
 # Add body to sys
@@ -185,9 +186,10 @@ particles = chrono.ChParticleCloud()
 # This will be shared among all particles in the ChParticleCloud.
 particle_mat = chrono.ChMaterialSurfaceNSC()
 
-particles.GetCollisionModel().ClearModel()
-particles.GetCollisionModel().AddSphere(particle_mat, 0.05)
-particles.GetCollisionModel().BuildModel()
+particles.GetCollisionModel().Clear()
+particles_ct_shape = chrono.ChCollisionShapeSphere(particle_mat, 0.05)
+particles.GetCollisionModel().AddShape(particles_ct_shape)
+particles.GetCollisionModel().Build()
 particles.SetCollide(True)
 
 # Create the random particles
