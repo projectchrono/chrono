@@ -12,19 +12,11 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include <cstdio>
 #include <cstdlib>
 #include <cmath>
-#include <cfloat>
-#include <memory.h>
 
-#include "chrono/collision/ChCollisionUtils.h"
-#include "chrono/core/ChGlobal.h"
-#include "chrono/core/ChTransform.h"
-#include "chrono/geometry/ChBox.h"
-#include "chrono/geometry/ChSphere.h"
-#include "chrono/geometry/ChTriangle.h"
-#include "chrono/geometry/ChTriangleMeshConnected.h"
+#include "chrono/utils/ChUtilsGeometry.h"
+#include "chrono/core/ChMatrix33.h"
 
 namespace chrono {
 namespace utils {

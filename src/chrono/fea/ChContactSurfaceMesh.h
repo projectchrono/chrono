@@ -19,8 +19,8 @@
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
 #include "chrono/collision/ChCollisionModel.h"
-#include "chrono/collision/ChCollisionUtils.h"
 #include "chrono/physics/ChLoaderUV.h"
+#include "chrono/utils/ChUtilsGeometry.h"
 
 namespace chrono {
 namespace fea {

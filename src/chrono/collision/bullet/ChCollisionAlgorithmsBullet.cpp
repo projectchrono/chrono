@@ -16,7 +16,7 @@
 #include "chrono/collision/bullet/ChCollisionAlgorithmsBullet.h"
 #include "chrono/collision/bullet/ChCollisionModelBullet.h"
 #include "chrono/collision/bullet/ChCollisionUtilsBullet.h"
-#include "chrono/collision/ChCollisionUtils.h"
+#include "chrono/utils/ChUtilsGeometry.h"
 
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtSphereShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCylinderShape.h"
