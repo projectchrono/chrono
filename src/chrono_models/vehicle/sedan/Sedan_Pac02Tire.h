@@ -29,7 +29,7 @@ namespace chrono {
 namespace vehicle {
 namespace sedan {
 
-/// @addtogroup vehicle_models_feda
+/// @addtogroup vehicle_models_sedan
 /// @{
 
 /// MF tire model for the FEDA vehicle.
@@ -57,7 +57,7 @@ class CH_MODELS_API Sedan_Pac02Tire : public ChPac02Tire {
     std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
 };
 
-/// @} vehicle_models_hmmwv
+/// @} vehicle_models_sedan
 
 }  // namespace sedan
 }  // end namespace vehicle

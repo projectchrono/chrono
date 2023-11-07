@@ -100,7 +100,7 @@ class CH_MODELS_API U401_PushPipeAxle : public ChPushPipeAxle {
     static const double m_damperDegressivityCompression;
 };
 
-/// @} vehicle_models_uaz
+/// @} vehicle_models_unimog
 
 }  // namespace unimog
 }  // end namespace vehicle

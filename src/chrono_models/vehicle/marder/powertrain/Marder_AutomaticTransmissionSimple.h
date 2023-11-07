@@ -30,7 +30,7 @@ namespace chrono {
 namespace vehicle {
 namespace marder {
 
-/// @addtogroup vehicle_models_Marder
+/// @addtogroup vehicle_models_marder
 /// @{
 
 /// Marder automatic transmission model template based on a simple gear-shifting model.
@@ -49,9 +49,9 @@ class CH_MODELS_API Marder_AutomaticTransmissionSimple : public ChAutomaticTrans
         ) override;
 };
 
-/// @} vehicle_models_Marder
+/// @} vehicle_models_marder
 
-}  // end namespace Marder
+}  // end namespace marder
 }  // end namespace vehicle
 }  // end namespace chrono
 

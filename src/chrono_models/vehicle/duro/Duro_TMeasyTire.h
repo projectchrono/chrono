@@ -27,7 +27,7 @@ namespace chrono {
 namespace vehicle {
 namespace duro {
 
-/// @addtogroup vehicle_models_Duro
+/// @addtogroup vehicle_models_duro
 /// @{
 
 /// TMeasy tire model for the HMMWV.
@@ -58,7 +58,7 @@ class CH_MODELS_API Duro_TMeasyTire : public ChTMeasyTire {
     std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
 };
 
-/// @} vehicle_models_Duro
+/// @} vehicle_models_duro
 
 }  // namespace duro
 }  // end namespace vehicle

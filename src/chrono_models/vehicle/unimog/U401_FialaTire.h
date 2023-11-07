@@ -27,7 +27,7 @@ namespace chrono {
 namespace vehicle {
 namespace unimog {
 
-/// @addtogroup vehicle_models_U401unimgo
+/// @addtogroup vehicle_models_unimog
 /// @{
 
 /// Fiala tire model for the U401unimgo vehicle.
@@ -64,7 +64,7 @@ class CH_MODELS_API U401_FialaTire : public ChFialaTire {
     std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
 };
 
-/// @} vehicle_models_U401
+/// @} vehicle_models_unimog
 
 }  // end namespace unimog
 }  // end namespace vehicle

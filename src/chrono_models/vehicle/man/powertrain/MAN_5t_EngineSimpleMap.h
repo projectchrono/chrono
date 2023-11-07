@@ -30,7 +30,7 @@ namespace chrono {
 namespace vehicle {
 namespace man {
 
-/// @addtogroup vehicle_models_MAN_5t
+/// @addtogroup vehicle_models_man
 /// @{
 
 /// Simple MAN_5t powertrain subsystem (based on engine speed-torque maps).
@@ -49,7 +49,7 @@ class CH_MODELS_API MAN_5t_EngineSimpleMap : public ChEngineSimpleMap {
                                      ) override;
 };
 
-/// @} vehicle_models_MAN_5t
+/// @} vehicle_models_man
 
 }  // namespace man
 }  // end namespace vehicle

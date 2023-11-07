@@ -28,7 +28,7 @@ namespace chrono {
 namespace vehicle {
 namespace unimog {
 
-/// @addtogroup vehicle_models_U401
+/// @addtogroup vehicle_models_unimog
 /// @{
 
 /// TMeasy tire model for the U401.
@@ -59,7 +59,7 @@ class CH_MODELS_API U401_TMsimpleTire : public ChTMsimpleTire {
     std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
 };
 
-/// @} vehicle_models_U401
+/// @} vehicle_models_unimog
 
 }  // namespace unimog
 }  // end namespace vehicle

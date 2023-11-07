@@ -27,7 +27,7 @@ namespace chrono {
 namespace vehicle {
 namespace duro {
 
-/// @addtogroup vehicle_models_Duro
+/// @addtogroup vehicle_models_duro
 /// @{
 
 /// Rigid tire model for the Duro vehicle.
@@ -55,7 +55,7 @@ class CH_MODELS_API Duro_RigidTire : public ChRigidTire {
     std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
 };
 
-/// @} vehicle_models_Duro
+/// @} vehicle_models_duro
 
 }  // namespace duro
 }  // end namespace vehicle

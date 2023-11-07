@@ -28,10 +28,10 @@ namespace chrono {
 namespace vehicle {
 namespace hmmwv {
 
-/// @addtogroup vehicle_models_U401
+/// @addtogroup vehicle_models_hmmwv
 /// @{
 
-/// TMeasy tire model for the U401.
+/// TMeasy tire model for the HMMWV.
 class CH_MODELS_API HMMWV_TMsimpleTire : public ChTMsimpleTire {
    public:
     HMMWV_TMsimpleTire(const std::string& name);
@@ -59,7 +59,7 @@ class CH_MODELS_API HMMWV_TMsimpleTire : public ChTMsimpleTire {
     std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
 };
 
-/// @} vehicle_models_U401
+/// @} vehicle_models_hmmwv
 
 }  // namespace hmmwv
 }  // end namespace vehicle

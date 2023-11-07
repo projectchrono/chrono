@@ -28,7 +28,7 @@ namespace chrono {
 namespace vehicle {
 namespace fmtv {
 
-/// @addtogroup vehicle_models_FMTV
+/// @addtogroup vehicle_models_fmtv
 /// @{
 
 /// Shafts-based engine model for the FMTV vehicle.
@@ -50,7 +50,7 @@ class CH_MODELS_API FMTV_EngineShafts : public ChEngineShafts {
     static const double m_motorshaft_inertia;
 };
 
-/// @} vehicle_models_FMTV
+/// @} vehicle_models_fmtv
 
 }  // namespace fmtv
 }  // end namespace vehicle

@@ -31,7 +31,7 @@ namespace chrono {
 namespace vehicle {
 namespace unimog {
 
-/// @addtogroup vehicle_models_hmmwv
+/// @addtogroup vehicle_models_unimog
 /// @{
 
 /// HMMWV wheel (can be used on any axle, left or right).
@@ -52,7 +52,7 @@ class CH_MODELS_API U401_Wheel : public ChWheel {
     static const ChVector<> m_inertia;
 };
 
-/// @} vehicle_models_hmmwv
+/// @} vehicle_models_unimog
 
 }  // namespace unimog
 }  // end namespace vehicle

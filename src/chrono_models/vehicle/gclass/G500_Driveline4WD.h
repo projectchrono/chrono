@@ -27,7 +27,7 @@ namespace chrono {
 namespace vehicle {
 namespace gclass {
 
-/// @addtogroup vehicle_models_uaz
+/// @addtogroup vehicle_models_gclass
 /// @{
 
 /// Shafts-based 4-WD driveline for the UAZBUS vehicle.
@@ -67,9 +67,9 @@ class CH_MODELS_API G500_Driveline4WD : public ChShaftsDriveline4WD {
     static const double m_central_differential_locking_limit;
 };
 
-/// @} vehicle_models_uaz
+/// @} vehicle_models_gclass
 
-}  // end namespace uaz
+}  // end namespace gclass
 }  // end namespace vehicle
 }  // end namespace chrono
 

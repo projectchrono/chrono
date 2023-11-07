@@ -29,7 +29,7 @@ namespace chrono {
 namespace vehicle {
 namespace hmmwv {
 
-/// @addtogroup vehicle_models_feda
+/// @addtogroup vehicle_models_hmmwv
 /// @{
 
 /// MF tire model for the FEDA vehicle.
