@@ -3,7 +3,6 @@
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/collision/bullet/ChCollisionModelBullet.h"
 
-using namespace collision;
 %}
 
 // Forward ref

@@ -174,8 +174,8 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChNodeBase) 
 %shared_ptr(chrono::ChNodeXYZ) 
 
-%shared_ptr(chrono::collision::ChCollisionModel)
-%shared_ptr(chrono::collision::ChCollisionModelBullet)
+%shared_ptr(chrono::ChCollisionModel)
+%shared_ptr(chrono::ChCollisionModelBullet)
 
 %shared_ptr(chrono::ChLoad< chrono::fea::ChLoaderBeamWrench>)
 %shared_ptr(chrono::ChLoad< chrono::fea::ChLoaderBeamWrenchDistributed>)

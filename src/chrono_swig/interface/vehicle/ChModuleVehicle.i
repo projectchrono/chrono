@@ -199,10 +199,10 @@ using namespace chrono::vehicle::m113;
 %shared_ptr(chrono::ChBezierCurve)
 %shared_ptr(chrono::ChLinkMarkers)
 
-%shared_ptr(chrono::collision::ChCollisionModel)
-%shared_ptr(chrono::collision::ChCollisionModelBullet)
-%shared_ptr(chrono::collision::ChCollisionSystem::BroadphaseCallback)
-%shared_ptr(chrono::collision::ChCollisionSystem::NarrowphaseCallback)
+%shared_ptr(chrono::ChCollisionModel)
+%shared_ptr(chrono::ChCollisionModelBullet)
+%shared_ptr(chrono::ChCollisionSystem::BroadphaseCallback)
+%shared_ptr(chrono::ChCollisionSystem::NarrowphaseCallback)
 
 /*
 from this module: pay attention to inheritance in the model namespace (generic, sedan etc). 

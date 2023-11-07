@@ -1,6 +1,21 @@
 %{
 #include "chrono/assets/ChVisualShape.h"
-#include "chrono/assets/ChVisualShapes.h"
+#include "chrono/assets/ChVisualShapeModelFile.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/assets/ChVisualShapeEllipsoid.h"
+#include "chrono/assets/ChVisualShapeBarrel.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeCone.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeCapsule.h"
+#include "chrono/assets/ChVisualShapeRoundedCylinder.h"
+#include "chrono/assets/ChVisualShapeRoundedBox.h"
+#include "chrono/assets/ChVisualShapePath.h"
+#include "chrono/assets/ChVisualShapeLine.h"
+#include "chrono/assets/ChVisualShapePointPoint.h"
+#include "chrono/assets/ChVisualShapeSurface.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
 using namespace chrono;
 %}
@@ -32,9 +47,49 @@ class ChElementBase;
 %shared_ptr(chrono::ChVisualShapePath)
 %shared_ptr(chrono::ChVisualShapeLine)
 %shared_ptr(chrono::ChVisualShapePointPoint)
+%shared_ptr(chrono::ChVisualShapeRotSpring)
+%shared_ptr(chrono::ChVisualShapeSegment)
+%shared_ptr(chrono::ChVisualShapeSpring)
 %shared_ptr(chrono::ChVisualShapeSurface)
 
 
-%include "../../../chrono/assets/ChVisualShape.h"    
-%include "../../../chrono/assets/ChVisualShapes.h"    
+
+%include "../../../chrono/assets/ChVisualShape.h"
+%include "../../../chrono/assets/ChVisualShapeModelFile.h"
+%include "../../../chrono/assets/ChVisualShapeTriangleMesh.h"
+%include "../../../chrono/assets/ChVisualShapeSphere.h"
+%include "../../../chrono/assets/ChVisualShapeEllipsoid.h"
+%include "../../../chrono/assets/ChVisualShapeBarrel.h"
+%include "../../../chrono/assets/ChVisualShapeBox.h"
+%include "../../../chrono/assets/ChVisualShapeCone.h"
+%include "../../../chrono/assets/ChVisualShapeCylinder.h"
+%include "../../../chrono/assets/ChVisualShapeCapsule.h"
+%include "../../../chrono/assets/ChVisualShapeRoundedCylinder.h"
+%include "../../../chrono/assets/ChVisualShapeRoundedBox.h"
+%include "../../../chrono/assets/ChVisualShapePath.h"
+%include "../../../chrono/assets/ChVisualShapeLine.h"
+%include "../../../chrono/assets/ChVisualShapePointPoint.h"
+%include "../../../chrono/assets/ChVisualShapeSurface.h"
+%include "../../../chrono/assets/ChVisualShapeFEA.h"
+
+
+// C- DOWNCASTING OF SHARED POINTERS
+// see details in ChModuleCore.i
+
+// enable _automatic_ downcasting from ChVisualShape to derived classes (shared pointers versions)
+%downcast_output_sharedptr(chrono::ChVisualShape, chrono::ChVisualShapeModelFile, chrono::ChVisualShapeBox, chrono::ChVisualShapeSphere, chrono::ChVisualShapeCylinder)
+
+%DefSharedPtrDynamicDowncast(chrono, ChVisualShape, ChVisualShapeBox)
+%DefSharedPtrDynamicDowncast(chrono, ChVisualShape, ChVisualShapeModelFile)
+%DefSharedPtrDynamicDowncast(chrono, ChVisualShape, ChVisualShapeSphere)
+%DefSharedPtrDynamicDowncast(chrono, ChVisualShape, ChVisualShapeCylinder)
+%DefSharedPtrDynamicDowncast(chrono, ChVisualShape, ChVisualShapeLine)
+%DefSharedPtrDynamicDowncast(chrono, ChVisualShape, ChVisualShapeSurface)
+%DefSharedPtrDynamicDowncast(chrono, ChVisualShape, ChVisualShapePath)
+%DefSharedPtrDynamicDowncast(chrono, ChVisualShape, ChVisualShapeTriangleMesh)
+%DefSharedPtrDynamicDowncast(chrono, ChVisualShape, ChVisualShapeEllipsoid)
+%DefSharedPtrDynamicDowncast(chrono, ChVisualShape, ChVisualShapePointPoint)
+%DefSharedPtrDynamicDowncast(chrono, ChVisualShape, ChVisualShapeSegment)
+%DefSharedPtrDynamicDowncast(chrono, ChVisualShape, ChVisualShapeSpring)
+%DefSharedPtrDynamicDowncast(chrono, ChVisualShape, ChVisualShapeRotSpring)
 

@@ -113,7 +113,7 @@ def AddContainer(sys):
     hsize = chrono.ChVectorD(5, 2.75, 0.5)
 
     rotatingBody.GetCollisionModel().Clear()
-    rotatingBody_ct_shape = chrono.ChCollisionBox(rot_mat, hsize.x, hsize.y, hsize.z)
+    rotatingBody_ct_shape = chrono.ChCollisionShapeBox(rot_mat, hsize.x, hsize.y, hsize.z)
     rotatingBody.GetCollisionModel().AddShape(rotatingBody_ct_shape)
     rotatingBody.GetCollisionModel().Build()
 

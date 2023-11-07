@@ -19,7 +19,8 @@
 #include "chrono/collision/chrono/ChNarrowphase.h"
 #include "chrono/collision/chrono/ChRayTest.h"
 
-using namespace collision;
+
+using namespace ch_utils;
 #endif
 %}
 
@@ -30,7 +31,7 @@ using namespace collision;
 #ifdef CHRONO_COLLISION
 
 /* Enable shared pointers */
-%shared_ptr(chrono::collision::ChCollisionModelChrono)
+%shared_ptr(chrono::ChCollisionModelChrono)
 
 /* Parse the header files to generate wrappers */
 %include "../../../chrono/multicore_math/matrix.h"
