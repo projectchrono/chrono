@@ -20,6 +20,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_collision
+/// @{
+
 /// Collision rounded-box shape.
 class ChApi ChCollisionShapeRoundedBox : public ChCollisionShape {
   public:
@@ -56,6 +59,8 @@ class ChApi ChCollisionShapeRoundedBox : public ChCollisionShape {
     geometry::ChBox gbox;
     double radius;
 };
+
+/// @} chrono_collision
 
 }  // end namespace chrono
 

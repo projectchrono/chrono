@@ -20,6 +20,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_collision
+/// @{
+
 /// Collision barrel shape.
 /// When added to a collision model, the shape is aligned with its main axis in the Y direction of the shape frame.
 /// The barrel shape is made by lathing an arc of an ellipse around the vertical Y axis. The center of the ellipse is on
@@ -51,6 +54,8 @@ class ChApi ChCollisionShapeBarrel : public ChCollisionShape {
     double axis_hor;
     double R_offset;
 };
+
+/// @} chrono_collision
 
 }  // end namespace chrono
 

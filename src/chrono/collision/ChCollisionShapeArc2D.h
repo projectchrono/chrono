@@ -20,6 +20,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_collision
+/// @{
+
 /// Collision 2D arc shape.
 /// This is a low-level collsion shape that is automatically generated when adding a ChCollisionShapePath2D.
 class ChApi ChCollisionShapeArc2D : public ChCollisionShape {
@@ -39,6 +42,8 @@ class ChApi ChCollisionShapeArc2D : public ChCollisionShape {
     geometry::ChLineArc garc;
     double radius;
 };
+
+/// @} chrono_collision
 
 }  // end namespace chrono
 

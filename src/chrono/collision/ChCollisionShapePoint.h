@@ -20,6 +20,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_collision
+/// @{
+
 /// Collision point shape.
 class ChApi ChCollisionShapePoint : public ChCollisionShape {
   public:
@@ -44,6 +47,8 @@ class ChApi ChCollisionShapePoint : public ChCollisionShape {
     ChVector<> point;
     double radius;
 };
+
+/// @} chrono_collision
 
 }  // end namespace chrono
 

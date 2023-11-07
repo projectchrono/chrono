@@ -20,6 +20,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_collision
+/// @{
+
 /// Collision cone shape.
 /// When added to a collision model, the cone is defined with its axis along the Z direction of the shape frame.
 class ChApi ChCollisionShapeCone : public ChCollisionShape {
@@ -48,6 +51,8 @@ class ChApi ChCollisionShapeCone : public ChCollisionShape {
   private:
     geometry::ChCone gcone;
 };
+
+/// @} chrono_collision
 
 }  // end namespace chrono
 

@@ -20,6 +20,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_collision
+/// @{
+
 /// Collision ellipsoid shape.
 class ChApi ChCollisionShapeEllipsoid : public ChCollisionShape {
   public:
@@ -48,6 +51,8 @@ class ChApi ChCollisionShapeEllipsoid : public ChCollisionShape {
   private:
     geometry::ChEllipsoid gellipsoid;
 };
+
+/// @} chrono_collision
 
 }  // end namespace chrono
 

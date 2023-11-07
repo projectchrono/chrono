@@ -22,6 +22,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_collision
+/// @{
+
 /// Collision mesh shape.
 class ChApi ChCollisionShapeTriangleMesh : public ChCollisionShape {
   public:
@@ -60,6 +63,8 @@ class ChApi ChCollisionShapeTriangleMesh : public ChCollisionShape {
     bool is_convex;
     double radius;
 };
+
+/// @} chrono_collision
 
 }  // end namespace chrono
 

@@ -20,6 +20,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_collision
+/// @{
+
 /// Collision triangle shape.
 class ChApi ChCollisionShapeTriangle : public ChCollisionShape {
   public:
@@ -44,6 +47,8 @@ class ChApi ChCollisionShapeTriangle : public ChCollisionShape {
   private:
     geometry::ChTriangle gtriangle;
 };
+
+/// @} chrono_collision
 
 }  // end namespace chrono
 

@@ -20,6 +20,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_collision
+/// @{
+
 /// Collision 2D path shape.
 /// When added to a collision model, the path is defined in the XY plane of the shape frame.
 /// This shape defines a 2D collision shape that will collide with another 2D line of the same type if aligned on the
@@ -54,6 +57,8 @@ class ChApi ChCollisionShapePath2D : public ChCollisionShape {
     std::shared_ptr<geometry::ChLinePath> gpath;
     double radius;
 };
+
+/// @} chrono_collision
 
 }  // end namespace chrono
 

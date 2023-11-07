@@ -42,7 +42,7 @@
         @defgroup chrono_functions Function objects
         @defgroup chrono_particles Particle factory
         @defgroup chrono_serialization Serialization
-        @defgroup chrono_mc_math Multicore types and math
+        @defgroup chrono_mc_math Multicore math
         @defgroup chrono_utils Utility classes
     @}
 */

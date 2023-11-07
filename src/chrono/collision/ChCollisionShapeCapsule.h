@@ -20,6 +20,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_collision
+/// @{
+
 /// Collision capsule shape.
 /// When added to a collision model, the capsule is defined with its axis along the Z direction of the shape frame.
 class ChApi ChCollisionShapeCapsule : public ChCollisionShape {
@@ -51,6 +54,8 @@ class ChApi ChCollisionShapeCapsule : public ChCollisionShape {
   private:
     geometry::ChCapsule gcapsule;
 };
+
+/// @} chrono_collision
 
 }  // end namespace chrono
 

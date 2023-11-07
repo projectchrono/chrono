@@ -20,6 +20,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_collision
+/// @{
+
 /// Collision cylinder shape.
 /// When added to a collision model, the cylinder is defined with its axis along the Z direction of the shape frame.
 class ChApi ChCollisionShapeCylinder : public ChCollisionShape {
@@ -48,6 +51,8 @@ class ChApi ChCollisionShapeCylinder : public ChCollisionShape {
   private:
     geometry::ChCylinder gcylinder;
 };
+
+/// @} chrono_collision
 
 }  // end namespace chrono
 

@@ -30,7 +30,6 @@ class ChVariablesBody;
 class ChContactContainer;
 class ChProximityContainer;
 
-
 /// @addtogroup chrono_collision
 /// @{
 

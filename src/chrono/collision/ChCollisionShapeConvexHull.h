@@ -22,6 +22,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_collision
+/// @{
+
 /// Collision convex hull shape.
 /// A convex hull is simply a point cloud that describe a convex polytope. Connectivity between the vertexes, as
 /// faces/edges in triangle meshes is not necessary. Points are passed as a list which is then copied into the model.
@@ -51,6 +54,8 @@ class ChApi ChCollisionShapeConvexHull : public ChCollisionShape {
   private:
     std::vector<ChVector<>> points;
 };
+
+/// @} chrono_collision
 
 }  // end namespace chrono
 
