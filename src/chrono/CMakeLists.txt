@@ -712,7 +712,6 @@ set(ChronoEngine_collision_SOURCES
     collision/ChCollisionInfo.cpp
     collision/ChCollisionModel.cpp
     collision/ChConvexDecomposition.cpp
-    collision/ChCollisionUtils.cpp
     collision/ChCollisionShape.cpp
     collision/ChCollisionShapeArc2D.cpp
     collision/ChCollisionShapeBarrel.cpp
@@ -739,7 +738,6 @@ set(ChronoEngine_collision_HEADERS
     collision/ChCollisionPair.h
     collision/ChCollisionSystem.h
     collision/ChConvexDecomposition.h
-    collision/ChCollisionUtils.h
     collision/ChCollisionShapes.h
     collision/ChCollisionShape.h
     collision/ChCollisionShapeArc2D.h
@@ -1265,6 +1263,7 @@ source_group(solver\\constraints FILES
 # Utility group
 
 set(ChronoEngine_utils_SOURCES
+    utils/ChUtilsGeometry.cpp
     utils/ChUtilsCreators.cpp
     utils/ChUtilsGenerators.cpp
     utils/ChUtilsInputOutput.cpp

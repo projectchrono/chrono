@@ -23,8 +23,8 @@
         @defgroup chrono_geometry Geometric objects
         @defgroup chrono_collision Collision detection
         @{
-           @defgroup collision_bullet Bullet-based collision detection
-           @defgroup collision_mc Custom multicore collision detection
+           @defgroup collision_bullet Bullet collision detection
+           @defgroup collision_mc Multicore collision detection
         @}
         @defgroup chrono_fea Finite Element Analysis
         @{
