@@ -38,7 +38,6 @@
 
 // Use the namespaces of Chrono
 using namespace chrono;
-using namespace chrono::collision;
 using namespace chrono::irrlicht;
 
 ChCollisionSystemType collision_type = ChCollisionSystemType::BULLET;

@@ -51,7 +51,6 @@
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
-using namespace chrono::collision;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
 

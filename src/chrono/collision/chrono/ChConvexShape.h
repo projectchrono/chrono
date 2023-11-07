@@ -21,7 +21,6 @@
 #include "chrono/collision/chrono/ChCollisionData.h"
 
 namespace chrono {
-namespace collision {
 
 /// @addtogroup collision_mc
 /// @{
@@ -132,5 +131,4 @@ class ConvexShapeTriangle : public ConvexBase {
 
 /// @} collision_mc
 
-}  // end namespace collision
 }  // end namespace chrono

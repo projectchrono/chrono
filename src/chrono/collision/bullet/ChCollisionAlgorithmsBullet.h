@@ -21,7 +21,6 @@
 #include "chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtEmptyCollisionAlgorithm.h"
 
 namespace chrono {
-namespace collision {
 
 /// @addtogroup collision_bullet
 /// @{
@@ -249,7 +248,6 @@ class cbtCEtriangleShapeCollisionAlgorithm : public cbtActivatingCollisionAlgori
 
 /// @} collision_bullet
 
-}  // namespace collision
 }  // namespace chrono
 
 #endif

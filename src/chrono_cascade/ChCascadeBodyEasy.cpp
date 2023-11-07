@@ -12,7 +12,6 @@
 
 #include "chrono_cascade/ChCascadeBodyEasy.h"
 
-using namespace chrono::collision;
 
 namespace chrono {
 namespace cascade {

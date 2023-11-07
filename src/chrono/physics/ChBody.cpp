@@ -29,7 +29,6 @@
 
 namespace chrono {
 
-using namespace collision;
 using namespace geometry;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
@@ -40,7 +39,7 @@ CH_UPCASTING_SANITIZED(ChBody, ChContactable_1vars<6>, ChBody_ChContactable_1var
 CH_UPCASTING(ChBody, ChLoadableUVW)
 
 
-ChBody::ChBody(collision::ChCollisionSystemType collision_type) {
+ChBody::ChBody(ChCollisionSystemType collision_type) {
     marklist.clear();
     forcelist.clear();
 
@@ -86,7 +85,7 @@ ChBody::ChBody(collision::ChCollisionSystemType collision_type) {
     body_id = 0;
 }
 
-ChBody::ChBody(std::shared_ptr<collision::ChCollisionModel> new_collision_model) {
+ChBody::ChBody(std::shared_ptr<ChCollisionModel> new_collision_model) {
     marklist.clear();
     forcelist.clear();
 
@@ -788,7 +787,7 @@ bool ChBody::GetCollide() const {
     return BFlagGet(BodyFlag::COLLIDE);
 }
 
-void ChBody::SetCollisionModel(std::shared_ptr<collision::ChCollisionModel> new_collision_model) {
+void ChBody::SetCollisionModel(std::shared_ptr<ChCollisionModel> new_collision_model) {
     if (collision_model) {
         if (system)
             system->GetCollisionSystem()->Remove(collision_model.get());

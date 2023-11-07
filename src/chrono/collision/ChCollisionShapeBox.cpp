@@ -15,7 +15,6 @@
 #include "chrono/collision/ChCollisionShapeBox.h"
 
 namespace chrono {
-namespace collision {
 
 ChCollisionShapeBox::ChCollisionShapeBox(): ChCollisionShape(Type::BOX) {}
 
@@ -53,5 +52,4 @@ void ChCollisionShapeBox::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(gbox);
 }
 
-}  // end namespace collision
 }  // end namespace chrono

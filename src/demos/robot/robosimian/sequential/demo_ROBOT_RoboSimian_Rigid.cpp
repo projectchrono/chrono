@@ -31,7 +31,6 @@
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
-using namespace chrono::collision;
 
 double time_step = 5e-4;
 

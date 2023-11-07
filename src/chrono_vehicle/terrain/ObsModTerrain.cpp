@@ -27,7 +27,6 @@
 #include "chrono_vehicle/terrain/ObsModTerrain.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 
-using namespace chrono::collision;
 
 namespace chrono {
 namespace vehicle {

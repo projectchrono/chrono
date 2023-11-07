@@ -27,7 +27,6 @@
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCEtriangleShape.h"
 
 namespace chrono {
-namespace collision {
 
 // ================================================================================================
 
@@ -1564,5 +1563,4 @@ cbtCollisionAlgorithm* cbtCEtriangleShapeCollisionAlgorithm::CreateFunc::CreateC
     }
 }
 
-}  // namespace collision
 }  // namespace chrono

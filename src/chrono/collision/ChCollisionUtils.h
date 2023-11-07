@@ -19,12 +19,6 @@
 #include "chrono/physics/ChBody.h"
 
 namespace chrono {
-namespace collision {
-
-/// @addtogroup chrono_collision
-/// @{
-
-/// Collision detection utility functions
 namespace utils {
 
 /// Calculate the line segment PaPb that is the shortest route between
@@ -70,10 +64,6 @@ ChApi bool DegenerateTriangle(const ChVector<>& Dx, const ChVector<>& Dy);
 ChApi bool DegenerateTriangle(const ChVector<>& v1, const ChVector<>& v2, const ChVector<>& v3);
 
 }  // end namespace utils
-
-/// @} chrono_collision
-
-}  // end namespace collision
 }  // end namespace chrono
 
 #endif

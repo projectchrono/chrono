@@ -51,7 +51,6 @@
 #include <functional>
 
 using namespace chrono;
-using namespace chrono::collision;
 using namespace chrono::geometry;
 using namespace chrono::fea;
 using namespace chrono::irrlicht;

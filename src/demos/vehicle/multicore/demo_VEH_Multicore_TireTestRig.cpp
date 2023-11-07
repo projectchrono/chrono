@@ -28,7 +28,6 @@
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChTireTestRig.h"
 
 using namespace chrono;
-using namespace chrono::collision;
 using namespace chrono::vehicle;
 
 int main() {

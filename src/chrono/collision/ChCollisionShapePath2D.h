@@ -19,7 +19,6 @@
 #include "chrono/geometry/ChLinePath.h"
 
 namespace chrono {
-namespace collision {
 
 /// Collision 2D path shape.
 /// When added to a collision model, the path is defined in the XY plane of the shape frame.
@@ -56,7 +55,6 @@ class ChApi ChCollisionShapePath2D : public ChCollisionShape {
     double radius;
 };
 
-}  // end namespace collision
 }  // end namespace chrono
 
 #endif

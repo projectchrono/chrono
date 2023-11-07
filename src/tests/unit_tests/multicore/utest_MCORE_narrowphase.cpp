@@ -32,7 +32,6 @@
 #endif
 
 using namespace chrono;
-using namespace chrono::collision;
 
 // -----------------------------------------------------------------------------
 // Global problem definitions

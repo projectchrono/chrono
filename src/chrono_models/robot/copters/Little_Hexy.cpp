@@ -48,11 +48,11 @@ void Little_Hexy::AddVisualizationAssets() {
 void Little_Hexy::AddCollisionShapes(std::shared_ptr<ChMaterialSurface> material) {
     chassis->GetCollisionModel()->Clear();
     // Legs and body boundary box
-    auto box = chrono_types::make_shared<collision::ChCollisionShapeBox>(material, 0.558, 0.558, 0.92);
+    auto box = chrono_types::make_shared<ChCollisionShapeBox>(material, 0.558, 0.558, 0.92);
     chassis->GetCollisionModel()->AddShape(box);
     // Arms and propellers boundary cylinder
     // propeller arm + propeller radius
-    auto cyl = chrono_types::make_shared<collision::ChCollisionShapeCylinder>(material, 0.762 + 0.6718 / 2, 0.2);
+    auto cyl = chrono_types::make_shared<ChCollisionShapeCylinder>(material, 0.762 + 0.6718 / 2, 0.2);
     chassis->GetCollisionModel()->AddShape(cyl, ChFrame<>(ChVector<>(0, 0, 0.2783), Q_ROTATE_Y_TO_Z));
     chassis->GetCollisionModel()->Build();
     chassis->SetCollide(true);

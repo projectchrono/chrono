@@ -16,7 +16,6 @@
 #include "chrono_distributed/collision/ChCollisionModelDistributed.h"
 
 using namespace chrono;
-using namespace collision;
 
 ChCollisionModelDistributed::ChCollisionModelDistributed() {
     aabb_valid = false;

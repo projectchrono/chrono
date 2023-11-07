@@ -39,7 +39,6 @@
 
 #include "chrono_thirdparty/stb/stb.h"
 
-using namespace chrono::collision;
 
 namespace chrono {
 namespace vehicle {

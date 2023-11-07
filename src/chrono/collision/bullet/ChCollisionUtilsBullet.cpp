@@ -16,7 +16,6 @@
 #include "chrono/collision/bullet/LinearMath/cbtConvexHull.h"
 
 namespace chrono {
-namespace collision {
 namespace bt_utils {
 
 // -----------------------------------------------------------------------------
@@ -358,5 +357,4 @@ void ChConvexHullLibraryWrapper::ComputeHull(const std::vector<ChVector<> >& poi
 }
 
 }  // namespace bt_utils
-}  // namespace collision
 }  // namespace chrono

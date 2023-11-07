@@ -34,7 +34,6 @@
 //#define BULLET
 
 using namespace chrono;
-using namespace chrono::collision;
 
 void CreateContainer(ChSystemMulticore* system) {
     auto mat_walls = chrono_types::make_shared<ChMaterialSurfaceNSC>();

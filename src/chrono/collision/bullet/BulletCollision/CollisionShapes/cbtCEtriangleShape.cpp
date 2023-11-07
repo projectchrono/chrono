@@ -124,7 +124,7 @@ void cbtCEtriangleShape::getAabb(const cbtTransform& t, cbtVector3& aabbMin, cbt
     cbtVector3 p3_w = t.getOrigin() + t.getBasis() * cbtVector3((cbtScalar)this->p3->x(), (cbtScalar)this->p3->y(),
                                                                 (cbtScalar)this->p3->z());
 
-    collision::ChCollisionModelBullet* triModel = (collision::ChCollisionModelBullet*)this->getUserPointer();
+    ChCollisionModelBullet* triModel = (ChCollisionModelBullet*)this->getUserPointer();
 
     cbtVector3 venvelope(triModel->GetEnvelope(), triModel->GetEnvelope(), triModel->GetEnvelope());
     cbtVector3 vsphereswept((cbtScalar)this->sphereswept_rad, (cbtScalar)this->sphereswept_rad,

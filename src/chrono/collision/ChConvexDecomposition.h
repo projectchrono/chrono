@@ -22,7 +22,6 @@
 #include "chrono_thirdparty/HACDv2/HACD.h"
 
 namespace chrono {
-namespace collision {
 
 /// @addtogroup chrono_collision
 /// @{
@@ -210,7 +209,6 @@ class ChApi ChConvexDecompositionHACDv2 : public ChConvexDecomposition {
 
 /// @} chrono_collision
 
-}  // end namespace collision
 }  // end namespace chrono
 
 #endif

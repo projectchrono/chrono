@@ -38,7 +38,6 @@ using namespace chrono::vsg3d;
 #endif
 
 using namespace chrono;
-using namespace chrono::collision;
 
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 

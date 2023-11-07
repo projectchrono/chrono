@@ -29,7 +29,6 @@
 
 // Use the namespaces of Chrono
 using namespace chrono;
-using namespace chrono::collision;
 using namespace chrono::irrlicht;
 
 std::shared_ptr<ChBody> create_wheel(ChVector<> mposition, ChSystem& sys) {

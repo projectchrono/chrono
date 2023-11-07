@@ -23,7 +23,6 @@
 #include "chrono_multicore/ChDataManager.h"
 
 namespace chrono {
-namespace collision {
 
 ChCollisionSystemDistributed::ChCollisionSystemDistributed(ChMulticoreDataManager* dm, ChDistributedDataManager* ddm)
     : ChCollisionSystemChronoMulticore(dm) {
@@ -351,33 +350,33 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
 //             short2 fam = S2(pmodel->GetFamilyGroup(), pmodel->GetFamilyMask());
 //
 //             switch (pmodel->mData[i].type) {
-//                 case chrono::collision::SPHERE:
+//                 case chrono::SPHERE:
 //                     dm->shape_data.sphere_rigid[start] = obB.x;
 //                     break;
-//                 case chrono::collision::TRIANGLEMESH:  // NOTE: There is space for all 3
+//                 case chrono::TRIANGLEMESH:  // NOTE: There is space for all 3
 //                     dm->shape_data.triangle_rigid[start] = obA;
 //                     dm->shape_data.triangle_rigid[start + 1] = obB;
 //                     dm->shape_data.triangle_rigid[start + 2] = obC;
 //                     break;
-//                 case chrono::collision::ELLIPSOID:
+//                 case chrono::ELLIPSOID:
 //                     dm->shape_data.box_like_rigid[start] = obB;
 //                     break;
-//                 case chrono::collision::BOX:
+//                 case chrono::BOX:
 //                     dm->shape_data.box_like_rigid[start] = obB;
 //                     break;
-//                 case chrono::collision::CYLINDER:
+//                 case chrono::CYLINDER:
 //                     dm->shape_data.box_like_rigid[start] = obB;
 //                     break;
-//                 case chrono::collision::CONE:
+//                 case chrono::CONE:
 //                     dm->shape_data.box_like_rigid[start] = obB;
 //                     break;
-//                 case chrono::collision::CAPSULE:
+//                 case chrono::CAPSULE:
 //                     dm->shape_data.capsule_rigid[start] = real2(obB.x, obB.y);
 //                     break;
-//                 case chrono::collision::ROUNDEDBOX:
+//                 case chrono::ROUNDEDBOX:
 //                     dm->shape_data.rbox_like_rigid[start] = real4(obB, obC.x);
 //                     break;
-//                 case chrono::collision::ROUNDEDCYL:
+//                 case chrono::ROUNDEDCYL:
 //                     dm->shape_data.rbox_like_rigid[start] = real4(obB, obC.x);
 //                     break;
 //                 default:
@@ -499,5 +498,5 @@ void ChCollisionSystemDistributed::GetOverlappingAABB(custom_vector<char>& activ
     }
 }
 
-} /* namespace collision */
-} /* namespace chrono */
+} // end namespace chrono
+

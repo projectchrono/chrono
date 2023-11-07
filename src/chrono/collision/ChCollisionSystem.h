@@ -30,7 +30,6 @@ class ChVariablesBody;
 class ChContactContainer;
 class ChProximityContainer;
 
-namespace collision {
 
 /// @addtogroup chrono_collision
 /// @{
@@ -226,9 +225,8 @@ class ChApi ChCollisionSystem {
 
 /// @} chrono_collision
 
-}  // end namespace collision
 
-CH_CLASS_VERSION(collision::ChCollisionSystem, 0)
+CH_CLASS_VERSION(ChCollisionSystem, 0)
 
 }  // end namespace chrono
 

@@ -15,7 +15,6 @@
 #include "chrono/collision/ChCollisionShapePoint.h"
 
 namespace chrono {
-namespace collision {
 
 ChCollisionShapePoint::ChCollisionShapePoint() : ChCollisionShape(Type::POINT), radius(0.01) {}
 
@@ -47,5 +46,4 @@ void ChCollisionShapePoint::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(radius);
 }
 
-}  // end namespace collision
 }  // end namespace chrono

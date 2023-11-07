@@ -24,7 +24,6 @@
 extern cbtScalar gContactBreakingThreshold;
 
 namespace chrono {
-namespace collision {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
@@ -431,5 +430,4 @@ void ChCollisionSystemBullet::Visualize(int flags) {
     bt_collision_world->debugDrawWorld();
 }
 
-}  // end namespace collision
 }  // end namespace chrono

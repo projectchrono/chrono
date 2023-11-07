@@ -40,7 +40,6 @@ namespace chrono {
 namespace vehicle {
 
 using namespace chrono::geometry;
-using namespace chrono::collision;
 using namespace Eigen;
 
 RandomSurfaceTerrain::RandomSurfaceTerrain(ChSystem* system, double length, double width, double height, float friction)

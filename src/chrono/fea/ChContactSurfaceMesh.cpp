@@ -36,7 +36,6 @@
 #include <array>
 #include <algorithm>
 
-using namespace chrono::collision;
 
 namespace chrono {
 namespace fea {
@@ -175,7 +174,7 @@ void ChContactTriangleXYZ::ContactForceLoadQ(const ChVector<>& F,
     double s2, s3;
     bool is_into;
     ChVector<> p_projected;
-    /*double dist =*/collision::utils::PointTriangleDistance(point, A1, A2, A3, s2, s3, is_into, p_projected);
+    /*double dist =*/utils::PointTriangleDistance(point, A1, A2, A3, s2, s3, is_into, p_projected);
     double s1 = 1 - s2 - s3;
     Q.segment(offset + 0, 3) = F.eigen() * s1;
     Q.segment(offset + 3, 3) = F.eigen() * s2;
@@ -192,7 +191,7 @@ void ChContactTriangleXYZ::ComputeJacobianForContactPart(const ChVector<>& abs_p
     double s2, s3;
     bool is_into;
     ChVector<> p_projected;
-    /*double dist =*/collision::utils::PointTriangleDistance(abs_point, GetNode(0)->pos, GetNode(1)->pos,
+    /*double dist =*/utils::PointTriangleDistance(abs_point, GetNode(0)->pos, GetNode(1)->pos,
                                                              GetNode(2)->pos, s2, s3, is_into, p_projected);
     double s1 = 1 - s2 - s3;
 
@@ -278,7 +277,7 @@ ChVector<> ChContactTriangleXYZ::ComputeNormal(const double U, const double V) {
 void ChContactTriangleXYZ::ComputeUVfromP(const ChVector<> P, double& u, double& v) {
     bool is_into;
     ChVector<> p_projected;
-    /*double dist =*/collision::utils::PointTriangleDistance(P, m_nodes[0]->pos, m_nodes[1]->pos, m_nodes[2]->pos, u, v,
+    /*double dist =*/utils::PointTriangleDistance(P, m_nodes[0]->pos, m_nodes[1]->pos, m_nodes[2]->pos, u, v,
                                                              is_into, p_projected);
 }
 
@@ -437,7 +436,7 @@ void ChContactTriangleXYZROT::ContactForceLoadQ(const ChVector<>& F,
     double s2, s3;
     bool is_into;
     ChVector<> p_projected;
-    /*double dist =*/collision::utils::PointTriangleDistance(point, A1, A2, A3, s2, s3, is_into, p_projected);
+    /*double dist =*/utils::PointTriangleDistance(point, A1, A2, A3, s2, s3, is_into, p_projected);
     double s1 = 1 - s2 - s3;
     Q.segment(offset + 0, 3) = F.eigen() * s1;
     Q.segment(offset + 6, 3) = F.eigen() * s2;
@@ -454,7 +453,7 @@ void ChContactTriangleXYZROT::ComputeJacobianForContactPart(const ChVector<>& ab
     double s2, s3;
     bool is_into;
     ChVector<> p_projected;
-    /*double dist =*/collision::utils::PointTriangleDistance(abs_point, GetNode(0)->coord.pos, GetNode(1)->coord.pos,
+    /*double dist =*/utils::PointTriangleDistance(abs_point, GetNode(0)->coord.pos, GetNode(1)->coord.pos,
                                                              GetNode(2)->coord.pos, s2, s3, is_into, p_projected);
     double s1 = 1 - s2 - s3;
 
@@ -545,7 +544,7 @@ ChVector<> ChContactTriangleXYZROT::ComputeNormal(const double U, const double V
 void ChContactTriangleXYZROT::ComputeUVfromP(const ChVector<> P, double& u, double& v) {
     bool is_into;
     ChVector<> p_projected;
-    /*double dist =*/collision::utils::PointTriangleDistance(P, m_nodes[0]->GetPos(), m_nodes[1]->GetPos(),
+    /*double dist =*/utils::PointTriangleDistance(P, m_nodes[0]->GetPos(), m_nodes[1]->GetPos(),
                                                              m_nodes[2]->GetPos(), u, v, is_into, p_projected);
 }
 

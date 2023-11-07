@@ -35,7 +35,6 @@ namespace chrono {
 // forward references
 class ChPhysicsItem;
 
-namespace collision {
 
 /// @addtogroup chrono_collision
 /// @{
@@ -261,9 +260,8 @@ class ChApi ChCollisionModel {
 
 /// @} chrono_collision
 
-}  // end namespace collision
 
-CH_CLASS_VERSION(collision::ChCollisionModel, 0)
+CH_CLASS_VERSION(ChCollisionModel, 0)
 
 }  // end namespace chrono
 

@@ -18,7 +18,6 @@
 #include "chrono/geometry/ChLineSegment.h"
 
 namespace chrono {
-namespace collision {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 // CH_FACTORY_REGISTER(ChCollisionModel)  // NO! Abstract class!
@@ -251,5 +250,4 @@ void ChCollisionModel::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(model_safe_margin);
 }
 
-}  // end namespace collision
 }  // end namespace chrono

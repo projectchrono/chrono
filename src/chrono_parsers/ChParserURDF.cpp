@@ -39,7 +39,6 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-using namespace chrono::collision;
 
 namespace chrono {
 namespace parsers {

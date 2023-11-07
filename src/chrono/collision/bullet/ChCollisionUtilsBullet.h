@@ -24,7 +24,6 @@
 #include "chrono/collision/bullet/LinearMath/cbtMinMax.h"
 
 namespace chrono {
-namespace collision {
 
 /// @addtogroup collision_bullet
 /// @{
@@ -127,7 +126,6 @@ class ChApi ChConvexHullLibraryWrapper {
 
 /// @} collision_bullet
 
-}  // namespace collision
 }  // namespace chrono
 
 #endif

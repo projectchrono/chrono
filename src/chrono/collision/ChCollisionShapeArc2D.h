@@ -19,7 +19,6 @@
 #include "chrono/geometry/ChLineArc.h"
 
 namespace chrono {
-namespace collision {
 
 /// Collision 2D arc shape.
 /// This is a low-level collsion shape that is automatically generated when adding a ChCollisionShapePath2D.
@@ -41,7 +40,6 @@ class ChApi ChCollisionShapeArc2D : public ChCollisionShape {
     double radius;
 };
 
-}  // end namespace collision
 }  // end namespace chrono
 
 #endif

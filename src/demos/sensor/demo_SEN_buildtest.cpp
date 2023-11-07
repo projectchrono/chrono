@@ -50,7 +50,6 @@
 
 using namespace chrono;
 using namespace chrono::geometry;
-using namespace chrono::collision;
 using namespace chrono::sensor;
 
 int num_cameras = 2 - 1;

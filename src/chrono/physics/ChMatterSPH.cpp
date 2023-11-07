@@ -23,7 +23,6 @@
 
 namespace chrono {
 
-using namespace collision;
 using namespace geometry;
 
 // -----------------------------------------------------------------------------
@@ -48,7 +47,7 @@ ChNodeSPH::~ChNodeSPH() {
 ChNodeSPH::ChNodeSPH(const ChNodeSPH& other) : ChNodeXYZ(other) {
     collision_model = new ChCollisionModelBullet;
     collision_model->SetContactable(this);
-    auto cshape = chrono_types::make_shared<collision::ChCollisionShapePoint>(other.container->GetMaterialSurface(),
+    auto cshape = chrono_types::make_shared<ChCollisionShapePoint>(other.container->GetMaterialSurface(),
                                                                               VNULL, other.coll_rad);
     collision_model->AddShape(cshape);
 
@@ -71,7 +70,7 @@ ChNodeSPH& ChNodeSPH::operator=(const ChNodeSPH& other) {
     ChNodeXYZ::operator=(other);
 
     collision_model->Clear();
-    auto cshape = chrono_types::make_shared<collision::ChCollisionShapePoint>(other.container->GetMaterialSurface(),
+    auto cshape = chrono_types::make_shared<ChCollisionShapePoint>(other.container->GetMaterialSurface(),
                                                                               VNULL, other.coll_rad);
     collision_model->AddShape(cshape);
 
@@ -247,7 +246,7 @@ void ChMatterSPH::ResizeNnodes(int newsize) {
         nodes[j]->variables.SetUserData((void*)this);
 
         //((ChCollisionModelBullet*)nodes[j]->collision_model)->SetContactable(nodes[j]);
-        auto cshape = chrono_types::make_shared<collision::ChCollisionShapePoint>(matsurface, VNULL, 0.001);  //// TEST
+        auto cshape = chrono_types::make_shared<ChCollisionShapePoint>(matsurface, VNULL, 0.001);  //// TEST
         nodes[j]->collision_model->AddShape(cshape);
         nodes[j]->collision_model->Build();
     }
@@ -266,7 +265,7 @@ void ChMatterSPH::AddNode(ChVector<double> initial_state) {
 
     newp->variables.SetUserData((void*)this);
 
-    auto cshape = chrono_types::make_shared<collision::ChCollisionShapePoint>(matsurface, VNULL, 0.1);  //// TEST
+    auto cshape = chrono_types::make_shared<ChCollisionShapePoint>(matsurface, VNULL, 0.1);  //// TEST
     newp->collision_model->AddShape(cshape);
     newp->collision_model->Build();
 }

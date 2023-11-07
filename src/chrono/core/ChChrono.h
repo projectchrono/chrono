@@ -23,8 +23,8 @@
         @defgroup chrono_geometry Geometric objects
         @defgroup chrono_collision Collision detection
         @{
-           @defgroup collision_bullet Collision detection system based on Bullet
-           @defgroup collision_mc Custom multicore collision detection system
+           @defgroup collision_bullet Bullet-based collision detection
+           @defgroup collision_mc Custom multicore collision detection
         @}
         @defgroup chrono_fea Finite Element Analysis
         @{
@@ -35,7 +35,7 @@
            @defgroup fea_math Mathematical support
            @defgroup fea_utils Utility classes
         @}
-        @defgroup chrono_assets Asset objects
+        @defgroup chrono_assets Visual asset objects
         @defgroup chrono_linalg Linear algebra
         @defgroup chrono_solver Solver
         @defgroup chrono_timestepper Time integrators
@@ -52,13 +52,9 @@
 
 /// Main namespace for the Chrono package.
 namespace chrono {
-/// Namespace for collision detection.
-namespace collision {}
 /// Namespace for FEA classes.
 namespace fea {}
 }
-
-
 
 /// @} chrono
 

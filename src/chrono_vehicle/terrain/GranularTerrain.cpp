@@ -207,7 +207,7 @@ void BoundaryContact::CheckFixedSphere(ChBody* body, const ChVector<>& center, c
     if (dist2 >= rad_sum * rad_sum || dist2 < 1e-12)
         return;
 
-    collision::ChCollisionInfo contact;
+    ChCollisionInfo contact;
     double dist = std::sqrt(dist2);
     contact.modelA = m_terrain->m_ground->GetCollisionModel().get();
     contact.modelB = body->GetCollisionModel().get();
@@ -229,7 +229,7 @@ void BoundaryContact::CheckBottom(ChBody* body, const ChVector<>& center) {
     if (dist > m_radius + 2 * m_terrain->m_envelope)
         return;
 
-    collision::ChCollisionInfo contact;
+    ChCollisionInfo contact;
     contact.modelA = m_terrain->m_ground->GetCollisionModel().get();
     contact.modelB = body->GetCollisionModel().get();
     contact.shapeA = nullptr;
@@ -251,7 +251,7 @@ void BoundaryContact::CheckLeft(ChBody* body, const ChVector<>& center) {
     if (dist > m_radius)
         return;
 
-    collision::ChCollisionInfo contact;
+    ChCollisionInfo contact;
     contact.modelA = m_terrain->m_ground->GetCollisionModel().get();
     contact.modelB = body->GetCollisionModel().get();
     contact.shapeA = nullptr;
@@ -273,7 +273,7 @@ void BoundaryContact::CheckRight(ChBody* body, const ChVector<>& center) {
     if (dist > m_radius)
         return;
 
-    collision::ChCollisionInfo contact;
+    ChCollisionInfo contact;
     contact.modelA = m_terrain->m_ground->GetCollisionModel().get();
     contact.modelB = body->GetCollisionModel().get();
     contact.shapeA = nullptr;
@@ -295,7 +295,7 @@ void BoundaryContact::CheckFront(ChBody* body, const ChVector<>& center) {
     if (dist > m_radius)
         return;
 
-    collision::ChCollisionInfo contact;
+    ChCollisionInfo contact;
     contact.modelA = m_terrain->m_ground->GetCollisionModel().get();
     contact.modelB = body->GetCollisionModel().get();
     contact.shapeA = nullptr;
@@ -317,7 +317,7 @@ void BoundaryContact::CheckRear(ChBody* body, const ChVector<>& center) {
     if (dist > m_radius)
         return;
 
-    collision::ChCollisionInfo contact;
+    ChCollisionInfo contact;
     contact.modelA = m_terrain->m_ground->GetCollisionModel().get();
     contact.modelB = body->GetCollisionModel().get();
     contact.shapeA = nullptr;

@@ -40,8 +40,8 @@ class ChApi ChBodyEasySphere : public ChBody {
                      bool visualize = true,                                  ///< create visualization asset
                      bool collide = false,                                   ///< enable collision
                      std::shared_ptr<ChMaterialSurface> material = nullptr,  ///< surface contact material
-                     std::shared_ptr<collision::ChCollisionModel> collision_model =
-                         chrono_types::make_shared<collision::ChCollisionModelBullet>()  ///< collision model
+                     std::shared_ptr<ChCollisionModel> collision_model =
+                         chrono_types::make_shared<ChCollisionModelBullet>()  ///< collision model
     );
 
     /// Create a ChBody with a sphere visualization and collision shape using the specified collision model type. The
@@ -49,7 +49,7 @@ class ChApi ChBodyEasySphere : public ChBody {
     ChBodyEasySphere(double radius,                                   ///< radius of the sphere
                      double density,                                  ///< density of the body
                      std::shared_ptr<ChMaterialSurface> material,     ///< surface contact material
-                     collision::ChCollisionSystemType collision_type  ///< collision model type
+                     ChCollisionSystemType collision_type  ///< collision model type
     );
 
     /// Deserialization for non-default constructor classes.
@@ -80,8 +80,8 @@ class ChApi ChBodyEasyEllipsoid : public ChBody {
                         bool visualize = true,                                  ///< create visualization asset
                         bool collide = false,                                   ///< enable collision
                         std::shared_ptr<ChMaterialSurface> material = nullptr,  ///< surface contact material
-                        std::shared_ptr<collision::ChCollisionModel> collision_model =
-                            chrono_types::make_shared<collision::ChCollisionModelBullet>()  ///< collision model
+                        std::shared_ptr<ChCollisionModel> collision_model =
+                            chrono_types::make_shared<ChCollisionModelBullet>()  ///< collision model
     );
 
     /// Create a ChBody with an ellipsoid visualization and collision shape using the specified collision model type.
@@ -90,7 +90,7 @@ class ChApi ChBodyEasyEllipsoid : public ChBody {
     ChBodyEasyEllipsoid(ChVector<> axes,                                 ///< ellipsoid axis lengths
                         double density,                                  ///< density of the body
                         std::shared_ptr<ChMaterialSurface> material,     ///< surface contact material
-                        collision::ChCollisionSystemType collision_type  ///< collision model type
+                        ChCollisionSystemType collision_type  ///< collision model type
     );
 
     /// Deserialization for non-default constructor classes.
@@ -124,8 +124,8 @@ class ChApi ChBodyEasyCylinder : public ChBody {
                        bool visualize = true,                                  ///< create visualization asset
                        bool collide = false,                                   ///< enable collision
                        std::shared_ptr<ChMaterialSurface> material = nullptr,  ///< surface contact material
-                       std::shared_ptr<collision::ChCollisionModel> collision_model =
-                           chrono_types::make_shared<collision::ChCollisionModelBullet>()  ///< collision model
+                       std::shared_ptr<ChCollisionModel> collision_model =
+                           chrono_types::make_shared<ChCollisionModelBullet>()  ///< collision model
     );
 
     /// Create a ChBody with a cylinder visualization and collision shape using the specified collision model type.
@@ -136,7 +136,7 @@ class ChApi ChBodyEasyCylinder : public ChBody {
                        double height,                                   ///< height of the cylinder
                        double density,                                  ///< density of the body
                        std::shared_ptr<ChMaterialSurface> material,     ///< surface contact material
-                       collision::ChCollisionSystemType collision_type  ///< collision model type
+                       ChCollisionSystemType collision_type  ///< collision model type
     );
 
     /// Deserialization for non-default constructor classes.
@@ -171,8 +171,8 @@ class ChApi ChBodyEasyBox : public ChBody {
                   bool visualize = true,                                  ///< create visualization asset
                   bool collide = false,                                   ///< enable collision
                   std::shared_ptr<ChMaterialSurface> material = nullptr,  ///< surface contact material
-                  std::shared_ptr<collision::ChCollisionModel> collision_model =
-                      chrono_types::make_shared<collision::ChCollisionModelBullet>()  ///< collision model
+                  std::shared_ptr<ChCollisionModel> collision_model =
+                      chrono_types::make_shared<ChCollisionModelBullet>()  ///< collision model
     );
 
     /// Create a ChBody with a box visualization and collision shape using the specified collision model type. The box
@@ -182,7 +182,7 @@ class ChApi ChBodyEasyBox : public ChBody {
                   double Zsize,                                    ///< size along the Z dimension
                   double density,                                  ///< density of the body
                   std::shared_ptr<ChMaterialSurface> material,     ///< surface contact material
-                  collision::ChCollisionSystemType collision_type  ///< collision model type
+                  ChCollisionSystemType collision_type  ///< collision model type
     );
 
     /// Deserialization for non-default constructor classes.
@@ -217,8 +217,8 @@ class ChApi ChBodyEasyConvexHull : public ChBody {
                          bool visualize = true,                                  ///< create visualization asset
                          bool collide = false,                                   ///< enable collision
                          std::shared_ptr<ChMaterialSurface> material = nullptr,  ///< surface contact material
-                         std::shared_ptr<collision::ChCollisionModel> collision_model =
-                             chrono_types::make_shared<collision::ChCollisionModelBullet>()  ///< collision model
+                         std::shared_ptr<ChCollisionModel> collision_model =
+                             chrono_types::make_shared<ChCollisionModelBullet>()  ///< collision model
     );
 
     /// Create a ChBody with a convex hull visualization and collision shape using the specified collision model type.
@@ -228,7 +228,7 @@ class ChApi ChBodyEasyConvexHull : public ChBody {
     ChBodyEasyConvexHull(std::vector<ChVector<>>& points,                 ///< points of the convex hull
                          double density,                                  ///< density of the body
                          std::shared_ptr<ChMaterialSurface> material,     ///< surface contact material
-                         collision::ChCollisionSystemType collision_type  ///< collision model type
+                         ChCollisionSystemType collision_type  ///< collision model type
     );
 
     std::shared_ptr<geometry::ChTriangleMeshConnected> GetMesh() const { return m_mesh; }
@@ -264,8 +264,8 @@ class ChApi ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
                                bool visualize = true,                                  ///< create visualization asset
                                bool collide = false,                                   ///< enable collision
                                std::shared_ptr<ChMaterialSurface> material = nullptr,  ///< surface contact material
-                               std::shared_ptr<collision::ChCollisionModel> collision_model =
-                                   chrono_types::make_shared<collision::ChCollisionModelBullet>()  ///< collision model
+                               std::shared_ptr<ChCollisionModel> collision_model =
+                                   chrono_types::make_shared<ChCollisionModelBullet>()  ///< collision model
     );
 
     /// Create a ChBodyAuxRef with a convex hull visualization and collision shape using the specified collision model
@@ -274,7 +274,7 @@ class ChApi ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
     ChBodyEasyConvexHullAuxRef(std::vector<ChVector<>>& points,                 ///< convex hull points
                                double density,                                  ///< density of the body
                                std::shared_ptr<ChMaterialSurface> material,     ///< surface contact material
-                               collision::ChCollisionSystemType collision_type  ///< collision model type
+                               ChCollisionSystemType collision_type  ///< collision model type
     );
 
     std::shared_ptr<geometry::ChTriangleMeshConnected> GetMesh() const { return m_mesh; }
@@ -312,8 +312,8 @@ class ChApi ChBodyEasyMesh : public ChBodyAuxRef {
                    bool collide = false,         ///< enable collision
                    std::shared_ptr<ChMaterialSurface> material = nullptr,  ///< surface contact material
                    double sphere_swept = 0.001,  ///< thickness (collision detection robustness)
-                   std::shared_ptr<collision::ChCollisionModel> collision_model =
-                       chrono_types::make_shared<collision::ChCollisionModelBullet>()  ///< collision model
+                   std::shared_ptr<ChCollisionModel> collision_model =
+                       chrono_types::make_shared<ChCollisionModelBullet>()  ///< collision model
     );
 
     /// Create a ChBodyAuxRef with optional mesh visualization and/or collision shape. The mesh is defined with respect
@@ -325,8 +325,8 @@ class ChApi ChBodyEasyMesh : public ChBodyAuxRef {
                    bool collide = false,      ///< enable collision
                    std::shared_ptr<ChMaterialSurface> material = nullptr,  ///< surface contact material
                    double sphere_swept = 0.001,  ///< thickness (collision detection robustness)
-                   std::shared_ptr<collision::ChCollisionModel> collision_model =
-                       chrono_types::make_shared<collision::ChCollisionModelBullet>()  ///< collision model
+                   std::shared_ptr<ChCollisionModel> collision_model =
+                       chrono_types::make_shared<ChCollisionModelBullet>()  ///< collision model
     );
 
     /// Create a ChBodyAuxRef with a mesh visualization and collision shape using the specified collision model type.
@@ -336,7 +336,7 @@ class ChApi ChBodyEasyMesh : public ChBodyAuxRef {
                    double density,                                  ///< density of the body
                    std::shared_ptr<ChMaterialSurface> material,     ///< surface contact material
                    double sphere_swept,                             ///< thickness (collision detection robustness)
-                   collision::ChCollisionSystemType collision_type  ///< collision model type
+                   ChCollisionSystemType collision_type  ///< collision model type
     );
 
     /// Create a ChBodyAuxRef with a convex hull visualization and collision shape using the specified collision model
@@ -346,7 +346,7 @@ class ChApi ChBodyEasyMesh : public ChBodyAuxRef {
                    double density,                                           ///< density of the body
                    std::shared_ptr<ChMaterialSurface> material,              ///< surface contact material
                    double sphere_swept,                             ///< thickness (collision detection robustness)
-                   collision::ChCollisionSystemType collision_type  ///< collision model type
+                   ChCollisionSystemType collision_type  ///< collision model type
     );
 
     /// Deserialization for non-default constructor classes.
@@ -385,8 +385,8 @@ class ChApi ChBodyEasyClusterOfSpheres : public ChBody {
                                bool visualize = true,                                  ///< create visualization asset
                                bool collide = false,                                   ///< enable collision
                                std::shared_ptr<ChMaterialSurface> material = nullptr,  ///< surface contact material
-                               std::shared_ptr<collision::ChCollisionModel> collision_model =
-                                   chrono_types::make_shared<collision::ChCollisionModelBullet>()  ///< collision model
+                               std::shared_ptr<ChCollisionModel> collision_model =
+                                   chrono_types::make_shared<ChCollisionModelBullet>()  ///< collision model
     );
 
     /// Create a ChBody with a sphere cluster mesh visualization and collision shapes using the specified collision
@@ -396,7 +396,7 @@ class ChApi ChBodyEasyClusterOfSpheres : public ChBody {
                                std::vector<double>& radii,                      ///< sphere radius
                                double density,                                  ///< density of the body
                                std::shared_ptr<ChMaterialSurface> material,     ///< surface contact material
-                               collision::ChCollisionSystemType collision_type  ///< collision model type
+                               ChCollisionSystemType collision_type  ///< collision model type
     );
 
     /// Deserialization for non-default constructor classes.

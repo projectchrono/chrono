@@ -15,7 +15,6 @@
 #include "chrono/collision/ChCollisionShapeTriangleMesh.h"
 
 namespace chrono {
-namespace collision {
 
 ChCollisionShapeTriangleMesh::ChCollisionShapeTriangleMesh() : ChCollisionShape(Type::TRIANGLEMESH), trimesh(nullptr){};
 
@@ -54,5 +53,4 @@ void ChCollisionShapeTriangleMesh::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(radius);
 }
 
-}  // end namespace collision
 }  // end namespace chrono

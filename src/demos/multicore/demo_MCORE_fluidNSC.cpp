@@ -40,7 +40,6 @@
 #endif
 
 using namespace chrono;
-using namespace chrono::collision;
 
 double time_step = 1e-3;
 double kernel_radius = .016 * 2;

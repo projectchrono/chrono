@@ -46,7 +46,6 @@
 #include "unit_testing.h"
 
 using namespace chrono;
-using namespace chrono::collision;
 
 TEST(ChronoMulticore, bodyauxref) {
     bool animate = false;

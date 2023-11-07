@@ -49,7 +49,7 @@ void HMMWV_Wheel::Initialize(std::shared_ptr<ChChassis> chassis,
 
     ChContactMaterialData mat_info;
     auto material = mat_info.CreateMaterial(spindle->GetSystem()->GetContactMethod());
-    auto ct_shape = chrono_types::make_shared<collision::ChCollisionShapeCylinder>(material, m_radius, m_width);
+    auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(material, m_radius, m_width);
     spindle->GetCollisionModel()->AddShape(ct_shape, ChFrame<>(ChVector<>(0, 0, m_offset), Q_from_AngX(CH_C_PI_2)));
     spindle->GetCollisionModel()->Build();
 }

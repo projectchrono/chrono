@@ -29,7 +29,6 @@
 #include "chrono/collision/chrono/ChConvexShape.h"
 
 namespace chrono {
-namespace collision {
 
 /// @addtogroup collision_mc
 /// @{
@@ -439,11 +438,11 @@ inline real3 GetCenter_Tetrahedron(const uvec4& indices, const real3* nodes) {
     return tet / real(4.0);
 }
 
-ChApi real3 SupportVertNoMargin(const chrono::collision::ConvexBase* Shape, const real3& nv, const real& envelope);
+ChApi real3 SupportVertNoMargin(const chrono::ConvexBase* Shape, const real3& nv, const real& envelope);
 
-ChApi real3 LocalSupportVert(const chrono::collision::ConvexBase* Shape, const real3& n, const real& envelope);
+ChApi real3 LocalSupportVert(const chrono::ConvexBase* Shape, const real3& n, const real& envelope);
 
-ChApi real3 TransformSupportVert(const chrono::collision::ConvexBase* Shape, const real3& n, const real& envelope);
+ChApi real3 TransformSupportVert(const chrono::ConvexBase* Shape, const real3& n, const real& envelope);
 
 /// This utility function takes the location 'P' and snaps it to the closest point on the triangular face with given
 /// vertices (A, B, and C). Additionally, it also returns the barycentric coordinates of the result point. See
@@ -780,5 +779,4 @@ ChApi int box_intersects_triangle(const real3& hdims,
 
 /// @} collision_mc
 
-}  // end namespace collision
 }  // end namespace chrono

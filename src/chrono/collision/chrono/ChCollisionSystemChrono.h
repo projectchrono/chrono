@@ -31,7 +31,6 @@
 #include "chrono/multicore_math/ChMulticoreMath.h"
 
 namespace chrono {
-namespace collision {
 
 /// @addtogroup collision_mc
 /// @{
@@ -163,8 +162,8 @@ class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
 
     std::shared_ptr<ChCollisionData> cd_data;
 
-    collision::ChBroadphase broadphase;    ///< methods for broad-phase collision detection
-    collision::ChNarrowphase narrowphase;  ///< methods for narrow-phase collision detection
+    ChBroadphase broadphase;    ///< methods for broad-phase collision detection
+    ChNarrowphase narrowphase;  ///< methods for narrow-phase collision detection
 
     std::vector<char> body_active;
 
@@ -178,7 +177,6 @@ class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
 
 /// @} collision_mc
 
-}  // end namespace collision
 }  // end namespace chrono
 
 #endif

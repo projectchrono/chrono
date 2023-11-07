@@ -19,7 +19,6 @@
 #include "chrono/geometry/ChCylinder.h"
 
 namespace chrono {
-namespace collision {
 
 /// Collision rounded-cylinder shape.
 /// When added to a collision model, the cylinder is defined with its axis along the Z direction of the shape frame.
@@ -59,7 +58,6 @@ class ChApi ChCollisionShapeRoundedCylinder : public ChCollisionShape {
     double radius;
 };
 
-}  // end namespace collision
 }  // end namespace chrono
 
 #endif

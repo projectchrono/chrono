@@ -28,7 +28,6 @@
 #include "chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtCollisionDispatcherMt.h"
 
 namespace chrono {
-namespace collision {
 
 /*
  void defaultChronoNearCallback(cbtBroadphasePair& collisionPair, cbtCollisionDispatcher& dispatcher, cbtDispatcherInfo&
@@ -249,5 +248,4 @@ void ChCollisionSystemBulletMulticore::ReportContacts(ChContactContainer* mconta
     data_manager->system_timer.stop("collision_narrow");
 }
 
-}  // end namespace collision
 }  // end namespace chrono

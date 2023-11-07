@@ -33,7 +33,6 @@
     #include "chrono_vehicle/output/ChVehicleOutputHDF5.h"
 #endif
 
-using namespace chrono::collision;
 
 namespace chrono {
 namespace vehicle {

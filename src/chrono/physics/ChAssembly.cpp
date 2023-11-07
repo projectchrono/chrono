@@ -23,7 +23,6 @@
 namespace chrono {
 
 using namespace fea;
-using namespace collision;
 using namespace geometry;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence

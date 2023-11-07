@@ -21,7 +21,6 @@
 
 namespace chrono {
 
-using namespace collision;
 using namespace geometry;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
@@ -33,7 +32,7 @@ ChConveyor::ChConveyor(double xlength, double ythick, double zwidth) : conveyor_
 
     conveyor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-    auto cshape = chrono_types::make_shared<collision::ChCollisionShapeBox>(conveyor_mat, xlength, ythick, zwidth);
+    auto cshape = chrono_types::make_shared<ChCollisionShapeBox>(conveyor_mat, xlength, ythick, zwidth);
     conveyor_plate->GetCollisionModel()->AddShape(cshape);
     conveyor_plate->GetCollisionModel()->Build();
     conveyor_plate->SetCollide(true);

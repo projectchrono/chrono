@@ -38,7 +38,6 @@ namespace chrono {
 class ChSystemMulticore;  // forward declaration
 class ChMulticoreDataManager;
 
-namespace collision {
 
 /// @addtogroup multicore_collision
 /// @{
@@ -119,5 +118,4 @@ class CH_MULTICORE_API ChCollisionSystemBulletMulticore : public ChCollisionSyst
 
 /// @} multicore_colision
 
-}  // end namespace collision
 }  // end namespace chrono

@@ -15,7 +15,6 @@
 #include "chrono/collision/ChCollisionShapeCapsule.h"
 
 namespace chrono {
-namespace collision {
 
 ChCollisionShapeCapsule::ChCollisionShapeCapsule(): ChCollisionShape(Type::CAPSULE) {}
 
@@ -50,5 +49,4 @@ void ChCollisionShapeCapsule::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(gcapsule);
 }
 
-}  // end namespace collision
 }  // end namespace chrono

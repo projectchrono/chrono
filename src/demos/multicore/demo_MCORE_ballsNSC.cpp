@@ -39,7 +39,6 @@
 #endif
 
 using namespace chrono;
-using namespace chrono::collision;
 
 // Tilt angle (about global Y axis) of the container.
 double tilt_angle = 1 * CH_C_PI / 20;

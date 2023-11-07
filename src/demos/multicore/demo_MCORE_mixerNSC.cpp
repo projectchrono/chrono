@@ -41,7 +41,6 @@
 #endif
 
 using namespace chrono;
-using namespace chrono::collision;
 
 // -----------------------------------------------------------------------------
 // Create a bin consisting of five boxes attached to the ground and a mixer

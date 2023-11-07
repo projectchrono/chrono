@@ -38,7 +38,6 @@
 #include "chrono_multicore/ChMulticoreDefines.h"
 
 using namespace chrono;
-using namespace collision;
 
 // Structure of force data used internally for MPI sending contact forces.
 struct internal_force {
@@ -146,11 +145,11 @@ void ChSystemDistributed::UpdateRigidBodies() {
 }
 
 ChBody* ChSystemDistributed::NewBody() {
-    return new ChBody(chrono_types::make_shared<collision::ChCollisionModelDistributed>());
+    return new ChBody(chrono_types::make_shared<ChCollisionModelDistributed>());
 }
 
 ChBodyAuxRef* ChSystemDistributed::NewBodyAuxRef() {
-    return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelDistributed>());
+    return new ChBodyAuxRef(chrono_types::make_shared<ChCollisionModelDistributed>());
 }
 
 void ChSystemDistributed::AddBodyAllRanks(std::shared_ptr<ChBody> newbody) {

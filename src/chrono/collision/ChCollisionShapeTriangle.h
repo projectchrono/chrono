@@ -19,7 +19,6 @@
 #include "chrono/geometry/ChTriangle.h"
 
 namespace chrono {
-namespace collision {
 
 /// Collision triangle shape.
 class ChApi ChCollisionShapeTriangle : public ChCollisionShape {
@@ -46,7 +45,6 @@ class ChApi ChCollisionShapeTriangle : public ChCollisionShape {
     geometry::ChTriangle gtriangle;
 };
 
-}  // end namespace collision
 }  // end namespace chrono
 
 #endif

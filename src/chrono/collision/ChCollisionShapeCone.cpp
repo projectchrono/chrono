@@ -15,7 +15,6 @@
 #include "chrono/collision/ChCollisionShapeCone.h"
 
 namespace chrono {
-namespace collision {
 
 ChCollisionShapeCone::ChCollisionShapeCone(): ChCollisionShape(Type::CONE) {}
 
@@ -46,5 +45,4 @@ void ChCollisionShapeCone::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(gcone);
 }
 
-}  // end namespace collision
 }  // end namespace chrono

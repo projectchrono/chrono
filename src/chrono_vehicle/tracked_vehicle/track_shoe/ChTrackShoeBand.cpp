@@ -27,7 +27,6 @@
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBand.h"
 
-using namespace chrono::collision;
 
 namespace chrono {
 namespace vehicle {

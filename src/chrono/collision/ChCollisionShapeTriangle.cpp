@@ -15,7 +15,6 @@
 #include "chrono/collision/ChCollisionShapeTriangle.h"
 
 namespace chrono {
-namespace collision {
 
 ChCollisionShapeTriangle::ChCollisionShapeTriangle() : ChCollisionShape(Type::TRIANGLE) {}
 
@@ -49,5 +48,4 @@ void ChCollisionShapeTriangle::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(gtriangle);
 }
 
-}  // end namespace collision
 }  // end namespace chrono

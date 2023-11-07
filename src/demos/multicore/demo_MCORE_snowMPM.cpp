@@ -42,7 +42,6 @@
 #endif
 
 using namespace chrono;
-using namespace chrono::collision;
 
 #define USE_RIGID 1
 

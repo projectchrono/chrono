@@ -28,7 +28,6 @@
 #include "chrono_opengl/ChVisualSystemOpenGL.h"
 
 using namespace chrono;
-using namespace chrono::collision;
 
 // -----------------------------------------------------------------------------
 // Callback class for contact reporting

@@ -29,7 +29,6 @@
 // Use the namespace of Chrono
 
 using namespace chrono;
-using namespace chrono::collision;
 
 // Static values valid through the entire program (bad
 // programming practice, but enough for quick tests)

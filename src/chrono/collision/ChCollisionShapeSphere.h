@@ -19,7 +19,6 @@
 #include "chrono/geometry/ChSphere.h"
 
 namespace chrono {
-namespace collision {
 
 /// Collision sphere shape.
 class ChApi ChCollisionShapeSphere : public ChCollisionShape {
@@ -46,7 +45,6 @@ class ChApi ChCollisionShapeSphere : public ChCollisionShape {
     geometry::ChSphere gsphere;
 };
 
-}  // end namespace collision
 }  // end namespace chrono
 
 #endif

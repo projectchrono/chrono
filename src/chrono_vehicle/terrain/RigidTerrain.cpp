@@ -37,7 +37,6 @@
 #include "chrono_thirdparty/stb/stb.h"
 #include "chrono_thirdparty/filesystem/path.h"
 
-using namespace chrono::collision;
 using namespace rapidjson;
 
 namespace chrono {

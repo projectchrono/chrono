@@ -19,7 +19,6 @@
 #include "chrono/collision/ChCollisionShapeConvexHull.h"
 
 namespace chrono {
-namespace collision {
 
 ChCollisionShapeConvexHull::ChCollisionShapeConvexHull() : ChCollisionShape(Type::CONVEXHULL) {}
 
@@ -85,5 +84,4 @@ void ChCollisionShapeConvexHull::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(points);
 }
 
-}  // end namespace collision
 }  // end namespace chrono

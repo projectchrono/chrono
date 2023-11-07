@@ -22,7 +22,6 @@
 #include "chrono/collision/chrono/ChRayTest.h"
 
 namespace chrono {
-namespace collision {
 
 ChCollisionSystemChrono::ChCollisionSystemChrono() : use_aabb_active(false) {
     // Create the shared data structure with own state data
@@ -906,5 +905,4 @@ void ChCollisionSystemChrono::VisualizeContacts() {
     }
 }
 
-}  // end namespace collision
 }  // end namespace chrono

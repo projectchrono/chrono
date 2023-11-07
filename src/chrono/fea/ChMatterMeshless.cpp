@@ -23,7 +23,6 @@
 namespace chrono {
 namespace fea {
 
-using namespace collision;
 using namespace geometry;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
@@ -41,7 +40,7 @@ ChNodeMeshless::ChNodeMeshless()
 ChNodeMeshless::ChNodeMeshless(const ChNodeMeshless& other) : ChNodeXYZ(other) {
     collision_model = new ChCollisionModelBullet;
     collision_model->SetContactable(this);
-    auto cshape = chrono_types::make_shared<collision::ChCollisionShapePoint>(other.container->GetMaterialSurface(),
+    auto cshape = chrono_types::make_shared<ChCollisionShapePoint>(other.container->GetMaterialSurface(),
                                                                               VNULL, other.coll_rad);
     collision_model->AddShape(cshape);
 
@@ -74,7 +73,7 @@ ChNodeMeshless& ChNodeMeshless::operator=(const ChNodeMeshless& other) {
 
     ChNodeXYZ::operator=(other);
 
-    auto cshape = chrono_types::make_shared<collision::ChCollisionShapePoint>(other.container->GetMaterialSurface(),
+    auto cshape = chrono_types::make_shared<ChCollisionShapePoint>(other.container->GetMaterialSurface(),
                                                                               VNULL, other.coll_rad);
     collision_model->AddShape(cshape);
 
@@ -186,7 +185,7 @@ void ChMatterMeshless::ResizeNnodes(int newsize) {
 
         nodes[j]->variables.SetUserData((void*)this);
 
-        auto cshape = chrono_types::make_shared<collision::ChCollisionShapePoint>(matsurface, VNULL, 0.001); //// TEST
+        auto cshape = chrono_types::make_shared<ChCollisionShapePoint>(matsurface, VNULL, 0.001); //// TEST
         nodes[j]->collision_model->AddShape(cshape);
         nodes[j]->collision_model->Build();
     }
@@ -206,7 +205,7 @@ void ChMatterMeshless::AddNode(ChVector<double> initial_state) {
 
     newp->variables.SetUserData((void*)this);
 
-    auto cshape = chrono_types::make_shared<collision::ChCollisionShapePoint>(matsurface, VNULL, 0.1);  //// TEST
+    auto cshape = chrono_types::make_shared<ChCollisionShapePoint>(matsurface, VNULL, 0.1);  //// TEST
     newp->collision_model->AddShape(cshape);
     newp->collision_model->Build();
 }

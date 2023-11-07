@@ -24,7 +24,6 @@
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 
 namespace chrono {
-namespace collision {
 
 /// @addtogroup distributed_collision
 /// @{
@@ -82,21 +81,21 @@ class CH_DISTR_API ChCollisionBoundaryDistributed : public ChSystem::CustomColli
 
     virtual void OnCustomCollision(ChSystem* system) override;
 
-    void CheckSphere(collision::ChCollisionModel* model,
+    void CheckSphere(ChCollisionModel* model,
                      std::shared_ptr<ChMaterialSurface> material,
                      const ChVector<>& center,
                      double radius);
-    void CheckSpherePlane(collision::ChCollisionModel* model,
+    void CheckSpherePlane(ChCollisionModel* model,
                           std::shared_ptr<ChMaterialSurface> material,
                           const ChVector<>& center,
                           double radius,
                           const Plane& plane);
 
-    void CheckBox(collision::ChCollisionModel* model,
+    void CheckBox(ChCollisionModel* model,
                   std::shared_ptr<ChMaterialSurface> material,
                   const ChFrame<>& frame,
                   const ChVector<>& size);
-    void CheckBoxPlane(collision::ChCollisionModel* model,
+    void CheckBoxPlane(ChCollisionModel* model,
                        std::shared_ptr<ChMaterialSurface> material,
                        const ChFrame<>& frame,
                        const ChVector<>& size,
@@ -111,5 +110,4 @@ class CH_DISTR_API ChCollisionBoundaryDistributed : public ChSystem::CustomColli
 
 /// @} distributed_collision
 
-}  // end namespace collision
 }  // end namespace chrono

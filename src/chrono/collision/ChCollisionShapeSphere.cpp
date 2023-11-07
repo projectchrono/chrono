@@ -15,7 +15,6 @@
 #include "chrono/collision/ChCollisionShapeSphere.h"
 
 namespace chrono {
-namespace collision {
 
 ChCollisionShapeSphere::ChCollisionShapeSphere(): ChCollisionShape(Type::SPHERE) {}
 
@@ -46,5 +45,4 @@ void ChCollisionShapeSphere::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(gsphere);
 }
 
-}  // end namespace collision
 }  // end namespace chrono

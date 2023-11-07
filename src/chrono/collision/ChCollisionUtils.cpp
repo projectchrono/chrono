@@ -27,7 +27,6 @@
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
 namespace chrono {
-namespace collision {
 namespace utils {
 
 #define EPS 1e-20
@@ -175,5 +174,4 @@ bool DegenerateTriangle(const ChVector<>& v1, const ChVector<>& v2, const ChVect
 }
 
 }  // end namespace utils
-}  // end namespace collision
 }  // end namespace chrono

@@ -349,7 +349,7 @@ class ContactMaterial : public ChContactContainer::AddContactCallback {
         m_robot->GetSystem()->GetContactContainer()->RegisterAddContactCallback(shared_this);
     }
 
-    virtual void OnAddContact(const collision::ChCollisionInfo& contactinfo,
+    virtual void OnAddContact(const ChCollisionInfo& contactinfo,
                               ChMaterialComposite* const material) override {
         //// TODO: currently, only NSC multicore systems support user override of composite materials.
         auto mat = static_cast<ChMaterialCompositeNSC* const>(material);
@@ -482,8 +482,8 @@ void RoboSimian::Create(bool has_sled, bool fixed) {
     // Set default collision model envelope commensurate with model dimensions.
     // Note that an SMC system automatically sets envelope to 0.
     if (contact_method == ChContactMethod::NSC) {
-        collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.01);
-        collision::ChCollisionModel::SetDefaultSuggestedMargin(0.005);
+        ChCollisionModel::SetDefaultSuggestedEnvelope(0.01);
+        ChCollisionModel::SetDefaultSuggestedMargin(0.005);
     }
 
     // Create the contact materials (all with default properties)
@@ -925,15 +925,15 @@ void RS_Part::AddCollisionShapes() {
     m_body->GetCollisionModel()->Clear();
 
     for (const auto& sphere : m_spheres) {
-        auto shape = chrono_types::make_shared<collision::ChCollisionShapeSphere>(m_mat, sphere.m_radius);
+        auto shape = chrono_types::make_shared<ChCollisionShapeSphere>(m_mat, sphere.m_radius);
         m_body->GetCollisionModel()->AddShape(shape, ChFrame<>(sphere.m_pos, QUNIT));
     }
     for (const auto& box : m_boxes) {
-        auto shape = chrono_types::make_shared<collision::ChCollisionShapeBox>(m_mat, box.m_dims);
+        auto shape = chrono_types::make_shared<ChCollisionShapeBox>(m_mat, box.m_dims);
         m_body->GetCollisionModel()->AddShape(shape, ChFrame<>(box.m_pos, box.m_rot));
     }
     for (const auto& cyl : m_cylinders) {
-        auto shape = chrono_types::make_shared<collision::ChCollisionShapeCylinder>(m_mat, cyl.m_radius, cyl.m_length);
+        auto shape = chrono_types::make_shared<ChCollisionShapeCylinder>(m_mat, cyl.m_radius, cyl.m_length);
         m_body->GetCollisionModel()->AddShape(shape, ChFrame<>(cyl.m_pos, cyl.m_rot));
     }
     for (const auto& mesh : m_meshes) {
@@ -941,19 +941,19 @@ void RS_Part::AddCollisionShapes() {
         auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
         switch (mesh.m_type) {
             case MeshShape::Type::CONVEX_HULL: {
-                auto shape = chrono_types::make_shared<collision::ChCollisionShapeConvexHull>(
+                auto shape = chrono_types::make_shared<ChCollisionShapeConvexHull>(
                     m_mat, trimesh->getCoordsVertices());
                 m_body->GetCollisionModel()->AddShape(shape, ChFrame<>(mesh.m_pos, mesh.m_rot));
                 break;
             }
             case MeshShape::Type::TRIANGLE_SOUP: {
-                auto shape = chrono_types::make_shared<collision::ChCollisionShapeTriangleMesh>(m_mat, trimesh, false,
+                auto shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(m_mat, trimesh, false,
                                                                                                 false, 0.002);
                 m_body->GetCollisionModel()->AddShape(shape, ChFrame<>(mesh.m_pos, mesh.m_rot));
                 break;
             }
             case MeshShape::Type::NODE_CLOUD: {
-                auto shape = chrono_types::make_shared<collision::ChCollisionShapeSphere>(m_mat, 0.002);
+                auto shape = chrono_types::make_shared<ChCollisionShapeSphere>(m_mat, 0.002);
                 for (const auto& v : trimesh->getCoordsVertices()) {
                     m_body->GetCollisionModel()->AddShape(shape, ChFrame<>(v, QUNIT));
                 }

@@ -27,7 +27,6 @@
 #include "chrono_opengl/ChVisualSystemOpenGL.h"
 
 using namespace chrono;
-using namespace chrono::collision;
 using namespace chrono::vehicle;
 
 int main(int argc, char* argv[]) {

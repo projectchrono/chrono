@@ -19,7 +19,6 @@
 #include "chrono/core/ChVector.h"
 
 namespace chrono {
-namespace collision {
 
 /// Collision point shape.
 class ChApi ChCollisionShapePoint : public ChCollisionShape {
@@ -46,7 +45,6 @@ class ChApi ChCollisionShapePoint : public ChCollisionShape {
     double radius;
 };
 
-}  // end namespace collision
 }  // end namespace chrono
 
 #endif

@@ -15,7 +15,6 @@
 #include "chrono/collision/ChCollisionShapeSegment2D.h"
 
 namespace chrono {
-namespace collision {
 
 ChCollisionShapeSegment2D::ChCollisionShapeSegment2D() : ChCollisionShape(Type::SEGMENT2D) {}
 
@@ -26,5 +25,4 @@ ChCollisionShapeSegment2D::ChCollisionShapeSegment2D(std::shared_ptr<ChMaterialS
     this->radius = radius;
 }
 
-}  // end namespace collision
 }  // end namespace chrono

@@ -39,7 +39,6 @@
 #include "chrono_multicore/solver/ChIterativeSolverMulticore.h"
 
 using namespace chrono;
-using namespace chrono::collision;
 
 #define MASTER 0
 

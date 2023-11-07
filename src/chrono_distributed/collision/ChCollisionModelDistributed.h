@@ -19,7 +19,6 @@
 #include "chrono/collision/chrono/ChCollisionModelChrono.h"
 
 namespace chrono {
-namespace collision {
 
 /// @addtogroup distributed_collision
 /// @{
@@ -58,5 +57,4 @@ class CH_DISTR_API ChCollisionModelDistributed : public ChCollisionModelChrono {
 
 /// @} distributed_collision
 
-}  // namespace collision
 }  // namespace chrono

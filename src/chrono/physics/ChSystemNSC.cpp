@@ -38,10 +38,10 @@ ChSystemNSC::ChSystemNSC(bool init_sys)
         contact_container->SetSystem(this);
 
         // Set default collision engine
-        collision_system = chrono_types::make_shared<collision::ChCollisionSystemBullet>();
+        collision_system = chrono_types::make_shared<ChCollisionSystemBullet>();
         collision_system->SetNumThreads(nthreads_collision);
         collision_system->SetSystem(this);
-        collision_system_type = collision::ChCollisionSystemType::BULLET;
+        collision_system_type = ChCollisionSystemType::BULLET;
 
         // Set the system descriptor
         descriptor = chrono_types::make_shared<ChSystemDescriptor>();
@@ -51,8 +51,8 @@ ChSystemNSC::ChSystemNSC(bool init_sys)
     }
 
     // Set default collision envelope and margin.
-    collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.03);
-    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.01);
+    ChCollisionModel::SetDefaultSuggestedEnvelope(0.03);
+    ChCollisionModel::SetDefaultSuggestedMargin(0.01);
 }
 
 ChSystemNSC::ChSystemNSC(const ChSystemNSC& other) : ChSystem(other) {}

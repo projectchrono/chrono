@@ -22,9 +22,8 @@
 #include "chrono/collision/chrono/ChCollisionUtils.h"
 
 namespace chrono {
-namespace collision {
 
-using namespace chrono::collision::ch_utils;
+using namespace chrono::ch_utils;
 
 #define MPR_TOLERANCE C_REAL_EPSILON
 #define MAX_ITERATIONS 100
@@ -648,5 +647,4 @@ bool ChNarrowphase::MPRCollision(const ConvexBase* shapeA,
     return true;
 }
 
-}  // namespace collision
 }  // namespace chrono

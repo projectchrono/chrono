@@ -15,7 +15,6 @@
 #include "chrono/collision/ChCollisionShapeArc2D.h"
 
 namespace chrono {
-namespace collision {
 
 ChCollisionShapeArc2D::ChCollisionShapeArc2D() : ChCollisionShape(Type::ARC2D) {}
 
@@ -26,5 +25,4 @@ ChCollisionShapeArc2D::ChCollisionShapeArc2D(std::shared_ptr<ChMaterialSurface> 
     this->radius = radius;
 }
 
-}  // end namespace collision
 }  // end namespace chrono

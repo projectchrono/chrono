@@ -30,7 +30,6 @@
 
 namespace chrono {
 using namespace geometry;
-using namespace collision;
 namespace utils {
 
 // -----------------------------------------------------------------------------
@@ -42,7 +41,7 @@ void AddSphereGeometry(ChBody* body,
                        const ChQuaternion<>& rot,
                        bool visualization,
                        ChVisualMaterialSharedPtr vis_material) {
-    auto cshape = chrono_types::make_shared<collision::ChCollisionShapeSphere>(material, radius);
+    auto cshape = chrono_types::make_shared<ChCollisionShapeSphere>(material, radius);
     body->GetCollisionModel()->AddShape(cshape, ChFrame<>(pos, rot));
 
     if (visualization) {
@@ -65,7 +64,7 @@ void AddEllipsoidGeometry(ChBody* body,
                           const ChQuaternion<>& rot,
                           bool visualization,
                           ChVisualMaterialSharedPtr vis_material) {
-    auto cshape = chrono_types::make_shared<collision::ChCollisionShapeEllipsoid>(material, axes);
+    auto cshape = chrono_types::make_shared<ChCollisionShapeEllipsoid>(material, axes);
     body->GetCollisionModel()->AddShape(cshape, ChFrame<>(pos, rot));
 
     if (visualization) {
@@ -88,7 +87,7 @@ void AddBoxGeometry(ChBody* body,
                     const ChQuaternion<>& rot,
                     bool visualization,
                     ChVisualMaterialSharedPtr vis_material) {
-    auto cshape = chrono_types::make_shared<collision::ChCollisionShapeBox>(material, size);
+    auto cshape = chrono_types::make_shared<ChCollisionShapeBox>(material, size);
     body->GetCollisionModel()->AddShape(cshape, ChFrame<>(pos, rot));
 
     if (visualization) {
@@ -135,7 +134,7 @@ void AddCapsuleGeometry(ChBody* body,
                         const ChQuaternion<>& rot,
                         bool visualization,
                         ChVisualMaterialSharedPtr vis_material) {
-    auto cshape = chrono_types::make_shared<collision::ChCollisionShapeCapsule>(material, radius, height);
+    auto cshape = chrono_types::make_shared<ChCollisionShapeCapsule>(material, radius, height);
     body->GetCollisionModel()->AddShape(cshape, ChFrame<>(pos, rot));
 
     if (visualization) {
@@ -159,7 +158,7 @@ void AddCylinderGeometry(ChBody* body,
                          const ChQuaternion<>& rot,
                          bool visualization,
                          ChVisualMaterialSharedPtr vis_material) {
-    auto cshape = chrono_types::make_shared<collision::ChCollisionShapeCylinder>(material, radius, height);
+    auto cshape = chrono_types::make_shared<ChCollisionShapeCylinder>(material, radius, height);
     body->GetCollisionModel()->AddShape(cshape, ChFrame<>(pos, rot));
 
     if (visualization) {
@@ -184,7 +183,7 @@ void AddCylinderGeometry(ChBody* body,
     auto height = seg.GetLength();
     auto frame = seg.GetFrame();
 
-    auto cshape = chrono_types::make_shared<collision::ChCollisionShapeCylinder>(material, radius, height);
+    auto cshape = chrono_types::make_shared<ChCollisionShapeCylinder>(material, radius, height);
     body->GetCollisionModel()->AddShape(cshape, frame);
 
     if (visualization) {
@@ -208,7 +207,7 @@ void AddConeGeometry(ChBody* body,
                      const ChQuaternion<>& rot,
                      bool visualization,
                      ChVisualMaterialSharedPtr vis_material) {
-    auto cshape = chrono_types::make_shared<collision::ChCollisionShapeCone>(material, radius, height);
+    auto cshape = chrono_types::make_shared<ChCollisionShapeCone>(material, radius, height);
     body->GetCollisionModel()->AddShape(cshape, ChFrame<>(pos, rot));
 
     if (visualization) {
@@ -239,7 +238,7 @@ bool AddTriangleMeshGeometry(ChBody* body,
     for (int i = 0; i < trimesh->m_vertices.size(); i++)
         trimesh->m_vertices[i] = pos + rot.Rotate(trimesh->m_vertices[i]);
 
-    auto cshape = chrono_types::make_shared<collision::ChCollisionShapeTriangleMesh>(material, trimesh, false, false);
+    auto cshape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(material, trimesh, false, false);
     body->GetCollisionModel()->AddShape(cshape, ChFrame<>());
 
     if (visualization) {
@@ -280,7 +279,7 @@ bool AddTriangleMeshConvexDecomposition(ChBody* body,
     for (int i = 0; i < trimesh->m_vertices.size(); i++) {
         trimesh->m_vertices[i] = pos + rot.Rotate(trimesh->m_vertices[i]);
     }
-    collision::ChConvexDecompositionHACDv2 decomposition;
+    ChConvexDecompositionHACDv2 decomposition;
 
     int hacd_maxhullcount = 512;
     int hacd_maxhullmerge = 256;
@@ -301,7 +300,7 @@ bool AddTriangleMeshConvexDecomposition(ChBody* body,
     for (int c = 0; c < hull_count; c++) {
         decomposition.GetConvexHullResult(c, convexhull);
 
-        auto cshape = chrono_types::make_shared<collision::ChCollisionShapeConvexHull>(material, convexhull);
+        auto cshape = chrono_types::make_shared<ChCollisionShapeConvexHull>(material, convexhull);
         body->GetCollisionModel()->AddShape(cshape, ChFrame<>(pos, rot));
 
         if (!use_original_asset) {
@@ -352,7 +351,7 @@ bool AddTriangleMeshConvexDecompositionV2(ChBody* body,
     for (int i = 0; i < trimesh->m_vertices.size(); i++) {
         trimesh->m_vertices[i] = pos + rot.Rotate(trimesh->m_vertices[i]);
     }
-    collision::ChConvexDecompositionHACDv2 mydecompositionHACDv2;
+    ChConvexDecompositionHACDv2 mydecompositionHACDv2;
 
     int hacd_maxhullcount = 1024;
     int hacd_maxhullmerge = 256;
@@ -368,7 +367,7 @@ bool AddTriangleMeshConvexDecompositionV2(ChBody* body,
                                         (float)hacd_concavity, (float)hacd_smallclusterthreshold,
                                         (float)hacd_fusetolerance);
     mydecompositionHACDv2.ComputeConvexDecomposition();
-    collision::ChConvexDecomposition* used_decomposition = &mydecompositionHACDv2;
+    ChConvexDecomposition* used_decomposition = &mydecompositionHACDv2;
 
     int hull_count = used_decomposition->GetHullCount();
 
@@ -377,7 +376,7 @@ bool AddTriangleMeshConvexDecompositionV2(ChBody* body,
         if (!used_decomposition->GetConvexHullResult(c, convexhull))
             return false;
 
-        auto cshape = chrono_types::make_shared<collision::ChCollisionShapeConvexHull>(material, convexhull);
+        auto cshape = chrono_types::make_shared<ChCollisionShapeConvexHull>(material, convexhull);
         body->GetCollisionModel()->AddShape(cshape, ChFrame<>(pos, rot));
 
         if (!use_original_asset) {
@@ -425,7 +424,7 @@ bool AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
     for (int i = 0; i < trimesh->m_vertices.size(); i++) {
         trimesh->m_vertices[i] = pos + rot.Rotate(trimesh->m_vertices[i]);
     }
-    collision::ChConvexDecompositionHACDv2 mydecompositionHACDv2;
+    ChConvexDecompositionHACDv2 mydecompositionHACDv2;
 
     int hacd_maxhullcount = 1024;
     int hacd_maxhullmerge = 256;
@@ -441,7 +440,7 @@ bool AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
                                         (float)hacd_concavity, (float)hacd_smallclusterthreshold,
                                         (float)hacd_fusetolerance);
     mydecompositionHACDv2.ComputeConvexDecomposition();
-    collision::ChConvexDecomposition* used_decomposition = &mydecompositionHACDv2;
+    ChConvexDecomposition* used_decomposition = &mydecompositionHACDv2;
 
     int hull_count = used_decomposition->GetHullCount();
 
@@ -480,7 +479,7 @@ bool AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
             convexhull[v] = convexhull[v] - center;
         }
 
-        auto cshape = chrono_types::make_shared<collision::ChCollisionShapeConvexHull>(material, convexhull);
+        auto cshape = chrono_types::make_shared<ChCollisionShapeConvexHull>(material, convexhull);
         body->GetCollisionModel()->AddShape(cshape, ChFrame<>(pos, rot));
         body->GetCollisionModel()->Build();
 
@@ -531,7 +530,7 @@ void AddTriangleGeometry(ChBody* body,
     for (int i = 0; i < trimesh->m_vertices.size(); i++)
         trimesh->m_vertices[i] = pos + rot.Rotate(trimesh->m_vertices[i]);
 
-    auto cshape = chrono_types::make_shared<collision::ChCollisionShapeTriangleMesh>(material, trimesh, false, false);
+    auto cshape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(material, trimesh, false, false);
     body->GetCollisionModel()->AddShape(cshape, ChFrame<>());
 
     if (visualization) {
@@ -557,7 +556,7 @@ void AddRoundedBoxGeometry(ChBody* body,
                            const ChQuaternion<>& rot,
                            bool visualization,
                            ChVisualMaterialSharedPtr vis_material) {
-    auto cshape = chrono_types::make_shared<collision::ChCollisionShapeRoundedBox>(material, size, srad);
+    auto cshape = chrono_types::make_shared<ChCollisionShapeRoundedBox>(material, size, srad);
     body->GetCollisionModel()->AddShape(cshape, ChFrame<>(pos, rot));
 
     if (visualization) {
@@ -582,7 +581,7 @@ void AddRoundedCylinderGeometry(ChBody* body,
                                 const ChQuaternion<>& rot,
                                 bool visualization,
                                 ChVisualMaterialSharedPtr vis_material) {
-    auto cshape = chrono_types::make_shared<collision::ChCollisionShapeRoundedCylinder>(material, radius, height, srad);
+    auto cshape = chrono_types::make_shared<ChCollisionShapeRoundedCylinder>(material, radius, height, srad);
     body->GetCollisionModel()->AddShape(cshape, ChFrame<>(pos, rot));
 
     if (visualization) {
@@ -908,7 +907,7 @@ void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
         std::vector<ChVector<double>> convexhull;
         used_decomposition->GetConvexHullResult(c, convexhull);
 
-        auto cshape = chrono_types::make_shared<collision::ChCollisionShapeConvexHull>(material, convexhull);
+        auto cshape = chrono_types::make_shared<ChCollisionShapeConvexHull>(material, convexhull);
         body->GetCollisionModel()->AddShape(cshape, ChFrame<>(pos, rot));
 
         // Add each convex chunk as a new asset
@@ -945,7 +944,7 @@ void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
                              const ChQuaternion<>& rot,
                              ChVisualMaterialSharedPtr vis_material) {
     for (int c = 0; c < convex_hulls.size(); c++) {
-        auto cshape = chrono_types::make_shared<collision::ChCollisionShapeConvexHull>(material, convex_hulls[c]);
+        auto cshape = chrono_types::make_shared<ChCollisionShapeConvexHull>(material, convex_hulls[c]);
         body->GetCollisionModel()->AddShape(cshape, ChFrame<>(pos, rot));
     }
 

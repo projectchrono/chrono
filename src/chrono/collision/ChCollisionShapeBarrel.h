@@ -19,7 +19,6 @@
 #include "chrono/core/ChVector.h"
 
 namespace chrono {
-namespace collision {
 
 /// Collision barrel shape.
 /// When added to a collision model, the shape is aligned with its main axis in the Y direction of the shape frame.
@@ -53,7 +52,6 @@ class ChApi ChCollisionShapeBarrel : public ChCollisionShape {
     double R_offset;
 };
 
-}  // end namespace collision
 }  // end namespace chrono
 
 #endif

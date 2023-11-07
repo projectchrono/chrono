@@ -33,7 +33,6 @@
 #include "chrono/utils/ChProfiler.h"
 #include "chrono/physics/ChLinkMate.h"
 
-using namespace chrono::collision;
 
 namespace chrono {
 
@@ -77,9 +76,9 @@ ChSystem::ChSystem()
     assembly.system = this;
 
     // Set default collision engine type, collision envelope, and margin.
-    collision_system_type = collision::ChCollisionSystemType::BULLET;
-    collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.03);
-    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.01);
+    collision_system_type = ChCollisionSystemType::BULLET;
+    ChCollisionModel::SetDefaultSuggestedEnvelope(0.03);
+    ChCollisionModel::SetDefaultSuggestedMargin(0.01);
 
     // Set default timestepper.
     timestepper = chrono_types::make_shared<ChTimestepperEulerImplicitLinearized>(this);

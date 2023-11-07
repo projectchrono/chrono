@@ -32,7 +32,6 @@
 using std::cout;
 using std::endl;
 
-using namespace chrono::collision;
 
 namespace chrono {
 namespace vehicle {

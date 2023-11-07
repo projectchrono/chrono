@@ -15,7 +15,6 @@
 #include "chrono/collision/ChCollisionShapePath2D.h"
 
 namespace chrono {
-namespace collision {
 
 ChCollisionShapePath2D::ChCollisionShapePath2D() : ChCollisionShape(Type::PATH2D) {}
 
@@ -46,5 +45,4 @@ void ChCollisionShapePath2D::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(radius);
 }
 
-}  // end namespace collision
 }  // end namespace chrono

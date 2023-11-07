@@ -35,7 +35,6 @@ namespace fea {
 class ChContactSurfaceMesh;
 }
 
-namespace collision {
 
 class ChConvexDecomposition;
 
@@ -170,9 +169,8 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
 
 /// @} collision_bullet
 
-}  // end namespace collision
 
-CH_CLASS_VERSION(collision::ChCollisionModelBullet, 0)
+CH_CLASS_VERSION(ChCollisionModelBullet, 0)
 
 }  // end namespace chrono
 

@@ -15,7 +15,6 @@
 #include "chrono/collision/ChCollisionShapeCylindricalShell.h"
 
 namespace chrono {
-namespace collision {
 
 ChCollisionShapeCylindricalShell::ChCollisionShapeCylindricalShell() : ChCollisionShape(Type::CYLSHELL) {}
 
@@ -49,5 +48,4 @@ void ChCollisionShapeCylindricalShell::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(gcylinder);
 }
 
-}  // end namespace collision
 }  // end namespace chrono

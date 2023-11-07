@@ -26,7 +26,6 @@
 
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 
-using namespace chrono::collision;
 
 namespace chrono {
 namespace vehicle {

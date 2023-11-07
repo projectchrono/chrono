@@ -26,7 +26,6 @@
 #endif
 
 using namespace chrono;
-using namespace chrono::collision;
 
 std::string ForceModel_name(ChSystemSMC::ContactForceModel f) {
     switch (f) {

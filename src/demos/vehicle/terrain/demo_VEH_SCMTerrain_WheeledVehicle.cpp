@@ -51,7 +51,6 @@ using namespace chrono::vsg3d;
 #endif
 
 using namespace chrono;
-using namespace chrono::collision;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
 

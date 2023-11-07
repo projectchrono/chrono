@@ -17,7 +17,6 @@
 #include "chrono_distributed/collision/ChCollisionBoundaryDistributed.h"
 
 namespace chrono {
-namespace collision {
 
 ChCollisionBoundaryDistributed::ChCollisionBoundaryDistributed(std::shared_ptr<ChBody> body,
                                                                std::shared_ptr<ChMaterialSurfaceSMC> material)
@@ -100,7 +99,7 @@ void ChCollisionBoundaryDistributed::OnCustomCollision(ChSystem* system) {
         if (!sys->data_manager->host_data.active_rigid[body->GetId()])
             continue;
 
-        auto model = std::static_pointer_cast<collision::ChCollisionModelDistributed>(body->GetCollisionModel());
+        auto model = std::static_pointer_cast<ChCollisionModelDistributed>(body->GetCollisionModel());
 
         //// TODO: Broadphase rejection based on model AABB?
 
@@ -110,13 +109,13 @@ void ChCollisionBoundaryDistributed::OnCustomCollision(ChSystem* system) {
             const auto& material = shape->GetMaterial();
 
             switch (shape->GetType()) {
-                case collision::ChCollisionShape::Type::SPHERE: {
+                case ChCollisionShape::Type::SPHERE: {
                     ChVector<> center_loc = ChVector<>(ct_shape->A.x, ct_shape->A.y, ct_shape->A.z);
                     ChVector<> center_abs = body->TransformPointLocalToParent(center_loc);
                     CheckSphere(model.get(), material, center_abs, ct_shape->B.x);
                     break;
                 }
-                case collision::ChCollisionShape::Type::BOX: {
+                case ChCollisionShape::Type::BOX: {
                     ChFrame<> frame_loc(ChVector<>(ct_shape->A.x, ct_shape->A.y, ct_shape->A.z),
                                         ChQuaternion<>(ct_shape->R.w, ct_shape->R.x, ct_shape->R.y, ct_shape->R.z));
                     ChFrame<> frame_abs;
@@ -135,7 +134,7 @@ void ChCollisionBoundaryDistributed::OnCustomCollision(ChSystem* system) {
     ////    std::cout << "Added " << m_crt_count << " collisions" << std::endl;
 }
 
-void ChCollisionBoundaryDistributed::CheckSphere(collision::ChCollisionModel* model,
+void ChCollisionBoundaryDistributed::CheckSphere(ChCollisionModel* model,
                                                  std::shared_ptr<ChMaterialSurface> material,
                                                  const ChVector<>& center,
                                                  double radius) {
@@ -144,7 +143,7 @@ void ChCollisionBoundaryDistributed::CheckSphere(collision::ChCollisionModel* mo
     }
 }
 
-void ChCollisionBoundaryDistributed::CheckBox(collision::ChCollisionModel* model,
+void ChCollisionBoundaryDistributed::CheckBox(ChCollisionModel* model,
                                               std::shared_ptr<ChMaterialSurface> material,
                                               const ChFrame<>& frame,
                                               const ChVector<>& size) {
@@ -153,7 +152,7 @@ void ChCollisionBoundaryDistributed::CheckBox(collision::ChCollisionModel* model
     }
 }
 
-void ChCollisionBoundaryDistributed::CheckSpherePlane(collision::ChCollisionModel* model,
+void ChCollisionBoundaryDistributed::CheckSpherePlane(ChCollisionModel* model,
                                                       std::shared_ptr<ChMaterialSurface> material,
                                                       const ChVector<>& center,
                                                       double radius,
@@ -170,7 +169,7 @@ void ChCollisionBoundaryDistributed::CheckSpherePlane(collision::ChCollisionMode
     if (std::abs(P.x()) > plane.m_hlen.x() || std::abs(P.y()) > plane.m_hlen.y())
         return;
 
-    collision::ChCollisionInfo contact;
+    ChCollisionInfo contact;
     contact.modelA = m_body->GetCollisionModel().get();
     contact.modelB = model;
     contact.shapeA = nullptr;
@@ -187,7 +186,7 @@ void ChCollisionBoundaryDistributed::CheckSpherePlane(collision::ChCollisionMode
     m_crt_count++;
 }
 
-void ChCollisionBoundaryDistributed::CheckBoxPlane(collision::ChCollisionModel* model,
+void ChCollisionBoundaryDistributed::CheckBoxPlane(ChCollisionModel* model,
                                                    std::shared_ptr<ChMaterialSurface> material,
                                                    const ChFrame<>& frame,
                                                    const ChVector<>& size,
@@ -232,7 +231,7 @@ void ChCollisionBoundaryDistributed::CheckBoxPlane(collision::ChCollisionModel* 
         double depth = Vdot(vec, N);
 
         if (depth < 0 && std::abs(Vdot(vec, U)) < plane.m_hlen.x() && std::abs(Vdot(vec, V)) < plane.m_hlen.y()) {
-            collision::ChCollisionInfo contact;
+            ChCollisionInfo contact;
             contact.modelA = m_body->GetCollisionModel().get();
             contact.modelB = model.get();
             contact.shapeA = nullptr;
@@ -246,5 +245,4 @@ void ChCollisionBoundaryDistributed::CheckBoxPlane(collision::ChCollisionModel* 
     */
 }
 
-}  // end namespace collision
 }  // end namespace chrono

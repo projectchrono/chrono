@@ -6,7 +6,6 @@
 #include <memory>
 
 using namespace chrono;
-using namespace chrono::collision;
 
 double dt = 0.001;
 

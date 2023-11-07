@@ -26,7 +26,6 @@
 
 // Use the namespaces of Chrono
 using namespace chrono;
-using namespace chrono::collision;
 using namespace chrono::irrlicht;
 
 // Use the main namespaces of Irrlicht

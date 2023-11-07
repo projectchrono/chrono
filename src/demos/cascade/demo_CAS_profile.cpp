@@ -47,8 +47,8 @@ int main(int argc, char* argv[]) {
 
     // Collision tolerances.
     // note: for 2D-2D contact problems, only the margin tolerance is used (that acts outward as the envelope)
-    collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0);
-    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.1);
+    ChCollisionModel::SetDefaultSuggestedEnvelope(0.0);
+    ChCollisionModel::SetDefaultSuggestedMargin(0.1);
 
     // Contact material (shared among all collision shapes)
     auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();

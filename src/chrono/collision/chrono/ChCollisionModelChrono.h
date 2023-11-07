@@ -26,7 +26,6 @@ namespace chrono {
 // Forward references
 class ChBody;
 
-namespace collision {
 
 /// @addtogroup collision_mc
 /// @{
@@ -98,7 +97,6 @@ class ChApi ChCollisionModelChrono : public ChCollisionModel {
 
 /// @} collision_mc
 
-}  // end namespace collision
 }  // end namespace chrono
 
 #endif

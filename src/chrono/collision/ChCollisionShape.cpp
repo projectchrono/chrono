@@ -15,7 +15,6 @@
 #include "chrono/collision/ChCollisionShape.h"
 
 namespace chrono {
-namespace collision {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChCollisionShape)
@@ -39,5 +38,4 @@ void ChCollisionShape::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(m_material);
 }
 
-}  // namespace collision
 }  // namespace chrono

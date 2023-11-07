@@ -38,7 +38,7 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
 
     virtual ~ChContactTriangleXYZ() { delete m_collision_model; }
 
-    collision::ChCollisionModel* GetCollisionModel() { return m_collision_model; }
+    ChCollisionModel* GetCollisionModel() { return m_collision_model; }
 
     /// Set the FEA nodes for which this is a proxy.
     void SetNodes(const std::array<std::shared_ptr<ChNodeFEAxyz>, 3>& nodes) { m_nodes = nodes; }
@@ -213,7 +213,7 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
     void ComputeUVfromP(const ChVector<> P, double& u, double& v);
 
   private:
-    collision::ChCollisionModel* m_collision_model;
+    ChCollisionModel* m_collision_model;
 
     std::array<std::shared_ptr<ChNodeFEAxyz>, 3> m_nodes;
     ChVector<bool> m_owns_node;
@@ -234,7 +234,7 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
 
     virtual ~ChContactTriangleXYZROT() { delete m_collision_model; }
 
-    collision::ChCollisionModel* GetCollisionModel() { return m_collision_model; }
+    ChCollisionModel* GetCollisionModel() { return m_collision_model; }
 
     /// Set the FEA nodes for which this is a proxy.
     void SetNodes(const std::array<std::shared_ptr<ChNodeFEAxyzrot>, 3>& nodes) { m_nodes = nodes; }
@@ -409,7 +409,7 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
     void ComputeUVfromP(const ChVector<> P, double& u, double& v);
 
   private:
-    collision::ChCollisionModel* m_collision_model;
+    ChCollisionModel* m_collision_model;
 
     std::array<std::shared_ptr<ChNodeFEAxyzrot>, 3> m_nodes;
     ChVector<bool> m_owns_node;

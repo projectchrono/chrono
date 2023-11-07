@@ -25,7 +25,6 @@
 #include "chrono_vehicle/tracked_vehicle/track_wheel/ChDoubleTrackWheel.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
-using namespace chrono::collision;
 
 namespace chrono {
 namespace vehicle {

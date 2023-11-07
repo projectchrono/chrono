@@ -29,7 +29,6 @@ namespace chrono {
 // Forward declaration for friend class declaration
 class ChSystemMulticore;
 
-namespace collision {
 
 /// @addtogroup multicore_collision
 /// @{
@@ -68,7 +67,6 @@ class CH_MULTICORE_API ChCollisionSystemChronoMulticore : public ChCollisionSyst
 
 /// @} multicore_colision
 
-}  // end namespace collision
 }  // end namespace chrono
 
 #endif

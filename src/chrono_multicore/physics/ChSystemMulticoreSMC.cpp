@@ -17,7 +17,6 @@
 #include "chrono_multicore/collision/ChContactContainerMulticoreSMC.h"
 
 using namespace chrono;
-using namespace chrono::collision;
 
 ChSystemMulticoreSMC::ChSystemMulticoreSMC() : ChSystemMulticore() {
     contact_container = chrono_types::make_shared<ChContactContainerMulticoreSMC>(data_manager);
@@ -67,7 +66,7 @@ void ChSystemMulticoreSMC::SetCollisionSystemType(ChCollisionSystemType type) {
     data_manager->settings.collision.collision_envelope = 0;
 }
 
-void ChSystemMulticoreSMC::SetContactContainer(collision::ChCollisionSystemType type) {
+void ChSystemMulticoreSMC::SetContactContainer(ChCollisionSystemType type) {
     contact_container = chrono_types::make_shared<ChContactContainerMulticoreSMC>(data_manager);
     contact_container->SetSystem(this);
 }

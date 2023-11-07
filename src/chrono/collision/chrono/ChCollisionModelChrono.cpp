@@ -26,7 +26,6 @@
 #include "chrono/physics/ChSystem.h"
 
 namespace chrono {
-namespace collision {
 
 ChCollisionModelChrono::ChCollisionModelChrono() : aabb_min(C_REAL_MAX), aabb_max(-C_REAL_MAX) {
     model_safe_margin = 0;
@@ -314,5 +313,4 @@ void ChCollisionModelChrono::SetContactable(ChContactable* mc) {
     assert(mbody);
 }
 
-}  // end namespace collision
 }  // end namespace chrono

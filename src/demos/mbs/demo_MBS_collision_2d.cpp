@@ -25,7 +25,6 @@
 
 // Use the namespaces of Chrono
 using namespace chrono;
-using namespace chrono::collision;
 using namespace chrono::geometry;
 using namespace chrono::irrlicht;
 

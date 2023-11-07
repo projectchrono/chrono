@@ -21,7 +21,6 @@
 #include "chrono/geometry/ChTriangleMesh.h"
 
 namespace chrono {
-namespace collision {
 
 /// Collision mesh shape.
 class ChApi ChCollisionShapeTriangleMesh : public ChCollisionShape {
@@ -62,7 +61,6 @@ class ChApi ChCollisionShapeTriangleMesh : public ChCollisionShape {
     double radius;
 };
 
-}  // end namespace collision
 }  // end namespace chrono
 
 #endif

@@ -91,7 +91,7 @@ ChVector<> ChTriangle::GetNormal() const {
 }
 
 bool ChTriangle::IsDegenerated() const {
-    return collision::utils::DegenerateTriangle(p1, p2, p3);
+    return utils::DegenerateTriangle(p1, p2, p3);
 }
 
 double ChTriangle::PointTriangleDistance(ChVector<> B,           // point to be measured
@@ -100,7 +100,7 @@ double ChTriangle::PointTriangleDistance(ChVector<> B,           // point to be 
                                          bool& is_into,          // returns true if projection falls on the triangle
                                          ChVector<>& Bprojected  // returns the position of the projected point
 ) {
-    return collision::utils::PointTriangleDistance(B, p1, p2, p3, mu, mv, is_into, Bprojected);
+    return utils::PointTriangleDistance(B, p1, p2, p3, mu, mv, is_into, Bprojected);
 }
 
 void ChTriangle::SetPoints(const ChVector<>& p1, const ChVector<>& p2, const ChVector<>& p3) {

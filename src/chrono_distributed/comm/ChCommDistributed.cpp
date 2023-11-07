@@ -34,7 +34,6 @@
 #include "chrono/physics/ChMaterialSurfaceSMC.h"
 
 using namespace chrono;
-using namespace collision;
 
 ChCommDistributed::ChCommDistributed(ChSystemDistributed* my_sys) {
     this->my_sys = my_sys;

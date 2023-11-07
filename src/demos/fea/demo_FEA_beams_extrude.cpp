@@ -37,7 +37,6 @@
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
 using namespace chrono;
-using namespace chrono::collision;
 using namespace chrono::fea;
 using namespace chrono::irrlicht;
 

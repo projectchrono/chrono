@@ -33,7 +33,6 @@
 
 using namespace chrono;
 using namespace chrono::geometry;
-using namespace chrono::collision;
 using namespace chrono::irrlicht;
 
 using namespace irr;

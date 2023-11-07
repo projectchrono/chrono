@@ -45,7 +45,6 @@
 #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
-using namespace chrono::collision;
 using namespace rapidjson;
 
 namespace chrono {

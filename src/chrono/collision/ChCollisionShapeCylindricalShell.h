@@ -19,7 +19,6 @@
 #include "chrono/geometry/ChCylinder.h"
 
 namespace chrono {
-namespace collision {
 
 /// Collision cylindrical shell shape.
 /// When added to a collision model, the cylinder is defined with its axis along the Z direction of the shape frame.
@@ -50,7 +49,6 @@ class ChApi ChCollisionShapeCylindricalShell : public ChCollisionShape {
     geometry::ChCylinder gcylinder;
 };
 
-}  // end namespace collision
 }  // end namespace chrono
 
 #endif

@@ -20,7 +20,6 @@
 #include "chrono/core/ChApiCE.h"
 
 namespace chrono {
-namespace collision {
 
 /// @addtogroup collision_bullet
 /// @{
@@ -153,7 +152,6 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
 
 /// @} collision_bullet
 
-}  // end namespace collision
 }  // end namespace chrono
 
 #endif

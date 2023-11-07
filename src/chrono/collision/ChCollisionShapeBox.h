@@ -19,7 +19,6 @@
 #include "chrono/geometry/ChBox.h"
 
 namespace chrono {
-namespace collision {
 
 /// Collision box shape.
 class ChApi ChCollisionShapeBox : public ChCollisionShape {
@@ -50,7 +49,6 @@ class ChApi ChCollisionShapeBox : public ChCollisionShape {
     geometry::ChBox gbox;
 };
 
-}  // end namespace collision
 }  // end namespace chrono
 
 #endif

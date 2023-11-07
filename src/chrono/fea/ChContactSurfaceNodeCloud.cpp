@@ -19,7 +19,6 @@
 #include "chrono/fea/ChElementTetraCorot_4.h"
 #include "chrono/fea/ChMesh.h"
 
-using namespace chrono::collision;
 
 namespace chrono {
 namespace fea {

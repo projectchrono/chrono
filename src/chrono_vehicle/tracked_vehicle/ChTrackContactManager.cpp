@@ -22,7 +22,6 @@
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRig.h"
 
-using namespace chrono::collision;
 
 namespace chrono {
 namespace vehicle {

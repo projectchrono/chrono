@@ -23,7 +23,6 @@
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeDoublePin.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
-using namespace chrono::collision;
 
 namespace chrono {
 namespace vehicle {

@@ -27,8 +27,8 @@ namespace chrono {
 
 class ChApi ChProximitySPH {
   public:
-    ChProximitySPH(collision::ChCollisionModel* mmodA,  ///< model A
-                   collision::ChCollisionModel* mmodB   ///< model B
+    ChProximitySPH(ChCollisionModel* mmodA,  ///< model A
+                   ChCollisionModel* mmodB   ///< model B
                    ) {
         Reset(mmodA, mmodB);
     }
@@ -36,8 +36,8 @@ class ChApi ChProximitySPH {
     virtual ~ChProximitySPH() {}
 
     /// IReinitialize this constraint.
-    virtual void Reset(collision::ChCollisionModel* mmodA,  ///< model A
-                       collision::ChCollisionModel* mmodB   ///< model B
+    virtual void Reset(ChCollisionModel* mmodA,  ///< model A
+                       ChCollisionModel* mmodB   ///< model B
                        ) {
         assert(mmodA);
         assert(mmodB);
@@ -47,13 +47,13 @@ class ChApi ChProximitySPH {
     }
 
     /// Get the collision model A, with point P1
-    virtual collision::ChCollisionModel* GetModelA() { return this->modA; }
+    virtual ChCollisionModel* GetModelA() { return this->modA; }
     /// Get the collision model B, with point P2
-    virtual collision::ChCollisionModel* GetModelB() { return this->modB; }
+    virtual ChCollisionModel* GetModelB() { return this->modB; }
 
   private:
-    collision::ChCollisionModel* modA;  ///< model A
-    collision::ChCollisionModel* modB;  ///< model B
+    ChCollisionModel* modA;  ///< model A
+    ChCollisionModel* modB;  ///< model B
 };
 
 /// Class for container of many proximity pairs for SPH (Smooth
@@ -89,8 +89,8 @@ class ChApi ChProximityContainerSPH : public ChProximityContainer {
     virtual void BeginAddProximities() override;
 
     /// Add a proximity SPH data between two collision models, if possible.
-    virtual void AddProximity(collision::ChCollisionModel* modA,  ///< get contact model 1
-                              collision::ChCollisionModel* modB   ///< get contact model 2
+    virtual void AddProximity(ChCollisionModel* modA,  ///< get contact model 1
+                              ChCollisionModel* modB   ///< get contact model 2
                               ) override;
 
     /// The collision system will call BeginAddContact() after adding

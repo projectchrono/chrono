@@ -15,7 +15,6 @@
 #include "chrono/collision/ChCollisionShapeEllipsoid.h"
 
 namespace chrono {
-namespace collision {
 
 ChCollisionShapeEllipsoid::ChCollisionShapeEllipsoid(): ChCollisionShape(Type::ELLIPSOID) {}
 
@@ -55,5 +54,4 @@ void ChCollisionShapeEllipsoid::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(gellipsoid);
 }
 
-}  // end namespace collision
 }  // end namespace chrono

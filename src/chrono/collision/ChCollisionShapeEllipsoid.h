@@ -19,7 +19,6 @@
 #include "chrono/geometry/ChEllipsoid.h"
 
 namespace chrono {
-namespace collision {
 
 /// Collision ellipsoid shape.
 class ChApi ChCollisionShapeEllipsoid : public ChCollisionShape {
@@ -50,7 +49,6 @@ class ChApi ChCollisionShapeEllipsoid : public ChCollisionShape {
     geometry::ChEllipsoid gellipsoid;
 };
 
-}  // end namespace collision
 }  // end namespace chrono
 
 #endif

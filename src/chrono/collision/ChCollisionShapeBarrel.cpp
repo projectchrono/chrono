@@ -15,7 +15,6 @@
 #include "chrono/collision/ChCollisionShapeBarrel.h"
 
 namespace chrono {
-namespace collision {
 
 ChCollisionShapeBarrel::ChCollisionShapeBarrel() : ChCollisionShape(Type::BARREL) {}
 
@@ -59,5 +58,4 @@ void ChCollisionShapeBarrel::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(R_offset);
 }
 
-}  // end namespace collision
 }  // end namespace chrono

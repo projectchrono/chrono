@@ -40,7 +40,6 @@ using namespace chrono::vsg3d;
 
 using namespace chrono;
 using namespace chrono::parsers;
-using namespace chrono::collision;
 
 // -----------------------------------------------------------------------------
 

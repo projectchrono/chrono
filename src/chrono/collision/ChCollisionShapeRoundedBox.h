@@ -19,7 +19,6 @@
 #include "chrono/geometry/ChBox.h"
 
 namespace chrono {
-namespace collision {
 
 /// Collision rounded-box shape.
 class ChApi ChCollisionShapeRoundedBox : public ChCollisionShape {
@@ -58,7 +57,6 @@ class ChApi ChCollisionShapeRoundedBox : public ChCollisionShape {
     double radius;
 };
 
-}  // end namespace collision
 }  // end namespace chrono
 
 #endif

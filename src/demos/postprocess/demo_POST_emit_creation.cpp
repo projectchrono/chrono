@@ -30,7 +30,6 @@
 
 // Use the main namespace of Chrono, and other chrono namespaces
 using namespace chrono;
-using namespace chrono::collision;
 using namespace chrono::particlefactory;
 using namespace chrono::irrlicht;
 using namespace chrono::postprocess;

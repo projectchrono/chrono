@@ -42,7 +42,6 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
-using namespace chrono::collision;
 using namespace rapidjson;
 
 namespace chrono {

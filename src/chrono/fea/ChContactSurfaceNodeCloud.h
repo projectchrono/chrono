@@ -142,10 +142,10 @@ class ChApi ChContactNodeXYZsphere : public ChContactNodeXYZ {
 
     virtual ~ChContactNodeXYZsphere() { delete collision_model; }
 
-    collision::ChCollisionModel* GetCollisionModel() { return collision_model; }
+    ChCollisionModel* GetCollisionModel() { return collision_model; }
 
   private:
-    collision::ChCollisionModel* collision_model;
+    ChCollisionModel* collision_model;
 };
 
 /// Proxy to FEA nodes with 3 xyz + 3 rot coords, to grant them the features needed for collision detection.
@@ -269,10 +269,10 @@ class ChApi ChContactNodeXYZROTsphere : public ChContactNodeXYZROT {
 
     virtual ~ChContactNodeXYZROTsphere() { delete collision_model; }
 
-    collision::ChCollisionModel* GetCollisionModel() { return collision_model; }
+    ChCollisionModel* GetCollisionModel() { return collision_model; }
 
   private:
-    collision::ChCollisionModel* collision_model;
+    ChCollisionModel* collision_model;
 };
 
 /// Class which defines a contact surface for FEA elements.

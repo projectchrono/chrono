@@ -15,7 +15,6 @@
 #include "chrono/collision/ChCollisionShapeRoundedBox.h"
 
 namespace chrono {
-namespace collision {
 
 ChCollisionShapeRoundedBox::ChCollisionShapeRoundedBox() : ChCollisionShape(Type::ROUNDEDBOX) {}
 
@@ -60,5 +59,4 @@ void ChCollisionShapeRoundedBox::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(radius);
 }
 
-}  // end namespace collision
 }  // end namespace chrono
