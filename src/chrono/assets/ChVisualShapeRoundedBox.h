@@ -20,6 +20,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_assets
+/// @{
+
 /// Class for referencing a rounded box shape that can be visualized in some way.
 class ChApi ChVisualShapeRoundedBox : public ChVisualShape {
   public:
@@ -51,6 +54,8 @@ class ChApi ChVisualShapeRoundedBox : public ChVisualShape {
   private:
     geometry::ChRoundedBox gbox;
 };
+
+/// @} chrono_assets
 
 CH_CLASS_VERSION(ChVisualShapeRoundedBox, 0)
 

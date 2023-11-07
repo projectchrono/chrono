@@ -22,6 +22,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_assets
+/// @{
+
 /// Class for referencing a ChLinePath that can be visualized in some way.
 class ChApi ChVisualShapePath : public ChVisualShape {
   public:
@@ -49,6 +52,8 @@ class ChApi ChVisualShapePath : public ChVisualShape {
     unsigned int npoints;                         ///< number of points evaluated when rendering
     double thickness;                         ///< thickness of line when rendering (for rendering engines that support it)
 };
+
+/// @} chrono_assets
 
 CH_CLASS_VERSION(ChVisualShapePath, 0)
 

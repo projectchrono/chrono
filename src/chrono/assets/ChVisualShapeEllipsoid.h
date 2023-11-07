@@ -18,6 +18,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_assets
+/// @{
+
 /// Class for referencing an ellipsoid shape that can be visualized in some way.
 class ChApi ChVisualShapeEllipsoid : public ChVisualShape {
   public:
@@ -46,6 +49,8 @@ class ChApi ChVisualShapeEllipsoid : public ChVisualShape {
   private:
     geometry::ChEllipsoid gellipsoid;
 };
+
+/// @} chrono_assets
 
 CH_CLASS_VERSION(ChVisualShapeEllipsoid, 0)
 

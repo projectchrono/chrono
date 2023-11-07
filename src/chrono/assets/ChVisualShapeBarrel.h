@@ -19,6 +19,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_assets
+/// @{
+
 /// Class for referencing a barrel shape (a lathed arc) that can be visualized in some way.
 class ChApi ChVisualShapeBarrel : public ChVisualShape {
   public:
@@ -56,6 +59,8 @@ class ChApi ChVisualShapeBarrel : public ChVisualShape {
     double Rhor;
     double Roffset;
 };
+
+/// @} chrono_assets
 
 CH_CLASS_VERSION(ChVisualShapeBarrel, 0)
 

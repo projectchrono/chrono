@@ -17,6 +17,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_assets
+/// @{
+
 /// Base class for visualization of some deformable line shape
 /// between two moving points related to the parent ChPhysicsItem.
 /// (at this point, only ChLink and its derivatives are supported.)
@@ -82,6 +85,8 @@ class ChApi ChVisualShapeRotSpring : public ChVisualShapeLine {
     double m_radius;
     size_t m_resolution;
 };
+
+/// @} chrono_assets
 
 }  // end namespace chrono
 

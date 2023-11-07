@@ -22,6 +22,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_assets
+/// @{
+
 /// Class for referencing a triangle mesh shape that can be visualized in some way.
 /// A ChVisualShapeTriangleMesh can be attached to a physics object.
 /// Provides various rendering options (e.g., drawing as wireframe, performing backface culling, etc.) which may not be
@@ -73,6 +76,8 @@ class ChApi ChVisualShapeTriangleMesh : public ChVisualShape {
     bool fixed_connectivity;
     std::vector<int> modified_vertices;
 };
+
+/// @} chrono_assets
 
 CH_CLASS_VERSION(ChVisualShapeTriangleMesh, 0)
 

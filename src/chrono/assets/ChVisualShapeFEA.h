@@ -21,6 +21,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_assets
+/// @{
+
 // Forward declarations
 namespace fea {
 class ChMesh;
@@ -260,7 +263,7 @@ class ChApi ChVisualShapeFEA {
     friend class ChVisualModel;
 };
 
-/// @} chrono_fea
+/// @} chrono_assets
 
 }  // end namespace chrono
 

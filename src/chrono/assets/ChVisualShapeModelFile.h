@@ -17,6 +17,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_assets
+/// @{
+
 /// Class for referencing a Wavefront OBJ file containing a shape that can be visualized in some way.
 /// The file is not loaded into this object; this is simply a reference to the resource on disk.
 class ChApi ChVisualShapeModelFile : public ChVisualShape {
@@ -38,6 +41,8 @@ class ChApi ChVisualShapeModelFile : public ChVisualShape {
   private:
     std::string filename;
 };
+
+/// @} chrono_assets
 
 CH_CLASS_VERSION(ChVisualShapeModelFile, 0)
 

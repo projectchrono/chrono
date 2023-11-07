@@ -20,6 +20,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_assets
+/// @{
+
 /// A spherical geometric object for collisions and visualization.
 class ChApi ChVisualShapeSphere : public ChVisualShape {
   public:
@@ -44,6 +47,8 @@ class ChApi ChVisualShapeSphere : public ChVisualShape {
   private:
     geometry::ChSphere gsphere;
 };
+
+/// @} chrono_assets
 
 CH_CLASS_VERSION(ChVisualShapeSphere, 0)
 

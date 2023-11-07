@@ -21,6 +21,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_assets
+/// @{
+
 /// Class for referencing a ChLine that can be visualized in some way.
 class ChApi ChVisualShapeLine : public ChVisualShape {
   public:
@@ -55,6 +58,8 @@ class ChApi ChVisualShapeLine : public ChVisualShape {
     unsigned int npoints;                     ///< number of points evaluated when rendering
     double thickness;                         ///< thickness of line when rendering (for rendering engines that support it)
 };
+
+/// @} chrono_assets
 
 CH_CLASS_VERSION(ChVisualShapeLine, 0)
 

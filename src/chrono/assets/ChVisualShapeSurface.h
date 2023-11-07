@@ -18,6 +18,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_assets
+/// @{
+
 /// Class for referencing a ChSurface u,v, parametric surface that can be visualized in some way.
 class ChApi ChVisualShapeSurface : public ChVisualShape {
   public:
@@ -71,6 +74,8 @@ class ChApi ChVisualShapeSurface : public ChVisualShape {
     int resolution_U;
     int resolution_V;
 };
+
+/// @} chrono_assets
 
 CH_CLASS_VERSION(ChVisualShapeSurface, 0)
 

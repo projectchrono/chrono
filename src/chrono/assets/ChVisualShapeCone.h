@@ -18,6 +18,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_assets
+/// @{
+
 /// Class for referencing a cone shape that can be visualized in some way.
 class ChApi ChVisualShapeCone : public ChVisualShape {
   public:
@@ -45,6 +48,8 @@ class ChApi ChVisualShapeCone : public ChVisualShape {
   private:
     geometry::ChCone gcone;
 };
+
+/// @} chrono_assets
 
 CH_CLASS_VERSION(ChVisualShapeCone, 0)
 

@@ -20,6 +20,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_assets
+/// @{
+
 /// Class for referencing a cylinder shape that can be visualized in some way.
 class ChApi ChVisualShapeCylinder : public ChVisualShape {
   public:
@@ -47,6 +50,8 @@ class ChApi ChVisualShapeCylinder : public ChVisualShape {
   private:
     geometry::ChCylinder gcylinder;
 };
+
+/// @} chrono_assets
 
 CH_CLASS_VERSION(ChVisualShapeCylinder, 0)
 

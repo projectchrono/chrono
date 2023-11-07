@@ -20,6 +20,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_assets
+/// @{
+
 /// Class for referencing a capsule shape that can be visualized in some way.
 class ChApi ChVisualShapeCapsule : public ChVisualShape {
   public:
@@ -50,6 +53,8 @@ class ChApi ChVisualShapeCapsule : public ChVisualShape {
   private:
     geometry::ChCapsule gcapsule;
 };
+
+/// @} chrono_assets
 
 CH_CLASS_VERSION(ChVisualShapeCapsule, 0)
 
