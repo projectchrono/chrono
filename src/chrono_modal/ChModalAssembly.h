@@ -588,7 +588,7 @@ public:
     ChMatrixDynamic<> Xi_V;//the third geometrical nonlinear part of the tangent stiffness matrix
 
     ChVectorDynamic<> g_loc;//the local internal forces of the reduced superelement in the floating frame F
-    ChVectorDynamic<> g_iner;//the complete inertial forces of the reduced superelement
+    //ChVectorDynamic<> g_iner;//the complete inertial forces of the reduced superelement
     ChVectorDynamic<> g_quad;// the quadratic velocity term of the reduced superelement
 
     ChMatrixDynamic<> P_W;//extended transformation matrix, = diag[P_B2,I]

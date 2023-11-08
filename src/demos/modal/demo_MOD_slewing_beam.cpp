@@ -46,10 +46,10 @@ using namespace filesystem;
 const std::string out_dir = GetChronoOutputPath() + "SLEWING_BEAM";
 
 double time_step = 0.002;
-double time_length = 5.6;
-// bool use_tangent_stiffness_Kc = true;
+double time_length = 2;
+ //bool use_tangent_stiffness_Kc = true;
 
-bool RUN_ORIGIN = true;
+bool RUN_ORIGIN = false;
 bool RUN_MODAL = true;
 bool ROTATING_BEAM = true;
 
@@ -87,8 +87,14 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
     auto driving_fun = chrono_types::make_shared<ChFunction_Setpoint>();
     driving_fun->SetSetpoint(0, 0);
     my_link_truss->SetAngleFunction(driving_fun);
-    // my_link_truss->SetUseTangentStiffness(use_tangent_stiffness_Kc);
+     //my_link_truss->SetUseTangentStiffness(use_tangent_stiffness_Kc);
     sys.AddLink(my_link_truss);
+
+    // auto my_link_truss = chrono_types::make_shared<ChLinkMateGeneric>(true, true, true, true, true, false);
+    // my_link_truss->Initialize(my_truss, my_ground, ChFrame<>(0.5 * (my_truss->GetPos() + my_ground->GetPos()),
+    // QUNIT));
+    //// my_link_truss->SetUseTangentStiffness(use_tangent_stiffness_Kc);
+    // sys.AddLink(my_link_truss);
 
     auto assembly = chrono_types::make_shared<ChModalAssembly>();
     sys.Add(assembly);
@@ -165,10 +171,11 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
 
     sys.DumpSystemMatrices(true, true, true, true, (out_dir + "/sys_dump").c_str());
     assembly->DumpSubassemblyMatrices(true, true, true, true, (out_dir + "/assembly_dump").c_str());
+    // Finally, log damped eigenvalue analysis to see the effect of the modal damping (0= search ALL damped modes)
 
     if (do_modal_reduction) {
         assembly->SwitchModalReductionON(
-            16,  // The number of modes to retain from modal reduction, or a ChModalSolveUndamped with more settings
+            6,  // The number of modes to retain from modal reduction, or a ChModalSolveUndamped with more settings
             ChModalDampingRayleigh(0.000,
                                    0.00)  // The damping model - Optional parameter: default is ChModalDampingNone().
         );
@@ -178,17 +185,23 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
 
     // Do dynamics simulation
     {
+         //sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
+         //auto euler_stepper = std::dynamic_pointer_cast<ChTimestepperEulerImplicitLinearized>(sys.GetTimestepper());
+         //if (euler_stepper != nullptr) {
+         //    euler_stepper->SetVerbose(false);
+         //}
+
         // use HHT second order integrator (but slower)
         sys.SetTimestepperType(ChTimestepper::Type::HHT);
         auto hht_stepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
         if (hht_stepper != nullptr) {
-            hht_stepper->SetVerbose(false);
+            //hht_stepper->SetVerbose(false);
             hht_stepper->SetStepControl(false);
             // hht_stepper->SetRelTolerance(1e-9);
             // hht_stepper->SetAbsTolerances(1e-16);
-            // hht_stepper->SetAlpha(-0.2);
+            //hht_stepper->SetAlpha(-0.2);
             // hht_stepper->SetModifiedNewton(true);
-            // hht_stepper->SetMaxiters(50);
+             //hht_stepper->SetMaxiters(10);
         }
 
         double omega = 4.0;
@@ -200,6 +213,12 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
         mdeflection.resize(Nframes, 8);
         mdeflection.setZero();
         while (frame < Nframes) {
+            // if (sys.GetChTime() > 3.5)
+            //     if (hht_stepper != nullptr) {
+            //         hht_stepper->SetVerbose(true);
+            //         hht_stepper->SetMaxiters(20);
+            //     }
+
             double tao = sys.GetChTime() / T;
 
             if (ROTATING_BEAM) {
@@ -212,16 +231,19 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
                 driving_fun->SetSetpoint(rot_angle, sys.GetChTime());
             }
 
-            // Add a force to generate vibration
-            my_node_B->SetForce(ChVector<>(0, 5.0 * tao, 0));
+            //// Add a force to generate vibration
+            //if (sys.GetChTime() < 3.5)
+            //    my_node_B->SetForce(ChVector<>(0, 5.0 * tao, 0));
+            //else
+            //    my_node_B->SetForce(ChVector<>(0, 0, 0));
 
             sys.DoStepDynamics(time_step);
 
             ChFrameMoving<> relative_frame_tip;  // The tip node
             my_node_A->TransformParentToLocal(my_node_B->Frame(), relative_frame_tip);
 
-            ChFrameMoving<> relative_frame_2;  // The second last node
-            my_node_A->TransformParentToLocal(builder.GetLastBeamNodes()[n_elements - 1]->Frame(), relative_frame_2);
+            ChFrameMoving<> relative_frame_2;  // The middle node
+            my_node_A->TransformParentToLocal(builder.GetLastBeamNodes()[n_elements/2]->Frame(), relative_frame_2);
 
             mdeflection(frame, 0) = sys.GetChTime();
             mdeflection(frame, 1) = my_node_A->GetRot().Q_to_Rotv().z() * CH_C_RAD_TO_DEG;
