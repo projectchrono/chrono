@@ -80,6 +80,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChFilters.h"
 #include "chrono/utils/ChUtilsCreators.h"
+#include "chrono/utils/ChUtilsGeometry.h"
 
 using namespace chrono;
 using namespace chrono::geometry;
@@ -176,9 +177,6 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChCollisionSystemBullet)
 %shared_ptr(chrono::ChCollisionModel)
 %shared_ptr(chrono::ChCollisionModelBullet)
-
-%shared_ptr(chrono::ChCollisionShape)
-%shared_ptr(chrono::ChCollisionShapeBox)
 
 
 %shared_ptr(chrono::ChCollisionSystem::BroadphaseCallback)
@@ -414,6 +412,7 @@ using namespace chrono::fea;
 %include "../../../chrono/utils/ChUtilsInputOutput.h"
 %include "../../../chrono/utils/ChFilters.h"
 %include "../../../chrono/utils/ChUtilsCreators.h"
+%include "../../../chrono/utils/ChUtilsGeometry.h"
 
 %include "ChParticleFactory.i"
 //
@@ -433,6 +432,91 @@ using namespace chrono::fea;
 
 %DefSharedPtrDynamicDowncast(chrono, ChLoadable, ChBody)
 %DefSharedPtrDynamicDowncast(chrono, ChLoadable, ChNodeBase)
+
+// C- DOWNCASTING OF SHARED POINTERS
+// see details in ChModuleCore.i
+
+// enable _automatic_ downcasting from ChVisualShape to derived classes (shared pointers versions)
+%downcast_output_sharedptr(chrono::ChVisualShape,
+  chrono::ChVisualShapeFEA,
+  chrono::ChVisualShapeModelFile,
+  chrono::ChVisualShapeTriangleMesh,
+  chrono::ChVisualShapeSphere,
+  chrono::ChVisualShapeEllipsoid,
+  chrono::ChVisualShapeBox,
+  chrono::ChVisualShapeCone,
+  chrono::ChVisualShapeCylinder,
+  chrono::ChVisualShapeCapsule,
+  chrono::ChVisualShapeRoundedCylinder,
+  chrono::ChVisualShapeRoundedBox,
+  chrono::ChVisualShapePath,
+  chrono::ChVisualShapeLine,
+  chrono::ChVisualShapePointPoint,
+  chrono::ChVisualShapeRotSpring,
+  chrono::ChVisualShapeSegment,
+  chrono::ChVisualShapeSpring,
+  chrono::ChVisualShapeSurface)
+
+%DefSharedPtrDynamicDowncast(chrono, ChVisualShape, ChVisualShapeFEA)
+%DefSharedPtrDynamicDowncast(chrono, ChVisualShape, ChVisualShapeModelFile)
+%DefSharedPtrDynamicDowncast(chrono, ChVisualShape, ChVisualShapeTriangleMesh)
+%DefSharedPtrDynamicDowncast(chrono, ChVisualShape, ChVisualShapeSphere)
+%DefSharedPtrDynamicDowncast(chrono, ChVisualShape, ChVisualShapeEllipsoid)
+%DefSharedPtrDynamicDowncast(chrono, ChVisualShape, ChVisualShapeBarrel)
+%DefSharedPtrDynamicDowncast(chrono, ChVisualShape, ChVisualShapeBox)
+%DefSharedPtrDynamicDowncast(chrono, ChVisualShape, ChVisualShapeCone)
+%DefSharedPtrDynamicDowncast(chrono, ChVisualShape, ChVisualShapeCylinder)
+%DefSharedPtrDynamicDowncast(chrono, ChVisualShape, ChVisualShapeCapsule)
+%DefSharedPtrDynamicDowncast(chrono, ChVisualShape, ChVisualShapeRoundedCylinder)
+%DefSharedPtrDynamicDowncast(chrono, ChVisualShape, ChVisualShapeRoundedBox)
+%DefSharedPtrDynamicDowncast(chrono, ChVisualShape, ChVisualShapePath)
+%DefSharedPtrDynamicDowncast(chrono, ChVisualShape, ChVisualShapeLine)
+%DefSharedPtrDynamicDowncast(chrono, ChVisualShape, ChVisualShapePointPoint)
+%DefSharedPtrDynamicDowncast(chrono, ChVisualShape, ChVisualShapeRotSpring)
+%DefSharedPtrDynamicDowncast(chrono, ChVisualShape, ChVisualShapeSegment)
+%DefSharedPtrDynamicDowncast(chrono, ChVisualShape, ChVisualShapeSpring)
+%DefSharedPtrDynamicDowncast(chrono, ChVisualShape, ChVisualShapeSurface)
+
+
+// enable _automatic_ downcasting from ChCollisionShape to derived classes (shared pointers versions)
+%downcast_output_sharedptr(chrono::ChCollisionShape,
+  chrono::ChCollisionShapeArc2D,
+  chrono::ChCollisionShapeBarrel,
+  chrono::ChCollisionShapeBox,
+  chrono::ChCollisionShapeCapsule,
+  chrono::ChCollisionShapeCone,
+  chrono::ChCollisionShapeConvexHull,
+  chrono::ChCollisionShapeCylinder,
+  chrono::ChCollisionShapeCylindricalShell,
+  chrono::ChCollisionShapeEllipsoid,
+  chrono::ChCollisionShapePath2D,
+  chrono::ChCollisionShapePoint,
+  chrono::ChCollisionShapeRoundedBox,
+  chrono::ChCollisionShapeRoundedCylinder,
+  chrono::ChCollisionShapeSegment2D,
+  chrono::ChCollisionShapeSphere,
+  chrono::ChCollisionShapeTriangle,
+  chrono::ChCollisionShapeTriangleMesh)
+
+
+%DefSharedPtrDynamicDowncast(chrono, ChCollisionShape, ChCollisionShapeArc2D)
+%DefSharedPtrDynamicDowncast(chrono, ChCollisionShape, ChCollisionShapeBarrel)
+%DefSharedPtrDynamicDowncast(chrono, ChCollisionShape, ChCollisionShapeBox)
+%DefSharedPtrDynamicDowncast(chrono, ChCollisionShape, ChCollisionShapeCapsule)
+%DefSharedPtrDynamicDowncast(chrono, ChCollisionShape, ChCollisionShapeCone)
+%DefSharedPtrDynamicDowncast(chrono, ChCollisionShape, ChCollisionShapeConvexHull)
+%DefSharedPtrDynamicDowncast(chrono, ChCollisionShape, ChCollisionShapeCylinder)
+%DefSharedPtrDynamicDowncast(chrono, ChCollisionShape, ChCollisionShapeCylindricalShell)
+%DefSharedPtrDynamicDowncast(chrono, ChCollisionShape, ChCollisionShapeEllipsoid)
+%DefSharedPtrDynamicDowncast(chrono, ChCollisionShape, ChCollisionShapePath2D)
+%DefSharedPtrDynamicDowncast(chrono, ChCollisionShape, ChCollisionShapePoint)
+%DefSharedPtrDynamicDowncast(chrono, ChCollisionShape, ChCollisionShapeRoundedBox)
+%DefSharedPtrDynamicDowncast(chrono, ChCollisionShape, ChCollisionShapeRoundedCylinder)
+%DefSharedPtrDynamicDowncast(chrono, ChCollisionShape, ChCollisionShapeSegment2D)
+%DefSharedPtrDynamicDowncast(chrono, ChCollisionShape, ChCollisionShapeSphere)
+%DefSharedPtrDynamicDowncast(chrono, ChCollisionShape, ChCollisionShapeTriangle)
+%DefSharedPtrDynamicDowncast(chrono, ChCollisionShape, ChCollisionShapeTriangleMesh)
+
 
 %DefSharedPtrDynamicDowncast(chrono, ChBodyFrame, ChBody)
 %DefSharedPtrDynamicDowncast(chrono, ChBodyFrame, ChBodyAuxRef)

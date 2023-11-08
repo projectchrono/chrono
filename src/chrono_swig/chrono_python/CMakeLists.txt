@@ -115,7 +115,7 @@ endif()
 set(CMAKE_SWIG_OUTDIR "${PROJECT_BINARY_DIR}/chrono_python")
 
 # Set SWIG flags.  Disable selected SWIG warnings 
-set(CMAKE_SWIG_FLAGS "-c++;-v;-w302,362,389,401,509")
+set(CMAKE_SWIG_FLAGS "-c++;-w302,362,389,401,509")
 
 if(DBG_SCRIPT)
   message("SWIG_USE_FILE:      ${SWIG_USE_FILE}")

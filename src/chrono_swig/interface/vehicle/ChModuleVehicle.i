@@ -56,6 +56,9 @@
 #include "chrono/physics/ChLoadsXYZnode.h"
 #include "chrono/physics/ChPhysicsItem.h"
 
+#include "chrono/assets/ChVisualShapes.h"
+
+
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/collision/bullet/ChCollisionModelBullet.h"
 
@@ -206,7 +209,7 @@ using namespace chrono::vehicle::m113;
 
 /*
 from this module: pay attention to inheritance in the model namespace (generic, sedan etc). 
-If those classes are wrapped, their parents are marked as shared_ptr while they are not, SWIG can't hanlde them.
+If those classes are wrapped, their parents are marked as shared_ptr while they are not, SWIG can't handle them.
 Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the model namespaces
 */
 
@@ -286,6 +289,27 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 // B by. Seems that it is enough to write 
 //  mynamespace { class myclass; }
 // in the .i file, before the %include of the .h, even if already forwarded in .h
+
+%shared_ptr(chrono::ChVisualShape)
+%shared_ptr(chrono::ChVisualShapeFEA)
+%shared_ptr(chrono::ChVisualShapeModelFile)
+%shared_ptr(chrono::ChVisualShapeTriangleMesh)
+%shared_ptr(chrono::ChVisualShapeSphere)
+%shared_ptr(chrono::ChVisualShapeEllipsoid)
+%shared_ptr(chrono::ChVisualShapeBarrel)
+%shared_ptr(chrono::ChVisualShapeBox)
+%shared_ptr(chrono::ChVisualShapeCone)
+%shared_ptr(chrono::ChVisualShapeCylinder)
+%shared_ptr(chrono::ChVisualShapeCapsule)
+%shared_ptr(chrono::ChVisualShapeRoundedCylinder)
+%shared_ptr(chrono::ChVisualShapeRoundedBox)
+%shared_ptr(chrono::ChVisualShapePath)
+%shared_ptr(chrono::ChVisualShapeLine)
+%shared_ptr(chrono::ChVisualShapePointPoint)
+%shared_ptr(chrono::ChVisualShapeRotSpring)
+%shared_ptr(chrono::ChVisualShapeSegment)
+%shared_ptr(chrono::ChVisualShapeSpring)
+%shared_ptr(chrono::ChVisualShapeSurface)
 
 #ifdef SWIGCSHARP
 
