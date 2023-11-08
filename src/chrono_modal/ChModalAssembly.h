@@ -603,6 +603,11 @@ public:
     ChMatrixDynamic<> V_F2;//matrix associated with the local centrifugal forces of boundary nodes B
     ChMatrixDynamic<> V_F3;//matrix associated with the local Coriolis forces of boundary nodes B
 
+        // full system matrices in original mixed basis
+    ChSparseMatrix full_M;
+    ChSparseMatrix full_K;
+    ChSparseMatrix full_R;
+    ChSparseMatrix full_Cq;
     // full system matrices in the local floating frame of reference F
     ChSparseMatrix full_M_loc;
     ChSparseMatrix full_K_loc;

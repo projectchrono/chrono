@@ -46,7 +46,7 @@ using namespace filesystem;
 const std::string out_dir = GetChronoOutputPath() + "SLEWING_BEAM";
 
 double time_step = 0.002;
-double time_length = 2;
+double time_length = 10;
  //bool use_tangent_stiffness_Kc = true;
 
 bool RUN_ORIGIN = false;
