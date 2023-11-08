@@ -60,7 +60,7 @@ using std::endl;
 // Run-time visualization system (IRRLICHT or VSG)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
 
-TrackShoeType shoe_type = TrackShoeType::DOUBLE_PIN;
+TrackShoeType shoe_type = TrackShoeType::SINGLE_PIN;
 DoublePinTrackShoeType shoe_topology = DoublePinTrackShoeType::ONE_CONNECTOR;
 BrakeType brake_type = BrakeType::SHAFTS;
 DrivelineTypeTV driveline_type = DrivelineTypeTV::BDS;
@@ -98,27 +98,11 @@ double target_speed = 5;                                   // used for mode=PATH
 DriverMode driver_mode = DriverMode::PATH;
 
 // Contact formulation (NSC or SMC)
-ChContactMethod contact_method = ChContactMethod::NSC;
+ChContactMethod contact_method = ChContactMethod::SMC;
 
 // Simulation step size
 double step_size_NSC = 1e-3;
-double step_size_SMC = 1e-4;
-
-// Solver and integrator types
-////ChSolver::Type slvr_type = ChSolver::Type::BARZILAIBORWEIN;
-////ChSolver::Type slvr_type = ChSolver::Type::APGD;
-////ChSolver::Type slvr_type = ChSolver::Type::PSOR;
-////ChSolver::Type slvr_type = ChSolver::Type::MINRES;
-////ChSolver::Type slvr_type = ChSolver::Type::GMRES;
-////ChSolver::Type slvr_type = ChSolver::Type::SPARSE_LU;
-////ChSolver::Type slvr_type = ChSolver::Type::SPARSE_QR;
-ChSolver::Type slvr_type = ChSolver::Type::PARDISO_MKL;
-////ChSolver::Type slvr_type = ChSolver::Type::MUMPS;
-
-////ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
-ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
-////ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT;
-////ChTimestepper::Type intgr_type = ChTimestepper::Type::HHT;
+double step_size_SMC = 5e-4;
 
 // Verbose output level (solver and integrator)
 bool verbose_solver = false;
@@ -572,7 +556,7 @@ int main(int argc, char* argv[]) {
             break;
     }
 
-    SetChronoSolver(*m113.GetSystem(), slvr_type, intgr_type);
+    SetChronoSolver(*m113.GetSystem(), ChSolver::Type::BARZILAIBORWEIN, ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     m113.GetSystem()->GetSolver()->SetVerbose(verbose_solver);
     m113.GetSystem()->GetTimestepper()->SetVerbose(verbose_integrator);
 
