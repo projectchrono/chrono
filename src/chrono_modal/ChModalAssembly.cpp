@@ -543,7 +543,7 @@ void ChModalAssembly::CpmputeSelectionMatrix() {
 
     // temporarily use the first boundary node as the reference frame
     this->S.setZero(6, 6 * n_bou);
-    S.leftCols(6).diagonal().setConstant(0.5);
+    S.leftCols(6).diagonal().setConstant(1.0);
 }
 
 void ChModalAssembly::UpdateFloatingFrameOfReference() {
