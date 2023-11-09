@@ -209,9 +209,15 @@ bool ChGeneralizedEigenvalueSolverKrylovSchur::Solve(const ChSparseMatrix& M,  /
 	freq.setZero(settings.n_modes);
 
     for (int i = 0; i < settings.n_modes; i++) {
-        V.col(i) = eigen_vectors.col(i).head(n_vars);  // store only displacement part of eigenvector, no constraint part
-        // TODO: normalize w.r.t. mass matrix
-		V.col(i).normalize(); // check if necessary or already normalized
+        V.col(i) = eigen_vectors.col(i).head(n_vars);  // store only displacement part of eigenvector, no constraint part 
+		
+		// normalize w.r.t. mass matrix
+        double gen_mass = V.col(i).real().transpose() * M * V.col(i).real();
+        if (gen_mass > 0)
+            V.col(i) *= pow(1.0 / gen_mass, 0.5);
+        else
+            V.col(i).normalize();
+
         eig(i) = eigen_values(i);
 		freq(i) = (1.0 / CH_C_2PI) * sqrt(-eig(i).real());
     }
@@ -302,8 +308,14 @@ bool ChGeneralizedEigenvalueSolverLanczos::Solve(const ChSparseMatrix& M,  ///< 
 
     for (int i = 0; i < settings.n_modes; i++) {
         V.col(i) = eigen_vectors.col(i).head(n_vars);  // store only displacement part of eigenvector, no constraint part
-		// TODO: normalize w.r.t. mass matrix
-        V.col(i).normalize(); // check if necessary or already normalized
+		
+		// normalize w.r.t. mass matrix
+        double gen_mass = V.col(i).real().transpose() * M * V.col(i).real();
+        if (gen_mass > 0)
+            V.col(i) *= pow(1.0 / gen_mass, 0.5);
+        else
+            V.col(i).normalize();
+
         eig(i) = eigen_values(i);
 		freq(i) = (1.0 / CH_C_2PI) * sqrt(-eig(i).real());
     }
@@ -472,9 +484,15 @@ bool ChQuadraticEigenvalueSolverNullspaceDirect::Solve(const ChSparseMatrix& M, 
         auto mv = all_eigen_values_and_vectors.at(i_half).eigen_vect.head(DOF_counts);
         auto mvhns = Cq_null_space * mv;
 
-        V.col(i) = mvhns; 
-		// TODO: normalize w.r.t. mass matrix
-        V.col(i).normalize(); // check if necessary or already normalized
+        V.col(i) = mvhns;
+
+        // normalize w.r.t. mass matrix
+        double gen_mass = V.col(i).real().transpose() * M * V.col(i).real();
+        if (gen_mass > 0)
+            V.col(i) *= pow(1.0 / gen_mass, 0.5);
+        else
+            V.col(i).normalize();
+
         eig(i) = all_eigen_values_and_vectors.at(i_half).eigen_val;
 		freq(i) = (1.0 / CH_C_2PI) * (std::abs(eig(i))); // undamped freq.
 		damping_ratio(i) = -eig(i).real() / std::abs(eig(i));
@@ -729,9 +747,15 @@ bool ChQuadraticEigenvalueSolverKrylovSchur::Solve(const ChSparseMatrix& M, cons
         int i_half = middle_number + i; // because the n.of eigenvalues is double (conjugate pairs), so just use the 2nd half after sorting
 
         V.col(i) = all_eigen_values_and_vectors.at(i_half).eigen_vect.head(n_vars);  // store only displacement part of eigenvector, no speed part, no constraint part
-        // TODO: normalize w.r.t. mass matrix
-		V.col(i).normalize(); // check if necessary or already normalized
-        eig(i) = all_eigen_values_and_vectors.at(i_half).eigen_val;
+        
+		// normalize w.r.t. mass matrix
+        double gen_mass = V.col(i).real().transpose() * M * V.col(i).real();
+        if (gen_mass > 0)
+            V.col(i) *= pow(1.0 / gen_mass, 0.5);
+        else
+            V.col(i).normalize();
+        
+		eig(i) = all_eigen_values_and_vectors.at(i_half).eigen_val;
 		freq(i) = (1.0 / CH_C_2PI) * (std::abs(eig(i))); // undamped freq.
 		damping_ratio(i) = -eig(i).real() / std::abs(eig(i));
     }
