@@ -240,16 +240,14 @@ void ChCascadeBodyEasyProfile::UpdateCollisionAndVisualizationShapes() {
         if (chface.collide) {
             assert(chface.material);
             for (auto mpath : chface.wires) {
-                ChVector<> pathposz;
-                mpath->Evaluate(pathposz, 0.0);  // for offset along Z
+                ChVector<> pathposz = mpath->Evaluate(0.0);  // for offset along Z
                 auto ct_shape =
                     chrono_types::make_shared<ChCollisionShapePath2D>(chface.material, mpath, chface.thickness * 0.99);
                 GetCollisionModel()->AddShape(
                     ct_shape, ChFrame<>(ChVector<>(0, 0, pathposz.z() + chface.thickness * 0.5), QUNIT));
             }
             for (auto mhole : chface.holes) {
-                ChVector<> pathposz;
-                mhole->Evaluate(pathposz, 0.0);  // for offset along Z
+                ChVector<> pathposz = mhole->Evaluate(0.0);  // for offset along Z
                 auto ct_shape =
                     chrono_types::make_shared<ChCollisionShapePath2D>(chface.material, mhole, chface.thickness * 0.99);
                 GetCollisionModel()->AddShape(ct_shape,

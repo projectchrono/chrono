@@ -86,16 +86,20 @@ class ChRandomParticlePositionOnGeometry : public ChRandomParticlePosition {
     /// Function that creates a random position each
     /// time it is called.
     virtual ChVector<> RandomPosition() override {
+        ChVector<> pos = m_frame.GetPos();
+
         if (auto mline = std::dynamic_pointer_cast<geometry::ChLine>(m_geometry)) {
-            mline->Evaluate(m_frame.GetPos(), ChRandom());
+            pos = mline->Evaluate(ChRandom());
         }
         else if (auto msurface = std::dynamic_pointer_cast<geometry::ChSurface>(m_geometry)) {
-            msurface->Evaluate(m_frame.GetPos(), ChRandom(), ChRandom());
+            pos = msurface->Evaluate(ChRandom(), ChRandom());
         }
         else if (auto mvolume = std::dynamic_pointer_cast<geometry::ChVolume>(m_geometry)) {
-            mvolume->Evaluate(m_frame.GetPos(), ChRandom(), ChRandom(), ChRandom());
+            pos = mvolume->Evaluate(ChRandom(), ChRandom(), ChRandom());
         }
-        return m_frame.GetPos();
+
+        m_frame.SetPos(pos);
+        return pos;
     }
 
     /// Set the parametric surface used for this outlet.

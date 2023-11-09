@@ -33,10 +33,8 @@ ChRoundedBox::ChRoundedBox(const ChRoundedBox& source) {
     hlen = source.hlen;
 }
 
-void ChRoundedBox::Evaluate(ChVector<>& pos, const double parU, const double parV, const double parW) const {
-    pos.x() = hlen.x() * (parU - 0.5);
-    pos.y() = hlen.y() * (parV - 0.5);
-    pos.z() = hlen.z() * (parW - 0.5);
+ChVector<> ChRoundedBox::Evaluate(const double parU, const double parV, const double parW) const {
+    return ChVector<>(hlen.x() * (parU - 0.5), hlen.y() * (parV - 0.5), hlen.z() * (parW - 0.5));
 }
 
 ChGeometry::AABB ChRoundedBox::GetBoundingBox(const ChMatrix33<>& rot) const {

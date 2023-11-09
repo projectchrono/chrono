@@ -48,7 +48,7 @@ void ChLinkPointSpline::UpdateTime(double time) {
     ChTime = time;
 
     if (trajectory_line) {
-        Vector param, ptang, ptang2, vdir, vdir2, vnorm, vrad, vpoint;
+        Vector param, vdir, vdir2, vnorm, vrad, vpoint;
         double mu, ds, dh, mrad;
 
         // find nearest point
@@ -59,7 +59,7 @@ void ChLinkPointSpline::UpdateTime(double time) {
         param.y() = 0;
         param.z() = 0;
         param.x() = mu;
-        trajectory_line->Evaluate(ptang, param.x());
+        auto ptang = trajectory_line->Evaluate(param.x());
 
         if (param.x() < 0)
             param.x() = 0;
@@ -68,7 +68,7 @@ void ChLinkPointSpline::UpdateTime(double time) {
         param.x() = mu + BDF_STEP_HIGH;
         if (param.x() > 1)
             param.x() = 1;
-        trajectory_line->Evaluate(ptang2, param.x());
+        auto ptang2 = trajectory_line->Evaluate(param.x());
 
         trajectory_line->Derive(vdir2, param.x());
 

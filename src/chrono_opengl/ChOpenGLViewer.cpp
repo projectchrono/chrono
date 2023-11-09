@@ -391,21 +391,20 @@ void ChOpenGLViewer::DrawVisualModel(std::shared_ptr<ChPhysicsItem> item) {
             if (auto mline_path = std::dynamic_pointer_cast<geometry::ChLinePath>(mline))
                 maxU = mline_path->GetPathDuration();
 
-            ChVector<> t2;
-            mline->Evaluate(t2, 0.0);
+            ChVector<> t2 = mline->Evaluate(0.0);
             t2 = X_SA.TransformPointLocalToParent(t2);
             line_path_data.push_back(glm::vec3(t2.x(), t2.y(), t2.z()));
 
             for (unsigned int ig = 1; ig < npoints; ig++) {
                 double mU = maxU * ((double)ig / (double)(npoints - 1));  // abscissa
 
-                mline->Evaluate(t2, mU);
+                t2 = mline->Evaluate(mU);
                 t2 = X_SA.TransformPointLocalToParent(t2);
                 line_path_data.push_back(glm::vec3(t2.x(), t2.y(), t2.z()));
                 line_path_data.push_back(glm::vec3(t2.x(), t2.y(), t2.z()));
             }
 
-            mline->Evaluate(t2, maxU);
+            t2 = mline->Evaluate(maxU);
             t2 = X_SA.TransformPointLocalToParent(t2);
             line_path_data.push_back(glm::vec3(t2.x(), t2.y(), t2.z()));
         }

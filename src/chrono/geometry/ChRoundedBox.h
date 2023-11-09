@@ -43,11 +43,11 @@ class ChApi ChRoundedBox : public ChVolume {
     /// Computes the baricenter of the box
     virtual ChVector<> Baricenter() const override { return ChVector<>(0); }
 
-    /// Evaluate position in cube volume
-    virtual void Evaluate(ChVector<>& pos, const double parU, const double parV, const double parW) const override;
 
     /// This is a solid
     virtual int GetManifoldDimension() const override { return 3; }
+    /// Evaluate position in rounded box volume.
+    virtual ChVector<> Evaluate(const double parU, const double parV, const double parW) const override;
 
     /// Get the box half-lengths.
     const ChVector<>& GetHalflengths() const { return hlen; }

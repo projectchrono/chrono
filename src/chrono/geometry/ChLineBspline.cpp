@@ -42,7 +42,7 @@ ChLineBspline::ChLineBspline(const ChLineBspline& source) : ChLine(source) {
 	this->closed = source.closed;
 }
 
-void ChLineBspline::Evaluate(ChVector<>& pos, const double parU) const {
+ChVector<> ChLineBspline::Evaluate(const double parU) const {
 	double mU;
 	if (this->closed)
 		mU = fmod(parU, 1.0);
@@ -56,11 +56,13 @@ void ChLineBspline::Evaluate(ChVector<>& pos, const double parU) const {
     ChVectorDynamic<> N(this->p + 1);
     ChBasisToolsBspline::BasisEvaluate(this->p, spanU, u, this->knots, N);
 
-    pos = VNULL;
+    ChVector<> pos = VNULL;
     int uind = spanU - p;
     for (int i = 0; i <= this->p; i++) {
         pos += points[uind + i] * N(i);
     }
+
+    return pos;
 }
 
 void ChLineBspline::Derive(ChVector<>& dir, const double parU) const {

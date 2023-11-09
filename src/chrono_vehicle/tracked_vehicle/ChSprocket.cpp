@@ -150,12 +150,11 @@ std::shared_ptr<geometry::ChTriangleMeshConnected> ChSprocket::CreateVisualizati
     std::vector<ChVector<>> rpoints; // points on ring
     std::vector<ChVector<>> pnormals; // normals on profile
     std::vector<ChVector<>> rnormals; // normals on ring
-    ChVector<> p;
     for (auto il = 0; il < profile->GetSubLinesCount(); il++) {
         auto line = profile->GetSubLineN(il);
         auto n = static_cast<int>(std::ceil(line->Length(2) / delta));
         for (auto ip = 0; ip < n; ip++) {            
-            line->Evaluate(p, (1.0 * ip)/n);
+            auto p = line->Evaluate((1.0 * ip)/n);
             ppoints.push_back(ChVector<>(p.x(), 0, p.y())); // Point on profile
             p *= radius / p.Length();
             rpoints.push_back(ChVector<>(p.x(), 0, p.y())); // Point on ring

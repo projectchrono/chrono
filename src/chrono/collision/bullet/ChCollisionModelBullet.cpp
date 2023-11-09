@@ -328,10 +328,9 @@ void ChCollisionModelBullet::injectPath2D(std::shared_ptr<ChCollisionShapePath2D
         if (i_next < path.GetSubLinesCount()) {
             std::shared_ptr<geometry::ChLine> line_prev = path.GetSubLineN(i_prev);
             std::shared_ptr<geometry::ChLine> line_next = path.GetSubLineN(i_next);
-            ChVector<> pos_prev, pos_next;
+            auto pos_prev = line_prev->Evaluate(1);
+            auto pos_next = line_next->Evaluate(0);
             ChVector<> dir_prev, dir_next;
-            line_prev->Evaluate(pos_prev, 1);
-            line_next->Evaluate(pos_next, 0);
             line_prev->Derive(dir_prev, 1);
             line_next->Derive(dir_next, 0);
             dir_prev.Normalize();

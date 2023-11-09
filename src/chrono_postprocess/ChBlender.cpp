@@ -840,8 +840,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
             *mfile << "create_chrono_path('" << shapename << "',\n";
             *mfile << "[ \n";
             for (int i = 0; i < line_shape->GetNumRenderPoints(); ++i) {
-                ChVector<> pt;
-                line_shape->GetLineGeometry()->Evaluate(pt, (double)i / (double)(line_shape->GetNumRenderPoints() - 1));
+                auto pt = line_shape->GetLineGeometry()->Evaluate(i / (double)(line_shape->GetNumRenderPoints() - 1));
                 *mfile << "(" << pt.x() << "," << pt.y() << "," << pt.z() << "),\n";
             }
             *mfile << "],\n";
@@ -863,8 +862,7 @@ void ChBlender::ExportShapes(ChStreamOutAsciiFile& assets_file,
             *mfile << "create_chrono_path('" << shapename << "',\n";
             *mfile << "[ \n";
             for (int i = 0; i < line_shape->GetNumRenderPoints(); ++i) {
-                ChVector<> pt;
-                line_shape->GetPathGeometry()->Evaluate(pt, (double)i / (double)(line_shape->GetNumRenderPoints() - 1));
+                auto pt = line_shape->GetPathGeometry()->Evaluate(i / (double)(line_shape->GetNumRenderPoints() - 1));
                 *mfile << "(" << pt.x() << "," << pt.y() << "," << pt.z() << "),\n";
             }
             *mfile << "],\n";

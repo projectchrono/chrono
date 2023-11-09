@@ -54,12 +54,8 @@ class ChApi ChLineNurbs : public ChLine {
 
     virtual int Get_complexity() const override { return (int)points.size(); }
 
-    /// Evaluates a point on the line, given parametric coordinate U.
-    /// Parameter U always work in 0..1 range, even if knots are not in 0..1 range.
-    /// So if you want to use u' in knot range, use ComputeUfromKnotU().
-    /// Computed value goes into the 'pos' reference.
-    /// It must be implemented by inherited classes.
-    virtual void Evaluate(ChVector<>& pos, const double parU) const override;
+    /// Return a point on the line, given parametric coordinate U (in [0,1]).
+    virtual ChVector<> Evaluate(const double U) const override;
 
     /// Evaluates a tangent versor, given parametric coordinate.
     /// Parameter U always work in 0..1 range.

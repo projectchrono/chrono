@@ -29,10 +29,8 @@ ChBox::ChBox(const ChBox& source) {
     hlen = source.hlen;
 }
 
-void ChBox::Evaluate(ChVector<>& pos, const double parU, const double parV, const double parW) const {
-    pos.x() = hlen.x() * (parU - 0.5);
-    pos.y() = hlen.y() * (parV - 0.5);
-    pos.z() = hlen.z() * (parW - 0.5);
+ChVector<> ChBox::Evaluate(const double parU, const double parV, const double parW) const {
+    return ChVector<>(hlen.x() * (parU - 0.5), hlen.y() * (parV - 0.5), hlen.z() * (parW - 0.5));
 }
 
 

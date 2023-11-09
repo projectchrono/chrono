@@ -50,10 +50,10 @@ void ChSurface::Normal(ChVector<>& dir, const double parU, const double parV) co
         vB = parV + bdf;
         vA = parV;
     }
-    ChVector<> V0, Vu, Vv;
-    Evaluate(V0, uA, vA);
-    Evaluate(Vu, uB, vA);
-    Evaluate(Vv, uA, vB);
+
+    auto V0 = Evaluate(uA, vA);
+    auto Vu = Evaluate(uB, vA);
+    auto Vv = Evaluate(uA, vB);
     dir = Vnorm(Vcross((Vu - V0), (Vv - V0)));
 }
 

@@ -50,10 +50,8 @@ ChFunctionPosition_line::~ChFunctionPosition_line() {
 
 
 ChVector<> ChFunctionPosition_line::Get_p(double s) const {
-	ChVector<> p;
-	double u = space_fx->Get_y(s);
-    trajectory_line->Evaluate(p, u);
-	return p;
+    double u = space_fx->Get_y(s);
+    return trajectory_line->Evaluate(u);
 }
 
 ChVector<> ChFunctionPosition_line::Get_p_ds(double s) const {
@@ -71,11 +69,9 @@ ChVector<> ChFunctionPosition_line::Get_p_dsds(double s) const {
     double tr_timeB = s + tstep;
     double tr_timeA = s - tstep;
 
-    ChVector<> result, resultB, resultA;
-
-    trajectory_line->Evaluate(result, tr_time);
-    trajectory_line->Evaluate(resultA, tr_timeA);
-    trajectory_line->Evaluate(resultB, tr_timeB);
+    auto result = trajectory_line->Evaluate(tr_time);
+    auto resultA = trajectory_line->Evaluate(tr_timeA);
+    auto resultB = trajectory_line->Evaluate(tr_timeB);
 
     return (resultA + resultB - result * 2) * (4 / pow(2 * tstep, 2));
 }

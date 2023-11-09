@@ -1517,8 +1517,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createLineShape(ChVisualModel::ShapeInsta
     for (int i = 0; i < numPoints; i++) {
         // double u = ustep * (double(i));
         double u = maxU * ((double)i / (double)(numPoints - 1));  // abscissa
-        ChVector<> pos;
-        ls->GetLineGeometry()->Evaluate(pos, u);
+        ChVector<> pos = ls->GetLineGeometry()->Evaluate(u);
         vertices->set(i, vsg::vec3CH(pos));
         auto cv =
             vsg::vec3(material->GetDiffuseColor().R, material->GetDiffuseColor().G, material->GetDiffuseColor().B);
@@ -1608,8 +1607,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createPathShape(ChVisualModel::ShapeInsta
     auto colors = vsg::vec3Array::create(numPoints);
     for (int i = 0; i < numPoints; i++) {
         double u = ustep * (double(i));
-        ChVector<> pos;
-        ps->GetPathGeometry()->Evaluate(pos, u);
+        ChVector<> pos = ps->GetPathGeometry()->Evaluate(u);
         vertices->set(i, vsg::vec3CH(pos));
         auto cv =
             vsg::vec3(material->GetDiffuseColor().R, material->GetDiffuseColor().G, material->GetDiffuseColor().B);

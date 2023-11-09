@@ -687,8 +687,7 @@ void ChIrrNodeShape::UpdateSurface(std::shared_ptr<ChVisualShapeSurface> surface
             for (auto iu = 0; iu <= sections_u; ++iu) {
                 double mU = 1.0 * ((double)iu / (double)(sections_u));  // u abscissa
 
-                ChVector<> P;
-                msurface->Evaluate(P, mU, mV);
+                ChVector<> P = msurface->Evaluate(mU, mV);
                 ////P = vis->Pos + vis->Rot * P;
 
                 ChVector<> N;
@@ -749,8 +748,7 @@ void ChIrrNodeShape::UpdateSurface(std::shared_ptr<ChVisualShapeSurface> surface
             for (auto iu = 0; iu <= sections_u; ++iu) {
                 double mU = 1.0 * ((double)iu / (double)(sections_u));  // u abscissa
 
-                ChVector<> P;
-                msurface->Evaluate(P, mU, mV);
+                ChVector<> P = msurface->Evaluate(mU, mV);
                 ////P = vis->Pos + vis->Rot * P;
 
                 irrmesh->getVertexBuffer()[iu + iv * (sections_u + 1)] =
@@ -771,8 +769,7 @@ void ChIrrNodeShape::UpdateSurface(std::shared_ptr<ChVisualShapeSurface> surface
             for (auto iv = 0; iv <= sections_v; ++iv) {
                 double mV = 1.0 * ((double)iv / (double)(sections_v));  // v abscissa
 
-                ChVector<> P;
-                msurface->Evaluate(P, mU, mV);
+                ChVector<> P = msurface->Evaluate(mU, mV);
                 ////P = vis->Pos + vis->Rot * P;
 
                 irrmesh->getVertexBuffer()[iv + iu * (sections_v + 1) + stride] =
@@ -830,8 +827,7 @@ void ChIrrNodeShape::UpdateLine(std::shared_ptr<geometry::ChLine> line, unsigned
 
     int itri = 0;
 
-    ChVector<> t1;
-    line->Evaluate(t1, 0);
+    ChVector<> t1 = line->Evaluate(0);
     ////t1 = vis->Pos + vis->Rot * t1;
 
     irrmesh->getVertexBuffer()[0] = video::S3DVertex((f32)t1.x(), (f32)t1.y(), (f32)t1.z(), 1, 0, 0, clr, 0, 0);
@@ -843,8 +839,7 @@ void ChIrrNodeShape::UpdateLine(std::shared_ptr<geometry::ChLine> line, unsigned
     for (unsigned int ig = 0; ig < ntriangles; ++ig) {
         double mU = maxU * ((double)ig / (double)(ntriangles - 1));  // abscissa
 
-        ChVector<> t2;
-        line->Evaluate(t2, mU);
+        ChVector<> t2 = line->Evaluate(mU);
         ////t2 = vis->Pos + vis->Rot * t2;
 
         // create a  small line (a degenerate triangle) per each vector

@@ -57,12 +57,9 @@ class ChApi ChSurfaceNurbs : public ChSurface {
 
     // virtual int Get_complexity() const override { return points.GetRows(); }
 
-    /// Evaluates a point on the line, given parametric coordinate U.
-    /// Parameter U always work in 0..1 range, even if knots are not in 0..1 range.
-    /// So if you want to use u' in knot range, use ComputeUfromKnotU().
-    /// Computed value goes into the 'pos' reference.
-    /// It must be implemented by inherited classes.
-    virtual void Evaluate(ChVector<>& pos, const double parU, const double parV) const override;
+    /// Return a point on the surface, given parametric coordinates U,V.
+    /// Parameters U and V always work in 0..1 range.  As such, to use u' in knot range, use ComputeUfromKnotU().
+    virtual ChVector<> Evaluate(const double parU, const double parV) const override;
 
     /// Evaluates normal
     // virtual void Normal(ChVector<>& dir, const double parU) const override;
