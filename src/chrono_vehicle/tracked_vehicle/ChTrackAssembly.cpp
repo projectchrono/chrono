@@ -95,12 +95,20 @@ void ChTrackAssembly::Initialize(std::shared_ptr<ChChassis> chassis, const ChVec
     // (implemented by derived classes)
     bool ccw = Assemble(chassis->GetBody());
 
-    // Loop over all track shoes and allow them to connect themselves to their neighbor
+    // Loop over all track shoes
+    // - allow them to connect themselves to their neighbor
+    // - add terrain loads to chassis container (these are used only when co-simulating with external terrain)
     size_t num_shoes = GetNumTrackShoes();
-    std::shared_ptr<ChTrackShoe> next;
     for (size_t i = 0; i < num_shoes; ++i) {
-        next = (i == num_shoes - 1) ? GetTrackShoe(0) : GetTrackShoe(i + 1);
-        GetTrackShoe(i)->Connect(next, this, chassis.get(), ccw);
+        auto this_shoe = GetTrackShoe(i);
+        auto next_shoe = (i == num_shoes - 1) ? GetTrackShoe(0) : GetTrackShoe(i + 1);
+        this_shoe->Connect(next_shoe, this, chassis.get(), ccw);
+        auto fload = chrono_types::make_shared<ChLoadBodyForce>(this_shoe->GetShoeBody(), VNULL, false, VNULL, false);
+        auto tload = chrono_types::make_shared<ChLoadBodyTorque>(this_shoe->GetShoeBody(), VNULL, false);
+        m_spindle_terrain_forces.push_back(fload);
+        m_spindle_terrain_torques.push_back(tload);
+        chassis->AddTerrainLoad(fload);
+        chassis->AddTerrainLoad(tload);
     }
 
     // Mark as initialized
@@ -214,19 +222,23 @@ void ChTrackAssembly::SetWheelCollisionType(bool roadwheel_as_cylinder,
 // -----------------------------------------------------------------------------
 // Update the state of this track assembly at the current time.
 // -----------------------------------------------------------------------------
-void ChTrackAssembly::Synchronize(double time, double braking, const TerrainForces& shoe_forces) {
+void ChTrackAssembly::Synchronize(double time, double braking) {
     // Zero out applied torque on sprocket axle
     GetSprocket()->m_axle->SetAppliedTorque(0.0);
 
-    // Apply track shoe forces
-    for (size_t i = 0; i < GetNumTrackShoes(); ++i) {
-        GetTrackShoe(i)->m_shoe->Empty_forces_accumulators();
-        GetTrackShoe(i)->m_shoe->Accumulate_force(shoe_forces[i].force, shoe_forces[i].point, false);
-        GetTrackShoe(i)->m_shoe->Accumulate_torque(shoe_forces[i].moment, false);
-    }
-
     // Apply braking input
     m_brake->Synchronize(braking);
+}
+
+void ChTrackAssembly::Synchronize(double time, double braking, const TerrainForces& shoe_forces) {
+    Synchronize(time, braking);
+
+    // Apply track shoe forces
+    for (size_t i = 0; i < GetNumTrackShoes(); ++i) {
+        m_spindle_terrain_forces[i]->SetForce(shoe_forces[i].force, false);
+        m_spindle_terrain_forces[i]->SetApplicationPoint(shoe_forces[i].point, false);
+        m_spindle_terrain_torques[i]->SetTorque(shoe_forces[i].moment, false);
+    }
 }
 
 // -----------------------------------------------------------------------------

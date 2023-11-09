@@ -303,10 +303,8 @@ int main(int argc, char* argv[]) {
         integrator->SetAlpha(-0.2);
         integrator->SetMaxiters(50);
         integrator->SetAbsTolerances(1e-4, 1e2);
-        integrator->SetMode(ChTimestepperHHT::ACCELERATION);
         integrator->SetStepControl(false);
         integrator->SetModifiedNewton(false);
-        integrator->SetScaling(true);
         ////integrator->SetVerbose(true);
 #endif
     } else {
@@ -323,12 +321,6 @@ int main(int argc, char* argv[]) {
     // ---------------
     // Simulation loop
     // ---------------
-
-    // Inter-module communication data
-    BodyStates shoe_states_left(marder.GetVehicle().GetNumTrackShoes(LEFT));
-    BodyStates shoe_states_right(marder.GetVehicle().GetNumTrackShoes(RIGHT));
-    TerrainForces shoe_forces_left(marder.GetVehicle().GetNumTrackShoes(LEFT));
-    TerrainForces shoe_forces_right(marder.GetVehicle().GetNumTrackShoes(RIGHT));
 
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);
@@ -395,16 +387,14 @@ int main(int argc, char* argv[]) {
             render_frame++;
         }
 
-        // Collect output data from modules
+        // Current driver inputs
         DriverInputs driver_inputs = driver.GetInputs();
-        marder.GetVehicle().GetTrackShoeStates(LEFT, shoe_states_left);
-        marder.GetVehicle().GetTrackShoeStates(RIGHT, shoe_states_right);
 
         // Update modules (process inputs from other modules)
         double time = marder.GetVehicle().GetChTime();
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        marder.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
+        marder.Synchronize(time, driver_inputs);
         vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules

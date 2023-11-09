@@ -187,9 +187,7 @@ int main(int argc, char* argv[]) {
     auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(0.0);
     mystepper->SetMaxiters(100);
-    mystepper->SetAbsTolerances(1e-08);
-    mystepper->SetMode(ChTimestepperHHT::POSITION);
-    mystepper->SetScaling(false);
+    mystepper->SetAbsTolerances(1e-2);
     mystepper->SetVerbose(true);
 
     /*utils::Data m_data;

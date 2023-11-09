@@ -175,9 +175,16 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
 
     /// Update the state of this vehicle at the current time.
     /// The vehicle system is provided the current driver inputs (throttle between 0 and 1, steering between -1 and +1,
-    /// braking between 0 and 1) and terrain forces on the track shoes (expressed in the global reference frame).
+    /// braking between 0 and 1).
+    void Synchronize(double time,                       ///< [in] current time
+                     const DriverInputs& driver_inputs  ///< [in] current driver inputs
+    );
+
+    /// Update the state of this vehicle at the current time.
+    /// This version can be used in a co-simulation framework and it provides the terrain forces on the track shoes
+    /// (assumed to be expressed in the global reference frame).
     void Synchronize(double time,                            ///< [in] current time
-                     const DriverInputs& driver_inputs,  ///< [in] current driver inputs
+                     const DriverInputs& driver_inputs,      ///< [in] current driver inputs
                      const TerrainForces& shoe_forces_left,  ///< [in] vector of track shoe forces (left side)
                      const TerrainForces& shoe_forces_right  ///< [in] vector of track shoe forces (left side)
     );

@@ -109,7 +109,6 @@ class CH_MODELS_API HMMWV_DoubleWishboneFront : public ChDoubleWishbone {
 
     static const double m_axleInertia;
 
-    static const double m_springCoefficient;
     static const double m_springRestLength;
 };
 
@@ -187,7 +186,6 @@ class CH_MODELS_API HMMWV_DoubleWishboneRear : public ChDoubleWishbone {
 
     static const double m_axleInertia;
 
-    static const double m_springCoefficient;
     static const double m_springRestLength;
 };
 

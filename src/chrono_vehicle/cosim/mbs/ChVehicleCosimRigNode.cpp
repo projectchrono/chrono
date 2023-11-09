@@ -27,6 +27,7 @@
 
 #include "chrono/ChConfig.h"
 #include "chrono/utils/ChUtilsCreators.h"
+#include "chrono/physics/ChLoadContainer.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 
@@ -98,6 +99,15 @@ void ChVehicleCosimRigNode::InitializeMBS(const ChVector2<>& terrain_size, doubl
     m_rev_motor->Initialize(m_chassis, m_spindle, ChFrame<>(origin, Q_from_AngZ(m_toe_angle) * Q_from_AngX(CH_C_PI_2)));
     m_system->AddLink(m_rev_motor);
 
+    // Create ChLoad objects to apply terrain forces on spindle
+    auto load_container = chrono_types::make_shared<ChLoadContainer>();
+    m_system->Add(load_container);
+
+    m_spindle_terrain_force = chrono_types::make_shared<ChLoadBodyForce>(m_spindle, VNULL, false, VNULL, false);
+    load_container->Add(m_spindle_terrain_force);
+    m_spindle_terrain_torque = chrono_types::make_shared<ChLoadBodyTorque>(m_spindle, VNULL, false);
+    load_container->Add(m_spindle_terrain_torque);
+
     // Write file with rig node settings
     std::ofstream outf;
     outf.open(m_node_out_dir + "/settings.info", std::ios::out);
@@ -125,9 +135,9 @@ void ChVehicleCosimRigNode::ApplyTireInfo(const std::vector<ChVector<>>& tire_in
 void ChVehicleCosimRigNode::ApplySpindleForce(unsigned int i, const TerrainForce& spindle_force) {
     assert(i == 0);
 
-    m_spindle->Empty_forces_accumulators();
-    m_spindle->Accumulate_force(spindle_force.force, spindle_force.point, false);
-    m_spindle->Accumulate_torque(spindle_force.moment, false);
+    m_spindle_terrain_force->SetForce(spindle_force.force, false);
+    m_spindle_terrain_force->SetApplicationPoint(spindle_force.point, false);
+    m_spindle_terrain_torque->SetTorque(spindle_force.moment, false);
 }
 
 BodyState ChVehicleCosimRigNode::GetSpindleState(unsigned int i) const {

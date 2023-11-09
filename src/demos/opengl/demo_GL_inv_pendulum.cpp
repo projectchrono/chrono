@@ -30,6 +30,8 @@
 #endif
 
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChLoadContainer.h"
+#include "chrono/physics/ChLoadsBody.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChBoxShape.h"
@@ -244,6 +246,13 @@ int main(int argc, char* argv[]) {
     controller.SetGainsCart(5, 0, -0.5);
     controller.SetGainsPend(-150, -50, -10);
 
+    // Create load container and cart load
+    // -----------------------------------
+    auto load_container = chrono_types::make_shared<ChLoadContainer>();
+    auto cart_load = chrono_types::make_shared<ChLoadBodyForce>(cart, VNULL, true, VNULL, true);
+    load_container->Add(cart_load);
+    sys.Add(load_container);
+
     // Create OpenGL window and camera
     // -------------------------------
     opengl::ChVisualSystemOpenGL vis;
@@ -273,8 +282,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Apply controller force on cart body
-        cart->Empty_forces_accumulators();
-        cart->Accumulate_force(ChVector<>(controller.GetForce(), 0, 0), ChVector<>(0, 0, 0), true);
+        cart_load->SetForce(ChVector<>(controller.GetForce(), 0, 0), true);
 
         // Advance sys and controller states
         sys.DoStepDynamics(time_step);

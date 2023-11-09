@@ -23,7 +23,7 @@ namespace chrono {
 /// @{
 
 /// Sine function
-/// `y = sin (phase + w*x )` where w=2*PI*freq
+/// y = sin (phase + w*x )` where w=2*PI*freq
 class ChApi ChFunction_Sine : public ChFunction {
   private:
     double amp;
