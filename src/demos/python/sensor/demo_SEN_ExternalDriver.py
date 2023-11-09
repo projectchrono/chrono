@@ -12,7 +12,7 @@
 # Authors: Radu Serban
 # =============================================================================
 #
-# Demonstration of a steering path-follower and cruise control PID controlers. 
+# Demonstration of a steering path-follower and cruise control PID controlers.
 #
 # The vehicle reference frame has Z up, X towards the front of the vehicle, and
 # Y pointing to the left.
@@ -25,7 +25,8 @@ import pychrono.irrlicht as irr
 import pychrono.sensor as sens
 import numpy as np
 
-#// =============================================================================
+# // =============================================================================
+
 
 class ChSystem_DataGeneratorFunctor(veh.ChExternalDriver_DataGeneratorFunctor):
     def __init__(self, id: str, system: chrono.ChSystem):
@@ -35,6 +36,7 @@ class ChSystem_DataGeneratorFunctor(veh.ChExternalDriver_DataGeneratorFunctor):
 
     def Serialize(self, writer):
         writer.Key("time") << self.system.GetChTime()
+
 
 class ChCameraSensor_DataGeneratorFunctor(veh.ChExternalDriver_DataGeneratorFunctor):
     def __init__(self, id: str, cam: sens.ChCameraSensor):
@@ -48,14 +50,16 @@ class ChCameraSensor_DataGeneratorFunctor(veh.ChExternalDriver_DataGeneratorFunc
             rgba8_data = rgba8_buffer.GetRGBA8Data()
             shape = rgba8_data.shape
             writer.Key("width") << shape[1]
-            writer.Key("height") << shape[0] 
+            writer.Key("height") << shape[0]
             writer.Key("size") << shape[2]
             writer.Key("encoding") << "rgba8"
-            writer.Key("image").PointerAsString(rgba8_data.ctypes.data, int(np.prod(shape)))
+            writer.Key("image").PointerAsString(
+                rgba8_data.ctypes.data, int(np.prod(shape)))
 
     def HasData(self) -> bool:
         rgba8_buffer = self.cam.GetMostRecentRGBA8Buffer()
         return rgba8_buffer.HasData()
+
 
 class ChVehicle_DataGeneratorFunctor(veh.ChExternalDriver_DataGeneratorFunctor):
     def __init__(self, id: str, vehicle: veh.ChVehicle):
@@ -73,6 +77,7 @@ class ChVehicle_DataGeneratorFunctor(veh.ChExternalDriver_DataGeneratorFunctor):
         writer.Key("lin_acc") << body.GetPos_dtdt()
         writer.Key("ang_acc") << body.GetWacc_loc()
 
+
 class ChDriverInputs_DataParserFunctor(veh.ChExternalDriver_DataParserFunctor):
     def __init__(self, driver: veh.ChDriver):
         super().__init__("ChDriverInputs")
@@ -88,17 +93,19 @@ class ChDriverInputs_DataParserFunctor(veh.ChExternalDriver_DataParserFunctor):
         reader.SetBraking(braking)
 
 
-#// =============================================================================
+# // =============================================================================
 
 def main():
-    #print("Copyright (c) 2017 projectchrono.org\nChrono version: ", CHRONO_VERSION , "\n\n")
+    # print("Copyright (c) 2017 projectchrono.org\nChrono version: ", CHRONO_VERSION , "\n\n")
 
     #  Create the HMMWV vehicle, set parameters, and initialize
     my_hmmwv = veh.HMMWV_Full()
     my_hmmwv.SetContactMethod(contact_method)
-    my_hmmwv.SetChassisFixed(False) 
-    my_hmmwv.SetInitPosition(chrono.ChCoordsysD(initLoc, chrono.ChQuaternionD(1, 0, 0, 0)))
-    my_hmmwv.SetPowertrainType(powertrain_model)
+    my_hmmwv.SetChassisFixed(False)
+    my_hmmwv.SetInitPosition(chrono.ChCoordsysD(
+        initLoc, chrono.ChQuaternionD(1, 0, 0, 0)))
+    my_hmmwv.SetEngineType(engine_model)
+    my_hmmwv.SetTransmissionType(transmission_model)
     my_hmmwv.SetDriveType(drive_type)
     my_hmmwv.SetSteeringType(steering_type)
     my_hmmwv.SetTireType(tire_model)
@@ -123,8 +130,8 @@ def main():
         patch_mat.SetFriction(0.9)
         patch_mat.SetRestitution(0.01)
         patch_mat.SetYoungModulus(2e7)
-    patch = terrain.AddPatch(patch_mat, 
-                             chrono.CSYSNORM, 
+    patch = terrain.AddPatch(patch_mat,
+                             chrono.CSYSNORM,
                              300, 50)
     patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
     patch.SetColor(chrono.ChColor(0.8, 0.8, 0.5))
@@ -133,7 +140,8 @@ def main():
     # Create the camera
 
     manager = sens.ChSensorManager(my_hmmwv.GetSystem())
-    manager.scene.AddPointLight(chrono.ChVectorF(0, 0, 100), chrono.ChVectorF(2, 2, 2), 5000)
+    manager.scene.AddPointLight(chrono.ChVectorF(
+        0, 0, 100), chrono.ChColor(2, 2, 2), 5000)
 
     cam_update_rate = 30
     offset_pose = chrono.ChFrameD(chrono.ChVectorD(-5, 0, 2))
@@ -154,13 +162,16 @@ def main():
     # Create the external driver
     driver = veh.ChExternalDriver(my_hmmwv.GetVehicle(), 50000)
 
-    system_generator = ChSystem_DataGeneratorFunctor("~/output/time", my_hmmwv.GetSystem())
+    system_generator = ChSystem_DataGeneratorFunctor(
+        "~/output/time", my_hmmwv.GetSystem())
     driver.AddDataGenerator(system_generator)
 
-    veh_generator = ChVehicle_DataGeneratorFunctor("~/output/vehicle", my_hmmwv.GetVehicle())
+    veh_generator = ChVehicle_DataGeneratorFunctor(
+        "~/output/vehicle", my_hmmwv.GetVehicle())
     driver.AddDataGenerator(veh_generator, 10)
 
-    cam_generator = ChCameraSensor_DataGeneratorFunctor("~/output/camera/front_facing_camera", cam)
+    cam_generator = ChCameraSensor_DataGeneratorFunctor(
+        "~/output/camera/front_facing_camera", cam)
     driver.AddDataGenerator(cam_generator, cam_update_rate)
 
     inputs_parser = ChDriverInputs_DataParserFunctor(driver)
@@ -168,9 +179,11 @@ def main():
 
     # Create the vehicle Irrlicht interface
     if USE_IRRLICHT:
-        app = veh.ChWheeledVehicleIrrApp(my_hmmwv.GetVehicle(), 'HMMWV', irr.dimension2du(1000,800))
+        app = veh.ChWheeledVehicleIrrApp(
+            my_hmmwv.GetVehicle(), 'HMMWV', irr.dimension2du(1000, 800))
         app.SetSkyBox()
-        app.AddTypicalLights(irr.vector3df(-60, -30, 100), irr.vector3df(60, 30, 100), 250, 130)
+        app.AddTypicalLights(irr.vector3df(-60, -30, 100),
+                             irr.vector3df(60, 30, 100), 250, 130)
         app.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
         app.SetChaseCamera(chrono.ChVectorD(0.0, 0.0, 1.75), 6.0, 0.5)
         app.SetTimestep(step_size)
@@ -221,8 +234,8 @@ def main():
 
 # The path to the Chrono data directory containing various assets (meshes, textures, data files)
 # is automatically set, relative to the default location of this demo.
-# If running from a different directory, you must change the path to the data directory with: 
-#chrono.SetChronoDataPath('path/to/data')
+# If running from a different directory, you must change the path to the data directory with:
+# chrono.SetChronoDataPath('path/to/data')
 veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 # Initial vehicle location
@@ -233,13 +246,15 @@ target_speed = 12
 
 # Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
 chassis_vis_type = veh.VisualizationType_NONE
-suspension_vis_type =  veh.VisualizationType_PRIMITIVES
+suspension_vis_type = veh.VisualizationType_PRIMITIVES
 steering_vis_type = veh.VisualizationType_PRIMITIVES
 wheel_vis_type = veh.VisualizationType_MESH
-tire_vis_type = veh.VisualizationType_MESH 
+tire_vis_type = veh.VisualizationType_MESH
 
-# Type of powertrain model (SHAFTS, SIMPLE)
-powertrain_model = veh.PowertrainModelType_SHAFTS
+# Type of Engine (SHAFTS, SIMPLE)
+engine_model = veh.EngineModelType_SHAFTS
+# Type of transmission (SHAFTS, SIMPLE)
+transmission_model = veh.TransmissionModelType_SHAFTS
 
 # Drive type (FWD, RWD, or AWD)
 drive_type = veh.DrivelineTypeWV_AWD
@@ -257,11 +272,11 @@ contact_method = chrono.ChContactMethod_SMC
 USE_IRRLICHT = False
 
 # Simulation step sizes
-step_size = 2e-3;
-tire_step_size = 1e-3;
+step_size = 2e-3
+tire_step_size = 1e-3
 
 # Simulation end time
-t_end = 100;
+t_end = 100
 
 
 main()

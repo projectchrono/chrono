@@ -63,7 +63,7 @@ render_step_size = 1.0 / 50  # FPS = 50
 
 # =============================================================================
 
-#print ( "Copyright (c) 2017 projectchrono.org\nChrono version: ", chrono.CHRONO_VERSION , "\n\n")
+# print ( "Copyright (c) 2017 projectchrono.org\nChrono version: ", chrono.CHRONO_VERSION , "\n\n")
 
 # --------------
 # Create systems
@@ -80,12 +80,12 @@ car.SetTireStepSize(tire_step_size)
 car.SetMaxMotorVoltageRatio(0.16)
 car.SetStallTorque(0.3)
 car.SetTireRollingResistance(0.06)
-car.SetMotorResistanceCoefficients(0.02, 1e-4)
 
 
 car.Initialize()
 
-tire_vis_type = veh.VisualizationType_PRIMITIVES  # : VisualizationType::PRIMITIVES
+# : VisualizationType::PRIMITIVES
+tire_vis_type = veh.VisualizationType_PRIMITIVES
 
 car.SetChassisVisualizationType(chassis_vis_type)
 car.SetSuspensionVisualizationType(suspension_vis_type)
@@ -98,9 +98,10 @@ patch_mat = chrono.ChMaterialSurfaceNSC()
 patch_mat.SetFriction(0.9)
 patch_mat.SetRestitution(0.01)
 terrain = veh.RigidTerrain(car.GetSystem())
-patch = terrain.AddPatch(patch_mat, 
-    chrono.ChCoordsysD(chrono.ChVectorD(0, 0, terrainHeight - 5), chrono.QUNIT), 
-    terrainLength, terrainWidth)
+patch = terrain.AddPatch(patch_mat,
+                         chrono.ChCoordsysD(chrono.ChVectorD(
+                             0, 0, terrainHeight - 5), chrono.QUNIT),
+                         terrainLength, terrainWidth)
 
 patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
 patch.SetColor(chrono.ChColor(0.8, 0.8, 0.5))
@@ -113,7 +114,7 @@ terrain.Initialize()
 # -------------------------------------
 
 vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
-vis.SetWindowTitle('dart')
+vis.SetWindowTitle('dART')
 vis.SetWindowSize(1280, 1024)
 vis.SetChaseCamera(trackPoint, 6.0, 0.5)
 vis.Initialize()
@@ -123,10 +124,11 @@ vis.AddSkyBox()
 vis.AttachVehicle(car.GetVehicle())
 
 
-driver_data = veh.vector_Entry([veh.DataDriverEntry(0.0, 0.0, 0.0, 0.0), 
+driver_data = veh.vector_Entry([veh.DataDriverEntry(0.0, 0.0, 0.0, 0.0),
                                 veh.DataDriverEntry(0.1, 1.0, 0.0, 0.0),
-                                veh.DataDriverEntry(0.5, 1.0, 0.7, 0.0),
-                                 ])
+                                veh.DataDriverEntry(0.5, 1.0, 0.0, 0.0),
+                                veh.DataDriverEntry(1., 1.0, 0.0, 0.0),
+                                ])
 driver = veh.ChDataDriver(car.GetVehicle(), driver_data)
 driver.Initialize()
 
@@ -136,18 +138,26 @@ driver.Initialize()
 manager = sens.ChSensorManager(car.GetSystem())
 f = 3
 for i in range(8):
-    manager.scene.AddPointLight(chrono.ChVectorF(f,1.25,2.3),chrono.ChColor(1,1,1),5)
-    manager.scene.AddPointLight(chrono.ChVectorF(f,3.75,2.3),chrono.ChColor(1,1,1),5)
+    manager.scene.AddPointLight(chrono.ChVectorF(
+        f, 1.25, 2.3), chrono.ChColor(1, 1, 1), 5)
+    manager.scene.AddPointLight(chrono.ChVectorF(
+        f, 3.75, 2.3), chrono.ChColor(1, 1, 1), 5)
     f += 3
 
 factor = 2
 cam = sens.ChCameraSensor(
-    car.GetChassisBody(),                                               # body lidar is attached to
-    30,                                                                 # scanning rate in Hz
-    chrono.ChFrameD(chrono.ChVectorD(0, 0, .5), chrono.Q_from_AngAxis(0, chrono.ChVectorD(0, 1, 0))),  # offset pose
-    1920*factor,                                                        # number of horizontal samples
-    1080*factor,                                                        # number of vertical channels
-    chrono.CH_C_PI / 4                                                  # horizontal field of view
+    # body lidar is attached to
+    car.GetChassisBody(),
+    # scanning rate in Hz
+    30,
+    chrono.ChFrameD(chrono.ChVectorD(0, 0, .5), chrono.Q_from_AngAxis(
+        0, chrono.ChVectorD(0, 1, 0))),  # offset pose
+    # number of horizontal samples
+    1920*factor,
+    # number of vertical channels
+    1080*factor,
+    # horizontal field of view
+    chrono.CH_C_PI / 4
 )
 cam.SetName("Camera Sensor")
 # cam.FilterList().append(sens.ChFilterImgAlias(factor))
@@ -156,12 +166,18 @@ cam.SetName("Camera Sensor")
 manager.AddSensor(cam)
 
 cam2 = sens.ChCameraSensor(
-    car.GetChassisBody(),                                               # body lidar is attached to
-    30,                                                                 # scanning rate in Hz
-    chrono.ChFrameD(chrono.ChVectorD(0, 0, 2), chrono.Q_from_AngAxis(chrono.CH_C_PI / 2, chrono.ChVectorD(0, 1, 0))),  # offset pose
-    1920,                                                               # number of horizontal samples
-    1080,                                                               # number of vertical channels
-    chrono.CH_C_PI / 4                                                  # horizontal field of view
+    # body lidar is attached to
+    car.GetChassisBody(),
+    # scanning rate in Hz
+    30,
+    chrono.ChFrameD(chrono.ChVectorD(0, 0, 2), chrono.Q_from_AngAxis(
+        chrono.CH_C_PI / 2, chrono.ChVectorD(0, 1, 0))),  # offset pose
+    # number of horizontal samples
+    1920,
+    # number of vertical channels
+    1080,
+    # horizontal field of view
+    chrono.CH_C_PI / 4
 )
 cam2.SetName("Camera Sensor")
 # cam2.FilterList().append(sens.ChFilterVisualize("Birds Eye Camera"))
@@ -173,7 +189,7 @@ manager.AddSensor(cam2)
 # ---------------
 
 # output vehicle mass
-print( "VEHICLE MASS: ",  car.GetVehicle().GetMass())
+print("VEHICLE MASS: ",  car.GetVehicle().GetMass())
 
 # Number of simulation steps between miscellaneous events
 render_steps = math.ceil(render_step_size / step_size)
@@ -183,7 +199,7 @@ realtime_timer = chrono.ChRealtimeStepTimer()
 step_number = 0
 render_frame = 0
 
-while True :
+while True:
     time = car.GetSystem().GetChTime()
 
     # End simulation
@@ -191,7 +207,7 @@ while True :
         break
 
     # Render scene and output POV-Ray data
-    if (step_number % render_steps == 0) :
+    if (step_number % render_steps == 0):
         vis.BeginScene()
         vis.Render()
         vis.EndScene()
@@ -220,4 +236,3 @@ while True :
 
     # Spin in place for real time to catch up
     realtime_timer.Spin(step_size)
-
