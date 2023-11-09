@@ -219,9 +219,8 @@ void ChBuilderBeamIGA::BuildBeam(std::shared_ptr<ChMesh> mesh,                 /
         ChVector<> pos = spline.Points()[i_node];
 
         // rotation of node, x aligned to tangent at input spline
+        auto tangent = spline.GetTangent(abscyssa);
         ChMatrix33<> mrot;
-        ChVector<> tangent;
-        spline.Derive(tangent, abscyssa);
         mrot.Set_A_Xdir(tangent, Ydir);
 
         auto hnode_i = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(pos, mrot));

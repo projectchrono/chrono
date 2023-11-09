@@ -55,10 +55,8 @@ class ChApi ChLineBspline : public ChLine {
     /// Return a point on the line, given parametric coordinate U (in [0,1]).
     virtual ChVector<> Evaluate(const double U) const override;
 
-    /// Evaluates a tangent versor, given parametric coordinate.
-    /// Parameter U always work in 0..1 range.
-    /// Computed value goes into the 'pos' reference.
-    virtual void Derive(ChVector<>& dir, const double parU) const override;
+    /// Return the tangent unit vector at the parametric coordinate U (in [0,1]).
+    virtual ChVector<> GetTangent(const double parU) const override;
 
     // Bspline specific functions
 
@@ -89,7 +87,7 @@ class ChApi ChLineBspline : public ChLine {
     );
 
     /// Set as closed spline: start and end will overlap at 0 and 1 abscyssa as p(0)=p(1),
-    /// and the Evaluate() and Derive() functions will operate in periodic way (abscyssa
+    /// and the Evaluate() and GetTangent() functions will operate in periodic way (abscyssa
     /// greater than 1 or smaller than 0 will wrap to 0..1 range).
     /// The closure will change the knot vector (multiple start end knots will be lost) and
     /// will create auxiliary p control points at the end that will be wrapped to the beginning control point.

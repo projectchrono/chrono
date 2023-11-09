@@ -58,7 +58,7 @@ ChVector<> ChLineNurbs::Evaluate(const double parU) const {
     return pos;
 }
 
-void ChLineNurbs::Derive(ChVector<>& dir, const double parU) const {
+ChVector<> ChLineNurbs::GetTangent(const double parU) const {
     double u = ComputeKnotUfromU(parU);
 
     ChVectorDynamic<> mR(this->p + 1);
@@ -67,11 +67,13 @@ void ChLineNurbs::Derive(ChVector<>& dir, const double parU) const {
 
     int spanU = ChBasisToolsBspline::FindSpan(this->p, u, this->knots);
 
-    dir = VNULL;
+    ChVector<> dir = VNULL;
     int uind = spanU - p;
     for (int i = 0; i <= this->p; i++) {
         dir += points[uind + i] * mdR(i);
     }
+
+    return dir;
 }
 
 void ChLineNurbs::SetupData(

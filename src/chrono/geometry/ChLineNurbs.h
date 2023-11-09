@@ -57,10 +57,8 @@ class ChApi ChLineNurbs : public ChLine {
     /// Return a point on the line, given parametric coordinate U (in [0,1]).
     virtual ChVector<> Evaluate(const double U) const override;
 
-    /// Evaluates a tangent versor, given parametric coordinate.
-    /// Parameter U always work in 0..1 range.
-    /// Computed value goes into the 'pos' reference.
-    virtual void Derive(ChVector<>& dir, const double parU) const override;
+    /// Return the tangent unit vector at the parametric coordinate U (in [0,1]).
+    virtual ChVector<> GetTangent(const double parU) const override;
 
     // NURBS specific functions
 

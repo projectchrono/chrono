@@ -45,8 +45,7 @@ void GetSurfaceShapeData(std::shared_ptr<ChVisualShapeSurface> surface,
             ChVector<> P = surface->GetSurfaceGeometry()->Evaluate(mU, mV);
             ////P = vis->Pos + vis->Rot * P;
 
-            ChVector<> N;
-            surface->GetSurfaceGeometry()->Normal(N, mU, mV);
+            ChVector<> N = surface->GetSurfaceGeometry()->GetNormal(mU, mV);
             ////N = vis->Rot * N;
 
             // create two triangles per uv increment

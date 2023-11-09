@@ -32,7 +32,7 @@ ChLine::ChLine(const ChLine& source) {
     complexityU = source.complexityU;
 }
 
-void ChLine::Derive(ChVector<>& dir, const double parU) const {
+ChVector<> ChLine::GetTangent(const double parU) const {
     double bdf = 10e-9;
     double uA = 0, uB = 0;
 
@@ -46,7 +46,8 @@ void ChLine::Derive(ChVector<>& dir, const double parU) const {
 
     auto vA = Evaluate(uA);
     auto vB = Evaluate(uB);
-    dir = (vB - vA) * (1 / bdf);
+
+    return (vB - vA) * (1 / bdf);
 }
 
 bool ChLine::FindNearestLinePoint(ChVector<>& point, double& resU, double approxU, double tol) const {

@@ -690,8 +690,7 @@ void ChIrrNodeShape::UpdateSurface(std::shared_ptr<ChVisualShapeSurface> surface
                 ChVector<> P = msurface->Evaluate(mU, mV);
                 ////P = vis->Pos + vis->Rot * P;
 
-                ChVector<> N;
-                msurface->Normal(N, mU, mV);
+                ChVector<> N = msurface->GetNormal(mU, mV);
                 ////N = vis->Rot * N;
 
                 // create two triangles per uv increment

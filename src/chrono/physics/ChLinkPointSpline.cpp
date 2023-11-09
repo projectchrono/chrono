@@ -63,14 +63,14 @@ void ChLinkPointSpline::UpdateTime(double time) {
 
         if (param.x() < 0)
             param.x() = 0;
-        trajectory_line->Derive(vdir, param.x());
+        vdir = trajectory_line->GetTangent(param.x());
 
         param.x() = mu + BDF_STEP_HIGH;
         if (param.x() > 1)
             param.x() = 1;
         auto ptang2 = trajectory_line->Evaluate(param.x());
 
-        trajectory_line->Derive(vdir2, param.x());
+        vdir2 = trajectory_line->GetTangent(param.x());
 
         ChMatrix33<> ma;
 
