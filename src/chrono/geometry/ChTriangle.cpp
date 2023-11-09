@@ -41,20 +41,20 @@ ChTriangle& ChTriangle::operator=(const ChTriangle& source) {
     return *this;
 }
 
-ChGeometry::AABB ChTriangle::GetBoundingBox(const ChMatrix33<>& rot) const {
-    ChVector<> trp1 = rot.transpose() * p1;
-    ChVector<> trp2 = rot.transpose() * p2;
-    ChVector<> trp3 = rot.transpose() * p3;
-
+ChGeometry::AABB ChTriangle::GetBoundingBox(const ChVector<>& P1, const ChVector<>& P2, const ChVector<>& P3) {
     AABB bbox;
-    bbox.min.x() = ChMin(ChMin(trp1.x(), trp2.x()), trp3.x());
-    bbox.min.y() = ChMin(ChMin(trp1.y(), trp2.y()), trp3.y());
-    bbox.min.z() = ChMin(ChMin(trp1.z(), trp2.z()), trp3.z());
-    bbox.max.x() = ChMax(ChMax(trp1.x(), trp2.x()), trp3.x());
-    bbox.max.y() = ChMax(ChMax(trp1.y(), trp2.y()), trp3.y());
-    bbox.max.z() = ChMax(ChMax(trp1.z(), trp2.z()), trp3.z());
+    bbox.min.x() = ChMin(ChMin(P1.x(), P2.x()), P3.x());
+    bbox.min.y() = ChMin(ChMin(P1.y(), P2.y()), P3.y());
+    bbox.min.z() = ChMin(ChMin(P1.z(), P2.z()), P3.z());
+    bbox.max.x() = ChMax(ChMax(P1.x(), P2.x()), P3.x());
+    bbox.max.y() = ChMax(ChMax(P1.y(), P2.y()), P3.y());
+    bbox.max.z() = ChMax(ChMax(P1.z(), P2.z()), P3.z());
 
     return bbox;
+}
+
+ChGeometry::AABB ChTriangle::GetBoundingBox() const {
+    return GetBoundingBox(p1, p2, p3);
 }
 
 ChVector<> ChTriangle::Baricenter() const {
@@ -103,10 +103,10 @@ double ChTriangle::PointTriangleDistance(ChVector<> B,           // point to be 
     return utils::PointTriangleDistance(B, p1, p2, p3, mu, mv, is_into, Bprojected);
 }
 
-void ChTriangle::SetPoints(const ChVector<>& p1, const ChVector<>& p2, const ChVector<>& p3) {
-    this->p1 = p1;
-    this->p2 = p2;
-    this->p3 = p3;
+void ChTriangle::SetPoints(const ChVector<>& P1, const ChVector<>& P2, const ChVector<>& P3) {
+    p1 = P1;
+    p2 = P2;
+    p3 = P3;
 }
 
 void ChTriangle::ArchiveOut(ChArchiveOut& marchive) {
@@ -122,7 +122,7 @@ void ChTriangle::ArchiveOut(ChArchiveOut& marchive) {
 
 void ChTriangle::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChTriangle>();
+    /*int version =*/marchive.VersionRead<ChTriangle>();
     // deserialize parent class
     ChGeometry::ArchiveIn(marchive);
     // stream in all member data:

@@ -289,7 +289,7 @@ ChVehicleGeometry::AABB ChVehicleGeometry::CalculateAABB() {
     }
 
     for (const auto& mesh : m_coll_meshes) {
-        auto bbox = mesh.m_trimesh->GetBoundingBox(ChMatrix33<>(1));
+        auto bbox = mesh.m_trimesh->GetBoundingBox();
         amin = Vmin(amin, bbox.min);
         amax = Vmax(amax, bbox.max);
     }

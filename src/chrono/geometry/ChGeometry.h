@@ -92,12 +92,12 @@ class ChApi ChGeometry {
     /// Get the class type as an enum.
     virtual Type GetClassType() const { return Type::NONE; }
 
-    /// Compute bounding box along the directions defined by the given rotation matrix.
-    /// The default implementation returns a bounding box with zeros dimensions.
-    virtual AABB GetBoundingBox(const ChMatrix33<>& rot) const;
+    /// Compute bounding box along the directions of the shape definition frame.
+    /// The default implementation returns a bounding box with zero dimensions.
+    virtual AABB GetBoundingBox() const;
 
     /// Enlarge the given existing bounding box with the bounding box of this object.
-    void InflateBoundingBox(AABB& bbox, const ChMatrix33<>& rot) const;
+    void InflateBoundingBox(AABB& bbox) const;
 
     /// Returns the radius of a bounding sphere for this geometry.
     /// The default implementation returns the radius of a sphere bounding the geometry bounding box, which is not

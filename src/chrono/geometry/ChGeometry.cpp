@@ -48,18 +48,18 @@ class my_enum_mappers : public ChGeometry {
     CH_ENUM_MAPPER_END(Type);
 };
 
-ChGeometry::AABB ChGeometry::GetBoundingBox(const ChMatrix33<>& rot) const {
+ChGeometry::AABB ChGeometry::GetBoundingBox() const {
     return AABB();
 }
 
-void ChGeometry::InflateBoundingBox(AABB& bbox, const ChMatrix33<>& rot) const {
-    auto this_bbox = GetBoundingBox(rot);
+void ChGeometry::InflateBoundingBox(AABB& bbox) const {
+    auto this_bbox = GetBoundingBox();
     bbox.min = Vmin(bbox.min, this_bbox.min);
     bbox.max = Vmin(bbox.max, this_bbox.max);
 }
 
 double ChGeometry::GetBoundingSphereRadius() const {
-    auto bbox = GetBoundingBox(ChMatrix33<>(1));
+    auto bbox = GetBoundingBox();
     return bbox.Size().Length() / 2;
 }
 

@@ -1977,7 +1977,7 @@ void ChSystemFsi::CreateMeshPoints(geometry::ChTriangleMeshConnected& mesh,
                                    double delta,
                                    std::vector<ChVector<>>& point_cloud) {
     mesh.RepairDuplicateVertexes(1e-9);  // if meshes are not watertight
-    auto bbox = mesh.GetBoundingBox(ChMatrix33<>(1));
+    auto bbox = mesh.GetBoundingBox();
 
     const double EPSI = 1e-6;
 

@@ -37,15 +37,21 @@ class ChApi ChRoundedBox : public ChVolume {
     /// Get the class type as an enum.
     virtual Type GetClassType() const override { return Type::ROUNDED_BOX; }
 
-    /// Compute bounding box along the directions defined by the given rotation matrix.
-    virtual AABB GetBoundingBox(const ChMatrix33<>& rot) const override;
+    /// Return the volume of this solid.
+    virtual double GetVolume() const override;
 
-    /// Computes the baricenter of the box
+    /// Return the gyration matrix for this solid.
+    virtual ChMatrix33<> GetGyration() const override;
+
+    /// Compute bounding box along the directions of the shape definition frame.
+    virtual AABB GetBoundingBox() const override;
+
+    /// Return the radius of a bounding sphere for this geometry.
+    virtual double GetBoundingSphereRadius() const override;
+
+    /// Computes the baricenter of the box.
     virtual ChVector<> Baricenter() const override { return ChVector<>(0); }
 
-
-    /// This is a solid
-    virtual int GetManifoldDimension() const override { return 3; }
     /// Evaluate position in rounded box volume.
     virtual ChVector<> Evaluate(const double parU, const double parV, const double parW) const override;
 
@@ -64,14 +70,23 @@ class ChApi ChRoundedBox : public ChVolume {
     /// Set the sweeping sphere radius.
     void SetSphereRadius(double radius) { srad = radius; }
 
-    /// Get the volume (assuming no scaling in Rot matrix)
-    double GetVolume() { return hlen.x() * hlen.y() * hlen.z() * 8.0; };
-
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
+
+    /// Return the volume of this type of solid with given dimensions.
+    static double GetVolume(const ChVector<>& lengths, double srad);
+
+    /// Return the gyration matrix of this type of solid with given dimensions.
+    static ChMatrix33<> GetGyration(const ChVector<>& lengths, double srad);
+
+    /// Return the bounding box of this type of solid with given dimensions.
+    static AABB GetBoundingBox(const ChVector<>& lengths, double srad);
+
+    /// Return the radius of a bounding sphere.
+    static double GetBoundingSphereRadius(const ChVector<>& lengths, double srad);
 
     ChVector<> hlen;  ///< box halflengths
     double srad;      ///< radius of sweeping sphere
