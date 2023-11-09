@@ -169,12 +169,12 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     auto cylinder = chrono_types::make_shared<ChBody>();
 
     // Set the general properties of the cylinder
-    double volume = chrono::utils::CalcCylinderVolume(cyl_radius, cyl_length / 2);
+    double volume = geometry::ChCylinder::GetVolume(cyl_radius, cyl_length / 2);
     double density = sysFSI.GetDensity() * 2.0;
     double mass = density * volume;
     ChVector<> cyl_pos = ChVector<>(0, 0, bzDim + cyl_radius + 2 * initSpace0);
     ChVector<> cyl_vel = ChVector<>(0.0, 0.0, 0.0);
-    ChVector<> gyration = chrono::utils::CalcCylinderGyration(cyl_radius, cyl_length / 2).diagonal();
+    ChVector<> gyration = geometry::ChCylinder::GetGyration(cyl_radius, cyl_length / 2).diagonal();
     cylinder->SetPos(cyl_pos);
     cylinder->SetPos_dt(cyl_vel);
     cylinder->SetMass(mass);

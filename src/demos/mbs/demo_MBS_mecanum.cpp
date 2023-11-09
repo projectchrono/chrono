@@ -146,10 +146,12 @@ std::shared_ptr<ChBody> create_mecanum_wheel(ChSystemNSC& sys,
         roller->ConcatenatePreTransformation(f3);
 
         // approximate mass & inertia to a cylinder:
-        roller->SetMass(utils::CalcCylinderVolume(roller_elliptical_rad_Hor + Roffset, 2 * half_length_roller) *
-                        roller_density);
-        roller->SetInertia(utils::CalcCylinderGyration(roller_elliptical_rad_Hor + Roffset, 2 * half_length_roller) *
-                           roller_density);
+        roller->SetMass(  //
+            geometry::ChCylinder::GetVolume(roller_elliptical_rad_Hor + Roffset, 2 * half_length_roller) *
+            roller_density);
+        roller->SetInertia(  //
+            geometry::ChCylinder::GetGyration(roller_elliptical_rad_Hor + Roffset, 2 * half_length_roller) *
+            roller_density);
 
         // add collision shape
         auto shape = chrono_types::make_shared<ChCollisionShapeBarrel>(wheel_mat,                                 //
