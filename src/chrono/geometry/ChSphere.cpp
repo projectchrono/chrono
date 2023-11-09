@@ -52,11 +52,11 @@ ChMatrix33<> ChSphere::GetGyration() const {
     return GetGyration(rad);
 }
 
-ChGeometry::AABB ChSphere::GetBoundingBox(double radius) {
-    return AABB(ChVector<>(-radius), ChVector<>(+radius));
+ChAABB ChSphere::GetBoundingBox(double radius) {
+    return ChAABB(ChVector<>(-radius), ChVector<>(+radius));
 }
 
-ChGeometry::AABB ChSphere::GetBoundingBox() const {
+ChAABB ChSphere::GetBoundingBox() const {
     return GetBoundingBox(rad);
 }
 

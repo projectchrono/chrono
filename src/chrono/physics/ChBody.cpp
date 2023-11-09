@@ -817,11 +817,11 @@ void ChBody::RemoveCollisionModelsFromSystem() {
 
 // ---------------------------------------------------------------------------
 
-void ChBody::GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax) {
-    if (this->GetCollisionModel())
-        this->GetCollisionModel()->GetAABB(bbmin, bbmax);
-    else
-        ChPhysicsItem::GetTotalAABB(bbmin, bbmax);  // default: infinite aabb
+geometry::ChAABB ChBody::GetTotalAABB() {
+    if (GetCollisionModel())
+        return this->GetCollisionModel()->GetBoundingBox();
+    
+    return geometry::ChAABB();  // default: inverted bounding box
 }
 
 void ChBody::ContactableGetStateBlock_x(ChState& x) {

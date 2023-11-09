@@ -53,11 +53,11 @@ ChMatrix33<> ChCone::GetGyration() const {
     return GetGyration(r, h);
 }
 
-ChGeometry::AABB ChCone::GetBoundingBox(double radius, double height) {
-    return AABB(ChVector<>(-radius, -radius, 0), ChVector<>(+radius, +radius, height));
+ChAABB ChCone::GetBoundingBox(double radius, double height) {
+    return ChAABB(ChVector<>(-radius, -radius, 0), ChVector<>(+radius, +radius, height));
 }
 
-ChGeometry::AABB ChCone::GetBoundingBox() const {
+ChAABB ChCone::GetBoundingBox() const {
     return GetBoundingBox(r, h);
 }
 

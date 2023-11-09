@@ -106,7 +106,7 @@ class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
     virtual void PostProcess() override;
 
     /// Return an AABB bounding all collision shapes in the system
-    virtual void GetBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const override;
+    virtual geometry::ChAABB GetBoundingBox() const override;
 
     /// Reset any timers associated with collision detection.
     virtual void ResetTimers() override;

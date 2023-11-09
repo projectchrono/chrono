@@ -63,9 +63,7 @@ ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(doubl
     : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_SPH, length, width, ChContactMethod::SMC),
       m_terrain(nullptr),
       m_depth(0),
-      m_active_box_size(0),
-      m_aabb_min(std::numeric_limits<double>::max()),
-      m_aabb_max(-std::numeric_limits<double>::max()) {
+      m_active_box_size(0) {
     // Create the system and set default method-specific solver settings
     m_system = new ChSystemSMC;
 
@@ -84,9 +82,7 @@ ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(doubl
 ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(const std::string& specfile)
     : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_SPH, 0, 0, ChContactMethod::SMC),
       m_terrain(nullptr),
-      m_active_box_size(0),
-      m_aabb_min(std::numeric_limits<double>::max()),
-      m_aabb_max(-std::numeric_limits<double>::max()) {
+      m_active_box_size(0) {
     // Create systems
     m_system = new ChSystemSMC;
 
@@ -196,7 +192,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
             m_terrain->Construct(m_sph_filename, m_bce_filename);
             break;
     }
-    m_terrain->GetAABB(m_aabb_min, m_aabb_max);
+    m_aabb_particles = m_terrain->GetBoundingBox();
 
     /*
     //// TODO
@@ -343,8 +339,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
             m_vsys->EnableRigidBodyMarkers(true);
             m_vsys->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
             m_vsys->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
-            m_vsys->SetSPHColorCallback(chrono_types::make_shared<HeightColorCallback>(ChColor(0.10f, 0.40f, 0.65f),
-                                                                                       m_aabb_min.z(), m_aabb_max.z()));
+            m_vsys->SetSPHColorCallback(chrono_types::make_shared<HeightColorCallback>(
+                ChColor(0.10f, 0.40f, 0.65f), m_aabb_particles.min.z(), m_aabb_particles.max.z()));
             m_vsys->SetImageOutputDirectory(m_node_out_dir + "/images");
             m_vsys->SetImageOutput(m_writeRT);
             m_vsys->AttachSystem(m_system);

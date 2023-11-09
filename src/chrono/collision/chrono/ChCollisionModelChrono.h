@@ -56,7 +56,7 @@ class ChApi ChCollisionModelChrono : public ChCollisionModel {
     virtual void SetContactable(ChContactable* mc) override;
 
     /// Return the axis aligned bounding box for this collision model.
-    virtual void GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const override;
+    virtual geometry::ChAABB GetBoundingBox() const override;
 
     /// Return the position and orientation of the collision shape with specified index, relative to the model frame.
     virtual ChCoordsys<> GetShapePos(int index) const override;

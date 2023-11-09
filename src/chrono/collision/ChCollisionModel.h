@@ -192,7 +192,7 @@ class ChApi ChCollisionModel {
     /// Return the current axis aligned bounding box (AABB) of the collision model.
     /// The two return vectors represent the min.max corners along the x,y,z world axes.
     /// Note that SyncPosition() should be invoked before calling this.
-    virtual void GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const = 0;
+    virtual geometry::ChAABB GetBoundingBox() const = 0;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive);

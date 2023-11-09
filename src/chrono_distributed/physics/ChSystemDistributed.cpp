@@ -198,12 +198,12 @@ void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
 
     // Check for collision with this sub-domain
     if (newbody->GetBodyFixed()) {
-        ChVector<double> body_min;
-        ChVector<double> body_max;
         ChVector<double> sublo(domain->GetSubLo());
         ChVector<double> subhi(domain->GetSubHi());
 
-        newbody->GetCollisionModel()->GetAABB(body_min, body_max);
+        auto bbox = newbody->GetCollisionModel()->GetBoundingBox();
+        ChVector<> body_min = bbox.min;
+        ChVector<> body_max = bbox.max;
 
         body_min += newbody->GetPos();
         body_max += newbody->GetPos();

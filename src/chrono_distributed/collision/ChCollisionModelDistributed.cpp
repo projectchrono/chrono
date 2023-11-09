@@ -114,7 +114,7 @@ void ChCollisionModelDistributed::Populate() {
     }
 }
 
-void ChCollisionModelDistributed::GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const {
-    bbmin = ChVector<>((double)aabb_min.x, (double)aabb_min.y, (double)aabb_min.z);
-    bbmax = ChVector<>((double)aabb_max.x, (double)aabb_max.y, (double)aabb_max.z);
+geometry::ChAABB ChCollisionModelDistributed::GetBoundingBox() const {
+    return geometry::ChAABB(ChVector<>((double)aabb_min.x, (double)aabb_min.y, (double)aabb_min.z),
+                            ChVector<>((double)aabb_max.x, (double)aabb_max.y, (double)aabb_max.z));
 }

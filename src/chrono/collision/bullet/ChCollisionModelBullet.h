@@ -75,10 +75,9 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
     /// all objects whose family is equal to the bit position.
     virtual void SetFamilyMask(short int mask) override;
 
-    /// Returns the axis aligned bounding box (AABB) of the collision model,
-    /// i.e. max-min along the x,y,z world axes. Remember that SyncPosition()
-    /// should be invoked before calling this.
-    virtual void GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const override;
+    /// Returns the axis aligned bounding box (AABB) of the collision model.
+    /// Note that SyncPosition() should be invoked before calling this.
+    virtual geometry::ChAABB GetBoundingBox() const override;
 
     /// Sets the position and orientation of the collision
     /// model as the current position of the corresponding ChContactable

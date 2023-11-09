@@ -156,12 +156,13 @@ void ChCollisionSystemBullet::Run() {
     // GetLog() << "tot pairs: " << numPairs << "\n";
 }
 
-void ChCollisionSystemBullet::GetBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const {
+geometry::ChAABB ChCollisionSystemBullet::GetBoundingBox() const {
     cbtVector3 aabbMin;
     cbtVector3 aabbMax;
     bt_broadphase->getBroadphaseAabb(aabbMin, aabbMax);
-    aabb_min = ChVector<>((double)aabbMin.x(), (double)aabbMin.y(), (double)aabbMin.z());
-    aabb_max = ChVector<>((double)aabbMax.x(), (double)aabbMax.y(), (double)aabbMax.z());
+
+    return geometry::ChAABB(ChVector<>((double)aabbMin.x(), (double)aabbMin.y(), (double)aabbMin.z()),
+                            ChVector<>((double)aabbMax.x(), (double)aabbMax.y(), (double)aabbMax.z()));
 }
 
 void ChCollisionSystemBullet::ResetTimers() {

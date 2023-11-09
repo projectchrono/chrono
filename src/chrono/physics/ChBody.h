@@ -197,7 +197,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     /// Get the entire AABB axis-aligned bounding box of the object,
     /// as defined by the collision model (if any).
-    virtual void GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax) override;
+    virtual geometry::ChAABB GetTotalAABB() override;
 
     /// Method to deserialize only the state (position, speed)
     virtual void StreamInstate(ChStreamInBinary& mstream) override;

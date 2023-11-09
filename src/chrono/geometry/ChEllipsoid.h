@@ -48,7 +48,7 @@ class ChApi ChEllipsoid : public ChVolume {
     virtual ChMatrix33<> GetGyration() const override;
 
     /// Compute bounding box along the directions of the shape definition frame.
-    virtual AABB GetBoundingBox() const override;
+    virtual ChAABB GetBoundingBox() const override;
 
     /// Returns the radius of a bounding sphere for this geometry.
     virtual double GetBoundingSphereRadius() const override;
@@ -74,7 +74,7 @@ class ChApi ChEllipsoid : public ChVolume {
     static ChMatrix33<> GetGyration(const ChVector<>& axes);
 
     /// Return the bounding box of this type of solid with given dimensions.
-    static AABB GetBoundingBox(const ChVector<>& axes);
+    static ChAABB GetBoundingBox(const ChVector<>& axes);
 
     /// Return the radius of a bounding sphere.
     static double GetBoundingSphereRadius(const ChVector<>& axes);

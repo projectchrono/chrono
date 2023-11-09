@@ -41,8 +41,8 @@ ChTriangle& ChTriangle::operator=(const ChTriangle& source) {
     return *this;
 }
 
-ChGeometry::AABB ChTriangle::GetBoundingBox(const ChVector<>& P1, const ChVector<>& P2, const ChVector<>& P3) {
-    AABB bbox;
+ChAABB ChTriangle::GetBoundingBox(const ChVector<>& P1, const ChVector<>& P2, const ChVector<>& P3) {
+    ChAABB bbox;
     bbox.min.x() = ChMin(ChMin(P1.x(), P2.x()), P3.x());
     bbox.min.y() = ChMin(ChMin(P1.y(), P2.y()), P3.y());
     bbox.min.z() = ChMin(ChMin(P1.z(), P2.z()), P3.z());
@@ -53,7 +53,7 @@ ChGeometry::AABB ChTriangle::GetBoundingBox(const ChVector<>& P1, const ChVector
     return bbox;
 }
 
-ChGeometry::AABB ChTriangle::GetBoundingBox() const {
+ChAABB ChTriangle::GetBoundingBox() const {
     return GetBoundingBox(p1, p2, p3);
 }
 

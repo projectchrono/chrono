@@ -57,7 +57,7 @@ ChMatrix33<> ChBox::GetGyration() const {
     return GetGyration(hlen);
 }
 
-ChGeometry::AABB ChBox::GetBoundingBox(const ChVector<>& lengths) {
+ChAABB ChBox::GetBoundingBox(const ChVector<>& lengths) {
     auto hlen = lengths / 2;
 
     std::vector<ChVector<>> vertices{
@@ -71,7 +71,7 @@ ChGeometry::AABB ChBox::GetBoundingBox(const ChVector<>& lengths) {
         ChVector<>(+hlen.x(), -hlen.y(), -hlen.z())   //
     };
 
-    AABB bbox;
+    ChAABB bbox;
     for (const auto& v : vertices) {
         bbox.min.x() = ChMin(bbox.min.x(), v.x());
         bbox.min.y() = ChMin(bbox.min.y(), v.y());
@@ -85,7 +85,7 @@ ChGeometry::AABB ChBox::GetBoundingBox(const ChVector<>& lengths) {
     return bbox;
 }
 
-ChGeometry::AABB ChBox::GetBoundingBox() const {
+ChAABB ChBox::GetBoundingBox() const {
     return GetBoundingBox(2.0 * hlen);
 }
 

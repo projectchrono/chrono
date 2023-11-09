@@ -947,9 +947,7 @@ void SCMLoader::UpdateFixedPatch(MovingPatchInfo& p) {
     ChVector2<> p_max(-std::numeric_limits<double>::max());
 
     // Get current bounding box (AABB) of all collision shapes
-    ChVector<> aabb_min;
-    ChVector<> aabb_max;
-    GetSystem()->GetCollisionSystem()->GetBoundingBox(aabb_min, aabb_max);
+    auto aabb = GetSystem()->GetCollisionSystem()->GetBoundingBox();
 
     // Loop over all corners of the AABB
     for (int j = 0; j < 8; j++) {
@@ -958,7 +956,7 @@ void SCMLoader::UpdateFixedPatch(MovingPatchInfo& p) {
         int iz = (j / 4);
 
         // AABB corner in absolute frame
-        ChVector<> c_abs = aabb_max * ChVector<>(ix, iy, iz) + aabb_min * ChVector<>(1.0 - ix, 1.0 - iy, 1.0 - iz);
+        ChVector<> c_abs = aabb.max * ChVector<>(ix, iy, iz) + aabb.min * ChVector<>(1.0 - ix, 1.0 - iy, 1.0 - iz);
         // AABB corner in SCM frame
         ChVector<> c_scm = m_plane.TransformPointParentToLocal(c_abs);
 

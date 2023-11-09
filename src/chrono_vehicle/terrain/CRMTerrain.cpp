@@ -42,8 +42,6 @@ CRMTerrain::CRMTerrain(ChSystem& sys, double spacing)
       m_initialized(false),
       m_offset(VNULL),
       m_angle(0.0),
-      m_aabb_min(std::numeric_limits<double>::max()),
-      m_aabb_max(-std::numeric_limits<double>::max()),
       m_verbose(false) {
     // Create ground body
     m_ground = std::shared_ptr<ChBody>(sys.NewBody());
@@ -412,20 +410,20 @@ void CRMTerrain::CompleteConstruct() {
     ChVector<> tau(0);
     for (const auto& p : sph_points) {
         m_sysFSI.AddSPHParticle(p, m_sysFSI.GetDensity(), 0.0, m_sysFSI.GetViscosity(), VNULL, tau, VNULL);
-        m_aabb_min = Vmin(m_aabb_min, p);
-        m_aabb_max = Vmax(m_aabb_max, p);
+        m_aabb.min = Vmin(m_aabb.min, p);
+        m_aabb.max = Vmax(m_aabb.max, p);
     }
 
     if (m_verbose) {
         cout << "AABB of SPH particles" << endl;
-        cout << "  min: " << m_aabb_min << endl;
-        cout << "  max: " << m_aabb_max << endl;
+        cout << "  min: " << m_aabb.min << endl;
+        cout << "  max: " << m_aabb.max << endl;
     }
 
     // Set computational domain
-    ChVector<> aabb_dim = m_aabb_max - m_aabb_min;
+    ChVector<> aabb_dim = m_aabb.Size();
     aabb_dim.z() *= 50;
-    m_sysFSI.SetBoundaries(m_aabb_min - 0.1 * aabb_dim, m_aabb_max + 0.1 * aabb_dim);
+    m_sysFSI.SetBoundaries(m_aabb.min - 0.1 * aabb_dim, m_aabb.max + 0.1 * aabb_dim);
 
     // Create BCE markers for terrain patch
     // (ATTENTION: BCE markers must be created after the SPH particles!)
@@ -541,11 +539,6 @@ void CRMTerrain::ProcessObstacleMesh(RigidObstacle& o) {
         cout << "  Num. grid points in obstacle volume: " << list.size() << endl;
         cout << "  Num. SPH particles removed: " << num_removed << endl;
     }
-}
-
-void CRMTerrain::GetAABB(ChVector<>& aabb_min, ChVector<>& aabb_max) const {
-    aabb_min = m_aabb_min;
-    aabb_max = m_aabb_max;
 }
 
 void CRMTerrain::SaveMarkers(const std::string& out_dir) const {

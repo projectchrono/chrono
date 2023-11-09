@@ -59,12 +59,12 @@ ChMatrix33<> ChRoundedCylinder::GetGyration() const {
     return GetGyration(r, h, sr);
 }
 
-ChGeometry::AABB ChRoundedCylinder::GetBoundingBox(double radius, double height, double srad) {
-    return AABB(ChVector<>(-radius, -radius, -height / 2) - srad,  //
-                ChVector<>(+radius, +radius, +height / 2) + srad);
+ChAABB ChRoundedCylinder::GetBoundingBox(double radius, double height, double srad) {
+    return ChAABB(ChVector<>(-radius, -radius, -height / 2) - srad,  //
+                  ChVector<>(+radius, +radius, +height / 2) + srad);
 }
 
-ChGeometry::AABB ChRoundedCylinder::GetBoundingBox() const {
+ChAABB ChRoundedCylinder::GetBoundingBox() const {
     return GetBoundingBox(r, h, sr);
 }
 

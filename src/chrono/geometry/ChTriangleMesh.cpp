@@ -23,8 +23,8 @@ void ChTriangleMesh::Transform(const ChVector<> displ, const ChQuaternion<> mqua
     this->Transform(displ, ChMatrix33<>(mquat));
 }
 
-ChGeometry::AABB ChTriangleMesh::GetBoundingBox() const {
-    AABB bbox;
+ChAABB ChTriangleMesh::GetBoundingBox() const {
+    ChAABB bbox;
     for (int i = 0; i < getNumTriangles(); i++) {
         getTriangle(i).InflateBoundingBox(bbox);
     }

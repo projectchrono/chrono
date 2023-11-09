@@ -175,11 +175,10 @@ int main(int argc, char* argv[]) {
     cout << "Initialize CRM terrain..." << endl;
     terrain.Initialize();
 
-    ChVector<> aabb_min, aabb_max;
-    terrain.GetAABB(aabb_min, aabb_max);
+    auto aabb = terrain.GetBoundingBox();
     cout << "  SPH particles:     " << sysFSI.GetNumFluidMarkers() << endl;
     cout << "  Bndry BCE markers: " << sysFSI.GetNumBoundaryMarkers() << endl;
-    cout << "  AABB:              " << aabb_min << "   " << aabb_max << endl;
+    cout << "  AABB:              " << aabb.min << "   " << aabb.max << endl;
 
     // Create run-time visualization
 #ifndef CHRONO_OPENGL
@@ -217,7 +216,7 @@ int main(int argc, char* argv[]) {
         visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetSPHColorCallback(
-            chrono_types::make_shared<HeightColorCallback>(ChColor(0.10f, 0.40f, 0.65f), aabb_min.z(), aabb_max.z()));
+            chrono_types::make_shared<HeightColorCallback>(ChColor(0.10f, 0.40f, 0.65f), aabb.min.z(), aabb.max.z()));
         visFSI->AttachSystem(&sys);
         visFSI->Initialize();
     }

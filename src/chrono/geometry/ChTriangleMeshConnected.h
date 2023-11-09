@@ -124,7 +124,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     virtual void Clear() override;
 
     /// Compute bounding box of this triangle mesh.
-    virtual AABB GetBoundingBox() const override;
+    virtual ChAABB GetBoundingBox() const override;
 
     /// Compute barycenter, mass, inertia tensor.
     void ComputeMassProperties(bool bodyCoords, double& mass, ChVector<>& center, ChMatrix33<>& inertia);
@@ -229,7 +229,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     virtual Type GetClassType() const override { return Type::TRIANGLEMESH_CONNECTED; }
 
     /// Return the bounding box of a triangle mesh with given vertices.
-    static AABB GetBoundingBox(std::vector<ChVector<>> vertices);
+    static ChAABB GetBoundingBox(std::vector<ChVector<>> vertices);
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;

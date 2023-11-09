@@ -744,13 +744,16 @@ void ChCollisionModelBullet::onFamilyChange() {
     mcs->GetBulletCollisionWorld()->addCollisionObject(bt_collision_object.get(), family_group, family_mask);
 }
 
-void ChCollisionModelBullet::GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const {
-    cbtVector3 btmin;
-    cbtVector3 btmax;
-    if (bt_collision_object->getCollisionShape())
+geometry::ChAABB ChCollisionModelBullet::GetBoundingBox() const {
+    if (bt_collision_object->getCollisionShape()) {
+        cbtVector3 btmin;
+        cbtVector3 btmax;
         bt_collision_object->getCollisionShape()->getAabb(bt_collision_object->getWorldTransform(), btmin, btmax);
-    bbmin.Set(btmin.x(), btmin.y(), btmin.z());
-    bbmax.Set(btmax.x(), btmax.y(), btmax.z());
+        return geometry::ChAABB(ChVector<>((double)btmin.x(), (double)btmin.y(), (double)btmin.z()),
+                                ChVector<>((double)btmax.x(), (double)btmax.y(), (double)btmax.z()));
+    }
+
+    return geometry::ChAABB();
 }
 
 void ChCollisionModelBullet::SyncPosition() {

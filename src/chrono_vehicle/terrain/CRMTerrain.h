@@ -25,6 +25,7 @@
 #include <unordered_set>
 
 #include "chrono/physics/ChSystem.h"
+#include "chrono/geometry/ChGeometry.h"
 #include "chrono_fsi/ChSystemFsi.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
@@ -112,7 +113,7 @@ class CH_VEHICLE_API CRMTerrain : public ChTerrain {
     std::shared_ptr<ChBody> GetGroundBody() const { return m_ground; }
 
     /// Get the AABB of terrain SPH particles.
-    void GetAABB(ChVector<>& aabb_min, ChVector<>& aabb_max) const;
+    const geometry::ChAABB& GetBoundingBox() const { return m_aabb; }
 
     /// Save the set of SPH and BCE grid locations to the files in the specified output directory.
     void SaveMarkers(const std::string& out_dir) const;
@@ -172,8 +173,7 @@ class CH_VEHICLE_API CRMTerrain : public ChTerrain {
     Points m_bce;                            ///< BCE marker grid locations
     ChVector<> m_offset;                     ///< patch offset
     double m_angle;                          ///< patch rotation about vertical
-    ChVector<> m_aabb_min;                   ///< particle AABB corner
-    ChVector<> m_aabb_max;                   ///< particle AABB corner
+    geometry::ChAABB m_aabb;                 ///< particle AABB
     std::vector<RigidObstacle> m_obstacles;  ///< list of rigid obstacles
     bool m_verbose;                          ///< if true, write information to standard output
 };

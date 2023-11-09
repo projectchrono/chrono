@@ -51,7 +51,7 @@ class ChApi ChTriangleMesh : public ChGeometry {
     virtual Type GetClassType() const override { return Type::TRIANGLEMESH; }
 
     /// Compute bounding box of this triangle mesh.
-    virtual AABB GetBoundingBox() const override;
+    virtual ChAABB GetBoundingBox() const override;
 
     //// TODO
     //// virtual ChVector<> Baricenter() const override;

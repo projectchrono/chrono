@@ -40,7 +40,7 @@ class ChApi ChTriangle : public ChGeometry {
     virtual Type GetClassType() const override { return Type::TRIANGLE; }
 
     /// Compute bounding box of this triangle.
-    virtual AABB GetBoundingBox() const override;
+    virtual ChAABB GetBoundingBox() const override;
 
     /// Compute center of mass.
     virtual ChVector<> Baricenter() const override;
@@ -74,7 +74,7 @@ class ChApi ChTriangle : public ChGeometry {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
     /// Return the bounding box of a triangle with given vertices.
-    static AABB GetBoundingBox(const ChVector<>& P1, const ChVector<>& P2, const ChVector<>& P3);
+    static ChAABB GetBoundingBox(const ChVector<>& P1, const ChVector<>& P2, const ChVector<>& P3);
 
     ChVector<> p1;  ///< first triangle vertex
     ChVector<> p2;  ///< second triangle vertex

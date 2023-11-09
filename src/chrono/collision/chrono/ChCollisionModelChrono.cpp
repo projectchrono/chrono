@@ -283,9 +283,8 @@ bool ChCollisionModelChrono::AddCopyOfAnotherModel(ChCollisionModel* another) {
     return false;
 }
 
-void ChCollisionModelChrono::GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const {
-    bbmin = aabb_min;
-    bbmax = aabb_max;
+geometry::ChAABB ChCollisionModelChrono::GetBoundingBox() const {
+    return geometry::ChAABB(aabb_min, aabb_max);
 }
 
 ChCoordsys<> ChCollisionModelChrono::GetShapePos(int index) const {

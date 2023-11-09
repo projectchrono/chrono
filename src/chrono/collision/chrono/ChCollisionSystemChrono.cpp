@@ -81,14 +81,13 @@ bool ChCollisionSystemChrono::GetActiveBoundingBox(ChVector<>& aabb_min, ChVecto
     return use_aabb_active;
 }
 
-void ChCollisionSystemChrono::GetBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const {
-    aabb_min.x() = cd_data->min_bounding_point.x;
-    aabb_min.y() = cd_data->min_bounding_point.y;
-    aabb_min.z() = cd_data->min_bounding_point.z;
+geometry::ChAABB ChCollisionSystemChrono::GetBoundingBox() const {
+    ChVector<> aabb_min((double)cd_data->min_bounding_point.x, (double)cd_data->min_bounding_point.y,
+                        (double)cd_data->min_bounding_point.z);
+    ChVector<> aabb_max((double)cd_data->max_bounding_point.x, (double)cd_data->max_bounding_point.y,
+                        (double)cd_data->max_bounding_point.z);
 
-    aabb_max.x() = cd_data->max_bounding_point.x;
-    aabb_max.y() = cd_data->max_bounding_point.y;
-    aabb_max.z() = cd_data->max_bounding_point.z;
+    return geometry::ChAABB(aabb_min, aabb_max);
 }
 
 double ChCollisionSystemChrono::GetTimerCollisionBroad() const {

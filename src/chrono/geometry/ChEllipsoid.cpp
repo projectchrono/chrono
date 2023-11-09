@@ -52,12 +52,12 @@ ChMatrix33<> ChEllipsoid::GetGyration() const {
     return GetGyration(rad);
 }
 
-ChGeometry::AABB ChEllipsoid::GetBoundingBox(const ChVector<>& axes) {
+ChAABB ChEllipsoid::GetBoundingBox(const ChVector<>& axes) {
     auto rad = 0.5 * axes;
-    return AABB(-rad, +rad);
+    return ChAABB(-rad, +rad);
 }
 
-ChGeometry::AABB ChEllipsoid::GetBoundingBox() const {
+ChAABB ChEllipsoid::GetBoundingBox() const {
     return GetBoundingBox(2.0 * rad);
 }
 

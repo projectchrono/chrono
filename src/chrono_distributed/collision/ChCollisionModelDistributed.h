@@ -32,7 +32,7 @@ class CH_DISTR_API ChCollisionModelDistributed : public ChCollisionModelChrono {
 
     /// Return the current axis aligned bounding box (AABB) of the collision model.
     /// Only valid at beginning of simulation.
-    virtual void GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const override;
+    virtual geometry::ChAABB GetBoundingBox() const override;
 
   private:
     /// Remove this model from the collision system (if applicable).
