@@ -89,10 +89,6 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// - in Chrono, only boundary nodes are added to a ChModalAssembly
     /// - in Chrono, run this function passing such M and K matrices: a modal analysis will be done on K and M
     /// Note that the size of M (and K) must be at least > n_boundary_coords_w. 
-    void SwitchModalReductionON_backup(ChSparseMatrix& full_M, ChSparseMatrix& full_K, ChSparseMatrix& full_Cq, 
-        const ChModalSolveUndamped& n_modes_settings,  ///< int as the n. of lower modes to keep, or a full ChModalSolveUndamped
-        const ChModalDamping& damping_model = ChModalDampingNone());    ///< a damping model to use for the reduced model
-
     void SwitchModalReductionON(
         ChSparseMatrix& full_M,
         ChSparseMatrix& full_K,
@@ -137,9 +133,9 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     /// Computes the increment of the subassembly (the increment of the current configuration respect 
     /// to the initial undeformed snapshot configuration), and also gets the current speed.
-    /// Dx = [qB-qB_0; eta],  v = [qB_dt; eta_dt]
+    /// Dx_local = [qB^bar; eta],  v_local = [qB^bar_dt; eta_dt]
     /// Both Dx and v are expressed in the local frame of reference F
-    void GetStateLocal(ChStateDelta& Dx, ChStateDelta& v);
+    void GetStateLocal(ChStateDelta& Dx_local, ChStateDelta& v_local);
 
 
     /// Optimization flag. Default true: when in modal reduced mode, during simulations the internal (discarded) 
@@ -603,11 +599,6 @@ public:
     ChMatrixDynamic<> V_F2;//matrix associated with the local centrifugal forces of boundary nodes B
     ChMatrixDynamic<> V_F3;//matrix associated with the local Coriolis forces of boundary nodes B
 
-        // full system matrices in original mixed basis
-    ChSparseMatrix full_M;
-    ChSparseMatrix full_K;
-    ChSparseMatrix full_R;
-    ChSparseMatrix full_Cq;
     // full system matrices in the local floating frame of reference F
     ChSparseMatrix full_M_loc;
     ChSparseMatrix full_K_loc;

@@ -125,154 +125,6 @@ void util_sparse_assembly_2x2symm(
 }
 
 //---------------------------------------------------------------------------------------
-
-void ChModalAssembly::SwitchModalReductionON_backup(ChSparseMatrix& full_M,
-                                                    ChSparseMatrix& full_K,
-                                                    ChSparseMatrix& full_Cq,
-                                                    const ChModalSolveUndamped& n_modes_settings,
-                                                    const ChModalDamping& damping_model) {
-    if (is_modal)
-        return;
-
-    // 1) compute eigenvalue and eigenvectors
-    this->ComputeModesExternalData(full_M, full_K, full_Cq, n_modes_settings);
-
-    // 2) fetch initial x0 state of assembly, full not reduced
-    int bou_int_coords = this->n_boundary_coords + this->n_internal_coords;
-    int bou_int_coords_w = this->n_boundary_coords_w + this->n_internal_coords_w;
-    double fooT;
-    ChStateDelta assembly_v0;
-    full_assembly_x_old.setZero(bou_int_coords, nullptr);
-    assembly_v0.setZero(bou_int_coords_w, nullptr);
-    this->IntStateGather(0, full_assembly_x_old, 0, assembly_v0, fooT);
-
-    // 3) bound ChVariables etc. to the modal coordinates, resize matrices, set as modal mode
-    this->SetModalMode(true);
-    this->SetupModalData(this->modes_V.cols());
-
-    // 4) do the Herting reduction as in Sonneville, 2021
-
-    ChSparseMatrix K_II = full_K.block(this->n_boundary_coords_w, this->n_boundary_coords_w, this->n_internal_coords_w,
-                                       this->n_internal_coords_w);
-    ChSparseMatrix K_IB =
-        full_K.block(this->n_boundary_coords_w, 0, this->n_internal_coords_w, this->n_boundary_coords_w);
-
-    ChSparseMatrix M_II = full_M.block(this->n_boundary_coords_w, this->n_boundary_coords_w, this->n_internal_coords_w,
-                                       this->n_internal_coords_w);
-    ChSparseMatrix M_IB =
-        full_M.block(this->n_boundary_coords_w, 0, this->n_internal_coords_w, this->n_boundary_coords_w);
-
-    ChSparseMatrix Cq_B = full_Cq.block(0, 0, full_Cq.rows(), this->n_boundary_coords_w);
-    ChSparseMatrix Cq_I = full_Cq.block(0, this->n_boundary_coords_w, full_Cq.rows(), this->n_internal_coords_w);
-
-    ChMatrixDynamic<> V_B = this->modes_V.block(0, 0, this->n_boundary_coords_w, this->n_modes_coords_w).real();
-    ChMatrixDynamic<> V_I =
-        this->modes_V.block(this->n_boundary_coords_w, 0, this->n_internal_coords_w, this->n_modes_coords_w).real();
-
-    // K_IIc = [ K_II   Cq_I' ]
-    //         [ Cq_I     0   ]
-
-    Eigen::SparseMatrix<double> K_IIc;
-    util_sparse_assembly_2x2symm(K_IIc, K_II, Cq_I);
-    K_IIc.makeCompressed();
-
-    // Matrix of static modes (constrained, so use K_IIc instead of K_II,
-    // the original unconstrained Herting reduction is Psi_S = - K_II^{-1} * K_IB )
-    //
-    // {Psi_S; foo} = - K_IIc^{-1} * {K_IB ; Cq_B}
-
-    ChMatrixDynamic<> Psi_S(this->n_internal_coords_w, this->n_boundary_coords_w);
-
-    // avoid computing K_IIc^{-1}, effectively do n times a linear solve:
-    Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
-    solver.analyzePattern(K_IIc);
-    solver.factorize(K_IIc);
-    for (int i = 0; i < K_IB.cols(); ++i) {
-        ChVectorDynamic<> rhs(this->n_internal_coords_w + full_Cq.rows());
-        if (Cq_B.rows())
-            rhs << K_IB.col(i).toDense(), Cq_B.col(i).toDense();
-        else
-            rhs << K_IB.col(i).toDense();
-        ChVectorDynamic<> x = solver.solve(rhs);
-        Psi_S.block(0, i, this->n_internal_coords_w, 1) = -x.head(this->n_internal_coords_w);
-    }
-
-    // Matrix of dynamic modes (V_B and V_I already computed as constrained eigenmodes,
-    // but use K_IIc instead of K_II anyway, to reuse K_IIc already factored before)
-    //
-    // {Psi_D; foo} = - K_IIc^{-1} * {(M_IB * V_B + M_II * V_I) ; 0}
-
-    ChMatrixDynamic<> Psi_D(this->n_internal_coords_w, this->n_modes_coords_w);
-
-    for (int i = 0; i < this->n_modes_coords_w; ++i) {
-        ChVectorDynamic<> rhs(this->n_internal_coords_w + full_Cq.rows());
-        rhs << (M_IB * V_B + M_II * V_I).col(i), Eigen::VectorXd::Zero(full_Cq.rows());
-        ChVectorDynamic<> x = solver.solve(rhs);
-        Psi_D.block(0, i, this->n_internal_coords_w, 1) = -x.head(this->n_internal_coords_w);
-    }
-
-    // Psi = [ I     0    ]
-    //       [Psi_S  Psi_D]
-    Psi.setZero(this->n_boundary_coords_w + this->n_internal_coords_w,
-                this->n_boundary_coords_w + this->n_modes_coords_w);
-    //***TODO*** maybe prefer sparse Psi matrix, especially for upper blocks...
-
-    Psi << Eigen::MatrixXd::Identity(n_boundary_coords_w, n_boundary_coords_w),
-        Eigen::MatrixXd::Zero(n_boundary_coords_w, n_modes_coords_w), Psi_S, Psi_D;
-
-    this->modal_M = Psi.transpose() * full_M * Psi;
-    this->modal_K = Psi.transpose() * full_K * Psi;
-
-    // Reset to zero all the atomic masses of the boundary nodes because now their mass is represented by  this->modal_M
-    // NOTE! this should be made more generic and future-proof by implementing a virtual method ex. RemoveMass() in all
-    // ChPhysicsItem
-    for (auto& body : bodylist) {
-        body->SetMass(0);
-        body->SetInertia(VNULL);
-    }
-    for (auto& item : this->meshlist) {
-        if (auto mesh = std::dynamic_pointer_cast<ChMesh>(item)) {
-            for (auto& node : mesh->GetNodes()) {
-                if (auto xyz = std::dynamic_pointer_cast<ChNodeFEAxyz>(node))
-                    xyz->SetMass(0);
-                if (auto xyzrot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(node)) {
-                    xyzrot->SetMass(0);
-                    xyzrot->GetInertia().setZero();
-                }
-            }
-        }
-    }
-
-    // Modal reduction of R damping matrix: compute using user-provided damping model
-    this->modal_R.setZero(modal_M.rows(), modal_M.cols());
-    damping_model.ComputeR(*this, this->modal_M, this->modal_K, Psi, this->modal_R);
-
-    // Invalidate results of the initial eigenvalue analysis because now the DOFs are different after reduction,
-    // to avoid that one could be tempted to plot those eigenmodes, which now are not exactly the ones of the reduced
-    // assembly.
-    this->modes_assembly_x0.resize(0);
-    this->modes_damping_ratio.resize(0);
-    this->modes_eig.resize(0);
-    this->modes_freq.resize(0);
-    this->modes_V.resize(0, 0);
-
-    // Debug dump data. ***TODO*** remove
-    if (true) {
-        ChStreamOutAsciiFile fileP("dump_modal_Psi.dat");
-        fileP.SetNumFormat("%.12g");
-        StreamOutDenseMatlabFormat(Psi, fileP);
-        ChStreamOutAsciiFile fileM("dump_modal_M.dat");
-        fileM.SetNumFormat("%.12g");
-        StreamOutDenseMatlabFormat(this->modal_M, fileM);
-        ChStreamOutAsciiFile fileK("dump_modal_K.dat");
-        fileK.SetNumFormat("%.12g");
-        StreamOutDenseMatlabFormat(this->modal_K, fileK);
-        ChStreamOutAsciiFile fileR("dump_modal_R.dat");
-        fileR.SetNumFormat("%.12g");
-        StreamOutDenseMatlabFormat(this->modal_R, fileR);
-    }
-}
-
 void ChModalAssembly::SwitchModalReductionON(ChSparseMatrix& full_M,
                                              ChSparseMatrix& full_K,
                                              ChSparseMatrix& full_Cq,
@@ -668,45 +520,13 @@ void ChModalAssembly::UpdateTransformationMatrix() {
     Y.topLeftCorner(n_boundary_coords_w, n_boundary_coords_w) = P_B2.transpose() * (I_BB - P_B1 * S);
 }
 
-void util_sparse_assembly_MKRloc(ChSparseMatrix& MKRloc,  ///< resulting square sparse matrix (column major)
-                                 const ChSparseMatrix& H_BB,
-                                 const ChSparseMatrix& H_BI,
-                                 const ChSparseMatrix& H_IB,
-                                 const ChSparseMatrix& H_II) {
-    int r_B = H_BB.rows();
-    int c_B = H_BB.cols();
-    int r_I = H_II.rows();
-    int c_I = H_II.cols();
-    MKRloc.resize(r_B + r_I, c_B + c_I);
-    MKRloc.reserve(H_BB.nonZeros() + H_BI.nonZeros() + H_IB.nonZeros() + H_II.nonZeros());
-    MKRloc.setZero();
-
-    for (int k = 0; k < H_BB.outerSize(); ++k)
-        for (ChSparseMatrix::InnerIterator it(H_BB, k); it; ++it) {
-            MKRloc.insert(it.row(), it.col()) = it.value();
-        }
-
-    for (int k = 0; k < H_BI.outerSize(); ++k)
-        for (ChSparseMatrix::InnerIterator it(H_BI, k); it; ++it) {
-            MKRloc.insert(it.row(), it.col() + c_B) = it.value();
-        }
-
-    for (int k = 0; k < H_IB.outerSize(); ++k)
-        for (ChSparseMatrix::InnerIterator it(H_IB, k); it; ++it) {
-            MKRloc.insert(it.row() + r_B, it.col()) = it.value();
-        }
-
-    for (int k = 0; k < H_II.outerSize(); ++k)
-        for (ChSparseMatrix::InnerIterator it(H_II, k); it; ++it) {
-            MKRloc.insert(it.row() + r_B, it.col() + c_B) = it.value();
-        }
-
-    // This seems necessary in Release mode
-    MKRloc.makeCompressed();
-}
-
 void ChModalAssembly::ComputeLocalFullKRMmatrix() {
     // 1) fetch the full (not reduced) mass and stiffness
+    ChSparseMatrix full_M;
+    ChSparseMatrix full_K;
+    ChSparseMatrix full_R;
+    ChSparseMatrix full_Cq;
+
     this->GetSubassemblyMassMatrix(&full_M);
     this->GetSubassemblyStiffnessMatrix(&full_K);
     this->GetSubassemblyDampingMatrix(&full_R);
@@ -1021,10 +841,12 @@ void ChModalAssembly::ComputeModalKRMmatrix() {
     this->modal_Cq = Cq_red * P_W.transpose();
 
     // GetLog() << "run in line:\t" << __LINE__ << "\n";
-    // GetLog() << "modal_M.norm:\t" << modal_M.norm() << "\n";
-    // GetLog() << "modal_K.norm:\t" << modal_K.norm() << "\n";
-    // GetLog() << "modal_R.norm:\t" << modal_R.norm() << "\n";
-    // GetLog() << "modal_Cq.norm:\t" << modal_Cq.norm() << "\n";
+    if (ChTime > 5.0 && ChTime < 5.01) {
+        GetLog() << "modal_M:\t" << modal_M << "\n";
+        GetLog() << "modal_K:\t" << modal_K << "\n";
+        GetLog() << "modal_R:\t" << modal_R << "\n";
+        GetLog() << "modal_Cq:\t" << modal_Cq << "\n";
+    }
 }
 
 void ChModalAssembly::SetupModalData(int nmodes_reduction) {
@@ -1257,7 +1079,7 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
         return;
 
     bool do_linear_update = true;
-    bool rigidbody_mode_test = false;
+    bool rigidbody_mode_test = true;
 
     if (do_linear_update) {  // Update w.r.t. the undeformed configuration
         double fooT;
@@ -1424,31 +1246,44 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
         modal_q_old = modal_q;
     }
 
-    // check: K_IB*P_B1+K_II*P_I1==0. Should be valid, otherwise the modal method is totally wrong!
+     //check: K_IB*P_B1+K_II*P_I1==0. Should be valid, otherwise the modal method is totally wrong!
+    //if (rigidbody_mode_test) {
+    //    ChSparseMatrix P_B2_sp = P_B2.sparseView();
+    //    ChSparseMatrix P_I2_sp = P_I2.sparseView();
+
+    //    ChSparseMatrix K_IB_loc = full_K_loc.block(this->n_boundary_coords_w, 0, this->n_internal_coords_w,
+    //                                                         this->n_boundary_coords_w);
+    //    ChSparseMatrix K_IB = P_I2_sp * K_IB_loc * P_B2_sp.transpose();
+
+    //    ChSparseMatrix K_II_loc = full_K_loc.block(this->n_boundary_coords_w, this->n_boundary_coords_w,
+    //                                               this->n_internal_coords_w, this->n_internal_coords_w);
+    //    ChSparseMatrix K_II = P_I2_sp * K_II_loc * P_I2_sp.transpose();
+
+    //    //ChSparseMatrix Cq_II_loc = full_Cq_loc.block(this->n_boundary_doc_w, this->n_boundary_coords_w,
+    //    //                                             this->n_internal_doc_w, this->n_internal_coords_w);
+    //    //ChSparseMatrix Cq_II = Cq_II_loc * P_I2_sp.transpose();
+
+    //    //Eigen::SparseMatrix<double> K_IIc;
+    //    //util_sparse_assembly_2x2symm(K_IIc, K_II, Cq_II);
+    //    //K_IIc.makeCompressed();
+
+    //    ChSparseMatrix P_B1_sp = P_B1.sparseView();
+    //    ChSparseMatrix P_I1_sp = P_I1.sparseView();
+    //    ChSparseMatrix check = K_IB * P_B1_sp + K_II * P_I1_sp;
+
+    //    // GetLog() << "run in line:\t" << __LINE__ << "\n";
+    //    GetLog() << "Time: " << GetChTime() << "\t";
+    //    GetLog() << "check: K_IB*P_B1+K_II*P_I1==0?\t" << check.norm() << "\n";
+    //    // GetLog() << "K_IB_loc.norm(): " << K_IB_loc.norm() << "\t";
+    //    // GetLog() << "P_B1_sp.norm(): " << P_B1_sp.norm() << "\t";
+    //    // GetLog() << "K_II_loc.norm(): " << K_II_loc.norm() << "\t";
+    //    // GetLog() << "P_I1_sp.norm(): " << P_I1_sp.norm() << "\t";
+    //}
+
     if (rigidbody_mode_test) {
-        ChSparseMatrix K_II = full_K.block(this->n_boundary_coords_w, this->n_boundary_coords_w,
-                                           this->n_internal_coords_w, this->n_internal_coords_w);
-        ChSparseMatrix Cq_II = full_Cq.block(this->n_boundary_doc_w, this->n_boundary_coords_w, this->n_internal_doc_w,
-                                             this->n_internal_coords_w);
-        Eigen::SparseMatrix<double> K_IIc;
-        util_sparse_assembly_2x2symm(K_IIc, K_II, Cq_II);
-        K_IIc.makeCompressed();
-
-        ChSparseMatrix K_IB =
-            full_K.block(this->n_boundary_coords_w, 0, this->n_internal_coords_w, this->n_boundary_coords_w);
-
-        ChSparseMatrix P_B1_sp = P_B1.sparseView();
-        ChSparseMatrix P_I1_sp = P_I1.sparseView();
-
-        ChSparseMatrix check = K_IB * P_B1_sp + K_II * P_I1_sp;
-
-        // GetLog() << "run in line:\t" << __LINE__ << "\n";
+        ChMatrixDynamic<> check = (P_I1 - P_I2 * Psi_S * P_B2.transpose() * P_B1) * S;
         GetLog() << "Time: " << GetChTime() << "\t";
-        GetLog() << "check: K_IB*P_B1+K_II*P_I1==0?\t" << check.norm() << "\n";
-        // GetLog() << "K_IB_loc.norm(): " << K_IB_loc.norm() << "\t";
-        // GetLog() << "P_B1_sp.norm(): " << P_B1_sp.norm() << "\t";
-        // GetLog() << "K_II_loc.norm(): " << K_II_loc.norm() << "\t";
-        // GetLog() << "P_I1_sp.norm(): " << P_I1_sp.norm() << "\t";
+        GetLog() << "rigidbody mode check==0?\t" << check.norm() << "\n";
     }
 }
 
@@ -2180,6 +2015,8 @@ void ChModalAssembly::IntStateScatter(const unsigned int off_x,
         this->UpdateFloatingFrameOfReference();
         this->UpdateTransformationMatrix();
     }
+
+    ChTime = T;
 }
 
 void ChModalAssembly::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
