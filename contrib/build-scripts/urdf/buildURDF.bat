@@ -35,7 +35,7 @@ if "%~1" NEQ "" (
 @if %DOWNLOAD% EQU ON (
     echo "Downloading sources from GitHub"
 
-    rmdir /S/Q download_urdf 2>null
+    rmdir /S/Q download_urdf 2>nul
     mkdir download_urdf
 
     echo "  ... tinyxml2"
@@ -60,11 +60,11 @@ if "%~1" NEQ "" (
 
 @rem ------------------------------------------------------------------------
 
-rmdir /S/Q %URDF_INSTALL_DIR% 2>null
+rmdir /S/Q %URDF_INSTALL_DIR% 2>nul
 
 rem --- tinyxml2 ------------------------------------------------------------
 
-rmdir /S/Q build_tinyxml2 2>null
+rmdir /S/Q build_tinyxml2 2>nul
 cmake -B build_tinyxml2 -S %TINYXML2_SOURCE_DIR% ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd ^
@@ -82,7 +82,7 @@ if %BUILDDEBUG% EQU ON (
 
 rem --- console_bridge ------------------------------------------------------
 
-rmdir /S/Q build_console_bridge 2>null
+rmdir /S/Q build_console_bridge 2>nul
 cmake -B build_console_bridge -S %CONSOLE_BRIDGE_SOURCE_DIR% ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd
@@ -99,7 +99,7 @@ if %BUILDDEBUG% EQU ON (
 
 rem --- urdfdom_headers --------------------------------------------------------
 
-rmdir /S/Q build_urdfdom_headers 2>null
+rmdir /S/Q build_urdfdom_headers 2>nul
 cmake -B build_urdfdom_headers -S %URDFDOM_HEADERS_SOURCE_DIR% ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd
@@ -116,7 +116,7 @@ if %BUILDDEBUG% EQU ON (
 
 rem --- urdfdom -------------------------------------------------------------
 
-rmdir /S/Q build_urdfdom 2>null
+rmdir /S/Q build_urdfdom 2>nul
 cmake -B build_urdfdom -S %URDFDOM_SOURCE_DIR% ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd ^

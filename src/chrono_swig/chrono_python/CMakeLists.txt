@@ -156,8 +156,11 @@ endif()
 # Path to Chrono data/ directory (in SOURCE tree)
 set(PYC_DATA_PATH "${PROJECT_SOURCE_DIR}/data/")
 
-# Path to Chrono::Sensor shaders/ directory (in SOURCE tree)
-set(PYC_SHADER_PATH "${PROJECT_SOURCE_DIR}/src/chrono_sensor/optix/shaders/")
+if(USE_CUDA_NVRTC)
+  set(PYC_SHADER_PATH "${PROJECT_SOURCE_DIR}/src/chrono_sensor/optix/shaders/")
+else()
+  set(PYC_SHADER_PATH "${CMAKE_BINARY_DIR}/lib/sensor_ptx/")
+endif()
 
 # Generate the __init__.py file using substitution variables and place it in a temporary place
 configure_file(${CMAKE_SOURCE_DIR}/contrib/packaging-python/__init__.py.local.in
@@ -186,7 +189,7 @@ else()
   configure_file(${CMAKE_SOURCE_DIR}/contrib/packaging-python/__init__.py.local.in
                  ${PROJECT_BINARY_DIR}/chrono_python/__init__.py.install)
 endif()
-
+message(WARNING "PYC_SHADER_PATH2:   ${PYC_SHADER_PATH}") 
 #-----------------------------------------------------------------------------
 # Install demos
 #-----------------------------------------------------------------------------

@@ -47,7 +47,7 @@ if "%~1" NEQ "" (
 @if %DOWNLOAD% EQU ON (
     echo "Downloading sources from GitHub"
 
-    rmdir /S/Q download_vsg 2>null
+    rmdir /S/Q download_vsg 2>nul
     mkdir download_vsg
 
     echo "  ... VulkanSceneGraph"
@@ -78,11 +78,11 @@ if "%~1" NEQ "" (
 
 @rem ------------------------------------------------------------------------
 
-rmdir /S/Q %VSG_INSTALL_DIR% 2>null
+rmdir /S/Q %VSG_INSTALL_DIR% 2>nul
 
 rem --- assimp -------------------------------------------------------------
 
-rmdir /S/Q build_assimp 2>null
+rmdir /S/Q build_assimp 2>nul
 cmake -B build_assimp -S %ASSIMP_SOURCE_DIR%  ^
       -DBUILD_SHARED_LIBS:BOOL=OFF ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
@@ -103,7 +103,7 @@ if %BUILDDEBUG% EQU ON (
 
 rem --- vsg ----------------------------------------------------------------
 
-rmdir /S/Q build_vsg 2>null
+rmdir /S/Q build_vsg 2>nul
 cmake -B build_vsg -S %VSG_SOURCE_DIR%  ^
       -DBUILD_SHARED_LIBS:BOOL=%BUILDSHARED% ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
@@ -120,7 +120,7 @@ if %BUILDDEBUG% EQU ON (
 
 rem --- vsgXchange ---------------------------------------------------------
 
-rmdir /S/Q build_vsgXchange 2>null
+rmdir /S/Q build_vsgXchange 2>nul
 cmake -B build_vsgXchange -S %VSGXCHANGE_SOURCE_DIR%  ^
       -DBUILD_SHARED_LIBS:BOOL=%BUILDSHARED% ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
@@ -145,7 +145,7 @@ if %BUILDDEBUG% EQU ON (
 
 rem --- vsgImGui -----------------------------------------------------------
 
-rmdir /S/Q build_vsgImGui 2>null
+rmdir /S/Q build_vsgImGui 2>nul
 cmake -B build_vsgImGui -S %VSGIMGUI_SOURCE_DIR% ^
       -DBUILD_SHARED_LIBS:BOOL=%BUILDSHARED% ^
       -DCMAKE_DEBUG_POSTFIX=_d ^
@@ -162,7 +162,7 @@ if %BUILDDEBUG% EQU ON (
 
 rem --- vsgExamples --------------------------------------------------------
 
-rmdir /S/Q build_vsgExamples 2>null
+rmdir /S/Q build_vsgExamples 2>nul
 cmake -B build_vsgExamples -S %VSGEXAMPLES_SOURCE_DIR% ^
       -Dvsg_DIR:PATH=%VSG_INSTALL_DIR%/lib/cmake/vsg ^
       -DvsgXchange_DIR:PATH=%VSG_INSTALL_DIR%/lib/cmake/vsgXchange ^

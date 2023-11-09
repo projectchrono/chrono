@@ -27,7 +27,7 @@ import os
 import math
 
 
-#// =============================================================================
+# // =============================================================================
 
 def main():
     print("Copyright (c) 2017 projectchrono.org" + "\n\n")
@@ -40,7 +40,8 @@ def main():
     my_hmmwv.SetChassisCollisionType(chassis_collision_type)
     my_hmmwv.SetChassisFixed(False)
     my_hmmwv.SetInitPosition(chrono.ChCoordsysD(initLoc, initRot))
-    my_hmmwv.SetPowertrainType(powertrain_model)
+    my_hmmwv.SetEngineType(engine_model)
+    my_hmmwv.SetTransmissionType(transmission_model)
     my_hmmwv.SetDriveType(drive_type)
     my_hmmwv.SetSteeringType(steering_type)
     my_hmmwv.SetTireType(tire_model)
@@ -65,7 +66,8 @@ def main():
         patch_mat.SetFriction(0.9)
         patch_mat.SetRestitution(0.01)
         patch_mat.SetYoungModulus(2e7)
-    patch = terrain.AddPatch(patch_mat, chrono.CSYSNORM, terrainLength, terrainWidth)
+    patch = terrain.AddPatch(patch_mat, chrono.CSYSNORM,
+                             terrainLength, terrainWidth)
     patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
     patch.SetColor(chrono.ChColor(0.8, 0.8, 0.5))
     terrain.Initialize()
@@ -87,16 +89,16 @@ def main():
         os.mkdir(out_dir)
     except OSError as exc:
         if exc.errno != errno.EEXIST:
-           print("Error creating output directory " )
+            print("Error creating output directory ")
 
     # Set up vehicle output
-    my_hmmwv.GetVehicle().SetChassisOutput(True);
-    my_hmmwv.GetVehicle().SetSuspensionOutput(0, True);
-    my_hmmwv.GetVehicle().SetSteeringOutput(0, True);
-    my_hmmwv.GetVehicle().SetOutput(veh.ChVehicleOutput.ASCII , out_dir, "output", 0.1);
+    my_hmmwv.GetVehicle().SetChassisOutput(True)
+    my_hmmwv.GetVehicle().SetSuspensionOutput(0, True)
+    my_hmmwv.GetVehicle().SetSteeringOutput(0, True)
+    my_hmmwv.GetVehicle().SetOutput(veh.ChVehicleOutput.ASCII, out_dir, "output", 0.1)
 
     # Generate JSON information with available output channels
-    my_hmmwv.GetVehicle().ExportComponentList(out_dir + "/component_list.json");
+    my_hmmwv.GetVehicle().ExportComponentList(out_dir + "/component_list.json")
 
     # Create the interactive driver system
     driver = veh.ChInteractiveDriverIRR(vis)
@@ -111,9 +113,7 @@ def main():
 
     driver.Initialize()
 
-
     # Simulation loop
-
 
     # Number of simulation steps between miscellaneous events
     render_steps = m.ceil(render_step_size / step_size)
@@ -131,7 +131,8 @@ def main():
     # Create a sensor manager and add a point light
     # ---------------------------------------------
     manager = sens.ChSensorManager(my_hmmwv.GetSystem())
-    manager.scene.AddPointLight(chrono.ChVectorF(0, 0, 100), chrono.ChColor(2, 2, 2), 5000)
+    manager.scene.AddPointLight(chrono.ChVectorF(
+        0, 0, 100), chrono.ChColor(2, 2, 2), 5000)
 
     # ------------------------------------------------
     # Create a camera and add it to the sensor manager
@@ -155,7 +156,8 @@ def main():
 
     # Visualizes the image
     if vis:
-        cam.PushFilter(sens.ChFilterVisualize(image_width, image_height, "HMMWV Camera"))
+        cam.PushFilter(sens.ChFilterVisualize(
+            image_width, image_height, "HMMWV Camera"))
 
     # Save the current image to a png file at the specified path
     if save:
@@ -167,15 +169,16 @@ def main():
     # ----------------------------------------------
     # Create an IMU sensor and add it to the manager
     # ----------------------------------------------
-    offset_pose = chrono.ChFrameD(chrono.ChVectorD(-8, 0, 1), chrono.Q_from_AngAxis(0, chrono.ChVectorD(0, 1, 0)))
+    offset_pose = chrono.ChFrameD(
+        chrono.ChVectorD(-8, 0, 1), chrono.Q_from_AngAxis(0, chrono.ChVectorD(0, 1, 0)))
     imu = sens.ChAccelerometerSensor(my_hmmwv.GetChassisBody(),                     # body imu is attached to
-                           imu_update_rate,         # update rate in Hz
-                           offset_pose,             # offset pose
-                           imu_noise_none          # noise model
-                           )
+                                     imu_update_rate,         # update rate in Hz
+                                     offset_pose,             # offset pose
+                                     imu_noise_none          # noise model
+                                     )
     imu.SetName("IMU Sensor")
-    imu.SetLag(imu_lag);
-    imu.SetCollectionWindow(imu_collection_time);
+    imu.SetLag(imu_lag)
+    imu.SetCollectionWindow(imu_collection_time)
 
     # Provides the host access to the imu data
     imu.PushFilter(sens.ChFilterAccelAccess())
@@ -186,7 +189,8 @@ def main():
     # ----------------------------------------------
     # Create an GPS sensor and add it to the manager
     # ----------------------------------------------
-    offset_pose = chrono.ChFrameD(chrono.ChVectorD(-8, 0, 1), chrono.Q_from_AngAxis(0, chrono.ChVectorD(0, 1, 0)))
+    offset_pose = chrono.ChFrameD(
+        chrono.ChVectorD(-8, 0, 1), chrono.Q_from_AngAxis(0, chrono.ChVectorD(0, 1, 0)))
     gps = sens.ChGPSSensor(my_hmmwv.GetChassisBody(),                     # body imu is attached to
                            gps_update_rate,       # update rate in Hz
                            offset_pose,             # offset pose
@@ -207,26 +211,30 @@ def main():
     while vis.Run():
         time = my_hmmwv.GetSystem().GetChTime()
 
-        #End simulation
+        # End simulation
         if (time >= t_end):
             break
 
-        if(step_number%render_steps ==0):
+        if (step_number % render_steps == 0):
             vis.BeginScene()
             vis.Render()
             vis.EndScene()
 
-        #Debug logging
-        if (debug_output and step_number % debug_steps == 0) :
+        # Debug logging
+        if (debug_output and step_number % debug_steps == 0):
             print("\n\n============ System Information ============\n")
-            print( "Time = " << time << "\n\n")
-            #my_hmmwv.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS)
+            print("Time = " << time << "\n\n")
+            # my_hmmwv.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS)
 
-            marker_driver = my_hmmwv.GetChassis().GetMarkers()[0].GetAbsCoord().pos
-            marker_com = my_hmmwv.GetChassis().GetMarkers()[1].GetAbsCoord().pos
-            print( "Markers\n")
-            print( "  Driver loc:      " , marker_driver.x , " " , marker_driver.y , " " , marker_driver.z)
-            print( "  Chassis COM loc: " , marker_com.x, " ", marker_com.y, " ",marker_com.z)
+            marker_driver = my_hmmwv.GetChassis().GetMarkers()[
+                0].GetAbsCoord().pos
+            marker_com = my_hmmwv.GetChassis().GetMarkers()[
+                1].GetAbsCoord().pos
+            print("Markers\n")
+            print("  Driver loc:      ", marker_driver.x,
+                  " ", marker_driver.y, " ", marker_driver.z)
+            print("  Chassis COM loc: ", marker_com.x,
+                  " ", marker_com.y, " ", marker_com.z)
 
         # Get driver inputs
         driver_inputs = driver.GetInputs()
@@ -235,7 +243,7 @@ def main():
         driver.Synchronize(time)
         terrain.Synchronize(time)
         my_hmmwv.Synchronize(time, driver_inputs, terrain)
-        vis.Synchronize(driver.GetInputModeAsString(), driver_inputs)
+        vis.Synchronize(time, driver_inputs)
 
         # Advance simulation for one timestep for all modules
         driver.Advance(step_size)
@@ -254,6 +262,7 @@ def main():
         realtime_timer.Spin(step_size)
 
     return 0
+
 
 # -----------------
 # Sensor parameters
@@ -274,8 +283,8 @@ gps_lag = 0
 
 # Collection window for each sensor
 # Typically 1 / update rate
-cam_collection_time = 0 # instant
-imu_collection_time = 0 # instant
+cam_collection_time = 0  # instant
+imu_collection_time = 0  # instant
 gps_collection_time = 1. / float(gps_update_rate)
 
 # GPS reference point
@@ -294,7 +303,7 @@ gps_noise_none = sens.ChNoiseNone()
 # The path to the Chrono data directory containing various assets (meshes, textures, data files)
 # is automatically set, relative to the default location of this demo.
 # If running from a different directory, you must change the path to the data directory with:
-#chrono.SetChronoDataPath('path/to/data')
+# chrono.SetChronoDataPath('path/to/data')
 veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 # Initial vehicle location and orientation
@@ -303,7 +312,7 @@ initRot = chrono.ChQuaternionD(1, 0, 0, 0)
 
 # Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
 chassis_vis_type = veh.VisualizationType_MESH
-suspension_vis_type =  veh.VisualizationType_PRIMITIVES
+suspension_vis_type = veh.VisualizationType_PRIMITIVES
 steering_vis_type = veh.VisualizationType_PRIMITIVES
 wheel_vis_type = veh.VisualizationType_MESH
 tire_vis_type = veh.VisualizationType_MESH
@@ -311,8 +320,10 @@ tire_vis_type = veh.VisualizationType_MESH
 # Collision type for chassis (PRIMITIVES, MESH, or NONE)
 chassis_collision_type = veh.CollisionType_NONE
 
-# Type of powertrain model (SHAFTS, SIMPLE)
-powertrain_model = veh.PowertrainModelType_SHAFTS
+# Type of Engine (SHAFTS, SIMPLE)
+engine_model = veh.EngineModelType_SHAFTS
+# Type of transmission (SHAFTS, SIMPLE)
+transmission_model = veh.TransmissionModelType_SHAFTS
 
 # Drive type (FWD, RWD, or AWD)
 drive_type = veh.DrivelineTypeWV_AWD
@@ -324,30 +335,30 @@ steering_type = veh.SteeringTypeWV_PITMAN_ARM
 tire_model = veh.TireModelType_TMEASY
 
 # Rigid terrain
-terrainHeight = 0;      # terrain height (FLAT terrain only)
-terrainLength = 100.0;  # size in X direction
-terrainWidth = 100.0;   # size in Y direction
+terrainHeight = 0      # terrain height (FLAT terrain only)
+terrainLength = 100.0  # size in X direction
+terrainWidth = 100.0   # size in Y direction
 
 # Point on chassis tracked by the camera
 trackPoint = chrono.ChVectorD(0.0, 0.0, 1.75)
 
 # Contact method
 contact_method = chrono.ChContactMethod_SMC
-contact_vis = False;
+contact_vis = False
 
 # ---------------------
 # Simulation parameters
 # ---------------------
 
 # Simulation step sizes
-step_size = 1e-3;
-tire_step_size = step_size;
+step_size = 1e-3
+tire_step_size = step_size
 
 # Simulation end time
-t_end = 1000;
+t_end = 1000
 
 # Time interval between two render frames
-render_step_size = 1.0 / 50;  # FPS = 50
+render_step_size = 1.0 / 50  # FPS = 50
 
 # Output directory
 out_dir = "SENSOR_OUTPUT/"

@@ -33,7 +33,7 @@ if "%~1" NEQ "" (
 @if %DOWNLOAD% EQU ON (
     echo "Downloading sources from GitHub"
 
-    rmdir /S/Q download_crg 2>null
+    rmdir /S/Q download_crg 2>nul
     mkdir download_crg
 
     powershell -Command "Invoke-WebRequest -UserAgent 'Wget' -Uri https://github.com/hlrs-vis/opencrg/archive/refs/tags/v1.1.2.zip  -OutFile download_crg/crg.zip"
@@ -48,7 +48,7 @@ echo "Sources in " %CRG_SOURCE_DIR%
 
 @rem ------------------------------------------------------------------------
 
-rmdir /S/Q %CRG_INSTALL_DIR% 2>null
+rmdir /S/Q %CRG_INSTALL_DIR% 2>nul
 
 mkdir %CRG_INSTALL_DIR%
 mkdir %CRG_INSTALL_DIR%\include
@@ -56,7 +56,7 @@ mkdir %CRG_INSTALL_DIR%\lib
 
 @rem ------------------------------------------------------------------------
 
-rmdir /S/Q build_crg 2>null
+rmdir /S/Q build_crg 2>nul
 mkdir build_crg
 
 cd build_crg

@@ -93,6 +93,8 @@ void ARTcar::Initialize() {
     auto engine = chrono_types::make_shared<ARTcar_EngineSimpleMap>("Engine");
     auto transmission = chrono_types::make_shared<ARTcar_AutomaticTransmissionSimpleMap>("Transmission");
     auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
+    engine->m_voltage_ratio = m_voltage_ratio;
+    engine->m_stall_torque = m_stall_torque;
     m_vehicle->InitializePowertrain(powertrain);
 
     // Create the tires and set parameters depending on type.
@@ -108,6 +110,11 @@ void ARTcar::Initialize() {
             m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
             m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
+
+            tire_FL->SetRollingResistanceCoefficient(m_rolling_friction_coeff);
+            tire_FR->SetRollingResistanceCoefficient(m_rolling_friction_coeff);
+            tire_RL->SetRollingResistanceCoefficient(m_rolling_friction_coeff);
+            tire_RR->SetRollingResistanceCoefficient(m_rolling_friction_coeff);
 
             m_tire_mass = tire_FL->GetMass();
             break;
