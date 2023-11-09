@@ -22,15 +22,15 @@ ChCollisionShapeRoundedCylinder::ChCollisionShapeRoundedCylinder(std::shared_ptr
                                                                  double radius,
                                                                  double height,
                                                                  double sradius)
-    : ChCollisionShape(Type::ROUNDEDCYL, material), radius(sradius) {
+    : ChCollisionShape(Type::ROUNDEDCYL, material) {
     gcylinder.r = radius;
     gcylinder.h = height;
+    gcylinder.sr = sradius;
 }
 
 ChCollisionShapeRoundedCylinder::ChCollisionShapeRoundedCylinder(std::shared_ptr<ChMaterialSurface> material,
-                                                                 const geometry::ChCylinder& cyl,
-                                                                 double sradius)
-    : ChCollisionShape(Type::ROUNDEDCYL, material), gcylinder(cyl), radius(sradius) {}
+                                                                 const geometry::ChRoundedCylinder& cyl)
+    : ChCollisionShape(Type::ROUNDEDCYL, material), gcylinder(cyl) {}
 
 void ChCollisionShapeRoundedCylinder::ArchiveOut(ChArchiveOut& marchive) {
     // version number
@@ -39,7 +39,6 @@ void ChCollisionShapeRoundedCylinder::ArchiveOut(ChArchiveOut& marchive) {
     ChCollisionShape::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(gcylinder);
-    marchive << CHNVP(radius);
 }
 
 void ChCollisionShapeRoundedCylinder::ArchiveIn(ChArchiveIn& marchive) {
@@ -49,7 +48,6 @@ void ChCollisionShapeRoundedCylinder::ArchiveIn(ChArchiveIn& marchive) {
     ChCollisionShape::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(gcylinder);
-    marchive >> CHNVP(radius);
 }
 
 }  // end namespace chrono

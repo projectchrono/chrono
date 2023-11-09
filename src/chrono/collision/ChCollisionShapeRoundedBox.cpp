@@ -23,21 +23,22 @@ ChCollisionShapeRoundedBox::ChCollisionShapeRoundedBox(std::shared_ptr<ChMateria
                                                        double length_y,
                                                        double length_z,
                                                        double sradius)
-    : ChCollisionShape(Type::ROUNDEDBOX, material), radius(sradius) {
+    : ChCollisionShape(Type::ROUNDEDBOX, material) {
     gbox.SetLengths(ChVector<>(length_x, length_y, length_z));
+    gbox.SetSphereRadius(sradius);
 }
 
 ChCollisionShapeRoundedBox::ChCollisionShapeRoundedBox(std::shared_ptr<ChMaterialSurface> material,
                                                        const ChVector<>& lengths,
                                                        double sradius)
-    : ChCollisionShape(Type::ROUNDEDBOX, material), radius(sradius) {
+    : ChCollisionShape(Type::ROUNDEDBOX, material) {
     gbox.SetLengths(lengths);
+    gbox.SetSphereRadius(sradius);
 }
 
 ChCollisionShapeRoundedBox::ChCollisionShapeRoundedBox(std::shared_ptr<ChMaterialSurface> material,
-                                                       const geometry::ChBox& box,
-                                                       double sradius)
-    : ChCollisionShape(Type::ROUNDEDBOX, material), gbox(box), radius(sradius) {}
+                                                       const geometry::ChRoundedBox& box)
+    : ChCollisionShape(Type::ROUNDEDBOX, material), gbox(box) {}
 
 void ChCollisionShapeRoundedBox::ArchiveOut(ChArchiveOut& marchive) {
     // version number
@@ -46,7 +47,6 @@ void ChCollisionShapeRoundedBox::ArchiveOut(ChArchiveOut& marchive) {
     ChCollisionShape::ArchiveOut(marchive);
     // serialize all member data:
     marchive << CHNVP(gbox);
-    marchive << CHNVP(radius);
 }
 
 void ChCollisionShapeRoundedBox::ArchiveIn(ChArchiveIn& marchive) {
@@ -56,7 +56,6 @@ void ChCollisionShapeRoundedBox::ArchiveIn(ChArchiveIn& marchive) {
     ChCollisionShape::ArchiveIn(marchive);
     // stream in all member data:
     marchive >> CHNVP(gbox);
-    marchive >> CHNVP(radius);
 }
 
 }  // end namespace chrono

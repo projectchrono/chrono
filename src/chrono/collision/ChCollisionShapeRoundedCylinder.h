@@ -16,7 +16,7 @@
 #define CH_COLLISION_SHAPE_ROUNDED_CYLINDER_H
 
 #include "chrono/collision/ChCollisionShape.h"
-#include "chrono/geometry/ChCylinder.h"
+#include "chrono/geometry/ChRoundedCylinder.h"
 
 namespace chrono {
 
@@ -33,13 +33,12 @@ class ChApi ChCollisionShapeRoundedCylinder : public ChCollisionShape {
                                     double height,
                                     double sradius);
     ChCollisionShapeRoundedCylinder(std::shared_ptr<ChMaterialSurface> material,
-                                    const geometry::ChCylinder& cyl,
-                                    double sradius);
+                                    const geometry::ChRoundedCylinder& cyl);
 
     ~ChCollisionShapeRoundedCylinder() {}
 
     // Access the cylinder geometry.
-    geometry::ChCylinder& GetGeometry() { return gcylinder; }
+    geometry::ChRoundedCylinder& GetGeometry() { return gcylinder; }
 
     /// Get the cylinder radius.
     double GetRadius() const { return gcylinder.GetRadius(); }
@@ -48,7 +47,7 @@ class ChApi ChCollisionShapeRoundedCylinder : public ChCollisionShape {
     double GetHeight() const { return gcylinder.GetHeight(); }
 
     /// Get the radius of the sweeping sphere.
-    double GetSRadius() const { return radius; }
+    double GetSRadius() const { return gcylinder.GetSphereRadius(); }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;
@@ -57,8 +56,7 @@ class ChApi ChCollisionShapeRoundedCylinder : public ChCollisionShape {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
-    geometry::ChCylinder gcylinder;
-    double radius;
+    geometry::ChRoundedCylinder gcylinder;
 };
 
 /// @} chrono_collision

@@ -16,7 +16,7 @@
 #define CH_COLLISION_SHAPE_ROUNDED_BOX_H
 
 #include "chrono/collision/ChCollisionShape.h"
-#include "chrono/geometry/ChBox.h"
+#include "chrono/geometry/ChRoundedBox.h"
 
 namespace chrono {
 
@@ -33,12 +33,12 @@ class ChApi ChCollisionShapeRoundedBox : public ChCollisionShape {
                                double length_z,
                                double sradius);
     ChCollisionShapeRoundedBox(std::shared_ptr<ChMaterialSurface> material, const ChVector<>& lengths, double sradius);
-    ChCollisionShapeRoundedBox(std::shared_ptr<ChMaterialSurface> material, const geometry::ChBox& box, double sradius);
+    ChCollisionShapeRoundedBox(std::shared_ptr<ChMaterialSurface> material, const geometry::ChRoundedBox& box);
 
     ~ChCollisionShapeRoundedBox() {}
 
-    /// Access the box geometry.
-    geometry::ChBox& GetGeometry() { return gbox; }
+    /// Access the rounded box geometry.
+    geometry::ChRoundedBox& GetGeometry() { return gbox; }
 
     /// Get the box half-lengths.
     const ChVector<>& GetHalflengths() const { return gbox.GetHalflengths(); }
@@ -47,7 +47,7 @@ class ChApi ChCollisionShapeRoundedBox : public ChCollisionShape {
     ChVector<> GetLengths() const { return gbox.GetLengths(); }
 
     /// Get the radius of the sweeping sphere.
-    double GetSRadius() const { return radius; }
+    double GetSRadius() const { return gbox.GetSphereRadius(); }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;
@@ -56,8 +56,7 @@ class ChApi ChCollisionShapeRoundedBox : public ChCollisionShape {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
-    geometry::ChBox gbox;
-    double radius;
+    geometry::ChRoundedBox gbox;
 };
 
 /// @} chrono_collision
