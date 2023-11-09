@@ -186,7 +186,16 @@ void ChModalAssembly::SwitchModalReductionON(ChSparseMatrix& full_M,
     this->ComputeLocalFullKRMmatrix();
 
     // 1) compute eigenvalue and eigenvectors
-    this->ComputeModesExternalData(full_M_loc, full_K_loc, full_Cq_loc, n_modes_settings);
+    int expected_eigs = 0;
+    for (auto freq_span : n_modes_settings.freq_spans)
+        expected_eigs += freq_span.nmodes;
+
+    if (expected_eigs < 6) {
+        GetLog()
+            << "At least six rigid-body modes are required for the modal reduction. The default settings are used.\n";
+        this->ComputeModesExternalData(full_M_loc, full_K_loc, full_Cq_loc, ChModalSolveUndamped(6));
+    } else
+        this->ComputeModesExternalData(full_M_loc, full_K_loc, full_Cq_loc, n_modes_settings);
 
     // 3) bound ChVariables etc. to the modal coordinates, resize matrices, set as modal mode
     this->SetModalMode(true);
@@ -565,9 +574,7 @@ void ChModalAssembly::DoModalReduction(const ChModalDamping& damping_model) {
     // n_modes_settings.Solve(full_M_loc, full_K_loc, full_Cq_loc, this->modes_V, this->modes_eig, this->modes_freq);
     // this->modes_damping_ratio.setZero(this->modes_freq.rows());
 
-    ChMatrixDynamic<> V_B = this->modes_V.block(0, 0, this->n_boundary_coords_w, this->n_modes_coords_w).real();
-    ChMatrixDynamic<> V_I =
-        this->modes_V.block(this->n_boundary_coords_w, 0, this->n_internal_coords_w, this->n_modes_coords_w).real();
+    assert(this->modes_V.cols() > 5);  // at least six rigid-body modes are required.
 
     // K_IIc = [  K_II   Cq_II' ]
     //         [ Cq_II     0    ]
@@ -614,58 +621,92 @@ void ChModalAssembly::DoModalReduction(const ChModalDamping& damping_model) {
             Psi_S_LambdaI.col(i) = -x.tail(this->n_internal_doc_w);
     }
 
-    // Matrix of dynamic modes (V_B and V_I already computed as constrained eigenmodes,
-    // but use K_IIc instead of K_II anyway, to reuse K_IIc already factored before)
-    //
-    // Psi_D_C = {Psi_D; Psi_D_LambdaI} = - K_IIc^{-1} * {(M_IB * V_B + M_II * V_I) ; 0}
-    Psi_D.setZero(this->n_internal_coords_w, this->n_modes_coords_w);
-    ChMatrixDynamic<> Psi_D_C(this->n_internal_coords_w + this->n_internal_doc_w, this->n_modes_coords_w);
-    ChMatrixDynamic<> Psi_D_LambdaI(this->n_internal_doc_w, this->n_modes_coords_w);
+    ChVectorDynamic<> c_modes(this->modes_V.cols());
+    c_modes.setOnes();
 
-    ChSparseMatrix M_II_loc = full_M_loc.block(this->n_boundary_coords_w, this->n_boundary_coords_w,
-                                               this->n_internal_coords_w, this->n_internal_coords_w);
-    ChSparseMatrix M_IB_loc =
-        full_M_loc.block(this->n_boundary_coords_w, 0, this->n_internal_coords_w, this->n_boundary_coords_w);
-    ChMatrixDynamic<> rhs_top = M_IB_loc * V_B + M_II_loc * V_I;
-    for (int i = 0; i < this->n_modes_coords_w; ++i) {
-        ChVectorDynamic<> rhs(this->n_internal_coords_w + this->n_internal_doc_w);
-        if (this->n_internal_doc_w)
-            rhs << rhs_top.col(i), Eigen::VectorXd::Zero(this->n_internal_doc_w);
-        else
-            rhs << rhs_top.col(i);
+    for (int i_try = 0; i_try < 2; i_try++) {
+        // The modal shapes of the first six rigid-body modes solved from eigensolver might be not accurate,
+        // leanding to potential numerical instability. Thus, we construct the rigid-body modal shapes directly.
+        this->modes_V.block(0, 0, this->n_boundary_coords_w, 6) = P_B2.transpose() * P_B1;
+        this->modes_V.block(this->n_boundary_coords_w, 0, this->n_internal_coords_w, 6) = P_I2.transpose() * P_I1;
 
-        ChVectorDynamic<> x = solver.solve(rhs);
+        for (int i_mode = 0; i_mode < this->modes_V.cols(); ++i_mode) {
+            if (c_modes(i_mode))
+                // Normalize modes_V to improve the condition of M_red.
+                // When i_try==0, c_modes==1, it doesnot change modes_V, but tries to obtain M_red and then find the
+                // suitable coefficents c_modes;
+                // When i_try==1, c_modes works to improve the condition of M_red for the sake of numerical stability.
+                this->modes_V.col(i_mode) *= c_modes(i_mode);
+            else
+                this->modes_V.col(i_mode).normalize();
+        }
 
-        Psi_D.col(i) = -x.head(this->n_internal_coords_w);
-        Psi_D_C.col(i) = -x;
-        if (this->n_internal_doc_w)
-            Psi_D_LambdaI.col(i) = -x.tail(this->n_internal_doc_w);
+        ChMatrixDynamic<> V_B = this->modes_V.block(0, 0, this->n_boundary_coords_w, this->n_modes_coords_w).real();
+        ChMatrixDynamic<> V_I =
+            this->modes_V.block(this->n_boundary_coords_w, 0, this->n_internal_coords_w, this->n_modes_coords_w).real();
+
+        // Matrix of dynamic modes (V_B and V_I already computed as constrained eigenmodes,
+        // but use K_IIc instead of K_II anyway, to reuse K_IIc already factored before)
+        //
+        // Psi_D_C = {Psi_D; Psi_D_LambdaI} = - K_IIc^{-1} * {(M_IB * V_B + M_II * V_I) ; 0}
+        Psi_D.setZero(this->n_internal_coords_w, this->n_modes_coords_w);
+        ChMatrixDynamic<> Psi_D_C(this->n_internal_coords_w + this->n_internal_doc_w, this->n_modes_coords_w);
+        ChMatrixDynamic<> Psi_D_LambdaI(this->n_internal_doc_w, this->n_modes_coords_w);
+
+        ChSparseMatrix M_II_loc = full_M_loc.block(this->n_boundary_coords_w, this->n_boundary_coords_w,
+                                                   this->n_internal_coords_w, this->n_internal_coords_w);
+        ChSparseMatrix M_IB_loc =
+            full_M_loc.block(this->n_boundary_coords_w, 0, this->n_internal_coords_w, this->n_boundary_coords_w);
+        ChMatrixDynamic<> rhs_top = M_IB_loc * V_B + M_II_loc * V_I;
+        for (int i = 0; i < this->n_modes_coords_w; ++i) {
+            ChVectorDynamic<> rhs(this->n_internal_coords_w + this->n_internal_doc_w);
+            if (this->n_internal_doc_w)
+                rhs << rhs_top.col(i), Eigen::VectorXd::Zero(this->n_internal_doc_w);
+            else
+                rhs << rhs_top.col(i);
+
+            ChVectorDynamic<> x = solver.solve(rhs);
+
+            Psi_D.col(i) = -x.head(this->n_internal_coords_w);
+            Psi_D_C.col(i) = -x;
+            if (this->n_internal_doc_w)
+                Psi_D_LambdaI.col(i) = -x.tail(this->n_internal_doc_w);
+        }
+
+        // Psi = [ I     0    ]
+        //       [Psi_S  Psi_D]
+        Psi.setZero(this->n_boundary_coords_w + this->n_internal_coords_w,
+                    this->n_boundary_coords_w + this->n_modes_coords_w);
+        //***TODO*** maybe prefer sparse Psi matrix, especially for upper blocks...
+
+        Psi << Eigen::MatrixXd::Identity(n_boundary_coords_w, n_boundary_coords_w),
+            Eigen::MatrixXd::Zero(n_boundary_coords_w, n_modes_coords_w), Psi_S, Psi_D;
+
+        // Modal reduction of the M K matrices.
+        // The tangent mass and stiffness matrices consists of:
+        // Linear mass matrix
+        // Linear material stiffness matrix, geometrical nonlinear stiffness matrix, inertial stiffness matrix
+        // Linear structural damping matrix, inertial damping matrix (gyroscopic matrix, might affect the numerical
+        // stability)
+        this->M_red = Psi.transpose() * full_M_loc * Psi;
+        this->K_red = Psi.transpose() * full_K_loc * Psi;
+
+        // Maybe also have a reduced Cq matrix......
+        ChSparseMatrix Cq_B_loc = full_Cq_loc.topRows(this->n_boundary_doc_w);
+        this->Cq_red = Cq_B_loc * Psi;
+
+        // Initialize the reduced damping matrix
+        this->R_red.setZero(this->M_red.rows(), this->M_red.cols());  // default R=0 , zero damping
+
+        // Find the suitable coefficients 'c_modes' to normalize 'modes_V' to improve the condition number of 'M_red'.
+        if (i_try < 1) {
+            double expected_mass = this->M_red.diagonal().head(n_boundary_coords_w).mean();
+            for (int i_mode = 0; i_mode < this->modes_V.cols(); ++i_mode)
+                c_modes(i_mode) =
+                    pow(expected_mass / this->M_red(n_boundary_coords_w + i_mode, n_boundary_coords_w + i_mode),
+                        0.5);
+        }
     }
-
-    // Psi = [ I     0    ]
-    //       [Psi_S  Psi_D]
-    Psi.setZero(this->n_boundary_coords_w + this->n_internal_coords_w,
-                this->n_boundary_coords_w + this->n_modes_coords_w);
-    //***TODO*** maybe prefer sparse Psi matrix, especially for upper blocks...
-
-    Psi << Eigen::MatrixXd::Identity(n_boundary_coords_w, n_boundary_coords_w),
-        Eigen::MatrixXd::Zero(n_boundary_coords_w, n_modes_coords_w), Psi_S, Psi_D;
-
-    // Modal reduction of the M K matrices.
-    // The tangent mass and stiffness matrices consists of:
-    // Linear mass matrix
-    // Linear material stiffness matrix, geometrical nonlinear stiffness matrix, inertial stiffness matrix
-    // Linear structural damping matrix, inertial damping matrix (gyroscopic matrix, might affect the numerical
-    // stability)
-    this->M_red = Psi.transpose() * full_M_loc * Psi;
-    this->K_red = Psi.transpose() * full_K_loc * Psi;
-
-    // Maybe also have a reduced Cq matrix......
-    ChSparseMatrix Cq_B_loc = full_Cq_loc.topRows(this->n_boundary_doc_w);
-    this->Cq_red = Cq_B_loc * Psi;
-
-    // Initialize the reduced damping matrix
-    this->R_red.setZero(this->M_red.rows(), this->M_red.cols());  // default R=0 , zero damping
 
     // Reset to zero all the atomic masses of the boundary nodes because now their mass is represented by
     // this->modal_M NOTE! this should be made more generic and future-proof by implementing a virtual method ex.
@@ -841,12 +882,12 @@ void ChModalAssembly::ComputeModalKRMmatrix() {
     this->modal_Cq = Cq_red * P_W.transpose();
 
     // GetLog() << "run in line:\t" << __LINE__ << "\n";
-    if (ChTime > 5.0 && ChTime < 5.01) {
-        GetLog() << "modal_M:\t" << modal_M << "\n";
-        GetLog() << "modal_K:\t" << modal_K << "\n";
-        GetLog() << "modal_R:\t" << modal_R << "\n";
-        GetLog() << "modal_Cq:\t" << modal_Cq << "\n";
-    }
+    // if (ChTime > 5.0 && ChTime < 5.01) {
+    //    GetLog() << "modal_M:\t" << modal_M << "\n";
+    //    GetLog() << "modal_K:\t" << modal_K << "\n";
+    //    GetLog() << "modal_R:\t" << modal_R << "\n";
+    //    GetLog() << "modal_Cq:\t" << modal_Cq << "\n";
+    //}
 }
 
 void ChModalAssembly::SetupModalData(int nmodes_reduction) {
@@ -1112,7 +1153,8 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
             ChVector<> r_I = floating_frame_F.GetPos() + R_F * (r_IF0 + Dx_internal_local.segment(6 * i_int, 3));
             assembly_x_new.segment(offset_x, 3) = r_I.eigen();
 
-            ChQuaternion<> q_delta = Dx_internal_local.segment(6 * i_int + 3, 3);
+            ChQuaternion<> q_delta;
+            q_delta.Q_from_Rotv(Dx_internal_local.segment(6 * i_int + 3, 3));
             ChQuaternion<> quat_int0 = modes_assembly_x0.segment(offset_x + 3, 4);
             ChQuaternion<> q_refrot = floating_frame_F0.GetRot().GetConjugate() * quat_int0;
             ChQuaternion<> quat_int = floating_frame_F.GetRot() * q_delta * q_refrot;
@@ -1246,10 +1288,10 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
         modal_q_old = modal_q;
     }
 
-     //check: K_IB*P_B1+K_II*P_I1==0. Should be valid, otherwise the modal method is totally wrong!
-    //if (rigidbody_mode_test) {
-    //    ChSparseMatrix P_B2_sp = P_B2.sparseView();
-    //    ChSparseMatrix P_I2_sp = P_I2.sparseView();
+    // check: K_IB*P_B1+K_II*P_I1==0. Should be valid, otherwise the modal method is totally wrong!
+    // if (rigidbody_mode_test) {
+    //     ChSparseMatrix P_B2_sp = P_B2.sparseView();
+    //     ChSparseMatrix P_I2_sp = P_I2.sparseView();
 
     //    ChSparseMatrix K_IB_loc = full_K_loc.block(this->n_boundary_coords_w, 0, this->n_internal_coords_w,
     //                                                         this->n_boundary_coords_w);
@@ -1281,7 +1323,7 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
     //}
 
     if (rigidbody_mode_test) {
-        ChMatrixDynamic<> check = (P_I1 - P_I2 * Psi_S * P_B2.transpose() * P_B1) * S;
+        ChMatrixDynamic<> check = (P_I1 - P_I2 * Psi_S * P_B2.transpose() * P_B1);
         GetLog() << "Time: " << GetChTime() << "\t";
         GetLog() << "rigidbody mode check==0?\t" << check.norm() << "\n";
     }
@@ -1913,7 +1955,7 @@ void ChModalAssembly::GetStateLocal(ChStateDelta& Dx_local, ChStateDelta& v_loca
 
         ChVectorDynamic<> vel_loc;
         vel_loc.setZero(bou_mod_coords_w);
-        vel_loc.tail(n_modes_coords_w) = v_mod.segment(n_boundary_coords, n_modes_coords_w);
+        vel_loc.tail(n_modes_coords_w) = v_mod.segment(n_boundary_coords_w, n_modes_coords_w);
         for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; i_bou++) {
             ChVector<> r_B = x_mod.segment(7 * i_bou, 3);
             ChVector<> v_B = v_mod.segment(6 * i_bou, 3);
