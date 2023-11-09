@@ -83,8 +83,6 @@ if(MSVC)
     add_definitions("-D_CRT_SECURE_NO_DEPRECATE")  # avoids deprecation warnings
     add_definitions("-D_SCL_SECURE_NO_DEPRECATE")  # avoids deprecation warnings
     add_definitions( "-DNOMINMAX" )                # do not use MSVC's min/max macros
-    add_compile_options(/wd4275)                   # disable warnings triggered by Irrlicht
-    add_compile_options(/wd4251)                   # class needs to have dll-interface
 endif()
 
 #--------------------------------------------------------------
