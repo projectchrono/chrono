@@ -16,6 +16,10 @@
 
 namespace chrono {
 
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChCollisionShapeRoundedCylinder)
+CH_UPCASTING(ChCollisionShapeRoundedCylinder, ChCollisionShape)
+
 ChCollisionShapeRoundedCylinder::ChCollisionShapeRoundedCylinder() : ChCollisionShape(Type::ROUNDEDCYL) {}
 
 ChCollisionShapeRoundedCylinder::ChCollisionShapeRoundedCylinder(std::shared_ptr<ChMaterialSurface> material,

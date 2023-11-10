@@ -1105,7 +1105,7 @@ void ChBody::ArchiveOut(ChArchiveOut& marchive) {
     marchive << CHNVP(forcelist, "forces");
 
     marchive << CHNVP(body_id);
-    //marchive << CHNVP(collision_model);
+    marchive << CHNVP(collision_model);
     marchive << CHNVP(gyro);
     marchive << CHNVP(Xforce);
     marchive << CHNVP(Xtorque);
@@ -1163,8 +1163,13 @@ void ChBody::ArchiveIn(ChArchiveIn& marchive) {
     }
 
     marchive >> CHNVP(body_id);
-    //marchive >> CHNVP(collision_model);
-    //collision_model->SetContactable(this);
+
+    std::shared_ptr<ChCollisionModel> collision_model_temp;  ///< pointer to the collision model
+    marchive >> CHNVP(collision_model_temp, "collision_model");
+    SetCollisionModel(collision_model_temp);
+    if (collision_model)
+        collision_model->Build();
+
     marchive >> CHNVP(gyro);
     marchive >> CHNVP(Xforce);
     marchive >> CHNVP(Xtorque);

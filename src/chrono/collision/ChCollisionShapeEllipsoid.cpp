@@ -16,6 +16,10 @@
 
 namespace chrono {
 
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChCollisionShapeEllipsoid)
+CH_UPCASTING(ChCollisionShapeEllipsoid, ChCollisionShape)
+
 ChCollisionShapeEllipsoid::ChCollisionShapeEllipsoid(): ChCollisionShape(Type::ELLIPSOID) {}
 
 ChCollisionShapeEllipsoid::ChCollisionShapeEllipsoid(std::shared_ptr<ChMaterialSurface> material,

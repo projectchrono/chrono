@@ -16,6 +16,10 @@
 
 namespace chrono {
 
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChCollisionShapeSphere)
+CH_UPCASTING(ChCollisionShapeSphere, ChCollisionShape)
+
 ChCollisionShapeSphere::ChCollisionShapeSphere(): ChCollisionShape(Type::SPHERE) {}
 
 ChCollisionShapeSphere::ChCollisionShapeSphere(std::shared_ptr<ChMaterialSurface> material, double radius)

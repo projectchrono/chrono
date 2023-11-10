@@ -40,6 +40,12 @@ class ChApi ChCollisionShapeSegment2D : public ChCollisionShape {
     /// Get the segment thickness (the radius of a sweeping sphere).
     double GetSRadius() const { return radius; }
 
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+
   private:
     geometry::ChLineSegment gsegment;
     double radius;

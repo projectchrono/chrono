@@ -37,6 +37,7 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChCollisionModelBullet)
+CH_UPCASTING(ChCollisionModelBullet, ChCollisionModel)
 
 // -----------------------------------------------------------------------------
 
@@ -795,96 +796,17 @@ ChCoordsys<> ChCollisionModelBullet::GetShapePos(int index) const {
 }
 
 void ChCollisionModelBullet::ArchiveOut(ChArchiveOut& marchive) {
-    //// RADU TODO
-}
-
-void ChCollisionModelBullet::ArchiveIn(ChArchiveIn& marchive) {
-    //// RADU TODO
-}
-
-/*
-void __recurse_add_newcollshapes(cbtCollisionShape* ashape, std::vector<std::shared_ptr<cbtCollisionShape>>& shapes) {
-    if (ashape) {
-        shapes.push_back(std::shared_ptr<cbtCollisionShape>(ashape));
-
-        if (ashape->getShapeType() == COMPOUND_SHAPE_PROXYTYPE) {
-            cbtCompoundShape* compoundShape = (cbtCompoundShape*)ashape;
-            for (int shi = 0; shi < compoundShape->getNumChildShapes(); shi++) {
-                __recurse_add_newcollshapes(compoundShape->getChildShape(shi), shapes);
-            }
-        }
-    }
-}
-
-void ChCollisionModelBullet::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChCollisionModelBullet>();
     // serialize parent class
     ChCollisionModel::ArchiveOut(marchive);
-
-    // serialize all member data:
-    std::vector<char> serialized(0);
-
-    if (this->bt_collision_object->getCollisionShape()) {
-        // serialize all member data:
-        int maxSerializeBufferSize = 1024 * 1024 * 5;  // ***TO DO*** make this more efficient
-        cbtDefaultSerializer* serializer = new cbtDefaultSerializer(maxSerializeBufferSize);
-
-        serializer->startSerialization();
-
-        this->bt_collision_object->getCollisionShape()->serializeSingleShape(serializer);
-
-        serializer->finishSerialization();
-
-        serialized.resize(serializer->getCurrentBufferSize());
-        for (int mpt = 0; mpt < serializer->getCurrentBufferSize(); mpt++)
-            serialized[mpt] = (char)(*(serializer->getBufferPointer() + mpt));
-
-        delete serializer;
-    }
-
-    marchive << CHNVP(serialized, "bullet_serialized_bytes");
 }
 
 void ChCollisionModelBullet::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChCollisionModelBullet>();
+    /*int version =*/marchive.VersionRead<ChCollisionModelBullet>();
     // deserialize parent class
     ChCollisionModel::ArchiveIn(marchive);
-
-    // stream in all member data:
-
-    this->ClearModel();  // remove shape
-
-    std::vector<char> serialized;
-
-    marchive >> CHNVP(serialized, "bullet_serialized_bytes");
-
-    if (serialized.size()) {
-        // convert to char array (maybe just cast from std::vector data ptr might be sufficient)
-        char* mbuffer = new char[serialized.size()];
-        for (int mpt = 0; mpt < serialized.size(); mpt++)
-            mbuffer[mpt] = serialized[mpt];
-
-        cbtBulletWorldImporter import(0);  // don't store info into the world
-        import.setVerboseMode(false);
-
-        if (import.loadFileFromMemory(mbuffer, (int)serialized.size())) {
-            int numShape = import.getNumCollisionShapes();
-            if (numShape) {
-                cbtCollisionShape* mshape = import.getCollisionShapeByIndex(0);
-                if (mshape)
-                    bt_collision_object->setCollisionShape(mshape);
-
-                // Update the list of shared pointers to newly created shapes, so that
-                // the deletion will be automatic
-                __recurse_add_newcollshapes(mshape, this->shapes);
-            }
-        }
-
-        delete[] mbuffer;
-    }
 }
-*/
 
 }  // end namespace chrono

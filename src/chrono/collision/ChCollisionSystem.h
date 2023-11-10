@@ -209,7 +209,7 @@ class ChApi ChCollisionSystem {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& marchive) {
         // version number
-        /*int version =*/ marchive.VersionRead<ChCollisionSystem>();
+        /*int version =*/marchive.VersionRead<ChCollisionSystem>();
     }
 
     /// Set associated Chrono system
@@ -224,7 +224,6 @@ class ChApi ChCollisionSystem {
 };
 
 /// @} chrono_collision
-
 
 CH_CLASS_VERSION(ChCollisionSystem, 0)
 

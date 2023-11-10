@@ -28,6 +28,7 @@ namespace chrono {
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChCollisionSystemBullet)
+CH_UPCASTING(ChCollisionSystemBullet, ChCollisionSystem)
 
 ChCollisionSystemBullet::ChCollisionSystemBullet() : m_debug_drawer(nullptr) {
     // cbtDefaultCollisionConstructionInfo conf_info(...); ***TODO***
@@ -48,8 +49,8 @@ ChCollisionSystemBullet::ChCollisionSystemBullet() : m_debug_drawer(nullptr) {
     ////cbtCollisionAlgorithmCreateFunc* m_collision_cyl_sph = new cbtSphereCylinderCollisionAlgorithm::CreateFunc;
     ////m_collision_cyl_sph->m_swapped = true;
     ////bt_dispatcher->registerCollisionCreateFunc(SPHERE_SHAPE_PROXYTYPE, CYLINDER_SHAPE_PROXYTYPE,
-    ///m_collision_sph_cyl); /bt_dispatcher->registerCollisionCreateFunc(CYLINDER_SHAPE_PROXYTYPE,
-    ///SPHERE_SHAPE_PROXYTYPE, m_collision_cyl_sph);
+    /// m_collision_sph_cyl); /bt_dispatcher->registerCollisionCreateFunc(CYLINDER_SHAPE_PROXYTYPE,
+    /// SPHERE_SHAPE_PROXYTYPE, m_collision_cyl_sph);
 
     // custom collision for capsule-box case
     m_collision_capsule_box = new cbtCapsuleBoxCollisionAlgorithm::CreateFunc;
@@ -250,7 +251,8 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainer* mcontactcontain
                     // Add to contact container
                     if (add_contact) {
                         ////std::cout << " add indexA=" << indexA << " indexB=" << indexB << std::endl;
-                        ////std::cout << "     typeA=" << icontact.shapeA->m_type << " typeB=" << icontact.shapeB->m_type << std::endl;
+                        ////std::cout << "     typeA=" << icontact.shapeA->m_type << " typeB=" <<
+                        /// icontact.shapeB->m_type << std::endl;
 
                         mcontactcontainer->AddContact(icontact);
                     }
@@ -429,6 +431,20 @@ void ChCollisionSystemBullet::Visualize(int flags) {
         m_debug_drawer->setDebugMode(cbtIDebugDraw::DBG_DrawContactPoints);
 
     bt_collision_world->debugDrawWorld();
+}
+
+void ChCollisionSystemBullet::ArchiveOut(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChCollisionSystemBullet>();
+    // serialize parent class
+    ChCollisionSystem::ArchiveOut(marchive);
+}
+
+void ChCollisionSystemBullet::ArchiveIn(ChArchiveIn& marchive) {
+    // version number
+    /*int version =*/marchive.VersionRead<ChCollisionSystemBullet>();
+    // deserialize parent class
+    ChCollisionSystem::ArchiveIn(marchive);
 }
 
 }  // end namespace chrono

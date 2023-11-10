@@ -27,6 +27,10 @@
 
 namespace chrono {
 
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChCollisionModelChrono)
+CH_UPCASTING(ChCollisionModelChrono, ChCollisionModel)
+
 ChCollisionModelChrono::ChCollisionModelChrono() : aabb_min(C_REAL_MAX), aabb_max(-C_REAL_MAX) {
     model_safe_margin = 0;
 }
@@ -310,6 +314,25 @@ void ChCollisionModelChrono::SetContactable(ChContactable* mc) {
     // Currently, a ChCollisionModelChrono can only be a associated with a rigid body.
     mbody = dynamic_cast<ChBody*>(mc);
     assert(mbody);
+}
+
+void ChCollisionModelChrono::ArchiveOut(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChCollisionModelChrono>();
+    // serialize parent class
+    ChCollisionModel::ArchiveOut(marchive);
+
+    // serialize all member data:
+    marchive << CHNVP(mbody);
+}
+
+void ChCollisionModelChrono::ArchiveIn(ChArchiveIn& marchive) {
+    // version number
+    /*int version =*/marchive.VersionRead<ChCollisionModelChrono>();
+    // deserialize parent class
+    ChCollisionModel::ArchiveIn(marchive);
+
+    marchive >> CHNVP(mbody);
 }
 
 }  // end namespace chrono

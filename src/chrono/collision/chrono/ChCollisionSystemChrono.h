@@ -144,6 +144,12 @@ class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
     /// Return the pairs of IDs for overlapping contact shapes.
     virtual std::vector<vec2> GetOverlappingPairs();
 
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+
   protected:
     /// Mark bodies whose AABB is contained within the specified box.
     virtual void GetOverlappingAABB(std::vector<char>& active_id, real3 Amin, real3 Amax);

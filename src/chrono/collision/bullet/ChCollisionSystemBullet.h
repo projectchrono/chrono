@@ -113,6 +113,12 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     // Call this function only once, before running the simulation.
     static void SetContactBreakingThreshold(double threshold);
 
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+
   private:
     /// Perform a ray-hit test with all collision models. This version allows specifying the Bullet
     /// collision filter group and mask (see cbtBroadphaseProxy::CollisionFilterGroups).

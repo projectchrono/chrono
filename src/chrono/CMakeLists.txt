@@ -179,6 +179,7 @@ set(ChronoEngine_physics_contact_SOURCES
     physics/ChContactContainer.cpp
     physics/ChContactContainerNSC.cpp
     physics/ChContactContainerSMC.cpp
+    physics/ChContactable.cpp
     physics/ChMaterialSurface.cpp
     physics/ChMaterialSurfaceSMC.cpp
     physics/ChMaterialSurfaceNSC.cpp

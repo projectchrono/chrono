@@ -61,6 +61,12 @@ class ChApi ChCollisionModelChrono : public ChCollisionModel {
     /// Return the position and orientation of the collision shape with specified index, relative to the model frame.
     virtual ChCoordsys<> GetShapePos(int index) const override;
 
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+
     std::vector<real3> local_convex_data;
 
     ChVector<> aabb_min;

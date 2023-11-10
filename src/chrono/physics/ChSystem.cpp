@@ -36,6 +36,15 @@
 
 namespace chrono {
 
+class ChCollisionSystemType_enum_mapper : public ChSystem{
+  public:
+    CH_ENUM_MAPPER_BEGIN(ChCollisionSystemType);
+    CH_ENUM_VAL(ChCollisionSystemType::BULLET);
+    CH_ENUM_VAL(ChCollisionSystemType::CHRONO);
+    CH_ENUM_VAL(ChCollisionSystemType::OTHER);
+    CH_ENUM_MAPPER_END(ChCollisionSystemType);
+};
+
 // -----------------------------------------------------------------------------
 // CLASS FOR PHYSICAL SYSTEM
 // -----------------------------------------------------------------------------
@@ -2117,7 +2126,7 @@ void ChSystem::ArchiveOut(ChArchiveOut& marchive) {
 
     // serialize all member data:
 
-    marchive << CHNVP(contact_container);
+    //marchive >> CHNVP(contact_container); // created by the constructor
 
     marchive << CHNVP(G_acc);
     marchive << CHNVP(ch_time);
@@ -2136,6 +2145,10 @@ void ChSystem::ArchiveOut(ChArchiveOut& marchive) {
     marchive << CHNVP(max_penetration_recovery_speed);
 
     //marchive << CHNVP(collision_system);  // ChCollisionSystem should implement class factory for abstract create
+    marchive << CHNVP(composition_strategy);
+
+    ChCollisionSystemType_enum_mapper::ChCollisionSystemType_mapper enum_mapper;
+    marchive << CHNVP(enum_mapper(collision_system_type), "ChSystem__ChCollisionSystemType");
 
     //marchive << CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
 
@@ -2152,7 +2165,7 @@ void ChSystem::ArchiveIn(ChArchiveIn& marchive) {
 
     // stream in all member data:
 
-    marchive >> CHNVP(contact_container);
+    //marchive >> CHNVP(contact_container); // created by the constructor
 
     marchive >> CHNVP(G_acc);
     marchive >> CHNVP(ch_time);
@@ -2171,6 +2184,10 @@ void ChSystem::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(max_penetration_recovery_speed);
 
     //marchive >> CHNVP(collision_system);  // ChCollisionSystem should implement class factory for abstract create
+    marchive >> CHNVP(composition_strategy);
+
+    ChCollisionSystemType_enum_mapper::ChCollisionSystemType_mapper enum_mapper;
+    marchive >> CHNVP(enum_mapper(collision_system_type), "ChSystem__ChCollisionSystemType");
 
     //marchive >> CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
     //timestepper->SetIntegrable(this);

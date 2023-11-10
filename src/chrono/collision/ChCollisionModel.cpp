@@ -22,6 +22,15 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 // CH_FACTORY_REGISTER(ChCollisionModel)  // NO! Abstract class!
 
+class my_enum_mappers {
+  public:
+    CH_ENUM_MAPPER_BEGIN(ChCollisionSystemType);
+    CH_ENUM_VAL(ChCollisionSystemType::BULLET);
+    CH_ENUM_VAL(ChCollisionSystemType::CHRONO);
+    CH_ENUM_VAL(ChCollisionSystemType::OTHER);
+    CH_ENUM_MAPPER_END(ChCollisionSystemType);
+};
+
 static double default_model_envelope = 0.03;
 static double default_safe_margin = 0.01;
 
@@ -239,15 +248,23 @@ void ChCollisionModel::ArchiveOut(ChArchiveOut& marchive) {
     // serialize all member data:
     marchive << CHNVP(model_envelope);
     marchive << CHNVP(model_safe_margin);
+    marchive << CHNVP(family_group);
+    marchive << CHNVP(family_mask);
+    marchive << CHNVP(m_shape_instances);
+    marchive << CHNVP(mcontactable);
 }
 
 void ChCollisionModel::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChCollisionModel>();
+    /*int version =*/marchive.VersionRead<ChCollisionModel>();
 
     // stream in all member data:
     marchive >> CHNVP(model_envelope);
     marchive >> CHNVP(model_safe_margin);
+    marchive >> CHNVP(family_group);
+    marchive >> CHNVP(family_mask);
+    marchive >> CHNVP(m_shape_instances);
+    marchive >> CHNVP(mcontactable);
 }
 
 }  // end namespace chrono

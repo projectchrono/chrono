@@ -23,6 +23,9 @@
 
 namespace chrono {
 
+CH_FACTORY_REGISTER(ChCollisionSystemChrono)
+CH_UPCASTING(ChCollisionSystemChrono, ChCollisionSystem)
+
 ChCollisionSystemChrono::ChCollisionSystemChrono() : use_aabb_active(false) {
     // Create the shared data structure with own state data
     cd_data = chrono_types::make_shared<ChCollisionData>(true);
@@ -902,6 +905,20 @@ void ChCollisionSystemChrono::VisualizeContacts() {
         real3 to = cd_data->cptb_rigid_rigid[i] + vis_callback->GetNormalScale() * cd_data->norm_rigid_rigid[i];
         vis_callback->DrawLine(ToChVector(from), ToChVector(to), ChColor(1, 1, 0));
     }
+}
+
+void ChCollisionSystemChrono::ArchiveOut(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChCollisionSystemChrono>();
+    // serialize parent class
+    ChCollisionSystem::ArchiveOut(marchive);
+}
+
+void ChCollisionSystemChrono::ArchiveIn(ChArchiveIn& marchive) {
+    // version number
+    /*int version =*/marchive.VersionRead<ChCollisionSystemChrono>();
+    // deserialize parent class
+    ChCollisionSystem::ArchiveIn(marchive);
 }
 
 }  // end namespace chrono

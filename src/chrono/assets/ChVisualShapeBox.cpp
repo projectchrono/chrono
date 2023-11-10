@@ -49,7 +49,7 @@ void ChVisualShapeBox::ArchiveOut(ChArchiveOut& marchive) {
 
 void ChVisualShapeBox::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChVisualShapeBox>();
+    /*int version =*/marchive.VersionRead<ChVisualShapeBox>();
     // deserialize parent class
     ChVisualShape::ArchiveIn(marchive);
     // stream in all member data:

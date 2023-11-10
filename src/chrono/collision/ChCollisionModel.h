@@ -35,7 +35,6 @@ namespace chrono {
 // forward references
 class ChPhysicsItem;
 
-
 /// @addtogroup chrono_collision
 /// @{
 
@@ -229,7 +228,8 @@ class ChApi ChCollisionModel {
     void SetShapeMaterial(int index, std::shared_ptr<ChMaterialSurface> mat);
 
     /// Set the contact material for all collision shapes in the model (all shapes will share the material).
-    /// This function is useful in adjusting contact material properties for objects imported from outside (e.g., from SolidWorks).
+    /// This function is useful in adjusting contact material properties for objects imported from outside (e.g., from
+    /// SolidWorks).
     void SetAllShapesMaterial(std::shared_ptr<ChMaterialSurface> mat);
 
   protected:
@@ -259,7 +259,6 @@ class ChApi ChCollisionModel {
 };
 
 /// @} chrono_collision
-
 
 CH_CLASS_VERSION(ChCollisionModel, 0)
 
