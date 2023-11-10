@@ -60,7 +60,7 @@ std::string vehicle_file("M113/vehicle/M113_Vehicle_BandBushing.json");
 
 // JSON files for powertrain
 std::string engine_file("M113/powertrain/M113_EngineSimple.json");
-std::string transmission_file("M113/powertrain/M113_EngineSimpleMap.json");
+std::string transmission_file("M113/powertrain/M113_AutomaticTransmissionSimpleMap.json");
 
 // Initial vehicle position
 ChVector<> initLoc(0, 0, 1.1);
@@ -78,7 +78,7 @@ double t_end = 1.0;
 double step_size = 1e-4;
 
 // Linear solver (MUMPS or PARDISO_MKL)
-ChSolver::Type solver_type = ChSolver::Type::MUMPS;
+ChSolver::Type solver_type = ChSolver::Type::PARDISO_MKL;
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50

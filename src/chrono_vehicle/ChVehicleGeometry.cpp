@@ -156,7 +156,8 @@ void ChVehicleGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body,
         return;
     }
 
-    if (vis == VisualizationType::PRIMITIVES && m_has_primitives) {
+    // If no mesh specified, default to primitives
+    if (m_has_primitives) {
         if (!m_has_colors) {
             m_color_boxes = ChColor(0.5f, 0.5f, 0.5f);
             m_color_spheres = ChColor(0.5f, 0.5f, 0.5f);

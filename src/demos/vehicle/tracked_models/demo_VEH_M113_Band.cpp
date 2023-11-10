@@ -56,7 +56,7 @@ using std::endl;
 // =============================================================================
 
 // Band track type (BAND_BUSHING or BAND_ANCF)
-TrackShoeType shoe_type = TrackShoeType::BAND_ANCF;
+TrackShoeType shoe_type = TrackShoeType::BAND_BUSHING;
 
 // ANCF element type for BAND_ANCF (ANCF_4 or ANCF_8)
 ChTrackShoeBandANCF::ElementType element_type = ChTrackShoeBandANCF::ElementType::ANCF_8;
@@ -69,11 +69,11 @@ int num_elements_width = 1;
 bool constrain_curvature = true;
 
 // Simulation step size and duration
-double step_size = 2.5e-5;
+double step_size = 5e-5;
 double t_end = 10.0;
 
 // Linear solver (MUMPS, PARDISO_MKL, or SPARSE_LU)
-ChSolver::Type solver_type = ChSolver::Type::MUMPS;
+ChSolver::Type solver_type = ChSolver::Type::PARDISO_MKL;
 
 // Verbose level
 bool verbose_solver = false;
@@ -346,7 +346,7 @@ int main(int argc, char* argv[]) {
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(sys->GetTimestepper());
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(20);
-    integrator->SetAbsTolerances(1e-4, 1e2);
+    integrator->SetAbsTolerances(1e-2, 1e2);
     integrator->SetStepControl(false);
     integrator->SetModifiedNewton(true);
     integrator->SetVerbose(verbose_integrator);
