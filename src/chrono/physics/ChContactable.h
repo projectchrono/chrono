@@ -119,10 +119,10 @@ class ChApi ChContactable {
     }
 
     /// Method to allow serialization of transient data to archives.
-    void ChContactable::ArchiveOut(ChArchiveOut& marchive);
+    void ArchiveOut(ChArchiveOut& marchive);
 
     /// Method to allow deserialization of transient data from archives.
-    void ChContactable::ArchiveIn(ChArchiveIn& marchive);
+    void ArchiveIn(ChArchiveIn& marchive);
 
   private:
     std::shared_ptr<void> m_data;  ///< arbitrary user-data
