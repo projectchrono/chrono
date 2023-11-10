@@ -364,18 +364,14 @@ void ChCollisionModelBullet::injectConvexHull(std::shared_ptr<ChCollisionShapeCo
     const auto& points = shape_hull->GetPoints();
 
     // adjust default inward margin (if object too thin)
-    ChVector<> aabbMax(-1e9, -1e9, -1e9);
-    ChVector<> aabbMin(1e9, 1e9, 1e9);
+    geometry::ChAABB aabb;
     for (size_t i = 0; i < points.size(); ++i) {
-        aabbMax.x() = ChMax(aabbMax.x(), points[i].x());
-        aabbMax.y() = ChMax(aabbMax.y(), points[i].y());
-        aabbMax.z() = ChMax(aabbMax.z(), points[i].z());
-        aabbMin.x() = ChMin(aabbMin.x(), points[i].x());
-        aabbMin.y() = ChMin(aabbMin.y(), points[i].y());
-        aabbMin.z() = ChMin(aabbMin.z(), points[i].z());
+        aabb.min = Vmin(aabb.min, points[i]);
+        aabb.max = Vmax(aabb.max, points[i]);
     }
-    ChVector<> aabbsize = aabbMax - aabbMin;
-    double approx_chord = ChMin(ChMin(aabbsize.x(), aabbsize.y()), aabbsize.z());
+    auto aabb_size = aabb.Size();
+    double approx_chord = ChMin(ChMin(aabb_size.x(), aabb_size.y()), aabb_size.z());
+
     // override the inward margin if larger than 0.2 chord:
     SetSafeMargin((cbtScalar)ChMin(GetSafeMargin(), approx_chord * 0.2));
 
