@@ -707,8 +707,6 @@ void ChMatterMeshless::RemoveCollisionModelsFromSystem() {
 void ChMatterMeshless::UpdateParticleCollisionModels() {
     for (unsigned int j = 0; j < nodes.size(); j++) {
         nodes[j]->collision_model->Clear();
-        //***TO DO*** UPDATE RADIUS OF MeshlessERE?
-        // nodes[j]->collision_model->AddCopyOfAnotherModel(particle_collision_model);
         nodes[j]->collision_model->Build();
     }
 }

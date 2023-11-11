@@ -668,22 +668,6 @@ void ChCollisionModelBullet::AddTriangleProxy(std::shared_ptr<ChMaterialSurface>
 
 // -----------------------------------------------------------------------------
 
-bool ChCollisionModelBullet::AddCopyOfAnotherModel(ChCollisionModel* other) {
-    SetSafeMargin(other->GetSafeMargin());
-    SetEnvelope(other->GetEnvelope());
-
-    m_shape_instances.clear();
-    m_shapes.clear();
-    m_bt_shapes.clear();
-    CopyShapes(other);
-
-    auto other_bt = static_cast<ChCollisionModelBullet*>(other);
-    bt_collision_object->setCollisionShape(other_bt->GetBulletModel()->getCollisionShape());
-    bt_compound_shape = other_bt->bt_compound_shape;
-
-    return true;
-}
-
 void ChCollisionModelBullet::SetFamily(int mfamily) {
     ChCollisionModel::SetFamily(mfamily);
     onFamilyChange();

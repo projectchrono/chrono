@@ -68,21 +68,21 @@ class ChApi ChCollisionModel {
     void Build();
 
     /// Add a collision shape with specified position within the model.
-    void AddShape(std::shared_ptr<ChCollisionShape> shape,  ///< visualization shape
+    void AddShape(std::shared_ptr<ChCollisionShape> shape,  ///< collision shape
                   const ChFrame<>& frame = ChFrame<>()      ///< shape frame in model
     );
 
-    /// Convenience function to add a cylinder specified through a radius and end points.
+    /// Convenience function to add a cylinder collision shape specified through a radius and end points.
     void AddCylinder(std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
                      double radius,                                ///< radius
                      const ChVector<>& p1,                         ///< first end point
                      const ChVector<>& p2                          ///< second end point
     );
 
-    /// Add all shapes already contained in another model. If possible, derived classes should implement this so that
-    /// underlying shapes are shared (not copied) among the models.
-    /// TODO: keep? implement in this base class?
-    virtual bool AddCopyOfAnotherModel(ChCollisionModel* another) = 0;
+    /// Add copies of the collision shapes in the provided model to this collision model.
+    void AddShapes(std::shared_ptr<ChCollisionModel> model,  ///< collision model
+                   const ChFrame<>& frame = ChFrame<>()      ///< model frame in model
+    );
 
     // OTHER FUNCTIONS
 
@@ -241,9 +241,6 @@ class ChApi ChCollisionModel {
 
     /// Populate the collision system with the collision shapes defined in this model.
     virtual void Populate() = 0;
-
-    /// Copy the collision shapes from another model.
-    void CopyShapes(ChCollisionModel* other);
 
     virtual float GetSuggestedFullMargin() { return model_envelope + model_safe_margin; }
 

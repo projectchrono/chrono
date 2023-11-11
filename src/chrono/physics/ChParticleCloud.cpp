@@ -31,13 +31,13 @@ using namespace geometry;
 // -----------------------------------------------------------------------------
 
 ChAparticle::ChAparticle() : container(NULL), UserForce(VNULL), UserTorque(VNULL) {
-    collision_model = new ChCollisionModelBullet;
+    collision_model = chrono_types::make_shared<ChCollisionModelBullet>();
     collision_model->SetContactable(this);
 }
 
 ChAparticle::ChAparticle(const ChAparticle& other) : ChParticleBase(other) {
-    collision_model = new ChCollisionModelBullet;
-    collision_model->AddCopyOfAnotherModel(other.collision_model);
+    collision_model = chrono_types::make_shared<ChCollisionModelBullet>();
+    collision_model->AddShapes(other.collision_model);
     collision_model->SetContactable(this);
 
     container = other.container;
@@ -46,9 +46,7 @@ ChAparticle::ChAparticle(const ChAparticle& other) : ChParticleBase(other) {
     variables = other.variables;
 }
 
-ChAparticle::~ChAparticle() {
-    delete collision_model;
-}
+ChAparticle::~ChAparticle() {}
 
 ChAparticle& ChAparticle::operator=(const ChAparticle& other) {
     if (&other == this)
@@ -58,7 +56,7 @@ ChAparticle& ChAparticle::operator=(const ChAparticle& other) {
     ChParticleBase::operator=(other);
 
     collision_model->Clear();
-    collision_model->AddCopyOfAnotherModel(other.collision_model);
+    collision_model->AddShapes(other.collision_model);
     collision_model->SetContactable(this);
 
     container = other.container;
@@ -232,7 +230,7 @@ ChParticleCloud::ChParticleCloud()
     SetInertiaXX(ChVector<double>(1.0, 1.0, 1.0));
     SetInertiaXY(ChVector<double>(0, 0, 0));
 
-    particle_collision_model = new ChCollisionModelBullet();
+    particle_collision_model = chrono_types::make_shared<ChCollisionModelBullet>();
     particle_collision_model->SetContactable(0);
 
     particles.clear();
@@ -267,10 +265,6 @@ ChParticleCloud::ChParticleCloud(const ChParticleCloud& other) : ChIndexedPartic
 
 ChParticleCloud::~ChParticleCloud() {
     ResizeNparticles(0);
-
-    if (particle_collision_model)
-        delete particle_collision_model;
-    particle_collision_model = 0;
 }
 
 void ChParticleCloud::ResizeNparticles(int newsize) {
@@ -293,8 +287,7 @@ void ChParticleCloud::ResizeNparticles(int newsize) {
         particles[j]->variables.SetUserData((void*)this);  // UserData unuseful in future parallel solver?
 
         particles[j]->collision_model->SetContactable(particles[j]);
-        // articles[j]->collision_model->ClearModel();
-        particles[j]->collision_model->AddCopyOfAnotherModel(particle_collision_model);
+        particles[j]->collision_model->AddShapes(particle_collision_model);
         particles[j]->collision_model->Build();
     }
 
@@ -313,8 +306,7 @@ void ChParticleCloud::AddParticle(ChCoordsys<double> initial_state) {
     newp->variables.SetUserData((void*)this);  // UserData unuseful in future parallel solver?
 
     newp->collision_model->SetContactable(newp);
-    // newp->collision_model->ClearModel(); // wasn't already added to system, no need to remove
-    newp->collision_model->AddCopyOfAnotherModel(particle_collision_model);
+    newp->collision_model->AddShapes(particle_collision_model);
     newp->collision_model->Build();  // will also add to system, if collision is on.
 }
 
@@ -643,14 +635,14 @@ void ChParticleCloud::SetCollide(bool mcoll) {
         do_collide = true;
         if (GetSystem()) {
             for (unsigned int j = 0; j < particles.size(); j++) {
-                GetSystem()->GetCollisionSystem()->Add(particles[j]->collision_model);
+                GetSystem()->GetCollisionSystem()->Add(particles[j]->collision_model.get());
             }
         }
     } else {
         do_collide = false;
         if (GetSystem()) {
             for (unsigned int j = 0; j < particles.size(); j++) {
-                GetSystem()->GetCollisionSystem()->Remove(particles[j]->collision_model);
+                GetSystem()->GetCollisionSystem()->Remove(particles[j]->collision_model.get());
             }
         }
     }
@@ -666,14 +658,14 @@ void ChParticleCloud::AddCollisionModelsToSystem() {
     assert(GetSystem());
     SyncCollisionModels();
     for (unsigned int j = 0; j < particles.size(); j++) {
-        GetSystem()->GetCollisionSystem()->Add(particles[j]->collision_model);
+        GetSystem()->GetCollisionSystem()->Add(particles[j]->collision_model.get());
     }
 }
 
 void ChParticleCloud::RemoveCollisionModelsFromSystem() {
     assert(GetSystem());
     for (unsigned int j = 0; j < particles.size(); j++) {
-        GetSystem()->GetCollisionSystem()->Remove(particles[j]->collision_model);
+        GetSystem()->GetCollisionSystem()->Remove(particles[j]->collision_model.get());
     }
 }
 
@@ -682,7 +674,7 @@ void ChParticleCloud::RemoveCollisionModelsFromSystem() {
 void ChParticleCloud::UpdateParticleCollisionModels() {
     for (unsigned int j = 0; j < particles.size(); j++) {
         particles[j]->collision_model->Clear();
-        particles[j]->collision_model->AddCopyOfAnotherModel(particle_collision_model);
+        particles[j]->collision_model->AddShapes(particle_collision_model);
         particles[j]->collision_model->Build();
     }
 }

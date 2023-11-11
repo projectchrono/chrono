@@ -53,10 +53,6 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
     /// Return the type of this collision model.
     virtual ChCollisionSystemType GetType() const override { return ChCollisionSystemType::BULLET; }
 
-    /// Add all shapes already contained in another model.
-    /// The 'another' model must be of ChCollisionModelBullet subclass.
-    virtual bool AddCopyOfAnotherModel(ChCollisionModel* another) override;
-
     virtual void SetFamily(int mfamily) override;
     virtual int GetFamily() override;
     virtual void SetFamilyMaskNoCollisionWithFamily(int mfamily) override;

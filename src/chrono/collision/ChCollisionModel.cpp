@@ -62,10 +62,6 @@ void ChCollisionModel::Build() {
     Associate();
 }
 
-void ChCollisionModel::CopyShapes(ChCollisionModel* other) {
-    m_shape_instances = other->m_shape_instances;
-}
-
 ChPhysicsItem* ChCollisionModel::GetPhysicsItem() {
     return mcontactable->GetPhysicsItem();
 }
@@ -139,6 +135,15 @@ void ChCollisionModel::SetFamilyMask(short int mask) {
 
 void ChCollisionModel::AddShape(std::shared_ptr<ChCollisionShape> shape, const ChFrame<>& frame) {
     m_shape_instances.push_back({shape, frame});
+}
+
+void ChCollisionModel::AddShapes(std::shared_ptr<ChCollisionModel> model, const ChFrame<>& frame) {
+    for (const auto& s : model->m_shape_instances) {
+        const auto& shape = s.first;
+        const auto& shape_frame = s.second;
+
+        AddShape(shape, frame * shape_frame);
+    }
 }
 
 void ChCollisionModel::AddCylinder(std::shared_ptr<ChMaterialSurface> material,

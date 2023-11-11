@@ -39,9 +39,6 @@ class ChApi ChCollisionModelChrono : public ChCollisionModel {
     /// Return the type of this collision model.
     virtual ChCollisionSystemType GetType() const override { return ChCollisionSystemType::CHRONO; }
 
-    /// Add all shapes already contained in another model.
-    virtual bool AddCopyOfAnotherModel(ChCollisionModel* another) override;
-
     /// Sets the position and orientation of the collision
     /// model as the rigid body current position.
     virtual void SyncPosition() override;

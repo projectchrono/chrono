@@ -282,11 +282,6 @@ void TransformToCOG(ChBody* body, const ChVector<>& pos, const ChMatrix33<>& rot
     }
 }
 
-bool ChCollisionModelChrono::AddCopyOfAnotherModel(ChCollisionModel* another) {
-    // NOT SUPPORTED
-    return false;
-}
-
 geometry::ChAABB ChCollisionModelChrono::GetBoundingBox() const {
     return geometry::ChAABB(aabb_min, aabb_max);
 }
