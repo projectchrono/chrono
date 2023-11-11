@@ -93,12 +93,12 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
 
         // Loop over each shape and write its data on a separate line.
         // If we encounter an unsupported type, return false.
-        for (int index = 0; index < n_shapes; index++) {
-            auto shape = body->GetCollisionModel()->GetShape(index);
+        for (const auto& s : body->GetCollisionModel()->GetShapes()) {
+            const auto& shape = s.first;
+            const auto& frame = s.second;
 
             // Write relative position and rotation
-            ChCoordsys<> csys = body->GetCollisionModel()->GetShapePos(index);
-            csv << csys.pos << csys.rot << tab;
+            csv << frame.GetPos() << frame.GetRot() << tab;
 
             // Write shape material information
             if (ctype == 0) {
@@ -117,7 +117,7 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
             }
 
             // Write shape type and characteristic dimensions
-            std::vector<double> dims = body->GetCollisionModel()->GetShapeDimensions(index);
+            std::vector<double> dims = body->GetCollisionModel()->GetShapeDimensions(shape);
             if (dims.empty()) {
                 std::cout << "utils::WriteCheckpoint ERROR: unknown or not supported collision shape\n";
                 return false;

@@ -83,9 +83,6 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
     /// It can also change the outward envelope; the inward margin is automatically the radius of the sphere.
     bool SetSphereRadius(double coll_radius, double out_envelope);
 
-    /// Return the position and orientation of the collision shape with specified index, relative to the model frame.
-    virtual ChCoordsys<> GetShapePos(int index) const override;
-
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;
 
@@ -155,6 +152,7 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
     cbtCollisionObject* GetBulletModel() { return bt_collision_object.get(); }
 
     std::vector<std::shared_ptr<cbtCollisionShape>> m_bt_shapes;  ///< list of Bullet collision shapes in model
+    std::vector<std::shared_ptr<ChCollisionShape>> m_shapes;      ///< extended list of collision shapes
 
     friend class ChCollisionSystemBullet;
     friend class ChCollisionSystemBulletMulticore;

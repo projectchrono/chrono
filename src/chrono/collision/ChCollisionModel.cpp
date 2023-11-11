@@ -34,7 +34,7 @@ class my_enum_mappers {
 static double default_model_envelope = 0.03;
 static double default_safe_margin = 0.01;
 
-ChCollisionModel::ChCollisionModel() : mcontactable(nullptr), family_group(1), family_mask(0x7FFF) {
+ChCollisionModel::ChCollisionModel() : contactable(nullptr), family_group(1), family_mask(0x7FFF) {
     model_envelope = (float)default_model_envelope;
     model_safe_margin = (float)default_safe_margin;
 }
@@ -63,7 +63,7 @@ void ChCollisionModel::Build() {
 }
 
 ChPhysicsItem* ChCollisionModel::GetPhysicsItem() {
-    return mcontactable->GetPhysicsItem();
+    return contactable->GetPhysicsItem();
 }
 
 void ChCollisionModel::SetDefaultSuggestedEnvelope(double menv) {
@@ -158,13 +158,6 @@ void ChCollisionModel::AddCylinder(std::shared_ptr<ChMaterialSurface> material,
     AddShape(cylinder_shape, frame);
 }
 
-void ChCollisionModel::SetShapeMaterial(int index, std::shared_ptr<ChMaterialSurface> mat) {
-    assert(index < m_shape_instances.size());
-    auto& shape = m_shape_instances[index].first;
-    assert(shape->m_material->GetContactMethod() == mat->GetContactMethod());
-    shape->m_material = mat;
-}
-
 void ChCollisionModel::SetAllShapesMaterial(std::shared_ptr<ChMaterialSurface> mat) {
     assert(m_shape_instances.size() == 0 ||
            m_shape_instances[0].first->m_material->GetContactMethod() == mat->GetContactMethod());
@@ -172,11 +165,7 @@ void ChCollisionModel::SetAllShapesMaterial(std::shared_ptr<ChMaterialSurface> m
         shape.first->m_material = mat;
 }
 
-std::vector<double> ChCollisionModel::GetShapeDimensions(int index) const {
-    assert(index < (int)m_shape_instances.size());
-
-    auto shape = m_shape_instances[index].first;
-
+std::vector<double> ChCollisionModel::GetShapeDimensions(std::shared_ptr<ChCollisionShape> shape) const {
     std::vector<double> dims;
     switch (shape->GetType()) {
         case ChCollisionShape::Type::SPHERE: {
@@ -256,7 +245,7 @@ void ChCollisionModel::ArchiveOut(ChArchiveOut& marchive) {
     marchive << CHNVP(family_group);
     marchive << CHNVP(family_mask);
     marchive << CHNVP(m_shape_instances);
-    marchive << CHNVP(mcontactable);
+    marchive << CHNVP(contactable);
 }
 
 void ChCollisionModel::ArchiveIn(ChArchiveIn& marchive) {
@@ -269,7 +258,7 @@ void ChCollisionModel::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(family_group);
     marchive >> CHNVP(family_mask);
     marchive >> CHNVP(m_shape_instances);
-    marchive >> CHNVP(mcontactable);
+    marchive >> CHNVP(contactable);
 }
 
 }  // end namespace chrono

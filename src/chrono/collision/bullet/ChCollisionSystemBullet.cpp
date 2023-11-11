@@ -194,19 +194,22 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainer* mcontactcontain
         const cbtCollisionObject* obB = contactManifold->getBody1();
         contactManifold->refreshContactPoints(obA->getWorldTransform(), obB->getWorldTransform());
 
-        icontact.modelA = (ChCollisionModel*)obA->getUserPointer();
-        icontact.modelB = (ChCollisionModel*)obB->getUserPointer();
+        auto modelA = (ChCollisionModelBullet*)obA->getUserPointer();
+        auto modelB = (ChCollisionModelBullet*)obB->getUserPointer();
 
-        double envelopeA = icontact.modelA->GetEnvelope();
-        double envelopeB = icontact.modelB->GetEnvelope();
+        icontact.modelA = (ChCollisionModel*)modelA;
+        icontact.modelB = (ChCollisionModel*)modelB;
 
-        double marginA = icontact.modelA->GetSafeMargin();
-        double marginB = icontact.modelB->GetSafeMargin();
+        double envelopeA = modelA->GetEnvelope();
+        double envelopeB = modelB->GetEnvelope();
+
+        double marginA = modelA->GetSafeMargin();
+        double marginB = modelB->GetSafeMargin();
 
         // Execute custom broadphase callback, if any
         bool do_narrow_contactgeneration = true;
-        if (this->broad_callback)
-            do_narrow_contactgeneration = this->broad_callback->OnBroadphase(icontact.modelA, icontact.modelB);
+        if (broad_callback)
+            do_narrow_contactgeneration = broad_callback->OnBroadphase(icontact.modelA, icontact.modelB);
 
         if (do_narrow_contactgeneration) {
             int numContacts = contactManifold->getNumContacts();
@@ -240,8 +243,8 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainer* mcontactcontain
                     int indexA = compoundA ? pt.m_index0 : 0;
                     int indexB = compoundB ? pt.m_index1 : 0;
 
-                    icontact.shapeA = icontact.modelA->GetShape(indexA).get();
-                    icontact.shapeB = icontact.modelB->GetShape(indexB).get();
+                    icontact.shapeA = modelA->m_shapes[indexA].get();
+                    icontact.shapeB = modelB->m_shapes[indexB].get();
 
                     // Execute some user custom callback, if any
                     bool add_contact = true;

@@ -53,12 +53,12 @@ ChCollisionModelBullet::~ChCollisionModelBullet() {
 }
 
 void ChCollisionModelBullet::Dissociate() {
-    if (mcontactable &&                                 //
-        mcontactable->GetPhysicsItem() &&               //
-        mcontactable->GetPhysicsItem()->GetSystem() &&  //
-        mcontactable->GetPhysicsItem()->GetCollide()    //
+    if (contactable &&                                 //
+        contactable->GetPhysicsItem() &&               //
+        contactable->GetPhysicsItem()->GetSystem() &&  //
+        contactable->GetPhysicsItem()->GetCollide()    //
     )
-        mcontactable->GetPhysicsItem()->GetSystem()->GetCollisionSystem()->Remove(this);
+        contactable->GetPhysicsItem()->GetSystem()->GetCollisionSystem()->Remove(this);
 
     bt_collision_object->setCollisionShape(nullptr);
     bt_compound_shape.reset();
@@ -68,12 +68,12 @@ void ChCollisionModelBullet::Dissociate() {
 }
 
 void ChCollisionModelBullet::Associate() {
-    if (mcontactable &&                                 //
-        mcontactable->GetPhysicsItem() &&               //
-        mcontactable->GetPhysicsItem()->GetSystem() &&  //
-        mcontactable->GetPhysicsItem()->GetCollide()    //
+    if (contactable &&                                 //
+        contactable->GetPhysicsItem() &&               //
+        contactable->GetPhysicsItem()->GetSystem() &&  //
+        contactable->GetPhysicsItem()->GetCollide()    //
     )
-        mcontactable->GetPhysicsItem()->GetSystem()->GetCollisionSystem()->Add(this);
+        contactable->GetPhysicsItem()->GetSystem()->GetCollisionSystem()->Add(this);
 }
 
 // -----------------------------------------------------------------------------
@@ -718,10 +718,10 @@ void ChCollisionModelBullet::onFamilyChange() {
     SyncPosition();
 
     // Trick to avoid troubles if setting mask or family when model is already overlapping to some other model
-    auto mcosys = mcontactable->GetPhysicsItem()->GetSystem()->GetCollisionSystem();
-    mcosys->Remove(this);
+    auto coll_sys = contactable->GetPhysicsItem()->GetSystem()->GetCollisionSystem();
+    coll_sys->Remove(this);
 
-    auto mcs = std::static_pointer_cast<ChCollisionSystemBullet>(mcosys);
+    auto mcs = std::static_pointer_cast<ChCollisionSystemBullet>(coll_sys);
     mcs->GetBulletCollisionWorld()->addCollisionObject(bt_collision_object.get(), family_group, family_mask);
 }
 
@@ -738,7 +738,7 @@ geometry::ChAABB ChCollisionModelBullet::GetBoundingBox() const {
 }
 
 void ChCollisionModelBullet::SyncPosition() {
-    ChCoordsys<> mcsys = mcontactable->GetCsysForCollisionModel();
+    ChCoordsys<> mcsys = contactable->GetCsysForCollisionModel();
 
     bt_collision_object->getWorldTransform().setOrigin(
         cbtVector3((cbtScalar)mcsys.pos.x(), (cbtScalar)mcsys.pos.y(), (cbtScalar)mcsys.pos.z()));
@@ -762,17 +762,6 @@ bool ChCollisionModelBullet::SetSphereRadius(double coll_radius, double out_enve
     }
 
     return false;
-}
-
-ChCoordsys<> ChCollisionModelBullet::GetShapePos(int index) const {
-    if (!bt_compound_shape) {
-        // if not using a compound, there must be a single centered shape
-        assert(m_shapes.size() == 1);
-        assert(index == 0);
-        return ChCoordsys<>();
-    }
-
-    return ChCoordsysBT(bt_compound_shape->getChildTransform(index));
 }
 
 void ChCollisionModelBullet::ArchiveOut(ChArchiveOut& marchive) {

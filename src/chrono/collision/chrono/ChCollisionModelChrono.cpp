@@ -286,14 +286,6 @@ geometry::ChAABB ChCollisionModelChrono::GetBoundingBox() const {
     return geometry::ChAABB(aabb_min, aabb_max);
 }
 
-ChCoordsys<> ChCollisionModelChrono::GetShapePos(int index) const {
-    const auto& ct_shape = m_ct_shapes[index];
-    const auto& p = ct_shape->A;
-    const auto& q = ct_shape->R;
-    return ChCoordsys<>(ChVector<>((double)p.x, (double)p.y, (double)p.z),
-                        ChQuaternion<>((double)q.w, (double)q.x, (double)q.y, (double)q.z));
-}
-
 void ChCollisionModelChrono::SyncPosition() {
 #if !defined(NDEBUG)
     ChBody* bpointer = GetBody();

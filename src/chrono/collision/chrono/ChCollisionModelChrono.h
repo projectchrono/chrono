@@ -55,9 +55,6 @@ class ChApi ChCollisionModelChrono : public ChCollisionModel {
     /// Return the axis aligned bounding box for this collision model.
     virtual geometry::ChAABB GetBoundingBox() const override;
 
-    /// Return the position and orientation of the collision shape with specified index, relative to the model frame.
-    virtual ChCoordsys<> GetShapePos(int index) const override;
-
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;
 
@@ -94,6 +91,7 @@ class ChApi ChCollisionModelChrono : public ChCollisionModel {
 
     ChBody* mbody;                                               ///< associated contactable (rigid body only)
     std::vector<std::shared_ptr<ctCollisionShape>> m_ct_shapes;  ///< list of Chrono collision shapes in model
+    std::vector<std::shared_ptr<ChCollisionShape>> m_shapes;     ///< extended list of collision shapes
 
     friend class ChCollisionSystemChrono;
 };

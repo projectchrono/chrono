@@ -403,11 +403,14 @@ void ChCollisionSystemChrono::ReportContacts(ChContactContainer* container) {
         auto s1_index = sindex[s1];           // collision model indexes of shapes in contact
         auto s2_index = sindex[s2];           //
 
+        auto modelA = (ChCollisionModelChrono*)blist[b1]->GetCollisionModel().get();
+        auto modelB = (ChCollisionModelChrono*)blist[b2]->GetCollisionModel().get();
+
         ChCollisionInfo cinfo;
         cinfo.modelA = blist[b1]->GetCollisionModel().get();
         cinfo.modelB = blist[b2]->GetCollisionModel().get();
-        cinfo.shapeA = cinfo.modelA->GetShape(s1_index).get();
-        cinfo.shapeB = cinfo.modelB->GetShape(s2_index).get();
+        cinfo.shapeA = modelA->m_shapes[s1_index].get();
+        cinfo.shapeB = modelB->m_shapes[s2_index].get();
         cinfo.vN = ToChVector(cd_data->norm_rigid_rigid[i]);
         cinfo.vpA = ToChVector(cd_data->cpta_rigid_rigid[i]);
         cinfo.vpB = ToChVector(cd_data->cptb_rigid_rigid[i]);

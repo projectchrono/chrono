@@ -87,11 +87,11 @@ class ChApi ChCollisionModel {
     // OTHER FUNCTIONS
 
     /// Get the pointer to the contactable object.
-    ChContactable* GetContactable() { return mcontactable; }
+    ChContactable* GetContactable() { return contactable; }
 
     /// Set the pointer to the contactable object.
     /// A derived class may override this, but should always invoke this base class implementation.
-    virtual void SetContactable(ChContactable* mc) { mcontactable = mc; }
+    virtual void SetContactable(ChContactable* mc) { contactable = mc; }
 
     /// Get the pointer to the client owner ChPhysicsItem.
     /// Default: just casts GetContactable(). Just for backward compatibility.
@@ -200,16 +200,13 @@ class ChApi ChCollisionModel {
     virtual void ArchiveIn(ChArchiveIn& marchive);
 
     /// Return the number of collision shapes in this model.
-    int GetNumShapes() const { return (int)m_shapes.size(); }
+    int GetNumShapes() const { return (int)m_shape_instances.size(); }
 
     /// Get the list of collision shapes in this model.
-    const std::vector<std::shared_ptr<ChCollisionShape>>& GetShapes() const { return m_shapes; }
+    const std::vector<ShapeInstance>& GetShapes() const { return m_shape_instances; }
 
     /// Get the collision shape with specified index.
-    std::shared_ptr<ChCollisionShape> GetShape(int index) { return m_shapes[index]; }
-
-    /// Return the position and orientation of the collision shape with specified index, relative to the model frame.
-    virtual ChCoordsys<> GetShapePos(int index) const = 0;
+    const ShapeInstance& GetShape(int index) const { return m_shape_instances[index]; }
 
     /// Return shape characteristic dimensions.
     /// <pre>
@@ -222,14 +219,17 @@ class ChApi ChCollisionModel {
     /// ROUNDEDBOX   x-halfdim y-halfdim z-halfdim sphere_rad
     /// ROUNDEDCYL   x-radius z-radius halflength sphere_rad
     /// </pre>
-    std::vector<double> GetShapeDimensions(int index) const;
-
-    /// Set the contact material for the collision shape with specified index.
-    void SetShapeMaterial(int index, std::shared_ptr<ChMaterialSurface> mat);
+    /// 
+    /// TODO: OBSOLETE
+    /// 
+    std::vector<double> GetShapeDimensions(std::shared_ptr<ChCollisionShape> shape) const;
 
     /// Set the contact material for all collision shapes in the model (all shapes will share the material).
     /// This function is useful in adjusting contact material properties for objects imported from outside (e.g., from
     /// SolidWorks).
+    /// 
+    /// TODO: OBSOLETE
+    /// 
     void SetAllShapesMaterial(std::shared_ptr<ChMaterialSurface> mat);
 
   protected:
@@ -244,15 +244,14 @@ class ChApi ChCollisionModel {
 
     virtual float GetSuggestedFullMargin() { return model_envelope + model_safe_margin; }
 
-    float model_envelope;         ///< Maximum envelope: surrounding volume from surface to the exterior
-    float model_safe_margin;      ///< Maximum margin value to be used for fast penetration contact detection
-    ChContactable* mcontactable;  ///< Pointer to the contactable object
+    float model_envelope;        ///< Maximum envelope: surrounding volume from surface to the exterior
+    float model_safe_margin;     ///< Maximum margin value to be used for fast penetration contact detection
+    ChContactable* contactable;  ///< Pointer to the contactable object
 
     short int family_group;  ///< Collision family group
     short int family_mask;   ///< Collision family mask
 
-    std::vector<ShapeInstance> m_shape_instances;             ///< list of collision shapes and positions in model
-    std::vector<std::shared_ptr<ChCollisionShape>> m_shapes;  ///< extended list of collision shapes
+    std::vector<ShapeInstance> m_shape_instances;  ///< list of collision shapes and positions in model
 };
 
 /// @} chrono_collision
