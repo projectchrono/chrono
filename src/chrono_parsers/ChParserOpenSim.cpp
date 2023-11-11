@@ -32,9 +32,9 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChModelFileShape.h"
-#include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeModelFile.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono/utils/ChUtilsInputOutput.h"
@@ -650,7 +650,7 @@ void ChParserOpenSim::initFunctionTable() {
             auto geometry = fieldNode->first_node("GeometrySet")->first_node("objects")->first_node();
             while (geometry != nullptr) {
                 std::string meshFilename(geometry->first_node("geometry_file")->value());
-                auto bodyMesh = chrono_types::make_shared<ChModelFileShape>();
+                auto bodyMesh = chrono_types::make_shared<ChVisualShapeModelFile>();
                 bodyMesh->SetFilename(m_datapath + meshFilename);
                 newBody->AddVisualShape(bodyMesh);
                 geometry = geometry->next_sibling();
@@ -791,13 +791,13 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
             vis_mat->SetDiffuseColor(ChColor(colorVal, 1.0f - colorVal, 0.0f));
 
             // Create a sphere at the body COM
-            auto sphere = chrono_types::make_shared<ChSphereShape>(0.1);
+            auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
             sphere->AddMaterial(vis_mat);
             body_info.body->AddVisualShape(sphere, ChFrame<>(body_info.body->GetFrame_COG_to_REF().GetPos()));
 
             // Create visualization cylinders
             for (auto cyl_info : body_info.cylinders) {
-                auto cylinder = chrono_types::make_shared<ChCylinderShape>(cyl_info.rad, 2 * cyl_info.hlen);
+                auto cylinder = chrono_types::make_shared<ChVisualShapeCylinder>(cyl_info.rad, 2 * cyl_info.hlen);
                 cylinder->AddMaterial(vis_mat);
                 body_info.body->AddVisualShape(cylinder, ChFrame<>(cyl_info.pos, cyl_info.rot));
             }
@@ -830,7 +830,7 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
 
         // Set collision shapes
         if (body_info.body->GetCollide()) {
-            body_info.body->GetCollisionModel()->ClearModel();
+            body_info.body->GetCollisionModel()->Clear();
 
             for (auto cyl_info : body_info.cylinders) {
                 utils::AddCylinderGeometry(body_info.body, mat, cyl_info.rad, cyl_info.hlen, cyl_info.pos, cyl_info.rot,
@@ -840,7 +840,7 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
             body_info.body->GetCollisionModel()->SetFamily(body_info.family);
             body_info.body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(body_info.family_mask_nocollide);
 
-            body_info.body->GetCollisionModel()->BuildModel();
+            body_info.body->GetCollisionModel()->Build();
         }
     }
 }

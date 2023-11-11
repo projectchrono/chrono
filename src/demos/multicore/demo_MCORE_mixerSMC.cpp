@@ -40,7 +40,6 @@
 #endif
 
 using namespace chrono;
-using namespace chrono::collision;
 
 // -----------------------------------------------------------------------------
 // Create a bin consisting of five boxes attached to the ground and a mixer
@@ -67,14 +66,14 @@ std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreSMC* sys) {
     bin->SetCollide(true);
     bin->SetBodyFixed(true);
 
-    bin->GetCollisionModel()->ClearModel();
+    bin->GetCollisionModel()->Clear();
     utils::AddBoxContainer(bin, mat,                                 //
                            ChFrame<>(ChVector<>(0, 0, 0.5), QUNIT),  //
                            ChVector<>(2, 2, 1), 0.2,                 //
                            ChVector<int>(2, 2, -1));
     bin->GetCollisionModel()->SetFamily(1);
     bin->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(2);
-    bin->GetCollisionModel()->BuildModel();
+    bin->GetCollisionModel()->Build();
 
     sys->AddBody(bin);
 
@@ -89,10 +88,10 @@ std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreSMC* sys) {
 
     ChVector<> hsize(0.8, 0.1, 0.2);
 
-    mixer->GetCollisionModel()->ClearModel();
+    mixer->GetCollisionModel()->Clear();
     utils::AddBoxGeometry(mixer.get(), mat, hsize);
     mixer->GetCollisionModel()->SetFamily(2);
-    mixer->GetCollisionModel()->BuildModel();
+    mixer->GetCollisionModel()->Build();
 
     sys->AddBody(mixer);
 
@@ -134,9 +133,9 @@ void AddFallingBalls(ChSystemMulticoreSMC* sys) {
             ball->SetBodyFixed(false);
             ball->SetCollide(true);
 
-            ball->GetCollisionModel()->ClearModel();
+            ball->GetCollisionModel()->Clear();
             utils::AddSphereGeometry(ball.get(), ballMat, radius);
-            ball->GetCollisionModel()->BuildModel();
+            ball->GetCollisionModel()->Build();
 
             sys->AddBody(ball);
         }

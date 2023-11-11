@@ -20,9 +20,8 @@
 #include <thrust/sequence.h>
 
 namespace chrono {
-namespace collision {
 
-using namespace chrono::collision::ch_utils;
+using namespace chrono::ch_utils;
 
 ChRayTest::ChRayTest(std::shared_ptr<ChCollisionData> data) : cd_data(data), num_bin_tests(0), num_shape_tests(0) {}
 
@@ -499,5 +498,4 @@ bool ChRayTest::CheckShape(const ConvexBase& shape,
     }
 }
 
-}  // end namespace collision
 }  // end namespace chrono

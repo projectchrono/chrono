@@ -15,6 +15,7 @@
 
 #include "chrono/solver/ChConstraintTuple.h"
 #include "chrono/core/ChMatrix33.h"
+#include "chrono/core/ChCoordsys.h"
 #include "chrono/timestepper/ChState.h"
 
 namespace chrono {
@@ -116,6 +117,12 @@ class ChApi ChContactable {
     std::shared_ptr<T> GetUserData() const {
         return std::static_pointer_cast<T>(m_data);
     }
+
+    /// Method to allow serialization of transient data to archives.
+    void ArchiveOut(ChArchiveOut& marchive);
+
+    /// Method to allow deserialization of transient data from archives.
+    void ArchiveIn(ChArchiveIn& marchive);
 
   private:
     std::shared_ptr<void> m_data;  ///< arbitrary user-data

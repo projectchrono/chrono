@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
     double thickness = 0.1;
 
     // Collision system type
-    auto collision_type = collision::ChCollisionSystemType::BULLET;
+    auto collision_type = ChCollisionSystemType::BULLET;
 
     // Create the system
     ChSystemSMC sys;
@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
     sys.SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);
 
     // Change the default collision effective radius of curvature
-    collision::ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
+    ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
 
     // Create a material (will be used by both objects)
     auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
@@ -84,6 +84,7 @@ int main(int argc, char* argv[]) {
 
     ball->SetIdentifier(ballId);
     ball->SetMass(mass);
+    ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
     ball->SetPos(pos);
     ball->SetRot(rot);
     ball->SetPos_dt(init_vel);
@@ -91,14 +92,14 @@ int main(int argc, char* argv[]) {
     ball->SetBodyFixed(false);
 
     ball->SetCollide(true);
+    ////ball->GetCollisionModel()->ClearModel();
+    ////ball->GetCollisionModel()->AddSphere(material, radius);
+    ////ball->GetCollisionModel()->BuildModel();
+    auto sphere_coll = chrono_types::make_shared<ChCollisionShapeSphere>(material, radius);
+    ball->GetCollisionModel()->AddShape(sphere_coll, ChFrame<>());
+    ball->GetCollisionModel()->Build();
 
-    ball->GetCollisionModel()->ClearModel();
-    ball->GetCollisionModel()->AddSphere(material, radius);
-    ball->GetCollisionModel()->BuildModel();
-
-    ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
-
-    auto sphere = chrono_types::make_shared<ChSphereShape>(radius);
+    auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(radius);
     sphere->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
     sphere->SetOpacity(1.0f);
 
@@ -115,14 +116,17 @@ int main(int argc, char* argv[]) {
     bin->SetMass(1);
     bin->SetPos(ChVector<>(0, 0, 0));
     bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
-    bin->SetCollide(true);
     bin->SetBodyFixed(true);
 
-    bin->GetCollisionModel()->ClearModel();
-    bin->GetCollisionModel()->AddBox(material, width * 2, thickness * 2, length * 2);
-    bin->GetCollisionModel()->BuildModel();
+    bin->SetCollide(true);
+    ////bin->GetCollisionModel()->ClearModel();
+    ////bin->GetCollisionModel()->AddBox(material, width * 2, thickness * 2, length * 2);
+    ////bin->GetCollisionModel()->BuildModel();
+    auto box_coll = chrono_types::make_shared<ChCollisionShapeBox>(material, width * 2, thickness * 2, length * 2);
+    bin->GetCollisionModel()->AddShape(box_coll, ChFrame<>());
+    bin->GetCollisionModel()->Build();
 
-    auto box = chrono_types::make_shared<ChBoxShape>(width * 2, thickness * 2, length * 2);
+    auto box = chrono_types::make_shared<ChVisualShapeBox>(width * 2, thickness * 2, length * 2);
     box->SetColor(ChColor(0.8f, 0.2f, 0.2f));
     box->SetOpacity(0.8f);
 

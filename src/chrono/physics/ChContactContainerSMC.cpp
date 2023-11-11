@@ -17,7 +17,6 @@
 
 namespace chrono {
 
-using namespace collision;
 using namespace geometry;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
@@ -175,7 +174,7 @@ void _OptimalContactInsert(std::list<Tcont*>& contactlist,           // contact 
                            ChContactContainer* container,            // contact container
                            Ta* objA,                                 // collidable object A
                            Tb* objB,                                 // collidable object B
-                           const collision::ChCollisionInfo& cinfo,  // collision information
+                           const ChCollisionInfo& cinfo,  // collision information
                            const ChMaterialCompositeSMC& cmat        // composite material
 ) {
     if (lastcontact != contactlist.end()) {
@@ -191,7 +190,7 @@ void _OptimalContactInsert(std::list<Tcont*>& contactlist,           // contact 
     n_added++;
 }
 
-void ChContactContainerSMC::AddContact(const collision::ChCollisionInfo& cinfo,
+void ChContactContainerSMC::AddContact(const ChCollisionInfo& cinfo,
                                        std::shared_ptr<ChMaterialSurface> mat1,
                                        std::shared_ptr<ChMaterialSurface> mat2) {
     assert(cinfo.modelA->GetContactable());
@@ -221,7 +220,7 @@ void ChContactContainerSMC::AddContact(const collision::ChCollisionInfo& cinfo,
     InsertContact(cinfo, cmat);
 }
 
-void ChContactContainerSMC::AddContact(const collision::ChCollisionInfo& cinfo) {
+void ChContactContainerSMC::AddContact(const ChCollisionInfo& cinfo) {
     assert(cinfo.modelA->GetContactable());
     assert(cinfo.modelB->GetContactable());
 
@@ -255,7 +254,7 @@ void ChContactContainerSMC::AddContact(const collision::ChCollisionInfo& cinfo) 
     InsertContact(cinfo, cmat);
 }
 
-void ChContactContainerSMC::InsertContact(const collision::ChCollisionInfo& cinfo, const ChMaterialCompositeSMC& cmat) {
+void ChContactContainerSMC::InsertContact(const ChCollisionInfo& cinfo, const ChMaterialCompositeSMC& cmat) {
     auto contactableA = cinfo.modelA->GetContactable();
     auto contactableB = cinfo.modelB->GetContactable();
 
@@ -280,17 +279,17 @@ void ChContactContainerSMC::InsertContact(const collision::ChCollisionInfo& cinf
             } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_6) {
                 auto objB = static_cast<ChContactable_1vars<6>*>(contactableB);
                 // 3_6 -> 6_3
-                collision::ChCollisionInfo swapped_cinfo(cinfo, true);
+                ChCollisionInfo swapped_cinfo(cinfo, true);
                 _OptimalContactInsert(contactlist_6_3, lastcontact_6_3, n_added_6_3, this, objB, objA, swapped_cinfo, cmat);
             } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_333) {
                 auto objB = static_cast<ChContactable_3vars<3, 3, 3>*>(contactableB);
                 // 3_333 -> 333_3
-                collision::ChCollisionInfo swapped_cinfo(cinfo, true);
+                ChCollisionInfo swapped_cinfo(cinfo, true);
                 _OptimalContactInsert(contactlist_333_3, lastcontact_333_3, n_added_333_3, this, objB, objA, swapped_cinfo, cmat);
             } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_666) {
                 auto objB = static_cast<ChContactable_3vars<6, 6, 6>*>(contactableB);
                 // 3_666 -> 666_3
-                collision::ChCollisionInfo swapped_cinfo(cinfo, true);
+                ChCollisionInfo swapped_cinfo(cinfo, true);
                 _OptimalContactInsert(contactlist_666_3, lastcontact_666_3, n_added_666_3, this, objB, objA, swapped_cinfo, cmat);
             }
         } break;
@@ -308,12 +307,12 @@ void ChContactContainerSMC::InsertContact(const collision::ChCollisionInfo& cinf
             } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_333) {
                 auto objB = static_cast<ChContactable_3vars<3, 3, 3>*>(contactableB);
                 // 6_333 -> 333_6
-                collision::ChCollisionInfo swapped_cinfo(cinfo, true);
+                ChCollisionInfo swapped_cinfo(cinfo, true);
                 _OptimalContactInsert(contactlist_333_6, lastcontact_333_6, n_added_333_6, this, objB, objA, swapped_cinfo, cmat);
             } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_666) {
                 auto objB = static_cast<ChContactable_3vars<6, 6, 6>*>(contactableB);
                 // 6_666 -> 666_6
-                collision::ChCollisionInfo swapped_cinfo(cinfo, true);
+                ChCollisionInfo swapped_cinfo(cinfo, true);
                 _OptimalContactInsert(contactlist_666_6, lastcontact_666_6, n_added_666_6, this, objB, objA, swapped_cinfo, cmat);
             }
         } break;
@@ -335,7 +334,7 @@ void ChContactContainerSMC::InsertContact(const collision::ChCollisionInfo& cinf
             } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_666) {
                 auto objB = static_cast<ChContactable_3vars<6, 6, 6>*>(contactableB);
                 // 333_666 -> 666_333
-                collision::ChCollisionInfo swapped_cinfo(cinfo, true);
+                ChCollisionInfo swapped_cinfo(cinfo, true);
                 _OptimalContactInsert(contactlist_666_333, lastcontact_666_333, n_added_666_333, this, objB, objA, swapped_cinfo, cmat);
             }
         } break;

@@ -41,8 +41,8 @@
 #include <cmath>
 
 #include "chrono/core/ChLog.h"
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -207,7 +207,7 @@ void BoundaryContact::CheckFixedSphere(ChBody* body, const ChVector<>& center, c
     if (dist2 >= rad_sum * rad_sum || dist2 < 1e-12)
         return;
 
-    collision::ChCollisionInfo contact;
+    ChCollisionInfo contact;
     double dist = std::sqrt(dist2);
     contact.modelA = m_terrain->m_ground->GetCollisionModel().get();
     contact.modelB = body->GetCollisionModel().get();
@@ -229,7 +229,7 @@ void BoundaryContact::CheckBottom(ChBody* body, const ChVector<>& center) {
     if (dist > m_radius + 2 * m_terrain->m_envelope)
         return;
 
-    collision::ChCollisionInfo contact;
+    ChCollisionInfo contact;
     contact.modelA = m_terrain->m_ground->GetCollisionModel().get();
     contact.modelB = body->GetCollisionModel().get();
     contact.shapeA = nullptr;
@@ -251,7 +251,7 @@ void BoundaryContact::CheckLeft(ChBody* body, const ChVector<>& center) {
     if (dist > m_radius)
         return;
 
-    collision::ChCollisionInfo contact;
+    ChCollisionInfo contact;
     contact.modelA = m_terrain->m_ground->GetCollisionModel().get();
     contact.modelB = body->GetCollisionModel().get();
     contact.shapeA = nullptr;
@@ -273,7 +273,7 @@ void BoundaryContact::CheckRight(ChBody* body, const ChVector<>& center) {
     if (dist > m_radius)
         return;
 
-    collision::ChCollisionInfo contact;
+    ChCollisionInfo contact;
     contact.modelA = m_terrain->m_ground->GetCollisionModel().get();
     contact.modelB = body->GetCollisionModel().get();
     contact.shapeA = nullptr;
@@ -295,7 +295,7 @@ void BoundaryContact::CheckFront(ChBody* body, const ChVector<>& center) {
     if (dist > m_radius)
         return;
 
-    collision::ChCollisionInfo contact;
+    ChCollisionInfo contact;
     contact.modelA = m_terrain->m_ground->GetCollisionModel().get();
     contact.modelB = body->GetCollisionModel().get();
     contact.shapeA = nullptr;
@@ -317,7 +317,7 @@ void BoundaryContact::CheckRear(ChBody* body, const ChVector<>& center) {
     if (dist > m_radius)
         return;
 
-    collision::ChCollisionInfo contact;
+    ChCollisionInfo contact;
     contact.modelA = m_terrain->m_ground->GetCollisionModel().get();
     contact.modelB = body->GetCollisionModel().get();
     contact.shapeA = nullptr;
@@ -356,7 +356,7 @@ void GranularTerrain::Initialize(const ChVector<>& center,
     m_ground->SetPos(center);
 
     // If enabled, create particles fixed to ground. Share the same visual model.
-    auto sph_shape = chrono_types::make_shared<ChSphereShape>(radius);
+    auto sph_shape = chrono_types::make_shared<ChVisualShapeSphere>(radius);
 
     if (m_rough_surface) {
         m_sep_x = length / (m_nx - 1);
@@ -365,7 +365,7 @@ void GranularTerrain::Initialize(const ChVector<>& center,
         for (int ix = 0; ix < m_nx; ix++) {
             double y_pos = -0.5 * width;
             for (int iy = 0; iy < m_ny; iy++) {
-                auto sphere = chrono_types::make_shared<ChSphereShape>(radius);
+                auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(radius);
                 m_ground->AddVisualShape(sph_shape, ChFrame<>(ChVector<>(x_pos, y_pos, radius)));
                 y_pos += m_sep_y;
             }
@@ -424,7 +424,7 @@ void GranularTerrain::Initialize(const ChVector<>& center,
     // If enabled, create visualization assets for the boundaries.
     if (m_vis_enabled) {
         double hthick = 0.05;
-        auto box = chrono_types::make_shared<ChBoxShape>(length, width, 2 * hthick);
+        auto box = chrono_types::make_shared<ChVisualShapeBox>(length, width, 2 * hthick);
         m_ground->AddVisualShape(box, ChFrame<>(ChVector<>(0, 0, -hthick)));
     }
 

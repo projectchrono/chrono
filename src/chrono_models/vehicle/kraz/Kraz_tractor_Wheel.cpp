@@ -46,7 +46,7 @@ void Kraz_tractor_Wheel::AddVisualizationAssets(chrono::vehicle::VisualizationTy
         chrono::ChQuaternion<> rot = (m_side == VehicleSide::LEFT) ? Q_from_AngZ(0) : Q_from_AngZ(CH_C_PI);
         auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetDataFile(m_meshFile), false, false);
         trimesh->Transform(ChVector<>(0, m_offset, 0), chrono::ChMatrix33<>(rot));
-        m_trimesh_shape = chrono_types::make_shared<chrono::ChTriangleMeshShape>();
+        m_trimesh_shape = chrono_types::make_shared<chrono::ChVisualShapeTriangleMesh>();
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetMutable(false);
         m_trimesh_shape->SetName(filesystem::path(m_meshFile).stem());

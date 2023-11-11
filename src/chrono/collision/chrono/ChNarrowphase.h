@@ -23,7 +23,6 @@
 #include "chrono/collision/chrono/ChConvexShape.h"
 
 namespace chrono {
-namespace collision {
 
 /// @addtogroup collision_mc
 /// @{
@@ -171,5 +170,4 @@ class ChApi ChNarrowphase {
 
 /// @} collision_mc
 
-}  // end namespace collision
 }  // end namespace chrono

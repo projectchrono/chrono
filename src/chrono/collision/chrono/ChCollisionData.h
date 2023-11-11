@@ -24,7 +24,6 @@
 #include "chrono/multicore_math/ChMulticoreMath.h"
 
 namespace chrono {
-namespace collision {
 
 /// @addtogroup collision_mc
 /// @{
@@ -224,5 +223,4 @@ class ChApi ChCollisionData {
 
 /// @} collision_mc
 
-}  // end namespace collision
 }  // end namespace chrono

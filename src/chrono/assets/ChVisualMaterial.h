@@ -29,6 +29,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_assets
+/// @{
+
 /// Definition of a visual material.
 class ChApi ChVisualMaterial {
   public:
@@ -145,6 +148,8 @@ class ChApi ChVisualMaterial {
 };
 
 typedef std::shared_ptr<ChVisualMaterial> ChVisualMaterialSharedPtr;
+
+/// @} chrono_assets
 
 }  // end namespace chrono
 

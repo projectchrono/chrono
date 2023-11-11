@@ -30,7 +30,7 @@ namespace chrono {
 namespace vehicle {
 namespace unimog {
 
-/// @addtogroup vehicle_models_U401
+/// @addtogroup vehicle_models_unimog
 /// @{
 
 /// U401 chassis subsystem.
@@ -64,7 +64,7 @@ class CH_MODELS_API U401_Chassis : public ChRigidChassis {
     static const ChCoordsys<> m_driverCsys;
 };
 
-/// @} vehicle_models_U401
+/// @} vehicle_models_unimog
 
 }  // namespace unimog
 }  // end namespace vehicle

@@ -12,8 +12,8 @@
 // Authors: Radu Serban
 // =============================================================================
 
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/assets/ChVisualShapeBox.h"
 
 #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
 #include "chrono_fsi/physics/ChSystemFsi_impl.cuh"
@@ -131,7 +131,7 @@ void ChFsiVisualizationGL::Initialize() {
         for (int i = 0; i < m_systemFSI->GetNumFluidMarkers(); i++) {
             m_sph_cloud->AddParticle(CSYSNULL);
         }
-        auto sph = chrono_types::make_shared<ChSphereShape>(m_systemFSI->GetInitialSpacing() / 2);
+        auto sph = chrono_types::make_shared<ChVisualShapeSphere>(m_systemFSI->GetInitialSpacing() / 2);
         m_sph_cloud->AddVisualShape(sph);
         m_system->Add(m_sph_cloud);
     }
@@ -141,7 +141,7 @@ void ChFsiVisualizationGL::Initialize() {
             auto body = std::shared_ptr<ChBody>(m_system->NewBody());
             body->SetPos(ChVector<>(0, 0, 0));
             body->SetBodyFixed(true);
-            auto sph = chrono_types::make_shared<ChBoxShape>(ChVector<>(m_systemFSI->GetInitialSpacing() / 2));
+            auto sph = chrono_types::make_shared<ChVisualShapeBox>(ChVector<>(m_systemFSI->GetInitialSpacing() / 2));
             body->AddVisualShape(sph);
             m_system->AddBody(body);
         }
@@ -152,7 +152,7 @@ void ChFsiVisualizationGL::Initialize() {
             auto body = std::shared_ptr<ChBody>(m_system->NewBody());
             body->SetPos(ChVector<>(0, 0, 0));
             body->SetBodyFixed(true);
-            auto sph = chrono_types::make_shared<ChBoxShape>(ChVector<>(m_systemFSI->GetInitialSpacing() / 2));
+            auto sph = chrono_types::make_shared<ChVisualShapeBox>(ChVector<>(m_systemFSI->GetInitialSpacing() / 2));
             body->AddVisualShape(sph);
             m_system->AddBody(body);
         }
@@ -163,7 +163,7 @@ void ChFsiVisualizationGL::Initialize() {
             auto body = std::shared_ptr<ChBody>(m_system->NewBody());
             body->SetPos(ChVector<>(0, 0, 0));
             body->SetBodyFixed(true);
-            auto sph = chrono_types::make_shared<ChBoxShape>(ChVector<>(m_systemFSI->GetInitialSpacing() / 2));
+            auto sph = chrono_types::make_shared<ChVisualShapeBox>(ChVector<>(m_systemFSI->GetInitialSpacing() / 2));
             body->AddVisualShape(sph);
             m_system->AddBody(body);
         }

@@ -58,7 +58,7 @@ std::string engine_file("hmmwv/powertrain/HMMWV_EngineSimple.json");
 std::string transmission_file("hmmwv/powertrain/HMMWV_AutomaticTransmissionSimpleMap.json");
 
 // JSON files tire models
-std::string tmeasy_tire_file("hmmwv/tire/HMMWV_TMeasy_converted.json");
+std::string tmeasy_tire_file("hmmwv/tire/HMMWV_TMeasyTire.json");
 std::string fiala_tire_file("hmmwv/tire/HMMWV_Fiala_converted.json");
 
 // Tire collision type

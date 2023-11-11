@@ -17,8 +17,8 @@
 // =============================================================================
 
 #include "chrono/core/ChGlobal.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChTexture.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
@@ -246,7 +246,7 @@ void ChTrackShoeDoublePin::AddConnectorVisualization2(std::shared_ptr<ChBody> co
                                                 ChVector<>(0.5 * c_length, +0.5 * c_width, 0),  //
                                                 c_radius);
 
-    auto box = chrono_types::make_shared<ChBoxShape>(c_length, c_width, 2 * c_radius);
+    auto box = chrono_types::make_shared<ChVisualShapeBox>(c_length, c_width, 2 * c_radius);
     connector->AddVisualShape(box, ChFrame<>());
 }
 
@@ -277,7 +277,7 @@ void ChTrackShoeDoublePin::AddConnectorVisualization1(std::shared_ptr<ChBody> co
                                                     c_radius,                                                //
                                                     mat);
 
-        auto box = chrono_types::make_shared<ChBoxShape>(c_length, c_width, 2 * c_radius);
+        auto box = chrono_types::make_shared<ChVisualShapeBox>(c_length, c_width, 2 * c_radius);
         box->AddMaterial(mat);
         connector->AddVisualShape(box, ChFrame<>(ChVector<>(0, +offset, 0)));
     }
@@ -295,7 +295,7 @@ void ChTrackShoeDoublePin::AddConnectorVisualization1(std::shared_ptr<ChBody> co
                                                     c_radius,                                                //
                                                     mat);
 
-        auto box = chrono_types::make_shared<ChBoxShape>(c_length, c_width, 2 * c_radius);
+        auto box = chrono_types::make_shared<ChVisualShapeBox>(c_length, c_width, 2 * c_radius);
         box->AddMaterial(mat);
         connector->AddVisualShape(box, ChFrame<>(ChVector<>(0, -offset, 0)));
     }

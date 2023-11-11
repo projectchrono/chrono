@@ -17,13 +17,14 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/core/ChGlobal.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBandBushing.h"
+
 
 namespace chrono {
 namespace vehicle {
@@ -112,14 +113,15 @@ void ChTrackShoeBandBushing::UpdateInertiaProperties() {
 // -----------------------------------------------------------------------------
 void ChTrackShoeBandBushing::AddWebContact(std::shared_ptr<ChBody> segment,
                                            std::shared_ptr<ChMaterialSurface> web_mat) {
-    segment->GetCollisionModel()->ClearModel();
+    segment->GetCollisionModel()->Clear();
 
     segment->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
     segment->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::SHOES);
+    auto shape =
+        chrono_types::make_shared<ChCollisionShapeBox>(web_mat, m_seg_length, GetBeltWidth(), GetWebThickness());
+    segment->GetCollisionModel()->AddShape(shape);
 
-    segment->GetCollisionModel()->AddBox(web_mat, m_seg_length, GetBeltWidth(), GetWebThickness());
-
-    segment->GetCollisionModel()->BuildModel();
+    segment->GetCollisionModel()->Build();
 }
 
 // -----------------------------------------------------------------------------
@@ -140,7 +142,7 @@ void ChTrackShoeBandBushing::RemoveVisualizationAssets() {
 }
 
 void ChTrackShoeBandBushing::AddWebVisualization(std::shared_ptr<ChBody> segment) {
-    auto box = chrono_types::make_shared<ChBoxShape>(m_seg_length, GetBeltWidth(), GetWebThickness());
+    auto box = chrono_types::make_shared<ChVisualShapeBox>(m_seg_length, GetBeltWidth(), GetWebThickness());
     segment->AddVisualShape(box);
 
     double radius = GetWebThickness() / 4;

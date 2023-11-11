@@ -689,22 +689,22 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     /// Change the underlying collision detection system to the specified type.
     /// By default, a ChSystem uses a Bullet-based collision detection engine
-    /// (collision::ChCollisionSystemType::BULLET).
-    virtual void SetCollisionSystemType(collision::ChCollisionSystemType type);
+    /// (ChCollisionSystemType::BULLET).
+    virtual void SetCollisionSystemType(ChCollisionSystemType type);
 
     /// Change the underlying collision system.
     /// By default, a ChSystem uses a Bullet-based collision detection engine.
-    virtual void SetCollisionSystem(std::shared_ptr<collision::ChCollisionSystem> coll_sys);
+    virtual void SetCollisionSystem(std::shared_ptr<ChCollisionSystem> coll_sys);
 
     /// Access the underlying collision system.
     /// Usually this is not needed, as the collision system is automatically handled by the ChSystem.
-    std::shared_ptr<collision::ChCollisionSystem> GetCollisionSystem() const { return collision_system; }
+    std::shared_ptr<ChCollisionSystem> GetCollisionSystem() const { return collision_system; }
 
     /// Change the underlying contact container given the specified type of the collision detection system.
     /// Usually this is not needed, as the contact container is automatically handled by the ChSystem.
     /// The default implementation is a no-op, since the default contact container for a ChSystem is suitable for all
     /// types of supported collision detection systems.
-    virtual void SetContactContainer(collision::ChCollisionSystemType type) {}
+    virtual void SetContactContainer(ChCollisionSystemType type) {}
 
     /// Change the underlying contact container.
     /// The contact container collects information from the underlying collision detection system required for contact
@@ -950,8 +950,8 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     int ncontacts;  ///< total number of contacts
 
-    collision::ChCollisionSystemType collision_system_type;                     ///< type of the collision engine
-    std::shared_ptr<collision::ChCollisionSystem> collision_system;             ///< collision engine
+    ChCollisionSystemType collision_system_type;                     ///< type of the collision engine
+    std::shared_ptr<ChCollisionSystem> collision_system;             ///< collision engine
     std::vector<std::shared_ptr<CustomCollisionCallback>> collision_callbacks;  ///< user-defined collision callbacks
     std::unique_ptr<ChMaterialCompositionStrategy> composition_strategy;        /// material composition strategy
 

@@ -56,7 +56,7 @@ class CH_VEHICLE_API TMsimpleTire : public ChTMsimpleTire {
     bool m_has_mesh;
     std::string m_meshFile_left;
     std::string m_meshFile_right;
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
+    std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
 };
 
 /// @} vehicle_wheeled_tire

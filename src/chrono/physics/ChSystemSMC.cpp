@@ -25,7 +25,7 @@
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 
-#include "chrono/collision/ChCollisionSystemBullet.h"
+#include "chrono/collision/bullet/ChCollisionSystemBullet.h"
 
 namespace chrono {
 
@@ -44,14 +44,14 @@ ChSystemSMC::ChSystemSMC(bool use_material_properties)
 
     SetSolverType(ChSolver::Type::PSOR);
 
-    collision_system = chrono_types::make_shared<collision::ChCollisionSystemBullet>();
+    collision_system = chrono_types::make_shared<ChCollisionSystemBullet>();
     collision_system->SetNumThreads(nthreads_collision);
     collision_system->SetSystem(this);
-    collision_system_type = collision::ChCollisionSystemType::BULLET;
+    collision_system_type = ChCollisionSystemType::BULLET;
 
     // For default SMC there is no need to create contacts 'in advance'
     // when models are closer than the safety envelope, so set default envelope to 0
-    collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0);
+    ChCollisionModel::SetDefaultSuggestedEnvelope(0);
 
     contact_container = chrono_types::make_shared<ChContactContainerSMC>();
     contact_container->SetSystem(this);

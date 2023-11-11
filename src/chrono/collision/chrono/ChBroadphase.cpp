@@ -30,9 +30,8 @@ using thrust::transform;
 using thrust::transform_reduce;
 
 namespace chrono {
-namespace collision {
 
-using namespace chrono::collision::ch_utils;
+using namespace chrono::ch_utils;
 
 ChBroadphase::ChBroadphase()
     : grid_type(GridType::FIXED_RESOLUTION),
@@ -344,5 +343,4 @@ void ChBroadphase::OneLevelBroadphase() {
     }
 }
 
-}  // end namespace collision
 }  // end namespace chrono

@@ -20,10 +20,9 @@
 #include "chrono/collision/ChCollisionModel.h"
 
 namespace chrono {
-namespace collision {
 namespace ch_utils {
 
-real3 SupportVertNoMargin(const chrono::collision::ConvexBase* Shape, const real3& nv, const real& envelope) {
+real3 SupportVertNoMargin(const chrono::ConvexBase* Shape, const real3& nv, const real& envelope) {
     real3 localSupport;
     real3 n = Normalize(nv);
     switch (Shape->Type()) {
@@ -54,7 +53,7 @@ real3 SupportVertNoMargin(const chrono::collision::ConvexBase* Shape, const real
         case ChCollisionShape::Type::CYLSHELL:
             localSupport = GetSupportPoint_CylindricalShell(Shape->Box(), n);
             break;
-        case ChCollisionShape::Type::CONVEX:
+        case ChCollisionShape::Type::CONVEXHULL:
             localSupport = GetSupportPoint_Convex(Shape->Size(), Shape->Convex(), n);
             break;
         case ChCollisionShape::Type::TETRAHEDRON:
@@ -68,12 +67,12 @@ real3 SupportVertNoMargin(const chrono::collision::ConvexBase* Shape, const real
     return localSupport;
 }
 
-real3 LocalSupportVert(const chrono::collision::ConvexBase* Shape, const real3& n, const real& envelope) {
+real3 LocalSupportVert(const chrono::ConvexBase* Shape, const real3& n, const real& envelope) {
     real3 rotated_n = RotateT(n, Shape->R());
     return SupportVertNoMargin(Shape, rotated_n, envelope);
 }
 
-real3 TransformSupportVert(const chrono::collision::ConvexBase* Shape, const real3& n, const real& envelope) {
+real3 TransformSupportVert(const chrono::ConvexBase* Shape, const real3& n, const real& envelope) {
     real3 localSupport;
 
     switch (Shape->Type()) {
@@ -216,5 +215,4 @@ void FindTriIndex(const real3& P, const uvec4& T, const real3* pos_node, int& fa
 }
 
 }  // end namespace ch_utils
-}  // end namespace collision
 }  // end namespace chrono

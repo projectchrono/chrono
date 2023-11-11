@@ -4,8 +4,6 @@
 #include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChContactable.h"
 
-//using namespace collision;
-
 %}
 
 %shared_ptr(chrono::ChContactContainer::ReportContactCallback)

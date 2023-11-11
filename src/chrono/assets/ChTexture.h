@@ -22,6 +22,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_assets
+/// @{
+
 /// Class for defining a texture.
 /// Encapsulates the texture filename and texture scale.
 class ChApi ChTexture {
@@ -61,6 +64,8 @@ class ChApi ChTexture {
     std::string m_filename;
     ChVector2<float> m_scale;
 };
+
+/// @} chrono_assets
 
 CH_CLASS_VERSION(ChTexture, 0)
 

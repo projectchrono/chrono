@@ -139,8 +139,8 @@ FEAcontactTest::FEAcontactTest(SolverType solver_type) {
         }
     }
 
-    collision::ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
-    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.006);
+    ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
+    ChCollisionModel::SetDefaultSuggestedMargin(0.006);
 
     auto cmat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     cmat->SetYoungModulus(6e4);

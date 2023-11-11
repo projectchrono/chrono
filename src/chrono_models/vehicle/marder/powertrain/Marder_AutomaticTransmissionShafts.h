@@ -28,7 +28,7 @@ namespace chrono {
 namespace vehicle {
 namespace marder {
 
-/// @addtogroup vehicle_models_Marder
+/// @addtogroup vehicle_models_marder
 /// @{
 
 /// Shafts-based powertrain model for the Marder vehicle.
@@ -62,9 +62,9 @@ class CH_MODELS_API Marder_AutomaticTransmissionShafts : public ChAutomaticTrans
     static const double m_downshift_RPM;
 };
 
-/// @} vehicle_models_Marder
+/// @} vehicle_models_marder
 
-}  // end namespace Marder
+}  // end namespace marder
 }  // end namespace vehicle
 }  // end namespace chrono
 

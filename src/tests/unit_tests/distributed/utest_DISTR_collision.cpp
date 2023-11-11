@@ -6,7 +6,6 @@
 #include <memory>
 
 using namespace chrono;
-using namespace chrono::collision;
 
 double dt = 0.001;
 
@@ -27,17 +26,18 @@ int main(int argc, char* argv[]) {
 
     ChVector<double> pos1(5, 5, 0.01);
     ball1->SetPos(pos1);
-    ball1->GetCollisionModel()->ClearModel();
-    ball1->GetCollisionModel()->AddSphere(material, 0.15, pos1);
-    ball1->GetCollisionModel()->BuildModel();
+    ball1->GetCollisionModel()->Clear();
+    auto ct_shape1 = chrono_types::make_shared<ChCollisionShapeSphere>(material, 0.15);
+    ball1->GetCollisionModel()->AddShape(ct_shape1, ChFrame<>(pos1, QUNIT));
+    ball1->GetCollisionModel()->Build();
     ball1->SetCollide(true);
 
     ChVector<double> pos2(5, 5, 11.02);
     ball2->SetPos(pos2);
-    ball2->GetCollisionModel()->ClearModel();
-    ball2->GetCollisionModel()->AddSphere(material, 0.15, pos2);
-    // ball2->GetCollisionModel()->AddSphere(material, 0.2, pos2);
-    ball2->GetCollisionModel()->BuildModel();
+    ball2->GetCollisionModel()->Clear();
+    auto ct_shape2 = chrono_types::make_shared<ChCollisionShapeSphere>(material, 0.15);
+    ball2->GetCollisionModel()->AddShape(ct_shape2, ChFrame<>(pos2, QUNIT));
+    ball2->GetCollisionModel()->Build();
     ball2->SetCollide(true);
 
     sys.GetDomain()->PrintDomain();

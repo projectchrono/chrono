@@ -66,7 +66,7 @@ void ChSystemMulticoreNSC::Add3DOFContainer(std::shared_ptr<Ch3DOFContainer> con
     container->data_manager = data_manager;
 }
 
-void ChSystemMulticoreNSC::SetContactContainer(collision::ChCollisionSystemType type) {
+void ChSystemMulticoreNSC::SetContactContainer(ChCollisionSystemType type) {
     contact_container = chrono_types::make_shared<ChContactContainerMulticoreNSC>(data_manager);
     contact_container->SetSystem(this);
 }
@@ -163,7 +163,7 @@ void ChSystemMulticoreNSC::AssembleSystem() {
     collision_system->ReportContacts(contact_container.get());
     ChSystem::Update();
     contact_container->BeginAddContact();
-    chrono::collision::ChCollisionInfo icontact;
+    chrono::ChCollisionInfo icontact;
     for (int i = 0; i < (signed)data_manager->cd_data->num_rigid_contacts; i++) {
         vec2 cd_pair = data_manager->cd_data->bids_rigid_rigid[i];
         icontact.modelA = Get_bodylist()[cd_pair.x]->GetCollisionModel().get();

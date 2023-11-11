@@ -38,8 +38,8 @@
 #include "chrono/utils/ChFilters.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/core/ChTimer.h"
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChConeShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeCone.h"
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
@@ -149,8 +149,8 @@ void CreateSceneObjects(std::shared_ptr<ChVehicleVisualSystem> vis,
                         int& sentinelID,
                         int& targetID) {
     // Add visualization of controller points (sentinel & target)
-    auto ballS = chrono_types::make_shared<ChSphereShape>(0.1);
-    auto ballT = chrono_types::make_shared<ChSphereShape>(0.1);
+    auto ballS = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
+    auto ballT = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
     ballS->SetColor(ChColor(1, 0, 0));
     ballT->SetColor(ChColor(0, 1, 0));
     sentinelID = vis->AddVisualModel(ballS, ChFrame<>());
@@ -158,7 +158,7 @@ void CreateSceneObjects(std::shared_ptr<ChVehicleVisualSystem> vis,
 
     // Add the road cones
     ChVector<> cone_offset(0, 0.21, 0);
-    auto cone = chrono_types::make_shared<ChModelFileShape>();
+    auto cone = chrono_types::make_shared<ChVisualShapeModelFile>();
     cone->SetFilename(GetChronoDataFile("models/traffic_cone/trafficCone750mm.obj"));
     cone->SetColor(ChColor(0.8f, 0.8f, 0.8f));
     for (const auto& pos : dlc.GetLeftConePositions())

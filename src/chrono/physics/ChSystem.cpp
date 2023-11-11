@@ -14,9 +14,9 @@
 
 #include <algorithm>
 
-#include "chrono/collision/ChCollisionSystemBullet.h"
+#include "chrono/collision/bullet/ChCollisionSystemBullet.h"
 #ifdef CHRONO_COLLISION
-    #include "chrono/collision/ChCollisionSystemChrono.h"
+    #include "chrono/collision/chrono/ChCollisionSystemChrono.h"
 #endif
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono/physics/ChProximityContainer.h"
@@ -33,9 +33,17 @@
 #include "chrono/utils/ChProfiler.h"
 #include "chrono/physics/ChLinkMate.h"
 
-using namespace chrono::collision;
 
 namespace chrono {
+
+class ChCollisionSystemType_enum_mapper : public ChSystem{
+  public:
+    CH_ENUM_MAPPER_BEGIN(ChCollisionSystemType);
+    CH_ENUM_VAL(ChCollisionSystemType::BULLET);
+    CH_ENUM_VAL(ChCollisionSystemType::CHRONO);
+    CH_ENUM_VAL(ChCollisionSystemType::OTHER);
+    CH_ENUM_MAPPER_END(ChCollisionSystemType);
+};
 
 // -----------------------------------------------------------------------------
 // CLASS FOR PHYSICAL SYSTEM
@@ -77,9 +85,9 @@ ChSystem::ChSystem()
     assembly.system = this;
 
     // Set default collision engine type, collision envelope, and margin.
-    collision_system_type = collision::ChCollisionSystemType::BULLET;
-    collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.03);
-    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.01);
+    collision_system_type = ChCollisionSystemType::BULLET;
+    ChCollisionModel::SetDefaultSuggestedEnvelope(0.03);
+    ChCollisionModel::SetDefaultSuggestedMargin(0.01);
 
     // Set default timestepper.
     timestepper = chrono_types::make_shared<ChTimestepperEulerImplicitLinearized>(this);
@@ -2118,7 +2126,7 @@ void ChSystem::ArchiveOut(ChArchiveOut& marchive) {
 
     // serialize all member data:
 
-    marchive << CHNVP(contact_container);
+    //marchive >> CHNVP(contact_container); // created by the constructor
 
     marchive << CHNVP(G_acc);
     marchive << CHNVP(ch_time);
@@ -2137,6 +2145,10 @@ void ChSystem::ArchiveOut(ChArchiveOut& marchive) {
     marchive << CHNVP(max_penetration_recovery_speed);
 
     //marchive << CHNVP(collision_system);  // ChCollisionSystem should implement class factory for abstract create
+    marchive << CHNVP(composition_strategy);
+
+    ChCollisionSystemType_enum_mapper::ChCollisionSystemType_mapper enum_mapper;
+    marchive << CHNVP(enum_mapper(collision_system_type), "ChSystem__ChCollisionSystemType");
 
     //marchive << CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
 
@@ -2153,7 +2165,7 @@ void ChSystem::ArchiveIn(ChArchiveIn& marchive) {
 
     // stream in all member data:
 
-    marchive >> CHNVP(contact_container);
+    //marchive >> CHNVP(contact_container); // created by the constructor
 
     marchive >> CHNVP(G_acc);
     marchive >> CHNVP(ch_time);
@@ -2172,6 +2184,10 @@ void ChSystem::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(max_penetration_recovery_speed);
 
     //marchive >> CHNVP(collision_system);  // ChCollisionSystem should implement class factory for abstract create
+    marchive >> CHNVP(composition_strategy);
+
+    ChCollisionSystemType_enum_mapper::ChCollisionSystemType_mapper enum_mapper;
+    marchive >> CHNVP(enum_mapper(collision_system_type), "ChSystem__ChCollisionSystemType");
 
     //marchive >> CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
     //timestepper->SetIntegrable(this);

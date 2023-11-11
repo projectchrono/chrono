@@ -41,7 +41,6 @@
 #endif
 
 using namespace chrono;
-using namespace chrono::collision;
 
 double time_step = 1e-3;
 real diameter = 0.016;

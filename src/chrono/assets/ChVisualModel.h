@@ -24,6 +24,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_assets
+/// @{
+
 // Forward declaration
 class ChPhysicsItem;
 
@@ -110,6 +113,8 @@ class ChApi ChVisualModelInstance {
 
     friend class ChPhysicsItem;
 };
+
+/// @} chrono_assets
 
 }  // namespace chrono
 

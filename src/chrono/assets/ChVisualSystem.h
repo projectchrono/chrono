@@ -23,6 +23,9 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_assets
+/// @{
+
 /// Vertical direction
 enum class CameraVerticalDir { Y, Z };
 
@@ -195,6 +198,8 @@ class ChApi ChVisualSystem {
 
     friend class ChSystem;
 };
+
+/// @} chrono_assets
 
 }  // namespace chrono
 

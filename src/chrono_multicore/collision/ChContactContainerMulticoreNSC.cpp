@@ -16,7 +16,6 @@
 
 namespace chrono {
 
-using namespace collision;
 using namespace geometry;
 
 ChContactContainerMulticoreNSC::ChContactContainerMulticoreNSC(ChMulticoreDataManager* dc)
@@ -43,7 +42,7 @@ void ChContactContainerMulticoreNSC::EndAddContact() {
     //// Anything else here?!?
 }
 
-void ChContactContainerMulticoreNSC::AddContact(const collision::ChCollisionInfo& cinfo,
+void ChContactContainerMulticoreNSC::AddContact(const ChCollisionInfo& cinfo,
                                                 std::shared_ptr<ChMaterialSurface> mat1,
                                                 std::shared_ptr<ChMaterialSurface> mat2) {
     assert(cinfo.modelA->GetContactable());
@@ -100,7 +99,7 @@ void ChContactContainerMulticoreNSC::AddContact(const collision::ChCollisionInfo
     }
 }
 
-void ChContactContainerMulticoreNSC::AddContact(const collision::ChCollisionInfo& cinfo) {
+void ChContactContainerMulticoreNSC::AddContact(const ChCollisionInfo& cinfo) {
     assert(cinfo.modelA->GetContactable());
     assert(cinfo.modelB->GetContactable());
 
@@ -152,7 +151,7 @@ void ChContactContainerMulticoreNSC::AddContact(int index, int b1, int s1, int b
         real3 vpA = cd_data->cpta_rigid_rigid[index] + data_manager->host_data.pos_rigid[b1];
         real3 vpB = cd_data->cptb_rigid_rigid[index] + data_manager->host_data.pos_rigid[b2];
 
-        chrono::collision::ChCollisionInfo cinfo;
+        chrono::ChCollisionInfo cinfo;
         cinfo.modelA = blist[b1]->GetCollisionModel().get();
         cinfo.modelB = blist[b2]->GetCollisionModel().get();
         cinfo.shapeA = cinfo.modelA->GetShape(s1_index).get();

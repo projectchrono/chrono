@@ -38,10 +38,10 @@
 #include "chrono_sensor/optix/ChFilterOptixRender.h"
 
 #include "chrono/assets/ChVisualMaterial.h"
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 namespace chrono {
 namespace sensor {
@@ -125,24 +125,24 @@ class CH_SENSOR_API ChOptixEngine {
 
     /// Creates an optix box visualization object from a Chrono box shape
     void boxVisualization(std::shared_ptr<ChBody> body,
-                          std::shared_ptr<ChBoxShape> box_shape,
+                          std::shared_ptr<ChVisualShapeBox> box_shape,
                           ChFrame<> asset_frame);
     /// Creates an optix sphere visualization object from a Chrono sphere shape
     void sphereVisualization(std::shared_ptr<ChBody> body,
-                             std::shared_ptr<ChSphereShape> sphere_shape,
+                             std::shared_ptr<ChVisualShapeSphere> sphere_shape,
                              ChFrame<> asset_frame);
     /// Creates an optix cylinder visualization object from a Chrono cylinder shape
     void cylinderVisualization(std::shared_ptr<ChBody> body,
-                               std::shared_ptr<ChCylinderShape> sphere_shape,
+                               std::shared_ptr<ChVisualShapeCylinder> sphere_shape,
                                ChFrame<> asset_frame);
     /// Creates an optix rigid mesh visualization object from a Chrono mesh shape
     void rigidMeshVisualization(std::shared_ptr<ChBody> body,
-                                std::shared_ptr<ChTriangleMeshShape> sphere_shape,
+                                std::shared_ptr<ChVisualShapeTriangleMesh> sphere_shape,
                                 ChFrame<> asset_frame);
 
     /// Creates an optix deformable mesh visualization object from a Chrono mesh shape
     void deformableMeshVisualization(std::shared_ptr<ChBody> body,
-                                     std::shared_ptr<ChTriangleMeshShape> sphere_shape,
+                                     std::shared_ptr<ChVisualShapeTriangleMesh> sphere_shape,
                                      ChFrame<> asset_frame);
 
     std::vector<unsigned int> m_renderQueue;  ///< list of sensor indices that need to be updated

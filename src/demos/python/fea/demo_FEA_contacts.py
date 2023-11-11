@@ -13,7 +13,6 @@
 import math as m
 import pychrono as chrono
 import pychrono.fea as fea
-import pychrono.pardisomkl as mkl
 import pychrono.irrlicht as chronoirr
 
 
@@ -62,13 +61,13 @@ if (do_mesh_collision_floor) :
     mfloor.SetBodyFixed(True)
     sys.Add(mfloor)
     
-    mfloor.GetCollisionModel().ClearModel()
-    mfloor.GetCollisionModel().AddTriangleMesh(mysurfmaterial, mmeshbox, False, False, chrono.VNULL, chrono.ChMatrix33D(1),
-                                     sphere_swept_thickness)
-    mfloor.GetCollisionModel().BuildModel()
+    mfloor.GetCollisionModel().Clear()
+    mfloor_ct_shape = chrono.ChCollisionShapeTriangleMesh(mysurfmaterial, mmeshbox, False, False, sphere_swept_thickness)
+    mfloor.GetCollisionModel().AddShape(mfloor_ct_shape)
+    mfloor.GetCollisionModel().Build()
     mfloor.SetCollide(True)
     
-    masset_meshbox = chrono.ChTriangleMeshShape()
+    masset_meshbox = chrono.ChVisualShapeTriangleMesh()
     masset_meshbox.SetMesh(mmeshbox)
     mfloor.AddVisualShape(masset_meshbox)
     
@@ -183,11 +182,11 @@ sys.Add(my_mesh_beams)
 #
 
 # ==Asset== attach a visualization of the FEM mesh.
-# This will automatically update a triangle mesh (a ChTriangleMeshShape
+# This will automatically update a triangle mesh (a ChVisualShapeTriangleMesh
 # asset that is internally managed) by setting  proper
 # coordinates and vertex colors as in the FEM elements.
 # Such triangle mesh can be rendered by Irrlicht or POVray or whatever
-# postprocessor that can handle a colored ChTriangleMeshShape).
+# postprocessor that can handle a colored ChVisualShapeTriangleMesh).
 
 mvisualizemesh = chrono.ChVisualShapeFEA(mesh)
 mvisualizemesh.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NODE_SPEED_NORM)

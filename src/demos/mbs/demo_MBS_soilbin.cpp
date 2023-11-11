@@ -22,7 +22,7 @@
 
 #include <algorithm>
 
-#include "chrono/assets/ChPointPointShape.h"
+#include "chrono/assets/ChVisualShapePointPoint.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
@@ -33,7 +33,6 @@
 
 using namespace chrono;
 using namespace chrono::geometry;
-using namespace chrono::collision;
 using namespace chrono::irrlicht;
 
 using namespace irr;
@@ -270,7 +269,7 @@ class SoilbinWheel {
         // Visualization mesh
         auto tireMesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
             GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"), true, true);
-        auto tireMesh_asset = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto tireMesh_asset = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         tireMesh_asset->SetMesh(tireMesh);
         wheel->AddVisualShape(tireMesh_asset);
 
@@ -279,19 +278,20 @@ class SoilbinWheel {
         wheel_mat->SetFriction(0.4f);
 
         // Contact mesh
-        wheel->GetCollisionModel()->ClearModel();
         // Describe the (invisible) colliding shape by adding the 'carcass' decomposed shape and the
         // 'knobs'. Since these decompositions are only for 1/15th of the wheel, use for() to pattern them.
+        std::string knobs_filename(GetChronoDataFile("models/tractor_wheel/tractor_wheel_knobs.chulls"));
+        std::string slice_filename(GetChronoDataFile("models/tractor_wheel/tractor_wheel_slice.chulls"));
+        auto knobs_shapes = ChCollisionShapeConvexHull::Read(wheel_mat, knobs_filename);
+        auto slice_shapes = ChCollisionShapeConvexHull::Read(wheel_mat, slice_filename);
         for (double mangle = 0; mangle < 360.; mangle += (360. / 15.)) {
-            ChQuaternion<> myrot;
-            ChStreamInAsciiFile myknobs(GetChronoDataFile("models/tractor_wheel/tractor_wheel_knobs.chulls").c_str());
-            ChStreamInAsciiFile myslice(GetChronoDataFile("models/tractor_wheel/tractor_wheel_slice.chulls").c_str());
-            myrot.Q_from_AngAxis(mangle * (CH_C_PI / 180.), VECT_X);
-            ChMatrix33<> mm(myrot);
-            wheel->GetCollisionModel()->AddConvexHullsFromFile(wheel_mat, myknobs, ChVector<>(0, 0, 0), mm);
-            wheel->GetCollisionModel()->AddConvexHullsFromFile(wheel_mat, myslice, ChVector<>(0, 0, 0), mm);
+            auto q = Q_from_AngX(mangle * CH_C_DEG_TO_RAD);
+            for (const auto& s : knobs_shapes)
+                wheel->GetCollisionModel()->AddShape(s, ChFrame<>(VNULL, q));
+            for (const auto& s : slice_shapes)
+                wheel->GetCollisionModel()->AddShape(s, ChFrame<>(VNULL, q));
         }
-        wheel->GetCollisionModel()->BuildModel();
+        wheel->GetCollisionModel()->Build();
 
         // Add wheel body to system
         system->AddBody(wheel);
@@ -429,7 +429,7 @@ class TestMech {
         spring->SetDampingCoefficient(springD);
         system->AddLink(spring);
 
-        spring->AddVisualShape(chrono_types::make_shared<ChSpringShape>(0.05, 80, 15));
+        spring->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.05, 80, 15));
 
         // create a prismatic constraint between the weight and the ground
         auto weightLink = chrono_types::make_shared<ChLinkLockOldham>();

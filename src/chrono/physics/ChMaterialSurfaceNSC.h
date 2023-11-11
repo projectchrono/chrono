@@ -108,7 +108,16 @@ class ChApi ChMaterialCompositeNSC : public ChMaterialComposite {
     ChMaterialCompositeNSC(ChMaterialCompositionStrategy* strategy,
                            std::shared_ptr<ChMaterialSurfaceNSC> mat1,
                            std::shared_ptr<ChMaterialSurfaceNSC> mat2);
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& marchive) override;
 };
+
+CH_CLASS_VERSION(ChMaterialCompositeNSC, 0)
+
 
 }  // end namespace chrono
 

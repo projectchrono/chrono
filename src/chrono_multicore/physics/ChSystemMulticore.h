@@ -79,7 +79,7 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
     virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) = 0;
     virtual void UpdateMaterialSurfaceData(int index, ChBody* body) = 0;
     virtual void Setup() override;
-    virtual void SetCollisionSystemType(collision::ChCollisionSystemType type) override;
+    virtual void SetCollisionSystemType(ChCollisionSystemType type) override;
 
     /// Change the default composition laws for contact surface materials
     /// (coefficient of friction, cohesion, compliance, etc.).
@@ -219,7 +219,7 @@ class CH_MULTICORE_API ChSystemMulticoreNSC : public ChSystemMulticore {
 
     void Add3DOFContainer(std::shared_ptr<Ch3DOFContainer> container);
 
-    virtual void SetContactContainer(collision::ChCollisionSystemType type) override;
+    virtual void SetContactContainer(ChCollisionSystemType type) override;
     virtual void SetContactContainer(std::shared_ptr<ChContactContainer> container) override;
 
     void CalculateContactForces() override;
@@ -252,8 +252,8 @@ class CH_MULTICORE_API ChSystemMulticoreSMC : public ChSystemMulticore {
     virtual void UpdateMaterialSurfaceData(int index, ChBody* body) override;
 
     virtual void Setup() override;
-    virtual void SetCollisionSystemType(collision::ChCollisionSystemType type) override;
-    virtual void SetContactContainer(collision::ChCollisionSystemType type) override;
+    virtual void SetCollisionSystemType(ChCollisionSystemType type) override;
+    virtual void SetContactContainer(ChCollisionSystemType type) override;
     virtual void SetContactContainer(std::shared_ptr<ChContactContainer> container) override;
 
     virtual real3 GetBodyContactForce(uint body_id) const override;

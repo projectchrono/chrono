@@ -25,7 +25,7 @@
 #include "chrono/core/ChRealtimeStep.h"
 
 #ifdef CHRONO_COLLISION
-    #include "chrono/collision/ChCollisionSystemChrono.h"
+    #include "chrono/collision/chrono/ChCollisionSystemChrono.h"
 #endif
 
 #ifdef CHRONO_IRRLICHT
@@ -41,7 +41,7 @@ using namespace chrono;
 
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
-collision::ChCollisionSystemType collision_type = collision::ChCollisionSystemType::BULLET;
+ChCollisionSystemType collision_type = ChCollisionSystemType::BULLET;
 
 void AddFallingItems(ChSystemNSC& sys) {
     // Shared contact materials for falling objects
@@ -147,13 +147,13 @@ int main(int argc, char* argv[]) {
     sys.SetCollisionSystemType(collision_type);
 
     // Settings specific to Chrono multicore collision system
-    if (collision_type == collision::ChCollisionSystemType::CHRONO) {
+    if (collision_type == ChCollisionSystemType::CHRONO) {
 #ifdef CHRONO_COLLISION
-        auto collsys = std::static_pointer_cast<collision::ChCollisionSystemChrono>(sys.GetCollisionSystem());
+        auto collsys = std::static_pointer_cast<ChCollisionSystemChrono>(sys.GetCollisionSystem());
         // Change the default number of broadphase bins
         collsys->SetBroadphaseGridResolution(ChVector<int>(10, 10, 2));
         // Change default narrowphase algorithm
-        ////collsys->SetNarrowphaseAlgorithm(collision::ChNarrowphase::Algorithm::MPR);
+        ////collsys->SetNarrowphaseAlgorithm(ChNarrowphase::Algorithm::MPR);
         collsys->SetEnvelope(0.005);
         // Enable active bounding box
         collsys->EnableActiveBoundingBox(ChVector<>(-10, -10, -20), ChVector<>(+10, +10, +10));

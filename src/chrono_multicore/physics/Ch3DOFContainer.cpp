@@ -26,7 +26,6 @@
 
 namespace chrono {
 
-using namespace collision;
 using namespace geometry;
 
 Ch3DOFContainer::Ch3DOFContainer()

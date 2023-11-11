@@ -39,11 +39,11 @@ model = Model3(sys, mesh)
 sys.Add(mesh)
 
 # ==Asset== attach a visualization of the FEM mesh.
-# This will automatically update a triangle mesh (a ChTriangleMeshShape
+# This will automatically update a triangle mesh (a ChVisualShapeTriangleMesh
 # asset that is internally managed) by setting  proper
 # coordinates and vertex colors as in the FEM elements.
 # Such triangle mesh can be rendered by Irrlicht or POVray or whatever
-# postprocessor that can handle a colored ChTriangleMeshShape).
+# postprocessor that can handle a colored ChVisualShapeTriangleMesh).
 
 visualizebeamA = chrono.ChVisualShapeFEA(mesh)
 visualizebeamA.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_ELEM_BEAM_MZ)

@@ -34,7 +34,6 @@
 #include "chrono_opengl/UI/ChOpenGLStats.h"
 
 namespace chrono {
-using namespace collision;
 namespace opengl {
 using namespace glm;
 

@@ -18,7 +18,6 @@
 #include "chrono/geometry/ChGeometry.h"
 
 namespace chrono {
-namespace collision {
 
 /// @addtogroup chrono_collision
 /// @{
@@ -148,7 +147,6 @@ class ChCollisionPair {
 
 /// @} chrono_collision
 
-}  // end namespace collision
 }  // end namespace chrono
 
 #endif

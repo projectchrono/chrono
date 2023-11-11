@@ -17,7 +17,7 @@
 //
 // =============================================================================
 
-#include "chrono/collision/ChCollisionModelBullet.h"
+#include "chrono/collision/bullet/ChCollisionModelBullet.h"
 
 #include "chrono_multicore/collision/ChCollisionSystemBulletMulticore.h"
 #include "chrono_multicore/ChDataManager.h"
@@ -28,7 +28,6 @@
 #include "chrono/collision/bullet/BulletCollision/CollisionDispatch/cbtCollisionDispatcherMt.h"
 
 namespace chrono {
-namespace collision {
 
 /*
  void defaultChronoNearCallback(cbtBroadphasePair& collisionPair, cbtCollisionDispatcher& dispatcher, cbtDispatcherInfo&
@@ -113,12 +112,13 @@ void ChCollisionSystemBulletMulticore::Run() {
     }
 }
 
-void ChCollisionSystemBulletMulticore::GetBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const {
+geometry::ChAABB ChCollisionSystemBulletMulticore::GetBoundingBox() const {
     cbtVector3 aabbMin;
     cbtVector3 aabbMax;
     bt_broadphase->getBroadphaseAabb(aabbMin, aabbMax);
-    aabb_min = ChVector<>((double)aabbMin.x(), (double)aabbMin.y(), (double)aabbMin.z());
-    aabb_max = ChVector<>((double)aabbMax.x(), (double)aabbMax.y(), (double)aabbMax.z());
+
+    return geometry::ChAABB(ChVector<>((double)aabbMin.x(), (double)aabbMin.y(), (double)aabbMin.z()),
+                            ChVector<>((double)aabbMax.x(), (double)aabbMax.y(), (double)aabbMax.z()));
 }
 
 void ChCollisionSystemBulletMulticore::ResetTimers() {
@@ -249,5 +249,4 @@ void ChCollisionSystemBulletMulticore::ReportContacts(ChContactContainer* mconta
     data_manager->system_timer.stop("collision_narrow");
 }
 
-}  // end namespace collision
 }  // end namespace chrono

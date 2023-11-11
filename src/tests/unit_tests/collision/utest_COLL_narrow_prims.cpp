@@ -23,8 +23,7 @@
 #include "unit_testing.h"
 
 using namespace chrono;
-using namespace chrono::collision;
-using namespace chrono::collision::ch_utils;
+using namespace chrono::ch_utils;
 
 using std::cout;
 using std::endl;

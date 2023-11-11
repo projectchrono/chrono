@@ -130,7 +130,7 @@ using namespace chrono::copter;
 %shared_ptr(chrono::ChPhysicsItem)
 %shared_ptr(chrono::ChNodeBase) 
 %shared_ptr(chrono::ChNodeXYZ) 
-%shared_ptr(chrono::ChTriangleMeshShape)
+%shared_ptr(chrono::ChVisualShapeTriangleMesh)
 %shared_ptr(chrono::geometry::ChTriangleMeshConnected)
 %shared_ptr(chrono::ChFunction_Recorder)
 %shared_ptr(chrono::ChBezierCurve)
@@ -220,7 +220,7 @@ using namespace chrono::copter;
 
 %import(module = "pychrono.core") "../chrono/physics/ChBodyFrame.h"
 %import(module = "pychrono.core") "../chrono/physics/ChLinkBase.h"
-%import(module = "pychrono.core") "../chrono/assets/ChTriangleMeshShape.h"
+%import(module = "pychrono.core") "../chrono/assets/ChVisualShapeTriangleMesh.h"
 
 %rename(CollisionFamily_CHASSIS) chrono::robosimian::CollisionFamily::CHASSIS;
 %rename(CollisionFamily_SLED) chrono::robosimian::CollisionFamily::SLED;

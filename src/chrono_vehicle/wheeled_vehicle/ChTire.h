@@ -25,7 +25,7 @@
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChVector.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/motion_functions/ChFunction_Recorder.h"
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
@@ -171,7 +171,7 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// The two meshes are assumed to be specified with respect to a frame with origin at the center of the tire and Y
     /// axis pointing towards the outside. This function uses one of the two provided OBJ files, depending on the side
     /// on which the tire is mounted. The name of the output mesh shape is set to be the stem of the input filename.
-    std::shared_ptr<ChTriangleMeshShape> AddVisualizationMesh(const std::string& mesh_file_left,
+    std::shared_ptr<ChVisualShapeTriangleMesh> AddVisualizationMesh(const std::string& mesh_file_left,
                                                               const std::string& mesh_file_right);
 
     /// Perform disc-terrain collision detection, using the specified method.

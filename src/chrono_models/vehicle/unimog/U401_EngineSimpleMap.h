@@ -30,7 +30,7 @@ namespace chrono {
 namespace vehicle {
 namespace unimog {
 
-/// @addtogroup vehicle_models_U401
+/// @addtogroup vehicle_models_unimog
 /// @{
 
 /// Simple U401 powertrain subsystem (based on engine speed-torque maps).
@@ -49,7 +49,7 @@ class CH_MODELS_API U401_EngineSimpleMap : public ChEngineSimpleMap {
                                      ) override;
 };
 
-/// @} vehicle_models_U401
+/// @} vehicle_models_unimog
 
 }  // namespace unimog
 }  // end namespace vehicle

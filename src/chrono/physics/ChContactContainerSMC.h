@@ -102,14 +102,14 @@ class ChApi ChContactContainerSMC : public ChContactContainer {
     /// Add a contact between two collision shapes, storing it into this container.
     /// A compositecontact material is created from the two given materials.
     /// In this case, the collision info object may have null pointers to collision shapes.
-    virtual void AddContact(const collision::ChCollisionInfo& cinfo,
+    virtual void AddContact(const ChCollisionInfo& cinfo,
                             std::shared_ptr<ChMaterialSurface> mat1,
                             std::shared_ptr<ChMaterialSurface> mat2) override;
 
     /// Add a contact between two collision shapes, storing it into this container.
     /// The collision info object is assumed to contain valid pointers to the two colliding shapes.
     /// A composite contact material is created from their material properties.
-    virtual void AddContact(const collision::ChCollisionInfo& cinfo) override;
+    virtual void AddContact(const ChCollisionInfo& cinfo) override;
 
     /// The collision system will call BeginAddContact() after adding all contacts (for example with AddContact() or
     /// similar). This optimized version purges the end of the list of contacts that were not reused (if any).
@@ -152,7 +152,7 @@ class ChApi ChContactContainerSMC : public ChContactContainer {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
-    void InsertContact(const collision::ChCollisionInfo& cinfo, const ChMaterialCompositeSMC& cmat);
+    void InsertContact(const ChCollisionInfo& cinfo, const ChMaterialCompositeSMC& cmat);
 };
 
 CH_CLASS_VERSION(ChContactContainerSMC, 0)

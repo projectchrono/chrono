@@ -26,7 +26,6 @@
 #endif
 
 using namespace chrono;
-using namespace chrono::collision;
 
 std::string ForceModel_name(ChSystemSMC::ContactForceModel f) {
     switch (f) {
@@ -67,9 +66,9 @@ std::shared_ptr<ChBody> AddSphere(int id,
     body->SetBodyFixed(false);
     body->SetCollide(true);
 
-    body->GetCollisionModel()->ClearModel();
+    body->GetCollisionModel()->Clear();
     utils::AddSphereGeometry(body.get(), mat, radius);
-    body->GetCollisionModel()->BuildModel();
+    body->GetCollisionModel()->Build();
 
     // Return a pointer to the sphere object
     sys->AddBody(body);
@@ -101,9 +100,9 @@ std::shared_ptr<ChBody> AddWall(int id,
     body->SetBodyFixed(wall);
     body->SetCollide(true);
 
-    body->GetCollisionModel()->ClearModel();
+    body->GetCollisionModel()->Clear();
     utils::AddBoxGeometry(body.get(), mat, size);
-    body->GetCollisionModel()->BuildModel();
+    body->GetCollisionModel()->Build();
 
     // Return a pointer to the wall object
     sys->AddBody(body);

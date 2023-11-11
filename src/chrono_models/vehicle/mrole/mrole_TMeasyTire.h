@@ -55,7 +55,7 @@ class CH_MODELS_API mrole_TMeasyTire : public ChTMeasyTire {
     ChFunction_Recorder m_stiffnessMap;
 
     static const std::string m_meshFile;
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
+    std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
 };
 
 /// TMeasy tire model for the mrole, for OFFROAD operation on deformable soils
@@ -82,7 +82,7 @@ class CH_MODELS_API mrole_TMeasyTireSoil : public ChTMeasyTire {
     ChFunction_Recorder m_stiffnessMap;
 
     static const std::string m_meshFile;
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
+    std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
 };
 
 /// TMeasy tire model for the mrole, for OFFROAD operation on deformable sand
@@ -109,7 +109,7 @@ class CH_MODELS_API mrole_TMeasyTireSand : public ChTMeasyTire {
     ChFunction_Recorder m_stiffnessMap;
 
     static const std::string m_meshFile;
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
+    std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
 };
 
 /// @} vehicle_models_mrole

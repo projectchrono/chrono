@@ -38,7 +38,6 @@
 #include "chrono_multicore/ChMulticoreDefines.h"
 
 using namespace chrono;
-using namespace collision;
 
 // Structure of force data used internally for MPI sending contact forces.
 struct internal_force {
@@ -146,11 +145,11 @@ void ChSystemDistributed::UpdateRigidBodies() {
 }
 
 ChBody* ChSystemDistributed::NewBody() {
-    return new ChBody(chrono_types::make_shared<collision::ChCollisionModelDistributed>());
+    return new ChBody(chrono_types::make_shared<ChCollisionModelDistributed>());
 }
 
 ChBodyAuxRef* ChSystemDistributed::NewBodyAuxRef() {
-    return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelDistributed>());
+    return new ChBodyAuxRef(chrono_types::make_shared<ChCollisionModelDistributed>());
 }
 
 void ChSystemDistributed::AddBodyAllRanks(std::shared_ptr<ChBody> newbody) {
@@ -199,12 +198,12 @@ void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
 
     // Check for collision with this sub-domain
     if (newbody->GetBodyFixed()) {
-        ChVector<double> body_min;
-        ChVector<double> body_max;
         ChVector<double> sublo(domain->GetSubLo());
         ChVector<double> subhi(domain->GetSubHi());
 
-        newbody->GetCollisionModel()->GetAABB(body_min, body_max);
+        auto bbox = newbody->GetCollisionModel()->GetBoundingBox();
+        ChVector<> body_min = bbox.min;
+        ChVector<> body_max = bbox.max;
 
         body_min += newbody->GetPos();
         body_max += newbody->GetPos();
@@ -263,7 +262,7 @@ void ChSystemDistributed::AddBodyExchange(std::shared_ptr<ChBody> newbody, distr
     // NOTE: Ensures that colsys::add isn't called until shapes are added
     newbody->SetCollide(false);
     // NOTE: Clears NEW model - Doesn't call colsys::remove because system isn't set yet
-    newbody->GetCollisionModel()->ClearModel();
+    newbody->GetCollisionModel()->Clear();
     newbody->SetSystem(this);
 
     // Actual data is set in UpdateBodies()
@@ -280,8 +279,8 @@ void ChSystemDistributed::AddBodyExchange(std::shared_ptr<ChBody> newbody, distr
 void ChSystemDistributed::RemoveBodyExchange(int index) {
     ddm->comm_status[index] = distributed::EMPTY;
     assembly.bodylist[index]->SetBodyFixed(true);
-    assembly.bodylist[index]->SetCollide(false);                  // NOTE: Calls collisionsystem::remove
-    assembly.bodylist[index]->GetCollisionModel()->ClearModel();  // NOTE: Ensures new model is clear
+    assembly.bodylist[index]->SetCollide(false);             // NOTE: Calls collisionsystem::remove
+    assembly.bodylist[index]->GetCollisionModel()->Clear();  // NOTE: Ensures new model is clear
     ddm->gid_to_localid.erase(ddm->global_id[index]);
 }
 

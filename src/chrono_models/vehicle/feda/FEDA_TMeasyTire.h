@@ -27,10 +27,10 @@ namespace chrono {
 namespace vehicle {
 namespace feda {
 
-/// @addtogroup vehicle_models_U401
+/// @addtogroup vehicle_models_feda
 /// @{
 
-/// TMeasy tire model for the U401.
+/// TMeasy tire model for the FED Alpha.
 class CH_MODELS_API FEDA_TMeasyTire : public ChTMeasyTire {
    public:
     FEDA_TMeasyTire(const std::string& name);
@@ -55,12 +55,12 @@ class CH_MODELS_API FEDA_TMeasyTire : public ChTMeasyTire {
 
     static const std::string m_meshFile_left;
     static const std::string m_meshFile_right;
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
+    std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;
 };
 
-/// @} vehicle_models_U401
+/// @} vehicle_models_feda
 
-}  // namespace FEDA
+}  // namespace feda
 }  // end namespace vehicle
 }  // end namespace chrono
 

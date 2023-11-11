@@ -20,7 +20,7 @@
 // =============================================================================
 
 #include "chrono/ChConfig.h"
-#include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono_multicore/physics/ChSystemMulticore.h"
@@ -134,11 +134,12 @@ ContactForceTest::ContactForceTest() : sys(nullptr) {
         ball->SetCollide(true);
         ball->SetBodyFixed(false);
 
-        ball->GetCollisionModel()->ClearModel();
-        ball->GetCollisionModel()->AddSphere(material, radius);
-        ball->GetCollisionModel()->BuildModel();
+        ball->GetCollisionModel()->Clear();
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(material, radius);
+        ball->GetCollisionModel()->AddShape(ct_shape);
+        ball->GetCollisionModel()->Build();
 
-        auto sphere = chrono_types::make_shared<ChSphereShape>(radius);
+        auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(radius);
         sphere->SetColor(ChColor(1, 0, 1));
         ball->AddVisualShape(sphere);
 

@@ -21,6 +21,10 @@
 #include "chrono/physics/ChSystem.h"
 
 namespace chrono {
+CH_FACTORY_REGISTER(ChMaterialSurface)
+CH_FACTORY_REGISTER(ChContactMaterialData);
+CH_FACTORY_REGISTER(ChMaterialComposite);
+CH_FACTORY_REGISTER(ChMaterialCompositionStrategy);
 
 // -----------------------------------------------------------------------------
 
@@ -114,6 +118,51 @@ std::shared_ptr<ChMaterialSurface> ChContactMaterialData::CreateMaterial(ChConta
         default:
             return std::shared_ptr<ChMaterialSurface>();
     }
+}
+
+void ChContactMaterialData::ArchiveOut(ChArchiveOut& marchive) {
+    marchive.VersionWrite<ChContactMaterialData>();
+
+    marchive << CHNVP(mu);
+    marchive << CHNVP(cr);
+    marchive << CHNVP(Y);
+    marchive << CHNVP(nu);
+    marchive << CHNVP(kn);
+    marchive << CHNVP(gn);
+    marchive << CHNVP(kt);
+    marchive << CHNVP(gt);
+}
+
+void ChContactMaterialData::ArchiveIn(ChArchiveIn& marchive) {
+    marchive.VersionRead<ChContactMaterialData>();
+
+    marchive >> CHNVP(mu);
+    marchive >> CHNVP(cr);
+    marchive >> CHNVP(Y);
+    marchive >> CHNVP(nu);
+    marchive >> CHNVP(kn);
+    marchive >> CHNVP(gn);
+    marchive >> CHNVP(kt);
+    marchive >> CHNVP(gt);
+}
+
+
+
+void ChMaterialComposite::ArchiveOut(ChArchiveOut& marchive) {
+    marchive.VersionWrite<ChMaterialComposite>();
+}
+
+void ChMaterialComposite::ArchiveIn(ChArchiveIn& marchive) {
+    marchive.VersionRead<ChMaterialComposite>();
+}
+
+
+void ChMaterialCompositionStrategy::ArchiveOut(ChArchiveOut& marchive) {
+    marchive.VersionWrite<ChMaterialCompositionStrategy>();
+}
+
+void ChMaterialCompositionStrategy::ArchiveIn(ChArchiveIn& marchive) {
+    marchive.VersionRead<ChMaterialCompositionStrategy>();
 }
 
 }  // end namespace chrono

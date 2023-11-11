@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
     ground->SetBodyFixed(true);
     ground->SetCollide(false);
 
-    auto cyl = chrono_types::make_shared<ChCylinderShape>(0.04, 0.4);
+    auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.04, 0.4);
     ground->AddVisualShape(cyl);
 
     // Create a pendulum body
@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
     pend->SetPos(ChVector<>(1.5, 0, 0));
 
     // Attach visualization assets.
-    auto cyl_p = chrono_types::make_shared<ChCylinderShape>(0.2, 2.92);
+    auto cyl_p = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 2.92);
     cyl_p->SetColor(ChColor(0.6f, 0, 0));
     pend->AddVisualShape(cyl_p, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
 

@@ -3,16 +3,14 @@
 /* Includes the header in the wrapper code */
 #include "chrono/physics/ChProximityContainer.h"
 
-using namespace collision;
-
 
 // NESTED CLASSES: inherit stubs (not virtual) as outside classes
 
 class ChReportProximityCallbackP : public chrono::ChProximityContainer::ReportProximityCallback {
     public:
         ChReportProximityCallbackP() {}
-        virtual bool OnReportProximity(chrono::collision::ChCollisionModel* modA,
-                                       chrono::collision::ChCollisionModel* modB) {
+        virtual bool OnReportProximity(chrono::ChCollisionModel* modA,
+                                       chrono::ChCollisionModel* modB) {
             GetLog() << "You must implement OnReportProximity()!\n";
             return false;
         }
@@ -21,8 +19,8 @@ class ChReportProximityCallbackP : public chrono::ChProximityContainer::ReportPr
 class ChAddProximityCallbackP : public chrono::ChProximityContainer::AddProximityCallback {
     public:
         ChAddProximityCallbackP() {}
-        virtual void OnAddProximity(const chrono::collision::ChCollisionModel& modA,
-                                    const chrono::collision::ChCollisionModel& modB) {
+        virtual void OnAddProximity(const chrono::ChCollisionModel& modA,
+                                    const chrono::ChCollisionModel& modB) {
             GetLog() << "You must implement OnAddProximity()!\n";
         }
 };
@@ -46,8 +44,8 @@ class ChAddProximityCallbackP : public chrono::ChProximityContainer::AddProximit
 class ChReportProximityCallbackP {
   public:
     virtual ~ChReportProximityCallbackP() {}
-    virtual bool OnReportProximity(chrono::collision::ChCollisionModel* modA,
-                                   chrono::collision::ChCollisionModel* modB) {
+    virtual bool OnReportProximity(chrono::ChCollisionModel* modA,
+                                   chrono::ChCollisionModel* modB) {
         return false;
     }
 };
@@ -55,8 +53,8 @@ class ChReportProximityCallbackP {
 class ChAddProximityCallbackP {
   public:
     virtual ~ChAddProximityCallbackP() {}
-    virtual void OnAddProximity(const chrono::collision::ChCollisionModel& modA,
-                                const chrono::collision::ChCollisionModel& modB) {}
+    virtual void OnAddProximity(const chrono::ChCollisionModel& modA,
+                                const chrono::ChCollisionModel& modB) {}
 };
 
 %extend chrono::ChProximityContainer

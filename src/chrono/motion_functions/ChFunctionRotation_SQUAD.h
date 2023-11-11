@@ -94,7 +94,7 @@ class ChApi ChFunctionRotation_SQUAD : public ChFunctionRotation {
 	void SetSpaceFunction(std::shared_ptr<ChFunction> m_funct) { space_fx = m_funct; }
 
 	/// Set as closed periodic spline: start and end rotations will match at 0 and 1 abscyssa as q(0)=q(1),
-	/// and the Evaluate() and Derive() functions will operate in periodic way (abscyssa 
+	/// and the Evaluate() and GetTangent() functions will operate in periodic way (abscyssa 
 	/// greater than 1 or smaller than 0 will wrap to 0..1 range).
 	/// The closure will change the knot vector (multiple start end knots will be lost) and
 	/// will create auxiliary p control points at the end that will be wrapped to the beginning control points.

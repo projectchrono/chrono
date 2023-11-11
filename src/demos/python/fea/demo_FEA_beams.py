@@ -141,7 +141,7 @@ mesh.SetAutomaticGravity(False);
 sys.Add(mesh)
 
 # ==Asset== attach a visualization of the FEM mesh.
-# This will automatically update a triangle mesh (a ChTriangleMeshShape
+# This will automatically update a triangle mesh (a ChVisualShapeTriangleMesh
 # asset that is internally managed) by setting  proper
 # coordinates and vertex colors as in the FEM elements.
 

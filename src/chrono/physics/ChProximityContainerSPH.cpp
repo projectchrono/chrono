@@ -21,7 +21,6 @@
 
 namespace chrono {
 
-using namespace collision;
 using namespace geometry;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
@@ -79,7 +78,7 @@ void ChProximityContainerSPH::EndAddProximities() {
     }
 }
 
-void ChProximityContainerSPH::AddProximity(collision::ChCollisionModel* modA, collision::ChCollisionModel* modB) {
+void ChProximityContainerSPH::AddProximity(ChCollisionModel* modA, ChCollisionModel* modB) {
     // Fetch the frames of that proximity and other infos
 
     ChNodeSPH* mnA = dynamic_cast<ChNodeSPH*>(modA->GetContactable());

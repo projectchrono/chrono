@@ -27,7 +27,7 @@ namespace chrono {
 namespace vehicle {
 namespace unimog {
 
-/// @addtogroup vehicle_models_U401
+/// @addtogroup vehicle_models_unimog
 /// @{
 
 /// Shafts-based HMMWV brake subsystem (uses a clutch between two shafts).
@@ -44,7 +44,7 @@ class CH_MODELS_API U401_BrakeShafts : public ChBrakeShafts {
     static const double m_shaft_inertia;
 };
 
-/// @} vehicle_models_U401
+/// @} vehicle_models_unimog
 
 }  // namespace unimog
 }  // end namespace vehicle

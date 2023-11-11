@@ -70,7 +70,7 @@ SettlingSMC::SettlingSMC() : m_system(new ChSystemMulticoreSMC), m_step(1e-3) {
     m_system->GetSettings()->solver.max_iteration_bilateral = max_iteration;
     m_system->GetSettings()->solver.tolerance = tolerance;
 
-    m_system->GetSettings()->collision.narrowphase_algorithm = collision::ChNarrowphase::Algorithm::HYBRID;
+    m_system->GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
     m_system->GetSettings()->collision.bins_per_axis = vec3(10, 10, 1);
 
     // The following two lines are optional, since they are the default options.
@@ -98,12 +98,12 @@ SettlingSMC::SettlingSMC() : m_system(new ChSystemMulticoreSMC), m_step(1e-3) {
     bin->SetCollide(true);
     bin->SetBodyFixed(true);
 
-    bin->GetCollisionModel()->ClearModel();
+    bin->GetCollisionModel()->Clear();
     utils::AddBoxContainer(bin, mat,                                      //
                            ChFrame<>(ChVector<>(0, 0, hdim.z()), QUNIT),  //
                            hdim * 2, 0.2,                                 //
                            ChVector<int>(2, 2, -1));
-    bin->GetCollisionModel()->BuildModel();
+    bin->GetCollisionModel()->Build();
 
     m_system->AddBody(bin);
 

@@ -48,18 +48,18 @@ class my_enum_mappers : public ChGeometry {
     CH_ENUM_MAPPER_END(Type);
 };
 
-ChGeometry::AABB ChGeometry::GetBoundingBox(const ChMatrix33<>& rot) const {
-    return AABB();
+ChAABB ChGeometry::GetBoundingBox() const {
+    return ChAABB();
 }
 
-void ChGeometry::InflateBoundingBox(AABB& bbox, const ChMatrix33<>& rot) const {
-    auto this_bbox = GetBoundingBox(rot);
+void ChGeometry::InflateBoundingBox(ChAABB& bbox) const {
+    auto this_bbox = GetBoundingBox();
     bbox.min = Vmin(bbox.min, this_bbox.min);
     bbox.max = Vmin(bbox.max, this_bbox.max);
 }
 
 double ChGeometry::GetBoundingSphereRadius() const {
-    auto bbox = GetBoundingBox(ChMatrix33<>(1));
+    auto bbox = GetBoundingBox();
     return bbox.Size().Length() / 2;
 }
 
@@ -81,17 +81,21 @@ void ChGeometry::ArchiveIn(ChArchiveIn& marchive) {
 
 // -----------------------------------------------------------------------------
 
-ChGeometry::AABB::AABB()
+ChAABB::ChAABB()
     : min(ChVector<>(+std::numeric_limits<double>::max())), max(ChVector<>(-std::numeric_limits<double>::max())) {}
 
-ChGeometry::AABB::AABB(const ChVector<>& aabb_min, const ChVector<>& aabb_max) : min(aabb_min), max(aabb_max) {}
+ChAABB::ChAABB(const ChVector<>& aabb_min, const ChVector<>& aabb_max) : min(aabb_min), max(aabb_max) {}
 
-ChVector<> ChGeometry::AABB::Center() const {
+ChVector<> ChAABB::Center() const {
     return 0.5 * (max - min);
 }
 
-ChVector<> ChGeometry::AABB::Size() const {
+ChVector<> ChAABB::Size() const {
     return max - min;
+}
+
+bool ChAABB::IsInverted() const {
+    return min > max;
 }
 
 }  // end namespace geometry

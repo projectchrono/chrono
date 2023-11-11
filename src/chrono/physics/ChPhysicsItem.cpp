@@ -89,15 +89,13 @@ void ChPhysicsItem::AddCamera(std::shared_ptr<ChCamera> camera) {
     cameras.push_back(camera);
 }
 
-void ChPhysicsItem::GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax) {
-    bbmin.Set(-1e200, -1e200, -1e200);
-    bbmax.Set(1e200, 1e200, 1e200);
+geometry::ChAABB ChPhysicsItem::GetTotalAABB() {
+    return geometry::ChAABB();
 }
 
 void ChPhysicsItem::GetCenter(ChVector<>& mcenter) {
-    ChVector<> mmin, mmax;
-    GetTotalAABB(mmin, mmax);
-    mcenter = (mmin + mmax) * 0.5;
+    auto bbox = GetTotalAABB();
+    mcenter = (bbox.min + bbox.max) * 0.5;
 }
 
 void ChPhysicsItem::Update(double mytime, bool update_assets) {

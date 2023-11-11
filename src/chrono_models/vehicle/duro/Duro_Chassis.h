@@ -30,7 +30,7 @@ namespace chrono {
 namespace vehicle {
 namespace duro {
 
-/// @addtogroup vehicle_models_Duro
+/// @addtogroup vehicle_models_duro
 /// @{
 
 /// Duro chassis subsystem.
@@ -63,7 +63,7 @@ class CH_MODELS_API Duro_Chassis : public ChRigidChassis {
     static const ChCoordsys<> m_driverCsys;
 };
 
-/// @} vehicle_models_Duro
+/// @} vehicle_models_duro
 
 }  // namespace duro
 }  // end namespace vehicle

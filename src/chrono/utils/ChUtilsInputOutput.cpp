@@ -14,17 +14,17 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChCapsuleShape.h"
-#include "chrono/assets/ChConeShape.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChEllipsoidShape.h"
-#include "chrono/assets/ChLineShape.h"
-#include "chrono/assets/ChPointPointShape.h"
-#include "chrono/assets/ChRoundedBoxShape.h"
-#include "chrono/assets/ChRoundedCylinderShape.h"
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChVisualShapeBox.h"
+#include "chrono/assets/ChVisualShapeCapsule.h"
+#include "chrono/assets/ChVisualShapeCone.h"
+#include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeEllipsoid.h"
+#include "chrono/assets/ChVisualShapeLine.h"
+#include "chrono/assets/ChVisualShapePointPoint.h"
+#include "chrono/assets/ChVisualShapeRoundedBox.h"
+#include "chrono/assets/ChVisualShapeRoundedCylinder.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
+#include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
@@ -205,8 +205,6 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
         iss3 >> n_shapes;
 
         // In a loop, read information about each shape and add geometry to the body
-        body->GetCollisionModel()->ClearModel();
-
         for (int j = 0; j < n_shapes; j++) {
             std::getline(ifile, line);
             std::istringstream iss(line);
@@ -238,44 +236,44 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
             int stype;
             iss >> stype;
 
-            switch (collision::ChCollisionShape::Type(stype)) {
-                case collision::ChCollisionShape::Type::SPHERE: {
+            switch (ChCollisionShape::Type(stype)) {
+                case ChCollisionShape::Type::SPHERE: {
                     double radius;
                     iss >> radius;
                     AddSphereGeometry(body.get(), mat, radius, spos, srot);
                 } break;
-                case collision::ChCollisionShape::Type::ELLIPSOID: {
+                case ChCollisionShape::Type::ELLIPSOID: {
                     ChVector<> size;
                     iss >> size.x() >> size.y() >> size.z();
                     AddEllipsoidGeometry(body.get(), mat, size * 2, spos, srot);
                 } break;
-                case collision::ChCollisionShape::Type::BOX: {
+                case ChCollisionShape::Type::BOX: {
                     ChVector<> size;
                     iss >> size.x() >> size.y() >> size.z();
                     AddBoxGeometry(body.get(), mat, size, spos, srot);
                 } break;
-                case collision::ChCollisionShape::Type::CAPSULE: {
+                case ChCollisionShape::Type::CAPSULE: {
                     double radius, height;
                     iss >> radius >> height;
                     AddCapsuleGeometry(body.get(), mat, radius, height, spos, srot);
                 } break;
-                case collision::ChCollisionShape::Type::CYLINDER: {
+                case ChCollisionShape::Type::CYLINDER: {
                     double radius, height;
                     iss >> radius >> height;
                     AddCylinderGeometry(body.get(), mat, radius, height, spos, srot);
                 } break;
-                case collision::ChCollisionShape::Type::CONE: {
+                case ChCollisionShape::Type::CONE: {
                     double radius, height;
                     iss >> radius >> height;
                     AddConeGeometry(body.get(), mat, radius, height, spos, srot);
                 } break;
-                case collision::ChCollisionShape::Type::ROUNDEDBOX: {
+                case ChCollisionShape::Type::ROUNDEDBOX: {
                     ChVector<> size;
                     double srad;
                     iss >> size.x() >> size.y() >> size.z() >> srad;
                     AddRoundedBoxGeometry(body.get(), mat, size * 2, srad, spos, srot);
                 } break;
-                case collision::ChCollisionShape::Type::ROUNDEDCYL: {
+                case ChCollisionShape::Type::ROUNDEDCYL: {
                     double radius, height, srad;
                     iss >> radius >> height >> srad;
                     AddRoundedCylinderGeometry(body.get(), mat, radius, height, srad, spos, srot);
@@ -290,7 +288,7 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
         body->GetCollisionModel()->SetFamilyMask(family_mask);
 
         // Complete construction of the collision model.
-        body->GetCollisionModel()->BuildModel();
+        body->GetCollisionModel()->Build();
     }
 }
 
@@ -402,41 +400,41 @@ void WriteVisualizationAssets(ChSystem* system,
             bool supported = true;
             std::stringstream gss;
 
-            if (auto sphere = std::dynamic_pointer_cast<ChSphereShape>(shape)) {
+            if (auto sphere = std::dynamic_pointer_cast<ChVisualShapeSphere>(shape)) {
                 gss << SPHERE << delim << sphere->GetRadius();
                 a_count++;
-            } else if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(shape)) {
+            } else if (auto ellipsoid = std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape)) {
                 const Vector& size = ellipsoid->GetSemiaxes();
                 gss << ELLIPSOID << delim << size.x() << delim << size.y() << delim << size.z();
                 a_count++;
-            } else if (auto box = std::dynamic_pointer_cast<ChBoxShape>(shape)) {
+            } else if (auto box = std::dynamic_pointer_cast<ChVisualShapeBox>(shape)) {
                 const Vector& hlen = box->GetHalflengths();
                 gss << BOX << delim << hlen.x() << delim << hlen.y() << delim << hlen.z();
                 a_count++;
-            } else if (auto capsule = std::dynamic_pointer_cast<ChCapsuleShape>(shape)) {
+            } else if (auto capsule = std::dynamic_pointer_cast<ChVisualShapeCapsule>(shape)) {
                 gss << CAPSULE << delim << capsule->GetRadius() << delim << capsule->GetHeight();
                 a_count++;
-            } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(shape)) {
+            } else if (auto cylinder = std::dynamic_pointer_cast<ChVisualShapeCylinder>(shape)) {
                 gss << CYLINDER << delim << cylinder->GetRadius() << delim << cylinder->GetHeight();
                 a_count++;
-            } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(shape)) {
+            } else if (auto cone = std::dynamic_pointer_cast<ChVisualShapeCone>(shape)) {
                 gss << CONE << delim << cone->GetRadius() << delim << cone->GetHeight();
                 a_count++;
-            } else if (auto rbox = std::dynamic_pointer_cast<ChRoundedBoxShape>(shape)) {
+            } else if (auto rbox = std::dynamic_pointer_cast<ChVisualShapeRoundedBox>(shape)) {
                 const Vector& hlen = rbox->GetHalflengths();
                 double srad = rbox->GetSphereRadius();
                 gss << ROUNDEDBOX << delim << hlen.x() << delim << hlen.y() << delim << hlen.z() << delim << srad;
                 a_count++;
-            } else if (auto rcyl = std::dynamic_pointer_cast<ChRoundedCylinderShape>(shape)) {
+            } else if (auto rcyl = std::dynamic_pointer_cast<ChVisualShapeRoundedCylinder>(shape)) {
                 double rad = rcyl->GetRadius();
                 double height = rcyl->GetHeight();
                 double srad = rcyl->GetSphereRadius();
                 gss << ROUNDEDCYL << delim << rad << delim << height << delim << srad;
                 a_count++;
-            } else if (auto mesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(shape)) {
+            } else if (auto mesh = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape)) {
                 gss << TRIANGLEMESH << delim << "\"" << mesh->GetName() << "\"";
                 a_count++;
-            } else if (auto line = std::dynamic_pointer_cast<ChLineShape>(shape)) {
+            } else if (auto line = std::dynamic_pointer_cast<ChVisualShapeLine>(shape)) {
                 std::shared_ptr<geometry::ChLine> geom = line->GetLineGeometry();
                 if (auto bezier = std::dynamic_pointer_cast<geometry::ChLineBezier>(geom)) {
                     gss << BEZIER << delim << "\"" << line->GetName() << "\"";
@@ -513,10 +511,10 @@ void WriteVisualizationAssets(ChSystem* system,
             continue;
         for (auto& shape_instance : link->GetVisualModel()->GetShapes()) {
             auto& shape = shape_instance.first;
-            if (std::dynamic_pointer_cast<ChSegmentShape>(shape)) {
+            if (std::dynamic_pointer_cast<ChVisualShapeSegment>(shape)) {
                 csv << SEGMENT << link->GetPoint1Abs() << link->GetPoint2Abs() << std::endl;
                 la_count++;
-            } else if (std::dynamic_pointer_cast<ChSpringShape>(shape)) {
+            } else if (std::dynamic_pointer_cast<ChVisualShapeSpring>(shape)) {
                 csv << COIL << link->GetPoint1Abs() << link->GetPoint2Abs() << std::endl;
                 la_count++;
             }

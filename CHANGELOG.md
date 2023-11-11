@@ -9,7 +9,7 @@ Change Log
   - [Modifications to the HHT integrator](#changed-modifications-to-the-hht-integrator)
   - [Modeling hydraulic circuit elements and hydraulic actuators](#added-modeling-hydraulic-circuit-elements-and-hydraulic-actuators)
   - [Support for modeling components with own dynamics](#added-support-for-modeling-components-with-own-dynamics)
-  - [Renamed SCMTerrain and RCCar vehicle classes](#changed-renamed-scmterrain-and-rccar-vehicle-classes)
+  - [Renamed SPHTerrain and RCCar vehicle classes](#changed-renamed-sphterrain-and-rccar-vehicle-classes)
   - [Moved drive mode to automatic transmissions](#changed-moved-drive-mode-to-automatic-transmissions)
   - [Changed gear numbering](#changed-changed-gear-numbering)
   - [Redundant constraints remover](#added-redundant-constraints-remover)
@@ -195,11 +195,11 @@ class VanDerPolODE : public ChExternalDynamics {
 ```
 
 
-### [Changed] Renamed SCMTerrain and RCCar vehicle classes
+### [Changed] Renamed SPHTerrain and RCCar vehicle classes
 
 For consistency, better suited names were given to the following classes:
-- SCMTerrain was renamed to `CRMTerrain` (deformable terrain using the Continuous Representation Model, an SPH-based granular formulation)
-- RCCar was renamed to `ARTcar` (the Autonomy Research Testbed car)
+- `SPHTerrain` was renamed to `CRMTerrain` (deformable terrain using the Continuous Representation Model, an SPH-based granular formulation)
+- `RCCar` was renamed to `ARTcar` (the Autonomy Research Testbed car)
 
 ### [Changed] Moved drive mode to automatic transmissions
 

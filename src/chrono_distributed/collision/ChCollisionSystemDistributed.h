@@ -20,7 +20,6 @@
 #include "chrono_distributed/ChDistributedDataManager.h"
 
 namespace chrono {
-namespace collision {
 
 /// @addtogroup distributed_collision
 /// @{
@@ -49,5 +48,4 @@ class ChCollisionSystemDistributed : public ChCollisionSystemChronoMulticore {
 };
 /// @} distributed_collision
 
-} /* namespace collision */
-} /* namespace chrono */
+} // end namespace chrono

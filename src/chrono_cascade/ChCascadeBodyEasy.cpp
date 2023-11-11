@@ -12,6 +12,7 @@
 
 #include "chrono_cascade/ChCascadeBodyEasy.h"
 
+
 namespace chrono {
 namespace cascade {
 
@@ -78,16 +79,17 @@ void ChCascadeBodyEasy::Init(TopoDS_Shape& shape,
         auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
         ChCascadeMeshTools::fillTriangleMeshFromCascade(*trimesh, topods_shape, *vis_params);
 
-        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         this->AddVisualShape(trimesh_shape);
 
         // Add a collision shape if needed
         if (collide) {
             assert(mat);
-            GetCollisionModel()->ClearModel();
-            GetCollisionModel()->AddTriangleMesh(mat, trimesh, false, false);
-            GetCollisionModel()->BuildModel();
+            GetCollisionModel()->Clear();
+            auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, trimesh, false, false, 0.0);
+            GetCollisionModel()->AddShape(ct_shape);
+            GetCollisionModel()->Build();
             SetCollide(true);
         }
     }
@@ -163,7 +165,7 @@ void ChCascadeBodyEasyProfile::UpdateCollisionAndVisualizationShapes() {
             auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
             ChCascadeMeshTools::fillTriangleMeshFromCascade(*trimesh, prism, *face.visualization);
 
-            auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+            auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
             trimesh_shape->SetMesh(trimesh);
             this->AddVisualShape(trimesh_shape);
         }
@@ -231,30 +233,30 @@ void ChCascadeBodyEasyProfile::UpdateCollisionAndVisualizationShapes() {
 
     // Add a collision shape if needed
 
-    GetCollisionModel()->ClearModel();
+    GetCollisionModel()->Clear();
     bool somefacecollide = false;
 
     for (auto& chface : this->faces) {
         if (chface.collide) {
             assert(chface.material);
             for (auto mpath : chface.wires) {
-                ChVector<> pathposz;
-                mpath->Evaluate(pathposz, 0.0);  // for offset along Z
-                GetCollisionModel()->Add2Dpath(chface.material, mpath,
-                                               ChVector<>(0, 0, pathposz.z() + chface.thickness * 0.5), ChMatrix33<>(1),
-                                               chface.thickness * 0.99);
+                ChVector<> pathposz = mpath->Evaluate(0.0);  // for offset along Z
+                auto ct_shape =
+                    chrono_types::make_shared<ChCollisionShapePath2D>(chface.material, mpath, chface.thickness * 0.99);
+                GetCollisionModel()->AddShape(
+                    ct_shape, ChFrame<>(ChVector<>(0, 0, pathposz.z() + chface.thickness * 0.5), QUNIT));
             }
             for (auto mhole : chface.holes) {
-                ChVector<> pathposz;
-                mhole->Evaluate(pathposz, 0.0);  // for offset along Z
-                GetCollisionModel()->Add2Dpath(chface.material, mhole,
-                                               ChVector<>(0, 0, pathposz.z() + chface.thickness * 0.5), ChMatrix33<>(1),
-                                               chface.thickness * 0.99);
+                ChVector<> pathposz = mhole->Evaluate(0.0);  // for offset along Z
+                auto ct_shape =
+                    chrono_types::make_shared<ChCollisionShapePath2D>(chface.material, mhole, chface.thickness * 0.99);
+                GetCollisionModel()->AddShape(ct_shape,
+                                              ChFrame<>(ChVector<>(0, 0, pathposz.z() + chface.thickness * 0.5), QUNIT));
             }
             somefacecollide = true;
         }
     }
-    GetCollisionModel()->BuildModel();
+    GetCollisionModel()->Build();
     if (somefacecollide)
         SetCollide(true);
     else

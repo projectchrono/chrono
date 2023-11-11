@@ -17,7 +17,7 @@
 
 #include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChBody.h"
-#include "chrono/assets/ChPointPointShape.h"
+#include "chrono/assets/ChVisualShapePointPoint.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
@@ -174,7 +174,7 @@ class ChApi ChLinkRSDA : public ChLink {
     double m_angle_dt;       ///< current angle rate of change
     double m_torque;         ///< resulting torque along relative axis of rotation
 
-    friend class ChRotSpringShape;
+    friend class ChVisualShapeRotSpring;
 };
 
 CH_CLASS_VERSION(ChLinkRSDA, 0)
