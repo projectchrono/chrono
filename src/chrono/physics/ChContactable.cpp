@@ -28,14 +28,23 @@ class my_enum_mappers : public ChContactable {
     CH_ENUM_MAPPER_END(eChContactableType);
 };
 
+ChContactable::ChContactable() : collision_model(nullptr) {}
 
+void ChContactable::AddCollisionModel(std::shared_ptr<ChCollisionModel> model) {
+    collision_model = model;
+    model->SetContactable(this);
+}
+
+std::shared_ptr<ChCollisionModel> ChContactable::GetCollisionModel() const {
+    return collision_model;
+}
 
 void ChContactable::ArchiveOut(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChContactable>();
 
     // serialize parent class
-    //marchive << CHNVP(m_data); // cannot serialize as it is
+    // marchive << CHNVP(m_data); // cannot serialize as it is
 }
 
 void ChContactable::ArchiveIn(ChArchiveIn& marchive) {

@@ -286,9 +286,9 @@ void ChParticleCloud::ResizeNparticles(int newsize) {
         particles[j]->variables.SetSharedMass(&particle_mass);
         particles[j]->variables.SetUserData((void*)this);  // UserData unuseful in future parallel solver?
 
-        particles[j]->collision_model->SetContactable(particles[j]);
-        particles[j]->collision_model->AddShapes(particle_collision_model);
-        particles[j]->collision_model->Build();
+        particles[j]->GetCollisionModel()->SetContactable(particles[j]);
+        particles[j]->GetCollisionModel()->AddShapes(particle_collision_model);
+        particles[j]->GetCollisionModel()->Build();
     }
 
     SetCollide(oldcoll);  // this will also add particle coll.models to coll.engine, if already in a ChSystem
@@ -305,9 +305,9 @@ void ChParticleCloud::AddParticle(ChCoordsys<double> initial_state) {
     newp->variables.SetSharedMass(&particle_mass);
     newp->variables.SetUserData((void*)this);  // UserData unuseful in future parallel solver?
 
-    newp->collision_model->SetContactable(newp);
-    newp->collision_model->AddShapes(particle_collision_model);
-    newp->collision_model->Build();  // will also add to system, if collision is on.
+    newp->GetCollisionModel()->SetContactable(newp);
+    newp->GetCollisionModel()->AddShapes(particle_collision_model);
+    newp->GetCollisionModel()->Build();  // will also add to system, if collision is on.
 }
 
 ChColor ChParticleCloud::GetVisualColor(unsigned int n) const {
@@ -635,14 +635,14 @@ void ChParticleCloud::SetCollide(bool mcoll) {
         do_collide = true;
         if (GetSystem()) {
             for (unsigned int j = 0; j < particles.size(); j++) {
-                GetSystem()->GetCollisionSystem()->Add(particles[j]->collision_model.get());
+                GetSystem()->GetCollisionSystem()->Add(particles[j]->GetCollisionModel().get());
             }
         }
     } else {
         do_collide = false;
         if (GetSystem()) {
             for (unsigned int j = 0; j < particles.size(); j++) {
-                GetSystem()->GetCollisionSystem()->Remove(particles[j]->collision_model.get());
+                GetSystem()->GetCollisionSystem()->Remove(particles[j]->GetCollisionModel().get());
             }
         }
     }
@@ -650,7 +650,7 @@ void ChParticleCloud::SetCollide(bool mcoll) {
 
 void ChParticleCloud::SyncCollisionModels() {
     for (unsigned int j = 0; j < particles.size(); j++) {
-        particles[j]->collision_model->SyncPosition();
+        particles[j]->GetCollisionModel()->SyncPosition();
     }
 }
 
@@ -658,14 +658,14 @@ void ChParticleCloud::AddCollisionModelsToSystem() {
     assert(GetSystem());
     SyncCollisionModels();
     for (unsigned int j = 0; j < particles.size(); j++) {
-        GetSystem()->GetCollisionSystem()->Add(particles[j]->collision_model.get());
+        GetSystem()->GetCollisionSystem()->Add(particles[j]->GetCollisionModel().get());
     }
 }
 
 void ChParticleCloud::RemoveCollisionModelsFromSystem() {
     assert(GetSystem());
     for (unsigned int j = 0; j < particles.size(); j++) {
-        GetSystem()->GetCollisionSystem()->Remove(particles[j]->collision_model.get());
+        GetSystem()->GetCollisionSystem()->Remove(particles[j]->GetCollisionModel().get());
     }
 }
 
@@ -673,9 +673,9 @@ void ChParticleCloud::RemoveCollisionModelsFromSystem() {
 
 void ChParticleCloud::UpdateParticleCollisionModels() {
     for (unsigned int j = 0; j < particles.size(); j++) {
-        particles[j]->collision_model->Clear();
-        particles[j]->collision_model->AddShapes(particle_collision_model);
-        particles[j]->collision_model->Build();
+        particles[j]->GetCollisionModel()->Clear();
+        particles[j]->GetCollisionModel()->AddShapes(particle_collision_model);
+        particles[j]->GetCollisionModel()->Build();
     }
 }
 

@@ -26,7 +26,6 @@
 #include "chrono/core/ChFrame.h"
 #include "chrono/geometry/ChLinePath.h"
 #include "chrono/geometry/ChTriangleMesh.h"
-#include "chrono/physics/ChContactable.h"
 #include "chrono/collision/ChCollisionShape.h"
 #include "chrono/collision/ChCollisionShapes.h"
 
@@ -34,6 +33,7 @@ namespace chrono {
 
 // forward references
 class ChPhysicsItem;
+class ChContactable;
 
 /// @addtogroup chrono_collision
 /// @{

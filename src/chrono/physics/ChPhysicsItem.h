@@ -20,7 +20,6 @@
 #include "chrono/physics/ChObject.h"
 #include "chrono/assets/ChCamera.h"
 #include "chrono/assets/ChVisualModel.h"
-#include "chrono/collision/ChCollisionModel.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/timestepper/ChState.h"
 

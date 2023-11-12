@@ -13,6 +13,7 @@
 #ifndef CHCONTACTABLE_H
 #define CHCONTACTABLE_H
 
+#include "chrono/collision/ChCollisionModel.h"
 #include "chrono/solver/ChConstraintTuple.h"
 #include "chrono/core/ChMatrix33.h"
 #include "chrono/core/ChCoordsys.h"
@@ -24,13 +25,19 @@ namespace chrono {
 class type_constraint_tuple;
 class ChPhysicsItem;
 
-/// Interface for objects that generate contacts
+/// Interface for objects that generate contacts.
 /// One should inherit from ChContactable_1vars, ChContactable_2vars  etc. depending
 /// on the number of ChVariable objects contained in the object (i.e. the variable chunks
 /// to whom the contact point position depends, also the variables affected by contact force).
 class ChApi ChContactable {
   public:
     virtual ~ChContactable() {}
+
+    /// Add the collision model.
+    void AddCollisionModel(std::shared_ptr<ChCollisionModel> model);
+
+    /// Access the collision model.
+    std::shared_ptr<ChCollisionModel> GetCollisionModel() const;
 
     /// Indicate whether or not the object must be considered in collision detection.
     virtual bool IsContactActive() = 0;
@@ -124,11 +131,16 @@ class ChApi ChContactable {
     /// Method to allow deserialization of transient data from archives.
     void ArchiveIn(ChArchiveIn& marchive);
 
+  protected:
+    ChContactable();
+
+    std::shared_ptr<ChCollisionModel> collision_model;
+
   private:
     std::shared_ptr<void> m_data;  ///< arbitrary user-data
 };
 
-// Note that template T1 is the number of DOFs in the referenced ChVariable, 
+// Note that template T1 is the number of DOFs in the referenced ChVariable,
 // for instance = 6 for rigid bodies, =3 for ChNodeXYZ, etc.
 
 template <int T1>

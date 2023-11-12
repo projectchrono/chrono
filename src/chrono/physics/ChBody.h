@@ -170,10 +170,6 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Change the collision model.
     void SetCollisionModel(std::shared_ptr<ChCollisionModel> new_collision_model);
 
-    /// Access the collision model for the collision engine.
-    /// To get a non-null pointer, remember to SetCollide(true), before.
-    std::shared_ptr<ChCollisionModel> GetCollisionModel() { return collision_model; }
-
     /// Synchronize coll.model coordinate and bounding box to the position of the body.
     virtual void SyncCollisionModels() override;
     virtual void AddCollisionModelsToSystem() override;
@@ -477,8 +473,6 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
         ) override;
 
   protected:
-    std::shared_ptr<ChCollisionModel> collision_model;  ///< pointer to the collision model
-
     unsigned int body_id;   ///< body-specific identifier, used for indexing (internal use only)
     unsigned int body_gid;  ///< body-specific identifier, used for global indexing (internal use only)
 

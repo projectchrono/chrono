@@ -142,7 +142,6 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     // DATA
     ChParticleCloud* container;
     ChVariablesBodySharedMass variables;
-    std::shared_ptr<ChCollisionModel> collision_model;
     ChVector<> UserForce;
     ChVector<> UserTorque;
 };
