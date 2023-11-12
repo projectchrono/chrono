@@ -14,7 +14,6 @@
 
 //// TODO
 //// - eliminate GetPhysicsItem
-//// - change signature for ClearModel / BuildModel; no need for return value?
 
 #ifndef CH_COLLISION_MODEL_H
 #define CH_COLLISION_MODEL_H

@@ -76,6 +76,7 @@ ChSystem::ChSystem()
       write_matrix(false),
       ncontacts(0),
       composition_strategy(new ChMaterialCompositionStrategy),
+      collision_system(nullptr),
       visual_system(nullptr),
       nthreads_chrono(ChOMP::GetNumProcs()),
       nthreads_eigen(1),
@@ -128,6 +129,7 @@ ChSystem::ChSystem(const ChSystem& other) {
     collision_system_type = other.collision_system_type;
 
     visual_system = nullptr;
+    collision_system = nullptr;
 
     m_RTF = 0;
 
@@ -144,9 +146,6 @@ ChSystem::ChSystem(const ChSystem& other) {
 }
 
 ChSystem::~ChSystem() {
-    // Before proceeding, anticipate Clear(). This would be called also by base ChAssembly destructor, anyway, but
-    // it would happen after this destructor, so the ith_body->SetSystem(0) in Clear() would not be able to remove
-    // body collision models from the collision_system. Here it is possible, since the collision_system is still alive.
     Clear();
 }
 
@@ -164,7 +163,6 @@ void ChSystem::Clear() {
 // -----------------------------------------------------------------------------
 
 void ChSystem::AddBody(std::shared_ptr<ChBody> body) {
-    assert(body->GetCollisionModel()->GetType() == collision_system->GetType());
     body->SetId(static_cast<int>(Get_bodylist().size()));
     assembly.AddBody(body);
 }
@@ -381,7 +379,6 @@ void ChSystem::SetCollisionSystemType(ChCollisionSystemType type) {
 }
 
 void ChSystem::SetCollisionSystem(std::shared_ptr<ChCollisionSystem> coll_sys) {
-    assert(assembly.GetNbodies() == 0);
     assert(coll_sys);
     collision_system = coll_sys;
     collision_system_type = coll_sys->GetType();
@@ -1302,6 +1299,37 @@ double ChSystem::ComputeCollisions() {
     return mretC;
 }
 
+// -----------------------------------------------------------------------------
+// TIMERS
+// -----------------------------------------------------------------------------
+
+double ChSystem::GetTimerCollisionBroad() const {
+    if (collision_system)
+        return collision_system->GetTimerCollisionBroad();
+
+    return 0;
+}
+
+double ChSystem::GetTimerCollisionNarrow() const {
+    if (collision_system)
+        return collision_system->GetTimerCollisionNarrow();
+
+    return 0;
+}
+
+void ChSystem::ResetTimers() {
+    timer_step.reset();
+    timer_advance.reset();
+    timer_ls_solve.reset();
+    timer_ls_setup.reset();
+    timer_jacobian.reset();
+    timer_collision.reset();
+    timer_setup.reset();
+    timer_update.reset();
+    if (collision_system)
+        collision_system->ResetTimers();
+}
+
 // =============================================================================
 //   PHYSICAL OPERATIONS
 // =============================================================================
@@ -1565,7 +1593,8 @@ bool ChSystem::Integrate_Y() {
 
     // Compute contacts and create contact constraints
     int ncontacts_old = ncontacts;
-    ComputeCollisions();
+    if (collision_system)
+        ComputeCollisions();
 
     // Declare an NSC system as "out of date" if there are contacts
     if (GetContactMethod() == ChContactMethod::NSC && (ncontacts_old != 0 || ncontacts != 0))
@@ -2144,7 +2173,6 @@ void ChSystem::ArchiveOut(ChArchiveOut& marchive) {
     marchive << CHNVP(min_bounce_speed);
     marchive << CHNVP(max_penetration_recovery_speed);
 
-    //marchive << CHNVP(collision_system);  // ChCollisionSystem should implement class factory for abstract create
     marchive << CHNVP(composition_strategy);
 
     ChCollisionSystemType_enum_mapper::ChCollisionSystemType_mapper enum_mapper;
@@ -2183,7 +2211,6 @@ void ChSystem::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(min_bounce_speed);
     marchive >> CHNVP(max_penetration_recovery_speed);
 
-    //marchive >> CHNVP(collision_system);  // ChCollisionSystem should implement class factory for abstract create
     marchive >> CHNVP(composition_strategy);
 
     ChCollisionSystemType_enum_mapper::ChCollisionSystemType_mapper enum_mapper;

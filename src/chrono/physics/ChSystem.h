@@ -451,9 +451,9 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     virtual double GetTimerUpdate() const { return timer_update(); }
 
     /// Return the time (in seconds) for broadphase collision detection, within the time step.
-    double GetTimerCollisionBroad() const { return collision_system->GetTimerCollisionBroad(); }
+    double GetTimerCollisionBroad() const;
     /// Return the time (in seconds) for narrowphase collision detection, within the time step.
-    double GetTimerCollisionNarrow() const { return collision_system->GetTimerCollisionNarrow(); }
+    double GetTimerCollisionNarrow() const;
 
     /// Get current estimated RTF (real time factor).
     double GetRTF() const { return m_RTF; }
@@ -462,17 +462,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     void SetRTF(double rtf) { m_RTF = rtf; }
 
     /// Resets the timers.
-    void ResetTimers() {
-        timer_step.reset();
-        timer_advance.reset();
-        timer_ls_solve.reset();
-        timer_ls_setup.reset();
-        timer_jacobian.reset();
-        timer_collision.reset();
-        timer_setup.reset();
-        timer_update.reset();
-        collision_system->ResetTimers();
-    }
+    void ResetTimers();
 
   protected:
     /// Pushes all ChConstraints and ChVariables contained in links, bodies, etc. into the system descriptor.
@@ -664,7 +654,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Perform the collision detection.
     /// New contacts are inserted in the ChContactContainer object(s), and old ones are removed.
     /// This is mostly called automatically by time integration.
-    double ComputeCollisions();
+    double ComputeCollisions();   //// TODO MAKE PRIVATE
 
     /// Class to be used as a callback interface for user defined actions performed 
     /// at each collision detection step.  For example, additional contact points can
@@ -950,8 +940,8 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     int ncontacts;  ///< total number of contacts
 
-    ChCollisionSystemType collision_system_type;                     ///< type of the collision engine
-    std::shared_ptr<ChCollisionSystem> collision_system;             ///< collision engine
+    ChCollisionSystemType collision_system_type;                                ///< type of the collision engine
+    std::shared_ptr<ChCollisionSystem> collision_system;                        ///< collision engine
     std::vector<std::shared_ptr<CustomCollisionCallback>> collision_callbacks;  ///< user-defined collision callbacks
     std::unique_ptr<ChMaterialCompositionStrategy> composition_strategy;        /// material composition strategy
 
