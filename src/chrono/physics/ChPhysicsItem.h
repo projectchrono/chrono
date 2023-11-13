@@ -109,14 +109,6 @@ class ChApi ChPhysicsItem : public ChObj {
     /// synchronize their coordinates and bounding boxes to the state of the item.
     virtual void SyncCollisionModels() {}
 
-    /// If this physical item contains one or more collision models,
-    /// add them to the system's collision engine.
-    virtual void AddCollisionModelsToSystem() {}
-
-    /// If this physical item contains one or more collision models,
-    /// remove them from the system's collision engine.
-    virtual void RemoveCollisionModelsFromSystem() {}
-
     // Functions used by domain decomposition
 
     /// Get the entire AABB axis-aligned bounding box of the object.

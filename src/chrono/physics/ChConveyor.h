@@ -166,8 +166,6 @@ class ChApi ChConveyor : public ChPhysicsItem {
 
     virtual bool GetCollide() const override { return true; }
     virtual void SyncCollisionModels() override;
-    virtual void AddCollisionModelsToSystem() override;
-    virtual void RemoveCollisionModelsFromSystem() override;
 
     //
     // UPDATE FUNCTIONS

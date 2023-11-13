@@ -305,8 +305,6 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
 
     /// Synchronize coll.models coordinates and bounding boxes to the positions of the particles.
     virtual void SyncCollisionModels() override;
-    virtual void AddCollisionModelsToSystem() override;
-    virtual void RemoveCollisionModelsFromSystem() override;
 
     /// After you added collision shapes to the sample coll.model (the one
     /// that you access with GetCollisionModel() ) you need to call this

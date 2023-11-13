@@ -654,21 +654,6 @@ void ChParticleCloud::SyncCollisionModels() {
     }
 }
 
-void ChParticleCloud::AddCollisionModelsToSystem() {
-    assert(GetSystem());
-    SyncCollisionModels();
-    for (unsigned int j = 0; j < particles.size(); j++) {
-        GetSystem()->GetCollisionSystem()->Add(particles[j]->GetCollisionModel().get());
-    }
-}
-
-void ChParticleCloud::RemoveCollisionModelsFromSystem() {
-    assert(GetSystem());
-    for (unsigned int j = 0; j < particles.size(); j++) {
-        GetSystem()->GetCollisionSystem()->Remove(particles[j]->GetCollisionModel().get());
-    }
-}
-
 //
 
 void ChParticleCloud::UpdateParticleCollisionModels() {
@@ -711,9 +696,6 @@ void ChParticleCloud::ArchiveIn(ChArchiveIn& marchive) {
     ChIndexedParticles::ArchiveIn(marchive);
 
     // deserialize all member data:
-
-    RemoveCollisionModelsFromSystem();
-
     marchive >> CHNVP(particles);
     // marchive >> CHNVP(particle_mass); //***TODO***
     marchive >> CHNVP(particle_collision_model);
@@ -730,7 +712,6 @@ void ChParticleCloud::ArchiveIn(ChArchiveIn& marchive) {
     for (unsigned int j = 0; j < particles.size(); j++) {
         particles[j]->SetContainer(this);
     }
-    AddCollisionModelsToSystem();
 }
 
 }  // end namespace chrono

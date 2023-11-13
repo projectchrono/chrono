@@ -166,8 +166,6 @@ class ChApi ChMesh : public ChIndexedNodes {
 
     // Functions to interface this with ChPhysicsItem container
     virtual void SyncCollisionModels() override;
-    virtual void AddCollisionModelsToSystem() override;
-    virtual void RemoveCollisionModelsFromSystem() override;
 
     /// If true, as by default, this mesh will add automatically a gravity load
     /// to all contained elements (that support gravity) using the G value from the ChSystem.

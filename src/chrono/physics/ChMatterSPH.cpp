@@ -632,21 +632,6 @@ void ChMatterSPH::SyncCollisionModels() {
     }
 }
 
-void ChMatterSPH::AddCollisionModelsToSystem() {
-    assert(GetSystem());
-    SyncCollisionModels();
-    for (unsigned int j = 0; j < nodes.size(); j++) {
-        GetSystem()->GetCollisionSystem()->Add(nodes[j]->collision_model);
-    }
-}
-
-void ChMatterSPH::RemoveCollisionModelsFromSystem() {
-    assert(GetSystem());
-    for (unsigned int j = 0; j < nodes.size(); j++) {
-        GetSystem()->GetCollisionSystem()->Remove(nodes[j]->collision_model);
-    }
-}
-
 void ChMatterSPH::UpdateParticleCollisionModels() {
     for (unsigned int j = 0; j < nodes.size(); j++) {
         nodes[j]->collision_model->Clear();
@@ -679,8 +664,6 @@ void ChMatterSPH::ArchiveIn(ChArchiveIn& marchive) {
     ChIndexedNodes::ArchiveIn(marchive);
 
     // deserialize all member data:
-    RemoveCollisionModelsFromSystem();
-
     marchive >> CHNVP(material);
     marchive >> CHNVP(matsurface);
     marchive >> CHNVP(do_collide);
@@ -689,7 +672,6 @@ void ChMatterSPH::ArchiveIn(ChArchiveIn& marchive) {
     for (unsigned int j = 0; j < nodes.size(); j++) {
         nodes[j]->SetContainer(this);
     }
-    AddCollisionModelsToSystem();
 }
 
 }  // end namespace chrono

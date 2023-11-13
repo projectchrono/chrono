@@ -296,20 +296,6 @@ void ChConveyor::SyncCollisionModels() {
     conveyor_plate->SyncCollisionModels();
 }
 
-void ChConveyor::AddCollisionModelsToSystem() {
-    // inherit parent class
-    ChPhysicsItem::AddCollisionModelsToSystem();
-    // conveyor_truss->AddCollisionModelsToSystem();
-    // conveyor_plate->AddCollisionModelsToSystem();
-}
-
-void ChConveyor::RemoveCollisionModelsFromSystem() {
-    // inherit parent class
-    ChPhysicsItem::RemoveCollisionModelsFromSystem();
-    // conveyor_plate->RemoveCollisionModelsFromSystem();
-    // conveyor_truss->RemoveCollisionModelsFromSystem();
-}
-
 // FILE I/O
 
 void ChConveyor::ArchiveOut(ChArchiveOut& marchive) {

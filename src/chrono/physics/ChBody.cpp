@@ -787,32 +787,9 @@ bool ChBody::GetCollide() const {
     return BFlagGet(BodyFlag::COLLIDE);
 }
 
-void ChBody::SetCollisionModel(std::shared_ptr<ChCollisionModel> new_collision_model) {
-    if (collision_model) {
-        if (system)
-            system->GetCollisionSystem()->Remove(collision_model.get());
-    }
-
-    collision_model = new_collision_model;
-    collision_model->SetContactable(this);
-}
-
 void ChBody::SyncCollisionModels() {
     if (this->GetCollide())
         this->GetCollisionModel()->SyncPosition();
-}
-
-void ChBody::AddCollisionModelsToSystem() {
-    assert(this->GetSystem());
-    SyncCollisionModels();
-    if (this->GetCollide())
-        this->GetSystem()->GetCollisionSystem()->Add(collision_model.get());
-}
-
-void ChBody::RemoveCollisionModelsFromSystem() {
-    assert(this->GetSystem());
-    if (this->GetCollide())
-        this->GetSystem()->GetCollisionSystem()->Remove(collision_model.get());
 }
 
 // ---------------------------------------------------------------------------
@@ -1166,9 +1143,6 @@ void ChBody::ArchiveIn(ChArchiveIn& marchive) {
 
     std::shared_ptr<ChCollisionModel> collision_model_temp;  ///< pointer to the collision model
     marchive >> CHNVP(collision_model_temp, "collision_model");
-    SetCollisionModel(collision_model_temp);
-    if (collision_model)
-        collision_model->Build();
 
     marchive >> CHNVP(gyro);
     marchive >> CHNVP(Xforce);

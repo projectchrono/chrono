@@ -303,8 +303,6 @@ class ChApi ChMatterMeshless : public ChIndexedNodes {
 
     /// Synchronize coll.models coordinates and bounding boxes to the positions of the particles.
     virtual void SyncCollisionModels() override;
-    virtual void AddCollisionModelsToSystem() override;
-    virtual void RemoveCollisionModelsFromSystem() override;
 
     void UpdateParticleCollisionModels();
 

@@ -175,21 +175,6 @@ void ChMesh::SyncCollisionModels() {
     }
 }
 
-void ChMesh::AddCollisionModelsToSystem() {
-    assert(GetSystem());
-    SyncCollisionModels();
-    for (unsigned int j = 0; j < vcontactsurfaces.size(); j++) {
-        vcontactsurfaces[j]->SurfaceAddCollisionModelsToSystem(GetSystem());
-    }
-}
-
-void ChMesh::RemoveCollisionModelsFromSystem() {
-    assert(GetSystem());
-    for (unsigned int j = 0; j < vcontactsurfaces.size(); j++) {
-        vcontactsurfaces[j]->SurfaceRemoveCollisionModelsFromSystem(GetSystem());
-    }
-}
-
 //// STATE BOOKKEEPING FUNCTIONS
 
 void ChMesh::IntStateGather(const unsigned int off_x,

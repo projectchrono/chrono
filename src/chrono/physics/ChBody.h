@@ -167,13 +167,8 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Set no speed and no accelerations (but does not change the position)
     void SetNoSpeedNoAcceleration() override;
 
-    /// Change the collision model.
-    void SetCollisionModel(std::shared_ptr<ChCollisionModel> new_collision_model);
-
     /// Synchronize coll.model coordinate and bounding box to the position of the body.
     virtual void SyncCollisionModels() override;
-    virtual void AddCollisionModelsToSystem() override;
-    virtual void RemoveCollisionModelsFromSystem() override;
 
     /// Get the rigid body coordinate system that represents
     /// the GOG (Center of Gravity). The mass and inertia tensor

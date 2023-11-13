@@ -687,21 +687,6 @@ void ChMatterMeshless::SyncCollisionModels() {
     }
 }
 
-void ChMatterMeshless::AddCollisionModelsToSystem() {
-    assert(GetSystem());
-    SyncCollisionModels();
-    for (unsigned int j = 0; j < nodes.size(); j++) {
-        GetSystem()->GetCollisionSystem()->Add(nodes[j]->collision_model);
-    }
-}
-
-void ChMatterMeshless::RemoveCollisionModelsFromSystem() {
-    assert(GetSystem());
-    for (unsigned int j = 0; j < nodes.size(); j++) {
-        GetSystem()->GetCollisionSystem()->Remove(nodes[j]->collision_model);
-    }
-}
-
 ////
 
 void ChMatterMeshless::UpdateParticleCollisionModels() {
