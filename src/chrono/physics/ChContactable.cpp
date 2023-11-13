@@ -35,6 +35,14 @@ void ChContactable::AddCollisionModel(std::shared_ptr<ChCollisionModel> model) {
     model->SetContactable(this);
 }
 
+void ChContactable::AddCollisionShape(std::shared_ptr<ChCollisionShape> shape, const ChFrame<>& frame) {
+    if (!collision_model) {
+        auto model = chrono_types::make_shared<ChCollisionModel>();
+        AddCollisionModel(model);
+    }
+    collision_model->AddShape(shape, frame);
+}
+
 std::shared_ptr<ChCollisionModel> ChContactable::GetCollisionModel() const {
     return collision_model;
 }
