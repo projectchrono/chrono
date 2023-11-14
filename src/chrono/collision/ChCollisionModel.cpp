@@ -22,21 +22,25 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 // CH_FACTORY_REGISTER(ChCollisionModel)  // NO! Abstract class!
 
-class my_enum_mappers {
-  public:
-    CH_ENUM_MAPPER_BEGIN(ChCollisionSystemType);
-    CH_ENUM_VAL(ChCollisionSystemType::BULLET);
-    CH_ENUM_VAL(ChCollisionSystemType::CHRONO);
-    CH_ENUM_VAL(ChCollisionSystemType::OTHER);
-    CH_ENUM_MAPPER_END(ChCollisionSystemType);
-};
-
 static double default_model_envelope = 0.03;
 static double default_safe_margin = 0.01;
 
-ChCollisionModel::ChCollisionModel() : contactable(nullptr), family_group(1), family_mask(0x7FFF) {
+ChCollisionModel::ChCollisionModel() : contactable(nullptr), family_group(1), family_mask(0x7FFF), impl(nullptr) {
     model_envelope = (float)default_model_envelope;
     model_safe_margin = (float)default_safe_margin;
+}
+
+ChCollisionModel::ChCollisionModel(const ChCollisionModel& other) : contactable(nullptr), impl(nullptr) {
+    // Create new shape instances (sharing the collision shapes)
+    for (const auto& si : other.m_shape_instances) {
+        const auto& shape = si.first;
+        const auto& frame = si.second;
+        m_shape_instances.push_back({shape, frame});
+    }
+    model_envelope = other.model_envelope;
+    model_safe_margin = other.model_safe_margin;
+    family_group = other.family_group;
+    family_mask = other.family_mask;
 }
 
 ChCollisionModel::~ChCollisionModel() {
@@ -44,26 +48,19 @@ ChCollisionModel::~ChCollisionModel() {
 }
 
 void ChCollisionModel::Clear() {
-    // Delete all inserted collision shape instances
     m_shape_instances.clear();
-
-    // Remove this model from the collsion system
-    Dissociate();
 }
 
-void ChCollisionModel::Build() {
-    // Remove this model from the collision system
-    Dissociate();
-
-    // Populate model with current list of collision shapes
-    Populate();
-
-    // Associate this model with the collision system
-    Associate();
+void ChCollisionModel::SyncPosition() {
+    impl->SyncPosition();
 }
 
 ChPhysicsItem* ChCollisionModel::GetPhysicsItem() {
     return contactable->GetPhysicsItem();
+}
+
+geometry::ChAABB ChCollisionModel::GetBoundingBox() const {
+    return impl->GetBoundingBox();
 }
 
 void ChCollisionModel::SetDefaultSuggestedEnvelope(double menv) {
@@ -88,6 +85,7 @@ double ChCollisionModel::GetDefaultSuggestedMargin() {
 void ChCollisionModel::SetFamily(int mfamily) {
     assert(mfamily >= 0 && mfamily < 15);
     family_group = (1 << mfamily);
+    impl->OnFamilyChange();
 }
 
 // Return the position of the single bit set in family_group.
@@ -105,12 +103,14 @@ int ChCollisionModel::GetFamily() {
 void ChCollisionModel::SetFamilyMaskNoCollisionWithFamily(int mfamily) {
     assert(mfamily >= 0 && mfamily < 15);
     family_mask &= ~(1 << mfamily);
+    impl->OnFamilyChange();
 }
 
 // Set the family_mask bit in position mfamily.
 void ChCollisionModel::SetFamilyMaskDoCollisionWithFamily(int mfamily) {
     assert(mfamily >= 0 && mfamily < 15);
     family_mask |= (1 << mfamily);
+    impl->OnFamilyChange();
 }
 
 // Return true if the family_mask bit in position mfamily is set.
@@ -124,6 +124,7 @@ bool ChCollisionModel::GetFamilyMaskDoesCollisionWithFamily(int mfamily) {
 void ChCollisionModel::SetFamilyGroup(short int group) {
     assert(group > 0 && !(group & (group - 1)));
     family_group = group;
+    impl->OnFamilyChange();
 }
 
 // Set the collision mask for this model.
@@ -131,6 +132,7 @@ void ChCollisionModel::SetFamilyGroup(short int group) {
 void ChCollisionModel::SetFamilyMask(short int mask) {
     assert(mask >= 0 && mask <= 0x7FFF);
     family_mask = mask;
+    impl->OnFamilyChange();
 }
 
 void ChCollisionModel::AddShape(std::shared_ptr<ChCollisionShape> shape, const ChFrame<>& frame) {

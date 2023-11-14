@@ -16,6 +16,7 @@
 #define CH_COLLISION_SYSTEM_BULLET_H
 
 #include "chrono/collision/ChCollisionSystem.h"
+#include "chrono/collision/bullet/ChCollisionModelBullet.h"
 #include "chrono/collision/bullet/cbtBulletCollisionCommon.h"
 #include "chrono/core/ChApiCE.h"
 
@@ -31,20 +32,29 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     ChCollisionSystemBullet();
     virtual ~ChCollisionSystemBullet();
 
-    /// Return the type of this collision system.
-    virtual ChCollisionSystemType GetType() const override { return ChCollisionSystemType::BULLET; }
+    /// Initialize the collision system.
+    /// This call triggers a parsing of the associated Chrono system to process all collision models.
+    virtual void Initialize() override;
+
+    /// Process all collision models in the associated Chrono system.
+    /// This function is called by default for a Chrono system attached to this collision system during
+    /// initialization, but can also be called later if further modifications to collision models occur.
+    virtual void BindAll() override;
+
+    /// Process the collision shapes...
+    /// This function must be called if a new physics item is added to the system or if changes to its collision model
+    /// occur after the collision system was initialized.
+    virtual void BindItem(std::shared_ptr<ChPhysicsItem> item) override;
 
     /// Clears all data instanced by this algorithm
     /// if any (like persistent contact manifolds)
-    virtual void Clear(void) override;
+    virtual void Clear() override;
 
-    /// Adds a collision model to the collision
-    /// engine (custom data may be allocated).
-    virtual void Add(ChCollisionModel* model) override;
+    /// Adds a collision model to the collision engine.
+    virtual void Add(std::shared_ptr<ChCollisionModel> model) override;
 
-    /// Removes a collision model from the collision
-    /// engine (custom data may be deallocated).
-    virtual void Remove(ChCollisionModel* model) override;
+    /// Removes a collision model from the collision engine.
+    virtual void Remove(std::shared_ptr<ChCollisionModel> model) override;
 
     /// Removes all collision models from the collision
     /// engine (custom data may be deallocated).
@@ -136,6 +146,8 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
                 ChRayhitResult& result,
                 short int filter_group,
                 short int filter_mask) const;
+
+    std::vector<std::shared_ptr<ChCollisionModelBullet>> bt_models;
 
     cbtCollisionConfiguration* bt_collision_configuration;
     cbtCollisionDispatcher* bt_dispatcher;

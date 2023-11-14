@@ -16,7 +16,6 @@ namespace chrono {
 
 CH_UPCASTING_SANITIZED(ChContactable_1vars<6>, ChContactable, ChContactable_1vars_6_ChContactable)
 
-
 class my_enum_mappers : public ChContactable {
   public:
     CH_ENUM_MAPPER_BEGIN(eChContactableType);
@@ -57,13 +56,10 @@ void ChContactable::ArchiveOut(ChArchiveOut& marchive) {
 
 void ChContactable::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChContactable>();
+    /*int version =*/marchive.VersionRead<ChContactable>();
 
     // deserialize parent class
-    //marchive >> CHNVP(m_data);  // cannot serialize as it is
-
+    // marchive >> CHNVP(m_data);  // cannot serialize as it is
 }
-
-
 
 }  // end namespace chrono

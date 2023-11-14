@@ -30,16 +30,9 @@ using namespace geometry;
 // CLASS FOR A PARTICLE
 // -----------------------------------------------------------------------------
 
-ChAparticle::ChAparticle() : container(NULL), UserForce(VNULL), UserTorque(VNULL) {
-    collision_model = chrono_types::make_shared<ChCollisionModelBullet>();
-    collision_model->SetContactable(this);
-}
+ChAparticle::ChAparticle() : container(NULL), UserForce(VNULL), UserTorque(VNULL) {}
 
 ChAparticle::ChAparticle(const ChAparticle& other) : ChParticleBase(other) {
-    collision_model = chrono_types::make_shared<ChCollisionModelBullet>();
-    collision_model->AddShapes(other.collision_model);
-    collision_model->SetContactable(this);
-
     container = other.container;
     UserForce = other.UserForce;
     UserTorque = other.UserTorque;
@@ -230,8 +223,8 @@ ChParticleCloud::ChParticleCloud()
     SetInertiaXX(ChVector<double>(1.0, 1.0, 1.0));
     SetInertiaXY(ChVector<double>(0, 0, 0));
 
-    particle_collision_model = chrono_types::make_shared<ChCollisionModelBullet>();
-    particle_collision_model->SetContactable(0);
+    // Create the "template" collision model
+    particle_collision_model = chrono_types::make_shared<ChCollisionModel>();
 
     particles.clear();
     // ResizeNparticles(num_particles); // caused memory corruption.. why?
@@ -248,7 +241,7 @@ ChParticleCloud::ChParticleCloud(const ChParticleCloud& other) : ChIndexedPartic
     SetInertiaXX(other.GetInertiaXX());
     SetInertiaXY(other.GetInertiaXY());
 
-    particle_collision_model->Clear();
+    particle_collision_model = chrono_types::make_shared<ChCollisionModel>(*other.particle_collision_model);
 
     matsurface = std::shared_ptr<ChMaterialSurface>(other.matsurface->Clone());  // deep copy
 
@@ -284,14 +277,14 @@ void ChParticleCloud::ResizeNparticles(int newsize) {
         particles[j]->SetContainer(this);
 
         particles[j]->variables.SetSharedMass(&particle_mass);
-        particles[j]->variables.SetUserData((void*)this);  // UserData unuseful in future parallel solver?
+        particles[j]->variables.SetUserData((void*)this);
 
-        particles[j]->GetCollisionModel()->SetContactable(particles[j]);
-        particles[j]->GetCollisionModel()->AddShapes(particle_collision_model);
-        particles[j]->GetCollisionModel()->Build();
+        auto collision_model = chrono_types::make_shared<ChCollisionModel>();
+        collision_model->AddShapes(particle_collision_model);
+        particles[j]->AddCollisionModel(collision_model);
     }
 
-    SetCollide(oldcoll);  // this will also add particle coll.models to coll.engine, if already in a ChSystem
+    SetCollide(oldcoll);
 }
 
 void ChParticleCloud::AddParticle(ChCoordsys<double> initial_state) {
@@ -300,14 +293,14 @@ void ChParticleCloud::AddParticle(ChCoordsys<double> initial_state) {
 
     newp->SetContainer(this);
 
-    particles.push_back(newp);
-
     newp->variables.SetSharedMass(&particle_mass);
-    newp->variables.SetUserData((void*)this);  // UserData unuseful in future parallel solver?
+    newp->variables.SetUserData((void*)this);
 
-    newp->GetCollisionModel()->SetContactable(newp);
-    newp->GetCollisionModel()->AddShapes(particle_collision_model);
-    newp->GetCollisionModel()->Build();  // will also add to system, if collision is on.
+    auto collision_model = chrono_types::make_shared<ChCollisionModel>();
+    collision_model->AddShapes(particle_collision_model);
+    newp->AddCollisionModel(collision_model);
+
+    particles.push_back(newp);
 }
 
 ChColor ChParticleCloud::GetVisualColor(unsigned int n) const {
@@ -627,44 +620,32 @@ void ChParticleCloud::Update(double mytime, bool update_assets) {
 }
 
 // collision stuff
-void ChParticleCloud::SetCollide(bool mcoll) {
-    if (mcoll == do_collide)
+void ChParticleCloud::SetCollide(bool state) {
+    if (state == do_collide)
         return;
 
-    if (mcoll) {
+    if (state) {
         do_collide = true;
-        if (GetSystem()) {
-            for (unsigned int j = 0; j < particles.size(); j++) {
-                GetSystem()->GetCollisionSystem()->Add(particles[j]->GetCollisionModel().get());
+        if (GetSystem() && GetSystem()->GetCollisionSystem()) {
+            for (auto particle : particles) {
+                GetSystem()->GetCollisionSystem()->Add(particle->GetCollisionModel());
             }
         }
     } else {
         do_collide = false;
-        if (GetSystem()) {
-            for (unsigned int j = 0; j < particles.size(); j++) {
-                GetSystem()->GetCollisionSystem()->Remove(particles[j]->GetCollisionModel().get());
+        if (GetSystem() && GetSystem()->GetCollisionSystem()) {
+            for (auto particle : particles) {
+                GetSystem()->GetCollisionSystem()->Remove(particle->GetCollisionModel());
             }
         }
     }
 }
 
 void ChParticleCloud::SyncCollisionModels() {
-    for (unsigned int j = 0; j < particles.size(); j++) {
-        particles[j]->GetCollisionModel()->SyncPosition();
+    for (auto particle : particles) {
+        particle->GetCollisionModel()->SyncPosition();
     }
 }
-
-//
-
-void ChParticleCloud::UpdateParticleCollisionModels() {
-    for (unsigned int j = 0; j < particles.size(); j++) {
-        particles[j]->GetCollisionModel()->Clear();
-        particles[j]->GetCollisionModel()->AddShapes(particle_collision_model);
-        particles[j]->GetCollisionModel()->Build();
-    }
-}
-
-// FILE I/O
 
 void ChParticleCloud::ArchiveOut(ChArchiveOut& marchive) {
     // version number

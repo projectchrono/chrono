@@ -171,7 +171,7 @@ void ChMesh::Update(double m_time, bool update_assets) {
 
 void ChMesh::SyncCollisionModels() {
     for (unsigned int j = 0; j < vcontactsurfaces.size(); j++) {
-        vcontactsurfaces[j]->SurfaceSyncCollisionModels();
+        vcontactsurfaces[j]->SyncCollisionModels();
     }
 }
 

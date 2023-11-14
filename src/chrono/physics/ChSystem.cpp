@@ -36,15 +36,6 @@
 
 namespace chrono {
 
-class ChCollisionSystemType_enum_mapper : public ChSystem{
-  public:
-    CH_ENUM_MAPPER_BEGIN(ChCollisionSystemType);
-    CH_ENUM_VAL(ChCollisionSystemType::BULLET);
-    CH_ENUM_VAL(ChCollisionSystemType::CHRONO);
-    CH_ENUM_VAL(ChCollisionSystemType::OTHER);
-    CH_ENUM_MAPPER_END(ChCollisionSystemType);
-};
-
 // -----------------------------------------------------------------------------
 // CLASS FOR PHYSICAL SYSTEM
 // -----------------------------------------------------------------------------
@@ -86,7 +77,6 @@ ChSystem::ChSystem()
     assembly.system = this;
 
     // Set default collision engine type, collision envelope, and margin.
-    collision_system_type = ChCollisionSystemType::BULLET;
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.03);
     ChCollisionModel::SetDefaultSuggestedMargin(0.01);
 
@@ -94,7 +84,7 @@ ChSystem::ChSystem()
     timestepper = chrono_types::make_shared<ChTimestepperEulerImplicitLinearized>(this);
 }
 
-ChSystem::ChSystem(const ChSystem& other) {
+ChSystem::ChSystem(const ChSystem& other) : m_RTF(0), collision_system(nullptr), visual_system(nullptr) {
     // Required by ChAssembly
     assembly = other.assembly;
     assembly.system = this;
@@ -125,13 +115,6 @@ ChSystem::ChSystem(const ChSystem& other) {
     is_updated = false;
     applied_forces_current = false;
     maxiter = other.maxiter;
-
-    collision_system_type = other.collision_system_type;
-
-    visual_system = nullptr;
-    collision_system = nullptr;
-
-    m_RTF = 0;
 
     min_bounce_speed = other.min_bounce_speed;
     max_penetration_recovery_speed = other.max_penetration_recovery_speed;
@@ -353,11 +336,8 @@ void ChSystem::SetSolver(std::shared_ptr<ChSolver> newsolver) {
 void ChSystem::SetCollisionSystemType(ChCollisionSystemType type) {
     assert(assembly.GetNbodies() == 0);
 
-    collision_system_type = type;
-
 #ifndef CHRONO_COLLISION
     GetLog() << "Chrono was not built with Thrust support. CHRONO collision system type not available.\n";
-    collision_system_type = ChCollisionSystemType::BULLET;
 #endif
 
     switch (type) {
@@ -381,7 +361,6 @@ void ChSystem::SetCollisionSystemType(ChCollisionSystemType type) {
 void ChSystem::SetCollisionSystem(std::shared_ptr<ChCollisionSystem> coll_sys) {
     assert(coll_sys);
     collision_system = coll_sys;
-    collision_system_type = coll_sys->GetType();
     collision_system->SetNumThreads(nthreads_collision);
     collision_system->SetSystem(this);
 }
@@ -401,17 +380,8 @@ void ChSystem::SetNumThreads(int num_threads_chrono, int num_threads_collision, 
     nthreads_collision = (num_threads_collision <= 0) ? num_threads_chrono : num_threads_collision;
     nthreads_eigen = (num_threads_eigen <= 0) ? num_threads_chrono : num_threads_eigen;
 
+    if (collision_system)
     collision_system->SetNumThreads(nthreads_collision);
-}
-
-// -----------------------------------------------------------------------------
-
-ChBody* ChSystem::NewBody() {
-    return new ChBody(collision_system_type);
-}
-
-ChBodyAuxRef* ChSystem::NewBodyAuxRef() {
-    return new ChBodyAuxRef(collision_system_type);
 }
 
 // -----------------------------------------------------------------------------
@@ -2175,9 +2145,6 @@ void ChSystem::ArchiveOut(ChArchiveOut& marchive) {
 
     marchive << CHNVP(composition_strategy);
 
-    ChCollisionSystemType_enum_mapper::ChCollisionSystemType_mapper enum_mapper;
-    marchive << CHNVP(enum_mapper(collision_system_type), "ChSystem__ChCollisionSystemType");
-
     //marchive << CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
 
     //***TODO*** complete...
@@ -2212,9 +2179,6 @@ void ChSystem::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(max_penetration_recovery_speed);
 
     marchive >> CHNVP(composition_strategy);
-
-    ChCollisionSystemType_enum_mapper::ChCollisionSystemType_mapper enum_mapper;
-    marchive >> CHNVP(enum_mapper(collision_system_type), "ChSystem__ChCollisionSystemType");
 
     //marchive >> CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
     //timestepper->SetIntegrable(this);

@@ -43,8 +43,6 @@ class ChApi ChContactable {
     /// Access the collision model.
     std::shared_ptr<ChCollisionModel> GetCollisionModel() const;
 
-
-
     /// Indicate whether or not the object must be considered in collision detection.
     virtual bool IsContactActive() = 0;
 
@@ -69,8 +67,10 @@ class ChApi ChContactable {
 
     /// Get the absolute speed of a local point attached to the contactable.
     /// The given point is assumed to be expressed in the local frame of this object.
-    /// This function must use the provided states.  
-    virtual ChVector<> GetContactPointSpeed(const ChVector<>& loc_point, const ChState& state_x, const ChStateDelta& state_w) = 0;
+    /// This function must use the provided states.
+    virtual ChVector<> GetContactPointSpeed(const ChVector<>& loc_point,
+                                            const ChState& state_x,
+                                            const ChStateDelta& state_w) = 0;
 
     /// Get the absolute speed of point abs_point if attached to the surface.
     virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) = 0;
@@ -81,7 +81,7 @@ class ChApi ChContactable {
     virtual ChCoordsys<> GetCsysForCollisionModel() = 0;
 
     /// Apply the given force at the given location and load into the global generalized force array.
-    /// The force and its application point are given in the absolute reference frame. Each object must 
+    /// The force and its application point are given in the absolute reference frame. Each object must
     /// update the entries in R corresponding to its variables. Force for example could come from a penalty model.
     virtual void ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, ChVectorDynamic<>& R) = 0;
 
@@ -174,7 +174,7 @@ class ChContactable_1vars : public ChContactable, public ChVariableTupleCarrier_
                                                       bool second) {}
 };
 
-// Note that template T1 and T2 are the number of DOFs in the referenced ChVariable s, 
+// Note that template T1 and T2 are the number of DOFs in the referenced ChVariable s,
 // for instance 3 and 3 for an 'edge' betweeen two xyz nodes.
 
 template <int T1, int T2>
@@ -202,7 +202,7 @@ class ChContactable_2vars : public ChContactable, public ChVariableTupleCarrier_
                                                       bool second) {}
 };
 
-// Note that template T1 and T2 and T3 are the number of DOFs in the referenced ChVariable s, 
+// Note that template T1 and T2 and T3 are the number of DOFs in the referenced ChVariable s,
 // for instance 3 and 3 and 3 for a 'triangle face' betweeen two xyz nodes.
 
 template <int T1, int T2, int T3>

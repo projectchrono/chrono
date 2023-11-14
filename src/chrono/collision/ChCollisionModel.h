@@ -33,6 +33,7 @@ namespace chrono {
 // forward references
 class ChPhysicsItem;
 class ChContactable;
+class ChCollisionModelImpl;
 
 /// @addtogroup chrono_collision
 /// @{
@@ -45,26 +46,17 @@ enum class ChCollisionSystemType {
 };
 
 /// Class defining the geometric model for collision detection.
-/// A ChCollisionModel contains all geometric shapes on a rigid body, for collision purposes.
 class ChApi ChCollisionModel {
   public:
     /// A ShapeInstance is a pair of a collision shape and its position in the model.
     typedef std::pair<std::shared_ptr<ChCollisionShape>, ChFrame<>> ShapeInstance;
 
     ChCollisionModel();
-    virtual ~ChCollisionModel();
-
-    /// Return the type of this collision model.
-    virtual ChCollisionSystemType GetType() const = 0;
+    ChCollisionModel(const ChCollisionModel& other);
+    ~ChCollisionModel();
 
     /// Delete all inserted collision shapes.
-    /// This function also removes this model from the collsion system (if applicable).
     void Clear();
-
-    /// Complete the construction of the collision model.
-    /// This function also inserts this model into the collision system (if applicable).
-    /// This function must be invoked after all geometric collision shapes have been added to the model.
-    void Build();
 
     /// Add a collision shape with specified position within the model.
     void AddShape(std::shared_ptr<ChCollisionShape> shape,  ///< collision shape
@@ -83,81 +75,67 @@ class ChApi ChCollisionModel {
                    const ChFrame<>& frame = ChFrame<>()      ///< model frame in model
     );
 
-    // OTHER FUNCTIONS
-
     /// Get the pointer to the contactable object.
     ChContactable* GetContactable() { return contactable; }
 
     /// Set the pointer to the contactable object.
-    /// A derived class may override this, but should always invoke this base class implementation.
-    virtual void SetContactable(ChContactable* mc) { contactable = mc; }
+    void SetContactable(ChContactable* mc) { contactable = mc; }
 
     /// Get the pointer to the client owner ChPhysicsItem.
-    /// Default: just casts GetContactable(). Just for backward compatibility.
-    /// It might return null if contactable not inherited by  ChPhysicsItem.
-    /// ***TODO*** remove the need of ChPhysicsItem*, just use ChContactable* in all code
-    virtual ChPhysicsItem* GetPhysicsItem();
+    ///
+    //// TODO OBSOLETE
+    ///
+    ChPhysicsItem* GetPhysicsItem();
 
     /// Synchronize the position and orientation of the collision model to the associated contactable.
-    virtual void SyncPosition() = 0;
+    void SyncPosition();
 
-    /// By default, all collision objects belong to family n.0,
-    /// but you can set family in range 0..15. This is used when
-    /// the objects collided with another: the contact is created
-    /// only if the family is within the 'family mask' of the other,
-    /// and viceversa.
-    /// These default implementations use the family group.
-    virtual void SetFamily(int mfamily);
-    virtual int GetFamily();
+    /// Set the collision family for this model (0...15).
+    /// By default, all collision objects belong to family 0.
+    void SetFamily(int mfamily);
+    int GetFamily();
 
-    /// By default, family mask is all turned on, so all families
-    /// can collide with this object, but you can turn on-off some bytes
-    /// of this mask so that some families do not collide.
-    /// When two objects collide, the contact is created
-    /// only if the family is within the 'family mask' of the other,
-    /// and viceversa.
-    /// These default implementations use the family mask.
-    virtual void SetFamilyMaskNoCollisionWithFamily(int mfamily);
-    virtual void SetFamilyMaskDoCollisionWithFamily(int mfamily);
+    /// By default, family mask is all turned on, so all families can collide with this object, but you can turn on-off
+    /// some bytes of this mask so that some families do not collide. When two objects collide, the contact is created
+    /// only if the family is within the 'family mask' of the other, and viceversa.
+    void SetFamilyMaskNoCollisionWithFamily(int mfamily);
+    void SetFamilyMaskDoCollisionWithFamily(int mfamily);
 
-    /// Tells if the family mask of this collision object allows
-    /// for the collision with another collision object belonging to
-    /// a given family.
-    /// This default implementation uses the family mask.
-    virtual bool GetFamilyMaskDoesCollisionWithFamily(int mfamily);
+    /// Indicate if the family mask of this collision object allows for the collision with another collision object
+    /// belonging to a given family.
+    bool GetFamilyMaskDoesCollisionWithFamily(int mfamily);
 
     /// Return the collision family group of this model.
     /// The collision family of this model is the position of the single set bit in the return value.
-    virtual short int GetFamilyGroup() const { return family_group; }
+    short int GetFamilyGroup() const { return family_group; }
 
     /// Set the collision family group of this model.
-    /// This is an alternative way of specifying the collision family for this
-    /// object.  The value family_group must have a single bit set (i.e. it must
-    /// be a power of 2). The corresponding family is then the bit position.
-    virtual void SetFamilyGroup(short int group);
+    /// This is an alternative way of specifying the collision family for this object. The value family_group must have
+    /// a single bit set (i.e. it must be a power of 2). The corresponding family is then the bit position.
+    void SetFamilyGroup(short int group);
 
     /// Return the collision mask for this model.
-    /// Each bit of the return value indicates whether this model collides with
-    /// the corresponding family (bit set) or not (bit unset).
-    virtual short int GetFamilyMask() const { return family_mask; }
+    /// Each bit of the return value indicates whether this model collides with the corresponding family (bit set) or
+    /// not (bit unset).
+    short int GetFamilyMask() const { return family_mask; }
 
     /// Set the collision mask for this model.
-    /// Any set bit in the specified mask indicates that this model collides with
-    /// all objects whose family is equal to the bit position.
-    virtual void SetFamilyMask(short int mask);
+    /// Any set bit in the specified mask indicates that this model collides with all objects whose family is equal to
+    /// the bit position.
+    void SetFamilyMask(short int mask);
 
     // TOLERANCES, ENVELOPES, THRESHOLDS
 
     /// Set the suggested collision 'inward safe margin' for the shapes to be added from now on.
     /// If this margin is too high for some thin or small shapes, it may be clamped.
-    /// If dist\<0 and inter-penetration occurs (e.g. due to numerical errors) within this 'safe margin' inward range,
+    /// If dist<0 and inter-penetration occurs (e.g. due to numerical errors) within this 'safe margin' inward range,
     /// collision detection is still fast and reliable (beyond this, for deep penetrations, CD still works, but might be
     /// slower and less reliable) Call this BEFORE adding the shapes into the model. Side effect: think of the margin as
     /// a radius of a 'smoothing' fillet on all corners of the shapes - that's why you cannot exceed with this.
-    virtual void SetSafeMargin(double amargin) { model_safe_margin = (float)amargin; }
+    void SetSafeMargin(float margin) { model_safe_margin = margin; }
 
-    /// Returns the inward safe margin (see SetSafeMargin() )
-    virtual float GetSafeMargin() { return model_safe_margin; }
+    /// Return the inward safe margin (see SetSafeMargin).
+    float GetSafeMargin() { return model_safe_margin; }
 
     /// Set the suggested collision outward 'envelope' used from shapes added from now on.
     /// This 'envelope' is a surrounding invisible volume which extends outward from the surface, and it is used to
@@ -166,37 +144,34 @@ class ChApi ChCollisionModel {
     /// shapes into the model. Side effect: AABB are 'expanded' outward by this amount, so if you exaggerate with this
     /// value, CD might be slower and too sensible. On the other hand, if you set this value to 0, contacts are detected
     /// only for dist<=0, thus causing unstable simulation.
-    virtual void SetEnvelope(double amargin) { model_envelope = (float)amargin; }
+    void SetEnvelope(float envelope) { model_envelope = envelope; }
 
-    /// Return the outward safe margin (see SetEnvelope() )
-    virtual float GetEnvelope() { return model_envelope; }
+    /// Return the outward safe margin (see SetEnvelope).
+    float GetEnvelope() { return model_envelope; }
 
     /// Using this function BEFORE you start creating collision shapes,
     /// it will make all following collision shapes to take this collision
     /// envelope (safe outward layer) as default.
-    /// Easier than calling SetEnvelope() all the times.
     static void SetDefaultSuggestedEnvelope(double menv);
 
     /// Using this function BEFORE you start creating collision shapes,
     /// it will make all following collision shapes to take this collision
     /// margin (inward penetration layer) as default. If you call it again later, it will have no effect,
     /// except for shapes created later.
-    /// Easier than calling SetMargin() all the times.
     static void SetDefaultSuggestedMargin(double mmargin);
 
     static double GetDefaultSuggestedEnvelope();
     static double GetDefaultSuggestedMargin();
 
     /// Return the current axis aligned bounding box (AABB) of the collision model.
-    /// The two return vectors represent the min.max corners along the x,y,z world axes.
     /// Note that SyncPosition() should be invoked before calling this.
-    virtual geometry::ChAABB GetBoundingBox() const = 0;
+    geometry::ChAABB GetBoundingBox() const;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive);
+    void ArchiveOut(ChArchiveOut& marchive);
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive);
+    void ArchiveIn(ChArchiveIn& marchive);
 
     /// Return the number of collision shapes in this model.
     int GetNumShapes() const { return (int)m_shape_instances.size(); }
@@ -219,7 +194,7 @@ class ChApi ChCollisionModel {
     /// ROUNDEDCYL   x-radius z-radius halflength sphere_rad
     /// </pre>
     /// 
-    /// TODO: OBSOLETE
+    //// TODO: OBSOLETE
     /// 
     std::vector<double> GetShapeDimensions(std::shared_ptr<ChCollisionShape> shape) const;
 
@@ -227,21 +202,11 @@ class ChApi ChCollisionModel {
     /// This function is useful in adjusting contact material properties for objects imported from outside (e.g., from
     /// SolidWorks).
     /// 
-    /// TODO: OBSOLETE
+    //// TODO: OBSOLETE
     /// 
     void SetAllShapesMaterial(std::shared_ptr<ChMaterialSurface> mat);
 
   protected:
-    /// Remove this model from the collision system (if applicable).
-    virtual void Dissociate() = 0;
-
-    /// Insert this model into the collision system (if applicable).
-    virtual void Associate() = 0;
-
-    /// Populate the collision system with the collision shapes defined in this model.
-    virtual void Populate() = 0;
-
-    virtual float GetSuggestedFullMargin() { return model_envelope + model_safe_margin; }
 
     float model_envelope;        ///< Maximum envelope: surrounding volume from surface to the exterior
     float model_safe_margin;     ///< Maximum margin value to be used for fast penetration contact detection
@@ -251,6 +216,34 @@ class ChApi ChCollisionModel {
     short int family_mask;   ///< Collision family mask
 
     std::vector<ShapeInstance> m_shape_instances;  ///< list of collision shapes and positions in model
+
+    ChCollisionModelImpl* impl; ///< concrete implementation of the collision model
+};
+
+// Base class for a concrete collision model, specific to a particular collision detection system.
+class ChCollisionModelImpl {
+  public:
+    virtual ~ChCollisionModelImpl() {}
+
+  protected:
+    ChCollisionModelImpl(ChCollisionModel* collision_model) : model(collision_model) {}
+
+    ChContactable* GetContactable() { return model->GetContactable(); }
+
+    /// Synchronize the position and orientation of the collision model to the associated contactable.
+    virtual void SyncPosition() = 0;
+
+    /// Additional operations to be performed on a change in collision family.
+    virtual void OnFamilyChange() = 0;
+
+    /// Return the current axis aligned bounding box (AABB) of the collision model.
+    /// The two return vectors represent the min.max corners along the x,y,z world axes.
+    /// Note that SyncPosition() should be invoked before calling this.
+    virtual geometry::ChAABB GetBoundingBox() const = 0;
+
+    ChCollisionModel* model;  // associated collision model
+
+    friend class ChCollisionModel;
 };
 
 /// @} chrono_collision

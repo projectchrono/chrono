@@ -12,8 +12,14 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
+#include <algorithm>
+
 #include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChProximityContainer.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChBody.h"
+#include "chrono/fea/ChMesh.h"
+
 #include "chrono/collision/bullet/ChCollisionSystemBullet.h"
 #include "chrono/collision/bullet/ChCollisionModelBullet.h"
 #include "chrono/collision/bullet/ChCollisionAlgorithmsBullet.h"
@@ -124,37 +130,79 @@ void ChCollisionSystemBullet::SetNumThreads(int nthreads) {
 #endif
 }
 
-void ChCollisionSystemBullet::Clear(void) {
+void ChCollisionSystemBullet::Initialize() {
+    BindAll();
+}
+
+void ChCollisionSystemBullet::BindAll() {
+    if (!m_system)
+        return;
+
+    auto assembly = m_system->GetAssembly();
+
+    for (const auto& body : assembly.Get_bodylist()) {
+        if (body->GetCollide())
+            Add(body->GetCollisionModel());
+    }
+
+    for (const auto& mesh : assembly.Get_meshlist()) {
+        for (const auto& surf : mesh->GetContactSurfaces()) {
+            surf->AddCollisionModelsToSystem(this);
+        }
+    }
+
+    //// TODO OTHER ITEMS
+}
+
+void ChCollisionSystemBullet::BindItem(std::shared_ptr<ChPhysicsItem> item) {
+    if (auto body = std::dynamic_pointer_cast<ChBody>(item)) {
+        Add(body->GetCollisionModel());
+    }
+
+    if (auto mesh = std::dynamic_pointer_cast<fea::ChMesh>(item)) {
+        for (const auto& surf : mesh->GetContactSurfaces()) {
+            surf->AddCollisionModelsToSystem(this);
+        }
+    }
+    //// TODO OTHER ITEMS
+}
+
+void ChCollisionSystemBullet::Add(std::shared_ptr<ChCollisionModel> model) {
+    auto bt_model = chrono_types::make_shared<ChCollisionModelBullet>(model.get());
+    bt_model->Populate();
+    if (bt_model->GetBulletModel()->getCollisionShape()) {
+        model->SyncPosition();
+        bt_collision_world->addCollisionObject(bt_model->bt_collision_object.get(),  //
+                                               bt_model->model->GetFamilyGroup(),    //
+                                               bt_model->model->GetFamilyMask());
+    }
+    bt_models.push_back(bt_model);
+}
+
+void ChCollisionSystemBullet::Clear() {
     int numManifolds = bt_collision_world->getDispatcher()->getNumManifolds();
     for (int i = 0; i < numManifolds; i++) {
         cbtPersistentManifold* contactManifold = bt_collision_world->getDispatcher()->getManifoldByIndexInternal(i);
         contactManifold->clearManifold();
     }
+    bt_models.clear();
 }
 
-void ChCollisionSystemBullet::Add(ChCollisionModel* model) {
-    auto model_bt = static_cast<ChCollisionModelBullet*>(model);
-    if (model_bt->GetBulletModel()->getCollisionShape()) {
-        model->SyncPosition();
-        bt_collision_world->addCollisionObject(model_bt->GetBulletModel(), model_bt->GetFamilyGroup(),
-                                               model_bt->GetFamilyMask());
-    }
-}
+void ChCollisionSystemBullet::Remove(std::shared_ptr<ChCollisionModel> model) {
+    auto bt_model = chrono_types::make_shared<ChCollisionModelBullet>(model.get());
 
-void ChCollisionSystemBullet::Remove(ChCollisionModel* model) {
-    auto model_bt = static_cast<ChCollisionModelBullet*>(model);
-    if (model_bt->GetBulletModel()->getCollisionShape()) {
-        bt_collision_world->removeCollisionObject(model_bt->GetBulletModel());
+    if (bt_model->GetBulletModel()->getCollisionShape()) {
+        bt_collision_world->removeCollisionObject(bt_model->GetBulletModel());
     }
+
+    auto pos = std::find(bt_models.begin(), bt_models.end(), bt_model);
+    bt_models.erase(pos);
 }
 
 void ChCollisionSystemBullet::Run() {
     if (bt_collision_world) {
         bt_collision_world->performDiscreteCollisionDetection();
     }
-
-    // int numPairs = bt_collision_world->getBroadphase()->getOverlappingPairCache()->getNumOverlappingPairs();
-    // GetLog() << "tot pairs: " << numPairs << "\n";
 }
 
 geometry::ChAABB ChCollisionSystemBullet::GetBoundingBox() const {
@@ -194,17 +242,17 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainer* mcontactcontain
         const cbtCollisionObject* obB = contactManifold->getBody1();
         contactManifold->refreshContactPoints(obA->getWorldTransform(), obB->getWorldTransform());
 
-        auto modelA = (ChCollisionModelBullet*)obA->getUserPointer();
-        auto modelB = (ChCollisionModelBullet*)obB->getUserPointer();
+        auto bt_modelA = (ChCollisionModelBullet*)obA->getUserPointer();
+        auto bt_modelB = (ChCollisionModelBullet*)obB->getUserPointer();
 
-        icontact.modelA = (ChCollisionModel*)modelA;
-        icontact.modelB = (ChCollisionModel*)modelB;
+        icontact.modelA = (ChCollisionModel*)bt_modelA->model;
+        icontact.modelB = (ChCollisionModel*)bt_modelB->model;
 
-        double envelopeA = modelA->GetEnvelope();
-        double envelopeB = modelB->GetEnvelope();
+        double envelopeA = icontact.modelA->GetEnvelope();
+        double envelopeB = icontact.modelB->GetEnvelope();
 
-        double marginA = modelA->GetSafeMargin();
-        double marginB = modelB->GetSafeMargin();
+        double marginA = icontact.modelA->GetSafeMargin();
+        double marginB = icontact.modelB->GetSafeMargin();
 
         // Execute custom broadphase callback, if any
         bool do_narrow_contactgeneration = true;
@@ -243,8 +291,8 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainer* mcontactcontain
                     int indexA = compoundA ? pt.m_index0 : 0;
                     int indexB = compoundB ? pt.m_index1 : 0;
 
-                    icontact.shapeA = modelA->m_shapes[indexA].get();
-                    icontact.shapeB = modelB->m_shapes[indexB].get();
+                    icontact.shapeA = bt_modelA->m_shapes[indexA].get();
+                    icontact.shapeB = bt_modelB->m_shapes[indexB].get();
 
                     // Execute some user custom callback, if any
                     bool add_contact = true;

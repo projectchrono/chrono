@@ -39,7 +39,7 @@ CH_UPCASTING_SANITIZED(ChBody, ChContactable_1vars<6>, ChBody_ChContactable_1var
 CH_UPCASTING(ChBody, ChLoadableUVW)
 
 
-ChBody::ChBody(ChCollisionSystemType collision_type) {
+ChBody::ChBody() {
     marklist.clear();
     forcelist.clear();
 
@@ -50,55 +50,6 @@ ChBody::ChBody(ChCollisionSystemType collision_type) {
 
     Force_acc = VNULL;
     Torque_acc = VNULL;
-
-#ifndef CHRONO_COLLISION
-    collision_type = ChCollisionSystemType::BULLET;
-#endif
-
-    switch (collision_type) {
-        default:
-        case ChCollisionSystemType::BULLET:
-            collision_model = chrono_types::make_shared<ChCollisionModelBullet>();
-            collision_model->SetContactable(this);
-            break;
-        case ChCollisionSystemType::CHRONO:
-#ifdef CHRONO_COLLISION
-            collision_model = chrono_types::make_shared<ChCollisionModelChrono>();
-            collision_model->SetContactable(this);
-#endif
-            break;
-    }
-
-    density = 1000.0f;
-
-    max_speed = 0.5f;
-    max_wvel = 2.0f * float(CH_C_PI);
-
-    sleep_time = 0.6f;
-    sleep_starttime = 0;
-    sleep_minspeed = 0.1f;
-    sleep_minwvel = 0.04f;
-    SetUseSleeping(true);
-
-    variables.SetUserData((void*)this);
-
-    body_id = 0;
-}
-
-ChBody::ChBody(std::shared_ptr<ChCollisionModel> new_collision_model) {
-    marklist.clear();
-    forcelist.clear();
-
-    BFlagsSetAllOFF();  // no flags
-
-    Xforce = VNULL;
-    Xtorque = VNULL;
-
-    Force_acc = VNULL;
-    Torque_acc = VNULL;
-
-    collision_model = new_collision_model;
-    collision_model->SetContactable(this);
 
     density = 1000.0f;
 
@@ -129,9 +80,11 @@ ChBody::ChBody(const ChBody& other) : ChPhysicsItem(other), ChBodyFrame(other) {
 
     ChTime = other.ChTime;
 
-    // also copy-duplicate the collision model? Let the user handle this..
-    collision_model = chrono_types::make_shared<ChCollisionModelBullet>();
-    collision_model->SetContactable(this);
+    // Copy the collision model if any
+    if (other.collision_model) {
+        collision_model = chrono_types::make_shared<ChCollisionModel>(*other.collision_model);
+        collision_model->SetContactable(this);
+    }
 
     density = other.density;
 
@@ -774,12 +727,12 @@ void ChBody::SetCollide(bool state) {
     if (state) {
         SyncCollisionModels();
         BFlagSetON(BodyFlag::COLLIDE);
-        if (GetSystem())
-            GetSystem()->GetCollisionSystem()->Add(collision_model.get());
+        if (GetSystem() && GetSystem()->GetCollisionSystem())
+            GetSystem()->GetCollisionSystem()->Add(collision_model);
     } else {
         BFlagSetOFF(BodyFlag::COLLIDE);
-        if (GetSystem())
-            GetSystem()->GetCollisionSystem()->Remove(collision_model.get());
+        if (GetSystem() && GetSystem()->GetCollisionSystem())
+            GetSystem()->GetCollisionSystem()->Remove(collision_model);
     }
 }
 

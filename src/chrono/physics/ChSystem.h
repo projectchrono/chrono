@@ -414,20 +414,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Contactables (bodies, FEA nodes, FEA traiangles, etc.) added to this system must be compatible.
     virtual ChContactMethod GetContactMethod() const = 0;
 
-    /// Create and return the pointer to a new body.
-    /// The body is consistent with the type of the collision system currently associated with this ChSystem.
-    /// Note that the body is *not* attached to this system.
-    virtual ChBody* NewBody();
-
-    /// Create and return the pointer to a new body with auxiliary reference frame.
-    /// The body is consistent with the type of the collision system currently associated with this ChSystem.
-    /// Note that the body is *not* attached to this system.
-    virtual ChBodyAuxRef* NewBodyAuxRef();
-
-
-    //
     // STATISTICS
-    //
 
     /// Gets the number of contacts.
     int GetNcontacts();
@@ -677,13 +664,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Remove the given collision callback from this system.
     void UnregisterCustomCollisionCallback(std::shared_ptr<CustomCollisionCallback> callback);
 
-    /// Change the underlying collision detection system to the specified type.
-    /// By default, a ChSystem uses a Bullet-based collision detection engine
-    /// (ChCollisionSystemType::BULLET).
+    /// Set the collision detection system used by this Chrono system to the specified type.
     virtual void SetCollisionSystemType(ChCollisionSystemType type);
 
-    /// Change the underlying collision system.
-    /// By default, a ChSystem uses a Bullet-based collision detection engine.
+    /// Set the collision detection system used by this Chrono system.
     virtual void SetCollisionSystem(std::shared_ptr<ChCollisionSystem> coll_sys);
 
     /// Access the underlying collision system.
@@ -940,7 +924,6 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     int ncontacts;  ///< total number of contacts
 
-    ChCollisionSystemType collision_system_type;                                ///< type of the collision engine
     std::shared_ptr<ChCollisionSystem> collision_system;                        ///< collision engine
     std::vector<std::shared_ptr<CustomCollisionCallback>> collision_callbacks;  ///< user-defined collision callbacks
     std::unique_ptr<ChMaterialCompositionStrategy> composition_strategy;        /// material composition strategy

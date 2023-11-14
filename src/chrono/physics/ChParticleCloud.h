@@ -162,9 +162,7 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     virtual ChParticleCloud* Clone() const override { return new ChParticleCloud(*this); }
 
     /// Enable/disable the collision for this cluster of particles.
-    /// before anim starts (it is not automatically
-    /// recomputed here because of performance issues.)
-    void SetCollide(bool mcoll);
+    void SetCollide(bool state);
     virtual bool GetCollide() const override { return do_collide; }
 
     /// Set the state of all particles in the cluster to 'fixed' (default: false).
@@ -199,23 +197,22 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
         return *particles[n];
     }
 
-    /// Resize the particle cluster. Also clear the state of
-    /// previously created particles, if any.
-    /// NOTE! Define the sample collision shape using GetCollisionModel()->...
-    /// before adding particles!
-    void ResizeNparticles(int newsize) override;
-
-    /// Add a new particle to the particle cluster, passing a
-    /// coordinate system as initial state.
-    /// NOTE! Define the sample collision shape using GetCollisionModel()->...
-    /// before adding particles!
-    void AddParticle(ChCoordsys<double> initial_state = CSYSNORM) override;
-
-    /// Set the material surface for contacts
+    /// Set the material surface for contacts.
     void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mnewsurf) { matsurface = mnewsurf; }
 
-    /// Set the material surface for contacts
+    /// Set the material surface for contacts.
     std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() { return matsurface; }
+
+    /// Set the collision model for particles in this cloud.
+    /// This is the "template" collision model that is used by all particles.
+    void SetCollisionModel(std::shared_ptr<ChCollisionModel> model) { particle_collision_model = model; }
+
+    /// Resize the particle cluster.
+    /// This first deletes all existing particles, if any.
+    void ResizeNparticles(int newsize) override;
+
+    /// Add a new particle to the particle cluster, passing a coordinate system as initial state.
+    void AddParticle(ChCoordsys<double> initial_state = CSYSNORM) override;
 
     /// Class to be used as a callback interface for dynamic coloring of particles in a cloud.
     class ChApi ColorCallback {
@@ -298,18 +295,8 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     /// Set no speed and no accelerations (but does not change the position)
     void SetNoSpeedNoAcceleration() override;
 
-    /// Access the collision model for the collision engine: this is the 'sample'
-    /// collision model that is used by all particles.
-    /// To get a non-null pointer, remember to SetCollide(true), before.
-    std::shared_ptr<ChCollisionModel> GetCollisionModel() { return particle_collision_model; }
-
     /// Synchronize coll.models coordinates and bounding boxes to the positions of the particles.
     virtual void SyncCollisionModels() override;
-
-    /// After you added collision shapes to the sample coll.model (the one
-    /// that you access with GetCollisionModel() ) you need to call this
-    /// function so that all collision models of particles will reference the sample coll.model.
-    void UpdateParticleCollisionModels();
 
     /// Mass of each particle. Must be positive.
     void SetMass(double newmass) {

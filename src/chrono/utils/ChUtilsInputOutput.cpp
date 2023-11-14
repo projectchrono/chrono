@@ -181,7 +181,7 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
         iss1 >> brot_dt.e0() >> brot_dt.e1() >> brot_dt.e2() >> brot_dt.e3();
 
         // Create a body of the appropriate type
-        auto body = std::shared_ptr<ChBody>(system->NewBody());
+        auto body = chrono_types::make_shared<ChBody>();
         system->AddBody(body);
 
         // Set body properties and state
@@ -286,9 +286,6 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
         // Set the collision family group and the collision family mask.
         body->GetCollisionModel()->SetFamilyGroup(family_group);
         body->GetCollisionModel()->SetFamilyMask(family_mask);
-
-        // Complete construction of the collision model.
-        body->GetCollisionModel()->Build();
     }
 }
 

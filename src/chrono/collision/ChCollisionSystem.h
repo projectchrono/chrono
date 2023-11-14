@@ -37,17 +37,11 @@ class ChProximityContainer;
 /// Base class for generic collision engine.
 class ChApi ChCollisionSystem {
   public:
-    /// Supported run-time collision systems.
-    enum class Type {
-        BULLET,    // customized Bullet-based collision detection
-        MULTICORE  // Chrono multicore collision detection
-    };
-
     virtual ~ChCollisionSystem() {}
 
     /// Initialize the collision system.
     /// This call triggers a parsing of the associated Chrono system to process all collision models.
-    ////virtual void Initialize() = 0;
+    virtual void Initialize() = 0;
 
     /// Process all collision models in the associated Chrono system.
     /// This function is called by default for a Chrono system attached to this collision system during
@@ -59,20 +53,15 @@ class ChApi ChCollisionSystem {
     /// occur after the collision system was initialized.
     virtual void BindItem(std::shared_ptr<ChPhysicsItem> item) {}
 
-    /// Return the type of this collision system.
-    virtual ChCollisionSystemType GetType() const = 0;  //// TODO: OBSOLETE
-
     /// Clears all data instanced by this algorithm
     /// if any (like persistent contact manifolds)
-    virtual void Clear(void) = 0;
+    virtual void Clear() = 0;
 
-    /// Adds a collision model to the collision
-    /// engine (custom data may be allocated).
-    virtual void Add(ChCollisionModel* model) = 0;  //// TODO: OBSOLETE
+    /// Removes a collision model from the collision engine.
+    virtual void Add(std::shared_ptr<ChCollisionModel> model) = 0;
 
-    /// Removes a collision model from the collision
-    /// engine (custom data may be deallocated).
-    virtual void Remove(ChCollisionModel* model) = 0;
+    /// Removes a collision model from the collision engine.
+    virtual void Remove(std::shared_ptr<ChCollisionModel> model) = 0;
 
     /// Optional synchronization operations, invoked before running the collision detection.
     virtual void PreProcess() {}

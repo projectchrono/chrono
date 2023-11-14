@@ -45,10 +45,7 @@ class ChSystem;
 class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContactable_1vars<6>, public ChLoadableUVW {
   public:
     /// Build a rigid body.
-    ChBody(ChCollisionSystemType collision_type = ChCollisionSystemType::BULLET);
-
-    /// Build a rigid body with a different collision model.
-    ChBody(std::shared_ptr<ChCollisionModel> new_collision_model);
+    ChBody();
 
     ChBody(const ChBody& other);
 
@@ -84,8 +81,6 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     bool GetEvalContactSf() const;
 
     /// Enable/disable the collision for this rigid body.
-    /// before anim starts, if you added an external object
-    /// that implements onAddCollisionGeometries(), ex. in a plug-in for a CAD)
     void SetCollide(bool state);
 
     /// Return true if collision is enabled for this body.
