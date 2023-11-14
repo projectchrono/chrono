@@ -32,7 +32,6 @@ if(ENABLE_MODULE_IRRLICHT)
       demo_MBS_gears
       demo_MBS_mecanum
       demo_MBS_pendulum
-      demo_MBS_sph
       demo_MBS_suspension
       demo_MBS_tire
       demo_MBS_tracks

@@ -132,9 +132,7 @@ set(ChronoEngine_physics_SOURCES
     physics/ChIndexedNodes.cpp
     physics/ChNodeBase.cpp
     physics/ChNodeXYZ.cpp
-    physics/ChMatterSPH.cpp
     physics/ChProximityContainer.cpp
-    physics/ChProximityContainerSPH.cpp
     physics/ChConveyor.cpp
     physics/ChFeeder.cpp
     physics/ChExternalDynamics.cpp
@@ -153,14 +151,12 @@ set(ChronoEngine_physics_HEADERS
     physics/ChIndexedNodes.h
     physics/ChIndexedParticles.h
     physics/ChMarker.h
-    physics/ChMatterSPH.h
     physics/ChNodeBase.h
     physics/ChNodeXYZ.h
     physics/ChObject.h
     physics/ChParticleCloud.h
     physics/ChPhysicsItem.h
     physics/ChProximityContainer.h
-    physics/ChProximityContainerSPH.h
     physics/ChSystem.h
     physics/ChSystemNSC.h
     physics/ChSystemSMC.h
@@ -391,8 +387,6 @@ set(ChronoEngine_fea_SOURCES
     fea/ChMesh.cpp
     fea/ChMeshFileLoader.cpp
     fea/ChMeshExporter.cpp
-    fea/ChMatterMeshless.cpp
-    fea/ChProximityContainerMeshless.cpp
     fea/ChPolarDecomposition.cpp
     fea/ChMatrixCorotation.cpp
     fea/ChLinkPointFrame.cpp
@@ -434,8 +428,6 @@ set(ChronoEngine_fea_HEADERS
     fea/ChMesh.h
     fea/ChMeshExporter.h
     fea/ChMeshFileLoader.h
-    fea/ChMatterMeshless.h
-    fea/ChProximityContainerMeshless.h
     fea/ChPolarDecomposition.h
     fea/ChMatrixCorotation.h
     fea/ChLinkPointFrame.h
