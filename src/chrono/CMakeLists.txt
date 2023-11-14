@@ -722,6 +722,7 @@ set(ChronoEngine_collision_SOURCES
     collision/ChCollisionShapeSegment2D.cpp
     collision/ChCollisionShapeSphere.cpp
     collision/ChCollisionShapeTriangle.cpp
+    collision/ChCollisionShapeMeshTriangle.cpp
     collision/ChCollisionShapeTriangleMesh.cpp
     )
 
@@ -749,6 +750,7 @@ set(ChronoEngine_collision_HEADERS
     collision/ChCollisionShapeSegment2D.h
     collision/ChCollisionShapeSphere.h
     collision/ChCollisionShapeTriangle.h
+    collision/ChCollisionShapeMeshTriangle.h
     collision/ChCollisionShapeTriangleMesh.h
     )
 

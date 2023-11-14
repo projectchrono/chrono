@@ -34,18 +34,19 @@ class ChApi ChCollisionShape {
         CYLINDER,
         CYLSHELL,
         CONVEXHULL,
-        TRIANGLEMESH,
-        BARREL,  // Not supported in Chrono collision system
+        TRIANGLEMESH,  // triangle mesh (compound object)
+        BARREL,        // Not supported in Chrono collision system
         POINT,
-        TRIANGLE,
+        TRIANGLE,      // stand-alone collision triangle
+        MESHTRIANGLE,  // triangle in a connected mesh
         CAPSULE,
         CONE,         // Not implemented in Bullet collision system
         ROUNDEDBOX,   // Not implemented in Bullet collision system
         ROUNDEDCYL,   // Not implemented in Bullet collision system
         TETRAHEDRON,  // Not implemented in Bullet collision system
-        PATH2D,
-        SEGMENT2D,
-        ARC2D,
+        PATH2D,       // 2D path (compound object)
+        SEGMENT2D,    // line segment (part of a 2D path)
+        ARC2D,        // circlular arc (part of a 2D path)
         UNKNOWN_SHAPE
     };
 
