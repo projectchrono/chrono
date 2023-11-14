@@ -38,7 +38,6 @@ CH_UPCASTING(ChBody, ChBodyFrame)
 CH_UPCASTING_SANITIZED(ChBody, ChContactable_1vars<6>, ChBody_ChContactable_1vars_6)
 CH_UPCASTING(ChBody, ChLoadableUVW)
 
-
 ChBody::ChBody() {
     marklist.clear();
     forcelist.clear();
@@ -110,11 +109,11 @@ void ChBody::IntStateGather(const unsigned int off_x,  // offset in x state vect
                             ChStateDelta& v,           // state vector, speed part
                             double& T                  // time
 ) {
-    x.segment(off_x + 0, 3) = this->coord.pos.eigen();
-    x.segment(off_x + 3, 4) = this->coord.rot.eigen();
-    v.segment(off_v + 0, 3) = this->coord_dt.pos.eigen();
-    v.segment(off_v + 3, 3) = this->GetWvel_loc().eigen();
-    T = this->GetChTime();
+    x.segment(off_x + 0, 3) = coord.pos.eigen();
+    x.segment(off_x + 3, 4) = coord.rot.eigen();
+    v.segment(off_v + 0, 3) = coord_dt.pos.eigen();
+    v.segment(off_v + 3, 3) = GetWvel_loc().eigen();
+    T = GetChTime();
 }
 
 void ChBody::IntStateScatter(const unsigned int off_x,  // offset in x state vector
@@ -124,21 +123,21 @@ void ChBody::IntStateScatter(const unsigned int off_x,  // offset in x state vec
                              const double T,            // time
                              bool full_update           // perform complete update
 ) {
-    this->SetCoord(x.segment(off_x, 7));
-    this->SetPos_dt(v.segment(off_v + 0, 3));
-    this->SetWvel_loc(v.segment(off_v + 3, 3));
-    this->SetChTime(T);
-    this->Update(T, full_update);
+    SetCoord(x.segment(off_x, 7));
+    SetPos_dt(v.segment(off_v + 0, 3));
+    SetWvel_loc(v.segment(off_v + 3, 3));
+    SetChTime(T);
+    Update(T, full_update);
 }
 
 void ChBody::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
-    a.segment(off_a + 0, 3) = this->coord_dtdt.pos.eigen();
-    a.segment(off_a + 3, 3) = this->GetWacc_loc().eigen();
+    a.segment(off_a + 0, 3) = coord_dtdt.pos.eigen();
+    a.segment(off_a + 3, 3) = GetWacc_loc().eigen();
 }
 
 void ChBody::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
-    this->SetPos_dtdt(a.segment(off_a + 0, 3));
-    this->SetWacc_loc(a.segment(off_a + 3, 3));
+    SetPos_dtdt(a.segment(off_a + 0, 3));
+    SetWacc_loc(a.segment(off_a + 3, 3));
 }
 
 void ChBody::IntStateIncrement(const unsigned int off_x,  // offset in x state vector
@@ -155,16 +154,17 @@ void ChBody::IntStateIncrement(const unsigned int off_x,  // offset in x state v
     // ADVANCE ROTATION: R_new = DR_a * R_old
     // (using quaternions, local or abs:  q_new = Dq_a * q_old =  q_old * Dq_l  )
     ChQuaternion<> q_old(x.segment(off_x + 3, 4));
-    ChQuaternion<> rel_q; rel_q.Q_from_Rotv(Dv.segment(off_v + 3, 3));
+    ChQuaternion<> rel_q;
+    rel_q.Q_from_Rotv(Dv.segment(off_v + 3, 3));
     ChQuaternion<> q_new = q_old * rel_q;
     x_new.segment(off_x + 3, 4) = q_new.eigen();
 }
 
 void ChBody::IntStateGetIncrement(const unsigned int off_x,  // offset in x state vector
-                               const ChState& x_new,         // state vector, position part, incremented result
-                               const ChState& x,             // state vector, initial position part
-                               const unsigned int off_v,     // offset in v state vector
-                               ChStateDelta& Dv     // state vector, increment
+                                  const ChState& x_new,      // state vector, position part, incremented result
+                                  const ChState& x,          // state vector, initial position part
+                                  const unsigned int off_v,  // offset in v state vector
+                                  ChStateDelta& Dv           // state vector, increment
 ) {
     // POSITION:
     Dv(off_v) = x_new(off_x) - x(off_x);
@@ -187,7 +187,7 @@ void ChBody::IntLoadResidual_F(const unsigned int off,  // offset in R residual
     R.segment(off, 3) += c * Xforce.eigen();
 
     // add applied torques to 'fb' vector, including gyroscopic torque
-    if (this->GetNoGyroTorque())
+    if (GetNoGyroTorque())
         R.segment(off + 3, 3) += c * Xtorque.eigen();
     else
         R.segment(off + 3, 3) += c * (Xtorque - gyro).eigen();
@@ -212,56 +212,56 @@ void ChBody::IntToDescriptor(const unsigned int off_v,
                              const unsigned int off_L,
                              const ChVectorDynamic<>& L,
                              const ChVectorDynamic<>& Qc) {
-    this->variables.Get_qb() = v.segment(off_v, 6);
-    this->variables.Get_fb() = R.segment(off_v, 6);
+    variables.Get_qb() = v.segment(off_v, 6);
+    variables.Get_fb() = R.segment(off_v, 6);
 }
 
 void ChBody::IntFromDescriptor(const unsigned int off_v,  // offset in v
                                ChStateDelta& v,
                                const unsigned int off_L,  // offset in L
                                ChVectorDynamic<>& L) {
-    v.segment(off_v, 6) = this->variables.Get_qb();
+    v.segment(off_v, 6) = variables.Get_qb();
 }
 
 ////
 
 void ChBody::InjectVariables(ChSystemDescriptor& mdescriptor) {
-    this->variables.SetDisabled(!this->IsActive());
+    variables.SetDisabled(!IsActive());
 
-    mdescriptor.InsertVariables(&this->variables);
+    mdescriptor.InsertVariables(&variables);
 }
 
 void ChBody::VariablesFbReset() {
-    this->variables.Get_fb().setZero();
+    variables.Get_fb().setZero();
 }
 
 void ChBody::VariablesFbLoadForces(double factor) {
     // add applied forces to 'fb' vector
-    this->variables.Get_fb().segment(0, 3) += factor * Xforce.eigen();
+    variables.Get_fb().segment(0, 3) += factor * Xforce.eigen();
 
     // add applied torques to 'fb' vector, including gyroscopic torque
-    if (this->GetNoGyroTorque())
-        this->variables.Get_fb().segment(3, 3) += factor * Xtorque.eigen();
+    if (GetNoGyroTorque())
+        variables.Get_fb().segment(3, 3) += factor * Xtorque.eigen();
     else
-        this->variables.Get_fb().segment(3, 3) += factor * (Xtorque - gyro).eigen();
+        variables.Get_fb().segment(3, 3) += factor * (Xtorque - gyro).eigen();
 }
 
 void ChBody::VariablesFbIncrementMq() {
-    this->variables.Compute_inc_Mb_v(this->variables.Get_fb(), this->variables.Get_qb());
+    variables.Compute_inc_Mb_v(variables.Get_fb(), variables.Get_qb());
 }
 
 void ChBody::VariablesQbLoadSpeed() {
     // set current speed in 'qb', it can be used by the solver when working in incremental mode
-    this->variables.Get_qb().segment(0, 3) = GetCoord_dt().pos.eigen();
-    this->variables.Get_qb().segment(3, 3) = GetWvel_loc().eigen();
+    variables.Get_qb().segment(0, 3) = GetCoord_dt().pos.eigen();
+    variables.Get_qb().segment(3, 3) = GetWvel_loc().eigen();
 }
 
 void ChBody::VariablesQbSetSpeed(double step) {
-    ChCoordsys<> old_coord_dt = this->GetCoord_dt();
+    ChCoordsys<> old_coord_dt = GetCoord_dt();
 
     // from 'qb' vector, sets body speed, and updates auxiliary data
-    this->SetPos_dt(this->variables.Get_qb().segment(0, 3));
-    this->SetWvel_loc(this->variables.Get_qb().segment(3, 3));
+    SetPos_dt(variables.Get_qb().segment(0, 3));
+    SetWvel_loc(variables.Get_qb().segment(3, 3));
 
     // apply limits (if in speed clamping mode) to speeds.
     ClampSpeed();
@@ -271,13 +271,13 @@ void ChBody::VariablesQbSetSpeed(double step) {
 
     // Compute accel. by BDF (approximate by differentiation);
     if (step) {
-        this->SetPos_dtdt((this->GetCoord_dt().pos - old_coord_dt.pos) / step);
-        this->SetRot_dtdt((this->GetCoord_dt().rot - old_coord_dt.rot) / step);
+        SetPos_dtdt((GetCoord_dt().pos - old_coord_dt.pos) / step);
+        SetRot_dtdt((GetCoord_dt().rot - old_coord_dt.rot) / step);
     }
 }
 
 void ChBody::VariablesQbIncrementPosition(double dt_step) {
-    if (!this->IsActive())
+    if (!IsActive())
         return;
 
     // Updates position with incremental action of speed contained in the
@@ -287,34 +287,34 @@ void ChBody::VariablesQbIncrementPosition(double dt_step) {
     ChVector<> newwel(variables.Get_qb().segment(3, 3));
 
     // ADVANCE POSITION: pos' = pos + dt * vel
-    this->SetPos(this->GetPos() + newspeed * dt_step);
+    SetPos(GetPos() + newspeed * dt_step);
 
     // ADVANCE ROTATION: rot' = [dt*wwel]%rot  (use quaternion for delta rotation)
     ChQuaternion<> mdeltarot;
-    ChQuaternion<> moldrot = this->GetRot();
+    ChQuaternion<> moldrot = GetRot();
     ChVector<> newwel_abs = Amatrix * newwel;
     double mangle = newwel_abs.Length() * dt_step;
     newwel_abs.Normalize();
     mdeltarot.Q_from_AngAxis(mangle, newwel_abs);
     ChQuaternion<> mnewrot = mdeltarot % moldrot;
-    this->SetRot(mnewrot);
+    SetRot(mnewrot);
 }
 
 void ChBody::SetNoSpeedNoAcceleration() {
-    this->SetPos_dt(VNULL);
-    this->SetWvel_loc(VNULL);
-    this->SetPos_dtdt(VNULL);
-    this->SetRot_dtdt(QNULL);
+    SetPos_dt(VNULL);
+    SetWvel_loc(VNULL);
+    SetPos_dtdt(VNULL);
+    SetRot_dtdt(QNULL);
 }
 
 ////
 void ChBody::ClampSpeed() {
-    if (this->GetLimitSpeed()) {
-        double w = 2.0 * this->coord_dt.rot.Length();
+    if (GetLimitSpeed()) {
+        double w = 2.0 * coord_dt.rot.Length();
         if (w > max_wvel)
             coord_dt.rot *= max_wvel / w;
 
-        double v = this->coord_dt.pos.Length();
+        double v = coord_dt.pos.Length();
         if (v > max_speed)
             coord_dt.pos *= max_speed / v;
     }
@@ -388,7 +388,7 @@ ChVector<> ChBody::GetInertiaXY() const {
 void ChBody::ComputeQInertia(ChMatrix44<>& mQInertia) {
     // [Iq]=[G'][Ix][G]
     ChGlMatrix34<> Gl(coord.rot);
-    mQInertia = Gl.transpose() * this->GetInertia() * Gl;
+    mQInertia = Gl.transpose() * GetInertia() * Gl;
 }
 
 //////
@@ -418,26 +418,25 @@ void ChBody::Accumulate_torque(const ChVector<>& torque, bool local) {
 //////
 
 void ChBody::ComputeGyro() {
-    ChVector<> Wvel = this->GetWvel_loc();
+    ChVector<> Wvel = GetWvel_loc();
     gyro = Vcross(Wvel, variables.GetBodyInertia() * Wvel);
 }
 
 bool ChBody::TrySleeping() {
     BFlagSet(BodyFlag::COULDSLEEP, false);
 
-    if (this->GetUseSleeping()) {
-        if (!this->IsActive())
+    if (GetUseSleeping()) {
+        if (!IsActive())
             return false;
 
         // if not yet sleeping:
-        if ((this->coord_dt.pos.LengthInf() < this->sleep_minspeed) &&
-            (2.0 * this->coord_dt.rot.LengthInf() < this->sleep_minwvel)) {
-            if ((this->GetChTime() - this->sleep_starttime) > this->sleep_time) {
+        if ((coord_dt.pos.LengthInf() < sleep_minspeed) && (2.0 * coord_dt.rot.LengthInf() < sleep_minwvel)) {
+            if ((GetChTime() - sleep_starttime) > sleep_time) {
                 BFlagSet(BodyFlag::COULDSLEEP, true);  // mark as sleep candidate
                 return true;                           // could go to sleep!
             }
         } else {
-            this->sleep_starttime = float(this->GetChTime());
+            sleep_starttime = float(GetChTime());
         }
     }
     return false;
@@ -641,46 +640,6 @@ bool ChBody::GetBodyFixed() const {
     return BFlagGet(BodyFlag::FIXED);
 }
 
-void ChBody::SetEvalContactCn(bool state) {
-    BFlagSet(BodyFlag::EVAL_CONTACT_CN, state);
-}
-
-bool ChBody::GetEvalContactCn() const {
-    return BFlagGet(BodyFlag::EVAL_CONTACT_CN);
-}
-
-void ChBody::SetEvalContactCt(bool state) {
-    BFlagSet(BodyFlag::EVAL_CONTACT_CT, state);
-}
-
-bool ChBody::GetEvalContactCt() const {
-    return BFlagGet(BodyFlag::EVAL_CONTACT_CT);
-}
-
-void ChBody::SetEvalContactKf(bool state) {
-    BFlagSet(BodyFlag::EVAL_CONTACT_KF, state);
-}
-
-bool ChBody::GetEvalContactKf() const {
-    return BFlagGet(BodyFlag::EVAL_CONTACT_KF);
-}
-
-void ChBody::SetEvalContactSf(bool state) {
-    BFlagSet(BodyFlag::EVAL_CONTACT_SF, state);
-}
-
-bool ChBody::GetEvalContactSf() const {
-    return BFlagGet(BodyFlag::EVAL_CONTACT_SF);
-}
-
-void ChBody::SetShowCollisionMesh(bool state) {
-    BFlagSet(BodyFlag::SHOW_COLLMESH, state);
-}
-
-bool ChBody::GetShowCollisionMesh() const {
-    return BFlagGet(BodyFlag::SHOW_COLLMESH);
-}
-
 void ChBody::SetLimitSpeed(bool state) {
     BFlagSet(BodyFlag::LIMITSPEED, state);
 }
@@ -741,27 +700,27 @@ bool ChBody::GetCollide() const {
 }
 
 void ChBody::SyncCollisionModels() {
-    if (this->GetCollide())
-        this->GetCollisionModel()->SyncPosition();
+    if (GetCollide())
+        GetCollisionModel()->SyncPosition();
 }
 
 // ---------------------------------------------------------------------------
 
 geometry::ChAABB ChBody::GetTotalAABB() {
     if (GetCollisionModel())
-        return this->GetCollisionModel()->GetBoundingBox();
-    
+        return GetCollisionModel()->GetBoundingBox();
+
     return geometry::ChAABB();  // default: inverted bounding box
 }
 
 void ChBody::ContactableGetStateBlock_x(ChState& x) {
-    x.segment(0, 3) = this->GetCoord().pos.eigen();
-    x.segment(3, 4) = this->GetCoord().rot.eigen();
+    x.segment(0, 3) = GetCoord().pos.eigen();
+    x.segment(3, 4) = GetCoord().rot.eigen();
 }
 
 void ChBody::ContactableGetStateBlock_w(ChStateDelta& w) {
-    w.segment(0, 3) = this->GetPos_dt().eigen();
-    w.segment(3, 3) = this->GetWvel_loc().eigen();
+    w.segment(0, 3) = GetPos_dt().eigen();
+    w.segment(3, 3) = GetWvel_loc().eigen();
 }
 
 void ChBody::ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) {
@@ -785,20 +744,20 @@ ChVector<> ChBody::GetContactPointSpeed(const ChVector<>& loc_point,
 }
 
 ChVector<> ChBody::GetContactPointSpeed(const ChVector<>& abs_point) {
-    ChVector<> m_p1_loc = this->Point_World2Body(abs_point);
-    return this->PointSpeedLocalToParent(m_p1_loc);
+    ChVector<> m_p1_loc = Point_World2Body(abs_point);
+    return PointSpeedLocalToParent(m_p1_loc);
 }
 
 ChCoordsys<> ChBody::GetCsysForCollisionModel() {
-    return ChCoordsys<>(this->GetFrame_REF_to_abs().coord);
+    return ChCoordsys<>(GetFrame_REF_to_abs().coord);
 }
 
 void ChBody::ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, ChVectorDynamic<>& R) {
-    ChVector<> m_p1_loc = this->Point_World2Body(abs_point);
-    ChVector<> force1_loc = this->Dir_World2Body(F);
+    ChVector<> m_p1_loc = Point_World2Body(abs_point);
+    ChVector<> force1_loc = Dir_World2Body(F);
     ChVector<> torque1_loc = Vcross(m_p1_loc, force1_loc);
-    R.segment(this->GetOffset_w() + 0, 3) += F.eigen();
-    R.segment(this->GetOffset_w() + 3, 3) += torque1_loc.eigen();
+    R.segment(GetOffset_w() + 0, 3) += F.eigen();
+    R.segment(GetOffset_w() + 3, 3) += torque1_loc.eigen();
 }
 
 void ChBody::ContactForceLoadQ(const ChVector<>& F,
@@ -821,14 +780,14 @@ void ChBody::ComputeJacobianForContactPart(const ChVector<>& abs_point,
                                            ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
                                            bool second) {
     /*
-    ChVector<> p1 = this->Point_World2Body(abs_point);
+    ChVector<> p1 = Point_World2Body(abs_point);
     ChStarMatrix33<> Ps1(p1);
 
     ChMatrix33<> Jx1 = contact_plane.transpose();
     if (!second)
         Jx1 *= -1;
 
-    ChMatrix33<> Jr1 = contact_plane.transpose() * this->GetA() * Ps1;
+    ChMatrix33<> Jr1 = contact_plane.transpose() * GetA() * Ps1;
     if (!second)
         Jr1 *= -1;
 
@@ -842,7 +801,7 @@ void ChBody::ComputeJacobianForContactPart(const ChVector<>& abs_point,
     */
 
     // UNROLLED VERSION - FASTER
-    ChVector<> p1 = this->Point_World2Body(abs_point);
+    ChVector<> p1 = Point_World2Body(abs_point);
     double temp00 =
         Amatrix(0, 2) * contact_plane(0, 0) + Amatrix(1, 2) * contact_plane(1, 0) + Amatrix(2, 2) * contact_plane(2, 0);
     double temp01 =
@@ -921,7 +880,7 @@ void ChBody::ComputeJacobianForRollingContactPart(
     ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
     ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
     bool second) {
-    ChMatrix33<> Jr1 = contact_plane.transpose() * this->GetA();
+    ChMatrix33<> Jr1 = contact_plane.transpose() * GetA();
     if (!second)
         Jr1 *= -1;
 
@@ -952,7 +911,7 @@ ChVector<> ChBody::GetContactTorque() {
 // ---------------------------------------------------------------------------
 
 void ChBody::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
-    mvars.push_back(&this->Variables());
+    mvars.push_back(&Variables());
 }
 
 void ChBody::LoadableStateIncrement(const unsigned int off_x,
@@ -964,13 +923,13 @@ void ChBody::LoadableStateIncrement(const unsigned int off_x,
 }
 
 void ChBody::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
-    mD.segment(block_offset + 0, 3) = this->GetCoord().pos.eigen();
-    mD.segment(block_offset + 3, 4) = this->GetCoord().rot.eigen();
+    mD.segment(block_offset + 0, 3) = GetCoord().pos.eigen();
+    mD.segment(block_offset + 3, 4) = GetCoord().rot.eigen();
 }
 
 void ChBody::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = this->GetPos_dt().eigen();
-    mD.segment(block_offset + 3, 3) = this->GetWvel_loc().eigen();
+    mD.segment(block_offset + 0, 3) = GetPos_dt().eigen();
+    mD.segment(block_offset + 3, 3) = GetWvel_loc().eigen();
 }
 
 void ChBody::ComputeNF(
@@ -992,7 +951,7 @@ void ChBody::ComputeNF(
     if (state_x)
         bodycoord = state_x->segment(0, 7);  // the numerical jacobian algo might change state_x
     else
-        bodycoord = this->coord;
+        bodycoord = coord;
 
     // compute Q components F,T, given current state of body 'bodycoord'. Note T in Q is in local csys, F is an abs csys
     body_absF = absF;
@@ -1054,7 +1013,7 @@ void ChBody::ArchiveOut(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChBody::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChBody>();
+    /*int version =*/marchive.VersionRead<ChBody>();
 
     // deserialize parent class
     ChPhysicsItem::ArchiveIn(marchive);
@@ -1083,13 +1042,13 @@ void ChBody::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(tempmarkers, "markers");
     marchive >> CHNVP(tempforces, "forces");
     // trick needed because the "Add...() functions are required
-    this->RemoveAllMarkers();
+    RemoveAllMarkers();
     for (auto i : tempmarkers) {
-        this->AddMarker(i);
+        AddMarker(i);
     }
-    this->RemoveAllForces();
+    RemoveAllForces();
     for (auto i : tempforces) {
-        this->AddForce(i);
+        AddForce(i);
     }
 
     marchive >> CHNVP(body_id);
@@ -1111,76 +1070,74 @@ void ChBody::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(sleep_minwvel);
     marchive >> CHNVP(sleep_starttime);
 
-
     // INITIALIZATION-BY-METHODS
-    if (marchive.CanTolerateMissingTokens()){
+    if (marchive.CanTolerateMissingTokens()) {
         bool temp_tolerate_missing_tokens = marchive.GetTolerateMissingTokens();
         marchive.TryTolerateMissingTokens(true);
 
         bool _c_SetBodyFixed;
         if (marchive.in(CHNVP(_c_SetBodyFixed)))
-            this->SetBodyFixed(_c_SetBodyFixed);
+            SetBodyFixed(_c_SetBodyFixed);
 
         double _c_SetMass;
         if (marchive.in(CHNVP(_c_SetMass)))
-            this->SetMass(_c_SetMass);
+            SetMass(_c_SetMass);
 
         ChVector<> _c_SetInertiaXX;
         if (marchive.in(CHNVP(_c_SetInertiaXX)))
-            this->SetInertiaXX(_c_SetInertiaXX);
+            SetInertiaXX(_c_SetInertiaXX);
 
         ChVector<> _c_SetInertiaXY;
         if (marchive.in(CHNVP(_c_SetInertiaXY)))
-            this->SetInertiaXY(_c_SetInertiaXY);
+            SetInertiaXY(_c_SetInertiaXY);
 
         marchive.TryTolerateMissingTokens(temp_tolerate_missing_tokens);
     }
-
 }
 
 void ChBody::StreamOutstate(ChStreamOutBinary& mstream) {
     // Do not serialize parent classes and do not
     // implement versioning, because this must be efficient
     // and will be used just for domain decomposition.
-    mstream << this->coord.pos.x();
-    mstream << this->coord.pos.y();
-    mstream << this->coord.pos.z();
-    mstream << this->coord.rot.e0();
-    mstream << this->coord.rot.e1();
-    mstream << this->coord.rot.e2();
-    mstream << this->coord.rot.e3();
-    mstream << this->coord_dt.pos.x();
-    mstream << this->coord_dt.pos.y();
-    mstream << this->coord_dt.pos.z();
-    mstream << this->coord_dt.rot.e0();
-    mstream << this->coord_dt.rot.e1();
-    mstream << this->coord_dt.rot.e2();
-    mstream << this->coord_dt.rot.e3();
+    mstream << coord.pos.x();
+    mstream << coord.pos.y();
+    mstream << coord.pos.z();
+    mstream << coord.rot.e0();
+    mstream << coord.rot.e1();
+    mstream << coord.rot.e2();
+    mstream << coord.rot.e3();
+    mstream << coord_dt.pos.x();
+    mstream << coord_dt.pos.y();
+    mstream << coord_dt.pos.z();
+    mstream << coord_dt.rot.e0();
+    mstream << coord_dt.rot.e1();
+    mstream << coord_dt.rot.e2();
+    mstream << coord_dt.rot.e3();
 }
 
 void ChBody::StreamInstate(ChStreamInBinary& mstream) {
     // Do not serialize parent classes and do not
     // implement versioning, because this must be efficient
     // and will be used just for domain decomposition.
-    mstream >> this->coord.pos.x();
-    mstream >> this->coord.pos.y();
-    mstream >> this->coord.pos.z();
-    mstream >> this->coord.rot.e0();
-    mstream >> this->coord.rot.e1();
-    mstream >> this->coord.rot.e2();
-    mstream >> this->coord.rot.e3();
-    this->SetCoord(coord);
-    mstream >> this->coord_dt.pos.x();
-    mstream >> this->coord_dt.pos.y();
-    mstream >> this->coord_dt.pos.z();
-    mstream >> this->coord_dt.rot.e0();
-    mstream >> this->coord_dt.rot.e1();
-    mstream >> this->coord_dt.rot.e2();
-    mstream >> this->coord_dt.rot.e3();
-    this->SetCoord_dt(coord_dt);
+    mstream >> coord.pos.x();
+    mstream >> coord.pos.y();
+    mstream >> coord.pos.z();
+    mstream >> coord.rot.e0();
+    mstream >> coord.rot.e1();
+    mstream >> coord.rot.e2();
+    mstream >> coord.rot.e3();
+    SetCoord(coord);
+    mstream >> coord_dt.pos.x();
+    mstream >> coord_dt.pos.y();
+    mstream >> coord_dt.pos.z();
+    mstream >> coord_dt.rot.e0();
+    mstream >> coord_dt.rot.e1();
+    mstream >> coord_dt.rot.e2();
+    mstream >> coord_dt.rot.e3();
+    SetCoord_dt(coord_dt);
 
-    this->Update();
-    this->SyncCollisionModels();
+    Update();
+    SyncCollisionModels();
 }
 
 }  // end namespace chrono
