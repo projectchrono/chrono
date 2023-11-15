@@ -60,14 +60,13 @@ class ChApi ChCollisionSystem {
     /// occur after the collision system was initialized.
     virtual void BindItem(std::shared_ptr<ChPhysicsItem> item) {}
 
-    /// Clears all data instanced by this algorithm
-    /// if any (like persistent contact manifolds)
+    /// Clears all data instanced by this algorithm if any.
     virtual void Clear() = 0;
 
-    /// Removes a collision model from the collision engine.
+    /// Add the specified collision model to the collision engine.
     virtual void Add(std::shared_ptr<ChCollisionModel> model) = 0;
 
-    /// Removes a collision model from the collision engine.
+    /// Remove the specified collision model from the collision engine.
     virtual void Remove(std::shared_ptr<ChCollisionModel> model) = 0;
 
     /// Optional synchronization operations, invoked before running the collision detection.

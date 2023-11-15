@@ -67,7 +67,7 @@ class ChApi ChCollisionModelBullet : public ChCollisionModelImpl {
     void Populate();
 
     /// Additional operations to be performed on a change in collision family.
-    void OnFamilyChange();
+    virtual void OnFamilyChange(short int family_group, short int family_mask) override;
 
     void injectShape(std::shared_ptr<ChCollisionShape> shape,
                      std::shared_ptr<cbtCollisionShape> bt_shape,

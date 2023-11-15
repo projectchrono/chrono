@@ -37,7 +37,6 @@ CH_FACTORY_REGISTER(ChCollisionSystemBullet)
 CH_UPCASTING(ChCollisionSystemBullet, ChCollisionSystem)
 
 ChCollisionSystemBullet::ChCollisionSystemBullet() : m_debug_drawer(nullptr) {
-    // cbtDefaultCollisionConstructionInfo conf_info(...); ***TODO***
     bt_collision_configuration = new cbtDefaultCollisionConfiguration();
 
 #ifdef BT_USE_OPENMP
@@ -135,7 +134,7 @@ void ChCollisionSystemBullet::Initialize() {
         return;
 
     BindAll();
-    
+
     m_initialized = true;
 }
 
@@ -143,20 +142,7 @@ void ChCollisionSystemBullet::BindAll() {
     if (!m_system)
         return;
 
-    const auto& assembly = m_system->GetAssembly();
-
-    for (const auto& body : assembly.Get_bodylist()) {
-        if (body->GetCollide())
-            Add(body->GetCollisionModel());
-    }
-
-    for (const auto& mesh : assembly.Get_meshlist()) {
-        for (const auto& surf : mesh->GetContactSurfaces()) {
-            surf->AddCollisionModelsToSystem(this);
-        }
-    }
-
-    //// TODO OTHER ITEMS
+    BindAssembly(&m_system->GetAssembly());
 }
 
 void ChCollisionSystemBullet::BindItem(std::shared_ptr<ChPhysicsItem> item) {
@@ -169,7 +155,28 @@ void ChCollisionSystemBullet::BindItem(std::shared_ptr<ChPhysicsItem> item) {
             surf->AddCollisionModelsToSystem(this);
         }
     }
-    //// TODO OTHER ITEMS
+
+    if (const auto& a = std::dynamic_pointer_cast<ChAssembly>(item)) {
+        BindAssembly(a.get());
+    }
+}
+
+void ChCollisionSystemBullet::BindAssembly(const ChAssembly* assembly) {
+    for (const auto& body : assembly->Get_bodylist()) {
+        if (body->GetCollide())
+            Add(body->GetCollisionModel());
+    }
+
+    for (const auto& mesh : assembly->Get_meshlist()) {
+        for (const auto& surf : mesh->GetContactSurfaces()) {
+            surf->AddCollisionModelsToSystem(this);
+        }
+    }
+
+    for (const auto& item : assembly->Get_otherphysicslist()) {
+        if (const auto& a = std::dynamic_pointer_cast<ChAssembly>(item))
+            BindAssembly(a.get());
+    }
 }
 
 void ChCollisionSystemBullet::Add(std::shared_ptr<ChCollisionModel> model) {

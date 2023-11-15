@@ -18,9 +18,11 @@
 #include "chrono/collision/ChCollisionSystem.h"
 #include "chrono/collision/bullet/ChCollisionModelBullet.h"
 #include "chrono/collision/bullet/cbtBulletCollisionCommon.h"
-#include "chrono/core/ChApiCE.h"
 
 namespace chrono {
+
+// forward references
+class ChAssembly;
 
 /// @addtogroup collision_bullet
 /// @{
@@ -50,10 +52,10 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     /// if any (like persistent contact manifolds)
     virtual void Clear() override;
 
-    /// Adds a collision model to the collision engine.
+    /// Add the specified collision model to the collision engine.
     virtual void Add(std::shared_ptr<ChCollisionModel> model) override;
 
-    /// Removes a collision model from the collision engine.
+    /// Remove the specified collision model from the collision engine.
     virtual void Remove(std::shared_ptr<ChCollisionModel> model) override;
 
     /// Removes all collision models from the collision
@@ -130,6 +132,9 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
+    /// Bind all physics items in the specified assembly.
+    void BindAssembly(const ChAssembly* assembly);
+
     /// Perform a ray-hit test with all collision models. This version allows specifying the Bullet
     /// collision filter group and mask (see cbtBroadphaseProxy::CollisionFilterGroups).
     bool RayHit(const ChVector<>& from,

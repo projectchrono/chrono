@@ -632,7 +632,7 @@ void ChCollisionModelBullet::injectTriangleProxy(std::shared_ptr<ChCollisionShap
 
 // -----------------------------------------------------------------------------
 
-void ChCollisionModelBullet::OnFamilyChange() {
+void ChCollisionModelBullet::OnFamilyChange(short int family_group, short int family_mask) {
     if (!bt_collision_object->getBroadphaseHandle())
         return;
 

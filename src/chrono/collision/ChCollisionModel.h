@@ -68,11 +68,11 @@ class ChApi ChCollisionModel {
                    const ChFrame<>& frame = ChFrame<>()      ///< model frame in model
     );
 
+    /// Set the pointer to the contactable object.
+    void SetContactable(ChContactable* contactable);
+
     /// Get the pointer to the contactable object.
     ChContactable* GetContactable() { return contactable; }
-
-    /// Set the pointer to the contactable object.
-    void SetContactable(ChContactable* mc) { contactable = mc; }
 
     /// Get the pointer to the client owner ChPhysicsItem.
     ///
@@ -85,18 +85,18 @@ class ChApi ChCollisionModel {
 
     /// Set the collision family for this model (0...15).
     /// By default, all collision objects belong to family 0.
-    void SetFamily(int mfamily);
+    void SetFamily(int family);
     int GetFamily();
 
     /// By default, family mask is all turned on, so all families can collide with this object, but you can turn on-off
     /// some bytes of this mask so that some families do not collide. When two objects collide, the contact is created
     /// only if the family is within the 'family mask' of the other, and viceversa.
-    void SetFamilyMaskNoCollisionWithFamily(int mfamily);
-    void SetFamilyMaskDoCollisionWithFamily(int mfamily);
+    void SetFamilyMaskNoCollisionWithFamily(int family);
+    void SetFamilyMaskDoCollisionWithFamily(int family);
 
     /// Indicate if the family mask of this collision object allows for the collision with another collision object
     /// belonging to a given family.
-    bool GetFamilyMaskDoesCollisionWithFamily(int mfamily);
+    bool GetFamilyMaskDoesCollisionWithFamily(int family);
 
     /// Return the collision family group of this model.
     /// The collision family of this model is the position of the single set bit in the return value.
@@ -212,6 +212,7 @@ class ChApi ChCollisionModel {
     ChCollisionModelImpl* impl;  ///< concrete implementation of the collision model
 
     friend class ChCollisionModelImpl;
+    friend class ChCollisionSystemChrono;
 };
 
 // Base class for a concrete collision model, specific to a particular collision detection system.
@@ -229,7 +230,7 @@ class ChCollisionModelImpl {
     virtual void SyncPosition() = 0;
 
     /// Additional operations to be performed on a change in collision family.
-    virtual void OnFamilyChange() = 0;
+    virtual void OnFamilyChange(short int family_group, short int family_mask) {}
 
     /// Return the current axis aligned bounding box (AABB) of the collision model.
     /// The two return vectors represent the min.max corners along the x,y,z world axes.

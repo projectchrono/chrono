@@ -22,11 +22,6 @@
 #include "chrono/physics/ChMarker.h"
 #include "chrono/physics/ChSystem.h"
 
-#include "chrono/collision/bullet/ChCollisionModelBullet.h"
-#ifdef CHRONO_COLLISION
-    #include "chrono/collision/chrono/ChCollisionModelChrono.h"
-#endif
-
 namespace chrono {
 
 using namespace geometry;

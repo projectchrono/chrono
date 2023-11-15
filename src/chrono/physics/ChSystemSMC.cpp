@@ -25,8 +25,6 @@
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 
-#include "chrono/collision/bullet/ChCollisionSystemBullet.h"
-
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
