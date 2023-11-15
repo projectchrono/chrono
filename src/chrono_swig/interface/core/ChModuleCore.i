@@ -51,6 +51,7 @@
 #include "chrono/ChConfig.h"
 
 #include "chrono/core/ChApiCE.h"
+#include "chrono/serialization/ChArchiveJSON.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLink.h"
