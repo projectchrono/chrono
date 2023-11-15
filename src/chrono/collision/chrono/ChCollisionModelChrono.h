@@ -31,13 +31,10 @@ class ChBody;
 /// @{
 
 /// Geometric model for the custom multicore Chrono collision system.
-class ChApi ChCollisionModelChrono : public ChCollisionModel {
+class ChApi ChCollisionModelChrono : public ChCollisionModelImpl {
   public:
-    ChCollisionModelChrono();
+    ChCollisionModelChrono(ChCollisionModel* collision_model);
     virtual ~ChCollisionModelChrono();
-
-    /// Return the type of this collision model.
-    virtual ChCollisionSystemType GetType() const override { return ChCollisionSystemType::CHRONO; }
 
     /// Sets the position and orientation of the collision
     /// model as the rigid body current position.
@@ -49,17 +46,8 @@ class ChApi ChCollisionModelChrono : public ChCollisionModel {
     /// Set the pointer to the owner rigid body.
     void SetBody(ChBody* body) { mbody = body; }
 
-    /// Sets the pointer to the contactable object.
-    virtual void SetContactable(ChContactable* mc) override;
-
     /// Return the axis aligned bounding box for this collision model.
     virtual geometry::ChAABB GetBoundingBox() const override;
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
-
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
     std::vector<real3> local_convex_data;
 
@@ -80,14 +68,11 @@ class ChApi ChCollisionModelChrono : public ChCollisionModel {
         real3 aabb_max;  // upper corner of shape AABB
     };
 
-    /// Remove this model from the collision system (if applicable).
-    virtual void Dissociate() override;
-
-    /// Insert this model into the collision system (if applicable).
-    virtual void Associate() override;
-
     /// Populate the collision system with the collision shapes defined in this model.
-    virtual void Populate() override;
+    void Populate();
+
+    /// Additional operations to be performed on a change in collision family.
+    virtual void OnFamilyChange(short int family_group, short int family_mask) override {}
 
     ChBody* mbody;                                               ///< associated contactable (rigid body only)
     std::vector<std::shared_ptr<ctCollisionShape>> m_ct_shapes;  ///< list of Chrono collision shapes in model

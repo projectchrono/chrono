@@ -77,59 +77,81 @@ void ChCollisionSystemChrono::SetNumThreads(int nthreads) {
 
 // -----------------------------------------------------------------------------
 
-bool ChCollisionSystemChrono::GetActiveBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const {
-    aabb_min = ToChVector(active_aabb_min);
-    aabb_max = ToChVector(active_aabb_max);
-
-    return use_aabb_active;
-}
-
-geometry::ChAABB ChCollisionSystemChrono::GetBoundingBox() const {
-    ChVector<> aabb_min((double)cd_data->min_bounding_point.x, (double)cd_data->min_bounding_point.y,
-                        (double)cd_data->min_bounding_point.z);
-    ChVector<> aabb_max((double)cd_data->max_bounding_point.x, (double)cd_data->max_bounding_point.y,
-                        (double)cd_data->max_bounding_point.z);
-
-    return geometry::ChAABB(aabb_min, aabb_max);
-}
-
-double ChCollisionSystemChrono::GetTimerCollisionBroad() const {
-    return m_timer_broad();
-}
-
-double ChCollisionSystemChrono::GetTimerCollisionNarrow() const {
-    return m_timer_narrow();
-}
-
-// -----------------------------------------------------------------------------
-
-void ChCollisionSystemChrono::Add(ChCollisionModel* model) {
-    if (!model->GetPhysicsItem()->GetCollide())
+void ChCollisionSystemChrono::Initialize() {
+    if (m_initialized)
         return;
 
-    ChCollisionModelChrono* pmodel = static_cast<ChCollisionModelChrono*>(model);
+    BindAll();
 
-    int body_id = pmodel->GetBody()->GetId();
-    short2 fam = S2(pmodel->GetFamilyGroup(), pmodel->GetFamilyMask());
+    m_initialized = true;
+}
+
+void ChCollisionSystemChrono::BindAll() {
+    if (!m_system)
+        return;
+
+    BindAssembly(&m_system->GetAssembly());
+}
+
+void ChCollisionSystemChrono::BindItem(std::shared_ptr<ChPhysicsItem> item) {
+    if (auto body = std::dynamic_pointer_cast<ChBody>(item)) {
+        Add(body->GetCollisionModel());
+    }
+
+    ////if (auto mesh = std::dynamic_pointer_cast<fea::ChMesh>(item)) {
+    ////    for (const auto& surf : mesh->GetContactSurfaces()) {
+    ////        surf->AddCollisionModelsToSystem(this);
+    ////    }
+    ////}
+
+    if (const auto& a = std::dynamic_pointer_cast<ChAssembly>(item)) {
+        BindAssembly(a.get());
+    }
+}
+
+void ChCollisionSystemChrono::BindAssembly(const ChAssembly* assembly) {
+    for (const auto& body : assembly->Get_bodylist()) {
+        if (body->GetCollide())
+            Add(body->GetCollisionModel());
+    }
+
+    ////for (const auto& mesh : assembly->Get_meshlist()) {
+    ////    for (const auto& surf : mesh->GetContactSurfaces()) {
+    ////        surf->AddCollisionModelsToSystem(this);
+    ////    }
+    ////}
+
+    for (const auto& item : assembly->Get_otherphysicslist()) {
+        if (const auto& a = std::dynamic_pointer_cast<ChAssembly>(item))
+            BindAssembly(a.get());
+    }
+}
+
+void ChCollisionSystemChrono::Add(std::shared_ptr<ChCollisionModel> model) {
+    auto ct_model = chrono_types::make_shared<ChCollisionModelChrono>(model.get());
+    ct_model->Populate();
+
+    int body_id = ct_model->GetBody()->GetId();
+    short2 fam = S2(ct_model->model->GetFamilyGroup(), ct_model->model->GetFamilyMask());
 
     // The offset for this shape will the current total number of points in the convex data list
     auto& shape_data = cd_data->shape_data;
     int convex_data_offset = (int)shape_data.convex_rigid.size();
 
     // Insert the points into the global convex list
-    shape_data.convex_rigid.insert(shape_data.convex_rigid.end(), pmodel->local_convex_data.begin(),
-                                   pmodel->local_convex_data.end());
+    shape_data.convex_rigid.insert(shape_data.convex_rigid.end(), ct_model->local_convex_data.begin(),
+                                   ct_model->local_convex_data.end());
 
     // Shape index in the collision model
     int local_shape_index = 0;
 
     // Traverse all collision shapes in the model
-    auto num_shapes = pmodel->m_shapes.size();
-    assert(num_shapes == pmodel->m_ct_shapes.size());
+    auto num_shapes = ct_model->m_shapes.size();
+    assert(num_shapes == ct_model->m_ct_shapes.size());
 
     for (size_t i = 0; i < num_shapes; i++) {
-        auto type = pmodel->m_shapes[i]->GetType();
-        const auto& ct_shape = pmodel->m_ct_shapes[i];
+        auto type = ct_model->m_shapes[i]->GetType();
+        const auto& ct_shape = ct_model->m_ct_shapes[i];
         real3 obA = ct_shape->A;
         real3 obB = ct_shape->B;
         real3 obC = ct_shape->C;
@@ -202,92 +224,20 @@ void ChCollisionSystemChrono::Add(ChCollisionModel* model) {
         cd_data->num_rigid_shapes++;
         local_shape_index++;
     }
+
+    ct_models.push_back(ct_model);
+}
+
+void ChCollisionSystemChrono::Clear() {
+    ct_models.clear();
+    //// TODO more here
 }
 
 #define ERASE_MACRO(x, y) x.erase(x.begin() + y);
 #define ERASE_MACRO_LEN(x, y, z) x.erase(x.begin() + y, x.begin() + y + z);
 
-void ChCollisionSystemChrono::Remove(ChCollisionModel* model) {
-    /*
-    ChCollisionModelChrono* pmodel = static_cast<ChCollisionModelChrono*>(model);
-    int body_id = pmodel->GetBody()->GetId();
-    //loop over the models we nned to remove
-    //std::cout << "removing: " << pmodel->GetNumShapes() << " objects" << std::endl;
-    for (int j = 0; j < pmodel->GetNumShapes(); j++) {
-        //find a model to remove
-        bool removed = false;
-        for (int i = 0; i < shape_data.id_rigid.size(); i++) {
-            if (shape_data.id_rigid[i] == body_id) {
-                int index = i;
-                cd_data->num_rigid_shapes--;
-
-                int start = shape_data.start_rigid[index];
-                int length = shape_data.length_rigid[index];
-                int type = shape_data.typ_rigid[index];
-
-                //std::cout << "removing: type " << type << " " << start<< " " <<j << std::endl;
-
-
-                switch (type) {
-                case ChCollisionShape::Type::SPHERE:
-                    ERASE_MACRO_LEN(shape_data.sphere_rigid, start, length);
-                    break;
-                case ChCollisionShape::Type::ELLIPSOID:
-                    ERASE_MACRO_LEN(shape_data.box_like_rigid, start, length);
-                    break;
-                case ChCollisionShape::Type::BOX:
-                    ERASE_MACRO_LEN(shape_data.box_like_rigid, start, length);
-                    break;
-                case ChCollisionShape::Type::CYLINDER:
-                    ERASE_MACRO_LEN(shape_data.box_like_rigid, start, length);
-                    break;
-                case ChCollisionShape::Type::CYLSHELL:
-                    ERASE_MACRO_LEN(shape_data.box_like_rigid, start, length);
-                    break;
-                case ChCollisionShape::Type::CONE:
-                    ERASE_MACRO_LEN(shape_data.box_like_rigid, start, length);
-                    break;
-                case ChCollisionShape::Type::CAPSULE:
-                    ERASE_MACRO_LEN(shape_data.capsule_rigid, start, length);
-                    break;
-                case ChCollisionShape::Type::ROUNDEDBOX:
-                    ERASE_MACRO_LEN(shape_data.rbox_like_rigid, start, length);
-                    break;
-                case ChCollisionShape::Type::ROUNDEDCYL:
-                    ERASE_MACRO_LEN(shape_data.rbox_like_rigid, start, length);
-                    break;
-                case ChCollisionShape::Type::CONVEXHULL:
-                    ERASE_MACRO_LEN(shape_data.convex_rigid, start, length);
-                    break;
-                case ChCollisionShape::Type::TRIANGLE:
-                    ERASE_MACRO_LEN(shape_data.convex_rigid, start, 3);
-                    break;
-                }
-
-                ERASE_MACRO(shape_data.ObA_rigid, index);
-                ERASE_MACRO(shape_data.ObR_rigid, index);
-                ERASE_MACRO(shape_data.start_rigid, index);
-                ERASE_MACRO(shape_data.length_rigid, index);
-
-                ERASE_MACRO(shape_data.fam_rigid, index);
-                ERASE_MACRO(shape_data.typ_rigid, index);
-                ERASE_MACRO(shape_data.id_rigid, index);
-                removed = true;
-                break;
-            }
-        }
-        //std::cout << "decrement start "<< std::endl;
-        if (removed) {
-            //we removed a model, all of the starts are off by one, decrement all starts before removing a second model
-            for (int i = 0; i < shape_data.start_rigid.size(); i++) {
-                if (shape_data.start_rigid[i] != 0) {
-                    shape_data.start_rigid[i] -= 1;
-                }
-            }
-        }
-
-    }
-*/
+void ChCollisionSystemChrono::Remove(std::shared_ptr<ChCollisionModel> model) {
+    //// TODO
 }
 
 #undef ERASE_MACRO
@@ -295,10 +245,36 @@ void ChCollisionSystemChrono::Remove(ChCollisionModel* model) {
 
 // -----------------------------------------------------------------------------
 
+bool ChCollisionSystemChrono::GetActiveBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const {
+    aabb_min = ToChVector(active_aabb_min);
+    aabb_max = ToChVector(active_aabb_max);
+
+    return use_aabb_active;
+}
+
+geometry::ChAABB ChCollisionSystemChrono::GetBoundingBox() const {
+    ChVector<> aabb_min((double)cd_data->min_bounding_point.x, (double)cd_data->min_bounding_point.y,
+                        (double)cd_data->min_bounding_point.z);
+    ChVector<> aabb_max((double)cd_data->max_bounding_point.x, (double)cd_data->max_bounding_point.y,
+                        (double)cd_data->max_bounding_point.z);
+
+    return geometry::ChAABB(aabb_min, aabb_max);
+}
+
 void ChCollisionSystemChrono::ResetTimers() {
     m_timer_broad.reset();
     m_timer_narrow.reset();
 }
+
+double ChCollisionSystemChrono::GetTimerCollisionBroad() const {
+    return m_timer_broad();
+}
+
+double ChCollisionSystemChrono::GetTimerCollisionNarrow() const {
+    return m_timer_narrow();
+}
+
+// -----------------------------------------------------------------------------
 
 void ChCollisionSystemChrono::PreProcess() {
     assert(cd_data->owns_state_data);
@@ -400,11 +376,11 @@ void ChCollisionSystemChrono::ReportContacts(ChContactContainer* container) {
         auto b2 = bids[i].y;                  //
         auto s1 = int(sids[i] >> 32);         // global IDs of shapes in contact
         auto s2 = int(sids[i] & 0xffffffff);  //
-        auto s1_index = sindex[s1];           // collision model indexes of shapes in contact
+        auto s1_index = sindex[s1];           // indexes of shapes in contact within their collision model
         auto s2_index = sindex[s2];           //
 
-        auto modelA = (ChCollisionModelChrono*)blist[b1]->GetCollisionModel().get();
-        auto modelB = (ChCollisionModelChrono*)blist[b2]->GetCollisionModel().get();
+        auto modelA = (ChCollisionModelChrono*)blist[b1]->GetCollisionModel()->impl;
+        auto modelB = (ChCollisionModelChrono*)blist[b2]->GetCollisionModel()->impl;
 
         ChCollisionInfo cinfo;
         cinfo.modelA = blist[b1]->GetCollisionModel().get();

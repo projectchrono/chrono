@@ -29,10 +29,17 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChCollisionModelChrono)
-CH_UPCASTING(ChCollisionModelChrono, ChCollisionModel)
+CH_UPCASTING(ChCollisionModelChrono, ChCollisionModelImpl)
 
-ChCollisionModelChrono::ChCollisionModelChrono() : aabb_min(C_REAL_MAX), aabb_max(-C_REAL_MAX) {
-    model_safe_margin = 0;
+ChCollisionModelChrono::ChCollisionModelChrono(ChCollisionModel* collision_model)
+    : ChCollisionModelImpl(collision_model), aabb_min(C_REAL_MAX), aabb_max(-C_REAL_MAX) {
+    collision_model->SetSafeMargin(0);
+
+    assert(collision_model->GetContactable());
+
+    // Currently, a ChCollisionModelChrono can only be a associated with a rigid body.
+    mbody = dynamic_cast<ChBody*>(collision_model->GetContactable());
+    assert(mbody);
 }
 
 ChCollisionModelChrono::~ChCollisionModelChrono() {
@@ -40,28 +47,8 @@ ChCollisionModelChrono::~ChCollisionModelChrono() {
     m_ct_shapes.clear();
 }
 
-void ChCollisionModelChrono::Dissociate() {
-    if (GetPhysicsItem()->GetSystem() && GetPhysicsItem()->GetCollide())
-        GetPhysicsItem()->GetSystem()->GetCollisionSystem()->Remove(this);
-
-    local_convex_data.clear();
-    aabb_min = ChVector<>(C_REAL_MAX);
-    aabb_max = ChVector<>(-C_REAL_MAX);
-    family_group = 1;
-    family_mask = 0x7FFF;
-
-    m_shapes.clear();
-    m_ct_shapes.clear();
-}
-
-void ChCollisionModelChrono::Associate() {
-    if (GetPhysicsItem()->GetSystem() && GetPhysicsItem()->GetCollide()) {
-        GetPhysicsItem()->GetSystem()->GetCollisionSystem()->Add(this);
-    }
-}
-
 void ChCollisionModelChrono::Populate() {
-    for (const auto& shape_instance : m_shape_instances) {
+    for (const auto& shape_instance : model->GetShapes()) {
         const auto& shape = shape_instance.first;
         const auto& material = shape->GetMaterial();
 
@@ -292,34 +279,6 @@ void ChCollisionModelChrono::SyncPosition() {
     assert(bpointer);
     assert(bpointer->GetSystem());
 #endif
-}
-
-void ChCollisionModelChrono::SetContactable(ChContactable* mc) {
-    // Invoke the base class method.
-    ChCollisionModel::SetContactable(mc);
-
-    // Currently, a ChCollisionModelChrono can only be a associated with a rigid body.
-    mbody = dynamic_cast<ChBody*>(mc);
-    assert(mbody);
-}
-
-void ChCollisionModelChrono::ArchiveOut(ChArchiveOut& marchive) {
-    // version number
-    marchive.VersionWrite<ChCollisionModelChrono>();
-    // serialize parent class
-    ChCollisionModel::ArchiveOut(marchive);
-
-    // serialize all member data:
-    marchive << CHNVP(mbody);
-}
-
-void ChCollisionModelChrono::ArchiveIn(ChArchiveIn& marchive) {
-    // version number
-    /*int version =*/marchive.VersionRead<ChCollisionModelChrono>();
-    // deserialize parent class
-    ChCollisionModel::ArchiveIn(marchive);
-
-    marchive >> CHNVP(mbody);
 }
 
 }  // end namespace chrono

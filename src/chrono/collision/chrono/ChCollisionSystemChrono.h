@@ -32,6 +32,9 @@
 
 namespace chrono {
 
+// forward references
+class ChAssembly;
+
 /// @addtogroup collision_mc
 /// @{
 
@@ -42,8 +45,29 @@ class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
     ChCollisionSystemChrono();
     virtual ~ChCollisionSystemChrono();
 
-    /// Return the type of this collision system.
-    virtual ChCollisionSystemType GetType() const override { return ChCollisionSystemType::CHRONO; }
+    /// Initialize the collision system.
+    /// This call triggers a parsing of the associated Chrono system to process all collision models.
+    virtual void Initialize() override;
+
+    /// Process all collision models in the associated Chrono system.
+    /// This function is called by default for a Chrono system attached to this collision system during
+    /// initialization, but can also be called later if further modifications to collision models occur.
+    virtual void BindAll() override;
+
+    /// Process the collision shapes...
+    /// This function must be called if a new physics item is added to the system or if changes to its collision model
+    /// occur after the collision system was initialized.
+    virtual void BindItem(std::shared_ptr<ChPhysicsItem> item) override;
+
+    /// Clears all data instanced by this algorithm
+    /// if any (like persistent contact manifolds)
+    virtual void Clear() override;
+
+    /// Add the specified collision model to the collision engine.
+    virtual void Add(std::shared_ptr<ChCollisionModel> model) override;
+
+    /// Remove the specified collision model from the collision engine.
+    virtual void Remove(std::shared_ptr<ChCollisionModel> model) override;
 
     /// Set collision envelope for rigid shapes (default: ChCollisionModel::GetDefaultSuggestedEnvelope).
     /// For stability of NSC contact, the envelope should be set to 5-10% of the smallest collision shape size (too
@@ -81,16 +105,6 @@ class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
     /// The return value indicates whether or not the active box feature is enabled.
     bool GetActiveBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const;
 
-    /// Clear all data instanced by this algorithm if any (like persistent contact manifolds).
-    virtual void Clear(void) override {}
-
-    /// Add a collision model to the collision engine.
-    virtual void Add(ChCollisionModel* model) override;
-
-    /// Remove a collision model from the collision engine.
-    /// Currently not implemented.
-    virtual void Remove(ChCollisionModel* model) override;
-
     /// Set the number of OpenMP threads for collision detection.
     virtual void SetNumThreads(int nthreads) override;
 
@@ -105,7 +119,7 @@ class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
     /// This function updates the list of active bodies (if active bounding box enabled).
     virtual void PostProcess() override;
 
-    /// Return an AABB bounding all collision shapes in the system
+    /// Return an AABB bounding all collision shapes in the system.
     virtual geometry::ChAABB GetBoundingBox() const override;
 
     /// Reset any timers associated with collision detection.
@@ -165,6 +179,11 @@ class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
 
     /// Visualize contact points and normals.
     void VisualizeContacts();
+
+    /// Bind all physics items in the specified assembly.
+    void BindAssembly(const ChAssembly* assembly);
+
+    std::vector<std::shared_ptr<ChCollisionModelChrono>> ct_models;
 
     std::shared_ptr<ChCollisionData> cd_data;
 
