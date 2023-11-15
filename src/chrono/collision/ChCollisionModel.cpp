@@ -263,4 +263,14 @@ void ChCollisionModel::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(contactable);
 }
 
+// -----------------------------------------------------------------------------
+
+ChCollisionModelImpl::ChCollisionModelImpl(ChCollisionModel* collision_model) : model(collision_model) {
+    model->impl = this;
+}
+
+ChContactable* ChCollisionModelImpl::GetContactable() {
+    return model->GetContactable();
+}
+
 }  // end namespace chrono

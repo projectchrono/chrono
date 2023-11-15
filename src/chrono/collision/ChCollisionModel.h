@@ -186,21 +186,20 @@ class ChApi ChCollisionModel {
     /// ROUNDEDBOX   x-halfdim y-halfdim z-halfdim sphere_rad
     /// ROUNDEDCYL   x-radius z-radius halflength sphere_rad
     /// </pre>
-    /// 
+    ///
     //// TODO: OBSOLETE
-    /// 
+    ///
     std::vector<double> GetShapeDimensions(std::shared_ptr<ChCollisionShape> shape) const;
 
     /// Set the contact material for all collision shapes in the model (all shapes will share the material).
     /// This function is useful in adjusting contact material properties for objects imported from outside (e.g., from
     /// SolidWorks).
-    /// 
+    ///
     //// TODO: OBSOLETE
-    /// 
+    ///
     void SetAllShapesMaterial(std::shared_ptr<ChMaterialSurface> mat);
 
-  protected:
-
+  private:
     float model_envelope;        ///< Maximum envelope: surrounding volume from surface to the exterior
     float model_safe_margin;     ///< Maximum margin value to be used for fast penetration contact detection
     ChContactable* contactable;  ///< Pointer to the contactable object
@@ -210,7 +209,9 @@ class ChApi ChCollisionModel {
 
     std::vector<ShapeInstance> m_shape_instances;  ///< list of collision shapes and positions in model
 
-    ChCollisionModelImpl* impl; ///< concrete implementation of the collision model
+    ChCollisionModelImpl* impl;  ///< concrete implementation of the collision model
+
+    friend class ChCollisionModelImpl;
 };
 
 // Base class for a concrete collision model, specific to a particular collision detection system.
@@ -219,9 +220,10 @@ class ChCollisionModelImpl {
     virtual ~ChCollisionModelImpl() {}
 
   protected:
-    ChCollisionModelImpl(ChCollisionModel* collision_model) : model(collision_model) {}
+    ChCollisionModelImpl(ChCollisionModel* collision_model);
 
-    ChContactable* GetContactable() { return model->GetContactable(); }
+    /// Get the pointer to the contactable object.
+    ChContactable* GetContactable();
 
     /// Synchronize the position and orientation of the collision model to the associated contactable.
     virtual void SyncPosition() = 0;
