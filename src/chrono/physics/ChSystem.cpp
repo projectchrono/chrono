@@ -33,7 +33,6 @@
 #include "chrono/utils/ChProfiler.h"
 #include "chrono/physics/ChLinkMate.h"
 
-
 namespace chrono {
 
 // -----------------------------------------------------------------------------
@@ -389,26 +388,34 @@ void ChSystem::SetNumThreads(int num_threads_chrono, int num_threads_collision, 
     nthreads_eigen = (num_threads_eigen <= 0) ? num_threads_chrono : num_threads_eigen;
 
     if (collision_system)
-    collision_system->SetNumThreads(nthreads_collision);
+        collision_system->SetNumThreads(nthreads_collision);
 }
 
 // -----------------------------------------------------------------------------
 
-// Initial system setup before analysis.
-// This function must be called once the system construction is completed.
-void ChSystem::SetupInitial() {
+// Initial system setup before analysis. Must be called once the system construction is completed.
+void ChSystem::Initialize() {
+    if (is_initialized)
+        return;
+
     // Set num threads for Eigen
     Eigen::setNbThreads(nthreads_eigen);
 
-    // Set num threads for the collision system
+    assembly.SetupInitial();
+
+    // Initialize the collision system, if one is attached
     if (collision_system) {
+        collision_system->Initialize();
         collision_system->SetNumThreads(nthreads_collision);
     }
 
-    assembly.SetupInitial();
+    // Initialize any visualization system to which this system is attached
+    if (visual_system) {
+        visual_system->Initialize();
+    }
+
     is_initialized = true;
 }
-
 
 // -----------------------------------------------------------------------------
 // PREFERENCES
@@ -525,7 +532,7 @@ bool ChSystem::ManageSleepingBodies() {
             if (could_sleep2 && !(sleep1 || could_sleep1) && !ground1) {
                 b2->BFlagSet(ChBody::BodyFlag::COULDSLEEP, false);
             }
-            someone_sleeps = someone_sleeps ||sleep1 || sleep2;
+            someone_sleeps = someone_sleeps || sleep1 || sleep2;
 
             return true;  // to continue scanning contacts
         }
@@ -712,8 +719,7 @@ void ChSystem::Update(double mytime, bool update_assets) {
 void ChSystem::Update(bool update_assets) {
     CH_PROFILE("Update");
 
-    if (!is_initialized)
-        SetupInitial();
+    Initialize();
 
     timer_update.start();  // Timer for profiling
 
@@ -1066,7 +1072,7 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
             descriptor->WriteMatrixSpmv(output_dir, prefix);
         } else {
             descriptor->WriteMatrix(output_dir, prefix);
-            descriptor->WriteMatrixBlocks(output_dir, prefix);            
+            descriptor->WriteMatrixBlocks(output_dir, prefix);
         }
 
         chrono::ChStreamOutAsciiFile file_x((output_dir + "/" + prefix + "_x_pre.dat").c_str());
@@ -1435,7 +1441,8 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
     if (verbose) {
         std::cout << "Removing redundant constraints." << std::endl;
         std::cout << "   QR decomposition rank: " << QR_dec.rank() << std::endl;
-        std::cout << "   Number of starting constraints: " << GetSystemDescriptor()->CountActiveConstraints() << std::endl;
+        std::cout << "   Number of starting constraints: " << GetSystemDescriptor()->CountActiveConstraints()
+                  << std::endl;
         std::cout << "   Number of indipendent constraints: " << independent_row_count << std::endl;
         std::cout << "   Number of dependent constraints: " << Cq_rows - independent_row_count << std::endl;
         std::cout << "   Number of total variables: " << GetSystemDescriptor()->CountActiveVariables() << std::endl;
@@ -1452,14 +1459,15 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
     GetSystemDescriptor()->UpdateCountsAndOffsets();
 
     // Remove Degrees of Constraint to ChLinkMate constraints
-    std::map<int, std::shared_ptr<ChLinkBase>> constr_map; // store an ordered list of constraints offsets
+    std::map<int, std::shared_ptr<ChLinkBase>> constr_map;  // store an ordered list of constraints offsets
     for (int i = 0; i < Get_linklist().size(); ++i) {
         // store the link offset
         auto link = Get_linklist()[i];
         constr_map[link->GetOffset_L()] = link;
     }
 
-    std::map<int, std::array<bool, 6>> constrnewmask_map; // store the mask of ChLinkMate constraints (only if they are ChLinkMate!) that have redundant equations
+    std::map<int, std::array<bool, 6>> constrnewmask_map;  // store the mask of ChLinkMate constraints (only if they are
+                                                           // ChLinkMate!) that have redundant equations
     for (auto r_sel = 0; r_sel < redundant_constraints_idx.size(); ++r_sel) {
         // pick the constraint with redundant degrees of constraints
         auto constr_pair_mod = constr_map.upper_bound(redundant_constraints_idx[r_sel]);
@@ -1469,9 +1477,9 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
         if (auto constr_mod = std::dynamic_pointer_cast<ChLinkMateGeneric>(constr_pair_mod->second)) {
             auto sel_constr_offset = constr_mod->GetOffset_L();
 
-            std::array<bool, 6> original_mask = {
-                constr_mod->IsConstrainedX(), constr_mod->IsConstrainedY(), constr_mod->IsConstrainedZ(),
-                constr_mod->IsConstrainedRx(), constr_mod->IsConstrainedRy(), constr_mod->IsConstrainedRz() };
+            std::array<bool, 6> original_mask = {constr_mod->IsConstrainedX(),  constr_mod->IsConstrainedY(),
+                                                 constr_mod->IsConstrainedZ(),  constr_mod->IsConstrainedRx(),
+                                                 constr_mod->IsConstrainedRy(), constr_mod->IsConstrainedRz()};
 
             if (constrnewmask_map.find(sel_constr_offset) == constrnewmask_map.end())
                 constrnewmask_map[sel_constr_offset] = original_mask;
@@ -1492,14 +1500,16 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
     }
 
     // Modify ChLinkMate constaints based on new mask
-    for (auto constrnewmask_it = constrnewmask_map.begin(); constrnewmask_it != constrnewmask_map.end(); ++constrnewmask_it) {
-        std::dynamic_pointer_cast<ChLinkMateGeneric>(constr_map[constrnewmask_it->first])->SetConstrainedCoords(
-            constrnewmask_it->second[0], constrnewmask_it->second[1], constrnewmask_it->second[2],
-            constrnewmask_it->second[3], constrnewmask_it->second[4], constrnewmask_it->second[5]);
+    for (auto constrnewmask_it = constrnewmask_map.begin(); constrnewmask_it != constrnewmask_map.end();
+         ++constrnewmask_it) {
+        std::dynamic_pointer_cast<ChLinkMateGeneric>(constr_map[constrnewmask_it->first])
+            ->SetConstrainedCoords(constrnewmask_it->second[0], constrnewmask_it->second[1],
+                                   constrnewmask_it->second[2], constrnewmask_it->second[3],
+                                   constrnewmask_it->second[4], constrnewmask_it->second[5]);
     }
 
-    // IMPORTANT: by modifying the mask of ChLinkMate, the underlying ChConstraints get deleted and offsets get scrambled.
-    // Therefore, repopulate ChSystemDescriptor with updated scenario
+    // IMPORTANT: by modifying the mask of ChLinkMate, the underlying ChConstraints get deleted and offsets get
+    // scrambled. Therefore, repopulate ChSystemDescriptor with updated scenario
     Setup();
     Update();
     DescriptorPrepareInject(*descriptor);
@@ -1510,7 +1520,8 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
     if (verbose) {
         std::cout << "   New number of constraints: " << GetSystemDescriptor()->CountActiveConstraints() << std::endl;
         std::cout << "   Cq size before redundancy removal: " << Cq_rows << " X " << Cq_cols << std::endl;
-        std::cout << "   Cq size after redundancy removal: " << Cq_check.rows() << " X " << Cq_check.cols() << std::endl;
+        std::cout << "   Cq size after redundancy removal: " << Cq_check.rows() << " X " << Cq_check.cols()
+                  << std::endl;
     }
 
     // Actually REMOVE links now having DoC = 0 from system link list
@@ -1538,13 +1549,12 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
 // -----------------------------------------------------------------------------
 
 int ChSystem::DoStepDynamics(double step_size) {
-    if (!is_initialized)
-        SetupInitial();
+    Initialize();
 
     applied_forces_current = false;
     step = step_size;
     bool ret = Integrate_Y();
-  
+
     m_RTF = timer_step() / step;
 
     return ret;
@@ -1640,8 +1650,7 @@ bool ChSystem::Integrate_Y() {
 // -----------------------------------------------------------------------------
 
 bool ChSystem::DoAssembly(int action) {
-    if (!is_initialized)
-        SetupInitial();
+    Initialize();
 
     applied_forces_current = false;
 
@@ -1690,8 +1699,7 @@ bool ChSystem::DoAssembly(int action) {
 // -----------------------------------------------------------------------------
 
 bool ChSystem::DoStaticLinear() {
-    if (!is_initialized)
-        SetupInitial();
+    Initialize();
 
     applied_forces_current = false;
 
@@ -1747,8 +1755,7 @@ bool ChSystem::DoStaticLinear() {
 // -----------------------------------------------------------------------------
 
 bool ChSystem::DoStaticNonlinear(int nsteps, bool verbose) {
-    if (!is_initialized)
-        SetupInitial();
+    Initialize();
 
     applied_forces_current = false;
 
@@ -1781,8 +1788,7 @@ bool ChSystem::DoStaticNonlinear(int nsteps, bool verbose) {
 }
 
 bool ChSystem::DoStaticAnalysis(ChStaticAnalysis& analysis) {
-    if (!is_initialized)
-        SetupInitial();
+    Initialize();
 
     applied_forces_current = false;
 
@@ -1803,9 +1809,11 @@ bool ChSystem::DoStaticAnalysis(ChStaticAnalysis& analysis) {
     return true;
 }
 
-bool ChSystem::DoStaticNonlinearRheonomic(int nsteps, bool verbose, std::shared_ptr<ChStaticNonLinearRheonomicAnalysis::IterationCallback> callback) {
-    if (!is_initialized)
-        SetupInitial();
+bool ChSystem::DoStaticNonlinearRheonomic(
+    int nsteps,
+    bool verbose,
+    std::shared_ptr<ChStaticNonLinearRheonomicAnalysis::IterationCallback> callback) {
+    Initialize();
 
     applied_forces_current = false;
 
@@ -1844,8 +1852,7 @@ bool ChSystem::DoStaticNonlinearRheonomic(int nsteps, bool verbose, std::shared_
 // -----------------------------------------------------------------------------
 
 bool ChSystem::DoStaticRelaxing(int nsteps) {
-    if (!is_initialized)
-        SetupInitial();
+    Initialize();
 
     applied_forces_current = false;
 
@@ -1903,8 +1910,7 @@ bool ChSystem::DoStaticRelaxing(int nsteps) {
 // -----------------------------------------------------------------------------
 
 bool ChSystem::DoEntireKinematics(double end_time) {
-    if (!is_initialized)
-        SetupInitial();
+    Initialize();
 
     applied_forces_current = false;
 
@@ -1938,8 +1944,7 @@ bool ChSystem::DoEntireKinematics(double end_time) {
 // -----------------------------------------------------------------------------
 
 bool ChSystem::DoEntireDynamics(double end_time) {
-    if (!is_initialized)
-        SetupInitial();
+    Initialize();
 
     applied_forces_current = false;
 
@@ -1978,8 +1983,7 @@ bool ChSystem::DoEntireDynamics(double end_time) {
 // requested to reach end time, the step is lowered.
 
 bool ChSystem::DoFrameDynamics(double end_time) {
-    if (!is_initialized)
-        SetupInitial();
+    Initialize();
 
     applied_forces_current = false;
 
@@ -2031,8 +2035,7 @@ bool ChSystem::DoFrameDynamics(double end_time) {
 // command).
 
 bool ChSystem::DoEntireUniformDynamics(double end_time, double frame_step) {
-    if (!is_initialized)
-        SetupInitial();
+    Initialize();
 
     applied_forces_current = false;
 
@@ -2052,8 +2055,7 @@ bool ChSystem::DoEntireUniformDynamics(double end_time, double frame_step) {
 // Like DoFrameDynamics, but performs kinematics instead of dynamics
 
 bool ChSystem::DoFrameKinematics(double end_time) {
-    if (!is_initialized)
-        SetupInitial();
+    Initialize();
 
     applied_forces_current = false;
 
@@ -2096,8 +2098,7 @@ bool ChSystem::DoFrameKinematics(double end_time) {
 }
 
 bool ChSystem::DoStepKinematics(double step_size) {
-    if (!is_initialized)
-        SetupInitial();
+    Initialize();
 
     applied_forces_current = false;
 
@@ -2133,7 +2134,7 @@ void ChSystem::ArchiveOut(ChArchiveOut& marchive) {
 
     // serialize all member data:
 
-    //marchive >> CHNVP(contact_container); // created by the constructor
+    // marchive >> CHNVP(contact_container); // created by the constructor
 
     marchive << CHNVP(G_acc);
     marchive << CHNVP(ch_time);
@@ -2153,7 +2154,7 @@ void ChSystem::ArchiveOut(ChArchiveOut& marchive) {
 
     marchive << CHNVP(composition_strategy);
 
-    //marchive << CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
+    // marchive << CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
 
     //***TODO*** complete...
 }
@@ -2168,7 +2169,7 @@ void ChSystem::ArchiveIn(ChArchiveIn& marchive) {
 
     // stream in all member data:
 
-    //marchive >> CHNVP(contact_container); // created by the constructor
+    // marchive >> CHNVP(contact_container); // created by the constructor
 
     marchive >> CHNVP(G_acc);
     marchive >> CHNVP(ch_time);
@@ -2188,8 +2189,8 @@ void ChSystem::ArchiveIn(ChArchiveIn& marchive) {
 
     marchive >> CHNVP(composition_strategy);
 
-    //marchive >> CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
-    //timestepper->SetIntegrable(this);
+    // marchive >> CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
+    // timestepper->SetIntegrable(this);
 
     //***TODO*** complete...
 

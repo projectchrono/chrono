@@ -179,7 +179,7 @@ void ChVisualSystemIrrlicht::AttachSystem(ChSystem* sys) {
 // -----------------------------------------------------------------------------
 
 void ChVisualSystemIrrlicht::Initialize() {
-    if (m_device)
+    if (m_initialized)
         return;
 
     // Create Irrlicht device using current parameter values.
@@ -231,6 +231,8 @@ void ChVisualSystemIrrlicht::Initialize() {
         // This is a recursive call to accomodate any existing sub-assemblies.
         BindAll();
     }
+
+    m_initialized = true;
 }
 
 // -----------------------------------------------------------------------------

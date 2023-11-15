@@ -131,14 +131,19 @@ void ChCollisionSystemBullet::SetNumThreads(int nthreads) {
 }
 
 void ChCollisionSystemBullet::Initialize() {
+    if (m_initialized)
+        return;
+
     BindAll();
+    
+    m_initialized = true;
 }
 
 void ChCollisionSystemBullet::BindAll() {
     if (!m_system)
         return;
 
-    auto assembly = m_system->GetAssembly();
+    const auto& assembly = m_system->GetAssembly();
 
     for (const auto& body : assembly.Get_bodylist()) {
         if (body->GetCollide())

@@ -34,6 +34,9 @@ class CH_SENSOR_API ChVisualSystemOptix : public ChVisualSystem {
     ChVisualSystemOptix(ChSystem& sys);
     ~ChVisualSystemOptix();
 
+    /// Initialize the visualization system.
+    virtual void Initialize();
+
     /// Process all visual assets in the associated ChSystem.
     virtual void BindAll() override;
 

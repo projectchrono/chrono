@@ -43,10 +43,11 @@ class ChApi ChCollisionSystem {
         MULTICORE  ///< Chrono multicore collision detection system
     };
 
-    virtual ~ChCollisionSystem() {}
+    virtual ~ChCollisionSystem();
 
     /// Initialize the collision system.
-    /// This call triggers a parsing of the associated Chrono system to process all collision models.
+    /// This call must trigger a parsing of the associated Chrono system to process all collision models.
+    /// A derived class must ensure that this function is called only once (use the m_initialized flag).
     virtual void Initialize() = 0;
 
     /// Process all collision models in the associated Chrono system.
@@ -211,26 +212,24 @@ class ChApi ChCollisionSystem {
     virtual void Visualize(int flags) {}
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) {
-        // version number
-        marchive.VersionWrite<ChCollisionSystem>();
-    }
+    virtual void ArchiveOut(ChArchiveOut& marchive);
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) {
-        // version number
-        /*int version =*/marchive.VersionRead<ChCollisionSystem>();
-    }
+    virtual void ArchiveIn(ChArchiveIn& marchive);
 
     /// Set associated Chrono system
     void SetSystem(ChSystem* sys) { m_system = sys; }
 
   protected:
-    ChCollisionSystem() : m_system(nullptr) {}
+    ChCollisionSystem();
+
+    bool m_initialized; 
 
     ChSystem* m_system;                                    ///< associated Chrono system
+    
     std::shared_ptr<BroadphaseCallback> broad_callback;    ///< user callback for each near-enough pair of shapes
     std::shared_ptr<NarrowphaseCallback> narrow_callback;  ///< user callback for each collision pair
+
     std::shared_ptr<VisualizationCallback> vis_callback;   ///< user callback for debug visualization
     int m_vis_flags;
 };

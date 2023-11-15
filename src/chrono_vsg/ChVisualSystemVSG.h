@@ -210,7 +210,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     void UpdateFromMBS();
 
-    bool m_initialized = false;
     int m_screen_num = -1;
     bool m_use_fullscreen = false;
 

@@ -704,6 +704,7 @@ endif()
 set(ChronoEngine_collision_SOURCES
     collision/ChCollisionInfo.cpp
     collision/ChCollisionModel.cpp
+    collision/ChCollisionSystem.cpp
     collision/ChConvexDecomposition.cpp
     collision/ChCollisionShape.cpp
     collision/ChCollisionShapeArc2D.cpp

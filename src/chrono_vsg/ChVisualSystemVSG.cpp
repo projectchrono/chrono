@@ -667,6 +667,9 @@ void ChVisualSystemVSG::SetLightDirection(double azimuth, double elevation) {
 }
 
 void ChVisualSystemVSG::Initialize() {
+    if (m_initialized)
+        return;
+
     auto builder = vsg::Builder::create();
     builder->options = m_options;
 

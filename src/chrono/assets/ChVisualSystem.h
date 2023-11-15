@@ -45,6 +45,11 @@ class ChApi ChVisualSystem {
     /// Attach a Chrono system to this visualization system.
     virtual void AttachSystem(ChSystem* sys);
 
+    /// Initialize the visualization system.
+    /// This call must trigger a parsing of the associated Chrono systems to process all visual models.
+    /// A derived class must ensure that this function is called only once (use the m_initialized flag).
+    virtual void Initialize() = 0;
+
     /// Process all visual assets in the associated Chrono systems.
     /// This function is called by default for a Chrono system attached to this visualization system during
     /// initialization, but can also be called later if further modifications to visualization assets occur.
@@ -190,6 +195,8 @@ class ChApi ChVisualSystem {
     /// Remove all visualization objects from this visualization system.
     /// Called by an associated ChSystem.
     virtual void OnClear(ChSystem* sys) {}
+
+    bool m_initialized;
 
     std::vector<ChSystem*> m_systems;  ///< associated Chrono system(s)
 
