@@ -710,21 +710,32 @@ private:
 
 def ImportSolidWorksSystem(mpath):
     import builtins
-    import imp
+    import sys
     import os
 
-    mdirname, mmodulename= os.path.split(mpath)
+    mdirname, mmodulename = os.path.split(mpath)
 
     builtins.exported_system_relpath = mdirname + "/"
 
-    fp, pathname, description = imp.find_module(mmodulename,[builtins.exported_system_relpath])
     try:
-        imported_mod = imp.load_module('imported_mod', fp, pathname, description)
-    finally:
-        if fp:
-            fp.close()
+        if sys.version_info[0] == 3 and sys.version_info[1] >= 5:
+            import importlib.util
+            spec = importlib.util.spec_from_file_location(mmodulename, mpath)
+            imported_mod = importlib.util.module_from_spec(spec)
+            sys.modules[mmodulename] = imported_mod
+            spec.loader.exec_module(imported_mod)
+        elif sys.version_info[0] == 3 and sys.version_info[1] < 5:
+            import importlib.machinery
+            loader = importlib.machinery.SourceFileLoader(mmodulename, mpath)
+            imported_mod = loader.load_module()
+        else:
+            raise Exception("Python version not supported. Please upgrade it.")
+    except Exception as e:
+        print(f"Error loading module: {e}")
+        return None
 
     return imported_mod.exported_items
+
 
 %}
 
