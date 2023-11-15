@@ -18,6 +18,7 @@
 %csmethodmodifiers chrono::ChNodeXYZ::Get_field_ncoords "public"
 %csmethodmodifiers chrono::ChNodeXYZ::GetSubBlockOffset "public"
 %csmethodmodifiers chrono::ChNodeXYZ::GetSubBlockSize "public"
+%csmethodmodifiers chrono::ChNodeXYZ::GetSubBlocks "public"
 %csmethodmodifiers chrono::ChNodeXYZ::IsSubBlockActive "public"
 
 //// RADU:  Do we actually want to wrap methods of ChLoadable?
