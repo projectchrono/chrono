@@ -17,16 +17,16 @@
 //
 // =============================================================================
 
-#ifndef CH_COLLISION_SYSTEM_CHRONO_H
-#define CH_COLLISION_SYSTEM_CHRONO_H
+#ifndef CH_COLLISION_SYSTEM_MULTICORE_H
+#define CH_COLLISION_SYSTEM_MULTICORE_H
 
 #include "chrono/core/ChTimer.h"
 
 #include "chrono/collision/ChCollisionSystem.h"
-#include "chrono/collision/chrono/ChCollisionModelChrono.h"
-#include "chrono/collision/chrono/ChCollisionData.h"
-#include "chrono/collision/chrono/ChBroadphase.h"
-#include "chrono/collision/chrono/ChNarrowphase.h"
+#include "chrono/collision/multicore/ChCollisionModelMulticore.h"
+#include "chrono/collision/multicore/ChCollisionData.h"
+#include "chrono/collision/multicore/ChBroadphase.h"
+#include "chrono/collision/multicore/ChNarrowphase.h"
 
 #include "chrono/multicore_math/ChMulticoreMath.h"
 
@@ -40,10 +40,10 @@ class ChAssembly;
 
 /// Chrono custom multicore collision system.
 /// Contains both the broadphase and the narrow phase methods.
-class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
+class ChApi ChCollisionSystemMulticore : public ChCollisionSystem {
   public:
-    ChCollisionSystemChrono();
-    virtual ~ChCollisionSystemChrono();
+    ChCollisionSystemMulticore();
+    virtual ~ChCollisionSystemMulticore();
 
     /// Initialize the collision system.
     /// This call triggers a parsing of the associated Chrono system to process all collision models.
@@ -183,7 +183,7 @@ class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
     /// Bind all physics items in the specified assembly.
     void BindAssembly(const ChAssembly* assembly);
 
-    std::vector<std::shared_ptr<ChCollisionModelChrono>> ct_models;
+    std::vector<std::shared_ptr<ChCollisionModelMulticore>> ct_models;
 
     std::shared_ptr<ChCollisionData> cd_data;
 

@@ -14,8 +14,8 @@
 // Geometric model for the custom multicore Chrono collision system
 // =============================================================================
 
-#ifndef CH_COLLISION_MODEL_CHRONO_H
-#define CH_COLLISION_MODEL_CHRONO_H
+#ifndef CH_COLLISION_MODEL_MULTICORE_H
+#define CH_COLLISION_MODEL_MULTICORE_H
 
 #include "chrono/collision/ChCollisionModel.h"
 
@@ -26,15 +26,14 @@ namespace chrono {
 // Forward references
 class ChBody;
 
-
 /// @addtogroup collision_mc
 /// @{
 
 /// Geometric model for the custom multicore Chrono collision system.
-class ChApi ChCollisionModelChrono : public ChCollisionModelImpl {
+class ChApi ChCollisionModelMulticore : public ChCollisionModelImpl {
   public:
-    ChCollisionModelChrono(ChCollisionModel* collision_model);
-    virtual ~ChCollisionModelChrono();
+    ChCollisionModelMulticore(ChCollisionModel* collision_model);
+    virtual ~ChCollisionModelMulticore();
 
     /// Sets the position and orientation of the collision
     /// model as the rigid body current position.
@@ -78,7 +77,7 @@ class ChApi ChCollisionModelChrono : public ChCollisionModelImpl {
     std::vector<std::shared_ptr<ctCollisionShape>> m_ct_shapes;  ///< list of Chrono collision shapes in model
     std::vector<std::shared_ptr<ChCollisionShape>> m_shapes;     ///< extended list of collision shapes
 
-    friend class ChCollisionSystemChrono;
+    friend class ChCollisionSystemMulticore;
 };
 
 /// @} collision_mc

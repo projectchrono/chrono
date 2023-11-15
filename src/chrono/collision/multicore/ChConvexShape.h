@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "chrono/collision/chrono/ChCollisionData.h"
+#include "chrono/collision/multicore/ChCollisionData.h"
 
 namespace chrono {
 

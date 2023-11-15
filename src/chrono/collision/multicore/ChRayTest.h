@@ -18,8 +18,8 @@
 
 #pragma once
 
-#include "chrono/collision/chrono/ChCollisionData.h"
-#include "chrono/collision/chrono/ChConvexShape.h"
+#include "chrono/collision/multicore/ChCollisionData.h"
+#include "chrono/collision/multicore/ChConvexShape.h"
 
 namespace chrono {
 

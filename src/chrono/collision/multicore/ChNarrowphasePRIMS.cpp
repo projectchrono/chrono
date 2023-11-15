@@ -12,12 +12,12 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Implementation file for ChCNarrowphaseR.
+// Implementation file for ChCNarrowphasePRIMS.
 //
 // =============================================================================
 
-#include "chrono/collision/chrono/ChNarrowphase.h"
-#include "chrono/collision/chrono/ChCollisionUtils.h"
+#include "chrono/collision/multicore/ChNarrowphase.h"
+#include "chrono/collision/multicore/ChCollisionUtils.h"
 
 namespace chrono {
 
@@ -1280,7 +1280,7 @@ int triangle_box(const real3& pos1,
             }
         }
     }
-    
+
     // Working in the box frame, check the triangle edges against the box face.
     static const real threshold_par = real(1e-4);    // threshold for axis parallel to face test
     static const real threshold_close = real(1e-4);  // threshold for distance to vertex
@@ -1597,7 +1597,6 @@ bool ChNarrowphase::PRIMSCollision(const ConvexBase* shapeA,  // first candidate
         }
         return false;
     }
-
 
     // Contact could not be checked using this CD algorithm
     return false;

@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/collision/chrono/ChCollisionUtils.h"
+#include "chrono/collision/multicore/ChCollisionUtils.h"
 #include "chrono/collision/ChCollisionModel.h"
 
 namespace chrono {

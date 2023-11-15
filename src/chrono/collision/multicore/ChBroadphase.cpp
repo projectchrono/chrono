@@ -15,8 +15,8 @@
 #include <algorithm>
 #include <climits>
 
-#include "chrono/collision/chrono/ChBroadphase.h"
-#include "chrono/collision/chrono/ChCollisionUtils.h"
+#include "chrono/collision/multicore/ChBroadphase.h"
+#include "chrono/collision/multicore/ChCollisionUtils.h"
 
 // Always include ChConfig.h *before* any Thrust headers!
 #include "chrono/ChConfig.h"
@@ -275,7 +275,7 @@ void ChBroadphase::OneLevelBroadphase() {
     bin_active.resize(num_bin_aabb_intersections);       // will be resized after calculation of num_active_bins
     bin_start_index.resize(num_bin_aabb_intersections);  // will be resized after calculation of num_active_bins
 
-    // For each shape, store the bin index and the shape ID for intersections with this shape 
+    // For each shape, store the bin index and the shape ID for intersections with this shape
 #pragma omp parallel for
     for (int i = 0; i < num_shapes; i++) {
         if (obj_data_id[i] == UINT_MAX)
@@ -304,8 +304,8 @@ void ChBroadphase::OneLevelBroadphase() {
     // Count the number of AABB-AABB intersections in each active bin -> bin_num_contact
 #pragma omp parallel for
     for (int i = 0; i < (signed)num_active_bins; i++) {
-        f_Count_AABB_AABB_Intersection(i, inv_bin_size, bins_per_axis, aabb_min, aabb_max, bin_active,
-                                       bin_aabb_number, bin_start_index, fam_data, obj_active, obj_collide, obj_data_id,
+        f_Count_AABB_AABB_Intersection(i, inv_bin_size, bins_per_axis, aabb_min, aabb_max, bin_active, bin_aabb_number,
+                                       bin_start_index, fam_data, obj_active, obj_collide, obj_data_id,
                                        bin_num_contact);
     }
 
@@ -324,7 +324,7 @@ void ChBroadphase::OneLevelBroadphase() {
     pair_shapeIDs.resize(num_possible_collisions);
 
     // For use in ray intersection tests, also create an "extended" vector of start indices that also includes bins with
-    // no shape AABB intersections. 
+    // no shape AABB intersections.
     bin_start_index_ext.resize(num_bins + 1);
 
 #pragma omp parallel for

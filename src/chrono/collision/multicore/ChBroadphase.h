@@ -19,7 +19,7 @@
 #pragma once
 
 #include "chrono/collision/ChCollisionModel.h"
-#include "chrono/collision/chrono/ChCollisionData.h"
+#include "chrono/collision/multicore/ChCollisionData.h"
 
 namespace chrono {
 
@@ -57,7 +57,7 @@ class ChApi ChBroadphase {
     real3 bin_size;        ///< (input) desired bin dimensions (used for GridType::FIXED_BIN_SIZE)
     real grid_density;     ///< (input) collision grid density (used for GridType::FIXED_DENSITY)
 
-    friend class ChCollisionSystemChrono;
+    friend class ChCollisionSystemMulticore;
     friend class ChCollisionSystemChronoMulticore;
 };
 

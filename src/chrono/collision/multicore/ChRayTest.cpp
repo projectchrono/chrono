@@ -12,8 +12,8 @@
 // Authors: Radu Serban
 // =============================================================================
 
-#include "chrono/collision/chrono/ChRayTest.h"
-#include "chrono/collision/chrono/ChCollisionUtils.h"
+#include "chrono/collision/multicore/ChRayTest.h"
+#include "chrono/collision/multicore/ChCollisionUtils.h"
 
 // Always include ChConfig.h *before* any Thrust headers!
 #include "chrono/ChConfig.h"
@@ -348,9 +348,10 @@ bool triangle_ray(const real3& A,
     real3 ray = end - start;
 
     // Calculate face normal.
-    normal = triangle_normal(A, B, C);  
-    
-    // If the 'start' point is below or on the plane of the triangle or 'ray' points away from the triangle, there is no intersection.
+    normal = triangle_normal(A, B, C);
+
+    // If the 'start' point is below or on the plane of the triangle or 'ray' points away from the triangle, there is no
+    // intersection.
     real3 vec = start - A;
     real h = Dot(vec, normal);
     if (h <= 0)

@@ -26,7 +26,7 @@
 #include "chrono/multicore_math/ChMulticoreMath.h"
 #include "chrono/multicore_math/matrix.h"
 #include "chrono/collision/ChCollisionModel.h"
-#include "chrono/collision/chrono/ChConvexShape.h"
+#include "chrono/collision/multicore/ChConvexShape.h"
 
 namespace chrono {
 
@@ -771,7 +771,6 @@ ChApi int box_intersects_triangle(const real3& hdims,
                                   const real3& v1,
                                   const real3& v2,
                                   real separation);
-
 
 /// @}
 

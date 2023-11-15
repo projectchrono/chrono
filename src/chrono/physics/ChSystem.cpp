@@ -16,7 +16,7 @@
 
 #include "chrono/collision/bullet/ChCollisionSystemBullet.h"
 #ifdef CHRONO_COLLISION
-    #include "chrono/collision/chrono/ChCollisionSystemChrono.h"
+    #include "chrono/collision/multicore/ChCollisionSystemMulticore.h"
 #endif
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono/physics/ChProximityContainer.h"
@@ -352,7 +352,7 @@ void ChSystem::SetCollisionSystemType(ChCollisionSystem::Type type) {
             break;
         case ChCollisionSystem::Type::MULTICORE:
 #ifdef CHRONO_COLLISION
-            collision_system = chrono_types::make_shared<ChCollisionSystemChrono>();
+            collision_system = chrono_types::make_shared<ChCollisionSystemMulticore>();
 #endif
             break;
         default:

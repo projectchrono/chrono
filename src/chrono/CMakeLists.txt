@@ -764,30 +764,30 @@ source_group(collision FILES
 if (THRUST_FOUND)
    message(STATUS "Adding internal multicore collision detection library.")       
 
-   set(ChronoEngine_collision_chrono_SOURCES
-       collision/chrono/ChCollisionSystemChrono.h
-       collision/chrono/ChCollisionSystemChrono.cpp
-       collision/chrono/ChCollisionModelChrono.h
-       collision/chrono/ChCollisionModelChrono.cpp
+   set(ChronoEngine_collision_multicore_SOURCES
+       collision/multicore/ChCollisionSystemMulticore.h
+       collision/multicore/ChCollisionSystemMulticore.cpp
+       collision/multicore/ChCollisionModelMulticore.h
+       collision/multicore/ChCollisionModelMulticore.cpp
 #
-       collision/chrono/ChCollisionData.h
-       collision/chrono/ChConvexShape.h
-       collision/chrono/ChBroadphase.h
-       collision/chrono/ChBroadphase.cpp
-       collision/chrono/ChNarrowphase.h
-       collision/chrono/ChNarrowphase.cpp
-       collision/chrono/ChNarrowphaseMPR.cpp
-       collision/chrono/ChNarrowphasePRIMS.cpp
-       collision/chrono/ChRayTest.h
-       collision/chrono/ChRayTest.cpp
-       collision/chrono/ChCollisionUtils.h
-       collision/chrono/ChCollisionUtilsBroadphase.cpp
-       collision/chrono/ChCollisionUtilsMPR.cpp
-       collision/chrono/ChCollisionUtilsPRIMS.cpp
+       collision/multicore/ChCollisionData.h
+       collision/multicore/ChConvexShape.h
+       collision/multicore/ChBroadphase.h
+       collision/multicore/ChBroadphase.cpp
+       collision/multicore/ChNarrowphase.h
+       collision/multicore/ChNarrowphase.cpp
+       collision/multicore/ChNarrowphaseMPR.cpp
+       collision/multicore/ChNarrowphasePRIMS.cpp
+       collision/multicore/ChRayTest.h
+       collision/multicore/ChRayTest.cpp
+       collision/multicore/ChCollisionUtils.h
+       collision/multicore/ChCollisionUtilsBroadphase.cpp
+       collision/multicore/ChCollisionUtilsMPR.cpp
+       collision/multicore/ChCollisionUtilsPRIMS.cpp
    )
 
-   source_group("collision\\chrono" FILES
-       ${ChronoEngine_collision_chrono_SOURCES})
+   source_group("collision\\multicore" FILES
+       ${ChronoEngine_collision_multicore_SOURCES})
 endif()
 
 # Bullet collision group
@@ -1364,7 +1364,7 @@ set(ChronoEngine_FILES
     ${ChronoEngine_timestepper_HEADERS}
     ${ChronoEngine_motion_functions_SOURCES}
     ${ChronoEngine_motion_functions_HEADERS}
-    ${ChronoEngine_collision_chrono_SOURCES}
+    ${ChronoEngine_collision_multicore_SOURCES}
     ${ChronoEngine_collision_bullet_SOURCES}
     ${ChronoEngine_collision_gimpact_SOURCES}
     ${ChronoEngine_utils_SOURCES}

@@ -212,7 +212,7 @@ class ChApi ChCollisionModel {
     ChCollisionModelImpl* impl;  ///< concrete implementation of the collision model
 
     friend class ChCollisionModelImpl;
-    friend class ChCollisionSystemChrono;
+    friend class ChCollisionSystemMulticore;
 };
 
 // Base class for a concrete collision model, specific to a particular collision detection system.

@@ -18,8 +18,8 @@
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/collision/ChCollisionInfo.h"
 
-#include "chrono/collision/chrono/ChNarrowphase.h"
-#include "chrono/collision/chrono/ChCollisionUtils.h"
+#include "chrono/collision/multicore/ChNarrowphase.h"
+#include "chrono/collision/multicore/ChCollisionUtils.h"
 
 #include "chrono/multicore_math/utility.h"
 

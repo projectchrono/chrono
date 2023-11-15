@@ -18,15 +18,15 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystem.h"
-#include "chrono/collision/chrono/ChCollisionSystemChrono.h"
-#include "chrono/collision/chrono/ChRayTest.h"
+#include "chrono/collision/multicore/ChCollisionSystemMulticore.h"
+#include "chrono/collision/multicore/ChRayTest.h"
 
 namespace chrono {
 
-CH_FACTORY_REGISTER(ChCollisionSystemChrono)
-CH_UPCASTING(ChCollisionSystemChrono, ChCollisionSystem)
+CH_FACTORY_REGISTER(ChCollisionSystemMulticore)
+CH_UPCASTING(ChCollisionSystemMulticore, ChCollisionSystem)
 
-ChCollisionSystemChrono::ChCollisionSystemChrono() : use_aabb_active(false) {
+ChCollisionSystemMulticore::ChCollisionSystemMulticore() : use_aabb_active(false) {
     // Create the shared data structure with own state data
     cd_data = chrono_types::make_shared<ChCollisionData>(true);
     cd_data->collision_envelope = ChCollisionModel::GetDefaultSuggestedEnvelope();
@@ -35,41 +35,41 @@ ChCollisionSystemChrono::ChCollisionSystemChrono() : use_aabb_active(false) {
     narrowphase.cd_data = cd_data;
 }
 
-ChCollisionSystemChrono::~ChCollisionSystemChrono() {}
+ChCollisionSystemMulticore::~ChCollisionSystemMulticore() {}
 
 // -----------------------------------------------------------------------------
 
-void ChCollisionSystemChrono::SetEnvelope(double envelope) {
+void ChCollisionSystemMulticore::SetEnvelope(double envelope) {
     cd_data->collision_envelope = real(envelope);
 }
 
-void ChCollisionSystemChrono::SetBroadphaseGridResolution(const ChVector<int>& num_bins) {
+void ChCollisionSystemMulticore::SetBroadphaseGridResolution(const ChVector<int>& num_bins) {
     broadphase.grid_resolution = vec3(num_bins.x(), num_bins.y(), num_bins.z());
     broadphase.grid_type = ChBroadphase::GridType::FIXED_RESOLUTION;
 }
 
-void ChCollisionSystemChrono::SetBroadphaseGridSize(const ChVector<>& bin_size) {
+void ChCollisionSystemMulticore::SetBroadphaseGridSize(const ChVector<>& bin_size) {
     broadphase.bin_size = real3(bin_size.x(), bin_size.y(), bin_size.z());
     broadphase.grid_type = ChBroadphase::GridType::FIXED_RESOLUTION;
 }
 
-void ChCollisionSystemChrono::SetBroadphaseGridDensity(double density) {
+void ChCollisionSystemMulticore::SetBroadphaseGridDensity(double density) {
     broadphase.grid_density = real(density);
     broadphase.grid_type = ChBroadphase::GridType::FIXED_DENSITY;
 }
 
-void ChCollisionSystemChrono::SetNarrowphaseAlgorithm(ChNarrowphase::Algorithm algorithm) {
+void ChCollisionSystemMulticore::SetNarrowphaseAlgorithm(ChNarrowphase::Algorithm algorithm) {
     narrowphase.algorithm = algorithm;
 }
 
-void ChCollisionSystemChrono::EnableActiveBoundingBox(const ChVector<>& aabb_min, const ChVector<>& aabb_max) {
+void ChCollisionSystemMulticore::EnableActiveBoundingBox(const ChVector<>& aabb_min, const ChVector<>& aabb_max) {
     active_aabb_min = FromChVector(aabb_min);
     active_aabb_max = FromChVector(aabb_max);
 
     use_aabb_active = true;
 }
 
-void ChCollisionSystemChrono::SetNumThreads(int nthreads) {
+void ChCollisionSystemMulticore::SetNumThreads(int nthreads) {
 #ifdef _OPENMP
     omp_set_num_threads(nthreads);
 #endif
@@ -77,7 +77,7 @@ void ChCollisionSystemChrono::SetNumThreads(int nthreads) {
 
 // -----------------------------------------------------------------------------
 
-void ChCollisionSystemChrono::Initialize() {
+void ChCollisionSystemMulticore::Initialize() {
     if (m_initialized)
         return;
 
@@ -86,14 +86,14 @@ void ChCollisionSystemChrono::Initialize() {
     m_initialized = true;
 }
 
-void ChCollisionSystemChrono::BindAll() {
+void ChCollisionSystemMulticore::BindAll() {
     if (!m_system)
         return;
 
     BindAssembly(&m_system->GetAssembly());
 }
 
-void ChCollisionSystemChrono::BindItem(std::shared_ptr<ChPhysicsItem> item) {
+void ChCollisionSystemMulticore::BindItem(std::shared_ptr<ChPhysicsItem> item) {
     if (auto body = std::dynamic_pointer_cast<ChBody>(item)) {
         Add(body->GetCollisionModel());
     }
@@ -109,7 +109,7 @@ void ChCollisionSystemChrono::BindItem(std::shared_ptr<ChPhysicsItem> item) {
     }
 }
 
-void ChCollisionSystemChrono::BindAssembly(const ChAssembly* assembly) {
+void ChCollisionSystemMulticore::BindAssembly(const ChAssembly* assembly) {
     for (const auto& body : assembly->Get_bodylist()) {
         if (body->GetCollide())
             Add(body->GetCollisionModel());
@@ -127,8 +127,8 @@ void ChCollisionSystemChrono::BindAssembly(const ChAssembly* assembly) {
     }
 }
 
-void ChCollisionSystemChrono::Add(std::shared_ptr<ChCollisionModel> model) {
-    auto ct_model = chrono_types::make_shared<ChCollisionModelChrono>(model.get());
+void ChCollisionSystemMulticore::Add(std::shared_ptr<ChCollisionModel> model) {
+    auto ct_model = chrono_types::make_shared<ChCollisionModelMulticore>(model.get());
     ct_model->Populate();
 
     int body_id = ct_model->GetBody()->GetId();
@@ -228,7 +228,7 @@ void ChCollisionSystemChrono::Add(std::shared_ptr<ChCollisionModel> model) {
     ct_models.push_back(ct_model);
 }
 
-void ChCollisionSystemChrono::Clear() {
+void ChCollisionSystemMulticore::Clear() {
     ct_models.clear();
     //// TODO more here
 }
@@ -236,7 +236,7 @@ void ChCollisionSystemChrono::Clear() {
 #define ERASE_MACRO(x, y) x.erase(x.begin() + y);
 #define ERASE_MACRO_LEN(x, y, z) x.erase(x.begin() + y, x.begin() + y + z);
 
-void ChCollisionSystemChrono::Remove(std::shared_ptr<ChCollisionModel> model) {
+void ChCollisionSystemMulticore::Remove(std::shared_ptr<ChCollisionModel> model) {
     //// TODO
 }
 
@@ -245,14 +245,14 @@ void ChCollisionSystemChrono::Remove(std::shared_ptr<ChCollisionModel> model) {
 
 // -----------------------------------------------------------------------------
 
-bool ChCollisionSystemChrono::GetActiveBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const {
+bool ChCollisionSystemMulticore::GetActiveBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const {
     aabb_min = ToChVector(active_aabb_min);
     aabb_max = ToChVector(active_aabb_max);
 
     return use_aabb_active;
 }
 
-geometry::ChAABB ChCollisionSystemChrono::GetBoundingBox() const {
+geometry::ChAABB ChCollisionSystemMulticore::GetBoundingBox() const {
     ChVector<> aabb_min((double)cd_data->min_bounding_point.x, (double)cd_data->min_bounding_point.y,
                         (double)cd_data->min_bounding_point.z);
     ChVector<> aabb_max((double)cd_data->max_bounding_point.x, (double)cd_data->max_bounding_point.y,
@@ -261,22 +261,22 @@ geometry::ChAABB ChCollisionSystemChrono::GetBoundingBox() const {
     return geometry::ChAABB(aabb_min, aabb_max);
 }
 
-void ChCollisionSystemChrono::ResetTimers() {
+void ChCollisionSystemMulticore::ResetTimers() {
     m_timer_broad.reset();
     m_timer_narrow.reset();
 }
 
-double ChCollisionSystemChrono::GetTimerCollisionBroad() const {
+double ChCollisionSystemMulticore::GetTimerCollisionBroad() const {
     return m_timer_broad();
 }
 
-double ChCollisionSystemChrono::GetTimerCollisionNarrow() const {
+double ChCollisionSystemMulticore::GetTimerCollisionNarrow() const {
     return m_timer_narrow();
 }
 
 // -----------------------------------------------------------------------------
 
-void ChCollisionSystemChrono::PreProcess() {
+void ChCollisionSystemMulticore::PreProcess() {
     assert(cd_data->owns_state_data);
 
     std::vector<real3>& position = *cd_data->state_data.pos_rigid;
@@ -310,7 +310,7 @@ void ChCollisionSystemChrono::PreProcess() {
     }
 }
 
-void ChCollisionSystemChrono::PostProcess() {
+void ChCollisionSystemMulticore::PostProcess() {
     if (use_aabb_active) {
         const auto& active = *cd_data->state_data.active_rigid;
         auto& blist = m_system->Get_bodylist();
@@ -323,7 +323,7 @@ void ChCollisionSystemChrono::PostProcess() {
     }
 }
 
-void ChCollisionSystemChrono::Run() {
+void ChCollisionSystemMulticore::Run() {
     ResetTimers();
 
     if (use_aabb_active) {
@@ -357,7 +357,7 @@ void ChCollisionSystemChrono::Run() {
 
 // -----------------------------------------------------------------------------
 
-void ChCollisionSystemChrono::ReportContacts(ChContactContainer* container) {
+void ChCollisionSystemMulticore::ReportContacts(ChContactContainer* container) {
     const auto& blist = m_system->Get_bodylist();
 
     // Resize global arrays with composite material properties.
@@ -379,8 +379,8 @@ void ChCollisionSystemChrono::ReportContacts(ChContactContainer* container) {
         auto s1_index = sindex[s1];           // indexes of shapes in contact within their collision model
         auto s2_index = sindex[s2];           //
 
-        auto modelA = (ChCollisionModelChrono*)blist[b1]->GetCollisionModel()->impl;
-        auto modelB = (ChCollisionModelChrono*)blist[b2]->GetCollisionModel()->impl;
+        auto modelA = (ChCollisionModelMulticore*)blist[b1]->GetCollisionModel()->impl;
+        auto modelB = (ChCollisionModelMulticore*)blist[b2]->GetCollisionModel()->impl;
 
         ChCollisionInfo cinfo;
         cinfo.modelA = blist[b1]->GetCollisionModel().get();
@@ -489,7 +489,7 @@ static void ComputeAABBConvex(const real3* convex_points,
     }
 }
 
-void ChCollisionSystemChrono::GenerateAABB() {
+void ChCollisionSystemMulticore::GenerateAABB() {
     if (cd_data->num_rigid_shapes > 0) {
         const real envelope = cd_data->collision_envelope;
         const std::vector<shape_type>& typ_rigid = cd_data->shape_data.typ_rigid;
@@ -578,7 +578,7 @@ void ChCollisionSystemChrono::GenerateAABB() {
     }
 }
 
-void ChCollisionSystemChrono::GetOverlappingAABB(std::vector<char>& active_id, real3 Amin, real3 Amax) {
+void ChCollisionSystemMulticore::GetOverlappingAABB(std::vector<char>& active_id, real3 Amin, real3 Amax) {
     GenerateAABB();
 
 #pragma omp parallel for
@@ -594,7 +594,7 @@ void ChCollisionSystemChrono::GetOverlappingAABB(std::vector<char>& active_id, r
     }
 }
 
-std::vector<vec2> ChCollisionSystemChrono::GetOverlappingPairs() {
+std::vector<vec2> ChCollisionSystemMulticore::GetOverlappingPairs() {
     std::vector<vec2> pairs;
     pairs.resize(cd_data->pair_shapeIDs.size());
     for (int i = 0; i < cd_data->pair_shapeIDs.size(); i++) {
@@ -606,7 +606,7 @@ std::vector<vec2> ChCollisionSystemChrono::GetOverlappingPairs() {
 
 // -----------------------------------------------------------------------------
 
-bool ChCollisionSystemChrono::RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& result) const {
+bool ChCollisionSystemMulticore::RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& result) const {
     if (cd_data->num_active_bins == 0) {
         result.hit = false;
         return false;
@@ -634,10 +634,10 @@ bool ChCollisionSystemChrono::RayHit(const ChVector<>& from, const ChVector<>& t
     return false;
 }
 
-bool ChCollisionSystemChrono::RayHit(const ChVector<>& from,
-                                     const ChVector<>& to,
-                                     ChCollisionModel* model,
-                                     ChRayhitResult& result) const {
+bool ChCollisionSystemMulticore::RayHit(const ChVector<>& from,
+                                        const ChVector<>& to,
+                                        ChCollisionModel* model,
+                                        ChRayhitResult& result) const {
     return false;
 }
 
@@ -778,7 +778,7 @@ void DrawCapsule(ChCollisionSystem::VisualizationCallback* vis,
     DrawHemisphere(vis, csys2, radius, color);
 }
 
-void ChCollisionSystemChrono::Visualize(int flags) {
+void ChCollisionSystemMulticore::Visualize(int flags) {
     if (!vis_callback || flags == VisualizationModes::VIS_None)
         return;
 
@@ -790,7 +790,7 @@ void ChCollisionSystemChrono::Visualize(int flags) {
         VisualizeContacts();
 }
 
-void ChCollisionSystemChrono::VisualizeShapes() {
+void ChCollisionSystemMulticore::VisualizeShapes() {
     const real envelope = cd_data->collision_envelope;
     const std::vector<shape_type>& typ_rigid = cd_data->shape_data.typ_rigid;
     const std::vector<int>& start_rigid = cd_data->shape_data.start_rigid;
@@ -866,7 +866,7 @@ void ChCollisionSystemChrono::VisualizeShapes() {
     }
 }
 
-void ChCollisionSystemChrono::VisualizeAABB() {
+void ChCollisionSystemMulticore::VisualizeAABB() {
     const uint num_rigid_shapes = cd_data->num_rigid_shapes;
     std::vector<real3>& aabb_min = cd_data->aabb_min;
     std::vector<real3>& aabb_max = cd_data->aabb_max;
@@ -878,7 +878,7 @@ void ChCollisionSystemChrono::VisualizeAABB() {
     }
 }
 
-void ChCollisionSystemChrono::VisualizeContacts() {
+void ChCollisionSystemMulticore::VisualizeContacts() {
     for (uint i = 0; i < cd_data->num_rigid_contacts; i++) {
         real3 from = cd_data->cptb_rigid_rigid[i];
         real3 to = cd_data->cptb_rigid_rigid[i] + vis_callback->GetNormalScale() * cd_data->norm_rigid_rigid[i];
@@ -886,16 +886,16 @@ void ChCollisionSystemChrono::VisualizeContacts() {
     }
 }
 
-void ChCollisionSystemChrono::ArchiveOut(ChArchiveOut& marchive) {
+void ChCollisionSystemMulticore::ArchiveOut(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite<ChCollisionSystemChrono>();
+    marchive.VersionWrite<ChCollisionSystemMulticore>();
     // serialize parent class
     ChCollisionSystem::ArchiveOut(marchive);
 }
 
-void ChCollisionSystemChrono::ArchiveIn(ChArchiveIn& marchive) {
+void ChCollisionSystemMulticore::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/marchive.VersionRead<ChCollisionSystemChrono>();
+    /*int version =*/marchive.VersionRead<ChCollisionSystemMulticore>();
     // deserialize parent class
     ChCollisionSystem::ArchiveIn(marchive);
 }

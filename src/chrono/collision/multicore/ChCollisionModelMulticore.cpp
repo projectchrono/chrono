@@ -19,7 +19,7 @@
 //       the associated body has a ChSystem (mbody->GetSystem())
 // =============================================================================
 
-#include "chrono/collision/chrono/ChCollisionModelChrono.h"
+#include "chrono/collision/multicore/ChCollisionModelMulticore.h"
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyAuxRef.h"
@@ -28,26 +28,26 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChCollisionModelChrono)
-CH_UPCASTING(ChCollisionModelChrono, ChCollisionModelImpl)
+CH_FACTORY_REGISTER(ChCollisionModelMulticore)
+CH_UPCASTING(ChCollisionModelMulticore, ChCollisionModelImpl)
 
-ChCollisionModelChrono::ChCollisionModelChrono(ChCollisionModel* collision_model)
+ChCollisionModelMulticore::ChCollisionModelMulticore(ChCollisionModel* collision_model)
     : ChCollisionModelImpl(collision_model), aabb_min(C_REAL_MAX), aabb_max(-C_REAL_MAX) {
     collision_model->SetSafeMargin(0);
 
     assert(collision_model->GetContactable());
 
-    // Currently, a ChCollisionModelChrono can only be a associated with a rigid body.
+    // Currently, a ChCollisionModelMulticore can only be a associated with a rigid body.
     mbody = dynamic_cast<ChBody*>(collision_model->GetContactable());
     assert(mbody);
 }
 
-ChCollisionModelChrono::~ChCollisionModelChrono() {
+ChCollisionModelMulticore::~ChCollisionModelMulticore() {
     m_shapes.clear();
     m_ct_shapes.clear();
 }
 
-void ChCollisionModelChrono::Populate() {
+void ChCollisionModelMulticore::Populate() {
     for (const auto& shape_instance : model->GetShapes()) {
         const auto& shape = shape_instance.first;
         const auto& material = shape->GetMaterial();
@@ -269,11 +269,11 @@ void TransformToCOG(ChBody* body, const ChVector<>& pos, const ChMatrix33<>& rot
     }
 }
 
-geometry::ChAABB ChCollisionModelChrono::GetBoundingBox() const {
+geometry::ChAABB ChCollisionModelMulticore::GetBoundingBox() const {
     return geometry::ChAABB(aabb_min, aabb_max);
 }
 
-void ChCollisionModelChrono::SyncPosition() {
+void ChCollisionModelMulticore::SyncPosition() {
 #if !defined(NDEBUG)
     ChBody* bpointer = GetBody();
     assert(bpointer);

@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Header file for ChCNarrowphaseRUtils.
+// Header file for ChCollisionUtilsPRIMS.
 // This file defines various low-level utility functions used in specialized
 // pair-wise collision detection (e.g., finding the closest point on a shape to
 // a specified point).
@@ -21,7 +21,7 @@
 
 #include <cassert>
 
-#include "chrono/collision/chrono/ChCollisionUtils.h"
+#include "chrono/collision/multicore/ChCollisionUtils.h"
 
 namespace chrono {
 namespace ch_utils {
@@ -337,11 +337,7 @@ int box_intersects_box(const real3& hdims1,
 // other, and 0 if they are "far" from each other.
 //
 // This check is performed by testing 13 possible separating planes between the box and triangle (see Ericson).
-int box_intersects_triangle(const real3& hdims,
-                            const real3& v0,
-                            const real3& v1,
-                            const real3& v2,
-                            real separation) {
+int box_intersects_triangle(const real3& hdims, const real3& v0, const real3& v1, const real3& v2, real separation) {
     real3 hdimsS = hdims + separation;
     real minOverlap = C_REAL_MAX;
     real overlap;

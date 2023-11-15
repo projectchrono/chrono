@@ -19,8 +19,8 @@
 #pragma once
 
 #include "chrono/collision/ChCollisionModel.h"
-#include "chrono/collision/chrono/ChCollisionData.h"
-#include "chrono/collision/chrono/ChConvexShape.h"
+#include "chrono/collision/multicore/ChCollisionData.h"
+#include "chrono/collision/multicore/ChConvexShape.h"
 
 namespace chrono {
 
@@ -164,7 +164,7 @@ class ChApi ChNarrowphase {
     std::vector<uint> t_bin_fluid_number;
     std::vector<uint> t_bin_start_index;
 
-    friend class ChCollisionSystemChrono;
+    friend class ChCollisionSystemMulticore;
     friend class ChCollisionSystemChronoMulticore;
 };
 
