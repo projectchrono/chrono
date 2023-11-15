@@ -34,10 +34,10 @@ class ChApi ChVisualSystem {
   public:
     /// Supported run-time visualization systems.
     enum class Type {
-        IRRLICHT,  // Irrlicht
-        VSG,       // Vulkan Scene Graph
-        OpenGL,    // OpenGL
-        OptiX      // OptiX
+        IRRLICHT,  ///< Irrlicht
+        VSG,       ///< Vulkan Scene Graph
+        OpenGL,    ///< OpenGL
+        OptiX      ///< OptiX
     };
 
     virtual ~ChVisualSystem();

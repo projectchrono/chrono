@@ -287,7 +287,8 @@ void ChSystem::SetSolverType(ChSolver::Type type) {
             solver = chrono_types::make_shared<ChSolverSparseQR>();
             break;
         default:
-            GetLog() << "Solver type not supported. Use SetSolver instead.\n";
+            std::cout << "Unknown solver type. No solver was set.\n";
+            std::cout << "Use SetSolver()." << std::endl;
             break;
     }
 }
@@ -333,34 +334,41 @@ void ChSystem::SetSolver(std::shared_ptr<ChSolver> newsolver) {
     solver = newsolver;
 }
 
-void ChSystem::SetCollisionSystemType(ChCollisionSystemType type) {
+void ChSystem::SetCollisionSystemType(ChCollisionSystem::Type type) {
     assert(assembly.GetNbodies() == 0);
 
+    auto coll_sys_type = type;
+
 #ifndef CHRONO_COLLISION
-    GetLog() << "Chrono was not built with Thrust support. CHRONO collision system type not available.\n";
+    if (type == ChCollisionSystem::Type::MULTICORE) {
+        std::cout << "Chrono was not built with Thrust support. Multicore collision system not available.\n";
+        std::cout << "Using Bullet collision system." << std::endl;
+        coll_sys_type = ChCollisionSystem::Type::BULLET;
+    }
 #endif
 
-    switch (type) {
-        case ChCollisionSystemType::BULLET:
+    switch (coll_sys_type) {
+        case ChCollisionSystem::Type::BULLET:
             collision_system = chrono_types::make_shared<ChCollisionSystemBullet>();
             break;
-        case ChCollisionSystemType::CHRONO:
+        case ChCollisionSystem::Type::MULTICORE:
 #ifdef CHRONO_COLLISION
             collision_system = chrono_types::make_shared<ChCollisionSystemChrono>();
 #endif
             break;
         default:
-            GetLog() << "Collision system type not supported. Use SetCollisionSystem instead.\n";
-            break;
+            std::cout << "Unknown collision system type. No collision system was set.\n";
+            std::cout << "Use SetCollisionSystem()." << std::endl;
+            return;
     }
 
     collision_system->SetNumThreads(nthreads_collision);
     collision_system->SetSystem(this);
 }
 
-void ChSystem::SetCollisionSystem(std::shared_ptr<ChCollisionSystem> coll_sys) {
-    assert(coll_sys);
-    collision_system = coll_sys;
+void ChSystem::SetCollisionSystem(std::shared_ptr<ChCollisionSystem> coll_system) {
+    assert(coll_system);
+    collision_system = coll_system;
     collision_system->SetNumThreads(nthreads_collision);
     collision_system->SetSystem(this);
 }

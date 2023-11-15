@@ -161,7 +161,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     ///   - Suggested solver for higher precision: BARZILAIBORWEIN or APGD
     ///   - For problems that involve a stiffness matrix: GMRES, MINRES
     ///
-    /// *Notes*:
+    /// Notes:
     ///   - This function is a shortcut, internally equivalent to a call to SetSolver().
     ///   - Only a subset of available Chrono solvers can be set through this mechanism.
     ///   - Prefer explicitly creating a solver, setting solver parameters, and then attaching the solver with
@@ -665,27 +665,21 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     void UnregisterCustomCollisionCallback(std::shared_ptr<CustomCollisionCallback> callback);
 
     /// Set the collision detection system used by this Chrono system to the specified type.
-    virtual void SetCollisionSystemType(ChCollisionSystemType type);
+    virtual void SetCollisionSystemType(ChCollisionSystem::Type type);
 
     /// Set the collision detection system used by this Chrono system.
-    virtual void SetCollisionSystem(std::shared_ptr<ChCollisionSystem> coll_sys);
+    virtual void SetCollisionSystem(std::shared_ptr<ChCollisionSystem> coll_system);
 
     /// Access the underlying collision system.
     /// Usually this is not needed, as the collision system is automatically handled by the ChSystem.
     std::shared_ptr<ChCollisionSystem> GetCollisionSystem() const { return collision_system; }
-
-    /// Change the underlying contact container given the specified type of the collision detection system.
-    /// Usually this is not needed, as the contact container is automatically handled by the ChSystem.
-    /// The default implementation is a no-op, since the default contact container for a ChSystem is suitable for all
-    /// types of supported collision detection systems.
-    virtual void SetContactContainer(ChCollisionSystemType type) {}
 
     /// Change the underlying contact container.
     /// The contact container collects information from the underlying collision detection system required for contact
     /// force generation. Usually this is not needed, as the contact container is automatically handled by the ChSystem.
     /// Make sure the provided contact container is compatible with both the collision detection system and the contact
     /// force formulation (NSC or SMC).
-    virtual void SetContactContainer(std::shared_ptr<ChContactContainer> contactcontainer);
+    virtual void SetContactContainer(std::shared_ptr<ChContactContainer> container);
 
     /// Access the underlying contact container.
     /// Usually this is not needed, as the contact container is automatically handled by the ChSystem.

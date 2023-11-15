@@ -37,6 +37,12 @@ class ChProximityContainer;
 /// Base class for generic collision engine.
 class ChApi ChCollisionSystem {
   public:
+    /// Supported collision systems.
+    enum class Type {
+        BULLET,    ///< Bullet-based collision detection system
+        MULTICORE  ///< Chrono multicore collision detection system
+    };
+
     virtual ~ChCollisionSystem() {}
 
     /// Initialize the collision system.

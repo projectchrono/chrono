@@ -38,13 +38,6 @@ class ChCollisionModelImpl;
 /// @addtogroup chrono_collision
 /// @{
 
-/// Collision engine type.
-enum class ChCollisionSystemType {
-    BULLET,  ///< Bullet-based collision detection system
-    CHRONO,  ///< Chrono multicore collision detection system
-    OTHER    ///< other type (external)
-};
-
 /// Class defining the geometric model for collision detection.
 class ChApi ChCollisionModel {
   public:
