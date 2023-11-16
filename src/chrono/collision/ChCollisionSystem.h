@@ -27,6 +27,8 @@ namespace chrono {
 // forward references
 class ChSystem;
 class ChBody;
+class ChAssembly;
+class ChParticleCloud;
 class ChVariablesBody;
 class ChContactContainer;
 class ChProximityContainer;
@@ -47,18 +49,17 @@ class ChApi ChCollisionSystem {
 
     /// Initialize the collision system.
     /// This call must trigger a parsing of the associated Chrono system to process all collision models.
-    /// A derived class must ensure that this function is called only once (use the m_initialized flag).
-    virtual void Initialize() = 0;
+    virtual void Initialize();
 
     /// Process all collision models in the associated Chrono system.
     /// This function is called by default for a Chrono system attached to this collision system during
     /// initialization, but can also be called later if further modifications to collision models occur.
-    virtual void BindAll() {}
+    virtual void BindAll();
 
     /// Process the collision shapes...
     /// This function must be called if a new physics item is added to the system or if changes to its collision model
     /// occur after the collision system was initialized.
-    virtual void BindItem(std::shared_ptr<ChPhysicsItem> item) {}
+    virtual void BindItem(std::shared_ptr<ChPhysicsItem> item);
 
     /// Clears all data instanced by this algorithm if any.
     virtual void Clear() = 0;
@@ -221,6 +222,12 @@ class ChApi ChCollisionSystem {
 
   protected:
     ChCollisionSystem();
+
+    /// Bind collision model of all contactables in the specified assembly.
+    virtual void BindAssembly(const ChAssembly* assembly);
+
+    /// Bind collision models of all particles in the specified cloud.
+    virtual void BindParticleCloud(const ChParticleCloud* cloud);
 
     bool m_initialized; 
 

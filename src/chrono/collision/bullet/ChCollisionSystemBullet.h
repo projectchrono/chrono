@@ -23,6 +23,7 @@ namespace chrono {
 
 // forward references
 class ChAssembly;
+class ChParticleCloud;
 
 /// @addtogroup collision_bullet
 /// @{
@@ -33,20 +34,6 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
   public:
     ChCollisionSystemBullet();
     virtual ~ChCollisionSystemBullet();
-
-    /// Initialize the collision system.
-    /// This call triggers a parsing of the associated Chrono system to process all collision models.
-    virtual void Initialize() override;
-
-    /// Process all collision models in the associated Chrono system.
-    /// This function is called by default for a Chrono system attached to this collision system during
-    /// initialization, but can also be called later if further modifications to collision models occur.
-    virtual void BindAll() override;
-
-    /// Process the collision shapes...
-    /// This function must be called if a new physics item is added to the system or if changes to its collision model
-    /// occur after the collision system was initialized.
-    virtual void BindItem(std::shared_ptr<ChPhysicsItem> item) override;
 
     /// Clears all data instanced by this algorithm
     /// if any (like persistent contact manifolds)
@@ -132,9 +119,6 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
-    /// Bind all physics items in the specified assembly.
-    void BindAssembly(const ChAssembly* assembly);
-
     /// Perform a ray-hit test with all collision models. This version allows specifying the Bullet
     /// collision filter group and mask (see cbtBroadphaseProxy::CollisionFilterGroups).
     bool RayHit(const ChVector<>& from,

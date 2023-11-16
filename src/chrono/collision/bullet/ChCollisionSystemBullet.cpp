@@ -18,6 +18,7 @@
 #include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChParticleCloud.h"
 #include "chrono/fea/ChMesh.h"
 
 #include "chrono/collision/bullet/ChCollisionSystemBullet.h"
@@ -127,56 +128,6 @@ void ChCollisionSystemBullet::SetNumThreads(int nthreads) {
 #ifdef BT_USE_OPENMP
     cbtGetOpenMPTaskScheduler()->setNumThreads(nthreads);
 #endif
-}
-
-void ChCollisionSystemBullet::Initialize() {
-    if (m_initialized)
-        return;
-
-    BindAll();
-
-    m_initialized = true;
-}
-
-void ChCollisionSystemBullet::BindAll() {
-    if (!m_system)
-        return;
-
-    BindAssembly(&m_system->GetAssembly());
-}
-
-void ChCollisionSystemBullet::BindItem(std::shared_ptr<ChPhysicsItem> item) {
-    if (auto body = std::dynamic_pointer_cast<ChBody>(item)) {
-        Add(body->GetCollisionModel());
-    }
-
-    if (auto mesh = std::dynamic_pointer_cast<fea::ChMesh>(item)) {
-        for (const auto& surf : mesh->GetContactSurfaces()) {
-            surf->AddCollisionModelsToSystem(this);
-        }
-    }
-
-    if (const auto& a = std::dynamic_pointer_cast<ChAssembly>(item)) {
-        BindAssembly(a.get());
-    }
-}
-
-void ChCollisionSystemBullet::BindAssembly(const ChAssembly* assembly) {
-    for (const auto& body : assembly->Get_bodylist()) {
-        if (body->GetCollide())
-            Add(body->GetCollisionModel());
-    }
-
-    for (const auto& mesh : assembly->Get_meshlist()) {
-        for (const auto& surf : mesh->GetContactSurfaces()) {
-            surf->AddCollisionModelsToSystem(this);
-        }
-    }
-
-    for (const auto& item : assembly->Get_otherphysicslist()) {
-        if (const auto& a = std::dynamic_pointer_cast<ChAssembly>(item))
-            BindAssembly(a.get());
-    }
 }
 
 void ChCollisionSystemBullet::Add(std::shared_ptr<ChCollisionModel> model) {
