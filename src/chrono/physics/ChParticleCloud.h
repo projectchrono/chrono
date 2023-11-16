@@ -197,15 +197,14 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
         return *particles[n];
     }
 
-    /// Set the material surface for contacts.
-    void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mnewsurf) { matsurface = mnewsurf; }
-
-    /// Set the material surface for contacts.
-    std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() { return matsurface; }
-
-    /// Set the collision model for particles in this cloud.
+    /// Add a collision model for particles in this cloud.
     /// This is the "template" collision model that is used by all particles.
-    void SetCollisionModel(std::shared_ptr<ChCollisionModel> model) { particle_collision_model = model; }
+    void AddCollisionModel(std::shared_ptr<ChCollisionModel> model) { particle_collision_model = model; }
+
+    /// Add a collision shape for particles in this cloud.
+    /// If a collision model does not already exist, it is first created.
+    /// The resulting model witll be the "template" collision model that is used by all particles.
+    void AddCollisionShape(std::shared_ptr<ChCollisionShape> shape, const ChFrame<>& frame = ChFrame<>());
 
     /// Resize the particle cluster.
     /// This first deletes all existing particles, if any.
@@ -368,7 +367,6 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     std::shared_ptr<ColorCallback> m_color_fun;  ///< callback for dynamic coloring
 
     std::shared_ptr<ChCollisionModel> particle_collision_model;  ///< sample collision model
-    std::shared_ptr<ChMaterialSurface> matsurface;               ///< data for surface contact and impact
     bool fixed;
     bool do_collide;
     bool do_limit_speed;

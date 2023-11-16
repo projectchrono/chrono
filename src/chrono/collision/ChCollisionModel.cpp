@@ -57,7 +57,11 @@ void ChCollisionModel::Clear() {
 }
 
 void ChCollisionModel::SyncPosition() {
-    impl->SyncPosition();
+    // Sync position of this collision model only if it was processed by the current collision system
+    // (through BindAll or BindItem)
+
+    if (impl)
+        impl->SyncPosition();
 }
 
 ChPhysicsItem* ChCollisionModel::GetPhysicsItem() {
@@ -65,15 +69,18 @@ ChPhysicsItem* ChCollisionModel::GetPhysicsItem() {
 }
 
 geometry::ChAABB ChCollisionModel::GetBoundingBox() const {
-    return impl->GetBoundingBox();
+    // Return an updated bounding box only if this collision model was processed by the current collision system
+    // (through BindAll or BindItem)
+    if (impl)
+        return impl->GetBoundingBox();
 }
 
-void ChCollisionModel::SetDefaultSuggestedEnvelope(double menv) {
-    default_model_envelope = menv;
+void ChCollisionModel::SetDefaultSuggestedEnvelope(double envelope) {
+    default_model_envelope = envelope;
 }
 
-void ChCollisionModel::SetDefaultSuggestedMargin(double mmargin) {
-    default_safe_margin = mmargin;
+void ChCollisionModel::SetDefaultSuggestedMargin(double margin) {
+    default_safe_margin = margin;
 }
 
 // static
@@ -86,11 +93,12 @@ double ChCollisionModel::GetDefaultSuggestedMargin() {
     return default_safe_margin;
 }
 
-// Set family_group to a power of 2, with the set bit in position mfamily.
+// Set family_group to a power of 2, with the set bit in position 'family'.
 void ChCollisionModel::SetFamily(int family) {
     assert(family >= 0 && family < 15);
     family_group = (1 << family);
-    impl->OnFamilyChange(family_group, family_mask);
+    if (impl)
+        impl->OnFamilyChange(family_group, family_mask);
 }
 
 // Return the position of the single bit set in family_group.
@@ -108,14 +116,16 @@ int ChCollisionModel::GetFamily() {
 void ChCollisionModel::SetFamilyMaskNoCollisionWithFamily(int family) {
     assert(family >= 0 && family < 15);
     family_mask &= ~(1 << family);
-    impl->OnFamilyChange(family_group, family_mask);
+    if (impl)
+        impl->OnFamilyChange(family_group, family_mask);
 }
 
 // Set the family_mask bit in position mfamily.
 void ChCollisionModel::SetFamilyMaskDoCollisionWithFamily(int family) {
     assert(family >= 0 && family < 15);
     family_mask |= (1 << family);
-    impl->OnFamilyChange(family_group, family_mask);
+    if (impl)
+        impl->OnFamilyChange(family_group, family_mask);
 }
 
 // Return true if the family_mask bit in position mfamily is set.
@@ -129,7 +139,8 @@ bool ChCollisionModel::GetFamilyMaskDoesCollisionWithFamily(int family) {
 void ChCollisionModel::SetFamilyGroup(short int group) {
     assert(group > 0 && !(group & (group - 1)));
     family_group = group;
-    impl->OnFamilyChange(family_group, family_mask);
+    if (impl)
+        impl->OnFamilyChange(family_group, family_mask);
 }
 
 // Set the collision mask for this model.
@@ -137,7 +148,8 @@ void ChCollisionModel::SetFamilyGroup(short int group) {
 void ChCollisionModel::SetFamilyMask(short int mask) {
     assert(mask >= 0 && mask <= 0x7FFF);
     family_mask = mask;
-    impl->OnFamilyChange(family_group, family_mask);
+    if (impl)
+        impl->OnFamilyChange(family_group, family_mask);
 }
 
 void ChCollisionModel::AddShape(std::shared_ptr<ChCollisionShape> shape, const ChFrame<>& frame) {

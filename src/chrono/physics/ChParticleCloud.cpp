@@ -218,19 +218,14 @@ ChParticleCloud::ChParticleCloud()
       sleep_time(0.6f),
       sleep_starttime(0),
       sleep_minspeed(0.1f),
-      sleep_minwvel(0.04f) {
+      sleep_minwvel(0.04f),
+      particle_collision_model(nullptr) {
     SetMass(1.0);
     SetInertiaXX(ChVector<double>(1.0, 1.0, 1.0));
     SetInertiaXY(ChVector<double>(0, 0, 0));
 
-    // Create the "template" collision model
-    particle_collision_model = chrono_types::make_shared<ChCollisionModel>();
-
     particles.clear();
     // ResizeNparticles(num_particles); // caused memory corruption.. why?
-
-    // default non-smooth contact material
-    matsurface = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 }
 
 ChParticleCloud::ChParticleCloud(const ChParticleCloud& other) : ChIndexedParticles(other) {
@@ -241,9 +236,10 @@ ChParticleCloud::ChParticleCloud(const ChParticleCloud& other) : ChIndexedPartic
     SetInertiaXX(other.GetInertiaXX());
     SetInertiaXY(other.GetInertiaXY());
 
-    particle_collision_model = chrono_types::make_shared<ChCollisionModel>(*other.particle_collision_model);
-
-    matsurface = std::shared_ptr<ChMaterialSurface>(other.matsurface->Clone());  // deep copy
+    if (other.particle_collision_model)
+        particle_collision_model = chrono_types::make_shared<ChCollisionModel>(*other.particle_collision_model);
+    else
+        particle_collision_model = nullptr;
 
     ResizeNparticles((int)other.GetNparticles());
 
@@ -258,6 +254,13 @@ ChParticleCloud::ChParticleCloud(const ChParticleCloud& other) : ChIndexedPartic
 
 ChParticleCloud::~ChParticleCloud() {
     ResizeNparticles(0);
+}
+
+void ChParticleCloud::AddCollisionShape(std::shared_ptr<ChCollisionShape> shape, const ChFrame<>& frame) {
+    if (!particle_collision_model) {
+        particle_collision_model = chrono_types::make_shared<ChCollisionModel>();
+    }
+    particle_collision_model->AddShape(shape, frame);
 }
 
 void ChParticleCloud::ResizeNparticles(int newsize) {
@@ -279,9 +282,11 @@ void ChParticleCloud::ResizeNparticles(int newsize) {
         particles[j]->variables.SetSharedMass(&particle_mass);
         particles[j]->variables.SetUserData((void*)this);
 
-        auto collision_model = chrono_types::make_shared<ChCollisionModel>();
-        collision_model->AddShapes(particle_collision_model);
-        particles[j]->AddCollisionModel(collision_model);
+        if (particle_collision_model) {
+            auto collision_model = chrono_types::make_shared<ChCollisionModel>();
+            collision_model->AddShapes(particle_collision_model);
+            particles[j]->AddCollisionModel(collision_model);
+        }
     }
 
     SetCollide(oldcoll);
@@ -296,9 +301,11 @@ void ChParticleCloud::AddParticle(ChCoordsys<double> initial_state) {
     newp->variables.SetSharedMass(&particle_mass);
     newp->variables.SetUserData((void*)this);
 
-    auto collision_model = chrono_types::make_shared<ChCollisionModel>();
-    collision_model->AddShapes(particle_collision_model);
-    newp->AddCollisionModel(collision_model);
+    if (particle_collision_model) {
+        auto collision_model = chrono_types::make_shared<ChCollisionModel>();
+        collision_model->AddShapes(particle_collision_model);
+        newp->AddCollisionModel(collision_model);
+    }
 
     particles.push_back(newp);
 }
@@ -642,6 +649,13 @@ void ChParticleCloud::SetCollide(bool state) {
 }
 
 void ChParticleCloud::SyncCollisionModels() {
+    // Sync model only if a collision model was specified for the particle cloud.
+    // ChCollisionModel::SyncPosition will further check that the collision model was actually processed (through
+    // BindAll or BindItem) by the current collision system.
+
+    if (!particle_collision_model)
+        return;
+
     for (auto particle : particles) {
         particle->GetCollisionModel()->SyncPosition();
     }
@@ -658,7 +672,6 @@ void ChParticleCloud::ArchiveOut(ChArchiveOut& marchive) {
     marchive << CHNVP(particles);
     // marchive << CHNVP(particle_mass); //***TODO***
     marchive << CHNVP(particle_collision_model);
-    marchive << CHNVP(matsurface);
     marchive << CHNVP(do_collide);
     marchive << CHNVP(do_limit_speed);
     marchive << CHNVP(max_speed);
@@ -680,7 +693,6 @@ void ChParticleCloud::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(particles);
     // marchive >> CHNVP(particle_mass); //***TODO***
     marchive >> CHNVP(particle_collision_model);
-    marchive >> CHNVP(matsurface);
     marchive >> CHNVP(do_collide);
     marchive >> CHNVP(do_limit_speed);
     marchive >> CHNVP(max_speed);

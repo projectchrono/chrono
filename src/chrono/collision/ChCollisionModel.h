@@ -142,16 +142,15 @@ class ChApi ChCollisionModel {
     /// Return the outward safe margin (see SetEnvelope).
     float GetEnvelope() { return model_envelope; }
 
-    /// Using this function BEFORE you start creating collision shapes,
-    /// it will make all following collision shapes to take this collision
-    /// envelope (safe outward layer) as default.
-    static void SetDefaultSuggestedEnvelope(double menv);
+    /// Set the default envelope value.
+    /// All collision shapes in all collision models created after the call to this function will use this value.
+    /// A particular collision system may ignore this suggested value.
+    static void SetDefaultSuggestedEnvelope(double envelope);
 
-    /// Using this function BEFORE you start creating collision shapes,
-    /// it will make all following collision shapes to take this collision
-    /// margin (inward penetration layer) as default. If you call it again later, it will have no effect,
-    /// except for shapes created later.
-    static void SetDefaultSuggestedMargin(double mmargin);
+    /// Set the default margin (inward penetration).
+    /// All collision shapes in all collision models created after the call to this function will use this value.
+    /// A particular collision system may ignore this suggested value.
+    static void SetDefaultSuggestedMargin(double margin);
 
     static double GetDefaultSuggestedEnvelope();
     static double GetDefaultSuggestedMargin();

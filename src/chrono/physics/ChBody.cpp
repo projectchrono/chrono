@@ -695,7 +695,13 @@ bool ChBody::GetCollide() const {
 }
 
 void ChBody::SyncCollisionModels() {
-    if (GetCollide())
+    // Sync model only if
+    //    (1) a collision model was specified for the body
+    //    (2) the body is set to participate in collisions
+    // ChCollisionModel::SyncPosition will further check that the collision model was actually processed (through
+    // BindAll or BindItem) by the current collision system.
+
+    if (GetCollisionModel() && GetCollide())
         GetCollisionModel()->SyncPosition();
 }
 
