@@ -651,16 +651,16 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     /// Bit flags
     enum BodyFlag {
-        COLLIDE = (1L << 0),       // detects collisions
-        FIXED = (1L << 1),         // body is fixed to ground
-        LIMITSPEED = (1L << 2),    // body angular and linear speed is limited (clamped)
-        SLEEPING = (1L << 3),      // body is sleeping [internal]
-        USESLEEPING = (1L << 4),   // if body remains in same place for too long time, it will be frozen
-        NOGYROTORQUE = (1L << 5),  // do not get the gyroscopic (quadratic) term, for low-fi but stable simulation
-        COULDSLEEP = (1L << 6)     // if body remains in same place for too long time, it will be frozen
+        LIMITSPEED = (1L << 0),    // body angular and linear speed is limited (clamped)
+        SLEEPING = (1L << 1),      // body is sleeping [internal]
+        USESLEEPING = (1L << 2),   // if body remains in same place for too long time, it will be frozen
+        NOGYROTORQUE = (1L << 3),  // do not get the gyroscopic (quadratic) term, for low-fi but stable simulation
+        COULDSLEEP = (1L << 4)     // if body remains in same place for too long time, it will be frozen
     };
 
-    int bflags;  ///< encoding for all body flags
+    bool fixed;    ///< flag indicating whether or not the body is fixed to global frame
+    bool collide;  ///< flag indicating whether or not the body participates in collisions
+    int bflags;    ///< encoding for all body flags
 
     /// Flags handling functions
     void BFlagsSetAllOFF();

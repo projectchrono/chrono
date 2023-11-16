@@ -65,9 +65,7 @@ void ChBodyEasySphere::SetupBody(double radius,
     }
     if (visualize) {
         auto vshape = chrono_types::make_shared<ChVisualShapeSphere>(radius);
-        auto vmodel = chrono_types::make_shared<ChVisualModel>();
-        vmodel->AddShape(vshape);
-        this->AddVisualModel(vmodel);
+        AddVisualShape(vshape);
     }
 }
 
@@ -123,9 +121,7 @@ void ChBodyEasyEllipsoid::SetupBody(ChVector<> axes,
     }
     if (visualize) {
         auto vshape = chrono_types::make_shared<ChVisualShapeEllipsoid>(axes);
-        auto vmodel = chrono_types::make_shared<ChVisualModel>();
-        vmodel->AddShape(vshape);
-        this->AddVisualModel(vmodel);
+        AddVisualShape(vshape);
     }
 }
 
@@ -204,9 +200,7 @@ void ChBodyEasyCylinder::SetupBody(geometry::ChAxis direction,
 
     if (visualize) {
         auto vshape = chrono_types::make_shared<ChVisualShapeCylinder>(radius, height);
-        auto vmodel = chrono_types::make_shared<ChVisualModel>();
-        vmodel->AddShape(vshape, ChFrame<>(VNULL, rot));
-        this->AddVisualModel(vmodel);
+        AddVisualShape(vshape, ChFrame<>(VNULL, rot));
     }
 }
 
@@ -269,9 +263,7 @@ void ChBodyEasyBox::SetupBody(double Xsize,
     }
     if (visualize) {
         auto vshape = chrono_types::make_shared<ChVisualShapeBox>(Xsize, Ysize, Zsize);
-        auto vmodel = chrono_types::make_shared<ChVisualModel>();
-        vmodel->AddShape(vshape);
-        this->AddVisualModel(vmodel);
+        AddVisualShape(vshape);
     }
 }
 
@@ -323,9 +315,7 @@ void ChBodyEasyConvexHull::SetupBody(std::vector<ChVector<>>& points,
     lh.ComputeHull(points, *vshape->GetMesh());
     if (visualize) {
         vshape->SetName("chull_mesh_" + std::to_string(GetIdentifier()));
-        auto vmodel = chrono_types::make_shared<ChVisualModel>();
-        vmodel->AddShape(vshape);
-        this->AddVisualModel(vmodel);
+        AddVisualShape(vshape);
     }
 
     double mass;
@@ -407,9 +397,7 @@ void ChBodyEasyConvexHullAuxRef::SetupBody(std::vector<ChVector<>>& points,
     lh.ComputeHull(points, *vshape->GetMesh());
     if (visualize) {
         vshape->SetName("chull_mesh_" + std::to_string(GetIdentifier()));
-        auto vmodel = chrono_types::make_shared<ChVisualModel>();
-        vmodel->AddShape(vshape);
-        this->AddVisualModel(vmodel);
+        AddVisualShape(vshape);
     }
 
     double mass;
@@ -523,9 +511,7 @@ void ChBodyEasyMesh::SetupBody(std::shared_ptr<geometry::ChTriangleMeshConnected
         vshape->SetMutable(false);
         vshape->SetMesh(trimesh);
         vshape->SetName(name);
-        auto vmodel = chrono_types::make_shared<ChVisualModel>();
-        vmodel->AddShape(vshape);
-        this->AddVisualModel(vmodel);
+        AddVisualShape(vshape);
     }
 
     this->SetDensity((float)density);
