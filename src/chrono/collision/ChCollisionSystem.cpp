@@ -17,6 +17,7 @@
 #include "chrono/physics/ChAssembly.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChParticleCloud.h"
+#include "chrono/physics/ChConveyor.h"
 #include "chrono/fea/ChMesh.h"
 
 namespace chrono {
@@ -55,10 +56,13 @@ void ChCollisionSystem::BindItem(std::shared_ptr<ChPhysicsItem> item) {
         }
     }
 
-    if (const auto& cloud = std::dynamic_pointer_cast<ChParticleCloud>(item))
+    if (auto cloud = std::dynamic_pointer_cast<ChParticleCloud>(item))
         BindParticleCloud(cloud.get());
 
-    if (const auto& a = std::dynamic_pointer_cast<ChAssembly>(item)) {
+    if (auto conveyor = std::dynamic_pointer_cast<ChConveyor>(item))
+        BindConveyor(conveyor.get());
+
+    if (auto a = std::dynamic_pointer_cast<ChAssembly>(item)) {
         BindAssembly(a.get());
     }
 }
@@ -76,10 +80,13 @@ void ChCollisionSystem::BindAssembly(const ChAssembly* assembly) {
     }
 
     for (const auto& item : assembly->Get_otherphysicslist()) {
-        if (const auto& cloud = std::dynamic_pointer_cast<ChParticleCloud>(item))
+        if (auto cloud = std::dynamic_pointer_cast<ChParticleCloud>(item))
             BindParticleCloud(cloud.get());
 
-        if (const auto& a = std::dynamic_pointer_cast<ChAssembly>(item))
+        if (auto conveyor = std::dynamic_pointer_cast<ChConveyor>(item))
+            BindConveyor(conveyor.get());
+
+        if (auto a = std::dynamic_pointer_cast<ChAssembly>(item))
             BindAssembly(a.get());
     }
 }
@@ -91,6 +98,15 @@ void ChCollisionSystem::BindParticleCloud(const ChParticleCloud* cloud) {
     for (const auto& p : cloud->GetParticles()) {
         Add(p->GetCollisionModel());
     }
+}
+
+void ChCollisionSystem::BindConveyor(const ChConveyor* conveyor) {
+    auto plate = conveyor->GetPlate();
+
+    ////if (!plate->GetCollide())
+    ////    return;
+
+    Add(plate->GetCollisionModel());
 }
 
 void ChCollisionSystem::ArchiveOut(ChArchiveOut& marchive) {

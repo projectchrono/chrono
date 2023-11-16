@@ -45,20 +45,20 @@ class ChApi ChConveyor : public ChPhysicsItem {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChConveyor* Clone() const override { return new ChConveyor(*this); }
 
-    /// Set the pointer to the parent ChSystem() and
-    /// also add to new collision system / remove from old coll.system
+    /// Set the pointer to the parent ChSystem().
     virtual void SetSystem(ChSystem* m_system) override;
 
     /// Set the speed of the conveyor belt (upper part, X direction)
     void SetConveyorSpeed(double mspeed) { conveyor_speed = mspeed; }
+
     /// Get the speed of the conveyor belt (upper part, X direction)
     double GetConveyorSpeed() { return conveyor_speed; }
 
     /// Access the internal body used as the truss of the moving belt
-    ChBody* GetTruss() { return conveyor_truss; }
+    ChBody* GetTruss() const { return conveyor_truss; }
 
     /// Access the internal body used as the moving belt (a plate with const.vel.)
-    ChBody* GetPlate() { return conveyor_plate; }
+    ChBody* GetPlate() const { return conveyor_plate; }
 
     // Shortcuts for ChBody-like transformations etc.
     // These, and others, can also be done as my_conveyor->GetTruss()->Ch***(...).

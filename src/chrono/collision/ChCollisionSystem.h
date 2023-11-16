@@ -29,6 +29,7 @@ class ChSystem;
 class ChBody;
 class ChAssembly;
 class ChParticleCloud;
+class ChConveyor;
 class ChVariablesBody;
 class ChContactContainer;
 class ChProximityContainer;
@@ -228,6 +229,9 @@ class ChApi ChCollisionSystem {
 
     /// Bind collision models of all particles in the specified cloud.
     virtual void BindParticleCloud(const ChParticleCloud* cloud);
+
+    /// Bind collision models of contactables in conveyor assembly.
+    virtual void BindConveyor(const ChConveyor* conveyor);
 
     bool m_initialized; 
 
