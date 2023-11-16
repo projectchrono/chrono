@@ -861,7 +861,7 @@ void RS_DriverCallback::OnPhaseChange(RS_Driver::Phase old_phase, RS_Driver::Pha
 
 RS_Part::RS_Part(const std::string& name, std::shared_ptr<ChMaterialSurface> mat, ChSystem* system)
     : m_name(name), m_mat(mat) {
-    m_body = std::shared_ptr<ChBodyAuxRef>(system->NewBodyAuxRef());
+    m_body = std::shared_ptr<ChBodyAuxRef>();
     m_body->SetNameString(name + "_body");
 }
 
@@ -922,19 +922,17 @@ void RS_Part::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void RS_Part::AddCollisionShapes() {
-    m_body->GetCollisionModel()->Clear();
-
     for (const auto& sphere : m_spheres) {
         auto shape = chrono_types::make_shared<ChCollisionShapeSphere>(m_mat, sphere.m_radius);
-        m_body->GetCollisionModel()->AddShape(shape, ChFrame<>(sphere.m_pos, QUNIT));
+        m_body->AddCollisionShape(shape, ChFrame<>(sphere.m_pos, QUNIT));
     }
     for (const auto& box : m_boxes) {
         auto shape = chrono_types::make_shared<ChCollisionShapeBox>(m_mat, box.m_dims);
-        m_body->GetCollisionModel()->AddShape(shape, ChFrame<>(box.m_pos, box.m_rot));
+        m_body->AddCollisionShape(shape, ChFrame<>(box.m_pos, box.m_rot));
     }
     for (const auto& cyl : m_cylinders) {
         auto shape = chrono_types::make_shared<ChCollisionShapeCylinder>(m_mat, cyl.m_radius, cyl.m_length);
-        m_body->GetCollisionModel()->AddShape(shape, ChFrame<>(cyl.m_pos, cyl.m_rot));
+        m_body->AddCollisionShape(shape, ChFrame<>(cyl.m_pos, cyl.m_rot));
     }
     for (const auto& mesh : m_meshes) {
         auto vis_mesh_file = GetChronoDataFile("robot/robosimian/obj/" + mesh.m_name + ".obj");
@@ -943,26 +941,24 @@ void RS_Part::AddCollisionShapes() {
             case MeshShape::Type::CONVEX_HULL: {
                 auto shape = chrono_types::make_shared<ChCollisionShapeConvexHull>(
                     m_mat, trimesh->getCoordsVertices());
-                m_body->GetCollisionModel()->AddShape(shape, ChFrame<>(mesh.m_pos, mesh.m_rot));
+                m_body->AddCollisionShape(shape, ChFrame<>(mesh.m_pos, mesh.m_rot));
                 break;
             }
             case MeshShape::Type::TRIANGLE_SOUP: {
                 auto shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(m_mat, trimesh, false,
                                                                                                 false, 0.002);
-                m_body->GetCollisionModel()->AddShape(shape, ChFrame<>(mesh.m_pos, mesh.m_rot));
+                m_body->AddCollisionShape(shape, ChFrame<>(mesh.m_pos, mesh.m_rot));
                 break;
             }
             case MeshShape::Type::NODE_CLOUD: {
                 auto shape = chrono_types::make_shared<ChCollisionShapeSphere>(m_mat, 0.002);
                 for (const auto& v : trimesh->getCoordsVertices()) {
-                    m_body->GetCollisionModel()->AddShape(shape, ChFrame<>(v, QUNIT));
+                    m_body->AddCollisionShape(shape, ChFrame<>(v, QUNIT));
                 }
                 break;
             }
         }
     }
-
-    m_body->GetCollisionModel()->Build();
 }
 
 // =============================================================================

@@ -145,7 +145,7 @@ Turtlebot_Part::Turtlebot_Part(const std::string& name,
                                const ChQuaternion<>& body_rot,
                                std::shared_ptr<ChBodyAuxRef> chassis_body,
                                bool collide) {
-    m_body = std::shared_ptr<ChBodyAuxRef>(system->NewBodyAuxRef());
+    m_body = std::shared_ptr<ChBodyAuxRef>();
     m_body->SetNameString(name + "_body");
     m_chassis = chassis_body;
     m_mat = mat;
@@ -179,10 +179,8 @@ void Turtlebot_Part::AddCollisionShapes() {
     auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
     trimesh->Transform(m_offset, ChMatrix33<>(1));
 
-    m_body->GetCollisionModel()->Clear();
     auto shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(m_mat, trimesh, false, false, 0.005);
-    m_body->GetCollisionModel()->AddShape(shape);
-    m_body->GetCollisionModel()->Build();
+    m_body->AddCollisionShape(shape);
     m_body->SetCollide(m_collide);
 }
 
