@@ -58,6 +58,9 @@ class ChApiModal ChModalAssembly : public ChAssembly {
         return this->is_modal;
     }
 
+    enum Reduction_Type {Herting, Craig_Bampton};
+    Reduction_Type modal_reduction_type = Herting;
+
     /// Compute the undamped modes for the current assembly. 
     /// Later you can fetch results via Get_modes_V(), Get_modes_frequencies() etc.
     /// Usually done for the assembly in full mode, but can be done also SwitchModalReductionON()
@@ -99,16 +102,19 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     void ComputeMassCenter();
     void CpmputeSelectionMatrix();
-    void UpdateFloatingFrameOfReference();
+    bool UpdateFloatingFrameOfReference();
     void UpdateTransformationMatrix();
 
     void ComputeLocalFullKRMmatrix();
-    void DoModalReduction(const ChModalDamping& damping_model = ChModalDampingNone());
+    void DoModalReduction_Herting(const ChModalDamping& damping_model = ChModalDampingNone());
+    void DoModalReduction_CraigBamption(const ChModalDamping& damping_model = ChModalDampingNone());
 
     void ComputeInertialKRMmatrix();
     void ComputeStiffnessMatrix();
     void ComputeDampingMatrix();
     void ComputeModalKRMmatrix();
+
+    void SetLocalFloatingFrameOfReference(std::shared_ptr<fea::ChNodeFEAbase> m_node);
 
     /// For displaying modes, you can use the following function. It sets the state of this subassembly
     /// (both boundary and inner items) using the n-th eigenvector multiplied by a "amplitude" factor * sin(phase). 
@@ -560,6 +566,8 @@ public:
     ChState           full_assembly_x_old;      // state snapshot of full not reduced assembly at the previous time step
     ChVectorDynamic<> modal_q_old; // state snapshot of the modal coordinates at the previous time step
     ChFrameMoving<>   floating_frame_F0;// floating frame of reference F at the time of SwitchModalReductionON()
+    bool is_initialized_F=false;
+    ChFrameMoving<> floating_frame_F_old;//floating frame of reference F at previous time step, used for updating F
 
     // a series of new variables for the new formulas to support rotating subassembly
     //***** todo *****: 
@@ -569,6 +577,7 @@ public:
     ChFrameMoving<> floating_frame_F; // the floating frame of reference F of the subassembly. Can be at one node or mass center
     ChMatrix33<> R_F; // rotation matrix of the floating frame F
     ChVector<> wloc_F; // local angular velocity of the floating frame F
+    std::shared_ptr<fea::ChNodeFEAbase> attached_node_as_local_frame = nullptr;
        
     ChMatrixDynamic<> Psi_S;// static mode transformation matrix in the mode acceleration method
     ChMatrixDynamic<> Psi_D;// dynamic mode transformation matrix in the mode acceleration method
@@ -626,7 +635,7 @@ public:
     ChVectorDynamic<std::complex<double>> modes_eig;           // eigenvalues
     ChVectorDynamic<double>               modes_freq;          // frequencies
     ChVectorDynamic<double>               modes_damping_ratio; // damping ratio
-    ChState                               modes_assembly_x0;   // state snapshot of assembly at the time of eigenvector computation
+    ChState                               modes_assembly_x0;   // full state snapshot of assembly at the time of eigenvector computation
 
     
 

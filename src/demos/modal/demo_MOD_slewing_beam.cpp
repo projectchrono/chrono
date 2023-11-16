@@ -51,6 +51,7 @@ double time_length = 25;
 bool RUN_ORIGIN = true;
 bool RUN_MODAL = true;
 bool ROTATING_BEAM = true;
+bool APPLY_FORCE = false;
 
 void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdeflection) {
     GetLog() << "\n\nRUN TEST\n";
@@ -96,6 +97,8 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
     // sys.AddLink(my_link_truss);
 
     auto assembly = chrono_types::make_shared<ChModalAssembly>();
+    assembly->modal_reduction_type = chrono::modal::ChModalAssembly::Reduction_Type::Herting;
+    //assembly->modal_reduction_type = chrono::modal::ChModalAssembly::Reduction_Type::Craig_Bampton;
     sys.Add(assembly);
 
     auto mesh_internal = chrono_types::make_shared<ChMesh>();
@@ -112,12 +115,13 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
     my_node_A->SetMass(0);
     my_node_A->GetInertia().setZero();
     mesh_boundary->AddNode(my_node_A);
+    assembly->SetLocalFloatingFrameOfReference(my_node_A);
 
     auto my_node_B =
         chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(my_node_A->GetPos() + ChVector<>(beam_L, 0, 0), QUNIT));
     my_node_B->SetMass(0);
     my_node_B->GetInertia().setZero();
-    mesh_internal->AddNode(my_node_B);//If added to mesh_boundary, the time stepper will diverge.
+    mesh_internal->AddNode(my_node_B);  // If added to mesh_boundary, the time stepper will diverge.
 
     // Beam section:
     auto section = chrono_types::make_shared<ChBeamSectionEulerAdvancedGeneric>();
@@ -134,7 +138,7 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
     section->SetShearCenterY(0);
     section->SetShearCenterZ(0);
     section->SetArtificialJyyJzzFactor(1.0 / 500);
-    section->SetBeamRaleyghDampingBeta(0.000);
+    section->SetBeamRaleyghDampingBeta(0.002);
     section->SetBeamRaleyghDampingAlpha(0.000);
 
     ChBuilderBeamEuler builder;
@@ -175,7 +179,8 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
         // ChGeneralizedEigenvalueSolverKrylovSchur eigen_solver;
 
         auto modes_settings = ChModalSolveUndamped(12, 1e-5, 500, 1e-10, false, eigen_solver);
-        auto damping_model = ChModalDampingRayleigh(0.000, 0.00);
+        //auto damping_model = ChModalDampingRayleigh(0.000, 0.002);
+        auto damping_model = ChModalDampingReductionR(*assembly);
 
         assembly->SwitchModalReductionON(modes_settings, damping_model);
 
@@ -190,11 +195,11 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
         if (hht_stepper != nullptr) {
             // hht_stepper->SetVerbose(false);
             hht_stepper->SetStepControl(false);
-            // hht_stepper->SetRelTolerance(1e-9);
-            // hht_stepper->SetAbsTolerances(1e-16);
+             //hht_stepper->SetRelTolerance(1e-9);
+             //hht_stepper->SetAbsTolerances(1e-16);
             // hht_stepper->SetAlpha(-0.2);
-            // hht_stepper->SetModifiedNewton(true);
-            // hht_stepper->SetMaxiters(10);
+             //hht_stepper->SetModifiedNewton(true);
+             //hht_stepper->SetMaxiters(10);
         }
 
         double omega = 4.0;
@@ -220,26 +225,27 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
 
             //// Add a force to generate vibration
             // if (sys.GetChTime() < 3.5)
-            //     my_node_B->SetForce(ChVector<>(0, 5.0 * tao, 0));
+            //     my_node_B->SetForce(ChVector<>(0, 10.0 * tao, 0));
             // else
             //     my_node_B->SetForce(ChVector<>(0, 0, 0));
 
-            // class MyCallback : public ChModalAssembly::CustomForceFullCallback {
-            //       public:
-            //         MyCallback(){};
-            //         virtual void evaluate(
-            //             ChVectorDynamic<>&
-            //                 computed_custom_F_full,  //< compute F here, size= n_boundary_coords_w +
-            //                 n_internal_coords_w
-            //             const ChModalAssembly& link  ///< associated modal assembly
-            //         ) {
-            //             // remember! assume F vector is already properly sized, but not zeroed!
-            //             computed_custom_F_full.setZero();
-            //             computed_custom_F_full[computed_custom_F_full.size() - 5] = 1.0;
-            //         }
-            //     };
-            //     auto my_callback = chrono_types::make_shared<MyCallback>();
-            //     assembly->RegisterCallback_CustomForceFull(my_callback);
+            if (APPLY_FORCE) {
+                class MyCallback : public ChModalAssembly::CustomForceFullCallback {
+                  public:
+                    MyCallback(){};
+                    virtual void evaluate(
+                        ChVectorDynamic<>& computed_custom_F_full,  //< compute F here, size= n_boundary_coords_w +
+                        // n_internal_coords_w
+                        const ChModalAssembly& link  ///< associated modal assembly
+                    ) {
+                        // remember! assume F vector is already properly sized, but not zeroed!
+                        computed_custom_F_full.setZero();
+                        computed_custom_F_full[computed_custom_F_full.size() - 5] = 4.0;
+                    }
+                };
+                auto my_callback = chrono_types::make_shared<MyCallback>();
+                assembly->RegisterCallback_CustomForceFull(my_callback);
+            }
 
             sys.DoStepDynamics(time_step);
 
