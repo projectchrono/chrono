@@ -198,6 +198,10 @@ class ChApi ChCollisionModel {
     ///
     void SetAllShapesMaterial(std::shared_ptr<ChMaterialSurface> mat);
 
+    // Get direct access to the concrete implementation object.
+    // This is provided only for implementaiton of a concrete collision system.
+    ChCollisionModelImpl* GetImplementation() const { return impl; }
+
   private:
     float model_envelope;        ///< Maximum envelope: surrounding volume from surface to the exterior
     float model_safe_margin;     ///< Maximum margin value to be used for fast penetration contact detection
@@ -211,7 +215,6 @@ class ChApi ChCollisionModel {
     ChCollisionModelImpl* impl;  ///< concrete implementation of the collision model
 
     friend class ChCollisionModelImpl;
-    friend class ChCollisionSystemMulticore;
 };
 
 // Base class for a concrete collision model, specific to a particular collision detection system.

@@ -332,8 +332,8 @@ void ChCollisionSystemMulticore::ReportContacts(ChContactContainer* container) {
         auto s1_index = sindex[s1];           // indexes of shapes in contact within their collision model
         auto s2_index = sindex[s2];           //
 
-        auto modelA = (ChCollisionModelMulticore*)blist[b1]->GetCollisionModel()->impl;
-        auto modelB = (ChCollisionModelMulticore*)blist[b2]->GetCollisionModel()->impl;
+        auto modelA = (ChCollisionModelMulticore*)blist[b1]->GetCollisionModel()->GetImplementation();
+        auto modelB = (ChCollisionModelMulticore*)blist[b2]->GetCollisionModel()->GetImplementation();
 
         ChCollisionInfo cinfo;
         cinfo.modelA = blist[b1]->GetCollisionModel().get();

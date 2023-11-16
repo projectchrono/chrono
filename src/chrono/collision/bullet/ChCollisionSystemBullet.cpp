@@ -131,6 +131,8 @@ void ChCollisionSystemBullet::SetNumThreads(int nthreads) {
 }
 
 void ChCollisionSystemBullet::Add(std::shared_ptr<ChCollisionModel> model) {
+    assert(model->GetImplementation() == nullptr);
+
     auto bt_model = chrono_types::make_shared<ChCollisionModelBullet>(model.get());
     bt_model->Populate();
     if (bt_model->GetBulletModel()->getCollisionShape()) {
@@ -152,14 +154,22 @@ void ChCollisionSystemBullet::Clear() {
 }
 
 void ChCollisionSystemBullet::Remove(std::shared_ptr<ChCollisionModel> model) {
-    auto bt_model = chrono_types::make_shared<ChCollisionModelBullet>(model.get());
+    if (!model->GetImplementation())
+        return;
+
+    auto bt_model = (ChCollisionModelBullet*)model->GetImplementation();
 
     if (bt_model->GetBulletModel()->getCollisionShape()) {
         bt_collision_world->removeCollisionObject(bt_model->GetBulletModel());
     }
 
-    auto pos = std::find(bt_models.begin(), bt_models.end(), bt_model);
-    bt_models.erase(pos);
+    auto pos = std::find_if(bt_models.begin(), bt_models.end(),                                                    //
+                            [bt_model](std::shared_ptr<ChCollisionModelBullet> x) { return x.get() == bt_model; }  //
+    );
+    if (pos != bt_models.end())
+        bt_models.erase(pos);
+    else
+        std::cout << "ChCollisionSystemBullet::Remove - Cannot find specified model!" << std::endl;
 }
 
 void ChCollisionSystemBullet::Run() {
