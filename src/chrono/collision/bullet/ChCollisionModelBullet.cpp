@@ -633,12 +633,17 @@ void ChCollisionModelBullet::injectTriangleProxy(std::shared_ptr<ChCollisionShap
 // -----------------------------------------------------------------------------
 
 void ChCollisionModelBullet::OnFamilyChange(short int family_group, short int family_mask) {
+    // This function can only be executed for collision models already processed by the collision system.
+
     if (!bt_collision_object->getBroadphaseHandle())
         return;
 
-    SyncPosition();
+    SyncPosition();  //// TODO IS THIS REALLY NEEDED?
 
-    //// TODO IS THIS NEEDED AT ALL?!?
+    auto coll_sys = std::static_pointer_cast<ChCollisionSystemBullet>(
+        model->GetContactable()->GetPhysicsItem()->GetSystem()->GetCollisionSystem());
+
+    //// TODO how can we CHANGE the Bullet family group and mask without removing and adding back the collision model?!?
     /*
     // Trick to avoid troubles if setting mask or family when model is already overlapping to some other model
     auto coll_sys = GetContactable()->GetPhysicsItem()->GetSystem()->GetCollisionSystem();

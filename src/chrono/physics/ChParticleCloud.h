@@ -163,7 +163,7 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
 
     /// Enable/disable the collision for this cluster of particles.
     void SetCollide(bool state);
-    virtual bool GetCollide() const override { return do_collide; }
+    virtual bool GetCollide() const override { return collide; }
 
     /// Set the state of all particles in the cluster to 'fixed' (default: false).
     /// If true, the particles do not move.
@@ -176,8 +176,8 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     /// Set the maximum linear speed (beyond this limit it will be clamped).
     /// This is useful in virtual reality and real-time simulations, because it reduces the risk of bad collision
     /// detection. The realism is limited, but the simulation is more stable.
-    void SetLimitSpeed(bool mlimit) { do_limit_speed = mlimit; };
-    bool GetLimitSpeed() const { return do_limit_speed; };
+    void SetLimitSpeed(bool state) { limit_speed = state; };
+    bool GetLimitSpeed() const { return limit_speed; };
 
     /// Get the number of particles.
     size_t GetNparticles() const override { return particles.size(); }
@@ -367,9 +367,10 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     std::shared_ptr<ColorCallback> m_color_fun;  ///< callback for dynamic coloring
 
     std::shared_ptr<ChCollisionModel> particle_collision_model;  ///< sample collision model
+
     bool fixed;
-    bool do_collide;
-    bool do_limit_speed;
+    bool collide;
+    bool limit_speed;
 
     float max_speed;  ///< limit on linear speed (useful for increased simulation speed)
     float max_wvel;   ///< limit on angular vel. (useful for increased simulation speed)

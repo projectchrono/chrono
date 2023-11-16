@@ -210,8 +210,8 @@ void ChAparticle::ArchiveIn(ChArchiveIn& marchive) {
 CH_FACTORY_REGISTER(ChParticleCloud)
 
 ChParticleCloud::ChParticleCloud()
-    : do_collide(false),
-      do_limit_speed(false),
+    : collide(false),
+      limit_speed(false),
       fixed(false),
       max_speed(0.5f),
       max_wvel((float)CH_C_2PI),
@@ -229,8 +229,8 @@ ChParticleCloud::ChParticleCloud()
 }
 
 ChParticleCloud::ChParticleCloud(const ChParticleCloud& other) : ChIndexedParticles(other) {
-    do_collide = other.do_collide;
-    do_limit_speed = other.do_limit_speed;
+    collide = other.collide;
+    limit_speed = other.limit_speed;
 
     SetMass(other.GetMass());
     SetInertiaXX(other.GetInertiaXX());
@@ -264,8 +264,10 @@ void ChParticleCloud::AddCollisionShape(std::shared_ptr<ChCollisionShape> shape,
 }
 
 void ChParticleCloud::ResizeNparticles(int newsize) {
+    //// TODO REVISIT THIS
+
     bool oldcoll = GetCollide();
-    SetCollide(false);  // this will remove old particle coll.models from coll.engine, if previously added
+    SetCollide(false);
 
     for (unsigned int j = 0; j < particles.size(); j++) {
         delete (particles[j]);
@@ -564,7 +566,7 @@ void ChParticleCloud::SetNoSpeedNoAcceleration() {
 }
 
 void ChParticleCloud::ClampSpeed() {
-    if (GetLimitSpeed()) {
+    if (limit_speed) {
         for (unsigned int j = 0; j < particles.size(); j++) {
             double w = 2.0 * particles[j]->GetRot_dt().Length();
             if (w > max_wvel)
@@ -626,24 +628,26 @@ void ChParticleCloud::Update(double mytime, bool update_assets) {
     ClampSpeed();  // Apply limits (if in speed clamping mode) to speeds.
 }
 
-// collision stuff
 void ChParticleCloud::SetCollide(bool state) {
-    if (state == do_collide)
+    // Nothing to do if no change in state
+    if (state == collide)
         return;
 
-    if (state) {
-        do_collide = true;
+    collide = state;
+
+    // Nothing to do if body has no collision model
+    if (!particle_collision_model)
+        return;
+
+    // If enabling collision, nothing to do if the collision model was not yet processed
+    if (collide && !particles.empty() && !particles[0]->GetCollisionModel()->GetImplementation())
+        return;
+
+    // If disabling collision, remove the body if its collision model was already processed
+    if (!collide && !particles.empty() && particles[0]->GetCollisionModel()->GetImplementation()) {
         if (GetSystem() && GetSystem()->GetCollisionSystem()) {
-            for (auto particle : particles) {
-                GetSystem()->GetCollisionSystem()->Add(particle->GetCollisionModel());
-            }
-        }
-    } else {
-        do_collide = false;
-        if (GetSystem() && GetSystem()->GetCollisionSystem()) {
-            for (auto particle : particles) {
+            for (auto particle : particles)
                 GetSystem()->GetCollisionSystem()->Remove(particle->GetCollisionModel());
-            }
         }
     }
 }
@@ -672,8 +676,8 @@ void ChParticleCloud::ArchiveOut(ChArchiveOut& marchive) {
     marchive << CHNVP(particles);
     // marchive << CHNVP(particle_mass); //***TODO***
     marchive << CHNVP(particle_collision_model);
-    marchive << CHNVP(do_collide);
-    marchive << CHNVP(do_limit_speed);
+    marchive << CHNVP(collide);
+    marchive << CHNVP(limit_speed);
     marchive << CHNVP(max_speed);
     marchive << CHNVP(max_wvel);
     marchive << CHNVP(sleep_time);
@@ -693,8 +697,8 @@ void ChParticleCloud::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(particles);
     // marchive >> CHNVP(particle_mass); //***TODO***
     marchive >> CHNVP(particle_collision_model);
-    marchive >> CHNVP(do_collide);
-    marchive >> CHNVP(do_limit_speed);
+    marchive >> CHNVP(collide);
+    marchive >> CHNVP(limit_speed);
     marchive >> CHNVP(max_speed);
     marchive >> CHNVP(max_wvel);
     marchive >> CHNVP(sleep_time);

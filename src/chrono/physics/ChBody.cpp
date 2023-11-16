@@ -668,19 +668,22 @@ bool ChBody::IsActive() const {
 // Collision-related functions
 
 void ChBody::SetCollide(bool state) {
+    // Nothing to do if no change in state
     if (state == collide)
         return;
 
     collide = state;
 
+    // Nothing to do if body has no collision model
     if (!collision_model)
         return;
 
-    if (state) {
-        SyncCollisionModels();
-        if (GetSystem() && GetSystem()->GetCollisionSystem())
-            GetSystem()->GetCollisionSystem()->Add(collision_model);
-    } else {
+    // If enabling collision, nothing to do if the collision model was not yet processed
+    if (collide && !collision_model->GetImplementation())
+        return;
+
+    // If disabling collision, remove the body if its collision model was already processed
+    if (!collide && collision_model->GetImplementation()) {
         if (GetSystem() && GetSystem()->GetCollisionSystem())
             GetSystem()->GetCollisionSystem()->Remove(collision_model);
     }
