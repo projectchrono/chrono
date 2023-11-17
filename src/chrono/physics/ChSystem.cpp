@@ -40,7 +40,7 @@ namespace chrono {
 // -----------------------------------------------------------------------------
 
 ChSystem::ChSystem()
-    : G_acc(ChVector<>(0, -9.8, 0)),
+    : G_acc(ChVector<>(0, -9.81, 0)),
       is_initialized(false),
       is_updated(false),
       ncoords(0),

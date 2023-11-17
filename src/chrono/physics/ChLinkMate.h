@@ -383,6 +383,27 @@ class ChApi ChLinkMateRevolute : public ChLinkMateGeneric {
     void SetFlipped(bool doflip);
     bool IsFlipped() const { return flipped; }
 
+    /// Specialized initialization for revolute mate, given the two bodies to be connected, two points, two directions
+    /// (each expressed in body or abs. coordinates). These two directions are the Z axes of slave frame F1 and master
+    /// frame F2
+    virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
+        std::shared_ptr<ChBodyFrame> mbody2,                      ///< second body to link
+        bool pos_are_relative,                                    ///< true: following pos. are relative to bodies
+        ChVector<> mpt1,                                          ///< point on slave axis 1 (rel. or abs.)
+        ChVector<> mpt2,                                          ///< point on master axis 2 (rel. or abs.)
+        ChVector<> mdir1,                                         ///< direction of slave axis 1 (rel. or abs.)
+        ChVector<> mdir2                                          ///< direction of master axis 2 (rel. or abs.)
+    ) override;
+
+    /// Get relative angle of slave frame with respect to master frame.
+    double GetRelativeAngle();
+
+    /// Get relative angular velocity of slave frame with respect to master frame.
+    double GetRelativeAngle_dt();
+
+    /// Get relative angular acceleration of slave frame with respect to master frame.
+    double GetRelativeAngle_dtdt();
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;
 
@@ -426,6 +447,15 @@ class ChApi ChLinkMatePrismatic : public ChLinkMateGeneric {
                             ChVector<> mdir1,                     ///< direction of slave axis 1 (rel. or abs.)
                             ChVector<> mdir2                      ///< direction of master axis 2 (rel. or abs.)
                             ) override;
+
+    /// Get relative position of slave frame with respect to master frame.
+    double GetRelativePos();
+
+    /// Get relative velocity of slave frame with respect to master frame.
+    double GetRelativePos_dt();
+
+    /// Get relative acceleration of slave frame with respect to master frame.
+    double GetRelativePos_dtdt();
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;
