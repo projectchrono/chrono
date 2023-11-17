@@ -144,24 +144,7 @@ void ChPhysicsItem::ArchiveIn(ChArchiveIn& marchive) {
     // marchive >> CHNVP(offset_w);
     // marchive >> CHNVP(offset_L);
 
-    // INITIALIZATION-BY-METHODS
-    if (marchive.CanTolerateMissingTokens()){
-        bool temp_tolerate_missing_tokens = marchive.GetTolerateMissingTokens();
-        marchive.TryTolerateMissingTokens(true);
 
-        std::vector<std::shared_ptr<ChVisualShape>> _c_AddVisualShape_ChVisualShapes;
-        std::vector<ChFrame<>> _c_AddVisualShape_ChFrames;
-        if (marchive.in(CHNVP(_c_AddVisualShape_ChVisualShapes)) && marchive.in(CHNVP(_c_AddVisualShape_ChFrames))){
-            if (_c_AddVisualShape_ChVisualShapes.size() != _c_AddVisualShape_ChFrames.size())
-                throw ChExceptionArchive("ChVisualShape and ChFrame vector must be of the same length and they are not.");
-
-            for (auto s_sel = 0; s_sel<_c_AddVisualShape_ChVisualShapes.size(); ++s_sel)
-                this->AddVisualShape(_c_AddVisualShape_ChVisualShapes.at(s_sel), _c_AddVisualShape_ChFrames.at(s_sel));
-        }
-
-
-        marchive.TryTolerateMissingTokens(temp_tolerate_missing_tokens);
-    }
 }
 
 }  // end namespace chrono
