@@ -147,27 +147,66 @@ void ChSystem::Clear() {
 void ChSystem::AddBody(std::shared_ptr<ChBody> body) {
     body->SetId(static_cast<int>(Get_bodylist().size()));
     assembly.AddBody(body);
+    body->SetSystem(this);
 }
 
 void ChSystem::AddShaft(std::shared_ptr<ChShaft> shaft) {
     assembly.AddShaft(shaft);
+    shaft->SetSystem(this);
 }
 
 void ChSystem::AddLink(std::shared_ptr<ChLinkBase> link) {
     assembly.AddLink(link);
+    link->SetSystem(this);
 }
 
 void ChSystem::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
     assembly.AddMesh(mesh);
+    mesh->SetSystem(this);
 }
 
 void ChSystem::AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item) {
     assembly.AddOtherPhysicsItem(item);
+    item->SetSystem(this);
+}
+
+void ChSystem::RemoveBody(std::shared_ptr<ChBody> body) {
+    if (collision_system)
+        body->RemoveCollisionModelsFromSystem(collision_system.get());
+    assembly.RemoveBody(body);
+    body->SetSystem(nullptr);
+}
+
+void ChSystem::RemoveShaft(std::shared_ptr<ChShaft> shaft) {
+    if (collision_system)
+        shaft->RemoveCollisionModelsFromSystem(collision_system.get());
+    assembly.RemoveShaft(shaft);
+    shaft->SetSystem(nullptr);
+}
+
+void ChSystem::RemoveLink(std::shared_ptr<ChLinkBase> link) {
+    if (collision_system)
+        link->RemoveCollisionModelsFromSystem(collision_system.get());
+    assembly.RemoveLink(link);
+    link->SetSystem(nullptr);
+}
+
+void ChSystem::RemoveMesh(std::shared_ptr<fea::ChMesh> mesh) {
+    if (collision_system)
+        mesh->RemoveCollisionModelsFromSystem(collision_system.get());
+    assembly.RemoveMesh(mesh);
+    mesh->SetSystem(nullptr);
+}
+
+void ChSystem::RemoveOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item) {
+    if (collision_system)
+        item->RemoveCollisionModelsFromSystem(collision_system.get());
+    assembly.RemoveOtherPhysicsItem(item);
+    item->SetSystem(nullptr);
 }
 
 // Add arbitrary physics item to the underlying assembly.
-// NOTE: we cannot simply invoke ChAssembly::Add as this would not provide
-// polymorphism!
+// NOTE: we cannot simply invoke ChAssembly::Add as this would not provide polymorphism!
 void ChSystem::Add(std::shared_ptr<ChPhysicsItem> item) {
     if (auto body = std::dynamic_pointer_cast<ChBody>(item)) {
         AddBody(body);

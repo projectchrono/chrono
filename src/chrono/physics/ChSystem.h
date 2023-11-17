@@ -280,19 +280,19 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     void FlushBatch() { assembly.FlushBatch(); }
 
     /// Remove a body from this assembly.
-    virtual void RemoveBody(std::shared_ptr<ChBody> body) { assembly.RemoveBody(body); }
+    virtual void RemoveBody(std::shared_ptr<ChBody> body);
 
     /// Remove a shaft from this assembly.
-    virtual void RemoveShaft(std::shared_ptr<ChShaft> shaft) { assembly.RemoveShaft(shaft); }
+    virtual void RemoveShaft(std::shared_ptr<ChShaft> shaft);
 
     /// Remove a link from this assembly.
-    virtual void RemoveLink(std::shared_ptr<ChLinkBase> link) { assembly.RemoveLink(link); }
+    virtual void RemoveLink(std::shared_ptr<ChLinkBase> link);
 
     /// Remove a mesh from the assembly.
-    virtual void RemoveMesh(std::shared_ptr<fea::ChMesh> mesh) { assembly.RemoveMesh(mesh); }
+    virtual void RemoveMesh(std::shared_ptr<fea::ChMesh> mesh);
 
     /// Remove a ChPhysicsItem object that is not a body or a link
-    virtual void RemoveOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item) { assembly.RemoveOtherPhysicsItem(item); }
+    virtual void RemoveOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item);
 
     /// Remove arbitrary ChPhysicsItem that was added to the underlying assembly.
     void Remove(std::shared_ptr<ChPhysicsItem> item);
