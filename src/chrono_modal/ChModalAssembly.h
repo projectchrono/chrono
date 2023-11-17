@@ -104,6 +104,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     void CpmputeSelectionMatrix();
     bool UpdateFloatingFrameOfReference();
     void UpdateTransformationMatrix();
+    ChFrameMoving<> GetFloatingFrameOfReference() { return this->floating_frame_F;}
 
     void ComputeLocalFullKRMmatrix();
     void DoModalReduction_Herting(const ChModalDamping& damping_model = ChModalDampingNone());
@@ -564,6 +565,7 @@ public:
     ChMatrixDynamic<> modal_Cq;//corresponding to boundary and modal lagrange multipliers
     ChMatrixDynamic<> Psi; //***TODO*** maybe prefer sparse Psi matrix, especially for upper blocks...
     ChState           full_assembly_x_old;      // state snapshot of full not reduced assembly at the previous time step
+    ChStateDelta      full_assembly_v_old;      // velocity snapshot of full not reduced assembly at the previous time step
     ChVectorDynamic<> modal_q_old; // state snapshot of the modal coordinates at the previous time step
     ChFrameMoving<>   floating_frame_F0;// floating frame of reference F at the time of SwitchModalReductionON()
     bool is_initialized_F=false;
@@ -578,6 +580,7 @@ public:
     ChMatrix33<> R_F; // rotation matrix of the floating frame F
     ChVector<> wloc_F; // local angular velocity of the floating frame F
     std::shared_ptr<fea::ChNodeFEAbase> attached_node_as_local_frame = nullptr;
+    ChVectorDynamic<> alpha;//coefficient for selection matrix S
        
     ChMatrixDynamic<> Psi_S;// static mode transformation matrix in the mode acceleration method
     ChMatrixDynamic<> Psi_D;// dynamic mode transformation matrix in the mode acceleration method

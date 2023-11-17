@@ -164,10 +164,9 @@ void ChModalAssembly::SwitchModalReductionON(ChSparseMatrix& full_M,
 
     // 2) fetch the initial state of assembly, full not reduced, as an initialization
     double fooT;
-    ChStateDelta full_assembly_v0;
     full_assembly_x_old.setZero(this->ncoords, nullptr);
-    full_assembly_v0.setZero(this->ncoords_w, nullptr);
-    this->IntStateGather(0, full_assembly_x_old, 0, full_assembly_v0, fooT);
+    full_assembly_v_old.setZero(this->ncoords_w, nullptr);
+    this->IntStateGather(0, full_assembly_x_old, 0, full_assembly_v_old, fooT);
 
     // fetch the full state snapshot for this analysis
     modes_assembly_x0.setZero(this->ncoords, nullptr);  //[qB; qI]
@@ -248,6 +247,7 @@ void ChModalAssembly::SwitchModalReductionON(ChSparseMatrix& full_M,
 
     } else {
         GetLog() << "The modal reduction type is specified incorrectly...\n";
+        assert(0);
     }
 
     // compute the modal K R M matrices
@@ -255,9 +255,6 @@ void ChModalAssembly::SwitchModalReductionON(ChSparseMatrix& full_M,
     ComputeStiffnessMatrix();    // material stiffness and geometrical stiffness
     ComputeDampingMatrix();      // material damping
     ComputeModalKRMmatrix();
-
-    // GetLog() << "run in line:\t" << __LINE__ << "\n";
-    GetLog() << "**** The new implemented modal reduction is switched on...\n";
 
     // Debug dump data. ***TODO*** remove
     if (true) {
@@ -431,7 +428,7 @@ void ChModalAssembly::CpmputeSelectionMatrix() {
         // The floating frame of reference F is placed approximately at the mass center of the subsystem.
         // The position of the mass center is determined from both boundary and internal bodies/nodes,
         // but the coefficient vector 'alpha' here is evaluated from only boundary bodies/nodes.
-        ChVectorDynamic<> alpha;
+        // ChVectorDynamic<> alpha;
         alpha.setZero(n_bou);
         alpha = A.colPivHouseholderQr().solve(v);
 
@@ -471,14 +468,30 @@ bool ChModalAssembly::UpdateFloatingFrameOfReference() {
 
         if (is_initialized_F == false) {
             floating_frame_F.SetPos(this->com_x);
-            floating_frame_F.SetRot(QUNIT);
+            floating_frame_F.SetRot(QUNIT);  // todo: compute according to boundary nodes
 
             is_initialized_F = true;
             converged_flag_F = true;
 
+            ChVectorDynamic<> vel_F(6);
+            vel_F = S * assembly_v.segment(0, this->n_boundary_coords_w);
+            floating_frame_F.SetPos_dt(vel_F.head(3));
+            floating_frame_F.SetWvel_loc(vel_F.tail(3));
+
+            //ChVectorDynamic<> acc_F(6);
+            //acc_F = S * assembly_a.segment(0, this->n_boundary_coords_w);
+            //floating_frame_F.SetPos_dtdt(acc_F.head(3));
+            //floating_frame_F.SetWacc_loc(acc_F.tail(3));
+
             GetLog() << "*** Floating frame F located at approx. COG is used.\n";
 
         } else {  // Increment w.r.t. the previous floating frame F
+
+            for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; ++i_bou) {
+                ChQuaternion<> quat_bou = full_assembly_x_old.segment(7 * i_bou + 3, 4);
+                ChMatrix33 rel_R = ChMatrix33<>(floating_frame_F_old.GetRot().GetConjugate() * quat_bou);
+                S.block(3, 6 * i_bou + 3, 3, 3) = alpha(i_bou) * rel_R;
+            }
 
             ChStateDelta assembly_Dx_reduced;
             assembly_Dx_reduced.setZero(this->ncoords_w, nullptr);
@@ -497,19 +510,23 @@ bool ChModalAssembly::UpdateFloatingFrameOfReference() {
             delta_rot_F.Q_from_Rotv(delta_pos_F.tail(3));
             floating_frame_F.SetRot(ChQuaternion<>(floating_frame_F_old.GetRot() * delta_rot_F));
 
+            ChStateDelta assembly_Dv;
+            assembly_Dv.setZero(this->n_boundary_coords_w, nullptr);
+            assembly_Dv =
+                assembly_v.segment(0, n_boundary_coords_w) - full_assembly_v_old.segment(0, n_boundary_coords_w);
+            ChVectorDynamic<> delta_vel_F(6);
+            delta_vel_F = S * assembly_Dv;
+            floating_frame_F.SetPos_dt(floating_frame_F.GetPos_dt() + delta_vel_F.head(3));
+            floating_frame_F.SetWvel_loc(floating_frame_F.GetWvel_loc() + delta_vel_F.tail(3));
+
+            //ChVectorDynamic<> acc_F(6);
+            //acc_F = S * assembly_a.segment(0, this->n_boundary_coords_w);
+            //floating_frame_F.SetPos_dtdt(acc_F.head(3));
+            //floating_frame_F.SetWacc_loc(acc_F.tail(3));
+
             if (delta_pos_F.norm() < 1e-10)
                 converged_flag_F = true;
         }
-
-        ChVectorDynamic<> vel_F(6);
-        vel_F = S * assembly_v.segment(0, this->n_boundary_coords_w);
-        floating_frame_F.SetPos_dt(vel_F.head(3));
-        floating_frame_F.SetWvel_loc(vel_F.tail(3));
-
-        ChVectorDynamic<> acc_F(6);
-        acc_F = S * assembly_a.segment(0, this->n_boundary_coords_w);
-        floating_frame_F.SetPos_dtdt(acc_F.head(3));
-        floating_frame_F.SetWacc_loc(acc_F.tail(3));
     }
 
     floating_frame_F_old = floating_frame_F;
@@ -1367,15 +1384,15 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
             assembly_x_new.segment(offset_x + 3, 4) = quat_int.eigen();
         }
 
-        ChStateDelta assembly_v;  // =[qB_dt; qI_dt]
-        assembly_v.setZero(bou_int_coords_w, nullptr);
-        assembly_v.segment(0, n_boundary_coords_w) = v_mod.segment(0, n_boundary_coords_w);
-        assembly_v.segment(n_boundary_coords_w, n_internal_coords_w) =
+        ChStateDelta assembly_v_new;  // =[qB_dt; qI_dt]
+        assembly_v_new.setZero(bou_int_coords_w, nullptr);
+        assembly_v_new.segment(0, n_boundary_coords_w) = v_mod.segment(0, n_boundary_coords_w);
+        assembly_v_new.segment(n_boundary_coords_w, n_internal_coords_w) =
             P_I2 * Psi_S * P_B2.transpose() * v_mod.segment(0, n_boundary_coords_w) +
             P_I2 * Psi_D * v_mod.segment(n_boundary_coords_w, n_modes_coords_w);
         // Add the residual term which should be zero in the assumption of small deflections, but finally it affects
         // because Psi_S=-K_II\K_IB is not updated simultaneously according to the current configuration.
-        assembly_v.segment(n_boundary_coords_w, n_internal_coords_w) +=
+        assembly_v_new.segment(n_boundary_coords_w, n_internal_coords_w) +=
             (P_I1 - P_I2 * Psi_S * P_B2.transpose() * P_B1) * S * v_mod.segment(0, n_boundary_coords_w);
 
         bool needs_temporary_bou_int = this->is_modal;
@@ -1389,25 +1406,25 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
         for (auto& body : internal_bodylist) {
             if (body->IsActive())
                 body->IntStateScatter(displ_x + body->GetOffset_x(), assembly_x_new, displ_v + body->GetOffset_w(),
-                                      assembly_v, T, full_update);
+                                      assembly_v_new, T, full_update);
             else
                 body->Update(T, full_update);
         }
         for (auto& mesh : internal_meshlist) {
             mesh->IntStateScatter(displ_x + mesh->GetOffset_x(), assembly_x_new, displ_v + mesh->GetOffset_w(),
-                                  assembly_v, T, full_update);
+                                  assembly_v_new, T, full_update);
         }
         for (auto& link : internal_linklist) {
             if (link->IsActive())
                 link->IntStateScatter(displ_x + link->GetOffset_x(), assembly_x_new, displ_v + link->GetOffset_w(),
-                                      assembly_v, T, full_update);
+                                      assembly_v_new, T, full_update);
             else
                 link->Update(T, full_update);
         }
         for (auto& item : internal_otherphysicslist) {
             if (item->IsActive())
                 item->IntStateScatter(displ_x + item->GetOffset_x(), assembly_x_new, displ_v + item->GetOffset_w(),
-                                      assembly_v, T, full_update);
+                                      assembly_v_new, T, full_update);
         }
 
         if (needs_temporary_bou_int)
@@ -1425,6 +1442,7 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
 
         // store the full state for the computation in next time step
         full_assembly_x_old = assembly_x_new;
+        full_assembly_v_old = assembly_v_new;
         modal_q_old = modal_q;
 
     } else {  // Accumulated update w.r.t. the deformed configration at previous time step
@@ -1461,15 +1479,15 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
         assembly_Dx.segment(n_boundary_coords_w, n_internal_coords_w) +=
             (P_I1 - P_I2 * Psi_S * P_B2.transpose() * P_B1) * S * assembly_Dx_reduced.segment(0, n_boundary_coords_w);
 
-        ChStateDelta assembly_v;  // =[qB_dt; qI_dt]
-        assembly_v.setZero(bou_int_coords_w, nullptr);
-        assembly_v.segment(0, n_boundary_coords_w) = v_mod.segment(0, n_boundary_coords_w);
-        assembly_v.segment(n_boundary_coords_w, n_internal_coords_w) =
+        ChStateDelta assembly_v_new;  // =[qB_dt; qI_dt]
+        assembly_v_new.setZero(bou_int_coords_w, nullptr);
+        assembly_v_new.segment(0, n_boundary_coords_w) = v_mod.segment(0, n_boundary_coords_w);
+        assembly_v_new.segment(n_boundary_coords_w, n_internal_coords_w) =
             P_I2 * Psi_S * P_B2.transpose() * v_mod.segment(0, n_boundary_coords_w) +
             P_I2 * Psi_D * v_mod.segment(n_boundary_coords_w, n_modes_coords_w);
         // Add the residual term which should be zero in the assumption of small deflections, but finally it affects
         // because Psi_S=-K_II\K_IB is not updated simultaneously according to the current configuration.
-        assembly_v.segment(n_boundary_coords_w, n_internal_coords_w) +=
+        assembly_v_new.segment(n_boundary_coords_w, n_internal_coords_w) +=
             (P_I1 - P_I2 * Psi_S * P_B2.transpose() * P_B1) * S * v_mod.segment(0, n_boundary_coords_w);
 
         bool needs_temporary_bou_int = this->is_modal;
@@ -1487,25 +1505,25 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
         for (auto& body : internal_bodylist) {
             if (body->IsActive())
                 body->IntStateScatter(displ_x + body->GetOffset_x(), assembly_x_new, displ_v + body->GetOffset_w(),
-                                      assembly_v, T, full_update);
+                                      assembly_v_new, T, full_update);
             else
                 body->Update(T, full_update);
         }
         for (auto& mesh : internal_meshlist) {
             mesh->IntStateScatter(displ_x + mesh->GetOffset_x(), assembly_x_new, displ_v + mesh->GetOffset_w(),
-                                  assembly_v, T, full_update);
+                                  assembly_v_new, T, full_update);
         }
         for (auto& link : internal_linklist) {
             if (link->IsActive())
                 link->IntStateScatter(displ_x + link->GetOffset_x(), assembly_x_new, displ_v + link->GetOffset_w(),
-                                      assembly_v, T, full_update);
+                                      assembly_v_new, T, full_update);
             else
                 link->Update(T, full_update);
         }
         for (auto& item : internal_otherphysicslist) {
             if (item->IsActive())
                 item->IntStateScatter(displ_x + item->GetOffset_x(), assembly_x_new, displ_v + item->GetOffset_w(),
-                                      assembly_v, T, full_update);
+                                      assembly_v_new, T, full_update);
         }
 
         if (needs_temporary_bou_int)
@@ -1523,6 +1541,7 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
 
         // store the full state for the computation in next time step
         full_assembly_x_old = assembly_x_new;
+        full_assembly_v_old = assembly_v_new;
         modal_q_old = modal_q;
     }
 
