@@ -43,7 +43,7 @@ chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.001);
 
 print ("Loading C::E scene...");
 
-exported_items = chrono.ImportSolidWorksSystem(chrono.GetChronoDataFile('solidworks/swiss_escapement'))
+exported_items = chrono.ImportSolidWorksSystem(chrono.GetChronoDataFile('solidworks/swiss_escapement.py'))
 
 print ("...done!");
 
