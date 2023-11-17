@@ -78,6 +78,10 @@ class ChApi ChCollisionModelMulticore : public ChCollisionModelImpl {
     std::vector<std::shared_ptr<ChCollisionShape>> m_shapes;     ///< extended list of collision shapes
 
     friend class ChCollisionSystemMulticore;
+    friend class ChCollisionSystemChronoMulticore;
+    friend class ChContactContainerMulticoreNSC;
+    friend class ChContactContainerMulticoreSMC;
+    
 };
 
 /// @} collision_mc

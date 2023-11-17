@@ -28,7 +28,6 @@
 
 #include "chrono_multicore/ChConfigMulticore.h"
 #include "chrono_multicore/collision/ChCollisionSystemChronoMulticore.h"
-#include "chrono_multicore/collision/ChCollisionSystemBulletMulticore.h"
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 #include "chrono_multicore/solver/ChSolverMulticore.h"
 #include "chrono_multicore/solver/ChSystemDescriptorMulticore.h"
@@ -42,11 +41,6 @@ ChSystemMulticore::ChSystemMulticore() : ChSystem() {
     data_manager = new ChMulticoreDataManager();
 
     descriptor = chrono_types::make_shared<ChSystemDescriptorMulticore>(data_manager);
-
-    collision_system = chrono_types::make_shared<ChCollisionSystemChronoMulticore>(data_manager);
-    collision_system->SetNumThreads(nthreads_collision);
-    collision_system->SetSystem(this);
-    collision_system_type = ChCollisionSystemType::CHRONO;
 
     counter = 0;
     timer_accumulator.resize(10, 0);
@@ -79,26 +73,6 @@ ChSystemMulticore::ChSystemMulticore(const ChSystemMulticore& other) : ChSystem(
 
 ChSystemMulticore::~ChSystemMulticore() {
     delete data_manager;
-}
-
-ChBody* ChSystemMulticore::NewBody() {
-    switch (collision_system_type) {
-        default:
-        case ChCollisionSystemType::CHRONO:
-            return new ChBody(chrono_types::make_shared<ChCollisionModelChrono>());
-        case ChCollisionSystemType::BULLET:
-            return new ChBody();
-    }
-}
-
-ChBodyAuxRef* ChSystemMulticore::NewBodyAuxRef() {
-    switch (collision_system_type) {
-        default:
-        case ChCollisionSystemType::CHRONO:
-            return new ChBodyAuxRef(chrono_types::make_shared<ChCollisionModelChrono>());
-        case ChCollisionSystemType::BULLET:
-            return new ChBodyAuxRef();
-    }
 }
 
 bool ChSystemMulticore::Integrate_Y() {
@@ -297,9 +271,9 @@ void ChSystemMulticore::AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newit
     newitem->SetSystem(this);
     assembly.otherphysicslist.push_back(newitem);
 
-    if (newitem->GetCollide()) {
-        newitem->AddCollisionModelsToSystem();
-    }
+    ////if (newitem->GetCollide()) {
+    ////    newitem->AddCollisionModelsToSystem();
+    ////}
 }
 
 //
@@ -663,55 +637,16 @@ void ChSystemMulticore::RecomputeThreads() {
 #endif
 }
 
-void ChSystemMulticore::SetCollisionSystemType(ChCollisionSystemType type) {
+void ChSystemMulticore::SetCollisionSystemType(ChCollisionSystem::Type type) {
     assert(assembly.GetNbodies() == 0);
 
-    collision_system_type = type;
-
-    switch (type) {
-        case ChCollisionSystemType::CHRONO:
-            collision_system = chrono_types::make_shared<ChCollisionSystemChronoMulticore>(data_manager);
-            break;
-        case ChCollisionSystemType::BULLET:
-            collision_system = chrono_types::make_shared<ChCollisionSystemBulletMulticore>(data_manager);
-            break;
-        default:
-            //// Error
-            break;
-    }
-}
-
-// Calculate the current body AABB (union of the AABB of their collision shapes).
-void ChSystemMulticore::CalculateBodyAABB() {
-    if (collision_system_type == ChCollisionSystemType::BULLET)
-        return;
-
-    // Readability replacements
-    auto& s_min = data_manager->cd_data->aabb_min;
-    auto& s_max = data_manager->cd_data->aabb_max;
-    auto& id_rigid = data_manager->cd_data->shape_data.id_rigid;
-    auto& offset = data_manager->cd_data->global_origin;
-
-    // Initialize body AABB to inverted boxes
-    custom_vector<real3> b_min(data_manager->num_rigid_bodies, real3(C_REAL_MAX));
-    custom_vector<real3> b_max(data_manager->num_rigid_bodies, real3(-C_REAL_MAX));
-
-    // Loop over all shapes and update the AABB of the associated body
-    //// TODO: can be done in parallel using Thrust
-    for (uint is = 0; is < data_manager->cd_data->num_rigid_shapes; is++) {
-        uint ib = id_rigid[is];
-        b_min[ib] = real3(Min(b_min[ib].x, s_min[ib].x + offset.x), Min(b_min[ib].y, s_min[ib].y + offset.y),
-                          Min(b_min[ib].z, s_min[ib].z + offset.z));
-        b_max[ib] = real3(Max(b_max[ib].x, s_max[ib].x + offset.x), Max(b_max[ib].y, s_max[ib].y + offset.y),
-                          Max(b_max[ib].z, s_max[ib].z + offset.z));
+    if (type != ChCollisionSystem::Type::MULTICORE) {
+        std::cout << "Only the Chrono multicore collision detection system is supported!" << std::endl;
+        std::cout << "Creating a collision system of type ChCollisionSystemMulticore" << std::endl;
     }
 
-    // Loop over all bodies and set the AABB of its collision model
-    for (auto b : Get_bodylist()) {
-        uint ib = b->GetId();
-        std::static_pointer_cast<ChCollisionModelChrono>(b->GetCollisionModel())->aabb_min = ToChVector(b_min[ib]);
-        std::static_pointer_cast<ChCollisionModelChrono>(b->GetCollisionModel())->aabb_max = ToChVector(b_max[ib]);
-    }
+    collision_system = chrono_types::make_shared<ChCollisionSystemChronoMulticore>(data_manager);
+    collision_system->SetSystem(this);
 }
 
 // Calculate the (linearized) bilateral constraint violations and store them in

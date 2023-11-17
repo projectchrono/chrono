@@ -118,7 +118,7 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
-  private:
+  protected:
     /// Perform a ray-hit test with all collision models. This version allows specifying the Bullet
     /// collision filter group and mask (see cbtBroadphaseProxy::CollisionFilterGroups).
     bool RayHit(const ChVector<>& from,
