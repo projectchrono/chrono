@@ -81,6 +81,8 @@ void ChCollisionSystemMulticore::SetNumThreads(int nthreads) {
 // -----------------------------------------------------------------------------
 
 void ChCollisionSystemMulticore::Add(std::shared_ptr<ChCollisionModel> model) {
+    assert(!model->HasImplementation());
+
     auto ct_model = chrono_types::make_shared<ChCollisionModelMulticore>(model.get());
     ct_model->Populate();
 
@@ -191,6 +193,8 @@ void ChCollisionSystemMulticore::Clear() {
 
 void ChCollisionSystemMulticore::Remove(std::shared_ptr<ChCollisionModel> model) {
     //// TODO
+    std::cout << "\nChCollisionSystemMulticore::Remove() not yet implemented.\n" << std::endl;
+    throw ChException("ChCollisionSystemMulticore::Remove() not yet implemented.");
 }
 
 #undef ERASE_MACRO

@@ -131,7 +131,7 @@ void ChCollisionSystemBullet::SetNumThreads(int nthreads) {
 }
 
 void ChCollisionSystemBullet::Add(std::shared_ptr<ChCollisionModel> model) {
-    assert(model->GetImplementation() == nullptr);
+    assert(!model->HasImplementation());
 
     auto bt_model = chrono_types::make_shared<ChCollisionModelBullet>(model.get());
     bt_model->Populate();
@@ -154,7 +154,7 @@ void ChCollisionSystemBullet::Clear() {
 }
 
 void ChCollisionSystemBullet::Remove(std::shared_ptr<ChCollisionModel> model) {
-    if (!model->GetImplementation())
+    if (!model->HasImplementation())
         return;
 
     auto bt_model = (ChCollisionModelBullet*)model->GetImplementation();
@@ -170,6 +170,8 @@ void ChCollisionSystemBullet::Remove(std::shared_ptr<ChCollisionModel> model) {
         bt_models.erase(pos);
     else
         std::cout << "ChCollisionSystemBullet::Remove - Cannot find specified model!" << std::endl;
+
+    model->RemoveImplementation();
 }
 
 void ChCollisionSystemBullet::Run() {

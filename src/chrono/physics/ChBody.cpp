@@ -678,14 +678,18 @@ void ChBody::SetCollide(bool state) {
     if (!collision_model)
         return;
 
-    // If enabling collision, nothing to do if the collision model was not yet processed
-    if (collide && !collision_model->GetImplementation())
+    // If enabling collision, add to collision system if not already processed
+    if (collide && !collision_model->HasImplementation()) {
+        if (GetSystem() && GetSystem()->GetCollisionSystem())
+            GetSystem()->GetCollisionSystem()->Add(collision_model);
         return;
+    }
 
-    // If disabling collision, remove the body if its collision model was already processed
-    if (!collide && collision_model->GetImplementation()) {
+    // If disabling collision, remove from collision system if already processed
+    if (!collide && collision_model->HasImplementation()) {
         if (GetSystem() && GetSystem()->GetCollisionSystem())
             GetSystem()->GetCollisionSystem()->Remove(collision_model);
+        return;
     }
 }
 

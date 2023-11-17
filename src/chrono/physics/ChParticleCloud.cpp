@@ -639,19 +639,24 @@ void ChParticleCloud::SetCollide(bool state) {
     if (!particle_collision_model)
         return;
 
-    // If enabling collision, nothing to do if the collision model was not yet processed
-    if (collide && !particles.empty() && !particles[0]->GetCollisionModel()->GetImplementation())
+    // If enabling collision, add to collision system if not already processed
+    if (collide && !particles.empty() && !particles[0]->GetCollisionModel()->HasImplementation()) {
+        if (GetSystem() && GetSystem()->GetCollisionSystem()) {
+            for (auto particle : particles)
+                GetSystem()->GetCollisionSystem()->Add(particle->GetCollisionModel());
+        }
         return;
+    }
 
-    // If disabling collision, remove the body if its collision model was already processed
-    if (!collide && !particles.empty() && particles[0]->GetCollisionModel()->GetImplementation()) {
+    // If disabling collision, remove the from collision system if already processed
+    if (!collide && !particles.empty() && particles[0]->GetCollisionModel()->HasImplementation()) {
         if (GetSystem() && GetSystem()->GetCollisionSystem()) {
             for (auto particle : particles)
                 GetSystem()->GetCollisionSystem()->Remove(particle->GetCollisionModel());
         }
+        return;
     }
 }
-
 
 void ChParticleCloud::AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const {
     if (collide && particle_collision_model) {

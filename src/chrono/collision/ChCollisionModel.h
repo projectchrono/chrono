@@ -199,8 +199,10 @@ class ChApi ChCollisionModel {
     void SetAllShapesMaterial(std::shared_ptr<ChMaterialSurface> mat);
 
     // Get direct access to the concrete implementation object.
-    // This is provided only for implementaiton of a concrete collision system.
+    // These functions are provided only for implementation of a concrete collision system.
+    bool HasImplementation() const { return impl != nullptr; }
     ChCollisionModelImpl* GetImplementation() const { return impl; }
+    void RemoveImplementation() { impl = nullptr; }
 
   private:
     float model_envelope;        ///< Maximum envelope: surrounding volume from surface to the exterior
