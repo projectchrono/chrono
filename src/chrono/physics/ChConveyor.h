@@ -113,10 +113,10 @@ class ChApi ChConveyor : public ChPhysicsItem {
                                    const unsigned int off_v,
                                    const ChStateDelta& Dv) override;
     virtual void IntStateGetIncrement(const unsigned int off_x,
-                                   const ChState& x_new,
-                                   const ChState& x,
-                                   const unsigned int off_v,
-                                   ChStateDelta& Dv) override;
+                                      const ChState& x_new,
+                                      const ChState& x,
+                                      const unsigned int off_v,
+                                      ChStateDelta& Dv) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void IntLoadResidual_Mv(const unsigned int off,
                                     ChVectorDynamic<>& R,
@@ -165,18 +165,16 @@ class ChApi ChConveyor : public ChPhysicsItem {
     // Other functions
 
     virtual bool GetCollide() const override { return true; }
+    virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const override;
+    virtual void RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const override;
     virtual void SyncCollisionModels() override;
 
-    //
     // UPDATE FUNCTIONS
-    //
 
     /// Update all auxiliary data of the conveyor at given time
     virtual void Update(double mytime, bool update_assets = true) override;
 
-    //
     // SERIALIZATION
-    //
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;
@@ -185,8 +183,7 @@ class ChApi ChConveyor : public ChPhysicsItem {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChConveyor,0)
-
+CH_CLASS_VERSION(ChConveyor, 0)
 
 }  // end namespace chrono
 

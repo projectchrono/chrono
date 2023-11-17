@@ -49,9 +49,9 @@ class ChApi ChContactSurface {
     std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() { return m_material; }
 
     // Functions to interface this with ChPhysicsItem container
-    virtual void SyncCollisionModels() = 0;
-    virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) = 0;
-    virtual void RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) = 0;
+    virtual void SyncCollisionModels() const = 0;
+    virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const = 0;
+    virtual void RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const = 0;
 
   protected:
     std::shared_ptr<ChMaterialSurface> m_material;  ///< contact material properties

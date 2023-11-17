@@ -52,7 +52,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// "Virtual" copy constructor (covariant return type).
     virtual ChBody* Clone() const override { return new ChBody(*this); }
 
-    /// Sets the 'fixed' state of the body. 
+    /// Sets the 'fixed' state of the body.
     /// If true, the body does not move with respect to the absolute reference frame.
     void SetBodyFixed(bool state);
 
@@ -133,7 +133,13 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Set no speed and no accelerations (but does not change the position).
     void SetNoSpeedNoAcceleration() override;
 
-    /// Synchronize coll.model coordinate and bounding box to the position of the body.
+    /// Add the body collision model (if any) to the provided collision system.
+    virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const override;
+
+    /// Remove the body collision model (if any) from the provided collision system.
+    virtual void RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const override;
+
+    /// Synchronize the position and bounding box of the body collision model (if any).
     virtual void SyncCollisionModels() override;
 
     /// Get the rigid body coordinate system that represents the GOG (Center of Gravity).
@@ -160,11 +166,11 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Method to serialize only the state (position, speed).
     virtual void StreamOutstate(ChStreamOutBinary& mstream) override;
 
-    /// The density of the rigid body, as [mass]/[unit volume]. 
+    /// The density of the rigid body, as [mass]/[unit volume].
     /// Used if the inertia tensor and mass are automatically recomputed from the geometry.
     ///
     //// TODO OBSOLETE
-    /// 
+    ///
     void SetDensity(float mdensity) { density = mdensity; }
 
     // DATABASE HANDLING
@@ -221,16 +227,14 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     /// Set the body mass.
     /// Try not to mix bodies with too high/too low values of mass, for numerical stability.
-    void SetMass(double newmass) {
-         variables.SetBodyMass(newmass);
-    }
+    void SetMass(double newmass) { variables.SetBodyMass(newmass); }
 
     /// Get the body mass.
     double GetMass() { return variables.GetBodyMass(); }
 
     /// Set the inertia tensor of the body.
     /// The provided 3x3 matrix should be symmetric and contain the inertia tensor, expressed in the local coordinate
-    /// system: 
+    /// system:
     /// <pre>
     ///               [ int{y^2+z^2}dm    -int{xy}dm    -int{xz}dm    ]
     /// newXInertia = [                  int{x^2+z^2}   -int{yz}dm    ]
@@ -480,10 +484,10 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
                                    const unsigned int off_v,
                                    const ChStateDelta& Dv) override;
     virtual void IntStateGetIncrement(const unsigned int off_x,
-                                   const ChState& x_new,
-                                   const ChState& x,
-                                   const unsigned int off_v,
-                                   ChStateDelta& Dv) override;
+                                      const ChState& x_new,
+                                      const ChState& x,
+                                      const unsigned int off_v,
+                                      ChStateDelta& Dv) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void IntLoadResidual_Mv(const unsigned int off,
                                     ChVectorDynamic<>& R,

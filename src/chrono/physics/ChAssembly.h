@@ -185,14 +185,19 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// Get the number of system variables (coordinates plus the constraint multipliers).
     int GetNsysvars_w() const { return nsysvars_w; }
 
-    //
     // PHYSICS ITEM INTERFACE
-    //
 
     /// Set the pointer to the parent ChSystem() and
     /// also add to new collision system / remove from old coll.system
     virtual void SetSystem(ChSystem* m_system) override;
 
+    /// Add collision models (if any) for all items in the assembly to the provided collision system.
+    virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const override;
+
+    /// Remove the collision models (if any) for all items in the assembly from the provided collision system.
+    virtual void RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const override;
+
+    /// Synchronize collision models for all physics items in this assembly.
     virtual void SyncCollisionModels() override;
 
     /// Counts the number of bodies, links, and meshes.

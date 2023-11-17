@@ -72,7 +72,7 @@ geometry::ChAABB ChCollisionModel::GetBoundingBox() const {
     // Return an updated bounding box only if this collision model was processed by the current collision system
     // (through BindAll or BindItem)
 
-  if (impl)
+    if (impl)
         return impl->GetBoundingBox();
 
     return geometry::ChAABB();

@@ -169,10 +169,19 @@ void ChMesh::Update(double m_time, bool update_assets) {
     }
 }
 
+void ChMesh::AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const {
+    for (const auto& surf : vcontactsurfaces)
+        surf->AddCollisionModelsToSystem(coll_sys);
+}
+
+void ChMesh::RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const {
+    for (const auto& surf : vcontactsurfaces)
+        surf->RemoveCollisionModelsFromSystem(coll_sys);
+}
+
 void ChMesh::SyncCollisionModels() {
-    for (unsigned int j = 0; j < vcontactsurfaces.size(); j++) {
-        vcontactsurfaces[j]->SyncCollisionModels();
-    }
+    for (const auto& surf : vcontactsurfaces)
+        surf->SyncCollisionModels();
 }
 
 //// STATE BOOKKEEPING FUNCTIONS
@@ -303,7 +312,7 @@ void ChMesh::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, con
     // nodes gravity forces
     local_off_v = 0;
     if (automatic_gravity_load && system) {
-        //#pragma omp parallel for schedule(dynamic, 4) num_threads(nthreads)
+        // #pragma omp parallel for schedule(dynamic, 4) num_threads(nthreads)
         //***PARALLEL FOR***, (no need here to use omp atomic to avoid race condition in writing to R)
         for (int in = 0; in < vnodes.size(); in++) {
             if (!vnodes[in]->IsFixed()) {

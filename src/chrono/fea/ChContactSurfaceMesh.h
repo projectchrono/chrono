@@ -515,9 +515,9 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
     unsigned int GetNumVertices() const;
 
     // Functions to interface this with ChPhysicsItem container
-    virtual void SyncCollisionModels() override;
-    virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) override;
-    virtual void RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) override;
+    virtual void SyncCollisionModels() const override;
+    virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const override;
+    virtual void RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const override;
 
     /// Utility function for exporting the contact mesh in a pointer-less manner.
     /// The mesh is specified as a set of 3D vertex points (with associated velocities) and a set of faces (indices into

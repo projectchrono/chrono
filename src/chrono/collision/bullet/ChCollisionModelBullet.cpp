@@ -118,8 +118,7 @@ void ChCollisionModelBullet::Populate() {
                 cbtVector3 spos(0, 0, 0);
                 auto bt_shape = chrono_types::make_shared<cbtMultiSphereShape>(&spos, &rad, 1);
                 bt_shape->setLocalScaling(bt_axes);
-                bt_shape->setMargin((cbtScalar)ChMin(full_margin,
-                                                     0.9 * ChMin(ChMin(haxes.x(), haxes.y()), haxes.z())));
+                bt_shape->setMargin((cbtScalar)ChMin(full_margin, 0.9 * ChMin(ChMin(haxes.x(), haxes.y()), haxes.z())));
                 injectShape(shape, bt_shape, frame);
                 break;
             }
@@ -148,8 +147,8 @@ void ChCollisionModelBullet::Populate() {
                 auto height = shape_capsule->GetHeight();
                 auto radius = shape_capsule->GetRadius();
                 model->SetSafeMargin(ChMin(safe_margin, 0.2 * ChMin(radius, height / 2)));
-                auto bt_shape = chrono_types::make_shared<cbtCapsuleShapeZ>(
-                    (cbtScalar)(radius + envelope), (cbtScalar)(height + 2 * envelope));
+                auto bt_shape = chrono_types::make_shared<cbtCapsuleShapeZ>((cbtScalar)(radius + envelope),
+                                                                            (cbtScalar)(height + 2 * envelope));
                 bt_shape->setMargin((cbtScalar)full_margin);
                 injectShape(shape, bt_shape, frame);
                 break;
@@ -159,8 +158,8 @@ void ChCollisionModelBullet::Populate() {
                 auto height = shape_cylshell->GetHeight();
                 auto radius = shape_cylshell->GetRadius();
                 model->SetSafeMargin(ChMin(safe_margin, 0.2 * ChMin(radius, height)));
-                auto bt_shape = chrono_types::make_shared<cbtCylindricalShellShape>(
-                    (cbtScalar)(radius + envelope), (cbtScalar)(height / 2 + envelope));
+                auto bt_shape = chrono_types::make_shared<cbtCylindricalShellShape>((cbtScalar)(radius + envelope),
+                                                                                    (cbtScalar)(height / 2 + envelope));
                 bt_shape->setMargin((cbtScalar)full_margin);
                 injectShape(shape, bt_shape, frame);
                 break;

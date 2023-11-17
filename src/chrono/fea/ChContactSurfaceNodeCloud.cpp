@@ -159,7 +159,7 @@ void ChContactSurfaceNodeCloud::AddNodesFromNodeSet(std::vector<std::shared_ptr<
             this->AddNode(nodeFEArot, point_radius);
 }
 
-void ChContactSurfaceNodeCloud::SyncCollisionModels() {
+void ChContactSurfaceNodeCloud::SyncCollisionModels() const {
     for (auto& node : m_nodes) {
         node->GetCollisionModel()->SyncPosition();
     }
@@ -168,7 +168,7 @@ void ChContactSurfaceNodeCloud::SyncCollisionModels() {
     }
 }
 
-void ChContactSurfaceNodeCloud::AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) {
+void ChContactSurfaceNodeCloud::AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const {
     SyncCollisionModels();
     for (const auto& node : m_nodes) {
         coll_sys->Add(node->GetCollisionModel());
@@ -178,7 +178,7 @@ void ChContactSurfaceNodeCloud::AddCollisionModelsToSystem(ChCollisionSystem* co
     }
 }
 
-void ChContactSurfaceNodeCloud::RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) {
+void ChContactSurfaceNodeCloud::RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const {
     for (const auto& node : m_nodes) {
         coll_sys->Remove(node->GetCollisionModel());
     }

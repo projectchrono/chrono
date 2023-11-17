@@ -27,6 +27,7 @@ namespace chrono {
 
 // Forward references
 class ChSystem;
+class ChCollisionSystem;
 namespace modal {
 class ChModalAssembly;
 }
@@ -105,8 +106,15 @@ class ChApi ChPhysicsItem : public ChObj {
     /// Only for interface; child classes may override this, using internal flags.
     virtual bool GetCollide() const { return false; }
 
-    /// If this physical item contains one or more collision models,
-    /// synchronize their coordinates and bounding boxes to the state of the item.
+    /// Add to the provided collision system any collision models managed by this physics item.
+    /// A derived calss should invoke ChCollisionSystem::Add for each of its collision models.
+    virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const {}
+
+    /// Remove from the provided collision system any collision models managed by this physics item.
+    /// A derived class should invoke ChCollisionSystem::Remove for each of its collision models.
+    virtual void RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const {}
+
+    /// Synchronize the position and bounding box of any collsion models managed by this physics item.
     virtual void SyncCollisionModels() {}
 
     // Functions used by domain decomposition

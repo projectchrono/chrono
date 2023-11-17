@@ -693,6 +693,16 @@ bool ChBody::GetCollide() const {
     return collide;
 }
 
+void ChBody::AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const {
+    if (collide && collision_model)
+        coll_sys->Add(collision_model);
+}
+
+void ChBody::RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const {
+    if (collision_model)
+        coll_sys->Remove(collision_model);
+}
+
 void ChBody::SyncCollisionModels() {
     // Sync model only if
     //    (1) a collision model was specified for the body

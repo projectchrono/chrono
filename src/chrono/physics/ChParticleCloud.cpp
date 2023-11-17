@@ -20,7 +20,7 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChParticleCloud.h"
 #include "chrono/physics/ChMaterialSurfaceNSC.h"
-#include "chrono/collision/bullet/ChCollisionModelBullet.h"
+#include "chrono/collision/ChCollisionSystem.h"
 
 namespace chrono {
 
@@ -652,6 +652,21 @@ void ChParticleCloud::SetCollide(bool state) {
     }
 }
 
+
+void ChParticleCloud::AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const {
+    if (collide && particle_collision_model) {
+        for (const auto& p : particles)
+            coll_sys->Add(p->GetCollisionModel());
+    }
+}
+
+void ChParticleCloud::RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const {
+    if (particle_collision_model) {
+        for (const auto& p : particles)
+            coll_sys->Remove(p->GetCollisionModel());
+    }
+}
+
 void ChParticleCloud::SyncCollisionModels() {
     // Sync model only if a collision model was specified for the particle cloud.
     // ChCollisionModel::SyncPosition will further check that the collision model was actually processed (through
@@ -660,9 +675,8 @@ void ChParticleCloud::SyncCollisionModels() {
     if (!particle_collision_model)
         return;
 
-    for (auto particle : particles) {
+    for (auto particle : particles)
         particle->GetCollisionModel()->SyncPosition();
-    }
 }
 
 void ChParticleCloud::ArchiveOut(ChArchiveOut& marchive) {

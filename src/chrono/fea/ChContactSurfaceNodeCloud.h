@@ -179,8 +179,7 @@ class ChApi ChContactNodeXYZROT : public ChContactable_1vars<6> {
     virtual void ContactableGetStateBlock_x(ChState& x) override { x.segment(0, 3) = m_node->GetPos().eigen(); }
 
     /// Get all the DOFs packed in a single vector (speed part).
-    virtual void ContactableGetStateBlock_w(ChStateDelta& w) override { w.segment(0, 3) = m_node->GetPos_dt().eigen();
-    }
+    virtual void ContactableGetStateBlock_w(ChStateDelta& w) override { w.segment(0, 3) = m_node->GetPos_dt().eigen(); }
 
     /// Increment the provided state of this object by the given state-delta increment.
     /// Compute: x_new = x + dw.
@@ -298,9 +297,9 @@ class ChApi ChContactSurfaceNodeCloud : public ChContactSurface {
     std::shared_ptr<ChContactNodeXYZROTsphere> GetNodeRot(unsigned int n) { return m_nodes_rot[n]; };
 
     // Functions to interface this with ChPhysicsItem container.
-    virtual void SyncCollisionModels() override;
-    virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) override;
-    virtual void RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) override;
+    virtual void SyncCollisionModels() const override;
+    virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const override;
+    virtual void RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const override;
 
   private:
     std::vector<std::shared_ptr<ChContactNodeXYZsphere>> m_nodes;         //  nodes

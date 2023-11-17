@@ -224,23 +224,14 @@ class ChApi ChCollisionSystem {
   protected:
     ChCollisionSystem();
 
-    /// Bind collision model of all contactables in the specified assembly.
-    virtual void BindAssembly(const ChAssembly* assembly);
+    bool m_initialized;
 
-    /// Bind collision models of all particles in the specified cloud.
-    virtual void BindParticleCloud(const ChParticleCloud* cloud);
+    ChSystem* m_system;  ///< associated Chrono system
 
-    /// Bind collision models of contactables in conveyor assembly.
-    virtual void BindConveyor(const ChConveyor* conveyor);
-
-    bool m_initialized; 
-
-    ChSystem* m_system;                                    ///< associated Chrono system
-    
     std::shared_ptr<BroadphaseCallback> broad_callback;    ///< user callback for each near-enough pair of shapes
     std::shared_ptr<NarrowphaseCallback> narrow_callback;  ///< user callback for each collision pair
 
-    std::shared_ptr<VisualizationCallback> vis_callback;   ///< user callback for debug visualization
+    std::shared_ptr<VisualizationCallback> vis_callback;  ///< user callback for debug visualization
     int m_vis_flags;
 };
 

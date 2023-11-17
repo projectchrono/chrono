@@ -294,7 +294,13 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     /// Set no speed and no accelerations (but does not change the position)
     void SetNoSpeedNoAcceleration() override;
 
-    /// Synchronize coll.models coordinates and bounding boxes to the positions of the particles.
+    /// Add collision models (if any) for all particles to the provided collision system.
+    virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const override;
+
+    /// Remove the collision models (if any) for all particles from the provided collision system.
+    virtual void RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const override;
+
+    /// Synchronize the position and bounding box of all particle collision models (if any).
     virtual void SyncCollisionModels() override;
 
     /// Mass of each particle. Must be positive.

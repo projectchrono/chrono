@@ -46,8 +46,7 @@ ChAssembly::ChAssembly()
       nsysvars_w(0),
       ndof(0),
       ndoc_w_C(0),
-      ndoc_w_D(0)
-       {}
+      ndoc_w_D(0) {}
 
 ChAssembly::ChAssembly(const ChAssembly& other) : ChPhysicsItem(other) {
     nbodies = other.nbodies;
@@ -152,8 +151,8 @@ void ChAssembly::AddBody(std::shared_ptr<ChBody> body) {
     body->SetSystem(system);
     bodylist.push_back(body);
 
-	////system->is_initialized = false;  // Not needed, unless/until ChBody::SetupInitial does something
-	system->is_updated = false;
+    ////system->is_initialized = false;  // Not needed, unless/until ChBody::SetupInitial does something
+    system->is_updated = false;
 }
 
 void ChAssembly::RemoveBody(std::shared_ptr<ChBody> body) {
@@ -193,7 +192,7 @@ void ChAssembly::AddLink(std::shared_ptr<ChLinkBase> link) {
     link->SetSystem(system);
     linklist.push_back(link);
 
-	////system->is_initialized = false;  // Not needed, unless/until ChLink::SetupInitial does something
+    ////system->is_initialized = false;  // Not needed, unless/until ChLink::SetupInitial does something
     system->is_updated = false;
 }
 
@@ -213,7 +212,7 @@ void ChAssembly::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
     mesh->SetSystem(system);
     meshlist.push_back(mesh);
 
-	system->is_initialized = false;
+    system->is_initialized = false;
     system->is_updated = false;
 }
 
@@ -238,7 +237,7 @@ void ChAssembly::AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item) {
     item->SetSystem(system);
     otherphysicslist.push_back(item);
 
-	////system->is_initialized = false;  // Not needed, unless/until ChPhysicsItem::SetupInitial does something
+    ////system->is_initialized = false;  // Not needed, unless/until ChPhysicsItem::SetupInitial does something
     system->is_updated = false;
 }
 
@@ -388,7 +387,7 @@ std::shared_ptr<ChLinkBase> ChAssembly::SearchLink(const std::string& name) cons
     return (link != std::end(linklist)) ? *link : nullptr;
 }
 
-std::shared_ptr<fea::ChMesh> ChAssembly::SearchMesh(const std::string& name) const{
+std::shared_ptr<fea::ChMesh> ChAssembly::SearchMesh(const std::string& name) const {
     auto mesh = std::find_if(std::begin(meshlist), std::end(meshlist),
                              [name](std::shared_ptr<fea::ChMesh> mesh) { return mesh->GetNameString() == name; });
     return (mesh != std::end(meshlist)) ? *mesh : nullptr;
@@ -458,6 +457,40 @@ void ChAssembly::SetSystem(ChSystem* m_system) {
     }
     for (auto& item : otherphysicslist) {
         item->SetSystem(m_system);
+    }
+}
+
+void ChAssembly::AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const {
+    for (const auto& body : bodylist)
+        body->AddCollisionModelsToSystem(coll_sys);
+
+    for (const auto& mesh : meshlist)
+        mesh->AddCollisionModelsToSystem(coll_sys);
+
+    for (const auto& item : otherphysicslist) {
+        if (auto a = std::dynamic_pointer_cast<ChAssembly>(item)) {
+            a->AddCollisionModelsToSystem(coll_sys);
+            continue;
+        }
+
+        item->AddCollisionModelsToSystem(coll_sys);
+    }
+}
+
+void ChAssembly::RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const {
+    for (const auto& body : bodylist)
+        body->RemoveCollisionModelsFromSystem(coll_sys);
+
+    for (const auto& mesh : meshlist)
+        mesh->RemoveCollisionModelsFromSystem(coll_sys);
+
+    for (const auto& item : otherphysicslist) {
+        if (auto a = std::dynamic_pointer_cast<ChAssembly>(item)) {
+            a->RemoveCollisionModelsFromSystem(coll_sys);
+            continue;
+        }
+
+        item->RemoveCollisionModelsFromSystem(coll_sys);
     }
 }
 
@@ -728,7 +761,8 @@ void ChAssembly::IntStateScatter(const unsigned int off_x,
     }
     for (auto& shaft : shaftlist) {
         if (shaft->IsActive())
-            shaft->IntStateScatter(displ_x + shaft->GetOffset_x(), x, displ_v + shaft->GetOffset_w(), v, T, full_update);
+            shaft->IntStateScatter(displ_x + shaft->GetOffset_x(), x, displ_v + shaft->GetOffset_w(), v, T,
+                                   full_update);
         else
             shaft->Update(T, full_update);
     }
@@ -881,10 +915,10 @@ void ChAssembly::IntStateIncrement(const unsigned int off_x,
 }
 
 void ChAssembly::IntStateGetIncrement(const unsigned int off_x,
-                                   const ChState& x_new,
-                                   const ChState& x,
-                                   const unsigned int off_v,
-                                   ChStateDelta& Dv) {
+                                      const ChState& x_new,
+                                      const ChState& x,
+                                      const unsigned int off_v,
+                                      ChStateDelta& Dv) {
     unsigned int displ_x = off_x - this->offset_x;
     unsigned int displ_v = off_v - this->offset_w;
 
@@ -1498,7 +1532,7 @@ void ChAssembly::ArchiveOut(ChArchiveOut& marchive) {
 
 void ChAssembly::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChAssembly>();
+    /*int version =*/marchive.VersionRead<ChAssembly>();
 
     // deserialize parent class
     ChPhysicsItem::ArchiveIn(marchive);

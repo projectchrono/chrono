@@ -144,7 +144,13 @@ class ChApi ChMesh : public ChIndexedNodes {
     /// Updates all [A] coord.systems for all (corotational) elements.
     virtual void Update(double m_time, bool update_assets = true) override;
 
-    // Functions to interface this with ChPhysicsItem container
+    /// Add the mesh contact surfaces (if any) to the provided collision system.
+    virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const override;
+
+    /// Remove the mesh contact surfaces (if any) from the provided collision system.
+    virtual void RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const override;
+
+    // Synchronize the position and bounding box of the mesh contact surfaces (if any).
     virtual void SyncCollisionModels() override;
 
     /// If true, as by default, this mesh will add automatically a gravity load

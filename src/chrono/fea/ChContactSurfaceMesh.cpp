@@ -1279,7 +1279,7 @@ unsigned int ChContactSurfaceMesh::GetNumVertices() const {
     return (unsigned int)(count + count_rot);
 }
 
-void ChContactSurfaceMesh::SyncCollisionModels() {
+void ChContactSurfaceMesh::SyncCollisionModels() const {
     for (auto& face : m_faces) {
         face->GetCollisionModel()->SyncPosition();
     }
@@ -1288,7 +1288,7 @@ void ChContactSurfaceMesh::SyncCollisionModels() {
     }
 }
 
-void ChContactSurfaceMesh::AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) {
+void ChContactSurfaceMesh::AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const {
     SyncCollisionModels();
     for (const auto& face : m_faces) {
         coll_sys->Add(face->GetCollisionModel());
@@ -1298,7 +1298,7 @@ void ChContactSurfaceMesh::AddCollisionModelsToSystem(ChCollisionSystem* coll_sy
     }
 }
 
-void ChContactSurfaceMesh::RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) {
+void ChContactSurfaceMesh::RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const {
     for (const auto& face : m_faces) {
         coll_sys->Remove(face->GetCollisionModel());
     }
