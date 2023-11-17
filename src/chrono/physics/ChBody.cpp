@@ -1081,30 +1081,6 @@ void ChBody::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(sleep_minspeed);
     marchive >> CHNVP(sleep_minwvel);
     marchive >> CHNVP(sleep_starttime);
-
-    // INITIALIZATION-BY-METHODS
-    if (marchive.CanTolerateMissingTokens()) {
-        bool temp_tolerate_missing_tokens = marchive.GetTolerateMissingTokens();
-        marchive.TryTolerateMissingTokens(true);
-
-        bool _c_SetBodyFixed;
-        if (marchive.in(CHNVP(_c_SetBodyFixed)))
-            SetBodyFixed(_c_SetBodyFixed);
-
-        double _c_SetMass;
-        if (marchive.in(CHNVP(_c_SetMass)))
-            SetMass(_c_SetMass);
-
-        ChVector<> _c_SetInertiaXX;
-        if (marchive.in(CHNVP(_c_SetInertiaXX)))
-            SetInertiaXX(_c_SetInertiaXX);
-
-        ChVector<> _c_SetInertiaXY;
-        if (marchive.in(CHNVP(_c_SetInertiaXY)))
-            SetInertiaXY(_c_SetInertiaXY);
-
-        marchive.TryTolerateMissingTokens(temp_tolerate_missing_tokens);
-    }
 }
 
 void ChBody::StreamOutstate(ChStreamOutBinary& mstream) {

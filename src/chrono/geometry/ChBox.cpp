@@ -105,7 +105,7 @@ void ChBox::ArchiveOut(ChArchiveOut& marchive) {
     // serialize parent class
     ChVolume::ArchiveOut(marchive);
     // serialize all member data:
-    ChVector<> lengths = GetLengths();  // TODO: DARIOM why this intermediate step?
+    ChVector<> lengths = GetLengths();
     marchive << CHNVP(lengths);
 }
 

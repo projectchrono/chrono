@@ -700,43 +700,6 @@ void ChLinkMateGeneric::ArchiveIn(ChArchiveIn& marchive) {
     if (c_x_success && c_y_success && c_z_success && c_rx_success && c_ry_success && c_rz_success)
         this->SetConstrainedCoords(c_x, c_y, c_z, c_rx, c_ry, c_rz);  // takes care of mask
 
-
-    // INITIALIZATION-BY-METHODS
-    if (marchive.CanTolerateMissingTokens()){
-        bool temp_tolerate_missing_tokens = marchive.GetTolerateMissingTokens();
-        marchive.TryTolerateMissingTokens(true);
-
-        // Constraints selection
-        bool _c_SetConstrainedCoords[6];
-        if (marchive.in(CHNVP(_c_SetConstrainedCoords)))
-            this->SetConstrainedCoords(
-                _c_SetConstrainedCoords[0],
-                _c_SetConstrainedCoords[1],
-                _c_SetConstrainedCoords[2],
-                _c_SetConstrainedCoords[3],
-                _c_SetConstrainedCoords[4],
-                _c_SetConstrainedCoords[5]);
-
-        // Initialization
-        std::shared_ptr<ChBodyFrame> _c_Initialize_Body1;
-        std::shared_ptr<ChBodyFrame> _c_Initialize_Body2;
-        bool _c_Initialize_pos_are_relative;
-        ChVector<> _c_Initialize_pt1;
-        ChVector<> _c_Initialize_pt2;
-        ChVector<> _c_Initialize_norm1;
-        ChVector<> _c_Initialize_norm2;
-        if (marchive.in(CHNVP(_c_Initialize_Body1)) &&
-            marchive.in(CHNVP(_c_Initialize_Body2)) &&
-            marchive.in(CHNVP(_c_Initialize_pos_are_relative)) &&
-            marchive.in(CHNVP(_c_Initialize_pt1)) &&
-            marchive.in(CHNVP(_c_Initialize_pt2)) &&
-            marchive.in(CHNVP(_c_Initialize_norm1)) &&
-            marchive.in(CHNVP(_c_Initialize_norm2)) ){
-            this->Initialize(_c_Initialize_Body1, _c_Initialize_Body2, _c_Initialize_pos_are_relative, _c_Initialize_pt1, _c_Initialize_pt2, _c_Initialize_norm1, _c_Initialize_norm2);
-        }
-
-        marchive.TryTolerateMissingTokens(temp_tolerate_missing_tokens);
-    }
     
 }
 
@@ -811,16 +774,8 @@ void ChLinkMatePlane::ArchiveIn(ChArchiveIn& marchive) {
 
     // deserialize all member data:
     marchive >> CHNVP(separation);
+    marchive >> CHNVP(flipped);
 
-    if (!marchive.in(CHNVP(flipped)) && marchive.CanTolerateMissingTokens()){
-        bool temp_tolerate_missing_tokens = marchive.GetTolerateMissingTokens();
-        marchive.TryTolerateMissingTokens(true);
-        bool _c_SetFlipped;
-        if (marchive.in(CHNVP(_c_SetFlipped)))
-            this->SetFlipped(_c_SetFlipped);
-
-        marchive.TryTolerateMissingTokens(temp_tolerate_missing_tokens);
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -881,16 +836,7 @@ void ChLinkMateCoaxial::ArchiveIn(ChArchiveIn& marchive) {
     // deserialize parent class
     ChLinkMateGeneric::ArchiveIn(marchive);
 
-    // deserialize all member data:
-    if (!marchive.in(CHNVP(flipped)) && marchive.CanTolerateMissingTokens()){
-        bool temp_tolerate_missing_tokens = marchive.GetTolerateMissingTokens();
-        marchive.TryTolerateMissingTokens(true);
-        bool _c_SetFlipped;
-        if (marchive.in(CHNVP(_c_SetFlipped)))
-            this->SetFlipped(_c_SetFlipped);
-
-        marchive.TryTolerateMissingTokens(temp_tolerate_missing_tokens);
-    }
+    marchive >> CHNVP(flipped);
 }
 
 // -----------------------------------------------------------------------------
@@ -932,16 +878,8 @@ void ChLinkMateRevolute::ArchiveIn(ChArchiveIn& marchive) {
     // deserialize parent class
     ChLinkMateGeneric::ArchiveIn(marchive);
 
-    // deserialize all member data:
-    if (!marchive.in(CHNVP(flipped)) && marchive.CanTolerateMissingTokens()){
-        bool temp_tolerate_missing_tokens = marchive.GetTolerateMissingTokens();
-        marchive.TryTolerateMissingTokens(true);
-        bool _c_SetFlipped;
-        if (marchive.in(CHNVP(_c_SetFlipped)))
-            this->SetFlipped(_c_SetFlipped);
+    marchive >> CHNVP(flipped);
 
-        marchive.TryTolerateMissingTokens(temp_tolerate_missing_tokens);
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -1002,16 +940,7 @@ void ChLinkMatePrismatic::ArchiveIn(ChArchiveIn& marchive) {
     // deserialize parent class
     ChLinkMateGeneric::ArchiveIn(marchive);
 
-    // deserialize all member data:
-    if (!marchive.in(CHNVP(flipped)) && marchive.CanTolerateMissingTokens()){
-        bool temp_tolerate_missing_tokens = marchive.GetTolerateMissingTokens();
-        marchive.TryTolerateMissingTokens(true);
-        bool _c_SetFlipped;
-        if (marchive.in(CHNVP(_c_SetFlipped)))
-            this->SetFlipped(_c_SetFlipped);
-
-        marchive.TryTolerateMissingTokens(temp_tolerate_missing_tokens);
-    }
+    marchive >> CHNVP(flipped);
 }
 
 // -----------------------------------------------------------------------------
@@ -1077,32 +1006,6 @@ void ChLinkMateXdistance::ArchiveIn(ChArchiveIn& marchive) {
     // deserialize all member data:
     marchive >> CHNVP(distance);
 
-    // INITIALIZATION-BY-METHODS
-    if (marchive.CanTolerateMissingTokens()){
-        bool temp_tolerate_missing_tokens = marchive.GetTolerateMissingTokens();
-        marchive.TryTolerateMissingTokens(true);
-
-        std::shared_ptr<ChBodyFrame> _c_Initialize_Body1;
-        std::shared_ptr<ChBodyFrame> _c_Initialize_Body2;
-
-        bool _c_Initialize_pos_are_relative;
-        ChVector<> _c_Initialize_pt1;
-        ChVector<> _c_Initialize_pt2;
-        ChVector<> _c_Initialize_norm1; // ATTENTION: this must be missing!
-        ChVector<> _c_Initialize_norm2;
-        if (marchive.in(CHNVP(_c_Initialize_Body1)) &&
-            marchive.in(CHNVP(_c_Initialize_Body2)) &&
-            marchive.in(CHNVP(_c_Initialize_pos_are_relative)) &&
-            marchive.in(CHNVP(_c_Initialize_pt1)) &&
-            marchive.in(CHNVP(_c_Initialize_pt2)) &&
-            !marchive.in(CHNVP(_c_Initialize_norm1)) &&
-            marchive.in(CHNVP(_c_Initialize_norm2)) ){
-            this->Initialize(_c_Initialize_Body1, _c_Initialize_Body2, _c_Initialize_pos_are_relative, _c_Initialize_pt1, _c_Initialize_pt2, _c_Initialize_norm2);
-        }
-
-
-        marchive.TryTolerateMissingTokens(temp_tolerate_missing_tokens);
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -1164,16 +1067,7 @@ void ChLinkMateParallel::ArchiveIn(ChArchiveIn& marchive) {
     ChLinkMateGeneric::ArchiveIn(marchive);
 
     // deserialize all member data:
-    
-    if (!marchive.in(CHNVP(flipped)) && marchive.CanTolerateMissingTokens()){
-        bool temp_tolerate_missing_tokens = marchive.GetTolerateMissingTokens();
-        marchive.TryTolerateMissingTokens(true);
-        bool _c_SetFlipped;
-        if (marchive.in(CHNVP(_c_SetFlipped)))
-            this->SetFlipped(_c_SetFlipped);
-
-        marchive.TryTolerateMissingTokens(temp_tolerate_missing_tokens);
-    }
+    marchive >> CHNVP(flipped);
 }
 
 // -----------------------------------------------------------------------------
