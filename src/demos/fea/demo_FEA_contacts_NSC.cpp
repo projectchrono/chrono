@@ -45,20 +45,13 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono::Engine physical system
     ChSystemNSC sys;
-
     sys.SetNumThreads(ChOMP::GetNumProcs(), 0, 1);
 
-    //
-    // CREATE THE PHYSICAL SYSTEM
-    //
-
+    // Create and set the collision system
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
-    ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
-
-    // Set default effective radius of curvature for all SCM contacts.
     ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
-
     ChCollisionModel::SetDefaultSuggestedMargin(0.006);
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Use this value for an outward additional layer around meshes, that can improve
     // robustness of mesh-mesh collision detection (at the cost of having unnatural inflate effect)
@@ -88,8 +81,7 @@ int main(int argc, char* argv[]) {
 
         auto floor_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mysurfmaterial, mmeshbox, false,
                                                                                    false, sphere_swept_thickness);
-        mfloor->GetCollisionModel()->AddShape(floor_shape);
-        mfloor->GetCollisionModel()->Build();
+        mfloor->AddCollisionShape(floor_shape);
         mfloor->SetCollide(true);
 
         auto masset_meshbox = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
@@ -129,9 +121,7 @@ int main(int argc, char* argv[]) {
     mmaterial->Set_RayleighDampingK(0.01);
     mmaterial->Set_density(1000);
 
-    //
     // Example: stack of tetrahedral meshes, with collision on the skin
-    //
 
     if (true) {
         for (int i = 0; i < 3; ++i) {
@@ -154,9 +144,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    //
     // Example: a tetrahedral tire
-    //
 
     if (false) {
         std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase>>> node_sets;
@@ -176,9 +164,7 @@ int main(int argc, char* argv[]) {
     // Remember to add the mesh to the system!
     sys.Add(my_mesh);
 
-    //
     // Example: beams, with node collisions as point cloud
-    //
 
     // Create a mesh. We will use it for beams only.
 
@@ -214,9 +200,7 @@ int main(int argc, char* argv[]) {
     // Remember to add the mesh to the system!
     sys.Add(my_mesh_beams);
 
-    //
     // Optional...  visualization
-    //
 
     // Visualization of the FEM mesh.
     // This will automatically update a triangle mesh (a ChVisualShapeTriangleMesh

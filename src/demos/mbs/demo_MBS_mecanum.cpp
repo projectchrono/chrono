@@ -159,8 +159,7 @@ std::shared_ptr<ChBody> create_mecanum_wheel(ChSystemNSC& sys,
                                                                        2 * roller_elliptical_rad_Vert,            //
                                                                        2 * roller_elliptical_rad_Hor,             //
                                                                        Roffset);
-        roller->GetCollisionModel()->AddShape(shape);
-        roller->GetCollisionModel()->Build();
+        roller->AddCollisionShape(shape);
         roller->SetCollide(true);
 
         // add visualization shape
@@ -187,6 +186,7 @@ int main(int argc, char* argv[]) {
 
     // Create a ChronoENGINE physical system
     ChSystemNSC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     double platform_radius = 8;
     double wheel_radius = 3;

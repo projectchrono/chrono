@@ -82,6 +82,7 @@ void create_debris(ChVisualSystemIrrlicht& vis, ChSystem& sys, double dt, double
         sys.Add(rigidBody);
 
         vis.BindItem(rigidBody);
+        sys.GetCollisionSystem()->BindItem(rigidBody);
 
         particlelist.push_back(rigidBody);
     }
@@ -96,6 +97,7 @@ int main(int argc, char* argv[]) {
     // Set small collision envelopes for objects that will be created from now on..
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.002);
     ChCollisionModel::SetDefaultSuggestedMargin(0.002);
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     auto bowl_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     bowl_mat->SetFriction(0.2f);

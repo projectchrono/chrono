@@ -59,11 +59,10 @@ std::shared_ptr<ChBody> create_wheel(ChVector<> mposition, ChSystem& sys) {
     for (double mangle = 0; mangle < 360.; mangle += (360. / 15.)) {
         auto q = Q_from_AngX(mangle * CH_C_DEG_TO_RAD);
         for (const auto& s : knobs_shapes)
-            mrigidBody->GetCollisionModel()->AddShape(s, ChFrame<>(VNULL, q));
+            mrigidBody->AddCollisionShape(s, ChFrame<>(VNULL, q));
         for (const auto& s : slice_shapes)
-            mrigidBody->GetCollisionModel()->AddShape(s, ChFrame<>(VNULL, q));
+            mrigidBody->AddCollisionShape(s, ChFrame<>(VNULL, q));
     }
-    mrigidBody->GetCollisionModel()->Build();
     mrigidBody->SetCollide(true);
 
     return mrigidBody;
@@ -109,15 +108,14 @@ void create_some_falling_items(ChSystemNSC& sys) {
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // Create a ChronoENGINE physical system
+    // Create a Chrono physical system
     ChSystemNSC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create some debris
-
     create_some_falling_items(sys);
 
     // Create the wheel
-
     std::shared_ptr<ChBody> mwheelBody = create_wheel(ChVector<>(0, 1, 0), sys);
 
     // Create the Irrlicht visualization sys

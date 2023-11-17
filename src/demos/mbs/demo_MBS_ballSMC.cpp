@@ -32,6 +32,7 @@ using namespace chrono::vsg3d;
 using namespace chrono;
 
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
+ChCollisionSystem::Type coll_type = ChCollisionSystem::Type::BULLET;
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
@@ -56,14 +57,11 @@ int main(int argc, char* argv[]) {
     ////double height = 1;
     double thickness = 0.1;
 
-    // Collision system type
-    auto collision_type = ChCollisionSystemType::BULLET;
-
     // Create the system
     ChSystemSMC sys;
 
     sys.Set_G_acc(ChVector<>(0, gravity, 0));
-    sys.SetCollisionSystemType(collision_type);
+    sys.SetCollisionSystemType(coll_type);
 
     // The following two lines are optional, since they are the default options. They are added for future reference,
     // i.e. when needed to change those models.
@@ -80,7 +78,7 @@ int main(int argc, char* argv[]) {
     material->SetAdhesion(0);  // Magnitude of the adhesion in Constant adhesion model
 
     // Create the falling ball
-    auto ball = chrono_types::make_shared<ChBody>(collision_type);
+    auto ball = chrono_types::make_shared<ChBody>();
 
     ball->SetIdentifier(ballId);
     ball->SetMass(mass);
@@ -91,26 +89,19 @@ int main(int argc, char* argv[]) {
     // ball->SetWvel_par(ChVector<>(0,0,3));
     ball->SetBodyFixed(false);
 
-    ball->SetCollide(true);
-    ////ball->GetCollisionModel()->ClearModel();
-    ////ball->GetCollisionModel()->AddSphere(material, radius);
-    ////ball->GetCollisionModel()->BuildModel();
     auto sphere_coll = chrono_types::make_shared<ChCollisionShapeSphere>(material, radius);
-    ball->GetCollisionModel()->AddShape(sphere_coll, ChFrame<>());
-    ball->GetCollisionModel()->Build();
+    ball->AddCollisionShape(sphere_coll, ChFrame<>());
+    ball->SetCollide(true);
 
-    auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(radius);
-    sphere->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
-    sphere->SetOpacity(1.0f);
-
-    auto ball_vis = chrono_types::make_shared<ChVisualModel>();
-    ball_vis->AddShape(sphere);
-    ball->AddVisualModel(ball_vis);
+    auto sphere_vis = chrono_types::make_shared<ChVisualShapeSphere>(radius);
+    sphere_vis->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
+    sphere_vis->SetOpacity(1.0f);
+    ball->AddVisualShape(sphere_vis);
 
     sys.AddBody(ball);
 
     // Create container
-    auto bin = chrono_types::make_shared<ChBody>(collision_type);
+    auto bin = chrono_types::make_shared<ChBody>();
 
     bin->SetIdentifier(binId);
     bin->SetMass(1);
@@ -118,21 +109,14 @@ int main(int argc, char* argv[]) {
     bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
     bin->SetBodyFixed(true);
 
-    bin->SetCollide(true);
-    ////bin->GetCollisionModel()->ClearModel();
-    ////bin->GetCollisionModel()->AddBox(material, width * 2, thickness * 2, length * 2);
-    ////bin->GetCollisionModel()->BuildModel();
     auto box_coll = chrono_types::make_shared<ChCollisionShapeBox>(material, width * 2, thickness * 2, length * 2);
-    bin->GetCollisionModel()->AddShape(box_coll, ChFrame<>());
-    bin->GetCollisionModel()->Build();
+    bin->AddCollisionShape(box_coll, ChFrame<>());
+    bin->SetCollide(true);
 
-    auto box = chrono_types::make_shared<ChVisualShapeBox>(width * 2, thickness * 2, length * 2);
-    box->SetColor(ChColor(0.8f, 0.2f, 0.2f));
-    box->SetOpacity(0.8f);
-
-    auto bin_vis = chrono_types::make_shared<ChVisualModel>();
-    bin_vis->AddShape(box, ChFrame<>());
-    bin->AddVisualModel(bin_vis);
+    auto box_vis = chrono_types::make_shared<ChVisualShapeBox>(width * 2, thickness * 2, length * 2);
+    box_vis->SetColor(ChColor(0.8f, 0.2f, 0.2f));
+    box_vis->SetOpacity(0.8f);
+    bin->AddVisualShape(box_vis);
 
     sys.AddBody(bin);
 

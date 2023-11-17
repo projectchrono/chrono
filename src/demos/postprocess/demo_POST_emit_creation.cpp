@@ -37,8 +37,9 @@ using namespace chrono::postprocess;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // Create a Chrono system
+    // Create a Chrono system and set the associated collision system
     ChSystemNSC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
@@ -99,12 +100,11 @@ int main(int argc, char* argv[]) {
     auto shape2 = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 2, 24, 40);
     auto shape3 = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 20, 24, 2);
 
-    floor_body->GetCollisionModel()->AddShape(shape1);
-    floor_body->GetCollisionModel()->AddShape(shape2, ChFrame<>(ChVector<>(-5, 0, 0), QUNIT));
-    floor_body->GetCollisionModel()->AddShape(shape2, ChFrame<>(ChVector<>(5, 0, 0), QUNIT));
-    floor_body->GetCollisionModel()->AddShape(shape3, ChFrame<>(ChVector<>(0, 0, -5), QUNIT));
-    floor_body->GetCollisionModel()->AddShape(shape3, ChFrame<>(ChVector<>(0, 0, 5), QUNIT));
-    floor_body->GetCollisionModel()->Build();
+    floor_body->AddCollisionShape(shape1);
+    floor_body->AddCollisionShape(shape2, ChFrame<>(ChVector<>(-5, 0, 0), QUNIT));
+    floor_body->AddCollisionShape(shape2, ChFrame<>(ChVector<>(5, 0, 0), QUNIT));
+    floor_body->AddCollisionShape(shape3, ChFrame<>(ChVector<>(0, 0, -5), QUNIT));
+    floor_body->AddCollisionShape(shape3, ChFrame<>(ChVector<>(0, 0, 5), QUNIT));
 
     // Custom rendering in POVray:
     pov_exporter.SetCustomCommands(floor_body,
@@ -175,11 +175,17 @@ int main(int argc, char* argv[]) {
                                ChRandomShapeCreator& creator) override {
             body->GetVisualShape(0)->SetColor(ChColor(0.4f, 0.4f, 0.4f));
             pov->SetCustomCommands(body, " texture {finish { specular 0.9 } pigment{ color rgb<0.4,0.4,0.45>} }  \n");
+
+            // Bind the collision model to the collision system
+            if (body->GetCollisionModel())
+                coll->Add(body->GetCollisionModel());
         }
         ChPovRay* pov;
+        ChCollisionSystem* coll;
     };
     auto callback_spheres = chrono_types::make_shared<MyCreator_spheres>();
     callback_spheres->pov = &pov_exporter;
+    callback_spheres->coll = sys.GetCollisionSystem().get();
     mcreator_spheres->RegisterAddBodyCallback(callback_spheres);
 
     // B)
@@ -206,11 +212,17 @@ int main(int argc, char* argv[]) {
                 pov->SetCustomCommands(body, " texture {pigment{ color rgb<0.3,0.8,0.3>} }  \n");
             else
                 pov->SetCustomCommands(body, " texture {pigment{ color rgb<0.3,0.3,0.8>} }  \n");
+
+            // Bind the collision model to the collision system
+            if (body->GetCollisionModel())
+                coll->Add(body->GetCollisionModel());
         }
         ChPovRay* pov;
+        ChCollisionSystem* coll;
     };
     auto callback_plastic = chrono_types::make_shared<MyCreator_plastic>();
     callback_plastic->pov = &pov_exporter;
+    callback_plastic->coll = sys.GetCollisionSystem().get();
     creator_boxes->RegisterAddBodyCallback(callback_plastic);
 
     // C)
@@ -230,11 +242,17 @@ int main(int argc, char* argv[]) {
                                ChRandomShapeCreator& creator) override {
             body->GetVisualShape(0)->SetColor(ChColor(0.4f, 0.4f, 0.4f));
             pov->SetCustomCommands(body, " texture {finish { specular 0.9 } pigment{ color rgb<0.3,0.4,0.6>} }  \n");
+
+            // Bind the collision model to the collision system
+            if (body->GetCollisionModel())
+                coll->Add(body->GetCollisionModel());
         }
         ChPovRay* pov;
+        ChCollisionSystem* coll;
     };
     auto callback_hulls = chrono_types::make_shared<MyCreator_hulls>();
     callback_hulls->pov = &pov_exporter;
+    callback_hulls->coll = sys.GetCollisionSystem().get();
     creator_hulls->RegisterAddBodyCallback(callback_hulls);
 
     // D)
@@ -286,8 +304,12 @@ int main(int argc, char* argv[]) {
         virtual void OnAddBody(std::shared_ptr<ChBody> body,
                                ChCoordsys<> coords,
                                ChRandomShapeCreator& creator) override {
-            // Enable Irrlicht visualization for all particles
+            // Bind the visual model to the visualization system
             vis->BindItem(body);
+
+            // Bind the collision model to the collision system
+            if (body->GetCollisionModel())
+                coll->Add(body->GetCollisionModel());
 
             // Enable PovRay rendering
             pov->Add(body);
@@ -295,7 +317,9 @@ int main(int argc, char* argv[]) {
             // Other stuff, ex. disable gyroscopic forces for increased integrator stabilty
             body->SetNoGyroTorque(true);
         }
-        ChVisualSystemIrrlicht* vis;
+
+        ChVisualSystem* vis;
+        ChCollisionSystem* coll;
         ChPovRay* pov;
     };
 
@@ -303,6 +327,7 @@ int main(int argc, char* argv[]) {
     auto creation_callback = chrono_types::make_shared<MyCreatorForAll>();
     // c- set callback own data that he might need...
     creation_callback->vis = vis.get();
+    creation_callback->coll = sys.GetCollisionSystem().get();
     creation_callback->pov = &pov_exporter;
     // d- attach the callback to the emitter!
     emitter.RegisterAddBodyCallback(creation_callback);

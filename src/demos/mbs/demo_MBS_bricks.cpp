@@ -159,6 +159,7 @@ int main(int argc, char* argv[]) {
 
     // Create the physical system
     ChSystemNSC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create all the rigid bodies.
     create_wall_bodies(sys);

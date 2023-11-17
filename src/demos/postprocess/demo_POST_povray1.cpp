@@ -36,8 +36,9 @@ using namespace chrono::postprocess;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // Create a Chrono::Engine physical system
+    // Create a Chrono system and set the associated collision system
     ChSystemNSC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     /* Start example */
     /// [POV exporter]
@@ -96,8 +97,7 @@ int main(int argc, char* argv[]) {
     auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
     auto floor_shape = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 20, 1, 20);
-    floor->GetCollisionModel()->AddShape(floor_shape, ChFrame<>(ChVector<>(0, -1, 0), QUNIT));
-    floor->GetCollisionModel()->Build();
+    floor->AddCollisionShape(floor_shape, ChFrame<>(ChVector<>(0, -1, 0), QUNIT));
     floor->SetCollide(true);
 
     // Add body to system
@@ -177,8 +177,7 @@ int main(int argc, char* argv[]) {
     // Note: coll. shape, if needed, must be specified before creating particles
     auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     auto particle_shape = chrono_types::make_shared<ChCollisionShapeSphere>(particle_mat, 0.05);
-    particles->GetCollisionModel()->AddShape(particle_shape);
-    particles->GetCollisionModel()->Build();
+    particles->AddCollisionShape(particle_shape);
     particles->SetCollide(true);
 
     // Create the random particles

@@ -36,10 +36,9 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono system
     ChSystemNSC sys;
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
-    //
     // EXAMPLE 1:
-    //
 
     // Create a ChBody, and attach assets that define 3D shapes for visualization purposes.
     // Note: these assets are independent from collision shapes!
@@ -53,8 +52,7 @@ int main(int argc, char* argv[]) {
 
     // Define a collision shape
     auto floor_shape = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 20, 1, 20);
-    floor->GetCollisionModel()->AddShape(floor_shape, ChFrame<>(ChVector<>(0, -1, 0), QUNIT));
-    floor->GetCollisionModel()->Build();
+    floor->AddCollisionShape(floor_shape, ChFrame<>(ChVector<>(0, -1, 0), QUNIT));
     floor->SetCollide(true);
 
     // Add body to system
@@ -109,9 +107,7 @@ int main(int argc, char* argv[]) {
     surfasset->SetColor(ChColor(0.2f, 0.8f, 0.3f));
     floor->AddVisualShape(surfasset, ChFrame<>(ChVector<>(3, -1, 3), QUNIT));
 
-    //
     // EXAMPLE 2:
-    //
 
     // Create the rigid body (this won't move, it is only for visualization tests)
     auto body = chrono_types::make_shared<ChBody>();
@@ -184,9 +180,7 @@ int main(int argc, char* argv[]) {
         body->AddVisualShape(smallbox, ChFrame<>(pos, rot));
     }
 
-    //
     // EXAMPLE 3:
-    //
 
     // Create a ChParticleClones cluster, and attach 'assets' that define a single "sample" 3D shape.
     // This will be shown N times in Irrlicht.
@@ -206,8 +200,7 @@ int main(int argc, char* argv[]) {
     auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
     auto particle_shape = chrono_types::make_shared<ChCollisionShapeSphere>(particle_mat, 0.05);
-    particles->GetCollisionModel()->AddShape(particle_shape);
-    particles->GetCollisionModel()->Build();
+    particles->AddCollisionShape(particle_shape);
     particles->SetCollide(true);
 
     // Create the random particles
@@ -222,9 +215,7 @@ int main(int argc, char* argv[]) {
     // Do not forget to add the particle cluster to the system:
     sys.Add(particles);
 
-    //
     // EXAMPLE 4:
-    //
 
     // Create a convex hull shape
 

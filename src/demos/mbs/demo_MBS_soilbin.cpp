@@ -25,6 +25,7 @@
 #include "chrono/assets/ChVisualShapePointPoint.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
+#include "chrono/collision/bullet/ChCollisionSystemBullet.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationTorque.h"
 #include "chrono/physics/ChSystemNSC.h"
@@ -122,7 +123,6 @@ class ParticleGenerator {
             auto vis_mat_rock = chrono_types::make_shared<ChVisualMaterial>();
             vis_mat_rock->SetKdTexture(GetChronoDataFile("textures/rock.jpg"));
 
-            // I should really check these
             ChCollisionModel::SetDefaultSuggestedEnvelope(0.003);
             ChCollisionModel::SetDefaultSuggestedMargin(0.002);
 
@@ -153,6 +153,7 @@ class ParticleGenerator {
 
                 msys->AddBody(currRigidBody);
 
+                msys->GetCollisionSystem()->BindItem(currRigidBody);
                 mvis->BindItem(currRigidBody);
 
                 // every time we add a body, increment the counter and mass
@@ -188,6 +189,7 @@ class ParticleGenerator {
 
                 msys->AddBody(currRigidBody);
 
+                msys->GetCollisionSystem()->BindItem(currRigidBody);
                 mvis->BindItem(currRigidBody);
 
                 this->totalParticles++;
@@ -287,11 +289,10 @@ class SoilbinWheel {
         for (double mangle = 0; mangle < 360.; mangle += (360. / 15.)) {
             auto q = Q_from_AngX(mangle * CH_C_DEG_TO_RAD);
             for (const auto& s : knobs_shapes)
-                wheel->GetCollisionModel()->AddShape(s, ChFrame<>(VNULL, q));
+                wheel->AddCollisionShape(s, ChFrame<>(VNULL, q));
             for (const auto& s : slice_shapes)
-                wheel->GetCollisionModel()->AddShape(s, ChFrame<>(VNULL, q));
+                wheel->AddCollisionShape(s, ChFrame<>(VNULL, q));
         }
-        wheel->GetCollisionModel()->Build();
 
         // Add wheel body to system
         system->AddBody(wheel);
@@ -356,7 +357,7 @@ class TestMech {
         system->AddBody(floor);
 
         // add some transparent walls to the soilBin, w.r.t. width, length of bin
-        wall1 = chrono_types::make_shared<ChBodyEasyBox>(wallWidth, binHeight, binLength, 1.0, true, true, floor_mat);
+        wall1 = chrono_types::make_shared<ChBodyEasyBox>(wallWidth, binHeight, binLength, 1.0, false, true, floor_mat);
         wall1->SetPos(ChVector<>(-binWidth / 2.0 - wallWidth / 2.0, 0, 0));
         wall1->SetBodyFixed(true);
         system->AddBody(wall1);
@@ -373,7 +374,7 @@ class TestMech {
         system->AddBody(wall3);
 
         // wall 4
-        wall4 = chrono_types::make_shared<ChBodyEasyBox>(binWidth + wallWidth / 2.0, binHeight, wallWidth, 1.0, true,
+        wall4 = chrono_types::make_shared<ChBodyEasyBox>(binWidth + wallWidth / 2.0, binHeight, wallWidth, 1.0, false,
                                                          true, floor_mat);
         wall4->SetPos(ChVector<>(0, 0, binLength / 2.0 + wallWidth / 2.0));
         wall4->SetBodyFixed(true);
@@ -932,7 +933,7 @@ class MyEventReceiver : public IEventReceiver {
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // Create a ChronoENGINE physical system
+    // Create a Chrono physical system
     ChSystemNSC sys;
 
     // ** user input
@@ -951,7 +952,12 @@ int main(int argc, char* argv[]) {
     double binLen = 2.4;
     TestMech* mTestMechanism = new TestMech(&sys, mwheel->wheel, binWidth, binLen, suspMass, 2500., 10.);
 
-    // Create the Irrlicht visualization sys
+    // Create the collision system
+    auto coll = chrono_types::make_shared<ChCollisionSystemBullet>();
+    sys.SetCollisionSystem(coll);
+    coll->Initialize();
+
+    // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
     vis->AttachSystem(&sys);
     vis->SetWindowSize(1024, 768);
