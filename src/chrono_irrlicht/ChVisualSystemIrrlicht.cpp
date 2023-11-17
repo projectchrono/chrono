@@ -514,6 +514,7 @@ void ChVisualSystemIrrlicht::EnableContactDrawing(ContactsDrawMode mode) {
         m_gui->SetContactsDrawMode(mode);
 }
 
+
 void ChVisualSystemIrrlicht::EnableLinkDrawing(LinkDrawMode mode) {
     if (m_gui->initialized)
         m_gui->SetLinksDrawMode(mode);
@@ -532,6 +533,11 @@ void ChVisualSystemIrrlicht::EnableLinkFrameDrawing(bool val) {
 void ChVisualSystemIrrlicht::EnableCollisionShapeDrawing(bool val) {
     if (m_gui->initialized)
         m_gui->SetPlotCollisionShapes(val);
+}
+
+void ChVisualSystemIrrlicht::EnableAbsCoordsysDrawing(bool val) {
+    if (m_gui->initialized)
+        m_gui->SetPlotAbsCoordsys(val);
 }
 
 void ChVisualSystemIrrlicht::ShowInfoPanel(bool val) {
