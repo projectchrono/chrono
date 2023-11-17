@@ -116,6 +116,9 @@ int main(int argc, char* argv[]) {
 
     ChSystemMulticoreNSC sys;
 
+    // Set associated collision detection system
+    sys.SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
+
     // Set number of threads
     sys.SetNumThreads(8);
 
