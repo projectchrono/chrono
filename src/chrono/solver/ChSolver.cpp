@@ -22,13 +22,12 @@ class my_enum_mappers : public ChSolver {
   public:
     CH_ENUM_MAPPER_BEGIN(Type);
     CH_ENUM_VAL(Type::PSOR);
-    CH_ENUM_VAL(Type::PSOR);
     CH_ENUM_VAL(Type::PSSOR);
     CH_ENUM_VAL(Type::PJACOBI);
     CH_ENUM_VAL(Type::PMINRES);
     CH_ENUM_VAL(Type::BARZILAIBORWEIN);
     CH_ENUM_VAL(Type::APGD);
-    CH_ENUM_VAL(Type::ADDM);
+    CH_ENUM_VAL(Type::ADMM);
     CH_ENUM_VAL(Type::SPARSE_LU);
     CH_ENUM_VAL(Type::SPARSE_QR);
     CH_ENUM_VAL(Type::PARDISO_MKL);
