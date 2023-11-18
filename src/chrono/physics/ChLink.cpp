@@ -54,8 +54,8 @@ void ChLink::ArchiveOut(ChArchiveOut& marchive) {
     // serialize all member data:
     marchive << CHNVP(Body1);
     marchive << CHNVP(Body2);
-    marchive << CHNVP(react_force);
-    marchive << CHNVP(react_torque);
+    //marchive << CHNVP(react_force);
+    //marchive << CHNVP(react_torque);
 }
 
 void ChLink::ArchiveIn(ChArchiveIn& marchive) {
@@ -68,8 +68,8 @@ void ChLink::ArchiveIn(ChArchiveIn& marchive) {
     // deserialize all member data:
     marchive >> CHNVP(Body1);
     marchive >> CHNVP(Body2);
-    marchive >> CHNVP(react_force);
-    marchive >> CHNVP(react_torque);
+    //marchive >> CHNVP(react_force);
+    //marchive >> CHNVP(react_torque);
 }
 
 }  // end namespace chrono
