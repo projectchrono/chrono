@@ -12,7 +12,6 @@
 
 #include "chrono_cascade/ChCascadeBodyEasy.h"
 
-
 namespace chrono {
 namespace cascade {
 
@@ -86,10 +85,8 @@ void ChCascadeBodyEasy::Init(TopoDS_Shape& shape,
         // Add a collision shape if needed
         if (collide) {
             assert(mat);
-            GetCollisionModel()->Clear();
             auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, trimesh, false, false, 0.0);
-            GetCollisionModel()->AddShape(ct_shape);
-            GetCollisionModel()->Build();
+            AddCollisionShape(ct_shape);
             SetCollide(true);
         }
     }
@@ -233,7 +230,6 @@ void ChCascadeBodyEasyProfile::UpdateCollisionAndVisualizationShapes() {
 
     // Add a collision shape if needed
 
-    GetCollisionModel()->Clear();
     bool somefacecollide = false;
 
     for (auto& chface : this->faces) {
@@ -243,20 +239,17 @@ void ChCascadeBodyEasyProfile::UpdateCollisionAndVisualizationShapes() {
                 ChVector<> pathposz = mpath->Evaluate(0.0);  // for offset along Z
                 auto ct_shape =
                     chrono_types::make_shared<ChCollisionShapePath2D>(chface.material, mpath, chface.thickness * 0.99);
-                GetCollisionModel()->AddShape(
-                    ct_shape, ChFrame<>(ChVector<>(0, 0, pathposz.z() + chface.thickness * 0.5), QUNIT));
+                AddCollisionShape(ct_shape, ChFrame<>(ChVector<>(0, 0, pathposz.z() + chface.thickness * 0.5), QUNIT));
             }
             for (auto mhole : chface.holes) {
                 ChVector<> pathposz = mhole->Evaluate(0.0);  // for offset along Z
                 auto ct_shape =
                     chrono_types::make_shared<ChCollisionShapePath2D>(chface.material, mhole, chface.thickness * 0.99);
-                GetCollisionModel()->AddShape(ct_shape,
-                                              ChFrame<>(ChVector<>(0, 0, pathposz.z() + chface.thickness * 0.5), QUNIT));
+                AddCollisionShape(ct_shape, ChFrame<>(ChVector<>(0, 0, pathposz.z() + chface.thickness * 0.5), QUNIT));
             }
             somefacecollide = true;
         }
     }
-    GetCollisionModel()->Build();
     if (somefacecollide)
         SetCollide(true);
     else

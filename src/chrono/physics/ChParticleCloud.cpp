@@ -639,21 +639,27 @@ void ChParticleCloud::SetCollide(bool state) {
     if (!particle_collision_model)
         return;
 
+    // Nothing to do if not attached to a system
+    if (GetSystem())
+        return;
+
+    // Nothing to do if no collision system or the system was not initialized
+    // (in the latter case, the collsion model will be processed at initialization)
+    auto coll_sys = GetSystem()->GetCollisionSystem().get();
+    if (!coll_sys || !coll_sys->IsInitialized())
+        return;
+
     // If enabling collision, add to collision system if not already processed
     if (collide && !particles.empty() && !particles[0]->GetCollisionModel()->HasImplementation()) {
-        if (GetSystem() && GetSystem()->GetCollisionSystem()) {
-            for (auto particle : particles)
-                GetSystem()->GetCollisionSystem()->Add(particle->GetCollisionModel());
-        }
+        for (auto particle : particles)
+            coll_sys->Add(particle->GetCollisionModel());
         return;
     }
 
     // If disabling collision, remove the from collision system if already processed
     if (!collide && !particles.empty() && particles[0]->GetCollisionModel()->HasImplementation()) {
-        if (GetSystem() && GetSystem()->GetCollisionSystem()) {
-            for (auto particle : particles)
-                GetSystem()->GetCollisionSystem()->Remove(particle->GetCollisionModel());
-        }
+        for (auto particle : particles)
+            coll_sys->Remove(particle->GetCollisionModel());
         return;
     }
 }

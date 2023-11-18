@@ -48,6 +48,9 @@ class ChApi ChCollisionSystem {
 
     virtual ~ChCollisionSystem();
 
+    /// Test if the collision system was initialized.
+    bool IsInitialized() const { return m_initialized; }
+
     /// Initialize the collision system.
     /// This call must trigger a parsing of the associated Chrono system to process all collision models.
     virtual void Initialize();

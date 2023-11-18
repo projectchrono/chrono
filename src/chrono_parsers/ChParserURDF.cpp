@@ -310,8 +310,7 @@ void ChParserURDF::attachCollision(std::shared_ptr<ChBody> body,
         contact_material = m_default_mat_data.CreateMaterial(m_sys->GetContactMethod());
 
     // Create collision shapes
-    auto collision_model = body->GetCollisionModel();
-    collision_model->Clear();
+    // Note: a collision model is created for this body when the first collsion shape is added
     for (const auto& collision : collision_array) {
         if (collision) {
             auto frame = ref_frame * toChFrame(collision->origin);
@@ -321,20 +320,20 @@ void ChParserURDF::attachCollision(std::shared_ptr<ChBody> body,
                     auto box = std::static_pointer_cast<urdf::Box>(collision->geometry);
                     auto ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(contact_material, box->dim.x,
                                                                                    box->dim.y, box->dim.z);
-                    collision_model->AddShape(ct_shape, frame);
+                    body->AddCollisionShape(ct_shape, frame);
                     break;
                 }
                 case urdf::Geometry::CYLINDER: {
                     auto cylinder = std::static_pointer_cast<urdf::Cylinder>(collision->geometry);
                     auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(
                         contact_material, cylinder->radius, cylinder->length);
-                    collision_model->AddShape(ct_shape, frame);
+                    body->AddCollisionShape(ct_shape, frame);
                     break;
                 }
                 case urdf::Geometry::SPHERE: {
                     auto sphere = std::static_pointer_cast<urdf::Sphere>(collision->geometry);
                     auto ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(contact_material, sphere->radius);
-                    collision_model->AddShape(ct_shape, frame);
+                    body->AddCollisionShape(ct_shape, frame);
                     break;
                 }
                 case urdf::Geometry::MESH: {
@@ -361,20 +360,20 @@ void ChParserURDF::attachCollision(std::shared_ptr<ChBody> body,
                         case MeshCollisionType::TRIANGLE_MESH: {
                             auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(
                                 contact_material, trimesh, false, false, 0.002);
-                            collision_model->AddShape(ct_shape, frame);
+                            body->AddCollisionShape(ct_shape, frame);
                             break;
                         }
                         case MeshCollisionType::CONVEX_HULL: {
                             auto ct_shape = chrono_types::make_shared<ChCollisionShapeConvexHull>(
                                 contact_material, trimesh->getCoordsVertices());
-                            collision_model->AddShape(ct_shape, frame);
+                            body->AddCollisionShape(ct_shape, frame);
                             break;
                         }
                         case MeshCollisionType::NODE_CLOUD: {
                             for (const auto& v : trimesh->getCoordsVertices()) {
                                 auto ct_shape =
                                     chrono_types::make_shared<ChCollisionShapeSphere>(contact_material, 0.002);
-                                collision_model->AddShape(ct_shape, ChFrame<>(v, QUNIT));
+                                body->AddCollisionShape(ct_shape, ChFrame<>(v, QUNIT));
                             }
                             break;
                         }
@@ -385,7 +384,6 @@ void ChParserURDF::attachCollision(std::shared_ptr<ChBody> body,
             collision->origin;
         }
     }
-    collision_model->Build();
 }
 
 bool Discard(urdf::LinkConstSharedPtr link) {

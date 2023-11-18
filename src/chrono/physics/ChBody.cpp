@@ -678,17 +678,25 @@ void ChBody::SetCollide(bool state) {
     if (!collision_model)
         return;
 
+    // Nothing to do if not attached to a system
+    if (GetSystem())
+        return;
+
+    // Nothing to do if no collision system or the system was not initialized
+    // (in the latter case, the collsion model will be processed at initialization)
+    auto coll_sys = GetSystem()->GetCollisionSystem().get();
+    if (!coll_sys || !coll_sys->IsInitialized())
+        return;
+
     // If enabling collision, add to collision system if not already processed
     if (collide && !collision_model->HasImplementation()) {
-        if (GetSystem() && GetSystem()->GetCollisionSystem())
-            GetSystem()->GetCollisionSystem()->Add(collision_model);
+        coll_sys->Add(collision_model);
         return;
     }
 
     // If disabling collision, remove from collision system if already processed
     if (!collide && collision_model->HasImplementation()) {
-        if (GetSystem() && GetSystem()->GetCollisionSystem())
-            GetSystem()->GetCollisionSystem()->Remove(collision_model);
+        coll_sys->Remove(collision_model);
         return;
     }
 }
